@@ -1,15 +1,24 @@
 import { Button, type ButtonProps } from 'ui/button'
+import { defineMessage, IntlMessage } from 'ui/primitives/intl'
+
+const resetMessage = defineMessage({
+	id: 'docs.example.reset',
+	defaultMessage: 'Reset',
+	description:
+		'The label of the button that puts an example back in its first state, such as after a close or a delete.',
+})
 
 /**
  * The look and the label of the button that resets an example: a soft red button with the
- * text "Reset". This record is the one source of these values. A button that changes to a
- * reset button, such as the "Simulate load" button of a skeleton example, spreads it when
- * it resets, so that the button stays one element and keeps the focus.
+ * text "Reset", in the language of the reader. This record is the one source of these
+ * values. A button that changes to a reset button, such as the "Simulate load" button of a
+ * skeleton example, spreads it when it resets, so that the button stays one element and
+ * keeps the focus.
  */
 export const resetButtonProps = {
 	variant: 'soft',
 	color: 'red',
-	children: 'Reset',
+	children: <IntlMessage message={resetMessage} />,
 } as const satisfies ButtonProps
 
 /** Props for {@link ResetButton}: the props of a `Button` that is not a link, with no look. */

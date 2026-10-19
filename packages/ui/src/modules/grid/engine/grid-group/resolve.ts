@@ -38,6 +38,8 @@ export type GridDetailExpansion<T> = {
 export type GridGroupHeader = {
 	spans: GridGroupSpan[]
 	collapsed: ReadonlySet<string | number>
+	/** The ids that collapsed groups hide, so a band counts its own. */
+	collapsedHidden: ReadonlySet<string | number>
 	onToggleCollapse: (id: string | number) => void
 }
 
@@ -56,12 +58,11 @@ export type GridGroupResult = {
 	editorSetGroups: ((next: GridColumnGroup[]) => void) | undefined
 	collapsed: ReadonlySet<string | number>
 	toggleCollapse: (id: string | number) => void
-	/** Ids collapsed groups hide from the engine; union into `columnVisibility`. */
-	collapsedHidden: Set<string | number>
 	/** Resolves the band row for the current visible columns and their pin sides. */
 	resolveHeader: (
 		visibleColumnIds: (string | number)[],
 		pinnedSide: (id: string | number) => 'left' | 'right' | undefined,
+		collapsedHidden: ReadonlySet<string | number>,
 	) => GridGroupHeader
 }
 
@@ -313,7 +314,8 @@ export function detailPanelId(idScope: string, rowKey: string | number): string 
 /**
  * Resolves the column-group band row for the rendered columns. It returns the
  * {@link GridGroupHeader} spans, from the visible column ids and their pin
- * sides, and whether any band actually spans columns. Kept out of
+ * sides, and whether any band actually spans columns. `collapsedHidden` is the
+ * column slice's set of the ids that collapsed groups hide. Kept out of
  * {@link GridData} so its branch doesn't weigh on the component's complexity.
  *
  * @internal
@@ -322,12 +324,14 @@ export function resolveGroupHeaderRow<T>(
 	group: GridGroupResult,
 	visibleColumns: GridColumn<T>[],
 	pinning: GridColumnPinning | null,
+	collapsedHidden: ReadonlySet<string | number>,
 ): { header: GridGroupHeader | null; hasGroupRow: boolean } {
 	if (!group.hasGroups) return { header: null, hasGroupRow: false }
 
 	const header = group.resolveHeader(
 		visibleColumns.map((column) => column.id),
 		(id) => pinning?.column(id)?.side,
+		collapsedHidden,
 	)
 
 	return { header, hasGroupRow: header.spans.some((span) => span.kind === 'group') }

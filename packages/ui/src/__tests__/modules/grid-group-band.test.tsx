@@ -151,6 +151,52 @@ describe('Grid column groups', () => {
 		expect(dataColHeaders()).toEqual(['first', 'last', 'email'])
 	})
 
+	const collapsedGroup: GridColumnGroup[] = [
+		{
+			id: 'name',
+			title: 'Name',
+			columns: ['first', 'last', 'email'],
+			collapsible: true,
+			defaultCollapsed: true,
+		},
+	]
+
+	const headerIds = (root: HTMLElement) =>
+		Array.from(root.querySelectorAll<HTMLElement>('thead th[data-grid-col]')).map((th) =>
+			th.getAttribute('data-grid-col'),
+		)
+
+	it('promotes the next member to anchor when the reader hid the first', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnGroups={collapsedGroup}
+				columnManager={{ defaultHidden: new Set(['first']) }}
+			/>,
+		)
+
+		expect(headerIds(container)).toEqual(['last'])
+
+		expect(bandCell(container)?.textContent).toContain('+1')
+	})
+
+	it('promotes the next member to anchor when the first is pinned', () => {
+		const pinnedFirst: GridColumn<Row>[] = [
+			{ id: 'first', title: 'First', cell: (row) => row.first, pinned: 'left' },
+			...columns.slice(1),
+		]
+
+		const { container } = renderUI(
+			<Grid columns={pinnedFirst} rows={rows} getKey={getKey} columnGroups={collapsedGroup} />,
+		)
+
+		expect(headerIds(container)).toEqual(['first', 'last'])
+
+		expect(bandCell(container)?.textContent).toContain('+1')
+	})
+
 	it('shows a caret-right toggle when expanded and caret-left when collapsed', () => {
 		const collapsible: GridColumnGroup[] = [
 			{ id: 'name', title: 'Name', columns: ['first', 'last'], collapsible: true },

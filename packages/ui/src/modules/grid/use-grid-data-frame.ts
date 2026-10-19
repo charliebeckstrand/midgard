@@ -133,6 +133,7 @@ export function useGridDataFrame<T>({
 	resize,
 	className,
 	group,
+	collapsedHidden,
 	pinning,
 	grandTotalRow,
 	grandTotalRows,
@@ -194,6 +195,8 @@ export function useGridDataFrame<T>({
 	resize: GridColumnResize | null
 	/** The column groups, for the band row. */
 	group: GridGroupResult
+	/** The ids that collapsed groups hide, from the column slice; each band counts its own. */
+	collapsedHidden: ReadonlySet<string | number>
 	pinning: GridColumnPinning | null
 	/** The full filtered row set that the grand total sums. */
 	grandTotalRows: readonly T[]
@@ -250,7 +253,12 @@ export function useGridDataFrame<T>({
 	// Resolve the group band row from the rendered columns and their pin sides.
 	// `hasGroupRow` is true only when a band actually spans columns, so an empty or
 	// fully-ungrouped binding leaves the header a single row.
-	const { header: groupHeader, hasGroupRow } = resolveGroupHeaderRow(group, visibleColumns, pinning)
+	const { header: groupHeader, hasGroupRow } = resolveGroupHeaderRow(
+		group,
+		visibleColumns,
+		pinning,
+		collapsedHidden,
+	)
 
 	// The band adds a header row: the aria row count and the body's global row
 	// offset each shift by this (0 or 1) so assistive tech counts both header rows.

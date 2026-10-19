@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { GRID_SEARCH_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
-import { renderUI, screen, withFakeTime } from '../helpers'
+import { renderUI, screen } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 describe('Grid search', () => {
 	type Row = { id: number; name: string; role: string }
@@ -28,170 +29,228 @@ describe('Grid search', () => {
 		expect(screen.getByRole('searchbox')).toBeInTheDocument()
 	})
 
-	it('filters rows client-side once the query settles, holding every row until then', async () => {
-		await withFakeTime(async (clock) => {
-			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
+	it('filters rows client-side once the query settles, holding every row until then', async ({
+		clock,
+	}) => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
 
-			await clock.user.type(screen.getByRole('searchbox'), 'Alice')
+		await clock.user.type(screen.getByRole('searchbox'), 'Alice')
 
-			// Before the debounce elapses the engine has not re-filtered yet.
-			await clock.advance(GRID_SEARCH_DEBOUNCE_MS - 1)
+		// Before the debounce elapses the engine has not re-filtered yet.
+		await clock.advance(GRID_SEARCH_DEBOUNCE_MS - 1)
 
-			expect(screen.getByText('Bob')).toBeInTheDocument()
+		expect(screen.getByText('Bob')).toBeInTheDocument()
 
-			await clock.advance(1)
+		await clock.advance(1)
 
-			expect(screen.getByText('Alice')).toBeInTheDocument()
+		expect(screen.getByText('Alice')).toBeInTheDocument()
 
-			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
-		})
+		expect(screen.queryByText('Bob')).not.toBeInTheDocument()
 	})
 
-	it('flushes the pending query on Enter, before the debounce settles', async () => {
-		await withFakeTime(async (clock) => {
-			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
+	it('flushes the pending query on Enter, before the debounce settles', async ({ clock }) => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
 
-			// Enter bypasses the debounce, so the rows filter without
-			// advancing time — Bob is gone the moment Enter lands.
-			await clock.user.type(screen.getByRole('searchbox'), 'Alice{Enter}')
+		// Enter bypasses the debounce, so the rows filter without
+		// advancing time — Bob is gone the moment Enter lands.
+		await clock.user.type(screen.getByRole('searchbox'), 'Alice{Enter}')
 
-			expect(screen.getByText('Alice')).toBeInTheDocument()
+		expect(screen.getByText('Alice')).toBeInTheDocument()
 
-			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
-		})
+		expect(screen.queryByText('Bob')).not.toBeInTheDocument()
 	})
 
-	it('fires onValueChange with the settled query', async () => {
-		await withFakeTime(async (clock) => {
-			const onValueChange = vi.fn()
+	it('fires onValueChange with the settled query', async ({ clock }) => {
+		const onValueChange = vi.fn()
 
+		renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} search={{ value: '', onValueChange }} />,
+		)
+
+		await clock.user.type(screen.getByRole('searchbox'), 'B')
+
+		await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+		expect(onValueChange).toHaveBeenLastCalledWith('B')
+	})
+
+	it('shows an external reset of a controlled query', async ({ clock }) => {
+		const onValueChange = vi.fn()
+
+		const { rerender } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				search={{ value: 'Alice', onValueChange }}
+			/>,
+		)
+
+		const field = screen.getByRole<HTMLInputElement>('searchbox')
+
+		expect(field.value).toBe('Alice')
+
+		// The user starts a new query, and the owner resets the search before the
+		// debounce settles.
+		await clock.user.type(field, 'x')
+
+		rerender(
+			<Grid columns={columns} rows={rows} getKey={getKey} search={{ value: '', onValueChange }} />,
+		)
+
+		expect(field.value).toBe('')
+
+		await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+		// The pending query does not write the old text back over the reset.
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		expect(screen.getByText('Bob')).toBeInTheDocument()
+	})
+
+	it('sends no query when the owner sets the pending text before the debounce settles', async ({
+		clock,
+	}) => {
+		const onValueChange = vi.fn()
+
+		const search = (value: string) => (
+			<Grid columns={columns} rows={rows} getKey={getKey} search={{ value, onValueChange }} />
+		)
+
+		const { rerender } = renderUI(search(''))
+
+		await clock.user.type(screen.getByRole('searchbox'), 'Bob')
+
+		// The owner sets the same text that the field has pending. The owner
+		// holds the query already, so the field does not send it back.
+		rerender(search('Bob'))
+
+		await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+	})
+
+	it('applies a cleared query immediately, recovering the hidden rows', async ({ clock }) => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
+
+		await clock.user.type(screen.getByRole('searchbox'), 'Alice')
+
+		await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+		expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+
+		await clock.user.click(screen.getByRole('button', { name: 'Clear search' }))
+
+		// Clearing bypasses the debounce, so the rows return without advancing time.
+		expect(screen.getByText('Bob')).toBeInTheDocument()
+	})
+
+	it('does not filter client-side in manual (server) mode', async ({ clock }) => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				search={{ manual: true, onValueChange }}
+			/>,
+		)
+
+		await clock.user.type(screen.getByRole('searchbox'), 'Alice')
+
+		await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+		// The engine leaves rows untouched; the consumer would refetch from the query.
+		expect(screen.getByText('Alice')).toBeInTheDocument()
+
+		expect(screen.getByText('Bob')).toBeInTheDocument()
+
+		expect(onValueChange).toHaveBeenCalled()
+	})
+
+	it('searches only columns that declare a value accessor', async ({ clock }) => {
+		type NoteRow = Row & { note: string }
+
+		const withNote: GridColumn<NoteRow>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
+			{ id: 'note', title: 'Note', cell: (row) => row.note },
+		]
+
+		const noteRows: NoteRow[] = [
+			{ id: 1, name: 'Alice', role: 'Developer', note: 'zzz' },
+			{ id: 2, name: 'Bob', role: 'Designer', note: 'qqq' },
+		]
+
+		renderUI(<Grid columns={withNote} rows={noteRows} getKey={(row) => row.id} search={{}} />)
+
+		await clock.user.type(screen.getByRole('searchbox'), 'zzz')
+
+		await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+		// `note` has no value accessor, so its content is not searched.
+		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+
+		expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+	})
+
+	it('submits no form around the grid on Enter in the search', async ({ clock }) => {
+		const onSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
+
+		renderUI(
+			<form onSubmit={onSubmit}>
+				<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />
+			</form>,
+		)
+
+		// The grid renders no form of its own, so a form around it is valid HTML.
+		expect(document.querySelectorAll('form')).toHaveLength(1)
+
+		await clock.user.type(screen.getByRole('searchbox'), 'Alice{Enter}')
+
+		expect(onSubmit).not.toHaveBeenCalled()
+
+		// Enter still applies the query at once.
+		expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+	})
+
+	describe("highlight mode (mode: 'highlight')", () => {
+		it('keeps every row and marks the match instead of pruning', async ({ clock }) => {
 			renderUI(
-				<Grid
-					columns={columns}
-					rows={rows}
-					getKey={getKey}
-					search={{ value: '', onValueChange }}
-				/>,
+				<Grid columns={columns} rows={rows} getKey={getKey} search={{ mode: 'highlight' }} />,
 			)
 
-			await clock.user.type(screen.getByRole('searchbox'), 'B')
+			await clock.user.type(screen.getByRole('searchbox'), 'Ali')
 
 			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
 
-			expect(onValueChange).toHaveBeenLastCalledWith('B')
-		})
-	})
-
-	it('shows an external reset of a controlled query', async () => {
-		await withFakeTime(async (clock) => {
-			const onValueChange = vi.fn()
-
-			const { rerender } = renderUI(
-				<Grid
-					columns={columns}
-					rows={rows}
-					getKey={getKey}
-					search={{ value: 'Alice', onValueChange }}
-				/>,
-			)
-
-			const field = screen.getByRole<HTMLInputElement>('searchbox')
-
-			expect(field.value).toBe('Alice')
-
-			// The user starts a new query, and the owner resets the search before the
-			// debounce settles.
-			await clock.user.type(field, 'x')
-
-			rerender(
-				<Grid
-					columns={columns}
-					rows={rows}
-					getKey={getKey}
-					search={{ value: '', onValueChange }}
-				/>,
-			)
-
-			expect(field.value).toBe('')
-
-			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
-
-			// The pending query does not write the old text back over the reset.
-			expect(onValueChange).not.toHaveBeenCalled()
-
+			// The non-matching row stays in place — the search marks, it doesn't prune.
 			expect(screen.getByText('Bob')).toBeInTheDocument()
+
+			// The match is wrapped in a <mark>, carrying only the matched substring.
+			const marks = document.querySelectorAll('mark')
+
+			expect(marks).toHaveLength(1)
+
+			expect(marks[0]).toHaveTextContent('Ali')
 		})
-	})
 
-	it('sends no query when the owner sets the pending text before the debounce settles', async () => {
-		await withFakeTime(async (clock) => {
-			const onValueChange = vi.fn()
-
-			const search = (value: string) => (
-				<Grid columns={columns} rows={rows} getKey={getKey} search={{ value, onValueChange }} />
-			)
-
-			const { rerender } = renderUI(search(''))
-
-			await clock.user.type(screen.getByRole('searchbox'), 'Bob')
-
-			// The owner sets the same text that the field has pending. The owner
-			// holds the query already, so the field does not send it back.
-			rerender(search('Bob'))
-
-			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
-
-			expect(onValueChange).not.toHaveBeenCalled()
-
-			expect(screen.queryByText('Alice')).not.toBeInTheDocument()
-		})
-	})
-
-	it('applies a cleared query immediately, recovering the hidden rows', async () => {
-		await withFakeTime(async (clock) => {
-			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
-
-			await clock.user.type(screen.getByRole('searchbox'), 'Alice')
-
-			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
-
-			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
-
-			await clock.user.click(screen.getByRole('button', { name: 'Clear search' }))
-
-			// Clearing bypasses the debounce, so the rows return without advancing time.
-			expect(screen.getByText('Bob')).toBeInTheDocument()
-		})
-	})
-
-	it('does not filter client-side in manual (server) mode', async () => {
-		await withFakeTime(async (clock) => {
-			const onValueChange = vi.fn()
-
+		it('marks case-insensitively while preserving the matched casing', async ({ clock }) => {
 			renderUI(
-				<Grid
-					columns={columns}
-					rows={rows}
-					getKey={getKey}
-					search={{ manual: true, onValueChange }}
-				/>,
+				<Grid columns={columns} rows={rows} getKey={getKey} search={{ mode: 'highlight' }} />,
 			)
 
-			await clock.user.type(screen.getByRole('searchbox'), 'Alice')
+			await clock.user.type(screen.getByRole('searchbox'), 'ali')
 
 			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
 
-			// The engine leaves rows untouched; the consumer would refetch from the query.
-			expect(screen.getByText('Alice')).toBeInTheDocument()
-
-			expect(screen.getByText('Bob')).toBeInTheDocument()
-
-			expect(onValueChange).toHaveBeenCalled()
+			// A lowercase query still matches 'Alice', and the mark keeps the original casing.
+			expect(document.querySelector('mark')).toHaveTextContent('Ali')
 		})
-	})
 
-	it('searches only columns that declare a value accessor', async () => {
-		await withFakeTime(async (clock) => {
+		it('marks only columns the search scans (those with a value accessor)', async ({ clock }) => {
 			type NoteRow = Row & { note: string }
 
 			const withNote: GridColumn<NoteRow>[] = [
@@ -200,193 +259,101 @@ describe('Grid search', () => {
 			]
 
 			const noteRows: NoteRow[] = [
-				{ id: 1, name: 'Alice', role: 'Developer', note: 'zzz' },
+				{ id: 1, name: 'Alice', role: 'Developer', note: 'Alice in note' },
 				{ id: 2, name: 'Bob', role: 'Designer', note: 'qqq' },
 			]
 
-			renderUI(<Grid columns={withNote} rows={noteRows} getKey={(row) => row.id} search={{}} />)
+			renderUI(
+				<Grid
+					columns={withNote}
+					rows={noteRows}
+					getKey={(row) => row.id}
+					search={{ mode: 'highlight' }}
+				/>,
+			)
 
-			await clock.user.type(screen.getByRole('searchbox'), 'zzz')
+			await clock.user.type(screen.getByRole('searchbox'), 'Alice')
 
 			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
 
-			// `note` has no value accessor, so its content is not searched.
-			expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+			// 'note' has no value accessor: its 'Alice' text is not scanned, so only the
+			// name cell's match is marked.
+			const marks = document.querySelectorAll('mark')
 
-			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
-		})
-	})
+			expect(marks).toHaveLength(1)
 
-	it('submits no form around the grid on Enter in the search', async () => {
-		await withFakeTime(async (clock) => {
-			const onSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
-
-			renderUI(
-				<form onSubmit={onSubmit}>
-					<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />
-				</form>,
-			)
-
-			// The grid renders no form of its own, so a form around it is valid HTML.
-			expect(document.querySelectorAll('form')).toHaveLength(1)
-
-			await clock.user.type(screen.getByRole('searchbox'), 'Alice{Enter}')
-
-			expect(onSubmit).not.toHaveBeenCalled()
-
-			// Enter still applies the query at once.
-			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
-		})
-	})
-
-	describe("highlight mode (mode: 'highlight')", () => {
-		it('keeps every row and marks the match instead of pruning', async () => {
-			await withFakeTime(async (clock) => {
-				renderUI(
-					<Grid columns={columns} rows={rows} getKey={getKey} search={{ mode: 'highlight' }} />,
-				)
-
-				await clock.user.type(screen.getByRole('searchbox'), 'Ali')
-
-				await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
-
-				// The non-matching row stays in place — the search marks, it doesn't prune.
-				expect(screen.getByText('Bob')).toBeInTheDocument()
-
-				// The match is wrapped in a <mark>, carrying only the matched substring.
-				const marks = document.querySelectorAll('mark')
-
-				expect(marks).toHaveLength(1)
-
-				expect(marks[0]).toHaveTextContent('Ali')
-			})
+			expect(screen.getByText('Alice in note')).toBeInTheDocument()
 		})
 
-		it('marks case-insensitively while preserving the matched casing', async () => {
-			await withFakeTime(async (clock) => {
-				renderUI(
-					<Grid columns={columns} rows={rows} getKey={getKey} search={{ mode: 'highlight' }} />,
-				)
-
-				await clock.user.type(screen.getByRole('searchbox'), 'ali')
-
-				await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
-
-				// A lowercase query still matches 'Alice', and the mark keeps the original casing.
-				expect(document.querySelector('mark')).toHaveTextContent('Ali')
-			})
-		})
-
-		it('marks only columns the search scans (those with a value accessor)', async () => {
-			await withFakeTime(async (clock) => {
-				type NoteRow = Row & { note: string }
-
-				const withNote: GridColumn<NoteRow>[] = [
-					{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
-					{ id: 'note', title: 'Note', cell: (row) => row.note },
-				]
-
-				const noteRows: NoteRow[] = [
-					{ id: 1, name: 'Alice', role: 'Developer', note: 'Alice in note' },
-					{ id: 2, name: 'Bob', role: 'Designer', note: 'qqq' },
-				]
-
-				renderUI(
-					<Grid
-						columns={withNote}
-						rows={noteRows}
-						getKey={(row) => row.id}
-						search={{ mode: 'highlight' }}
-					/>,
-				)
-
-				await clock.user.type(screen.getByRole('searchbox'), 'Alice')
-
-				await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
-
-				// 'note' has no value accessor: its 'Alice' text is not scanned, so only the
-				// name cell's match is marked.
-				const marks = document.querySelectorAll('mark')
-
-				expect(marks).toHaveLength(1)
-
-				expect(screen.getByText('Alice in note')).toBeInTheDocument()
-			})
-		})
-
-		it.each([
+		it.for([
 			['an editable grid', { editable: { session: 'managed', onCommit: () => {} } }],
 			['the leaves of a grouped grid', { groupBy: { value: 'role' } }],
-		] as const)('marks the match in %s', async (_name, props) => {
-			await withFakeTime(async (clock) => {
-				const fields: GridColumn<Row>[] = columns.map((column) => ({
-					...column,
-					field: column.id as keyof Row,
-				}))
+		] as const)('marks the match in %s', async ([_name, props], { clock }) => {
+			const fields: GridColumn<Row>[] = columns.map((column) => ({
+				...column,
+				field: column.id as keyof Row,
+			}))
 
-				renderUI(
-					<Grid
-						columns={fields}
-						rows={rows}
-						getKey={getKey}
-						search={{ mode: 'highlight' }}
-						{...props}
-					/>,
-				)
+			renderUI(
+				<Grid
+					columns={fields}
+					rows={rows}
+					getKey={getKey}
+					search={{ mode: 'highlight' }}
+					{...props}
+				/>,
+			)
 
-				await clock.user.type(screen.getByRole('searchbox'), 'Ali')
+			await clock.user.type(screen.getByRole('searchbox'), 'Ali')
 
-				await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
 
-				const marks = document.querySelectorAll('td mark')
+			const marks = document.querySelectorAll('td mark')
 
-				expect(marks).toHaveLength(1)
+			expect(marks).toHaveLength(1)
 
-				expect(marks[0]).toHaveTextContent('Ali')
-			})
+			expect(marks[0]).toHaveTextContent('Ali')
 		})
 
-		it('renders no cell of a column that the search does not scan when the query settles', async () => {
-			await withFakeTime(async (clock) => {
-				const note = vi.fn((row: Row) => `note ${row.id}`)
+		it('renders no cell of a column that the search does not scan when the query settles', async ({
+			clock,
+		}) => {
+			const note = vi.fn((row: Row) => `note ${row.id}`)
 
-				const withNote: GridColumn<Row>[] = [...columns, { id: 'note', title: 'Note', cell: note }]
+			const withNote: GridColumn<Row>[] = [...columns, { id: 'note', title: 'Note', cell: note }]
 
-				renderUI(
-					<Grid columns={withNote} rows={rows} getKey={getKey} search={{ mode: 'highlight' }} />,
-				)
+			renderUI(
+				<Grid columns={withNote} rows={rows} getKey={getKey} search={{ mode: 'highlight' }} />,
+			)
 
-				note.mockClear()
+			note.mockClear()
 
-				await clock.user.type(screen.getByRole('searchbox'), 'Ali')
+			await clock.user.type(screen.getByRole('searchbox'), 'Ali')
 
-				await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
 
-				expect(document.querySelector('mark')).toBeInTheDocument()
+			expect(document.querySelector('mark')).toBeInTheDocument()
 
-				expect(note).not.toHaveBeenCalled()
-			})
+			expect(note).not.toHaveBeenCalled()
 		})
 
-		it('clears the marks when the query is cleared', async () => {
-			await withFakeTime(async (clock) => {
-				renderUI(
-					<Grid columns={columns} rows={rows} getKey={getKey} search={{ mode: 'highlight' }} />,
-				)
+		it('clears the marks when the query is cleared', async ({ clock }) => {
+			renderUI(
+				<Grid columns={columns} rows={rows} getKey={getKey} search={{ mode: 'highlight' }} />,
+			)
 
-				await clock.user.type(screen.getByRole('searchbox'), 'Ali')
+			await clock.user.type(screen.getByRole('searchbox'), 'Ali')
 
-				await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
 
-				expect(document.querySelector('mark')).toBeInTheDocument()
+			expect(document.querySelector('mark')).toBeInTheDocument()
 
-				await clock.user.click(screen.getByRole('button', { name: 'Clear search' }))
+			await clock.user.click(screen.getByRole('button', { name: 'Clear search' }))
 
-				// The whole value returns to a single unmarked text node.
-				expect(document.querySelector('mark')).not.toBeInTheDocument()
+			// The whole value returns to a single unmarked text node.
+			expect(document.querySelector('mark')).not.toBeInTheDocument()
 
-				expect(screen.getByText('Alice')).toBeInTheDocument()
-			})
+			expect(screen.getByText('Alice')).toBeInTheDocument()
 		})
 	})
 })

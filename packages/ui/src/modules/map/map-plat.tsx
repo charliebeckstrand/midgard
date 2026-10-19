@@ -1387,6 +1387,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 						resolveStops,
 						view: { width: shape.viewWidth, height: shape.viewHeight },
 						svgRef,
+						subject: shape.features,
 					}}
 					tooltip={
 						// A backdrop map mounted a Tooltip that resolved `null` for every

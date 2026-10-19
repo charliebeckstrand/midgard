@@ -200,6 +200,39 @@ describe('Grid navigable cursor', () => {
 		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROLE]?.id)
 	})
 
+	// A press seats the cursor where it lands. A press on header chrome lands on no
+	// cell, so its focus seeds no cursor and scrolls nothing.
+	it('seeds no cursor on the focus of a press on the header', () => {
+		const scroll = vi.spyOn(Element.prototype, 'scrollIntoView')
+
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
+
+		const grid = screen.getByRole('grid')
+
+		const header = screen.getAllByRole('columnheader')[0] as HTMLElement
+
+		fireEvent.pointerDown(header)
+
+		fireEvent.focus(grid)
+
+		expect(grid).not.toHaveAttribute('aria-activedescendant')
+
+		expect(scroll).not.toHaveBeenCalled()
+
+		const cells = screen.getAllByRole('gridcell')
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_NAME]?.id)
+
+		fireEvent.blur(grid)
+
+		// A later entry from the keyboard seeds the cursor again.
+		fireEvent.focus(grid)
+
+		expect(grid).toHaveAttribute('aria-activedescendant')
+	})
+
 	it('reflects the active cell with data-active for styling', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
 

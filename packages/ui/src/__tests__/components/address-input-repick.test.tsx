@@ -1,9 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
 import { AddressInput } from '../../components/address-input'
 import { Form } from '../../modules/form'
 import { useFormActions } from '../../primitives/form/context'
-import { fireEvent, getSlot, renderUI, screen, withFakeTime } from '../helpers'
+import { fireEvent, getSlot, renderUI, screen } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 // A Form reset or a `setValue` changes the bound field. A pick of the same
 // suggestion after that is a change, so `onValueChange` must report it
@@ -42,42 +43,40 @@ function renderBound(onValueChange: (value: AddressSuggestion | null) => void) {
 }
 
 describe('AddressInput re-pick of a bound field', () => {
-	it.each([
+	it.for([
 		['a Form reset', 'Reset form'],
 		['a field setValue', 'Clear field'],
-	])('reports a pick of the same suggestion after %s', async (_, button) => {
-		await withFakeTime(async (clock) => {
-			const onValueChange = vi.fn()
+	])('reports a pick of the same suggestion after %s', async ([_, button], { clock }) => {
+		const onValueChange = vi.fn()
 
-			const { container } = renderBound(onValueChange)
+		const { container } = renderBound(onValueChange)
 
-			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
-			async function pick() {
-				await clock.user.clear(input)
+		async function pick() {
+			await clock.user.clear(input)
 
-				await clock.user.type(input, 'm')
+			await clock.user.type(input, 'm')
 
-				await clock.advance(0)
+			await clock.advance(0)
 
-				await clock.user.click(screen.getByRole('option', { name: /Main St/ }))
-			}
+			await clock.user.click(screen.getByRole('option', { name: /Main St/ }))
+		}
 
-			await pick()
+		await pick()
 
-			expect(onValueChange).toHaveBeenCalledTimes(1)
+		expect(onValueChange).toHaveBeenCalledTimes(1)
 
-			expect(onValueChange).toHaveBeenLastCalledWith(main)
+		expect(onValueChange).toHaveBeenLastCalledWith(main)
 
-			fireEvent.click(screen.getByRole('button', { name: button }))
+		fireEvent.click(screen.getByRole('button', { name: button }))
 
-			expect(input.value).toBe('')
+		expect(input.value).toBe('')
 
-			await pick()
+		await pick()
 
-			expect(onValueChange).toHaveBeenCalledTimes(2)
+		expect(onValueChange).toHaveBeenCalledTimes(2)
 
-			expect(onValueChange).toHaveBeenLastCalledWith(main)
-		})
+		expect(onValueChange).toHaveBeenLastCalledWith(main)
 	})
 })
