@@ -2,12 +2,22 @@
 
 import type { ReactNode } from 'react'
 import type { ScaleStep } from '../../core/density'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale'
 import type { scale } from '../../recipes/kata/table'
 import { fractionFormat } from '../../utilities'
 import { Table, TableBody, TableCell, TableFoot, TableHead, TableHeader, TableRow } from '../table'
 import type { PivotAggregation } from './types'
 import { type PivotTableKeys, usePivotTable } from './use-pivot-table'
+
+const messages = defineMessages({
+	total: {
+		id: 'ui.pivotTable.total',
+		defaultMessage: 'Total',
+		description: 'The header of the column and of the row that hold the totals of a pivot table.',
+	},
+})
 
 export type { PivotTableKeys } from './use-pivot-table'
 
@@ -96,6 +106,10 @@ export function PivotTable<T>({
 		},
 	)
 
+	const intl = useIntl()
+
+	const totalLabel = intl.formatMessage(messages.total)
+
 	const showRowTotals = totals === 'row' || totals === 'both'
 	const showColumnTotals = totals === 'col' || totals === 'both'
 
@@ -125,7 +139,7 @@ export function PivotTable<T>({
 					))}
 					{showRowTotals && (
 						<TableHeader scope="col" className="text-end">
-							Total
+							{totalLabel}
 						</TableHeader>
 					)}
 				</TableRow>
@@ -161,7 +175,7 @@ export function PivotTable<T>({
 				<TableFoot>
 					<TableRow className="font-semibold">
 						<TableHeader scope="row" className="font-semibold whitespace-nowrap">
-							Total
+							{totalLabel}
 						</TableHeader>
 						{columnKeys.map((column, index) => {
 							const total = columnTotals[index]

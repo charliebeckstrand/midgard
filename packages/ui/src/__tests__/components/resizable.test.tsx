@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
+import { LocaleProvider } from '../../providers/locale'
 import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 describe('Resizable', () => {
@@ -332,5 +333,21 @@ describe('Resizable: drag', () => {
 		expect(handle).not.toHaveAttribute('data-dragging')
 
 		expect(onSizesChange).not.toHaveBeenCalled()
+	})
+})
+
+describe('ResizableHandle in a locale', () => {
+	it('names the handle in the language of the locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="es-ES">
+				<ResizableGroup>
+					<ResizablePanel>A</ResizablePanel>
+					<ResizableHandle />
+					<ResizablePanel>B</ResizablePanel>
+				</ResizableGroup>
+			</LocaleProvider>,
+		)
+
+		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('aria-label', 'Cambiar el tamaño')
 	})
 })

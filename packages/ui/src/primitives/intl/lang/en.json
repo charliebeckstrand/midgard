@@ -7,6 +7,26 @@
 		"defaultMessage": "Dismiss",
 		"description": "The name of the button that closes a message or a toast."
 	},
+	"ui.avatar.statusActive": {
+		"defaultMessage": "Active",
+		"description": "The status of a person or an item, which a screen reader speaks after its avatar."
+	},
+	"ui.avatar.statusError": {
+		"defaultMessage": "Error",
+		"description": "The status of a person or an item that has a problem, which a screen reader speaks after its avatar."
+	},
+	"ui.avatar.statusInactive": {
+		"defaultMessage": "Inactive",
+		"description": "The status of a person or an item, which a screen reader speaks after its avatar."
+	},
+	"ui.avatar.statusInfo": {
+		"defaultMessage": "Info",
+		"description": "The status of a person or an item that has news, which a screen reader speaks after its avatar."
+	},
+	"ui.avatar.statusWarning": {
+		"defaultMessage": "Warning",
+		"description": "The status of a person or an item that needs attention, which a screen reader speaks after its avatar."
+	},
 	"ui.badge.remove": {
 		"defaultMessage": "Remove {label}",
 		"description": "The name of the button that removes a chip, such as a tag. The label is the text of the chip."
@@ -170,6 +190,18 @@
 	"ui.chat.views": {
 		"defaultMessage": "{views, plural, one {# embedded view} other {# embedded views}}",
 		"description": "Spoken after a reply of the assistant that holds views, such as charts. The count is the number of views."
+	},
+	"ui.codeBlock.copyFailed": {
+		"defaultMessage": "Copy failed",
+		"description": "Spoken when the copy button of a code block could not copy the code."
+	},
+	"ui.codeBlock.languageRegion": {
+		"defaultMessage": "{language} code",
+		"description": "The name of a scrollable block of code in a known language, such as \"TypeScript code\". The language is a name, such as TypeScript."
+	},
+	"ui.codeBlock.region": {
+		"defaultMessage": "Code",
+		"description": "The name of a scrollable block of code whose language is not known."
 	},
 	"ui.color.alpha": {
 		"defaultMessage": "Alpha",
@@ -1147,6 +1179,10 @@
 		"defaultMessage": "Yes",
 		"description": "The true choice of a yes-or-no cell of a grid."
 	},
+	"ui.jsonTree.items": {
+		"defaultMessage": "{count, plural, one {# item} other {# items}}",
+		"description": "The count of the items in an object or an array of a JSON tree, such as \"3 items\"."
+	},
 	"ui.kanban.drag": {
 		"defaultMessage": "Drag",
 		"description": "The first word of the name of the drag handle of a Kanban card. The name of the card follows it."
@@ -1166,6 +1202,10 @@
 	"ui.listbox.placeholder": {
 		"defaultMessage": "Select",
 		"description": "The placeholder of a picker with no selected value."
+	},
+	"ui.markdown.table": {
+		"defaultMessage": "Table",
+		"description": "The name of the scroll box of a wide table in a Markdown document."
 	},
 	"ui.navBar.label": {
 		"defaultMessage": "Main",
@@ -1422,6 +1462,10 @@
 	"ui.pdfViewer.zoomOutTo": {
 		"defaultMessage": "Zoom out ({percent})",
 		"description": "The tooltip of the Zoom out button. The percent is the zoom that the button sets, such as \"90%\"."
+	},
+	"ui.pivotTable.total": {
+		"defaultMessage": "Total",
+		"description": "The header of the column and of the row that hold the totals of a pivot table."
 	},
 	"ui.query.after": {
 		"defaultMessage": "after",
@@ -1683,6 +1727,10 @@
 		"defaultMessage": "the item",
 		"description": "The name of an item in a reorder announcement when the item has no name."
 	},
+	"ui.resizable.label": {
+		"defaultMessage": "Resize",
+		"description": "The name of the bar between two panels that changes their sizes, by a drag or by the arrow keys."
+	},
 	"ui.searchInput.clear": {
 		"defaultMessage": "Clear search",
 		"description": "The name of the button that empties a search field."
@@ -1774,6 +1822,18 @@
 	"ui.signaturePad.placeholder": {
 		"defaultMessage": "Sign here",
 		"description": "The text over an empty signature pad that asks the reader to draw a signature."
+	},
+	"ui.stepper.completed": {
+		"defaultMessage": "completed",
+		"description": "The state of a step that is done. A screen reader speaks it after the title of the step and a comma. Lowercase."
+	},
+	"ui.stepper.label": {
+		"defaultMessage": "Steps",
+		"description": "The name of the row of the steps of a stepper, when no label names it."
+	},
+	"ui.stepper.notStarted": {
+		"defaultMessage": "not started",
+		"description": "The state of a step after the current step. A screen reader speaks it after the title of the step and a comma. Lowercase."
 	},
 	"ui.table.noItems": {
 		"defaultMessage": "No items",
