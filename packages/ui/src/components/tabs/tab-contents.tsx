@@ -49,6 +49,9 @@ export type TabContentProps = Omit<
  * chunk, a `use()`d promise. It mounts no effects, so it does not warm
  * effect-driven work; a `useQuery` in a held panel waits to be shown. Pair a
  * mount policy with `Tab`'s `onPreload` to warm that half.
+ *
+ * Put each `<TabContent>` directly in the container, with no element between
+ * them. The outgoing panel takes the position of the container while it exits.
  */
 export function TabContents({ mount, ...props }: TabContentsProps) {
 	const tabsContext = useTabsContext()
