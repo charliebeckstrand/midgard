@@ -5,6 +5,15 @@
  * Layer: kiso · Concern: forced-colors fallbacks
  */
 
+/**
+ * The style, width, and color of the ring fallback. `outline-solid` sets the
+ * style that an ungated `outline-none` removes.
+ */
+const ringOutline = [
+	'forced-colors:focus-visible:outline-solid forced-colors:focus-visible:outline-2',
+	'forced-colors:focus-visible:outline-[Highlight]',
+]
+
 export const forced = {
 	/** Panel outline: restores a visible edge when backgrounds are stripped. */
 	outline: 'forced-colors:outline',
@@ -28,6 +37,17 @@ export const forced = {
 	 * `Highlight` of a {@link forced.mark}.
 	 */
 	shape: 'forced-colors:bg-[CanvasText]',
+	/**
+	 * Ring fallback: the 2 px `Highlight` outline that replaces a focus ring
+	 * behind the `focus-visible` gate. See CONVENTIONS §5.10 for a ring behind
+	 * another gate.
+	 */
+	ring: {
+		/** Inside the box, as for an inset ring, or where a scroll container clips an outset stroke. */
+		inset: [...ringOutline, 'forced-colors:focus-visible:-outline-offset-2'],
+		/** Outside the box, as for an outset ring. */
+		outset: [...ringOutline, 'forced-colors:focus-visible:outline-offset-2'],
+	},
 	/** Icon slot: keeps data-slot=icon children on CanvasText. */
 	icon: 'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
 } as const
