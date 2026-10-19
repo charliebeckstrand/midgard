@@ -31,6 +31,10 @@
 		"defaultMessage": "Remove {label}",
 		"description": "The name of the button that removes a chip, such as a tag. The label is the text of the chip."
 	},
+	"ui.breadcrumb.label": {
+		"defaultMessage": "Breadcrumb",
+		"description": "The name of the navigation landmark that holds the trail of links from the top page to the current page."
+	},
 	"ui.calendar.chooseMonthYear": {
 		"defaultMessage": "Choose month and year",
 		"description": "The name of the panel that holds the month picker and the year picker."
@@ -1326,6 +1330,18 @@
 	"ui.numberInput.increase": {
 		"defaultMessage": "Increase",
 		"description": "The name of the button that makes the value of a number field larger by one step."
+	},
+	"ui.pagination.label": {
+		"defaultMessage": "Pagination",
+		"description": "The name of the navigation landmark that holds the page controls of a list."
+	},
+	"ui.pagination.next": {
+		"defaultMessage": "Next page",
+		"description": "The name of the button that goes to the page after the current page."
+	},
+	"ui.pagination.previous": {
+		"defaultMessage": "Previous page",
+		"description": "The name of the button that goes to the page before the current page."
 	},
 	"ui.panel.resize": {
 		"defaultMessage": "Resize panel",

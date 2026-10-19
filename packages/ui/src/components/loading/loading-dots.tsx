@@ -1,12 +1,14 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import { IntlMessage } from '../../primitives/intl/intl-message'
+import { intlMessages } from '../../primitives/intl/intl-messages'
 import { k, type LoadingDotsVariants } from '../../recipes/kata/loading'
 
 /** Props for {@link LoadingDots}: recipe `size`/`color` plus an `sr-only` label and native `<output>` attributes. */
 export type LoadingDotsProps = LoadingDotsVariants & {
 	/**
 	 * Accessible label announced via the visually hidden `sr-only` span.
-	 * @defaultValue 'Loading'
+	 * @defaultValue `'Loading'`, in the language of the reader.
 	 */
 	label?: string
 } & Omit<ComponentProps<'output'>, 'color'>
@@ -30,13 +32,7 @@ const dotClass = k.dot()
  * `<Button>`, the projection of the button sets the size of each dot, as it
  * does for a spinner.
  */
-export function LoadingDots({
-	size,
-	color,
-	label = 'Loading',
-	className,
-	...props
-}: LoadingDotsProps) {
+export function LoadingDots({ size, color, label, className, ...props }: LoadingDotsProps) {
 	return (
 		<output
 			data-slot="loading-dots"
@@ -52,7 +48,7 @@ export function LoadingDots({
 					className={cn(dotClass, delay)}
 				/>
 			))}
-			<span className="sr-only">{label}</span>
+			<span className="sr-only">{label ?? <IntlMessage message={intlMessages.loading} />}</span>
 		</output>
 	)
 }

@@ -7,6 +7,7 @@ import {
 	PaginationPage,
 	PaginationPrevious,
 } from '../../components/pagination'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 import { axe } from '../helpers/axe'
 
@@ -25,6 +26,41 @@ describe('Pagination', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el?.tagName).toBe('NAV')
+	})
+
+	it('names the landmark and the Previous and Next controls in the language of the reader', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<Pagination>
+					<PaginationPrevious />
+					<PaginationList>
+						<PaginationPage current>1</PaginationPage>
+					</PaginationList>
+					<PaginationNext />
+				</Pagination>
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('navigation', { name: 'Paginación' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Página anterior' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Página siguiente' })).toBeInTheDocument()
+	})
+
+	it('keeps the names that the caller passes', () => {
+		renderUI(
+			<Pagination aria-label="Results">
+				<PaginationPrevious aria-label="Back" />
+				<PaginationNext aria-label="Forward" />
+			</Pagination>,
+		)
+
+		expect(screen.getByRole('navigation', { name: 'Results' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Forward' })).toBeInTheDocument()
 	})
 })
 
