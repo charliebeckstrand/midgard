@@ -156,7 +156,7 @@ export const k = {
 	viewport: {
 		base: [
 			'overflow-auto',
-			'flex items-safe-center justify-safe-center',
+			'flex items-center-safe justify-center-safe',
 			'flex-1 min-w-0',
 			'max-h-[1280px]',
 			'box-content p-4',
