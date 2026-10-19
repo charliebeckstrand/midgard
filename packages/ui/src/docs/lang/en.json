@@ -203,6 +203,182 @@
 		"defaultMessage": "Search pages, examples, props, and events",
 		"description": "The placeholder of the search field of the docs, and its name. Props and events are the inputs of a component."
 	},
+	"docs.tab.area": {
+		"defaultMessage": "Area",
+		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.bar": {
+		"defaultMessage": "Bar",
+		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.bubble": {
+		"defaultMessage": "Bubble",
+		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.choropleth": {
+		"defaultMessage": "Choropleth",
+		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.combo": {
+		"defaultMessage": "Combo",
+		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.county": {
+		"defaultMessage": "County",
+		"description": "The name of a tab on the Map page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.donut": {
+		"defaultMessage": "Donut",
+		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.editing": {
+		"defaultMessage": "Editing",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.embeds": {
+		"defaultMessage": "Embeds",
+		"description": "The name of a tab on the Chat page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.events": {
+		"defaultMessage": "Events",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.expansion": {
+		"defaultMessage": "Expansion",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.export": {
+		"defaultMessage": "Export",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.filters": {
+		"defaultMessage": "Filters",
+		"description": "The name of a tab on the Form and Grid pages of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.footer": {
+		"defaultMessage": "Footer",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.form": {
+		"defaultMessage": "Form",
+		"description": "The name of a tab on the Form page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.geofence": {
+		"defaultMessage": "Geofence",
+		"description": "The name of a tab on the Map page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.groups": {
+		"defaultMessage": "Groups",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.header": {
+		"defaultMessage": "Header",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.heatmap": {
+		"defaultMessage": "Heatmap",
+		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.line": {
+		"defaultMessage": "Line",
+		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.list": {
+		"defaultMessage": "List",
+		"description": "The name of a tab on the Chat page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.locking": {
+		"defaultMessage": "Locking",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.marker": {
+		"defaultMessage": "Marker",
+		"description": "The name of a tab on the Map page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.message": {
+		"defaultMessage": "Message",
+		"description": "The name of a tab on the Chat page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.pagination": {
+		"defaultMessage": "Pagination",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.pie": {
+		"defaultMessage": "Pie",
+		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.pinning": {
+		"defaultMessage": "Pinning",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.plat": {
+		"defaultMessage": "Plat",
+		"description": "The name of a tab on the Map page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.point": {
+		"defaultMessage": "Point",
+		"description": "The name of a tab on the Map page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.prompt": {
+		"defaultMessage": "Prompt",
+		"description": "The name of a tab on the Chat page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.reordering": {
+		"defaultMessage": "Reordering",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.resizing": {
+		"defaultMessage": "Resizing",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.route": {
+		"defaultMessage": "Route",
+		"description": "The name of a tab on the Map page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.scatter": {
+		"defaultMessage": "Scatter",
+		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.selection": {
+		"defaultMessage": "Selection",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.sorting": {
+		"defaultMessage": "Sorting",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.sparkline": {
+		"defaultMessage": "Sparkline",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.state": {
+		"defaultMessage": "State",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.steps": {
+		"defaultMessage": "Steps",
+		"description": "The name of a tab on the Chat page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.toolbar": {
+		"defaultMessage": "Toolbar",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.transcript": {
+		"defaultMessage": "Transcript",
+		"description": "The name of a tab on the Chat page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.variants": {
+		"defaultMessage": "Variants",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.virtualization": {
+		"defaultMessage": "Virtualization",
+		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.world": {
+		"defaultMessage": "World",
+		"description": "The name of a tab on the Map page of the docs. The tab shows one part of the page."
+	},
 	"docs.tabs.sections": {
 		"defaultMessage": "Sections",
 		"description": "The name of the list of tabs at the top of a page of the docs. Each tab shows one part of the page."
