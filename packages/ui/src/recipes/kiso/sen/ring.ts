@@ -10,7 +10,9 @@
  *     the one composers reach for inside translucent containers (popover,
  *     panel), where an outset ring would crop against the surface chrome.
  *   - `line`: the ring of each width with no color, for a kata that sets its own
- *     color. `line[1].inset` is the 1 px inset ring.
+ *     color. `line[1].inset` is the 1 px inset ring. An outset ring is for a
+ *     mark on content, such as a selected PDF region, where an inset ring would
+ *     cover the content.
  *
  * Layer: kiso · Concern: rings
  */
@@ -25,6 +27,7 @@ const line = {
 		inset: ['ring-1 ring-inset', forced.outline, 'forced-colors:-outline-offset-1'],
 	},
 	2: {
+		outset: ['ring-2', forced.outline, 'forced-colors:outline-2'],
 		inset: [
 			'ring-2 ring-inset',
 			forced.outline,
