@@ -13,7 +13,8 @@ import { clampDay, fromCalendarDate, stepDay, toCalendarDate } from '../calendar
  *
  * The calendar is always Gregorian, as in the grid. A locale such as `th-TH`
  * or `fa-IR` defaults to another calendar, and its year then disagrees with
- * the grid.
+ * the grid. The time zone is always the local one, as in the grid, so a
+ * `timeZone` in `options` cannot move the label to another day.
  *
  * @internal
  */
@@ -41,9 +42,18 @@ export function formatRange(
 	return dateFormatter(locale, options).formatRange(start, end)
 }
 
-/** Gregorian formatter for `locale`, shared by the single and range labels. */
+/**
+ * Gregorian formatter for `locale`, shared by the single and range labels. A
+ * picked date is local midnight, as the grid reads it, so the label reads it in
+ * the local time zone too. A `timeZone` in `options` would move that midnight
+ * to the day before or after, so it does not apply.
+ */
 function dateFormatter(locale?: string, options?: Intl.DateTimeFormatOptions): DateFormatter {
-	return new DateFormatter(resolveLocale(locale), { ...options, calendar: 'gregory' })
+	return new DateFormatter(resolveLocale(locale), {
+		...options,
+		calendar: 'gregory',
+		timeZone: undefined,
+	})
 }
 
 /** Local midnight for a date, dropping the time of day. @internal */
