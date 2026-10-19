@@ -16,25 +16,24 @@ import { Flex } from 'ui/flex'
 import { Form } from 'ui/form'
 import { Grid, type GridColumn } from 'ui/grid'
 import { NumberInput } from 'ui/number-input'
-import { useFormat } from 'ui/providers/locale'
+import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { EditHelp } from './people.tsx'
 
-type LaneRate = { id: number; state: string; perMile: number; minCharge: number; fuelPct: number }
+type BillingRate = { id: number; name: string; hourly: number; daily: number; billable: number }
 
-type Rates = Partial<Pick<LaneRate, 'perMile' | 'minCharge' | 'fuelPct'>>
+type Rates = Partial<Pick<BillingRate, 'hourly' | 'daily' | 'billable'>>
 
-const initialRates: LaneRate[] = [
-	{ id: 1, state: 'CA', perMile: 2.35, minCharge: 250, fuelPct: 28 },
-	{ id: 2, state: 'NV', perMile: 2.2, minCharge: 225, fuelPct: 26 },
-	{ id: 3, state: 'AZ', perMile: 2.1, minCharge: 210, fuelPct: 25 },
-	{ id: 4, state: 'OR', perMile: 2.3, minCharge: 240, fuelPct: 27 },
-	{ id: 5, state: 'WA', perMile: 2.4, minCharge: 255, fuelPct: 28 },
-	{ id: 6, state: 'TX', perMile: 2.15, minCharge: 215, fuelPct: 26 },
+const initialRates: BillingRate[] = [
+	{ id: 1, name: 'Wade Cooper', hourly: 95, daily: 720, billable: 80 },
+	{ id: 2, name: 'Arlene McCoy', hourly: 90, daily: 680, billable: 75 },
+	{ id: 3, name: 'Devon Webb', hourly: 110, daily: 840, billable: 60 },
+	{ id: 4, name: 'Tom Cook', hourly: 85, daily: 640, billable: 85 },
+	{ id: 5, name: 'Tanya Fox', hourly: 90, daily: 680, billable: 75 },
 ]
 
 export default function BulkEdit() {
-	const money = useFormat({ type: 'currency' })
+	const intl = useIntl()
 
 	const [rates, setRates] = useState(initialRates)
 
@@ -54,25 +53,30 @@ export default function BulkEdit() {
 
 		const row = selection.size === 1 ? rates.find((rate) => rate.id === only) : undefined
 
-		return row ? { perMile: row.perMile, minCharge: row.minCharge, fuelPct: row.fuelPct } : {}
+		return row ? { hourly: row.hourly, daily: row.daily, billable: row.billable } : {}
 	}, [rates, selection])
 
-	const columns = useMemo(
-		(): GridColumn<LaneRate>[] => [
+	const columns = useMemo((): GridColumn<BillingRate>[] => {
+		const money = (value: number) =>
+			intl.formatNumber(value, { style: 'currency', currency: 'USD' })
+
+		return [
 			{ id: 'select', selectable: true },
-			{ id: 'state', title: 'State', cell: (row) => row.state, width: '80px' },
-			{ id: 'perMile', title: 'Per-mile', cell: (row) => money(row.perMile) },
-			{ id: 'minCharge', title: 'Min charge', cell: (row) => money(row.minCharge) },
-			{ id: 'fuelPct', title: 'Fuel %', cell: (row) => `${row.fuelPct}%` },
-		],
-		[money],
-	)
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
+			{ id: 'hourly', title: 'Hourly rate', cell: (row) => money(row.hourly) },
+			{ id: 'daily', title: 'Day rate', cell: (row) => money(row.daily) },
+			{
+				id: 'billable',
+				title: 'Billable %',
+				cell: (row) => intl.formatNumber(row.billable / 100, { style: 'percent' }),
+			},
+		]
+	}, [intl])
 
 	return (
 		<>
 			<EditHelp label="Bulk edit help">
-				Select rows with the checkboxes, then choose Edit selected to apply one change across every
-				selected row at once through a dialog.
+				Select rows, then use Edit selected to change them together.
 			</EditHelp>
 			<Grid
 				columns={columns}
@@ -100,7 +104,7 @@ export default function BulkEdit() {
 					</DialogHeader>
 					{selection.size > 1 && (
 						<Alert severity="info" closable>
-							Enter a value to apply it across all selected rows; leave blank to keep current
+							Enter a value to apply it to each selected row. Leave a field empty to keep its
 							values.
 						</Alert>
 					)}
@@ -109,11 +113,11 @@ export default function BulkEdit() {
 						onSubmit={(values) => {
 							const patch: Rates = {}
 
-							if (typeof values.perMile === 'number') patch.perMile = values.perMile
+							if (typeof values.hourly === 'number') patch.hourly = values.hourly
 
-							if (typeof values.minCharge === 'number') patch.minCharge = values.minCharge
+							if (typeof values.daily === 'number') patch.daily = values.daily
 
-							if (typeof values.fuelPct === 'number') patch.fuelPct = values.fuelPct
+							if (typeof values.billable === 'number') patch.billable = values.billable
 
 							apply(patch)
 						}}
@@ -122,17 +126,17 @@ export default function BulkEdit() {
 							<DialogBody>
 								<Stack gap="lg">
 									<Field>
-										<Label>Per-mile</Label>
-										<CurrencyInput name="perMile" placeholder="No change" />
+										<Label>Hourly rate</Label>
+										<CurrencyInput name="hourly" placeholder="No change" />
 									</Field>
 									<Field>
-										<Label>Min charge</Label>
-										<CurrencyInput name="minCharge" placeholder="No change" />
+										<Label>Day rate</Label>
+										<CurrencyInput name="daily" placeholder="No change" />
 									</Field>
 									<Field>
-										<Label>Fuel %</Label>
+										<Label>Billable %</Label>
 										<NumberInput
-											name="fuelPct"
+											name="billable"
 											step={1}
 											min={0}
 											max={100}

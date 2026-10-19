@@ -56,8 +56,8 @@ export default function CellScopeAndSpreadsheetKeys() {
 				</Text>
 				<EditHelp label="Editing help">
 					<PointerHint
-						mouse="Double-click a cell, press Enter or F2 on the cursor's cell, or start typing to edit that cell alone. Enter saves and moves down a row. Tab and Shift+Tab save and move along the row. F2 saves and stays, and Escape discards. Role and Active keep Enter for their own listbox menus, so Tab is their keyboard save. The segment sets what else saves the cell: Leave cell also saves when you click or tab away from the cell, and Leave grid also saves when focus leaves the grid."
-						touch="Tap a cell to select it, then tap it again to edit that cell alone. Return on the keyboard saves and moves down a row. The segment sets what else saves the cell: Leave cell also saves when you leave the cell, and Leave grid also saves when focus leaves the grid."
+						mouse="Double-click a cell to edit it, then press Enter or Tab to save and move."
+						touch="Tap a cell twice to edit it, then press Return to save and move down."
 					/>
 				</EditHelp>
 			</Flex>

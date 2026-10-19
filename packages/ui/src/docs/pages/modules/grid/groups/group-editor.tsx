@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Grid, type GridColumnGroup } from 'ui/grid'
 import { columns, people } from '../data.tsx'
-import { columnGroups } from './data.ts'
+import { columnGroups } from './data.tsx'
 
 export default function GroupEditor() {
 	const [groups, setGroups] = useState<GridColumnGroup[]>(columnGroups)
