@@ -83,4 +83,27 @@ describe('horizontal band labels (real browser)', () => {
 			for (const label of labels) expect(label.anchor).toBeLessThan(GUTTER_MAX)
 		})
 	}
+
+	it('keeps the category labels in a short frame, where a vertical chart drops its band row', async () => {
+		const { container } = renderUI(
+			<div style={{ width: 640, fontFamily: '"Google Sans Flex"' }}>
+				<BarChart
+					aria-label="Visits by source"
+					data={DATA}
+					series={[{ xKey: 'source', yKey: 'visits' }]}
+					orientation="horizontal"
+					height={112}
+					animate={false}
+				/>
+			</div>,
+		)
+
+		await waitFor(() => {
+			const svg = getSlot(container, 'chart-plot').querySelector('svg')
+
+			expect(svg?.getBoundingClientRect().height).toBeGreaterThan(0)
+		})
+
+		expect(getSlot(container, 'chart-axis-y').querySelectorAll('text').length).toBeGreaterThan(0)
+	})
 })

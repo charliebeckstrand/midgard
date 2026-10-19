@@ -436,6 +436,7 @@ export function useChartCartesian<T>(
 		aspect: outerAspect,
 		chrome: cartesianChrome(props, legend),
 		tickTarget: TICK_TARGET,
+		orientation,
 	})
 
 	// Spark stands the axis chrome down to a bare sparkline; every wider tier keeps
