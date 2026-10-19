@@ -10,6 +10,7 @@ import {
 import { defineMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
+import { slugOf, tabName } from './tab-name.ts'
 
 const sectionsMessage = defineMessage({
 	id: 'docs.tabs.sections',
@@ -17,11 +18,6 @@ const sectionsMessage = defineMessage({
 	description:
 		'The name of the list of tabs at the top of a page of the docs. Each tab shows one part of the page.',
 })
-
-/** The path part of a tab: `Server grouping` gives `server-grouping`. */
-function slugOf(tab: string): string {
-	return tab.toLowerCase().replaceAll(' ', '-')
-}
 
 /**
  * A path with no slash at the end. The prerender asks for each page with a
@@ -33,7 +29,9 @@ function trimSlash(path: string): string {
 }
 
 /**
- * The tabs of a page. The first tab is at the path of the page and shows
+ * The tabs of a page, in the language of the reader. A page gives `tabs` from
+ * its `TABS` constant, which `pnpm intl` reads for the names of the catalog.
+ * The first tab is at the path of the page and shows
  * `children`. Each other tab is a route one part down the path, from the
  * folder of its slug, such as `sorting/index.tsx` for `/grid/sorting`. So a
  * reload, a link, and the back button keep the tab, and the build renders each
@@ -82,7 +80,7 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 			<TabList aria-label={intl.formatMessage(sectionsMessage)}>
 				{tabs.map((tab) => (
 					<Tab key={tab} value={slugOf(tab)} onPreload={setIntent}>
-						{tab}
+						{tabName(intl, slugOf(tab), tab)}
 					</Tab>
 				))}
 			</TabList>

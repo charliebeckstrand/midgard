@@ -17,7 +17,8 @@ import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseAst } from 'vite'
-import { titleEntries } from '../src/docs/plugin/titles.ts'
+import type { Parse } from '../src/docs/plugin/examples.ts'
+import { tabEntries, titleEntries } from '../src/docs/plugin/titles.ts'
 import { type CatalogEntry, type CatalogSource, catalogText, extractCatalog } from './intl-catalog'
 
 const SRC_DIR = fileURLToPath(new URL('../src', import.meta.url))
@@ -50,17 +51,22 @@ export const DOCS_SOURCE_CATALOG = join(DOCS_LANG_DIR, 'en.json')
 export const DOCS_CATALOG_SOURCE: CatalogSource = { srcDir: DOCS_DIR, skipped: ['__tests__'] }
 
 /**
- * The catalog of the docs app: the message descriptors of its source, and the
- * title of each example, which comes from a file name and has no descriptor.
+ * The catalog of the docs app: the message descriptors of its source, the
+ * title of each example, which comes from a file name, and the name of each
+ * tab, which comes from the `TABS` of a page. A title and a tab name have no
+ * descriptor.
  */
 export async function extractDocsCatalog(): Promise<Record<string, CatalogEntry>> {
-	const [messages, titles] = await Promise.all([
+	const parse: Parse = (code, options) => parseAst(code, options)
+
+	const [messages, titles, tabs] = await Promise.all([
 		extractCatalog(DOCS_CATALOG_SOURCE),
-		titleEntries(DOCS_DIR, (code, options) => parseAst(code, options)),
+		titleEntries(DOCS_DIR, parse),
+		tabEntries(DOCS_DIR, parse),
 	])
 
 	return Object.fromEntries(
-		Object.entries({ ...messages, ...titles }).toSorted(([a], [b]) => (a < b ? -1 : 1)),
+		Object.entries({ ...messages, ...titles, ...tabs }).toSorted(([a], [b]) => (a < b ? -1 : 1)),
 	)
 }
 

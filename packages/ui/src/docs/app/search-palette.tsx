@@ -14,6 +14,7 @@ import { useTimeout } from 'ui/hooks'
 import { defineMessage, defineMessages, type MessageDescriptor, useIntl } from 'ui/primitives/intl'
 import { VirtualOptions } from 'ui/primitives/virtual-options'
 import { exampleTitle } from '../kit/example-title.ts'
+import { tabName } from '../kit/tab-name.ts'
 import type { SearchEntry, SearchKind } from '../plugin/search.ts'
 import { sectionLabel } from './app-messages.ts'
 import { matchEntries } from './search-match.ts'
@@ -123,28 +124,50 @@ function PrefetchResults({ query, matches }: { query: string; matches: readonly 
 	return pages.map((page) => <PrefetchPageLinks key={page} page={page} />)
 }
 
+/** The slug of the tab of a path, the last part before the hash: `/grid/sorting#basic` gives `sorting`. */
+function slugOfHref(href: string): string {
+	return href.split('#')[0]?.split('/').at(-1) ?? ''
+}
+
 function Results({ onPick }: { onPick: () => void }) {
 	const query = useCommandPaletteDeferredQuery()
 
 	const intl = useIntl()
 
-	// Where the entry is. The section of a page shows in the language of the
-	// reader. The names from the code stay as they are.
+	// Where the entry is. The section of a page and the name of a tab, as in
+	// "Grid › Sorting", show in the language of the reader. The names from the
+	// code stay as they are.
 	const contextOf = (option: Option): string => {
 		const section = option.kind === 'page' ? sectionOf.get(option.href) : undefined
 
-		return section === undefined ? option.context : sectionLabel(intl, section)
+		if (section !== undefined) return sectionLabel(intl, section)
+
+		const [page, tab] = option.context.split(' › ')
+
+		return tab === undefined
+			? option.context
+			: `${page} › ${tabName(intl, slugOfHref(option.href), tab)}`
 	}
 
-	// The title of an example shows in the language of the reader, and the
-	// query matches that title. The names from the code stay as they are.
+	// The title of an example and the name of a tab show in the language of the
+	// reader, and the query matches that text. The names from the code stay as
+	// they are.
 	const localized = useMemo(
 		() =>
-			options.map((option) =>
-				option.kind === 'example'
-					? { ...option, label: exampleTitle(intl, option.href.split('#')[1] ?? '', option.label) }
-					: option,
-			),
+			options.map((option) => {
+				if (option.kind === 'example') {
+					return {
+						...option,
+						label: exampleTitle(intl, option.href.split('#')[1] ?? '', option.label),
+					}
+				}
+
+				if (option.kind === 'tab') {
+					return { ...option, label: tabName(intl, slugOfHref(option.href), option.label) }
+				}
+
+				return option
+			}),
 		[intl],
 	)
 

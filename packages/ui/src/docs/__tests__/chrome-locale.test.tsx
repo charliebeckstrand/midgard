@@ -1,10 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
+import { useIntl } from 'ui/primitives/intl'
 import { LocaleProvider } from 'ui/providers/locale'
 import { describe, expect, it } from 'vitest'
 import { catalogs } from '../app/catalogs.ts'
 import { ApiEntry } from '../kit/api-entry.tsx'
 import { ExampleFrame } from '../kit/example.tsx'
+import { tabName } from '../kit/tab-name.ts'
 import type { ExampleMeta } from '../plugin/examples.ts'
 
 // The text of the kit follows the language of the reader, through the catalogs
@@ -109,5 +111,19 @@ describe('the chrome of the docs in Spanish', () => {
 		)
 
 		expect(screen.getByRole('heading', { name: 'Not in the catalog' })).toBeDefined()
+	})
+
+	it('translates the name of a tab, which comes from the TABS of its page', () => {
+		function Name() {
+			return tabName(useIntl(), 'sorting', 'Sorting')
+		}
+
+		const { container } = render(
+			<Spanish>
+				<Name />
+			</Spanish>,
+		)
+
+		expect(container.textContent).toBe('Ordenación')
 	})
 })
