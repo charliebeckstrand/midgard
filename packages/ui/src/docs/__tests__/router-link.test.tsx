@@ -1,6 +1,7 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { createMemoryRouter, createRoutesStub, RouterProvider, useNavigate } from 'react-router'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, onTestFinished, vi } from 'vitest'
+import { it } from '../../__tests__/helpers/fake-clock'
 import { NavigateContext, RouterLink } from '../app/router-link.tsx'
 
 // The docs link reads only the `navigate` of the shell, so a page switch does
@@ -140,16 +141,14 @@ describe('RouterLink prefetch', () => {
 		return document.querySelectorAll('link[rel="modulepreload"]').length
 	}
 
-	it('loads the code of a page 100 ms after a hover', async () => {
-		vi.useFakeTimers()
-
+	it('loads the code of a page 100 ms after a hover', async ({ clock }) => {
 		renderStub()
 
 		fireEvent.mouseEnter(screen.getByRole('link', { name: 'Menu' }))
 
 		expect(preloads()).toBe(0)
 
-		await act(async () => vi.advanceTimersByTime(100))
+		await clock.advance(100)
 
 		expect(preloads()).toBe(1)
 	})

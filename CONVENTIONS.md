@@ -246,6 +246,8 @@ A `finally` in the case does not run after a timeout while the body waits. Thus 
 
 10.12 Each case in `ui` makes at least one assertion at run time. A case that makes none fails, because its pass checks nothing. A type assertion (`expectTypeOf`) does not count: a type case goes in a `*.test-d.ts` file, which `check-types` reads. The `requireAssertions` option of `vitest.base.ts` holds the rule in the jsdom and browser suites.
 
+10.13 A jsdom case that needs the whole fake clock takes the `clock` fixture of `helpers/fake-clock.ts`. The fixture moves the clock in `act`, so the React commits that follow are done. Where each case of a block depends on time, call `onFakeClock()` in the `describe` block, never at file level. A case that fakes only some clocks, such as `Date`, names them with `toFake`. The setups restore the spies, the stubs, the environment, and the clock after each case (`restoreTestState`), so a case does not restore them itself. [`test-isolation-boundary.test.ts`](packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts) holds these rules.
+
 ## 11. Environment
 
 11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge. Today the one reader is `env.ts` in the `auth` package (`BIFROST_URL`, `CLIENT_IP_SECRET`). Other code reaches env through them. Biome's `noProcessEnv` pins it in `apps`, `auth`, and `shared`; `ui` keeps its `NODE_ENV` checks for development warnings.
