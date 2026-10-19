@@ -112,14 +112,32 @@ function dottedInstant(parts: RegExpExecArray): number | null {
 	)
 }
 
+/** A month name, in English, as {@link DATE_SHAPED} reads one. @internal */
+const MONTH_NAME = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i
+
+/**
+ * Whether a string names a month and a day but no year, such as `Jun 10` or
+ * `10 June`: its only number has one or two digits. Such a string names no
+ * instant. V8 gives it the year 2001, and Firefox and Safari refuse it, so it
+ * is not a date in any engine. @internal
+ */
+function yearless(value: string): boolean {
+	if (!MONTH_NAME.test(value)) return false
+
+	const numbers = value.match(/\d+/g) ?? []
+
+	return numbers.length === 1 && (numbers[0]?.length ?? 0) <= 2
+}
+
 /**
  * Parses a raw category value to an epoch-millisecond instant: a `Date`, a
  * number (already epoch ms), or a string. A bare `YYYY-MM-DD`, `YYYY-MM`, or
  * `YYYY` becomes local midnight on its first day. A key thus lands on its
  * wall-clock day and does not shift across the UTC boundary. A dotted numeric
  * date reads day-first, or year-first after a four-digit year, also as a local
- * date. `Date.parse` reads the dotted form month-first. Any other string goes
- * through `Date.parse`.
+ * date. `Date.parse` reads the dotted form month-first. A month name with a
+ * day and no year, such as `Jun 10`, names no instant (see {@link yearless}).
+ * Any other string goes through `Date.parse`.
  *
  * @returns The instant, or `null` when the value holds no parseable date — the
  * row then anchors no tick and the axis falls back to plain labels.
@@ -134,21 +152,26 @@ export function parseInstant(value: unknown): number | null {
 
 	if (typeof value === 'number') return Number.isFinite(value) ? value : null
 
-	if (typeof value === 'string') {
-		const parts = DATE_ONLY.exec(value)
-
-		if (parts) return localInstant(Number(parts[1]), Number(parts[2] ?? 1), Number(parts[3] ?? 1))
-
-		const dotted = DOTTED.exec(value)
-
-		if (dotted) return dottedInstant(dotted)
-
-		const time = Date.parse(value)
-
-		return Number.isNaN(time) ? null : time
-	}
+	if (typeof value === 'string') return stringInstant(value)
 
 	return null
+}
+
+/** The instant of a category string, as {@link parseInstant} reads it. @internal */
+function stringInstant(value: string): number | null {
+	const parts = DATE_ONLY.exec(value)
+
+	if (parts) return localInstant(Number(parts[1]), Number(parts[2] ?? 1), Number(parts[3] ?? 1))
+
+	const dotted = DOTTED.exec(value)
+
+	if (dotted) return dottedInstant(dotted)
+
+	if (yearless(value)) return null
+
+	const time = Date.parse(value)
+
+	return Number.isNaN(time) ? null : time
 }
 
 /** Zeroes a datetime's time-of-day, for a day-or-coarser boundary. @internal */
@@ -492,8 +515,10 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 /**
  * The shapes of a date category string. ISO: `2026-06-10`, `2026-06`,
  * `2026-06-10T09:00`. Numeric with slashes or dots: `06/10/2026`, `10.06.2026`.
- * A month name beside a day or year: `Jun 10`, `10 June 2026`. `Date.parse` accepts much more than this: it reads a bare number
- * ("95190") as a year and "Region 3" as March 2001.
+ * A month name beside a day or year: `Jun 2026`, `10 June 2026`. A month and a
+ * day with no year match the shape, but {@link parseInstant} refuses them.
+ * `Date.parse` accepts much more than this: it reads a bare number ("95190")
+ * as a year and "Region 3" as March 2001.
  *
  * @internal
  */
