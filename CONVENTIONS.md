@@ -271,6 +271,46 @@ Do not mark a step done in the plan. Do not add the result of a step. Edit the p
 
 12.6 A comment gives the reason for the code. It does not record a measured time, such as the time that a build, a test, or a render took. A measured time changes with the machine and with later code, so a comment that keeps it becomes wrong. Write the reason in words that stay true, such as "most of the time of the suite". Put the measurement in the commit message or the pull request, which keep its date. The rule does not apply to a fixed value. Examples are a configured timeout or delay, the 50 ms limit of a long task, and the length of a frame at 60 Hz. A benchmark records its findings in a dated section of [`packages/ui/src/__benchmarks__/browser/README.md`](packages/ui/src/__benchmarks__/browser/README.md), and the file names that section.
 
+## 13. Docs site
+
+13.1 The docs site of `ui` (`packages/ui/src/docs`) shows text from four sources. They are the labels that come from names, the shell and the kit, the demos, and the API reference. The API reference is the TSDoc of `ui` (§12.1). The text of each source is clear, short, and consistent. It follows [STE.md](STE.md) where a rule fits a label. Review holds this section.
+
+13.2 Write each title, label, heading, tab, button, column header, and badge in sentence case: "Column manager", not "Column Manager". A proper noun and an acronym keep their capitals, as in "PDF" and "JSON". A value that a demo shows as a label starts with a capital letter: "Active", not "active".
+
+13.3 End a full sentence with a period. Do not end a fragment with a period. A title, a label, a button, a placeholder, a badge, and a column header are fragments. A confirm title is a question, so it ends with a question mark and keeps its articles: "Delete the report?". Do not use an em-dash or an exclamation mark in visible text. Use a period or parentheses in place of an em-dash.
+
+13.4 Address the reader as "you", and do not use "we". Start an instruction with its verb, and keep it to 20 words or fewer. A validation message is an instruction, so it ends with a period: "Enter a name.", not "A name is required". Use the words of the word list in §13.9.
+
+13.5 A page name is the name of its component. An example title comes from the file name of the example, through `humanize`. So name the file for the feature that the example shows, not for its data. Write a state or a mode as one word or one compound, such as `controlled`, `disabled`, or `read-only`. Write an added part as `with-` and the part, with no article, such as `with-icon`. Make the part plural when the example shows more than one, as in `with-actions`. Write a placement as `in-a-` or `inside-a-` and the container, such as `in-a-form`. Do not repeat the name of the item: `with-descriptions`, not `item-descriptions`. A tab label is a noun that names a feature, such as "Sorting" or "Editing". Its folder is the same word in lowercase, because the label gives the slug of its URL.
+
+13.6 A demo that shows the value of a control writes `Value:` and the value, or `Empty` when there is no value. A demo that shows the last event writes `Last` and the name of the event, such as `Last action:`. Before the first event, it writes `None`.
+
+13.7 The data of a demo holds a date as a `Date` and an amount as a number. The demo formats each one at render with the formatters of `useIntl` from `ui/primitives/intl`. Thus a date or an amount follows the locale of the reader, as the controls do. Fixed text that names a date uses the name of the month, as in "June 18". Fixed text that names a time uses the form that `formatTime` gives in English, as in "9:00 AM".
+
+13.8 A page keeps the data of one domain, such as a store or a fleet of trucks. A person takes one of these names: Wade Cooper, Arlene McCoy, Devon Webb, Tom Cook, Tanya Fox, Hellen Schmidt, Ravi Shah, or Mia Chen. A generated person is "Person" and a number, such as "Person 12". An email address is the first name at `example.com`, such as `wade@example.com`. A company, a product, and a place are fictional, so a demo names no real brand. Write text that the domain can hold, not filler such as a pangram or "Box content".
+
+An `aria-label` names the content, not the demo: "Monthly revenue", not "Line chart, animated". A demo does not explain itself in its own text, because its title names the feature. A demo that needs an action from the reader gives one short instruction. When the action is different for a mouse and for a touch, the instruction uses `PointerHint` from the kit.
+
+13.9 For each idea, use the word in the second column, and do not use the words in the last column. The table covers the visible text and the prose of TSDoc, not the names in the code:
+
+| Idea | Word | Not |
+|---|---|---|
+| Take one option of a control | Select | Choose, Pick |
+| Take an item out of a list or a group | Remove | Delete |
+| Destroy an item | Delete | Remove |
+| Stop an action and keep the state | Cancel | Abort |
+| Shut a panel or a dialog | Close | Dismiss |
+| Start or end a session | Sign in, Sign out | Log in, Log out, Login |
+| An email address | Email | E-mail, Mail |
+| The agreement of a service | Terms of service | Terms and conditions |
+| A prop that gets a value | takes | accepts |
+| No value in a value readout | Empty | None |
+| No event before the first one | None | Empty |
+| The opening of an event prop in TSDoc | Fires when | Called when, Runs when, Invoked when |
+| The opening of a boolean prop in TSDoc | Whether | Show, Shows, Enables |
+
+13.10 The API reference shows the TSDoc of `ui`, and the kit text around it. The first sentence of a component or a type is a noun phrase that states what it is (§12.1). The props of one idea use one wording in each component, such as the openings in §13.9. The kit text uses the same words as the TSDoc.
+
 ---
 
 **See also:** [CLAUDE.md](CLAUDE.md), [STE.md](STE.md), [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md).
