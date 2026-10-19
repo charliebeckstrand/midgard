@@ -5,13 +5,13 @@ export default function Wrap() {
 	return (
 		<div className="h-32">
 			<Stack gap="sm" wrap className="h-full">
-				<Badge>design</Badge>
-				<Badge>engineering</Badge>
-				<Badge>product</Badge>
-				<Badge>research</Badge>
-				<Badge>operations</Badge>
-				<Badge>marketing</Badge>
-				<Badge>support</Badge>
+				<Badge>Design</Badge>
+				<Badge>Engineering</Badge>
+				<Badge>Product</Badge>
+				<Badge>Research</Badge>
+				<Badge>Operations</Badge>
+				<Badge>Marketing</Badge>
+				<Badge>Support</Badge>
 			</Stack>
 		</div>
 	)

@@ -1,12 +1,12 @@
 import { Select, SelectLabel, SelectOption, type SelectProps } from 'ui/select'
 
-const stages = ['draft', 'awaiting approval from finance', 'approved', 'ordered']
+const stages = ['Draft', 'Awaiting approval from finance', 'Approved', 'Ordered']
 
 export default function SelectPlayground(props: SelectProps<string>) {
 	return (
 		<Select
 			aria-label="Stage"
-			defaultValue="awaiting approval from finance"
+			defaultValue="Awaiting approval from finance"
 			displayValue={(stage) => stage}
 			{...props}
 		>

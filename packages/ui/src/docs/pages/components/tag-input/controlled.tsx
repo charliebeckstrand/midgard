@@ -4,7 +4,7 @@ import { TagInput } from 'ui/tag-input'
 import { Text } from 'ui/text'
 
 export default function Controlled() {
-	const [tags, setTags] = useState(['React', 'TypeScript'])
+	const [tags, setTags] = useState(['Research', 'Writing'])
 
 	return (
 		<>

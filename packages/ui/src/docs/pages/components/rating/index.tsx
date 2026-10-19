@@ -5,7 +5,7 @@ import HalfStars from './half-stars.tsx'
 import InAForm from './in-a-form.tsx'
 import NamedLevels from './named-levels.tsx'
 import RatingPlayground from './playground.tsx'
-import ReviewAverages from './review-averages.tsx'
+import ReadOnly from './read-only.tsx'
 import StarCount from './star-count.tsx'
 
 export default function RatingPage() {
@@ -14,7 +14,7 @@ export default function RatingPage() {
 			<Playground of={RatingPlayground} api={api} />
 			<Example of={Controlled} />
 			<Example of={HalfStars} />
-			<Example of={ReviewAverages} />
+			<Example of={ReadOnly} />
 			<Example of={StarCount} />
 			<Example of={NamedLevels} />
 			<Example of={InAForm} />

@@ -6,8 +6,8 @@ import { Group } from 'ui/group'
 import { LocaleProvider } from 'ui/providers/locale'
 
 const presets = [
-	{ label: 'US', locale: 'en-US', currency: 'USD' },
-	{ label: 'UK', locale: 'en-GB', currency: 'GBP' },
+	{ label: 'United States', locale: 'en-US', currency: 'USD' },
+	{ label: 'United Kingdom', locale: 'en-GB', currency: 'GBP' },
 	{ label: 'Japan', locale: 'ja-JP', currency: 'JPY' },
 	{ label: 'India', locale: 'en-IN', currency: 'INR' },
 ] as const

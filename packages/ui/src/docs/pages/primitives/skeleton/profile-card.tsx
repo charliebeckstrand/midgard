@@ -21,21 +21,21 @@ export default function ProfileCard() {
 				<CardHeader>
 					<Flex gap="md">
 						<ReadyReveal ready={ready} placeholder={<AvatarSkeleton />}>
-							<Avatar initials="JD" />
+							<Avatar initials="AM" />
 						</ReadyReveal>
 						<Stack gap="xs" flex="1">
 							<ReadyReveal ready={ready} placeholder={<HeadingSkeleton level={3} />}>
-								<Heading level={3}>Jane Doe</Heading>
+								<Heading level={3}>Arlene McCoy</Heading>
 							</ReadyReveal>
 							<ReadyReveal ready={ready} placeholder={<TextSkeleton />}>
-								<Text tone="muted">Senior Engineer</Text>
+								<Text tone="muted">Senior engineer</Text>
 							</ReadyReveal>
 						</Stack>
 					</Flex>
 				</CardHeader>
 				<CardBody>
 					<ReadyReveal ready={ready} placeholder={<TextSkeleton />}>
-						<Text tone="muted">Design systems & component libraries.</Text>
+						<Text tone="muted">Arlene builds design systems and component libraries.</Text>
 					</ReadyReveal>
 				</CardBody>
 			</Card>

@@ -30,7 +30,7 @@ export default function Overflow() {
 				<TabContents>
 					{months.map((month) => (
 						<TabContent key={month} value={month}>
-							<Text tone="muted">The invoices of {month}.</Text>
+							<Text tone="muted">{month} has no invoices.</Text>
 						</TabContent>
 					))}
 				</TabContents>

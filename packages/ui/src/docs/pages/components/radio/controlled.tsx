@@ -27,7 +27,7 @@ export default function Controlled() {
 					</RadioField>
 				))}
 			</RadioGroup>
-			<Text>Value: {frequency}</Text>
+			<Text>Value: {frequencies.find((option) => option.value === frequency)?.label}</Text>
 		</>
 	)
 }

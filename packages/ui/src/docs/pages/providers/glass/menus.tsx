@@ -7,7 +7,7 @@ export default function Menus() {
 		<GlassProvider>
 			<Menu placement="bottom-start">
 				<MenuTrigger>
-					<Button variant="outline">Glass menu</Button>
+					<Button variant="outline">Actions</Button>
 				</MenuTrigger>
 				<MenuContent>
 					<MenuSection>

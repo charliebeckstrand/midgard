@@ -30,7 +30,7 @@ export default function FormControls() {
 		<Stack gap="md">
 			<GlassProvider>
 				<Field>
-					<Label>Select</Label>
+					<Label>Owner</Label>
 					<Select placeholder="Select a person" displayValue={(value: string) => value}>
 						{people.map((name) => (
 							<SelectOption key={name} value={name}>
@@ -40,7 +40,7 @@ export default function FormControls() {
 					</Select>
 				</Field>
 				<Field>
-					<Label>Combobox</Label>
+					<Label>Reviewer</Label>
 					<Combobox
 						value={person}
 						onValueChange={setPerson}
@@ -51,11 +51,11 @@ export default function FormControls() {
 					</Combobox>
 				</Field>
 				<Field>
-					<Label>Date</Label>
+					<Label>Due date</Label>
 					<DatePicker value={date} onValueChange={setDate} />
 				</Field>
 				<Field>
-					<Label>Number</Label>
+					<Label>Estimate (days)</Label>
 					<NumberInput defaultValue={1} />
 				</Field>
 			</GlassProvider>

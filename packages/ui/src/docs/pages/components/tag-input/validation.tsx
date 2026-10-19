@@ -10,7 +10,7 @@ export default function Validation() {
 		<Field>
 			<Label>Invite people</Label>
 			<Description>Enter email addresses, separated by commas.</Description>
-			<TagInput defaultValue={['jane@example.com']} validate={isEmail} />
+			<TagInput defaultValue={['wade@example.com']} validate={isEmail} />
 		</Field>
 	)
 }

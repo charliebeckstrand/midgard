@@ -13,6 +13,7 @@ import {
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from 'ui/layouts'
+import { useIntl } from 'ui/primitives/intl'
 import { DensityProvider, type DensityProviderProps } from 'ui/providers/density'
 import { SearchInput } from 'ui/search-input'
 import { Select, SelectLabel, SelectOption } from 'ui/select'
@@ -37,12 +38,12 @@ const navItems = [
 ]
 
 const orders = [
-	{ id: 'ORD-7291', customer: 'Olivia Martin', status: 'Completed', amount: '$1,999.00' },
-	{ id: 'ORD-7292', customer: 'Jackson Lee', status: 'Processing', amount: '$39.00' },
-	{ id: 'ORD-7293', customer: 'Isabella Nguyen', status: 'Completed', amount: '$299.00' },
-	{ id: 'ORD-7294', customer: 'William Kim', status: 'Pending', amount: '$99.00' },
-	{ id: 'ORD-7295', customer: 'Sofia Davis', status: 'Completed', amount: '$149.00' },
-	{ id: 'ORD-7296', customer: 'Ethan Brown', status: 'Processing', amount: '$59.00' },
+	{ id: 'ORD-7291', customer: 'Wade Cooper', status: 'Completed', amount: 1999 },
+	{ id: 'ORD-7292', customer: 'Arlene McCoy', status: 'Processing', amount: 39 },
+	{ id: 'ORD-7293', customer: 'Devon Webb', status: 'Completed', amount: 299 },
+	{ id: 'ORD-7294', customer: 'Tom Cook', status: 'Pending', amount: 99 },
+	{ id: 'ORD-7295', customer: 'Tanya Fox', status: 'Completed', amount: 149 },
+	{ id: 'ORD-7296', customer: 'Hellen Schmidt', status: 'Processing', amount: 59 },
 ]
 
 type OrderFilters = {
@@ -122,6 +123,8 @@ const sidebar = (
 )
 
 export default function DensityPlayground(props: DensityProviderProps) {
+	const intl = useIntl()
+
 	const [filters, setFilters] = useState<OrderFilters>({ id: undefined, status: undefined })
 
 	const filteredOrders = orders.filter(
@@ -160,7 +163,9 @@ export default function DensityPlayground(props: DensityProviderProps) {
 												<TableCell className="font-medium">{order.id}</TableCell>
 												<TableCell>{order.customer}</TableCell>
 												<TableCell>{order.status}</TableCell>
-												<TableCell className="text-end">{order.amount}</TableCell>
+												<TableCell className="text-end">
+													{intl.formatNumber(order.amount, { style: 'currency', currency: 'USD' })}
+												</TableCell>
 												<TableCell>
 													<Flex justify="end">
 														<Button

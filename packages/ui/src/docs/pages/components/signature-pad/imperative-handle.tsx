@@ -7,18 +7,18 @@ import { Text } from 'ui/text'
 export default function ImperativeHandle() {
 	const pad = useRef<SignaturePadHandle>(null)
 
-	const [status, setStatus] = useState('Not saved.')
+	const [status, setStatus] = useState('Not saved')
 
 	function save() {
 		const image = pad.current?.isEmpty() ? null : pad.current?.toDataURL()
 
-		setStatus(image ? `Saved a PNG of ${image.length} characters.` : 'Sign before you save.')
+		setStatus(image ? `Saved a PNG of ${image.length} characters` : 'Sign before you save.')
 	}
 
 	function clear() {
 		pad.current?.clear()
 
-		setStatus('Not saved.')
+		setStatus('Not saved')
 	}
 
 	return (

@@ -7,8 +7,8 @@ export default function BoxPlayground(props: BoxProps) {
 	return (
 		<Box p="lg" {...props}>
 			<Stack gap="sm" align="start">
-				<Text>Box content</Text>
-				<Button>Action</Button>
+				<Text>Your trial ends in 7 days.</Text>
+				<Button>Upgrade</Button>
 			</Stack>
 		</Box>
 	)

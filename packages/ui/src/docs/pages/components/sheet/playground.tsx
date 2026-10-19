@@ -13,9 +13,9 @@ import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 
 const activity = [
-	'Jane Smith uploaded brand-guide.pdf.',
+	'Mia Chen uploaded brand-guide.pdf.',
 	'Tom Cook renamed the folder Drafts to Archive.',
-	'Lisa Wong shared the project with the design team.',
+	'Ravi Shah shared the project with the design team.',
 ]
 
 export default function SheetPlayground(props: SheetPanelProps) {
@@ -27,7 +27,7 @@ export default function SheetPlayground(props: SheetPanelProps) {
 			<SheetPanel {...props}>
 				<SheetHeader>
 					<SheetTitle>Activity</SheetTitle>
-					<SheetDescription>The last changes in this project.</SheetDescription>
+					<SheetDescription>The last changes in this project</SheetDescription>
 				</SheetHeader>
 				<SheetBody>
 					<Stack gap="sm">

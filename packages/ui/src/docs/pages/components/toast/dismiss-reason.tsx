@@ -3,6 +3,13 @@ import { Button } from 'ui/button'
 import { Text } from 'ui/text'
 import { type ToastDismissReason, useToast } from 'ui/toast'
 
+const reasons: Record<ToastDismissReason, string> = {
+	timeout: 'Timeout',
+	close: 'Close',
+	evicted: 'Evicted',
+	dismissed: 'Dismissed',
+}
+
 export default function DismissReason() {
 	const { toast } = useToast()
 
@@ -21,7 +28,7 @@ export default function DismissReason() {
 			>
 				Show toast
 			</Button>
-			<Text>Reason: {reason ?? 'None'}</Text>
+			<Text>Last close reason: {reason ? reasons[reason] : 'None'}</Text>
 		</>
 	)
 }

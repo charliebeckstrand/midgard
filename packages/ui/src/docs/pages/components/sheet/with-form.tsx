@@ -31,7 +31,7 @@ export default function WithForm() {
 					<SheetDescription>Other members of your team see these details.</SheetDescription>
 				</SheetHeader>
 				<Form
-					defaultValues={{ name: 'Jane Smith', email: 'jane@example.com', bio: '' }}
+					defaultValues={{ name: 'Wade Cooper', email: 'wade@example.com', bio: '' }}
 					onSubmit={() => new Promise((resolve) => setTimeout(resolve, 1000))}
 					onSettled={(outcome) => {
 						if (outcome.ok) setOpen(false)

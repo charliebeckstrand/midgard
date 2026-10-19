@@ -38,7 +38,7 @@ export default function Severity() {
 			<Button
 				onClick={() =>
 					toast({
-						title: 'Storage almost full',
+						title: 'Storage is almost full',
 						description: 'You have used 90% of your storage.',
 						severity: 'warning',
 					})

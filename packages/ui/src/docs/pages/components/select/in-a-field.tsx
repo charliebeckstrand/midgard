@@ -6,7 +6,7 @@ export default function InAField() {
 	return (
 		<Field>
 			<Label>Country</Label>
-			<Description>We use your country to calculate shipping and taxes.</Description>
+			<Description>Your country sets the shipping cost and the taxes.</Description>
 			<Select placeholder="Select a country" displayValue={countryName}>
 				{countries.map((country) => (
 					<SelectOption key={country.code} value={country.code}>

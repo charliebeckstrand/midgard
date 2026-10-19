@@ -8,8 +8,8 @@ export default function Value() {
 
 	return (
 		<>
-			<ProgressBar aria-label="Progress" value={progress} />
-			<ProgressGauge aria-label="Progress" value={progress} />
+			<ProgressBar aria-label="Upload progress" value={progress} />
+			<ProgressGauge aria-label="Upload progress" value={progress} />
 			<Field>
 				<Label>Progress</Label>
 				<Slider step={10} value={progress} onValueChange={setProgress} />
