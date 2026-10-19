@@ -8,6 +8,7 @@ import {
 	srcRelative,
 	stripSourceComments,
 	walkSource,
+	workspaceRoot,
 } from '../helpers/walk-source'
 
 // A density-native component takes its step from the nearest density scope.
@@ -382,9 +383,6 @@ describe('density selectors', () => {
 
 const STEP_VARIANT = /(?<![\w-])density-(?:xs|sm|md|lg|xl|\[[a-z,]+\]):/
 
-/** The root of the repository. */
-const repoRoot = join(srcDir, '..', '..', '..')
-
 /**
  * The code of each file that uses the classes of `ui` outside `ui/src`, with
  * the comments removed: the source of each app and of `shared`, and the
@@ -401,13 +399,13 @@ const visitConsumer = (file: string, content: string) => {
 		? content.replace(/\/\*[\s\S]*?\*\//g, '')
 		: stripSourceComments(content)
 
-	consumers.push({ file: file.slice(repoRoot.length + 1), code })
+	consumers.push({ file: file.slice(workspaceRoot.length + 1), code })
 }
 
-for (const app of readdirSync(join(repoRoot, 'apps')))
-	walkSource(join(repoRoot, 'apps', app), visitConsumer)
+for (const app of readdirSync(join(workspaceRoot, 'apps')))
+	walkSource(join(workspaceRoot, 'apps', app), visitConsumer)
 
-walkSource(join(repoRoot, 'packages', 'shared', 'src'), visitConsumer)
+walkSource(join(workspaceRoot, 'packages', 'shared', 'src'), visitConsumer)
 
 for (const file of readdirSync(join(srcDir, '..')).filter((name) => name.endsWith('.css'))) {
 	const path = join(srcDir, '..', file)

@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 
 /**
@@ -10,6 +10,9 @@ import { join, relative, sep } from 'node:path'
  * point its scan at the wrong tree.
  */
 export const srcDir = join(import.meta.dirname, '..', '..')
+
+/** The root of the workspace, so a scan can reach the apps and the other packages. */
+export const workspaceRoot = join(srcDir, '..', '..', '..')
 
 /**
  * The path of `file` relative to {@link srcDir}, with `/` separators.
@@ -80,6 +83,42 @@ export function walkSource(
 			visit(path, readFileSync(path, 'utf8'))
 		}
 	}
+}
+
+/**
+ * The key of `file` in a scan of the workspace: relative to {@link srcDir} in
+ * ui ({@link srcRelative}), and relative to {@link workspaceRoot} elsewhere.
+ */
+export function workspaceKey(file: string): string {
+	if (file.startsWith(srcDir + sep)) return srcRelative(file)
+
+	return relative(workspaceRoot, file).split(sep).join('/')
+}
+
+/**
+ * Each source file under `roots`, keyed by {@link workspaceKey}, with its
+ * comments blanked ({@link stripSourceComments}). A root that does not exist
+ * gives no file. The walk prunes the test trees and the build output
+ * ({@link walkSource}), and this scan also leaves out a `*.test.*` file.
+ *
+ * @remarks The one scan of the boundary tests that hold a rule across ui and
+ * the apps.
+ */
+export function workspaceSources(roots: readonly string[]): Map<string, string> {
+	const files = new Map<string, string>()
+
+	for (const root of roots) {
+		if (!existsSync(root)) continue
+
+		walkSource(root, (file, content) => {
+			if (!isSourceFile(file) || /\.test\.[cm]?tsx?$/.test(file)) return
+
+			// Prose that names a call or a class is not a use of it.
+			files.set(workspaceKey(file), stripSourceComments(content))
+		})
+	}
+
+	return files
 }
 
 type PatternRule = { label: string; regex: RegExp }
