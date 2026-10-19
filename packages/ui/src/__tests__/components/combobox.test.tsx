@@ -1381,6 +1381,19 @@ describe('ComboboxPanel', () => {
 		expect(onClose).toHaveBeenCalledTimes(1)
 	})
 
+	// Focus can be on the panel itself: a press on its scrollbar, or a call to
+	// `focus()`. The escape layer of a Dialog or a Drawer around the combobox
+	// ignores only a press that is consumed.
+	it('consumes the Escape press that closes it', () => {
+		const onClose = vi.fn()
+
+		renderPanel(onClose)
+
+		expect(fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' })).toBe(false)
+
+		expect(onClose).toHaveBeenCalledTimes(1)
+	})
+
 	it('ignores non-Escape keys', () => {
 		const onClose = vi.fn()
 

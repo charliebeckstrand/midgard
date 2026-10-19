@@ -98,7 +98,14 @@ export function ComboboxPanel({
 						glass={glass}
 						className={cn('relative', k.options)}
 						onKeyDown={(event) => {
-							if (event.key === 'Escape') onClose()
+							if (event.key !== 'Escape') return
+
+							// React commits the close before the document listener runs, so
+							// the layer below is on top by then. `preventDefault` tells it
+							// that this press is consumed.
+							event.preventDefault()
+
+							onClose()
 						}}
 					>
 						{/* The listbox owns only options, per aria-required-children. The
