@@ -13,7 +13,7 @@ import {
 } from 'ui/dialog'
 import { Field, Label } from 'ui/fieldset'
 import { Flex } from 'ui/flex'
-import { Form } from 'ui/form'
+import { Form, FormSubmit } from 'ui/form'
 import { Grid, type GridColumn } from 'ui/grid'
 import { NumberInput } from 'ui/number-input'
 import { useIntl } from 'ui/primitives/intl'
@@ -149,9 +149,7 @@ export default function BulkEdit() {
 								<Button type="button" variant="plain" onClick={() => setOpen(false)}>
 									Cancel
 								</Button>
-								<Button type="submit" color="blue">
-									Apply
-								</Button>
+								<FormSubmit color="blue">Apply</FormSubmit>
 							</DialogFooter>
 						</DialogContent>
 					</Form>

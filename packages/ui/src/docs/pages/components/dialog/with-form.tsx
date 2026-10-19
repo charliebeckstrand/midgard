@@ -12,7 +12,7 @@ import {
 	DialogTrigger,
 } from 'ui/dialog'
 import { Field, Label, Message } from 'ui/fieldset'
-import { Form } from 'ui/form'
+import { Form, FormSubmit } from 'ui/form'
 import { Input } from 'ui/input'
 import { Stack } from 'ui/stack'
 import { Textarea } from 'ui/textarea'
@@ -57,9 +57,7 @@ export default function WithForm() {
 								Cancel
 							</Button>
 						</DialogClose>
-						<Button type="submit" color="green">
-							Create project
-						</Button>
+						<FormSubmit color="green">Create project</FormSubmit>
 					</DialogFooter>
 				</Form>
 			</DialogPanel>

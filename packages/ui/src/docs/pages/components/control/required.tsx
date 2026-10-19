@@ -1,7 +1,6 @@
-import { Button } from 'ui/button'
 import { Control } from 'ui/control'
 import { Label, Message } from 'ui/fieldset'
-import { Form } from 'ui/form'
+import { Form, FormSubmit } from 'ui/form'
 import { Input } from 'ui/input'
 import { Stack } from 'ui/stack'
 
@@ -18,7 +17,7 @@ export default function Required() {
 					<Input name="name" placeholder="Wade Cooper" />
 					<Message name="name" />
 				</Control>
-				<Button type="submit">Submit</Button>
+				<FormSubmit>Submit</FormSubmit>
 			</Stack>
 		</Form>
 	)
