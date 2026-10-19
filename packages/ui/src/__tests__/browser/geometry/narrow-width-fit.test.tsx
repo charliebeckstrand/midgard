@@ -8,7 +8,6 @@ import {
 	PaginationPage,
 	PaginationPrevious,
 } from '../../../components/pagination'
-import { ScrollArea } from '../../../components/scroll-area'
 import { Tab, TabList, Tabs } from '../../../components/tabs'
 import { ChatMessage } from '../../../modules/chat'
 import { bySlot, getSlot, present, renderUI } from '../../helpers'
@@ -16,9 +15,9 @@ import { bySlot, getSlot, present, renderUI } from '../../helpers'
 /**
  * A component stays inside a narrow parent.
  *
- * At a 390px viewport, Pagination clipped its Next control, a vertical TabList cut a tab label, a
- * ScrollArea extent ran past its parent, and a horizontal List ran past its card. A ChatMessage
- * bubble in a shrink-to-fit parent broke a single word. Each case now fits. Rides the real
+ * At a 390px viewport, Pagination clipped its Next control, a vertical TabList cut a tab label,
+ * and a horizontal List ran past its card. A ChatMessage bubble in a shrink-to-fit parent broke a
+ * single word. Each case now fits. Rides the real
  * browser because jsdom loads no stylesheet and does no layout.
  */
 describe('narrow-width fit (real browser)', () => {
@@ -97,22 +96,6 @@ describe('narrow-width fit (real browser)', () => {
 		const scroll = getSlot(container, 'tab-list-scroll')
 
 		expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth)
-	})
-
-	it('caps a horizontal scroll-area extent at its parent', () => {
-		const { container } = renderUI(
-			<div style={{ width: 300 }}>
-				<ScrollArea orientation="horizontal" extent="md">
-					<div style={{ width: 800 }}>content</div>
-				</ScrollArea>
-			</div>,
-		)
-
-		const parent = present(container.firstElementChild, 'parent')
-
-		const area = present(parent.firstElementChild, 'scroll area')
-
-		expect(area.getBoundingClientRect().width).toBeLessThanOrEqual(300)
 	})
 
 	it('keeps a horizontal list on one row that scrolls inside a narrow parent', () => {

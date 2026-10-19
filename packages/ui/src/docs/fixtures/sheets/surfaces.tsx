@@ -23,7 +23,6 @@ import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
 import { Input } from '../../../components/input'
 import { Markdown } from '../../../components/markdown'
-import { ScrollArea } from '../../../components/scroll-area'
 import { ShinyText } from '../../../components/shiny-text'
 import { Text } from '../../../components/text'
 import { Box } from '../../../structure/box'
@@ -63,17 +62,6 @@ const TEXT_COLORS = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 const TEXT_SIZES = ['xs', 'sm', 'md', 'lg'] as const
 
 const ICON_SIZES = ['xs', 'sm', 'md', 'lg'] as const
-
-const PARAGRAPHS = [
-	'Paragraph 1. The quick brown fox jumps over the lazy dog.',
-	'Paragraph 2. Sphinx of black quartz, judge my vow.',
-	'Paragraph 3. Pack my box with five dozen liquor jugs.',
-	'Paragraph 4. How vexingly quick daft zebras jump.',
-	'Paragraph 5. The five boxing wizards jump quickly.',
-	'Paragraph 6. Jackdaws love my big sphinx of quartz.',
-]
-
-const TAGS = ['react', 'typescript', 'tailwind', 'motion', 'vite', 'biome', 'pnpm', 'turborepo']
 
 const MARKDOWN = `## Release notes
 
@@ -270,36 +258,6 @@ export function Sheet() {
 							</AccordionPanel>
 						</AccordionItem>
 					</Accordion>
-				</FixtureCase>
-			</FixtureGroup>
-
-			<FixtureGroup title="Scroll area">
-				<FixtureCase label="vertical, overflow">
-					<ScrollArea extent="sm" rounded scrollbar="visible" className="w-full">
-						<Stack gap="md" className="p-3">
-							{PARAGRAPHS.map((paragraph) => (
-								<Text key={paragraph}>{paragraph}</Text>
-							))}
-						</Stack>
-					</ScrollArea>
-				</FixtureCase>
-				<FixtureCase label="horizontal, overflow">
-					<ScrollArea orientation="horizontal" rounded scrollbar="visible" className="w-full">
-						<Flex gap="sm" className="w-max p-3">
-							{TAGS.map((tag) => (
-								<Block key={tag}>{tag}</Block>
-							))}
-						</Flex>
-					</ScrollArea>
-				</FixtureCase>
-				<FixtureCase label="bare">
-					<ScrollArea bare extent="sm" className="w-full">
-						<Stack gap="md">
-							{PARAGRAPHS.map((paragraph) => (
-								<Text key={paragraph}>{paragraph}</Text>
-							))}
-						</Stack>
-					</ScrollArea>
 				</FixtureCase>
 			</FixtureGroup>
 

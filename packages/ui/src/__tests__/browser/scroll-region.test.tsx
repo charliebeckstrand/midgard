@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { CodeBlock, type CodeBlockProps, primeCodeBlock } from '../../components/code'
 import { PdfViewer } from '../../components/pdf-viewer'
-import { ScrollArea } from '../../components/scroll-area'
 import { Table, TableBody, TableCaption, TableCell, TableRow } from '../../components/table'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { frames, present, renderUI, screen, waitFor } from '../helpers'
@@ -204,59 +203,6 @@ describe('Table scroll container', () => {
 		expect(container().getAttribute('aria-label')).toBe('Orders')
 
 		expect(container().hasAttribute('aria-labelledby')).toBe(false)
-	})
-})
-
-describe('ScrollArea viewport', () => {
-	function Area({ height }: { height: number }) {
-		return (
-			<ScrollArea aria-label="Log" className="h-24">
-				<div style={{ height }}>content</div>
-			</ScrollArea>
-		)
-	}
-
-	function viewport(): HTMLElement {
-		return present(
-			document.querySelector<HTMLElement>('[data-slot="scroll-area-viewport"]'),
-			'the scroll area viewport',
-		)
-	}
-
-	it('adds no tab stop and no name while the content fits', async () => {
-		renderUI(<Area height={20} />)
-
-		await frames()
-
-		expect(viewport().hasAttribute('tabindex')).toBe(false)
-
-		expect(viewport().hasAttribute('role')).toBe(false)
-
-		expect(viewport().hasAttribute('aria-label')).toBe(false)
-	})
-
-	it('is a named tab stop while the content overflows', async () => {
-		renderUI(<Area height={600} />)
-
-		await waitFor(() => expect(viewport().getAttribute('tabindex')).toBe('0'))
-
-		expect(viewport().getAttribute('role')).toBe('region')
-
-		expect(viewport().getAttribute('aria-label')).toBe('Log')
-	})
-
-	it('keeps a consumer tab stop and name', async () => {
-		renderUI(
-			<ScrollArea tabIndex={-1} role="region" aria-label="Log" className="h-24">
-				<div style={{ height: 20 }}>content</div>
-			</ScrollArea>,
-		)
-
-		await frames()
-
-		expect(viewport().getAttribute('tabindex')).toBe('-1')
-
-		expect(viewport().getAttribute('aria-label')).toBe('Log')
 	})
 })
 

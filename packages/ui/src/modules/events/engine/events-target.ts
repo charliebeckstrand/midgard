@@ -1,4 +1,4 @@
-import { findScrollableAncestor } from '../../../components/scroll-area/scroll-area-utilities'
+import { findScrollableAncestor } from '../../../utilities/find-scrollable-ancestor'
 
 // The names of the elements that an event reaches, and the mark of the
 // elements of the tools themselves.

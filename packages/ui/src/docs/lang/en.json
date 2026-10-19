@@ -439,10 +439,6 @@
 		"defaultMessage": "Bar area and line",
 		"description": "The title of an example on a page of the docs. It comes from the file name bar-area-and-line.tsx."
 	},
-	"docs.title.bare-nested-in-a-container": {
-		"defaultMessage": "Bare nested in a container",
-		"description": "The title of an example on a page of the docs. It comes from the file name bare-nested-in-a-container.tsx."
-	},
 	"docs.title.basic": {
 		"defaultMessage": "Basic",
 		"description": "The title of an example on a page of the docs. It comes from the file name basic.tsx."
@@ -902,10 +898,6 @@
 	"docs.title.horizontal": {
 		"defaultMessage": "Horizontal",
 		"description": "The title of an example on a page of the docs. It comes from the file name horizontal.tsx."
-	},
-	"docs.title.horizontal-with-extent": {
-		"defaultMessage": "Horizontal with extent",
-		"description": "The title of an example on a page of the docs. It comes from the file name horizontal-with-extent.tsx."
 	},
 	"docs.title.icon-only": {
 		"defaultMessage": "Icon only",
@@ -1562,10 +1554,6 @@
 	"docs.title.vertical": {
 		"defaultMessage": "Vertical",
 		"description": "The title of an example on a page of the docs. It comes from the file name vertical.tsx."
-	},
-	"docs.title.vertical-with-extent": {
-		"defaultMessage": "Vertical with extent",
-		"description": "The title of an example on a page of the docs. It comes from the file name vertical-with-extent.tsx."
 	},
 	"docs.title.virtualized": {
 		"defaultMessage": "Virtualized",

@@ -155,7 +155,7 @@ if (typeof Element.prototype.setPointerCapture !== 'function') {
 }
 
 // jsdom defines `window.scrollBy`, but it logs a "Not implemented" jsdomError on
-// each call. The track of the scroll-area scrollbar falls back to it.
+// each call.
 Object.defineProperty(window, 'scrollBy', { writable: true, configurable: true, value: () => {} })
 
 // jsdom has no canvas backend; getContext prints a "Not implemented" jsdomError

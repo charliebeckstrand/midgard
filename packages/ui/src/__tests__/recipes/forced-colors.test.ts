@@ -6,7 +6,6 @@ import { k as grid } from '../../recipes/kata/grid'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
 import { k as resizable } from '../../recipes/kata/resizable'
-import { k as scrollArea } from '../../recipes/kata/scroll-area'
 import { k as tooltip } from '../../recipes/kata/tooltip'
 import { omote } from '../../recipes/kiso/omote'
 import { panel } from '../../recipes/kiso/panel'
@@ -141,41 +140,5 @@ describe('accordion header focus under forced colors', () => {
 
 		expect(trigger).toContain('focus-visible:outline-none')
 		expect(trigger).not.toContain('focus-visible:outline-hidden')
-	})
-})
-
-/**
- * Under forced colors, the ScrollArea thumb keeps its shape in each state.
- *
- * The viewport hides the native scrollbar, and the reader sees the thumb only
- * by its background. Forced colors remove that background, so the thumb paints
- * in `CanvasText`. The hover and the active color outrank the bare shape class,
- * so the shape repeats in each state.
- */
-describe('scroll area thumb under forced colors', () => {
-	const thumbs = (['vertical', 'horizontal'] as const).map(
-		(orientation) => [orientation, scrollArea.thumb({ orientation })] as const,
-	)
-
-	it.each(thumbs)('keeps the shape of the %s thumb', (_orientation, thumb) => {
-		expect(classNames([thumb])).toContain('forced-colors:bg-[CanvasText]')
-	})
-
-	it.each(thumbs)('keeps the shape of the %s thumb in each state', (_orientation, thumb) => {
-		const classes = classNames([thumb])
-
-		const states = new Set(
-			classes.flatMap((className) => {
-				const state = /^(?:dark:)?(hover|active):bg-/.exec(className)?.[1]
-
-				return state ? [state] : []
-			}),
-		)
-
-		expect(states.size).toBeGreaterThan(0)
-
-		for (const state of states) {
-			expect(classes).toContain(`forced-colors:${state}:bg-[CanvasText]`)
-		}
 	})
 })

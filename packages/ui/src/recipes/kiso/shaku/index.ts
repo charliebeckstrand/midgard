@@ -8,11 +8,9 @@
 import { icon } from './icon'
 import { mark } from './mark'
 import { panel } from './panel'
-import { scrollArea } from './scroll-area'
 
 export const shaku = {
 	icon,
 	panel,
-	scrollArea,
 	mark,
 } as const

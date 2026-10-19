@@ -26,7 +26,7 @@ Atomic concerns, one sub-folder each, except the flat files `kara.ts`, `sou.ts`,
 | `omote` 面 | Generic surface fills and chromes, the `checkerboard` pattern, and the `rail` of a scroll container. |
 | `hannou` 反応 | Interaction feedback (`disabled`, `fg`, `cursor`, `grab`, `active`, and the `tint` washes) plus the `item` / `nav` composites. |
 | `sen` 線 | Borders, rings, dividers, focus indicators, and forced-colors safety nets. |
-| `shaku` 尺 | Dimension scales per surface (`icon`, `panel`, `scrollArea`, `mark`). `icon` holds the scale (`icon.size`) and its forms (`icon.base`, `icon.slot`). |
+| `shaku` 尺 | Dimension scales per surface (`icon`, `panel`, `mark`). `icon` holds the scale (`icon.size`) and its forms (`icon.base`, `icon.slot`). |
 | `ugoki` 動き | Motion — tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, and Framer Motion enter/exit configs. |
 | `kasane` 重ね | The signature 4-layer chrome stack plus the `rounded` scale. The ring utilities (`px-ring-2`, …) that subtract the ring are in `core/density/utilities.ts`. |
 | `kokkaku` 骨格 | Skeleton placeholder dimensions per component — chrome-, variant-, and color-stripped. |

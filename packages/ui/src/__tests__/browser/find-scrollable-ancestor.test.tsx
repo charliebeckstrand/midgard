@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { findScrollableAncestor } from '../../components/scroll-area/scroll-area-utilities'
+import { findScrollableAncestor } from '../../utilities/find-scrollable-ancestor'
 import { present, renderUI, screen } from '../helpers'
 
 /**
