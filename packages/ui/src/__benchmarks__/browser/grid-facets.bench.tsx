@@ -18,7 +18,7 @@ const FACETS = { facets: true }
 /** Resolves when the filter sheet is in the document, looking once for each animation frame. */
 async function sheetPainted(): Promise<void> {
 	for (let frame = 0; frame < 600; frame++) {
-		if (document.querySelector('form[data-slot="grid-filter"]')) return
+		if (document.querySelector('[data-slot="sheet"]')) return
 
 		await new Promise(requestAnimationFrame)
 	}
