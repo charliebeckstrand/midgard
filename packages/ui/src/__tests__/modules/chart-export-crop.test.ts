@@ -66,3 +66,17 @@ describe('prepareChartCapture crop without the legend', () => {
 		expect(prepareChartCapture(chart(), false).box).toEqual({ x: 0, y: 0, width: 320, height: 200 })
 	})
 })
+
+describe('prepareChartCapture root margin', () => {
+	it('drops the margin of the root, so the clone starts at the origin of the box', () => {
+		const root = chart()
+
+		root.style.margin = '24px auto'
+
+		const { clone } = prepareChartCapture(root, true)
+
+		for (const side of ['Top', 'Right', 'Bottom', 'Left'] as const) {
+			expect(clone.style[`margin${side}`]).toMatch(/^0(px)?$/)
+		}
+	})
+})
