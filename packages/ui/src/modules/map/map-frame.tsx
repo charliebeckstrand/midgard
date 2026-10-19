@@ -102,34 +102,32 @@ export function MapFrame({
 				preloadRegion={preloadRegion}
 				subject={zoom.subject}
 			>
-				{aside ? (
-					// The panel and plot sit side by side once the map's own box reaches
-					// `@lg` (32rem). That leaves the plot at least 19rem beside the 12rem
-					// rail. Below it they stack with the panel always under the map, so a
-					// left panel reverses the row instead of moving in the DOM. The stack
-					// stretches its children, because the plot reserves its height from
-					// its own width and a centered plot has no width to reserve from. The
-					// side is physical, so a left panel stays left in a right-to-left page.
-					<div
-						className={cn(
-							'flex flex-col @lg:items-center',
-							k.frame,
-							legendBandRow(legendPlacement, 'lg'),
-						)}
-					>
-						{plot}
+				{/* One wrapper in both layouts, so the plot keeps its place in the tree
+				    when the legend moves between a side and a band. A drill-down that
+				    drops a side legend, or a range bar that a narrow box turns into a
+				    row, then keeps the plot mounted, and a plot that holds focus keeps it.
+				    The panel and plot sit side by side once the map's own box reaches
+				    `@lg` (32rem). That leaves the plot at least 19rem beside the 12rem
+				    rail. Below it they stack with the panel always under the map, so a
+				    left panel reverses the row instead of moving in the DOM. The stack
+				    stretches its children, because the plot reserves its height from
+				    its own width and a centered plot has no width to reserve from. The
+				    side is physical, so a left panel stays left in a right-to-left page.
+				    A band legend needs no box of its own (`contents`), so the legend
+				    and plot lay out in the frame's column. */}
+				<div
+					className={
+						aside
+							? cn('flex flex-col @lg:items-center', k.frame, legendBandRow(legendPlacement, 'lg'))
+							: 'contents'
+					}
+				>
+					{legendPlacement === 'top' && legendNode}
 
-						{legendNode}
-					</div>
-				) : (
-					<>
-						{legendPlacement === 'top' && legendNode}
+					{plot}
 
-						{plot}
-
-						{legendPlacement === 'bottom' && legendNode}
-					</>
-				)}
+					{(aside || legendPlacement === 'bottom') && legendNode}
+				</div>
 			</MapHoverProvider>
 
 			{table}
