@@ -203,6 +203,47 @@ describe('grid column auto-sizing (real browser)', () => {
 		expect(flex - pin).toBeGreaterThan(200)
 	})
 
+	it.each([1, 2, 3])(
+		'sizes a width-less actions column of %i buttons to its content, at no more',
+		async (count) => {
+			const { container, header } = render(600, [
+				{ id: 'name', title: 'Name', cell: (row) => row.tiny },
+				{
+					id: 'actions',
+					actions: () => (
+						<span style={{ display: 'flex', gap: '8px' }}>
+							{['a', 'b', 'c'].slice(0, count).map((label) => (
+								<button key={label} type="button" style={{ width: '24px' }}>
+									{label}
+								</button>
+							))}
+						</span>
+					),
+				},
+			])
+
+			const cell = present(container.querySelector('td:last-child'), 'actions cell')
+
+			const box = present(cell.querySelector('[data-grid-fit]'), '[data-grid-fit]')
+
+			// The name column takes the spare width, so the actions cell holds only its
+			// content and the cell padding.
+			await waitFor(() => expect(header('name').getBoundingClientRect().width).toBeGreaterThan(400))
+
+			const style = getComputedStyle(cell)
+
+			const padding =
+				Number.parseFloat(style.paddingInlineStart) + Number.parseFloat(style.paddingInlineEnd)
+
+			expect(box.getBoundingClientRect().width).toBeNear(count * 24 + (count - 1) * 8, HALF_PIXEL)
+
+			expect(cell.getBoundingClientRect().width).toBeNear(
+				box.getBoundingClientRect().width + padding,
+				PIXEL,
+			)
+		},
+	)
+
 	it('sizes a badge column to the badges’ natural width, not their clipped width', async () => {
 		// A composed cell — a flex row of Badge chips — is a block box that fills the
 		// clipped leaf, so its in-place rect reads the current column width rather than

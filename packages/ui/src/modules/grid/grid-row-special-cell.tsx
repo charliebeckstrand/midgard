@@ -74,8 +74,28 @@ function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProp
 }
 
 /**
+ * The box around the content of a special cell. It is `max-content` wide, and
+ * `data-grid-fit` names its column, so the autosizer sizes the column to its
+ * content (see `isContentSized`). The content of an actions cell sits at the
+ * start, and every other one in the middle.
+ *
+ * @internal
+ */
+export function GridFitBox<T>({ col, children }: { col: GridColumn<T>; children: ReactNode }) {
+	return (
+		<span
+			data-grid-fit={col.id}
+			className={cn(col.actions ? k.cell.fit.base : k.cell.fit.centered)}
+		>
+			{children}
+		</span>
+	)
+}
+
+/**
  * The content of a special cell of a row: the drag grip, the selection
- * checkbox, or the row actions. The flat row and the grouped leaf row share it.
+ * checkbox, or the row actions, in its {@link GridFitBox}. The flat row and the
+ * grouped leaf row share it.
  * A leaf row gives no `sortable`, so its grip is inert. Any other column gives
  * `null`.
  *
@@ -102,22 +122,34 @@ export function GridRowSpecialCell<T>({
 	const intl = useIntl()
 
 	if (col.dragHandle) {
-		return <GridRowDragHandle sortable={sortable} rowLabel={rowLabel} rowKey={rowKey} />
+		return (
+			<GridFitBox col={col}>
+				<GridRowDragHandle sortable={sortable} rowLabel={rowLabel} rowKey={rowKey} />
+			</GridFitBox>
+		)
 	}
 
 	if (col.selectable) {
 		return (
-			<Checkbox
-				checked={selected}
-				onChange={() => toggleRow(rowKey)}
-				aria-label={intl.formatMessage(gridMessages.selectRow, {
-					row: rowName(intl, rowLabel, rowKey),
-				})}
-			/>
+			<GridFitBox col={col}>
+				<Checkbox
+					checked={selected}
+					onChange={() => toggleRow(rowKey)}
+					aria-label={intl.formatMessage(gridMessages.selectRow, {
+						row: rowName(intl, rowLabel, rowKey),
+					})}
+				/>
+			</GridFitBox>
 		)
 	}
 
-	if (col.actions) return <GridRowActions render={col.actions} row={row} rowKey={rowKey} />
+	if (col.actions) {
+		return (
+			<GridFitBox col={col}>
+				<GridRowActions render={col.actions} row={row} rowKey={rowKey} />
+			</GridFitBox>
+		)
+	}
 
 	return null
 }

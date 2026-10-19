@@ -74,7 +74,7 @@ export type GridColumn<T> = {
 	filterOptions?: NonNullable<QueryField['options']>
 	/**
 	 * Marks this as the selection column; renders the row-select checkboxes
-	 * instead of a cell value. Defaults to a natural checkbox width rather than a
+	 * instead of a cell value. Takes the width of the checkbox rather than a
 	 * full data-column width; set {@link GridColumn.width} to override. Always
 	 * frozen to the far left ahead of any left-{@link GridColumn.pinned | pinned}
 	 * column once the grid pins a column. The checkboxes therefore stay anchored
@@ -86,6 +86,10 @@ export type GridColumn<T> = {
 	 * Renders per-row action controls (e.g. a menu) in this column's cell. The
 	 * second argument carries the row's editing state and the two ways to end it. A
 	 * save and a discard control can therefore live beside the row they act on.
+	 *
+	 * @remarks The column takes the width of its widest rendered controls and its
+	 * title, and none of the spare width, so any number of controls fits. Set
+	 * {@link GridColumn.width} to override.
 	 */
 	actions?: (row: T, context: GridRowActionsContext) => ReactNode
 	/**
@@ -95,7 +99,7 @@ export type GridColumn<T> = {
 	 * inert otherwise (and while a column sort orders the rows, since a manual
 	 * order only holds against the natural order). Like {@link GridColumn.selectable}
 	 * it is a non-data column — never sorted, filtered, resized, or column-reordered
-	 * — and defaults to a natural grip width; set {@link GridColumn.width} to override.
+	 * — and takes the width of the grip; set {@link GridColumn.width} to override.
 	 */
 	dragHandle?: boolean
 	/**
@@ -104,8 +108,8 @@ export type GridColumn<T> = {
 	 * only while the grid is {@link GridProps.expandable | expandable} (and the
 	 * row passes {@link GridExpandable.rowExpandable}); inert otherwise. Like
 	 * {@link GridColumn.selectable} it is a non-data column — never sorted,
-	 * filtered, resized, or column-reordered — and defaults to a natural chevron
-	 * width; set {@link GridColumn.width} to override.
+	 * filtered, resized, or column-reordered — and takes the width of the
+	 * chevron; set {@link GridColumn.width} to override.
 	 */
 	expander?: boolean
 	/** Renders the cell content for a row; defaults to nothing when omitted. */

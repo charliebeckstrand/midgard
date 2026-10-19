@@ -4,7 +4,7 @@ import { DEFAULT_CONTENT_MAX, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import { isFrozen } from '../grid-pin/overrides'
 import { parsePxWidth } from '../grid-table/resize-view'
 import { allocateColumnWidths, type ColumnSizeProfile } from './allocate'
-import type { ColumnMeasurement } from './measure'
+import { type ColumnMeasurement, isContentSized } from './measure'
 
 /**
  * Who owns the column widths.
@@ -180,6 +180,9 @@ function keptWidth<T>(
  *    current holds which columns join the fit. A cached fact therefore stays
  *    true after a hold changes.
  *
+ * 7. A content-sized column (see {@link isContentSized}) takes its content width
+ *    in every mode. It never joins the fill, and no hold or action reaches it.
+ *
  * In `manual` mode, a data column without a hold sizes to its content. That is
  * a column that the user shows after the hold, or one that the saved widths do
  * not name. The spare width stays empty, as it does after a drag.
@@ -209,6 +212,10 @@ export function createColumnSizer({
 	// row that pages or scrolls in only grows a column, so the widths do not jitter.
 	const widest = new Map<string, number>()
 
+	// The running maximum of each content-sized column's width (px), with the same
+	// grow-only rule as `widest`.
+	const fits = new Map<string, number>()
+
 	// Whether the last measurement read body cells (see `ColumnMeasurement.cells`).
 	let seen = false
 
@@ -220,6 +227,8 @@ export function createColumnSizer({
 		for (const [id, body] of measurement.bodies) {
 			widest.set(id, Math.max(widest.get(id) ?? 0, body))
 		}
+
+		for (const [id, width] of measurement.fits) fits.set(id, Math.max(fits.get(id) ?? 0, width))
 
 		seen = measurement.cells > 0
 	}
@@ -270,29 +279,60 @@ export function createColumnSizer({
 		)
 	}
 
+	// Whether a column lacks the fact that a pass reads for it: the floor of a data
+	// column, or the width of a content-sized one.
+	function lacksFact<T>(col: GridColumn<T>): boolean {
+		const id = String(col.id)
+
+		if (isDataColumn(col)) return !floors.has(id)
+
+		return isContentSized(col) && !fits.has(id)
+	}
+
+	// Each content-sized column takes its content width, and none of the spare width.
+	// A column that no pass has measured yet keeps its engine width.
+	function contentWidths<T>(cols: readonly GridColumn<T>[]): Record<string, number> {
+		const content: Record<string, number> = {}
+
+		for (const col of cols) {
+			const width = fits.get(String(col.id))
+
+			if (width != null) content[String(col.id)] = width
+		}
+
+		return content
+	}
+
 	function refit<T>(env: ColumnSizerEnv<T>, fresh: boolean): ColumnSizingWrite {
 		const joined = env.columns.filter((col) => isAutoSized(col, holds, released))
 
-		const unfloored = env.columns.some((col) => isDataColumn(col) && !floors.has(String(col.id)))
+		const fitted = env.columns.filter(isContentSized)
+
+		const unfloored = env.columns.some(lacksFact)
 
 		// A held column needs no content, so a grid whose every column is held reads
-		// again only for a missing floor or a provisional pass.
-		const stale = (fresh && joined.length > 0) || !seen || unfloored
+		// again only for a missing fact or a provisional pass. A content-sized column
+		// is never held.
+		const stale = (fresh && (joined.length > 0 || fitted.length > 0)) || !seen || unfloored
 
 		const ids = new Set(joined.map((col) => String(col.id)))
 
 		if (stale) read(env, ids)
 
+		const content = contentWidths(fitted)
+
 		let kept = 0
 
 		for (const col of env.columns) {
-			if (!ids.has(String(col.id))) kept += keptWidth(col, env, holds, released)
+			const id = String(col.id)
+
+			if (!ids.has(id)) kept += content[id] ?? keptWidth(col, env, holds, released)
 		}
 
 		const space = mode === 'auto' ? Math.max(0, env.space - kept) : 0
 
 		return {
-			sizing: allocateColumnWidths(joined.map(profileOf), space),
+			sizing: { ...content, ...allocateColumnWidths(joined.map(profileOf), space) },
 			replace: false,
 			persist: 'none',
 		}
@@ -331,11 +371,15 @@ export function createColumnSizer({
 
 			widest.clear()
 
+			fits.clear()
+
 			return { sizing: refit(env, true).sizing, replace: true, persist: 'clear' }
 		},
 		takeControl,
 		forget: () => {
 			widest.clear()
+
+			fits.clear()
 
 			seen = false
 		},

@@ -330,6 +330,14 @@ export const k = {
 		select: fitCell,
 		actions: 'w-px whitespace-nowrap',
 		expander: fitCell,
+		// The box around the content of a utility cell. It is `max-content` wide at any
+		// column width, so the autosizer reads the content width from it and sizes the
+		// column to that. `centered` holds the content in the middle of a wider column,
+		// as `text-center` does for the selection, expander, and grip cells.
+		fit: {
+			base: ['block', 'w-max'],
+			centered: ['block', 'w-max', 'mx-auto'],
+		},
 		// One-line cell content that truncates to an ellipsis at the column width.
 		// `block` gives the span the cell's width so the fixed/auto column bounds it.
 		truncate: ['block', 'truncate'],

@@ -1,5 +1,6 @@
 import type { GridNewRowAdd } from '../grid-editing-types'
 import type { GridColumn } from '../types'
+import { cellChrome } from './grid-sizing/measure'
 
 /**
  * The id of the column that holds the Add control of the new-row slot. The
@@ -96,14 +97,5 @@ export function measureNewRowAddCell(cell: HTMLElement, control: HTMLElement): n
 
 	if (content === 0) return null
 
-	const style = getComputedStyle(cell)
-
-	const chrome = [
-		style.paddingInlineStart,
-		style.paddingInlineEnd,
-		style.borderInlineStartWidth,
-		style.borderInlineEndWidth,
-	].reduce((sum, value) => sum + (Number.parseFloat(value) || 0), 0)
-
-	return Math.ceil(content + chrome)
+	return Math.ceil(content + cellChrome(cell))
 }

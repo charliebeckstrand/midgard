@@ -31,32 +31,33 @@ export const DEFAULT_PAGE_SIZE = 10
 export const DEFAULT_COLUMN_SIZE = 150
 
 /**
- * Natural width (px) the selection-checkbox column holds in the fixed
- * (resizable) layout when it sets no `width`. It is wide enough for the
- * checkbox, instead of the {@link DEFAULT_COLUMN_SIZE} a width-less column
- * would otherwise take. The non-resizable auto layout sizes the column to its
- * content via `w-px`, so this seeds only the fixed-layout colgroup.
+ * Seed width (px) the selection-checkbox column holds in the fixed (resizable)
+ * layout when it sets no `width`, until the autosizer measures its content. It
+ * is near the checkbox, instead of the {@link DEFAULT_COLUMN_SIZE} a width-less
+ * column would otherwise take. The non-resizable auto layout sizes the column
+ * to its content via `w-px`, so this seeds only the fixed-layout colgroup.
  *
  * @internal
  */
 export const SELECT_COLUMN_SIZE = 48
 
 /**
- * Natural width (px) the row drag-handle column holds in the fixed (resizable)
- * layout when it sets no `width`. It is wide enough for the grip, like
- * {@link SELECT_COLUMN_SIZE} for the checkbox. The non-resizable auto layout
- * sizes it to content via `w-px`, so this seeds only the fixed-layout colgroup.
+ * Seed width (px) the row drag-handle column holds in the fixed (resizable)
+ * layout when it sets no `width`, until the autosizer measures its content. It
+ * is near the grip, like {@link SELECT_COLUMN_SIZE} for the checkbox. The
+ * non-resizable auto layout sizes it to content via `w-px`, so this seeds only
+ * the fixed-layout colgroup.
  *
  * @internal
  */
 export const DRAG_HANDLE_COLUMN_SIZE = 44
 
 /**
- * Natural width (px) the row-expander column holds in the fixed (resizable)
- * layout when it sets no `width`. It is wide enough for the disclosure chevron,
- * like {@link DRAG_HANDLE_COLUMN_SIZE} for the grip. The non-resizable auto
- * layout sizes it to content via `w-px`, so this seeds only the fixed-layout
- * colgroup.
+ * Seed width (px) the row-expander column holds in the fixed (resizable)
+ * layout when it sets no `width`, until the autosizer measures its content. It
+ * is near the disclosure chevron, like {@link DRAG_HANDLE_COLUMN_SIZE} for the
+ * grip. The non-resizable auto layout sizes it to content via `w-px`, so this
+ * seeds only the fixed-layout colgroup.
  *
  * @internal
  */
