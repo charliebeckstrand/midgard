@@ -13,6 +13,7 @@ import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { NavItem, NavList } from '../../components/nav'
 import { ProgressBar } from '../../components/progress'
+import { Rating } from '../../components/rating'
 import { ScrollArea } from '../../components/scroll-area'
 import { Segment, SegmentItem } from '../../components/segment'
 import { Select, SelectOption } from '../../components/select'
@@ -519,6 +520,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 		['checkbox', <Checkbox key="checkbox" aria-label="Agree" />],
 		['slider', <Slider key="slider" aria-label="Volume" value={10} />],
 		['range slider', <RangeSlider key="range" aria-label="Price" value={[10, 40]} />],
+		['rating', <Rating key="rating" aria-label="Score" />],
 	] as const)('%s: an invalid control paints differently', async (_name, ui) => {
 		const valid = await pixels(<Control>{ui}</Control>)
 		const invalid = await pixels(<Control severity="error">{ui}</Control>)
