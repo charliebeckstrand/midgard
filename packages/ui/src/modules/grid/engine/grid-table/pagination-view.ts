@@ -2,7 +2,7 @@ import { functionalUpdate, type PaginationState } from '@tanstack/react-table'
 import type { SetStateAction } from 'react'
 import { clamp } from '../../../../utilities'
 import type { GridPagination } from '../../types'
-import { manualTotals, pageCountOf, pageOffset } from '../grid-pagination-utilities'
+import { manualTotals, pageCountOf, pageOffset, shownPageIndex } from '../grid-pagination-utilities'
 import type { EngineTable } from './features'
 
 /**
@@ -27,11 +27,11 @@ export type GridPaginationView = {
 	pageSizeOptions: number[] | undefined
 	/**
 	 * Moves to a page, by absolute index or by an updater the engine applies to the
-	 * live index. Two navigations that land on one render compose under an updater;
-	 * an absolute index computed from the rendered page resolves both to the same
-	 * page. The result stays inside a known page count. The engine bounds it only
-	 * against an explicit `pageCount`, which client mode never sets, so the view
-	 * clamps it.
+	 * live index, held to the last page as the view shows it. Two navigations that
+	 * land on one render compose under an updater; an absolute index computed from
+	 * the rendered page resolves both to the same page. The result stays inside a
+	 * known page count. The engine bounds it only against an explicit `pageCount`,
+	 * which client mode never sets, so the view clamps it.
 	 */
 	setPageIndex: (index: SetStateAction<number>) => void
 	setPageSize: (size: number) => void
@@ -81,10 +81,12 @@ export function buildPaginationView<T>(args: {
 		canPrevious: pageIndex > 0,
 		canNext: pageCount === -1 || (pageCount !== 0 && pageIndex < pageCount - 1),
 		pageSizeOptions: args.config.pageSizeOptions,
-		// `-1` (unknown) leaves the top open. The engine still clamps the floor at 0.
+		// An updater steps from the shown page, not from a stored page past the last
+		// one. `-1` (unknown) leaves the top open. The engine still clamps the floor
+		// at 0.
 		setPageIndex: (index) =>
 			table.setPageIndex((prev) => {
-				const next = functionalUpdate(index, prev)
+				const next = functionalUpdate(index, shownPageIndex(prev, pageCount))
 
 				const last = pageCount - 1
 
