@@ -42,7 +42,10 @@ export type PdfViewerHighlightsOptions = {
 	defaultActiveHighlightId?: string
 	onActiveHighlightChange?: (id: string | null) => void
 	onHighlightPress?: (id: string) => void
-	/** The page on screen; supplies the extent a physical {@link PdfViewerHighlightUnit} divides by. */
+	/**
+	 * The page on screen; supplies the extent a physical {@link PdfViewerHighlightUnit} divides by.
+	 * `undefined` while the document has no pages, which holds the navigation to a region.
+	 */
 	activePage: PdfViewerPage | undefined
 	/** Which page is on screen, 1-based. Only its regions are drawn. */
 	safePage: number
@@ -166,8 +169,12 @@ export function usePdfViewerHighlights({
 	// The active region can be on a page that the viewer does not show. A list beside the
 	// viewer can select by field, not by page. Thus navigate to it. Latched on the
 	// id: goToPage fires the consumer's onPageChange even when the page is unchanged, so a
-	// consumer re-passing activeHighlightId every render would spam it.
+	// consumer re-passing activeHighlightId every render would spam it. A document with no
+	// pages yet shows no page, and goToPage does nothing there, so the latch waits for the
+	// pages. The navigation then runs when they arrive.
 	const navigatedForRef = useRef<string | null>(null)
+
+	const loaded = activePage !== undefined
 
 	useEffect(() => {
 		if (!activeId) {
@@ -176,12 +183,14 @@ export function usePdfViewerHighlights({
 			return
 		}
 
-		if (activeHighlightPage === undefined || navigatedForRef.current === activeId) return
+		if (!loaded || activeHighlightPage === undefined || navigatedForRef.current === activeId) {
+			return
+		}
 
 		navigatedForRef.current = activeId
 
 		goToPage(activeHighlightPage)
-	}, [activeId, activeHighlightPage, goToPage])
+	}, [activeId, activeHighlightPage, goToPage, loaded])
 
 	// Reveal-once latch, cleared on any change of the active id — including to null, so
 	// re-selecting the same region reveals again — rather than in the ref's own detach,
