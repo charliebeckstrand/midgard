@@ -74,21 +74,46 @@ async function open(index: number) {
  * it, so a slow round trip of the event cannot let a tween run on before the
  * first sample. The deadline starts after the event (see
  * {@link sampleMotionFrames}).
+ *
+ * The hold takes each new tween in each frame. It stops after the event, in
+ * the first frame that shows no new tween. A tween can still run when the
+ * sampler starts, such as a zoom on a slow machine. Thus the first tween that
+ * the hold sees is not always a tween of the event. The tweens of the event
+ * start in a later frame, and the hold takes them too. A tween that Motion
+ * cancels, as a new tween on its value starts, is not in the result.
  */
 async function hold(element: HTMLElement, progress: number, during?: () => Promise<unknown>) {
-	const tweens = await sampleMotionFrames(
-		() => element.getAnimations({ subtree: true }),
-		(found) => found.length > 0,
-		{ during },
+	const held = new Set<Animation>()
+
+	let sent = !during
+
+	await sampleMotionFrames(
+		() => {
+			const fresh = element.getAnimations({ subtree: true }).filter((tween) => !held.has(tween))
+
+			for (const tween of fresh) {
+				tween.pause()
+
+				tween.currentTime = progress * Number(tween.effect?.getComputedTiming().duration)
+
+				held.add(tween)
+			}
+
+			return fresh.length
+		},
+		(fresh) => sent && held.size > 0 && fresh === 0,
+		{
+			during:
+				during &&
+				(async () => {
+					await during()
+
+					sent = true
+				}),
+		},
 	)
 
-	for (const tween of tweens) {
-		tween.pause()
-
-		tween.currentTime = progress * Number(tween.effect?.getComputedTiming().duration)
-	}
-
-	return tweens
+	return [...held].filter((tween) => tween.playState !== 'idle')
 }
 
 /**
