@@ -9,6 +9,7 @@
  * merge round files slot indices. Neither pass can pay for the other's shape.
  */
 
+import { getOrCompute } from '../../../../utilities'
 import type { MapPoint2D } from '../types'
 
 /**
@@ -60,15 +61,12 @@ export function squared(a: MapPoint2D, b: MapPoint2D): number {
 
 /** The bucket for a cell, created empty on first use. @internal */
 export function bucket<T>(cells: Map<number, T[]>, key: number): T[] {
-	const held = cells.get(key)
+	return getOrCompute(cells, key, emptyBucket<T>)
+}
 
-	if (held !== undefined) return held
-
-	const fresh: T[] = []
-
-	cells.set(key, fresh)
-
-	return fresh
+/** A fresh bucket. Hoisted, so a hit allocates no closure per mark. @internal */
+function emptyBucket<T>(): T[] {
+	return []
 }
 
 /**
