@@ -332,8 +332,8 @@ export function seatOnArrowOpen(
 }
 
 /**
- * Re-anchors the highlight when the rows change under an unchanged query, as
- * when async data arrives. `originRef` decides the move:
+ * Moves the highlight with the options when the rows change under an unchanged
+ * query, as when async data arrives. `originRef` decides the move:
  *
  * - An empty highlight stays empty. A change to the window of a source does
  *   not seed row 0 after a plain open.
@@ -348,7 +348,7 @@ export function seatOnArrowOpen(
  *
  * @internal
  */
-export function reanchorOnOptionSwap(
+export function followOptions(
 	node: HTMLElement,
 	virtualSourceRef: RefObject<VirtualItemSource | null>,
 	activeIndexRef: RefObject<number>,
@@ -744,7 +744,7 @@ export function Combobox<T>({
 	// re-rendering on its own async state), where no render of this component
 	// observes it; a MutationObserver on the options wrapper does.
 	//
-	// The origin of the highlight decides the move (see `reanchorOnOptionSwap`).
+	// The origin of the highlight decides the move (see `followOptions`).
 	// An empty highlight stays empty, a seeded one follows the top match, and a
 	// moved one stays while its row exists.
 	useEffect(() => {
@@ -755,7 +755,7 @@ export function Combobox<T>({
 		if (!node) return
 
 		const observer = new MutationObserver(() =>
-			reanchorOnOptionSwap(node, virtualSourceRef, activeIndexRef, inputRef, highlightOriginRef),
+			followOptions(node, virtualSourceRef, activeIndexRef, inputRef, highlightOriginRef),
 		)
 
 		observer.observe(node, { childList: true, subtree: true })
