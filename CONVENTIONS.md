@@ -196,6 +196,7 @@ The [`no-abbreviated-binding`](.biome/plugins/no-abbreviated-binding.grit) Biome
 - `measure` reads the geometry of an element.
 - `find` searches, and can find nothing.
 - `resolve` gets the value that applies from options and defaults.
+- `create` makes an object that keeps state, as a store or a registry does.
 - `build` makes a structure.
 - `format` makes text.
 - `parse` splits raw input.
@@ -204,6 +205,8 @@ The [`no-abbreviated-binding`](.biome/plugins/no-abbreviated-binding.grit) Biome
 - `is` and `has` give a boolean.
 - `same` compares two values, as `sameDay` does.
 - `in` tells if a node is inside a place, as `inGrid` does.
+
+A test fixture starts with `make`, as `makeQueryTree` does.
 
 Do not write `isSameDay`, `isInGrid`, or `valuesEqual`. The [`no-alternate-predicate-binding`](.biome/plugins/no-alternate-predicate-binding.grit) Biome plugin finds these forms.
 

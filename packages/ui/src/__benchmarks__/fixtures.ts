@@ -54,7 +54,7 @@ const CITIES = [
 
 const PERIODS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-function buildShipments(count: number, seed = 1): Shipment[] {
+function makeShipments(count: number, seed = 1): Shipment[] {
 	const rand = rng(seed)
 
 	const rows: Shipment[] = new Array(count)
@@ -84,7 +84,7 @@ function buildShipments(count: number, seed = 1): Shipment[] {
 const shipmentCache = new Map<string, Shipment[]>()
 
 /**
- * {@link buildShipments}, memoized per `(count, seed)`. Several files draw the
+ * {@link makeShipments}, memoized per `(count, seed)`. Several files draw the
  * same rows and the large rungs run to a hundred thousand, so generating them
  * once per parameter pair keeps collection off the clock; nothing mutates the
  * rows, so the shared array is safe to hand out.
@@ -96,7 +96,7 @@ export function shipments(count: number, seed = 1): Shipment[] {
 
 	if (hit) return hit
 
-	const rows = buildShipments(count, seed)
+	const rows = makeShipments(count, seed)
 
 	shipmentCache.set(key, rows)
 
@@ -299,7 +299,7 @@ export const MENU_ROWS = [8, 24, 64] as const
 /** One selectable option, the shape Combobox, Listbox, and `VirtualOptions` all read. */
 export type Option = { value: string; label: string }
 
-function buildOptions(count: number): Option[] {
+function makeOptions(count: number): Option[] {
 	const options: Option[] = new Array(count)
 
 	for (let i = 0; i < count; i++) options[i] = { value: `opt-${i}`, label: `Option ${i}` }
@@ -319,7 +319,7 @@ export function comboboxOptions(count: number): Option[] {
 
 	if (hit) return hit
 
-	const options = buildOptions(count)
+	const options = makeOptions(count)
 
 	optionCache.set(count, options)
 
