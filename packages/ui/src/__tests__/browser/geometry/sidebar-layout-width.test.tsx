@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { densitySteps, writeRootDensity } from '../../../core/density'
-import { rootOffcanvasSidebarClass } from '../../../core/sidebar/root'
+import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../../core/sidebar/root'
 import { SidebarLayout, SidebarLayoutBody } from '../../../layouts'
 import type { DensityLevel } from '../../../providers/density/context'
 import { DensityProvider } from '../../../providers/density/density'
@@ -25,7 +25,7 @@ describe('sidebar layout width (real browser)', () => {
 	afterEach(() => {
 		writeRootDensity(document.documentElement, 'md')
 
-		document.documentElement.classList.remove(rootOffcanvasSidebarClass)
+		document.documentElement.classList.remove(ROOT_OFFCANVAS_SIDEBAR_CLASS)
 	})
 
 	it.for(densitySteps)(
@@ -56,7 +56,7 @@ describe('sidebar layout width (real browser)', () => {
 			// that hook before its body resumes here, so stop the body first.
 			signal.throwIfAborted()
 
-			document.documentElement.classList.add(rootOffcanvasSidebarClass)
+			document.documentElement.classList.add(ROOT_OFFCANVAS_SIDEBAR_CLASS)
 
 			const floating = renderUI(
 				<SidebarLayout sidebar={<nav>Links</nav>}>
@@ -89,7 +89,7 @@ describe('sidebar layout width (real browser)', () => {
 	it.for<DensityLevel>(['compact', 'loose'])(
 		'starts the pointer buffer at the far edge of the sheet in a %s region',
 		async (density) => {
-			document.documentElement.classList.add(rootOffcanvasSidebarClass)
+			document.documentElement.classList.add(ROOT_OFFCANVAS_SIDEBAR_CLASS)
 
 			const floating = renderUI(
 				<DensityProvider density={density}>

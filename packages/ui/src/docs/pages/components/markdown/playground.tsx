@@ -1,6 +1,6 @@
 import { Markdown, type MarkdownProps } from 'ui/markdown'
 
-const prose = `
+const PROSE = `
 # Release notes
 
 Version 2.4 adds **search in attachments**. Run \`app update\` to get it, or
@@ -25,7 +25,7 @@ export function isLatest(version: string) {
 export default function MarkdownPlayground(props: MarkdownProps) {
 	return (
 		<Markdown headingOffset={2} {...props}>
-			{prose}
+			{PROSE}
 		</Markdown>
 	)
 }

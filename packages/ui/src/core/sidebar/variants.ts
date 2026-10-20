@@ -3,7 +3,7 @@
  * with `@plugin`.
  *
  * The variant applies while the root element has the
- * {@link rootOffcanvasSidebarClass} class, that is, while the Sidebar setting of
+ * {@link ROOT_OFFCANVAS_SIDEBAR_CLASS} class, that is, while the Sidebar setting of
  * the app is `'offcanvas'`. `SidebarLayout` uses it to show the floating sheet
  * in place of the inline panel. The class is on the root before the first
  * paint, so the first paint has the correct sidebar.
@@ -12,7 +12,7 @@
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
-import { rootOffcanvasSidebarClass } from './root.ts'
+import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from './root.ts'
 
 /**
  * The plugin handler. Tailwind reads a named `handler` export as a plugin, so
@@ -21,6 +21,6 @@ import { rootOffcanvasSidebarClass } from './root.ts'
 export const handler: PluginCreator = ({ addVariant }) => {
 	addVariant(
 		'sidebar-offcanvas',
-		`&:where(.${rootOffcanvasSidebarClass}, .${rootOffcanvasSidebarClass} *)`,
+		`&:where(.${ROOT_OFFCANVAS_SIDEBAR_CLASS}, .${ROOT_OFFCANVAS_SIDEBAR_CLASS} *)`,
 	)
 }

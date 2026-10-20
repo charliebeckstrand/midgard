@@ -88,7 +88,7 @@ function steppedConflicts(
 }
 
 /** A class of `density-set` with the name of a custom property in its modifier. */
-const densitySet = /^density-set-(\[[^\]]*\])\/\[(--[a-z0-9-]+)\]$/i
+const DENSITY_SET = /^density-set-(\[[^\]]*\])\/\[(--[a-z0-9-]+)\]$/i
 
 /**
  * Parses a class as `tailwind-merge` does, but gives a class of `density-set`
@@ -108,7 +108,7 @@ function parseClassName({
 }: ExperimentalParseClassNameParam): ExperimentalParsedClassName {
 	const parsed = parse(className)
 
-	const match = densitySet.exec(parsed.baseClassName)
+	const match = DENSITY_SET.exec(parsed.baseClassName)
 
 	if (!match) return parsed
 

@@ -4,4 +4,4 @@
  * `AppearanceProvider` keeps it in step with the stored choice. The
  * `sidebar-offcanvas` variant reads it (`core/sidebar/variants.ts`).
  */
-export const rootOffcanvasSidebarClass = 'sidebar-offcanvas'
+export const ROOT_OFFCANVAS_SIDEBAR_CLASS = 'sidebar-offcanvas'

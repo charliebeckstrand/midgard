@@ -5,7 +5,7 @@
  * The plugin replaces the two built-in variants of Tailwind with the same
  * names, so each class of ui and of the apps keeps its variant. The built-in
  * variants read only `prefers-reduced-motion`. These variants also read the
- * Motion setting of the app: the {@link rootReducedMotionClass} class on the
+ * Motion setting of the app: the {@link ROOT_REDUCED_MOTION_CLASS} class on the
  * root element.
  *
  * - `motion-reduce` applies when the platform asks for reduced motion, or when
@@ -19,9 +19,9 @@
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
-import { rootReducedMotionClass } from './root.ts'
+import { ROOT_REDUCED_MOTION_CLASS } from './root.ts'
 
-const reduced = `:where(.${rootReducedMotionClass}, .${rootReducedMotionClass} *)`
+const REDUCED = `:where(.${ROOT_REDUCED_MOTION_CLASS}, .${ROOT_REDUCED_MOTION_CLASS} *)`
 
 /**
  * The plugin handler. Tailwind reads a named `handler` export as a plugin, so
@@ -30,12 +30,12 @@ const reduced = `:where(.${rootReducedMotionClass}, .${rootReducedMotionClass} *
 export const handler: PluginCreator = ({ addVariant }) => {
 	addVariant('motion-reduce', {
 		'@media (prefers-reduced-motion: reduce)': { '@slot': {} },
-		[`&${reduced}`]: { '@slot': {} },
+		[`&${REDUCED}`]: { '@slot': {} },
 	})
 
 	addVariant('motion-safe', {
 		'@media (prefers-reduced-motion: no-preference)': {
-			[`&:not(${reduced})`]: { '@slot': {} },
+			[`&:not(${REDUCED})`]: { '@slot': {} },
 		},
 	})
 }

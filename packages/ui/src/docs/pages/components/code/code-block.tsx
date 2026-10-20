@@ -1,6 +1,6 @@
 import { CodeBlock } from 'ui/code'
 
-const snippet = `
+const SNIPPET = `
 import { Button } from 'ui/button'
 
 export function Example() {
@@ -9,5 +9,5 @@ export function Example() {
 `
 
 export default function CodeBlockExample() {
-	return <CodeBlock code={snippet} />
+	return <CodeBlock code={SNIPPET} />
 }
