@@ -15,7 +15,7 @@
 import { defineMessages } from '../../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../../primitives/intl/types'
 import { toChatParts } from './chat-content/normalize'
-import { chatContentText } from './chat-content/text'
+import { BLOCK_SEPARATOR, chatContentText } from './chat-content/text'
 import type { ChatPart } from './chat-content/types'
 import type { ChatMessageData } from './types'
 
@@ -71,7 +71,7 @@ export function describeReply(intl: IntlShape, content: string | ChatPart[]): st
 
 	const summary = intl.formatMessage(replyMessages.views, { views })
 
-	return spoken ? `${spoken}\n\n${summary}` : summary
+	return spoken ? `${spoken}${BLOCK_SEPARATOR}${summary}` : summary
 }
 
 /**

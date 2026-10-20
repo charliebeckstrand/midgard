@@ -23,7 +23,7 @@ export type ChatListProps = ComponentProps<'ul'>
  * Up/Down arrows rove between items, and Left/Right rove into that row's action
  * controls and back. The actions stay out of the Tab order, so Tab always
  * re-enters on an item. Establishes the list context, so nested
- * items take `role="listitem"`. It also establishes an `ActiveIndicatorScope`,
+ * items render as `<li>` elements. It also establishes an `ActiveIndicatorScope`,
  * so the current row's indicator morphs between siblings rather than against
  * indicators outside the list.
  */

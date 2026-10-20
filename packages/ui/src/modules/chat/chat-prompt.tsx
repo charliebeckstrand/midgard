@@ -58,7 +58,7 @@ export type ChatPromptProps = {
 	onValueChange: (value: string) => void
 	/** Fires when the user submits (Enter without Shift, or the send button). */
 	onSubmit: () => void
-	/** Fires when the user stops a streaming response via the send→stop toggle. */
+	/** Fires when the user stops a streaming response: the stop button, or Enter while `streaming`. */
 	onStop?: () => void
 	/**
 	 * Renders the send button as a stop button that calls `onStop`.
@@ -119,7 +119,8 @@ export type ChatPromptProps = {
 /**
  * Auto-resizing chat composer built on Textarea and wrapped in a `<Control>` so
  * the textarea carries an inherent, stable id. Submits on Enter (Shift+Enter for
- * newlines), and toggles its send button to a stop control while `streaming`. It
+ * newlines), and toggles its send button to a stop control while `streaming`.
+ * While `streaming`, Enter calls `onStop` and does not submit. It
  * offers a paperclip file picker when `onAttach` is provided, and surfaces
  * `attachments` as removable chips below the field. The action row (extra `actions`, the
  * paperclip, and send/stop) sits beneath the textarea, right-justified.
