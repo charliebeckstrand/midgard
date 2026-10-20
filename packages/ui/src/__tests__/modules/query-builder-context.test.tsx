@@ -1,12 +1,10 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { createGroup } from '../../modules/query/engine/query-node'
 import type { QueryField } from '../../modules/query/engine/types'
 import type { QueryBuilderActions } from '../../modules/query/query-builder/context'
 import {
 	QueryBuilderProvider,
 	useQueryBuilderActions,
-	useQueryBuilderContext,
 	useQueryBuilderState,
 } from '../../modules/query/query-builder/context'
 
@@ -33,10 +31,8 @@ const actionsValue: QueryBuilderActions = {
 }
 
 function wrapper({ children }: { children: React.ReactNode }) {
-	const root = createGroup()
-
 	return (
-		<QueryBuilderProvider state={stateValue} actions={actionsValue} root={root} register={() => {}}>
+		<QueryBuilderProvider state={stateValue} actions={actionsValue} register={() => {}}>
 			{children}
 		</QueryBuilderProvider>
 	)
@@ -61,19 +57,5 @@ describe('QueryBuilderProvider', () => {
 		expect(result.current.addRule).toBe(actionsValue.addRule)
 
 		expect(result.current.remove).toBe(actionsValue.remove)
-	})
-})
-
-describe('useQueryBuilderContext', () => {
-	it('returns the merged state, actions, and current tree', () => {
-		const { result } = renderHook(() => useQueryBuilderContext(), { wrapper })
-
-		expect(result.current.fields).toBe(fields)
-
-		expect(result.current.addRule).toBe(actionsValue.addRule)
-
-		expect(result.current.root.type).toBe('group')
-
-		expect(result.current.root.children).toEqual([])
 	})
 })

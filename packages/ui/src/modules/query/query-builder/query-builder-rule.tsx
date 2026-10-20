@@ -13,7 +13,7 @@ import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'
 import { mapResponsive, type Orientation, resolveVariant } from '../../../types'
 import { describeNode } from '../engine/query-announcements'
-import { defaultValueFor } from '../engine/query-node'
+import { createRule } from '../engine/query-node'
 import { getOperators, operatorLabel, operatorValueLabel } from '../engine/query-operators'
 import type { QueryRule } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
@@ -65,15 +65,9 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 		(nextFieldName: string | null) => {
 			if (!nextFieldName) return
 
-			const nextField = getField(nextFieldName)
+			const { operator, value } = createRule(getField(nextFieldName))
 
-			const nextOperators = nextField ? getOperators(nextField) : []
-
-			updateRule(rule.id, {
-				field: nextFieldName,
-				operator: nextOperators[0]?.value ?? '',
-				value: defaultValueFor(nextField),
-			})
+			updateRule(rule.id, { field: nextFieldName, operator, value })
 		},
 		[getField, rule.id, updateRule],
 	)

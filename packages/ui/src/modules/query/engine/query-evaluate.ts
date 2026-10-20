@@ -10,15 +10,9 @@ import type { QueryGroup, QueryNode } from './types'
  * @internal
  */
 function isEmptyValue(value: unknown): boolean {
-	if (value == null) return true
-
-	if (typeof value === 'string') return value.trim() === ''
-
 	// A range tuple is empty only when every bound is: an open-ended range with
 	// one bound set still constrains rows.
-	if (Array.isArray(value)) return value.every((item) => isEmptyValue(item))
-
-	return false
+	return Array.isArray(value) ? value.every((item) => isEmptyValue(item)) : isBlank(value)
 }
 
 /**

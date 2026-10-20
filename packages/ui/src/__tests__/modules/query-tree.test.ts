@@ -1,40 +1,12 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
-import {
-	addChild,
-	hasRules,
-	mapNode,
-	moveChild,
-	removeChild,
-} from '../../modules/query/engine/query-tree'
+import { addChild, mapNode, moveChild, removeChild } from '../../modules/query/engine/query-tree'
 import type { QueryField, QueryGroup, QueryNode, QueryRule } from '../../modules/query/engine/types'
 
 const textField: QueryField = { name: 'title', label: 'Title', type: 'text' }
 
 const numberField: QueryField = { name: 'age', label: 'Age', type: 'number' }
-
-describe('hasRules', () => {
-	it('returns false for an empty group', () => {
-		expect(hasRules(createGroup())).toBe(false)
-	})
-
-	it('returns true when a rule is a direct child', () => {
-		expect(hasRules(createGroup('and', [createRule(textField)]))).toBe(true)
-	})
-
-	it('returns true when a rule is nested inside a child group', () => {
-		const inner = createGroup('and', [createRule(textField)])
-
-		const outer = createGroup('and', [inner])
-
-		expect(hasRules(outer)).toBe(true)
-	})
-
-	it('returns false when every child group is empty', () => {
-		expect(hasRules(createGroup('and', [createGroup()]))).toBe(false)
-	})
-})
 
 describe('mapNode', () => {
 	it('replaces a top-level node identified by id', () => {
