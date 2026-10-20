@@ -5,7 +5,7 @@
  * The first scenario dispatches the input events of one tap on a button:
  * `pointerdown`, `mousedown`, `focusin`, `pointerup`, `mouseup`, and `click`.
  * `events off` is the floor: the same dispatches with no recorder. The other
- * rows run the recorder on a full store, {@link CAPACITY} events outside a
+ * rows run the recorder on a full store, {@link EVENT_CAPACITY} events outside a
  * capture and {@link CAPTURE_CAPACITY} while one runs, so each line drops the
  * oldest, as in a long session. The timed region is the dispatches. The input
  * source checks each cancelled default on a timer, and that timer runs after
@@ -27,8 +27,8 @@
 import { bench, describe } from 'vitest'
 import { halt, start } from '../../modules/events/engine/events-recorder'
 import {
-	CAPACITY,
 	CAPTURE_CAPACITY,
+	EVENT_CAPACITY,
 	type EventStore,
 } from '../../modules/events/engine/events-store'
 import { EventsPanel } from '../../modules/events/events-panel'
@@ -80,25 +80,25 @@ function running(count: number, capture = false) {
 describe('events · one tap', () => {
 	bench('events off', tap, WINDOW.slow)
 
-	bench(`events on · ${CAPACITY} events`, tap, running(CAPACITY))
+	bench(`events on · ${EVENT_CAPACITY} events`, tap, running(EVENT_CAPACITY))
 
 	bench(`events on · ${CAPTURE_CAPACITY} events · capture`, tap, running(CAPTURE_CAPACITY, true))
 })
 
 describe('events · one tap and the frame of the pinned panel', () => {
 	bench(
-		`no panel · ${CAPACITY} events`,
+		`no panel · ${EVENT_CAPACITY} events`,
 		() =>
 			withFrameClock((tick) => {
 				tap()
 
 				tick()
 			}),
-		running(CAPACITY),
+		running(EVENT_CAPACITY),
 	)
 
 	for (const [count, capture] of [
-		[CAPACITY, false],
+		[EVENT_CAPACITY, false],
 		[CAPTURE_CAPACITY, true],
 	] as const) {
 		let panel: ReturnType<typeof reactHost> | undefined
@@ -163,12 +163,12 @@ describe('events · one window resize on a page of 5,000 boxes', () => {
 		teardown: () => page?.remove(),
 	})
 
-	bench(`events on · ${CAPACITY} events`, resize, {
+	bench(`events on · ${EVENT_CAPACITY} events`, resize, {
 		...WINDOW.slow,
 		setup: () => {
 			mountPage()
 
-			fill(CAPACITY, false)
+			fill(EVENT_CAPACITY, false)
 		},
 		teardown: () => {
 			halt()
