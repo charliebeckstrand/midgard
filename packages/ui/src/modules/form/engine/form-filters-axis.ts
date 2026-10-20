@@ -12,13 +12,15 @@ const STACK_ALIGN = adaptive({ compact: 'start', medium: 'end' })
  * The flex axis of the regions of a bar, from its layout. It is a plain
  * function, so that `FormFiltersSkeleton` can read it in a server tree.
  *
- * @returns The `rail` flag, and the `direction` and `align` that a `Flex` takes.
+ * @returns The `rail` flag, the `direction` and `align` that a `Flex` takes,
+ * and the width class of each field.
  * @internal
  */
 export function formFiltersAxis(layout: FormFiltersLayout): {
 	rail: boolean
 	direction: ResponsiveDirection
 	align: ResponsiveAlign
+	fieldWidth: string
 } {
 	const rail = layout === 'rail'
 
@@ -31,5 +33,8 @@ export function formFiltersAxis(layout: FormFiltersLayout): {
 		// rail is a row at every width. A stack is a row from the breakpoint where
 		// `direction` turns to a row.
 		align: rail ? 'end' : STACK_ALIGN,
+		// A stacked field fills its column. A rail's field keeps the width that it
+		// was given and does not shrink, so the row overflows and scrolls.
+		fieldWidth: rail ? 'shrink-0' : 'w-full',
 	}
 }

@@ -48,13 +48,15 @@ export const [FormFiltersNameContext, useFormFiltersName] = createContext<Scroll
  * {@link FormFiltersBar} and {@link FormFiltersRow} lay out on one axis, so
  * they read it from one place. A bar whose regions disagree cross-aligns.
  *
- * @returns The `rail` flag, and the `direction` and `align` a `Flex` takes.
+ * @returns The `rail` flag, the `direction` and `align` a `Flex` takes, and
+ * the width class of each field.
  * @internal
  */
 export function useFormFiltersAxis(): {
 	rail: boolean
 	direction: ResponsiveDirection
 	align: ResponsiveAlign
+	fieldWidth: string
 } {
 	return formFiltersAxis(useFormFilters().layout)
 }

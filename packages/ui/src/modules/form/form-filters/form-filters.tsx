@@ -117,14 +117,22 @@ export function FormFilters<T extends FilterValue = FilterValue>({
 	// leaves its value as it was.
 	const [resets, setResets] = useState(0)
 
+	// Each reset of the bar: the clear action and the reset of the form actions.
 	// Without a default, drop keys entirely, matching setValue's delete semantics.
-	const handleClear = useCallback(() => {
-		setState(defaultValue ?? ({} as T))
+	const reset = useCallback(
+		(next?: Record<string, unknown>) => {
+			setState((next ?? defaultValue ?? {}) as T)
 
-		setResets((prev) => prev + 1)
+			setResets((prev) => prev + 1)
+		},
+		[defaultValue, setState],
+	)
+
+	const handleClear = useCallback(() => {
+		reset()
 
 		onClear?.()
-	}, [defaultValue, setState, onClear])
+	}, [reset, onClear])
 
 	// The bar is the form store of its fields. Each control binds the slot
 	// that its `name` gives, as it binds a field of a `Form`.
@@ -138,9 +146,9 @@ export function FormFilters<T extends FilterValue = FilterValue>({
 			setValue,
 			setErrors: noop,
 			setTouched: noop,
-			reset: (next) => setState((next ?? defaultValue ?? {}) as T),
+			reset,
 		}),
-		[store, setValue, setState, defaultValue],
+		[store, setValue, reset],
 	)
 
 	const intl = useIntl()
