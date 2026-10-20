@@ -132,7 +132,9 @@ export type GridEditingSession = {
 	/**
 	 * Ends the session on a row with a save, as Enter does, for the Save of
 	 * the overlay. It settles when the commit of the row settles, so an async
-	 * commit has settled, and a refused row is open again.
+	 * commit has settled, and a refused row is open again. A save that the
+	 * consumer declines, through a controlled `rows` or `cell`, settles at once
+	 * and leaves the row open.
 	 */
 	saveSession: (rowKey: string | number) => Promise<void>
 	/**

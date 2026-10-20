@@ -342,7 +342,8 @@ export type GridEditableConfig = {
 	 * {@link GridEditableConfig.commitOn} has no effect while it shows. Save
 	 * does nothing while a {@link GridColumn.validate} refuses a value. A
 	 * refused async commit opens the overlay again, with the error under the
-	 * field.
+	 * field. A controlled `rows` or `cell` that declines the exit of Save keeps
+	 * the overlay open with its values, and nothing commits.
 	 * @defaultValue 'drawer'
 	 */
 	overlay?: 'drawer' | 'sheet' | false

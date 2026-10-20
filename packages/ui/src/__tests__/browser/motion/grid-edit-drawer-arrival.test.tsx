@@ -52,14 +52,30 @@ describe('grid edit drawer arrival (real Motion)', () => {
 
 		renderUI(<PhoneGrid />)
 
+		// The actions at the commit that mounts the drawer. A slow runner can
+		// return from the click after the slide lands, so a read after the click
+		// does not see that commit.
+		let atMount: { pencil: boolean; check: boolean } | null = null
+
+		const observer = new MutationObserver(() => {
+			if (atMount !== null || !document.querySelector('[role="dialog"]')) return
+
+			atMount = {
+				pencil: screen.queryByText('pencil-1') !== null,
+				check: screen.queryByText('check-1') !== null,
+			}
+		})
+
+		observer.observe(document.body, { childList: true, subtree: true })
+
 		await userEvent.click(screen.getByRole('button', { name: 'edit-1' }))
 
 		const panel = await screen.findByRole('dialog', { name: 'Edit row 1' })
 
-		// The commit that opens the drawer still shows the pencil.
-		expect(screen.queryByText('pencil-1')).not.toBeNull()
+		observer.disconnect()
 
-		expect(screen.queryByText('check-1')).toBeNull()
+		// The commit that opens the drawer still shows the pencil.
+		expect(atMount).toEqual({ pencil: true, check: false })
 
 		await waitFor(() => expect(screen.queryByText('check-1')).not.toBeNull())
 
