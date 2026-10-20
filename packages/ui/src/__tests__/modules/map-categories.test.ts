@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { paletteSlot } from '../../modules/chart/engine/chart-color/palette'
 import {
 	regionCategoryIndexes,
 	resolveCategories,
-	slotColor,
 } from '../../modules/map/engine/map-region/category'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import { k } from '../../recipes/kata/map'
@@ -20,13 +20,13 @@ const slotPaint = (color: MapSeriesColor) => ({
 	text: k.series[color].text,
 })
 
-describe('slotColor', () => {
+describe('paletteSlot', () => {
 	it('walks the fixed order and wraps past the eighth slot', () => {
-		expect(slotColor(0)).toBe('blue')
+		expect(paletteSlot(0)).toBe('blue')
 
-		expect(slotColor(1)).toBe('orange')
+		expect(paletteSlot(1)).toBe('orange')
 
-		expect(slotColor(8)).toBe('blue')
+		expect(paletteSlot(8)).toBe('blue')
 	})
 })
 

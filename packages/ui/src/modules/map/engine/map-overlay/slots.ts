@@ -11,7 +11,7 @@
  */
 
 import type { MapSeriesColor } from '../../../../recipes/kata/map'
-import { slotColor } from '../map-region/category'
+import { paletteSlot } from '../../../chart/engine/chart-color/palette'
 import type { MapOverlayEntry } from './entry'
 
 /**
@@ -48,7 +48,7 @@ export function overlaySlotColors(
 			continue
 		}
 
-		const color = entry.color ?? slotColor(slot)
+		const color = entry.color ?? paletteSlot(slot)
 
 		slot++
 

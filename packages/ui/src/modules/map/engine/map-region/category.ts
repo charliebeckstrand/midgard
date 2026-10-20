@@ -11,7 +11,8 @@
  */
 
 import { cn } from '../../../../core'
-import { k, type MapSeriesColor } from '../../../../recipes/kata/map'
+import { k } from '../../../../recipes/kata/map'
+import { paletteSlot } from '../../../chart/engine/chart-color/palette'
 import type { DataKey, MapCategory } from '../types'
 
 /**
@@ -125,11 +126,6 @@ export function regionGroupId(
 	return meta === null ? null : categoryLegendId(meta.value)
 }
 
-/** The slot color for the series at `index`, in the fixed categorical order. @internal */
-export function slotColor(index: number): MapSeriesColor {
-	return k.order[index % k.order.length] ?? 'blue'
-}
-
 /**
  * Resolves the region categories: the explicit list's order, labels, and
  * color overrides win; omitted, categories derive from the rows in
@@ -146,7 +142,7 @@ export function resolveCategories<T>(
 	const listed = explicit ?? deriveCategories(data, categoryKey)
 
 	return listed.map((category, index) => {
-		const color = category.color ?? slotColor(index)
+		const color = category.color ?? paletteSlot(index)
 
 		return {
 			value: category.value,
