@@ -96,6 +96,7 @@ export const SIZE_AXES = {
 	StatusDot: ['xs', 'sm', 'md', 'lg', 'xl'],
 	Swatch: ['xs', 'sm', 'md', 'lg', 'xl'],
 	Switch: ['xs', 'sm', 'md', 'lg', 'xl'],
+	SwitchChoice: ['xs', 'sm', 'md', 'lg', 'xl'],
 	SwitchSkeleton: ['xs', 'sm', 'md', 'lg', 'xl'],
 	TabListSkeleton: ['xs', 'sm', 'md', 'lg', 'xl'],
 	Table: ['xs', 'sm', 'md', 'lg', 'xl'],

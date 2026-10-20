@@ -4,6 +4,11 @@ export {
 	type SwitchProps,
 } from './switch'
 export {
+	SwitchChoice,
+	type SwitchChoiceOption,
+	type SwitchChoiceProps,
+} from './switch-choice'
+export {
 	SwitchField,
 	type SwitchFieldProps,
 } from './switch-field'

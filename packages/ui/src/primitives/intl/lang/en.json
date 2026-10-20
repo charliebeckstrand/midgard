@@ -1963,6 +1963,10 @@
 		"defaultMessage": "not started",
 		"description": "The state of a step after the current step. A screen reader speaks it after the title of the step and a comma. Lowercase."
 	},
+	"ui.switchChoice.off": {
+		"defaultMessage": "Off",
+		"description": "The name of the middle position of a three-way switch, where neither of its two options is on."
+	},
 	"ui.table.noItems": {
 		"defaultMessage": "No items",
 		"description": "The title of the empty state of a table that has no rows."
