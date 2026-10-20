@@ -3,6 +3,7 @@ export {
 	QueryContext,
 	type QueryContextValue,
 	useDeferredQuery,
+	useDeferredQueryText,
 	useQuery,
 	useQueryValue,
 } from './query'

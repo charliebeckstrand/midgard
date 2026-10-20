@@ -6,7 +6,6 @@ import {
 	type RefCallback,
 	type RefObject,
 	useCallback,
-	useDeferredValue,
 	useEffect,
 	useId,
 	useLayoutEffect,
@@ -14,13 +13,15 @@ import {
 	useState,
 } from 'react'
 import {
-	isVirtualActiveRowGone,
-	isVirtualTopMatchSeated,
+	type HighlightOrigin,
+	isVirtualHighlightStale,
+	runRovingKey,
 	seedVirtualTopMatch,
 	useA11yRoving,
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useDeferredQueryText } from '../../primitives/query'
 import { isReservedTextboxKey } from '../combobox/use-combobox-input'
 
 type CommandPaletteStateOptions = {
@@ -152,11 +153,7 @@ function createSourceRegistry(
 export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteStateOptions) {
 	const [query, setQuery] = useState('')
 
-	// Bypasses deferral on empty query: the deferred copy paints one stale
-	// frame of the prior filter when the palette resets on open/close.
-	const deferredQueryInternal = useDeferredValue(query)
-
-	const deferredQuery = query === '' ? '' : deferredQueryInternal
+	const deferredQuery = useDeferredQueryText(query)
 
 	// True while the deferred query lags the input. The listbox then holds the
 	// results of an earlier query, and the highlight sits on one of them.
@@ -210,10 +207,10 @@ export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteS
 		reportActive(inputRef.current?.getAttribute('aria-activedescendant') ?? null)
 	})
 
-	// True while the highlight is where the last filter change seeded it. It is
-	// false on open, where the highlight is empty by design, and after a key
-	// moves the highlight. The close sets it to false for the next open.
-	const seededRef = useRef(false)
+	// Where the highlight came from. It is empty on open, by design. A filter
+	// change seeds it, and a key moves it. The close empties it for the next
+	// open.
+	const originRef = useRef<HighlightOrigin>('empty')
 
 	// Seeds the top result again when the results change under an unchanged
 	// query, as when data arrives after a filter ran. A seeded highlight follows
@@ -225,15 +222,22 @@ export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteS
 
 		const list = listRef.current
 
-		if (seededRef.current) {
-			if (isVirtualTopMatchSeated(list, ITEM_SELECTOR, source, activeIndexRef, inputRef)) return
-		} else if (!isVirtualActiveRowGone(source, activeIndexRef, inputRef)) {
+		if (
+			!isVirtualHighlightStale(
+				originRef.current,
+				list,
+				ITEM_SELECTOR,
+				source,
+				activeIndexRef,
+				inputRef,
+			)
+		) {
 			return
 		}
 
 		seedVirtualTopMatch(list, ITEM_SELECTOR, source, activeIndexRef, inputRef)
 
-		seededRef.current = true
+		originRef.current = 'seeded'
 
 		reportActiveFromDom()
 	})
@@ -292,15 +296,10 @@ export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteS
 				return
 			}
 
-			const before = inputRef.current?.getAttribute('aria-activedescendant')
-
-			rovingKeyDown(event)
-
-			// The roving handler writes the attribute synchronously, so the read is
-			// of the highlight this keypress just moved. A key that moves the
-			// highlight makes it the reader's, so a change of the results leaves it.
-			if (inputRef.current?.getAttribute('aria-activedescendant') !== before) {
-				seededRef.current = false
+			// A key that moves the highlight makes it the reader's, so a change of the
+			// results leaves it.
+			if (runRovingKey(inputRef.current, () => rovingKeyDown(event))) {
+				originRef.current = 'moved'
 			}
 
 			reportActiveFromDom()
@@ -335,7 +334,7 @@ export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteS
 			inputRef,
 		)
 
-		seededRef.current = true
+		originRef.current = 'seeded'
 
 		reportActiveFromDom()
 	}, [deferredQuery, open, reportActiveFromDom, virtualSourceRef])
@@ -382,7 +381,7 @@ export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteS
 
 		activeIndexRef.current = -1
 
-		seededRef.current = false
+		originRef.current = 'empty'
 
 		reportActive(null)
 	}, [open, reportActive])

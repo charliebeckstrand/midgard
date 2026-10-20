@@ -6,15 +6,11 @@ import {
 	ComboboxLabel,
 	ComboboxOption,
 } from '../../components/combobox'
-import {
-	type HighlightOrigin,
-	reanchorOnOptionSwap,
-	seatOnArrowOpen,
-} from '../../components/combobox/combobox'
+import { reanchorOnOptionSwap, seatOnArrowOpen } from '../../components/combobox/combobox'
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { Control } from '../../components/control'
 import { Description, Field, Fieldset, Label, Message } from '../../components/fieldset'
-import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
+import type { HighlightOrigin, VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { Form } from '../../modules/form'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'

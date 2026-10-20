@@ -26,9 +26,10 @@ import {
 import {
 	clearVirtualActive,
 	clearVirtualActiveIndexed,
-	isVirtualActiveRowGone,
-	isVirtualTopMatchSeated,
+	type HighlightOrigin,
+	isVirtualHighlightStale,
 	queryItems,
+	runRovingKey,
 	seedVirtualTopMatch,
 	setVirtualActive,
 	setVirtualActiveIndexed,
@@ -331,19 +332,6 @@ export function seatOnArrowOpen(
 }
 
 /**
- * The origin of the highlight, which {@link reanchorOnOptionSwap} reads when the
- * rows change:
- *
- * - `'empty'`: the highlight is empty by design, as after a plain open.
- * - `'seeded'`: a filter change put the highlight on the top match, or found no
- *   row for it.
- * - `'moved'`: a key set the highlight, with an arrow key or an arrow-key open.
- *
- * @internal
- */
-export type HighlightOrigin = 'empty' | 'seeded' | 'moved'
-
-/**
  * Re-anchors the highlight when the rows change under an unchanged query, as
  * when async data arrives. `originRef` decides the move:
  *
@@ -367,13 +355,18 @@ export function reanchorOnOptionSwap(
 	inputRef: RefObject<HTMLInputElement | null>,
 	originRef: RefObject<HighlightOrigin>,
 ): void {
-	if (originRef.current === 'empty') return
-
 	const source = virtualSourceRef.current
 
-	if (originRef.current === 'seeded') {
-		if (isVirtualTopMatchSeated(node, OPTION_SELECTOR, source, activeIndexRef, inputRef)) return
-	} else if (!isVirtualActiveRowGone(source, activeIndexRef, inputRef)) {
+	if (
+		!isVirtualHighlightStale(
+			originRef.current,
+			node,
+			OPTION_SELECTOR,
+			source,
+			activeIndexRef,
+			inputRef,
+		)
+	) {
 		return
 	}
 
@@ -591,15 +584,10 @@ export function Combobox<T>({
 	})
 
 	// A key that moves the highlight makes it the user's, so a new top match does
-	// not take it. A move writes `aria-activedescendant` before the handler
-	// returns, also for a row of a source that is not mounted yet.
+	// not take it.
 	const rovingKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLInputElement>) => {
-			const before = inputRef.current?.getAttribute('aria-activedescendant')
-
-			handleKeyDown(event)
-
-			if (inputRef.current?.getAttribute('aria-activedescendant') !== before) {
+			if (runRovingKey(inputRef.current, () => handleKeyDown(event))) {
 				highlightOriginRef.current = 'moved'
 			}
 		},

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useDeferredValue, useMemo } from 'react'
 import { createContext } from '../../core'
 
 /** Query state a type-ahead root shares with its descendants. */
@@ -48,4 +48,18 @@ export const [DeferredQueryContext, useDeferredQuery] = createContext<string>('D
  */
 export function useQueryValue(query: string, deferredQuery: string): QueryContextValue {
 	return useMemo(() => ({ query, deferredQuery }), [query, deferredQuery])
+}
+
+/**
+ * The deferred copy of a query, for a filter of a heavy list. An empty query
+ * bypasses the deferral, so a cleared filter shows every item in the same
+ * commit, and a reset does not paint one stale frame of the prior filter.
+ *
+ * @param query - Live query text, updated on every keystroke.
+ * @returns The deferred query, or `''` at once when `query` is empty.
+ */
+export function useDeferredQueryText(query: string): string {
+	const deferred = useDeferredValue(query)
+
+	return query === '' ? '' : deferred
 }

@@ -554,6 +554,68 @@ export function isVirtualActiveRowGone(
 }
 
 /**
+ * The origin of a virtual highlight, which {@link isVirtualHighlightStale}
+ * reads when the rows change:
+ *
+ * - `'empty'`: the highlight is empty by design, as after a plain open.
+ * - `'seeded'`: a filter change put the highlight on the top match, or found no
+ *   row for it.
+ * - `'moved'`: a key set the highlight.
+ *
+ * @internal
+ */
+export type HighlightOrigin = 'empty' | 'seeded' | 'moved'
+
+/**
+ * Whether a change of the rows under an unchanged query must seed the highlight
+ * again, through {@link seedVirtualTopMatch}. The origin decides it. An empty
+ * highlight stays empty. A seeded highlight follows the top match: it needs a
+ * seed when it is not where {@link isVirtualTopMatchSeated} reads it. A moved
+ * highlight stays while its row exists: it needs a seed when
+ * {@link isVirtualActiveRowGone} reads the row gone.
+ *
+ * @internal
+ */
+export function isVirtualHighlightStale(
+	origin: HighlightOrigin,
+	container: HTMLElement | null,
+	itemSelector: string,
+	source: VirtualItemSource | null,
+	activeIndexRef: RefObject<number>,
+	activeDescendantRef: RefObject<HTMLElement | null>,
+): boolean {
+	if (origin === 'empty') return false
+
+	if (origin === 'seeded') {
+		return !isVirtualTopMatchSeated(
+			container,
+			itemSelector,
+			source,
+			activeIndexRef,
+			activeDescendantRef,
+		)
+	}
+
+	return isVirtualActiveRowGone(source, activeIndexRef, activeDescendantRef)
+}
+
+/**
+ * Runs the key handler of a virtual roving list, and tells whether the key
+ * moved the highlight. A move writes `aria-activedescendant` on
+ * `activeDescendant` before the handler returns, also for a row of a source
+ * that is not mounted yet.
+ *
+ * @internal
+ */
+export function runRovingKey(activeDescendant: HTMLElement | null, run: () => void): boolean {
+	const before = activeDescendant?.getAttribute('aria-activedescendant')
+
+	run()
+
+	return activeDescendant?.getAttribute('aria-activedescendant') !== before
+}
+
+/**
  * Seat the single focus-mode Tab stop: `active` takes `tabIndex=0` and every
  * other item `-1`. Writes only on divergence; a MutationObserver watches
  * `tabindex` and fires on every edit. Pass `undefined` to demote all.
