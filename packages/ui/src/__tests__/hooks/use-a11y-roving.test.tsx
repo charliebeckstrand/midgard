@@ -622,6 +622,33 @@ describe('useA11yRoving: manageTabIndex', () => {
 		expect(tabIndices(container)).toEqual([-1, -1, 0])
 	})
 
+	it('keeps a roved stop when a tabbable item mounts while focus is outside', async () => {
+		const container = makeButtons(3)
+
+		const outside = attach(document.createElement('button'))
+
+		renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useA11yRoving(ref, { itemSelector: '[data-slot="item"]', manageTabIndex: true })
+		})
+
+		container.querySelectorAll('button')[1]?.focus()
+
+		outside.focus()
+
+		// A new native button is tabbable before the hook demotes it.
+		const added = document.createElement('button')
+
+		added.setAttribute('data-slot', 'item')
+
+		container.append(added)
+
+		await waitFor(() => expect(added.tabIndex).toBe(-1))
+
+		expect(tabIndices(container)).toEqual([-1, 0, -1, -1])
+	})
+
 	describe('aria-current moves', () => {
 		const options = {
 			itemSelector: '[data-slot="item"]',
