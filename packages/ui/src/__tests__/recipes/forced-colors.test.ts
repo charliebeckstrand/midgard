@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { k as accordion } from '../../recipes/kata/accordion'
 import { k as alert } from '../../recipes/kata/alert'
+import { k as dashboard } from '../../recipes/kata/dashboard'
 import { k as grid } from '../../recipes/kata/grid'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
@@ -41,6 +42,7 @@ describe('edges and state marks under forced colors', () => {
 		['the outline alert', alert({ variant: 'outline', color: 'red' })],
 		['the PDF region', region.edge],
 		['the selected PDF region', region.active.base],
+		['the landing placeholder of a dashboard drag', dashboard.placeholder],
 	]
 
 	it.each(parts)('keeps a paint on %s', (_name, part) => {
@@ -113,6 +115,34 @@ describe('resize grips under forced colors', () => {
 				`${focus}outline-[Highlight]`,
 				`${focus}bg-[CanvasText]`,
 			]),
+		)
+	})
+})
+
+/**
+ * Under forced colors, the edit mode of a dashboard keeps its column guides and
+ * the resize bars of its tiles.
+ *
+ * Forced colors remove a gradient background, so the guides paint a system-color
+ * gradient with no adjust. Each resize bar is a bar that the reader sees only by
+ * its background, so it paints in `CanvasText`, as a resize grip does.
+ */
+describe('dashboard edit mode under forced colors', () => {
+	it('keeps the column guides', () => {
+		const classes = classNames([dashboard.canvas({ editable: true })])
+
+		expect(classes).toContain('forced-colors:before:forced-color-adjust-none')
+
+		expect(
+			classes.some((className) =>
+				/^forced-colors:before:bg-\[linear-gradient\(.*GrayText/.test(className),
+			),
+		).toBe(true)
+	})
+
+	it.each(['e', 's', 'se'] as const)('keeps the shape of the %s resize bar', (edge) => {
+		expect(classNames([dashboard.resize.handle({ edge })])).toContain(
+			'forced-colors:after:bg-[CanvasText]',
 		)
 	})
 })
