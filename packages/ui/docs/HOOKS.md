@@ -65,7 +65,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useMediaQuery` | True when `query` matches the viewport; true during SSR. |
 | `usePrefersReducedMotion` | True when the reader asks for reduced motion through the platform or `AppearanceProvider`; true during SSR. Use it in place of the `useReducedMotion` of motion. |
 | `useResponsiveValue` | The value of a `Responsive<T>` prop at the viewport, as its classes give it. During SSR, the value of the largest breakpoint. |
-| `useIsTruncated` | True when text overflows the element, measured with a `Range` over its contents. |
+| `useIsTruncated` | True when text overflows the element. It reads a sub-pixel clip from a `Range` over the contents. |
 | `useScrollRegion` | Callback ref that makes a scroll container a tab stop while its content overflows. A `label` also makes it a named `region`. |
 | `useScrollWithin` | Returns a function that scrolls a node into view in its nearest scrollable ancestor. |
 | `useVirtualWindow` | Drives a vertical windowed list from a `@tanstack/virtual-core` virtualizer, over uniform or measured rows. It gives the visible items and the spacer heights. |
