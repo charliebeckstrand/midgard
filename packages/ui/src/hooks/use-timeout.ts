@@ -2,9 +2,22 @@
 
 import { useEffect, useState } from 'react'
 
+/**
+ * The longest delay that the platform timer holds: a 32-bit signed count of
+ * milliseconds. The platform wraps a longer delay to 32 bits, and changes
+ * `Infinity` to 0, so the timer fires early, often at once.
+ *
+ * @internal
+ */
+export const MAX_TIMEOUT = 2 ** 31 - 1
+
 /** The timer that {@link useTimeout} gives. Each function keeps its identity. */
 export type Timeout = {
-	/** Starts the timer. It clears a pending timer first, so the last call wins. */
+	/**
+	 * Starts the timer. It clears a pending timer first, so the last call wins. A
+	 * delay longer than the platform timer holds, such as `Infinity`, fires at
+	 * that limit, not at once.
+	 */
 	set: (callback: () => void, ms: number) => void
 	/** Clears a pending timer. It does nothing when no timer is pending. */
 	clear: () => void
@@ -42,11 +55,14 @@ function createTimeout(): Timeout {
 		set: (callback, ms) => {
 			clear()
 
-			id = setTimeout(() => {
-				id = null
+			id = setTimeout(
+				() => {
+					id = null
 
-				callback()
-			}, ms)
+					callback()
+				},
+				Math.min(ms, MAX_TIMEOUT),
+			)
 		},
 		clear,
 		pending: () => id !== null,

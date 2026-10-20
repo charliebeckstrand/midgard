@@ -16,7 +16,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useSelectableValueChange` | Wraps `onValueChange` to drop the "cleared to undefined" event in multi-select mode. |
 | `useIdleLoad` | Loads a value, such as the module of a menu, in idle time after the mount. The mounts of one loader share one load. |
 | `useIntentLoad` | `useIdleLoad` that also loads on a pointer, a focus, or a press, for a trigger that loads its code first. |
-| `useTimeout` | One restartable timer with stable `set`, `clear`, and `pending`, for a debounce or a dwell delay. It clears on unmount. |
+| `useTimeout` | One restartable timer with stable `set`, `clear`, and `pending`, for a debounce or a dwell delay. It clears on unmount, and holds a delay past the platform limit at that limit. |
 | `useOffcanvas` | Open state of an offcanvas panel, which closes when its `layout` turns `inline` (by default from `lg`). It also gives the `layout`, with `drawer` as its `initial` value when the map names none. |
 
 ## Floating & overlays

@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, vi } from 'vitest'
-import { useTimeout } from '../../hooks/use-timeout'
+import { MAX_TIMEOUT, useTimeout } from '../../hooks/use-timeout'
 import { it, onFakeClock } from '../helpers/fake-clock'
 
 describe('useTimeout', () => {
@@ -41,6 +41,25 @@ describe('useTimeout', () => {
 
 		expect(second).toHaveBeenCalledTimes(1)
 	})
+
+	it.for([Number.POSITIVE_INFINITY, 2 ** 31, 2 ** 32])(
+		'holds a delay of %d until the platform limit, not to the next tick',
+		async (ms, { clock }) => {
+			const callback = vi.fn()
+
+			const { result } = renderHook(() => useTimeout())
+
+			act(() => result.current.set(callback, ms))
+
+			await clock.advance(MAX_TIMEOUT - 1)
+
+			expect(callback).not.toHaveBeenCalled()
+
+			await clock.advance(1)
+
+			expect(callback).toHaveBeenCalledTimes(1)
+		},
+	)
 
 	it('reads as settled inside its own callback', async ({ clock }) => {
 		const { result } = renderHook(() => useTimeout())
