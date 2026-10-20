@@ -1,13 +1,11 @@
 'use client'
 
-import { AnimatePresence } from 'motion/react'
 import type { ComponentProps, ReactNode } from 'react'
 import { dataAttr } from '../../core'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { MountHold, useMountHold } from '../../primitives/mount'
-import { heldMotionProps, heldMotionTargets } from '../../primitives/mount/mount-held-motion'
-import { ReducedMotion } from '../../primitives/reduced-motion'
+import { MountPresence } from '../../primitives/mount/mount-presence'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
@@ -106,38 +104,15 @@ export function CollapsePanel({ children, className, ...props }: CollapsePanelPr
 		)
 	}
 
-	// `active` unmounts the closed panel, so its exit rides `AnimatePresence` and
-	// the recipe's enter/exit pair applies as written.
-	if (!hold.held) {
-		return (
-			<ReducedMotion>
-				<AnimatePresence initial={false}>
-					{open &&
-						panel(
-							{
-								initial: preset.initial,
-								animate: preset.animate,
-								exit: preset.exit,
-								transition: preset.transition,
-								onAnimationComplete,
-							},
-							content,
-						)}
-				</AnimatePresence>
-			</ReducedMotion>
-		)
-	}
-
-	if (!hold.present) return null
-
 	return (
-		<ReducedMotion>
-			<MountHold hold={hold} name="collapse-panel">
-				{panel(
-					heldMotionProps(preset, open, hold, onAnimationComplete),
-					content && heldMotionTargets(content, open, hold),
-				)}
-			</MountHold>
-		</ReducedMotion>
+		<MountPresence
+			open={open}
+			hold={hold}
+			preset={preset}
+			name="collapse-panel"
+			onAnimationComplete={onAnimationComplete}
+		>
+			{(motionProps, targets) => panel(motionProps, content && targets(content))}
+		</MountPresence>
 	)
 }

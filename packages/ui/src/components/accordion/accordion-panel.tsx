@@ -1,12 +1,10 @@
 'use client'
 
-import { AnimatePresence } from 'motion/react'
 import type { ComponentProps, ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useOpenComplete } from '../../hooks/use-open-complete'
-import { MountHold, useMountHold } from '../../primitives/mount'
-import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
-import { ReducedMotion } from '../../primitives/reduced-motion'
+import { useMountHold } from '../../primitives/mount'
+import { MountPresence } from '../../primitives/mount/mount-presence'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/accordion'
 import { useAccordion, useAccordionItem } from './context'
@@ -66,8 +64,9 @@ export function AccordionPanel({ className, children, ...props }: AccordionPanel
 		onOpenComplete?.(value),
 	)
 
-	// One shape across every branch below; only how it animates differs. The
-	// consumer props spread first, so the wiring of the item and the motion win.
+	// One shape for the unheld and the held panel; only how it animates differs.
+	// The consumer props spread first, so the wiring of the item and the motion
+	// win.
 	const panel = (motionProps: object) => (
 		<m.div
 			{...props}
@@ -82,25 +81,15 @@ export function AccordionPanel({ className, children, ...props }: AccordionPanel
 		</m.div>
 	)
 
-	// `active` unmounts the closed panel, so its exit rides `AnimatePresence` and
-	// the recipe's enter/exit pair applies as written.
-	if (!hold.held) {
-		return (
-			<ReducedMotion>
-				<AnimatePresence initial={false}>
-					{open && panel({ ...k.motion, onAnimationComplete })}
-				</AnimatePresence>
-			</ReducedMotion>
-		)
-	}
-
-	if (!hold.present) return null
-
 	return (
-		<ReducedMotion>
-			<MountHold hold={hold} name="accordion-panel">
-				{panel(heldMotionProps(k.motion, open, hold, onAnimationComplete))}
-			</MountHold>
-		</ReducedMotion>
+		<MountPresence
+			open={open}
+			hold={hold}
+			preset={k.motion}
+			name="accordion-panel"
+			onAnimationComplete={onAnimationComplete}
+		>
+			{panel}
+		</MountPresence>
 	)
 }
