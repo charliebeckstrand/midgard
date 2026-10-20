@@ -6,7 +6,7 @@ import {
 	SymbolFlags,
 	type Symbol as TsSymbol,
 } from 'typescript/unstable/sync'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it } from 'vitest'
 import { openPublicProject, publicBarrels } from '../helpers/public-barrels'
 import { startTypeScript } from '../helpers/ts-server'
 import { srcDir } from '../helpers/walk-source'
@@ -109,17 +109,13 @@ function sweptComponents(): Set<string> {
 describe('disclosure state boundary', () => {
 	const server = startTypeScript()
 
-	let project: Project
-
-	beforeAll(() => {
-		project = openPublicProject(server)
-	})
-
 	afterAll(() => server.close())
 
-	it('the sweep covers each component with an open state, or the list names it', () => {
-		const found = componentsWithOpenState(project)
+	// The scan runs at collection, under no budget, and each case asserts on its
+	// result (`nodeScan` in `vitest.config.ts`).
+	const found = componentsWithOpenState(openPublicProject(server))
 
+	it('the sweep covers each component with an open state, or the list names it', () => {
 		const swept = sweptComponents()
 
 		const missing = found.filter((name) => !swept.has(name) && !EXEMPT.has(name))

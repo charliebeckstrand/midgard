@@ -517,6 +517,22 @@ describe('pin', () => {
 
 		expect(await screen.findByText('/live')).toBeDefined()
 	})
+
+	it('scrolls its list in the body, so the list renders a window of the rows', async () => {
+		start()
+
+		render(<EventsPanel />)
+
+		act(() => {
+			for (let index = 0; index < 40; index++) recordEvent('route', `/page-${index}`)
+		})
+
+		const list = await screen.findByRole('list', { name: 'Events' })
+
+		// The body is the scroll region of the list. With no region, the list
+		// renders each of the rows on each new event.
+		expect(within(list).getAllByRole('listitem').length).toBeLessThan(40)
+	})
 })
 
 describe('EventsSwitch', () => {

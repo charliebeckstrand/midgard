@@ -43,7 +43,11 @@ export function EventsPanel() {
 					<Icon icon={<PinOff />} />
 				</Button>
 			</Flex>
-			<div className={cn(k.panel.body)}>{body}</div>
+			{/* The body is the scroll region of the virtual list, so the list renders
+			    only the rows in view. */}
+			<div data-scroll-region className={cn(k.panel.body)}>
+				{body}
+			</div>
 			<Flex align="center" gap="sm" className={cn(k.panel.footer)}>
 				{footer}
 			</Flex>

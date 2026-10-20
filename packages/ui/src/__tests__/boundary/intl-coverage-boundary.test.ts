@@ -34,8 +34,8 @@ import {
 	type Type,
 	TypeFlags,
 } from 'typescript/unstable/sync'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { startTypeScript, type TypeScriptServer } from '../helpers/ts-server'
+import { afterAll, describe, expect, it } from 'vitest'
+import { startTypeScript } from '../helpers/ts-server'
 import { docsSites, isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // Each text of ui that a person sees or hears is in the language of the
@@ -489,7 +489,9 @@ function unallowed(findings: readonly Finding[]): string[] {
 }
 
 describe('intl coverage boundary', () => {
-	let server: TypeScriptServer
+	const server = startTypeScript()
+
+	afterAll(() => server.close())
 
 	const files = shippedFiles()
 
@@ -498,37 +500,24 @@ describe('intl coverage boundary', () => {
 		.filter(([, content]) => /\bdefineMessages?</.test(content))
 		.map(([file]) => file)
 
-	let project: Project | undefined
+	// The scan runs at collection, under no budget, and each case asserts on its
+	// result (`nodeScan` in `vitest.config.ts`).
+	const project = server.open([...files.keys()], COMPILER_OPTIONS, './tsconfig.json')
 
-	// The project opens in the first case that needs it, under the budget of a
-	// case, not of a hook.
-	const shipped = () => {
-		project ??= server.open([...files.keys()], COMPILER_OPTIONS, './tsconfig.json')
+	const texts = textFindings(project, [...files.keys()])
 
-		return project
-	}
-
-	beforeAll(() => {
-		server = startTypeScript()
-	})
-
-	afterAll(() => server.close())
+	const numbers = numberArgumentFindings(project, messageFiles)
 
 	it('shows no text that a message does not give, and names the locale of each format', () => {
-		expect(unallowed(textFindings(shipped(), [...files.keys()]))).toEqual([])
+		expect(unallowed(texts)).toEqual([])
 	})
 
 	it('formats each number that a message takes', () => {
-		expect(unallowed(numberArgumentFindings(shipped(), messageFiles))).toEqual([])
+		expect(unallowed(numbers)).toEqual([])
 	})
 
 	it('keeps no allowlist entry that the source no longer needs', () => {
-		const findings = [
-			...textFindings(shipped(), [...files.keys()]),
-			...numberArgumentFindings(shipped(), messageFiles),
-		]
-
-		const used = new Set(findings.map((finding) => `${finding.file} ${finding.rule}`))
+		const used = new Set([...texts, ...numbers].map((finding) => `${finding.file} ${finding.rule}`))
 
 		expect([...ALLOWED.keys()].filter((key) => !used.has(key))).toEqual([])
 	})

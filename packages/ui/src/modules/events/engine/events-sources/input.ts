@@ -1,6 +1,6 @@
 import { describeTarget, isOwn } from '../events-target'
 import type { EventSource } from '../types'
-import { nextBatch, on } from './dom'
+import { addListeners, nextBatch } from './dom'
 
 const INPUT = [
 	'touchstart',
@@ -28,7 +28,7 @@ const MODIFIERS = [
 ] as const
 
 /** A key and its modifiers, such as `Shift+Tab`. A modifier that is the key itself goes out of the modifiers. */
-function chord(event: KeyboardEvent): string {
+function formatChord(event: KeyboardEvent): string {
 	const key = event.key === ' ' ? 'Space' : event.key
 
 	const modifiers = MODIFIERS.filter(([flag, name]) => event[flag] && name !== event.key)
@@ -50,7 +50,7 @@ const GESTURE_ENDS = new Set(['click', 'pointercancel'])
 export const input: EventSource = (note) => {
 	let gesture: string | undefined
 
-	return on(document, INPUT, (event) => {
+	return addListeners(document, INPUT, (event) => {
 		if (isOwn(event.target)) return
 
 		if (GESTURE_STARTS.has(event.type)) gesture = nextBatch()
@@ -61,7 +61,7 @@ export const input: EventSource = (note) => {
 
 		const isKeyboard = event instanceof KeyboardEvent
 
-		const keyText = isKeyboard ? ` ${chord(event)}` : ''
+		const keyText = isKeyboard ? ` ${formatChord(event)}` : ''
 
 		const synthetic = event.isTrusted ? '' : ' synthetic'
 

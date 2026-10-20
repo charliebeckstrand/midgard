@@ -7,7 +7,7 @@ import {
 	reportBug,
 } from '../../modules/events/engine/events-sink'
 import { EventStore, type NewEntry } from '../../modules/events/engine/events-store'
-import { OWN } from '../../modules/events/engine/events-target'
+import { TOOL_ATTRIBUTE } from '../../modules/events/engine/events-target'
 import { notifyOverlaySignal } from '../../primitives/overlay/overlay-signal'
 import { attach } from '../helpers/attach'
 import { createStorage } from '../helpers/event-storage'
@@ -108,7 +108,7 @@ describe('listen', () => {
 
 		const tool = attach(document.createElement('span'))
 
-		tool.setAttribute(OWN, '')
+		tool.setAttribute(TOOL_ATTRIBUTE, '')
 
 		tool
 			.appendChild(document.createElement('button'))
@@ -212,6 +212,24 @@ describe('listen', () => {
 		expect(store.entries[0]?.detail).toMatchObject({ window: window.innerHeight })
 	})
 
+	it('keeps one probe of the viewport in the tools while it runs, and removes it when it stops', () => {
+		const probes = () => document.body.querySelectorAll(`:scope > [${TOOL_ATTRIBUTE}][aria-hidden]`)
+
+		const stop = listen(new EventStore(createStorage()))
+
+		const [probe] = probes()
+
+		notifyOverlaySignal()
+
+		window.dispatchEvent(new Event('resize'))
+
+		expect([...probes()]).toEqual([probe])
+
+		stop()
+
+		expect(probes()).toHaveLength(0)
+	})
+
 	it('records a move through the session history', () => {
 		const store = listenTo()
 
@@ -293,7 +311,7 @@ describe('listen', () => {
 
 		const tool = attach(document.createElement('button'))
 
-		tool.setAttribute(OWN, '')
+		tool.setAttribute(TOOL_ATTRIBUTE, '')
 
 		button.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 

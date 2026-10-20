@@ -1,9 +1,9 @@
 import { describeTarget } from '../events-target'
 import type { EventSource } from '../types'
-import { all, on } from './dom'
+import { addListeners, all } from './dom'
 
 /** The URL that an element loads, as its `src` or `href` attribute gives it. */
-function resourceOf(target: unknown): string {
+function getResourceUrl(target: unknown): string {
 	if (!(target instanceof Element)) return ''
 
 	return target.getAttribute('src') ?? target.getAttribute('href') ?? ''
@@ -18,17 +18,17 @@ function resourceOf(target: unknown): string {
 export const errors: EventSource = (note) =>
 	all([
 		// The capture phase also gets the `error` of an element whose resource fails to load, such as a `<script>`.
-		on(window, ['error'], (event) => {
+		addListeners(window, ['error'], (event) => {
 			if (event instanceof ErrorEvent)
 				note({ kind: 'error', text: event.message, bug: { origin: 'window', error: event.error } })
 			else
 				note({
 					kind: 'error',
-					text: `load fails ${describeTarget(event.target)} ${resourceOf(event.target)}`,
+					text: `load fails ${describeTarget(event.target)} ${getResourceUrl(event.target)}`,
 					bug: { origin: 'window' },
 				})
 		}),
-		on(window, ['unhandledrejection'], (event) => {
+		addListeners(window, ['unhandledrejection'], (event) => {
 			const { reason } = event as PromiseRejectionEvent
 
 			note({

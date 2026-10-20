@@ -6,7 +6,7 @@ import {
 	SymbolFlags,
 	type Symbol as TsSymbol,
 } from 'typescript/unstable/sync'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it } from 'vitest'
 import { openPublicProject, publicBarrels } from '../helpers/public-barrels'
 import { startTypeScript } from '../helpers/ts-server'
 import { srcRelative } from '../helpers/walk-source'
@@ -141,21 +141,21 @@ function violations(project: Project): string[] {
 describe('prop vocabulary boundary', () => {
 	const server = startTypeScript()
 
-	let project: Project
-
-	beforeAll(() => {
-		project = openPublicProject(server)
-	})
-
 	afterAll(() => server.close())
 
-	it('a public prop takes the name and the type that the vocabulary gives', () => {
-		const found = violations(project)
+	// The scan runs at collection, under no budget, and each case asserts on its
+	// result (`nodeScan` in `vitest.config.ts`).
+	const project = openPublicProject(server)
 
+	const found = violations(project)
+
+	const props = publicProps(project)
+
+	it('a public prop takes the name and the type that the vocabulary gives', () => {
 		expect(found, `follow the vocabulary (CONVENTIONS §4.9):\n  ${found.join('\n  ')}`).toEqual([])
 	})
 
 	it('reads the props types of the public surface', () => {
-		expect(publicProps(project).length).toBeGreaterThan(300)
+		expect(props.length).toBeGreaterThan(300)
 	})
 })

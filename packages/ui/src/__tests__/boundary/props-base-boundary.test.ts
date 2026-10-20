@@ -25,7 +25,7 @@ import {
 	SymbolFlags,
 	type Symbol as TsSymbol,
 } from 'typescript/unstable/sync'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it } from 'vitest'
 import { openPublicProject, publicBarrels } from '../helpers/public-barrels'
 import { startTypeScript } from '../helpers/ts-server'
 import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
@@ -411,35 +411,33 @@ function redeclaredKeys(project: Project): string[] {
 describe('props base boundary: the checker', () => {
 	const server = startTypeScript()
 
-	let project: Project
-
-	beforeAll(() => {
-		project = openPublicProject(server)
-	})
-
 	afterAll(() => server.close())
 
-	it('a barreled props type whose component renders an element takes its native base', () => {
-		const found = propsWithNoBase(project)
+	// The scan runs at collection, under no budget, and each case asserts on its
+	// result (`nodeScan` in `vitest.config.ts`).
+	const project = openPublicProject(server)
 
-		const violations = found.filter((row) => !NO_BASE_EXEMPT.has(row))
+	const noBase = propsWithNoBase(project)
+
+	const redeclared = redeclaredKeys(project)
+
+	it('a barreled props type whose component renders an element takes its native base', () => {
+		const violations = noBase.filter((row) => !NO_BASE_EXEMPT.has(row))
 
 		expect(
 			violations,
 			`take \`ComponentProps<'tag'>\` of the element that the component renders (CONVENTIONS §4.3):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 
-		const stale = [...NO_BASE_EXEMPT.keys()].filter((row) => !found.includes(row))
+		const stale = [...NO_BASE_EXEMPT.keys()].filter((row) => !noBase.includes(row))
 
 		expect(stale, `rows that no longer apply; remove them:\n  ${stale.join('\n  ')}`).toEqual([])
 	})
 
 	it('a props type does not declare again a key that its native base gives', () => {
-		const found = redeclaredKeys(project)
-
 		expect(
-			found,
-			`remove the key, and its \`Omit\` (CONVENTIONS §4.3):\n  ${found.join('\n  ')}`,
+			redeclared,
+			`remove the key, and its \`Omit\` (CONVENTIONS §4.3):\n  ${redeclared.join('\n  ')}`,
 		).toEqual([])
 	})
 })

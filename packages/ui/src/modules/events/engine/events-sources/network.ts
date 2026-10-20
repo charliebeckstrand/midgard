@@ -3,7 +3,7 @@ import type { EventSource } from '../types'
 import { nextBatch, observe } from './dom'
 
 /** A resource timing as JSON, with each time in whole milliseconds. */
-function timingOf(entry: PerformanceResourceTiming): JsonValue {
+function toTimingJson(entry: PerformanceResourceTiming): JsonValue {
 	const fields: Record<string, unknown> = entry.toJSON()
 
 	return Object.fromEntries(
@@ -46,7 +46,7 @@ export const network: EventSource = (note) => {
 		note({
 			kind: 'network',
 			text: `${file} ${Math.round(resource.duration)} ms${cache}${failed}`,
-			detail: timingOf(resource),
+			detail: toTimingJson(resource),
 			time: resource.startTime,
 			batch: pass,
 		})

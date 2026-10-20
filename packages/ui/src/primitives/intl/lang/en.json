@@ -537,7 +537,7 @@
 	},
 	"ui.events.batch": {
 		"defaultMessage": "Batch",
-		"description": "The label of the switch that groups repeated events in one line."
+		"description": "The label of the checkbox that groups repeated events in one line."
 	},
 	"ui.events.bugs": {
 		"defaultMessage": "Bugs",
@@ -557,7 +557,7 @@
 	},
 	"ui.events.copy": {
 		"defaultMessage": "Copy",
-		"description": "The button that copies a bug report of the debug tool as Markdown."
+		"description": "The button that copies the events, or one bug report as Markdown, of the debug tool."
 	},
 	"ui.events.debug": {
 		"defaultMessage": "Debug",
@@ -589,7 +589,7 @@
 	},
 	"ui.events.preserve": {
 		"defaultMessage": "Preserve",
-		"description": "The label of the switch that keeps the events through a reload of the page."
+		"description": "The label of the checkbox that keeps the events through a reload of the page."
 	},
 	"ui.events.stopCapture": {
 		"defaultMessage": "Stop capture",

@@ -19,12 +19,12 @@ import { k } from '../../recipes/kata/events'
 import { k as offcanvas } from '../../recipes/kata/offcanvas'
 import { Flex } from '../../structure/flex'
 import { resolveVariant } from '../../types'
-import { hasEventsDock, setEventsPinned, subscribeDocks } from './engine/events-setting'
+import { hasEventsDock, setEventsPinned, subscribeEventsDocks } from './engine/events-setting'
 import { eventsMessages } from './events-messages'
 import { useEventsView } from './use-events-view'
 
 // The server renders no panel.
-const noDock = () => false
+const getServerSnapshot = () => false
 
 /** Props of {@link EventsSheet}. @internal */
 export type EventsSheetProps = { open: boolean; onOpenChange: (open: boolean) => void }
@@ -47,7 +47,7 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 
 	const intl = useIntl()
 
-	const dockable = useSyncExternalStore(subscribeDocks, hasEventsDock, noDock)
+	const dockable = useSyncExternalStore(subscribeEventsDocks, hasEventsDock, getServerSnapshot)
 
 	// Outside a sidebar layout no aside shows, so Pin never shows.
 	const layout = useSidebarLayoutPlacement() ?? 'drawer'

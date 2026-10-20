@@ -17,7 +17,7 @@ import {
 } from 'typescript/unstable/sync'
 import { afterAll, describe, expect, it } from 'vitest'
 import { docComments } from '../helpers/ts-ast'
-import { startTypeScript } from '../helpers/ts-server'
+import { startTypeScript, type TypeScriptServer } from '../helpers/ts-server'
 import { srcDir, srcRelative } from '../helpers/walk-source'
 
 // CONVENTIONS.md §12.1 requires a doccomment on every symbol a barrel
@@ -211,40 +211,49 @@ function hasDoc(project: Project, chain: readonly TsSymbol[]): boolean {
 	return false
 }
 
+/** Each barrel export with no doccomment, as `barrel → name`. */
+function undocumentedExports(server: TypeScriptServer): string[] {
+	const barrels = barrelFiles()
+
+	const project = server.open(barrels, PROGRAM_OPTIONS)
+
+	const { program, checker } = project
+
+	const violations: string[] = []
+
+	for (const barrel of barrels) {
+		const source = program.getSourceFile(barrel)
+
+		if (!source) {
+			violations.push(`${srcRelative(barrel)} → unparsed`)
+
+			continue
+		}
+
+		const moduleSymbol = checker.getSymbolAtLocation(source)
+
+		if (!moduleSymbol) continue
+
+		for (const exported of checker.getExportsOfModule(moduleSymbol)) {
+			if (hasDoc(project, aliasChain(checker, exported))) continue
+
+			violations.push(`${srcRelative(barrel)} → ${exported.name}`)
+		}
+	}
+
+	return violations
+}
+
 describe('TSDoc coverage boundary', () => {
 	const server = startTypeScript(withheld)
 
 	afterAll(() => server.close())
 
+	// The scan runs at collection, under no budget, and the case asserts on its
+	// result (`nodeScan` in `vitest.config.ts`).
+	const violations = undocumentedExports(server)
+
 	it('every barrel-exported symbol carries a doccomment', () => {
-		const barrels = barrelFiles()
-
-		const project = server.open(barrels, PROGRAM_OPTIONS)
-
-		const { program, checker } = project
-
-		const violations: string[] = []
-
-		for (const barrel of barrels) {
-			const source = program.getSourceFile(barrel)
-
-			if (!source) {
-				violations.push(`${srcRelative(barrel)} → unparsed`)
-
-				continue
-			}
-
-			const moduleSymbol = checker.getSymbolAtLocation(source)
-
-			if (!moduleSymbol) continue
-
-			for (const exported of checker.getExportsOfModule(moduleSymbol)) {
-				if (hasDoc(project, aliasChain(checker, exported))) continue
-
-				violations.push(`${srcRelative(barrel)} → ${exported.name}`)
-			}
-		}
-
 		expect(
 			violations,
 			`barrel exports with no doccomment (CONVENTIONS.md §12.1):\n${violations.join('\n')}`,

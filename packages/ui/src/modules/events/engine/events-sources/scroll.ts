@@ -1,6 +1,6 @@
 import { describeTarget, isOwn } from '../events-target'
 import type { EventSource } from '../types'
-import { nextBatch, on, QUIET } from './dom'
+import { addListeners, nextBatch, QUIET } from './dom'
 
 /** The start and the end of each scroll, as one batch. */
 export const scroll: EventSource = (note) => {
@@ -8,7 +8,7 @@ export const scroll: EventSource = (note) => {
 
 	let batch = ''
 
-	const stop = on(document, ['scroll'], (event) => {
+	const stop = addListeners(document, ['scroll'], (event) => {
 		if (isOwn(event.target)) return
 
 		if (!scrolling) {
