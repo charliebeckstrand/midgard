@@ -6172,3 +6172,78 @@ describe('Grid-owned session beside a grid nested in a detail row', () => {
 		expect(view.getByRole('textbox', { name: 'Edit Name, row 2' })).toHaveValue('Bobby')
 	})
 })
+
+describe('Grid-owned session keys in a grouped grid', () => {
+	type TeamRow = { id: number; name: string; team: string }
+
+	const teamRows: TeamRow[] = [
+		{ id: 1, name: 'Alice', team: 'A' },
+		{ id: 2, name: 'Bob', team: 'A' },
+	]
+
+	const teamColumns: GridColumn<TeamRow>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'team', title: 'Team', field: 'team', cell: (row) => row.team, readOnly: true },
+	]
+
+	// The consumer opens both rows. A key in an editor acts on the row of that
+	// editor, so each leaf row of a group must carry its row index.
+	function renderGrouped() {
+		const onCommit = vi.fn()
+
+		const onRowsChange = vi.fn()
+
+		function Harness() {
+			const [rows, setRows] = useState<Set<string | number>>(new Set([1, 2]))
+
+			return (
+				<Grid
+					columns={teamColumns}
+					rows={teamRows}
+					getKey={(row) => row.id}
+					groupBy={{ defaultValue: 'team' }}
+					editable={{
+						session: 'managed',
+						rows,
+						onRowsChange: (next) => {
+							onRowsChange(next)
+
+							setRows(next)
+						},
+						onCommit,
+					}}
+				/>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const editor = editorsIn(view.container)[1] as HTMLInputElement
+
+		act(() => editor.focus())
+
+		return { editor, onCommit, onRowsChange }
+	}
+
+	it('abandons the row of the editor on Escape', () => {
+		const { editor, onCommit, onRowsChange } = renderGrouped()
+
+		fireEvent.keyDown(editor, { key: 'Escape' })
+
+		expect(onRowsChange).toHaveBeenLastCalledWith(new Set([1]))
+
+		expect(onCommit).not.toHaveBeenCalled()
+	})
+
+	it('saves the row of the editor on Enter', () => {
+		const { editor, onCommit, onRowsChange } = renderGrouped()
+
+		fireEvent.change(editor, { target: { value: 'Bobby' } })
+
+		fireEvent.keyDown(editor, { key: 'Enter' })
+
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 2, columnId: 'name', value: 'Bobby' }])
+
+		expect(onRowsChange).toHaveBeenLastCalledWith(new Set([1]))
+	})
+})
