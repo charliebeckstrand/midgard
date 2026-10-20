@@ -590,6 +590,9 @@ export function rovedStop(items: HTMLElement[]): HTMLElement | undefined {
  *
  * - The focused item if any.
  * - Else the `activeSelector` match, when `followCurrent` is set.
+ * - Else `seated`, the item that the hook last gave the stop, while it keeps
+ *   `tabIndex=0`. A native button or link that mounts is tabbable too, so a
+ *   count of the stops alone loses the item where the user roved.
  * - Else the single existing stop, where the user has roved.
  * - Else the `activeSelector` match.
  * - Else the first item.
@@ -600,6 +603,7 @@ function resolveRestingStop(
 	items: HTMLElement[],
 	activeSelector: string | undefined,
 	followCurrent = false,
+	seated?: HTMLElement,
 ): HTMLElement | undefined {
 	const focused = items.find((item) => item === document.activeElement)
 
@@ -608,6 +612,8 @@ function resolveRestingStop(
 	const bySelector = activeSelector ? items.find((item) => item.matches(activeSelector)) : undefined
 
 	if (followCurrent && bySelector) return bySelector
+
+	if (seated && seated.tabIndex === 0 && items.includes(seated)) return seated
 
 	const roved = rovedStop(items)
 
@@ -1276,6 +1282,15 @@ export function useA11yRoving(
 
 		if (!container) return
 
+		// The item that holds the stop, as this effect last seated it.
+		let seated: HTMLElement | undefined
+
+		const seat = (items: HTMLElement[], stop: HTMLElement | undefined) => {
+			seated = stop
+
+			seatTabStop(items, stop)
+		}
+
 		// When `aria-current` changes while focus is outside the container, the
 		// stop moves to the new match, also from a stop where the user roved.
 		const normalize = (records?: MutationRecord[]) => {
@@ -1289,7 +1304,7 @@ export function useA11yRoving(
 				!!records?.some((record) => record.attributeName === 'aria-current') &&
 				!container.contains(container.ownerDocument.activeElement)
 
-			seatTabStop(items, resolveRestingStop(items, activeSelector, followCurrent))
+			seat(items, resolveRestingStop(items, activeSelector, followCurrent, seated))
 		}
 
 		normalize()
@@ -1303,7 +1318,7 @@ export function useA11yRoving(
 			const target = items.find((item) => item === event.target)
 
 			if (target) {
-				seatTabStop(items, target)
+				seat(items, target)
 
 				return
 			}
@@ -1316,7 +1331,7 @@ export function useA11yRoving(
 
 				const anchor = rowEl ? items.find((item) => rowEl.contains(item)) : undefined
 
-				if (anchor) seatTabStop(items, anchor)
+				if (anchor) seat(items, anchor)
 			}
 		}
 
