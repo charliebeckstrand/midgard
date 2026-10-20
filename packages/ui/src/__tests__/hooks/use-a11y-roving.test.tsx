@@ -304,6 +304,29 @@ describe('useA11yRoving', () => {
 		expect(document.activeElement).toBe(items[1])
 	})
 
+	// Such a chord is for the browser, such as Alt+ArrowLeft for its history.
+	it.each([
+		['ArrowDown', { altKey: true }],
+		['ArrowUp', { ctrlKey: true }],
+		['End', { metaKey: true }],
+	])('leaves %s with a browser modifier to the browser', (key, modifier) => {
+		const container = makeContainer(3)
+
+		const items = container.querySelectorAll('button')
+
+		;(items[0] as HTMLButtonElement).focus()
+
+		const result = renderRoving(container)
+
+		const event = makeKeyEvent(key, modifier)
+
+		result.current(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(items[0])
+	})
+
 	it('focus mode: does nothing when no item is focused and focusOnEmpty is false', () => {
 		const result = renderRoving(makeContainer(3))
 
@@ -952,6 +975,22 @@ describe('useA11yRoving: row actions', () => {
 		expect(event.preventDefault).toHaveBeenCalled()
 
 		expect(document.activeElement).toBe(byText(container, 'item-1'))
+	})
+
+	it('leaves a cross-axis arrow with a browser modifier to the browser', () => {
+		const container = makeRows([{ suffix: true }])
+
+		const result = setup(container)
+
+		byText(container, 'item-0')?.focus()
+
+		const event = makeKeyEvent('ArrowRight', { altKey: true })
+
+		result.current(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(byText(container, 'item-0'))
 	})
 
 	it('leaves cross-axis keys alone when nothing in a row has focus', () => {
