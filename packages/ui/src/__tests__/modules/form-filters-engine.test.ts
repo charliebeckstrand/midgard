@@ -102,13 +102,20 @@ describe('filtersFormState', () => {
 
 describe('formFiltersAxis', () => {
 	it('holds a rail on one row at every width', () => {
-		expect(formFiltersAxis('rail')).toEqual({ rail: true, direction: 'row', align: 'end' })
+		expect(formFiltersAxis('rail')).toEqual({
+			rail: true,
+			direction: 'row',
+			align: 'end',
+			width: 'shrink-0',
+		})
 	})
 
 	it('drops a stack to a column on a compact viewport', () => {
-		const { rail, direction, align } = formFiltersAxis('stack')
+		const { rail, direction, align, width } = formFiltersAxis('stack')
 
 		expect(rail).toBe(false)
+
+		expect(width).toBe('w-full')
 
 		expect(direction).toEqual({ initial: 'col', sm: 'row' })
 

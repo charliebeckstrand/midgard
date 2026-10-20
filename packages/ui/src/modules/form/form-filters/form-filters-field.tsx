@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { Description, Field, Label, Message } from '../../../components/fieldset'
 import { cn } from '../../../core'
-import { useFormFilters } from './context'
+import { useFormFilters, useFormFiltersAxis } from './context'
 
 /** Fieldset decoration types passed through untouched rather than given the slot name. @internal */
 const DECORATION_TYPES = new Set<ElementType>([Label, Description, Message])
@@ -68,12 +68,9 @@ export function FormFiltersField<V = unknown>({
 	children,
 	className,
 }: FormFiltersFieldProps<V>) {
-	const { value: filterValue, setValue, layout } = useFormFilters()
+	const { value: filterValue, setValue } = useFormFilters()
 
-	// A stacked field fills its column; a rail's field keeps whatever width it was
-	// given and refuses to be squeezed, which is what makes the row overflow and
-	// scroll rather than crushing five controls into the space of two.
-	const width = layout === 'rail' ? 'shrink-0' : 'w-full'
+	const { width } = useFormFiltersAxis()
 
 	if (typeof children === 'function') {
 		const renderProps: FormFiltersFieldRenderProps<V> = {

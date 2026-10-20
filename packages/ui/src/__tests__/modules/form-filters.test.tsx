@@ -19,6 +19,7 @@ import {
 	FormFiltersSuffix,
 	useFormFilters,
 } from '../../modules/form'
+import { useFormActions, useFormResets } from '../../primitives/form/context'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import {
 	allBySlot,
@@ -707,6 +708,29 @@ describe('FormFilters extras', () => {
 		await user.click(screen.getByText('Clear'))
 
 		expect(onClear).toHaveBeenCalled()
+	})
+
+	it('counts a reset from the form actions as a reset, as a clear is', async () => {
+		function Probe() {
+			const { reset } = useFormActions() ?? {}
+
+			return (
+				<>
+					<output data-testid="resets">{useFormResets()}</output>
+					<Button onClick={() => reset?.()}>Reset</Button>
+				</>
+			)
+		}
+
+		renderUI(
+			<FormFilters aria-label="Filters" defaultValue={{ name: 'hello' }}>
+				<Probe />
+			</FormFilters>,
+		)
+
+		await setupUser().click(screen.getByText('Reset'))
+
+		expect(screen.getByTestId('resets')).toHaveTextContent('1')
 	})
 
 	it('stretches its fields to equal width from the row', () => {
