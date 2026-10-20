@@ -61,7 +61,7 @@ export function KanbanCardHandle({
 }: KanbanCardHandleProps) {
 	const intl = useIntl()
 
-	const { disabled, onCardKeyDown, onCardBlur } = useKanbanContext()
+	const { interactive, disabled, onCardKeyDown, onCardBlur } = useKanbanContext()
 
 	const card = useKanbanCardContext()
 
@@ -74,9 +74,9 @@ export function KanbanCardHandle({
 	const content = children ?? <Icon icon={<GripVertical />} size="sm" />
 
 	// A board that cannot reorder shows no grip. A disabled board keeps a muted one.
-	if (card && !card.interactive && !disabled) return null
+	if (card && !interactive && !disabled) return null
 
-	if (!card?.interactive) {
+	if (!card || !interactive) {
 		return (
 			<span
 				onKeyDown={onKeyDown}

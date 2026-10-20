@@ -111,8 +111,6 @@ export const [KanbanColumnContext, useKanbanColumnContext] =
  */
 export type KanbanCardContextValue = {
 	cardId: string
-	/** Whether the board takes a drag and a keyboard lift. */
-	interactive: boolean
 	/** dnd-kit activator ref. The handle is the node that dnd-kit focuses again after a drag. */
 	setActivatorNodeRef: (node: HTMLElement | null) => void
 	/** dnd-kit drag attributes: the role description, the instructions, and the disabled state. */

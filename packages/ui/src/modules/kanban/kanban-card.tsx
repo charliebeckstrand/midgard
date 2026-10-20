@@ -56,7 +56,7 @@ function KanbanCardImpl({ value: cardId, id, children, className, ...props }: Ka
 	// hold drags nowhere: `onReorder` computes the next columns from the data,
 	// which never held it.
 	useDevWarning(
-		process.env.NODE_ENV !== 'production' && !itemIds.includes(cardId),
+		!itemIds.includes(cardId),
 		`Kanban: <KanbanCard value="${cardId}"> names no item in its column's \`items\`. The card renders and never reorders.`,
 	)
 
@@ -99,7 +99,6 @@ function KanbanCardImpl({ value: cardId, id, children, className, ...props }: Ka
 	const cardValue = useMemo(
 		() => ({
 			cardId,
-			interactive,
 			setActivatorNodeRef,
 			attributes,
 			listeners,
@@ -108,17 +107,7 @@ function KanbanCardImpl({ value: cardId, id, children, className, ...props }: Ka
 			itemId,
 			registerHandle,
 		}),
-		[
-			cardId,
-			interactive,
-			setActivatorNodeRef,
-			attributes,
-			listeners,
-			dragging,
-			lifted,
-			itemId,
-			registerHandle,
-		],
+		[cardId, setActivatorNodeRef, attributes, listeners, dragging, lifted, itemId, registerHandle],
 	)
 
 	// Keep the drag-overlay content and className in sync with the card's latest props.

@@ -907,6 +907,35 @@ describe('KanbanColumn naming', () => {
 		expect(screen.getByRole('heading', { level: 2, name: 'Done' })).toBeInTheDocument()
 	})
 
+	it('gives the native attributes and the ref of the title to its heading', () => {
+		const ref = createRef<HTMLHeadingElement>()
+
+		renderUI(
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+				<KanbanColumn value="todo">
+					<KanbanColumnHeader>
+						<KanbanColumnTitle ref={ref} title="Todo lane" data-lane="todo">
+							Todo
+						</KanbanColumnTitle>
+					</KanbanColumnHeader>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		const heading = screen.getByRole('heading', { name: 'Todo' })
+
+		expect(ref.current).toBe(heading)
+
+		expect(heading).toHaveAttribute('title', 'Todo lane')
+
+		expect(heading).toHaveAttribute('data-lane', 'todo')
+
+		expect(screen.getByRole('group', { name: 'Todo' })).toHaveAttribute(
+			'aria-labelledby',
+			heading.id,
+		)
+	})
+
 	it('omits aria-labelledby when no title is rendered, so it never dangles', () => {
 		const { container } = renderUI(
 			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
