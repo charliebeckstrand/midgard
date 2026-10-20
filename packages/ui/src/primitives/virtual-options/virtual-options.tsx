@@ -14,43 +14,8 @@ import { dataAttr } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { isScrollOverflow } from '../../utilities/scroll-overflow'
+import { scrollerOf } from '../../utilities/scroller-of'
 import { VirtualItemSourceContext } from './context'
-
-/**
- * Nearest ancestor with a scrollable `overflow-y`, regardless of whether it is
- * currently overflowing. Unlike a scroll-into-view search, the virtualizer needs
- * this element even before any rows are measured. It decides how many rows to
- * render from this element's bounded height in the first place, so "is it
- * already overflowing" isn't yet decidable. The `role="listbox"` isn't a
- * reliable landmark for it. `ComboboxPanel`/`ListboxPanel` put the scrollable
- * `overflow-y-auto` + `max-h-*` styling on the floating panel that *wraps*
- * the `role="listbox"` element, not on that element itself.
- *
- * A *definite* height on this ancestor matters when nothing else gives it a
- * floor. A `max-height` cap alone is not enough, and
- * `ComboboxPanel`/`ListboxPanel` already carry a definite height. The cap bounds
- * the *upper* end only. An ancestor that otherwise sizes to its content
- * therefore collapses to 0 with nothing rendered yet. That is 0 content height,
- * 0 rendered rows, 0 content height, forever. `CommandPalette`'s `DialogBody` is
- * such an ancestor, at `min-h-0 overflow-y-auto` with no `flex-grow`. Wrap
- * `VirtualOptions` in an explicit-height `overflow-y-auto` div there.
- *
- * @internal
- */
-function scrollContainerOf(node: HTMLElement | null): HTMLElement | null {
-	let el = node?.parentElement ?? null
-
-	while (el) {
-		const { overflowY } = getComputedStyle(el)
-
-		if (isScrollOverflow(overflowY)) return el
-
-		el = el.parentElement
-	}
-
-	return null
-}
 
 /**
  * Per-row a11y attributes {@link VirtualOptions} passes to `children`: the
@@ -150,12 +115,29 @@ export function VirtualOptions<T>({
 	// left the document (panel remount).
 	const scrollElementRef = useRef<HTMLElement | null>(null)
 
+	// The scroll element is the nearest ancestor with a scrollable `overflow-y`,
+	// whether or not it overflows now. Unlike a scroll-into-view search, the virtualizer needs
+	// this element even before any rows are measured. It decides how many rows to
+	// render from this element's bounded height in the first place, so "is it
+	// already overflowing" isn't yet decidable. The `role="listbox"` isn't a
+	// reliable landmark for it. `ComboboxPanel`/`ListboxPanel` put the scrollable
+	// `overflow-y-auto` + `max-h-*` styling on the floating panel that *wraps*
+	// the `role="listbox"` element, not on that element itself.
+	//
+	// A *definite* height on this ancestor matters when nothing else gives it a
+	// floor. A `max-height` cap alone is not enough, and
+	// `ComboboxPanel`/`ListboxPanel` already carry a definite height. The cap bounds
+	// the *upper* end only. An ancestor that otherwise sizes to its content
+	// therefore collapses to 0 with nothing rendered yet. That is 0 content height,
+	// 0 rendered rows, 0 content height, forever. `CommandPalette`'s `DialogBody` is
+	// such an ancestor, at `min-h-0 overflow-y-auto` with no `flex-grow`. Wrap
+	// `VirtualOptions` in an explicit-height `overflow-y-auto` div there.
 	const getScrollElement = useCallback(() => {
 		const cached = scrollElementRef.current
 
 		if (cached?.isConnected) return cached
 
-		scrollElementRef.current = scrollContainerOf(containerRef.current)
+		scrollElementRef.current = scrollerOf(containerRef.current?.parentElement ?? null)
 
 		return scrollElementRef.current
 	}, [])

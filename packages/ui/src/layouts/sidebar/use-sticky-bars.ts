@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { isScrollOverflow } from '../../utilities/scroll-overflow'
+import { scrollerOf } from '../../utilities/scroller-of'
 
 /** The ref callbacks that {@link useStickyBars} gives. @internal */
 export type StickyBars = {
@@ -14,25 +14,6 @@ export type StickyBars = {
 	 * keeps its size, because no resize then tells the layout about the change.
 	 */
 	measure: () => void
-}
-
-/**
- * The scroller of `node`: the nearest ancestor that scrolls on the block axis,
- * else the root of the document. The scroll padding of the root is the scroll
- * padding of the viewport.
- */
-function scrollerOf(node: HTMLElement): HTMLElement {
-	const { body, documentElement } = node.ownerDocument
-
-	for (let element = node.parentElement; element && element !== body; ) {
-		const { overflowY } = getComputedStyle(element)
-
-		if (isScrollOverflow(overflowY)) return element
-
-		element = element.parentElement
-	}
-
-	return documentElement
 }
 
 /** The height from the top of the scroller that a bar covers, or 0 when it does not stick. */
@@ -65,7 +46,9 @@ function createStickyBars(): StickyBars {
 		root: (node) => {
 			if (!node) return
 
-			const own = scrollerOf(node)
+			// With no scroll container, the root takes the padding: the scroll padding
+			// of the root is the scroll padding of the viewport.
+			const own = scrollerOf(node.parentElement) ?? node.ownerDocument.documentElement
 
 			scroller = own
 
