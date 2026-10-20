@@ -39,16 +39,13 @@ const OVERFLOW_SLACK = 0.01
  * pixel those round the gap away. A `clientWidth` rounded up to meet
  * `scrollWidth` reads as a fit while the ellipsis is already painted. A `Range`
  * over the contents therefore supplies the true sub-pixel width, unaffected by
- * the overflow clip.
+ * the overflow clip. The content box is the bounding width less the horizontal
+ * padding, so the element can carry padding.
  *
  * @param el - The single-line element to measure.
- * @param padded - Subtract the element's horizontal padding from its box before
- * comparing. Off by default, since a truncating element must carry no padding or
- * border for its bounding width to *be* its content box. {@link useIsTruncated}
- * measures elements that do carry it.
  * @internal
  */
-export function isOverflowing(el: HTMLElement, padded = false): boolean {
+export function isOverflowing(el: HTMLElement): boolean {
 	if (el.scrollWidth > el.clientWidth) return true
 
 	const range = document.createRange()
@@ -59,7 +56,7 @@ export function isOverflowing(el: HTMLElement, padded = false): boolean {
 	// comparison above is the only signal there.
 	if (typeof range.getBoundingClientRect !== 'function') return false
 
-	const boxWidth = el.getBoundingClientRect().width - (padded ? horizontalPadding(el) : 0)
+	const boxWidth = el.getBoundingClientRect().width - horizontalPadding(el)
 
 	return range.getBoundingClientRect().width - boxWidth > OVERFLOW_SLACK
 }
@@ -69,41 +66,6 @@ function horizontalPadding(el: HTMLElement): number {
 	const styles = getComputedStyle(el)
 
 	return parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight)
-}
-
-/**
- * Set for the duration of a {@link focusWithoutReveal} call.
- * {@link useTruncation}'s arm reads it, and skips its synchronous flush while it
- * holds.
- * Module-level because the arm is a native listener with no line to its caller.
- *
- * @internal
- */
-let programmaticFocus = false
-
-/**
- * Moves focus to `el` without arming the truncation reveal's eager flush.
- *
- * @remarks {@link useTruncation} arms on a native `focusin` that fires
- * synchronously inside `el.focus()`. Its arm flushes state synchronously, so a
- * genuine hover or keyboard focus opens the reveal on that same dispatch. A
- * programmatic focus wants neither. It opens no reveal. It can land inside a
- * React commit (a grid editor focused from a post-mount effect), where
- * `flushSync` cannot flush and warns. Callers that move focus into a
- * possibly-truncated cell during render/commit route through here, so the arm
- * commits through a plain update. That is the same eventual state, without the
- * mid-render flush.
- *
- * @internal
- */
-export function focusWithoutReveal(el: HTMLElement): void {
-	programmaticFocus = true
-
-	try {
-		el.focus()
-	} finally {
-		programmaticFocus = false
-	}
 }
 
 /**
@@ -123,9 +85,13 @@ export function focusWithoutReveal(el: HTMLElement): void {
  * billed a virtualized grid's scroll step hundreds of forced reads.
  *
  * The overflow test reads `scrollWidth`/`clientWidth` first, and falls back to
- * a `Range` over the contents for sub-pixel clips. The truncating element must
- * therefore be a single line (`nowrap` + ellipsis) with no padding or border of
- * its own.
+ * a `Range` over the contents for sub-pixel clips (see {@link isOverflowing}).
+ * The truncating element must therefore be a single line (`nowrap` + ellipsis)
+ * with no border of its own. It can carry padding.
+ *
+ * The flag says only that the element clips its content. When the element shows
+ * a placeholder in place of a value, the caller holds its reveal closed, because
+ * the reveal has no value to show.
  *
  * @param options - `armRef` is the element whose pointer/focus contact arms the
  * measure. It applies when the reveal's trigger surface is an ancestor of the
@@ -144,7 +110,18 @@ export function focusWithoutReveal(el: HTMLElement): void {
  *   layout settle). It is a no-op until contact arms the element.
  * - Read `contacted` to defer mounting reveal machinery until the first contact
  *   that could ever open it.
- * @internal
+ *
+ * @example
+ * ```tsx
+ * const [ref, truncated] = useTruncation<HTMLSpanElement>()
+ *
+ * <Tooltip disabled={!truncated}>
+ *   <TooltipTrigger>
+ *     <span ref={ref} className="block truncate">{label}</span>
+ *   </TooltipTrigger>
+ *   <TooltipContent>{label}</TooltipContent>
+ * </Tooltip>
+ * ```
  */
 export function useTruncation<E extends HTMLElement>(options?: {
 	armRef?: RefObject<HTMLElement | null>
@@ -213,7 +190,7 @@ export function useTruncation<E extends HTMLElement>(options?: {
 			document.fonts?.ready.then(measure)
 		}
 
-		const arm = () => {
+		const arm = (event: Event) => {
 			armed.current = true
 
 			if (!unobserve) watch()
@@ -224,18 +201,17 @@ export function useTruncation<E extends HTMLElement>(options?: {
 				measure()
 			}
 
-			// Synchronous commit, because ordering decides whether the reveal opens.
-			// The tooltip's hover logic rides React's root-delegated events, and this
-			// element-level listener fires first on the same `pointerover`/`focusin`
-			// dispatch. Flushing here lands `truncated` (and the tooltip's `enabled`)
-			// before the hover logic evaluates the very contact that armed it.
+			// A hover commits synchronously, because ordering decides whether the
+			// reveal opens. The tooltip's hover logic rides React's root-delegated
+			// events, and this element-level listener fires first on the same
+			// `pointerover` dispatch. The flush lands `truncated` (and the tooltip's
+			// `enabled`) before the hover logic evaluates the contact that armed it.
 			//
-			// A programmatic focus (see `focusWithoutReveal`) is the exception. It
-			// opens no reveal and can arm this listener from inside a React commit,
-			// where `flushSync` cannot flush and warns. It commits plainly there, the
-			// same eventual state that the mid-render flush defers to anyway.
-			if (programmaticFocus) commit()
-			else flushSync(commit)
+			// A focus commits plainly, and the keyboard focus still opens the reveal.
+			// A script can move the focus from inside a React commit (an editor that
+			// an effect focuses), where `flushSync` cannot flush and warns.
+			if (event.type === 'pointerover') flushSync(commit)
+			else commit()
 		}
 
 		// The reveal these flags gate opens on hover or focus, and both begin with

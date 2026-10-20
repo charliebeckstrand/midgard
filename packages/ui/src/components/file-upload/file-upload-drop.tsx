@@ -6,14 +6,14 @@ import {
 	type DragEvent,
 	type HTMLAttributes,
 	type ReactNode,
-	type Ref,
+	type RefObject,
 	useEffect,
 	useId,
 	useRef,
 } from 'react'
 import { cn, composeEventHandlers, dataAttr, invalidAttrs } from '../../core'
-import { useIsTruncated } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useTruncation } from '../../hooks/use-truncation'
 import { IntlMessage } from '../../primitives/intl/intl-message'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/file-upload'
@@ -64,7 +64,7 @@ type DropSelectionProps = {
 	/** Forces the tooltip open for the multi-file summary (see {@link FileUploadRenderState.showTooltip}). */
 	alwaysTooltip: boolean
 	/** Takes the overlay trigger, so that focus can move to it after the swap. */
-	overlayRef: Ref<HTMLButtonElement>
+	overlayRef: RefObject<HTMLButtonElement | null>
 	/** Re-opens the picker; also fired by clicking the dropzone overlay. */
 	onPick: () => void
 	onClear: () => void
@@ -92,15 +92,14 @@ function DropSelection({
 	onPick,
 	onClear,
 }: DropSelectionProps) {
-	const labelRef = useRef<HTMLDivElement>(null)
+	// The label ignores the pointer, so the overlay under it arms the measure.
+	const [labelRef, truncated] = useTruncation<HTMLDivElement>({ armRef: overlayRef })
 
 	const textId = useId()
 
 	const intl = useIntl()
 
 	const text = selectionSummary(intl, files, multiple) ?? ''
-
-	const truncated = useIsTruncated(labelRef, text)
 
 	return (
 		<>

@@ -63,7 +63,6 @@ export { useHoverAcrossScroll } from './use-hover-across-scroll'
 export { type IdScopeOptions, useIdScope } from './use-id-scope'
 export { useIdleLoad } from './use-idle-load'
 export { type IntentLoad, useIntentLoad } from './use-intent-load'
-export { useIsTruncated } from './use-is-truncated'
 export { type KeybindingsOptions, useKeybindings } from './use-keybindings'
 export { useKeyboardLifted } from './use-keyboard-lifted'
 export { useKeyboardSettled } from './use-keyboard-settled'
@@ -92,6 +91,7 @@ export { type SortableItemOptions, useSortableItem } from './use-sortable-item'
 export { type SortableListOptions, useSortableList } from './use-sortable-list'
 export { type SortableSensorsOptions, useSortableSensors } from './use-sortable-sensors'
 export { type Timeout, useTimeout } from './use-timeout'
+export { useTruncation } from './use-truncation'
 export {
 	type MeasuredVirtualWindowOptions,
 	useVirtualWindow,

@@ -14,7 +14,6 @@ import {
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
-import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { useGridCellEditing } from './context'
@@ -360,7 +359,7 @@ export function GridCellEditor<T>({
 
 		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
 
-		if (editor) focusWithoutReveal(editor)
+		editor?.focus()
 	})
 
 	const cancel = () => {

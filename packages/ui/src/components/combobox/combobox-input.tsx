@@ -15,7 +15,7 @@ import {
 	useLayoutEffect,
 } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
-import { useIsTruncated } from '../../hooks'
+import { useTruncation } from '../../hooks'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { HeadlessProvider } from '../../providers/headless'
@@ -86,7 +86,8 @@ const messages = defineMessages({
 /**
  * Wraps the input in a tooltip that shows `text` while the input truncates it.
  * A separate unit, so a combobox without `truncateTooltip` mounts no measure and no
- * tooltip.
+ * tooltip. `children` renders the input with the ref that it is given, which
+ * joins the truncation ref to `inputRef`.
  *
  * @internal
  */
@@ -96,16 +97,18 @@ function ComboboxTruncateTooltip({
 	suppressed,
 	children,
 }: {
-	inputRef: RefObject<HTMLInputElement | null>
+	inputRef: Ref<HTMLInputElement>
 	text: string
 	suppressed: boolean
-	children: ReactElement
+	children: (ref: Ref<HTMLInputElement>) => ReactElement
 }) {
-	const truncated = useIsTruncated(inputRef, text)
+	const [truncationRef, truncated] = useTruncation<HTMLInputElement>()
+
+	const ref = useComposedRefs(inputRef, truncationRef)
 
 	return (
 		<Tooltip disabled={suppressed || !truncated}>
-			<TooltipTrigger>{children}</TooltipTrigger>
+			<TooltipTrigger>{children(ref)}</TooltipTrigger>
 			<TooltipContent>{text}</TooltipContent>
 		</Tooltip>
 	)
@@ -162,11 +165,11 @@ export function ComboboxInput({
 
 	const setRefs = useComposedRefs(ref, resetRef)
 
-	const input = (
+	const input = (inputRef: Ref<HTMLInputElement>) => (
 		<Input
 			invalid={invalid}
 			id={id}
-			ref={setRefs}
+			ref={inputRef}
 			type={type}
 			role="combobox"
 			aria-haspopup="listbox"
@@ -199,11 +202,11 @@ export function ComboboxInput({
 	return (
 		<HeadlessProvider>
 			{truncateTooltip ? (
-				<ComboboxTruncateTooltip inputRef={ref} text={display} suppressed={open || editing}>
+				<ComboboxTruncateTooltip inputRef={setRefs} text={display} suppressed={open || editing}>
 					{input}
 				</ComboboxTruncateTooltip>
 			) : (
-				input
+				input(setRefs)
 			)}
 		</HeadlessProvider>
 	)

@@ -140,7 +140,7 @@ export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
 	hasFiles: boolean
 	/** Forces the selection tooltip open for the "x files selected" summary,
 	 * whose collapsed count hides the names. A single name needs it only when
-	 * clipped — the `drop` variant detects that per render (`useIsTruncated`); the
+	 * clipped. The `drop` variant detects the clip (`useTruncation`), and the
 	 * `input` variant relies on this flag alone. */
 	showTooltip: boolean
 }

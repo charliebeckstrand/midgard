@@ -1,8 +1,7 @@
-import { useRef } from 'react'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { useIsTruncated } from '../../../hooks'
+import { useTruncation } from '../../../hooks'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { renderUI, screen } from '../../helpers'
 import { pause } from '../helpers/wall-clock'
@@ -15,7 +14,7 @@ import { pause } from '../helpers/wall-clock'
  *
  * `GridFooter.content` is a consumer slot, so this asserts the composition it
  * documents rather than a component of its own: a `truncate` label gated on
- * {@link useIsTruncated}, which is also the arrangement that puts `block` up
+ * {@link useTruncation}, which is also the arrangement that puts `block` up
  * against the `inline-flex` {@link TooltipTrigger} clones onto its child.
  */
 describe('grid footer content truncation tooltip (real browser)', () => {
@@ -59,9 +58,7 @@ describe('grid footer content truncation tooltip (real browser)', () => {
 
 	/** The consumer composition: a clipping label beside a pinned figure. */
 	function Summary({ label }: { label: string }) {
-		const labelRef = useRef<HTMLSpanElement>(null)
-
-		const truncated = useIsTruncated(labelRef, label)
+		const [labelRef, truncated] = useTruncation<HTMLSpanElement>()
 
 		return (
 			<span className="flex min-w-0 items-center gap-1">

@@ -13,7 +13,6 @@ import { announce } from '../../core'
 import { useDevWarning } from '../../hooks/use-dev-warning'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { describeRowAdd } from './engine/grid-announcements'
@@ -325,7 +324,7 @@ export function useGridNewRow<T>({
 			if (seed === undefined) {
 				const editor = editorOf(columnId)
 
-				if (editor) focusWithoutReveal(editor)
+				editor?.focus()
 
 				return
 			}
