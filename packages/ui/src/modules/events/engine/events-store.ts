@@ -1,9 +1,9 @@
 import { createEmitter } from '../../../utilities/emitter'
 import { getOrCompute } from '../../../utilities/get-or-compute'
-import { framesOf, stackOf } from './events-probes'
+import { parseFrames, parseStack } from './events-probes'
 import { createReport, type ReportInput } from './events-report'
-import { CAPTURE_KEY, readStorage as read, writeStorage as write } from './events-storage'
-import { kindWidth, lineOf } from './events-text'
+import { CAPTURE_KEY, readStorage, writeStorage } from './events-storage'
+import { formatLine, getKindWidth } from './events-text'
 import type { EventBug, EventEntry, EventKind, EventReport, EventStorage } from './types'
 
 // The store of the events of one tab: the events in time order, the reports
@@ -11,16 +11,16 @@ import type { EventBug, EventEntry, EventKind, EventReport, EventStorage } from 
 // in `sessionStorage`.
 
 /** The most events with no report that the store keeps outside a capture. The oldest goes first. */
-export const CAPACITY = 500
+export const EVENT_CAPACITY = 500
 
 /** The most events with no report that the store keeps while a capture runs. */
 export const CAPTURE_CAPACITY = 2000
 
 /** The most events with a report that the store keeps. The oldest goes first. */
-export const REPORTS = 50
+export const REPORT_CAPACITY = 50
 
 /** The most lines before a bug in its report, outside a capture. */
-export const TRAIL = 40
+export const TRAIL_LENGTH = 40
 
 /** The prefix of the storage keys of the store. */
 const PREFIX = 'events'
@@ -72,12 +72,12 @@ export class EventStore {
 		this.storage = storage
 
 		try {
-			this.capture = JSON.parse(read(storage, CAPTURE_KEY) ?? 'null') ?? undefined
+			this.capture = JSON.parse(readStorage(storage, CAPTURE_KEY) ?? 'null') ?? undefined
 		} catch {}
 
 		// Only `save` writes the events, so the kept value is an array of events.
 		try {
-			if (this.preserve) this.entries = JSON.parse(read(storage, key('entries')) ?? '[]')
+			if (this.preserve) this.entries = JSON.parse(readStorage(storage, key('entries')) ?? '[]')
 		} catch {}
 
 		this.lastId = this.entries.reduce((last, { id }) => Math.max(last, id), 0)
@@ -89,8 +89,8 @@ export class EventStore {
 	}
 
 	/** Turns "Preserve" on or off. Off deletes the kept events at once, unless a capture runs, and the events on screen stay. */
-	setPreserve(on: boolean): void {
-		this.setFlag('preserve', on)
+	setPreserve(preserve: boolean): void {
+		this.setFlag('preserve', preserve)
 
 		this.save()
 	}
@@ -104,8 +104,8 @@ export class EventStore {
 	}
 
 	/** Turns "Batch" on or off. */
-	setBatched(on: boolean): void {
-		this.setFlag('unbatched', !on)
+	setBatched(batched: boolean): void {
+		this.setFlag('unbatched', !batched)
 	}
 
 	/** Whether the store skips each new event with no bug. A sheet of the tools pauses the store while it is on screen. */
@@ -117,8 +117,8 @@ export class EventStore {
 	 * Pauses the store or ends the pause. The views call a method, not a
 	 * setter, so the React Compiler reads the change as a call on the store.
 	 */
-	setPaused(on: boolean): void {
-		this.isPaused = on
+	setPaused(paused: boolean): void {
+		this.isPaused = paused
 	}
 
 	/** Whether a capture runs. */
@@ -130,7 +130,7 @@ export class EventStore {
 	 * Starts the events of a page load with a separator at time 0, after the
 	 * events of the page loads before it.
 	 */
-	separate(text: string): void {
+	addSeparator(text: string): void {
 		this.commit([...this.entries, this.create({ time: 0, kind: 'load', text, y: 0 })])
 	}
 
@@ -150,7 +150,7 @@ export class EventStore {
 	 * reports adds the route and the component stack to the report of the
 	 * first channel, and adds no event.
 	 */
-	file(entry: NewEntry, bug: EventBug): void {
+	addBug(entry: NewEntry, bug: EventBug): void {
 		const error = typeof bug.error === 'object' && bug.error !== null ? bug.error : undefined
 
 		const known = error && this.errors.get(error)
@@ -161,7 +161,7 @@ export class EventStore {
 			return
 		}
 
-		const stack = stackOf(bug.error)
+		const stack = parseStack(bug.error)
 
 		const same = this.entries.find(
 			({ text, report }) => report && text === entry.text && report.stack[0] === stack[0],
@@ -182,11 +182,11 @@ export class EventStore {
 		this.insert(created, (entries) => {
 			const index = entries.indexOf(created)
 
-			const report = this.reportOf(this.trailOf(entries.slice(0, index)), {
+			const report = this.buildReport(this.getTrail(entries.slice(0, index)), {
 				title: created.text,
 				origin: bug.origin,
 				stack,
-				componentStack: framesOf(bug.componentStack),
+				componentStack: parseFrames(bug.componentStack),
 				route: bug.route,
 			})
 
@@ -208,7 +208,7 @@ export class EventStore {
 
 		this.capture = start
 
-		write(this.storage, CAPTURE_KEY, JSON.stringify(start))
+		writeStorage(this.storage, CAPTURE_KEY, JSON.stringify(start))
 
 		this.insert(entry)
 
@@ -229,14 +229,14 @@ export class EventStore {
 
 		this.capture = undefined
 
-		write(this.storage, CAPTURE_KEY, null)
+		writeStorage(this.storage, CAPTURE_KEY, null)
 
 		this.insert(entry, (entries) => {
 			const index = entries.indexOf(entry)
 
 			const trail = entries.slice(0, index).filter(({ id }) => id >= start.id)
 
-			const report = this.reportOf(trail, {
+			const report = this.buildReport(trail, {
 				title: entry.text,
 				origin: 'capture',
 				stack: [],
@@ -293,7 +293,7 @@ export class EventStore {
 		clearTimeout(this.saveTimer)
 
 		if (!this.preserve) {
-			write(this.storage, key('entries'), null)
+			writeStorage(this.storage, key('entries'), null)
 
 			return
 		}
@@ -301,7 +301,7 @@ export class EventStore {
 		let count = this.entries.length
 
 		while (
-			!write(
+			!writeStorage(
 				this.storage,
 				key('entries'),
 				JSON.stringify(this.entries.slice(this.entries.length - count)),
@@ -349,7 +349,8 @@ export class EventStore {
 
 				report.route ??= bug.route
 
-				if (report.componentStack.length === 0) report.componentStack = framesOf(bug.componentStack)
+				if (report.componentStack.length === 0)
+					report.componentStack = parseFrames(bug.componentStack)
 
 				return { ...entry, report }
 			}),
@@ -358,26 +359,26 @@ export class EventStore {
 
 	/**
 	 * The events that the trail of a bug holds: each event from the start of a
-	 * capture that runs, else the last {@link TRAIL} events.
+	 * capture that runs, else the last {@link TRAIL_LENGTH} events.
 	 */
-	private trailOf(before: readonly EventEntry[]): readonly EventEntry[] {
+	private getTrail(before: readonly EventEntry[]): readonly EventEntry[] {
 		const start = this.capture
 
 		return start
 			? before.filter(({ id }) => id >= start.id).slice(-CAPTURE_CAPACITY)
-			: before.slice(-TRAIL)
+			: before.slice(-TRAIL_LENGTH)
 	}
 
 	/** The report of the page now, with the lines of `trail`. */
-	private reportOf(
+	private buildReport(
 		trail: readonly EventEntry[],
 		input: Omit<ReportInput, 'trail' | 'pointer' | 'focus'>,
 	): EventReport {
-		const width = kindWidth(trail)
+		const width = getKindWidth(trail)
 
 		return createReport({
 			...input,
-			trail: trail.map((entry) => lineOf(entry, width)),
+			trail: trail.map((entry) => formatLine(entry, width)),
 			pointer: this.pointer?.deref(),
 			focus: this.focus?.deref(),
 		})
@@ -389,7 +390,7 @@ export class EventStore {
 	 * the list after its trail goes.
 	 */
 	private commit(entries: readonly EventEntry[]): void {
-		this.entries = trim(entries, this.capturing ? CAPTURE_CAPACITY : CAPACITY)
+		this.entries = trim(entries, this.capturing ? CAPTURE_CAPACITY : EVENT_CAPACITY)
 
 		clearTimeout(this.saveTimer)
 
@@ -400,25 +401,25 @@ export class EventStore {
 
 	/** A flag of the tab, such as "Preserve". It stays in `sessionStorage` while "Preserve" is off too. */
 	private flag(field: string): boolean {
-		return getOrCompute(this.flags, field, () => read(this.storage, key(field)) === '1')
+		return getOrCompute(this.flags, field, () => readStorage(this.storage, key(field)) === '1')
 	}
 
 	/** Sets a flag of the tab, and tells the listeners. A flag that the storage does not keep does not change. */
 	private setFlag(field: string, on: boolean): void {
-		if (write(this.storage, key(field), on ? '1' : null)) this.flags.set(field, on)
+		if (writeStorage(this.storage, key(field), on ? '1' : null)) this.flags.set(field, on)
 
 		this.changes.emit()
 	}
 }
 
 /**
- * The events cut to `capacity` events with no report and {@link REPORTS}
+ * The events cut to `capacity` events with no report and {@link REPORT_CAPACITY}
  * events with a report. The oldest of each group goes first.
  */
 function trim(entries: readonly EventEntry[], capacity: number): readonly EventEntry[] {
 	const reports = entries.filter(({ report }) => report).length
 
-	let extraReports = reports - REPORTS
+	let extraReports = reports - REPORT_CAPACITY
 
 	let extraEvents = entries.length - reports - capacity
 

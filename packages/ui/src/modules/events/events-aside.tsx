@@ -9,8 +9,8 @@ import {
 	addEventsDock,
 	isEventsOn,
 	isEventsPinned,
-	subscribeOn,
-	subscribePinned,
+	subscribeEventsOn,
+	subscribeEventsPinned,
 } from './engine/events-setting'
 import { loadTools } from './events-load'
 import { eventsMessages } from './events-messages'
@@ -18,7 +18,7 @@ import { eventsMessages } from './events-messages'
 const panel = createLazyModule(() => import('./events-panel'))
 
 // The server does not know the settings, so the first render after hydration reads them.
-const offOnServer = () => false
+const getServerSnapshot = () => false
 
 /**
  * The pinned panel of the events, for the `aside` of `SidebarLayout`. While
@@ -37,9 +37,10 @@ export function EventsAside() {
 
 	// The panel starts the recorder, so a pin while the events are off loads
 	// and mounts no panel. The pin stays for the next time they run.
-	const on = useSyncExternalStore(subscribeOn, isEventsOn, offOnServer)
+	const on = useSyncExternalStore(subscribeEventsOn, isEventsOn, getServerSnapshot)
 
-	const pinned = useSyncExternalStore(subscribePinned, isEventsPinned, offOnServer) && on
+	const pinned =
+		useSyncExternalStore(subscribeEventsPinned, isEventsPinned, getServerSnapshot) && on
 
 	const Panel = useLazyModule(panel, false)?.EventsPanel
 
@@ -52,7 +53,7 @@ export function EventsAside() {
 		if (pinned && !panel.read()) loadTools(panel, false).catch(noop)
 	}, [pinned])
 
-	// The attribute marks the panel as a part of the tools (`OWN`).
+	// The attribute marks the panel as a part of the tools (`TOOL_ATTRIBUTE`).
 	return (
 		<aside
 			data-events-tool=""

@@ -11,7 +11,7 @@ export const CAPTURE_KEY = 'events:capture'
 const NONE: EventStorage = { getItem: () => null, setItem: noop, removeItem: noop }
 
 /** The storage that `get` gives, or a storage that keeps nothing where the read of the property throws. */
-export function storageOf(get: () => EventStorage): EventStorage {
+export function getStorage(get: () => EventStorage): EventStorage {
 	try {
 		return get()
 	} catch {

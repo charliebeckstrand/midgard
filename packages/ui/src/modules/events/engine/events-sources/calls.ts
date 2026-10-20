@@ -1,5 +1,5 @@
 import { noop } from '../../../../utilities/noop'
-import { framesOf } from '../events-probes'
+import { parseFrames } from '../events-probes'
 import { describeTarget, isOwn } from '../events-target'
 import type { EventSource } from '../types'
 import { all } from './dom'
@@ -31,7 +31,7 @@ export const calls: EventSource = (note) =>
 			Reflect.set(owner, name, function (this: unknown, ...args: unknown[]) {
 				if (!isOwn(this)) {
 					// The first frame is this function.
-					const stack = framesOf(new Error().stack).slice(1)
+					const stack = parseFrames(new Error().stack).slice(1)
 
 					note({
 						kind: 'call',

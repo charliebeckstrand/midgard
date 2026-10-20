@@ -4,7 +4,7 @@ import type { EventViewport } from './types'
 // stack.
 
 /** The heights that place a surface fixed to an edge now, with no scroll position. */
-export function viewport(): Omit<EventViewport, 'y'> {
+export function readViewport(): Omit<EventViewport, 'y'> {
 	const visual = window.visualViewport
 
 	const probe = document.body.appendChild(createProbe())
@@ -34,7 +34,7 @@ export function viewport(): Omit<EventViewport, 'y'> {
 }
 
 /** The frames of a stack, with each URL cut to its file name. The `Error` header of a V8 stack goes out. */
-export function framesOf(stack: string | undefined): string[] {
+export function parseFrames(stack: string | undefined): string[] {
 	return (stack ?? '')
 		.split('\n')
 		.map((frame) => frame.trim().replace(/https?:\/\/[^\s)]*\//g, ''))
@@ -42,7 +42,7 @@ export function framesOf(stack: string | undefined): string[] {
 }
 
 /** The message of a thrown value: the message of an `Error`, else the value as text. */
-export function messageOf(error: unknown): string {
+export function getMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error)
 }
 
@@ -51,14 +51,14 @@ export function messageOf(error: unknown): string {
  * `Error` has none. The header of a V8 stack, the name and the message, goes
  * out, so the first frame is the frame of the throw on each engine.
  */
-export function stackOf(error: unknown): string[] {
+export function parseStack(error: unknown): string[] {
 	if (!(error instanceof Error)) return []
 
 	const header = `${String(error)}\n`
 
 	const stack = error.stack ?? ''
 
-	return framesOf(stack.startsWith(header) ? stack.slice(header.length) : stack)
+	return parseFrames(stack.startsWith(header) ? stack.slice(header.length) : stack)
 }
 
 /**
@@ -81,8 +81,8 @@ function createProbe(): HTMLElement {
 }
 
 /** The text of the event of a bug that React or a router reports: the origin, the message, and the first component frame. */
-export function bugText(origin: string, error: unknown, componentStack?: string): string {
-	const [component] = framesOf(componentStack)
+export function formatBugText(origin: string, error: unknown, componentStack?: string): string {
+	const [component] = parseFrames(componentStack)
 
-	return `${origin} ${messageOf(error)}${component ? ` ${component}` : ''}`
+	return `${origin} ${getMessage(error)}${component ? ` ${component}` : ''}`
 }

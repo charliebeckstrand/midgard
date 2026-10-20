@@ -1,6 +1,6 @@
 import { createEmitter } from '../../../utilities/emitter'
 import { noop } from '../../../utilities/noop'
-import { CAPTURE_KEY, readStorage, storageOf, writeStorage } from './events-storage'
+import { CAPTURE_KEY, getStorage, readStorage, writeStorage } from './events-storage'
 import type { EventSource } from './types'
 
 // The settings of the events: whether they run, and whether the panel is
@@ -10,10 +10,10 @@ import type { EventSource } from './types'
 // paint. This module loads no part of the recorder until the events run.
 
 /** The `localStorage` key of the setting that runs the events. */
-const ON = 'events:on'
+const ON_KEY = 'events:on'
 
 /** The `localStorage` key of the pinned panel. */
-const PINNED = 'events:pinned'
+const PINNED_KEY = 'events:pinned'
 
 /** The attribute of the root element while the events run. CSS shows the header button by it. */
 export const ON_ATTRIBUTE = 'data-events'
@@ -56,7 +56,7 @@ export function getEventsOptions(): StartEventsOptions {
 
 /** Whether the setting runs the events. */
 export function isEventsOn(): boolean {
-	return readLocal(ON) === '1'
+	return readLocal(ON_KEY) === '1'
 }
 
 /**
@@ -84,7 +84,7 @@ export function startEvents(next: StartEventsOptions = {}): Promise<void> {
  * Off drops the events and the kept copy.
  */
 export function setEventsOn(on: boolean): void {
-	writeLocal(ON, on)
+	writeLocal(ON_KEY, on)
 
 	syncAttributes()
 
@@ -94,16 +94,16 @@ export function setEventsOn(on: boolean): void {
 }
 
 /** Calls `listener` on each change of the setting that runs the events. @internal */
-export const subscribeOn = onChanges.subscribe
+export const subscribeEventsOn = onChanges.subscribe
 
 /** Whether the panel is pinned. @internal */
 export function isEventsPinned(): boolean {
-	return readLocal(PINNED) === '1'
+	return readLocal(PINNED_KEY) === '1'
 }
 
 /** Pins or unpins the panel, and tells the listeners. @internal */
-export function setEventsPinned(on: boolean): void {
-	writeLocal(PINNED, on)
+export function setEventsPinned(pinned: boolean): void {
+	writeLocal(PINNED_KEY, pinned)
 
 	syncAttributes()
 
@@ -111,7 +111,7 @@ export function setEventsPinned(on: boolean): void {
 }
 
 /** Calls `listener` on each change of the pin. @internal */
-export const subscribePinned = pinnedChanges.subscribe
+export const subscribeEventsPinned = pinnedChanges.subscribe
 
 /** The number of pinned panels that are mounted. An app with no `EventsAside` has none. */
 let docks = 0
@@ -137,7 +137,7 @@ export function hasEventsDock(): boolean {
 }
 
 /** Calls `listener` when a pinned panel mounts or unmounts. @internal */
-export const subscribeDocks = dockChanges.subscribe
+export const subscribeEventsDocks = dockChanges.subscribe
 
 /** Copies the settings to the attributes of the root element. */
 function syncAttributes(): void {
@@ -154,10 +154,10 @@ function syncAttributes(): void {
  * The pre-paint script: it copies the settings to the attributes of the root
  * element, and marks a capture that runs in this tab.
  */
-export const SCRIPT = `(function(){try{var l=localStorage,r=document.documentElement;if(l.getItem(${JSON.stringify(ON)})!=='1')return;r.setAttribute(${JSON.stringify(ON_ATTRIBUTE)},'');if(l.getItem(${JSON.stringify(PINNED)})==='1')r.setAttribute(${JSON.stringify(PINNED_ATTRIBUTE)},'');if(sessionStorage.getItem(${JSON.stringify(CAPTURE_KEY)})!==null)r.setAttribute(${JSON.stringify(CAPTURE_ATTRIBUTE)},'')}catch(e){}})()`
+export const SCRIPT = `(function(){try{var l=localStorage,r=document.documentElement;if(l.getItem(${JSON.stringify(ON_KEY)})!=='1')return;r.setAttribute(${JSON.stringify(ON_ATTRIBUTE)},'');if(l.getItem(${JSON.stringify(PINNED_KEY)})==='1')r.setAttribute(${JSON.stringify(PINNED_ATTRIBUTE)},'');if(sessionStorage.getItem(${JSON.stringify(CAPTURE_KEY)})!==null)r.setAttribute(${JSON.stringify(CAPTURE_ATTRIBUTE)},'')}catch(e){}})()`
 
 /** The `localStorage` of the page. The settings are off where the storage throws, such as with site data off. */
-const local = () => storageOf(() => localStorage)
+const local = () => getStorage(() => localStorage)
 
 function readLocal(key: string): string | null {
 	return readStorage(local(), key)

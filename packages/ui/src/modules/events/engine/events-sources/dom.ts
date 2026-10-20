@@ -17,11 +17,11 @@ export const QUIET = 150
  * The batches of the bursts of a source. A line takes the batch of its key
  * while the lines of that key come less than {@link QUIET} apart.
  */
-export function bursts(): { batchOf: (key: string) => string; stop: () => void } {
+export function bursts(): { getBatch: (key: string) => string; stop: () => void } {
 	const open = new Map<string, { id: string; timer: ReturnType<typeof setTimeout> }>()
 
 	return {
-		batchOf(key) {
+		getBatch(key) {
 			const burst = open.get(key)
 
 			clearTimeout(burst?.timer)
@@ -41,7 +41,7 @@ export function bursts(): { batchOf: (key: string) => string; stop: () => void }
 }
 
 /** Adds a passive capture listener for each type, and returns a function that removes them. */
-export function on(
+export function addListeners(
 	target: EventTarget | null | undefined,
 	types: readonly string[],
 	listener: (event: Event) => void,

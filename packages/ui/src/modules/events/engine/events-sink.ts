@@ -1,6 +1,6 @@
 import type { ErrorInfo } from 'react'
 import type { JsonValue } from '../../../components/json-tree/types'
-import { bugText } from './events-probes'
+import { formatBugText } from './events-probes'
 import type { EventStore } from './events-store'
 import type { EventKind, EventNote, EventOrigin } from './types'
 
@@ -64,7 +64,7 @@ export function reportBug(error: unknown, info: ReportBugInfo = {}): void {
 
 	sink?.note({
 		kind: 'error',
-		text: bugText(origin, error, componentStack),
+		text: formatBugText(origin, error, componentStack),
 		bug: { origin, error, componentStack, route },
 	})
 }

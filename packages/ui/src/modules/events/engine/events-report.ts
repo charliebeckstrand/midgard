@@ -1,5 +1,5 @@
-import { viewport } from './events-probes'
-import { placeOf } from './events-target'
+import { readViewport } from './events-probes'
+import { describePlace } from './events-target'
 import type { EventEntry, EventReport } from './types'
 
 // The report of a bug or of a capture: the snapshot of the page, and its text
@@ -22,7 +22,7 @@ export type ReportInput = Pick<
 }
 
 /** A 7-digit hex hash of a text (32-bit FNV-1a). */
-export function hashOf(text: string): string {
+export function hashText(text: string): string {
 	let hash = 0x811c9dc5
 
 	for (let index = 0; index < text.length; index++)
@@ -39,7 +39,7 @@ export function createReport({ title, pointer, focus, ...input }: ReportInput): 
 
 	const report: EventReport = {
 		...input,
-		hash: hashOf(`${title} ${location.href} ${performance.timeOrigin + performance.now()}`),
+		hash: hashText(`${title} ${location.href} ${performance.timeOrigin + performance.now()}`),
 		count: 1,
 		at: new Date().toISOString(),
 		page: location.pathname + location.search + location.hash,
@@ -48,12 +48,12 @@ export function createReport({ title, pointer, focus, ...input }: ReportInput): 
 		root: Array.from(document.documentElement.attributes, ({ name, value }) =>
 			value ? `${name}="${value}"` : name,
 		).join(' '),
-		viewport: { ...viewport(), y: Math.round(scrollY) },
+		viewport: { ...readViewport(), y: Math.round(scrollY) },
 	}
 
-	if (pointer?.isConnected) report.pointer = placeOf(pointer)
+	if (pointer?.isConnected) report.pointer = describePlace(pointer)
 
-	if (focus?.isConnected) report.focus = placeOf(focus)
+	if (focus?.isConnected) report.focus = describePlace(focus)
 
 	return report
 }
@@ -69,18 +69,18 @@ function row(name: string, value: string | undefined): string[] {
 }
 
 /** The title of a report: the text of its event, with the count of a bug that occurs more than one time. */
-export function titleOf({ text, report }: EventEntry): string {
+export function formatTitle({ text, report }: EventEntry): string {
 	return report && report.count > 1 ? `${text} ×${report.count}` : text
 }
 
 /** The report of an event in Markdown: a heading, a table of the page, then the stacks and the trail. */
-export function markdownOf(entry: EventEntry & { report: EventReport }): string {
+export function formatMarkdown(entry: EventEntry & { report: EventReport }): string {
 	const { report } = entry
 
 	const { visual, window, svh, dvh, lvh, safe, y } = report.viewport
 
 	return [
-		`## ${titleOf(entry)}`,
+		`## ${formatTitle(entry)}`,
 		'',
 		'| Field | Value |',
 		'|:---|:---|',
