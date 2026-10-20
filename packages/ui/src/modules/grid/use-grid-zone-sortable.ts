@@ -2,7 +2,7 @@
 
 import { CSS } from '@dnd-kit/utilities'
 import type { CSSProperties } from 'react'
-import { useMotionSafeSortable } from '../../hooks/use-motion-safe-sortable'
+import { useSortableItem } from '../../hooks/use-sortable-item'
 
 /**
  * Registers a manager group zone as an in-place sortable item, so whole groups
@@ -21,16 +21,16 @@ export function useGridZoneSortable(id: string) {
 		listeners,
 		transform,
 		transition,
-		isDragging,
-	} = useMotionSafeSortable({ id })
+		dragging,
+	} = useSortableItem({ id })
 
 	const style: CSSProperties = {
 		transform: CSS.Translate.toString(transform),
 		transition,
-		opacity: isDragging ? 0.6 : 1,
-		zIndex: isDragging ? 1 : undefined,
-		position: isDragging ? 'relative' : undefined,
+		opacity: dragging ? 0.6 : 1,
+		zIndex: dragging ? 1 : undefined,
+		position: dragging ? 'relative' : undefined,
 	}
 
-	return { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging: isDragging }
+	return { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging }
 }

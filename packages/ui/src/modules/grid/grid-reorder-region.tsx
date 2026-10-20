@@ -5,7 +5,7 @@ import { SortableContext } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { type ComponentProps, type ReactNode, useId } from 'react'
 import { createContext } from '../../core'
-import { useMotionSafeSortable } from '../../hooks/use-motion-safe-sortable'
+import { useSortableItem } from '../../hooks/use-sortable-item'
 import {
 	restrictToHorizontalAxis,
 	restrictToVerticalAxis,
@@ -156,15 +156,8 @@ function RowSortableScope({ children }: { children: ReactNode }) {
  * @internal
  */
 function SortableColumnHeader(props: GridReorderableColumnHeaderProps) {
-	const {
-		setNodeRef,
-		setActivatorNodeRef,
-		attributes,
-		listeners,
-		transform,
-		isDragging,
-		isSorting,
-	} = useMotionSafeSortable({ id: String(props.column.id) })
+	const { setNodeRef, setActivatorNodeRef, attributes, listeners, transform, dragging, sorting } =
+		useSortableItem({ id: String(props.column.id) })
 
 	return (
 		<GridReorderableColumnHeaderView
@@ -175,8 +168,8 @@ function SortableColumnHeader(props: GridReorderableColumnHeaderProps) {
 				attributes,
 				listeners,
 				x: transform?.x ?? 0,
-				isDragging,
-				isSorting,
+				isDragging: dragging,
+				isSorting: sorting,
 			}}
 		/>
 	)
@@ -185,9 +178,9 @@ function SortableColumnHeader(props: GridReorderableColumnHeaderProps) {
 /**
  * A drag-reorderable body row. It registers the `<tr>` as a vertical dnd-kit
  * sortable keyed by its row key, and composes the lift transform/transition. It
- * threads the activator ref and listeners down to its drag-handle grip. Unlike
- * {@link useSortableItem}, the dragged row stays visible (no `<DragOverlay>`) and
- * lifts in place via {@link k.row.reorder.dragging}.
+ * threads the activator ref and listeners down to its drag-handle grip. It does
+ * not take the `style` of {@link useSortableItem}: the dragged row stays visible
+ * (no `<DragOverlay>`) and lifts in place via {@link k.row.reorder.dragging}.
  *
  * @internal
  */
@@ -199,8 +192,8 @@ function SortableRow<T>(props: GridRowProps<T>) {
 		listeners,
 		transform,
 		transition,
-		isDragging,
-	} = useMotionSafeSortable({ id: String(props.rowKey) })
+		dragging,
+	} = useSortableItem({ id: String(props.rowKey) })
 
 	const sortable: GridRowSortable = {
 		setNodeRef,
@@ -208,7 +201,7 @@ function SortableRow<T>(props: GridRowProps<T>) {
 		attributes,
 		listeners,
 		style: { transform: CSS.Translate.toString(transform), transition },
-		dragging: isDragging,
+		dragging,
 	}
 
 	return <GridRowImpl<T> {...props} sortable={sortable} />
