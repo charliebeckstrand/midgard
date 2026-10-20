@@ -1,6 +1,5 @@
 export {
 	createSelectOption,
-	hasSelection,
 	type OptionDescriptionProps,
 	type OptionLabelProps,
 	type OptionSelectionContext,

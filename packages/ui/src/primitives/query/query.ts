@@ -57,6 +57,8 @@ export function useQueryValue(query: string, deferredQuery: string): QueryContex
  *
  * @param query - Live query text, updated on every keystroke.
  * @returns The deferred query, or `''` at once when `query` is empty.
+ *
+ * @internal
  */
 export function useDeferredQueryText(query: string): string {
 	const deferred = useDeferredValue(query)

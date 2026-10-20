@@ -5,7 +5,7 @@ import { useControllableFlag } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 import { useFrozenOnClose } from '../../hooks/use-frozen-on-close'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { useDeferredQueryText } from '../../primitives/query'
+import { useDeferredQueryText } from '../../primitives/query/query'
 
 type ComboboxStateParams<T> = {
 	multiple: boolean
