@@ -1,8 +1,9 @@
 'use client'
 
-import { type KeyboardEvent, useLayoutEffect, useRef } from 'react'
+import { type KeyboardEvent, type PointerEvent, useLayoutEffect, useRef } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { PanelSplitter } from '../../primitives/panel/panel-splitter'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
 import { dashboardMessages } from './dashboard-messages'
@@ -103,29 +104,26 @@ export function DashboardResizeHandle({
 		resizeBy(id, edge, dw, dh)
 	}
 
-	const keyboard =
-		edge === 'se'
-			? { 'aria-hidden': true }
-			: {
-					role: 'separator',
-					tabIndex: 0,
-					'aria-orientation': horizontal ? ('horizontal' as const) : ('vertical' as const),
-					'aria-label': intl.formatMessage(dashboardMessages.resize, { label }),
-					'aria-valuenow': span,
-					'aria-valuemin': least,
-					'aria-valuemax': most === undefined ? undefined : Math.max(most, span),
-					onKeyDown,
-				}
+	const shared = {
+		ref,
+		'data-slot': 'dashboard-resize-handle',
+		'data-edge': edge,
+		'data-resizing': dataAttr(resizing),
+		className: cn(k.resize.handle({ edge })),
+		onPointerDown: (event: PointerEvent<HTMLDivElement>) => beginResize(id, edge, event),
+	}
+
+	if (edge === 'se') return <div {...shared} aria-hidden />
 
 	return (
-		<div
-			ref={ref}
-			data-slot="dashboard-resize-handle"
-			data-edge={edge}
-			data-resizing={dataAttr(resizing)}
-			className={cn(k.resize.handle({ edge }))}
-			onPointerDown={(event) => beginResize(id, edge, event)}
-			{...keyboard}
+		<PanelSplitter
+			{...shared}
+			aria-orientation={horizontal ? 'horizontal' : 'vertical'}
+			aria-label={intl.formatMessage(dashboardMessages.resize, { label })}
+			aria-valuenow={span}
+			aria-valuemin={least}
+			aria-valuemax={most === undefined ? undefined : Math.max(most, span)}
+			onKeyDown={onKeyDown}
 		/>
 	)
 }
