@@ -8,6 +8,7 @@ import { useIntl } from '../../../primitives/intl/use-intl'
 import { SortableGrip } from '../../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../../recipes/kata/query-builder'
 import { holdTextSelection } from '../../../utilities/hold-text-selection'
+import { isPrimaryPress } from '../../../utilities/primary-press'
 
 /** Props for {@link QueryBuilderSortableItem}. @internal */
 type QueryBuilderSortableItemProps = {
@@ -98,6 +99,8 @@ export function QueryBuilderSortableItem({
 							? undefined
 							: {
 									onPointerDown: (event: PointerEvent) => {
+										if (!isPrimaryPress(event)) return
+
 										holdTextSelection(event)
 
 										controls.start(event)
