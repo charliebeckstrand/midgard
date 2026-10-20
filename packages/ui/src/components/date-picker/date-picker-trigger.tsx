@@ -5,8 +5,6 @@ import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useTruncation } from '../../hooks'
-import { intlMessages } from '../../primitives/intl/intl-messages'
-import { useIntl } from '../../primitives/intl/use-intl'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
@@ -14,7 +12,7 @@ import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Button } from '../button'
 import { Icon } from '../icon'
-import { InputClearButton } from '../input/input-clear-button'
+import { SelectionClearButton } from '../input/input-clear-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 /**
@@ -117,8 +115,6 @@ export function DatePickerTrigger({
 		onClear,
 	} = state
 
-	const intl = useIntl()
-
 	const glass = useGlass()
 
 	const [valueRef, truncated] = useTruncation<HTMLSpanElement>()
@@ -152,12 +148,8 @@ export function DatePickerTrigger({
 			className={cn(k.root, className)}
 			suffix={
 				showClear ? (
-					<InputClearButton
-						label={intl.formatMessage(intlMessages.clearSelection)}
-						onMouseDown={(event) => event.stopPropagation()}
-						onClick={(event) => {
-							event.stopPropagation()
-
+					<SelectionClearButton
+						onClear={() => {
 							onClear?.()
 
 							buttonRef.current?.focus()

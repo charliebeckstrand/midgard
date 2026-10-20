@@ -38,8 +38,9 @@ import {
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
-import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { hasSelection } from '../../primitives/option'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
@@ -49,7 +50,7 @@ import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
 import { Icon } from '../icon'
-import { InputClearButton } from '../input/input-clear-button'
+import { SelectionClearButton } from '../input/input-clear-button'
 import { OPTION_SELECTOR } from './combobox-constants'
 import { ComboboxInput } from './combobox-input'
 import { ComboboxPanel } from './combobox-panel'
@@ -846,19 +847,13 @@ export function Combobox<T>({
 		[scrollWithin],
 	)
 
-	const hasValue = multiple
-		? Array.isArray(value) && value.length > 0
-		: value !== undefined && !Array.isArray(value)
+	const hasValue = hasSelection(value, multiple)
 
 	const showClear = clearable && hasValue && !locked
 
 	const clearSuffix = showClear ? (
-		<InputClearButton
-			label={intl.formatMessage(intlMessages.clearSelection)}
-			onMouseDown={(event) => event.stopPropagation()}
-			onClick={(event) => {
-				event.stopPropagation()
-
+		<SelectionClearButton
+			onClear={() => {
 				setValue(multiple ? ([] as T[]) : undefined)
 
 				// A handler owns the focus follow-up, so the default doesn't run first: the
@@ -870,8 +865,6 @@ export function Combobox<T>({
 					return
 				}
 
-				// Nothing else can hold it: this button unmounts with the value it just
-				// cleared, so without this focus falls to the body.
 				inputRef.current?.focus()
 			}}
 		/>
