@@ -13,8 +13,8 @@ import { srcDir, srcRelative, walkSource } from './walk-source'
 
 /**
  * The controlled-language scan, once run by hand, as a reusable reader. It
- * reports the rule 3, rule 6, and rule 10 breaks in the comments of the
- * shipped tree (STE.md).
+ * reports the rule 3, rule 6, and rule 10 breaks and the cadence rule 5 breaks
+ * in the comments of the shipped tree (STE.md).
  *
  * @remarks
  * The scan reads comments only. Code is never prose, and a rule that bans a
@@ -116,18 +116,30 @@ export function extractComments(parsed: SourceFile): Comment[] {
 // Tags whose payload is code or a bare value, never prose to measure.
 const SKIP_TAGS = new Set(['example', 'defaultValue', 'see', 'internal', 'packageDocumentation'])
 
+// Tags whose payload is code or a bare value. The aside rule reads every other
+// payload, because a `@see` or an `@internal` note is prose too.
+const CODE_TAGS = new Set(['example', 'defaultValue'])
+
+// A block tag that a one-line doccomment carries after its summary.
+const INLINE_TAG =
+	/[ \t]+(?=@(?:param|typeParam|returns|remarks|throws|deprecated|defaultValue|example|see|internal|packageDocumentation)\b)/g
+
 /**
  * The prose in one comment, split into the units a sentence rule applies to.
  *
  * @remarks
  * A doccomment is not one run of prose. The summary, each `@tag` payload, each
  * paragraph, and each list item are separate units. A reader that joins them
- * measures one long run and reports a break that no sentence carries.
+ * measures one long run and reports a break that no sentence carries. A
+ * one-line doccomment can carry a tag after its summary, and that tag opens a
+ * unit too.
+ *
+ * @param skip - The tags whose payload the reader drops.
  */
-function proseUnits(comment: Comment): string[] {
+function proseUnits(comment: Comment, skip: ReadonlySet<string> = SKIP_TAGS): string[] {
 	const stripped = comment.text
 		.split('\n')
-		.map((row) => row.replace(/^\s*\*\s?/, ''))
+		.map((row) => row.replace(/^\s*\*\s?/, '').replace(INLINE_TAG, '\n'))
 		.join('\n')
 		.replace(/```[\s\S]*?```/g, '\n')
 
@@ -136,7 +148,7 @@ function proseUnits(comment: Comment): string[] {
 	for (const chunk of stripped.split(/\n(?=\s*@\w+)/)) {
 		const tag = /^\s*@(\w+)\s*/.exec(chunk)
 
-		if (tag && SKIP_TAGS.has(tag[1] as string)) continue
+		if (tag && skip.has(tag[1] as string)) continue
 
 		let body = tag ? chunk.slice(tag[0].length) : chunk
 
@@ -261,14 +273,31 @@ const BRITISH_STEMS = [
  */
 const BRITISH = new RegExp(`\\b(?:re|un|pre|de)?(?:${BRITISH_STEMS.join('|')})\\b`, 'i')
 
-/** One rule break, located well enough to fix without a second scan. */
-export type Break = { file: string; line: number; rule: 3 | 6 | 10; text: string }
+/**
+ * Cadence rule 5 puts an aside in its own sentence or in parentheses. An
+ * em-dash in prose is the mark of the aside that the rule bans.
+ */
+const ASIDE = '—'
+
+/**
+ * One rule break, located well enough to fix without a second scan. A number
+ * names an STE rule, and `'aside'` names cadence rule 5.
+ */
+export type Break = { file: string; line: number; rule: 3 | 6 | 10 | 'aside'; text: string }
 
 /** Every rule break in one parsed source, reported against `file`. */
 export function fileBreaks(file: string, source: SourceFile): Break[] {
 	const breaks: Break[] = []
 
 	for (const comment of extractComments(source)) {
+		for (const unit of proseUnits(comment, CODE_TAGS)) {
+			for (const sentence of sentences(unit)) {
+				if (sentence.includes(ASIDE)) {
+					breaks.push({ file, line: comment.line, rule: 'aside', text: sentence })
+				}
+			}
+		}
+
 		for (const unit of proseUnits(comment)) {
 			for (const sentence of sentences(unit)) {
 				if (wordCount(sentence) > wordLimit(sentence)) {
@@ -341,7 +370,8 @@ export const LIVING_MARKDOWN = [
 export const RULE_DOCUMENTS = ['CLAUDE.md', 'CONVENTIONS.md', 'STE.md']
 
 /**
- * Every rule 3, rule 6, and rule 10 break in one Markdown document.
+ * Every rule 3, rule 6, and rule 10 break and every cadence rule 5 break in one
+ * Markdown document.
  *
  * @remarks
  * A table cell is its own descriptive unit. A reader that measures the whole
@@ -377,6 +407,10 @@ export function markdownBreaks(file: string, source: string): Break[] {
 			if (!text) continue
 
 			for (const sentence of sentences(text)) {
+				if (sentence.includes(ASIDE)) {
+					breaks.push({ file, line: index + 1, rule: 'aside', text: sentence })
+				}
+
 				if (wordCount(sentence) > wordLimit(sentence)) {
 					breaks.push({ file, line: index + 1, rule: 6, text: sentence })
 				}

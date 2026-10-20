@@ -56,13 +56,13 @@ A *statement* is one unit of authored text: a numbered clause, a paragraph, a li
 
 ## Scope in this repository
 
-STE rules 3, 6, and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) reads the comments of the `ui` source tree, the curated surface docs, and the rule documents at the repository root. The surface docs and the rule documents carry no debt in the three rules. In the comments, a rule 3 or a rule 10 break fails the run. Rule 6 is not gated in the comments: `pnpm --filter ui ste:report` lists the breaks, and review decides what to fix.
+STE rules 3, 6, and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) reads the comments of the `ui` source tree, the curated surface docs, and the rule documents at the repository root. Cadence rule 5 is gated in the same places: an em-dash aside fails the run. The surface docs and the rule documents carry no debt in the three rules or in cadence rule 5. In the comments, a rule 3 or a rule 10 break fails the run. Rule 6 is not gated in the comments: `pnpm --filter ui ste:report` lists the breaks, and review decides what to fix.
 
 The rule 3 gate reads spelling only, so review holds the rest of rule 3. Rule 6 counts a semicolon-joined compound as one sentence.
 
 Review holds STE rule 4, because no count of it is correct. Rule 5 stays out of scope until this repository holds Part 2. Do not rewrite an `-ing` form without the Dictionary.
 
-[`cadence-boundary.test.ts`](packages/ui/src/__tests__/boundary/cadence-boundary.test.ts) gates cadence rules 1, 3, 4, and 7 in the rule documents. Review holds the other cadence rules.
+[`cadence-boundary.test.ts`](packages/ui/src/__tests__/boundary/cadence-boundary.test.ts) gates cadence rules 1, 3, 4, and 7 in the rule documents. Review holds the other cadence rules, except rule 5, which the controlled-language boundary gates.
 
 An audit and a plan stay in their authored voice, because each is a temporary record ([`CONVENTIONS.md` §12.4, §12.5](CONVENTIONS.md)). Chat is exempt ([`CLAUDE.md`](CLAUDE.md) §2.5).
 
@@ -84,13 +84,13 @@ These terms have one meaning in this repository. Use them in that meaning, and d
 
 ## Example
 
-Drift — a gerund as the subject, and two instructions in one sentence:
+Drift, with a gerund as the subject and two instructions in one sentence:
 
 ```md
 Touching a public `ui` export updates its TSDoc and the matching `packages/ui/docs/*` surface index in the same change.
 ```
 
-STE — a command for each instruction, in the active voice:
+STE, with a command for each instruction in the active voice:
 
 ```md
 When you change a public `ui` export, update its TSDoc. Update the related surface index in `packages/ui/docs` in the same commit.
