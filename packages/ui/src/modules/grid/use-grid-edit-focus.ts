@@ -1,7 +1,6 @@
 'use client'
 
 import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
-import { focusWithoutReveal } from '../../hooks/use-truncation'
 import {
 	type FocusOrigin,
 	interactionPlace,
@@ -276,7 +275,7 @@ export function useGridEditFocus<T>({
 				.getElementById(cellId(row, col))
 				?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
 
-			if (editor) focusWithoutReveal(editor)
+			editor?.focus()
 
 			dropIntents()
 		},

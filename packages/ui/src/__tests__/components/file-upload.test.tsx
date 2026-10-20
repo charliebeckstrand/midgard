@@ -822,7 +822,8 @@ describe('FileUpload focus handoff', () => {
 
 		selectFiles(container, [file])
 
-		screen.getByRole('button', { name: 'Choose a different file' }).focus()
+		// The focus arms the truncation measure of the label, which renders.
+		act(() => screen.getByRole('button', { name: 'Choose a different file' }).focus())
 
 		selectFiles(container, [new File(['y'], 'cover.pdf')])
 

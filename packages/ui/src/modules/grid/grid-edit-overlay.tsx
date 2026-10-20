@@ -5,7 +5,6 @@ import { Button } from '../../components/button'
 import { Drawer, DrawerBody, DrawerFooter, DrawerPanel, DrawerTitle } from '../../components/drawer'
 import { Field, Label, Message } from '../../components/fieldset'
 import { Sheet, SheetBody, SheetFooter, SheetPanel, SheetTitle } from '../../components/sheet'
-import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Stack } from '../../structure/stack'
@@ -341,7 +340,7 @@ function GridEditOverlayField<T>({ session, rowKey, row, column }: GridEditOverl
 
 		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
 
-		if (editor) focusWithoutReveal(editor)
+		editor?.focus()
 	})
 
 	const update = (next: unknown) => {

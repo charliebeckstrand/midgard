@@ -13,7 +13,7 @@ import {
 } from 'react'
 import { cn, composeEventHandlers, dataAttr, invalidAttrs } from '../../core'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { focusWithoutReveal, useTruncation } from '../../hooks/use-truncation'
+import { useTruncation } from '../../hooks/use-truncation'
 import { IntlMessage } from '../../primitives/intl/intl-message'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/file-upload'
@@ -290,9 +290,7 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 
 		const target = filled ? overlayRef.current : emptyRef.current
 
-		// The focus lands inside a commit, where the truncation arm on the overlay
-		// cannot flush.
-		if (target) focusWithoutReveal(target)
+		target?.focus()
 	}, [filled])
 
 	return (

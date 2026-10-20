@@ -1,7 +1,6 @@
 'use client'
 
 import { type KeyboardEvent as ReactKeyboardEvent, type RefObject, useCallback } from 'react'
-import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { claimedBySurface, editorMove, ownNode, type SessionMove } from './engine/grid-edit-keys'
 import type { CellRequest, SessionRow } from './engine/grid-edit-transition'
 import {
@@ -195,7 +194,7 @@ export function useGridEditKeys<T>({
 					.getElementById(cellId(row, next))
 					?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
 
-				if (editor) focusWithoutReveal(editor)
+				editor?.focus()
 
 				return
 			}
