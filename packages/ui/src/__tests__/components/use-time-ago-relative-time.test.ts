@@ -5,8 +5,16 @@ import {
 	resolveRefreshInterval,
 	useTimeAgoRelativeTime,
 } from '../../components/time-ago/use-time-ago-relative-time'
-import { MAX_TIMEOUT } from '../../hooks/use-timeout'
-import { DAY, HOUR, MINUTE, MONTH, SECOND, WEEK, YEAR } from '../../utilities/time-units'
+import {
+	DAY,
+	HOUR,
+	MAX_TIMEOUT,
+	MINUTE,
+	MONTH,
+	SECOND,
+	WEEK,
+	YEAR,
+} from '../../utilities/time-units'
 import { it, onFakeClock } from '../helpers/fake-clock'
 
 const NOW = new Date('2026-05-19T12:00:00Z')
@@ -128,9 +136,5 @@ describe('resolveRefreshInterval', () => {
 	])('resolves %s', (_name, interval, expected) => {
 		// 3 days sits below the WEEK threshold, so the adaptive ladder picks HOUR.
 		expect(resolveRefreshInterval(interval, 3 * DAY)).toBe(expected)
-	})
-
-	it('keeps the maximum inside the 32-bit signed timer range', () => {
-		expect(MAX_TIMEOUT).toBe(2 ** 31 - 1)
 	})
 })

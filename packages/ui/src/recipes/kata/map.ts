@@ -82,7 +82,6 @@ export const k = {
 	selected: SELECTED,
 	/** Shared data-viz palette from `zu`: the same slots, order, and validation as `kata/chart`. */
 	series: palette.series,
-	order: palette.order,
 	/** The map's own region tokens beside the shared data-viz palette. */
 	region: {
 		/** A region with no matching datum — and a toggled-off category's fallback. */

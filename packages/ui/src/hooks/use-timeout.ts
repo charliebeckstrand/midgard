@@ -1,15 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-
-/**
- * The longest delay that the platform timer holds: a 32-bit signed count of
- * milliseconds. The platform wraps a longer delay to 32 bits, and changes
- * `Infinity` to 0, so the timer fires early, often at once.
- *
- * @internal
- */
-export const MAX_TIMEOUT = 2 ** 31 - 1
+import { MAX_TIMEOUT } from '../utilities/time-units'
 
 /** The timer that {@link useTimeout} gives. Each function keeps its identity. */
 export type Timeout = {
@@ -55,14 +47,13 @@ function createTimeout(): Timeout {
 		set: (callback, ms) => {
 			clear()
 
-			id = setTimeout(
-				() => {
-					id = null
+			const fire = () => {
+				id = null
 
-					callback()
-				},
-				Math.min(ms, MAX_TIMEOUT),
-			)
+				callback()
+			}
+
+			id = setTimeout(fire, Math.min(ms, MAX_TIMEOUT))
 		},
 		clear,
 		pending: () => id !== null,

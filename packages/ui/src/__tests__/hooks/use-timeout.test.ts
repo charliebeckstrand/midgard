@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, vi } from 'vitest'
-import { MAX_TIMEOUT, useTimeout } from '../../hooks/use-timeout'
+import { useTimeout } from '../../hooks/use-timeout'
+import { MAX_TIMEOUT } from '../../utilities/time-units'
 import { it, onFakeClock } from '../helpers/fake-clock'
 
 describe('useTimeout', () => {
@@ -40,6 +41,10 @@ describe('useTimeout', () => {
 		expect(first).not.toHaveBeenCalled()
 
 		expect(second).toHaveBeenCalledTimes(1)
+	})
+
+	it('caps a delay inside the 32-bit signed timer range', () => {
+		expect(MAX_TIMEOUT).toBe(2 ** 31 - 1)
 	})
 
 	it.for([Number.POSITIVE_INFINITY, 2 ** 31, 2 ** 32])(

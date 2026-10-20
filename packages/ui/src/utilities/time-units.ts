@@ -12,3 +12,12 @@ export const DAY = 24 * HOUR
 export const WEEK = 7 * DAY
 export const MONTH = 30 * DAY
 export const YEAR = 365 * DAY
+
+/**
+ * The longest delay that the platform timer holds: a 32-bit signed count of
+ * milliseconds. The platform wraps a longer delay to 32 bits, and changes
+ * `Infinity` to 0, so the timer fires early, often at once.
+ *
+ * @internal
+ */
+export const MAX_TIMEOUT = 2 ** 31 - 1
