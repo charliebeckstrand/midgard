@@ -19,7 +19,7 @@ import { type InputVariants, k } from '../../recipes/kata/input'
 import { clearNativeInput } from '../../utilities'
 import type { ControlVariant } from '../control/context'
 import { InputClearButton } from './input-clear-button'
-import { InputFrame } from './input-frame'
+import { InputFrame, isAffixPresent } from './input-frame'
 import { useInputControl } from './use-input-control'
 
 /** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, the `clearable` flag and its `clearLabel`, and `invalid` override atop native `<input>` attributes. */
@@ -182,7 +182,7 @@ export function Input({
 		) : undefined
 
 	const frameSuffix =
-		clearButton && suffix != null && suffix !== false ? (
+		clearButton && isAffixPresent(suffix) ? (
 			<>
 				{clearButton}
 				{suffix}

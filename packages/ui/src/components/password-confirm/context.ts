@@ -1,10 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
-import type { Status } from './password-confirm-utilities'
-
-/** The field a part reports for: the password, or its confirmation. @internal */
-export type PasswordConfirmRole = 'password' | 'confirm'
+import type { PasswordConfirmRole, Status } from './password-confirm-utilities'
 
 type PasswordConfirmContextValue = {
 	status: Status

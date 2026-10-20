@@ -41,35 +41,31 @@ const messages = defineMessages<{
 })
 
 /**
- * Any run of whitespace, comma or semicolon between tokens.
+ * Any run of white space, comma, or semicolon between tokens.
  *
- * Comma is already the field's declared commit key. A split on it is therefore the existing
- * contract applied to a second input channel, rather than new behavior. Whitespace joins it
- * because the commonest thing anyone pastes into a token field is a spreadsheet column.
- * Semicolon joins it because that is what a locale using comma as a decimal separator exports
- * instead. A single-line token
- * field has no legitimate whitespace-bearing token, so there is nothing to lose by splitting on it.
+ * Comma is the commit key of the field, so a paste splits on it too. White
+ * space is in the set because a pasted spreadsheet column has a newline after
+ * each value. Semicolon is in the set because a locale that writes a comma as
+ * its decimal separator exports a list with semicolons. A single-line token
+ * field has no token that holds white space.
  *
  * @internal
  */
 const TOKEN_SEPARATOR = /[\s,;]+/
 
 /**
- * The tokens a raw string carries: what a paste or a multi-word draft commits as.
+ * The tokens of a raw string: what a paste or a draft commits.
  *
- * @returns One trimmed, non-empty token per delimited run; `[]` for a string of only delimiters.
+ * @returns One trimmed, non-empty token for each delimited run, or `[]` for a
+ * string of delimiters only.
  *
  * @remarks
- * Reading a paste through this is not optional cleverness. `Input` renders a native `<input>`, and
- * HTML's value-sanitization algorithm strips U+000A and U+000D from one. A pasted spreadsheet
- * column therefore reaches `onChange` as a single undelimited digit run, with every boundary
- * already destroyed. Only a `paste` handler reading `clipboardData` before the default insertion
- * still has the newlines to split on.
+ * A paste must go through this before the default insertion. The value
+ * sanitization of a native `<input>` removes U+000A and U+000D, so a pasted
+ * spreadsheet column reaches `onChange` as one run with no delimiters. Only a
+ * `paste` handler that reads `clipboardData` still has the newlines.
  *
- * Public, unlike the rest of this module. A control that is not a `TagInput` but takes the same
- * pasted list needs this exact split. A `multiple` `Combobox` whose values are typed in rather
- * than picked is one. The alternative to exporting it is every such caller restating the
- * separator set and drifting from it.
+ * @internal
  */
 export function splitTokens(raw: string): string[] {
 	return raw
@@ -79,15 +75,13 @@ export function splitTokens(raw: string): string[] {
 }
 
 /**
- * Whether a raw string carries a delimiter at all. It is the test for "this paste is a list", as
- * against one value dropped into a draft mid-edit.
+ * Whether a raw string holds a delimiter. It tells a pasted list from one
+ * value that the user pastes into a draft.
  *
- * Strictly wider than `splitTokens(raw).length > 1`, and the only test a caller needs. Two tokens
- * can only come from a split that matched, so a token count can never say "list" where this says
- * "typing". A trailing delimiter (a spreadsheet column's last newline, `"84045\n"`) splits to ONE
- * token and is a pasted list all the same. Here rather than in the component, so the delimiter set
- * is stated once. The caller was carrying its own `/[\s,;]/`, which is exactly the drift
- * {@link splitTokens} is exported to prevent.
+ * It is wider than `splitTokens(raw).length > 1`: two tokens come only from a
+ * split that matched, and a value with a trailing delimiter, such as the last
+ * newline of a spreadsheet column (`"84045\n"`), is one token but still a list.
+ * It uses {@link TOKEN_SEPARATOR}, so the delimiter set has one definition.
  *
  * @internal
  */
@@ -96,12 +90,12 @@ export function hasSeparator(raw: string): boolean {
 }
 
 /**
- * How a batch of candidate tokens was received.
+ * The result of a batch of candidate tokens.
  *
- * Only `rejected` goes back into the draft. A duplicate is already in the list, and a candidate
- * past the cap is refused by a limit the field itself shows. Neither is something the user has to
- * retype. `duplicates` is still a list rather than a count, so a batch of exactly one can be
- * announced by name. That is what keeps a single paste sounding the same as a single keystroke.
+ * Only `rejected` goes back into the draft. A duplicate is already in the
+ * list, and the field shows its cap, so the user does not type either again.
+ * `duplicates` is a list and not a count, so the live region can name the tag
+ * of a batch of one, as it does for one keystroke.
  */
 export type TokenBatch = {
 	/** Novel, within-limit, valid tokens, in the order given. */
@@ -115,20 +109,18 @@ export type TokenBatch = {
 }
 
 /**
- * The refused part of a {@link TokenBatch}: what a commit turned away, and why.
- *
- * Derived from `TokenBatch` rather than spelled again, so the two cannot drift. It carries no
- * `accepted` set, because `onValueChange` already delivers that half.
+ * The refused part of a {@link TokenBatch}: what a commit refused, and why.
+ * It has no `accepted` set, because `onValueChange` gives that part.
  */
 export type TokenRejection = Omit<TokenBatch, 'accepted'>
 
 /**
- * Partitions candidate tokens against the tags already held.
+ * Sorts candidate tokens against the tags that the field holds.
  *
- * Pure, so the commit path is a two-liner and the sorting rules are testable without a DOM. Checks
- * each candidate against the accepted set as well as the held one, since a pasted column can repeat
- * a code. The order (duplicate, then limit, then `validate`) is {@link useTagInput}'s own, so
- * `validate` sees only novel, within-limit candidates however tokens arrive.
+ * Each candidate is checked against the accepted tokens too, because a pasted
+ * column can repeat a code. The checks go in this order: duplicate, limit,
+ * then `validate`. Thus `validate` sees only new candidates that fit, from
+ * every channel.
  *
  * @param room How many more tags fit; `Number.POSITIVE_INFINITY` when uncapped.
  */
@@ -160,13 +152,12 @@ export function classifyTokens(
 }
 
 /**
- * The live-region sentence for a committed batch, or `''` when nothing happened.
+ * The live-region sentence for a committed batch, or `''` when nothing
+ * changed.
  *
- * ONE message per batch, not one per tag. Forty separate announcements for one paste is worse for
- * a screen-reader user than the silence it replaces (WCAG 4.1.3). A batch of exactly one still
- * reads as that token's own name: added, duplicate or invalid. One code entered by paste therefore
- * sounds the same as one entered by keystroke. The wording does not shift under the user with the
- * channel.
+ * A batch gets one message, not one for each tag, so a long paste does not
+ * flood a screen reader (WCAG 4.1.3). A batch of one names its tag, so one
+ * code from a paste sounds the same as one code from a keystroke.
  *
  * @internal
  */

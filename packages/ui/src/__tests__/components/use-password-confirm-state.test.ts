@@ -3,12 +3,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { usePasswordConfirmState } from '../../components/password-confirm/use-password-confirm-state'
 
 describe('usePasswordConfirmState', () => {
-	it('starts empty with idle status', () => {
+	it('starts with idle status', () => {
 		const { result } = renderHook(() => usePasswordConfirmState())
-
-		expect(result.current.password).toBe('')
-
-		expect(result.current.confirm).toBe('')
 
 		expect(result.current.status).toBe('idle')
 	})

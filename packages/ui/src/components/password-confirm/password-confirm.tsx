@@ -5,7 +5,8 @@ import { useA11yLiveRegion } from '../../hooks'
 import { useFormContext } from '../../primitives/form/context'
 import { Stack } from '../../structure/stack'
 import { Text } from '../text'
-import { PasswordConfirmContext, type PasswordConfirmRole } from './context'
+import { PasswordConfirmContext } from './context'
+import type { PasswordConfirmRole } from './password-confirm-utilities'
 import { usePasswordConfirmState } from './use-password-confirm-state'
 
 /** Props for {@link PasswordConfirm}. The root `<div>` takes the rest. */
@@ -36,7 +37,6 @@ export type PasswordConfirmProps = ComponentProps<'div'> & {
 export function PasswordConfirm({
 	onMatchChange,
 	warning,
-	className,
 	children,
 	...props
 }: PasswordConfirmProps) {
@@ -90,7 +90,7 @@ export function PasswordConfirm({
 
 	return (
 		<PasswordConfirmContext value={context}>
-			<div data-slot="password-confirm" {...props} className={className}>
+			<div data-slot="password-confirm" {...props}>
 				<Stack gap="lg">{children}</Stack>
 				{/*
 					The region stays mounted and only its children change: a live region that

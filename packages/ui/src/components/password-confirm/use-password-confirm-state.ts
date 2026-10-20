@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
-import { deriveStatus, type LastEdited, type Status } from './password-confirm-utilities'
+import { deriveStatus, type PasswordConfirmRole, type Status } from './password-confirm-utilities'
 
 type PasswordConfirmStateOptions = {
 	/**
@@ -14,22 +14,19 @@ type PasswordConfirmStateOptions = {
 }
 
 type PasswordConfirmStateResult = {
-	password: string
-	confirm: string
 	status: Status
 	setPassword: (value: string) => void
 	setConfirm: (value: string) => void
-	setLastEdited: (which: LastEdited) => void
+	setLastEdited: (which: PasswordConfirmRole | null) => void
 }
 
 /**
  * Tracks password/confirm values and derives match status for the coordinator.
  *
- * @returns The current `password` and `confirm` values, the derived `status`,
- * and the setters `setPassword`, `setConfirm`, and `setLastEdited`. The value
- * setters record a value from any source. Only a user edit calls
- * `setLastEdited`, so a reset or a seeded value does not start the grace
- * period.
+ * @returns The derived `status`, and the setters `setPassword`, `setConfirm`,
+ * and `setLastEdited`. The value setters record a value from any source. Only
+ * a user edit calls `setLastEdited`, so a reset or a seeded value does not
+ * start the grace period.
  * @remarks
  * `onMatchChange(matched)` fires from an effect on transitions only, so a
  * match→match repeat won't re-fire. The effect calls it through
@@ -47,7 +44,7 @@ export function usePasswordConfirmState({
 
 	const [confirm, setConfirm] = useState('')
 
-	const [lastEdited, setLastEdited] = useState<LastEdited>(null)
+	const [lastEdited, setLastEdited] = useState<PasswordConfirmRole | null>(null)
 
 	const status: Status = disabled ? 'idle' : deriveStatus(password, confirm, lastEdited)
 
@@ -82,5 +79,5 @@ export function usePasswordConfirmState({
 		reportMatch(matched)
 	}, [matchState, disabled])
 
-	return { password, confirm, status, setPassword, setConfirm, setLastEdited }
+	return { status, setPassword, setConfirm, setLastEdited }
 }

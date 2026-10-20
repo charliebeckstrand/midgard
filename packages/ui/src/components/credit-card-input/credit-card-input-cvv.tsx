@@ -79,9 +79,10 @@ export function CreditCardInputCvv({
 		setValue: setFieldValue,
 		onChange: onFieldChange,
 		onBlur: onFieldBlur,
-		fallbackLabel,
+		ariaLabel: label,
 	} = useCreditCardInputField({
 		fallbackLabel: intl.formatMessage(creditCardMessages.securityCode),
+		ariaLabel,
 		ref,
 		name,
 		value,
@@ -131,11 +132,7 @@ export function CreditCardInputCvv({
 			type="text"
 			inputMode="numeric"
 			autoComplete="cc-csc"
-			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
-			// defaults an aria-label, yielding to a Field <Label> from the first
-			// render and to a native label after each commit
-			// (useControlLabelRef).
-			aria-label={ariaLabel ?? fallbackLabel}
+			aria-label={label}
 			maxLength={maxLength}
 			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
 			name={name}

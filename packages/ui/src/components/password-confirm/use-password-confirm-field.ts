@@ -6,8 +6,8 @@ import { composeEventHandlers } from '../../core'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useFormField } from '../../primitives/form/context'
 import type { PasswordInputProps } from '../password-input'
-import { type PasswordConfirmRole, usePasswordConfirm } from './context'
-import { toFieldText } from './password-confirm-utilities'
+import { usePasswordConfirm } from './context'
+import { type PasswordConfirmRole, toFieldText } from './password-confirm-utilities'
 
 type PasswordConfirmFieldOptions = Pick<PasswordInputProps, 'name' | 'value' | 'defaultValue'> & {
 	onChange?: (event: ChangeEvent<HTMLInputElement>) => void

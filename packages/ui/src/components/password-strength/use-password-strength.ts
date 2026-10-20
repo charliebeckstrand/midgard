@@ -34,7 +34,6 @@ type PasswordStrengthOptions = {
 type PasswordStrengthResult = {
 	results: PasswordRuleResult[]
 	level: StrengthLevel
-	passedCount: number
 }
 
 /**
@@ -58,8 +57,8 @@ function deriveLevel(passed: number, total: number): Exclude<StrengthLevel, 'emp
 /**
  * Evaluates a password against a rule set and derives its strength.
  *
- * @returns `results` (each rule paired with its `passed` flag, in rule order),
- * the derived `level`, and `passedCount`.
+ * @returns `results` (each rule paired with its `passed` flag, in rule order)
+ * and the derived `level`.
  * @remarks
  * `onStrengthChange` fires from an effect after commit, including on first
  * render with the initial `value`. Firing is gated on the joined passing-rule
@@ -106,5 +105,5 @@ export function usePasswordStrength({
 		})
 	}, [passedCount, rules.length, level, passedIds])
 
-	return { results, level, passedCount }
+	return { results, level }
 }

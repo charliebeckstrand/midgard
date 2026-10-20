@@ -16,20 +16,28 @@ type InputFrameProps = {
 }
 
 /**
+ * Whether an affix renders. A null, false, or `''` affix is absent, so the
+ * frame gets no affix style and no empty slot. A `0` affix is present, and a
+ * plain `&&` would leak it as a bare text node.
+ *
+ * @internal
+ */
+export function isAffixPresent(affix: ReactNode) {
+	return affix != null && affix !== false && affix !== ''
+}
+
+/**
  * Density-scoped affix frame around the bare `<input>`. Each prefix and suffix
  * slot is a scope one step below the frame (`data-density="slot"`), so the slot
- * content renders one step smaller than the input. One definition of
- * "present" serves both the wrapper class and the render guards. A null,
- * false, or `''` affix is absent. Without this test, it styles the frame and
- * renders an empty slot. A `0` affix is present, and a plain `&&` would leak it
- * as a bare text node.
+ * content renders one step smaller than the input. {@link isAffixPresent}
+ * serves both the wrapper class and the render guards.
  *
  * @internal
  */
 export function InputFrame({ input, prefix, suffix, variant, density }: InputFrameProps) {
-	const hasPrefix = prefix != null && prefix !== false && prefix !== ''
+	const hasPrefix = isAffixPresent(prefix)
 
-	const hasSuffix = suffix != null && suffix !== false && suffix !== ''
+	const hasSuffix = isAffixPresent(suffix)
 
 	const hasAffix = hasPrefix || hasSuffix
 

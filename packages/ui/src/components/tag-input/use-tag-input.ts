@@ -43,9 +43,8 @@ type TagInputOptions = {
  * Layers over {@link useFormValue}: a bound `name` wins, else controlled `value`,
  * else uncontrolled state seeded from `defaultValue`. Mutators announce every
  * outcome (add, duplicate, limit, rejection) to the live region (WCAG 4.1.3,
- * 3.3.1). `addTags` is the ONLY add path, batch-shaped even for one tag. A single-tag
- * variant beside it is what let the keyboard and the paste channels disagree about
- * what a draft commits to.
+ * 3.3.1). `addTags` is the only add path, and it takes a batch also for one
+ * tag, so the keyboard and a paste commit a draft the same way.
  *
  * @internal
  */
@@ -83,15 +82,10 @@ export function useTagInput({
 	const atMax = max !== undefined && tags.length >= max
 
 	/**
-	 * Commits several candidates in ONE transaction and hands back the ones `validate` refused.
-	 *
-	 * Not `addTag` in a loop, which would silently drop all but one. Every call closes over the same
-	 * `tags`, so each candidate would be appended to the pre-loop list and the last write would win.
-	 * Forty pasted codes would commit as one. Batching is also what lets candidates be checked against
-	 * each other, since a pasted column can repeat a code.
-	 *
-	 * The sorting and the wording are pure functions ({@link classifyTokens}, {@link describeBatch}).
-	 * What counts as a duplicate and what the live region says are therefore testable without a DOM.
+	 * Commits the candidates in one write, and gives back the ones that
+	 * `validate` refused. One write is necessary: each call reads the same
+	 * `tags`, so a loop of single adds keeps only the last. The batch also
+	 * checks the candidates against each other ({@link classifyTokens}).
 	 */
 	const addTags = useCallback(
 		(raw: readonly string[]): string[] => {
@@ -108,9 +102,8 @@ export function useTagInput({
 
 			if (said !== '') announce(said)
 
-			// The live region is the only place the refused part goes today, and a
-			// live region is not a channel a caller can read. `onValueChange` carries
-			// the accepted half, so this one carries the other three outcomes.
+			// A caller cannot read the live region, so `onReject` gives the refused
+			// part. `onValueChange` gives the accepted part.
 			const { accepted: _accepted, ...rejection } = batch
 
 			if (
