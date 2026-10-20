@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { densityStepOf, fireEvent, renderUI, screen } from '../helpers'
+import { fireEvent, readDensityStep, renderUI, screen } from '../helpers'
 
 describe('Grid condensed', () => {
 	type Row = { id: number; name: string }
@@ -56,13 +56,13 @@ describe('Grid condensed', () => {
 
 		// A cell Button with no explicit `size` takes the `sm` step of the table
 		// scope, not the ambient `md` step.
-		expect(densityStepOf(screen.getByRole('button', { name: 'Edit Alice' }))).toBe('sm')
+		expect(readDensityStep(screen.getByRole('button', { name: 'Edit Alice' }))).toBe('sm')
 	})
 
 	it('leaves cell content at the ambient size without condensed', () => {
 		renderUI(<Grid columns={withButton} rows={rows} getKey={getKey} />)
 
-		expect(densityStepOf(screen.getByRole('button', { name: 'Edit Alice' }))).toBe('md')
+		expect(readDensityStep(screen.getByRole('button', { name: 'Edit Alice' }))).toBe('md')
 	})
 
 	it('leaves a portaled context menu at the ambient density, not the condensed step', () => {
@@ -77,7 +77,7 @@ describe('Grid condensed', () => {
 		// step together instead of the text alone shrinking.
 		const item = screen.getByRole('menuitem', { name: 'Copy' })
 
-		expect(densityStepOf(item)).toBe('md')
+		expect(readDensityStep(item)).toBe('md')
 	})
 
 	it('does not shrink a consumer badge outside the grid', () => {

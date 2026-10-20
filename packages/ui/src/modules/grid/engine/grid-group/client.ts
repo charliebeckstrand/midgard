@@ -145,16 +145,16 @@ function sortLeaves<T>(
 	sort: GroupSort<T>,
 ): number[][] {
 	if (order && sort.fields.every((field) => field.sortFn === null)) {
-		const groupOf = new Int32Array(rows.length).fill(-1)
+		const groupByRow = new Int32Array(rows.length).fill(-1)
 
 		lists.forEach((list, group) => {
-			for (const index of list) groupOf[index] = group
+			for (const index of list) groupByRow[index] = group
 		})
 
 		const sorted = lists.map((): number[] => [])
 
 		for (const index of order) {
-			const group = groupOf[index] as number
+			const group = groupByRow[index] as number
 
 			if (group >= 0) (sorted[group] as number[]).push(index)
 		}

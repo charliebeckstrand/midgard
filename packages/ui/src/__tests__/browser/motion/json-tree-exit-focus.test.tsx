@@ -33,7 +33,7 @@ function rows(container: HTMLElement) {
 	}
 }
 
-function groupOf(branch: HTMLElement) {
+function getGroup(branch: HTMLElement) {
 	return present(document.getElementById(branch.getAttribute('aria-owns') ?? ''), 'group of a')
 }
 
@@ -54,7 +54,7 @@ describe('JsonTree exiting group (real Motion)', () => {
 
 		const { branch, x, last } = rows(container)
 
-		const group = groupOf(branch)
+		const group = getGroup(branch)
 
 		branch.focus()
 
@@ -83,7 +83,7 @@ describe('JsonTree exiting group (real Motion)', () => {
 
 		const { branch, x } = rows(container)
 
-		const group = groupOf(branch)
+		const group = getGroup(branch)
 
 		branch.focus()
 
@@ -94,7 +94,7 @@ describe('JsonTree exiting group (real Motion)', () => {
 		press('ArrowRight')
 
 		// The open keeps the same node, so the mark must go.
-		expect(groupOf(branch)).toBe(group)
+		expect(getGroup(branch)).toBe(group)
 
 		expect(group).not.toHaveAttribute('inert')
 

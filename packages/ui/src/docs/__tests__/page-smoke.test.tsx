@@ -4,7 +4,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { describePageSmoke, docsPages, moduleOf, pageModules, smokeParts } from './page-smoke.tsx'
+import { describePageSmoke, docsPages, pageModules, smokeParts, toPath } from './page-smoke.tsx'
 
 // The smoke test (`page-smoke.tsx`) for the first part of the pages, and the
 // checks that the files of the test walk each module in `pages/`.
@@ -12,8 +12,8 @@ import { describePageSmoke, docsPages, moduleOf, pageModules, smokeParts } from 
 describe('page modules', () => {
 	it('walks each page module and each tab module', () => {
 		const walked = docsPages.flatMap(({ folder, tabs }) => [
-			moduleOf(folder),
-			...tabs.map((tab) => moduleOf(`${folder}/${tab}`)),
+			toPath(folder),
+			...tabs.map((tab) => toPath(`${folder}/${tab}`)),
 		])
 
 		expect(walked.toSorted()).toEqual(pageModules)

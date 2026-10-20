@@ -41,7 +41,7 @@ const SHADE = /(zinc|red|amber|green|blue|rose|violet|sky)-(\d{2,3})(?:\/(\d{1,3
 const NEUTRAL = /\b(white|black)(?:\/(\d{1,3}))?\b/
 
 /** A Tailwind `/alpha` suffix as a fraction; absent means opaque. */
-const alphaOf = (suffix: string | undefined): number => (suffix ? Number(suffix) / 100 : 1)
+const parseAlpha = (suffix: string | undefined): number => (suffix ? Number(suffix) / 100 : 1)
 
 /**
  * The raw `oklch(…)` string of a Tailwind color token in the theme, such as
@@ -58,7 +58,7 @@ export function themeColor(token: string): string {
 }
 
 /** A `name-shade` / `white` / `black` token → gamma-encoded sRGB. */
-function srgbOf(token: string): Srgb {
+function toSrgb(token: string): Srgb {
 	// `parseColor` owns the keywords; the theme map owns the ramp. A miss in both
 	// surfaces as its unparseable-color throw.
 	return parseColor(THEME.get(token) ?? token)
@@ -70,29 +70,29 @@ function srgbOf(token: string): Srgb {
  * both appear, so a joined `[light, dark]` pair resolves to its shade rather
  * than to whichever token sits leftmost.
  */
-function tokenOf(className: string): { token: string; alpha: number } {
+function parseToken(className: string): { token: string; alpha: number } {
 	const shade = SHADE.exec(className)
 
-	if (shade) return { token: `${shade[1]}-${shade[2]}`, alpha: alphaOf(shade[3]) }
+	if (shade) return { token: `${shade[1]}-${shade[2]}`, alpha: parseAlpha(shade[3]) }
 
 	const neutral = NEUTRAL.exec(className)
 
-	if (neutral?.[1]) return { token: neutral[1], alpha: alphaOf(neutral[2]) }
+	if (neutral?.[1]) return { token: neutral[1], alpha: parseAlpha(neutral[2]) }
 
 	throw new Error(`no color in class: ${className}`)
 }
 
 /** The page / card surfaces a foreground sits on. */
 export const SURFACE: { light: Srgb; dark: Srgb } = {
-	light: srgbOf('white'),
-	dark: srgbOf('zinc-900'),
+	light: toSrgb('white'),
+	dark: toSrgb('zinc-900'),
 }
 
 /** Composite a translucent wash class (e.g. `bg-green-500/15`) over a base surface, blending in sRGB like the browser. */
 export function tinted(washClass: string, base: Srgb): Srgb {
-	const { token, alpha } = tokenOf(washClass)
+	const { token, alpha } = parseToken(washClass)
 
-	const [wr, wg, wb] = srgbOf(token)
+	const [wr, wg, wb] = toSrgb(token)
 	const [br, bg, bb] = base
 
 	const blend = (wash: number, surface: number): number => alpha * wash + (1 - alpha) * surface
@@ -101,6 +101,6 @@ export function tinted(washClass: string, base: Srgb): Srgb {
 }
 
 /** WCAG contrast ratio of a foreground class against a (possibly tinted) surface. */
-export function contrastOf(fgClass: string, surface: Srgb): number {
-	return contrastRatio(srgbOf(tokenOf(fgClass).token), surface)
+export function getContrast(fgClass: string, surface: Srgb): number {
+	return contrastRatio(toSrgb(parseToken(fgClass).token), surface)
 }

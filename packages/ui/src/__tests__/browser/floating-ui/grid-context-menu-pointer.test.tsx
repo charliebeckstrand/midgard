@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 
 /**
  * Pointer control of the grid context menu's submenus against the real floating
@@ -45,7 +45,7 @@ describe('grid context menu pointer travel (real browser)', () => {
 
 		// A right-click lands inside the header. A menu anchored at a point outside
 		// the scroll area of the grid is hidden.
-		const press = centerOf(header)
+		const press = getCenter(header)
 
 		fireEvent.contextMenu(header, { clientX: press.x, clientY: press.y })
 
@@ -53,7 +53,7 @@ describe('grid context menu pointer travel (real browser)', () => {
 
 		const sort = item('Sort')
 
-		const from = centerOf(sort)
+		const from = getCenter(sort)
 
 		// Cursor and panel both land with the pointer, neither waiting on a clock.
 		settle(sort, from.x, from.y)
@@ -81,7 +81,7 @@ describe('grid context menu pointer travel (real browser)', () => {
 		// passing over it, not arriving at it.
 		const edge = rect.left >= from.x ? rect.left : rect.right
 
-		const crossing = { x: from.x + (edge - from.x) * 0.8, y: centerOf(pin).y }
+		const crossing = { x: from.x + (edge - from.x) * 0.8, y: getCenter(pin).y }
 
 		settle(pin, crossing.x, crossing.y)
 
@@ -101,7 +101,7 @@ describe('grid context menu pointer travel (real browser)', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Sort ascending' })).toBeNull()
 
 		// Straight down the menu, away from the panel, keeps Pin and its submenu.
-		settle(pin, from.x, centerOf(pin).y)
+		settle(pin, from.x, getCenter(pin).y)
 
 		expect(pin).toHaveFocus()
 

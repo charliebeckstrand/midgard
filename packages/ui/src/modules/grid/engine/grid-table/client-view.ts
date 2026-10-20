@@ -110,7 +110,7 @@ export function sliceOrder(
  *
  * @internal
  */
-export function leavesOf<T>(args: {
+export function buildLeaves<T>(args: {
 	rows: readonly T[]
 	getKey: (row: T, index: number) => string | number
 	groups: GridGroup<T>[] | null
@@ -183,7 +183,7 @@ export function viewLeaves<T>(args: {
 }): T[] {
 	const { rows, getKey, groups, manualGroupRow, clientView } = args
 
-	const leaves = leavesOf({
+	const leaves = buildLeaves({
 		rows,
 		getKey,
 		groups,
@@ -207,7 +207,7 @@ export function viewLeaves<T>(args: {
  *
  * @internal
  */
-export function grandTotalRowsOf<T>(args: {
+export function buildGrandTotals<T>(args: {
 	grandTotal: boolean
 	manualGrouped: boolean
 	clientView: ClientView<T> | null

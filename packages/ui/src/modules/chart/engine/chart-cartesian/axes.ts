@@ -197,7 +197,7 @@ export function resolveValueAxes<T>(
  *
  * @internal
  */
-export function gridPositionsOf(
+export function buildGrid(
 	axes: Partial<CartesianAxes>,
 	layout: CartesianLayout,
 	grid: boolean,
@@ -226,7 +226,7 @@ export function gridPositionsOf(
  *
  * @internal
  */
-export function categoryGridPositionsOf(
+export function buildCategoryGrid(
 	axes: Partial<CartesianAxes>,
 	layout: CartesianLayout,
 	count: number,
@@ -251,7 +251,7 @@ export function categoryGridPositionsOf(
  *
  * @internal
  */
-export function referencePositionsOf(
+export function buildReferences(
 	reference: ChartReferenceLine[] | undefined,
 	scales: Record<ChartValueAxisId, LinearScale | null>,
 	hidden: ReadonlySet<number>,

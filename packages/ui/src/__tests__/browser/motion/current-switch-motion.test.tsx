@@ -8,7 +8,7 @@ import { renderUI, waitFor } from '../../helpers'
  * panels on each frame of a switch, under `fade` and under `slide`.
  */
 describe('CurrentContents switch (real Motion)', () => {
-	const panelOf = (testId: string) =>
+	const getPanel = (testId: string) =>
 		document.querySelector<HTMLElement>(`[data-testid="${testId}"]`)?.parentElement ?? null
 
 	const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
@@ -49,12 +49,12 @@ describe('CurrentContents switch (real Motion)', () => {
 		tab.click()
 
 		while (
-			panelOf(outgoing) ||
-			Number(getComputedStyle(panelOf(incoming) as Element).opacity) < 1
+			getPanel(outgoing) ||
+			Number(getComputedStyle(getPanel(incoming) as Element).opacity) < 1
 		) {
 			await frame()
 
-			const panels = [panelOf(incoming), panelOf(outgoing)]
+			const panels = [getPanel(incoming), getPanel(outgoing)]
 
 			const opacities = panels.map((panel) => (panel ? Number(getComputedStyle(panel).opacity) : 0))
 
@@ -72,7 +72,7 @@ describe('CurrentContents switch (real Motion)', () => {
 	it('fades the outgoing panel out, then the incoming panel in, with no double image', async () => {
 		renderTabs('fade')
 
-		await waitFor(() => expect(panelOf('a')).not.toBeNull())
+		await waitFor(() => expect(getPanel('a')).not.toBeNull())
 
 		const outgoing: number[] = []
 
@@ -84,10 +84,10 @@ describe('CurrentContents switch (real Motion)', () => {
 
 		tab.click()
 
-		while (panelOf('a') || Number(getComputedStyle(panelOf('b') as Element).opacity) < 1) {
+		while (getPanel('a') || Number(getComputedStyle(getPanel('b') as Element).opacity) < 1) {
 			await frame()
 
-			const opacities = [panelOf('a'), panelOf('b')].map((panel) =>
+			const opacities = [getPanel('a'), getPanel('b')].map((panel) =>
 				panel ? Number(getComputedStyle(panel).opacity) : 0,
 			)
 
@@ -106,7 +106,7 @@ describe('CurrentContents switch (real Motion)', () => {
 	it('slides the two panels side by side and never shows an empty box', async () => {
 		renderTabs('slide')
 
-		await waitFor(() => expect(panelOf('a')).not.toBeNull())
+		await waitFor(() => expect(getPanel('a')).not.toBeNull())
 
 		const frames = await switchTo(1, 'b', 'a')
 
@@ -137,7 +137,7 @@ describe('CurrentContents switch (real Motion)', () => {
 	it('slides back from the leading side', async () => {
 		renderTabs('slide')
 
-		await waitFor(() => expect(panelOf('a')).not.toBeNull())
+		await waitFor(() => expect(getPanel('a')).not.toBeNull())
 
 		await switchTo(1, 'b', 'a')
 
@@ -153,6 +153,6 @@ describe('CurrentContents switch (real Motion)', () => {
 		).toBe(true)
 
 		// At rest the panel takes no transform, so it is no containing block.
-		await waitFor(() => expect(getComputedStyle(panelOf('a') as Element).transform).toBe('none'))
+		await waitFor(() => expect(getComputedStyle(getPanel('a') as Element).transform).toBe('none'))
 	})
 })

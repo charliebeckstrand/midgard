@@ -15,7 +15,7 @@ describe('useGridItemWindow (real browser)', () => {
 	}
 
 	/** A row height that differs from the estimate, as a wrapped row does. */
-	const heightOf = (index: number) => 30 + ((index * 37) % 90)
+	const getHeight = (index: number) => 30 + ((index * 37) % 90)
 
 	function Harness({ handle }: { handle: Handle }) {
 		const scrollRef = useRef<HTMLDivElement>(null)
@@ -57,7 +57,7 @@ describe('useGridItemWindow (real browser)', () => {
 						)}
 						{itemWindow.virtualItems.map((item) => (
 							<tr key={item.key} ref={itemWindow.measureRef} data-index={item.index}>
-								<td style={{ height: heightOf(item.index), padding: 0 }}>{item.index}</td>
+								<td style={{ height: getHeight(item.index), padding: 0 }}>{item.index}</td>
 							</tr>
 						))}
 						{itemWindow.bottomSpacer > 0 && (

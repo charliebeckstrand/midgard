@@ -11,7 +11,7 @@ export function placesByTrip(places: readonly Place[]): Map<string, Place[]> {
 	const byTrip = new Map<string, Place[]>()
 
 	for (const place of places) {
-		const tripIds = new Set(tripIdsOf(place))
+		const tripIds = new Set(getTripIds(place))
 
 		for (const id of tripIds) {
 			const list = byTrip.get(id)
@@ -59,7 +59,7 @@ export function isTrip(record: MapRecord): record is Trip {
 }
 
 /** The ids of the trips that a place is on: the trips that its visits name. */
-export function tripIdsOf(place: Place): string[] {
+export function getTripIds(place: Place): string[] {
 	return place.visits.flatMap((visit) => visit.tripId ?? [])
 }
 
@@ -80,7 +80,7 @@ export function drawnRecords(
 	const records: MapRecord[] = [...trips]
 
 	for (const place of places) {
-		const onTrip = tripIdsOf(place)
+		const onTrip = getTripIds(place)
 			.map((id) => tripAt.get(id))
 			.find((index) => index !== undefined)
 

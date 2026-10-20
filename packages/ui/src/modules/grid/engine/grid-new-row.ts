@@ -25,7 +25,7 @@ export function resolveNewRow(
  *
  * @internal
  */
-export function slotColumnOf(
+export function findSlotColumn(
 	attr: string | null,
 	columns: readonly { id: string | number }[],
 ): string | number | undefined {

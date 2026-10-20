@@ -1,6 +1,6 @@
 import { createIntl, type IntlConfig, IntlErrorCode, type IntlShape } from '@formatjs/intl'
 import { getOrCompute } from '../../utilities/get-or-compute'
-import { languageOf } from './intl-language'
+import { getLanguage } from './intl-language'
 import es from './lang/es.json'
 import type { IntlCatalogs } from './types'
 
@@ -67,7 +67,7 @@ export function catalogIntl(locale: string, catalogs: IntlCatalogs): IntlShape {
 	return getOrCompute(byLocale, locale, (tag) => {
 		// An English locale is the default locale of its own messages. Otherwise
 		// `createIntl` builds a missing-translation error for each default message.
-		const language = languageOf(tag)
+		const language = getLanguage(tag)
 
 		const defaultLocale = language === SOURCE_LANGUAGE ? tag : SOURCE_LANGUAGE
 

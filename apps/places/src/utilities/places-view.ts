@@ -184,7 +184,7 @@ export function openingRegion(region: string | null | undefined, regions: readon
  * The countries atlas has a better answer than any name — see
  * {@link knownCountry}, which the app hands the countries grouping instead.
  */
-export function stateOf(place: Located): string | undefined {
+export function getState(place: Located): string | undefined {
 	return place.state
 }
 
@@ -196,7 +196,9 @@ export function stateOf(place: Located): string | undefined {
  * already settled, and what a row's region column says. Each walked the grouping
  * its own way; one inversion answers all three in one pass.
  */
-export function regionOf(grouped: ReadonlyMap<string, readonly Located[]>): Map<string, string> {
+export function buildRegions(
+	grouped: ReadonlyMap<string, readonly Located[]>,
+): Map<string, string> {
 	const regionByPlace = new Map<string, string>()
 
 	for (const [region, list] of grouped) {
@@ -208,7 +210,7 @@ export function regionOf(grouped: ReadonlyMap<string, readonly Located[]>): Map<
 
 /**
  * Which state a place is in, as a row that has to print one says it: the drawn
- * geometry's answer first, {@link stateOf} second, and the empty string where
+ * geometry's answer first, {@link getState} second, and the empty string where
  * neither answers.
  *
  * The order is the one the whole app trusts. A 10m atlas that holds a point
@@ -221,18 +223,18 @@ export function regionOf(grouped: ReadonlyMap<string, readonly Located[]>): Map<
  * test against here: a subdivision outside the drawn atlas is a name to print
  * and never a region to open.
  *
- * `statesByPlace` is {@link regionOf} of the grouping against the states atlas.
+ * `statesByPlace` is {@link buildRegions} of the grouping against the states atlas.
  * Empty rather than `undefined`, because every reader of this is a cell.
  */
 export function stateLabel(statesByPlace: ReadonlyMap<string, string>, place: Located): string {
-	return statesByPlace.get(place.id) ?? stateOf(place) ?? ''
+	return statesByPlace.get(place.id) ?? getState(place) ?? ''
 }
 
 /**
  * The geocoder's country, which answers where the world outline cannot.
  * `groupByRegion`'s fallback for the countries atlas.
  */
-export function countryOf(place: Located): string | undefined {
+export function getCountry(place: Located): string | undefined {
 	return place.country
 }
 
@@ -249,7 +251,7 @@ export function countryOf(place: Located): string | undefined {
  * nowhere.
  *
  * So the two atlases answer together, and the finer one answers first. The app
- * already groups against the states for its own reasons, and {@link regionOf}
+ * already groups against the states for its own reasons, and {@link buildRegions}
  * of that grouping is the answer — which also makes this the cheap path, since a
  * place it names skips the world's bounds test and ring walk entirely.
  */
@@ -430,7 +432,7 @@ export function viewUp(view: PlaceView): PlaceView | null {
  * that means fetching the countries atlas on the path this rule exists to keep
  * clear.
  *
- * `statesByPlace` must be {@link regionOf} of the grouping against the states
+ * `statesByPlace` must be {@link buildRegions} of the grouping against the states
  * atlas, which is what the app holds while this is asked: nothing consults it
  * once the reader has navigated.
  *

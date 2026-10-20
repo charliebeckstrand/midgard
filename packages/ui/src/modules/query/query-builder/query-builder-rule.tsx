@@ -22,7 +22,7 @@ import { queryBuilderMessages } from './query-builder-messages'
 import { QueryBuilderRuleValue } from './query-builder-rule-value'
 
 /** The flex direction of the parts of a rule in each orientation. @internal */
-function directionOf(orientation: Orientation) {
+function toDirection(orientation: Orientation) {
 	return orientation === 'vertical' ? 'col' : 'row'
 }
 
@@ -144,7 +144,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 			<Flex
 				flex="1"
 				gap="sm"
-				direction={mapResponsive(orientation, directionOf)}
+				direction={mapResponsive(orientation, toDirection)}
 				className={resolveVariant(orientation, k.parts.base)}
 			>
 				{!hideFieldSelector && (

@@ -2,7 +2,12 @@ import { functionalUpdate, type PaginationState } from '@tanstack/react-table'
 import type { SetStateAction } from 'react'
 import { clamp } from '../../../../utilities'
 import type { GridPagination } from '../../types'
-import { manualTotals, pageCountOf, pageOffset, shownPageIndex } from '../grid-pagination-utilities'
+import {
+	manualTotals,
+	pageOffset,
+	resolvePageCount,
+	shownPageIndex,
+} from '../grid-pagination-utilities'
 import type { EngineTable } from './features'
 
 /**
@@ -42,7 +47,7 @@ export type GridPaginationView = {
  *
  * @remarks
  * The view counts the pages itself, as the engine counts them (see
- * `pageCountOf`), so a render reads no engine row model. The engine handle
+ * `resolvePageCount`), so a render reads no engine row model. The engine handle
  * serves only the actions, which run after the render.
  *
  * @param args.rows - The count of the rows before pagination: the rows after
@@ -62,7 +67,7 @@ export function buildPaginationView<T>(args: {
 	const onPage = args.pageRowCount
 
 	// A server grid supplies its totals. They reach the engine only in manual mode.
-	const pageCount = pageCountOf({
+	const pageCount = resolvePageCount({
 		...(args.manual ? manualTotals(args.config) : {}),
 		rows: args.rows,
 		pageSize,

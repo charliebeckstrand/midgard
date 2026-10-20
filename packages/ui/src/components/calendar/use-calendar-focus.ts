@@ -150,7 +150,7 @@ type CalendarFocusOptions = {
 }
 
 /** Focusable buttons within `container`, in DOM order. @internal */
-function buttonsOf(container: HTMLElement | null): HTMLElement[] {
+function getButtons(container: HTMLElement | null): HTMLElement[] {
 	return Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
 }
 
@@ -161,7 +161,7 @@ function activeIndexIn(buttons: HTMLElement[]): number {
 
 /** Middle focusable button within `container`, used to seat focus on a calendar header. @internal */
 function middleButton(container: HTMLElement | null): HTMLElement | null {
-	const buttons = buttonsOf(container)
+	const buttons = getButtons(container)
 
 	return buttons[Math.floor(buttons.length / 2)] ?? null
 }
@@ -181,7 +181,7 @@ function entryButton(
 	managed: boolean,
 	fallback: 'first' | 'last',
 ): HTMLElement | null {
-	const buttons = buttonsOf(grid)
+	const buttons = getButtons(grid)
 
 	return (
 		(managed ? rovedStop(buttons) : undefined) ??
@@ -193,7 +193,7 @@ function entryButton(
 
 /** True when the active button sits in the grid's first row. @internal */
 function isTopRow(container: HTMLElement | null, cols: number): boolean {
-	const index = activeIndexIn(buttonsOf(container))
+	const index = activeIndexIn(getButtons(container))
 
 	return index >= 0 && index < cols
 }
@@ -313,7 +313,7 @@ function focusAdjacentFooterButton(
 	footer: HTMLElement | null,
 	stopPropagation: boolean,
 ): void {
-	const buttons = buttonsOf(footer)
+	const buttons = getButtons(footer)
 
 	const index = activeIndexIn(buttons)
 

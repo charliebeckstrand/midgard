@@ -228,9 +228,9 @@ describe('chart legend fit after a label change', () => {
 
 	const LINE = 30
 
-	const ghostOf = (node: Element) => node.closest<HTMLElement>('[inert][aria-hidden="true"]')
+	const findGhost = (node: Element) => node.closest<HTMLElement>('[inert][aria-hidden="true"]')
 
-	const widthOf = (control: HTMLElement) => 24 + 7 * (control.textContent ?? '').length
+	const getWidth = (control: HTMLElement) => 24 + 7 * (control.textContent ?? '').length
 
 	/** Packs the buttons of a ghost into lines, and gives the offset of each. */
 	function pack(ghost: HTMLElement) {
@@ -241,7 +241,7 @@ describe('chart legend fit after a label change', () => {
 		let top = 0
 
 		for (const control of ghost.querySelectorAll<HTMLElement>('button')) {
-			const width = widthOf(control)
+			const width = getWidth(control)
 
 			if (left > 0 && left + width > GHOST_WIDTH) {
 				left = 0
@@ -258,7 +258,7 @@ describe('chart legend fit after a label change', () => {
 	}
 
 	/** The ghost that holds a button, or null for any other element. */
-	const ghostButton = (node: HTMLElement) => (node.tagName === 'BUTTON' ? ghostOf(node) : null)
+	const ghostButton = (node: HTMLElement) => (node.tagName === 'BUTTON' ? findGhost(node) : null)
 
 	function define<K extends 'offsetWidth' | 'offsetHeight' | 'offsetLeft' | 'offsetTop'>(
 		key: K,
@@ -269,7 +269,7 @@ describe('chart legend fit after a label change', () => {
 
 	beforeEach(() => {
 		define('offsetWidth', function () {
-			return ghostButton(this) ? widthOf(this) : 0
+			return ghostButton(this) ? getWidth(this) : 0
 		})
 
 		define('offsetHeight', function () {

@@ -19,7 +19,7 @@ describe('range legend in a right-to-left page (real browser)', () => {
 		bins: 5,
 	}
 
-	const labelsOf = (container: HTMLElement) => {
+	const getLabels = (container: HTMLElement) => {
 		const track = getSlot(container, 'range-track')
 
 		const texts = [...(track.parentElement?.querySelectorAll('span') ?? [])]
@@ -40,7 +40,7 @@ describe('range legend in a right-to-left page (real browser)', () => {
 			</div>,
 		)
 
-		const { track, min, max } = labelsOf(container)
+		const { track, min, max } = getLabels(container)
 
 		const bar = track.getBoundingClientRect()
 
@@ -67,7 +67,7 @@ describe('range legend in a right-to-left page (real browser)', () => {
 			</div>,
 		)
 
-		const { track, min, max } = labelsOf(container)
+		const { track, min, max } = getLabels(container)
 
 		const bar = track.getBoundingClientRect()
 

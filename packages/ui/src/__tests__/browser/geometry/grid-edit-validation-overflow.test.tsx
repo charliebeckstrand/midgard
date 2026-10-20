@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -83,7 +83,7 @@ describe('grid edit validation overflow (real browser)', () => {
 
 			expect(box.height).toBeGreaterThan(0)
 
-			const { x, y } = centerOf(message)
+			const { x, y } = getCenter(message)
 
 			const hit = document.elementFromPoint(x, y)
 

@@ -14,7 +14,7 @@ const ROUTE: MapOverlayEntry = {
 	kind: 'route',
 	swatch: 'line',
 	stopsAt: () => [],
-	stopOf: ownStop,
+	getStop: ownStop,
 }
 
 /**
@@ -28,33 +28,33 @@ const FLEET: MapOverlayEntry = {
 	swatch: 'dot',
 	stopRows: [{ label: 'Stops' }, { label: 'Yard' }],
 	stopsAt: () => [],
-	stopOf: (index) => [0, 0, 1][index] ?? null,
+	getStop: (index) => [0, 0, 1][index] ?? null,
 }
 
 describe('pickedStop', () => {
 	it('maps a reported index through the mark that counts in another space', () => {
-		expect(pickedStop({ id: 'fleet', index: 1 }, 'fleet', FLEET.stopOf)).toBe(0)
+		expect(pickedStop({ id: 'fleet', index: 1 }, 'fleet', FLEET.getStop)).toBe(0)
 
-		expect(pickedStop({ id: 'fleet', index: 2 }, 'fleet', FLEET.stopOf)).toBe(1)
+		expect(pickedStop({ id: 'fleet', index: 2 }, 'fleet', FLEET.getStop)).toBe(1)
 	})
 
 	it('reads an absent index as the first stop of the mark it names', () => {
-		expect(pickedStop({ id: 'leg' }, 'leg', ROUTE.stopOf)).toBe(0)
+		expect(pickedStop({ id: 'leg' }, 'leg', ROUTE.getStop)).toBe(0)
 	})
 
 	it('names nothing where the pick names another mark, or nothing at all', () => {
-		expect(pickedStop({ id: 'fleet', index: 0 }, 'leg', ROUTE.stopOf)).toBeNull()
+		expect(pickedStop({ id: 'fleet', index: 0 }, 'leg', ROUTE.getStop)).toBeNull()
 
-		expect(pickedStop(null, 'leg', ROUTE.stopOf)).toBeNull()
+		expect(pickedStop(null, 'leg', ROUTE.getStop)).toBeNull()
 	})
 
 	it('names nothing where the mark holds no stop for the index', () => {
-		expect(pickedStop({ id: 'fleet', index: 9 }, 'fleet', FLEET.stopOf)).toBeNull()
+		expect(pickedStop({ id: 'fleet', index: 9 }, 'fleet', FLEET.getStop)).toBeNull()
 
 		// A mark that draws the stops it reports holds one, its own: the silence a
 		// `selectedRegion` naming no region keeps, rather than a halo on that stop
 		// whatever index was asked for.
-		expect(pickedStop({ id: 'leg', index: 3 }, 'leg', ROUTE.stopOf)).toBeNull()
+		expect(pickedStop({ id: 'leg', index: 3 }, 'leg', ROUTE.getStop)).toBeNull()
 	})
 })
 

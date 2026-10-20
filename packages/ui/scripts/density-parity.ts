@@ -49,7 +49,7 @@ import { type Browser, chromium, type Page } from 'playwright'
 import { rootDensityClasses } from '../src/core/density/steps'
 import { DENSITY, THEME } from '../src/providers/appearance/appearance-storage'
 import { type DensityLevel, levelToStep } from '../src/providers/density/context'
-import { fileOf, HYDRATED, TYPES } from './docs-server'
+import { HYDRATED, resolveFile, TYPES } from './docs-server'
 
 /** One run of the docs app: a theme, a stored density level, and a viewport width. */
 type Config = {
@@ -199,7 +199,7 @@ function readExpression(full: boolean): string {
 }
 
 /** The path of each prerendered page of a build. */
-function pagesOf(root: string): string[] {
+function findPages(root: string): string[] {
 	return globSync('**/index.html', { cwd: root })
 		.map((file) => `/${file.replace(/\/?index\.html$/, '')}`)
 		.sort()
@@ -216,7 +216,7 @@ function pagesIn(root: string, config: Config, listed: readonly string[] | undef
 		),
 	)
 
-	return pagesOf(root).filter((page) => !excluded.has(page))
+	return findPages(root).filter((page) => !excluded.has(page))
 }
 
 /**
@@ -225,7 +225,7 @@ function pagesIn(root: string, config: Config, listed: readonly string[] | undef
  */
 async function serve(root: string): Promise<{ origin: string; close: () => void }> {
 	const server = createServer(async (request, response) => {
-		const file = await fileOf(root, new URL(request.url ?? '/', 'http://localhost').pathname)
+		const file = await resolveFile(root, new URL(request.url ?? '/', 'http://localhost').pathname)
 
 		if (file === undefined) {
 			response.writeHead(400).end()
@@ -443,7 +443,7 @@ function align(
 }
 
 /** The style of one element, as a map from each property to its value. */
-function propertiesOf(state: State): Map<string, string> {
+function readProperties(state: State): Map<string, string> {
 	const properties = new Map<string, string>()
 
 	for (const [prefix, text] of [
@@ -463,10 +463,10 @@ function propertiesOf(state: State): Map<string, string> {
 }
 
 /** The properties that differ between two states, with the value of each side. */
-function changesOf(a: State, b: State): [name: string, base: string, candidate: string][] {
-	const p = propertiesOf(a)
+function findChanges(a: State, b: State): [name: string, base: string, candidate: string][] {
+	const p = readProperties(a)
 
-	const q = propertiesOf(b)
+	const q = readProperties(b)
 
 	const names = new Set([...p.keys(), ...q.keys()])
 
@@ -542,7 +542,7 @@ function diffPage(base: PageDump, candidate: PageDump, detail: boolean): PageDif
 			continue
 		}
 
-		const changes = changesOf(a, b)
+		const changes = findChanges(a, b)
 
 		const line = describeChange(index, label, changes, detail)
 

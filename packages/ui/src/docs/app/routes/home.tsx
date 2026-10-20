@@ -5,7 +5,7 @@ import { defineMessages, IntlMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { sectionLabel } from '../app-messages.ts'
-import { sectionsOf } from '../sidebar.tsx'
+import { groupSections } from '../sidebar.tsx'
 
 const messages = defineMessages({
 	intro: {
@@ -26,7 +26,7 @@ export default function Home() {
 			<Text tone="muted">
 				<IntlMessage message={messages.intro} />
 			</Text>
-			{sectionsOf(pages).map(({ section, links }) => (
+			{groupSections(pages).map(({ section, links }) => (
 				<Stack key={section} gap="sm">
 					<Text tone="muted" className="text-sm uppercase tracking-wide">
 						{sectionLabel(intl, section)}

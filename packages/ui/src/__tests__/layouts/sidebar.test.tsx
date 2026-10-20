@@ -9,7 +9,7 @@ import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/app
 import { LocaleProvider } from '../../providers/locale'
 import { dan } from '../../recipes/kiso/dan'
 import { adaptive } from '../../types/responsive'
-import { act, bySlot, densityStepOf, fireEvent, present, renderUI, screen } from '../helpers'
+import { act, bySlot, fireEvent, present, readDensityStep, renderUI, screen } from '../helpers'
 
 /** The inline desktop panel (`data-slot="sidebar-panel"`), which takes the width of the sidebar. */
 const DESKTOP_PANEL = '[data-slot="sidebar-panel"]'
@@ -132,7 +132,7 @@ describe('SidebarLayout', () => {
 
 		expect(panel).not.toBeNull()
 
-		expect(densityStepOf(panel as Element)).toBe('sm')
+		expect(readDensityStep(panel as Element)).toBe('sm')
 	})
 
 	it('shows the inline panel from the breakpoint that `layout` names', () => {

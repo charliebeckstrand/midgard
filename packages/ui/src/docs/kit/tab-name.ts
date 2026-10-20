@@ -7,7 +7,7 @@ import type { IntlShape } from 'ui/primitives/intl'
 export const TAB_ID = 'docs.tab.'
 
 /** The path part of a tab: `Server grouping` gives `server-grouping`. */
-export function slugOf(tab: string): string {
+export function toSlug(tab: string): string {
 	return tab.toLowerCase().replaceAll(' ', '-')
 }
 

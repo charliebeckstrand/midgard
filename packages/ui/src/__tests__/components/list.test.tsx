@@ -285,7 +285,7 @@ describe('ListItem', () => {
 	})
 
 	/** One interactive row of a variant, so each wash can be read off its `<li>`. */
-	function washOf(variant: 'separated' | 'outline' | 'plain' | 'solid'): string {
+	function renderWash(variant: 'separated' | 'outline' | 'plain' | 'solid'): string {
 		const { container } = renderUI(
 			<List items={items.slice(0, 1)} variant={variant} getKey={(i) => i.id}>
 				{(item) => (
@@ -301,7 +301,7 @@ describe('ListItem', () => {
 
 	it('washes a row on bare ground with the standard tint, doubled inside a glass parent', () => {
 		for (const variant of ['plain', 'outline'] as const) {
-			const className = washOf(variant)
+			const className = renderWash(variant)
 
 			expect(className).toContain('not-disabled:not-data-disabled:hover:bg-zinc-950/5')
 
@@ -336,7 +336,7 @@ describe('ListItem', () => {
 	})
 
 	it('steps a card to the neighboring shade rather than washing its surface away', () => {
-		const className = washOf('separated')
+		const className = renderWash('separated')
 
 		// An alpha wash replaces `omote.bg.surface` instead of darkening it, so the
 		// card would go see-through to whatever it covers while the pointer rests on
@@ -351,7 +351,7 @@ describe('ListItem', () => {
 	})
 
 	it('steps the solid row’s wash past the fill it already rests on', () => {
-		const className = washOf('solid')
+		const className = renderWash('solid')
 
 		// Double the `omote.bg.tint` the row rests on, in each mode.
 		expect(className).toContain('not-disabled:not-data-disabled:hover:bg-zinc-950/10')
@@ -366,7 +366,7 @@ describe('ListItem', () => {
 		// both would take the ambient 10% — which on a solid dark row is the fill
 		// repainted, and on a card is the surface gone.
 		for (const variant of ['separated', 'solid'] as const) {
-			expect(washOf(variant)).not.toContain('group-data-glass/glass')
+			expect(renderWash(variant)).not.toContain('group-data-glass/glass')
 		}
 	})
 

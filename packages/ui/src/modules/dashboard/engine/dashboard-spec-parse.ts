@@ -150,7 +150,7 @@ function isSelection(value: unknown): value is DashboardSelection {
 }
 
 /** The list at `key`, or `[]` with an issue when it is not an array. */
-function listOf(input: Fields, key: 'tiles' | 'layout', issues: DashboardSpecIssue[]): unknown[] {
+function readList(input: Fields, key: 'tiles' | 'layout', issues: DashboardSpecIssue[]): unknown[] {
 	const list = input[key]
 
 	if (Array.isArray(list)) return list
@@ -320,13 +320,13 @@ export function parseDashboardSpec(
 		return { spec: { tiles: [], layout: [] }, issues }
 	}
 
-	const tiles = parseTiles(listOf(input, 'tiles', issues), issues)
+	const tiles = parseTiles(readList(input, 'tiles', issues), issues)
 
 	const known = new Set(tiles.map((tile) => tile.id))
 
 	for (const id of options.tileIds ?? []) known.add(id)
 
-	const layout = parseLayout(listOf(input, 'layout', issues), known, issues)
+	const layout = parseLayout(readList(input, 'layout', issues), known, issues)
 
 	const spec: DashboardSpec = { tiles, layout }
 

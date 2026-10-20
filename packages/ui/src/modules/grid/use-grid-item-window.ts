@@ -93,7 +93,7 @@ export function gridWindowView(
 
 	let rendered: Map<string, VirtualItem> | null = null
 
-	let indexOf: Map<string, number> | null = null
+	let indexByKey: Map<string, number> | null = null
 
 	const item = (key: string) => {
 		rendered ??= new Map(
@@ -115,9 +115,9 @@ export function gridWindowView(
 				return virtualItem.start < top ? 'top' : 'in'
 			}
 
-			indexOf ??= new Map(record.items.map((listItem, index) => [listItem.key, index]))
+			indexByKey ??= new Map(record.items.map((listItem, index) => [listItem.key, index]))
 
-			const index = indexOf.get(key)
+			const index = indexByKey.get(key)
 
 			if (index === undefined || first < 0) return undefined
 

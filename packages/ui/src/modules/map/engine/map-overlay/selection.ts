@@ -38,11 +38,11 @@ export function ownStop(index: number): number | null {
 export function pickedStop(
 	selection: MapOverlaySelection | null,
 	id: string,
-	stopOf: (index: number) => number | null,
+	getStop: (index: number) => number | null,
 ): number | null {
 	if (selection === null || selection.id !== id) return null
 
-	return stopOf(selection.index ?? 0)
+	return getStop(selection.index ?? 0)
 }
 
 /**
@@ -60,7 +60,7 @@ export function selectedMarkRow(
 	// match beside it: one comparison decides which mark the pick names, so the
 	// two readers cannot part over what "names" means.
 	for (const entry of entries) {
-		const stop = pickedStop(selection, entry.id, entry.stopOf)
+		const stop = pickedStop(selection, entry.id, entry.getStop)
 
 		if (stop !== null) return markRowKey(entry.id, stop)
 	}

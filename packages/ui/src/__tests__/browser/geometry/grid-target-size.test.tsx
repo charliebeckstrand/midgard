@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { renderUI, screen } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 
 /**
  * Target size (WCAG 2.5.8): the pinned-column unpin button and the reorder grip
@@ -31,7 +31,7 @@ describe('grid target size (real browser)', () => {
 	const expandsHitArea = (control: HTMLElement) => {
 		const box = control.getBoundingClientRect()
 
-		const { x: cx, y: cy } = centerOf(box)
+		const { x: cx, y: cy } = getCenter(box)
 
 		const hits = (x: number, y: number) => {
 			const at = document.elementFromPoint(x, y)

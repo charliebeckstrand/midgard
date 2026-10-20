@@ -57,7 +57,7 @@ function session(roles: string[], two_step: boolean): Session {
 }
 
 /** The redirect target of the page, or `undefined` when it renders. */
-async function redirectOf(): Promise<string | undefined> {
+async function readRedirect(): Promise<string | undefined> {
 	try {
 		await Login()
 
@@ -89,13 +89,13 @@ describe('Login', () => {
 	it('sends a user that is not an admin to /account', async () => {
 		vi.mocked(getSession).mockResolvedValue(session(['user'], false))
 
-		expect(await redirectOf()).toBe('/account')
+		expect(await readRedirect()).toBe('/account')
 	})
 
 	it('sends an admin that passed the second step to /', async () => {
 		vi.mocked(getSession).mockResolvedValue(session(['admin'], true))
 
-		expect(await redirectOf()).toBe('/')
+		expect(await readRedirect()).toBe('/')
 	})
 
 	it('sends an admin without a second factor to /account', async () => {
@@ -107,7 +107,7 @@ describe('Login', () => {
 			recovery_codes: 0,
 		})
 
-		expect(await redirectOf()).toBe('/account')
+		expect(await readRedirect()).toBe('/account')
 	})
 
 	it('asks an admin without the second step for it', async () => {

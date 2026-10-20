@@ -236,24 +236,24 @@ describe('reference lines', () => {
 
 		const rules = () => allBySlot(container, 'chart-reference-line')
 
-		const classOf = (el: Element | undefined) => el?.getAttribute('class') ?? ''
+		const readClass = (el: Element | undefined) => el?.getAttribute('class') ?? ''
 
 		const [floor, ceiling] = rules()
 
-		expect(classOf(floor)).not.toContain('opacity-25')
+		expect(readClass(floor)).not.toContain('opacity-25')
 
-		expect(classOf(ceiling)).not.toContain('opacity-25')
+		expect(readClass(ceiling)).not.toContain('opacity-25')
 
 		fireEvent.pointerEnter(floor as Element)
 
 		// The pointed rule stays lit; its sibling recedes to it.
-		expect(classOf(rules()[0])).not.toContain('opacity-25')
+		expect(readClass(rules()[0])).not.toContain('opacity-25')
 
-		expect(classOf(rules()[1])).toContain('opacity-25')
+		expect(readClass(rules()[1])).toContain('opacity-25')
 
 		fireEvent.pointerLeave(floor as Element)
 
-		expect(classOf(rules()[1])).not.toContain('opacity-25')
+		expect(readClass(rules()[1])).not.toContain('opacity-25')
 	})
 
 	it('threads through the line chart too', () => {
@@ -815,7 +815,7 @@ describe('reference lines in the legend', () => {
 
 		const rules = () => allBySlot(container, 'chart-reference-line')
 
-		const classOf = (el: Element | undefined) => el?.getAttribute('class') ?? ''
+		const readClass = (el: Element | undefined) => el?.getAttribute('class') ?? ''
 
 		// Two finite rules, two chips; the non-finite one draws and lists nothing.
 		expect(chips).toHaveLength(2)
@@ -825,13 +825,13 @@ describe('reference lines in the legend', () => {
 		fireEvent.pointerEnter(chips[1] as Element)
 
 		// The Ceiling chip lights its own rule and recedes the Floor, not the reverse.
-		expect(classOf(rules()[0])).toContain('opacity-25')
+		expect(readClass(rules()[0])).toContain('opacity-25')
 
-		expect(classOf(rules()[1])).not.toContain('opacity-25')
+		expect(readClass(rules()[1])).not.toContain('opacity-25')
 
 		fireEvent.pointerLeave(chips[1] as Element)
 
-		expect(classOf(rules()[0])).not.toContain('opacity-25')
+		expect(readClass(rules()[0])).not.toContain('opacity-25')
 	})
 
 	it('paints a slot chip through its class and a raw color inline', () => {

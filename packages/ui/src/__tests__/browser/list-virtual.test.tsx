@@ -41,10 +41,10 @@ function Frame() {
 	)
 }
 
-const regionOf = (container: HTMLElement) =>
+const getRegion = (container: HTMLElement) =>
 	present(container.querySelector<HTMLElement>('[data-scroll-region]'), 'the scroll region')
 
-const rowsOf = (container: HTMLElement) =>
+const getRows = (container: HTMLElement) =>
 	Array.from(container.querySelectorAll<HTMLElement>('[data-slot="list-item"]'))
 
 /** Scrolls the region to `top` and waits for the window to follow. */
@@ -61,14 +61,14 @@ describe('a virtual list', () => {
 		const { container } = renderUI(<Frame />)
 
 		await waitFor(() => {
-			const rows = rowsOf(container)
+			const rows = getRows(container)
 
 			expect(rows.length).toBeGreaterThan(0)
 
 			expect(rows.length).toBeLessThan(40)
 		})
 
-		const first = rowsOf(container)[0]
+		const first = getRows(container)[0]
 
 		expect(first).toHaveAttribute('aria-posinset', '1')
 
@@ -78,9 +78,9 @@ describe('a virtual list', () => {
 	it('moves the rows in view by exactly the distance scrolled', async () => {
 		const { container } = renderUI(<Frame />)
 
-		const region = regionOf(container)
+		const region = getRegion(container)
 
-		await waitFor(() => expect(rowsOf(container).length).toBeGreaterThan(0))
+		await waitFor(() => expect(getRows(container).length).toBeGreaterThan(0))
 
 		// A step shorter than a row, so each row the window adds or drops lands
 		// between the two reads. A window that placed its rows without the gap
@@ -90,7 +90,7 @@ describe('a virtual list', () => {
 		for (let at = 0; at < 60; at++) {
 			const box = region.getBoundingClientRect()
 
-			const tracked = rowsOf(container).find(
+			const tracked = getRows(container).find(
 				(row) => row.getBoundingClientRect().top >= box.top + step,
 			)
 
@@ -113,9 +113,9 @@ describe('a virtual list', () => {
 	it('shows the last row at the foot of the region at the end', async () => {
 		const { container } = renderUI(<Frame />)
 
-		const region = regionOf(container)
+		const region = getRegion(container)
 
-		await waitFor(() => expect(rowsOf(container).length).toBeGreaterThan(0))
+		await waitFor(() => expect(getRows(container).length).toBeGreaterThan(0))
 
 		// The rows measure as they come into view, so the end moves while the
 		// region scrolls to it. A reader who keeps scrolling reaches it.
@@ -128,7 +128,7 @@ describe('a virtual list', () => {
 		})
 
 		await waitFor(() => {
-			const last = rowsOf(container).at(-1)
+			const last = getRows(container).at(-1)
 
 			expect(last).toHaveAttribute('aria-posinset', String(COUNT))
 
@@ -143,11 +143,11 @@ describe('a virtual list', () => {
 	it('lets Tab walk past the rows it first rendered', async () => {
 		const { container } = renderUI(<Frame />)
 
-		await waitFor(() => expect(rowsOf(container).length).toBeGreaterThan(0))
+		await waitFor(() => expect(getRows(container).length).toBeGreaterThan(0))
 
-		const initial = rowsOf(container).length
+		const initial = getRows(container).length
 
-		rowsOf(container)[0]?.querySelector<HTMLElement>('a')?.focus()
+		getRows(container)[0]?.querySelector<HTMLElement>('a')?.focus()
 
 		for (let step = 0; step < initial + 5; step++) {
 			await userEvent.keyboard('{Tab}')
@@ -179,14 +179,14 @@ describe('a virtual list', () => {
 			</div>,
 		)
 
-		const region = regionOf(container)
+		const region = getRegion(container)
 
 		const sibling = present(
 			container.querySelector<HTMLElement>('[data-testid="sibling"]'),
 			'the sibling',
 		)
 
-		await waitFor(() => expect(rowsOf(container).length).toBeGreaterThan(0))
+		await waitFor(() => expect(getRows(container).length).toBeGreaterThan(0))
 
 		// Walk down the whole list first, so each row measures. Then the height of
 		// the list does not change, and a resize of its parent does not measure
@@ -215,7 +215,7 @@ describe('a virtual list', () => {
 
 			const middle = box.top + box.height / 2
 
-			const inView = rowsOf(container).find((row) => {
+			const inView = getRows(container).find((row) => {
 				const rect = row.getBoundingClientRect()
 
 				return rect.top <= middle && rect.bottom >= middle
@@ -252,11 +252,11 @@ describe('a virtual list', () => {
 
 		await frames()
 
-		const region = regionOf(container)
+		const region = getRegion(container)
 
 		expect(region.clientHeight).toBe(900)
 
-		const last = present(rowsOf(container).at(-1), 'the last row')
+		const last = present(getRows(container).at(-1), 'the last row')
 
 		expect(last.getBoundingClientRect().bottom).toBeGreaterThanOrEqual(
 			region.getBoundingClientRect().bottom,
@@ -275,6 +275,6 @@ describe('a virtual list', () => {
 			</div>,
 		)
 
-		await waitFor(() => expect(rowsOf(container)).toHaveLength(COUNT))
+		await waitFor(() => expect(getRows(container)).toHaveLength(COUNT))
 	})
 })

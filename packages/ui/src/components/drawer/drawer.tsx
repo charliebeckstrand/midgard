@@ -256,8 +256,8 @@ export function DrawerPanel({
 	const resize = usePanelResize({
 		side: 'bottom',
 		open,
-		floorOf: drawerFloor,
-		ceilingOf: drawerCeiling,
+		getFloor: drawerFloor,
+		getCeiling: drawerCeiling,
 	})
 
 	// The other half of the panel's height, and the one the panel itself decides:
@@ -267,7 +267,7 @@ export function DrawerPanel({
 	const fitRef = usePanelFit({
 		enabled: height === 'fit',
 		dragged: resize.size !== null,
-		ceilingOf: drawerCeiling,
+		getCeiling: drawerCeiling,
 		transition: k.fit,
 	})
 

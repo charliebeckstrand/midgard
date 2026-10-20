@@ -25,13 +25,13 @@ function renderZoomable(extra?: Parameters<typeof categoricalPlat>[0]) {
 }
 
 /** The zoom layer's transform, or `null` where the plat drew no layer. */
-function transformOf(container: HTMLElement): string | null {
+function readTransform(container: HTMLElement): string | null {
 	return bySlot(container, 'map-zoom')?.getAttribute('transform') ?? null
 }
 
 /** The scale the layer currently draws at, read off its own attribute. */
-function scaleOf(container: HTMLElement): number {
-	const match = /scale\((-?[\d.]+)\)/.exec(transformOf(container) ?? '')
+function readScale(container: HTMLElement): number {
+	const match = /scale\((-?[\d.]+)\)/.exec(readTransform(container) ?? '')
 
 	return match?.[1] === undefined ? Number.NaN : Number(match[1])
 }
@@ -150,7 +150,7 @@ describe('MapPlat zoom layer', () => {
 	it('draws one at the fit when the prop is on', () => {
 		const { container } = renderZoomable()
 
-		expect(transformOf(container)).toBe('translate(0 0) scale(1)')
+		expect(readTransform(container)).toBe('translate(0 0) scale(1)')
 	})
 
 	it('leaves the page its touch scrolling by default, and takes only its pinch', () => {
@@ -241,7 +241,7 @@ describe('MapPlat gesture suspends the readout', () => {
 
 		fireEvent.keyDown(plot, { key: '+' })
 
-		const before = transformOf(container)
+		const before = readTransform(container)
 
 		fireEvent.pointerDown(plot, {
 			isPrimary: true,
@@ -255,7 +255,7 @@ describe('MapPlat gesture suspends the readout', () => {
 
 		fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
 
-		expect(transformOf(container)).toBe(before)
+		expect(readTransform(container)).toBe(before)
 
 		expect(answersPointer(container)).toBe(true)
 	})
@@ -295,7 +295,7 @@ describe('MapPlat wheel, armed by the shift key', () => {
 
 		const event = wheel(svg, -200)
 
-		expect(scaleOf(container)).toBe(1)
+		expect(readScale(container)).toBe(1)
 
 		expect(event.defaultPrevented).toBe(false)
 	})
@@ -305,7 +305,7 @@ describe('MapPlat wheel, armed by the shift key', () => {
 
 		const event = zoomWheel(svg, -200)
 
-		expect(scaleOf(container)).toBeGreaterThan(1)
+		expect(readScale(container)).toBeGreaterThan(1)
 
 		expect(event.defaultPrevented).toBe(true)
 	})
@@ -318,7 +318,7 @@ describe('MapPlat wheel, armed by the shift key', () => {
 		// where a shift-wheel would scroll it sideways.
 		const event = zoomWheel(svg, 200)
 
-		expect(scaleOf(container)).toBe(1)
+		expect(readScale(container)).toBe(1)
 
 		expect(event.defaultPrevented).toBe(true)
 	})
@@ -328,7 +328,7 @@ describe('MapPlat wheel, armed by the shift key', () => {
 
 		fireEvent.keyDown(plot, { key: '+' })
 
-		expect(scaleOf(container)).toBeGreaterThan(1)
+		expect(readScale(container)).toBeGreaterThan(1)
 	})
 })
 
@@ -338,7 +338,7 @@ describe('MapPlat wheel after the shift key is let go', () => {
 
 		zoomWheel(svg, -40)
 
-		const zoomed = scaleOf(container)
+		const zoomed = readScale(container)
 
 		// The fingers have left and the key with them, but the trackpad is still
 		// sending: each event pushes less than the one before it.
@@ -348,7 +348,7 @@ describe('MapPlat wheel after the shift key is let go', () => {
 
 		// Taken from the page and given to nothing: the release is what stops the
 		// zoom, so the tail leaves the view exactly where the key left it.
-		expect(scaleOf(container)).toBe(zoomed)
+		expect(readScale(container)).toBe(zoomed)
 	})
 
 	it('keeps holding it once it has run down to a plateau, where the decay ends', () => {
@@ -389,7 +389,7 @@ describe('MapPlat wheel after the shift key is let go', () => {
 
 		expect(wheel(svg, -20).defaultPrevented).toBe(false)
 
-		expect(scaleOf(container)).toBeGreaterThan(1)
+		expect(readScale(container)).toBeGreaterThan(1)
 	})
 
 	it('holds the stream across the axis the key was moving it onto', () => {
@@ -399,7 +399,7 @@ describe('MapPlat wheel after the shift key is let go', () => {
 		// release on `deltaY` — one stream, measured the same on either axis.
 		wheel(svg, 0, { deltaX: -40, shiftKey: true })
 
-		expect(scaleOf(container)).toBeGreaterThan(1)
+		expect(readScale(container)).toBeGreaterThan(1)
 
 		expect(wheel(svg, -30).defaultPrevented).toBe(true)
 	})
@@ -423,7 +423,7 @@ describe('MapPlat wheel, armed outright', () => {
 
 		const event = wheel(svg, -200)
 
-		expect(scaleOf(container)).toBeGreaterThan(1)
+		expect(readScale(container)).toBeGreaterThan(1)
 
 		expect(event.defaultPrevented).toBe(true)
 	})
@@ -435,7 +435,7 @@ describe('MapPlat wheel, armed outright', () => {
 		// never held on the map: the wheel falls through and the page scrolls.
 		const event = wheel(svg, 200)
 
-		expect(scaleOf(container)).toBe(1)
+		expect(readScale(container)).toBe(1)
 
 		expect(event.defaultPrevented).toBe(false)
 	})
@@ -447,9 +447,9 @@ describe('MapPlat two-finger gestures', () => {
 
 		zoomWheel(svg, -400)
 
-		const before = transformOf(container)
+		const before = readTransform(container)
 
-		const scale = scaleOf(container)
+		const scale = readScale(container)
 
 		// The spread holds and the pair travels, so this is a pan and not a pinch.
 		twoFinger(
@@ -464,9 +464,9 @@ describe('MapPlat two-finger gestures', () => {
 			],
 		)
 
-		expect(transformOf(container)).not.toBe(before)
+		expect(readTransform(container)).not.toBe(before)
 
-		expect(scaleOf(container)).toBeCloseTo(scale, 6)
+		expect(readScale(container)).toBeCloseTo(scale, 6)
 	})
 
 	it("scales by the pair's spread", () => {
@@ -484,7 +484,7 @@ describe('MapPlat two-finger gestures', () => {
 			],
 		)
 
-		expect(scaleOf(container)).toBeGreaterThan(1)
+		expect(readScale(container)).toBeGreaterThan(1)
 	})
 
 	it('pans a lone finger on a map that claims touch outright', () => {
@@ -492,7 +492,7 @@ describe('MapPlat two-finger gestures', () => {
 
 		fireEvent.keyDown(plot, { key: '+' })
 
-		const before = transformOf(container)
+		const before = readTransform(container)
 
 		fireEvent.pointerDown(plot, {
 			isPrimary: true,
@@ -506,7 +506,7 @@ describe('MapPlat two-finger gestures', () => {
 
 		fireEvent.pointerUp(plot, { pointerId: 1 })
 
-		expect(transformOf(container)).not.toBe(before)
+		expect(readTransform(container)).not.toBe(before)
 	})
 
 	it('leaves a lone finger to the page by default', () => {
@@ -514,7 +514,7 @@ describe('MapPlat two-finger gestures', () => {
 
 		zoomWheel(svg, -400)
 
-		const before = transformOf(container)
+		const before = readTransform(container)
 
 		fireEvent.pointerDown(plot, {
 			isPrimary: true,
@@ -528,7 +528,7 @@ describe('MapPlat two-finger gestures', () => {
 
 		fireEvent.pointerUp(plot, { pointerId: 1 })
 
-		expect(transformOf(container)).toBe(before)
+		expect(readTransform(container)).toBe(before)
 	})
 
 	it('still pans a lone mouse, which has no scroll to give up', () => {
@@ -536,11 +536,11 @@ describe('MapPlat two-finger gestures', () => {
 
 		zoomWheel(svg, -400)
 
-		const before = transformOf(container)
+		const before = readTransform(container)
 
 		drag(plot, { x: 200, y: 100 }, { x: 140, y: 60 })
 
-		expect(transformOf(container)).not.toBe(before)
+		expect(readTransform(container)).not.toBe(before)
 	})
 
 	it('keeps a two-finger move from the page by default, so the browser cannot pan it', () => {
@@ -605,7 +605,7 @@ describe('MapPlat two-finger gestures', () => {
 		touch(svg, 'touchEnd', [])
 
 		// The spread went from 20 to 60, so the scale is three times the fit.
-		expect(scaleOf(container)).toBeCloseTo(3, 3)
+		expect(readScale(container)).toBeCloseTo(3, 3)
 	})
 
 	it('leaves the touch pointers alone on a default map, so a pinch applies once', () => {
@@ -625,7 +625,7 @@ describe('MapPlat two-finger gestures', () => {
 
 		for (const index of [0, 1]) fireEvent.pointerUp(plot, { pointerId: index + 1 })
 
-		expect(scaleOf(container)).toBe(1)
+		expect(readScale(container)).toBe(1)
 	})
 
 	it('leaves a two-finger move alone on a map that does not zoom', () => {
@@ -669,7 +669,7 @@ describe('MapPlat two-finger gestures', () => {
 		for (const index of [0, 1]) fireEvent.pointerUp(plot, { pointerId: index + 1 })
 
 		// The spread went from 20 to 60, so the scale is three times the fit.
-		expect(scaleOf(container)).toBeCloseTo(3, 3)
+		expect(readScale(container)).toBeCloseTo(3, 3)
 	})
 
 	// While a pen pans, the touch of a palm is a primary press too. It does not join the pan
@@ -693,7 +693,7 @@ describe('MapPlat two-finger gestures', () => {
 
 		for (const pointerId of [2, 1]) fireEvent.pointerUp(plot, { pointerId })
 
-		expect(scaleOf(container)).toBe(1)
+		expect(readScale(container)).toBe(1)
 	})
 
 	it('keeps a pen pan from the touch events of a palm', () => {
@@ -701,7 +701,7 @@ describe('MapPlat two-finger gestures', () => {
 
 		zoomWheel(svg, -400)
 
-		const before = transformOf(container)
+		const before = readTransform(container)
 
 		fireEvent.pointerDown(plot, {
 			pointerId: 1,
@@ -718,7 +718,7 @@ describe('MapPlat two-finger gestures', () => {
 
 		fireEvent.pointerUp(plot, { pointerId: 1 })
 
-		expect(transformOf(container)).not.toBe(before)
+		expect(readTransform(container)).not.toBe(before)
 	})
 
 	it('applies the pinch on the next frame, while both fingers stay down', async ({ clock }) => {
@@ -735,11 +735,11 @@ describe('MapPlat two-finger gestures', () => {
 		])
 
 		// Both moves wait for one frame, which applies them together.
-		expect(scaleOf(container)).toBe(1)
+		expect(readScale(container)).toBe(1)
 
 		await clock.advance(20)
 
-		expect(scaleOf(container)).toBeCloseTo(3, 3)
+		expect(readScale(container)).toBeCloseTo(3, 3)
 	})
 })
 
@@ -788,11 +788,11 @@ describe('MapPlat touch over the marks', () => {
 		// bubbles to the plot, and it is not the end of the pan.
 		fireEvent.lostPointerCapture(region, { pointerId: 1, pointerType: 'touch' })
 
-		const before = transformOf(container)
+		const before = readTransform(container)
 
 		fireEvent.pointerMove(plot, { pointerId: 1, pointerType: 'touch', clientX: 0, clientY: 0 })
 
-		expect(transformOf(container)).not.toBe(before)
+		expect(readTransform(container)).not.toBe(before)
 	})
 
 	it('reads nothing from a pinch, then lets a mouse read, on a map that claims touch', () => {
@@ -883,7 +883,7 @@ describe('MapPlat touch over the marks', () => {
 		parent.insertBefore(region, next)
 
 		// The spread went from 20 to 60, so the scale is three times the fit.
-		expect(scaleOf(container)).toBeCloseTo(3, 3)
+		expect(readScale(container)).toBeCloseTo(3, 3)
 	})
 
 	it('keeps a finger in the pinch when the frame resizes under it', () => {
@@ -920,7 +920,7 @@ describe('MapPlat touch over the marks', () => {
 
 		parent.insertBefore(region, next)
 
-		expect(scaleOf(container)).toBeCloseTo(3, 3)
+		expect(readScale(container)).toBeCloseTo(3, 3)
 	})
 
 	it('binds its native listeners once, not once per frame size', () => {
@@ -946,7 +946,7 @@ describe('MapPlat pinch under the page', () => {
 
 		zoomWheel(svg, -400)
 
-		const before = transformOf(container)
+		const before = readTransform(container)
 
 		touch(svg, 'touchStart', [
 			{ id: 1, x: 180, y: 100 },
@@ -969,7 +969,7 @@ describe('MapPlat pinch under the page', () => {
 		touch(svg, 'touchEnd', [])
 
 		// The pair moved with the map, not over it, so the view holds.
-		expect(transformOf(container)).toBe(before)
+		expect(readTransform(container)).toBe(before)
 	})
 
 	it("cancels Safari's own pinch over a zooming map", () => {
@@ -999,7 +999,7 @@ describe('MapPlat wheel zoom', () => {
 
 		zoomWheel(svg, -2000)
 
-		expect(scaleOf(container)).toBe(2)
+		expect(readScale(container)).toBe(2)
 	})
 
 	it('scales the geography without reprojecting a single path', () => {
@@ -1023,7 +1023,7 @@ describe('MapPlat wheel zoom', () => {
 
 		zoomWheel(svg, -200)
 
-		const k = scaleOf(container)
+		const k = readScale(container)
 
 		expect(k).toBeGreaterThan(1)
 
@@ -1087,7 +1087,7 @@ describe('MapPlat pan', () => {
 
 			fireEvent.pointerUp(plot, { pointerId: 1 })
 
-			return transformOf(container)
+			return readTransform(container)
 		}
 
 		expect(pan(true)).toBe(pan(false))
@@ -1098,11 +1098,11 @@ describe('MapPlat pan', () => {
 
 		zoomWheel(svg, -400)
 
-		const before = transformOf(container)
+		const before = readTransform(container)
 
 		drag(plot, { x: 200, y: 100 }, { x: 160, y: 80 })
 
-		expect(transformOf(container)).not.toBe(before)
+		expect(readTransform(container)).not.toBe(before)
 	})
 
 	it('takes the pointer once the press becomes a pan, and lets it go on release', () => {
@@ -1134,11 +1134,11 @@ describe('MapPlat pan', () => {
 
 		zoomWheel(svg, -400)
 
-		const before = transformOf(container)
+		const before = readTransform(container)
 
 		drag(plot, { x: 200, y: 100 }, { x: 202, y: 101 })
 
-		expect(transformOf(container)).toBe(before)
+		expect(readTransform(container)).toBe(before)
 	})
 
 	it('swallows the click a drag ends on, so a pan never reports a pick', () => {
@@ -1176,19 +1176,19 @@ describe('MapPlat keyboard zoom', () => {
 
 		fireEvent.keyDown(plot, { key: '+' })
 
-		const stepped = scaleOf(container)
+		const stepped = readScale(container)
 
 		expect(stepped).toBeGreaterThan(1)
 
 		fireEvent.keyDown(plot, { key: '-' })
 
-		expect(scaleOf(container)).toBeLessThan(stepped)
+		expect(readScale(container)).toBeLessThan(stepped)
 
 		fireEvent.keyDown(plot, { key: '+' })
 
 		fireEvent.keyDown(plot, { key: '0' })
 
-		expect(transformOf(container)).toBe('translate(0 0) scale(1)')
+		expect(readTransform(container)).toBe('translate(0 0) scale(1)')
 	})
 
 	it('earns the plot a tab stop from the zoom alone', () => {
@@ -1204,7 +1204,7 @@ describe('MapPlat keyboard zoom', () => {
 
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
-		expect(scaleOf(container)).toBe(1)
+		expect(readScale(container)).toBe(1)
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Alpha')
 	})
@@ -1216,7 +1216,7 @@ describe('MapPlat zoom across a geography change', () => {
 
 		zoomWheel(svg, -400)
 
-		expect(scaleOf(container)).toBeGreaterThan(1)
+		expect(readScale(container)).toBeGreaterThan(1)
 
 		const one: MapFeatureCollection = {
 			type: 'FeatureCollection',
@@ -1225,7 +1225,7 @@ describe('MapPlat zoom across a geography change', () => {
 
 		rerender(categoricalPlat({ zoom: true, geography: one }))
 
-		expect(transformOf(container)).toBe('translate(0 0) scale(1)')
+		expect(readTransform(container)).toBe('translate(0 0) scale(1)')
 	})
 })
 
@@ -1251,7 +1251,7 @@ describe('MapPlat onViewChange', () => {
 		// The report and the attribute are the same view, which is the point: the
 		// package's own tests had to regex this out of the DOM. The attribute rounds
 		// for the DOM, so they agree to its precision rather than exactly.
-		expect(reported.k).toBeCloseTo(scaleOf(container), 2)
+		expect(reported.k).toBeCloseTo(readScale(container), 2)
 
 		expect(reported.k).toBeGreaterThan(1)
 	})

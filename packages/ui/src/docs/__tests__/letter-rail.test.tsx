@@ -2,7 +2,7 @@ import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, vi } from 'vitest'
 import { it, onFakeClock } from '../../__tests__/helpers/fake-clock'
 import { clamp } from '../../utilities/clamp.ts'
-import { bandAt, HOLD_DELAY, lettersOf } from '../app/letter-rail.tsx'
+import { bandAt, getLetters, HOLD_DELAY } from '../app/letter-rail.tsx'
 import { DocsSearch } from '../app/search.tsx'
 import { DocsSidebar } from '../app/sidebar.tsx'
 import type { PageLink } from '../plugin/pages.ts'
@@ -113,7 +113,7 @@ function renderSidebar() {
 
 	Object.defineProperty(track, 'getBoundingClientRect', {
 		value: () =>
-			DOMRect.fromRect({ y: TRACK_TOP, width: 28, height: BAND * lettersOf(PAGES).length }),
+			DOMRect.fromRect({ y: TRACK_TOP, width: 28, height: BAND * getLetters(PAGES).length }),
 	})
 
 	track.setPointerCapture = vi.fn()
@@ -167,9 +167,9 @@ describe('bandAt', () => {
 	})
 })
 
-describe('lettersOf', () => {
+describe('getLetters', () => {
 	it('gives each letter that starts a page once, in alphabetical order', () => {
-		expect(lettersOf(PAGES)).toEqual(['A', 'B', 'C', 'E', 'L', 'U'])
+		expect(getLetters(PAGES)).toEqual(['A', 'B', 'C', 'E', 'L', 'U'])
 	})
 })
 

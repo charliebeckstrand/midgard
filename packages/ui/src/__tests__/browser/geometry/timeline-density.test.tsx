@@ -40,7 +40,7 @@ function measure(density: Density, orientation: 'vertical' | 'horizontal' = 'ver
 
 	const item = present(container.querySelector('[data-slot="timeline-item"]'), 'the first item')
 
-	const fontOf = (selector: string) =>
+	const readFontSize = (selector: string) =>
 		Number.parseFloat(getComputedStyle(present(item.querySelector(selector), selector)).fontSize)
 
 	const style = getComputedStyle(item)
@@ -48,9 +48,9 @@ function measure(density: Density, orientation: 'vertical' | 'horizontal' = 'ver
 	return {
 		gap: Number.parseFloat(style.columnGap),
 		spacing: Number.parseFloat(orientation === 'vertical' ? style.paddingBottom : style.paddingTop),
-		title: fontOf('[data-slot="timeline-title"]'),
-		description: fontOf('[data-slot="timeline-description"]'),
-		timestamp: fontOf('[data-slot="timeline-timestamp"]'),
+		title: readFontSize('[data-slot="timeline-title"]'),
+		description: readFontSize('[data-slot="timeline-description"]'),
+		timestamp: readFontSize('[data-slot="timeline-timestamp"]'),
 	}
 }
 

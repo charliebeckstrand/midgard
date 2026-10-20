@@ -11,7 +11,7 @@ const rows: Row[] = [
 ]
 
 /** The cell that renders `text`. */
-const cellOf = (text: string) =>
+const getCell = (text: string) =>
 	present(screen.getByText(text).closest('td, th'), `the cell "${text}"`)
 
 /**
@@ -34,7 +34,7 @@ describe('PivotTable cells (real browser)', () => {
 		)
 
 		for (const text of ['Acme', '1,200', '2,100', '1,600', '2,500']) {
-			expect(getComputedStyle(cellOf(text)).textAlign).toBe('end')
+			expect(getComputedStyle(getCell(text)).textAlign).toBe('end')
 		}
 	})
 

@@ -6,6 +6,6 @@
  *
  * @internal
  */
-export function languageOf(tag: string): string {
+export function getLanguage(tag: string): string {
 	return tag.split('-')[0]?.toLowerCase() ?? ''
 }

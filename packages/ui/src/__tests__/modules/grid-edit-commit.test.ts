@@ -21,7 +21,7 @@ const alice: Row = { id: 1, name: 'Alice', count: 2, locked: 'a' }
 const bob: Row = { id: 2, name: 'Bob', count: 5, locked: 'b' }
 
 /** A source with a text, a number, and a read-only column. `count` refuses a negative value. */
-function sourceOf(rows: Row[]): GridEditSource<Row> {
+function makeSource(rows: Row[]): GridEditSource<Row> {
 	return {
 		rows,
 		getKey: (row) => row.id,
@@ -50,7 +50,7 @@ function stagedStore(cells: [Row, string, unknown][]) {
 }
 
 describe('flushClosedCells', () => {
-	const source = sourceOf([alice, bob])
+	const source = makeSource([alice, bob])
 
 	it('sends one batch for each closed row, and keeps the drafts of an open row', () => {
 		const drafts = stagedStore([
@@ -65,7 +65,7 @@ describe('flushClosedCells', () => {
 			editableRows: new Set([2]),
 			activeEdit: null,
 			source,
-			rowOf: rowLookup(source),
+			getRow: rowLookup(source),
 			onCommit,
 			onReject: undefined,
 		})
@@ -99,7 +99,7 @@ describe('flushClosedCells', () => {
 			editableRows: new Set(),
 			activeEdit: null,
 			source,
-			rowOf: rowLookup(source),
+			getRow: rowLookup(source),
 			onCommit,
 			onReject,
 		})
@@ -121,7 +121,7 @@ describe('flushClosedCells', () => {
 			editableRows: new Set(),
 			activeEdit: null,
 			source,
-			rowOf: rowLookup(source),
+			getRow: rowLookup(source),
 			onCommit: () => pending,
 			onReject: undefined,
 		})
@@ -148,14 +148,14 @@ describe('flushClosedCells', () => {
 
 		const onCommit = vi.fn()
 
-		const gone = sourceOf([alice])
+		const gone = makeSource([alice])
 
 		const result = flushClosedCells({
 			drafts,
 			editableRows: new Set(),
 			activeEdit: null,
 			source: gone,
-			rowOf: rowLookup(gone),
+			getRow: rowLookup(gone),
 			onCommit,
 			onReject: undefined,
 		})
@@ -167,7 +167,7 @@ describe('flushClosedCells', () => {
 })
 
 describe('sendCells', () => {
-	const source = sourceOf([alice, bob])
+	const source = makeSource([alice, bob])
 
 	it('checks each row, reports the refused cells, and names no row when two rows save', () => {
 		const onCommit = vi.fn()
@@ -180,7 +180,7 @@ describe('sendCells', () => {
 			],
 			outcome: 'pasted',
 			source,
-			rowOf: rowLookup(source),
+			getRow: rowLookup(source),
 			onCommit,
 			check: true,
 			history: [],
@@ -202,7 +202,7 @@ describe('sendCells', () => {
 			changes: [{ rowKey: 1, columnId: 'count', value: -9 }],
 			outcome: 'undone',
 			source,
-			rowOf: rowLookup(source),
+			getRow: rowLookup(source),
 			onCommit: () => Promise.resolve(),
 			check: false,
 			history: [step],
@@ -220,7 +220,7 @@ describe('sendCells', () => {
 			changes: [{ rowKey: 1, columnId: 'name', value: 'Alicia' }],
 			outcome: 'filled',
 			source,
-			rowOf: rowLookup(source),
+			getRow: rowLookup(source),
 			onCommit: undefined,
 			check: true,
 			history: [],
@@ -231,31 +231,31 @@ describe('sendCells', () => {
 })
 
 describe('pasteChange', () => {
-	const source = sourceOf([alice])
+	const source = makeSource([alice])
 
-	const rowOf = rowLookup(source)
+	const getRow = rowLookup(source)
 
 	it('removes the guard apostrophe and coerces the text to the type of the cell', () => {
-		expect(pasteChange(source, rowOf, { rowKey: 1, columnId: 'name', text: "'=A1" })).toEqual({
+		expect(pasteChange(source, getRow, { rowKey: 1, columnId: 'name', text: "'=A1" })).toEqual({
 			change: { rowKey: 1, columnId: 'name', value: '=A1' },
 			fits: true,
 		})
 
-		expect(pasteChange(source, rowOf, { rowKey: 1, columnId: 'count', text: '12' })).toEqual({
+		expect(pasteChange(source, getRow, { rowKey: 1, columnId: 'count', text: '12' })).toEqual({
 			change: { rowKey: 1, columnId: 'count', value: 12 },
 			fits: true,
 		})
 	})
 
 	it('keeps the text of a value that does not fit, and skips a locked cell or a gone row', () => {
-		expect(pasteChange(source, rowOf, { rowKey: 1, columnId: 'count', text: 'many' })).toEqual({
+		expect(pasteChange(source, getRow, { rowKey: 1, columnId: 'count', text: 'many' })).toEqual({
 			change: { rowKey: 1, columnId: 'count', value: 'many' },
 			fits: false,
 		})
 
-		expect(pasteChange(source, rowOf, { rowKey: 1, columnId: 'locked', text: 'x' })).toBeNull()
+		expect(pasteChange(source, getRow, { rowKey: 1, columnId: 'locked', text: 'x' })).toBeNull()
 
-		expect(pasteChange(source, rowOf, { rowKey: 9, columnId: 'name', text: 'x' })).toBeNull()
+		expect(pasteChange(source, getRow, { rowKey: 9, columnId: 'name', text: 'x' })).toBeNull()
 	})
 })
 
@@ -263,37 +263,37 @@ describe('rowLookup', () => {
 	it('finds a row on each call, and the first row of a shared key', () => {
 		const twin: Row = { ...alice, name: 'Twin' }
 
-		const rowOf = rowLookup(sourceOf([alice, bob, twin]))
+		const getRow = rowLookup(makeSource([alice, bob, twin]))
 
-		expect(rowOf(1)).toBe(alice)
+		expect(getRow(1)).toBe(alice)
 
-		expect(rowOf(2)).toBe(bob)
+		expect(getRow(2)).toBe(bob)
 
-		expect(rowOf(1)).toBe(alice)
+		expect(getRow(1)).toBe(alice)
 
-		expect(rowOf(9)).toBeUndefined()
+		expect(getRow(9)).toBeUndefined()
 	})
 })
 
 describe('readHistoryCell', () => {
-	const source = sourceOf([alice])
+	const source = makeSource([alice])
 
 	it('reads the live value, and gives null for a locked column or a gone row', () => {
-		const rowOf = rowLookup(source)
+		const getRow = rowLookup(source)
 
 		const cell = { rowKey: 1, columnId: 'count', before: 1, after: 2 }
 
-		expect(readHistoryCell(source, rowOf, cell)).toEqual({ value: 2 })
+		expect(readHistoryCell(source, getRow, cell)).toEqual({ value: 2 })
 
-		expect(readHistoryCell(source, rowOf, { ...cell, columnId: 'locked' })).toBeNull()
+		expect(readHistoryCell(source, getRow, { ...cell, columnId: 'locked' })).toBeNull()
 
-		expect(readHistoryCell(source, rowOf, { ...cell, rowKey: 9 })).toBeNull()
+		expect(readHistoryCell(source, getRow, { ...cell, rowKey: 9 })).toBeNull()
 	})
 })
 
 describe('settleDrafts', () => {
 	it('accepts and refuses the drafts of a batch, and names each for the announcement', () => {
-		const source = sourceOf([alice])
+		const source = makeSource([alice])
 
 		const drafts = stagedStore([
 			[alice, 'name', 'Alicia'],
@@ -305,7 +305,7 @@ describe('settleDrafts', () => {
 			editableRows: new Set(),
 			activeEdit: null,
 			source,
-			rowOf: rowLookup(source),
+			getRow: rowLookup(source),
 			onCommit: () => Promise.resolve(),
 			onReject: undefined,
 		})
@@ -361,7 +361,7 @@ describe('dropStrandedHolds', () => {
 			before: new Set([1]),
 			after: new Set(),
 			gridClosed: new Set(),
-			rowOf: rowLookup(sourceOf([alice])),
+			getRow: rowLookup(makeSource([alice])),
 		})
 
 		expect(dropped).toBe(2)
@@ -377,7 +377,7 @@ describe('dropStrandedHolds', () => {
 			before: new Set([1]),
 			after: new Set(),
 			gridClosed,
-			rowOf: rowLookup(sourceOf([alice])),
+			getRow: rowLookup(makeSource([alice])),
 		})
 
 		expect(dropped).toBe(0)

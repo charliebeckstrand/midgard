@@ -43,10 +43,10 @@ export const textSize = (step: DensityStep) => 16 + 2 * stepIndex[step]
 export const smallTextSize = (step: DensityStep) => textSize(step) - 2
 
 /** The line height of a text size: the size plus 8 px. */
-export const leadingOf = (size: number) => size + 8
+export const toLeading = (size: number) => size + 8
 
 /** The line height of the body text: 20 px to 28 px. */
-export const lineHeight = (step: DensityStep) => leadingOf(textSize(step))
+export const lineHeight = (step: DensityStep) => toLeading(textSize(step))
 
 /** The size of an icon and of each glyph beside a label: 16 px to 24 px. */
 export const iconSize = (step: DensityStep) => textSize(step) + 4
@@ -133,7 +133,7 @@ export const geometry = {
 	'size.separator.base': smallTextSize,
 	'size.separator.svg': smallTextSize,
 	'size.line.text': lineHeight,
-	'size.line.base': (step) => leadingOf(smallTextSize(step)),
+	'size.line.base': (step) => toLeading(smallTextSize(step)),
 	'size.switch.thumb': thumbSize,
 	'size.switch.width': (step) => 2 * thumbSize(step) + 8,
 	'size.button.base': boxHeight,

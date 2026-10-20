@@ -7,7 +7,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { Overlay } from '../../primitives/overlay'
 import { LightboxContext, type LightboxContextValue } from './context'
 import { LightboxStage } from './lightbox-stage'
-import { thumbnailOf, viewablePhotos } from './lightbox-utilities'
+import { getThumbnail, viewablePhotos } from './lightbox-utilities'
 import type { LightboxLoad, LightboxPhoto } from './types'
 
 const messages = defineMessages({
@@ -156,9 +156,9 @@ export function Lightbox({
 	// How each thumbnail loaded, by its URL. A URL can show in more than one photo.
 	const [loads, setLoads] = useState<ReadonlyMap<string, LightboxLoad>>(() => new Map())
 
-	const loadOf = (source: string) => loads.get(source)
+	const getLoad = (source: string) => loads.get(source)
 
-	const viewable = viewablePhotos(photos, loadOf)
+	const viewable = viewablePhotos(photos, getLoad)
 
 	const open = index !== undefined && viewable.some((photo) => photo.index === index)
 
@@ -169,7 +169,7 @@ export function Lightbox({
 	const indexPhoto = index === undefined ? undefined : photos[index]
 
 	const gone =
-		index !== undefined && !open && (!indexPhoto || loadOf(thumbnailOf(indexPhoto)) !== undefined)
+		index !== undefined && !open && (!indexPhoto || getLoad(getThumbnail(indexPhoto)) !== undefined)
 
 	useEffect(() => {
 		if (gone) setIndex(null)
@@ -195,7 +195,7 @@ export function Lightbox({
 			}
 		},
 		thumbnail: (slot) => images.current.get(slot),
-		loadOf,
+		getLoad,
 		record: (source, load) =>
 			setLoads((prev) => (prev.has(source) ? prev : new Map(prev).set(source, load))),
 	}

@@ -8,7 +8,15 @@ import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import { Switch } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
 import type { DensityStep } from '../../core/density'
-import { allBySlot, bySlot, densityStepOf, present, renderUI, screen, setupUser } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	present,
+	readDensityStep,
+	renderUI,
+	screen,
+	setupUser,
+} from '../helpers'
 
 describe('Control', () => {
 	it('sets data-disabled when disabled', () => {
@@ -575,7 +583,7 @@ describe('Control + size', () => {
 	])('%s', (_name, ui, slot, step) => {
 		const { container } = renderUI(ui)
 
-		expect(densityStepOf(present(bySlot(container, slot), slot))).toBe(step)
+		expect(readDensityStep(present(bySlot(container, slot), slot))).toBe(step)
 	})
 })
 

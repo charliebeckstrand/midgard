@@ -165,12 +165,12 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		stopRows?: MapStopRow[]
 		/**
 		 * Which drawn stop holds a reported index, where the mark's clicks count in
-		 * another space than its stops — see {@link MapOverlayEntry.stopOf}. Passed
+		 * another space than its stops — see {@link MapOverlayEntry.getStop}. Passed
 		 * live rather than through the ref the registration rides, because the
 		 * grouping behind it answers the drawn frame. A refit that regroups must
 		 * move the halo with it.
 		 */
-		stopOf?: (index: number) => number | null
+		getStop?: (index: number) => number | null
 	}
 
 /**
@@ -303,7 +303,7 @@ export function useMapOverlay({
 	dots,
 	spare: ownSpare,
 	stopRows,
-	stopOf,
+	getStop,
 }: MapOverlayConfig): MapOverlay {
 	const generated = useId()
 
@@ -338,7 +338,7 @@ export function useMapOverlay({
 	// it reports holds one, its own. Spelling the fallback here rather than at each
 	// reader is what makes the halo below and the plat's picked row the same
 	// question — the drift `engine/map-overlay/selection.ts` exists to prevent.
-	const resolveStop = stopOf ?? ownStop
+	const resolveStop = getStop ?? ownStop
 
 	// The live stops, read when each one runs rather than captured in the
 	// registration: a mark's geometry changes as it lands, and that cannot churn the
@@ -381,7 +381,7 @@ export function useMapOverlay({
 
 	const neighbors = useSyncExternalStore(pool.subscribe, pool.neighbors, pool.neighbors)
 
-	const neighborsOf = useCallback(() => neighbors(id), [neighbors, id])
+	const getNeighbors = useCallback(() => neighbors(id), [neighbors, id])
 
 	const spareAt = useCallback(
 		// The identity of the minimum the plat folds these into, so the fallback and
@@ -447,7 +447,7 @@ export function useMapOverlay({
 				stopRows: heldRows,
 				activate,
 				spare: budget,
-				stopOf: stopAt,
+				getStop: stopAt,
 			}),
 		[
 			register,
@@ -521,7 +521,7 @@ export function useMapOverlay({
 		project,
 		spare: spareHere,
 		// The resolver, left uncalled — see {@link MapOverlay.neighbors} for why it stays lazy.
-		neighbors: neighborsOf,
+		neighbors: getNeighbors,
 		unitsPerPixel,
 		animate,
 		order: order.get(id) ?? 0,

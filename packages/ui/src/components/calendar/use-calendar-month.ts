@@ -8,7 +8,7 @@ import { useReportedChange } from '../../hooks/use-reported-change'
 import { firstOfMonth, isSameInstant, isYearInRange } from './calendar-utilities'
 
 /** First of the month that holds `date`. @internal */
-function monthOf(date: Date): Date {
+function toMonth(date: Date): Date {
 	return firstOfMonth(date.getFullYear(), date.getMonth())
 }
 
@@ -45,7 +45,7 @@ function stepMonth(month: Date, delta: number): Date {
 function reanchor(date: Date | null | undefined, viewDate: Date): Date | null {
 	if (!date) return null
 
-	const month = monthOf(date)
+	const month = toMonth(date)
 
 	return isSameInstant(month, viewDate) ? null : month
 }
@@ -79,7 +79,7 @@ export function useCalendarMonth({ value, activeGridDate, onMonthChange }: Calen
 	// month of the client from the start. Only the markup waits for hydration, as
 	// the sibling `today` does. The month in state does not change when the
 	// markup shows it, so nothing reports or announces it.
-	const [viewDate, setViewDate] = useState(() => monthOf(value ?? new Date()))
+	const [viewDate, setViewDate] = useState(() => toMonth(value ?? new Date()))
 
 	const hydrated = useHydrated()
 

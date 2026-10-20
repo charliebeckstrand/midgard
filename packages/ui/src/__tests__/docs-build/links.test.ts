@@ -25,14 +25,14 @@ const HREF = /<a\b[^>]*?\shref="([^"]*)"/g
 const ID = /\sid="([^"]*)"/g
 
 /** Reads the attribute values that `pattern` finds in the markup of a page. */
-function valuesOf(html: string, pattern: RegExp): string[] {
+function parseValues(html: string, pattern: RegExp): string[] {
 	return [...html.matchAll(pattern)].map(([, value = '']) => value.replaceAll('&amp;', '&'))
 }
 
 const markup = new Map([...pages].map(([route, file]) => [route, fs.readFileSync(file, 'utf8')]))
 
 /** The ids of the page at each path. */
-const ids = new Map([...markup].map(([route, html]) => [route, new Set(valuesOf(html, ID))]))
+const ids = new Map([...markup].map(([route, html]) => [route, new Set(parseValues(html, ID))]))
 
 /** Why the link `href` on the page at `from` goes nowhere, or `undefined` when it goes to a page. */
 function brokenLink(from: string, href: string): string | undefined {
@@ -60,7 +60,7 @@ describe('the links of the docs build', () => {
 
 	it('sends each link on the site to a page, and each hash to an element', () => {
 		const broken = [...markup].flatMap(([from, html]) =>
-			valuesOf(html, HREF)
+			parseValues(html, HREF)
 				.filter((href) => href.startsWith('#') || (href.startsWith('/') && !href.startsWith('//')))
 				.filter((href) => !href.startsWith('/assets/'))
 				.flatMap((href) => {

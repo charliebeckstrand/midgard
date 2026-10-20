@@ -300,7 +300,7 @@ function mirrorOrder<T>(
 	field: SmartSortField<T>,
 	collator: Intl.Collator,
 ): number[] {
-	const keyOf = (position: number) =>
+	const getSortKey = (position: number) =>
 		toSortKey(field.accessor(rows[order[position] as number] as T))
 
 	const next = new Array<number>(order.length)
@@ -311,7 +311,7 @@ function mirrorOrder<T>(
 	const keys: SortKey[] = []
 
 	while (filled < order.length) {
-		const key = keyOf(filled)
+		const key = getSortKey(filled)
 
 		if (key.empty) break
 

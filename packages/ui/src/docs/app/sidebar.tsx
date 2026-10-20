@@ -14,11 +14,13 @@ import {
 import { Text } from 'ui/text'
 import type { PageLink } from '../plugin/pages.ts'
 import { appMessages, sectionLabel } from './app-messages.ts'
-import { initialOf, LetterRail } from './letter-rail.tsx'
+import { getInitial, LetterRail } from './letter-rail.tsx'
 import { SearchButton } from './search.tsx'
 
 /** The pages of each section, in the order of `pages`, which the plugin gives by section and then by name. */
-export function sectionsOf(pages: readonly PageLink[]): { section: string; links: PageLink[] }[] {
+export function groupSections(
+	pages: readonly PageLink[],
+): { section: string; links: PageLink[] }[] {
 	return [...new Set(pages.map((page) => page.category))].map((section) => ({
 		section,
 		links: pages.filter((page) => page.category === section),
@@ -31,7 +33,7 @@ export function sectionsOf(pages: readonly PageLink[]): { section: string; links
 // match changes.
 const PageItem = memo(function PageItem({ page }: { page: PageLink }) {
 	return (
-		<SidebarItem href={page.path} data-letter={initialOf(page)}>
+		<SidebarItem href={page.path} data-letter={getInitial(page)}>
 			<SidebarLabel>{page.name}</SidebarLabel>
 		</SidebarItem>
 	)
@@ -47,7 +49,7 @@ export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonl
 
 	const intl = useIntl()
 
-	const sections = sectionsOf(pages)
+	const sections = groupSections(pages)
 
 	return (
 		<Sidebar>

@@ -43,7 +43,7 @@ import { compileColumnFilters } from './engine/grid-filter/filter'
 import type { GridGroup, GridLeaf, GroupExpansion } from './engine/grid-group/tree'
 import { isManualPagination } from './engine/grid-pagination-utilities'
 import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
-import { grandTotalRowsOf, hiddenSelectionCount, viewLeaves } from './engine/grid-table/client-view'
+import { buildGrandTotals, hiddenSelectionCount, viewLeaves } from './engine/grid-table/client-view'
 import {
 	type EngineColumn,
 	type EngineData,
@@ -83,10 +83,10 @@ import {
 	EMPTY_COLUMN_ORDER,
 	EMPTY_SIZING,
 	EMPTY_VISIBILITY,
+	hashKeys,
 	IDLE_SIZING_INFO,
 	resolveClientView,
 	resolveTransformModes,
-	rowsSignatureOf,
 } from './engine/grid-table/state'
 import type {
 	GridColumn,
@@ -848,7 +848,7 @@ export function useGridTable<T>({
 
 	// The fingerprint reads every key, so it runs once for each new set of keys and not
 	// on each render.
-	const rowsSignature = useMemo(() => rowsSignatureOf(rowKeys), [rowKeys])
+	const rowsSignature = useMemo(() => hashKeys(rowKeys), [rowKeys])
 
 	// Size resizable columns to their content and fill the container, unless widths
 	// are controlled. The hook also backs the header menu's width actions.
@@ -938,7 +938,7 @@ export function useGridTable<T>({
 		widths,
 	})
 
-	const grandTotalRows = grandTotalRowsOf({
+	const grandTotalRows = buildGrandTotals({
 		grandTotal,
 		manualGrouped: manualGroupRow != null,
 		clientView,

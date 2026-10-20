@@ -52,15 +52,15 @@ function isElement(source: BoxSource): source is Element {
  * A `DOMRect` keeps its edges as getters on its prototype, so a spread of it
  * gives an empty object. The copy holds own fields, which a spread keeps.
  */
-export function boxOf(source: BoxSource): Box {
+export function measureBox(source: BoxSource): Box {
 	const { left, top, right, bottom } = isElement(source) ? source.getBoundingClientRect() : source
 
 	return { left, top, right, bottom }
 }
 
 /** Gives the center of a box. An element gives the center of its bounding box. */
-export function centerOf(source: BoxSource): Point {
-	const { left, top, right, bottom } = boxOf(source)
+export function getCenter(source: BoxSource): Point {
+	const { left, top, right, bottom } = measureBox(source)
 
 	return { x: (left + right) / 2, y: (top + bottom) / 2 }
 }

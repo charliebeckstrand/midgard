@@ -156,7 +156,7 @@ function shippedFiles(): Map<string, string> {
 }
 
 /** The line of `node` in its file, from 1. */
-function lineOf(source: SourceFile, node: Node): number {
+function getLine(source: SourceFile, node: Node): number {
 	return source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1
 }
 
@@ -269,7 +269,7 @@ function textFindings(project: Project, files: readonly string[]): Finding[] {
 		const at = (node: Node, rule: string) => {
 			const text = node.getText(source).replace(/\s+/g, ' ').slice(0, 80)
 
-			found.push({ file: path, rule, line: `${path}:${lineOf(source, node)} ${rule}: ${text}` })
+			found.push({ file: path, rule, line: `${path}:${getLine(source, node)} ${rule}: ${text}` })
 		}
 
 		const literal = (node: Expression, rule: string) => {
@@ -430,7 +430,7 @@ function numberArgumentFindings(project: Project, files: readonly string[]): Fin
 		for (const name of simpleArguments(message)) {
 			if (!numbers.has(name)) continue
 
-			const line = `${path}:${lineOf(source, descriptor)} ${id}: write {${name}, number}`
+			const line = `${path}:${getLine(source, descriptor)} ${id}: write {${name}, number}`
 
 			found.push({ file: path, rule: 'number argument', line })
 		}

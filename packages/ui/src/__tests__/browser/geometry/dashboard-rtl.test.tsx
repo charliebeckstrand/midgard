@@ -3,7 +3,7 @@ import { userEvent } from 'vitest/browser'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../../modules/dashboard'
 import { renderUI, screen } from '../../helpers'
 import { useControlledLayout } from '../../helpers/dashboard-board'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -80,7 +80,7 @@ describe('dashboard right to left (real browser)', () => {
 
 		const frame = rect(board)
 
-		const center = centerOf(from)
+		const center = getCenter(from)
 
 		// Two columns to the left of the splitter's center, on the board.
 		await userEvent.dragAndDrop(end as Element, board, {

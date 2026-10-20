@@ -15,16 +15,16 @@ const groups: GridRowManagerGroup[] = [
 describe('applyRowKeyOrder', () => {
 	const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }]
 
-	const keyOf = (item: { id: string }) => item.id
+	const getKey = (item: { id: string }) => item.id
 
 	it('returns the items untouched for an empty or absent order', () => {
-		expect(applyRowKeyOrder(items, undefined, keyOf)).toBe(items)
+		expect(applyRowKeyOrder(items, undefined, getKey)).toBe(items)
 
-		expect(applyRowKeyOrder(items, [], keyOf)).toBe(items)
+		expect(applyRowKeyOrder(items, [], getKey)).toBe(items)
 	})
 
 	it('leads with the ordered keys, then the rest in original order', () => {
-		expect(applyRowKeyOrder(items, ['c', 'a'], keyOf)).toEqual([
+		expect(applyRowKeyOrder(items, ['c', 'a'], getKey)).toEqual([
 			{ id: 'c' },
 			{ id: 'a' },
 			{ id: 'b' },
@@ -32,7 +32,7 @@ describe('applyRowKeyOrder', () => {
 	})
 
 	it('skips ordered keys absent from the items', () => {
-		expect(applyRowKeyOrder(items, ['z', 'b'], keyOf)).toEqual([
+		expect(applyRowKeyOrder(items, ['z', 'b'], getKey)).toEqual([
 			{ id: 'b' },
 			{ id: 'a' },
 			{ id: 'c' },

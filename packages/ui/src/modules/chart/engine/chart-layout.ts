@@ -96,7 +96,7 @@ function longestLength(labels: string[]): number {
  *
  * @internal
  */
-function gutterOf(labels: string[], width: TextWidth | undefined): number {
+function measureGutter(labels: string[], width: TextWidth | undefined): number {
 	return width ? labelGutter(labels, width) : tickGutter(labels)
 }
 
@@ -118,7 +118,7 @@ export function plotRect(
 	tickLabels: string[],
 	labelWidth?: TextWidth,
 ): PlotRect {
-	const gutter = axes ? gutterOf(tickLabels, labelWidth) : 0
+	const gutter = axes ? measureGutter(tickLabels, labelWidth) : 0
 
 	const axisBand = axes ? X_AXIS_HEIGHT : 0
 
@@ -407,7 +407,7 @@ export function lineMarkReach(points: boolean): number {
  *
  * @internal
  */
-function markPadOf(input: CartesianLayoutInput): number {
+function getMarkPad(input: CartesianLayoutInput): number {
 	return input.axes ? 0 : (input.markInset ?? 0)
 }
 
@@ -415,13 +415,13 @@ function markPadOf(input: CartesianLayoutInput): number {
  * The band axis's edge inset. A framed chart holds its end categories a fixed
  * {@link BAND_EDGE_PAD} margin off the plot's sides. An edge label therefore
  * never crowds the value gutter, and the endpoint marks breathe. A spark chart
- * insets by its mark reach ({@link markPadOf}) instead, just clearing an
+ * insets by its mark reach ({@link getMarkPad}) instead, just clearing an
  * endpoint marker.
  *
  * @internal
  */
-function bandPadOf(input: CartesianLayoutInput): number {
-	return input.axes ? BAND_EDGE_PAD : markPadOf(input)
+function getBandPad(input: CartesianLayoutInput): number {
+	return input.axes ? BAND_EDGE_PAD : getMarkPad(input)
 }
 
 /**
@@ -460,7 +460,7 @@ export type VisibleValues = {
 }
 
 /** Value ticks placed along the value axis by the scale's own map. @internal */
-export function valueTicksOf(
+export function buildValueTicks(
 	scale: LinearScale | null,
 	format: (value: number) => string,
 ): ChartAxisTick[] {
@@ -487,7 +487,11 @@ type SnapTargets = Pick<CartesianLayout, 'snapPoints' | 'snapSeries'>
  *
  * @internal
  */
-function snapOf(scales: ValueScales, count: number, visibleValues: VisibleValues[]): SnapTargets {
+function buildSnap(
+	scales: ValueScales,
+	count: number,
+	visibleValues: VisibleValues[],
+): SnapTargets {
 	if (!scales.y && !scales.y2) return { snapPoints: [], snapSeries: [] }
 
 	const snapPoints = new Array<number[]>(count)
@@ -546,7 +550,7 @@ const TILTED_LABEL_SLOT =
  *
  * @internal
  */
-export function bandTicksOf(
+export function buildBandTicks(
 	categories: string[],
 	band: BandScale,
 	axisLength: number,
@@ -643,13 +647,13 @@ function bandAxisTicks(
 	const ticks =
 		mode === 'ends'
 			? endBandTicks(input.categories, band)
-			: bandTicksOf(input.categories, band, axisLength, slot, tilt)
+			: buildBandTicks(input.categories, band, axisLength, slot, tilt)
 
 	return fit ? ticks.map((tick) => ({ ...tick, label: fit(tick.label) })) : ticks
 }
 
 /** One value axis's scale over its inputs, or `null` when nothing yields a domain. @internal */
-function valueScaleOf(
+function buildValueScale(
 	axis: ChartValueAxisInput | undefined,
 	range: [number, number],
 	tickTarget: number,
@@ -688,7 +692,7 @@ function valueGutter(on: boolean, ticks: ChartAxisTick[], title: string | undefi
 }
 
 /** The zero position of `scale`, else of `other`, else the plot-edge fallback. @internal */
-function zeroOf(scale: LinearScale | null, other: LinearScale | null, edge: number): number {
+function getZero(scale: LinearScale | null, other: LinearScale | null, edge: number): number {
 	return scale?.map(0) ?? other?.map(0) ?? edge
 }
 
@@ -699,7 +703,7 @@ function zeroOf(scale: LinearScale | null, other: LinearScale | null, edge: numb
  *
  * @internal
  */
-function labelRoomOf(headroom: number | undefined, rangePx: number): boolean {
+function hasLabelRoom(headroom: number | undefined, rangePx: number): boolean {
 	return !headroom || headroomFits(headroom, rangePx)
 }
 
@@ -775,8 +779,8 @@ type ValueAxes = Pick<CartesianLayout, 'valueScale' | 'value2Scale' | 'valueTick
  *
  * @internal
  */
-function valueAxesOf(input: CartesianLayoutInput, range: [number, number]): ValueAxes {
-	const valueScale = valueScaleOf(
+function buildValueAxes(input: CartesianLayoutInput, range: [number, number]): ValueAxes {
+	const valueScale = buildValueScale(
 		input.value,
 		range,
 		input.tickTarget,
@@ -784,7 +788,7 @@ function valueAxesOf(input: CartesianLayoutInput, range: [number, number]): Valu
 		input.valueHeadroom,
 	)
 
-	const value2Scale = valueScaleOf(
+	const value2Scale = buildValueScale(
 		input.value2,
 		range,
 		input.tickTarget,
@@ -792,10 +796,11 @@ function valueAxesOf(input: CartesianLayoutInput, range: [number, number]): Valu
 		input.valueHeadroom,
 	)
 
-	const valueTicks = valueScale && input.value ? valueTicksOf(valueScale, input.value.format) : []
+	const valueTicks =
+		valueScale && input.value ? buildValueTicks(valueScale, input.value.format) : []
 
 	const value2Ticks =
-		value2Scale && input.value2 ? valueTicksOf(value2Scale, input.value2.format) : []
+		value2Scale && input.value2 ? buildValueTicks(value2Scale, input.value2.format) : []
 
 	return { valueScale, value2Scale, valueTicks, value2Ticks }
 }
@@ -836,7 +841,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	// reserves the widest mark's painted reach instead — the floor takes it whole
 	// where the band row would have been; the top pad already seats a marker, so
 	// it only ever widens.
-	const markPad = markPadOf(input)
+	const markPad = getMarkPad(input)
 
 	const flatRange: [number, number] = axes
 		? [frameHeight - flatHeight, PLOT_TOP_PAD]
@@ -848,7 +853,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	// domain for labels that will not draw.
 	const scaleInput = valueLabelRoom ? input : { ...input, valueHeadroom: 0 }
 
-	const flatAxes = valueAxesOf(scaleInput, flatRange)
+	const flatAxes = buildValueAxes(scaleInput, flatRange)
 
 	// Each side reserves its own gutter — tick labels plus a title band where a
 	// title is set — so the plot narrows only for the chrome actually drawn.
@@ -885,7 +890,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	const axisBandHeight = tilt ? TICK_ROTATION_HEIGHT + titleBand : flatHeight
 
 	const { valueScale, value2Scale, valueTicks, value2Ticks } = tilt
-		? valueAxesOf(scaleInput, [frameHeight - axisBandHeight, PLOT_TOP_PAD])
+		? buildValueAxes(scaleInput, [frameHeight - axisBandHeight, PLOT_TOP_PAD])
 		: flatAxes
 
 	const plot: PlotRect = {
@@ -897,7 +902,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const band = bandScale({
 		count,
-		range: markInsetRange(bandExtent('vertical', plot), bandPadOf(input)),
+		range: markInsetRange(bandExtent('vertical', plot), getBandPad(input)),
 	})
 
 	const scales: ValueScales = { y: valueScale, y2: value2Scale }
@@ -909,13 +914,13 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		valueScale,
 		value2Scale,
 		band,
-		baseline: zeroOf(valueScale, value2Scale, floor),
-		value2Baseline: zeroOf(value2Scale, valueScale, floor),
+		baseline: getZero(valueScale, value2Scale, floor),
+		value2Baseline: getZero(value2Scale, valueScale, floor),
 		valueTicks,
 		value2Ticks,
 		bandTicks: bandAxisTicks(input, band, plot.width, slot, bandMode, tilt),
 		bandPositions: bandCenters(band, count),
-		...snapOf(scales, count, input.visibleValues),
+		...buildSnap(scales, count, input.visibleValues),
 		titles: verticalTitles(
 			input,
 			scales,
@@ -939,12 +944,12 @@ export type ValueAxisProbe = { ticks: number[]; format: (value: number) => strin
  *
  * @internal
  */
-function probeOf(
+function buildProbe(
 	axis: ChartValueAxisInput | undefined,
 	tickTarget: number,
 	zeroBaseline: boolean,
 ): ValueAxisProbe | null {
-	const scale = valueScaleOf(axis, [0, 1], tickTarget, zeroBaseline)
+	const scale = buildValueScale(axis, [0, 1], tickTarget, zeroBaseline)
 
 	return scale && axis ? { ticks: scale.ticks, format: axis.format } : null
 }
@@ -1046,7 +1051,7 @@ function horizontalBandGutter(
 
 	const shown = drawBand ? shownBandLabels(categories, bandMode) : []
 
-	const labels = drawBand ? gutterOf(shown, input.bandLabel?.width) : 0
+	const labels = drawBand ? measureGutter(shown, input.bandLabel?.width) : 0
 
 	return { gutter: labels + (bandTitle ? AXIS_TITLE_BAND + AXIS_TITLE_GAP : 0), bandTitle }
 }
@@ -1075,9 +1080,9 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const { gutter, bandTitle } = horizontalBandGutter(input, drawBand, bandMode, categories)
 
-	const valueProbe = probeOf(input.value, input.tickTarget, input.zeroBaseline)
+	const valueProbe = buildProbe(input.value, input.tickTarget, input.zeroBaseline)
 
-	const value2Probe = probeOf(input.value2, input.tickTarget, input.zeroBaseline)
+	const value2Probe = buildProbe(input.value2, input.tickTarget, input.zeroBaseline)
 
 	// Each value band holds the ticks of its axis, so an axis that stands down
 	// (nothing binds to it) reserves no band, as the vertical gutters do.
@@ -1101,17 +1106,17 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 	// Without the axis chrome the marks border the frame directly, so both layouts
 	// reserve the widest mark's painted reach on every plot edge — here the value
 	// axis runs across and the band down, the transpose of the vertical layout's.
-	const markPad = markPadOf(input)
+	const markPad = getMarkPad(input)
 
 	// The value labels center on their ticks, so without axes there is nothing to
 	// reserve for and the scales fill the whole span, less the marks' own reach.
 	const range = axes ? valueAxisRange(probes, span) : markInsetRange(span, markPad)
 
-	const { valueScale, value2Scale, valueTicks, value2Ticks } = valueAxesOf(input, range)
+	const { valueScale, value2Scale, valueTicks, value2Ticks } = buildValueAxes(input, range)
 
 	const band = bandScale({
 		count,
-		range: markInsetRange(bandExtent('horizontal', plot), bandPadOf(input)),
+		range: markInsetRange(bandExtent('horizontal', plot), getBandPad(input)),
 	})
 
 	const scales: ValueScales = { y: valueScale, y2: value2Scale }
@@ -1121,8 +1126,8 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 		valueScale,
 		value2Scale,
 		band,
-		baseline: zeroOf(valueScale, value2Scale, plot.x),
-		value2Baseline: zeroOf(value2Scale, valueScale, plot.x),
+		baseline: getZero(valueScale, value2Scale, plot.x),
+		value2Baseline: getZero(value2Scale, valueScale, plot.x),
 		valueTicks,
 		value2Ticks,
 		bandTicks: bandAxisTicks(
@@ -1135,8 +1140,8 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 			input.bandLabel?.fit,
 		),
 		bandPositions: bandCenters(band, count),
-		...snapOf(scales, count, input.visibleValues),
+		...buildSnap(scales, count, input.visibleValues),
 		titles: horizontalTitles(input, scales, plot, bandTitle),
-		valueLabelRoom: labelRoomOf(input.valueHeadroom, Math.abs(range[1] - range[0])),
+		valueLabelRoom: hasLabelRoom(input.valueHeadroom, Math.abs(range[1] - range[0])),
 	}
 }

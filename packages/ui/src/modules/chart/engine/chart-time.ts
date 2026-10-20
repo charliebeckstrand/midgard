@@ -381,7 +381,7 @@ function positioner(anchors: Anchor[], band: BandScale): (time: number) => numbe
  *
  * @internal
  */
-function anchorsOf(times: (number | null)[]): Anchor[] {
+function buildAnchors(times: (number | null)[]): Anchor[] {
 	const anchors: Anchor[] = []
 
 	let ascending = true
@@ -439,7 +439,7 @@ export type TimeTicksOptions = {
 export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	const { times, band, tickTarget, axisLength } = options
 
-	const anchors = anchorsOf(times)
+	const anchors = buildAnchors(times)
 
 	if (anchors.length < 2) return null
 

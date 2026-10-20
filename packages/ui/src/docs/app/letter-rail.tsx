@@ -11,13 +11,13 @@ import type { PageLink } from '../plugin/pages.ts'
 // pages at the top of the body, and mutes the other letters.
 
 /** The letter that a page files under: the first character of its name, in upper case. */
-export function initialOf(page: PageLink): string {
+export function getInitial(page: PageLink): string {
 	return page.name.charAt(0).toUpperCase()
 }
 
 /** The letters that start one or more pages, in alphabetical order. */
-export function lettersOf(pages: readonly PageLink[]): string[] {
-	return [...new Set(pages.map(initialOf))].sort((a, b) => a.localeCompare(b))
+export function getLetters(pages: readonly PageLink[]): string[] {
+	return [...new Set(pages.map(getInitial))].sort((a, b) => a.localeCompare(b))
 }
 
 /**
@@ -31,14 +31,14 @@ export function bandAt(y: number, top: number, height: number, count: number): n
 }
 
 /** The page links in `body`, in the order of the sidebar, which is also the order of their position. */
-const linksOf = (body: HTMLElement) => body.querySelectorAll<HTMLElement>('[data-letter]')
+const getLinks = (body: HTMLElement) => body.querySelectorAll<HTMLElement>('[data-letter]')
 
 /**
  * Scrolls `body` so that the first page with `letter` is at its top. The
  * first page of a section brings the heading of the section with it.
  */
 function scrollToLetter(body: HTMLElement, letter: string) {
-	const link = Array.from(linksOf(body)).find((candidate) => candidate.dataset.letter === letter)
+	const link = Array.from(getLinks(body)).find((candidate) => candidate.dataset.letter === letter)
 
 	const item = link?.closest('[data-slot="sidebar-item"]')
 
@@ -53,7 +53,7 @@ function scrollToLetter(body: HTMLElement, letter: string) {
 
 /** The letter of the first page whose center is below the top of `body`, which a binary search finds. */
 function letterAtTop(body: HTMLElement): string | undefined {
-	const links = linksOf(body)
+	const links = getLinks(body)
 
 	const top = body.getBoundingClientRect().top
 
@@ -92,7 +92,7 @@ type Gesture = {
 
 /**
  * The letter rail. Each page link in `bodyRef` carries `data-letter`, which
- * {@link initialOf} gives.
+ * {@link getInitial} gives.
  *
  * The rail is for a pointer only. A keyboard and a screen reader get to a page
  * with the search and the arrow keys of the sidebar, so the rail is hidden from
@@ -105,7 +105,7 @@ export function LetterRail({
 	pages: readonly PageLink[]
 	bodyRef: RefObject<HTMLDivElement | null>
 }) {
-	const letters = lettersOf(pages)
+	const letters = getLetters(pages)
 
 	const [active, setActive] = useState<string | undefined>(undefined)
 

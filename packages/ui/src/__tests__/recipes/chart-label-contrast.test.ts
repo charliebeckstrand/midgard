@@ -39,7 +39,7 @@ function tokenAt(classes: readonly string[], index: number): string {
 }
 
 /** A token → the value the contrast utility measures: the `white` keyword, else its theme oklch. */
-function colorOf(token: string): string {
+function resolveColor(token: string): string {
 	return token === WHITE ? WHITE : themeColor(token)
 }
 
@@ -47,14 +47,14 @@ describe('chart segment-label ink contrast', () => {
 	for (const { name, index } of MODES) {
 		describe(`${name} mode`, () => {
 			it.each(HUES)('%s label clears text AA on its fill', (hue) => {
-				const fill = colorOf(tokenAt(k.series[hue].fill, index))
-				const ink = colorOf(tokenAt(k.series[hue].label, index))
+				const fill = resolveColor(tokenAt(k.series[hue].fill, index))
+				const ink = resolveColor(tokenAt(k.series[hue].label, index))
 
 				expect(contrastRatio(ink, fill)).toBeGreaterThanOrEqual(FLOOR)
 			})
 
 			it.each(HUES)('%s takes the white-first ink readableInk derives', (hue) => {
-				const fill = colorOf(tokenAt(k.series[hue].fill, index))
+				const fill = resolveColor(tokenAt(k.series[hue].fill, index))
 				const authored = tokenAt(k.series[hue].label, index)
 
 				const picked = readableInk(fill, [WHITE, themeColor(DARK_INK)], FLOOR)

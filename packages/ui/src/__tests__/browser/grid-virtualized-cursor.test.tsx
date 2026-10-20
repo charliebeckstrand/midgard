@@ -304,7 +304,7 @@ describe('grid virtualized page step past a nested grid (real browser)', () => {
 	]
 
 	/** The place of `cell` in the cursor order: a data row, then its open panel. */
-	const cursorRowOf = (cell: Element): number => {
+	const readCursorRow = (cell: Element): number => {
 		const row = cell.closest('tr')
 
 		const panel = row?.getAttribute('data-detail-row')
@@ -378,7 +378,7 @@ describe('grid virtualized page step past a nested grid (real browser)', () => {
 				'the active cell',
 			)
 
-			expect(cursorRowOf(cell)).toBe(step)
+			expect(readCursorRow(cell)).toBe(step)
 		})
 	})
 })

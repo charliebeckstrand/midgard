@@ -15,11 +15,11 @@ import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 const LONG =
 	'The system will be offline on Sunday from 2am to 4am while the team moves the database to a new host.'
 
-function boxOf(root: HTMLElement, selector: string): DOMRect {
+function measureBox(root: HTMLElement, selector: string): DOMRect {
 	return present(root.querySelector(selector), selector).getBoundingClientRect()
 }
 
-function middleOf(box: DOMRect): number {
+function getMiddle(box: DOMRect): number {
 	return box.top + box.height / 2
 }
 
@@ -32,11 +32,11 @@ describe('Alert icon and close button', () => {
 				</DensityProvider>,
 			)
 
-			const icon = boxOf(container, '[data-slot="icon"]')
+			const icon = measureBox(container, '[data-slot="icon"]')
 
 			const title = present(container.querySelector('[data-slot="icon"] + div'), 'the title')
 
-			expect(middleOf(icon)).toBeNear(middleOf(title.getBoundingClientRect()), HALF_PIXEL)
+			expect(getMiddle(icon)).toBeNear(getMiddle(title.getBoundingClientRect()), HALF_PIXEL)
 
 			return { icon: icon.width, title: Number.parseFloat(getComputedStyle(title).fontSize) }
 		}
@@ -90,12 +90,12 @@ describe('Alert icon and close button', () => {
 
 			const root = present(container.querySelector(`[data-slot="${slot}"]`), slot)
 
-			const close = boxOf(root, '[data-slot="alert-close"]')
+			const close = measureBox(root, '[data-slot="alert-close"]')
 
 			// The description wraps, so the middle of the surface is not on the title row.
 			expect(root.getBoundingClientRect().height).toBeGreaterThan(close.height * 2)
 
-			expect(middleOf(close)).toBeNear(middleOf(root.getBoundingClientRect()), HALF_PIXEL)
+			expect(getMiddle(close)).toBeNear(getMiddle(root.getBoundingClientRect()), HALF_PIXEL)
 		},
 	)
 })

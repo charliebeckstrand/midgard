@@ -2,7 +2,7 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Sheet, SheetBody, SheetPanel } from '../../../components/sheet'
 import { frames, getSlot, renderUI } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { drag } from '../helpers/drag'
 
@@ -55,7 +55,7 @@ describe('sheet resize edge (real browser)', () => {
 
 			const start = panel.getBoundingClientRect()
 
-			const { x, y } = centerOf(handle)
+			const { x, y } = getCenter(handle)
 
 			const held = await drag(handle, { x, y }, [{ x: x + toward * STEP, y }])
 

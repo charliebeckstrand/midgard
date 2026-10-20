@@ -4,11 +4,11 @@ import { bench, describe } from 'vitest'
 import { lineGeometry } from '../modules/chart/engine/chart-geometry/line'
 import { nearestSeriesLine } from '../modules/chart/engine/chart-hit-test'
 import {
+	buildValueTicks,
 	type CartesianLayoutInput,
 	horizontalLayout,
 	thinned,
 	type VisibleValues,
-	valueTicksOf,
 	verticalLayout,
 } from '../modules/chart/engine/chart-layout'
 import { bandScale, linearScale } from '../modules/chart/engine/chart-scale'
@@ -94,7 +94,7 @@ describe('chart-layout · thinned (band label fit)', () => {
 	}
 })
 
-describe('chart-layout · valueTicksOf (Intl format per tick)', () => {
+describe('chart-layout · buildValueTicks (Intl format per tick)', () => {
 	// Cheap by tick count — five or six — but each label runs the caller's
 	// formatter, and a chart resolves ticks for both value axes on every layout.
 	const scale = linearScale({
@@ -115,11 +115,11 @@ describe('chart-layout · valueTicksOf (Intl format per tick)', () => {
 	const compact = (value: number) => intl.format(value)
 
 	bench('toFixed formatter', () => {
-		valueTicksOf(scale, plain)
+		buildValueTicks(scale, plain)
 	})
 
 	bench('Intl.NumberFormat formatter', () => {
-		valueTicksOf(scale, compact)
+		buildValueTicks(scale, compact)
 	})
 })
 

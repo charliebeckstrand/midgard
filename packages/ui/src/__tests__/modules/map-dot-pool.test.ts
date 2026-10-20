@@ -29,7 +29,7 @@ function entry(id: string, stops: { current: LngLat[] }, kind: MapOverlayEntry['
 		swatch: 'dot',
 		stopsAt,
 		dotsAt: kind === 'route' || kind === 'geofence' ? undefined : stopsAt,
-		stopOf: () => 0,
+		getStop: () => 0,
 	} satisfies MapOverlayEntry
 }
 

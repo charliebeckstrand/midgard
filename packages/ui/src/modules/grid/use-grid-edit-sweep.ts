@@ -329,14 +329,14 @@ export function useGridEditSweep<T>({
 		const source = editSourceRef.current
 
 		// One lookup serves the sweep, so no row is found by a second scan.
-		const rowOf = rowLookup(source)
+		const getRow = rowLookup(source)
 
 		const dropped = dropStrandedHolds({
 			drafts,
 			before: sweptRef.current.rows,
 			after: editableRows,
 			gridClosed: gridClosedRef.current,
-			rowOf,
+			getRow,
 		})
 
 		// A dropped draft can change what a cell shows, so the cells read again.
@@ -353,7 +353,7 @@ export function useGridEditSweep<T>({
 			editableRows,
 			activeEdit,
 			source,
-			rowOf,
+			getRow,
 			onCommit: hasCommit ? sendCommit : undefined,
 			onReject: sendReject,
 		})

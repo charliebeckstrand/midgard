@@ -6,10 +6,10 @@ import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/lightbox'
 import {
 	frameTransforms,
+	getOverlap,
 	type LightboxBox,
 	type LightboxFrame,
 	mixFrames,
-	overlapOf,
 	paintedFrame,
 	raisedFrame,
 	restingFrame,
@@ -55,7 +55,7 @@ function slotBox(slot: HTMLElement): LightboxBox {
 }
 
 /** The boxes of the slot and of the photo at rest, with no transform. The slot is the offset parent of the photo. */
-function boxesOf(slot: HTMLElement, photo: HTMLElement) {
+function measureBoxes(slot: HTMLElement, photo: HTMLElement) {
 	const box = slotBox(slot)
 
 	const rest = {
@@ -131,7 +131,7 @@ function paddedBox(box: LightboxBox, style: CSSStyleDeclaration): LightboxBox {
  * each axis that it clips, less its scroll padding. On an axis that it does not
  * clip, the box stays whole.
  */
-function clipOf(box: LightboxBox, element: HTMLElement, style: CSSStyleDeclaration) {
+function measureClip(box: LightboxBox, element: HTMLElement, style: CSSStyleDeclaration) {
 	const rect = element.getBoundingClientRect()
 
 	const port = paddedBox(
@@ -148,7 +148,7 @@ function clipOf(box: LightboxBox, element: HTMLElement, style: CSSStyleDeclarati
 
 	const clipsY = style.overflowY !== 'visible'
 
-	return overlapOf(box, {
+	return getOverlap(box, {
 		x: clipsX ? port.x : box.x,
 		y: clipsY ? port.y : box.y,
 		width: clipsX ? port.width : box.width,
@@ -176,7 +176,7 @@ function shownPart(thumbnail: HTMLElement, box: LightboxBox): LightboxBox | unde
 		const style = getComputedStyle(element)
 
 		if (style.overflowX !== 'visible' || style.overflowY !== 'visible') {
-			shown = clipOf(shown, element, style)
+			shown = measureClip(shown, element, style)
 		}
 
 		element = style.position === 'fixed' ? null : element.parentElement
@@ -184,7 +184,7 @@ function shownPart(thumbnail: HTMLElement, box: LightboxBox): LightboxBox | unde
 
 	const viewport = { x: 0, y: 0, width: root.clientWidth, height: root.clientHeight }
 
-	return shown && overlapOf(shown, paddedBox(viewport, getComputedStyle(root)))
+	return shown && getOverlap(shown, paddedBox(viewport, getComputedStyle(root)))
 }
 
 /**
@@ -236,7 +236,7 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 	const fly = (
 		slot: HTMLElement,
 		photo: HTMLElement,
-		boxes: ReturnType<typeof boxesOf>,
+		boxes: ReturnType<typeof measureBoxes>,
 		from: LightboxFrame,
 		to: LightboxFrame,
 	) => {
@@ -277,7 +277,7 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		if (back) stopReturn(back, photo)
 
-		const boxes = boxesOf(slot, photo)
+		const boxes = measureBoxes(slot, photo)
 
 		const raised = frameAt(boxes.rest, thumbnail)
 
@@ -329,7 +329,7 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		if (!photo || !slot) return Promise.resolve()
 
-		const boxes = boxesOf(slot, photo)
+		const boxes = measureBoxes(slot, photo)
 
 		const frame = frameAt(boxes.rest, thumbnail)
 

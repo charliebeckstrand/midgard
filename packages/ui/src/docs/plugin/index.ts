@@ -15,12 +15,12 @@ import { labelPage } from './component-events.ts'
 import {
 	attachMeta,
 	CODE,
-	codeIdOf,
 	EXAMPLE,
 	type ExampleCode,
 	exampleFiles,
 	type Highlight,
 	loadCodes,
+	toCodeId,
 } from './examples.ts'
 import type { HighlightTask } from './highlight-worker.ts'
 import { findPages, type Page, type PageLink } from './pages.ts'
@@ -43,12 +43,12 @@ function virtualId(name: string): string {
 }
 
 /** The data of `virtual:docs/pages`: the link of each page. */
-function linksOf(pages: readonly Page[]): string {
+function formatLinks(pages: readonly Page[]): string {
 	return data(pages.map(({ folder, ...link }): PageLink => link))
 }
 
 /** The routes that the pages give (`app/routes.ts`): the path, the folder and the tabs of each page. */
-function routesOf(pages: readonly Page[]): string {
+function formatRoutes(pages: readonly Page[]): string {
 	return JSON.stringify(pages.map(({ path, folder, tabs }) => [path, folder, tabs]))
 }
 
@@ -119,7 +119,7 @@ export function reactDocs(): Plugin {
 	// barrel that a page shows, so an edit to either makes them stale.
 	let search: Promise<SearchEntry[]> | undefined
 
-	// The routes that the server started with ({@link routesOf}).
+	// The routes that the server started with ({@link formatRoutes}).
 	let routes = ''
 
 	// The data of `virtual:docs/pages` that each environment loaded last.
@@ -136,7 +136,7 @@ export function reactDocs(): Plugin {
 	): EnvironmentModuleNode[] | null {
 		const found = findPages(docs)
 
-		const next = routesOf(found)
+		const next = formatRoutes(found)
 
 		if (next !== routes) {
 			// The update runs in each environment, and the first one restarts the server.
@@ -149,7 +149,7 @@ export function reactDocs(): Plugin {
 
 		const module = environment.moduleGraph.getModuleById(virtualId(PAGES))
 
-		return module && links.get(environment.name) !== linksOf(found) ? [module] : []
+		return module && links.get(environment.name) !== formatLinks(found) ? [module] : []
 	}
 
 	/**
@@ -184,7 +184,7 @@ export function reactDocs(): Plugin {
 				const name = id.slice(1)
 
 				if (name === PAGES) {
-					const code = linksOf(findPages(docs))
+					const code = formatLinks(findPages(docs))
 
 					links.set(this.environment.name, code)
 
@@ -239,7 +239,7 @@ export function reactDocs(): Plugin {
 			},
 		},
 		configureServer() {
-			routes = routesOf(findPages(docs))
+			routes = formatRoutes(findPages(docs))
 		},
 		hotUpdate({ file, type, modules, server }) {
 			const graph = this.environment.moduleGraph
@@ -296,7 +296,7 @@ function staleExample(
 ): EnvironmentModuleNode[] {
 	if (!EXAMPLE.test(file)) return []
 
-	const code = graph.getModuleById(virtualId(codeIdOf(pages, file)))
+	const code = graph.getModuleById(virtualId(toCodeId(pages, file)))
 
 	return [...(code ? [code] : []), ...modules.flatMap((module) => [...module.importers])]
 }

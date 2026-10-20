@@ -75,7 +75,7 @@ function calloutLabelText({ labels, percent }: CalloutText, index: number, share
 }
 
 /** Every row's callout text, indexed like `values`; a row with no slice reads `''`. @internal */
-function textsOf(spec: CalloutText, values: (number | null)[]): string[] {
+function formatTexts(spec: CalloutText, values: (number | null)[]): string[] {
 	const total = values.reduce<number>(
 		(sum, value) => sum + (value != null && value > 0 ? value : 0),
 		0,
@@ -101,9 +101,9 @@ export function calloutTexts(
 ): CalloutTexts {
 	if (!show) return { full: [], shown: [] }
 
-	const full = textsOf(spec, values)
+	const full = formatTexts(spec, values)
 
-	return { full, shown: sameElements(values, sliceValues) ? full : textsOf(spec, sliceValues) }
+	return { full, shown: sameElements(values, sliceValues) ? full : formatTexts(spec, sliceValues) }
 }
 
 /** Fits the pie of one value set, once for each frame width that a render asks for. @internal */
@@ -121,7 +121,7 @@ function fitOnce(values: (number | null)[], texts: string[], textWidth: TextWidt
  *
  * @internal
  */
-export function calloutSpecOf(
+export function resolveCallouts(
 	texts: CalloutTexts,
 	values: (number | null)[],
 	sliceValues: (number | null)[],

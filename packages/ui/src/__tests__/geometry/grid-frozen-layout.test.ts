@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { sameFrozenLayout } from '../../modules/grid/engine/grid-pin/layout'
 import type { FrozenOffsets } from '../../modules/grid/engine/grid-pin/measure'
-import { layoutOf, type Pin } from '../helpers/grid-frozen-layout'
+import { buildLayout, type Pin } from '../helpers/grid-frozen-layout'
 
 /**
  * The frozen layout the pinned chrome draws from. It is a snapshot, not a live
@@ -21,7 +21,7 @@ describe('frozen column layout', () => {
 	it('resolves both frozen sections, in edge order', () => {
 		// The boundary lands on each group's innermost column: the last of the left
 		// section, the first of the right one.
-		expect([...layoutOf(left, right)]).toEqual([
+		expect([...buildLayout(left, right)]).toEqual([
 			['name', { side: 'left', offset: 0, boundary: false }],
 			['email', { side: 'left', offset: 160, boundary: true }],
 			['status', { side: 'right', offset: 0, boundary: true }],
@@ -29,7 +29,7 @@ describe('frozen column layout', () => {
 	})
 
 	it('sticks each right column at the summed width of the columns after it', () => {
-		const layout = layoutOf(
+		const layout = buildLayout(
 			[],
 			[
 				['status', 120],
@@ -53,7 +53,7 @@ describe('frozen column layout', () => {
 			right: new Map(),
 		}
 
-		const layout = layoutOf(left, right, measured)
+		const layout = buildLayout(left, right, measured)
 
 		expect(layout.get('email')?.offset).toBe(214)
 
@@ -61,12 +61,12 @@ describe('frozen column layout', () => {
 	})
 
 	it('reads two resolutions equal only when every frozen column lands identically', () => {
-		const layout = layoutOf(left, right)
+		const layout = buildLayout(left, right)
 
-		expect(sameFrozenLayout(layout, layoutOf(left, right))).toBe(true)
+		expect(sameFrozenLayout(layout, buildLayout(left, right))).toBe(true)
 
 		// A drag on a column ahead of the stack moves the ones behind it.
-		const dragged = layoutOf(
+		const dragged = buildLayout(
 			[
 				['name', 250],
 				['email', 200],
@@ -77,6 +77,6 @@ describe('frozen column layout', () => {
 		expect(sameFrozenLayout(layout, dragged)).toBe(false)
 
 		// An unpin puts the boundary — and the edge rule with it — on another column.
-		expect(sameFrozenLayout(layout, layoutOf([['name', 160]], right))).toBe(false)
+		expect(sameFrozenLayout(layout, buildLayout([['name', 160]], right))).toBe(false)
 	})
 })

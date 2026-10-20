@@ -11,7 +11,7 @@ import {
 import { PortalContext } from '../../primitives/portal'
 import { DensityProvider } from '../../providers/density'
 import { Box } from '../../structure/box'
-import { act, densityStepOf, fireEvent, getAllSlots, renderUI, screen, waitFor } from '../helpers'
+import { act, fireEvent, getAllSlots, readDensityStep, renderUI, screen, waitFor } from '../helpers'
 
 // The filter sheet loads its code on the first open, so that open waits for the
 // code. One open before the tests loads the code. Each test then opens the sheet
@@ -155,9 +155,9 @@ describe('Grid per-column filters', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
-		expect(densityStepOf(screen.getByRole('button', { name: 'Apply' }))).toBe('md')
+		expect(readDensityStep(screen.getByRole('button', { name: 'Apply' }))).toBe('md')
 
-		expect(densityStepOf(screen.getByRole('button', { name: 'Cancel' }))).toBe('md')
+		expect(readDensityStep(screen.getByRole('button', { name: 'Cancel' }))).toBe('md')
 	})
 
 	it('follows a surrounding DensityProvider into the filter sheet', () => {
@@ -169,7 +169,7 @@ describe('Grid per-column filters', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
-		expect(densityStepOf(screen.getByRole('button', { name: 'Apply' }))).toBe('lg')
+		expect(readDensityStep(screen.getByRole('button', { name: 'Apply' }))).toBe('lg')
 	})
 
 	// The applied-state menu is the other half of the filter surface, and it takes the
@@ -193,7 +193,7 @@ describe('Grid per-column filters', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
-		expect(densityStepOf(screen.getByRole('menuitem', { name: 'Edit filters' }))).toBe('xl')
+		expect(readDensityStep(screen.getByRole('menuitem', { name: 'Edit filters' }))).toBe('xl')
 	})
 
 	it('hides the remove control while a single rule remains, restoring it past one', () => {

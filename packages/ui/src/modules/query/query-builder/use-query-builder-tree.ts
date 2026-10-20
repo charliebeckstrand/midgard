@@ -6,7 +6,7 @@ import type { QueryGroup } from '../engine/types'
 import { useQueryRemovalFocus } from '../use-query-removal-focus'
 import { type QueryTreeOptions, useQueryTree } from '../use-query-tree'
 import type { FocusRegister, QueryBuilderActions } from './context'
-import { findFocusTarget, focusKeyOf } from './query-builder-focus'
+import { findFocusTarget, getFocusKey } from './query-builder-focus'
 
 type QueryBuilderTreeResult = {
 	root: QueryGroup
@@ -37,7 +37,7 @@ export function useQueryBuilderTree(options: QueryTreeOptions): QueryBuilderTree
 
 		actions.remove(id)
 
-		if (targets.length > 0) focusFirst(targets.map(focusKeyOf))
+		if (targets.length > 0) focusFirst(targets.map(getFocusKey))
 	})
 
 	const builderActions = useMemo<QueryBuilderActions>(

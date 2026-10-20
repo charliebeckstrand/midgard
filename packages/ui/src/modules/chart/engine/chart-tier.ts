@@ -146,7 +146,7 @@ export const CHART_LEGEND_ROW_HEIGHT = 32
 export const CHART_FIGURE_GAP = 12
 
 /** The tier a non-spark box reads, widest to narrowest. @internal */
-function tierOf(width: number, height: number): Exclude<ChartTier, 'spark'> {
+function getTier(width: number, height: number): Exclude<ChartTier, 'spark'> {
 	if (width < COMPACT_WIDTH || height < COMPACT_HEIGHT) return 'compact'
 
 	return width < EXPANDED_WIDTH ? 'standard' : 'expanded'
@@ -163,7 +163,7 @@ function tierOf(width: number, height: number): Exclude<ChartTier, 'spark'> {
  *
  * @internal
  */
-function bandAxisOf(
+function getBandAxis(
 	width: number,
 	height: number,
 	orientation: ChartOrientation,
@@ -239,8 +239,8 @@ export function chartPolicy(
 	}
 
 	return {
-		tier: tierOf(width, height),
-		bandAxis: bandAxisOf(width, height, orientation),
+		tier: getTier(width, height),
+		bandAxis: getBandAxis(width, height, orientation),
 		tickTarget: Math.max(MIN_TICK_TARGET, Math.min(Math.floor(height / TICK_SPACING), tickCap)),
 		compactFormat: width < COMPACT_WIDTH,
 		axisTitles: width >= AXIS_TITLE_WIDTH && height >= AXIS_TITLE_HEIGHT,

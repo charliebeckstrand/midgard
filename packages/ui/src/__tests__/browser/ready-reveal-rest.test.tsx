@@ -18,7 +18,7 @@ describe('ReadyReveal rest hold (real browser)', () => {
 			</ReadyReveal>,
 		)
 
-		const layerOf = (testId: string) => {
+		const getLayer = (testId: string) => {
 			const layer = document.querySelector(`[data-testid="${testId}"]`)?.parentElement
 
 			if (!layer) throw new Error(`${testId} layer did not render`)
@@ -28,9 +28,9 @@ describe('ReadyReveal rest hold (real browser)', () => {
 
 		// Not ready: the placeholder shows and the content layer stays live in
 		// flow (hidden by opacity, never `display: none`) so it reserves the box.
-		expect(getComputedStyle(layerOf('p')).display).not.toBe('none')
+		expect(getComputedStyle(getLayer('p')).display).not.toBe('none')
 
-		expect(getComputedStyle(layerOf('c')).display).not.toBe('none')
+		expect(getComputedStyle(getLayer('c')).display).not.toBe('none')
 
 		rerender(
 			<ReadyReveal ready placeholder={<span data-testid="p">loading</span>}>
@@ -40,8 +40,8 @@ describe('ReadyReveal rest hold (real browser)', () => {
 
 		// The reveal leaves the content layer live and rests the placeholder once
 		// its fade-out lands.
-		await waitFor(() => expect(getComputedStyle(layerOf('p')).display).toBe('none'))
+		await waitFor(() => expect(getComputedStyle(getLayer('p')).display).toBe('none'))
 
-		expect(getComputedStyle(layerOf('c')).display).not.toBe('none')
+		expect(getComputedStyle(getLayer('c')).display).not.toBe('none')
 	})
 })

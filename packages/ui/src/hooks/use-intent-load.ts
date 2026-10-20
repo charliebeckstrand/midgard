@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { lazyModuleOf, useIdleLoad } from './use-idle-load'
+import { getLazyModule, useIdleLoad } from './use-idle-load'
 
 /** The result of {@link useIntentLoad}. */
 export type IntentLoad<T> = {
@@ -57,7 +57,7 @@ export type IntentLoad<T> = {
  * ```
  */
 export function useIntentLoad<T>(load: () => Promise<T>): IntentLoad<T> {
-	const lazy = lazyModuleOf(load)
+	const lazy = getLazyModule(load)
 
 	const module = useIdleLoad(load)
 

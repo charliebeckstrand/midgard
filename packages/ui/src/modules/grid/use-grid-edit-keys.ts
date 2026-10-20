@@ -4,8 +4,8 @@ import { type KeyboardEvent as ReactKeyboardEvent, type RefObject, useCallback }
 import { claimedBySurface, editorMove, ownNode, type SessionMove } from './engine/grid-edit-keys'
 import type { CellRequest, SessionRow } from './engine/grid-edit-transition'
 import {
-	coordOf,
 	EDITOR_FOCUSABLE,
+	findCoord,
 	type GridActiveEdit,
 	isCellEditing,
 	isColumnEditable,
@@ -129,7 +129,7 @@ export function useGridEditKeys<T>({
 		(rowKey: string | number, columnId: string | number) => {
 			const rowKeys = rowKeysRef.current
 
-			const { row, col } = coordOf(rowKeys, dataColumnsRef.current, { rowKey, columnId })
+			const { row, col } = findCoord(rowKeys, dataColumnsRef.current, { rowKey, columnId })
 
 			endSession(rowKey, 'save')
 
@@ -154,7 +154,7 @@ export function useGridEditKeys<T>({
 	// the tab stop. It toggles edit off, as F2 on the tab stop toggles it on.
 	const commitHere = useCallback(
 		(rowKey: string | number, columnId: string | number) => {
-			const coord = coordOf(rowKeysRef.current, dataColumnsRef.current, { rowKey, columnId })
+			const coord = findCoord(rowKeysRef.current, dataColumnsRef.current, { rowKey, columnId })
 
 			endSession(rowKey, 'save')
 
@@ -172,7 +172,7 @@ export function useGridEditKeys<T>({
 		(rowKey: string | number, columnId: string | number, step: 1 | -1) => {
 			const columns = dataColumnsRef.current
 
-			const { row, col } = coordOf(rowKeysRef.current, columns, { rowKey, columnId })
+			const { row, col } = findCoord(rowKeysRef.current, columns, { rowKey, columnId })
 
 			// A cell whose commit is in flight cannot open, so the move steps past it.
 			const next = stepEditableColumn(columns, col, step, (index) =>

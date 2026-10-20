@@ -13,7 +13,7 @@ const ROWS = [
 
 const RANGE = ['#dbeafe', '#1e3a8a']
 
-const fillOf = (el?: Element) => el?.getAttribute('fill')
+const readFill = (el?: Element) => el?.getAttribute('fill')
 
 describe('ChoroplethChart', () => {
 	it('shades regions from the series colorRange, joined by idKey / colorKey', () => {
@@ -32,11 +32,11 @@ describe('ChoroplethChart', () => {
 		expect(regions).toHaveLength(3)
 
 		// The scale reaches the regions as fill attributes; low and high differ.
-		expect(fillOf(regions[0])).toBeTruthy()
+		expect(readFill(regions[0])).toBeTruthy()
 
-		expect(fillOf(regions[2])).toBeTruthy()
+		expect(readFill(regions[2])).toBeTruthy()
 
-		expect(fillOf(regions[0])).not.toBe(fillOf(regions[2]))
+		expect(readFill(regions[0])).not.toBe(readFill(regions[2]))
 
 		// colorName → the data table's value-column header.
 		expect(bySlot(container, 'map-table')?.querySelector('thead th')?.textContent).toBe(
@@ -137,7 +137,7 @@ describe('ChoroplethChart', () => {
 		expect(regions).toHaveLength(3)
 
 		// No series is no scale, so every region takes the one neutral fill.
-		expect(new Set(regions.map(fillOf)).size).toBe(1)
+		expect(new Set(regions.map(readFill)).size).toBe(1)
 
 		// And the rows do not reach the map: they carry no join key without a
 		// series, so this is the union's data-less branch and it publishes no

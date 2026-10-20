@@ -53,7 +53,7 @@ export const pageModules: readonly string[] = Object.keys(modules).toSorted()
  * The module path of the page or the tab in `folder`. The folder is relative
  * to `pages/`, such as `modules/grid/sorting`.
  */
-export function moduleOf(folder: string): string {
+export function toPath(folder: string): string {
 	return `../pages/${folder}/index.tsx`
 }
 
@@ -214,9 +214,9 @@ type Walk = {
 
 /** Loads the default export of the page or the tab in `folder`. */
 function load(folder: string): Promise<ComponentType> {
-	const loader = modules[moduleOf(folder)]
+	const loader = modules[toPath(folder)]
 
-	if (!loader) throw new Error(`docs: no module at ${moduleOf(folder)}`)
+	if (!loader) throw new Error(`docs: no module at ${toPath(folder)}`)
 
 	return loader()
 }

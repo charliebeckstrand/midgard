@@ -32,14 +32,14 @@ function renderResize(
 	side: PanelSide = 'bottom',
 	floor: (panel: HTMLElement, size: number) => number = () => 0,
 ) {
-	const floorOf = vi.fn(floor)
+	const getFloor = vi.fn(floor)
 
 	const hook = renderHook(
-		({ open }) => usePanelResize({ side, open, floorOf, ceilingOf: () => 10_000 }),
+		({ open }) => usePanelResize({ side, open, getFloor, getCeiling: () => 10_000 }),
 		{ initialProps: { open: true } },
 	)
 
-	return { ...hook, floorOf }
+	return { ...hook, getFloor }
 }
 
 /** Renders the gesture and gives it a panel. */
@@ -71,7 +71,7 @@ describe('usePanelResize', () => {
 			['a secondary mouse button', { button: 2 }],
 			['a macOS Ctrl-click', { ctrlKey: true }],
 		])('ignores a press of %s', (_name, init) => {
-			const { result, floorOf } = renderAttached()
+			const { result, getFloor } = renderAttached()
 
 			act(() => {
 				result.current.handleProps.onPointerDown(
@@ -81,11 +81,11 @@ describe('usePanelResize', () => {
 
 			expect(result.current.resizing).toBe(false)
 
-			expect(floorOf).not.toHaveBeenCalled()
+			expect(getFloor).not.toHaveBeenCalled()
 		})
 
 		it('ignores a press before the panel mounts', () => {
-			const { result, floorOf } = renderResize()
+			const { result, getFloor } = renderResize()
 
 			act(() => {
 				result.current.handleProps.onPointerDown(makePointerEvent({ pointerType: 'touch' }))
@@ -93,11 +93,11 @@ describe('usePanelResize', () => {
 
 			expect(result.current.resizing).toBe(false)
 
-			expect(floorOf).not.toHaveBeenCalled()
+			expect(getFloor).not.toHaveBeenCalled()
 		})
 
 		it('keeps the bounds of the first press when a second pointer lands mid-gesture', () => {
-			const { result, floorOf } = renderAttached()
+			const { result, getFloor } = renderAttached()
 
 			press(result)
 
@@ -107,7 +107,7 @@ describe('usePanelResize', () => {
 				)
 			})
 
-			expect(floorOf).toHaveBeenCalledOnce()
+			expect(getFloor).toHaveBeenCalledOnce()
 
 			// The second press did not move the start, so a release in place keeps the size.
 			act(() => {

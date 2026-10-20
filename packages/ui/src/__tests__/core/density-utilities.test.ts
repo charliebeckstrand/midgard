@@ -164,7 +164,7 @@ describe('the base rules of the density scopes', () => {
 	const [rules] = base as [CssInJs]
 
 	/** The weights that a scope at `step` sets: 1 for its step, and 0 for each other step. */
-	const weightsOf = (step: DensityStep) =>
+	const getWeights = (step: DensityStep) =>
 		Object.fromEntries(
 			densitySteps.flatMap((other) => [
 				[`--ui-d${other}`, other === step ? '1' : '0'],
@@ -177,7 +177,7 @@ describe('the base rules of the density scopes', () => {
 	})
 
 	it('gives the root md, with no mark', () => {
-		expect(rules[':root']).toEqual(weightsOf('md'))
+		expect(rules[':root']).toEqual(getWeights('md'))
 	})
 
 	it('gives each step its root class and its data-density scope', () => {
@@ -188,12 +188,12 @@ describe('the base rules of the density scopes', () => {
 
 			const selector = mark ? `:root.${mark}, ${attribute}` : attribute
 
-			expect(rules[selector]).toEqual(weightsOf(step))
+			expect(rules[selector]).toEqual(getWeights(step))
 		}
 	})
 
 	it('sets md again in a data-density md scope', () => {
-		expect(rules["[data-density='md']"]).toEqual(weightsOf('md'))
+		expect(rules["[data-density='md']"]).toEqual(getWeights('md'))
 	})
 
 	it('steps a slot one step below the host weights, and sets no host weight', () => {

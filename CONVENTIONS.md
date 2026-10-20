@@ -189,6 +189,24 @@ Split a declaration that does more than one thing into named steps. A nested ter
 
 The [`no-abbreviated-binding`](.biome/plugins/no-abbreviated-binding.grit) Biome plugin holds the clipped forms (`e`, `err`, `idx`, `cb`, and the rest of its list). Where a name follows a series or a payload key that the code does not own, suppress the diagnostic and give the reason.
 
+8.5 A function name starts with a verb that tells what kind of work the function does:
+
+- `get` reads or picks a value.
+- `read` reads the DOM, a file, or raw input.
+- `measure` reads the geometry of an element.
+- `find` searches, and can find nothing.
+- `resolve` gets the value that applies from options and defaults.
+- `build` makes a structure.
+- `format` makes text.
+- `parse` splits raw input.
+- `to` changes a value into a different form.
+- `describe` names a DOM node.
+- `is` and `has` give a boolean.
+
+Do not end a name with `Of`, as `rowOf` does. That name does not tell if the function reads, searches, builds, or converts. A lookup table is not a function. Give it the name of its value and of its key, as `sectionByPath` does.
+
+Use the shortest name that still tells what the function does (§8.4). A name does not repeat what its file tells, so the column sizer reads its environment with `readEnv`, not `readSizerEnv`. An export keeps a word only when an importer needs that word to tell the export from a different name, as `resolveStackMode` and `resolveStackAxis` do. The [`no-of-suffixed-binding`](.biome/plugins/no-of-suffixed-binding.grit) Biome plugin finds an `Of` suffix in the apps and the packages.
+
 ## 9. Imports
 
 9.1 In apps, the `@/*` alias maps to the source root: `src` in `places` and `picks`, and `app` in `admin`. Use the alias in place of a deep relative chain, that is, three or more `../` segments.

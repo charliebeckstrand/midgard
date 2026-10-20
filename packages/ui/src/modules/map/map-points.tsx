@@ -430,7 +430,7 @@ export function MapPoints({
 	// there: the pick reads it on every render a pointed-mark crossing costs, and
 	// only a regrouping can change the answer — but a map with no pick never reads
 	// it at all, and must not pay a lookup per dot to draw one.
-	const stopOf = useMemo(() => (index: number) => stopIndex(groups, index), [groups])
+	const getStop = useMemo(() => (index: number) => stopIndex(groups, index), [groups])
 
 	// The caller counts in points; everything inside this mark counts in drawn
 	// groups. A summary hands back the first stop it holds, so a pick names a row
@@ -468,7 +468,7 @@ export function MapPoints({
 		// this reads back which drawn dot holds it — so the halo and the picked row
 		// answer the grouping the frame currently draws, not the one the pick was
 		// made against.
-		stopOf,
+		getStop,
 		onClick: report(onClick),
 		onContextMenu: report(onContextMenu),
 	})

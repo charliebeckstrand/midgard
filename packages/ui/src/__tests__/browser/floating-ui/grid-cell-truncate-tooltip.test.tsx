@@ -3,7 +3,7 @@ import { describe, expect, it, onTestFinished } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { settledRect } from '../helpers/sample'
 import { textOverflow } from '../helpers/text-overflow'
 import { pause } from '../helpers/wall-clock'
@@ -340,7 +340,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		if (!separator) throw new Error('resize separator not found')
 
-		const x = centerOf(separator).x
+		const x = getCenter(separator).x
 
 		const y = separator.getBoundingClientRect().top + 4
 

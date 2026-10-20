@@ -74,9 +74,9 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	const board = useMemo(() => indexBoard(columns, getKey), [columns, getKey])
 
 	// The id of the column that holds a card, or that a drag target names.
-	const columnIdOf = (id: string) => columns[targetColumnIndex(board, id)]?.id
+	const getTarget = (id: string) => columns[targetColumnIndex(board, id)]?.id
 
-	const holderOf = (cardId: string) => {
+	const getHolder = (cardId: string) => {
 		const place = board.places.get(cardId)
 
 		return place ? columns[place.columnIndex]?.id : undefined
@@ -84,7 +84,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 	// The live move on drag-over puts the card in the column that the drop goes
 	// to. That column shows the drop, unless the drag started in it.
-	const holderId = activeId === null ? null : (holderOf(activeId) ?? null)
+	const holderId = activeId === null ? null : (getHolder(activeId) ?? null)
 
 	const dropColumnId = holderId === originColumnId ? null : holderId
 
@@ -130,7 +130,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 		setActiveId(cardId)
 
-		setOriginColumnId(holderOf(cardId) ?? null)
+		setOriginColumnId(getHolder(cardId) ?? null)
 	}
 
 	const handleDragOver = (event: DragOverEvent) => {
@@ -144,11 +144,11 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 		// The collision check can read the rects from before the last move. An
 		// over in the column that the card left then moves the card back.
-		if (fresh !== null && columnIdOf(overId) === fresh.from) return
+		if (fresh !== null && getTarget(overId) === fresh.from) return
 
 		const activeCardId = String(active.id)
 
-		const from = holderOf(activeCardId)
+		const from = getHolder(activeCardId)
 
 		const move = dragOverMove(board, activeCardId, overId)
 

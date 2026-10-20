@@ -5,7 +5,7 @@ import { cn, composeEventHandlers } from '../../core'
 import { k } from '../../recipes/kata/lightbox'
 import { Placeholder } from '../placeholder'
 import { useLightboxContext } from './context'
-import { sizeOf, thumbnailOf } from './lightbox-utilities'
+import { getSize, getThumbnail } from './lightbox-utilities'
 
 /** Props for {@link LightboxTrigger}: the index of its photo, and the `<button>` attributes. */
 export type LightboxTriggerProps = {
@@ -46,17 +46,17 @@ export function LightboxTrigger({
 	ref,
 	...props
 }: LightboxTriggerProps) {
-	const { photos, shown, show, register, loadOf, record } = useLightboxContext()
+	const { photos, shown, show, register, getLoad, record } = useLightboxContext()
 
 	const photo = photos[index]
 
 	if (!photo) return null
 
-	const source = thumbnailOf(photo)
+	const source = getThumbnail(photo)
 
-	const load = loadOf(source)
+	const load = getLoad(source)
 
-	const ready = sizeOf(photo, load) !== undefined
+	const ready = getSize(photo, load) !== undefined
 
 	// A thumbnail that did not load, or that loaded with no size and gives the
 	// photo none, leaves the photo with no box for the viewer.

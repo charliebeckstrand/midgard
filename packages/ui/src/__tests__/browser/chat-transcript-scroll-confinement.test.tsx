@@ -46,7 +46,7 @@ function page(messages: ChatMessageData[], transcriptHeight: string) {
 	)
 }
 
-const outerOf = (container: HTMLElement) =>
+const getOuter = (container: HTMLElement) =>
 	container.querySelector<HTMLElement>('[data-testid="outer"]')
 
 describe('ChatTranscript scroll confinement', () => {
@@ -55,7 +55,7 @@ describe('ChatTranscript scroll confinement', () => {
 		// overflows, and the only overflowing ancestor is the page.
 		const { container } = renderUI(page(short, 'h-[600px]'))
 
-		expect(outerOf(container)?.scrollTop).toBe(0)
+		expect(getOuter(container)?.scrollTop).toBe(0)
 	})
 
 	it('still jumps its own container to the newest message, and leaves the page where it was', () => {
@@ -65,6 +65,6 @@ describe('ChatTranscript scroll confinement', () => {
 
 		expect(getSlot(container, 'chat-transcript').scrollTop).toBeGreaterThan(0)
 
-		expect(outerOf(container)?.scrollTop).toBe(0)
+		expect(getOuter(container)?.scrollTop).toBe(0)
 	})
 })

@@ -6,7 +6,7 @@ import { k as switchKata } from '../../recipes/kata/switch'
 import { k as text } from '../../recipes/kata/text'
 import { control } from '../../recipes/kiso/control'
 import { contrastRatio, WCAG_AA_TEXT, WCAG_NON_TEXT } from '../../utilities/contrast'
-import { contrastOf, SURFACE, tinted } from '../helpers/contrast'
+import { getContrast, SURFACE, tinted } from '../helpers/contrast'
 
 /**
  * Contrast guard for the marks that identify a control or carry a literal hue.
@@ -18,12 +18,12 @@ import { contrastOf, SURFACE, tinted } from '../helpers/contrast'
 
 type ClassTree = string | readonly ClassTree[]
 
-const classesOf = (surface: ClassTree): string[] =>
-	typeof surface === 'string' ? surface.split(/\s+/).filter(Boolean) : surface.flatMap(classesOf)
+const getClasses = (surface: ClassTree): string[] =>
+	typeof surface === 'string' ? surface.split(/\s+/).filter(Boolean) : surface.flatMap(getClasses)
 
 /** The one class in `surface` that matches `pattern`. */
 function only(surface: ClassTree, pattern: RegExp): string {
-	const found = classesOf(surface).filter((className) => pattern.test(className))
+	const found = getClasses(surface).filter((className) => pattern.test(className))
 
 	expect(found).toHaveLength(1)
 
@@ -34,15 +34,15 @@ describe('Text color contrast', () => {
 	const hues = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 	it.each(hues)('%s clears text AA in each mode', (color) => {
-		const classes = classesOf(text({ color }))
+		const classes = getClasses(text({ color }))
 
 		const light = only(classes, /^text-[a-z]+-\d+$/)
 
 		const dark = only(classes, /^dark:text-[a-z]+-\d+$/)
 
-		expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(WCAG_AA_TEXT)
+		expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(WCAG_AA_TEXT)
 
-		expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(WCAG_AA_TEXT)
+		expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(WCAG_AA_TEXT)
 	})
 })
 
@@ -66,20 +66,20 @@ describe('check surface edge contrast', () => {
 	})
 
 	it('the checked zinc radio fill clears 3:1 in each mode', () => {
-		const classes = classesOf(radio({ color: 'zinc' }))
+		const classes = getClasses(radio({ color: 'zinc' }))
 
 		const light = only(classes, /^\[--check-bg:/)
 
 		const dark = only(classes, /^dark:\[--check-bg:/)
 
-		expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+		expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
 
-		expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+		expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
 	})
 })
 
 describe('Switch track edge contrast', () => {
-	const classes = classesOf(switchKata({}))
+	const classes = getClasses(switchKata({}))
 
 	it('the off ring clears 3:1 against the light page', () => {
 		const track = tinted(only(classes, /^bg-zinc-\d+$/), SURFACE.light)

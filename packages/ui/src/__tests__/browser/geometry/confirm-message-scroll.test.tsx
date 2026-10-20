@@ -59,7 +59,7 @@ function viewport() {
  * The nearest ancestor of `node`, below `panel`, that scrolls its overflow on
  * the block axis. `null` when no box between them scrolls.
  */
-function scrollerOf(node: HTMLElement, panel: HTMLElement): HTMLElement | null {
+function findScroller(node: HTMLElement, panel: HTMLElement): HTMLElement | null {
 	for (let at = node.parentElement; at && at !== panel; at = at.parentElement) {
 		const { overflowY } = getComputedStyle(at)
 
@@ -114,7 +114,7 @@ describe('Confirm children (real browser)', () => {
 
 			expect(viewport()).toContainBox(getSlot(panel, 'dialog-header'))
 
-			expect(scrollerOf(screen.getByText(LAST), panel)).not.toBeNull()
+			expect(findScroller(screen.getByText(LAST), panel)).not.toBeNull()
 		},
 	)
 

@@ -17,7 +17,7 @@ import {
 } from '../../recipes/kiso/iro/extended-palette'
 import { marker, onSurface, onTint, strong } from '../../recipes/kiso/iro/ramp'
 import { segment } from '../../recipes/kiso/segment'
-import { contrastOf, SURFACE, tinted } from '../helpers/contrast'
+import { getContrast, SURFACE, tinted } from '../helpers/contrast'
 import { collectPatternViolations, srcDir } from '../helpers/walk-source'
 
 /**
@@ -35,16 +35,16 @@ const NON_TEXT_AA = 3
 describe('iro ramp contrast', () => {
 	it('reproduces the documented green-600-on-white ratio (helper sanity)', () => {
 		// green-600 on white measures 3.21:1.
-		expect(contrastOf('text-green-600', SURFACE.light)).toBeCloseTo(3.21, 1)
+		expect(getContrast('text-green-600', SURFACE.light)).toBeCloseTo(3.21, 1)
 	})
 
 	describe('onSurface clears text AA on the page surface', () => {
 		it.each(colors)('%s', (color) => {
 			const [light, dark] = onSurface[color]
 
-			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
 
-			expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
 		})
 	})
 
@@ -55,31 +55,31 @@ describe('iro ramp contrast', () => {
 			// The 15% soft-palette wash behind this foreground.
 			const wash = iro.palette.soft.bg[color].join(' ')
 
-			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
 
-			expect(contrastOf(light, tinted(wash, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(getContrast(light, tinted(wash, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
 
-			expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
 
-			expect(contrastOf(dark, tinted(wash, SURFACE.dark))).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(getContrast(dark, tinted(wash, SURFACE.dark))).toBeGreaterThanOrEqual(TEXT_AA)
 		})
 	})
 
 	it('strong (max-emphasis neutral) clears text AA', () => {
 		const [light, dark] = strong
 
-		expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
+		expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
 
-		expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
+		expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
 	})
 
 	describe('marker clears non-text 3:1 on the page surface', () => {
 		it.each(colors)('%s', (color) => {
 			const [light, dark] = marker[color]
 
-			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(NON_TEXT_AA)
+			expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(NON_TEXT_AA)
 
-			expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(NON_TEXT_AA)
+			expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(NON_TEXT_AA)
 		})
 	})
 })
@@ -95,9 +95,9 @@ describe('iro extended palette contrast', () => {
 		it.each(extendedColors)('%s', (color) => {
 			const [light, dark] = extendedOnSurface[color]
 
-			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
 
-			expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
 		})
 	})
 
@@ -108,13 +108,13 @@ describe('iro extended palette contrast', () => {
 			// The 15% soft-palette wash behind this foreground.
 			const wash = iro.extended.soft.bg[color].join(' ')
 
-			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
 
-			expect(contrastOf(light, tinted(wash, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(getContrast(light, tinted(wash, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
 
-			expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
 
-			expect(contrastOf(dark, tinted(wash, SURFACE.dark))).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(getContrast(dark, tinted(wash, SURFACE.dark))).toBeGreaterThanOrEqual(TEXT_AA)
 		})
 	})
 })
@@ -185,12 +185,12 @@ const FOREGROUND = new RegExp(
 type ClassTree = string | readonly ClassTree[]
 
 /** A recipe surface flattened to the individual classes it paints. */
-const classesOf = (surface: ClassTree): string[] =>
-	typeof surface === 'string' ? surface.split(/\s+/).filter(Boolean) : surface.flatMap(classesOf)
+const getClasses = (surface: ClassTree): string[] =>
+	typeof surface === 'string' ? surface.split(/\s+/).filter(Boolean) : surface.flatMap(getClasses)
 
 /** The foreground classes of a set of recipe surfaces, split by the mode each paints in. */
 function inksByMode(surfaces: readonly ClassTree[]): Record<Mode, string[]> {
-	const inks = surfaces.flatMap(classesOf).filter((className) => FOREGROUND.test(className))
+	const inks = surfaces.flatMap(getClasses).filter((className) => FOREGROUND.test(className))
 
 	return {
 		light: inks.filter((className) => !className.startsWith('dark:')),
@@ -278,9 +278,9 @@ describe('tint wash foreground contrast', () => {
 	// `interactive` compound, so it lands on the wash (`solid`) and on the page
 	// surface (`separated` / `outline` / `plain`) and must clear AA on both.
 	it.each(MODES)('the shared muted rung clears text AA in %s mode', (mode) => {
-		expect(contrastOf(MUTED[mode], WASH[mode])).toBeGreaterThanOrEqual(TEXT_AA)
+		expect(getContrast(MUTED[mode], WASH[mode])).toBeGreaterThanOrEqual(TEXT_AA)
 
-		expect(contrastOf(MUTED[mode], SURFACE[mode])).toBeGreaterThanOrEqual(TEXT_AA)
+		expect(getContrast(MUTED[mode], SURFACE[mode])).toBeGreaterThanOrEqual(TEXT_AA)
 	})
 
 	/**
@@ -315,7 +315,7 @@ describe('tint wash foreground contrast', () => {
 
 			it.each(MODES)('grounds no ink below text AA on the wash in %s mode', (mode) => {
 				const failing = inks[mode].flatMap((ink) => {
-					const ratio = contrastOf(ink, ground[mode])
+					const ratio = getContrast(ink, ground[mode])
 
 					return ratio < TEXT_AA ? [`${ink} @ ${ratio.toFixed(2)}:1`] : []
 				})
@@ -349,7 +349,7 @@ describe('segment archetype contrast', () => {
 	it.each(MODES)('selected item clears text AA on the %s pill', (mode) => {
 		expect(segment.item.base).toContain(SELECTED[mode])
 
-		expect(contrastOf(SELECTED[mode], PILL[mode])).toBeGreaterThanOrEqual(TEXT_AA)
+		expect(getContrast(SELECTED[mode], PILL[mode])).toBeGreaterThanOrEqual(TEXT_AA)
 	})
 
 	// Both inks read off the same ground, so the comparison is like-for-like:
@@ -358,8 +358,8 @@ describe('segment archetype contrast', () => {
 	it.each(MODES)('resting stays subordinate to selected in %s mode', (mode) => {
 		expect(segment.item.base).toContain(MUTED[mode])
 
-		expect(contrastOf(SELECTED[mode], WASH[mode])).toBeGreaterThanOrEqual(
-			SEPARATION * contrastOf(MUTED[mode], WASH[mode]),
+		expect(getContrast(SELECTED[mode], WASH[mode])).toBeGreaterThanOrEqual(
+			SEPARATION * getContrast(MUTED[mode], WASH[mode]),
 		)
 	})
 })
@@ -370,14 +370,14 @@ describe('segment archetype contrast', () => {
  * the ink come off the recipe, so a change to either is measured here.
  */
 describe('PdfViewer viewport message', () => {
-	const classesOf = (fragment: unknown): string[] =>
+	const getClasses = (fragment: unknown): string[] =>
 		[fragment].flat(Number.POSITIVE_INFINITY).join(' ').split(' ').filter(Boolean)
 
-	const ground = classesOf(pdfViewer.viewport.base).filter((className) =>
+	const ground = getClasses(pdfViewer.viewport.base).filter((className) =>
 		/^(?:dark:)?bg-zinc-\d+$/.test(className),
 	)
 
-	const ink = classesOf(pdfViewer.viewport.page.empty).filter((className) =>
+	const ink = getClasses(pdfViewer.viewport.page.empty).filter((className) =>
 		FOREGROUND.test(className),
 	)
 
@@ -388,7 +388,7 @@ describe('PdfViewer viewport message', () => {
 	it.each(MODES)('clears text AA on the %s viewport', (mode) => {
 		const surface = tinted(GROUND[mode].replace('dark:', ''), SURFACE[mode])
 
-		expect(contrastOf(INK[mode], surface)).toBeGreaterThanOrEqual(TEXT_AA)
+		expect(getContrast(INK[mode], surface)).toBeGreaterThanOrEqual(TEXT_AA)
 	})
 })
 
@@ -406,6 +406,6 @@ describe('Kanban empty column message', () => {
 		expect(inks[mode]).not.toEqual([])
 
 		for (const ink of inks[mode])
-			expect(contrastOf(ink, WASH[mode]), ink).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(getContrast(ink, WASH[mode]), ink).toBeGreaterThanOrEqual(TEXT_AA)
 	})
 })

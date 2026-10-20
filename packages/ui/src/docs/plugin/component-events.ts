@@ -46,7 +46,7 @@ export async function labelPage(
 
 	new Visitor({
 		JSXOpeningElement({ name }) {
-			roots.add(rootOf(name))
+			roots.add(getRoot(name))
 		},
 	}).visit(program)
 
@@ -109,7 +109,7 @@ export function labelProps(
 
 			const tag = JSON.stringify(code.slice(name.start, name.end))
 
-			const source = JSON.stringify(fromModules.has(rootOf(name)) ? 'module' : 'component')
+			const source = JSON.stringify(fromModules.has(getRoot(name)) ? 'module' : 'component')
 
 			for (const attribute of attributes) {
 				const target = wrapTarget(attribute)
@@ -169,10 +169,10 @@ function wrapTarget(
 }
 
 /** The first name of a tag: `Grid` of `<Grid>`, and `Chart` of `<Chart.Line>`. */
-function rootOf(name: ESTree.JSXElementName | ESTree.JSXMemberExpression['object']): string {
+function getRoot(name: ESTree.JSXElementName | ESTree.JSXMemberExpression['object']): string {
 	if (name.type === 'JSXIdentifier') return name.name
 
-	if (name.type === 'JSXMemberExpression') return rootOf(name.object)
+	if (name.type === 'JSXMemberExpression') return getRoot(name.object)
 
 	return ''
 }

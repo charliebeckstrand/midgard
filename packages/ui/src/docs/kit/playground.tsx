@@ -19,7 +19,7 @@ import { omote } from '../../recipes/kiso/index.ts'
 import { SIZE_CLASSES } from '../../types/responsive.ts'
 import type { BarrelApi, DefaultValue, Literal, PropApi } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
-import { ExampleFrame, loadCode, metaOf } from './example.tsx'
+import { ExampleFrame, getMeta, loadCode } from './example.tsx'
 import { useFail } from './fail.ts'
 import { humanize } from './humanize.ts'
 
@@ -164,14 +164,14 @@ const SIZE_CLASS_AT: { readonly [bp: string]: string | undefined } = Object.from
  * size step and a boolean show translated labels. A label from a code value
  * stays English.
  */
-function labelOf(intl: IntlShape, value: Value): string {
+function formatLabel(intl: IntlShape, value: Value): string {
 	if (typeof value === 'object') {
 		return Object.entries(value)
 			.map(([bp, entry]) =>
 				bp === 'initial'
-					? labelOf(intl, entry)
+					? formatLabel(intl, entry)
 					: intl.formatMessage(fromSizeClassMessage, {
-							value: labelOf(intl, entry),
+							value: formatLabel(intl, entry),
 							sizeClass: SIZE_CLASS_AT[bp] ?? bp,
 						}),
 			)
@@ -188,7 +188,7 @@ function labelOf(intl: IntlShape, value: Value): string {
 }
 
 /** The default of a free field: the default of the prop, when it is a value of the kind of the field. */
-function freeDefaultOf(
+function resolveFreeDefault(
 	kind: FreeField['kind'],
 	value: DefaultValue | undefined,
 ): string | number | undefined {
@@ -198,7 +198,7 @@ function freeDefaultOf(
 }
 
 /** The `min` and the `max` of a number field: the `@minimum` and the `@maximum` tags of its prop. */
-function rangeOf({ minimum, maximum }: PropApi): Pick<FreeField, 'min' | 'max'> {
+function getRange({ minimum, maximum }: PropApi): Pick<FreeField, 'min' | 'max'> {
 	return {
 		...(minimum !== undefined && { min: minimum }),
 		...(maximum !== undefined && { max: maximum }),
@@ -214,10 +214,10 @@ function rangeOf({ minimum, maximum }: PropApi): Pick<FreeField, 'min' | 'max'> 
  * the value that `free` gives. A prop whose name starts with `default` sets the first state
  * of the component, so it gets a field only when `free` names it.
  */
-function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
+function buildFreeField(prop: PropApi, free: Free): FreeField | undefined {
 	const { name, type, defaultValue } = prop
 
-	const range = rangeOf(prop)
+	const range = getRange(prop)
 
 	if (Object.hasOwn(free, name)) {
 		if (type !== 'string' && type !== 'number' && type !== 'ReactNode') {
@@ -228,7 +228,7 @@ function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
 
 		const kind = type === 'number' ? 'number' : 'text'
 
-		const fallback = freeDefaultOf(kind, defaultValue)
+		const fallback = resolveFreeDefault(kind, defaultValue)
 
 		// An empty string starts the field empty, which omits the prop.
 		const start = free[name] === '' ? undefined : free[name]
@@ -244,7 +244,7 @@ function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
 
 	if (type !== 'number' || name.startsWith('default')) return undefined
 
-	const fallback = freeDefaultOf('number', defaultValue)
+	const fallback = resolveFreeDefault('number', defaultValue)
 
 	return fallback === undefined
 		? undefined
@@ -256,9 +256,9 @@ function freeFieldOf(prop: PropApi, free: Free): FreeField | undefined {
  * that `given` gives values. The default of a field is the value that the
  * component renders when the prop is omitted. A density step with no tag
  * takes the step of the scope, which is `step`. A prop of another type can
- * get a free field ({@link freeFieldOf}).
+ * get a free field ({@link buildFreeField}).
  */
-function fieldsOf(
+function buildFields(
 	props: readonly PropApi[],
 	omit: readonly string[],
 	given: { readonly [prop: string]: readonly Literal[] | undefined },
@@ -273,12 +273,12 @@ function fieldsOf(
 		const values = given[name] ?? prop.values
 
 		if (!values) {
-			const field = freeFieldOf(prop, free)
+			const field = buildFreeField(prop, free)
 
 			return field ? [field] : []
 		}
 
-		return [choiceFieldOf(prop, values, step)]
+		return [buildChoiceField(prop, values, step)]
 	})
 }
 
@@ -287,7 +287,11 @@ function fieldsOf(
  * prop when it is one of the values. A default for each breakpoint, as a
  * responsive prop can have, is the first option of the field.
  */
-function choiceFieldOf(prop: PropApi, values: readonly Literal[], step: DensityStep): ChoiceField {
+function buildChoiceField(
+	prop: PropApi,
+	values: readonly Literal[],
+	step: DensityStep,
+): ChoiceField {
 	const { name, default: text, defaultValue, required } = prop
 
 	const map = typeof defaultValue === 'object' ? defaultValue : undefined
@@ -310,7 +314,7 @@ function choiceFieldOf(prop: PropApi, values: readonly Literal[], step: DensityS
  * prop with no default. Any other field starts unset, as the component does
  * when the omitted prop is no value. A free field starts at its start.
  */
-function startOf(field: Field): Value | undefined {
+function getStart(field: Field): Value | undefined {
 	if (field.kind !== 'choice') return field.start
 
 	return field.default ?? (field.required ? field.values[0] : undefined)
@@ -335,13 +339,13 @@ function accepts(field: Field, value: Value | undefined): boolean {
  * picked for one component stays when the reader picks another component that
  * takes it, such as a color.
  */
-function valuesOf(fields: readonly Field[], picked: Values): Values {
+function resolveValues(fields: readonly Field[], picked: Values): Values {
 	return Object.fromEntries(
 		fields.map((field) => [
 			field.name,
 			Object.hasOwn(picked, field.name) && accepts(field, picked[field.name])
 				? picked[field.name]
-				: startOf(field),
+				: getStart(field),
 		]),
 	)
 }
@@ -356,7 +360,7 @@ function isList<T>(value: T | readonly T[]): value is readonly T[] {
  * names share, so `LoadingSpinner` and `LoadingDots` give `spinner` and
  * `dots`. The first component is the default.
  */
-function componentFieldOf(components: readonly string[]): ChoiceField {
+function buildComponentField(components: readonly string[]): ChoiceField {
 	const words = components.map((component) => humanize(component).toLowerCase().split(' '))
 
 	const [first = []] = words
@@ -369,7 +373,7 @@ function componentFieldOf(components: readonly string[]): ChoiceField {
 }
 
 /** A literal as code, with a string in single quotes. */
-function codeOf(value: Literal): string {
+function formatCode(value: Literal): string {
 	return typeof value === 'string' ? `'${value}'` : String(value)
 }
 
@@ -380,7 +384,7 @@ function codeOf(value: Literal): string {
 function attribute(name: string, value: Value): string {
 	if (typeof value === 'object') {
 		const entries = Object.entries(value).map(
-			([bp, entry]) => `${/^\d/.test(bp) ? `'${bp}'` : bp}: ${codeOf(entry)}`,
+			([bp, entry]) => `${/^\d/.test(bp) ? `'${bp}'` : bp}: ${formatCode(entry)}`,
 		)
 
 		return `${name}={{ ${entries.join(', ')} }}`
@@ -415,7 +419,7 @@ function printCode({ code, spread }: ExampleCode, fields: readonly Field[], valu
  * The props of the instance: each value that is not the default, so the
  * instance renders the code that "Show code" shows.
  */
-function propsOf(fields: readonly Field[], values: Values): Values {
+function buildProps(fields: readonly Field[], values: Values): Values {
 	return Object.fromEntries(
 		fields.flatMap(({ name, default: fallback }) =>
 			values[name] === undefined || values[name] === fallback ? [] : [[name, values[name]]],
@@ -500,7 +504,7 @@ function FieldPicker({
 		...(unset ? [{ key: UNSET, label: intl.formatMessage(messages.none), fallback: true }] : []),
 		...field.values.map((option) => ({
 			key: JSON.stringify(option),
-			label: labelOf(intl, option),
+			label: formatLabel(intl, option),
 			fallback: option === field.default,
 		})),
 	]
@@ -599,7 +603,7 @@ export function Playground<P extends object>({
 
 	if (!current) throw new Error('docs: a playground takes one playground module or more')
 
-	const meta = metaOf(current)
+	const meta = getMeta(current)
 
 	// The fields give each prop from the API data of the component, so the
 	// values are props of it.
@@ -613,16 +617,16 @@ export function Playground<P extends object>({
 
 	const step = useDensityStep()
 
-	const fields = fieldsOf(component.props, omit, given, free, step)
+	const fields = buildFields(component.props, omit, given, free, step)
 
 	const switcher =
 		modules.length > 1
-			? componentFieldOf(modules.map((playground) => metaOf(playground).component ?? ''))
+			? buildComponentField(modules.map((playground) => getMeta(playground).component ?? ''))
 			: undefined
 
 	const [picked, setPicked] = useState<Values>({})
 
-	const values = valuesOf(fields, picked)
+	const values = resolveValues(fields, picked)
 
 	const fail = useFail()
 
@@ -635,7 +639,7 @@ export function Playground<P extends object>({
 
 		const next = modules[index]
 
-		if (next) loadCode(metaOf(next)).then(() => setActive(index), fail)
+		if (next) loadCode(getMeta(next)).then(() => setActive(index), fail)
 	}
 
 	return (
@@ -678,7 +682,7 @@ export function Playground<P extends object>({
 				</Rail>
 			}
 		>
-			<Instance {...propsOf(fields, values)} />
+			<Instance {...buildProps(fields, values)} />
 		</ExampleFrame>
 	)
 }

@@ -625,6 +625,10 @@
 		{
 			"includes": ["apps/**", "packages/**"],
 			"plugins": ["./.biome/plugins/no-abbreviated-binding.grit"]
+		},
+		{
+			"includes": ["apps/**", "packages/**"],
+			"plugins": ["./.biome/plugins/no-of-suffixed-binding.grit"]
 		}
 	],
 	"files": {

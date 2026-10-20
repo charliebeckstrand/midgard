@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { importsOf, resolveSource } from '../helpers/source-imports'
+import { parseImports, resolveSource } from '../helpers/source-imports'
 import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // `List` reorders over Motion's `Reorder`, which each page loads. A bundler keeps
@@ -27,7 +27,7 @@ function dndReaches(entry: string): string[] {
 	const found: string[] = []
 
 	for (let file = queue.shift(); file !== undefined; file = queue.shift()) {
-		for (const { specifier, runtime } of importsOf(readFileSync(file, 'utf8'))) {
+		for (const { specifier, runtime } of parseImports(readFileSync(file, 'utf8'))) {
 			if (!runtime) continue
 
 			if (specifier.startsWith('@dnd-kit/')) {
@@ -78,7 +78,7 @@ describe('query dnd-kit boundary', () => {
 		const found: string[] = []
 
 		walkSource(join(srcDir, 'modules', 'query'), (file, content) => {
-			for (const { specifier, runtime } of importsOf(content)) {
+			for (const { specifier, runtime } of parseImports(content)) {
 				if (runtime && specifier.startsWith('@dnd-kit/'))
 					found.push(`${srcRelative(file)} → '${specifier}'`)
 			}

@@ -42,7 +42,7 @@ import { parseArgs, promisify } from 'node:util'
 import { brotliCompress, constants } from 'node:zlib'
 import { type Browser, type CDPSession, chromium, type Locator, type Page } from 'playwright'
 import { getOrCompute } from '../src/utilities/get-or-compute'
-import { CLIENT_DIR, fileOf, HYDRATED, TYPES } from './docs-server'
+import { CLIENT_DIR, HYDRATED, resolveFile, TYPES } from './docs-server'
 
 const brotli = promisify(brotliCompress)
 
@@ -98,7 +98,7 @@ type Frame = { response: Http2ServerResponse; data: Buffer; last: boolean }
  * Reads the urgency and the incremental flag of a `priority` header, such as
  * `u=1` or `u=0, i` (RFC 9218).
  */
-function priorityOf(header: string | string[] | undefined): {
+function parsePriority(header: string | string[] | undefined): {
 	urgency: number
 	incremental: boolean
 } {
@@ -334,7 +334,7 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 	// The server compresses each file once, as a CDN keeps the compressed file.
 	const bodies = new Map<string, Promise<Buffer>>()
 
-	const bodyOf = (file: string, compress: boolean): Promise<Buffer> => {
+	const getBody = (file: string, compress: boolean): Promise<Buffer> => {
 		const key = `${compress ? 'br' : 'raw'}:${file}`
 
 		return getOrCompute(bodies, key, () =>
@@ -349,7 +349,7 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 	const server = createSecureServer(tls, async (request, response) => {
 		const { pathname } = new URL(request.url, 'https://localhost')
 
-		const file = await fileOf(CLIENT_DIR, pathname)
+		const file = await resolveFile(CLIENT_DIR, pathname)
 
 		if (file === undefined) {
 			response.writeHead(400).end()
@@ -362,7 +362,7 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 		const compress =
 			COMPRESSED.has(extension) && String(request.headers['accept-encoding']).includes('br')
 
-		const body = await bodyOf(file, compress)
+		const body = await getBody(file, compress)
 
 		// The browser closes the streams of a run that ends.
 		if (response.stream.closed) return
@@ -377,7 +377,7 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 		})
 
 		downlink.send({
-			...priorityOf(request.headers.priority),
+			...parsePriority(request.headers.priority),
 			response,
 			body,
 		})

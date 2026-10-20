@@ -216,7 +216,7 @@ function commentParts(doc: JSDoc): readonly JSDocComment[] {
 type LinkSite = { file: string; line: number; target: string }
 
 /** The name a `{@link}` target stands or falls with. */
-function headOf(target: string): string | undefined {
+function getHead(target: string): string | undefined {
 	// A member or a qualified target resolves through its head: `Props.size`
 	// and `Class#method` both stand or fall with the declaration named first.
 	return target.split(/[.#]/)[0]?.trim() || undefined
@@ -254,7 +254,7 @@ function openHeads(links: readonly LinkSite[], declared: ReadonlySet<string>): s
 	const heads = new Set<string>()
 
 	for (const { target } of links) {
-		const head = headOf(target)
+		const head = getHead(target)
 
 		if (head && !declared.has(head)) heads.add(head)
 	}
@@ -478,7 +478,7 @@ function unknownLinks(server: TypeScriptServer): string[] {
 	const violations: string[] = []
 
 	for (const { file, line, target } of links) {
-		const head = headOf(target)
+		const head = getHead(target)
 
 		if (!head || declared.has(head) || globals.has(head)) continue
 
@@ -511,7 +511,7 @@ describe('comment reference boundary', () => {
 	it('every {@link} target names a symbol the package or the platform declares', () => {
 		expect(
 			links,
-			`{@link} targets naming a symbol no file here and no TypeScript library declares — repoint or drop each one (CONVENTIONS.md §12.1):\n${links.join('\n')}`,
+			`@linktargets naming a symbol no file here and no TypeScript library declares — repoint or drop each one (CONVENTIONS.md §12.1):\n$links.join('\n')`,
 		).toEqual([])
 	})
 })

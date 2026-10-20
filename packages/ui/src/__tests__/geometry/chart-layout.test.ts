@@ -18,14 +18,14 @@ import {
 } from '../../modules/chart/engine/chart-constants'
 import {
 	axisTitleAt,
-	bandTicksOf,
+	buildBandTicks,
+	buildValueTicks,
 	type CartesianLayoutInput,
 	horizontalLayout,
 	lineMarkReach,
 	plotRect,
 	thinned,
 	valueAxisRange,
-	valueTicksOf,
 	verticalLayout,
 } from '../../modules/chart/engine/chart-layout'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
@@ -184,7 +184,7 @@ describe('horizontalLayout value bands', () => {
 	})
 })
 
-describe('bandTicksOf tilted labels', () => {
+describe('buildBandTicks tilted labels', () => {
 	it('thins a tilted run by the room each rotated label takes along the axis', () => {
 		// Sixty categories along 740px, about 12px a band. Each tilted label needs
 		// its line box across the slant, about 28px along the axis. Before, every
@@ -193,7 +193,7 @@ describe('bandTicksOf tilted labels', () => {
 
 		const band = bandScale({ count: 60, range: [0, 740] })
 
-		const ticks = bandTicksOf(categories, band, 740, 0, true)
+		const ticks = buildBandTicks(categories, band, 740, 0, true)
 
 		expect(ticks.length).toBeLessThan(60)
 
@@ -207,7 +207,7 @@ describe('bandTicksOf tilted labels', () => {
 	it('keeps every tilted label where the bands leave room', () => {
 		const categories = ['January Sales', 'February Sales', 'March Sales', 'April Sales']
 
-		const ticks = bandTicksOf(categories, bandScale({ count: 4, range: [0, 400] }), 400, 0, true)
+		const ticks = buildBandTicks(categories, bandScale({ count: 4, range: [0, 400] }), 400, 0, true)
 
 		expect(ticks).toHaveLength(4)
 	})
@@ -330,9 +330,9 @@ describe('lineMarkReach', () => {
 	})
 })
 
-describe('valueTicksOf', () => {
+describe('buildValueTicks', () => {
 	it('places no tick without a scale', () => {
-		expect(valueTicksOf(null, String)).toEqual([])
+		expect(buildValueTicks(null, String)).toEqual([])
 	})
 })
 

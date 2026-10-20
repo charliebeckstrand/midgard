@@ -1,0 +1,25 @@
+language js
+
+// A function name starts with a verb that says what the function does, such
+// as `getRow`, `parseAlpha`, or `buildTicks` (CONVENTIONS §8.5). A name that
+// ends in `Of`, such as `rowOf`, does not say if the function reads, searches,
+// builds, or converts.
+//
+// The plugin matches the name of each binding: a function, a variable, a
+// parameter, and a destructured name. A lookup table is a binding too, and it
+// takes a `<value>By<key>` name, such as `sectionByPath`. The name must be one
+// lowercase word and more, and it must end in `Of`, so `startOfDay` and
+// `indexOfKey` pass. An import is not matched, because the code does not own
+// its name (`expectTypeOf`). An object key is not a binding, so an intl message
+// id such as `pageOf` passes.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the apps and the
+// packages, with their tests.
+JsIdentifierBinding() as $binding where {
+	$binding <: r"[a-z][A-Za-z0-9]*Of",
+	$binding <: not within or { JsImport(), JsExport(export_clause = JsExportNamedFromClause()) },
+	register_diagnostic(
+		span = $binding,
+		message = "start the name with a verb that says what the function does (`get`, `read`, `find`, `build`, `format`, `parse`, `to`, …), not an `Of` suffix; a lookup table takes a `<value>By<key>` name (CONVENTIONS §8.5)"
+	)
+}

@@ -48,7 +48,7 @@ async function coldClient(open: () => Worker | null) {
  * A port that gives `workers` in order, and then a new fake for each call. A
  * `null` stands for an environment with no `Worker`.
  */
-function portOf(...workers: (FakeShikiWorker | null)[]) {
+function makePort(...workers: (FakeShikiWorker | null)[]) {
 	return vi.fn((): Worker | null => {
 		const next = workers.length > 0 ? workers.shift() : new FakeShikiWorker()
 
@@ -62,7 +62,7 @@ describe('loadShiki', () => {
 
 		const post = vi.spyOn(worker, 'postMessage')
 
-		const open = portOf(worker)
+		const open = makePort(worker)
 
 		const { loadShiki } = await coldClient(open)
 
@@ -81,7 +81,7 @@ describe('loadShiki', () => {
 	})
 
 	it('loads again on a later call after a rejected warm-up', async ({ signal }) => {
-		const { loadShiki } = await coldClient(portOf())
+		const { loadShiki } = await coldClient(makePort())
 
 		signal.throwIfAborted()
 
@@ -99,7 +99,7 @@ describe('loadShiki', () => {
 	})
 
 	it('rejects where the environment has no Worker, and retries later', async ({ signal }) => {
-		const { loadShiki } = await coldClient(portOf(null))
+		const { loadShiki } = await coldClient(makePort(null))
 
 		signal.throwIfAborted()
 
@@ -122,7 +122,7 @@ describe('highlightCode', () => {
 		// The worker never answers, as a worker whose chunk does not load.
 		vi.spyOn(failing, 'postMessage').mockImplementation(() => {})
 
-		const open = portOf(failing)
+		const open = makePort(failing)
 
 		const { highlightCode, loadShiki } = await coldClient(open)
 
@@ -164,7 +164,7 @@ describe('highlightCode', () => {
 		// The worker never answers, as a worker in a tokenization that does not stop.
 		vi.spyOn(stuck, 'postMessage').mockImplementation(() => {})
 
-		const open = portOf(stuck)
+		const open = makePort(stuck)
 
 		const { highlightCode, loadShiki } = await coldClient(open)
 

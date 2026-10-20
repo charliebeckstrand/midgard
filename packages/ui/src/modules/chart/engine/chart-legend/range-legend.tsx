@@ -189,9 +189,9 @@ type RangeKeyContext = {
 	min: number
 	max: number
 	bins: number
-	binOf: (value: number) => number
+	getBin: (value: number) => number
 	/** The `[low, high]` value edges of a class. */
-	edgesOf: (bin: number) => [number, number]
+	getEdges: (bin: number) => [number, number]
 }
 
 /**
@@ -208,15 +208,15 @@ type RangeKeyContext = {
  * @internal
  */
 function rangeKeyValue(key: string, probe: number | null, context: RangeKeyContext): number | null {
-	const { min, max, bins, binOf, edgesOf } = context
+	const { min, max, bins, getBin, getEdges } = context
 
 	const center = (bin: number) => {
-		const [low, high] = edgesOf(clamp(bin, 0, bins - 1))
+		const [low, high] = getEdges(clamp(bin, 0, bins - 1))
 
 		return (low + high) / 2
 	}
 
-	const current = probe === null ? 0 : binOf(probe)
+	const current = probe === null ? 0 : getBin(probe)
 
 	// Tied thresholds leave a class with no width, whose center reads back into
 	// a neighbor. A step walks on until it reaches a class it can land in.
@@ -224,7 +224,7 @@ function rangeKeyValue(key: string, probe: number | null, context: RangeKeyConte
 		for (let bin = current + direction; bin >= 0 && bin < bins; bin += direction) {
 			const value = center(bin)
 
-			if (binOf(value) !== current) return value
+			if (getBin(value) !== current) return value
 		}
 
 		return center(current)
@@ -488,17 +488,17 @@ export function RangeLegend({
 	// The class that a value lands in, by the host's own rule: its quantile edges
 	// when it passes them, else the equal intervals of `'linear'`. The same
 	// functions as the host's `assign`, so a value at an edge lands in one class.
-	const binOf = (value: number): number =>
+	const getBin = (value: number): number =>
 		(thresholds ? quantileBinIndex(value, thresholds) : binIndex(value, domain, bins)) ?? 0
 
-	const edgesOf = (bin: number): [number, number] => {
+	const getEdges = (bin: number): [number, number] => {
 		if (thresholds) return [thresholds[bin - 1] ?? min, thresholds[bin] ?? max]
 
 		return [min + bin * step, bin === bins - 1 ? max : min + (bin + 1) * step]
 	}
 
 	const binLabel = (bin: number): string => {
-		const [low, high] = edgesOf(bin)
+		const [low, high] = getEdges(bin)
 
 		return `${format(low)}–${format(high)}`
 	}
@@ -510,7 +510,7 @@ export function RangeLegend({
 
 		setProbe(next)
 
-		onProbe?.(binOf(next))
+		onProbe?.(getBin(next))
 	}
 
 	const clear = () => {
@@ -542,7 +542,7 @@ export function RangeLegend({
 			return
 		}
 
-		const value = rangeKeyValue(event.key, probe, { min, max, bins, binOf, edgesOf })
+		const value = rangeKeyValue(event.key, probe, { min, max, bins, getBin, getEdges })
 
 		if (value === null) return
 
@@ -577,7 +577,7 @@ export function RangeLegend({
 					domain={domain}
 					probe={probe}
 					probeOffset={probeOffset}
-					valueText={probe === null ? undefined : binLabel(binOf(probe))}
+					valueText={probe === null ? undefined : binLabel(getBin(probe))}
 					arrow={arrow}
 					onPointerMove={track}
 					// The keyboard side rides `:focus-visible`, the same gate as the ring. A

@@ -42,7 +42,7 @@ function isExample(component: object): component is ExampleMeta {
  * The {@link ExampleMeta} that the plugin adds to the default export of an
  * example module. It throws for any other component.
  */
-export function metaOf(component: { readonly name: string }): ExampleMeta {
+export function getMeta(component: { readonly name: string }): ExampleMeta {
 	if (!isExample(component)) {
 		throw new Error(`docs: ${component.name} is not the default export of an example in pages/`)
 	}
@@ -163,8 +163,8 @@ export function ExampleFrame({
 	const resize = usePanelResize({
 		side: isRtl ? 'right' : 'left',
 		open: true,
-		floorOf: frameFloor,
-		ceilingOf: frameCeiling,
+		getFloor: frameFloor,
+		getCeiling: frameCeiling,
 		cursor: 'ew-resize',
 	})
 
@@ -248,7 +248,7 @@ export function Example({
 	surface?: boolean
 }) {
 	return (
-		<ExampleFrame meta={metaOf(Of)} surface={surface}>
+		<ExampleFrame meta={getMeta(Of)} surface={surface}>
 			<Of />
 		</ExampleFrame>
 	)

@@ -164,7 +164,7 @@ export function duplicateSpecTile(
 
 	const entry = spec.layout.find((item) => item.id === id)
 
-	const span = entry === undefined ? source.defaultSize : spanOf(entry)
+	const span = entry === undefined ? source.defaultSize : toSize(entry)
 
 	// With no entry, the span is the source's own `defaultSize`, which the spread carries.
 	const copy: DashboardSpecTile = { ...source, id: copyId, ...(span && { defaultSize: span }) }
@@ -177,7 +177,7 @@ export function duplicateSpecTile(
 }
 
 /** The span of a layout entry. An entry of a tile with a fixed ratio has no `h`. */
-function spanOf(entry: DashboardLayoutItem): DashboardTileSize {
+function toSize(entry: DashboardLayoutItem): DashboardTileSize {
 	return entry.h === undefined ? { w: entry.w } : { w: entry.w, h: entry.h }
 }
 

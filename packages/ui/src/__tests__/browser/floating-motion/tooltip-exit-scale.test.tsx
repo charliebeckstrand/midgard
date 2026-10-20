@@ -5,7 +5,7 @@ import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
 import { waitForNoTween } from '../helpers/motion-frame'
 
 /** The scale of the computed `transform` of `element`. `none` is a scale of 1. */
-function scaleOf(element: Element) {
+function readScale(element: Element) {
 	const transform = getComputedStyle(element).transform
 
 	return transform === 'none' ? 1 : new DOMMatrixReadOnly(transform).a
@@ -23,7 +23,7 @@ function sampleUntilGone(element: Element) {
 				return
 			}
 
-			samples.push(scaleOf(element))
+			samples.push(readScale(element))
 
 			requestAnimationFrame(tick)
 		}
@@ -65,7 +65,7 @@ describe('the Tooltip exit (real engine, real Motion)', () => {
 		// The entrance lands.
 		await waitForNoTween(() => panel.getAnimations())
 
-		expect(scaleOf(panel)).toBe(1)
+		expect(readScale(panel)).toBe(1)
 
 		const samples = sampleUntilGone(panel)
 

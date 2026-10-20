@@ -26,7 +26,7 @@ const utilities = (Object.entries(utilityTable) as [string, UtilityEntry][]).map
 )
 
 /** The stepped group of each plain group, such as `density-px` for `px`. */
-const steppedOf: Record<string, SteppedGroup | undefined> = Object.fromEntries(
+const steppedByPlain: Record<string, SteppedGroup | undefined> = Object.fromEntries(
 	utilities.map(({ plain, stepped }) => [plain, stepped]),
 )
 
@@ -63,11 +63,11 @@ function steppedConflicts(
 	}
 
 	for (const [group, contained = []] of Object.entries(defaults)) {
-		const stepped = contained.flatMap((part) => steppedOf[part] ?? [])
+		const stepped = contained.flatMap((part) => steppedByPlain[part] ?? [])
 
 		if (stepped.length > 0) add(group, stepped)
 
-		const own = steppedOf[group]
+		const own = steppedByPlain[group]
 
 		if (own) add(own, [...contained, ...stepped])
 	}

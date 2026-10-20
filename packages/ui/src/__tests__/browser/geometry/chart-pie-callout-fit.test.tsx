@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { PieChart } from '../../../modules/chart/pie-chart'
 import { allBySlot, getSlot, renderUI, waitFor } from '../../helpers'
-import { boxOf } from '../../helpers/geometry/box'
+import { measureBox } from '../../helpers/geometry/box'
 import { installDocsFont } from '../helpers/docs-font'
 
 /**
@@ -62,11 +62,11 @@ describe('pie callout fit (real browser)', () => {
 		it(`keeps every callout label inside a ${width}px frame`, async () => {
 			const { labels, svg } = await callouts(width)
 
-			const frame = boxOf(svg)
+			const frame = measureBox(svg)
 
 			// The check reads the horizontal edges only.
 			for (const label of labels) {
-				expect(svg).toContainBox({ ...boxOf(label), top: frame.top, bottom: frame.bottom })
+				expect(svg).toContainBox({ ...measureBox(label), top: frame.top, bottom: frame.bottom })
 			}
 		})
 	}

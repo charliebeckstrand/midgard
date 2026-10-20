@@ -36,7 +36,7 @@ export function isColumnEditable(col: EditableColumn): boolean {
 }
 
 /** The column of `columns` whose id is `columnId`, or `undefined` when none has it. @internal */
-export function columnOf<C extends { id: string | number }>(
+export function findColumn<C extends { id: string | number }>(
 	columns: readonly C[],
 	columnId: string | number | undefined,
 ): C | undefined {
@@ -48,7 +48,7 @@ export function columnOf<C extends { id: string | number }>(
  * index of its column in `columns`. Each index is `-1` when the grid does not
  * show that row or that column. @internal
  */
-export function coordOf(
+export function findCoord(
 	rowKeys: readonly (string | number)[],
 	columns: readonly { id: string | number }[],
 	cell: { rowKey: string | number; columnId: string | number },
@@ -305,7 +305,7 @@ export function newDraft(value: unknown, row: unknown): GridDraft {
 type DraftRows = Map<GridDraftKey, Map<string | number, GridDraft>>
 
 /** The inner map of `outer` at `key`, created empty when it is absent. @internal */
-function rowOf<V>(
+function getRow<V>(
 	outer: Map<GridDraftKey, Map<string | number, V>>,
 	key: GridDraftKey,
 ): Map<string | number, V> {
@@ -341,7 +341,7 @@ function writeDraft(
 
 	if (!accepts(cell.rowKey, cell.columnId)) return
 
-	rowOf(rows, cell.rowKey).set(cell.columnId, newDraft(write.value, write.snapshot))
+	getRow(rows, cell.rowKey).set(cell.columnId, newDraft(write.value, write.snapshot))
 }
 
 /**
@@ -367,7 +367,7 @@ function takeClosed(
 
 			if (draft.reopened) continue
 
-			rowOf(taken, rowKey).set(columnId, draft)
+			getRow(taken, rowKey).set(columnId, draft)
 
 			row.delete(columnId)
 		}
@@ -441,7 +441,7 @@ export function createDraftStore(
 
 			draft.reopened = false
 
-			rowOf(rows, rowKey).set(columnId, draft)
+			getRow(rows, rowKey).set(columnId, draft)
 		},
 		settle: (rowKey, columnId, draft, refusal) => {
 			const row = rows.get(rowKey)

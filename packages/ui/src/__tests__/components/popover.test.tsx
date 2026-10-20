@@ -2,7 +2,15 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from '../../components/popover'
-import { bySlot, densityStepOf, fireEvent, present, renderUI, screen, setupUser } from '../helpers'
+import {
+	bySlot,
+	fireEvent,
+	present,
+	readDensityStep,
+	renderUI,
+	screen,
+	setupUser,
+} from '../helpers'
 
 describe('Popover', () => {
 	it('renders a default button when PopoverTrigger has non-element children', () => {
@@ -145,7 +153,7 @@ describe('PopoverContent size scope', () => {
 			</Popover>,
 		)
 
-		expect(densityStepOf(present(buttonInPopover(), 'button'))).toBe('sm')
+		expect(readDensityStep(present(buttonInPopover(), 'button'))).toBe('sm')
 	})
 })
 

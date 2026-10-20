@@ -5,10 +5,10 @@ import { Drawer, DrawerClose, DrawerPanel } from '../../components/drawer'
 import { LocaleProvider } from '../../providers/locale'
 import {
 	bySlot,
-	densityStepOf,
 	fireEvent,
 	getSlot,
 	present,
+	readDensityStep,
 	renderUI,
 	screen,
 	setupUser,
@@ -205,7 +205,7 @@ describe('Drawer height and size', () => {
 			</Drawer>,
 		)
 
-		expect(densityStepOf(present(buttonInDrawer(), 'button'))).toBe('lg')
+		expect(readDensityStep(present(buttonInDrawer(), 'button'))).toBe('lg')
 	})
 })
 

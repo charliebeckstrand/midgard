@@ -30,7 +30,7 @@ const renders = new Map<string, number>()
 let commits = 0
 
 /** The name of the component of `fiber`, or `undefined` for a host or an internal fiber. */
-function nameOf(fiber: Fiber): string | undefined {
+function getName(fiber: Fiber): string | undefined {
 	const { type } = fiber
 
 	if (typeof type === 'function') return type.name || undefined
@@ -51,7 +51,7 @@ function walk(first: Fiber | null) {
 	for (let fiber = first; fiber; fiber = fiber.sibling) {
 		const prev = fiber.alternate
 
-		const name = nameOf(fiber)
+		const name = getName(fiber)
 
 		if (name && (prev === null || (fiber.flags & PERFORMED_WORK) !== 0)) {
 			renders.set(name, (renders.get(name) ?? 0) + 1)

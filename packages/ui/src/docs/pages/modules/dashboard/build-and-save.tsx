@@ -190,7 +190,7 @@ function save(board: Board | null) {
 	}
 }
 
-const labelOf = (id: string) => presets.find((preset) => preset.id === id)?.label ?? id
+const getLabel = (id: string) => presets.find((preset) => preset.id === id)?.label ?? id
 
 export default function BuildAndSave() {
 	// The server has no storage, so the first render shows the first template.
@@ -293,7 +293,7 @@ export default function BuildAndSave() {
 						aria-label="Template"
 						value={board.template}
 						onValueChange={choose}
-						displayValue={labelOf}
+						displayValue={getLabel}
 					>
 						{presets.map((preset) => (
 							<SelectOption key={preset.id} value={preset.id}>

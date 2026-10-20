@@ -10,8 +10,8 @@ import {
 } from './engine/grid-edit-focus'
 import type { TransitionPlan } from './engine/grid-edit-transition'
 import {
-	coordOf,
 	EDITOR_FOCUSABLE,
+	findCoord,
 	type GridActiveEdit,
 	isCellEditing,
 	isInGrid,
@@ -222,7 +222,7 @@ export function useGridEditFocus<T>({
 
 			const cell = active?.rowKey === rowKey ? active : origin.cell
 
-			const coord = coordOf(rowKeysRef.current, dataColumnsRef.current, cell)
+			const coord = findCoord(rowKeysRef.current, dataColumnsRef.current, cell)
 
 			if (coord.row >= 0 && coord.col >= 0) moveTo(coord)
 
@@ -269,7 +269,10 @@ export function useGridEditFocus<T>({
 	// intents as it takes the focus, so an intent that no editor took drops here.
 	const focusOpenEditor = useCallback(
 		(rowKey: string | number, columnId: string | number) => {
-			const { row, col } = coordOf(rowKeysRef.current, dataColumnsRef.current, { rowKey, columnId })
+			const { row, col } = findCoord(rowKeysRef.current, dataColumnsRef.current, {
+				rowKey,
+				columnId,
+			})
 
 			const editor = document
 				.getElementById(cellId(row, col))

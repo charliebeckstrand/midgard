@@ -265,7 +265,7 @@ function landingCell(
 }
 
 /** The travel range of the dragged tile, or `null`. It keeps the previous object when equal. */
-function travelOf(
+function resolveTravel(
 	gesture: DashboardGesture | null,
 	columns: number,
 	prev: DashboardDragTravel | null | undefined,
@@ -304,18 +304,18 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 	// The first entry of each id, placed with provisional heights. A tile that has not registered
 	// paints it, so the server markup shows no clamp overlap of two tiles with saved heights.
-	const placedOf = memo(placeEntries)
+	const getPlaced = memo(placeEntries)
 
-	const entriesOf = memo(
+	const getEntries = memo(
 		(layout: readonly DashboardLayoutItem[]) => new Map(layout.map((item) => [item.id, item])),
 	)
 
-	const canonicalOf = memo(resolveLayout)
+	const getCanonical = memo(resolveLayout)
 
 	// A registered tile ranks by its canonical cell, and an entry with no registered tile by its
 	// placed entry. Before any tile registers, only the placed entries rank, so the server
 	// markup and the first client render agree. After that, the order follows the painted rows.
-	const orderOf = memo(
+	const getOrder = memo(
 		(
 			canonical: readonly DashboardCell[],
 			placed: readonly DashboardLayoutItem[],
@@ -334,9 +334,9 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 	) => projectLayout(cells, { width, gap, columns, demands, heights, painted })
 
 	// One slot for the full width and one for the held width, so that the two keep their results.
-	const projectionOf = memo(project)
+	const getProjection = memo(project)
 
-	const heldOf = memo(project)
+	const getHeld = memo(project)
 
 	const derive = (prev: DashboardView | null, from: DashboardState | null): DashboardView => {
 		const {
@@ -352,11 +352,11 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 			selections,
 		} = state
 
-		const canonical = canonicalOf(layout, demands, columns)
+		const canonical = getCanonical(layout, demands, columns)
 
 		const measured = gesture?.width ?? width
 
-		const full = projectionOf(canonical, measured, gap, columns, demands, heights, measured)
+		const full = getProjection(canonical, measured, gap, columns, demands, heights, measured)
 
 		// The hold keeps a projection on screen only while the resolved cells, the demands, and
 		// the grid stay the same. After a change of one of them, the view is that of a new store.
@@ -375,7 +375,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		const held = measured > 0 && ((sameBoard && prev?.projected === true) || !full.identity)
 
 		const projection = held
-			? heldOf(
+			? getHeld(
 					canonical,
 					Math.max(1, measured - PROJECTION_HOLD),
 					gap,
@@ -386,9 +386,9 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 				)
 			: full
 
-		const placed = placedOf(layout, columns)
+		const placed = getPlaced(layout, columns)
 
-		const entries = entriesOf(placed)
+		const entries = getEntries(placed)
 
 		// No tile registers on the server, so until then each saved entry and each declared tile
 		// stands for a tile.
@@ -402,7 +402,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 			cells: paintedCells(gesture, projection.cells, prev?.cells),
 			entries,
 			placeholder: landingCell(gesture, prev?.placeholder),
-			travel: travelOf(gesture, columns, prev?.travel),
+			travel: resolveTravel(gesture, columns, prev?.travel),
 			projected: !projection.identity,
 			editable: editing && projection.identity,
 			// Interned, so a mount that leaves the live selections as they were wakes no reader.
@@ -410,7 +410,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 			order:
 				editing && prev !== null
 					? prev.order
-					: internList(prev?.order, orderOf(canonical, placed, demands)),
+					: internList(prev?.order, getOrder(canonical, placed, demands)),
 		}
 	}
 

@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { allBySlot, bySlot, present, renderUI } from '../../helpers'
-import { boxOf } from '../../helpers/geometry/box'
+import { measureBox } from '../../helpers/geometry/box'
 
 // The edge of a text box can extend this far past the plot from glyph metrics.
 const LABEL_SLACK = 0.6
@@ -51,12 +51,12 @@ describe('chart intrinsic tiers (real browser)', () => {
 
 		if (!svg) throw new Error('expected the plot drawing')
 
-		const frame = boxOf(svg)
+		const frame = measureBox(svg)
 
 		// The check reads the horizontal edges only.
 		for (const text of axisTexts(container, slot)) {
 			expect(svg).toContainBox(
-				{ ...boxOf(text), top: frame.top, bottom: frame.bottom },
+				{ ...measureBox(text), top: frame.top, bottom: frame.bottom },
 				{ tolerance: LABEL_SLACK },
 			)
 		}

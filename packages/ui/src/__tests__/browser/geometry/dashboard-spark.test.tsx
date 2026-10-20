@@ -47,7 +47,7 @@ describe('dashboard spark tile (real browser)', () => {
 		}
 	}
 
-	const tierOf = (id: string) =>
+	const readTier = (id: string) =>
 		parts(id).tile.querySelector('[data-tier]')?.getAttribute('data-tier')
 
 	const style = (element: HTMLElement | null) => getComputedStyle(element as HTMLElement)
@@ -55,7 +55,7 @@ describe('dashboard spark tile (real browser)', () => {
 	it('keeps the header of a spark tile in the flow and in view', async () => {
 		renderUI(<Board />)
 
-		await expect.poll(() => tierOf('spark')).toBe('spark')
+		await expect.poll(() => readTier('spark')).toBe('spark')
 
 		const { header, content } = parts('spark')
 
@@ -74,7 +74,7 @@ describe('dashboard spark tile (real browser)', () => {
 	it('keeps one content height when edit mode switches', async () => {
 		const { rerender } = renderUI(<Board />)
 
-		await expect.poll(() => tierOf('spark')).toBe('spark')
+		await expect.poll(() => readTier('spark')).toBe('spark')
 
 		const rest = parts('spark').content?.getBoundingClientRect().height
 

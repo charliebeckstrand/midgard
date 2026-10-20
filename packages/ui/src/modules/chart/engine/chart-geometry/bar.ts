@@ -160,7 +160,7 @@ export function barMarks(
 
 	const group = seriesCount * thickness + (seriesCount - 1) * MARK_GAP
 
-	const baselineOf = typeof baseline === 'number' ? () => baseline : baseline
+	const getBaseline = typeof baseline === 'number' ? () => baseline : baseline
 
 	return values.map((series, seriesIndex) =>
 		series.map((value, index) => {
@@ -170,7 +170,7 @@ export function barMarks(
 
 			const valuePos = map(value, seriesIndex)
 
-			const seriesBaseline = baselineOf(seriesIndex)
+			const seriesBaseline = getBaseline(seriesIndex)
 
 			if (valuePos === seriesBaseline) return null
 

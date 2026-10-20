@@ -3,7 +3,7 @@ import { page } from 'vitest/browser'
 import { GUTTER_MAX } from '../../../modules/chart/engine/chart-constants'
 import { HeatmapChart, type HeatmapChartSeries } from '../../../modules/chart/heatmap-chart'
 import { allBySlot, getSlot, renderUI, waitFor } from '../../helpers'
-import { boxOf } from '../../helpers/geometry/box'
+import { measureBox } from '../../helpers/geometry/box'
 import { installDocsFont } from '../helpers/docs-font'
 
 /**
@@ -54,9 +54,9 @@ async function rowLabels(width: number) {
 	const [plot] = allBySlot(container, 'chart-hit')
 
 	return {
-		frame: boxOf(svg),
+		frame: measureBox(svg),
 		plotLeft: (plot?.getBoundingClientRect().left ?? frame.left) - frame.left,
-		labels: texts.map((text) => ({ text: text.textContent, left: boxOf(text).left })),
+		labels: texts.map((text) => ({ text: text.textContent, left: measureBox(text).left })),
 	}
 }
 

@@ -116,7 +116,7 @@ function meetsBounds(sizes: number[], configs: PanelConfig[]): boolean {
 	})
 }
 
-function sumOf(values: number[]): number {
+function sum(values: number[]): number {
 	return values.reduce((acc, value) => acc + value, 0)
 }
 
@@ -195,7 +195,7 @@ function fillBounds(base: number[], configs: PanelConfig[]): number[] | null {
 function seedSizes(configs: PanelConfig[]): number[] {
 	const weights = configs.map((config) => config.defaultSize)
 
-	const total = sumOf(weights)
+	const total = sum(weights)
 
 	const base = total > 0 ? weights.map((weight) => (weight / total) * 100) : weights
 

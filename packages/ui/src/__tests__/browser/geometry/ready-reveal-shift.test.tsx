@@ -15,7 +15,7 @@ import { renderUI, waitFor } from '../../helpers'
  * jsdom can't measure this — it reports zero-size boxes.
  */
 describe('ReadyReveal layout shift (real browser)', () => {
-	const rootOf = (container: HTMLElement) => {
+	const getRoot = (container: HTMLElement) => {
 		const root = container.querySelector<HTMLElement>('[data-slot="ready-reveal"]')
 
 		if (!root) throw new Error('ready-reveal root did not render')
@@ -26,7 +26,7 @@ describe('ReadyReveal layout shift (real browser)', () => {
 	async function measureToggle(loading: React.ReactElement, revealed: React.ReactElement) {
 		const view = renderUI(loading)
 
-		const root = rootOf(view.container)
+		const root = getRoot(view.container)
 
 		const loadingHeight = root.getBoundingClientRect().height
 
