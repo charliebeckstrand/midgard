@@ -27,19 +27,6 @@ type Empty = Record<never, never>
 type Merge<Base, Add> = [keyof Add] extends [never] ? Base : Base & Add
 
 /**
- * The per-call overlay a kata hands an applicator. Identical to
- * `RecipeConfig`: extra variant axes are top-level keys (like `density`
- * / `size` in `defineRecipe`), not nested under an `axes` field.
- * Callable siblings (`motion`, sub-recipes) flow through the
- * applicator's separate `extras` argument, which mirrors
- * `defineRecipe(config, extras)` end-to-end. The `skeleton` rides the
- * overlay itself and reaches `Recipe<…>` through the targeted exclusion
- * in `ApplicatorReturn`. That exclusion extracts slots and axes from the
- * inferred `Overlay` via `Omit` and `extends-infer`.
- */
-type ApplicatorOverlay = RecipeConfig
-
-/**
  * Extract the caller's slot shape from their overlay. Falls back to
  * `Empty` when the overlay declares no slots.
  */
@@ -59,7 +46,7 @@ type SlotsOf<Overlay> = Overlay extends { slots: infer S }
 type ApplicatorReturn<
 	StandardConfig extends RecipeConfig,
 	StandardExtras extends Record<string, unknown>,
-	Overlay extends ApplicatorOverlay = Empty,
+	Overlay extends RecipeConfig = Empty,
 	CallerExtras extends Record<string, unknown> = Empty,
 > = Recipe<
 	Merge<
@@ -100,7 +87,7 @@ type ApplicatorReturn<
 export function applyRecipe<
 	StandardConfig extends RecipeConfig,
 	StandardExtras extends Record<string, unknown>,
-	Overlay extends ApplicatorOverlay = Empty,
+	Overlay extends RecipeConfig = Empty,
 	CallerExtras extends Record<string, unknown> = Empty,
 >(
 	standard: { config: StandardConfig; extras: StandardExtras },

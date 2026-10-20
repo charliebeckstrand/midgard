@@ -4,10 +4,7 @@ import { type Context as ReactContext, createContext as reactCreateContext, use 
 
 const MISSING = Symbol('createContext.missing')
 
-type DefaultOption<T> = { default: T }
-type ErrorOption = { error: string }
-
-type Options<T> = DefaultOption<T> | ErrorOption
+type Options<T> = { default: T } | { error: string }
 
 /**
  * Creates a typed context and its consumer hook. The Context itself is the
@@ -44,19 +41,10 @@ type Options<T> = DefaultOption<T> | ErrorOption
  *   const [OffcanvasContext] =
  *     createContext<OffcanvasContextValue | null>('Offcanvas', { default: null })
  */
-export function createContext<T>(name: string): [ReactContext<T>, () => T]
-export function createContext<T>(
-	name: string,
-	options: DefaultOption<T>,
-): [ReactContext<T>, () => T]
-export function createContext<T>(name: string, options: ErrorOption): [ReactContext<T>, () => T]
 export function createContext<T>(name: string, options?: Options<T>): [ReactContext<T>, () => T] {
-	const hasDefault = options !== undefined && 'default' in options
-
-	const customError = options !== undefined && 'error' in options ? options.error : undefined
-
+	// The symbol is private to this module, so only a missing provider gives it.
 	const Context = reactCreateContext<T>(
-		hasDefault ? (options as DefaultOption<T>).default : (MISSING as unknown as T),
+		options && 'default' in options ? options.default : (MISSING as never),
 	)
 
 	// React DevTools shows the context as `<${name}>`.
@@ -65,8 +53,10 @@ export function createContext<T>(name: string, options?: Options<T>): [ReactCont
 	function useContextValue(): T {
 		const value = use(Context)
 
-		if (!hasDefault && (value as unknown) === MISSING) {
-			throw new Error(customError ?? `use${name} must be used within <${name}>`)
+		if (value === MISSING) {
+			throw new Error(
+				options && 'error' in options ? options.error : `use${name} must be used within <${name}>`,
+			)
 		}
 
 		return value

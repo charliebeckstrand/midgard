@@ -1,4 +1,4 @@
-import { type DensityStep, type InnerStep, toInnerStep, valuesByStep } from './steps'
+import { type DensityStep, densitySteps, type InnerStep, toInnerStep, valuesByStep } from './steps'
 
 /**
  * A ramp: one stepped `density-*` utility with a value for each step, such as
@@ -47,9 +47,6 @@ export type ScaleStep<T> = T extends Scale<infer S> ? StepIn<S> : never
 /** Each step of `S`, in a fresh union with no alias. */
 type StepIn<S> = DensityStep extends infer Step ? (Step extends S ? Step : never) : never
 
-/** The steps in the order of `densitySteps`. */
-const order: readonly DensityStep[] = ['xs', 'sm', 'md', 'lg', 'xl']
-
 /** The value of each step in `ramp`. It throws for a list that is not a ramp. */
 function rampValues(ramp: string): Record<DensityStep, string> {
 	const list = /^density-[a-z-]+-\[(.+)\]$/.exec(ramp)?.[1]
@@ -86,7 +83,7 @@ export function rampValue(ramp: Ramp, step: DensityStep): string {
 export function stepsOfRamp(ramp: string): DensityStep[] {
 	const values = rampValues(ramp)
 
-	return order.filter(
+	return densitySteps.filter(
 		(step) => step === toInnerStep(step) || values[step] !== values[toInnerStep(step)],
 	)
 }
@@ -106,5 +103,5 @@ export function defineScale<const R extends readonly Ramp[]>(
 ): Scale<RampSteps<R[number]>> {
 	const steps = new Set(ramps.flatMap(stepsOfRamp))
 
-	return order.filter((step) => steps.has(step)) as unknown as Scale<RampSteps<R[number]>>
+	return densitySteps.filter((step) => steps.has(step)) as unknown as Scale<RampSteps<R[number]>>
 }

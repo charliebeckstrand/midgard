@@ -22,6 +22,12 @@ describe('createContext', () => {
 		expect(() => renderHook(() => useValue())).toThrow('useDialog must be used within <Dialog>')
 	})
 
+	it('hook returns the default when used outside provider', () => {
+		const [, useValue] = createContext('Glass', { default: false })
+
+		expect(renderHook(() => useValue()).result.current).toBe(false)
+	})
+
 	it('error option overrides the default thrown message', () => {
 		const [, useValue] = createContext<string>('Dialog', { error: 'wrap me in <Surrounding>' })
 

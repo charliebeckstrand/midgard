@@ -282,8 +282,8 @@ function matches(rule: CompiledRule, values: Record<string, string | undefined>)
 
 /**
  * Composes base + matching variant axes + the palette pair + compound rules
- * into the class list. Order matches the pre-compiled engine: palette classes
- * land before user compound classes, so user rules still win merge conflicts.
+ * into the class list. Palette classes land before user compound classes, so
+ * user rules still win merge conflicts.
  *
  * @internal
  */
