@@ -43,7 +43,14 @@ export function createGroup(
 	return { id: nextId(), type: 'group', combinator, children }
 }
 
-function defaultValueFor(field?: QueryField): JsonValue {
+/**
+ * The value that a new rule of `field` starts with: `null` for a `boolean`
+ * field, the first option for a `select` field, and a blank string for each
+ * other field or for no field.
+ *
+ * @internal
+ */
+export function defaultValueFor(field?: QueryField): JsonValue {
 	if (!field) return ''
 
 	if (field.type === 'boolean') return null

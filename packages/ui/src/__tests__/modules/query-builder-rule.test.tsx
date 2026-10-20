@@ -18,6 +18,16 @@ const fields: QueryField[] = [
 	{ name: 'age', label: 'Age', type: 'number' },
 	// A field with no operators: a change to it can give no first operator.
 	{ name: 'tag', label: 'Tag', type: 'text', operators: [] },
+	{
+		name: 'status',
+		label: 'Status',
+		type: 'select',
+		options: [
+			{ label: 'Active', value: 'active' },
+			{ label: 'Archived', value: 'archived' },
+		],
+	},
+	{ name: 'verified', label: 'Verified', type: 'boolean' },
 ]
 
 function makeRule(patch: Partial<QueryRule>): QueryRule {
@@ -115,6 +125,26 @@ describe('QueryBuilderRule', () => {
 		pick('Field', 'Tag')
 
 		expect(actions.updateRule).toHaveBeenCalledWith('r1', { field: 'tag', operator: '', value: '' })
+	})
+
+	it('seeds the value that a new rule of the field gets on a field change', () => {
+		const { actions } = renderRule(makeRule({ value: 'Ada' }))
+
+		pick('Field', 'Status')
+
+		expect(actions.updateRule).toHaveBeenLastCalledWith('r1', {
+			field: 'status',
+			operator: 'equals',
+			value: 'active',
+		})
+
+		pick('Field', 'Verified')
+
+		expect(actions.updateRule).toHaveBeenLastCalledWith('r1', {
+			field: 'verified',
+			operator: 'isTrue',
+			value: null,
+		})
 	})
 
 	it('keeps the value when the operator changes to one of the same arity', () => {
