@@ -1,8 +1,8 @@
 'use client'
 
-import { closestCorners, DndContext } from '@dnd-kit/core'
+import { closestCorners, DndContext, type DragStartEvent } from '@dnd-kit/core'
 import { useComposedRefs } from 'motion/react'
-import { type ComponentProps, useCallback, useId, useMemo, useRef } from 'react'
+import { type ComponentProps, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useDragCursor, useScrollRegion, useSortableSensors } from '../../hooks'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
@@ -122,13 +122,10 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	const liftedStore = useKeyedStore(liftedCardId, keyMatcher)
 
 	// Clear keyboard-lifted state when a pointer drag begins.
-	const handleDragStart = useCallback(
-		(event: Parameters<typeof rawDragStart>[0]) => {
-			setLiftedCardId(null)
-			rawDragStart(event)
-		},
-		[rawDragStart, setLiftedCardId],
-	)
+	const handleDragStart = (event: DragStartEvent) => {
+		setLiftedCardId(null)
+		rawDragStart(event)
+	}
 
 	// The board is a named region already. While its columns overflow, it is
 	// also a tab stop, so a keyboard user can scroll it.
