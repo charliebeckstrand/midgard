@@ -1,13 +1,36 @@
+import { TOOL_ATTRIBUTE } from './events-target'
 import type { EventViewport } from './types'
 
 // The probes of the store: the reading of the viewport and the frames of a
 // stack.
 
+/** The probe that {@link keepViewportProbe} keeps in the page. */
+let kept: HTMLElement | undefined
+
+/**
+ * Keeps the probe of {@link readViewport} in the page until the returned
+ * function runs. A probe that each reading adds and removes changes the page
+ * two times, and each change lays out the page again. The recorder keeps the
+ * probe while it runs, so a reading for a resize lays out only what the
+ * resize changed.
+ */
+export function keepViewportProbe(): () => void {
+	const probe = document.body.appendChild(createProbe())
+
+	kept = probe
+
+	return () => {
+		probe.remove()
+
+		if (kept === probe) kept = undefined
+	}
+}
+
 /** The heights that place a surface fixed to an edge now, with no scroll position. */
 export function readViewport(): Omit<EventViewport, 'y'> {
 	const visual = window.visualViewport
 
-	const probe = document.body.appendChild(createProbe())
+	const probe = kept?.isConnected ? kept : document.body.appendChild(createProbe())
 
 	// A computed style is live, so the probe stays until each value is read.
 	const [svh, dvh, lvh, safe] = Array.from(probe.children, (child) => {
@@ -18,7 +41,7 @@ export function readViewport(): Omit<EventViewport, 'y'> {
 		)
 	})
 
-	probe.remove()
+	if (probe !== kept) probe.remove()
 
 	return {
 		visual: {
@@ -63,14 +86,19 @@ export function parseStack(error: unknown): string[] {
 
 /**
  * A box fixed to the layout viewport, with a child for each viewport unit and
- * one for the safe-area insets.
+ * one for the safe-area insets. Its size comes from the viewport only, so
+ * strict containment keeps a layout of the page out of it. It is an element
+ * of the tools, so the sources skip it.
  */
 function createProbe(): HTMLElement {
 	const probe = document.createElement('div')
 
 	probe.setAttribute('aria-hidden', 'true')
 
-	probe.style.cssText = 'position:fixed;inset:0;visibility:hidden;pointer-events:none'
+	probe.setAttribute(TOOL_ATTRIBUTE, '')
+
+	probe.style.cssText =
+		'position:fixed;inset:0;visibility:hidden;pointer-events:none;contain:strict'
 
 	for (const height of ['100svh', '100dvh', '100lvh', '0']) {
 		probe.appendChild(document.createElement('div')).style.cssText =

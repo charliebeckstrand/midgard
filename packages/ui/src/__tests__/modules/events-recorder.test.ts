@@ -212,6 +212,24 @@ describe('listen', () => {
 		expect(store.entries[0]?.detail).toMatchObject({ window: window.innerHeight })
 	})
 
+	it('keeps one probe of the viewport in the tools while it runs, and removes it when it stops', () => {
+		const probes = () => document.body.querySelectorAll(`:scope > [${TOOL_ATTRIBUTE}][aria-hidden]`)
+
+		const stop = listen(new EventStore(createStorage()))
+
+		const [probe] = probes()
+
+		notifyOverlaySignal()
+
+		window.dispatchEvent(new Event('resize'))
+
+		expect([...probes()]).toEqual([probe])
+
+		stop()
+
+		expect(probes()).toHaveLength(0)
+	})
+
 	it('records a move through the session history', () => {
 		const store = listenTo()
 

@@ -1,4 +1,4 @@
-import { parseFrames, parseStack, readViewport } from './events-probes'
+import { keepViewportProbe, parseFrames, parseStack, readViewport } from './events-probes'
 import { CAPTURE_ATTRIBUTE, REPORTS_ATTRIBUTE, type StartEventsOptions } from './events-setting'
 import { setEventSink } from './events-sink'
 import { calls } from './events-sources/calls'
@@ -158,6 +158,8 @@ export function listen(target: EventStore, options: StartEventsOptions = {}): ()
 	const sources = [...SOURCES, ...(options.calls ? [calls] : []), ...(options.sources ?? [])]
 
 	const stops = [
+		// The viewport sources read the probe for each resize and each overlay.
+		keepViewportProbe(),
 		...sources.map((source) => source(note)),
 		// While the store is paused, a sheet of the tools is on screen, so the
 		// events are in the tools.
