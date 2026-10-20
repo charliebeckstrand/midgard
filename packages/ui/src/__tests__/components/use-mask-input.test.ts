@@ -86,12 +86,6 @@ describe('useMaskInput', () => {
 		expect(result.current.value).toBe('abc')
 	})
 
-	it('returns no invalid flag outside a Form', () => {
-		const { result } = renderHook(() => useMaskInput({ format: upper }))
-
-		expect(result.current.invalid).toBeUndefined()
-	})
-
 	it('marks the bound form field touched via onBlur', () => {
 		const wrapper = makeFormWrapper({ defaultValues: { code: '' } })
 
@@ -110,23 +104,5 @@ describe('useMaskInput', () => {
 		})
 
 		expect(result.current.field?.touched).toBe(true)
-	})
-
-	it('surfaces the bound field error state through invalid', () => {
-		const wrapper = makeFormWrapper({
-			defaultValues: { code: '' },
-			validate: { code: (v) => (v.length < 3 ? 'too short' : undefined) },
-			validateOn: 'change',
-		})
-
-		const { result } = renderHook(() => useMaskInput({ name: 'code', format: upper }), { wrapper })
-
-		expect(result.current.invalid).toBe(false)
-
-		act(() => {
-			result.current.setValue('ab')
-		})
-
-		expect(result.current.invalid).toBe(true)
 	})
 })

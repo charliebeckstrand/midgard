@@ -137,15 +137,10 @@ export type TagInputProps = Omit<
  * each add/remove/duplicate/limit outcome to the live region and returns focus
  * to the input after a removal (WCAG 4.1.3, 2.4.3).
  *
- * **A paste commits every token in it.** Pasting a list is the commonest way to
- * fill a token field, and it used to commit nothing. The draft only tokenized on
- * a `keydown`, which a paste does not fire. The whole string therefore sat in
- * the input until blur refused it as one invalid tag. `onPaste` reads
- * `clipboardData` BEFORE the default insertion. That is the only point a
- * newline-separated spreadsheet column is still splittable. A native `<input>`
- * strips the newlines from its own value, which destroys the boundaries. Every
- * commit channel routes through one tokenizer, so all of them accept the same
- * input.
+ * **A paste commits every token in it.** `onPaste` reads `clipboardData`
+ * before the default insertion, because a native `<input>` removes the
+ * newlines of a pasted spreadsheet column from its value. Every commit channel
+ * uses the same tokenizer, so all of them accept the same text.
  *
  * **`required` asks for a tag, not for a draft.** The draft `<input>` takes
  * `aria-required` and no native `required`. A native `required` on it stops the
@@ -160,7 +155,7 @@ export type TagInputProps = Omit<
 export function TagInput({
 	name,
 	size,
-	tagColor,
+	tagColor = 'zinc',
 	value,
 	defaultValue,
 	onValueChange,
@@ -199,9 +194,9 @@ export function TagInput({
 
 	const [inputValue, setInputValue] = useState('')
 
-	// Set when a commit refused tokens, cleared on the next keystroke. The field's own `invalid` can
-	// only arrive from a bound Form field, so without this a rejected draft had no sighted feedback
-	// at all: the reason a refused paste read as nothing happening.
+	// Set when a commit refused tokens, and cleared on the next keystroke. The
+	// field gets `invalid` only from a bound Form field, so this mark is the
+	// visible sign of a refused draft.
 	const [refused, setRefused] = useState(false)
 
 	// The draft and the refused mark are the partial entry of the field, so a
@@ -235,14 +230,10 @@ export function TagInput({
 		inputRef.current?.setCustomValidity(missing ? intl.formatMessage(messages.required) : '')
 	}, [missing, intl])
 
-	const color = tagColor ?? 'zinc'
-
 	/**
-	 * The one commit path: tokenize, add what is addable, keep what was refused.
-	 *
-	 * Every channel goes through here (Enter, comma, blur, the Add button, a paste), which is what
-	 * makes them agree. The Add button in particular used to be enabled for a multi-token draft and do
-	 * nothing when pressed, because it called the single-tag path.
+	 * The commit path of every channel (Enter, comma, blur, the Add button, a
+	 * paste): split the text into tokens, add the tokens that pass, and keep the
+	 * refused tokens in the draft.
 	 */
 	const commit = useCallback(
 		(raw: string) => {
@@ -315,22 +306,19 @@ export function TagInput({
 	// A consumer handler runs first, and its `preventDefault()` keeps the paste as
 	// ordinary typing, as a paste with no delimiter is.
 	const handlePaste = composeEventHandlers(onPaste, (event) => {
-		// At the cap the field is read-only and there is nothing to add; let the browser's own
-		// no-op stand rather than consuming the event.
+		// At the cap the field is read-only, so the default paste does nothing.
 		if (locked || atMax) return
 
 		const pasted = event.clipboardData.getData('text')
 
-		// A paste with no delimiter is ordinary typing: let it land at the caret so a user can
-		// paste one code into the middle of a draft and keep editing. The delimiter is the whole
-		// test: a token count cannot disagree with it, since two tokens can only come from a split
-		// that matched, while one token plus a trailing newline is still a pasted list.
+		// A paste with no delimiter is typing. It goes in at the caret, so the user
+		// can paste one code into a draft and continue to edit.
 		if (!hasSeparator(pasted)) return
 
 		event.preventDefault()
 
-		// Spliced at the caret rather than appended, so pasting into a non-empty draft commits what
-		// the field would have read rather than a re-ordered concatenation.
+		// The paste goes in at the caret, not at the end, so the commit reads the
+		// text that the field would show.
 		const input = event.currentTarget
 
 		const start = input.selectionStart ?? inputValue.length
@@ -372,7 +360,7 @@ export function TagInput({
 						key={key}
 						role="listitem"
 						label={tag}
-						color={color}
+						color={tagColor}
 						className={cn(k.badge)}
 						removeProps={{
 							onMouseDown: (event) => event.preventDefault(),

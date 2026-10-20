@@ -1,13 +1,12 @@
 'use client'
 
 import { CreditCard } from 'lucide-react'
-import { type ReactNode, useId, useMemo } from 'react'
-import { useAriaIds } from '../../hooks'
+import { useMemo } from 'react'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { useHeadless } from '../../providers/headless/context'
 import { digitsOnly } from '../../utilities'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
+import { useInputAffixText } from '../input/use-input-affix-text'
 import { creditCardMessages } from './credit-card-input-messages'
 import {
 	type CardValidity,
@@ -18,10 +17,10 @@ import {
 import type { CreditCardBrand } from './types'
 import { useCreditCardInputField } from './use-credit-card-input-field'
 
-/** Props for {@link CreditCardInput}; extends Input minus the masked value, change, and prefix slots. */
+/** Props for {@link CreditCardInput}; extends Input minus the masked value and change slots. */
 export type CreditCardInputProps = Omit<
 	InputProps,
-	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange' | 'prefix'
+	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange'
 > & {
 	/** Controlled text. `undefined` leaves the field uncontrolled; `null` keeps it controlled and empty (CONVENTIONS §7.3). */
 	value?: string | null
@@ -46,7 +45,6 @@ export type CreditCardInputProps = Omit<
 	onBrandChange?: (brand: CreditCardBrand | undefined) => void
 	/** Fires when the value changes, with the card number's Luhn + length + pattern verdict. */
 	onValidityChange?: (validity: CardValidity) => void
-	prefix?: ReactNode
 }
 
 /**
@@ -78,20 +76,17 @@ export function CreditCardInput({
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: CreditCardInputProps) {
-	const headless = useHeadless()
-
 	const intl = useIntl()
-
-	const brandId = useId()
 
 	const {
 		ref: fieldRef,
 		value: fieldValue,
 		onChange: onFieldChange,
 		onBlur: onFieldBlur,
-		fallbackLabel,
+		ariaLabel: label,
 	} = useCreditCardInputField({
 		fallbackLabel: intl.formatMessage(creditCardMessages.number),
+		ariaLabel,
 		ref,
 		name,
 		value,
@@ -105,12 +100,8 @@ export function CreditCardInput({
 	// return a `formatted` string the masked input already holds.
 	const brand = useMemo(() => detectCardBrand(digitsOnly(fieldValue)), [fieldValue])
 
-	// The brand is text in an affix, so focus mode does not read it. The brand
-	// describes the input, unless the caller replaces the suffix. A headless
-	// input has no affix.
-	const brandShows = !headless && suffix === undefined && brand !== undefined
-
-	const describedBy = useAriaIds(brandShows && brandId, ariaDescribedBy)
+	// The brand describes the input, unless the caller replaces the suffix.
+	const brandAffix = useInputAffixText(brand?.label, suffix, ariaDescribedBy)
 
 	return (
 		<Input
@@ -119,15 +110,11 @@ export function CreditCardInput({
 			type="text"
 			inputMode="numeric"
 			autoComplete="cc-number"
-			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
-			// defaults an aria-label, yielding to a Field <Label> from the first
-			// render and to a native label after each commit
-			// (useControlLabelRef).
-			aria-label={ariaLabel ?? fallbackLabel}
+			aria-label={label}
 			placeholder={placeholder ?? '1234 1234 1234 1234'}
 			prefix={prefix ?? <Icon icon={<CreditCard />} />}
-			suffix={suffix ?? (brandShows ? <span id={brandId}>{brand.label}</span> : undefined)}
-			aria-describedby={describedBy}
+			suffix={brandAffix.node}
+			aria-describedby={brandAffix.describedBy}
 			name={name}
 			value={fieldValue}
 			{...props}

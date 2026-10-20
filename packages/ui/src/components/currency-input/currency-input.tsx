@@ -1,15 +1,14 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type ReactNode, useId, useState } from 'react'
+import { useState } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { useAriaIds } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useFormValue } from '../../primitives/form/use-form-value'
-import { useHeadless } from '../../providers/headless/context'
 import { useLocale } from '../../providers/locale'
 import { isComposing } from '../../utilities'
 import { Input, type InputProps } from '../input'
+import { useInputAffixText } from '../input/use-input-affix-text'
 import { formatEditing, isMeaningful, parseEditing } from './currency-input-utilities'
 import { useCurrencyInputFormatting } from './use-currency-input-formatting'
 
@@ -47,44 +46,6 @@ export type CurrencyInputProps = Omit<
 	locale?: string
 	/** Override the number of fraction digits. When omitted, uses the currency's standard fraction digits. */
 	precision?: number
-}
-
-/**
- * The affixes of a {@link CurrencyInput} and its `aria-describedby`. The symbol
- * goes in the slot that the locale puts it in. A slot from the caller wins.
- *
- * The symbol is text in an affix, so focus mode does not read it. The symbol
- * therefore describes the input, unless the caller replaces its slot. A
- * headless input has no affix, so it gets no symbol id.
- *
- * @internal
- */
-function useSymbolAffix({
-	symbol,
-	symbolIsPrefix,
-	prefix,
-	suffix,
-	ariaDescribedBy,
-}: {
-	symbol: string
-	symbolIsPrefix: boolean
-	prefix: ReactNode
-	suffix: ReactNode
-	ariaDescribedBy: string | undefined
-}) {
-	const headless = useHeadless()
-
-	const id = useId()
-
-	const shows = !headless && (symbolIsPrefix ? prefix : suffix) === undefined
-
-	const node = shows ? <span id={id}>{symbol}</span> : undefined
-
-	return {
-		prefix: prefix ?? (symbolIsPrefix ? node : undefined),
-		suffix: suffix ?? (symbolIsPrefix ? undefined : node),
-		describedBy: useAriaIds(shows && id, ariaDescribedBy),
-	}
 }
 
 /**
@@ -135,7 +96,6 @@ export function CurrencyInput({
 	precision,
 	prefix,
 	suffix,
-	onFocus,
 	onBlur,
 	onKeyDown,
 	name,
@@ -190,7 +150,9 @@ export function CurrencyInput({
 
 	const text = editingText ?? (amount === undefined ? '' : displayFormatter.format(amount))
 
-	const affix = useSymbolAffix({ symbol, symbolIsPrefix, prefix, suffix, ariaDescribedBy })
+	// The symbol goes in the slot that the locale puts it in. A slot from the
+	// caller wins.
+	const affix = useInputAffixText(symbol, symbolIsPrefix ? prefix : suffix, ariaDescribedBy)
 
 	const joinedRef = useComposedRefs(resetRef, ref)
 
@@ -212,13 +174,12 @@ export function CurrencyInput({
 			data-slot="currency-input"
 			type="text"
 			inputMode="decimal"
-			prefix={affix.prefix}
-			suffix={affix.suffix}
+			prefix={symbolIsPrefix ? affix.node : prefix}
+			suffix={symbolIsPrefix ? suffix : affix.node}
 			aria-describedby={affix.describedBy}
 			className={cn('tabular-nums', className)}
 			name={name}
 			value={text}
-			onFocus={onFocus}
 			onKeyDown={composeEventHandlers(onKeyDown, (event) => {
 				// Enter that confirms an input-method candidate must not blur the field.
 				if (event.key === 'Enter' && !isComposing(event)) event.currentTarget.blur()

@@ -153,6 +153,24 @@ describe('MaskInput', () => {
 		)
 	})
 
+	it('marks the input invalid while the bound field has an error', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ code: '' }}
+				validate={{ code: (v) => ((v as string).length < 7 ? 'Too short' : undefined) }}
+				validateOn="change"
+			>
+				<MaskInput name="code" mask={formatGroups} />
+			</Form>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
+
+		await setupUser().type(input, '12')
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+	})
+
 	it('goes back to the formatted defaultValue on a native form reset when uncontrolled', async () => {
 		const { container } = renderUI(
 			<form>

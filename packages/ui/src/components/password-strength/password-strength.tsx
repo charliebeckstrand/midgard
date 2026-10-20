@@ -209,7 +209,7 @@ export function PasswordStrength({
 							<span className={cn(passed ? k.rule.text.pass : k.rule.text.base)}>{rule.label}</span>
 							{/* Otherwise only the (decorative) icon and color convey pass/fail. */}
 							<span className="sr-only">
-								{' — '}
+								{', '}
 								{intl.formatMessage(passed ? messages.met : messages.notMet)}
 							</span>
 						</li>
