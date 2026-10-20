@@ -2,9 +2,9 @@ import { act } from '@testing-library/react'
 import { configureAxe, type JestAxe, toHaveNoViolations } from 'jest-axe'
 import { expect } from 'vitest'
 
-// Register `toHaveNoViolations` here rather than in setup/index.ts so axe-core
-// loads only for the two a11y suites that import `axe`/`axePage` from this
-// module — not across the whole jsdom setup path (one import per test file).
+// Register `toHaveNoViolations` here, not in `setup/index.ts`. Then axe-core
+// loads only for the suites that import `axe` or `axePage` from this module,
+// and not for each file of the jsdom setup.
 expect.extend(toHaveNoViolations)
 
 /**

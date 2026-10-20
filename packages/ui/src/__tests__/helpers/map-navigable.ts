@@ -8,13 +8,13 @@ import { bySlot } from './slot-queries'
 const PLOT_BOX = { width: 400, height: 200 } as const
 
 /**
- * Renders a plat and gives its SVG a real box, returning the SVG and the plot
- * region beside the usual render result.
+ * Renders a plat and gives its SVG a real box. It returns the SVG and the plot
+ * region with the render result.
  *
- * jsdom reports every rect as zero, and a zero box collapses the frame scale —
- * so `frameToClient` resolves no position, the keyboard cursor writes no hover
- * target, and the tooltip can never open. A test asserting on either would pass
- * for the wrong reason without this.
+ * jsdom gives each rect a size of zero, and a box of zero collapses the frame
+ * scale. Then `frameToClient` resolves no position, the keyboard cursor writes
+ * no hover target, and the tooltip cannot open. Without this box, a test that
+ * asserts on one of them can pass for the wrong reason.
  *
  * @param ui - The plat element to render, fixtures already applied.
  *

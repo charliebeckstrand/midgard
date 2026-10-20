@@ -1,13 +1,10 @@
 // @vitest-environment node
 import { existsSync, readdirSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { srcDir } from '../helpers/walk-source'
 
-// This file lives at packages/ui/src/__tests__/docs/; climb to src/.
-const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
-
-const PAGES = join(SRC, 'docs', 'pages')
+const PAGES = join(srcDir, 'docs', 'pages')
 
 function directoryNames(dir: string): string[] {
 	return readdirSync(dir, { withFileTypes: true })
@@ -29,7 +26,7 @@ describe('page coverage', () => {
 	it.each(['components', 'structure', 'modules', 'providers'])(
 		'every %s directory has a page',
 		(section) => {
-			const units = directoryNames(join(SRC, section))
+			const units = directoryNames(join(srcDir, section))
 
 			expect(units.length, `no directories found under src/${section}`).toBeGreaterThan(0)
 

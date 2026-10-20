@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { join } from 'node:path'
 import { compile } from '@tailwindcss/node'
 import { describe, expect, it } from 'vitest'
 import { ma } from '../../recipes/kiso'
@@ -19,14 +18,13 @@ import { resolveTemplate, type SplitRatio } from '../../structure/split/variants
 import type { Orientation } from '../../types'
 import { atBreakpoint, BREAKPOINTS, type MinBreakpoint } from '../../types/responsive'
 import { noop } from '../../utilities/noop'
+import { uiRoot } from '../helpers/walk-source'
 
 // The resolvers of Box, Flex, and Split put a breakpoint prefix on a class at
 // run time, so Tailwind's scanner does not find the prefixed class in the
 // source. `@source inline(...)` in `ui/tailwind.css` declares each prefixed
 // class. The inline lines restate the shared scale (`ma`), so a change to a
 // step of the scale that does not change the lines gives a class with no CSS.
-
-const UI = join(import.meta.dirname, '../../..')
 
 const MIN_BREAKPOINTS = BREAKPOINTS.filter(
 	(breakpoint): breakpoint is MinBreakpoint => breakpoint !== 'initial',
@@ -122,7 +120,7 @@ describe('atBreakpoint', () => {
 describe('the breakpoint classes of the structure units', () => {
 	it('each have CSS from ui/tailwind.css alone', async () => {
 		const compiler = await compile(`@import 'tailwindcss';\n@import './tailwind.css';`, {
-			base: UI,
+			base: uiRoot,
 			onDependency: noop,
 		})
 

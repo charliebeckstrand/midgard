@@ -11,8 +11,11 @@ import { join, relative, sep } from 'node:path'
  */
 export const srcDir = join(import.meta.dirname, '..', '..')
 
+/** The directory of the `ui` package, which holds `package.json` and the configs. */
+export const uiRoot = join(srcDir, '..')
+
 /** The root of the workspace, so a scan can reach the apps and the other packages. */
-export const workspaceRoot = join(srcDir, '..', '..', '..')
+export const workspaceRoot = join(uiRoot, '..', '..')
 
 /**
  * The path of `file` relative to {@link srcDir}, with `/` separators.

@@ -42,7 +42,6 @@ import {
 	SyntaxKind,
 } from 'typescript/unstable/ast'
 import {
-	API,
 	type Checker,
 	type Project,
 	SymbolFlags,
@@ -51,7 +50,8 @@ import {
 } from 'typescript/unstable/sync'
 import { describe, expect, it } from 'vitest'
 import type { ResolvedConfig } from '../../core/recipe/engine/types'
-import { publicBarrels, uiRoot } from '../helpers/public-barrels'
+import { openPublicProject, publicBarrels } from '../helpers/public-barrels'
+import { startTypeScript } from '../helpers/ts-server'
 import { srcDir, srcRelative } from '../helpers/walk-source'
 
 // A component applies a default when a prop is unset. The default comes from
@@ -124,13 +124,6 @@ const kataModules = import.meta.glob<Record<string, unknown>>('../../recipes/kat
 const kataDir = join(srcDir, 'recipes', 'kata')
 
 const engineTypes = join(srcDir, 'core', 'recipe', 'engine', 'types.ts')
-
-/**
- * The project that the checker opens. The file is not on disk: the API reads
- * its text through the `fs` callback. It extends the package config and lists
- * only the kata files and the public barrels.
- */
-const projectConfig = join(uiRoot, 'tsconfig.default-values.json')
 
 /** A callable recipe, as `defineRecipe` returns it. */
 type Recipe = ((props?: object) => string) & { readonly config: ResolvedConfig }
@@ -265,22 +258,10 @@ type Scan = {
 function scan(): Scan {
 	const kataFiles = Object.keys(kataModules).map((key) => join(kataDir, basename(key)))
 
-	const config = JSON.stringify({
-		extends: './tsconfig.json',
-		compilerOptions: { incremental: false, types: [] },
-		files: [...kataFiles, ...publicBarrels()],
-		include: [],
-	})
-
-	const api = new API({
-		cwd: uiRoot,
-		fs: { readFile: (name) => (name === projectConfig ? config : undefined) },
-	})
+	const server = startTypeScript()
 
 	try {
-		const project = api.updateSnapshot({ openProjects: [projectConfig] }).getProject(projectConfig)
-
-		if (!project) throw new Error('the checker did not open the project of the defaults')
+		const project = openPublicProject(server, kataFiles)
 
 		const { program, checker } = project
 
@@ -355,7 +336,7 @@ function scan(): Scan {
 			reached,
 		}
 	} finally {
-		api.close()
+		server.close()
 	}
 }
 

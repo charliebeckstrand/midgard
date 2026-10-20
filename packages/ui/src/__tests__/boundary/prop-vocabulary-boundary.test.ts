@@ -7,7 +7,8 @@ import {
 	type Symbol as TsSymbol,
 } from 'typescript/unstable/sync'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { openPublicProject, type PublicProject, publicBarrels } from '../helpers/public-barrels'
+import { openPublicProject, publicBarrels } from '../helpers/public-barrels'
+import { startTypeScript } from '../helpers/ts-server'
 import { srcRelative } from '../helpers/walk-source'
 
 // A prop takes the name that the vocabulary of CONVENTIONS §4.9 gives for its
@@ -138,17 +139,15 @@ function violations(project: Project): string[] {
 }
 
 describe('prop vocabulary boundary', () => {
-	let opened: PublicProject
+	const server = startTypeScript()
 
 	let project: Project
 
 	beforeAll(() => {
-		opened = openPublicProject('prop-vocabulary')
-
-		project = opened.project
+		project = openPublicProject(server)
 	})
 
-	afterAll(() => opened?.close())
+	afterAll(() => server.close())
 
 	it('a public prop takes the name and the type that the vocabulary gives', () => {
 		const found = violations(project)

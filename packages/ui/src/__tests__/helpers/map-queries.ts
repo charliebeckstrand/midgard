@@ -1,28 +1,28 @@
 /**
- * Query the map module's region paths. Regions anchor on `data-region-index` —
- * the attribute the hover provider's scroll-settle resolve reads — rather than
- * a per-region `data-slot`: the stylesheet carries `[data-slot=…]` attribute
- * selectors for other components, so a county atlas's thousands of paths would
- * each pay attribute-rule matching at first style resolution for an anchor
- * nothing styles by. The layer itself keeps its `map-regions` slot.
+ * The region paths of a map. A region anchors on `data-region-index`, which
+ * the scroll-settle resolve of the hover provider reads, and not on a
+ * `data-slot` for each region. The stylesheet holds `[data-slot=…]` selectors
+ * for other components. With a slot, each path of a county atlas would pay
+ * for those selectors at the first style resolution, for an anchor that no
+ * rule styles. The layer keeps its `map-regions` slot.
  */
 export function allRegions(container: HTMLElement) {
 	return Array.from(container.querySelectorAll<SVGPathElement>('[data-region-index]'))
 }
 
-/** The first region path, mirroring `querySelector` semantics. */
+/** The first region path, or `null`, as `querySelector` gives it. */
 export function firstRegion(container: HTMLElement) {
 	return container.querySelector<SVGPathElement>('[data-region-index]')
 }
 
 /**
- * Each row of the visually-hidden data table as a name / `aria-current` pair, in
- * the order a reader meets them — regions first, then one row per overlay stop.
+ * Each row of the visually hidden data table as a pair of its name and its
+ * `aria-current`, in the order that a reader meets them. The regions come
+ * first, then one row for each overlay stop.
  *
- * Read off the row header rather than the `tr`: the table puts `aria-current`
- * there deliberately (support for the attribute on a plain `tr` is uneven), so
- * the region pick and the overlay pick assert that one contract through one
- * reader.
+ * It reads the row header, not the `tr`. The table puts `aria-current` on the
+ * header because support for the attribute on a plain `tr` is uneven. Thus the
+ * region pick and the overlay pick assert one contract through one reader.
  */
 export function tableRows(container: HTMLElement) {
 	return Array.from(container.querySelectorAll('[data-slot="map-table"] tbody th')).map((cell) => [
@@ -32,12 +32,12 @@ export function tableRows(container: HTMLElement) {
 }
 
 /**
- * The scale a transformed layer draws at, read off its own attribute.
+ * The scale of a transformed layer, from its `transform` attribute.
  *
- * `1` where the layer carries no transform, which is the identity it would
- * apply — so a caller multiplies by this whether or not the layer is
- * transformed. `transformAttribute` rounds to three decimals, so read the
- * result to three places and no further.
+ * A layer with no transform gives `1`, the identity. Thus a caller can
+ * multiply by the result whether or not the layer has a transform.
+ * `transformAttribute` rounds to three decimals, so read the result to three
+ * places and no more.
  */
 export function layerScale(element: Element | null | undefined): number {
 	const match = /scale\((-?[\d.]+)\)/.exec(element?.getAttribute('transform') ?? '')

@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { RULE_DOCUMENTS, rootDir } from '../helpers/controlled-language'
+import { RULE_DOCUMENTS } from '../helpers/controlled-language'
+import { workspaceRoot } from '../helpers/walk-source'
 
 // The cadence rules of STE.md set the spacing and the shape of authored text.
 // CLAUDE.md once asked for a check by hand before each commit, but no tool made
@@ -98,7 +99,7 @@ function cadenceBreaks(file: string, source: string): string[] {
 describe('cadence boundary', () => {
 	it('the rule documents keep the cadence (STE.md cadence rules 1, 3, 4, 7)', () => {
 		const violations = RULE_DOCUMENTS.flatMap((file) =>
-			cadenceBreaks(file, readFileSync(join(rootDir, file), 'utf8')),
+			cadenceBreaks(file, readFileSync(join(workspaceRoot, file), 'utf8')),
 		)
 
 		expect(violations, `cadence break in a rule document:\n${violations.join('\n')}`).toEqual([])

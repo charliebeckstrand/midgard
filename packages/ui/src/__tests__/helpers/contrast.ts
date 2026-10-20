@@ -44,10 +44,10 @@ const NEUTRAL = /\b(white|black)(?:\/(\d{1,3}))?\b/
 const alphaOf = (suffix: string | undefined): number => (suffix ? Number(suffix) / 100 : 1)
 
 /**
- * The raw `oklch(…)` string a Tailwind color token resolves to in the theme
- * (e.g. `green-600`, `orange-600`). Lets a guard measure any token — including
- * the chart-only hues (`orange`, `sky`) outside the iro palette — with the
- * shared `contrast` utility.
+ * The raw `oklch(…)` string of a Tailwind color token in the theme, such as
+ * `green-600` or `orange-600`. A guard can then measure each token with the
+ * shared `contrast` utility. This includes the chart hues (`orange`, `sky`)
+ * that are not in the iro palette.
  */
 export function themeColor(token: string): string {
 	const oklch = THEME.get(token)

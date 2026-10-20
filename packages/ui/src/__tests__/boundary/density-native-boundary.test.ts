@@ -7,6 +7,7 @@ import {
 	srcDir,
 	srcRelative,
 	stripSourceComments,
+	uiRoot,
 	walkSource,
 	workspaceRoot,
 } from '../helpers/walk-source'
@@ -407,8 +408,8 @@ for (const app of readdirSync(join(workspaceRoot, 'apps')))
 
 walkSource(join(workspaceRoot, 'packages', 'shared', 'src'), visitConsumer)
 
-for (const file of readdirSync(join(srcDir, '..')).filter((name) => name.endsWith('.css'))) {
-	const path = join(srcDir, '..', file)
+for (const file of readdirSync(uiRoot).filter((name) => name.endsWith('.css'))) {
+	const path = join(uiRoot, file)
 
 	visitConsumer(path, readFileSync(path, 'utf8'))
 }
