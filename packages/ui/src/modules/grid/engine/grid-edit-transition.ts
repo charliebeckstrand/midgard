@@ -83,7 +83,7 @@ export type CellRequest = {
 }
 
 /** The row a grid-owned session holds, and whether the session put it in the set. @internal */
-type SessionRow = { rowKey: string | number; acquired: boolean }
+export type SessionRow = { rowKey: string | number; acquired: boolean }
 
 /**
  * The {@link CrossRowEntry} of an uncontrolled entry, or `null` when the entry
