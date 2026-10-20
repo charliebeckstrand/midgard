@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { adaptive, type Responsive, withInitial } from '../types/responsive'
-import { useOpenChange } from './use-open-change'
+import { useReportedChange } from './use-reported-change'
 import { useResponsiveValue } from './use-responsive-value'
 
 /**
@@ -70,7 +70,7 @@ export function useOffcanvas({ layout = OFFCANVAS_LAYOUT, onOpenChange }: Offcan
 
 	// Watched rather than wrapped around the setter: the auto-close above has no
 	// call site of its own, and `setOpen` is handed out raw for callers to drive.
-	useOpenChange(open, onOpenChange)
+	useReportedChange(open, onOpenChange)
 
 	return { open, setOpen, close, layout: filled }
 }

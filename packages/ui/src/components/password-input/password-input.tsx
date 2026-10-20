@@ -2,7 +2,7 @@
 
 import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
-import { useOpenChange } from '../../hooks/use-open-change'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
@@ -105,7 +105,7 @@ export function PasswordInput({
 
 	// The flag is derived from the toggle and the resolved disabled state, so the
 	// report watches the committed value rather than the toggle's own call site.
-	useOpenChange(revealed, onVisibleChange)
+	useReportedChange(revealed, onVisibleChange)
 
 	return (
 		<Input

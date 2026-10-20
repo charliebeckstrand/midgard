@@ -19,7 +19,7 @@ import {
 	useSyncExternalStore,
 } from 'react'
 import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
-import { useOpenChange } from '../../hooks/use-open-change'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
 import { noop } from '../../utilities/noop'
@@ -249,7 +249,7 @@ export function useTooltipState({
 	 * what the reader sees, on every route into it. Those routes are hover, focus,
 	 * click, `held`, `enabled`, the `:disabled` store above, and the overlay signal.
 	 */
-	useOpenChange(open, onOpenChange)
+	useReportedChange(open, onOpenChange)
 
 	// `mouseOnly` reads the `pointerType` of the event, not a media query. A touch
 	// press gives no hover, so a tap does not open a hover tooltip. The

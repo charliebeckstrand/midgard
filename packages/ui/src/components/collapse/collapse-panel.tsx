@@ -3,8 +3,8 @@
 import { AnimatePresence } from 'motion/react'
 import type { ComponentProps, ReactNode } from 'react'
 import { dataAttr } from '../../core'
-import { useOpenChange } from '../../hooks/use-open-change'
 import { useOpenComplete } from '../../hooks/use-open-complete'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { MountHold, useMountHold } from '../../primitives/mount'
 import { heldMotionProps, heldMotionTargets } from '../../primitives/mount/mount-held-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -59,7 +59,7 @@ export function CollapsePanel({ children, className, ...props }: CollapsePanelPr
 	// transition watcher rather than an `open` effect, so a panel that mounts already
 	// open announces nothing — the contract the animated branches keep for free,
 	// because the motion library plays no entrance on mount.
-	useOpenChange(open, (next) => {
+	useReportedChange(open, (next) => {
 		if (!preset && next) report()
 	})
 

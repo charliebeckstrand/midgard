@@ -10,7 +10,7 @@ import {
 	useState,
 } from 'react'
 import { announce } from '../../core'
-import { useOpenChange } from '../../hooks/use-open-change'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { fileUploadMessages } from './file-upload-messages'
@@ -116,7 +116,7 @@ export function useFileUploadHandlers({
 	// `dragOver` is derived from the counter, and four routes write that counter.
 	// The report watches the committed flag, so a crossing between two children
 	// stays silent and a mid-drag `disabled` flip still closes the highlight.
-	useOpenChange(dragOver, onDragOverChange)
+	useReportedChange(dragOver, onDragOverChange)
 
 	const openPicker = useCallback(() => {
 		if (!disabled) inputRef.current?.click()
