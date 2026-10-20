@@ -40,7 +40,7 @@ import {
 	rangeFillSource,
 } from './engine/grid-range/fill'
 import { pastePlacement } from './engine/grid-range/paste'
-import type { GridRangeCells } from './engine/grid-range/range'
+import type { GridRangeCells, GridRowStep } from './engine/grid-range/range'
 import { parseTsv, toTsv } from './engine/grid-range/tsv'
 import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
 import { resolveCellAt } from './engine/grid-row/bridges'
@@ -149,10 +149,9 @@ function pasteTargets<T>(
 	cells: GridRangeCells,
 	keys: readonly (string | number)[],
 	columns: readonly GridColumn<T>[],
+	step: GridRowStep,
 ): GridPasteCell[] {
-	const size = { rows: keys.length, cols: columns.length }
-
-	return pastePlacement(block, cells, size).flatMap(({ row, col, text }) => {
+	return pastePlacement(block, cells, columns.length, step).flatMap(({ row, col, text }) => {
 		const rowKey = keys[row]
 
 		const column = columns[col]
@@ -489,6 +488,7 @@ export function useGridCursor<T>({
 		tableRef,
 		cellId: nav.cellId,
 		moveTo: nav.moveTo,
+		rowStep: nav.rowStep,
 	})
 
 	const {
@@ -610,7 +610,7 @@ export function useGridCursor<T>({
 
 		const block = parseTsv(event.clipboardData.getData('text/plain'))
 
-		pasteCells(pasteTargets(block, cells, rowKeysRef.current, dataColumnsRef.current))
+		pasteCells(pasteTargets(block, cells, rowKeysRef.current, dataColumnsRef.current, nav.rowStep))
 	})
 
 	const { fillCells } = editing
@@ -628,8 +628,12 @@ export function useGridCursor<T>({
 
 			const columns = dataColumnsRef.current
 
-			const targets = fillPlan(source, direction, count, (row, col) =>
-				fillValue(rows[row], columns[col]),
+			const targets = fillPlan(
+				source,
+				direction,
+				count,
+				(row, col) => fillValue(rows[row], columns[col]),
+				nav.rowStep,
 			)
 
 			fillCells?.(
@@ -656,37 +660,65 @@ export function useGridCursor<T>({
 		return () => writeFill(plan.source, direction, plan.count)
 	})
 
+	// The drag of the fill handle measures in places among the data rows that
+	// the cursor shows, so it skips the rows of a closed group. These convert
+	// between the places and data row indexes.
+	const { rowPlace, rowAtPlace } = nav
+
 	// The source of a drag of the fill handle: the range, else the active cell.
 	const readFillSource = useStableEvent((): GridFillRect | null => {
 		const cells = readRange() ?? activeCells(nav.active)
 
-		const top = cells?.rows[0]
+		const first = cells?.rows[0]
 
 		const left = cells?.cols[0]
 
-		if (!cells || top === undefined || left === undefined) return null
+		if (!cells || first === undefined || left === undefined) return null
 
-		const bottom = cells.rows[cells.rows.length - 1] ?? top
+		const top = rowPlace(first)
+
+		const bottom = rowPlace(cells.rows[cells.rows.length - 1] ?? first)
 
 		const right = cells.cols[cells.cols.length - 1] ?? left
 
-		return { top, bottom, left, right }
+		return top === -1 || bottom === -1 ? null : { top, bottom, left, right }
 	})
 
 	const fillFromHandle = useStableEvent(
 		(source: GridFillRect, direction: GridFillDirection, count: number) =>
 			writeFill(
-				{ rows: span(source.top, source.bottom), cols: span(source.left, source.right) },
+				{
+					rows: span(source.top, source.bottom).flatMap((place) => rowAtPlace(place) ?? []),
+					cols: span(source.left, source.right),
+				},
 				direction,
 				count,
 			),
 	)
 
+	const showFillRange = useStableEvent((from: Coord, to: Coord) => {
+		const fromRow = rowAtPlace(from.row)
+
+		const toRow = rowAtPlace(to.row)
+
+		if (fromRow !== undefined && toRow !== undefined) {
+			nav.showRange({ row: fromRow, col: from.col }, { row: toRow, col: to.col })
+		}
+	})
+
+	const fillCellOf = useStableEvent((id: string): Coord | null => {
+		const coord = nav.cellCoordOf(id)
+
+		const place = coord ? rowPlace(coord.row) : -1
+
+		return coord && place !== -1 ? { row: place, col: coord.col } : null
+	})
+
 	const startFillDrag = useGridFillDrag({
 		readSource: readFillSource,
-		showRange: nav.showRange,
+		showRange: showFillRange,
 		fill: fillFromHandle,
-		cellCoordOf: nav.cellCoordOf,
+		cellCoordOf: fillCellOf,
 		scrollContainerRef,
 		press: nav.press,
 	})

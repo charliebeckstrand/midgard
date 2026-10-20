@@ -13,6 +13,7 @@ import {
 	readKeyPress,
 	stepEditableColumn,
 } from './engine/grid-editing-utilities'
+import type { GridRowStep } from './engine/grid-range/range'
 import type { GridColumn } from './types'
 import type { Coord } from './use-grid-navigation'
 
@@ -43,6 +44,7 @@ export function useGridEditKeys<T>({
 	requestRef,
 	cellId,
 	moveTo,
+	rowStep,
 	reseat,
 	isPending,
 	enterEdit,
@@ -64,6 +66,8 @@ export function useGridEditKeys<T>({
 	requestRef: RefObject<CellRequest | null>
 	cellId: (row: number, col: number) => string
 	moveTo: (coord: Coord) => void
+	/** The data row a number of rows away, over the rows that the cursor shows. */
+	rowStep: GridRowStep
 	/** Reseats focus on the tab stop, marked as the grid's own move. */
 	reseat: () => void
 	/** Whether the cell's commit is in flight. */
@@ -116,11 +120,12 @@ export function useGridEditKeys<T>({
 		[rowKeysRef, dataColumnsRef, tableRef, sessionRowRef, editableRowsRef, activeEditRef],
 	)
 
-	// Enter commits the session and moves the cursor down one row. Under cell
-	// scope it enters the next row's cell, which is the column-wise fill flow of a
-	// spreadsheet. On the last row the cursor stays, and focus rests on the tab
-	// stop. The exit and the entry are two writes, so a controlled binding can
-	// decline the entry and keep the commit.
+	// Enter commits the session and moves the cursor down one row, the next data
+	// row that the cursor shows. Under cell scope it enters that row's cell,
+	// which is the column-wise fill flow of a spreadsheet. On the last row the
+	// cursor stays, and focus rests on the tab stop. The exit and the entry are
+	// two writes, so a controlled binding can decline the entry and keep the
+	// commit.
 	const commitDown = useCallback(
 		(rowKey: string | number, columnId: string | number) => {
 			const rowKeys = rowKeysRef.current
@@ -129,13 +134,21 @@ export function useGridEditKeys<T>({
 
 			endSession(rowKey, 'save')
 
-			const next = rowKeys[row + 1]
+			const below = rowStep(row, 1)
 
-			moveTo({ row: next === undefined ? row : row + 1, col })
+			const next = below === undefined ? undefined : rowKeys[below]
 
-			if (cellScoped && next !== undefined) enterEdit(next, columnId)
+			if (below === undefined || next === undefined) {
+				moveTo({ row, col })
+
+				return
+			}
+
+			moveTo({ row: below, col })
+
+			if (cellScoped) enterEdit(next, columnId)
 		},
-		[cellScoped, endSession, enterEdit, moveTo, rowKeysRef, dataColumnsRef],
+		[cellScoped, endSession, enterEdit, moveTo, rowStep, rowKeysRef, dataColumnsRef],
 	)
 
 	// F2 commits the session and leaves the cursor on the cell, with focus back on

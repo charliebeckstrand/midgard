@@ -24,7 +24,13 @@ import {
 } from '../../utilities'
 import { createPressOwner, isPrimaryPress, type PressOwner } from '../../utilities/primary-press'
 import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
-import { type GridRangeCells, inRangeRect, rangeCells, rangeRect } from './engine/grid-range/range'
+import {
+	type GridRangeCells,
+	type GridRowStep,
+	inRangeRect,
+	rangeCells,
+	rangeRect,
+} from './engine/grid-range/range'
 import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
 import type { GridCursorRow } from './grid-cursor-order'
 import type { GridFillHandle } from './use-grid-fill-handle'
@@ -346,6 +352,30 @@ function cursorOfDataRows(
 }
 
 /**
+ * The data row indexes that a published order shows, in its order, and the
+ * place of each among them. @internal
+ */
+type DataRowPlaces = { rows: number[]; placeOf: Map<number, number> }
+
+/** The {@link DataRowPlaces} of a published order, or `null` for data rows only. @internal */
+function dataRowPlaces(
+	order: readonly GridCursorRow[] | null,
+	rowIndexMap: Map<unknown, number>,
+): DataRowPlaces | null {
+	if (!order) return null
+
+	const rows: number[] = []
+
+	for (const entry of order) {
+		const data = entry.kind === 'data' ? rowIndexMap.get(entry.row) : undefined
+
+		if (data !== undefined) rows.push(data)
+	}
+
+	return { rows, placeOf: new Map(rows.map((row, place) => [row, place])) }
+}
+
+/**
  * The order and the row map that one render of the cursor reads: the published
  * order, or `null` for data rows only, and the row to data index map it was
  * resolved against. @internal
@@ -640,6 +670,12 @@ export function useGridNavigation({
 	store: GridNavStore
 	cellId: (row: number, col: number) => string
 	moveTo: (coord: Coord) => void
+	/** The data row a number of rows away, over the data rows that the cursor shows. */
+	rowStep: GridRowStep
+	/** The place of a data row among the data rows that the cursor shows, or -1 for one it does not show. */
+	rowPlace: (row: number) => number
+	/** The data row at a place among the data rows that the cursor shows, or `undefined` past either end. */
+	rowAtPlace: (place: number) => number | undefined
 	/**
 	 * Follows the active cell into a new layout of the row keys and the data
 	 * column ids, and clamps it to the new bounds and the new-row slot. It also
@@ -713,6 +749,8 @@ export function useGridNavigation({
 
 	const cursorOfDataRef = useRef<Map<number, number>>(new Map())
 
+	const placesRef = useRef<DataRowPlaces | null>(null)
+
 	// The order and the row map as this hook's render reads them. The refs above
 	// serve the event handlers and the cells, which read at their own time. The
 	// view changes with each published order, and with each new row map while a
@@ -738,6 +776,42 @@ export function useGridNavigation({
 
 		return cursorOfDataRef.current.get(row) ?? -1
 	}, [])
+
+	/**
+	 * The place of a data row among the data rows that the cursor shows, or -1
+	 * for a data row that it does not show.
+	 */
+	const rowPlace = useCallback(
+		(row: number): number => {
+			const places = placesRef.current
+
+			if (!places) return row >= 0 && row < rowsRef.current.length ? row : -1
+
+			return places.placeOf.get(row) ?? -1
+		},
+		[rowsRef],
+	)
+
+	/** The data row at a place among the data rows that the cursor shows, or `undefined` past either end. */
+	const rowAtPlace = useCallback(
+		(place: number): number | undefined => {
+			const places = placesRef.current
+
+			if (!places) return place >= 0 && place < rowsRef.current.length ? place : undefined
+
+			return places.rows[place]
+		},
+		[rowsRef],
+	)
+
+	const rowStep = useCallback<GridRowStep>(
+		(row, steps) => {
+			const place = rowPlace(row)
+
+			return place === -1 ? undefined : rowAtPlace(place + steps)
+		},
+		[rowPlace, rowAtPlace],
+	)
 
 	/** The one-stop entry at a cursor row, or `undefined` for a data row or the new-row slot. */
 	const stopAt = useCallback((row: number) => stopIn(orderRef.current, row), [])
@@ -944,6 +1018,8 @@ export function useGridNavigation({
 		orderRef.current = order
 
 		cursorOfDataRef.current = cursorOfDataRows(order, rowIndexMapRef.current)
+
+		placesRef.current = dataRowPlaces(order, rowIndexMapRef.current)
 
 		setView({ order, rowIndexMap: rowIndexMapRef.current })
 
@@ -1274,6 +1350,8 @@ export function useGridNavigation({
 
 		cursorOfDataRef.current = cursorOfDataRows(order, rowIndexMap)
 
+		placesRef.current = dataRowPlaces(order, rowIndexMap)
+
 		setView((prev) =>
 			prev.rowIndexMap === rowIndexMap ? prev : { order: prev.order, rowIndexMap },
 		)
@@ -1311,6 +1389,9 @@ export function useGridNavigation({
 		store: enabled ? store : INERT_STORE,
 		cellId,
 		moveTo,
+		rowStep,
+		rowPlace,
+		rowAtPlace,
 		reconcile,
 		seat,
 		press,

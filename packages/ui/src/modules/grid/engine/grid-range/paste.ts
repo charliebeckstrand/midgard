@@ -1,6 +1,7 @@
 import { parseNumeric } from '../../../../utilities'
 import { reduceNumbers } from '../../../../utilities/aggregate'
 import { inferEditorKind } from '../grid-editing-utilities'
+import type { GridRowStep } from './range'
 
 /**
  * One cell that a paste writes: a data row index, a data column index, and the
@@ -11,7 +12,8 @@ export type GridPasteTarget = { row: number; col: number; text: string }
 /**
  * The cells that a block of clipboard fields writes into a range. The range
  * gives its data row indexes and its data column indexes, each in order.
- * `size` gives the count of data rows and data columns in the grid.
+ * `cols` gives the count of data columns in the grid, and `step` gives the
+ * data rows below the range, over the rows that the cursor shows.
  *
  * - A block of one field goes into each cell of the range.
  * - A range that is a whole multiple of the block on both axes takes copies
@@ -26,7 +28,8 @@ export type GridPasteTarget = { row: number; col: number; text: string }
 export function pastePlacement(
 	block: readonly (readonly string[])[],
 	area: { rows: readonly number[]; cols: readonly number[] },
-	size: { rows: number; cols: number },
+	cols: number,
+	step: GridRowStep,
 ): GridPasteTarget[] {
 	const height = block.length
 
@@ -58,9 +61,13 @@ export function pastePlacement(
 		return targets
 	}
 
-	for (let i = 0; i < height && top + i < size.rows; i++) {
-		for (let j = 0; j < width && left + j < size.cols; j++) {
-			targets.push({ row: top + i, col: left + j, text: field(i, j) })
+	for (let i = 0; i < height; i++) {
+		const row = step(top, i)
+
+		if (row === undefined) break
+
+		for (let j = 0; j < width && left + j < cols; j++) {
+			targets.push({ row, col: left + j, text: field(i, j) })
 		}
 	}
 

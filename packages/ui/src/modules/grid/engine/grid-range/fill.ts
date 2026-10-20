@@ -4,6 +4,8 @@
  * step, and each other line repeats.
  */
 
+import type { GridRowStep } from './range'
+
 /** The direction of a fill, from the source cells to the cells that it writes. @internal */
 export type GridFillDirection = 'down' | 'right' | 'up' | 'left'
 
@@ -60,13 +62,15 @@ export type GridFillTarget = { row: number; col: number; value: unknown }
  * down or up) or each row (for a fill right or left) is one source line.
  * `read` gives the value of a source cell. For a fill up or left, the line
  * reads from the far edge toward the fill, so a series runs the same way.
- * @internal
+ * `step` gives the rows of a fill down or up, so the fill skips the rows that
+ * the cursor does not show. A row past the edge takes no value. @internal
  */
 export function fillPlan(
 	source: { rows: readonly number[]; cols: readonly number[] },
 	direction: GridFillDirection,
 	count: number,
 	read: (row: number, col: number) => unknown,
+	step: GridRowStep,
 ): GridFillTarget[] {
 	const vertical = direction === 'down' || direction === 'up'
 
@@ -93,9 +97,19 @@ export function fillPlan(
 		)
 
 		values.forEach((value, index) => {
-			const at = back ? first - index - 1 : last + index + 1
+			const offset = back ? -index - 1 : index + 1
 
-			targets.push(vertical ? { row: at, col: line, value } : { row: line, col: at, value })
+			const from = back ? first : last
+
+			if (!vertical) {
+				targets.push({ row: line, col: from + offset, value })
+
+				return
+			}
+
+			const row = step(from, offset)
+
+			if (row !== undefined) targets.push({ row, col: line, value })
 		})
 	}
 
@@ -136,7 +150,11 @@ export function rangeFillSource(
 	return { source, count: along.length - 1 }
 }
 
-/** The bounds of a block of data cells, inclusive, in data row and data column indexes. @internal */
+/**
+ * The bounds of a block of data cells, inclusive. A row is a place among the
+ * data rows that the cursor shows, and a column is a data column index.
+ * @internal
+ */
 export type GridFillRect = { top: number; bottom: number; left: number; right: number }
 
 /**
