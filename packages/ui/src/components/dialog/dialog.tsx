@@ -1,18 +1,16 @@
 'use client'
 
-import type { ComponentProps, ReactNode, RefObject } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
-import { useA11yPanel, useResponsiveValue } from '../../hooks'
-import { useOpenComplete } from '../../hooks/use-open-complete'
-import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import type { ComponentProps, ReactNode } from 'react'
+import { cn } from '../../core'
+import { useResponsiveValue } from '../../hooks'
 import { Overlay } from '../../primitives/overlay'
 import {
 	type PanelOverlayProps,
 	PanelProviders,
 	PanelRoot,
 	type PanelRootProps,
-	usePanelState,
 } from '../../primitives/panel'
+import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
@@ -97,11 +95,6 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		 */
 		role?: 'dialog' | 'alertdialog'
 		/**
-		 * Element to receive initial focus when the dialog opens.
-		 * @defaultValue the first tabbable child.
-		 */
-		initialFocus?: RefObject<HTMLElement | null>
-		/**
 		 * Accessible name for dialogs without a visible `DialogTitle` (e.g. a command
 		 * palette). Ignored once a `DialogTitle` registers.
 		 */
@@ -158,7 +151,7 @@ export function DialogPanel({
 	onOpenComplete,
 	align: alignProp = DIALOG_ALIGN,
 	dismissOnBackdrop,
-	modal = true,
+	modal,
 	backdrop,
 	container,
 	width,
@@ -168,47 +161,36 @@ export function DialogPanel({
 	footer,
 	role = 'dialog',
 	initialFocus,
+	returnFocusTo,
 	'aria-label': ariaLabel,
 	'data-slot': slot = 'dialog',
 	onClick,
 	...props
 }: DialogPanelProps) {
-	// The root holds the state. One setter drives the Overlay and the close parts.
-	const { open, setOpen, panelId } = usePanelState()
-
 	const surface = useResolvedSurface(glass)
-
-	const isGlass = surface === 'glass'
 
 	// A map with no `initial` value docks there, in the CSS and in the motion alike.
 	const align = withInitial(alignProp, 'bottom')
 
 	const docked = useResponsiveValue(align, 'bottom') === 'bottom'
 
-	// The phone slide moves `transform`, which `MotionConfig` does not hold still,
-	// so the panel reads the setting itself (WCAG 2.3.3).
-	const presets = usePrefersReducedMotion() ? k.still : k.motion
-
-	const preset = docked ? presets.mobile : presets.desktop
-
-	const { onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
-
-	const { ariaProps, a11y } = useA11yPanel(role, modal)
-
-	// aria-labelledby (a registered DialogTitle) takes precedence over aria-label.
-	const ariaLabelledBy = ariaProps['aria-labelledby']
+	const { setOpen, a11y, overlayProps, panelProps, panelClassName } = usePanelSurface({
+		role,
+		glass: surface === 'glass',
+		motion: (reduced) => (reduced ? k.still : k.motion)[docked ? 'mobile' : 'desktop'],
+		onOpenComplete,
+		'aria-label': ariaLabel,
+		onClick,
+		modal,
+		dismissOnBackdrop,
+		backdrop,
+		container,
+		initialFocus,
+		returnFocusTo,
+	})
 
 	return (
-		<Overlay
-			open={open}
-			onOpenChange={setOpen}
-			dismissOnBackdrop={dismissOnBackdrop}
-			modal={modal}
-			backdrop={backdrop}
-			container={container}
-			backdropClassName={k.backdrop({ surface })}
-			initialFocus={initialFocus}
-		>
+		<Overlay {...overlayProps} backdropClassName={k.backdrop({ surface })}>
 			<div
 				className={cn(
 					// The overlay root is positioned in both modes, so the wrapper fills the
@@ -220,25 +202,12 @@ export function DialogPanel({
 				<m.div
 					data-slot={slot}
 					{...props}
-					{...preset}
-					onAnimationComplete={onAnimationComplete}
-					{...ariaProps}
-					aria-label={ariaLabelledBy ? undefined : ariaLabel}
-					id={panelId}
-					// React carries a click in the portal up the component tree. Stop it at
-					// the panel, so a clickable ancestor of the Dialog does not see it.
-					// A consumer's preventDefault() does not let the click past the panel (CONVENTIONS.md §3.9).
-					onClick={composeEventHandlers(onClick, (event) => event.stopPropagation(), {
-						checkForDefaultPrevented: false,
-					})}
-					// Half the marker `hannou.tint.glass` keys on; the `group/glass` class
-					// below is the other half. See `recipes/kiso/hannou/glass-item.ts`. A
-					// command palette's rows hover inside this panel, not inside a popover.
-					data-glass={dataAttr(isGlass)}
-					data-open={dataAttr(open)}
+					{...panelProps}
+					// A command palette's rows hover inside this panel, not inside a popover,
+					// so they take the glass wash that the panel opens.
 					className={cn(
 						'pointer-events-auto',
-						isGlass && 'group/glass',
+						panelClassName,
 						k.panel({ surface, width }),
 						resolveVariant(align, k.align.panel),
 						className,

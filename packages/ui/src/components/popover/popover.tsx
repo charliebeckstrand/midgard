@@ -1,10 +1,9 @@
 'use client'
 
 import { useClick, useInteractions } from '@floating-ui/react'
-import { type ComponentProps, type ReactNode, useEffect, useId, useMemo, useState } from 'react'
+import { type ComponentProps, type ReactNode, useId, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
-import { notifyOverlaySignal } from '../../primitives/overlay'
 import { PopoverContext, PopoverPositionContext } from './context'
 
 /**
@@ -73,15 +72,12 @@ export function Popover({
 			role: null,
 			placement,
 			offset: 8,
+			signal: true,
 		})
 
 	const click = useClick(context)
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role])
-
-	useEffect(() => {
-		if (open) notifyOverlaySignal()
-	}, [open])
 
 	const contextValue = useMemo(
 		() => ({

@@ -1,9 +1,6 @@
-import { IntlMessage } from '../../primitives/intl/intl-message'
-import { intlMessages } from '../../primitives/intl/intl-messages'
 import {
 	createPanel,
 	type PanelBodyProps,
-	PanelClose,
 	type PanelCloseProps,
 	type PanelContentProps,
 	type PanelDescriptionProps,
@@ -14,7 +11,7 @@ import {
 	type PanelTriggerProps,
 } from '../../primitives/panel'
 import { k } from '../../recipes/kata/drawer'
-import { Button } from '../button'
+import { createPanelClose } from '../button/button-close'
 
 /** Props for {@link DrawerTitle}: the heading `level` (default 2) plus the heading attributes. */
 export type DrawerTitleProps = PanelTitleProps
@@ -41,35 +38,19 @@ const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = cre
 /** Props for {@link DrawerClose}: one clickable child, or none for the standard Close button. */
 export type DrawerCloseProps = Partial<PanelCloseProps>
 
-/**
- * The close control of the enclosing {@link Drawer}. With no child, it renders
- * the standard Close button, which is also the default footer of the drawer.
- * The standard button stays live in a locked scope, such as a submitting form.
- * With one child, a click on the child closes the drawer, and the child's own
- * `onClick` runs first.
- */
-export function DrawerClose({ children }: DrawerCloseProps) {
-	return (
-		<PanelClose>
-			{children ?? (
-				<Button
-					// A close writes no field, so a locked scope, such as a submitting
-					// form, leaves it live.
-					lockable={false}
-					type="button"
-					variant="soft"
-					data-slot="drawer-close"
-				>
-					<IntlMessage message={intlMessages.close} />
-				</Button>
-			)}
-		</PanelClose>
-	)
-}
+const Close = createPanelClose('drawer')
 
 export {
 	/** `<div>` scroll region for the drawer's main content; fills remaining height and scrolls on overflow. */
 	Body as DrawerBody,
+	/**
+	 * The close control of the enclosing {@link Drawer}. With no child, it renders
+	 * the standard Close button, which is also the default footer of the drawer.
+	 * The standard button stays live in a locked scope, such as a submitting form.
+	 * With one child, a click on the child closes the drawer, and the child's own
+	 * `onClick` runs first.
+	 */
+	Close as DrawerClose,
 	/**
 	 * `<div>` wrapper that fills the remaining height of the drawer. It can hold the body
 	 * and the footer, for example in a form, and the footer stays at the foot of the panel.

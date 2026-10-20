@@ -164,6 +164,9 @@ export function useMenuRoot({
 			// a slot on the shared Escape stack, report a close that changes nothing,
 			// and swallow the press meant for an enclosing Dialog.
 			dismissable: !isStatic,
+			// An open menu closes an open tooltip, as a popover does. A static menu
+			// does not open, so it sends no signal.
+			signal: !isStatic,
 			gate: (next) => !next || !suppressed,
 		})
 

@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, RefObject } from 'react'
 import type { HeadingLevel } from '../../recipes/kata/heading'
 
 /** Props for a panel `Title` slot (`<h2>` by default): the heading `level` plus the native heading attributes. */
@@ -62,4 +62,16 @@ export type PanelOverlayProps = {
 	 * @defaultValue `document.body`, with full-viewport `fixed` positioning.
 	 */
 	container?: HTMLElement | null
+	/**
+	 * The element that gets the focus when the panel opens.
+	 * @defaultValue the first tabbable element in the panel.
+	 */
+	initialFocus?: RefObject<HTMLElement | null>
+	/**
+	 * The element that gets the focus when the panel closes. Give it when the
+	 * element that had the focus as the panel opened can be gone at the close,
+	 * or when the focus belongs elsewhere.
+	 * @defaultValue the element that had the focus as the panel opened.
+	 */
+	returnFocusTo?: RefObject<HTMLElement | null>
 }

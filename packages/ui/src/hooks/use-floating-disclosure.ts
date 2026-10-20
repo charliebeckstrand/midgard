@@ -7,7 +7,15 @@ import type {
 	OpenChangeReason,
 	ReferenceType,
 } from '@floating-ui/react'
-import { type CSSProperties, type RefObject, useCallback, useLayoutEffect, useRef } from 'react'
+import {
+	type CSSProperties,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+} from 'react'
+import { notifyOverlaySignal } from '../primitives/overlay/overlay-signal'
 import { useControllableFlag } from './use-controllable'
 import {
 	type FloatingPanelOptions,
@@ -56,6 +64,14 @@ export type FloatingDisclosureOptions = Omit<
 	 * @defaultValue true
 	 */
 	dismissable?: boolean
+	/**
+	 * Sends the overlay signal each time the surface opens, as an `Overlay` does.
+	 * An open tooltip closes on the signal. Set it for a surface that a reader
+	 * opens on purpose, such as a popover or a menu. A tooltip does not set it.
+	 *
+	 * @defaultValue false
+	 */
+	signal?: boolean
 }
 
 // Explicit return type: `@floating-ui/react-dom` is a transitive dep TS
@@ -96,6 +112,7 @@ export function useFloatingDisclosure({
 	role: roleProp,
 	gate,
 	dismissable = true,
+	signal = false,
 	...panelOptions
 }: FloatingDisclosureOptions): FloatingDisclosureResult {
 	const [open, setOpenInner] = useControllableFlag({
@@ -143,6 +160,10 @@ export function useFloatingDisclosure({
 
 		refsRef.current = refs
 	})
+
+	useEffect(() => {
+		if (signal && open) notifyOverlaySignal()
+	}, [signal, open])
 
 	const { dismiss, role } = useFloatingDismissal(context, refs, {
 		open,

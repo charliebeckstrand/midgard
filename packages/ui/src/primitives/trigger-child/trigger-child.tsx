@@ -8,7 +8,7 @@ import {
 	type Ref,
 	type SyntheticEvent,
 } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn, composeEventHandlers, dataAttr } from '../../core'
 
 /**
  * A single element child that a trigger clones. Its own `ref` (React 19 ref as
@@ -142,4 +142,31 @@ export function cloneWithAction(
 		}),
 		...props,
 	})
+}
+
+/**
+ * The open-state attributes of a disclosure trigger, for its own element or for
+ * a cloned child. The trigger names the popup in `aria-haspopup` and its state
+ * in `aria-expanded`. While the popup is open, the trigger names it in
+ * `aria-controls` and stamps `data-open`. A disabled trigger stamps
+ * `data-disabled`, and a trigger that stamps its own `data-disabled` keeps it.
+ * The trigger owns these attributes, so they replace the same keys in `props`.
+ *
+ * @param props - The props of the trigger element: the merged props of a
+ * cloned child, or the props of the own element of the trigger.
+ * @internal
+ */
+export function disclosureProps(
+	open: boolean,
+	controls: string,
+	haspopup: 'dialog' | 'menu' | undefined,
+	props: { disabled?: unknown; 'data-disabled'?: unknown },
+) {
+	return {
+		'aria-haspopup': haspopup,
+		'aria-expanded': open,
+		'aria-controls': open ? controls : undefined,
+		'data-open': dataAttr(open),
+		'data-disabled': dataAttr(props.disabled === true) ?? props['data-disabled'],
+	}
 }
