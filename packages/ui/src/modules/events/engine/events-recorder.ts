@@ -42,7 +42,7 @@ let stop: (() => void) | undefined
 
 /**
  * The store of a tab, kept in `sessionStorage`. CSS shows the dot and the
- * ring of the header button by the attributes of the root element, which
+ * red icon of the header button by the attributes of the root element, which
  * follow the reports and the capture of the store.
  */
 function create(): EventStore {

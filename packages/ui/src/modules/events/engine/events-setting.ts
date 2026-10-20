@@ -21,7 +21,7 @@ export const ON_ATTRIBUTE = 'data-events'
 /** The attribute of the root element while the panel is pinned. CSS shows the pinned panel by it while the sidebar layout is inline. */
 export const PINNED_ATTRIBUTE = 'data-events-pinned'
 
-/** The attribute of the root element while a capture runs. CSS shows the ring of the header button by it. */
+/** The attribute of the root element while a capture runs. CSS makes the icon of the header button red by it. */
 export const CAPTURE_ATTRIBUTE = 'data-events-capture'
 
 /** The attribute of the root element while the store holds a report. CSS shows the dot of the header button by it. */

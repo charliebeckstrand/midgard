@@ -38,7 +38,8 @@ export const eventsMessages = defineMessages({
 	copy: {
 		id: 'ui.events.copy',
 		defaultMessage: 'Copy',
-		description: 'The button that copies a bug report of the debug tool as Markdown.',
+		description:
+			'The button that copies the events, or one bug report as Markdown, of the debug tool.',
 	},
 	copied: {
 		id: 'ui.events.copied',
@@ -73,12 +74,12 @@ export const eventsMessages = defineMessages({
 	preserve: {
 		id: 'ui.events.preserve',
 		defaultMessage: 'Preserve',
-		description: 'The label of the switch that keeps the events through a reload of the page.',
+		description: 'The label of the checkbox that keeps the events through a reload of the page.',
 	},
 	batch: {
 		id: 'ui.events.batch',
 		defaultMessage: 'Batch',
-		description: 'The label of the switch that groups repeated events in one line.',
+		description: 'The label of the checkbox that groups repeated events in one line.',
 	},
 	noBugs: {
 		id: 'ui.events.noBugs',
