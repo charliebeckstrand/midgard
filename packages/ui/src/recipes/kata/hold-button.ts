@@ -6,7 +6,7 @@
 
 import { ugoki } from '../kiso'
 
-const { duration, ease } = ugoki
+const { duration, ease, instant } = ugoki
 
 export const k = {
 	// Motion transition configs, applied imperatively (`animate()` in
@@ -17,5 +17,7 @@ export const k = {
 		hold: { ease: ease.linear },
 		// The snap-back of the fill after a hold completes or ends early.
 		reset: { duration: duration[150], ease: ease.linear },
+		// The reset under reduced motion: the fill snaps back at once.
+		instant,
 	},
 } as const

@@ -1,5 +1,5 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { cursor, disabled, fg, grab, tint } = hannou
@@ -208,4 +208,6 @@ export const k = {
 	// wash, which `muted` is not legal over. See `iro/ramp.ts`.
 	description: ['min-w-0 truncate', size.sm, on.wash.muted],
 	skeleton: kokkaku.list,
+	// The move of a row under reduced motion: the row lands at once.
+	instant: ugoki.instant,
 } as const

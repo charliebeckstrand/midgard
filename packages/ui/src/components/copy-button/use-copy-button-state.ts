@@ -8,11 +8,6 @@ import { useTimeout } from '../../hooks/use-timeout'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { copyButtonMessages } from './copy-button-messages'
 
-// The longest delay that the platform timer holds: a 32-bit signed count of
-// milliseconds. The timer wraps a longer delay to 32 bits, and `Infinity`
-// becomes 0. The timer then fires early, often at once.
-const MAX_TIMEOUT = 2 ** 31 - 1
-
 type CopyStateOptions = {
 	/**
 	 * Text written to the clipboard by `copy`. A function builds the text at
@@ -124,16 +119,13 @@ export function useCopyButtonState({
 
 			notifyCopiedChange(true)
 
-			revert.set(
-				() => {
-					busyRef.current = false
+			revert.set(() => {
+				busyRef.current = false
 
-					setCopied(false)
+				setCopied(false)
 
-					notifyCopiedChange(false)
-				},
-				Math.min(timeout, MAX_TIMEOUT),
-			)
+				notifyCopiedChange(false)
+			}, timeout)
 		} catch (error) {
 			busyRef.current = false
 

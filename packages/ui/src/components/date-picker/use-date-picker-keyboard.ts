@@ -2,6 +2,7 @@ import type { DateDuration } from '@internationalized/date'
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { wrap } from '../../utilities'
+import { isArrowKey } from '../../utilities/keyboard-navigation'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { DAY_KEY_SELECTOR, dayOfKey, gridStep, isSameDay } from '../calendar/calendar-utilities'
 import { clampDate } from './date-picker-utilities'
@@ -111,11 +112,6 @@ export const RECLAIM_KEYS: ReadonlySet<string> = new Set([
 	'PageUp',
 	'PageDown',
 ])
-
-/** True for any of the four arrow keys. @internal */
-function isArrowKey(key: string): boolean {
-	return key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown'
-}
 
 /**
  * While closed, opens the calendar. The button-trigger variant opens on

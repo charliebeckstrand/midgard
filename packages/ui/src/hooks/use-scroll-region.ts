@@ -1,10 +1,8 @@
 'use client'
 
 import { type RefCallback, useCallback } from 'react'
+import { isScrollOverflow } from '../utilities/scroll-overflow'
 import { observeScrollExtent } from './observe-scroll-extent'
-
-/** An overflow value that lets the user scroll the box. @internal */
-const SCROLLABLE = /auto|scroll/
 
 /**
  * Whether the user can scroll `node` on either axis. The scroll size counts
@@ -18,8 +16,8 @@ function scrollsOn(node: HTMLElement): boolean {
 	const style = getComputedStyle(node)
 
 	return (
-		(node.scrollWidth > node.clientWidth && SCROLLABLE.test(style.overflowX)) ||
-		(node.scrollHeight > node.clientHeight && SCROLLABLE.test(style.overflowY))
+		(node.scrollWidth > node.clientWidth && isScrollOverflow(style.overflowX)) ||
+		(node.scrollHeight > node.clientHeight && isScrollOverflow(style.overflowY))
 	)
 }
 

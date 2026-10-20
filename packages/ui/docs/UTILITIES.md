@@ -14,6 +14,9 @@
 | `Aggregation` *(type)* | The built-in aggregation names. `PivotAggregation` and `GridAggFuncName` are aliases of it. |
 | `capitalizeFirst` | Returns `value` with its first letter uppercased and the rest unchanged. |
 | `parseNumeric` | Parses a data cell to a number, or `null`. It is the one numeric rule for data cells, so a blank gives `null`, not `0`. |
+| `finiteOrUndefined` | `value` when it is a finite number, else `undefined`. Import it from `utilities/parse-numeric`. |
+| `SECOND` … `YEAR` | Time units in milliseconds. `MONTH` and `YEAR` are approximations, for choosing a unit or a step only. Import them from `utilities/time-units`. |
+| `MAX_TIMEOUT` | The longest delay that the platform timer holds, 2³¹−1 ms. Import it from `utilities/time-units`. |
 | `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
 | `formatFraction` | Locale-formats `value` with up to two fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
 | `integerFormat` / `fractionFormat` | The cached formatter behind each helper above for a `locale`. Use it where a memo needs a stable input. |
@@ -89,6 +92,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | `PHONE_QUERY` | The query that matches a phone: no hover, and a viewport narrower than the `sm` breakpoint. A dropdown `Menu` and a `DatePicker` open as a bottom sheet there. |
 | `REDUCED_MOTION_QUERY` | The `(prefers-reduced-motion: reduce)` query, for a caller that reads it outside React. |
 | `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
+| `isScrollOverflow` | Whether an `overflow` value lets the user scroll the box: `auto`, `scroll`, or `overlay`. Import it from `utilities/scroll-overflow`. |
 | `isScrollbarPress` | Whether a press landed on the scrollbar gutter of an element, not on its content. A floating surface does not dismiss for a gutter press. |
 | `printInHiddenFrame` | Prints a document through a hidden iframe, and reclaims the frame after the print or on a failure. |
 | `requestIdle` | Calls a callback in idle time. A browser with no `requestIdleCallback`, such as Safari, calls it after a fallback delay, with no deadline. Import it from `utilities/idle`. |
@@ -117,6 +121,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 |---|---|
 | `FOCUSABLE_SELECTOR` | Selector for the descendants in the tab order: links with an `href`, enabled form controls, and any element whose `tabindex` is not `-1`. |
 | `nextIndexForKey` | Next roving index for a key press (1D or 2D grid), or `null` if unhandled; wraps at both ends. |
+| `isArrowKey` | Whether a key is one of the four arrow keys, whatever the direction of the layout. |
 | `crossAxisDelta` | Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. |
 | `wrap` | Wraps an index into `[0, count)`, so a step past either end lands at the other. |
 | `NavigationConfig` *(type)* | Navigation mode for `nextIndexForKey`: 2D grid when `cols` set, else single-axis along `orientation`. |

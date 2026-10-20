@@ -144,7 +144,7 @@ const DISC_HIDDEN = { r: 0, opacity: 0 }
 const DISC_POP = { ...POINT_POP, delay: 0 }
 
 /** The disc under reduced motion: a new radius applies at once. @internal */
-const DISC_STILL = { ...DISC_POP, r: { duration: 0 } }
+const DISC_STILL = { ...DISC_POP, r: k.motion.instant }
 
 /**
  * The Framer Motion scatter discs: each pops from its center on mount, on the

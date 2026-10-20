@@ -5,6 +5,7 @@ import type {
 } from '@tanstack/react-table'
 import { getDefaultColumnSizingColumnDef } from '@tanstack/react-table/static-functions'
 import { clamp } from '../../../../utilities'
+import { finiteOrUndefined } from '../../../../utilities/parse-numeric'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import type { EngineColumn, EngineTable } from './features'
 
@@ -71,7 +72,7 @@ const SIZING_DEFAULTS = getDefaultColumnSizingColumnDef()
 export function parsePxWidth(width: number | string | undefined): number | undefined {
 	if (width == null) return undefined
 
-	if (typeof width === 'number') return Number.isFinite(width) ? width : undefined
+	if (typeof width === 'number') return finiteOrUndefined(width)
 
 	const match = /^(\d+(?:\.\d+)?)(?:px)?$/.exec(width.trim())
 

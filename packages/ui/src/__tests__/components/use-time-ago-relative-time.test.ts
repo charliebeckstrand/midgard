@@ -1,20 +1,20 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, vi } from 'vitest'
 import {
+	MIN_REFRESH_MS,
+	resolveRefreshInterval,
+	useTimeAgoRelativeTime,
+} from '../../components/time-ago/use-time-ago-relative-time'
+import {
 	DAY,
 	HOUR,
+	MAX_TIMEOUT,
 	MINUTE,
 	MONTH,
 	SECOND,
 	WEEK,
 	YEAR,
-} from '../../components/time-ago/time-ago-constants'
-import {
-	MAX_REFRESH_MS,
-	MIN_REFRESH_MS,
-	resolveRefreshInterval,
-	useTimeAgoRelativeTime,
-} from '../../components/time-ago/use-time-ago-relative-time'
+} from '../../utilities/time-units'
 import { it, onFakeClock } from '../helpers/fake-clock'
 
 const NOW = new Date('2026-05-19T12:00:00Z')
@@ -129,16 +129,12 @@ describe('resolveRefreshInterval', () => {
 		['an in-range value as given', 1000, 1000],
 		['a value below the floor up to the floor', 0, MIN_REFRESH_MS],
 		['a negative value up to the floor', -5, MIN_REFRESH_MS],
-		['a value above the timer range down to the maximum', 30 * DAY, MAX_REFRESH_MS],
-		['Infinity to the maximum', Number.POSITIVE_INFINITY, MAX_REFRESH_MS],
+		['a value above the timer range down to the maximum', 30 * DAY, MAX_TIMEOUT],
+		['Infinity to the maximum', Number.POSITIVE_INFINITY, MAX_TIMEOUT],
 		['NaN to the adaptive cadence', Number.NaN, HOUR],
 		["'auto' to the adaptive cadence", 'auto', HOUR],
 	])('resolves %s', (_name, interval, expected) => {
 		// 3 days sits below the WEEK threshold, so the adaptive ladder picks HOUR.
 		expect(resolveRefreshInterval(interval, 3 * DAY)).toBe(expected)
-	})
-
-	it('keeps the maximum inside the 32-bit signed timer range', () => {
-		expect(MAX_REFRESH_MS).toBe(2 ** 31 - 1)
 	})
 })

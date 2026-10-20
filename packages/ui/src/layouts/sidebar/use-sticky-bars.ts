@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { isScrollOverflow } from '../../utilities/scroll-overflow'
 
 /** The ref callbacks that {@link useStickyBars} gives. @internal */
 export type StickyBars = {
@@ -26,7 +27,7 @@ function scrollerOf(node: HTMLElement): HTMLElement {
 	for (let element = node.parentElement; element && element !== body; ) {
 		const { overflowY } = getComputedStyle(element)
 
-		if (overflowY === 'auto' || overflowY === 'scroll') return element
+		if (isScrollOverflow(overflowY)) return element
 
 		element = element.parentElement
 	}

@@ -4,11 +4,6 @@ import { type RefObject, useCallback, useRef } from 'react'
 import { useTimeout } from '../../hooks/use-timeout'
 import type { ToastData } from './types'
 
-// The longest delay that the platform timer holds: a 32-bit signed count of
-// milliseconds. The timer fires a longer delay early, often at once, and
-// `Infinity` becomes 0. A longer countdown arms again at each limit.
-const MAX_TIMEOUT = 2 ** 31 - 1
-
 /**
  * Owns the auto-dismiss countdowns for {@link ToastProvider}. Each toast counts down its own
  * `duration`. One timer is armed to the earliest live deadline, and it pauses while pointer or
@@ -80,7 +75,9 @@ export function useToastTimer(
 			// The final `resume` arms again.
 			if (pauseCountRef.current > 0 || remainingRef.current.size === 0) return
 
-			const next = Math.min(...remainingRef.current.values(), MAX_TIMEOUT)
+			// `useTimeout` caps a longer delay, so a longer countdown arms again at
+			// each limit.
+			const next = Math.min(...remainingRef.current.values())
 
 			timer.set(() => {
 				settle()

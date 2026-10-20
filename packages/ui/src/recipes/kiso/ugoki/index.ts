@@ -12,7 +12,7 @@
  * through `transitionEnd`, and a scale (`tooltip`) rests at `scale(1)`.
  */
 
-import { duration, ease } from './base'
+import { duration, ease, instant } from './base'
 import { collapse } from './collapse'
 import { css } from './css'
 import { glide } from './glide'
@@ -30,6 +30,7 @@ export const ugoki = {
 	css,
 	duration,
 	ease,
+	instant,
 	spring,
 	mark,
 	reveal,

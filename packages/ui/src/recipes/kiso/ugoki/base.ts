@@ -26,6 +26,13 @@ export const duration = {
 } as const
 
 /**
+ * The transition of a value that lands at once, with no tween. A component
+ * takes it in place of a tween under reduced motion, or for a move that must
+ * not animate.
+ */
+export const instant = { duration: 0 } as const
+
+/**
  * The easing vocabulary: Framer's three named curves, and `linear` for a value
  * that must move at a constant rate, such as a fill that shows time.
  */

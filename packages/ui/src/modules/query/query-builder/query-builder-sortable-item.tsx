@@ -36,9 +36,6 @@ type QueryBuilderSortableItemProps = {
 	children: ReactNode
 }
 
-/** The transition of a node that moves with no animation. */
-const INSTANT = { duration: 0 }
-
 /**
  * One node of a group that reorders: a Motion `Reorder.Item` with a grip beside
  * the rule or the nested group. The grip is the only drag activator, so the
@@ -76,7 +73,7 @@ export function QueryBuilderSortableItem({
 			value={id}
 			dragListener={false}
 			dragControls={controls}
-			transition={instant ? INSTANT : undefined}
+			transition={instant ? k.sortable.instant : undefined}
 			onDragStart={() => {
 				setDragging(true)
 				onDragStart(id, controls)

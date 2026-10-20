@@ -51,7 +51,7 @@ export function useHoldButtonGesture({
 	// decorative and collapses to an instant under prefers-reduced-motion.
 	const reduceMotion = usePrefersReducedMotion()
 
-	const reset = reduceMotion ? { duration: 0 } : k.motion.reset
+	const reset = reduceMotion ? k.motion.instant : k.motion.reset
 
 	// A new animation of the fill takes over from the one that runs, from the
 	// scale that the fill paints now. Motion reads the first scale from the

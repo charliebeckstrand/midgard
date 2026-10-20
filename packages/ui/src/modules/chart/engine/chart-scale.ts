@@ -6,6 +6,7 @@
  */
 
 import { clamp } from '../../../utilities'
+import { finiteOrUndefined } from '../../../utilities/parse-numeric'
 
 /**
  * A linear value scale: the resolved `domain`, the `ticks` spanning it, and
@@ -330,11 +331,6 @@ export function linearScale({
 		span === 0 ? (from + to) / 2 : from + clamp((value - low) / span, 0, 1) * (to - from)
 
 	return { domain: [low, high], ticks, map }
-}
-
-/** The value when it is finite, else `undefined`. @internal */
-function finiteOrUndefined(value: number | undefined): number | undefined {
-	return value !== undefined && Number.isFinite(value) ? value : undefined
 }
 
 /**

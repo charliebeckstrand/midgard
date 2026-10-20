@@ -9,6 +9,6 @@
 
 import { ugoki } from '../ugoki'
 
-const { duration, ease, mark } = ugoki
+const { duration, ease, instant, mark } = ugoki
 
-export const motion = { mark, duration, ease } as const
+export const motion = { mark, duration, ease, instant } as const

@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { parseNumeric } from '../../utilities'
+import { finiteOrUndefined } from '../../utilities/parse-numeric'
 
 describe('parseNumeric', () => {
 	it('parses plain numbers, comma grouping, currency, percent, and accounting negatives', () => {
@@ -58,4 +59,17 @@ describe('parseNumeric', () => {
 
 		expect(parseNumeric(Number.POSITIVE_INFINITY)).toBeNull()
 	})
+})
+
+describe('finiteOrUndefined', () => {
+	it.each([0, -1.5, 42])('keeps the finite number %d', (value) => {
+		expect(finiteOrUndefined(value)).toBe(value)
+	})
+
+	it.each([undefined, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
+		'reads %s as no value',
+		(value) => {
+			expect(finiteOrUndefined(value)).toBeUndefined()
+		},
+	)
 })

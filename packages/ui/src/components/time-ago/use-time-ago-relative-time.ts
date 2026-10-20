@@ -2,7 +2,16 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { clamp, getOrCompute } from '../../utilities'
-import { DAY, HOUR, MINUTE, MONTH, SECOND, WEEK, YEAR } from './time-ago-constants'
+import {
+	DAY,
+	HOUR,
+	MAX_TIMEOUT,
+	MINUTE,
+	MONTH,
+	SECOND,
+	WEEK,
+	YEAR,
+} from '../../utilities/time-units'
 import { subscribeTimeAgoTick } from './time-ago-ticker'
 
 type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
@@ -71,24 +80,16 @@ function adaptiveInterval(absMs: number) {
 export const MIN_REFRESH_MS = 250
 
 /**
- * Ceiling for an explicit numeric interval: the largest delay that a browser
- * timer keeps. A browser changes a larger delay, or `Infinity`, to a delay near
- * zero, and the timer then fires continuously.
- * @internal
- */
-export const MAX_REFRESH_MS = 2 ** 31 - 1
-
-/**
  * Resolves the timer delay for `interval`. `'auto'` and a value that is not a
  * number, such as `NaN`, step with the age of the timestamp. A number clamps to
- * the range from {@link MIN_REFRESH_MS} to {@link MAX_REFRESH_MS}, so
+ * the range from {@link MIN_REFRESH_MS} to {@link MAX_TIMEOUT}, so
  * `Infinity` refreshes at the maximum delay.
  * @internal
  */
 export function resolveRefreshInterval(interval: number | 'auto', absMs: number): number {
 	if (typeof interval !== 'number' || Number.isNaN(interval)) return adaptiveInterval(absMs)
 
-	return clamp(interval, MIN_REFRESH_MS, MAX_REFRESH_MS)
+	return clamp(interval, MIN_REFRESH_MS, MAX_TIMEOUT)
 }
 
 type RelativeTimeOptions = {
@@ -100,7 +101,7 @@ type RelativeTimeOptions = {
 	/**
 	 * Refresh cadence in ms, or `'auto'` to step coarser as the timestamp ages.
 	 * A number clamps to the range from {@link MIN_REFRESH_MS} to
-	 * {@link MAX_REFRESH_MS}. `NaN` steps the same as `'auto'`.
+	 * {@link MAX_TIMEOUT}. `NaN` steps the same as `'auto'`.
 	 */
 	interval?: number | 'auto'
 }

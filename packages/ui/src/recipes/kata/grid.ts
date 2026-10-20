@@ -18,7 +18,7 @@ const { rounded } = kasane
 const { flex } = narabi
 const { backdrop } = omote
 const { focus, ring } = sen
-const { css, spring } = ugoki
+const { css, instant, spring } = ugoki
 
 /** Sort-direction arrow: inked while its column is the active sort, muted otherwise. */
 const sortIcon = defineRecipe({
@@ -817,12 +817,14 @@ export const k = {
 		// Layout transition for the sort row reflow: on a sort, each stable-keyed
 		// row FLIPs from its old place to its new one on the shared `layoutId`
 		// spring. Reduced motion stands the whole animation down upstream, so no
-		// `duration: 0` branch is needed here.
+		// `instant` branch is needed here.
 		sort: { layout: spring.slide },
 		// The make-room glide of an in-flight column drag. Applied imperatively
 		// (`animate()` onto the shift CSS variable in `grid-reorder.ts`), never
 		// spread onto a motion element.
 		shift: spring.snap,
+		// The shift under reduced motion: the columns make room at once.
+		instant,
 	},
 	nav: {
 		// The `navigable` grid's `<table>` is the cursor's single tab stop; drop its
