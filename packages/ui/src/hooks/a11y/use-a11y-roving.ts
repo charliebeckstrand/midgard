@@ -8,6 +8,7 @@ import {
 	wrap,
 } from '../../utilities/keyboard-navigation'
 import { matchesMediaQuery, NO_HOVER_QUERY } from '../../utilities/media-query'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { scrollWithin } from '../use-scroll-within'
 import { logicalArrowKey } from './logical-arrow'
 import { isTypeaheadKey, useTypeahead } from './use-typeahead'
@@ -858,7 +859,8 @@ function processRowContext(
 
 	const crossDelta = crossAxisDelta(key, orientation ?? 'vertical')
 
-	if (crossDelta === null || !actionSelector) return { handled: false, currentIndex: index }
+	if (crossDelta === null || !actionSelector || hasBrowserModifier(event))
+		return { handled: false, currentIndex: index }
 
 	const controls = rowControls(row, itemSelector, actionSelector)
 
@@ -1037,7 +1039,13 @@ function handleTabTrap(
 	return true
 }
 
-/** Main-axis arrow / Home / End navigation, after the focus-empty guard. @internal */
+/**
+ * Main-axis arrow / Home / End navigation, after the focus-empty guard. A key
+ * with Ctrl, Cmd, or Alt is for the browser, such as Alt+ArrowLeft for its
+ * history, so it moves nothing.
+ *
+ * @internal
+ */
 function handleMainAxisNav(
 	event: KeyboardEvent,
 	key: string,
@@ -1050,6 +1058,8 @@ function handleMainAxisNav(
 	},
 ): void {
 	if (!context.isVirtual && currentIndex === -1 && !options.focusOnEmpty) return
+
+	if (hasBrowserModifier(event)) return
 
 	const nextIndex = context.itemSource
 		? nextIndexedKey(
@@ -1203,6 +1213,10 @@ export type RovingOptions = NavigationConfig & {
  * In a right-to-left container, `ArrowLeft` and `ArrowRight` swap, so each
  * one steps the same way through the reading order in both directions. The
  * hook reads the computed `direction` of the container on each press.
+ *
+ * An arrow, Home, or End with Ctrl, Cmd, or Alt moves nothing and stays with
+ * the browser, which reads such a chord for its history or its page. The
+ * activation key keeps its modifier keys.
  *
  * A key skips each item under an `inert` ancestor: an arrow, Home, End,
  * type-ahead, the Tab trap, and the activation key. An exiting group is inert
