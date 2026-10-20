@@ -5,7 +5,7 @@ import { ariaAttr, cn, dataAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { rangeKeys } from '../../utilities'
-import { scrollerOf } from '../../utilities/scroller-of'
+import { getScroller } from '../../utilities/get-scroller'
 import { pdfViewerMessages } from './pdf-viewer-messages'
 
 /** One entry in the thumbnail rail. @internal */
@@ -86,7 +86,7 @@ function useVisibleTiles(
 
 				onVisibleChange([...visible].sort((a, b) => a - b))
 			},
-			{ root: scrollerOf(element), rootMargin: '200px' },
+			{ root: getScroller(element), rootMargin: '200px' },
 		)
 
 		for (const tile of element.querySelectorAll('[data-index]')) observer.observe(tile)

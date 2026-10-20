@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { scrollerOf } from '../../utilities/scroller-of'
+import { getScroller } from '../../utilities/get-scroller'
 import { present, renderUI, screen } from '../helpers'
 
 /**
- * `scrollerOf` walks up from a node for the first element that
+ * `getScroller` walks up from a node for the first element that
  * scrolls. The `overflowing` option also asks whether `scrollHeight` exceeds
  * `clientHeight`. jsdom reports those sizes as zero, so these cases run in a
  * real browser, where the boxes really overflow, or really do not.
@@ -14,9 +14,9 @@ function start(): HTMLElement {
 	return present(screen.getByTestId('child'), 'the starting node')
 }
 
-describe('scrollerOf against real overflow', () => {
+describe('getScroller against real overflow', () => {
 	it('returns null when the start node is null', () => {
-		expect(scrollerOf(null)).toBeNull()
+		expect(getScroller(null)).toBeNull()
 	})
 
 	it('returns the nearest ancestor that both scrolls and overflows', () => {
@@ -28,7 +28,7 @@ describe('scrollerOf against real overflow', () => {
 			</div>,
 		)
 
-		expect(scrollerOf(start(), { overflowing: true })).toBe(screen.getByTestId('scroller'))
+		expect(getScroller(start(), { overflowing: true })).toBe(screen.getByTestId('scroller'))
 	})
 
 	it('skips an ancestor whose content does not exceed its viewport when overflowing', () => {
@@ -42,7 +42,7 @@ describe('scrollerOf against real overflow', () => {
 			</div>,
 		)
 
-		expect(scrollerOf(start(), { overflowing: true })).toBeNull()
+		expect(getScroller(start(), { overflowing: true })).toBeNull()
 	})
 
 	it('returns an ancestor by its overflow value alone by default', () => {
@@ -56,7 +56,7 @@ describe('scrollerOf against real overflow', () => {
 			</div>,
 		)
 
-		expect(scrollerOf(start())).toBe(screen.getByTestId('scroller'))
+		expect(getScroller(start())).toBe(screen.getByTestId('scroller'))
 	})
 
 	it('returns the start node itself when it scrolls', () => {
@@ -66,7 +66,7 @@ describe('scrollerOf against real overflow', () => {
 			</div>,
 		)
 
-		expect(scrollerOf(start())).toBe(start())
+		expect(getScroller(start())).toBe(start())
 	})
 
 	it('returns null when no ancestor allows scrolling at all', () => {
@@ -80,7 +80,7 @@ describe('scrollerOf against real overflow', () => {
 			</div>,
 		)
 
-		expect(scrollerOf(start())).toBeNull()
+		expect(getScroller(start())).toBeNull()
 	})
 
 	it('matches the inline axis only when inline is set', () => {
@@ -92,9 +92,9 @@ describe('scrollerOf against real overflow', () => {
 			</div>,
 		)
 
-		expect(scrollerOf(start(), { overflowing: true })).toBeNull()
+		expect(getScroller(start(), { overflowing: true })).toBeNull()
 
-		expect(scrollerOf(start(), { inline: true, overflowing: true })).toBe(
+		expect(getScroller(start(), { inline: true, overflowing: true })).toBe(
 			screen.getByTestId('scroller'),
 		)
 	})
@@ -108,9 +108,9 @@ describe('scrollerOf against real overflow', () => {
 			</div>,
 		)
 
-		expect(scrollerOf(start(), { stopAtClip: true })).toBeNull()
+		expect(getScroller(start(), { stopAtClip: true })).toBeNull()
 
-		expect(scrollerOf(start())).not.toBeNull()
+		expect(getScroller(start())).not.toBeNull()
 	})
 
 	it('never returns the body or the root', () => {
@@ -119,7 +119,7 @@ describe('scrollerOf against real overflow', () => {
 		try {
 			renderUI(<div data-testid="child" />)
 
-			expect(scrollerOf(start())).toBeNull()
+			expect(getScroller(start())).toBeNull()
 		} finally {
 			document.body.style.overflowY = ''
 		}

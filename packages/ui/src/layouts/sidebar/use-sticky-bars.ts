@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { scrollerOf } from '../../utilities/scroller-of'
+import { getScroller } from '../../utilities/get-scroller'
 
 /** The ref callbacks that {@link useStickyBars} gives. @internal */
 export type StickyBars = {
@@ -48,7 +48,7 @@ function createStickyBars(): StickyBars {
 
 			// With no scroll container, the root takes the padding: the scroll padding
 			// of the root is the scroll padding of the viewport.
-			const own = scrollerOf(node.parentElement) ?? node.ownerDocument.documentElement
+			const own = getScroller(node.parentElement) ?? node.ownerDocument.documentElement
 
 			scroller = own
 

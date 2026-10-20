@@ -1,6 +1,6 @@
 'use client'
 
-import { scrollerOf } from '../utilities/scroller-of'
+import { getScroller } from '../utilities/get-scroller'
 
 /** Where a node must land within the scroller, per axis. Mirrors native `scrollIntoView`. */
 type ScrollAlignment = 'start' | 'center' | 'end' | 'nearest'
@@ -117,7 +117,7 @@ export function scrollWithin(node: HTMLElement | null, options: ScrollWithinOpti
 	// walk would scroll an outer container that the caller never meant to touch.
 	// One scroller serves both axes, so when the vertical and horizontal
 	// scrollers are different ancestors, the nearer one wins.
-	const scroller = scrollerOf(node.parentElement, {
+	const scroller = getScroller(node.parentElement, {
 		inline: inline !== undefined,
 		overflowing: true,
 		stopAtClip: true,

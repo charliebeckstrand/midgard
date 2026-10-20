@@ -1,6 +1,6 @@
 import { isScrollOverflow } from './scroll-overflow'
 
-/** Options for {@link scrollerOf}. @internal */
+/** Options for {@link getScroller}. @internal */
 export type ScrollerOptions = {
 	/**
 	 * Whether a container that scrolls on the inline (horizontal) axis also
@@ -49,7 +49,7 @@ function axisScrolls(
  *
  * @internal
  */
-export function scrollerOf(
+export function getScroller(
 	start: HTMLElement | null,
 	{ inline = false, overflowing = false, stopAtClip = false }: ScrollerOptions = {},
 ): HTMLElement | null {

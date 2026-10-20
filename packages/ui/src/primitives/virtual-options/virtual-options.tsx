@@ -14,7 +14,7 @@ import { dataAttr } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { scrollerOf } from '../../utilities/scroller-of'
+import { getScroller } from '../../utilities/get-scroller'
 import { VirtualItemSourceContext } from './context'
 
 /**
@@ -137,7 +137,7 @@ export function VirtualOptions<T>({
 
 		if (cached?.isConnected) return cached
 
-		scrollElementRef.current = scrollerOf(containerRef.current?.parentElement ?? null)
+		scrollElementRef.current = getScroller(containerRef.current?.parentElement ?? null)
 
 		return scrollElementRef.current
 	}, [])
