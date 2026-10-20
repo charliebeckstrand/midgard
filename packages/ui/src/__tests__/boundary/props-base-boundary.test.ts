@@ -26,7 +26,8 @@ import {
 	type Symbol as TsSymbol,
 } from 'typescript/unstable/sync'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { openPublicProject, type PublicProject, publicBarrels } from '../helpers/public-barrels'
+import { openPublicProject, publicBarrels } from '../helpers/public-barrels'
+import { startTypeScript } from '../helpers/ts-server'
 import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // `ComponentProps<'tag'>` is the only native-prop base (CONVENTIONS §4.3). It
@@ -408,17 +409,15 @@ function redeclaredKeys(project: Project): string[] {
 }
 
 describe('props base boundary: the checker', () => {
-	let opened: PublicProject
+	const server = startTypeScript()
 
 	let project: Project
 
 	beforeAll(() => {
-		opened = openPublicProject('props-base')
-
-		project = opened.project
+		project = openPublicProject(server)
 	})
 
-	afterAll(() => opened?.close())
+	afterAll(() => server.close())
 
 	it('a barreled props type whose component renders an element takes its native base', () => {
 		const found = propsWithNoBase(project)

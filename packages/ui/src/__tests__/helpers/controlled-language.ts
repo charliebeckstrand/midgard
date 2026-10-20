@@ -1,4 +1,3 @@
-import { join } from 'node:path'
 import {
 	type CommentKind,
 	createScanner,
@@ -333,12 +332,6 @@ export const LIVING_MARKDOWN = [
 	'docs/STRUCTURE.md',
 	'docs/UTILITIES.md',
 ]
-
-/** Absolute path of the package root, which the living Markdown sits under. */
-export const packageDir = join(srcDir, '..')
-
-/** Absolute path of the repository root, which the rule documents sit under. */
-export const rootDir = join(packageDir, '..', '..')
 
 /**
  * The rule documents at the repository root. Every package follows them, so

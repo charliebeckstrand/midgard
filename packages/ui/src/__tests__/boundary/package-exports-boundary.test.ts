@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir } from '../helpers/walk-source'
+import { srcDir, uiRoot } from '../helpers/walk-source'
 
 // A module and a structure unit each have a bare `ui/<name>` path beside the
 // nested one. Next.js resolves only the first target of an `exports` fallback
@@ -11,7 +11,7 @@ import { srcDir } from '../helpers/walk-source'
 
 type Target = { types: string; default: string }
 
-const pkg = JSON.parse(readFileSync(join(srcDir, '..', 'package.json'), 'utf8')) as {
+const pkg = JSON.parse(readFileSync(join(uiRoot, 'package.json'), 'utf8')) as {
 	exports: Record<string, Target | Target[] | string>
 }
 

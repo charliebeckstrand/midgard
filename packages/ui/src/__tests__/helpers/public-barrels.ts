@@ -1,10 +1,8 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { API, type Project } from 'typescript/unstable/sync'
-import { srcDir } from './walk-source'
-
-/** The directory of the `ui` package, which holds `package.json`. */
-export const uiRoot = join(srcDir, '..')
+import type { Project } from 'typescript/unstable/sync'
+import type { TypeScriptServer } from './ts-server'
+import { uiRoot } from './walk-source'
 
 /**
  * The barrels of the public surface: each `index.ts` that the `exports` map of
@@ -43,38 +41,20 @@ export function publicBarrels(): string[] {
 	return [...barrels].sort()
 }
 
-/** A checker over the public surface, and the call that stops its server. */
-export type PublicProject = { project: Project; close: () => void }
-
 /**
- * Opens a TypeScript 7 checker over the public barrels and each file that they
- * import, which is the shipped tree. The project file is not on disk: the API
- * reads its text through the `fs` callback.
+ * Opens a checker over the public barrels and each file that they import,
+ * which is the shipped tree. The project extends the package config.
  *
- * @param name - The name of the project file, unique to the test that opens it.
+ * @param server - The server of the calling test file.
+ * @param files - More files for the project, such as the kata modules.
  */
-export function openPublicProject(name: string): PublicProject {
-	const projectConfig = join(uiRoot, `tsconfig.${name}.json`)
-
-	const config = JSON.stringify({
-		extends: './tsconfig.json',
-		compilerOptions: { incremental: false, types: [] },
-		files: publicBarrels(),
-		include: [],
-	})
-
-	const api = new API({
-		cwd: uiRoot,
-		fs: { readFile: (file) => (file === projectConfig ? config : undefined) },
-	})
-
-	const project = api.updateSnapshot({ openProjects: [projectConfig] }).getProject(projectConfig)
-
-	if (!project) {
-		api.close()
-
-		throw new Error(`the checker did not open ${projectConfig}`)
-	}
-
-	return { project, close: () => api.close() }
+export function openPublicProject(
+	server: TypeScriptServer,
+	files: readonly string[] = [],
+): Project {
+	return server.open(
+		[...files, ...publicBarrels()],
+		{ incremental: false, types: [] },
+		'./tsconfig.json',
+	)
 }

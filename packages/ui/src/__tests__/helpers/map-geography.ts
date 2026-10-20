@@ -1,13 +1,13 @@
 import type { MapFeatureCollection, MapTopology } from '../../modules/map'
 
 /**
- * A three-region test geography: unit squares "Alpha" (id A), "Beta" (id B),
- * and "Gamma" (id C) side by side along the equator — small enough to assert
- * against, wide enough to give the fitted projection a real aspect. Rings
- * follow d3-geo's spherical winding (exterior clockwise in lon/lat order);
- * wound the other way, d3 reads a ring as enclosing the rest of the globe.
- * The GeoJSON collection and the TopoJSON topology encode the same shapes,
- * so either input path drives identical output.
+ * A test geography of three regions: the squares "Alpha" (id A), "Beta" (id
+ * B), and "Gamma" (id C), side by side along the equator. It is small enough
+ * to assert against, and wide enough to give the fitted projection a real
+ * aspect. The rings follow the spherical winding of d3-geo, with the exterior
+ * clockwise in lon/lat order. d3 reads a ring with the other winding as the
+ * rest of the globe. The GeoJSON collection and the TopoJSON topology hold the
+ * same shapes, so the two input paths give the same output.
  */
 export const FIXTURE_GEOJSON: MapFeatureCollection = {
 	type: 'FeatureCollection',

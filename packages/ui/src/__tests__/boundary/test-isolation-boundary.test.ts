@@ -64,6 +64,7 @@ import {
 	srcDir,
 	srcRelative,
 	stripSourceComments,
+	uiRoot,
 	walkSource,
 } from '../helpers/walk-source'
 
@@ -853,7 +854,7 @@ describe('test isolation boundary', () => {
 	// text rather than import it: an import runs the config, and its walk of the
 	// test tree, in a test worker.
 	it('covers every project that shares a module registry', () => {
-		const config = readFileSync(join(srcDir, '..', 'vitest.config.ts'), 'utf8')
+		const config = readFileSync(join(uiRoot, 'vitest.config.ts'), 'utf8')
 
 		const shared = config
 			.split(/name: '/)
@@ -872,7 +873,7 @@ describe('test isolation boundary', () => {
 		// The browser config is the fourth scan above, and it is a separate file
 		// the parse over vitest.config.ts cannot reach. Its instances share one
 		// page each, which is why that scan exists at all.
-		const browser = readFileSync(join(srcDir, '..', 'vitest.browser.config.ts'), 'utf8')
+		const browser = readFileSync(join(uiRoot, 'vitest.browser.config.ts'), 'utf8')
 
 		expect(
 			/^\s*isolate: false/m.test(browser),

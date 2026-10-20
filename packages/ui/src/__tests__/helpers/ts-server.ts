@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 import type { SourceFile } from 'typescript/unstable/ast'
 import { API, type Project } from 'typescript/unstable/sync'
-import { srcDir } from './walk-source'
+import { uiRoot } from './walk-source'
 
 // The parse and the checker of TypeScript 7 run in the TypeScript server, not
 // in the test process. A test therefore gets its source files from a project
@@ -11,8 +11,6 @@ import { srcDir } from './walk-source'
 // The server reads a project from a tsconfig file. This helper writes no file
 // to disk. The text of each config, and each source that a test gives as
 // text, go to the server through the `fs` callback of the API.
-
-const packageDir = join(srcDir, '..')
 
 /**
  * The compiler options of a project that only parses: no library, no import
@@ -28,8 +26,15 @@ export type TypeScriptServer = {
 	 *
 	 * @param compilerOptions - The `compilerOptions` of the config, as a
 	 * tsconfig file writes them. The default only parses.
+	 * @param base - The config that the project extends, relative to the
+	 * package, such as `./tsconfig.json`. With none, the project has only
+	 * `compilerOptions`.
 	 */
-	open(files: readonly string[], compilerOptions?: Readonly<Record<string, unknown>>): Project
+	open(
+		files: readonly string[],
+		compilerOptions?: Readonly<Record<string, unknown>>,
+		base?: string,
+	): Project
 	/**
 	 * The parse of each file in `files`, by its path, in the order of `files`.
 	 * The files go into one project that only parses.
@@ -61,7 +66,7 @@ export function startTypeScript(withhold?: (file: string) => boolean): TypeScrip
 	const texts = new Map<string, string>()
 
 	const api = new API({
-		cwd: packageDir,
+		cwd: uiRoot,
 		fs: {
 			readFile: (file) => texts.get(file) ?? (withhold?.(file) ? '' : undefined),
 		},
@@ -71,10 +76,10 @@ export function startTypeScript(withhold?: (file: string) => boolean): TypeScrip
 
 	let written = 0
 
-	const open: TypeScriptServer['open'] = (files, compilerOptions = PARSE_ONLY) => {
-		const config = join(packageDir, `tsconfig.scan-${++projects}.json`)
+	const open: TypeScriptServer['open'] = (files, compilerOptions = PARSE_ONLY, base) => {
+		const config = join(uiRoot, `tsconfig.scan-${++projects}.json`)
 
-		texts.set(config, JSON.stringify({ compilerOptions, files, include: [] }))
+		texts.set(config, JSON.stringify({ extends: base, compilerOptions, files, include: [] }))
 
 		const project = api.updateSnapshot({ openProjects: [config] }).getProject(config)
 
@@ -102,7 +107,7 @@ export function startTypeScript(withhold?: (file: string) => boolean): TypeScrip
 	const write: TypeScriptServer['write'] = (name, text) => {
 		// A directory of its own for each text, so that two texts under one name
 		// never share a path.
-		const file = join(packageDir, '.virtual', String(++written), name)
+		const file = join(uiRoot, '.virtual', String(++written), name)
 
 		texts.set(file, text)
 

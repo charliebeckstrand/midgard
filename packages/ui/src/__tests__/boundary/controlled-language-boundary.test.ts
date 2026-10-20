@@ -6,12 +6,11 @@ import {
 	fileBreaks,
 	LIVING_MARKDOWN,
 	markdownBreaks,
-	packageDir,
 	RULE_DOCUMENTS,
-	rootDir,
 	scanPackage,
 } from '../helpers/controlled-language'
 import { startTypeScript } from '../helpers/ts-server'
+import { uiRoot, workspaceRoot } from '../helpers/walk-source'
 
 // STE.md is the project's controlled language, and CLAUDE.md §2.5 applies it to
 // every authored statement. This test reads the breaks of the rules that a
@@ -74,7 +73,7 @@ describe('controlled-language boundary', () => {
 		const violations: string[] = []
 
 		for (const file of LIVING_MARKDOWN) {
-			for (const item of markdownBreaks(file, readFileSync(join(packageDir, file), 'utf8'))) {
+			for (const item of markdownBreaks(file, readFileSync(join(uiRoot, file), 'utf8'))) {
 				violations.push(`${item.file}:${item.line} rule ${item.rule} — ${item.text}`)
 			}
 		}
@@ -89,7 +88,7 @@ describe('controlled-language boundary', () => {
 		const violations: string[] = []
 
 		for (const file of RULE_DOCUMENTS) {
-			for (const item of markdownBreaks(file, readFileSync(join(rootDir, file), 'utf8'))) {
+			for (const item of markdownBreaks(file, readFileSync(join(workspaceRoot, file), 'utf8'))) {
 				violations.push(`${item.file}:${item.line} rule ${item.rule} — ${item.text}`)
 			}
 		}

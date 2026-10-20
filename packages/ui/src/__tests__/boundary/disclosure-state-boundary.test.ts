@@ -1,8 +1,14 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { type Checker, SymbolFlags, type Symbol as TsSymbol } from 'typescript/unstable/sync'
+import {
+	type Checker,
+	type Project,
+	SymbolFlags,
+	type Symbol as TsSymbol,
+} from 'typescript/unstable/sync'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { openPublicProject, type PublicProject, publicBarrels } from '../helpers/public-barrels'
+import { openPublicProject, publicBarrels } from '../helpers/public-barrels'
+import { startTypeScript } from '../helpers/ts-server'
 import { srcDir } from '../helpers/walk-source'
 
 // Each part that has an open state stamps `data-open`, and `data-disabled`
@@ -49,7 +55,7 @@ function resolved(checker: Checker, symbol: TsSymbol): TsSymbol {
 }
 
 /** The name of each barreled component whose props take an open-state key. */
-function componentsWithOpenState({ project }: PublicProject): string[] {
+function componentsWithOpenState(project: Project): string[] {
 	const { program, checker } = project
 
 	const found = new Set<string>()
@@ -101,16 +107,18 @@ function sweptComponents(): Set<string> {
 }
 
 describe('disclosure state boundary', () => {
-	let opened: PublicProject
+	const server = startTypeScript()
+
+	let project: Project
 
 	beforeAll(() => {
-		opened = openPublicProject('disclosure-state')
+		project = openPublicProject(server)
 	})
 
-	afterAll(() => opened?.close())
+	afterAll(() => server.close())
 
 	it('the sweep covers each component with an open state, or the list names it', () => {
-		const found = componentsWithOpenState(opened)
+		const found = componentsWithOpenState(project)
 
 		const swept = sweptComponents()
 

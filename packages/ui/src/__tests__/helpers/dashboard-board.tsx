@@ -1,6 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react'
 import { useLayoutEffect, useRef, useState } from 'react'
-import { afterEach, beforeEach, type Mock } from 'vitest'
+import { afterEach, beforeEach, type Mock, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutBinding,
@@ -28,28 +28,21 @@ import { present } from './present'
  * starts only with a pitch. The stub answers for the canvas alone, so each
  * other element keeps the width that jsdom gives it.
  *
- * Call it once at the top level of a suite. It registers its own `beforeEach`
- * and `afterEach`.
+ * Call it once at the top level of a suite. It registers its own `beforeEach`.
+ * The setups restore the spy after each case.
  *
  * @param width - The width of the canvas, in px. The default gives a pitch of
  * 50 px at 24 columns.
  */
 export function stubCanvasWidth(width = 1200): void {
-	const original = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')
+	const original = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')?.get
 
 	beforeEach(() => {
-		Object.defineProperty(Element.prototype, 'clientWidth', {
-			configurable: true,
-			get(this: Element) {
-				if (this.getAttribute('data-slot') === 'dashboard-canvas') return width
+		vi.spyOn(Element.prototype, 'clientWidth', 'get').mockImplementation(function (this: Element) {
+			if (this.getAttribute('data-slot') === 'dashboard-canvas') return width
 
-				return original?.get?.call(this) ?? 0
-			},
+			return original?.call(this) ?? 0
 		})
-	})
-
-	afterEach(() => {
-		if (original) Object.defineProperty(Element.prototype, 'clientWidth', original)
 	})
 }
 

@@ -6,6 +6,7 @@ import {
 	srcDir,
 	srcRelative,
 	stripSourceComments,
+	uiRoot,
 	walkSource,
 } from '../helpers/walk-source'
 
@@ -71,7 +72,7 @@ describe('mobile-first classes in ui', () => {
 	})
 
 	it('ui/tailwind.css writes no viewport max-* variant', () => {
-		const css = readFileSync(join(srcDir, '..', 'tailwind.css'), 'utf8')
+		const css = readFileSync(join(uiRoot, 'tailwind.css'), 'utf8')
 
 		expect(offenders('tailwind.css', css.replace(/\/\*[\s\S]*?\*\//g, ''))).toEqual([])
 	})

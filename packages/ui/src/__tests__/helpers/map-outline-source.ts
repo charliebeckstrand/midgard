@@ -22,16 +22,13 @@ const MIN_AREA = 8
 
 type Point = [number, number]
 
-/**
- * The atlases the map's own demos and the places app draw. The world atlas
- * loses Antarctica, as it does in every world view the places app draws: under
- * Mercator it stretches into a band across the foot of the frame.
- */
 type Topology = Parameters<typeof merge>[0]
 
 type GeometryCollection = Extract<Parameters<typeof feature>[1], { type: 'GeometryCollection' }>
 
 type Atlas<Name extends string> = Topology & { objects: Record<Name, GeometryCollection> }
+
+// The atlases that the demos of the map and the places app draw.
 
 const countries = countriesTopology as unknown as Atlas<'countries'>
 
@@ -39,6 +36,11 @@ const states = statesTopology as unknown as Atlas<'states'>
 
 const nation = nationTopology as unknown as Atlas<'nation'>
 
+/**
+ * The countries of the world atlas, without Antarctica. Each world view of the
+ * places app drops it too, because Mercator stretches it into a band across
+ * the foot of the frame.
+ */
 const worldGeometries = countries.objects.countries.geometries.filter(
 	(geometry) => (geometry.properties as { name?: string } | undefined)?.name !== 'Antarctica',
 )

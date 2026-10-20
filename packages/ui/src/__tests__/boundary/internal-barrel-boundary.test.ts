@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
+import { srcDir, srcRelative, uiRoot, walkSource } from '../helpers/walk-source'
 
 // `@internal` marks a helper no barrel re-exports (CONVENTIONS.md §12.1). The
 // tag and a barrel entry are mutually exclusive: a symbol on a barrel is public
@@ -123,7 +123,7 @@ describe('internal-surface boundary', () => {
 	})
 
 	it('package.json exports does not surface ./types', () => {
-		const pkg = JSON.parse(readFileSync(join(srcDir, '..', 'package.json'), 'utf8')) as {
+		const pkg = JSON.parse(readFileSync(join(uiRoot, 'package.json'), 'utf8')) as {
 			exports: Record<string, unknown>
 		}
 

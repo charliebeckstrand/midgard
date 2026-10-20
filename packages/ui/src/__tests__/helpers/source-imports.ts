@@ -16,10 +16,10 @@ const IMPORT =
 	/^(?:import\s+([\s\S]*?)|export\s+((?:type\s+)?(?:\{[^}]*\}|\*(?:\s+as\s+\w+)?)))\sfrom\s*['"]([^'"]+)['"]/gm
 
 /**
- * Whether an import clause emits a runtime dependency: `import type { … }` and
- * a clause whose every named binding carries its own `type` are both erased, so
- * neither is a runtime dependency. A bare `import 'x'` has no clause
- * and never reaches here — it carries no `from`.
+ * Whether an import clause gives a runtime dependency. The compiler erases
+ * `import type { … }`, and a clause in which each named binding has its own
+ * `type`. Thus neither is a runtime dependency. A bare `import 'x'` has no
+ * `from`, so it has no clause and does not come here.
  */
 function isRuntimeClause(clause: string): boolean {
 	const body = clause.trim()
