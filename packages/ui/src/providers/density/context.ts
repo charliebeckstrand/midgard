@@ -28,15 +28,14 @@ const levelMessages = defineMessages({
 
 /**
  * The density levels, for a density picker, ordered loose → compact. Each
- * level has an English `label`, and a `message` that names the level in the
- * language of the reader.
+ * level has a `message` that names the level in the language of the reader.
  *
  * @see {@link levelToStep} for the step of each level.
  */
-export const densityLevels: { label: string; message: MessageDescriptor; value: DensityLevel }[] = [
-	{ label: 'Loose', message: levelMessages.loose, value: 'loose' },
-	{ label: 'Snug', message: levelMessages.snug, value: 'snug' },
-	{ label: 'Compact', message: levelMessages.compact, value: 'compact' },
+export const densityLevels: { message: MessageDescriptor; value: DensityLevel }[] = [
+	{ message: levelMessages.loose, value: 'loose' },
+	{ message: levelMessages.snug, value: 'snug' },
+	{ message: levelMessages.compact, value: 'compact' },
 ]
 
 /**

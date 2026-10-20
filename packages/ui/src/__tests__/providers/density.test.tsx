@@ -12,12 +12,8 @@ describe('levelToStep', () => {
 })
 
 describe('densityLevels', () => {
-	it('lists the three levels with English labels, loose → compact', () => {
-		expect(densityLevels.map(({ label, value }) => ({ label, value }))).toEqual([
-			{ label: 'Loose', value: 'loose' },
-			{ label: 'Snug', value: 'snug' },
-			{ label: 'Compact', value: 'compact' },
-		])
+	it('lists the three levels, loose → compact', () => {
+		expect(densityLevels.map(({ value }) => value)).toEqual(['loose', 'snug', 'compact'])
 	})
 
 	it('names each level in the language of the reader', () => {

@@ -1,11 +1,9 @@
 'use client'
 
 import { useEffect, useSyncExternalStore } from 'react'
+import { noopSubscribe } from '../../utilities'
 import { readChoice, restoreChoiceCookie, subscribeChoices } from '../appearance/appearance-storage'
 import { localeChoice, resolveLocaleChoice, SYSTEM_LOCALE, subscribeLocale } from './locale-choice'
-
-// The subscription of a provider with no `locales`, which stores no choice.
-const subscribeNone = () => () => {}
 
 /**
  * The stored locale choice over `locales`, and the locale that it resolves to.
@@ -23,13 +21,13 @@ export function useStoredLocale(
 	const choice = localeChoice(locales ?? [])
 
 	const stored = useSyncExternalStore(
-		locales ? subscribeChoices : subscribeNone,
+		locales ? subscribeChoices : noopSubscribe,
 		() => (locales ? readChoice(choice) : SYSTEM_LOCALE),
 		() => SYSTEM_LOCALE,
 	)
 
 	const locale = useSyncExternalStore(
-		locales ? subscribeLocale : subscribeNone,
+		locales ? subscribeLocale : noopSubscribe,
 		() =>
 			locales && fallback !== undefined ? resolveLocaleChoice(choice, locales, fallback) : fallback,
 		() => fallback,

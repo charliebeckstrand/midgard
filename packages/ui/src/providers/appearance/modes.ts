@@ -37,13 +37,13 @@ const modeMessages = defineMessages({
 export type ThemeMode = 'light' | 'dark' | 'system'
 
 /**
- * The theme modes, for a theme picker. Each mode has an English `label`, and a
- * `message` that names the mode in the language of the reader.
+ * The theme modes, for a theme picker. Each mode has a `message` that names the mode
+ * in the language of the reader.
  */
-export const themeModes: { label: string; message: MessageDescriptor; value: ThemeMode }[] = [
-	{ label: 'Light', message: modeMessages.light, value: 'light' },
-	{ label: 'Dark', message: modeMessages.dark, value: 'dark' },
-	{ label: 'System', message: intlMessages.system, value: 'system' },
+export const themeModes: { message: MessageDescriptor; value: ThemeMode }[] = [
+	{ message: modeMessages.light, value: 'light' },
+	{ message: modeMessages.dark, value: 'dark' },
+	{ message: intlMessages.system, value: 'system' },
 ]
 
 /**
@@ -54,12 +54,12 @@ export const themeModes: { label: string; message: MessageDescriptor; value: The
 export type MotionMode = 'system' | 'reduced'
 
 /**
- * The motion modes, for a motion picker. Each mode has an English `label`, and
- * a `message` that names the mode in the language of the reader.
+ * The motion modes, for a motion picker. Each mode has a `message` that names the
+ * mode in the language of the reader.
  */
-export const motionModes: { label: string; message: MessageDescriptor; value: MotionMode }[] = [
-	{ label: 'System', message: intlMessages.system, value: 'system' },
-	{ label: 'Reduced', message: modeMessages.reduced, value: 'reduced' },
+export const motionModes: { message: MessageDescriptor; value: MotionMode }[] = [
+	{ message: intlMessages.system, value: 'system' },
+	{ message: modeMessages.reduced, value: 'reduced' },
 ]
 
 /**
@@ -70,10 +70,10 @@ export const motionModes: { label: string; message: MessageDescriptor; value: Mo
 export type SidebarMode = 'locked' | 'offcanvas'
 
 /**
- * The sidebar modes, for a sidebar picker. Each mode has an English `label`,
- * and a `message` that names the mode in the language of the reader.
+ * The sidebar modes, for a sidebar picker. Each mode has a `message` that names
+ * the mode in the language of the reader.
  */
-export const sidebarModes: { label: string; message: MessageDescriptor; value: SidebarMode }[] = [
-	{ label: 'Locked', message: modeMessages.locked, value: 'locked' },
-	{ label: 'Offcanvas', message: modeMessages.offcanvas, value: 'offcanvas' },
+export const sidebarModes: { message: MessageDescriptor; value: SidebarMode }[] = [
+	{ message: modeMessages.locked, value: 'locked' },
+	{ message: modeMessages.offcanvas, value: 'offcanvas' },
 ]
