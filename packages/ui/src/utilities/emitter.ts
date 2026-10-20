@@ -1,4 +1,4 @@
-/** A set of listeners with no payload, and the call that notifies them. */
+/** A set of listeners with no payload, and the call that notifies them. @internal */
 export type Emitter = {
 	/** Adds `listener`, and returns the call that removes it. */
 	subscribe: (listener: () => void) => () => void

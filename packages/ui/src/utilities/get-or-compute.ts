@@ -1,6 +1,8 @@
 /**
  * The cache interface that {@link getOrCompute} reads and writes. A `Map` and a
  * `WeakMap` both satisfy it.
+ *
+ * @internal
  */
 export type ComputeCache<K, V> = {
 	get(key: K): V | undefined

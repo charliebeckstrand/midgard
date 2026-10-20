@@ -1,6 +1,8 @@
 /**
  * Time, in ms, that the page keeps text selection off after the last held touch ends. iOS can
  * start the selection of a long press after the finger lifts.
+ *
+ * @internal
  */
 export const TEXT_SELECTION_RELEASE_DELAY = 300
 
@@ -111,6 +113,8 @@ export function holdTextSelection({
 /**
  * Test-only: ends every hold at once, so the next test starts with no touch held and with the
  * root class it had before the first hold.
+ *
+ * @internal
  */
 export function __resetTextSelectionHold(): void {
 	releaseAll()

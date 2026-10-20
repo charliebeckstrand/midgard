@@ -1,6 +1,8 @@
 /**
  * The value of the cookie `name` in this page, or `undefined` with no such
  * cookie. Call it in the browser only.
+ *
+ * @internal
  */
 export function readCookie(name: string): string | undefined {
 	const prefix = `${name}=`
@@ -14,6 +16,8 @@ export function readCookie(name: string): string | undefined {
  * Writes the cookie `name` for each path of the site, for `maxAge` seconds. The
  * browser sends it with each request to the site, so a server can read it. The
  * cookie is `secure` on HTTPS. Call it in the browser only.
+ *
+ * @internal
  */
 export function writeCookie(name: string, value: string, maxAge: number) {
 	const secure = location.protocol === 'https:' ? '; secure' : ''

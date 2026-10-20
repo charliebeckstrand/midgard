@@ -6,13 +6,15 @@ import { getOrCompute } from './get-or-compute'
  * (`INV-10`), over cached `Intl.NumberFormat` instances. The React binding that
  * feeds it ambient locale / currency defaults is `useFormat`
  * (`ui/providers/locale`); non-React callers (a chart's internal default, a
- * test) call `resolveFormat` directly. For the fixed default-locale helpers the
- * Odometer and PivotTable lean on, see `format-number.ts`.
+ * test) call `resolveFormat` directly. `format-number.ts` keeps one formatter
+ * for each locale on top of it, for the Odometer and the PivotTable.
  */
 
 /**
  * Locale and currency defaults a {@link FormatSpec} resolves against: the
  * ambient `LocaleConfig` subset `useFormat` supplies from `<LocaleProvider>`.
+ *
+ * @internal
  */
 export type FormatDefaults = {
 	/** BCP 47 locale tag; the runtime default when unset. */

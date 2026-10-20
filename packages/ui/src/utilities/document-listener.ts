@@ -24,6 +24,8 @@ const registry = createListenerRegistry<Document, Event>({
  * Each `handler` must be a distinct function reference (callers pass a fresh
  * closure per effect run). The same reference subscribed twice dedupes in
  * the handler set and detaches early on the first unsubscribe.
+ *
+ * @internal
  */
 export function subscribeDocumentEvent<K extends keyof DocumentEventMap>(
 	type: K,

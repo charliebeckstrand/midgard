@@ -91,6 +91,7 @@ The sequential-scale primitives the data-driven color charts share: the chorople
 | `NO_HOVER_QUERY` | The `(hover: none)` query, which matches a device with no hover, such as a phone. |
 | `PHONE_QUERY` | The query that matches a phone: no hover, and a viewport narrower than the `sm` breakpoint. A dropdown `Menu` and a `DatePicker` open as a bottom sheet there. |
 | `REDUCED_MOTION_QUERY` | The `(prefers-reduced-motion: reduce)` query, for a caller that reads it outside React. |
+| `NO_CURSOR_QUERY` | The `(any-hover: none)` query, which matches a device where no pointer hovers, such as a phone with no mouse. Such a device shows no cursor. |
 | `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
 | `isScrollOverflow` | Whether an `overflow` value lets the user scroll the box: `auto`, `scroll`, or `overlay`. Import it from `utilities/scroll-overflow`. |
 | `isScrollbarPress` | Whether a press landed on the scrollbar gutter of an element, not on its content. A floating surface does not dismiss for a gutter press. |

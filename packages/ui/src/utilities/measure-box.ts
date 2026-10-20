@@ -15,8 +15,8 @@ export type BorderBox = {
  * forces the browser to lay the document out to answer, and an observer callback
  * is handed the box it fired on.
  *
- * @param target The element to fall back to measuring.
- * @param borderBox The observer entry's own reading, where the caller has one.
+ * @param target - The element to fall back to measuring.
+ * @param borderBox - The observer entry's own reading, where the caller has one.
  */
 export function measureBox(target: Element, borderBox?: ResizeObserverSize): BorderBox {
 	if (borderBox) return { inline: borderBox.inlineSize, block: borderBox.blockSize }
@@ -26,7 +26,7 @@ export function measureBox(target: Element, borderBox?: ResizeObserverSize): Bor
 	return { inline: rect.width, block: rect.height }
 }
 
-/** An element's content box, in CSS px. */
+/** An element's content box, in CSS px. @internal */
 export type ContentBox = {
 	width: number
 	height: number
@@ -45,7 +45,7 @@ export type ContentBox = {
  * scaled ancestor does not change the result. The browser rounds the client
  * size to a whole pixel.
  *
- * @param target The element to measure.
+ * @param target - The element to measure.
  */
 export function measureContentBox(target: Element): ContentBox {
 	const style = getComputedStyle(target)
