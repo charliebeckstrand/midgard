@@ -2,8 +2,13 @@
 
 import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, MouseEventHandler, ReactNode, Ref } from 'react'
-import { composeEventHandlers, dataAttr } from '../../core'
-import { mergeTriggerProps, TriggerChild, triggerChild } from '../trigger-child/trigger-child'
+import { composeEventHandlers } from '../../core'
+import {
+	disclosureProps,
+	mergeTriggerProps,
+	TriggerChild,
+	triggerChild,
+} from '../trigger-child/trigger-child'
 import { usePanelState } from './panel-root'
 
 /**
@@ -13,7 +18,7 @@ import { usePanelState } from './panel-root'
 export type PanelTriggerProps = ComponentProps<'button'> & {
 	/**
 	 * What opens the panel. A single element is cloned, so it keeps its own
-	 * `onClick` and ARIA. Anything else renders inside the trigger's own
+	 * `onClick`. Anything else renders inside the trigger's own
 	 * `<button>`, as `PopoverTrigger` does with its child.
 	 */
 	children: ReactNode
@@ -40,8 +45,6 @@ export function PanelTrigger({ children, ref, onClick, ...props }: PanelTriggerP
 
 	const handleClick = () => setOpen(true)
 
-	const controls = open ? panelId : undefined
-
 	const child = triggerChild(children)
 
 	// A consumer `ref` on the trigger joins the ref of the child.
@@ -65,12 +68,7 @@ export function PanelTrigger({ children, ref, onClick, ...props }: PanelTriggerP
 							checkForDefaultPrevented: false,
 						},
 					),
-					'aria-haspopup': childProps['aria-haspopup'] ?? 'dialog',
-					'aria-expanded': childProps['aria-expanded'] ?? open,
-					'aria-controls': controls,
-					'data-open': dataAttr(open),
-					// A child that stamps its own disabled state keeps it.
-					'data-disabled': dataAttr(childProps.disabled === true) ?? childProps['data-disabled'],
+					...disclosureProps(open, panelId, 'dialog', childProps),
 				}}
 				ref={childRef}
 				slot="panel-trigger"
@@ -87,11 +85,7 @@ export function PanelTrigger({ children, ref, onClick, ...props }: PanelTriggerP
 			// The open is the activation of the trigger, so a consumer's
 			// preventDefault() does not cancel it (CONVENTIONS.md §3.9).
 			onClick={composeEventHandlers(onClick, handleClick, { checkForDefaultPrevented: false })}
-			aria-haspopup="dialog"
-			aria-expanded={open}
-			aria-controls={controls}
-			data-open={dataAttr(open)}
-			data-disabled={dataAttr(props.disabled)}
+			{...disclosureProps(open, panelId, 'dialog', props)}
 		>
 			{children}
 		</button>

@@ -2,9 +2,10 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type Ref, type SyntheticEvent, useCallback } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import {
+	disclosureProps,
 	mergeTriggerProps,
 	TriggerChild,
 	triggerChild,
@@ -117,12 +118,7 @@ export function PopoverTrigger({ children, className, ref, ...props }: PopoverTr
 				props={{
 					...childProps,
 					...wrapReferenceProps(childProps),
-					'aria-haspopup': dialog ? 'dialog' : undefined,
-					'aria-expanded': open,
-					'aria-controls': open ? panelId : undefined,
-					'data-open': dataAttr(open),
-					// A child that stamps its own disabled state keeps it.
-					'data-disabled': dataAttr(childProps.disabled === true) ?? childProps['data-disabled'],
+					...disclosureProps(open, panelId, dialog ? 'dialog' : undefined, childProps),
 				}}
 				ref={setTrigger}
 				slot="popover-trigger"
@@ -138,11 +134,7 @@ export function PopoverTrigger({ children, className, ref, ...props }: PopoverTr
 			{...wrapReferenceProps(props)}
 			ref={setTrigger}
 			type="button"
-			aria-haspopup={dialog ? 'dialog' : undefined}
-			aria-expanded={open}
-			aria-controls={open ? panelId : undefined}
-			data-open={dataAttr(open)}
-			data-disabled={dataAttr(props.disabled)}
+			{...disclosureProps(open, panelId, dialog ? 'dialog' : undefined, props)}
 			className={cn(k.trigger, className)}
 		>
 			{children}

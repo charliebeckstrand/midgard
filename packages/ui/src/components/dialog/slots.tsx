@@ -1,9 +1,6 @@
-import { IntlMessage } from '../../primitives/intl/intl-message'
-import { intlMessages } from '../../primitives/intl/intl-messages'
 import {
 	createPanel,
 	type PanelBodyProps,
-	PanelClose,
 	type PanelCloseProps,
 	type PanelContentProps,
 	type PanelDescriptionProps,
@@ -13,7 +10,7 @@ import {
 	PanelTrigger,
 	type PanelTriggerProps,
 } from '../../primitives/panel'
-import { Button } from '../button'
+import { createPanelClose } from '../button/button-close'
 
 const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = createPanel('dialog')
 
@@ -33,35 +30,19 @@ export type DialogContentProps = PanelContentProps
 /** Props for {@link DialogClose}: one clickable child, or none for the standard Close button. */
 export type DialogCloseProps = Partial<PanelCloseProps>
 
-/**
- * The close control of the enclosing {@link Dialog}. With no child, it renders
- * the standard Close button, which is also the default footer of the dialog.
- * The standard button stays live in a locked scope, such as a submitting form.
- * With one child, a click on the child closes the dialog, and the child's own
- * `onClick` runs first.
- */
-export function DialogClose({ children }: DialogCloseProps) {
-	return (
-		<PanelClose>
-			{children ?? (
-				<Button
-					// A close writes no field, so a locked scope, such as a submitting
-					// form, leaves it live.
-					lockable={false}
-					type="button"
-					variant="soft"
-					data-slot="dialog-close"
-				>
-					<IntlMessage message={intlMessages.close} />
-				</Button>
-			)}
-		</PanelClose>
-	)
-}
+const Close = createPanelClose('dialog')
 
 export {
 	/** `<div>` scroll region for the dialog's main content; marked as a scroll region for overflow handling. */
 	Body as DialogBody,
+	/**
+	 * The close control of the enclosing {@link Dialog}. With no child, it renders
+	 * the standard Close button, which is also the default footer of the dialog.
+	 * The standard button stays live in a locked scope, such as a submitting form.
+	 * With one child, a click on the child closes the dialog, and the child's own
+	 * `onClick` runs first.
+	 */
+	Close as DialogClose,
 	/** `<div>` wrapper for arbitrary dialog content outside the header/body/footer rhythm. */
 	Content as DialogContent,
 	/**

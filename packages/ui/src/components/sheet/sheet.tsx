@@ -1,21 +1,18 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import type { ComponentProps, ReactNode, RefObject } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
-import { useA11yPanel } from '../../hooks'
+import type { ComponentProps, ReactNode } from 'react'
+import { cn } from '../../core'
 import { useIsRtl } from '../../hooks/use-is-rtl'
-import { useOpenComplete } from '../../hooks/use-open-complete'
 import { panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
-import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { Overlay } from '../../primitives/overlay'
 import {
 	type PanelOverlayProps,
 	PanelProviders,
 	PanelRoot,
 	type PanelRootProps,
-	usePanelState,
 } from '../../primitives/panel'
+import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
@@ -144,16 +141,6 @@ export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'si
 		 */
 		footer?: ReactNode
 		/**
-		 * Element to receive initial focus when the sheet opens.
-		 * @defaultValue the first tabbable child.
-		 */
-		initialFocus?: RefObject<HTMLElement | null>
-		/**
-		 * Element to receive the focus when the sheet closes.
-		 * @defaultValue the element that had the focus as the sheet opened.
-		 */
-		returnFocusTo?: RefObject<HTMLElement | null>
-		/**
 		 * Accessible name for sheets without a visible `SheetTitle`. Ignored once a
 		 * `SheetTitle` registers.
 		 */
@@ -228,9 +215,6 @@ export function SheetPanel({
 	onClick,
 	...props
 }: SheetPanelProps) {
-	// The root holds the state. One setter drives the Overlay and the close parts.
-	const { open, setOpen, panelId } = usePanelState()
-
 	const surface = useResolvedSurface(glass)
 
 	const rtl = useIsRtl(container)
@@ -238,13 +222,20 @@ export function SheetPanel({
 	// The physical edge. The recipe, the slide, and the drag all key on it.
 	const edge = physicalSide(side, rtl)
 
-	// The slide moves `transform`, which `MotionConfig` does not hold still, so the
-	// panel reads the setting itself (WCAG 2.3.3).
-	const preset = (usePrefersReducedMotion() ? k.still : k.motion)[edge]
-
-	const { onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
-
-	const { ariaProps, a11y } = useA11yPanel('dialog', modal ?? true)
+	const { open, setOpen, panelId, a11y, overlayProps, panelProps, panelClassName } =
+		usePanelSurface({
+			glass: surface === 'glass',
+			motion: (reduced) => (reduced ? k.still : k.motion)[edge],
+			onOpenComplete,
+			'aria-label': ariaLabel,
+			onClick,
+			modal,
+			dismissOnBackdrop,
+			backdrop,
+			container,
+			initialFocus,
+			returnFocusTo,
+		})
 
 	// The dimension this side is docked across, which is the one the gesture moves
 	// and the one the cap is measured on.
@@ -267,32 +258,13 @@ export function SheetPanel({
 	const sized = handle && (resize.resizing || resize.size !== null)
 
 	return (
-		<Overlay
-			open={open}
-			onOpenChange={setOpen}
-			container={container}
-			initialFocus={initialFocus}
-			returnFocusTo={returnFocusTo}
-			dismissOnBackdrop={dismissOnBackdrop}
-			modal={modal}
-			backdrop={backdrop}
-			backdropClassName={k.backdrop({ surface })}
-		>
+		<Overlay {...overlayProps} backdropClassName={k.backdrop({ surface })}>
 			<m.div
 				{...props}
-				{...preset}
-				onAnimationComplete={onAnimationComplete}
-				{...ariaProps}
-				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
-				id={panelId}
+				{...panelProps}
 				// The space recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
 				data-slot="sheet"
-				data-open={dataAttr(open)}
 				ref={panelRef}
-				// A consumer's preventDefault() does not let the click past the panel (CONVENTIONS.md §3.9).
-				onClick={composeEventHandlers(onClick, (event) => event.stopPropagation(), {
-					checkForDefaultPrevented: false,
-				})}
 				// A dragged size beats the variant's, and it is inline because it is a
 				// measurement rather than a step on the scale. On the axis the panel is
 				// docked across, which for a sheet along the top or the bottom is its
@@ -312,9 +284,7 @@ export function SheetPanel({
 					(width === 'fit' || width === 'full') &&
 						axis === 'width' &&
 						resolveVariant(layout, k.layout.width[width]),
-					// Non-modal overlays disable pointer events on the full-viewport
-					// wrapper so the page stays interactive; the panel re-enables its own.
-					modal === false && 'pointer-events-auto',
+					panelClassName,
 					className,
 				)}
 			>

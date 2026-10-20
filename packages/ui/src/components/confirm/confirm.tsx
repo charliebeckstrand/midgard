@@ -103,7 +103,7 @@ type ConfirmAction = {
  */
 export type ConfirmProps = Pick<
 	DialogPanelProps,
-	'width' | 'align' | 'glass' | 'initialFocus' | 'container' | 'dismissOnBackdrop'
+	'width' | 'align' | 'glass' | 'initialFocus' | 'returnFocusTo' | 'container' | 'dismissOnBackdrop'
 > & {
 	/** Controlled open state. Pair it with `onOpenChange`. */
 	open: boolean
@@ -186,6 +186,7 @@ export function Confirm({
 	align,
 	glass,
 	initialFocus,
+	returnFocusTo,
 	container,
 	dismissOnBackdrop,
 	className,
@@ -221,6 +222,7 @@ export function Confirm({
 				align={align}
 				glass={glass}
 				initialFocus={initialFocus}
+				returnFocusTo={returnFocusTo}
 				container={container}
 				dismissOnBackdrop={dismissOnBackdrop}
 				className={className}

@@ -1,14 +1,11 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import type { ComponentProps, ReactNode, RefObject } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
+import type { ComponentProps, ReactNode } from 'react'
+import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import { useA11yPanel } from '../../hooks'
-import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePanelFit } from '../../hooks/use-panel-fit'
 import { usePanelResize } from '../../hooks/use-panel-resize'
-import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { Density } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import {
@@ -16,8 +13,8 @@ import {
 	PanelProviders,
 	PanelRoot,
 	type PanelRootProps,
-	usePanelState,
 } from '../../primitives/panel'
+import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/drawer'
@@ -143,16 +140,6 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 */
 		footer?: ReactNode
 		/**
-		 * Element to receive initial focus when the drawer opens.
-		 * @defaultValue the first tabbable child.
-		 */
-		initialFocus?: RefObject<HTMLElement | null>
-		/**
-		 * Element to receive the focus when the drawer closes.
-		 * @defaultValue the element that had the focus as the drawer opened.
-		 */
-		returnFocusTo?: RefObject<HTMLElement | null>
-		/**
 		 * Accessible name for drawers without a visible `DrawerTitle`. Ignored once a
 		 * `DrawerTitle` registers.
 		 */
@@ -222,7 +209,7 @@ export function DrawerPanel({
 	initialFocus,
 	returnFocusTo,
 	dismissOnBackdrop,
-	modal = true,
+	modal,
 	backdrop,
 	container,
 	'aria-label': ariaLabel,
@@ -231,24 +218,28 @@ export function DrawerPanel({
 	onClick,
 	...props
 }: DrawerPanelProps) {
-	// The root holds the state. One setter drives the Overlay and the close parts.
-	const { open, setOpen, panelId } = usePanelState()
-
 	const surface = useResolvedSurface(glass)
 
-	// The slide moves `transform`, which `MotionConfig` does not hold still, so the
-	// panel reads the setting itself (WCAG 2.3.3).
-	const preset = usePrefersReducedMotion() ? k.still : k.motion
-
-	const { onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
+	const { open, setOpen, panelId, a11y, overlayProps, panelProps, panelClassName } =
+		usePanelSurface({
+			glass: surface === 'glass',
+			motion: (reduced) => (reduced ? k.still : k.motion),
+			onOpenComplete,
+			'aria-label': ariaLabel,
+			onClick,
+			modal,
+			dismissOnBackdrop,
+			backdrop,
+			container,
+			initialFocus,
+			returnFocusTo,
+		})
 
 	// The grip only resizes, so only a panel with a fixed height shows it. A panel grown to
 	// its content (`auto` or `fit`) has no height for the grip to set.
 	const hasFixedHeight = height === 'half' || height === 'full'
 
 	const grip = handle === true && hasFixedHeight
-
-	const isGlass = surface === 'glass'
 
 	// The gesture is held here, by the component that owns the panel it writes to.
 	// A pixel height means nothing off the screen it was set on, so it stays in
@@ -276,49 +267,19 @@ export function DrawerPanel({
 	// A consumer `ref` joins them.
 	const panelRef = useComposedRefs(resize.ref, fitRef, ref)
 
-	const { ariaProps, a11y } = useA11yPanel('dialog', modal)
-
 	const full = resize.size === null ? height === 'full' : resize.atCeiling
 
 	return (
-		<Overlay
-			open={open}
-			onOpenChange={setOpen}
-			initialFocus={initialFocus}
-			returnFocusTo={returnFocusTo}
-			dismissOnBackdrop={dismissOnBackdrop}
-			modal={modal}
-			backdrop={backdrop}
-			container={container}
-			backdropClassName={k.backdrop({ surface })}
-		>
+		<Overlay {...overlayProps} backdropClassName={k.backdrop({ surface })}>
 			<m.div
 				{...props}
-				{...preset}
-				onAnimationComplete={onAnimationComplete}
+				{...panelProps}
 				ref={panelRef}
-				{...ariaProps}
-				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
-				id={panelId}
 				// The space recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
 				data-slot="drawer"
 				data-density={size}
 				data-height={height ?? 'auto'}
-				// Opens the glass cascade to the panel contents: `hannou.tint.glass` keys on
-				// `group-data-glass/glass`, which needs the named group and the attribute on
-				// one element. Rows inside take their hover wash at double strength, because
-				// 5% under the translucency of the panel reads as no hover at all.
-				data-glass={dataAttr(isGlass)}
-				data-open={dataAttr(open)}
-				className={cn(
-					'group/drawer',
-					isGlass && 'group/glass',
-					k.panel({ surface, height }),
-					// A non-modal overlay turns off pointer events on its full-viewport
-					// root, so the page stays live. The panel turns them on again for itself.
-					!modal && 'pointer-events-auto',
-					className,
-				)}
+				className={cn('group/drawer', k.panel({ surface, height }), panelClassName, className)}
 				// The panel eases between its `height` variants, which is right for a step
 				// and wrong for a finger: eased, each frame's height becomes an animation
 				// toward where the pointer already is, so the edge trails the drag and
@@ -333,10 +294,6 @@ export function DrawerPanel({
 				// at rest, and either step once a drag commits a height at the ceiling. A `fit`
 				// panel stamps this attribute itself, so it is left alone here.
 				data-full={hasFixedHeight ? dataAttr(full) : undefined}
-				// A consumer's preventDefault() does not let the click past the panel (CONVENTIONS.md §3.9).
-				onClick={composeEventHandlers(onClick, (event) => event.stopPropagation(), {
-					checkForDefaultPrevented: false,
-				})}
 				// A dragged height beats the variant's, and a `fit` panel's, which stands
 				// down for as long as one is held. It is inline because it is a
 				// measurement rather than a step: there is no class for "412 pixels".

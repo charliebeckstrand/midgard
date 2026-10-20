@@ -1,4 +1,10 @@
-import type { ComponentType, ReactNode } from 'react'
+import {
+	type ComponentType,
+	type ReactElement,
+	type ReactNode,
+	type RefObject,
+	useRef,
+} from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
@@ -10,7 +16,12 @@ import { getSlot, renderUI, screen, waitFor } from '../../helpers'
 type Family = {
 	name: string
 	Root: ComponentType<{ children: ReactNode }>
-	Panel: ComponentType<{ 'aria-label'?: string; footer?: ReactNode; children: ReactNode }>
+	Panel: ComponentType<{
+		'aria-label'?: string
+		footer?: ReactNode
+		returnFocusTo?: RefObject<HTMLElement | null>
+		children: ReactNode
+	}>
 	Trigger: ComponentType<{ children: ReactNode }>
 	Close: ComponentType<{ children?: ReactNode }>
 }
@@ -45,13 +56,13 @@ const FAMILIES: Family[] = [
  * in the browser suite.
  */
 describe.each(FAMILIES)('$name trigger (real focus manager)', ({ Root, Panel, Trigger, Close }) => {
-	function tree() {
+	function Tree({ returnFocusTo }: { returnFocusTo?: RefObject<HTMLElement | null> }) {
 		return (
 			<Root>
 				<Trigger>
 					<Button type="button">Open</Button>
 				</Trigger>
-				<Panel aria-label="Panel" footer={null}>
+				<Panel aria-label="Panel" footer={null} returnFocusTo={returnFocusTo}>
 					<Close>
 						<Button type="button">Done</Button>
 					</Close>
@@ -61,8 +72,8 @@ describe.each(FAMILIES)('$name trigger (real focus manager)', ({ Root, Panel, Tr
 	}
 
 	/** Opens the panel from its trigger, and waits for focus to move into the panel. */
-	async function open() {
-		renderUI(tree())
+	async function open(tree: ReactElement = <Tree />) {
+		renderUI(tree)
 
 		const trigger = screen.getByRole('button', { name: 'Open' })
 
@@ -112,5 +123,30 @@ describe.each(FAMILIES)('$name trigger (real focus manager)', ({ Root, Panel, Tr
 		await userEvent.click(screen.getByRole('button', { name: 'Done' }))
 
 		await expectClosed(trigger)
+	})
+
+	it('gives focus to returnFocusTo after Escape', async () => {
+		function WithTarget() {
+			const target = useRef<HTMLButtonElement>(null)
+
+			return (
+				<>
+					<button ref={target} type="button">
+						Elsewhere
+					</button>
+					<Tree returnFocusTo={target} />
+				</>
+			)
+		}
+
+		await open(<WithTarget />)
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => {
+			expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+			expect(screen.getByRole('button', { name: 'Elsewhere' })).toHaveFocus()
+		})
 	})
 })

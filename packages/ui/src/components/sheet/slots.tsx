@@ -1,9 +1,6 @@
-import { IntlMessage } from '../../primitives/intl/intl-message'
-import { intlMessages } from '../../primitives/intl/intl-messages'
 import {
 	createPanel,
 	type PanelBodyProps,
-	PanelClose,
 	type PanelCloseProps,
 	type PanelContentProps,
 	type PanelDescriptionProps,
@@ -14,7 +11,7 @@ import {
 	type PanelTriggerProps,
 } from '../../primitives/panel'
 import { k } from '../../recipes/kata/sheet'
-import { Button } from '../button'
+import { createPanelClose } from '../button/button-close'
 
 /** Props for {@link SheetTitle}: the heading `level` (default 2) plus the heading attributes. */
 export type SheetTitleProps = PanelTitleProps
@@ -46,31 +43,7 @@ const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = cre
 /** Props for {@link SheetClose}: one clickable child, or none for the standard Close button. */
 export type SheetCloseProps = Partial<PanelCloseProps>
 
-/**
- * A control that closes the enclosing {@link Sheet}. With no child, it renders
- * the standard Close button, which is also the default footer of the sheet.
- * The standard button stays live in a locked scope, such as a submitting form.
- * With one child, a click on the child closes the sheet, and the child's own
- * `onClick` runs first.
- */
-export function SheetClose({ children }: SheetCloseProps) {
-	return (
-		<PanelClose>
-			{children ?? (
-				<Button
-					// A close writes no field, so a locked scope, such as a submitting
-					// form, leaves it live.
-					lockable={false}
-					type="button"
-					variant="soft"
-					data-slot="sheet-close"
-				>
-					<IntlMessage message={intlMessages.close} />
-				</Button>
-			)}
-		</PanelClose>
-	)
-}
+const Close = createPanelClose('sheet')
 
 export {
 	/**
@@ -78,6 +51,14 @@ export {
 	 * that fills the remaining height.
 	 */
 	Body as SheetBody,
+	/**
+	 * A control that closes the enclosing {@link Sheet}. With no child, it renders
+	 * the standard Close button, which is also the default footer of the sheet.
+	 * The standard button stays live in a locked scope, such as a submitting form.
+	 * With one child, a click on the child closes the sheet, and the child's own
+	 * `onClick` runs first.
+	 */
+	Close as SheetClose,
 	/** A wrapper for sheet content outside the header/body/footer rhythm; renders a `<div>`. */
 	Content as SheetContent,
 	/**

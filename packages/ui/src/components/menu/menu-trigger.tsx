@@ -2,16 +2,24 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type KeyboardEvent, type Ref, useId, useRef } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import {
+	disclosureProps,
 	mergeTriggerProps,
 	TriggerChild,
 	triggerChild,
 } from '../../primitives/trigger-child/trigger-child'
 import { useMenuActions, useMenuState } from './context'
 import { useMenuPointer } from './use-menu-pointer'
+
+/**
+ * The key handlers of the trigger run after the handlers of the consumer, also
+ * when the consumer calls `preventDefault()`. They hold the menu cursor and the
+ * auto-repeat guard, which a consumer cannot cancel (CONVENTIONS.md §3.9).
+ */
+const activation = { checkForDefaultPrevented: false }
 
 /**
  * Props for {@link MenuTrigger}. The `<button>` of the trigger takes the rest.
@@ -141,32 +149,25 @@ export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerP
 	if (child) {
 		const childProps = mergeTriggerProps(props, child.props)
 
-		const childOnKeyDown = childProps.onKeyDown as ((event: KeyboardEvent) => void) | undefined
-
-		const childOnKeyUp = childProps.onKeyUp as ((event: KeyboardEvent) => void) | undefined
-
 		return (
 			<TriggerChild
 				child={child}
 				props={{
 					...getReferenceProps({
 						...childProps,
-						onKeyDown: (event: KeyboardEvent) => {
-							childOnKeyDown?.(event)
-							handleTriggerKeyDown(event)
-						},
-						onKeyUp: (event: KeyboardEvent) => {
-							childOnKeyUp?.(event)
-							handleTriggerKeyUp(event)
-						},
+						onKeyDown: composeEventHandlers(
+							childProps.onKeyDown as ((event: KeyboardEvent) => void) | undefined,
+							handleTriggerKeyDown,
+							activation,
+						),
+						onKeyUp: composeEventHandlers(
+							childProps.onKeyUp as ((event: KeyboardEvent) => void) | undefined,
+							handleTriggerKeyUp,
+							activation,
+						),
 					}),
 					id: (childProps.id as string | undefined) ?? fallbackId,
-					'aria-haspopup': 'menu',
-					'aria-expanded': open,
-					'aria-controls': open ? menuId : undefined,
-					'data-open': dataAttr(open),
-					// A child that stamps its own disabled state keeps it.
-					'data-disabled': dataAttr(childProps.disabled === true) ?? childProps['data-disabled'],
+					...disclosureProps(open, menuId, 'menu', childProps),
 				}}
 				ref={setTrigger}
 				slot="menu-trigger"
@@ -186,22 +187,12 @@ export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerP
 			// precedence.
 			{...getReferenceProps({
 				...rest,
-				onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
-					consumerOnKeyDown?.(event)
-					handleTriggerKeyDown(event)
-				},
-				onKeyUp: (event: KeyboardEvent<HTMLButtonElement>) => {
-					consumerOnKeyUp?.(event)
-					handleTriggerKeyUp(event)
-				},
+				onKeyDown: composeEventHandlers(consumerOnKeyDown, handleTriggerKeyDown, activation),
+				onKeyUp: composeEventHandlers(consumerOnKeyUp, handleTriggerKeyUp, activation),
 			})}
 			type="button"
 			id={rest.id ?? fallbackId}
-			aria-haspopup="menu"
-			aria-expanded={open}
-			aria-controls={open ? menuId : undefined}
-			data-open={dataAttr(open)}
-			data-disabled={dataAttr(rest.disabled)}
+			{...disclosureProps(open, menuId, 'menu', rest)}
 		>
 			{children}
 		</button>

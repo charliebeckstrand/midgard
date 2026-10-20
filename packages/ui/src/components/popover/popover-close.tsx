@@ -1,10 +1,8 @@
 'use client'
 
 import type { MouseEventHandler, ReactElement } from 'react'
-import { intlMessages } from '../../primitives/intl/intl-messages'
-import { useIntl } from '../../primitives/intl/use-intl'
 import { cloneWithAction } from '../../primitives/trigger-child/trigger-child'
-import { Button } from '../button'
+import { ButtonClose } from '../button/button-close'
 import { usePopoverContext } from './context'
 
 /** Props for {@link PopoverClose}: one clickable child, or none for the standard Close button. */
@@ -22,20 +20,5 @@ export type PopoverCloseProps = {
 export function PopoverClose({ children }: PopoverCloseProps) {
 	const { close } = usePopoverContext()
 
-	const intl = useIntl()
-
-	const child = children ?? (
-		<Button
-			// A close writes no field, so a locked scope, such as a submitting form,
-			// leaves it live.
-			lockable={false}
-			type="button"
-			variant="soft"
-			data-slot="popover-close"
-		>
-			{intl.formatMessage(intlMessages.close)}
-		</Button>
-	)
-
-	return cloneWithAction(child, close)
+	return cloneWithAction(children ?? <ButtonClose slot="popover-close" />, close)
 }
