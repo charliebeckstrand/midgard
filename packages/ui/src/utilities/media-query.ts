@@ -1,13 +1,15 @@
 import { BREAKPOINT_WIDTHS } from '../types/responsive'
 import { createListenerRegistry } from './listener-registry'
 
-/** The media query that matches when the reader asks the platform for reduced motion. */
+/** The media query that matches when the reader asks the platform for reduced motion. @internal */
 export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 
 /**
  * The media query that matches a device with no hover, such as a phone. It asks
  * for the device with no hover, so an environment that matches nothing, such as
  * jsdom, takes the path of a device with hover.
+ *
+ * @internal
  */
 export const NO_HOVER_QUERY = '(hover: none)'
 
@@ -23,6 +25,8 @@ export const PHONE_QUERY = `${NO_HOVER_QUERY} and (width < ${BREAKPOINT_WIDTHS.s
  * The media query that matches a device where no pointer hovers, such as a
  * phone with no mouse. Such a device shows no cursor. An environment that
  * matches nothing, such as jsdom, takes the path of a device with a cursor.
+ *
+ * @internal
  */
 export const NO_CURSOR_QUERY = '(any-hover: none)'
 
@@ -46,6 +50,8 @@ const registry = createListenerRegistry<MediaQueryList, MediaQueryListEvent>({
  * an unsubscribe fn. `handler` must be a distinct function reference per
  * subscription (callers pass a fresh closure per effect run). Call only on the
  * client: `window.matchMedia` is absent during SSR.
+ *
+ * @internal
  */
 export function subscribeMediaQuery(query: string, handler: () => void): () => void {
 	return registry.subscribe(query, handler)
@@ -55,6 +61,8 @@ export function subscribeMediaQuery(query: string, handler: () => void): () => v
  * Whether `query` currently matches, read from the shared `MediaQueryList` while
  * a subscription is live and a transient match otherwise. Call only on the
  * client: `window.matchMedia` is absent during SSR.
+ *
+ * @internal
  */
 export function matchesMediaQuery(query: string): boolean {
 	return (registry.source(query) ?? window.matchMedia(query)).matches

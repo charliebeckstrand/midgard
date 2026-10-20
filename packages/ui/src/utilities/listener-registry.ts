@@ -6,7 +6,11 @@ type Entry<S, E> = {
 	detach: (() => void) | null
 }
 
-/** How a {@link createListenerRegistry} registry reaches the native listener for a key. */
+/**
+ * How a {@link createListenerRegistry} registry reaches the native listener for a key.
+ *
+ * @internal
+ */
 export type ListenerRegistryOptions<S, E> = {
 	/** Makes the source of a key, such as a `MediaQueryList`, for its first subscriber. */
 	source: (key: string) => S
@@ -23,7 +27,7 @@ export type ListenerRegistryOptions<S, E> = {
 	keep?: boolean
 }
 
-/** A set of handlers for each key behind one shared native listener. */
+/** A set of handlers for each key behind one shared native listener. @internal */
 export type ListenerRegistry<S, E> = {
 	/** Adds `handler` for `key`, and returns the call that removes it. */
 	subscribe: (key: string, handler: (event: E) => void) => () => void

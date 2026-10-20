@@ -1,6 +1,8 @@
 /**
  * The built-in aggregation names. The pivot table and the grid both take them:
  * `PivotAggregation` and `GridAggFuncName` are aliases of this union.
+ *
+ * @internal
  */
 export type Aggregation = 'sum' | 'avg' | 'min' | 'max' | 'count'
 
@@ -23,6 +25,7 @@ export type Aggregation = 'sum' | 'avg' | 'min' | 'max' | 'count'
  * @param values - The numbers to reduce. Must not be empty.
  * @param op - The aggregation, other than `count`.
  * @returns The sum, the mean, the minimum, or the maximum of `values`.
+ * @internal
  */
 export function reduceNumbers(
 	values: readonly number[],

@@ -3,6 +3,7 @@
  * as Safari, calls it after `fallbackDelay` milliseconds, with no deadline.
  *
  * @returns The handle that {@link cancelIdle} takes.
+ * @internal
  */
 export function requestIdle(
 	callback: (deadline?: IdleDeadline) => void,
@@ -14,7 +15,7 @@ export function requestIdle(
 	return idle(callback)
 }
 
-/** Cancels a callback that {@link requestIdle} scheduled. */
+/** Cancels a callback that {@link requestIdle} scheduled. @internal */
 export function cancelIdle(handle: number): void {
 	const cancel = window.cancelIdleCallback ?? window.clearTimeout
 

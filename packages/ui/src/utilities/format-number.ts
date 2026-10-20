@@ -4,9 +4,10 @@ import { getOrCompute } from './get-or-compute'
 /**
  * A formatter for `spec` per locale, built on first use and kept.
  *
- * A fresh `Intl.NumberFormat` for each call costs measurable time in per-frame
- * animations (Odometer) and in grids with many numeric cells (PivotTable). A
- * lookup by locale keeps each call to one map read.
+ * {@link resolveFormat} caches the `Intl.NumberFormat`, but each call builds a
+ * cache key and a new function. A lookup by locale keeps each call to one map
+ * read, and gives the same function for the same locale, so a memo that reads
+ * it stays valid.
  */
 function perLocale(spec: FormatSpec): (locale: string | undefined) => (value: number) => string {
 	const formatters = new Map<string | undefined, (value: number) => string>()

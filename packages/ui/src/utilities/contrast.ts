@@ -14,19 +14,25 @@
 
 import { clamp } from './clamp'
 
-/** An sRGB color as three gamma-encoded channels in `[0, 1]`: the space CSS colors live in. */
+/**
+ * An sRGB color as three gamma-encoded channels in `[0, 1]`: the space CSS colors live in.
+ *
+ * @internal
+ */
 export type Srgb = readonly [r: number, g: number, b: number]
 
 /**
  * A color to measure: a CSS string (`#rgb` / `#rrggbb`, `rgb(…)`, `oklch(…)`,
  * or the keywords `white` / `black`) or an {@link Srgb} triple.
+ *
+ * @internal
  */
 export type ColorInput = string | Srgb
 
-/** WCAG 1.4.3 AA minimum contrast for normal-size text. */
+/** WCAG 1.4.3 AA minimum contrast for normal-size text. @internal */
 export const WCAG_AA_TEXT = 4.5
 
-/** WCAG 1.4.11 minimum contrast for non-text UI components and graphical objects. */
+/** WCAG 1.4.11 minimum contrast for non-text UI components and graphical objects. @internal */
 export const WCAG_NON_TEXT = 3
 
 const clamp01 = (channel: number): number => clamp(channel, 0, 1)
@@ -131,6 +137,7 @@ function parseOklch(css: string): Srgb | null {
  * Resolve a {@link ColorInput} to gamma-encoded {@link Srgb}.
  *
  * @throws If a string can't be parsed as a supported color form.
+ * @internal
  */
 export function parseColor(color: ColorInput): Srgb {
 	if (typeof color !== 'string') return [clamp01(color[0]), clamp01(color[1]), clamp01(color[2])]
@@ -147,7 +154,7 @@ export function parseColor(color: ColorInput): Srgb {
 	return parsed
 }
 
-/** The WCAG relative luminance of a color, in `[0, 1]`. */
+/** The WCAG relative luminance of a color, in `[0, 1]`. @internal */
 export function relativeLuminance(color: ColorInput): number {
 	const [r, g, b] = parseColor(color)
 
@@ -162,6 +169,8 @@ function luminanceRatio(a: number, b: number): number {
 /**
  * The WCAG contrast ratio between two colors, from `1` (identical) to `21`
  * (black on white). Order-independent.
+ *
+ * @internal
  */
 export function contrastRatio(a: ColorInput, b: ColorInput): number {
 	return luminanceRatio(relativeLuminance(a), relativeLuminance(b))
@@ -179,6 +188,7 @@ export function contrastRatio(a: ColorInput, b: ColorInput): number {
  * @defaultValue {@link WCAG_AA_TEXT}
  * @returns The chosen candidate, from `inks`.
  * @throws If `inks` is empty.
+ * @internal
  */
 export function readableInk<Ink extends ColorInput>(
 	background: ColorInput,

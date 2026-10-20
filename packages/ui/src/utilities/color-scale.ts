@@ -24,6 +24,7 @@ import { parseColor } from './contrast'
  *
  * @remarks Out-of-range `t` clamps to `[0, 1]`; a single stop passes through
  * for any `t`.
+ * @internal
  */
 export function sampleRange(stops: string[], t: number): string {
 	const first = stops[0] ?? '#000000'
@@ -52,7 +53,7 @@ export function sampleRange(stops: string[], t: number): string {
 	return `rgb(${mix(r1, r2)} ${mix(g1, g2)} ${mix(b1, b2)})`
 }
 
-/** `n` colors evenly sampled from `range`, low → high. */
+/** `n` colors evenly sampled from `range`, low → high. @internal */
 export function binColors(range: string[], n: number): string[] {
 	if (n <= 1) return [sampleRange(range, 0)]
 
@@ -102,6 +103,8 @@ export function valueExtent(
  * `colorRange`, low → high. The default is one bin per color stop, or `bins`
  * buckets resampled from the stops when set. The last bin's `hi` is pinned to
  * the domain max so the top edge folds in rather than opening a bucket past it.
+ *
+ * @internal
  */
 export function resolveColorBins(
 	domain: [number, number],
@@ -174,6 +177,8 @@ function quantileAt(sorted: number[], p: number): number {
  * repeated edges, the standard quantile-scale behavior. A heavily duplicated
  * value can therefore leave some buckets zero-width, rather than forcing an
  * even split that identical values can't honor.
+ *
+ * @internal
  */
 export function quantileThresholds(values: number[], count: number): number[] {
 	return sortedThresholds(sortedFinite(values), count)
@@ -221,6 +226,8 @@ export function quantileBinIndex(value: number, thresholds: readonly number[]): 
  * `bins` buckets by default one per color stop. Ties or a flat domain yield
  * fewer real buckets. The painted bin count therefore tracks the actual edges,
  * rather than mapping a color onto a bucket the data can't fill.
+ *
+ * @internal
  */
 export function resolveQuantileBins(
 	values: number[],
@@ -254,7 +261,7 @@ export function resolveQuantileBins(
 	}
 }
 
-/** How a {@link resolveBinScale} cuts its domain into bins. */
+/** How a {@link resolveBinScale} cuts its domain into bins. @internal */
 export type Binning = 'linear' | 'quantile'
 
 /** The painted bins of one color scale, and the rule that assigns a value to one of them. */

@@ -20,6 +20,8 @@ let lastOrder = 0
 /**
  * Gives the next open order for {@link registerDismissLayer}. Call it in the
  * render that opens a layer, so that the order follows the render order.
+ *
+ * @internal
  */
 export function nextDismissOrder(): number {
 	lastOrder += 1
@@ -33,6 +35,7 @@ export function nextDismissOrder(): number {
  * @param order - The open order from {@link nextDismissOrder}. The layer goes
  * below each layer with a higher order. With no order, the layer goes on top,
  * and no later layer goes below it.
+ * @internal
  */
 export function registerDismissLayer(layer: object, order?: number): () => void {
 	const entry: DismissEntry = { layer, order }
@@ -56,7 +59,7 @@ export function registerDismissLayer(layer: object, order?: number): () => void 
 	}
 }
 
-/** True when `layer` is the topmost layer on the dismiss stack. */
+/** True when `layer` is the topmost layer on the dismiss stack. @internal */
 export function isTopDismissLayer(layer: object): boolean {
 	return layers.at(-1)?.layer === layer
 }

@@ -1,6 +1,11 @@
 import type { Orientation } from '../types'
 
-/** Navigation mode for {@link nextIndexForKey}: 2D grid when `cols` is set, else single-axis along `orientation`. */
+/**
+ * Navigation mode for {@link nextIndexForKey}: 2D grid when `cols` is set, else
+ * single-axis along `orientation`.
+ *
+ * @internal
+ */
 export type NavigationConfig = {
 	/** Column count for 2D grid navigation. Omit for single-axis mode. */
 	cols?: number
@@ -18,7 +23,7 @@ export function isArrowKey(key: string): boolean {
 	return key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown'
 }
 
-/** Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. */
+/** Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. @internal */
 export function crossAxisDelta(key: string, orientation: Orientation): number | null {
 	return orientation === 'vertical'
 		? arrowDelta(key, 'ArrowRight', 'ArrowLeft')
