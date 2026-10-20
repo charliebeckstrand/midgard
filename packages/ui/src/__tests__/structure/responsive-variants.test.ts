@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { join } from 'node:path'
 import { __unstable__loadDesignSystem, compile } from '@tailwindcss/node'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { k as descriptionList } from '../../recipes/kata/description-list'
@@ -14,6 +13,7 @@ import { k as stepper } from '../../recipes/kata/stepper'
 import { k as toast } from '../../recipes/kata/toast'
 import { BREAKPOINT_WIDTHS, type MinBreakpoint, resolveVariant } from '../../types/responsive'
 import { noop } from '../../utilities/noop'
+import { uiRoot } from '../helpers/walk-source'
 
 // A responsive variant axis of a component gives the classes of one value at
 // each breakpoint (`resolveVariant`). A larger breakpoint must replace each
@@ -22,8 +22,6 @@ import { noop } from '../../utilities/noop'
 // selectors, in the same layer. Each prefixed class must also have CSS from the
 // `@source inline(...)` lines of `ui/tailwind.css`, because the scanner does not
 // see a class that a resolver makes at run time.
-
-const UI = join(import.meta.dirname, '../../..')
 
 const ENTRY = `@import 'tailwindcss';\n@import './tailwind.css';`
 
@@ -95,8 +93,8 @@ describe('the responsive variant axes of the components', () => {
 	// One design system and one compiler serve each axis.
 	beforeAll(async () => {
 		;[system, compiler] = await Promise.all([
-			__unstable__loadDesignSystem(ENTRY, { base: UI }),
-			compile(ENTRY, { base: UI, onDependency: noop }),
+			__unstable__loadDesignSystem(ENTRY, { base: uiRoot }),
+			compile(ENTRY, { base: uiRoot, onDependency: noop }),
 		])
 	})
 

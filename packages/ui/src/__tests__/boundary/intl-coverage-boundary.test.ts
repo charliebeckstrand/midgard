@@ -132,24 +132,10 @@ const NUMBER = TypeFlags.Number | TypeFlags.NumberLiteral
 const NOTHING = TypeFlags.Undefined | TypeFlags.Null
 
 /**
- * The compiler options of the scan: the options of `tsconfig.json` that change
- * a type, with no type packages and no output.
+ * The compiler options of the scan over the package config, which it extends:
+ * no type packages, no output, and no build info.
  */
-const COMPILER_OPTIONS = {
-	target: 'ES2023',
-	module: 'ESNext',
-	moduleResolution: 'bundler',
-	jsx: 'react-jsx',
-	jsxImportSource: 'react',
-	lib: ['ES2023', 'DOM', 'DOM.Iterable'],
-	strict: true,
-	noUncheckedIndexedAccess: true,
-	skipLibCheck: true,
-	allowImportingTsExtensions: true,
-	resolveJsonModule: true,
-	noEmit: true,
-	types: [],
-}
+const COMPILER_OPTIONS = { types: [], noEmit: true, incremental: false }
 
 /** One finding of a scan, before the allowlist. */
 type Finding = { file: string; rule: string; line: string }
@@ -517,7 +503,7 @@ describe('intl coverage boundary', () => {
 	// The project opens in the first case that needs it, under the budget of a
 	// case, not of a hook.
 	const shipped = () => {
-		project ??= server.open([...files.keys()], COMPILER_OPTIONS)
+		project ??= server.open([...files.keys()], COMPILER_OPTIONS, './tsconfig.json')
 
 		return project
 	}
@@ -584,7 +570,7 @@ describe('intl coverage boundary', () => {
 			`,
 		)
 
-		const fixture = server.open([file], COMPILER_OPTIONS)
+		const fixture = server.open([file], COMPILER_OPTIONS, './tsconfig.json')
 
 		const rules = [...textFindings(fixture, [file]), ...numberArgumentFindings(fixture, [file])]
 			.map((finding) => finding.rule)

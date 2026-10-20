@@ -33,7 +33,10 @@ import { uiRoot } from './walk-source'
 
 const browserConfig = readFileSync(join(uiRoot, 'vitest.browser.config.ts'), 'utf8')
 
-/** Reads the numbers that `pattern` captures in `vitest.browser.config.ts`, so that the scan cannot drift from it. */
+/**
+ * Reads the numbers that `pattern` captures in `vitest.browser.config.ts`, so
+ * that the scan cannot drift from it.
+ */
 function configNumber(pattern: RegExp): number[] {
 	const match = pattern.exec(browserConfig)
 

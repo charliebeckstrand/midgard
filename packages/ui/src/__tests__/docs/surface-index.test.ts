@@ -1,17 +1,12 @@
 // @vitest-environment node
 import { readdirSync, readFileSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
 import { isExportDeclaration, isNamedExports } from 'typescript/unstable/ast'
 import { afterAll, describe, expect, it } from 'vitest'
 import { startTypeScript, type TypeScriptServer } from '../helpers/ts-server'
+import { srcDir, uiRoot } from '../helpers/walk-source'
 
-// This file lives at packages/ui/src/__tests__/docs/; climb to the package root.
-const UI_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
-
-const SRC = join(UI_ROOT, 'src')
-
-const DOCS = join(UI_ROOT, 'docs')
+const DOCS = join(uiRoot, 'docs')
 
 /**
  * Every `` `identifier` `` span in a markdown surface index, excluding fenced
@@ -33,7 +28,7 @@ function documentedTokens(mdFile: string): Set<string> {
  * §4.6), so a parse of the syntax finds each one.
  */
 function barrelValueExports(server: TypeScriptServer, relPath: string): string[] {
-	const file = join(SRC, relPath)
+	const file = join(srcDir, relPath)
 
 	const source = server.parse([file]).get(file)
 
@@ -49,7 +44,7 @@ function barrelValueExports(server: TypeScriptServer, relPath: string): string[]
 }
 
 function subdirectories(relPath: string): string[] {
-	return readdirSync(join(SRC, relPath), { withFileTypes: true })
+	return readdirSync(join(srcDir, relPath), { withFileTypes: true })
 		.filter((entry) => entry.isDirectory())
 		.map((entry) => entry.name)
 }
