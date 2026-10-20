@@ -4,6 +4,8 @@
  * step, and each other line repeats.
  */
 
+import type { GridRowDistance, GridRowStep } from './range'
+
 /** The direction of a fill, from the source cells to the cells that it writes. @internal */
 export type GridFillDirection = 'down' | 'right' | 'up' | 'left'
 
@@ -60,13 +62,15 @@ export type GridFillTarget = { row: number; col: number; value: unknown }
  * down or up) or each row (for a fill right or left) is one source line.
  * `read` gives the value of a source cell. For a fill up or left, the line
  * reads from the far edge toward the fill, so a series runs the same way.
- * @internal
+ * `step` gives the rows of a fill down or up, so the fill skips the rows that
+ * the cursor does not show. A row past the edge takes no value. @internal
  */
 export function fillPlan(
 	source: { rows: readonly number[]; cols: readonly number[] },
 	direction: GridFillDirection,
 	count: number,
 	read: (row: number, col: number) => unknown,
+	step: GridRowStep,
 ): GridFillTarget[] {
 	const vertical = direction === 'down' || direction === 'up'
 
@@ -84,6 +88,13 @@ export function fillPlan(
 
 	const order = back ? [...along].reverse() : along
 
+	const edge = back ? first : last
+
+	const sign = back ? -1 : 1
+
+	// The row or the column `n` lines past the source. A row comes from `step`.
+	const past = (n: number) => (vertical ? step(edge, sign * n) : edge + sign * n)
+
 	const targets: GridFillTarget[] = []
 
 	for (const line of across) {
@@ -93,7 +104,9 @@ export function fillPlan(
 		)
 
 		values.forEach((value, index) => {
-			const at = back ? first - index - 1 : last + index + 1
+			const at = past(index + 1)
+
+			if (at === undefined) return
 
 			targets.push(vertical ? { row: at, col: line, value } : { row: line, col: at, value })
 		})
@@ -143,14 +156,17 @@ export type GridFillRect = { top: number; bottom: number; left: number; right: n
  * The fill that a drag of the fill handle makes from a source block to the
  * data cell under the pointer, or `null` while the pointer is on the source.
  * The fill runs along the axis of the larger travel past the source, and a
- * tie goes down or up. @internal
+ * tie goes down or up. `distance` counts the travel over the rows that the
+ * cursor shows. @internal
  */
 export function handleFill(
 	source: GridFillRect,
 	cell: { row: number; col: number },
+	distance: GridRowDistance,
 ): { direction: GridFillDirection; count: number } | null {
-	const rows =
-		cell.row > source.bottom ? cell.row - source.bottom : Math.min(0, cell.row - source.top)
+	const below = distance(source.bottom, cell.row)
+
+	const rows = below > 0 ? below : Math.min(0, distance(source.top, cell.row))
 
 	const cols =
 		cell.col > source.right ? cell.col - source.right : Math.min(0, cell.col - source.left)
@@ -167,11 +183,13 @@ export function handleFill(
 /**
  * The corners of the range that a fill of `source` leaves: the anchor at the
  * source corner away from the fill, and the cursor at the far corner of the
- * filled cells. With no fill, the corners of the source. @internal
+ * filled cells. With no fill, the corners of the source. `step` finds the far
+ * row of a fill down or up. @internal
  */
 export function filledCorners(
 	source: GridFillRect,
 	fill: { direction: GridFillDirection; count: number } | null,
+	step: GridRowStep,
 ): { from: { row: number; col: number }; to: { row: number; col: number } } {
 	const { top, bottom, left, right } = source
 
@@ -179,12 +197,15 @@ export function filledCorners(
 
 	switch (fill?.direction) {
 		case 'up':
-			return { from: { row: bottom, col: right }, to: { row: top - count, col: left } }
+			return { from: { row: bottom, col: right }, to: { row: step(top, -count) ?? top, col: left } }
 		case 'left':
 			return { from: { row: bottom, col: right }, to: { row: top, col: left - count } }
 		case 'right':
 			return { from: { row: top, col: left }, to: { row: bottom, col: right + count } }
 		default:
-			return { from: { row: top, col: left }, to: { row: bottom + count, col: right } }
+			return {
+				from: { row: top, col: left },
+				to: { row: step(bottom, count) ?? bottom, col: right },
+			}
 	}
 }

@@ -178,11 +178,22 @@ describe('unguardField', () => {
 	})
 })
 
+/** The row step over the data rows `shown`, in their order. */
+function stepOver(shown: readonly number[]) {
+	return (row: number, steps: number) => {
+		const place = shown.indexOf(row)
+
+		return place === -1 ? undefined : shown[place + steps]
+	}
+}
+
 describe('pastePlacement', () => {
-	const size = { rows: 5, cols: 4 }
+	const cols = 4
+
+	const step = stepOver([0, 1, 2, 3, 4])
 
 	it('writes one field into each cell of the range', () => {
-		const targets = pastePlacement([['x']], { rows: [1, 2], cols: [0, 1] }, size)
+		const targets = pastePlacement([['x']], { rows: [1, 2], cols: [0, 1] }, cols, step)
 
 		expect(targets).toEqual([
 			{ row: 1, col: 0, text: 'x' },
@@ -193,7 +204,7 @@ describe('pastePlacement', () => {
 	})
 
 	it('tiles a block over a range that is a whole multiple of it', () => {
-		const targets = pastePlacement([['a', 'b']], { rows: [0, 1], cols: [0, 1, 2, 3] }, size)
+		const targets = pastePlacement([['a', 'b']], { rows: [0, 1], cols: [0, 1, 2, 3] }, cols, step)
 
 		expect(targets.map((target) => target.text)).toEqual(['a', 'b', 'a', 'b', 'a', 'b', 'a', 'b'])
 	})
@@ -204,26 +215,35 @@ describe('pastePlacement', () => {
 			['d', 'e', 'f'],
 		]
 
-		expect(pastePlacement(block, { rows: [4], cols: [2] }, size)).toEqual([
+		expect(pastePlacement(block, { rows: [4], cols: [2] }, cols, step)).toEqual([
 			{ row: 4, col: 2, text: 'a' },
 			{ row: 4, col: 3, text: 'b' },
 		])
 	})
 
+	it('steps over a row that the cursor does not show', () => {
+		const block = [['a'], ['b']]
+
+		expect(pastePlacement(block, { rows: [0], cols: [0] }, cols, stepOver([0, 3, 4]))).toEqual([
+			{ row: 0, col: 0, text: 'a' },
+			{ row: 3, col: 0, text: 'b' },
+		])
+	})
+
 	it('gives empty text for a short row of the block', () => {
-		const targets = pastePlacement([['a', 'b'], ['c']], { rows: [0], cols: [0] }, size)
+		const targets = pastePlacement([['a', 'b'], ['c']], { rows: [0], cols: [0] }, cols, step)
 
 		expect(targets.map((target) => target.text)).toEqual(['a', 'b', 'c', ''])
 	})
 
 	it('writes nothing for an empty block', () => {
-		expect(pastePlacement([], { rows: [0], cols: [0] }, size)).toEqual([])
+		expect(pastePlacement([], { rows: [0], cols: [0] }, cols, step)).toEqual([])
 	})
 
 	it('places a block with more rows than the engine takes as call arguments', () => {
 		const block = Array.from({ length: 1_000_000 }, (_, i) => [String(i)])
 
-		expect(pastePlacement(block, { rows: [3], cols: [1] }, size)).toEqual([
+		expect(pastePlacement(block, { rows: [3], cols: [1] }, cols, step)).toEqual([
 			{ row: 3, col: 1, text: '0' },
 			{ row: 4, col: 1, text: '1' },
 		])
@@ -297,25 +317,34 @@ describe('fillLine', () => {
 describe('fillPlan', () => {
 	const read = (row: number, col: number) => row * 10 + col
 
+	const step = stepOver([0, 1, 2, 3, 4])
+
 	it('fills each column down, and each row right', () => {
-		expect(fillPlan({ rows: [0, 1], cols: [2] }, 'down', 2, read)).toEqual([
+		expect(fillPlan({ rows: [0, 1], cols: [2] }, 'down', 2, read, step)).toEqual([
 			{ row: 2, col: 2, value: 22 },
 			{ row: 3, col: 2, value: 32 },
 		])
 
-		expect(fillPlan({ rows: [4], cols: [0] }, 'right', 2, read)).toEqual([
+		expect(fillPlan({ rows: [4], cols: [0] }, 'right', 2, read, step)).toEqual([
 			{ row: 4, col: 1, value: 40 },
 			{ row: 4, col: 2, value: 40 },
 		])
 	})
 
+	it('steps over a row that the cursor does not show, and stops at the edge', () => {
+		expect(fillPlan({ rows: [0], cols: [1] }, 'down', 3, read, stepOver([0, 3, 4]))).toEqual([
+			{ row: 3, col: 1, value: 1 },
+			{ row: 4, col: 1, value: 1 },
+		])
+	})
+
 	it('runs a series back from the far edge for a fill up or left', () => {
-		expect(fillPlan({ rows: [3, 4], cols: [0] }, 'up', 2, read)).toEqual([
+		expect(fillPlan({ rows: [3, 4], cols: [0] }, 'up', 2, read, step)).toEqual([
 			{ row: 2, col: 0, value: 20 },
 			{ row: 1, col: 0, value: 10 },
 		])
 
-		expect(fillPlan({ rows: [0], cols: [2, 3] }, 'left', 1, read)).toEqual([
+		expect(fillPlan({ rows: [0], cols: [2, 3] }, 'left', 1, read, step)).toEqual([
 			{ row: 0, col: 1, value: 1 },
 		])
 	})
@@ -344,38 +373,62 @@ describe('rangeFillSource', () => {
 describe('handleFill', () => {
 	const source = { top: 2, bottom: 3, left: 1, right: 2 }
 
+	const distance = (from: number, to: number) => to - from
+
 	it('fills along the axis of the larger travel past the source', () => {
-		expect(handleFill(source, { row: 6, col: 3 })).toEqual({ direction: 'down', count: 3 })
+		expect(handleFill(source, { row: 6, col: 3 }, distance)).toEqual({
+			direction: 'down',
+			count: 3,
+		})
 
-		expect(handleFill(source, { row: 0, col: 2 })).toEqual({ direction: 'up', count: 2 })
+		expect(handleFill(source, { row: 0, col: 2 }, distance)).toEqual({ direction: 'up', count: 2 })
 
-		expect(handleFill(source, { row: 4, col: 5 })).toEqual({ direction: 'right', count: 3 })
+		expect(handleFill(source, { row: 4, col: 5 }, distance)).toEqual({
+			direction: 'right',
+			count: 3,
+		})
 
-		expect(handleFill(source, { row: 3, col: 0 })).toEqual({ direction: 'left', count: 1 })
+		expect(handleFill(source, { row: 3, col: 0 }, distance)).toEqual({
+			direction: 'left',
+			count: 1,
+		})
+	})
+
+	it('counts the travel over the rows that the cursor shows', () => {
+		const shown = [0, 2, 3, 6]
+
+		const over = (from: number, to: number) => shown.indexOf(to) - shown.indexOf(from)
+
+		expect(handleFill(source, { row: 6, col: 2 }, over)).toEqual({ direction: 'down', count: 1 })
 	})
 
 	it('goes down or up on a tie, and gives no fill on the source', () => {
-		expect(handleFill(source, { row: 4, col: 3 })).toEqual({ direction: 'down', count: 1 })
+		expect(handleFill(source, { row: 4, col: 3 }, distance)).toEqual({
+			direction: 'down',
+			count: 1,
+		})
 
-		expect(handleFill(source, { row: 2, col: 2 })).toBeNull()
+		expect(handleFill(source, { row: 2, col: 2 }, distance)).toBeNull()
 	})
 })
 
 describe('filledCorners', () => {
 	const source = { top: 2, bottom: 3, left: 1, right: 2 }
 
+	const step = stepOver([0, 1, 2, 3, 4, 5])
+
 	it('anchors at the source corner away from the fill', () => {
-		expect(filledCorners(source, { direction: 'down', count: 2 })).toEqual({
+		expect(filledCorners(source, { direction: 'down', count: 2 }, step)).toEqual({
 			from: { row: 2, col: 1 },
 			to: { row: 5, col: 2 },
 		})
 
-		expect(filledCorners(source, { direction: 'left', count: 1 })).toEqual({
+		expect(filledCorners(source, { direction: 'left', count: 1 }, step)).toEqual({
 			from: { row: 3, col: 2 },
 			to: { row: 2, col: 0 },
 		})
 
-		expect(filledCorners(source, null)).toEqual({
+		expect(filledCorners(source, null, step)).toEqual({
 			from: { row: 2, col: 1 },
 			to: { row: 3, col: 2 },
 		})

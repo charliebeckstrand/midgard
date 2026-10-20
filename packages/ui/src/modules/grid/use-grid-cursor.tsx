@@ -40,7 +40,7 @@ import {
 	rangeFillSource,
 } from './engine/grid-range/fill'
 import { pastePlacement } from './engine/grid-range/paste'
-import type { GridRangeCells } from './engine/grid-range/range'
+import type { GridRangeCells, GridRowStep } from './engine/grid-range/range'
 import { parseTsv, toTsv } from './engine/grid-range/tsv'
 import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
 import { resolveCellAt } from './engine/grid-row/bridges'
@@ -149,10 +149,9 @@ function pasteTargets<T>(
 	cells: GridRangeCells,
 	keys: readonly (string | number)[],
 	columns: readonly GridColumn<T>[],
+	step: GridRowStep,
 ): GridPasteCell[] {
-	const size = { rows: keys.length, cols: columns.length }
-
-	return pastePlacement(block, cells, size).flatMap(({ row, col, text }) => {
+	return pastePlacement(block, cells, columns.length, step).flatMap(({ row, col, text }) => {
 		const rowKey = keys[row]
 
 		const column = columns[col]
@@ -489,6 +488,7 @@ export function useGridCursor<T>({
 		tableRef,
 		cellId: nav.cellId,
 		moveTo: nav.moveTo,
+		rowStep: nav.rowStep,
 	})
 
 	const {
@@ -610,7 +610,7 @@ export function useGridCursor<T>({
 
 		const block = parseTsv(event.clipboardData.getData('text/plain'))
 
-		pasteCells(pasteTargets(block, cells, rowKeysRef.current, dataColumnsRef.current))
+		pasteCells(pasteTargets(block, cells, rowKeysRef.current, dataColumnsRef.current, nav.rowStep))
 	})
 
 	const { fillCells } = editing
@@ -628,8 +628,12 @@ export function useGridCursor<T>({
 
 			const columns = dataColumnsRef.current
 
-			const targets = fillPlan(source, direction, count, (row, col) =>
-				fillValue(rows[row], columns[col]),
+			const targets = fillPlan(
+				source,
+				direction,
+				count,
+				(row, col) => fillValue(rows[row], columns[col]),
+				nav.rowStep,
 			)
 
 			fillCells?.(
@@ -673,13 +677,16 @@ export function useGridCursor<T>({
 		return { top, bottom, left, right }
 	})
 
+	// The rows of the source run from its top row to its bottom row, over the
+	// rows that the cursor shows.
 	const fillFromHandle = useStableEvent(
-		(source: GridFillRect, direction: GridFillDirection, count: number) =>
-			writeFill(
-				{ rows: span(source.top, source.bottom), cols: span(source.left, source.right) },
-				direction,
-				count,
-			),
+		(source: GridFillRect, direction: GridFillDirection, count: number) => {
+			const height = nav.rowDistance(source.top, source.bottom) + 1
+
+			const rows = Array.from({ length: height }, (_, i) => nav.rowStep(source.top, i) ?? [])
+
+			writeFill({ rows: rows.flat(), cols: span(source.left, source.right) }, direction, count)
+		},
 	)
 
 	const startFillDrag = useGridFillDrag({
@@ -687,6 +694,8 @@ export function useGridCursor<T>({
 		showRange: nav.showRange,
 		fill: fillFromHandle,
 		cellCoordOf: nav.cellCoordOf,
+		rowStep: nav.rowStep,
+		rowDistance: nav.rowDistance,
 		scrollContainerRef,
 		press: nav.press,
 	})

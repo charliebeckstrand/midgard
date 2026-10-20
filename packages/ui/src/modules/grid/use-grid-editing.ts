@@ -38,6 +38,7 @@ import {
 	sameCell,
 } from './engine/grid-editing-utilities'
 import { resolveNewRow } from './engine/grid-new-row'
+import type { GridRowStep } from './engine/grid-range/range'
 import type { GridEditSource } from './grid-data-types'
 import type {
 	GridEditingSession,
@@ -195,6 +196,7 @@ export function useGridEditing<T>({
 	tableRef,
 	cellId,
 	moveTo,
+	rowStep,
 }: {
 	enabled: boolean
 	config: GridEditableConfig | undefined
@@ -214,6 +216,8 @@ export function useGridEditing<T>({
 	cellId: (row: number, col: number) => string
 	/** The cursor's clamped move, which the commit-and-move keys ride. */
 	moveTo: (coord: Coord) => void
+	/** The data row a number of rows away, over the rows that the cursor shows. */
+	rowStep: GridRowStep
 }): GridEditingApi {
 	// Grid-owned session lifecycle (enter on double-click / cursor Enter, exit on
 	// an editor's Enter/Escape); the default 'manual' mode leaves it entirely to
@@ -757,6 +761,7 @@ export function useGridEditing<T>({
 		requestRef,
 		cellId,
 		moveTo,
+		rowStep,
 		reseat,
 		isPending,
 		enterEdit,

@@ -9,6 +9,7 @@ import {
 	type GridFillRect,
 	handleFill,
 } from './engine/grid-range/fill'
+import type { GridRowDistance, GridRowStep } from './engine/grid-range/range'
 import type { Coord } from './use-grid-navigation'
 import { useGridRangeDrag } from './use-grid-range-drag'
 
@@ -28,6 +29,8 @@ type FillDrag = {
  * @param showRange - Shows the range between two data cells.
  * @param fill - Fills `count` lines after the source in `direction`.
  * @param cellCoordOf - The data cell that an element id names, or `null`.
+ * @param rowStep - The data row a number of rows away, over the rows that the cursor shows.
+ * @param rowDistance - The count of rows between two data rows, over the rows that the cursor shows.
  * @param scrollContainerRef - The scroll region of the grid, or `null` when it does not scroll.
  * @param press - The pointer that drives a drag of the grid. A press on the
  *   handle while it holds a drag starts no fill.
@@ -40,6 +43,8 @@ export function useGridFillDrag({
 	showRange,
 	fill,
 	cellCoordOf,
+	rowStep,
+	rowDistance,
 	scrollContainerRef,
 	press,
 }: {
@@ -47,6 +52,8 @@ export function useGridFillDrag({
 	showRange: (from: Coord, to: Coord) => void
 	fill: (source: GridFillRect, direction: GridFillDirection, count: number) => void
 	cellCoordOf: (id: string) => Coord | null
+	rowStep: GridRowStep
+	rowDistance: GridRowDistance
 	scrollContainerRef: RefObject<HTMLElement | null>
 	press: PressOwner
 }): (event: MouseEvent<HTMLElement>, grid: HTMLElement | null) => void {
@@ -57,9 +64,9 @@ export function useGridFillDrag({
 
 		if (!drag) return
 
-		drag.fill = handleFill(drag.source, coord)
+		drag.fill = handleFill(drag.source, coord, rowDistance)
 
-		const { from, to } = filledCorners(drag.source, drag.fill)
+		const { from, to } = filledCorners(drag.source, drag.fill, rowStep)
 
 		showRange(from, to)
 	})

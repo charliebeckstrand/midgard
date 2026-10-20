@@ -391,3 +391,63 @@ describe('grid fill handle (real browser)', () => {
 		expect(onCommit).toHaveBeenCalledExactlyOnceWith([{ rowKey: 2, columnId: 'name', value: 2 }])
 	})
 })
+
+/**
+ * The drag of the fill handle in a grouped grid (real browser). The drag
+ * counts the rows that the cursor shows, so it skips the rows of a closed
+ * group.
+ */
+describe('grid fill handle over a closed group (real browser)', () => {
+	type Row = { id: number; name: string; team: string }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'team', title: 'Team', field: 'team', readOnly: true, cell: (row) => row.team },
+	]
+
+	const rows: Row[] = [
+		{ id: 1, name: 'Alice', team: 'A' },
+		{ id: 2, name: 'Bob', team: 'B' },
+		{ id: 3, name: 'Carol', team: 'C' },
+	]
+
+	const cellSelector = (key: number, column: string) =>
+		`tr[data-grid-row="${key}"] td[data-grid-col="${column}"]`
+
+	const cell = (key: number, column: string) =>
+		present(
+			document.querySelector<HTMLElement>(cellSelector(key, column)),
+			cellSelector(key, column),
+		)
+
+	it('fills the next row that the cursor shows, past the closed group', async () => {
+		const onCommit = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				groupBy={{ defaultValue: 'team' }}
+				range
+				editable={{ session: 'managed', onCommit }}
+			/>,
+		)
+
+		onTestFinished(() => commands.releasePointer())
+
+		await userEvent.click(screen.getByRole('button', { name: 'Collapse group B' }))
+
+		await userEvent.click(cell(1, 'name'))
+
+		await commands.pressPointer('[data-slot="grid-fill-handle"]')
+
+		await userEvent.hover(cell(3, 'name'))
+
+		await commands.releasePointer()
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 3, columnId: 'name', value: 'Alice' },
+		])
+	})
+})

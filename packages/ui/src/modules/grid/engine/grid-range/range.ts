@@ -5,6 +5,22 @@
  * the rectangle are cells of the range.
  */
 
+/**
+ * The data row `steps` rows from `row`, counted over the data rows that the
+ * cursor shows, in its order. A negative count steps up. `undefined` past
+ * either end, and for a row that the cursor does not show, such as a row in a
+ * closed group. Each step between data rows, such as Enter, a fill, or a
+ * paste, goes through it. @internal
+ */
+export type GridRowStep = (row: number, steps: number) => number | undefined
+
+/**
+ * The count of steps from the data row `from` to the data row `to`, over the
+ * data rows that the cursor shows. It is negative when `to` is above `from`,
+ * and 0 when the cursor does not show one of them. @internal
+ */
+export type GridRowDistance = (from: number, to: number) => number
+
 /** A place in the cursor's order and a data column index. @internal */
 export type GridRangeCorner = { row: number; col: number }
 
