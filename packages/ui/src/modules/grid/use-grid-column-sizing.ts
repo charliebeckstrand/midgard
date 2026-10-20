@@ -612,16 +612,46 @@ export function useGridColumnSizing<T>({
 		 *
 		 * The cost is that a refit is now on the critical path of the frame rather than the
 		 * next one. That is the intended trade. The work is the same work, and a resize the
-		 * user has to watch settle is worse than one that takes a longer frame. A pass that
-		 * moves no width still writes no state (`sizingMoved`), so a height-only tick — rows
-		 * appended, the window growing vertically — flushes nothing.
+		 * user has to watch settle is worse than one that takes a longer frame.
+		 *
+		 * Only a new fit width refits. A height-only tick (rows appended, the window growing
+		 * vertically) and the first tick of the observation keep the width that the
+		 * observer last fit, so they flush nothing.
+		 *
+		 * A flush that renders also renders each update that waits, because React renders
+		 * the sync and default lanes together. Rows that land in the frame of the tick are
+		 * such an update, and they resize the container again in the same delivery. The
+		 * browser then holds that notification for the next frame, and fires
+		 * "ResizeObserver loop completed with undelivered notifications" on `window`. Thus
+		 * a refit stops the observation for the rest of the delivery, and observes again in
+		 * the next frame, before the delivery of that frame. The new observation reports
+		 * the width that it finds, so no resize is lost.
 		 */
-		const observer = new ResizeObserver(() => flushSync(() => refitLatest(false)))
+		let width = fitWidth(container)
+
+		let frame = 0
+
+		const observer = new ResizeObserver(() => {
+			const next = fitWidth(container)
+
+			if (next === width) return
+
+			width = next
+
+			observer.disconnect()
+
+			flushSync(() => refitLatest(false))
+
+			// The flush can unmount the grid, and the cleanup below then runs inside it.
+			if (!canceled) frame = requestAnimationFrame(() => observer.observe(container))
+		})
 
 		observer.observe(container)
 
 		return () => {
 			canceled = true
+
+			cancelAnimationFrame(frame)
 
 			observer.disconnect()
 		}
