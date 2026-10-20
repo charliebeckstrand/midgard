@@ -22,6 +22,7 @@
  * Frame arithmetic with no React in it, like its two siblings.
  */
 
+import { getOrCompute } from '../../../../utilities'
 import { AREA_SPARE_FRACTION, POINT_HIT_RADIUS, POINT_RADIUS } from '../map-constants'
 import { cachedRegionIndex, type MapBounds, regionsMeeting } from '../map-geometry/locate'
 import {
@@ -369,23 +370,17 @@ export function regionSpare(
 	// of a fit is megabytes retained to read four numbers per ring.
 	const measured = new Map<number, MeasuredRegion>()
 
-	const measure = (region: number): MeasuredRegion => {
-		const hit = measured.get(region)
-
-		if (hit !== undefined) return hit
-
+	const build = (region: number): MeasuredRegion => {
 		const feature = features[region]
 
 		const rings = feature === undefined ? [] : projectArea(featureRings(feature), project)
 
 		const boxes = rings.map(({ box }) => ({ box }))
 
-		const built = { whole: wholeBox(boxes), boxes, reach: areaReach(rings) }
-
-		measured.set(region, built)
-
-		return built
+		return { whole: wholeBox(boxes), boxes, reach: areaReach(rings) }
 	}
+
+	const measure = (region: number): MeasuredRegion => getOrCompute(measured, region, build)
 
 	// Held across calls and cleared per call rather than allocated per call: the
 	// grid yields a region once per cell its box covers, so a large state arrives

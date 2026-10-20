@@ -36,7 +36,7 @@
  */
 
 import type { GeoProjection } from 'd3-geo'
-import { getOrCompute } from '../../../../utilities'
+import { getOrCompute, sameElements } from '../../../../utilities'
 import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
 import type { MapTransform } from '../map-zoom/transform'
 import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'
@@ -270,13 +270,7 @@ export function cachedChromePaths(
 
 	const hit = chrome.get(fitted)
 
-	if (
-		hit !== undefined &&
-		hit.step === step &&
-		hit.fit.every((value, index) => value === fit[index])
-	) {
-		return hit.paths
-	}
+	if (hit !== undefined && hit.step === step && sameElements(hit.fit, fit)) return hit.paths
 
 	const paths = chromePaths(fitted, step, frame)
 
