@@ -315,6 +315,7 @@ function GridGroupLeafRowImpl<T>({
 				// its cost from the last one, once the reveal has finished shrinking.
 				aria-hidden={expanded ? undefined : true}
 				aria-level={tree ? level : undefined}
+				data-row-index={rowIndex}
 				inert={!expanded}
 				onTransitionEnd={reveal.onTransitionEnd}
 				tabIndex={staticStop ? 0 : undefined}
