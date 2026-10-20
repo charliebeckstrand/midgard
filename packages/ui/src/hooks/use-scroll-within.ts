@@ -1,5 +1,7 @@
 'use client'
 
+import { isScrollOverflow } from '../utilities/scroll-overflow'
+
 /** Where a node must land within the scroller, per axis. Mirrors native `scrollIntoView`. */
 type ScrollAlignment = 'start' | 'center' | 'end' | 'nearest'
 
@@ -16,11 +18,6 @@ export type ScrollWithinOptions = {
 	 * left alone — which is every caller that only ever scrolls a list.
 	 */
 	inline?: ScrollAlignment
-}
-
-/** @internal */
-function isScrollable(overflow: string) {
-	return overflow === 'auto' || overflow === 'scroll' || overflow === 'overlay'
 }
 
 /** @internal */
@@ -48,9 +45,10 @@ function findScrollAncestor(node: HTMLElement, wantsInline: boolean): HTMLElemen
 
 		// Require the ancestor to overflow, not merely declare a scroll style;
 		// scrollTo no-ops on a non-overflowing wrapper.
-		if (isScrollable(overflowY) && scroller.scrollHeight > scroller.clientHeight) return scroller
+		if (isScrollOverflow(overflowY) && scroller.scrollHeight > scroller.clientHeight)
+			return scroller
 
-		if (wantsInline && isScrollable(overflowX) && scroller.scrollWidth > scroller.clientWidth)
+		if (wantsInline && isScrollOverflow(overflowX) && scroller.scrollWidth > scroller.clientWidth)
 			return scroller
 
 		if (isClipping(overflowY) || (wantsInline && isClipping(overflowX))) return null

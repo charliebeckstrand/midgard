@@ -14,6 +14,7 @@ import { dataAttr } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { isScrollOverflow } from '../../utilities/scroll-overflow'
 import { VirtualItemSourceContext } from './context'
 
 /**
@@ -37,13 +38,13 @@ import { VirtualItemSourceContext } from './context'
  *
  * @internal
  */
-function findScrollableAncestor(node: HTMLElement | null): HTMLElement | null {
+function scrollContainerOf(node: HTMLElement | null): HTMLElement | null {
 	let el = node?.parentElement ?? null
 
 	while (el) {
 		const { overflowY } = getComputedStyle(el)
 
-		if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') return el
+		if (isScrollOverflow(overflowY)) return el
 
 		el = el.parentElement
 	}
@@ -154,7 +155,7 @@ export function VirtualOptions<T>({
 
 		if (cached?.isConnected) return cached
 
-		scrollElementRef.current = findScrollableAncestor(containerRef.current)
+		scrollElementRef.current = scrollContainerOf(containerRef.current)
 
 		return scrollElementRef.current
 	}, [])

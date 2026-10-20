@@ -5,6 +5,7 @@ import { ariaAttr, cn, dataAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { rangeKeys } from '../../utilities'
+import { isScrollOverflow } from '../../utilities/scroll-overflow'
 import { pdfViewerMessages } from './pdf-viewer-messages'
 
 /** One entry in the thumbnail rail. @internal */
@@ -19,9 +20,6 @@ type PdfViewerThumbnailItem = {
 // the length is the placeholder count.
 const PLACEHOLDER_KEYS = rangeKeys(6, 'placeholder')
 
-/** The overflow values of a node that scrolls. */
-const SCROLLABLE = /^(auto|scroll|overlay)$/
-
 /**
  * The node that scrolls the tiles: the rail itself in the list layout, and the body of the
  * Sheet in the grid layout.
@@ -32,7 +30,7 @@ const SCROLLABLE = /^(auto|scroll|overlay)$/
  */
 function scrollRoot(element: HTMLElement): HTMLElement | null {
 	for (let node: HTMLElement | null = element; node; node = node.parentElement) {
-		if (SCROLLABLE.test(getComputedStyle(node).overflowY)) return node
+		if (isScrollOverflow(getComputedStyle(node).overflowY)) return node
 	}
 
 	return null

@@ -1,4 +1,4 @@
-const SCROLLABLE_RE = /auto|scroll/
+import { isScrollOverflow } from './scroll-overflow'
 
 /**
  * The width of the vertical gutter: the border-box width less the client width and both borders.
@@ -43,8 +43,8 @@ export function isScrollbarPress(
 	// `visible`; floating-ui treats the last traversable node as scrollable.
 	const isRoot = target === document.documentElement || target === document.body
 
-	const scrollableX = isRoot || SCROLLABLE_RE.test(style.overflowX)
-	const scrollableY = isRoot || SCROLLABLE_RE.test(style.overflowY)
+	const scrollableX = isRoot || isScrollOverflow(style.overflowX)
+	const scrollableY = isRoot || isScrollOverflow(style.overflowY)
 
 	const canScrollX =
 		scrollableX && target.clientWidth > 0 && target.scrollWidth > target.clientWidth
