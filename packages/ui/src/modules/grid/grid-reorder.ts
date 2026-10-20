@@ -78,7 +78,7 @@ export function useColumnReorderShift(
 		const controls: AnimationPlaybackControls = animate(
 			table,
 			{ [shiftVar]: `${x}px` },
-			instant ? { duration: 0 } : k.motion.shift,
+			instant ? k.motion.instant : k.motion.shift,
 		)
 
 		return () => controls.stop()

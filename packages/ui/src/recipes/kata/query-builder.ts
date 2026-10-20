@@ -9,7 +9,7 @@
  * a node, its drag `handle`, and the AND/OR `separator` when the builder reorders.
  */
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { disabled, grab } = hannou
@@ -49,6 +49,8 @@ export const k = {
 		// The children of a group while they reorder. The box adds no layout, and
 		// it marks a drag in progress for the separators below.
 		list: 'group/sortable contents',
+		// The move of a node under reduced motion: the node lands at once.
+		instant: ugoki.instant,
 		// A held node sits over its neighbors on an opaque surface, so the nodes
 		// it passes do not show through it.
 		base: [

@@ -11,6 +11,8 @@
  * Layer: kiso · Concern: reduced motion
  */
 
+import { instant } from './base'
+
 export function still<P extends { transition: object }>(preset: P) {
-	return { ...preset, transition: { ...preset.transition, transform: { duration: 0 } } } as const
+	return { ...preset, transition: { ...preset.transition, transform: instant } } as const
 }

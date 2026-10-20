@@ -3,10 +3,8 @@
 import { domMax, frame, LazyMotion, Reorder, useComposedRefs } from 'motion/react'
 import { type ComponentProps, type ReactNode, type RefObject, useRef } from 'react'
 import { createContext } from '../../core'
+import { k } from '../../recipes/kata/list'
 import type { ListItemContextValue } from './context'
-
-/** The move of a row under reduced motion: no animation. */
-const INSTANT = { duration: 0 }
 
 /** The `<ul>` of the group, which holds a dragged row inside its box. */
 const [GroupBoxContext, useGroupBox] =
@@ -84,7 +82,7 @@ function ListReorderRow({ id, reorder, ref, ...row }: ListReorderRowProps) {
 			dragControls={reorder.controls}
 			dragConstraints={box}
 			dragElastic={0}
-			transition={reorder.instant ? INSTANT : undefined}
+			transition={reorder.instant ? k.instant : undefined}
 			onDragStart={reorder.onDragStart}
 			onDragEnd={reorder.onDragEnd}
 			onLayoutAnimationComplete={() => {

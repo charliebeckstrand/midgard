@@ -1,6 +1,6 @@
 import { ugoki } from '../kiso'
 
-const { duration, ease, spring, still } = ugoki
+const { duration, ease, instant, spring, still } = ugoki
 
 /**
  * `fade`: the outgoing panel fades out, and the incoming panel fades in as the
@@ -41,5 +41,5 @@ const slide = {
 export const k = {
 	fade,
 	slide,
-	instant: { duration: 0 },
+	instant,
 }

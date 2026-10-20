@@ -5,6 +5,7 @@ import { useMotionValue, useTransform } from 'motion/react'
 import type { SVGProps } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
+import { k } from '../../recipes/kata/map'
 import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import type { MapOverlayHit } from './use-map-overlay'
 
@@ -129,7 +130,7 @@ function MapLineDraw({
 			{...shape}
 			style={{ pathLength: drawn, opacity }}
 			animate={{ pathLength: 1 }}
-			transition={still ? INSTANT : transition}
+			transition={still ? k.motion.instant : transition}
 		/>
 	)
 }
@@ -170,6 +171,3 @@ export function lineHitProps({ slot, d, scale, hit, face = false }: MapLineHitSp
 		...hit,
 	}
 }
-
-/** The draw under reduced motion: the line completes at once. @internal */
-const INSTANT = { duration: 0 } as const

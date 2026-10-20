@@ -184,13 +184,10 @@ function MapDotPop({
 			d={drawnPath}
 			style={{ opacity: shown, strokeWidth: drawnStroke }}
 			animate={{ opacity: 1 }}
-			transition={still ? INSTANT : transition}
+			transition={still ? k.motion.instant : transition}
 		/>
 	)
 }
-
-/** The pop under reduced motion: the dot completes at once. @internal */
-const INSTANT = { duration: 0 } as const
 
 /** Props for {@link MapDotCount}. @internal */
 type MapDotCountProps = {
