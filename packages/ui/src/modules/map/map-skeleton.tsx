@@ -9,7 +9,7 @@ import type { MapAspectRatio, MapProjection } from './engine/types'
 /** Props for {@link MapSkeleton}. */
 export type MapSkeletonProps = {
 	/**
-	 * The reserved frame's `width / height` — a number or `"4/3"` string,
+	 * The reserved frame's `width / height`: a number or `"4/3"` string,
 	 * matching the {@link MapPlat} the skeleton stands in for; `false` fills
 	 * the container instead of reserving.
 	 * @defaultValue What `projection` reserves, else the plat's own `'auto'`
@@ -64,9 +64,9 @@ export type MapSkeletonProps = {
  */
 export function MapSkeleton({ aspectRatio, projection, outline, className }: MapSkeletonProps) {
 	// The plat's own policy, not a copy of it: `mapFrameSizing` is the function
-	// `use-map-shape` resolves the frame through, so the order — an explicit
+	// `use-map-shape` resolves the frame through, so the order (an explicit
 	// aspect, then what the projection knows before its atlas lands, then the
-	// generic fallback — and the rule that an unparseable ratio fills instead of
+	// generic fallback) and the rule that an unparseable ratio fills instead of
 	// reserving are both stated once. Sharing only `projectionFallbackAspect`
 	// would share the number and duplicate the policy over it.
 	// No height of its own: a fixed-height plat is mirrored with `aspectRatio={false}`

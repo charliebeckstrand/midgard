@@ -5,7 +5,7 @@ import { useResizeObserver } from './use-resize-observer'
 
 /** What {@link useMeasuredWidth} resolves: the box to attach, and the width to lay out by. @internal */
 export type MeasuredWidth = {
-	/** Attach to the element whose width is read — the container, never the plot. */
+	/** Attach to the element whose width is read: the container, never the plot. */
 	ref: RefObject<HTMLDivElement | null>
 	/** The explicit width when one was given, else the observed one; `0` until the first measure. */
 	width: number
@@ -38,7 +38,7 @@ export function useMeasuredWidth(width: number | undefined): MeasuredWidth {
 
 	// Passed as a fresh closure deliberately: `useResizeObserver` raises the
 	// callback through an effect event and subscribes on `ref` alone, so
-	// memoizing it would buy nothing — and it reads the live `width` for the
+	// memoizing it would buy nothing, and it reads the live `width` for the
 	// same reason.
 	useResizeObserver(ref, () => {
 		// An explicit width answers outright, so a fixed-width plot commits no

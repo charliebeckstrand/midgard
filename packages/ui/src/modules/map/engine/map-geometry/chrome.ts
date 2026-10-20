@@ -35,7 +35,7 @@ import type { MapTransform } from '../map-zoom/transform'
 export type MapChromePaths = {
 	graticule: string | null
 	/**
-	 * The projection's own drawing frame — the globe's edge, or a composite's
+	 * The projection's own drawing frame: the globe's edge, or a composite's
 	 * three clip boxes. It bounds the graticule whether or not it is drawn, so it
 	 * resolves whenever any chrome does.
 	 */
@@ -43,7 +43,7 @@ export type MapChromePaths = {
 }
 
 /**
- * No chrome — one shared value, so the default map (both parts off) allocates
+ * No chrome: one shared value, so the default map (both parts off) allocates
  * nothing per fit and the layer's props hold their identity across renders.
  *
  * @internal

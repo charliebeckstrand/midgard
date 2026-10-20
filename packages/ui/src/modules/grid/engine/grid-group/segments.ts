@@ -63,8 +63,8 @@ export function segmentManualGroupRows<T>(
  * Orders manual group {@link GridManualGroupSegment}s for a sort on the grouped
  * column. The header segments sort by their group `value` through
  * {@link compareDirected}: an empty group stays last under both directions. A leading headerless run
- * — leaves before any header — stays at the front. The leaves within each
- * segment keep their supplied (backend) order — only the group blocks move, so
+ * (leaves before any header) stays at the front. The leaves within each
+ * segment keep their supplied (backend) order: only the group blocks move, so
  * children never leave their header. Returns the segments untouched when no
  * group sort is active. Pure, so the group-sort contract is unit-testable.
  *

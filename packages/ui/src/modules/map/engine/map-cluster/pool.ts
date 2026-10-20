@@ -1,6 +1,6 @@
 /**
  * The dots of every visible dot-drawing mark on a plat, projected into frame units. A dot-shaped
- * mark divides its target's ground against this pool, with its own dots left out — see `ground.ts`.
+ * mark divides its target's ground against this pool, with its own dots left out (see `ground.ts`).
  *
  * Frame arithmetic and a listener set, React-free, like the rest of the engine.
  */
@@ -135,7 +135,7 @@ function gatherDots(
  * `dotsAt`, which draw no dots. A zone's claim on the ground is a `spare` budget rather than a
  * boundary.
  *
- * Off-projection dots are dropped — they draw nothing, so they crowd nothing; the US composite
+ * Off-projection dots are dropped: they draw nothing, so they crowd nothing; the US composite
  * drops points outside its insets.
  *
  * @internal

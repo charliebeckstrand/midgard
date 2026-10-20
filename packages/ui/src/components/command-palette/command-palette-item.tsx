@@ -54,7 +54,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	const autoId = useId()
 
 	// Stable id; the input's aria-activedescendant points at the active item.
-	// An explicit `id` wins — set it when rendering inside a `VirtualOptions`
+	// An explicit `id` wins: set it when rendering inside a `VirtualOptions`
 	// with `getOptionId`, which needs a data-driven, predictable id to point
 	// `aria-activedescendant` at before the row mounts.
 	const id = props.id ?? autoId

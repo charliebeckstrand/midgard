@@ -103,7 +103,7 @@ export type ResolvedInfiniteScroll = {
  * off. `threshold` falls back to the virtualization `overscan`, so the fetch
  * leads the viewport by about the windowed overscan. The loading indicator
  * is presence-implied (`loadingIndicator`, off by default), and `stableColumnWidths`
- * defaults off. Returns `null` for no binding — the body then wires no
+ * defaults off. Returns `null` for no binding: the body then wires no
  * end-detection and renders no trailing row.
  *
  * @internal
@@ -268,7 +268,7 @@ export function resolveTableProps(args: {
  * The extent is unknown for a server feed paginating by `pageCount` alone, or
  * infinite scroll with more rows to load and no stated total. The sentinel
  * beats misreporting the loaded window as the whole set. `extraHeaderRows` adds
- * any header rows beyond the column header — the column-group band row — so the
+ * any header rows beyond the column header (the column-group band row), so the
  * count spans both. The indeterminate sentinel is left untouched.
  *
  * @internal
@@ -563,7 +563,7 @@ export function resolveHighlightQuery(
 ): string | null {
 	if (search?.mode !== 'highlight') return null
 
-	// `|| null` (not `??`) so an empty query collapses to null — no marking.
+	// `|| null` (not `??`) so an empty query collapses to null: no marking.
 	return globalFilter?.value || null
 }
 
@@ -584,8 +584,8 @@ export function resolveHighlightQuery(
  * mount that is the same task, and after a reload it is the time until hydration, when
  * the server's rows are already the true content.
  *
- * Carried by the `<table>` itself rather than a wrapper: a wrapping node — even
- * `display: contents` — would sit in the middle of the grid's own child selectors. Kept
+ * Carried by the `<table>` itself rather than a wrapper: a wrapping node (even
+ * `display: contents`) would sit in the middle of the grid's own child selectors. Kept
  * out of {@link GridDataTable}, its caller, for its cognitive-complexity budget.
  *
  * @internal

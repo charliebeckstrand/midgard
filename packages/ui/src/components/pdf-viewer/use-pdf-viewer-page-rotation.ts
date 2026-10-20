@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react'
 
 /**
- * Whether a rotation swaps the page's width and height in layout — true at 90° and 270°.
+ * Whether a rotation swaps the page's width and height in layout: true at 90° and 270°.
  *
  * @remarks Exported so the one fact has one source: a caller that took `rotation` and
  * `isTransposed` as separate inputs could be handed a contradictory pair.
@@ -41,7 +41,7 @@ export function usePdfViewerPageRotation(page: number, documentKey?: unknown): P
 	// Per-page rotations belong to one document; clear them when the document
 	// changes. Reset in render (not an effect) so a document swap's first paint
 	// doesn't briefly reuse the previous document's rotation for the same page
-	// index — matching the page-size reset.
+	// index. The page-size reset works the same way.
 	const [prevDocumentKey, setPrevDocumentKey] = useState(documentKey)
 
 	if (prevDocumentKey !== documentKey) {

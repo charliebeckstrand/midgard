@@ -16,7 +16,7 @@ const FILL_GROWTH_TOLERANCE = 8
 export type LoadMoreDecision =
 	/** Call `onLoadMore` now. */
 	| 'fire'
-	/** Conditions not met — wait for a scroll, a grown count, or a gate to clear. */
+	/** Conditions not met: wait for a scroll, a grown count, or a gate to clear. */
 	| 'hold'
 	/**
 	 * The scroll container shows no bounded height: zero, or grown alongside a
@@ -29,27 +29,26 @@ export type LoadMoreDecision =
  * Resolves whether the virtualized scroll can call `onLoadMore`, upholding the
  * infinite-scroll firing invariant. That invariant: *`onLoadMore` never fires
  * more than once per user scroll interaction, except for a bounded initial
- * viewport-fill.*
- * The pure seam {@link useGridInfiniteScroll} and its tests share — fed plain
- * indices and scroll-box measurements, returning the decision with no
- * virtualizer or effect.
+ * viewport-fill.* The pure seam {@link useGridInfiniteScroll} and its tests
+ * share takes plain indices and scroll-box measurements, and returns the
+ * decision with no virtualizer or effect.
  *
  * Two firing regimes, split on whether the scroll container overflows:
  *
- * - **Overflowing** (`scrollHeight > clientHeight` — real evidence of a bounded
+ * - **Overflowing** (`scrollHeight > clientHeight`: real evidence of a bounded
  *   window): fire only when `armed`, i.e. a user scroll interaction happened
  *   since the last fire. Each fire consumes the arm. An append can leave the
  *   window near the new end, with a `threshold` at or past the batch size.
  *   Such an append waits for the next scroll, instead of chain-fetching. A
  *   scroll re-arms unconditionally, so a *failed* fetch (the count never grew)
  *   is retried on the next scroll rather than dead-locking the latch.
- * - **Viewport-fill** (not overflowing — the loaded rows don't fill the
+ * - **Viewport-fill** (not overflowing: the loaded rows don't fill the
  *   viewport yet): fire once per loaded extent (the `requestedCount` latch)
  *   with no scroll needed. A short first page then grows until the window
  *   overflows. Bounded by geometry: a capped viewport can only take
  *   `maxHeight / rowHeight` rows before overflowing. When the container's cap
- *   resolved to a fixed length (`capBounded`) that termination is guaranteed
- *   — its `clientHeight` can legitimately grow *toward* the cap while
+ *   resolved to a fixed length (`capBounded`) that termination is guaranteed:
+ *   its `clientHeight` can legitimately grow *toward* the cap while
  *   under-filled. Without a resolved cap, a `clientHeight` that grew past
  *   `fillBase` as batches appended is a container sizing to its content. Here
  *   `fillBase` is the viewport measured when the fill began. That is the
@@ -99,10 +98,10 @@ export function resolveLoadMore(args: {
 	if (args.overflowing) return args.armed ? 'fire' : 'hold'
 
 	// Viewport-fill: a zero-height viewport is a hidden or not-yet-laid-out grid
-	// — no evidence either way, so hold until a real measurement arrives.
+	// (no evidence either way, so hold until a real measurement arrives).
 	if (args.clientHeight <= 0) return 'hold'
 
-	// A fixed-length cap bounds the container by construction — its viewport can
+	// A fixed-length cap bounds the container by construction: its viewport can
 	// legitimately grow toward the cap while under-filled, and the fill is
 	// guaranteed to terminate at it. Without one, a viewport that grew alongside
 	// the appended batches is sizing to its content: virtualize is not windowing,
@@ -116,8 +115,8 @@ export function resolveLoadMore(args: {
 	}
 
 	// Already requested at this loaded extent: wait for the count to grow (which
-	// re-arms the latch) before filling again, so a re-render at the same length —
-	// or a synchronous local append still settling — doesn't double-request.
+	// re-arms the latch) before filling again, so a re-render at the same length
+	// (or a synchronous local append still settling) doesn't double-request.
 	if (requestedCount === count) return 'hold'
 
 	return 'fire'
@@ -130,7 +129,7 @@ export function resolveLoadMore(args: {
  * @internal
  */
 type LoadMoreState = {
-	/** The loaded count a request last fired at — the viewport-fill latch. */
+	/** The loaded count a request last fired at: the viewport-fill latch. */
 	requestedCount: number
 	/** A user scroll interaction happened since the last fire. */
 	armed: boolean
@@ -206,7 +205,7 @@ function resetOnReplacement(
 	}
 }
 
-/** Fails loud in dev — once per mount — when the scroll container isn't windowing. @internal */
+/** Fails loud in dev (once per mount) when the scroll container isn't windowing. @internal */
 function warnUnbounded(state: LoadMoreState): void {
 	if (process.env.NODE_ENV === 'production' || state.warned) return
 
@@ -362,8 +361,8 @@ type GridInfiniteScrollParams = {
  * arm edge runs one evaluation in the next frame, so a short scroll after a
  * failed fetch retries when the window does not move (see `armOnScroll`). A
  * geometry-bounded viewport-fill also fires while the loaded rows don't yet
- * overflow the container. When the container turns out unbounded — its height
- * grows with the content instead of windowing it — fetching stops and a
+ * overflow the container. When the container turns out unbounded (its height
+ * grows with the content instead of windowing it), fetching stops and a
  * dev-only error names the failure. Replacing the row set with a shorter one
  * scrolls back to the top and resets the latch and arm. Such a swap comes from
  * a sort, filter, or search under `keepPreviousData`. A scroll position deep in
@@ -410,7 +409,7 @@ export function useGridInfiniteScroll({
 		})
 	})
 
-	// Arm on the container's scroll events — the user-interaction evidence each
+	// Arm on the container's scroll events: the user-interaction evidence each
 	// post-fill fire requires. Passive: the listener flips state, and on the arm
 	// edge it runs one evaluation.
 	useEffect(() => {

@@ -12,7 +12,7 @@ const runtimeLocale = once(() => new Intl.DateTimeFormat().resolvedOptions().loc
 
 /**
  * Coalesces an optional locale to a concrete BCP 47 tag, falling back to the
- * runtime default — the `Intl`-backed helpers require a string.
+ * runtime default: the `Intl`-backed helpers require a string.
  *
  * @param locale - An explicit tag, or `undefined` to take the runtime's.
  * @returns The resolved tag.

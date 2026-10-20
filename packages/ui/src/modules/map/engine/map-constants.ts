@@ -1,5 +1,5 @@
 /**
- * Metric constants for the map module — an import-free leaf the geometry and
+ * Metric constants for the map module: an import-free leaf the geometry and
  * projection modules read. Mark specs match the chart module's
  * (`chart-constants.ts`) wherever the two draw the same thing: point radii, ring
  * widths, hit tolerances. A dashboard mixing charts and maps therefore reads as
@@ -19,7 +19,7 @@ export const REGION_SELECTED_STROKE_WIDTH = 2.5
 /**
  * Decimal places kept in a region path's `d` string. Region geometry draws in
  * frame units (canonical 1000-wide or measured px), where one decimal is
- * sub-pixel — d3-geo's default of three serializes detail no display resolves.
+ * sub-pixel: d3-geo's default of three serializes detail no display resolves.
  * Trimming to one shrinks the strings (~27% on a US states atlas). They
  * therefore cost less to build on the mount critical path, and less for the
  * browser to parse.
@@ -42,11 +42,11 @@ export const REGION_PATH_ROUNDING = 10 ** REGION_PATH_DIGITS
  */
 export const MARK_SELECTED_HALO = 3
 
-/** Route polyline stroke width — a step over the chart line, to hold over busy region fills. @internal */
+/** Route polyline stroke width: a step over the chart line, to hold over busy region fills. @internal */
 export const ROUTE_STROKE_WIDTH = 2.5
 
 /**
- * Invisible hit-stroke width over a thin line — a route, a marker's connector, a
+ * Invisible hit-stroke width over a thin line: a route, a marker's connector, a
  * geofence boundary. WCAG 2.5.8's 24px minimum, and the same band whatever is
  * pointing. A line declines the 44px a dot takes on a coarse pointer
  * ({@link POINT_HIT_RADIUS}), because a dot is an isolated island. A band that
@@ -114,8 +114,8 @@ export const POINT_HIT_RADIUS = 22
 export const AREA_SPARE_FRACTION = 0.5
 
 /**
- * The floor under a fine pointer's target: the drawn dot and nothing less —
- * {@link POINT_RADIUS} exactly, an 11px target. A mouse aims at one pixel, so it
+ * The floor under a fine pointer's target: the drawn dot and nothing less
+ * ({@link POINT_RADIUS} exactly, an 11px target). A mouse aims at one pixel, so it
  * needs no part of the reach a finger takes. That reach is what makes a dot
  * swallow the marks around it. A `MapGeofence` drawn small around a `MapPoint`
  * sits entirely inside the coarse circle. A depot at a catchment's center
@@ -174,7 +174,7 @@ export const POINT_HIT_RADIUS_FINE = 5.5
 export const POINT_CLUSTER_GAP = 3
 
 /**
- * A summary dot's radius by how many stops it holds — the size grade. A lone dot
+ * A summary dot's radius by how many stops it holds: the size grade. A lone dot
  * keeps {@link POINT_RADIUS}; each step is one grade up, so the mark carries the
  * magnitude and the count inside it carries the number. Read ascending: the last
  * step the count reaches wins. @internal
@@ -186,7 +186,7 @@ export const CLUSTER_RADIUS_STEPS = [
 	{ from: 25, radius: 15 },
 ] as const
 
-/** Mean Earth radius in meters — turns a summary's spherical spread into a distance. @internal */
+/** Mean Earth radius in meters: turns a summary's spherical spread into a distance. @internal */
 export const EARTH_RADIUS_METERS = 6371008.8
 
 /**
@@ -265,7 +265,7 @@ export const DEFAULT_MAP_ASPECT = 16 / 9
 /**
  * The aspect ratio the whole United States spans under `albers-usa`: the
  * lower-48 with the Alaska and Hawaii insets, fit to width. It is measured from
- * the us-atlas geography, and shared by any full-US atlas — states, counties,
+ * the us-atlas geography, and shared by any full-US atlas: states, counties,
  * nation. The `albers-usa` projection is definitionally the US, so a plat
  * drawing it reserves this ratio before its geography loads. The loaded map fits
  * the same shape, so a lazily fetched atlas swaps in without shifting the

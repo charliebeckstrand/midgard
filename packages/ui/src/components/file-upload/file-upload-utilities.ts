@@ -111,7 +111,7 @@ export function matchesAccept(file: File, accept: string | undefined): boolean {
  * the overflow (reason `'count'`). All constraints are optional. An unset limit
  * never rejects.
  *
- * @returns `{ accepted, rejected }` — the kept files and the `FileRejection`s,
+ * @returns `{ accepted, rejected }`: the kept files and the `FileRejection`s,
  * each tagged with the constraint it tripped.
  */
 export function partitionFiles(

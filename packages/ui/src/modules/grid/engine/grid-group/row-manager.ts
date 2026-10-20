@@ -16,7 +16,7 @@ export function normalizeRowGroups(config: GridRowGroups | undefined): {
 
 /**
  * Reorders keyed `items` to lead in `order`, appending any not listed in their
- * original relative order — the stable reconcile behind the manual group order.
+ * original relative order: the stable reconcile behind the manual group order.
  * Returns `items` untouched for an empty order.
  *
  * @internal

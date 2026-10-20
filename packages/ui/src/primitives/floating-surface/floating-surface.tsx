@@ -159,8 +159,8 @@ export function FloatingSurface({
 					// the close restore, as in DatePickerContent. `initialFocus={-1}`: the
 					// surface owns initial focus (the month picker seats it on the selected
 					// cell), so the manager must not race it to the first tabbable. A
-					// surface whose trap works the other way round — one that opens without
-					// taking focus, like an interactive Tooltip — overrides both.
+					// surface whose trap works the other way round (one that opens without
+					// taking focus, like an interactive Tooltip) overrides both.
 					<FloatingFocusManager
 						context={trapFocusContext}
 						modal

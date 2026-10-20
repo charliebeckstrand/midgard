@@ -8,12 +8,12 @@ import { useA11yRoving } from '../../hooks'
  * Which set of elements the grid roves keyboard focus over, resolved from the
  * consumer's click handlers:
  *
- *   - `row`   the clickable rows are the roving items — one holds `tabIndex=0`,
+ *   - `row`   the clickable rows are the roving items: one holds `tabIndex=0`,
  *             the rest `-1`, and Up/Down move focus between them.
- *   - `cell`  the data cells are the roving items — the same single-tab-stop
+ *   - `cell`  the data cells are the roving items: the same single-tab-stop
  *             model, but two-dimensional (Up/Down/Left/Right) since a cell click
  *             addresses a cell.
- *   - `none`  no row roving — the grid carries the {@link GridDataProps.navigable}
+ *   - `none`  no row roving: the grid carries the {@link GridDataProps.navigable}
  *             cursor, is virtualized (rows unmount on scroll), or has no click
  *             handler at all.
  *
@@ -108,7 +108,7 @@ export function useGridRoving({
 	const cellMode = mode === 'cell'
 
 	// `useA11yRoving` runs unconditionally (rules of hooks); when `mode` is
-	// `none` it's inert — `manageTabIndex` false skips the tab-stop effect, and
+	// `none` it's inert: `manageTabIndex` false skips the tab-stop effect, and
 	// the caller drops the returned handler.
 	const rovingKeyDown = useA11yRoving(tableRef, {
 		itemSelector: cellMode ? CELL_ITEM_SELECTOR : ROW_ITEM_SELECTOR,

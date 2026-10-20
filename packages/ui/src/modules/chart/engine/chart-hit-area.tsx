@@ -65,8 +65,8 @@ export type ChartHitAreaProps = ChartHitIndex & {
 	 */
 	markAt: ChartMarkAt
 	/**
-	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`
-	 * — which also points the cursor at the marks a click can read.
+	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`,
+	 * which also points the cursor at the marks a click can read.
 	 * @defaultValue 'hover'
 	 */
 	trigger?: ChartTooltipTrigger
@@ -79,7 +79,7 @@ export type ChartHitAreaProps = ChartHitIndex & {
 	 */
 	snaps?: boolean
 	/**
-	 * Reports a click that resolves to a category band, by data index — the
+	 * Reports a click that resolves to a category band, by data index: the
 	 * plumbing behind the charts' public `onCategoryClick`. Also carries a
 	 * pointer cursor across the plot so the bands read as clickable.
 	 */

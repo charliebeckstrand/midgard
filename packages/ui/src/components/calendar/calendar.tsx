@@ -375,7 +375,7 @@ export function Calendar({
 
 			pressDay(date)
 
-			// Selecting a day is the field's interaction point — mark it touched
+			// Selecting a day is the field's interaction point: mark it touched
 			// (no-op outside a Form) so validateOn="touched" rules can fire.
 			setTouched()
 		},

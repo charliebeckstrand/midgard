@@ -47,7 +47,7 @@ export function GridColumnFilterSheet({
 	const intl = useIntl()
 
 	// The sheet body + footer form a `<form>`, so Enter in any rule input settles
-	// the draft — the same commit as the Apply submit button. preventDefault stops
+	// the draft: the same commit as the Apply submit button. preventDefault stops
 	// the browser's native navigation before applying. React bubbles a submit
 	// through the portal, so the submit stops here, and a form around the grid
 	// does not submit too.
@@ -66,8 +66,8 @@ export function GridColumnFilterSheet({
 			<Sheet open={open} onOpenChange={onOpenChange}>
 				<SheetPanel aria-label={title}>
 					{/* A `contents` form so Enter in a rule input submits (Apply) without
-				    imposing a box — the panel's `gap-4` slot rhythm survives the
-				    display:contents wrapper. It spans the title too so the body stays a
+				    imposing a box (the panel's `gap-4` slot rhythm survives the
+				    display:contents wrapper). It spans the title too so the body stays a
 				    non-first child, keeping its `first:` top padding off. */}
 					<form className="contents" onSubmit={submit}>
 						{/* The column name is quoted, as the row that opens this sheet quotes

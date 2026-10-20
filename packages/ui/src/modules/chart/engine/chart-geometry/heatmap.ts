@@ -16,7 +16,7 @@ const CELL_RADIUS = 2
 
 /**
  * One drawable cell: its rect, corner radius, grid position, and raw value.
- * Color-free — the component paints it from the value through the sequential
+ * Color-free: the component paints it from the value through the sequential
  * scale, and a `null` value takes the neutral no-data fill.
  *
  * @internal
@@ -32,7 +32,7 @@ export type HeatmapCell = {
 	height: number
 	/** Corner radius, clamped to half the lesser side so a thin cell never inverts. */
 	radius: number
-	/** Row (y-band) index — the hit test and hidden table key off it. */
+	/** Row (y-band) index: the hit test and hidden table key off it. */
 	row: number
 	/** Column (x-band) index. */
 	col: number

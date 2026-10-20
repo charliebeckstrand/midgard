@@ -40,7 +40,7 @@ export function PdfViewerHighlightLabel({
 	/**
 	 * The region's element, or `null` when there is none to name.
 	 *
-	 * `null` closes the panel rather than unmounting this — {@link useTooltipAnchor} folds it
+	 * `null` closes the panel rather than unmounting this: {@link useTooltipAnchor} folds it
 	 * into `open`, and `FloatingSurface` holds an exiting subtree at the props it last had. An
 	 * early return here would tear the panel out mid-fade, which is why the name used to arrive
 	 * with an entrance and leave without one.
@@ -65,7 +65,7 @@ export function PdfViewerHighlightLabel({
 	/**
 	 * Ref to the name itself.
 	 *
-	 * The layer measures the panel around it — `parentElement` — because that box, padding and
+	 * The layer measures the panel around it (`parentElement`) because that box, padding and
 	 * all, is what stands over the page. It is the box the layer tests a pointer against.
 	 */
 	ref?: Ref<HTMLSpanElement>

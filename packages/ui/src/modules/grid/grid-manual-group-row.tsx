@@ -19,7 +19,7 @@ type GridManualGroupRowProps<T> = {
 	row: T
 	/** The row's {@link GridGroupHeaderRow} descriptor: group key, shared value, child count. */
 	info: GridGroupHeaderRow
-	/** The visible columns, in render order — the label span and aggregate cells derive from them. */
+	/** The visible columns, in render order: the label span and aggregate cells derive from them. */
 	columns: GridColumn<T>[]
 	/** The grouped column id, threaded to a `renderHeader` override's context. */
 	columnId: string | number

@@ -11,7 +11,7 @@ import { useEffect, useEffectEvent, useRef } from 'react'
 const SETTLE_MS = 120
 
 /**
- * Keeps a pointer-driven readout — a chart or map tooltip — honest across a
+ * Keeps a pointer-driven readout (a chart or map tooltip) honest across a
  * scroll, which slides the plot under a stationary pointer.
  *
  * The readout is raised by pointer-move handlers over the marks and cleared on

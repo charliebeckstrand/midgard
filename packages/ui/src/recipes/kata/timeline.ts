@@ -158,7 +158,7 @@ export const k = {
 	skeleton: kokkaku.timeline,
 } as const
 
-/** Recipe variant props for {@link Timeline} — the styling axes its kata exposes (`orientation`, `variant`), for consumers composing custom slots. */
+/** Recipe variant props for {@link Timeline}: the styling axes its kata exposes (`orientation`, `variant`), for consumers composing custom slots. */
 export type TimelineVariants = Omit<VariantProps<typeof k.base>, 'orientation'> & {
 	/** The axis of the timeline. @defaultValue 'vertical' */
 	orientation?: VariantProps<typeof k.base>['orientation']

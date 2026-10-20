@@ -42,7 +42,7 @@ type TagInputOptions = {
  * @remarks
  * Layers over {@link useFormValue}: a bound `name` wins, else controlled `value`,
  * else uncontrolled state seeded from `defaultValue`. Mutators announce every
- * outcome — add, duplicate, limit, rejection — to the live region (WCAG 4.1.3,
+ * outcome (add, duplicate, limit, rejection) to the live region (WCAG 4.1.3,
  * 3.3.1). `addTags` is the ONLY add path, batch-shaped even for one tag. A single-tag
  * variant beside it is what let the keyboard and the paste channels disagree about
  * what a draft commits to.
@@ -63,7 +63,7 @@ export function useTagInput({
 
 	// Binds the tag list to an enclosing Form field by `name` (the value-typed
 	// cascade); falls back to controlled/uncontrolled state. The inner text
-	// `<Input>` stays nameless — the array is the bound value, not the draft.
+	// `<Input>` stays nameless: the array is the bound value, not the draft.
 	const {
 		value: current,
 		resetRef,

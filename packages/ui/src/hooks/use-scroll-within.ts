@@ -15,7 +15,7 @@ export type ScrollWithinOptions = {
 	block?: ScrollAlignment
 	/**
 	 * Inline-axis (horizontal) alignment. Omitted means the horizontal scroll position is
-	 * left alone — which is every caller that only ever scrolls a list.
+	 * left alone, which is every caller that only ever scrolls a list.
 	 */
 	inline?: ScrollAlignment
 }
@@ -96,7 +96,7 @@ export function scrollNodeWithin(
 	// An axis that was not requested is `undefined`, and passing it is the same as omitting
 	// it: `ScrollToOptions.top`/`left` are optional WebIDL members with no default, so an
 	// undefined value is treated as absent and the algorithm keeps the current offset for
-	// that axis. Verified in-browser — a horizontal reveal does not reset `scrollTop`.
+	// that axis. Verified in-browser: a horizontal reveal does not reset `scrollTop`.
 	scroller.scrollTo({ top, left, behavior })
 }
 

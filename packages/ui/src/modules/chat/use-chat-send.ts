@@ -21,7 +21,7 @@ import {
 import type { ChatMessageData } from './engine/types'
 
 /**
- * Fails loud in dev — once per mount — when two seed messages share an id.
+ * Fails loud in dev (once per mount) when two seed messages share an id.
  *
  * The hook cannot repair this. Minting a fresh id for the second message would
  * discard the id a store persisted. That is the defect the seeding rule exists
@@ -73,7 +73,7 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
  * Throwing (or rejecting) rolls back the empty assistant placeholder and triggers
  * {@link ChatSendOptions.onError}. `signal` aborts when {@link ChatSend.stop}
  * is called; forward it to the underlying request (e.g. `fetch(url, { signal })`)
- * so the transport stops producing, not just the hook consuming — a transport
+ * so the transport stops producing, not just the hook consuming: a transport
  * that ignores it still has its chunks dropped, but keeps running underneath.
  *
  * @param content - The trimmed user message being sent.
@@ -94,7 +94,7 @@ export type ChatSendOptions = {
 	 * @remarks
 	 * The id a seed message carries is the one a store persisted, so the hook
 	 * keeps it. Every target the transcript holds is named by it. That covers a
-	 * React key, an {@link ChatSend.edit} call, and — once a message holds parts —
+	 * React key, an {@link ChatSend.edit} call, and (once a message holds parts)
 	 * the message half of a part's address. A hook that minted a fresh id here
 	 * would re-key the whole conversation at each mount. A target written before a
 	 * reload would name a message that no longer exists.
@@ -246,7 +246,7 @@ export function useChatSend({
 	const controllerRef = useRef<AbortController | null>(null)
 
 	// Streams a reply for `text` onto whatever history send/retry/edit already
-	// committed via setMessages — the one path all three share.
+	// committed via setMessages: the one path all three share.
 	const runTransport = useCallback(
 		async (text: string) => {
 			setStreaming(true)
@@ -268,7 +268,7 @@ export function useChatSend({
 					onError?.(error)
 				},
 				settle: () => {
-					// Every exit lands here — the last chunk, a stop, a throw — which is
+					// Every exit lands here (the last chunk, a stop, a throw), which is
 					// what keeps a `tool` block from outliving the stream that opened it.
 					// A step still marked running would otherwise draw a spinner nothing
 					// ever stops, the defect that kept a per-part status out of the design

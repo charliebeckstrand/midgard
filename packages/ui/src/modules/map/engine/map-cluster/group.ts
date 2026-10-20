@@ -4,9 +4,9 @@
  * the rest of the engine, so the grouping is unit-testable without a frame.
  * Three neighbors carry the parts this one does not:
  *
- * - `grid.ts` — the spatial index both passes bucket into.
- * - `radius.ts` — the size a summary draws at.
- * - `geo.ts` — what a group reads out on the ground.
+ * - `grid.ts`: the spatial index both passes bucket into.
+ * - `radius.ts`: the size a summary draws at.
+ * - `geo.ts`: what a group reads out on the ground.
  *
  * One rule decides the output: no two marks draw within `gap` of one another
  * ({@link marksOverlap}). {@link seedGroups} is a broad phase under it. It is a
@@ -27,8 +27,8 @@ import { clusterRadius, MAX_CLUSTER_RADIUS } from './radius'
  * an ordinary dot, so a mark draws its summaries and its single dots through one
  * path.
  *
- * It carries frame arithmetic alone. What a group reads out — its anchor and
- * its spread — is spherical. It costs a `d3-geo` pass per group, and is wanted
+ * It carries frame arithmetic alone. What a group reads out (its anchor and
+ * its spread) is spherical. It costs a `d3-geo` pass per group, and is wanted
  * by one caller each. `geo.ts` therefore resolves it where it is read, rather
  * than on every pass.
  *
@@ -39,7 +39,7 @@ export type MapPointCluster = {
 	members: number[]
 	/**
 	 * Where the group draws, in frame units: the mean of its members' projected
-	 * positions. `null` where the projection has no image for the dots — the US
+	 * positions. `null` where the projection has no image for the dots: the US
 	 * composite drops points outside its insets. The group then draws nothing and
 	 * keeps its readout.
 	 */
@@ -90,7 +90,7 @@ type MapClusterSeed = {
 	sumY: number
 }
 
-/** A group with a position on the frame — the only kind either index holds. @internal */
+/** A group with a position on the frame: the only kind either index holds. @internal */
 type MapSeededCluster = MapClusterSeed & { seed: MapPoint2D }
 
 /** Where a group draws and how wide it paints, both in frame units: what the overlap rule reads. @internal */
@@ -247,7 +247,7 @@ function mergeRound(
 	const cells = new Map<number, number[]>()
 
 	// One cell per widest possible reach, so a mark this one could draw over can
-	// only sit in the nine cells around it — the bound the broad phase runs on,
+	// only sit in the nine cells around it: the bound the broad phase runs on,
 	// held here against the marks rather than the dots.
 	const reach = MAX_CLUSTER_RADIUS * 2 * unitsPerPixel + gap
 
@@ -287,7 +287,7 @@ function mergeRound(
 /** One group folded into another, leaving both operands untouched. @internal */
 function absorb(host: MapClusterSeed, group: MapClusterSeed): MapClusterSeed {
 	return {
-		// Sorted, so the group still reports the caller's lowest index first — the
+		// Sorted, so the group still reports the caller's lowest index first: the
 		// stop a pick names, and the ordinal an unnamed dot reads out by.
 		members: [...host.members, ...group.members].sort((a, b) => a - b),
 		seed: host.seed,
@@ -360,7 +360,7 @@ function nearestSeed(
 
 /**
  * A group's drawn mark, or `null` where the projection has no image for it. The
- * size grade is a device-pixel radius, so it converts to frame units here — the
+ * size grade is a device-pixel radius, so it converts to frame units here: the
  * one place a mark's width enters the pass.
  *
  * @internal
@@ -373,7 +373,7 @@ function buildMark(group: MapClusterSeed, unitsPerPixel: number): MapClusterMark
 
 /**
  * Whether two marks draw closer than the clear space between their edges allows.
- * The one rule the output obeys — everything above it only decides how few pairs
+ * The one rule the output obeys: everything above it only decides how few pairs
  * have to be asked.
  *
  * Every term is frame units by the time it reaches here: `clusterPoints` scaled

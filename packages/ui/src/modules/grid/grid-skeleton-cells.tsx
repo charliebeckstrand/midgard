@@ -21,7 +21,7 @@ type GridSkeletonCellsProps<T> = {
 	columns: GridColumn<T>[]
 	/** Frozen-column controls; `null` when nothing is frozen. */
 	pinning: GridColumnPinning | null
-	/** Extra classes for the leading cell — the group rail on a manual-group placeholder. */
+	/** Extra classes for the leading cell: the group rail on a manual-group placeholder. */
 	leadingClassName?: ClassValue
 }
 

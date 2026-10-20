@@ -59,7 +59,7 @@ export function seriesValues<T>(data: T[], key: DataKey<T>): (number | null)[] {
 
 /** One series with everything the frame parts need to draw it. @internal */
 export type SeriesMeta = {
-	/** The series' position in the caller's list — slot colors and toggles key off it. */
+	/** The series' position in the caller's list: slot colors and toggles key off it. */
 	index: number
 	label: string
 	paint: ChartSeriesPaint
@@ -68,7 +68,7 @@ export type SeriesMeta = {
 	/** Swatch shape, mirroring the mark. */
 	swatch: 'rect' | 'line'
 	values: (number | null)[]
-	/** The value axis the series reads against — its scale, formatter, and baseline. */
+	/** The value axis the series reads against: its scale, formatter, and baseline. */
 	axis: ChartValueAxisId
 	/** Draw the connecting stroke dashed rather than solid; bars have none to dash. */
 	dashed?: boolean

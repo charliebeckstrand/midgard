@@ -41,7 +41,7 @@ export function useToastTimer(
 
 	// Recorded, not guarded: on whole-provider unmount, parent-first cleanup order
 	// can re-arm a timer nothing then clears. It fires `start` into detached refs
-	// and a no-op state update — a leaked callback during teardown with no crash
+	// and a no-op state update: a leaked callback during teardown with no crash
 	// and no user-visible effect, so a disposed flag would buy nothing.
 
 	// Moves each countdown to now, and drops the toasts that are gone or leave by

@@ -70,7 +70,7 @@ export type GridExportEntry<T> =
  */
 export type GridExportConfig<T> = GridToolSurfaces & {
 	/**
-	 * The export types to offer, in order — the same entry list the array form
+	 * The export types to offer, in order: the same entry list the array form
 	 * takes.
 	 * @defaultValue `['csv', 'excel']`
 	 */
@@ -91,7 +91,7 @@ export type GridExportConfig<T> = GridToolSurfaces & {
 export type GridExportable<T> = boolean | GridExportEntry<T>[] | GridExportConfig<T>
 
 /**
- * A resolved, ready-to-run export action — one per configured
+ * A resolved, ready-to-run export action: one per configured
  * {@link GridExportEntry}, in order. Backs the export items the toolbar and
  * context-menu builders render, and is handed to a `contextMenu.column` /
  * `contextMenu.cell` builder as {@link GridColumnMenuContext.exportActions} /

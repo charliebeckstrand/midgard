@@ -12,7 +12,7 @@ export const css = {
 	opacity: 'motion-safe:transition-opacity',
 	transform: 'motion-safe:transition-transform',
 	/**
-	 * A box resizing between two fixed sizes — the drawer's `half` ↔ `full`, not a
+	 * A box resizing between two fixed sizes: the drawer's `half` ↔ `full`, not a
 	 * box growing to its content. `height` interpolates only between two lengths,
 	 * so a panel sized by what it holds cannot travel on this at all. Framer
 	 * Motion measures it the second length and moves it, on `spring.fit`. The
@@ -21,7 +21,7 @@ export const css = {
 	 */
 	size: 'motion-safe:transition-[height,border-radius]',
 	/**
-	 * The corner alone, for a panel whose height something else already moves —
+	 * The corner alone, for a panel whose height something else already moves:
 	 * one grown to its content, which only Framer Motion can travel between.
 	 * `size` states the pair, and a CSS transition on `height` fights a per-frame
 	 * write. Every frame the animation lands becomes a transition toward it, so

@@ -40,7 +40,7 @@ type GridToolbarProps = {
 	 */
 	exportActions: GridExportAction[]
 	/**
-	 * Whether an async export is in flight — from this dropdown or from a right-click
+	 * Whether an async export is in flight: from this dropdown or from a right-click
 	 * menu, since the grid counts them in one place (see {@link useGridExport}). Swaps
 	 * the trigger's download icon for a spinner and gates re-activation until it
 	 * settles; the grid's own "Exporting" overlay reads the same fact.
@@ -53,7 +53,7 @@ type GridToolbarProps = {
 	columnFilters: GridColumnFilter | null
 	/** Batch-action builder; its controls fill the second row while a row is selected. */
 	batchActions: GridSelection['batchActions']
-	/** Whether at least one row is selected — gates the batch-action row. */
+	/** Whether at least one row is selected: gates the batch-action row. */
 	hasSelection: boolean
 	/** Live selection handed to {@link GridToolbarProps.batchActions}. */
 	selection: Set<string | number>
@@ -104,7 +104,7 @@ function GridExportMenu({ exportActions, exporting }: GridExportMenuProps) {
 			<MenuContent>
 				{exportActions.map((action) => (
 					// The action carries its own pending tracking, so firing it is all
-					// this item does — the trigger's spinner and the grid's overlay both
+					// this item does: the trigger's spinner and the grid's overlay both
 					// follow from the count it flips.
 					<MenuItem key={action.type} onAction={action.run}>
 						<MenuLabel>{action.label}</MenuLabel>

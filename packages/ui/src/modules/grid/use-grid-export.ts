@@ -78,7 +78,7 @@ export function useGridExport<T>(args: {
 	const surfaces = resolveExportSurfaces(exportable)
 
 	// Read field by field at the call site, so only the arrays' own identities
-	// matter — both are already stable, and an off surface takes the fixed empty
+	// matter: both are already stable, and an off surface takes the fixed empty
 	// set rather than a fresh one, contributing nothing to the menu resolvers'
 	// dependencies.
 	return {

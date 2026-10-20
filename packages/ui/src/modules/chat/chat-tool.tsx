@@ -88,7 +88,7 @@ export function ChatTool({ part, className }: ChatToolProps) {
 
 	const { status, label, pulse } = STATUS[part.status]
 
-	// How it ended, what ran, and the line saying what it did — the same content
+	// How it ended, what ran, and the line saying what it did: the same content
 	// whether it heads a plain line or a disclosure trigger.
 	const head = (
 		<>

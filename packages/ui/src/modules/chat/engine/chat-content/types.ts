@@ -57,7 +57,7 @@ export type ChatEmbedPart = {
 	 * How tall the view will be, in pixels, for the space to hold open while its
 	 * renderer is held back under the `lazy` mount policy.
 	 *
-	 * Only the caller knows this — the module has not drawn the view yet, and
+	 * Only the caller knows this: the module has not drawn the view yet, and
 	 * asking the renderer would mean mounting the thing being deferred. Absent
 	 * takes the module's default, which a view of another height makes the
 	 * transcript settle by that difference the first time a reader reaches it.
@@ -102,7 +102,7 @@ export type ChatToolPart = {
 	 */
 	status: ChatToolStatus
 	/**
-	 * One line naming what the call did — the filter it applied, the rows it
+	 * One line naming what the call did: the filter it applied, the rows it
 	 * matched. `formatQuerySummary` from the query module renders a query tree to
 	 * exactly this, so a step over a query needs no formatter of its own.
 	 */
@@ -121,7 +121,7 @@ export type ChatToolPart = {
  * rather than a wider type on a field every kind shares.
  *
  * The discriminant is `kind`, which is what other unions in this package
- * read — `MapRouteFailure`, `QuerySummaryToken`, `CellTooltip`. It also
+ * read: `MapRouteFailure`, `QuerySummaryToken`, `CellTooltip`. It also
  * holds the block axis apart from the speaker axis a message already carries.
  *
  * The kinds are closed and this module owns them. That is what keeps each rule

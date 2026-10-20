@@ -6,8 +6,8 @@ import type { LngLat } from '../types'
 import { type MapRouteFailure, noRouteFailure, routeFailure } from './failure'
 
 /**
- * A routed leg: the street-following geometry to draw — a {@link MapRoute}
- * or {@link MapMarker} `path` — with the totals behind a mileage or ETA
+ * A routed leg: the street-following geometry to draw (a {@link MapRoute}
+ * or {@link MapMarker} `path`) with the totals behind a mileage or ETA
  * readout.
  */
 export type MapRouteResult = {
@@ -70,8 +70,8 @@ export function routeAnswer(payload: OsrmPayload): MapRouteAnswer {
 
 	const path = route.geometry?.coordinates ?? []
 
-	// `overview: 'false'` answers with the totals and no geometry — the cheap
-	// distance/duration-only request the option documents — so keep them and hand
+	// `overview: 'false'` answers with the totals and no geometry (the cheap
+	// distance/duration-only request the option documents), so keep them and hand
 	// back an empty path the overlay draws a straight line for. A leg with neither
 	// geometry nor a total is nothing the service could have routed, so it reads as
 	// a payload this reader cannot take rather than as a refusal it never made.

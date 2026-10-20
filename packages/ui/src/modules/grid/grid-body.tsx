@@ -203,7 +203,7 @@ function renderGroup<T>(
 		props: GridBodyProps<T>
 		columnId: string | number
 		renderHeader: GridGroupBy['renderHeader']
-		/** Whether a per-group total row shows — a whole-body gate, resolved once by the caller. */
+		/** Whether a per-group total row shows: a whole-body gate, resolved once by the caller. */
 		totaled: boolean
 		/** The row-manager overlay presentation (per-group color), or `null` when off. */
 		presentation: GridRowGroupPresentation | null
@@ -478,7 +478,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 
 	// Manual grouping renders the consumer-supplied sequence: group headers (with
 	// the backend's counts and aggregates) segmented positionally over the leaves
-	// that follow them. Checked before the empty gate — `rows` carries only the
+	// that follow them. Checked before the empty gate: `rows` carries only the
 	// leaves, and a fully collapsed server-grouped grid holds headers alone.
 	if (manualRows && manualRows.length > 0 && manualGroup && groupColumnId != null) {
 		// A sort on the grouped column reorders the group blocks by value; the

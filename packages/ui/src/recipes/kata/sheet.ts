@@ -63,8 +63,8 @@ export const k = {
 				bottom: [slide.bottom, 'max-h-full pb-[env(safe-area-inset-bottom)]'],
 			},
 			// The named steps are max-widths and nothing more, so they stay the shared
-			// scale. `fit` is a different kind of answer — the panel takes the width of
-			// what it holds — so it is stated here rather than pushed into a scale
+			// scale. `fit` is a different kind of answer (the panel takes the width of
+			// what it holds), so it is stated here rather than pushed into a scale
 			// Dialog also reads.
 			//
 			// Every step is empty on the axis, because a width only means something on
@@ -145,7 +145,7 @@ export const k = {
 			flex.col,
 			'z-10 items-center justify-center',
 			...hannou.grab.default,
-			// The stroke goes on the bar, not here — see the archetype's grip. This
+			// The stroke goes on the bar, not here (see the archetype's grip). This
 			// suppresses the browser's own, which would draw around the whole reach.
 			'outline-hidden',
 		],
@@ -176,7 +176,7 @@ export const k = {
 	},
 }
 
-/** Recipe variant props for the {@link Sheet} panel — its styling axes (`side`, `width`, `surface`), for consumers composing custom slots. */
+/** Recipe variant props for the {@link Sheet} panel: its styling axes (`side`, `width`, `surface`), for consumers composing custom slots. */
 export type SheetPanelVariants = Omit<
 	VariantProps<typeof k.panel>,
 	'side' | 'width' | 'surface'

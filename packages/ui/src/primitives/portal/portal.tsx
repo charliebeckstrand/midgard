@@ -12,8 +12,8 @@ import { type PortalContainer, PortalScopeContext, usePortalContainer } from './
 /** Props for {@link Portal}. */
 export type PortalProps = {
 	/**
-	 * Whether the surface is open. Drives the enter, and — on the transition to
-	 * `false` — the exit animation before the portal node is removed.
+	 * Whether the surface is open. Drives the enter, and (on the transition to
+	 * `false`) the exit animation before the portal node is removed.
 	 */
 	open: boolean
 	/**

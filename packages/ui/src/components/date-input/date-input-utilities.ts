@@ -55,7 +55,7 @@ const layoutByLocale = new Map<string, DateInputFormat>()
 /**
  * Resolves {@link DateInput}'s layout and its default invalid message together:
  * an unset `format` follows the ambient locale, and the message quotes whichever
- * layout won, in the language of `intl`. Only an absent message takes the default — `null` and `false`
+ * layout won, in the language of `intl`. Only an absent message takes the default: `null` and `false`
  * suppress it, as the prop documents.
  *
  * @remarks
@@ -94,7 +94,7 @@ export function resolveDateInputFormat(
  * - the rest take `MM/DD/YYYY`.
  *
  * @remarks
- * Order alone is derived, not the locale's separator — de-DE writes `10.06.2026`
+ * Order alone is derived, not the locale's separator: de-DE writes `10.06.2026`
  * where this masks `10/06/2026`. Field order is what decides whether a typed
  * date is read correctly. The separator is presentational, and each of the three
  * supported layouts pins its own.

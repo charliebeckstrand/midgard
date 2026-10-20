@@ -14,7 +14,7 @@
 export type ChartValueAxisId = 'y' | 'y2'
 
 /**
- * One value axis's configuration — a `y` / `y2` entry of a cartesian chart's
+ * One value axis's configuration: a `y` / `y2` entry of a cartesian chart's
  * {@link CartesianAxes | axes} object, or either {@link ScatterAxes} entry of a
  * point chart's. An independent domain, tick formatter, title, and grid-line
  * participation. Two measures of different scale each read their own axis,
@@ -28,7 +28,7 @@ export type ChartValueAxis = {
 	max?: number
 	/**
 	 * Formats this axis's ticks and its series' tooltip, label, and data-table
-	 * values — a currency for `y`, a percent for `y2`.
+	 * values: a currency for `y`, a percent for `y2`.
 	 * @defaultValue the chart's `formatValue`, except a point chart's `x` axis, which takes the locale default.
 	 */
 	format?: (value: number) => string
@@ -47,7 +47,7 @@ export type ChartValueAxis = {
 }
 
 /**
- * The category (band) axis of a cartesian chart — the `x` entry of its
+ * The category (band) axis of a cartesian chart: the `x` entry of its
  * {@link CartesianAxes | axes} object. Types the band axis (plain categories or
  * time), formats its labels, rules its between-category dividers, and titles it.
  */
@@ -60,7 +60,7 @@ export type ChartCategoryAxis = {
 	 * position between the evenly spaced rows, formatted for the runtime locale
 	 * through `@internationalized/date`. The tooltip and data table read the same
 	 * dates.
-	 * Rows stay index-aligned, so spacing is uniform — the ticks track time, the
+	 * Rows stay index-aligned, so spacing is uniform: the ticks track time, the
 	 * marks track order. Under `orientation="horizontal"` this types the vertical
 	 * band axis. Falls back to plain labels when fewer than two rows carry a
 	 * parseable, spanning date.
@@ -68,8 +68,8 @@ export type ChartCategoryAxis = {
 	 */
 	type?: 'category' | 'time'
 	/**
-	 * Format each row's category — the band-axis labels and the tooltip and data
-	 * table readout — from its raw `xKey` value. Overrides the default `String`
+	 * Format each row's category (the band-axis labels and the tooltip and data
+	 * table readout) from its raw `xKey` value. Overrides the default `String`
 	 * coercion and the automatic date normalization. With no formatter set, a band
 	 * axis whose every value parses as a date labels itself in the locale's own
 	 * numeric month/day order. It gains the year across years. Ignored on the
@@ -95,7 +95,7 @@ export type ChartCategoryAxis = {
 	 * flat. Where the bands are narrower than a tilted label needs, the tilted
 	 * run also thins to every nth, so no two labels overlap. Off by default, so
 	 * an unset axis keeps thinning flat.
-	 * @remarks Vertical orientation only — under `orientation="horizontal"`
+	 * @remarks Vertical orientation only: under `orientation="horizontal"`
 	 * category labels already run down the gutter and read straight, so this has
 	 * no effect there.
 	 * @defaultValue false

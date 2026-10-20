@@ -1,7 +1,7 @@
 /**
  * How much room the map reserves before it draws. That is the geography's own
  * projected ratio a fixed-subject projection knows before its atlas loads, and
- * the frame-sizing policy it feeds. Dependency-free arithmetic — the frame reserves
+ * the frame-sizing policy it feeds. Dependency-free arithmetic: the frame reserves
  * its box without pulling `d3-geo` in behind it.
  */
 
@@ -15,7 +15,7 @@ import type { MapAspectRatio, MapProjection } from '../types'
  * projection whose geographic subject is fixed. `albers-usa` is the United
  * States, so its frame holds the US ratio through a lazy load and never shifts
  * height. The world projections (`mercator`, `equal-earth`) and a passed
- * instance frame arbitrary geography, so they have none — the caller falls back
+ * instance frame arbitrary geography, so they have none: the caller falls back
  * to the generic {@link DEFAULT_MAP_ASPECT}. An unstated projection answers the
  * same way, so a caller holding an optional one needs no guard of its own.
  *

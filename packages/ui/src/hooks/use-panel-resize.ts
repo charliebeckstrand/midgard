@@ -255,7 +255,7 @@ export function usePanelResize({
 	// The panel, as state rather than a ref, so its arrival is something an effect
 	// can wait for. It is portaled and mounts on a later commit than the one that
 	// opens the panel, so an effect keyed on `open` alone runs while there is
-	// still nothing to measure — which is how the splitter came to report a panel
+	// still nothing to measure, which is how the splitter came to report a panel
 	// covering none of the screen.
 	const [panel, setPanel] = useState<HTMLDivElement | null>(null)
 
@@ -309,8 +309,8 @@ export function usePanelResize({
 		setAtCeiling(false)
 	}, [open])
 
-	// Deliberately not a layout effect. Nothing paints from `covers` — it is the
-	// splitter's `aria-valuenow` and nothing else — so measuring before the first
+	// Deliberately not a layout effect. Nothing paints from `covers` (it is the
+	// splitter's `aria-valuenow` and nothing else), so measuring before the first
 	// paint would put a forced layout and an extra render on the open's critical
 	// path, whether or not anyone ever drags.
 	useEffect(() => {
@@ -319,8 +319,8 @@ export function usePanelResize({
 		}
 	}, [panel, axis])
 
-	// A gesture still in flight when the panel unmounts — a panel closed from
-	// elsewhere mid-drag — would leave its listeners on the window for the life of
+	// A gesture still in flight when the panel unmounts (a panel closed from
+	// elsewhere mid-drag) would leave its listeners on the window for the life of
 	// the page.
 	useEffect(() => {
 		const held = stop
@@ -342,7 +342,7 @@ export function usePanelResize({
 	 *
 	 * A panel grows as the pointer travels away from the edge it is docked to. That
 	 * is a falling coordinate on one side of each axis, and a rising one on the
-	 * other — see {@link SIDES}.
+	 * other (see {@link SIDES}).
 	 */
 	function draw(at: Grab, coordinate: number): number {
 		return resize(at, at.size + sign * (at.at - coordinate))
@@ -431,8 +431,8 @@ export function usePanelResize({
 		//
 		// It looks like a no-op and it is the one thing standing between the press
 		// and a flash of the whole screen. A consumer that clears a CSS cap for the
-		// length of a gesture — which the width axis needs, or the drag would report
-		// numbers past a panel clamped at its opening size — clears it on the render
+		// length of a gesture (which the width axis needs, or the drag would report
+		// numbers past a panel clamped at its opening size) clears it on the render
 		// this press causes. Without a size to go with it that render has a cleared
 		// cap and no width, so the panel takes whatever its classes say, which for a
 		// full-width-under-a-max-width sheet is the entire screen. It came back on
@@ -447,8 +447,8 @@ export function usePanelResize({
 		// The rest of the gesture is the window's, not the bar's. Pointer capture
 		// would be the shorter way to say it and it is not dependable enough: it can
 		// be refused, and a browser can take it back mid-gesture. Either leaves the
-		// release landing wherever the pointer happens to be — which, a moment into a
-		// drag, is nowhere near a strip a couple of dozen pixels across — and the
+		// release landing wherever the pointer happens to be (which, a moment into a
+		// drag, is nowhere near a strip a couple of dozen pixels across) and the
 		// panel then follows a pointer the reader has already let go of.
 		//
 		// One signal rather than three removals that have to mirror three adds.

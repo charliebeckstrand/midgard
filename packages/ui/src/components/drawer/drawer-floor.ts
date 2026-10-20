@@ -30,7 +30,7 @@ export function drawerFloor(panel: HTMLElement, height: number): number {
 
 	// What the panel measures now, less the one part of it that can give: the
 	// scrolling body. A body already collapsed reports zero and the floor is the
-	// whole panel, which is right — there is nothing left to take.
+	// whole panel, which is right: there is nothing left to take.
 	return height - body.getBoundingClientRect().height
 }
 

@@ -66,7 +66,7 @@ export function useColorPickerState({
 		name,
 		value,
 		defaultValue,
-		// The picker always holds a color — the swatch has to paint something — so
+		// The picker always holds a color (the swatch has to paint something), so
 		// the cleared `null` §7.3 admits never reaches the consumer.
 		onValueChange: onValueChange && ((next) => next != null && onValueChange(next)),
 		disabled,

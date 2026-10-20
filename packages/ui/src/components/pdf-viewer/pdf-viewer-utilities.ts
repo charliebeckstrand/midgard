@@ -80,7 +80,7 @@ export function resolveDownloadName(
  * Prints the PDF at `src` through a hidden iframe.
  *
  * @remarks Falls back to opening the PDF in a new tab when the frame cannot be
- * printed — a cross-origin source, or a `print()` the browser blocks. See
+ * printed: a cross-origin source, or a `print()` the browser blocks. See
  * {@link printInHiddenFrame}.
  * @internal
  */

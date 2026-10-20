@@ -12,7 +12,7 @@ import { type ChartHoverStore, samePoint } from './context'
 /**
  * The per-category anchor points a chart hands its frame for keyboard
  * navigation. They are already projected to frame coordinates, so the cursor
- * lands exactly where the pointer would. `points` is indexed by category — a
+ * lands exactly where the pointer would. `points` is indexed by category: a
  * cartesian band, a pie's slice. Each entry lists that category's navigable
  * stops: one per visible series for a cartesian chart, a single centroid for a
  * pie slice. Two series sharing a value keep two coincident stops, never one, so
@@ -51,7 +51,7 @@ export type ChartFocusTargets = {
 /**
  * The keyboard focus cursor: a category crossed with one of its stops. `value`
  * indexes the series stops at `category`, so stepping it walks that category's
- * series — coincident points included. `reference`, when set, parks the cursor
+ * series: coincident points included. `reference`, when set, parks the cursor
  * on that reference line at `category`'s band instead. `value` rides along as
  * the series lane to return to, when the value axis steps back off the rule.
  *
@@ -75,7 +75,7 @@ function pointCount(targets: ChartFocusTargets, category: number): number {
 	return targets.points[category]?.length ?? 0
 }
 
-/** Whether any category carries a stop — the gate for enabling navigation. @internal */
+/** Whether any category carries a stop: the gate for enabling navigation. @internal */
 export function hasFocusTargets(targets: ChartFocusTargets): boolean {
 	return targets.points.some((stops) => stops.length > 0)
 }
@@ -188,8 +188,8 @@ export function clampCursor(
 
 /**
  * The frame point a cursor anchors to, or `null` when it falls off the targets.
- * A cursor parked on a reference line has no series anchor — the rule owns the
- * emphasis instead — so it reads `null`. @internal
+ * A cursor parked on a reference line has no series anchor (the rule owns the
+ * emphasis instead), so it reads `null`. @internal
  */
 export function cursorPoint(cursor: ChartCursor, targets: ChartFocusTargets): Vec | null {
 	if (cursor.reference !== undefined) return null
@@ -207,8 +207,8 @@ function cursorIndex(cursor: ChartCursor, targets: ChartFocusTargets): number {
 
 /**
  * The series index the cursor sits on, or `null`. A cursor parked on a reference
- * line names no series. A chart that maps no series to its stops — or a stop
- * past the map — reads `null` too, leaving the emphasis untouched. @internal
+ * line names no series. A chart that maps no series to its stops (or a stop
+ * past the map) reads `null` too, leaving the emphasis untouched. @internal
  */
 export function cursorSeries(cursor: ChartCursor, targets: ChartFocusTargets): number | null {
 	if (cursor.reference !== undefined) return null
@@ -219,7 +219,7 @@ export function cursorSeries(cursor: ChartCursor, targets: ChartFocusTargets): n
 /**
  * Builds cartesian focus targets: each category's visible value positions
  * projected onto the frame through the orientation, so the stored anchors match
- * the marks. Values arrive in series order and stay that way — the cursor sorts
+ * the marks. Values arrive in series order and stay that way: the cursor sorts
  * them into screen order only when it steps. `references` are the reference
  * lines' value-axis positions, kept band-independent and carried through
  * untouched so they rove alongside the series stops at every category.
@@ -249,8 +249,8 @@ type CursorAction = 'category+' | 'category-' | 'value+' | 'value-' | 'first' | 
 
 /**
  * Reads a key against the orientation. The band axis arrows step categories, and
- * the value axis arrows cycle the series' value points. A horizontal chart —
- * categories down the side — therefore transposes which pair does which. Home /
+ * the value axis arrows cycle the series' value points. A horizontal chart
+ * (categories down the side) therefore transposes which pair does which. Home /
  * End jump to the ends, Escape clears; anything else is `null` and left to the browser.
  *
  * @internal
@@ -294,7 +294,7 @@ export type CursorMove = {
 /**
  * A value-axis stop: a category's series point (`data`) or a reference line
  * (`ref`), each at its screen position along the value axis. `index` addresses
- * the kind's own list — a series lane or a `references` slot. @internal
+ * the kind's own list: a series lane or a `references` slot. @internal
  */
 type Stop = { kind: 'data' | 'ref'; index: number; pos: number }
 
@@ -329,7 +329,7 @@ function orderedStops(
 
 /**
  * The cursor one step `dir` along the value axis. It walks the category's
- * stops — series points and reference lines alike — in screen order, rather than
+ * stops (series points and reference lines alike) in screen order, rather than
  * the order they arrive in. Landing on a reference line parks the cursor there
  * while keeping its series lane. Landing on a series point clears the parking,
  * and names the series of that point. The step wraps at the ends.
@@ -482,12 +482,12 @@ function sameCursor(a: ChartCursor | null, b: ChartCursor | null): boolean {
  * pointer's readout alone. Escape drops focus to the body, then re-arms the
  * region as the next Tab's destination. Tabbing back in therefore returns to the
  * chart the reader just left, rather than stepping to the following stop.
- * Returns `null` — no tab stop — when navigation is off or the chart carries no
+ * Returns `null` (no tab stop) when navigation is off or the chart carries no
  * value point, leaving the region the plain `role="img"` it was.
  *
  * @param targets - The per-category anchor points and reference stops to navigate, or `undefined` on a chart with none.
  * @param orientation - Which screen axis the value runs along, so the arrows map to the right axes and steps sort in screen order.
- * @param enabled - Whether a readout is mounted to answer the cursor — the tooltip that makes navigation legible.
+ * @param enabled - Whether a readout is mounted to answer the cursor: the tooltip that makes navigation legible.
  * @param store - The hover store. Each step moves its hover to the cursor's
  * anchor, and Escape reads it for a readout to clear.
  * @param setReference - The emphasis setter, moved to the reference line the cursor parks on, or `null` off it.
@@ -528,8 +528,8 @@ export function useChartKeyboard(
 
 	const active = enabled && targets !== undefined && hasFocusTargets(targets)
 
-	// Release what the cursor held once navigation switches off — the rules or
-	// series removed, the tooltip unmounted — so no stale dim, crosshair, or
+	// Release what the cursor held once navigation switches off (the rules or
+	// series removed, the tooltip unmounted), so no stale dim, crosshair, or
 	// readout lingers with no way to clear it (a blur never fires). The cursor gate
 	// keeps this from clearing a hover the pointer owns.
 	useEffect(() => {

@@ -133,7 +133,7 @@ export function useMenuRoot({
 
 	// Only a true right-click context menu wires `onContextMenu`. A static menu is
 	// also `!isDropdown`, but suppressing its native context menu (via
-	// `handleContextMenu`'s preventDefault) buys nothing — its panel is already open.
+	// `handleContextMenu`'s preventDefault) buys nothing: its panel is already open.
 	const isContextMenu = !isDropdown && !isStatic
 
 	// A disabled context menu keeps its wrapper, so the content under it keeps its
@@ -159,7 +159,7 @@ export function useMenuRoot({
 			// that space and scrolls, instead of running off the screen. The cut
 			// falls at the middle of a row, so the clipped row shows the overflow.
 			fitHeight: snapMenuHeight,
-			// A static menu renders inline and stays visible — `MenuContent` gates
+			// A static menu renders inline and stays visible: `MenuContent` gates
 			// the panel on `isStatic`, not on `open`. Left dismissable it would take
 			// a slot on the shared Escape stack, report a close that changes nothing,
 			// and swallow the press meant for an enclosing Dialog.
@@ -181,7 +181,7 @@ export function useMenuRoot({
 	// Tab off the trigger closes the menu (focus stays on the trigger while it is
 	// open). Routing through `context.onOpenChange` with `'focus-out'` records the
 	// reason so the disclosure's focus-return effect leaves focus where the Tab is
-	// carrying it — forward to the next tabbable, back with Shift+Tab — instead of
+	// carrying it (forward to the next tabbable, back with Shift+Tab) instead of
 	// snapping it back to the trigger and swallowing the keystroke.
 	//
 	// The handler, not `context`: floating-ui rebuilds the context
@@ -201,7 +201,7 @@ export function useMenuRoot({
 	// `aria-activedescendant`, not real focus: arrow / Home / End / type-ahead move
 	// a `data-active` cursor over the panel's items (`refs.floating` holds them) and
 	// point the trigger's `aria-activedescendant` at the active row; Enter clicks it.
-	// `manageAriaSelected: false` — `aria-selected` is not a `menuitem` state. The
+	// `manageAriaSelected: false`: `aria-selected` is not a `menuitem` state. The
 	// handler is spread onto the trigger (below); it no-ops while the panel is
 	// unmounted, so a closed menu ignores arrows.
 	const rovingKeyDown = useA11yRoving(refs.floating, {
@@ -243,7 +243,7 @@ export function useMenuRoot({
 	const keyboardOpener = useRef<HTMLElement | null>(null)
 
 	// Anchor the menu at a point while tracking `element` as it (or a scroll
-	// container) scrolls — but as the *position* reference only, never floating-ui's
+	// container) scrolls, but as the *position* reference only, never floating-ui's
 	// `reference`. Registering the element as the reference (`setReference`, the
 	// `useClientPoint` route) would exempt it from outside-press dismissal, so a
 	// left-click on the very element the menu was opened from could not close it; a

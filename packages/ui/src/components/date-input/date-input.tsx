@@ -62,8 +62,8 @@ export type DateInputProps = Omit<
 	 * Fires when the text changes and on blur, with the field's verdict on the
 	 * typed text.
 	 *
-	 * The field already holds that verdict — it is what renders the error Message
-	 * and sets `aria-invalid` — and kept it. The `onValueChange` cannot stand in.
+	 * The field already holds that verdict (it is what renders the error Message
+	 * and sets `aria-invalid`) and kept it. The `onValueChange` cannot stand in.
 	 * It emits `null` for a cleared field, a half-typed date, and an
 	 * unparsable one alike. A caller therefore cannot tell "not finished" from
 	 * "wrong". The `isValid` says the text parses to a complete in-range date. The
@@ -240,7 +240,7 @@ export function DateInput({
 	 *
 	 * `closed` is what the caller means by "this entry is finished": a full-length
 	 * mask on a keystroke, any non-empty text on blur. A finished entry the parser
-	 * refuses is the only wrong one — everything else can still become a date. The
+	 * refuses is the only wrong one: everything else can still become a date. The
 	 * Message, `aria-invalid` and the report all come from this decision, so they
 	 * cannot disagree.
 	 */

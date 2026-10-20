@@ -254,8 +254,8 @@ export const PDF_VIEWER_THUMBNAILS = adaptive({
 }) satisfies Responsive<PdfViewerThumbnailLayout>
 
 /**
- * Composes the PDF viewer's state — document loading, pagination, per-page
- * rotation, zoom, and the measured viewport/page scale — into one memoized
+ * Composes the PDF viewer's state (document loading, pagination, per-page
+ * rotation, zoom, and the measured viewport/page scale) into one memoized
  * value for {@link PdfViewerContext}.
  *
  * @returns The {@link PdfViewerResult} consumed by every viewer sub-component.
@@ -284,7 +284,7 @@ export function usePdfViewer({
 	onMagnifierChange,
 }: PdfViewerOptions): PdfViewerResult {
 	/*
-	 * The chrome the reader owns reports itself — the highlight overlay here, the loupe below.
+	 * The chrome the reader owns reports itself: the highlight overlay here, the loupe below.
 	 *
 	 * Through `useEffectEvent`, which is how this package raises an optional consumer callback
 	 * out of a state change. `use-copy-button-state.ts` does the same for `onCopiedChange`. It

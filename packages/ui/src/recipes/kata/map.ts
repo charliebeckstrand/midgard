@@ -62,7 +62,7 @@ export const k = {
 		 *
 		 * The fallback is spelled out rather than read from that constant, because
 		 * Tailwind scans source for whole class strings; `map-hit-target.test.tsx` pins
-		 * the two together. It is the floor a budget can never take a target under —
+		 * the two together. It is the floor a budget can never take a target under:
 		 * the radius a dot of the default size draws at.
 		 */
 		fine: 'pointer-fine:[r:var(--map-hit-radius,5.5px)]',
@@ -84,7 +84,7 @@ export const k = {
 	series: palette.series,
 	/** The map's own region tokens beside the shared data-viz palette. */
 	region: {
-		/** A region with no matching datum — and a toggled-off category's fallback. */
+		/** A region with no matching datum, and a toggled-off category's fallback. */
 		empty: mode('fill-zinc-200', 'dark:fill-zinc-800'),
 		/** Region boundary seam: the surface color, so shared borders read as gaps. */
 		border: mode('stroke-white', 'dark:stroke-zinc-900'),
@@ -128,7 +128,7 @@ export const k = {
 		 */
 		pointed: mode('brightness-90', 'dark:brightness-110'),
 		/**
-		 * The selected region's outline — the map's shared {@link k.selected} ink,
+		 * The selected region's outline: the map's shared {@link k.selected} ink,
 		 * kept here so the region layer reads its selection beside its other paint.
 		 */
 		selected: SELECTED,
@@ -147,7 +147,7 @@ export const k = {
 		sphere: ink.axis.line,
 	},
 	/**
-	 * A mark group's response to emphasis — the legend's focused group, or the
+	 * A mark group's response to emphasis: the legend's focused group, or the
 	 * pointed mark on the map itself. Everything outside it dims, and the
 	 * emphasized mark holds. On a wrapper (an overlay's, or the whole region
 	 * layer's recede group), so motion's inline opacity composes. A county atlas
@@ -156,7 +156,7 @@ export const k = {
 	 * per-frame compositing.
 	 */
 	group: (dimmed: boolean) => ['transition-opacity', dimmed ? 'opacity-25' : ''],
-	/** Keyboard focus ring — the shared accent outline, on the navigable plot region. */
+	/** Keyboard focus ring: the shared accent outline, on the navigable plot region. */
 	focus: sen.focus.ring,
 	/**
 	 * The legend's reserved box, mounted before any button registers so the

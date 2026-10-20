@@ -54,7 +54,7 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	rounded?: boolean
 	className?: string
 	/**
-	 * Element rendered for the content area when no `href` is given — an
+	 * Element rendered for the content area when no `href` is given: an
 	 * intrinsic tag (`'button'`, `'span'`) or a custom component. Ignored when
 	 * `href` is set, which always renders the app-registered router link.
 	 * Without `as`, a row with `onClick` renders a `<button>`, so the keyboard
@@ -75,7 +75,7 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
  * around a polymorphic content area. That area switches to the app's router link
  * when `href` is set, and otherwise renders the `as` element (`'div'` by
  * default, or `'button'` for a row with `onClick`). A
- * content area that acts on activation — `href` or `onClick` — counts as
+ * content area that acts on activation (`href` or `onClick`) counts as
  * interactive and takes the muted text plus hover and pointer treatment. Its hit
  * area covers the whole painted row, the padding and the slot chrome included. In
  * a reorderable list it wires the drag/keyboard bindings and auto-inserts a

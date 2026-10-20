@@ -109,7 +109,7 @@ export function VirtualOptions<T>({
 
 	// The scroll container is stable while mounted, but the virtualizer calls
 	// `getScrollElement` after every commit (its own layout effect plus
-	// `useVirtualWindow`'s resync guard) — including each scroll-driven window
+	// `useVirtualWindow`'s resync guard), including each scroll-driven window
 	// change. Cache the resolved element so the getComputedStyle-per-ancestor
 	// walk runs once, not per scroll frame; re-walk only if the cached node
 	// left the document (panel remount).

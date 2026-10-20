@@ -5,7 +5,7 @@ import { cn } from '../core'
 export type AuthLayoutProps = ComponentProps<'main'>
 
 /**
- * Full-viewport layout that centers its content both axes — the frame for
+ * Full-viewport layout that centers its content both axes: the frame for
  * sign-in, registration, and other unauthenticated single-card pages. Renders
  * a `<main>` filling the dynamic viewport height with a vertical gap between
  * stacked children.

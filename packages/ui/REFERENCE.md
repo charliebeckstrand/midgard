@@ -7,14 +7,14 @@
 | Surface | Doc | Contents |
 |---|---|---|
 | Components | [`docs/COMPONENTS.md`](docs/COMPONENTS.md) | Every component, grouped by domain (inputs, overlays, data display, surfaces, …). |
-| Modules | [`docs/MODULES.md`](docs/MODULES.md) | `ui/modules/*`, each also at its bare `ui/<name>` path — complex, multi-part compositions that own their sub-components, hooks, and docs. |
-| Structure | [`docs/STRUCTURE.md`](docs/STRUCTURE.md) | `ui/structure/*`, each also at its bare `ui/<name>` path — box, columns, container, flex, spacer, split, stack: the static units that arrange other elements. |
-| Layouts | [`docs/LAYOUTS.md`](docs/LAYOUTS.md) | `ui/layouts` — page scaffolds and app shells (auth, stacked, dashboard, sidebar). |
-| Hooks | [`docs/HOOKS.md`](docs/HOOKS.md) | `ui/hooks` — state, floating, interaction, a11y, measurement, drag-and-drop, formatted input. |
-| Primitives | [`docs/PRIMITIVES.md`](docs/PRIMITIVES.md) | `ui/primitives/*` — floating/overlay shells, polymorphism, the styling-context cascades. |
-| Providers | [`docs/PROVIDERS.md`](docs/PROVIDERS.md) | `ui/providers/*` — appearance, density, glass, headless, locale, and the app-root `UIProvider`. |
-| Recipes | [`docs/RECIPES.md`](docs/RECIPES.md) | The design layer — Kiso tokens → Katakana bridge → Kata, plus the recipe engine. |
-| Core | [`docs/CORE.md`](docs/CORE.md) | `ui/core` — `cn`, `createContext`, `createSlot`, `announce`, and friends. |
+| Modules | [`docs/MODULES.md`](docs/MODULES.md) | `ui/modules/*`, each also at its bare `ui/<name>` path: complex, multi-part compositions that own their sub-components, hooks, and docs. |
+| Structure | [`docs/STRUCTURE.md`](docs/STRUCTURE.md) | `ui/structure/*`, each also at its bare `ui/<name>` path. Box, columns, container, flex, spacer, split, and stack are the static units that arrange other elements. |
+| Layouts | [`docs/LAYOUTS.md`](docs/LAYOUTS.md) | `ui/layouts`: page scaffolds and app shells (auth, stacked, dashboard, sidebar). |
+| Hooks | [`docs/HOOKS.md`](docs/HOOKS.md) | `ui/hooks`: state, floating, interaction, a11y, measurement, drag-and-drop, formatted input. |
+| Primitives | [`docs/PRIMITIVES.md`](docs/PRIMITIVES.md) | `ui/primitives/*`: floating/overlay shells, polymorphism, the styling-context cascades. |
+| Providers | [`docs/PROVIDERS.md`](docs/PROVIDERS.md) | `ui/providers/*`: appearance, density, glass, headless, locale, and the app-root `UIProvider`. |
+| Recipes | [`docs/RECIPES.md`](docs/RECIPES.md) | The design layer (Kiso tokens → Katakana bridge → Kata), plus the recipe engine. |
+| Core | [`docs/CORE.md`](docs/CORE.md) | `ui/core`: `cn`, `createContext`, `createSlot`, `announce`, and friends. |
 | Utilities | [`docs/UTILITIES.md`](docs/UTILITIES.md) | Internal pure helpers (numeric, color contrast, caret, dismiss-layers, keyboard navigation). |
 
 Per-symbol behavior, props, and defaults live in each symbol's TSDoc. The docs site (`pnpm --filter ui dev`) renders them beside live examples through the [docs plugin](src/docs/plugin). Keep these docs current per [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §12.

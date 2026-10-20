@@ -231,7 +231,7 @@ function AlertContent({
  * @remarks
  * The content is props here, and not the compound children §3.6 prefers
  * elsewhere, which is a deliberate reversal. Toast renders an Alert from a
- * queue entry — data, with no children to compose — so the prop form is the
+ * queue entry (data, with no children to compose), so the prop form is the
  * one both paths can use. There used to be a slot trio beside it, reconciled
  * by sniffing each child's `displayName`. That is the cost the second channel
  * carried, and it is gone with the slots.

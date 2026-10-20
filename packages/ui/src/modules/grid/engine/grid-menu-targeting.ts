@@ -52,7 +52,7 @@ export function tryGroupMenu(
 /**
  * Handles a right-click that landed on a column-group band cell (its badge). It
  * resolves the menu by the group's id (`data-group-id`) and opens it at the
- * pointer. Returns whether the target was a band cell — checked before the plain
+ * pointer. Returns whether the target was a band cell: checked before the plain
  * cell path, since a band cell carries no `data-grid-col`.
  *
  * @internal

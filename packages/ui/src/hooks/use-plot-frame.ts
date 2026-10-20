@@ -26,7 +26,7 @@ import {
  *
  * `fixed` is an explicit pixel height. `aspect` derives the height from the
  * drawing width by a constant ratio. `fill` takes the container's measured
- * height — the free-form case, and the only one where the container height is
+ * height: the free-form case, and the only one where the container height is
  * worth a measurement. `content` derives the height from the width and a pair
  * of margins, for content whose natural shape is not a fixed ratio. A circle
  * boxed by an asymmetric horizontal and vertical margin is one.
@@ -36,7 +36,7 @@ export type FrameSizing =
 	| { mode: 'aspect'; ratio: number }
 	| {
 			/**
-			 * The ratio governs the whole figure — plot and legend together — through a
+			 * The ratio governs the whole figure (plot and legend together) through a
 			 * CSS `aspect-ratio` the figure wrapper carries. The plot measures the
 			 * height that leaves, so the drawing fills it.
 			 *
@@ -44,7 +44,7 @@ export type FrameSizing =
 			 * A server render, an explicit `width`, or a test frame therefore resolves
 			 * a deterministic height from the width alone. The browser then refines it
 			 * to the legend-adjusted remainder. This is the whole-chart ratio a legend
-			 * shares — the width-driven twin of `fill`'s container-height measurement.
+			 * shares: the width-driven twin of `fill`'s container-height measurement.
 			 */
 			mode: 'aspect-fill'
 			ratio: number
@@ -103,7 +103,7 @@ export type ResolvedFrameSizing = {
  * an `aspect-ratio` of 1 shifted by a constant pixel `offset`. Its box
  * therefore holds as steady as `aspect`, rather than collapsing to a pixel
  * `0`. `fill` takes the
- * container's measured height and `fixed` is its own pixel value — neither
+ * container's measured height and `fixed` is its own pixel value: neither
  * reserves anything.
  *
  * @internal
@@ -122,15 +122,15 @@ export function resolveFrameSizing(
 		// measures the remainder the legend leaves. Before that measurement lands
 		// (a server render, an explicit width, a test frame) fall back to the full
 		// `width / ratio`, so the frame draws from the width alone rather than
-		// collapsing — the browser refines to the measured remainder once it does.
+		// collapsing. The browser refines to the measured remainder once it does.
 		const remainder = containerHeight > 0 ? containerHeight : Math.round(width / sizing.ratio)
 
 		return { height: width > 0 ? remainder : 0, reserve: null }
 	}
 
 	if (sizing.mode === 'content') {
-		// The CSS reserve always sizes off the flat hMargin — an approximation of
-		// the true radius, refined below once a real width lands — since a
+		// The CSS reserve always sizes off the flat hMargin (an approximation of
+		// the true radius, refined below once a real width lands), since a
 		// per-slice margin isn't expressible as the single `width + offset` a CSS
 		// padding box can hold before that measurement.
 		const reserve: FrameReserve = {
@@ -143,9 +143,9 @@ export function resolveFrameSizing(
 
 		// height = 2·radius + 2·vMargin and radius = max(0, width/2 − hMargin) by
 		// default, so the box is aspect-ratio 1 shifted by `offset` and floored at
-		// `min` — max(min, width + offset) — reserved from the width the same way
-		// an aspect ratio is, so it holds before the width is measured and never
-		// collapses. `radius` refines that once the real width is known.
+		// `min`, as max(min, width + offset). It is reserved from the width the
+		// same way an aspect ratio is, so it holds before the width is measured and
+		// never collapses. `radius` refines that once the real width is known.
 		const radius = Math.max(0, sizing.radius ? sizing.radius(width) : width / 2 - sizing.hMargin)
 
 		return { height: Math.round(2 * radius + 2 * sizing.vMargin), reserve }
@@ -239,7 +239,7 @@ export function usePlotFrame(
 	// must follow the node React attaches, and a layout re-arrangement can
 	// recreate the plot element positionally without ever unmounting this hook.
 	// An object ref read by policy-keyed effects would keep the observer on the
-	// detached node through such a swap — the frame frozen at its last committed
+	// detached node through such a swap: the frame frozen at its last committed
 	// size while its CSS box resizes on.
 	const [node, setNode] = useState<HTMLDivElement | null>(null)
 
@@ -247,17 +247,17 @@ export function usePlotFrame(
 
 	// The policy decides what the frame consumes: the width feeds every
 	// sizing but `fixed` unless the consumer fixes it directly, and a height
-	// feeds only the height-measured cases — `fill` and `aspect-fill`. A side
+	// feeds only the height-measured cases (`fill` and `aspect-fill`). A side
 	// legend takes a share of a fixed width, so that plot measures its own.
 	const measureWidth = width === undefined || sharedWidth
 
-	// `fill` reads the container's height; `aspect-fill` reads the plot's own — the
+	// `fill` reads the container's height; `aspect-fill` reads the plot's own: the
 	// remainder its figure's aspect-ratio leaves once the legend takes its size.
 	const measureHeight = sizing.mode === 'fill' || sizing.mode === 'aspect-fill'
 
 	// Only a free-form fill frame needs the container box measured too: its tier
 	// resolves the spark floor against a height, and the plot's own remainder shifts
-	// with the chrome the tier drops — so read the chrome-independent container
+	// with the chrome the tier drops, so read the chrome-independent container
 	// instead. `aspect-fill` resolves that height from the width / ratio, so it never
 	// reads this.
 	const measureContainer = sizing.mode === 'fill'
@@ -267,12 +267,12 @@ export function usePlotFrame(
 	const readSize = useCallback(
 		(el: HTMLDivElement): FrameSize | null => {
 			// A node the commit just detached (a layout branch re-arranged around
-			// the plot) measures 0 × 0 — garbage that would flip every size-driven
+			// the plot) measures 0 × 0: garbage that would flip every size-driven
 			// policy downstream (spark shedding, legend placement) and can feed a
 			// remount loop. Skip it; the replacement node measures on attach.
 			if (!el.isConnected) return null
 
-			// The fill frame's own box — the nearest ancestor the frame marks. Its
+			// The fill frame's own box: the nearest ancestor the frame marks. Its
 			// height is the tile's, held steady as the tier mounts or drops the chrome
 			// inside it, so a tier read off it can't oscillate the way the plot's
 			// chrome-shrunk remainder does.
@@ -316,17 +316,17 @@ export function usePlotFrame(
 
 	// Settle the size before the browser paints, and re-settle on every size
 	// change: the mount measure can resolve a tier that mounts or drops the
-	// header and legend, reflowing the plot the drawing height is read from — so
-	// a single measure would paint the first size, then jump when the reflow
+	// header and legend, reflowing the plot the drawing height is read from, so a
+	// single measure would paint the first size, then jump when the reflow
 	// re-measures. Re-running on `size` drives that measure → reflow → re-measure
 	// chain to a fixed point before the first paint, so the frame never flashes a
 	// size it is about to abandon. The chrome-affecting decisions resolve from
-	// chrome-independent inputs — an aspect-fill tier from the figure's own
-	// `width / ratio`, a fill frame's spark and legend-row grants from the width
-	// alone (see `chartPolicy` callers) — so the chain converges rather than
-	// oscillating, and the equality-guarded `setSize` stops it once it lands.
-	// A layout effect, not passive, so the settle precedes paint the way the
-	// legend's own fit measure does — and `node` lands here as state pre-paint
+	// chrome-independent inputs: an aspect-fill tier from the figure's own
+	// `width / ratio`, and a fill frame's spark and legend-row grants from the
+	// width alone (see `chartPolicy` callers). So the chain converges rather than
+	// oscillating, and the equality-guarded `setSize` stops it once it lands. A
+	// layout effect, not passive, so the settle precedes paint the way the
+	// legend's own fit measure does, and `node` lands here as state pre-paint
 	// too, so a mount or swap measures before the browser shows it. Each run
 	// reads the DOM afresh and compares the reading with the committed `size`, so
 	// the chain stops at the first reading that matches it.
@@ -338,7 +338,7 @@ export function usePlotFrame(
 		if (next !== null && !isSameSize(next, size)) setSize(next)
 	}, [node, readSize, measures, size])
 
-	// Observe only while a measured axis feeds the sizing — a fully fixed
+	// Observe only while a measured axis feeds the sizing: a fully fixed
 	// frame constructs no observer, so a resize never re-renders it. Keyed on
 	// `node`, so a swapped plot element re-targets the observer: the detached
 	// node is let go and the live one watched. The effect no-ops instead of
@@ -348,9 +348,9 @@ export function usePlotFrame(
 		if (!node || !measures) return
 
 		const observer = new ResizeObserver(() => {
-			// Transition priority: a burst of notifications coalesces — React
+			// Transition priority: a burst of notifications coalesces (React
 			// abandons a render for a size a newer notification has already
-			// outdated — and the geometry rebuild never blocks urgent work.
+			// outdated) and the geometry rebuild never blocks urgent work.
 			startTransition(() => {
 				const next = readSize(node)
 

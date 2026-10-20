@@ -36,7 +36,7 @@ export type ChoroplethChartSeries<T> = {
 	/** The numeric field the scale shades by; AG Charts' `colorKey`. */
 	colorKey: DataKey<T>
 	/**
-	 * The color scale as ordered CSS color stops, low → high — the data-driven
+	 * The color scale as ordered CSS color stops, low → high: the data-driven
 	 * range (AG Charts' `colorRange`). The bins sample it; the range legend
 	 * paints it as a continuous bar.
 	 */
@@ -67,7 +67,7 @@ export type ChoroplethChartSeries<T> = {
 
 /**
  * Props for {@link ChoroplethChart}. Requires an accessible name (`aria-label`
- * or `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
+ * or `aria-labelledby`): the plot is `role="img"`, so assistive tech needs a
  * name for it. Region values also ship in a visually-hidden table, so the map
  * carries full value parity without the pointer.
  */
@@ -87,7 +87,7 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	formatValue?: (value: number) => string
 	/**
 	 * The geometry to draw: a TopoJSON topology or a GeoJSON feature collection.
-	 * The package ships no atlas data — pass `us-atlas`, `world-atlas`, or any
+	 * The package ships no atlas data: pass `us-atlas`, `world-atlas`, or any
 	 * equivalent source. `null` or omitted reserves the frame and paints nothing
 	 * until the geography arrives.
 	 */
@@ -96,7 +96,7 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	geographyObject?: string
 	/**
 	 * How the globe projects onto the frame. Pass `'albers-usa'` for US state
-	 * maps — it places Alaska and Hawaii as insets.
+	 * maps: it places Alaska and Hawaii as insets.
 	 * @defaultValue 'mercator'
 	 */
 	projection?: MapProjection
@@ -130,7 +130,7 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	aspectRatio?: MapAspectRatio
 	/**
 	 * Shows the legend. `'range'` swaps the binned switchboard for a continuous
-	 * color-scale bar — the heatmap legend — and the object form `{ placement }`
+	 * color-scale bar (the heatmap legend) and the object form `{ placement }`
 	 * places that bar explicitly. A placement moves the legend above (`'top'`),
 	 * below (`'bottom'`), or beside the plot (`'left'` / `'right'`). The range bar
 	 * follows its placement's orientation: vertical beside the plot, horizontal
@@ -245,7 +245,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// rest that spreads onto the map. `className` is peeled to join the touch
 	// classes, then handed to MapPlat below. `data` is peeled
 	// because it belongs to the region-data branch below, which decides whether
-	// the map carries rows at all — left in the rest it would survive the branch's
+	// the map carries rows at all: left in the rest it would survive the branch's
 	// spread and hand a data-less map its rows back.
 	// `legend` comes out with the region-data fields rather than riding `...map`:
 	// it is part of the region-data union now, because its range form paints the
@@ -254,7 +254,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	const { series, formatValue, contextMenu, title, className, data, legend, ...map } = props
 
 	// The right-clicked region, reported outward by the map (its hover state is provider-isolated, so the
-	// menu cannot read it). Set once per right-click — never per hover — so the map's render isolation
+	// menu cannot read it). Set once per right-click (never per hover), so the map's render isolation
 	// holds; the wrapping div's capture-phase reset clears it first, so an off-region right-click offers
 	// the whole-widget items alone.
 	const [menuRegion, setMenuRegion] = useState<number | null>(null)

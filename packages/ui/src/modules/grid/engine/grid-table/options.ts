@@ -228,7 +228,7 @@ export function resizeOptions<T>(args: {
  * single-word header stays whole (it never truncates), and a multi-word one
  * keeps its affordance icons. The engine's resize handler writes the dragged
  * width clamped only at zero (the `minSize` floor is applied later, at read
- * time). Every write — drag, keyboard, autosizer — funnels through here. This
+ * time). Every write (drag, keyboard, autosizer) funnels through here. This
  * is therefore the one place a sub-floor width is caught before it reaches the
  * controlled state.
  *

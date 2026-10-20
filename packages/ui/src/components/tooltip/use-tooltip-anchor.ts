@@ -24,8 +24,9 @@ export type TooltipAnchorOptions = {
 	placement?: Placement
 	/**
 	 * Gap (px) the panel keeps from the anchor.
-	 * @defaultValue 8 — `useTooltipState`'s own offset, so an anchored label sits
-	 *   off its subject by the same gap as every other tooltip in the package.
+	 * @defaultValue 8 (the own offset of `useTooltipState`), so an anchored label
+	 *   sits off its subject by the same gap as every other tooltip in the
+	 *   package.
 	 */
 	offset?: number
 }
@@ -51,7 +52,7 @@ export type TooltipAnchorOptions = {
  *   `autoUpdate` for free.
  *
  * So: {@link useFloatingPanel}, documented for exactly this, composing your own
- * interaction hooks against the returned context — with none composed. `open` is
+ * interaction hooks against the returned context (with none composed). `open` is
  * the caller's fact. The `useInteractions([])` supplies the two props getters the
  * context type requires. With no hooks in the list they add nothing, which is
  * the point, since nothing can reach the anchored element.
@@ -83,7 +84,7 @@ export function useTooltipAnchor({
 		() => ({
 			open: open && reference !== null,
 			// Always transparent: an anchored label is a name, not somewhere to travel to, so
-			// it takes no pointer events over its subject — which on a dense surface is
+			// it takes no pointer events over its subject, which on a dense surface is
 			// somebody else's, and has to stay pressable through the name.
 			interactive: false,
 			enabled: true,

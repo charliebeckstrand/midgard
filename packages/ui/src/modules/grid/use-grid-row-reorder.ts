@@ -6,7 +6,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { rowName } from './engine/grid-row/cell'
 import type { GridRowReorder } from './grid-data-types'
 
-/** A row paired with its stable key — the shape the vertical row sortable orders. @internal */
+/** A row paired with its stable key: the shape the vertical row sortable orders. @internal */
 export type GridRowItem<T> = { row: T; key: string | number }
 
 /** The drag id of a row item. @internal */
@@ -44,7 +44,7 @@ type GridRowReorderOptions<T> = {
  * context's a11y nodes must not join. A drop commits the reordered rows through
  * the binding's `onReorder` and narrates the move.
  *
- * @returns `active` (whether reordering is live — the render gate) and the
+ * @returns `active` (whether reordering is live: the render gate) and the
  * `sortable` options of `@dnd-kit`'s vertical sortable.
  * @internal
  */
@@ -100,7 +100,7 @@ export function useGridRowReorder<T>({
 	}
 
 	return {
-		/** Whether row reordering is live — the grid's render gate. */
+		/** Whether row reordering is live: the grid's render gate. */
 		active: canReorder,
 		/** The options of the vertical sortable, for the drag and drop module. */
 		sortable,

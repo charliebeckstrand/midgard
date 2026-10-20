@@ -89,7 +89,7 @@ type GridDetailRowProps<T> = {
 	/** The panel's DOM id, which the expander's `aria-controls` names. */
 	panelId: string | undefined
 	row: T
-	/** Columns the panel spans — the full visible column count. */
+	/** Columns the panel spans: the full visible column count. */
 	colSpan: number
 	/** Whether the panel is open, driving its height reveal and AT visibility. */
 	expanded: boolean
@@ -131,8 +131,8 @@ function GridDetailRowImpl<T>({
 	enter = false,
 	...windowRow
 }: GridDetailRowProps<T>) {
-	// A detail panel holds whatever the caller put in it — a nested grid, a chart
-	// — so a closed one is the most expensive row the flat body keeps live.
+	// A detail panel holds whatever the caller put in it (a nested grid, a chart),
+	// so a closed one is the most expensive row the flat body keeps live.
 	const reveal = useGridRevealHold(expanded, enter)
 
 	const navKey = detailItemKey(rowKey)

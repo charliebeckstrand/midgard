@@ -5,7 +5,7 @@
  * and dependency-light so the mapping math is unit-testable in isolation and
  * both modules read one scale rather than forking it.
  *
- * `colorRange` is an ordered list of CSS color stops, low → high — the
+ * `colorRange` is an ordered list of CSS color stops, low → high: the
  * data-driven scale the consumer owns (mirrors AG Charts / ECharts / Vega). An
  * exact stop passes through verbatim, so any CSS color works when a sample
  * lands on one (bins = stops). Interpolation between stops goes through
@@ -65,12 +65,12 @@ export type ColorBin = {
 	color: string
 	/** The bin's lower value edge (inclusive). */
 	lo: number
-	/** The bin's upper value edge — the domain max on the last bin. */
+	/** The bin's upper value edge: the domain max on the last bin. */
 	hi: number
 }
 
 /**
- * The numeric extent of `values` — the explicit override when given, else the
+ * The numeric extent of `values`: the explicit override when given, else the
  * `[min, max]` of the finite entries. `null` when nothing pins or spans a
  * domain, so the caller renders no scale.
  */
@@ -168,7 +168,7 @@ function quantileAt(sorted: number[], p: number): number {
 
 /**
  * The `count - 1` interior cut points splitting `values` into `count`
- * equal-count (quantile) buckets — the value at each `i / count` quantile of the
+ * equal-count (quantile) buckets: the value at each `i / count` quantile of the
  * sorted finite values. Empty when there is nothing to split (no finite values,
  * a flat domain, or `count < 2`), so the caller paints a single bin. Ties leave
  * repeated edges, the standard quantile-scale behavior. A heavily duplicated
@@ -199,7 +199,7 @@ function sortedThresholds(sorted: number[], count: number): number[] {
  * The bin index `value` falls in for the quantile `thresholds` (from {@link
  * quantileThresholds}): the number of thresholds it meets or exceeds. A value
  * sitting on an edge therefore reads into the upper bucket (a right-bisect).
- * `null` for a non-finite value — the no-data case — and bin `0` for every
+ * `null` for a non-finite value (the no-data case) and bin `0` for every
  * finite value when there are no thresholds (a single bucket).
  */
 export function quantileBinIndex(value: number, thresholds: readonly number[]): number | null {
@@ -240,8 +240,8 @@ export function resolveQuantileBins(
 	const thresholds = sortedThresholds(sorted, Math.max(1, bins ?? colorRange.length))
 
 	// The painted buckets are the edges the data actually produced: `min`, each
-	// threshold, `max` — a flat domain (no thresholds) is one bin, otherwise the
-	// requested count — so a color never maps onto a bucket the data can't fill.
+	// threshold, `max`. A flat domain (no thresholds) is one bin, otherwise the
+	// requested count, so a color never maps onto a bucket the data can't fill.
 	const edges = [min, ...thresholds, max]
 
 	return {

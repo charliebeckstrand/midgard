@@ -2,8 +2,8 @@
  * The {@link HeatmapChart}'s schema: the one series it reads, and the pure
  * pivot from flat rows to the row-major matrix the geometry projects. The
  * series carries two categorical keys and a value key with a data-driven color
- * scale. It mirrors {@link ChoroplethChartSeries} — the module's other
- * sequential-color chart — and AG Charts' heatmap series (`xKey` / `yKey` /
+ * scale. It mirrors {@link ChoroplethChartSeries} (the module's other
+ * sequential-color chart) and AG Charts' heatmap series (`xKey` / `yKey` /
  * `colorKey` / `colorRange` / `colorDomain` / `colorName`). The two
  * color-scaled charts therefore read the same.
  *
@@ -30,14 +30,14 @@ import type { ChartBaseProps, DataKey } from '../engine/types'
  * not pull on the color domain.
  */
 export type HeatmapChartSeries<T> = {
-	/** The field holding each row's column category — the x (band) axis. AG Charts' `xKey`. */
+	/** The field holding each row's column category: the x (band) axis. AG Charts' `xKey`. */
 	xKey: DataKey<T>
-	/** The field holding each row's row category — the y (band) axis. AG Charts' `yKey`. */
+	/** The field holding each row's row category: the y (band) axis. AG Charts' `yKey`. */
 	yKey: DataKey<T>
 	/** The numeric field the scale shades by. AG Charts' `colorKey`. */
 	colorKey: DataKey<T>
 	/**
-	 * The color scale as ordered CSS color stops, low → high — the data-driven
+	 * The color scale as ordered CSS color stops, low → high: the data-driven
 	 * range (AG Charts' `colorRange`). The bins sample it. The range legend paints
 	 * it as a continuous bar, as the choropleth's range legend does.
 	 */
@@ -72,7 +72,7 @@ export type HeatmapChartSeries<T> = {
 
 /**
  * Props for {@link HeatmapChart}. Requires an accessible name (`aria-label` or
- * `aria-labelledby`) — the plot is `role="img"`. Cell values also ship in the
+ * `aria-labelledby`): the plot is `role="img"`. Cell values also ship in the
  * visually-hidden data table (categories × rows). The grid therefore carries
  * full value parity without the pointer, the way every chart in the module does.
  *
@@ -144,9 +144,9 @@ export type HeatmapChartProps<T = never> = AccessibleName &
  * @internal
  */
 export type HeatmapMatrix = {
-	/** Distinct column categories, in first-seen order — the x-axis band labels. */
+	/** Distinct column categories, in first-seen order: the x-axis band labels. */
 	columns: string[]
-	/** Distinct row categories, in first-seen order — the y-axis band labels. */
+	/** Distinct row categories, in first-seen order: the y-axis band labels. */
 	rows: string[]
 	/** Row-major values: `values[row][col]`, `null` for an absent or non-finite cell. */
 	values: (number | null)[][]

@@ -75,7 +75,7 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		 * Opts into the glass surface treatment. Omit it to follow the ambient
 		 * `<GlassProvider>`. Set `false` to keep the flat surface inside one.
 		 *
-		 * @remarks Items inside — a command palette's results — take the deeper glass
+		 * @remarks Items inside (a command palette's results) take the deeper glass
 		 * wash on hover and focus.
 		 *
 		 * @defaultValue `false`, or the flag of the enclosing `<GlassProvider>`.

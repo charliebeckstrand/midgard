@@ -1,11 +1,11 @@
 /**
  * Markdown kata: per-element prose surface for `<Markdown>`. The renderer walks
  * marked's tokens to a React tree, and pulls each element's classes from the
- * matching slot. Styling therefore rides on the target element, not the wrapper. No
- * variants axis — one slot per prose element: `base` (the block wrapper), the
- * `heading` level map, block text, lists, table parts, and `img`. Code spans and fenced
- * blocks render through the `Code` / `CodeBlock` components instead of a slot
- * here — see `markdown-renderer.tsx`.
+ * matching slot. Styling therefore rides on the target element, not the
+ * wrapper. No variants axis. There is one slot per prose element: `base` (the
+ * block wrapper), the `heading` level map, block text, lists, table parts, and
+ * `img`. Code spans and fenced blocks render through the `Code` / `CodeBlock`
+ * components instead of a slot here (see `markdown-renderer.tsx`).
  *
  * Deliberately text-color-agnostic: no slot sets a `text-*` color. The whole
  * tree therefore inherits the foreground of whatever container it renders in
@@ -27,7 +27,7 @@ const headingBase = [weight.semibold, '[&_code]:text-[0.875em]']
 
 export const k = {
 	// First/last-child margin collapse so the prose sits flush in its container
-	// (API-reference rows, Example previews). No color — inherits the container.
+	// (API-reference rows, Example previews). No color: inherits the container.
 	base: ['[&>:first-child]:mt-0', '[&>:last-child]:mb-0'],
 
 	heading: {

@@ -21,7 +21,7 @@ type MapDotHitSpec = {
 	slot: string
 	/** The dot's projected frame position; the target centers on it. */
 	at: MapPoint2D
-	/** The mark's own hit props — `useMapOverlay`'s `hit()` return. */
+	/** The mark's own hit props: `useMapOverlay`'s `hit()` return. */
 	hit: MapOverlayHit
 	/** Frame units per device pixel under the plat's zoom; both reaches divide by it. */
 	scale: number
@@ -68,10 +68,10 @@ type MapDotProps = {
 	shape?: MapPointShape | undefined
 	/** Frame units per device pixel under the plat's zoom; the drawn width converts through it. */
 	scale: number
-	/** The slot's stroke paint class — the cap is stroke-painted, so `stroke-*` carries the color. */
+	/** The slot's stroke paint class: the cap is stroke-painted, so `stroke-*` carries the color. */
 	className: string
 	/**
-	 * Whether the dot pops in. Omitted, it paints at once — a dot that stands for a
+	 * Whether the dot pops in. Omitted, it paints at once: a dot that stands for a
 	 * state rather than a datum (a selection halo) has nothing to reveal. The dot
 	 * reads it when it mounts, so a reveal that ends keeps the element of each
 	 * dot that popped.
@@ -83,7 +83,7 @@ type MapDotProps = {
 }
 
 /**
- * A solid dot mark — a point, a marker pin — drawn as a stroke. A circle is a
+ * A solid dot mark (a point, a marker pin), drawn as a stroke. A circle is a
  * zero-length segment, so the disc's radius is half the round cap's width. A
  * square is a closed square whose round joins are its rounded corners
  * (`squareDotStroke`). Both take the same box, and the size, the pop, and the
@@ -195,7 +195,7 @@ type MapDotCountProps = {
 	at: MapPoint2D
 	/** How many stops the dot stands for. */
 	count: number
-	/** The label ink — the slot's `label`, the one place text sits on a mark's own color. */
+	/** The label ink: the slot's `label`, the one place text sits on a mark's own color. */
 	className: string
 	/** Frame units per device pixel; the count counter-scales by it to hold its size. */
 	scale: number
@@ -209,7 +209,7 @@ type MapDotCountProps = {
  * of its own under a zoom. Text sizes in user units. A transform that scales the
  * frame would therefore grow the number while the dot beneath it held its size.
  * The count would climb out of the mark it belongs to. Scaling the frame back by
- * the same factor pins the two together — the dot's own multiply, in the one
+ * the same factor pins the two together: the dot's own multiply, in the one
  * form a glyph takes it.
  *
  * The rest case keeps the plain `x` / `y` pair rather than an identity
@@ -227,7 +227,7 @@ function countPlacement(at: MapPoint2D, scale: number) {
 
 /**
  * The count inside a summary dot, held at the dot's own size through every
- * scale the frame takes — see {@link countPlacement}.
+ * scale the frame takes (see {@link countPlacement}).
  *
  * @remarks It is never a pointer target. The mark's own hit circle draws over it
  * and carries the readout. A label that answered the pointer would report no
@@ -274,7 +274,7 @@ export function MapDotCount({
 
 /**
  * Every attribute of the invisible circle that answers the pointer over a
- * dot-shaped mark — a point, a marker pin, one dot of a set. One rule for all of
+ * dot-shaped mark: a point, a marker pin, one dot of a set. One rule for all of
  * them. The `r` attribute carries WCAG 2.5.5's 44px, and a mouse gives back the
  * reach that something else needs, through `k.hit.fine`. A drawn zone under the
  * dot needs it. That is what lets a `MapGeofence` drawn tight around a
@@ -299,8 +299,8 @@ export function MapDotCount({
  * pointed-mark crossing, each legend emphasis, and each refit. The rule stays
  * in one place either way; only the fiber goes.
  *
- * Both reaches are pixel measures, and the shape draws in frame units. `scale` —
- * what one device pixel spans under the plat's zoom — therefore divides both
+ * Both reaches are pixel measures, and the shape draws in frame units. `scale`
+ * (what one device pixel spans under the plat's zoom) therefore divides both
  * here. The coarse one rides the `r` attribute. The fine one rides a custom
  * property the class reads (`k.hit.radius`), because only CSS can answer the
  * modality. A CSS length on an SVG shape is a user unit like any other.
@@ -331,7 +331,7 @@ export function dotHitProps({
 	clip,
 }: MapDotHitSpec) {
 	// A target at the coarse reach is a dot with nothing to give back, and the two
-	// pointers want the same circle — so the narrowing rides one comparison rather
+	// pointers want the same circle, so the narrowing rides one comparison rather
 	// than a flag the callers each have to derive.
 	const fine = target < POINT_HIT_RADIUS
 
@@ -355,7 +355,7 @@ export function dotHitProps({
 type MapDotClipProps = {
 	/** The id the hit shape's `clip-path` references. */
 	id: string
-	/** The dot's own ground, from `ownGround` — a convex ring in frame units. */
+	/** The dot's own ground, from `ownGround`: a convex ring in frame units. */
 	ground: MapGround
 }
 

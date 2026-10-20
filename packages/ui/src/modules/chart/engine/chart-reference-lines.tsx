@@ -75,7 +75,7 @@ export type ChartReferenceLinesProps = {
 	animate?: boolean
 	/**
 	 * The placed standing labels from {@link placeReferenceLabels}, aligned with
-	 * `reference` — the `labels.references` mode. Each rule draws its label in
+	 * `reference`: the `labels.references` mode. Each rule draws its label in
 	 * place of the hover tooltip. The label shows the rule's own label when it
 	 * has one, else the rule's value. The rules then shed their pointer target
 	 * and float no surface. The caller also drops their keyboard stop
@@ -138,7 +138,7 @@ export function referenceStops(
 /** Props for {@link ReferenceRule}. @internal */
 type ReferenceRuleProps = {
 	line: ChartReferenceLine
-	/** The rule's position in the `reference` array — its identity to the keyboard emphasis. */
+	/** The rule's position in the `reference` array: its identity to the keyboard emphasis. */
 	index: number
 	/** The rule's paint, resolved once for the stroke, the label, and the tooltip swatch. */
 	paint: ChartPaint
@@ -164,7 +164,7 @@ type RulePoints = { x1: number; y1: number; x2: number; y2: number }
 /**
  * The dashed value-axis rule itself, shared by the three renderings: a named
  * slot's stroke class, or a raw hex / `oklch()` color inline. Never takes the
- * pointer — the hover rendering lays its own transparent hit line over this.
+ * pointer: the hover rendering lays its own transparent hit line over this.
  * @internal
  */
 function ReferenceRuleStroke({
@@ -376,8 +376,8 @@ function HoverReferenceRule({
 }
 
 /**
- * The spark rendering: the dashed rule alone, pointer-inert — no hit target,
- * no tooltip, no standing label, no emphasis. A sparkline is read-only bare
+ * The spark rendering: the dashed rule alone, pointer-inert (no hit target,
+ * no tooltip, no standing label, no emphasis). A sparkline is read-only bare
  * marks, so a rule keeps only its ink. It still rides the mount rise, since
  * spark strips interactivity, not the drawing.
  *
@@ -420,8 +420,8 @@ function ReferenceRule(props: ReferenceRuleProps) {
  * {@link ChartGridLines} does, but over the marks instead of under them. A
  * target or threshold therefore reads against the data, rather than hiding
  * behind it. Each rule
- * floats its value and label from a {@link Tooltip} on hover, or — under
- * `labels` — carries them in a standing label beside it.
+ * floats its value and label from a {@link Tooltip} on hover, or (under
+ * `labels`) carries them in a standing label beside it.
  *
  * @remarks Self-gating. A chart mounts it unconditionally, and it draws nothing
  * until both a scale and reference lines exist. The gate therefore lives here
@@ -430,7 +430,7 @@ function ReferenceRule(props: ReferenceRuleProps) {
  * value axis from the baseline to its value ({@link referenceRise}). A
  * {@link ReducedMotion} around it settles it at rest for a reduced-motion
  * preference. Under `labels` each rule carries a standing value label beside it
- * and drops the hover tooltip — the `labels.references` mode. The chart
+ * and drops the hover tooltip: the `labels.references` mode. The chart
  * places the labels ({@link placeReferenceLabels}), so no two overlap, and a rule
  * whose label finds no free spot keeps the hover tooltip. At the spark
  * tier each rule sheds its hit target, tooltip, and label to the bare dashed

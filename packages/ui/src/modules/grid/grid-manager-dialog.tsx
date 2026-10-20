@@ -18,7 +18,7 @@ type GridManagerDialogProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	label: ReactNode
-	/** The manager the dialog hosts — the column editor or the row-group editor. */
+	/** The manager the dialog hosts: the column editor or the row-group editor. */
 	children: ReactNode
 	/**
 	 * Whether focus opens on Close. A dialog that opens from a menu item names

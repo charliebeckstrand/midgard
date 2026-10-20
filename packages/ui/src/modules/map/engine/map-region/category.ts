@@ -97,7 +97,7 @@ export function categoryLegendId(value: string): string {
 }
 
 /**
- * The emphasis id a numeric bin answers to — what a range legend's `onProbe` bin
+ * The emphasis id a numeric bin answers to: what a range legend's `onProbe` bin
  * index means to {@link MapPlatProps.emphasis}.
  *
  * Public because a legend rendered OUTSIDE the plats it drives (one bar
@@ -110,8 +110,8 @@ export function binEmphasisId(bin: number): string {
 }
 
 /**
- * The legend id a region's toggle and emphasis key on — its category's stable
- * {@link categoryLegendId} — or `null` for a no-data region outside every
+ * The legend id a region's toggle and emphasis key on (its category's stable
+ * {@link categoryLegendId}), or `null` for a no-data region outside every
  * group. One resolution shared by the region fill and the plat's pointed-mark
  * gate, so the two can't disagree on which regions belong to a group.
  *
@@ -181,7 +181,7 @@ function deriveCategories<T>(data: T[], categoryKey: DataKey<T>): MapCategory[] 
 /**
  * Matches each region to its category: the row whose `regionKey` equals the
  * region's id names the category, by index into the resolved metas. `null`
- * where no row or no listed category matches — the region draws in the
+ * where no row or no listed category matches: the region draws in the
  * neutral no-data fill.
  *
  * @internal
@@ -196,7 +196,7 @@ export function regionCategoryIndexes<T>(
 	const byRegion = new Map(data.map((datum) => [String(datum[regionKey]), datum]))
 
 	// A value → index lookup built once, so matching a region is a Map hit
-	// rather than a scan of the categories — linear in the regions, not
+	// rather than a scan of the categories: linear in the regions, not
 	// O(regions × categories), on the mount critical path.
 	const indexByValue = new Map(categories.map((meta, index) => [meta.value, index]))
 

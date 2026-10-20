@@ -1,6 +1,6 @@
 /**
- * The region layer's paint table — what color, class, and wash timing each
- * category resolves to — and the input shape every layer draws it through. A
+ * The region layer's paint table (what color, class, and wash timing each
+ * category resolves to) and the input shape every layer draws it through. A
  * county atlas shares a handful of paints across thousands of regions, so this
  * runs per category and the layers read it per region. Both the base tree and
  * the lit copies above it read this one resolution. The two can therefore never
@@ -22,7 +22,7 @@ const WASH = 'transition-colors ease-out motion-reduce:transition-none'
 const WASH_DURATION = `${REGION_FADE.duration * 1000}ms`
 
 // The wash's per-region timing, shared where the stagger caps: beyond the cap
-// every region carries the same delay, so one frozen object serves them all —
+// every region carries the same delay, so one frozen object serves them all,
 // and the memoized Region sees a stable style identity instead of a fresh
 // object per render.
 const CAPPED_WASH_STYLE: CSSProperties = {
@@ -39,7 +39,7 @@ const STAGGERED_WASH_STYLES: CSSProperties[] = Array.from(
 )
 
 // The wash past the reveal: the fade alone, with no delay. Every region shares
-// it, so a settled layer holds one style identity across the whole tree — and
+// it, so a settled layer holds one style identity across the whole tree, and
 // the memoized Region compares the same reference it did before the stagger
 // retired.
 const SETTLED_WASH_STYLE: CSSProperties = { transitionDuration: WASH_DURATION }
@@ -106,7 +106,7 @@ export type MapRegionLayer = {
  * therefore can't re-point a hidden or emphasized entry at a different
  * category. The
  * neutral fill covers no-data (`null`), a toggled-off category, and the
- * pre-reveal beat, so the color — not the geometry — animates on.
+ * pre-reveal beat, so the color (not the geometry) animates on.
  *
  * @internal
  */
@@ -131,7 +131,7 @@ function categoryPaint(
 		groupId: active ? id : null,
 		fillColor: applied === null ? undefined : paintColor(applied),
 		// The hover emphasis normally marks a region carrying data. On a clickable
-		// layer every region answers a click — a no-data one included — so it reads
+		// layer every region answers a click (a no-data one included), so it reads
 		// as the target it is.
 		className: cn(
 			...(fillClass ?? []),

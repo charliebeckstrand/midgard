@@ -600,8 +600,8 @@ function createActiveCursor() {
  *
  * The bounds come from the published order, else from `rowsRef`/`colCountRef`,
  * at event time. The hook thus holds no stale counts, and its callbacks stay
- * referentially stable across renders. When `enabled` is false the hook is inert — `navTableProps`
- * is `undefined` and the store never reports an active cell — so a non-navigable
+ * referentially stable across renders. When `enabled` is false the hook is inert (`navTableProps`
+ * is `undefined` and the store never reports an active cell), so a non-navigable
  * grid pays nothing.
  *
  * @returns The cursor handle:
@@ -1108,7 +1108,7 @@ export function useGridNavigation({
 	)
 
 	// Activates the cell then the row under the cursor through the grid's
-	// click bridges — the same cell-first order a pointer click fires in.
+	// click bridges: the same cell-first order a pointer click fires in.
 	const activateRow = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>, coord: Coord) => {
 			const row = rowsRef.current[coord.row]
@@ -1125,8 +1125,8 @@ export function useGridNavigation({
 	)
 
 	// Space toggles the active row's selection in a selectable grid (APG grid) and
-	// never scrolls the grid's own tab stop; Enter — and Space when the grid has no
-	// selection — activates a clickable cell/row instead.
+	// never scrolls the grid's own tab stop; Enter (and Space when the grid has no
+	// selection) activates a clickable cell/row instead.
 	const activateOrSelectRow = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>, coord: Coord) => {
 			if (event.key === ' ') {
@@ -1189,7 +1189,7 @@ export function useGridNavigation({
 		(event: KeyboardEvent<HTMLTableElement>) => {
 			// Only keys landing on the `<table>` tab stop drive the cursor; a keystroke
 			// bubbling up from a focusable descendant (an inline editor, a link) belongs
-			// to that control — hijacking it freezes the caret and jumps the cursor.
+			// to that control: hijacking it freezes the caret and jumps the cursor.
 			// One exception: Escape from a control in one of this grid's detail panels.
 			if (event.target !== event.currentTarget) {
 				escapeFromPanel(event)
@@ -1319,8 +1319,9 @@ export function useGridNavigation({
 		if (next instanceof Node && event.currentTarget.contains(next)) return
 
 		// Keep it seated, too, while focus is in a floating overlay opened from the
-		// grid (e.g. its context menu), so the active cell is restored on close —
-		// mirrors the `onFocus` portal guard that declines to re-seed on return.
+		// grid (e.g. its context menu), so the active cell is restored on close.
+		// This mirrors the `onFocus` portal guard that declines to re-seed on
+		// return.
 		if (next instanceof Element && next.closest(FLOATING_PORTAL)) return
 
 		// Keep it seated, too, while the whole window loses focus (a switch of the

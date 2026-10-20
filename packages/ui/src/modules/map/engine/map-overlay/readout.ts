@@ -50,7 +50,7 @@ export function markReadout(mark: MapReadableMark, stop: number): MapMarkReadout
 /**
  * What an unnamed stop is called: the mark's label and the stop's one-based position.
  *
- * The FORMAT only — deliberately not the index, because the two callers count in different spaces and
+ * The FORMAT only: deliberately not the index, because the two callers count in different spaces and
  * both are right to. This file numbers by position in `stopRows`. `MapPoints` numbers by the caller's
  * own point index, since a click reports that index. A readout counting in another space would name
  * a row the caller cannot find. So the thing that must not diverge is the spelling, and it is the
@@ -68,7 +68,7 @@ export function stopName(markLabel: string, stop: number): string {
 
 /**
  * One table row: a readout, and the key identifying which stop it came from. The
- * detail is resolved rather than optional — a row's value cell always reads
+ * detail is resolved rather than optional: a row's value cell always reads
  * something, where a tooltip can show none.
  *
  * @internal
@@ -94,7 +94,7 @@ export function markRowKey(id: string, stop: number): string {
  * per dot for a plural one. A reader therefore gets the per-dot readout the
  * pointer gets from the tooltip.
  *
- * A mark with no detail anywhere falls back to its kind — `route`, `point` — so
+ * A mark with no detail anywhere falls back to its kind (`route`, `point`), so
  * the value column is never empty. Each row carries its own {@link markRowKey}.
  * The caller then needs no index of its own to key by, and a selection names the
  * row it marks by the same key. The tooltip needs no key, so only this half of

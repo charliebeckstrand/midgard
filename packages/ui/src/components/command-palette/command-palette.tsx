@@ -97,7 +97,7 @@ export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
 		 * will need. An arrow key, a filter change that reseats the highlight on the
 		 * top result, and the close that clears it all report. On a device with no
 		 * hover, a filter change clears the highlight and reports `null`. The id is
-		 * the one the option renders with — `getOptionId` mints it for a windowed list.
+		 * the one the option renders with: `getOptionId` mints it for a windowed list.
 		 */
 		onActiveChange?: (optionId: string | null) => void
 		/**

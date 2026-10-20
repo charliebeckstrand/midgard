@@ -15,9 +15,9 @@ import { defineRecipe } from '../../core/recipe'
 
 /** The `omote.backdrop` tokens the bridge reads. */
 type BackdropTokens = {
-	/** Default modal scrim — the `flat` surface. */
+	/** Default modal scrim: the `flat` surface. */
 	base: ClassValue
-	/** Denser fill for use behind a glass panel — the `glass` surface. */
+	/** Denser fill for use behind a glass panel: the `glass` surface. */
 	glass: ClassValue
 }
 

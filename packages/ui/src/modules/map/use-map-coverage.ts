@@ -37,7 +37,7 @@ export type MapCoverageOptions = {
 	 */
 	coverage: MapZipSelection
 	/**
-	 * The ZIP geometry the territory is cut from — a ZCTA atlas, as a TopoJSON
+	 * The ZIP geometry the territory is cut from: a ZCTA atlas, as a TopoJSON
 	 * topology or a GeoJSON feature collection. The package ships no atlas data.
 	 *
 	 * Pass a topology wherever the outline matters. TopoJSON holds each shared
@@ -58,7 +58,7 @@ export type MapCoverageOptions = {
 	 */
 	zipId?: (shape: MapShape) => string
 	/**
-	 * The region geometry the map is split by — a county atlas. The hook returns
+	 * The region geometry the map is split by: a county atlas. The hook returns
 	 * the subset the territory lands in, ready to hand to `MapPlat` as its
 	 * `geography`.
 	 */
@@ -66,7 +66,7 @@ export type MapCoverageOptions = {
 	/** Which topology object holds the regions; defaults to the topology's first key. */
 	regionsObject?: string
 	/**
-	 * Which group a region belongs to — the state a county sits in. The frame
+	 * Which group a region belongs to: the state a county sits in. The frame
 	 * keeps every region whose group the territory reaches, so a territory in one
 	 * state draws that whole state split into its counties.
 	 * @defaultValue the first two characters of the region's id, which is the
@@ -89,7 +89,7 @@ export type MapCoverage = {
 	area: MapPolygons
 	/** The codes the territory matched, in the atlas's own order. */
 	codes: string[]
-	/** The groups the territory reached — the state ids `geography` was cut to. */
+	/** The groups the territory reached: the state ids `geography` was cut to. */
 	groups: string[]
 	/** The stated terms that read as no rule, for a field to mark. */
 	invalid: string[]
@@ -112,7 +112,7 @@ const GROUP_SEPARATOR = '\u001e'
  * Resolves a ZIP-code territory into the two things a map draws it with: the
  * geography to frame, and the outline to fence.
  *
- * A broker states coverage in codes — whole ones, ZIP3 prefixes, ranges — and a
+ * A broker states coverage in codes (whole ones, ZIP3 prefixes, ranges) and a
  * code names no state on its own. So the hook cuts the covered codes out of a
  * ZCTA atlas, and dissolves them into one territory. It finds which states that
  * territory's codes land in, and hands back that state's counties as the
@@ -123,7 +123,7 @@ const GROUP_SEPARATOR = '\u001e'
  * @returns The geography to draw, the outline to fence, and what was matched.
  *
  * @remarks Keep `zips`, `regions`, `zipId`, and `regionGroup` steady across
- * renders — a fetched atlas, a module-scope function. Each stage memoizes on
+ * renders: a fetched atlas, a module-scope function. Each stage memoizes on
  * them, and the decode behind the region atlas is the same order of work as
  * drawing it.
  *
@@ -165,7 +165,7 @@ export function useMapCoverage({
 
 	// The cut and the dissolve, over the ZIP atlas alone. This is what a keystroke
 	// in a coverage field re-runs, and it touches only the codes the territory
-	// names — not the tens of thousands in the file.
+	// names, not the tens of thousands in the file.
 	const area = useMemo(
 		() => zipArea(zips, zipsObject, zipMatcher(rules), zipId),
 		[zips, zipsObject, rules, zipId],
@@ -173,8 +173,8 @@ export function useMapCoverage({
 
 	// The placement, which decodes the region atlas only once a territory has
 	// something to place. A map mounted beside an empty coverage field would
-	// otherwise decode and rewind a whole county atlas — tens of milliseconds
-	// inside the consumer's render — for a result the frame below discards.
+	// otherwise decode and rewind a whole county atlas (tens of milliseconds
+	// inside the consumer's render) for a result the frame below discards.
 	const placed = useMemo(() => {
 		if (area.features.length === 0) return NO_PLACEMENT
 
@@ -198,7 +198,7 @@ export function useMapCoverage({
 
 	// Held on that key, so a frame keeps its identity across a keystroke that did
 	// not change the states. `MapPlat` keys its decode, its canonical fit, its
-	// region paths, and its chrome on this object — all in weak maps — so a fresh
+	// region paths, and its chrome on this object (all in weak maps), so a fresh
 	// one on every keystroke would re-project the whole county atlas twice per
 	// character and never once hit the caches built to prevent exactly that. The
 	// set is read back off the key, so the memo depends on nothing else.

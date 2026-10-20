@@ -54,22 +54,22 @@ export function project(orientation: ChartOrientation, valuePos: number, bandPos
 	return orientation === 'vertical' ? { x: bandPos, y: valuePos } : { x: valuePos, y: bandPos }
 }
 
-/** The component of `point` along the value axis — y when vertical, x when horizontal. @internal */
+/** The component of `point` along the value axis: y when vertical, x when horizontal. @internal */
 export function valueCoord(orientation: ChartOrientation, point: Vec): number {
 	return orientation === 'vertical' ? point.y : point.x
 }
 
-/** The component of `point` along the band axis — x when vertical, y when horizontal. @internal */
+/** The component of `point` along the band axis: x when vertical, y when horizontal. @internal */
 export function bandCoord(orientation: ChartOrientation, point: Vec): number {
 	return orientation === 'vertical' ? point.x : point.y
 }
 
-/** The plot's `[near, far]` screen extent along the value axis — the range a value scale maps into. @internal */
+/** The plot's `[near, far]` screen extent along the value axis: the range a value scale maps into. @internal */
 export function valueExtent(orientation: ChartOrientation, plot: PlotRect): [number, number] {
 	return orientation === 'vertical' ? [plot.y + plot.height, plot.y] : [plot.x, plot.x + plot.width]
 }
 
-/** The plot's `[start, end]` screen extent along the band axis — the range a band scale spans. @internal */
+/** The plot's `[start, end]` screen extent along the band axis: the range a band scale spans. @internal */
 export function bandExtent(orientation: ChartOrientation, plot: PlotRect): [number, number] {
 	return orientation === 'vertical' ? [plot.x, plot.x + plot.width] : [plot.y, plot.y + plot.height]
 }

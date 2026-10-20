@@ -48,7 +48,7 @@ export type ResizableGroupProps = ComponentProps<'div'> & {
 	 * not start a drag or end this one. Exactly one end follows each start.
 	 *
 	 * The settled sizes have already flowed through `onSizesChange`; this only marks the
-	 * drag's conclusion — the point to persist from, or to release whatever
+	 * drag's conclusion: the point to persist from, or to release whatever
 	 * `onResizeStart` held.
 	 */
 	onResizeEnd?: (handleIndex: number) => void

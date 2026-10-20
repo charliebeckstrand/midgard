@@ -27,7 +27,7 @@ function callbackRows<T>(rows: readonly T[]): T[] {
 	return rows as T[]
 }
 
-/** Whether any column carries an aggregation — the one gate for the aggregate rows. @internal */
+/** Whether any column carries an aggregation: the one gate for the aggregate rows. @internal */
 export function hasAggregation<T>(columns: GridColumn<T>[]): boolean {
 	return columns.some((column) => column.aggFunc !== undefined)
 }
@@ -36,7 +36,7 @@ export function hasAggregation<T>(columns: GridColumn<T>[]): boolean {
  * The column's finite numeric values across `rows`, read through the same
  * {@link parseNumeric} that sort and filter use. Money, comma-grouped, and
  * percent strings that sort as numbers thus aggregate as numbers too. Entries
- * that don't parse — text, blank, and whitespace-only cells — drop out rather
+ * that don't parse (text, blank, and whitespace-only cells) drop out rather
  * than coercing to `0` (as `Number(null)` / `Number('  ')` would). A zero would
  * pull a sum, average, or minimum toward it.
  *
@@ -58,10 +58,10 @@ function numericValues<T>(column: GridColumn<T>, rows: readonly T[]): number[] {
 
 /**
  * Aggregates one column over `rows`. A custom function receives the rows
- * themselves — an aggregate spanning several fields (a weighted ratio) needs
+ * themselves: an aggregate spanning several fields (a weighted ratio) needs
  * row access, not one column's values. A built-in name reduces the column's
  * numeric values, skipping entries that don't parse. An empty numeric set
- * yields `null` — a blank cell, never a fabricated zero — while `count` counts
+ * yields `null` (a blank cell, never a fabricated zero), while `count` counts
  * the rows regardless.
  *
  * @internal

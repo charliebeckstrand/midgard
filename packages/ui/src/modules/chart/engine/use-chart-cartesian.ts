@@ -77,13 +77,13 @@ export type CartesianData<T> = Pick<
 
 /** Per-chart configuration for {@link useChartCartesian}. @internal */
 export type CartesianConfig<T> = {
-	/** Anchor the value domains at zero — bar-bearing charts. */
+	/** Anchor the value domains at zero: bar-bearing charts. */
 	zeroBaseline: boolean
 	/** The legend / tooltip swatch mirroring each series' mark. */
 	swatch: (series: ChartSeries<T>, index: number) => 'rect' | 'line'
 	/**
 	 * Scale the value axis to the per-category sum of the visible series rather
-	 * than their individual values — the stacked-area domain.
+	 * than their individual values: the stacked-area domain.
 	 * @defaultValue false
 	 */
 	stack?: boolean
@@ -95,7 +95,7 @@ export type CartesianConfig<T> = {
 	 */
 	stackPositive?: boolean
 	/**
-	 * Which screen axis the value axis runs along — only {@link BarChart} varies it.
+	 * Which screen axis the value axis runs along: only {@link BarChart} varies it.
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: ChartOrientation
@@ -103,14 +103,14 @@ export type CartesianConfig<T> = {
 	 * Order the legend switches by each series' latest value, largest first. They
 	 * then read top-to-bottom in the marks' own visible order, rather than the
 	 * caller's series order. That is the overlapping lines a {@link LineChart} draws.
-	 * Off — the default — keeps the series order, which the drawn order of
+	 * Off (the default) keeps the series order, which the drawn order of
 	 * grouped bars and stacks must match.
 	 * @defaultValue false
 	 */
 	legendByValue?: boolean
 	/**
-	 * How far, in px, the chart's widest mark paints past its data coordinate —
-	 * see {@link CartesianLayoutInput.markInset}. The layouts reserve it on every
+	 * How far, in px, the chart's widest mark paints past its data coordinate
+	 * (see {@link CartesianLayoutInput.markInset}). The layouts reserve it on every
 	 * plot edge whenever the axis chrome is off (spark, or an explicit
 	 * `axes={false}`). A mark at a data extreme therefore clears the frame, instead
 	 * of clipping at it. Bars end at their coordinate, so {@link BarChart} omits it.
@@ -118,8 +118,8 @@ export type CartesianConfig<T> = {
 	 */
 	markInset?: number
 	/**
-	 * Pixels of clear room to reserve past a data extreme on the value axis — see
-	 * {@link CartesianLayoutInput.valueHeadroom}. The hook calls it with the
+	 * Pixels of clear room to reserve past a data extreme on the value axis (see
+	 * {@link CartesianLayoutInput.valueHeadroom}). The hook calls it with the
 	 * visible series, because the labels draw for the visible series and a legend
 	 * toggle changes them. The line, area, and combo charts set it when they draw
 	 * single-series point value labels. The label then sits clear of its edge,
@@ -188,7 +188,7 @@ export type CartesianChart = {
 	axes: boolean
 	plot: PlotRect
 	band: BandScale
-	/** The primary (`y`) value scale; `null` when nothing yields its domain — render the empty frame. */
+	/** The primary (`y`) value scale; `null` when nothing yields its domain: render the empty frame. */
 	yScale: LinearScale | null
 	/** The secondary (`y2`) value scale; `null` while nothing binds to that axis. */
 	y2Scale: LinearScale | null
@@ -212,17 +212,17 @@ export type CartesianChart = {
 	resolvedLegend: ResolvedLegend
 	/** The texture defs and the fill of each slot, for the visible series. */
 	tex: ChartTexture
-	/** Every series, toggled or not — the legend lists them all. */
+	/** Every series, toggled or not: the legend lists them all. */
 	metas: SeriesMeta[]
 	/**
-	 * A signature of every series' values — {@link seriesDataKey} — the animated
-	 * marks swap their generation on to replay the reveal out-then-in when the
-	 * data changes. It is read off all series, not the visible ones, so a legend
-	 * toggle holds it steady. It is derived from the values, not the geometry, so a
-	 * resize does too. The static path ignores it.
+	 * A signature of every series' values ({@link seriesDataKey}), which the
+	 * animated marks swap their generation on to replay the reveal out-then-in
+	 * when the data changes. It is read off all series, not the visible ones, so
+	 * a legend toggle holds it steady. It is derived from the values, not the
+	 * geometry, so a resize does too. The static path ignores it.
 	 */
 	dataKey: string
-	/** The series still toggled on — scales, marks, and readout draw these. */
+	/** The series still toggled on: scales, marks, and readout draw these. */
 	visible: SeriesMeta[]
 	/**
 	 * The visible series that take marks, each with the scale and the baseline it
@@ -236,7 +236,7 @@ export type CartesianChart = {
 	toggleSeries: (index: number) => void
 	readout: ChartReadoutSource | null
 	/**
-	 * The series indices the hover tooltip lists {@link readout}'s rows in — the
+	 * The series indices the hover tooltip lists {@link readout}'s rows in: the
 	 * marks' own visible top-to-bottom order (a vertical stack reversed, else the
 	 * legend's value order). Empty when there is no readout; the readout stays in
 	 * series order for the hidden data table.
@@ -245,13 +245,13 @@ export type CartesianChart = {
 	legendItems: ChartLegendItem[] | null
 	/** The reference lines' legend chips; the frame shows them only when `legendItems` is not null. */
 	referenceItems: ChartLegendReference[]
-	/** Reference indexes toggled off — their rules are pulled and their chips struck through. */
+	/** Reference indexes toggled off: their rules are pulled and their chips struck through. */
 	referenceHidden: ReadonlySet<number>
 	/** Toggles a reference rule on or off by its index in the `reference` array. */
 	toggleReference: (index: number) => void
-	/** Per category, the band-axis center — a crosshair and tooltip band snap. */
+	/** Per category, the band-axis center: a crosshair and tooltip band snap. */
 	bandPositions: number[]
-	/** Per category, the visible series' value-axis positions — a value crosshair's snap targets. */
+	/** Per category, the visible series' value-axis positions: a value crosshair's snap targets. */
 	snapPoints: number[][]
 	/**
 	 * Per category, the series index behind each {@link CartesianChart.snapPoints}
@@ -262,7 +262,7 @@ export type CartesianChart = {
 	snapSeries: number[][]
 	/**
 	 * Whether the {@link CartesianConfig.valueHeadroom} asked for was affordable
-	 * in the resolved layout — see {@link CartesianLayout.valueLabelRoom}. A
+	 * in the resolved layout (see {@link CartesianLayout.valueLabelRoom}). A
 	 * chart that reserved room for its point value labels draws them only while
 	 * this holds; `true` when no headroom was asked.
 	 */
@@ -282,7 +282,7 @@ export type CartesianChart = {
 	 */
 	gridPositions: number[]
 	/**
-	 * The band-axis positions for the category dividers — one per boundary between
+	 * The band-axis positions for the category dividers: one per boundary between
 	 * adjacent rows, none at the ends. Empty unless the category axis sets a
 	 * `separator`, and gated by the same tier switch as {@link CartesianChart.gridPositions}.
 	 */
@@ -291,9 +291,9 @@ export type CartesianChart = {
 	categorySeparator?: 'solid' | 'dashed'
 	/** The value- and band-axis titles the layout placed; empty without titles. */
 	axisTitles: ChartAxisTitlePlacement[]
-	/** Formats a value with its axis's formatter — the readout, labels, and reference rules share it. */
+	/** Formats a value with its axis's formatter: the readout, labels, and reference rules share it. */
 	formatAxisValue: (value: number, axis: ChartValueAxisId) => string
-	/** Which way the chart faces — the frame parts read it to draw the transpose. */
+	/** Which way the chart faces: the frame parts read it to draw the transpose. */
 	orientation: ChartOrientation
 	/**
 	 * The consumer's `onCategoryClick` resolved to the hit layer's index-based
@@ -363,8 +363,8 @@ function useHorizontalBandLabel(
  *
  * @remarks Series binding to the right axis split the domain. Each side's
  * visible series (and the references bound to it) feed its own scale, each
- * formatted by its own axis's formatter. The secondary scale — with its gutter,
- * ticks, and title — exists only while something binds to it.
+ * formatted by its own axis's formatter. The secondary scale (with its gutter,
+ * ticks, and title) exists only while something binds to it.
  * @internal
  */
 export function useChartCartesian<T>(
@@ -387,7 +387,7 @@ export function useChartCartesian<T>(
 	const orientation = config.orientation ?? 'vertical'
 
 	// Rows align by index on one shared band scale, so the category field is
-	// only ever read for labels — the first series' xKey names it.
+	// only ever read for labels: the first series' xKey names it.
 	const xKey = series[0]?.xKey
 
 	// A time axis reads the same category field as a date: the row instants
@@ -409,8 +409,8 @@ export function useChartCartesian<T>(
 
 	// A live ratio carries on the figure so a definite-height parent clamps the
 	// whole chart (the box-law); a side legend instead keeps the ratio on the plot
-	// box and bands beside it. Only the side / stacked distinction needs the prop —
-	// a legend shows for two or more series unless it is forced — so it takes no
+	// box and bands beside it. Only the side / stacked distinction needs the prop
+	// (a legend shows for two or more series unless it is forced), so it takes no
 	// measurement.
 	const aside = legendAside(legend)
 
@@ -420,7 +420,7 @@ export function useChartCartesian<T>(
 	// format and the band-label density from width, the tick count from height,
 	// density still capping the ticks. Its budgets fold into the layout below.
 	// A stacked aspect-fill figure shares its ratio box with the header and legend,
-	// so measuring the plot's remainder for the tier loops — spark drops that
+	// so measuring the plot's remainder for the tier loops: spark drops that
 	// chrome, the remainder jumps, the tier flips back. chartFramePolicy resolves
 	// it against the figure's own `width / ratio` less the chrome instead.
 	const {
@@ -483,7 +483,7 @@ export function useChartCartesian<T>(
 	)
 
 	// Walks every row to detect a date axis, then again to label it, so it is
-	// memoized rather than re-run on every render — a hover, a legend toggle, or
+	// memoized rather than re-run on every render: a hover, a legend toggle, or
 	// a resize commit does not change any of its inputs.
 	const { categories, rawCategories, readoutCategory } = useMemo(
 		() => resolveCategories(data, xKey, timeAxis, axes.x?.format, locale),
@@ -540,10 +540,11 @@ export function useChartCartesian<T>(
 	})
 
 	// A cached thunk, never a value: building the readout formats every category
-	// × series cell, which at dense sizes outweighs drawing the marks, so the
-	// mount-critical render only decides whether one exists (cheap) and leaves
-	// materializing to the first consumer that needs the cells — the tooltip on
-	// hover, the deferred table a beat after mount ({@link ChartReadoutSource}).
+	// × series cell, which at dense sizes outweighs drawing the marks. So the
+	// mount-critical render only decides whether one exists (cheap), and leaves
+	// materializing to the first consumer that needs the cells: the tooltip on
+	// hover, or the deferred table a beat after mount
+	// ({@link ChartReadoutSource}).
 	//
 	// Memoized on the content the cells read, not on the identity of the metas and
 	// formatters, which are new on each render. A new thunk on a parent render
@@ -604,8 +605,8 @@ export function useChartCartesian<T>(
 		referenceHidden,
 	)
 
-	// Reference chips resolve regardless; the frame mounts the legend — and with
-	// it these — only when `legendItems` is non-null, so they join a shown legend
+	// Reference chips resolve regardless; the frame mounts the legend (and with
+	// it these) only when `legendItems` is non-null, so they join a shown legend
 	// and never force one of their own.
 	// A chip whose rule draws nothing, as outside a pinned domain, recedes nothing.
 	const referenceItems = referenceLegendItems(props.reference, formatAxisValue).map((item) =>

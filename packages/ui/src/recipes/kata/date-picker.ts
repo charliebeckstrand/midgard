@@ -55,7 +55,7 @@ export const k = {
 	root: picker.root,
 	button,
 	value,
-	// Input mode wraps the DateInput — its frame plus the error Message — in the
+	// Input mode wraps the DateInput (its frame plus the error Message) in the
 	// floating reference, so the Field's child-combinator adjacency can't reach
 	// the nested message. Reuse that same adjacency here to space the message
 	// from the input exactly as a <Field> would.
@@ -105,9 +105,9 @@ export const k = {
 		// The trigger chip row wraps the chips (each `shrink-0`, see the view) onto
 		// new lines rather than scrolling or shrinking them; the gap doubles as the
 		// inter-row spacing. The button's `py` is one density step below its `px`
-		// (tuned for a text line, not a taller chip), so the row adds `py-1` — that
-		// constant one-step (4px) gap at every size — to even the inset all around
-		// the chips. No height pin: the trigger grows to fit the rows, like
+		// (tuned for a text line, not a taller chip), so the row adds `py-1` to
+		// even the inset all around the chips. That is a constant one-step (4px)
+		// gap at every size. No height pin: the trigger grows to fit the rows, like
 		// TagInput's tag row.
 		chips: `flex flex-wrap items-center ${dan.gap.scale.xs} min-w-0 py-1`,
 	},

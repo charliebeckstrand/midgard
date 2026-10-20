@@ -1,14 +1,14 @@
 /** Grouping separators and spacing stripped before a numeric parse (US/UK convention: comma groups, dot decimal). @internal */
 const NUMERIC_NOISE = /[\s,_]/g
 
-/** Common currency symbols, stripped anywhere. Only symbols — never letters, so `Item 10` stays text. @internal */
+/** Common currency symbols, stripped anywhere. Only symbols, never letters, so `Item 10` stays text. @internal */
 const CURRENCY = /[$£€¥₹]/g
 
 /** A clean signed decimal, the only shape accepted as a number after noise is stripped. @internal */
 const DECIMAL = /^[+-]?(?:\d+\.?\d*|\.\d+)$/
 
 /**
- * The characters a number can begin with — a digit, sign, decimal point,
+ * The characters a number can begin with: a digit, sign, decimal point,
  * opening paren (an accounting negative), or a currency symbol. A trimmed
  * value that starts with anything else (a letter, most punctuation) cannot
  * parse to a number. It is rejected before the strip-and-test gauntlet runs.
@@ -54,7 +54,7 @@ export function parseNumeric(value: unknown): number | null {
 
 	// Fast reject: a value that can't begin a number sorts as text. This anchored,
 	// O(1) probe skips the three strips and the decimal test for a text column's
-	// whole decode — every non-numeric value — where the natural string fallback
+	// whole decode (every non-numeric value), where the natural string fallback
 	// orders it anyway. Numeric shapes all pass the gate and take the path below.
 	if (!NUMERIC_START.test(trimmed)) return null
 

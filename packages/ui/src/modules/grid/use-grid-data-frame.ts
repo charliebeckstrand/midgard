@@ -65,7 +65,7 @@ function useBodyRowCount<T>(args: {
 }
 
 /**
- * Whether the table can paint — latched on, once.
+ * Whether the table can paint: latched on, once.
  *
  * A reload paints the server's HTML first, and the server cannot have measured anything.
  * Its colgroup therefore carries the declared widths, and the fit that runs at hydration
@@ -265,7 +265,7 @@ export function useGridDataFrame<T>({
 
 	// The grand-total row aggregates the full filtered set (see
 	// `resolveGrandTotal`); it adds a rendered row, so the aria count shifts
-	// with it the way the group band does. Manual grouping stands it down —
+	// with it the way the group band does. Manual grouping stands it down:
 	// the filtered set would sum the group-header rows as data.
 	const grandTotal = resolveGrandTotal({
 		grandTotalRow,
@@ -283,7 +283,7 @@ export function useGridDataFrame<T>({
 
 	// The group band and grand-total row each add a rendered header/footer row, so
 	// the count spans them; and infinite scroll with more rows to load can't state
-	// the whole extent — unless the binding's `totalRows` states it — so the count
+	// the whole extent (unless the binding's `totalRows` states it), so the count
 	// goes ARIA-indeterminate (`-1`) rather than advertising the loaded window as
 	// the full set (see `resolveAriaRowCount`). A grouped or master-detail body
 	// counts its headers, totals, and open detail panels as rows (see
@@ -334,7 +334,7 @@ export function useGridDataFrame<T>({
 		manualGroupingActive,
 	)
 
-	// A clickable grid — any row- or cell-level click handler — reads as
+	// A clickable grid (any row- or cell-level click handler) reads as
 	// actionable through the shared `<Table hover>` wash, layered over any
 	// explicit `hover`; the row keeps its own pointer cursor (see `GridRow`).
 	// Suppressed through a column drag-resize so the row under the pointer
@@ -383,7 +383,7 @@ export function useGridDataFrame<T>({
 		grouping,
 	})
 
-	// The group-by wiring, or `null` while `groupBy.groupButton` is off — the
+	// The group-by wiring, or `null` while `groupBy.groupButton` is off: the
 	// header buttons then render nothing.
 	const groupButton = groupByConfig?.groupButton === true
 

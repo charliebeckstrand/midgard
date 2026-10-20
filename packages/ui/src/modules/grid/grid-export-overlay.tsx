@@ -24,7 +24,7 @@ import { gridMessages } from './engine/grid-messages'
  * wrapper, toolbar included. A click therefore cannot reach the search, the
  * filters, or the sort that decide what lands in the file. The overlay does not make
  * the grid inert and does not trap focus. A key press therefore still reaches
- * a focused control under it. The lockout is bounded — a failed export
+ * a focused control under it. The lockout is bounded: a failed export
  * settles its promise too, so the overlay always lifts.
  *
  * The spinner's own `<output>` is the live region that announces the wait. The

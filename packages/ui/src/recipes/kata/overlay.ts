@@ -7,7 +7,7 @@ export const k = {
 	motion: overlay,
 	backdrop,
 	// Seals the page for a transaction. `Chrome`, floats, and toasts all
-	// sit above — see the `sou` ladder.
+	// sit above (see the `sou` ladder).
 	base: sou.overlay,
 	/** The rung of an overlay that covers the `Chrome` regions too. */
 	cover: sou.cover,

@@ -25,7 +25,7 @@ type Ring = number[][]
 /** Half the sphere in steradians: an exterior ring enclosing more is wound backwards. @internal */
 const HALF_SPHERE = 2 * Math.PI
 
-/** The whole sphere in steradians — reversing a ring flips its area to `SPHERE − area`. @internal */
+/** The whole sphere in steradians: reversing a ring flips its area to `SPHERE − area`. @internal */
 const SPHERE = 4 * Math.PI
 
 /**
@@ -145,9 +145,9 @@ function planarSide(ring: Ring): 'small' | 'large' | null {
 	if (lonMax - lonMin >= 180) return null
 
 	// Everything below reads the coordinates as degrees on a globe, so geometry
-	// that is not on one is not this rule's business. A pre-projected atlas —
-	// `us-atlas` ships `counties-albers-10m` and its siblings for drawing through
-	// `geoIdentity` — carries frame units where a latitude belongs, and a y of 400
+	// that is not on one is not this rule's business. A pre-projected atlas
+	// (`us-atlas` ships `counties-albers-10m` and its siblings for drawing through
+	// `geoIdentity`) carries frame units where a latitude belongs, and a y of 400
 	// would be weighed by `cos(400°)`. Longitude needs no such bound: the span
 	// test above is relative, and a shoelace over a closed ring is unchanged by
 	// shifting every longitude, so a source stating them in [0, 360) reads the
@@ -157,8 +157,8 @@ function planarSide(ring: Ring): 'small' | 'large' | null {
 	// The planar figure bounds the spherical one from below, at the ring's own
 	// highest latitude where a degree of longitude is narrowest. Under the band,
 	// the ring is close enough to degenerate that only the exact measure can say.
-	// Negated, and it is the one guard here that must be: a `NaN` bound — which
-	// one non-finite coordinate is enough to produce — fails every comparison, so
+	// Negated, and it is the one guard here that must be: a `NaN` bound (which
+	// one non-finite coordinate is enough to produce) fails every comparison, so
 	// written the other way it would fall through rather than refuse. The two
 	// guards above read accumulators no `NaN` can enter, because a `NaN` loses
 	// every comparison that would have assigned it.
@@ -227,7 +227,7 @@ function reversed(ring: Ring): Ring {
 }
 
 /**
- * Rewinds a polygon's rings — exterior first, holes after — dropping degenerate
+ * Rewinds a polygon's rings (exterior first, holes after), dropping degenerate
  * ones. `null` when the exterior itself is degenerate (no drawable outline); the
  * same array when nothing changed; a fresh array of rings otherwise.
  *
@@ -271,7 +271,7 @@ function rewindFeature(feature: MapFeature): MapFeature {
 		return { ...feature, geometry: { ...geometry, coordinates: rings ?? [] } }
 	}
 
-	// Every other kind — a point, a line, a sphere, a collection — winds nothing,
+	// Every other kind (a point, a line, a sphere, a collection) winds nothing,
 	// so it passes through as it arrived.
 	if (geometry.type !== 'MultiPolygon') return feature
 
@@ -301,8 +301,8 @@ function rewindFeature(feature: MapFeature): MapFeature {
  * The rewind guards the raw-GeoJSON path, where RFC 7946's counter-clockwise
  * exteriors are wound opposite d3's convention and would otherwise break
  * wholesale. TopoJSON decodes wound correctly, so that half is inert there.
- * Across the three atlases the module draws — `states-10m`, `counties-10m`, and
- * `world-atlas`'s `countries-110m` — no ring is reversed.
+ * Across the three atlases the module draws (`states-10m`, `counties-10m`, and
+ * `world-atlas`'s `countries-110m`), no ring is reversed.
  *
  * The drop is not inert, which is why a TopoJSON atlas is not a case this pass
  * can be skipped for. Quantization collapses a sliver to a ring of no area, and
@@ -316,7 +316,7 @@ function rewindFeature(feature: MapFeature): MapFeature {
  * either way. A hole flipped on that reading punches out the region it
  * belongs to.
  *
- * Only changed rings are cloned — the caller's geometry is never mutated — so an
+ * Only changed rings are cloned (the caller's geometry is never mutated), so an
  * already-correct collection returns feature-for-feature unchanged. The pass
  * measures every ring either way; it is the result that is often unchanged, not
  * the cost.

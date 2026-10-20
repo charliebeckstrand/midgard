@@ -14,7 +14,7 @@ const EMPTY_EXPANDED: ReadonlySet<string | number> = new Set()
 type GridRowGroupingResult<T> = {
 	/** The grouped column id, or `null` when ungrouped (also `null` for an unknown/non-data id). */
 	grouping: (string | number) | null
-	/** Writes the grouped column id back through the binding — the group-by button's commit sink. */
+	/** Writes the grouped column id back through the binding: the group-by button's commit sink. */
 	setGrouping: (next: (string | number) | null) => void
 	/** Whether the binding runs server-side (`manual: true`). */
 	manual: boolean
@@ -36,7 +36,7 @@ type GridRowGroupingResult<T> = {
  * Resolves the {@link GridGroupBy} binding into the grouping state the grid
  * runs on:
  *
- * - the grouped column id, controllable — the group-by button writes it back
+ * - the grouped column id, controllable: the group-by button writes it back
  *   through `setGrouping`
  * - the client-mode engine expansion state, seeded from a boolean
  *   `defaultExpanded`, then toggled per group header
@@ -69,8 +69,8 @@ export function useGridRowGrouping<T>(
 	)
 
 	// Manual expansion is a key set, not engine state: the groups live on the
-	// server, so a boolean default can't enumerate them — a `Set` default seeds
-	// the open groups, and anything else starts fully collapsed.
+	// server, so a boolean default can't enumerate them (a `Set` default seeds
+	// the open groups, and anything else starts fully collapsed).
 	const [manualExpanded = EMPTY_EXPANDED, setManualExpanded] = useControllable<
 		ReadonlySet<string | number>
 	>({
@@ -94,7 +94,7 @@ export function useGridRowGrouping<T>(
 			return toggleItem(open, key)
 		})
 
-		// The lazy-load hook fires only as a group opens — collapse keeps the
+		// The lazy-load hook fires only as a group opens: collapse keeps the
 		// already-fetched children in place.
 		if (expanding) config?.onGroupExpand?.(key)
 	})

@@ -17,10 +17,10 @@ export function copyText(text: string): void {
 /** A leading character a spreadsheet unconditionally reads as a formula/command start. @internal */
 const FORMULA_LEAD = /^[=@\t\r]/
 
-/** A leading sign — a formula start unless the whole field is a plain number. @internal */
+/** A leading sign: a formula start unless the whole field is a plain number. @internal */
 const SIGNED_LEAD = /^[+-]/
 
-/** A well-formed signed decimal (optional exponent) — legitimate data, not a formula. @internal */
+/** A well-formed signed decimal (optional exponent): legitimate data, not a formula. @internal */
 const PLAIN_NUMBER = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/
 
 /**

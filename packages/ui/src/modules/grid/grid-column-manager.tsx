@@ -95,8 +95,8 @@ export type GridColumnManagerProps = {
 
 	/**
 	 * Whether the manager carries its filter field: a {@link SearchInput} above
-	 * the lists. It narrows every group — frozen, orderable, and the group
-	 * editor's zones — to the columns whose label matches the typed text.
+	 * the lists. It narrows every group (frozen, orderable, and the group
+	 * editor's zones) to the columns whose label matches the typed text.
 	 *
 	 * Filtering is display-only. A visibility toggle, a pin, or a reorder made
 	 * while a query is active commits exactly as it would unfiltered. It holds
@@ -130,7 +130,7 @@ export type GridColumnManagerProps = {
 
 	/**
 	 * Whether the scrolling columns can be dragged to reorder. When `false`, the
-	 * orderable list drops its drag handles and renders read-only — visibility
+	 * orderable list drops its drag handles and renders read-only: visibility
 	 * toggles and pin controls still work. {@link Grid} forwards its
 	 * {@link GridProps.reorder} flag here, so the manager only reorders columns
 	 * when the grid opts in.
@@ -199,9 +199,9 @@ type GridColumnPinControlProps = {
 /**
  * Per-column pin control: a menu button opening a menu that freezes the column
  * to an edge or releases it. A scrolling column offers Pin left / Pin right; a
- * frozen one offers the opposite edge and Unpin — mirroring the header context
- * menu's pin items. The trigger shows an overflow glyph while the column
- * scrolls and switches to a pin glyph once it's frozen.
+ * frozen one offers the opposite edge and Unpin, as the pin items of the header
+ * context menu do. The trigger shows an overflow glyph while the column scrolls
+ * and switches to a pin glyph once it's frozen.
  *
  * @internal
  */
@@ -300,7 +300,7 @@ type GridColumnManagerFrozenGroupProps = {
 }
 
 /**
- * One fixed group of frozen columns — the prepended left group or the appended
+ * One fixed group of frozen columns: the prepended left group or the appended
  * right group. Each row is checked and disabled (a frozen column always shows
  * and can't be hidden or reordered), led by its pin control or edge arrow.
  *
@@ -416,14 +416,14 @@ function GridColumnManagerOrderableList({
  * Standalone column-manager editor: a checkbox field per orderable column,
  * drag-sortable in the middle when `reorderable` (read-only otherwise). The
  * field toggles each column's hidden state and reorders the rest. Frozen
- * columns list in two fixed groups around it — left-pinned prepended,
- * right-pinned appended — each checked and disabled. With `onPinChange`, every
+ * columns list in two fixed groups around it (left-pinned prepended,
+ * right-pinned appended), each checked and disabled. With `onPinChange`, every
  * column's pin indicator becomes an interactive control. It offers Pin left /
  * Pin right / Unpin on the scrolling and pinned columns, and a static edge
  * arrow on {@link GridColumnManagerItem.locked} ones. Columns with
  * `hideable: false` show but cannot be unchecked. With `onSavePreset`, a footer
- * button captures the current order and hidden ids as a
- * {@link GridPreferences} snapshot. Order and hidden set are each controllable.
+ * button captures the current order and hidden ids as a {@link GridPreferences}
+ * snapshot. Order and hidden set are each controllable.
  *
  * The pin labels and the edge arrows name the physical edge. Inside a
  * {@link Grid}, the manager takes the direction of the grid. Standalone, it
@@ -468,8 +468,8 @@ export function GridColumnManager({
 
 	const [query, setQuery] = useState('')
 
-	// The field echoes each keystroke at once while the filtered re-render — every
-	// group, and under the group editor its whole zone tree — settles behind it.
+	// The field echoes each keystroke at once while the filtered re-render (every
+	// group, and under the group editor its whole zone tree) settles behind it.
 	// An empty query bypasses deferral, as in Combobox and CommandPalette, so a
 	// cleared field lists every column in the same commit.
 	const deferredQueryInternal = useDeferredValue(query)
@@ -488,7 +488,7 @@ export function GridColumnManager({
 	// Frozen columns split to their edge (locked wins over pinned) and list in
 	// declaration order, since they can't be reordered; the scrolling columns
 	// follow the controllable order in between. Each group drops its non-matching
-	// columns from the render — pinned rows are inert here, so filtering them is
+	// columns from the render: pinned rows are inert here, so filtering them is
 	// display and nothing else.
 	const leftColumns = useMemo(
 		() => columns.filter((column) => effectivePinSide(column) === 'left' && matches(column)),
@@ -516,7 +516,7 @@ export function GridColumnManager({
 
 	// What the flat list renders under a query. The group editor keeps the full set
 	// instead and takes `matches` to filter its own rows, because its zone map is
-	// also what commits group membership on drop — pruning its input would drop
+	// also what commits group membership on drop: pruning its input would drop
 	// every filtered-out column out of its group.
 	const visibleOrderable = useMemo(
 		() => orderableColumns.filter(matches),
@@ -539,7 +539,7 @@ export function GridColumnManager({
 			// Ids outside the manager's set (select/actions) and frozen columns keep
 			// their position; only the orderable data columns are repermuted. Under a
 			// query the dragged rows are just the matching ones, so the predicate
-			// narrows to them too and every filtered-out column holds its slot — the
+			// narrows to them too and every filtered-out column holds its slot: the
 			// same contract that holds the pinned ones.
 			setOrder(
 				applyColumnReorder(order, reorderedIds, (id) => {
@@ -556,7 +556,7 @@ export function GridColumnManager({
 		onSavePreset?.({ order, hidden: [...hidden] })
 	}, [onSavePreset, order, hidden])
 
-	// No column anywhere matches — the three groups partition `columns`, so one
+	// No column anywhere matches: the three groups partition `columns`, so one
 	// scan answers for all of them (and, under the group editor, its zone tree).
 	const noMatches = !!needle && !columns.some(matches)
 
@@ -605,7 +605,7 @@ export function GridColumnManager({
 								onOrderChange={setOrder}
 							/>
 						) : visibleOrderable.length === 0 && orderableColumns.length > 0 ? (
-							// Only the scrolling region emptied — a frozen row still matches, so the
+							// Only the scrolling region emptied: a frozen row still matches, so the
 							// status stands in for the list rather than for the whole editor.
 							<GridColumnManagerNoResults />
 						) : (

@@ -22,7 +22,7 @@ import { useChartCartesian } from '../engine/use-chart-cartesian'
 
 /**
  * Props for {@link ComboChart}. Requires an accessible name (`aria-label` or
- * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
+ * `aria-labelledby`): the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
 export type ComboChartProps<T = never> = AccessibleName &
@@ -44,12 +44,12 @@ export type ComboChartProps<T = never> = AccessibleName &
 		 */
 		interpolation?: LineInterpolation
 		/**
-		 * Draw selective value labels — the `endpoints` and / or `extremes` of the
-		 * line or area series, bars excluded — overlaps dropped by priority. These
-		 * labels show only while the chart shows exactly one line or area series.
-		 * With `references`, each reference rule's value draws beside it in place of
-		 * its hover tooltip. Off by default; the tooltip and data table carry the
-		 * full readout.
+		 * Draw selective value labels (the `endpoints` and / or `extremes` of the
+		 * line or area series, bars excluded), with overlaps dropped by priority.
+		 * These labels show only while the chart shows exactly one line or area
+		 * series. With `references`, each reference rule's value draws beside it in
+		 * place of its hover tooltip. Off by default; the tooltip and data table
+		 * carry the full readout.
 		 */
 		labels?: ChartValueLabelConfig
 	}
@@ -134,7 +134,7 @@ function comboMarkAt(
  * the visually-hidden data table. The tooltip snaps when the `crosshair` snaps.
  *
  * @remarks Under `animate`, the bars rise, the area washes fade, and the lines
- * draw together — one synchronized reveal across the x and y motions. Focus the
+ * draw together: one synchronized reveal across the x and y motions. Focus the
  * plot to drive the crosshair and tooltip by keyboard. The band-axis arrows step
  * categories, and the value-axis arrows cycle each category's series values,
  * both axes' points interleaved in screen order. A reference line joins that
@@ -159,8 +159,8 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		zeroBaseline: true,
 		categoryRule: 'zero',
 		swatch: (_, index) => (series[index]?.type === 'bar' ? 'rect' : 'line'),
-		// Only the line and area series paint past their coordinate — bars end at
-		// theirs — so the inset stands only where such a series exists to need it.
+		// Only the line and area series paint past their coordinate (bars end at
+		// theirs), so the inset stands only where such a series exists to need it.
 		markInset: series.some((entry) => entry.type !== 'bar') ? lineMarkReach(points) : 0,
 		// Reserve the room the point labels need past the data extremes. Only the
 		// visible line and area series carry labels, so only they count toward the
@@ -230,8 +230,8 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	// hidden the curves stand alone and the dots need no stroke.
 	const stroke = bars.length > 0
 
-	// Bars sit at the back, then the translucent area washes over them — a wash
-	// behind opaque bars would vanish wherever the area falls short of them —
+	// Bars sit at the back, then the translucent area washes over them (a wash
+	// behind opaque bars would vanish wherever the area falls short of them), and
 	// then the lines ride on top.
 	const marks = animate ? (
 		<>
@@ -284,7 +284,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			marks={marks}
 			markAt={(x, y, held) => comboMarkAt({ lines, areas, areaBase, bars, barIndices }, x, y, held)}
 			bars={(index) => series[index]?.type === 'bar'}
-			// Value labels ride the line and area series only — bars read against the axis.
+			// Value labels ride the line and area series only: bars read against the axis.
 			valueLabels={{ list: [...areas, ...lines] }}
 		/>
 	)

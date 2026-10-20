@@ -1,6 +1,6 @@
 /**
  * Build `count` stable, React-key-safe strings of the form `${prefix}-${index}`.
- * For fixed-length placeholder loops — skeletons, thumbnail rails — that render
+ * For fixed-length placeholder loops (skeletons, thumbnail rails) that render
  * `count` items with no domain data to key on.
  *
  * @example

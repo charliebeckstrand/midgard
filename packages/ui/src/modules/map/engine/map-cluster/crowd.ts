@@ -9,7 +9,7 @@
  * A target that covered a neighbor's face would take that neighbor's readout
  * with it, and the mark a reader can see would answer nothing. A drawn zone
  * under the dot claims it. And a region layer that answers the pointer at all
- * claims it — a readout, a pick, a menu. The dot is the topmost thing at its own
+ * claims it: a readout, a pick, a menu. The dot is the topmost thing at its own
  * pixels. None of the three can be reached where a 44px target covers the shape.
  * The last two arrive the same way, folded into the one budget the plat hands
  * in. The zone half comes off its ledger, the region half off the geography
@@ -18,8 +18,8 @@
  * they meet, so every dot-shaped mark reads one rule rather than assembling its
  * own.
  *
- * The crowding half reads one mark's own drawn dots — a `MapPoints`'s groups, a
- * `MapMarker`'s pair of pins — rather than every dot on the map. Pooling them
+ * The crowding half reads one mark's own drawn dots (a `MapPoints`'s groups, a
+ * `MapMarker`'s pair of pins) rather than every dot on the map. Pooling them
  * would have to happen in the plat, and the plat cannot see the zoom scale every
  * reach here is measured in. `MapZoomScaleContext` sits below it, around the
  * plot alone. A wheel notch therefore re-renders the marks without re-rendering
@@ -97,7 +97,7 @@ function roomBeside(mark: MapPoint2D, other: MapDotMark, unitsPerPixel: number):
  * with the marks handed in. It is `Infinity` where nothing stands inside that
  * dot's coarse reach, which {@link markTargets} then caps.
  *
- * `unitsPerPixel` is what one device pixel spans in frame units — `1` at rest,
+ * `unitsPerPixel` is what one device pixel spans in frame units: `1` at rest,
  * and `1 / k` under the zoom layer's transform. Every reach here is a pixel
  * measure and every position is a frame one, so the conversion lands once, on the
  * way into {@link roomBeside}. A zoom that spreads the dots apart on screen frees
@@ -142,7 +142,7 @@ function scanned(marks: readonly MapDotMark[], unitsPerPixel: number): number[] 
 /** The grid-indexed pass, for a set large enough that a pairwise scan is quadratic. @internal */
 function indexed(marks: readonly MapDotMark[], unitsPerPixel: number): number[] {
 	// One cell per widest possible reach, so a mark this one could swallow can only
-	// sit in the nine cells around it — the bound `group.ts` runs its own passes on.
+	// sit in the nine cells around it: the bound `group.ts` runs its own passes on.
 	const reach = (POINT_HIT_RADIUS + MAX_CLUSTER_RADIUS) * unitsPerPixel
 
 	const cells = new Map<number, number[]>()
@@ -225,7 +225,7 @@ export function markTargets(
 		// A neighbor that has already taken the target to the mark's own paint
 		// settles it: the clamp floors there, so nothing another claimant says can
 		// move the answer. Asked anyway, `spare` is the most expensive question on
-		// the map — a grid walk over the region layer — for a figure that is
+		// the map (a grid walk over the region layer) for a figure that is
 		// discarded. It fires most where the dots are densest, which is where a
 		// summary's grade puts the floor highest.
 		if (near <= radius) return radius

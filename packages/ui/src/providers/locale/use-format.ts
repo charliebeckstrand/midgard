@@ -11,7 +11,7 @@ export type { FormatSpec } from '../../utilities'
  * folding in the ambient `<LocaleProvider>` locale, currency, and number-format
  * defaults. `useFormat({ type: 'currency' })` therefore renders the right
  * currency with no per-call wiring. Drops straight into any surface that takes a value
- * formatter — a chart's `formatValue`, a grid column's `cell`, an odometer's
+ * formatter: a chart's `formatValue`, a grid column's `cell`, an odometer's
  * `format`.
  *
  * @remarks The formatter is stable across renders for a given spec and ambient
@@ -28,8 +28,8 @@ export type { FormatSpec } from '../../utilities'
 export function useFormat(spec: FormatSpec): (value: number) => string {
 	const { locale, currency, numberFormat } = useLocale()
 
-	// Serialize the spec so an inline `useFormat({ type: 'currency' })` literal —
-	// a new object each render — reuses one formatter, and every reactive input
+	// Serialize the spec so an inline `useFormat({ type: 'currency' })` literal
+	// (a new object each render) reuses one formatter, and every reactive input
 	// stays in the dependency list.
 	const key = JSON.stringify(spec)
 

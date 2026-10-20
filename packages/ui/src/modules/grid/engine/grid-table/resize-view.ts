@@ -22,7 +22,7 @@ import type { EngineColumn, EngineTable } from './features'
 export type GridColumnResize = {
 	/** The column's width (px). */
 	getSize: (id: string | number) => number
-	/** The summed width (px) of the visible columns — the width of the fixed-layout table. */
+	/** The summed width (px) of the visible columns: the width of the fixed-layout table. */
 	totalSize: number
 	/** Whether the column can be resized (data columns only). */
 	canResize: (id: string | number) => boolean

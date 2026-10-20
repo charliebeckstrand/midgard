@@ -37,7 +37,7 @@ export type MapRouteFailure =
 	  }
 
 /**
- * What stopped a routing request. `'waypoints'` is the caller's own input —
+ * What stopped a routing request. `'waypoints'` is the caller's own input:
  * under two stops name no leg, and no request leaves. `'aborted'` and
  * `'timeout'` are the two ways a signal ends one. They stay apart because a
  * caller that canceled its own request learned nothing about the service.

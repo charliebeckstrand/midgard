@@ -13,7 +13,7 @@ export type GridRevealHold = {
 	/** Pass to `<MountHold>` around the row. */
 	hold: MountHoldState
 	/**
-	 * Whether the reveal renders open — the `data-open` its track tweens on. It
+	 * Whether the reveal renders open: the `data-open` its track tweens on. It
 	 * trails `expanded` by one commit as the row wakes, so drive the track from
 	 * this and the row's semantics (`aria-hidden`, `inert`) from `expanded`.
 	 */
@@ -36,7 +36,7 @@ export type GridRevealHold = {
  * The hold has to wait for the reveal, since `display: none` cannot tween
  * `grid-template-rows`. A hide on the toggle would snap a collapsing row away
  * instead of letting it shrink. The landing arrives as a `transitionend`
- * bubbling from the cells that animate — one per cell, but resting is
+ * bubbling from the cells that animate: one per cell, but resting is
  * idempotent. Under `prefers-reduced-motion` the recipe drops the transition
  * (`motion-reduce:transition-none`), so no event is coming. The row rests on
  * the toggle itself, which is what an instant collapse wants anyway. That is
@@ -45,7 +45,7 @@ export type GridRevealHold = {
  * otherwise keep waiting for a landing the CSS had already stopped sending. No
  * row would ever rest again.
  *
- * Rows always exist here (`mount="always"`) — the module renders every leaf of
+ * Rows always exist here (`mount="always"`): the module renders every leaf of
  * every group, and this changes only whether a collapsed one is live.
  *
  * The rest is also why {@link GridRevealHold.open} exists apart from `expanded`.
@@ -76,14 +76,14 @@ export function useGridRevealHold(expanded: boolean, enter = false): GridRevealH
 	const [open, setOpen] = useState(expanded && !enter)
 
 	// A collapse closes the track in the commit the toggle lands in, so the reveal
-	// starts to shrink from the row's first closed frame — the same edge that
+	// starts to shrink from the row's first closed frame: the same edge that
 	// `aria-hidden` and `inert` take. Adjusted during render, so no commit passes
 	// with the row closed and its track still open.
 	if (!expanded && open) setOpen(false)
 
 	// An open takes that single commit too when the recipe carries no transition
-	// to prime. Without this, a reduced-motion session pays the wake below — a
-	// reflow and a second pass over the group — for a cue that never animates.
+	// to prime. Without this, a reduced-motion session pays the wake below (a
+	// reflow and a second pass over the group) for a cue that never animates.
 	if (expanded && !open && reducedMotion) setOpen(true)
 
 	const opening = expanded && !open
@@ -92,7 +92,7 @@ export function useGridRevealHold(expanded: boolean, enter = false): GridRevealH
 		if (!opening) return
 
 		// This commit lifted the rest, so the row is back on screen at the closed
-		// track — but the browser has not read that style yet, and the open one is
+		// track, but the browser has not read that style yet, and the open one is
 		// a render away. Force the flush that records it, and the transition has a
 		// style to run from. Layout is clean for the other rows of a group that
 		// wakes together, so the flush costs one reflow for the whole toggle.

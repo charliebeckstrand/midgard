@@ -8,7 +8,7 @@ import { dateCategoryFormat, timeCategory } from '../chart-time'
 
 /** The category labels, their raw forms, and the readout formatter. @internal */
 type ResolvedCategories = {
-	/** The band-axis labels — formatted when a formatter resolved, else raw. */
+	/** The band-axis labels: formatted when a formatter resolved, else raw. */
 	categories: string[]
 	/** The raw `String`-coerced values, which the click callback keys off. */
 	rawCategories: string[]
@@ -23,7 +23,7 @@ type ResolvedCategories = {
  * normalizes itself to the locale's numeric month/day order (see
  * {@link dateCategoryFormat}). A time axis leaves its labels to its own calendar
  * ticks, and formats only its readout. The formatter resolves once over every
- * value, so a whole-dataset decision — the date normalization's year elision —
+ * value, so a whole-dataset decision (the date normalization's year elision)
  * reads the same for every label.
  *
  * @param locale - BCP 47 tag from `<LocaleProvider>`; `undefined` falls back to

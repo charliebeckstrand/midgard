@@ -51,7 +51,7 @@ export const k = {
 			// screen had room for.
 			//
 			// `full` and `fit` square the top corners against the screen edge, because
-			// a rounded corner there reads as a panel that failed to reach it — `full`
+			// a rounded corner there reads as a panel that failed to reach it: `full`
 			// at rest, `fit` on the steps that stand it there, and either fixed step once
 			// a drag leaves it at the ceiling. `auto` never reaches the edge, so it never
 			// squares.
@@ -71,7 +71,7 @@ export const k = {
 		}),
 		backdrop: bridge.backdrop(backdrop),
 		// The top padding is the panel's inset, and a handle already is one. Under a
-		// handle the stock header would sit a whole step below the grip — which is
+		// handle the stock header would sit a whole step below the grip, which is
 		// what made the first consumer hand-roll its own header row rather than use
 		// this slot.
 		title: { extra: [layout.inset.x, layout.inset.top, 'group-data-handle/drawer:pt-0'] },
@@ -107,15 +107,15 @@ export const k = {
 			flex.row,
 			'w-full shrink-0 items-center justify-center',
 			// Even top and bottom: the handle is the panel's own inset, so the space
-			// under it is what sets the first slot off — a header adding its own on
-			// top would read as a gap between the grip and the title.
+			// under it is what sets the first slot off (a header adding its own on
+			// top would read as a gap between the grip and the title).
 			'py-3',
 			// The handle is the panel's own edge, not one of its slots, so it takes no
-			// slot gap — left in the flow it floats a whole step above the first thing
+			// slot gap: left in the flow it floats a whole step above the first thing
 			// under it. The padding above sets it off instead.
 			layout.gap.flush,
 			...hannou.grab.default,
-			// The stroke goes on the bar, not here — see the archetype's grip. This
+			// The stroke goes on the bar, not here (see the archetype's grip). This
 			// suppresses the browser's own, which would draw around the whole reach.
 			'outline-hidden',
 		],
@@ -132,7 +132,7 @@ export const k = {
 	fit: ugoki.spring.fit,
 }
 
-/** Recipe variant props for the {@link Drawer} panel — its styling axes (`surface`, `height`), for consumers composing custom slots. */
+/** Recipe variant props for the {@link Drawer} panel: its styling axes (`surface`, `height`), for consumers composing custom slots. */
 export type DrawerPanelVariants = Omit<VariantProps<typeof k.panel>, 'surface' | 'height'> & {
 	/** The surface of the panel: `flat` is opaque, and `glass` is translucent and blurred. @defaultValue 'flat' */
 	surface?: VariantProps<typeof k.panel>['surface']

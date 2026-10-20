@@ -85,7 +85,7 @@ export type SparklineProps = AccessibleName &
 		 * Animates the marks in on mount with Framer Motion. The line draws itself
 		 * (`pathLength`), the area wash fades in behind it, the end-point pops, and
 		 * bars grow from the zero line in sequence. Honors `prefers-reduced-motion`
-		 * through {@link ReducedMotion}. Off by default — a static grid of many
+		 * through {@link ReducedMotion}. Off by default: a static grid of many
 		 * sparklines stays a plain-SVG leaf with no motion runtime.
 		 *
 		 * @remarks The reveal plays on a client mount. A sparkline that the server
@@ -267,14 +267,14 @@ function AnimatedSparklineMarks({
 }
 
 /**
- * Compact inline trend chart — a line or bar sparkline — rendered as a
+ * Compact inline trend chart (a line or bar sparkline) rendered as a
  * self-contained, decoration-free SVG (`role="img"`). Sized at the step of
  * the nearest density scope unless `width` / `height` fix it, it maps `data` onto its
  * drawing box through {@link sparklineGeometry}. A flat or single-point series
  * still draws visibly, and a stray non-finite value doesn't collapse the scale.
  *
- * @remarks Built for a {@link Grid} cell — drop it into a column's `cell`
- * renderer — but usable anywhere. In a Grid cell it takes the step of the
+ * @remarks Built for a {@link Grid} cell (drop it into a column's `cell`
+ * renderer), but usable anywhere. In a Grid cell it takes the step of the
  * cells, unless it has an explicit `size`. The accessible name is required by
  * {@link SparklineProps}; summarize the trend (e.g. `aria-label="Revenue, up
  * over 7 days"`) rather than naming the component. Pass `animate` to reveal the
@@ -355,7 +355,7 @@ export function Sparkline({
 	return (
 		// The name rides the wrapper (role="img" + the label in props) and the decorative
 		// SVG is aria-hidden, so assistive tech reads one summarized image rather
-		// than the raw shapes — the same split ProgressGauge uses. Under `animate`,
+		// than the raw shapes: the same split ProgressGauge uses. Under `animate`,
 		// ReducedMotion (MotionConfig) wraps the motion marks so a reduced-motion
 		// preference settles them at rest.
 		<span

@@ -58,7 +58,7 @@ export function useGridSelectionActions({
 }: GridSelectionState & { rowKeys: (string | number)[] }): GridSelectionActions {
 	// Both flags re-scan `rowKeys` (the full set on an unpaginated grid), so they
 	// are memoized to recompute only when the rows or the selection actually
-	// change — not on every unrelated GridData render (keystrokes, resize frames).
+	// change, not on every unrelated GridData render (keystrokes, resize frames).
 	// The `selection.size` guard skips the scan in the common empty-selection state.
 	const allSelected = useMemo(
 		() => rowKeys.length > 0 && rowKeys.every((key) => selection.has(key)),

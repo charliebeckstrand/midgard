@@ -24,7 +24,7 @@ export type GridSettleSubscription = (listener: () => void) => () => void
  * `GridSettleStore`). A visited cell subscribes, and measures when its column
  * settles. It measures at once, and again on the next frame, in case the layout
  * settled after the synchronous read. A cell with no contact does not subscribe,
- * because it keeps no live `truncated` flag. The header omits it — it already
+ * because it keeps no live `truncated` flag. The header omits it: it already
  * renders again on its own `width` prop.
  * @param suspended - Stands the measure down entirely (a drag-resize in flight,
  * whose reveal the cell holds closed anyway). A flag re-measures on the first

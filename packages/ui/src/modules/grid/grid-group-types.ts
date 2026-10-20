@@ -15,7 +15,7 @@ import type { PaletteColor } from '../../core/recipe'
 export type GridColumnGroup = {
 	/** Stable identity for the group; keys its band and its column-manager zone. */
 	id: string | number
-	/** Group heading shown in the band — its name. Falls back to the `id` when omitted. */
+	/** Group heading shown in the band: its name. Falls back to the `id` when omitted. */
 	title?: ReactNode
 	/**
 	 * Band color from the {@link PaletteColor} palette (standard + extended, as
@@ -24,7 +24,7 @@ export type GridColumnGroup = {
 	color?: PaletteColor
 	/** Member column ids, in band order; the grid keeps them contiguous. */
 	columns: (string | number)[]
-	/** Secondary text revealed as a tooltip on the band — what the group covers. */
+	/** Secondary text revealed as a tooltip on the band: what the group covers. */
 	description?: ReactNode
 	/** Leading glyph in the band (a lucide icon element), tinted to the group color. */
 	icon?: ReactElement

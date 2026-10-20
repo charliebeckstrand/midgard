@@ -27,7 +27,7 @@ const CELL_STRIDE = 65_536
  * {@link CELL_STRIDE} for the range the packing holds.
  *
  * Shared with the geometry engine's own grid (`map-geometry/locate`), which
- * buckets in degrees rather than frame units. The packing reads no unit — it
+ * buckets in degrees rather than frame units. The packing reads no unit: it
  * only needs both indices inside the stride, which a degree grid's ±180 and ±90
  * are by a wide margin.
  *

@@ -55,8 +55,8 @@ export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerP
 
 	// Merge the child's own ref (React 19 ref-as-prop) with the floating
 	// reference so a consumer can register the trigger element (e.g. as a focus
-	// target) rather than have it clobbered — matching `TooltipTrigger`/
-	// `PopoverTrigger`.
+	// target) rather than have it clobbered. `TooltipTrigger` and
+	// `PopoverTrigger` do the same.
 	const child = triggerChild(children)
 
 	// A consumer `ref` on the trigger joins the ref of the child.
@@ -76,8 +76,8 @@ export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerP
 	)
 
 	// The menu opens once per discrete activation-key press on the trigger. The
-	// trigger keeps native timing — Enter fires the button's click on keydown,
-	// Space on keyup — but its OS auto-repeat is swallowed, so a held key neither
+	// trigger keeps native timing (Enter fires the button's click on keydown,
+	// Space on keyup), but its OS auto-repeat is swallowed, so a held key neither
 	// rapidly re-toggles the menu (Enter's per-repeat clicks) nor opens it when the
 	// key was already down as focus arrived (released from a HoldButton whose
 	// completion moved focus here). A fresh, non-repeat keydown arms; opening then
@@ -109,8 +109,8 @@ export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerP
 
 		if (!open) return
 
-		// A submenu hovered open under this dropdown owns the arrows while it is up,
-		// the same as in a right-click menu — the difference being that focus rests
+		// A submenu hovered open under this dropdown owns the arrows while it is
+		// up, the same as in a right-click menu. The difference is that focus rests
 		// here, so the press arrives on the trigger rather than on the parent row.
 		if (enterSubmenu(event.key)) {
 			event.preventDefault()

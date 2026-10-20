@@ -21,7 +21,7 @@ export type HoldGestureOptions = {
  * Press-and-hold gesture engine behind {@link HoldButton}: runs the completion
  * timer, drives the fill animation through Motion, and guards against focus loss.
  *
- * @returns `{ fillRef, start, cancel }` — `fillRef` attaches to the fill overlay
+ * @returns `{ fillRef, start, cancel }`: `fillRef` attaches to the fill overlay
  * span the hook scales directly; `start` begins a hold; `cancel` aborts one in
  * progress. Both are idempotent against the current holding state.
  * @remarks

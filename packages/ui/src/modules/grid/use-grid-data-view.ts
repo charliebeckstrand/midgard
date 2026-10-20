@@ -131,10 +131,10 @@ export function useGridDataView<T>({
 	const hasRows = renderRows.length > 0
 
 	// Column interactions stand down when there's no data to act on (incl. while
-	// loading), or when an error has pre-empted the body — mirroring the empty
-	// state, since both replace the rows there's nothing to act on. `showingError`
-	// tracks the body's own error branch (see `GridBody`), which loading takes
-	// precedence over.
+	// loading), or when an error has pre-empted the body. The empty state does
+	// the same, since both replace the rows there's nothing to act on.
+	// `showingError` tracks the body's own error branch (see `GridBody`), which
+	// loading takes precedence over.
 	const showingError = !loading && hasErrorSlot(error)
 
 	// `hasRowsToActOn` is the plain row-presence fact; `hasData` also holds when a

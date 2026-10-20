@@ -46,7 +46,7 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 	}
 
 	// The upload trigger always stays; a selection adds `Reset` beside it, so a
-	// different file can be picked — or the selection cleared — without the
+	// different file can be picked (or the selection cleared) without the
 	// trigger swapping out.
 	return (
 		<div data-slot="file-upload" {...props} className={cn(k.button, className)}>

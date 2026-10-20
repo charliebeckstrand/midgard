@@ -57,8 +57,8 @@ function GridHeaderTitle({
 	control?: (title: ReactElement) => ReactElement
 }): ReactElement {
 	// No settle key: the header cell re-renders on its own engine `width` prop
-	// (drag and nudge alike), so the commit measure already re-runs at settle —
-	// unlike the memoized body cells, which take the snapshot from the grid.
+	// (drag and nudge alike), so the commit measure already re-runs at settle
+	// (unlike the memoized body cells, which take the snapshot from the grid).
 	const resizing = useGridResizing()
 
 	const controlRef = useRef<HTMLElement>(null)

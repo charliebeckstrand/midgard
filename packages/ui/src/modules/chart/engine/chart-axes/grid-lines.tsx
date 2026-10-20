@@ -8,13 +8,13 @@ export type ChartGridLinesProps = {
 	/** The value-axis position of each hairline, in `viewBox` units. */
 	ticks: number[]
 	/**
-	 * Which way the value axis runs — vertical draws horizontal lines, horizontal
+	 * Which way the value axis runs: vertical draws horizontal lines, horizontal
 	 * draws vertical ones.
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: ChartOrientation
 	/**
-	 * Dash the lines — the category dividers ruled between bands, set apart from
+	 * Dash the lines: the category dividers ruled between bands, set apart from
 	 * the solid value gridlines.
 	 * @defaultValue false
 	 */
@@ -22,7 +22,7 @@ export type ChartGridLinesProps = {
 }
 
 /**
- * Hairline gridlines at the value ticks, drawn across the band axis — solid,
+ * Hairline gridlines at the value ticks, drawn across the band axis: solid,
  * one step off the surface, recessive under the marks. They run perpendicular
  * to the value axis, so a vertical chart rules horizontal lines and a
  * horizontal one rules vertical lines.

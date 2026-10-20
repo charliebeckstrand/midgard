@@ -201,7 +201,7 @@ export function TagInput({
 
 	// Set when a commit refused tokens, cleared on the next keystroke. The field's own `invalid` can
 	// only arrive from a bound Form field, so without this a rejected draft had no sighted feedback
-	// at all — the reason a refused paste read as nothing happening.
+	// at all: the reason a refused paste read as nothing happening.
 	const [refused, setRefused] = useState(false)
 
 	// The draft and the refused mark are the partial entry of the field, so a
@@ -240,7 +240,7 @@ export function TagInput({
 	/**
 	 * The one commit path: tokenize, add what is addable, keep what was refused.
 	 *
-	 * Every channel goes through here — Enter, comma, blur, the Add button, a paste — which is what
+	 * Every channel goes through here (Enter, comma, blur, the Add button, a paste), which is what
 	 * makes them agree. The Add button in particular used to be enabled for a multi-token draft and do
 	 * nothing when pressed, because it called the single-tag path.
 	 */
@@ -321,7 +321,7 @@ export function TagInput({
 
 		const pasted = event.clipboardData.getData('text')
 
-		// A paste with no delimiter is ordinary typing — let it land at the caret so a user can
+		// A paste with no delimiter is ordinary typing: let it land at the caret so a user can
 		// paste one code into the middle of a draft and keep editing. The delimiter is the whole
 		// test: a token count cannot disagree with it, since two tokens can only come from a split
 		// that matched, while one token plus a trailing newline is still a pasted list.

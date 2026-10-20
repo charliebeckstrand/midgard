@@ -73,7 +73,7 @@ export type MapZoomCursor = {
 }
 
 /**
- * What {@link useMapZoom} resolves, or `null` on a map that does not zoom — one
+ * What {@link useMapZoom} resolves, or `null` on a map that does not zoom: one
  * encoding of that bit, which every consumer tests the same way.
  *
  * @internal
@@ -81,10 +81,10 @@ export type MapZoomCursor = {
 export type MapZoom = {
 	/** The view transform the zoom layer draws through. */
 	transform: MapTransform
-	/** Frame units per device pixel — `1 / k`, the marks' one reading of the zoom. */
+	/** Frame units per device pixel: `1 / k`, the marks' one reading of the zoom. */
 	unitsPerPixel: number
 	/**
-	 * Whether a view gesture is in flight — a pan, a pinch, or a wheel that has
+	 * Whether a view gesture is in flight: a pan, a pinch, or a wheel that has
 	 * not settled. The layer stops answering the pointer while one is, so the
 	 * marks traveling under a held pointer raise no readout and fire no
 	 * crossing.
@@ -140,7 +140,7 @@ type MapWheelStream = {
  * Wheel, drag, and pinch drive it. The wheel rides a non-passive listener on the
  * SVG, because React registers `onWheel` passively and a passive handler cannot
  * take the gesture from the page. It takes the gesture only where the transform
- * actually moves. A scroll at the fit — or past the ceiling — therefore falls
+ * actually moves. A scroll at the fit (or past the ceiling) therefore falls
  * through, and the page scrolls rather than trapping the reader. A drag pans
  * once it passes {@link MAP_PAN_THRESHOLD}, and the click that follows is swallowed, so
  * a pan across a clickable map never reports a pick. Two pointers pinch about
@@ -165,7 +165,7 @@ export function useMapZoom({
 	onViewChange,
 }: MapZoomOptions): MapZoom | null {
 	// The subject rides with the transform rather than beside it, so a geography
-	// swap and the view it invalidates land in one write — and the reset happens
+	// swap and the view it invalidates land in one write, and the reset happens
 	// during render, before the stale transform can paint. Gated on the zoom below,
 	// so a map that does not zoom never takes the extra render-phase pass. Declared
 	// above the settings read, so that call cannot widen the setter's range.
@@ -177,7 +177,7 @@ export function useMapZoom({
 
 	// Read off the settings rather than passed around as one: the reader is a
 	// fresh object every render, and the wheel's listener keys its binding on
-	// this — an object there would re-bind it on every gesture commit.
+	// this (an object there would re-bind it on every gesture commit).
 	const modifier = settings?.modifier ?? null
 
 	if (settings !== null && held.subject !== subject) {
@@ -230,7 +230,7 @@ export function useMapZoom({
 	// The pointers down on the surface, in viewport coordinates: one is a pan,
 	// two are a pinch. Held on a ref because a gesture writes on every move and
 	// none of it belongs in a render. On a modifier map a touch contact lands here
-	// from the touch events instead — see {@link useMapTouchPinch}.
+	// from the touch events instead (see {@link useMapTouchPinch}).
 	const pointers = useRef(new Map<number, MapPoint2D>())
 
 	// The kind of pointer that started the pointer gesture, or `null`. A pointer of
@@ -274,14 +274,14 @@ export function useMapZoom({
 	// A wheel reports no end, so the gesture's is read from a gap: each notch
 	// re-arms this, and the marks answer the pointer again once it fires. A
 	// pointer gesture ends on its own release, and either can be live while the
-	// other settles — so both check the other before letting the drawing go.
+	// other settles, so both check the other before letting the drawing go.
 	const wheelSettle = useTimeout()
 
 	// The live wheel stream, or `null` between streams. A trackpad keeps sending
 	// after the fingers leave, so a stream outlives the key that armed it, and the
 	// listener reads this to tell that tail from a wheel a hand is still turning.
-	// Only a modifier map ever reads it — an armed-outright wheel has no key to
-	// let go of — but it is written on every claim either way, since the hold
+	// Only a modifier map ever reads it (an armed-outright wheel has no key to
+	// let go of), but it is written on every claim either way, since the hold
 	// below is what writes it and the hold is the gesture's, not the key's.
 	const wheelStream = useRef<MapWheelStream | null>(null)
 
@@ -316,7 +316,7 @@ export function useMapZoom({
 	// The SVG's box, read once when the gesture starts and held until a scroll
 	// moves it. Reading it per move would force a layout pass over the whole
 	// region tree on every tracked pointer event, since the move before it just
-	// wrote the layer's transform — the same second-read hazard `use-map-keyboard`
+	// wrote the layer's transform: the same second-read hazard `use-map-keyboard`
 	// documents.
 	const gestureBox = useRef<MapClientBox | null>(null)
 
@@ -673,7 +673,7 @@ export function useMapZoom({
 			drag(prev, at)
 
 			// Only once the travel has crossed the threshold, which is what turns the
-			// press from a pick into a pan — see {@link hold}.
+			// press from a pick into a pan (see {@link hold}).
 			if (press.current?.moved === true) hold(event)
 
 			return
@@ -740,7 +740,7 @@ export function useMapZoom({
 			// The authoritative reset: it fires on release, on a browser-claimed
 			// gesture, and on the node leaving the tree mid-drag alike. The other two
 			// stand beside it because a test environment dispatches neither capture
-			// nor its loss — the discipline `useColorDrag` keeps.
+			// nor its loss: the discipline `useColorDrag` keeps.
 			onLostPointerCapture,
 			onClickCapture,
 		},
@@ -815,7 +815,7 @@ function useWheelZoom(
 			// Without a modifier the map takes the gesture only where it can use it:
 			// at the fit and at the ceiling nothing moves, so the wheel stays the
 			// page's and a reader is never held on the map. Holding the key says the
-			// opposite — the reader aimed this at the map — so it is taken either
+			// opposite (the reader aimed this at the map), so it is taken either
 			// way, and a shift-wheel never scrolls the page sideways under them.
 			if (modifier === null && sameTransform(next, from)) return
 
@@ -1033,7 +1033,7 @@ function takeWheelTail(
 	event.preventDefault()
 
 	// Claimed on the tail as on a notch, so the stream stays live across the gaps
-	// in it — the settle that ends the gesture is the same one that ends this. The
+	// in it: the settle that ends the gesture is the same one that ends this. The
 	// stream is running down by the time it gets here, and says so, so the rest of
 	// it is held through the plateau the decay ends on.
 	hold(push, true)

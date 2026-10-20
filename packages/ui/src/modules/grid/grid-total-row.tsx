@@ -63,15 +63,15 @@ type GridGrandTotalBodyProps<T> = {
 	columns: GridColumn<T>[]
 	/** Whether the grid runs `role="grid"` semantics, gating the global row index. */
 	gridSemantics: boolean
-	/** The grid's resolved aria row count — the grand total's own index when it shows. */
+	/** The grid's resolved aria row count: the grand total's own index when it shows. */
 	ariaRowCount: number
 }
 
 /**
  * The grand-total row in its own `<tbody>`, so it closes the body whichever
- * branch — grouped, virtualized, or flat — rendered the rows above it. Renders
+ * branch (grouped, virtualized, or flat) rendered the rows above it. Renders
  * nothing when inactive, keeping the conditional off the grid body. Its global
- * `aria-rowindex` is the grid's last row, but only under grid semantics — a
+ * `aria-rowindex` is the grid's last row, but only under grid semantics: a
  * plain table conveys the row natively.
  *
  * @internal
@@ -100,12 +100,12 @@ export function GridGrandTotalBody<T>({
 type GridTotalRowProps<T> = {
 	/** The visible columns, in render order. */
 	columns: GridColumn<T>[]
-	/** The rows this total aggregates — a group's leaves, or the whole filtered set. */
+	/** The rows this total aggregates: a group's leaves, or the whole filtered set. */
 	rows: readonly T[]
 	/** A group total hides with its collapsed group; the grand total always shows. */
 	variant: 'group' | 'grand'
 	/**
-	 * Whether the row's group is expanded — a collapsed group's total collapses
+	 * Whether the row's group is expanded: a collapsed group's total collapses
 	 * with its leaves. Grand totals ignore it.
 	 * @defaultValue true
 	 */
@@ -138,7 +138,7 @@ function GroupRevealCell({
 }: {
 	/** The cursor props of the cell (see {@link useGridNavStopProps}). */
 	cellProps?: ComponentProps<'td'>
-	/** Whether the reveal renders open — the row's reveal hold, not `expanded`. */
+	/** Whether the reveal renders open: the row's reveal hold, not `expanded`. */
 	open: boolean
 	pad: string
 	rail?: boolean
@@ -155,7 +155,7 @@ function GroupRevealCell({
 			colSpan={colSpan}
 			data-grid-col={colId}
 			className={cn(
-				// The leading cell carries the group rail — in the group's color when set
+				// The leading cell carries the group rail: in the group's color when set
 				// (layered over the neutral tint), else neutral; a colored group also
 				// washes each cell's fill.
 				rail && k.row.group.rail.padded,
@@ -199,8 +199,8 @@ function GridTotalRowImpl<T>({
 
 	const span = aggregateLabelSpan(columns)
 
-	// The two variants share the label span and nothing else — different trees,
-	// and only the group one collapses — so the group row is its own component
+	// The two variants share the label span and nothing else (different trees,
+	// and only the group one collapses), so the group row is its own component
 	// rather than a branch whose hold the grand variant would have to carry.
 	if (variant === 'group') {
 		return (

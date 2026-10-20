@@ -69,7 +69,7 @@ type GridColumnSizingOptions<T> = {
 	columnFloors: Map<string, number>
 	/**
 	 * Freeze the fit against row-data changes (infinite scroll's stable widths). An
-	 * appended batch — a rows-only change — no longer re-measures and reflows the
+	 * appended batch (a rows-only change) no longer re-measures and reflows the
 	 * columns. A structural change (columns, density) and a container resize still
 	 * re-fit. The initial fit is unaffected.
 	 * @defaultValue false
@@ -298,7 +298,7 @@ export function useGridColumnSizing<T>({
 	 * supplies the escape for a grid that legitimately has no rows to measure.
 	 */
 	// Seeded from `automatic`, so a grid this hook never sizes is settled on the server
-	// too — layout effects don't run there, so a `false` seed would have hidden every
+	// too: layout effects don't run there, so a `false` seed would have hidden every
 	// non-resizable grid, and a controlled one with no content-sized column, until
 	// hydration for no reason.
 	const [settled, setSettled] = useState(!automatic)
@@ -405,8 +405,8 @@ export function useGridColumnSizing<T>({
 
 			publishFloors()
 
-			// Settled only once a pass has read real body cells. A provisional pass — the
-			// floor-only fit made against a loading skeleton, before the rows arrive — is
+			// Settled only once a pass has read real body cells. A provisional pass (the
+			// floor-only fit made against a loading skeleton, before the rows arrive) is
 			// the one `freezeOnRowChange` below already refuses to trust, and revealing on
 			// it is what still let the columns jump: a reload measures headers, paints, and
 			// then re-fits the moment the rows land.
@@ -481,7 +481,7 @@ export function useGridColumnSizing<T>({
 	const refitLatest = useStableEvent(refit)
 
 	// Re-measure when the columns or the density change, when `fitContent` changes
-	// the space the fit shares, or when the visible rows change (`rowsSignature` — a
+	// the space the fit shares, or when the visible rows change (`rowsSignature`: a
 	// page turn or filter can bring wider content into view). Keyed on those values
 	// and not on the identity of `refit`, which also moves with callbacks that change
 	// no width, so a render that changes none of them measures nothing. The values at
@@ -536,16 +536,17 @@ export function useGridColumnSizing<T>({
 		sizer,
 	])
 
-	// Fit when the body's rendered rows change and the last pass had none to measure.
-	// A windowed body renders its rows in a later commit than the one that supplied
-	// them — the virtualizer resolves its scroll element only once the refs have
-	// attached (see `useVirtualWindow`) — and that commit moves neither the rows
-	// signature nor the struct signature, so nothing above would re-measure it. The
-	// body calls this from a layout effect, so the fit lands before those rows paint:
-	// their first frame carries the content widths instead of the floor-only fit the
-	// empty body measured, and the widths never move again under the user's eyes.
-	// Once a pass has read rows this is a bail, leaving the windowed scroll — and
-	// `freezeOnRowChange` — to behave exactly as before.
+	// Fit when the body's rendered rows change and the last pass had none to
+	// measure. A windowed body renders its rows in a later commit than the one
+	// that supplied them, because the virtualizer resolves its scroll element
+	// only once the refs have attached (see `useVirtualWindow`). That commit
+	// moves neither the rows signature nor the struct signature, so nothing above
+	// would re-measure it. The body calls this from a layout effect, so the fit
+	// lands before those rows paint: their first frame carries the content widths
+	// instead of the floor-only fit the empty body measured, and the widths never
+	// move again under the user's eyes. Once a pass has read rows this is a bail,
+	// leaving the windowed scroll (and `freezeOnRowChange`) to behave exactly as
+	// before.
 	const fitRenderedRows = useCallback(() => {
 		if (!automatic || sizer.measured()) return
 
@@ -553,16 +554,16 @@ export function useGridColumnSizing<T>({
 	}, [automatic, sizer, refitLatest])
 
 	// Own the ResizeObserver in its own effect, keyed only on enablement and the
-	// container, so a width-only container resize is the one thing that recreates it
-	// — not a column or row change. Fit synchronously, before paint, so the first
+	// container, so a width-only container resize is the one thing that recreates it,
+	// not a column or row change. Fit synchronously, before paint, so the first
 	// frame carries real widths instead of flashing the engine's default colgroup.
 	// The observer below holds that guarantee for every *later* resize; see it.
 	useLayoutEffect(() => {
 		const container = containerRef?.current
 
-		// Nothing here will ever size these columns — not resizable, sizing controlled by
-		// the consumer, or no `ResizeObserver` (SSR, jsdom). There is nothing to wait for,
-		// so let the table paint immediately.
+		// Nothing here will ever size these columns: the grid is not resizable, the
+		// consumer controls sizing, or there is no `ResizeObserver` (SSR, jsdom).
+		// There is nothing to wait for, so let the table paint immediately.
 		if (!automatic || !container || typeof ResizeObserver === 'undefined') {
 			setSettled(true)
 
@@ -572,7 +573,7 @@ export function useGridColumnSizing<T>({
 		// Settling is `refit`'s to decide, and only on a pass that measured real body
 		// cells. A zero-width container (a collapsed panel, a tab parked in a hidden
 		// `Activity`) settles inside `refit` without a fit, and the observer below fits
-		// it the moment it has a width — which is the first moment it could be seen.
+		// it the moment it has a width, which is the first moment it could be seen.
 		refitLatest(true)
 
 		// Web fonts reflow text after a measure that ran while they loaded, so re-measure
@@ -602,7 +603,7 @@ export function useGridColumnSizing<T>({
 		 * that state committing, the table is laid out for a width the page no longer has. An
 		 * ordinary `setState` here commits on a later frame, and something has to paint in
 		 * between. That is the table sitting narrow inside its box, or overflowing it.
-		 * Anything that resizes the container discretely shows that as a flash — a sidebar
+		 * Anything that resizes the container discretely shows that as a flash: a sidebar
 		 * switching to its floating variant, a docked panel opening beside the grid.
 		 *
 		 * A `ResizeObserver` callback runs after layout and before paint, and mutating the DOM

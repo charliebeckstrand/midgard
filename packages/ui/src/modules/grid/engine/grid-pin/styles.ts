@@ -48,7 +48,7 @@ export function pinnedCellAttribute(
 /**
  * Sticky, opaque-surface, boundary-border, and boundary-shadow classes for a
  * pinned cell, or `''` when the column scrolls. Only the innermost column of each
- * frozen group — the one at the scroll-facing boundary — carries the edge border
+ * frozen group (the one at the scroll-facing boundary) carries the edge border
  * and the separating shadow. That border is at the inline end for a left
  * (start) group, and at the inline start for a right (end) group. The columns
  * behind it get just the sticky surface. The engine's left/right sections

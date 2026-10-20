@@ -24,13 +24,13 @@ type MapLineHitSpec = {
 	face?: boolean
 	/** Frame units per device pixel under the plat's zoom; the band's width converts through it. */
 	scale: number
-	/** The mark's own hit props — `useMapOverlay`'s `hit()` return. */
+	/** The mark's own hit props: `useMapOverlay`'s `hit()` return. */
 	hit: MapOverlayHit
 }
 
 /** What {@link MapLine} draws. @internal */
 type MapLineProps = {
-	/** The `data-slot` naming this line — each mark keeps its own part name. */
+	/** The `data-slot` naming this line: each mark keeps its own part name. */
 	slot: string
 	/** The path the line traces. */
 	d: string
@@ -64,7 +64,7 @@ type MapLineProps = {
  * dependency on the series color vocabulary and stays a shape.
  *
  * @remarks The width is stated in device pixels and converted to frame units
- * here, through {@link MapLineProps.scale} — the multiply `MapDot` takes, and
+ * here, through {@link MapLineProps.scale}: the multiply `MapDot` takes, and
  * for the reason recorded there. The reveal is why a line cares twice over. A
  * `pathLength` 0 → 1, the chart module's own line reveal, draws by dash. A dash
  * under a non-scaling stroke covers only 1/k of its path. A zoomed route
@@ -137,7 +137,7 @@ function MapLineDraw({
 
 /**
  * The invisible target a line-shaped mark answers on: the band around its
- * stroke, and — for a mark that encloses ground — its face as well. Props
+ * stroke, and (for a mark that encloses ground) its face as well. Props
  * rather than a component, which is `dotHitProps`'s discipline and for the
  * reason its doccomment records: a fiber per hit shape was measured and
  * rejected.

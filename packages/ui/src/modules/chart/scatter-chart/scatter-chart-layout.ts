@@ -188,7 +188,7 @@ function scatterTitles(
  * The inset a spark plot needs on every edge, so its largest disc clears the
  * frame rather than clipping. It is the widest disc radius across the visible
  * points, plus the half of the surface ring that strokes outside that radius.
- * The painted edge — not just the fill — therefore clears. Falls back to the
+ * The painted edge (not just the fill) therefore clears. Falls back to the
  * plain {@link MARKER_RADIUS} when
  * there is nothing to measure.
  * @internal
@@ -233,9 +233,9 @@ export function scatterScales(args: {
 
 	const drawAxes = axes && !spark
 
-	// A titled axis reserves a band past its labels — the x title under the x-axis
-	// band, the y title rotated at the far left — folded into the plot the way the
-	// cartesian layout folds its own.
+	// A titled axis reserves a band past its labels (the x title under the x-axis
+	// band, the y title rotated at the far left), folded into the plot the way
+	// the cartesian layout folds its own.
 	const xTitle = drawAxes ? args.xTitle : undefined
 
 	const yTitle = drawAxes ? args.yTitle : undefined
@@ -244,8 +244,8 @@ export function scatterScales(args: {
 
 	const yTitleBand = yTitle ? AXIS_TITLE_BAND + AXIS_TITLE_GAP : 0
 
-	// A spark scatter fits its domain tight — like a spark line, filling the box
-	// rather than sinking into the empty air a nice-stepped scale leaves — and
+	// A spark scatter fits its domain tight (like a spark line, filling the box
+	// rather than sinking into the empty air a nice-stepped scale leaves) and
 	// insets every edge by the widest disc's radius so the marks read centered and
 	// clear the frame instead of clipping at it. A framed plot keeps the axis
 	// reservations: the ceiling tick's top pad and the x-axis band down the value

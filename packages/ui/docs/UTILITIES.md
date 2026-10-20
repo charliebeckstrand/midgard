@@ -22,7 +22,7 @@
 | `integerFormat` / `fractionFormat` | The cached formatter behind each helper above for a `locale`. Use it where a memo needs a stable input. |
 | `percentFormat` | A `0..1` share as a whole percent for a `locale`, as a stable formatter. |
 | `compactFormat` | Compact notation to one fraction digit (`48.2K`) for a `locale`, as a stable formatter. Chart ticks in a narrow frame take it. |
-| `resolveFormat` | Resolves a `FormatSpec` to a cached `(value) => string` formatter — number, integer, currency, percent, compact, or prefixed id. |
+| `resolveFormat` | Resolves a `FormatSpec` to a cached `(value) => string` formatter: number, integer, currency, percent, compact, or prefixed id. |
 | `FormatSpec` *(type)* | What to format a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id`. |
 
 ## Locale
@@ -46,16 +46,16 @@
 
 ## Color scale
 
-The sequential-scale primitives the data-driven color charts share — the choropleth and the heatmap.
+The sequential-scale primitives the data-driven color charts share: the choropleth and the heatmap.
 
 | Export | Summary |
 |---|---|
 | `sampleRange` | The color a fraction `t` (`0`–`1`) of the way along an ordered stop list, exact stops verbatim and between-stops mixed in sRGB. |
 | `resolveColorBins` | Quantizes a `[min, max]` domain into equal-interval `ColorBin`s sampled from a color range, the last bin pinned to the max. |
-| `binIndex` | The equal-interval bin a value falls in — top edge clamped into the last bin, flat domain to bin `0`, non-finite to `null`. |
-| `resolveQuantileBins` | Splits values into equal-count (quantile) `ColorBin`s by rank — the skew-aware counterpart to `resolveColorBins` — with the thresholds rows assign by. |
+| `binIndex` | The equal-interval bin a value falls in: top edge clamped into the last bin, flat domain to bin `0`, non-finite to `null`. |
+| `resolveQuantileBins` | Splits values into equal-count (quantile) `ColorBin`s by rank (the skew-aware counterpart to `resolveColorBins`), with the thresholds rows assign by. |
 | `quantileThresholds` | The `count - 1` interior cut points splitting values into equal-count quantile buckets; empty for a flat domain (a single bin). |
-| `quantileBinIndex` | The quantile bin a value falls in — the count of thresholds it meets or exceeds; non-finite to `null`, bin `0` with no thresholds. |
+| `quantileBinIndex` | The quantile bin a value falls in: the count of thresholds it meets or exceeds; non-finite to `null`, bin `0` with no thresholds. |
 | `valueExtent` | The `[min, max]` of the finite values, an explicit override, or `null` when nothing spans a domain. |
 | `resolveBinScale` | Resolves one color scale: the painted `ColorBin`s and the `assign` rule its marks read, from one resolution per `Binning` (`'linear'` or `'quantile'`). |
 | `ColorBin` *(type)* | One bin: its `color` and the `[lo, hi]` value range it covers. |
@@ -131,7 +131,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 
 | Export | Summary |
 |---|---|
-| `getOrCompute` | The value under a key in a `Map` or `WeakMap`, computed and stored on the first read — the one get-or-compute step every memo spells. |
+| `getOrCompute` | The value under a key in a `Map` or `WeakMap`, computed and stored on the first read. It is the one get-or-compute step every memo spells. |
 | `ComputeCache` *(type)* | The `get`/`has`/`set` interface `getOrCompute` reads; a `Map` and a `WeakMap` both satisfy it. |
 | `createKeyedStore` | A store that holds one value for each key and calls only the listeners of the keys whose value changed. |
 | `KeyedStore` *(type)* | The store that `createKeyedStore` returns: `get`, `subscribe` for one key, and `publish` of a new reader. |

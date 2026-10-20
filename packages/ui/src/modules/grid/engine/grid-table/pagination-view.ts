@@ -11,7 +11,7 @@ import {
 import type { EngineTable } from './features'
 
 /**
- * Resolved pagination view model the footer renders from — page coordinate,
+ * Resolved pagination view model the footer renders from: page coordinate,
  * derived totals and bounds, and the navigation setters that drive the engine.
  *
  * @internal

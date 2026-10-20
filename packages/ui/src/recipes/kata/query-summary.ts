@@ -1,6 +1,6 @@
 /**
  * Query-summary kata: object-literal surface for the read-only `<QuerySummary>`
- * line. No variants axis — flat slots for the inline `base` container, the
+ * line. No variants axis: flat slots for the inline `base` container, the
  * `field`/`operator`/`value` parts of a rule, the muted AND/OR `combinator`, and
  * the nested-group `bracket`.
  */

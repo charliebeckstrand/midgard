@@ -10,7 +10,7 @@ the always-current, quick-glance inventory of the package. **Audits** and
 
 ## Structure
 
-- **Curated surface references** — kept current with the code:
+- **Curated surface references**: kept current with the code:
   [`COMPONENTS.md`](COMPONENTS.md), [`MODULES.md`](MODULES.md),
   [`STRUCTURE.md`](STRUCTURE.md), [`LAYOUTS.md`](LAYOUTS.md), [`HOOKS.md`](HOOKS.md),
   [`PRIMITIVES.md`](PRIMITIVES.md), [`PROVIDERS.md`](PROVIDERS.md),
@@ -20,10 +20,10 @@ the always-current, quick-glance inventory of the package. **Audits** and
   [`../REFERENCE.md`](../REFERENCE.md) is the hub that maps to them. When you
   add, remove, or rename an export, update the matching doc in the same change
   ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12.2).
-- **`audits/`** — dated sweeps of one area or one lens. Each audit records what
+- **`audits/`**: dated sweeps of one area or one lens. Each audit records what
   the sweep found and the pull request that closed each finding. Delete it once
   the last finding closes ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12.3, §12.4).
-- **`plans/`** — dated design records. Each plan records one decision: what a
+- **`plans/`**: dated design records. Each plan records one decision: what a
   feature or module must be, and the increments that make it. The pull requests
   that carry the work hold its progress, and the plan holds none. Delete it once
   its last step lands ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12.5).

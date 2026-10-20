@@ -35,7 +35,7 @@ export function frameScale(box: MapClientBox, viewWidth: number, viewHeight: num
 /**
  * A frame point in client (viewport) coordinates, or `null` for a box or a view
  * frame with no area. The map's readout anchors where the pointer is, so a
- * cursor with no pointer behind it — the keyboard's — must place its region the
+ * cursor with no pointer behind it (the keyboard's) must place its region the
  * same way.
  *
  * It reproduces the SVG letterboxing through {@link frameScale} rather than a

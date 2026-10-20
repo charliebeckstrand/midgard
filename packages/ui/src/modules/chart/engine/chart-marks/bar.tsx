@@ -19,7 +19,7 @@ export type ChartBarMarksProps = {
 	marks: (BarMark | null)[][]
 	/** Paint per series, indexed like `marks`. */
 	paints: ChartPaint[]
-	/** Each series' own index (`meta.index`), aligned to `marks` — the identity the mark emphasis keys on. */
+	/** Each series' own index (`meta.index`), aligned to `marks`: the identity the mark emphasis keys on. */
 	indices: number[]
 	/** Per-series texture-tile fill URLs, aligned with `paints`; a raw color or flat mode leaves the slot empty. */
 	fills?: (string | undefined)[]
@@ -72,7 +72,7 @@ export function ChartBarMarks({
 	// the only one: the path dims and the bar re-draws over it.
 	const isolating = mark !== null && mark.datum !== null
 
-	// Stable across emphasis changes — the chart body holds `marks` steady while
+	// Stable across emphasis changes: the chart body holds `marks` steady while
 	// the pointer moves, so a crossing never rebuilds these strings.
 	const paths = useMemo(
 		() =>
@@ -193,8 +193,8 @@ const AnimatedBar = memo(function AnimatedBar({
 			// A bar at its zero scale is invisible until the motion features load.
 			initial={still ? false : grow.initial}
 			animate={grow.animate}
-			// The bar shrinks back to the same baseline end it grew from — the
-			// reveal in reverse — when a data change swaps the marks generation.
+			// The bar shrinks back to the same baseline end it grew from (the
+			// reveal in reverse) when a data change swaps the marks generation.
 			exit={{ ...grow.initial, transition: BAR_SHRINK }}
 			style={{ ...grow.style, ...textureStyle(tile) }}
 			transition={{ ...BAR_GROW, delay }}
@@ -202,7 +202,7 @@ const AnimatedBar = memo(function AnimatedBar({
 	)
 })
 
-/** The Framer Motion bars, growing from the baseline along the value axis in sequence — and shrinking back to it on a data change. @internal */
+/** The Framer Motion bars, growing from the baseline along the value axis in sequence, and shrinking back to it on a data change. @internal */
 export function AnimatedChartBarMarks({
 	marks,
 	paints,

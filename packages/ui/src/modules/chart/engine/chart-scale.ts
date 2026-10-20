@@ -163,7 +163,7 @@ function niceBound(
  * The largest share of the range a headroom reservation can take per side. At
  * the cap, a both-sided reservation still leaves the data half the plot. Past
  * it the plot is too short to afford labels at all, so nothing is reserved.
- * {@link headroomFits} — the same predicate — tells the layout to shed them.
+ * {@link headroomFits} (the same predicate) tells the layout to shed them.
  *
  * @internal
  */
@@ -171,7 +171,7 @@ const HEADROOM_CAP = 0.25
 
 /**
  * Whether a `headroom` px reservation is affordable over a `rangePx`-long
- * range — at most {@link HEADROOM_CAP} of the range per side. The single
+ * range: at most {@link HEADROOM_CAP} of the range per side. The single
  * arbiter for the value-label room: {@link reserveHeadroom} reserves only when
  * it holds, and the layout sheds the labels when it doesn't. The reserved space
  * and the labels that need it can therefore never disagree.
@@ -193,7 +193,7 @@ export function headroomFits(headroom: number, rangePx: number): boolean {
  *
  * A one-sided widen grows the span, so the other side is tested again against
  * the new span. When that side then falls short and is free, both sides solve
- * together. An unaffordable ask (see {@link headroomFits}) reserves nothing —
+ * together. An unaffordable ask (see {@link headroomFits}) reserves nothing:
  * the layout sheds the labels by the same test, so no label renders against
  * unreserved edges.
  *
@@ -242,8 +242,8 @@ function reserveHeadroom(args: {
  * Builds a linear value scale over `values`, expanding unpinned bounds to
  * clean tick steps.
  *
- * @returns The scale, or `null` when no finite value (or pin) yields a domain
- * — the caller renders an empty frame.
+ * @returns The scale, or `null` when no finite value (or pin) yields a domain:
+ * the caller renders an empty frame.
  * @remarks Non-finite entries are ignored so a stray `NaN` doesn't collapse
  * the scale. A pinned `min`/`max` is kept exact (pinning exists to compare
  * charts on one scale), and out-of-domain values clamp to the range edges.
@@ -265,7 +265,7 @@ export function linearScale({
 	const max = finiteOrUndefined(pinMax)
 
 	// One pass for the finite extent, folding the zero baseline and the pins in as
-	// they are seen — the filter-to-a-copy then `Math.min(...spread)` it replaces
+	// they are seen: the filter-to-a-copy then `Math.min(...spread)` it replaces
 	// allocated an array the size of the series and spread it through `apply`
 	// twice, which also blows the argument limit on a large enough series. The
 	// loop allocates nothing and can't overflow, over exactly the same value set.
@@ -302,7 +302,7 @@ export function linearScale({
 	const [rawLow, rawHigh] = widen(dataLow, dataHigh, zeroBaseline)
 
 	// A spark scale carries no axis to align to (`tickTarget` 0), so it fits the
-	// domain to the data extent rather than nice-stepping it — a nice-stepped
+	// domain to the data extent rather than nice-stepping it: a nice-stepped
 	// sparkline sinks into a band of empty air instead of filling its box. Pins
 	// still win on their own side either way.
 	const tight = tickTarget <= 0
@@ -346,7 +346,7 @@ export type BandScale = {
 	width: number
 	/** The left edge of band `index`. */
 	at: (index: number) => number
-	/** The center of band `index` — where line points and x ticks sit. */
+	/** The center of band `index`, where line points and x ticks sit. */
 	center: (index: number) => number
 }
 

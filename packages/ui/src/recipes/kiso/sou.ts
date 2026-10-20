@@ -12,7 +12,7 @@
  * The order is the point, so read the rungs as a ladder rather than as six
  * independent values:
  *
- * `overlay` seals the page for a transaction — Dialog, Sheet, Drawer.
+ * `overlay` seals the page for a transaction: Dialog, Sheet, Drawer.
  *
  * `chrome` is application furniture a sealing overlay must not cover: a
  * `Chrome` region, and the companion furniture such regions need,
@@ -24,18 +24,18 @@
  * hides the controls of the stage. Such an overlay keeps the focus away from
  * the chrome too. A float raised from inside it still clears it.
  *
- * `float` is every transient anchored surface — tooltip, popover, menu,
+ * `float` is every transient anchored surface: tooltip, popover, menu,
  * select, combobox, listbox, date and color picker. It clears the overlay
  * and chrome rungs alike, because a float is routinely raised *from inside* a
  * panel or a chrome region. A tooltip that renders under the panel it describes
  * is worse than no tooltip.
  *
- * `lens` is a surface that magnifies the content beneath it — the PDF viewer's
+ * `lens` is a surface that magnifies the content beneath it: the PDF viewer's
  * hover loupe. It clears `float` because everything on that rung *describes*
  * content, while a lens *is* the content, enlarged. A tooltip anchored to the
  * region being inspected would sit inside the loupe, and hide what the reader
  * leaned in to read. Sharing the rung left that to DOM order, which
- * resolved it the wrong way — a tooltip mounted on selection portals after the
+ * resolved it the wrong way: a tooltip mounted on selection portals after the
  * lens.
  *
  * `toast` is topmost and unconditional. A toast reports something that

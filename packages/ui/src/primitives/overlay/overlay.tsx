@@ -332,7 +332,7 @@ function OverlayFocus({
 	// Two halves enforce the trap, and a registered region has to relax both. The
 	// focus guards bounce a Tab that reaches the panel's edge back inside, so
 	// `guards={false}` retires them, and `outsideElementsInert` then marks sealed
-	// content `inert` rather than `aria-hidden` — which is what holds the tab order
+	// content `inert` rather than `aria-hidden`, which is what holds the tab order
 	// off the sealed page once no guard is left to do it. `getInsideElements` hands
 	// the registered regions through as part of the surface, exempting them.
 	//

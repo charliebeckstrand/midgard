@@ -73,7 +73,7 @@ type ComboboxBaseProps<T> = {
 	/** @defaultValue `'Search'`, in the language of the reader. */
 	placeholder?: string
 	/**
-	 * Formats a stored value for the input's resting display — what shows when the
+	 * Formats a stored value for the input's resting display: what shows when the
 	 * user is not typing. Under `multiple` a single selection reads as its label,
 	 * and anything past one as a `"N selected"` count. The full list shows on hover
 	 * as the input's `title`.
@@ -88,7 +88,7 @@ type ComboboxBaseProps<T> = {
 	 */
 	displayValue?: (value: T) => string
 	/**
-	 * Names a `multiple` selection the field can only count — everything past one, and
+	 * Names a `multiple` selection the field can only count: everything past one, and
 	 * every selection at all when there is no {@link ComboboxBaseProps.displayValue}.
 	 *
 	 * The threshold stays the control's. WHEN to stop listing labels is a property
@@ -297,7 +297,7 @@ function seedTopMatch(
  * Seats the highlight for an arrow-key open. It goes on the current selection,
  * so the menu opens with the active value. A plain open leaves the highlight
  * empty, and so does an arrow-key open with nothing selected. Single mode
- * only — `multiple` carries no single selection.
+ * only: `multiple` carries no single selection.
  *
  * A windowed selection cannot be found without the DOM, so a registered
  * `source` seats the first option that `isDisabled` does not mark
@@ -536,7 +536,7 @@ export function Combobox<T>({
 	// Resolved after the binding, so the bound field's own errors reach the
 	// control: `useControlProps` ORs them with an ambient `error` severity, and a
 	// Combobox that withheld them rang only for a `<Field severity>` its consumer
-	// set by hand — where the Input beside it rang for its own validator.
+	// set by hand, where the Input beside it rang for its own validator.
 	const {
 		id: resolvedId,
 		disabled: resolvedDisabled,
@@ -930,7 +930,7 @@ export function Combobox<T>({
 						suffixProps={{
 							// Mouse-only toggle affordance; the input carries combobox
 							// semantics. Only the default chevron is decorative enough to
-							// hide from assistive tech — custom suffix content (e.g. a live
+							// hide from assistive tech: custom suffix content (e.g. a live
 							// LoadingSpinner) owns its own semantics. Interactive suffix
 							// content (the clear button) stops propagation to opt out.
 							'aria-hidden': suffix || showClear ? undefined : true,

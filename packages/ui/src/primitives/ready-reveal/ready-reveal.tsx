@@ -36,7 +36,7 @@ export type ReadyRevealProps = Omit<ComponentProps<'div'>, 'children' | 'placeho
 	 *
 	 * `ready` flipping is not an arrival: the placeholder is still fading when it does.
 	 * Use this to measure or focus the revealed content. Never fires for the return to
-	 * unready, and never on mount — a reveal mounted already ready plays no entrance.
+	 * unready, and never on mount: a reveal mounted already ready plays no entrance.
 	 */
 	onReadyComplete?: () => void
 	/**
@@ -69,13 +69,13 @@ const ROOT_GRID = { gridTemplate: '1fr / 1fr' } as const
 
 // The content layer occupies the single grid cell and, as the only in-flow
 // layer, is the sole thing that sizes it. The placeholder is lifted out of flow
-// (absolute, filling the cell) so its silhouette — whether it stands taller or
-// shorter than the content — never inflates the reserved box.
+// (absolute, filling the cell) so its silhouette (whether it stands taller or
+// shorter than the content) never inflates the reserved box.
 //
 // Known limitation: that layer is a block box, so an *inline-level* child sits
 // in a line box sized by the inherited `line-height` rather than by the child.
 // A control shorter than the inherited leading therefore reserves more than it
-// occupies and sits on the line box's baseline inside it — visible as a couple
+// occupies and sits on the line box's baseline inside it: visible as a couple
 // of pixels of vertical misalignment against a taller sibling, which is what
 // `apps/tms/.../review/review-bar.tsx` makes its controls block-level
 // to avoid. Blockifying this layer would fix it for every consumer. That is a
@@ -170,7 +170,7 @@ export function ReadyReveal({
 	// The last element focused within either layer, tracked via bubbled focusin.
 	// When a `ready` flip sends a focused layer `inert`, the browser drops its
 	// focus to <body>; this lets the effect hand focus to the revealed layer
-	// instead — but only when the deactivating layer actually held it, never when
+	// instead, but only when the deactivating layer actually held it, never when
 	// focus has since moved elsewhere on the page.
 	const lastFocused = useRef<HTMLElement | null>(null)
 

@@ -76,7 +76,7 @@ export const k = {
 	base: 'w-full text-start text-base',
 	// Color only. A `border.color.subtle` sat here with no border *width*, so it
 	// painted nothing: the shipped header carries no rule. Restoring one is a
-	// visual change, not a cleanup — it needs a width and a design call.
+	// visual change, not a cleanup: it needs a width and a design call.
 	head: [text.muted],
 	// Above the table and aligned to the start, with the muted color of the head.
 	caption: ['caption-top text-start pb-2', size.sm, text.muted],

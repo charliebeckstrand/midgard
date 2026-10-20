@@ -157,7 +157,7 @@ export type ChartContextMenuProps = {
 	 * Index of the mark under the pointer, or `null` off any mark. Reaches a
 	 * function-form `items` as the {@link ChartContextMenuTarget} it builds. The
 	 * host owns the hover state and passes it down, because this wrapper sits
-	 * outside `ChartHoverContext` — it wraps the provider — and cannot read it.
+	 * outside `ChartHoverContext` (it wraps the provider) and cannot read it.
 	 * @internal
 	 */
 	targetIndex?: number | null
@@ -216,7 +216,7 @@ export function ChartContextMenu({
 
 	// The re-mounted chart exposes a `tabIndex=0` plot region as the dialog's
 	// first tabbable child, and its keyboard handler `preventDefault`s Escape to
-	// drop focus rather than close — which would swallow the dialog's own Escape
+	// drop focus rather than close, which would swallow the dialog's own Escape
 	// dismissal. Seat initial focus on Close instead, so the dialog opens with a
 	// neutral tab stop focused and Escape shuts it.
 	const closeRef = useRef<HTMLButtonElement>(null)
@@ -249,7 +249,7 @@ export function ChartContextMenu({
 	const hasFullscreen = Boolean(fullscreen)
 
 	// The dialog's only writer: the Fullscreen item is reachable only while it is shut,
-	// and the dialog's own dismissal — which the Close button routes through — only while
+	// and the dialog's own dismissal (which the Close button routes through) only while
 	// it is open, so every call is a real transition and the caller's callback rides along
 	// unguarded.
 	const handleFullscreenChange = useCallback(
@@ -386,14 +386,15 @@ export function ChartContextMenu({
 										// with nothing hidden and is destroyed on close, so a report
 										// from it describes a set the chart underneath never had. A
 										// consumer persisting one would come back to a chart that
-										// disagrees with what it stored. Action callbacks stay — a
+										// disagrees with what it stored. Action callbacks stay: a
 										// click on a mark in here means what it always meant.
 										...shedReports(fullscreen.props as Record<string, unknown>),
-										// The dialog is auto-height and sized for the default 16/9 ratio,
-										// so a consumer's fill mode (`aspectRatio={false}`) — which fills
-										// its parent's height — has nothing to fill and collapses the plot
-										// to nothing. Drop fill back to the default ratio for the
-										// fullscreen view; an explicit ratio is left as the consumer set it.
+										// The dialog is auto-height and sized for the default 16/9
+										// ratio, so a consumer's fill mode (`aspectRatio={false}`,
+										// which fills its parent's height) has nothing to fill and
+										// collapses the plot to nothing. Drop fill back to the
+										// default ratio for the fullscreen view; an explicit ratio
+										// is left as the consumer set it.
 										...((fullscreen.props as { aspectRatio?: unknown }).aspectRatio === false
 											? { aspectRatio: undefined }
 											: {}),
@@ -434,7 +435,7 @@ export function ChartContextMenu({
 	// A chart rendered inside the fullscreen dialog is this menu's own re-mounted
 	// copy. It renders bare, so the enlarged chart never nests a second menu or
 	// recurses. The rule lives here because this component provides
-	// `ChartFullscreenContext` — a caller cannot forget to apply it.
+	// `ChartFullscreenContext`: a caller cannot forget to apply it.
 	if (isFullscreen) return <>{children}</>
 
 	return (

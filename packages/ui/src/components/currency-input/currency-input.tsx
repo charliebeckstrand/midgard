@@ -251,7 +251,7 @@ export function CurrencyInput({
 				const parsed = parse(formatted)
 
 				// Guard like the blur path: a keystroke that changes the text but
-				// not the number — a trailing separator, a digit past `precision` —
+				// not the number (a trailing separator, a digit past `precision`)
 				// must not re-emit the value it already holds.
 				if (parsed !== amount) setAmount(parsed)
 			}}

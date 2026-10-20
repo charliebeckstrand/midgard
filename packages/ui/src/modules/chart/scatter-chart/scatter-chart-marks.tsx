@@ -25,12 +25,12 @@ const DIM_OPACITY = 0.25
 
 /** One scatter series' render inputs. @internal */
 export type ChartScatterSeries = {
-	/** The series' own index in the caller's list — the React key, unique where two series share a label. */
+	/** The series' own index in the caller's list: the React key, unique where two series share a label. */
 	index: number
 	label: string
 	paint: ChartPaint
 	marks: ScatterMark[]
-	/** Whether the series carries the bubble size encoding — sized discs fill translucently. */
+	/** Whether the series carries the bubble size encoding: sized discs fill translucently. */
 	sized: boolean
 }
 
@@ -78,7 +78,7 @@ function markProps(paint: ChartPaint, sized: boolean) {
 export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
 	const { mark, lit } = useChartMarkEmphasis()
 
-	// Stable across emphasis changes — the chart body holds `list` steady while
+	// Stable across emphasis changes: the chart body holds `list` steady while
 	// the pointer moves, so a plain series' disc string survives a crossing
 	// untouched; a sized series builds none.
 	const paths = useMemo(
@@ -101,7 +101,7 @@ export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
 							r={marks[datum]?.r}
 							{...props}
 							// The disc the pointer isolates keeps full strength; its siblings and
-							// every other series recede — the dim rides the class, no inline
+							// every other series recede: the dim rides the class, no inline
 							// opacity to lose to.
 							className={cn(props.className, seriesGroupClass(!lit(index, datum)))}
 						/>
@@ -211,7 +211,7 @@ const AnimatedDisc = memo(function AnimatedDisc({
 			{...markProps(paint, sized)}
 			initial={still ? false : DISC_HIDDEN}
 			// Motion owns the disc's opacity through the pop-in, so the dim rides the
-			// same channel — receding to the class dim's depth — rather than a class
+			// same channel (receding to the class dim's depth) rather than a class
 			// the inline value would override.
 			animate={{ r, opacity: lit ? 1 : DIM_OPACITY }}
 			transition={still ? DISC_STILL : DISC_POP}

@@ -1,6 +1,6 @@
 /**
  * The Paint value model: what a resolved chart color *is* and how it applies
- * to a mark, swatch, or label — independent of what's being colored. A color
+ * to a mark, swatch, or label (independent of what's being colored). A color
  * resolves to one of two kinds:
  *
  * - a palette *slot*, carrying the CVD-validated class lists applied through
@@ -21,13 +21,13 @@
 import { cn } from '../../../../core'
 import { type ChartColorSlot, k } from '../../../../recipes/kata/chart'
 
-/** The mark classes for one palette slot — `stroke` / `fill` / `text` / `label`. @internal */
+/** The mark classes for one palette slot: `stroke` / `fill` / `text` / `label`. @internal */
 export type SlotPaint = (typeof k.series)[ChartColorSlot]
 
 /**
  * A chart color: a named palette slot rendered through the CVD-validated slot
  * classes. It can instead be a raw CSS color (a hex, `oklch()`, or any value
- * CSS accepts) applied inline. The generic input the whole color system resolves from —
+ * CSS accepts) applied inline. The generic input the whole color system resolves from:
  * series build {@link ChartSeriesColor} on it, and other colored elements can
  * do the same.
  *
@@ -50,8 +50,8 @@ export type ChartPaint =
 	| { kind: 'raw'; color: string }
 
 /**
- * Whether a color names a palette slot — rendered through the CVD-safe slot
- * classes — rather than a raw CSS color applied inline. `Object.hasOwn` so a
+ * Whether a color names a palette slot (rendered through the CVD-safe slot
+ * classes) rather than a raw CSS color applied inline. `Object.hasOwn` so a
  * property name off `Object.prototype` (`'constructor'`, `'toString'`) can't pose
  * as a slot. Shared by the series marks and the reference lines.
  *

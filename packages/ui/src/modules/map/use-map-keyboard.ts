@@ -44,16 +44,16 @@ function describeZoom(intl: IntlShape, transform: MapTransform): string {
 
 /** What {@link useMapKeyboard} needs from the plat to drive a cursor. @internal */
 export type MapKeyboardOptions = {
-	/** Whether the cursor has an output — a readout, a pick, or both; `false` leaves the region unfocusable. */
+	/** Whether the cursor has an output: a readout, a pick, or both; `false` leaves the region unfocusable. */
 	enabled: boolean
 	/**
-	 * Every place the cursor can stand — the regions at their centroids, then the
-	 * overlay marks at theirs — resolved on demand. A closure, not an array. The
+	 * Every place the cursor can stand (the regions at their centroids, then the
+	 * overlay marks at theirs), resolved on demand. A closure, not an array. The
 	 * `geoCentroid` pass behind the region half measures every ring in the atlas
 	 * (on counties, a large fraction of the cost of the mount). It must never run
 	 * on the mount or the resize path for a cursor most maps never carry. This is
-	 * called on the first navigation key and not again until a refit, a resize, or
-	 * an overlay registration replaces it.
+	 * called on the first navigation key and not again until a refit, a resize,
+	 * or an overlay registration replaces it.
 	 */
 	resolveStops: () => MapStop[]
 	/** The active viewBox width and height, for the frame-to-client conversion. */
@@ -66,7 +66,7 @@ export type MapKeyboardOptions = {
 	 * it did not come from.
 	 */
 	subject: unknown
-	/** Picks the stop under the cursor — a region by index, an overlay through its own reporter. */
+	/** Picks the stop under the cursor: a region by index, an overlay through its own reporter. */
 	activate: (target: MapHoverTarget) => void
 	/**
 	 * The readout of a stop as one line of text, or `null` for none. A key that
@@ -119,7 +119,7 @@ export type MapKeyboardOptions = {
  * The cursor itself survives, so the next arrow brings the readout back at the
  * map's new position.
  *
- * Returns `null` — no tab stop — when the cursor has no output, leaving the
+ * Returns `null` (no tab stop) when the cursor has no output, leaving the
  * region the plain `role="img"` it was.
  *
  * @internal
@@ -180,7 +180,7 @@ export function useMapKeyboard({
 
 	// The drawn point the readout last anchored to. A keypress anchors directly,
 	// so the re-anchor effect below must fire only for the cases it exists
-	// for — otherwise every keypress would read the SVG's box twice, the second
+	// for; otherwise every keypress would read the SVG's box twice, the second
 	// read forcing a layout recalc over the whole region tree. Held after the
 	// transform rather than before it, so a pan or a zoom re-anchors the readout
 	// the same way a refit does.
@@ -239,8 +239,8 @@ export function useMapKeyboard({
 
 	const { leave, onBlur } = usePlotTabStop(cursor !== null, () => show(null))
 
-	// Release what the cursor held once navigation switches off — the readout
-	// unmounted, the pick removed — so no stale emphasis lingers with no way to
+	// Release what the cursor held once navigation switches off (the readout
+	// unmounted, the pick removed), so no stale emphasis lingers with no way to
 	// clear it (a blur never fires).
 	useEffect(() => {
 		if (!enabled && cursor !== null) {
@@ -322,7 +322,7 @@ export function useMapKeyboard({
 			}
 		}
 
-		// Enter and Space pick the mark under the cursor — the click's keyboard
+		// Enter and Space pick the mark under the cursor: the click's keyboard
 		// counterpart, and half the reason the map is navigable. Space would
 		// otherwise scroll the page out from under the reader.
 		if (isActivateKey(event.key)) {

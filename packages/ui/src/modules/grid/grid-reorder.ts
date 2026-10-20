@@ -37,7 +37,7 @@ export const [GridReorderKitContext] = createContext<GridReorderKit | null>('Gri
 
 /**
  * Drives a reordering column's shift onto the CSS variable {@link columnShiftStyle}
- * reads. The whole column — its header and every body cell — therefore moves
+ * reads. The whole column (its header and every body cell) therefore moves
  * from one variable, without re-rendering a cell. Only the make-room shifts of an
  * in-flight drag spring. The actively dragged column tracks the pointer 1:1,
  * because a spring would lag the cursor. Once the drag ends (`!isSorting`) every

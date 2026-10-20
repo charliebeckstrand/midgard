@@ -8,7 +8,7 @@ import { k, type SwatchVariants } from '../../recipes/kata/swatch'
  *
  * - a `kata/chart` palette slot name, to its CVD-validated `text-*` class;
  * - a raw hex or `oklch()` color, to an inline `color` style;
- * - anything else — a caller-supplied `text-*` utility — through unchanged as a
+ * - anything else (a caller-supplied `text-*` utility) through unchanged as a
  *   class.
  *
  * Mirrors the chart's own `ChartColor` model (`chart-color/paint.ts`): a named
@@ -56,7 +56,7 @@ export type SwatchProps = SwatchVariants & {
 	 * Accessible name. Color alone conveys meaning, so a *standalone* swatch
 	 * needs a text alternative: when set, the swatch renders as `role="img"`
 	 * with this label (WCAG 1.4.1 / 1.1.1). Omit it when the swatch is
-	 * decorative and paired with adjacent visible text — a legend or tooltip
+	 * decorative and paired with adjacent visible text: a legend or tooltip
 	 * row already names its own entry.
 	 */
 	label?: string

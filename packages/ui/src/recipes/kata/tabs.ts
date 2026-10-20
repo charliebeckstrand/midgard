@@ -35,7 +35,7 @@ const group = defineRecipe({
  * sit on. Horizontal sizes to `max-content` (never below `100%`), so the rail
  * spans the full scroll width. A block-level flex box otherwise fills only the
  * viewport, which clips the rail there and strands overflowed tabs above bare
- * space. Vertical needs no counterpart — an auto-height column already grows to
+ * space. Vertical needs no counterpart: an auto-height column already grows to
  * its content, so `border-s` runs the full length of every stacked tab.
  */
 const list = defineRecipe({
@@ -139,7 +139,7 @@ const trigger = defineRecipe({
  * (`tabIndex=0`, per the APG tabs pattern). Keyboard users can then reach and
  * scroll it. The design-system blue focus ring replaces the browser default
  * when it takes focus. The ring is `:focus-visible`-gated, so a panel
- * that holds its own focusable content — and is never tabbable — never shows it.
+ * that holds its own focusable content (and is never tabbable) never shows it.
  */
 const panel = focus.ring
 

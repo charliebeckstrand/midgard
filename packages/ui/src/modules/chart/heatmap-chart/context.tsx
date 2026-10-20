@@ -3,7 +3,7 @@
 import { type ReactNode, useMemo, useState } from 'react'
 import { createContext } from '../../../core'
 
-/** The class the range legend is probing, or `null` at rest — the cells outside it dim. @internal */
+/** The class the range legend is probing, or `null` at rest: the cells outside it dim. @internal */
 type HeatmapFocus = {
 	/** The probed bin index, or `null` when the legend is at rest. */
 	bin: number | null

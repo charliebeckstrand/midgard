@@ -23,7 +23,7 @@ export function getCanvasPoint(
  *
  * @internal
  * @remarks
- * Decodes via an `Image`, so the draw lands asynchronously on `onload` — the
+ * Decodes via an `Image`, so the draw lands asynchronously on `onload`: the
  * canvas is unchanged until then. Sizes the draw to the CSS box; the context is
  * assumed already scaled to devicePixelRatio by the sizing hook. `onDraw` runs
  * after the draw.

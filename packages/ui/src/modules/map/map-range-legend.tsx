@@ -12,7 +12,7 @@ import { binEmphasisId } from './engine/map-region/category'
 /**
  * Props for {@link MapRangeLegend}: the bar the legend plan resolved. The shape
  * is the engine's ({@link MapLegendRange}), so the plan builds and this renders
- * one declaration — the dependency runs view → engine, never back.
+ * one declaration: the dependency runs view → engine, never back.
  *
  * @internal
  */
@@ -49,10 +49,11 @@ function RangeHoverArrow({
 /**
  * The choropleth's range legend: the shared {@link RangeLegend} scale-bar
  * slider, wired to the map. Its hover arrow tracks the pointed region's value,
- * and probing the bar emphasizes that class's regions through `onFocus`, dimming
- * the rest. The `map-range` slot keeps the map's part names. `orientation`
- * follows the resolved placement — vertical beside the plot, horizontal above or
- * below — the legend box centering a horizontal bar in its stacked row.
+ * and probing the bar emphasizes that class's regions through `onFocus`,
+ * dimming the rest. The `map-range` slot keeps the map's part names.
+ * `orientation` follows the resolved placement (vertical beside the plot,
+ * horizontal above or below), and the legend box centers a horizontal bar in
+ * its stacked row.
  *
  * @internal
  */

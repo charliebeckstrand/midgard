@@ -8,11 +8,11 @@ import { noopSubscribe } from '../../utilities/noop'
  * the view a cascade isn't showing, a disclosure's closed body, and a wizard
  * step off screen:
  *
- * - `always` — every panel is mounted up front and inactive ones are held
+ * - `always`: every panel is mounted up front and inactive ones are held
  *   (state preserved, effects paused).
- * - `lazy` — a panel is absent until it first becomes active, then held like
+ * - `lazy`: a panel is absent until it first becomes active, then held like
  *   `always`; defers the mount cost of never-visited panels.
- * - `active` — only the active panel is mounted; going inactive unmounts it and
+ * - `active`: only the active panel is mounted; going inactive unmounts it and
  *   resets its state.
  */
 export type Mount = 'always' | 'lazy' | 'active'
@@ -28,7 +28,7 @@ export type MountHoldState = {
 	 * change the tree shape, and remount the subtree each switch.
 	 */
 	held: boolean
-	/** Whether the held panel is resting — the `<Activity mode="hidden">` state. */
+	/** Whether the held panel is resting: the `<Activity mode="hidden">` state. */
 	hidden: boolean
 	/**
 	 * Whether the panel was active on its first render, frozen there. A held
@@ -46,7 +46,7 @@ export type MountHoldState = {
 }
 
 /**
- * Whether a policy guarantees every panel is in the DOM — the question a trigger
+ * Whether a policy guarantees every panel is in the DOM: the question a trigger
  * asks before pointing `aria-controls` at a panel it doesn't render. Only
  * `always` can answer yes: `lazy` mounts panels as they are visited, which no
  * sibling trigger can observe, and `active` keeps just the one.
@@ -92,7 +92,7 @@ export function useMountsEveryPanel(mount: Mount): boolean {
 
 /**
  * Resolves whether a panel is present, held, and hidden under a {@link Mount}
- * policy — the shared lifecycle behind the current-panel cascade, disclosure
+ * policy: the shared lifecycle behind the current-panel cascade, disclosure
  * panels, and stepper panels.
  *
  * @remarks
@@ -139,8 +139,8 @@ export function useMountHold(
 	const [rested, setRested] = useState(!active && held && defer)
 
 	// The latch is only valid while its conditions are: an active panel, a policy
-	// that stopped holding, or a hold that stopped deferring all clear it now —
-	// no animation completion will arrive to do it.
+	// that stopped holding, or a hold that stopped deferring all clear it now
+	// (no animation completion will arrive to do it).
 	if (rested && (active || !held || !defer)) setRested(false)
 
 	// The arming direction. When the policy starts to hold, or the hold starts to

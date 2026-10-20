@@ -32,9 +32,9 @@ export type GridVirtualize = boolean | { estimateSize?: number; overscan?: numbe
  * Infinite-scroll binding for {@link GridProps.infiniteScroll}. As the
  * virtualized window nears the end of the loaded rows, the grid calls
  * `onLoadMore`. The consumer then grows `rows` with the next batch. Implies
- * {@link GridProps.virtualize} (which supplies the windowed scroll container —
- * so `maxHeight` is still required), and replaces the paged
- * {@link GridProps.pagination} footer — the two are mutually exclusive.
+ * {@link GridProps.virtualize}, which supplies the windowed scroll container
+ * (so `maxHeight` is still required), and replaces the paged
+ * {@link GridProps.pagination} footer. The two are mutually exclusive.
  *
  * @remarks One binding, two data sources. A *local* set appends synchronously:
  * leave `loadingMore` unset and gate on `hasMore`. A *server* set fetches the
@@ -79,7 +79,7 @@ export type GridInfiniteScroll = {
 	 * Fires when the scroll reaches within {@link GridInfiniteScroll.threshold}
 	 * rows of the loaded end and more rows remain. It fires at most once per
 	 * scroll interaction, plus the bounded viewport-fill; see the binding
-	 * remarks. Append the next rows to your `rows` — a local slice, or a server
+	 * remarks. Append the next rows to your `rows`: a local slice, or a server
 	 * fetch.
 	 */
 	onLoadMore: () => void
@@ -120,7 +120,7 @@ export type GridInfiniteScroll = {
 	loadingIndicator?: boolean | ReactNode
 	/**
 	 * Message shown in a muted `Text` on the trailing row once the end is reached
-	 * (`hasMore` false) — a scroll-triggered load that came back empty. Unset shows
+	 * (`hasMore` false): a scroll-triggered load that came back empty. Unset shows
 	 * nothing at the end. Superseded by `error`, and by the loading indicator while
 	 * a batch is in flight.
 	 */
@@ -135,8 +135,8 @@ export type GridInfiniteScroll = {
 	/**
 	 * Freezes the auto-fit column widths at their first measurement of rendered
 	 * rows, so an appended batch never reflows the columns. Later content wider
-	 * than a column truncates instead of widening it. A structural change —
-	 * columns, density, or a container resize — still re-fits. Rows that arrive
+	 * than a column truncates instead of widening it. A structural change
+	 * (columns, density, or a container resize) still re-fits. Rows that arrive
 	 * after mount are the first measurement, not an append. A grid that mounts on
 	 * a loading skeleton fits to its data when the data renders, then freezes
 	 * there. Builds on
@@ -226,7 +226,7 @@ export type GridGroupHeaderRow = {
  * group-header row, which shows the value and a row count. The grid groups the
  * rows itself.
  *
- * @remarks {@link GridGroupBy.manual} selects one of two modes — the same split
+ * @remarks {@link GridGroupBy.manual} selects one of two modes: the same split
  * as the pagination, sort, and filter bindings. In client mode (the default)
  * the grid computes the groups from the in-memory `rows`. In manual (server)
  * mode the grid computes nothing: the consumer's backend groups the data and
@@ -270,7 +270,7 @@ export type GridGroupBy<T = unknown> = {
 	/**
 	 * Renders a group header's label, superseding the default `value (count)`.
 	 * Receives the {@link GridGroupHeaderContext}; the expand toggle and count
-	 * chrome around it stay. Serves both modes — under {@link GridGroupBy.manual}
+	 * chrome around it stay. Serves both modes: under {@link GridGroupBy.manual}
 	 * the context reads from the row's {@link GridGroupBy.groupRow} descriptor.
 	 */
 	renderHeader?: (context: GridGroupHeaderContext) => ReactNode
@@ -285,8 +285,8 @@ export type GridGroupBy<T = unknown> = {
 	 * is a controllable set of group keys ({@link GridGroupBy.expanded} /
 	 * {@link GridGroupBy.onExpandedChange}). An expand fires
 	 * {@link GridGroupBy.onGroupExpand}, so the consumer can lazily fetch that
-	 * group's children and feed them back in `rows`. Every row — header and
-	 * leaf alike — still needs a stable, unique {@link GridDataProps.getKey}.
+	 * group's children and feed them back in `rows`. Every row (header and
+	 * leaf alike) still needs a stable, unique {@link GridDataProps.getKey}.
 	 * Single-level, like client grouping; the aggregate total rows
 	 * ({@link GridDataProps.groupTotalRow} / {@link GridDataProps.grandTotalRow})
 	 * stand down, since the backend owns the figures. Sorting the grouped column
@@ -299,7 +299,7 @@ export type GridGroupBy<T = unknown> = {
 	/**
 	 * Manual-mode row contract: marks a row as a group header by returning its
 	 * {@link GridGroupHeaderRow} descriptor, or `null` for a leaf row. Required
-	 * for {@link GridGroupBy.manual} grouping to render — without it every row
+	 * for {@link GridGroupBy.manual} grouping to render. Without it, every row
 	 * renders flat.
 	 */
 	groupRow?: (row: T) => GridGroupHeaderRow | null
@@ -311,7 +311,7 @@ export type GridGroupBy<T = unknown> = {
 	expanded?: Set<string | number>
 	/**
 	 * Fires when a manual group header toggles, with the next expanded key set.
-	 * Coalesced to a concrete set, never `undefined` — matching the other grid
+	 * Coalesced to a concrete set, never `undefined`, as in the other grid
 	 * bindings.
 	 */
 	onExpandedChange?: (expanded: Set<string | number>) => void
@@ -344,7 +344,7 @@ export type GridGroupBy<T = unknown> = {
 	 * and the group's slot in the manual group order, keyed by each group's value
 	 * (see {@link GridRowGroup}). The
 	 * plain-array shorthand seeds it uncontrolled; the `{ value, onValueChange }`
-	 * form persists it. Client grouping only — under {@link GridGroupBy.manual} the
+	 * form persists it. Client grouping only: under {@link GridGroupBy.manual} the
 	 * backend owns the sequence and the overlay stands down.
 	 */
 	rowGroups?: GridRowGroups
@@ -353,7 +353,7 @@ export type GridGroupBy<T = unknown> = {
 	 * right-click menu. Each group takes a color and a place in the group order
 	 * there. Rows keep the engine order. The dialog commits through
 	 * {@link GridGroupBy.rowGroups}. On by default whenever client grouping and the
-	 * header context menu are both live; `false` is the off switch — no "Manage
+	 * header context menu are both live; `false` is the off switch: no "Manage
 	 * rows" item, no dialog.
 	 * @defaultValue true
 	 */
@@ -363,8 +363,8 @@ export type GridGroupBy<T = unknown> = {
 /**
  * Row expansion / master-detail binding for {@link GridProps.expandable}: a
  * controllable set of expanded row keys plus the detail renderer. An expanded
- * row reveals a full-width panel beneath it holding `render(row)` — an
- * arbitrary React sub-component — over an auto-height CSS transition. Add an
+ * row reveals a full-width panel beneath it holding `render(row)` (an
+ * arbitrary React sub-component) over an auto-height CSS transition. Add an
  * {@link GridColumn.expander} column for the disclosure chevron.
  *
  * @typeParam T - Shape of a single row.
@@ -376,14 +376,14 @@ export type GridExpandable<T> = {
 	defaultValue?: Set<string | number>
 	/**
 	 * Fires when the expanded set changes, with the next set. Coalesced to a
-	 * concrete set, never `undefined` — matching the other grid bindings.
+	 * concrete set, never `undefined`, as in the other grid bindings.
 	 */
 	onValueChange?: (expanded: Set<string | number>) => void
 	/** Renders the detail panel for an expanded row; the panel spans the full row width. */
 	render: (row: T) => ReactNode
 	/**
 	 * Whether a row can expand at all. A row this rejects shows no chevron and
-	 * never opens — for rows with nothing to detail.
+	 * never opens: for rows with nothing to detail.
 	 * @defaultValue every row expandable.
 	 */
 	rowExpandable?: (row: T) => boolean
@@ -453,7 +453,7 @@ export type GridColumnOrder = {
 
 /**
  * Column-reorder config for {@link GridProps.reorder}. The boolean is the
- * shorthand — `true` turns reordering on with a leading grip on each
+ * shorthand: `true` turns reordering on with a leading grip on each
  * reorderable header, `false` (or omit) off. The object form is itself the
  * opt-in (reordering on) and adds `handle` to choose what the user grabs.
  */
@@ -463,7 +463,7 @@ export type GridReorder = {
 	 * activator. `false` makes the *entire* header the drag handle. The header cell
 	 * takes the grab cursor, grabbing while lifted, plus the pointer and keyboard
 	 * activator, and no grip renders. A sortable column's sort control keeps its
-	 * pointer cursor — set on the control itself, it out-resolves the header's
+	 * pointer cursor: set on the control itself, it out-resolves the header's
 	 * inherited grab cursor on that child.
 	 * @defaultValue true
 	 */
@@ -485,7 +485,7 @@ export type GridPinningState = Record<string, 'left' | 'right' | 'none'>
  * {@link GridProps.pinning}. It holds the pin changes that the header context
  * menu's Pin left / Pin right / Unpin items and the column manager's
  * per-column pin control apply. Those layer over each column's static
- * {@link GridColumn.pinned} flag. Omit it and the grid keeps the state internally, exactly as before —
+ * {@link GridColumn.pinned} flag. Omit it and the grid keeps the state internally, exactly as before:
  * bind it to persist the user's pins.
  */
 export type GridPinning = {
@@ -496,7 +496,7 @@ export type GridPinning = {
 }
 
 /**
- * A saved column layout — order, hidden ids, widths, and runtime pins — as one
+ * A saved column layout (order, hidden ids, widths, and runtime pins) as one
  * storage-agnostic snapshot for {@link GridProps.preferences}. Every field is
  * optional; a dimension the snapshot omits falls back to the grid's own default
  * (declaration order, all-visible, content auto-fit, static pins).
@@ -508,7 +508,7 @@ export type GridPreferences = {
 	order?: (string | number)[]
 	/** Hidden column ids (the {@link GridColumnManagerConfig.defaultHidden} seed). */
 	hidden?: (string | number)[]
-	/** Per-column widths in px, keyed by id (the {@link GridColumnSizing} seed) — held as manual widths, so the auto-fit fills the rest around them. */
+	/** Per-column widths in px, keyed by id (the {@link GridColumnSizing} seed): held as manual widths, so the auto-fit fills the rest around them. */
 	columnSizing?: GridColumnSizingState
 	/** Runtime pin overrides, keyed by id (the {@link GridPinning} seed). */
 	pinning?: GridPinningState
@@ -522,9 +522,9 @@ export type GridSelection = {
 	value?: Set<string | number>
 	defaultValue?: Set<string | number>
 	/**
-	 * Fires when the selection changes, with the next selection. The grid coalesces
-	 * an internal clear to an empty set, so the payload is never `undefined` —
-	 * matching the other grid bindings' non-nullable callbacks.
+	 * Fires when the selection changes, with the next selection. The grid
+	 * coalesces an internal clear to an empty set, so the payload is never
+	 * `undefined`, as with the non-nullable callbacks of the other grid bindings.
 	 */
 	onValueChange?: (selection: Set<string | number>) => void
 	/**
@@ -542,7 +542,7 @@ export type GridSelection = {
  * on the {@link GridToolSurfaces | surfaces} that open it, and holds
  * controlled/uncontrolled column-visibility state. Column order lives on the
  * top-level {@link GridProps.columnOrder} binding, which the manager dialog
- * reads and writes. `columnManager={false}` is the off switch — no menu item, no
+ * reads and writes. `columnManager={false}` is the off switch: no menu item, no
  * button, and the dialog stays out of the tree.
  */
 export type GridColumnManagerConfig = GridToolSurfaces & {
@@ -554,7 +554,7 @@ export type GridColumnManagerConfig = GridToolSurfaces & {
 
 	/**
 	 * Heads the manager of the dialog with a filter field that narrows the
-	 * list to the columns whose label matches the typed text. `false` drops it —
+	 * list to the columns whose label matches the typed text. `false` drops it:
 	 * worth doing on a grid with few enough columns that the field is only noise.
 	 * @defaultValue true
 	 */
@@ -607,7 +607,7 @@ export type GridHeader = {
  */
 export type GridFooterStats = {
 	/**
-	 * Rows after search/filter — the full filtered extent across every page, not
+	 * Rows after search/filter: the full filtered extent across every page, not
 	 * just the rendered window. The server total under server-side pagination.
 	 */
 	rows: number
@@ -630,7 +630,7 @@ export type GridFooterStats = {
 /**
  * Footer configuration for {@link GridDataProps.footer}: an opt-in status bar
  * below the table, each setting rendered only when enabled. Distinct from the
- * {@link GridPagination} footer — a paginated grid can carry both, the pagination
+ * {@link GridPagination} footer: a paginated grid can carry both, the pagination
  * navigation beneath this summary bar.
  */
 export type GridFooter = {
@@ -650,7 +650,7 @@ export type GridFooter = {
 	 * Shows the selected-row count nested against the visible extent
 	 * (`'3 of 12 rows selected'`) while a selection is active; silent when nothing
 	 * is selected. Takes the leading slot from {@link GridFooter.rowTotal} while
-	 * active — its `of` denominator keeps the visible context the total would show.
+	 * active: its `of` denominator keeps the visible context the total would show.
 	 * Needs a selection column to be meaningful.
 	 * @defaultValue false
 	 */
@@ -793,8 +793,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	/**
 	 * Appends a total row under each group's leaves while {@link GridDataProps.groupBy}
 	 * is active, carrying every aggregating column's figure over that group's
-	 * rows (see {@link GridColumn.aggFunc}). The row collapses with its group —
-	 * whose header reads the same figures — and renders only once a visible
+	 * rows (see {@link GridColumn.aggFunc}). The row collapses with its group
+	 * (whose header reads the same figures) and renders only once a visible
 	 * column aggregates. Stands down under {@link GridGroupBy.manual} grouping,
 	 * where the backend owns the figures.
 	 * @defaultValue false
@@ -822,7 +822,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * render, so it lands **server-side**. SSR paints the saved order and widths,
 	 * and a seeded width holds as a manual one rather than reflowing after mount.
 	 * The content auto-fit fills the rest around it. Each dimension is exactly the matching
-	 * binding's `defaultValue` — an explicit `columnOrder`/`columnSizing`/
+	 * binding's `defaultValue`: an explicit `columnOrder`/`columnSizing`/
 	 * `pinning` `value`/`defaultValue` (or `columnManager.defaultHidden`) wins
 	 * for that dimension. Changes still flow out through those bindings'
 	 * callbacks (`onValueChange`, `onResizeEnd`, `onReorderEnd`); this is the
@@ -864,7 +864,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * and a `color` from the standard and extended {@link Badge} palette. Member
 	 * columns stay adjacent and move as a block. A `collapsible` group folds to its
 	 * first column with an expand toggle. When the column manager is enabled, its dialog
-	 * gains a group editor — create a group, drag columns into it, and set its name
+	 * gains a group editor: create a group, drag columns into it, and set its name
 	 * and color.
 	 *
 	 * @see {@link GridColumnGroups}
@@ -917,7 +917,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	resizable?: boolean
 
 	/**
-	 * Custom content for the toolbar's top row, rendered at its trailing edge —
+	 * Custom content for the toolbar's top row, rendered at its trailing edge:
 	 * across from the quick search, ahead of the table-tools cluster.
 	 *
 	 * For a narrowing the grid does not own. That is a filter over a value the rows
@@ -953,7 +953,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	/**
 	 * Controlled/uncontrolled column-width state; pairs with
 	 * {@link GridDataProps.resizable} to persist widths. Providing a controlled
-	 * `value` stands the automatic content sizing down — the consumer owns every
+	 * `value` stands the automatic content sizing down: the consumer owns every
 	 * width. The Auto-size actions still run, and they report their widths through
 	 * `onValueChange`.
 	 */
@@ -1022,7 +1022,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * Every type exports the same rows: the filtered and sorted set (all pages),
 	 * or just the selected rows when a {@link GridDataProps.selection} is active.
 	 * Under server-side {@link GridDataProps.pagination | pagination} the grid
-	 * only holds the current page, so "all pages" narrows to what's loaded —
+	 * only holds the current page, so "all pages" narrows to what's loaded:
 	 * supply {@link GridDataProps.exportRows} to export the full list instead.
 	 * Each row reads a column's {@link GridColumn.value}, falling back to the row
 	 * field named by the column id; columns without either export an empty field.
@@ -1043,7 +1043,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * already in memory, or a promise for a server round-trip. CSV, Excel, and
 	 * print all export the awaited list whole.
 	 *
-	 * When set it wins outright — any active {@link GridDataProps.selection} is
+	 * When set it wins outright: any active {@link GridDataProps.selection} is
 	 * ignored, since off-page selections can't be reconciled with a server fetch.
 	 * A rejected promise is swallowed with a dev-only warning rather than
 	 * downloading a partial file. Has no effect unless {@link GridDataProps.exportable}
@@ -1137,7 +1137,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * Off by default, so a static table keeps the browser/screen-reader's native
 	 * table navigation; opt in for a spreadsheet-style read-only grid. Focusable
 	 * cell content (links, buttons, the selection checkbox) stays independently
-	 * tabbable — the cursor is additive, not a focus trap.
+	 * tabbable: the cursor is additive, not a focus trap.
 	 * @defaultValue false
 	 */
 	navigable?: boolean
@@ -1217,7 +1217,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * Collapse is grid-owned view state, seeded once from each group's
 	 * {@link GridColumnGroup.defaultCollapsed}. It was never reported, so a band
 	 * the reader shut stayed shut, with nothing to persist and no way to know. The
-	 * {@link GridDataProps.columnGroups} binding cannot carry it — that binding's
+	 * {@link GridDataProps.columnGroups} binding cannot carry it: that binding's
 	 * `onValueChange` is the group LAYOUT sink, and its own doccomment holds collapse
 	 * out of it. Top-level here, so the array shorthand reaches it too. Use it to
 	 * persist what the reader collapsed. Mounting reports nothing, whatever
@@ -1239,8 +1239,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 
 	/**
 	 * Fires when the user clicks a row, with the row datum and the originating
-	 * event. A click that lands on interactive cell content — a button, link,
-	 * input, or the selection checkbox — is ignored, so per-row controls keep
+	 * event. A click that lands on interactive cell content (a button, link,
+	 * input, or the selection checkbox) is ignored, so per-row controls keep
 	 * working. Place primary actions in an interactive cell rather than relying
 	 * on the row click alone for the clearest screen-reader semantics.
 	 *
@@ -1397,7 +1397,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	/**
 	 * Infinite-scroll binding. As the {@link GridDataProps.virtualize | virtualized}
 	 * window nears the end of the loaded rows, the grid calls `onLoadMore`. Append
-	 * the next batch to `rows` — a local slice, or a server fetch.
+	 * the next batch to `rows`: a local slice, or a server fetch.
 	 *
 	 * Opt into a trailing skeleton row while `loadingMore` with `loadingIndicator`.
 	 * Close the list with `endMessage`, and surface a failed load with `error`.
@@ -1410,7 +1410,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * under {@link GridDataProps.groupBy | grouping} and under master-detail
 	 * ({@link GridDataProps.expandable}), with or without `virtualize`.
 	 *
-	 * @see {@link GridInfiniteScroll} for the binding — including the firing
+	 * @see {@link GridInfiniteScroll} for the binding, including the firing
 	 * invariant (once per scroll interaction, bounded viewport-fill) and
 	 * `totalRows`.
 	 */

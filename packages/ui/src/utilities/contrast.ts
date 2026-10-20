@@ -5,8 +5,8 @@
  * The maths is WCAG 2.1 (1.4.3): a color's relative luminance from its
  * gamma-decoded sRGB channels, then the `(L₁ + 0.05) / (L₂ + 0.05)` ratio of
  * the lighter over the darker. An input parses from the forms the design system
- * writes — `#rrggbb`, `rgb(…)`, and the OKLCH of the Tailwind theme
- * (`oklch(…)`) — or from an {@link Srgb} triple.
+ * writes (`#rrggbb`, `rgb(…)`, and the OKLCH of the Tailwind theme,
+ * `oklch(…)`), or from an {@link Srgb} triple.
  *
  * The maths treats every color as opaque and ignores its alpha channel.
  * Composite a translucent wash over its surface before you measure it.
@@ -14,7 +14,7 @@
 
 import { clamp } from './clamp'
 
-/** An sRGB color as three gamma-encoded channels in `[0, 1]` — the space CSS colors live in. */
+/** An sRGB color as three gamma-encoded channels in `[0, 1]`: the space CSS colors live in. */
 export type Srgb = readonly [r: number, g: number, b: number]
 
 /**

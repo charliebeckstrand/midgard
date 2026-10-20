@@ -19,9 +19,9 @@ import { type ButtonBaseProps, isIconElement, isVisuallyHiddenElement } from './
 import { useButtonDefaults } from './context'
 
 /**
- * Props for {@link Button}: visual `variant`/`color`/`size`, the
- * the `loading` behavior flag, `prefix`/`suffix` adornments, and
- * the polymorphic surface — a `<button>`, or an anchor when `href` is set.
+ * Props for {@link Button}: visual `variant`/`color`/`size`, the `loading`
+ * behavior flag, `prefix`/`suffix` adornments, and the polymorphic surface (a
+ * `<button>`, or an anchor when `href` is set).
  */
 export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
 

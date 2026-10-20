@@ -57,7 +57,7 @@ export function useGridMenuActions<T>({
 }: {
 	contextMenu: GridContextMenuConfig<T> | false | undefined
 	/**
-	 * The `columnManager` prop as passed, `false` and all — the surfaces read the
+	 * The `columnManager` prop as passed, `false` and all: the surfaces read the
 	 * off switch straight off it. Its visibility bindings are seeded elsewhere;
 	 * nothing read here is seeded.
 	 */
@@ -76,7 +76,7 @@ export function useGridMenuActions<T>({
 	const intl = useIntl()
 
 	// Context menus are on by default (`false` opts out). With no data they stand
-	// down *behaviorally* (`contextMenuEnabled`), never structurally — resolving
+	// down *behaviorally* (`contextMenuEnabled`), never structurally: resolving
 	// the config to `undefined` here would unmount the menu wrapper and remount
 	// the whole table region when data arrives, tearing the scroll container out
 	// from under the virtualizer mid-commit (rows then never render).
@@ -91,8 +91,8 @@ export function useGridMenuActions<T>({
 	const managerLabel = manager?.label ?? intl.formatMessage(gridMessages.manageColumns)
 
 	// Two entry points to the dialog: the opt-in toolbar button, and the header
-	// menu's "Manage columns" item — on by default, but only ever shown inside a
-	// column menu, so the menu's own switch gates it too.
+	// menu's "Manage columns" item (on by default, but only ever shown inside a
+	// column menu, so the menu's own switch gates it too).
 	const showButton = surfaces.toolbar
 
 	const menuItemReachable = surfaces.contextMenu && Boolean(menu?.column)
@@ -150,7 +150,7 @@ export function useGridMenuActions<T>({
 	// Backs the menu's "Manage columns" item (the header menu's and the
 	// column-group band's alike); `null` keeps it out. Gated on the menu item
 	// rather than on `renderDialog`, so a manager placed on the toolbar alone
-	// stays off the menus — and non-null still implies a mounted dialog.
+	// stays off the menus, and non-null still implies a mounted dialog.
 	const chooseColumns = useMemo(
 		() => (menuItemReachable ? () => setOpen(true) : null),
 		[menuItemReachable, setOpen],
@@ -167,7 +167,7 @@ export function useGridMenuActions<T>({
 		setColumnManagerOpen: setOpen,
 		sortColumn,
 		clearSort,
-		// Header "Auto-size all columns" and "Reset column widths" — only when
+		// Header "Auto-size all columns" and "Reset column widths": only when
 		// resizing is on; each detours through the confirm dialog while a sizing
 		// preference is in play.
 		autoSizeColumns,
@@ -177,7 +177,7 @@ export function useGridMenuActions<T>({
 		setWidthConfirmOpen,
 		widthAction,
 		confirmWidthAction,
-		// Header "Auto-size this column" — sizes one column to its content; only
+		// Header "Auto-size this column": sizes one column to its content; only
 		// when resizing is on.
 		autoSizeColumn: resize?.autoSizeColumn ?? null,
 		chooseColumns,

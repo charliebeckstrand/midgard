@@ -50,7 +50,7 @@ export function normalizeFreeze(flag: boolean | 'left' | 'right' | undefined): P
 }
 
 /**
- * Whether a column is locked — frozen by {@link GridColumn.locked}, which the
+ * Whether a column is locked: frozen by {@link GridColumn.locked}, which the
  * user can't change. A locked column shows no unpin affordance in the header,
  * the context menu, or the column manager.
  *
@@ -74,7 +74,7 @@ export function frozenSide<T>(column: GridColumn<T>): PinSide | undefined {
 	return normalizeFreeze(column.locked) ?? normalizeFreeze(column.pinned)
 }
 
-/** Whether a column is frozen to an edge — by either a `pinned` or a `locked` flag. @internal */
+/** Whether a column is frozen to an edge: by either a `pinned` or a `locked` flag. @internal */
 export function isFrozen<T>(column: GridColumn<T>): boolean {
 	return frozenSide(column) !== undefined
 }
@@ -105,7 +105,7 @@ export function applyPinOverrides<T>(
 
 /**
  * A column-manager item's effective frozen edge: its immutable `locked` side,
- * else its movable `pinned` side — or `undefined` when it scrolls. The
+ * else its movable `pinned` side, or `undefined` when it scrolls. The
  * manager-side counterpart of {@link frozenSide}, whose input is a raw column
  * with un-normalized flags.
  *

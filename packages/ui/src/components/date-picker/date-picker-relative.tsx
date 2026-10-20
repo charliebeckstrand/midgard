@@ -23,9 +23,9 @@ import { useDatePickerRelativeState } from './use-date-picker-relative-state'
 /**
  * Relative variant of {@link DatePicker}: a multi-select list of relative-range
  * presets, plus a mutually-exclusive "Custom range" row that swaps the popover
- * to Start/End date fields. Each field is an `input`-mode picker — type or pick
- * from a calendar. The live selection shows as chips in the trigger — or as a one-line
- * summary under `chips: false` — and commits an array of `{ from, to }` spans.
+ * to Start/End date fields. Each field is an `input`-mode picker: type or pick
+ * from a calendar. The live selection shows as chips in the trigger (or as a one-line
+ * summary under `chips: false`) and commits an array of `{ from, to }` spans.
  * Rendered by `DatePicker` when `relative` is set.
  *
  * @internal
@@ -60,8 +60,8 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 	const rows = relativeListRows(state.presets.length + 1)
 
 	// The chip row owns the trigger's value area and wraps, so each chip that does
-	// not fit grows the trigger a row taller. Leaving it undefined — for `chips:
-	// false`, or for a selection with nothing to draw — hands the area back to the
+	// not fit grows the trigger a row taller. Leaving it undefined (for `chips:
+	// false`, or for a selection with nothing to draw) hands the area back to the
 	// trigger's own text label, which holds one line: the `summary` below, or the
 	// placeholder the trigger falls back to when that summary is empty.
 	const chipRow =
@@ -154,8 +154,8 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						    DateInput whose suffix button opens a calendar. The popover
 						    preventDefaults mousedown to hold DOM focus on the dialog for
 						    the calendar variants' virtual model. Stop mousedown here, so a
-						    click focuses the input. `clearable` is off so the suffix —
-						    and thus the field width — stays fixed as a date is entered.
+						    click focuses the input. `clearable` is off so the suffix
+						    (and thus the field width) stays fixed as a date is entered.
 						    Each field takes the root `footer`, so a footer button that
 						    the author removes does not show in the field calendars. */}
 						<Field onMouseDown={(event) => event.stopPropagation()}>

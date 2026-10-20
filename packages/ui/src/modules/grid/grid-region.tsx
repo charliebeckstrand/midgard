@@ -142,7 +142,7 @@ export { GridOverlayDensityContext }
  *
  * A portal is a DOM escape, not a React one. The surface stays a descendant of
  * the trigger, so it inherits the scope of the table unless something says otherwise.
- * Only the surface is wrapped, never the trigger — the trigger is header chrome
+ * Only the surface is wrapped, never the trigger: the trigger is header chrome
  * and belongs at the header's density.
  *
  * @internal

@@ -89,7 +89,7 @@ export const k = defineRecipe(
 	{ item, motion: collapse.fade, header },
 )
 
-/** Recipe variant props for {@link Accordion} — the styling axes its kata exposes (`variant`), for consumers composing custom slots. */
+/** Recipe variant props for {@link Accordion}: the styling axes its kata exposes (`variant`), for consumers composing custom slots. */
 export type AccordionVariants = Omit<VariantProps<typeof k>, 'variant'> & {
 	/**
 	 * How the items stand apart: as separate boxes, in one outlined box, or as
@@ -98,7 +98,7 @@ export type AccordionVariants = Omit<VariantProps<typeof k>, 'variant'> & {
 	 */
 	variant?: VariantProps<typeof k>['variant']
 }
-/** Recipe variant props for an {@link Accordion} item — its styling axes (`variant`), for consumers composing custom slots. */
+/** Recipe variant props for an {@link Accordion} item: its styling axes (`variant`), for consumers composing custom slots. */
 export type AccordionItemVariants = Omit<VariantProps<typeof item>, 'variant'> & {
 	/** The style of the item, which matches the `variant` of its accordion. @defaultValue 'separated' */
 	variant?: VariantProps<typeof item>['variant']

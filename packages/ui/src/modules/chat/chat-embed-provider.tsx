@@ -21,7 +21,7 @@ export type ChatEmbedProviderProps = ChatEmbedRegistry & {
  * three heaviest modules in the package. It is the discipline the map module holds
  * when it takes its atlas as a prop and ships no geometry.
  *
- * A name no renderer claims draws a stated fallback rather than nothing —
+ * A name no renderer claims draws a stated fallback rather than nothing:
  * the module's own line, or the `fallback` set here. A reader is told the block
  * is there either way, because a silent gap reads as a reply that stopped.
  *

@@ -78,7 +78,7 @@ export function useGridEditKeys<T>({
 }) {
 	// The session one key press names. The press names its row when it came from
 	// inside one, which is what picks the right row while several edit at once.
-	// Elsewhere in the grid — the tab stop after a Tab back, a header control —
+	// Elsewhere in the grid (the tab stop after a Tab back, a header control)
 	// it names none, and the session the grid opened is the one it means. The
 	// column comes from the press's cell, and only an open editor's cell names
 	// one. Escape reads the row alone; Enter needs the editor. A row or a cell of

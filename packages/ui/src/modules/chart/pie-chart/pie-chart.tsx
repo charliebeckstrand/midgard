@@ -4,7 +4,7 @@ import { type SectorBaseProps, SectorChart } from '../sector-chart'
 
 /**
  * Props for {@link PieChart}. Requires an accessible name (`aria-label` or
- * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
+ * `aria-labelledby`): the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
 export type PieChartProps<T = never> = SectorBaseProps<T>
@@ -18,7 +18,7 @@ export type PieChartProps<T = never> = SectorBaseProps<T>
  *
  * @remarks Slice colors follow the fixed categorical slot order. Rows with
  * non-positive values take no slice but keep their true value in the table;
- * missing values show an em-dash there. Focus the plot to read it by keyboard —
+ * missing values show an em-dash there. Focus the plot to read it by keyboard:
  * the arrow keys walk the slices, the tooltip riding each centroid. The slice
  * under the cursor stands alone, and the other slices recede.
  * @example

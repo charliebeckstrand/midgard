@@ -27,8 +27,8 @@ export function inferEditorKind(value: unknown): EditorKind {
 export type EditableColumn = { readOnly?: boolean; field?: unknown; editCell?: unknown }
 
 /**
- * Whether a data column can be edited: it isn't `readOnly` and binds an editor —
- * a `field` to read/write, or a custom `editCell` slot. A cell in an editable row
+ * Whether a data column can be edited: it isn't `readOnly` and binds an editor
+ * (a `field` to read/write, or a custom `editCell` slot). A cell in an editable row
  * renders its editor only when this holds. @internal
  */
 export function isColumnEditable(col: EditableColumn): boolean {
@@ -531,7 +531,7 @@ export function sameCell(a: GridActiveEdit | null, b: GridActiveEdit | null): bo
  * @remarks This is the module's one definition of "editing here". Three
  * questions read it. Which cell mounts an editor. Which editor takes focus
  * after an entry. Which staged drafts a commit sweep must
- * flush — the cells this stops holding for. One predicate answering all three
+ * flush: the cells this stops holding for. One predicate answering all three
  * keeps an editor's lifetime and its value's commit in step. @internal
  */
 export function isCellEditing(args: {

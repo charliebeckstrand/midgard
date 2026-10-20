@@ -46,7 +46,7 @@ export type MapOverlayProps = {
 	 */
 	id?: string
 	/**
-	 * Legend and tooltip name. One entry per mark however many shapes it draws —
+	 * Legend and tooltip name. One entry per mark however many shapes it draws,
 	 * unless {@link group} merges it with the marks standing for the same place.
 	 */
 	label: string
@@ -83,11 +83,11 @@ export type MapOverlayProps = {
 	 * @defaultValue `'blue'`, or the next slot color in the fixed order after the region categories and the earlier marks.
 	 */
 	color?: MapSeriesColor
-	/** A trailing readout in the legend and tooltip — a count, a status, a mileage. */
+	/** A trailing readout in the legend and tooltip: a count, a status, a mileage. */
 	detail?: string
 	/**
-	 * Fires when a click lands on the mark — anywhere on its hit shape, the same
-	 * target the tooltip reads — with the mark's {@link id}. `MapPlat`'s
+	 * Fires when a click lands on the mark (anywhere on its hit shape, the same
+	 * target the tooltip reads) with the mark's {@link id}. `MapPlat`'s
 	 * `onRegionClick` in the same shape, so a map whose regions and overlays are
 	 * both pickable reports both the one way.
 	 *
@@ -97,7 +97,7 @@ export type MapOverlayProps = {
 	 * picks the mark with a double tap, and one tap picks nothing.
 	 *
 	 * A singular mark holds one stop, so it is called with a trailing `0` its type
-	 * omits — the plural {@link MapPoints} passes the dot's index there. A handler
+	 * omits: the plural {@link MapPoints} passes the dot's index there. A handler
 	 * declared as this type never sees the argument.
 	 *
 	 * Handing the reported pair back as `MapPlat`'s `selectedOverlay` haloes the
@@ -131,7 +131,7 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		kind: MapOverlayKind
 		swatch: MapSwatchShape
 		/**
-		 * Where the keyboard cursor can stand on this mark, in lon/lat — a point's
+		 * Where the keyboard cursor can stand on this mark, in lon/lat: a point's
 		 * own position, a route's middle stop, every dot of a plural mark. Empty
 		 * while the mark has no geometry yet.
 		 *
@@ -142,8 +142,8 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 */
 		stops: () => LngLat[]
 		/**
-		 * The dots the mark draws, in lon/lat, for the plat's dot pool — see
-		 * {@link MapOverlayEntry.dotsAt}. Passed by the dot-drawing marks alone. A
+		 * The dots the mark draws, in lon/lat, for the plat's dot pool (see
+		 * {@link MapOverlayEntry.dotsAt}). Passed by the dot-drawing marks alone. A
 		 * point passes its `stops`, and a marker passes its two pins.
 		 *
 		 * Hold its identity until the dots move. A new identity restakes the
@@ -152,20 +152,20 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 */
 		dots?: () => LngLat[]
 		/**
-		 * How much reach this mark leaves a dot standing on it — see
-		 * {@link MapOverlayEntry.spare}. Passed by the area-shaped marks alone, and
+		 * How much reach this mark leaves a dot standing on it (see
+		 * {@link MapOverlayEntry.spare}). Passed by the area-shaped marks alone, and
 		 * read live like {@link stops}, so a redrawn zone never re-registers.
 		 */
 		spare?: (at: MapPoint2D) => number
 		/**
 		 * Per-dot readouts for a plural mark, absent on a singular one. Plain data,
-		 * because the table draws it — see {@link MapOverlayEntry.stopRows}. Keyed
+		 * because the table draws it (see {@link MapOverlayEntry.stopRows}). Keyed
 		 * by content below, so an inline `points` never loops the ledger.
 		 */
 		stopRows?: MapStopRow[]
 		/**
 		 * Which drawn stop holds a reported index, where the mark's clicks count in
-		 * another space than its stops — see {@link MapOverlayEntry.getStop}. Passed
+		 * another space than its stops (see {@link MapOverlayEntry.getStop}). Passed
 		 * live rather than through the ref the registration rides, because the
 		 * grouping behind it answers the drawn frame. A refit that regroups must
 		 * move the halo with it.
@@ -174,7 +174,7 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 	}
 
 /**
- * The DOM props one of a mark's hit shapes spreads — {@link MapOverlay.hit}'s
+ * The DOM props one of a mark's hit shapes spreads: {@link MapOverlay.hit}'s
  * return. Named here so the hit-props factories take exactly what a mark
  * produces, and nothing a caller could widen the target with. Named once, so
  * the dot's factory and the line's read one type.
@@ -185,7 +185,7 @@ export type MapOverlayHit = ReturnType<MapOverlay['hit']>
 
 /** The resolved plat state and DOM props an overlay draws itself from. @internal */
 export type MapOverlay = {
-	/** The slot color, `undefined` until registration lands — the mark renders nothing meanwhile. */
+	/** The slot color, `undefined` until registration lands: the mark renders nothing meanwhile. */
 	slot: MapSeriesColor | undefined
 	/** Whether the legend has toggled this mark off. */
 	hidden: boolean
@@ -197,13 +197,13 @@ export type MapOverlay = {
 	 * the moment the legend puts the zone away.
 	 *
 	 * Bound to the zoom scale here, which the plat's own resolver takes as a second
-	 * argument it cannot supply — see {@link MapPlatContextValue.spare}.
+	 * argument it cannot supply (see {@link MapPlatContextValue.spare}).
 	 */
 	spare: (at: MapPoint2D) => number
 	/** Projects lon/lat to frame coordinates; `null` off the projection. */
 	project: (position: LngLat) => MapPoint2D | null
 	/**
-	 * What one device pixel spans in frame units under the plat's zoom — `1` at
+	 * What one device pixel spans in frame units under the plat's zoom: `1` at
 	 * rest. Every pixel spec a mark draws multiplies by it: its stroke widths,
 	 * its hit shapes, and a summary's count. Published here so a mark reads the
 	 * rule off the seam it already consumes, rather than each one remembering to
@@ -211,15 +211,15 @@ export type MapOverlay = {
 	 */
 	unitsPerPixel: number
 	/**
-	 * Asks for every OTHER visible dot-drawing mark's dots, in frame units — see
-	 * {@link MapPlatContextValue.pool}. A dot-shaped mark divides its pointer target's ground
+	 * Asks for every OTHER visible dot-drawing mark's dots, in frame units (see
+	 * {@link MapPlatContextValue.pool}). A dot-shaped mark divides its pointer target's ground
 	 * against these, so two marks standing on top of one another no longer overlap.
 	 *
 	 * A resolver rather than the pool itself, and bound to this mark's id. The exclusion is the one
 	 * part a mark could get wrong, and it is still not the mark's to state. Lazy because only a
 	 * dot-shaped mark reads it, and the pool invokes every other entry's `dotsAt`. `MapPoints`
 	 * registers that as a thunk, precisely so the pass lands on the one reader. Resolved eagerly
-	 * here, every mark would trigger that pass for every other mark — M² of them. It would discard
+	 * here, every mark would trigger that pass for every other mark: M² of them. It would discard
 	 * the answer in all M cases wherever no dot-shaped mark was mounted. Memoize the result at the
 	 * call site; the resolver is stable until the plat's ledger, toggles or fit change, or until a
 	 * mark's dots move.
@@ -233,7 +233,7 @@ export type MapOverlay = {
 	dim: string
 	/**
 	 * Which of the mark's drawn stops the plat holds selected, `null` when the
-	 * pick names another mark — or a stop this one does not draw. A singular mark
+	 * pick names another mark, or a stop this one does not draw. A singular mark
 	 * reads it as a flag; a plural one haloes the dot it names.
 	 */
 	selected: number | null
@@ -241,7 +241,7 @@ export type MapOverlay = {
 	onPointerLeave: () => void
 	/**
 	 * Props for one invisible hit shape, named by which of the mark's stops it
-	 * covers — `0` for a singular mark. Carries the anchor the scroll-settle
+	 * covers: `0` for a singular mark. Carries the anchor the scroll-settle
 	 * resolve reads, the hover tracker, and the click reporters with their cursor
 	 * affordance.
 	 */
@@ -284,8 +284,8 @@ function sameStopRows(prev: MapStopRow[] | undefined, next: MapStopRow[] | undef
  * click all name the stop. The legend, the toggle, and the emphasis stay with
  * the mark as a whole.
  *
- * The stops and the reporters ride stable getters over a ref, so a moving mark —
- * or an inline handler — never re-registers.
+ * The stops and the reporters ride stable getters over a ref, so a moving mark
+ * (or an inline handler) never re-registers.
  *
  * @internal
  */
@@ -310,8 +310,8 @@ export function useMapOverlay({
 	const id = given ?? generated
 
 	// Which id this mark's emphasis answers to: its group's legend id where it
-	// merged into one, else its own. `mapMarkDimmed` has always taken this — the
-	// region layer passes a category id — so a grouped mark is not a case it learns,
+	// merged into one, else its own. `mapMarkDimmed` has always taken this (the
+	// region layer passes a category id), so a grouped mark is not a case it learns,
 	// only the first overlay with something better than its own id to pass.
 	//
 	// The toggle resolves plat-side instead, where the same expansion serves the
@@ -337,7 +337,7 @@ export function useMapOverlay({
 	// The mark's own stop resolution, defaulted once: a mark that draws the stops
 	// it reports holds one, its own. Spelling the fallback here rather than at each
 	// reader is what makes the halo below and the plat's picked row the same
-	// question — the drift `engine/map-overlay/selection.ts` exists to prevent.
+	// question: the drift `engine/map-overlay/selection.ts` exists to prevent.
 	const resolveStop = getStop ?? ownStop
 
 	// The live stops, read when each one runs rather than captured in the
@@ -385,16 +385,16 @@ export function useMapOverlay({
 
 	const spareAt = useCallback(
 		// The identity of the minimum the plat folds these into, so the fallback and
-		// the resolver state one rule rather than two. It cannot fire in fact — only a
-		// mark that passed a resolver registers this wrapper — but a mark that claims
+		// the resolver state one rule rather than two. It cannot fire in fact (only a
+		// mark that passed a resolver registers this wrapper), but a mark that claims
 		// nothing and a mark that never claimed have to answer alike either way.
 		(at: MapPoint2D) => live.current.ownSpare?.(at) ?? Number.POSITIVE_INFINITY,
 		[],
 	)
 
 	// Bound here because this hook is the first reader below `MapZoomScaleContext`
-	// that already holds the scale — see `MapPlatContextValue.spare` for why the
-	// plat cannot bind it itself.
+	// that already holds the scale (see `MapPlatContextValue.spare` for why the
+	// plat cannot bind it itself).
 	const spareHere = useCallback(
 		(at: MapPoint2D) => spare(at, unitsPerPixel),
 		[spare, unitsPerPixel],
@@ -408,7 +408,7 @@ export function useMapOverlay({
 
 	// Registered only where the mark answers a pick, so its presence is the
 	// question the plat's tab-stop gate asks. The handler itself is a stable
-	// event — this depends on whether there is one, a boolean that changes only when
+	// event: this depends on whether there is one, a boolean that changes only when
 	// a consumer adds or drops the prop.
 	const pickable = onClick !== undefined
 
@@ -417,7 +417,7 @@ export function useMapOverlay({
 	// Registered only where the mark holds ground, on the same terms as `activate`:
 	// its presence is what the plat's resolver asks of an entry, so a dot never
 	// measures itself against a mark that holds no face. The wrapper rides the ref,
-	// so this depends on whether there is one — a fact fixed per mark kind.
+	// so this depends on whether there is one: a fact fixed per mark kind.
 	const budget = ownSpare === undefined ? undefined : spareAt
 
 	// The standing pick, resolved off the live mapper rather than the ref the
@@ -429,7 +429,7 @@ export function useMapOverlay({
 	// The readout text is the one registered field the table draws, so it has to
 	// reach the ledger to reach the screen. Held by content rather than by the
 	// array's identity: an inline `points` would otherwise re-register on every
-	// render, and each registration re-renders this mark — a loop.
+	// render, and each registration re-renders this mark (a loop).
 	const heldRows = useStableValue(stopRows, sameStopRows)
 
 	useEffect(
@@ -496,12 +496,12 @@ export function useMapOverlay({
 	// shape would allocate them by the hundred on every render.
 	//
 	// The factory itself is held across renders, which is what lets a plural
-	// mark's dots sit behind a memo — the memo holds, so the dots never call it
+	// mark's dots sit behind a memo: the memo holds, so the dots never call it
 	// again at all. (Each call still returns a fresh object; nothing compares
 	// those.) Both reporters are stable events for it: a consumer's inline
 	// handler is a fresh identity every render, and what this depends on instead
-	// is whether there is one at all — a boolean a consumer changes by adding or
-	// dropping the prop.
+	// is whether there is one at all (a boolean a consumer changes by adding or
+	// dropping the prop).
 	const hit = useCallback(
 		(stop = 0) => ({
 			'data-entry-id': id,
@@ -520,7 +520,7 @@ export function useMapOverlay({
 		hidden: hidden.has(id),
 		project,
 		spare: spareHere,
-		// The resolver, left uncalled — see {@link MapOverlay.neighbors} for why it stays lazy.
+		// The resolver, left uncalled (see {@link MapOverlay.neighbors} for why it stays lazy).
 		neighbors: getNeighbors,
 		unitsPerPixel,
 		animate,

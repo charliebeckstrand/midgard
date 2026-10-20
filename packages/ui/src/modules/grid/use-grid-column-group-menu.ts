@@ -21,7 +21,7 @@ import type { GridColumnGroup } from './grid-group-types'
 export function useGridColumnGroupMenu(args: {
 	groups: GridColumnGroup[]
 	setGroups: (groups: GridColumnGroup[]) => void
-	/** Whether column groups are configured — off leaves the band inert. */
+	/** Whether column groups are configured: off leaves the band inert. */
 	enabled: boolean
 	/** Opens the column-manager dialog, or `null` when none is reachable. */
 	chooseColumns: (() => void) | null

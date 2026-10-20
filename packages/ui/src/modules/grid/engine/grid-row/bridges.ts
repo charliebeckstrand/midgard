@@ -79,8 +79,8 @@ export function bridgeCellActivate<T>(
  * Shared by the keyboard activation above and the cursor's own report, because the
  * two must agree. They use the same guard, the same `value` accessor, and the
  * same payload. A
- * coordinate the engine cannot resolve — a row or column that moved out from under
- * it — yields `null` and the caller stays quiet.
+ * coordinate the engine cannot resolve (a row or column that moved out from under
+ * it) yields `null` and the caller stays quiet.
  *
  * @internal
  */
@@ -122,7 +122,8 @@ export function buildRovingCellActivate<T>(
 		handleCellClick?.(context, event)
 
 		// The activation fires from the cell's `<td>`, so the event's element type
-		// is widened to the row-click's `<tr>` signature — as the cursor bridge does.
+		// is widened to the row-click's `<tr>` signature, as the cursor bridge
+		// does.
 		handleRowClick?.(context.row, event as unknown as Parameters<GridRowClick<T>>[1])
 	}
 }

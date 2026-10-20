@@ -12,7 +12,7 @@
  * target, so the hover resolve can't read one mark twice.
  *
  * Widths are stated in device pixels, like every other mark spec, and convert to
- * frame units through the plat's zoom scale — the multiply {@link MapDot}
+ * frame units through the plat's zoom scale: the multiply {@link MapDot}
  * records. A halo takes the same `scale` its mark took. The band around the edge
  * therefore holds at every view, rather than closing up as the mark grows.
  */
@@ -23,14 +23,14 @@ import { MARK_SELECTED_HALO } from './engine/map-constants'
 import type { MapPoint2D, MapPointShape } from './engine/types'
 import { MapDot } from './map-dot'
 
-/** The selection ink, off the pointer — one treatment for both halo shapes. @internal */
+/** The selection ink, off the pointer: one treatment for both halo shapes. @internal */
 const HALO = cn('pointer-events-none', ...k.selected)
 
 /** Props for {@link MapHalo}. @internal */
 type MapHaloProps = {
 	/** The halo's `data-slot` name, naming the mark it stands behind. */
 	slot: string
-	/** The mark's own path data — the halo traces it, so the two can never diverge. */
+	/** The mark's own path data: the halo traces it, so the two can never diverge. */
 	d: string
 	/** The mark's own stroke width in device pixels; the halo takes it plus the clear space either side. */
 	width: number
@@ -38,7 +38,7 @@ type MapHaloProps = {
 	scale: number
 }
 
-/** A picked line's halo — a route, a marker's connector. @internal */
+/** A picked line's halo: a route, a marker's connector. @internal */
 export function MapHalo({ slot, d, width, scale }: MapHaloProps) {
 	return (
 		<path
@@ -68,7 +68,7 @@ type MapDotHaloProps = {
 }
 
 /**
- * A picked dot's halo — a point, a marker pin, one of a `MapPoints` set. It is
+ * A picked dot's halo: a point, a marker pin, one of a `MapPoints` set. It is
  * the dot itself, one clear space wider and in the selection ink. Drawing it
  * through {@link MapDot} keeps the dot's own spec in the one file that owns it.
  * That spec is the zero-length capped stroke, and the one multiply that

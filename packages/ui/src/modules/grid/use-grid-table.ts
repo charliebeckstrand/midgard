@@ -172,7 +172,7 @@ type GridTableParams<T> = {
 /** Result of {@link useGridTable}: values and actions only. @internal */
 type GridTableResult<T> = {
 	/**
-	 * Columns to render in resolved display order — the engine's visible leaf
+	 * Columns to render in resolved display order: the engine's visible leaf
 	 * columns (order + visibility + pinning applied), mapped back to their source
 	 * {@link GridColumn}. The header, body `<colgroup>`, and menus all read this.
 	 */
@@ -198,8 +198,8 @@ type GridTableResult<T> = {
 	/** Opens or closes a group, by its id. */
 	toggleGroup: (id: string) => void
 	/**
-	 * The full display list — consumer-supplied group headers interleaved with
-	 * leaves, in supplied order — under manual grouping, or `null` otherwise.
+	 * The full display list (consumer-supplied group headers interleaved with
+	 * leaves, in supplied order) under manual grouping, or `null` otherwise.
 	 * The manual grouped body renders from it; {@link renderRows} /
 	 * {@link rowKeys} carry only the leaves, so selection and the data counts
 	 * never see a header row.
@@ -233,7 +233,7 @@ type GridTableResult<T> = {
 	 *
 	 * `false` only between hydration and that pass, and only for a grid whose widths this
 	 * hook sizes. The table holds its paint until it flips, so a reload never shows the
-	 * declared widths and then replaces them with fitted ones — see `useGridColumnSizing`.
+	 * declared widths and then replaces them with fitted ones (see `useGridColumnSizing`).
 	 */
 	widthsSettled: boolean
 	/** Global-filter view, or `null` when filtering is not configured. */
@@ -550,7 +550,7 @@ export function useGridTable<T>({
 
 	// Held true by the autosizer around its own writes (see `useGridColumnSizing`),
 	// so the content fit updates the engine's sizing state without surfacing through
-	// the consumer's `onValueChange` — that binding reflects user/consumer intent
+	// the consumer's `onValueChange`: that binding reflects user/consumer intent
 	// (a drag, a keyboard nudge, a controlled write), not the internal auto-fit.
 	const autoSizingRef = useRef(false)
 

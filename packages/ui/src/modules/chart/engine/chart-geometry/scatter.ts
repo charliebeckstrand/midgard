@@ -211,7 +211,7 @@ export function scatterMarks(
  * Every disc of a series concatenated into one path `d`. Each disc is a closed
  * subfigure, two half-arcs around its center. The fill therefore fills every
  * disc and the stroke rings each one, exactly as separate circles did. Marks
- * with a non-positive radius are skipped — a degenerate arc would paint nothing
+ * with a non-positive radius are skipped: a degenerate arc would paint nothing
  * and only lengthen the string.
  *
  * A plain series shares one radius across every disc. The two arc commands read
@@ -282,7 +282,7 @@ function groupByX<T>(
 }
 
 /**
- * Per unique x, every visible point at that x — duplicates included — with its
+ * Per unique x, every visible point at that x (duplicates included) with its
  * screen y and identity, in series-major point order. The snap targets behind
  * {@link scatterSnapColumns}, kept whole here so the mark isolation can name
  * the disc behind the stop the tooltip anchors.
@@ -397,11 +397,11 @@ function resolveHeldDisc(
 }
 
 /**
- * The disc the pointer sits on — its series and datum indices — or `null` off
+ * The disc the pointer sits on (its series and datum indices), or `null` off
  * every disc, each disc caught within `slack` of its edge. The nearest disc
  * center wins where discs overlap, so the isolation lifts the one the pointer
- * is truly on rather than whichever drew first. A `held` disc — the one
- * already emphasized — keeps the win while it stays caught, unless a
+ * is truly on rather than whichever drew first. A `held` disc (the one
+ * already emphasized) keeps the win while it stays caught, unless a
  * challenger decisively closes ({@link beatsHeldMark}). The resolution is
  * sticky across the midline between discs, rather than flipping on it.
  *

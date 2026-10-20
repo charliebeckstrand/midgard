@@ -52,7 +52,7 @@ export function useListboxState<T>({
 		[multiple, toggle, commit, close],
 	)
 
-	// `close` looks unused from Listbox, which never destructures it — `select`
+	// `close` looks unused from Listbox, which never destructures it: `select`
 	// calls it internally. It is the hook's tested contract, not dead code:
 	// `use-listbox-state.test.ts` exercises it directly and goes red without it.
 	return { open, setOpen, close, select, flushPending, selectionValue }

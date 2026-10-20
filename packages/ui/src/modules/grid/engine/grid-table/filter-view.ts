@@ -16,7 +16,7 @@ import type { EngineTable } from './features'
  */
 export type GridColumnFacets = {
 	/**
-	 * The distinct cell values, sorted and de-duplicated — what a `select` filter
+	 * The distinct cell values, sorted and de-duplicated: what a `select` filter
 	 * offers when it declares no explicit `filterOptions`. Empty under
 	 * server-side (manual) filtering or for a column without a value accessor.
 	 */
@@ -273,7 +273,7 @@ export function buildColumnFilters<T>(args: {
 
 /**
  * Whether a filterable column shows its filter button. It shows when the grid
- * has data, or — even with an empty view — when this column carries an active
+ * has data, or (even with an empty view) when this column carries an active
  * filter. A filter that emptied the grid can therefore still be reached and
  * cleared.
  *

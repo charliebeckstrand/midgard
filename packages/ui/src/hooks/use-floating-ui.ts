@@ -378,7 +378,7 @@ export function useFloatingPanel({
 		onOpenChange: handleOpenChange,
 		...(strategy ? { strategy } : {}),
 		// Only when the caller anchors by element. Left off otherwise so
-		// `refs.setReference` stays the reference for every ref-attached panel —
+		// `refs.setReference` stays the reference for every ref-attached panel:
 		// passing `elements: { reference: undefined }` would clear it.
 		...(reference !== undefined ? { elements: { reference } } : {}),
 		// A point-anchored surface (`track: 'point'`) repositions itself on every
@@ -483,7 +483,7 @@ function useFloatingPortalReference(
  *
  * @remarks
  * The listener stands in for floating-ui's own `outsidePress`, which the two
- * callers disable — see {@link isOutsidePress} for why. One hook rather
+ * callers disable (see {@link isOutsidePress} for why). One hook rather
  * than the same effect in each, so the guard and the predicate cannot drift
  * apart between them.
  *
@@ -491,7 +491,7 @@ function useFloatingPortalReference(
  * whole mount, always calling the newest `onOpenChange` this package handed
  * `useFloating`. So it is safe both to call directly and to name as a
  * dependency, and this needs no shadow of its own. Depending on the whole
- * `context` would not be safe — that object is rebuilt on every reposition, and
+ * `context` would not be safe: that object is rebuilt on every reposition, and
  * would resubscribe the listener each time.
  *
  * @internal
@@ -526,7 +526,7 @@ function useFloatingOutsidePress(
  *
  * @see {@link useFloatingOutsidePress}, the document `pointerdown` listener
  * {@link useFloatingUI} and `useFloatingDisclosure` share, instead of
- * floating-ui's built-in `useDismiss` outsidePress — which, via its
+ * floating-ui's built-in `useDismiss` outsidePress, which, via its
  * "third-party element" escape hatch, spares *any* outside press once some
  * other modal on the page has marked sibling elements `inert`, exactly the case
  * whenever a floating panel opens inside a Dialog/Sheet.
@@ -540,7 +540,7 @@ function isOutsidePress(event: PointerEvent, refs: FloatingOutsidePressRefs): bo
 
 	if (!floating) return false
 
-	// Cheapest tests first, and both are the common case — a press inside the
+	// Cheapest tests first, and both are the common case: a press inside the
 	// open panel or on its trigger. Returning here skips `isScrollbarPress`'s
 	// forced style recalc and two `closest` walks on every such press, per open
 	// panel.
@@ -548,7 +548,7 @@ function isOutsidePress(event: PointerEvent, refs: FloatingOutsidePressRefs): bo
 
 	// `isPressInNested` is pure DOM ancestry; `isScrollbarPress` forces
 	// a style recalc and four layout reads. Same verdict either way, so the cheap
-	// one decides first — a press into a nested surface, which is what this
+	// one decides first: a press into a nested surface, which is what this
 	// predicate exists for, never reaches the recalc.
 	return !(
 		isPressInNested(floating, target, refs) ||
@@ -557,7 +557,7 @@ function isOutsidePress(event: PointerEvent, refs: FloatingOutsidePressRefs): bo
 }
 
 /**
- * Whether `target` lies in a floating surface opened from *within* `floating` —
+ * Whether `target` lies in a floating surface opened from *within* `floating`:
  * a descendant, whose presses this panel must survive.
  *
  * @remarks

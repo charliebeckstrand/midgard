@@ -6,7 +6,7 @@ import { ChartGridLines } from './grid-lines'
 export type ChartCartesianAxesProps = {
 	/**
 	 * The resolved chart the part reads its orientation, plot, ticks, scales,
-	 * gridlines, dividers, titles, and category rule off — the shape
+	 * gridlines, dividers, titles, and category rule off: the shape
 	 * {@link ChartCartesianFrame} already takes.
 	 */
 	chart: CartesianChart
@@ -19,7 +19,7 @@ export type ChartCartesianAxesProps = {
  * categories on the bottom (with the zero baseline). Horizontal transposes
  * them: value labels on the bottom without a line, categories down the left
  * with the baseline as a vertical rule. A resolved secondary scale adds the far
- * side's axis — right when vertical, top when horizontal — and any titles draw
+ * side's axis (right when vertical, top when horizontal) and any titles draw
  * in the bands the layout reserved. The transpose lives here so a chart drops
  * in one part instead of branching its own render tree.
  *
@@ -52,7 +52,7 @@ export function ChartCartesianAxes({ chart }: ChartCartesianAxesProps) {
 			)}
 
 			{/* Dividers run parallel to the value axis, so they take the transposed
-			    orientation — a vertical chart rules them down its band boundaries. */}
+			    orientation: a vertical chart rules them down its band boundaries. */}
 			{categoryGridPositions.length > 0 && (
 				<ChartGridLines
 					plot={plot}

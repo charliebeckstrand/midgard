@@ -92,7 +92,7 @@ export const k = {
 	},
 	sub: {
 		// A `MenuSub` parent keeps its wash while the panel is open (`data-open`),
-		// so the row the pointer traveled from still reads as the live trail back —
+		// so the row the pointer traveled from still reads as the live trail back:
 		// `hannou.item`'s hover tint alone drops the moment the pointer leaves it.
 		// Forced colors remove the wash, so the row draws an outline there instead:
 		// an edge rather than the `Highlight` fill of the roving cursor.

@@ -65,14 +65,14 @@ export const scale = {
 	spinner: defineScale(dan.size.icon.base),
 } as const
 
-/** Recipe variant props for {@link LoadingDots} — its `color` axis and the `size` step, for consumers composing custom slots. */
+/** Recipe variant props for {@link LoadingDots}: its `color` axis and the `size` step, for consumers composing custom slots. */
 export type LoadingDotsVariants = Omit<VariantProps<typeof k>, 'color'> & {
 	/** The color of the dots. `current` takes the color of the text around them. @defaultValue 'current' */
 	color?: VariantProps<typeof k>['color']
 	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: ScaleStep<typeof scale.dots>
 }
-/** Recipe variant props for {@link LoadingSpinner} — its `color` axis and the `size` step, for consumers composing custom slots. */
+/** Recipe variant props for {@link LoadingSpinner}: its `color` axis and the `size` step, for consumers composing custom slots. */
 export type LoadingSpinnerVariants = Omit<VariantProps<typeof spinner>, 'color'> & {
 	/** The color of the spinner. `current` takes the color of the text around it. @defaultValue 'current' */
 	color?: VariantProps<typeof spinner>['color']

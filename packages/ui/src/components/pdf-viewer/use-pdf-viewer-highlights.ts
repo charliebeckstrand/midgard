@@ -16,7 +16,7 @@ import type {
 /** Data attribute carrying a region's id, so one delegated handler serves every region. @internal */
 export const HIGHLIGHT_ID_ATTR = 'data-pdf-highlight-id'
 
-/** Selector for the layer's regions — the roving item set and the delegated handler's target. @internal */
+/** Selector for the layer's regions: the roving item set and the delegated handler's target. @internal */
 export const HIGHLIGHT_SELECTOR = `[${HIGHLIGHT_ID_ATTR}]`
 
 /** Paint a region gets when it names no {@link PdfViewerHighlight.color}. @internal */
@@ -58,7 +58,7 @@ type PdfViewerRegion = {
 	id: string
 	label: string
 	color: Color
-	/** Box in `[0, 1]` page fractions — whatever unit the caller supplied, normalized. */
+	/** Box in `[0, 1]` page fractions: whatever unit the caller supplied, normalized. */
 	rect: PdfViewerHighlightRect
 	active: boolean
 }
@@ -192,8 +192,8 @@ export function usePdfViewerHighlights({
 		goToPage(activeHighlightPage)
 	}, [activeId, activeHighlightPage, goToPage, loaded])
 
-	// Reveal-once latch, cleared on any change of the active id — including to null, so
-	// re-selecting the same region reveals again — rather than in the ref's own detach,
+	// Reveal-once latch, cleared on any change of the active id (including to null, so
+	// re-selecting the same region reveals again) rather than in the ref's own detach,
 	// which StrictMode's dev replay of a moved fiber would trip into scrolling twice. The
 	// clear is a layout effect. The region's ref attaches before it in the same commit,
 	// so a latch that already names the new id stays, and any other latch clears before
@@ -262,8 +262,8 @@ export function usePdfViewerHighlights({
 
 	const clear = useCallback(() => setActiveId(null), [setActiveId])
 
-	// A stable event, so a consumer that rebuilds the handler each render — the common case
-	// for an inline arrow — does not change the layer's props and re-render every region.
+	// A stable event, so a consumer that rebuilds the handler each render (the common case
+	// for an inline arrow) does not change the layer's props and re-render every region.
 	const press = useStableEvent((id: string) => onHighlightPress?.(id))
 
 	return {

@@ -29,7 +29,7 @@ type MapHoverProviderProps = {
 	/** Whether the tooltip is on; gates the scroll listener on a stable flag. */
 	enabled: boolean
 	plotRef: RefObject<HTMLDivElement | null>
-	/** Whether a region's category is matched and shown — the pointed-emphasis gate, the same silence the tooltip keeps off data. */
+	/** Whether a region's category is matched and shown: the pointed-emphasis gate, the same silence the tooltip keeps off data. */
 	regionActive: (index: number) => boolean
 	/** The legend id under emphasis. It rides the pointed-mark store, so a legend hover renders only the marks it dims or lights. */
 	emphasis: string | null
@@ -81,7 +81,7 @@ function createPointedStore(): MapPointedStore & {
 /**
  * Owns the pointer readout and hands it down split three ways:
  *
- * - the stable mover through {@link MapHoverActionsContext} — the marks read it, so
+ * - the stable mover through {@link MapHoverActionsContext}: the marks read it, so
  *   they never repaint as the pointer travels
  * - the live {@link MapHoverState} through its own context, which only the
  *   tooltip reads
@@ -130,8 +130,8 @@ export function MapHoverProvider({
 
 		// Bail on a no-op so a scroll's repeated clears cost one render, and a
 		// page scroll far from this map costs none. A same-mark move keeps the
-		// held target's identity — every tracked pointer event builds a fresh
-		// target object — so the pointed-mark context below changes only on a
+		// held target's identity (every tracked pointer event builds a fresh
+		// target object), so the pointed-mark context below changes only on a
 		// crossing, never per pixel.
 		setState((prev) => {
 			const same = sameTarget(prev.target, target)
@@ -152,8 +152,8 @@ export function MapHoverProvider({
 	)
 
 	// The pointed mark the marks dim against: the hover target, gated so a
-	// region outside every live group — no data, or its category toggled
-	// off — takes no emphasis; isolating the neutral fill would read as a
+	// region outside every live group (no data, or its category toggled
+	// off) takes no emphasis; isolating the neutral fill would read as a
 	// broken map, the way a chart never dims against a hidden series.
 	const target = state.target
 
@@ -170,8 +170,8 @@ export function MapHoverProvider({
 	// the marks whose answer changed. The store pins the mark, the way the chart
 	// frame pins its own pointed mark: it names the mark, never the stop within
 	// it. Sweeping between the dots of one plural mark would otherwise republish
-	// on each crossing and re-render every mark — the regions, the range legend,
-	// all the overlays — for the answer each already held.
+	// on each crossing and re-render every mark (the regions, the range legend,
+	// all the overlays) for the answer each already held.
 	const [pointedStore] = useState(createPointedStore)
 
 	useLayoutEffect(() => pointedStore.publish(pointed, emphasis), [pointedStore, pointed, emphasis])
@@ -191,7 +191,7 @@ export function MapHoverProvider({
 
 	// A scroll slides the marks under a stationary pointer without firing a pointer
 	// event; recompute at its last position once the scroll settles, reading the
-	// mark now under it straight off the DOM — a synthetic move never reaches the
+	// mark now under it straight off the DOM: a synthetic move never reaches the
 	// region handlers.
 	const resolveAt = useCallback(
 		(clientX: number, clientY: number) => {
@@ -207,7 +207,7 @@ export function MapHoverProvider({
 
 			const target = targetAt(under)
 
-			// Over the plat but between marks — the ocean — reads nothing.
+			// Over the plat but between marks (the ocean) reads nothing.
 			set(target, target === null ? null : { x: clientX, y: clientY })
 		},
 		[plotRef, set],

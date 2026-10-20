@@ -8,7 +8,7 @@
 
 import { duration } from './base'
 
-/** The CSS `ease` curve — a quick start into a long settle, fitting content arrival. */
+/** The CSS `ease` curve: a quick start into a long settle, fitting content arrival. */
 const standard = [0.25, 0.1, 0.25, 1] as const
 
 export const reveal = {

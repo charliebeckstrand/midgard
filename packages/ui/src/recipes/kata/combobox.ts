@@ -11,7 +11,7 @@ export const k = defineRecipe(
 	{
 		base: ['block', 'truncate', ...reset.base, ...density],
 		slots: {
-			// Kept in step with the listbox recipe — one dropdown family, one height (see the note
+			// Kept in step with the listbox recipe: one dropdown family, one height (see the note
 			// there for why 320px).
 			options: ['max-h-80', fit.scroll],
 			// Inner listbox: spaces its options and collapses when empty. `peer`

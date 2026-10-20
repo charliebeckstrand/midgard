@@ -32,7 +32,7 @@ let root: MemoNode = {}
 
 let nodes = 0
 
-/** Nodes the memo currently holds — the measure {@link MEMO_CAP} bounds. @internal */
+/** Nodes the memo currently holds: the measure {@link MEMO_CAP} bounds. @internal */
 export function cnMemoNodes(): number {
 	return nodes
 }
@@ -96,7 +96,7 @@ function walk(node: MemoNode, inputs: readonly ClassValue[]): MemoNode | null {
 
 		if (!branch) {
 			// Asked here rather than once at entry: this is the only place a node is
-			// created, so the hit path — every call on a mounted tree — never reads
+			// created, so the hit path (every call on a mounted tree) never reads
 			// the counter at all.
 			if (nodes >= MEMO_CAP) return null
 

@@ -118,7 +118,7 @@ export type ScatterChartSeries<T> = Pick<ChartSeries<T>, 'yKey' | 'yName' | 'col
 	/** The field holding each point's numeric x position. */
 	xKey: DataKey<T>
 	/**
-	 * The field sizing each point — the bubble encoding. Sizes scale by area
+	 * The field sizing each point: the bubble encoding. Sizes scale by area
 	 * (radii on a square root) between `size` and `maxSize` over this series' own
 	 * size extent. {@link BubbleChartSeries.sizeKey} gives the rule for a size of
 	 * zero, a negative size, and a size that is not finite.
@@ -161,7 +161,7 @@ export type BubbleChartSeries<T> = ScatterChartSeries<T> & {
 }
 
 /**
- * A click on one item of a chart — a category band, a pie slice, or a map
+ * A click on one item of a chart: a category band, a pie slice, or a map
  * region. It carries the item's own identity and its data index. It is the
  * cross-filter hook: a dashboard toggles a filter on what was clicked, and
  * narrows its neighbors.
@@ -173,10 +173,10 @@ export type ChartItemClick = (id: string, index: number) => void
 /**
  * The props every chart shares: the data plus the frame's sizing, legend,
  * tooltip, and animation switches. Each chart type extends this with its own
- * `series` shape and mark-specific switches — intersect more props on to grow
+ * `series` shape and mark-specific switches: intersect more props on to grow
  * the config.
  *
- * Requires an accessible name (`aria-label` or `aria-labelledby`) — every plot
+ * Requires an accessible name (`aria-label` or `aria-labelledby`): every plot
  * is `role="img"`, so assistive tech needs a name for it.
  *
  * @internal
@@ -185,7 +185,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	/** The rows to plot. An empty array renders an empty frame. */
 	data: T[]
 	/**
-	 * A heading drawn above the plot — the chart's own title, distinct from the
+	 * A heading drawn above the plot: the chart's own title, distinct from the
 	 * accessible name the `role="img"` region carries for assistive tech. It sits
 	 * inside the aspect box, so the drawing fills the height it leaves, and
 	 * truncates to one line with a reveal tooltip. At the spark tier the header
@@ -195,7 +195,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	title?: string
 	/**
 	 * A subheading under the {@link ChartBaseProps.title | title}, muted and
-	 * smaller — a unit, a period, a caveat. It truncates the same way and shares
+	 * smaller: a unit, a period, a caveat. It truncates the same way and shares
 	 * the spark header's hover / focus veil.
 	 */
 	subtitle?: string
@@ -213,7 +213,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	/** Frame height in px; wins over `aspectRatio` when set (a free-form fixed height). */
 	height?: number
 	/**
-	 * Height as a ratio of the width — a `width / height` number, a `"16/9"`
+	 * Height as a ratio of the width: a `width / height` number, a `"16/9"`
 	 * string, or `false` to fall back to the frame's own height policy. Ignored
 	 * when an explicit `height` is given.
 	 * @remarks A stacked (top / bottom) legend folds into the ratio, so it
@@ -222,7 +222,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * natural height leaves. A side (left / right) legend instead bands beside the
 	 * plot at its own width. The ratio then describes the plot alone, and the
 	 * drawing holds it regardless of the panel. It holds through CSS from the width
-	 * alone — no container-height measurement — either way. Cartesian charts default to
+	 * alone (no container-height measurement) either way. Cartesian charts default to
 	 * `'16/9'`; pie and donut default to a square, fitting height to their own
 	 * content when callout labels are on.
 	 *
@@ -234,7 +234,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	aspectRatio?: ChartAspectRatio
 	/**
 	 * Shows the legend. Defaults to on for two or more series (or slices) and off
-	 * for one — a single series is already named by the chart's accessible name.
+	 * for one: a single series is already named by the chart's accessible name.
 	 * Forced on for a lone series (or slice), its single entry is still a live
 	 * switch. Toggling it off empties the chart, and the forced-on legend holds the
 	 * switch that brings it back. A placement moves it:
@@ -246,7 +246,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 *   plot below that width.
 	 *
 	 * The object form ({@link ChartLegendConfig}) names a
-	 * `placement` and an `inert` flag together — an inert legend is a static key,
+	 * `placement` and an `inert` flag together: an inert legend is a static key,
 	 * its switches shed.
 	 */
 	legend?: boolean | ChartLegendPlacement | ChartLegendConfig
@@ -255,7 +255,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * indexes that it has switched off.
 	 *
 	 * Observation only. The legend owns the set and there is no `hidden` option to
-	 * pair with — the same shape `onFullscreenChange` keeps. A click on a legend
+	 * pair with: the same shape `onFullscreenChange` keeps. A click on a legend
 	 * entry changed what the reader sees and reported nothing, so the only readout
 	 * was a `MutationObserver` over `aria-pressed`. Use it to mirror one chart's
 	 * legend onto another, or to persist what a reader switched off. It sits beside
@@ -287,7 +287,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * Animates the marks in on mount with Framer Motion, honoring
 	 * `prefers-reduced-motion` through the `ReducedMotion` primitive. Where present,
 	 * the reference rules rise along the value axis to their values. Off by
-	 * default — a static dashboard of charts stays a plain-SVG tree with no
+	 * default: a static dashboard of charts stays a plain-SVG tree with no
 	 * motion runtime work.
 	 *
 	 * A change to the underlying data replays that reveal out-then-in. The outgoing
@@ -376,7 +376,7 @@ export type CartesianFrameProps = {
 	 */
 	crosshair?: boolean | Crosshair
 	/**
-	 * Reference lines drawn across the plot at fixed values — targets, thresholds,
+	 * Reference lines drawn across the plot at fixed values: targets, thresholds,
 	 * or averages the marks read against. Each value folds into the domain, so an
 	 * off-data line stays on-frame. The rules draw over the marks, so a mark
 	 * crossing one stays legible. Where the legend shows, each rule also names
@@ -437,7 +437,7 @@ type ChartReadoutRow = {
 	/**
 	 * The series' index in the caller's list, so the tooltip can tell the
 	 * emphasized row from the rest. It is absent on readouts whose rows aren't
-	 * series — a pie's slices, a heatmap's rows — where no row is singled out.
+	 * series (a pie's slices, a heatmap's rows), where no row is singled out.
 	 */
 	index?: number
 	label: string
@@ -445,7 +445,7 @@ type ChartReadoutRow = {
 	swatchClass: string
 	/** A raw series color inked inline on the swatch's `currentColor`; unset for a palette slot. */
 	swatchColor?: string
-	/** Per-category swatch overrides — pie slices, where the color follows the category. */
+	/** Per-category swatch overrides: pie slices, where the color follows the category. */
 	swatchClasses?: string[]
 	/** Swatch shape, mirroring the mark. */
 	swatch: 'rect' | 'line'

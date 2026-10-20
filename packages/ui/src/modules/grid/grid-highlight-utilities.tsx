@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { useGridHighlight } from './context'
 
-/** The static highlight-mark class, composed once — not per marked run. @internal */
+/** The static highlight-mark class, composed once, not per marked run. @internal */
 const MARK_CLASS = cn(k.cell.mark)
 
 /**
@@ -45,7 +45,7 @@ function lowerWithSpans(text: string): { lower: string; from: number[]; to: numb
 
 /**
  * Splits a plain-text run into its unmarked segments and `<mark>`-wrapped
- * matches — every case-insensitive occurrence of `query`, its original casing
+ * matches: every case-insensitive occurrence of `query`, its original casing
  * preserved. Returns the string untouched when it holds no match, so a
  * non-matching cell keeps its bare text node rather than an array wrapper.
  *

@@ -39,7 +39,7 @@ export type DescriptionListProps = DescriptionListVariants & {} & ComponentProps
  * @remarks
  * Static leaf with no client boundary: renders in React Server Components. CSS
  * picks the layout at each breakpoint, so the first paint has the final layout.
- * Projection targets only direct children — wrapping `dt`/`dd` in intermediate
+ * Projection targets only direct children: wrapping `dt`/`dd` in intermediate
  * elements bypasses the layout.
  */
 export function DescriptionList({

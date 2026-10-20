@@ -2,8 +2,8 @@
  * Swatch kata: the color key that stands in for a mark. Three independent
  * axes:
  *
- * - `shape`: the mark geometry — `square` box, `circle` dot, `line` bar
- * - `variant`: the fill treatment — `solid` / `outline` / `soft` / `dashed`
+ * - `shape`: the mark geometry (`square` box, `circle` dot, `line` bar)
+ * - `variant`: the fill treatment (`solid` / `outline` / `soft` / `dashed`)
  * - `size`: `xs`–`xl`, one scale shared by legends, tooltips, and StatusDot. The
  *   component writes it as a density scope. Without it, the swatch takes the
  *   step of its nearest density scope.
@@ -34,7 +34,7 @@ export const k = defineRecipe({
 		line: 'rounded-full',
 	},
 	// Fill treatment over `currentColor` (the caller's resolved `color`): filled,
-	// tinted at 15% (the house soft weight), framed on the surface, or dashed —
+	// tinted at 15% (the house soft weight), framed on the surface, or dashed,
 	// which is shape-specific and so lives in the compounds below to mirror a
 	// dashed reference rule on a line and a dashed stroke around a box or dot.
 	variant: {
@@ -60,8 +60,8 @@ export const k = defineRecipe({
 		// which leaves a 2px core in the surface color.
 		{ shape: 'line', variant: 'outline', class: ['h-1', 'border'] },
 		// Dashed treatment per shape. A line paints a horizontal `currentColor`
-		// dash run — the reference rule's 3:2 dash:gap halved so the pattern reads
-		// across a swatch-width line. A box or dot has no length to run, so it
+		// dash run (the reference rule's 3:2 dash:gap halved so the pattern reads
+		// across a swatch-width line). A box or dot has no length to run, so it
 		// frames with a dashed border over the surface, mirroring `outline`.
 		{
 			shape: 'line',

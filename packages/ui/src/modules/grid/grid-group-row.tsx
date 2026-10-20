@@ -21,7 +21,7 @@ type GridGroupRowProps<T> = {
 	group: GridGroup<T>
 	/** Opens or closes a group, by its id. */
 	onToggle: (id: string) => void
-	/** The visible columns, in render order — the label span and aggregate cells derive from them. */
+	/** The visible columns, in render order: the label span and aggregate cells derive from them. */
 	columns: GridColumn<T>[]
 	/** The grouped column id, which a `renderHeader` override receives. */
 	columnId: string | number

@@ -240,8 +240,8 @@ function GridHeaderCell<T>({
 		toggleSort,
 		...headerSizing(resize, column),
 		// Sort/resize/filter affordances stand down with no source data: there's
-		// nothing to order, size to, or filter until rows exist (a filter that
-		// empties the *view* keeps them — `interactive` tracks source data).
+		// nothing to order, size to, or filter until rows exist. A filter that
+		// empties the *view* keeps them, because `interactive` tracks source data.
 		interactive,
 		// Identifies a data-column header to the right-click context menu.
 		gridCol: isDataColumn(column) ? column.id : undefined,
@@ -250,7 +250,7 @@ function GridHeaderCell<T>({
 		// Per-column filter controls; the header shows a filter button when set.
 		filter: filters,
 		// The column's live query, read here (this cell re-renders on filter
-		// changes) so the memoized header re-renders when it changes — the
+		// changes) so the memoized header re-renders when it changes: the
 		// filter button's controlled QueryBuilder reads it, not `filter` live.
 		filterQuery: filters?.getQuery(column.id),
 		// Frozen-column controls; the header reads them so a pinned cell sticks.

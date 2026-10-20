@@ -64,7 +64,7 @@ export type GridRowsProps<T> = {
 	 */
 	rowRoving?: boolean
 	/**
-	 * Whether each clickable row is a static Tab stop (`tabIndex=0`) — the legacy
+	 * Whether each clickable row is a static Tab stop (`tabIndex=0`): the legacy
 	 * per-row model kept for the virtualized body, where roving stands down.
 	 * @defaultValue false
 	 */
@@ -76,7 +76,7 @@ export type GridRowsProps<T> = {
 	 * @defaultValue false
 	 */
 	cellRoving?: boolean
-	/** Stable focused-cell activation for cell roving — the cell click then the row click, matching a pointer click. */
+	/** Stable focused-cell activation for cell roving: the cell click then the row click, matching a pointer click. */
 	cellActivate?: GridCellRovingActivate<T>
 	selection: Set<string | number>
 	toggleRow: (key: string | number) => void
@@ -93,7 +93,7 @@ export type GridRowsProps<T> = {
 	 */
 	rowReorderActive: boolean
 	/**
-	 * Animate rows sliding to their sorted places — a Framer `layout` (FLIP) glide
+	 * Animate rows sliding to their sorted places: a Framer `layout` (FLIP) glide
 	 * over each row's position change when a sort reorders the plain body. Resolved
 	 * by {@link GridData}: opted in through {@link GridSort.animate} and already
 	 * stood down under virtualization, grouping, and master-detail, so a row
@@ -318,7 +318,7 @@ export type GridRowProps<T> = {
 	 */
 	expanded?: boolean
 	/**
-	 * Whether this row can expand — a grid with an `expandable` binding and a row
+	 * Whether this row can expand: a grid with an `expandable` binding and a row
 	 * the binding accepts. An expander cell on a row this rejects stays a quiet
 	 * rail. Passed as a primitive (not an object) so the memoized row holds.
 	 * @defaultValue false

@@ -81,13 +81,13 @@ export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'si
 		 * rather than a step chosen for it. A table whose columns decide how much room
 		 * they need is one. What is inside has to be able to state a width of its own.
 		 * A child that fills its container instead (`<Grid>` by default) leaves the
-		 * two measuring each other. Pair this with that child's own fit — see
-		 * {@link GridDataProps.width}.
+		 * two measuring each other. Pair this with that child's own fit (see
+		 * {@link GridDataProps.width}).
 		 *
 		 * It settles rather than travels, unlike the drawer's `fit` height. A panel
 		 * docked across the screen is navigated within and swaps what it holds. This
 		 * one is built around content that has a width and keeps it. A width that
-		 * does move — a grid re-measuring as wider rows page in — arrives in one step.
+		 * does move (a grid re-measuring as wider rows page in) arrives in one step.
 		 *
 		 * Only on the sides a width is docked across (`right`, `left`). A `top` or
 		 * `bottom` sheet spans the screen, so it stays full-width.
@@ -296,7 +296,7 @@ export function SheetPanel({
 				// A dragged size beats the variant's, and it is inline because it is a
 				// measurement rather than a step on the scale. On the axis the panel is
 				// docked across, which for a sheet along the top or the bottom is its
-				// height — the gesture writes that axis, so a `width` here would state a
+				// height: the gesture writes that axis, so a `width` here would state a
 				// number the drag never took.
 				//
 				// The cap goes with it, for the whole gesture and not only once a size

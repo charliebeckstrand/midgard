@@ -9,7 +9,7 @@ import type { GridColumnPinning } from '../grid-table/pinning-view'
 
 /** Resolved master-detail state for the flat body. @internal */
 export type GridExpansionResult<T> = {
-	/** Whether an expandable binding is active — the gate for the expander chevron and detail rows. */
+	/** Whether an expandable binding is active: the gate for the expander chevron and detail rows. */
 	active: boolean
 	/** The expanded row keys. */
 	expanded: Set<string | number>
@@ -52,7 +52,7 @@ export type GridGroupResult = {
 	/** Resolved groups (controllable), the source of truth the manager mutates. */
 	groups: GridColumnGroup[]
 	setGroups: (next: GridColumnGroup[]) => void
-	/** Groups for the manager's editor, or `undefined` when grouping is off — pre-gated so callers pass it straight through. */
+	/** Groups for the manager's editor, or `undefined` when grouping is off: pre-gated so callers pass it straight through. */
 	editorGroups: GridColumnGroup[] | undefined
 	/** Commit sink for the manager's editor, paired with {@link GridGroupResult.editorGroups}. */
 	editorSetGroups: ((next: GridColumnGroup[]) => void) | undefined
@@ -78,11 +78,11 @@ export type GridGroupByContextValue = {
 	grouping: (string | number) | null
 	/** Writes the grouped column id (or `null` to ungroup) through the `groupBy` binding. */
 	setGrouping: (next: (string | number) | null) => void
-	/** Whether the header affordances are live — false on an empty/loading grid, like the other header chrome. */
+	/** Whether the header affordances are live: false on an empty/loading grid, like the other header chrome. */
 	enabled: boolean
 }
 
-/** Whether `id` names a groupable column — a present data column, not one of the non-data columns (selection, actions, drag handle, expander). @internal */
+/** Whether `id` names a groupable column: a present data column, not one of the non-data columns (selection, actions, drag handle, expander). @internal */
 export function isGroupableColumnId<T>(columns: GridColumn<T>[], id: string | number): boolean {
 	return columns.some((col) => col.id === id && isDataColumn(col))
 }
@@ -124,8 +124,8 @@ export function resolveGroupingMode<T>(args: {
 }
 
 /**
- * The engine's manual group-header predicate — rows the binding's `groupRow`
- * contract marks — or `null` outside manual grouping. Split out so the branch
+ * The engine's manual group-header predicate (rows the binding's `groupRow`
+ * contract marks), or `null` outside manual grouping. Split out so the branch
  * lives here, off {@link GridData}'s complexity budget.
  *
  * @internal
@@ -140,8 +140,8 @@ export function manualGroupPredicate<T>(
 }
 
 /**
- * Manual-grouping body wiring for {@link GridBody} — the group-header resolver,
- * the expanded key set, and the toggle — or `null` outside manual grouping.
+ * Manual-grouping body wiring for {@link GridBody} (the group-header resolver,
+ * the expanded key set, and the toggle), or `null` outside manual grouping.
  * Kept off {@link GridData}'s complexity budget.
  *
  * @internal
@@ -181,7 +181,7 @@ export function manualGroupSortDirection(args: {
 
 /**
  * The group-by context value the header buttons read, or `null` while the
- * `groupBy.groupButton` flag is off — the buttons then render nothing. Kept off
+ * `groupBy.groupButton` flag is off: the buttons then render nothing. Kept off
  * {@link GridData}'s complexity budget.
  *
  * @internal

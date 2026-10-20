@@ -7,7 +7,7 @@
  * The path pass answers one fit at a time, which is why it is no longer the
  * ordinary route. A map draws the atlas under several, and `projected.ts` walks
  * it once for all of them. This runs for the geography and the projections that
- * buffer declines, and the two answer identically — which
+ * buffer declines, and the two answer identically, which
  * `map-geometry-projected` asserts byte for byte.
  */
 
@@ -47,7 +47,7 @@ export function regionCentroids(features: MapFeature[]): (LngLat | null)[] {
 
 		const [lon, lat] = geoCentroid(feature.geometry)
 
-		// A degenerate feature — empty rings, or rings that cancel — centers on
+		// A degenerate feature (empty rings, or rings that cancel) centers on
 		// NaN; drop it rather than let the cursor step onto a point that projects
 		// nowhere.
 		return Number.isFinite(lon) && Number.isFinite(lat) ? [lon, lat] : null

@@ -1,17 +1,17 @@
 import { getOrCompute } from './get-or-compute'
 
 /**
- * Parametric value formatting — one `resolveFormat(spec)` seam the whole library
+ * Parametric value formatting: one `resolveFormat(spec)` seam the whole library
  * shares for numbers, currency, percentages, compact notation, and prefixed ids
  * (`INV-10`), over cached `Intl.NumberFormat` instances. The React binding that
  * feeds it ambient locale / currency defaults is `useFormat`
- * (`ui/providers/locale`); non-React callers — a chart's internal default, a
- * test — call `resolveFormat` directly. For the fixed default-locale helpers the
+ * (`ui/providers/locale`); non-React callers (a chart's internal default, a
+ * test) call `resolveFormat` directly. For the fixed default-locale helpers the
  * Odometer and PivotTable lean on, see `format-number.ts`.
  */
 
 /**
- * Locale and currency defaults a {@link FormatSpec} resolves against — the
+ * Locale and currency defaults a {@link FormatSpec} resolves against: the
  * ambient `LocaleConfig` subset `useFormat` supplies from `<LocaleProvider>`.
  */
 export type FormatDefaults = {
@@ -35,7 +35,7 @@ type NumberFormatSpec = {
 	maximumFractionDigits?: number
 }
 
-/** A prefixed identifier — `prefix` + `separator` + a zero-padded whole number, e.g. `INV-0042`. */
+/** A prefixed identifier: `prefix` + `separator` + a zero-padded whole number, e.g. `INV-0042`. */
 type IdFormatSpec = {
 	type: 'id'
 	/** Leading token, e.g. `'INV'`; omitted, the number formats alone. */
@@ -148,7 +148,7 @@ function formatId(value: number, spec: IdFormatSpec, locale: string | undefined)
  * Resolves a {@link FormatSpec} to a reusable `(value) => string` formatter,
  * binding the optional locale / currency {@link FormatDefaults}. Numeric specs
  * share a cached `Intl.NumberFormat`; the `id` spec composes its prefix and
- * zero-padded number. Prefer `useFormat` in components — it supplies the ambient
+ * zero-padded number. Prefer `useFormat` in components: it supplies the ambient
  * defaults for you.
  *
  * @remarks Non-finite values format as `Intl` renders them (`NaN`, `∞`); a

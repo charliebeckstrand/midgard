@@ -23,7 +23,7 @@ export type ChartHoverState = {
 	index: number | null
 	/** The pointer's exact frame coordinates while hovering, `null` at rest. */
 	point: ChartPoint | null
-	/** Whether the pointer sits on a data mark — the tooltip's gate; the crosshair ignores it. */
+	/** Whether the pointer sits on a data mark: the tooltip's gate; the crosshair ignores it. */
 	onData: boolean
 }
 
@@ -110,7 +110,7 @@ export function useChartHover(): ChartHoverState {
 export type ChartMarkRef = { series: number; datum: number | null }
 
 /**
- * Whether `mark` lights the given series — and datum, when one is checked. A
+ * Whether `mark` lights the given series, and datum, when one is checked. A
  * whole-series emphasis (`datum: null`) lights every datum in its series, while
  * a datum emphasis lights only its own. A group-level query passes no `datum`
  * and reads the series alone. @internal
@@ -123,7 +123,7 @@ function markLights(mark: ChartMarkRef, series: number, datum: number | null | u
 
 /**
  * The one mark emphasis every cartesian and point chart shares: the mark the
- * pointer sits on — a bar, a line, a disc. Else it is the series the legend or
+ * pointer sits on (a bar, a line, a disc). Else it is the series the legend or
  * keyboard picks, receding all the others behind it. Its own context, so the
  * marks re-render only when the emphasized mark changes: a discrete crossing.
  * They never re-render on the per-pixel pointer movement the hover context
@@ -132,13 +132,13 @@ function markLights(mark: ChartMarkRef, series: number, datum: number | null | u
  *
  * The pointed mark wins over a still-held legend / keyboard one, the way the
  * reference emphasis resolves the pointer over the keyboard. A datum reference
- * (`datum` set) isolates one mark; a series reference (`datum: null`) — a line,
- * or the coarse legend emphasis — isolates the whole series.
+ * (`datum` set) isolates one mark; a series reference (`datum: null`, such as a
+ * line or the coarse legend emphasis) isolates the whole series.
  *
  * @internal
  */
 export type ChartMarkEmphasis = {
-	/** The emphasized mark — the pointer's, else the legend / keyboard series — or `null` when nothing is. */
+	/** The emphasized mark (the pointer's, else the legend / keyboard series), or `null` when nothing is. */
 	mark: ChartMarkRef | null
 	/**
 	 * Whether a mark reads at full strength: nothing emphasized, or this is the
@@ -206,7 +206,7 @@ export function sameMark(a: ChartMarkRef | null, b: ChartMarkRef | null): boolea
 
 /**
  * Marks emphasis shared between a chart's reference layer and its marks. A
- * pointed reference rule — or the keyboard cursor roved onto it — recedes the
+ * pointed reference rule (or the keyboard cursor roved onto it) recedes the
  * data marks to it, and its sibling rules with them. It is the same focus the
  * legend applies to a series. Its own context, so a rule's hover reaches only
  * the marks and the rules that read it.
@@ -215,13 +215,13 @@ export function sameMark(a: ChartMarkRef | null, b: ChartMarkRef | null): boolea
  */
 export type ChartEmphasis = {
 	/**
-	 * The keyboard-focused reference line's index, or `null` — the rule the arrow
+	 * The keyboard-focused reference line's index, or `null`: the rule the arrow
 	 * cursor parks on, so it reads as chosen while the marks recede. Pointer hover
 	 * leaves it `null`; the rule floats its own tooltip instead.
 	 */
 	activeReference: number | null
 	/**
-	 * The reference the emphasis rests on — pointed or keyboard-focused — so its
+	 * The reference the emphasis rests on (pointed or keyboard-focused), so its
 	 * sibling rules recede to it, the way the data marks do. Pointer wins over a
 	 * still-held keyboard focus; `null` when nothing is emphasized. While it is
 	 * set, the data marks recede behind the rule.

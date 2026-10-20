@@ -7,7 +7,7 @@
  *
  * Each resolves to the mark or series, or `null` for a miss. The hit layer
  * feeds them into the hover context, so the tooltip shows only over data. The
- * hover index — and any crosshair riding it — keeps tracking the whole plot.
+ * hover index (and any crosshair riding it) keeps tracking the whole plot.
  */
 
 import { clamp } from '../../../utilities'
@@ -42,7 +42,7 @@ const MARK_HOLD_RATIO = 0.5
 
 /**
  * Whether a challenger at `challengerSquared` decisively beats a held mark at
- * `heldSquared` — closer than {@link MARK_HOLD_RATIO} of its distance.
+ * `heldSquared`: closer than {@link MARK_HOLD_RATIO} of its distance.
  *
  * @internal
  */
@@ -64,7 +64,7 @@ function withinBar(
 }
 
 /**
- * The bar the pointer sits on — its series and datum indices — or `null` off
+ * The bar the pointer sits on (its series and datum indices), or `null` off
  * every bar. A bar's own body wins first, so the pointer isolates the bar it
  * truly covers. Only where no body catches it does the widened `gap` pass close
  * the thin gaps between a group's bars. Each bar's slack reaches its
@@ -140,7 +140,7 @@ function runDistanceSquared(run: LinePoint[], x: number, y: number): number {
  * The series whose line runs nearest the pointer, within `tolerance`, or `null`
  * off every line. The nearest wins where two overlap, so the isolation lifts
  * the line the pointer truly follows rather than whichever drew first. A `held`
- * series — the one already emphasized — keeps the win while it stays within the
+ * series (the one already emphasized) keeps the win while it stays within the
  * catch, unless a challenger {@link beatsHeldMark | decisively} closes. The
  * resolution is sticky across the midline between two close strokes, rather
  * than flipping on the knife edge. Each series brings its gap-split runs, so

@@ -316,7 +316,7 @@ export function useHeatmapChart<T>(
 		GUTTER_LABEL_ROOM,
 	)
 
-	// Memoized so their identity holds across a re-render with unchanged data —
+	// Memoized so their identity holds across a re-render with unchanged data;
 	// otherwise a fresh `xBand`/`yBand` every render defeats the `cells`/`cellBins`/
 	// `fills` memos below, which key off them.
 	const plot = useMemo(

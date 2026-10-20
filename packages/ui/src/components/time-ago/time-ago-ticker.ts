@@ -66,7 +66,7 @@ function handleVisibility(): void {
  * distinct cadence across all subscribers. The timer pauses while the document
  * is hidden and fires an immediate catch-up tick on return. Returns an
  * unsubscribe fn; the timer stops when its last subscriber leaves. Call only on
- * the client — it touches `window`/`document`.
+ * the client: it touches `window`/`document`.
  */
 export function subscribeTick(intervalMs: number, subscriber: Subscriber): () => void {
 	unsubscribeVisibility ??= subscribeDocumentEvent('visibilitychange', handleVisibility)

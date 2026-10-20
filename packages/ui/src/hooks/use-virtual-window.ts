@@ -752,7 +752,7 @@ export function useVirtualWindow({
 	// Re-sync guard: the virtualizer captures its scroll element in a layout
 	// effect, which runs *before* an ancestor's ref attaches when that ancestor
 	// (re)mounted in the same commit (React commits bottom-up). It then resolves
-	// `null`, renders an empty window, and — with no further renders — never
+	// `null`, renders an empty window, and (with no further renders) never
 	// recovers. This passive effect runs after every commit (refs all attached
 	// by then) and forces one re-render whenever the virtualizer's captured
 	// element diverges from the live one, letting it re-attach and measure.

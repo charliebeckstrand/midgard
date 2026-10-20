@@ -32,16 +32,16 @@ const bubble = defineRecipe({
 		system: [...text.muted, 'bg-transparent px-0'],
 	},
 	// One state, one place. The pointer reports the wait the pulse reports to the
-	// eye: `progress` rather than `wait`, because the page stays live — the
-	// composer still takes a draft, and `stop` still aborts. The cursor sits on
+	// eye: `progress` rather than `wait`, because the page stays live (the
+	// composer still takes a draft, and `stop` still aborts). The cursor sits on
 	// the bubble, so an actions-rail control keeps its own.
 	//
 	// The pulse rides the content, so the bubble projects it onto the Markdown
-	// child rather than the component applying it — the axis then carries the
+	// child rather than the component applying it: the axis then carries the
 	// whole streaming look. Written out because Tailwind
 	// scans source for whole class names and never sees an assembled one; the
 	// gate is `ugoki.css.pulse`'s. For the reduced-motion reader a standing dim
-	// stands in, never both, since the pulse already troughs to that opacity —
+	// stands in, never both, since the pulse already troughs to that opacity:
 	// the pointer affordance alone would leave a keyboard reader nothing.
 	streaming: {
 		true: [
@@ -74,14 +74,14 @@ const tool = {
 	head: [flex.row, `w-full items-center ${dan.gap.scale.sm} text-start`, size.sm],
 	// A disclosure head is a button: give it the pointer and the package's own
 	// focus ring rather than the UA outline. `inset` and not `ring`, because the
-	// step is a bordered box — the case `sen.focus`'s own doc names for it, and
+	// step is a bordered box: the case `sen.focus`'s own doc names for it, and
 	// the reason `Collapse`'s bare trigger takes the outset one instead.
 	//
 	// The color reset is load-bearing. The collapse kata paints its trigger
 	// `text.muted` with a `fg.hover`, which is right on the page and wrong in
 	// here for the third time in this file: zinc-500 on the assistant bubble's
 	// fill is 3.8:1. These classes land after the collapse kata's, so the head
-	// goes back to inheriting the bubble — hover included, or the pointer would
+	// goes back to inheriting the bubble: hover included, or the pointer would
 	// walk it into a fixed neutral on the user bubble's blue.
 	trigger: ['cursor-pointer rounded-lg', 'text-inherit hover:text-inherit', focus.inset],
 	name: [weight.semibold],
@@ -107,12 +107,12 @@ export const k = defineRecipe(
 			// every part after the first, because the first sits flush.
 			part: 'mt-3',
 			embed: {
-				// The embed's own box holds no look — the registered renderer draws a
+				// The embed's own box holds no look: the registered renderer draws a
 				// chart, a grid, or a map, and dictating a border or a fill here would
 				// fight it. It only refuses to push the bubble wider than the bubble is.
 				base: 'max-w-full',
 				// The line a block draws when no renderer claims its name. Quiet, because
-				// it reports a gap rather than an error the reader can act on — but quiet
+				// it reports a gap rather than an error the reader can act on, but quiet
 				// by slant, never by color. `text.muted` is `onSurface.zinc`, which
 				// clears AA against the page and the card and says nothing about a tinted
 				// bubble: it lands at 3.8:1 on the assistant fill and worse on the user
@@ -126,7 +126,7 @@ export const k = defineRecipe(
 	{ bubble, tool },
 )
 
-/** Recipe variant props for {@link ChatMessage} — the styling axes its kata exposes (`sender`), for consumers composing custom slots. */
+/** Recipe variant props for {@link ChatMessage}: the styling axes its kata exposes (`sender`), for consumers composing custom slots. */
 export type ChatMessageVariants = Omit<VariantProps<typeof k>, 'sender'> & {
 	/** The author of the message, which sets the side that the message aligns to. @defaultValue 'assistant' */
 	sender?: VariantProps<typeof k>['sender']

@@ -129,7 +129,7 @@ export function sparklineGeometry(
 			? padding + innerWidth / 2
 			: padding + (index / (data.length - 1)) * innerWidth
 
-	// Non-finite input (NaN, ±Infinity) has no position on the scale — map it to
+	// Non-finite input (NaN, ±Infinity) has no position on the scale: map it to
 	// NaN so it drops out of the drawn marks below, rather than emitting an invalid
 	// path token or (for ±Infinity, which `norm` would clamp) a vertex pinned to an
 	// edge.
@@ -139,8 +139,8 @@ export function sparklineGeometry(
 	const points = data.map((value, index) => ({ x: xAt(index), y: yAt(value) }))
 
 	// Draw only the finite marks. `points` stays index-aligned for callers, but a
-	// non-finite datum is excluded here — matching the non-finite skip in `bars`
-	// below — so the line/area can't emit an invalid `L x NaN` token or a spurious
+	// non-finite datum is excluded here (matching the non-finite skip in `bars`
+	// below), so the line/area can't emit an invalid `L x NaN` token or a spurious
 	// clamped vertex; the path bridges across the dropped sample.
 	const drawn = points.filter((point) => Number.isFinite(point.y))
 

@@ -28,7 +28,7 @@ export type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
  * the identity changes.
  *
  * A floating surface opened from inside the boundary portals out of its DOM
- * subtree — a menu in a non-modal sheet's footer, say. Plain containment
+ * subtree: a menu in a non-modal sheet's footer, say. Plain containment
  * therefore reads a press in it as outside. Such a press counts as inside (see
  * `pressLandsInSurfaceOpenedWithin`); without that, the boundary closes on
  * pointer-down and unmounts the menu before its click can fire.

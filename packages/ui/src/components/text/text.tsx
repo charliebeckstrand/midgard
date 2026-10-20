@@ -7,7 +7,7 @@ import { k, type TextVariants } from '../../recipes/kata/text'
 export type TextProps = TextVariants & {
 	/**
 	 * The element (or component) to render. Defaults to `<p>`; set `as="span"`
-	 * to compose Text inside phrasing content — a button label, a table cell.
+	 * to compose Text inside phrasing content: a button label, a table cell.
 	 *
 	 * @defaultValue 'p'
 	 */

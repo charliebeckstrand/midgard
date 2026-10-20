@@ -104,7 +104,7 @@ export function recolorGroupIn(
  * pulled from every group it currently sits in, so it lives in one group at
  * most. It is then appended to the target group's members, unless `groupId` is
  * `null`.
- * Empty groups after the pull are kept — the user can still add members to them.
+ * Empty groups after the pull are kept: the user can still add members to them.
  * Backs the accessible "Move to" menu (the drag path commits through
  * {@link zoneMapToStores}).
  *

@@ -25,7 +25,7 @@ export const layout = {
 	gap: {
 		/**
 		 * Cancels `base`'s gap for a child that is the panel's own edge rather than one
-		 * of its slots — a drag handle above the header.
+		 * of its slots: a drag handle above the header.
 		 *
 		 * The ramp of `dan.space.panel.flush` is the negative of the gap of `base` at
 		 * each step. If one ramp changes and the other does not, the difference is

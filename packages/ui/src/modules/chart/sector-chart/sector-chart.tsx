@@ -64,14 +64,14 @@ export type SectorLabels = {
  *
  * @remarks Left unset, `aspectRatio` reads a plain pie square and fits a
  * callout-labeled one to its own content; see {@link ChartBaseProps.aspectRatio}.
- * The legend defaults on for two or more slices — the identity channel color
+ * The legend defaults on for two or more slices: the identity channel color
  * alone must never carry.
  */
 export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	/**
 	 * The one series to sweep: `xKey` names each slice in the legend, tooltip,
-	 * and table; `yKey` holds its positive share — non-positive rows take no
-	 * slice.
+	 * and table; `yKey` holds its positive share (non-positive rows take no
+	 * slice).
 	 */
 	series: [PieChartSeries<T>]
 	/**
@@ -193,7 +193,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	const sliceValues = values.map((value, index) => (hidden.has(index) ? null : value))
 
 	// Callouts sit outside the pie, so reserve room for the widest one and shrink
-	// the pie to fit — its label never spills past the frame's clip. The frame
+	// the pie to fit: its label never spills past the frame's clip. The frame
 	// sizes from the full dataset and the pie fits the visible slices, whose
 	// shares read different percents, so both sets of texts are measured. Each
 	// set formats once, and each fit runs once, for the whole render.
@@ -215,7 +215,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	const vMargin = showCallouts ? CALLOUT_LEADER + CALLOUT_LINE : MARK_GAP * 2
 
 	// Sized from the full dataset rather than the toggled-visible one, so the
-	// frame holds still as a legend entry hides or reveals a slice — only the
+	// frame holds still as a legend entry hides or reveals a slice: only the
 	// pie's own radius reacts to that, below.
 	const sizing = sectorFrameSizing(
 		height,
@@ -237,7 +237,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	} = sectorFrame(sizing, resolvedLegend.value, data.length)
 
 	// The pie reads the same intrinsic tier as a cartesian chart from its measured
-	// box — the `data-tier` styling hook, and the legend's row cap so a many-slice
+	// box: the `data-tier` styling hook, and the legend's row cap so a many-slice
 	// stacked legend never overruns the frame the way it used to. It has no value
 	// ticks, so the density ceiling the tick target would clamp is moot here.
 	// The frame draws the title and subtitle inside the aspect box, so the chrome
@@ -267,7 +267,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	const sliceFills = colors.map((color) => tex.fillFor(color))
 
 	// Callouts need a wide horizontal band; where that band would starve the pie to
-	// the spark floor, drop them and draw a bare pie — the sizing already squared
+	// the spark floor, drop them and draw a bare pie: the sizing already squared
 	// the frame to receive it.
 	const drawCallouts = calloutsShown(showCallouts, calloutSpec, vMargin, frameWidth)
 
@@ -350,7 +350,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		percent,
 	})
 
-	// Each drawn slice is one keyboard stop at its centroid — the same anchor the
+	// Each drawn slice is one keyboard stop at its centroid: the same anchor the
 	// pointer hover uses; a row with no slice (non-positive or toggled off) offers
 	// none, so the arrow keys step over it. Indexed once so the per-row lookup is
 	// O(1) rather than a scan of the slices.

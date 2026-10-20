@@ -37,7 +37,7 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		 * How item panels are held while closed.
 		 *
 		 * @remarks
-		 * Defaults to `active` — a closed panel is unmounted, so reopening it
+		 * Defaults to `active`: a closed panel is unmounted, so reopening it
 		 * resets whatever state it held. `always` mounts every panel up front and
 		 * `lazy` mounts each on its first open. Either way a closed panel then
 		 * rests in `<Activity mode="hidden">` with its state preserved and effects

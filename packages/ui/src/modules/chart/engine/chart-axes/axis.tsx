@@ -10,12 +10,12 @@ export type ChartAxisTick = {
 	at: number
 	label: string
 	/**
-	 * Stable React identity across resizes — the tick's own value (linear axes),
+	 * Stable React identity across resizes: the tick's own value (linear axes),
 	 * category index (bands), or instant (time), never the mapped {@link
 	 * ChartAxisTick.at}. A collapsed plot maps every tick onto one coordinate: a
 	 * zero-height value range, a zero-width band. The `at` is therefore not unique
 	 * there, and would strand a duplicate-key node that ghosts on resize-back. The
-	 * identity is unique. Distinct whenever there are two or more ticks — a value axis only repeats
+	 * identity is unique. Distinct whenever there are two or more ticks: a value axis only repeats
 	 * a value on a zero-span domain, which yields at most one tick.
 	 */
 	key: string | number
@@ -46,7 +46,7 @@ export type ChartAxisProps = {
 	 */
 	position?: 'left' | 'right' | 'top' | 'bottom'
 	/**
-	 * The axis line's position along the cross axis — the zero line once negative
+	 * The axis line's position along the cross axis: the zero line once negative
 	 * values pull it off the plot edge. The x axis reads it as a y, a horizontal
 	 * rule, and defaults to the plot floor. The y axis reads it as an x, a
 	 * vertical rule for a horizontal chart's category baseline, and draws no line
@@ -55,7 +55,7 @@ export type ChartAxisProps = {
 	baseline?: number
 	/**
 	 * Draw the x axis's baseline rule. A horizontal chart's value axis sits on the
-	 * bottom and, like the vertical chart's left value axis, carries no line —
+	 * bottom and, like the vertical chart's left value axis, carries no line:
 	 * only the gridlines.
 	 * @defaultValue true
 	 */
@@ -161,7 +161,7 @@ export type ChartAxisTitlesProps = {
  * The axis titles (value and band), drawn in the bands that the layout reserved
  * for them. A
  * rotated label runs along each titled vertical gutter, and a horizontal one
- * under (or over) each titled band axis. Pure chrome — non-interactive, and outside the
+ * under (or over) each titled band axis. Pure chrome: non-interactive, and outside the
  * readout, which names series through the legend and tooltip instead.
  *
  * @internal

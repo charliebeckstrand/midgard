@@ -69,8 +69,8 @@ export function labelBesideY(y: number, plot: PlotRect, above: boolean): number 
  * plus its height, exactly the threshold {@link labelBesideY} flips a clipping
  * label at. The reserved gap therefore sits safely past that threshold, rather
  * than exactly on it. A reservation that only met the threshold would leave
- * every extreme's label on the flip boundary. A resize would dance it across —
- * above, below, above — landing it on the line each time it flips.
+ * every extreme's label on the flip boundary. A resize would dance it across
+ * (above, below, above), landing it on the line each time it flips.
  *
  * @internal
  */

@@ -30,7 +30,7 @@ export const AREA_FILL_OPACITY = 0.16
 
 /**
  * Estimated glyph advance of a `text-sm` tick-label character, for the y-gutter
- * estimate — the size {@link k.tick} renders at. Sized a touch above a bare
+ * estimate: the size {@link k.tick} renders at. Sized a touch above a bare
  * tabular digit, so a compact label's proportional suffix (`K` / `M`, wider than
  * a digit) still clears the frame. {@link GUTTER_EDGE_PAD} absorbs the rest of
  * that variance. Stays under {@link LABEL_CHAR_WIDTH}, which reserves for fully
@@ -40,7 +40,7 @@ export const TICK_CHAR_WIDTH = 8.5
 
 /**
  * Estimated glyph advance of a proportional category label's character, for the
- * y-gutter estimate when band labels — not tabular value ticks — line it (the
+ * y-gutter estimate when band labels (not tabular value ticks) line it (the
  * heatmap's rows). It is the fallback before the labels are measured. Wider than {@link TICK_CHAR_WIDTH}. Category labels are
  * proportionally set and often capital-initial. A tabular-digit width therefore
  * under-reserves the gutter. The widest label, a leading `M` or `W`, crosses the
@@ -135,7 +135,7 @@ export const PLOT_TOP_PAD = 9
  */
 export const FLOOR_LABEL_PAD = 9
 
-/** Band a value-axis title adds to its gutter — one `text-xs` line box plus a breath of air. @internal */
+/** Band a value-axis title adds to its gutter: one `text-xs` line box plus a breath of air. @internal */
 export const AXIS_TITLE_BAND = 16
 
 /** Air between a value-axis title and the tick labels it sits beside, so the two never crowd. @internal */
@@ -156,7 +156,7 @@ export const SCATTER_HIT_SLACK = 3
 /** Reference-rule stroke width: firm enough to read cleanly over the marks it crosses. @internal */
 export const REFERENCE_STROKE_WIDTH = 2
 
-/** Reference-rule dash — coarser than a hairline, so the rule reads as a deliberate annotation. @internal */
+/** Reference-rule dash: coarser than a hairline, so the rule reads as a deliberate annotation. @internal */
 export const REFERENCE_DASH = '6 4'
 
 /** Transparent stroke width making the reference rule an easy hover target. @internal */

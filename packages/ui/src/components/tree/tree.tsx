@@ -43,7 +43,7 @@ export type TreeProps = AccessibleName &
 		 * an uncontrolled {@link TreeItem} keeps its own open state. `lazy` holds a
 		 * branch from its first open, preserving that state and any scroll position
 		 * or focus within it. `always` holds every branch from mount, which renders
-		 * the whole tree up front — appropriate only for a bounded one.
+		 * the whole tree up front: appropriate only for a bounded one.
 		 *
 		 * @defaultValue 'active'
 		 */

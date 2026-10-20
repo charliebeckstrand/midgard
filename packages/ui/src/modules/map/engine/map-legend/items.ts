@@ -42,7 +42,7 @@ export type MapLegendItem = {
 	 * one place, take a square beside a dot.
 	 */
 	swatches: MapLegendSwatch[]
-	/** A trailing readout — a route's mileage, a point's value. */
+	/** A trailing readout: a route's mileage, a point's value. */
 	detail?: string
 }
 
@@ -136,7 +136,7 @@ export function legendItems(
 		}
 
 		// The first member of a group opens its entry, and a mark with no group opens
-		// one for itself — the same entry either way, differing only in the id it
+		// one for itself: the same entry either way, differing only in the id it
 		// answers to and in whether a later sibling can still find it.
 		const item: MapLegendItem = {
 			id: entry.group === undefined ? entry.id : groupLegendId(entry.group),

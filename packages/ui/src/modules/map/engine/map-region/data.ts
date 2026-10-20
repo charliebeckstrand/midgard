@@ -11,7 +11,7 @@ import type { DataKey, MapCategory } from '../types'
 
 /**
  * Show the legend. Defaults to on when there are two or more categories or any
- * registered overlay — the identity channel color alone must never carry. A
+ * registered overlay: the identity channel color alone must never carry. A
  * placement moves the centered row under the plot (`'bottom'`) or above it
  * (`'top'`). It can also move it to a column panel beside the plot (`'left'` /
  * `'right'`). The panel sits side by side once the map's own width reaches
@@ -70,11 +70,11 @@ export type MapCategoricalData<T> = MapRegionRows<T> &
 		categories?: MapCategory[]
 	}
 
-/** Regions shaded along a sequential ramp by a numeric field — a choropleth. @internal */
+/** Regions shaded along a sequential ramp by a numeric field: a choropleth. @internal */
 export type MapNumericData<T> = MapRegionRows<T> & {
 	/** The field holding the row's numeric value; shades regions along the color range. */
 	valueKey: DataKey<T>
-	/** Ordered CSS color stops the bins sample, low → high — the data-driven scale. */
+	/** Ordered CSS color stops the bins sample, low → high: the data-driven scale. */
 	colorRange: string[]
 	/**
 	 * Bin count for the ramp and its legend.
@@ -182,8 +182,8 @@ export function numericRegionData<T>(fields: MapNumericInput<T>): MapRegionData<
 	// The legend crosses, because a placement is a layout the caller asked for
 	// and holds whether a scale landed or not. Only its range form is dropped:
 	// that form paints the scale this branch does not have, and the resolver was
-	// already dropping it — this is the same silence, one layer earlier, where it
-	// keeps the returned object inside a branch of the union.
+	// already dropping it (this is the same silence, one layer earlier, where it
+	// keeps the returned object inside a branch of the union).
 	if (
 		data === undefined ||
 		regionKey === undefined ||

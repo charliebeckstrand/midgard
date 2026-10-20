@@ -76,7 +76,7 @@ const draggingSurface = mode(
 )
 
 /**
- * The group rail's 2px neutral inline-start border — a continuous bar down the
+ * The group rail's 2px neutral inline-start border: a continuous bar down the
  * group's leading edge. The side is logical, so a right-to-left grid draws it on
  * the right. Shared by the padded group cells and the loading placeholder
  * rows. The cells add `py-0` and manage their own padding through the reveal
@@ -88,8 +88,8 @@ const draggingSurface = mode(
  * the same cell they land in one tailwind-merge group (`border-color-s`).
  * The color then cleanly replaces the neutral, in both light and dark, without
  * an `!important`. (An all-sides neutral would sit in a different group and
- * survive the merge. Its `dark:` variant — one extra class under class-based
- * dark mode — would then outrank the un-variant color and win in dark mode.)
+ * survive the merge. Its `dark:` variant (one extra class under class-based
+ * dark mode) would then outrank the un-variant color and win in dark mode.)
  */
 const railBorder = ['border-s-2', ...mode('border-s-zinc-950/5', 'dark:border-s-white/10')]
 
@@ -173,18 +173,18 @@ const headerButton = {
 
 export const k = {
 	// `isolate` scopes the grid's internal sticky/pinned z-indices to its own
-	// stacking context: the frozen header rides `z-20` and the sticky header `z-10`,
-	// which must layer among themselves but must not leak out to overlap a host's
-	// sticky chrome — e.g. a SidebarLayout's own `z-20` page header the grid scrolls
-	// beneath (without isolation the grid's later-in-DOM `z-20` frozen header wins
-	// the tie and paints over it). Portaled surfaces (the column-manager dialog,
-	// context menus, tooltips) render at the body, outside this context, so they
-	// still overlay the page.
+	// stacking context: the frozen header rides `z-20` and the sticky header
+	// `z-10`, which must layer among themselves but must not leak out to overlap
+	// a host's sticky chrome. An example is a SidebarLayout's own `z-20` page
+	// header the grid scrolls beneath (without isolation the grid's later-in-DOM
+	// `z-20` frozen header wins the tie and paints over it). Portaled surfaces
+	// (the column-manager dialog, context menus, tooltips) render at the body,
+	// outside this context, so they still overlay the page.
 	wrapper: ['relative', 'isolate', flex.col, dan.gap.scale.sm],
-	// `maxHeight="fill"`: the grid takes its parent's box instead of a fixed cap —
-	// the wrapper stretches to the parent's height and the scroll region flexes to
-	// the remainder under the toolbar/footer (`min-h-0` lets each shrink below its
-	// content, which a flex child otherwise refuses), so the windowed scroll
+	// `maxHeight="fill"`: the grid takes its parent's box instead of a fixed cap.
+	// The wrapper stretches to the parent's height and the scroll region flexes
+	// to the remainder under the toolbar/footer (`min-h-0` lets each shrink below
+	// its content, which a flex child otherwise refuses), so the windowed scroll
 	// container binds inside any CSS-sized parent.
 	fill: {
 		wrapper: 'h-full min-h-0',
@@ -230,7 +230,7 @@ export const k = {
 		// `border`: the table collapses borders (`border-collapse: collapse`), so a
 		// real cell border joins the table grid and scrolls away with the overflow
 		// instead of staying on the frozen column. The overlay rides the sticky cell
-		// and holds — the same reason the edge cue below is a box-shadow.
+		// and holds: the same reason the edge cue below is a box-shadow.
 		// `inset-y-0`/`w-0.5` make a 2px full-height rule at the inner edge;
 		// `pointer-events-none` keeps it inert.
 		border: {
@@ -277,7 +277,7 @@ export const k = {
 	// edges close with a top rule on the first header row (riding the sticky header)
 	// and an inline-start rule on each row's first cell (riding a frozen leading
 	// column). The sides are logical, so a right-to-left grid mirrors them. All cast
-	// from the `<table>` onto its descendants — like the table's own outline — so
+	// from the `<table>` onto its descendants (like the table's own outline), so
 	// cells read no context and render in RSC. Full literals for Tailwind's scanner;
 	// keep the subtle tint in step with `kata/table`'s `projection.outline`.
 	outline: {
@@ -300,8 +300,8 @@ export const k = {
 		// column.
 		start: ['[&>*>tr>*:first-child]:border-s'],
 	},
-	// The toolbar region above the table — see `GridToolbar`, the single home for
-	// the grid's above-table controls. A vertical stack of the top control row and,
+	// The toolbar region above the table (see `GridToolbar`, the single home for
+	// the grid's above-table controls). A vertical stack of the top control row and,
 	// while a row is selected, the batch-action row beneath it.
 	toolbar: {
 		// The toolbar is its own size container, as the footer is. The top row then
@@ -316,7 +316,7 @@ export const k = {
 		// content renders, because two auto margins in one row share the free space.
 		actions: '@lg:ms-auto',
 		// The consumer's own content, pushed to the end the same way. It sits ahead
-		// of the tools, so with both present the free space opens once — here — and
+		// of the tools, so with both present the free space opens once (here) and
 		// the two clusters stay together at the row's end.
 		content: '@lg:ms-auto',
 	},
@@ -365,8 +365,8 @@ export const k = {
 	head: {
 		// One-line header title that truncates to an ellipsis when it outgrows the
 		// column. `min-w-0` overrides the flex item's `min-width: auto` so it shrinks
-		// within the header's flex slot — and, for a sortable column, within the sort
-		// button — instead of pushing past the cell into its neighbor.
+		// within the header's flex slot (and, for a sortable column, within the sort
+		// button) instead of pushing past the cell into its neighbor.
 		title: ['block', 'truncate', 'min-w-0'],
 		// A frozen column's header affordances: the pin button paired with the title.
 		pinned: {
@@ -374,23 +374,24 @@ export const k = {
 			// keeps the title shrinkable so it still truncates beside the button; the `xs`
 			// gap sets the button-to-title spacing.
 			label: [flex.inline, 'min-w-0', dan.gap.scale.xs],
-			// Pin button on a frozen column's header: an icon-only control that unpins the
-			// column. Muted at rest, tinting on hover/focus so it reads as the actionable
-			// affordance it is. `-ms-1` pulls the button toward the inline start by the
-			// Pin glyph's optical inset, so the visible pin lands over the column's cell
-			// values rather than a step past their start. The Pin's leading ink sits
-			// ~4px into its `size-5` box (x=5 of lucide's 24-unit grid, scaled by 20/24)
-			// — shallower than the grip's dots at x=8 — so it takes a smaller pull than
-			// the grip's `-ms-1.5`; a shared value would over-pull one glyph or the
-			// other. That pull seats the box flush
+			// Pin button on a frozen column's header: an icon-only control that
+			// unpins the column. Muted at rest, tinting on hover/focus so it reads as
+			// the actionable affordance it is. `-ms-1` pulls the button toward the
+			// inline start by the Pin glyph's optical inset, so the visible pin lands
+			// over the column's cell values rather than a step past their start. The
+			// Pin's leading ink sits ~4px into its `size-5` box (x=5 of lucide's
+			// 24-unit grid, scaled by 20/24), shallower than the grip's dots at x=8,
+			// so it takes a smaller pull than the grip's `-ms-1.5`; a shared value
+			// would over-pull one glyph or the other. That pull seats the box flush
 			// to the table's horizontal scroll wrapper (`overflow-x-auto`, see
-			// `components/table`), which clips an outset outline at its edge; the focus ring
-			// is therefore `inset` — clip-safe, like `k.nav.cell` and unlike the inboard
-			// `k.sort.button`, whose outset `ring` clears the edge.
-			// The 20px glyph is below the 24x24 minimum target (WCAG 2.5.8). A centered,
-			// transparent `::before` expands the *hit* area to >=24x24 without moving the
-			// glyph (so the optical `-ms` alignment and inset ring are untouched) — growing
-			// the box itself would re-center the icon off that tuned inset.
+			// `components/table`), which clips an outset outline at its edge; the
+			// focus ring is therefore `inset`: clip-safe, like `k.nav.cell` and
+			// unlike the inboard `k.sort.button`, whose outset `ring` clears the
+			// edge. The 20px glyph is below the 24x24 minimum target (WCAG 2.5.8). A
+			// centered, transparent `::before` expands the *hit* area to >=24x24
+			// without moving the glyph (so the optical `-ms` alignment and inset ring
+			// are untouched): growing the box itself would re-center the icon off
+			// that tuned inset.
 			button: [
 				flex.inline,
 				'shrink-0',
@@ -409,12 +410,12 @@ export const k = {
 		// `min-w-0` lets the button shrink within the header slot so its title can
 		// truncate; the title carries the ellipsis while the sort arrow holds its size.
 		// The trailing pair holds the title at the muted shade on hover while a column
-		// drag lifts and mutes this header (an ancestor carrying `data-[dragging]`) —
+		// drag lifts and mutes this header (an ancestor carrying `data-[dragging]`);
 		// otherwise `fg.hover` would brighten the held column's own title under the
 		// dragging pointer, fighting the dim cue. The `hover:not-disabled` modifiers
 		// mirror `fg.hover`, and the `[data-dragging]` ancestor adds the specificity
 		// that outranks it, so the hold lands without `!`. Inert on any header with no
-		// dragging ancestor — every non-reorder header, and a reorder header at rest.
+		// dragging ancestor: every non-reorder header, and a reorder header at rest.
 		button: [
 			flex.inline,
 			'min-w-0',
@@ -433,17 +434,17 @@ export const k = {
 	},
 	reorder: {
 		// Lift the actively dragged column above its neighbors and float it on its
-		// own opaque surface so the columns it slides over stay hidden — without the
-		// fill a transparent cell let their text bleed through, and the former
+		// own opaque surface so the columns it slides over stay hidden. Without the
+		// fill, a transparent cell let their text bleed through, and the former
 		// `opacity-70` softening could only dim that bleed, never stop it. The
-		// z-index only bites where the cell is a positioned box — sticky headers
-		// already are; `shift` promotes the rest for the duration of the drag — and
+		// z-index only bites where the cell is a positioned box (sticky headers
+		// already are; `shift` promotes the rest for the duration of the drag) and
 		// the shadow reads the lifted column as picked up off the table.
 		cell: [
 			'data-dragging:z-20',
 			'data-dragging:shadow-lg',
-			// The held column dims its text to the muted foreground — header and body
-			// alike, since this class is shared — so the dragged column reads as
+			// The held column dims its text to the muted foreground (header and body
+			// alike, since this class is shared), so the dragged column reads as
 			// lifted/in transit and a Space/Enter keyboard lift, which moves nothing
 			// until an arrow key, isn't left without a cue. Mirrors `iro.text.muted`;
 			// the header already sits at this shade (table `header` base), so the
@@ -457,12 +458,13 @@ export const k = {
 		// Promotes a non-sticky reorder cell to `relative` while dragging so its
 		// lift z-index takes effect.
 		shift: 'data-dragging:relative',
-		// Whole-header drag handle (`reorder.handle: false`): the header cell itself
-		// carries the grab cursor — grabbing while lifted (`data-[dragging]`, the same
-		// live-drag flag the grip uses, not `:active`, so a context-menu press doesn't
-		// strand it) — and suppresses text selection and touch-scroll so a press
-		// anywhere on the header lifts the column. A sortable column's sort control
-		// keeps `cursor-pointer`: set on the control itself, it out-resolves this
+		// Whole-header drag handle (`reorder.handle: false`): the header cell
+		// itself carries the grab cursor, and suppresses text selection and
+		// touch-scroll so a press anywhere on the header lifts the column. The
+		// cursor turns to grabbing while lifted (`data-[dragging]`, the same
+		// live-drag flag the grip uses, not `:active`, so a context-menu press
+		// doesn't strand it). A sortable column's sort control keeps
+		// `cursor-pointer`: set on the control itself, it out-resolves this
 		// inherited grab cursor on that child.
 		grab: [...grab.default],
 		// Keeps the grip, title, and any sort control on one baseline. A block-level
@@ -479,8 +481,8 @@ export const k = {
 		// visible grip lines up over the column's cell values instead of floating a step
 		// past their start.
 		// That pull seats the box flush to the table's horizontal scroll wrapper
-		// (`overflow-x-auto`), so its focus ring is `inset` — clip-safe, like
-		// `k.nav.cell` and the `k.resize.grip` color shift — rather than the outset
+		// (`overflow-x-auto`), so its focus ring is `inset` (clip-safe, like
+		// `k.nav.cell` and the `k.resize.grip` color shift) rather than the outset
 		// `ring` the wrapper would shave at the edge.
 		handle: [
 			flex.inline,
@@ -498,8 +500,8 @@ export const k = {
 	},
 	row: {
 		// A clickable row (`onRowClick`): the pointer cursor and a keyboard focus
-		// ring (the row is a roving tab stop). The ring is `inset` — clip-safe, like
-		// `k.nav.cell` and the reorder grip — since the grid's horizontal scroll
+		// ring (the row is a roving tab stop). The ring is `inset` (clip-safe, like
+		// `k.nav.cell` and the reorder grip), since the grid's horizontal scroll
 		// wrapper (`overflow-x-auto`) shaves the outset `ring`'s offset stroke at the
 		// row's leading/trailing edge. Its hover wash is the shared `<Table hover>`
 		// variant `GridData` enables for a row click. Interactive cell content
@@ -508,7 +510,7 @@ export const k = {
 		clickable: ['cursor-pointer', focus.inset],
 		loading: [css.pulse, 'opacity-50'],
 		group: {
-			// A 2px colored rail down the group's leading edge — carried by the first
+			// A 2px colored rail down the group's leading edge: carried by the first
 			// cell of every row in the group (its header and each leaf) so it reads as one
 			// continuous bar, the row-group analog of a column group's underline rule. It
 			// takes a neutral tint by default; the row manager swaps in a per-group
@@ -518,7 +520,7 @@ export const k = {
 				padded: ['py-0', ...railBorder],
 				// The border alone, for the loading placeholder rows that keep ordinary cell padding.
 				border: railBorder,
-				// Per-group rail color (see {@link railColor}) — the manager's palette hue,
+				// Per-group rail color (see {@link railColor}): the manager's palette hue,
 				// replacing the neutral `border` tint on the leading cell of every group row.
 				color: railColor,
 			},
@@ -533,7 +535,7 @@ export const k = {
 			reveal: {
 				...reveal,
 				// The cell padding on the reveal wrapper, in the stepped class of the
-				// kata/table cell padding, so an animated leaf cell matches an ordinary one —
+				// kata/table cell padding, so an animated leaf cell matches an ordinary one,
 				// and collapses that padding to nothing at height 0.
 				pad: dan.space.cell.base,
 			},
@@ -560,13 +562,14 @@ export const k = {
 					focus.inset,
 					...grab.default,
 				],
-				// The grip while reordering is unavailable — a column sort orders the rows,
-				// or the `rowReorder` prop sets `disabled`: shown for layout stability but
-				// inert and dimmed, so it reads as "not draggable now" rather than missing.
+				// The grip while reordering is unavailable (a column sort orders the
+				// rows, or the `rowReorder` prop sets `disabled`). It shows for layout
+				// stability but is inert and dimmed, so it reads as "not draggable now"
+				// rather than missing.
 				disabled: [flex.inline, 'shrink-0', text.muted, 'opacity-50', 'cursor-not-allowed'],
 			},
 			// Lifts the actively dragged row above its siblings on an opaque surface
-			// with a shadow, so the rows it slides over stay hidden behind it — a
+			// with a shadow, so the rows it slides over stay hidden behind it: a
 			// transparent `<tr>` would let their content bleed through. Gated on the
 			// `data-[dragging]` the row carries; the fill matches the surface under the
 			// grid (see `hostSurface`/`draggingSurface`).
@@ -662,8 +665,8 @@ export const k = {
 		// width is twice the horizontal cell padding at each step, the ramp of
 		// `metrics`. It spans the header cell's height (`h-full`): the
 		// affordance lives in the header, not down the column. `justify-center` lands
-		// the grip one cell-padding in from the trailing edge — flush with where a
-		// truncating header's label and body values clip — and `items-center` centers
+		// the grip one cell-padding in from the trailing edge (flush with where a
+		// truncating header's label and body values clip) and `items-center` centers
 		// the short grip vertically. The grab zone does not overhang the
 		// boundary: an outward overhang gets painted over by a neighbor's opaque
 		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
@@ -673,7 +676,7 @@ export const k = {
 			'justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
-		// Grip line, which the handle draws as its `::after` — a short 2px rounded
+		// Grip line, which the handle draws as its `::after`: a short 2px rounded
 		// bar (`h-4`), its 2px width matching the `ResizableHandle` grip
 		// (`kata/resizable`) so every resize affordance reads the same, centered in
 		// the grab zone (`justify-center` on the handle) one cell-padding in from the
@@ -743,7 +746,7 @@ export const k = {
 	// to `<Table>` when `condensed` is set. All cast from the `<table>` element
 	// onto its descendants (like the table's own outline projections) so
 	// cells and headers read no context and the family still renders in RSC. They
-	// reach only what lives in the table's own DOM — a portaled overlay (context
+	// reach only what lives in the table's own DOM: a portaled overlay (context
 	// menu, column-manager dialog) is out of scope and keeps the step around the grid,
 	// since `condensed` is a table-density preset, not a theme its overlays adopt.
 	condensed: {
@@ -767,17 +770,17 @@ export const k = {
 		item: 'whitespace-nowrap',
 	},
 	// Data-body state washes projected from the `<table>` onto its data `<tbody>`
-	// (`:first-of-type`, ahead of the grand-total body — so the header, filter row,
+	// (`:first-of-type`, ahead of the grand-total body, so the header, filter row,
 	// and totals stay crisp). Currently the server-sort settle: a manual sort emits
 	// its change to the consumer, who fetches the reordered rows; until they land
 	// the grid dims the current rows rather than swapping in a skeleton, so the data
 	// stays readable while it reorders.
 	body: {
-		// While a server-side (manual) sort is in flight, the whole data body signals
-		// busy until the reordered rows arrive — a `motion-safe` pulse, or, for a
-		// reduced-motion user, a static 50% dim in its place (never both: the pulse
-		// already troughs to that opacity, so the standing dim is the reduced-motion
-		// fallback alone).
+		// While a server-side (manual) sort is in flight, the whole data body
+		// signals busy until the reordered rows arrive. The signal is a
+		// `motion-safe` pulse, or, for a reduced-motion user, a static 50% dim in
+		// its place (never both: the pulse already troughs to that opacity, so the
+		// standing dim is the reduced-motion fallback alone).
 		settling: [
 			'[&>tbody:first-of-type]:motion-safe:animate-pulse',
 			'[&>tbody:first-of-type]:motion-reduce:opacity-50',
@@ -790,7 +793,7 @@ export const k = {
 	// filters, and sort that decide *what* is being exported can't be changed out
 	// from under a file mid-write. `k.wrapper` already carries `relative isolate`,
 	// so the scrim needs no positioning host of its own and its z-index is scoped
-	// to the grid's own stacking context — above the frozen header's `z-20`, and
+	// to the grid's own stacking context: above the frozen header's `z-20`, and
 	// still under page chrome outside the grid.
 	exporting: {
 		scrim: ['absolute inset-0 z-30', flex.row, 'justify-center', ...backdrop.base],
@@ -811,7 +814,7 @@ export const k = {
 	},
 	// Framer transition configs (spread/passed to an `m` element, never to
 	// `cn`). Unlike the CSS `grid-template-rows` reveals the group and detail rows
-	// use, a sort reflow moves whole rows between slots — a FLIP `layout` animation,
+	// use, a sort reflow moves whole rows between slots: a FLIP `layout` animation,
 	// which only a real `m.tr` can drive.
 	motion: {
 		// Layout transition for the sort row reflow: on a sort, each stable-keyed
@@ -878,8 +881,8 @@ export const k = {
 	},
 	// Inline per-row editing: an editable row's cells render their editors (the
 	// grid's own Input / NumberInput / Listbox, or a column `editCell` slot) with
-	// their normal styling, sitting inside the cell padding — the editing row just
-	// grows to fit the controls.
+	// their normal styling, sitting inside the cell padding (the editing row just
+	// grows to fit the controls).
 	edit: {
 		// Host for a cell's editor; anchors the absolute validation message.
 		host: ['relative', flex.row, 'w-full'],

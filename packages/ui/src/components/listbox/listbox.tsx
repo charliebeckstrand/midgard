@@ -262,7 +262,7 @@ export function Listbox<T>({
 	// Resolved after the binding, so the bound field's own errors reach the
 	// control: `useControlProps` ORs them with an ambient `error` severity, and a
 	// Listbox that withheld them rang only for a `<Field severity>` its consumer
-	// set by hand — where the Input beside it rang for its own validator.
+	// set by hand, where the Input beside it rang for its own validator.
 	const {
 		id: resolvedId,
 		disabled: resolvedDisabled,
@@ -368,12 +368,12 @@ export function Listbox<T>({
 	//
 	// The panel is found by its id as well as through the floating ref, because
 	// the ref is not reliably attached at the moment this fires: a press opens the
-	// menu on `click`, and the focus manager moves focus into the panel — raising
-	// this blur — in the same beat the panel mounts. Where the ref was still null
+	// menu on `click`, and the focus manager moves focus into the panel (raising
+	// this blur) in the same beat the panel mounts. Where the ref was still null
 	// the guard fell through and the field went touched on the way IN, so a picker
 	// showed "required" the first time it was opened and before it was answered.
 	const handleTriggerBlur = (event: FocusEvent<HTMLButtonElement>) => {
-		// A blur to nowhere — a press on unfocusable ground — still leaves the
+		// A blur to nowhere (a press on unfocusable ground) still leaves the
 		// widget, so `null` falls through to the touch rather than short-circuiting.
 		const next = event.relatedTarget as Node | null
 

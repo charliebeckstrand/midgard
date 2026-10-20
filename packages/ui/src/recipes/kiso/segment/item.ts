@@ -33,10 +33,10 @@ export const item = {
 		// iOS Safari can select the text in a child of a `select-none` item on a long
 		// press, so the children also set it.
 		'select-none *:select-none',
-		// The selected item steps to full-strength ink and the rest stay muted — the
+		// The selected item steps to full-strength ink and the rest stay muted (the
 		// muted/`data-current` pairing the underline tab carries, which this had no counterpart
 		// for: every item rendered at one color, so the indicator behind the active one was the
-		// only thing marking it. That reads as a highlight sitting on the strip rather than as a
+		// only thing marking it). That reads as a highlight sitting on the strip rather than as a
 		// selected item, and it leaves the distinction resting entirely on a fill (WCAG 1.4.1).
 		//
 		// `on.wash.muted`, not `muted`: an item sits on the control's own wash track,

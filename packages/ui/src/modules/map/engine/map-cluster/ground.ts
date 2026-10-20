@@ -2,7 +2,7 @@
  * Which part of the ground under a dot's pointer target belongs to that dot, when another dot stands
  * close enough to want some of it.
  *
- * The companion to `crowd.ts`, answering the same question — how much of this ground is mine — with a
+ * The companion to `crowd.ts`, answering the same question (how much of this ground is mine) with a
  * shape instead of a radius. A radius is the right answer for a zone's claim. A `MapGeofence` is a
  * face, not a point, so there is no line to divide along. A dot standing on one can only give
  * reach back evenly. It is the wrong answer for a neighboring DOT. Shrinking both targets to the
@@ -31,7 +31,7 @@ import type { MapPoint2D } from '../types'
 import { squared } from './grid'
 
 /**
- * A dot's own ground, as a closed convex ring in frame units — what a `clipPath` draws.
+ * A dot's own ground, as a closed convex ring in frame units: what a `clipPath` draws.
  *
  * @internal
  */
@@ -58,7 +58,7 @@ function contests(at: MapPoint2D, other: MapPoint2D, reach: number): boolean {
 	return apart > 0 && apart < 4 * reach * reach
 }
 
-/** Whether `point` is on `at`'s side of the bisector — ties fall inside, so a boundary point is owned. @internal */
+/** Whether `point` is on `at`'s side of the bisector: ties fall inside, so a boundary point is owned. @internal */
 function nearer(point: MapPoint2D, mid: MapPoint2D, nx: number, ny: number): boolean {
 	return (point.x - mid.x) * nx + (point.y - mid.y) * ny <= 0
 }
@@ -84,7 +84,7 @@ function crossing(
 }
 
 /**
- * Clips a convex ring to one half-plane — Sutherland–Hodgman over a single edge.
+ * Clips a convex ring to one half-plane: Sutherland–Hodgman over a single edge.
  *
  * @internal
  */

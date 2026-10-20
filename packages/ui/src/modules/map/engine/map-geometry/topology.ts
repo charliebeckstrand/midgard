@@ -8,7 +8,7 @@ import { feature } from 'topojson-client'
 import type { MapFeature, MapGeography, MapTopology } from '../types'
 
 /**
- * The topology object a name selects, defaulting to the first key — atlas
+ * The topology object a name selects, defaulting to the first key: atlas
  * packages lead with their primary layer. `undefined` where the name selects
  * nothing.
  *

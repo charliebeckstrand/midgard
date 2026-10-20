@@ -89,7 +89,7 @@ export const scale = defineScale(
 	dan.size.button.width,
 )
 
-/** Recipe variant props for {@link Button} — the styling axes its kata exposes (`variant`, `color`) and the `size` step, for consumers composing custom slots. */
+/** Recipe variant props for {@link Button}: the styling axes its kata exposes (`variant`, `color`) and the `size` step, for consumers composing custom slots. */
 export type ButtonVariants = Omit<VariantProps<typeof k>, 'variant' | 'color'> & {
 	/**
 	 * The fill style of the button. When the prop is unset in a surface that sets

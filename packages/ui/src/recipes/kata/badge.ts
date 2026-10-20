@@ -1,5 +1,5 @@
 /**
- * Badge kata: the inline status/label chip. Recipe-shaped — a `variant` ×
+ * Badge kata: the inline status/label chip. Recipe-shaped: a `variant` ×
  * `color` × `radius` matrix over the signature kasane chrome. The size steps
  * are `density-*` classes in the base, not an axis.
  * Reads `iro.extended` rather than `iro.palette`, so its `color` axis
@@ -81,12 +81,12 @@ export const k = defineRecipe(
 			plain: extended.plain.text,
 		}),
 		// `radius: 'full'` caps swallow horizontal space, so pills read tighter than
-		// the base `px` (tuned for the default `radius: 'md'`) — most visibly at small
+		// the base `px` (tuned for the default `radius: 'md'`): most visibly at small
 		// sizes. Bump every pill one `px` step (the later class replaces the base
 		// one in `tailwind-merge`); the shift stays uniform because the
 		// `px` stops jump 0.5 (1.5 → 2 → 2.5), so lifting only the small end would
 		// collapse sm onto md's px and kink the scale. Scoped to the pill, so the
-		// base scale — and the affix `px` lockstep keyed off it — stays put.
+		// base scale (and the affix `px` lockstep keyed off it) stays put.
 		compound: [{ radius: 'full', class: dan.space.badge.pill }, ...linkHover],
 		defaults: { variant: 'solid', color: 'zinc', radius: 'md', interactive: false },
 		skeleton: badge,
@@ -118,7 +118,7 @@ export const scale = defineScale(
 	dan.size.badge.width,
 )
 
-/** Recipe variant props for {@link Badge} — the styling axes its kata exposes (`variant`, `color`, `radius`, `interactive`) and the `size` step, for consumers composing custom slots. */
+/** Recipe variant props for {@link Badge}: the styling axes its kata exposes (`variant`, `color`, `radius`, `interactive`) and the `size` step, for consumers composing custom slots. */
 export type BadgeVariants = Omit<
 	VariantProps<typeof k>,
 	'radius' | 'variant' | 'color' | 'interactive'

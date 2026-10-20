@@ -55,7 +55,7 @@ function HeatmapRangeArrow({
 type HeatmapChartLegendProps = RangeScale & {
 	values: (number | null)[][]
 	cols: number
-	/** Which way the bar runs — vertical beside the plot, horizontal above or below it. */
+	/** Which way the bar runs: vertical beside the plot, horizontal above or below it. */
 	orientation: ChartOrientation
 }
 
@@ -65,8 +65,8 @@ type HeatmapChartLegendProps = RangeScale & {
  * of the bar emphasizes the cells of that class through the focus context, and
  * dims the rest.
  * The `heatmap-range` slot keeps the heatmap's part names. `orientation` follows
- * the bar's resolved placement — vertical beside the plot, horizontal above or
- * below — so the arrow and slider transpose together.
+ * the bar's resolved placement (vertical beside the plot, horizontal above or
+ * below), so the arrow and slider transpose together.
  *
  * @internal
  */
