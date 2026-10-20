@@ -45,7 +45,7 @@ function scatterReadout(
  *
  * @internal
  */
-function scatterReadoutThunk(
+function buildReadout(
 	visible: ScatterMeta[],
 	uniqueXs: number[],
 	format: (value: number) => string,
@@ -99,7 +99,7 @@ export function useScatterChartReadout<T>(
 	)
 
 	return useMemo(
-		() => scatterReadoutThunk(held.visible, held.uniqueXs, format, formatX, formatSize),
+		() => buildReadout(held.visible, held.uniqueXs, format, formatX, formatSize),
 		[held, format, formatX, formatSize],
 	)
 }

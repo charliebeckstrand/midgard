@@ -34,7 +34,7 @@ const bunch = (at: number): LngLat[] =>
 	Array.from({ length: 10 }, (_, step): LngLat => [at + step, 0])
 
 /** Every drawn mark, with the radius it paints. */
-const marksOf = (positions: LngLat[], gap: number | null) =>
+const buildMarks = (positions: LngLat[], gap: number | null) =>
 	clusterPoints(positions, flat, gap).flatMap((group) =>
 		group.at === null ? [] : [{ at: group.at, radius: clusterRadius(group.members.length) }],
 	)
@@ -146,7 +146,7 @@ describe('clusterPoints', () => {
 			for (let y = 0; y < 10; y++) field.push([x * 18, y * 18])
 		}
 
-		const marks = marksOf(field, GAP)
+		const marks = buildMarks(field, GAP)
 
 		expect(marks.length).toBeGreaterThan(1)
 

@@ -70,7 +70,7 @@ export type ChartCapture = {
 }
 
 /** The alpha of a computed CSS color: `rgba(…)`, a slash alpha, or opaque. @internal */
-function alphaOf(color: string): number {
+function parseAlpha(color: string): number {
 	if (color === 'transparent') return 0
 
 	const alpha =
@@ -89,13 +89,13 @@ function alphaOf(color: string): number {
  *
  * @internal
  */
-function groundOf(root: HTMLElement): string[] {
+function readGround(root: HTMLElement): string[] {
 	const layers: string[] = []
 
 	for (let node: HTMLElement | null = root; node; node = node.parentElement) {
 		const color = getComputedStyle(node).backgroundColor
 
-		const alpha = alphaOf(color)
+		const alpha = parseAlpha(color)
 
 		if (alpha > 0) layers.unshift(color)
 
@@ -348,7 +348,7 @@ function isPruned(element: Element, root: Element, plan: CapturePlan): boolean {
 }
 
 /** Adds the moves of `element` and of its ancestors below `root`. @internal */
-function shiftOf(element: Element, root: Element, plan: CapturePlan): Shift {
+function measureShift(element: Element, root: Element, plan: CapturePlan): Shift {
 	let x = 0
 
 	let y = 0
@@ -404,7 +404,7 @@ function drawnBox(root: HTMLElement, plan: CapturePlan, full: CaptureBox): Captu
 		const svg = plot.querySelector('svg')
 
 		if (svg && !isPruned(svg, root, plan)) {
-			add(svg.getBoundingClientRect(), shiftOf(svg, root, plan))
+			add(svg.getBoundingClientRect(), measureShift(svg, root, plan))
 		}
 	}
 
@@ -418,7 +418,7 @@ function drawnBox(root: HTMLElement, plan: CapturePlan, full: CaptureBox): Captu
 		// The text of a clipped line runs past its box, so each extent stops at the header.
 		const frame = header.getBoundingClientRect()
 
-		const shift = shiftOf(header, root, plan)
+		const shift = measureShift(header, root, plan)
 
 		const walker = root.ownerDocument.createTreeWalker(header, NodeFilter.SHOW_TEXT)
 
@@ -452,7 +452,7 @@ function drawnBox(root: HTMLElement, plan: CapturePlan, full: CaptureBox): Captu
 
 /**
  * Prepares the capture of a chart for an image export. It is the synchronous
- * half of {@link rasterizeChartImage}. It reads the live chart and writes nothing
+ * half of {@link rasterizeImage}. It reads the live chart and writes nothing
  * to it. It clones the root and freezes the computed style of each node onto the
  * clone. It drops each node that paints nothing, such as the hidden data table.
  * The clone of the root has no margin, so it fills the box from its origin.
@@ -465,7 +465,7 @@ function drawnBox(root: HTMLElement, plan: CapturePlan, full: CaptureBox): Captu
  * @returns The clone and the box that the bitmap crops to.
  * @internal
  */
-export function prepareChartCapture(root: HTMLElement, includeLegend: boolean): ChartCapture {
+export function prepareCapture(root: HTMLElement, includeLegend: boolean): ChartCapture {
 	const rect = root.getBoundingClientRect()
 
 	const full: CaptureBox = {
@@ -487,11 +487,11 @@ export function prepareChartCapture(root: HTMLElement, includeLegend: boolean): 
 	// clone therefore drops the margin, so it starts at the origin of the box.
 	clone.style.margin = '0'
 
-	return { clone, box, ground: groundOf(root) }
+	return { clone, box, ground: readGround(root) }
 }
 
 /** Reads a blob as a `data:` URL. @internal */
-function dataUrlOf(blob: Blob): Promise<string> {
+function toDataUrl(blob: Blob): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader()
 
@@ -523,7 +523,7 @@ function embeddedFontRule(): Promise<string> {
 
 			return response.blob()
 		})
-		.then((blob) => dataUrlOf(new Blob([blob], { type: 'font/woff2' })))
+		.then((blob) => toDataUrl(new Blob([blob], { type: 'font/woff2' })))
 		.then(
 			(source) =>
 				`@font-face{font-family:'Google Sans Flex';font-weight:300 900;font-display:block;src:url(${source}) format('woff2-variations');}`,
@@ -608,13 +608,13 @@ async function encode(
  * @param options - The bitmap `type` and whether to keep the legend.
  * @returns The encoded image, or `null` when the canvas cannot encode it.
  */
-export async function rasterizeChartImage(
+export async function rasterizeImage(
 	root: HTMLElement,
 	{ type, includeLegend }: { type: ChartImageType; includeLegend: boolean },
 ): Promise<Blob | null> {
 	// Synchronous capture: measure and clone before the first await, so the
 	// image shows the chart as it is now.
-	const { clone, box, ground } = prepareChartCapture(root, includeLegend)
+	const { clone, box, ground } = prepareCapture(root, includeLegend)
 
 	// The clone keeps the size of the root. It moves by the crop origin, so the
 	// crop fills the image.

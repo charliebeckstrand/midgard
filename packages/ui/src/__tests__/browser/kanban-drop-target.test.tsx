@@ -22,7 +22,7 @@ describe('Kanban drop target (real browser)', () => {
 	type Column = { id: string; items: Item[] }
 
 	/** The center of `el`, in client space. */
-	const centerOf = (el: Element): Point => {
+	const getCenter = (el: Element): Point => {
 		const box = el.getBoundingClientRect()
 
 		return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
@@ -113,9 +113,9 @@ describe('Kanban drop target (real browser)', () => {
 
 		const resting = getComputedStyle(target).backgroundColor
 
-		const from = centerOf(handle('a'))
+		const from = getCenter(handle('a'))
 
-		const held = await drag(handle('a'), from, [{ x: from.x, y: from.y + 20 }, centerOf(target)])
+		const held = await drag(handle('a'), from, [{ x: from.x, y: from.y + 20 }, getCenter(target)])
 
 		await expect.poll(() => target.hasAttribute('data-over')).toBe(true)
 
@@ -140,9 +140,12 @@ describe('Kanban drop target (real browser)', () => {
 
 		const resting = getComputedStyle(target).backgroundColor
 
-		const from = centerOf(handle('a'))
+		const from = getCenter(handle('a'))
 
-		const held = await drag(handle('a'), from, [{ x: from.x, y: from.y + 20 }, centerOf(card('b'))])
+		const held = await drag(handle('a'), from, [
+			{ x: from.x, y: from.y + 20 },
+			getCenter(card('b')),
+		])
 
 		await expect.poll(() => target.hasAttribute('data-over')).toBe(true)
 
@@ -169,10 +172,13 @@ describe('Kanban drop target (real browser)', () => {
 
 		const source = column('todo')
 
-		const from = centerOf(handle('a'))
+		const from = getCenter(handle('a'))
 
 		// The lift, and a reorder in place over the card below it.
-		const held = await drag(handle('a'), from, [{ x: from.x, y: from.y + 20 }, centerOf(card('c'))])
+		const held = await drag(handle('a'), from, [
+			{ x: from.x, y: from.y + 20 },
+			getCenter(card('c')),
+		])
 
 		await expect.poll(() => card('a').hasAttribute('data-dragging')).toBe(true)
 
@@ -195,9 +201,12 @@ describe('Kanban drop target (real browser)', () => {
 
 		const target = column('done')
 
-		const from = centerOf(handle('a'))
+		const from = getCenter(handle('a'))
 
-		const held = await drag(handle('a'), from, [{ x: from.x, y: from.y + 20 }, centerOf(card('b'))])
+		const held = await drag(handle('a'), from, [
+			{ x: from.x, y: from.y + 20 },
+			getCenter(card('b')),
+		])
 
 		// The live move puts the card in the other column.
 		await expect.poll(() => target.hasAttribute('data-over')).toBe(true)

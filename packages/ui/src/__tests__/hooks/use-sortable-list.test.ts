@@ -288,13 +288,13 @@ describe('sortableAnnouncements', () => {
 })
 
 describe('useSortableList announcements', () => {
-	const announcementsOf = (props: { accessibility?: { announcements?: Announcements } }) =>
+	const getAnnouncements = (props: { accessibility?: { announcements?: Announcements } }) =>
 		props.accessibility?.announcements
 
 	it('names each item by its key without describe', () => {
 		const { result } = renderHook(() => useSortableList({ items, getKey: (item) => item.id }))
 
-		const announcements = announcementsOf(result.current.dndContextProps)
+		const announcements = getAnnouncements(result.current.dndContextProps)
 
 		expect(announcements?.onDragStart({ active: { id: 'c' } as Active })).toBe(
 			'Picked up c, position 3 of 3.',
@@ -306,7 +306,7 @@ describe('useSortableList announcements', () => {
 			useSortableList({ items, getKey: (item) => item.id, describe: (item) => item.label }),
 		)
 
-		const announcements = announcementsOf(result.current.dndContextProps)
+		const announcements = getAnnouncements(result.current.dndContextProps)
 
 		expect(announcements?.onDragStart({ active: { id: 'c' } as Active })).toBe(
 			'Picked up Charlie, position 3 of 3.',

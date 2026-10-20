@@ -59,6 +59,6 @@ export const focusKeys = {
 	add: (groupId: string) => `add:${groupId}`,
 }
 
-export function focusKeyOf(target: FocusTarget): string {
+export function getFocusKey(target: FocusTarget): string {
 	return target.kind === 'node' ? focusKeys.node(target.id) : focusKeys.add(target.groupId)
 }

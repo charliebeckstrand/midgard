@@ -37,18 +37,18 @@ import type { PaletteSource } from '../../utilities/places-palette'
 import { placesByTrip } from '../../utilities/places-trips'
 import { NOTHING_SELECTED, type PlaceSelection, selectedIds } from '../../utilities/places-url'
 import {
+	buildRegions,
 	COUNTRY_SNAP_KM,
-	countryOf,
 	drillInto,
+	getCountry,
+	getState,
 	groupTrail,
 	initialView,
 	knownCountry,
 	type PlaceAtlas,
 	type PlaceView,
 	pickerRegions,
-	regionOf,
 	regionsHolding,
-	stateOf,
 	viewAtlas,
 	viewCrumbs,
 	viewFor,
@@ -197,22 +197,22 @@ function trailItems<T extends Located>(
  */
 function useGroupings<T extends Located>(records: readonly T[]) {
 	const byState = useMemo(
-		() => groupByRegion(() => atlasBounded('states'), records, stateOf),
+		() => groupByRegion(() => atlasBounded('states'), records, getState),
 		[records],
 	)
 
-	const states = useMemo(() => regionOf(byState), [byState])
+	const states = useMemo(() => buildRegions(byState), [byState])
 
 	const byCountry = useMemo(
 		() =>
-			groupByRegion(() => atlasBounded('countries'), records, countryOf, {
+			groupByRegion(() => atlasBounded('countries'), records, getCountry, {
 				known: knownCountry(states),
 				snapKm: COUNTRY_SNAP_KM,
 			}),
 		[records, states],
 	)
 
-	const countries = useMemo(() => regionOf(byCountry), [byCountry])
+	const countries = useMemo(() => buildRegions(byCountry), [byCountry])
 
 	return { byState, states, byCountry, countries }
 }
@@ -734,7 +734,7 @@ export function PlacesApp({
 		setStep,
 		settleView,
 		openAt,
-		hrefOf,
+		toHref,
 		setAdding,
 	} = usePlaceLocation()
 
@@ -985,10 +985,10 @@ export function PlacesApp({
 	const tripLink = useMemo<TripLink>(
 		() => ({
 			trips: tripsById,
-			href: (trip) => hrefOf(viewFor(groupings.states, trip), only('trips', trip)),
+			href: (trip) => toHref(viewFor(groupings.states, trip), only('trips', trip)),
 			open: openTrip,
 		}),
-		[tripsById, hrefOf, groupings.states, openTrip],
+		[tripsById, toHref, groupings.states, openTrip],
 	)
 
 	// The palette's sources. Each has its own memo, so a change to one does not

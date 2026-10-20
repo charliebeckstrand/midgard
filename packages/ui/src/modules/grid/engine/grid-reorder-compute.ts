@@ -159,7 +159,7 @@ export function applyColumnReorder(
  *
  * @internal
  */
-export function resolveGridReorder(reorder: boolean | GridReorder): {
+export function resolveReorder(reorder: boolean | GridReorder): {
 	enabled: boolean
 	handle: boolean
 } {

@@ -49,7 +49,7 @@ export type TreeSkeletonProps = {
 export function TreeSkeleton({ rows = 5, size, indent = true, className }: TreeSkeletonProps) {
 	const rowKeys = rangeKeys(rows, 'row')
 
-	const depthOf = (index: number) => DEPTHS[index % DEPTHS.length] ?? 0
+	const getDepth = (index: number) => DEPTHS[index % DEPTHS.length] ?? 0
 
 	return (
 		<div data-density={size} aria-hidden="true" className={cn(k.base, className)}>
@@ -64,7 +64,7 @@ export function TreeSkeleton({ rows = 5, size, indent = true, className }: TreeS
 					)}
 				>
 					{indent
-						? rangeKeys(depthOf(index), 'indent').map((indentKey) => (
+						? rangeKeys(getDepth(index), 'indent').map((indentKey) => (
 								<span key={indentKey} className={cn(k.chevron)} />
 							))
 						: null}

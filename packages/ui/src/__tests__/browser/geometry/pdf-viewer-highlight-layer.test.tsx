@@ -67,14 +67,14 @@ describe('pdf-viewer highlight layer (real browser)', () => {
 		return { container, image }
 	}
 
-	function layerOf(container: HTMLElement) {
+	function getLayer(container: HTMLElement) {
 		return getSlot(container, 'pdf-viewer-highlights')
 	}
 
 	it('draws the layer over the page image, edge for edge', async () => {
 		const { container, image } = await viewer()
 
-		expect(layerOf(container)).toMatchBox(image, { tolerance: SAME_BOX })
+		expect(getLayer(container)).toMatchBox(image, { tolerance: SAME_BOX })
 	})
 
 	it('keeps them one box through a zoom step', async () => {
@@ -86,7 +86,7 @@ describe('pdf-viewer highlight layer (real browser)', () => {
 
 		await waitFor(() => expect(image.getBoundingClientRect().width).toBeGreaterThan(before))
 
-		expect(layerOf(container)).toMatchBox(image, { tolerance: SAME_BOX })
+		expect(getLayer(container)).toMatchBox(image, { tolerance: SAME_BOX })
 	})
 
 	it('keeps them one box through a rotation', async () => {
@@ -104,7 +104,7 @@ describe('pdf-viewer highlight layer (real browser)', () => {
 			expect(frame.getBoundingClientRect().height).not.toBeNear(upright, HALF_PIXEL),
 		)
 
-		expect(layerOf(container)).toMatchBox(image, { tolerance: SAME_BOX })
+		expect(getLayer(container)).toMatchBox(image, { tolerance: SAME_BOX })
 	})
 
 	it('lands a region on the fraction of the page it names', async () => {

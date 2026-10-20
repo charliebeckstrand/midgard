@@ -33,7 +33,7 @@ export type ReorderDragOptions = {
 type Drag = { id: string; controls: DragControls; canceled: boolean }
 
 /** The place of an item in an order, for an announcement. */
-const slotOf = (order: readonly string[], id: string): ReorderSlot => ({
+const getSlot = (order: readonly string[], id: string): ReorderSlot => ({
 	position: order.indexOf(id) + 1,
 	total: order.length,
 })
@@ -114,7 +114,7 @@ export function useReorderDrag({ ids, onReorder, name, onStart }: ReorderDragOpt
 
 			window.addEventListener('keydown', onKeyDown, true)
 
-			announce(pickedUpText(intl, name(id), slotOf(ids, id)), { assertive: true })
+			announce(pickedUpText(intl, name(id), getSlot(ids, id)), { assertive: true })
 		},
 		[ids, onStart, setDraft, cursor, unlisten, onKeyDown, name, intl],
 	)
@@ -135,12 +135,12 @@ export function useReorderDrag({ ids, onReorder, name, onStart }: ReorderDragOpt
 		if (live === null) return
 
 		if (live.canceled) {
-			announce(returnedText(intl, name(live.id), slotOf(ids, live.id)), { assertive: true })
+			announce(returnedText(intl, name(live.id), getSlot(ids, live.id)), { assertive: true })
 
 			return
 		}
 
-		announce(droppedText(intl, name(live.id), slotOf(order, live.id)), { assertive: true })
+		announce(droppedText(intl, name(live.id), getSlot(order, live.id)), { assertive: true })
 
 		if (onReorder === undefined || order.every((id, index) => id === ids[index])) return
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { COLUMN_RESIZE_STEP } from '../../../modules/grid/engine/grid-constants'
 import { fireEvent, present, renderUI, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -71,7 +71,7 @@ describe('grid column resizing in a right-to-left grid (real browser)', () => {
 
 		const start = header.getBoundingClientRect().width
 
-		const { x, y } = centerOf(separator)
+		const { x, y } = getCenter(separator)
 
 		fireEvent.mouseDown(separator, { clientX: x, clientY: y })
 

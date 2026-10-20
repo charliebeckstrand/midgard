@@ -94,18 +94,18 @@ describe('zoneBudget and zoneSpare', () => {
 		[side, 0],
 	]
 
-	const budgetOf = (side: number, unitsPerPixel = 1) =>
+	const getBudget = (side: number, unitsPerPixel = 1) =>
 		zoneBudget(projectArea([[square(side)]], flat), unitsPerPixel)
 
 	it('spares a share of the zone’s own room, not the whole of it', () => {
 		// A 60-unit square holds 30 units of inscribed room, so the zone keeps half
 		// and hands out half — a dot at the middle can never blanket what drew it.
-		expect(budgetOf(60).spare).toBe(30 * AREA_SPARE_FRACTION)
+		expect(getBudget(60).spare).toBe(30 * AREA_SPARE_FRACTION)
 	})
 
 	it('claims nothing of a dot standing clear of the zone', () => {
 		// Past the competing band, which is one whole finger target wide.
-		const zone = budgetOf(60)
+		const zone = getBudget(60)
 
 		expect(zoneSpare(zone, { x: -POINT_HIT_RADIUS - 1, y: 30 })).toBe(Infinity)
 
@@ -116,7 +116,7 @@ describe('zoneBudget and zoneSpare', () => {
 	it('budgets a dot on the boundary exactly as one at the middle', () => {
 		// The reading this replaced asked whether the dot was inside, which a zone
 		// drawn through its own marks could not answer. One budget, one answer.
-		const zone = budgetOf(60)
+		const zone = getBudget(60)
 
 		expect(zoneSpare(zone, { x: 0, y: 0 })).toBe(zoneSpare(zone, { x: 30, y: 30 }))
 	})
@@ -125,9 +125,9 @@ describe('zoneBudget and zoneSpare', () => {
 		// Under the transform one device pixel spans two frame units, so a zone of
 		// fixed frame width spares half as many pixels — and the band it competes
 		// over grows to stay one finger target wide on screen.
-		expect(budgetOf(60, 2).spare).toBe(15 * AREA_SPARE_FRACTION)
+		expect(getBudget(60, 2).spare).toBe(15 * AREA_SPARE_FRACTION)
 
-		expect(budgetOf(60, 2).margin).toBe(POINT_HIT_RADIUS * 2)
+		expect(getBudget(60, 2).margin).toBe(POINT_HIT_RADIUS * 2)
 	})
 
 	it('spares nothing from a zone the projection dropped', () => {

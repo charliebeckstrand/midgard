@@ -25,7 +25,7 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 		insertBefore: (id: number, ids: number[]) => void
 	}
 
-	const heightOf = (id: number) => 30 + ((id * 37) % 90)
+	const getHeight = (id: number) => 30 + ((id * 37) % 90)
 
 	function List({ handle, bounded }: { handle: Handle; bounded: boolean }) {
 		renders.count++
@@ -73,7 +73,7 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 							ref={measureRef}
 							data-index={virtualItem.index}
 							data-row={id}
-							style={{ height: heightOf(id) }}
+							style={{ height: getHeight(id) }}
 						>
 							Row {id}
 						</div>

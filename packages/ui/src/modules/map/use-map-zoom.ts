@@ -344,7 +344,7 @@ export function useMapZoom({
 	// not bind them again.
 	const framed = view.width > 0 && view.height > 0
 
-	useMapWheelZoom(zooms, framed, modifier, svgRef, commit, holdGesture, live, wheelStream)
+	useWheelZoom(zooms, framed, modifier, svgRef, commit, holdGesture, live, wheelStream)
 
 	useMapGestureGuard(zooms, framed, svgRef)
 
@@ -505,7 +505,7 @@ export function useMapZoom({
 		// The touch of a palm while a pen or a mouse holds the map.
 		if (holder.current !== null) return false
 
-		const contacts = contactsOf(event, pointers.current)
+		const contacts = readContacts(event, pointers.current)
 
 		claimTouch(event, contacts)
 
@@ -763,7 +763,7 @@ export function useMapZoom({
  *
  * @internal
  */
-function useMapWheelZoom(
+function useWheelZoom(
 	enabled: boolean,
 	framed: boolean,
 	modifier: MapZoomSettings['modifier'],
@@ -979,7 +979,7 @@ const TOUCH_EVENTS = ['touchstart', 'touchmove', 'touchend', 'touchcancel'] as c
  * a finger keeps the pinch when the dot it landed on regroups out of the tree. A
  * finger that landed off the plot is never one of its contacts.
  */
-function contactsOf(event: TouchEvent, held: Map<number, MapPoint2D>): Map<number, MapPoint2D> {
+function readContacts(event: TouchEvent, held: Map<number, MapPoint2D>): Map<number, MapPoint2D> {
 	const landed = new Set<number>()
 
 	if (event.type === 'touchstart') {

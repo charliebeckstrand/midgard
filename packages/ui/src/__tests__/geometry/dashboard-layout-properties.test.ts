@@ -386,7 +386,7 @@ describe('shiftCells · properties', () => {
 			})
 
 	/** The movable equal-span tiles of the row of `id`, left to right. */
-	function runOf(cells: readonly DashboardCell[], id: string): DashboardCell[] {
+	function getRun(cells: readonly DashboardCell[], id: string): DashboardCell[] {
 		const moving = cells.find((target) => target.id === id) as DashboardCell
 
 		return cells
@@ -429,11 +429,11 @@ describe('shiftCells · properties', () => {
 
 			const target = row[j % row.length] as DashboardCell
 
-			const run = runOf(cells, moving.id)
+			const run = getRun(cells, moving.id)
 
 			const shifted = shiftCells(cells, moving.id, target.id)
 
-			const after = runOf(shifted, moving.id)
+			const after = getRun(shifted, moving.id)
 
 			expect(after.map((slot) => slot.x)).toEqual(run.map((slot) => slot.x))
 
@@ -452,7 +452,7 @@ describe('shiftCells · properties', () => {
 
 			const target = row[j % row.length] as DashboardCell
 
-			const run = runOf(cells, moving.id)
+			const run = getRun(cells, moving.id)
 
 			const from = run.indexOf(moving)
 

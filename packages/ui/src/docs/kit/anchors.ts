@@ -9,7 +9,7 @@ export const API = 'api'
  * prop in the entry, such as `api-Button-variant`. A component name has no
  * hyphen, so the first hyphen after the prefix ends it.
  */
-export function apiIdOf(component: string, prop?: string): string {
+export function toApiId(component: string, prop?: string): string {
 	return prop === undefined ? `${API}-${component}` : `${API}-${component}-${prop}`
 }
 

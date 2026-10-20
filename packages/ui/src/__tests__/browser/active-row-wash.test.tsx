@@ -28,7 +28,7 @@ const GLASS_ACTIVE_HOVER = 0.2
  * `bg-zinc-950/5`, `/10`, and `/20` to the same `oklab()` color and separates
  * them only by alpha, which is the difference under test.
  */
-function washOf(element: Element): number {
+function readWash(element: Element): number {
 	const painted = getComputedStyle(element).backgroundColor
 
 	const alpha = painted.match(/\/\s*([\d.]+)\s*\)$/)
@@ -111,7 +111,7 @@ describe('roved row wash in a glass parent (real browser)', () => {
 	it('deepens a roved command-palette row to the glass step', async () => {
 		const row = await rovedPaletteRow(true)
 
-		expect(washOf(row)).toBeCloseTo(GLASS_ACTIVE, 3)
+		expect(readWash(row)).toBeCloseTo(GLASS_ACTIVE, 3)
 	})
 
 	it('keeps a roved command-palette row one glass step deeper under the pointer', async () => {
@@ -119,7 +119,7 @@ describe('roved row wash in a glass parent (real browser)', () => {
 
 		await userEvent.hover(row)
 
-		expect(washOf(row)).toBeCloseTo(GLASS_ACTIVE_HOVER, 3)
+		expect(readWash(row)).toBeCloseTo(GLASS_ACTIVE_HOVER, 3)
 	})
 
 	it('deepens a roved menu row to the glass step after the pointer leaves it', async () => {
@@ -129,13 +129,13 @@ describe('roved row wash in a glass parent (real browser)', () => {
 
 		expect(row).toHaveAttribute('data-active')
 
-		expect(washOf(row)).toBeCloseTo(GLASS_ACTIVE, 3)
+		expect(readWash(row)).toBeCloseTo(GLASS_ACTIVE, 3)
 	})
 
 	it('leaves a roved command-palette row on the plain wash outside a glass dialog', async () => {
 		const row = await rovedPaletteRow(false)
 
-		expect(washOf(row)).toBeCloseTo(ACTIVE, 3)
+		expect(readWash(row)).toBeCloseTo(ACTIVE, 3)
 	})
 })
 

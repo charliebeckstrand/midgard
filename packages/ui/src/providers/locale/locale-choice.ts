@@ -1,4 +1,4 @@
-import { languageOf } from '../../primitives/intl/intl-language'
+import { getLanguage } from '../../primitives/intl/intl-language'
 import {
 	type AppearanceChoice,
 	parseChoice,
@@ -59,9 +59,9 @@ export function matchLocale(
 		locales.find((locale) => locale.toLowerCase() === tag.toLowerCase())
 
 	for (const tag of preferred) {
-		const language = languageOf(tag)
+		const language = getLanguage(tag)
 
-		const sameLanguage = (other: string) => languageOf(other) === language
+		const sameLanguage = (other: string) => getLanguage(other) === language
 
 		const reader = preferred.filter(sameLanguage).find((other) => exact(other) !== undefined)
 

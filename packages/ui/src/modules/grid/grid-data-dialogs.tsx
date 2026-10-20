@@ -32,7 +32,7 @@ export const loadGridDataDialogs = dialogs.load
  * fails. A trigger calls it on a hover or a focus, so the load is in flight
  * before the press. @internal
  */
-export function preloadGridDataDialogs(): void {
+export function preloadDataDialogs(): void {
 	dialogs.load().catch(noop)
 }
 

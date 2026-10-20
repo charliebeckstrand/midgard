@@ -17,7 +17,7 @@ export type StickyBars = {
 }
 
 /** The height from the top of the scroller that a bar covers, or 0 when it does not stick. */
-function coverOf(bar: HTMLElement): number {
+function measureCover(bar: HTMLElement): number {
 	const style = getComputedStyle(bar)
 
 	if (style.position !== 'sticky' && style.position !== 'fixed') return 0
@@ -27,7 +27,7 @@ function coverOf(bar: HTMLElement): number {
 	return Number.isNaN(top) ? 0 : top + bar.getBoundingClientRect().height
 }
 
-function createStickyBars(): StickyBars {
+function createBars(): StickyBars {
 	const bars = new Set<HTMLElement>()
 
 	let scroller: HTMLElement | null = null
@@ -37,7 +37,7 @@ function createStickyBars(): StickyBars {
 	const measure = () => {
 		if (!scroller) return
 
-		const cover = Math.max(0, ...[...bars].map(coverOf))
+		const cover = Math.max(0, ...[...bars].map(measureCover))
 
 		scroller.style.scrollPaddingTop = cover > 0 ? `${cover}px` : ''
 	}
@@ -103,7 +103,7 @@ function createStickyBars(): StickyBars {
  * @internal
  */
 export function useStickyBars(): StickyBars {
-	const [bars] = useState(createStickyBars)
+	const [bars] = useState(createBars)
 
 	return bars
 }

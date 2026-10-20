@@ -16,7 +16,7 @@ const nothing = createLazyModule<never>(() => new Promise(noop))
  * module.
  * @internal
  */
-export function lazyModuleOf<T>(load: () => Promise<T>): LazyModule<T> {
+export function getLazyModule<T>(load: () => Promise<T>): LazyModule<T> {
 	// The map holds the module that `load` makes, which loads a `T`.
 	return getOrCompute(modules, load, createLazyModule) as LazyModule<T>
 }
@@ -55,7 +55,7 @@ export function lazyModuleOf<T>(load: () => Promise<T>): LazyModule<T> {
  * ```
  */
 export function useIdleLoad<T>(load: (() => Promise<T>) | null): T | undefined {
-	const lazy = load === null ? null : lazyModuleOf(load)
+	const lazy = load === null ? null : getLazyModule(load)
 
 	useIdlePreload(lazy)
 

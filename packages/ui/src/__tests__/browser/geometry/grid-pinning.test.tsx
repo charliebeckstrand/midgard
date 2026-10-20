@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, frames, present, renderUI, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -355,7 +355,7 @@ describe('frozen chrome tracks live pin and size changes (real browser)', () => 
 
 		if (!handle) throw new Error('resize handle not found')
 
-		const { x: startX, y } = centerOf(handle)
+		const { x: startX, y } = getCenter(handle)
 
 		// Hold the drag open: mousedown and a move, with no mouseup to settle it.
 		fireEvent.mouseDown(handle, { clientX: startX, clientY: y })

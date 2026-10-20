@@ -16,7 +16,7 @@ import { k, type SwatchVariants } from '../../recipes/kata/swatch'
  *
  * @internal
  */
-function resolveSwatchColor(color: string | undefined): {
+function resolveColor(color: string | undefined): {
 	colorClass: string | undefined
 	colorStyle: CSSProperties | undefined
 } {
@@ -104,7 +104,7 @@ export function Swatch({
 	// image. The role and label stay paired.
 	const labelProps = label ? ({ role: 'img', 'aria-label': label } as const) : undefined
 
-	const { colorClass, colorStyle } = resolveSwatchColor(color)
+	const { colorClass, colorStyle } = resolveColor(color)
 
 	return (
 		<span

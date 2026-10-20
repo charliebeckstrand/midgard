@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid } from '../../../modules/grid'
 import { fireEvent, frames, renderUI, screen, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { textOverflow } from '../helpers/text-overflow'
 import { pause } from '../helpers/wall-clock'
 
@@ -145,7 +145,7 @@ describe('grid header truncation tooltip (real browser)', () => {
 
 		if (!separator) throw new Error('resize separator not found')
 
-		const x = centerOf(separator).x
+		const x = getCenter(separator).x
 
 		const y = separator.getBoundingClientRect().top + 4
 

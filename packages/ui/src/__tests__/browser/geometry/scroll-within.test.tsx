@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { type ScrollWithinOptions, useScrollWithin } from '../../../hooks/use-scroll-within'
 import { present, renderUI, screen, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -69,7 +69,7 @@ describe('scrollWithin against a real scroller', () => {
 		go()
 
 		await waitFor(() => {
-			expect(centerOf(target).y).toBeNear(centerOf(scroller).y, HALF_PIXEL)
+			expect(getCenter(target).y).toBeNear(getCenter(scroller).y, HALF_PIXEL)
 		})
 	})
 

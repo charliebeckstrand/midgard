@@ -960,7 +960,7 @@ describe('density scopes on static leaves (real browser)', () => {
  * holds the families in a portal, which needs the real floating engine.
  */
 describe('density scopes on families (real browser)', () => {
-	const fontOf = (node: HTMLElement) => Number.parseFloat(getComputedStyle(node).fontSize)
+	const readFontSize = (node: HTMLElement) => Number.parseFloat(getComputedStyle(node).fontSize)
 
 	it('sizes an unsized card title at the step of its card', () => {
 		renderUI(
@@ -969,7 +969,7 @@ describe('density scopes on families (real browser)', () => {
 			</Card>,
 		)
 
-		expect(fontOf(screen.getByText('Title'))).toBe(20)
+		expect(readFontSize(screen.getByText('Title'))).toBe(20)
 	})
 
 	it('pads a list row at the step of a compact provider', () => {

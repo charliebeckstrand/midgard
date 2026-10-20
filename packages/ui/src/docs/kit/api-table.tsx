@@ -6,7 +6,7 @@ import { Link } from 'ui/link'
 import { defineMessage, IntlMessage } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import type { BarrelApi } from '../plugin/api.ts'
-import { API, apiIdOf, componentOfHash } from './anchors.ts'
+import { API, componentOfHash, toApiId } from './anchors.ts'
 import { useLoadThenOpen } from './load-then-open.ts'
 import { type PendingAnchor, PendingAnchorContext, scrollToPending } from './pending-anchor.ts'
 
@@ -43,7 +43,7 @@ function loadEntry(): Promise<EntryModule> {
  * order of the API data. The entry loads in idle time after the mount, or
  * when the reader points at the list or focuses it.
  *
- * Each entry and each prop has an id ({@link apiIdOf}). When the hash of the
+ * Each entry and each prop has an id ({@link toApiId}). When the hash of the
  * location names a closed entry, or a prop in it, the entry opens and the page
  * scrolls to the element of the hash. The browser scrolls to an element that
  * is on the page already, so an open entry does nothing.
@@ -129,7 +129,7 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 					{components.map((component) => (
 						<AccordionItem key={component.name} value={component.name}>
 							<AccordionTrigger className="font-mono">
-								<span id={apiIdOf(component.name)}>{`<${component.name} />`}</span>
+								<span id={toApiId(component.name)}>{`<${component.name} />`}</span>
 							</AccordionTrigger>
 							<AccordionPanel>{ApiEntry && <ApiEntry component={component} />}</AccordionPanel>
 						</AccordionItem>

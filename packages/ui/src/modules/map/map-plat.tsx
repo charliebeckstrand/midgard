@@ -34,7 +34,7 @@ import { graticuleStep } from './engine/map-geometry/chrome'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import { mapStops } from './engine/map-keyboard/stops'
 import { groupLegendId, legendItems, overlaySwatchClass } from './engine/map-legend/items'
-import { planMapLegend } from './engine/map-legend/plan'
+import { planLegend } from './engine/map-legend/plan'
 import { overlaySlotColors } from './engine/map-overlay/slots'
 import { regionGroupId } from './engine/map-region/category'
 import type { MapCategoricalData, MapNoData, MapNumericData } from './engine/map-region/data'
@@ -1246,7 +1246,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		show: showLegend,
 		placement: legendPlacement,
 		range: rangeLegend,
-	} = planMapLegend(
+	} = planLegend(
 		legend,
 		numeric,
 		{ width: containerWidth, height: shape.boxHeight },

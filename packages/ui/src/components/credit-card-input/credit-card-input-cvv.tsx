@@ -38,7 +38,7 @@ export type CreditCardInputCvvProps = Omit<
 	onValidityChange?: (validity: CardValidity) => void
 }
 
-function resolveCvvLength(brand: CreditCardBrand | undefined): number {
+function resolveLength(brand: CreditCardBrand | undefined): number {
 	if (!brand) return 4
 
 	// Same rule as `validateCardCvv`: Amex takes 4 digits, every other brand 3.
@@ -71,7 +71,7 @@ export function CreditCardInputCvv({
 }: CreditCardInputCvvProps) {
 	const intl = useIntl()
 
-	const maxLength = resolveCvvLength(brand)
+	const maxLength = resolveLength(brand)
 
 	const {
 		ref: fieldRef,

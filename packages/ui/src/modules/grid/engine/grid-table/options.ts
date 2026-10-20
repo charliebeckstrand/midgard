@@ -103,7 +103,7 @@ function affordanceColumnSize<T>(col: GridColumn<T>): number | undefined {
  *
  * @internal
  */
-function floorOf<T>(col: GridColumn<T>, size: number | undefined): { minSize?: number } {
+function resolveMinSize<T>(col: GridColumn<T>, size: number | undefined): { minSize?: number } {
 	if (col.minWidth != null) return { minSize: col.minWidth }
 
 	if (!isDataColumn(col)) return {}
@@ -137,7 +137,7 @@ export function toColumnDef<T>(col: GridColumn<T>): EngineColumnDef<T> {
 		...(accessorFn ? { accessorFn } : {}),
 		...(filterFn ? { filterFn } : {}),
 		...(size != null ? { size } : {}),
-		...floorOf(col, size),
+		...resolveMinSize(col, size),
 		...(col.maxWidth != null ? { maxSize: col.maxWidth } : {}),
 	}
 }

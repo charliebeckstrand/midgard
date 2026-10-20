@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { prepareChartCapture } from '../../modules/chart/engine/chart-export'
+import { prepareCapture } from '../../modules/chart/engine/chart-export'
 import { attach } from '../helpers'
 
 /** Gives `element` a fixed border box, since jsdom measures each box as empty. */
@@ -33,9 +33,9 @@ function chart(drawing?: { width: number; height: number; left?: number }): HTML
  * measures a real chart. These cases hold the fallback, where no drawing gives
  * a box, so the capture keeps the whole root.
  */
-describe('prepareChartCapture crop without the legend', () => {
+describe('prepareCapture crop without the legend', () => {
 	it('crops to the drawing that the plot holds', () => {
-		expect(prepareChartCapture(chart({ width: 100, height: 50 }), false).box).toEqual({
+		expect(prepareCapture(chart({ width: 100, height: 50 }), false).box).toEqual({
 			x: 20,
 			y: 30,
 			width: 100,
@@ -44,7 +44,7 @@ describe('prepareChartCapture crop without the legend', () => {
 	})
 
 	it('keeps the full root when the drawing has no size', () => {
-		const capture = prepareChartCapture(chart({ width: 0, height: 50 }), false)
+		const capture = prepareCapture(chart({ width: 0, height: 50 }), false)
 
 		expect(capture.box).toEqual({ x: 0, y: 0, width: 320, height: 200 })
 
@@ -57,23 +57,23 @@ describe('prepareChartCapture crop without the legend', () => {
 	})
 
 	it('keeps the full root when the drawing lies outside it', () => {
-		const capture = prepareChartCapture(chart({ width: 100, height: 50, left: 400 }), false)
+		const capture = prepareCapture(chart({ width: 100, height: 50, left: 400 }), false)
 
 		expect(capture.box).toEqual({ x: 0, y: 0, width: 320, height: 200 })
 	})
 
 	it('keeps the full root when the plot holds no drawing', () => {
-		expect(prepareChartCapture(chart(), false).box).toEqual({ x: 0, y: 0, width: 320, height: 200 })
+		expect(prepareCapture(chart(), false).box).toEqual({ x: 0, y: 0, width: 320, height: 200 })
 	})
 })
 
-describe('prepareChartCapture root margin', () => {
+describe('prepareCapture root margin', () => {
 	it('drops the margin of the root, so the clone starts at the origin of the box', () => {
 		const root = chart()
 
 		root.style.margin = '24px auto'
 
-		const { clone } = prepareChartCapture(root, true)
+		const { clone } = prepareCapture(root, true)
 
 		for (const side of ['Top', 'Right', 'Bottom', 'Left'] as const) {
 			expect(clone.style[`margin${side}`]).toMatch(/^0(px)?$/)

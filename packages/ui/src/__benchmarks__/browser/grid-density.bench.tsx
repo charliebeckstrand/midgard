@@ -104,17 +104,17 @@ const CACHE_SCOPES: Record<string, (index: number) => DensityStep> = {
 
 /**
  * The columns of the cache scenario. Each cell holds one {@link CACHE_CLASS}
- * span, with the scope that `scopeOf` gives its row. The id of a row holds its
+ * span, with the scope that `getScope` gives its row. The id of a row holds its
  * index in the fixture.
  */
-function cacheColumns(scopeOf: (index: number) => DensityStep): GridColumn<Shipment>[] {
+function cacheColumns(getScope: (index: number) => DensityStep): GridColumn<Shipment>[] {
 	return SHIPMENT_FIELDS.map(([id, title]) => ({
 		id,
 		title,
 		width: '120px',
 		value: (row) => row[id],
 		cell: (row) => (
-			<span data-density={scopeOf(Number(row.id.slice(1)))} className={CACHE_CLASS}>
+			<span data-density={getScope(Number(row.id.slice(1)))} className={CACHE_CLASS}>
 				{String(row[id])}
 			</span>
 		),
@@ -302,11 +302,11 @@ function switches(grids: Mounted[], boxes: HTMLElement[]): Prepared[] {
 async function mountCache(rows: Shipment[]): Promise<{ name: string; box: HTMLElement }[]> {
 	const grids: { name: string; box: HTMLElement }[] = []
 
-	for (const [name, scopeOf] of Object.entries(CACHE_SCOPES)) {
+	for (const [name, getScope] of Object.entries(CACHE_SCOPES)) {
 		const box = host({ width: GRID_WIDTH, height: GRID_HEIGHT })
 
 		createRoot(box).render(
-			<Grid columns={cacheColumns(scopeOf)} rows={rows} getKey={shipmentKey} />,
+			<Grid columns={cacheColumns(getScope)} rows={rows} getKey={shipmentKey} />,
 		)
 
 		await painted(box, ends(rows))

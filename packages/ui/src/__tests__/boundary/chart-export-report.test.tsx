@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-const rasterizeChartImage = vi.fn()
+const rasterizeImage = vi.fn()
 
 const downloadBlob = vi.fn()
 
@@ -8,7 +8,7 @@ const downloadBlob = vi.fn()
 // wrote and the test asserts that name.
 vi.mock('../../modules/chart/engine/chart-export', async (importOriginal) => ({
 	...(await importOriginal<typeof import('../../modules/chart/engine/chart-export')>()),
-	rasterizeChartImage: (...args: unknown[]) => rasterizeChartImage(...args),
+	rasterizeImage: (...args: unknown[]) => rasterizeImage(...args),
 }))
 
 vi.mock('../../core/download-blob', () => ({
@@ -56,7 +56,7 @@ describe('Chart export reporting', () => {
 	])('reports the written file when %s succeeds', async (action, type, fileName) => {
 		const blob = new Blob(['x'], { type })
 
-		rasterizeChartImage.mockResolvedValue(blob)
+		rasterizeImage.mockResolvedValue(blob)
 
 		const onExport = vi.fn()
 
@@ -72,7 +72,7 @@ describe('Chart export reporting', () => {
 	it('reports the rejection when the rasterize throws', async () => {
 		const failure = new Error('tainted canvas')
 
-		rasterizeChartImage.mockRejectedValue(failure)
+		rasterizeImage.mockRejectedValue(failure)
 
 		const onExport = vi.fn()
 
@@ -92,7 +92,7 @@ describe('Chart export reporting', () => {
 	// A null blob downloads nothing, so the menu looks like it worked and no file
 	// arrives. That is a failure, and it reports as one.
 	it('reports a rasterize that yields no blob as a failure', async () => {
-		rasterizeChartImage.mockResolvedValue(null)
+		rasterizeImage.mockResolvedValue(null)
 
 		const onExport = vi.fn()
 

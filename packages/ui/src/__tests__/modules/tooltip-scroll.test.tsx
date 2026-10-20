@@ -24,7 +24,7 @@ const SERIES = [
  * pointer. It is the size of the rect itself, as in an unscaled page: the
  * pointer maps through the fraction of the box it crosses.
  */
-function boxOf(el: Element): void {
+function stubBox(el: Element): void {
 	const right = Number(el.getAttribute('width'))
 
 	const bottom = Number(el.getAttribute('height'))
@@ -63,7 +63,7 @@ describe('tooltip across a scroll', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		boxOf(hit)
+		stubBox(hit)
 
 		// Hover Q3; the readout appears and the pointer is recorded.
 		act(() => fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 }))
@@ -100,7 +100,7 @@ describe('tooltip across a scroll', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		boxOf(hit)
+		stubBox(hit)
 
 		act(() => fireEvent.pointerMove(hit, { clientX: 300, clientY: 60 }))
 
@@ -240,7 +240,7 @@ describe('tooltip across a scroll', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		boxOf(hit)
+		stubBox(hit)
 
 		act(() => fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 }))
 

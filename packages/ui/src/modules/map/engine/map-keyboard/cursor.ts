@@ -3,7 +3,7 @@
  * across the stop list, and the one resolution the plot region's handler asks
  * for. The
  * three sit together because they form one chain with a single entry point —
- * {@link moveMapCursor} is the only production caller of either half.
+ * {@link moveCursor} is the only production caller of either half.
  *
  * The stop list itself is `stops.ts`, which the plat builds and hands in.
  */
@@ -38,7 +38,7 @@ function keyAction(key: string): MapCursorAction | null {
 }
 
 /** Whether a key activates the region under the cursor — Enter, or Space. @internal */
-export function isMapActivateKey(key: string): boolean {
+export function isActivateKey(key: string): boolean {
 	return key === 'Enter' || key === ' '
 }
 
@@ -144,7 +144,7 @@ export type MapCursorMove = {
  *
  * @internal
  */
-export function moveMapCursor(cursor: number | null, key: string, stops: MapStop[]): MapCursorMove {
+export function moveCursor(cursor: number | null, key: string, stops: MapStop[]): MapCursorMove {
 	const action = keyAction(key)
 
 	if (action === null) return { handled: false, leave: false, stop: null }

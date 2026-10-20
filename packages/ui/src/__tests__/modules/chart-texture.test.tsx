@@ -131,12 +131,12 @@ describe('chart textures', () => {
 
 		const patterns = [...container.querySelectorAll('[data-slot="chart-legend"] pattern')]
 
-		const pathOf = (p: Element) => p.querySelector('path')?.getAttribute('d')
+		const readPath = (p: Element) => p.querySelector('path')?.getAttribute('d')
 
 		// The tile draws each axis-aligned line down its own center (TILE/2 = 4)...
-		const vertical = patterns.find((p) => pathOf(p) === 'M4,0 V8')
+		const vertical = patterns.find((p) => readPath(p) === 'M4,0 V8')
 
-		const horizontal = patterns.find((p) => pathOf(p) === 'M0,4 H8')
+		const horizontal = patterns.find((p) => readPath(p) === 'M0,4 H8')
 
 		expect(vertical).toBeTruthy()
 

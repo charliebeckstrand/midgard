@@ -50,11 +50,7 @@ import type { GeoContext, GeoProjection } from 'd3-geo'
 import { geoPath } from 'd3-geo'
 import { MAP_CANONICAL_WIDTH, REGION_PATH_DIGITS, REGION_PATH_ROUNDING } from '../map-constants'
 import type { MapCanonicalFit } from '../map-projection/fit'
-import {
-	fitWidthFromProbeBounds,
-	PROBE_SCALE,
-	resolveMapProjection,
-} from '../map-projection/resolve'
+import { fitWidthFromProbeBounds, PROBE_SCALE, resolveProjection } from '../map-projection/resolve'
 import type { MapTransform } from '../map-zoom/transform'
 import type { LngLat, MapFeature, MapProjection } from '../types'
 
@@ -166,7 +162,7 @@ function firstPosition(features: MapFeature[]): LngLat | null {
  * empty geography, or one that falls entirely outside the projection's own
  * frame.
  */
-function witnessOf(
+function buildWitness(
 	features: MapFeature[],
 	projection: GeoProjection,
 ): MapProjectedAtlas['witness'] {
@@ -301,7 +297,7 @@ export function projectAtlas(
 		points: Float64Array.from(sink.xy),
 		ringStart: Uint32Array.from(sink.ringStart),
 		regionRing: Uint32Array.from(regionRing),
-		witness: witnessOf(features, projection),
+		witness: buildWitness(features, projection),
 		...basis,
 	}
 }
@@ -380,7 +376,7 @@ export function probeCanonicalFit(
 ): { atlas: MapProjectedAtlas; canonical: MapCanonicalFit } | null {
 	if (features.length === 0) return null
 
-	const projection = resolveMapProjection(spec)
+	const projection = resolveProjection(spec)
 
 	// Saved and restored around the walk as `fitProjectionWidth` saves the clip,
 	// and for the same reason: a passed instance belongs to the consumer, and the

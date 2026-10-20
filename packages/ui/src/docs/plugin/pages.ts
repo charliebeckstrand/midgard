@@ -32,7 +32,7 @@ const PAGE = /^export default function (\w+)Page\(/m
  * `Page`. The name of a folder has no case, so `UIPage` gives `UI` where the
  * folder `ui` gives only `Ui`.
  */
-function nameOf(file: string): string {
+function readName(file: string): string {
 	const name = PAGE.exec(readFileSync(file, 'utf8'))?.[1]
 
 	if (!name) throw new Error(`docs: ${file} has no default export \`<Name>Page\``)
@@ -60,7 +60,7 @@ export function findPages(docs: string): Page[] {
 
 			return {
 				path: category === COMPONENTS ? `/${name}` : `/${folder}`,
-				name: nameOf(path.join(pages, file)),
+				name: readName(path.join(pages, file)),
 				category,
 				folder,
 				tabs: tabs.map((tab) => path.dirname(tab)).toSorted(),

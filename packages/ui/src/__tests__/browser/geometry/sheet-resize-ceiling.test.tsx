@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Sheet, SheetBody, SheetPanel } from '../../../components/sheet'
 import { frames, getSlot, renderUI } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { drag } from '../helpers/drag'
 
@@ -61,7 +61,7 @@ describe('scoped sheet resize ceiling (real browser)', () => {
 			// The inset the sheet floats on, on the edge it is docked to.
 			const inset = side === 'right' ? BOX.left + BOX.width - start.right : start.left - BOX.left
 
-			const { x, y } = centerOf(handle)
+			const { x, y } = getCenter(handle)
 
 			// Far past the container's other edge.
 			const held = await drag(handle, { x, y }, [{ x: x + toward * 1000, y }])

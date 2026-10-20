@@ -180,11 +180,11 @@ export function useChartTextWidth(
 	// One identity for each set of fits, so that a memo that reads the widths
 	// computes again only when a width changes.
 	return useMemo(() => {
-		const fitOf = (text: string) => fits.get(text) ?? estimateTextFit(text, charWidth, maxWidth)
+		const getFit = (text: string) => fits.get(text) ?? estimateTextFit(text, charWidth, maxWidth)
 
 		return {
-			width: (text) => fitOf(text).width,
-			fit: (text) => fitOf(text).text,
+			width: (text) => getFit(text).width,
+			fit: (text) => getFit(text).text,
 			hostRef,
 		}
 	}, [fits, charWidth, maxWidth])

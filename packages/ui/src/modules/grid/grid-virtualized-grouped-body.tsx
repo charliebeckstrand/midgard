@@ -4,8 +4,8 @@ import { type TransitionEvent, useMemo, useRef } from 'react'
 import type { GridGroup } from './engine/grid-group/tree'
 import {
 	type GridGroupedWindowItem,
+	getGroupKey,
 	groupedWindowItems,
-	groupKeyOf,
 	groupRowKeys,
 } from './engine/grid-items/items'
 import { type GridWindowRowProps, itemAriaRowIndex } from './engine/grid-row/shell'
@@ -218,7 +218,7 @@ export function GridVirtualizedGroupedBody<T>({
 
 	useGridCursorOrder(cursorOrder)
 
-	const colorOf = (group: GridGroup<T>) => presentation?.color(groupKeyOf(group))
+	const getColor = (group: GridGroup<T>) => presentation?.color(getGroupKey(group))
 
 	const onTransitionEnd = (event: TransitionEvent<HTMLTableSectionElement>) => {
 		const item = closingEndItem(event)
@@ -246,7 +246,7 @@ export function GridVirtualizedGroupedBody<T>({
 			{virtualItems.map((virtualItem) => {
 				const item = items[virtualItem.index] as GridGroupedWindowItem<T>
 
-				const color = colorOf(item.group)
+				const color = getColor(item.group)
 
 				if (item.kind === 'group') {
 					return (

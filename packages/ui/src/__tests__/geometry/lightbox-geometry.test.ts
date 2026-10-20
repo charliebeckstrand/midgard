@@ -3,11 +3,11 @@ import { describe, expect, it } from 'vitest'
 import {
 	constrainView,
 	frameTransforms,
+	getOverlap,
 	isDoubleTap,
 	type LightboxBox,
 	type LightboxFrame,
 	mixFrames,
-	overlapOf,
 	paintedFrame,
 	panView,
 	REST_VIEW,
@@ -24,7 +24,7 @@ const NUMBER = /-?\d+(?:\.\d+)?(?:e-?\d+)?/g
 const slot = { x: 0, y: 0, width: 1000, height: 800 }
 
 /** The values `[x, y, scaleX, scaleY]` of a `translate() scale()` transform. */
-function partsOf(transform: string) {
+function parseTransform(transform: string) {
 	const [x = 0, y = 0, scaleX = 1, scaleY = scaleX] = (transform.match(NUMBER) ?? []).map(Number)
 
 	return { x, y, scaleX, scaleY }
@@ -32,7 +32,7 @@ function partsOf(transform: string) {
 
 /** The transform as a browser computes it. */
 function computed(transform: string) {
-	const { x, y, scaleX, scaleY } = partsOf(transform)
+	const { x, y, scaleX, scaleY } = parseTransform(transform)
 
 	return `matrix(${scaleX}, 0, 0, ${scaleY}, ${x}, ${y})`
 }
@@ -44,9 +44,9 @@ function computed(transform: string) {
 function painted(frame: LightboxFrame, rest: LightboxBox) {
 	const transforms = frameTransforms(frame, slot, rest)
 
-	const outer = partsOf(transforms.slot)
+	const outer = parseTransform(transforms.slot)
 
-	const inner = partsOf(transforms.photo)
+	const inner = parseTransform(transforms.photo)
 
 	const x = slot.x + outer.x + outer.scaleX * (rest.x - slot.x + inner.x)
 
@@ -174,20 +174,23 @@ describe('flight frames', () => {
 	})
 })
 
-describe('overlapOf', () => {
+describe('getOverlap', () => {
 	it('takes the part that two boxes share', () => {
 		expect(
-			overlapOf({ x: 0, y: 40, width: 200, height: 200 }, { x: 50, y: 0, width: 400, height: 100 }),
+			getOverlap(
+				{ x: 0, y: 40, width: 200, height: 200 },
+				{ x: 50, y: 0, width: 400, height: 100 },
+			),
 		).toEqual({ x: 50, y: 40, width: 150, height: 60 })
 	})
 
 	it('gives nothing for boxes that only touch or do not meet', () => {
 		expect(
-			overlapOf({ x: 0, y: 0, width: 100, height: 100 }, { x: 100, y: 0, width: 50, height: 50 }),
+			getOverlap({ x: 0, y: 0, width: 100, height: 100 }, { x: 100, y: 0, width: 50, height: 50 }),
 		).toBeUndefined()
 
 		expect(
-			overlapOf({ x: 0, y: 0, width: 0, height: 0 }, { x: 0, y: 0, width: 50, height: 50 }),
+			getOverlap({ x: 0, y: 0, width: 0, height: 0 }, { x: 0, y: 0, width: 50, height: 50 }),
 		).toBeUndefined()
 	})
 })

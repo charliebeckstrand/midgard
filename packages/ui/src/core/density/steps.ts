@@ -118,7 +118,7 @@ export function isDensityStep(value: unknown): value is DensityStep {
  *
  * @internal
  */
-export function scopeStepOf<O extends DensityStep | null>(
+export function readScopeStep<O extends DensityStep | null>(
 	element: Element,
 	boundary: Element | null,
 	outer: O,

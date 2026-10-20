@@ -14,7 +14,7 @@ const data: Row[] = [
 ]
 
 /** The data `<tr>` whose header cell renders `label`. */
-const rowOf = (label: string) => present(screen.getByText(label).closest('tr'), `row "${label}"`)
+const getRow = (label: string) => present(screen.getByText(label).closest('tr'), `row "${label}"`)
 
 describe('PivotTable', () => {
 	it('renders a table with row and column dimensions', () => {
@@ -86,9 +86,9 @@ describe('PivotTable', () => {
 			/>,
 		)
 
-		const laxRow = rowOf('LAX → DFW')
+		const laxRow = getRow('LAX → DFW')
 
-		const ordRow = rowOf('ORD → ATL')
+		const ordRow = getRow('ORD → ATL')
 
 		expect(within(laxRow).getByText('15')).toBeInTheDocument()
 
@@ -109,9 +109,9 @@ describe('PivotTable', () => {
 			/>,
 		)
 
-		const laxRow = rowOf('LAX → DFW')
+		const laxRow = getRow('LAX → DFW')
 
-		const ordRow = rowOf('ORD → ATL')
+		const ordRow = getRow('ORD → ATL')
 
 		expect(within(laxRow).getByText('24')).toBeInTheDocument()
 
@@ -155,7 +155,7 @@ describe('PivotTable', () => {
 			/>,
 		)
 
-		const laxRow = rowOf('LAX → DFW')
+		const laxRow = getRow('LAX → DFW')
 
 		expect(within(laxRow).getByText('2')).toBeInTheDocument()
 	})

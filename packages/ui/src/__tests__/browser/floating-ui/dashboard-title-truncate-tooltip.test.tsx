@@ -55,12 +55,12 @@ describe('dashboard tile title truncation tooltip (real browser)', () => {
 		}
 	}
 
-	const tierOf = (title: string) =>
+	const readTier = (title: string) =>
 		parts(title).tile.querySelector('[data-tier]')?.getAttribute('data-tier')
 
 	/** Hovers the title of a tile, after its chart takes the spark tier. */
 	async function hoverTitle(title: string) {
-		await expect.poll(() => tierOf(title)).toBe('spark')
+		await expect.poll(() => readTier(title)).toBe('spark')
 
 		await userEvent.hover(parts(title).heading)
 	}

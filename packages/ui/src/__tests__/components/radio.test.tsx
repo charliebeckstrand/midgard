@@ -5,10 +5,10 @@ import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import {
 	act,
 	bySlot,
-	densityStepOf,
 	fireEvent,
 	getSlot,
 	present,
+	readDensityStep,
 	renderUI,
 	screen,
 	setupUser,
@@ -249,7 +249,7 @@ describe('Radio size', () => {
 
 		expect(getSlot(container, 'control')).toHaveAttribute('data-density', 'lg')
 
-		expect(densityStepOf(getSlot(container, 'radio-indicator'))).toBe('lg')
+		expect(readDensityStep(getSlot(container, 'radio-indicator'))).toBe('lg')
 	})
 })
 

@@ -7,10 +7,10 @@ import { Form } from '../../modules/form'
 import {
 	act,
 	bySlot,
-	densityStepOf,
 	fireEvent,
 	getSlot,
 	present,
+	readDensityStep,
 	renderUI,
 	screen,
 	setupUser,
@@ -193,7 +193,7 @@ describe('Checkbox size', () => {
 
 		expect(getSlot(container, 'control')).toHaveAttribute('data-density', 'lg')
 
-		expect(densityStepOf(getSlot(container, 'checkbox-check'))).toBe('lg')
+		expect(readDensityStep(getSlot(container, 'checkbox-check'))).toBe('lg')
 	})
 })
 

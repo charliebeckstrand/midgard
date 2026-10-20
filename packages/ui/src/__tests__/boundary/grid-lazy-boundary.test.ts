@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { importsOf, resolveSource } from '../helpers/source-imports'
+import { parseImports, resolveSource } from '../helpers/source-imports'
 import { srcDir, srcRelative } from '../helpers/walk-source'
 
 // `Grid` loads its drag and drop module only when it takes a reorder, and its
@@ -34,7 +34,7 @@ const dialogModules = [
 function staticGraph(entry: string): { files: Set<string>; dnd: string[] } {
 	const parents = new Map<string, string | null>([[entry, null]])
 
-	const chainOf = (file: string) => {
+	const buildChain = (file: string) => {
 		const chain: string[] = []
 
 		for (let at: string | null | undefined = file; at; at = parents.get(at)) {
@@ -49,11 +49,11 @@ function staticGraph(entry: string): { files: Set<string>; dnd: string[] } {
 	const dnd: string[] = []
 
 	for (let file = queue.shift(); file !== undefined; file = queue.shift()) {
-		for (const { specifier, runtime } of importsOf(readFileSync(file, 'utf8'))) {
+		for (const { specifier, runtime } of parseImports(readFileSync(file, 'utf8'))) {
 			if (!runtime) continue
 
 			if (specifier.startsWith('@dnd-kit/')) {
-				dnd.push([...chainOf(file), `'${specifier}'`].join(' → '))
+				dnd.push([...buildChain(file), `'${specifier}'`].join(' → '))
 
 				continue
 			}

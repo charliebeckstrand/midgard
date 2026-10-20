@@ -41,7 +41,7 @@ const profiles = () =>
 const available = () => fc.integer({ min: -100, max: 4000 })
 
 /** The width that a column asks for: its content inside its bounds. */
-const desiredOf = (column: ColumnSizeProfile) =>
+const getDesired = (column: ColumnSizeProfile) =>
 	Math.min(column.max, Math.max(column.min, column.content))
 
 /** The sum of the widths of an allocation. */
@@ -74,10 +74,10 @@ describe('allocateColumnWidths · properties', () => {
 	test.prop([profiles(), available()])(
 		'sums to exactly the space that the columns take',
 		(columns, space) => {
-			const desired = columns.reduce((sum, column) => sum + desiredOf(column), 0)
+			const desired = columns.reduce((sum, column) => sum + getDesired(column), 0)
 
 			const ceiling = columns.reduce(
-				(sum, column) => sum + (column.frozen ? desiredOf(column) : column.max),
+				(sum, column) => sum + (column.frozen ? getDesired(column) : column.max),
 				0,
 			)
 
@@ -90,13 +90,13 @@ describe('allocateColumnWidths · properties', () => {
 	test.prop([profiles(), available()])(
 		'holds each column at its content width when the space runs short',
 		(columns, space) => {
-			const desired = columns.reduce((sum, column) => sum + desiredOf(column), 0)
+			const desired = columns.reduce((sum, column) => sum + getDesired(column), 0)
 
 			fc.pre(space <= 0 || desired >= space)
 
 			const widths = allocateColumnWidths(columns, space)
 
-			for (const column of columns) expect(widths[column.id]).toBe(desiredOf(column))
+			for (const column of columns) expect(widths[column.id]).toBe(getDesired(column))
 		},
 	)
 
@@ -108,8 +108,8 @@ describe('allocateColumnWidths · properties', () => {
 			for (const column of columns) {
 				const width = widths[column.id] as number
 
-				if (column.frozen) expect(width).toBe(desiredOf(column))
-				else expect(width).toBeGreaterThanOrEqual(desiredOf(column))
+				if (column.frozen) expect(width).toBe(getDesired(column))
+				else expect(width).toBeGreaterThanOrEqual(getDesired(column))
 			}
 		},
 	)
@@ -127,7 +127,7 @@ describe('allocateColumnWidths · properties', () => {
 			const lifted = scrolling.filter((column) => {
 				const width = widths[column.id] as number
 
-				return width > desiredOf(column) && width < column.max
+				return width > getDesired(column) && width < column.max
 			})
 
 			const liftedWidths = lifted.map((column) => widths[column.id] as number)
@@ -138,10 +138,10 @@ describe('allocateColumnWidths · properties', () => {
 
 			for (const column of scrolling) {
 				// A column at its ceiling stops for the ceiling, not for its content.
-				if (widths[column.id] !== desiredOf(column) || desiredOf(column) >= column.max) continue
+				if (widths[column.id] !== getDesired(column) || getDesired(column) >= column.max) continue
 
 				for (const width of liftedWidths) {
-					expect(width).toBeLessThanOrEqual(desiredOf(column) + 1)
+					expect(width).toBeLessThanOrEqual(getDesired(column) + 1)
 				}
 			}
 		},

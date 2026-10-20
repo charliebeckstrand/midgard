@@ -138,14 +138,14 @@ describe('a blank selection', () => {
 
 	const places: Place[] = [{ region: 'West' }, { region: 'East' }, { region: null }, { region: '' }]
 
-	const regionOf = (row: Place, field: string) => row[field as keyof Place]
+	const getRegion = (row: Place, field: string) => row[field as keyof Place]
 
 	const rows = (selections: DashboardSelection[]) => {
 		const query = scopeQuery(undefined, selections, null)
 
 		return {
 			active: isScopeActive(query),
-			regions: scopeRows(places, query, regionOf).map((row) => row.region),
+			regions: scopeRows(places, query, getRegion).map((row) => row.region),
 		}
 	}
 

@@ -39,7 +39,7 @@ export type NearbyDrawerProps = SummaryFrame<MapRecord> & {
 const NO_PLACES: readonly Place[] = []
 
 /** The places of a list of records, in their order. */
-function placesOf(records: readonly MapRecord[]): Place[] {
+function getPlaces(records: readonly MapRecord[]): Place[] {
 	return records.filter((record): record is Place => !isTrip(record))
 }
 
@@ -80,7 +80,7 @@ type NearbyListProps = Omit<PlaceListProps, 'shown' | 'spanned'> & {
  * the places first.
  */
 function NearbyList({ list, shown, placesByTrip, onOpen, ...pickers }: NearbyListProps) {
-	const listedPlaces = placesOf(list)
+	const listedPlaces = getPlaces(list)
 
 	const trips = shown.filter(isTrip)
 
@@ -92,7 +92,7 @@ function NearbyList({ list, shown, placesByTrip, onOpen, ...pickers }: NearbyLis
 				<NearbySection heading={hasBoth ? 'Places' : null}>
 					<PlaceList
 						{...pickers}
-						shown={placesOf(shown)}
+						shown={getPlaces(shown)}
 						// How many categories the places span. A picker over one of them
 						// offers the reader a choice between everything and everything, so
 						// it is not offered.
@@ -159,7 +159,7 @@ export function NearbyDrawer({
 	// to empty the panel.
 	const narrow = useCallback(
 		(list: readonly MapRecord[]): MapRecord[] => {
-			const places = placesOf(list)
+			const places = getPlaces(list)
 
 			const picked =
 				categories.length === 0

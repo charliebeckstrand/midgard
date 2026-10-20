@@ -16,7 +16,7 @@ import {
 } from '../../modules/grid/engine/grid-table/pinning-view'
 import { useGridTable } from '../../modules/grid/use-grid-table'
 import { present } from '../helpers'
-import { layoutOf } from '../helpers/grid-frozen-layout'
+import { buildLayout } from '../helpers/grid-frozen-layout'
 
 /**
  * The grid carries the frozen structure across `memo` boundaries through the
@@ -132,7 +132,7 @@ describe('the Add column of the new-row slot', () => {
 	})
 
 	it('reads as a column that scrolls, while a frozen column sticks inside it', () => {
-		const layout = layoutOf(
+		const layout = buildLayout(
 			[],
 			[
 				['status', 120],
@@ -158,12 +158,12 @@ describe('the Add column of the new-row slot', () => {
  * offsets to the frozen cells.
  */
 describe('frozen offsets apart from the structure', () => {
-	const before = layoutOf([
+	const before = buildLayout([
 		['name', 160],
 		['email', 200],
 	])
 
-	const after = layoutOf([
+	const after = buildLayout([
 		['name', 240],
 		['email', 200],
 	])
@@ -186,9 +186,9 @@ describe('frozen offsets apart from the structure', () => {
 	})
 
 	it('reads a new structure when the boundary moves or a column changes edge', () => {
-		expect(sameFrozenStructure(before, layoutOf([['name', 160]]))).toBe(false)
+		expect(sameFrozenStructure(before, buildLayout([['name', 160]]))).toBe(false)
 
-		expect(sameFrozenStructure(before, layoutOf([['name', 160]], [['email', 200]]))).toBe(false)
+		expect(sameFrozenStructure(before, buildLayout([['name', 160]], [['email', 200]]))).toBe(false)
 	})
 
 	it('gives the committed offset only for the edge that the layout commits', () => {
@@ -265,7 +265,7 @@ describe('frozen offsets apart from the structure', () => {
 	})
 
 	it('writes the inline-end offset of a right-frozen column', () => {
-		const from = layoutOf(
+		const from = buildLayout(
 			[],
 			[
 				['status', 120],
@@ -273,7 +273,7 @@ describe('frozen offsets apart from the structure', () => {
 			],
 		)
 
-		const to = layoutOf(
+		const to = buildLayout(
 			[],
 			[
 				['status', 120],
@@ -299,7 +299,7 @@ describe('frozen offsets apart from the structure', () => {
 
 		container.append(email)
 
-		const same = layoutOf([
+		const same = buildLayout([
 			['name', 160],
 			['email', 200],
 		])

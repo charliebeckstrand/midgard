@@ -159,7 +159,7 @@ export type HeatmapMatrix = {
  *
  * @internal
  */
-export function resolveHeatmapMatrix<T>(
+export function resolveMatrix<T>(
 	data: T[],
 	{ xKey, yKey, colorKey }: HeatmapChartSeries<T>,
 ): HeatmapMatrix {

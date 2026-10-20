@@ -34,7 +34,7 @@ const maskExpiry = (raw: string) => formatExpiry(cardDigits(raw))
  * count. Thus only an insertion at the end of the text gets the pad. The value
  * swap then puts the caret at the end. A deletion never gets the pad.
  */
-function resolveExpiryEdit(event: ChangeEvent<HTMLInputElement>, held: string): string | undefined {
+function resolveEdit(event: ChangeEvent<HTMLInputElement>, held: string): string | undefined {
 	const raw = event.target.value
 
 	const { nativeEvent } = event
@@ -149,7 +149,7 @@ export function CreditCardInputExpiry({
 		ref,
 		name,
 		// The mask adds no pad. A value from outside gets the pad here, and a
-		// change gets it from `resolveExpiryEdit`.
+		// change gets it from `resolveEdit`.
 		value: typeof value === 'string' ? formatExpiry(value) : value,
 		defaultValue: defaultValue === undefined ? undefined : formatExpiry(defaultValue),
 		onValueChange,
@@ -213,7 +213,7 @@ export function CreditCardInputExpiry({
 					{ checkForDefaultPrevented: false },
 				)}
 				onChange={(event) => {
-					const next = resolveExpiryEdit(event, maskedValue)
+					const next = resolveEdit(event, maskedValue)
 
 					if (next !== undefined) {
 						setMaskedValue(next)

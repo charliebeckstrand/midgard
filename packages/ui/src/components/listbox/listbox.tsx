@@ -181,7 +181,7 @@ export type ListboxProps<T> = ListboxBaseProps & {
 } & (ListboxSingleProps<T> | ListboxMultipleProps<T>)
 
 /** True when the listbox holds a selection: a non-empty array in `multiple` mode, else a defined scalar. @internal */
-function hasListboxValue<T>(value: T | T[] | undefined, multiple: boolean): boolean {
+function hasSelection<T>(value: T | T[] | undefined, multiple: boolean): boolean {
 	return multiple
 		? Array.isArray(value) && value.length > 0
 		: value !== undefined && !Array.isArray(value)
@@ -448,7 +448,7 @@ export function Listbox<T>({
 		intl,
 	})
 
-	const hasValue = hasListboxValue(value, multiple)
+	const hasValue = hasSelection(value, multiple)
 
 	const showClear = clearable && hasValue && !locked
 

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createFormStore } from '../../modules/form/engine/form-store'
 import type { FormStateValue } from '../../primitives/form/context'
 
-function stateOf(values: Record<string, unknown>): FormStateValue {
+function makeState(values: Record<string, unknown>): FormStateValue {
 	return {
 		values,
 		errors: {},
@@ -17,7 +17,7 @@ function stateOf(values: Record<string, unknown>): FormStateValue {
 
 describe('createFormStore', () => {
 	it('starts both snapshots from the first state', () => {
-		const initial = stateOf({ name: '' })
+		const initial = makeState({ name: '' })
 
 		const { store } = createFormStore(initial)
 
@@ -27,7 +27,7 @@ describe('createFormStore', () => {
 	})
 
 	it('publishes a state to the subscribers, and keeps the server snapshot', () => {
-		const initial = stateOf({ name: '' })
+		const initial = makeState({ name: '' })
 
 		const { store, publish } = createFormStore(initial)
 
@@ -35,7 +35,7 @@ describe('createFormStore', () => {
 
 		store.subscribe(listener)
 
-		const next = stateOf({ name: 'Jane' })
+		const next = makeState({ name: 'Jane' })
 
 		publish(next)
 
@@ -47,7 +47,7 @@ describe('createFormStore', () => {
 	})
 
 	it('stops a listener that unsubscribes', () => {
-		const { store, publish } = createFormStore(stateOf({}))
+		const { store, publish } = createFormStore(makeState({}))
 
 		const listener = vi.fn()
 
@@ -55,7 +55,7 @@ describe('createFormStore', () => {
 
 		unsubscribe()
 
-		publish(stateOf({ name: 'Jane' }))
+		publish(makeState({ name: 'Jane' }))
 
 		expect(listener).not.toHaveBeenCalled()
 	})

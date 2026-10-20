@@ -320,7 +320,7 @@ describe('grid new row (real browser)', () => {
 
 	describe('the width of the Add column', () => {
 		/** The Add cell of the slot, its last cell. */
-		const addCellOf = (slot: () => HTMLElement) =>
+		const getAddCell = (slot: () => HTMLElement) =>
 			present(slot().closest('tr')?.lastElementChild as HTMLElement | null, 'the Add cell')
 
 		it('sizes the column to a wide control of a render slot', async () => {
@@ -340,18 +340,18 @@ describe('grid new row (real browser)', () => {
 			// The control fits inside its cell, and the cell is not much wider.
 			await waitFor(() =>
 				expect(control.getBoundingClientRect().right).toBeLessThanOrEqual(
-					addCellOf(slot).getBoundingClientRect().right,
+					getAddCell(slot).getBoundingClientRect().right,
 				),
 			)
 
-			expect(addCellOf(slot).getBoundingClientRect().width).toBeLessThan(120 + 48)
+			expect(getAddCell(slot).getBoundingClientRect().width).toBeLessThan(120 + 48)
 		})
 
 		it('fixes the column at newRowAdd.width', async () => {
 			const { slot } = renderGrid({ newRow: 'bottom', newRowAdd: { width: 120 } })
 
 			await waitFor(() =>
-				expect(addCellOf(slot).getBoundingClientRect().width).toBeNear(120, PIXEL),
+				expect(getAddCell(slot).getBoundingClientRect().width).toBeNear(120, PIXEL),
 			)
 		})
 
@@ -386,11 +386,11 @@ describe('grid new row (real browser)', () => {
 
 			await waitFor(() =>
 				expect(control.getBoundingClientRect().right).toBeLessThanOrEqual(
-					addCellOf(slot).getBoundingClientRect().right,
+					getAddCell(slot).getBoundingClientRect().right,
 				),
 			)
 
-			const width = addCellOf(slot).getBoundingClientRect().width
+			const width = getAddCell(slot).getBoundingClientRect().width
 
 			await userEvent.keyboard('{Enter}')
 
@@ -401,7 +401,7 @@ describe('grid new row (real browser)', () => {
 			// The wider pending label does not grow the column.
 			await frames()
 
-			expect(addCellOf(slot).getBoundingClientRect().width).toBe(width)
+			expect(getAddCell(slot).getBoundingClientRect().width).toBe(width)
 
 			resolve()
 

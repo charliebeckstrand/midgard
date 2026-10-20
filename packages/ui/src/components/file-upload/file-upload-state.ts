@@ -151,7 +151,7 @@ export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
  *
  * @internal
  */
-export function splitFileUploadProps<P extends FileUploadSharedProps>({
+export function splitProps<P extends FileUploadSharedProps>({
 	name,
 	value,
 	defaultValue,

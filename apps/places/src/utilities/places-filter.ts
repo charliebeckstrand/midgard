@@ -130,18 +130,18 @@ export function showsKind(filter: PlaceFilterValue, kind: RecordKind, hasTrips: 
  * category. A trip with no places has nothing for them to judge, so the
  * categories admit it always. A span admits a trip whose days overlap it.
  *
- * @param placesOf - The places of each trip, by the id of the trip, from every
+ * @param placesByTrip - The places of each trip, by the id of the trip, from every
  * place and not only the ones that the filter admits.
  */
 export function filterTrips(
 	trips: readonly Trip[],
 	filter: PlaceFilterValue,
-	placesOf: ReadonlyMap<string, readonly Place[]>,
+	placesByTrip: ReadonlyMap<string, readonly Place[]>,
 ): Trip[] {
 	const { categories, visited } = filter
 
 	return trips.filter((trip) => {
-		const held = placesOf.get(trip.id) ?? []
+		const held = placesByTrip.get(trip.id) ?? []
 
 		if (
 			categories !== undefined &&

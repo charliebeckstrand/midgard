@@ -7,7 +7,7 @@ import {
 	type GridProps,
 } from '../../../modules/grid'
 import { fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { settledValue } from '../helpers/sample'
 
 /**
@@ -75,7 +75,7 @@ describe('grid column sizing rules (real browser)', () => {
 			`Resize ${label}`,
 		)
 
-		const { x, y } = centerOf(handle)
+		const { x, y } = getCenter(handle)
 
 		fireEvent.mouseDown(handle, { clientX: x, clientY: y })
 

@@ -4,8 +4,8 @@ import type { ESTree } from 'vite'
 import type { CatalogEntry } from '../../../scripts/intl-catalog.ts'
 import { TITLE_ID } from '../kit/example-title.ts'
 import { humanize } from '../kit/humanize.ts'
-import { slugOf, TAB_ID } from '../kit/tab-name.ts'
-import { exampleFiles, examplesIn, headingIdOf, type Parse, PLAYGROUND } from './examples.ts'
+import { TAB_ID, toSlug } from '../kit/tab-name.ts'
+import { exampleFiles, examplesIn, type Parse, PLAYGROUND, toHeadingId } from './examples.ts'
 import { findPages } from './pages.ts'
 
 /**
@@ -32,7 +32,7 @@ export async function titleEntries(
 	)
 
 	// A playground shows a title of its own message, so it has no title entry.
-	const ids = [...new Set(examples.flat().map(headingIdOf))]
+	const ids = [...new Set(examples.flat().map(toHeadingId))]
 		.filter((id) => id !== PLAYGROUND)
 		.toSorted()
 
@@ -48,7 +48,7 @@ export async function titleEntries(
 }
 
 /** The names in the `TABS` constant of a module, such as `['Variants', 'Sorting']`. */
-function tabsOf(program: ESTree.Program): string[] | undefined {
+function readTabs(program: ESTree.Program): string[] | undefined {
 	for (const statement of program.body) {
 		const declaration =
 			statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement
@@ -87,12 +87,12 @@ export async function tabEntries(
 	for (const page of findPages(docs).filter((candidate) => candidate.tabs.length > 0)) {
 		const file = path.join(pages, page.folder, 'index.tsx')
 
-		const names = tabsOf(parse(await readFile(file, 'utf8'), { lang: 'tsx' }))
+		const names = readTabs(parse(await readFile(file, 'utf8'), { lang: 'tsx' }))
 
 		if (!names) throw new Error(`docs: ${page.folder} has tabs, but its index.tsx has no TABS`)
 
 		for (const name of names) {
-			const slug = slugOf(name)
+			const slug = toSlug(name)
 
 			const known = tabs.get(slug)
 

@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
-	countryOf,
+	buildRegions,
 	drillInto,
+	getCountry,
+	getState,
 	groupName,
 	groupTrail,
 	initialView,
@@ -9,10 +11,8 @@ import {
 	openingRegion,
 	type PlaceView,
 	pickerRegions,
-	regionOf,
 	regionsHolding,
 	stateLabel,
-	stateOf,
 	UNITED_STATES,
 	UNITED_STATES_VIEW,
 	viewAtlas,
@@ -100,19 +100,19 @@ describe('viewMark', () => {
 	})
 })
 
-describe('stateOf and countryOf', () => {
+describe('getState and getCountry', () => {
 	const held = place('a', { state: 'Oregon', country: 'United States' })
 
 	it('read the field each atlas falls back to', () => {
-		expect(stateOf(held)).toBe('Oregon')
+		expect(getState(held)).toBe('Oregon')
 
-		expect(countryOf(held)).toBe('United States')
+		expect(getCountry(held)).toBe('United States')
 	})
 
 	it('answer with nothing where the geocoder named neither', () => {
-		expect(stateOf(place('b'))).toBeUndefined()
+		expect(getState(place('b'))).toBeUndefined()
 
-		expect(countryOf(place('b'))).toBeUndefined()
+		expect(getCountry(place('b'))).toBeUndefined()
 	})
 })
 
@@ -168,14 +168,14 @@ describe('viewCrumbs', () => {
 	})
 })
 
-describe('regionOf', () => {
+describe('buildRegions', () => {
 	it('inverts a grouping to the region holding each place', () => {
 		const grouped = new Map([
 			['Oregon', [place('a')]],
 			['Nevada', [place('b'), place('c')]],
 		])
 
-		expect([...regionOf(grouped)]).toEqual([
+		expect([...buildRegions(grouped)]).toEqual([
 			['a', 'Oregon'],
 			['b', 'Nevada'],
 			['c', 'Nevada'],
@@ -183,7 +183,7 @@ describe('regionOf', () => {
 	})
 
 	it('answers with nothing for a grouping that placed nothing', () => {
-		expect(regionOf(new Map()).size).toBe(0)
+		expect(buildRegions(new Map()).size).toBe(0)
 	})
 })
 

@@ -1,6 +1,6 @@
 import type { GridRowGroup, GridRowGroups, GridRowManagerGroup } from '../../grid-row-group-types'
 import { groupValueLabel } from '../grid-column/label'
-import { groupKeyOf } from '../grid-items/items'
+import { getGroupKey } from '../grid-items/items'
 import type { GridGroup } from './tree'
 
 /** Unwraps the {@link GridRowGroups} binding: the array shorthand seeds `defaultValue`. @internal */
@@ -24,17 +24,17 @@ export function normalizeRowGroups(config: GridRowGroups | undefined): {
 export function applyRowKeyOrder<I>(
 	items: I[],
 	order: (string | number)[] | undefined,
-	keyOf: (item: I) => string | number,
+	getKey: (item: I) => string | number,
 ): I[] {
 	if (!order || order.length === 0) return items
 
-	const byKey = new Map(items.map((item) => [String(keyOf(item)), item]))
+	const byKey = new Map(items.map((item) => [String(getKey(item)), item]))
 
 	const ordered = order.map((key) => byKey.get(String(key))).filter((item) => item != null)
 
 	const listed = new Set(order.map(String))
 
-	const rest = items.filter((item) => !listed.has(String(keyOf(item))))
+	const rest = items.filter((item) => !listed.has(String(getKey(item))))
 
 	return [...ordered, ...rest]
 }
@@ -50,7 +50,7 @@ export function applyRowKeyOrder<I>(
 export function buildRowManagerGroups<T>(groups: GridGroup<T>[] | null): GridRowManagerGroup[] {
 	return (groups ?? []).map((group) => {
 		return {
-			key: groupKeyOf(group),
+			key: getGroupKey(group),
 			label: groupValueLabel(group.value),
 			count: group.leaves.length,
 		}

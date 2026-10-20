@@ -50,7 +50,7 @@ function Frame({ messages, streaming }: { messages: ChatMessageData[]; streaming
 	)
 }
 
-function transcriptOf(container: HTMLElement) {
+function getTranscript(container: HTMLElement) {
 	const transcript = container.querySelector<HTMLElement>('[data-slot="chat-transcript"]')
 
 	if (!transcript) throw new Error('transcript not found')
@@ -58,7 +58,7 @@ function transcriptOf(container: HTMLElement) {
 	return transcript
 }
 
-const rowsOf = (container: HTMLElement) =>
+const getRows = (container: HTMLElement) =>
 	Array.from(container.querySelectorAll<HTMLElement>('[data-slot="chat-transcript-row"]'))
 
 /** How far the transcript sits above its own end, in pixels. */
@@ -68,7 +68,7 @@ function distanceFromEnd(transcript: HTMLElement) {
 
 /** Whether the row holding `text` is inside the transcript's viewport, bottom edge included. */
 function showsEnd(transcript: HTMLElement, text: string) {
-	const row = rowsOf(transcript).find((candidate) => candidate.textContent?.includes(text))
+	const row = getRows(transcript).find((candidate) => candidate.textContent?.includes(text))
 
 	if (!row) return false
 
@@ -123,7 +123,7 @@ describe('the transcript window', () => {
 
 		const { container } = renderUI(<Frame messages={messages} />)
 
-		const transcript = transcriptOf(container)
+		const transcript = getTranscript(container)
 
 		await waitFor(() => {
 			expect(transcript.scrollTop).toBeGreaterThan(0)
@@ -133,7 +133,7 @@ describe('the transcript window', () => {
 			expect(showsEnd(transcript, 'Message 499.')).toBe(true)
 		})
 
-		expect(rowsOf(container).length).toBeLessThan(40)
+		expect(getRows(container).length).toBeLessThan(40)
 
 		// The pin holds once the rows in view have measured, not only at the first write.
 		expect(await settledValue(() => distanceFromEnd(transcript))).toBeLessThanOrEqual(1)
@@ -149,7 +149,7 @@ describe('the transcript window', () => {
 
 		const { container, rerender } = renderUI(<Frame messages={withReply('Late')} streaming />)
 
-		const transcript = transcriptOf(container)
+		const transcript = getTranscript(container)
 
 		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
 
@@ -198,7 +198,7 @@ describe('the transcript window', () => {
 
 		const { container, rerender } = renderUI(<Frame messages={withReply(1)} streaming />)
 
-		const transcript = transcriptOf(container)
+		const transcript = getTranscript(container)
 
 		await landed(transcript)
 
@@ -222,7 +222,7 @@ describe('the transcript window', () => {
 
 		const { container, rerender } = renderUI(<Frame messages={messages} />)
 
-		const transcript = transcriptOf(container)
+		const transcript = getTranscript(container)
 
 		// The follow acts only when the window knows that the reader sits at the end.
 		await landed(transcript)
@@ -281,7 +281,7 @@ describe('the transcript window', () => {
 
 		const { container, rerender } = renderUI(<Frame messages={messages} />)
 
-		const transcript = transcriptOf(container)
+		const transcript = getTranscript(container)
 
 		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
 
@@ -305,7 +305,7 @@ describe('the transcript window', () => {
 
 		const { container, rerender } = renderUI(<Frame messages={messages} />)
 
-		const transcript = transcriptOf(container)
+		const transcript = getTranscript(container)
 
 		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
 
@@ -333,7 +333,7 @@ describe('the transcript window', () => {
 
 		const { container, rerender } = renderUI(<Frame messages={messages} />)
 
-		const transcript = transcriptOf(container)
+		const transcript = getTranscript(container)
 
 		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
 
@@ -367,7 +367,7 @@ describe('the transcript window', () => {
 
 		const { container, rerender } = renderUI(<Frame messages={messages} />)
 
-		const transcript = transcriptOf(container)
+		const transcript = getTranscript(container)
 
 		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
 
@@ -491,7 +491,7 @@ describe('an embed under the window', () => {
 			</ChatEmbedProvider>,
 		)
 
-		const transcript = transcriptOf(container)
+		const transcript = getTranscript(container)
 
 		// The window places its rows for the offset it knows, so it must know the pin.
 		await landed(transcript)

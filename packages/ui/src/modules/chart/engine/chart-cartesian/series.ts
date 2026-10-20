@@ -13,7 +13,7 @@ import type { ChartOrientation } from '../chart-orientation'
 import type { LinearScale } from '../chart-scale'
 import { type SeriesMeta, seriesValues } from '../chart-series'
 import type { ChartSeries } from '../types'
-import { stackAxisOf } from './stack'
+import { resolveStackAxis } from './stack'
 
 /** Every series resolved to its meta: label, paint, swatch, values, and axis binding. @internal */
 export function seriesMetas<T>(
@@ -22,7 +22,7 @@ export function seriesMetas<T>(
 	swatch: (series: ChartSeries<T>, index: number) => SeriesMeta['swatch'],
 	stack: boolean,
 ): SeriesMeta[] {
-	const stackAxis = stackAxisOf(series)
+	const stackAxis = resolveStackAxis(series)
 
 	return series.map((entry, index) => {
 		const paint = seriesPaint(entry, index)
@@ -184,7 +184,7 @@ type LegendSeries = Pick<SeriesMeta, 'index' | 'label' | 'paint' | 'swatch' | 'd
  *
  * @internal
  */
-export function legendItemOf(meta: LegendSeries): ChartLegendItem {
+export function toLegendItem(meta: LegendSeries): ChartLegendItem {
 	return {
 		index: meta.index,
 		label: meta.label,
@@ -211,5 +211,5 @@ export function cartesianLegendItems(
 ): ChartLegendItem[] | null {
 	if (!legendVisible(legend, metas.length)) return null
 
-	return orderLegend(metas, byValue).map(legendItemOf)
+	return orderLegend(metas, byValue).map(toLegendItem)
 }

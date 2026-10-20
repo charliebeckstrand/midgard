@@ -18,7 +18,7 @@ const categories = [
 	{ value: 'marketing', label: 'Marketing' },
 ]
 
-const labelOf = (value: string) =>
+const getLabel = (value: string) =>
 	categories.find((category) => category.value === value)?.label ?? value
 
 type Value = {
@@ -55,7 +55,7 @@ export default function WithDatePicker() {
 					</FormFiltersField>
 					<FormFiltersField name="category">
 						<Label>Category</Label>
-						<Select nullable placeholder="All categories" displayValue={labelOf}>
+						<Select nullable placeholder="All categories" displayValue={getLabel}>
 							{categories.map((category) => (
 								<SelectOption key={category.value} value={category.value}>
 									<SelectLabel>{category.label}</SelectLabel>

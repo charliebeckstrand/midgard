@@ -605,12 +605,12 @@ export function readingOrder(items: readonly { id: string; x: number; y: number 
 export function sortByOrder<T>(
 	items: readonly T[],
 	order: readonly string[],
-	idOf: (item: T) => string,
+	getId: (item: T) => string,
 ): readonly T[] {
 	const rank = new Map(order.map((id, index) => [id, index]))
 
 	const sorted = items
-		.map((item, index) => ({ item, index, rank: rank.get(idOf(item)) ?? order.length + index }))
+		.map((item, index) => ({ item, index, rank: rank.get(getId(item)) ?? order.length + index }))
 		.sort((a, b) => a.rank - b.rank)
 
 	return sorted.every(({ index }, position) => index === position)

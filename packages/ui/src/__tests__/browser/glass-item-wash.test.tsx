@@ -25,7 +25,7 @@ describe('Glass item wash (real browser)', () => {
 	 * `bg-zinc-950/5` and `/10` to the same `oklab()` color and separates them
 	 * only by alpha, which is exactly the difference under test.
 	 */
-	function washOf(element: Element): number {
+	function readWash(element: Element): number {
 		const painted = getComputedStyle(element).backgroundColor
 
 		const alpha = painted.match(/\/\s*([\d.]+)\s*\)$/)
@@ -66,7 +66,7 @@ describe('Glass item wash (real browser)', () => {
 
 		await userEvent.hover(row)
 
-		expect(washOf(row)).toBeCloseTo(GLASS_WASH, 3)
+		expect(readWash(row)).toBeCloseTo(GLASS_WASH, 3)
 
 		const panel = getSlot(document.body, 'popover-panel')
 
@@ -76,7 +76,7 @@ describe('Glass item wash (real browser)', () => {
 		// the still-classed panel pins the pairing on the one node.
 		panel.removeAttribute('data-glass')
 
-		expect(washOf(row)).toBeCloseTo(TINT, 3)
+		expect(readWash(row)).toBeCloseTo(TINT, 3)
 	})
 
 	it('leaves a menu row on the plain tint outside a glass panel', async () => {
@@ -84,7 +84,7 @@ describe('Glass item wash (real browser)', () => {
 
 		await userEvent.hover(row)
 
-		expect(washOf(row)).toBeCloseTo(TINT, 3)
+		expect(readWash(row)).toBeCloseTo(TINT, 3)
 	})
 
 	it('deepens a command-palette row to the glass wash inside a glass dialog', async () => {
@@ -92,7 +92,7 @@ describe('Glass item wash (real browser)', () => {
 
 		await userEvent.hover(row)
 
-		expect(washOf(row)).toBeCloseTo(GLASS_WASH, 3)
+		expect(readWash(row)).toBeCloseTo(GLASS_WASH, 3)
 	})
 
 	it('leaves a command-palette row on the plain tint outside a glass dialog', async () => {
@@ -100,6 +100,6 @@ describe('Glass item wash (real browser)', () => {
 
 		await userEvent.hover(row)
 
-		expect(washOf(row)).toBeCloseTo(TINT, 3)
+		expect(readWash(row)).toBeCloseTo(TINT, 3)
 	})
 })

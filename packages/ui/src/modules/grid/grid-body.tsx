@@ -23,8 +23,8 @@ import {
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import {
 	detailOpen,
+	getGroupKey,
 	groupedWindowRowCount,
-	groupKeyOf,
 	groupTotaled,
 	totalItemKey,
 } from './engine/grid-items/items'
@@ -37,7 +37,7 @@ import { GridGroupLeafRow, leafRowProps } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
 import { GridManualGroupPlaceholderRows, GridManualGroupRow } from './grid-manual-group-row'
 import { GridReorderKitContext } from './grid-reorder'
-import { type GridRowsProps, renderGridRow } from './grid-row'
+import { type GridRowsProps, renderRow } from './grid-row'
 import type { GridRowGroupPresentation } from './grid-row-group-types'
 import { GridLoadingBody } from './grid-skeleton-cells'
 import { GridTotalRow } from './grid-total-row'
@@ -225,7 +225,7 @@ function renderGroup<T>(
 
 	// The group's row-manager color tints its header aggregates, total footer, and
 	// rail; the leaves render in the engine's natural order (row order isn't managed).
-	const color = presentation?.color(groupKeyOf(group))
+	const color = presentation?.color(getGroupKey(group))
 
 	return (
 		<Fragment key={group.id}>
@@ -324,7 +324,7 @@ function renderManualSegment<T>(
  *
  * @internal
  */
-function renderGroupedBody<T>(
+function renderGrouped<T>(
 	props: GridBodyProps<T>,
 	groups: GridGroup<T>[],
 	groupColumnId: string | number,
@@ -337,7 +337,7 @@ function renderGroupedBody<T>(
 	const ordered = applyRowKeyOrder(
 		groups,
 		rowGroupPresentation?.groupOrder ?? undefined,
-		groupKeyOf,
+		getGroupKey,
 	)
 
 	// The per-group total is meaningful only once a column aggregates; the gate
@@ -390,7 +390,7 @@ function renderGroupedBody<T>(
  *
  * @internal
  */
-function renderWindowedBody<T>(props: GridBodyProps<T>, rowWindow: GridRowWindow): ReactElement {
+function renderWindowed<T>(props: GridBodyProps<T>, rowWindow: GridRowWindow): ReactElement {
 	return props.expansion ? (
 		<GridVirtualizedDetailBody<T> {...props} {...rowWindow} />
 	) : (
@@ -511,10 +511,10 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		return <GridLoadingBody columns={visibleColumns} pinning={pinning} />
 	}
 
-	// Grouping renders its own body (see `renderGroupedBody`). It stands down
+	// Grouping renders its own body (see `renderGrouped`). It stands down
 	// pagination (see `GridData`), so this precedes the flat virtualized branch.
 	if (groups && groupColumnId != null) {
-		return renderGroupedBody(props, groups, groupColumnId, rowWindow)
+		return renderGrouped(props, groups, groupColumnId, rowWindow)
 	}
 
 	// The windowed body carries the loading skeleton on from the branch above while
@@ -522,7 +522,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// headers-only, rowless table (see `GridVirtualizedBody`). Master-detail under
 	// a window renders each data row and each open panel as an item of one
 	// measured window (see `GridVirtualizedDetailBody`).
-	if (rowWindow) return renderWindowedBody(props, rowWindow)
+	if (rowWindow) return renderWindowed(props, rowWindow)
 
 	const { expansion } = props
 
@@ -532,7 +532,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	const places = rowPlaces(rows, props.rowKeys, expansion)
 
 	const rowNodes = rows.map((row, index) =>
-		renderGridRow(
+		renderRow(
 			props,
 			row,
 			index,

@@ -2,7 +2,7 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Sparkline, SparklineSkeleton } from '../../components/sparkline'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, densityStepOf, getSlot, renderUI } from '../helpers'
+import { bySlot, getSlot, readDensityStep, renderUI } from '../helpers'
 
 describe('Sparkline', () => {
 	it('renders a role="img" wrapper carrying the accessible name over a hidden SVG', () => {
@@ -173,7 +173,7 @@ describe('Sparkline density', () => {
 		// sparkline takes the `sm` step without an explicit `size`.
 		const sparkline = getSlot(container, 'sparkline')
 
-		expect(densityStepOf(sparkline)).toBe('sm')
+		expect(readDensityStep(sparkline)).toBe('sm')
 
 		expect(sparkline.querySelector('svg')?.getAttribute('class')).toContain(
 			'density-w-[12,18,24,30,36]',

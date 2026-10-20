@@ -10,9 +10,9 @@ import { once } from '../../../utilities'
 import type { ChartAxisTick } from './chart-axes/axis'
 import { type ChartValueAxisId, resolveAxes } from './chart-axes/schema'
 import {
-	categoryGridPositionsOf,
-	gridPositionsOf,
-	referencePositionsOf,
+	buildCategoryGrid,
+	buildGrid,
+	buildReferences,
 	resolveValueAxes,
 } from './chart-cartesian/axes'
 import { resolveCategories } from './chart-cartesian/categories'
@@ -24,7 +24,7 @@ import {
 	readoutSeriesKey,
 	seriesMetas,
 } from './chart-cartesian/series'
-import { stackModeOf } from './chart-cartesian/stack'
+import { resolveStackMode } from './chart-cartesian/stack'
 import { GUTTER_LABEL_ROOM, LABEL_CHAR_WIDTH, TICK_TARGET } from './chart-constants'
 import { chartFrameLayout, frameFills } from './chart-frame/sizing'
 import {
@@ -474,7 +474,7 @@ export function useChartCartesian<T>(
 		props,
 		axes,
 		visible,
-		stackModeOf(config),
+		resolveStackMode(config),
 		data,
 		referenceHidden,
 		policy.compactFormat,
@@ -512,9 +512,9 @@ export function useChartCartesian<T>(
 		categories,
 	)
 
-	const layoutOf = orientation === 'horizontal' ? horizontalLayout : verticalLayout
+	const buildLayout = orientation === 'horizontal' ? horizontalLayout : verticalLayout
 
-	const layout: CartesianLayout = layoutOf({
+	const layout: CartesianLayout = buildLayout({
 		frameWidth,
 		frameHeight,
 		axes: drawAxes,
@@ -595,7 +595,7 @@ export function useChartCartesian<T>(
 	// Reference lines map onto their own axis's scale the way the rules do, kept
 	// aligned to the prop so the keyboard's active-rule index names the rule it
 	// draws; a rule toggled off through its chip drops its stop with its rule.
-	const referencePositions = referencePositionsOf(
+	const referencePositions = buildReferences(
 		props.reference,
 		{
 			y: layout.valueScale,
@@ -664,8 +664,8 @@ export function useChartCartesian<T>(
 		snapSeries: layout.snapSeries,
 		valueLabelRoom: layout.valueLabelRoom,
 		referencePositions,
-		gridPositions: gridPositionsOf(axes, layout, policy.grid),
-		categoryGridPositions: categoryGridPositionsOf(axes, layout, data.length, policy.grid),
+		gridPositions: buildGrid(axes, layout, policy.grid),
+		categoryGridPositions: buildCategoryGrid(axes, layout, data.length, policy.grid),
 		categorySeparator: axes.x?.separator,
 		axisTitles: layout.titles,
 		formatAxisValue,

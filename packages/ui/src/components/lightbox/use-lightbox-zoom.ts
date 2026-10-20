@@ -64,7 +64,7 @@ type Measure = {
 }
 
 /** The midpoint and the distance of two points: the center and the size of a pinch. */
-function spanOf([a, b]: readonly [LightboxPoint, LightboxPoint]) {
+function getSpan([a, b]: readonly [LightboxPoint, LightboxPoint]) {
 	return {
 		center: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 },
 		gap: Math.hypot(a.x - b.x, a.y - b.y),
@@ -221,9 +221,9 @@ export function useLightboxZoom(trackRef: RefObject<HTMLElement | null>): Lightb
 
 			if (!held) return
 
-			const start = spanOf(from)
+			const start = getSpan(from)
 
-			const now = spanOf(to)
+			const now = getSpan(to)
 
 			if (start.gap === 0) return
 

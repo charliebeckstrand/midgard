@@ -1,6 +1,6 @@
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { importsOf } from '../helpers/source-imports'
+import { parseImports } from '../helpers/source-imports'
 import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // The pure-core invariant the grid, query, map, chat, dashboard, events, and kanban ROADMAPs each
@@ -56,7 +56,7 @@ function frameworkReaches(content: string): string[] {
 
 	if (/^\s*['"]use client['"]/m.test(content)) found.push("'use client'")
 
-	for (const { specifier, runtime } of importsOf(content)) {
+	for (const { specifier, runtime } of parseImports(content)) {
 		if (runtime && isFrameworkSpecifier(specifier)) found.push(`runtime import of '${specifier}'`)
 	}
 
@@ -110,7 +110,7 @@ describe('engine purity boundary', () => {
 				// reach at it names a bare segment (`'../types'`, not `'../../core'`).
 				const root = new RegExp(`^${'\\.\\./'.repeat(depth)}[a-z][a-z0-9-]*$`)
 
-				return importsOf(content)
+				return parseImports(content)
 					.filter(({ specifier, runtime }) => runtime && root.test(specifier))
 					.map(({ specifier }) => `${rel} → runtime import of '${specifier}'`)
 			})
@@ -154,7 +154,7 @@ describe('engine purity boundary · self-check', () => {
 	}
 
 	it('allows a type-only framework import', () => {
-		const refs = importsOf("import type { CSSProperties } from 'react'\n")
+		const refs = parseImports("import type { CSSProperties } from 'react'\n")
 
 		expect(refs).toEqual([{ specifier: 'react', runtime: false }])
 	})
@@ -171,13 +171,13 @@ describe('engine purity boundary · self-check', () => {
 	})
 
 	it('allows a clause whose every binding is type-qualified', () => {
-		const refs = importsOf("import { type A, type B } from 'react'\n")
+		const refs = parseImports("import { type A, type B } from 'react'\n")
 
 		expect(refs[0]?.runtime).toBe(false)
 	})
 
 	it('does not let one import statement swallow the next', () => {
-		const refs = importsOf(
+		const refs = parseImports(
 			"import {\n\tuseMemo,\n} from 'react'\nimport { cn } from '../../core'\n",
 		)
 

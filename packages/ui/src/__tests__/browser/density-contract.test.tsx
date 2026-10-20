@@ -6,13 +6,13 @@ import { Input } from '../../components/input'
 import { type DensityStep, densitySteps, writeRootDensity } from '../../core/density'
 import { DensityProvider } from '../../providers/density'
 import { dan } from '../../recipes/kiso/dan'
-import { attach, densityStepOf, getSlot, present, renderUI } from '../helpers'
+import { attach, getSlot, present, readDensityStep, renderUI } from '../helpers'
 
 /**
  * The contract of the density scopes, in computed style.
  *
  * Each case puts a stepped class under a chain of `data-density` scopes and reads the computed
- * value. The `scopeStepOf` oracle (`densityStepOf`) gives the step that the case expects, and the
+ * value. The `readScopeStep` oracle (`readDensityStep`) gives the step that the case expects, and the
  * case also states that step. Thus a case holds the CSS and the oracle to one step.
  *
  * The cases cover the parts of the contract that `density-scope.test.tsx` does not hold: a root
@@ -100,7 +100,7 @@ function px(element: Element, property: 'paddingBottom' | 'paddingLeft' | 'paddi
 
 /** The step of the oracle and the padding of the probe, for one assertion. */
 function probeStep(element: Element) {
-	return { step: densityStepOf(element), padding: px(element, 'paddingLeft') }
+	return { step: readDensityStep(element), padding: px(element, 'paddingLeft') }
 }
 
 /** The step of the oracle and the padding that {@link PROBE} gives at `step`. */
@@ -242,7 +242,7 @@ describe('the slot scope (real browser)', () => {
 			return element
 		}
 
-		const read = (icon: HTMLElement) => ({ step: densityStepOf(icon), width: px(icon, 'width') })
+		const read = (icon: HTMLElement) => ({ step: readDensityStep(icon), width: px(icon, 'width') })
 
 		const ICON_PX = { xs: 16, sm: 18, md: 20, lg: 22, xl: 24 } as const
 
@@ -283,7 +283,7 @@ describe('scopes deeper than two (real browser)', () => {
 	]
 
 	it.each(deep)('gives %s the oracle step of the nearest scope', (_, chain, step, self) => {
-		expect(densityStepOf(probe(chain, PROBE, self))).toBe(step)
+		expect(readDensityStep(probe(chain, PROBE, self))).toBe(step)
 	})
 
 	it.each(deep)('gives %s the padding of the nearest scope', (_, chain, step, self) => {
@@ -308,7 +308,7 @@ describe('a pseudo-element (real browser)', () => {
 		const frame = present(container.querySelector('[data-slot="control-frame"]'), 'frame')
 
 		return {
-			step: densityStepOf(frame),
+			step: readDensityStep(frame),
 			radius: Number.parseFloat(getComputedStyle(frame, '::before').borderTopLeftRadius),
 		}
 	}
@@ -334,7 +334,7 @@ describe('a pseudo-element (real browser)', () => {
 		const element = after(chain)
 
 		return {
-			step: densityStepOf(element),
+			step: readDensityStep(element),
 			radius: Number.parseFloat(getComputedStyle(element, '::before').borderTopLeftRadius),
 		}
 	}
@@ -349,7 +349,7 @@ describe('a pseudo-element (real browser)', () => {
 	const otherSteps: DensityStep[] = ['xs', 'sm', 'lg', 'xl']
 
 	it.each(otherSteps)('gives the oracle step %s to an element with a stepped ::before', (step) => {
-		expect(densityStepOf(after([step]))).toBe(step)
+		expect(readDensityStep(after([step]))).toBe(step)
 	})
 
 	it.each(otherSteps)(
@@ -400,7 +400,7 @@ describe('two stepped classes on one property (real browser)', () => {
 	beforeAll(() => page.viewport(390, 844))
 
 	/** The index of the last rule that names `className`, in the order of the document sheets. */
-	const lastRuleOf = (className: string) => {
+	const findLastRule = (className: string) => {
 		const selector = `.${CSS.escape(className)}`
 
 		let index = 0
@@ -430,7 +430,7 @@ describe('two stepped classes on one property (real browser)', () => {
 	])(
 		'gives %s with %s the later rule in the sheet (%s, at %s)',
 		(first, second, property, step, firstPx, secondPx) => {
-			const [firstRule, secondRule] = [lastRuleOf(first), lastRuleOf(second)]
+			const [firstRule, secondRule] = [findLastRule(first), findLastRule(second)]
 
 			expect(Math.min(firstRule, secondRule)).toBeGreaterThan(-1)
 
@@ -439,7 +439,7 @@ describe('two stepped classes on one property (real browser)', () => {
 			for (const className of [`${first} ${second}`, `${second} ${first}`]) {
 				const element = probe([step], className)
 
-				expect([densityStepOf(element), px(element, property)]).toEqual([step, expected])
+				expect([readDensityStep(element), px(element, property)]).toEqual([step, expected])
 			}
 		},
 	)
@@ -470,7 +470,7 @@ describe('a list of three values (real browser)', () => {
 
 		nest(chain).append(swatch)
 
-		expect([densityStepOf(label), densityStepOf(swatch)]).toEqual([step, step])
+		expect([readDensityStep(label), readDensityStep(swatch)]).toEqual([step, step])
 
 		expect({
 			pad: px(label, 'paddingLeft'),
@@ -523,7 +523,7 @@ describe('the bottom inset of an open dialog at 390px (real browser)', () => {
 	const inset = () => {
 		const panel = getSlot(document.body, 'dialog')
 
-		return { step: densityStepOf(panel), inset: px(panel, 'paddingBottom') }
+		return { step: readDensityStep(panel), inset: px(panel, 'paddingBottom') }
 	}
 
 	it.each(densitySteps)('insets the panel at the %s root', (step) => {
@@ -645,7 +645,7 @@ describe('a group of space-x from density-set (real browser)', () => {
 
 		child.dataset.density = 'xs'
 
-		expect({ step: densityStepOf(child), overlap: end(child) }).toEqual({
+		expect({ step: readDensityStep(child), overlap: end(child) }).toEqual({
 			step: 'xs',
 			overlap: OVERLAP_PX.lg,
 		})

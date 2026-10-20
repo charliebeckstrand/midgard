@@ -16,7 +16,7 @@ import { CMAP_FILES } from '../../components/pdf-viewer/pdf-viewer-cmap-files'
 const PDFJS = dirname(createRequire(import.meta.url).resolve('pdfjs-dist/package.json'))
 
 /** The files of `directory` in `pdfjs-dist` whose names match `pattern`, sorted. */
-function filesOf(directory: string, pattern: RegExp): string[] {
+function listFiles(directory: string, pattern: RegExp): string[] {
 	return readdirSync(join(PDFJS, directory))
 		.filter((name) => pattern.test(name))
 		.sort()
@@ -47,7 +47,7 @@ describe('the bundled pdf.js files', () => {
 	})
 
 	it('has each packed CMap', () => {
-		expect(Object.keys(CMAP_FILES).sort()).toEqual(filesOf('cmaps', /\.bcmap$/))
+		expect(Object.keys(CMAP_FILES).sort()).toEqual(listFiles('cmaps', /\.bcmap$/))
 	})
 
 	it('points each file name at the same file in its directory', () => {

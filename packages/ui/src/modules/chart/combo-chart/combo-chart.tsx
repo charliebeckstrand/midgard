@@ -7,9 +7,9 @@ import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { type BarMark, barMarks } from '../engine/chart-geometry/bar'
 import { valueLabelHeadroom } from '../engine/chart-geometry/label'
 import {
+	buildLineSeries,
 	type ChartLineSeries,
 	type LineInterpolation,
-	lineSeriesOf,
 } from '../engine/chart-geometry/line'
 import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
@@ -203,12 +203,12 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	// fills down to its baseline.
 	const xs = chart.bandPositions
 
-	const lines = lineSeriesOf(lineEntries, xs, floor, interpolation, points)
+	const lines = buildLineSeries(lineEntries, xs, floor, interpolation, points)
 
 	// Each wash closes on the zero line of its own axis, as an AreaChart wash does.
 	// A negative bar or a domain pinned below zero lifts that line off the floor.
 	const areas = areaEntries.flatMap((entry) =>
-		lineSeriesOf([entry], xs, entry.baseline, interpolation, points),
+		buildLineSeries([entry], xs, entry.baseline, interpolation, points),
 	)
 
 	// The hit test reads each wash down to the same zero line.

@@ -68,7 +68,7 @@ export function manualTotals(
  * @param args.pageSize - The rows on each page.
  * @internal
  */
-export function pageCountOf(args: {
+export function resolvePageCount(args: {
 	pageCount?: number | undefined
 	rowCount?: number | undefined
 	rows: number

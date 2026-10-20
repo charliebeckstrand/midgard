@@ -19,7 +19,7 @@ import type { ChartSeries } from '../types'
 export type StackMode = false | 'signed' | 'positive'
 
 /** The stack mode a chart's config asks for. @internal */
-export function stackModeOf(config: { stack?: boolean; stackPositive?: boolean }): StackMode {
+export function resolveStackMode(config: { stack?: boolean; stackPositive?: boolean }): StackMode {
 	if (!config.stack) return false
 
 	return config.stackPositive ? 'positive' : 'signed'
@@ -61,7 +61,7 @@ export function stackEdges(
 }
 
 /** The one axis a stack binds to: the axis every series agrees on, else `y`. @internal */
-export function stackAxisOf<T>(series: ChartSeries<T>[]): ChartValueAxisId {
+export function resolveStackAxis<T>(series: ChartSeries<T>[]): ChartValueAxisId {
 	const first = series[0]?.axis ?? 'y'
 
 	return series.every((entry) => (entry.axis ?? 'y') === first) ? first : 'y'

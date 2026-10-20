@@ -126,9 +126,9 @@ export function paintedFrame(
 	rest: LightboxBox,
 ): LightboxFrame {
 	const [photoScaleX = 1, , , photoScaleY = 1, photoLeft = 0, photoTop = 0] =
-		matrixOf(photoTransform)
+		parseMatrix(photoTransform)
 
-	const [scaleX = 1, , , scaleY = 1, left = 0, top = 0] = matrixOf(slotTransform)
+	const [scaleX = 1, , , scaleY = 1, left = 0, top = 0] = parseMatrix(slotTransform)
 
 	if (slotTransform === 'none') {
 		const x = rest.x + photoLeft
@@ -159,7 +159,7 @@ export function paintedFrame(
 }
 
 /** The six values of a computed 2D transform, or none for `none` or a 3D transform. */
-function matrixOf(transform: string): number[] {
+function parseMatrix(transform: string): number[] {
 	const matrix = /^matrix\(([^)]+)\)$/.exec(transform)
 
 	return matrix ? (matrix[1] ?? '').split(',').map(Number) : []
@@ -170,7 +170,7 @@ function matrixOf(transform: string): number[] {
  *
  * @internal
  */
-export function overlapOf(a: LightboxBox, b: LightboxBox): LightboxBox | undefined {
+export function getOverlap(a: LightboxBox, b: LightboxBox): LightboxBox | undefined {
 	const x = Math.max(a.x, b.x)
 
 	const y = Math.max(a.y, b.y)
@@ -355,7 +355,7 @@ export function dismisses(travel: Vector, speed: Vector, height: number): boolea
 }
 
 /** The URL of the image that the thumbnail of a photo shows. @internal */
-export function thumbnailOf(photo: LightboxPhoto): string {
+export function getThumbnail(photo: LightboxPhoto): string {
 	return photo.thumbnail ?? photo.src
 }
 
@@ -366,7 +366,7 @@ export function thumbnailOf(photo: LightboxPhoto): string {
  * @param load - How the thumbnail loaded, or `undefined` while it loads.
  * @internal
  */
-export function sizeOf(
+export function getSize(
 	photo: LightboxPhoto,
 	load: LightboxLoad | undefined,
 ): { width: number; height: number } | undefined {
@@ -385,14 +385,14 @@ export function sizeOf(
  */
 export function viewablePhotos(
 	photos: readonly LightboxPhoto[],
-	loadOf: (source: string) => LightboxLoad | undefined,
+	getLoad: (source: string) => LightboxLoad | undefined,
 ): LightboxViewPhoto[] {
 	return photos.flatMap((photo, index) => {
-		const load = loadOf(thumbnailOf(photo))
+		const load = getLoad(getThumbnail(photo))
 
 		if (load === 'failed') return []
 
-		const size = sizeOf(photo, load)
+		const size = getSize(photo, load)
 
 		return size ? [{ ...photo, ...size, index }] : []
 	})

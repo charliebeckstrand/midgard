@@ -15,11 +15,7 @@ import { InputFrame } from '../input/input-frame'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
 import { fileUploadMessages } from './file-upload-messages'
-import {
-	type FileUploadInputProps,
-	splitFileUploadProps,
-	useFileUploadState,
-} from './file-upload-state'
+import { type FileUploadInputProps, splitProps, useFileUploadState } from './file-upload-state'
 import { formatFileNames, selectionSummary } from './file-upload-utilities'
 
 /**
@@ -47,7 +43,7 @@ import { formatFileNames, selectionSummary } from './file-upload-utilities'
  * @see {@link FileUploadDrop} · {@link FileUploadButton}
  */
 export function FileUploadInput(allProps: FileUploadInputProps) {
-	const { shared, rest } = splitFileUploadProps(allProps)
+	const { shared, rest } = splitProps(allProps)
 
 	const intl = useIntl()
 

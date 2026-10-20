@@ -5,7 +5,7 @@ import { useVirtualWindow } from '../../hooks'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import { GridInfiniteScrollTrailer } from './grid-infinite-scroll-trailer'
-import { type GridRowsProps, renderGridRow } from './grid-row'
+import { type GridRowsProps, renderRow } from './grid-row'
 import { GridWindowBody } from './grid-window-body'
 import { useGridFitRenderedRows } from './use-grid-fit-rendered-rows'
 import { useGridInfiniteScroll } from './use-grid-infinite-scroll'
@@ -131,7 +131,7 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 			{/* Global row indices for the windowed rows; see `ariaRowIndex` for the
 			    offset math (a paginated, virtualized window starts past prior pages). */}
 			{virtualItems.map((virtualItem) =>
-				renderGridRow(
+				renderRow(
 					props,
 					rows[virtualItem.index] as T,
 					virtualItem.index,

@@ -29,7 +29,7 @@ export type GridGroup<T> = {
 	/**
 	 * The text of the value, which groups the rows: `null` and `'null'` share a
 	 * group, and `null` and `undefined` do not. It keys the overlay of the row
-	 * manager (see `groupKeyOf`), because the value of a nullish group reads
+	 * manager (see `getGroupKey`), because the value of a nullish group reads
 	 * as `undefined`.
 	 */
 	key: string
@@ -83,7 +83,7 @@ export const ALL_GROUPS_CLOSED: GroupExpansion = { open: false, toggled: new Set
  *
  * @internal
  */
-function isGroupExpanded(expansion: GroupExpansion, id: string): boolean {
+function isExpanded(expansion: GroupExpansion, id: string): boolean {
 	return expansion.open !== expansion.toggled.has(id)
 }
 
@@ -106,7 +106,7 @@ function openGroup<T>(group: GridGroup<T>): GridGroup<T> {
  * @internal
  */
 export function expandGroups<T>(groups: GridGroup<T>[], expansion: GroupExpansion): GridGroup<T>[] {
-	return groups.map((group) => (isGroupExpanded(expansion, group.id) ? openGroup(group) : group))
+	return groups.map((group) => (isExpanded(expansion, group.id) ? openGroup(group) : group))
 }
 
 /**

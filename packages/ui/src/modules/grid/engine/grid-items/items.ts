@@ -68,7 +68,7 @@ export type GridGroupedWindowItem<T> = ItemBase &
 export type GridDetailWindowItem = ItemBase & { kind: 'row' | 'detail'; dataIndex: number }
 
 /** The text key of a group (see {@link GridGroup.key}), which keys its color and its order. @internal */
-export function groupKeyOf<T>(group: GridGroup<T>): string | number {
+export function getGroupKey<T>(group: GridGroup<T>): string | number {
 	return group.key
 }
 

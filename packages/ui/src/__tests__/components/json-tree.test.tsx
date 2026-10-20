@@ -1071,35 +1071,37 @@ describe('flatTreeMoveTarget', () => {
 		searchIndex: new WeakMap(),
 	})
 
-	const indexOf = (type: string, path: string) =>
+	const findNodeIndex = (type: string, path: string) =>
 		nodes.findIndex((node) => node.type === type && node.path === path)
 
 	it('reaches the first child of an open branch', () => {
-		expect(flatTreeMoveTarget(nodes, indexOf('branch-open', '$.a'), 'child')).toBe(
-			indexOf('leaf', '$.a.b'),
+		expect(flatTreeMoveTarget(nodes, findNodeIndex('branch-open', '$.a'), 'child')).toBe(
+			findNodeIndex('leaf', '$.a.b'),
 		)
 	})
 
 	it('reaches the parent of a leaf and of a closed branch', () => {
-		expect(flatTreeMoveTarget(nodes, indexOf('leaf', '$.a.b'), 'parent')).toBe(
-			indexOf('branch-open', '$.a'),
+		expect(flatTreeMoveTarget(nodes, findNodeIndex('leaf', '$.a.b'), 'parent')).toBe(
+			findNodeIndex('branch-open', '$.a'),
 		)
 
-		expect(flatTreeMoveTarget(nodes, indexOf('branch-open', '$.d'), 'parent')).toBe(
-			indexOf('branch-open', '$'),
+		expect(flatTreeMoveTarget(nodes, findNodeIndex('branch-open', '$.d'), 'parent')).toBe(
+			findNodeIndex('branch-open', '$'),
 		)
 	})
 
 	it('has no target past the root or into an empty branch', () => {
-		expect(flatTreeMoveTarget(nodes, indexOf('branch-open', '$'), 'parent')).toBeNull()
+		expect(flatTreeMoveTarget(nodes, findNodeIndex('branch-open', '$'), 'parent')).toBeNull()
 
-		expect(flatTreeMoveTarget(nodes, indexOf('branch-open', '$.c'), 'child')).toBeNull()
+		expect(flatTreeMoveTarget(nodes, findNodeIndex('branch-open', '$.c'), 'child')).toBeNull()
 	})
 
 	it('finds every row it names', () => {
-		expect(['$', '$.a', '$.c', '$.d'].map((path) => indexOf('branch-open', path))).not.toContain(-1)
+		expect(
+			['$', '$.a', '$.c', '$.d'].map((path) => findNodeIndex('branch-open', path)),
+		).not.toContain(-1)
 
-		expect(indexOf('leaf', '$.a.b')).not.toBe(-1)
+		expect(findNodeIndex('leaf', '$.a.b')).not.toBe(-1)
 	})
 })
 

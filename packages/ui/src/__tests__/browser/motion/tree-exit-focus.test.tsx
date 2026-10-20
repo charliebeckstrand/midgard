@@ -32,7 +32,7 @@ function renderTree(reduced = false) {
 
 	const branch = screen.getByRole('treeitem', { name: 'src' })
 
-	const group = groupOf(branch)
+	const group = getGroup(branch)
 
 	return {
 		branch,
@@ -43,7 +43,7 @@ function renderTree(reduced = false) {
 }
 
 /** The group that a branch row owns. */
-function groupOf(branch: HTMLElement) {
+function getGroup(branch: HTMLElement) {
 	return present(document.getElementById(branch.getAttribute('aria-owns') ?? ''), 'group')
 }
 
@@ -92,7 +92,7 @@ describe('Tree exiting group (real Motion)', () => {
 		press('ArrowRight')
 
 		// The open keeps the same node, so the mark must go.
-		expect(groupOf(branch)).toBe(group)
+		expect(getGroup(branch)).toBe(group)
 
 		expect(group).not.toHaveAttribute('inert')
 

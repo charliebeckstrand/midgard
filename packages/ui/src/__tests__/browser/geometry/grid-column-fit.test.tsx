@@ -509,19 +509,19 @@ describe('grid column auto-sizing with async rows (real browser)', () => {
 		)
 	}
 
-	const leafOf = (container: HTMLElement) =>
+	const getLeaf = (container: HTMLElement) =>
 		container.querySelector<HTMLElement>('td[data-grid-col="loadId"] [data-grid-content]')
 
 	for (const stable of [false, true]) {
 		it(`fits a locked column to the rows that arrive after mount (stableColumnWidths: ${stable})`, async () => {
 			const { container } = renderUI(<AsyncGrid stable={stable} />)
 
-			await waitFor(() => expect(leafOf(container)).not.toBeNull())
+			await waitFor(() => expect(getLeaf(container)).not.toBeNull())
 
 			// The load numbers show whole: the fit that saw the rendered rows superseded
 			// the floor-only one, and `stableColumnWidths` — which freezes the widths
 			// against later batches — never armed on a fit that had measured nothing.
-			const leaf = leafOf(container) as HTMLElement
+			const leaf = getLeaf(container) as HTMLElement
 
 			expect(leaf.scrollWidth).toBeLessThanOrEqual(leaf.clientWidth + 1)
 		})
@@ -539,14 +539,14 @@ describe('grid column auto-sizing with async rows (real browser)', () => {
 		const widths = new Set<number>()
 
 		const sample = () => {
-			if (leafOf(container)) widths.add(Math.round(header().getBoundingClientRect().width))
+			if (getLeaf(container)) widths.add(Math.round(header().getBoundingClientRect().width))
 		}
 
 		await sampleUntil(
 			() => {
 				sample()
 
-				return leafOf(container)
+				return getLeaf(container)
 			},
 			(leaf) => leaf !== null,
 		)
@@ -557,7 +557,7 @@ describe('grid column auto-sizing with async rows (real browser)', () => {
 			sample()
 		}
 
-		expect(leafOf(container)).not.toBeNull()
+		expect(getLeaf(container)).not.toBeNull()
 
 		// One width across every frame that showed data: the fit runs in the body's
 		// layout effect, so the widths are already final in the rows' first painted
@@ -638,7 +638,7 @@ describe('grid column fit when rows land in the frame of a resize tick (real bro
 		return errors
 	}
 
-	const rowsOf = (container: HTMLElement) => container.querySelectorAll('td[data-grid-col="name"]')
+	const getRows = (container: HTMLElement) => container.querySelectorAll('td[data-grid-col="name"]')
 
 	it('fits on the first tick of a new grid with no ResizeObserver loop error', async () => {
 		const errors = loopErrors()
@@ -657,7 +657,7 @@ describe('grid column fit when rows land in the frame of a resize tick (real bro
 
 		await frames()
 
-		expect(rowsOf(present(container, 'container')).length).toBeGreaterThan(0)
+		expect(getRows(present(container, 'container')).length).toBeGreaterThan(0)
 
 		expect(errors).toEqual([])
 	})
@@ -685,7 +685,7 @@ describe('grid column fit when rows land in the frame of a resize tick (real bro
 
 		await frames()
 
-		expect(rowsOf(container).length).toBeGreaterThan(0)
+		expect(getRows(container).length).toBeGreaterThan(0)
 
 		// The fit of the tick moved the columns to the narrower frame.
 		expect(table.getBoundingClientRect().width).toBeNear(scroll.clientWidth, PIXEL)

@@ -112,7 +112,7 @@ export function referenceOpenedWithin(container: Element, portal: Element): bool
  * surface that owns it. That takes the menu with it, before the click that
  * opened it can land.
  *
- * `pressLandsInNestedSurface` asks the same question for a floating panel, and
+ * `isPressInNested` asks the same question for a floating panel, and
  * adds a fallback for a portal that published nothing. This one has no such
  * fallback, because an `Overlay` has no reference to compare against.
  *

@@ -24,7 +24,7 @@ const ICON_PX = { compact: 18, snug: 20, loose: 22 } as const
 
 const levels = densityLevels.map(({ value }) => value)
 
-const paddingOf = (node: Element) => Number.parseFloat(getComputedStyle(node).paddingTop)
+const readPadding = (node: Element) => Number.parseFloat(getComputedStyle(node).paddingTop)
 
 describe('item rows at a desktop width (real browser)', () => {
 	it.each(levels)('pads an option row at the step of a %s provider', (density) => {
@@ -36,7 +36,7 @@ describe('item rows at a desktop width (real browser)', () => {
 			</DensityProvider>,
 		)
 
-		expect(paddingOf(screen.getByRole('option'))).toBe(ROW_PADDING_PX[density])
+		expect(readPadding(screen.getByRole('option'))).toBe(ROW_PADDING_PX[density])
 	})
 
 	it.each(levels)('pads a menu row at the step of a %s provider', async (density) => {
@@ -52,7 +52,7 @@ describe('item rows at a desktop width (real browser)', () => {
 
 		const row = await screen.findByRole('menuitem', { name: 'Copy' })
 
-		expect(paddingOf(row)).toBe(ROW_PADDING_PX[density])
+		expect(readPadding(row)).toBe(ROW_PADDING_PX[density])
 	})
 
 	it.each(levels)('sizes a menu row icon at the step of a %s provider', async (density) => {

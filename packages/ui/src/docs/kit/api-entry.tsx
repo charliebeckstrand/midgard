@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { MARKDOWN_CACHE_SIZE } from '../../components/markdown/markdown.tsx'
 import { k } from '../../recipes/kata/json-tree.ts'
 import type { BarrelApi, ComponentApi, PropApi } from '../plugin/api.ts'
-import { apiIdOf } from './anchors.ts'
+import { toApiId } from './anchors.ts'
 import { runInSlices } from './idle.ts'
 import { scrollToPending, usePendingAnchor } from './pending-anchor.ts'
 
@@ -152,11 +152,11 @@ function PropFacts({ prop }: { prop: PropApi }) {
 /**
  * One prop, as the React docs write one: the name, "required" when the prop
  * is required, what it takes, and the description. The name is a link to the
- * row, whose id is {@link apiIdOf} the component and the prop. The row scrolls
+ * row, whose id is {@link toApiId} the component and the prop. The row scrolls
  * into view when it mounts as the pending anchor ({@link usePendingAnchor}).
  */
 function PropRow({ component, prop }: { component: string; prop: PropApi }) {
-	const id = apiIdOf(component, prop.name)
+	const id = toApiId(component, prop.name)
 
 	const pending = usePendingAnchor()
 

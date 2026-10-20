@@ -22,7 +22,7 @@ import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { useLightboxContext } from './context'
-import { PAN_KEY_STEP, thumbnailOf, ZOOM_KEY_STEP } from './lightbox-utilities'
+import { getThumbnail, PAN_KEY_STEP, ZOOM_KEY_STEP } from './lightbox-utilities'
 import type { LightboxViewPhoto } from './types'
 import { useLightboxFlight } from './use-lightbox-flight'
 
@@ -486,7 +486,7 @@ export function LightboxStage({
 											onClick={() => track.go(place)}
 										>
 											<img
-												src={thumbnailOf(photo)}
+												src={getThumbnail(photo)}
 												alt={photo.alt}
 												draggable={false}
 												decoding="async"

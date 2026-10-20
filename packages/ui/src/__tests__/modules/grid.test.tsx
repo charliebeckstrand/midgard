@@ -1,7 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid } from '../../modules/grid'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, densityStepOf, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
+import {
+	bySlot,
+	fireEvent,
+	getSlot,
+	readDensityStep,
+	renderUI,
+	screen,
+	setupUser,
+} from '../helpers'
 
 describe('Grid', () => {
 	type Row = { name: string; age: number }
@@ -1366,7 +1374,7 @@ describe('Grid', () => {
 
 			expect(table).not.toHaveAttribute('data-density')
 
-			expect(densityStepOf(table)).toBe('md')
+			expect(readDensityStep(table)).toBe('md')
 		})
 
 		it('follows an enclosing DensityProvider when no density prop is given', () => {
@@ -1380,7 +1388,7 @@ describe('Grid', () => {
 
 			expect(table).not.toHaveAttribute('data-density')
 
-			expect(densityStepOf(table)).toBe('sm')
+			expect(readDensityStep(table)).toBe('sm')
 		})
 
 		it('an explicit density prop overrides the ambient DensityProvider', () => {

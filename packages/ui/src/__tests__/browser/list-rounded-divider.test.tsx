@@ -22,7 +22,7 @@ describe('List rounded dividers (real browser)', () => {
 	const TINT = 0.05
 
 	/** Alpha of a painted color, or 0 for a transparent one. */
-	function alphaOf(painted: string): number {
+	function parseAlpha(painted: string): number {
 		if (painted === 'transparent' || painted === 'rgba(0, 0, 0, 0)') return 0
 
 		const alpha = painted.match(/\/\s*([\d.]+)\s*\)$/)
@@ -33,7 +33,7 @@ describe('List rounded dividers (real browser)', () => {
 	}
 
 	/** The four corner radii of an element or one of its pseudo-elements. */
-	function radiiOf(element: Element, pseudo?: '::before'): string[] {
+	function readRadii(element: Element, pseudo?: '::before'): string[] {
 		const style = getComputedStyle(element, pseudo)
 
 		return [
@@ -71,9 +71,9 @@ describe('List rounded dividers (real browser)', () => {
 			expect(getComputedStyle(row).borderBottomWidth).toBe('1px')
 
 			// A square row draws its bottom border as a straight line, end to end.
-			expect(radiiOf(row)).toEqual(['0px', '0px', '0px', '0px'])
+			expect(readRadii(row)).toEqual(['0px', '0px', '0px', '0px'])
 
-			expect(radiiOf(row, '::before')).toEqual(['8px', '8px', '8px', '8px'])
+			expect(readRadii(row, '::before')).toEqual(['8px', '8px', '8px', '8px'])
 		},
 	)
 
@@ -82,13 +82,13 @@ describe('List rounded dividers (real browser)', () => {
 		async (variant) => {
 			const row = dividedRow(variant)
 
-			expect(alphaOf(getComputedStyle(row, '::before').backgroundColor)).toBe(0)
+			expect(parseAlpha(getComputedStyle(row, '::before').backgroundColor)).toBe(0)
 
 			await userEvent.hover(row)
 
-			expect(alphaOf(getComputedStyle(row, '::before').backgroundColor)).toBeCloseTo(TINT, 3)
+			expect(parseAlpha(getComputedStyle(row, '::before').backgroundColor)).toBeCloseTo(TINT, 3)
 
-			expect(alphaOf(getComputedStyle(row).backgroundColor)).toBe(0)
+			expect(parseAlpha(getComputedStyle(row).backgroundColor)).toBe(0)
 		},
 	)
 
@@ -112,8 +112,8 @@ describe('List rounded dividers (real browser)', () => {
 
 		expect(document.activeElement).toBe(row)
 
-		expect(alphaOf(getComputedStyle(row, '::before').backgroundColor)).toBeCloseTo(TINT, 3)
+		expect(parseAlpha(getComputedStyle(row, '::before').backgroundColor)).toBeCloseTo(TINT, 3)
 
-		expect(radiiOf(row)).toEqual(['0px', '0px', '0px', '0px'])
+		expect(readRadii(row)).toEqual(['0px', '0px', '0px', '0px'])
 	})
 })

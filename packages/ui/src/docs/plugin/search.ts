@@ -1,9 +1,9 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
-import { apiIdOf } from '../kit/anchors.ts'
+import { toApiId } from '../kit/anchors.ts'
 import { humanize } from '../kit/humanize.ts'
 import type { BarrelApi } from './api.ts'
-import { exampleFiles, examplesIn, headingIdOf, type Parse } from './examples.ts'
+import { exampleFiles, examplesIn, type Parse, toHeadingId } from './examples.ts'
 import { findPages } from './pages.ts'
 
 /** What an entry of the search is. */
@@ -24,7 +24,7 @@ export type SearchEntry = {
 const API_IMPORT = /['"]virtual:docs\/api\/([\w/-]+)['"]/g
 
 /** The barrels whose API data the page or the tab in `folder` shows. */
-async function barrelsOf(folder: string): Promise<string[]> {
+async function readBarrels(folder: string): Promise<string[]> {
 	const code = await readFile(path.join(folder, 'index.tsx'), 'utf8')
 
 	return [...code.matchAll(API_IMPORT)].flatMap(([, barrel]) => (barrel ? [barrel] : []))
@@ -34,12 +34,12 @@ async function barrelsOf(folder: string): Promise<string[]> {
  * The entries of the search of the docs at `docs`: each page, each tab, each
  * example, and each component and prop of the API reference of a page or a
  * tab. An entry links to the route that shows it, with the id of its anchor
- * (`kit/anchors.ts`). `apiOf` gives the API data of a barrel.
+ * (`kit/anchors.ts`). `readApi` gives the API data of a barrel.
  */
 export async function searchEntries(
 	docs: string,
 	parse: Parse,
-	apiOf: (barrel: string) => Promise<BarrelApi>,
+	readApi: (barrel: string) => Promise<BarrelApi>,
 ): Promise<SearchEntry[]> {
 	const pages = path.join(docs, 'pages')
 
@@ -60,14 +60,14 @@ export async function searchEntries(
 
 					const [examples, barrels] = await Promise.all([
 						exampleFiles(absolute).then((files) => examplesIn(parse, files)),
-						barrelsOf(absolute),
+						readBarrels(absolute),
 					])
 
-					const apis = await Promise.all(barrels.map(apiOf))
+					const apis = await Promise.all(barrels.map(readApi))
 
 					return [
 						// The playgrounds of a page share one heading, so one entry.
-						...[...new Set(examples.map(headingIdOf))].map(
+						...[...new Set(examples.map(toHeadingId))].map(
 							(id): SearchEntry => ({
 								kind: 'example',
 								label: humanize(id),
@@ -80,14 +80,14 @@ export async function searchEntries(
 								{
 									kind: 'component',
 									label: `<${component.name} />`,
-									href: `${href}#${apiIdOf(component.name)}`,
+									href: `${href}#${toApiId(component.name)}`,
 									context,
 								},
 								...component.props.map(
 									(prop): SearchEntry => ({
 										kind: 'prop',
 										label: prop.name,
-										href: `${href}#${apiIdOf(component.name, prop.name)}`,
+										href: `${href}#${toApiId(component.name, prop.name)}`,
 										context: `<${component.name} />`,
 									}),
 								),
@@ -95,7 +95,7 @@ export async function searchEntries(
 									(event): SearchEntry => ({
 										kind: 'event',
 										label: event.name,
-										href: `${href}#${apiIdOf(component.name, event.name)}`,
+										href: `${href}#${toApiId(component.name, event.name)}`,
 										context: `<${component.name} />`,
 									}),
 								),

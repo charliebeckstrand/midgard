@@ -143,7 +143,7 @@ function travelTo(track: HTMLElement, offset: number): number {
  * is no photo to swipe to, so a press in any direction is `'dismiss'`. A press
  * that catches the track between two photos is a `'swipe'`.
  */
-function intentOf(
+function resolveIntent(
 	press: Press,
 	event: PointerEvent,
 	count: number,
@@ -503,7 +503,7 @@ export function useLightboxTrack(
 	// A press that travels past the slop starts a swipe along the line or up and
 	// down. It reads the layout once, here, and never during the moves.
 	const begin = (current: Press, track: HTMLElement, event: PointerEvent<HTMLElement>) => {
-		current.mode = intentOf(current, event, count, zoom.zoomed())
+		current.mode = resolveIntent(current, event, count, zoom.zoomed())
 
 		if (current.mode === 'wait') return false
 

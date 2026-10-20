@@ -81,7 +81,7 @@ describe('grid editor width (real browser)', () => {
 		return node
 	}
 
-	const cellOf = (container: HTMLElement, column: string) =>
+	const getCell = (container: HTMLElement, column: string) =>
 		present<HTMLElement>(
 			container.querySelector(`td[data-grid-col="${column}"]`),
 			`td[data-grid-col="${column}"]`,
@@ -98,7 +98,7 @@ describe('grid editor width (real browser)', () => {
 		)
 
 		for (const column of ['name', 'role', 'due', 'budget']) {
-			const slot = await waitFor(() => getSlot(cellOf(container, column), 'grid-edit-slot'))
+			const slot = await waitFor(() => getSlot(getCell(container, column), 'grid-edit-slot'))
 
 			const host = present<HTMLElement>(slot.parentElement, 'the editor host')
 
@@ -124,9 +124,9 @@ describe('grid editor width (real browser)', () => {
 			/>,
 		)
 
-		await userEvent.dblClick(cellOf(container, 'name'))
+		await userEvent.dblClick(getCell(container, 'name'))
 
-		const slot = await waitFor(() => getSlot(cellOf(container, 'name'), 'grid-edit-slot'))
+		const slot = await waitFor(() => getSlot(getCell(container, 'name'), 'grid-edit-slot'))
 
 		const host = present<HTMLElement>(slot.parentElement, 'the editor host')
 

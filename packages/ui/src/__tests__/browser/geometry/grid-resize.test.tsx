@@ -1,7 +1,7 @@
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, present, renderUI, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 import { afterBox } from '../helpers/after-box'
 import { settledRect } from '../helpers/sample'
@@ -123,7 +123,7 @@ describe('grid column resizing (real browser)', () => {
 
 		const startWidth = nameHeader(container).getBoundingClientRect().width
 
-		const { x: startX, y } = centerOf(separator)
+		const { x: startX, y } = getCenter(separator)
 
 		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
 
@@ -219,7 +219,7 @@ describe('grid column resizing (real browser)', () => {
 
 		const ageGrip = getComputedStyle(ageHandle, '::after')
 
-		const { x: startX, y } = centerOf(separator)
+		const { x: startX, y } = getCenter(separator)
 
 		// Hold the drag open — mousedown plus a move, but no mouseup yet.
 		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
@@ -290,7 +290,7 @@ describe('grid resize handle with reorder active (real browser)', () => {
 	it('keeps the resize handle topmost on the header trailing edge', async () => {
 		const { separator } = setup()
 
-		const { x, y } = centerOf(separator)
+		const { x, y } = getCenter(separator)
 
 		// The handle (or its grip child) is the element under the pointer at the
 		// header's trailing edge, so a drag-resize begins on it even though the reorder
@@ -303,7 +303,7 @@ describe('grid resize handle with reorder active (real browser)', () => {
 
 		const startWidth = nameHeader(container).getBoundingClientRect().width
 
-		const { x: startX, y } = centerOf(separator)
+		const { x: startX, y } = getCenter(separator)
 
 		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
 
@@ -368,7 +368,7 @@ describe('grid column resize holds the other columns (real browser)', () => {
 
 		const startC = header(container, 'c').getBoundingClientRect().width
 
-		const { x: startX, y } = centerOf(handle)
+		const { x: startX, y } = getCenter(handle)
 
 		fireEvent.mouseDown(handle, { clientX: startX, clientY: y })
 

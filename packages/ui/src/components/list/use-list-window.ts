@@ -38,7 +38,7 @@ const UNMEASURED_ROWS = 12
 type ListFrame = { scrollMargin: number; gap: number } | null
 
 /** The scroll region a windowed list scrolls in: the nearest panel body or other marked scroller. @internal */
-function scrollRegionOf(list: HTMLElement | null): HTMLElement | null {
+function findRegion(list: HTMLElement | null): HTMLElement | null {
 	return list?.closest<HTMLElement>('[data-scroll-region]') ?? null
 }
 
@@ -100,7 +100,7 @@ export function useListWindow({
 	useLayoutEffect(() => {
 		const list = listRef.current
 
-		const scroller = scrollRegionOf(list)
+		const scroller = findRegion(list)
 
 		if (!enabled || !list) return
 
@@ -159,7 +159,7 @@ export function useListWindow({
 	const windowed = enabled && frame !== null
 
 	const getScrollElement = useCallback(
-		() => (windowed ? scrollRegionOf(listRef.current) : null),
+		() => (windowed ? findRegion(listRef.current) : null),
 		[windowed, listRef],
 	)
 

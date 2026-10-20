@@ -84,7 +84,7 @@ function targetName(target: EventTarget): GlobalListener['target'] | null {
 	return null
 }
 
-function captureOf(options?: boolean | EventListenerOptions): boolean {
+function getCapture(options?: boolean | EventListenerOptions): boolean {
 	return typeof options === 'boolean' ? options : Boolean(options?.capture)
 }
 
@@ -139,11 +139,11 @@ type ListenerMethods = Pick<EventTarget, 'addEventListener' | 'removeEventListen
  * Wraps the listener methods of one host so the registry records each call.
  *
  * @param host - The object that owns the two methods.
- * @param nameOf - The global target a call reaches, from the call's `this`.
+ * @param getName - The global target a call reaches, from the call's `this`.
  */
 function wrap(
 	host: ListenerMethods,
-	nameOf: (self: EventTarget) => GlobalListener['target'] | null,
+	getName: (self: EventTarget) => GlobalListener['target'] | null,
 ): void {
 	if (host[PATCHED]) return
 
@@ -156,7 +156,7 @@ function wrap(
 	host.addEventListener = function addEventListener(this: EventTarget, type, listener, options) {
 		add.call(this, type, listener, options)
 
-		const target = listener ? nameOf(this) : null
+		const target = listener ? getName(this) : null
 
 		if (!target) return
 
@@ -164,7 +164,7 @@ function wrap(
 
 		if (settings?.signal?.aborted) return
 
-		const capture = captureOf(options)
+		const capture = getCapture(options)
 
 		const key = `${target}|${type}|${capture}`
 
@@ -210,9 +210,9 @@ function wrap(
 	) {
 		remove.call(this, type, listener, options)
 
-		const target = listener ? nameOf(this) : null
+		const target = listener ? getName(this) : null
 
-		if (target) forget(listener, `${target}|${type}|${captureOf(options)}`)
+		if (target) forget(listener, `${target}|${type}|${getCapture(options)}`)
 	}
 }
 

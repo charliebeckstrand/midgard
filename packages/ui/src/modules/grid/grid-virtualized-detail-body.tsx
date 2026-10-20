@@ -5,7 +5,7 @@ import { detailOpen, detailWindowItems, type GridDetailWindowItem } from './engi
 import { itemAriaRowIndex } from './engine/grid-row/shell'
 import { detailCursorRows, useGridCursorOrder } from './grid-cursor-order'
 import { GridDetailRow } from './grid-detail-row'
-import { type GridRowsProps, renderGridRow } from './grid-row'
+import { type GridRowsProps, renderRow } from './grid-row'
 import { GridWindowBody } from './grid-window-body'
 import {
 	type GridItemWindowOptions,
@@ -182,7 +182,7 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 				if (item.kind === 'row') {
 					return (
 						<Fragment key={item.reactKey}>
-							{renderGridRow(rowsProps, row, item.dataIndex, aria(item), {
+							{renderRow(rowsProps, row, item.dataIndex, aria(item), {
 								ref: measureRef,
 								'data-index': virtualItem.index,
 							})}

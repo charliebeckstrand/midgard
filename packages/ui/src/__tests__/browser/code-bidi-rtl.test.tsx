@@ -9,7 +9,7 @@ import { present, renderUI } from '../helpers'
  */
 describe('Code in a right-to-left paragraph (real browser)', () => {
 	/** The left edge of the character at `offset` in the text node of `node`. */
-	function leftOf(node: HTMLElement, offset: number): number {
+	function measureLeft(node: HTMLElement, offset: number): number {
 		const text = node.firstChild
 
 		if (!text) throw new Error('expected a text node')
@@ -32,6 +32,6 @@ describe('Code in a right-to-left paragraph (real browser)', () => {
 
 		const code = present(container.querySelector<HTMLElement>('[data-slot="code"]'), 'code')
 
-		expect(leftOf(code, 0)).toBeLessThan(leftOf(code, 3))
+		expect(measureLeft(code, 0)).toBeLessThan(measureLeft(code, 3))
 	})
 })

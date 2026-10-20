@@ -20,7 +20,7 @@ type AddControl = (typeof addControls)[number]['value']
 
 // The Add control of each choice: the button of the grid, a button of the
 // example, or none.
-function addControlOf(choice: AddControl): GridEditableConfig['newRowAdd'] {
+function toAddConfig(choice: AddControl): GridEditableConfig['newRowAdd'] {
 	if (choice === 'none') return false
 
 	if (choice === 'button') return undefined
@@ -127,7 +127,7 @@ export default function NewRow() {
 					session: 'managed',
 					scope: 'cell',
 					newRow: position,
-					newRowAdd: addControlOf(addControl),
+					newRowAdd: toAddConfig(addControl),
 					onRowAdd,
 					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}

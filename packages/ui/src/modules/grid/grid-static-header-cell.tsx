@@ -25,7 +25,7 @@ type GridStaticHeaderPlace<T> = {
  * the class of the cell with the sticky and pinned classes, the pinned inset,
  * and the pin side. @internal
  */
-function pinnedHeaderCellProps<T>(place: GridStaticHeaderPlace<T>, className: string) {
+function getPinnedProps<T>(place: GridStaticHeaderPlace<T>, className: string) {
 	const pinned = pinnedHeaderProps(place.pinning, place.column, place.column.width || undefined)
 
 	return {
@@ -55,7 +55,7 @@ function GridSelectHeaderCell<T>({
 	const { allSelected, someSelected, toggleAll } = useGrid()
 
 	return (
-		<TableHeader {...pinnedHeaderCellProps(place, k.cell.select)}>
+		<TableHeader {...getPinnedProps(place, k.cell.select)}>
 			{showCheckbox && (
 				<Checkbox
 					checked={allSelected}
@@ -90,10 +90,7 @@ function GridDragHandleHeaderCell<T>({
 
 	return (
 		<TableHeader
-			{...pinnedHeaderCellProps(
-				{ column, ariaColIndex, stickyHeader, pinning },
-				k.row.reorder.cell,
-			)}
+			{...getPinnedProps({ column, ariaColIndex, stickyHeader, pinning }, k.row.reorder.cell)}
 		>
 			<span className="sr-only">{intl.formatMessage(gridMessages.reorderRows)}</span>
 		</TableHeader>

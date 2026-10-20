@@ -80,7 +80,7 @@ function hydrate(container: HTMLElement, element: ReactElement) {
 }
 
 /** The nearest ancestor that scrolls on `axis` and overflows. */
-function scrollerOf(node: Element, axis: 'x' | 'y') {
+function findScroller(node: Element, axis: 'x' | 'y') {
 	for (let element = node.parentElement; element; element = element.parentElement) {
 		const style = getComputedStyle(element)
 
@@ -120,7 +120,7 @@ describe('CurrentScrollScript (real browser)', () => {
 			'current item',
 		)
 
-		const scroller = scrollerOf(item, 'y')
+		const scroller = findScroller(item, 'y')
 
 		expect(scroller.scrollTop).toBeGreaterThan(0)
 
@@ -135,7 +135,7 @@ describe('CurrentScrollScript (real browser)', () => {
 			'current item',
 		)
 
-		const scroller = scrollerOf(item, 'y')
+		const scroller = findScroller(item, 'y')
 
 		const before = scroller.scrollTop
 

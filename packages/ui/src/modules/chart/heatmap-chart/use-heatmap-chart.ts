@@ -34,7 +34,7 @@ import {
 	chartFrameSizing,
 } from '../engine/chart-frame/sizing'
 import { cellAt, type HeatmapCell, heatmapCells } from '../engine/chart-geometry/heatmap'
-import { bandTicksOf, plotRect, thinned } from '../engine/chart-layout'
+import { buildBandTicks, plotRect, thinned } from '../engine/chart-layout'
 import type { PlotRect } from '../engine/chart-orientation'
 import { type BandScale, bandScale } from '../engine/chart-scale'
 import { readoutCell } from '../engine/chart-series'
@@ -46,7 +46,7 @@ import { useChartTextWidth } from '../engine/use-chart-text-width'
 import {
 	type HeatmapChartProps,
 	type HeatmapMatrix,
-	resolveHeatmapMatrix,
+	resolveMatrix,
 	sameHeatmapSeries,
 } from './heatmap-chart-schema'
 
@@ -92,7 +92,7 @@ function heatmapTicks(
 
 	// The columns thin as a cartesian band axis does, each slot as wide as the
 	// widest column label.
-	const x = bandTicksOf(
+	const x = buildBandTicks(
 		matrix.columns,
 		xBand,
 		plot.width,
@@ -155,7 +155,7 @@ function heatmapFocus(
  *
  * @internal
  */
-function boxHeightOf(
+function resolveBoxHeight(
 	sizing: FrameSizing,
 	boxWidth: number,
 	containerHeight: number,
@@ -240,7 +240,7 @@ export function useHeatmapChart<T>(
 	const matrix = useMemo(
 		() =>
 			primary
-				? resolveHeatmapMatrix(data, primary)
+				? resolveMatrix(data, primary)
 				: { columns: [], rows: [], values: [] as (number | null)[][] },
 		[data, primary],
 	)
@@ -272,7 +272,7 @@ export function useHeatmapChart<T>(
 	// again, with no end. The tier and the rail therefore read the box that the
 	// chart owns before the rail takes its share: the whole width, and the height
 	// that the ratio or the free-form box gives it.
-	const boxHeight = boxHeightOf(sizing, containerWidth, containerHeight, frameHeight)
+	const boxHeight = resolveBoxHeight(sizing, containerWidth, containerHeight, frameHeight)
 
 	// Spark strips the heatmap to its bare cells: the frame drops the labels, the
 	// rail, the readout, and the pointer. The cells, the accessible name, and the

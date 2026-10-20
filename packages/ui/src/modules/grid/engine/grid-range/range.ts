@@ -56,21 +56,21 @@ export type GridRangeCells = {
 }
 
 /**
- * The cells of the range from `anchor` to `focus`. `dataRowOf` gives the data
+ * The cells of the range from `anchor` to `focus`. `toDataRow` gives the data
  * row index of a place, or -1 for a one-stop row, which the range steps over.
  * @internal
  */
 export function rangeCells(
 	anchor: GridRangeCorner,
 	focus: GridRangeCorner,
-	dataRowOf: (row: number) => number,
+	toDataRow: (row: number) => number,
 ): GridRangeCells {
 	const rect = rangeRect(anchor, focus)
 
 	const rows: number[] = []
 
 	for (let row = rect.top; row <= rect.bottom; row++) {
-		const data = dataRowOf(row)
+		const data = toDataRow(row)
 
 		if (data !== -1) rows.push(data)
 	}
@@ -79,9 +79,9 @@ export function rangeCells(
 
 	for (let col = rect.left; col <= rect.right; col++) cols.push(col)
 
-	const from = { row: dataRowOf(anchor.row), col: anchor.col }
+	const from = { row: toDataRow(anchor.row), col: anchor.col }
 
-	const to = { row: dataRowOf(focus.row), col: focus.col }
+	const to = { row: toDataRow(focus.row), col: focus.col }
 
 	return { rows, cols, from, to }
 }

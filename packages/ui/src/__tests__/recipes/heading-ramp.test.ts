@@ -18,7 +18,7 @@ const scale = ['2xs', 'xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl'
  * The skeleton height of each rung. The silhouette of a heading is as tall as
  * the rung that the heading takes.
  */
-const heightOf = {
+const heightByLevel = {
 	'2xs': '1',
 	xs: '2',
 	sm: '3',
@@ -38,10 +38,10 @@ type Level = (typeof levels)[number]
 const { weight } = ji
 
 /** The rung of `level` at each step, from its ramp. */
-const rungsOf = (level: Level) => findSteps([k.ramp[level]], 'density-text-')
+const getRungs = (level: Level) => findSteps([k.ramp[level]], 'density-text-')
 
 /** The position of `rung` on the scale, or -1 when it is not on the scale. */
-const indexOf = (rung: string) => scale.indexOf(rung as (typeof scale)[number])
+const getRungIndex = (rung: string) => scale.indexOf(rung as (typeof scale)[number])
 
 describe('heading ramps', () => {
 	it('lists the type scale of `ji.size`', () => {
@@ -49,29 +49,29 @@ describe('heading ramps', () => {
 	})
 
 	it.each(levels)('names a rung of the scale at each step for level %i', (level) => {
-		const rungs = rungsOf(level)
+		const rungs = getRungs(level)
 
-		for (const step of densitySteps) expect(indexOf(rungs[step])).not.toBe(-1)
+		for (const step of densitySteps) expect(getRungIndex(rungs[step])).not.toBe(-1)
 	})
 
 	it.each(levels)('gives level %i a rung of its own at md', (level) => {
 		const others = levels.filter((other) => other !== level)
 
-		expect(others.map((other) => rungsOf(other).md)).not.toContain(rungsOf(level).md)
+		expect(others.map((other) => getRungs(other).md)).not.toContain(getRungs(level).md)
 	})
 
 	it.each(densitySteps)('descends through the levels at the %s step', (step) => {
-		const positions = levels.map((level) => indexOf(rungsOf(level)[step]))
+		const positions = levels.map((level) => getRungIndex(getRungs(level)[step]))
 
 		expect(positions).toStrictEqual([...positions].sort((a, b) => b - a))
 	})
 
 	it.each(levels)('moves level %i one rung for each step away from md', (level) => {
-		const rungs = rungsOf(level)
+		const rungs = getRungs(level)
 
-		const md = indexOf(rungs.md)
+		const md = getRungIndex(rungs.md)
 
-		expect([rungs.xs, rungs.sm, rungs.lg, rungs.xl].map(indexOf)).toStrictEqual([
+		expect([rungs.xs, rungs.sm, rungs.lg, rungs.xl].map(getRungIndex)).toStrictEqual([
 			md - 2,
 			md - 1,
 			md + 1,
@@ -80,12 +80,12 @@ describe('heading ramps', () => {
 	})
 
 	it.each(levels)('keeps the skeleton of level %i as tall as its rung at each step', (level) => {
-		const rungs = rungsOf(level)
+		const rungs = getRungs(level)
 
 		const heights = findSteps([k.skeleton.ramp[level]], 'density-h-')
 
 		for (const step of densitySteps) {
-			expect(heights[step]).toBe(heightOf[rungs[step] as keyof typeof heightOf])
+			expect(heights[step]).toBe(heightByLevel[rungs[step] as keyof typeof heightByLevel])
 		}
 	})
 })

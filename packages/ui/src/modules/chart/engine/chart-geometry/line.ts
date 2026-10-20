@@ -319,7 +319,7 @@ export function lineGeometry(
  *
  * @internal
  */
-export function lineSeriesOf(
+export function buildLineSeries(
 	entries: DrawnSeries[],
 	xs: number[],
 	floor: number,

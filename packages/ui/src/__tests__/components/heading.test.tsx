@@ -24,7 +24,7 @@ const rungs = new Set<string>(Object.values(size))
  * @param el - The rendered heading.
  * @returns Every `ji.size` class on the element, in source order.
  */
-const rungsOf = (el: Element) => el.className.split(' ').filter((name) => rungs.has(name))
+const getRungs = (el: Element) => el.className.split(' ').filter((name) => rungs.has(name))
 
 describe('Heading', () => {
 	it('renders an h1 by default with data-slot="heading"', () => {
@@ -71,7 +71,7 @@ describe('Heading', () => {
 
 			expect(heading.className.split(' ')).toContain(k.ramp[level])
 
-			expect(rungsOf(heading)).toStrictEqual([])
+			expect(getRungs(heading)).toStrictEqual([])
 		})
 
 		it.each(levels)('keeps level %i at its own weight regardless of size', (level) => {

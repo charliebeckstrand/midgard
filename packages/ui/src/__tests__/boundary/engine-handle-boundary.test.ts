@@ -97,7 +97,7 @@ const RECEIVERS: Receiver[] = [
 	},
 	{
 		file: 'modules/grid/engine/grid-table/resize-view.ts',
-		fn: 'withResizeDirection',
+		fn: 'withDirection',
 		binding: 'table',
 		kind: 'eager',
 	},

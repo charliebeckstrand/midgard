@@ -16,7 +16,7 @@ import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
  * Rides the real floating engine because the jsdom and default browser suites render a portal
  * inline, inside the region. There the claim passes with no bridge.
  */
-const directionOf = (node: HTMLElement) => getComputedStyle(node).direction
+const readDirection = (node: HTMLElement) => getComputedStyle(node).direction
 
 describe('direction scopes across portals (real browser)', () => {
 	it.each([
@@ -37,7 +37,7 @@ describe('direction scopes across portals (real browser)', () => {
 
 		expect(title.closest('[data-slot="locale"]')).toBeNull()
 
-		expect(directionOf(title)).toBe(direction)
+		expect(readDirection(title)).toBe(direction)
 	})
 
 	it('lays out a menu row in the direction of an rtl provider', async () => {
@@ -60,7 +60,7 @@ describe('direction scopes across portals (real browser)', () => {
 
 		expect(row.closest('[data-slot="locale"]')).toBeNull()
 
-		expect(directionOf(row)).toBe('rtl')
+		expect(readDirection(row)).toBe('rtl')
 	})
 
 	// The arrow back out of a submenu reads the direction of the panel, which the portal host sets.
@@ -117,7 +117,7 @@ describe('direction scopes across portals (real browser)', () => {
 
 		const option = await screen.findByRole('option', { name: 'Pear' })
 
-		expect(directionOf(option)).toBe('rtl')
+		expect(readDirection(option)).toBe('rtl')
 	})
 
 	it('lays out a combobox option in the direction of an rtl provider', async () => {
@@ -134,7 +134,7 @@ describe('direction scopes across portals (real browser)', () => {
 
 		const option = await screen.findByRole('option', { name: 'Pear' })
 
-		expect(directionOf(option)).toBe('rtl')
+		expect(readDirection(option)).toBe('rtl')
 	})
 })
 

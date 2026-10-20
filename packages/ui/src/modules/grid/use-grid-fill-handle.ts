@@ -37,11 +37,11 @@ export type GridFillHandle = {
  * @internal
  */
 export function useGridFillHandle(press: GridFillHandle['press'] | null): GridFillHandle | null {
-	return useMemo(() => (press ? createGridFillHandle(press) : null), [press])
+	return useMemo(() => (press ? createHandle(press) : null), [press])
 }
 
 /** A fill handle for the press `press`. @internal */
-function createGridFillHandle(press: GridFillHandle['press']): GridFillHandle {
+function createHandle(press: GridFillHandle['press']): GridFillHandle {
 	const { subscribe, emit } = createEmitter()
 
 	let held: HTMLElement | null = null

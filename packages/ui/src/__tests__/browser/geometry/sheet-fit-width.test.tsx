@@ -23,7 +23,7 @@ const ROWS: Row[] = Array.from({ length: 8 }, (_, index) => ({
 }))
 
 /** `count` columns, all reading the same short field, so their width is the headers'. */
-function columnsOf(count: number): GridColumn<Row>[] {
+function makeColumns(count: number): GridColumn<Row>[] {
 	return Array.from({ length: count }, (_, index) => ({
 		id: `c-${index}`,
 		title: `Column ${index}`,
@@ -67,7 +67,7 @@ describe('fit sheet width (real browser)', () => {
 	beforeAll(() => page.viewport(1100, 800))
 
 	it('wraps the grid, and leaves it nothing to scroll sideways', async () => {
-		const { panel, scroll, table } = await openSheet(columnsOf(2), 'Index')
+		const { panel, scroll, table } = await openSheet(makeColumns(2), 'Index')
 
 		// Sized by the table rather than by the screen: the panel clears its content
 		// and stops well short of the room it could have taken.
@@ -82,7 +82,7 @@ describe('fit sheet width (real browser)', () => {
 	it('stops at the screen less its own inset when the columns cannot fit', async () => {
 		// Enough columns that their content cannot fit the screen, so the panel meets
 		// its cap and the grid takes the overflow.
-		const { panel, scroll } = await openSheet(columnsOf(24), 'Wide')
+		const { panel, scroll } = await openSheet(makeColumns(24), 'Wide')
 
 		const box = panel.getBoundingClientRect()
 

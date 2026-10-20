@@ -17,7 +17,8 @@ const statuses = [
 	{ value: 'pending', label: 'Pending' },
 ]
 
-const labelOf = (value: string) => statuses.find((status) => status.value === value)?.label ?? value
+const getLabel = (value: string) =>
+	statuses.find((status) => status.value === value)?.label ?? value
 
 type Value = {
 	search: string | undefined
@@ -44,7 +45,7 @@ export default function SearchAndStatus() {
 					</FormFiltersField>
 					<FormFiltersField name="status">
 						<Label>Status</Label>
-						<Select nullable placeholder="All statuses" displayValue={labelOf}>
+						<Select nullable placeholder="All statuses" displayValue={getLabel}>
 							{statuses.map((status) => (
 								<SelectOption key={status.value} value={status.value}>
 									<SelectLabel>{status.label}</SelectLabel>

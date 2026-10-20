@@ -98,7 +98,7 @@ function hashKey(key: string | number): number {
  *
  * @internal
  */
-export function rowsSignatureOf(rowKeys: readonly (string | number)[]): string {
+export function hashKeys(rowKeys: readonly (string | number)[]): string {
 	let sum = 0
 
 	let mix = 0

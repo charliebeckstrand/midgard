@@ -3,7 +3,7 @@ import { Button } from '../../components/button'
 import { Nav, NavBar, NavContent, NavContents, NavItem, NavList } from '../../components/nav'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { LocaleProvider } from '../../providers/locale'
-import { bySlot, densityStepOf, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, readDensityStep, renderUI, screen } from '../helpers'
 
 describe('Nav', () => {
 	it('renders with data-slot="nav"', () => {
@@ -321,9 +321,9 @@ describe('NavItem', () => {
 		)
 
 		// The md item chrome steps slot controls to sm; an explicit size wins.
-		expect(densityStepOf(screen.getByRole('button', { name: 'auto' }))).toBe('sm')
+		expect(readDensityStep(screen.getByRole('button', { name: 'auto' }))).toBe('sm')
 
-		expect(densityStepOf(screen.getByRole('button', { name: 'explicit' }))).toBe('lg')
+		expect(readDensityStep(screen.getByRole('button', { name: 'explicit' }))).toBe('lg')
 	})
 
 	it('keeps affix actions individually Tab-focusable (link list, no roving)', () => {

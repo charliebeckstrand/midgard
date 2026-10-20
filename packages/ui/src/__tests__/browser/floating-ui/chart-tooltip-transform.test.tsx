@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { HeatmapChart, LineChart, PieChart } from '../../../modules/chart'
 import { bySlot, fireEvent, getSlot, present, renderUI, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { settledRect } from '../helpers/sample'
 
 /**
@@ -46,7 +46,7 @@ async function pointAt(target: Element, at: { x: number; y: number }) {
 
 /** Asserts that the panel sits centered above `at`, the gap clear of it. */
 function expectAbove(panel: DOMRect, at: { x: number; y: number }) {
-	expect(Math.abs(centerOf(panel).x - at.x)).toBeLessThan(TOLERANCE)
+	expect(Math.abs(getCenter(panel).x - at.x)).toBeLessThan(TOLERANCE)
 
 	expect(Math.abs(panel.bottom - (at.y - GAP))).toBeLessThan(TOLERANCE)
 }
@@ -79,7 +79,7 @@ describe('chart readout under a scaled ancestor (real browser)', () => {
 		)
 
 		// The readout snaps to the point, so it sits on the point on screen.
-		const at = centerOf(dot)
+		const at = getCenter(dot)
 
 		expectAbove(await pointAt(getSlot(container, 'chart-hit'), at), at)
 	})
@@ -136,7 +136,7 @@ describe('chart readout under a scaled ancestor (real browser)', () => {
 
 		const slice = present(slices[1], 'the second slice')
 
-		const at = centerOf(slice)
+		const at = getCenter(slice)
 
 		expectAbove(await pointAt(slice, at), at)
 	})

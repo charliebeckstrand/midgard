@@ -24,7 +24,7 @@ function inView(row: HTMLElement, scroller: HTMLElement): boolean {
 }
 
 /** The nearest ancestor of `node` that scrolls on the y axis. */
-function scrollerOf(node: HTMLElement): HTMLElement {
+function findScroller(node: HTMLElement): HTMLElement {
 	let el = node.parentElement
 
 	while (el && !['auto', 'scroll'].includes(getComputedStyle(el).overflowY)) el = el.parentElement
@@ -66,7 +66,7 @@ describe('VirtualOptions measures each row', () => {
 
 					const row = present(document.getElementById(`opt-${index}`), `option ${index}`)
 
-					expect(inView(row, scrollerOf(row))).toBe(true)
+					expect(inView(row, findScroller(row))).toBe(true)
 				})
 			}
 

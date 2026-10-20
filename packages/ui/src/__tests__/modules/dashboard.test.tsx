@@ -1345,7 +1345,7 @@ describe('Dashboard gesture owner', () => {
 	}
 
 	/** The painted grid area of the tile that holds `element`. */
-	function areaOf(element: HTMLElement): string {
+	function readArea(element: HTMLElement): string {
 		const shell = element.closest<HTMLElement>('[data-slot="dashboard-tile"]')
 
 		return shell?.style.gridArea ?? ''
@@ -1414,9 +1414,11 @@ describe('Dashboard gesture owner', () => {
 		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
 
 		// The app kept its layout, so each tile paints its saved cell.
-		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe('1 / 1 / span 27 / span 12')
+		expect(readArea(screen.getByRole('group', { name: 'Revenue' }))).toBe(
+			'1 / 1 / span 27 / span 12',
+		)
 
-		expect(areaOf(screen.getByRole('group', { name: 'Traffic' }))).toBe(
+		expect(readArea(screen.getByRole('group', { name: 'Traffic' }))).toBe(
 			'1 / 13 / span 27 / span 12',
 		)
 
@@ -1424,7 +1426,7 @@ describe('Dashboard gesture owner', () => {
 
 		rerender(<Board editing layout={{ value: moved, onValueChange }} onDragEnd={onDragEnd} />)
 
-		expect(areaOf(screen.getByTestId('content-c'))).toBe('41 / 1 / span 20 / span 8')
+		expect(readArea(screen.getByTestId('content-c'))).toBe('41 / 1 / span 20 / span 8')
 	})
 
 	it('ends a drop as saved when the onValueChange of an uncontrolled layout throws', async () => {
@@ -1453,7 +1455,7 @@ describe('Dashboard gesture owner', () => {
 
 		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: false, layout: saved })
 
-		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe(
+		expect(readArea(screen.getByRole('group', { name: 'Revenue' }))).toBe(
 			'1 / 13 / span 27 / span 12',
 		)
 	})
@@ -1512,7 +1514,9 @@ describe('Dashboard gesture owner', () => {
 
 		expect(onValueChange).toHaveBeenCalledTimes(1)
 
-		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe('9 / 1 / span 10 / span 8')
+		expect(readArea(screen.getByRole('group', { name: 'Revenue' }))).toBe(
+			'9 / 1 / span 10 / span 8',
+		)
 
 		let moved = false
 
@@ -1579,9 +1583,11 @@ describe('Dashboard gesture owner', () => {
 
 		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: moved })
 
-		expect(areaOf(screen.getByTestId('content-c'))).toBe('41 / 1 / span 20 / span 8')
+		expect(readArea(screen.getByTestId('content-c'))).toBe('41 / 1 / span 20 / span 8')
 
-		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe('1 / 1 / span 27 / span 12')
+		expect(readArea(screen.getByRole('group', { name: 'Revenue' }))).toBe(
+			'1 / 1 / span 27 / span 12',
+		)
 	})
 
 	it('cancels a drop after an outside remove, so the entry stays removed', async () => {
@@ -1617,7 +1623,9 @@ describe('Dashboard gesture owner', () => {
 
 		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
 
-		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe('1 / 1 / span 27 / span 12')
+		expect(readArea(screen.getByRole('group', { name: 'Revenue' }))).toBe(
+			'1 / 1 / span 27 / span 12',
+		)
 
 		// The grip left with edit mode, and the keyboard sensor still listens on the document.
 		fireEvent.keyDown(document, { code: 'Space', key: ' ' })
@@ -1916,7 +1924,7 @@ describe('Dashboard gesture owner', () => {
 			'Canceled. Revenue returned to column 1 of 24, row 1, 8 columns wide.',
 		)
 
-		expect(areaOf(grip)).toBe('1 / 1 / span 10 / span 8')
+		expect(readArea(grip)).toBe('1 / 1 / span 10 / span 8')
 
 		expect(onLayout).not.toHaveBeenCalled()
 
@@ -1953,7 +1961,7 @@ describe('Dashboard gesture owner', () => {
 
 		expect(next).toContainEqual({ id: 'c', x: 0, y: 0, w: 8, h: 10 })
 
-		expect(areaOf(grip)).toBe('11 / 1 / span 10 / span 8')
+		expect(readArea(grip)).toBe('11 / 1 / span 10 / span 8')
 
 		expect(onDragStart).toHaveBeenCalledExactlyOnceWith({ id: 'a', layout: GRID })
 

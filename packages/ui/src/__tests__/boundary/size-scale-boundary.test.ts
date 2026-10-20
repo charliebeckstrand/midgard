@@ -43,7 +43,7 @@ walkSource(
 )
 
 /** The count of the matches of `pattern` in each file, for the files with a match. */
-function countsOf(pattern: RegExp, files = sources): Record<string, number> {
+function countMatches(pattern: RegExp, files = sources): Record<string, number> {
 	return Object.fromEntries(
 		files
 			.map(({ file, code }) => [file, code.match(pattern)?.length ?? 0] as const)
@@ -98,7 +98,7 @@ describe('size scale', () => {
 	it('writes a ramp only in the home of the ramps', () => {
 		const outside = sources.filter(({ file }) => !file.startsWith(RAMP_HOME))
 
-		expect(countsOf(RAMP, outside)).toEqual({})
+		expect(countMatches(RAMP, outside)).toEqual({})
 	})
 
 	it('writes each ramp once in the home of the ramps', () => {
@@ -119,6 +119,6 @@ describe('size scale', () => {
 	})
 
 	it('picks no step by hand outside the density core', () => {
-		expect(countsOf(HAND_STEP)).toEqual({})
+		expect(countMatches(HAND_STEP)).toEqual({})
 	})
 })

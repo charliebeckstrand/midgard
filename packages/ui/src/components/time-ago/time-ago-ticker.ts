@@ -68,7 +68,7 @@ function handleVisibility(): void {
  * unsubscribe fn; the timer stops when its last subscriber leaves. Call only on
  * the client — it touches `window`/`document`.
  */
-export function subscribeTimeAgoTick(intervalMs: number, subscriber: Subscriber): () => void {
+export function subscribeTick(intervalMs: number, subscriber: Subscriber): () => void {
 	unsubscribeVisibility ??= subscribeDocumentEvent('visibilitychange', handleVisibility)
 
 	const bucket: Bucket = buckets.get(intervalMs) ?? { subscribers: new Set(), timer: null }

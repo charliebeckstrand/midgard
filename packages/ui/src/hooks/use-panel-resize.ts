@@ -116,7 +116,7 @@ export function panelAxis(side: PanelSide): PanelAxis {
 export type PanelCeiling = (panel: HTMLElement, viewport: number) => number
 
 /** The share of the screen a size covers, which is what a splitter's value reports. @internal */
-function shareOf(size: number, viewport: number): number {
+function toShare(size: number, viewport: number): number {
 	return Math.round(clamp(pct(size, 0, viewport), 0, 100))
 }
 
@@ -187,7 +187,7 @@ export type PanelResizeOptions = {
 	 * The drag stops at the floor, as a splitter stops at its minimum. Reaching
 	 * the floor closes nothing, because the smallest size is a size.
 	 */
-	floorOf: (panel: HTMLElement, size: number) => number
+	getFloor: (panel: HTMLElement, size: number) => number
 	/**
 	 * The largest this panel resizes to, given the panel and the screen along the
 	 * axis.
@@ -198,7 +198,7 @@ export type PanelResizeOptions = {
 	 * from the edges it floats against, and has to keep that inset at its widest. A
 	 * ceiling of the whole screen would push its far edge off the other side.
 	 */
-	ceilingOf: PanelCeiling
+	getCeiling: PanelCeiling
 	/**
 	 * The cursor that the page holds while a pointer drags. The default is
 	 * `grabbing`, the closed hand of a grab bar. A handle with a resize cursor at
@@ -240,13 +240,13 @@ export type PanelResizeOptions = {
 export function usePanelResize({
 	side,
 	open,
-	floorOf,
-	ceilingOf,
+	getFloor,
+	getCeiling,
 	cursor = 'grabbing',
 }: PanelResizeOptions): PanelResize {
 	const { axis, sign } = SIDES[side]
 
-	const { coordinate: coordinateOf, keys } = AXES[axis]
+	const { coordinate: getCoordinate, keys } = AXES[axis]
 
 	// The arrow that lowers the coordinate is the one that grows a panel docked to
 	// the far edge, and the other one grows a panel docked to the near edge.
@@ -315,7 +315,7 @@ export function usePanelResize({
 	// path, whether or not anyone ever drags.
 	useEffect(() => {
 		if (panel !== null) {
-			setCovers(shareOf(panel.getBoundingClientRect()[axis], dockExtent(panel, axis)))
+			setCovers(toShare(panel.getBoundingClientRect()[axis], dockExtent(panel, axis)))
 		}
 	}, [panel, axis])
 
@@ -354,7 +354,7 @@ export function usePanelResize({
 
 		setAtCeiling(next >= at.ceiling)
 
-		setCovers(shareOf(next, at.viewport))
+		setCovers(toShare(next, at.viewport))
 	}
 
 	/** The gesture in flight, when the event comes from the pointer that started it. */
@@ -367,7 +367,7 @@ export function usePanelResize({
 	function track(event: globalThis.PointerEvent) {
 		const at = held(event)
 
-		if (at !== null) draw(at, coordinateOf(event))
+		if (at !== null) draw(at, getCoordinate(event))
 	}
 
 	/**
@@ -393,7 +393,7 @@ export function usePanelResize({
 	function release(event: globalThis.PointerEvent) {
 		const at = finish(event)
 
-		if (at !== null) commit(draw(at, coordinateOf(event)), at)
+		if (at !== null) commit(draw(at, getCoordinate(event)), at)
 	}
 
 	// A canceled pointer does not tell where it stopped: Chromium gives 0, 0. The
@@ -420,10 +420,10 @@ export function usePanelResize({
 
 		grab.current = {
 			pointer: event.pointerId,
-			at: coordinateOf(event),
+			at: getCoordinate(event),
 			size: measured,
-			floor: floorOf(panel, measured),
-			ceiling: ceilingOf(panel, viewport),
+			floor: getFloor(panel, measured),
+			ceiling: getCeiling(panel, viewport),
 			viewport,
 		}
 
@@ -487,8 +487,8 @@ export function usePanelResize({
 		const at: Grab = {
 			at: 0,
 			size: measured,
-			floor: floorOf(panel, measured),
-			ceiling: ceilingOf(panel, viewport),
+			floor: getFloor(panel, measured),
+			ceiling: getCeiling(panel, viewport),
 			viewport,
 		}
 

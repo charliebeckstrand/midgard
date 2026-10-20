@@ -448,7 +448,7 @@ async function mountResident(count: number) {
 	const show = async (page: number) => {
 		flushSync(() => root.render(view(page)))
 
-		await rasterOf(src, page - 1)
+		await waitForRaster(src, page - 1)
 
 		const image = pageImage(box)
 
@@ -528,7 +528,7 @@ async function printResident(src: string) {
 }
 
 /** Resolves when the page at the 0-based `index` of `src` has its full raster. */
-function rasterOf(src: string, index: number) {
+function waitForRaster(src: string, index: number) {
 	return new Promise<void>((resolve) => {
 		const done = () => hasRaster(getDocumentSnapshot(src).pages[index])
 

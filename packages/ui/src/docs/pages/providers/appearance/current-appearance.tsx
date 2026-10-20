@@ -11,7 +11,7 @@ export default function CurrentAppearance() {
 	const { theme, density, motion, sidebar } = useAppearance()
 
 	// The name of a mode in the language of the reader.
-	const labelOf = <T,>(options: Option<T>[], value: T) => {
+	const getLabel = <T,>(options: Option<T>[], value: T) => {
 		const option = options.find((candidate) => candidate.value === value)
 
 		return option && intl.formatMessage(option.message)
@@ -19,10 +19,10 @@ export default function CurrentAppearance() {
 
 	return (
 		<>
-			<Text>Theme: {labelOf(themeModes, theme)}</Text>
-			<Text>Density: {labelOf(densityLevels, density)}</Text>
-			<Text>Motion: {labelOf(motionModes, motion)}</Text>
-			<Text>Sidebar: {labelOf(sidebarModes, sidebar)}</Text>
+			<Text>Theme: {getLabel(themeModes, theme)}</Text>
+			<Text>Density: {getLabel(densityLevels, density)}</Text>
+			<Text>Motion: {getLabel(motionModes, motion)}</Text>
+			<Text>Sidebar: {getLabel(sidebarModes, sidebar)}</Text>
 		</>
 	)
 }
