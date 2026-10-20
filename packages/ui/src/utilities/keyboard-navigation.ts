@@ -8,6 +8,16 @@ export type NavigationConfig = {
 	orientation?: Orientation
 }
 
+/**
+ * Whether a key is one of the four arrow keys. The test does not depend on the
+ * direction of the layout.
+ *
+ * @internal
+ */
+export function isArrowKey(key: string): boolean {
+	return key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown'
+}
+
 /** Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. */
 export function crossAxisDelta(key: string, orientation: Orientation): number | null {
 	return orientation === 'vertical'
