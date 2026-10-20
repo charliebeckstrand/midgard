@@ -845,10 +845,41 @@ function unguardedLateWrites(file: string, parse: Parse): string[] {
 	return late
 }
 
+/**
+ * Each write to shared state after an `await` in a case that does not stop at
+ * its signal first, in the test files of `dirs`.
+ */
+function lateWrites(server: TypeScriptServer, dirs: readonly string[]): string[] {
+	const tests: string[] = []
+
+	const modules: string[] = []
+
+	for (const dir of dirs) {
+		walkSource(dir, (file, content) => {
+			// A write can come late only after an `await`, so a test file with none
+			// needs no parse. Most of the test files have none. The other modules
+			// of the trees are the helpers that a test file can import.
+			if (!/\.test\.tsx?$/.test(file)) {
+				if (isSourceFile(file)) modules.push(file)
+			} else if (content.includes('await')) {
+				tests.push(file)
+			}
+		})
+	}
+
+	const parse = parser(server, [...tests, ...modules])
+
+	return tests.flatMap((file) => unguardedLateWrites(file, parse))
+}
+
 describe('test isolation boundary', () => {
 	const server = startTypeScript()
 
 	afterAll(() => server.close())
+
+	// The parse of the test trees runs at collection, under no budget, and the
+	// case asserts on its result (`nodeScan` in `vitest.config.ts`).
+	const late = lateWrites(server, [testsDir, docsTestDir])
 	it('no file in a shared-registry project mutates the module registry', () => {
 		const violations = SHARED_REGISTRY_SCANS.flatMap((scan) =>
 			collectPatternViolations({ patterns: FORBIDDEN_PATTERNS, stripComments: true, ...scan }),
@@ -998,27 +1029,6 @@ describe('test isolation boundary', () => {
 	})
 
 	it('stops a case at its signal before it writes shared state after an await', () => {
-		const tests: string[] = []
-
-		const modules: string[] = []
-
-		for (const dir of [testsDir, docsTestDir]) {
-			walkSource(dir, (file, content) => {
-				// A write can come late only after an `await`, so a test file with none
-				// needs no parse. Most of the test files have none. The other modules
-				// of the trees are the helpers that a test file can import.
-				if (!/\.test\.tsx?$/.test(file)) {
-					if (isSourceFile(file)) modules.push(file)
-				} else if (content.includes('await')) {
-					tests.push(file)
-				}
-			})
-		}
-
-		const parse = parser(server, [...tests, ...modules])
-
-		const late = tests.flatMap((file) => unguardedLateWrites(file, parse))
-
 		expect(
 			late,
 			`a case that runs longer than its time limit continues at its next \`await\` while a later case runs — take \`{ signal }\` from the test context, and call \`signal.throwIfAborted()\` after the last \`await\` and before the write (CONVENTIONS.md §10.9):\n  ${late.join('\n  ')}`,
