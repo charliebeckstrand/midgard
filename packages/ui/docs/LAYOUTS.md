@@ -1,6 +1,6 @@
 # Layouts
 
-> **Quick-glance index of `ui/layouts`.** Page-level scaffolds — full-page frames and app shells that compose `ui` primitives into the outer structure of a route. The families split across the two tiers ([`../REFERENCE.md`](../REFERENCE.md) §2): `AuthLayout` and the `StackedLayout` family are **static** (server-renderable); `DashboardLayout` and the `SidebarLayout` family are **client** components.
+> **Quick-glance index of `ui/layouts`.** Page-level scaffolds: full-page frames and app shells that compose `ui` primitives into the outer structure of a route. The families split across the two tiers ([`../REFERENCE.md`](../REFERENCE.md) §2): `AuthLayout` and the `StackedLayout` family are **static** (server-renderable); `DashboardLayout` and the `SidebarLayout` family are **client** components.
 
 ```ts
 import { AuthLayout, SidebarLayout, StackedLayout } from 'ui/layouts'
@@ -8,7 +8,7 @@ import { AuthLayout, SidebarLayout, StackedLayout } from 'ui/layouts'
 
 Each export ships its `<Name>Props` type beside it. Per-layout behavior, props, and defaults live in the TSDoc.
 
-## `AuthLayout` — unauthenticated pages
+## `AuthLayout`: unauthenticated pages
 
 Static frame for sign-in, registration, and other single-card pages.
 
@@ -16,7 +16,7 @@ Static frame for sign-in, registration, and other single-card pages.
 |---|---|
 | `AuthLayout` | Full-viewport layout that centers its content on both axes; the frame for unauthenticated single-card pages. |
 
-## `StackedLayout` — vertical page scaffold
+## `StackedLayout`: vertical page scaffold
 
 Static scaffold: a min-height-collapsing column with fixed-height ends around a flexing, scrolling body.
 
@@ -27,7 +27,7 @@ Static scaffold: a min-height-collapsing column with fixed-height ends around a 
 | `StackedLayoutBody` | Flexible, vertically scrolling main slot taking the height between header and footer (`data-slot="body"`). |
 | `StackedLayoutFooter` | Fixed-height footer slot (`data-slot="footer"`). |
 
-## `DashboardLayout` — stacked content with a filter rail
+## `DashboardLayout`: stacked content with a filter rail
 
 Client layout building on `StackedLayout` with a responsive filter rail.
 
@@ -35,7 +35,7 @@ Client layout building on `StackedLayout` with a responsive filter rail.
 |---|---|
 | `DashboardLayout` | Stacked content layout with a responsive filter rail. Its `layout` sets the place of the filters at each breakpoint. An `inline` layout puts them beside the main column. A `drawer` layout puts them in an offcanvas drawer that a button opens. The default is a drawer on a compact or a medium viewport, and inline when expanded. |
 
-## `SidebarLayout` — sidebar app shell
+## `SidebarLayout`: sidebar app shell
 
 Client app shell: an inline sidebar or a drawer-and-navbar, and a content region.
 

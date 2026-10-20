@@ -1,6 +1,6 @@
 # Providers
 
-> **Quick-glance index of `ui/providers/*`.** Providers configure the **client** tier. They give ambient state — appearance, density, glass, locale, motion, and link/portal integration — to descendant client components through React context. A provider is here only when many unrelated components read it. A provider that serves one unit stays with that unit: `ToastProvider` is in `ui/toast`, and `ChatEmbedProvider` is in `ui/chat`. Density also crosses to static components as a `data-density` attribute. A static (server-renderable) component reads no context; see [`../REFERENCE.md`](../REFERENCE.md) §2 for the server/client boundary.
+> **Quick-glance index of `ui/providers/*`.** Providers configure the **client** tier. They give ambient state (appearance, density, glass, locale, motion, and link/portal integration) to descendant client components through React context. A provider is here only when many unrelated components read it. A provider that serves one unit stays with that unit: `ToastProvider` is in `ui/toast`, and `ChatEmbedProvider` is in `ui/chat`. Density also crosses to static components as a `data-density` attribute. A static (server-renderable) component reads no context; see [`../REFERENCE.md`](../REFERENCE.md) §2 for the server/client boundary.
 
 ```ts
 import { AppearanceProvider } from 'ui/providers/appearance'
@@ -8,7 +8,7 @@ import { DensityProvider } from 'ui/providers/density'
 import { UIProvider } from 'ui/providers/ui'
 ```
 
-## `ui/providers/ui` — app-root integration
+## `ui/providers/ui`: app-root integration
 
 The integration points an app mounts once at its root: `UIDocument` in the root layout, and `UIProvider` in the client providers.
 
