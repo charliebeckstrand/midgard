@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Checkbox } from '../../components/checkbox'
 import { ColorPicker } from '../../components/color'
 import { Combobox } from '../../components/combobox'
+import { useControlTarget } from '../../components/control/use-control-target'
 import { DatePicker } from '../../components/date-picker'
 import { Field, Label, Message } from '../../components/fieldset'
 import { FileUploadButton } from '../../components/file-upload'
@@ -217,6 +218,38 @@ describe('FormErrorSummary', () => {
 		const focused = document.activeElement as HTMLElement
 
 		expect(getSlot(container, 'rating').contains(focused)).toBe(true)
+	})
+
+	it('skips a disabled control in a wrapper and focuses the next one in the tab order', async () => {
+		function Wrapped() {
+			useControlTarget('code', 'code-wrapper')
+
+			return (
+				<div id="code-wrapper">
+					<button type="button" disabled>
+						Paste
+					</button>
+					<input aria-label="Code" />
+				</div>
+			)
+		}
+
+		const { container } = renderUI(
+			<Form defaultValues={{ code: '' }} validate={{ code: () => 'Enter the code.' }}>
+				<FormErrorSummary />
+				<Wrapped />
+			</Form>,
+		)
+
+		await submit(container)
+
+		fireEvent.click(
+			within(getSlot(container, 'form-error-summary')).getByRole('link', {
+				name: 'Enter the code.',
+			}),
+		)
+
+		expect(document.activeElement).toHaveAccessibleName('Code')
 	})
 
 	// A bare control has no id from a Field, a Control, or a prop. It renders an
