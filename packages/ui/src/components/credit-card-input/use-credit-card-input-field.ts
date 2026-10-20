@@ -23,16 +23,13 @@ type CreditCardInputFieldOptions = {
 }
 
 /**
- * The shared wiring of the card fields: the `aria-label` with the input ref,
- * the digit mask, and the blur that marks the field touched.
+ * The shared wiring of the card fields: the `aria-label` with the input ref
+ * ({@link useControlLabelRef}), the digit mask, and the blur that marks the
+ * field touched.
  *
  * @remarks
- * The placeholder is not a programmatic name (WCAG 3.3.2, 4.1.2), so the field
- * takes `fallbackLabel` as its `aria-label`. The fallback yields to a Field
- * `<Label>` from the first render, and to a native label after each commit
- * ({@link useControlLabelRef}). The returned `onBlur` runs the handler of the
- * caller first. The touched mark runs also when that handler calls
- * `preventDefault()` (CONVENTIONS.md §3.9).
+ * The returned `onBlur` runs the handler of the caller first. The touched mark
+ * runs also when that handler calls `preventDefault()` (CONVENTIONS.md §3.9).
  * @returns The return of `useMaskInput`, with the composed `onBlur` and the
  * resolved `ariaLabel`.
  * @internal
@@ -48,7 +45,7 @@ export function useCreditCardInputField({
 	format,
 	onBlur,
 }: CreditCardInputFieldOptions) {
-	const labelled = useControlLabelRef(fallbackLabel, ref)
+	const labelled = useControlLabelRef(fallbackLabel, ref, ariaLabel)
 
 	const mask = useMaskInput({
 		name,
@@ -62,7 +59,7 @@ export function useCreditCardInputField({
 
 	return {
 		...mask,
-		ariaLabel: ariaLabel ?? labelled.fallbackLabel,
+		ariaLabel: labelled.ariaLabel,
 		onBlur: composeEventHandlers(onBlur, () => mask.onBlur(), { checkForDefaultPrevented: false }),
 	}
 }

@@ -209,7 +209,7 @@ export function DateInput({
 
 	const text = editingText ?? (date === undefined ? '' : formatDateValue(date, format))
 
-	const labelled = useControlLabelRef(intl.formatMessage(dateInputMessages.name), ref)
+	const labelled = useControlLabelRef(intl.formatMessage(dateInputMessages.name), ref, ariaLabel)
 
 	const verdict = useControlTypedVerdict({
 		describedBy: ariaDescribedBy,
@@ -289,10 +289,7 @@ export function DateInput({
 				data-slot="date-input"
 				type="text"
 				inputMode="numeric"
-				// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
-				// defaults an aria-label, yielding to a Field <Label> from the first
-				// render and to a native label after each commit (useControlLabelRef).
-				aria-label={ariaLabel ?? labelled.fallbackLabel}
+				aria-label={labelled.ariaLabel}
 				placeholder={placeholder ?? formatDatePattern(intl, format)}
 				autoComplete="off"
 				disabled={disabled}

@@ -18,7 +18,7 @@ describe('usePasswordStrength', () => {
 
 		expect(result.current.level).toBe('empty')
 
-		expect(result.current.results.filter((result) => result.passed)).toHaveLength(0)
+		expect(result.current.results.filter((rule) => rule.passed)).toHaveLength(0)
 	})
 
 	it.each([
@@ -32,7 +32,7 @@ describe('usePasswordStrength', () => {
 
 		expect(result.current.level).toBe(level)
 
-		expect(result.current.results.filter((result) => result.passed)).toHaveLength(passedCount)
+		expect(result.current.results.filter((rule) => rule.passed)).toHaveLength(passedCount)
 	})
 
 	it('does not re-fire onStrengthChange for keystrokes that leave strength unchanged', () => {
@@ -164,7 +164,7 @@ describe('usePasswordStrength', () => {
 				usePasswordStrength({ value, rules: ruleSet, onStrengthChange }),
 			)
 
-			expect(result.current.results.filter((result) => result.passed)).toHaveLength(score)
+			expect(result.current.results.filter((rule) => rule.passed)).toHaveLength(score)
 
 			expect(result.current.level).toBe(level)
 
@@ -188,7 +188,7 @@ describe('usePasswordStrength', () => {
 
 		expect(result.current.results).toEqual([])
 
-		expect(result.current.results.filter((result) => result.passed)).toHaveLength(0)
+		expect(result.current.results.filter((rule) => rule.passed)).toHaveLength(0)
 
 		expect(result.current.level).toBe('weak')
 
