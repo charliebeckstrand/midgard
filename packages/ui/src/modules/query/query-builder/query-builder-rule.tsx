@@ -13,6 +13,7 @@ import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'
 import { mapResponsive, type Orientation, resolveVariant } from '../../../types'
 import { describeNode } from '../engine/query-announcements'
+import { defaultValueFor } from '../engine/query-node'
 import { getOperators, operatorLabel, operatorValueLabel } from '../engine/query-operators'
 import type { QueryRule } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
@@ -43,8 +44,9 @@ export type QueryBuilderRuleProps = {
  * value input, and, when `removable`, a remove button. For a `noValue` operator
  * the value input is replaced by its fixed `valueLabel` as static text
  * ("is" · "Empty"). It is replaced by nothing when the operator names none.
- * Changing the field resets the operator and value. The rule is a `role="group"`
- * named by its summary, so its controls read as part of one rule. Memoized.
+ * Changing the field resets the operator and the value to those of a new rule
+ * of that field. The rule is a `role="group"` named by its summary, so its
+ * controls read as part of one rule. Memoized.
  */
 function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilderRuleProps) {
 	const { fields, getField, disabled, hideFieldSelector, orientation } = useQueryBuilderState()
@@ -70,7 +72,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 			updateRule(rule.id, {
 				field: nextFieldName,
 				operator: nextOperators[0]?.value ?? '',
-				value: '',
+				value: defaultValueFor(nextField),
 			})
 		},
 		[getField, rule.id, updateRule],
