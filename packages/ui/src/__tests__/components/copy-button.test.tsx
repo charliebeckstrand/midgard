@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { describe, expect, onTestFinished, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { CopyButton, useCopyButtonState } from '../../components/copy-button'
 import {
 	bySlot,
@@ -9,30 +9,9 @@ import {
 	liveRegion,
 	present,
 	renderUI,
+	stubClipboard,
 } from '../helpers'
 import { it } from '../helpers/fake-clock'
-
-/**
- * Puts `writeText` on `navigator.clipboard` for the current case.
- *
- * @remarks
- * `onTestFinished` restores the property. It runs after a case that times out,
- * but a `finally` in the case does not: the body of that case waits at its
- * `await`, and the stub then stays on the shared window.
- */
-function stubClipboard(writeText: (value: string) => Promise<void>) {
-	const original = Object.getOwnPropertyDescriptor(window.navigator, 'clipboard')
-
-	Object.defineProperty(window.navigator, 'clipboard', {
-		configurable: true,
-		value: { writeText },
-	})
-
-	onTestFinished(() => {
-		if (original) Object.defineProperty(window.navigator, 'clipboard', original)
-		else delete (window.navigator as { clipboard?: unknown }).clipboard
-	})
-}
 
 describe('CopyButton', () => {
 	it('has an accessible label', () => {
@@ -44,7 +23,7 @@ describe('CopyButton', () => {
 	})
 
 	it('is an action, not a toggle: no aria-pressed at rest or after a copy', async () => {
-		stubClipboard(vi.fn().mockResolvedValue(undefined))
+		stubClipboard({ writeText: vi.fn().mockResolvedValue(undefined) })
 
 		const { container } = renderUI(<CopyButton text="hello" />)
 
@@ -65,7 +44,7 @@ describe('CopyButton', () => {
 	// only while the attribute is absent, and so yields to the green palette of
 	// the copied state.
 	it('writes data-copied only while the copied state holds', async ({ clock }) => {
-		stubClipboard(vi.fn().mockResolvedValue(undefined))
+		stubClipboard({ writeText: vi.fn().mockResolvedValue(undefined) })
 
 		const { container } = renderUI(<CopyButton text="hello" timeout={2000} />)
 
@@ -105,7 +84,7 @@ describe('CopyButton', () => {
 	it('stays in the idle state when clipboard.writeText rejects', async () => {
 		const writeText = vi.fn().mockRejectedValue(new Error('denied'))
 
-		stubClipboard(writeText)
+		stubClipboard({ writeText })
 
 		const { container } = renderUI(<CopyButton text="hello" />)
 
@@ -123,7 +102,7 @@ describe('CopyButton', () => {
 
 		const writeText = vi.fn().mockRejectedValue(denial)
 
-		stubClipboard(writeText)
+		stubClipboard({ writeText })
 
 		const onCopyError = vi.fn()
 		const onCopiedChange = vi.fn()
@@ -144,7 +123,7 @@ describe('CopyButton', () => {
 	it('says nothing on onCopyError when the write succeeds', async () => {
 		const writeText = vi.fn().mockResolvedValue(undefined)
 
-		stubClipboard(writeText)
+		stubClipboard({ writeText })
 
 		const onCopyError = vi.fn()
 
@@ -186,7 +165,7 @@ describe('CopyButton', () => {
 
 		const onCopiedChange = vi.fn()
 
-		stubClipboard(writeText)
+		stubClipboard({ writeText })
 
 		const { container } = renderUI(
 			<CopyButton text="hello" timeout={2000} onCopiedChange={onCopiedChange} />,
@@ -216,7 +195,7 @@ describe('CopyButton', () => {
 		async (timeout, { clock }) => {
 			const write = deferred()
 
-			stubClipboard(vi.fn(() => write.promise))
+			stubClipboard({ writeText: vi.fn(() => write.promise) })
 
 			const { container } = renderUI(<CopyButton text="hello" timeout={timeout} />)
 
@@ -241,7 +220,7 @@ describe('CopyButton', () => {
 	it('stays focusable and focused through the copied window (WCAG 2.4.3)', async () => {
 		const writeText = vi.fn().mockResolvedValue(undefined)
 
-		stubClipboard(writeText)
+		stubClipboard({ writeText })
 
 		const { container } = renderUI(<CopyButton text="hello" />)
 
@@ -277,7 +256,7 @@ describe('CopyButton', () => {
 
 		const onCopiedChange = vi.fn()
 
-		stubClipboard(writeText)
+		stubClipboard({ writeText })
 
 		const { container } = renderUI(<CopyButton text="hello" onCopiedChange={onCopiedChange} />)
 
@@ -305,7 +284,7 @@ describe('CopyButton', () => {
 
 		const onCopiedChange = vi.fn()
 
-		stubClipboard(vi.fn(() => write.promise))
+		stubClipboard({ writeText: vi.fn(() => write.promise) })
 
 		const { container, unmount } = renderUI(
 			<CopyButton text="hello" onCopiedChange={onCopiedChange} />,
@@ -330,7 +309,7 @@ describe('CopyButton', () => {
 	it('runs no callback when it unmounts in the copied window', async ({ clock }) => {
 		const onCopiedChange = vi.fn()
 
-		stubClipboard(vi.fn().mockResolvedValue(undefined))
+		stubClipboard({ writeText: vi.fn().mockResolvedValue(undefined) })
 
 		const { container, unmount } = renderUI(
 			<CopyButton text="hello" timeout={2000} onCopiedChange={onCopiedChange} />,
@@ -354,7 +333,7 @@ describe('CopyButton', () => {
 
 		const onClick = vi.fn()
 
-		stubClipboard(writeText)
+		stubClipboard({ writeText })
 
 		const { container } = renderUI(<CopyButton text="hello" onClick={onClick} />)
 
@@ -370,7 +349,7 @@ describe('CopyButton', () => {
 	it('announces success to a live region on copy', async () => {
 		const writeText = vi.fn().mockResolvedValue(undefined)
 
-		stubClipboard(writeText)
+		stubClipboard({ writeText })
 
 		const { container } = renderUI(<CopyButton text="hello" />)
 
@@ -389,7 +368,7 @@ describe('useCopyButtonState', () => {
 
 		const onCopiedChange = vi.fn()
 
-		stubClipboard(writeText)
+		stubClipboard({ writeText })
 
 		const { result } = renderHook(() =>
 			useCopyButtonState({ text: 'hello', timeout: 1000, onCopiedChange }),
@@ -420,7 +399,7 @@ describe('useCopyButtonState', () => {
 	it('keeps the revert window when the timeout changes while the copied state holds', async ({
 		clock,
 	}) => {
-		stubClipboard(vi.fn().mockResolvedValue(undefined))
+		stubClipboard({ writeText: vi.fn().mockResolvedValue(undefined) })
 
 		const { result, rerender } = renderHook(
 			({ timeout }: { timeout: number }) => useCopyButtonState({ text: 'hello', timeout }),

@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BarChart, DonutChart, LineChart, ScatterChart } from '../../modules/chart'
 import { resolveLegend } from '../../modules/chart/engine/chart-legend/schema'
 import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
@@ -260,47 +260,37 @@ describe('chart legend fit after a label change', () => {
 	/** The ghost that holds a button, or null for any other element. */
 	const ghostButton = (node: HTMLElement) => (node.tagName === 'BUTTON' ? ghostOf(node) : null)
 
-	const saved: [object, string, PropertyDescriptor | undefined][] = []
-
-	function define(target: object, key: string, get: (this: HTMLElement) => number) {
-		saved.push([target, key, Object.getOwnPropertyDescriptor(target, key)])
-
-		Object.defineProperty(target, key, { configurable: true, get })
+	function define<K extends 'offsetWidth' | 'offsetHeight' | 'offsetLeft' | 'offsetTop'>(
+		key: K,
+		get: (this: HTMLElement) => number,
+	) {
+		vi.spyOn(HTMLElement.prototype, key, 'get').mockImplementation(get)
 	}
 
 	beforeEach(() => {
-		define(HTMLElement.prototype, 'offsetWidth', function () {
+		define('offsetWidth', function () {
 			return ghostButton(this) ? widthOf(this) : 0
 		})
 
-		define(HTMLElement.prototype, 'offsetHeight', function () {
+		define('offsetHeight', function () {
 			return ghostButton(this) ? LINE : 0
 		})
 
-		define(HTMLElement.prototype, 'offsetLeft', function () {
+		define('offsetLeft', function () {
 			const ghost = ghostButton(this)
 
 			return ghost ? (pack(ghost).get(this)?.left ?? 0) : 0
 		})
 
-		define(HTMLElement.prototype, 'offsetTop', function () {
+		define('offsetTop', function () {
 			const ghost = ghostButton(this)
 
 			return ghost ? (pack(ghost).get(this)?.top ?? 0) : 0
 		})
 
-		define(Element.prototype, 'clientWidth', function () {
+		vi.spyOn(Element.prototype, 'clientWidth', 'get').mockImplementation(function (this: Element) {
 			return this.matches('[inert][aria-hidden="true"]') ? GHOST_WIDTH : 0
 		})
-	})
-
-	afterEach(() => {
-		for (const [target, key, descriptor] of saved.reverse()) {
-			if (descriptor) Object.defineProperty(target, key, descriptor)
-			else delete (target as Record<string, unknown>)[key]
-		}
-
-		saved.length = 0
 	})
 
 	const LONG = 'D'.repeat(32)

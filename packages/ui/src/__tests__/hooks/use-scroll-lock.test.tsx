@@ -62,29 +62,13 @@ describe('useScrollLock', () => {
 		// Patch dimensions to simulate a 15px vertical scrollbar (jsdom has no layout).
 		const root = document.documentElement
 
-		const patch = (key: 'scrollHeight' | 'clientHeight' | 'clientWidth', value: number) =>
-			Object.defineProperty(root, key, { configurable: true, value })
+		vi.spyOn(root, 'scrollHeight', 'get').mockReturnValue(2000)
 
-		patch('scrollHeight', 2000)
+		vi.spyOn(root, 'clientHeight', 'get').mockReturnValue(1000)
 
-		patch('clientHeight', 1000)
+		vi.spyOn(root, 'clientWidth', 'get').mockReturnValue(1000)
 
-		patch('clientWidth', 1000)
-
-		const innerWidth = Object.getOwnPropertyDescriptor(window, 'innerWidth')
-
-		Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1015 })
-
-		// In `onTestFinished`, not after the assertions below: `innerWidth` and the
-		// patched element metrics are process-global, and a failed assertion would
-		// otherwise carry them into the next file on this worker.
-		onTestFinished(() => {
-			for (const key of ['scrollHeight', 'clientHeight', 'clientWidth'] as const) {
-				patch(key, 0)
-			}
-
-			if (innerWidth) Object.defineProperty(window, 'innerWidth', innerWidth)
-		})
+		vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(1015)
 
 		const { unmount } = renderHook(() => useScrollLock(true))
 
