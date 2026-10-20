@@ -9,6 +9,7 @@
 
 import { clamp } from '../../../utilities/clamp'
 import { moveItem } from '../../../utilities/move-item'
+import { finiteOrUndefined } from '../../../utilities/parse-numeric'
 
 /**
  * Sub-rows per column width, so the row pitch is a quarter of the column pitch.
@@ -127,14 +128,9 @@ export type DashboardCell = {
  * free-form. A ratio of 0 would give an infinite height, and NaN a NaN height.
  */
 export function usableRatio(ratio: number | undefined): number | undefined {
-	const finite = finiteOrAbsent(ratio)
+	const finite = finiteOrUndefined(ratio)
 
 	return finite !== undefined && finite > 0 ? finite : undefined
-}
-
-/** `value`, or `undefined` when it is not a finite number. */
-function finiteOrAbsent(value: number | undefined): number | undefined {
-	return value !== undefined && Number.isFinite(value) ? value : undefined
 }
 
 /** A span limit from its two axes, or `undefined` when neither axis is set. */
@@ -154,9 +150,9 @@ export function spanLimit(
 function usableSize(size: DashboardTileSize | undefined): DashboardTileSize | undefined {
 	if (size === undefined) return undefined
 
-	const w = finiteOrAbsent(size.w) ?? DEFAULT_CELL_WIDTH
+	const w = finiteOrUndefined(size.w) ?? DEFAULT_CELL_WIDTH
 
-	const h = finiteOrAbsent(size.h)
+	const h = finiteOrUndefined(size.h)
 
 	return w === size.w && h === size.h ? size : { w, h }
 }
@@ -172,9 +168,9 @@ function usableLimit(
 ): Partial<DashboardTileSize> | undefined {
 	if (limit === undefined) return undefined
 
-	const w = finiteOrAbsent(limit.w)
+	const w = finiteOrUndefined(limit.w)
 
-	const h = finiteOrAbsent(limit.h)
+	const h = finiteOrUndefined(limit.h)
 
 	return w === limit.w && h === limit.h ? limit : spanLimit(w, h)
 }
@@ -195,7 +191,7 @@ function usableLimit(
 export function usableDemands(demands: DashboardTileDemands): DashboardTileDemands {
 	const ratio = usableRatio(demands.ratio)
 
-	const width = finiteOrAbsent(demands.minWidth)
+	const width = finiteOrUndefined(demands.minWidth)
 
 	const minWidth = width !== undefined && width >= 0 ? width : undefined
 

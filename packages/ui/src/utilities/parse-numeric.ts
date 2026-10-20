@@ -73,3 +73,14 @@ export function parseNumeric(value: unknown): number | null {
 
 	return negative ? -parsed : parsed
 }
+
+/**
+ * `value` when it is a finite number, else `undefined`. A `NaN` or an
+ * infinite value, such as a `parseFloat('')` from an input, thus reads as no
+ * value.
+ *
+ * @internal
+ */
+export function finiteOrUndefined(value: number | undefined): number | undefined {
+	return Number.isFinite(value) ? value : undefined
+}

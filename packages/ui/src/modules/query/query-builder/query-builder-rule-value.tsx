@@ -11,6 +11,7 @@ import { Select } from '../../../components/select'
 import { cn } from '../../../core'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { Flex } from '../../../structure/flex'
+import { finiteOrUndefined } from '../../../utilities/parse-numeric'
 import type { QueryField } from '../engine/types'
 import { queryBuilderMessages } from './query-builder-messages'
 
@@ -41,9 +42,7 @@ function toTuple(value: unknown): [number | '', number | ''] {
 function toBound(value: number | ''): number | undefined {
 	if (value === '') return undefined
 
-	const bound = Number(value)
-
-	return Number.isFinite(bound) ? bound : undefined
+	return finiteOrUndefined(Number(value))
 }
 
 /**
