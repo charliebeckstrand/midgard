@@ -7,6 +7,7 @@
 
 import type { ColumnPinningState } from '@tanstack/react-table'
 import { type RefObject, useLayoutEffect, useMemo, useState } from 'react'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import {
 	EMPTY_FROZEN_LAYOUT,
@@ -15,6 +16,7 @@ import {
 	sameFrozenLayout,
 	sameFrozenStructure,
 } from './engine/grid-pin/layout'
+import type { FrozenOffsets } from './engine/grid-pin/measure'
 import { createFrozenOffsetStore, writeFrozenOffsets } from './engine/grid-pin/offsets'
 import type { EngineColumn } from './engine/grid-table/features'
 import { buildColumnPinning, type GridColumnPinning } from './engine/grid-table/pinning-view'
@@ -51,20 +53,39 @@ export function useGridPinningView<T>(args: {
 	right: readonly EngineColumn<T>[]
 	widths: ReadonlyMap<string, number>
 }): GridColumnPinning | null {
-	const { hasPinned, left, right, widths } = args
+	const { hasPinned, left, right, widths, containerRef } = args
+
+	const sections = {
+		left: left.map((column) => column.id),
+		right: right.map((column) => column.id),
+	}
+
+	// The first render has no measurement yet, so the store starts at the layout of
+	// the engine's widths, which is the layout of that render.
+	const [offsets] = useState(() =>
+		createFrozenOffsetStore(hasPinned ? frozenLayout(sections, widths, null) : EMPTY_FROZEN_LAYOUT),
+	)
+
+	// Writes a measurement that the observer of `useGridPinnedOffsets` takes, through
+	// the offset store, as the layout effect below writes a commit.
+	const write = useStableEvent((measured: FrozenOffsets) => {
+		const next = frozenLayout(sections, widths, measured)
+
+		const prev = offsets.commit(next)
+
+		const container = containerRef?.current
+
+		if (container) writeFrozenOffsets(container, prev, next)
+	})
 
 	const measured = useGridPinnedOffsets({
 		frozen: hasPinned,
 		engineSized: args.resizable,
 		pinning: args.columnPinning,
 		columns: args.visibleColumns,
-		containerRef: args.containerRef,
+		containerRef,
+		write,
 	})
-
-	const sections = {
-		left: left.map((column) => column.id),
-		right: right.map((column) => column.id),
-	}
 
 	const layout = useStableValue<FrozenLayout>(
 		hasPinned ? frozenLayout(sections, widths, measured) : EMPTY_FROZEN_LAYOUT,
@@ -72,10 +93,6 @@ export function useGridPinningView<T>(args: {
 	)
 
 	const structure = useStableValue<FrozenLayout>(layout, sameFrozenStructure)
-
-	const [offsets] = useState(() => createFrozenOffsetStore(layout))
-
-	const { containerRef } = args
 
 	useLayoutEffect(() => {
 		const prev = offsets.commit(layout)
