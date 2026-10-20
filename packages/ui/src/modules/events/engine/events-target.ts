@@ -1,4 +1,4 @@
-import { findScrollableAncestor } from '../../../utilities/find-scrollable-ancestor'
+import { getScroller } from '../../../utilities/get-scroller'
 
 // The names of the elements that an event reaches, and the mark of the
 // elements of the tools themselves.
@@ -40,7 +40,7 @@ export function describePlace(el: Element): string {
 
 	const box = [x, y, width, height].map(Math.round)
 
-	const scroller = findScrollableAncestor(el.parentElement)
+	const scroller = getScroller(el.parentElement, { inline: true, overflowing: true })
 
 	const scroll = scroller
 		? `, in ${describeTarget(scroller)} scrolled ${Math.round(scroller.scrollLeft)},${Math.round(scroller.scrollTop)}`

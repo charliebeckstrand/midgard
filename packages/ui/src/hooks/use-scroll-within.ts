@@ -1,6 +1,6 @@
 'use client'
 
-import { isScrollOverflow } from '../utilities/scroll-overflow'
+import { getScroller } from '../utilities/get-scroller'
 
 /** Where a node must land within the scroller, per axis. Mirrors native `scrollIntoView`. */
 type ScrollAlignment = 'start' | 'center' | 'end' | 'nearest'
@@ -18,45 +18,6 @@ export type ScrollWithinOptions = {
 	 * left alone — which is every caller that only ever scrolls a list.
 	 */
 	inline?: ScrollAlignment
-}
-
-/** @internal */
-function isClipping(overflow: string) {
-	return overflow === 'hidden' || overflow === 'clip'
-}
-
-/**
- * Nearest scrollable ancestor that actually overflows on a requested axis. Stops at an
- * ancestor that clips a requested axis (`overflow: hidden`/`clip`). Nothing outside it can
- * bring the node into view. A further walk would scroll an outer container the caller never
- * meant to touch. A short sidebar inside a clipped frame, for example, would scroll the
- * whole page on mount.
- *
- * @remarks Resolves ONE scroller. When a node's vertical and horizontal scrollers are
- * different ancestors, the nearer one wins and the other axis no-ops. The case this is
- * written for is a single container that overflows both ways.
- * @internal
- */
-function findScrollAncestor(node: HTMLElement, wantsInline: boolean): HTMLElement | null {
-	let scroller = node.parentElement
-
-	while (scroller) {
-		const { overflowX, overflowY } = getComputedStyle(scroller)
-
-		// Require the ancestor to overflow, not merely declare a scroll style;
-		// scrollTo no-ops on a non-overflowing wrapper.
-		if (isScrollOverflow(overflowY) && scroller.scrollHeight > scroller.clientHeight)
-			return scroller
-
-		if (wantsInline && isScrollOverflow(overflowX) && scroller.scrollWidth > scroller.clientWidth)
-			return scroller
-
-		if (isClipping(overflowY) || (wantsInline && isClipping(overflowX))) return null
-
-		scroller = scroller.parentElement
-	}
-
-	return null
 }
 
 /**
@@ -151,7 +112,16 @@ export function scrollWithin(node: HTMLElement | null, options: ScrollWithinOpti
 
 	const { block = 'nearest', inline } = options
 
-	const scroller = findScrollAncestor(node, inline !== undefined)
+	// The scroller must overflow now: scrollTo no-ops on a wrapper that does not.
+	// An ancestor that clips a requested axis ends the walk, because a further
+	// walk would scroll an outer container that the caller never meant to touch.
+	// One scroller serves both axes, so when the vertical and horizontal
+	// scrollers are different ancestors, the nearer one wins.
+	const scroller = getScroller(node.parentElement, {
+		inline: inline !== undefined,
+		overflowing: true,
+		stopAtClip: true,
+	})
 
 	if (scroller) scrollNodeWithin(scroller, node, { ...options, block })
 }
