@@ -157,10 +157,6 @@ const NO_BASE_EXEMPT = new Map<string, string>([
 		'its viewport renders in a portal only after hydration, so the props of the root would have no element on the server',
 	],
 	[
-		'layouts/dashboard.tsx → DashboardLayoutProps',
-		'its root is a `StackedLayout`, which renders no element of its own to take the rest',
-	],
-	[
 		'modules/chart/choropleth-chart/choropleth-chart.tsx → ChoroplethChartProps',
 		'the fullscreen view renders the chart a second time, so an `id` or a `ref` would reach two elements',
 	],

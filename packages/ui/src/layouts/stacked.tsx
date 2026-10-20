@@ -1,11 +1,9 @@
-import type { ComponentProps, PropsWithChildren } from 'react'
+import type { ComponentProps } from 'react'
 import { cn, createSlot } from '../core'
 import { Stack } from '../structure/stack'
 
-/** Props for {@link StackedLayout}: the header, body, and footer slots to stack. */
-export type StackedLayoutProps = PropsWithChildren<{
-	className?: string
-}>
+/** Props for {@link StackedLayout}: the header, body, and footer slots to stack. The `<div>` takes the rest. */
+export type StackedLayoutProps = ComponentProps<'div'>
 
 /**
  * Vertically stacked page layout: a min-height-collapsing {@link Stack} column
@@ -13,11 +11,9 @@ export type StackedLayoutProps = PropsWithChildren<{
  * {@link StackedLayoutFooter}. The header and footer stay fixed-height while the
  * body flexes and scrolls.
  */
-export function StackedLayout({ children, className }: StackedLayoutProps) {
+export function StackedLayout({ className, ...props }: StackedLayoutProps) {
 	return (
-		<Stack gap="lg" className={cn('min-h-0', className)}>
-			{children}
-		</Stack>
+		<Stack data-slot="stacked-layout" gap="lg" {...props} className={cn('min-h-0', className)} />
 	)
 }
 

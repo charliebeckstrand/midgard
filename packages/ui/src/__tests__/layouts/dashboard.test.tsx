@@ -1,8 +1,9 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { DashboardLayout } from '../../layouts/dashboard'
 import { LocaleProvider } from '../../providers/locale'
 import { adaptive } from '../../types/responsive'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('DashboardLayout', () => {
 	it('lays the filters beside the column from the breakpoint that `layout` names', () => {
@@ -23,6 +24,22 @@ describe('DashboardLayout', () => {
 			'flex-col',
 			'sm:flex-row',
 		)
+	})
+
+	it('renders its own anchor and takes the attributes and ref of its <div>', () => {
+		const ref = createRef<HTMLDivElement>()
+
+		const { container } = renderUI(
+			<DashboardLayout ref={ref} id="reports">
+				content
+			</DashboardLayout>,
+		)
+
+		const root = bySlot(container, 'dashboard-layout')
+
+		expect(root).toBe(ref.current)
+
+		expect(root?.id).toBe('reports')
 	})
 
 	it('does not render the filters trigger when filters are not provided', () => {
