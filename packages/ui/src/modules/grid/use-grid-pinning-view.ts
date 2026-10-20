@@ -60,6 +60,12 @@ export function useGridPinningView<T>(args: {
 		right: right.map((column) => column.id),
 	}
 
+	// The first render has no measurement yet, so the store starts at the layout of
+	// the engine's widths, which is the layout of that render.
+	const [offsets] = useState(() =>
+		createFrozenOffsetStore(hasPinned ? frozenLayout(sections, widths, null) : EMPTY_FROZEN_LAYOUT),
+	)
+
 	// Writes a measurement that the observer of `useGridPinnedOffsets` takes, through
 	// the offset store, as the layout effect below writes a commit.
 	const write = useStableEvent((measured: FrozenOffsets) => {
@@ -87,8 +93,6 @@ export function useGridPinningView<T>(args: {
 	)
 
 	const structure = useStableValue<FrozenLayout>(layout, sameFrozenStructure)
-
-	const [offsets] = useState(() => createFrozenOffsetStore(layout))
 
 	useLayoutEffect(() => {
 		const prev = offsets.commit(layout)
