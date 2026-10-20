@@ -6,7 +6,7 @@ import { createGroup, createRule } from './engine/query-node'
 import { addChild, mapNode, moveChild, removeChild } from './engine/query-tree'
 import type { QueryCombinator, QueryField, QueryGroup, QueryRule } from './engine/types'
 
-/** Tree-edit actions over a query root; each is referentially stable across edits. */
+/** Tree-edit actions over a query root; each is referentially stable across edits. @internal */
 export type QueryTreeActions = {
 	updateRule: (id: string, patch: Partial<QueryRule>) => void
 	updateCombinator: (id: string, combinator: QueryCombinator) => void
@@ -17,7 +17,7 @@ export type QueryTreeActions = {
 	move: (id: string, toIndex: number) => void
 }
 
-/** Options for {@link useQueryTree}: the queryable `fields` and the controlled/uncontrolled root. */
+/** Options for {@link useQueryTree}: the queryable `fields` and the controlled/uncontrolled root. @internal */
 export type QueryTreeOptions = {
 	/** Seeds a new rule's field when a rule is added. */
 	fields: QueryField[]
@@ -26,7 +26,7 @@ export type QueryTreeOptions = {
 	onValueChange?: (value: QueryGroup) => void
 }
 
-/** The current query `root` and the stable {@link QueryTreeActions} that edit it. */
+/** The current query `root` and the stable {@link QueryTreeActions} that edit it. @internal */
 export type QueryTreeResult = {
 	root: QueryGroup
 	actions: QueryTreeActions
@@ -39,8 +39,6 @@ export type QueryTreeResult = {
  * composes this with the builder's focus management.
  *
  * @remarks `QueryBuilder` and `QueryChips` both hold their tree with this hook.
- * Use it for a third view over the same tree, with `summarizeQuery` for the
- * display text.
  *
  * @example
  * ```tsx
@@ -48,6 +46,7 @@ export type QueryTreeResult = {
  *
  * return <button onClick={() => actions.addRule(root.id)}>Add rule</button>
  * ```
+ * @internal
  */
 export function useQueryTree({
 	fields,
