@@ -50,7 +50,7 @@ export function createGroup(
  *
  * @internal
  */
-export function defaultValueFor(field?: QueryField): JsonValue {
+function defaultValueFor(field?: QueryField): JsonValue {
 	if (!field) return ''
 
 	if (field.type === 'boolean') return null

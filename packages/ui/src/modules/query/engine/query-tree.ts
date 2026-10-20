@@ -1,11 +1,6 @@
 import { clamp } from '../../../utilities/clamp'
 import type { QueryCombinator, QueryGroup, QueryNode } from './types'
 
-/** Returns true when the group (or any nested group) contains at least one rule. */
-export function hasRules(group: QueryGroup): boolean {
-	return group.children.some((child) => child.type === 'rule' || hasRules(child))
-}
-
 /**
  * Applies a transform to the node matching `id`, walking recursively.
  *

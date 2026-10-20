@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { describeNode } from '../../modules/query/engine/query-announcements'
-import { createGroup } from '../../modules/query/engine/query-node'
 import type { QueryField, QueryRule } from '../../modules/query/engine/types'
 import {
 	type QueryBuilderActions,
@@ -79,12 +78,7 @@ function renderRule(
 
 	function Wrapper({ children }: { children: ReactNode }) {
 		return (
-			<QueryBuilderProvider
-				state={stateValue}
-				actions={actions}
-				root={createGroup()}
-				register={() => {}}
-			>
+			<QueryBuilderProvider state={stateValue} actions={actions} register={() => {}}>
 				{children}
 			</QueryBuilderProvider>
 		)
