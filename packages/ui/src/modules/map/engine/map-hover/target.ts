@@ -19,7 +19,7 @@ export type MapHoverTarget =
 			kind: 'entry'
 			id: string
 			/**
-			 * Which of the mark's stops, for a mark that draws more than one — a
+			 * Which of the mark's stops, for a mark that draws more than one: a
 			 * {@link MapPoints} dot. A singular mark carries `0`, so an entry target
 			 * always has a stop and no reader tests for its absence.
 			 */
@@ -61,7 +61,7 @@ export function sameMark(a: MapHoverTarget | null, b: MapHoverTarget | null): bo
  * Whether a mark reads dimmed under the shared emphasis, in order:
  *
  * - the pointed mark recedes everything but itself;
- * - else the legend's focused id dims marks outside its group (`groupId` — an
+ * - else the legend's focused id dims marks outside its group (`groupId`: an
  *   overlay's own entry id, a region's category id);
  * - else nothing dims.
  *

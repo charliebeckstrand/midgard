@@ -22,10 +22,10 @@ const content = [
 
 export const k = {
 	trigger: {
-		// Cloned onto the trigger's child ahead of the child's own `className`, so a
-		// child that needs another display box restates it and wins — a truncating
-		// child must, an ellipsis paints against a block box rather than a flex
-		// container.
+		// Cloned onto the trigger's child ahead of the child's own `className`, so
+		// a child that needs another display box restates it and wins. A truncating
+		// child must, because an ellipsis paints against a block box rather than a
+		// flex container.
 		base: flex.inline,
 		/**
 		 * The help cursor, and only while there is something to ask.

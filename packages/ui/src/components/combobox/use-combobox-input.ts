@@ -45,7 +45,7 @@ type ComboboxInputParams<T> = {
 	onTouched?: () => void
 	keyboardSettled: (callback: () => void) => void
 	rovingKeyDown: KeyboardEventHandler<HTMLInputElement>
-	/** The consumer's paste handler — see {@link ComboboxBaseProps.onPaste}. */
+	/** The consumer's paste handler (see {@link ComboboxBaseProps.onPaste}). */
 	onPaste?: ClipboardEventHandler<HTMLInputElement>
 }
 
@@ -72,8 +72,8 @@ export function isReservedTextboxKey(event: KeyboardEvent<HTMLInputElement>): bo
  * The menu opens only from the far edge of the text in the key's direction:
  * ArrowDown at the end, ArrowUp at the start. A mid-value caret or a ranged
  * selection therefore travels to that edge natively first, as in a plain
- * textbox, and the next press opens. With no caret to traverse — an empty value, or an element
- * reporting a null selection — either key opens immediately.
+ * textbox, and the next press opens. With no caret to traverse (an empty value, or an element
+ * reporting a null selection) either key opens immediately.
  *
  * @remarks
  * The null-selection arm is defensive rather than reachable: the combobox input

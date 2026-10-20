@@ -8,7 +8,7 @@ import { ScatterChart, type ScatterChartProps } from '../scatter-chart'
  * Props for {@link BubbleChart}: the {@link ScatterChartProps} with the size
  * encoding required on every series. The props come from the scatter, so the
  * bubble takes `onPointClick` and no `texture`, as the scatter does. Requires an
- * accessible name (`aria-label` or `aria-labelledby`) — the plot is
+ * accessible name (`aria-label` or `aria-labelledby`): the plot is
  * `role="img"`, so assistive tech needs a name for it.
  */
 export type BubbleChartProps<T = never> = AccessibleName &

@@ -20,7 +20,7 @@ import type { MapHoverTarget } from './engine/map-hover/target'
  *
  * Deliberately reads the ungated target and not the pointed mark. That one
  * withholds emphasis from a region whose category is unmatched or toggled off,
- * which is a question about data. What a region opens into is not — a state has
+ * which is a question about data. What a region opens into is not: a state has
  * its counties whether or not it carries a row.
  *
  * @param target - The hover target, region or overlay mark; only regions warm.

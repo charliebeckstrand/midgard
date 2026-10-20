@@ -22,9 +22,9 @@ export type TooltipAnchorProps = TooltipAnchorOptions & {
 }
 
 /**
- * An element-anchored tooltip: the standard Tooltip chrome (`<TooltipBody>` —
- * glass adoption, motion, sizing) positioned against an element the caller
- * names, opened from the caller's own state. The sibling of
+ * An element-anchored tooltip: the standard Tooltip chrome (`<TooltipBody>`,
+ * with its glass adoption, motion, and sizing) positioned against an element
+ * the caller names, opened from the caller's own state. The sibling of
  * `<TooltipPointer>`, one anchoring mode over.
  *
  * A component rather than the bare hook so consumers never touch

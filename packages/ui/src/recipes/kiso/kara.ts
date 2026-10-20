@@ -9,7 +9,7 @@
  * two selectors are how a container reads it. One collapses the list, one
  * reveals the message beside it.
  *
- * Pair them with the plain `:empty` rules rather than replacing them — the
+ * Pair them with the plain `:empty` rules rather than replacing them: the
  * non-virtualized path still empties for real.
  *
  * Literal class strings: Tailwind's source scanner can't see selectors built

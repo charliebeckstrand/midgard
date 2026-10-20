@@ -12,7 +12,7 @@ import { createContext } from '../../core'
  *
  * @returns `useHeadless()` reads the ambient flag; `false` outside any
  * `<HeadlessProvider>` (the configured default), so the hook is safe to call anywhere.
- * @see {@link HeadlessProvider} — the provider that sets the flag.
+ * @see {@link HeadlessProvider}: the provider that sets the flag.
  */
 export const [HeadlessContext, useHeadless] = createContext<boolean>('Headless', {
 	default: false,

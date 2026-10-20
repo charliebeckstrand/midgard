@@ -5,8 +5,8 @@ import { k } from '../../recipes/kata/placeholder'
 /** Props for {@link Placeholder}: native `<div>` attributes, including `data-*` keys, plus the element to render. */
 export type PlaceholderProps = {
 	/**
-	 * The element to render. A `span` stands in for inline content — a badge inside a line of
-	 * text, say — where a `div` would be invalid HTML: inside a `<p>`, the parser closes the
+	 * The element to render. A `span` stands in for inline content (a badge inside a line of
+	 * text, say), where a `div` would be invalid HTML: inside a `<p>`, the parser closes the
 	 * paragraph at it, and a server-rendered tree then fails to hydrate.
 	 * @defaultValue 'div'
 	 */

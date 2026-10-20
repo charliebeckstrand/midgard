@@ -20,11 +20,11 @@ export type TooltipPointerProps = TooltipPointerOptions & {
 }
 
 /**
- * A pointer-anchored tooltip: the standard Tooltip chrome
- * (`<TooltipBody>` — glass adoption, motion, sizing) driven by a client
- * `point` rather than a DOM trigger. The chart, map, and heatmap hover readouts
- * share it, each feeding the point and `open` flag from its own hover pipeline.
- * All three therefore collapse to `<TooltipPointer>`, instead of hand-rolling
+ * A pointer-anchored tooltip: the standard Tooltip chrome (`<TooltipBody>`,
+ * with its glass adoption, motion, and sizing) driven by a client `point`
+ * rather than a DOM trigger. The chart, map, and heatmap hover readouts share
+ * it, each feeding the point and `open` flag from its own hover pipeline. All
+ * three therefore collapse to `<TooltipPointer>`, instead of hand-rolling
  * floating state.
  *
  * @remarks An `aria-hidden` pointer enhancement by design: it stamps no role or

@@ -62,7 +62,7 @@ import { useGridNewRow } from './use-grid-new-row'
 export type GridEditingApi = {
 	session: GridEditingSession
 	/**
-	 * Opens the named cell for editing and focuses its editor once that mounts —
+	 * Opens the named cell for editing and focuses its editor once that mounts:
 	 * the grid-owned entry behind `session: 'managed'`. Under row scope the
 	 * cell names the row to open. An entry on a cell whose editor is already open
 	 * only moves focus into that editor, and a `seed` replaces its draft. Under
@@ -262,7 +262,7 @@ export function useGridEditing<T>({
 	// it seeds the uncontrolled state, and the row it needs seeds `defaultRows`.
 	const [initial] = useState(() => readInitialCell(config, cellScoped, editSource))
 
-	// The editable-row set is consumer-driven by default — the grid renders no
+	// The editable-row set is consumer-driven by default: the grid renders no
 	// built-in entry and only reads the binding (a row-action button flips a
 	// key). Under `session: 'managed'` the grid also writes it, through the
 	// session callbacks below, so every entry/exit still emits `onRowsChange`.

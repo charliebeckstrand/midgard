@@ -9,10 +9,10 @@ const { divider, focus } = sen
 export const k = {
 	base: [flex.col, dan.gap.scale.sm],
 	// Leading slot for a frozen row, occupying (and aligned to) where an orderable
-	// row's drag grip sits — `px-3 -ms-3 -me-3` — so the checkboxes line up across
+	// row's drag grip sits (`px-3 -ms-3 -me-3`), so the checkboxes line up across
 	// the prepended, scrolling, and appended groups.
 	lead: [flex.inline, 'flex-none', 'justify-center', 'px-3', '-ms-3', '-me-3'],
-	// Interactive pin control — the per-row menu trigger that pins left/right or
+	// Interactive pin control: the per-row menu trigger that pins left/right or
 	// unpins. Muted at rest, tinting on hover/focus like the header's pin button.
 	pin: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, cursor, 'select-none'],
 	// Static, non-interactive glyph: the edge arrow on a locked row (an immutable

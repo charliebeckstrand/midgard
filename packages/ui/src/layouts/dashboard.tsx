@@ -30,7 +30,7 @@ export type DashboardLayoutProps = PropsWithChildren<{
 	 *
 	 * @remarks
 	 * A prop and not a compound child, deliberately. The layout renders this
-	 * content in two places at once — the inline rail and the drawer — and
+	 * content in two places at once (the inline rail and the drawer) and
 	 * hides one by breakpoint. A compound child sits where it is written, so
 	 * it can fill one of the two. The second would have to come from a registry
 	 * that re-renders the same tree elsewhere, duplicating the content's own

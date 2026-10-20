@@ -62,12 +62,12 @@ const outline: Record<PaletteColor, string> = {
 export const k = {
 	// Outline color for a group's editor Card in its color (see {@link outline}).
 	outline,
-	// The group row's cells align their band vertically; no bottom rule — the
+	// The group row's cells align their band vertically; no bottom rule: the
 	// colored Badge alone sets the tier off from the column headers.
 	cell: ['align-middle'],
 	// A group band's cell content: the Badge row above the colored rule, stacked so
-	// the rule spans the cell's content width — inset by the header's cell padding,
-	// so it lines up with the column titles and leaves a gap between groups.
+	// the rule spans the cell's content width (inset by the header's cell padding,
+	// so it lines up with the column titles and leaves a gap between groups).
 	content: [flex.col, dan.gap.scale.sm],
 	// A group's 2px underline rule: a rounded bar spanning the band content width,
 	// under the Badge. Every group draws it. A colored group takes `color`, and a

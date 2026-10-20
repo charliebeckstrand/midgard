@@ -36,7 +36,7 @@ export type CollapsePanelProps = Omit<
  * @remarks
  * Under the default `mount="active"` the panel unmounts while closed, so
  * reopening resets its state. `always` and `lazy` instead hold it in
- * `<Activity mode="hidden">` — state preserved, effects torn down. A held panel
+ * `<Activity mode="hidden">`: state preserved, effects torn down. A held panel
  * stays mounted, so it animates between its open and closed states in place
  * rather than entering and exiting. It drops into the hold only once the
  * closing height transition lands: `display: none` cannot animate, so the hold
@@ -55,10 +55,10 @@ export function CollapsePanel({ children, className, ...props }: CollapsePanelPr
 	// identity. Presets are module constants, so the identity holds.
 	const { report, onAnimationComplete } = useOpenComplete(open, preset?.animate, onOpenComplete)
 
-	// No transition to land, so the open itself is the arrival. Routed through the
-	// transition watcher rather than an `open` effect, so a panel that mounts already
-	// open announces nothing — the contract the animated branches keep for free,
-	// because the motion library plays no entrance on mount.
+	// No transition to land, so the open itself is the arrival. Routed through
+	// the transition watcher rather than an `open` effect, so a panel that mounts
+	// already open announces nothing. The animated branches keep that contract
+	// for free, because the motion library plays no entrance on mount.
 	useReportedChange(open, (next) => {
 		if (!preset && next) report()
 	})
@@ -68,7 +68,7 @@ export function CollapsePanel({ children, className, ...props }: CollapsePanelPr
 	// region landmark, so each panel would add one landmark to the page.
 	const { id } = panelProps
 
-	// The panel's identity — element, a11y wiring, classes — is one shape across
+	// The panel's identity (element, a11y wiring, classes) is one shape across
 	// every branch below; only how it animates (or whether it does) differs. The
 	// consumer props spread first, so the id wiring and the motion win.
 	const panel = (motionProps: object, contentProps?: object) => (

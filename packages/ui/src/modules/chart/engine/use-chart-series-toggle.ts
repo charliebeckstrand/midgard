@@ -89,7 +89,7 @@ export function useChartSeriesToggle(
 }
 
 /**
- * Which reference rules are toggled off — the reference chips' switchboard. It
+ * Which reference rules are toggled off: the reference chips' switchboard. It
  * carries no emphasis of its own. A chip's recede lives in the frame's
  * {@link ChartEmphasis} channel, reached only through the chip. The legend gates
  * that chip on this hidden set, so an off chip never recedes to a rule it just pulled.

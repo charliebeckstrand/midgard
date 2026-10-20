@@ -113,7 +113,7 @@ export type ListProps<T> = BaseListProps<T> &
  * fallback remounts items mid-drag and breaks keyboard-move refocus. Each
  * reorderable row adds one Tab stop of its own, on its content area when that
  * area activates and on the `<li>` otherwise. A focusable child, such as a
- * checkbox, keeps its own stop — see {@link ListItem}. Only the handle starts a
+ * checkbox, keeps its own stop (see {@link ListItem}). Only the handle starts a
  * pointer drag. The rows move as the pointer passes them, and the list calls
  * `onReorder` once, on the drop. The box of the list holds the dragged row, so
  * the row does not go over the content around the list. Escape cancels the drag. The list loads no

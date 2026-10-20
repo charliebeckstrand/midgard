@@ -22,7 +22,7 @@ export const mark = {
 	/** Area wash fade, trailing the draw so it fills in as the stroke crosses it. */
 	fade: { duration: duration[500], delay: duration[150] },
 	pop,
-	/** The pop held until the draw has finished — the line's end-point landing. */
+	/** The pop held until the draw has finished: the line's end-point landing. */
 	land: { ...pop, delay: draw.duration },
 	/** Per-bar grow from the zero baseline. */
 	grow: { duration: duration[400], ease: ease.out },

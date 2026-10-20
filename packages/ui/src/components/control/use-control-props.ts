@@ -106,7 +106,7 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 
 	// An explicit `invalid` (the field's own prop or a form binding) or an ambient
 	// `error` severity marks the control invalid. A nested `<Message>` is
-	// presentational: it never drives the chrome — the ring comes from severity.
+	// presentational: it never drives the chrome (the ring comes from severity).
 	const invalid = input.invalid || severity === 'error' || undefined
 
 	// Invalid wins the validation chrome; otherwise reflect a warning / success

@@ -252,7 +252,7 @@ export function DrawerPanel({
 
 	// The gesture is held here, by the component that owns the panel it writes to.
 	// A pixel height means nothing off the screen it was set on, so it stays in
-	// here — there is nothing for a consumer to hold.
+	// here: there is nothing for a consumer to hold.
 	const resize = usePanelResize({
 		side: 'bottom',
 		open,
@@ -337,7 +337,7 @@ export function DrawerPanel({
 				onClick={composeEventHandlers(onClick, (event) => event.stopPropagation(), {
 					checkForDefaultPrevented: false,
 				})}
-				// A dragged height beats the variant's — and a `fit` panel's, which stands
+				// A dragged height beats the variant's, and a `fit` panel's, which stands
 				// down for as long as one is held. It is inline because it is a
 				// measurement rather than a step: there is no class for "412 pixels".
 				// The consumer `style` comes first, so the dragged height wins.

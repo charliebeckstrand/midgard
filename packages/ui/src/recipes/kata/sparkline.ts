@@ -18,7 +18,7 @@ export const k = defineRecipe(
 		base: ['inline-block', 'align-middle'],
 		skeleton: kokkaku.sparkline,
 	},
-	// `motion` is the shared data-viz mark-reveal family — the same timings the
+	// `motion` is the shared data-viz mark-reveal family: the same timings the
 	// chart module draws with, so a sparkline and a chart animating side by side
 	// read as one.
 	{ color: iro.meter, motion: ugoki.mark, svg: ['block', ...kokkaku.sparkline.box] },

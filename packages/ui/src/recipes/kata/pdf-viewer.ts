@@ -1,6 +1,6 @@
 /**
  * PDF-viewer kata: object-literal surface for the `<PdfViewer>` chrome. No
- * variants axis — nested slot groups instead:
+ * variants axis (nested slot groups instead):
  *
  * - The `toolbar`.
  * - The magnifier's `settings` dialog.
@@ -19,7 +19,7 @@ const { bg, rail, skeleton } = omote
 const { border, focus, ring } = sen
 
 // The page image and every layer drawn over it must sit in the same place, so the centering
-// has one home — the rotation half of the same invariant is the `transform` string
+// has one home: the rotation half of the same invariant is the `transform` string
 // `usePdfViewerPageScale` computes once.
 const centered = 'absolute top-1/2 left-1/2 origin-center'
 
@@ -191,7 +191,7 @@ export const k = {
 					// A sou rung, not a local z-index: the lens portals to the body, so DOM order
 					// decides nothing and the number is the whole contract. It is raised from inside
 					// a viewer that is routinely itself inside a Drawer or Dialog, so it has to clear
-					// `overlay` — and `lens` sits one above `float` besides, so a tooltip anchored to
+					// `overlay`, and `lens` sits one above `float` besides, so a tooltip anchored to
 					// the region being inspected cannot paint inside the loupe and hide the very
 					// content the reader leaned in to read.
 					sou.lens,
@@ -211,8 +211,8 @@ export const k = {
 				// biome-ignore lint/plugin/no-physical-side: the offset math moves the copy from its top left corner
 				stage: ['absolute top-1/2 left-1/2 origin-top-left'],
 			},
-			// Region overlay. The layer is the page image's twin — same box, same
-			// transform — so a region positioned in percentages of it lands on the same
+			// Region overlay. The layer is the page image's twin (same box, same
+			// transform), so a region positioned in percentages of it lands on the same
 			// ink at every zoom and rotation, with no per-region math.
 			highlights: {
 				base: [centered],
@@ -270,7 +270,7 @@ export const k = {
 						 */
 						base: [...ring.line[2].outset, 'z-10'],
 						/**
-						 * The wash — the palette's doubled rung.
+						 * The wash: the palette's doubled rung.
 						 *
 						 * A heavier stroke alone did not carry it. At 15% over printed ink the fill is
 						 * near-invisible either way, so the only thing distinguishing the selection was
@@ -301,7 +301,7 @@ export const k = {
 					 * Every *other* region, while one is selected: the same highlight in neutral.
 					 *
 					 * On a page carrying twenty-odd washes, making one heavier is not enough to
-					 * pick it out — the eye still reads a field of color. Taking the *color* off
+					 * pick it out: the eye still reads a field of color. Taking the *color* off
 					 * the rest leaves exactly one thing colored.
 					 *
 					 * Only the color, though. These keep the palette's own zinc fill and ring, at

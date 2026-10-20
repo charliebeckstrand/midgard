@@ -16,7 +16,7 @@
  *     AA (4.5:1) on its own surface.
  *   - `onTint`: foreground for the translucent 15% *chromatic* soft fill, one
  *     step stronger than `onSurface`; `plain` / `soft` / `outline` read this.
- *     The neutral washes are a different ground with their own rung —
+ *     The neutral washes are a different ground with their own rung:
  *     `onWash.muted` below, not this role.
  *   - `marker`: chromatic dot / glyph (status, spinner, timeline) on the page
  *     surface. Graphical; the non-text 3:1 floor (1.4.11) lands a rung lighter
@@ -75,7 +75,7 @@ export const marker = project(RAMP, 'marker')
 export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:text-white']
 
 /**
- * Foregrounds for the neutral wash — the translucent zinc/white overlay a row,
+ * Foregrounds for the neutral wash: the translucent zinc/white overlay a row,
  * track, or item sits on when it is hovered, roved, or otherwise picked out.
  * Keyed by purpose, like `intent`, since what varies here is emphasis rather
  * than hue; `muted` is the only rung so far.
@@ -99,7 +99,7 @@ export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:tex
  *
  * Two paths deliberately not taken. Raising `muted` itself to `zinc-600` would
  * delete this fork, but `muted` has ~83 recipe call sites. `zinc-500` is the
- * correct least-emphatic rung *for the page* — a design call, not an
+ * correct least-emphatic rung *for the page*: a design call, not an
  * engineering one. And a fourth color-major `RAMP` role would force red /
  * amber / green / blue rungs with no consumer to size them against. When a
  * *chromatic* ink first lands on this wash it joins here as a color-keyed

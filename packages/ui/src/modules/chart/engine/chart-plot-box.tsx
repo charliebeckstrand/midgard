@@ -50,7 +50,7 @@ function contentPadding(offset: number, min: number): string {
  * committed pixel size (see {@link ChartFrame}), never one it stretches to fill.
  * A resize moves the box's CSS size at once, while the SVG holds its last
  * commit. The box therefore clips a shrinking edge, or reveals a growing sliver.
- * It does not scale the whole drawing — axis labels included — against a stale
+ * It does not scale the whole drawing (axis labels included) against a stale
  * `viewBox` until the next commit lands. The SVG is out of flow, so it never feeds its own
  * size back into the box the reserve is meant to own.
  *

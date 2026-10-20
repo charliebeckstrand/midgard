@@ -80,7 +80,7 @@ const item = defineRecipe({
 	},
 	// Whether the content column's hit area covers the whole row. The row turns
 	// into the containing block for that overlay (see `content.stretched`), and
-	// every slot beside the content column steps over it — a drag handle or a
+	// every slot beside the content column steps over it: a drag handle or a
 	// trailing control stays pressable. `z-index` alone does that: a flex item
 	// takes one while it stays static, so the slots need no `position` of their
 	// own, and a consumer's `prefix` keeps whatever containing block it had.
@@ -108,7 +108,7 @@ const item = defineRecipe({
 		{ variant: 'outline', rounded: true, class: roundedWash },
 		// The hover wash, one per variant, because each rests on a different fill and
 		// a wash is a background *replacement*. It rides the `<li>` rather than the
-		// content column so it covers the prefix and suffix slots too — a row that
+		// content column so it covers the prefix and suffix slots too: a row that
 		// lights up under the label alone reads as two targets.
 		//
 		// A row on bare ground takes the standard wash, doubled inside a glass
@@ -123,11 +123,11 @@ const item = defineRecipe({
 			class: [tint.before, tint.glass.before],
 		},
 		// A card rests on an opaque surface, and an alpha wash would not darken it
-		// but replace it — the row would go see-through to whatever it covers for
+		// but replace it: the row would go see-through to whatever it covers for
 		// as long as the pointer rests there. It steps shade instead.
 		{ variant: 'separated', interactive: true, class: tint.surface },
 		// A solid row rests on `omote.bg.tint`, which the standard wash matches in
-		// strength — the hover would repaint the rest state. This doubles it.
+		// strength: the hover would repaint the rest state. This doubles it.
 		{ variant: 'solid', interactive: true, class: tint.filled },
 	],
 	defaults: {
@@ -140,13 +140,13 @@ const item = defineRecipe({
 })
 
 // The `interactive` axis carries the treatment for a content area that acts on
-// activation — navigate (`href`) or fire an `onClick` (cf. breadcrumb's
+// activation: navigate (`href`) or fire an `onClick` (cf. breadcrumb's
 // non-current link).
 const content = defineRecipe({
 	// `text-start` is for the `as="button"` content area: the UA centers button
 	// text, and a row's label/description column never wants that. `focus.ring`
 	// paints the keyboard-focus indicator for the whole row: an activatable content
-	// area is natively focusable, so it — not the `<li>` around it — is the row's
+	// area is natively focusable, so it (not the `<li>` around it) is the row's
 	// one focus target, reorderable or not.
 	base: [flex.col, 'flex-1 min-w-0 text-start', focus.ring],
 	// One rung across the whole axis, not a `variant` × `interactive` compound:
@@ -156,7 +156,7 @@ const content = defineRecipe({
 		false: '',
 	},
 	// Picked up for a keyboard move. The row's own `lifted` raises and shadows it;
-	// the accent belongs here, on whatever is actually focused — the same kiso
+	// the accent belongs here, on whatever is actually focused: the same kiso
 	// declaration the row's ring takes, in the shape this element's indicator uses.
 	lifted: {
 		true: focus.lifted.outline,
@@ -165,8 +165,8 @@ const content = defineRecipe({
 	// Whether the hit area covers the whole row. This column is only `flex-1`, so
 	// the row's padding, the gaps, and the prefix / suffix chrome sit outside it,
 	// and a press on any of that reached the `<li>`, which acts on nothing. A
-	// pointer-capturing `::after` — the inverse of the overlay in `kasane.layers`,
-	// which adds `pointer-events-none` to stop exactly this — pulls the painted row into
+	// pointer-capturing `::after` (the inverse of the overlay in `kasane.layers`,
+	// which adds `pointer-events-none` to stop exactly this) pulls the painted row into
 	// the one click and hover target, cursor and text step included. The `<li>` is
 	// the containing block, so `item.stretched` rides with it.
 	stretched: {

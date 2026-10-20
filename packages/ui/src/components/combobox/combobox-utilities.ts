@@ -23,7 +23,7 @@ function selectedValues<T>(value: T | T[] | undefined): T[] {
  * past one, or whatever `summarize` names it. An unresolved value or an empty
  * selection shows empty, which is what lets the placeholder through.
  *
- * **One label, then a count** — deliberately tighter than `Listbox`, which joins up
+ * **One label, then a count**: deliberately tighter than `Listbox`, which joins up
  * to three. The two differ because their triggers do. A listbox trigger is a button
  * whose text truncates and stops. This is a real text input, so a joined value
  * longer than the field scrolls under the caret while the input has focus. The
@@ -36,10 +36,11 @@ function selectedValues<T>(value: T | T[] | undefined): T[] {
  * the caller. "2 selected" in a row of six filters says how many of nothing in
  * particular.
  *
- * It used to return empty here, which left a `multiple` combobox showing nothing at
- * all above a selection that *was* applied — the trigger's whole job. Editing still
- * wins, so the summary never blocks typing. Every pick resets `editing`, so a query
- * replaces the summary, and the summary comes back with the next pick.
+ * It used to return empty here, which left a `multiple` combobox showing
+ * nothing at all above a selection that *was* applied. Showing that selection
+ * is the whole job of the trigger. Editing still wins, so the summary never
+ * blocks typing. Every pick resets `editing`, so a query replaces the summary,
+ * and the summary comes back with the next pick.
  *
  * With no `summarize`, the count is in the language of `intl`.
  *
@@ -139,7 +140,7 @@ export function enterKeepsSelection(container: HTMLElement, multiple: boolean): 
 }
 
 /**
- * The input's `title` — the whole `multiple` selection, spelled out, or `undefined`.
+ * The input's `title`: the whole `multiple` selection, spelled out, or `undefined`.
  *
  * The counterpart to the count {@link resolveInputDisplay} shows. The field says HOW MANY are
  * picked, and this says WHICH, on hover. The field therefore holds no string longer than itself. A

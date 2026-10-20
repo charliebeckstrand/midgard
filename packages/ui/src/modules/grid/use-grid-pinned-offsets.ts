@@ -18,14 +18,14 @@ type GridPinnedOffsetsOptions<T> = {
 	/** Whether any column is frozen at all; nothing else has an offset to measure. */
 	frozen: boolean
 	/**
-	 * Whether the engine's size model sets the rendered column widths — a resizable
+	 * Whether the engine's size model sets the rendered column widths: a resizable
 	 * grid, which lays out fixed from a `<colgroup>` of those sizes. Its own offset
 	 * sums are then already exact, so the measurement stands down.
 	 */
 	engineSized: boolean
 	/** The engine's pin state, which names the columns frozen to each edge. */
 	pinning: ColumnPinningState
-	/** Visible columns in render order — one rendered header cell each. */
+	/** Visible columns in render order: one rendered header cell each. */
 	columns: GridColumn<T>[]
 	/** Grid wrapper holding the rendered header. */
 	containerRef: RefObject<HTMLElement | null> | undefined

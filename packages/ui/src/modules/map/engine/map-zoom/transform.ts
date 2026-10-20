@@ -13,8 +13,8 @@ import type { MapPoint2D } from '../types'
 
 /**
  * The map's view transform: a scale `k` about the frame origin, then a
- * translation. Written in the order SVG applies them — `translate(x, y)
- * scale(k)` — so the attribute and the arithmetic read as one thing.
+ * translation. Written in the order SVG applies them (`translate(x, y)
+ * scale(k)`), so the attribute and the arithmetic read as one thing.
  *
  * {@link MapPlatProps.onViewChange} delivers it, so a caller can mirror or
  * persist a view.
@@ -170,7 +170,7 @@ export function showTransform(
 	)
 }
 
-/** The scale held between the fit and the ceiling — the one place that rule is written. */
+/** The scale held between the fit and the ceiling: the one place that rule is written. */
 function clampScale(k: number, max: number): number {
 	return clamp(k, MAP_ZOOM_FIT, Math.max(MAP_ZOOM_FIT, max))
 }

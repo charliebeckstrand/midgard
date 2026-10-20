@@ -42,7 +42,7 @@ export type RangeOrientation = Orientation
 type RangeArrowProps = {
 	/** The exact value the glyph marks along the bar. */
 	value: number
-	/** The bar's `[low, high]` extent — the axis its endpoints label. */
+	/** The bar's `[low, high]` extent: the axis its endpoints label. */
 	domain: [number, number]
 	/** The `data-slot` prefix, matching the host legend's. @defaultValue 'range' */
 	slot?: string
@@ -64,7 +64,7 @@ type RangeArrowProps = {
  * small-but-real value looked pinned to the floor.
  *
  * The glyph is presentational. The host supplies the `value` from its own hover
- * state — a region on the choropleth, a cell on the heatmap. The same glyph
+ * state: a region on the choropleth, a cell on the heatmap. The same glyph
  * therefore ties either chart's marks to the scale. It rides the low→high axis
  * the bar paints: down the left of a vertical bar, along the top of a
  * horizontal one.
@@ -129,7 +129,7 @@ export type RangeScale = {
 	domain: [number, number]
 	/** Formats the endpoint and bin labels. */
 	format: (value: number) => string
-	/** Optional caption above the bar — the value's name. */
+	/** Optional caption above the bar: the value's name. */
 	label?: string
 	/** The bin count; the bar snaps its classes to these bands. */
 	bins: number
@@ -152,11 +152,11 @@ export type RangeLegendProps = RangeScale & {
 	slot?: string
 	/**
 	 * Reads the class the probe lands in as the pointer or caret moves, `null`
-	 * when it clears — the host emphasizes that class's marks (regions, cells).
+	 * when it clears: the host emphasizes that class's marks (regions, cells).
 	 */
 	onProbe?: (bin: number | null) => void
 	/**
-	 * A glyph pinned into the track — a {@link RangeArrow} the host wires to its
+	 * A glyph pinned into the track: a {@link RangeArrow} the host wires to its
 	 * own mark hover. It marks the exact value of the hovered mark on the bar.
 	 */
 	arrow?: ReactNode
@@ -247,7 +247,7 @@ type RangeScaleLabelsProps = {
 	domain: [number, number]
 	/** Formats each endpoint and the live readout. */
 	format: (value: number) => string
-	/** The probed value, or `null` at rest — dims the endpoints and shows the readout. */
+	/** The probed value, or `null` at rest: dims the endpoints and shows the readout. */
 	probe: number | null
 	/** The probe's distance along the bar as a percentage from the start. */
 	probeOffset: number
@@ -336,7 +336,7 @@ function probePercent(
 
 /** Props for {@link RangeTrack}. @internal */
 type RangeTrackProps = {
-	/** The host's `data-slot` prefix — the track, marker, and value key off it. */
+	/** The host's `data-slot` prefix: the track, marker, and value key off it. */
 	slot: string
 	/** The accessible name and the `role="slider"` label. */
 	label?: string
@@ -344,9 +344,9 @@ type RangeTrackProps = {
 	orientation: RangeOrientation
 	/** The ordered CSS color stops the gradient paints, low → high. */
 	colorRange: string[]
-	/** The `[low, high]` value extent — the slider's `aria-valuemin` / `aria-valuemax`. */
+	/** The `[low, high]` value extent: the slider's `aria-valuemin` / `aria-valuemax`. */
 	domain: [number, number]
-	/** The probed value, or `null` at rest — drives the thumb and `aria-valuenow`. */
+	/** The probed value, or `null` at rest: drives the thumb and `aria-valuenow`. */
 	probe: number | null
 	/** The probe's distance along the bar, from {@link probePercent}. */
 	probeOffset: number
@@ -390,9 +390,9 @@ function RangeTrack({
 
 	const horizontal = orientation === 'horizontal'
 
-	// Paint the bar with the raw stops — CSS interpolates a smooth ramp: low at
+	// Paint the bar with the raw stops (CSS interpolates a smooth ramp: low at
 	// the bottom of a vertical bar, at the left of a horizontal one; high at the
-	// far end either way. A single stop degrades to a flat fill.
+	// far end either way). A single stop degrades to a flat fill.
 	const gradient: CSSProperties =
 		colorRange.length > 1
 			? {
@@ -503,8 +503,8 @@ export function RangeLegend({
 		return `${format(low)}–${format(high)}`
 	}
 
-	// Read a value: mark it and emphasize the class it falls in — the host is
-	// quantized, so its filter is per-class even while the readout stays precise.
+	// Read a value: mark it and emphasize the class it falls in (the host is
+	// quantized, so its filter is per-class even while the readout stays precise).
 	const readValue = (value: number) => {
 		const next = clamp(value, min, max)
 
@@ -531,7 +531,7 @@ export function RangeLegend({
 		readValue(min + fraction * span)
 	}
 
-	// Arrow keys walk whole classes off the shared {@link rangeKeyValue} — both
+	// Arrow keys walk whole classes off the shared {@link rangeKeyValue}: both
 	// pairs, so either orientation answers its axis; Escape blurs.
 	const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 		if (hasBrowserModifier(event)) return

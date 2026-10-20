@@ -75,7 +75,7 @@ export type GridEditingSession = {
 		value: unknown,
 		row: unknown,
 	) => void
-	/** Drop a cell's pending value — Escape reverts it to the row's current value. */
+	/** Drop a cell's pending value: Escape reverts it to the row's current value. */
 	unstageDraft: (rowKey: GridDraftKey, columnId: string | number) => void
 	/**
 	 * The cell's staged draft, or `undefined` when it has none. An editor reads
@@ -84,7 +84,7 @@ export type GridEditingSession = {
 	 */
 	readDraft: (rowKey: GridDraftKey, columnId: string | number) => GridDraft | undefined
 	/**
-	 * Ends the grid-owned session on a row under `session: 'managed'` —
+	 * Ends the grid-owned session on a row under `session: 'managed'`:
 	 * `'save'` on an editor's Enter, `'discard'` on Escape. A discard drops the
 	 * staged values the session owns. Under cell scope that is the active cell
 	 * alone, because the cells it visited before that one already committed.
@@ -159,7 +159,7 @@ export type GridEditingSession = {
 
 /**
  * The editing session, or `null` when the grid is not editable. For the surfaces
- * every grid renders — the row actions column — which must ask rather than
+ * every grid renders (the row actions column), which must ask rather than
  * assume. @internal
  */
 export const [GridEditingSessionContext, useGridEditingSessionOrNull] =

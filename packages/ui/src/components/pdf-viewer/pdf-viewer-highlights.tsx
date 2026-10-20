@@ -63,7 +63,7 @@ function regionClass(color: Color, active: boolean, dimmed: boolean) {
 	return classes
 }
 
-/** Percentages of the layer, which is the page image's twin — so the browser rescales every region on a zoom change with no React work. @internal */
+/** Percentages of the layer, which is the page image's twin, so the browser rescales every region on a zoom change with no React work. @internal */
 function regionStyle({ x, y, width, height }: PdfViewerHighlightRect) {
 	return {
 		left: `${x * 100}%`,
@@ -76,7 +76,7 @@ function regionStyle({ x, y, width, height }: PdfViewerHighlightRect) {
 /**
  * The region a pointer event landed in, or null for the layer's own background.
  *
- * @remarks One lookup for the whole layer's delegation — hover and press both need it, and
+ * @remarks One lookup for the whole layer's delegation: hover and press both need it, and
  * both need it to agree. Returns the element beside the id because the hover path anchors a
  * label to the node while the press path only names it.
  * @internal
@@ -92,7 +92,7 @@ function regionAt(event: MouseEvent<HTMLDivElement>) {
 /**
  * Whether a point is inside an element's box.
  *
- * @remarks A box with no size covers nothing — which is the honest answer before the first
+ * @remarks A box with no size covers nothing, which is the honest answer before the first
  * layout, and the answer jsdom gives for everything. Both are cases where the name stands in
  * nothing's way.
  * @internal
@@ -125,7 +125,7 @@ export function PdfViewerHighlights() {
 	const intl = useIntl()
 
 	// A visual box announces nothing on its own. The page change an activation can cause
-	// already speaks through the viewport's own live region, so this says only the name —
+	// already speaks through the viewport's own live region, so this says only the name,
 	// and only when the regions are in the tree at all, since a decorative layer is
 	// aria-hidden and an announcement would name something a reader cannot reach.
 	useA11yAnnouncements(
@@ -171,7 +171,7 @@ function PdfViewerHighlightLayer() {
 	 */
 	const [anchor, setAnchor] = useState<HTMLElement | null>(null)
 
-	// One tab stop for the whole layer, with arrows moving between regions — a dense page
+	// One tab stop for the whole layer, with arrows moving between regions: a dense page
 	// carries 20-40 of them, and they mirror a list the consumer already renders beside
 	// the viewer. `aria-current` marks which region holds the resting stop. Off in a
 	// decorative layer: `manageTabIndex` would otherwise seat a tab stop on a span inside
@@ -188,7 +188,7 @@ function PdfViewerHighlightLayer() {
 
 	/*
 	 * Whether anything is selected at all. While something is, every other region drops its
-	 * color — one wash among twenty reads as a field of color rather than as a selection.
+	 * color: one wash among twenty reads as a field of color rather than as a selection.
 	 *
 	 * It is read off `activeLabel`, which the provider already derives with the same scan. A
 	 * label is required of every highlight, so a name in hand and a selected region are the same
@@ -247,7 +247,7 @@ function PdfViewerHighlightLayer() {
 	/*
 	 * The selected region's name, reached imperatively.
 	 *
-	 * Whether the name is being read through — and therefore whether it is faint — is the
+	 * Whether the name is being read through (and therefore whether it is faint) is the
 	 * name's own state. It is held there rather than here for the reason the name is a leaf
 	 * at all (see {@link PdfViewerHighlightLabel}). A flip held here would re-render forty
 	 * regions to change one class on a panel three fibers away. It would also dirty the
@@ -264,14 +264,14 @@ function PdfViewerHighlightLayer() {
 	 * pointer that has not moved is what makes that a question at all.
 	 *
 	 * `active` then answers the other one for free. The selected region already names itself,
-	 * so hovering it says nothing new — and would say it twice, in two panels a few pixels
+	 * so hovering it says nothing new, and would say it twice, in two panels a few pixels
 	 * apart.
 	 */
 	const previewed = hovered && regions.find((region) => region.id === hovered.id)
 
 	const previewOpen = highlightsVisible && previewing && !!previewed && !previewed.active
 
-	/** One delegated handler for the whole layer, as the press below is — not one per region. */
+	/** One delegated handler for the whole layer, as the press below is, not one per region. */
 	function handleRegionOver(event: MouseEvent<HTMLDivElement>) {
 		const hit = regionAt(event)
 
@@ -298,7 +298,7 @@ function PdfViewerHighlightLayer() {
 	}
 
 	/**
-	 * Whether the pointer has moved onto — or off — a box the name covers.
+	 * Whether the pointer has moved onto (or off) a box the name covers.
 	 *
 	 * @remarks Attached only while a name is drawn (see the handler bag below), so a viewer with
 	 * nothing selected carries no `mousemove` listener at all. The two tests are ordered by
@@ -317,7 +317,7 @@ function PdfViewerHighlightLayer() {
 	const Region = interactive ? 'button' : 'span'
 
 	function report(id: string) {
-		// Every press is reported, including one on the already-active region — that is the
+		// Every press is reported, including one on the already-active region: that is the
 		// signal a consumer needs to answer "the reader pointed at this again" (reveal its
 		// row, put the caret in its field).
 		press(id)
@@ -343,7 +343,7 @@ function PdfViewerHighlightLayer() {
 	 *
 	 * `preventDefault` is the other half. It keeps that focus shift from happening at all, so
 	 * the caret the consumer places from `onHighlightPress` stays where it was put. Scoped to
-	 * a press that actually landed in a region — the layer's background keeps every default
+	 * a press that actually landed in a region: the layer's background keeps every default
 	 * it had.
 	 */
 	function handleMouseDown(event: MouseEvent<HTMLDivElement>) {
@@ -361,7 +361,7 @@ function PdfViewerHighlightLayer() {
 	}
 
 	/**
-	 * Keyboard activation only — `Enter` and `Space` on a focused region, which arrive as a
+	 * Keyboard activation only: `Enter` and `Space` on a focused region, which arrive as a
 	 * synthesized click with no pointer behind them (`detail === 0`).
 	 *
 	 * A pointer's own click is ignored here rather than handled: {@link handleMouseDown} has
@@ -382,8 +382,8 @@ function PdfViewerHighlightLayer() {
 		// holds the viewer, such as a dialog that closes on Escape.
 		if (event.key === 'Escape' && anyActive) {
 			// While a region holds focus, Escape belongs to the selection. `preventDefault` is
-			// what says so: `useEscapeLayer` — which every dismissable surface in the package
-			// reads Escape through — ignores a press whose default is already prevented.
+			// what says so: `useEscapeLayer` (which every dismissable surface in the package
+			// reads Escape through) ignores a press whose default is already prevented.
 			// `stopPropagation` alone would not do it, because that listener sits on
 			// `document`, the same node React's own root listener is attached to.
 			event.preventDefault()
@@ -426,7 +426,7 @@ function PdfViewerHighlightLayer() {
 			if (target.closest(HIGHLIGHT_SELECTOR)) return
 
 			// The selected region's name is not somewhere else. It takes no pointer events, so a
-			// press on it arrives here as a press on the page under it — and putting the selection
+			// press on it arrives here as a press on the page under it, and putting the selection
 			// down would be the page answering a press on its own label.
 			if (nameRef.current?.covers(event.clientX, event.clientY)) return
 
@@ -458,7 +458,7 @@ function PdfViewerHighlightLayer() {
 						onClick: handleClick,
 						onKeyDown: handleKeyDown,
 						// Only where a region can be pressed. A decorative layer takes no pointer events
-						// at all, so these would never fire there — but naming a box a reader cannot act
+						// at all, so these would never fire there, but naming a box a reader cannot act
 						// on promises something to do with it.
 						onMouseOver: handleRegionOver,
 						// Only while there is a name that could be in the way. Nothing else on this
@@ -488,7 +488,7 @@ function PdfViewerHighlightLayer() {
 				/>
 			))}
 			{/*
-			 * Two names, because they are two states — the selection the reader is working from,
+			 * Two names, because they are two states: the selection the reader is working from,
 			 * and the box they are glancing at. One panel could only ever be one of those.
 			 * Making it the hovered one meant the selected region lost its name every time a
 			 * reader looked elsewhere.

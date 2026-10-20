@@ -8,7 +8,7 @@ import { k } from '../../recipes/kata/current'
 import { type BorderBox, measureBox } from '../../utilities'
 import type { CurrentAnimation } from './current'
 
-/** The tallest tracked panel — the container's morph target. */
+/** The tallest tracked panel: the container's morph target. */
 function tallest(boxes: Map<Element, BorderBox>): number {
 	let max = 0
 
@@ -61,8 +61,8 @@ function classifyEntries(
  * current height before the frame paints. It then tweens the inline style
  * straight to the target, all outside React. A render must never own the
  * in-flight height. A re-render would stamp the resting value back over the pin,
- * and snap the box before the tween starts. A completed tween — or a
- * width-coupled change arriving mid-morph, which cancels it — clears the
+ * and snap the box before the tween starts. A completed tween (or a
+ * width-coupled change arriving mid-morph, which cancels it) clears the
  * inline height, handing the box back to `auto` and layout.
  *
  * Reduced motion opts the whole observer out. The container just reflows to
@@ -106,8 +106,8 @@ export function useCurrentContentsMorph(
 		let tween: AnimationPlaybackControls | null = null
 
 		// Stops any in-flight tween and rests the box back at `height: auto`. The
-		// travel clears the pin itself on arrival; this is the other way out of one
-		// — a width-coupled change, or the hook going away.
+		// travel clears the pin itself on arrival; this is the other way out of one:
+		// a width-coupled change, or the hook going away.
 		const settle = () => {
 			tween?.stop()
 
@@ -117,8 +117,8 @@ export function useCurrentContentsMorph(
 		}
 
 		// Tweens the container to the incoming height. `travelHeight` pins the
-		// origin before this frame paints — observer callbacks run after layout and
-		// before paint, so nothing in between reaches the screen — and hands the box
+		// origin before this frame paints (observer callbacks run after layout and
+		// before paint, so nothing in between reaches the screen) and hands the box
 		// back to `auto` on completion.
 		const morph = (to: number) => {
 			// A tween in flight already goes to this height. A new tween would start
@@ -144,7 +144,7 @@ export function useCurrentContentsMorph(
 		const resizeObserver = new ResizeObserver((entries) => {
 			const { discrete, reflow } = classifyEntries(boxes, entries)
 
-			// A height-only change at constant width is content moving on its own —
+			// A height-only change at constant width is content moving on its own:
 			// morph to it. Anything width-coupled is the container reflowing; `auto`
 			// already tracks it, so an in-flight morph stops steering instead.
 			if (discrete && !reflow) morph(tallest(boxes))
@@ -158,7 +158,7 @@ export function useCurrentContentsMorph(
 		})
 
 		// (Re)collects the observed panels. A change in the `data-current` set is
-		// itself a discrete height change — the panel switch — so it morphs from
+		// itself a discrete height change (the panel switch), so it morphs from
 		// the container's height to the incoming panel's, measured before this
 		// frame paints.
 		const observe = () => {
@@ -184,12 +184,12 @@ export function useCurrentContentsMorph(
 		// The observed set is always a subset of `element.children` (`observe`
 		// scans only direct children), so just two mutations can change it: the
 		// container's own child list, and a direct child's `data-current` flip.
-		// Split scopes keep deep subtree churn — content re-rendering inside a
-		// panel — from re-running `observe` and its forced-layout re-measure:
-		// the child-list scope omits `subtree`, and the attribute scope (which
-		// needs `subtree`, child attributes are unobservable without it) filters
-		// to `data-current` plus a direct-child check that drops stamps from
-		// nested widgets.
+		// Split scopes keep deep subtree churn (content re-rendering inside a
+		// panel) from re-running `observe` and its forced-layout re-measure: the
+		// child-list scope omits `subtree`, and the attribute scope (which needs
+		// `subtree`, because child attributes are unobservable without it) filters
+		// to `data-current` plus a direct-child check that drops stamps from nested
+		// widgets.
 		const childListObserver = new MutationObserver(observe)
 
 		childListObserver.observe(element, { childList: true })

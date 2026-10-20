@@ -30,8 +30,8 @@ import { mode } from '../../../core/recipe'
  *
  * - `stroke` for lines and markers.
  * - `fill` for bars, areas, slices, and SVG text.
- * - `text` (a currentColor class) for HTML swatches (legend keys, tooltip rows
- *   — `<Swatch>` fills from it).
+ * - `text` (a currentColor class) for HTML swatches (legend keys, tooltip rows:
+ *   `<Swatch>` fills from it).
  * - `label` for label text set inside the mark's own fill, the one place text
  *   sits on a series color.
  *

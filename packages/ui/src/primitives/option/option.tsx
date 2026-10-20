@@ -190,7 +190,7 @@ export type SelectOptionProps<TValue = unknown> = {
 	 */
 	id?: string
 	/**
-	 * Windowed-list a11y position from `VirtualOptions`' render `meta` — spread
+	 * Windowed-list a11y position from `VirtualOptions`' render `meta`: spread
 	 * directly (`{...meta}`) so a windowed listbox still reports the option's
 	 * true "n of m" position.
 	 */
@@ -229,7 +229,7 @@ const [CapitalizeContext] = createContext('OptionCapitalize', { default: false }
 
 // Membership sets keyed by the selected-values array. Every option in one render
 // reads the same array reference off the host context, so the first option to
-// look up builds the set (O(k)) and the rest reuse it (O(1)) — a multi-select
+// look up builds the set (O(k)) and the rest reuse it (O(1)): a multi-select
 // toggle costs O(n + k), not the O(n·k) of an `includes` scan per option. The
 // host swaps in a new array on change, so a WeakMap keys cleanly and old sets
 // are collected with their arrays.
@@ -321,7 +321,7 @@ export function createSelectOption<
 	}
 
 	function Label({ className, children, ...props }: OptionLabelProps) {
-		// The host's `capitalize` formats string labels at render — the same JS
+		// The host's `capitalize` formats string labels at render: the same JS
 		// mechanism every select-family surface uses (custom nodes pass through
 		// as authored). The enclosing `Option` supplies the flag.
 		const capitalize = use(CapitalizeContext)

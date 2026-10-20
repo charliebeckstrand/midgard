@@ -51,8 +51,8 @@ function embedCount(content: string | ChatPart[]): number {
  * The announcement for one settled reply: its prose, and a count of the views
  * it carries.
  *
- * The views are counted, never named. An embed's `name` addresses a renderer —
- * `stops-trend` — and speaking it would read a developer's key to a reader who
+ * The views are counted, never named. An embed's `name` addresses a renderer
+ * (`stops-trend`) and speaking it would read a developer's key to a reader who
  * cannot act on it. The count says a block is there and that the prose is not
  * the whole reply.
  *

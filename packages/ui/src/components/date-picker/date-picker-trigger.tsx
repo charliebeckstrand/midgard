@@ -64,7 +64,7 @@ type DatePickerTriggerProps = {
 	truncate?: boolean
 	/**
 	 * Custom value content rendered in place of the text label + truncation
-	 * Tooltip — e.g. the relative variant's selection chips. The caller owns the
+	 * Tooltip (e.g. the relative variant's selection chips). The caller owns the
 	 * empty/placeholder rendering and the `min-w-0 flex-1` layout.
 	 */
 	children?: ReactNode

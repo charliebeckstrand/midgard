@@ -68,9 +68,9 @@ export type StepperProps = Omit<
 	 * How {@link StepperPanel}s off the current step are held.
 	 *
 	 * @remarks
-	 * Defaults to `active` — only the current step's panel is mounted, so
+	 * Defaults to `active`: only the current step's panel is mounted, so
 	 * stepping away discards whatever it held and stepping back rebuilds it
-	 * empty. A flow whose panels carry entry wants `lazy` — a form split across
+	 * empty. A flow whose panels carry entry wants `lazy`: a form split across
 	 * steps, say. It mounts each panel on its first visit, then holds it in
 	 * `<Activity mode="hidden">`. That preserves its state and its DOM, so scroll
 	 * position and uncontrolled inputs survive, while its effects stay torn down.
@@ -168,7 +168,7 @@ export function Stepper({
 		// Step row is a single Tab stop (role="toolbar"); arrows move across steps,
 		// resting on the current step. Gated to interactive steppers (matching the
 		// keydown below): a display-only stepper renders no step buttons, so the
-		// tab-stop effect — a focusin listener and MutationObserver — would only spin.
+		// tab-stop effect (a focusin listener and MutationObserver) would only spin.
 		manageTabIndex: interactive,
 		activeSelector: '[aria-current="step"]',
 	})

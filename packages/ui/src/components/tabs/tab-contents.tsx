@@ -45,7 +45,7 @@ export type TabContentProps = Omit<
  * `<Activity mode="hidden">` (state preserved, effects paused); under an
  * animation they wake for it and rest again once it lands.
  *
- * A held panel still renders, so holding warms render-phase work — a `lazy()`
+ * A held panel still renders, so holding warms render-phase work: a `lazy()`
  * chunk, a `use()`d promise. It mounts no effects, so it does not warm
  * effect-driven work; a `useQuery` in a held panel waits to be shown. Pair a
  * mount policy with `Tab`'s `onPreload` to warm that half.
@@ -59,7 +59,7 @@ export function TabContents({ mount, ...props }: TabContentsProps) {
 	const registerMountedPanels = tabsContext?.registerMountedPanels
 
 	// `aria-controls` on an inactive tab only resolves when its panel is in the
-	// DOM, which is guaranteed only when every inactive panel is held — mount
+	// DOM, which is guaranteed only when every inactive panel is held: mount
 	// `always`. Register that with the Tabs context; `lazy`/`active` leave an
 	// inactive tab without the reference until (or unless) its panel mounts.
 	const allMounted = mount === 'always'

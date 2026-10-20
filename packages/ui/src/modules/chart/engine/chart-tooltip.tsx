@@ -101,7 +101,7 @@ export type ChartTooltipProps = {
 	 */
 	order?: number[]
 	/**
-	 * The emphasized series' index, when one is — the keyboard cursor reading a
+	 * The emphasized series' index, when one is: the keyboard cursor reading a
 	 * dataset, or a legend entry. Its row stays at full strength while every other
 	 * row dims, mirroring the marks; `null` (the default) reads every row equally.
 	 */
@@ -193,7 +193,7 @@ const TRACK_OFFSET = 12
  * snapped category is unmistakable. Off the snap it tracks the pointer and
  * shows only over a mark.
  *
- * With a series emphasized — the keyboard cursor reading one dataset — that
+ * With a series emphasized (the keyboard cursor reading one dataset), that
  * series' row stays lit while the rest dim to a quarter opacity. It is the same
  * recede the marks take, so the readout foregrounds the row the cursor is on.
  *
@@ -220,8 +220,8 @@ export function ChartTooltip({
 	const index =
 		readout !== null && hovered !== null && hovered < readout.categories.length ? hovered : null
 
-	// The rows read in the marks' visible order when the chart supplies one — a
-	// stacked column top-first, overlapping lines in value order — looked up by
+	// The rows read in the marks' visible order when the chart supplies one (a
+	// stacked column top-first, overlapping lines in value order), looked up by
 	// series index off the readout, which itself stays in series order for the
 	// hidden data table. No order given, the rows keep that series order. The
 	// readout is cached, so the rows hold across the moves of one hover.
@@ -259,7 +259,7 @@ export function ChartTooltip({
 		[index, readout, rows, emphasis],
 	)
 
-	// Snapped, the anchor is the intersection — the band center crossed with the
+	// Snapped, the anchor is the intersection: the band center crossed with the
 	// value nearest the pointer, projected onto the screen through the orientation;
 	// otherwise it is the pointer itself.
 	const anchor =

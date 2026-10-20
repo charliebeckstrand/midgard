@@ -186,8 +186,8 @@ export function nameMapTarget(
  * @remarks An enhancement, never the only channel: the same values ship in the
  * visually-hidden table, so nothing is gated behind a readout. The keyboard
  * cursor raises it as the pointer does, anchoring at the pointed region's
- * projected centroid (`use-map-keyboard`). Regions with no matching datum — and
- * targets whose legend entry is toggled off — read nothing, matching the
+ * projected centroid (`use-map-keyboard`). Regions with no matching datum (and
+ * targets whose legend entry is toggled off) read nothing, matching the
  * charts' off-the-marks silence.
  * @internal
  */
@@ -198,10 +198,11 @@ export function MapTooltip(props: MapTooltipProps) {
 
 	const open = content !== null && point !== null
 
-	// `track="point"`: a pure-hover readout repositions on every pointer move, so it
-	// skips autoUpdate's per-open observer wiring — ~1.5x cheaper across the
-	// open/reposition/teardown cycle (`tooltip-track.bench`). Safe here because the
-	// map tooltip has no click-pinned mode that would need autoUpdate across a scroll.
+	// `track="point"`: a pure-hover readout repositions on every pointer move, so
+	// it skips autoUpdate's per-open observer wiring. That is ~1.5x cheaper
+	// across the open/reposition/teardown cycle (`tooltip-track.bench`). Safe
+	// here because the map tooltip has no click-pinned mode that would need
+	// autoUpdate across a scroll.
 	return (
 		<TooltipPointer open={open} point={point} track="point" size="sm">
 			{content && (

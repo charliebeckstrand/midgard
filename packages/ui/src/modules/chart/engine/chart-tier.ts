@@ -47,7 +47,7 @@ export type ChartBandAxisMode = 'thinned' | 'ends' | 'off'
  * @internal
  */
 export type ChartPolicy = {
-	/** The resolved tier — the readable summary, and the `data-tier` styling hook. */
+	/** The resolved tier: the readable summary, and the `data-tier` styling hook. */
 	tier: ChartTier
 	/** Whether the band axis thins its labels, shows only its ends, or stands down. */
 	bandAxis: ChartBandAxisMode
@@ -60,7 +60,7 @@ export type ChartPolicy = {
 	tickTarget: number
 	/**
 	 * Format the value-axis tick labels compactly (`48.2k`, `1.3M`) so the gutter
-	 * stays cheap in a narrow box. The readout — tooltip and hidden table — keeps
+	 * stays cheap in a narrow box. The readout (tooltip and hidden table) keeps
 	 * full precision regardless; only the tick labels compact.
 	 */
 	compactFormat: boolean
@@ -82,19 +82,19 @@ export type ChartPolicy = {
 	legendRows: 0 | 1 | 2
 }
 
-/** Width below which a chart is a bare sparkline — the marks alone. @internal */
+/** Width below which a chart is a bare sparkline: the marks alone. @internal */
 export const SPARK_WIDTH = 160
 
-/** Height below which a chart is a bare sparkline — the marks alone. @internal */
+/** Height below which a chart is a bare sparkline: the marks alone. @internal */
 export const SPARK_HEIGHT = 96
 
-/** Width below which the frame runs compact — a gutter, but end-only band labels. @internal */
+/** Width below which the frame runs compact: a gutter, but end-only band labels. @internal */
 export const COMPACT_WIDTH = 384
 
 /** Height below which the tier reads `compact`; it sets only the tier label. @internal */
 export const COMPACT_HEIGHT = 176
 
-/** Width at or above which the frame reads `expanded` — a styling label, not an anatomy change. @internal */
+/** Width at or above which the frame reads `expanded`: a styling label, not an anatomy change. @internal */
 export const EXPANDED_WIDTH = 672
 
 /** Height below which the band-axis row is dropped, returning its band to the plot. @internal */
@@ -116,7 +116,7 @@ export const TICK_SPACING = 44
 export const MIN_TICK_TARGET = 2
 
 /**
- * Height, in px, of one clipped header line — a title or a subtitle. The header
+ * Height, in px, of one clipped header line: a title or a subtitle. The header
  * never wraps (each line truncates to one line), so its height is a fixed
  * multiple of this. A two-line header adds {@link CHART_HEADER_LINE_GAP} between
  * the pair. It is the `leading-6` line box that each header line sets on itself.
@@ -139,8 +139,8 @@ export const CHART_HEADER_LINE_GAP = 2
 export const CHART_LEGEND_ROW_HEIGHT = 32
 
 /**
- * Gap, in px, between the figure's stacked flex children — the header, the plot,
- * and a stacked legend band — one sitting between each adjacent pair.
+ * Gap, in px, between the figure's stacked flex children (the header, the plot,
+ * and a stacked legend band), with one gap between each adjacent pair.
  * @internal
  */
 export const CHART_FIGURE_GAP = 12
@@ -174,7 +174,7 @@ function getBandAxis(
 }
 
 /**
- * Whether a plot box is small enough to strip to a bare sparkline — under the
+ * Whether a plot box is small enough to strip to a bare sparkline: under the
  * spark width or the spark height. This is the spark threshold on its own. A
  * module that sizes its own frame before the policy resolves therefore reads the
  * same line the tier does, rather than duplicating it. The pie is one, weighing
@@ -194,20 +194,20 @@ export function isSparkBox(width: number, height: number): boolean {
  * those at the layout boundary. A policy is therefore deterministic in its box
  * alone, and testable without a render.
  *
- * @param width The plot box's width in px — pays for the value gutter, the
+ * @param width The plot box's width in px: pays for the value gutter, the
  * number format, and the band-label density.
- * @param height The plot box's height in px — pays for the tick count and the
+ * @param height The plot box's height in px: pays for the tick count and the
  * band-axis row.
  * @param tickCap The tick ceiling (`TICK_TARGET`), so space can take ticks
  * away but never add past it.
  * @param fill The frame fills its container (`aspectRatio={false}`), so the
- * measured `height` is the remainder the chart's own chrome leaves — a value
+ * measured `height` is the remainder the chart's own chrome leaves: a value
  * every chrome decision perturbs. Spark dropping the header and legend (or the
  * legend taking another row) moves the very remainder that decided it. That is a
  * feedback loop with no fixed point, which a resize drives to React's update
  * depth. No container measurement escapes it, since an indefinite-height parent
  * collapses any ancestor box to that same content. So under `fill` the
- * chrome-affecting decisions — spark and the legend-row cap — resolve from the
+ * chrome-affecting decisions (spark and the legend-row cap) resolve from the
  * width alone, which no chrome can move. The plot-internal anatomy (tick target,
  * band row, titles, the tier label) still reads the measured height it cannot
  * feed back into. A very short fill box draws a cramped-but-stable frame
@@ -247,7 +247,7 @@ export function chartPolicy(
 		grid: true,
 		// A stacked band takes two rows only where it has both the width to pack them
 		// and the height to spend on them; a narrow or short frame holds one row and
-		// chips the rest. A fill frame grants by width alone — its measured height
+		// chips the rest. A fill frame grants by width alone: its measured height
 		// already contains the rows it would be granting, so a height check flips
 		// forever in the band a second row spans.
 		legendRows: width < COMPACT_WIDTH || (!fill && height < TWO_ROW_LEGEND_HEIGHT) ? 1 : 2,
@@ -281,8 +281,8 @@ export function headerLineCount(title?: string, subtitle?: string): 0 | 1 | 2 {
  * the plot. Subtracted from the figure's `width / ratio`, it recovers the plot's
  * own height without measuring a plot the tier's spark decision would resize. A
  * single legend row is budgeted: a second row only appears past the compact
- * width, where the extra height can't flip the tier. Computed, never measured —
- * the same posture as the tick-gutter estimate — so nothing the tier decides
+ * width, where the extra height can't flip the tier. Computed, never measured
+ * (the same posture as the tick-gutter estimate), so nothing the tier decides
  * feeds back into it.
  *
  * @internal
@@ -321,7 +321,7 @@ export function chartChromeReserve({ headerLines, legend }: ChartChrome): number
  *
  * @param measuredHeight The plot's measured drawing height, still the drawing's.
  * @param width The measured plot (and figure) width.
- * @param figureAspect The `width / height` the figure carries — set only for the
+ * @param figureAspect The `width / height` the figure carries: set only for the
  * stacked aspect-fill frame, `null` / `undefined` otherwise, which passes the
  * measured height straight through.
  * @param chrome The header and stacked legend the figure lays out around the plot.

@@ -105,7 +105,7 @@ function GridGroupHeadCell({
 	// covers a pinned column (see `buildGroupSpans`), so it needs no sticky offset.
 	const pinned = span.kind === 'plain'
 
-	// A group draws a 2px rule under its Badge, spanning the cell's content width —
+	// A group draws a 2px rule under its Badge, spanning the cell's content width:
 	// inset by the header padding, so it aligns with the column titles and splits
 	// from the neighboring group. Colored in the group's hue, or a neutral gray
 	// when it has none (matching a colorless row group's rail), so clearing a color
@@ -218,8 +218,8 @@ function GridGroupBand({ group, collapsed, hiddenCount, onToggleCollapse }: Grid
 	if (!group.collapsible) return <span className={cn(k.band.row)}>{badgeWithTooltip}</span>
 
 	// Collapsible: the Badge leads (so it lines up with the column), then a bare
-	// icon Button folds the group — the chevron alone lives in the button, so it
-	// brightens on hover. The `+N` count trails the toggle when collapsed.
+	// icon Button folds the group (the chevron alone lives in the button, so it
+	// brightens on hover). The `+N` count trails the toggle when collapsed.
 	return (
 		<span className={cn(k.band.row)}>
 			{badgeWithTooltip}

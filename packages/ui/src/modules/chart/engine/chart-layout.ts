@@ -42,8 +42,8 @@ import { timeTicks } from './chart-time'
  * advance plus the gap and edge slack. The clamp keeps extreme labels from
  * crowding out the plot.
  *
- * The character count rounds up to an even number first. The gutter — and the
- * plot with its right-anchored labels — therefore holds steady when the widest
+ * The character count rounds up to an even number first. The gutter (and the
+ * plot with its right-anchored labels) therefore holds steady when the widest
  * label swings by a single character. A nice-tick axis topping out at `8,000`
  * and one at `40,000` reserve the same width. The gutter steps only once the
  * count grows by two, a change of scale large enough to be worth the reflow.
@@ -62,7 +62,7 @@ function tickGutter(labels: string[]): number {
 	const widest = longestLength(labels)
 
 	// Round the count up to an even number so a one-character swing in the widest
-	// label (`8,000` ↔ `40,000`) leaves the gutter where it is — see the doc above.
+	// label (`8,000` ↔ `40,000`) leaves the gutter where it is (see the doc above).
 	const chars = widest + (widest % 2)
 
 	return Math.min(GUTTER_MAX, Math.ceil(chars * TICK_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
@@ -132,12 +132,12 @@ export function plotRect(
 
 /**
  * The category indexes whose labels fit along an axis without colliding: every
- * label when there is room, else every nth — thinned by default. `slot` is one
+ * label when there is room, else every nth (thinned by default). `slot` is one
  * label's footprint along the axis with a breath of air. The same math
  * therefore thins by row width (value on x) or by column height (categories
  * down y). A vertical chart opted into {@link ChartCategoryAxis.tickRotation}
- * tilts instead of thinning once the same fit check fails — see
- * {@link willThin}.
+ * tilts instead of thinning once the same fit check fails (see
+ * {@link willThin}).
  *
  * @internal
  */
@@ -243,7 +243,7 @@ export type CartesianLayout = {
 	value2Scale: LinearScale | null
 	/** The categorical band, its range already the cross axis. */
 	band: BandScale
-	/** The primary zero line's position along the value axis — bar baselines and the category axis line. */
+	/** The primary zero line's position along the value axis: bar baselines and the category axis line. */
 	baseline: number
 	/** The secondary scale's zero position, for marks bound to it; falls back to `baseline`. */
 	value2Baseline: number
@@ -253,9 +253,9 @@ export type CartesianLayout = {
 	value2Ticks: ChartAxisTick[]
 	/** Category labels, thinned, at their band-axis centers. */
 	bandTicks: ChartAxisTick[]
-	/** Each category's band center — the crosshair's and tooltip's band snap. */
+	/** Each category's band center: the crosshair's and tooltip's band snap. */
 	bandPositions: number[]
-	/** Per category, the visible series' value-axis positions — the value crosshair's snap targets. */
+	/** Per category, the visible series' value-axis positions: the value crosshair's snap targets. */
 	snapPoints: number[][]
 	/**
 	 * Per category, the series index behind each {@link CartesianLayout.snapPoints}
@@ -316,7 +316,7 @@ export type CartesianLayoutInput = {
 	 * reserve a gutter for nothing.
 	 */
 	value2?: ChartValueAxisInput
-	/** The category label per row — the band axis, and the gutter estimate when horizontal. */
+	/** The category label per row: the band axis, and the gutter estimate when horizontal. */
 	categories: string[]
 	/**
 	 * The drawn category label, for the horizontal layout's left gutter. `width`
@@ -342,9 +342,9 @@ export type CartesianLayoutInput = {
 	/**
 	 * How the band axis presents at the frame's resolved tier:
 	 *
-	 * - `'thinned'` — every fitting label. The default, and today's behavior.
-	 * - `'ends'` — only the first and last, in a compact frame.
-	 * - `'off'` — no band row at all, in a short frame.
+	 * - `'thinned'`: every fitting label. The default, and today's behavior.
+	 * - `'ends'`: only the first and last, in a compact frame.
+	 * - `'off'`: no band row at all, in a short frame.
 	 *
 	 * `'off'` returns the band row's height to the plot. The value gutter keeps a
 	 * floor pad there for its zero label. Left unset it thins, so a caller passing
@@ -364,14 +364,14 @@ export type CartesianLayoutInput = {
 	 */
 	locale?: string
 	count: number
-	/** Visible series' values with their axis binding, series-major — the per-category snap points. */
+	/** Visible series' values with their axis binding, series-major: the per-category snap points. */
 	visibleValues: VisibleValues[]
 	/**
-	 * How far, in px, the chart's widest mark paints past its data coordinate — a
+	 * How far, in px, the chart's widest mark paints past its data coordinate: a
 	 * point marker's ring edge, a line stroke's half-width. With the axis chrome
 	 * off (spark, or an explicit axes-less frame) both layouts reserve it on every
 	 * plot edge. An extreme's mark then clears the frame, which the gutters and
-	 * bands would otherwise absorb it into. `0` (bars, cells — marks that end at
+	 * bands would otherwise absorb it into. `0` (bars, cells: marks that end at
 	 * their
 	 * coordinate) reserves nothing.
 	 * @defaultValue 0
@@ -455,7 +455,7 @@ function markInsetRange(range: [number, number], inset: number): [number, number
 export type VisibleValues = {
 	values: (number | null)[]
 	axis: ChartValueAxisId
-	/** The series' index in the caller's list — what the keyboard cursor maps a stop back to. */
+	/** The series' index in the caller's list: what the keyboard cursor maps a stop back to. */
 	index: number
 }
 
@@ -577,7 +577,7 @@ export function buildBandTicks(
 }
 
 /**
- * The first and last category labels only — the compact tier's band, where a
+ * The first and last category labels only: the compact tier's band, where a
  * full run of thinned labels would crowd a narrow plot. Each end anchors inward
  * (`'start'` first, `'end'` last) from its band center. It therefore reads away
  * from the frame edge and clears it without a width estimate. The vertical
@@ -603,8 +603,8 @@ function endBandTicks(categories: string[], band: BandScale): ChartAxisTick[] {
 /**
  * The band axis's ticks at its resolved `mode`:
  *
- * - `'off'` — none.
- * - `'ends'` — only the first and last labels.
+ * - `'off'`: none.
+ * - `'ends'`: only the first and last labels.
  * - Otherwise calendar-boundary time ticks, when the input carries row instants
  *   that span an axis; else the category labels, tilted or thinned.
  *
@@ -697,7 +697,7 @@ function getZero(scale: LinearScale | null, other: LinearScale | null, edge: num
 }
 
 /**
- * Whether the asked value-label headroom is affordable over `rangePx` — `true`
+ * Whether the asked value-label headroom is affordable over `rangePx`: `true`
  * when none was asked. The same {@link headroomFits} test {@link linearScale}
  * reserves by.
  *
@@ -708,8 +708,8 @@ function hasLabelRoom(headroom: number | undefined, rangePx: number): boolean {
 }
 
 /**
- * The vertical layout's value-label room verdict. It gates on the range FLOOR —
- * the plot under the tallest band chrome this chart can wear — never on the
+ * The vertical layout's value-label room verdict. It gates on the range FLOOR
+ * (the plot under the tallest band chrome this chart can wear), never on the
  * tier-resolved band. The actual range grows back when the band row drops at a
  * smaller tier. A verdict read from it flashes the labels back on mid-shrink
  * (hidden, shown, hidden again).
@@ -838,7 +838,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	const flatHeight = drawBand ? X_AXIS_HEIGHT + titleBand : floorPad
 
 	// Without the axis chrome the marks border the frame directly, so each edge
-	// reserves the widest mark's painted reach instead — the floor takes it whole
+	// reserves the widest mark's painted reach instead: the floor takes it whole
 	// where the band row would have been; the top pad already seats a marker, so
 	// it only ever widens.
 	const markPad = getMarkPad(input)
@@ -849,14 +849,14 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const valueLabelRoom = verticalLabelRoom(input, flatRange)
 
-	// A withheld verdict reserves nothing — the scale would otherwise pad the
+	// A withheld verdict reserves nothing: the scale would otherwise pad the
 	// domain for labels that will not draw.
 	const scaleInput = valueLabelRoom ? input : { ...input, valueHeadroom: 0 }
 
 	const flatAxes = buildValueAxes(scaleInput, flatRange)
 
-	// Each side reserves its own gutter — tick labels plus a title band where a
-	// title is set — so the plot narrows only for the chrome actually drawn.
+	// Each side reserves its own gutter (tick labels plus a title band where a
+	// title is set), so the plot narrows only for the chrome actually drawn.
 	// Independent of the x-axis band height, so it need not wait on the tilt
 	// decision below.
 	const leftGutter = valueGutter(
@@ -880,7 +880,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	// Tilting only applies to a drawn, thinned band: an ends band shows just two
 	// labels, which never collide, and a dropped band has nothing to tilt. A time
 	// axis lines calendar ticks in place of the labels tickRotation tilts, so
-	// tilting would reserve the taller band for nothing — gate it out there too.
+	// tilting would reserve the taller band for nothing: gate it out there too.
 	// A tilted label takes a fixed room along the axis, so a tilt keeps more
 	// labels only where a flat label takes more.
 	const canTilt = drawBand && bandMode === 'thinned' && Boolean(input.tickRotation) && !input.times
@@ -933,7 +933,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	}
 }
 
-/** A probe scale's ticks paired with their formatter — the end-label inset inputs. @internal */
+/** A probe scale's ticks paired with their formatter: the end-label inset inputs. @internal */
 export type ValueAxisProbe = { ticks: number[]; format: (value: number) => string }
 
 /**
@@ -1058,12 +1058,12 @@ function horizontalBandGutter(
 
 /**
  * The transposed layout: value on x with the scales filling the plot width,
- * categories down y. The band labels — not the value ticks — line the left
+ * categories down y. The band labels (not the value ticks) line the left
  * gutter, and they are known up front. The plot rect therefore resolves first,
  * and the value scales fill the width it leaves. They are inset so the end
  * labels clear the frame. The secondary axis's labels line a band above the
- * plot — the transpose of the vertical layout's right gutter — reserved only
- * once its probe resolves.
+ * plot (the transpose of the vertical layout's right gutter), and the band is
+ * reserved only once its probe resolves.
  *
  * @internal
  */
@@ -1074,8 +1074,8 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	// The band labels line the left gutter here; a dropped band frees it, an ends
 	// band sizes it to just the first and last label. Its title, when set, rides a
-	// rotated band past them at the far left — the transpose of the vertical value
-	// title — so the gutter and the title resolve together.
+	// rotated band past them at the far left (the transpose of the vertical value
+	// title), so the gutter and the title resolve together.
 	const drawBand = axes && bandMode !== 'off'
 
 	const { gutter, bandTitle } = horizontalBandGutter(input, drawBand, bandMode, categories)
@@ -1104,7 +1104,7 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 	const probes = [valueProbe, value2Probe].filter((probe) => probe !== null)
 
 	// Without the axis chrome the marks border the frame directly, so both layouts
-	// reserve the widest mark's painted reach on every plot edge — here the value
+	// reserve the widest mark's painted reach on every plot edge: here the value
 	// axis runs across and the band down, the transpose of the vertical layout's.
 	const markPad = getMarkPad(input)
 

@@ -347,7 +347,7 @@ export function flattenTree({
 }
 
 /**
- * Renders a node's key prefix — a numeric array index or a quoted object key — followed by the `:` separator; nothing for the root (`keyName == null`).
+ * Renders a node's key prefix (a numeric array index or a quoted object key) followed by the `:` separator; nothing for the root (`keyName == null`).
  * An object key is a JSON string literal, so a quote or a newline in the key shows as an escape.
  *
  * @internal

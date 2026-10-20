@@ -10,15 +10,15 @@ import type { ResolvedCrosshair } from './chart-crosshair'
 /**
  * The snap targets a chart hands its snapping overlays: where the rules meet
  * and where the tooltip anchors when `crosshair.snap` is on. Positions are
- * one-dimensional along their own axes — the frame projects them onto the
+ * one-dimensional along their own axes: the frame projects them onto the
  * screen through the chart's orientation.
  *
  * @internal
  */
 export type ChartSnap = {
-	/** Each category's band-axis center — the band rule's and the tooltip's snapped band position. */
+	/** Each category's band-axis center: the band rule's and the tooltip's snapped band position. */
 	bandPositions: number[]
-	/** Per category, the visible series' value-axis positions — the value rule's and tooltip's snap targets. */
+	/** Per category, the visible series' value-axis positions: the value rule's and tooltip's snap targets. */
 	valuePoints: number[][]
 }
 

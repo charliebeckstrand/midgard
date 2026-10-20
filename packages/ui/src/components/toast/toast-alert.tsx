@@ -145,13 +145,13 @@ export function ToastAlert({
 	}
 
 	// An effect event: the unmount release must call the current resume without
-	// the effect keying on it — a dep change would release still-live holds mid-life.
+	// the effect keying on it (a dep change would release still-live holds mid-life).
 	const resume = useEffectEvent(() => onResume())
 
 	const holdFocus = useEffectEvent(() => hold(focusHeldRef))
 
 	// A toast removed while hovered or focused (close click, maxToasts eviction,
-	// programmatic dismiss) gets no pointerleave/blur, so release its holds here —
+	// programmatic dismiss) gets no pointerleave/blur, so release its holds here;
 	// otherwise the stuck count freezes auto-dismiss for every later toast.
 	useEffect(() => {
 		// Focus can be in the toast before this effect runs: a close moves focus to
@@ -166,7 +166,7 @@ export function ToastAlert({
 			if (focusHeldRef.current) resume()
 
 			// Reset so a re-show under <Activity> (effect cleanup runs while the
-			// refs persist) starts unheld — a stale flag would swallow the next
+			// refs persist) starts unheld: a stale flag would swallow the next
 			// hold and let auto-dismiss run under the pointer.
 			hoverHeldRef.current = false
 
@@ -202,8 +202,8 @@ export function ToastAlert({
 				ref={contentRef}
 				role={assertive ? 'alert' : 'status'}
 				// Pointer and focus pause auto-dismiss independently (WCAG 2.2.1):
-				// with both holds counted, releasing one under the other — Tab out
-				// while hovered, mouse out while focused — keeps the timer paused.
+				// with both holds counted, releasing one under the other (Tab out
+				// while hovered, mouse out while focused) keeps the timer paused.
 				// Only a hovering pointer holds. A tap gets no leave until a later tap
 				// lands elsewhere, and its hold would stop every countdown.
 				onPointerEnter={(event) => {

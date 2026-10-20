@@ -24,7 +24,7 @@ export type ChartLegendPlacement = 'top' | 'bottom' | 'left' | 'right'
  */
 export type ChartLegendConfig = {
 	/**
-	 * Where the legend sits around the plot — a row above / below or a side
+	 * Where the legend sits around the plot: a row above / below or a side
 	 * panel, exactly as the bare placement string.
 	 * @defaultValue 'bottom'
 	 */
@@ -41,11 +41,11 @@ export type ChartLegendConfig = {
 export type ResolvedLegend = {
 	/**
 	 * The boolean / placement the show rule reads (`legend ?? seriesCount > 1`)
-	 * and the panel/side logic keys off — the object's `placement`, or the bare
+	 * and the panel/side logic keys off: the object's `placement`, or the bare
 	 * value. Carries the `false` / `true` show-hide the placement alone can't.
 	 */
 	value: boolean | ChartLegendPlacement | undefined
-	/** Just the placement, `undefined` for a bare boolean — the frame's `legendPlacement`. */
+	/** Just the placement, `undefined` for a bare boolean: the frame's `legendPlacement`. */
 	placement: ChartLegendPlacement | undefined
 	/** The legend renders as a static key. */
 	inert: boolean

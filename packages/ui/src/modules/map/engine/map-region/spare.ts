@@ -1,5 +1,5 @@
 /**
- * What the region under a dot can spare it — the region part of the hit-target
+ * What the region under a dot can spare it: the region part of the hit-target
  * rule. `map-cluster/crowd.ts` holds the neighbor part and the list of
  * claimants, `map-geofence.ts` the zone part, and `markTargets` joins them.
  *
@@ -268,8 +268,8 @@ function reachBounds(
 
 	const [east, north] = pieceCorner(unproject, at, origin, slope, { x: reach, y: -reach })
 
-	// The inverted corners are not ordered where a projection turns the frame —
-	// the composite's insets sit at their own rotations — so the box takes the
+	// The inverted corners are not ordered where a projection turns the frame
+	// (the composite's insets sit at their own rotations), so the box takes the
 	// extremes rather than the corners as read.
 	return {
 		west: Math.min(west, east),
@@ -359,7 +359,7 @@ export function regionSpare(
 	unproject: (at: MapPoint2D) => LngLat | null,
 	project: (position: LngLat) => MapPoint2D | null,
 ): MapRegionSpare {
-	// Per region, the boxes to place a dot against and the room it holds — built
+	// Per region, the boxes to place a dot against and the room it holds: built
 	// on the first dot whose reach box meets the region's own, which is a wider
 	// set than the regions dots actually stand on and still a small one.
 	//
@@ -407,7 +407,7 @@ export function regionSpare(
 		let room = Number.POSITIVE_INFINITY
 
 		// The atlas index is read here rather than at build time, so a map that draws
-		// no dot-shaped mark never builds one — indexing walks every coordinate in the
+		// no dot-shaped mark never builds one: indexing walks every coordinate in the
 		// atlas, which on a county one is the same order of work as drawing it. It
 		// memoizes on the feature list itself, so the lookup is all this costs.
 		for (const region of regionsMeeting(cachedRegionIndex(features), box)) {
@@ -423,7 +423,7 @@ export function regionSpare(
 
 			// `markTargets` floors every claim at what the dot paints, so once the
 			// tightest region has driven the budget there, no further candidate can
-			// move it. This is what the grid's generator is for — the ZIP frame stops
+			// move it. This is what the grid's generator is for: the ZIP frame stops
 			// on its first disagreement for the same reason.
 			if (room <= POINT_RADIUS) break
 		}

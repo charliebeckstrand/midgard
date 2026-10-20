@@ -5,7 +5,7 @@ import { Swatch } from '../../../components/swatch'
 import { cn } from '../../../core'
 import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
 
-/** The pattern tile edge, in `viewBox` units — the hatch repeats every `TILE`. @internal */
+/** The pattern tile edge, in `viewBox` units: the hatch repeats every `TILE`. @internal */
 const TILE = 8
 
 /** Hatch stroke width and dot radius, sized so the tile reads as a fill, not a grid. @internal */
@@ -118,7 +118,7 @@ function patternTile(id: string, color: ChartColorSlot, shift?: string): ReactNo
 type ChartPatternEntry = { color: ChartColorSlot; id: string }
 
 /**
- * The `<defs>` block of texture tiles — one per distinct slot in use, a hue
+ * The `<defs>` block of texture tiles: one per distinct slot in use, a hue
  * wash under the slot's hatch. Mounted inside the chart SVG; a mark fills from a
  * tile by its `id`.
  *
@@ -134,7 +134,7 @@ export function ChartPatternDefs({ entries }: { entries: ChartPatternEntry[] }) 
 
 /** Everything a chart needs to paint its marks with textures. @internal */
 export type ChartTexture = {
-	/** The `<defs>` to mount inside the SVG — the tiles for the slots in use. */
+	/** The `<defs>` to mount inside the SVG: the tiles for the slots in use. */
 	defs: ReactNode
 	/** The tile fill URL for a slot, or `undefined` for a raw color, which takes no tile. */
 	fillFor: (slot: ChartColorSlot | null) => string | undefined
@@ -170,12 +170,12 @@ export function useChartTexture(active: boolean, slots: (ChartColorSlot | null)[
 	}
 }
 
-/** The legend swatch's texture-overlay viewBox — a small tile over the color key. @internal */
+/** The legend swatch's texture-overlay viewBox: a small tile over the color key. @internal */
 const SWATCH_BOX = 12
 
 /**
- * Shifts the swatch's tile so a centered mark — the axis-aligned lines and the
- * dot — lands at the box's center instead of the tile's. The tile is narrower
+ * Shifts the swatch's tile so a centered mark (the axis-aligned lines and the
+ * dot) lands at the box's center instead of the tile's. The tile is narrower
  * than the box, so its own center sits off to one side; this nudges it back.
  * Rotated tiles (the hatches) skip the shift: a diagonal has no center line to
  * place. A phased hatch still reads as a hatch.
@@ -189,7 +189,7 @@ const SWATCH_TILE_SHIFT = (SWATCH_BOX - TILE) / 2
  * slot's hatch laid over a square (bar / slice) swatch. The hatch applies always
  * when the `texture` prop is on, else only under forced colors and print. There
  * the legend's color key collapses to one system color. A `line` swatch is only
- * 2px tall — too thin to hatch — and its stroke mark carries no fill, so it
+ * 2px tall (too thin to hatch) and its stroke mark carries no fill, so it
  * stays color-only.
  *
  * @internal
@@ -215,9 +215,9 @@ export function ChartSwatch({
 }) {
 	const id = `chart-sw-${useId()}`
 
-	// A raw color carries no slot, so it never hatches — it inks its
+	// A raw color carries no slot, so it never hatches: it inks its
 	// `currentColor` inline on a plain swatch, the same opt-out as a raw mark. A
-	// dashed line swatch mirrors the stroke here too — the line never routes
+	// dashed line swatch mirrors the stroke here too: the line never routes
 	// through the textured path below, so this is its only paint.
 	if (swatch !== 'rect' || !color) {
 		return (

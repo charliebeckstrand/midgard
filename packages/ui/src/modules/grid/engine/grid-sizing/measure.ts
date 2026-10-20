@@ -11,7 +11,7 @@ import { DEFAULT_MIN_COLUMN_SIZE, HEADER_TRUNCATE_ALLOWANCE } from '../grid-cons
 let sharedRange: Range | null = null
 
 /**
- * The intrinsic content width of an element's text — the width it wants before
+ * The intrinsic content width of an element's text: the width it wants before
  * any truncation clip. It is read sub-pixel from a `Range` over its contents.
  * `scrollWidth` is the integer fallback where `Range` geometry is unavailable
  * (jsdom). The marked leaves (`data-grid-content`) carry no padding or border, so
@@ -97,7 +97,7 @@ function headerSlotGap(headers: Map<string, HTMLElement>): number {
 	return 0
 }
 
-/** Whether a column title is a single whitespace-free word — the headers that never truncate. @internal */
+/** Whether a column title is a single whitespace-free word: the headers that never truncate. @internal */
 function isSingleWordTitle(title: GridColumn<unknown>['title']): boolean {
 	return typeof title === 'string' && title.trim().length > 0 && !/\s/.test(title.trim())
 }
@@ -120,7 +120,7 @@ const OWN_CELL = ':not(:scope [data-detail-row] *)'
 function collectCells(container: HTMLElement): {
 	headers: Map<string, HTMLElement>
 	bodies: Map<string, HTMLElement[]>
-	/** Body cells found across every column — zero when the body rendered none. */
+	/** Body cells found across every column: zero when the body rendered none. */
 	cells: number
 } {
 	const headers = new Map<string, HTMLElement>()
@@ -157,8 +157,8 @@ function collectCells(container: HTMLElement): {
 
 /**
  * A body leaf whose contents include element children (a Badge, an icon row, a
- * composed cell), deferred to the batched `max-content` read — see
- * {@link resolvePendingLeaves}. `chrome` is its cell's padding and border (the
+ * composed cell), deferred to the batched `max-content` read (see
+ * {@link resolvePendingLeaves}). `chrome` is its cell's padding and border (the
  * cell border box minus the leaf's), captured while the leaf still fills the
  * cell.
  *
@@ -270,8 +270,8 @@ function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
 }
 
 /**
- * A data column's hard floor (px): the narrowest it can be sized — by the
- * allocator or a drag-resize — before its header can't show. A single-word title
+ * A data column's hard floor (px): the narrowest it can be sized (by the
+ * allocator or a drag-resize) before its header can't show. A single-word title
  * reserves its full width, so the column is at least that wide and the header
  * never truncates. A multi-word or non-string title reserves only its affordance
  * icons plus a small text allowance. A narrow-data column then stays narrow, and
@@ -450,8 +450,8 @@ export function measureColumns<T>({
 
 	const scans = new Map<string, ColumnScan>()
 
-	// Pass one: every read against the current layout — header floors and body
-	// scans — before the batched leaf widening below dirties it.
+	// Pass one: every read against the current layout (header floors and body
+	// scans) before the batched leaf widening below dirties it.
 	for (const col of columns) {
 		if (!isDataColumn(col)) continue
 

@@ -32,7 +32,7 @@ export type ChartRangeLegendConfig = {
 
 /** A `legend` prop resolved against the measured box to concrete placement, orientation, and visibility. @internal */
 export type ResolvedRangeLegend = {
-	/** Whether the scale bar mounts at all — off at the spark tier, or when `legend` is `false`. */
+	/** Whether the scale bar mounts at all: off at the spark tier, or when `legend` is `false`. */
 	show: boolean
 	/** Where the bar sits, after the box adjusts a side placement in a too-narrow frame. */
 	placement: ChartLegendPlacement
@@ -120,11 +120,11 @@ export function resolveRangeLegend(
 	// oscillate it.
 	const placement = rangeLegendPlacement(legend, width, defaultPlacement)
 
-	// Off, or stripped with the rest of the chrome at the spark floor — the way a
+	// Off, or stripped with the rest of the chrome at the spark floor: the way a
 	// cartesian frame drops its legend to draw a bare sparkline. An unmeasured box
 	// (width 0) keeps the bar, matching the placement's posture above: shedding on
-	// "unmeasured" would mount the bar only after the measurement lands — a
-	// transition later than the plot's own pre-paint measure — so the plot would
+	// "unmeasured" would mount the bar only after the measurement lands (a
+	// transition later than the plot's own pre-paint measure), so the plot would
 	// paint at full width first and visibly shrink when the rail arrived. Reserving
 	// ahead means the plot's first measurement already excludes the rail, and a box
 	// that then proves spark-small sheds it on the next commit instead.

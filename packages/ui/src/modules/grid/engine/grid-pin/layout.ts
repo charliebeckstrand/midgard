@@ -31,7 +31,7 @@ export type FrozenColumn = {
 	side: PinSide
 	/** Distance (px) from the frozen edge: the summed width of the frozen columns between this one and that edge. */
 	offset: number
-	/** Whether this is the group's innermost column — the one at the scroll-facing boundary. */
+	/** Whether this is the group's innermost column: the one at the scroll-facing boundary. */
 	boundary: boolean
 }
 
@@ -69,8 +69,8 @@ function summedWidth(ids: readonly string[], widths: ReadonlyMap<string, number>
  * and wins where it has an entry. The summed `widths` are the rendered widths
  * only under the fixed layout that a resizable grid sets from them. An
  * auto-layout grid sizes each column to its content, so its frozen columns are
- * measured instead (see {@link FrozenOffsets}). `null` — the resizable case, and
- * every render before the first measurement — leaves the sums.
+ * measured instead (see {@link FrozenOffsets}). `null` (the resizable case, and
+ * every render before the first measurement) leaves the sums.
  *
  * @param sections - The ids of the visible columns frozen to each edge, in edge order.
  * @param widths - Each column's width (px), by id.

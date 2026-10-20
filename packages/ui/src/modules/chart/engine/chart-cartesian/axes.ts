@@ -65,9 +65,9 @@ type ResolvedValueAxes = {
 
 /** One axis's tick and readout formatters. @internal */
 type AxisFormatters = {
-	/** The value gutter's labels — the compact default in a narrow frame. */
+	/** The value gutter's labels: the compact default in a narrow frame. */
 	tick: (value: number) => string
-	/** The tooltip, hidden table, and reference rules — always full precision. */
+	/** The tooltip, hidden table, and reference rules: always full precision. */
 	readout: (value: number) => string
 }
 
@@ -145,8 +145,8 @@ export function resolveValueAxes<T>(
 		referenceHidden,
 	})
 
-	// The y2 axis exists only while something binds to it — a visible y2-bound
-	// series, a y2 reference, or a domain pin — so a single-axis chart never
+	// The y2 axis exists only while something binds to it (a visible y2-bound
+	// series, a y2 reference, or a domain pin), so a single-axis chart never
 	// reserves the gutter.
 	const hasY2Axis =
 		y2DomainValues.length > 0 ||
@@ -208,8 +208,8 @@ export function buildGrid(
 
 	const y2Grid = (axes.y2?.grid ?? layout.valueScale === null) && layout.value2Scale !== null
 
-	// De-duplicated: two independent scales can land ticks on one position —
-	// both domains' floors map to the plot edge — and one hairline is enough.
+	// De-duplicated: two independent scales can land ticks on one position
+	// (both domains' floors map to the plot edge) and one hairline is enough.
 	return [
 		...new Set([
 			...(yGrid ? layout.valueTicks.map((tick) => tick.at) : []),
@@ -219,8 +219,8 @@ export function buildGrid(
 }
 
 /**
- * The band-axis divider positions — one per boundary between adjacent rows, none
- * at the ends — when the category axis sets a `separator`. Gated by the same tier
+ * The band-axis divider positions (one per boundary between adjacent rows, none
+ * at the ends) when the category axis sets a `separator`. Gated by the same tier
  * grid switch as the value grid, so the dividers stand down together with the
  * rest of the chrome at spark. Empty otherwise.
  *

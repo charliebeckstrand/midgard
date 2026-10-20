@@ -2,7 +2,7 @@
  * How a keypress drives the cursor. It holds the key table, the compass step
  * across the stop list, and the one resolution the plot region's handler asks
  * for. The
- * three sit together because they form one chain with a single entry point —
+ * three sit together because they form one chain with a single entry point:
  * {@link moveCursor} is the only production caller of either half.
  *
  * The stop list itself is `stops.ts`, which the plat builds and hands in.
@@ -10,7 +10,7 @@
 
 import type { MapStop } from './stops'
 
-/** A compass step — the four directions an arrow key reads as. @internal */
+/** A compass step: the four directions an arrow key reads as. @internal */
 type MapCompassAction = 'north' | 'south' | 'east' | 'west'
 
 /** What a key does to the cursor: a compass step, a jump to an end, or a clear. @internal */
@@ -37,7 +37,7 @@ function keyAction(key: string): MapCursorAction | null {
 	return KEY_ACTIONS[key] ?? null
 }
 
-/** Whether a key activates the region under the cursor — Enter, or Space. @internal */
+/** Whether a key activates the region under the cursor: Enter, or Space. @internal */
 export function isActivateKey(key: string): boolean {
 	return key === 'Enter' || key === ' '
 }

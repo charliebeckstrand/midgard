@@ -49,7 +49,7 @@ export type PanelHandleProps = {
  * must not drift between them, so it is stated once.
  *
  * It draws and reports; the gesture belongs to the component that owns the
- * panel — see {@link usePanelResize} for why.
+ * panel (see {@link usePanelResize} for why).
  *
  * @internal
  */

@@ -6,8 +6,8 @@
  * and a pie slice all read the same slot for the same index. Resolution ends in
  * a {@link ChartSeriesPaint}, the value the marks and swatches paint through.
  *
- * The ordinal half of the chart's color system; its sequential counterpart —
- * continuous range/bin color — would join as `chart-color/range`.
+ * The ordinal half of the chart's color system; its sequential counterpart
+ * (continuous range/bin color) would join as `chart-color/range`.
  */
 
 import { type ChartColorSlot, k } from '../../../../recipes/kata/chart'
@@ -26,7 +26,7 @@ export type ChartSeriesPaint = ChartPaint
 
 /**
  * The palette slot at a series index in the fixed categorical order, wrapping
- * past the eighth series — aggregate at the call site before then.
+ * past the eighth series: aggregate at the call site before then.
  *
  * @internal
  */
@@ -61,8 +61,8 @@ export function categorySlots(
 }
 
 /**
- * Resolves a series' color: its explicit `color` — a palette slot or a raw CSS
- * color — else its slot in the fixed categorical order.
+ * Resolves a series' color: its explicit `color` (a palette slot or a raw CSS
+ * color) else its slot in the fixed categorical order.
  *
  * @internal
  */

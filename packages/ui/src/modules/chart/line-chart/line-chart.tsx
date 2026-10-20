@@ -12,13 +12,13 @@ import { useChartCartesian } from '../engine/use-chart-cartesian'
 
 /**
  * Props for {@link LineChart}. Requires an accessible name (`aria-label` or
- * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
+ * `aria-labelledby`): the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
 export type LineChartProps<T = never> = CartesianChartProps<T> & {
 	/**
 	 * Marks every plotted point with a filled dot. Points isolated between gaps
-	 * always get one — they'd be invisible otherwise.
+	 * always get one: they'd be invisible otherwise.
 	 * @defaultValue false
 	 */
 	points?: boolean
@@ -52,7 +52,7 @@ export type LineChartProps<T = never> = CartesianChartProps<T> & {
  *
  * @remarks The value domain follows the data; pin `min` / `max` to compare
  * charts on one scale. Focus the plot to drive the crosshair and tooltip by
- * keyboard — the band-axis arrows step categories, the value-axis arrows cycle
+ * keyboard: the band-axis arrows step categories, the value-axis arrows cycle
  * each category's series values. A reference line joins that value-axis roving,
  * receding the marks when the cursor reaches it. `labels.references` drawing its
  * value beside it stands in for the hover and drops the rove.
@@ -84,7 +84,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 	// themselves down through ChartTierContext.
 	const floor = chart.plot.y + chart.plot.height
 
-	// One band-center array for every series — they all span the same categories.
+	// One band-center array for every series: they all span the same categories.
 	const list = buildLineSeries(chart.drawn, chart.bandPositions, floor, interpolation, points)
 
 	const seriesRuns = list.map((series) => series.geometry.runs)
@@ -110,8 +110,8 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			fullscreen={<LineChart {...props} />}
 			marks={marks}
 			markAt={(x, y, held) => {
-				// A pointer on a line keeps that line — held sticky where two catches
-				// overlap — and a filled chart reads the wash under it the same way.
+				// A pointer on a line keeps that line (held sticky where two catches
+				// overlap) and a filled chart reads the wash under it the same way.
 				const heldAt = held ? list.findIndex((entry) => entry.index === held.series) : -1
 
 				const near =

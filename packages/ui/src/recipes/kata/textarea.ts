@@ -37,7 +37,7 @@ export const k = bridge.control(control, {
 	skeleton: textarea,
 })
 
-/** Recipe variant props for {@link Textarea} — the styling axes its kata exposes (`resize`), for consumers composing custom slots. */
+/** Recipe variant props for {@link Textarea}: the styling axes its kata exposes (`resize`), for consumers composing custom slots. */
 export type TextareaVariants = Omit<VariantProps<typeof k>, 'resize' | 'variant'> & {
 	/** The axis on which the reader can resize the field. `none` keeps the size fixed. @defaultValue 'none' */
 	resize?: VariantProps<typeof k>['resize']

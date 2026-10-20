@@ -303,7 +303,7 @@ export function useRangePointer(options: {
 				focusThumb(thumbRefs, dragging)
 
 				// `resolveDraggingThumb` already set `draggingRef`, so `beginDrag`'s
-				// write of it is a no-op here — worth it to keep one entry point.
+				// write of it is a no-op here. The no-op keeps one entry point.
 				beginDrag(dragging)
 			}
 

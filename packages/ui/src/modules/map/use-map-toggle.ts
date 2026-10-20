@@ -20,11 +20,11 @@ export type MapToggle = {
 }
 
 /**
- * Owns the map legend's interactions. It tracks which entries — region
- * categories and overlays alike — are toggled off, and which one a hovered or
+ * Owns the map legend's interactions. It tracks which entries (region
+ * categories and overlays alike) are toggled off, and which one a hovered or
  * focused legend entry emphasizes. The chart's series switchboard re-keyed by string
  * id, since the map's legend merges two entry sources. A hidden entry can't
- * hold the emphasis — dimming everything against an invisible entry would
+ * hold the emphasis: dimming everything against an invisible entry would
  * read as a broken map.
  *
  * @remarks Nor can an entry still arriving. Under `animate` a toggled-on entry
@@ -77,7 +77,7 @@ export function useMapToggle(
 	const toggle = useCallback(
 		(id: string) => {
 			// Only the way back on has a wash to protect. Hiding an entry drops the
-			// emphasis on its own — a hidden entry can't hold one — so the hold could
+			// emphasis on its own (a hidden entry can't hold one), so the hold could
 			// change nothing there, and arming it would spend a timer and the render
 			// that ends it for a beat no one can see.
 			const restoring = hidden.has(id)

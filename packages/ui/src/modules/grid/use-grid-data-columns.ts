@@ -131,8 +131,8 @@ export function useGridDataColumns<T>({
 	)
 
 	// Row grouping: resolve the `groupBy` binding to a groupable data column (a
-	// stray id leaves the grid ungrouped), plus the expansion state — the engine's
-	// under client grouping, the binding's key set under manual. Grouping renders
+	// stray id leaves the grid ungrouped), plus the expansion state (the engine's
+	// under client grouping, the binding's key set under manual). Grouping renders
 	// its own body, so it stands down the cursor and pagination below. Manual
 	// grouping also stands virtualization down.
 	const isGroupableColumn = useCallback(

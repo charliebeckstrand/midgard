@@ -29,7 +29,7 @@ import {
 import { areaReach, type MapAreaBox, type MapAreaRing, ringsNear } from './map-geometry/mark'
 import type { LngLat, MapPoint2D } from './types'
 
-/** Degrees in one radian — meters of arc become the angle `geoCircle` takes. @internal */
+/** Degrees in one radian: meters of arc become the angle `geoCircle` takes. @internal */
 const DEGREES_PER_RADIAN = 180 / Math.PI
 
 /** Half the sphere in degrees: a ring this wide covers everything and has no boundary. @internal */
@@ -48,7 +48,7 @@ const HALF_SPHERE_DEGREES = 180
  *
  * @param at - The circle's center.
  * @param radius - The ground radius, in meters.
- * @returns The ring, or an empty list where the arguments describe no circle —
+ * @returns The ring, or an empty list where the arguments describe no circle:
  * a radius at or below zero, or one that wraps the sphere. The mark draws
  * nothing from an empty ring, which is the silence a `MapRoute` with no stops
  * keeps.
@@ -66,7 +66,7 @@ export function circleRing(at: LngLat, radius: number): LngLat[] {
 		.center(at)
 		.radius(degrees)
 		// The step between adjacent ring points, in degrees of rotation about the
-		// center — so the count holds whatever the radius is.
+		// center, so the count holds whatever the radius is.
 		.precision(360 / GEOFENCE_CIRCLE_STEPS)()
 
 	// GeoJSON positions are `number[]` to the types, and a lon/lat pair in fact;
@@ -90,7 +90,7 @@ export function circleRing(at: LngLat, radius: number): LngLat[] {
  * @internal
  */
 export type MapZoneBudget = {
-	/** The drawn rings, as the only reader below wants them — boxes to place a dot against. */
+	/** The drawn rings, as the only reader below wants them: boxes to place a dot against. */
 	rings: readonly MapAreaBox[]
 	/** What a dot on this zone can reach, in device pixels. */
 	spare: number

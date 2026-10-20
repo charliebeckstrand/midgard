@@ -15,7 +15,7 @@ export function resolveLabels(labels: SectorLabels | undefined): Required<Sector
 }
 
 /**
- * The public `onCategoryClick` resolved to the marks' index-based contract —
+ * The public `onCategoryClick` resolved to the marks' index-based contract:
  * a slice's data index names it through the data-aligned label list.
  *
  * @internal
@@ -81,7 +81,7 @@ type SectorFrame = {
 	fill: boolean
 	/** The legend is a side panel, so it lays out beside the pie. */
 	aside: boolean
-	/** The legend shows — for two or more slices, or where the prop forces it. */
+	/** The legend shows for two or more slices, or where the prop forces it. */
 	hasLegend: boolean
 	/** A stacked (top / bottom) legend bands inside the aspect box, sharing the pie's ratio. */
 	stackedLegend: boolean

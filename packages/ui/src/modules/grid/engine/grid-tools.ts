@@ -7,7 +7,7 @@ export const DEFAULT_SURFACES: Required<GridToolSurfaces> = { toolbar: false, co
 export const SURFACES_OFF: Required<GridToolSurfaces> = { toolbar: false, contextMenu: false }
 
 /**
- * Resolves a tool's {@link GridToolSurfaces} against the shared defaults — the
+ * Resolves a tool's {@link GridToolSurfaces} against the shared defaults: the
  * right-click menus carry the tool, the toolbar button is opt-in. The single
  * reading of that policy: export and the column manager both land here, so the
  * two can't drift.

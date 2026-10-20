@@ -81,7 +81,7 @@ export function useGridGroupManager({
 
 	const zones = useMemo(() => buildManagerZones(groups, orderableIds), [groups, orderableIds])
 
-	// Zone→ids derived from props — the render source when idle, and the seed the
+	// Zone→ids derived from props: the render source when idle, and the seed the
 	// drag override starts from. Recomputed from the committed props after a drop,
 	// so it equals the just-settled override (no flicker).
 	const baseZoneMap = useMemo<ZoneMap>(

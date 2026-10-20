@@ -46,7 +46,7 @@ export type OffcanvasOptions = {
  * same breakpoints as the classes that `resolveVariant` gives for it. While the
  * layout is `inline`, the drawer stays closed, and a `setOpen(true)` has no
  * effect. A map that names no `initial` value takes `drawer` there.
- * @returns `{ open, setOpen, close, layout }` — the open flag, its setter, a
+ * @returns `{ open, setOpen, close, layout }`: the open flag, its setter, a
  * memoized `close` convenience, and the layout with its `initial` value. Give
  * that layout to `resolveVariant`, so that the CSS agrees with the open flag.
  */

@@ -9,12 +9,12 @@ import type { TextWidth } from '../chart-text-width'
 
 /** One drawable slice: its path, source index, share, and tooltip anchor. @internal */
 export type PieSlice = {
-	/** The datum's index in the source data — colors and readouts key off it. */
+	/** The datum's index in the source data: colors and readouts key off it. */
 	index: number
 	/** The drawn wedge, its straight edges offset inward to part from neighbors. */
 	d: string
 	/**
-	 * The gapless full-wedge path behind {@link d} — the pointer hit target. Its
+	 * The gapless full-wedge path behind {@link d}: the pointer hit target. Its
 	 * edges fall on each channel's own center line. A slice therefore claims
 	 * exactly half of every neighboring gap. A pointer that crosses the channel
 	 * keeps the tooltip instead of falling through to the bare surface.
@@ -22,7 +22,7 @@ export type PieSlice = {
 	hit: string
 	/** The slice's part of the whole, `0..1`. */
 	share: number
-	/** The slice's mid-angle in degrees, clockwise from the top — where a callout leaves the edge. */
+	/** The slice's mid-angle in degrees, clockwise from the top, where a callout leaves the edge. */
 	mid: number
 	/** The slice's mid-angle point, where the tooltip and segment label anchor. */
 	centroid: { x: number; y: number }
@@ -63,7 +63,7 @@ function at(cx: number, cy: number, radius: number, angle: number): { x: number;
 
 /**
  * The radius at which a slice's label and anchor sit, along its bisector. A
- * donut keeps the mid-ring — the area centroid of a wide ring segment slides
+ * donut keeps the mid-ring: the area centroid of a wide ring segment slides
  * into the hole, off the ring. A pie takes the sector's true area centroid,
  * `(2/3)·R·sin α / α` for half-angle `α = share·π`. That radius moves with the
  * share:
@@ -159,13 +159,13 @@ function donutBack(
 }
 
 /**
- * A pie slice's inner boundary — the exact inward offset of its wedge, the
+ * A pie slice's inner boundary: the exact inward offset of its wedge, the
  * shape constant-width knife cuts leave. The offset edges run straight to
  * their natural intersection: a sharp tip on the bisector, `half / sin(s/2)`
  * from the center. A slice wider than a half-turn has no such tip. Its edges
  * are tangent to the tiny `half`-radius circle the cuts leave around the
  * middle. It therefore rides that circle between the tangent points. Nothing
- * is stepped, capped, or clamped — the cuts simply cross at the center, the
+ * is stepped, capped, or clamped: the cuts simply cross at the center, the
  * way they do through a real pie. @internal
  */
 function pieBack(cx: number, cy: number, start: number, end: number, half: number): string {
@@ -232,8 +232,8 @@ type SliceAngle = {
  * mid-angles (sizing a frame before a radius exists) therefore never draws a
  * path to get them.
  *
- * @remarks Non-finite and non-positive values take no slice — see
- * {@link pieSlices}.
+ * @remarks Non-finite and non-positive values take no slice (see
+ * {@link pieSlices}).
  * @internal
  */
 function sliceAngles(values: (number | null)[]): SliceAngle[] {
@@ -271,7 +271,7 @@ function sliceAngles(values: (number | null)[]): SliceAngle[] {
  * @remarks Non-finite and non-positive values take no slice. A pie encodes
  * parts of a whole, and a negative part has no arc. Those values stay in the
  * chart's readout instead. A single positive value draws the full circle (two
- * half arcs — one 360° arc command collapses to nothing). Each slice also
+ * half arcs: one 360° arc command collapses to nothing). Each slice also
  * carries a gapless {@link PieSlice.hit} wedge for pointer testing. The visible
  * gap is a channel centered on the boundary between two slices. A full wedge
  * therefore hands each neighbor exactly half of it, and the tooltip never
@@ -287,8 +287,8 @@ export function pieSlices(
 	const positive = angles.length
 
 	// A lone full circle has no neighbor to part from, so it takes no gap channel
-	// and one shared hit target — skipping the per-slice pinch math entirely rather
-	// than computing an offset it would discard.
+	// and one shared hit target. That skips the per-slice pinch math entirely
+	// rather than computing an offset it would discard.
 	if (positive === 1) {
 		const { index, share, mid } = angles[0] as SliceAngle
 
@@ -321,7 +321,7 @@ export function pieSlices(
 		const offset = Math.min(half, pinch)
 
 		// The gapless wedge (offset 0) runs its edges to the boundary each channel
-		// is centered on — the slice's half of it.
+		// is centered on: the slice's half of it.
 		return {
 			index,
 			d: slicePath(cx, cy, radius, innerRadius, start, start + sweep, offset),
@@ -336,8 +336,8 @@ export function pieSlices(
 /**
  * Whether an estimated `chars`-wide label fits inside a slice at its centroid.
  * The clearance to both radial edges must cover half the text, and the ring
- * must be deep enough for a text line. Labels that fail are omitted — never
- * clipped — and the tooltip and data table still carry the value.
+ * must be deep enough for a text line. Labels that fail are omitted (never
+ * clipped) and the tooltip and data table still carry the value.
  *
  * @internal
  */
@@ -394,7 +394,7 @@ const LEADER_STEP = 10
 
 /** One placed callout: a leader out to a label set beside its slice. @internal */
 export type PieCallout = {
-	/** The datum's index — the label text and color key off it. */
+	/** The datum's index: the label text and color key off it. */
 	index: number
 	/** The slice's mid-angle, so a callout can sync its reveal to the sweep. */
 	mid: number
@@ -627,7 +627,7 @@ export type PieCalloutFitOptions = {
 	frameWidth: number
 }
 
-/** How far a callout's elbow pulls off center, `1` at 3/9 o'clock and `0` at 12/6 — the sign matches {@link pieCallouts}' own `elbow.x >= cx` side test. @internal */
+/** How far a callout's elbow pulls off center, `1` at 3/9 o'clock and `0` at 12/6: the sign matches {@link pieCallouts}' own `elbow.x >= cx` side test. @internal */
 function calloutPull(mid: number): number {
 	return Math.cos(((mid - 90) * Math.PI) / 180)
 }

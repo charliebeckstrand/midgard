@@ -35,8 +35,9 @@ export type TooltipPointerOptions = {
 	 */
 	offset?: number
 	/**
-	 * Constrain pointer tracking to one axis (floating-ui `useClientPoint`) — e.g.
-	 * `'x'` for a horizontal sweep whose vertical anchor is pinned to a snapped value.
+	 * Constrain pointer tracking to one axis (floating-ui `useClientPoint`). For
+	 * example, `'x'` suits a horizontal sweep whose vertical anchor is pinned to
+	 * a snapped value.
 	 * @defaultValue 'both'
 	 */
 	axis?: 'x' | 'y' | 'both'
@@ -118,7 +119,7 @@ function toClientPoint(origin: Element | null, x: number, y: number) {
  * `useClientPoint`, while wearing the standard Tooltip chrome.
  *
  * @remarks Rides {@link useFloatingPanel}'s base (memoized offset/flip/shift
- * chain). Composes only `useClientPoint` — no role, dismiss, or overlay-signal —
+ * chain). Composes only `useClientPoint` (no role, dismiss, or overlay-signal),
  * so nothing stamps `role="tooltip"`/`aria-describedby`; the readout is a pointer
  * enhancement the consumer marks `aria-hidden`. `track` defaults to `'auto'`
  * (parity with `autoUpdate`); every current caller opts into `'point'`.

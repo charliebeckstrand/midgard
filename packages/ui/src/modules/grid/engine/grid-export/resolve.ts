@@ -189,7 +189,7 @@ export function trackPending(
 	return () => {
 		const pending = run()
 
-		// A synchronous export has already downloaded by here — only a genuine
+		// A synchronous export has already downloaded by here: only a genuine
 		// round-trip has anything to wait on.
 		if (!(pending instanceof Promise)) return pending
 
@@ -211,8 +211,8 @@ export function trackPending(
  * Each action's `run` calls the entry's `onExport` override when given, else
  * the built-in exporter for a shipped type. An entry naming neither (an unknown
  * type with no `onExport`) is dropped (see {@link buildAction}). Which surfaces
- * offer these actions is a separate question — see
- * {@link resolveExportSurfaces}.
+ * offer these actions is a separate question (see
+ * {@link resolveExportSurfaces}).
  *
  * Every exporter reads the data columns alone, as {@link GridExportContext}
  * states. The non-data columns (selection, actions, drag handle, expander)

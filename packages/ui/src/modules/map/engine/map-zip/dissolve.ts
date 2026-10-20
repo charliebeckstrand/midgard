@@ -25,8 +25,8 @@ import type { MapFeature, MapGeography, MapPolygons, MapShape, MapTopology } fro
 
 /**
  * The property names a ZCTA source names its code in, in the order they are
- * read. The Census files lead the list — `ZCTA5CE20` is the 2020 vintage,
- * `ZCTA5CE10` the 2010 one — and the plain names follow for a hand-built atlas.
+ * read. The Census files lead the list (`ZCTA5CE20` is the 2020 vintage,
+ * `ZCTA5CE10` the 2010 one) and the plain names follow for a hand-built atlas.
  *
  * @internal
  */
@@ -97,7 +97,7 @@ export type MapZipArea = {
 	dissolved: boolean
 }
 
-/** Nothing matched — the shared empty territory, so a miss allocates nothing. @internal */
+/** Nothing matched: the shared empty territory, so a miss allocates nothing. @internal */
 const NO_AREA: MapZipArea = { codes: [], features: [], polygons: [], dissolved: false }
 
 /** Whether a shape is one this pass can draw; `merge` takes areas alone. @internal */
@@ -163,7 +163,7 @@ function dissolveTopology(
 
 /**
  * The territory a feature collection's matched codes gather to. Each code keeps
- * its own rings — see the note at the top of this file on why they cannot merge.
+ * its own rings (see the note at the top of this file on why they cannot merge).
  *
  * @internal
  */

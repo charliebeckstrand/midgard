@@ -127,8 +127,8 @@ export function useControllable<T>({
 
 		if (!controlledRef.current) setInternalValue(normalized)
 
-		// §7.3: the public callback reports a cleared value as `null` — echoing
-		// `undefined` back into `value` would read as uncontrolled.
+		// §7.3: the public callback reports a cleared value as `null` (echoing
+		// `undefined` back into `value` would read as uncontrolled).
 		onValueChangeRef.current?.(normalized ?? null)
 	}, [])
 

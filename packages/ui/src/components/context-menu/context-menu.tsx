@@ -39,8 +39,8 @@ export type ContextMenuProps = ContextMenuConfig & {
  * A right-click context menu over its content, built from a host's `defaults`
  * merged with a caller's custom {@link ContextMenuConfig}. The custom items sit
  * before or after the defaults per `insert`, with a separator between when
- * both show. With nothing to show — no defaults kept and no custom items, or
- * `disabled` — it opens no menu, so the native menu still opens. The wrapper
+ * both show. With nothing to show (no defaults kept and no custom items, or
+ * `disabled`) it opens no menu, so the native menu still opens. The wrapper
  * stays in both states, so the content keeps its state when the menu turns on
  * or off. Both lists take each {@link ContextMenuEntry} kind: an item, a
  * separator, or a submenu that opens a nested menu.

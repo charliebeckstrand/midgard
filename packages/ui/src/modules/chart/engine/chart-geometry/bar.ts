@@ -19,11 +19,11 @@ export type BarMark = {
 	x: number
 	/** The bar's right edge. */
 	x1: number
-	/** The drawn span's lesser y — the data end above the baseline, or the baseline. */
+	/** The drawn span's lesser y: the data end above the baseline, or the baseline. */
 	top: number
 	/** The drawn span's greater y. */
 	bottom: number
-	/** Whether the bar's data end sits past the baseline on the positive side — up, or to the right. */
+	/** Whether the bar's data end sits past the baseline on the positive side: up, or to the right. */
 	positive: boolean
 }
 
@@ -96,7 +96,7 @@ function barPath(
 }
 
 /**
- * A bar's hit-span fields — everything but the drawn path — from its value-axis
+ * A bar's hit-span fields (everything but the drawn path) from its value-axis
  * span (`baseline`→`valuePos`) and band-axis slot (`c0`→`c1`). Vertical runs the
  * span up y with the slot across x; horizontal transposes both, so
  * `barMarkAt` reads either the same way. A stacked segment keeps these full
@@ -139,7 +139,7 @@ function barSpanFields(
  * single-scale chart passes its scale's `map` and one number unchanged.
  *
  * @remarks A `null` value yields a `null` mark (an omitted bar, not a zero
- * one); an exact zero yields `null` too — the baseline already says zero.
+ * one); an exact zero yields `null` too: the baseline already says zero.
  * `thick` lifts the {@link BAR_MAX_WIDTH} cap so the group fills the band split
  * by series and gaps, the leftover air turned to fill.
  * @internal
@@ -184,7 +184,7 @@ export function barMarks(
 	)
 }
 
-/** The topmost series drawing a positive segment in each category — the only one rounded. @internal */
+/** The topmost series drawing a positive segment in each category: the only one rounded. @internal */
 function topmostSeries(values: (number | null)[][], count: number): number[] {
 	const top = new Array<number>(count).fill(-1)
 
@@ -201,13 +201,13 @@ function topmostSeries(values: (number | null)[][], count: number): number[] {
 type StackedSegment = {
 	c0: number
 	thickness: number
-	/** Value-axis coord of the segment's baseline edge — its running-total floor. */
+	/** Value-axis coord of the segment's baseline edge: its running-total floor. */
 	baseEdge: number
-	/** Value-axis coord of the segment's data edge — its cumulative top. */
+	/** Value-axis coord of the segment's data edge: its cumulative top. */
 	dataEdge: number
 	/** Whether a segment sits below, so the shared baseline edge insets for the gap. */
 	hasBelow: boolean
-	/** Whether this is the outermost segment — its data end rounds and stays flush. */
+	/** Whether this is the outermost segment: its data end rounds and stays flush. */
 	rounded: boolean
 }
 
@@ -296,13 +296,13 @@ export function stackedBarMarks(
 
 /**
  * Per category, each stacked segment's cumulative top along the value axis,
- * piled bottom to top — the boundaries the drawn segments actually sit at — and
+ * piled bottom to top (the boundaries the drawn segments actually sit at) and
  * the series behind each stop in the same order. The from-zero snap points a
  * value scale maps coincide with the marks only in the grouped case, where the
  * bars grow from one shared baseline. A stack piles them, so the crosshair
  * snap and the keyboard cursor read these cumulative edges instead.
  *
- * Vertical reads the value off `top`, horizontal off `x1` — the segment's data
+ * Vertical reads the value off `top`, horizontal off `x1`: the segment's data
  * end either way, since stacked segments are positive-only. One pass builds
  * both lists, so a missing segment drops from each and the keyboard lane maps
  * back to the series it lands on. `seriesIndices[order]` names the series the

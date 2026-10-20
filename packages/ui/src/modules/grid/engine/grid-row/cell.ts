@@ -160,7 +160,7 @@ export function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
 	return node == null ? NO_TOOLTIP : { kind: 'custom', node }
 }
 
-/** Shared default-tooltip descriptor — one allocation, not one per rendered cell. @internal */
+/** Shared default-tooltip descriptor: one allocation, not one per rendered cell. @internal */
 const AUTO_TOOLTIP: CellTooltip = { kind: 'auto' }
 
 /** Shared suppressed-tooltip descriptor. @internal */

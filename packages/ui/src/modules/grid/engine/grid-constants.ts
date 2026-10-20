@@ -69,7 +69,7 @@ export const DEFAULT_MIN_COLUMN_SIZE = 40
 /**
  * Cap (px) on a column's auto-measured content width, so one runaway cell can't
  * starve its siblings. The autosizer holds others at their floor and overflows,
- * rather than squishing. A column's own `maxWidth` overrides this — an explicit
+ * rather than squishing. A column's own `maxWidth` overrides this: an explicit
  * ceiling is a deliberate choice.
  *
  * @internal
@@ -89,7 +89,7 @@ export const HEADER_TRUNCATE_ALLOWANCE = 24
 /** Pixels a keyboard arrow nudges a column resize handle. @internal */
 export const COLUMN_RESIZE_STEP = 16
 
-/** Pixels a keyboard PageUp/PageDown jumps a column resize handle — a coarse step over the arrow nudge. @internal */
+/** Pixels a keyboard PageUp/PageDown jumps a column resize handle: a coarse step over the arrow nudge. @internal */
 export const COLUMN_RESIZE_PAGE_STEP = 64
 
 /** Fallback rows for a PageUp/PageDown cursor jump when the viewport or row height cannot be measured. @internal */
@@ -130,7 +130,7 @@ export const MANUAL_GROUP_PLACEHOLDER_ROWS = 1
 export const GRID_LOADING_ROWS = 1
 
 /**
- * Zero cell padding as an inline style — highest specificity, so it clears the
+ * Zero cell padding as an inline style: highest specificity, so it clears the
  * density padding of the `td`. Hoisted so every consumer shares one
  * object.
  *

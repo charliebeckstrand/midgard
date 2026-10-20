@@ -69,7 +69,7 @@ import { useGridZoneSortable } from './use-grid-zone-sortable'
 /**
  * Whether droppable `containerId` belongs to the same sortable as the active
  * drag `activeId`: both group ids, or both zone/column ids. The partition that
- * keeps a group drag away from column slots and vice versa — shared by
+ * keeps a group drag away from column slots and vice versa: shared by
  * {@link groupAwareCollision} (pointer) and {@link groupAwareKeyboardCoordinates}
  * (keyboard).
  *
@@ -103,7 +103,7 @@ const groupAwareCollision: CollisionDetection = (args) => {
 
 /**
  * Keyboard coordinate getter that scopes arrow-key reordering to the active
- * drag's own sortable — the keyboard analogue of {@link groupAwareCollision}.
+ * drag's own sortable: the keyboard analogue of {@link groupAwareCollision}.
  * The `sortableKeyboardCoordinates` weighs every droppable in the context. The
  * group and column droppables share one `DndContext`. A lifted group's first
  * arrow press therefore lands on an intervening column row or zone, rather than
@@ -121,7 +121,7 @@ export const groupAwareKeyboardCoordinates: KeyboardCoordinateGetter = (event, a
 
 	// Rebuild the same map class holding only same-kind droppables, so the getter
 	// (which reads `.getEnabled()` and `.get()`) sees a genuine map with its
-	// candidates already scoped — no group/column cross-targeting.
+	// candidates already scoped: no group/column cross-targeting.
 	const Scoped = droppableContainers.constructor as new (
 		entries: Iterable<[UniqueIdentifier, DroppableContainer]>,
 	) => typeof droppableContainers
@@ -153,7 +153,7 @@ export type GridGroupManagerProps = {
 	/** Orderable (non-frozen) data columns, in display order. */
 	columns: GridColumnManagerItem[]
 	/**
-	 * Whether a column passes the manager's filter — the whole set when no query is
+	 * Whether a column passes the manager's filter: the whole set when no query is
 	 * typed. Resolved here to the ids that pass, which is all a zone needs. It
 	 * renders the members it holds among them, and keeps its full membership behind
 	 * them. The zone map is also what commits group membership on drop.
@@ -287,7 +287,7 @@ export function GridGroupManager({
 		[columns],
 	)
 
-	// The filter resolved once, to the ids that pass it — so each zone selects its
+	// The filter resolved once, to the ids that pass it, so each zone selects its
 	// rows by lookup rather than re-running the predicate over its own members, and
 	// only this level knows a filter is in play.
 	const visibleColumnIds = useMemo(
@@ -514,7 +514,7 @@ function GridGroupManagerZoneView({
 
 	const { setNodeRef } = useDroppable({ id: zoneDropId(zone.id) })
 
-	// The zone's matching members — all of them with no query typed. Both the render
+	// The zone's matching members: all of them with no query typed. Both the render
 	// and the sortable run off these, so a drag animates over the rows on screen;
 	// `columnIds` stays whole behind them, which is what a drop commits from.
 	const filteredIds = useMemo(
@@ -526,7 +526,7 @@ function GridGroupManagerZoneView({
 	// sortable context of the zone, so the context renders no row.
 	const visibleIds = useStableValue(filteredIds, sameElements)
 
-	// Colors already taken by other groups — offered disabled, so a color maps to
+	// Colors already taken by other groups: offered disabled, so a color maps to
 	// at most one group. Memoized so a drag/hover re-render doesn't rescan every
 	// group in every zone.
 	const usedColors = useMemo(
@@ -564,7 +564,7 @@ function GridGroupManagerZoneView({
 			<CardBody>
 				{visibleIds.length === 0 ? (
 					// A zone whose members are all filtered out reads as a search result, not
-					// as an empty group — it still holds the columns it holds. An `output`
+					// as an empty group: it still holds the columns it holds. An `output`
 					// (implicit `role="status"`) so emptying one zone is announced even while
 					// the rest of the editor still has matches.
 					<output className={cn(k.manager.zone.empty)}>

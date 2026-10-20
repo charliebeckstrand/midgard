@@ -4,8 +4,8 @@
  * equal-interval or equal-count (quantile) bins. They emit the bins as the map's
  * {@link MapCategoryMeta} shape, a `value`-kind paint. The region fills, legend,
  * tooltip, and table then read them the way they read categorical slots. The
- * numeric analogue of `category.ts`. The color maths itself — sampling the
- * ramp, binning the domain — lives in the shared utility, so the choropleth and
+ * numeric analogue of `category.ts`. The color maths itself (sampling the
+ * ramp, binning the domain) lives in the shared utility, so the choropleth and
  * the heatmap share one scale.
  */
 
@@ -101,11 +101,11 @@ export function resolveValueBins<T>(
 
 /** The per-region readout {@link regionValueJoin} resolves, index-aligned with the region ids. @internal */
 export type RegionValueJoin = {
-	/** Each region's bin index — its color — or `null` off data. */
+	/** Each region's bin index (its color), or `null` off data. */
 	regionCategory: (number | null)[]
-	/** Each region's own formatted value — the tooltip and table readout, not the bin's range label. */
+	/** Each region's own formatted value: the tooltip and table readout, not the bin's range label. */
 	regionValues: (string | null)[]
-	/** Each region's raw number — the range legend's arrow marks it on the continuous bar. */
+	/** Each region's raw number: the range legend's arrow marks it on the continuous bar. */
 	regionNumbers: (number | null)[]
 }
 
@@ -119,7 +119,7 @@ export type RegionValueJoin = {
  *   "1–135";
  * - its raw number.
  *
- * `null` throughout where no row matches or the value is non-finite — the region
+ * `null` throughout where no row matches or the value is non-finite: the region
  * draws in the neutral no-data fill and reads silent.
  *
  * @internal

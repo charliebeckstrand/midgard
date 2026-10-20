@@ -196,7 +196,7 @@ function menuTarget(hover: ChartHoverState, snaps: boolean): number | null {
 /** Props for {@link ChartFrame}; the accessible name spreads onto the `role="img"` plot region. @internal */
 export type ChartFrameProps = AccessibleName & {
 	/**
-	 * Measuring ref from `usePlotFrame`, attached to the plot region — the box
+	 * Measuring ref from `usePlotFrame`, attached to the plot region: the box
 	 * the drawing actually fills, so a side legend never inflates the width.
 	 */
 	ref: RefObject<HTMLDivElement | null>
@@ -220,7 +220,7 @@ export type ChartFrameProps = AccessibleName & {
 	reserve: FrameReserve | null
 	/**
 	 * The plot takes the height its region already holds rather than reserving
-	 * one — a `flex-1` child grown into the space the legend leaves. Set for the
+	 * one: a `flex-1` child grown into the space the legend leaves. Set for the
 	 * height-measured frames: a ratio shared with the legend (paired with {@link
 	 * ChartFrameProps.aspect}), and the free-form container-filling frame
 	 * (`aspectRatio={false}`). A definite-height parent then no longer collapses
@@ -230,7 +230,7 @@ export type ChartFrameProps = AccessibleName & {
 	fill?: boolean
 	/**
 	 * The `width / height` the figure wrapper carries as CSS `aspect-ratio`. The
-	 * whole chart — plot and legend together — therefore holds the ratio as a
+	 * whole chart (plot and legend together) therefore holds the ratio as a
 	 * preference a definite-height parent can clamp. The plot fills what the
 	 * legend's natural size leaves. Unset, no wrapper ratio: the plot box reserves its own
 	 * (a side legend banding beside it) or the frame is fixed / free-form.
@@ -289,7 +289,7 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	readout: ChartReadoutSource | null
 	/**
-	 * The series indices, in the order the tooltip lists {@link readout}'s rows —
+	 * The series indices, in the order the tooltip lists {@link readout}'s rows:
 	 * the marks' own visible top-to-bottom order. Omitted, the rows keep the
 	 * readout's series order. The hidden data table always reads in series order.
 	 */
@@ -327,9 +327,9 @@ export type ChartFrameProps = AccessibleName & {
 	/** Snap targets when the crosshair snaps, carrying the tooltip to the intersection. */
 	snap?: ChartSnap
 	/**
-	 * Per-category anchor points that make the plot a keyboard tab stop: the arrow
-	 * keys walk them through the same hover the pointer drives. Absent — or empty —
-	 * the region stays a plain non-focusable `role="img"`.
+	 * Per-category anchor points that make the plot a keyboard tab stop: the
+	 * arrow keys walk them through the same hover the pointer drives. Absent (or
+	 * empty), the region stays a plain non-focusable `role="img"`.
 	 */
 	focus?: ChartFocusTargets
 	/**
@@ -373,14 +373,14 @@ export type ChartFrameProps = AccessibleName & {
 	orientation?: ChartOrientation
 	className?: string
 	/**
-	 * HTML layered over the SVG inside the plot region — a donut's center content.
+	 * HTML layered over the SVG inside the plot region: a donut's center content.
 	 *
 	 * @remarks The plot takes the overlay as its description (`aria-describedby`).
 	 * The plot is `role="img"`, whose children assistive tech does not read, so the
 	 * reference is what lets a screen reader read the overlay, such as a donut's total.
 	 */
 	overlay?: ReactNode
-	/** Visually-hidden HTML beside the data table — reference-line parity outside the plot. */
+	/** Visually-hidden HTML beside the data table: reference-line parity outside the plot. */
 	annotations?: ReactNode
 	/**
 	 * The right-click context menu config, forwarded from the chart's prop. `false`
@@ -389,7 +389,7 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	contextMenu?: ChartContextMenuConfig | false
 	/**
-	 * A fresh copy of the whole chart for the menu's fullscreen view — a live
+	 * A fresh copy of the whole chart for the menu's fullscreen view: a live
 	 * re-mount, so hover and keyboard keep working at the dialog size. Ignored
 	 * when the frame is itself rendering inside the fullscreen dialog.
 	 */
@@ -460,7 +460,7 @@ export function ChartFrame({
 	// not the frame, its header, its legend, or its context menu.
 	const [hoverStore] = useState(createChartHoverStore)
 
-	// The mark under the pointer at the moment the right-click landed — snapshotted on the contextmenu
+	// The mark under the pointer at the moment the right-click landed: snapshotted on the contextmenu
 	// event, NOT read live from the hover store. The open menu overlays the plot, so moving the pointer toward a
 	// menu item immediately leaves the plot and clears the hover; a live read would recompute the items
 	// mid-interaction and drop the per-mark entry the user is about to click.
@@ -479,15 +479,15 @@ export function ChartFrame({
 
 	const [activeReference, setActiveReference] = useState<number | null>(null)
 
-	// The mark the pointer sits on — a bar, a line, a disc — resolved by the hit
+	// The mark the pointer sits on (a bar, a line, a disc), resolved by the hit
 	// layer. It recedes every other mark behind it, and merges below with the
 	// series the legend or keyboard emphasizes: the pointed mark wins while it's
 	// held, the coarse series emphasis stands in the rest of the time.
 	const [pointedMark, setPointedMark] = useState<ChartMarkRef | null>(null)
 
 	const pointMark = useCallback((mark: ChartMarkRef | null) => {
-		// Bail on a no-op so sweeping within one mark — or off the marks entirely
-		// once already clear — costs no mark re-render, the same guard the hover store keeps.
+		// Bail on a no-op so sweeping within one mark (or off the marks entirely
+		// once already clear) costs no mark re-render, the same guard the hover store keeps.
 		setPointedMark((prev) => (sameMark(prev, mark) ? prev : mark))
 	}, [])
 
@@ -501,13 +501,13 @@ export function ChartFrame({
 	// keyboard down here, veils the header and drops the legend (chartChrome), lays
 	// the `k.drawing` pointer veto over the SVG so nothing inside can take a hover,
 	// click, or cursor, and publishes the tier through ChartTierContext so the
-	// interactive layers — hit areas, crosshair, value labels, reference hovers —
+	// interactive layers (hit areas, crosshair, value labels, reference hovers)
 	// stand themselves down. A chart never gates any of that per call site.
 	const spark = tier === 'spark'
 
 	// Spark sheds its hover chrome with the rest of its anatomy: a sparkline reveals
 	// what it is through the title veil on hover, not a data readout, so the tooltip
-	// — and the keyboard cursor whose only output is that tooltip — stand down. The
+	// (and the keyboard cursor whose only output is that tooltip) stand down. The
 	// accessible name and the data table still carry its values. Every wider tier
 	// keeps the caller's `tooltip`.
 	const tooltipShown = tooltip && !spark
@@ -532,7 +532,7 @@ export function ChartFrame({
 	}
 
 	// Arrow-key navigation over the value points and reference lines, driving the
-	// same hover the pointer does — a tab stop only where a readout can answer it.
+	// same hover the pointer does: a tab stop only where a readout can answer it.
 	const keyboard = useChartKeyboard(
 		focus,
 		orientation ?? 'vertical',
@@ -565,14 +565,14 @@ export function ChartFrame({
 	)
 
 	// The SVG renders at its committed pixel size and anchors to the box's
-	// top-left, its `viewBox` matching so user units map 1:1 to pixels — never
+	// top-left, its `viewBox` matching so user units map 1:1 to pixels, never
 	// `size-full`, which would scale the drawing to whatever CSS size the box
 	// currently holds. A resize moves the box at once but the geometry only on the
-	// next commit, so a size-full SVG scales — axis labels and all — against a
+	// next commit, so a size-full SVG scales (axis labels and all) against a
 	// stale viewBox every frame of a drag until it lands; pinned, the drawing holds
 	// steady and the box (overflow-hidden) clips or reveals a one-frame edge sliver
 	// instead. Absolute, so it stays out of flow and the box owns its own size.
-	// At spark `k.drawing` renders the whole drawing pointer-inert — the veto half
+	// At spark `k.drawing` renders the whole drawing pointer-inert: the veto half
 	// of the spark posture, killing mark hover styling and any hit target inside.
 	const svg = width > 0 && (
 		<svg
@@ -603,7 +603,7 @@ export function ChartFrame({
 	const containerFill = fill && aspect === undefined
 
 	// A framed tier bands the header above the plot and keeps the legend; spark
-	// strips both to bare marks — the header to a centered hover / focus veil, the
+	// strips both to bare marks: the header to a centered hover / focus veil, the
 	// legend gone so the plot reclaims the whole aspect box (see chartChrome).
 	// A chart with `heading` off keeps its title for the context menu alone.
 	const titleId = useId()
@@ -665,14 +665,14 @@ export function ChartFrame({
 			data-tier={tier}
 			// A touch hold here does not open the context menu.
 			data-touch-readout=""
-			// Capture phase, so the snapshot lands before the menu's own handler opens it — the menu then
+			// Capture phase, so the snapshot lands before the menu's own handler opens it: the menu then
 			// renders from a target that stays put however the pointer travels while it is open.
 			onContextMenuCapture={() => setMenuIndex(menuTarget(hoverStore.get(), snap != null))}
 			// A held touch selects no text on the page, a chart with no context menu included.
 			onPointerDown={holdTextSelection}
 			className={cn(
 				// A query container so the legend lays out against the chart's own width,
-				// not the viewport — a chart in a narrow column stacks its legend even on
+				// not the viewport: a chart in a narrow column stacks its legend even on
 				// a wide screen. `w-full` fills whatever box it is handed: the anatomy
 				// resolves from that box (the intrinsic tiers), so a chart reads at any
 				// width without a max-width cap. A `className` still overrides through
@@ -806,7 +806,7 @@ function ChartFigure({
 
 	// The plot-and-legend arrangement, filling the height the header leaves. A side
 	// rail bands beside the plot in a row once the container has room (`@sm`, the
-	// rail's engage width) — below that it stacks under the plot at full width, and
+	// rail's engage width): below that it stacks under the plot at full width, and
 	// a left rail reverses the row rather than moving in the DOM. A stacked legend
 	// bands above or below in the figure's own column, so the wrapper takes no box
 	// (`contents`). Either way the `flex-1` plot draws into the ratio's remainder,
@@ -844,12 +844,12 @@ function ChartFigure({
 			// The free-form fill frame's own box: its height is the tile's, unmoved by
 			// the header and legend the tier mounts or drops inside it, so `usePlotFrame`
 			// reads the tier's spark height off this rather than the plot's chrome-shrunk
-			// remainder — which the tier would otherwise perturb into an oscillation.
+			// remainder, which the tier would otherwise perturb into an oscillation.
 			{...(containerFill && { 'data-plot-fill-container': '' })}
 			// The ratio rides `aspect-ratio` as a preference, not a demand: `max-h-full`
 			// lets a definite-height parent clamp the figure below what the ratio would
 			// ask for, and the `flex-1` plot then measures the clamped height and draws
-			// to fit — the box is law. The header bands above at its own height, so the
+			// to fit (the box is law). The header bands above at its own height, so the
 			// plot fills what the ratio leaves under it. An auto-height parent ignores
 			// `max-h-full`, so the ratio governs as normal; `min-h-0` lets the clamp
 			// actually shrink it.

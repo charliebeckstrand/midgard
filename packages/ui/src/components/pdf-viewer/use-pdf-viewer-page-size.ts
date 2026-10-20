@@ -22,7 +22,7 @@ type PageSizeResult = {
  *
  * @param documentKey - Identity of the current document. A change resets the measured
  * size, also when the page index and the page `id` stay the same.
- * @returns `{ pageSize, onImageLoad }` — the resolved size and the `<img>`
+ * @returns `{ pageSize, onImageLoad }`: the resolved size and the `<img>`
  * `onLoad` handler that measures the natural size.
  * @internal
  */

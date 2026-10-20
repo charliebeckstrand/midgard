@@ -60,7 +60,7 @@ type ComboboxInputProps = {
 	invalid?: boolean
 	value: string
 	placeholder?: string
-	/** Native hover/description text — the whole selection where the value is a count. */
+	/** Native hover/description text: the whole selection where the value is a count. */
 	title?: string
 	/** True while the input shows the live query rather than the resolved value. */
 	editing: boolean

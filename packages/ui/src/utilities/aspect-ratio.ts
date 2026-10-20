@@ -1,6 +1,6 @@
 /**
  * Parses an aspect ratio to its numeric `width / height`, or `null` when the
- * ratio is off or unparseable — where the caller leaves the frame free-form.
+ * ratio is off or unparseable, where the caller leaves the frame free-form.
  * Chart and map each declare their own `aspectRatio` prop type over the same
  * union, and both resolve it through here. The two can therefore never disagree
  * about which ratios are valid.

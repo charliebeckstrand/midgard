@@ -13,7 +13,7 @@
 
 /** One measured legend entry: its wrapped row (0-based) and its far edge in the container's content box. @internal */
 export type LegendEntryRect = {
-	/** The row the entry wrapped onto, `0` the first — from its top offset over the row height. */
+	/** The row the entry wrapped onto, `0` the first: from its top offset over the row height. */
 	row: number
 	/** The far edge of the entry, in px from the inline start of the content box: its right edge, or its left edge in RTL. */
 	right: number
@@ -32,12 +32,12 @@ export const OVERFLOW_CHIP_RESERVE = 48
 
 /**
  * How many of the measured `rects` show before the `+N` chip, given a `maxRows`
- * cap. Everything fits — no chip — when no entry wrapped past the cap; the full
+ * cap. Everything fits (no chip) when no entry wrapped past the cap; the full
  * count returns. Otherwise the cut is the entries within the cap. It is trimmed
  * back while the last one sits on the final capped row with no room for the chip
  * beside it. The chip therefore always lands on a row it fits, rather than
  * spilling to a new one. Entries wrap in order, so the first `n` rects are exactly the first
- * `n` entries — the return is a prefix length.
+ * `n` entries: the return is a prefix length.
  *
  * @param rects Each entry's wrapped row and far edge, in DOM (wrap) order.
  * @param maxRows The tier's row cap; `0` shows nothing (the legend is gone).
@@ -62,7 +62,7 @@ export function visibleLegendCount(
 	if (withinCap === rects.length) return rects.length
 
 	// Overflow exists, so a chip must fit. Trim the last visible entry while it
-	// sits on the final capped row with no room for the chip beside it — an earlier
+	// sits on the final capped row with no room for the chip beside it: an earlier
 	// row leaves the final row free for the chip, so it needs no trim.
 	let visible = withinCap
 

@@ -1,6 +1,6 @@
 /**
- * Hannou tint-surface: the hover / focus wash for an opaque surface — a card, a
- * row on `omote.bg.surface`.
+ * Hannou tint-surface: the hover / focus wash for an opaque surface (a card, a
+ * row on `omote.bg.surface`).
  *
  * Opaque, where every other wash here is an alpha. A background is replaced, not
  * layered. A translucent wash over `bg-white` / `dark:bg-zinc-900` does not

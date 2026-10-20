@@ -37,8 +37,8 @@ export type IconProps = {
 }
 
 /**
- * Sizing and accessibility wrapper that clones a Lucide-style `icon` element (which must
- * forward the props cloned onto it — see {@link IconProps.icon}).
+ * Sizing and accessibility wrapper that clones a Lucide-style `icon` element
+ * (which must forward the props cloned onto it; see {@link IconProps.icon}).
  *
  * @remarks
  * Static leaf: renders in React Server Components. A `label` exposes the icon

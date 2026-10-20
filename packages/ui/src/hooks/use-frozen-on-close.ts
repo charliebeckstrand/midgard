@@ -5,7 +5,7 @@ import { useCallback, useState } from 'react'
 /**
  * Snapshot machinery for a value a closing panel keeps painting while it
  * animates out. `freeze(value)` takes the snapshot as the close begins.
- * `snapshot` holds it — boxed, so `undefined` freezes cleanly — until `flush`
+ * `snapshot` holds it (boxed, so `undefined` freezes cleanly) until `flush`
  * releases it (wire to `AnimatePresence`'s `onExitComplete` or equivalent).
  * A reopen drops the snapshot instead. An interrupted exit (reopen mid-close)
  * skips `onExitComplete`, so `flush` never runs and a later close must not

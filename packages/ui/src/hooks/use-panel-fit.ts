@@ -12,7 +12,7 @@ import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
  * other are the same reading.
  *
  * Layout answers in fractions, and each of the three asks whether something is
- * so — the window resized, the content changed, the panel reached its ceiling.
+ * so: the window resized, the content changed, the panel reached its ceiling.
  * Read exactly, a fraction of a pixel answers yes to all three.
  */
 const SUBPIXEL = 1
@@ -46,7 +46,7 @@ export type PanelFitOptions = {
  *
  * The counterpart to `usePanelResize`: that one is the height the reader sets,
  * this one the height the content asks for. Both write the panel's height, so
- * only one of them can be live — a drag stands this down.
+ * only one of them can be live: a drag stands this down.
  *
  * The panel carries `data-full` while its content asks for more room than it
  * has, so it stands at its ceiling. Style it to square a corner that now meets
@@ -111,7 +111,7 @@ export function usePanelFit({
 		held.current = false
 
 		// An inline height on a panel no drag holds is a pin this hook left behind,
-		// from a travel something interrupted — the variant changing under the
+		// from a travel something interrupted: the variant changing under the
 		// panel, or the reader's motion preference. Clearing it hands the box back
 		// to layout, which is where every measurement below starts.
 		if (!released) panel.style.removeProperty('height')
@@ -120,7 +120,7 @@ export function usePanelFit({
 
 		// The box the panel last rested at, and `null` until it has rested at one.
 		// The observer delivers once for a newly observed element, and that first
-		// reading has no width to match — which is the case below that adopts a size
+		// reading has no width to match, which is the case below that adopts a size
 		// rather than traveling to it, and so is also how the baseline is taken.
 		let rested: BorderBox | null = null
 
@@ -135,7 +135,7 @@ export function usePanelFit({
 			// window edge would trail the one the reader is holding.
 			//
 			// Measured against `SUBPIXEL` rather than exactly, because an exact
-			// comparison reads layout's own fractions as a resize — and the panel then
+			// comparison reads layout's own fractions as a resize, and the panel then
 			// arrives at its new height with no travel at all, for no reason a reader
 			// could see.
 			const from =

@@ -10,7 +10,7 @@ import type { MapOverlaySelection } from './engine/types'
 
 /** Props for {@link MapTable}. @internal */
 export type MapTableProps = {
-	/** The value column's header — the `categoryKey` field name, or a generic fallback. */
+	/** The value column's header: the `categoryKey` field name, or a generic fallback. */
 	header: string
 	/** Region display names by feature index. */
 	regionNames: string[]
@@ -40,7 +40,7 @@ export type MapTableProps = {
 type MapTableRowProps = {
 	name: string | undefined
 	value: string
-	/** Whether this row carries the pick — a region's or a mark's; it reads as the current one. */
+	/** Whether this row carries the pick: a region's or a mark's; it reads as the current one. */
 	current: boolean
 }
 
@@ -118,7 +118,7 @@ export const MapTable = memo(function MapTable({
 		[keys, regionNames, regionCategory, regionValues, categories, selected],
 	)
 
-	// One row per dot, so the table carries what the tooltip gives the pointer —
+	// One row per dot, so the table carries what the tooltip gives the pointer,
 	// through the one resolver both surfaces read. The readout is built off the
 	// ledger alone: a pick moves which row reads as current, never what any row
 	// says, and a two-hundred-dot set would otherwise re-resolve every readout to
@@ -146,8 +146,8 @@ export const MapTable = memo(function MapTable({
 	return (
 		// The hiding lives on a wrapper: width/height on a `display: table` box
 		// are minimums, so `sr-only` on the table itself leaves it laid out at
-		// full size — invisible, but still stretching the page's scroll range on
-		// a large atlas. The block wrapper collapses to 1px and clips it.
+		// full size (invisible, but still stretching the page's scroll range on
+		// a large atlas). The block wrapper collapses to 1px and clips it.
 		<div className="sr-only">
 			<table data-slot="map-table" aria-labelledby={label ? undefined : labelledBy}>
 				{label && <caption>{label}</caption>}

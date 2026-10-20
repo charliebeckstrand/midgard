@@ -21,8 +21,8 @@ const area = [
  * collapses the span onto the host's own box and the floor is a no-op.
  *
  * The floor lives here, on the hit area, and never on the host's box. A box
- * floor (e.g. `min-w-6 min-h-6`) inflates everything that paints the box —
- * focus ring, hover wash, affix lockstep — on sub-24px hosts. Icon-only bare
+ * floor (e.g. `min-w-6 min-h-6`) inflates everything that paints the box
+ * (focus ring, hover wash, affix lockstep) on sub-24px hosts. Icon-only bare
  * buttons are one. An undersized box with a floored hit area keeps visuals on
  * icon + padding at every size, and stays compliant. WCAG 2.5.8 measures the
  * activation region, not the visible bounds.

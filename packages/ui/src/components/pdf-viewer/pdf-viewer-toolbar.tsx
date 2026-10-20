@@ -175,7 +175,7 @@ export function PdfViewerToolbar() {
 								onClick={() => setHighlightsVisible(!highlightsVisible)}
 							/>
 						)}
-						{/* The two magnifier controls, and `magnifierMode` says which — `null` where the
+						{/* The two magnifier controls, and `magnifierMode` says which: `null` where the
 					    consumer asked for no loupe, which is what keeps both out of the bar. The
 					    toggle stays put once switched off: that is the press that brings it back. In
 					    `'config'` mode the press opens the dialog, and the switch it took the place

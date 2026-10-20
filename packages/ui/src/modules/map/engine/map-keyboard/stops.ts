@@ -46,8 +46,8 @@ type MapAnchoredEntry = Pick<MapOverlayEntry, 'id' | 'stopsAt'>
  *   registration stands
  *
  * A
- * toggled-off region is not one of them — it still paints, in the neutral
- * fill — so the geography stays whole under the cursor.
+ * toggled-off region is not one of them (it still paints, in the neutral
+ * fill), so the geography stays whole under the cursor.
  *
  * @internal
  */
@@ -68,7 +68,7 @@ export function mapStops(
 	for (const entry of entries) {
 		if (hidden.has(entry.id)) continue
 
-		// A mark holds one stop, or one per dot where it is plural — and the stop
+		// A mark holds one stop, or one per dot where it is plural, and the stop
 		// keeps its own ordinal even when an earlier one drops off the projection,
 		// so the index the cursor reports always names the caller's own point.
 		for (const [stop, at] of entry.stopsAt().entries()) {

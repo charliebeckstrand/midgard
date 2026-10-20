@@ -1,9 +1,9 @@
 /**
- * Row-manager kata: layout for the "Manage rows" editor — the vertical stack of
- * group zones and each zone's header (label, count, color menu). The drag grip
- * takes the `kata/grid-group` grip. Color is not here — a zone's tint comes from
- * the shared `kata/grid-group` `outline` (Card outline) — so this carries
- * only the flex layout.
+ * Row-manager kata: layout for the "Manage rows" editor, which is the vertical
+ * stack of group zones and each zone's header (label, count, color menu). The
+ * drag grip takes the `kata/grid-group` grip. Color is not here, because a
+ * zone's tint comes from the shared `kata/grid-group` `outline` (Card outline).
+ * So this carries only the flex layout.
  */
 import { iro, ji, narabi } from '../kiso'
 import { dan } from '../kiso/dan'

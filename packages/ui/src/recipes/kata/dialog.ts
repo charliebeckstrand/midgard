@@ -60,7 +60,7 @@ export const k = {
 	still: { desktop: popover, mobile: ugoki.still(ugoki.panel.bottom) },
 }
 
-/** Recipe variant props for the {@link Dialog} panel — its styling axes (`surface`, `width`), for consumers composing custom slots. */
+/** Recipe variant props for the {@link Dialog} panel: its styling axes (`surface`, `width`), for consumers composing custom slots. */
 export type DialogPanelVariants = Omit<VariantProps<typeof k.panel>, 'surface' | 'width'> & {
 	/** The surface of the panel: `flat` is opaque, and `glass` is translucent and blurred. @defaultValue 'flat' */
 	surface?: VariantProps<typeof k.panel>['surface']

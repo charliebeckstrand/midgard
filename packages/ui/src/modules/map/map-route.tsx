@@ -15,13 +15,13 @@ import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 export type MapRouteProps = MapOverlayProps & {
 	/**
 	 * Waypoints in travel order, drawn as straight segments. Optional when a
-	 * `path` is supplied — a routed leg already carries its geometry.
+	 * `path` is supplied: a routed leg already carries its geometry.
 	 * @defaultValue []
 	 */
 	stops?: LngLat[]
 	/**
 	 * Street-following geometry that hugs the road instead of cutting straight
-	 * between waypoints — a {@link fetchOsrmRoute}
+	 * between waypoints: a {@link fetchOsrmRoute}
 	 * answer's `route.path`. Wins over `stops` when both are given and it has geometry;
 	 * an empty `path` (a totals-only routed leg) falls back to `stops`.
 	 */
@@ -45,8 +45,8 @@ export type MapRouteProps = MapOverlayProps & {
  * 0 → 1), the same self-drawing reveal as the chart module's lines.
  */
 export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
-	// The drawn geometry: a routed `path` with coordinates wins; an empty one — a
-	// `false`-overview leg carries totals but no line — falls back to the stops.
+	// The drawn geometry: a routed `path` with coordinates wins; an empty one (a
+	// `false`-overview leg carries totals but no line) falls back to the stops.
 	const points = path && path.length > 0 ? path : (stops ?? [])
 
 	const { slot, hidden, project, unitsPerPixel, animate, dim, selected, onPointerLeave, hit } =

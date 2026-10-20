@@ -20,7 +20,7 @@ import { frozenSide } from '../grid-pin/overrides'
  */
 export type GridColumnPinning = {
 	/**
-	 * The column's frozen chrome — edge, sticky offset, and boundary — or
+	 * The column's frozen chrome (edge, sticky offset, and boundary), or
 	 * `undefined` when it scrolls. The offset is the one of the structure
 	 * snapshot. Read {@link GridColumnPinning.offset} for the committed offset.
 	 */

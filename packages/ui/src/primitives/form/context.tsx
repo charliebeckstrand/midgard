@@ -52,7 +52,7 @@ const [FormActionsContext, useFormActions] = createContext<FormActions | undefin
 /**
  * Returns the enclosing form's {@link FormActions} (imperative mutators), or
  * undefined outside a `Form`. The actions object is referentially stable, so
- * subscribing to it never triggers a re-render — the preferred way to mutate a
+ * subscribing to it never triggers a re-render: the preferred way to mutate a
  * form without reading its state.
  *
  * @see {@link useFormField} for per-field value/error subscription.

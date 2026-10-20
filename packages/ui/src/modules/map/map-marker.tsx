@@ -20,7 +20,7 @@ export type MapMarkerProps = MapOverlayProps & {
 	/** The journey's destination pin. */
 	end: LngLat
 	/**
-	 * The connecting geometry — a {@link fetchOsrmRoute} answer's `route.path`.
+	 * The connecting geometry: a {@link fetchOsrmRoute} answer's `route.path`.
 	 * A straight line when omitted or empty (a totals-only routed leg).
 	 */
 	path?: LngLat[]
@@ -47,9 +47,9 @@ export type MapMarkerProps = MapOverlayProps & {
 export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// Keyed on the ordinates rather than on the tuples: an inline `start={[15, 5]}`
 	// is a fresh array every render, and this feeds the projection memo below as a
-	// dependency — keyed on the tuples, that memo would never hold for such a
+	// dependency (keyed on the tuples, that memo would never hold for such a
 	// caller, and a marker with no routed path would re-project and re-stringify
-	// its whole connector on every pointed-mark crossing.
+	// its whole connector on every pointed-mark crossing).
 	const [startLng, startLat] = start
 
 	const [endLng, endLat] = end
@@ -97,15 +97,15 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	const d = useMemo(() => linePath(points, project), [points, project])
 
 	// Memoized rather than called inline, because `projectPoint` hands back a fresh
-	// `{ x, y }` per call — so an unmemoized pin is a new identity every render and
+	// `{ x, y }` per call, so an unmemoized pin is a new identity every render and
 	// the target memo below, whose deps they are, would never hold.
 	const from = useMemo(() => project(pins[0]), [project, pins])
 
 	const to = useMemo(() => project(pins[1]), [project, pins])
 
 	// The shared rule, over the pair at once: the pins are each other's
-	// neighbors, so a short leg is this mark's own crowding case — a target on one
-	// end covering the other would take that pin's readout with it.
+	// neighbors, so a short leg is this mark's own crowding case (a target on one
+	// end covering the other would take that pin's readout with it).
 	//
 	// Memoized above the guard rather than resolved below it. Below, a toggled-off
 	// marker paid nothing; the mark re-renders on every pointer crossing of every

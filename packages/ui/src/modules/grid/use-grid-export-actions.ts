@@ -22,12 +22,12 @@ import type { GridColumn } from './types'
  * one is in flight `pending` is true, for a spinner on whatever control hosts
  * the actions.
  *
- * The `exportable` surfaces are ignored here — the caller *is* the surface. Pair
+ * The `exportable` surfaces are ignored here: the caller *is* the surface. Pair
  * with `exportable={false}` on the grid so its own Export items stay out and the
  * page's control is the only one.
  *
  * @typeParam T - Shape of a single row.
- * @returns `{ actions, pending }` — one action per configured export type, and
+ * @returns `{ actions, pending }`: one action per configured export type, and
  * whether an async export is in flight.
  */
 export function useGridExportActions<T>(args: {
@@ -35,7 +35,7 @@ export function useGridExportActions<T>(args: {
 	exportable?: GridExportable<T>
 	/** The columns each row is read through, as the grid would. */
 	columns: GridColumn<T>[]
-	/** The rows to export — the full filtered/sorted set the page is showing. */
+	/** The rows to export: the full filtered/sorted set the page is showing. */
 	exportRows: GridExportRows<T>
 }): { actions: GridExportAction[]; pending: boolean } {
 	// The same CSV + Excel pair an omitted `exportable` gives the grid, so an

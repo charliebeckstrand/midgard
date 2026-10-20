@@ -146,7 +146,7 @@ export function useDatePickerRangeState({
 				const range: [Date, Date] = start.getTime() <= end.getTime() ? [start, end] : [end, start]
 
 				// Pin the end so the span stays rendered through the exit animation,
-				// then commit now — the trigger and `onValueChange` update on this
+				// then commit now: the trigger and `onValueChange` update on this
 				// click instead of waiting for `onExitComplete`.
 				dispatch({ type: 'pinEndpoint', date: end })
 

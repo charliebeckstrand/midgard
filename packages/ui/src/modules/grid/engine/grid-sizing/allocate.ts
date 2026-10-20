@@ -11,7 +11,7 @@ import { clamp } from '../../../../utilities'
  * A `width`-pinned column arrives with `min === content === max`, so the
  * allocator holds it exactly.
  *
- * A `frozen` column — one pinned or locked to an edge — is held at its content
+ * A `frozen` column (one pinned or locked to an edge) is held at its content
  * width and passed over by the surplus level-up. A frozen rail stays only as
  * wide as it needs to be, while the scrolling columns absorb the spare width.
  *
@@ -105,7 +105,7 @@ function levelUp(
 	let lo = 0
 
 	// No useful level exceeds the available width (a lone column fills it at most),
-	// so cap the search there — an unbounded `max` would otherwise blow the range up
+	// so cap the search there: an unbounded `max` would otherwise blow the range up
 	// to `MAX_SAFE_INTEGER`, leaving 50 halvings short of sub-pixel precision.
 	let hi = available
 
@@ -129,7 +129,7 @@ function levelUp(
  * profiles, content-first in two regimes. Each column's `desired` width is its
  * `content` clamped to `[min, max]`. When the desired widths meet or exceed the
  * space (or there is none), every column holds at its desired width. The table
- * overflows horizontally — content shows, the rest scrolls — rather than
+ * overflows horizontally (content shows, the rest scrolls) rather than
  * shrinking below it and truncating. When there is room to spare, the surplus
  * lifts the narrowest columns toward an equal width (see {@link levelUp}). A
  * column whose data would truncate gains the room, while columns that don't

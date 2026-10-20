@@ -216,13 +216,13 @@ export type PinColumn = (column: string | number, side: 'left' | 'right' | false
 export type GridGroupByMenu = {
 	/** The active grouped column id, or `null` when ungrouped. */
 	grouping: (string | number) | null
-	/** Groups by a column, or ungroups with `null` — through the `groupBy` binding. */
+	/** Groups by a column, or ungroups with `null`: through the `groupBy` binding. */
 	setGrouping: (next: (string | number) | null) => void
 }
 
 /**
  * The table-wide column manager as a menu row, or nothing when no manager is
- * reachable — the same withhold-when-empty shape the column's own concerns take.
+ * reachable: the same withhold-when-empty shape the column's own concerns take.
  *
  * @internal
  */
@@ -242,7 +242,7 @@ function manageColumnsItems(intl: IntlShape, chooseColumns: (() => void) | null)
 /**
  * The column's filter affordance for its menu: whether it can filter, the grid's
  * filter affordance, and the open action. `null` when the grid has no column
- * filters. Backs the "Filter …" item — present only in the `'menu'` affordance
+ * filters. Backs the "Filter …" item: present only in the `'menu'` affordance
  * (in `'header'` the column's funnel already offers it).
  *
  * @internal
@@ -311,7 +311,7 @@ function filterMenuItems<T>(
  * The group item for a column's menu: Group by “{column}” on an ungrouped
  * groupable column. The column name is quoted, as the filter row quotes it. The
  * name therefore reads as the column acted on, rather than as part of the
- * item's own wording. Flips to a plain "Ungroup" once it is the active group —
+ * item's own wording. Flips to a plain "Ungroup" once it is the active group:
  * single-level, so only one column is ever grouped. The header button's toggle as a menu
  * action. Empty when the group button is off or the column isn't groupable.
  *
@@ -349,7 +349,7 @@ function groupMenuItems<T>(
  * Pin items for a column's menu: a pin to each edge it is not already frozen
  * to, and "Unpin" once it is frozen. A scrolling column offers both edges; a
  * left-pinned one offers the other edge and Unpin, and vice versa. A locked
- * column offers none — its freeze is immutable. The labels and the arrows name
+ * column offers none: its freeze is immutable. The labels and the arrows name
  * the physical edge (see {@link pinMenuChoices}).
  *
  * @internal
@@ -371,7 +371,7 @@ function pinMenuItems<T>(
 }
 
 /**
- * The glyph for a pin target — icons stay in the shell, off the engine's
+ * The glyph for a pin target: icons stay in the shell, off the engine's
  * decision tree. The arrow points to the physical edge, so a right-to-left
  * grid swaps it.
  *
@@ -424,8 +424,8 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 	} = args
 
 	// The menu in order, each concern contributing its rows or none: the
-	// table-wide manager first — the one row that isn't about the clicked column
-	// at all — then that column's own, as the header reads them. Filter leads
+	// table-wide manager first (the one row that isn't about the clicked column
+	// at all), then that column's own, as the header reads them. Filter leads
 	// those: under the `'menu'` affordance it is the only route to the column's
 	// filter, the header having no funnel to click.
 	return [
@@ -549,7 +549,7 @@ export function buildColumnGroupMenu(args: {
 	chooseColumns: (() => void) | null
 	manageLabel: ReactNode
 }): GridMenuItem[] {
-	// Two groups, ruled apart only when both show — which is what
+	// Two groups, ruled apart only when both show, which is what
 	// `mergeContextMenuItems` is for, rather than counting rows by hand.
 	return mergeContextMenuItems([
 		args.chooseColumns
@@ -595,9 +595,9 @@ type GridRowGroupMenuArgs = {
 	intl: IntlShape
 	/** Whether the right-clicked group is currently expanded. */
 	expanded: boolean
-	/** The group's overlay color, or `undefined` — gates the "Clear color" item. */
+	/** The group's overlay color, or `undefined`: gates the "Clear color" item. */
 	color: PaletteColor | undefined
-	/** Label for the "Manage rows" item — opens the row manager. */
+	/** Label for the "Manage rows" item: opens the row manager. */
 	manageLabel: ReactNode
 	/** Opens the row-manager dialog. */
 	onManage: () => void

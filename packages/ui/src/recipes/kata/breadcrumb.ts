@@ -76,7 +76,7 @@ export const k = {
 	skeleton: kokkaku.breadcrumb,
 } as const
 
-/** Recipe variant props for a {@link Breadcrumb} link — its styling axes (`current`, `interactive`), for consumers composing custom slots. */
+/** Recipe variant props for a {@link Breadcrumb} link: its styling axes (`current`, `interactive`), for consumers composing custom slots. */
 export type BreadcrumbLinkVariants = Omit<VariantProps<typeof link>, 'current' | 'interactive'> & {
 	/** Whether the link goes to the current page. @defaultValue false */
 	current?: VariantProps<typeof link>['current']

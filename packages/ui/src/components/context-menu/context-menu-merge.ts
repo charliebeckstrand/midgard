@@ -5,7 +5,7 @@ import type { ContextMenuConfig, ContextMenuEntry } from './types'
  * separators at the start and the end of each group, and then skips each empty
  * group. Thus no menu opens on a leading, trailing, or doubled rule at a group
  * edge. A separator between two entries of one group stays.
- * The building block a host uses to set its own default groups apart — a
+ * The building block a host uses to set its own default groups apart: a
  * column's sort actions from the table-wide tools below them.
  *
  * @param groups - Entry groups in render order. A group that holds only

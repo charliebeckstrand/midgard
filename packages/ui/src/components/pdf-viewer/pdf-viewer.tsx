@@ -92,7 +92,7 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 * `'page'` fits the whole page. The viewport takes its height from the page's own
 	 * aspect ratio, so the viewer sizes itself and never scrolls vertically at rest.
 	 *
-	 * `'width'` fits the page width and lets the page overflow — which is what a narrow panel
+	 * `'width'` fits the page width and lets the page overflow, which is what a narrow panel
 	 * needs to be readable at all. **The consumer owns the height then**: the viewer stops
 	 * reserving space from the page ratio and instead fills its host's box. Give it one
 	 * with a resolved height: a fixed height, or a flex/grid track that resolves one. Or
@@ -101,7 +101,7 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 */
 	fit?: PdfViewerFit
 	/**
-	 * Regions to draw over the pages — extracted-field boxes on a scan, search hits, any
+	 * Regions to draw over the pages: extracted-field boxes on a scan, search hits, any
 	 * "look here" mark the consumer owns. Only the active page's are rendered.
 	 *
 	 * @remarks Identity need not be stable. The viewer filters by page and converts at the
@@ -119,7 +119,7 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	/** Initial active region id when uncontrolled. */
 	defaultActiveHighlightId?: string
 	/**
-	 * Fires when the active region changes from inside the viewer — a press or
+	 * Fires when the active region changes from inside the viewer: a press or
 	 * `Enter`/`Space` on a region, or `Escape` clearing it. Not fired for a change the
 	 * consumer drove through `activeHighlightId`.
 	 *
@@ -172,12 +172,12 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 *
 	 * @remarks What the overlay is doing is not only the viewer's business. A list beside it
 	 * routinely marks which of its rows can be located on the page. That mark is a promise
-	 * the hidden overlay cannot keep. Not a controlled binding — these two switches are the
+	 * the hidden overlay cannot keep. Not a controlled binding: these two switches are the
 	 * reader's, and nothing outside can turn them back on under them.
 	 */
 	onHighlightsVisibleChange?: (visible: boolean) => void
 	/**
-	 * Fires when the reader changes the magnifier — off or on from the toolbar, and in
+	 * Fires when the reader changes the magnifier: off or on from the toolbar, and in
 	 * `'config'` mode any of the three settings in the dialog. Present only when
 	 * {@link PdfViewerProps.magnifier} offered a loupe; starts **on**, for the same reason.
 	 *
@@ -299,9 +299,10 @@ export function PdfViewer({
 								onHighlightPress={onHighlightPress}
 								defaultActiveHighlightId={defaultActiveHighlightId}
 								onActiveHighlightChange={onActiveHighlightChange}
-								// What the overlay needs from the document beneath it, handed down rather
-								// than read back out of `PdfViewerContext` — the same way the loupe takes
-								// its settings. The overlay's own state stays inside the provider.
+								// What the overlay needs from the document beneath it, handed
+								// down rather than read back out of `PdfViewerContext`, the
+								// same way the loupe takes its settings. The overlay's own
+								// state stays inside the provider.
 								activePage={activePage}
 								safePage={safePage}
 								goToPage={goToPage}

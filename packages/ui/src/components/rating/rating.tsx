@@ -180,8 +180,8 @@ export type RatingProps = RatingVariants & {
  * own checkedness when its activation is canceled. The clear therefore never
  * races the `change` that would otherwise set the same star again.
  *
- * The display form draws a fractional score — an average of reviews is not a
- * whole number — by clipping a filled star over an empty one. It draws a whole
+ * The display form draws a fractional score (an average of reviews is not a
+ * whole number) by clipping a filled star over an empty one. It draws a whole
  * or an empty star as one glyph, so only the part star stacks two. The
  * interactive form sets a whole star, or a half star at a `step` of `0.5`.
  */
@@ -446,7 +446,7 @@ export function Rating({
 	}
 
 	// A `<fieldset>` would impose form-field semantics and a min-content box on
-	// this inline row, so the grouping is a named `role="radiogroup"` — the
+	// this inline row, so the grouping is a named `role="radiogroup"`: the
 	// treatment `RadioGroup` takes, and for the same reason.
 	return (
 		<span

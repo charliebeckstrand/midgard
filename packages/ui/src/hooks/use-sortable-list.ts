@@ -99,9 +99,9 @@ export type SortableListOptions<T> = {
 	/** Called when a drag begins, with the item being dragged. */
 	onDragStart?: (item: T) => void
 	/**
-	 * Called when a drag concludes — a drop (whether or not it reordered) or a
-	 * cancel — with the item that was dragged. Fires after any {@link onReorder},
-	 * so the two together bracket the interaction.
+	 * Called with the item that was dragged when a drag concludes: a drop
+	 * (whether or not it reordered) or a cancel. Fires after any
+	 * {@link onReorder}, so the two together bracket the interaction.
 	 */
 	onDragEnd?: (item: T) => void
 	/**
@@ -167,7 +167,7 @@ export function useSortableList<T>({
 	const [activeId, setActiveId] = useState<string | null>(null)
 
 	// The item picked up at drag start, held so `onDragEnd` fires with it from
-	// both a drop and a cancel — the cancel event carries no reliable target.
+	// both a drop and a cancel: the cancel event carries no reliable target.
 	const draggedItemRef = useRef<T | null>(null)
 
 	const sensors = useSortableSensors({ keyboard: keyboardSensor })

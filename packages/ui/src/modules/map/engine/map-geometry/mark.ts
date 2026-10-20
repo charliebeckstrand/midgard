@@ -10,8 +10,8 @@
  * closure the plat hands down. The region layer instead projects whole features
  * through `d3-geo`'s own path generator.
  *
- * The area primitives — `featureRings`, `projectArea`, `areaReach`, `boxNear`,
- * `ringsNear` — now answer three subsystems rather than one:
+ * The area primitives (`featureRings`, `projectArea`, `areaReach`, `boxNear`,
+ * `ringsNear`) now answer three subsystems rather than one:
  *
  * - The geofence that first wanted them.
  * - The ZIP dissolve.
@@ -48,7 +48,7 @@ export function unprojectPoint(projection: GeoProjection | null, at: MapPoint2D)
 
 	const [lon, lat] = inverted
 
-	// `d3-geo` hands back a fresh pair, so it is returned rather than copied — a
+	// `d3-geo` hands back a fresh pair, so it is returned rather than copied: a
 	// dot asks this twice per render and neither reader keeps what it is given.
 	return Number.isFinite(lon) && Number.isFinite(lat) ? inverted : null
 }
@@ -79,7 +79,7 @@ export function featureRings(shape: MapFeature): MapPolygons {
 
 /**
  * Projects one lon/lat to frame coordinates, or `null` where the projection
- * has no image for it — the US composite drops points outside its insets.
+ * has no image for it: the US composite drops points outside its insets.
  *
  * @internal
  */
@@ -117,7 +117,7 @@ function polylineCommands(points: MapPoint2D[]): string {
 /**
  * A polyline's SVG path through the projected points, skipping any the
  * projector drops; empty when fewer than two survive. Takes the projector as
- * a closure — the shape {@link MapPlat} provides its overlays through
+ * a closure: the shape {@link MapPlat} provides its overlays through
  * context.
  *
  * @internal
@@ -161,7 +161,7 @@ export function lineAnchor(points: LngLat[]): LngLat[] {
 }
 
 /**
- * How near two positions must be, in degrees, to count as the same point — about
+ * How near two positions must be, in degrees, to count as the same point: about
  * a tenth of a millimeter on the ground. A ring's closing repeat is the literal
  * first position where a caller wrote it out, and one rounding step away where a
  * generator traced it. The test that finds it must therefore hold for both.
@@ -174,7 +174,7 @@ const SAME_POSITION_EPSILON = 1e-9
  * The middle of a closed ring, as the stop list an area-shaped mark registers.
  * The cursor stands in the zone rather than on one corner of it. A list, and
  * empty where the ring has no points, so a caller passes the result straight
- * through — {@link lineAnchor}'s contract for the shape that encloses.
+ * through: {@link lineAnchor}'s contract for the shape that encloses.
  *
  * The center is the spherical centroid of the ring's own vertices, not of the
  * area they enclose. It needs no winding to be right. A `Polygon` centroid
@@ -183,7 +183,7 @@ const SAME_POSITION_EPSILON = 1e-9
  * vertices answer the question the cursor asks.
  *
  * The closing repeat is dropped first, or it would weight that one side twice.
- * Vertices that cancel — a ring about a pole — leave no center, and the first
+ * Vertices that cancel (a ring about a pole) leave no center, and the first
  * vertex stands in, which is a position the projection can draw. A lone point
  * reads as its own repeat and falls through that same door. It therefore anchors
  * on itself exactly, rather than on a centroid round trip.
@@ -210,7 +210,7 @@ export function ringAnchor(ring: LngLat[]): LngLat[] {
 }
 
 /**
- * A frame-space box around a projected ring — the cheap reject a reader tries
+ * A frame-space box around a projected ring: the cheap reject a reader tries
  * before it walks a ring's edges. That is how a zone tells a dot standing
  * nowhere near it from one competing for its ground. Frame coordinates, so it is
  * named for the frame's own axes rather than for the compass, which
@@ -269,7 +269,7 @@ export function boxNear(box: MapFrameBox, at: MapPoint2D, margin: number): boole
  * answers both readings a caller could want. `0` asks which rings the position
  * could fall inside, and a reach asks which it could be crowded by.
  *
- * A box holding the position does not mean the ring does — a box is a superset of
+ * A box holding the position does not mean the ring does: a box is a superset of
  * the shape inside it. That is the whole of what this claims, and it is why the
  * answer is a reject rather than a placement.
  *
@@ -422,7 +422,7 @@ export function areaReach(rings: readonly MapAreaRing[]): number {
 			const runY = to.y - from.y
 
 			// `Math.hypot` buys overflow safety these viewport-sized coordinates never
-			// need, at several times the cost of the products — the chart module's own
+			// need, at several times the cost of the products: the chart module's own
 			// verdict (`chart-geometry/scatter.ts`), and this is the only transcendental
 			// in a walk that reads every vertex of a dissolved territory.
 			perimeter += Math.sqrt(runX * runX + runY * runY)
@@ -434,7 +434,7 @@ export function areaReach(rings: readonly MapAreaRing[]): number {
 	return widest
 }
 
-/** The sphere's whole area in steradians — what a backwards ring measures against. @internal */
+/** The sphere's whole area in steradians: what a backwards ring measures against. @internal */
 const WHOLE_SPHERE_STERADIANS = 4 * Math.PI
 
 /**
@@ -483,7 +483,7 @@ export function areaAnchor(polygons: MapPolygons): LngLat[] {
 /**
  * A dot's SVG path: a zero-length segment whose round cap paints the circle.
  *
- * Drawn as a stroke — not a `<circle>` — because only a stroke width could ride
+ * Drawn as a stroke (not a `<circle>`) because only a stroke width could ride
  * device pixels through `vector-effect="non-scaling-stroke"`. The marks size
  * themselves now (`MapDot`), so the two shapes would draw alike. Swapping still
  * moves the pop-in, the halo, and the hit geometry with it.

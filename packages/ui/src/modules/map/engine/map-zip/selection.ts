@@ -53,7 +53,7 @@ const PLUS_FOUR_TERM = /^(\d{5})-\d{4}$/
 /** A whole code, `60601`. @internal */
 const CODE_TERM = /^\d{5}$/
 
-/** A leading prefix, `6` through `6060` — the ZIP3 a broker states a region by. @internal */
+/** A leading prefix, `6` through `6060`: the ZIP3 a broker states a region by. @internal */
 const PREFIX_TERM = /^\d{1,4}$/
 
 /** The separators between terms; a hyphen is never one, since a range is spelled with it. @internal */
@@ -108,12 +108,12 @@ export function zipSelectionText(selection: MapZipSelection): string {
 	return typeof selection === 'string' ? selection : selection.join(',')
 }
 
-/** The lowest code a term of any width covers — `606` starts at `60600`. @internal */
+/** The lowest code a term of any width covers: `606` starts at `60600`. @internal */
 function lowest(term: string): string {
 	return term.padEnd(ZIP_LENGTH, '0')
 }
 
-/** The highest code a term of any width covers — `606` ends at `60699`. @internal */
+/** The highest code a term of any width covers: `606` ends at `60699`. @internal */
 function highest(term: string): string {
 	return term.padEnd(ZIP_LENGTH, '9')
 }
@@ -121,7 +121,7 @@ function highest(term: string): string {
 /** Reads one term, or `null` where it names no rule. @internal */
 function readRule(term: string): MapZipRule | null {
 	// A ZIP+4 names one delivery segment inside a code, and no atlas draws below
-	// the code — so the segment is dropped and the code stands. A `zipcodeMask`
+	// the code, so the segment is dropped and the code stands. A `zipcodeMask`
 	// field emits this form, which is what makes a pasted field's output parse as-is.
 	// Read first, because a range would read this shape as a span as well.
 	const plusFour = PLUS_FOUR_TERM.exec(term)
@@ -184,7 +184,7 @@ export function parseZipSelection(selection: MapZipSelection): MapZipRules {
 	return rules
 }
 
-/** A compiled half of a territory — the include side or the exclude side. @internal */
+/** A compiled half of a territory: the include side or the exclude side. @internal */
 type ZipIndex = {
 	codes: Set<string>
 	/** Spans sorted by their low end and merged, so a bisect decides one. */
@@ -306,8 +306,8 @@ export function zipMatcher(rules: MapZipRules): (zip: string) => boolean {
 
 	const exclude = compile(rules.exclude)
 
-	// `holds` on an empty side is already false — an empty Set misses, and the
-	// bisect exits before its first compare — so the exclude side needs no guard
+	// `holds` on an empty side is already false (an empty Set misses, and the
+	// bisect exits before its first compare), so the exclude side needs no guard
 	// of its own.
 	return (zip: string) => {
 		const code = normalizeZip(zip)

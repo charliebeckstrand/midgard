@@ -41,7 +41,7 @@ type CopyStateResult = {
  * a control other than `CopyButton` the same copied state, such as a `Button`
  * with a text label that shows "Copy" and then "Copied" in green.
  *
- * @returns `{ copied, copy }` — `copied` is the current success flag; `copy`
+ * @returns `{ copied, copy }`: `copied` is the current success flag; `copy`
  * writes to the clipboard and, on success, raises the flag and starts the revert
  * timer.
  * @remarks

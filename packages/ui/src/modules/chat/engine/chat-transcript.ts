@@ -1,11 +1,11 @@
 /**
  * The rules over a chat transcript: transforms from one message list to the
  * next, and the readers that `retry` and `edit` run before them. `useChatSend`
- * is the React shell above them — it holds the state, it mints the ids, and it
+ * is the React shell above them: it holds the state, it mints the ids, and it
  * drives the transport.
  *
  * No rule here reads a clock or a random source, because the caller supplies
- * each id — as an argument, or through the function `seedMessages` calls. That
+ * each id: as an argument, or through the function `seedMessages` calls. That
  * is what makes the drop rule provable: a test can name the reply that one send
  * opened.
  */

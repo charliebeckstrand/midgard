@@ -62,7 +62,7 @@ export type SortKey = {
 }
 
 /**
- * Decorates a value into its {@link SortKey} — the "decorate" half of a
+ * Decorates a value into its {@link SortKey}: the "decorate" half of a
  * decorate-sort-undecorate. Runs {@link parseNumeric} (the costly part) and the
  * type checks once; {@link compareSortKeys} then orders the keys with no further
  * parsing.
@@ -238,7 +238,7 @@ export function sortRowsSmart<T>(
 /**
  * The costly half of {@link sortRowsSmart}. It decodes each smart field's
  * {@link SortKey} once (the `parseNumeric` and type checks), then sorts an index
- * array over the decoded keys. It returns the row indices in sorted order — the
+ * array over the decoded keys. It returns the row indices in sorted order: the
  * *permutation*, not the rows. Fields are consulted in priority order and equal
  * rows fall back to their original index, so the order is stable.
  *

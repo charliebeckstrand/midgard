@@ -57,7 +57,7 @@ export type ScatterFrameProps = {
 	/**
 	 * The chart's axes. `true` (the default) draws both value axes at their
 	 * defaults; `false` drops the axis chrome for a bare-marks plot. The object
-	 * form configures each axis under its own key — `{ min, max, format, title,
+	 * form configures each axis under its own key: `{ min, max, format, title,
 	 * grid }` for either. Both are value axes here, so each takes its own
 	 * domain, tick formatter, and title; an omitted key keeps that axis's
 	 * defaults.
@@ -75,7 +75,7 @@ export type ScatterFrameProps = {
 
 /**
  * Props for {@link ScatterChart}. Requires an accessible name (`aria-label` or
- * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
+ * `aria-labelledby`): the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
 export type ScatterChartProps<T = never> = AccessibleName &
@@ -146,13 +146,13 @@ function ScatterHitLayer(props: {
 	tooltip: boolean
 	/** The resolved crosshair, or `null`; a live one wants the pointer even with no tooltip. */
 	crosshair: ResolvedCrosshair | null
-	/** The unique x columns' screen positions — nothing to snap to when empty. */
+	/** The unique x columns' screen positions: nothing to snap to when empty. */
 	centers: number[]
 	/** Every visible series' marks, for the point hit test that gates the readout and isolation. */
 	marks: ScatterMark[][]
-	/** Each visible series' own index, aligned to `marks` — the identity the isolation keys on. */
+	/** Each visible series' own index, aligned to `marks`: the identity the isolation keys on. */
 	indices: number[]
-	/** Per column, the snap stops with the point behind each — the snapped isolation's targets. */
+	/** Per column, the snap stops with the point behind each: the snapped isolation's targets. */
 	stops: ScatterSnapStop[][]
 	trigger: ChartTooltipTrigger
 	/** The consumer's point-click report; its presence alone makes the plot interactive. */
@@ -175,7 +175,7 @@ function ScatterHitLayer(props: {
 
 				// Isolation mirrors the readout: on a disc (within its slack), that
 				// disc; off every disc the emphasis goes to the stop the snapped
-				// readout anchors — the point nearest the pointer in the snapped column.
+				// readout anchors (the point nearest the pointer in the snapped column).
 				const hit =
 					scatterMarkAt(marks, x, y, SCATTER_HIT_SLACK, sticky) ??
 					(snapping ? scatterSnappedStop(stops, index, y) : null)
@@ -279,7 +279,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	// Spark stands the chart's chrome down to bare marks: ScatterChartChrome and
 	// scatterScales read this to shed their axis labels, gridlines, and the gutter
-	// — geometry the frame can't own. The interactivity gates need no copy of it:
+	// (geometry the frame can't own). The interactivity gates need no copy of it:
 	// ScatterHitLayer and the crosshair stand themselves down through
 	// ChartTierContext, and the frame renders the drawing pointer-inert.
 	const spark = policy.tier === 'spark'
@@ -334,7 +334,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const bandPositions = scaled ? uniqueXs.map((x) => xScale.map(x)) : []
 
-	// The snap stops kept whole — position and point identity together — so the
+	// The snap stops kept whole (position and point identity together), so the
 	// crosshair reads the positions while the isolation names the disc behind
 	// the stop the tooltip anchors.
 	const snapStops = scaled

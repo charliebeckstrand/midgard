@@ -189,7 +189,7 @@ function fillKey(press: GridKeyPress & { shiftKey: boolean }): GridRangeFillDire
 
 /**
  * Live refs the cursor and editing layers read at event/render time, all populated
- * by {@link GridData}. The cursor's carry what the engine resolved — display
+ * by {@link GridData}. The cursor's carry what the engine resolved: display
  * order, rows, and the visible data columns. `editSourceRef` is the exception,
  * and holds the grid's own inputs ahead of that narrowing, because the commit
  * path needs a row the window stopped rendering.
@@ -200,7 +200,7 @@ type GridCursorRefs<T> = Omit<GridIndexRefs<T>, 'selectableRef' | 'toggleRowRef'
 
 /**
  * The cursor + editing layer for {@link GridData}, gathering the keyboard cursor
- * ({@link useGridNavigation}) and — when `editable` is set — the editing session
+ * ({@link useGridNavigation}) and (when `editable` is set) the editing session
  * ({@link useGridEditing}) behind one surface. Resolves four things:
  *
  * - the column augmentation (cursor-only vs. editing-aware);
@@ -271,7 +271,7 @@ export function useGridCursor<T>({
 	columns: GridColumn<T>[]
 	/**
 	 * The grid's own double-click-to-edit intent under `editable.session:
-	 * 'managed'` — {@link GridData} composes it ahead of the consumer's
+	 * 'managed'`: {@link GridData} composes it ahead of the consumer's
 	 * handler on the built-in cell double-click event. `undefined` otherwise.
 	 */
 	editOnCellDoubleClick: GridCellClick<T> | undefined
@@ -317,14 +317,14 @@ export function useGridCursor<T>({
 		editSourceRef,
 	} = refs
 
-	// Enter on the cursor's active cell begins the edit session — the keyboard
+	// Enter on the cursor's active cell begins the edit session: the keyboard
 	// peer of the pointer double-click. The entry resolver needs the editing hook
 	// (which in turn needs the cursor's `cellId`), so the wrapper names
 	// `enterEditAt` before its declaration below. The cursor calls the wrapper as
 	// an effect event, at key time, when this render's resolver is in place.
 	const onCellActivateWithEdit: GridCellActivate | undefined = managed
 		? (rowIndex, colIndex, event) => {
-				// The consumer's cell click fires first — the same order the pointer path
+				// The consumer's cell click fires first: the same order the pointer path
 				// fires the single-click handlers ahead of the double-click.
 				onCellActivate?.(rowIndex, colIndex, event)
 
@@ -511,7 +511,7 @@ export function useGridCursor<T>({
 	)
 
 	// The keyboard entry starts from cursor indices, so it resolves them to the
-	// cell's identity first — the one place that conversion belongs.
+	// cell's identity first: the one place that conversion belongs.
 	// The new-row slot has no row key, so its cells open through the slot.
 	const enterEditAt = useCallback(
 		(rowIndex: number, colIndex: number, seed?: string | number) => {
@@ -747,8 +747,8 @@ export function useGridCursor<T>({
 	// The `<table>` cursor props, with the history keys layered ahead of
 	// navigation when the history is on, and the session's keys when the grid
 	// owns the edit session: the table (the cursor's
-	// `role="grid"` tab stop) sees every editor's keys — portaled panels
-	// included, since portal events propagate through the React tree — so no
+	// `role="grid"` tab stop) sees every editor's keys (portaled panels
+	// included, since portal events propagate through the React tree), so no
 	// editor wires its own save or abandon. The entry keys follow, and the
 	// cursor's own keys come last. The session's commit on leave goes ahead of
 	// the cursor's own focus loss in the same way, and only under a `commitOn`

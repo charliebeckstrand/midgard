@@ -31,7 +31,7 @@ export type MapCanonicalFit = {
  * Fits the projection once to a fixed {@link MAP_CANONICAL_WIDTH}-wide frame,
  * and reports the frame it fills, aligned to that frame's top-left. The returned
  * `width` × `height` is therefore a clean viewBox the geography fills. Pure and
- * synchronous — no container measurement — so the same fit
+ * synchronous (no container measurement), so the same fit
  * serves both the CSS aspect reservation (through {@link MapCanonicalFit.aspect})
  * and the geography's first, measurement-free paint. `null` with nothing to fit.
  *

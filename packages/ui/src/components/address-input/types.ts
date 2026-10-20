@@ -36,7 +36,7 @@ export type AddressSuggestion = {
 	label: string
 	description?: string
 	/**
-	 * The business or place name, where the match names one — "Clearwater
+	 * The business or place name, where the match names one: "Clearwater
 	 * Restaurant" against the street line that locates it. Absent on a plain
 	 * address, which names nothing but where it is.
 	 *

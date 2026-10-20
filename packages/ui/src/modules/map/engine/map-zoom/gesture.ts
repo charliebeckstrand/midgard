@@ -67,7 +67,7 @@ export function wheelPush(deltaY: number, deltaX: number): number {
  * seen running down.
  *
  * A trackpad keeps sending after the fingers leave, and what it sends decays. So
- * a push that grows is a hand back on the trackpad — a new gesture, which the
+ * a push that grows is a hand back on the trackpad: a new gesture, which the
  * map holds no claim on.
  *
  * That decay is the only sign a wheel gives that anything is coasting at all. A
@@ -85,7 +85,7 @@ export function wheelDecays(push: number, prev: number, coasting: boolean): bool
 	return coasting ? push <= prev : push < prev
 }
 
-/** The distance between two pointers — a pinch's own measure. @internal */
+/** The distance between two pointers: a pinch's own measure. @internal */
 export function pointerGap(a: MapPoint2D, b: MapPoint2D): number {
 	return Math.hypot(a.x - b.x, a.y - b.y)
 }

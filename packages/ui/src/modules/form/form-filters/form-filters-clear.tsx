@@ -17,7 +17,7 @@ export type FormFiltersClearProps = {
 	 * a bar that shouts about it makes every other control read as lesser. An app
 	 * that wants it to carry weight says so here.
 	 *
-	 * Ignored when `children` is a single element — that element carries its own
+	 * Ignored when `children` is a single element: that element carries its own
 	 * treatment, and this component only lends it the clear action.
 	 *
 	 * @defaultValue `'solid'`, or the button variant of the surface around it, such as an Alert.

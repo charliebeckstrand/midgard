@@ -184,7 +184,7 @@ export function lensOffset(point: MagnifierPoint, zoom: number): MagnifierPoint 
 export type PdfViewerMagnifierResult = {
 	open: boolean
 	point: MagnifierPoint | null
-	/** Spread onto the page frame — the surface the loupe reads and the hover reference. */
+	/** Spread onto the page frame: the surface the loupe reads and the hover reference. */
 	referenceProps: Record<string, unknown>
 	/** Spread onto the lens. */
 	floatingProps: Record<string, unknown>
@@ -262,7 +262,7 @@ export function usePdfViewerMagnifier(
 	const [tracking, setTracking] = useState<Tracking | null>(null)
 
 	/**
-	 * The frame, kept from the events that already carry it — see {@link track}.
+	 * The frame, kept from the events that already carry it (see {@link track}).
 	 *
 	 * Not floating-ui's `domReference`, though it holds the same node. `useClientPoint` makes
 	 * the *cursor* the positioning reference. Which of that hook's refs still points at the
@@ -311,23 +311,23 @@ export function usePdfViewerMagnifier(
 		// below it and to one side of it.
 		placement: touch ? 'top' : 'right-start',
 		// Fixed, unlike the package's anchored surfaces, because the reference here is the
-		// cursor — `useClientPoint` reports it in viewport coordinates. Under the default
+		// cursor: `useClientPoint` reports it in viewport coordinates. Under the default
 		// `absolute` strategy those get resolved against the portal's offset parent, so the lens
 		// lands short by however far the page or any scroll container between them has scrolled;
 		// the viewer's own viewport is a scroll container, and it is routinely inside another.
 		strategy: 'fixed',
-		// Clears the lens of the cursor. The rest of the chain — flip, then shift with the
-		// standard padding — is the package's own, so the loupe follows it wherever it moves.
+		// Clears the lens of the cursor. The rest of the chain (flip, then shift with the
+		// standard padding) is the package's own, so the loupe follows it wherever it moves.
 		offset: touch ? TOUCH_OFFSET : 24,
 	})
 
 	const hover = useHover(context, {
 		enabled,
-		// The dwell. Closing is immediate — a lens that lingered after the pointer left the page
+		// The dwell. Closing is immediate: a lens that lingered after the pointer left the page
 		// would sit over the toolbar it was moving towards.
 		delay: { open: settings?.delay ?? DEFAULT_DELAY, close: 0 },
 		// A dwell under a fingertip would fight the scroll gesture for the same pointer. A finger
-		// opens the lens by a hold instead — see {@link hold}.
+		// opens the lens by a hold instead (see {@link hold}).
 		mouseOnly: true,
 	})
 
@@ -354,7 +354,7 @@ export function usePdfViewerMagnifier(
 	 * Record the pointer. Also on enter, not only on move. A pointer that arrives and stops
 	 * fires no further move, and the dwell would then elapse with nothing tracked.
 	 *
-	 * Writes state only while the lens is open — see {@link trackingRef}.
+	 * Writes state only while the lens is open (see {@link trackingRef}).
 	 */
 	const track = useStableEvent((event: ReactPointerEvent<HTMLElement>) => {
 		if (event.pointerType !== 'mouse') return
@@ -590,8 +590,8 @@ export function usePdfViewerMagnifier(
 
 	/*
 	 * Both bags are memoized, and the handlers are stable events rather than literals, because they are
-	 * dependencies of the result below. An inline handler — or a bare `getReferenceProps()` call
-	 * — allocates on every render, which would defeat that memo and, through it, the value
+	 * dependencies of the result below. An inline handler (or a bare `getReferenceProps()` call)
+	 * allocates on every render, which would defeat that memo and, through it, the value
 	 * of `PdfViewerMagnifierContext`. The floating-ui getters are stable until an interaction's own
 	 * inputs move, so these hold across every render that leaves the lens alone.
 	 */
@@ -650,8 +650,8 @@ export function usePdfViewerMagnifier(
 		settleRef.current = window.setTimeout(() => {
 			const located = locate()
 
-			// Nothing to come back to. The pointer left the page during the pan — either off it,
-			// or the page out from under it — and `onPointerLeave` dropped what it was over.
+			// Nothing to come back to. The pointer left the page during the pan (either off it,
+			// or the page out from under it) and `onPointerLeave` dropped what it was over.
 			if (!located) return
 
 			setTracking(located)
@@ -667,7 +667,7 @@ export function usePdfViewerMagnifier(
 	 * pans the reader makes inside it. The page moves under the lens just as far when the
 	 * scroller is a drawer around the viewer, or the document itself. Neither of those reaches
 	 * a prop on the viewport. Caught on the way down instead, where every scroll in the
-	 * document passes through — {@link handlePan} answers for the cost of that.
+	 * document passes through: {@link handlePan} answers for the cost of that.
 	 *
 	 * A pending re-open does not outlive the loupe being switched off. A reader who turns it
 	 * off and back on inside one dwell does not get a lens they never hovered for.
@@ -675,7 +675,7 @@ export function usePdfViewerMagnifier(
 	const handleScroll = useStableEvent((event: Event) => {
 		// Every scroll in the document reaches this, so a reader working anywhere else on the
 		// page must pay one boolean for it. A closed lens with nothing tracked has no ink to
-		// go stale and nowhere to come back to — and answering that here, before the walk
+		// go stale and nowhere to come back to, and answering that here, before the walk
 		// below, is what keeps the cost to the boolean.
 		if (!open && trackingRef.current === null) return
 

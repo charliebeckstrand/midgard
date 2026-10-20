@@ -8,7 +8,7 @@ import type { GridSort } from './grid-data-types'
 
 /**
  * Owns the grid's controllable sort. The resolved list is ordered and never
- * `undefined` — an empty list is unsorted. The raw setter is what the engine and
+ * `undefined`: an empty list is unsorted. The raw setter is what the engine and
  * header menu write through. `toggleSort` cycles a column's sort via
  * {@link nextSort} (Shift-click folds it into the existing sort).
  *
@@ -53,7 +53,7 @@ export function useGridSort(config: GridSort | undefined): {
  * therefore lifts rather than latching on. That was the reported stuck-pulse
  * bug, which a reference-only "rows changed?" test left on because the consumer
  * handed back the unchanged default set. A consumer that swaps `rows` in the
- * same commit as the sort — a synchronous re-sort — snapshots the new order at
+ * same commit as the sort (a synchronous re-sort) snapshots the new order at
  * once. Its rows therefore never flash dim.
  *
  * @internal

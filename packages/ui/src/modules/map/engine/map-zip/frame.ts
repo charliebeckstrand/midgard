@@ -41,7 +41,7 @@ import { rewindFeatures } from '../map-geometry/winding'
 import type { MapFeature, MapFeatureCollection } from '../types'
 
 /**
- * The groups a territory lands in — the states a set of covered codes covers.
+ * The groups a territory lands in: the states a set of covered codes covers.
  *
  * @param regions - The region features, in the order the index was built over.
  * @param index - The grid over those regions.
@@ -74,7 +74,7 @@ export function coverageGroups(
 		//
 		// Wound here, on this one code, rather than over the whole territory up
 		// front: d3 reads a backwards ring as everything outside it, so the
-		// measurement needs the winding — and only the codes that reach this line
+		// measurement needs the winding, and only the codes that reach this line
 		// are measured at all.
 		const [wound = shape] = rewindFeatures([shape])
 

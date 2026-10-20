@@ -61,9 +61,9 @@ function ChromeLine({ part, d, clip }: ChromeLineProps) {
 			d={d}
 			clipPath={clip}
 			fill="none"
-			// Device pixels, not viewBox units — the region border's discipline: a
+			// Device pixels, not viewBox units (the region border's discipline: a
 			// zoom must widen the ground a meridian crosses and never the hairline
-			// ruling it. Stated here rather than inherited, because the seam the
+			// ruling it). Stated here rather than inherited, because the seam the
 			// region layer publishes to its own group is a different constant that
 			// happens to share a value, and chrome draws outside that group anyway.
 			// Two paths, so the per-notch re-render this read costs is two fibers
@@ -75,7 +75,7 @@ function ChromeLine({ part, d, clip }: ChromeLineProps) {
 }
 
 /**
- * The chrome layer, or nothing where both parts are off — the default, so a map
+ * The chrome layer, or nothing where both parts are off: the default, so a map
  * without chrome mounts no group and no path.
  *
  * The graticule draws under the sphere outline, so the globe's edge reads as

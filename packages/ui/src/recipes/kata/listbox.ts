@@ -22,7 +22,7 @@ export const k = defineRecipe(
 		],
 		slots: {
 			// 320px ≈ 8 rows. The old 240px (the classic Tailwind-example value, never a reasoned one)
-			// forced a scrollbar at seven options — the dashboard picker hit it with screen to spare.
+			// forced a scrollbar at seven options: the dashboard picker hit it with screen to spare.
 			// The cap only binds on lists that exceed it. A panel that no longer fits below its
 			// trigger flips above, and a panel that fits on neither side shrinks into the larger
 			// space (the floating middleware chain). Kept in step with the combobox recipe: one

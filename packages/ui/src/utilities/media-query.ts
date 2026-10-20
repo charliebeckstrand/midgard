@@ -45,7 +45,7 @@ const registry = createListenerRegistry<MediaQueryList, MediaQueryListEvent>({
  * Handlers fire in subscription order and every subscriber is notified. Returns
  * an unsubscribe fn. `handler` must be a distinct function reference per
  * subscription (callers pass a fresh closure per effect run). Call only on the
- * client — `window.matchMedia` is absent during SSR.
+ * client: `window.matchMedia` is absent during SSR.
  */
 export function subscribeMediaQuery(query: string, handler: () => void): () => void {
 	return registry.subscribe(query, handler)
@@ -54,7 +54,7 @@ export function subscribeMediaQuery(query: string, handler: () => void): () => v
 /**
  * Whether `query` currently matches, read from the shared `MediaQueryList` while
  * a subscription is live and a transient match otherwise. Call only on the
- * client — `window.matchMedia` is absent during SSR.
+ * client: `window.matchMedia` is absent during SSR.
  */
 export function matchesMediaQuery(query: string): boolean {
 	return (registry.source(query) ?? window.matchMedia(query)).matches

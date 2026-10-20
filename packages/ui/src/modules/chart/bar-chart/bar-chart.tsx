@@ -18,7 +18,7 @@ import { useChartCartesian } from '../engine/use-chart-cartesian'
 
 /**
  * Props for {@link BarChart}. Requires an accessible name (`aria-label` or
- * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
+ * `aria-labelledby`): the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
 export type BarChartProps<T = never> = CartesianChartProps<T> & {
@@ -77,8 +77,8 @@ function stackedColumns(
  *
  * @remarks Bars cap at the spec thickness, with a rounded data end and a square
  * baseline end. Negative values grow the other way from the zero line.
- * `orientation="horizontal"` transposes the whole frame — value axis on the
- * bottom, categories down the left — which suits long category labels and
+ * `orientation="horizontal"` transposes the whole frame (value axis on the
+ * bottom, categories down the left), which suits long category labels and
  * ranked lists. The `stacked` piles each category's series into one
  * part-to-whole column on the summed value axis, instead of grouping them side
  * by side. The `thick` lifts the thickness cap so the bars fill their band, for

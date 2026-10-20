@@ -13,7 +13,7 @@
  * The boxes come from a plain walk of the coordinates rather than from
  * `geoBounds`. A prefilter needs a box that is never too small, not one that is
  * exactly right. The plain walk is the faster of the two. A region crossing the
- * antimeridian — an Alaska borough — reads as spanning every longitude under
+ * antimeridian (an Alaska borough) reads as spanning every longitude under
  * that walk. That is too wide rather than too narrow, so it stays correct and
  * merely joins the oversized list below.
  *
@@ -180,7 +180,7 @@ export function buildRegionIndex(features: MapFeature[]): MapRegionIndex {
 
 // The index per decoded feature list. Building it walks every coordinate in the
 // atlas, which on a county one is the same order of work as drawing it, so a
-// second map over the same atlas — or a remount of the first — must not pay it
+// second map over the same atlas (or a remount of the first) must not pay it
 // again. The feature list keys it, so the entry outlives every refit: a bounding
 // box is geographic, not projected.
 //
@@ -199,12 +199,12 @@ export function cachedRegionIndex(features: MapFeature[]): MapRegionIndex {
 	return getOrCompute(indexes, features, buildRegionIndex)
 }
 
-/** Whether a box holds a position — the cheap test before the exact one. @internal */
+/** Whether a box holds a position: the cheap test before the exact one. @internal */
 function within(box: MapBounds | null, [lon, lat]: LngLat): boolean {
 	return box !== null && lon >= box.west && lon <= box.east && lat >= box.south && lat <= box.north
 }
 
-/** Whether two boxes meet — the cheap test the query below filters its cells with. @internal */
+/** Whether two boxes meet: the cheap test the query below filters its cells with. @internal */
 function overlaps(box: MapBounds | null, other: MapBounds): boolean {
 	return (
 		box !== null &&
@@ -269,7 +269,7 @@ export function* regionsMeeting(index: MapRegionIndex, box: MapBounds): Generato
 	// unfiltered they would join every result, and a caller reading the result for
 	// agreement would never find any.
 
-	// One closure per call rather than one generator per cell — see the loop below.
+	// One closure per call rather than one generator per cell (see the loop below).
 	const meets = (region: number) => overlaps(index.bounds[region] ?? null, box)
 
 	for (const region of index.oversized) {
@@ -285,7 +285,7 @@ export function* regionsMeeting(index: MapRegionIndex, box: MapBounds): Generato
 	// The loop is written out at both sites rather than delegated to a shared inner
 	// generator. `yield*` builds a generator per delegation, and the hit-target rule
 	// walks this per dot per render over a query box that spans tens of cells on a
-	// small frame — so the helper cost one object per cell to save four lines.
+	// small frame, so the helper cost one object per cell to save four lines.
 	for (let row = rowAt(box.south); row <= lastRow; row++) {
 		for (let column = firstColumn; column <= lastColumn; column++) {
 			for (const region of index.cells.get(cellKey(column, row)) ?? []) {

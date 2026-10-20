@@ -13,7 +13,7 @@ import type { MapZoom } from './use-map-zoom'
 /**
  * The live hover readout the tooltip anchors to: the pointed target and the
  * pointer's viewport coordinates. Split from the {@link MapHoverActions} mover into
- * its own context so pointer movement — which churns this value every frame —
+ * its own context so pointer movement (which churns this value every frame)
  * re-renders only the tooltip that reads it. The marks read the stable mover
  * instead, so they never repaint as the pointer travels.
  *
@@ -62,7 +62,7 @@ export const [MapHoverActionsContext, useMapHoverActions] =
 	createContext<MapHoverActions>('MapHoverActions')
 
 /**
- * The mark the pointer sits on — a region or an overlay entry — taking the
+ * The mark the pointer sits on (a region or an overlay entry), taking the
  * emphasis, so everything else on the map recedes behind it. It is the map's
  * twin of the chart's pointed-mark emphasis. Derived from the hover target but
  * held apart from {@link MapHoverState}. The hover provider pins the target's
@@ -153,7 +153,7 @@ export const [MapZoomContext, useMapZoomView] = createContext<MapZoom | null>('M
  * value on every wheel notch. The marks that answer it re-render per notch,
  * while the legend and the plat above them hold. The region layer answers on
  * one group rather than per region. Defaults to `1`, so a mark rendered outside
- * a zooming plat reads the frame as device pixels — which every settled unzoomed
+ * a zooming plat reads the frame as device pixels, which every settled unzoomed
  * frame is.
  *
  * @internal
@@ -167,7 +167,7 @@ export const [MapZoomScaleContext, useMapZoomScale] = createContext<number>('Map
  * as a closure, legend registration, and the resolved slot color per
  * registered entry. It also provides the legend's toggle / emphasis state, and
  * the standing pick. An
- * overlay renders nothing until its id gains a color — the beat after its
+ * overlay renders nothing until its id gains a color: the beat after its
  * registration effect runs.
  *
  * @internal

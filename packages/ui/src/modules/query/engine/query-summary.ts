@@ -212,7 +212,7 @@ function describeGroup(
 }
 
 /**
- * Describes a query tree as a flat token stream — its active rules in order,
+ * Describes a query tree as a flat token stream: its active rules in order,
  * joined by their combinators and bracketed per nested group. Empty when the
  * query imposes no constraint (in step with {@link isQueryActive}), so a view
  * can render nothing rather than an empty sentence.

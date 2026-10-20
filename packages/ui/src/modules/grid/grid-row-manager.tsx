@@ -39,11 +39,11 @@ export type GridRowManagerProps = {
 }
 
 /**
- * The row manager's editor: a zone per row-group — a reorder grip, the group's
- * label + row count, and a color {@link Menu}. Whole groups reorder as a vertical
+ * The row manager's editor: a zone per row-group (a reorder grip, the group's
+ * label + row count, and a color {@link Menu}). Whole groups reorder as a vertical
  * list, through the grip beside each label or its keyboard lift. The drag is
  * locked to the y-axis and bounded to the list. A colored group outlines its whole Card in its
- * hue. Rows within a group are not managed — they follow the grid's order. Every
+ * hue. Rows within a group are not managed: they follow the grid's order. Every
  * edit commits through the handlers, which write the {@link GridGroupBy.rowGroups}
  * overlay.
  *

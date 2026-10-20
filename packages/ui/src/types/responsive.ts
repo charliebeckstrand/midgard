@@ -4,7 +4,7 @@ export const BREAKPOINTS = ['initial', 'sm', 'md', 'lg', 'xl', '2xl'] as const
 /** One breakpoint name from {@link BREAKPOINTS}. */
 export type Breakpoint = (typeof BREAKPOINTS)[number]
 
-/** A breakpoint with a width of its own — every name but the unprefixed base. */
+/** A breakpoint with a width of its own: every name but the unprefixed base. */
 export type MinBreakpoint = Exclude<Breakpoint, 'initial'>
 
 /**

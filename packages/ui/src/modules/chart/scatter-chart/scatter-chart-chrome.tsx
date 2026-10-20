@@ -13,10 +13,10 @@ import type { LinearScale } from '../engine/chart-scale'
  */
 export function ScatterChartChrome(props: {
 	plot: PlotRect
-	/** Spark strips the chrome entirely — the component renders nothing. */
+	/** Spark strips the chrome entirely: the component renders nothing. */
 	spark: boolean
 	axes: boolean
-	/** Whether each axis's ticks rule the grid — resolved from the axis's own `grid` switch. */
+	/** Whether each axis's ticks rule the grid: resolved from the axis's own `grid` switch. */
 	xGrid: boolean
 	yGrid: boolean
 	xScale: LinearScale | null

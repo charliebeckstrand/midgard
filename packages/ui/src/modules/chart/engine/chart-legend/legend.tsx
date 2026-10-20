@@ -44,7 +44,7 @@ function useLegendFit(
 
 	const [visible, setVisible] = useState(count)
 
-	// A layout effect, so the first cut lands before paint — the visible row never
+	// A layout effect, so the first cut lands before paint: the visible row never
 	// flashes its full height then collapses. The ghost holds every control at all
 	// times, so the observer refits on resize from a stable measurement rather than
 	// the already-cut visible row, which could never reveal that a widened box now
@@ -64,7 +64,7 @@ function useLegendFit(
 			// baseline nudge within a row is a pixel or two (the row centers its
 			// controls, so a shorter one sits a hair lower). Bucket each top to the
 			// nearest control-height so a sub-row offset never reads as its own row and
-			// overflows a control that visually fits — then rank the distinct buckets
+			// overflows a control that visually fits, then rank the distinct buckets
 			// into row indices, so a non-uniform pitch a fixed divisor drifts on still
 			// orders correctly.
 			const rowHeight = controls[0]?.offsetHeight || 1
@@ -97,7 +97,7 @@ function useLegendFit(
 		return () => observer.disconnect()
 	}, [labels, maxRows])
 
-	// Never exceed the real count — a stale larger measurement (a control removed
+	// Never exceed the real count: a stale larger measurement (a control removed
 	// between renders) can't over-slice the list.
 	return [ghostRef, maxRows === undefined ? count : Math.min(visible, count)]
 }
@@ -145,7 +145,7 @@ function ChartLegendSwatch({ item, off, texture }: ChartLegendSwatchProps) {
 /** Props for {@link ChartLegendEntry}. @internal */
 type ChartLegendEntryProps = {
 	item: ChartLegendItem
-	/** The series is toggled off — strike the label and dim the swatch. */
+	/** The series is toggled off: strike the label and dim the swatch. */
 	off: boolean
 	/** Panel layout: the entry stretches full-width and left-justifies its content. */
 	panel: boolean
@@ -216,7 +216,7 @@ function ChartLegendEntry({
 /** Props for {@link ChartLegendOverflowSwitch}. @internal */
 type ChartLegendOverflowSwitchProps = {
 	item: ChartLegendItem
-	/** The series is toggled off — strike the label and dim the swatch. */
+	/** The series is toggled off: strike the label and dim the swatch. */
 	off: boolean
 	/** The `texture` prop is on, so the square swatch hatches in every mode. */
 	texture: boolean
@@ -369,7 +369,7 @@ export type ChartLegendItem = {
 	/** Swatch shape, mirroring the mark: `rect` for bars and slices, `line` for lines. */
 	swatch: 'rect' | 'line'
 	/**
-	 * Whether the series' `line` swatch dashes, mirroring a dashed stroke — solid
+	 * Whether the series' `line` swatch dashes, mirroring a dashed stroke: solid
 	 * by default, unlike a reference chip, which dashes by default. Only a `line`
 	 * swatch dashes; a `rect` ignores it.
 	 * @defaultValue false
@@ -377,7 +377,7 @@ export type ChartLegendItem = {
 	dashed?: boolean
 	/** The slot color, so a textured legend swatch mirrors the mark's tile; unset for a raw color. */
 	color?: ChartColorSlot
-	/** A trailing readout — the side panel carries each slice's live share. */
+	/** A trailing readout: the side panel carries each slice's live share. */
 	detail?: string
 }
 
@@ -406,7 +406,7 @@ export type ChartLegendReference = {
 	/** A raw CSS color applied inline as currentColor; absent for a palette slot. */
 	color?: string
 	/**
-	 * Whether the rule is dashed, so the chip's line swatch mirrors it — dashed by
+	 * Whether the rule is dashed, so the chip's line swatch mirrors it: dashed by
 	 * default, `false` only for a rule drawn solid.
 	 * @defaultValue true
 	 */
@@ -424,13 +424,13 @@ export type ChartLegendProps = {
 	items: ChartLegendItem[]
 	/**
 	 * The reference-line entries, drawn after the series switches as their own
-	 * switches. Empty — the default — draws none.
+	 * switches. Empty (the default) draws none.
 	 */
 	references?: ChartLegendReference[]
 	/** Item indexes toggled off; their marks are hidden and their text struck through. */
 	hidden: ReadonlySet<number>
 	/**
-	 * Reference indexes toggled off — struck through the way a hidden series
+	 * Reference indexes toggled off: struck through the way a hidden series
 	 * entry is, and gated so an off chip's hover recedes nothing. Empty by default.
 	 */
 	referenceHidden?: ReadonlySet<number>
@@ -440,7 +440,7 @@ export type ChartLegendProps = {
 	onToggleReference?: (index: number) => void
 	/**
 	 * Lay the entries out as a single column rather than the centered wrap
-	 * row — the side rail beside a pie or donut. Reserves a rail that scales with
+	 * row: the side rail beside a pie or donut. Reserves a rail that scales with
 	 * the chart's container (`min(16rem, 40cqw)`, once it has room for it at
 	 * `@sm`). The legend therefore never dominates the plot. It centers the
 	 * left-aligned entry block within it. Past five switches it paginates them,
@@ -477,8 +477,8 @@ type LegendSplit = {
 /**
  * Splits the switches and chips into the run that shows and the overflow the
  * `+N` chip holds. It cuts across the switches then the chips in render order, so
- * the first `visibleCount` controls show. Uncapped, everything shows — the
- * paginated page a side panel passes as `pageItems` — and nothing overflows.
+ * the first `visibleCount` controls show. Uncapped, everything shows (the
+ * paginated page a side panel passes as `pageItems`) and nothing overflows.
  *
  * @internal
  */
@@ -511,7 +511,7 @@ function splitLegend(
 }
 
 /**
- * The legend — the dependable identity channel for the series, and the chart's
+ * The legend: the dependable identity channel for the series, and the chart's
  * series switchboard. Pointing (or keyboard-focusing) an entry dims every other
  * series, and clicking toggles its series off. The switches are plain HTML
  * buttons outside the `role="img"` region, so assistive tech reads and operates
@@ -554,7 +554,7 @@ export function ChartLegend({
 
 	const [page, setPage] = useState(0)
 
-	// Only a side panel clips vertically — the wrap row just grows. Past one
+	// Only a side panel clips vertically: the wrap row just grows. Past one
 	// page, the column trades clipping for a prev/next page instead.
 	const paginate = panel && items.length > PAGE_SIZE
 
@@ -653,7 +653,7 @@ export function ChartLegend({
 		referenceEmphasis.point(null)
 	}
 
-	// The row is a toolbar — one Tab stop, arrow-key roving, Escape to drop focus —
+	// The row is a toolbar (one Tab stop, arrow-key roving, Escape to drop focus)
 	// whenever it holds a focusable control: the series switches (every entry is
 	// one, a lone series included), or the reference chips, which recede the marks
 	// on hover or focus. An inert legend holds none, so it drops the toolbar role
@@ -661,11 +661,11 @@ export function ChartLegend({
 	const interactive = !inert && (items.length > 0 || references.length > 0)
 
 	// A side panel stacks its controls in a column, so the arrows that rove them
-	// follow the layout — Up/Down down the panel, Left/Right across the wrap row.
+	// follow the layout: Up/Down down the panel, Left/Right across the wrap row.
 	const orientation = panel ? 'vertical' : 'horizontal'
 
-	// Rove across the focusable controls — series switches and reference chips
-	// alike — sharing the one Tab stop the toolbar exposes.
+	// Rove across the focusable controls (series switches and reference chips
+	// alike), sharing the one Tab stop the toolbar exposes.
 	const onKeyDown = useA11yRoving(ref, {
 		itemSelector:
 			'button[data-slot="chart-legend-item"], button[data-slot="chart-legend-reference"]',
@@ -687,7 +687,7 @@ export function ChartLegend({
 		: {}
 
 	// One series switch, in the visible row or the invisible ghost that measures
-	// the cut — the same box either way, so the ghost's width is the entry's own.
+	// the cut: the same box either way, so the ghost's width is the entry's own.
 	const renderEntry = (item: ChartLegendItem, ghost: boolean) => (
 		<ChartLegendEntry
 			key={item.index}
@@ -702,7 +702,7 @@ export function ChartLegend({
 	)
 
 	// The shown switches, an optional pagination row, the shown reference chips,
-	// and — once the cap trims the row — the `+N` chip that opens the rest as a
+	// and (once the cap trims the row) the `+N` chip that opens the rest as a
 	// popover switchboard. Rendered inline in the wrap row; in panel mode they nest
 	// in a shrink-to-content, left-aligned inner block so the reserved column can
 	// center that block rather than pin it to the plot.
@@ -773,8 +773,8 @@ export function ChartLegend({
 			{overflowCount > 0 && (
 				// The overflow chip: a switch-count badge opening the trimmed controls as
 				// a scrolling switchboard, so every switch past the cap stays one click
-				// away rather than clipping out of sight — the popover floats free of the
-				// aspect box the row is bound to. `autoFocus` seats focus in the panel so a
+				// away rather than clipping out of sight (the popover floats free of the
+				// aspect box the row is bound to). `autoFocus` seats focus in the panel so a
 				// keyboard open lands on the switches it just revealed.
 				<Popover placement="bottom" onOpenChange={onOverflowOpenChange}>
 					<PopoverTrigger>
@@ -829,22 +829,22 @@ export function ChartLegend({
 			ref={ref}
 			data-slot="chart-legend"
 			// A static key: the HTML `inert` attribute takes the whole subtree out of
-			// the tab order and off the pointer in one place — the switches keep their
-			// look but shed the click, hover, and focus, no per-control gating. The
+			// the tab order and off the pointer in one place (the switches keep their
+			// look but shed the click, hover, and focus, no per-control gating). The
 			// series names still reach assistive tech through the chart's data table.
 			inert={inert}
 			{...toolbarProps}
 			className={cn(
-				// The side panel reserves a rail that scales with the chart's own
-				// container — `min(16rem, 40cqw)`, so it is at most a third-ish of a wide
-				// chart and shrinks in a narrow one rather than a fixed column that would
-				// dominate — once the container has room for it (`@sm`, the same 384px the
-				// tier reads as compact). It centers its entries — vertically down the
-				// column so a legend stretched to the plot's full height reads level with
-				// it, and horizontally so the left-aligned block sits centered in the
-				// reserved width rather than pinned to the plot. Below that width the panel
-				// stacks under the plot at full width. The wrap row centers its entries at
-				// all widths.
+				// Once the container has room for it (`@sm`, the same 384px the tier
+				// reads as compact), the side panel reserves a rail that scales with
+				// the chart's own container. At `min(16rem, 40cqw)`, the rail is at
+				// most a third-ish of a wide chart and shrinks in a narrow one, where a
+				// fixed column would dominate. It centers its entries: vertically down
+				// the column so a legend stretched to the plot's full height reads
+				// level with it, and horizontally so the left-aligned block sits
+				// centered in the reserved width rather than pinned to the plot. Below
+				// that width the panel stacks under the plot at full width. The wrap
+				// row centers its entries at all widths.
 				panel
 					? 'flex flex-col items-center justify-center @sm:w-[min(16rem,40cqw)] @sm:shrink-0'
 					: 'flex flex-wrap items-center justify-center',
@@ -880,7 +880,7 @@ export function ChartLegend({
 	// rows. A box of zero height clips it, so it adds no scroll range below the
 	// chart. The row inside keeps its full height, which the fit observes. It packs
 	// to the inline start (`justify-start`) so the far edge of each control reads
-	// as the width consumed on its row — what the fit math needs — rather than a
+	// as the width consumed on its row (what the fit math needs) rather than a
 	// centered offset.
 	return (
 		<div className="relative w-full">

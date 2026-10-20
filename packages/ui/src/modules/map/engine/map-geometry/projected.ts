@@ -39,7 +39,7 @@
  *
  * Two cases stay on the direct walk, because the arithmetic above is what fails
  * on them rather than the buffer. A geography carrying anything but area
- * rings — a point, a line — is drawn by `d3-geo` from more than the ring
+ * rings (a point, a line) is drawn by `d3-geo` from more than the ring
  * vertices this records ({@link areaOnly}). And a projection carrying an
  * explicit `clipExtent` cuts in frame units that do not scale with it. The same
  * buffer read at two scales would then keep two different pieces of the
@@ -92,7 +92,7 @@ export type MapProjectedAtlas = {
  * Whether every feature draws as area rings alone, which is what this buffer
  * records. `d3-geo` draws a point as an arc of its own radius, and a line as an
  * unclosed run. Either would therefore come back from the emit as a closed ring
- * through its vertices — a different shape, not a rounder one. A collection nests
+ * through its vertices: a different shape, not a rounder one. A collection nests
  * geometry this never unwraps, so it declines that too.
  *
  * Reads the type tags alone, so a caller pays a walk over the features and not
@@ -158,7 +158,7 @@ function firstPosition(features: MapFeature[]): LngLat | null {
 
 /**
  * The witness for a buffer: a position of the geography, and where the
- * projection that drew the buffer put it. `null` where nothing projects — an
+ * projection that drew the buffer put it. `null` where nothing projects: an
  * empty geography, or one that falls entirely outside the projection's own
  * frame.
  */
@@ -186,7 +186,7 @@ function buildWitness(
 const WITNESS_TOLERANCE = 1e-6
 
 /**
- * Whether `fitted` really is the buffer's own fit scaled and moved — the one
+ * Whether `fitted` really is the buffer's own fit scaled and moved: the one
  * claim the emit rests on, tested rather than assumed.
  *
  * A d3 projection places a point as `scale · raw + translate` and nothing else,
@@ -427,7 +427,7 @@ export function probeCanonicalFit(
  * is placed by hand, because `Math.trunc` drops it on the tenths of a value
  * between −1 and 0. Only the one-decimal case is worth the arithmetic. Any
  * other setting of {@link REGION_PATH_DIGITS} therefore falls back to the
- * division — a comparison against a constant, which folds.
+ * division: a comparison against a constant, which folds.
  */
 function coordinate(rounded: number): string {
 	if (REGION_PATH_DIGITS !== 1) return `${rounded / REGION_PATH_ROUNDING}`

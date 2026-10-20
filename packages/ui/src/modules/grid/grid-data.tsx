@@ -152,7 +152,7 @@ export function GridData<T>({
 	const density = resolveStep(condensed, size)
 
 	// Read here, above the scope of the table, so it is the density *surrounding*
-	// the grid — what an overlay the grid spawns renders at (see
+	// the grid: what an overlay the grid spawns renders at (see
 	// `GridOverlayDensity`).
 	const overlayDensity = useDensityStep()
 
@@ -750,7 +750,7 @@ export function GridData<T>({
 					>
 						<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 
-						{/* Covers the grid — toolbar included — while an async export resolves
+						{/* Covers the grid (toolbar included), while an async export resolves
 					    its rows, whichever surface started it. */}
 						<GridExportOverlay active={exportActions.pending} />
 

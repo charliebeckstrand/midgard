@@ -19,7 +19,7 @@ import { mapMessages } from './map-messages'
 /** Props for {@link MapLegendEntry}. @internal */
 type MapLegendEntryProps = {
 	item: MapLegendItem
-	/** The entry is toggled off — its label strikes through and its keys dim. */
+	/** The entry is toggled off: its label strikes through and its keys dim. */
 	off: boolean
 	/** Panel layout: the entry stretches to the rail so every readout shares one right edge. */
 	panel: boolean
@@ -115,7 +115,7 @@ export type MapLegendProps = {
 	onFocus: (id: string | null) => void
 	/**
 	 * Lay the entries out as a single column rather than the centered wrap
-	 * row — the static side panel beside the map.
+	 * row: the static side panel beside the map.
 	 */
 	panel?: boolean
 }
@@ -140,7 +140,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 	const ref = useRef<HTMLDivElement>(null)
 
 	// The side panel lays the entries in a column, so the arrows rove vertically
-	// there and horizontally under the map — the axis matches the layout.
+	// there and horizontally under the map: the axis matches the layout.
 	const orientation = panel ? 'vertical' : 'horizontal'
 
 	const handleKeyDown = useA11yRoving(ref, {
@@ -175,7 +175,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 				// The side panel is a grid column. At `@lg` the column is capped
 				// (`grid-cols-1` tracks at `minmax(0,1fr)`) rather than left to size
 				// itself. An implicit track is max-content, and an entry whose name
-				// never wraps contributes its whole name to that — so the track grew
+				// never wraps contributes its whole name to that, so the track grew
 				// past the rail it sits in and the entries overhung the reserved column
 				// instead of clipping inside it.
 				panel &&

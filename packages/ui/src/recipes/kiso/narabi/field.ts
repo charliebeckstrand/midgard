@@ -13,11 +13,11 @@ const { space } = dan
 
 export const field = [
 	'*:data-[slot=label]:font-medium',
-	// Gap from the label to its control. The margin sits on the label — always a
-	// real <label> box — not the control, because a `display:contents` control
-	// wrapper (Listbox/Select, DatePicker) generates no box, so a margin placed on
-	// it would be dropped. The `:not(description)` arm lets a description hug the
-	// label instead; its own gap to the control is the next rule's job.
+	// Gap from the label to its control. The margin sits on the label (always a
+	// real <label> box), not the control, because a `display:contents` control
+	// wrapper (Listbox/Select, DatePicker) generates no box, so a margin placed
+	// on it would be dropped. The `:not(description)` arm lets a description hug
+	// the label instead; its own gap to the control is the next rule's job.
 	space.field.label,
 	// A label row: a child, such as a Flex, that holds the label beside an
 	// adornment, such as an info button with a tooltip. The button cannot go in
@@ -34,13 +34,14 @@ export const field = [
 	// slots with `~`, not `+`, because a reorderable list puts the hidden live
 	// region and instructions of its drag behind the `<ul>`, and they have no slot.
 	space.field.list,
-	// Gap from a control to the message or the alert under it, named by the message
-	// or the alert rather than by what precedes it. The rules above name the control, which only reaches the
-	// controls that render their frame as a direct child of the Field: a control
-	// that wraps its own frame (Listbox, DatePicker, Combobox) put a wrapper
-	// between the two, and a wrapper that renames its `data-slot` (AddressInput
-	// over Combobox) could not be named at all — so a message under any of them
-	// hugged the control while the Input beside it did not.
+	// Gap from a control to the message or the alert under it, named by the
+	// message or the alert rather than by what precedes it. The rules above name
+	// the control, which only reaches the controls that render their frame as a
+	// direct child of the Field: a control that wraps its own frame (Listbox,
+	// DatePicker, Combobox) put a wrapper between the two, and a wrapper that
+	// renames its `data-slot` (AddressInput over Combobox) could not be named at
+	// all. So a message under any of them hugged the control while the Input
+	// beside it did not.
 	//
 	// The label and description arms are excluded because each owns its own gap
 	// above: a message directly under a label is the field's only content, and one

@@ -32,15 +32,15 @@ type ControlFieldOverrides = {
  * parent control cascade and spreads the `useA11yControl` bundle off the field
  * id. That bundle is the label, description, and error slots.
  *
- * Three wrappers share it. {@link ControlField} — the envelope behind
- * `CheckboxField` / `RadioField` / `SwitchField` — passes no overrides and
+ * Three wrappers share it. {@link ControlField} (the envelope behind
+ * `CheckboxField` / `RadioField` / `SwitchField`) passes no overrides and
  * inherits everything. `Field` passes its own `autoComplete`, `disabled`, and
  * `severity` props. `Control` passes all of its own cascade props.
  *
  * @param id - The scoped field id the context broadcasts and the a11y slots key off.
  * @param overrides - The wrapper's own props, where it has them.
  * @returns A memoized {@link ControlContextValue} to pass into `ControlContext`.
- * @internal Not on the barrel — backs the field wrappers.
+ * @internal Not on the barrel: backs the field wrappers.
  */
 export function useControlFieldContext(
 	id: string,

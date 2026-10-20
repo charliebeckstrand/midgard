@@ -20,8 +20,8 @@ export type TooltipContentProps = {
 	 * Class for the positioned wrapper around the panel, rather than for the panel
 	 * itself.
 	 *
-	 * For the properties the panel's own entrance animates — `opacity` and
-	 * `scale` — which `motion` writes as inline styles that no class can outrank.
+	 * For the properties the panel's own entrance animates (`opacity` and
+	 * `scale`), which `motion` writes as inline styles that no class can outrank.
 	 * A caller that wants to fade a standing panel sets the fade here, where it
 	 * composes with the entrance instead of fighting it.
 	 */

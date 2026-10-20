@@ -35,14 +35,14 @@ import { MapRegionsLit } from './map-regions-lit'
 
 /**
  * Props for {@link MapRegions}: what both layers draw from, minus the paint
- * table — this component resolves that itself, from the categories and the
- * toggles below.
+ * table (this component resolves that itself, from the categories and the
+ * toggles below).
  *
  * @internal
  */
 export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	categories: MapCategoryMeta[]
-	/** Whether the layer's values are still loading — see {@link k.region.loading}. */
+	/** Whether the layer's values are still loading (see {@link k.region.loading}). */
 	loading?: boolean
 	/**
 	 * The view transform the paths are drawn under, `null` where they already sit
@@ -69,7 +69,7 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	 * and re-map the whole atlas a second time. A category match and a reporter
 	 * prop are both settled before the first paint.
 	 *
-	 * A clickable map keeps its affordance either way — the pointer cursor and
+	 * A clickable map keeps its affordance either way: the pointer cursor and
 	 * the hover brightening are classes on the layer and the path, not this.
 	 */
 	interactive: boolean
@@ -81,8 +81,8 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	/**
 	 * Reports the region under a click, resolved by {@link regionIndexAt}
 	 * delegation on the layer group. The memoized per-region paths therefore take
-	 * no handler prop. This handler's identity — the one input here a consumer
-	 * controls — never reaches the layer the county atlas depends on. When it is
+	 * no handler prop. This handler's identity (the one input here a consumer
+	 * controls) never reaches the layer the county atlas depends on. When it is
 	 * set, it also turns on the pointer cursor and lifts the hover emphasis to
 	 * every region, no-data ones included. Under a click each is a target, not
 	 * just the matched ones.
@@ -104,13 +104,13 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	 * reported outward instead.
 	 *
 	 * Unlike {@link onRegionClick} this takes no pointer affordance. A right-click
-	 * is not advertised by a cursor, and the wrapping menu — not the region layer
-	 * — carries the keyboard model. Never prevents default, so that menu still
+	 * is not advertised by a cursor, and the wrapping menu (not the region layer)
+	 * carries the keyboard model. Never prevents default, so that menu still
 	 * opens; this only names WHICH region it opened over.
 	 */
 	onRegionContextMenu?: (index: number) => void
 	/**
-	 * The selected region's feature index, `null` when nothing is picked —
+	 * The selected region's feature index, `null` when nothing is picked:
 	 * {@link MapPlat} resolves it from the public identity. It only rings the
 	 * region. The layer's clickability rides {@link onRegionClick} alone, so a
 	 * map showing a pick made elsewhere takes no pointer affordance it can't
@@ -159,7 +159,7 @@ type RegionProps = {
 /**
  * One region path. A categorical slot fills by Tailwind class; a numeric bin
  * fills by a `fill` attribute color from the consumer's `colorRange`.
- * No-data — and the pre-reveal beat under `animate` — takes the neutral class.
+ * No-data (and the pre-reveal beat under `animate`) takes the neutral class.
  *
  * Memoized on its resolved primitives. A legend toggle or the reveal flip
  * re-renders the categories whose paint changed, and every other region holds
@@ -185,7 +185,7 @@ const Region = memo(function Region({
 			// this attribute. Deliberately not a `data-slot`: the stylesheet carries
 			// `[data-slot=…]` attribute selectors for other components, so on a
 			// county atlas thousands of paths would each pay attribute-rule
-			// matching at first style resolution — a quarter of the mount — for an
+			// matching at first style resolution (a quarter of the mount) for an
 			// anchor nothing styles by. The layer keeps its `map-regions` slot.
 			data-region-index={index}
 			d={d}
@@ -294,7 +294,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
  * whole interaction. The selected region rings above both and outside the
  * recede, so the standing pick outlasts every passing emphasis. A selection made
  * before the pointer arrived must not vanish under it. That ring marks the
- * region rather than repainting it — `fill="none"` leaves the region's own
+ * region rather than repainting it: `fill="none"` leaves the region's own
  * color, and whatever dim it carries, reading through.
  *
  * @remarks Under `animate` the geography paints solid at once, and only the
@@ -336,7 +336,7 @@ export const MapRegions = memo(function MapRegions({
 	// The color reveal: static maps color at once; an animated map holds the
 	// neutral backdrop for the first beat, then flips to the category fills so
 	// the CSS color transition washes them in over the already-painted
-	// geography. Gated on the paths landing, not mere mount — a lazily fetched
+	// geography. Gated on the paths landing, not mere mount: a lazily fetched
 	// atlas mounts the region layer empty first, so keying off paths keeps the
 	// wash for the beat the regions appear. A one-way flag: it never resets, so
 	// a resize never replays the wash.
@@ -348,19 +348,19 @@ export const MapRegions = memo(function MapRegions({
 
 	// Whether the reveal has washed through, so its per-region stagger can retire
 	// ({@link MapWash} carries why it must). The delay has to outlive the flip that
-	// starts the wash — a transition reads its timing from the style it lands in,
-	// so dropping the stagger in the same commit would drop the stagger itself — so
+	// starts the wash (a transition reads its timing from the style it lands in,
+	// so dropping the stagger in the same commit would drop the stagger itself), so
 	// the clock runs from the flip. A one-way flag beside the reveal it retires, so
 	// a resize never re-arms it, and the effect reads neither flag it writes.
 	//
 	// Retiring re-keys every region's wash style, so it costs one pass over the
-	// layer — committed as a transition, the priority the plot's own refit rides,
+	// layer (committed as a transition, the priority the plot's own refit rides,
 	// since nothing waits on it: the reveal it ends has already played, and until
-	// the pass lands the regions hold a delay that only a fill change would read.
-	// It runs for a reduced-motion reader too, where the stagger it retires was
-	// already inert (`motion-reduce` drops the transition the delay belongs to) —
-	// unlike the legend's own hold, which withholds a visible dim and so has to
-	// read the preference.
+	// the pass lands the regions hold a delay that only a fill change would
+	// read). It runs for a reduced-motion reader too, where the stagger it
+	// retires was already inert (`motion-reduce` drops the transition the delay
+	// belongs to). The legend's own hold is different: it withholds a visible
+	// dim, and so has to read the preference.
 	const [settled, setSettled] = useState(!animate)
 
 	useEffect(() => {
@@ -382,7 +382,7 @@ export const MapRegions = memo(function MapRegions({
 
 	// One paint table for both layers: the memo's identity holds across the
 	// pointed-mark re-renders this component takes per crossing, so the base
-	// layer's memo still compares equal — and the lit overlay, which mounts and
+	// layer's memo still compares equal, and the lit overlay, which mounts and
 	// unmounts with the emphasis, reads the cached table instead of resolving
 	// its own from cold on every hover-in.
 	const paints = useMemo(
@@ -403,7 +403,7 @@ export const MapRegions = memo(function MapRegions({
 			// no per-region class.
 			className={cn(clickable && k.region.clickable, ...(loading ? k.region.loading : []))}
 			onPointerLeave={() => set(null, null)}
-			// Delegated, so the click handler stays off `Region`'s memo comparison —
+			// Delegated, so the click handler stays off `Region`'s memo comparison:
 			// a prop across thousands of instances, and the one input here whose
 			// identity a consumer controls.
 			onClick={regionDelegate(onRegionClick)}

@@ -14,7 +14,7 @@ function isEmptyValue(value: unknown): boolean {
 
 	if (typeof value === 'string') return value.trim() === ''
 
-	// A range tuple is empty only when every bound is — an open-ended range with
+	// A range tuple is empty only when every bound is: an open-ended range with
 	// one bound set still constrains rows.
 	if (Array.isArray(value)) return value.every((item) => isEmptyValue(item))
 
@@ -22,7 +22,7 @@ function isEmptyValue(value: unknown): boolean {
 }
 
 /**
- * Operators that evaluate without a rule value — their matcher ignores the second
+ * Operators that evaluate without a rule value: their matcher ignores the second
  * argument. Every other operator imposes no constraint when its value is empty.
  * A half-built or cleared rule therefore never hides rows, such as a date rule
  * whose value was cleared back to blank. Mirrors the `noValue` operator flag in
@@ -257,7 +257,7 @@ function foldGroup(group: QueryGroup, getValue: (field: string) => unknown): boo
 /**
  * Evaluates a query tree against a row, reading each rule's field through
  * `getValue`. Children fold left-to-right by their `combinator` (no AND/OR
- * precedence — sequential, matching the builder's visual order).
+ * precedence: sequential, matching the builder's visual order).
  *
  * @remarks A child that puts no constraint on the rows drops out of the fold,
  * with its combinator. Such a child is a rule that {@link matchQueryRule} passes

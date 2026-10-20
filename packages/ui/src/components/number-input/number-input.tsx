@@ -72,8 +72,8 @@ export type NumberInputProps = Omit<
  * and only clamped/rounded on blur, so an out-of-range value can briefly display
  * mid-entry. The stepper buttons are `tabIndex={-1}` and mutate silently, so
  * each step mirrors the new value through the live-region announcer (WCAG 4.1.3).
- * Clamp/round-on-blur and the form's touched tracking compose with — rather than
- * replace — the consumer's `onBlur`. A blur that leaves the value as it is does
+ * Clamp/round-on-blur and the form's touched tracking compose with (rather than
+ * replace) the consumer's `onBlur`. A blur that leaves the value as it is does
  * not fire `onValueChange`. The steppers turn off while the field is disabled
  * or read-only, from its own prop or from an enclosing Control or Field. An
  * uncontrolled number input goes back to `defaultValue` on a native form reset,
@@ -196,7 +196,7 @@ export function NumberInput({
 			suffix={
 				// Keep focus on the input when a stepper is pressed. The buttons are
 				// tabIndex -1 and mutate silently, so a focus shift would blur the
-				// input — ending an enclosing edit (e.g. a Grid editable cell, whose
+				// input and end an enclosing edit (e.g. a Grid editable cell, whose
 				// numeric editor commits on blur) before the click's step lands.
 				// preventDefault cancels only the focus move; the click still fires.
 				// The gap also caps the hit areas (`TouchTarget`), so the two buttons

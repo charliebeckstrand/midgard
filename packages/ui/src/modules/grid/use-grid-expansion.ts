@@ -16,7 +16,7 @@ const ALWAYS_EXPANDABLE = () => true
  * Resolves the {@link GridExpandable} binding into master-detail state: the
  * controllable expanded-key set (uncontrolled from `defaultValue`, else an empty
  * set). The state also holds a stable per-key toggle, the detail renderer, and
- * the per-row expandability predicate. Inert — `active: false`, an empty set — when the grid
+ * the per-row expandability predicate. Inert (`active: false`, an empty set) when the grid
  * carries no `expandable` binding, so the flat body reads one shape either way.
  *
  * @param config - The `expandable` binding, or `undefined` when the grid isn't expandable.

@@ -7,8 +7,8 @@ import { GRID_STATUS_DEBOUNCE_MS } from './engine/grid-constants'
 import { gridMessages } from './engine/grid-messages'
 
 /**
- * The polite live-region message for the grid: `Loading` while loading, then —
- * after a short debounce so a fast filter/search doesn't chatter — a settled
+ * The polite live-region message for the grid: `Loading` while loading, then
+ * (after a short debounce so a fast filter/search doesn't chatter) a settled
  * row-count summary. Assistive tech hears the load start, its result, and later
  * result-count changes from filtering, search, or paging.
  *

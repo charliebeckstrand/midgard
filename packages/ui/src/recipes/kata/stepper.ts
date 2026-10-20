@@ -54,7 +54,7 @@ const title = defineRecipe({
 				'dark:group-data-[state=current]:text-white',
 			),
 			// Brightens on hover like the dot, but from a more legible resting
-			// shade — the dot's dim shade would fail AA contrast as text.
+			// shade: the dot's dim shade would fail AA contrast as text.
 			...mode(
 				'group-enabled:group-hover:group-not-data-[state=current]:text-zinc-600',
 				'dark:group-enabled:group-hover:group-not-data-[state=current]:text-zinc-300',

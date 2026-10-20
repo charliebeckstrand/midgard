@@ -242,7 +242,7 @@ type SectorChartCalloutsProps = {
 
 /**
  * The callout labels: a muted leader from each slice out to its name and share,
- * set beside the slice. Plain SVG text on the surface — not on a fill — so it
+ * set beside the slice. Plain SVG text on the surface (not on a fill), so it
  * takes the chrome ink and dims with its slice under legend emphasis. Under
  * `animate` each callout fades in as the sweep uncovers its slice.
  *

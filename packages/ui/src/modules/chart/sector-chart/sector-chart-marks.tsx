@@ -23,7 +23,7 @@ export type SectorSegmentLabel = {
 }
 
 /**
- * A slice group's recede classes, from {@link seriesGroupClass} — on the
+ * A slice group's recede classes, from {@link seriesGroupClass}: on the
  * wrapper, so motion's inline opacity composes. A held selection wins: it
  * lights only its own slices, and a hover never re-lights them. Else the
  * emphasized slice lights alone. @internal
@@ -206,7 +206,7 @@ type SectorChartMarksProps = {
 	 */
 	trigger?: ChartTooltipTrigger
 	/**
-	 * Reports a click on a slice by data index — the plumbing behind the pie's
+	 * Reports a click on a slice by data index: the plumbing behind the pie's
 	 * public `onCategoryClick`. Rides either trigger (after the `'click'`
 	 * trigger's own pin/dismiss) and gives the slices a pointer cursor. A touch
 	 * reports from its tap, and pins nothing.
@@ -215,7 +215,7 @@ type SectorChartMarksProps = {
 }
 
 /**
- * The slice paths — clean fills with no separator stroke. The gap between
+ * The slice paths: clean fills with no separator stroke. The gap between
  * neighbors is geometric, cut into the arc angles by {@link pieSlices}. The
  * real surface behind the chart thus shows through it, with nothing painted to
  * mismatch a tinted or glass card. A gapless hit wedge behind each slice takes
@@ -340,7 +340,7 @@ export function SectorChartMarks({
 							strokeWidth={radius + 4}
 							initial={still ? false : { pathLength: 0 }}
 							animate={{ pathLength: 1 }}
-							// The sweep runs backwards on a data change — the disc un-wipes to
+							// The sweep runs backwards on a data change: the disc un-wipes to
 							// nothing before the new pie sweeps in.
 							exit={{ pathLength: 0, transition: SLICE_UNSWEEP }}
 							transition={SLICE_SWEEP}
@@ -352,7 +352,7 @@ export function SectorChartMarks({
 			<g ref={wedges} mask={animate ? `url(#${sweepId})` : undefined}>
 				{slices.map((slice) => {
 					// Anchor the readout at the pointer within the SVG; the click branch
-					// toggles — a second click of the shown slice clears it. A click also
+					// toggles: a second click of the shown slice clears it. A click also
 					// reports through `onIndexClick` on either trigger, after the toggle,
 					// so one gesture drives both the readout and the consumer's activation.
 					const at = (event: PointerEvent<SVGPathElement> | MouseEvent<SVGPathElement>) => {

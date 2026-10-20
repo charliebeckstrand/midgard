@@ -76,7 +76,7 @@ export function useDatePickerRelativeState({
 	const multiple = relative !== true && relative.multiple === true
 
 	// Chips in the trigger unless `relative.chips` opts out, which swaps them for
-	// the one-line `summary`. Display only — the committed value is the same array
+	// the one-line `summary`. Display only: the committed value is the same array
 	// either way.
 	const showChips = resolveRelativeChips(relative)
 
@@ -152,8 +152,8 @@ export function useDatePickerRelativeState({
 
 	const customActive = isCustomActive(value, presets, now, pickedIds)
 
-	// The committed custom span, if any — used to seed the Start/End inputs when the
-	// user re-enters custom mode so an existing custom range shows pre-filled.
+	// The committed custom span, if any. It seeds the Start/End inputs when the
+	// user re-enters custom mode, so an existing custom range shows pre-filled.
 	const customSpan = customActive && value && value.length > 0 ? value[0] : undefined
 
 	// readOnly blocks every value write, not only the open paths, because a
@@ -209,7 +209,7 @@ export function useDatePickerRelativeState({
 
 	// Applies a draft change: stores it and, once both endpoints are
 	// valid, commits a single custom span (order normalized so `from <= to`). A
-	// partial draft leaves the committed value untouched — the chip persists until
+	// partial draft leaves the committed value untouched: the chip persists until
 	// the range is complete, and the footer Clear handles a full reset. A completed
 	// custom span replaces any preset selection (they are mutually exclusive).
 	const applyDraft = useCallback(
@@ -225,7 +225,7 @@ export function useDatePickerRelativeState({
 					? { from: next.from, to: next.to }
 					: { from: next.to, to: next.from }
 
-			// A custom range isn't a preset, so drop any prior pick — the chip/highlight
+			// A custom range isn't a preset, so drop any prior pick: the chip/highlight
 			// must range-match, not favor a stale preset.
 			setPickedIds(new Set())
 

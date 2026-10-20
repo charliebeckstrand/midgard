@@ -24,7 +24,7 @@ export const k = {
 	pulse: css.pulse,
 } as const
 
-/** Recipe variant props for {@link StatusDot} — the semantic `status`, the `solid` / `outline` fill, Swatch's `size`, and `pulse`. */
+/** Recipe variant props for {@link StatusDot}: the semantic `status`, the `solid` / `outline` fill, Swatch's `size`, and `pulse`. */
 export type StatusDotVariants = {
 	/**
 	 * The fill treatment, forwarded to Swatch.

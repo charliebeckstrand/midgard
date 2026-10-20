@@ -29,12 +29,12 @@ import { useChartTier } from './context'
  */
 export type ChartValueLabelConfig = {
 	/**
-	 * Label the first and last point — single-series charts only.
+	 * Label the first and last point: single-series charts only.
 	 * @defaultValue false
 	 */
 	endpoints?: boolean
 	/**
-	 * Label the minimum and maximum point — single-series charts only.
+	 * Label the minimum and maximum point: single-series charts only.
 	 * @defaultValue false
 	 */
 	extremes?: boolean

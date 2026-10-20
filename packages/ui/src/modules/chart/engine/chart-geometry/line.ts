@@ -134,28 +134,28 @@ function segmentPath(run: LinePoint[], interpolation: LineInterpolation): string
 
 /** One series' drawable marks. @internal */
 export type LineSeriesGeometry = {
-	/** One open path per contiguous run of values — a gap starts a new segment. */
+	/** One open path per contiguous run of values: a gap starts a new segment. */
 	segments: string[]
 	/** The wash under each segment, closed down to the baseline. */
 	areas: string[]
 	/** Every plotted point, for the opt-in markers. */
 	points: LinePoint[]
-	/** The contiguous runs behind `segments`, for pointer hit tests — a gap splits them. */
+	/** The contiguous runs behind `segments`, for pointer hit tests: a gap splits them. */
 	runs: LinePoint[][]
-	/** Points with a gap on both sides — invisible without a marker, so they always get one. */
+	/** Points with a gap on both sides: invisible without a marker, so they always get one. */
 	isolated: LinePoint[]
 }
 
 /** One line series' render inputs. @internal */
 export type ChartLineSeries = {
-	/** The series' own index in the caller's list — the React key, stable across toggles and unique where two series share a label. */
+	/** The series' own index in the caller's list: the React key, stable across toggles and unique where two series share a label. */
 	index: number
 	label: string
 	paint: ChartPaint
 	geometry: LineSeriesGeometry
 	/** Mark every point, not only the isolated ones. */
 	markers: boolean
-	/** Dash the connecting stroke — the reference-line dash — leaving fill and markers untouched. */
+	/** Dash the connecting stroke (the reference-line dash), leaving fill and markers untouched. */
 	dashed?: boolean
 }
 
@@ -196,7 +196,7 @@ export function decimateRun(run: LinePoint[]): LinePoint[] {
 	let hi = 0
 
 	const flush = () => {
-		// The four picks in ascending index order, deduped — at most four, so a
+		// The four picks in ascending index order, deduped: at most four, so a
 		// small in-place sort beats a Set allocation per column.
 		const picks = [first, last, lo, hi].sort((a, b) => a - b)
 
@@ -269,7 +269,7 @@ function runs(values: (number | null)[], xs: number[], map: (value: number) => n
  * Projects one series onto its line marks: segment paths between gaps, area
  * washes closed to `baseline`, and the point markers.
  *
- * @remarks A run of one point yields no segment — it lands in `isolated`
+ * @remarks A run of one point yields no segment: it lands in `isolated`
  * instead, so the datum stays visible as a marker even with markers off. With
  * `interpolation: 'smooth'` the segments (and the area's top edge) follow a
  * monotone cubic that never overshoots the data.

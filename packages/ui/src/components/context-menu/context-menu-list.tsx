@@ -4,7 +4,7 @@ import type { ContextMenuEntry } from './types'
 
 /** Props for {@link ContextMenuList}. */
 export type ContextMenuListProps = {
-	/** The rows to render, in order — actionable items and separators. */
+	/** The rows to render, in order: actionable items and separators. */
 	entries: ContextMenuEntry[]
 }
 
@@ -16,7 +16,7 @@ export type ContextMenuListProps = {
  * the same.
  *
  * @remarks An entry's `key` identifies its row; absent, the render index stands
- * in — set keys on a list that reorders. An item's `onAction` runs on selection,
+ * in. Set keys on a list that reorders. An item's `onAction` runs on selection,
  * then the menu closes. A submenu entry recurses through this same renderer, so
  * its rows nest to any depth.
  */

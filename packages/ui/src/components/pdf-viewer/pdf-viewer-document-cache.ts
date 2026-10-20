@@ -187,14 +187,14 @@ type Held = {
  * Resident documents, keyed by `src`.
  *
  * A module map rather than component state, because outliving the component is the whole
- * point. A panel that parks by *closing* — `Overlay` gates its portal on `open` — unmounts
+ * point. A panel that parks by *closing* (`Overlay` gates its portal on `open`) unmounts
  * its children, the viewer included. Everything the viewer held in state or in an effect's
  * closure goes with them. Reopening therefore re-fetches and re-rasterizes a document the
  * reader was looking at a moment earlier, with the scan visibly rebuilding from its skeleton.
  *
  * `'use client'` is what keeps that honest: without it this would be one mutable map per
  * *server* process, shared across requests and tenants. Blob URLs make that worse than a stale
- * read — they are handles into one document's memory and mean nothing in another.
+ * read: they are handles into one document's memory and mean nothing in another.
  *
  * @remarks Insertion order is the LRU order: {@link touch} re-inserts on every subscribe, so
  * the least recently used unheld key is always the first the iterator yields.
@@ -342,7 +342,7 @@ function heldFor(src: string): Held {
  * Replaces `src`'s snapshot and tells its subscribers.
  *
  * @remarks A new object every time, because that identity is the only signal
- * `useSyncExternalStore` reads. A caller adding pages rebuilds the array for the same reason —
+ * `useSyncExternalStore` reads. A caller adding pages rebuilds the array for the same reason:
  * a mutated array would be `Object.is`-equal to the one React already rendered.
  * @internal
  */

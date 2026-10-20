@@ -20,7 +20,7 @@ import { useChartCartesian } from '../engine/use-chart-cartesian'
 
 /**
  * Props for {@link AreaChart}. Requires an accessible name (`aria-label` or
- * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
+ * `aria-labelledby`): the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
 export type AreaChartProps<T = never> = CartesianChartProps<T> & {
@@ -53,8 +53,8 @@ export type AreaChartProps<T = never> = CartesianChartProps<T> & {
 	 */
 	interpolation?: LineInterpolation
 	/**
-	 * Draw selective value labels — the `endpoints` and / or `extremes` of the
-	 * series — on its band-edge line, overlaps dropped by priority. These labels
+	 * Draw selective value labels (the `endpoints` and / or `extremes` of the
+	 * series) on its band-edge line, overlaps dropped by priority. These labels
 	 * show only while the chart shows exactly one series. With `references`,
 	 * each reference rule's value draws beside it in place of its hover tooltip.
 	 * Off by default; the tooltip and data table carry the full readout.
@@ -79,7 +79,7 @@ function tooltipSnapPoints(stacked: boolean, snapPoints: number[][], count: numb
  * The value points keyboard navigation anchors to. Unstacked, they are the
  * per-series points the pointer snaps to. Stacked, the pointer floats free but
  * the keyboard still needs a stop per band. Each category therefore hands over
- * its ribbons' cumulative top edges — the boundaries the eye already reads —
+ * its ribbons' cumulative top edges (the boundaries the eye already reads)
  * top to bottom of the stack.
  *
  * @internal
@@ -204,21 +204,21 @@ function stackedRibbons(
 /**
  * A filled area chart on the shared cartesian frame: each series is a wash
  * under its band-edge line. The series stack into a part-to-whole ribbon set,
- * or stay independent overlapping areas. Carries the cartesian standard — value
+ * or stay independent overlapping areas. Carries the cartesian standard: value
  * axis, gridlines, legend, crosshair tooltip, and the visually-hidden table.
  * The category axis rules on the zero line that the washes stand on.
  *
- * @remarks Stacked bands treat a missing value as zero to stay continuous;
- * the unstacked variant breaks its lines at gaps like {@link LineChart}. The
- * crosshair defaults on here — a snapping y-rule meeting the nearest point —
- * dropping the snap under smooth interpolation; override it with the
- * `crosshair` prop. Focus the plot to drive the crosshair and tooltip by
- * keyboard. The band-axis arrows step categories, and the value-axis arrows
- * step each category's points in screen order. Those points are a stack's
- * cumulative band edges when stacked, and each series' own point otherwise. A
- * reference line joins that value-axis roving, receding the marks when the
- * cursor reaches it. `labels.references` is the exception: it draws the value
- * beside the rule, which stands in for the hover and drops the rove.
+ * @remarks Stacked bands treat a missing value as zero to stay continuous; the
+ * unstacked variant breaks its lines at gaps like {@link LineChart}. The
+ * crosshair defaults on here (a snapping y-rule meeting the nearest point), and
+ * drops the snap under smooth interpolation; override it with the `crosshair`
+ * prop. Focus the plot to drive the crosshair and tooltip by keyboard. The
+ * band-axis arrows step categories, and the value-axis arrows step each
+ * category's points in screen order. Those points are a stack's cumulative band
+ * edges when stacked, and each series' own point otherwise. A reference line
+ * joins that value-axis roving, receding the marks when the cursor reaches it.
+ * `labels.references` is the exception: it draws the value beside the rule,
+ * which stands in for the hover and drops the rove.
  * @example
  * ```tsx
  * <AreaChart
@@ -305,7 +305,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 			fullscreen={<AreaChart {...props} />}
 			marks={marks}
 			markAt={(x, y) => {
-				// The ribbon or wash the pointer sits in isolates its whole series — a
+				// The ribbon or wash the pointer sits in isolates its whole series: a
 				// dot on a ribbon's boundary already reads as the ribbon whose edge it
 				// marks.
 				const within = nearestSeriesArea(

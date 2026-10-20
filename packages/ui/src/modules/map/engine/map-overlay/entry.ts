@@ -1,5 +1,5 @@
 /**
- * The overlay ledger's data shape — what a mark registers with the plat, and
+ * The overlay ledger's data shape: what a mark registers with the plat, and
  * what every reader of that ledger reads. Held in the engine rather than with
  * the hook that owns the list (`use-map-legend-registry.ts`). The readout, the
  * selection, and the keyboard cursor all resolve against this shape, and none
@@ -47,23 +47,23 @@ export type MapOverlayEntry = {
 	kind: MapOverlayKind
 	swatch: MapSwatchShape
 	/**
-	 * The legend entry this mark shares with its siblings — see
-	 * {@link MapOverlayProps.group}. Marks naming one group merge into a single
+	 * The legend entry this mark shares with its siblings (see
+	 * {@link MapOverlayProps.group}). Marks naming one group merge into a single
 	 * entry, take one slot color, and answer that entry's toggle and emphasis
 	 * together. Absent, the mark holds an entry of its own.
 	 */
 	group?: string
 	/** Named mark color override; defaults to the next slot after the categories. */
 	color?: MapSeriesColor
-	/** A trailing readout — a route's mileage, a point's value. */
+	/** A trailing readout: a route's mileage, a point's value. */
 	detail?: string
 	/**
 	 * Every place the keyboard cursor can stand on this mark, in lon/lat. That is
 	 * one for a singular mark, one per dot for a plural one, and none where the
 	 * mark has no geometry yet.
 	 *
-	 * A getter rather than a value, and stable across renders. A mark that moves —
-	 * a route whose geometry lands from the network — therefore needs no
+	 * A getter rather than a value, and stable across renders. A mark that moves
+	 * (a route whose geometry lands from the network) therefore needs no
 	 * re-registration. An inline `at={[lon, lat]}` never churns the ledger.
 	 *
 	 * Required, like the sibling `getStop`. One hook registers every mark on the
@@ -86,14 +86,14 @@ export type MapOverlayEntry = {
 	 *
 	 * Plain data, not a getter like {@link stopsAt}. The table draws this during
 	 * its own render, so it has to change the ledger to reach the screen. The
-	 * positions can stay behind a getter because nothing draws them — the cursor
+	 * positions can stay behind a getter because nothing draws them: the cursor
 	 * reads them on a keypress.
 	 */
 	stopRows?: MapStopRow[]
 	/**
 	 * Picks one of the mark's stops: what Enter or Space calls with the keyboard
 	 * cursor on it, and what a click reports. Stable like {@link stopsAt}, and
-	 * registered only where the mark answers a pick — so its presence is the
+	 * registered only where the mark answers a pick, so its presence is the
 	 * question the plat's tab-stop gate asks.
 	 */
 	activate?: (stop: number) => void

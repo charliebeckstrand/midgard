@@ -78,7 +78,7 @@ function mergeParts(parts: ChatPart[], arriving: ChatPart[]): ChatPart[] {
 /**
  * The reply's content with one chunk folded into it.
  *
- * A string chunk is cumulative prose — the whole reply so far — so it replaces
+ * A string chunk is cumulative prose (the whole reply so far), so it replaces
  * the running text and nothing else. A reply that is still a string stays one.
  * That is what keeps a transcript of prose allocating no part list. It renders
  * exactly as it did before a reply could hold blocks.
@@ -102,7 +102,7 @@ export function applyChunk(
 }
 
 /**
- * The reply's content with every step still marked running marked failed —
+ * The reply's content with every step still marked running marked failed:
  * what a stream that ended owes any step it opened and never closed.
  *
  * Returns the content it read, by reference, when nothing was running. A reply

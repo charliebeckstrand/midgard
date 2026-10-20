@@ -46,7 +46,7 @@ function leafCellClass<T>(col: GridColumn<T>): string | undefined {
 
 /** Props for {@link GridGroupLeafRow}. @internal */
 type GridGroupLeafRowProps<T> = {
-	/** Whether the row's group is expanded — drives the open/collapsed reveal and hides it from AT when closed. */
+	/** Whether the row's group is expanded: drives the open/collapsed reveal and hides it from AT when closed. */
 	expanded: boolean
 	/** The row's 0-based place in the view, which a cursor cell reads (see {@link GridIndexedColumn}). */
 	rowIndex: number
@@ -138,7 +138,7 @@ type GridGroupLeafCellProps<T> = {
 	leading: boolean
 	/** The group's overlay color, coloring the leading rail; `undefined` keeps it neutral. */
 	color?: PaletteColor
-	/** Whether the cell's height reveal renders open — the row's reveal hold, not `expanded`. */
+	/** Whether the cell's height reveal renders open: the row's reveal hold, not `expanded`. */
 	open: boolean
 	/** Density padding class for the innermost content wrapper. */
 	pad: string
@@ -205,7 +205,7 @@ function GridGroupLeafCell<T>({
 			aria-colindex={ariaColIndex}
 			{...roving}
 			// The first cell carries the group's rail, so it runs unbroken down the
-			// group's leaf rows and joins the header's segment above — in the group's
+			// group's leaf rows and joins the header's segment above: in the group's
 			// color when the row manager assigns one, else the neutral tint.
 			className={cn(
 				cellRoving && dataCell && k.cell.rovable,

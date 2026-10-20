@@ -12,8 +12,8 @@ import { type ChartColor, rawColor, resolvePaint, textClass } from './chart-colo
 import type { ChartLegendReference } from './chart-legend/legend'
 
 /**
- * One reference line: a value-axis annotation drawn across the plot — a target,
- * threshold, budget, or average to read the marks against. It sits at a raw
+ * One reference line: a value-axis annotation drawn across the plot (a target,
+ * threshold, budget, or average to read the marks against). It sits at a raw
  * domain `value`, so its position tracks the scale. The value also folds into
  * the domain, keeping an off-data target on-frame rather than clamped to an
  * edge. A pinned `min` or `max` can still leave it out. The rule then draws
@@ -38,8 +38,8 @@ export type ChartReferenceLine = {
 	 */
 	color?: ChartColor
 	/**
-	 * Dash the rule — the annotation convention, telling a reference apart from a
-	 * data line — or draw it solid.
+	 * Dash the rule (the annotation convention, telling a reference apart from a
+	 * data line), or draw it solid.
 	 * @defaultValue true
 	 */
 	dashed?: boolean
@@ -116,7 +116,7 @@ export function referenceLegendItems(
 			// Mirror the rule: dashed unless it is explicitly drawn solid.
 			const dashed = line.dashed !== false
 
-			// Carry the rule's own array index — the plot rules key their emphasis off
+			// Carry the rule's own array index: the plot rules key their emphasis off
 			// it, and a non-finite rule dropped from the chips leaves a gap the plot
 			// keeps, so the chip must name the index rather than its own position.
 			return { index, label, swatchClass: textClass(paint) ?? '', color: rawColor(paint), dashed }

@@ -22,7 +22,7 @@ type PdfViewerToolbarButtonProps = {
 	 */
 	disabled: boolean
 	/**
-	 * Tooltip text where it carries more than the label — the zoom controls name
+	 * Tooltip text where it carries more than the label: the zoom controls name
 	 * the level they step to.
 	 * @defaultValue the `label`.
 	 */
@@ -64,7 +64,7 @@ type PdfViewerToolbarButtonProps = {
  * state. The Button and its Tooltip scaffold therefore live here once.
  *
  * @remarks Rest props reach the `Button`, and are spread **before** the wiring this component
- * owns — the type, the accessible name and the variant — per [CONVENTIONS.md](CONVENTIONS.md)
+ * owns (the type, the accessible name and the variant) per [CONVENTIONS.md](CONVENTIONS.md)
  * §3.9. That is what lets a caller stamp the state its own control needs, without a second
  * copy of this scaffold. Examples are `aria-pressed` on a toggle, and `aria-expanded` on one
  * that discloses a panel. Three copies had grown before the spread existed. A button that discloses

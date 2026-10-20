@@ -135,7 +135,7 @@ function createSourceRegistry(
  * stays while its row exists, and the top result takes it when the row goes.
  * `virtualSourceRef` is the registration point a
  * `VirtualOptions` (with `getOptionId`) inside `children` publishes into, so the
- * arrow keys reach items outside a windowed list. Navigation is arrow-only —
+ * arrow keys reach items outside a windowed list. Navigation is arrow-only:
  * roving `typeahead` stays off, since the search input owns printable keys.
  * `onActiveChange` reports the highlighted option's id after each route that
  * moves it: an arrow key, a filter change, a change of the results, and the

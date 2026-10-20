@@ -148,8 +148,8 @@ export function Radio({
 			<input
 				// Consumer props spread first; `type`, the native grouping `name`,
 				// the read-only guard, the validation attributes, and data-slot
-				// below take precedence. Radio carries no §7.2 value binding — see
-				// the remarks above.
+				// below take precedence. Radio carries no §7.2 value binding (see
+				// the remarks above).
 				{...props}
 				type="radio"
 				data-slot="radio"

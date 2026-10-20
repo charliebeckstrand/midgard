@@ -5,11 +5,11 @@ import { type SectorBaseProps, SectorChart } from '../sector-chart'
 
 /**
  * Props for {@link DonutChart}. Requires an accessible name (`aria-label` or
- * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
+ * `aria-labelledby`): the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
 export type DonutChartProps<T = never> = SectorBaseProps<T> & {
-	/** Center content, rendered over the hole — a total, a stat, an icon. */
+	/** Center content, rendered over the hole: a total, a stat, an icon. */
 	children?: ReactNode
 }
 
@@ -19,7 +19,7 @@ const DONUT_INNER_RATIO = 0.6
 /**
  * A donut chart: one dataset's positive shares swept clockwise from the top
  * into a ring, its hole hosting the `children` (a total, a stat). Otherwise
- * identical to {@link PieChart} — the same gaps, legend, tooltip, keyboard
+ * identical to {@link PieChart}: the same gaps, legend, tooltip, keyboard
  * navigation, segment labels, and data table.
  *
  * @example

@@ -35,7 +35,7 @@ type GridManagerColorMenuProps = {
 }
 
 /**
- * A manager group's color Menu — a "None" item to clear (offered only once a
+ * A manager group's color Menu: a "None" item to clear (offered only once a
  * color is set) plus a Badge-swatch per palette color. Shared by the column
  * group manager (which disables colors sibling groups already claim) and the
  * row manager.
@@ -73,7 +73,7 @@ export function GridManagerColorMenu({
 				</Button>
 			</MenuTrigger>
 			<MenuContent>
-				{/* Clear the color — offered only once the group has one to clear. */}
+				{/* Clear the color: offered only once the group has one to clear. */}
 				{color !== undefined && (
 					<MenuItem onAction={() => onRecolor(undefined)}>
 						<Icon icon={<Ban />} />

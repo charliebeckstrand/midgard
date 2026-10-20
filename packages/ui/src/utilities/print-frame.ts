@@ -9,7 +9,7 @@ type PrintFrameOptions = {
 	 */
 	prepare: (iframe: HTMLIFrameElement) => void
 	/**
-	 * What to do besides reclaiming the frame when it cannot print — typically
+	 * What to do besides reclaiming the frame when it cannot print: typically
 	 * opening the source in a new tab. Omit it where the caller has nothing to
 	 * fall back to, and a blocked `print()` propagates instead of going silent.
 	 */

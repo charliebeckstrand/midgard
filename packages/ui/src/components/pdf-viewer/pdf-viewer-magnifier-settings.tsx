@@ -144,7 +144,7 @@ type PdfViewerMagnifierChoiceProps<T extends string> = {
 }
 
 /**
- * One captioned row of radios — the three choice groups below the switch are this, three
+ * One captioned row of radios: the three choice groups below the switch are this, three
  * times over, differing only in caption and options.
  *
  * @remarks The legend names the group twice over. It names the `<fieldset>` as a

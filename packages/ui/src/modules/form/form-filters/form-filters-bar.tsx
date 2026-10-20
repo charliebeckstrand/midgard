@@ -12,8 +12,8 @@ export type FormFiltersBarProps = {
 
 /**
  * The control line of a {@link FormFilters} bar: a {@link FormFiltersRow} of fields,
- * and beside it whatever acts on the whole bar — typically a
- * {@link FormFiltersClear}.
+ * and beside it whatever acts on the whole bar (typically a
+ * {@link FormFiltersClear}).
  *
  * @remarks
  * It takes the bar's axis and alignment from the layout. A `rail` holds one row

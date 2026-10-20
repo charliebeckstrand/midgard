@@ -55,7 +55,7 @@ const messages = defineMessages<{
 const TOKEN_SEPARATOR = /[\s,;]+/
 
 /**
- * The tokens a raw string carries — what a paste or a multi-word draft commits as.
+ * The tokens a raw string carries: what a paste or a multi-word draft commits as.
  *
  * @returns One trimmed, non-empty token per delimited run; `[]` for a string of only delimiters.
  *
@@ -106,7 +106,7 @@ export function hasSeparator(raw: string): boolean {
 export type TokenBatch = {
 	/** Novel, within-limit, valid tokens, in the order given. */
 	accepted: string[]
-	/** Tokens `validate` refused — the ones the caller puts back in the draft. */
+	/** Tokens `validate` refused: the ones the caller puts back in the draft. */
 	rejected: string[]
 	/** Tokens already held, or repeated within the batch. */
 	duplicates: string[]
@@ -127,7 +127,7 @@ export type TokenRejection = Omit<TokenBatch, 'accepted'>
  *
  * Pure, so the commit path is a two-liner and the sorting rules are testable without a DOM. Checks
  * each candidate against the accepted set as well as the held one, since a pasted column can repeat
- * a code. The order — duplicate, then limit, then `validate` — is {@link useTagInput}'s own, so
+ * a code. The order (duplicate, then limit, then `validate`) is {@link useTagInput}'s own, so
  * `validate` sees only novel, within-limit candidates however tokens arrive.
  *
  * @param room How many more tags fit; `Number.POSITIVE_INFINITY` when uncapped.

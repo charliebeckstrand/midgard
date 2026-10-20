@@ -28,7 +28,7 @@ export type MapPointDatum = {
 	at: LngLat
 	/**
 	 * This dot's tooltip and table name. Omitted, the dot is numbered within its
-	 * group — `Stops 3` — since a reader has no position to tell two unnamed dots
+	 * group (`Stops 3`), since a reader has no position to tell two unnamed dots
 	 * apart by.
 	 */
 	label?: string
@@ -40,7 +40,7 @@ export type MapPointDatum = {
 	detail?: string
 	/**
 	 * This dot's own color, where the stops divide into kinds the reader is meant
-	 * to tell apart — a place's category, a stop's status. Omitted, the dot takes
+	 * to tell apart: a place's category, a stop's status. Omitted, the dot takes
 	 * the mark's slot color, which is the whole of an undivided set.
 	 *
 	 * A summary dot keeps the mark's color whatever its members carry. It stands
@@ -153,8 +153,8 @@ const MapPointsDots = memo(function MapPointsDots({
 				const pop = pointPop(index)
 
 				return (
-					// A Fragment, not a group: the wrapper would carry nothing — the dim
-					// class and the pointer-leave sit on the outer group — and two hundred
+					// A Fragment, not a group: the wrapper would carry nothing (the dim
+					// class and the pointer-leave sit on the outer group) and two hundred
 					// dead containers is what this mark exists to avoid. Keyed on the
 					// module's own row keys, since the index is also the dot's identity to
 					// the cursor and to `onClick`.
@@ -298,13 +298,13 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  *
  * Dots the frame draws on top of one another summarize into a single graded
  * mark carrying their count. They separate back into themselves as the frame
- * widens on them — see {@link MapPointsProps.cluster}.
+ * widens on them (see {@link MapPointsProps.cluster}).
  *
  * Each dot keeps its own readout and its own pick. Hovering one raises the
  * tooltip with that dot's name and detail, falling back to the group's. The
  * keyboard cursor walks the dots one at a time, and `onClick` reports which was
  * picked. An invisible hit circle per dot keeps each aimable. The plat's
- * `selectedOverlay` haloes the dot holding the picked point — the summary it
+ * `selectedOverlay` haloes the dot holding the picked point: the summary it
  * merged into where the frame draws one.
  *
  * Those circles are finger-sized targets. For a mouse a dot narrows to what the
@@ -342,7 +342,7 @@ export function MapPoints({
 }: MapPointsProps) {
 	// The projector, read here rather than off the registration below: the stops
 	// and the readouts this mark registers are the summarized ones, and a summary
-	// is a fact about the projected frame — so the grouping has to resolve before
+	// is a fact about the projected frame, so the grouping has to resolve before
 	// the mark registers, not after.
 	const { project } = useMapPlat()
 
@@ -350,7 +350,7 @@ export function MapPoints({
 	// `useMapOverlay` below for the same reason `project` is: the grouping decides
 	// what this mark registers, so it has to resolve before the registration does.
 	// The merge distance is a pixel distance, so a zoom that spreads the dots on
-	// screen has to loosen the reach they are measured against — otherwise the
+	// screen has to loosen the reach they are measured against; otherwise the
 	// summaries a national frame drew would stay merged however far the view
 	// closed on them.
 	const unitsPerPixel = useMapZoomScale()
@@ -396,7 +396,7 @@ export function MapPoints({
 
 				// Numbered by the caller's own index, never the group's: a click on this
 				// dot reports that index, and a readout counting in another space would
-				// name a row the caller cannot find — and would renumber itself as the
+				// name a row the caller cannot find, and would renumber itself as the
 				// frame regrouped around it.
 				if (count === 1 && first !== undefined && lone !== undefined) {
 					return {
@@ -428,13 +428,13 @@ export function MapPoints({
 
 	// Which drawn dot each point landed in, built on the first read and held from
 	// there: the pick reads it on every render a pointed-mark crossing costs, and
-	// only a regrouping can change the answer — but a map with no pick never reads
+	// only a regrouping can change the answer, but a map with no pick never reads
 	// it at all, and must not pay a lookup per dot to draw one.
 	const getStop = useMemo(() => (index: number) => stopIndex(groups, index), [groups])
 
 	// The caller counts in points; everything inside this mark counts in drawn
 	// groups. A summary hands back the first stop it holds, so a pick names a row
-	// the caller owns rather than a grouping it never asked for — and the whole
+	// the caller owns rather than a grouping it never asked for, and the whole
 	// group beside it, because a summary is one dot to the reader and every stop
 	// under it is what they just pointed at.
 	const report = (handler: MapPointsPick | undefined) => {
@@ -449,8 +449,8 @@ export function MapPoints({
 		}
 	}
 
-	// A thunk, so the O(N) build — and the spherical centroid behind every
-	// summary's anchor — lands on the one keypress that reads it. Held on the
+	// A thunk, so the O(N) build (and the spherical centroid behind every
+	// summary's anchor) lands on the one keypress that reads it. Held on the
 	// grouping, because a new identity tells the plat's pool that the dots moved.
 	const stops = useCallback(
 		() => groups.map((group) => clusterAnchor(group.members, positions)),
@@ -465,7 +465,7 @@ export function MapPoints({
 		dots: stops,
 		stopRows: rows,
 		// The inverse of `report` above: a pick names the caller's own point, and
-		// this reads back which drawn dot holds it — so the halo and the picked row
+		// this reads back which drawn dot holds it, so the halo and the picked row
 		// answer the grouping the frame currently draws, not the one the pick was
 		// made against.
 		getStop,
@@ -483,7 +483,7 @@ export function MapPoints({
 	// `map-cluster/crowd.ts` holds the list of claimants.
 	//
 	// Memoized on the grouping and the plat's zone resolver, neither of which a
-	// pointer crossing moves — where this mark re-renders on every crossing of
+	// pointer crossing moves, where this mark re-renders on every crossing of
 	// every mark on the map. The crowding half reads the drawn frame, so it answers
 	// the zoom on the beat the grouping does: the pair a zoom has just parted sits
 	// ~15px apart, well inside a 44px target, and stays precise until the view
@@ -508,7 +508,7 @@ export function MapPoints({
 	//
 	// Held rather than rebuilt: this is a prop of the memoized dot layer, and that
 	// memo exists to hold the dots through every pointer crossing elsewhere on the
-	// map. A fresh array per render would defeat it — which is what
+	// map. A fresh array per render would defeat it, which is what
 	// `map-points-render` pins.
 	const paints = useMemo(() => {
 		const mark = slot === undefined ? '' : cn(...k.series[slot].stroke)

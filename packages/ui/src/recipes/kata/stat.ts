@@ -51,7 +51,7 @@ export type StatValueVariants = {
 	 */
 	size?: ScaleStep<typeof scale>
 }
-/** Recipe variant props for {@link StatDelta} — its styling axes (`trend`), for consumers composing custom slots. */
+/** Recipe variant props for {@link StatDelta}: its styling axes (`trend`), for consumers composing custom slots. */
 export type StatDeltaVariants = Omit<VariantProps<typeof delta>, 'trend'> & {
 	/**
 	 * The direction of the change, which sets the color: the success color for

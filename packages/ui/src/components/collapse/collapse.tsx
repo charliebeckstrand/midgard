@@ -47,7 +47,7 @@ export type CollapseProps = Omit<ComponentProps<'div'>, 'children'> & {
 	 * How the panel is held while closed.
 	 *
 	 * @remarks
-	 * Defaults to `active` — the panel is unmounted while closed, so reopening
+	 * Defaults to `active`: the panel is unmounted while closed, so reopening
 	 * resets whatever state it held. `always` mounts it up front, and `lazy` on
 	 * first open. Either way a closed panel then rests in
 	 * `<Activity mode="hidden">` with its state preserved and effects torn down.

@@ -61,7 +61,7 @@ function layered<T extends SensorProps<unknown>>(props: T): T {
  * Pointer sensor that activates a drag only on a genuine primary press.
  *
  * dnd-kit's stock {@link PointerSensor} filters the secondary button
- * (`button !== 0`) but not a Ctrl-click — which on macOS *is* the secondary
+ * (`button !== 0`) but not a Ctrl-click, which on macOS *is* the secondary
  * click and fires `contextmenu`. Left unfiltered, that press starts a drag
  * whose `pointerup` the opening context menu swallows, stranding the item
  * mid-drag as if it were still held. Rejecting `ctrlKey` (alongside the

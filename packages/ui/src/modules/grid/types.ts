@@ -48,7 +48,7 @@ export type GridColumn<T> = {
 	 * already handles numbers, comma-grouped numbers, currency, percentages,
 	 * dates, and natural string order). Receives two rows and returns a negative,
 	 * zero, or positive number for ascending order; the grid flips it for
-	 * descending. Runs under client sorting only — it is ignored when
+	 * descending. Runs under client sorting only: it is ignored when
 	 * {@link GridSort.manual} defers sorting to the consumer.
 	 */
 	sortFn?: (a: T, b: T) => number
@@ -58,7 +58,7 @@ export type GridColumn<T> = {
 	 * Editor the filter sheet uses for this column: a text input, a number
 	 * input, a {@link GridColumn.filterOptions} select, a date picker, or a
 	 * boolean is-true/is-false toggle. The column's {@link GridColumn.value} must
-	 * return a value the matching operators compare against — an ISO `YYYY-MM-DD`
+	 * return a value the matching operators compare against: an ISO `YYYY-MM-DD`
 	 * string for `date`, a boolean for `boolean`. A `number` filter's `between`
 	 * bounds clamp to the `[min, max]` of the column's own values, among the rows
 	 * that other filters leave. Unavailable under server-side filtering.
@@ -98,8 +98,8 @@ export type GridColumn<T> = {
 	 * {@link GridProps.rowReorder | row-reorderable}. The handle is present but
 	 * inert otherwise (and while a column sort orders the rows, since a manual
 	 * order only holds against the natural order). Like {@link GridColumn.selectable}
-	 * it is a non-data column — never sorted, filtered, resized, or column-reordered
-	 * — and takes the width of the grip; set {@link GridColumn.width} to override.
+	 * it is a non-data column (never sorted, filtered, resized, or column-reordered)
+	 * and takes the width of the grip; set {@link GridColumn.width} to override.
 	 */
 	dragHandle?: boolean
 	/**
@@ -107,8 +107,8 @@ export type GridColumn<T> = {
 	 * opens the row's master-detail panel, rather than a cell value. Effective
 	 * only while the grid is {@link GridProps.expandable | expandable} (and the
 	 * row passes {@link GridExpandable.rowExpandable}); inert otherwise. Like
-	 * {@link GridColumn.selectable} it is a non-data column — never sorted,
-	 * filtered, resized, or column-reordered — and takes the width of the
+	 * {@link GridColumn.selectable} it is a non-data column (never sorted,
+	 * filtered, resized, or column-reordered) and takes the width of the
 	 * chevron; set {@link GridColumn.width} to override.
 	 */
 	expander?: boolean
@@ -172,7 +172,7 @@ export type GridColumn<T> = {
 	/**
 	 * Marks this column's cells as required in an {@link GridProps.editable | editable}
 	 * grid: each editor carries `aria-required`, so assistive tech announces the
-	 * obligation (WCAG 1.3.1 / 3.3.2). This is the programmatic cue only — enforcing
+	 * obligation (WCAG 1.3.1 / 3.3.2). This is the programmatic cue only: enforcing
 	 * a non-empty value remains the consumer's, through {@link GridColumn.validate}.
 	 * No effect on a non-editable or `readOnly` column.
 	 * @defaultValue false
@@ -204,7 +204,7 @@ export type GridColumn<T> = {
 	/**
 	 * Aggregates this column on the grouped body's group-header rows and the
 	 * {@link GridProps.groupTotalRow | group} / {@link GridProps.grandTotalRow | grand}
-	 * total rows. A built-in name reduces the column's values — its
+	 * total rows. A built-in name reduces the column's values: its
 	 * {@link GridColumn.value} accessor, else the row field named by the column
 	 * id. They are coerced to numbers, with entries that don't parse skipped.
 	 * `count` counts rows, and an otherwise empty set renders blank, never a
@@ -311,8 +311,8 @@ export type GridColumnManagerItem = {
 	/**
 	 * The edge the column is currently frozen to, or `undefined` when it scrolls.
 	 * `'left'` is the inline start, and `'right'` the inline end.
-	 * A frozen column lists in the manager's matching group — `'left'` prepended,
-	 * `'right'` appended — and can't be reordered or hidden. The per-column pin
+	 * A frozen column lists in the manager's matching group (`'left'` prepended,
+	 * `'right'` appended) and can't be reordered or hidden. The per-column pin
 	 * control writes the change back through {@link GridColumnManagerProps.onPinChange}.
 	 */
 	pinned?: 'left' | 'right'
@@ -379,7 +379,7 @@ export type GridPagination = {
 }
 
 /**
- * Per-column widths in pixels, keyed by stringified column id — structurally
+ * Per-column widths in pixels, keyed by stringified column id: structurally
  * TanStack Table's `ColumnSizingState`.
  */
 export type GridColumnSizingState = Record<string, number>
@@ -409,8 +409,8 @@ export type GridColumnSizing = {
 	/**
 	 * Fires with the column id when a pointer/touch drag-resize begins. Pair with
 	 * {@link GridColumnSizing.onResizeEnd} to bracket the drag. A keyboard nudge
-	 * has no drag lifecycle — it commits straight through
-	 * {@link GridColumnSizing.onValueChange} — so it fires neither.
+	 * has no drag lifecycle (it commits straight through
+	 * {@link GridColumnSizing.onValueChange}), so it fires neither.
 	 */
 	onResizeStart?: (columnId: string) => void
 	/**
@@ -427,7 +427,7 @@ export type GridColumnSizing = {
  * backed by the grid's TanStack Table engine.
  *
  * @remarks Searches the columns that declare a {@link GridColumn.value}
- * accessor. Client-side by default — the engine filters `rows`; set `manual` for
+ * accessor. Client-side by default: the engine filters `rows`; set `manual` for
  * server-side, where the consumer refetches from the emitted query and feeds
  * back `rows`.
  */
@@ -439,7 +439,7 @@ export type GridSearch = {
 	 * Server-side (manual) filtering: the consumer refetches from the emitted
 	 * query and feeds back `rows`; the grid doesn't filter locally.
 	 *
-	 * @remarks Filtering mode is table-wide — the search and the column filters
+	 * @remarks Filtering mode is table-wide: the search and the column filters
 	 * ({@link GridColumnFilters.manual}) share one engine model, so set both the
 	 * same. If they disagree the grid runs manual for both (a dev warning fires)
 	 * and the client-side surface won't filter.
@@ -447,7 +447,7 @@ export type GridSearch = {
 	 */
 	manual?: boolean
 	/**
-	 * How the query acts on the rows. `'filter'` prunes — non-matching rows drop
+	 * How the query acts on the rows. `'filter'` prunes: non-matching rows drop
 	 * from the view (the default quick-search). `'highlight'` keeps every row
 	 * instead. The matched substring is marked in each cell the search scans (the
 	 * columns declaring a {@link GridColumn.value}). A match therefore reads as an
@@ -503,7 +503,7 @@ export type GridColumnFilters = {
 	 * Server-side (manual) filtering: the consumer refetches from the emitted
 	 * filters and feeds back `rows`; the grid doesn't filter locally.
 	 *
-	 * @remarks Filtering mode is table-wide — the column filters and the search
+	 * @remarks Filtering mode is table-wide: the column filters and the search
 	 * ({@link GridSearch.manual}) share one engine model, so set both the same. If
 	 * they disagree the grid runs manual for both (a dev warning fires) and the
 	 * client-side surface won't filter.
@@ -580,8 +580,8 @@ export type GridColumnMenuContext<T> = {
 	pinned: 'left' | 'right' | undefined
 	/**
 	 * The edge this column is locked to, or `undefined` when it isn't locked. A
-	 * locked column is frozen immutably — `pinLeft` / `pinRight` / `unpin` don't
-	 * move it — and its default menu offers no pin items.
+	 * locked column is frozen immutably (`pinLeft` / `pinRight` / `unpin` don't
+	 * move it) and its default menu offers no pin items.
 	 */
 	locked: 'left' | 'right' | undefined
 	/** Freezes this column against the left edge, which is the inline start. */
@@ -676,7 +676,7 @@ export type GridCellMenu<T> =
 
 /**
  * Right-click context menus for {@link GridProps.contextMenu}: a `column` menu on
- * headers and a `cell` menu on body cells. Each side is opt-in — a header or
+ * headers and a `cell` menu on body cells. Each side is opt-in: a header or
  * cell shows its menu only when its side is set.
  *
  * @typeParam T - Shape of a single row.
@@ -685,7 +685,7 @@ export type GridContextMenu<T> = {
 	column?: GridColumnMenu<T>
 	cell?: GridCellMenu<T>
 	/**
-	 * Cap the menus at their density height, scrolling past it. Off by default —
+	 * Cap the menus at their density height, scrolling past it. Off by default:
 	 * the grid's built-in rows are a short, fixed set, so a cap clips the last one
 	 * and reads as truncation. Turn it on for a `column` / `cell` builder that adds
 	 * enough rows to run past the viewport. Applies to the column and cell menus

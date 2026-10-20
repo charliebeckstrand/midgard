@@ -5,7 +5,7 @@
  * meaning-bearing axis. It is an emphasis ladder, not the feedback set
  * `severity` names on Alert and the Control cascade. `color` names a hue in
  * place of a purpose, and takes the `onSurface` shade of that hue from the iro
- * ramp, as `tone` does. A consumer sets one or the other — tone for emphasis,
+ * ramp, as `tone` does. A consumer sets one or the other: tone for emphasis,
  * color for a hue.
  *
  * `size` is a density step from `xs` to `xl` (`text-xs` to `text-xl`). The

@@ -25,8 +25,8 @@ type GridCellContentProps = {
 /**
  * Renders a data cell's content on one line, truncated to an ellipsis when it
  * overflows the column width. A truncated cell gains a hover/focus
- * {@link Tooltip} carrying the full content — or a column's `cellTooltip` node in
- * its place — while `none` suppresses it.
+ * {@link Tooltip} carrying the full content (or a column's `cellTooltip` node in
+ * its place), while `none` suppresses it.
  *
  * @remarks The tooltip machinery mounts on first pointer/focus contact with a
  * cell that measures truncated, not with the cell. The reveal it drives cannot
@@ -37,7 +37,7 @@ type GridCellContentProps = {
  * to the replacement node. Widening a column back out therefore still
  * re-measures and closes the reveal, the hazard that once kept the tooltip
  * permanently mounted. Truncation measurement also stands down entirely while
- * a drag-resize is in flight — the reveal is held closed through the drag, and
+ * a drag-resize is in flight: the reveal is held closed through the drag, and
  * the settle re-measures.
  * @internal
  */
@@ -122,7 +122,7 @@ function GridCellReveal({
 	)
 }
 
-/** The static truncating-span class, composed once — not per rendered cell. @internal */
+/** The static truncating-span class, composed once, not per rendered cell. @internal */
 const TRUNCATE_CLASS = cn(k.cell.truncate)
 
 /** The span class while it holds an open editor, which lets the content overflow. @internal */

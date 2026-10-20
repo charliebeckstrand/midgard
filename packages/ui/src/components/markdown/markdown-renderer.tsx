@@ -19,7 +19,7 @@ const SAFE_URL_SCHEMES = /^(?:https?|mailto|tel)$/i
 /**
  * A lexed URL cleared to render as an `href`/`src`. Relative, root-relative,
  * anchor, and protocol-relative URLs pass through; an absolute URL passes only
- * on a known-safe scheme — http/https/mailto/tel, plus `data:` for images.
+ * on a known-safe scheme: http/https/mailto/tel, plus `data:` for images.
  * Untrusted Markdown can carry `javascript:`, `data:text/html`, or `vbscript:`
  * URLs that run script when the link is clicked. Those resolve to `undefined`,
  * and no `href`/`src` renders. Entity references in the URL decode first.
@@ -32,7 +32,7 @@ function safeUrl(source: string, allowData = false): string | undefined {
 	const url = decodeEntities(source)
 
 	// The URL parser strips every leading C0 control and space (code point
-	// <= 0x20), plus tab/newline anywhere, when resolving a scheme — so
+	// <= 0x20), plus tab/newline anywhere, when resolving a scheme, so
 	// `javascript:` and `java\tscript:` both become `javascript:` at click
 	// time. Drop that whole set before classifying the scheme: a `\s` strip
 	// misses the non-whitespace C0 controls (U+0000–U+0008, U+000E–U+001F)
@@ -57,7 +57,7 @@ function safeUrl(source: string, allowData = false): string | undefined {
 }
 
 /**
- * Render a flat list of marked tokens — block or inline — to React nodes,
+ * Render a flat list of marked tokens (block or inline) to React nodes,
  * recursing through each token's inline children.
  *
  * @remarks

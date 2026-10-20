@@ -81,7 +81,7 @@ type DatePickerContentProps = {
 	/**
 	 * Elements spared from the modal trap's outside marking. While open,
 	 * `FloatingFocusManager` stamps `aria-hidden` on everything outside the
-	 * floating element — including the reference. `input` mode passes its
+	 * floating element, including the reference. `input` mode passes its
 	 * reference group here so the DateInput being edited stays visible to AT;
 	 * the rest of the page remains hidden.
 	 */
@@ -164,9 +164,9 @@ export function DatePickerContent({
 	// `FloatingSurface` composes this through floating-ui, so the handlers of the
 	// engine merge with it.
 	const handleDialogKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-		// No handler: this content owns its own keyboard (see the
-		// `onKeyDown` prop doc) — skip the routing guards and the
-		// focus reclaim, which would steal from the field typed in.
+		// No handler: this content owns its own keyboard (see the `onKeyDown` prop
+		// doc). Skip the routing guards and the focus reclaim, which would steal
+		// from the field typed in.
 		if (!onKeyDown) return
 
 		// Keys from portaled descendants (the month/year picker

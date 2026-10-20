@@ -133,7 +133,7 @@ export function GridEditingCell<T>({
 	const columnId = column.id
 
 	// The draft leads: a pending cell shows its value whatever the session
-	// holds. A cell with no draft — every cell, most of the time — costs one probe
+	// holds. A cell with no draft (every cell, most of the time) costs one probe
 	// of an empty store and one of the editable set. An open editor then reads
 	// its settle controls from the session, which owns that policy. The flag is
 	// a string, so the store's notice re-renders only a cell whose answer changed.

@@ -181,7 +181,7 @@ export function useChartPointer({
 
 	// Whether the pointer is currently over the hit layer. The shared hover is also
 	// written by the keyboard, so the scroll rescue reads this to tell a
-	// pointer-owned readout — which it must hide and re-resolve — from a
+	// pointer-owned readout (which it must hide and re-resolve) from a
 	// keyboard-owned one, which a scroll must leave alone.
 	const pointerInside = useRef(false)
 
@@ -249,7 +249,7 @@ export function useChartPointer({
 	}, [track])
 
 	// A click pins the band under it; clicking the shown band again clears it, so
-	// the same gesture toggles the readout. No guard — a click always lands inside.
+	// the same gesture toggles the readout. No guard: a click always lands inside.
 	// A resolved index also reports through `onIndexClick`, after the toggle, so
 	// one gesture both pins the readout and drives the consumer's activation.
 	const toggle = useCallback(
@@ -264,8 +264,8 @@ export function useChartPointer({
 
 			const { mark, onData: onDataHit } = probe(x, y, index)
 
-			// Toggle the shown category off; and a click that would read nothing — off
-			// the marks on a chart that doesn't snap — dismisses rather than pinning a
+			// Toggle the shown category off; and a click that would read nothing (off
+			// the marks on a chart that doesn't snap) dismisses rather than pinning a
 			// hidden one, so the next click of a real mark still opens it.
 			pinned.current = !(index === hoverStore.get().index || !(snaps || onDataHit))
 
@@ -280,7 +280,7 @@ export function useChartPointer({
 	)
 
 	// The hover trigger's activation click: resolve the band under the click and
-	// report it, leaving the tracked readout alone — hover keeps owning it.
+	// report it, leaving the tracked readout alone (hover keeps owning it).
 	const activate = useCallback(
 		(clientX: number, clientY: number) => {
 			const box = ref.current?.getBoundingClientRect()
@@ -307,7 +307,7 @@ export function useChartPointer({
 	// The click trigger's pointer move: isolation stays a hover affordance even with
 	// the readout click-pinned, so movement isolates the mark under the pointer here
 	// too. Under a non-snap chart it also marks the node with `data-hit` only where a
-	// click reads — on a mark, not the bare plot above or between them — and the kata
+	// click reads (on a mark, not the bare plot above or between them) and the kata
 	// gives that attribute the pointer cursor. The write goes straight to the node, so
 	// tracking the marks never re-renders the plot. A snapping chart reads a click
 	// anywhere, so a static class carries its cursor and this leaves it be.
@@ -401,7 +401,7 @@ export function useChartPointer({
 
 	return {
 		ref,
-		// Activation only — the tracked readout stays hover-owned. A touch
+		// Activation only: the tracked readout stays hover-owned. A touch
 		// activates from its tap, and its click is canceled.
 		...(onIndexClick || onMarkClick
 			? {

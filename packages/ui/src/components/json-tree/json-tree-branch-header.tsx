@@ -40,7 +40,7 @@ type JsonTreeBranchHeaderProps = {
 
 /**
  * Branch row for a {@link JsonTree}: a `role="treeitem"` toggle button showing
- * the key, the open/close bracket, and — while collapsed — an item-count
+ * the key, the open/close bracket, and (while collapsed) an item-count
  * summary. Shared by the recursive {@link JsonTreeNode} and the virtualized
  * {@link JsonTreeNodeRow}. The row takes its name from its own content through
  * `aria-labelledby`. In the recursive variant, the child group is a sibling of

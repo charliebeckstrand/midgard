@@ -98,7 +98,7 @@ function checkCell<T>(
 	const col = findColumn(columns, cell.columnId)
 
 	// The mount predicate closes a locked column's editor on the next render,
-	// so the staged value must not write either — the two gates answer to the
+	// so the staged value must not write either: the two gates answer to the
 	// same `readOnly`. A column the consumer removed resolves to nothing.
 	if (!col || !isColumnEditable(col)) return 'drop'
 

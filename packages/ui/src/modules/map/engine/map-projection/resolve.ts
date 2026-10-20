@@ -18,8 +18,8 @@ import type { MapFeature, MapProjection } from '../types'
 
 /**
  * The scale d3's own `fit*` helpers measure at before they derive the fitted
- * parameters. Any fixed scale would do — the arithmetic below divides it back
- * out — so this is d3's number rather than a figure of the map's own.
+ * parameters. Any fixed scale would do (the arithmetic below divides it back
+ * out), so this is d3's number rather than a figure of the map's own.
  *
  * Exported because a caller that streams the geography for its own reasons can
  * measure at this scale and skip {@link fitProjectionWidth}'s pass entirely
@@ -105,7 +105,7 @@ export function resolveProjection(spec: MapProjection): GeoProjection {
 
 /**
  * Resolves and fits a projection so the geography fills a `width` × `height`
- * frame. With no features the projection returns unfitted — there is nothing
+ * frame. With no features the projection returns unfitted: there is nothing
  * to frame.
  *
  * @internal
@@ -126,7 +126,7 @@ export function fitProjection(
 /**
  * Fits `projection` so the geography spans `width` exactly, aligned to the
  * frame's top-left, and reports the height that frame comes to. `null` where
- * the bounds collapse on either axis — no geography, or a lone point.
+ * the bounds collapse on either axis: no geography, or a lone point.
  *
  * d3's `fitWidth` runs one probe pass to measure the geography and then keeps
  * only the scale and translate it derives. A caller that needs the frame as

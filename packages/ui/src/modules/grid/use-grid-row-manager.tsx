@@ -36,7 +36,7 @@ const EMPTY_OVERLAY: GridRowGroup[] = []
 type GridRowManagerOptions = {
 	/** The `groupBy.rowGroups` binding, or `undefined` when unset. */
 	config: GridRowGroups | undefined
-	/** The current groups in their natural order — no overlay applied. */
+	/** The current groups in their natural order: no overlay applied. */
 	naturalGroups: GridRowManagerGroup[]
 }
 
@@ -105,7 +105,7 @@ export function useGridRowManager({ config, naturalGroups }: GridRowManagerOptio
 		return ordered.map((group) => ({ ...group, color: overlayByKey.get(String(group.key))?.color }))
 	}, [naturalGroups, groupOrder, overlayByKey])
 
-	// Every edit commits a complete snapshot — an entry per group in `groups`
+	// Every edit commits a complete snapshot: an entry per group in `groups`
 	// order, each preserving its color unless `override` changes it. A group that
 	// a filter keeps out of the view keeps its overlay entry and its slot, as a
 	// hidden column keeps its slot in a reorder.
@@ -171,13 +171,13 @@ export type GridRowManagerRegionResult = {
 /** Options for {@link useGridRowManagerRegion}. @internal */
 type GridRowManagerRegionOptions<T> = {
 	groupByConfig: GridGroupBy<T> | undefined
-	/** Whether client grouping is active — the row manager runs under it alone. */
+	/** Whether client grouping is active: the row manager runs under it alone. */
 	groupingActive: boolean
 	/** The groups, or `null` when ungrouped. */
 	groups: GridGroup<T>[] | null
 	/** Opens or closes a group, by its id. */
 	toggleGroup: (id: string) => void
-	/** Whether the header context menu is live — the manager's only entry point. */
+	/** Whether the header context menu is live: the manager's only entry point. */
 	contextMenuActive: boolean
 	/** Commits an engine expansion change (backs Expand all / Collapse all). */
 	setGroupExpanded: (next: GroupExpansion) => void

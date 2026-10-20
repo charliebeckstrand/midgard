@@ -74,8 +74,8 @@ export type DatePickerRangeProps = {
  * {@link DatePickerRelativeValue} spans (`{ from, to }`).
  *
  * The popover opens to a list of relative presets ("Last 7 days", "This year",
- * …). Single-select by default — the array holds one span; selecting another
- * preset replaces it and selecting it again clears — while `relative={{ multiple: true }}`
+ * …). Single-select by default (the array holds one span; selecting another
+ * preset replaces it and selecting it again clears), while `relative={{ multiple: true }}`
  * lets several stack. A "Custom range" row swaps to Start/End date fields (typed
  * or selected in the calendar) for an arbitrary absolute span, mutually exclusive with the
  * presets. Pass `relative` (bare `true`) for the built-in presets. Pass a
@@ -83,8 +83,8 @@ export type DatePickerRangeProps = {
  * turn the trigger's chips off.
  *
  * The trigger shows the selection as chips, which wrap and grow it a row at a
- * time. `chips: false` shows one line of text instead — the lone span's label,
- * or a `"N selected"` count past one — so the trigger keeps a control's height.
+ * time. `chips: false` shows one line of text instead (the lone span's label,
+ * or a `"N selected"` count past one), so the trigger keeps a control's height.
  *
  * @example
  * ```tsx
@@ -108,7 +108,7 @@ export type DatePickerRelativeProps = {
 /**
  * Footer-button toggles for {@link DatePicker}. Each flag defaults to `true`;
  * set one `false` to hide that button. `today` applies to the single-date
- * variant only — the range and relative variants have no Today shortcut, so it
+ * variant only: the range and relative variants have no Today shortcut, so it
  * is a no-op there.
  *
  * @example
@@ -190,8 +190,8 @@ export type DatePickerBaseProps = {
 	clearable?: boolean
 	/**
 	 * Toggles the calendar footer's action buttons. Each key defaults to `true`;
-	 * set one `false` to hide that button — e.g. `footer={{ today: false }}` keeps
-	 * Clear but drops the Today shortcut. Honored across variants, though `today`
+	 * set one `false` to hide that button (e.g. `footer={{ today: false }}` keeps
+	 * Clear but drops the Today shortcut). Honored across variants, though `today`
 	 * only renders in the single-date variant. The relative variant also gives it
 	 * to the calendars of its Start and End fields.
 	 *

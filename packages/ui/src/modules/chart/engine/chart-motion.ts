@@ -37,10 +37,10 @@
 import { k } from '../../../recipes/kata/chart'
 import type { ChartOrientation } from './chart-orientation'
 
-// The shared draw / fade / pop / grow timings read from the ugoki `mark`
-// family (via `kata/chart`) — the same source the Sparkline and the map module
-// read — and the chart-only timings compose from the same tempo primitives, so
-// the data-viz surfaces animating side by side read as one family.
+// The shared draw / fade / pop / grow timings read from the ugoki `mark` family
+// (via `kata/chart`), the same source the Sparkline and the map module read.
+// The chart-only timings compose from the same tempo primitives, so the
+// data-viz surfaces animating side by side read as one family.
 
 const { duration, ease, mark } = k.motion
 
@@ -103,28 +103,28 @@ export const SLICE_SWEEP = { duration: duration[800], ease: ease.inOut } as cons
 /** Label fade-in as the sweep passes its slice. @internal */
 export const SLICE_FADE = { duration: duration[300], ease: ease.out } as const
 
-// Reverse timings for the data-change exit — the outgoing marks running their
+// Reverse timings for the data-change exit: the outgoing marks running their
 // reveal backwards. Each is quicker than its reveal and carries no delay, so an
 // outgoing generation clears fully before the incoming one begins (the
 // `mode="wait"` sequence the marks layer orchestrates), rather than dragging its
 // stagger and hold beats into the transition.
 
-/** Bar shrink back to the baseline — the reverse of {@link BAR_GROW}. @internal */
+/** Bar shrink back to the baseline: the reverse of {@link BAR_GROW}. @internal */
 export const BAR_SHRINK = { duration: duration[300], ease: ease.in } as const
 
-/** Line un-draw (`pathLength` 1 → 0) — the reverse of {@link LINE_DRAW}. @internal */
+/** Line un-draw (`pathLength` 1 → 0): the reverse of {@link LINE_DRAW}. @internal */
 export const LINE_UNDRAW = { duration: duration[400], ease: ease.inOut } as const
 
-/** Area wash fade-out — the reverse of {@link AREA_FADE}. @internal */
+/** Area wash fade-out: the reverse of {@link AREA_FADE}. @internal */
 export const AREA_UNFADE = { duration: duration[300], ease: ease.in } as const
 
-/** Point-marker pop-out — the reverse of {@link POINT_POP}. @internal */
+/** Point-marker pop-out: the reverse of {@link POINT_POP}. @internal */
 export const POINT_UNPOP = { duration: duration[200], ease: ease.in } as const
 
-/** Pie un-sweep (`pathLength` 1 → 0) — the reverse of {@link SLICE_SWEEP}. @internal */
+/** Pie un-sweep (`pathLength` 1 → 0): the reverse of {@link SLICE_SWEEP}. @internal */
 export const SLICE_UNSWEEP = { duration: duration[500], ease: ease.inOut } as const
 
-/** Pie label / callout fade-out — the reverse of {@link SLICE_FADE}. @internal */
+/** Pie label / callout fade-out: the reverse of {@link SLICE_FADE}. @internal */
 export const SLICE_UNFADE = { duration: duration[200], ease: ease.in } as const
 
 /**

@@ -52,7 +52,7 @@ export type GridContextMenuProps<T> = {
 	config: GridContextMenuConfig<T>
 	/**
 	 * Whether right-clicks resolve to a menu at all. When `false` every click
-	 * falls through to the native menu — the stand-down for a grid with no data.
+	 * falls through to the native menu: the stand-down for a grid with no data.
 	 * A *flag* rather than unmounting this wrapper. The wrapper appearing later
 	 * (data arriving) would remount the whole table region, tearing down the
 	 * scroll container out from under the virtualizer mid-commit.
@@ -72,8 +72,8 @@ export type GridContextMenuProps<T> = {
 	/** Pins the right-clicked column to an edge, or unpins it; backs the menu's Pin items. */
 	pinColumn: PinColumn
 	/**
-	 * The group-by toggle for a right-clicked `groupable` column — the active
-	 * grouped column id and the write-back — or `null` when the group button is
+	 * The group-by toggle for a right-clicked `groupable` column (the active
+	 * grouped column id and the write-back), or `null` when the group button is
 	 * off. Backs the menu's "Group by …" / "Ungroup" item.
 	 */
 	groupBy: GridGroupByMenu | null
@@ -158,7 +158,7 @@ export function GridContextMenu<T>({
 
 	// Bumped on every open so the rendered list remounts. Right-clicking a second
 	// header while the menu is still open swaps the items under it, and a submenu
-	// the previous column left open — same entry key, same component instance —
+	// the previous column left open (same entry key, same component instance)
 	// would otherwise carry over, showing one column's rows under another's menu.
 	const [generation, setGeneration] = useState(0)
 
@@ -299,7 +299,7 @@ export function GridContextMenu<T>({
 
 	// `enabled` gates every resolver (a `null` resolution leaves the native menu
 	// alone), so a no-data grid stands its menus down without unmounting this
-	// wrapper — see the prop's remark.
+	// wrapper (see the prop's remark).
 	// The pin items and the fill items name the physical edge, so the items read
 	// the direction of the cell the menu opens on. The menu itself portals out of
 	// the grid.
@@ -334,8 +334,8 @@ export function GridContextMenu<T>({
 		[enabled, columnGroupMenu],
 	)
 
-	// Restore focus to the grid when a keyboard-opened menu closes, so the cursor —
-	// kept seated by the grid's blur guard — picks up where it left off.
+	// Restore focus to the grid when a keyboard-opened menu closes, so the cursor
+	// (kept seated by the grid's blur guard) picks up where it left off.
 	const handleOpenChange = useCallback((next: boolean) => {
 		setOpen(next)
 

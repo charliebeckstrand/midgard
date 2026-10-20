@@ -16,7 +16,7 @@ export const REGION_FADE = { duration: duration[400], ease: ease.out } as const
 /** Delay step between adjacent regions, so the geography washes in. @internal */
 export const REGION_STAGGER = 0.01
 
-/** Ceiling on the region stagger — a many-region atlas must not draw out the reveal. @internal */
+/** Ceiling on the region stagger: a many-region atlas must not draw out the reveal. @internal */
 export const REGION_STAGGER_MAX = 0.3
 
 /**
@@ -31,13 +31,13 @@ export const REGION_WASH_SETTLE = REGION_STAGGER_MAX + REGION_FADE.duration
  */
 export const ROUTE_DRAW = mark.draw
 
-/** A point's scale-and-fade pop-in — the chart's pop tempo, staggered instead of held. @internal */
+/** A point's scale-and-fade pop-in: the chart's pop tempo, staggered instead of held. @internal */
 export const POINT_POP = { ...mark.pop, ease: ease.out } as const
 
 /** Delay step between points on the mount reveal, so a cluster staggers in. @internal */
 const POINT_STAGGER = 0.08
 
-/** Ceiling on the point stagger — a large cluster must not draw out the reveal. @internal */
+/** Ceiling on the point stagger: a large cluster must not draw out the reveal. @internal */
 const POINT_STAGGER_MAX = 0.6
 
 /**

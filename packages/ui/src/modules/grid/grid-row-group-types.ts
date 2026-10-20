@@ -19,7 +19,7 @@ import type { PaletteColor } from '../../core/recipe'
  */
 export type GridRowGroup = {
 	/**
-	 * Stable group identity — the grouping column's shared value, stringified for
+	 * Stable group identity: the grouping column's shared value, stringified for
 	 * lookups. Keys the color and the group's slot in the manual group order.
 	 */
 	key: string | number
@@ -74,7 +74,7 @@ export type GridRowManagerGroup = {
  * The body-facing presentation the overlay resolves to: a color lookup, always
  * live, and the manual group order. The order is `null` when the overlay no
  * longer covers every group. {@link GridBody} reads it to tint and reorder the grouped rows.
- * Rows within a group are not managed — they keep the engine's order.
+ * Rows within a group are not managed: they keep the engine's order.
  *
  * @internal
  */

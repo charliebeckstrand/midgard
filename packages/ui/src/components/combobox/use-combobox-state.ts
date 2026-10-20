@@ -80,8 +80,8 @@ export function useComboboxState<T>({
 
 	// Read `onQueryChange` as a stable event so `setQuery` keeps one identity
 	// across keystrokes. Carried as a dependency, an inline `onQueryChange`
-	// would give `setQuery` — and through it `close`, `select`, and the combobox
-	// context — a new identity each render, re-rendering every option on the
+	// would give `setQuery` (and through it `close`, `select`, and the combobox
+	// context) a new identity each render, re-rendering every option on the
 	// typing path the refs below (and the deferred query) exist to keep cheap.
 	// `useControllable` keeps its own `onValueChange` in a ref instead, because
 	// its setter can run during render.
@@ -120,8 +120,8 @@ export function useComboboxState<T>({
 		flush: flushFrozenQuery,
 	} = useFrozenOnClose<{ query: string; deferredQuery: string }>(open)
 
-	// A stable event, so that `close` — and through it `select` and the combobox
-	// context — keeps one identity on each keystroke. A new identity would
+	// A stable event, so that `close` (and through it `select` and the combobox
+	// context) keeps one identity on each keystroke. A new identity would
 	// re-render each option on the typing path that the deferred query keeps
 	// cheap.
 	const close = useStableEvent(() => {

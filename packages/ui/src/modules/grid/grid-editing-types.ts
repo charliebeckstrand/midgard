@@ -72,7 +72,7 @@ export type GridEditCellContext<T> = {
 	 * An editor that mounts again while its cell is open shows its draft.
 	 */
 	value: unknown
-	/** Stage the next value without committing — call on each keystroke or selection change. */
+	/** Stage the next value without committing: call on each keystroke or selection change. */
 	onValueUpdate: (next: unknown) => void
 	/**
 	 * Stage `next` (when given) and, when the grid owns the edit session
@@ -170,7 +170,7 @@ export type GridNewRowAddContext = {
 /**
  * Editing binding for {@link GridProps.editable}: marks which rows are in edit
  * mode and sinks their committed cell values. Setting it bakes per-row editing
- * into the grid — a row in the set puts all of its editable cells into edit mode
+ * into the grid: a row in the set puts all of its editable cells into edit mode
  * at once. Edits stage live; removing the row from the set saves its changed
  * cells as one batch through `onCommit` (Escape reverts a cell).
  *
@@ -184,7 +184,7 @@ export type GridNewRowAddContext = {
  * {@link GridSelection}. Flip a row in (e.g. from a row-action pencil) to put
  * it into edit mode. Flip it out (a save action's check) to settle and commit
  * it. Selection
- * and editing are independent — a row can be selected without being editable, and
+ * and editing are independent: a row can be selected without being editable, and
  * vice versa.
  *
  * The `editCell` slot and the staging callbacks are the whole override surface:
@@ -215,7 +215,7 @@ export type GridEditableConfig = {
 	/** Fires with the next editable-row set. The grid coalesces an internal clear to an empty set, so the payload is never `undefined`. */
 	onRowsChange?: (rows: Set<string | number>) => void
 	/**
-	 * Who owns the edit session. `'manual'` — the default — leaves it to the
+	 * Who owns the edit session. `'manual'` (the default) leaves it to the
 	 * consumer, and the grid renders no built-in entry. The consumer flips rows in
 	 * and out through `rows`, for example with a pencil / check row action.
 	 * `'managed'` hands the session to the grid. A double-click on an editable
@@ -260,7 +260,7 @@ export type GridEditableConfig = {
 	 */
 	session?: 'manual' | 'managed'
 	/**
-	 * How much of a grid-owned session enters edit mode. `'row'` — the default —
+	 * How much of a grid-owned session enters edit mode. `'row'` (the default)
 	 * mounts an editor in every editable cell of the entered row at once. That is
 	 * the shape a form-like "edit this record" grid wants. `'cell'` narrows the
 	 * session to the entered cell alone. Only that cell mounts an editor, and
@@ -421,8 +421,8 @@ export type GridEditableConfig = {
 	/**
 	 * Called when staged cells commit, with one {@link GridCellChange} per changed cell
 	 * of a row, batched into a single call. Cells commit when the session closes
-	 * them, not when their editors unmount. Saving a row — removing it from the
-	 * set — closes all of them at once; a cell-scoped session usually closes one
+	 * them, not when their editors unmount. Saving a row (removing it from the
+	 * set) closes all of them at once; a cell-scoped session usually closes one
 	 * as it moves on. A row or a column out of view still commits. Read the
 	 * batch rather than its first entry: a session narrowing an already-open row
 	 * closes several at once. Three kinds of cell are dropped: unchanged ones, and

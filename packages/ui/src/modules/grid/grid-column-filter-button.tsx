@@ -220,7 +220,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 		closeSheet()
 	}
 
-	// Clear the applied filter outright — the one-press path to undo a filter,
+	// Clear the applied filter outright: the one-press path to undo a filter,
 	// distinct from Apply's commit and Cancel's discard. Offered from the header
 	// menu the button becomes while a filter is applied (the sheet is closed then,
 	// so there's no open state to settle).
@@ -230,12 +230,12 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 		filter.setQuery(column.id, undefined)
 	}
 
-	// Accent the button only when the applied query actually constrains rows — a
-	// real value, or a value-less operator like "is Empty" — not merely because a
+	// Accent the button only when the applied query actually constrains rows (a
+	// real value, or a value-less operator like "is Empty"), not merely because a
 	// rule exists (a freshly seeded, added-then-emptied, or all-cleared query).
 	const active = query != null && isQueryActive(query)
 
-	// In the `'menu'` affordance the resting funnel is dropped — the filter lives in
+	// In the `'menu'` affordance the resting funnel is dropped: the filter lives in
 	// the column's right-click menu, so the header keeps its full width. `'header'`
 	// always shows it. Read only where no filter is applied: an active filter turns
 	// the trigger into the edit/clear menu below either way, and the sheet renders

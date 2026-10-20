@@ -23,7 +23,7 @@ export type StackedAreaGeometry = {
  * total, so band `s` spans `[sum(0..s-1), sum(0..s)]`. The stack starts at
  * zero, so `map` is expected to be a zero-baseline value scale.
  *
- * @remarks A `null` value counts as zero so the stack stays continuous — the
+ * @remarks A `null` value counts as zero so the stack stays continuous: the
  * band simply contributes no thickness at that category. Needs at least two
  * categories to form a ribbon; a single category yields empty paths.
  *

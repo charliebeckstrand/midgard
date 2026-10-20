@@ -44,7 +44,7 @@ function headerRowCells(container: HTMLElement): HTMLElement[] | null {
  * row carries one cell per visible column, so the columns index straight into
  * it. A row that does not match the column count is mid-render, and yields
  * nothing.
- * These are the cells a measured offset sums — and the exact set whose width
+ * These are the cells a measured offset sums, and the exact set whose width
  * change moves one.
  *
  * @param side - A column's frozen edge, read from the engine.

@@ -33,7 +33,7 @@ function clampToBoundingRect(
 
 /**
  * dnd-kit modifier that keeps a column drag within its first scrollable
- * ancestor — the table's horizontal-scroll wrapper. Bounding the dragged cell
+ * ancestor: the table's horizontal-scroll wrapper. Bounding the dragged cell
  * to the visible container stops its transform from extending the table's
  * scroll width. That extension is what let horizontal auto-scroll run away.
  * Auto-scroll now traverses the real columns, and halts at the last one. Mirrors
@@ -54,7 +54,7 @@ export const restrictToFirstScrollableAncestor: Modifier = ({
 }
 
 /**
- * dnd-kit modifier that keeps a drag within its parent element — the dragged
+ * dnd-kit modifier that keeps a drag within its parent element: the dragged
  * node can't be pulled past either end of its container. Used by the row manager
  * so a group zone stays inside the list rather than dragging off infinitely.
  * Mirrors `@dnd-kit/modifiers`' `restrictToParentElement`.
@@ -77,12 +77,12 @@ export function columnShiftVar(index: number): string {
 }
 
 /**
- * Inline style for a reordering cell — a header or a body cell. Reads its
+ * Inline style for a reordering cell: a header or a body cell. Reads its
  * column's live translate from the CSS variable the column's header animates (see
  * {@link useColumnReorderShift}). An idle column leaves it unset, so the cell
  * resolves to no shift. Keyed by the column's visible index, which a header and
  * the row cells beneath it share, so they move as one. Only the x translate is
- * taken — never dnd-kit's `scaleX` / `scaleY`, which would stretch cell content.
+ * taken, never dnd-kit's `scaleX` / `scaleY`, which would stretch cell content.
  *
  * @internal
  */

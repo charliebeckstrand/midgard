@@ -23,7 +23,7 @@
  *
  * The atlas keys a {@link WeakMap} by identity, so the cache never pins one in
  * memory and a freshly fetched atlas misses. Only named projections cache: a
- * passed d3 instance is stateful — fitting mutates it in place — so its
+ * passed d3 instance is stateful (fitting mutates it in place), so its
  * geometry is computed directly and never shared. The per-container-size
  * measured refit stays with {@link MapPlat}. It reprojects to constant-pixel
  * marks a beat after mount, landing after the first paint this canonical draw
@@ -68,14 +68,14 @@ export type StaticMapGeometry = {
 	atlas: MapProjectedAtlas | null
 }
 
-/** Nothing to draw — a plat with no geography yet reserves its frame and paints no marks. @internal */
+/** Nothing to draw: a plat with no geography yet reserves its frame and paints no marks. @internal */
 const EMPTY: StaticMapGeometry = { features: [], canonical: null, atlas: null }
 
 // Atlas → object name → its decoded, rewound features. Held apart from the pair
 // below because two readers want it and only one of them wants the fit: the
 // geometry above draws the atlas, and the coverage hook filters it to the
 // regions a territory lands in. Decoding a county topology runs to tens of
-// milliseconds, so the two must not each pay it — and a map that draws the
+// milliseconds, so the two must not each pay it, and a map that draws the
 // filtered result never decodes the whole atlas twice.
 const decoded = new WeakMap<MapGeography, Map<string | undefined, MapFeature[]>>()
 
@@ -116,7 +116,7 @@ export function cachedGeographyFeatures(
 const cache = new WeakMap<MapGeography, Map<string, StaticMapGeometry>>()
 
 /**
- * Computes the static geometry directly — no cache read or write. Exported for
+ * Computes the static geometry directly: no cache read or write. Exported for
  * the cache's own tests and benchmarks to measure the cold path against the
  * warm one.
  *
@@ -128,7 +128,7 @@ export function computeStaticMapGeometry(
 	projection: MapProjection,
 ): StaticMapGeometry {
 	// Decoded and rewound through the shared memo above, so an atlas the coverage
-	// hook has already read costs nothing here — and the rewind, which the fit
+	// hook has already read costs nothing here, and the rewind, which the fit
 	// depends on, happens once per atlas either way.
 	const features = cachedGeographyFeatures(geography, geographyObject)
 
@@ -158,7 +158,7 @@ export function staticMapGeometry(
 ): StaticMapGeometry {
 	if (geography == null) return EMPTY
 
-	// A d3 instance is stateful — fitting it mutates in place — so it can't key a
+	// A d3 instance is stateful (fitting it mutates in place), so it can't key a
 	// shared entry; compute directly and leave the cache untouched.
 	if (typeof projection !== 'string') {
 		return computeStaticMapGeometry(geography, geographyObject, projection)
@@ -179,8 +179,8 @@ export function staticMapGeometry(
 }
 
 // The last measured-fit paths per shared geometry. Reprojecting every region
-// through the fitted projection is the measured refit's whole cost — the bulk
-// of a mount on a county atlas — yet for a named projection the fit is a pure
+// through the fitted projection is the measured refit's whole cost (the bulk
+// of a mount on a county atlas), yet for a named projection the fit is a pure
 // function of the geometry and the frame box, so a remount at the same box (a
 // tab switch, a dashboard's small multiples) can reuse the previous paths the
 // way the canonical stage already reuses its fit. One slot per geometry: a
@@ -193,8 +193,8 @@ const measuredPaths = new WeakMap<
 // Region centroids per decoded feature list. Held apart from the mount-critical
 // pair above because nothing on the mount path reads them: only the keyboard
 // cursor does, and only once a reader tabs in. Computing them beside the paths
-// would put a per-region `geoCentroid` pass — thousands of rings on a county
-// atlas — on every mount, for a cursor most mounts never carry. The features
+// would put a per-region `geoCentroid` pass (thousands of rings on a county
+// atlas) on every mount, for a cursor most mounts never carry. The features
 // array keys it, so the result outlives every refit: a centroid is geographic,
 // not projected, and a resize re-projects it rather than measure it again.
 const centroids = new WeakMap<MapFeature[], (LngLat | null)[]>()
@@ -211,15 +211,15 @@ export function cachedRegionCentroids(features: MapFeature[]): (LngLat | null)[]
 }
 
 // The last chrome paths per fitted projection. Keyed on the fit rather than on
-// the geometry, because a map draws chrome under two fits in one mount — the
-// canonical one on the first commit, the measured one a beat later — and a
+// the geometry, because a map draws chrome under two fits in one mount (the
+// canonical one on the first commit, the measured one a beat later) and a
 // geometry-keyed slot would have them evict each other, so every mount paid the
 // pass twice and no remount ever hit. The canonical projection is itself shared
 // across instances and mounts (`staticMapGeometry`), so its chrome is drawn once
 // per atlas and step for good; a measured fit is a fresh instance per box, and
 // its entry falls with it. The fit state stays in the slot for the one
-// projection that keeps its identity across fits — a passed d3 instance, which
-// a fit mutates in place — so a resize or a refit to new geography can never
+// projection that keeps its identity across fits (a passed d3 instance, which
+// a fit mutates in place), so a resize or a refit to new geography can never
 // read a stale path off one.
 const chrome = new WeakMap<
 	GeoProjection,
@@ -297,7 +297,7 @@ const canonicalPaths = new WeakMap<StaticMapGeometry, (string | null)[]>()
 
 /**
  * Region paths under the canonical fit, memoized on the shared
- * {@link StaticMapGeometry} entry — one pass per atlas, object, and projection,
+ * {@link StaticMapGeometry} entry: one pass per atlas, object, and projection,
  * however many plats draw it. Empty where there was nothing to fit.
  *
  * Emitted from the entry's own buffer, so this stage and the measured one below

@@ -36,7 +36,7 @@ import type { GridColumnFilter, GridColumnPinning } from './use-grid-table'
  * a surface.
  *
  * A `reorder={{ handle: false }}` header *is* its own activator, so every control
- * inside it — the filter button, its applied-state menu — sits on the drag
+ * inside it (the filter button, its applied-state menu) sits on the drag
  * target. Pressing one arms the sensor. A few pixels of drift past the activation
  * distance lifts the column. The surface that opens then takes the `pointerup`
  * with it, stranding the column as if it were still held. The user sees columns
@@ -45,7 +45,7 @@ import type { GridColumnFilter, GridColumnPinning } from './use-grid-table'
  * filters: a press whose release never comes back.)
  *
  * `aria-haspopup` is the discriminator rather than a tag list, because it names
- * exactly the property that matters — this control is about to open something.
+ * exactly the property that matters: this control is about to open something.
  * The sort control and the header's bare padding carry no popup and stay fully
  * draggable, so the whole-header grab affordance is untouched.
  *
@@ -117,7 +117,7 @@ export type GridColumnHeaderProps = {
 }
 
 /**
- * The affordances after a header's label — the group-by toggle and, for a
+ * The affordances after a header's label: the group-by toggle and, for a
  * filterable column, the filter button. One definition shared by the plain and
  * reorderable headers; a plain function, not a component, so it adds no
  * boundary to the render tree.
@@ -345,8 +345,8 @@ export function GridReorderableColumnHeaderView({
 		sortable
 
 	// The header animates its live drag translate onto a CSS variable on the
-	// enclosing <table> — the nearest common ancestor of this header and its
-	// column's body cells — which the whole column reads (see `columnShiftStyle` /
+	// enclosing <table> (the nearest common ancestor of this header and its
+	// column's body cells), which the whole column reads (see `columnShiftStyle` /
 	// `useColumnReorderShift`), so it glides without re-rendering a single cell.
 	// Resolve the table from the header node as it mounts.
 	const tableRef = useRef<HTMLTableElement | null>(null)

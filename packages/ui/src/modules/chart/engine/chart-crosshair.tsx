@@ -71,12 +71,12 @@ export type ChartCrosshairProps = {
 	plot: PlotRect
 	/** The resolved rules to draw and whether they snap. */
 	crosshair: ResolvedCrosshair
-	/** Band-axis center per category — the band rule's snap target. */
+	/** Band-axis center per category: the band rule's snap target. */
 	bandPositions: number[]
-	/** Per category, the visible series' value-axis positions — the value rule's snap targets. */
+	/** Per category, the visible series' value-axis positions: the value rule's snap targets. */
 	valuePoints: number[][]
 	/**
-	 * Which way the value axis runs — it swaps each rule's screen direction.
+	 * Which way the value axis runs: it swaps each rule's screen direction.
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: ChartOrientation
@@ -119,11 +119,11 @@ export function crosshairSnaps(crosshair: ResolvedCrosshair | null): boolean {
  * The hover crosshair: an `x` rule across the value axis and a `y` rule down the
  * category axis. It draws whichever rules the resolved crosshair leaves on.
  * Each rule is projected through the orientation, so a horizontal chart
- * transposes both — the value rule runs vertically, the category rule
+ * transposes both: the value rule runs vertically, the category rule
  * horizontally. Without `snap` a rule tracks the pointer exactly. With it the
  * pair meets the nearest data point: the value rule at that point's value, the
  * category rule at its band center. Both clamp to the plot rect and dash alike.
- * Reads only the hover context, so it re-renders alone — never the marks.
+ * Reads only the hover context, so it re-renders alone, never the marks.
  *
  * Self-gating at spark through {@link ChartTierContext}: a sparkline is
  * read-only. No rule draws, even off a hover held from before a resize crossed

@@ -18,7 +18,7 @@ export type HeadlessProviderProps = {
  * `has-[>:disabled]` selectors intact. Only components that read
  * {@link useHeadless} respond; others are unaffected.
  *
- * @see {@link useHeadless} — the flag descendants read.
+ * @see {@link useHeadless}: the flag descendants read.
  */
 export function HeadlessProvider({ children }: HeadlessProviderProps) {
 	return <HeadlessContext value={true}>{children}</HeadlessContext>

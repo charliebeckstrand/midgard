@@ -28,22 +28,23 @@ export const k = defineRecipe({
 	],
 	slots: {
 		select: {
-			// The selectable region (title over preview); the component renders it as a `<button>` when
-			// `onSelect` is set, a plain `<span>` otherwise. `actions` sit beside it
-			// so a focusable control never nests inside the select button. Its ring is
-			// suppressed — the row draws it. The pointer cursor is restated here: a
-			// `<button>` resets it over its own box. `z-10` alone (no `relative`) lifts it
-			// above the active indicator: flex items get a stacking context from
-			// `z-index` even while `position: static`, and staying static leaves the row
-			// as the sole positioned ancestor for the overlay `::after` below — giving the
-			// button `relative` here would make it that pseudo-element's containing block
+			// The selectable region (title over preview); the component renders it as
+			// a `<button>` when `onSelect` is set, a plain `<span>` otherwise.
+			// `actions` sit beside it so a focusable control never nests inside the
+			// select button. Its ring is suppressed: the row draws it. The pointer
+			// cursor is restated here: a `<button>` resets it over its own box.
+			// `z-10` alone (no `relative`) lifts it above the active indicator: flex
+			// items get a stacking context from `z-index` even while
+			// `position: static`, and staying static leaves the row as the sole
+			// positioned ancestor for the overlay `::after` below. Giving the button
+			// `relative` here would make it that pseudo-element's containing block
 			// instead, shrinking the overlay down to the button's own `flex-1` box.
 			base: [flex.col, 'min-w-0 flex-1', 'text-start', 'outline-none', 'z-10', ...cursor],
 			// Stretches the select button's hit area over the whole `relative` row via a
 			// pointer-capturing `::after` (the inverse of the overlay in `kasane.layers`,
 			// which adds `pointer-events-none` to *stop* this). The button only spans `flex-1`, so
 			// without this the padding, gap, and actions chrome wouldn't select. Applied
-			// to the `<button>` branch only — a static `<span>` has nothing to trigger.
+			// to the `<button>` branch only: a static `<span>` has nothing to trigger.
 			overlay: ['after:absolute after:inset-0'],
 		},
 		title: ['truncate', 'font-medium', size.md, ...mode('text-zinc-950', 'dark:text-white')],
@@ -54,7 +55,7 @@ export const k = defineRecipe({
 		// Focus projection for the active indicator: browsers paint the row's own
 		// ring beneath the indicator's opaque fill (rings render with the element's
 		// own layer, under positioned descendants), so the focused current row
-		// re-draws the ring on the indicator itself — the topmost full-row surface.
+		// re-draws the ring on the indicator itself (the topmost full-row surface).
 		indicator: focus.within.indicator,
 	},
 })

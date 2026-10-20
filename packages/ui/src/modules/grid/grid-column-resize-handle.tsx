@@ -70,7 +70,7 @@ export function GridColumnResizeHandle({
 
 	function handleKeyDown(event: KeyboardEvent<HTMLSpanElement>) {
 		// Arrow nudges, PageUp/Down coarse steps, Home/End to the bounds, and Enter to
-		// auto-size the column to its content — the window-splitter key set (WCAG 4.1.2).
+		// auto-size the column to its content: the window-splitter key set (WCAG 4.1.2).
 		// The arrows move the trailing edge on screen. That edge is on the left of a
 		// right-to-left header, so ArrowLeft widens the column there.
 		const key = logicalArrowKey(event.key, event.currentTarget)
@@ -122,12 +122,12 @@ export function GridColumnResizeHandle({
 			className={cn(k.resize.handle, k.resize.grip)}
 			onMouseDown={(event) => {
 				// Only a plain primary press starts a drag-resize. Any context-menu
-				// gesture — a right- or middle-click, or a Ctrl-click (the macOS
-				// secondary click) — would otherwise begin one through the engine's
+				// gesture (a right- or middle-click, or a Ctrl-click, which is the
+				// macOS secondary click) would otherwise begin one through the engine's
 				// mouse handler, which never ends because the context menu the same
-				// press opens swallows the `mouseup`, leaving the column stuck
-				// resizing to the pointer. These presses fall through untouched so
-				// the header's context menu still opens.
+				// press opens swallows the `mouseup`, leaving the column stuck resizing
+				// to the pointer. These presses fall through untouched so the header's
+				// context menu still opens.
 				if (!isPrimaryPress(event)) return
 
 				event.stopPropagation()
@@ -164,7 +164,7 @@ export function GridColumnResizeHandle({
 			}}
 			onClick={(event) => event.stopPropagation()}
 			onDoubleClick={(event) => {
-				// Double-click auto-sizes the column to its content — the pointer
+				// Double-click auto-sizes the column to its content: the pointer
 				// twin of the Enter key, and the "Auto-size this column" context-menu
 				// action. The double press also registers two drag-resizes without
 				// motion. They move no width, so they take no width control.

@@ -58,8 +58,8 @@ function useExitHold(current: boolean, hold: boolean): [boolean, () => void] {
 	}
 
 	// The latch is only valid while its conditions are: if the container stops
-	// fading (or the mount policy changes) mid-exit, release now — no animation
-	// completion will arrive to do it.
+	// fading (or the mount policy changes) mid-exit, release now (no animation
+	// completion will arrive to do it).
 	if (exiting && !hold) setExiting(false)
 
 	const release = useCallback(() => setExiting(false), [])
@@ -237,7 +237,7 @@ export function CurrentContent({
 	// mounted inside a hidden one still reads as inactive.
 	const active = inheritedActive && current
 
-	// Presence, the lazy latch, and the Activity hold — shared with the
+	// Presence, the lazy latch, and the Activity hold: shared with the
 	// disclosure and stepper panels. An animating container defers the hide to
 	// the rest latch, since `display: none` can't animate; a still one hides
 	// on the switch itself.

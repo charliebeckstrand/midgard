@@ -64,7 +64,7 @@ export function readoutSeriesKey<T>(visible: SeriesMeta[], series: ChartSeries<T
 /** One visible series resolved to the scale and baseline it draws through. @internal */
 export type DrawnSeries = {
 	meta: SeriesMeta
-	/** The series' own axis's scale — never `null`; an unresolved series drops out instead. */
+	/** The series' own axis's scale, never `null`; an unresolved series drops out instead. */
 	scale: LinearScale
 	/** The zero position on that scale, where the series' bars grow from. */
 	baseline: number
@@ -86,8 +86,8 @@ export function drawnSeries(chart: {
 	baseline: number
 	y2Baseline: number
 }): DrawnSeries[] {
-	// A stacked chart already carries one shared axis on every meta — `seriesMetas`
-	// binds them all to the stack side — so each series reads its own `meta.axis`
+	// A stacked chart already carries one shared axis on every meta (`seriesMetas`
+	// binds them all to the stack side), so each series reads its own `meta.axis`
 	// whether stacked or grouped; no separate stack branch is needed.
 	return chart.visible.flatMap((meta) => {
 		const scale = meta.axis === 'y2' ? chart.y2Scale : chart.yScale
@@ -117,7 +117,7 @@ export function barProjection(drawn: DrawnSeries[], fallback: number) {
 }
 
 /**
- * A series' latest finite value — its position at the right edge, where the
+ * A series' latest finite value: its position at the right edge, where the
  * eye reads a line's order. A trailing gap falls back to the last real value;
  * an all-null series has none and sinks with negative infinity.
  *
@@ -128,7 +128,7 @@ function latestValue(values: (number | null)[]): number {
 }
 
 /**
- * Orders two series by their latest value, largest first — the legend's
+ * Orders two series by their latest value, largest first: the legend's
  * visible top-to-bottom order when a chart opts into
  * {@link CartesianConfig.legendByValue}. Equal or all-null series fall back to
  * the caller's order, so the sort stays stable and never returns `NaN`.

@@ -131,7 +131,7 @@ function yearless(value: string): boolean {
  * day and no year, such as `Jun 10`, names no instant (see {@link yearless}).
  * Any other string goes through `Date.parse`.
  *
- * @returns The instant, or `null` when the value holds no parseable date — the
+ * @returns The instant, or `null` when the value holds no parseable date: the
  * row then anchors no tick and the axis falls back to plain labels.
  * @internal
  */
@@ -416,7 +416,7 @@ function chooseInterval(idealStep: number): TimeInterval {
 export type TimeTicksOptions = {
 	/** Each row's instant as epoch ms, in row order; `null` for an unparseable row. */
 	times: (number | null)[]
-	/** The band scale placing the rows — ticks interpolate between its centers. */
+	/** The band scale placing the rows: ticks interpolate between its centers. */
 	band: BandScale
 	/** Tick count to aim for; the interval ladder lands near it, not exactly on it. */
 	tickTarget: number
@@ -477,7 +477,7 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 
 		if (time > last.time) break
 
-		// Keyed by the instant, not the mapped `at` — distinct per calendar boundary
+		// Keyed by the instant, not the mapped `at`: distinct per calendar boundary
 		// and stable across resizes, where `at` can collapse onto one coordinate.
 		// A wall time in a daylight-saving gap resolves forward past the gap, to
 		// an instant that the walk reaches again. Thus a time at or before the
@@ -525,7 +525,7 @@ const DATE_SHAPED =
  * the year, and a single-year one drops it. Returns `null` when any value is
  * not a date, leaving a non-date axis its raw labels. The same formatter labels
  * the axis ticks, tooltip, and data table. Bare numeric strings never count as
- * dates — `Date.parse('95190')` accepts them as a year, which turned an axis
+ * dates: `Date.parse('95190')` accepts them as a year, which turned an axis
  * of NMFC codes into `01-01-95190` ticks. Numbers and strings without a date
  * shape ("Region 3") do not count either.
  *
@@ -544,9 +544,9 @@ export function dateCategoryFormat(
 	if (values.length === 0) return null
 
 	// One pass with an early exit: the usual non-date axis fails on its first
-	// value, so detection costs one parse instead of one per row — `Date.parse`
+	// value, so detection costs one parse instead of one per row (`Date.parse`
 	// on an arbitrary string is expensive, and a mapped-then-checked pass paid
-	// it for the whole dataset before answering "not dates".
+	// it for the whole dataset before answering "not dates").
 	let withYear = false
 
 	for (const value of values) {
@@ -563,14 +563,14 @@ export function dateCategoryFormat(
 		if (new Date(time).getFullYear() !== referenceYear) withYear = true
 	}
 
-	// One formatter across the rows, holding the locale's own field order —
-	// `MM/DD` in en-US, `DD.MM.` in de-DE — rather than a fixed month-first one.
+	// One formatter across the rows, holding the locale's own field order
+	// (`MM/DD` in en-US, `DD.MM.` in de-DE) rather than a fixed month-first one.
 	//
 	// `format()` per value, not a hand-assembly from `formatToParts`: reading the
 	// token sequence once and filling it from a `Date` takes only field order and
 	// separators from the locale, and silently drops the rest. It emits ASCII
 	// digits for the Arabic-Indic and Bengali numbering systems, and Gregorian
-	// fields under the Persian, Buddhist, and Japanese calendars — all of them
+	// fields under the Persian, Buddhist, and Japanese calendars: all of them
 	// defaults for their locale, reachable from a browser language setting with
 	// no `-u-` extension. The per-row cost belongs to `resolveCategories`, which
 	// memoizes this whole derivation.

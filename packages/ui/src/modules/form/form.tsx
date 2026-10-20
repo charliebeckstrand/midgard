@@ -24,7 +24,7 @@ const messages = defineMessages({
 export type FormProps<T extends Record<string, unknown>> = {
 	/**
 	 * Seed values and field schema; keys and types define the form. Single source
-	 * of truth for bound controls' initial state — a bound control's
+	 * of truth for bound controls' initial state: a bound control's
 	 * `defaultValue`/`defaultChecked` is ignored (CONVENTIONS §7.2).
 	 */
 	defaultValues: T

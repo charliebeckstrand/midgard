@@ -45,8 +45,9 @@ export type PdfViewerPage = {
 	/** Intrinsic height in pixels. Sizes the viewport before the image loads. */
 	height?: number
 	/**
-	 * Intrinsic page width in PDF user-space units (points, 1/72"), as printed —
-	 * distinct from {@link PdfViewerPage.width}, which is the rasterized image's pixels.
+	 * Intrinsic page width in PDF user-space units (points, 1/72"), as printed.
+	 * It is distinct from {@link PdfViewerPage.width}, which is the rasterized
+	 * image's pixels.
 	 *
 	 * @remarks Set by the `src` rasterizer from the page's own dimensions, independently of
 	 * the image it produces. Supply it on pre-rendered pages to enable
@@ -67,7 +68,7 @@ export type PdfViewerZoom = {
 }
 
 /**
- * A highlighted region of the document — one box over the page, in the unit named by
+ * A highlighted region of the document: one box over the page, in the unit named by
  * `highlightUnit`.
  *
  * @remarks Geometry is a plain axis-aligned box, because that is all any of the three
@@ -88,7 +89,7 @@ export type PdfViewerHighlight = {
 	 * Accessible name, and what the announcement speaks on activation.
 	 *
 	 * @remarks Required: a region is a control whenever `onActiveHighlightChange` is set,
-	 * and a control must have a name (WCAG 4.1.2). It is also the region's whole meaning —
+	 * and a control must have a name (WCAG 4.1.2). It is also the region's whole meaning:
 	 * {@link PdfViewerHighlight.color} is decoration and never carries it.
 	 */
 	label: string
@@ -118,7 +119,7 @@ export type PdfViewerHighlightUnit = 'fraction' | 'inch'
  *
  * `'page'` fits the whole page and lets the viewer size itself from the page's aspect ratio.
  * `'width'` fits the page width, lets it overflow, and fills the height its container gives
- * it — so the container has to give it one.
+ * it, so the container has to give it one.
  */
 export type PdfViewerFit = 'page' | 'width'
 
@@ -127,7 +128,7 @@ export type PdfViewerFit = 'page' | 'width'
  *
  * @remarks `'simple'` makes the control a switch: a press turns the loupe off, and the next
  * press turns it on again. `'config'` makes it open a dialog, where the reader sets the
- * power, the lens size and the dwell — and turns the loupe off.
+ * power, the lens size and the dwell, and turns the loupe off.
  *
  * The off switch moves into the dialog because the toolbar control is no longer a switch.
  * Without it, `'config'` would take away the one thing `'simple'` always offered.

@@ -44,7 +44,7 @@ type GridDataCellProps<T> = {
  * One data cell: renders the column's `cell` slot directly against the row. It
  * marks the matches of the highlight search, and wraps that in the truncation
  * reveal unless the grid opts out, then in a reorder-aware `<td>`. A column with no `cell` yields null content and stays
- * bare. The direct call — no engine `Cell`, no `flexRender` component boundary —
+ * bare. The direct call (no engine `Cell`, no `flexRender` component boundary)
  * is what lets a body render with no engine row, because the engine builds none.
  *
  * @internal
@@ -93,7 +93,7 @@ function GridDataCellImpl<T>({
 		)
 	}
 
-	// Pinned chrome resolves only on the plain path — the reorderable cell above
+	// Pinned chrome resolves only on the plain path: the reorderable cell above
 	// glides via `columnShiftStyle` and never reads it.
 	const pinned = pinnedCellProps(pinning, col)
 
@@ -133,7 +133,7 @@ type GridReorderableCellProps = {
 
 /**
  * Body cell for a reordering column. It no longer registers a sortable of its
- * own — that put the column's header id on every body row, a duplicate-id churn
+ * own: that put the column's header id on every body row, a duplicate-id churn
  * dnd-kit re-measures over. Instead the whole column glides via the CSS variable
  * its header writes (see {@link columnShiftStyle}). This cell only reflects
  * the dragged-column lift from {@link GridReorderContext}, a value that

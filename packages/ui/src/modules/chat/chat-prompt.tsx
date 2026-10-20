@@ -121,8 +121,8 @@ export type ChatPromptProps = {
  * the textarea carries an inherent, stable id. Submits on Enter (Shift+Enter for
  * newlines), and toggles its send button to a stop control while `streaming`. It
  * offers a paperclip file picker when `onAttach` is provided, and surfaces
- * `attachments` as removable chips below the field. The action row — extra `actions`, the
- * paperclip, and send/stop — sits beneath the textarea, right-justified.
+ * `attachments` as removable chips below the field. The action row (extra `actions`, the
+ * paperclip, and send/stop) sits beneath the textarea, right-justified.
  */
 export function ChatPrompt({
 	value,

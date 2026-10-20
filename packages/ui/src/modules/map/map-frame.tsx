@@ -137,7 +137,7 @@ export function MapFrame({
 
 /**
  * The focus ring a navigable plot region carries, with the rounded corner the
- * outline follows. Joined once — it takes no dynamic input, and the region it
+ * outline follows. Joined once: it takes no dynamic input, and the region it
  * dresses re-renders for every notch of a zoom gesture.
  *
  * @internal
@@ -210,8 +210,8 @@ export function MapPlotRegion({
 			{...surface}
 			{...press}
 			// A side legend takes the width remainder (`min-w-0 flex-1`); a free-form
-			// `fill` map instead grows into the height its region already holds — a
-			// `flex-1 min-h-0` child of the `h-full` frame — so the box measures a real
+			// `fill` map instead grows into the height its region already holds (a
+			// `flex-1 min-h-0` child of the `h-full` frame), so the box measures a real
 			// height rather than the zero its own reserve would feed back.
 			className={cn(
 				'relative',
@@ -226,8 +226,8 @@ export function MapPlotRegion({
 				keyboard && PLOT_FOCUS,
 				// A zooming plot claims its own touch gestures: one finger pans and two
 				// pinch, so neither reaches the page's scroller. A modifier map makes
-				// the same bargain touch that it makes the wheel — one finger scrolls
-				// the page, two pan and pinch — so it keeps the browser's scrolling and
+				// the same bargain touch that it makes the wheel (one finger scrolls
+				// the page, two pan and pinch), so it keeps the browser's scrolling and
 				// takes only its pinch, which would otherwise zoom the page over the
 				// map. Every other map leaves touch alone entirely.
 				zoom && (zoom.modifier === null ? 'touch-none' : 'touch-pan-x touch-pan-y'),

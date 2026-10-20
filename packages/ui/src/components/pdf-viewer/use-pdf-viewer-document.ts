@@ -55,9 +55,10 @@ let sharedWorker: import('pdfjs-dist').PDFWorker | null = null
 /**
  * Resolves the worker to hand `getDocument`, creating it on first use.
  *
- * @returns The shared worker, or `null` when this environment cannot run one — in which case
- * `getDocument` is left to pdf.js's own resolution. In practice that is Node and jsdom, where
- * pdf.js pre-sets `workerSrc` itself; a browser always has `Worker`.
+ * @returns The shared worker, or `null` when this environment cannot run one.
+ * In that case, `getDocument` is left to pdf.js's own resolution. In practice
+ * that is Node and jsdom, where pdf.js pre-sets `workerSrc` itself; a browser
+ * always has `Worker`.
  * @remarks `new Worker(new URL(…, import.meta.url))` rather than a bundler-specific import.
  * Both Vite and webpack recognize that exact form and emit the worker as an asset, which a
  * `?url` query does not. Webpack resolves an `import()` specifier statically whether or not
@@ -75,7 +76,7 @@ async function resolveWorker(): Promise<import('pdfjs-dist').PDFWorker | null> {
 
 	if (sharedWorker) return sharedWorker
 
-	// The repo's spelling for an absent global, and narrower than a try/catch — which would
+	// The repo's spelling for an absent global, and narrower than a try/catch, which would
 	// also swallow a CSP `worker-src` refusal and silently downgrade every consumer to
 	// main-thread rasterization.
 	if (typeof Worker === 'undefined') return null
@@ -86,7 +87,7 @@ async function resolveWorker(): Promise<import('pdfjs-dist').PDFWorker | null> {
 
 	// `PDFWorker.create`, not `new PDFWorker`: the generated types declare the constructor's
 	// `port` as `null | undefined` while the static's `PDFWorkerParameters.port` is correctly
-	// `Worker | undefined`. Same object either way — `create` returns the instance cached
+	// `Worker | undefined`. Same object either way: `create` returns the instance cached
 	// against this port.
 	sharedWorker = pdfjs.PDFWorker.create({ port })
 
@@ -243,7 +244,7 @@ async function openSlots(
  * its pages.
  *
  * @remarks Runs to the open or throws; it is not cancellable, because the cache owns its
- * lifetime rather than any one component — see {@link ensureDocumentLoad}. The pages render
+ * lifetime rather than any one component (see {@link ensureDocumentLoad}). The pages render
  * after it, when the viewers ask for them (`focusPage`).
  *
  * A load that opens keeps its pdf.js document open, and hands the cache the release. The
@@ -328,7 +329,7 @@ export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult
 
 	const snapshot = useCallback(() => getDocumentSnapshot(src), [src])
 
-	// Nothing is rasterized on the server — there is no canvas to rasterize onto — so the
+	// Nothing is rasterized on the server (there is no canvas to rasterize onto), so the
 	// server snapshot is the empty one every miss returns.
 	const serverSnapshot = useCallback(() => EMPTY_DOCUMENT_SNAPSHOT, [])
 

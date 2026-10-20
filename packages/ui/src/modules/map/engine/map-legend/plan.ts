@@ -1,7 +1,7 @@
 /**
  * The map's legend resolution, kept off {@link MapPlat} so the component stays
  * a thin assembly. It decides whether the legend shows, where it sits, and
- * whether the binned switchboard or the continuous range bar paints it. Pure —
+ * whether the binned switchboard or the continuous range bar paints it. Pure:
  * every input arrives resolved, so the rules are testable without a frame.
  */
 
@@ -101,7 +101,7 @@ type MapRangeScale = {
 	/** The `<LocaleProvider>` locale the default format takes. */
 	locale: string | undefined
 	colorName: string | undefined
-	/** Each region's raw value — the bar's hover arrow marks the pointed one. */
+	/** Each region's raw value: the bar's hover arrow marks the pointed one. */
 	regionNumbers: (number | null)[]
 	onFocus: (id: string | null) => void
 }
@@ -115,12 +115,12 @@ type MapRangeScale = {
  * @internal
  */
 export type MapLegendRange = RangeScale & {
-	/** Each region's raw value (`null` = no data), feature-index aligned — the arrow marks the hovered region's. */
+	/** Each region's raw value (`null` = no data), feature-index aligned: the arrow marks the hovered region's. */
 	regionNumbers: (number | null)[]
-	/** Emphasizes a bin's regions (`null` clears); other regions dim while set — the filter. */
+	/** Emphasizes a bin's regions (`null` clears); other regions dim while set: the filter. */
 	onFocus: (id: string | null) => void
 	/**
-	 * Which way the bar runs — vertical beside the plot, horizontal above or
+	 * Which way the bar runs: vertical beside the plot, horizontal above or
 	 * below it. Follows the resolved placement.
 	 * @defaultValue 'vertical'
 	 */

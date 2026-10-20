@@ -58,7 +58,7 @@ const ChartTableBody = memo(function ChartTableBody({
 	return (
 		// The hiding lives on a wrapper: width/height on a `display: table` box
 		// are minimums, so `sr-only` on the table itself leaves it laid out at
-		// full size — invisible, but still stretching the page's scroll range.
+		// full size (invisible, but still stretching the page's scroll range).
 		// The block wrapper collapses to 1px and clips it.
 		<div className="sr-only">
 			<table data-slot="chart-table" aria-labelledby={label ? undefined : labelledBy}>

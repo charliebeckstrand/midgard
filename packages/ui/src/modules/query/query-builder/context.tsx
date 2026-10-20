@@ -16,7 +16,7 @@ export type QueryBuilderStateValue = {
 	disabled: boolean
 	/** When false, the "Add group" action is hidden so the query stays a flat rule list. @defaultValue true */
 	allowGroups: boolean
-	/** When true, rules omit their field selector — for a single fixed field. @defaultValue false */
+	/** When true, rules omit their field selector: for a single fixed field. @defaultValue false */
 	hideFieldSelector: boolean
 	/** The axis of the parts of each rule, single or per breakpoint. */
 	orientation: Responsive<Orientation>

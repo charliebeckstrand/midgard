@@ -17,7 +17,7 @@ const { flex } = narabi
 const { collapse, css } = ugoki
 const { focus } = sen
 
-/** The syntax-highlight classes a {@link JsonTree} node can take — one per primitive value kind plus `key` for object property names. */
+/** The syntax-highlight classes a {@link JsonTree} node can take: one per primitive value kind plus `key` for object property names. */
 export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'key'
 
 const color = {

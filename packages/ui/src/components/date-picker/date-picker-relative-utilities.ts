@@ -252,9 +252,9 @@ function isSameSpan(a: DatePickerRelativeValue, b: DatePickerRelativeValue): boo
  * The preset whose resolved span (at `now`) matches `span` day-for-day, else
  * `null`. Used for chip labels and selection highlight.
  *
- * Several presets can resolve to the same span on a given day — e.g. "Last 6
+ * Several presets can resolve to the same span on a given day (e.g. "Last 6
  * months" and "This year" coincide on 1 July; "This month" and "This quarter"
- * coincide in the first month of a quarter. When the caller knows which presets
+ * coincide in the first month of a quarter). When the caller knows which presets
  * the user picked (`preferredIds`, in click order), the most recently picked one
  * that still resolves to `span` wins. The chip and highlight therefore reflect
  * the latest choice rather than list order. With no picks it falls back to the first
@@ -319,7 +319,7 @@ export function selectedPresetIds(
 	return ids
 }
 
-/** True when any committed span matches no preset — i.e. a custom range is set. @internal */
+/** True when any committed span matches no preset (i.e. a custom range is set). @internal */
 export function isCustomActive(
 	value: DatePickerRelativeValue[] | undefined,
 	presets: DatePickerRelativePreset[],

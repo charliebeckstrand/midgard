@@ -185,7 +185,7 @@ export function MenuContent({
 				// A dropdown keeps focus on its trigger while open; opening never
 				// pulls focus into the panel. Seating focus on the portaled,
 				// animating panel is the path that drops to `<body>` on open in a
-				// real browser — leaving it on the trigger sidesteps that, and Tab
+				// real browser: leaving it on the trigger sidesteps that, and Tab
 				// off the trigger closes the menu (see MenuTrigger). A right-click
 				// context menu has no persistent trigger to hold focus, so it still
 				// pulls focus into the panel for keyboard navigation.
@@ -193,7 +193,7 @@ export function MenuContent({
 				// Tab is held inside the panel wherever focus lives in it (a
 				// right-click context menu): the menu is left by dismissing it, and
 				// Tab walking off into the page behind an open overlay strands the
-				// user outside a surface still on screen. A dropdown is exempt — its
+				// user outside a surface still on screen. A dropdown is exempt: its
 				// focus stays on the trigger, where Tab out is the documented close.
 				trapTab={!isDropdown}
 				typeahead

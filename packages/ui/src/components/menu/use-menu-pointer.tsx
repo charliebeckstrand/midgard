@@ -40,8 +40,8 @@ const SUBMENU_ENTRY: Record<string, 'first' | 'last' | undefined> = {
 }
 
 /**
- * Whether `point` lies in the corridor a pointer travels from `from` — the row
- * it set off from — into `rect`, the panel that row opened. The corridor is the
+ * Whether `point` lies in the corridor a pointer travels from `from` (the row
+ * it set off from) into `rect`, the panel that row opened. The corridor is the
  * triangle with its apex on the row and its base along the panel's facing edge.
  * It therefore tapers from the whole panel back to the point of departure.
  *
@@ -94,7 +94,7 @@ type MenuPointerValue = {
 	 * then becomes the level's open one.
 	 */
 	hoverRow: (row: HTMLElement, point: Point, subKey?: string) => void
-	/** Opens `subKey` at once, displacing whatever is open — the click and keyboard paths. */
+	/** Opens `subKey` at once, displacing whatever is open: the click and keyboard paths. */
 	openSubmenu: (subKey: string) => void
 	/**
 	 * Hands `key` to the submenu open at this level, seating the cursor on the row
@@ -103,7 +103,7 @@ type MenuPointerValue = {
 	 * arrows therefore work its rows, rather than roving past it in the menu it
 	 * hangs off. `Escape` is the way back out ({@link MenuSub}).
 	 *
-	 * @returns Whether `key` was one of those and a submenu took it — `false`
+	 * @returns Whether `key` was one of those and a submenu took it: `false`
 	 * leaves the caller's own roving to handle the press.
 	 */
 	enterSubmenu: (key: string) => boolean
@@ -146,7 +146,7 @@ export { useMenuOpenSub, useMenuPointer }
  * pointer already parked on a row the keyboard has since roved off of still
  * takes the cursor back on the first nudge. The level reads a sweep's course off
  * the coordinates every move carries. Touch has no hover to express intent
- * with — a tap goes straight to selection, or to opening the submenu it lands
+ * with: a tap goes straight to selection, or to opening the submenu it lands
  * on.
  */
 export function useMenuRowPointer(
@@ -169,7 +169,7 @@ export function useMenuRowPointer(
 export type MenuPointerLevelProps = {
 	/**
 	 * Rove by `data-active` and the owner's `aria-activedescendant` instead of
-	 * real focus — the dropdown model, where focus rests on the trigger.
+	 * real focus: the dropdown model, where focus rests on the trigger.
 	 * @defaultValue false
 	 */
 	virtual?: boolean
@@ -214,7 +214,7 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 	// that would refresh a closure over the state.
 	const openKeyRef = useRef<string | null>(null)
 
-	// Where the pointer last had a say — the apex of the travel triangle. It is
+	// Where the pointer last had a say: the apex of the travel triangle. It is
 	// the parent row the open panel hangs off of, since that is the last arrival
 	// this level accepted before the pointer set off toward the panel.
 	const anchor = useRef<Point | null>(null)
@@ -244,7 +244,7 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 			}
 
 			// Real focus belongs on the owner in this model, and a trip into a
-			// submenu's panel — which roves by focus — leaves it on a row of a panel
+			// submenu's panel (which roves by focus) leaves it on a row of a panel
 			// about to close. Coming back out hands it to the owner, or it would drop
 			// to the document when that panel goes and take the keyboard with it.
 			const controller = owner?.current
@@ -254,11 +254,11 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 
 			if (row.dataset.active !== undefined) return
 
-			// Addressed by element, not by index: the arrival carries its own row,
-			// so reading the panel's whole item list back out to find that row's
-			// index would put three linear passes on a sweep that moves one
-			// attribute. `aria-selected` is not a `menuitem` state, so the
-			// highlight stays a pure cursor — matching the dropdown's own roving.
+			// Addressed by element, not by index: the arrival carries its own row, so
+			// reading the panel's whole item list back out to find that row's index
+			// would put three linear passes on a sweep that moves one attribute.
+			// `aria-selected` is not a `menuitem` state, so the highlight stays a
+			// pure cursor, as in the dropdown's own roving.
 			setVirtualActiveElement(
 				row.closest<HTMLElement>('[role="menu"]'),
 				row,
@@ -275,7 +275,7 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 	/**
 	 * Whether `point` is the pointer crossing this level on its way into the open
 	 * submenu's panel. Rows caught under that sweep are passed over, not arrived
-	 * at. An unplaced panel — one opened a frame ago, still measuring 0×0 — has no
+	 * at. An unplaced panel (one opened a frame ago, still measuring 0×0) has no
 	 * corridor to be in yet.
 	 */
 	const traveling = useCallback((point: Point, prev: Point | null): boolean => {

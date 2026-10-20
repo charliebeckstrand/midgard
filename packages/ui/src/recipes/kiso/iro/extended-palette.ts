@@ -7,7 +7,7 @@
  * standard palette and the components that read it are untouched.
  *
  * The extended hues' foreground roles (`onSurface`, `onTint`) are authored
- * color-major below alongside the standard ramp — same policy, same
+ * color-major below alongside the standard ramp: same policy, same
  * `contrast.test.ts` guard. The solid / soft / outline / plain / bare fill and
  * ring shades are the declared surface tables, keyed by every standard color
  * plus the extended set. Solid fills carry white text at a shade that clears

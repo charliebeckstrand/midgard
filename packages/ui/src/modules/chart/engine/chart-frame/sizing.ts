@@ -13,7 +13,7 @@ import { parseAspectRatio } from '../../../../utilities'
  * `false` to leave the frame free-form. A free-form frame takes an explicit
  * `height`, else it fills the height of its container. The ratio is a
  * preference, not a demand. A definite-height parent shorter than it clamps the
- * chart. The chart then fills the height that leaves, rather than overflowing —
+ * chart. The chart then fills the height that leaves, rather than overflowing:
  * the box is law.
  *
  * A stacked (top / bottom) legend folds into the aspect box. The ratio there
@@ -84,7 +84,7 @@ export function chartFrameSizing(
 /**
  * Whether a frame's plot grows into its region's height rather than reserving
  * one: the free-form `fill` and stacked `aspect-fill` modes. The one place the
- * two fill modes are read together — distinct from {@link chartPolicy}'s `fill`
+ * two fill modes are read together: distinct from {@link chartPolicy}'s `fill`
  * flag, which is the free-form mode alone.
  *
  * @internal

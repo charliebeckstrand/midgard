@@ -12,7 +12,7 @@
  * whole job is to say *why* it cannot be pressed therefore sets `aria-disabled`
  * plus `data-disabled` instead. `MenuItem` and the loading-anchor branch do the
  * same. Without the second guard those controls looked pressable on hover
- * while refusing the press — which is the one thing a disabled control must
+ * while refusing the press, which is the one thing a disabled control must
  * not do.
  *
  * Layer: kiso · Concern: hover wash

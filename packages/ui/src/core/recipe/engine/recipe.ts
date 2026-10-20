@@ -105,7 +105,7 @@ type Expansion = {
  * top-level field becomes a variant axis.
  * @param extras - Optional kata-shaped siblings (`motion`, sub-recipes,
  * fragment maps) attached as direct properties; the recipe stays callable.
- * @throws If a slot name collides with a recipe property — a function
+ * @throws If a slot name collides with a recipe property: a function
  * built-in (`name`, `length`, `call`, …) or the engine-attached `config` /
  * `skeleton`.
  * @throws If an extras key collides with a slot, a function built-in, or
@@ -204,7 +204,7 @@ function mergeSlot(value: SlotValue): unknown {
 /**
  * Coerces a value to the string an axis lookup reads. Axis keys are strings,
  * so every side of a comparison takes this one conversion. A nullish value
- * stays `undefined` — absent, not `"undefined"`.
+ * stays `undefined`: absent, not `"undefined"`.
  *
  * @internal
  */
@@ -215,7 +215,7 @@ function axisKey(value: unknown): string | undefined {
 /**
  * Rewrites a rule's conditions to their axis keys, leaving `class` alone. A
  * rule on a `true` / `false` axis can therefore read `{ interactive: true }`
- * or `{ interactive: 'true' }` — the axis holds `'true'` either way.
+ * or `{ interactive: 'true' }`: the axis holds `'true'` either way.
  *
  * @internal
  */

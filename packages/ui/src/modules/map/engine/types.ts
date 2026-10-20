@@ -7,7 +7,7 @@ export type LngLat = [number, number]
 
 /**
  * A projected frame point: where a {@link LngLat} lands once the fitted
- * projection has drawn it. The engine's other coordinate — geography arrives in
+ * projection has drawn it. The engine's other coordinate: geography arrives in
  * lon/lat and every drawn thing is measured here.
  *
  * @internal
@@ -121,7 +121,7 @@ export type MapTopology = {
 
 /**
  * Prop-supplied map geometry: a TopoJSON topology or a ready GeoJSON feature
- * collection. The package ships no atlas data — pass `us-atlas`,
+ * collection. The package ships no atlas data: pass `us-atlas`,
  * `world-atlas`, or any equivalent source.
  */
 export type MapGeography = MapTopology | MapFeatureCollection

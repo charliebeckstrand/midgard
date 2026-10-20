@@ -171,8 +171,8 @@ function isSvgResource(element: Element): boolean {
 /**
  * Copies a source element's full computed style inline onto its clone.
  * Rasterizing through a `foreignObject` renders the clone detached from the
- * document's stylesheets. Every class-driven and inherited value — color,
- * layout, and font — therefore has to travel on the element itself. The
+ * document's stylesheets. Every class-driven and inherited value (color,
+ * layout, and font) therefore has to travel on the element itself. The
  * declarations in `extra` come last, so they override the copied values.
  *
  * @internal
@@ -594,15 +594,15 @@ async function encode(
 }
 
 /**
- * Rasterizes a whole chart — plot, header, and (by default) legend — to a
- * {@link Blob}. Clones the root, freezes its computed styles onto the clone, and
- * draws it through an SVG `foreignObject`. The HTML chrome and the SVG marks
- * then export as one image. The SVG embeds the latin face of the ui font, so
- * the text of the image keeps the font of the chart. `includeLegend: false` prunes the legend from the
- * clone and crops the image to the plot and the header text, so no blank band
- * remains. The live chart does not change. A JPEG takes the surface under the
- * chart as its ground, so a dark theme exports on its dark surface. A PNG stays
- * transparent.
+ * Rasterizes a whole chart (plot, header, and, by default, legend) to a
+ * {@link Blob}. Clones the root, freezes its computed styles onto the clone,
+ * and draws it through an SVG `foreignObject`. The HTML chrome and the SVG
+ * marks then export as one image. The SVG embeds the latin face of the ui font,
+ * so the text of the image keeps the font of the chart. `includeLegend: false`
+ * prunes the legend from the clone and crops the image to the plot and the
+ * header text, so no blank band remains. The live chart does not change. A JPEG
+ * takes the surface under the chart as its ground, so a dark theme exports on
+ * its dark surface. A PNG stays transparent.
  *
  * @param root - The chart root element to capture.
  * @param options - The bitmap `type` and whether to keep the legend.

@@ -33,7 +33,7 @@ export type ChartLineMarksProps = {
 	list: ChartLineSeries[]
 	/** Render the area washes under the lines. */
 	fill: boolean
-	/** Stroke the markers with a surface outline — set only where dots cross opaque marks (the combo bars); soft fills read cleaner without it. */
+	/** Stroke the markers with a surface outline: set only where dots cross opaque marks (the combo bars); soft fills read cleaner without it. */
 	stroke?: boolean
 	/** Per-series texture-tile fill URLs, aligned with `list`; a raw color or flat mode leaves the slot empty. */
 	fills?: (string | undefined)[]
@@ -78,7 +78,7 @@ const LINE_HIDDEN = { pathLength: 0 }
 const LINE_SHOWN = { pathLength: 1 }
 
 /**
- * The stroke un-draws along its own length — the draw-on reversed — when a data
+ * The stroke un-draws along its own length (the draw-on reversed) when a data
  * change swaps the marks generation.
  *
  * @internal
@@ -300,7 +300,7 @@ export function AnimatedChartLineMarks({
 	// A dashed line can't ride the `pathLength` draw: motion reveals a stroke by
 	// driving its `strokeDasharray`, which would overwrite the dash and settle
 	// solid. So a dashed series holds its dash static and reveals under a clip
-	// that wipes across the band axis — the reference rule's transform-reveal
+	// that wipes across the band axis: the reference rule's transform-reveal
 	// trick, one draw-on beat with the solid lines' stroke.
 	const wipeId = `chart-line-wipe-${useId()}`
 

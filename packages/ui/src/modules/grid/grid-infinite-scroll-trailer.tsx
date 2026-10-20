@@ -20,7 +20,7 @@ import type { GridColumnPinning } from './use-grid-table'
  *
  * The skeleton run mirrors the initial loading skeleton. The trailer is `null`
  * for the common mid-scroll case, where none applies. The loading row stays
- * `aria-hidden` filler — the busy status announces the grown total — while the
+ * `aria-hidden` filler (the busy status announces the grown total), while the
  * message rows carry real text and stay in the tree.
  *
  * @internal

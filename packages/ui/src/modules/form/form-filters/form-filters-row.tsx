@@ -33,8 +33,8 @@ export type FormFiltersRowProps = {
  * `rail` layout, holding the {@link FormFiltersField}s.
  *
  * @remarks
- * A `rail`'s scroll rides the fields alone, so anything outside this row — a
- * {@link FormFiltersClear}, say — stays put while they travel under it. An action
+ * A `rail`'s scroll rides the fields alone, so anything outside this row (a
+ * {@link FormFiltersClear}, say) stays put while they travel under it. An action
  * that scrolls out of reach of what it acts on is one the reader has to go
  * looking for.
  *

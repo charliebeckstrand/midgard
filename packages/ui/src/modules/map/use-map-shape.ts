@@ -68,7 +68,7 @@ export type MapFrameShape = {
 	project: (position: LngLat) => MapPoint2D | null
 	/**
 	 * {@link project} run backwards, `null` where the fit has no lon/lat for a
-	 * frame position — which the composite's gaps between insets genuinely have.
+	 * frame position, which the composite's gaps between insets genuinely have.
 	 *
 	 * One reader has to go that way. The region half of the hit-target rule turns
 	 * a dot's frame position into a lon/lat. It asks which regions its target
@@ -103,7 +103,7 @@ export type MapFrameShapeOptions = {
 
 /**
  * The transform the region layer carries its canonical paths on, where one
- * holds. Nothing but the null-checks lives here — {@link carriedTransform}
+ * holds. Nothing but the null-checks lives here: {@link carriedTransform}
  * states when a refit can be carried and when it must be emitted instead.
  */
 function regionFrameFor(
@@ -142,11 +142,11 @@ export function useMapShape({
 	graticule,
 	sphere,
 }: MapFrameShapeOptions): MapFrameShape {
-	// The mount-critical geometry — the decode and the measurement-free canonical
-	// fit — memoized across instances and mounts (see
+	// The mount-critical geometry (the decode and the measurement-free canonical
+	// fit), memoized across instances and mounts (see
 	// `engine/map-geometry/cache`), so a tab switch, a second plat on the same
-	// atlas, or a route revisit paints on the first commit instead of re-paying it.
-	// Canonical output is deterministic, so the server and the first client
+	// atlas, or a route revisit paints on the first commit instead of re-paying
+	// it. Canonical output is deterministic, so the server and the first client
 	// render agree. The per-size measured refit below stays per-instance; it
 	// reprojects to constant-pixel marks a beat after this canonical draw.
 	const statics = useMemo(
@@ -219,9 +219,9 @@ export function useMapShape({
 	}, [projection, statics, frameWidth, frameHeight])
 
 	// The chrome, resolved beside the geography rather than inside it: it reads
-	// the same fit, but a chrome toggle must not rebuild the view — that would
+	// the same fit, but a chrome toggle must not rebuild the view (that would
 	// hand the context a fresh `project` identity and recompute every overlay
-	// mark on the map to draw a hairline. Off, this costs a comparison and the
+	// mark on the map to draw a hairline). Off, this costs a comparison and the
 	// shared empty value; on, the memo on the fit itself (`cachedChromePaths`)
 	// holds the canonical stage across instances and mounts.
 	const chrome = useMemo(
