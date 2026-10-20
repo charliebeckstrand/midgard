@@ -1028,7 +1028,7 @@ export function useGridNavigation({
 		setActive((prev) => reseat(prev, order, seated))
 	})
 
-	// Built once. The cells call `isActive` and `isStopActive` in their render,
+	// Built once. The cells call `active` and `isStopActive` in their render,
 	// through `useSyncExternalStore`, so those two stay plain methods. They read
 	// the order when a cell calls them.
 	const [store] = useState<GridNavStore>(() => ({

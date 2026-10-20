@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { isSameDayOrEmpty, isSameInstant } from '../calendar/calendar-utilities'
+import { sameDayOrEmpty, sameInstant } from '../calendar/calendar-utilities'
 import { useDateInputResets } from './context'
 
 type DateInputOverrideOptions = {
@@ -60,10 +60,10 @@ export function useDateInputOverride({
 
 	const reset = known.resets !== resets
 
-	if (reset || !isSameInstant(known.date, date)) {
+	if (reset || !sameInstant(known.date, date)) {
 		setKnown({ date, resets, commit: undefined })
 
-		const echo = known.commit !== undefined && isSameDayOrEmpty(date, known.commit.date)
+		const echo = known.commit !== undefined && sameDayOrEmpty(date, known.commit.date)
 
 		if (editing && (reset || !echo)) onOverride()
 	}

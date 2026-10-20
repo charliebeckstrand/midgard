@@ -629,7 +629,7 @@ function resolveRestingStop(
  */
 type RovingKeyContext = {
 	items: HTMLElement[]
-	isVirtual: boolean
+	virtual: boolean
 	manageTabIndex: boolean
 	activeDescendantRef: RefObject<HTMLElement | null> | undefined
 	manageAriaSelected: boolean
@@ -664,7 +664,7 @@ function resolveContext(
 		manageAriaSelected: boolean
 	},
 ): { context: RovingKeyContext; active: HTMLElement | null; currentIndex: number } | null {
-	const isVirtual = mode === 'virtual'
+	const virtual = mode === 'virtual'
 
 	// An inert container has nothing that a key can reach. In virtual mode, focus
 	// stays on an owner outside it, such as the trigger of a closing menu.
@@ -675,7 +675,7 @@ function resolveContext(
 	// every keystroke, arrow-key auto-repeat included. Virtual mode also needs
 	// `activeIndexRef`, which holds its logical index.
 	const indexed =
-		config.itemSource && (!isVirtual || config.activeIndexRef) ? config.itemSource : null
+		config.itemSource && (!virtual || config.activeIndexRef) ? config.itemSource : null
 
 	const items = indexed ? [] : reachableItems(container, itemSelector)
 
@@ -686,13 +686,13 @@ function resolveContext(
 	const active = document.activeElement as HTMLElement | null
 
 	const currentIndex = indexed
-		? resolveIndexedCurrentIndex(indexed, isVirtual, active, config.activeIndexRef)
-		: resolveDomCurrentIndex(items, isVirtual, active)
+		? resolveIndexedCurrentIndex(indexed, virtual, active, config.activeIndexRef)
+		: resolveDomCurrentIndex(items, virtual, active)
 
 	return {
 		context: {
 			items,
-			isVirtual,
+			virtual,
 			manageTabIndex: config.manageTabIndex,
 			activeDescendantRef: config.activeDescendantRef,
 			manageAriaSelected: config.manageAriaSelected,
@@ -714,11 +714,11 @@ function resolveContext(
  */
 function resolveIndexedCurrentIndex(
 	source: VirtualItemSource,
-	isVirtual: boolean,
+	virtual: boolean,
 	active: HTMLElement | null,
 	activeIndexRef: RefObject<number> | undefined,
 ): number {
-	return isVirtual
+	return virtual
 		? Math.min(activeIndexRef?.current ?? -1, source.count - 1)
 		: resolveVirtualItemIndex(source, active?.id)
 }
@@ -726,10 +726,10 @@ function resolveIndexedCurrentIndex(
 /** The DOM-mode current index: the `data-active` item in virtual mode, the focused item otherwise. @internal */
 function resolveDomCurrentIndex(
 	items: HTMLElement[],
-	isVirtual: boolean,
+	virtual: boolean,
 	active: HTMLElement | null,
 ): number {
-	return isVirtual
+	return virtual
 		? items.findIndex((el) => el.dataset.active !== undefined)
 		: items.indexOf(active as HTMLElement)
 }
@@ -782,7 +782,7 @@ type RowContextOptions = {
 	rowSelector: string | undefined
 	orientation: NavigationConfig['orientation']
 	cols: NavigationConfig['cols']
-	isVirtual: boolean
+	virtual: boolean
 }
 
 /**
@@ -794,13 +794,13 @@ type RowContextOptions = {
  * @internal
  */
 function moveTo(index: number, context: RovingKeyContext): void {
-	if (!context.isVirtual && context.itemSource) {
+	if (!context.virtual && context.itemSource) {
 		focusVirtualIndexed(context.container, context.itemSource, index)
 
 		return
 	}
 
-	if (!context.isVirtual) {
+	if (!context.virtual) {
 		const next = context.items[index]
 
 		if (!next) return
@@ -853,10 +853,10 @@ function processRowContext(
 	currentIndex: number,
 	options: RowContextOptions,
 ): { handled: boolean; currentIndex: number } {
-	const { items, itemSelector, actionSelector, rowSelector, orientation, cols, isVirtual } = options
+	const { items, itemSelector, actionSelector, rowSelector, orientation, cols, virtual } = options
 
 	const row =
-		!isVirtual && rowSelector && actionSelector && cols === undefined
+		!virtual && rowSelector && actionSelector && cols === undefined
 			? active?.closest<HTMLElement>(rowSelector)
 			: undefined
 
@@ -920,7 +920,7 @@ function handleActivationKey(
 	currentIndex: number,
 	activationKey: string | readonly string[] | null,
 ): boolean {
-	if (!context.isVirtual || !activationKey) return false
+	if (!context.virtual || !activationKey) return false
 
 	const keys = Array.isArray(activationKey) ? activationKey : [activationKey]
 
@@ -1027,7 +1027,7 @@ function handleTabTrap(
 	currentIndex: number,
 	trapTab: boolean,
 ): boolean {
-	if (!trapTab || context.isVirtual || event.key !== 'Tab') return false
+	if (!trapTab || context.virtual || event.key !== 'Tab') return false
 
 	event.preventDefault()
 
@@ -1064,7 +1064,7 @@ function handleMainAxisNav(
 		focusOnEmpty: boolean
 	},
 ): void {
-	if (!context.isVirtual && currentIndex === -1 && !options.focusOnEmpty) return
+	if (!context.virtual && currentIndex === -1 && !options.focusOnEmpty) return
 
 	if (hasBrowserModifier(event)) return
 
@@ -1392,7 +1392,7 @@ export function useA11yRoving(
 				rowSelector,
 				orientation,
 				cols,
-				isVirtual: context.isVirtual,
+				virtual: context.virtual,
 			})
 
 			if (rowResult.handled) return

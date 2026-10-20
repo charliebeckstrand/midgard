@@ -46,7 +46,7 @@ export type IconProps = {
  * decorative and stays `aria-hidden`.
  */
 export function Icon({ icon, size, className, label }: IconProps) {
-	const isNumeric = typeof size === 'number'
+	const numeric = typeof size === 'number'
 
 	const a11yProps = label
 		? { role: 'img', 'aria-label': label, 'aria-hidden': undefined }
@@ -55,14 +55,14 @@ export function Icon({ icon, size, className, label }: IconProps) {
 	return cloneElement(icon as ReactElement<Record<string, unknown>>, {
 		...a11yProps,
 		'data-slot': 'icon',
-		'data-density': isNumeric ? undefined : size,
+		'data-density': numeric ? undefined : size,
 		className: cn(
 			'shrink-0',
-			!isNumeric && k.ramp,
+			!numeric && k.ramp,
 			(icon.props as { className?: string }).className,
 			className,
 		),
-		...(isNumeric && {
+		...(numeric && {
 			style: {
 				...(icon.props as { style?: CSSProperties }).style,
 				width: size,

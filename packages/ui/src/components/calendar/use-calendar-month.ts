@@ -5,7 +5,7 @@ import { useCallback, useState } from 'react'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useReportedChange } from '../../hooks/use-reported-change'
 
-import { firstOfMonth, isSameInstant, isYearInRange } from './calendar-utilities'
+import { firstOfMonth, isYearInRange, sameInstant } from './calendar-utilities'
 
 /** First of the month that holds `date`. @internal */
 function toMonth(date: Date): Date {
@@ -47,7 +47,7 @@ function reanchor(date: Date | null | undefined, viewDate: Date): Date | null {
 
 	const month = toMonth(date)
 
-	return isSameInstant(month, viewDate) ? null : month
+	return sameInstant(month, viewDate) ? null : month
 }
 
 /**
@@ -109,7 +109,7 @@ export function useCalendarMonth({ value, activeGridDate, onMonthChange }: Calen
 	// `Date` again on each render keeps the view. The grid date moves on each new
 	// object, because the parent sends one for each keyboard move. A move that
 	// the parent clamps to the same day must still bring the roved day into view.
-	const valueMoved = !isSameInstant(anchors.value, value)
+	const valueMoved = !sameInstant(anchors.value, value)
 
 	const gridMoved = activeGridDate !== anchors.activeGridDate
 
@@ -135,7 +135,7 @@ export function useCalendarMonth({ value, activeGridDate, onMonthChange }: Calen
 	 * reports nothing. The month that a clock-seeded view shows after hydration is
 	 * part of the mount, so it reports nothing too.
 	 */
-	useReportedChange(viewDate, onMonthChange, isSameInstant)
+	useReportedChange(viewDate, onMonthChange, sameInstant)
 
 	return { viewDate, year, month, shown, prevMonth, nextMonth, navigateTo }
 }

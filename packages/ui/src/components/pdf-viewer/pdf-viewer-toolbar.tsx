@@ -55,11 +55,11 @@ export function PdfViewerToolbar() {
 
 	const intl = useIntl()
 
-	const isEmpty = total === 0
+	const empty = total === 0
 
 	// The page count is whole when the document opens, so every control works while the
 	// pages render.
-	const controlsDisabled = isEmpty
+	const controlsDisabled = empty
 
 	const showThumbnails = intl.formatMessage(pdfViewerMessages.showThumbnails)
 

@@ -5,7 +5,7 @@ import { ariaAttr, cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
 import { CalendarDayCell } from './calendar-day-cell'
-import { isSameDay } from './calendar-utilities'
+import { sameDay } from './calendar-utilities'
 
 type CalendarGridProps = {
 	gridRef: RefObject<HTMLDivElement | null>
@@ -78,11 +78,11 @@ export const CalendarGrid = memo(function CalendarGrid({
 				{days.map((date) => {
 					const disabled = isDisabled(date)
 
-					const isToday = today != null && isSameDay(date, today)
+					const isToday = today != null && sameDay(date, today)
 
-					const isSelected = value != null && isSameDay(date, value)
+					const isSelected = value != null && sameDay(date, value)
 
-					const isActive = activeGridDate != null && isSameDay(date, activeGridDate)
+					const isActive = activeGridDate != null && sameDay(date, activeGridDate)
 
 					const dayProps = getDayProps?.({
 						date,

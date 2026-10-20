@@ -170,7 +170,7 @@ export type PlotFrameRef = RefCallback<HTMLDivElement> & RefObject<HTMLDivElemen
 type FrameSize = { width: number; height: number; containerHeight: number }
 
 /** Whether two frame sizes are the same on each axis. @internal */
-function isSameSize(a: FrameSize, b: FrameSize): boolean {
+function sameSize(a: FrameSize, b: FrameSize): boolean {
 	return a.width === b.width && a.height === b.height && a.containerHeight === b.containerHeight
 }
 
@@ -306,7 +306,7 @@ export function usePlotFrame(
 
 				const measured = next && measures ? readSize(next) : null
 
-				if (measured) setSize((prev) => (isSameSize(prev, measured) ? prev : measured))
+				if (measured) setSize((prev) => (sameSize(prev, measured) ? prev : measured))
 			},
 			{ current: null as HTMLDivElement | null },
 		)
@@ -335,7 +335,7 @@ export function usePlotFrame(
 
 		const next = readSize(node)
 
-		if (next !== null && !isSameSize(next, size)) setSize(next)
+		if (next !== null && !sameSize(next, size)) setSize(next)
 	}, [node, readSize, measures, size])
 
 	// Observe only while a measured axis feeds the sizing: a fully fixed
@@ -354,7 +354,7 @@ export function usePlotFrame(
 			startTransition(() => {
 				const next = readSize(node)
 
-				if (next !== null) setSize((prev) => (isSameSize(prev, next) ? prev : next))
+				if (next !== null) setSize((prev) => (sameSize(prev, next) ? prev : next))
 			})
 		})
 

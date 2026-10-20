@@ -33,8 +33,8 @@ import {
 	type GridActiveEdit,
 	type GridDraftKey,
 	isCellEditing,
-	isSameCell,
 	NEW_ROW_KEY,
+	pointsAt,
 	sameCell,
 } from './engine/grid-editing-utilities'
 import { resolveNewRow } from './engine/grid-new-row'
@@ -545,7 +545,7 @@ export function useGridEditing<T>({
 			// mount question: it holds for every cell of a row the consumer opened,
 			// so it would refuse to narrow one. A session that has not started is not
 			// a reason to decline starting it.
-			const here = entering ? isSameCell(active, entering) : editableRows.has(rowKey)
+			const here = entering ? pointsAt(active, entering) : editableRows.has(rowKey)
 
 			// A cell whose commit is in flight cannot open, so no second batch for
 			// it can start before the first settles.
@@ -783,7 +783,7 @@ export function useGridEditing<T>({
 	// away saves, so a save control is redundant and only discard shows.
 	const settleControls = useCallback(
 		(rowKey: string | number, columnId: string | number): GridSettleControls => {
-			if (!cellScoped || !isSameCell(activeEditStore.get(), { rowKey, columnId })) return 'none'
+			if (!cellScoped || !pointsAt(activeEditStore.get(), { rowKey, columnId })) return 'none'
 
 			return commitOn === 'leaveEditor' ? 'discard' : 'both'
 		},

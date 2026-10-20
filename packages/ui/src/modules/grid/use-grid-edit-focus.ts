@@ -13,9 +13,9 @@ import {
 	EDITOR_FOCUSABLE,
 	findCoord,
 	type GridActiveEdit,
+	inGrid,
 	isCellEditing,
-	isInGrid,
-	isSameCell,
+	pointsAt,
 } from './engine/grid-editing-utilities'
 import type { GridColumn } from './types'
 import type { Coord } from './use-grid-navigation'
@@ -72,7 +72,7 @@ export function useGridEditFocus<T>({
 	const entrySeed = useCallback((rowKey: string | number, columnId: string | number) => {
 		const pending = pendingSeedRef.current
 
-		return pending && isSameCell(pending, { rowKey, columnId }) ? pending.value : undefined
+		return pending && pointsAt(pending, { rowKey, columnId }) ? pending.value : undefined
 	}, [])
 
 	const dropIntents = useCallback(() => {
@@ -89,7 +89,7 @@ export function useGridEditFocus<T>({
 		(rowKey: string | number, columnId: string | number) => {
 			const pending = pendingFocusRef.current
 
-			if (!pending || !isSameCell(pending, { rowKey, columnId })) return false
+			if (!pending || !pointsAt(pending, { rowKey, columnId })) return false
 
 			const open = isCellEditing({
 				rowKey,
@@ -234,7 +234,7 @@ export function useGridEditFocus<T>({
 	// Returns focus as the session on `rowKey` ends, when focus is in the grid.
 	const returnFocus = useCallback(
 		(rowKey: string | number) => {
-			if (!isInGrid(document.activeElement, tableRef.current)) return
+			if (!inGrid(document.activeElement, tableRef.current)) return
 
 			const target = focusTarget(rowKey)
 
@@ -246,13 +246,13 @@ export function useGridEditFocus<T>({
 	// Moves focus for one transition of a controlled binding. A value set from
 	// outside replaces the intents of any entry, and focus follows it into the
 	// grid only when focus is already there (WCAG 3.2.1). Focus in a grid nested
-	// in a detail row is not in this grid (see `isInGrid`). The leaving editor
+	// in a detail row is not in this grid (see `inGrid`). The leaving editor
 	// blurs while it is still mounted, so a value it stages on blur reaches the
 	// draft before the sweep commits the cell. A move the grid asked for blurs
 	// where the uncontrolled path does: on a key move or an exit.
 	const settleFocus = useCallback(
 		(plan: TransitionPlan, blur: boolean) => {
-			const focused = isInGrid(document.activeElement, tableRef.current)
+			const focused = inGrid(document.activeElement, tableRef.current)
 
 			if (!plan.asked) {
 				dropIntents()

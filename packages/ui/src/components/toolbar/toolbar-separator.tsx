@@ -23,16 +23,16 @@ export type ToolbarSeparatorProps = {
 export function ToolbarSeparator({ className }: ToolbarSeparatorProps) {
 	const { orientation } = useToolbarContext()
 
-	const isHorizontal = orientation === 'horizontal'
+	const horizontal = orientation === 'horizontal'
 
 	return (
 		<Divider
 			data-slot="toolbar-separator"
-			orientation={isHorizontal ? 'vertical' : 'horizontal'}
+			orientation={horizontal ? 'vertical' : 'horizontal'}
 			soft
 			className={cn(
 				k.separator({ orientation }),
-				isHorizontal && 'data-row-edge:invisible',
+				horizontal && 'data-row-edge:invisible',
 				className,
 			)}
 		/>

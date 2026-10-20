@@ -550,13 +550,13 @@ export function usePdfViewer({
 	// each page of a streaming load. Both reset hooks take this one key.
 	const documentKey = useDocumentKey(pagesProp, src)
 
-	const { rotation, isTransposed, rotate } = usePdfViewerPageRotation(safePage, documentKey)
+	const { rotation, transposed, rotate } = usePdfViewerPageRotation(safePage, documentKey)
 
 	const { pageSize, onImageLoad } = usePdfViewerPageSize(activePage, safePage, documentKey)
 
-	// `isTransposed` is the invalidation key; the viewport re-measures
+	// `transposed` is the invalidation key; the viewport re-measures
 	// synchronously on rotation flip, before paint.
-	const viewportSize = usePdfViewerViewportSize(viewportRef, isTransposed)
+	const viewportSize = usePdfViewerViewportSize(viewportRef, transposed)
 
 	// Aspect ratio drives the viewport height. US Letter (8.5 × 11) is the
 	// pre-load fallback. Unset when there is no content to display.

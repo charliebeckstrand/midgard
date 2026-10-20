@@ -6,7 +6,7 @@ import { useCallback, useState } from 'react'
  * Whether a rotation swaps the page's width and height in layout: true at 90° and 270°.
  *
  * @remarks Exported so the one fact has one source: a caller that took `rotation` and
- * `isTransposed` as separate inputs could be handed a contradictory pair.
+ * `transposed` as separate inputs could be handed a contradictory pair.
  * @internal
  */
 export function isRotationTransposed(rotation: number): boolean {
@@ -20,7 +20,7 @@ type PageRotationResult = {
 	/** Raw rotation in degrees for the active page. Can be ≥ 360. */
 	rotation: number
 	/** True at 90° / 270°, where the page's bbox width and height are swapped. False at 0° and 180°. */
-	isTransposed: boolean
+	transposed: boolean
 	/** Rotates the active page 90° clockwise. */
 	rotate: () => void
 }
@@ -32,7 +32,7 @@ type PageRotationResult = {
  *
  * @param documentKey - Identity of the current document; rotations reset when it
  * changes, so a new document starts unrotated.
- * @returns `{ rotation, isTransposed, rotate }` for the active page.
+ * @returns `{ rotation, transposed, rotate }` for the active page.
  * @internal
  */
 export function usePdfViewerPageRotation(page: number, documentKey?: unknown): PageRotationResult {
@@ -52,11 +52,11 @@ export function usePdfViewerPageRotation(page: number, documentKey?: unknown): P
 
 	const rotation = rotations[page] ?? 0
 
-	const isTransposed = isRotationTransposed(rotation)
+	const transposed = isRotationTransposed(rotation)
 
 	const rotate = useCallback(() => {
 		setRotations((prev) => ({ ...prev, [page]: (prev[page] ?? 0) + 90 }))
 	}, [page])
 
-	return { rotation, isTransposed, rotate }
+	return { rotation, transposed, rotate }
 }

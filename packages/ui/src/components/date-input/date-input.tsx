@@ -11,7 +11,7 @@ import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale'
 import { isComposing } from '../../utilities'
-import { isDayInRange, isSameDayOrEmpty } from '../calendar/calendar-utilities'
+import { isDayInRange, sameDayOrEmpty } from '../calendar/calendar-utilities'
 import { useControl } from '../control/context'
 import { useControlLabelRef } from '../control/use-control-label-ref'
 import { useControlTypedVerdict } from '../control/use-control-typed-verdict'
@@ -273,7 +273,7 @@ export function DateInput({
 
 		// Re-stating the held day is not a change; the value keeps its identity
 		// (and any time of day it carries).
-		if (!isSameDayOrEmpty(parsed, date)) {
+		if (!sameDayOrEmpty(parsed, date)) {
 			recordCommit(parsed)
 
 			setDate(parsed)

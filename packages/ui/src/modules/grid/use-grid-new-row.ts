@@ -24,8 +24,8 @@ import {
 	findColumn,
 	type GridDraftStore,
 	inferEditorKind,
+	inGrid,
 	isColumnEditable,
-	isInGrid,
 	isThenable,
 	NATIVE_ENTER,
 	NEW_ROW_KEY,
@@ -248,7 +248,7 @@ export function useGridNewRow<T>({
 				for (const [columnId, draft] of flight.cells)
 					drafts.settle(NEW_ROW_KEY, columnId, draft, null)
 
-				accept(isInGrid(document.activeElement, tableRef.current))
+				accept(inGrid(document.activeElement, tableRef.current))
 
 				return
 			}

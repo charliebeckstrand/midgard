@@ -29,7 +29,7 @@ import {
 	getMonthLabels,
 	getWeekdayLabels,
 	isDayInRange,
-	isSameDay,
+	sameDay,
 } from './calendar-utilities'
 import { dayTabStop, useCalendarFocus } from './use-calendar-focus'
 import { useCalendarMonth } from './use-calendar-month'
@@ -326,14 +326,14 @@ export function Calendar({
 	// match with `value`, as a range does for its two endpoints.
 	const isSelected = useCallback(
 		(date: Date) => {
-			const selected = value != null && isSameDay(date, value)
+			const selected = value != null && sameDay(date, value)
 
 			const dayProps = getDayProps?.({
 				date,
 				disabled: isDisabled(date),
-				today: today != null && isSameDay(date, today),
+				today: today != null && sameDay(date, today),
 				selected,
-				active: activeGridDate != null && isSameDay(date, activeGridDate),
+				active: activeGridDate != null && sameDay(date, activeGridDate),
 			})
 
 			return dayProps?.selected ?? selected
@@ -371,7 +371,7 @@ export function Calendar({
 	const handleSelect = useCallback(
 		(date: Date) => {
 			// The selected day stays as it is: a new date of the same day is no change.
-			setValue((current) => (current != null && isSameDay(current, date) ? current : date))
+			setValue((current) => (current != null && sameDay(current, date) ? current : date))
 
 			pressDay(date)
 

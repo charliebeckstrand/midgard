@@ -203,6 +203,21 @@ export const check = expectTypeOf
 `,
 		},
 	],
+	'no-alternate-predicate-binding': [
+		{
+			file: 'predicates.ts',
+			source: `import { isSameMonth } from '@internationalized/date'
+export function isSameDay(a: number, b: number) { return a === b } // flag
+export const isInGrid = (node: unknown) => node !== null // flag
+export const valuesEqual = (a: unknown, b: unknown) => a === b // flag
+export function sameDay(a: number, b: number) { return a === b }
+export const inGrid = (node: unknown) => node !== null
+export const isInner = true
+export const store = { isInRange: () => false }
+export const check = isSameMonth
+`,
+		},
+	],
 	'no-physical-side': [
 		{
 			file: 'side.tsx',
