@@ -1,8 +1,11 @@
 'use client'
 
+import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { type CSSProperties, useMemo } from 'react'
-import { useMotionSafeSortable } from './use-motion-safe-sortable'
+import { reorderMessages } from '../primitives/intl/intl-reorder'
+import { useIntl } from '../primitives/intl/use-intl'
+import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 
 /** Options for {@link useSortableItem}: the item's id and whether it takes a drag. */
 export type SortableItemOptions = {
@@ -13,21 +16,36 @@ export type SortableItemOptions = {
 }
 
 /**
- * Wraps dnd-kit's `useSortable` with the standard style composition used by
- * sortable components in this package. That composition is a translate via
- * `CSS.Translate.toString`, the hook's transition value, and a hidden opacity
- * while dragging (the `<DragOverlay>` owns the dragged visual). The style
- * has no scale, so an item moves and does not change its size. When the reader asks
- * for reduced motion, the style has no transition, so a displaced item moves
- * to its new slot at once.
+ * Wraps dnd-kit's `useSortable` for each sortable item in this package. The
+ * item's role description is in the language of the reader. When the reader
+ * asks for reduced motion, `transition` is `undefined`, so a displaced item
+ * moves to its new slot at once (WCAG 2.3.3).
  *
- * @returns `{ setNodeRef, setActivatorNodeRef, attributes, listeners, style,
- * dragging }`: dnd-kit's node and activator refs, the spreadable `attributes`
- * and `listeners`, the composed `style`, and `dragging` for the active item.
- * `style` keeps its identity while its transform, transition, and drag state
- * hold.
+ * `style` is the standard style of an item whose dragged visual a
+ * `<DragOverlay>` draws: a translate via `CSS.Translate.toString`, the
+ * transition, and a hidden opacity while dragging. The style has no scale, so
+ * an item moves and does not change its size. An item that stays visible
+ * while it moves composes its own style from `transform` and `transition`.
+ *
+ * @remarks
+ * dnd-kit writes its reflow transition (`transform 200ms ease`) as an inline
+ * style, and an inline style beats a `motion-reduce:` class. So under reduced
+ * motion the hook gives dnd-kit `transition: null` instead.
+ *
+ * @returns `{ setNodeRef, setActivatorNodeRef, attributes, listeners,
+ * transform, transition, style, dragging, sorting }`: dnd-kit's node and
+ * activator refs, the spreadable `attributes` and `listeners`, the raw
+ * `transform` and `transition`, the composed `style`, `dragging` for the
+ * active item, and `sorting` while any item of the list drags. `style` keeps
+ * its identity while its transform, transition, and drag state hold.
  */
 export function useSortableItem({ id, disabled = false }: SortableItemOptions) {
+	const still = usePrefersReducedMotion()
+
+	const intl = useIntl()
+
+	const role = { roleDescription: intl.formatMessage(reorderMessages.sortableRole) }
+
 	const {
 		setNodeRef,
 		setActivatorNodeRef,
@@ -36,7 +54,12 @@ export function useSortableItem({ id, disabled = false }: SortableItemOptions) {
 		transform,
 		transition,
 		isDragging: dragging,
-	} = useMotionSafeSortable({ id, disabled })
+		isSorting: sorting,
+	} = useSortable(
+		still
+			? { id, disabled, attributes: role, transition: null }
+			: { id, disabled, attributes: role },
+	)
 
 	// dnd-kit renders each sortable item again when the item under the pointer
 	// changes. The style keeps its identity while its values hold, so a memoized
@@ -48,5 +71,15 @@ export function useSortableItem({ id, disabled = false }: SortableItemOptions) {
 		[translate, transition, dragging],
 	)
 
-	return { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging }
+	return {
+		setNodeRef,
+		setActivatorNodeRef,
+		attributes,
+		listeners,
+		transform,
+		transition,
+		style,
+		dragging,
+		sorting,
+	}
 }

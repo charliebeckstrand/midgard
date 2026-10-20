@@ -1,19 +1,17 @@
 'use client'
 
 import { DndContext } from '@dnd-kit/core'
-import { SortableContext, useSortable } from '@dnd-kit/sortable'
+import { SortableContext } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { type ComponentProps, type ReactNode, useId } from 'react'
 import { createContext } from '../../core'
-import { useMotionSafeSortable } from '../../hooks/use-motion-safe-sortable'
+import { useSortableItem } from '../../hooks/use-sortable-item'
 import {
 	restrictToHorizontalAxis,
 	restrictToVerticalAxis,
 	type SortableListOptions,
 	useSortableList,
 } from '../../hooks/use-sortable-list'
-import { reorderMessages } from '../../primitives/intl/intl-reorder'
-import { useIntl } from '../../primitives/intl/use-intl'
 import { restrictToFirstScrollableAncestor } from './engine/grid-reorder-compute'
 import {
 	type GridReorderableColumnHeaderProps,
@@ -158,20 +156,8 @@ function RowSortableScope({ children }: { children: ReactNode }) {
  * @internal
  */
 function SortableColumnHeader(props: GridReorderableColumnHeaderProps) {
-	const intl = useIntl()
-
-	const {
-		setNodeRef,
-		setActivatorNodeRef,
-		attributes,
-		listeners,
-		transform,
-		isDragging,
-		isSorting,
-	} = useSortable({
-		id: String(props.column.id),
-		attributes: { roleDescription: intl.formatMessage(reorderMessages.sortableRole) },
-	})
+	const { setNodeRef, setActivatorNodeRef, attributes, listeners, transform, dragging, sorting } =
+		useSortableItem({ id: String(props.column.id) })
 
 	return (
 		<GridReorderableColumnHeaderView
@@ -182,8 +168,8 @@ function SortableColumnHeader(props: GridReorderableColumnHeaderProps) {
 				attributes,
 				listeners,
 				x: transform?.x ?? 0,
-				isDragging,
-				isSorting,
+				isDragging: dragging,
+				isSorting: sorting,
 			}}
 		/>
 	)
@@ -192,9 +178,9 @@ function SortableColumnHeader(props: GridReorderableColumnHeaderProps) {
 /**
  * A drag-reorderable body row. It registers the `<tr>` as a vertical dnd-kit
  * sortable keyed by its row key, and composes the lift transform/transition. It
- * threads the activator ref and listeners down to its drag-handle grip. Unlike
- * {@link useSortableItem}, the dragged row stays visible (no `<DragOverlay>`) and
- * lifts in place via {@link k.row.reorder.dragging}.
+ * threads the activator ref and listeners down to its drag-handle grip. It does
+ * not take the `style` of {@link useSortableItem}: the dragged row stays visible
+ * (no `<DragOverlay>`) and lifts in place via {@link k.row.reorder.dragging}.
  *
  * @internal
  */
@@ -206,16 +192,16 @@ function SortableRow<T>(props: GridRowProps<T>) {
 		listeners,
 		transform,
 		transition,
-		isDragging,
-	} = useMotionSafeSortable({ id: String(props.rowKey) })
+		dragging,
+	} = useSortableItem({ id: String(props.rowKey) })
 
 	const sortable: GridRowSortable = {
 		setNodeRef,
 		setActivatorNodeRef,
 		attributes,
 		listeners,
-		style: { transform: CSS.Transform.toString(transform), transition },
-		dragging: isDragging,
+		style: { transform: CSS.Translate.toString(transform), transition },
+		dragging,
 	}
 
 	return <GridRowImpl<T> {...props} sortable={sortable} />
