@@ -336,9 +336,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		await screen.findByRole('tooltip')
 
 		// Press the column's resize handle and drag, without releasing.
-		const separator = container.querySelector<HTMLElement>(
-			'[role="separator"][aria-label="Resize Name"]',
-		)
+		const separator = container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]')
 
 		if (!separator) throw new Error('resize separator not found')
 

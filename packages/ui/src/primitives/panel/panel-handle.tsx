@@ -30,10 +30,8 @@ export type PanelHandleProps = {
 	covers: number
 	/** The id of the panel that the handle sizes. The separator names it in `aria-controls`. */
 	controls: string
-	/** The grab area's styling, which is the panel's own kata to say. */
+	/** The grab area's styling and the bar it draws, which is the panel's own kata to say. */
 	className?: string
-	/** The bar inside it, likewise. */
-	bar?: string
 }
 
 /**
@@ -62,7 +60,6 @@ export function PanelHandle({
 	covers,
 	controls,
 	className,
-	bar,
 }: PanelHandleProps) {
 	const intl = useIntl()
 
@@ -77,8 +74,6 @@ export function PanelHandle({
 			max={100}
 			{...handleProps}
 			className={className}
-		>
-			<div className={bar} />
-		</Splitter>
+		/>
 	)
 }

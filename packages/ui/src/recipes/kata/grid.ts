@@ -664,40 +664,38 @@ export const k = {
 		// affordance lives in the header, not down the column. `justify-center` lands
 		// the grip one cell-padding in from the trailing edge — flush with where a
 		// truncating header's label and body values clip — and `items-center` centers
-		// the short grip vertically. `group/grid-resize` lets the grip tint on hover
-		// and turn accent on focus or active drag. The grab zone does not overhang the
+		// the short grip vertically. The grab zone does not overhang the
 		// boundary: an outward overhang gets painted over by a neighbor's opaque
 		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
 		handle: [
-			`group/grid-resize absolute top-0 end-0 z-10 h-full ${dan.size.resize.handle}`,
+			`absolute top-0 end-0 z-10 h-full ${dan.size.resize.handle}`,
 			flex.row,
 			'justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
-		// Grip line — a short 2px rounded bar (`h-4`), its 2px width matching the
-		// `ResizableHandle` grip (`kata/resizable`) so every resize affordance reads
-		// the same, centered in the grab zone (`justify-center` on the handle) one
-		// cell-padding in from the trailing edge. Always visible: muted at rest,
-		// tinting on hover, turning accent on keyboard focus or active drag. Focus
-		// shows as a color change, not an outset ring, so the scroll container can't
-		// clip it.
+		// Grip line, which the handle draws as its `::after` — a short 2px rounded
+		// bar (`h-4`), its 2px width matching the `ResizableHandle` grip
+		// (`kata/resizable`) so every resize affordance reads the same, centered in
+		// the grab zone (`justify-center` on the handle) one cell-padding in from the
+		// trailing edge. Always visible: muted at rest, tinting on hover, turning
+		// accent on keyboard focus or active drag. Focus shows as a color change, not
+		// an outset ring, so the scroll container can't clip it.
 		grip: [
-			'h-4 w-0.5',
-			rounded.full,
-			'transition-colors',
+			'after:h-4 after:w-0.5 after:rounded-full',
+			'after:transition-colors',
 			...mode(
-				'bg-zinc-300 group-hover/grid-resize:bg-zinc-400',
-				'dark:bg-zinc-600 dark:group-hover/grid-resize:bg-zinc-500',
+				'after:bg-zinc-300 hover:after:bg-zinc-400',
+				'dark:after:bg-zinc-600 dark:hover:after:bg-zinc-500',
 			),
-			'group-focus-visible/grid-resize:bg-blue-500 dark:group-focus-visible/grid-resize:bg-blue-500',
-			'group-data-resizing/grid-resize:bg-blue-500 dark:group-data-resizing/grid-resize:bg-blue-500',
-			sen.forced.shape,
+			'focus-visible:after:bg-blue-500 dark:focus-visible:after:bg-blue-500',
+			'data-resizing:after:bg-blue-500 dark:data-resizing:after:bg-blue-500',
+			'forced-colors:after:bg-[CanvasText]',
 			// Each state color above outranks the shape, so the shape repeats in each state.
-			'forced-colors:group-hover/grid-resize:bg-[CanvasText] forced-colors:group-focus-visible/grid-resize:bg-[CanvasText] forced-colors:group-data-resizing/grid-resize:bg-[CanvasText]',
+			'forced-colors:hover:after:bg-[CanvasText] forced-colors:focus-visible:after:bg-[CanvasText] forced-colors:data-resizing:after:bg-[CanvasText]',
 			// Forced colors remove the focus color of the grip. This outline on the bar
 			// marks the focused handle there, as `kiso/panel/grip.ts` FOCUS does.
-			'forced-colors:group-focus-visible/grid-resize:outline-solid forced-colors:group-focus-visible/grid-resize:outline-2',
-			'forced-colors:group-focus-visible/grid-resize:outline-offset-2 forced-colors:group-focus-visible/grid-resize:outline-[Highlight]',
+			'forced-colors:focus-visible:after:outline-solid forced-colors:focus-visible:after:outline-2',
+			'forced-colors:focus-visible:after:outline-offset-2 forced-colors:focus-visible:after:outline-[Highlight]',
 		],
 	},
 	filter: {

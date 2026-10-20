@@ -3,6 +3,7 @@ import { Badge } from '../../../components/badge'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { frame, present, renderUI, waitFor } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+import { afterBox } from '../helpers/after-box'
 
 // The handle and the header cell can differ by a hairline cell border, up to this much.
 const HANDLE_HEIGHT_SLACK = 2
@@ -67,19 +68,17 @@ describe('grid resize handle geometry (real browser)', () => {
 			'th[data-grid-col="role"]',
 		)
 
-		const grip = present(
+		// The handle draws the grip as its `::after`.
+		const grip = afterBox(
 			present(
-				container.querySelector('[role="separator"][aria-label="Resize Role"]'),
+				container.querySelector('hr[aria-label="Resize Role"]'),
 				'[aria-label="Resize Role"]',
-			).querySelector('span[aria-hidden="true"]'),
-			'span[aria-hidden="true"]',
+			),
 		)
 
 		// The grip's trailing edge stops at the column boundary — it does not spill
 		// past it into the neighbor, whose opaque sticky header would clip it.
-		expect(grip.getBoundingClientRect().right).toBeLessThanOrEqual(
-			roleHeader.getBoundingClientRect().right + 0.5,
-		)
+		expect(grip.right).toBeLessThanOrEqual(roleHeader.getBoundingClientRect().right + 0.5)
 	})
 
 	it('confines the handle to the header, leaving no phantom vertical scroll', async () => {
@@ -99,8 +98,8 @@ describe('grid resize handle geometry (real browser)', () => {
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
 		const nameHandle = present(
-			container.querySelector('[role="separator"][aria-label="Resize Name"]'),
-			'[role="separator"][aria-label="Resize Name"]',
+			container.querySelector('hr[aria-label="Resize Name"]'),
+			'hr[aria-label="Resize Name"]',
 		)
 
 		const nameHeader = present(
@@ -137,8 +136,8 @@ describe('grid resize handle geometry (real browser)', () => {
 		expect(scroll.scrollWidth).toBeLessThanOrEqual(Math.ceil(table.getBoundingClientRect().width))
 
 		const statusHandle = present(
-			container.querySelector('[role="separator"][aria-label="Resize Status"]'),
-			'[role="separator"][aria-label="Resize Status"]',
+			container.querySelector('hr[aria-label="Resize Status"]'),
+			'hr[aria-label="Resize Status"]',
 		)
 
 		expect(statusHandle.getBoundingClientRect().right).toBeLessThanOrEqual(
@@ -187,15 +186,15 @@ describe('grid resize grip alignment (real browser)', () => {
 			'th[data-grid-col="name"]',
 		)
 
-		const grip = present(
+		// The handle draws the grip as its `::after`.
+		const grip = afterBox(
 			present(
-				container.querySelector('[role="separator"][aria-label="Resize Name"]'),
+				container.querySelector('hr[aria-label="Resize Name"]'),
 				'[aria-label="Resize Name"]',
-			).querySelector('span[aria-hidden="true"]'),
-			'span[aria-hidden="true"]',
+			),
 		)
 
-		return header.getBoundingClientRect().right - grip.getBoundingClientRect().right
+		return header.getBoundingClientRect().right - grip.right
 	}
 
 	// A cell-padding inside the border (where a truncating value clips), not flush.

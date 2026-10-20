@@ -21,10 +21,10 @@ const messages = defineMessages({
 
 /**
  * Props for {@link ResizableHandle}: an optional accessible name. The root
- * `<div role="separator">` takes the rest. The handle draws its own grip in
- * place of `children`, and keeps its own `role` and `tabIndex`.
+ * `<hr>` takes the rest. The handle draws its own grip, and keeps its own
+ * `role` and `tabIndex`.
  */
-export type ResizableHandleProps = Omit<ComponentProps<'div'>, 'children' | 'role' | 'tabIndex'> & {
+export type ResizableHandleProps = Omit<ComponentProps<'hr'>, 'children' | 'role' | 'tabIndex'> & {
 	/**
 	 * Accessible name; distinguishes multiple handles ("Resize sidebar").
 	 * @defaultValue `'Resize'`, in the language of the reader.
@@ -59,7 +59,7 @@ function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): nu
 
 /**
  * Draggable divider between two {@link ResizablePanel}s. Renders a focusable
- * `role="separator"` whose `aria-orientation` is perpendicular to the group
+ * `<hr>`, a separator whose `aria-orientation` is perpendicular to the group
  * axis. A drag or the arrow keys adjust the adjacent panel within its min and
  * max bounds. Shift takes a larger step, and Home/End reach the extremes. In a
  * right-to-left group the panels start on the right, so the horizontal arrows
@@ -138,13 +138,10 @@ export function ResizableHandle({
 			className={cn(
 				k.handle.base,
 				isHorizontal ? k.handle.horizontal : k.handle.vertical,
+				k.grip.base,
+				isHorizontal ? k.grip.horizontal : k.grip.vertical,
 				className,
 			)}
-		>
-			<span
-				aria-hidden
-				className={cn(k.grip.base, isHorizontal ? k.grip.horizontal : k.grip.vertical)}
-			/>
-		</Splitter>
+		/>
 	)
 }

@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
 import { LocaleProvider } from '../../providers/locale'
-import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 describe('Resizable', () => {
-	it('handle has role="separator"', () => {
+	it('handle is a separator', () => {
 		const { container } = renderUI(
 			<ResizableGroup>
 				<ResizablePanel>A</ResizablePanel>
@@ -13,7 +13,7 @@ describe('Resizable', () => {
 			</ResizableGroup>,
 		)
 
-		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('role', 'separator')
+		expect(screen.getByRole('separator')).toBe(bySlot(container, 'resizable-handle'))
 	})
 
 	it('renders a panel outside a group at its defaultSize', () => {

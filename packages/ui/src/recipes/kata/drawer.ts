@@ -96,7 +96,7 @@ export const k = {
 	content: [panel.layout.content, flex.fill],
 	/**
 	 * The drag handle: a grab area wide enough to aim at (`base`), and the bar
-	 * inside it the reader actually sees (`bar`).
+	 * that it draws as its `::after`, which the reader actually sees (`bar`).
 	 *
 	 * The grab area is the full width, so the reach is the panel's rather than the
 	 * bar's. `hannou.grab.default` carries the rest, including the `touch-none`
@@ -118,7 +118,6 @@ export const k = {
 			// The stroke goes on the bar, not here — see the archetype's grip. This
 			// suppresses the browser's own, which would draw around the whole reach.
 			'outline-hidden',
-			grip.base,
 		],
 		bar: grip.bar.horizontal,
 	},

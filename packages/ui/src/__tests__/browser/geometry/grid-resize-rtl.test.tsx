@@ -33,7 +33,7 @@ describe('grid column resizing in a right-to-left grid (real browser)', () => {
 		)
 
 		const separator = present(
-			container.querySelector<HTMLElement>('[role="separator"][aria-label="Resize Name"]'),
+			container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]'),
 			'the Name resize handle',
 		)
 

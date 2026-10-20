@@ -380,14 +380,14 @@ describe('Grid error state', () => {
 
 		// The error replaces the body, so the header stands down just like the
 		// empty state — no resize grip, no sort affordance.
-		expect(container.querySelector('[role="separator"]')).toBeNull()
+		expect(container.querySelector('hr')).toBeNull()
 
 		expect(screen.queryByRole('button', { name: 'Sort by Name' })).not.toBeInTheDocument()
 
 		// Clearing the error restores the affordances over the same rows.
 		rerender(<Grid resizable columns={sortable} rows={rows} getKey={getKey} error={false} />)
 
-		expect(container.querySelector('[role="separator"]')).not.toBeNull()
+		expect(container.querySelector('hr')).not.toBeNull()
 
 		expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
 	})

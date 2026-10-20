@@ -70,7 +70,7 @@ export function DashboardResizeHandle({
 	// The south edge of a free-form tile has no most height unless the tile sets one.
 	const most = horizontal ? range.maxH : range.maxW
 
-	const ref = useRef<HTMLDivElement>(null)
+	const ref = useRef<HTMLHRElement>(null)
 
 	// The span of the last check, so the scroll below runs on a new span only.
 	const checkedSpan = useRef(span)
@@ -105,12 +105,11 @@ export function DashboardResizeHandle({
 	}
 
 	const shared = {
-		ref,
 		'data-slot': 'dashboard-resize-handle',
 		'data-edge': edge,
 		'data-resizing': dataAttr(resizing),
 		className: cn(k.resize.handle({ edge })),
-		onPointerDown: (event: PointerEvent<HTMLDivElement>) => beginResize(id, edge, event),
+		onPointerDown: (event: PointerEvent<HTMLElement>) => beginResize(id, edge, event),
 	}
 
 	if (edge === 'se') return <div {...shared} aria-hidden />
@@ -118,6 +117,7 @@ export function DashboardResizeHandle({
 	return (
 		<Splitter
 			{...shared}
+			ref={ref}
 			label={intl.formatMessage(dashboardMessages.resize, { label })}
 			orientation={horizontal ? 'horizontal' : 'vertical'}
 			value={span}

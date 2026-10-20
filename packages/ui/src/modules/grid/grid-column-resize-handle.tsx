@@ -119,7 +119,7 @@ export function GridColumnResizeHandle({
 			min={min}
 			max={max < Number.MAX_SAFE_INTEGER ? max : undefined}
 			data-resizing={dataAttr(resizing)}
-			className={cn(k.resize.handle)}
+			className={cn(k.resize.handle, k.resize.grip)}
 			onMouseDown={(event) => {
 				// Only a plain primary press starts a drag-resize. Any context-menu
 				// gesture — a right- or middle-click, or a Ctrl-click (the macOS
@@ -175,8 +175,6 @@ export function GridColumnResizeHandle({
 				announceSettledWidth()
 			}}
 			onKeyDown={handleKeyDown}
-		>
-			<span aria-hidden="true" className={cn(k.resize.grip)} />
-		</Splitter>
+		/>
 	)
 }

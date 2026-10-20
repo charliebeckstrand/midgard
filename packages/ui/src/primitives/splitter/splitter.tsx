@@ -1,11 +1,14 @@
 'use client'
 
 import type { ComponentProps } from 'react'
+import { cn } from '../../core'
+import { k } from '../../recipes/kata/splitter'
 import type { Orientation } from '../../types'
 
 /** Props for {@link Splitter}. @internal */
 export type SplitterProps = Omit<
-	ComponentProps<'div'>,
+	ComponentProps<'hr'>,
+	| 'children'
 	| 'role'
 	| 'tabIndex'
 	| 'aria-label'
@@ -33,9 +36,10 @@ export type SplitterProps = Omit<
 }
 
 /**
- * A focusable window splitter: `role="separator"` with a tab stop, a name, an
+ * A focusable window splitter: an `<hr>` with a tab stop, a name, an
  * orientation, and a value. Each resize handle renders one, and gives it the
- * gesture, the keys, and the grip that it draws.
+ * gesture, the keys, and the grip, which it draws as the `::after` of the
+ * splitter.
  *
  * @remarks The WAI-ARIA window splitter pattern gives a focusable separator a
  * value, so a reader hears the size that the handle sets. The props require
@@ -51,14 +55,13 @@ export function Splitter({
 	max,
 	valueText,
 	controls,
-	children,
+	className,
 	...props
 }: SplitterProps) {
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: an <hr> is void, and a splitter holds the grip that it draws.
-		<div
+		<hr
 			{...props}
-			role="separator"
+			className={cn(k.base, className)}
 			tabIndex={0}
 			aria-label={label}
 			aria-orientation={orientation}
@@ -67,8 +70,6 @@ export function Splitter({
 			aria-valuemax={max}
 			aria-valuetext={valueText}
 			aria-controls={controls}
-		>
-			{children}
-		</div>
+		/>
 	)
 }

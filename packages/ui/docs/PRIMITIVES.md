@@ -30,7 +30,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | `select-trigger` | Trigger chrome for the select family (Listbox, Combobox) over `ControlFrame`. | `SelectTrigger`, `SelectTriggerProps` |
 | `inline-script` | Internal, with no entry point. A `<script>` that runs before React hydrates. `AppearanceScript`, `CurrentScrollScript`, and the fit of a collapsing `Breadcrumb` render it. | `InlineScript` (`@internal`) |
 | `sortable-grip` | Internal, with no entry point. The drag grip of a sortable item, and the only part of the item that starts a drag. The Kanban, Dashboard, Grid, and QueryBuilder grips render it. | `SortableGrip` (`@internal`) |
-| `splitter` | Internal, with no entry point. A focusable window splitter: `role="separator"` with a tab stop, and a name, an orientation, and a value that its props require. The Resizable, Grid column, Dashboard, drawer, and sheet resize handles render it. | `Splitter` (`@internal`) |
+| `splitter` | Internal, with no entry point. A focusable window splitter: an `<hr>` with a tab stop, and a name, an orientation, and a value that its props require. The Resizable, Grid column, Dashboard, drawer, and sheet resize handles render it, and draw the grip as its `::after`. | `Splitter` (`@internal`) |
 | `trigger-child` | Internal, with no entry point. Clones the single element child of a trigger, and merges the other props of the trigger into the props of the child. `PopoverTrigger`, `MenuTrigger`, `TooltipTrigger`, and `PanelTrigger` use it. | `TriggerChild`, `triggerChild`, `mergeTriggerProps` (`@internal`) |
 | `virtual-options` | Windowed option list (TanStack virtualizer) for `PopoverPanel` listboxes and the `CommandPalette` list. | `VirtualOptions`, `VirtualOptionMeta` |
 

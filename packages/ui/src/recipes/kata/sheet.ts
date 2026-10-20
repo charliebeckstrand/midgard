@@ -128,7 +128,7 @@ export const k = {
 	},
 	/**
 	 * The drag handle: a grab area tall enough to aim at (`base`), and the bar
-	 * inside it the reader actually sees (`bar`).
+	 * that it draws as its `::after`, which the reader actually sees (`bar`).
 	 *
 	 * On a sheet docked to a side, the grip rides the inline edge of the panel and
 	 * not the column of slots, because the slots run along it. The grab area is
@@ -148,7 +148,6 @@ export const k = {
 			// The stroke goes on the bar, not here — see the archetype's grip. This
 			// suppresses the browser's own, which would draw around the whole reach.
 			'outline-hidden',
-			panel.grip.base,
 		],
 		side: {
 			// The full-height reach belongs to the two side arms only. In the base, it
