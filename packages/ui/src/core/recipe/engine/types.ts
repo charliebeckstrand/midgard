@@ -56,8 +56,12 @@ type SlotClasses<S> = [S] extends [object]
 /** Reserved top-level config field names; kata must not use these as axis names. */
 export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults' | 'skeleton'
 
-/** The reserved fields' types. */
-type RecipeBase = {
+/**
+ * A recipe config: the reserved fields plus any number of variant axes at the
+ * top level. The runtime treats each field that is not reserved as a variant
+ * axis.
+ */
+export type RecipeConfig = {
 	base?: ClassValue
 	palette?: PaletteConfig
 	compound?: CompoundRule[]
@@ -72,13 +76,6 @@ type RecipeBase = {
 	 */
 	skeleton?: unknown
 }
-
-/**
- * A recipe config: reserved fields plus any number of variant axes at the
- * top level. The engine accepts any object that satisfies `RecipeBase`;
- * the runtime treats non-reserved fields as variant axes.
- */
-export type RecipeConfig = RecipeBase
 
 /** The non-reserved (variant axis) fields of a config. */
 type AxesOf<C> = {
@@ -99,7 +96,7 @@ export type ResolvedConfig = {
 	defaults: Record<string, string | number | boolean>
 }
 
-export type Recipe<C extends RecipeBase> = {
+export type Recipe<C extends RecipeConfig> = {
 	(props?: ComputedProps<C>): string
 	/** Resolved config, exposed for introspection. */
 	readonly config: ResolvedConfig
@@ -160,6 +157,6 @@ export type ComputedProps<C> = {
  */
 export type VariantProps<R> = R extends (props?: infer P) => string
 	? NonNullable<P>
-	: R extends RecipeBase
+	: R extends RecipeConfig
 		? ComputedProps<R>
 		: never

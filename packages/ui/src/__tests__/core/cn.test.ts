@@ -129,7 +129,7 @@ describe('cn', () => {
 
 		it('stops growing at the cap and keeps answering', () => {
 			// A call site interpolating a value renders unboundedly many distinct
-			// class lists. The memo has to stop recording rather than clear — every
+			// class lists. The memo has to stop recording rather than clear: every
 			// answer stays correct past the cap, and the node count settles.
 			for (let index = 0; index < 12_000; index++) cn(`h-[${index}px]`, 'shrink-0')
 

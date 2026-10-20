@@ -14,6 +14,7 @@
  */
 
 import type { Color } from './colors'
+import { defineColors } from './mode'
 
 type ShadeSpec<C extends string> = Record<C, string | readonly [light: string, dark: string]>
 
@@ -23,10 +24,5 @@ type ShadeSpec<C extends string> = Record<C, string | readonly [light: string, d
  * spec, e.g. `shades<ExtendedColor>({ rose: …, sky: … })` in `iro/extended-palette`.
  */
 export function shades<C extends string = Color>(spec: ShadeSpec<C>): Record<C, string[]> {
-	return Object.fromEntries(
-		Object.entries<ShadeSpec<C>[C]>(spec).map(([color, value]) => [
-			color,
-			typeof value === 'string' ? [value] : [...value],
-		]),
-	) as Record<C, string[]>
+	return defineColors(spec)
 }
