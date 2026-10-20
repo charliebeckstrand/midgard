@@ -73,6 +73,12 @@ const workspaceScans = [
 // budget must never encode. Flat and wide, then: a typical file of the project
 // takes a small part of it, so a budget this size fails only work that has
 // genuinely stopped moving.
+//
+// A suite that opens a TypeScript project, or parses a tree, does that scan at
+// collection, in the body of its `describe`, and each case asserts on the
+// result. Collection runs under no budget. In a case, the scan counts against
+// the budget of whichever case runs first, and in a `beforeAll` it counts
+// against the shorter budget of a hook.
 const nodeScan = {
 	environment: 'node',
 	pool: 'threads',

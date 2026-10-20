@@ -414,6 +414,80 @@ function libraryGlobals(server: TypeScriptServer, heads: readonly string[]): Set
 	return globals
 }
 
+/** Each comment that names a test or benchmark file that does not exist, as `file:line → name`. */
+function missingCitations(server: TypeScriptServer): string[] {
+	const existing = new Set<string>()
+
+	const cited: { file: string; line: number; name: string }[] = []
+
+	// The files that can hold a citation, in the order of the walk. A Markdown
+	// file keeps its text, and the server parses each source file below.
+	const holders: { file: string; markdown?: string }[] = []
+
+	// One pass: the same walk answers which files exist and which are named.
+	eachFile((file, content) => {
+		if (TEST_FILE.test(file)) existing.add(basename(file))
+
+		// A comment's text is a substring of its file's text, so a file whose
+		// text holds neither stem cannot hold a citation, and most source files
+		// hold neither. `.test.tsx` and `.bench.tsx` carry the same two stems, so
+		// both spellings survive the guard.
+		if (!content.includes('.test.ts') && !content.includes('.bench.ts')) return
+
+		// Markdown is prose end to end, and five of the nine defects that opened
+		// this rule sat in a README rather than in a comment.
+		if (MARKDOWN_FILE.test(file)) holders.push({ file, markdown: content })
+		else if (isSourceFile(file)) holders.push({ file })
+	})
+
+	// Comments only, read from the parse. `extractComments` gives the reason
+	// that a scan without parser context fails. Reading comments alone keeps
+	// a path in code out of the result, such as a fixture name in a string.
+	const sources = server.parse(
+		holders.flatMap(({ file, markdown }) => (markdown === undefined ? file : [])),
+	)
+
+	for (const { file, markdown } of holders) {
+		const collect = (text: string, line: (index: number) => number) => {
+			for (const match of unemphasize(text).matchAll(CITATION)) {
+				cited.push({ file: srcRelative(file), line: line(match.index), name: match[0] })
+			}
+		}
+
+		const source = sources.get(file)
+
+		if (markdown !== undefined) collect(markdown, (index) => lineAt(markdown, index))
+		else if (source) {
+			for (const comment of extractComments(source)) {
+				collect(comment.text, () => comment.line)
+			}
+		}
+	}
+
+	return cited
+		.filter(({ name }) => !existing.has(name))
+		.map(({ file, line, name }) => `${file}:${line} → ${name}`)
+}
+
+/** Each `{@link}` target that no file here and no TypeScript library declares, as `file:line → {@link target}`. */
+function unknownLinks(server: TypeScriptServer): string[] {
+	const { declared, links } = readDeclarationsAndLinks(server)
+
+	const globals = libraryGlobals(server, openHeads(links, declared))
+
+	const violations: string[] = []
+
+	for (const { file, line, target } of links) {
+		const head = headOf(target)
+
+		if (!head || declared.has(head) || globals.has(head)) continue
+
+		violations.push(`${file}:${line} → {@link ${target}}`)
+	}
+
+	return violations
+}
+
 describe('comment reference boundary', () => {
 	// The TypeScript server parses each source that the cases read, and stops
 	// after the last case.
@@ -421,83 +495,23 @@ describe('comment reference boundary', () => {
 
 	afterAll(() => server.close())
 
+	// The scans run at collection, under no budget, and each case asserts on its
+	// result (`nodeScan` in `vitest.config.ts`).
+	const citations = missingCitations(server)
+
+	const links = unknownLinks(server)
+
 	it('every test or benchmark file a comment names in full exists', () => {
-		const existing = new Set<string>()
-
-		const cited: { file: string; line: number; name: string }[] = []
-
-		// The files that can hold a citation, in the order of the walk. A Markdown
-		// file keeps its text, and the server parses each source file below.
-		const holders: { file: string; markdown?: string }[] = []
-
-		// One pass: the same walk answers which files exist and which are named.
-		eachFile((file, content) => {
-			if (TEST_FILE.test(file)) existing.add(basename(file))
-
-			// A comment's text is a substring of its file's text, so a file whose
-			// text holds neither stem cannot hold a citation, and 2,183 of 2,256
-			// source files hold neither. `.test.tsx` and `.bench.tsx` carry the same
-			// two stems, so both spellings survive the guard.
-			if (!content.includes('.test.ts') && !content.includes('.bench.ts')) return
-
-			// Markdown is prose end to end, and five of the nine defects that opened
-			// this rule sat in a README rather than in a comment.
-			if (MARKDOWN_FILE.test(file)) holders.push({ file, markdown: content })
-			else if (isSourceFile(file)) holders.push({ file })
-		})
-
-		// Comments only, read from the parse. `extractComments` gives the reason
-		// that a scan without parser context fails. Reading comments alone keeps
-		// a path in code out of the result, such as a fixture name in a string.
-		const sources = server.parse(
-			holders.flatMap(({ file, markdown }) => (markdown === undefined ? file : [])),
-		)
-
-		for (const { file, markdown } of holders) {
-			const collect = (text: string, line: (index: number) => number) => {
-				for (const match of unemphasize(text).matchAll(CITATION)) {
-					cited.push({ file: srcRelative(file), line: line(match.index), name: match[0] })
-				}
-			}
-
-			const source = sources.get(file)
-
-			if (markdown !== undefined) collect(markdown, (index) => lineAt(markdown, index))
-			else if (source) {
-				for (const comment of extractComments(source)) {
-					collect(comment.text, () => comment.line)
-				}
-			}
-		}
-
-		const violations = cited
-			.filter(({ name }) => !existing.has(name))
-			.map(({ file, line, name }) => `${file}:${line} → ${name}`)
-
 		expect(
-			violations,
-			`comments naming a test or benchmark file that does not exist — cite the rule's current home, or drop the citation:\n${violations.join('\n')}`,
+			citations,
+			`comments naming a test or benchmark file that does not exist — cite the rule's current home, or drop the citation:\n${citations.join('\n')}`,
 		).toEqual([])
 	})
 
 	it('every {@link} target names a symbol the package or the platform declares', () => {
-		const { declared, links } = readDeclarationsAndLinks(server)
-
-		const globals = libraryGlobals(server, openHeads(links, declared))
-
-		const violations: string[] = []
-
-		for (const { file, line, target } of links) {
-			const head = headOf(target)
-
-			if (!head || declared.has(head) || globals.has(head)) continue
-
-			violations.push(`${file}:${line} → {@link ${target}}`)
-		}
-
 		expect(
-			violations,
-			`{@link} targets naming a symbol no file here and no TypeScript library declares — repoint or drop each one (CONVENTIONS.md §12.1):\n${violations.join('\n')}`,
+			links,
+			`{@link} targets naming a symbol no file here and no TypeScript library declares — repoint or drop each one (CONVENTIONS.md §12.1):\n${links.join('\n')}`,
 		).toEqual([])
 	})
 })
