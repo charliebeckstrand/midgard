@@ -73,7 +73,7 @@ async function prepare(rows: Shipment[]): Promise<Prepared[]> {
 
 		await painted(box, [rows[0]?.id ?? ''])
 
-		const handle = box.querySelector<HTMLElement>('[role="separator"][aria-label="Resize Origin"]')
+		const handle = box.querySelector<HTMLElement>('hr[aria-label="Resize Origin"]')
 
 		const header = handle?.closest('th')
 

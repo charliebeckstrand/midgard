@@ -7,7 +7,7 @@ import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { PanelSplitter } from '../../primitives/panel/panel-splitter'
+import { Splitter } from '../../primitives/splitter/splitter'
 import { k } from '../../recipes/kata/grid'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
@@ -111,15 +111,15 @@ export function GridColumnResizeHandle({
 	}
 
 	return (
-		<PanelSplitter
-			aria-orientation="vertical"
-			aria-label={intl.formatMessage(gridMessages.resizeColumn, { column: label })}
-			aria-valuenow={Math.round(size)}
-			aria-valuetext={intl.formatMessage(gridMessages.pixels, { width: Math.round(size) })}
-			aria-valuemin={min}
-			aria-valuemax={max < Number.MAX_SAFE_INTEGER ? max : undefined}
+		<Splitter
+			label={intl.formatMessage(gridMessages.resizeColumn, { column: label })}
+			orientation="vertical"
+			value={Math.round(size)}
+			valueText={intl.formatMessage(gridMessages.pixels, { width: Math.round(size) })}
+			min={min}
+			max={max < Number.MAX_SAFE_INTEGER ? max : undefined}
 			data-resizing={dataAttr(resizing)}
-			className={cn(k.resize.handle)}
+			className={cn(k.resize.handle, k.resize.grip)}
 			onMouseDown={(event) => {
 				// Only a plain primary press starts a drag-resize. Any context-menu
 				// gesture — a right- or middle-click, or a Ctrl-click (the macOS
@@ -175,8 +175,6 @@ export function GridColumnResizeHandle({
 				announceSettledWidth()
 			}}
 			onKeyDown={handleKeyDown}
-		>
-			<span aria-hidden="true" className={cn(k.resize.grip)} />
-		</PanelSplitter>
+		/>
 	)
 }

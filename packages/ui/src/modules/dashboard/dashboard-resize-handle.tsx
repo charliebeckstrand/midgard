@@ -1,8 +1,9 @@
 'use client'
 
-import { type KeyboardEvent, useLayoutEffect, useRef } from 'react'
+import { type KeyboardEvent, type PointerEvent, useLayoutEffect, useRef } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { Splitter } from '../../primitives/splitter/splitter'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
 import { dashboardMessages } from './dashboard-messages'
@@ -69,7 +70,7 @@ export function DashboardResizeHandle({
 	// The south edge of a free-form tile has no most height unless the tile sets one.
 	const most = horizontal ? range.maxH : range.maxW
 
-	const ref = useRef<HTMLDivElement>(null)
+	const ref = useRef<HTMLHRElement>(null)
 
 	// The span of the last check, so the scroll below runs on a new span only.
 	const checkedSpan = useRef(span)
@@ -103,29 +104,26 @@ export function DashboardResizeHandle({
 		resizeBy(id, edge, dw, dh)
 	}
 
-	const keyboard =
-		edge === 'se'
-			? { 'aria-hidden': true }
-			: {
-					role: 'separator',
-					tabIndex: 0,
-					'aria-orientation': horizontal ? ('horizontal' as const) : ('vertical' as const),
-					'aria-label': intl.formatMessage(dashboardMessages.resize, { label }),
-					'aria-valuenow': span,
-					'aria-valuemin': least,
-					'aria-valuemax': most === undefined ? undefined : Math.max(most, span),
-					onKeyDown,
-				}
+	const shared = {
+		'data-slot': 'dashboard-resize-handle',
+		'data-edge': edge,
+		'data-resizing': dataAttr(resizing),
+		className: cn(k.resize.handle({ edge })),
+		onPointerDown: (event: PointerEvent<HTMLElement>) => beginResize(id, edge, event),
+	}
+
+	if (edge === 'se') return <div {...shared} aria-hidden />
 
 	return (
-		<div
+		<Splitter
+			{...shared}
 			ref={ref}
-			data-slot="dashboard-resize-handle"
-			data-edge={edge}
-			data-resizing={dataAttr(resizing)}
-			className={cn(k.resize.handle({ edge }))}
-			onPointerDown={(event) => beginResize(id, edge, event)}
-			{...keyboard}
+			label={intl.formatMessage(dashboardMessages.resize, { label })}
+			orientation={horizontal ? 'horizontal' : 'vertical'}
+			value={span}
+			min={least}
+			max={most === undefined ? undefined : Math.max(most, span)}
+			onKeyDown={onKeyDown}
 		/>
 	)
 }

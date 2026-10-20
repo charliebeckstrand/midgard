@@ -72,16 +72,17 @@ describe('edges and state marks under forced colors', () => {
  * color is the only focus mark of its handle. Forced colors remove both, so the
  * bar paints in `CanvasText` and the focused handle outlines the bar. The focus
  * color of the bar outranks the bare shape class, so the shape repeats under focus.
+ * The handle draws the bar as its `::after`, so each class gates the `::after`.
  */
 describe('resize grips under forced colors', () => {
-	const grips: [string, unknown, string][] = [
-		['the horizontal Resizable grip', [resizable.grip.base, resizable.grip.horizontal], 'handle'],
-		['the vertical Resizable grip', [resizable.grip.base, resizable.grip.vertical], 'handle'],
-		['the Grid column resize grip', grid.resize.grip, 'grid-resize'],
+	const grips: [string, unknown][] = [
+		['the horizontal Resizable grip', [resizable.grip.base, resizable.grip.horizontal]],
+		['the vertical Resizable grip', [resizable.grip.base, resizable.grip.vertical]],
+		['the Grid column resize grip', grid.resize.grip],
 	]
 
 	it.each(grips)('keeps the shape of %s', (_name, grip) => {
-		expect(classNames([grip])).toContain('forced-colors:bg-[CanvasText]')
+		expect(classNames([grip])).toContain('forced-colors:after:bg-[CanvasText]')
 	})
 
 	// A state color of the bar, such as the hover or the drag color, outranks the
@@ -91,21 +92,21 @@ describe('resize grips under forced colors', () => {
 
 		const states = new Set(
 			classes.flatMap((className) => {
-				const state = /^(?:dark:)?(group-[^:]+):bg-/.exec(className)?.[1]
+				const state = /^(?:dark:)?([\w-]+):after:bg-/.exec(className)?.[1]
 
-				return state ? [state] : []
+				return state && state !== 'dark' && state !== 'forced-colors' ? [state] : []
 			}),
 		)
 
 		expect(states.size).toBeGreaterThan(0)
 
 		for (const state of states) {
-			expect(classes).toContain(`forced-colors:${state}:bg-[CanvasText]`)
+			expect(classes).toContain(`forced-colors:${state}:after:bg-[CanvasText]`)
 		}
 	})
 
-	it.each(grips)('keeps and outlines %s when its handle has focus', (_name, grip, group) => {
-		const focus = `forced-colors:group-focus-visible/${group}:`
+	it.each(grips)('keeps and outlines %s when its handle has focus', (_name, grip) => {
+		const focus = 'forced-colors:focus-visible:after:'
 
 		expect(classNames([grip])).toEqual(
 			expect.arrayContaining([

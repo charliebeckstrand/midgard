@@ -71,7 +71,7 @@ describe('grid column sizing rules (real browser)', () => {
 	/** Drags a column's resize handle by `dx` px, or presses it without motion when `dx` is 0. */
 	function drag(root: HTMLElement, label: string, dx: number) {
 		const handle = present(
-			root.querySelector<HTMLElement>(`[role="separator"][aria-label="Resize ${label}"]`),
+			root.querySelector<HTMLElement>(`hr[aria-label="Resize ${label}"]`),
 			`Resize ${label}`,
 		)
 

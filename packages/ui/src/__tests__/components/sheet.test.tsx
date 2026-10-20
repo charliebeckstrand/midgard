@@ -335,7 +335,7 @@ describe('Sheet handle', () => {
 
 		const { handle } = renderHandled('right')
 
-		expect(handle).toHaveAttribute('role', 'separator')
+		expect(screen.getByRole('separator', { name: 'Resize panel' })).toBe(handle)
 
 		// The separator's own line, not the axis it moves on: a grip on the inner
 		// edge of a right-hand sheet stands vertically and resizes horizontally.

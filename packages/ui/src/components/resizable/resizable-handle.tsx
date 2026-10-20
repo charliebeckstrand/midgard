@@ -5,7 +5,7 @@ import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { PanelSplitter } from '../../primitives/panel/panel-splitter'
+import { Splitter } from '../../primitives/splitter/splitter'
 import { k } from '../../recipes/kata/resizable'
 import { useResizable, useResizableIndex } from './context'
 import { pairRange } from './use-resizable-panel'
@@ -21,10 +21,10 @@ const messages = defineMessages({
 
 /**
  * Props for {@link ResizableHandle}: an optional accessible name. The root
- * `<div role="separator">` takes the rest. The handle draws its own grip in
- * place of `children`, and keeps its own `role` and `tabIndex`.
+ * `<hr>` takes the rest. The handle draws its own grip, and keeps its own
+ * `role` and `tabIndex`.
  */
-export type ResizableHandleProps = Omit<ComponentProps<'div'>, 'children' | 'role' | 'tabIndex'> & {
+export type ResizableHandleProps = Omit<ComponentProps<'hr'>, 'children' | 'role' | 'tabIndex'> & {
 	/**
 	 * Accessible name; distinguishes multiple handles ("Resize sidebar").
 	 * @defaultValue `'Resize'`, in the language of the reader.
@@ -59,7 +59,7 @@ function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): nu
 
 /**
  * Draggable divider between two {@link ResizablePanel}s. Renders a focusable
- * `role="separator"` whose `aria-orientation` is perpendicular to the group
+ * `<hr>`, a separator whose `aria-orientation` is perpendicular to the group
  * axis. A drag or the arrow keys adjust the adjacent panel within its min and
  * max bounds. Shift takes a larger step, and Home/End reach the extremes. In a
  * right-to-left group the panels start on the right, so the horizontal arrows
@@ -115,20 +115,20 @@ export function ResizableHandle({
 	)
 
 	return (
-		<PanelSplitter
+		<Splitter
 			{...props}
+			label={ariaLabel ?? intl.formatMessage(messages.label)}
+			// A separator's orientation is its own, not the group's flex axis: the
+			// handle between side-by-side panels is a vertical bar.
+			orientation={isHorizontal ? 'vertical' : 'horizontal'}
+			value={panelSize}
+			min={panelMinSize}
+			max={panelMaxSize}
+			// The primary pane is the panel before the handle, whose size the value gives.
+			controls={handleIndex < panelConfigs.length ? panelId(handleIndex) : undefined}
 			// The group finds its handles by this anchor, so a consumer cannot replace it.
 			data-slot="resizable-handle"
 			data-dragging={dataAttr(isDragging)}
-			// A separator's orientation is its own, not the group's flex axis: the
-			// handle between side-by-side panels is a vertical bar.
-			aria-orientation={isHorizontal ? 'vertical' : 'horizontal'}
-			aria-label={ariaLabel ?? intl.formatMessage(messages.label)}
-			// The primary pane is the panel before the handle, whose size the value gives.
-			aria-controls={handleIndex < panelConfigs.length ? panelId(handleIndex) : undefined}
-			aria-valuenow={panelSize}
-			aria-valuemin={panelMinSize}
-			aria-valuemax={panelMaxSize}
 			onPointerDown={composeEventHandlers(
 				onPointerDown,
 				(event) => startDrag(handleIndex, event),
@@ -138,13 +138,10 @@ export function ResizableHandle({
 			className={cn(
 				k.handle.base,
 				isHorizontal ? k.handle.horizontal : k.handle.vertical,
+				k.grip.base,
+				isHorizontal ? k.grip.horizontal : k.grip.vertical,
 				className,
 			)}
-		>
-			<span
-				aria-hidden
-				className={cn(k.grip.base, isHorizontal ? k.grip.horizontal : k.grip.vertical)}
-			/>
-		</PanelSplitter>
+		/>
 	)
 }

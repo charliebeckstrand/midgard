@@ -38,7 +38,7 @@ describe('Grid disables column interactions when empty', () => {
 	it('hides the resize separator', () => {
 		const { container } = renderUI(<Grid resizable columns={columns} rows={[]} getKey={getKey} />)
 
-		expect(container.querySelector('[role="separator"]')).toBeNull()
+		expect(container.querySelector('hr')).toBeNull()
 	})
 
 	it('hides the reorder grips', () => {

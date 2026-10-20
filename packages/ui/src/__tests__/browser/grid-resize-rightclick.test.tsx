@@ -31,9 +31,7 @@ describe('grid resize handle: right-click (real browser)', () => {
 			</div>,
 		)
 
-		const separator = container.querySelector<HTMLElement>(
-			'[role="separator"][aria-label="Resize Name"]',
-		)
+		const separator = container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]')
 
 		if (!separator) throw new Error('resize handle not found')
 

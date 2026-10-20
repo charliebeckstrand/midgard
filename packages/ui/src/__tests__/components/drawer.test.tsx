@@ -289,7 +289,7 @@ describe('Drawer drag handle', () => {
 		// The splitter pattern: a resizer, not a button, and reachable by keyboard —
 		// on a panel whose height it alone sets, a drag-only control would leave a
 		// keyboard reader unable to open the panel up.
-		expect(handle).toHaveAttribute('role', 'separator')
+		expect(screen.getByRole('separator', { name: 'Resize panel' })).toBe(handle)
 
 		expect(handle).toHaveAttribute('aria-orientation', 'horizontal')
 

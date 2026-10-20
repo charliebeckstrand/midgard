@@ -3,6 +3,7 @@ import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, present, renderUI, waitFor } from '../../helpers'
 import { centerOf } from '../../helpers/geometry/box'
 import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
+import { afterBox } from '../helpers/after-box'
 import { settledRect } from '../helpers/sample'
 
 // The handle and the header cell can differ by a hairline cell border, up to this much.
@@ -59,9 +60,7 @@ describe('grid column resizing (real browser)', () => {
 			</div>,
 		)
 
-		const separator = container.querySelector<HTMLElement>(
-			'[role="separator"][aria-label="Resize Name"]',
-		)
+		const separator = container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]')
 
 		if (!separator) throw new Error('resize handle not found')
 
@@ -96,23 +95,21 @@ describe('grid column resizing (real browser)', () => {
 	it('shows a short grip at rest, centered in the header trailing edge', async () => {
 		const { container, separator } = setup()
 
-		const grip = present(
-			separator.querySelector('span[aria-hidden="true"]'),
-			'span[aria-hidden="true"]',
-		)
+		// The handle draws the grip as its `::after`.
+		const grip = getComputedStyle(separator, '::after')
 
 		// Always visible — no hover needed; the edge reads as resizable at rest, the
 		// whole point of the change versus the old hidden-until-hover grip.
-		await waitFor(() => expect(getComputedStyle(grip).opacity).toBe('1'))
+		await waitFor(() => expect(grip.opacity).toBe('1'))
 
 		// A short bar (`h-4` ≈ 16px), not the full header height.
-		const gripRect = grip.getBoundingClientRect()
+		const gripRect = afterBox(separator)
 
 		const headerRect = nameHeader(container).getBoundingClientRect()
 
-		expect(gripRect.height).toBeNear(16, HALF_PIXEL)
+		expect(gripRect.bottom - gripRect.top).toBeNear(16, HALF_PIXEL)
 
-		expect(gripRect.height).toBeLessThan(headerRect.height)
+		expect(gripRect.bottom - gripRect.top).toBeLessThan(headerRect.height)
 
 		// Centered in the grab zone (`justify-center`), so it sits a cell-padding inside
 		// the trailing edge — not flush against the border.
@@ -213,19 +210,14 @@ describe('grid column resizing (real browser)', () => {
 		const wrapper = present(container.querySelector('[data-slot="grid"]'), '[data-slot="grid"]')
 
 		const ageHandle = present(
-			container.querySelector('[role="separator"][aria-label="Resize Age"]'),
-			'[role="separator"][aria-label="Resize Age"]',
+			container.querySelector('hr[aria-label="Resize Age"]'),
+			'hr[aria-label="Resize Age"]',
 		)
 
-		const nameGrip = present(
-			separator.querySelector('span[aria-hidden="true"]'),
-			'span[aria-hidden="true"]',
-		)
+		// Each handle draws its grip as its `::after`.
+		const nameGrip = getComputedStyle(separator, '::after')
 
-		const ageGrip = present(
-			ageHandle.querySelector('span[aria-hidden="true"]'),
-			'span[aria-hidden="true"]',
-		)
+		const ageGrip = getComputedStyle(ageHandle, '::after')
 
 		const { x: startX, y } = centerOf(separator)
 
@@ -245,13 +237,11 @@ describe('grid column resizing (real browser)', () => {
 
 		// Both grips stay visible (always-on); the dragged column's reads accent (its
 		// own `data-resizing`) while the idle column keeps its muted rest color.
-		expect(getComputedStyle(nameGrip).opacity).toBe('1')
+		expect(nameGrip.opacity).toBe('1')
 
-		expect(getComputedStyle(ageGrip).opacity).toBe('1')
+		expect(ageGrip.opacity).toBe('1')
 
-		expect(getComputedStyle(nameGrip).backgroundColor).not.toBe(
-			getComputedStyle(ageGrip).backgroundColor,
-		)
+		expect(nameGrip.backgroundColor).not.toBe(ageGrip.backgroundColor)
 
 		fireEvent.mouseUp(document, { clientX: startX + 40, clientY: y })
 
@@ -287,9 +277,7 @@ describe('grid resize handle with reorder active (real browser)', () => {
 			</div>,
 		)
 
-		const separator = container.querySelector<HTMLElement>(
-			'[role="separator"][aria-label="Resize Name"]',
-		)
+		const separator = container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]')
 
 		if (!separator) throw new Error('resize handle not found')
 
@@ -359,7 +347,7 @@ describe('grid column resize holds the other columns (real browser)', () => {
 
 		const { container, rerender } = renderUI(view)
 
-		const handle = container.querySelector<HTMLElement>('[role="separator"][aria-label="Resize A"]')
+		const handle = container.querySelector<HTMLElement>('hr[aria-label="Resize A"]')
 
 		if (!handle) throw new Error('resize handle not found')
 

@@ -350,9 +350,7 @@ describe('frozen chrome tracks live pin and size changes (real browser)', () => 
 			),
 		)
 
-		const handle = container.querySelector<HTMLElement>(
-			'[role="separator"][aria-label="Resize Name"]',
-		)
+		const handle = container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]')
 
 		if (!handle) throw new Error('resize handle not found')
 
