@@ -1,1 +1,1 @@
-export { TouchTarget } from './touch-target'
+export { TouchTarget, type TouchTargetProps } from './touch-target'

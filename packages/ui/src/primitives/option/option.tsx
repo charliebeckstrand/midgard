@@ -149,13 +149,19 @@ function OptionImpl({
  */
 export const Option = memo(OptionImpl)
 
+/** Props for {@link OptionLabel}. */
+export type OptionLabelProps = ComponentProps<'span'>
+
 /** Primary label for a select-like option. */
-export function OptionLabel({ className, ...props }: ComponentProps<'span'>) {
+export function OptionLabel({ className, ...props }: OptionLabelProps) {
 	return <span {...props} className={cn(k.label, className)} />
 }
 
+/** Props for {@link OptionDescription}. */
+export type OptionDescriptionProps = ComponentProps<'span'>
+
 /** Secondary description for a select-like option. */
-export function OptionDescription({ className, children, ...props }: ComponentProps<'span'>) {
+export function OptionDescription({ className, children, ...props }: OptionDescriptionProps) {
 	return (
 		<span {...props} className={cn(k.description, className)}>
 			<span className="flex-1 truncate">{children}</span>
@@ -163,11 +169,14 @@ export function OptionDescription({ className, children, ...props }: ComponentPr
 	)
 }
 
+/** Props for {@link OptionText}. */
+export type OptionTextProps = ComponentProps<'span'>
+
 /**
  * Stacks an {@link OptionLabel} over an {@link OptionDescription}. Without it,
  * the description sits beside the label. It takes the free width of the row.
  */
-export function OptionText({ className, ...props }: ComponentProps<'span'>) {
+export function OptionText({ className, ...props }: OptionTextProps) {
 	return <span {...props} className={cn(k.text, className)} />
 }
 
@@ -198,15 +207,6 @@ export type SelectOptionProps<TValue = unknown> = {
 	/** Windowed-list a11y position from `VirtualOptions`' render `meta`; see `aria-setsize`. */
 	'aria-posinset'?: number
 }
-
-/** Props for `OptionLabel`. */
-export type OptionLabelProps = ComponentProps<'span'>
-
-/** Props for `OptionText`. */
-export type OptionTextProps = ComponentProps<'span'>
-
-/** Props for `OptionDescription`. */
-export type OptionDescriptionProps = ComponentProps<'span'>
 
 /**
  * Selection state a {@link createSelectOption} host exposes through its context:

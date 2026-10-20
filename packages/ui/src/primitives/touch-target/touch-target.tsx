@@ -12,6 +12,12 @@ const area = [
 	'h-[max(100%,min(var(--touch-target-floor),100%_+_var(--touch-target-gap-y,var(--touch-target-floor))))]',
 ].join(' ')
 
+/** Props for {@link TouchTarget}. */
+export type TouchTargetProps = {
+	/** The content of the interactive host. The expansion span comes before it. */
+	children: ReactNode
+}
+
 /**
  * Floors the hit target to the WCAG pointer-target minimums without altering
  * visual layout. That is 24 px on fine pointers (2.5.8) and 44 px on coarse
@@ -49,7 +55,7 @@ const area = [
  * in for these pins, because its target-size rule measures the host's own
  * border-box and never sees the span.
  */
-export function TouchTarget({ children }: { children: ReactNode }) {
+export function TouchTarget({ children }: TouchTargetProps) {
 	return (
 		<>
 			<span data-slot="touch-target" className={area} aria-hidden="true" />
