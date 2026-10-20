@@ -17,6 +17,7 @@ import { PHONE_QUERY } from '../../utilities/media-query'
 import { createActiveEditStore } from './engine/grid-active-edit-store'
 import { EMPTY_SET } from './engine/grid-constants'
 import type { GridFillCell, GridPasteCell } from './engine/grid-edit-commit'
+import { firstEditorCell } from './engine/grid-edit-focus'
 import type { GridHistoryStep } from './engine/grid-edit-history'
 import {
 	type CellRequest,
@@ -405,6 +406,7 @@ export function useGridEditing<T>({
 		awaitRowRef,
 		reseatingRef,
 		originsRef,
+		placeOrigin,
 		entrySeed,
 		dropIntents,
 		claimFocus,
@@ -423,7 +425,6 @@ export function useGridEditing<T>({
 		dataColumnsRef,
 		cellId,
 		moveTo,
-		inline: overlay === null,
 	})
 
 	const newRow = useGridNewRow<T>({
@@ -798,6 +799,23 @@ export function useGridEditing<T>({
 		[cellScoped, enterEdit, dropIntents],
 	)
 
+	// Opens a row from a control in it, such as a pencil, as an entry on the
+	// first editable cell of the row does. Focus goes into that cell's editor.
+	// As the session on the row ends, focus returns to the control, not to the
+	// cell. A row with no editable column has nothing to open.
+	const editRow = useCallback(
+		(rowKey: string | number) => {
+			const cell = firstEditorCell(rowKey, dataColumnsRef.current)
+
+			if (!cell) return
+
+			enterEdit(cell.rowKey, cell.columnId)
+
+			placeOrigin(rowKey)
+		},
+		[dataColumnsRef, enterEdit, placeOrigin],
+	)
+
 	const { pasteCells, fillCells, stepHistory, historyKeys } = useGridEditWrites({
 		drafts,
 		editSourceRef,
@@ -818,6 +836,7 @@ export function useGridEditing<T>({
 			unstageDraft,
 			readDraft,
 			endSession,
+			editRow,
 			entrySeed,
 			claimFocus,
 			settleControls,
@@ -835,6 +854,7 @@ export function useGridEditing<T>({
 			readDraft,
 			managed,
 			endSession,
+			editRow,
 			entrySeed,
 			claimFocus,
 			settleControls,

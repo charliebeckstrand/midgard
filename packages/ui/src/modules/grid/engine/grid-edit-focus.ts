@@ -3,7 +3,6 @@
  * session, and how the grid marks its own focus moves for the commit on leave.
  */
 
-import { ownNode } from './grid-edit-keys'
 import {
 	type EditableColumn,
 	type GridActiveEdit,
@@ -53,22 +52,6 @@ export function reseatFlagged(flag: { current: boolean }, grid: HTMLElement | nu
  * entered, or the place of the last press or focus as the row opened. @internal
  */
 export type FocusOrigin = { cell: GridActiveEdit } | { element: Element }
-
-/**
- * The key of the row of `table` that holds focus, or `undefined` when focus is
- * in no row of it. A row of a grid nested in a detail row is not a row of
- * `table`. @internal
- */
-export function focusedRowKey(
-	table: HTMLTableElement | null,
-	rowKeys: readonly (string | number)[],
-): string | number | undefined {
-	const row = ownNode(document.activeElement?.closest('tr[data-row-index]') ?? null, table)
-
-	const index = row?.getAttribute('data-row-index')
-
-	return index == null ? undefined : rowKeys[Number(index)]
-}
 
 /**
  * The cell of the first editor of the row `rowKey`: the first editable column

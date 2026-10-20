@@ -4,8 +4,6 @@ import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef } from 
 import { focusWithoutReveal } from '../../hooks/use-truncation'
 import {
 	type FocusOrigin,
-	firstEditorCell,
-	focusedRowKey,
 	interactionPlace,
 	reseatFlagged,
 	returnElement,
@@ -44,7 +42,6 @@ export function useGridEditFocus<T>({
 	dataColumnsRef,
 	cellId,
 	moveTo,
-	inline,
 }: {
 	/** The rows that edit in this render. */
 	editableRows: Set<string | number>
@@ -63,8 +60,6 @@ export function useGridEditFocus<T>({
 	cellId: (row: number, col: number) => string
 	/** The cursor's clamped move. */
 	moveTo: (coord: Coord) => void
-	/** Whether the editors render in their cells, not in an overlay. */
-	inline: boolean
 }) {
 	// The cell whose editor takes focus once it mounts. The entry sets it, and the
 	// editor claims it as it mounts or as the session comes to hold it. A
@@ -187,20 +182,6 @@ export function useGridEditFocus<T>({
 		}
 	}, [tableRef])
 
-	// A row that opens from a control in it, such as its pencil, puts focus in
-	// its first editor. Focus elsewhere stays where it is. An overlay puts focus
-	// in its own fields. A row with no origin yet is one that opens in this
-	// commit, so this runs before the origins are recorded below.
-	useLayoutEffect(() => {
-		if (!inline || pendingFocusRef.current !== null) return
-
-		const key = focusedRowKey(tableRef.current, rowKeysRef.current)
-
-		if (key === undefined || !editableRows.has(key) || originsRef.current.has(key)) return
-
-		pendingFocusRef.current = firstEditorCell(key, dataColumnsRef.current)
-	}, [editableRows, inline, tableRef, rowKeysRef, dataColumnsRef])
-
 	useLayoutEffect(() => {
 		const origins = originsRef.current
 
@@ -214,6 +195,15 @@ export function useGridEditFocus<T>({
 			if (element) origins.set(key, { element })
 		}
 	}, [editableRows])
+
+	// Records the place of the last press or focus as the origin of `rowKey`, in
+	// place of the cell that an entry records. A control that opens its row,
+	// such as a pencil, then takes focus back as the session on the row ends.
+	const placeOrigin = useCallback((rowKey: string | number) => {
+		const element = lastPlaceRef.current
+
+		if (element) originsRef.current.set(rowKey, { element })
+	}, [])
 
 	// The element that focus returns to as the session on `rowKey` ends, or
 	// `null` for none. A cell origin moves the cursor onto the cell that the
@@ -299,6 +289,7 @@ export function useGridEditFocus<T>({
 		awaitRowRef,
 		reseatingRef,
 		originsRef,
+		placeOrigin,
 		entrySeed,
 		dropIntents,
 		claimFocus,

@@ -94,6 +94,12 @@ export type GridEditingSession = {
 	 */
 	endSession: (rowKey: string | number, outcome: 'save' | 'discard') => void
 	/**
+	 * Opens a row from a control in it, such as a pencil, and puts focus in its
+	 * first editor. Focus returns to the control as the session on the row
+	 * ends. It is what {@link GridRowActionsContext.edit} hands the consumer.
+	 */
+	editRow: (rowKey: string | number) => void
+	/**
 	 * The value a type-to-edit entry opens this cell's editor with, or
 	 * `undefined` for an entry that seeds nothing. The editor reads it once, as it
 	 * mounts, and stages it as the cell's draft.

@@ -10,9 +10,10 @@ import type { GridRowActionsContext } from './grid-editing-types'
  *
  * @remarks The slot renders in every grid, editable or not, so it reads the
  * session optionally and reports `editing: false` where there is none. An
- * actions column then needs no guard against a binding it can lack. `save`
- * and `discard` are the same exit the grid's own keys take. That is what keeps
- * a consumer's control and an editor's Enter ending a row the same way.
+ * actions column then needs no guard against a binding it can lack. `edit`
+ * is the entry of a double click, and `save` and `discard` are the same exit
+ * the grid's own keys take. That is what keeps a consumer's control and the
+ * grid's own gestures opening and ending a row the same way.
  *
  * @internal
  */
@@ -44,10 +45,11 @@ export function GridRowActions<T>({
 	const context: GridRowActionsContext = session
 		? {
 				editing,
+				edit: () => session.editRow(rowKey),
 				save: () => session.endSession(rowKey, 'save'),
 				discard: () => session.endSession(rowKey, 'discard'),
 			}
-		: { editing: false, save: noop, discard: noop }
+		: { editing: false, edit: noop, save: noop, discard: noop }
 
 	return render(row, context)
 }

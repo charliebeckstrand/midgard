@@ -10,18 +10,16 @@ import { applyChanges, EditHelp, initialPeople, type Person, personColumns } fro
 export default function Editable() {
 	const [people, setPeople] = useState(initialPeople)
 
-	const [editing, setEditing] = useState<Set<string | number>>(new Set())
-
-	// The pencil makes each cell of its row an editor, and the check saves the
-	// row. With `session: 'managed'`, a double click, Enter, F2, or a key on a
-	// cell also edits its row.
+	// The pencil opens its row with focus in the first editor, and the check
+	// saves the row. With `session: 'managed'`, a double click, Enter, F2, or a
+	// key on a cell also edits its row.
 	const columns = useMemo(
 		(): GridColumn<Person>[] => [
 			...personColumns,
 			{
 				id: 'actions',
-				actions: (row, { editing: rowEditing, save, discard }) =>
-					rowEditing ? (
+				actions: (row, { editing, edit, save, discard }) =>
+					editing ? (
 						<Flex gap="sm">
 							<Button variant="bare" color="green" aria-label="Save row" onClick={save}>
 								<Icon icon={<Check />} />
@@ -32,12 +30,7 @@ export default function Editable() {
 						</Flex>
 					) : (
 						<Flex gap="sm">
-							<Button
-								variant="bare"
-								color="blue"
-								aria-label="Edit row"
-								onClick={() => setEditing((prev) => new Set(prev).add(row.id))}
-							>
+							<Button variant="bare" color="blue" aria-label="Edit row" onClick={edit}>
 								<Icon icon={<Pencil />} />
 							</Button>
 							<Button
@@ -68,8 +61,6 @@ export default function Editable() {
 				rows={people}
 				getKey={(row) => row.id}
 				editable={{
-					rows: editing,
-					onRowsChange: setEditing,
 					session: 'managed',
 					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}

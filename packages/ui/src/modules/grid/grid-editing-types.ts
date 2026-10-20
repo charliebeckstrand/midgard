@@ -106,7 +106,13 @@ export type GridEditCell<T> = (context: GridEditCellContext<T>) => ReactNode
  * reports `editing: false` and its callbacks do nothing, so an actions column
  * needs no guard of its own.
  *
- * @remarks `discard` is the one transition a consumer cannot drive through
+ * @remarks Use `edit` for a control that opens its row, such as a pencil. It
+ * opens the row as a double click on its first editable cell does, and puts
+ * focus in that cell's editor. As the row closes, focus returns to the
+ * control. A row that you add to `rows` yourself opens, but focus stays where
+ * it is.
+ *
+ * `discard` is the one transition a consumer cannot drive through
  * `rows`. Removing a row from the set is a save, because that is what flushes
  * its staged cells. Closing a row and dropping its edits therefore has to come
  * from here.
@@ -114,6 +120,8 @@ export type GridEditCell<T> = (context: GridEditCellContext<T>) => ReactNode
 export type GridRowActionsContext = {
 	/** Whether this row is in edit mode. */
 	editing: boolean
+	/** Open the row, with focus in its first editor. A row with no editable column stays closed. */
+	edit: () => void
 	/** Close the row, committing its changed cells through `onCommit`. */
 	save: () => void
 	/** Close the row, dropping its staged cells. Nothing reaches `onCommit`. */
@@ -200,10 +208,6 @@ export type GridEditableConfig = {
 	 * first staged against, with the row's key. Ignore a change for a row that
 	 * you deleted. A row whose key changed during the session is the same case:
 	 * its edits commit under the old key.
-	 *
-	 * A row that enters this set while focus is on a control in the row, such
-	 * as its pencil, moves focus to its first editor. Focus elsewhere stays
-	 * where it is. On a phone, the overlay puts focus in its own fields.
 	 */
 	rows?: Set<string | number>
 	/** Initial editable row keys for the uncontrolled case. */
