@@ -218,6 +218,23 @@ export const check = isSameMonth
 `,
 		},
 	],
+	'no-camel-case-fixed-constant': [
+		{
+			file: 'constants.ts',
+			source: `const layer = '@layer density' // flag
+export const storageKey = 'docs:board' // flag
+const ratio = 0.5 // flag
+const minusSigns = /\\u2212/g // flag
+const selector = \`:where(.\${layer})\` // flag
+const LAYER = '@layer density'
+let current = 'idle'
+export const instant = false
+export const revalidate = 60
+const table = { ratio }
+export function read() { const local = 'x'; return local + current + LAYER + table + minusSigns + selector + storageKey }
+`,
+		},
+	],
 	'no-physical-side': [
 		{
 			file: 'side.tsx',

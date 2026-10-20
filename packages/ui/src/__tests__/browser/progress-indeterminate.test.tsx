@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { ProgressBar } from '../../components/progress'
-import { rootReducedMotionClass } from '../../core/motion/root'
+import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
 import { bySlot, renderUI } from '../helpers'
 import { frames, nextPaint } from '../helpers/frames'
 
@@ -13,7 +13,7 @@ import { frames, nextPaint } from '../helpers/frames'
  */
 describe('Indeterminate ProgressBar (real browser)', () => {
 	afterEach(() => {
-		document.documentElement.classList.remove(rootReducedMotionClass)
+		document.documentElement.classList.remove(ROOT_REDUCED_MOTION_CLASS)
 	})
 
 	function readFill(container: HTMLElement) {
@@ -43,7 +43,7 @@ describe('Indeterminate ProgressBar (real browser)', () => {
 	// The browser of the suite asks for no reduction, so the Motion setting of
 	// the root reduces motion here.
 	it('holds the fill still under reduced motion', async () => {
-		document.documentElement.classList.add(rootReducedMotionClass)
+		document.documentElement.classList.add(ROOT_REDUCED_MOTION_CLASS)
 
 		const { container } = renderUI(
 			<div style={{ width: 300 }}>

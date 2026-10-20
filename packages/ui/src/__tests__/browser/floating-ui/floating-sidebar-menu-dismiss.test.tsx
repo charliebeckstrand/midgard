@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
-import { rootOffcanvasSidebarClass } from '../../../core/sidebar/root'
+import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../../core/sidebar/root'
 import { SidebarLayout } from '../../../layouts/sidebar/sidebar'
 import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
 
@@ -21,11 +21,11 @@ import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
  */
 describe('floating sidebar menu dismissal (real browser)', () => {
 	beforeEach(() => {
-		document.documentElement.classList.add(rootOffcanvasSidebarClass)
+		document.documentElement.classList.add(ROOT_OFFCANVAS_SIDEBAR_CLASS)
 	})
 
 	afterEach(() => {
-		document.documentElement.classList.remove(rootOffcanvasSidebarClass)
+		document.documentElement.classList.remove(ROOT_OFFCANVAS_SIDEBAR_CLASS)
 	})
 
 	function FloatingSidebar({ onAction }: { onAction: () => void }) {

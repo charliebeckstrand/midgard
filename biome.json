@@ -632,6 +632,17 @@
 				"./.biome/plugins/no-of-suffixed-binding.grit",
 				"./.biome/plugins/no-alternate-predicate-binding.grit"
 			]
+		},
+		{
+			"includes": [
+				"packages/ui/src/**",
+				"apps/*/app/**",
+				"apps/*/src/**",
+				"!packages/ui/src/recipes/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-camel-case-fixed-constant.grit"]
 		}
 	],
 	"files": {

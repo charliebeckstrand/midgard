@@ -25,7 +25,7 @@ import type { PluginCreator } from 'tailwindcss/plugin'
  * value `default`. The default footer is the last child, so it is never an
  * earlier sibling.
  */
-export const defaultFooterSelector =
+export const DEFAULT_FOOTER_SELECTOR =
 	":is([data-panel-footer], :has([data-panel-footer])) ~ [data-panel-footer='default']"
 
 /**
@@ -33,5 +33,5 @@ export const defaultFooterSelector =
  * the module needs no default export.
  */
 export const handler: PluginCreator = ({ addBase }) => {
-	addBase({ [defaultFooterSelector]: { display: 'none !important' } })
+	addBase({ [DEFAULT_FOOTER_SELECTOR]: { display: 'none !important' } })
 }

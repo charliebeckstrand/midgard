@@ -1,6 +1,6 @@
 import { rootDensityClasses } from '../../core/density'
-import { rootReducedMotionClass } from '../../core/motion/root'
-import { rootOffcanvasSidebarClass } from '../../core/sidebar/root'
+import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
+import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../core/sidebar/root'
 import { InlineScript } from '../../primitives/inline-script/inline-script'
 import { levelToStep } from '../density/context'
 import { DARK_SCHEME, DENSITY, MOTION, SIDEBAR, THEME } from './appearance-storage'
@@ -15,7 +15,7 @@ import { DARK_SCHEME, DENSITY, MOTION, SIDEBAR, THEME } from './appearance-stora
 // Storage access can throw, and then the script uses the defaults. The
 // own-property check keeps a stored `__proto__` or `toString` from reading the
 // prototype. The docs site renders this component too.
-const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null,m=null,b=null;try{t=localStorage.getItem(${JSON.stringify(THEME.key)});d=localStorage.getItem(${JSON.stringify(DENSITY.key)});m=localStorage.getItem(${JSON.stringify(MOTION.key)});b=localStorage.getItem(${JSON.stringify(SIDEBAR.key)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(levelToStep)},c=${JSON.stringify(rootDensityClasses)},h=Object.prototype.hasOwnProperty,v=h.call(s,d)?s[d]:s[${JSON.stringify(DENSITY.fallback)}];if(h.call(c,v))r.classList.add(c[v]);if(m==='reduced')r.classList.add(${JSON.stringify(rootReducedMotionClass)});if(b==='offcanvas')r.classList.add(${JSON.stringify(rootOffcanvasSidebarClass)})})()`
+const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null,m=null,b=null;try{t=localStorage.getItem(${JSON.stringify(THEME.key)});d=localStorage.getItem(${JSON.stringify(DENSITY.key)});m=localStorage.getItem(${JSON.stringify(MOTION.key)});b=localStorage.getItem(${JSON.stringify(SIDEBAR.key)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(levelToStep)},c=${JSON.stringify(rootDensityClasses)},h=Object.prototype.hasOwnProperty,v=h.call(s,d)?s[d]:s[${JSON.stringify(DENSITY.fallback)}];if(h.call(c,v))r.classList.add(c[v]);if(m==='reduced')r.classList.add(${JSON.stringify(ROOT_REDUCED_MOTION_CLASS)});if(b==='offcanvas')r.classList.add(${JSON.stringify(ROOT_OFFCANVAS_SIDEBAR_CLASS)})})()`
 
 /**
  * Inline script that applies the stored theme, density, motion, and sidebar to

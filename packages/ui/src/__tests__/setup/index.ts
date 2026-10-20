@@ -3,7 +3,7 @@ import { cleanup, configure } from '@testing-library/react'
 import { afterEach, beforeAll, inject } from 'vitest'
 import { loadListReorder } from '../../components/list/use-list-reorder'
 import { tooltipBody } from '../../components/tooltip/tooltip-body-loader'
-import { defaultFooterSelector } from '../../core/panel/base'
+import { DEFAULT_FOOTER_SELECTOR } from '../../core/panel/base'
 import { installSingletonResets } from '../helpers/reset-singletons'
 import { installResidueGuard } from '../helpers/residue'
 import { restoreTestState } from '../helpers/restore-test-state'
@@ -62,7 +62,7 @@ if (!document.querySelector('style[data-default-footer-style]')) {
 
 	style.setAttribute('data-default-footer-style', '')
 
-	style.textContent = `${defaultFooterSelector} { display: none !important }`
+	style.textContent = `${DEFAULT_FOOTER_SELECTOR} { display: none !important }`
 
 	document.head.append(style)
 }

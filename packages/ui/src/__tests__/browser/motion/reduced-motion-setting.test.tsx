@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { rootReducedMotionClass } from '../../../core/motion/root'
+import { ROOT_REDUCED_MOTION_CLASS } from '../../../core/motion/root'
 import { renderUI, screen } from '../../helpers'
 
 /**
@@ -9,7 +9,7 @@ import { renderUI, screen } from '../../helpers'
  */
 describe('Motion variants and the Motion setting', () => {
 	afterEach(() => {
-		document.documentElement.classList.remove(rootReducedMotionClass)
+		document.documentElement.classList.remove(ROOT_REDUCED_MOTION_CLASS)
 	})
 
 	function opacity() {
@@ -28,7 +28,7 @@ describe('Motion variants and the Motion setting', () => {
 	})
 
 	it('applies motion-reduce and not motion-safe when the root has the class', () => {
-		document.documentElement.classList.add(rootReducedMotionClass)
+		document.documentElement.classList.add(ROOT_REDUCED_MOTION_CLASS)
 
 		expect(opacity()).toBe('0.5')
 	})

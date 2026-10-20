@@ -88,7 +88,7 @@ type CssInJs = { [key: string]: string | CssInJs }
 type ByStep<T> = Record<DensityStep, T>
 
 /** The nested layer of each stepped rule. */
-const layer = '@layer density'
+const LAYER = '@layer density'
 
 /**
  * The custom property that holds the weight of `step` in a scope: 1 for the
@@ -350,7 +350,7 @@ function stepped(
 
 		const rule = toRule(values, extra?.modifier ?? null)
 
-		return rule ? [{ [layer]: rule }] : []
+		return rule ? [{ [LAYER]: rule }] : []
 	}
 }
 

@@ -20,7 +20,7 @@ const disallowedRe = memoRe((decimal) => `[^\\d\\-${escapeRegExp(decimal)}]`)
 // fi-FI, nb-NO). `formatEditing` reads it as "-", so the caret counts it too.
 const MINUS_SIGN = '\u2212'
 
-const minusSignRe = /\u2212/g
+const MINUS_SIGNS = /\u2212/g
 
 // A decimal keypad follows the region of the device, not the locale of the
 // field. Thus it can offer only the other mark: "," in an en-US field, or "."
@@ -224,7 +224,7 @@ export function formatEditing(
 ) {
 	// The display can hold the locale minus sign U+2212. It becomes "-" before
 	// the filter, which keeps only the ASCII sign.
-	const signed = raw.replace(minusSignRe, '-')
+	const signed = raw.replace(MINUS_SIGNS, '-')
 
 	// The minus sign and "-" have the same length, so the index holds in `signed`.
 	const otherIndex = decimalIndexAfterEdit(

@@ -2,8 +2,8 @@
 
 import { type ReactNode, useEffect, useMemo } from 'react'
 import { writeRootDensity } from '../../core/density'
-import { rootReducedMotionClass } from '../../core/motion/root'
-import { rootOffcanvasSidebarClass } from '../../core/sidebar/root'
+import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
+import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../core/sidebar/root'
 import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
 import { matchesMediaQuery, subscribeMediaQuery } from '../../utilities/media-query'
 import { levelToStep } from '../density/context'
@@ -109,9 +109,9 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 
 			const motionChoice = readChoice(MOTION)
 
-			root.classList.toggle(rootReducedMotionClass, motionChoice === 'reduced')
+			root.classList.toggle(ROOT_REDUCED_MOTION_CLASS, motionChoice === 'reduced')
 
-			root.classList.toggle(rootOffcanvasSidebarClass, readChoice(SIDEBAR) === 'offcanvas')
+			root.classList.toggle(ROOT_OFFCANVAS_SIDEBAR_CLASS, readChoice(SIDEBAR) === 'offcanvas')
 		}
 
 		sync()

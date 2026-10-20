@@ -154,7 +154,7 @@ const presets: DashboardPreset[] = [
 
 const [initial] = presets as [DashboardPreset]
 
-const storageKey = 'midgard-docs:dashboard-board'
+const STORAGE_KEY = 'midgard-docs:dashboard-board'
 
 type Board = { template: string; spec: DashboardSpec }
 
@@ -167,7 +167,7 @@ const fresh = (preset: DashboardPreset): Board => ({
 // throws or holds no board gives the first template.
 function load(): Board {
 	try {
-		const saved = JSON.parse(localStorage.getItem(storageKey) ?? 'null') as Partial<Board> | null
+		const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null') as Partial<Board> | null
 
 		if (saved?.spec === undefined) return fresh(initial)
 
@@ -183,8 +183,8 @@ function load(): Board {
 
 function save(board: Board | null) {
 	try {
-		if (board === null) localStorage.removeItem(storageKey)
-		else localStorage.setItem(storageKey, JSON.stringify(board))
+		if (board === null) localStorage.removeItem(STORAGE_KEY)
+		else localStorage.setItem(STORAGE_KEY, JSON.stringify(board))
 	} catch {
 		// A storage that refuses a write keeps the board on the screen only.
 	}

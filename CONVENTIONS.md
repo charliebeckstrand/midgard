@@ -103,7 +103,7 @@ Do not declare a key again when the base gives it. `Omit<ComponentProps<'div'>, 
 
 4.6 A barrel names each symbol that it re-exports, once for each source module. A type rides the statement of its module with the inline `type` modifier (`export { Button, type ButtonProps } from './button'`). A module that exports only types takes `export type { … } from`. Never `export *`: a wildcard re-exports whatever the module gains next, and the barrel tests cannot read through it. `barrel-export-boundary.test.ts` and Biome's `noReExportAll` gate the rule.
 
-4.7 Module constants: `UPPER_SNAKE_CASE` for magic values, `camelCase` for keyed lookup/config objects.
+4.7 A module constant that holds a fixed string, number, or regex takes `UPPER_SNAKE_CASE`, as `STORAGE_KEY` and `MINUS_SIGNS` do. A fixed `Set` takes it too. A recipe part, a cache, and a value that changes take `camelCase`. An object or an array table follows the form of its file. The [`no-camel-case-fixed-constant`](.biome/plugins/no-camel-case-fixed-constant.grit) Biome plugin finds a fixed value with a `camelCase` name. The route segment config of Next.js keeps its names, as `instant` does.
 
 4.8 Biome's `noExcessiveCognitiveComplexity` is an error in the source of `ui`, `apps`, `auth`, and `shared`. Tests and benchmarks are out of its reach. Split a function that breaks the rule. Do not suppress it.
 

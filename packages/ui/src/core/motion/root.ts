@@ -4,4 +4,4 @@
  * `AppearanceProvider` keeps it in step with the stored choice. The
  * `motion-reduce` and `motion-safe` variants read it (`core/motion/variants.ts`).
  */
-export const rootReducedMotionClass = 'reduced-motion'
+export const ROOT_REDUCED_MOTION_CLASS = 'reduced-motion'

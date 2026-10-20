@@ -1,0 +1,26 @@
+language js
+
+// A module constant that holds a fixed string, number, or regex takes
+// `UPPER_SNAKE_CASE` (CONVENTIONS §4.7). Most of the code used this form
+// already, and a `camelCase` name hid the few that did not.
+//
+// The plugin matches a top-level `const` whose value is a literal or a
+// template. A constant in a function is a local value, so it is not matched.
+// The route segment config of Next.js is exempt, because Next.js reads each
+// export by its name (`instant`, `revalidate`).
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the source of
+// `ui` and of the apps. Recipes are out of reach, because a recipe part is a
+// `camelCase` key. Tests and benchmarks are out of reach too.
+JsVariableDeclarator(id = $id, initializer = JsInitializerClause(expression = $value)) as $declarator where {
+	$id <: r"[a-z][A-Za-z0-9]*",
+	$id <: not or { "instant", "dynamic", "dynamicParams", "revalidate", "fetchCache", "runtime", "preferredRegion", "maxDuration" },
+	$value <: or { JsStringLiteralExpression(), JsNumberLiteralExpression(), JsRegexLiteralExpression(), JsTemplateExpression() },
+	$declarator <: within JsVariableDeclaration() as $declaration,
+	$declaration <: r"const\s[\s\S]*",
+	$declarator <: not within or { JsFunctionBody(), JsStaticInitializationBlockClassMember() },
+	register_diagnostic(
+		span = $id,
+		message = "name a module constant that holds a fixed string, number, or regex in `UPPER_SNAKE_CASE` (CONVENTIONS §4.7)"
+	)
+}
