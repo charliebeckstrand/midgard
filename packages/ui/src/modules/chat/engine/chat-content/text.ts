@@ -1,7 +1,7 @@
 import type { ChatPart } from './types'
 
 /** Markdown separates two blocks with a blank line, and so does a projection of two parts. @internal */
-const BLOCK_SEPARATOR = '\n\n'
+export const BLOCK_SEPARATOR = '\n\n'
 
 /**
  * One part as plain text. The switch holds every kind. A kind added later

@@ -5,8 +5,8 @@ import type { ChatEmbedRegistry } from './types'
 
 /**
  * True when a {@link ChatListItem} renders inside a {@link ChatList}. The list
- * owns the roving-tabindex keyboard model; an item reads this to take
- * `role="listitem"` (paired with the list's `role="list"`) when nested.
+ * owns the roving-tabindex keyboard model. An item reads this to render as an
+ * `<li>` of the `<ul>` of the list.
  *
  * @internal
  */
