@@ -1,8 +1,8 @@
-import { framesOf, stackOf, viewport } from './events-probes'
+import { framesOf, readViewport, stackOf } from './events-probes'
 import { CAPTURE_ATTRIBUTE, REPORTS_ATTRIBUTE, type StartEventsOptions } from './events-setting'
 import { setEventSink } from './events-sink'
 import { calls } from './events-sources/calls'
-import { on } from './events-sources/dom'
+import { addListeners } from './events-sources/dom'
 import { errors } from './events-sources/errors'
 import { sessionHistory } from './events-sources/history'
 import { input } from './events-sources/input'
@@ -108,9 +108,9 @@ export function halt(): void {
 export function begin(target: EventStore, cause?: string): void {
 	const [navigation] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
 
-	target.separate(`──── ${cause ?? navigation?.type ?? 'load'} ${location.pathname}`)
+	target.addSeparator(`──── ${cause ?? navigation?.type ?? 'load'} ${location.pathname}`)
 
-	target.add(entryOf({ kind: 'load', text: 'viewport', detail: viewport() }))
+	target.add(entryOf({ kind: 'load', text: 'viewport', detail: readViewport() }))
 }
 
 /** The event of a line, with the scroll position of now and the time of now by default. A bug line holds its stacks in the detail. */
@@ -151,7 +151,7 @@ export function listen(target: EventStore, options: StartEventsOptions = {}): ()
 	const note = (line: EventLine) => {
 		if (!running) return
 
-		if (line.bug) target.file(entryOf(line), line.bug)
+		if (line.bug) target.addBug(entryOf(line), line.bug)
 		else target.add(entryOf(line))
 	}
 
@@ -161,7 +161,7 @@ export function listen(target: EventStore, options: StartEventsOptions = {}): ()
 		...sources.map((source) => source(note)),
 		// While the store is paused, a sheet of the tools is on screen, so the
 		// events are in the tools.
-		on(document, ['pointerdown', 'focusin'], ({ type, target: el }) => {
+		addListeners(document, ['pointerdown', 'focusin'], ({ type, target: el }) => {
 			if (!(el instanceof Element) || target.paused || isOwn(el)) return
 
 			target.watch(type === 'pointerdown' ? 'pointerdown' : 'focusin', el)

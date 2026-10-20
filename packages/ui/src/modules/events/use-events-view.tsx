@@ -18,7 +18,7 @@ import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { markdownOf } from './engine/events-report'
 import type { EventStore } from './engine/events-store'
-import { kindWidth, rowsOf, rowText } from './engine/events-text'
+import { kindWidthOf, rowsOf, rowTextOf } from './engine/events-text'
 import { EventsCopyButton } from './events-copy-button'
 import { EventsFlagField } from './events-flag-field'
 import { EventsList, type EventsOpenState } from './events-list'
@@ -80,7 +80,7 @@ export function useEventsView(live: boolean): EventsViewParts {
 	// view keeps the open state of a row out of view.
 	const [openKeys, setOpenKeys] = useState<ReadonlySet<string>>(() => new Set())
 
-	const state: EventsOpenState = {
+	const openState: EventsOpenState = {
 		isOpen: (key) => openKeys.has(key),
 		setOpen: (key, next) =>
 			setOpenKeys((prev) => {
@@ -97,13 +97,13 @@ export function useEventsView(live: boolean): EventsViewParts {
 
 	const report = reports.find(({ id }) => id === viewed)
 
-	const view = (id: number) => {
+	const viewReport = (id: number) => {
 		setTab('bugs')
 
 		setViewed(id)
 	}
 
-	const capture = (
+	const captureButton = (
 		<Button
 			size="sm"
 			color={capturing ? 'red' : 'blue'}
@@ -119,14 +119,14 @@ export function useEventsView(live: boolean): EventsViewParts {
 
 				const id = store.stopCapture()
 
-				if (id !== undefined) view(id)
+				if (id !== undefined) viewReport(id)
 			}}
 		>
 			{intl.formatMessage(capturing ? eventsMessages.stopCapture : eventsMessages.capture)}
 		</Button>
 	)
 
-	const clear = entries.length > 0 && (
+	const clearButton = entries.length > 0 && (
 		<Button size="sm" color="amber" onClick={() => store.clear()}>
 			{intl.formatMessage(intlMessages.clear)}
 		</Button>
@@ -235,15 +235,15 @@ export function useEventsView(live: boolean): EventsViewParts {
 				),
 			footer: (
 				<>
-					{capture}
-					{clear}
+					{captureButton}
+					{clearButton}
 				</>
 			),
 		}
 
 	const rows = rowsOf(entries, batched)
 
-	const width = kindWidth(entries)
+	const width = kindWidthOf(entries)
 
 	return {
 		store,
@@ -263,15 +263,15 @@ export function useEventsView(live: boolean): EventsViewParts {
 		),
 		body:
 			entries.length > 0 ? (
-				<EventsList rows={rows} width={width} state={state} onReport={view} />
+				<EventsList rows={rows} width={width} openState={openState} onReport={viewReport} />
 			) : (
 				<Text tone="muted">{intl.formatMessage(eventsMessages.noEvents)}</Text>
 			),
 		footer: (
 			<>
-				<EventsCopyButton text={() => rows.map((row) => rowText(row, width)).join('\n')} />
-				{capture}
-				{clear}
+				<EventsCopyButton text={() => rows.map((row) => rowTextOf(row, width)).join('\n')} />
+				{captureButton}
+				{clearButton}
 			</>
 		),
 	}

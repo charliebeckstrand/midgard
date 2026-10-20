@@ -4,7 +4,7 @@ import type { EventViewport } from './types'
 // stack.
 
 /** The heights that place a surface fixed to an edge now, with no scroll position. */
-export function viewport(): Omit<EventViewport, 'y'> {
+export function readViewport(): Omit<EventViewport, 'y'> {
 	const visual = window.visualViewport
 
 	const probe = document.body.appendChild(createProbe())
@@ -81,7 +81,7 @@ function createProbe(): HTMLElement {
 }
 
 /** The text of the event of a bug that React or a router reports: the origin, the message, and the first component frame. */
-export function bugText(origin: string, error: unknown, componentStack?: string): string {
+export function bugTextOf(origin: string, error: unknown, componentStack?: string): string {
 	const [component] = framesOf(componentStack)
 
 	return `${origin} ${messageOf(error)}${component ? ` ${component}` : ''}`

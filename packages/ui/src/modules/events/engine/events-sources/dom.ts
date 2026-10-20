@@ -41,7 +41,7 @@ export function bursts(): { batchOf: (key: string) => string; stop: () => void }
 }
 
 /** Adds a passive capture listener for each type, and returns a function that removes them. */
-export function on(
+export function addListeners(
 	target: EventTarget | null | undefined,
 	types: readonly string[],
 	listener: (event: Event) => void,

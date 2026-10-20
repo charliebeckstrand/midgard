@@ -15,18 +15,18 @@ function nameOf(entry: EventEntry): string {
 }
 
 /** The width of the kind column: the longest kind, or the longest name in the list. */
-export function kindWidth(entries: readonly EventEntry[]): number {
+export function kindWidthOf(entries: readonly EventEntry[]): number {
 	return entries.reduce((width, entry) => Math.max(width, nameOf(entry).length), KIND_WIDTH)
 }
 
 /** The columns before the text of a line: the time, the scroll position, and the kind or the name. */
-export function columns(entry: EventEntry, width: number): string {
+export function columnsOf(entry: EventEntry, width: number): string {
 	return `${String(entry.time).padStart(6)} y${String(entry.y).padEnd(5)} ${nameOf(entry).padEnd(width)} `
 }
 
 /** One line with no detail: the columns, then the text. Copy and the trail of a report write it. */
 export function lineOf(entry: EventEntry, width: number): string {
-	return columns(entry, width) + entry.text
+	return columnsOf(entry, width) + entry.text
 }
 
 /**
@@ -77,12 +77,12 @@ export function summaryOf(row: EventRow): string {
  * One event as text: the columns, then the text. A detail follows as indented
  * JSON, each line under the start of the text.
  */
-function lineWithDetail(entry: EventEntry, width: number): string {
+function detailedLineOf(entry: EventEntry, width: number): string {
 	const text = lineOf(entry, width)
 
 	if (entry.detail === undefined) return text
 
-	const indent = ' '.repeat(columns(entry, width).length)
+	const indent = ' '.repeat(columnsOf(entry, width).length)
 
 	const detail = JSON.stringify(entry.detail, null, 2).replaceAll('\n', `\n${indent}`)
 
@@ -93,10 +93,10 @@ function lineWithDetail(entry: EventEntry, width: number): string {
  * One row as text. A row of a batch is the columns of its first event and the
  * summary, then each event, indented by two spaces.
  */
-export function rowText(row: EventRow, width: number): string {
-	if (row.length === 1) return lineWithDetail(row[0], width)
+export function rowTextOf(row: EventRow, width: number): string {
+	if (row.length === 1) return detailedLineOf(row[0], width)
 
-	const entries = row.map((entry) => `  ${lineWithDetail(entry, width).replaceAll('\n', '\n  ')}`)
+	const entries = row.map((entry) => `  ${detailedLineOf(entry, width).replaceAll('\n', '\n  ')}`)
 
-	return [columns(row[0], width) + summaryOf(row), ...entries].join('\n')
+	return [columnsOf(row[0], width) + summaryOf(row), ...entries].join('\n')
 }

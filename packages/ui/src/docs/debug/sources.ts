@@ -1,5 +1,5 @@
 import type { EventSource } from 'ui/events'
-import { bursts, on } from '../../modules/events/engine/events-sources/dom.ts'
+import { addListeners, bursts } from '../../modules/events/engine/events-sources/dom.ts'
 import { noop } from '../../utilities/noop.ts'
 import { listenComponentEvents } from './component-events.ts'
 
@@ -46,7 +46,7 @@ const readings: EventSource = (note) => {
 
 	delete window.__eventReadings
 
-	return on(window, ['pageshow'], (event) => {
+	return addListeners(window, ['pageshow'], (event) => {
 		if ((event as PageTransitionEvent).persisted) note({ kind: 'load', text: scrollReading() })
 	})
 }

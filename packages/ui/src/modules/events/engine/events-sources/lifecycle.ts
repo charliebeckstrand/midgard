@@ -1,6 +1,6 @@
-import { viewport } from '../events-probes'
+import { readViewport } from '../events-probes'
 import type { EventSource } from '../types'
-import { all, on } from './dom'
+import { addListeners, all } from './dom'
 
 /**
  * The page lifecycle: each show, hide, and change of the visibility. A
@@ -10,18 +10,18 @@ import { all, on } from './dom'
  */
 export const lifecycle: EventSource = (note) =>
 	all([
-		on(window, ['pageshow', 'pagehide'], (event) => {
+		addListeners(window, ['pageshow', 'pagehide'], (event) => {
 			const { persisted } = event as PageTransitionEvent
 
 			if (event.type === 'pageshow' && persisted) {
 				note({ kind: 'load', text: `──── back-forward cache ${location.pathname}` })
 
-				note({ kind: 'load', text: 'viewport', detail: viewport() })
+				note({ kind: 'load', text: 'viewport', detail: readViewport() })
 			} else {
 				note({ kind: 'load', text: `${event.type}${persisted ? ' persisted' : ''}` })
 			}
 		}),
-		on(document, ['visibilitychange'], () =>
+		addListeners(document, ['visibilitychange'], () =>
 			note({ kind: 'load', text: `visibility ${document.visibilityState}` }),
 		),
 	])

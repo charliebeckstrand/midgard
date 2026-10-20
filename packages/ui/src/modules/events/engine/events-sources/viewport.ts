@@ -1,6 +1,6 @@
-import { viewport as readViewport } from '../events-probes'
+import { readViewport } from '../events-probes'
 import type { EventSource } from '../types'
-import { all, bursts, on } from './dom'
+import { addListeners, all, bursts } from './dom'
 
 /**
  * Each resize of the window and of the visual viewport, with the reading of
@@ -10,7 +10,7 @@ export const resize: EventSource = (note) => {
 	const { batchOf, stop } = bursts()
 
 	return all([
-		on(window, ['resize'], () =>
+		addListeners(window, ['resize'], () =>
 			note({
 				kind: 'viewport',
 				text: 'window resize',
@@ -18,7 +18,7 @@ export const resize: EventSource = (note) => {
 				batch: batchOf('resize'),
 			}),
 		),
-		on(window.visualViewport, ['resize'], () =>
+		addListeners(window.visualViewport, ['resize'], () =>
 			note({
 				kind: 'viewport',
 				text: 'visual resize',

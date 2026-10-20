@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, vi } from 'vitest'
 import {
-	CAPACITY,
 	CAPTURE_CAPACITY,
+	EVENT_CAPACITY,
 	EventStore,
 	type NewEntry,
-	REPORTS,
-	TRAIL,
+	REPORT_CAPACITY,
+	TRAIL_LENGTH,
 } from '../../modules/events/engine/events-store'
 import type { EventStorage } from '../../modules/events/engine/types'
 import { createStorage } from '../helpers/event-storage'
@@ -120,25 +120,25 @@ describe('EventStore', () => {
 		expect(new EventStore(storage).entries).toEqual([])
 	})
 
-	it(`keeps the newest ${CAPACITY} events, and each event with a report`, () => {
+	it(`keeps the newest ${EVENT_CAPACITY} events, and each event with a report`, () => {
 		const store = new EventStore(createStorage())
 
-		store.file(entry(0, 'error'), { origin: 'window', error: errorWith('boom') })
+		store.addBug(entry(0, 'error'), { origin: 'window', error: errorWith('boom') })
 
-		for (let time = 1; time < CAPACITY + 5; time++) store.add(entry(time))
+		for (let time = 1; time < EVENT_CAPACITY + 5; time++) store.add(entry(time))
 
-		expect(store.entries).toHaveLength(CAPACITY + 1)
+		expect(store.entries).toHaveLength(EVENT_CAPACITY + 1)
 
 		expect(texts(store).slice(0, 2)).toEqual(['error at 0', 'input at 5'])
 	})
 
-	it(`keeps the newest ${REPORTS} reports`, () => {
+	it(`keeps the newest ${REPORT_CAPACITY} reports`, () => {
 		const store = new EventStore(createStorage())
 
-		for (let time = 0; time < REPORTS + 2; time++)
-			store.file(entry(time, 'error'), { origin: 'window', error: errorWith(`boom ${time}`) })
+		for (let time = 0; time < REPORT_CAPACITY + 2; time++)
+			store.addBug(entry(time, 'error'), { origin: 'window', error: errorWith(`boom ${time}`) })
 
-		expect(store.entries.filter(({ report }) => report)).toHaveLength(REPORTS)
+		expect(store.entries.filter(({ report }) => report)).toHaveLength(REPORT_CAPACITY)
 
 		expect(texts(store)[0]).toBe('error at 2')
 	})
@@ -146,11 +146,11 @@ describe('EventStore', () => {
 	it('puts a late event in its time order, but not before the separator of its page load', () => {
 		const store = new EventStore(createStorage())
 
-		store.separate('first load')
+		store.addSeparator('first load')
 
 		store.add(entry(900))
 
-		store.separate('second load')
+		store.addSeparator('second load')
 
 		store.add(entry(40))
 
@@ -192,7 +192,7 @@ describe('EventStore', () => {
 
 		store.add(entry(20))
 
-		store.file(entry(25, 'error'), { origin: 'window', error: errorWith('boom') })
+		store.addBug(entry(25, 'error'), { origin: 'window', error: errorWith('boom') })
 
 		store.setPaused(false)
 
@@ -272,9 +272,9 @@ describe('EventStore bugs', () => {
 	it('files a report with the origin, the stack, the page, and the last lines', () => {
 		const store = new EventStore(createStorage())
 
-		for (let time = 0; time < TRAIL + 5; time++) store.add(entry(time))
+		for (let time = 0; time < TRAIL_LENGTH + 5; time++) store.add(entry(time))
 
-		store.file(entry(100, 'error'), {
+		store.addBug(entry(100, 'error'), {
 			origin: 'caught',
 			error: errorWith('boom'),
 			componentStack: '\n    at Page (page.tsx:3:9)',
@@ -292,7 +292,7 @@ describe('EventStore bugs', () => {
 		})
 
 		// The trail holds the last lines before the bug, not the bug.
-		expect(bug?.report?.trail).toHaveLength(TRAIL)
+		expect(bug?.report?.trail).toHaveLength(TRAIL_LENGTH)
 
 		expect(bug?.report?.trail.at(-1)).toMatch(/input at 44$/)
 	})
@@ -302,11 +302,11 @@ describe('EventStore bugs', () => {
 
 		const bug = (time: number): NewEntry => ({ time, kind: 'error', text: 'window boom', y: 0 })
 
-		store.file(bug(10), { origin: 'window', error: errorWith('boom') })
+		store.addBug(bug(10), { origin: 'window', error: errorWith('boom') })
 
-		store.file(bug(20), { origin: 'window', error: errorWith('boom') })
+		store.addBug(bug(20), { origin: 'window', error: errorWith('boom') })
 
-		store.file(bug(30), {
+		store.addBug(bug(30), {
 			origin: 'window',
 			error: errorWith('boom', 'at cells (grid.js:9:9)'),
 		})
@@ -319,15 +319,15 @@ describe('EventStore bugs', () => {
 
 		const error = errorWith('boom')
 
-		store.file(entry(10, 'error'), {
+		store.addBug(entry(10, 'error'), {
 			origin: 'caught',
 			error,
 			componentStack: '\n    at Page (page.tsx:3:9)',
 		})
 
-		store.file(entry(11, 'error'), { origin: 'route', error, route: '/:page' })
+		store.addBug(entry(11, 'error'), { origin: 'route', error, route: '/:page' })
 
-		store.file(entry(12, 'error'), { origin: 'window', error })
+		store.addBug(entry(12, 'error'), { origin: 'window', error })
 
 		expect(store.entries).toHaveLength(1)
 
@@ -341,7 +341,7 @@ describe('EventStore bugs', () => {
 	it('removes the report of an event, and keeps the event', () => {
 		const store = new EventStore(createStorage())
 
-		store.file(entry(10, 'error'), { origin: 'window', error: errorWith('boom') })
+		store.addBug(entry(10, 'error'), { origin: 'window', error: errorWith('boom') })
 
 		const [bug] = store.entries
 
@@ -357,7 +357,7 @@ describe('EventStore capture', () => {
 	it('files a capture with each event from its start, and the start in the report', () => {
 		const store = new EventStore(createStorage())
 
-		for (let time = 0; time < TRAIL + 5; time++) store.add(entry(time))
+		for (let time = 0; time < TRAIL_LENGTH + 5; time++) store.add(entry(time))
 
 		now(500)
 
@@ -365,7 +365,7 @@ describe('EventStore capture', () => {
 
 		expect(store.capturing).toBe(true)
 
-		for (let time = 0; time < TRAIL + 5; time++) store.add(entry(1000 + time))
+		for (let time = 0; time < TRAIL_LENGTH + 5; time++) store.add(entry(1000 + time))
 
 		now(2000)
 
@@ -380,7 +380,7 @@ describe('EventStore capture', () => {
 		expect(capture?.report?.started).toMatch(new RegExp(`Z ${location.pathname}$`))
 
 		// The capture start and each event after it, and none before it.
-		expect(capture?.report?.trail).toHaveLength(TRAIL + 6)
+		expect(capture?.report?.trail).toHaveLength(TRAIL_LENGTH + 6)
 
 		expect(capture?.report?.trail[0]).toContain(`capture starts ${location.pathname}`)
 	})
@@ -429,13 +429,13 @@ describe('EventStore capture', () => {
 
 		store.startCapture()
 
-		for (let time = 1; time <= CAPACITY + 10; time++) store.add(entry(time))
+		for (let time = 1; time <= EVENT_CAPACITY + 10; time++) store.add(entry(time))
 
-		expect(store.entries).toHaveLength(CAPACITY + 11)
+		expect(store.entries).toHaveLength(EVENT_CAPACITY + 11)
 
-		store.file(entry(5000, 'error'), { origin: 'window', error: errorWith('boom') })
+		store.addBug(entry(5000, 'error'), { origin: 'window', error: errorWith('boom') })
 
-		expect(store.entries.at(-1)?.report?.trail).toHaveLength(CAPACITY + 11)
+		expect(store.entries.at(-1)?.report?.trail).toHaveLength(EVENT_CAPACITY + 11)
 	})
 
 	it('returns no id when no capture runs', () => {

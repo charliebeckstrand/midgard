@@ -7,7 +7,7 @@ import {
 	reportBug,
 } from '../../modules/events/engine/events-sink'
 import { EventStore, type NewEntry } from '../../modules/events/engine/events-store'
-import { OWN } from '../../modules/events/engine/events-target'
+import { TOOL_ATTRIBUTE } from '../../modules/events/engine/events-target'
 import { notifyOverlaySignal } from '../../primitives/overlay/overlay-signal'
 import { attach } from '../helpers/attach'
 import { createStorage } from '../helpers/event-storage'
@@ -108,7 +108,7 @@ describe('listen', () => {
 
 		const tool = attach(document.createElement('span'))
 
-		tool.setAttribute(OWN, '')
+		tool.setAttribute(TOOL_ATTRIBUTE, '')
 
 		tool
 			.appendChild(document.createElement('button'))
@@ -293,7 +293,7 @@ describe('listen', () => {
 
 		const tool = attach(document.createElement('button'))
 
-		tool.setAttribute(OWN, '')
+		tool.setAttribute(TOOL_ATTRIBUTE, '')
 
 		button.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 

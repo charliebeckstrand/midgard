@@ -1,5 +1,5 @@
 import type { EventSource } from '../types'
-import { on } from './dom'
+import { addListeners } from './dom'
 
 /**
  * Each move through the session history that the browser makes: back,
@@ -7,6 +7,6 @@ import { on } from './dom'
  * itself, such as through the navigation callbacks of the router.
  */
 export const sessionHistory: EventSource = (note) =>
-	on(window, ['popstate', 'hashchange'], (event) =>
+	addListeners(window, ['popstate', 'hashchange'], (event) =>
 		note({ kind: 'route', text: `${event.type} ${location.pathname}${location.hash}` }),
 	)

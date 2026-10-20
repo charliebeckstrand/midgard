@@ -1,6 +1,6 @@
 import { noop } from '../../../../utilities/noop'
 import { framesOf } from '../events-probes'
-import { describeTarget, isOwn } from '../events-target'
+import { isOwn, targetNameOf } from '../events-target'
 import type { EventSource } from '../types'
 import { all } from './dom'
 
@@ -35,7 +35,7 @@ export const calls: EventSource = (note) =>
 
 					note({
 						kind: 'call',
-						text: `${name} ${describeTarget(this)} ${JSON.stringify(args)} from ${stack.slice(0, 2).join(' < ')}`,
+						text: `${name} ${targetNameOf(this)} ${JSON.stringify(args)} from ${stack.slice(0, 2).join(' < ')}`,
 						detail: { stack },
 					})
 				}

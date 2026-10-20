@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { markdownOf, titleOf } from '../../modules/events/engine/events-report'
 import { EventStore } from '../../modules/events/engine/events-store'
 import {
-	kindWidth,
+	kindWidthOf,
 	lineOf,
 	rowsOf,
-	rowText,
+	rowTextOf,
 	summaryOf,
 } from '../../modules/events/engine/events-text'
 import type { EventEntry } from '../../modules/events/engine/types'
@@ -56,22 +56,22 @@ describe('summaryOf', () => {
 	})
 })
 
-describe('rowText', () => {
+describe('rowTextOf', () => {
 	it('writes the detail of an event as JSON under its line, and the events of a batch under its summary', () => {
-		const width = kindWidth(entries)
+		const width = kindWidthOf(entries)
 
 		const detailed = { ...entry(6, 20, 'keydown Tab'), detail: { key: 'Tab' } }
 
 		// The JSON starts under the start of the text.
 		const indent = ' '.repeat(lineOf(detailed, width).indexOf('keydown'))
 
-		expect(rowText([detailed], width)).toBe(
+		expect(rowTextOf([detailed], width)).toBe(
 			`${lineOf(detailed, width)}\n${indent}{\n${indent}  "key": "Tab"\n${indent}}`,
 		)
 
 		const [tap] = rowsOf(entries, true)
 
-		expect(tap && rowText(tap, width).split('\n')).toEqual([
+		expect(tap && rowTextOf(tap, width).split('\n')).toEqual([
 			expect.stringMatching(/pointerdown … click \(2 lines, 3 ms\)$/),
 			`  ${lineOf(entries[0] as EventEntry, width)}`,
 			`  ${lineOf(entries[3] as EventEntry, width)}`,
@@ -90,9 +90,9 @@ describe('markdownOf', () => {
 
 		const bug = { kind: 'error', text: 'window a | b', y: 0 }
 
-		store.file({ ...bug, time: 8 }, { origin: 'window', error: error('a | b') })
+		store.addBug({ ...bug, time: 8 }, { origin: 'window', error: error('a | b') })
 
-		store.file({ ...bug, time: 9 }, { origin: 'window', error: error('a | b') })
+		store.addBug({ ...bug, time: 9 }, { origin: 'window', error: error('a | b') })
 
 		const filed = store.entries.find((item) => item.report)
 

@@ -64,7 +64,7 @@ export function EventsButton() {
 		)
 	}
 
-	// The attribute marks the button as a part of the tools (`OWN`).
+	// The attribute marks the button as a part of the tools (`TOOL_ATTRIBUTE`).
 	return (
 		<span
 			data-events-tool=""

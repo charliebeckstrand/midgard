@@ -1,4 +1,4 @@
-import { viewport } from './events-probes'
+import { readViewport } from './events-probes'
 import { placeOf } from './events-target'
 import type { EventEntry, EventReport } from './types'
 
@@ -48,7 +48,7 @@ export function createReport({ title, pointer, focus, ...input }: ReportInput): 
 		root: Array.from(document.documentElement.attributes, ({ name, value }) =>
 			value ? `${name}="${value}"` : name,
 		).join(' '),
-		viewport: { ...viewport(), y: Math.round(scrollY) },
+		viewport: { ...readViewport(), y: Math.round(scrollY) },
 	}
 
 	if (pointer?.isConnected) report.pointer = placeOf(pointer)
