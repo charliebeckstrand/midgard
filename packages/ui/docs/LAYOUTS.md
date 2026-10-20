@@ -22,7 +22,7 @@ Static scaffold: a min-height-collapsing column with fixed-height ends around a 
 
 | Export | Summary |
 |---|---|
-| `StackedLayout` | Vertically stacked page scaffold hosting the header, body, and footer slots; the body flexes and scrolls between fixed-height ends. |
+| `StackedLayout` | Vertically stacked page scaffold hosting the header, body, and footer slots; the body flexes and scrolls between fixed-height ends (`data-slot="stacked-layout"`). |
 | `StackedLayoutHeader` | Fixed-height header slot (`data-slot="header"`). |
 | `StackedLayoutBody` | Flexible, vertically scrolling main slot taking the height between header and footer (`data-slot="body"`). |
 | `StackedLayoutFooter` | Fixed-height footer slot (`data-slot="footer"`). |
@@ -33,7 +33,7 @@ Client layout building on `StackedLayout` with a responsive filter rail.
 
 | Export | Summary |
 |---|---|
-| `DashboardLayout` | Stacked content layout with a responsive filter rail. Its `layout` sets the place of the filters at each breakpoint. An `inline` layout puts them beside the main column. A `drawer` layout puts them in an offcanvas drawer that a button opens. The default is a drawer on a compact or a medium viewport, and inline when expanded. |
+| `DashboardLayout` | Stacked content layout with a responsive filter rail. Its `layout` sets the place of the filters at each breakpoint. An `inline` layout puts them beside the main column. A `drawer` layout puts them in an offcanvas drawer that a button opens. The default is a drawer on a compact or a medium viewport, and inline when expanded (`data-slot="dashboard-layout"`). |
 
 ## `SidebarLayout`: sidebar app shell
 

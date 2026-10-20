@@ -1,7 +1,7 @@
 'use client'
 
 import { SlidersHorizontal } from 'lucide-react'
-import type { PropsWithChildren, ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { Button } from '../components/button'
 import { Drawer, DrawerBody, DrawerPanel, DrawerTitle, DrawerTrigger } from '../components/drawer'
 import { Icon } from '../components/icon'
@@ -21,8 +21,11 @@ const toDirection = (layout: OffcanvasLayout) => (layout === 'inline' ? 'row' : 
 /** A row centers its cross axis by default. The rail starts at the top of the main column. */
 const toAlign = (layout: OffcanvasLayout) => (layout === 'inline' ? 'start' : 'stretch')
 
-/** Props for {@link DashboardLayout}: the filter panel and the main region beside it. */
-export type DashboardLayoutProps = PropsWithChildren<{
+/**
+ * Props for {@link DashboardLayout}: the filter panel and the main region beside
+ * it. The root `<div>` takes the rest.
+ */
+export type DashboardLayoutProps = ComponentProps<'div'> & {
 	/**
 	 * Optional filter controls. In the inline layout they render as an `aside`
 	 * beside the main column. In the drawer layout they collapse behind a
@@ -53,7 +56,7 @@ export type DashboardLayoutProps = PropsWithChildren<{
 	 * with. The inline rail does not open, so it reports nothing.
 	 */
 	onOpenChange?: (open: boolean) => void
-}>
+}
 
 /**
  * Stacked content layout with a responsive filter rail. Wraps {@link StackedLayout}
@@ -73,6 +76,7 @@ export function DashboardLayout({
 	layout: layoutProp = OFFCANVAS_LAYOUT,
 	onOpenChange,
 	children,
+	...props
 }: DashboardLayoutProps) {
 	const { open, setOpen, layout } = useOffcanvas({ layout: layoutProp, onOpenChange })
 
@@ -81,9 +85,7 @@ export function DashboardLayout({
 	const filtersLabel = intl.formatMessage(intlMessages.filters)
 
 	return (
-		<StackedLayout>
-			{/* A row centers its cross axis by default. The rail starts at the top of the
-			    main column. */}
+		<StackedLayout data-slot="dashboard-layout" {...props}>
 			<Flex
 				direction={mapResponsive(layout, toDirection)}
 				align={mapResponsive(layout, toAlign)}

@@ -40,8 +40,7 @@ export type SplitProps = {
 /**
  * Two-pane CSS-grid layout. `orientation` chooses columns or rows, and `ratio`
  * sizes the first pane against the second via `fr` tracks. `gap` and `align`
- * tune spacing and cross-axis placement; `gap` is explicit and defaults to
- * `lg`.
+ * tune spacing and cross-axis placement.
  * Expects exactly two children. A static leaf with no client hooks, so it
  * renders in React Server Components.
  */
@@ -56,8 +55,8 @@ export function Split({
 }: SplitProps) {
 	return (
 		<div
-			{...props}
 			data-slot="split"
+			{...props}
 			className={cn(
 				'grid',
 				resolveTemplate(orientation, ratio),

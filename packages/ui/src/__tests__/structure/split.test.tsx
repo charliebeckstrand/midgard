@@ -123,4 +123,12 @@ describe('Split gap resolution', () => {
 
 		expect(bySlot(container, 'split')?.className).toContain('density-gap-[2,3,4,5,6]')
 	})
+
+	it('lets a wrapper re-anchor the root', () => {
+		const { container } = renderUI(<Split data-slot="panes">a</Split>)
+
+		expect(bySlot(container, 'panes')).not.toBeNull()
+
+		expect(bySlot(container, 'split')).toBeNull()
+	})
 })

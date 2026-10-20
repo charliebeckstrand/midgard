@@ -1,7 +1,32 @@
 import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
-import { StackedLayoutBody, StackedLayoutFooter, StackedLayoutHeader } from '../../layouts/stacked'
+import {
+	StackedLayout,
+	StackedLayoutBody,
+	StackedLayoutFooter,
+	StackedLayoutHeader,
+} from '../../layouts/stacked'
 import { bySlot, renderUI } from '../helpers'
+
+describe('StackedLayout', () => {
+	it('renders its own anchor and takes the attributes and ref of its <div>', () => {
+		const ref = createRef<HTMLDivElement>()
+
+		const { container } = renderUI(
+			<StackedLayout ref={ref} id="page" aria-label="Page">
+				content
+			</StackedLayout>,
+		)
+
+		const root = bySlot(container, 'stacked-layout')
+
+		expect(root).toBe(ref.current)
+
+		expect(root?.id).toBe('page')
+
+		expect(root?.getAttribute('aria-label')).toBe('Page')
+	})
+})
 
 describe('StackedLayoutHeader', () => {
 	it('renders a <header> landmark', () => {
