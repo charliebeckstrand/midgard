@@ -4,6 +4,8 @@ import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef } from 
 import { focusWithoutReveal } from '../../hooks/use-truncation'
 import {
 	type FocusOrigin,
+	firstEditorCell,
+	focusedRowKey,
 	interactionPlace,
 	reseatFlagged,
 	returnElement,
@@ -42,6 +44,7 @@ export function useGridEditFocus<T>({
 	dataColumnsRef,
 	cellId,
 	moveTo,
+	inline,
 }: {
 	/** The rows that edit in this render. */
 	editableRows: Set<string | number>
@@ -60,6 +63,8 @@ export function useGridEditFocus<T>({
 	cellId: (row: number, col: number) => string
 	/** The cursor's clamped move. */
 	moveTo: (coord: Coord) => void
+	/** Whether the editors render in their cells, not in an overlay. */
+	inline: boolean
 }) {
 	// The cell whose editor takes focus once it mounts. The entry sets it, and the
 	// editor claims it as it mounts or as the session comes to hold it. A
@@ -181,6 +186,20 @@ export function useGridEditFocus<T>({
 			doc.removeEventListener('focusin', focusIn, true)
 		}
 	}, [tableRef])
+
+	// A row that opens from a control in it, such as its pencil, puts focus in
+	// its first editor. Focus elsewhere stays where it is. An overlay puts focus
+	// in its own fields. A row with no origin yet is one that opens in this
+	// commit, so this runs before the origins are recorded below.
+	useLayoutEffect(() => {
+		if (!inline || pendingFocusRef.current !== null) return
+
+		const key = focusedRowKey(tableRef.current, rowKeysRef.current)
+
+		if (key === undefined || !editableRows.has(key) || originsRef.current.has(key)) return
+
+		pendingFocusRef.current = firstEditorCell(key, dataColumnsRef.current)
+	}, [editableRows, inline, tableRef, rowKeysRef, dataColumnsRef])
 
 	useLayoutEffect(() => {
 		const origins = originsRef.current

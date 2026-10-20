@@ -423,6 +423,7 @@ export function useGridEditing<T>({
 		dataColumnsRef,
 		cellId,
 		moveTo,
+		inline: overlay === null,
 	})
 
 	const newRow = useGridNewRow<T>({

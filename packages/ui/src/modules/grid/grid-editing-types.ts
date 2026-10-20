@@ -200,6 +200,10 @@ export type GridEditableConfig = {
 	 * first staged against, with the row's key. Ignore a change for a row that
 	 * you deleted. A row whose key changed during the session is the same case:
 	 * its edits commit under the old key.
+	 *
+	 * A row that enters this set while focus is on a control in the row, such
+	 * as its pencil, moves focus to its first editor. Focus elsewhere stays
+	 * where it is. On a phone, the overlay puts focus in its own fields.
 	 */
 	rows?: Set<string | number>
 	/** Initial editable row keys for the uncontrolled case. */

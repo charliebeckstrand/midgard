@@ -6247,3 +6247,80 @@ describe('Grid-owned session keys in a grouped grid', () => {
 		expect(onRowsChange).toHaveBeenLastCalledWith(new Set([1]))
 	})
 })
+
+describe('Grid focus as a control in a row opens it', () => {
+	// The pencil and the check are one button, as a consumer writes them: React
+	// keeps the element, so focus would stay on what becomes the check.
+	function renderPencil() {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [rows, setRows] = useState<Set<string | number>>(new Set())
+
+			return (
+				<>
+					<button type="button" onClick={() => setRows(new Set([2]))}>
+						Open Bob
+					</button>
+					<Grid
+						columns={[
+							...sessionColumns,
+							{
+								id: 'actions',
+								actions: (row, { editing, save }) => (
+									<span>
+										{editing ? (
+											<button type="button" onClick={save}>
+												Save
+											</button>
+										) : (
+											<button
+												type="button"
+												onClick={() => setRows((prev) => new Set(prev).add(row.id))}
+											>
+												{`Edit ${row.name}`}
+											</button>
+										)}
+									</span>
+								),
+							},
+						]}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						editable={{ session: 'managed', rows, onRowsChange: setRows, onCommit }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const press = (name: string) => {
+			const button = view.getByRole('button', { name })
+
+			act(() => button.focus())
+
+			fireEvent.click(button)
+		}
+
+		return { ...view, press, onCommit }
+	}
+
+	it('moves focus to the first editor of the row', () => {
+		const view = renderPencil()
+
+		view.press('Edit Bob')
+
+		expect(document.activeElement).toBe(view.getByRole('textbox', { name: 'Edit Name, row 2' }))
+	})
+
+	it('keeps focus on a control outside the row', () => {
+		const view = renderPencil()
+
+		view.press('Open Bob')
+
+		expect(editorsIn(view.container).length).toBeGreaterThan(0)
+
+		expect(document.activeElement).toBe(view.getByRole('button', { name: 'Open Bob' }))
+	})
+})
