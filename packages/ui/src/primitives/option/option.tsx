@@ -235,7 +235,7 @@ const [CapitalizeContext] = createContext('OptionCapitalize', { default: false }
 // are collected with their arrays.
 const membershipCache = new WeakMap<readonly unknown[], Set<unknown>>()
 
-function isOptionSelected(
+function isSelected(
 	selectedValue: unknown,
 	value: unknown,
 	multiple: boolean | undefined,
@@ -289,7 +289,7 @@ export function createSelectOption<
 	}: SelectOptionProps<TValue>) {
 		const { value: selectedValue, multiple, onSelect, capitalize } = config.useSelection()
 
-		const selected = isOptionSelected(selectedValue, value, multiple)
+		const selected = isSelected(selectedValue, value, multiple)
 
 		// Stable per option (the host's `onSelect` is stable and `value` is fixed),
 		// so the memoized `Option` can bail when `selected` is unchanged.

@@ -5,7 +5,7 @@ import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 /**
  * Outside-press across two *unrelated* floating surfaces (real floating engine).
  *
- * `isFloatingOutsidePress` spares a press that lands in another floating portal
+ * `isOutsidePress` spares a press that lands in another floating portal
  * unless that portal contains this panel's own reference — the ancestor test.
  * The intent is to spare a press in a nested DESCENDANT surface (a submenu, a
  * picker opened from inside a popover). But "not an ancestor" is not the same

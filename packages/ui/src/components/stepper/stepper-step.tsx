@@ -77,7 +77,7 @@ function partitionChildren(children: ReactNode, contentClassName: string): React
  * @remarks Returns an array, not a Fragment, so the step keeps one child list.
  * @internal
  */
-function ensureStepperIndicator(children: ReactNode): ReactNode {
+function ensureIndicator(children: ReactNode): ReactNode {
 	if (hasChildOfType(children, StepperIndicator)) return children
 
 	return [<StepperIndicator key="__auto-stepper-indicator" />, ...Children.toArray(children)]
@@ -127,7 +127,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 	const classes = cn(stepClasses, className)
 
 	const layoutChildren = useMemo(
-		() => partitionChildren(ensureStepperIndicator(children), cn(k.content.base, layout.content)),
+		() => partitionChildren(ensureIndicator(children), cn(k.content.base, layout.content)),
 		[children, layout.content],
 	)
 

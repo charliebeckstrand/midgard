@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	type HeatmapChartSeries,
-	resolveHeatmapMatrix,
+	resolveMatrix,
 } from '../../modules/chart/heatmap-chart/heatmap-chart-schema'
 
 type Row = { day: string; hour: string; commits: number }
@@ -20,9 +20,9 @@ const SERIES = {
 	colorRange: ['#fff', '#000'],
 } satisfies HeatmapChartSeries<Row>
 
-describe('resolveHeatmapMatrix', () => {
+describe('resolveMatrix', () => {
 	it('pivots flat rows onto axes in first-seen order', () => {
-		const matrix = resolveHeatmapMatrix(ROWS, SERIES)
+		const matrix = resolveMatrix(ROWS, SERIES)
 
 		expect(matrix.columns).toEqual(['9', '10'])
 
@@ -35,7 +35,7 @@ describe('resolveHeatmapMatrix', () => {
 	})
 
 	it('leaves an absent pair null and coerces a non-finite value to null', () => {
-		const matrix = resolveHeatmapMatrix(
+		const matrix = resolveMatrix(
 			[
 				{ day: 'Mon', hour: '9', commits: 3 },
 				{ day: 'Tue', hour: '10', commits: Number.NaN },
@@ -50,7 +50,7 @@ describe('resolveHeatmapMatrix', () => {
 	})
 
 	it('takes the last write on a repeated cell', () => {
-		const matrix = resolveHeatmapMatrix(
+		const matrix = resolveMatrix(
 			[
 				{ day: 'Mon', hour: '9', commits: 3 },
 				{ day: 'Mon', hour: '9', commits: 8 },

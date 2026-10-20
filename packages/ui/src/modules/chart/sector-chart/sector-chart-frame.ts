@@ -10,7 +10,7 @@ import type { ChartReadout } from '../engine/types'
 import type { SectorLabels } from './sector-chart'
 
 /** Defaults both label switches off. @internal */
-export function resolveSectorLabels(labels: SectorLabels | undefined): Required<SectorLabels> {
+export function resolveLabels(labels: SectorLabels | undefined): Required<SectorLabels> {
 	return { segment: labels?.segment ?? false, callouts: labels?.callouts ?? false }
 }
 

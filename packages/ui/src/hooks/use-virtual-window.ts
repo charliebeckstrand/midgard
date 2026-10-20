@@ -408,7 +408,7 @@ function windowState(instance: Virtualizer<HTMLElement, Element>): WindowState {
 }
 
 /** Whether two window states render the same window. @internal */
-function sameWindowState(a: WindowState, b: WindowState): boolean {
+function isSameState(a: WindowState, b: WindowState): boolean {
 	return a.start === b.start && a.end === b.end && a.sizes === b.sizes
 }
 
@@ -499,7 +499,7 @@ function useWindowVirtualizer(options: WindowVirtualizerOptions, adjustAbove: bo
 		onChange: (instance, sync) => {
 			const prev = shown.current
 
-			if (prev && sameWindowState(prev, windowState(instance))) return
+			if (prev && isSameState(prev, windowState(instance))) return
 
 			if (sync && !measuring) flushSync(rerender)
 			else rerender()

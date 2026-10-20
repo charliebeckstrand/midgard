@@ -2,7 +2,7 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect } from 'vitest'
 import { projectPoint, unprojectPoint } from '../../modules/map/engine/map-geometry/mark'
-import { fitMapProjection } from '../../modules/map/engine/map-projection/resolve'
+import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import { FLOAT } from '../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
@@ -31,7 +31,7 @@ describe('projectPoint · properties', () => {
 		fc.integer({ min: 50, max: 1200 }),
 		fc.integer({ min: 50, max: 800 }),
 	])('unprojects each projected position back to itself', (name, at, width, height) => {
-		const projection = fitMapProjection(name, FIXTURE_GEOJSON.features, width, height)
+		const projection = fitProjection(name, FIXTURE_GEOJSON.features, width, height)
 
 		const point = projectPoint(projection, at)
 

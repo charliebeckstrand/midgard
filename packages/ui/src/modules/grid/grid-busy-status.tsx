@@ -14,7 +14,7 @@ import { gridMessages } from './engine/grid-messages'
  *
  * @internal
  */
-function useGridStatusMessage(loading: boolean, rowCount: number): string {
+function useStatusMessage(loading: boolean, rowCount: number): string {
 	const intl = useIntl()
 
 	// The state holds what the region says, not its text, so the text follows
@@ -43,7 +43,7 @@ function useGridStatusMessage(loading: boolean, rowCount: number): string {
 /**
  * Visually-hidden polite status backing the grid's `aria-busy`: a stable live
  * region announcing the load start and, on completion, the result count (see
- * {@link useGridStatusMessage}).
+ * {@link useStatusMessage}).
  *
  * Carries `data-slot` because it is the only element that distinguishes "the
  * grid is still fetching" from "the grid has answered". That makes it the
@@ -55,7 +55,7 @@ function useGridStatusMessage(loading: boolean, rowCount: number): string {
  * @internal
  */
 export function GridBusyStatus({ loading, rowCount }: { loading: boolean; rowCount: number }) {
-	const message = useGridStatusMessage(loading, rowCount)
+	const message = useStatusMessage(loading, rowCount)
 
 	return (
 		<span role="status" data-slot="grid-busy-status" className="sr-only">

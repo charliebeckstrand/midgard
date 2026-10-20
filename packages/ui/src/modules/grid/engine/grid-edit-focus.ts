@@ -25,12 +25,12 @@ const TABBABLE =
  *
  * @internal
  */
-function restoreGridFocus(grid: HTMLElement | null): void {
+function restoreFocus(grid: HTMLElement | null): void {
 	if (grid && isInGrid(document.activeElement, grid)) grid.focus()
 }
 
 /**
- * Runs {@link restoreGridFocus} with `flag` set, and clears the flag after it,
+ * Runs {@link restoreFocus} with `flag` set, and clears the flag after it,
  * also when the move throws. The commit on leave reads the flag, so it does not
  * read the grid's own move as a user who left the editor. A module function,
  * because the React Compiler does not compile a `try` without a `catch`.
@@ -41,7 +41,7 @@ export function reseatFlagged(flag: { current: boolean }, grid: HTMLElement | nu
 	flag.current = true
 
 	try {
-		restoreGridFocus(grid)
+		restoreFocus(grid)
 	} finally {
 		flag.current = false
 	}

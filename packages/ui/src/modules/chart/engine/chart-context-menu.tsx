@@ -26,12 +26,7 @@ import { intlMessages } from '../../../primitives/intl/intl-messages'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { copyText, downloadCsv } from '../../../utilities/export-output'
 import { ChartDataDialog } from './chart-data-dialog'
-import {
-	type ChartImageType,
-	chartFileName,
-	rasterizeChartImage,
-	readoutToCsv,
-} from './chart-export'
+import { type ChartImageType, chartFileName, rasterizeImage, readoutToCsv } from './chart-export'
 import { ChartMenuEntriesContext } from './chart-menu-button'
 import { chartMenuName, chartMessages } from './chart-messages'
 import { ChartFullscreenContext, useChartFullscreen } from './context'
@@ -279,7 +274,7 @@ export function ChartContextMenu({
 			if (!root) return
 
 			try {
-				const blob = await rasterizeChartImage(root, { type, includeLegend })
+				const blob = await rasterizeImage(root, { type, includeLegend })
 
 				// A null blob is a failure too: the canvas rasterized and then yielded
 				// nothing, so no file is downloaded and the menu looks like it worked.

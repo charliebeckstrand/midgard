@@ -12,7 +12,7 @@ let paddingSide: 'paddingLeft' | 'paddingRight' = 'paddingRight'
 let prevPadding = ''
 
 /** Takes a lock: on the first holder hides body overflow and compensates the scrollbar gap, saving the prior inline styles to restore. @internal */
-function acquireScrollLock() {
+function acquireLock() {
 	if (lockCount === 0) {
 		const { body, documentElement } = document
 
@@ -48,7 +48,7 @@ function acquireScrollLock() {
 }
 
 /** Releases a lock; when the last holder drops, restores the saved overflow / padding. @internal */
-function releaseScrollLock() {
+function releaseLock() {
 	lockCount--
 
 	if (lockCount === 0) {
@@ -72,8 +72,8 @@ export function useScrollLock(active: boolean): void {
 	useLayoutEffect(() => {
 		if (!active) return
 
-		acquireScrollLock()
+		acquireLock()
 
-		return releaseScrollLock
+		return releaseLock
 	}, [active])
 }

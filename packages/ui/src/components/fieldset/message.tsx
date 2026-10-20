@@ -58,7 +58,7 @@ function shouldRenderError(
  *
  * @internal
  */
-function resolveMessageElementId(
+function resolveElementId(
 	id: string | undefined,
 	severity: MessageSeverity,
 	control: { id: string; messageId?: string } | null | undefined,
@@ -127,7 +127,7 @@ export function Message({
 
 	const describesField = rendersError || severity === 'warning'
 
-	const elementId = resolveMessageElementId(id, severity, control)
+	const elementId = resolveElementId(id, severity, control)
 
 	const registerMessage = control?.registerMessage
 

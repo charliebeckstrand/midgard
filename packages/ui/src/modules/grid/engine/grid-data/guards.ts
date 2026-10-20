@@ -21,7 +21,7 @@ export function hasErrorSlot(error: ReactNode): boolean {
  *
  * Kept off {@link GridData}'s cognitive-complexity budget. @internal
  */
-export function assertGridProps(args: {
+export function assertProps(args: {
 	virtualize: GridVirtualize | undefined
 	maxHeight: string | undefined
 	infiniteScroll: GridInfiniteScroll | undefined
@@ -51,7 +51,7 @@ export function assertGridProps(args: {
  * Infinite scroll layers on the virtualized window, so setting it implies
  * `virtualize` rather than requiring three coupled props. An explicit
  * `virtualize` (object or `true`) still tunes the window; the contradictory
- * `virtualize={false}` + `infiniteScroll` throws in {@link assertGridProps}.
+ * `virtualize={false}` + `infiniteScroll` throws in {@link assertProps}.
  * Kept off {@link GridData}'s complexity budget. @internal
  */
 export function implyVirtualize(

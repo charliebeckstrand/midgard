@@ -344,7 +344,7 @@ export function useMapZoom({
 	// not bind them again.
 	const framed = view.width > 0 && view.height > 0
 
-	useMapWheelZoom(zooms, framed, modifier, svgRef, commit, holdGesture, live, wheelStream)
+	useWheelZoom(zooms, framed, modifier, svgRef, commit, holdGesture, live, wheelStream)
 
 	useMapGestureGuard(zooms, framed, svgRef)
 
@@ -763,7 +763,7 @@ export function useMapZoom({
  *
  * @internal
  */
-function useMapWheelZoom(
+function useWheelZoom(
 	enabled: boolean,
 	framed: boolean,
 	modifier: MapZoomSettings['modifier'],

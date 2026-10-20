@@ -90,7 +90,7 @@ export type StepperProps = Omit<
 }
 
 // Separates row content (steps, separators) from the panels group.
-function partitionStepperChildren(children: ReactNode): {
+function partitionChildren(children: ReactNode): {
 	rowChildren: ReactNode[]
 	panelsChildren: ReactNode[]
 } {
@@ -154,10 +154,7 @@ export function Stepper({
 	// `aria-orientation` read the viewport in JavaScript.
 	const resolvedOrientation = useResponsiveValue<StepperOrientation>(orientation, 'vertical')
 
-	const { rowChildren, panelsChildren } = useMemo(
-		() => partitionStepperChildren(children),
-		[children],
-	)
+	const { rowChildren, panelsChildren } = useMemo(() => partitionChildren(children), [children])
 
 	const rowRef = useRef<HTMLDivElement>(null)
 

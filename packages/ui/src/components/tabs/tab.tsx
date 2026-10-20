@@ -65,7 +65,7 @@ export type TabProps = {
  *
  * @internal
  */
-function resolveTabState(options: {
+function resolveState(options: {
 	id: string | undefined
 	value: string | undefined
 	currentProp: boolean | undefined
@@ -130,7 +130,7 @@ export function Tab({
 	// link a panel the consumer renders.
 	const disclosure = useA11yDisclosure({ id: tabsContext?.baseId, key: value })
 
-	const { current, tabId, controlsId } = resolveTabState({
+	const { current, tabId, controlsId } = resolveState({
 		id,
 		value,
 		currentProp,

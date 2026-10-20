@@ -139,9 +139,9 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 
 		if (hit !== undefined) return hit
 
-		const values = buildRecipeValues(plan, raw)
+		const values = buildValues(plan, raw)
 
-		const result = twMerge(clsx(collectRecipeClasses(plan, values)))
+		const result = twMerge(clsx(collectClasses(plan, values)))
 
 		if (memo.size >= MEMO_CAP) memo.clear()
 
@@ -264,7 +264,7 @@ function memoKey(plan: Plan, props: Record<string, unknown> | undefined): string
 }
 
 /** Materializes the resolved values map for a memo miss. @internal */
-function buildRecipeValues(
+function buildValues(
 	plan: Plan,
 	props: Record<string, unknown> | undefined,
 ): Record<string, string | undefined> {
@@ -287,10 +287,7 @@ function matches(rule: CompiledRule, values: Record<string, string | undefined>)
  *
  * @internal
  */
-function collectRecipeClasses(
-	plan: Plan,
-	values: Record<string, string | undefined>,
-): ClassValue[] {
+function collectClasses(plan: Plan, values: Record<string, string | undefined>): ClassValue[] {
 	const classes: ClassValue[] = [plan.base]
 
 	for (const [axis, axisMap] of plan.variantEntries) {

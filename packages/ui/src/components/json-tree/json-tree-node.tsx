@@ -49,7 +49,7 @@ function filterForcesClosed(
  *
  * @internal
  */
-function resolveNodeOpen(options: {
+function resolveOpen(options: {
 	collapsible: boolean
 	controlled: boolean
 	expandedHas: boolean
@@ -78,7 +78,7 @@ function resolveNodeOpen(options: {
  * Renders one node of a {@link JsonTree}: a leaf row for scalars, or a branch
  * header plus its (collapsible) children, recursing per entry. Reads tree config
  * from {@link useJsonTreeContext} and resolves open state through
- * {@link resolveNodeOpen}, honoring controlled `expanded`, search filtering, and
+ * {@link resolveOpen}, honoring controlled `expanded`, search filtering, and
  * the depth default.
  */
 export const JsonTreeNode = memo(JsonTreeNodeView)
@@ -131,7 +131,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 
 	const collapsible = isCollapsibleDepth(treeCollapsible, depth)
 
-	const open = resolveNodeOpen({
+	const open = resolveOpen({
 		collapsible,
 		controlled,
 		expandedHas,

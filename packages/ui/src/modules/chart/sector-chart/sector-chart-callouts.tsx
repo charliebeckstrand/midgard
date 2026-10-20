@@ -209,11 +209,7 @@ export function calloutsShown(
  *
  * @internal
  */
-export function resolveSectorFit(
-	show: boolean,
-	spec: CalloutSpec,
-	frameWidth: number,
-): PieCalloutFit {
+export function resolveFit(show: boolean, spec: CalloutSpec, frameWidth: number): PieCalloutFit {
 	if (!show) return { radius: frameWidth / 2 - MARK_GAP * 2, cx: frameWidth / 2 }
 
 	return spec.shownFit(frameWidth)

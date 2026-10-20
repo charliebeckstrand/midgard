@@ -23,7 +23,7 @@ import {
 import { regionPaths } from '../../modules/map/engine/map-geometry/region'
 import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
-import { fitMapProjection } from '../../modules/map/engine/map-projection/resolve'
+import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import type { MapFeature } from '../../modules/map/engine/types'
 import { subpathCount } from '../helpers/geometry/svg-path'
 import { FLOAT } from '../helpers/geometry/tolerance'
@@ -102,7 +102,7 @@ describe('geographyFeatures', () => {
 	})
 
 	it('decodes the topology to the same shapes as the GeoJSON twin', () => {
-		const projection = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
+		const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
 
 		const fromTopology = regionPaths(geographyFeatures(FIXTURE_TOPOLOGY), projection)
 
@@ -377,7 +377,7 @@ describe('rewindFeatures', () => {
 
 describe('regionPaths', () => {
 	it('draws one path per feature', () => {
-		const projection = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
+		const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
 
 		const paths = regionPaths(FIXTURE_GEOJSON.features, projection)
 
@@ -389,7 +389,7 @@ describe('regionPaths', () => {
 	})
 
 	it('yields null for a feature with no geometry', () => {
-		const projection = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
+		const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
 
 		const bare = { type: 'Feature', id: 'X', geometry: null } as const
 
@@ -399,7 +399,7 @@ describe('regionPaths', () => {
 
 describe('projectPoint', () => {
 	it('projects a position inside the fitted frame', () => {
-		const projection = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
+		const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
 
 		const point = projectPoint(projection, [5, 5])
 
@@ -412,7 +412,7 @@ describe('projectPoint', () => {
 
 	it('is null where the projection has no image', () => {
 		// The US composite drops coordinates outside its insets — London here.
-		const projection = fitMapProjection('albers-usa', [], 300, 100)
+		const projection = fitProjection('albers-usa', [], 300, 100)
 
 		expect(projectPoint(projection, [-0.13, 51.5])).toBeNull()
 	})
@@ -420,7 +420,7 @@ describe('projectPoint', () => {
 
 describe('unprojectPoint', () => {
 	it('carries a frame position back to the lon/lat it draws from', () => {
-		const projection = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
+		const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
 
 		const at = projectPoint(projection, [5, 5])
 
@@ -535,7 +535,7 @@ describe('squareDotStroke', () => {
 })
 
 describe('linePath', () => {
-	const projection = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
+	const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
 
 	const project = (position: [number, number]) => projectPoint(projection, position)
 
@@ -587,7 +587,7 @@ describe('linePath', () => {
 })
 
 describe('ringsPath · one ring', () => {
-	const projection = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
+	const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
 
 	const project = (position: [number, number]) => projectPoint(projection, position)
 
@@ -707,7 +707,7 @@ describe('ringAnchor', () => {
  * from one pass.
  */
 describe('projectArea and ringsPath', () => {
-	const projection = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
+	const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
 
 	const project = (position: [number, number]) => projectPoint(projection, position)
 

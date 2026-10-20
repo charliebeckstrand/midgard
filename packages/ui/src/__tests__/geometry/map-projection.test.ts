@@ -12,10 +12,7 @@ import {
 	scaleCanonicalFit,
 } from '../../modules/map/engine/map-projection/fit'
 import { frameToClient } from '../../modules/map/engine/map-projection/frame'
-import {
-	fitMapProjection,
-	resolveMapProjection,
-} from '../../modules/map/engine/map-projection/resolve'
+import { fitProjection, resolveProjection } from '../../modules/map/engine/map-projection/resolve'
 import type { MapFeature } from '../../modules/map/engine/types'
 import { FLOAT } from '../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
@@ -54,27 +51,27 @@ const US_FEATURES = [
 	},
 ] as unknown as MapFeature[]
 
-describe('resolveMapProjection', () => {
+describe('resolveProjection', () => {
 	it('resolves each built-in name to a fresh projection', () => {
 		for (const name of ['mercator', 'albers-usa', 'equal-earth'] as const) {
-			const projection = resolveMapProjection(name)
+			const projection = resolveProjection(name)
 
 			expect(typeof projection).toBe('function')
 
-			expect(projection).not.toBe(resolveMapProjection(name))
+			expect(projection).not.toBe(resolveProjection(name))
 		}
 	})
 
 	it('passes a d3 projection instance through untouched', () => {
 		const instance = geoMercator()
 
-		expect(resolveMapProjection(instance)).toBe(instance)
+		expect(resolveProjection(instance)).toBe(instance)
 	})
 })
 
-describe('fitMapProjection', () => {
+describe('fitProjection', () => {
 	it('fits the geography into the frame', () => {
-		const projection = fitMapProjection('mercator', FEATURES, 300, 100)
+		const projection = fitProjection('mercator', FEATURES, 300, 100)
 
 		// The fixture spans lon 0–30, lat 0–10; every corner projects inside the frame.
 		for (const corner of [
@@ -100,7 +97,7 @@ describe('fitMapProjection', () => {
 	})
 
 	it('returns an unfitted projection when there is nothing to frame', () => {
-		const projection = fitMapProjection('mercator', [], 300, 100)
+		const projection = fitProjection('mercator', [], 300, 100)
 
 		expect(typeof projection).toBe('function')
 	})
@@ -152,7 +149,7 @@ describe('scaleCanonicalFit', () => {
 			// And it lands where a direct fitSize would, within the sub-percent
 			// margin of d3's adaptive resampling, which refines each pass's curves
 			// at the scale that pass runs at.
-			const direct = fitMapProjection(spec, features, width, height)
+			const direct = fitProjection(spec, features, width, height)
 
 			expect(derived.scale() / direct.scale()).toBeNear(1, RESAMPLE_SCALE_RATIO)
 		}
@@ -185,7 +182,7 @@ describe('measuredMapFit', () => {
 
 		if (fit === null) throw new Error('expected a fit')
 
-		const direct = fitMapProjection('mercator', FEATURES, 300, 100)
+		const direct = fitProjection('mercator', FEATURES, 300, 100)
 
 		expect(fit.frame).toBeNull()
 

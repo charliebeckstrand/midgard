@@ -14,7 +14,7 @@ import { k } from '../../recipes/kata/grid'
 import { getTabbableElements } from '../../utilities/focusable-selector'
 import type { GridExportAction } from './engine/grid-export/types'
 import { gridMessages } from './engine/grid-messages'
-import { preloadGridDataDialogs } from './grid-data-dialogs'
+import { preloadDataDialogs } from './grid-data-dialogs'
 import type { GridSelection } from './grid-data-types'
 import { GridFilter } from './grid-filter'
 import type { GridColumnFilter, GridGlobalFilterView } from './use-grid-table'
@@ -227,8 +227,8 @@ export function GridToolbar({
 									variant="plain"
 									aria-haspopup="dialog"
 									onClick={onManageColumns}
-									onPointerEnter={preloadGridDataDialogs}
-									onFocus={preloadGridDataDialogs}
+									onPointerEnter={preloadDataDialogs}
+									onFocus={preloadDataDialogs}
 								>
 									<Icon icon={<SlidersHorizontal />} />
 									{columnManagerLabel}

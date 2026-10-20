@@ -10,7 +10,7 @@ import {
 import { projectPoint, unprojectPoint } from '../../modules/map/engine/map-geometry/mark'
 import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
-import { fitMapProjection } from '../../modules/map/engine/map-projection/resolve'
+import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import { NO_REGION_CLAIM, regionSpare } from '../../modules/map/engine/map-region/spare'
 import type { LngLat, MapFeature, MapPoint2D } from '../../modules/map/engine/types'
 
@@ -168,7 +168,7 @@ describe('regionSpare', () => {
 		// Hawaii.
 		const features = rewindFeatures(geographyFeatures(states as unknown as MapTopology))
 
-		const projection = fitMapProjection('albers-usa', features, 960, 600)
+		const projection = fitProjection('albers-usa', features, 960, 600)
 
 		const spare = regionSpare(
 			features,

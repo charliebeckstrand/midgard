@@ -31,7 +31,7 @@ import type { GridColumnPinning } from './use-grid-table'
 /**
  * Per-row wiring shared by the plain and virtualized bodies: the row/key/column
  * sources and the flags every {@link GridRow} reads. Both bodies extend this
- * with their own layout props and render rows through {@link renderGridRow}.
+ * with their own layout props and render rows through {@link renderRow}.
  *
  * @internal
  */
@@ -116,7 +116,7 @@ export type GridRowsProps<T> = {
 	/**
 	 * Master-detail wiring, or `null` when the grid isn't expandable: the
 	 * expanded-key set, the per-row expandability predicate, the stable toggle,
-	 * and the detail renderer. {@link renderGridRow} reads it to drive each
+	 * and the detail renderer. {@link renderRow} reads it to drive each
 	 * expander cell and to append the detail panel row.
 	 */
 	expansion?: GridDetailExpansion<T> | null
@@ -137,7 +137,7 @@ type GridRowWindowProps = Pick<GridWindowRowProps, 'ref' | 'data-index'>
  *
  * @internal
  */
-export function renderGridRow<T>(
+export function renderRow<T>(
 	props: GridRowsProps<T>,
 	row: T,
 	dataRowIndex: number,

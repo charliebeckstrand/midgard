@@ -17,7 +17,7 @@ export type ZodLike = { safeParse: (input: unknown) => ZodParseResult }
  *
  * @internal
  */
-function bucketZodIssues(issues: ReadonlyArray<ZodIssue>): Record<string, string[] | undefined> {
+function bucketIssues(issues: ReadonlyArray<ZodIssue>): Record<string, string[] | undefined> {
 	const buckets: Record<string, string[] | undefined> = {}
 
 	for (const issue of issues) {
@@ -68,7 +68,7 @@ export function zodResolver<T extends Record<string, unknown>>(
 
 		const result = schema.safeParse(values)
 
-		const errors = result.success ? {} : bucketZodIssues(result.error.issues)
+		const errors = result.success ? {} : bucketIssues(result.error.issues)
 
 		cachedValues = values
 		cachedErrors = errors

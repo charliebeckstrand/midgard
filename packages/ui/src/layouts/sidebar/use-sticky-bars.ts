@@ -27,7 +27,7 @@ function measureCover(bar: HTMLElement): number {
 	return Number.isNaN(top) ? 0 : top + bar.getBoundingClientRect().height
 }
 
-function createStickyBars(): StickyBars {
+function createBars(): StickyBars {
 	const bars = new Set<HTMLElement>()
 
 	let scroller: HTMLElement | null = null
@@ -103,7 +103,7 @@ function createStickyBars(): StickyBars {
  * @internal
  */
 export function useStickyBars(): StickyBars {
-	const [bars] = useState(createStickyBars)
+	const [bars] = useState(createBars)
 
 	return bars
 }

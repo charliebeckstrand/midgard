@@ -72,7 +72,7 @@ export type PageScaleResult = {
  *
  * @internal
  */
-function resolvePageAspectRatio(
+function resolveAspectRatio(
 	hasContent: boolean,
 	pageSize: Size | null,
 	isTransposed: boolean,
@@ -169,7 +169,7 @@ export function usePdfViewerPageScale(input: PageScaleOptions): PageScaleResult 
 		const frameWidth = isTransposed ? imageHeight : imageWidth
 		const frameHeight = isTransposed ? imageWidth : imageHeight
 
-		const aspectRatio = resolvePageAspectRatio(hasContent, pageSize, isTransposed, fit)
+		const aspectRatio = resolveAspectRatio(hasContent, pageSize, isTransposed, fit)
 
 		const naturalWidth = resolveNaturalWidth(hasContent, pageSize, pointSize, isTransposed)
 
