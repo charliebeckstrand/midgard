@@ -70,11 +70,11 @@ export function Switch({
 	// React-control the input only when a `checked` prop or form binding drives it.
 	// Without one, rendering `checked={on}` makes the input perpetually
 	// controlled and a native `<button type="reset">` cannot revert it.
-	const isControlled = resolvedChecked !== undefined
+	const controlled = resolvedChecked !== undefined
 
 	// A native form reset reverts the uncontrolled input without firing onChange;
 	// mirror the reverted value into the owned aria state.
-	const resetRef = useFormResetSync(!isControlled, (input) => setOn(input.checked))
+	const resetRef = useFormResetSync(!controlled, (input) => setOn(input.checked))
 
 	const setRef = useComposedRefs(resetRef, ref)
 
@@ -139,7 +139,7 @@ export function Switch({
 				name={name}
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
-				{...(isControlled ? { checked: on } : { defaultChecked: defaultChecked ?? false })}
+				{...(controlled ? { checked: on } : { defaultChecked: defaultChecked ?? false })}
 				aria-checked={on}
 				aria-readonly={ariaAttr(resolvedReadOnly)}
 				onChange={handleChange}

@@ -129,10 +129,10 @@ function toArray(value: string | string[] | null | undefined): string[] {
  * @internal
  */
 export function useAccordionSelection(props: SingleProps | MultipleProps): AccordionSelection {
-	const isMultiple = props.type === 'multiple'
+	const multiple = props.type === 'multiple'
 
 	// A multiple accordion closes each open section on a toggle.
-	const collapsible = isMultiple || (props.collapsible ?? true)
+	const collapsible = multiple || (props.collapsible ?? true)
 
 	// The single-mode `toArray` wrap mints a new array each call; memoization
 	// keeps the context identity stable across controlled renders.
@@ -151,7 +151,7 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 	// the last report, so such a toggle would report the open set again.
 	const unchangedRef = useRef(false)
 
-	const defaultValue = isMultiple ? (props.defaultValue ?? []) : toArray(props.defaultValue)
+	const defaultValue = multiple ? (props.defaultValue ?? []) : toArray(props.defaultValue)
 
 	// A plain closure: `useControllable` reads its own `onValueChange` off a ref
 	// behind a stable `setValue`, so an inline callback needs no ref or memo here.
@@ -162,7 +162,7 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 
 		const onValueChange = props.onValueChange
 
-		if (isMultiple) {
+		if (multiple) {
 			;(onValueChange as MultipleProps['onValueChange'])?.(values)
 		} else {
 			// A held accordion never empties its open set, so only a collapsible one
@@ -185,7 +185,7 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 	const toggle = useCallback(
 		(value: string) => {
 			setOpen((prev = []) => {
-				const next = nextOpenSet(prev, value, isMultiple, collapsible)
+				const next = nextOpenSet(prev, value, multiple, collapsible)
 
 				unchangedRef.current = next === null
 
@@ -194,7 +194,7 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 
 			unchangedRef.current = false
 		},
-		[collapsible, setOpen, isMultiple],
+		[collapsible, setOpen, multiple],
 	)
 
 	return { openStore, toggle, collapsible }
@@ -207,10 +207,10 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 function nextOpenSet(
 	open: readonly string[],
 	value: string,
-	isMultiple: boolean,
+	multiple: boolean,
 	collapsible: boolean,
 ): string[] | null {
-	if (isMultiple) return toggleListItem(open, value)
+	if (multiple) return toggleListItem(open, value)
 
 	if (!open.includes(value)) return [value]
 

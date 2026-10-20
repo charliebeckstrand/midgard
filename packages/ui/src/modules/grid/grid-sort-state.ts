@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react'
 import { useControllable } from '../../hooks'
 import type { GridSortState } from './context'
-import { EMPTY_SORT, nextSort, sortsEqual } from './engine/grid-sort/state'
+import { EMPTY_SORT, nextSort, sameSorts } from './engine/grid-sort/state'
 import type { GridSort } from './grid-data-types'
 
 /**
@@ -80,5 +80,5 @@ export function useServerSortSettle<T>(args: {
 	}
 
 	// In flight only while the live sort has moved off the settled order.
-	return enabled && !sortsEqual(settledSort, sort)
+	return enabled && !sameSorts(settledSort, sort)
 }

@@ -75,7 +75,7 @@ import { useGridZoneSortable } from './use-grid-zone-sortable'
  *
  * @internal
  */
-function isSameDragKind(activeId: string, containerId: string): boolean {
+function sameDragKind(activeId: string, containerId: string): boolean {
 	return isGroupDragId(activeId) === isGroupDragId(containerId)
 }
 
@@ -92,7 +92,7 @@ const groupAwareCollision: CollisionDetection = (args) => {
 	const activeId = String(args.active.id)
 
 	const droppableContainers = args.droppableContainers.filter((container) =>
-		isSameDragKind(activeId, String(container.id)),
+		sameDragKind(activeId, String(container.id)),
 	)
 
 	return (isGroupDragId(activeId) ? closestCenter : closestCorners)({
@@ -127,7 +127,7 @@ export const groupAwareKeyboardCoordinates: KeyboardCoordinateGetter = (event, a
 	) => typeof droppableContainers
 
 	const scoped = new Scoped(
-		[...droppableContainers].filter(([id]) => isSameDragKind(activeId, String(id))),
+		[...droppableContainers].filter(([id]) => sameDragKind(activeId, String(id))),
 	)
 
 	return sortableKeyboardCoordinates(event, {

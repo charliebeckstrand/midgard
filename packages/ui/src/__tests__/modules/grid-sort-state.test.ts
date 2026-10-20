@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import type { GridSortState } from '../../modules/grid/context'
-import { nextSort, sortsEqual } from '../../modules/grid/engine/grid-sort/state'
+import { nextSort, sameSorts } from '../../modules/grid/engine/grid-sort/state'
 
 describe('nextSort', () => {
 	describe('plain click (non-additive)', () => {
@@ -111,11 +111,11 @@ describe('nextSort', () => {
 	})
 })
 
-describe('sortsEqual', () => {
+describe('sameSorts', () => {
 	it('treats two distinct empty lists as equal', () => {
 		// The clear case: a cleared sort resolves to a fresh `[]` that is value-equal
 		// to the unsorted state the shown rows reflect, though never the same object.
-		expect(sortsEqual([], [])).toBe(true)
+		expect(sameSorts([], [])).toBe(true)
 	})
 
 	it('matches lists with the same columns and directions in the same order', () => {
@@ -129,12 +129,12 @@ describe('sortsEqual', () => {
 			{ column: 'b', direction: 'desc' },
 		]
 
-		expect(sortsEqual(a, b)).toBe(true)
+		expect(sameSorts(a, b)).toBe(true)
 	})
 
 	it('distinguishes a differing direction', () => {
 		expect(
-			sortsEqual([{ column: 'a', direction: 'asc' }], [{ column: 'a', direction: 'desc' }]),
+			sameSorts([{ column: 'a', direction: 'asc' }], [{ column: 'a', direction: 'desc' }]),
 		).toBe(false)
 	})
 
@@ -149,10 +149,10 @@ describe('sortsEqual', () => {
 			{ column: 'a', direction: 'asc' },
 		]
 
-		expect(sortsEqual(a, b)).toBe(false)
+		expect(sameSorts(a, b)).toBe(false)
 	})
 
 	it('distinguishes lists of differing length', () => {
-		expect(sortsEqual([{ column: 'a', direction: 'asc' }], [])).toBe(false)
+		expect(sameSorts([{ column: 'a', direction: 'asc' }], [])).toBe(false)
 	})
 })

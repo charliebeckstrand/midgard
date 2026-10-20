@@ -5,13 +5,13 @@ import { describe, expect, it, vi } from 'vitest'
 import { ColorPanel, ColorPicker } from '../../components/color'
 import { ColorPanelView } from '../../components/color/color-panel'
 import {
-	equalHsva,
 	hexToHsva,
 	hexToRgba,
 	hsvaToCss,
 	hsvaToHex,
 	hsvaToRgba,
 	rgbaToHsva,
+	sameHex,
 } from '../../components/color/color-utilities'
 import type { ColorFormat, Hsva } from '../../components/color/types'
 import { useColorState } from '../../components/color/use-color-state'
@@ -107,21 +107,21 @@ describe('color conversions', () => {
 	})
 
 	it('ignores hue when saturation or value collapses it', () => {
-		expect(equalHsva({ h: 0, s: 0, v: 100, a: 1 }, { h: 200, s: 0, v: 100, a: 1 })).toBe(true)
+		expect(sameHex({ h: 0, s: 0, v: 100, a: 1 }, { h: 200, s: 0, v: 100, a: 1 })).toBe(true)
 
-		expect(equalHsva({ h: 0, s: 0, v: 0, a: 1 }, { h: 200, s: 0, v: 0, a: 1 })).toBe(true)
+		expect(sameHex({ h: 0, s: 0, v: 0, a: 1 }, { h: 200, s: 0, v: 0, a: 1 })).toBe(true)
 
-		expect(equalHsva({ h: 0, s: 100, v: 100, a: 1 }, { h: 120, s: 100, v: 100, a: 1 })).toBe(false)
+		expect(sameHex({ h: 0, s: 100, v: 100, a: 1 }, { h: 120, s: 100, v: 100, a: 1 })).toBe(false)
 	})
 
 	it('ignores saturation at zero value, where every saturation renders black', () => {
-		expect(equalHsva({ h: 0, s: 0, v: 0, a: 1 }, { h: 200, s: 50, v: 0, a: 1 })).toBe(true)
+		expect(sameHex({ h: 0, s: 0, v: 0, a: 1 }, { h: 200, s: 50, v: 0, a: 1 })).toBe(true)
 
-		expect(equalHsva({ h: 0, s: 100, v: 0, a: 1 }, { h: 0, s: 0, v: 0, a: 1 })).toBe(true)
+		expect(sameHex({ h: 0, s: 100, v: 0, a: 1 }, { h: 0, s: 0, v: 0, a: 1 })).toBe(true)
 	})
 
 	it('matches hue 360 to hue 0, because both render the same color', () => {
-		expect(equalHsva({ h: 360, s: 100, v: 100, a: 1 }, { h: 0, s: 100, v: 100, a: 1 })).toBe(true)
+		expect(sameHex({ h: 360, s: 100, v: 100, a: 1 }, { h: 0, s: 100, v: 100, a: 1 })).toBe(true)
 	})
 
 	it('tells apart two colors that differ by one byte', () => {
@@ -134,10 +134,10 @@ describe('color conversions', () => {
 			['#f04444', '#ef4444'],
 			['#ff000081', '#ff000082'],
 		] as const) {
-			expect(equalHsva(toHsva(a), toHsva(b)), `${a} and ${b}`).toBe(false)
+			expect(sameHex(toHsva(a), toHsva(b)), `${a} and ${b}`).toBe(false)
 		}
 
-		expect(equalHsva({ h: 0, s: 100, v: 100, a: 0.5 }, toHsva('#ff000080'))).toBe(true)
+		expect(sameHex({ h: 0, s: 100, v: 100, a: 0.5 }, toHsva('#ff000080'))).toBe(true)
 	})
 
 	it('builds a css rgba fill, dropping alpha unless requested', () => {

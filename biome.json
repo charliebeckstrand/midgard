@@ -628,7 +628,10 @@
 		},
 		{
 			"includes": ["apps/**", "packages/**"],
-			"plugins": ["./.biome/plugins/no-of-suffixed-binding.grit"]
+			"plugins": [
+				"./.biome/plugins/no-of-suffixed-binding.grit",
+				"./.biome/plugins/no-alternate-predicate-binding.grit"
+			]
 		}
 	],
 	"files": {

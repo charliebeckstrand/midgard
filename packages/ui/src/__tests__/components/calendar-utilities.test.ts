@@ -8,14 +8,14 @@ import {
 	isBeforeDay,
 	isBetween,
 	isDayInRange,
-	isSameDay,
-	isSameDayOrEmpty,
+	sameDay,
+	sameDayOrEmpty,
 	toCalendarDate,
 } from '../../components/calendar/calendar-utilities'
 
-describe('isSameDay', () => {
+describe('sameDay', () => {
 	it('returns true for two Date instances representing the same calendar day', () => {
-		expect(isSameDay(new Date(2024, 5, 15, 9, 0), new Date(2024, 5, 15, 23, 59))).toBe(true)
+		expect(sameDay(new Date(2024, 5, 15, 9, 0), new Date(2024, 5, 15, 23, 59))).toBe(true)
 	})
 
 	it.each([
@@ -23,7 +23,7 @@ describe('isSameDay', () => {
 		['month', new Date(2024, 6, 15)],
 		['year', new Date(2025, 5, 15)],
 	])('returns false when the %s differs', (_field, other) => {
-		expect(isSameDay(new Date(2024, 5, 15), other)).toBe(false)
+		expect(sameDay(new Date(2024, 5, 15), other)).toBe(false)
 	})
 })
 
@@ -189,14 +189,14 @@ describe('isDayInRange', () => {
 	})
 })
 
-describe('isSameDayOrEmpty', () => {
+describe('sameDayOrEmpty', () => {
 	it('compares at day resolution and treats two empties as same', () => {
-		expect(isSameDayOrEmpty(new Date(2026, 5, 15, 9), new Date(2026, 5, 15, 17))).toBe(true)
+		expect(sameDayOrEmpty(new Date(2026, 5, 15, 9), new Date(2026, 5, 15, 17))).toBe(true)
 
-		expect(isSameDayOrEmpty(new Date(2026, 5, 15), new Date(2026, 5, 16))).toBe(false)
+		expect(sameDayOrEmpty(new Date(2026, 5, 15), new Date(2026, 5, 16))).toBe(false)
 
-		expect(isSameDayOrEmpty(undefined, null)).toBe(true)
+		expect(sameDayOrEmpty(undefined, null)).toBe(true)
 
-		expect(isSameDayOrEmpty(new Date(2026, 5, 15), undefined)).toBe(false)
+		expect(sameDayOrEmpty(new Date(2026, 5, 15), undefined)).toBe(false)
 	})
 })

@@ -112,22 +112,22 @@ function dayNumber(date: Date): number {
 }
 
 /** Wall-clock-day equality, ignoring time-of-day and timezone. @internal */
-export function isSameDay(a: Date, b: Date): boolean {
+export function sameDay(a: Date, b: Date): boolean {
 	return dayNumber(a) === dayNumber(b)
 }
 
 /** Whether two values hold the same instant, or are both empty. @internal */
-export function isSameInstant(a: Date | null | undefined, b: Date | null | undefined): boolean {
+export function sameInstant(a: Date | null | undefined, b: Date | null | undefined): boolean {
 	if (a == null || b == null) return a == null && b == null
 
 	return a.getTime() === b.getTime()
 }
 
 /** Whether two values are the same calendar day, or are both empty. @internal */
-export function isSameDayOrEmpty(a: Date | null | undefined, b: Date | null | undefined): boolean {
+export function sameDayOrEmpty(a: Date | null | undefined, b: Date | null | undefined): boolean {
 	if (a == null || b == null) return a == null && b == null
 
-	return isSameDay(a, b)
+	return sameDay(a, b)
 }
 
 /** The last day that the calendar can show. @internal */

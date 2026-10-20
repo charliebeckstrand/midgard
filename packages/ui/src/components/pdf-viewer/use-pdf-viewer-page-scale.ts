@@ -75,14 +75,14 @@ export type PageScaleResult = {
 function resolveAspectRatio(
 	hasContent: boolean,
 	pageSize: Size | null,
-	isTransposed: boolean,
+	transposed: boolean,
 	fit: PdfViewerFit,
 ): string | undefined {
 	if (!hasContent || fit === 'width') return undefined
 
 	if (!pageSize) return '8.5 / 11'
 
-	return isTransposed
+	return transposed
 		? `${pageSize.height} / ${pageSize.width}`
 		: `${pageSize.width} / ${pageSize.height}`
 }
@@ -102,16 +102,16 @@ function resolveNaturalWidth(
 	hasContent: boolean,
 	pageSize: Size | null,
 	pointSize: Size | null,
-	isTransposed: boolean,
+	transposed: boolean,
 ): number | undefined {
 	if (!hasContent) return undefined
 
 	if (pointSize && pointSize.width > 0 && pointSize.height > 0) {
-		return (isTransposed ? pointSize.height : pointSize.width) * PX_PER_POINT
+		return (transposed ? pointSize.height : pointSize.width) * PX_PER_POINT
 	}
 
 	if (pageSize && pageSize.width > 0 && pageSize.height > 0) {
-		return isTransposed ? pageSize.height : pageSize.width
+		return transposed ? pageSize.height : pageSize.width
 	}
 
 	return LETTER_WIDTH
@@ -130,13 +130,13 @@ function resolveNaturalWidth(
 function resolveFitScale(
 	viewportSize: Size | null,
 	pageSize: Size | null,
-	isTransposed: boolean,
+	transposed: boolean,
 	fit: PdfViewerFit,
 ): number {
 	if (!viewportSize || !pageSize) return 1
 
-	const visibleWidth = isTransposed ? pageSize.height : pageSize.width
-	const visibleHeight = isTransposed ? pageSize.width : pageSize.height
+	const visibleWidth = transposed ? pageSize.height : pageSize.width
+	const visibleHeight = transposed ? pageSize.width : pageSize.height
 
 	if (visibleWidth === 0 || visibleHeight === 0) return 1
 
@@ -159,19 +159,19 @@ export function usePdfViewerPageScale(input: PageScaleOptions): PageScaleResult 
 	const { viewportSize, pageSize, pointSize = null, rotation, zoom, hasContent, fit } = input
 
 	return useMemo(() => {
-		const isTransposed = isRotationTransposed(rotation)
+		const transposed = isRotationTransposed(rotation)
 
-		const scale = resolveFitScale(viewportSize, pageSize, isTransposed, fit) * zoom
+		const scale = resolveFitScale(viewportSize, pageSize, transposed, fit) * zoom
 
 		const imageWidth = pageSize ? pageSize.width * scale : undefined
 		const imageHeight = pageSize ? pageSize.height * scale : undefined
 
-		const frameWidth = isTransposed ? imageHeight : imageWidth
-		const frameHeight = isTransposed ? imageWidth : imageHeight
+		const frameWidth = transposed ? imageHeight : imageWidth
+		const frameHeight = transposed ? imageWidth : imageHeight
 
-		const aspectRatio = resolveAspectRatio(hasContent, pageSize, isTransposed, fit)
+		const aspectRatio = resolveAspectRatio(hasContent, pageSize, transposed, fit)
 
-		const naturalWidth = resolveNaturalWidth(hasContent, pageSize, pointSize, isTransposed)
+		const naturalWidth = resolveNaturalWidth(hasContent, pageSize, pointSize, transposed)
 
 		const transform = `translate(-50%, -50%) rotate(${rotation}deg)`
 

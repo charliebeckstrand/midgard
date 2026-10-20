@@ -12,7 +12,7 @@ import {
 	type CalendarDayProps,
 	type CalendarHandle,
 } from './calendar'
-import { isBeforeDay, isBetween, isSameDay } from './calendar-utilities'
+import { isBeforeDay, isBetween, sameDay } from './calendar-utilities'
 
 /** Props for {@link CalendarRange}: the controlled `rangeStart`/`rangeEnd` endpoints, hover-date tracking, bounds, locale/size, and `ref`. */
 export type CalendarRangeProps = {
@@ -70,8 +70,8 @@ function getDayFlags(
 	effectiveEnd: Date | null | undefined,
 ): { isEdge: boolean; isInnerRange: boolean; isStartEdge: boolean; isEndEdge: boolean } {
 	const isEdge =
-		(rangeStart != null && isSameDay(date, rangeStart)) ||
-		(effectiveEnd != null && isSameDay(date, effectiveEnd))
+		(rangeStart != null && sameDay(date, rangeStart)) ||
+		(effectiveEnd != null && sameDay(date, effectiveEnd))
 
 	if (rangeStart == null || effectiveEnd == null) {
 		return { isEdge, isInnerRange: false, isStartEdge: false, isEndEdge: false }
@@ -88,8 +88,8 @@ function getDayFlags(
 	return {
 		isEdge,
 		isInnerRange: isBetween(date, first, last),
-		isStartEdge: spans && isSameDay(date, first),
-		isEndEdge: spans && isSameDay(date, last),
+		isStartEdge: spans && sameDay(date, first),
+		isEndEdge: spans && sameDay(date, last),
 	}
 }
 

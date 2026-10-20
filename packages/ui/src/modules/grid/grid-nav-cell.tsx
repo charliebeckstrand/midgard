@@ -49,7 +49,7 @@ export function GridNavCell({
 
 	const ref = useRef<HTMLSpanElement>(null)
 
-	const isActive = useSyncExternalStore(
+	const active = useSyncExternalStore(
 		store.subscribe,
 		useCallback(
 			() => (stop === undefined ? store.isActive(row, col) : store.isStopActive(stop)),
@@ -59,13 +59,13 @@ export function GridNavCell({
 	)
 
 	// A one-stop row holds no cell of a range.
-	const isInRange = useSyncExternalStore(
+	const inRange = useSyncExternalStore(
 		store.subscribe,
 		useCallback(() => stop === undefined && store.isInRange(row, col), [store, row, col, stop]),
 		() => false,
 	)
 
-	const fillHandle = stop === undefined && isActive ? store.fillHandle : null
+	const fillHandle = stop === undefined && active ? store.fillHandle : null
 
 	// The active cell holds the fill handle, which one overlay shows on it.
 	useLayoutEffect(() => {
@@ -87,24 +87,24 @@ export function GridNavCell({
 
 		if (!cell) return
 
-		cell.toggleAttribute('data-in-range', isInRange)
+		cell.toggleAttribute('data-in-range', inRange)
 
 		return () => {
 			cell.removeAttribute('data-in-range')
 		}
-	}, [isInRange])
+	}, [inRange])
 
 	useLayoutEffect(() => {
 		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')
 
 		if (!cell) return
 
-		cell.toggleAttribute('data-active', isActive)
+		cell.toggleAttribute('data-active', active)
 
 		// A cell scrolls into view once for each change of the cursor. A cell that
 		// mounts active again, as a scroll brings its row back into a window,
 		// leaves the scroll where the reader put it.
-		if (isActive && store.claimReveal()) {
+		if (active && store.claimReveal()) {
 			// Hold the cell clear of the grid's sticky header and pinned columns as it
 			// scrolls into view, so the focus indicator is never obscured (WCAG 2.4.11).
 			const insets = obscuringInsets(cell)
@@ -125,7 +125,7 @@ export function GridNavCell({
 		return () => {
 			cell.removeAttribute('data-active')
 		}
-	}, [isActive, store])
+	}, [active, store])
 
 	return (
 		<>

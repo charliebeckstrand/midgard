@@ -6,8 +6,8 @@
 import {
 	type EditableColumn,
 	type GridActiveEdit,
+	inGrid,
 	isColumnEditable,
-	isInGrid,
 } from './grid-editing-utilities'
 
 /** The tabbable content of a cell. @internal */
@@ -21,12 +21,12 @@ const TABBABLE =
  *
  * @remarks Focus in another grid stays where it is. That includes a grid nested
  * in a detail row of this one, because none of its elements unmount with the
- * exit. {@link isInGrid} tells the two apart.
+ * exit. {@link inGrid} tells the two apart.
  *
  * @internal
  */
 function restoreFocus(grid: HTMLElement | null): void {
-	if (grid && isInGrid(document.activeElement, grid)) grid.focus()
+	if (grid && inGrid(document.activeElement, grid)) grid.focus()
 }
 
 /**

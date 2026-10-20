@@ -4,7 +4,7 @@ import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { wrap } from '../../utilities'
 import { isArrowKey } from '../../utilities/keyboard-navigation'
 import type { CalendarActive, CalendarHandle } from '../calendar'
-import { DAY_KEY_SELECTOR, dayOfKey, gridStep, isSameDay } from '../calendar/calendar-utilities'
+import { DAY_KEY_SELECTOR, dayOfKey, gridStep, sameDay } from '../calendar/calendar-utilities'
 import { clampDate } from './date-picker-utilities'
 
 /** A footer action button in the date picker. */
@@ -450,7 +450,7 @@ function isNewControl(
 
 	if (active === null) return true
 
-	if (mapped.zone === 'grid') return active.zone !== 'grid' || !isSameDay(active.date, mapped.date)
+	if (mapped.zone === 'grid') return active.zone !== 'grid' || !sameDay(active.date, mapped.date)
 
 	return mapped.zone !== active.zone || !('index' in active) || mapped.index !== active.index
 }

@@ -1,0 +1,22 @@
+language js
+
+// A predicate that compares two values is `same<Thing>`, such as `sameDay`. A
+// predicate that tests where a node is, is `in<Place>`, such as `inGrid`
+// (CONVENTIONS §8.5). Most of the code used these forms already. The
+// alternate forms `isSame<Thing>`, `isIn<Place>`, and `<things>Equal` named
+// the same ideas in a second way.
+//
+// The plugin matches the name of each binding. An import is not matched,
+// because the code does not own its name (`isSameMonth`). An object key is not
+// a binding, so a store method such as `isInRange` passes.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the apps and the
+// packages, with their tests.
+JsIdentifierBinding() as $binding where {
+	$binding <: or { r"isSame[A-Z][A-Za-z0-9]*", r"isIn[A-Z][A-Za-z0-9]*", r"[a-z][A-Za-z0-9]*Equal" },
+	$binding <: not within or { JsImport(), JsExport(export_clause = JsExportNamedFromClause()) },
+	register_diagnostic(
+		span = $binding,
+		message = "name a comparison `same<Thing>` and a place test `in<Place>`, not `isSame…`, `isIn…`, or `…Equal` (CONVENTIONS §8.5)"
+	)
+}

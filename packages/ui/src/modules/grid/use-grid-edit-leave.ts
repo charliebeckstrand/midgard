@@ -3,7 +3,7 @@
 import { type FocusEvent as ReactFocusEvent, type RefObject, useCallback, useRef } from 'react'
 import { type PendingLeave, readLeave } from './engine/grid-edit-leave'
 import type { SessionRow } from './engine/grid-edit-transition'
-import { isInGrid } from './engine/grid-editing-utilities'
+import { inGrid } from './engine/grid-editing-utilities'
 import type { GridSessionTarget } from './use-grid-edit-keys'
 import type { CommitOn } from './use-grid-editing-warnings'
 
@@ -94,7 +94,7 @@ export function useGridEditLeave({
 			if (rowKey === null) return
 
 			const inEditors = (node: Element) => {
-				const hit = isInGrid(node, grid) ? sessionTarget(node) : null
+				const hit = inGrid(node, grid) ? sessionTarget(node) : null
 
 				return hit !== null && hit.rowKey === rowKey && hit.columnId !== null
 			}

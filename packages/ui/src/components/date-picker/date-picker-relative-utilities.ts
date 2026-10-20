@@ -1,7 +1,7 @@
 import { defineMessages, selectedMessage } from '../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../primitives/intl/types'
 import { getOrCompute } from '../../utilities/get-or-compute'
-import { isSameDay } from '../calendar/calendar-utilities'
+import { sameDay } from '../calendar/calendar-utilities'
 import { datePickerMessages } from './date-picker-messages'
 import {
 	addDays,
@@ -244,8 +244,8 @@ export function isRelativeEmpty(value: DatePickerRelativeValue[] | undefined): b
 }
 
 /** Day-granular span equality, ignoring time-of-day. @internal */
-function isSameSpan(a: DatePickerRelativeValue, b: DatePickerRelativeValue): boolean {
-	return isSameDay(a.from, b.from) && isSameDay(a.to, b.to)
+function sameSpan(a: DatePickerRelativeValue, b: DatePickerRelativeValue): boolean {
+	return sameDay(a.from, b.from) && sameDay(a.to, b.to)
 }
 
 /**
@@ -275,11 +275,11 @@ export function matchRelativePreset(
 		for (const id of [...preferredIds].reverse()) {
 			const preset = presets.find((option) => option.id === id)
 
-			if (preset && isSameSpan(preset.resolve(now), span)) return preset
+			if (preset && sameSpan(preset.resolve(now), span)) return preset
 		}
 	}
 
-	return presets.find((preset) => isSameSpan(preset.resolve(now), span)) ?? null
+	return presets.find((preset) => sameSpan(preset.resolve(now), span)) ?? null
 }
 
 /**
@@ -305,7 +305,7 @@ export function selectedPresetIds(
 	const picked = presets.filter((preset) => preferredIds?.has(preset.id))
 
 	for (const span of value) {
-		const matches = picked.filter((preset) => isSameSpan(preset.resolve(now), span))
+		const matches = picked.filter((preset) => sameSpan(preset.resolve(now), span))
 
 		for (const preset of matches) ids.add(preset.id)
 
@@ -333,9 +333,7 @@ export function isCustomActive(
 
 /** `spans` without a later span that equals an earlier one day-for-day. */
 function uniqueSpans(spans: DatePickerRelativeValue[]): DatePickerRelativeValue[] {
-	return spans.filter(
-		(span, index) => spans.findIndex((other) => isSameSpan(other, span)) === index,
-	)
+	return spans.filter((span, index) => spans.findIndex((other) => sameSpan(other, span)) === index)
 }
 
 /**

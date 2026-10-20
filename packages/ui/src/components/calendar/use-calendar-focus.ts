@@ -12,7 +12,7 @@ import {
 	clampDay,
 	fromCalendarDate,
 	gridStep,
-	isSameDay,
+	sameDay,
 	stepDay,
 	toCalendarDate,
 } from './calendar-utilities'
@@ -62,7 +62,7 @@ export function dayTabStop(
 ): Date | null {
 	const enabled = days.filter((date) => !isDisabled(date))
 
-	const todayCell = today ? enabled.find((date) => isSameDay(date, today)) : undefined
+	const todayCell = today ? enabled.find((date) => sameDay(date, today)) : undefined
 
 	return enabled.find(isSelected) ?? todayCell ?? enabled[0] ?? null
 }

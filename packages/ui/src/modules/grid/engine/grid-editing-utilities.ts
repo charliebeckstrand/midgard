@@ -486,7 +486,7 @@ export const NATIVE_ENTER = 'button, a[href], textarea, select, [contenteditable
  *
  * @internal
  */
-export function isInGrid(node: Element | null, grid: HTMLElement | null): boolean {
+export function inGrid(node: Element | null, grid: HTMLElement | null): boolean {
 	return grid !== null && node?.closest(GRID_ROLE) === grid
 }
 
@@ -512,13 +512,13 @@ export function tabStaysInCell(target: Element, backward: boolean): boolean {
 }
 
 /** Whether a coord names this cell; a null coord names none. @internal */
-export function isSameCell(coord: GridActiveEdit | null, cell: GridActiveEdit): boolean {
+export function pointsAt(coord: GridActiveEdit | null, cell: GridActiveEdit): boolean {
 	return coord !== null && coord.rowKey === cell.rowKey && coord.columnId === cell.columnId
 }
 
 /** Whether two coords name the same cell; two null coords do too. @internal */
 export function sameCell(a: GridActiveEdit | null, b: GridActiveEdit | null): boolean {
-	return a === b || (b !== null && isSameCell(a, b))
+	return a === b || (b !== null && pointsAt(a, b))
 }
 
 /**
@@ -548,7 +548,7 @@ export function isCellEditing(args: {
 	// consumer's binding, which names rows and never cells, so it stays whole.
 	if (active === null || active.rowKey !== args.rowKey) return true
 
-	return isSameCell(active, args)
+	return pointsAt(active, args)
 }
 
 /** The error a refused cell shows when the consumer gives none. @internal */

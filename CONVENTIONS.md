@@ -202,6 +202,12 @@ The [`no-abbreviated-binding`](.biome/plugins/no-abbreviated-binding.grit) Biome
 - `to` changes a value into a different form.
 - `describe` names a DOM node.
 - `is` and `has` give a boolean.
+- `same` compares two values, as `sameDay` does.
+- `in` tells if a node is inside a place, as `inGrid` does.
+
+Do not write `isSameDay`, `isInGrid`, or `valuesEqual`. The [`no-alternate-predicate-binding`](.biome/plugins/no-alternate-predicate-binding.grit) Biome plugin finds these forms.
+
+A boolean value takes no `is` when its word is an adjective, as a prop does: `transposed`, `controlled`, `empty`. The bare word must be free in the scope. Keep `is` for a noun (`isArray`) and for a word that is taken (`isGlass` beside the `glass` prop). Keep a name that a library gives (`isDragging`). Do not make up a weaker word only to drop `is`. Rename a name only when the new name is clearer.
 
 Do not end a name with `Of`, as `rowOf` does. That name does not tell if the function reads, searches, builds, or converts. A lookup table is not a function. Give it the name of its value and of its key, as `sectionByPath` does.
 

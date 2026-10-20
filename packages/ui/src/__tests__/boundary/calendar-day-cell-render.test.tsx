@@ -2,7 +2,7 @@ import { createRef, memo } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Calendar, type CalendarHandle, CalendarRange } from '../../components/calendar'
 import { CalendarDayCell } from '../../components/calendar/calendar-day-cell'
-import { isSameDay } from '../../components/calendar/calendar-utilities'
+import { sameDay } from '../../components/calendar/calendar-utilities'
 import { DatePicker } from '../../components/date-picker'
 import { act, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
 
@@ -111,8 +111,7 @@ describe('calendar day cell renders', () => {
 	function enterOfJuneFifth(): (() => void) | undefined {
 		return vi
 			.mocked(CalendarDayCell.type)
-			.mock.calls.findLast(([props]) => isSameDay(props.date, new Date(2025, 5, 5)))?.[0]
-			.onMouseEnter
+			.mock.calls.findLast(([props]) => sameDay(props.date, new Date(2025, 5, 5)))?.[0].onMouseEnter
 	}
 
 	it('gives a month that the reader revisits new hover handlers', () => {

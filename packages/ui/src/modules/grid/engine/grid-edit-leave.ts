@@ -4,7 +4,7 @@
  */
 
 import type { CommitOn } from '../use-grid-editing-warnings'
-import { isInGrid } from './grid-editing-utilities'
+import { inGrid } from './grid-editing-utilities'
 
 /**
  * Whether `node`, an element in the DOM of the table `grid`, is inside what a
@@ -22,7 +22,7 @@ function inWatched(args: {
 }): boolean {
 	const { commitOn, grid, node, inEditors } = args
 
-	return commitOn === 'leaveGrid' ? isInGrid(node, grid) : inEditors(node)
+	return commitOn === 'leaveGrid' ? inGrid(node, grid) : inEditors(node)
 }
 
 /**

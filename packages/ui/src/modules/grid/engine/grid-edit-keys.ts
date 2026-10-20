@@ -12,7 +12,7 @@ import { NATIVE_ENTER, tabStaysInCell } from './grid-editing-utilities'
  * `node` when its nearest `<table>` is `table`, else `null`. A detail panel can
  * hold a nested grid. The row index or the column id of a row or a cell of
  * that grid can match one of this grid, so the session must not read it.
- * `isInGrid` does not tell the two apart when the nested grid has no
+ * `inGrid` does not tell the two apart when the nested grid has no
  * `role="grid"`.
  *
  * @internal

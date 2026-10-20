@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { subscribeDocumentEvent } from '../../utilities/document-listener'
-import { isSameDay } from './calendar-utilities'
+import { sameDay } from './calendar-utilities'
 
 /** The instant of the local midnight that ends the day of `date`, in milliseconds. @internal */
 function endOfDay(date: Date): number {
@@ -42,7 +42,7 @@ export function useCalendarToday(): Date | null {
 		const check = () => {
 			const now = new Date()
 
-			if (!isSameDay(now, today)) {
+			if (!sameDay(now, today)) {
 				setToday(now)
 
 				return

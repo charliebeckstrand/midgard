@@ -1,5 +1,5 @@
 import type { CalendarActive } from '../calendar'
-import { isSameDayOrEmpty } from '../calendar/calendar-utilities'
+import { sameDayOrEmpty } from '../calendar/calendar-utilities'
 
 /**
  * In-progress range selection: the pinned first endpoint, the hovered/keyboard
@@ -45,7 +45,7 @@ export function datePickerRangeReducer(
 			// A hover before the first endpoint shows no band, and a hover on the
 			// same day changes nothing. Both keep the state, so the picker does not
 			// render again for them.
-			if (state.rangeStart === null || isSameDayOrEmpty(state.hoverDate, action.date)) return state
+			if (state.rangeStart === null || sameDayOrEmpty(state.hoverDate, action.date)) return state
 
 			return { ...state, hoverDate: action.date }
 		case 'setActive':

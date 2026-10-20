@@ -39,7 +39,7 @@ function roundHsva({ h, s, v, a }: Hsva): Hsva {
  * or on black. Hue 360 matches hue 0. A difference of one byte, as in
  * `#fefefe` and `#ffffff`, makes the colors different.
  */
-export function equalHsva(a: Hsva, b: Hsva): boolean {
+export function sameHex(a: Hsva, b: Hsva): boolean {
 	return hsvaToHex(a, true) === hsvaToHex(b, true)
 }
 
