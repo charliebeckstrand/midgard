@@ -180,6 +180,8 @@ export const size = {
 		thumb: inset,
 		/** The width of a switch skeleton. */
 		width: 'density-w-[8,9,10,11,12]',
+		/** The width of a three-way switch: three thumbs and two gaps. */
+		choice: 'density-w-[11,12.5,14,15.5,17]',
 	},
 	slider: {
 		/** The height of a slider skeleton track. */

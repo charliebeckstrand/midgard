@@ -3,6 +3,7 @@ import { ApiTable, Example, Playground } from '../../../kit/index.ts'
 import Controlled from './controlled.tsx'
 import Disabled from './disabled.tsx'
 import SwitchPlayground from './playground.tsx'
+import ThreePositions from './three-positions.tsx'
 import WithDescription from './with-description.tsx'
 
 export default function SwitchPage() {
@@ -12,6 +13,7 @@ export default function SwitchPage() {
 			<Example of={WithDescription} />
 			<Example of={Controlled} />
 			<Example of={Disabled} />
+			<Example of={ThreePositions} />
 			<ApiTable api={api} />
 		</>
 	)

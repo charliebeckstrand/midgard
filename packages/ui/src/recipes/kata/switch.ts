@@ -1,10 +1,11 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, kasane, kokkaku, sen } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, sen } from '../kiso'
 import { control } from '../kiso/control'
 import { dan } from '../kiso/dan'
 
-const { cursor } = hannou
+const { cursor, disabled } = hannou
+const { text } = iro
 const { rounded } = kasane
 const { focus, ring } = sen
 const { check } = control
@@ -58,6 +59,67 @@ const track = [
 	...mode('ring-zinc-950/40', 'dark:ring-white/30'),
 ]
 
+// The thumb at rest, at the inline start of the track. Each switch moves it
+// with a translate of its own width.
+const thumb = [
+	'absolute inset-s-1 top-1 inline-block',
+	'bg-white ring-zinc-950/5',
+	...ring.line[1].outset,
+	'shadow-sm',
+	rounded.full,
+	'pointer-events-none',
+	'motion-safe:transition-[translate] duration-200 ease-in-out',
+	dan.size.switch.thumb,
+]
+
+/**
+ * The three-way switch of {@link SwitchChoice}: an option label at each side of
+ * a track that is three thumbs and two gaps wide. The track carries
+ * `data-position`, and the thumb moves by one width for each position. The
+ * track is off at `center` and takes the colors of a checked switch at `start`
+ * and at `end`.
+ */
+const choice = defineRecipe(
+	{
+		base: ['group/switch-choice inline-flex w-fit items-center', dan.gap.x.md, ...disabled],
+		color,
+		defaults: { color: 'zinc' },
+	},
+	{
+		track: [
+			'relative inline-flex shrink-0',
+			focus.outline,
+			rounded.full,
+			...track,
+			'not-data-[position=center]:bg-(--switch-bg) not-data-[position=center]:ring-(--switch-bg-ring)',
+			...mode(
+				'data-[position=center]:not-data-static:hover:bg-zinc-300',
+				'dark:data-[position=center]:not-data-static:hover:bg-white/15',
+			),
+			'not-data-[position=center]:not-data-static:hover:opacity-90',
+			...check.validation,
+			dan.size.row,
+			dan.size.switch.choice,
+		],
+		/** One third of the track: the `<label>` over the radio of one position. */
+		zone: ['relative flex-1', ...cursor],
+		thumb: [
+			...thumb,
+			'[[data-position=center]>&]:translate-x-full rtl:[[data-position=center]>&]:-translate-x-full',
+			'[[data-position=end]>&]:translate-x-[200%] rtl:[[data-position=end]>&]:-translate-x-[200%]',
+			'[:not([data-position=center])>&]:bg-(--switch) [:not([data-position=center])>&]:shadow-(color:--switch-shadow) [:not([data-position=center])>&]:ring-(--switch-ring)',
+		],
+		/** The text of an option beside the track. The option that is on takes the default text color. */
+		label: [
+			'select-none',
+			...text.muted,
+			...mode('data-checked:text-zinc-950', 'dark:data-checked:text-white'),
+			ji.ramp,
+			...cursor,
+		],
+	},
+)
+
 export const k = defineRecipe(
 	{
 		base: [
@@ -96,23 +158,20 @@ export const k = defineRecipe(
 		 */
 		thumb: defineRecipe({
 			base: [
-				'absolute inset-s-1 top-1 inline-block',
+				...thumb,
 				'[:checked~&]:translate-x-full rtl:[:checked~&]:-translate-x-full',
-				'bg-white ring-zinc-950/5',
-				...ring.line[1].outset,
-				'shadow-sm',
-				rounded.full,
-				'pointer-events-none',
-				'motion-safe:transition-[translate] duration-200 ease-in-out',
 				'[:checked~&]:bg-(--switch) [:checked~&]:shadow-(color:--switch-shadow) [:checked~&]:ring-(--switch-ring)',
-				dan.size.switch.thumb,
 			],
 		}),
+		choice,
 	},
 )
 
 /** The size scale of {@link Switch}: the steps of its track and thumb. */
 export const scale = defineScale(dan.size.row, dan.size.switch.width, dan.size.switch.thumb)
+
+/** The size scale of {@link SwitchChoice}: the steps of its track, its thumb, and its labels. */
+export const choiceScale = defineScale(dan.size.row, dan.size.switch.choice, dan.size.switch.thumb)
 
 /** Recipe variant props for {@link Switch}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
 export type SwitchVariants = Omit<VariantProps<typeof k>, 'color'> & {

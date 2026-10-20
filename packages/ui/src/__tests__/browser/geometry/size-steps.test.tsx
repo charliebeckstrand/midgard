@@ -70,7 +70,7 @@ import { Sparkline, SparklineSkeleton } from '../../../components/sparkline'
 import { StatSkeleton, StatValue, StatValueSkeleton } from '../../../components/stat'
 import { StatusDot } from '../../../components/status'
 import { Swatch } from '../../../components/swatch'
-import { Switch, SwitchSkeleton } from '../../../components/switch'
+import { Switch, SwitchChoice, SwitchSkeleton } from '../../../components/switch'
 import {
 	Table,
 	TableBody,
@@ -358,6 +358,17 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 	StatusDot: (size) => <StatusDot size={size} />,
 	Swatch: (size) => <Swatch size={size} color="#3b82f6" />,
 	Switch: (size) => <Switch size={size as never} aria-label="Toggle" defaultChecked />,
+	SwitchChoice: (size) => (
+		<SwitchChoice
+			size={size as never}
+			aria-label="Mode"
+			options={[
+				{ value: 'a', label: 'A' },
+				{ value: 'b', label: 'B' },
+			]}
+			defaultValue="b"
+		/>
+	),
 	SwitchSkeleton: (size) => <SwitchSkeleton size={size as never} />,
 	TabListSkeleton: (size) => <TabListSkeleton size={size} />,
 	Table: (size) => (

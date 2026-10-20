@@ -490,6 +490,7 @@
 	"ui.stepper.completed": "completado",
 	"ui.stepper.label": "Pasos",
 	"ui.stepper.notStarted": "sin empezar",
+	"ui.switchChoice.off": "Desactivado",
 	"ui.table.noItems": "Sin elementos",
 	"ui.tagInput.addTag": "Añadir etiqueta",
 	"ui.tagInput.addTags": "Añadir etiquetas",

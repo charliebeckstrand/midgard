@@ -136,6 +136,7 @@ export const geometry = {
 	'size.line.base': (step) => toLeading(smallTextSize(step)),
 	'size.switch.thumb': thumbSize,
 	'size.switch.width': (step) => 2 * thumbSize(step) + 8,
+	'size.switch.choice': (step) => 3 * thumbSize(step) + 8,
 	'size.button.base': boxHeight,
 	'size.pagination': boxHeight,
 	'size.control.base': boxHeight,
