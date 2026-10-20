@@ -4,7 +4,7 @@ import type { PanelResize } from '../../hooks/use-panel-resize'
 import type { Orientation } from '../../types'
 import { defineMessages } from '../intl/intl-messages'
 import { useIntl } from '../intl/use-intl'
-import { PanelSplitter } from './panel-splitter'
+import { Splitter } from '../splitter/splitter'
 
 const messages = defineMessages({
 	resize: {
@@ -39,7 +39,7 @@ export type PanelHandleProps = {
 /**
  * The grab bar of a resizable panel.
  *
- * A {@link PanelSplitter}, which is what a resize control is. It answers the
+ * A {@link Splitter}, which is what a resize control is. It answers the
  * arrow keys as well as the drag. A panel only a pointer can size is one a
  * keyboard reader cannot open up.
  * `aria-valuenow` reads as the share of the screen the panel covers, so the
@@ -67,18 +67,18 @@ export function PanelHandle({
 	const intl = useIntl()
 
 	return (
-		<PanelSplitter
+		<Splitter
 			data-slot={slot}
-			aria-label={intl.formatMessage(messages.resize)}
-			aria-orientation={orientation}
-			aria-controls={controls}
-			aria-valuenow={covers}
-			aria-valuemin={0}
-			aria-valuemax={100}
+			label={intl.formatMessage(messages.resize)}
+			orientation={orientation}
+			controls={controls}
+			value={covers}
+			min={0}
+			max={100}
 			{...handleProps}
 			className={className}
 		>
 			<div className={bar} />
-		</PanelSplitter>
+		</Splitter>
 	)
 }

@@ -3,7 +3,7 @@
 import { type KeyboardEvent, type PointerEvent, useLayoutEffect, useRef } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { PanelSplitter } from '../../primitives/panel/panel-splitter'
+import { Splitter } from '../../primitives/splitter/splitter'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
 import { dashboardMessages } from './dashboard-messages'
@@ -116,13 +116,13 @@ export function DashboardResizeHandle({
 	if (edge === 'se') return <div {...shared} aria-hidden />
 
 	return (
-		<PanelSplitter
+		<Splitter
 			{...shared}
-			aria-orientation={horizontal ? 'horizontal' : 'vertical'}
-			aria-label={intl.formatMessage(dashboardMessages.resize, { label })}
-			aria-valuenow={span}
-			aria-valuemin={least}
-			aria-valuemax={most === undefined ? undefined : Math.max(most, span)}
+			label={intl.formatMessage(dashboardMessages.resize, { label })}
+			orientation={horizontal ? 'horizontal' : 'vertical'}
+			value={span}
+			min={least}
+			max={most === undefined ? undefined : Math.max(most, span)}
 			onKeyDown={onKeyDown}
 		/>
 	)
