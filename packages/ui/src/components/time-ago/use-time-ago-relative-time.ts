@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { MAX_TIMEOUT } from '../../hooks/use-timeout'
 import { clamp, getOrCompute } from '../../utilities'
-import { DAY, HOUR, MINUTE, MONTH, SECOND, WEEK, YEAR } from './time-ago-constants'
+import { DAY, HOUR, MINUTE, MONTH, SECOND, WEEK, YEAR } from '../../utilities/time-units'
 import { subscribeTimeAgoTick } from './time-ago-ticker'
 
 type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'

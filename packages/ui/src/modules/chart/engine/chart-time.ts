@@ -15,18 +15,10 @@
 
 import { CalendarDateTime, DateFormatter, startOfWeek } from '@internationalized/date'
 import { resolveLocale } from '../../../utilities'
+import { DAY, HOUR, MINUTE, MONTH, SECOND, WEEK, YEAR } from '../../../utilities/time-units'
 import type { ChartAxisTick } from './chart-axes/axis'
 import { GUTTER_GAP, TICK_CHAR_WIDTH } from './chart-constants'
 import type { BandScale } from './chart-scale'
-
-/** One millisecond span per calendar unit, for choosing a tick interval. @internal */
-const SECOND = 1_000
-const MINUTE = 60 * SECOND
-const HOUR = 60 * MINUTE
-const DAY = 24 * HOUR
-const WEEK = 7 * DAY
-const MONTH = 30 * DAY
-const YEAR = 365 * DAY
 
 /** A bare `YYYY-MM-DD`, `YYYY-MM`, or `YYYY` reads as a local wall-clock day, not a UTC instant. @internal */
 const DATE_ONLY = /^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/

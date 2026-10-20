@@ -1,7 +1,8 @@
 /**
- * Duration constants in milliseconds, from second to year, shared by
- * {@link TimeAgo}'s unit-bucketing and adaptive-refresh logic. `MONTH` and
- * `YEAR` use 30- and 365-day approximations.
+ * Time units in milliseconds, from a second to a year. `MONTH` and `YEAR` use
+ * 30-day and 365-day approximations, so use them only to choose a unit or a
+ * step. A calendar step goes through `@internationalized/date`.
+ *
  * @internal
  */
 export const SECOND = 1000

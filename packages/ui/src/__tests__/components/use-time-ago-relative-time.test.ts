@@ -1,20 +1,12 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, vi } from 'vitest'
 import {
-	DAY,
-	HOUR,
-	MINUTE,
-	MONTH,
-	SECOND,
-	WEEK,
-	YEAR,
-} from '../../components/time-ago/time-ago-constants'
-import {
 	MIN_REFRESH_MS,
 	resolveRefreshInterval,
 	useTimeAgoRelativeTime,
 } from '../../components/time-ago/use-time-ago-relative-time'
 import { MAX_TIMEOUT } from '../../hooks/use-timeout'
+import { DAY, HOUR, MINUTE, MONTH, SECOND, WEEK, YEAR } from '../../utilities/time-units'
 import { it, onFakeClock } from '../helpers/fake-clock'
 
 const NOW = new Date('2026-05-19T12:00:00Z')
