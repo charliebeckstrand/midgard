@@ -7,6 +7,7 @@ import { useA11yRoving } from '../../hooks'
 import { useKeyedStore } from '../../hooks/use-keyed-store'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/json-tree'
+import { toggleItem } from '../../utilities'
 import { treeMoveTarget } from '../tree/tree-keyboard'
 import { JsonTreeContext } from './context'
 import { TREE_ITEM_SELECTOR } from './json-tree-constants'
@@ -21,7 +22,7 @@ import {
 } from './json-tree-utilities'
 import { JsonTreeVirtualized } from './json-tree-virtualized'
 import type { JsonValue } from './types'
-import { toggleExpandedSet, unionExpandedSet } from './use-json-tree-expansion'
+import { unionExpandedSet } from './use-json-tree-expansion'
 import { useJsonTreeSearchSeed } from './use-json-tree-search-seed'
 
 /** Row-virtualization options for {@link JsonTree}: the required scroll-container `maxHeight`, plus optional windowing tuning. */
@@ -166,7 +167,7 @@ export function JsonTree({
 	// Controlled without a handler is read-only, as a controlled input with no
 	// `onChange` is.
 	const toggleExpanded = useStableEvent((path: string) => {
-		if (expanded && onExpandedChange) toggleExpandedSet(expanded, path, onExpandedChange)
+		if (expanded && onExpandedChange) onExpandedChange(toggleItem(expanded, path))
 	})
 
 	// Keyed on `data` identity, so a structurally identical value with a new

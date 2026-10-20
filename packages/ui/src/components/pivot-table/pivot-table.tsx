@@ -1,13 +1,20 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import type { ScaleStep } from '../../core/density'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale'
-import type { scale } from '../../recipes/kata/table'
 import { fractionFormat } from '../../utilities'
-import { Table, TableBody, TableCell, TableFoot, TableHead, TableHeader, TableRow } from '../table'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableFoot,
+	TableHead,
+	TableHeader,
+	TableRow,
+	type TableVariants,
+} from '../table'
 import type { PivotAggregation } from './types'
 import { type PivotTableKeys, usePivotTable } from './use-pivot-table'
 
@@ -19,8 +26,6 @@ const messages = defineMessages({
 	},
 })
 
-export type { PivotTableKeys } from './use-pivot-table'
-
 /** Which totals a {@link PivotTable} renders: row totals, column totals, both, or none. */
 export type PivotTotals = 'row' | 'col' | 'both' | 'none'
 
@@ -29,7 +34,10 @@ export type PivotTotals = 'row' | 'col' | 'both' | 'none'
  *
  * @typeParam T - The shape of each source row.
  */
-export type PivotTableProps<T> = {
+export type PivotTableProps<T> = Pick<
+	TableVariants,
+	'size' | 'outline' | 'striped' | 'hover' | 'bleed'
+> & {
 	/** Source rows to pivot. */
 	rows: readonly T[]
 	/** Fields that identify the row, column, and value dimension of the pivot. */
@@ -48,19 +56,6 @@ export type PivotTableProps<T> = {
 	columnOrder?: readonly string[]
 	/** Rendered when no source rows match a (row × column) group. @defaultValue '—' */
 	emptyCell?: ReactNode
-	/**
-	 * The density step of the cell padding. Omit it to take the step of the
-	 * nearest density scope. A step makes the table a density scope.
-	 */
-	size?: ScaleStep<typeof scale>
-	/** Draws hairline borders around every cell. @defaultValue false */
-	outline?: boolean
-	/** Zebra-stripes the body rows; `'odd'` / `'even'` select which. @defaultValue false */
-	striped?: boolean | 'odd' | 'even'
-	/** Washes the body row under the pointer. @defaultValue false */
-	hover?: boolean
-	/** Runs the table edge-to-edge, dropping the outer gutter. @defaultValue false */
-	bleed?: boolean
 	/** Classes for the `<table>` element. */
 	className?: string
 	/** Accessible name for the table: a caption-equivalent for a dense pivot. Optional; a native `<table>` is valid unnamed. */
@@ -174,6 +169,7 @@ export function PivotTable<T>({
 			{showColumnTotals && (
 				<TableFoot>
 					<TableRow className="font-semibold">
+						{/* The header recipe sets its own weight, so the row weight does not reach it. */}
 						<TableHeader scope="row" className="font-semibold whitespace-nowrap">
 							{totalLabel}
 						</TableHeader>
@@ -181,13 +177,13 @@ export function PivotTable<T>({
 							const total = columnTotals[index]
 
 							return (
-								<TableCell key={column} className="text-end font-semibold tabular-nums">
+								<TableCell key={column} className="text-end tabular-nums">
 									{total != null ? formatValue(total) : emptyCell}
 								</TableCell>
 							)
 						})}
 						{showRowTotals && (
-							<TableCell className="text-end font-semibold tabular-nums">
+							<TableCell className="text-end tabular-nums">
 								{grandTotal != null ? formatValue(grandTotal) : emptyCell}
 							</TableCell>
 						)}

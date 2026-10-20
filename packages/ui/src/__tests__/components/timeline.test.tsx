@@ -58,6 +58,22 @@ describe('TimelineTitle', () => {
 			'timeline-title',
 		)
 	})
+
+	it('gives the native props to the element, so an item can take its name from the title', () => {
+		renderUI(
+			<Timeline>
+				<TimelineItem aria-labelledby="shipped-title">
+					<TimelineTitle id="shipped-title" level={3} data-testid="title">
+						Shipped
+					</TimelineTitle>
+				</TimelineItem>
+			</Timeline>,
+		)
+
+		expect(screen.getByTestId('title')).toHaveAttribute('id', 'shipped-title')
+
+		expect(screen.getByRole('listitem', { name: 'Shipped' })).toBeInTheDocument()
+	})
 })
 
 describe('TimelineTimestamp', () => {

@@ -4,14 +4,6 @@ import { useCallback, useState } from 'react'
 import { useControllable } from '../../hooks'
 import { toggleItem } from '../../utilities'
 
-export function toggleExpandedSet(
-	expanded: Set<string>,
-	path: string,
-	onChange: (next: Set<string>) => void,
-) {
-	onChange(toggleItem(expanded, path))
-}
-
 /**
  * The union of `expanded` and `paths`.
  *
@@ -68,7 +60,6 @@ export function useJsonTreeExpansion({
 }: JsonTreeExpansion): {
 	isOpen: (path: string, depth: number) => boolean
 	toggle: (path: string, open: boolean) => void
-	expand: (paths: ReadonlySet<string>) => void
 } {
 	const controlled = expanded !== undefined
 
@@ -102,17 +93,5 @@ export function useJsonTreeExpansion({
 		[controlled, setExpanded],
 	)
 
-	/** Union `paths` into the controlled set; identity-stable when nothing is new. */
-	const expand = useCallback(
-		(paths: ReadonlySet<string>) => {
-			// Bail before the setter. `useControllable` reports each call, also a
-			// call that gives the previous set.
-			const next = unionExpandedSet(resolved, paths)
-
-			if (next) setExpanded(next)
-		},
-		[resolved, setExpanded],
-	)
-
-	return { isOpen, toggle, expand }
+	return { isOpen, toggle }
 }

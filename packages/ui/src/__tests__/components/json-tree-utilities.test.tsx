@@ -12,7 +12,6 @@ import {
 	joinPath,
 	matchesSearch,
 	normalizeSearch,
-	treeContainsMatch,
 	valueType,
 } from '../../components/json-tree/json-tree-utilities'
 import type { JsonValue } from '../../components/json-tree/types'
@@ -119,20 +118,6 @@ describe('matchesSearch', () => {
 	})
 })
 
-describe('treeContainsMatch', () => {
-	it('finds a match nested in a child branch', () => {
-		expect(treeContainsMatch({ outer: { inner: 'needle' } }, 'needle')).toBe(true)
-	})
-
-	it('returns false when the tree has no match', () => {
-		expect(treeContainsMatch({ a: 'x' }, 'needle')).toBe(false)
-	})
-
-	it('returns false when term is empty', () => {
-		expect(treeContainsMatch({ a: 'x' }, '')).toBe(false)
-	})
-})
-
 describe('buildSearchIndex', () => {
 	it('marks branches containing a match as true', () => {
 		const tree = { outer: { inner: 'needle' }, other: 'no' }
@@ -158,13 +143,17 @@ describe('filterEntries', () => {
 			['age', 30],
 		]
 
-		expect(filterEntries(entries, 'alice')).toEqual([['name', 'Alice']])
+		expect(filterEntries(entries, 'alice', buildSearchIndex({}, 'alice'))).toEqual([
+			['name', 'Alice'],
+		])
 	})
 
 	it('keeps branch entries whose subtree contains a match', () => {
-		const entries: [string | number, JsonValue][] = [['outer', { inner: 'needle' }]]
+		const data = { outer: { inner: 'needle' } }
 
-		expect(filterEntries(entries, 'needle')).toEqual(entries)
+		const entries = getEntries(data)
+
+		expect(filterEntries(entries, 'needle', buildSearchIndex(data, 'needle'))).toEqual(entries)
 	})
 
 	it('uses the supplied search index to decide branch inclusion', () => {

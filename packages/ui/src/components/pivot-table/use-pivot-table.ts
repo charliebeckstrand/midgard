@@ -52,9 +52,10 @@ export type PivotTableResult = {
 /**
  * Headless aggregation for {@link PivotTable}: groups `rows` by the row/column
  * `keys`, and reduces the value field per group. It memoizes the cell matrix
- * and totals into O(1) lookups. Powers `PivotTable`, but usable standalone for a
- * custom layout.
+ * and totals into O(1) lookups. Only `PivotTable` calls it, and no barrel
+ * exports it.
  *
+ * @internal
  * @typeParam T - The shape of each source row.
  * @param rows - Source rows to pivot.
  * @param keys - Fields naming the row, column, and value dimensions.

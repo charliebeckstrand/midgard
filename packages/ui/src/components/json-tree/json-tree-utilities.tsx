@@ -88,17 +88,6 @@ export function matchesSearch(key: string | number | undefined, value: JsonValue
 	)
 }
 
-/** Recursive fallback for {@link filterEntries} when no {@link SearchIndex} is supplied: true if any descendant matches. @internal */
-export function treeContainsMatch(value: JsonValue, term: string): boolean {
-	if (!term) return false
-
-	return getEntries(value).some(
-		([childKey, childValue]) =>
-			matchesSearch(childKey, childValue, term) ||
-			(isBranch(childValue) && treeContainsMatch(childValue, term)),
-	)
-}
-
 /** Branch node → whether its subtree contains a search match; built once per term to avoid re-walking. @internal */
 export type SearchIndex = WeakMap<object, boolean>
 
@@ -129,16 +118,15 @@ export function buildSearchIndex(data: JsonValue, term: string): SearchIndex {
 	return index
 }
 
-/** Keeps entries that match directly or, for branches, whose subtree contains a match (via `index`, else a recursive walk). @internal */
+/** Keeps the entries that match directly, and the branches whose subtree holds a match in `index`. @internal */
 export function filterEntries(
 	entries: [string | number, JsonValue][],
 	term: string,
-	index?: SearchIndex,
+	index: SearchIndex,
 ) {
 	return entries.filter(
 		([key, value]) =>
-			matchesSearch(key, value, term) ||
-			(isBranch(value) && (index ? index.get(value) === true : treeContainsMatch(value, term))),
+			matchesSearch(key, value, term) || (isBranch(value) && index.get(value) === true),
 	)
 }
 

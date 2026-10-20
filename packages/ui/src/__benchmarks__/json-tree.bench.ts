@@ -7,7 +7,6 @@ import {
 	collectPaths,
 	filterEntries,
 	getEntries,
-	treeContainsMatch,
 } from '../components/json-tree/json-tree-utilities'
 import { JSON_HIT, JSON_MISS, JSON_TREES, makeJsonTree } from './fixtures'
 
@@ -39,27 +38,13 @@ describe('json-tree · buildSearchIndex', () => {
 	})
 })
 
-describe('json-tree · treeContainsMatch', () => {
-	bench('large (d5×b5) · hit', () => {
-		treeContainsMatch(large, JSON_HIT)
-	})
-
-	bench('large (d5×b5) · miss', () => {
-		treeContainsMatch(large, JSON_MISS)
-	})
-})
-
-describe('json-tree · filterEntries (with index)', () => {
+describe('json-tree · filterEntries', () => {
 	const index = buildSearchIndex(large, JSON_HIT)
 
 	const rootEntries = getEntries(large)
 
 	bench('root entries @ large', () => {
 		filterEntries(rootEntries, JSON_HIT, index)
-	})
-
-	bench('root entries @ large · no index (walks each)', () => {
-		filterEntries(rootEntries, JSON_HIT)
 	})
 })
 
