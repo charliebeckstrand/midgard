@@ -6247,3 +6247,104 @@ describe('Grid-owned session keys in a grouped grid', () => {
 		expect(onRowsChange).toHaveBeenLastCalledWith(new Set([1]))
 	})
 })
+describe('Grid row actions edit', () => {
+	// The pencil and the check are one button, as a consumer writes them: React
+	// keeps the element as the row opens.
+	function renderPencil(cols: GridColumn<SessionRow>[] = sessionColumns) {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [rows, setRows] = useState<Set<string | number>>(new Set())
+
+			return (
+				<>
+					<button type="button" onClick={() => setRows(new Set([2]))}>
+						Open Bob
+					</button>
+					<Grid
+						columns={[
+							...cols,
+							{
+								id: 'actions',
+								actions: (row, { editing, edit, save }) => (
+									<span>
+										{editing ? (
+											<button type="button" onClick={save}>
+												Save
+											</button>
+										) : (
+											<button type="button" onClick={edit}>
+												{`Edit ${row.name}`}
+											</button>
+										)}
+									</span>
+								),
+							},
+						]}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						editable={{ session: 'managed', rows, onRowsChange: setRows, onCommit }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const press = (name: string) => {
+			const button = view.getByRole('button', { name })
+
+			act(() => button.focus())
+
+			fireEvent.pointerDown(button)
+
+			fireEvent.click(button)
+
+			return button
+		}
+
+		return { ...view, press, onCommit }
+	}
+
+	it('opens the row with focus in its first editor', () => {
+		const view = renderPencil()
+
+		view.press('Edit Bob')
+
+		expect(document.activeElement).toBe(view.getByRole('textbox', { name: 'Edit Name, row 2' }))
+	})
+
+	it('returns focus to the control as the row saves', () => {
+		const view = renderPencil()
+
+		const pencil = view.press('Edit Bob')
+
+		fireEvent.change(view.getByRole('textbox', { name: 'Edit Name, row 2' }), {
+			target: { value: 'Bobby' },
+		})
+
+		fireEvent.click(view.getByRole('button', { name: 'Save' }))
+
+		expect(view.onCommit).toHaveBeenCalledWith([{ rowKey: 2, columnId: 'name', value: 'Bobby' }])
+
+		expect(document.activeElement).toBe(pencil)
+	})
+
+	it('keeps a row with no editable column closed', () => {
+		const view = renderPencil([{ id: 'name', title: 'Name', cell: (row) => row.name }])
+
+		view.press('Edit Bob')
+
+		expect(view.getByRole('button', { name: 'Edit Bob' })).toBeInTheDocument()
+	})
+
+	it('moves no focus for a row that the consumer adds to rows', () => {
+		const view = renderPencil()
+
+		view.press('Open Bob')
+
+		expect(editorsIn(view.container).length).toBeGreaterThan(0)
+
+		expect(document.activeElement).toBe(view.getByRole('button', { name: 'Open Bob' }))
+	})
+})

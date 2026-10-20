@@ -106,7 +106,13 @@ export type GridEditCell<T> = (context: GridEditCellContext<T>) => ReactNode
  * reports `editing: false` and its callbacks do nothing, so an actions column
  * needs no guard of its own.
  *
- * @remarks `discard` is the one transition a consumer cannot drive through
+ * @remarks Use `edit` for a control that opens its row, such as a pencil. It
+ * opens the row as a double click on its first editable cell does, and puts
+ * focus in that cell's editor. As the row closes, focus returns to the
+ * control. A row that you add to `rows` yourself opens, but focus stays where
+ * it is.
+ *
+ * `discard` is the one transition a consumer cannot drive through
  * `rows`. Removing a row from the set is a save, because that is what flushes
  * its staged cells. Closing a row and dropping its edits therefore has to come
  * from here.
@@ -114,6 +120,8 @@ export type GridEditCell<T> = (context: GridEditCellContext<T>) => ReactNode
 export type GridRowActionsContext = {
 	/** Whether this row is in edit mode. */
 	editing: boolean
+	/** Open the row, with focus in its first editor. A row with no editable column stays closed. */
+	edit: () => void
 	/** Close the row, committing its changed cells through `onCommit`. */
 	save: () => void
 	/** Close the row, dropping its staged cells. Nothing reaches `onCommit`. */

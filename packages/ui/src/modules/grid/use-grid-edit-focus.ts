@@ -196,6 +196,15 @@ export function useGridEditFocus<T>({
 		}
 	}, [editableRows])
 
+	// Records the place of the last press or focus as the origin of `rowKey`, in
+	// place of the cell that an entry records. A control that opens its row,
+	// such as a pencil, then takes focus back as the session on the row ends.
+	const placeOrigin = useCallback((rowKey: string | number) => {
+		const element = lastPlaceRef.current
+
+		if (element) originsRef.current.set(rowKey, { element })
+	}, [])
+
 	// The element that focus returns to as the session on `rowKey` ends, or
 	// `null` for none. A cell origin moves the cursor onto the cell that the
 	// session edited, and gives the tab stop. An element origin gives what
@@ -280,6 +289,7 @@ export function useGridEditFocus<T>({
 		awaitRowRef,
 		reseatingRef,
 		originsRef,
+		placeOrigin,
 		entrySeed,
 		dropIntents,
 		claimFocus,
