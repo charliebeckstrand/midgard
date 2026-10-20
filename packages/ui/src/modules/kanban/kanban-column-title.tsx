@@ -7,10 +7,11 @@ import { k } from '../../recipes/kata/kanban'
 import { useKanbanColumnContext } from './context'
 
 /**
- * Props for {@link KanbanColumnTitle}: the props of a `CardTitle`, without `id`.
- * The column names its group through the id of the title, so the title sets it.
+ * Props for {@link KanbanColumnTitle}: the props of a `CardTitle`, without `id`
+ * and `size`. The column names its group through the id of the title, so the
+ * title sets it. The title takes the step of the nearest density scope.
  */
-export type KanbanColumnTitleProps = Omit<CardTitleProps, 'id'>
+export type KanbanColumnTitleProps = Omit<CardTitleProps, 'id' | 'size'>
 
 /**
  * Title heading for a {@link KanbanColumn}: a `CardTitle`, at `level` 3 by
