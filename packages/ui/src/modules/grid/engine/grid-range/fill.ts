@@ -4,7 +4,7 @@
  * step, and each other line repeats.
  */
 
-import type { GridRowStep } from './range'
+import type { GridRowDistance, GridRowStep } from './range'
 
 /** The direction of a fill, from the source cells to the cells that it writes. @internal */
 export type GridFillDirection = 'down' | 'right' | 'up' | 'left'
@@ -88,6 +88,13 @@ export function fillPlan(
 
 	const order = back ? [...along].reverse() : along
 
+	const edge = back ? first : last
+
+	const sign = back ? -1 : 1
+
+	// The row or the column `n` lines past the source. A row comes from `step`.
+	const past = (n: number) => (vertical ? step(edge, sign * n) : edge + sign * n)
+
 	const targets: GridFillTarget[] = []
 
 	for (const line of across) {
@@ -97,19 +104,11 @@ export function fillPlan(
 		)
 
 		values.forEach((value, index) => {
-			const offset = back ? -index - 1 : index + 1
+			const at = past(index + 1)
 
-			const from = back ? first : last
+			if (at === undefined) return
 
-			if (!vertical) {
-				targets.push({ row: line, col: from + offset, value })
-
-				return
-			}
-
-			const row = step(from, offset)
-
-			if (row !== undefined) targets.push({ row, col: line, value })
+			targets.push(vertical ? { row: at, col: line, value } : { row: line, col: at, value })
 		})
 	}
 
@@ -150,25 +149,24 @@ export function rangeFillSource(
 	return { source, count: along.length - 1 }
 }
 
-/**
- * The bounds of a block of data cells, inclusive. A row is a place among the
- * data rows that the cursor shows, and a column is a data column index.
- * @internal
- */
+/** The bounds of a block of data cells, inclusive, in data row and data column indexes. @internal */
 export type GridFillRect = { top: number; bottom: number; left: number; right: number }
 
 /**
  * The fill that a drag of the fill handle makes from a source block to the
  * data cell under the pointer, or `null` while the pointer is on the source.
  * The fill runs along the axis of the larger travel past the source, and a
- * tie goes down or up. @internal
+ * tie goes down or up. `distance` counts the travel over the rows that the
+ * cursor shows. @internal
  */
 export function handleFill(
 	source: GridFillRect,
 	cell: { row: number; col: number },
+	distance: GridRowDistance,
 ): { direction: GridFillDirection; count: number } | null {
-	const rows =
-		cell.row > source.bottom ? cell.row - source.bottom : Math.min(0, cell.row - source.top)
+	const below = distance(source.bottom, cell.row)
+
+	const rows = below > 0 ? below : Math.min(0, distance(source.top, cell.row))
 
 	const cols =
 		cell.col > source.right ? cell.col - source.right : Math.min(0, cell.col - source.left)
@@ -185,11 +183,13 @@ export function handleFill(
 /**
  * The corners of the range that a fill of `source` leaves: the anchor at the
  * source corner away from the fill, and the cursor at the far corner of the
- * filled cells. With no fill, the corners of the source. @internal
+ * filled cells. With no fill, the corners of the source. `step` finds the far
+ * row of a fill down or up. @internal
  */
 export function filledCorners(
 	source: GridFillRect,
 	fill: { direction: GridFillDirection; count: number } | null,
+	step: GridRowStep,
 ): { from: { row: number; col: number }; to: { row: number; col: number } } {
 	const { top, bottom, left, right } = source
 
@@ -197,12 +197,15 @@ export function filledCorners(
 
 	switch (fill?.direction) {
 		case 'up':
-			return { from: { row: bottom, col: right }, to: { row: top - count, col: left } }
+			return { from: { row: bottom, col: right }, to: { row: step(top, -count) ?? top, col: left } }
 		case 'left':
 			return { from: { row: bottom, col: right }, to: { row: top, col: left - count } }
 		case 'right':
 			return { from: { row: top, col: left }, to: { row: bottom, col: right + count } }
 		default:
-			return { from: { row: top, col: left }, to: { row: bottom + count, col: right } }
+			return {
+				from: { row: top, col: left },
+				to: { row: step(bottom, count) ?? bottom, col: right },
+			}
 	}
 }

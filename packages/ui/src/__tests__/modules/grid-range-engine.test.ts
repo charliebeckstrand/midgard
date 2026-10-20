@@ -373,38 +373,62 @@ describe('rangeFillSource', () => {
 describe('handleFill', () => {
 	const source = { top: 2, bottom: 3, left: 1, right: 2 }
 
+	const distance = (from: number, to: number) => to - from
+
 	it('fills along the axis of the larger travel past the source', () => {
-		expect(handleFill(source, { row: 6, col: 3 })).toEqual({ direction: 'down', count: 3 })
+		expect(handleFill(source, { row: 6, col: 3 }, distance)).toEqual({
+			direction: 'down',
+			count: 3,
+		})
 
-		expect(handleFill(source, { row: 0, col: 2 })).toEqual({ direction: 'up', count: 2 })
+		expect(handleFill(source, { row: 0, col: 2 }, distance)).toEqual({ direction: 'up', count: 2 })
 
-		expect(handleFill(source, { row: 4, col: 5 })).toEqual({ direction: 'right', count: 3 })
+		expect(handleFill(source, { row: 4, col: 5 }, distance)).toEqual({
+			direction: 'right',
+			count: 3,
+		})
 
-		expect(handleFill(source, { row: 3, col: 0 })).toEqual({ direction: 'left', count: 1 })
+		expect(handleFill(source, { row: 3, col: 0 }, distance)).toEqual({
+			direction: 'left',
+			count: 1,
+		})
+	})
+
+	it('counts the travel over the rows that the cursor shows', () => {
+		const shown = [0, 2, 3, 6]
+
+		const over = (from: number, to: number) => shown.indexOf(to) - shown.indexOf(from)
+
+		expect(handleFill(source, { row: 6, col: 2 }, over)).toEqual({ direction: 'down', count: 1 })
 	})
 
 	it('goes down or up on a tie, and gives no fill on the source', () => {
-		expect(handleFill(source, { row: 4, col: 3 })).toEqual({ direction: 'down', count: 1 })
+		expect(handleFill(source, { row: 4, col: 3 }, distance)).toEqual({
+			direction: 'down',
+			count: 1,
+		})
 
-		expect(handleFill(source, { row: 2, col: 2 })).toBeNull()
+		expect(handleFill(source, { row: 2, col: 2 }, distance)).toBeNull()
 	})
 })
 
 describe('filledCorners', () => {
 	const source = { top: 2, bottom: 3, left: 1, right: 2 }
 
+	const step = stepOver([0, 1, 2, 3, 4, 5])
+
 	it('anchors at the source corner away from the fill', () => {
-		expect(filledCorners(source, { direction: 'down', count: 2 })).toEqual({
+		expect(filledCorners(source, { direction: 'down', count: 2 }, step)).toEqual({
 			from: { row: 2, col: 1 },
 			to: { row: 5, col: 2 },
 		})
 
-		expect(filledCorners(source, { direction: 'left', count: 1 })).toEqual({
+		expect(filledCorners(source, { direction: 'left', count: 1 }, step)).toEqual({
 			from: { row: 3, col: 2 },
 			to: { row: 2, col: 0 },
 		})
 
-		expect(filledCorners(source, null)).toEqual({
+		expect(filledCorners(source, null, step)).toEqual({
 			from: { row: 2, col: 1 },
 			to: { row: 3, col: 2 },
 		})

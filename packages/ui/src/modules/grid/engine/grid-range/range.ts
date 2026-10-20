@@ -14,6 +14,13 @@
  */
 export type GridRowStep = (row: number, steps: number) => number | undefined
 
+/**
+ * The count of steps from the data row `from` to the data row `to`, over the
+ * data rows that the cursor shows. It is negative when `to` is above `from`,
+ * and 0 when the cursor does not show one of them. @internal
+ */
+export type GridRowDistance = (from: number, to: number) => number
+
 /** A place in the cursor's order and a data column index. @internal */
 export type GridRangeCorner = { row: number; col: number }
 

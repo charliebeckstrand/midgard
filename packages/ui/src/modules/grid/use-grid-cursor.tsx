@@ -660,65 +660,42 @@ export function useGridCursor<T>({
 		return () => writeFill(plan.source, direction, plan.count)
 	})
 
-	// The drag of the fill handle measures in places among the data rows that
-	// the cursor shows, so it skips the rows of a closed group. These convert
-	// between the places and data row indexes.
-	const { rowPlace, rowAtPlace } = nav
-
 	// The source of a drag of the fill handle: the range, else the active cell.
 	const readFillSource = useStableEvent((): GridFillRect | null => {
 		const cells = readRange() ?? activeCells(nav.active)
 
-		const first = cells?.rows[0]
+		const top = cells?.rows[0]
 
 		const left = cells?.cols[0]
 
-		if (!cells || first === undefined || left === undefined) return null
+		if (!cells || top === undefined || left === undefined) return null
 
-		const top = rowPlace(first)
-
-		const bottom = rowPlace(cells.rows[cells.rows.length - 1] ?? first)
+		const bottom = cells.rows[cells.rows.length - 1] ?? top
 
 		const right = cells.cols[cells.cols.length - 1] ?? left
 
-		return top === -1 || bottom === -1 ? null : { top, bottom, left, right }
+		return { top, bottom, left, right }
 	})
 
+	// The rows of the source run from its top row to its bottom row, over the
+	// rows that the cursor shows.
 	const fillFromHandle = useStableEvent(
-		(source: GridFillRect, direction: GridFillDirection, count: number) =>
-			writeFill(
-				{
-					rows: span(source.top, source.bottom).flatMap((place) => rowAtPlace(place) ?? []),
-					cols: span(source.left, source.right),
-				},
-				direction,
-				count,
-			),
+		(source: GridFillRect, direction: GridFillDirection, count: number) => {
+			const height = nav.rowDistance(source.top, source.bottom) + 1
+
+			const rows = Array.from({ length: height }, (_, i) => nav.rowStep(source.top, i) ?? [])
+
+			writeFill({ rows: rows.flat(), cols: span(source.left, source.right) }, direction, count)
+		},
 	)
-
-	const showFillRange = useStableEvent((from: Coord, to: Coord) => {
-		const fromRow = rowAtPlace(from.row)
-
-		const toRow = rowAtPlace(to.row)
-
-		if (fromRow !== undefined && toRow !== undefined) {
-			nav.showRange({ row: fromRow, col: from.col }, { row: toRow, col: to.col })
-		}
-	})
-
-	const fillCellOf = useStableEvent((id: string): Coord | null => {
-		const coord = nav.cellCoordOf(id)
-
-		const place = coord ? rowPlace(coord.row) : -1
-
-		return coord && place !== -1 ? { row: place, col: coord.col } : null
-	})
 
 	const startFillDrag = useGridFillDrag({
 		readSource: readFillSource,
-		showRange: showFillRange,
+		showRange: nav.showRange,
 		fill: fillFromHandle,
-		cellCoordOf: fillCellOf,
+		cellCoordOf: nav.cellCoordOf,
+		rowStep: nav.rowStep,
+		rowDistance: nav.rowDistance,
 		scrollContainerRef,
 		press: nav.press,
 	})
