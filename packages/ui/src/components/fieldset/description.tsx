@@ -6,7 +6,7 @@ import { k } from '../../recipes/kata/fieldset'
 import { useControl } from '../control/context'
 
 /** Props for {@link Description}: the native `<p>` attributes plus `className`. */
-export type DescriptionProps = {} & ComponentProps<'p'>
+export type DescriptionProps = ComponentProps<'p'>
 
 /**
  * Help text for a form control, rendered as a `<p>`. While mounted it registers

@@ -2,7 +2,7 @@
 
 import { useComposedRefs } from 'motion/react'
 import type { ChangeEvent, ComponentProps } from 'react'
-import { ariaAttr, cn } from '../../core'
+import { ariaAttr, cn, dataAttr } from '../../core'
 import { useControllableFlag } from '../../hooks'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useFormToggle } from '../../primitives/form/use-form-toggle'
@@ -121,7 +121,7 @@ export function Switch({
 		<label
 			data-slot="control"
 			data-density={size}
-			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
+			data-disabled={dataAttr(resolvedDisabled)}
 			hidden={hidden}
 			style={style}
 			className={cn(k({ color }), className)}

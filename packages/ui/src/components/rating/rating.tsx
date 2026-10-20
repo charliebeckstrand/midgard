@@ -2,7 +2,7 @@
 
 import { Star } from 'lucide-react'
 import { type MouseEvent, type PointerEvent, type ReactNode, useRef, useState } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
@@ -127,7 +127,7 @@ export type RatingProps = RatingVariants & {
 	/**
 	 * The readout, for the score in the display form's accessible name and for
 	 * each star's own name in the interactive one. Say what the stars mean where they mean
-	 * something particular: `` (v) => `${v} of 5 — ${LEVELS[v]}` ``.
+	 * something particular: `` (v) => `${v} of 5: ${LEVELS[v]}` ``.
 	 * @defaultValue A readout such as "4 out of 5 stars", in the language of the reader.
 	 */
 	getValueText?: (value: number, count: number) => string
@@ -340,7 +340,7 @@ export function Rating({
 				id={scope.id}
 				data-slot={slot}
 				data-density={size}
-				{...(resolvedDisabled ? { 'data-disabled': true } : {})}
+				data-disabled={dataAttr(resolvedDisabled)}
 				role="img"
 				{...naming}
 				aria-describedby={describedBy}

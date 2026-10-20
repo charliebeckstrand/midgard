@@ -1,6 +1,7 @@
 import { animate } from 'motion'
 import type { FormEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
+import { ControlLockContext } from '../../components/control/context'
 import { HoldButton } from '../../components/hold-button'
 import { bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 import { it, onFakeClock } from '../helpers/fake-clock'
@@ -359,6 +360,86 @@ describe('HoldButton', () => {
 			expect(onSubmit).toHaveBeenCalledOnce()
 
 			expect(onSubmit.mock.results[0]?.value).toBe(el)
+		})
+
+		it('starts no hold in a locked scope, and submits nothing', async ({ clock }) => {
+			const onHoldComplete = vi.fn()
+
+			const onHoldStart = vi.fn()
+
+			const onSubmit = vi.fn((event: FormEvent<HTMLFormElement>) => event.preventDefault())
+
+			const { container } = renderUI(
+				<ControlLockContext value>
+					<form onSubmit={onSubmit}>
+						<HoldButton type="submit" onHoldStart={onHoldStart} onHoldComplete={onHoldComplete}>
+							Delete
+						</HoldButton>
+					</form>
+				</ControlLockContext>,
+			)
+
+			const el = getSlot(container, 'hold-button')
+
+			expect(el).toHaveAttribute('aria-disabled', 'true')
+
+			fireEvent.pointerDown(el, PRESS)
+
+			fireEvent.keyDown(el, { key: 'Enter' })
+
+			await clock.advance(1000)
+
+			expect(onHoldStart).not.toHaveBeenCalled()
+
+			expect(onHoldComplete).not.toHaveBeenCalled()
+
+			expect(onSubmit).not.toHaveBeenCalled()
+		})
+
+		it('cancels a hold when the scope locks, and holds again with lockable={false}', async ({
+			clock,
+		}) => {
+			const onHoldComplete = vi.fn()
+
+			const onHoldCancel = vi.fn()
+
+			const { container, rerender } = renderUI(
+				<ControlLockContext value={false}>
+					<HoldButton onHoldCancel={onHoldCancel} onHoldComplete={onHoldComplete}>
+						Hold
+					</HoldButton>
+				</ControlLockContext>,
+			)
+
+			fireEvent.pointerDown(getSlot(container, 'hold-button'), PRESS)
+
+			rerender(
+				<ControlLockContext value>
+					<HoldButton onHoldCancel={onHoldCancel} onHoldComplete={onHoldComplete}>
+						Hold
+					</HoldButton>
+				</ControlLockContext>,
+			)
+
+			await clock.advance(1000)
+
+			expect(onHoldCancel).toHaveBeenCalledOnce()
+
+			expect(onHoldComplete).not.toHaveBeenCalled()
+
+			rerender(
+				<ControlLockContext value>
+					<HoldButton lockable={false} onHoldComplete={onHoldComplete}>
+						Hold
+					</HoldButton>
+				</ControlLockContext>,
+			)
+
+			fireEvent.pointerDown(getSlot(container, 'hold-button'), PRESS)
+
+			await clock.advance(1000)
+
+			expect(onHoldComplete).toHaveBeenCalledOnce()
 		})
 
 		it('resets the form when a reset hold completes', async ({ clock }) => {
