@@ -19,29 +19,27 @@ const validators: Validators<Values> = {
 
 describe('validateSubmit', () => {
 	it('marks each key of the values touched', () => {
-		const { touched } = validateSubmit(undefined, { name: '', age: 0 }, 'touched')
+		const { touched } = validateSubmit(undefined, { name: '', age: 0 })
 
 		expect(touched).toEqual({ name: true, age: true })
 	})
 
-	it('runs each validator whatever the validateOn mode', () => {
-		for (const mode of ['touched', 'change', 'submit'] as const) {
-			const { errors, refused } = validateSubmit(validators, { name: '', age: 20 }, mode)
+	it('runs each validator', () => {
+		const { errors, refused } = validateSubmit(validators, { name: '', age: 20 })
 
-			expect(errors).toEqual({ name: ['Enter a name.'], age: undefined })
+		expect(errors).toEqual({ name: ['Enter a name.'], age: undefined })
 
-			expect(refused).toBe(true)
-		}
+		expect(refused).toBe(true)
 	})
 
 	it('does not refuse a submit with no issue', () => {
-		const result = validateSubmit(validators, { name: 'Jane', age: 30 }, 'touched')
+		const result = validateSubmit(validators, { name: 'Jane', age: 30 })
 
 		expect(result.refused).toBe(false)
 	})
 
 	it('does not refuse a form with no validators', () => {
-		const result = validateSubmit(undefined, { name: '', age: 0 }, 'touched')
+		const result = validateSubmit(undefined, { name: '', age: 0 })
 
 		expect(result).toEqual({ touched: { name: true, age: true }, errors: {}, refused: false })
 	})

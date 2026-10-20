@@ -26,7 +26,6 @@ import type {
 	FormHelpers,
 	FormSubmitHandler,
 	SubmitOutcome,
-	ValidateOn,
 	Validators,
 } from './engine/types'
 
@@ -36,7 +35,6 @@ type FormSubmissionOptions<T extends Record<string, unknown>> = {
 	dispatch: Dispatch<FormAction<T>>
 	/** The newest validators. Only the handlers read it. */
 	validateRef: RefObject<Validators<T> | undefined>
-	validateOn: ValidateOn
 	setSubmitting: (submitting: boolean) => void
 	setErrors: (errors: Record<string, string | string[] | undefined>) => void
 	/** Resets the store only, and leaves an in-flight submit live. */
@@ -71,7 +69,6 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 	store,
 	dispatch,
 	validateRef,
-	validateOn,
 	setSubmitting,
 	setErrors,
 	resetForm,
@@ -121,11 +118,7 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 
 			const submitValues = store.getState().values as T
 
-			const { touched, errors, refused } = validateSubmit(
-				validateRef.current,
-				submitValues,
-				validateOn,
-			)
+			const { touched, errors, refused } = validateSubmit(validateRef.current, submitValues)
 
 			// A refused submit returns here and never reaches `onSubmit`, so no other
 			// callback fires. Without this report the caller cannot tell a refused
@@ -232,7 +225,6 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 			store,
 			dispatch,
 			validateRef,
-			validateOn,
 			onSubmit,
 			setErrors,
 			setSubmitting,

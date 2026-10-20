@@ -20,6 +20,7 @@ import {
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k as linkK } from '../../recipes/kata/link'
+import { FOCUSABLE_SELECTOR } from '../../utilities'
 import { summarizeErrors } from './engine/form-error-summary'
 
 /** Props for {@link FormErrorSummary}: the `title` of the summary, atop the native attributes of its `<div>`. */
@@ -40,16 +41,13 @@ const messages = defineMessages({
 	},
 })
 
-/** An element that takes the focus from a script or from the Tab key. */
-const FOCUSABLE = 'input, select, textarea, button, a[href], [tabindex]'
-
 /**
  * Moves the focus to a control by its id. The link keeps its `href`, so the
  * target stays readable, but the page does not jump or change its URL.
  *
  * @remarks Some controls put the id of their field on a wrapper, such as the
  * row of a `Rating`. When the element with the id does not take the focus, the
- * first element in it that can take the focus does.
+ * first element in it that is in the tab order takes it.
  * @internal
  */
 function focusControl(event: MouseEvent<HTMLAnchorElement>, id: string): void {
@@ -65,7 +63,7 @@ function focusControl(event: MouseEvent<HTMLAnchorElement>, id: string): void {
 
 	if (doc.activeElement === target) return
 
-	target.querySelector<HTMLElement>(FOCUSABLE)?.focus()
+	target.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus()
 }
 
 /**

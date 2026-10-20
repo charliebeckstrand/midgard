@@ -1,6 +1,6 @@
 import { hasIssues } from '../../../primitives/form/form-issues'
 import { normalizeIssues, runValidators } from './form-validate'
-import type { Errors, Touched, ValidateOn, Validators } from './types'
+import type { Errors, Touched, Validators } from './types'
 
 /**
  * The verdict of the client validation of one submit: each field marked
@@ -16,23 +16,22 @@ export type SubmitValidation = {
 }
 
 /**
- * Validates every field for a submit, whatever `validateOn` is. Each key of
- * `values` counts as touched, so that each field shows its issue.
+ * Validates every field for a submit, whatever the `validateOn` of the form
+ * is. Each key of `values` counts as touched, so that each field shows its
+ * issue.
  *
  * @internal
  */
 export function validateSubmit<T extends Record<string, unknown>>(
 	validators: Validators<T> | undefined,
 	values: T,
-	validateOn: ValidateOn,
 ): SubmitValidation {
 	const touched: Touched = {}
 
 	for (const key in values) touched[key] = true
 
-	const errors = validators
-		? runValidators(validators, values, touched, validateOn, Object.keys(validators))
-		: {}
+	// The `'change'` mode runs each validator.
+	const errors = runValidators(validators, values, touched, 'change')
 
 	return { touched, errors, refused: Object.values(errors).some(hasIssues) }
 }
