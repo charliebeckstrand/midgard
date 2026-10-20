@@ -1,7 +1,8 @@
 /// <reference types="@vitest/browser-playwright" />
 
 import { useEffect, useState } from 'react'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { flushSync } from 'react-dom'
+import { afterAll, beforeAll, describe, expect, it, onTestFinished } from 'vitest'
 import { cdp } from 'vitest/browser'
 import { Badge } from '../../../components/badge'
 import { Grid, type GridColumn } from '../../../modules/grid'
@@ -562,6 +563,134 @@ describe('grid column auto-sizing with async rows (real browser)', () => {
 		// layout effect, so the widths are already final in the rows' first painted
 		// frame and never shift under the reader afterwards.
 		expect([...widths]).toHaveLength(1)
+	})
+})
+
+/**
+ * Rows that land in the frame of a resize tick. The sizing observer commits its
+ * fit in a `flushSync`. A `flushSync` that renders also renders each update that
+ * waits, so the rows of a timer or a fetch can commit inside the callback, and
+ * they resize the container that the callback observes. The browser then fires
+ * "ResizeObserver loop completed with undelivered notifications" on `window`.
+ *
+ * Each case supplies the rows in an animation frame callback. React gives that
+ * update the default lane, and it renders in a later task. The frame then lays
+ * out and delivers its notifications, and no task runs between. Thus a flush in
+ * the callback is the one thing that can commit the rows in that frame. In CI,
+ * the async rows case above failed on this error when its timer fired just
+ * before the first frame of the grid.
+ */
+describe('grid column fit when rows land in the frame of a resize tick (real browser)', () => {
+	type Row = { id: number; name: string }
+
+	const rows: Row[] = Array.from({ length: 40 }, (_, index) => ({
+		id: index + 1,
+		name: `Row ${index + 1}`,
+	}))
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', cell: (row) => row.name },
+		{ id: 'role', title: 'Role', cell: () => 'Member' },
+	]
+
+	/** Supplies the rows of the mounted {@link LateRows}. */
+	let land = () => {}
+
+	function LateRows() {
+		const [loaded, setLoaded] = useState(false)
+
+		land = () => setLoaded(true)
+
+		return (
+			<div style={{ width: '600px' }}>
+				<Grid
+					columns={columns}
+					rows={loaded ? rows : []}
+					getKey={(row) => row.id}
+					loading={!loaded}
+				/>
+			</div>
+		)
+	}
+
+	/** Runs `step` in the next animation frame callback. */
+	const inFrame = (step: () => void) =>
+		new Promise<void>((resolve) =>
+			requestAnimationFrame(() => {
+				step()
+
+				resolve()
+			}),
+		)
+
+	/** Records each "ResizeObserver loop" error until the test finishes. */
+	function loopErrors(): string[] {
+		const errors: string[] = []
+
+		const record = (event: ErrorEvent) => {
+			if (event.message.includes('ResizeObserver loop')) errors.push(event.message)
+		}
+
+		window.addEventListener('error', record)
+
+		onTestFinished(() => window.removeEventListener('error', record))
+
+		return errors
+	}
+
+	const rowsOf = (container: HTMLElement) => container.querySelectorAll('td[data-grid-col="name"]')
+
+	it('fits on the first tick of a new grid with no ResizeObserver loop error', async () => {
+		const errors = loopErrors()
+
+		let container: HTMLElement | null = null
+
+		// The grid mounts in the frame, so the first tick of its observer is in the
+		// delivery of this frame. The rows then wait as a timer leaves them.
+		await inFrame(() => {
+			flushSync(() => {
+				container = renderUI(<LateRows />).container
+			})
+
+			land()
+		})
+
+		await frames()
+
+		expect(rowsOf(present(container, 'container')).length).toBeGreaterThan(0)
+
+		expect(errors).toEqual([])
+	})
+
+	it('fits on a width tick with no ResizeObserver loop error', async () => {
+		const errors = loopErrors()
+
+		const { container } = renderUI(<LateRows />)
+
+		const frameBox = present(container.firstElementChild as HTMLElement | null, 'frame')
+
+		const table = present(container.querySelector('table'), 'table')
+
+		const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
+
+		await waitFor(() =>
+			expect(table.getBoundingClientRect().width).toBeNear(scroll.clientWidth, PIXEL),
+		)
+
+		await inFrame(() => {
+			land()
+
+			frameBox.style.width = '560px'
+		})
+
+		await frames()
+
+		expect(rowsOf(container).length).toBeGreaterThan(0)
+
+		// The fit of the tick moved the columns to the narrower frame.
+		expect(table.getBoundingClientRect().width).toBeNear(scroll.clientWidth, PIXEL)
+
+		expect(errors).toEqual([])
 	})
 })
 
