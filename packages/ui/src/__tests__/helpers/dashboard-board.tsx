@@ -25,8 +25,8 @@ import { present } from './present'
  * @remarks
  * jsdom lays nothing out, so each element reports a `clientWidth` of 0. The
  * board divides the width of its canvas into the column pitch, and a gesture
- * starts only with a pitch. The stub answers for the canvas alone, so each
- * other element keeps the width that jsdom gives it.
+ * starts only with a pitch. The stub answers for the canvas alone, and gives
+ * each other element 0, as jsdom does.
  *
  * Call it once at the top level of a suite. It registers its own `beforeEach`.
  * The setups restore the spy after each case.
@@ -35,13 +35,9 @@ import { present } from './present'
  * 50 px at 24 columns.
  */
 export function stubCanvasWidth(width = 1200): void {
-	const original = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')?.get
-
 	beforeEach(() => {
 		vi.spyOn(Element.prototype, 'clientWidth', 'get').mockImplementation(function (this: Element) {
-			if (this.getAttribute('data-slot') === 'dashboard-canvas') return width
-
-			return original?.call(this) ?? 0
+			return this.getAttribute('data-slot') === 'dashboard-canvas' ? width : 0
 		})
 	})
 }

@@ -1,6 +1,6 @@
 import { Profiler, type ReactElement, useLayoutEffect } from 'react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { CodeBlockVariants } from '../../components/code'
 import { CodeBlock, primeCodeBlock } from '../../components/code/code-block'
 import {
@@ -13,6 +13,7 @@ import {
 	present,
 	renderUI,
 	screen,
+	stubClipboard,
 	tick,
 	waitFor,
 } from '../helpers'
@@ -24,24 +25,6 @@ import { DEFAULT_CANVAS, highlight } from '../mocks/shiki'
 // would bleed across files (see markdown.test.tsx for the failure it caused).
 // The `loadShiki` cases need their own registry, so they sit in
 // boundary/code-block-load-shiki.test.ts, which runs on forks.
-
-/**
- * Sets `navigator.clipboard` for the current case. `undefined` removes the
- * Clipboard API, as an insecure origin does.
- *
- * @remarks
- * `onTestFinished` restores the property, also after a case that times out.
- */
-function stubClipboard(clipboard: { writeText: (value: string) => Promise<void> } | undefined) {
-	const original = Object.getOwnPropertyDescriptor(window.navigator, 'clipboard')
-
-	Object.defineProperty(window.navigator, 'clipboard', { configurable: true, value: clipboard })
-
-	onTestFinished(() => {
-		if (original) Object.defineProperty(window.navigator, 'clipboard', original)
-		else delete (window.navigator as { clipboard?: unknown }).clipboard
-	})
-}
 
 describe('CodeBlock', () => {
 	it('renders with data-slot="code-block"', async () => {

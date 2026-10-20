@@ -16,7 +16,7 @@ import { EventsSheet } from '../../modules/events/events-sheet'
 import { EventsSwitch } from '../../modules/events/events-switch'
 import { LocaleProvider } from '../../providers/locale'
 import { createLazyModule } from '../../utilities/lazy-module'
-import { deferred } from '../helpers'
+import { deferred, stubClipboard } from '../helpers'
 import { it } from '../helpers/fake-clock'
 
 // The sheet starts the recorder, which listens on the document. The halt
@@ -34,14 +34,7 @@ afterEach(() => {
 function mockClipboard() {
 	const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue()
 
-	const original = Object.getOwnPropertyDescriptor(window.navigator, 'clipboard')
-
-	Object.defineProperty(window.navigator, 'clipboard', { configurable: true, value: { writeText } })
-
-	onTestFinished(() => {
-		if (original) Object.defineProperty(window.navigator, 'clipboard', original)
-		else delete (window.navigator as { clipboard?: unknown }).clipboard
-	})
+	stubClipboard({ writeText })
 
 	return writeText
 }

@@ -192,6 +192,18 @@ const HOOK_SPY_RESTORE = {
 		/\b(?:onTestFinished|afterEach|afterAll)\s*\(\s*(?:async\s*)?\(\s*\)\s*=>\s*\{?\s*[\w$.]+\s*\.\s*mockRestore\s*\(/g,
 } as const
 
+// A test that saves a property descriptor saves it to put the property back by
+// hand. A stub of an accessor goes through `vi.spyOn(target, key, 'get')`, and
+// the setups restore it. A property with no accessor, such as the clipboard
+// that jsdom lacks, has a helper that the setups clean up (`stubClipboard`).
+const SAVED_DESCRIPTOR = {
+	label: 'property descriptor saved for a restore by hand',
+	regex: /\bObject\s*\.\s*getOwnPropertyDescriptor\s*\(/g,
+} as const
+
+/** The setups, which save and restore the descriptors that the tests share. */
+const SETUP_HOME = new Set(['setup'])
+
 /** The one file that makes the restores of {@link HAND_RESTORE}. */
 const RESTORE_HOME = new Set(['restore-test-state.ts'])
 
@@ -953,6 +965,22 @@ describe('test isolation boundary', () => {
 		).toEqual([])
 	})
 
+	it('saves no property descriptor to restore by hand', () => {
+		const saves = [testsDir, docsTestDir].flatMap((dir) =>
+			collectPatternViolations({
+				dir,
+				patterns: [SAVED_DESCRIPTOR],
+				skip: SETUP_HOME,
+				stripComments: true,
+			}),
+		)
+
+		expect(
+			saves,
+			`spy on the accessor with \`vi.spyOn(target, key, 'get')\`, which the setups restore, or take \`stubClipboard\` for the clipboard:\n  ${saves.join('\n  ')}`,
+		).toEqual([])
+	})
+
 	it('fakes the whole clock only through the clock fixture', () => {
 		const fakes = [testsDir, docsTestDir].flatMap((dir) =>
 			collectPatternViolations({
@@ -1069,6 +1097,21 @@ describe('test isolation boundary', () => {
 		expect(restoresIn(`${hook}(() => ${'vi'}.mocked(animate).mockRestore())`)).toBe(0)
 
 		expect(restoresIn(`${hook}(() => root.unmount())`)).toBe(0)
+	})
+
+	it('reads a saved property descriptor in each spelling', () => {
+		// The scan above reads this file too, so no fixture spells a call whole.
+		const object = 'Object'
+
+		const savesIn = (text: string) => [...text.matchAll(SAVED_DESCRIPTOR.regex)].length
+
+		expect(savesIn(`${object}.getOwnPropertyDescriptor(navigator, 'clipboard')`)).toBe(1)
+
+		expect(savesIn(`${object}\n\t.getOwnPropertyDescriptor (window, 'innerWidth')`)).toBe(1)
+
+		expect(savesIn(`${object}.getOwnPropertyDescriptors(row)`)).toBe(0)
+
+		expect(savesIn(`${object}.defineProperty(navigator, 'clipboard', {})`)).toBe(0)
 	})
 
 	it('reads a whole fake clock in each spelling', () => {
