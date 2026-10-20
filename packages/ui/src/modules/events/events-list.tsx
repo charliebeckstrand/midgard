@@ -112,11 +112,10 @@ function EventLine({
 type LineProps = {
 	width: number
 	state: EventsOpenState
-	onReport: (id: number) => void
 }
 
 /** The line of one event. Its detail opens in a tree. */
-function EntryLine({ entry, width, state }: Omit<LineProps, 'onReport'> & { entry: EventEntry }) {
+function EntryLine({ entry, width, state }: LineProps & { entry: EventEntry }) {
 	const intl = useIntl()
 
 	const key = getKey([entry])
@@ -142,7 +141,7 @@ function EntryLine({ entry, width, state }: Omit<LineProps, 'onReport'> & { entr
 }
 
 /** One row of the list: the line of one event, or the summary of a batch, which opens to the lines of its events. */
-function EventRowLine({ row, ...props }: Omit<LineProps, 'onReport'> & { row: EventRow }) {
+function EventRowLine({ row, ...props }: LineProps & { row: EventRow }) {
 	if (row.length === 1) return <EntryLine entry={row[0]} {...props} />
 
 	const key = getKey(row)
@@ -169,7 +168,7 @@ export function EventsList({
 	rows,
 	onReport,
 	...props
-}: LineProps & { rows: readonly EventRow[] }) {
+}: LineProps & { rows: readonly EventRow[]; onReport: (id: number) => void }) {
 	const intl = useIntl()
 
 	// The list renders the lines in the view of the body, so a long list opens

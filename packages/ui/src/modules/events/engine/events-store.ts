@@ -4,7 +4,7 @@ import { framesOf, stackOf } from './events-probes'
 import { createReport, type ReportInput } from './events-report'
 import { CAPTURE_KEY, readStorage as read, writeStorage as write } from './events-storage'
 import { kindWidth, lineOf } from './events-text'
-import type { EventBug, EventEntry, EventReport, EventStorage } from './types'
+import type { EventBug, EventEntry, EventKind, EventReport, EventStorage } from './types'
 
 // The store of the events of one tab: the events in time order, the reports
 // of the bugs and the captures among them, and the copy that "Preserve" keeps
@@ -92,8 +92,7 @@ export class EventStore {
 	setPreserve(on: boolean): void {
 		this.setFlag('preserve', on)
 
-		if (this.preserve) this.save()
-		else write(this.storage, key('entries'), null)
+		this.save()
 	}
 
 	/**
@@ -199,12 +198,7 @@ export class EventStore {
 	startCapture(): void {
 		if (this.capturing) return
 
-		const entry = this.create({
-			time: Math.round(performance.now()),
-			kind: 'capture',
-			text: `capture starts ${location.pathname}`,
-			y: Math.round(scrollY),
-		})
+		const entry = this.createNow('capture', `capture starts ${location.pathname}`)
 
 		const start: CaptureStart = {
 			id: entry.id,
@@ -231,12 +225,7 @@ export class EventStore {
 
 		if (!start) return undefined
 
-		const entry = this.create({
-			time: Math.round(performance.now()),
-			kind: 'capture',
-			text: 'capture',
-			y: Math.round(scrollY),
-		})
+		const entry = this.createNow('capture', 'capture')
 
 		this.capture = undefined
 
@@ -259,8 +248,7 @@ export class EventStore {
 		})
 
 		// The store keeps the events through a reload only while "Preserve" is on.
-		if (this.preserve) this.save()
-		else write(this.storage, key('entries'), null)
+		this.save()
 
 		return entry.id
 	}
@@ -296,14 +284,19 @@ export class EventStore {
 	}
 
 	/**
-	 * Writes the events to `sessionStorage` while the store keeps them. When
-	 * the storage is full, the kept copy holds the newest events that fit, so a
-	 * reload does not show an old copy.
+	 * Writes the events to `sessionStorage` while the store keeps them, and
+	 * deletes the kept copy while it does not. When the storage is full, the
+	 * kept copy holds the newest events that fit, so a reload does not show an
+	 * old copy.
 	 */
 	save(): void {
 		clearTimeout(this.saveTimer)
 
-		if (!this.preserve) return
+		if (!this.preserve) {
+			write(this.storage, key('entries'), null)
+
+			return
+		}
 
 		let count = this.entries.length
 
@@ -321,6 +314,16 @@ export class EventStore {
 	/** An event with the next id. */
 	private create(entry: NewEntry): EventEntry {
 		return { id: ++this.lastId, ...entry }
+	}
+
+	/** An event with the next id, at the time and the scroll position of now. */
+	private createNow(kind: EventKind, text: string): EventEntry {
+		return this.create({
+			time: Math.round(performance.now()),
+			kind,
+			text,
+			y: Math.round(scrollY),
+		})
 	}
 
 	/**
