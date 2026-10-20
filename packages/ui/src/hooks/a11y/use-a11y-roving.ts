@@ -7,7 +7,7 @@ import {
 	nextIndexForKey,
 	wrap,
 } from '../../utilities/keyboard-navigation'
-import { matchesMediaQuery, NO_HOVER_QUERY } from '../../utilities/media-query'
+import { isMediaMatch, NO_HOVER_QUERY } from '../../utilities/media-query'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { scrollWithin } from '../use-scroll-within'
 import { logicalArrowKey } from './logical-arrow'
@@ -175,7 +175,7 @@ function resolveVirtualItemIndex(source: VirtualItemSource, id: string | undefin
  * whether to keep watching for it.
  * @internal
  */
-function applyVirtualActiveDom(
+function tryApplyVirtualActiveDom(
 	container: HTMLElement | null,
 	id: string | undefined,
 	activeDescendantRef: RefObject<HTMLElement | null> | undefined,
@@ -295,7 +295,7 @@ function watchForIndexedMount(
 			return
 		}
 
-		if (applyVirtualActiveDom(container, id, activeDescendantRef, ariaSelected))
+		if (tryApplyVirtualActiveDom(container, id, activeDescendantRef, ariaSelected))
 			observer.disconnect()
 	})
 
@@ -332,7 +332,7 @@ export function setVirtualActiveIndexed(
 	activeIndexRef.current = index
 
 	if (!source || index < 0) {
-		applyVirtualActiveDom(container, undefined, activeDescendantRef, ariaSelected)
+		tryApplyVirtualActiveDom(container, undefined, activeDescendantRef, ariaSelected)
 
 		return
 	}
@@ -341,7 +341,7 @@ export function setVirtualActiveIndexed(
 
 	const id = resolveVirtualItemId(source, index)
 
-	const applied = applyVirtualActiveDom(container, id, activeDescendantRef, ariaSelected)
+	const applied = tryApplyVirtualActiveDom(container, id, activeDescendantRef, ariaSelected)
 
 	if (!applied && container && id) {
 		watchForIndexedMount(container, id, index, activeIndexRef, activeDescendantRef, ariaSelected)
@@ -383,7 +383,7 @@ function focusVirtualIndexed(
 
 	if (!id || !container) return
 
-	const focusRow = (): boolean => {
+	const tryFocusRow = (): boolean => {
 		const row = document.getElementById(id)
 
 		if (!row || !container.contains(row)) return false
@@ -393,10 +393,10 @@ function focusVirtualIndexed(
 		return true
 	}
 
-	if (focusRow()) return
+	if (tryFocusRow()) return
 
 	const observer = new MutationObserver(() => {
-		if (focusRow()) observer.disconnect()
+		if (tryFocusRow()) observer.disconnect()
 	})
 
 	pendingMountWatchers.set(container, observer)
@@ -411,10 +411,10 @@ function focusVirtualIndexed(
  *
  * @internal
  */
-function seedsHighlight(count: number): boolean {
+function shouldSeedHighlight(count: number): boolean {
 	// The count test comes first: an empty list clears on every device, so it
 	// needs no media query.
-	return count > 0 && !matchesMediaQuery(NO_HOVER_QUERY)
+	return count > 0 && !isMediaMatch(NO_HOVER_QUERY)
 }
 
 /**
@@ -424,7 +424,7 @@ function seedsHighlight(count: number): boolean {
  * @internal
  */
 function seededSourceIndex(source: VirtualItemSource): number {
-	return seedsHighlight(source.count) ? virtualTopMatchIndex(source) : -1
+	return shouldSeedHighlight(source.count) ? virtualTopMatchIndex(source) : -1
 }
 
 /**
@@ -490,7 +490,7 @@ export function seedVirtualTopMatch(
 
 	const items = queryItems(container, itemSelector)
 
-	const index = seedsHighlight(items.length) ? 0 : -1
+	const index = shouldSeedHighlight(items.length) ? 0 : -1
 
 	setVirtualActive(items, index, activeDescendantRef, options)
 
@@ -525,7 +525,7 @@ export function isVirtualTopMatchSeated(
 	// A seed seats the first row, so the check reads that row alone.
 	const first = container?.querySelector<HTMLElement>(itemSelector)
 
-	const top = first && seedsHighlight(1) ? first : undefined
+	const top = first && shouldSeedHighlight(1) ? first : undefined
 
 	if (!top) return activeId === undefined
 
@@ -629,7 +629,7 @@ function resolveRestingStop(
  */
 type RovingKeyContext = {
 	items: HTMLElement[]
-	isVirtual: boolean
+	virtual: boolean
 	manageTabIndex: boolean
 	activeDescendantRef: RefObject<HTMLElement | null> | undefined
 	manageAriaSelected: boolean
@@ -664,7 +664,7 @@ function resolveContext(
 		manageAriaSelected: boolean
 	},
 ): { context: RovingKeyContext; active: HTMLElement | null; currentIndex: number } | null {
-	const isVirtual = mode === 'virtual'
+	const virtual = mode === 'virtual'
 
 	// An inert container has nothing that a key can reach. In virtual mode, focus
 	// stays on an owner outside it, such as the trigger of a closing menu.
@@ -675,7 +675,7 @@ function resolveContext(
 	// every keystroke, arrow-key auto-repeat included. Virtual mode also needs
 	// `activeIndexRef`, which holds its logical index.
 	const indexed =
-		config.itemSource && (!isVirtual || config.activeIndexRef) ? config.itemSource : null
+		config.itemSource && (!virtual || config.activeIndexRef) ? config.itemSource : null
 
 	const items = indexed ? [] : reachableItems(container, itemSelector)
 
@@ -686,13 +686,13 @@ function resolveContext(
 	const active = document.activeElement as HTMLElement | null
 
 	const currentIndex = indexed
-		? resolveIndexedCurrentIndex(indexed, isVirtual, active, config.activeIndexRef)
-		: resolveDomCurrentIndex(items, isVirtual, active)
+		? resolveIndexedCurrentIndex(indexed, virtual, active, config.activeIndexRef)
+		: resolveDomCurrentIndex(items, virtual, active)
 
 	return {
 		context: {
 			items,
-			isVirtual,
+			virtual,
 			manageTabIndex: config.manageTabIndex,
 			activeDescendantRef: config.activeDescendantRef,
 			manageAriaSelected: config.manageAriaSelected,
@@ -714,11 +714,11 @@ function resolveContext(
  */
 function resolveIndexedCurrentIndex(
 	source: VirtualItemSource,
-	isVirtual: boolean,
+	virtual: boolean,
 	active: HTMLElement | null,
 	activeIndexRef: RefObject<number> | undefined,
 ): number {
-	return isVirtual
+	return virtual
 		? Math.min(activeIndexRef?.current ?? -1, source.count - 1)
 		: resolveVirtualItemIndex(source, active?.id)
 }
@@ -726,10 +726,10 @@ function resolveIndexedCurrentIndex(
 /** The DOM-mode current index: the `data-active` item in virtual mode, the focused item otherwise. @internal */
 function resolveDomCurrentIndex(
 	items: HTMLElement[],
-	isVirtual: boolean,
+	virtual: boolean,
 	active: HTMLElement | null,
 ): number {
-	return isVirtual
+	return virtual
 		? items.findIndex((el) => el.dataset.active !== undefined)
 		: items.indexOf(active as HTMLElement)
 }
@@ -782,7 +782,7 @@ type RowContextOptions = {
 	rowSelector: string | undefined
 	orientation: NavigationConfig['orientation']
 	cols: NavigationConfig['cols']
-	isVirtual: boolean
+	virtual: boolean
 }
 
 /**
@@ -794,13 +794,13 @@ type RowContextOptions = {
  * @internal
  */
 function moveTo(index: number, context: RovingKeyContext): void {
-	if (!context.isVirtual && context.itemSource) {
+	if (!context.virtual && context.itemSource) {
 		focusVirtualIndexed(context.container, context.itemSource, index)
 
 		return
 	}
 
-	if (!context.isVirtual) {
+	if (!context.virtual) {
 		const next = context.items[index]
 
 		if (!next) return
@@ -853,10 +853,10 @@ function processRowContext(
 	currentIndex: number,
 	options: RowContextOptions,
 ): { handled: boolean; currentIndex: number } {
-	const { items, itemSelector, actionSelector, rowSelector, orientation, cols, isVirtual } = options
+	const { items, itemSelector, actionSelector, rowSelector, orientation, cols, virtual } = options
 
 	const row =
-		!isVirtual && rowSelector && actionSelector && cols === undefined
+		!virtual && rowSelector && actionSelector && cols === undefined
 			? active?.closest<HTMLElement>(rowSelector)
 			: undefined
 
@@ -920,7 +920,7 @@ function handleActivationKey(
 	currentIndex: number,
 	activationKey: string | readonly string[] | null,
 ): boolean {
-	if (!context.isVirtual || !activationKey) return false
+	if (!context.virtual || !activationKey) return false
 
 	const keys = Array.isArray(activationKey) ? activationKey : [activationKey]
 
@@ -1027,7 +1027,7 @@ function handleTabTrap(
 	currentIndex: number,
 	trapTab: boolean,
 ): boolean {
-	if (!trapTab || context.isVirtual || event.key !== 'Tab') return false
+	if (!trapTab || context.virtual || event.key !== 'Tab') return false
 
 	event.preventDefault()
 
@@ -1064,7 +1064,7 @@ function handleMainAxisNav(
 		focusOnEmpty: boolean
 	},
 ): void {
-	if (!context.isVirtual && currentIndex === -1 && !options.focusOnEmpty) return
+	if (!context.virtual && currentIndex === -1 && !options.focusOnEmpty) return
 
 	if (hasBrowserModifier(event)) return
 
@@ -1392,7 +1392,7 @@ export function useA11yRoving(
 				rowSelector,
 				orientation,
 				cols,
-				isVirtual: context.isVirtual,
+				virtual: context.virtual,
 			})
 
 			if (rowResult.handled) return

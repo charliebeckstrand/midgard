@@ -76,9 +76,8 @@ export function MenuContent({
 	description,
 	children,
 }: MenuContentProps) {
-	const { open, menuId, isDropdown, isSheet, floatingStyles, getFloatingProps, size } =
-		useMenuState()
-	const { close, static: isStatic, setFloating, triggerRef } = useMenuActions()
+	const { open, menuId, placed, sheeted, floatingStyles, getFloatingProps, size } = useMenuState()
+	const { close, static: inline, setFloating, triggerRef } = useMenuActions()
 	const glass = useResolvedSurface(glassProp) === 'glass'
 
 	const [triggerId, setTriggerId] = useState<string>()
@@ -90,14 +89,14 @@ export function MenuContent({
 	// The trigger of a dropdown names the menu. Its id can come from a cloned
 	// child, so read it from the DOM node on open, not in render.
 	useLayoutEffect(() => {
-		if (open && isDropdown) setTriggerId(triggerRef.current?.id || undefined)
-	}, [open, isDropdown, triggerRef])
+		if (open && placed) setTriggerId(triggerRef.current?.id || undefined)
+	}, [open, placed, triggerRef])
 
 	// A name from the consumer replaces the name from the title, and the title
 	// replaces the name from the trigger.
 	const named = ariaLabel !== undefined || ariaLabelledby !== undefined
 
-	if (isSheet) {
+	if (sheeted) {
 		return (
 			<MenuSheet
 				title={title}
@@ -119,7 +118,7 @@ export function MenuContent({
 	let labelledby = ariaLabelledby
 
 	if (!named && titled) labelledby = titleId
-	else if (!named && isDropdown) labelledby = triggerId
+	else if (!named && placed) labelledby = triggerId
 
 	const header = titled ? (
 		<div data-slot="menu-header" className={k.header.base}>
@@ -137,7 +136,7 @@ export function MenuContent({
 
 	const viewport = <MenuViewport>{children}</MenuViewport>
 
-	if (isStatic) {
+	if (inline) {
 		return (
 			<PopoverPanel
 				density={size}
@@ -189,13 +188,13 @@ export function MenuContent({
 				// off the trigger closes the menu (see MenuTrigger). A right-click
 				// context menu has no persistent trigger to hold focus, so it still
 				// pulls focus into the panel for keyboard navigation.
-				autoFocus={!isDropdown}
+				autoFocus={!placed}
 				// Tab is held inside the panel wherever focus lives in it (a
 				// right-click context menu): the menu is left by dismissing it, and
 				// Tab walking off into the page behind an open overlay strands the
 				// user outside a surface still on screen. A dropdown is exempt: its
 				// focus stays on the trigger, where Tab out is the documented close.
-				trapTab={!isDropdown}
+				trapTab={!placed}
 				typeahead
 				glass={glass}
 				className={cn(k.floating, k.content, className)}

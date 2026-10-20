@@ -11,7 +11,6 @@ import { k } from '../../recipes/kata/lightbox'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import {
-	dismisses,
 	dismissFrame,
 	isDoubleTap,
 	type LightboxPoint,
@@ -22,6 +21,7 @@ import {
 	releaseSpeed,
 	SWIPE_EDGE_RESISTANCE,
 	SWIPE_SLOP,
+	shouldDismiss,
 	swipeStep,
 } from './lightbox-utilities'
 import { type LightboxZoom, useLightboxZoom } from './use-lightbox-zoom'
@@ -197,7 +197,7 @@ function paint(track: HTMLElement, travel: number) {
  * than along the line, or any press on the only photo, moves the photo with the
  * finger instead, and the
  * scrim and the controls fade as it travels. At the lift, it closes the viewer
- * when it traveled far enough or fast enough (see `dismisses`), and the photo
+ * when it traveled far enough or fast enough (see `shouldDismiss`), and the photo
  * goes back to rest otherwise. A click that ends a swipe is not a tap.
  *
  * A press on a zoomed photo pans it, and a second finger makes a pinch (see
@@ -381,7 +381,7 @@ export function useLightboxTrack(
 	// A step takes a zoomed photo back to rest as it slides away. A press that
 	// is live ends first, so the finger and the step do not both move the track.
 	// It tells whether the track is there to move.
-	const takeTrack = (): boolean => {
+	const tryTakeTrack = (): boolean => {
 		abandon()
 
 		if (!interrupt()) return false
@@ -392,7 +392,7 @@ export function useLightboxTrack(
 	}
 
 	const step = (direction: -1 | 1) => {
-		if (takeTrack()) advance(direction)
+		if (tryTakeTrack()) advance(direction)
 	}
 
 	// Reads `index` after `interrupt`, which can land a slide and move it.
@@ -417,7 +417,7 @@ export function useLightboxTrack(
 	})
 
 	const go = (to: number) => {
-		if (takeTrack()) goFromRest(to)
+		if (tryTakeTrack()) goFromRest(to)
 	}
 
 	// A swipe to close that does not close puts the photo back at rest, brings
@@ -502,7 +502,7 @@ export function useLightboxTrack(
 
 	// A press that travels past the slop starts a swipe along the line or up and
 	// down. It reads the layout once, here, and never during the moves.
-	const begin = (current: Press, track: HTMLElement, event: PointerEvent<HTMLElement>) => {
+	const tryBegin = (current: Press, track: HTMLElement, event: PointerEvent<HTMLElement>) => {
 		current.mode = resolveIntent(current, event, count, zoom.zoomed())
 
 		if (current.mode === 'wait') return false
@@ -657,7 +657,7 @@ export function useLightboxTrack(
 
 			const speed = releaseSpeed(current.samples, event.timeStamp)
 
-			if (dismisses(traveled, speed, track.clientHeight)) {
+			if (shouldDismiss(traveled, speed, track.clientHeight)) {
 				onDismiss()
 			} else {
 				restore(current)
@@ -795,7 +795,7 @@ export function useLightboxTrack(
 
 				const dy = event.clientY - current.y
 
-				if (current.mode === 'wait' && !begin(current, track, event)) return
+				if (current.mode === 'wait' && !tryBegin(current, track, event)) return
 
 				follow(current, event)
 

@@ -37,7 +37,7 @@ import { useControllable } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { useLocale } from '../../providers/locale'
-import { isDataColumn, sameElements } from '../../utilities'
+import { isDataColumn, isSameElements } from '../../utilities'
 import type { GridSortState } from './context'
 import { compileColumnFilters } from './engine/grid-filter/filter'
 import type { GridGroup, GridLeaf, GroupExpansion } from './engine/grid-group/tree'
@@ -507,7 +507,7 @@ export function useGridTable<T>({
 }: GridTableParams<T>): GridTableResult<T> {
 	// A fresh array of the same columns holds the previous reference. The engine
 	// then keeps its columns, and every column-derived value keeps its identity.
-	const columns = useStableValue(suppliedColumns, sameElements)
+	const columns = useStableValue(suppliedColumns, isSameElements)
 
 	// The smart comparator reads the sort direction from the engine when it runs,
 	// so a direction flip does not rebuild the column definitions.

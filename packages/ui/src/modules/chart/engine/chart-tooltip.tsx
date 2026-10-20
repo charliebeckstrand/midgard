@@ -125,7 +125,7 @@ function readoutRows(readout: ChartReadout | null, order: number[] | undefined) 
  * The readout at hover `index` as one line of text, for the announcement of a
  * keyboard cursor step. It reads what the tooltip shows: the category, then
  * each row label with its value, in the display order. A cursor on one series
- * reads only the row of that series, which is the row the tooltip keeps lit.
+ * reads only the row of that series, which is the row the tooltip keeps isLit.
  * Returns `null` for an index past the categories.
  *
  * @internal
@@ -194,7 +194,7 @@ const TRACK_OFFSET = 12
  * shows only over a mark.
  *
  * With a series emphasized (the keyboard cursor reading one dataset), that
- * series' row stays lit while the rest dim to a quarter opacity. It is the same
+ * series' row stays isLit while the rest dim to a quarter opacity. It is the same
  * recede the marks take, so the readout foregrounds the row the cursor is on.
  *
  * @remarks A pointer enhancement, `aria-hidden` by design: the same values ship

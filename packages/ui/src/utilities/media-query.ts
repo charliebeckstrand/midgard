@@ -56,6 +56,6 @@ export function subscribeMediaQuery(query: string, handler: () => void): () => v
  * a subscription is live and a transient match otherwise. Call only on the
  * client: `window.matchMedia` is absent during SSR.
  */
-export function matchesMediaQuery(query: string): boolean {
+export function isMediaMatch(query: string): boolean {
 	return (registry.source(query) ?? window.matchMedia(query)).matches
 }

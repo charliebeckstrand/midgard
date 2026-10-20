@@ -15,7 +15,7 @@ import { manualGroupPredicate } from './engine/grid-group/resolve'
 import { resolveReorder } from './engine/grid-reorder-compute'
 import { GridBusyStatus } from './grid-busy-status'
 import { GridDataDialogs } from './grid-data-dialogs'
-import { resolveHighlightQuery, rowReorderPermitted } from './grid-data-resolvers'
+import { canReorderRows, resolveHighlightQuery } from './grid-data-resolvers'
 import { GridDataTable } from './grid-data-table'
 import type { GridDataProps, GridEditSource } from './grid-data-types'
 import { GridExportOverlay } from './grid-export-overlay'
@@ -510,11 +510,11 @@ export function GridData<T>({
 		onReorderEnd: columnOrderConfig?.onReorderEnd,
 	})
 
-	// Row drag-reorder rides @dnd-kit's vertical sortable; `rowReorderPermitted`
+	// Row drag-reorder rides @dnd-kit's vertical sortable; `canReorderRows`
 	// gates it on the rendered rows matching the natural source order (see there).
 	const rowReorder = useGridRowReorder<T>({
 		rowReorder: rowReorderConfig,
-		enabled: rowReorderPermitted({
+		enabled: canReorderRows({
 			loading,
 			// Rows, not the header's interactivity: dragging one needs a row to drag,
 			// which an emptied-by-a-filter grid hasn't got.

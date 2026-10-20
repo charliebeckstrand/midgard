@@ -1,5 +1,5 @@
 export { isQueryActive } from './engine/query-active'
-export { evaluateQuery, matchQueryRule } from './engine/query-evaluate'
+export { isRuleMatch, isSatisfied } from './engine/query-evaluate'
 export { createGroup, createRule, isQueryGroup } from './engine/query-node'
 export {
 	parseQuery,

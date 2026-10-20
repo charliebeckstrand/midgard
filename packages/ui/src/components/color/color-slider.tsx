@@ -34,14 +34,14 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 
 	const ref = useRef<HTMLInputElement>(null)
 
-	const isHue = channel === 'hue'
-	const max = isHue ? 360 : 1
-	const value = isHue ? hsva.h : hsva.a
+	const hue = channel === 'hue'
+	const max = hue ? 360 : 1
+	const value = hue ? hsva.h : hsva.a
 
 	const setValue = (next: number) => {
 		const clamped = clamp(next, 0, max)
 
-		setHsva((prev) => (isHue ? { ...prev, h: clamped } : { ...prev, a: clamped }))
+		setHsva((prev) => (hue ? { ...prev, h: clamped } : { ...prev, a: clamped }))
 	}
 
 	const onPosition = ({ x }: DragPosition) => setValue(x * max)
@@ -54,9 +54,9 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 		if (disabled) return
 
 		// APG slider pattern: Page keys take the large step regardless of Shift.
-		const pageStep = isHue ? 10 : 0.1
+		const pageStep = hue ? 10 : 0.1
 
-		const arrowStep = isHue ? 1 : 0.01
+		const arrowStep = hue ? 1 : 0.01
 
 		const step = event.shiftKey ? pageStep : arrowStep
 
@@ -107,7 +107,7 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 			data-channel={channel}
 			className={cn(
 				k.track.base,
-				isHue ? k.hue : k.checkerboard,
+				hue ? k.hue : k.checkerboard,
 				disabled && 'pointer-events-none opacity-50',
 			)}
 			onMouseDown={drag.onMouseDown}
@@ -117,7 +117,7 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 			onPointerCancel={drag.onPointerCancel}
 			onLostPointerCapture={drag.onLostPointerCapture}
 		>
-			{!isHue && (
+			{!hue && (
 				<div
 					aria-hidden="true"
 					className="absolute inset-0 rounded-full"
@@ -130,12 +130,12 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 				data-slot="color-slider-input"
 				min={0}
 				max={max}
-				step={isHue ? 1 : 0.01}
-				value={isHue ? Math.round(value) : Math.round(value * 100) / 100}
+				step={hue ? 1 : 0.01}
+				value={hue ? Math.round(value) : Math.round(value * 100) / 100}
 				disabled={disabled}
-				aria-label={intl.formatMessage(isHue ? colorMessages.hue : colorMessages.alpha)}
+				aria-label={intl.formatMessage(hue ? colorMessages.hue : colorMessages.alpha)}
 				aria-valuetext={
-					isHue
+					hue
 						? intl.formatNumber(Math.round(value), {
 								style: 'unit',
 								unit: 'degree',

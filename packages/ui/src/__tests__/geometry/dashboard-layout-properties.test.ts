@@ -2,18 +2,18 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect } from 'vitest'
 import {
+	canFit,
 	clampSpan,
-	collides,
 	type DashboardCell,
 	type DashboardLayoutItem,
 	type DashboardTileDemands,
-	fits,
+	isColliding,
+	isSameGeometry,
 	mergeLayout,
 	placeEntries,
 	readingOrder,
 	resolveCell,
 	resolveLayout,
-	sameGeometry,
 	shiftCells,
 	swapCells,
 } from '../../modules/dashboard/engine/dashboard-layout'
@@ -26,12 +26,12 @@ import { cell } from '../helpers/dashboard-cells'
 // integers. A board of 1 to 24 columns covers the default count and the
 // narrow boards of a phone.
 
-/** Each pair of cells that overlap, as the module's own `collides` reads them. */
+/** Each pair of cells that overlap, as the module's own `isColliding` reads them. */
 function overlaps(cells: readonly DashboardCell[]): [DashboardCell, DashboardCell][] {
 	return cells.flatMap((a, index) =>
 		cells
 			.slice(index + 1)
-			.filter((b) => collides(a, b))
+			.filter((b) => isColliding(a, b))
 			.map((b): [DashboardCell, DashboardCell] => [a, b]),
 	)
 }
@@ -119,7 +119,7 @@ const columnCount = () => fc.integer({ min: 1, max: 24 })
 const savedLayout = () => fc.array(savedItem(), { maxLength: 10 })
 
 /**
- * A board with no overlap. Each candidate cell is kept only when it fits the
+ * A board with no overlap. Each candidate cell is kept only when it canFit the
  * cells before it. The spans come from a short list, so two cells of one span
  * are common and a swap has a partner.
  */
@@ -146,7 +146,7 @@ const clearBoard = () =>
 
 				const next = cell(`t${cells.length}`, x % (columns - w + 1), y, w, h, fixed)
 
-				if (fits(cells, next, columns)) cells.push(next)
+				if (canFit(cells, next, columns)) cells.push(next)
 			}
 
 			return { columns, cells }
@@ -242,7 +242,7 @@ describe('resolveLayout · properties', () => {
 
 		const before = resolveLayout(items, demands, columns)
 
-		expect(sameGeometry(resolveLayout(shuffled, demands, columns), before)).toBe(true)
+		expect(isSameGeometry(resolveLayout(shuffled, demands, columns), before)).toBe(true)
 	})
 
 	// A commit writes the cells back with `mergeLayout`, and a reload reads the
@@ -254,7 +254,7 @@ describe('resolveLayout · properties', () => {
 
 			const merged = mergeLayout(items, cells, demands)
 
-			expect(sameGeometry(resolveLayout(merged, demands, columns), cells)).toBe(true)
+			expect(isSameGeometry(resolveLayout(merged, demands, columns), cells)).toBe(true)
 		},
 	)
 
@@ -267,7 +267,7 @@ describe('resolveLayout · properties', () => {
 
 			const merged = mergeLayout(items, cells, demands)
 
-			expect(sameGeometry(resolveLayout(merged, demands, columns), cells)).toBe(true)
+			expect(isSameGeometry(resolveLayout(merged, demands, columns), cells)).toBe(true)
 		},
 	)
 })
@@ -324,7 +324,7 @@ describe('swapCells · properties', () => {
 
 			expect(overlaps(swapped)).toEqual([])
 
-			expect(sameGeometry(swapCells(swapped, a.id, b.id), cells)).toBe(true)
+			expect(isSameGeometry(swapCells(swapped, a.id, b.id), cells)).toBe(true)
 		},
 	)
 })
@@ -379,7 +379,7 @@ describe('shiftCells · properties', () => {
 						other.h,
 					)
 
-					if (fits(cells, next, columns)) cells.push(next)
+					if (canFit(cells, next, columns)) cells.push(next)
 				}
 
 				return { columns, cells }

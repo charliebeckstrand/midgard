@@ -97,7 +97,7 @@ function regionAt(event: MouseEvent<HTMLDivElement>) {
  * nothing's way.
  * @internal
  */
-function within(element: HTMLElement | null, x: number, y: number) {
+function isWithin(element: HTMLElement | null, x: number, y: number) {
 	if (!element) return false
 
 	const box = element.getBoundingClientRect()
@@ -605,7 +605,7 @@ function PdfViewerActiveName({
 	useImperativeHandle(
 		ref,
 		() => ({
-			covers: (x, y) => within(panelRef.current, x, y),
+			covers: (x, y) => isWithin(panelRef.current, x, y),
 			setBehind,
 		}),
 		[],

@@ -9,7 +9,7 @@
  * - `geo.ts`: what a group reads out on the ground.
  *
  * One rule decides the output: no two marks draw within `gap` of one another
- * ({@link marksOverlap}). {@link seedGroups} is a broad phase under it. It is a
+ * ({@link isOverlapping}). {@link seedGroups} is a broad phase under it. It is a
  * linear pass that can only merge dots the rule would merge anyway. It
  * therefore takes the count down cheaply before the rule runs, and never
  * decides the result on its own. Both phases live here with the rule they
@@ -314,7 +314,7 @@ function hostFor(
 	walkNear(cells, mark.at, reach, (slot) => {
 		const other = marks[slot]
 
-		if (other == null || !marksOverlap(other, mark, gap)) return false
+		if (other == null || !isOverlapping(other, mark, gap)) return false
 
 		host = slot
 
@@ -381,7 +381,7 @@ function buildMark(group: MapClusterSeed, unitsPerPixel: number): MapClusterMark
  *
  * @internal
  */
-function marksOverlap(a: MapClusterMark, b: MapClusterMark, gap: number): boolean {
+function isOverlapping(a: MapClusterMark, b: MapClusterMark, gap: number): boolean {
 	const reach = a.radius + b.radius + gap
 
 	return squared(a.at, b.at) < reach * reach

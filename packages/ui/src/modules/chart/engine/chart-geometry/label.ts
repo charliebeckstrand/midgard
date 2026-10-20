@@ -335,7 +335,7 @@ function labelBox(x0: number, x1: number, y: number): LabelBox {
 }
 
 /** Two boxes share area. @internal */
-function overlaps(a: LabelBox, b: LabelBox): boolean {
+function isOverlapping(a: LabelBox, b: LabelBox): boolean {
 	return a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1
 }
 
@@ -360,7 +360,7 @@ export function valueLabels(options: ValueLabelsOptions): PlacedValueLabel[] {
 
 		if (!placement) continue
 
-		if (placed.some((other) => overlaps(other, placement.box))) continue
+		if (placed.some((other) => isOverlapping(other, placement.box))) continue
 
 		placed.push(placement.box)
 
@@ -522,13 +522,13 @@ export function referenceLabels(
 		if (rule.at === null) return null
 
 		const free = referenceSpots(rule.at, labelWidth(rule.text), orientation, plot).filter(
-			(candidate) => !placed.some((other) => overlaps(other, candidate.box)),
+			(candidate) => !placed.some((other) => isOverlapping(other, candidate.box)),
 		)
 
-		const crossed = (box: LabelBox) =>
-			lines.some((line, other) => other !== index && line !== null && overlaps(line, box))
+		const isCrossed = (box: LabelBox) =>
+			lines.some((line, other) => other !== index && line !== null && isOverlapping(line, box))
 
-		const spot = free.find((candidate) => !crossed(candidate.box)) ?? free[0]
+		const spot = free.find((candidate) => !isCrossed(candidate.box)) ?? free[0]
 
 		if (!spot) return null
 

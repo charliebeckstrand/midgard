@@ -39,7 +39,7 @@ function roundHsva({ h, s, v, a }: Hsva): Hsva {
  * or on black. Hue 360 matches hue 0. A difference of one byte, as in
  * `#fefefe` and `#ffffff`, makes the colors different.
  */
-export function equalHsva(a: Hsva, b: Hsva): boolean {
+export function isEqualHsva(a: Hsva, b: Hsva): boolean {
 	return hsvaToHex(a, true) === hsvaToHex(b, true)
 }
 
@@ -188,7 +188,7 @@ export function serializeColor(hsva: Hsva, format: ColorFormat, alpha: boolean):
  * hue 360 matches hue 0. A change in a channel that does not show, as the hue
  * of a gray, makes the values different.
  */
-export function sameColorValue(
+export function isSameColor(
 	a: string | Hsva | null | undefined,
 	b: string | Hsva | null | undefined,
 ): boolean {

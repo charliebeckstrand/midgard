@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { type Mount, MountHold, useMountHold, useMountsEveryPanel } from '../../primitives/mount'
-import { mountsEveryPanel } from '../../primitives/mount/mount'
+import { isEveryPanelMounted } from '../../primitives/mount/mount'
 import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
 import { attach, renderUI, screen, setupUser } from '../helpers'
 import { hydrate } from '../helpers/hydrate'
@@ -241,7 +241,7 @@ describe('useMountsEveryPanel', () => {
 		['lazy', false],
 		['active', false],
 	] as const)(
-		'agrees with mountsEveryPanel for %s in a render that does not hydrate',
+		'agrees with isEveryPanelMounted for %s in a render that does not hydrate',
 		(mount, expected) => {
 			const seen: boolean[] = []
 
@@ -249,7 +249,7 @@ describe('useMountsEveryPanel', () => {
 
 			expect(seen[0]).toBe(expected)
 
-			expect(mountsEveryPanel(mount)).toBe(expected)
+			expect(isEveryPanelMounted(mount)).toBe(expected)
 		},
 	)
 

@@ -18,7 +18,7 @@ type ChartToggleSet = {
 }
 
 /** Whether two index sets hold the same members. @internal */
-function sameMembers(a: ReadonlySet<number>, b: ReadonlySet<number>): boolean {
+function isSameSet(a: ReadonlySet<number>, b: ReadonlySet<number>): boolean {
 	return a.size === b.size && [...a].every((index) => b.has(index))
 }
 
@@ -83,7 +83,7 @@ export function useChartSeriesToggle(
 
 	// Read from the committed set rather than from `toggle`, because the set is
 	// written through an updater. A chart with every series shown says nothing.
-	useReportedChange(toggleSet.hidden, onHiddenChange, sameMembers)
+	useReportedChange(toggleSet.hidden, onHiddenChange, isSameSet)
 
 	return toggleSet
 }

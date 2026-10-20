@@ -216,7 +216,7 @@ export function useGridEditSweep<T>({
 
 			// A cell-scoped session holds one cell, so a refused cell opens beside
 			// it. A cell that the session holds already needs no mark.
-			const reopen = (columnId: string | number) =>
+			const shouldReopen = (columnId: string | number) =>
 				cellScoped &&
 				!isCellEditing({
 					rowKey,
@@ -225,7 +225,12 @@ export function useGridEditSweep<T>({
 					activeEdit: activeEditRef.current,
 				})
 
-			const { saved, failed, accepted } = settleDrafts({ batch, refused, drafts, reopen })
+			const { saved, failed, accepted } = settleDrafts({
+				batch,
+				refused,
+				drafts,
+				reopen: shouldReopen,
+			})
 
 			const step = batch.outcome === 'undone' || batch.outcome === 'redone'
 
@@ -284,11 +289,11 @@ export function useGridEditSweep<T>({
 
 			activeEditStore.notify()
 
-			const takes = (refusal: { rowKey?: string | number; columnId: string | number }) =>
+			const isInBatch = (refusal: { rowKey?: string | number; columnId: string | number }) =>
 				refusal.rowKey === batch.rowKey && batch.drafts.has(refusal.columnId)
 
 			trackSink(batch.result, mountedRef, (outcome) =>
-				settleBatch(batch, readRefusals(outcome, batch.drafts.keys(), takes), entry),
+				settleBatch(batch, readRefusals(outcome, batch.drafts.keys(), isInBatch), entry),
 			)
 		},
 		[drafts, activeEditStore, settleBatch, mountedRef],

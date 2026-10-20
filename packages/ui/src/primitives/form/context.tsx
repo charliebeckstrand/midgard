@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback, useRef, useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
-import { noopSubscribe, sameElements } from '../../utilities'
+import { isSameElements, noopSubscribe } from '../../utilities'
 import type { FormFieldTargets } from './form-field-targets'
 
 /** Snapshot of a form's reactive state: field values, per-field errors/touched/dirty maps, and the derived `dirty`/`valid`/`submitting` flags. */
@@ -236,7 +236,7 @@ export function useFormField(name: string | undefined): FormFieldState | undefin
 				prev.value === next.value &&
 				prev.touched === next.touched &&
 				prev.dirty === next.dirty &&
-				sameElements(prev.errors, next.errors)
+				isSameElements(prev.errors, next.errors)
 			) {
 				return prev
 			}

@@ -11,7 +11,7 @@ import {
 import { coercePaste, pastePlacement } from '../../modules/grid/engine/grid-range/paste'
 import {
 	edgeScrollStep,
-	inRangeRect,
+	isInRect,
 	RANGE_EDGE,
 	rangeCells,
 	rangeRect,
@@ -27,11 +27,11 @@ describe('rangeRect', () => {
 
 		expect(rangeRect({ row: 3, col: 2 }, { row: 1, col: 0 })).toEqual(rect)
 
-		expect(inRangeRect(rect, 2, 1)).toBe(true)
+		expect(isInRect(rect, 2, 1)).toBe(true)
 
-		expect(inRangeRect(rect, 0, 1)).toBe(false)
+		expect(isInRect(rect, 0, 1)).toBe(false)
 
-		expect(inRangeRect(rect, 2, 3)).toBe(false)
+		expect(isInRect(rect, 2, 3)).toBe(false)
 	})
 })
 

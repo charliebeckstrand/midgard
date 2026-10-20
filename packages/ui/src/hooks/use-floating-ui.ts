@@ -33,8 +33,8 @@ import {
 	closestFloatingPortal,
 	foreignFloatingPortal,
 	hasPortalReference,
+	isOpenedWithin,
 	publishPortalReference,
-	referenceOpenedWithin,
 } from '../utilities/floating-portal-registry'
 import { isScrollbarPress } from '../utilities/scrollbar-press'
 import { useEscapeLayer } from './use-escape-layer'
@@ -561,9 +561,9 @@ function isOutsidePress(event: PointerEvent, refs: FloatingOutsidePressRefs): bo
  * a descendant, whose presses this panel must survive.
  *
  * @remarks
- * The descendancy rule itself lives in `referenceOpenedWithin`, shared with the
+ * The descendancy rule itself lives in `isOpenedWithin`, shared with the
  * `Overlay` boundaries that ask the same question through
- * `pressLandsInSurfaceOpenedWithin`. A surface that published its reference is a
+ * `isPressInSurface`. A surface that published its reference is a
  * descendant only when that reference sits inside this panel. A getter that
  * yields nothing (a context menu anchored at a bare coordinate) claims no
  * descendancy, so the press dismisses. What this predicate adds is the fallback
@@ -578,7 +578,7 @@ function isPressInNested(floating: Element, target: Node, refs: FloatingOutsideP
 	if (!targetPortal) return false
 
 	// A surface that published a reference answers for itself, by the shared rule.
-	if (hasPortalReference(targetPortal)) return referenceOpenedWithin(floating, targetPortal)
+	if (hasPortalReference(targetPortal)) return isOpenedWithin(floating, targetPortal)
 
 	// Nothing published: the older ancestor test is all that is knowable.
 	const reference = floatingReferenceElement(refs)

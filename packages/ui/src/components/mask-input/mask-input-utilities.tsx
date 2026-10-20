@@ -125,7 +125,7 @@ function formatZipInternational(raw: string) {
 }
 
 // The international format keeps every character, so every character counts.
-const keepsAll = () => true
+const isKept = () => true
 
 const zipcodeFormats = {
 	US: formatZipUS,
@@ -180,7 +180,7 @@ export function phoneMask(country: PhoneMaskCountry = 'US'): MaskInputPreset {
 export function zipcodeMask(country: ZipcodeMaskCountry = 'US'): MaskInputPreset {
 	return {
 		format: zipcodeFormats[country],
-		meaningful: country === 'international' ? keepsAll : undefined,
+		meaningful: country === 'international' ? isKept : undefined,
 		type: 'text',
 		inputMode: zipcodeInputModes[country],
 		autoComplete: 'postal-code',

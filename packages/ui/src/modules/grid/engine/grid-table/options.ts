@@ -12,7 +12,7 @@ import type {
 	RowData,
 } from '@tanstack/react-table'
 import { isDataColumn } from '../../../../utilities'
-import { evaluateQuery } from '../../../query/engine/query-evaluate'
+import { isSatisfied } from '../../../query/engine/query-evaluate'
 import { isQueryGroup } from '../../../query/engine/query-node'
 import type { GridColumn, GridPagination } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
@@ -43,7 +43,7 @@ const queryFilter: FilterFn<GridFeatures, RowData> = (
 	row: Row<GridFeatures, RowData>,
 	columnId,
 	filterValue,
-) => !isQueryGroup(filterValue) || evaluateQuery(filterValue, () => row.getValue(columnId))
+) => !isQueryGroup(filterValue) || isSatisfied(filterValue, () => row.getValue(columnId))
 
 queryFilter.autoRemove = (value) => !isQueryGroup(value) || value.children.length === 0
 

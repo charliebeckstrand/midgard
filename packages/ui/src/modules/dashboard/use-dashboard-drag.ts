@@ -312,13 +312,13 @@ export function useDashboardDrag({
 	// sentence is not spoken again.
 	const announcements = useMemo<Announcements>(() => {
 		// A drag that the store does not own moves nothing, so it says nothing.
-		const owns = (id: string) => sensed.current?.owned === true && sensed.current.id === id
+		const isOwned = (id: string) => sensed.current?.owned === true && sensed.current.id === id
 
 		return {
 			onDragStart: ({ active }) => {
 				const id = String(active.id)
 
-				if (!owns(id)) return undefined
+				if (!isOwned(id)) return undefined
 
 				const cell = currentCell(store, id)
 
@@ -329,7 +329,7 @@ export function useDashboardDrag({
 			onDragMove: ({ active }) => {
 				const id = String(active.id)
 
-				if (!owns(id)) return undefined
+				if (!isOwned(id)) return undefined
 
 				const { gesture, columns } = store.getState()
 
@@ -350,7 +350,7 @@ export function useDashboardDrag({
 			onDragEnd: ({ active }) => {
 				const id = String(active.id)
 
-				if (!owns(id)) return undefined
+				if (!isOwned(id)) return undefined
 
 				const settled = store.getState().gesture?.kind === 'settle'
 
@@ -363,7 +363,7 @@ export function useDashboardDrag({
 			onDragCancel: ({ active }) => {
 				const id = String(active.id)
 
-				if (!owns(id)) return undefined
+				if (!isOwned(id)) return undefined
 
 				const cell = store.getView().cells.get(id)
 

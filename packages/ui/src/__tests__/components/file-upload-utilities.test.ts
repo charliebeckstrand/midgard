@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	fileListToArray,
 	formatFileNames,
-	matchesAccept,
+	isAccepted,
 	partitionFiles,
 	selectionSummary,
 } from '../../components/file-upload/file-upload-utilities'
@@ -166,24 +166,24 @@ describe('partitionFiles', () => {
 	})
 })
 
-describe('matchesAccept', () => {
+describe('isAccepted', () => {
 	const png = new File(['x'], 'Photo.PNG', { type: 'image/png' })
 
 	it('matches every file when accept is absent or empty', () => {
-		expect(matchesAccept(png, undefined)).toBe(true)
+		expect(isAccepted(png, undefined)).toBe(true)
 
-		expect(matchesAccept(png, ' , ')).toBe(true)
+		expect(isAccepted(png, ' , ')).toBe(true)
 	})
 
 	it('matches a MIME group, an exact MIME type, and an extension without case', () => {
-		expect(matchesAccept(png, 'image/*')).toBe(true)
+		expect(isAccepted(png, 'image/*')).toBe(true)
 
-		expect(matchesAccept(png, 'IMAGE/PNG')).toBe(true)
+		expect(isAccepted(png, 'IMAGE/PNG')).toBe(true)
 
-		expect(matchesAccept(png, '.pdf, .png')).toBe(true)
+		expect(isAccepted(png, '.pdf, .png')).toBe(true)
 	})
 
 	it('rejects a file that no token matches', () => {
-		expect(matchesAccept(png, 'video/*,application/pdf,.jpg')).toBe(false)
+		expect(isAccepted(png, 'video/*,application/pdf,.jpg')).toBe(false)
 	})
 })

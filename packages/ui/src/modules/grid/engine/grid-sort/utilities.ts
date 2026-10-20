@@ -46,10 +46,10 @@ export function naturalCollator(locale: string | undefined): Intl.Collator {
 export type SortKey = {
 	/** Nullish or empty-string; these sink to the end regardless of the rest. */
 	empty: boolean
-	isDate: boolean
-	/** `Date.getTime()` when {@link SortKey.isDate}, else 0. */
+	date: boolean
+	/** `Date.getTime()` when {@link SortKey.date}, else 0. */
 	time: number
-	isBoolean: boolean
+	keep: boolean
 	/** 1 for `true`, 0 for `false`, else 0; read only when both sides are booleans. */
 	boolean: number
 	/** {@link parseNumeric} of the value, or `null` when it doesn't read as a number. */
@@ -70,28 +70,28 @@ export type SortKey = {
  * @internal
  */
 export function toSortKey(value: unknown): SortKey {
-	const isDate = value instanceof Date
+	const date = value instanceof Date
 
-	const time = isDate ? value.getTime() : 0
+	const time = date ? value.getTime() : 0
 
 	// A value with no order of its own sinks with the empties: `NaN`, and an
 	// invalid date, whose time is `NaN`.
-	const empty = value == null || value === '' || Number.isNaN(isDate ? time : value)
+	const empty = value == null || value === '' || Number.isNaN(date ? time : value)
 
-	const isBoolean = typeof value === 'boolean'
+	const keep = typeof value === 'boolean'
 
 	const numeric = empty ? null : sortNumber(value)
 
 	// Only the last rank compares the text. `String` of a date runs the full
 	// formatter, so a number or a date builds none.
-	const text = empty || numeric !== null || isDate ? '' : String(value)
+	const text = empty || numeric !== null || date ? '' : String(value)
 
 	return {
 		empty,
-		isDate,
+		date,
 		time,
-		isBoolean,
-		boolean: isBoolean && value ? 1 : 0,
+		keep,
+		boolean: keep && value ? 1 : 0,
 		numeric,
 		text,
 	}
@@ -118,7 +118,7 @@ function sortNumber(value: unknown): number | null {
 function kindRank(key: SortKey): number {
 	if (key.numeric !== null) return 0
 
-	return key.isDate ? 1 : 2
+	return key.date ? 1 : 2
 }
 
 /** Orders two numbers. Equal infinities subtract to `NaN`, so an equal pair returns 0 first. @internal */
@@ -155,9 +155,9 @@ export function compareSortKeys(
 
 	if (a.numeric !== null && b.numeric !== null) return compareNumbers(a.numeric, b.numeric)
 
-	if (a.isDate && b.isDate) return a.time - b.time
+	if (a.date && b.date) return a.time - b.time
 
-	if (a.isBoolean && b.isBoolean) return a.boolean - b.boolean
+	if (a.keep && b.keep) return a.boolean - b.boolean
 
 	return collator.compare(a.text, b.text)
 }

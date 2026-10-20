@@ -29,7 +29,11 @@ export function readStorage(storage: EventStorage, name: string): string | null 
 }
 
 /** Writes a value, or removes it for `null`, and returns whether the write ends. */
-export function writeStorage(storage: EventStorage, name: string, value: string | null): boolean {
+export function tryWriteStorage(
+	storage: EventStorage,
+	name: string,
+	value: string | null,
+): boolean {
 	try {
 		if (value === null) storage.removeItem(name)
 		else storage.setItem(name, value)

@@ -2,10 +2,10 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect } from 'vitest'
 import {
+	canFit,
 	clampSpan,
 	type DashboardCell,
 	deriveHeight,
-	fits,
 	heightAt,
 } from '../../modules/dashboard/engine/dashboard-layout'
 import {
@@ -19,7 +19,7 @@ import { cell } from '../helpers/dashboard-cells'
 // properties below read the resize clamp over generated boards and limits.
 
 /**
- * A board with no overlap. Each candidate cell is kept only when it fits the
+ * A board with no overlap. Each candidate cell is kept only when it canFit the
  * cells before it, so the board is one that a gesture can reach.
  */
 const clearBoard = () =>
@@ -46,7 +46,7 @@ const clearBoard = () =>
 
 				const next = cell(`t${cells.length}`, x % (columns - span + 1), y, span, h, fixed)
 
-				if (fits(cells, next, columns)) cells.push(next)
+				if (canFit(cells, next, columns)) cells.push(next)
 			}
 
 			return { columns, cells }
@@ -108,7 +108,7 @@ const crowdedResize = () =>
 			const below = cell('b', x + (belowColumn % w), y + h + belowGap, 2, 2)
 
 			const cells = [origin, right, below].filter((target, index, all) =>
-				fits(all.slice(0, index), target, columns),
+				canFit(all.slice(0, index), target, columns),
 			)
 
 			return fc.record({
@@ -193,11 +193,11 @@ describe('resizePreview · properties', () => {
 				expect(resized.h).toBe(deriveHeight(resized.w, limits.ratio))
 			}
 
-			expect(fits(cells, resized, columns)).toBe(true)
+			expect(canFit(cells, resized, columns)).toBe(true)
 		},
 	)
 
-	// Each axis backs off one unit at a time until the cell fits. Thus one unit
+	// Each axis backs off one unit at a time until the cell canFit. Thus one unit
 	// more on an axis, up to the clamped target, does not fit.
 	test.prop([anyResize()])(
 		'stops each axis at the first unit that fits',
@@ -215,14 +215,14 @@ describe('resizePreview · properties', () => {
 
 				const probe = { ...origin, w: wider, h: heightAt(wider, origin.h, limits.ratio) }
 
-				expect(fits(cells, probe, columns)).toBe(false)
+				expect(canFit(cells, probe, columns)).toBe(false)
 			}
 
 			if (
 				limits.ratio === undefined &&
 				resized.h < clampSpan(Math.round(h), range.minH, range.maxH)
 			) {
-				expect(fits(cells, { ...resized, h: resized.h + 1 }, columns)).toBe(false)
+				expect(canFit(cells, { ...resized, h: resized.h + 1 }, columns)).toBe(false)
 			}
 		},
 	)

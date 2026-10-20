@@ -16,7 +16,7 @@ import { useStableValue } from '../../hooks/use-stable-value'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { useMapHoverActions, useMapPlat, useMapPointed, useMapZoomScale } from './context'
 import { markAnchorAt } from './engine/map-hover/anchor'
-import { mapMarkDimmed } from './engine/map-hover/target'
+import { isMarkDimmed } from './engine/map-hover/target'
 import { groupLegendId } from './engine/map-legend/items'
 import type { MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
 import { ownStop, pickedStop } from './engine/map-overlay/selection'
@@ -257,7 +257,7 @@ export type MapOverlay = {
 }
 
 /** Whether two lists of stop rows read the same: each label and detail, in order. @internal */
-function sameStopRows(prev: MapStopRow[] | undefined, next: MapStopRow[] | undefined): boolean {
+function isSameRows(prev: MapStopRow[] | undefined, next: MapStopRow[] | undefined): boolean {
 	if (prev === undefined || next === undefined) return prev === next
 
 	return (
@@ -310,7 +310,7 @@ export function useMapOverlay({
 	const id = given ?? generated
 
 	// Which id this mark's emphasis answers to: its group's legend id where it
-	// merged into one, else its own. `mapMarkDimmed` has always taken this (the
+	// merged into one, else its own. `isMarkDimmed` has always taken this (the
 	// region layer passes a category id), so a grouped mark is not a case it learns,
 	// only the first overlay with something better than its own id to pass.
 	//
@@ -329,7 +329,7 @@ export function useMapOverlay({
 	// Only whether this mark dims. A crossing or a legend hover that leaves the
 	// answer as it was, such as one between two regions, renders no overlay mark.
 	const dimmed = useMapPointed((pointed, emphasis) =>
-		mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, groupId),
+		isMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, groupId),
 	)
 
 	const unitsPerPixel = useMapZoomScale()
@@ -430,7 +430,7 @@ export function useMapOverlay({
 	// reach the ledger to reach the screen. Held by content rather than by the
 	// array's identity: an inline `points` would otherwise re-register on every
 	// render, and each registration re-renders this mark (a loop).
-	const heldRows = useStableValue(stopRows, sameStopRows)
+	const heldRows = useStableValue(stopRows, isSameRows)
 
 	useEffect(
 		() =>

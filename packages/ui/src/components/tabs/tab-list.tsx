@@ -81,7 +81,7 @@ export function TabList({
 }: TabListProps) {
 	const tabsContext = useTabsContext()
 
-	const isSegment = tabsContext?.variant === 'segment'
+	const segmented = tabsContext?.variant === 'segment'
 
 	const orientation = tabsContext?.orientation ?? 'horizontal'
 
@@ -97,14 +97,14 @@ export function TabList({
 
 	// The segment variant is a fixed pill control; only the underline list
 	// scrolls, so the viewport (and its scroll-into-view) is gated off for it.
-	const { setScroller, onFocus: handleFocus } = useTabListScroll(orientation, !isSegment)
+	const { setScroller, onFocus: handleFocus } = useTabListScroll(orientation, !segmented)
 
 	const list = (
 		<div
 			ref={setList}
 			data-slot="tab-list"
 			data-orientation={orientation}
-			className={cn(isSegment ? k.segment.control : k.list({ orientation }), className)}
+			className={cn(segmented ? k.segment.control : k.list({ orientation }), className)}
 			// Consumer props spread first; the role, the orientation and the roving
 			// handler below take precedence.
 			{...props}
@@ -125,7 +125,7 @@ export function TabList({
 
 	return (
 		<ActiveIndicatorScope>
-			{isSegment ? (
+			{segmented ? (
 				list
 			) : (
 				<div

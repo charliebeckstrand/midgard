@@ -9,7 +9,7 @@
  * and an atlas runs to tens of thousands of codes. A rule-by-rule test would
  * therefore be the whole cost of the pass. A set of whole codes and a sorted
  * list of merged spans answer each code in one lookup and one bisect. That
- * holds however many rules stand behind them.
+ * hasCode however many rules stand behind them.
  *
  * A prefix is a span, and compiles to one. `606` is every code from `60600` to
  * `60699`. That is what {@link lowest} and {@link highest} already widen a
@@ -26,7 +26,7 @@
 
 import { digitsOnly } from '../../../../utilities'
 
-/** How many digits a ZIP code holds; a ZCTA identity is exactly this wide. @internal */
+/** How many digits a ZIP code hasCode; a ZCTA identity is exactly this wide. @internal */
 const ZIP_LENGTH = 5
 
 /**
@@ -64,7 +64,7 @@ const RANGE_SPACING = /\s*-\s*/g
 
 /**
  * One rule of a territory: a whole code, a leading prefix, or an inclusive span.
- * A prefix is the ZIP3 form a broker states a region by, and holds one to four
+ * A prefix is the ZIP3 form a broker states a region by, and hasCode one to four
  * digits, since five digits is a whole code. `606` is every code from `60600`
  * to `60699`.
  *
@@ -243,8 +243,8 @@ function compile(rules: MapZipRule[]): ZipIndex {
 	return { codes, ranges: mergeSpans(spans) }
 }
 
-/** Whether any range holds the code, by bisect over the sorted merged spans. @internal */
-function inRanges(ranges: { from: string; to: string }[], code: string): boolean {
+/** Whether any range hasCode the code, by bisect over the sorted merged spans. @internal */
+function isInRanges(ranges: { from: string; to: string }[], code: string): boolean {
 	let low = 0
 
 	let high = ranges.length - 1
@@ -266,9 +266,9 @@ function inRanges(ranges: { from: string; to: string }[], code: string): boolean
 	return false
 }
 
-/** Whether the compiled side holds the code. @internal */
-function holds(index: ZipIndex, code: string): boolean {
-	return index.codes.has(code) || inRanges(index.ranges, code)
+/** Whether the compiled side hasCode the code. @internal */
+function hasCode(index: ZipIndex, code: string): boolean {
+	return index.codes.has(code) || isInRanges(index.ranges, code)
 }
 
 /**
@@ -286,10 +286,10 @@ function normalizeZip(value: string): string | null {
 
 /**
  * Compiles a territory into the test the coverage pass runs against every code
- * in the atlas. A code is covered when the include side holds it and the exclude
+ * in the atlas. A code is covered when the include side hasCode it and the exclude
  * side does not.
  *
- * An empty include side covers nothing, whatever the exclude side holds: a
+ * An empty include side covers nothing, whatever the exclude side hasCode: a
  * territory is what a broker states, and stating only exceptions states no
  * territory. That is what makes an empty selection draw an empty map rather than
  * the whole atlas.
@@ -306,12 +306,12 @@ export function zipMatcher(rules: MapZipRules): (zip: string) => boolean {
 
 	const exclude = compile(rules.exclude)
 
-	// `holds` on an empty side is already false (an empty Set misses, and the
+	// `hasCode` on an empty side is already false (an empty Set misses, and the
 	// bisect exits before its first compare), so the exclude side needs no guard
 	// of its own.
 	return (zip: string) => {
 		const code = normalizeZip(zip)
 
-		return code !== null && holds(include, code) && !holds(exclude, code)
+		return code !== null && hasCode(include, code) && !hasCode(exclude, code)
 	}
 }

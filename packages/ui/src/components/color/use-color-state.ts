@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { DEFAULT_HSVA } from './color-constants'
-import { clampHsva, pinAlpha, sameColorValue, serializeColor, toHsva } from './color-utilities'
+import { clampHsva, isSameColor, pinAlpha, serializeColor, toHsva } from './color-utilities'
 import type { ColorFormat, Hsva } from './types'
 
 export type ColorStateOptions = {
@@ -21,7 +21,7 @@ export type ColorState = {
 }
 
 /** Whether two HSVA values are the same in each channel. @internal */
-function sameHsva(a: Hsva, b: Hsva): boolean {
+function isSameHsva(a: Hsva, b: Hsva): boolean {
 	return a.h === b.h && a.s === b.s && a.v === b.v && a.a === b.a
 }
 
@@ -80,7 +80,7 @@ export function useColorState({
 
 		// Skip echoes of the last adopted or emitted value. A controlled empty
 		// value has no color of its own, so it paints black.
-		if (value !== undefined && !sameColorValue(value, cacheRef.current)) {
+		if (value !== undefined && !isSameColor(value, cacheRef.current)) {
 			const parsed = value === null ? DEFAULT_HSVA : toHsva(value)
 
 			if (parsed) {
@@ -95,7 +95,7 @@ export function useColorState({
 		next = pinAlpha(next, alpha)
 
 		// The HSVA already holds the color, so no write is needed.
-		if (sameHsva(next, hsva)) return
+		if (isSameHsva(next, hsva)) return
 
 		hsvaRef.current = next
 		setInternal(next)

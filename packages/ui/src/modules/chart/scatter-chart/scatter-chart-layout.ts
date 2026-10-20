@@ -36,7 +36,7 @@ import {
 	valueAxisRange,
 } from '../engine/chart-layout'
 import type { ChartLegendItem } from '../engine/chart-legend/legend'
-import { legendVisible, type ResolvedLegend } from '../engine/chart-legend/schema'
+import { isLegendVisible, type ResolvedLegend } from '../engine/chart-legend/schema'
 import type { PlotRect } from '../engine/chart-orientation'
 import { type LinearScale, linearScale } from '../engine/chart-scale'
 import type { ScatterChartSeries } from '../engine/types'
@@ -99,7 +99,7 @@ export function scatterLegendItems(
 	metas: ScatterMeta[],
 	legend: ResolvedLegend['value'],
 ): ChartLegendItem[] | null {
-	return legendVisible(legend, metas.length) ? metas.map(toLegendItem) : null
+	return isLegendVisible(legend, metas.length) ? metas.map(toLegendItem) : null
 }
 
 /** The number formats of the scatter: the readout's, and the tick labels' of each axis. @internal */

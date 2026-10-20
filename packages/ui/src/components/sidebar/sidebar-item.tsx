@@ -57,7 +57,7 @@ export function SidebarItem({
 }: SidebarItemProps) {
 	const {
 		ref: itemRef,
-		current: isCurrent,
+		current: active,
 		indicator: { ref: indicatorRef, tapHandlers },
 		handleClick,
 	} = useNavItem({ current, href: props.href, match, preventClose, onClick })
@@ -92,7 +92,7 @@ export function SidebarItem({
 			// Navigation writes no field, so a locked scope, such as a submitting
 			// form, leaves it live.
 			lockable={false}
-			data-current={dataAttr(isCurrent)}
+			data-current={dataAttr(active)}
 			className={cn(
 				k.item.base({ chrome: hasAffix ? 'row' : 'item' }),
 				// In the mini rail this Button is the tooltip trigger; restore the nav
@@ -107,7 +107,7 @@ export function SidebarItem({
 			{...props}
 			type={props.href === undefined ? 'button' : undefined}
 			data-slot="sidebar-item-inner"
-			aria-current={isCurrent ? currentToken : undefined}
+			aria-current={active ? currentToken : undefined}
 			// The rail tooltip echoes the accessible name, so its description would
 			// repeat the name. The explicit key wins over the description of the
 			// trigger, and keeps the description of the consumer.
@@ -151,7 +151,7 @@ export function SidebarItem({
 					{suffix}
 				</div>
 			)}
-			{isCurrent && (
+			{active && (
 				// A current affixed row re-draws its focus ring on the active indicator,
 				// the topmost full-row surface; a plain row keeps the default.
 				<ActiveIndicator ref={indicatorRef} className={cn(hasAffix && k.item.indicator)} />

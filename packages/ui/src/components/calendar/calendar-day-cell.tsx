@@ -10,8 +10,8 @@ import { dayKey, formatDayName } from './calendar-utilities'
 type DayCellProps = {
 	date: Date
 	disabled: boolean
-	isToday: boolean
-	isActive: boolean
+	today: boolean
+	active: boolean
 	selected: boolean
 	variant?: ButtonVariants['variant']
 	color?: ButtonVariants['color']
@@ -36,8 +36,8 @@ type DayCellProps = {
 export const CalendarDayCell = memo(function CalendarDayCell({
 	date,
 	disabled,
-	isToday,
-	isActive,
+	today,
+	active,
 	selected,
 	variant,
 	color,
@@ -60,17 +60,17 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 			role="option"
 			aria-selected={selected}
 			aria-label={formatDayName(date, localeTag)}
-			aria-current={isToday ? 'date' : undefined}
+			aria-current={today ? 'date' : undefined}
 			// The date picker reads the day of a focused cell from this ISO date.
 			data-date={dayKey(date)}
-			variant={variant ?? (selected ? 'solid' : isToday ? 'soft' : 'plain')}
-			color={color ?? (selected || isToday ? 'blue' : undefined)}
+			variant={variant ?? (selected ? 'solid' : today ? 'soft' : 'plain')}
+			color={color ?? (selected || today ? 'blue' : undefined)}
 			disabled={disabled}
 			onClick={handleClick}
 			onMouseEnter={onMouseEnter}
 			onMouseLeave={onMouseLeave}
 			style={gridColumnStart ? { gridColumnStart } : undefined}
-			className={cn(k.day.base, isActive && k.day.active, className)}
+			className={cn(k.day.base, active && k.day.active, className)}
 		>
 			{formatInteger(date.getDate(), localeTag)}
 		</Button>

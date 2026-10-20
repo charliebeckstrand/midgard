@@ -21,7 +21,7 @@ import {
 	createColumnSizer,
 	type GridColumnSizer,
 } from './engine/grid-sizing/sizer'
-import { sameNumberMap } from './engine/grid-table/equality'
+import { isSameNumberMap } from './engine/grid-table/equality'
 import type { EngineTable } from './engine/grid-table/features'
 import type { GridColumn } from './types'
 
@@ -165,7 +165,7 @@ function fitWidth(container: HTMLElement): number {
  * allocate a fresh sizing object and re-render the head, body, and footer for
  * nothing. Nor must any change landing on the same pixels. @internal
  */
-function sizingMoved(prev: Record<string, number>, next: Record<string, number>): boolean {
+function isMoved(prev: Record<string, number>, next: Record<string, number>): boolean {
 	for (const id in next) {
 		if (prev[id] !== next[id]) return true
 	}
@@ -182,9 +182,9 @@ function nextSizing(
 	prev: Record<string, number>,
 	{ sizing, replace }: ColumnSizingWrite,
 ): Record<string, number> {
-	if (!replace) return sizingMoved(prev, sizing) ? { ...prev, ...sizing } : prev
+	if (!replace) return isMoved(prev, sizing) ? { ...prev, ...sizing } : prev
 
-	const same = Object.keys(prev).length === Object.keys(sizing).length && !sizingMoved(prev, sizing)
+	const same = Object.keys(prev).length === Object.keys(sizing).length && !isMoved(prev, sizing)
 
 	return same ? prev : sizing
 }
@@ -314,7 +314,7 @@ export function useGridColumnSizing<T>({
 	const [floors, setFloors] = useState<ReadonlyMap<string, number>>(() => new Map(columnFloors))
 
 	const publishFloors = useCallback(
-		() => setFloors((prev) => (sameNumberMap(prev, columnFloors) ? prev : new Map(columnFloors))),
+		() => setFloors((prev) => (isSameNumberMap(prev, columnFloors) ? prev : new Map(columnFloors))),
 		[columnFloors],
 	)
 
@@ -366,7 +366,7 @@ export function useGridColumnSizing<T>({
 		(write: ColumnSizingWrite) => {
 			const [content, owned] = splitContentSizing(write, columns)
 
-			setContentSizing((prev) => (sizingMoved(prev, content) ? { ...prev, ...content } : prev))
+			setContentSizing((prev) => (isMoved(prev, content) ? { ...prev, ...content } : prev))
 
 			const apply = () => table.setColumnSizing((prev) => nextSizing(prev, owned))
 
@@ -663,7 +663,7 @@ export function useGridColumnSizing<T>({
 
 /**
  * Fires the column-resize drag lifecycle. The engine flags the column under an
- * active pointer/touch drag in `columnSizingInfo.isResizingColumn` (a keyboard
+ * active pointer/touch drag in `columnSizingInfo.resizingColumn` (a keyboard
  * nudge writes the width straight through `columnSizing` instead). A transition
  * off or onto a column id therefore brackets the drag. The outgoing column ends
  * first (a settle, or a pointer that slid onto another handle), then the
@@ -676,11 +676,11 @@ export function useGridColumnSizing<T>({
  */
 export function useColumnResizeLifecycle(
 	resizable: boolean,
-	isResizingColumn: string | false,
+	resizingColumn: string | false,
 	onResizeStart: ((id: string) => void) | undefined,
 	onResizeEnd: ((id: string) => void) | undefined,
 ): void {
-	const resizingColumnId = resizable ? isResizingColumn : false
+	const resizingColumnId = resizable ? resizingColumn : false
 
 	const prevResizingRef = useRef<string | false>(false)
 

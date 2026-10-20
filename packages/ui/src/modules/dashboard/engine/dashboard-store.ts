@@ -8,18 +8,18 @@
  * A drag preview therefore wakes only the tiles that it moves.
  */
 
-import { createEmitter, sameElements } from '../../../utilities'
+import { createEmitter, isSameElements } from '../../../utilities'
 import type { QueryGroup } from '../../query/engine/types'
 import { type DashboardDragKind, type DashboardDragTravel, dragTravel } from './dashboard-drag'
 import {
 	type DashboardCell,
 	type DashboardLayoutItem,
 	type DashboardTileDemands,
+	isSameCell,
+	isSameGeometry,
 	placeEntries,
 	readingOrder,
 	resolveLayout,
-	sameCell,
-	sameGeometry,
 	usableDemands,
 } from './dashboard-layout'
 import { projectLayout } from './dashboard-responsive'
@@ -212,7 +212,7 @@ function memo<A extends readonly unknown[], R>(compute: (...args: A) => R): Memo
 
 /** Returns `next`, or `prev` when the two cells have the same geometry. */
 function intern(prev: DashboardCell | null | undefined, next: DashboardCell): DashboardCell {
-	return prev != null && sameCell(prev, next) ? prev : next
+	return prev != null && isSameCell(prev, next) ? prev : next
 }
 
 /** The id of the dragged tile, or `null` when no drag is live. */
@@ -283,7 +283,7 @@ function resolveTravel(
 
 /** Returns `next`, or `prev` when the two lists hold the same items in the same order. */
 export function internList<T>(prev: readonly T[] | undefined, next: readonly T[]): readonly T[] {
-	return prev && sameElements(prev, next) ? prev : next
+	return prev && isSameElements(prev, next) ? prev : next
 }
 
 /** Creates a store with the given initial state. */
@@ -365,7 +365,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		const sameBoard =
 			from !== null &&
 			prev !== null &&
-			(prev.canonical === canonical || sameGeometry(prev.canonical, canonical)) &&
+			(prev.canonical === canonical || isSameGeometry(prev.canonical, canonical)) &&
 			from.demands === demands &&
 			from.columns === columns &&
 			from.gap === gap

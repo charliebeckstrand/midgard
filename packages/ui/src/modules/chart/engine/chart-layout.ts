@@ -29,7 +29,7 @@ import { bandExtent, type PlotRect, valueExtent } from './chart-orientation'
 import {
 	type BandScale,
 	bandScale,
-	headroomFits,
+	isHeadroomFit,
 	type LinearScale,
 	linearScale,
 } from './chart-scale'
@@ -137,7 +137,7 @@ export function plotRect(
  * therefore thins by row width (value on x) or by column height (categories
  * down y). A vertical chart opted into {@link ChartCategoryAxis.tickRotation}
  * tilts instead of thinning once the same fit check fails (see
- * {@link willThin}).
+ * {@link shouldThin}).
  *
  * @internal
  */
@@ -155,7 +155,7 @@ export function thinned(count: number, axisLength: number, slot: number): number
 
 /**
  * How many labels of `slot` room fit along a `axisLength` axis: at least one.
- * The one fit rule that {@link thinned} and {@link willThin} read.
+ * The one fit rule that {@link thinned} and {@link shouldThin} read.
  *
  * @internal
  */
@@ -170,7 +170,7 @@ function labelFit(axisLength: number, slot: number): number {
  *
  * @internal
  */
-function willThin(count: number, axisLength: number, slot: number): boolean {
+function shouldThin(count: number, axisLength: number, slot: number): boolean {
 	return count > labelFit(axisLength, slot)
 }
 
@@ -274,7 +274,7 @@ export type CartesianLayout = {
 	 * would also pad the domain for labels that never draw.
 	 *
 	 * The vertical verdict reads the range floor under the tallest band chrome
-	 * the chart can wear (see {@link verticalLabelRoom}). It therefore moves one
+	 * the chart can wear (see {@link hasVerticalRoom}). It therefore moves one
 	 * way as the frame shrinks, instead of flashing labels back on when a smaller
 	 * tier drops the band row. `true` when nothing was asked.
 	 */
@@ -698,13 +698,13 @@ function getZero(scale: LinearScale | null, other: LinearScale | null, edge: num
 
 /**
  * Whether the asked value-label headroom is affordable over `rangePx`: `true`
- * when none was asked. The same {@link headroomFits} test {@link linearScale}
+ * when none was asked. The same {@link isHeadroomFit} test {@link linearScale}
  * reserves by.
  *
  * @internal
  */
 function hasLabelRoom(headroom: number | undefined, rangePx: number): boolean {
-	return !headroom || headroomFits(headroom, rangePx)
+	return !headroom || isHeadroomFit(headroom, rangePx)
 }
 
 /**
@@ -721,7 +721,7 @@ function hasLabelRoom(headroom: number | undefined, rangePx: number): boolean {
  *
  * @internal
  */
-function verticalLabelRoom(input: CartesianLayoutInput, flatRange: [number, number]): boolean {
+function hasVerticalRoom(input: CartesianLayoutInput, flatRange: [number, number]): boolean {
 	if (!input.valueHeadroom) return true
 
 	const labelBand = input.tickRotation && !input.times ? TICK_ROTATION_HEIGHT : X_AXIS_HEIGHT
@@ -735,7 +735,7 @@ function verticalLabelRoom(input: CartesianLayoutInput, flatRange: [number, numb
 		? input.frameHeight - PLOT_TOP_PAD - worstBand
 		: Math.abs(flatRange[0] - flatRange[1])
 
-	return headroomFits(input.valueHeadroom, floor)
+	return isHeadroomFit(input.valueHeadroom, floor)
 }
 
 /**
@@ -847,7 +847,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		? [frameHeight - flatHeight, PLOT_TOP_PAD]
 		: [frameHeight - markPad, Math.max(PLOT_TOP_PAD, markPad)]
 
-	const valueLabelRoom = verticalLabelRoom(input, flatRange)
+	const valueLabelRoom = hasVerticalRoom(input, flatRange)
 
 	// A withheld verdict reserves nothing: the scale would otherwise pad the
 	// domain for labels that will not draw.
@@ -885,7 +885,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	// labels only where a flat label takes more.
 	const canTilt = drawBand && bandMode === 'thinned' && Boolean(input.tickRotation) && !input.times
 
-	const tilt = canTilt && slot > TILTED_LABEL_SLOT && willThin(count, plotWidth, slot)
+	const tilt = canTilt && slot > TILTED_LABEL_SLOT && shouldThin(count, plotWidth, slot)
 
 	const axisBandHeight = tilt ? TICK_ROTATION_HEIGHT + titleBand : flatHeight
 

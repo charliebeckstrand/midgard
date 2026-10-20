@@ -41,7 +41,7 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
 	}
 
 // A drop on a board that is not interactive becomes a cancel.
-const cancelEveryDrop = () => true
+const shouldCancel = () => true
 
 /**
  * Multi-column board over `@dnd-kit`. Reorders cards within and across columns
@@ -171,7 +171,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 					// latest props. The end and the cancel stay wired, so a drag that
 					// continues after the board turns non-interactive still ends.
 					// `cancelDrop` then makes the drop a cancel, and the cancel reverts.
-					cancelDrop={interactive ? undefined : cancelEveryDrop}
+					cancelDrop={interactive ? undefined : shouldCancel}
 					onDragEnd={handleDragEnd}
 					onDragCancel={handleDragCancel}
 				>

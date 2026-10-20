@@ -66,7 +66,7 @@ function markProps(paint: ChartPaint, sized: boolean) {
  * bubble field is also the sparse, few-mark case the collapse doesn't pay off on.
  *
  * Isolation stays per-datum without re-drawing a plain cloud. The pointed disc
- * recedes every other, so the whole series path dims. The one lit disc re-draws
+ * recedes every other, so the whole series path dims. The one isLit disc re-draws
  * at full strength over it, as a single overlay circle rather than a rebuild.
  * That reads identically to dimming every sibling. The series paths are memoized
  * on `list`. A pointer crossing only re-runs this component through the emphasis
@@ -76,7 +76,7 @@ function markProps(paint: ChartPaint, sized: boolean) {
  * @internal
  */
 export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
-	const { mark, lit } = useChartMarkEmphasis()
+	const { mark, isLit } = useChartMarkEmphasis()
 
 	// Stable across emphasis changes: the chart body holds `list` steady while
 	// the pointer moves, so a plain series' disc string survives a crossing
@@ -103,7 +103,7 @@ export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
 							// The disc the pointer isolates keeps full strength; its siblings and
 							// every other series recede: the dim rides the class, no inline
 							// opacity to lose to.
-							className={cn(props.className, seriesGroupClass(!lit(index, datum)))}
+							className={cn(props.className, seriesGroupClass(!isLit(index, datum)))}
 						/>
 					))}
 				</g>
@@ -112,7 +112,7 @@ export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
 
 		// A whole-series emphasis (a legend hover, `datum: null`) lights its series
 		// and dims the rest; a single pointed disc (`datum` set) dims every series,
-		// its own included, and the lit disc re-draws over the dim below.
+		// its own included, and the isLit disc re-draws over the dim below.
 		const seriesLit = mark !== null && mark.series === index && mark.datum === null
 
 		const dimmed = mark !== null && !seriesLit
@@ -155,7 +155,7 @@ const DISC_STILL = { ...DISC_POP, r: k.motion.instant }
  * @internal
  */
 export function AnimatedScatterChartMarks({ list }: ScatterChartMarksProps) {
-	const { lit } = useChartMarkEmphasis()
+	const { isLit } = useChartMarkEmphasis()
 
 	const still = usePrefersReducedMotion()
 
@@ -169,7 +169,7 @@ export function AnimatedScatterChartMarks({ list }: ScatterChartMarksProps) {
 					r={marks[datum]?.r ?? 0}
 					paint={paint}
 					sized={sized}
-					lit={lit(index, datum)}
+					lit={isLit(index, datum)}
 					still={still}
 				/>
 			))}

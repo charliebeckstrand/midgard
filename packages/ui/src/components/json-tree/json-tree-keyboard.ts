@@ -58,24 +58,24 @@ export function flatTreeMoveTarget(
  * The flat index that a key reaches when focus is parked on the container of a windowed
  * tree. Focus parks there when the focused row scrolls out of the window, and `stored`
  * is the flat index of that row. A vertical arrow, Home and End move from the stored row
- * over the `focusable` rows. A horizontal arrow returns to the stored row.
+ * over the `isFocusable` rows. A horizontal arrow returns to the stored row.
  *
- * @returns Null for a key that does not navigate, or for a tree with no focusable row.
+ * @returns Null for a key that does not navigate, or for a tree with no isFocusable row.
  * @internal
  */
 export function parkedTarget(
 	key: string,
 	stored: number,
-	focusable: readonly number[],
+	isFocusable: readonly number[],
 ): number | null {
 	// Both horizontal arrows return to the stored row, so the reading direction has no effect.
 	if (crossAxisDelta(key, 'vertical') !== null) return stored
 
-	const next = nextIndexForKey(key, focusable.indexOf(stored), focusable.length, {
+	const next = nextIndexForKey(key, isFocusable.indexOf(stored), isFocusable.length, {
 		orientation: 'vertical',
 	})
 
-	return next === null ? null : (focusable[next] ?? null)
+	return next === null ? null : (isFocusable[next] ?? null)
 }
 
 /**
@@ -93,7 +93,7 @@ export function windowTabStop(
 	nodes: readonly FlatNode[],
 	overscan: number,
 ): number | undefined {
-	const focusable = (index: number) => {
+	const isFocusable = (index: number) => {
 		const node = nodes[index]
 
 		return node !== undefined && node.type !== 'branch-close'
@@ -106,5 +106,5 @@ export function windowTabStop(
 	// The window adds `overscan` rows above the first row in view, but none above the top row.
 	const inView = first === 0 ? 0 : first + overscan
 
-	return indexes.find((index) => index >= inView && focusable(index)) ?? indexes.find(focusable)
+	return indexes.find((index) => index >= inView && isFocusable(index)) ?? indexes.find(isFocusable)
 }

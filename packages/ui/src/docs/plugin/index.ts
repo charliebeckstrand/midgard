@@ -157,11 +157,11 @@ export function reactDocs(): Plugin {
 	 * to a page or to a source of `ui` can change the entries.
 	 */
 	function staleSearch(graph: EnvironmentModuleGraph, file: string): EnvironmentModuleNode[] {
-		const isPage = file.startsWith(pages)
+		const inPages = file.startsWith(pages)
 
-		const isSource = SOURCE.test(file) && !file.startsWith(docs)
+		const inSource = SOURCE.test(file) && !file.startsWith(docs)
 
-		if (!isPage && !isSource) return []
+		if (!inPages && !inSource) return []
 
 		search = undefined
 

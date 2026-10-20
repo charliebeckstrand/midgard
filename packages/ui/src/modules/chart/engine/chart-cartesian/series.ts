@@ -8,7 +8,7 @@
 import { paintSlot, rawColor, textClass } from '../chart-color/paint'
 import { seriesPaint } from '../chart-color/palette'
 import type { ChartLegendItem } from '../chart-legend/legend'
-import { legendVisible, type ResolvedLegend } from '../chart-legend/schema'
+import { isLegendVisible, type ResolvedLegend } from '../chart-legend/schema'
 import type { ChartOrientation } from '../chart-orientation'
 import type { LinearScale } from '../chart-scale'
 import { type SeriesMeta, seriesValues } from '../chart-series'
@@ -209,7 +209,7 @@ export function cartesianLegendItems(
 	legend: ResolvedLegend['value'],
 	byValue: boolean | undefined,
 ): ChartLegendItem[] | null {
-	if (!legendVisible(legend, metas.length)) return null
+	if (!isLegendVisible(legend, metas.length)) return null
 
 	return orderLegend(metas, byValue).map(toLegendItem)
 }

@@ -86,7 +86,7 @@ const PAN_KEYS: Readonly<Record<string, readonly [number, number]>> = {
  * and `-` zoom about the center of the stage, and `0` takes the photo back to
  * rest. An arrow key pans a zoomed photo toward the part on its side.
  */
-function zoomByKey(key: string, zoom: LightboxZoom, stage: HTMLElement | null): boolean {
+function tryZoomByKey(key: string, zoom: LightboxZoom, stage: HTMLElement | null): boolean {
 	const factor = ZOOM_KEYS[key]
 
 	if (factor) {
@@ -161,7 +161,7 @@ function slotsAround(index: number, photos: readonly LightboxViewPhoto[]) {
  *
  * A press on the stage outside the photo closes the viewer. `ArrowLeft` and
  * `ArrowRight` step through the photos in the reading order, and so does a
- * swipe. The keys also zoom the photo (see `zoomByKey`), and while the photo
+ * swipe. The keys also zoom the photo (see `tryZoomByKey`), and while the photo
  * is zoomed, the arrow keys pan it and do not step.
  *
  * @internal
@@ -184,7 +184,7 @@ export function LightboxStage({
 	// The thumbnail of the photo in the center, where it rises from and goes back to.
 	const home = () => thumbnail(photos[index]?.index ?? -1)
 
-	const [isPresent, safeToRemove] = usePresence()
+	const [present, safeToRemove] = usePresence()
 
 	// `false` when the overlay moves into its portal at rest after hydration. That
 	// entrance plays nothing.
@@ -285,8 +285,8 @@ export function LightboxStage({
 	})
 
 	useLayoutEffect(() => {
-		followPresence(isPresent)
-	}, [isPresent])
+		followPresence(present)
+	}, [present])
 
 	// A zoom is for one photo. When another photo comes to the center outside a
 	// step, as a slide lands or a controlled index changes, the zoom goes back
@@ -310,7 +310,7 @@ export function LightboxStage({
 		// A key with a modifier is for the browser, such as its own zoom.
 		if (hasBrowserModifier(event)) return
 
-		if (zoomByKey(event.key, track.zoom, stageRef.current)) {
+		if (tryZoomByKey(event.key, track.zoom, stageRef.current)) {
 			event.preventDefault()
 
 			return

@@ -14,7 +14,7 @@ import { parseNumeric } from '../../../../utilities'
 import type { ChartAxisTick } from '../chart-axes/axis'
 import { BUBBLE_MAX_DIAMETER, BUBBLE_MIN_DIAMETER, MARKER_RADIUS } from '../chart-constants'
 import { coord } from '../chart-coords'
-import { beatsHeldMark } from '../chart-hit-test'
+import { isDecisive } from '../chart-hit-test'
 import { READOUT_GAP } from '../chart-series'
 import { nearestStopIndex } from '../chart-snap'
 
@@ -165,7 +165,7 @@ export function sizeRadius(
 }
 
 /** Whether a point draws a disc: every point does, except one with a negative size. @internal */
-function drawsDisc(point: ScatterDatum): boolean {
+function hasDisc(point: ScatterDatum): boolean {
 	return point.size === null || point.size >= 0
 }
 
@@ -178,7 +178,7 @@ function drawsDisc(point: ScatterDatum): boolean {
  * @internal
  */
 export function scatterDrawn(points: ScatterDatum[]): ScatterDatum[] {
-	return points.every(drawsDisc) ? points : points.filter(drawsDisc)
+	return points.every(hasDisc) ? points : points.filter(hasDisc)
 }
 
 /** One drawable point: its frame position and radius. @internal */
@@ -377,7 +377,7 @@ export function scatterReadoutValues(
 /**
  * Arbitrates the held disc against the nearest caught one. The held keeps the
  * win while it stayed caught (a finite distance), and no challenger
- * {@link beatsHeldMark | decisively} closes.
+ * {@link isDecisive | decisively} closes.
  *
  * @internal
  */
@@ -391,7 +391,7 @@ function resolveHeldDisc(
 
 	if (best.series === held.series && best.datum === held.datum) return best
 
-	if (beatsHeldMark(bestSquared, heldSquared)) return best
+	if (isDecisive(bestSquared, heldSquared)) return best
 
 	return held
 }
@@ -402,12 +402,12 @@ function resolveHeldDisc(
  * center wins where discs overlap, so the isolation lifts the one the pointer
  * is truly on rather than whichever drew first. A `held` disc (the one
  * already emphasized) keeps the win while it stays caught, unless a
- * challenger decisively closes ({@link beatsHeldMark}). The resolution is
+ * challenger decisively closes ({@link isDecisive}). The resolution is
  * sticky across the midline between discs, rather than flipping on it.
  *
  * This scan runs per pointer move over every visible point, so it stays in
  * squared distances end to end. Nearest-by-distance and nearest-by-squared
- * pick the same disc, and {@link beatsHeldMark} already compares squares.
+ * pick the same disc, and {@link isDecisive} already compares squares.
  *
  * @internal
  */

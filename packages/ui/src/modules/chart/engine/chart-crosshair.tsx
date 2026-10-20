@@ -111,7 +111,7 @@ export function resolveCrosshair(
  *
  * @internal
  */
-export function crosshairSnaps(crosshair: ResolvedCrosshair | null): boolean {
+export function isSnapping(crosshair: ResolvedCrosshair | null): boolean {
 	return crosshair?.snap ?? false
 }
 

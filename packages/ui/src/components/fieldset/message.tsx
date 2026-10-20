@@ -40,13 +40,13 @@ export type MessageProps = {
  */
 function shouldRenderError(
 	severity: MessageSeverity,
-	isFormBoundError: boolean,
+	formBound: boolean,
 	issues: string[] | undefined,
 	children: ReactNode,
 ): boolean {
 	if (severity !== 'error') return false
 
-	if (isFormBoundError) return hasIssues(issues)
+	if (formBound) return hasIssues(issues)
 
 	return children != null && typeof children !== 'boolean' && children !== ''
 }
@@ -115,15 +115,15 @@ export function Message({
 
 	// When form-bound, only the error severity auto-renders from the field's errors.
 	// Other severities render their children verbatim.
-	const isFormBoundError = severity === 'error' && field !== undefined
+	const formBound = severity === 'error' && field !== undefined
 
-	const issues = isFormBoundError ? field.errors : undefined
+	const issues = formBound ? field.errors : undefined
 
 	// An error or warning message describes the field, so it registers;
 	// aria-describedby references the id only while the message renders.
 	// Registration precedes the early return, so the hook order is stable. A
 	// success message is feedback, not a description, so it does not register.
-	const rendersError = shouldRenderError(severity, isFormBoundError, issues, children)
+	const rendersError = shouldRenderError(severity, formBound, issues, children)
 
 	const describesField = rendersError || severity === 'warning'
 
@@ -150,7 +150,7 @@ export function Message({
 	// Errors use `role="alert"` (assertive); success feedback uses `role="status"` (polite).
 	const role = severity === 'error' ? 'alert' : 'status'
 
-	if (isFormBoundError && issues && all && issues.length > 1) {
+	if (formBound && issues && all && issues.length > 1) {
 		// Text alone can collide as a key; the native validator path doesn't
 		// dedupe identical messages. Repeats get an occurrence suffix.
 		const keyed = keyByOccurrence(issues)
@@ -178,7 +178,7 @@ export function Message({
 		)
 	}
 
-	const content = isFormBoundError && issues ? issues[0] : children
+	const content = formBound && issues ? issues[0] : children
 
 	return (
 		<p

@@ -5,9 +5,9 @@ import type { AccessibleName } from '../../../types'
 import { resolveAxes, type ScatterAxes } from '../engine/chart-axes/schema'
 import { SCATTER_HIT_SLACK, TICK_TARGET } from '../engine/chart-constants'
 import type { Crosshair, ResolvedCrosshair } from '../engine/chart-crosshair'
-import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
+import { ChartCrosshair, isSnapping, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartFrame } from '../engine/chart-frame/frame'
-import { chartFrameLayout, frameFills } from '../engine/chart-frame/sizing'
+import { chartFrameLayout, isFilling } from '../engine/chart-frame/sizing'
 import {
 	type ScatterMark,
 	type ScatterSnapStop,
@@ -21,7 +21,7 @@ import {
 } from '../engine/chart-geometry/scatter'
 import { ChartHitArea } from '../engine/chart-hit-area'
 import { ChartLegend } from '../engine/chart-legend/legend'
-import { legendAside, legendBands, resolveLegend } from '../engine/chart-legend/schema'
+import { isLegendAside, isLegendBanded, resolveLegend } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import type { PlotRect } from '../engine/chart-orientation'
 import { snapTargets } from '../engine/chart-snap'
@@ -162,7 +162,7 @@ function ScatterHitLayer(props: {
 
 	if (centers.length === 0 || !(tooltip || crosshair !== null || onPointClick)) return null
 
-	const snapping = crosshairSnaps(crosshair)
+	const snapping = isSnapping(crosshair)
 
 	return (
 		<ChartHitArea
@@ -248,7 +248,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// clamps the whole chart, and the plot measures the height a stacked legend
 	// leaves. A side legend instead keeps the ratio on the plot box and bands
 	// beside it. Resolved from the props, so it precedes the measurement below.
-	const aside = legendAside(resolvedLegend.value)
+	const aside = isLegendAside(resolvedLegend.value)
 
 	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
 
@@ -272,7 +272,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		aspect: outerAspect,
 		chrome: {
 			headerLines: headerLineCount(props.title, props.subtitle),
-			legend: legendBands(resolvedLegend.value, series.length),
+			legend: isLegendBanded(resolvedLegend.value, series.length),
 		},
 		tickTarget: TICK_TARGET,
 	})
@@ -415,7 +415,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			fixedWidth={width}
 			height={frameHeight}
 			reserve={reserve}
-			fill={frameFills(sizing)}
+			fill={isFilling(sizing)}
 			aspect={outerAspect ?? undefined}
 			tier={policy.tier}
 			legend={

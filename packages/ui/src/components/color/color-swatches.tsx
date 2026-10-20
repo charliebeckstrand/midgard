@@ -43,7 +43,7 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 			keyByOccurrence(swatches).map(({ key, value }) => {
 				const parsed = hexToHsva(value)
 
-				// The hex of the parse, for the match below (`equalHsva`).
+				// The hex of the parse, for the match below (`isEqualHsva`).
 				return { key, swatch: value, parsed, hex: parsed && hsvaToHex(parsed, true) }
 			}),
 		[swatches],
@@ -65,7 +65,7 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 	useDevWarning(nonHexWarning !== '', nonHexWarning)
 
 	// One radio of a group can be checked, so a repeated color checks its first chip only.
-	// Two colors match when their hexes match (`equalHsva`), so the current color
+	// Two colors match when their hexes match (`isEqualHsva`), so the current color
 	// converts one time for each render.
 	const currentHex = hsvaToHex(hsva, true)
 

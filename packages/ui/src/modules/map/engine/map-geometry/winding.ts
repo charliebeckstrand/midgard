@@ -188,7 +188,7 @@ function planarSide(ring: Ring): 'small' | 'large' | null {
 function rewindRing(ring: Ring, exterior: boolean): Ring | null {
 	const side = planarSide(ring)
 
-	if (side !== null) return misWound(side, exterior) ? reversed(ring) : ring
+	if (side !== null) return isMiswound(side, exterior) ? reversed(ring) : ring
 
 	const area = ringArea(ring)
 
@@ -196,7 +196,7 @@ function rewindRing(ring: Ring, exterior: boolean): Ring | null {
 
 	const measured = sphericalSide(area)
 
-	return measured !== null && misWound(measured, exterior) ? reversed(ring) : ring
+	return measured !== null && isMiswound(measured, exterior) ? reversed(ring) : ring
 }
 
 /**
@@ -217,7 +217,7 @@ function sphericalSide(area: number): 'small' | 'large' | null {
  * decide it and must never drift: an exterior encloses the small side, a hole
  * the large one.
  */
-function misWound(side: 'small' | 'large', exterior: boolean): boolean {
+function isMiswound(side: 'small' | 'large', exterior: boolean): boolean {
 	return exterior ? side === 'large' : side === 'small'
 }
 

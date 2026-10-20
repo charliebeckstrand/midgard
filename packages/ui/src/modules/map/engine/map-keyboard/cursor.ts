@@ -43,15 +43,15 @@ export function isActivateKey(key: string): boolean {
 }
 
 /**
- * Whether the offset `dx`, `dy` bears in `action`'s direction. Its quadrant is
+ * Whether the offset `dx`, `dy` isBearing in `action`'s direction. Its quadrant is
  * the 90° wedge around that compass axis. The four wedges therefore tile the
  * plane, and every other region lies in exactly one of them. A region exactly on
  * a diagonal lies in two, and either reading is true. A stop at a zero offset
- * bears no direction: {@link stepNearest} reaches it through its stack.
+ * isBearing no direction: {@link stepNearest} reaches it through its stack.
  *
  * Frame coordinates put y downward, so north is the negative side.
  */
-function bears(dx: number, dy: number, action: MapCompassAction): boolean {
+function isBearing(dx: number, dy: number, action: MapCompassAction): boolean {
 	switch (action) {
 		case 'east':
 			return dx > 0 && Math.abs(dy) <= dx
@@ -103,7 +103,7 @@ export function stepNearest(
 
 		const dy = stop.at.y - origin.at.y
 
-		if (!bears(dx, dy, action)) continue
+		if (!isBearing(dx, dy, action)) continue
 
 		const distance = dx * dx + dy * dy
 

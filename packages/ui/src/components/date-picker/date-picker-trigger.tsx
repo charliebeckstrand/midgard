@@ -121,7 +121,7 @@ export function DatePickerTrigger({
 
 	const glass = useGlass()
 
-	const [valueRef, isTruncated] = useTruncation<HTMLSpanElement>()
+	const [valueRef, truncated] = useTruncation<HTMLSpanElement>()
 
 	const buttonRef = useRef<HTMLButtonElement>(null)
 
@@ -192,7 +192,7 @@ export function DatePickerTrigger({
 					{/* With no value, the span shows the placeholder, and the tooltip has
 					    nothing to reveal. */}
 					{children ?? (
-						<Tooltip disabled={!truncate || !isTruncated || !displayValue}>
+						<Tooltip disabled={!truncate || !truncated || !displayValue}>
 							<TooltipTrigger>{valueNode}</TooltipTrigger>
 							<TooltipContent>{displayValue}</TooltipContent>
 						</Tooltip>

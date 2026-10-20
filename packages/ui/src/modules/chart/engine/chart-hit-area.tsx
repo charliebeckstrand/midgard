@@ -176,7 +176,7 @@ function ChartHitRect({
  *
  * @internal
  */
-export function cartesianHitActive(
+export function isHitActive(
 	showTooltip: boolean,
 	rails: ResolvedCrosshair | null,
 	onBandClick: ((index: number) => void) | undefined,

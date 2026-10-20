@@ -82,10 +82,10 @@ function JsonTreeNodeRowContent({
 		)
 	}
 
-	const isArray = Array.isArray(node.value)
+	const listed = Array.isArray(node.value)
 
 	if (node.type === 'branch-close') {
-		return <JsonTreeBranchClose isArray={isArray} />
+		return <JsonTreeBranchClose listed={listed} />
 	}
 
 	return (
@@ -93,7 +93,7 @@ function JsonTreeNodeRowContent({
 			<JsonTreeBranchHeader
 				depth={node.depth}
 				keyName={node.keyName}
-				isArray={isArray}
+				listed={listed}
 				open={node.open}
 				count={node.count}
 				highlighted={node.highlighted}

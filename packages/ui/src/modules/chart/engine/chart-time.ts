@@ -113,7 +113,7 @@ const MONTH_NAME = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i
  * instant. V8 gives it the year 2001, and Firefox and Safari refuse it, so it
  * is not a date in any engine. @internal
  */
-function yearless(value: string): boolean {
+function isYearless(value: string): boolean {
 	if (!MONTH_NAME.test(value)) return false
 
 	const numbers = value.match(/\d+/g) ?? []
@@ -128,7 +128,7 @@ function yearless(value: string): boolean {
  * wall-clock day and does not shift across the UTC boundary. A dotted numeric
  * date reads day-first, or year-first after a four-digit year, also as a local
  * date. `Date.parse` reads the dotted form month-first. A month name with a
- * day and no year, such as `Jun 10`, names no instant (see {@link yearless}).
+ * day and no year, such as `Jun 10`, names no instant (see {@link isYearless}).
  * Any other string goes through `Date.parse`.
  *
  * @returns The instant, or `null` when the value holds no parseable date: the
@@ -159,7 +159,7 @@ function stringInstant(value: string): number | null {
 
 	if (dotted) return dottedInstant(dotted)
 
-	if (yearless(value)) return null
+	if (isYearless(value)) return null
 
 	const time = Date.parse(value)
 

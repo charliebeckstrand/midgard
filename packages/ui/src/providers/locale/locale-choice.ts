@@ -61,11 +61,11 @@ export function matchLocale(
 	for (const tag of preferred) {
 		const language = getLanguage(tag)
 
-		const sameLanguage = (other: string) => getLanguage(other) === language
+		const isSameLanguage = (other: string) => getLanguage(other) === language
 
-		const reader = preferred.filter(sameLanguage).find((other) => exact(other) !== undefined)
+		const reader = preferred.filter(isSameLanguage).find((other) => exact(other) !== undefined)
 
-		const match = reader === undefined ? locales.find(sameLanguage) : exact(reader)
+		const match = reader === undefined ? locales.find(isSameLanguage) : exact(reader)
 
 		if (match !== undefined) return match
 	}

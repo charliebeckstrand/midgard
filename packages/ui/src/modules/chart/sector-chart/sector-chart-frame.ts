@@ -2,9 +2,9 @@ import { cn } from '../../../core'
 import type { FrameSizing } from '../../../hooks'
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
 import type { SlotPaint } from '../engine/chart-color/paint'
-import { type ChartAspectRatio, chartFrameSizing, frameFills } from '../engine/chart-frame/sizing'
+import { type ChartAspectRatio, chartFrameSizing, isFilling } from '../engine/chart-frame/sizing'
 import type { ChartLegendItem } from '../engine/chart-legend/legend'
-import { legendAside, legendVisible, type ResolvedLegend } from '../engine/chart-legend/schema'
+import { isLegendAside, isLegendVisible, type ResolvedLegend } from '../engine/chart-legend/schema'
 import { readoutCell } from '../engine/chart-series'
 import type { ChartReadout } from '../engine/types'
 import type { SectorLabels } from './sector-chart'
@@ -103,9 +103,9 @@ export function sectorFrame(
 	legend: ResolvedLegend['value'],
 	dataLength: number,
 ): SectorFrame {
-	const hasLegend = legendVisible(legend, dataLength)
+	const hasLegend = isLegendVisible(legend, dataLength)
 
-	const aside = legendAside(legend)
+	const aside = isLegendAside(legend)
 
 	// Only a stacked legend shares the pie's aspect box; a side legend leaves the
 	// ratio on the pie box and bands beside it, the same as a legend-free pie.
@@ -118,7 +118,7 @@ export function sectorFrame(
 	return {
 		sizing: frameSizing,
 		frameAspect: shareAspect ? sizing.ratio : undefined,
-		fill: frameFills(frameSizing),
+		fill: isFilling(frameSizing),
 		aside,
 		hasLegend,
 		// Only a stacked band shares the aspect box the chrome reserve applies to; a

@@ -1,6 +1,6 @@
 import { intlEn } from '../../../primitives/intl/intl-catalog'
 import type { IntlShape } from '../../../primitives/intl/types'
-import { imposesConstraint, isBlank, RANGE_OPERATORS, VALUELESS_OPERATORS } from './query-evaluate'
+import { hasConstraint, isBlank, RANGE_OPERATORS, VALUELESS_OPERATORS } from './query-evaluate'
 import { combinatorLabel, queryMessages } from './query-messages'
 import {
 	findBuiltInOperator,
@@ -109,9 +109,9 @@ function resolveRule(
 
 /**
  * Describes one rule as a token, or `null` when the rule imposes no constraint
- * ({@link imposesConstraint}). A blank or half-built rule drops out, and so
+ * ({@link hasConstraint}). A blank or half-built rule drops out, and so
  * does a rule whose operator the evaluator does not know. The summary thus
- * shows only the rules that {@link evaluateQuery} applies to the rows.
+ * shows only the rules that {@link isSatisfied} applies to the rows.
  *
  * @remarks The field set gives only the labels and the options, and the
  * built-in operator sets give only labels. The operator name selects the form
@@ -130,7 +130,7 @@ export function describeRule(
 	rule: QueryRule,
 	fields: QueryField[],
 ): QuerySummaryRuleToken | null {
-	if (!imposesConstraint(rule.operator, rule.value)) return null
+	if (!hasConstraint(rule.operator, rule.value)) return null
 
 	const { field, operator } = resolveRule(rule, fields)
 
@@ -244,10 +244,7 @@ export function summarizeQuery(
  *
  * @internal
  */
-export function spacedBefore(
-	prev: QuerySummaryToken | undefined,
-	token: QuerySummaryToken,
-): boolean {
+export function isSpaced(prev: QuerySummaryToken | undefined, token: QuerySummaryToken): boolean {
 	return prev != null && prev.kind !== 'group-open' && token.kind !== 'group-close'
 }
 
@@ -283,8 +280,6 @@ export function formatQuerySummary(
 	const tokens = summarizeQuery(group, fields, intl)
 
 	return tokens
-		.map(
-			(token, index) => `${spacedBefore(tokens[index - 1], token) ? ' ' : ''}${renderToken(token)}`,
-		)
+		.map((token, index) => `${isSpaced(tokens[index - 1], token) ? ' ' : ''}${renderToken(token)}`)
 		.join('')
 }

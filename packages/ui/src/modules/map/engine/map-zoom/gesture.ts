@@ -81,7 +81,7 @@ export function wheelPush(deltaY: number, deltaX: number): number {
  *
  * @internal
  */
-export function wheelDecays(push: number, prev: number, coasting: boolean): boolean {
+export function isWheelDecaying(push: number, prev: number, coasting: boolean): boolean {
 	return coasting ? push <= prev : push < prev
 }
 

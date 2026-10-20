@@ -4,7 +4,7 @@ import {
 	type DashboardCell,
 	type DashboardLayoutItem,
 	inlineSign,
-	sameGeometry,
+	isSameGeometry,
 } from './engine/dashboard-layout'
 import type { DashboardStore, DashboardView } from './engine/dashboard-store'
 import type { DashboardGestureEndEvent, DashboardGestureStartEvent } from './types'
@@ -138,7 +138,7 @@ export function endGesture(
 
 	// The snapshot equals the resolved layout at the start, because a gesture
 	// needs the saved layout on screen and not a projection.
-	const stale = gesture !== null && !sameGeometry(store.getView().canonical, gesture.snapshot)
+	const stale = gesture !== null && !isSameGeometry(store.getView().canonical, gesture.snapshot)
 
 	if (!keep || gesture === null || preview === null || stale) {
 		store.setState({ gesture: null })

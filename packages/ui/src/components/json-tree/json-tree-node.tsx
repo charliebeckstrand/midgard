@@ -17,8 +17,8 @@ import {
 	getEntries,
 	isBranch,
 	isCollapsibleDepth,
+	isMatch,
 	joinPath,
-	matchesSearch,
 } from './json-tree-utilities'
 import type { JsonValue } from './types'
 
@@ -34,7 +34,7 @@ type JsonNodeProps = {
  *
  * @internal
  */
-function filterForcesClosed(
+function isForcedClosed(
 	search: string | undefined,
 	filter: boolean | undefined,
 	empty: boolean,
@@ -65,7 +65,7 @@ function resolveOpen(options: {
 
 	if (options.controlled) return options.expandedHas
 
-	if (filterForcesClosed(options.search, options.filter, options.empty)) return false
+	if (isForcedClosed(options.search, options.filter, options.empty)) return false
 
 	if (options.userOpen !== undefined) return options.userOpen
 
@@ -108,7 +108,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 
 	const entries = useMemo(() => getEntries(value), [value])
 
-	const highlighted = matchesSearch(keyName, value, search)
+	const highlighted = isMatch(keyName, value, search)
 
 	const hasMatch = branch && search ? searchIndex.get(value as object) === true : false
 
@@ -175,7 +175,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 
 	if (filter && search && !branch && !highlighted) return null
 
-	const isArray = Array.isArray(value)
+	const listed = Array.isArray(value)
 
 	const count = visibleEntries.length
 
@@ -193,7 +193,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 		} else {
 			// While the filter forces the branch closed, a press records nothing. A
 			// write here would open the branch when the search clears.
-			if (collapsible && filterForcesClosed(search, filter, empty)) return
+			if (collapsible && isForcedClosed(search, filter, empty)) return
 
 			// Write through to the tree-level memory as well as local state: local
 			// state drives this render, the memory outlives an ancestor's collapse.
@@ -208,7 +208,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 			<JsonTreeBranchHeader
 				depth={depth}
 				keyName={keyName}
-				isArray={isArray}
+				listed={listed}
 				open={open}
 				count={count}
 				highlighted={highlighted}
@@ -235,7 +235,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 									))}
 								</JsonTreeContext>
 							</div>
-							<JsonTreeBranchClose isArray={isArray} />
+							<JsonTreeBranchClose listed={listed} />
 						</m.div>
 					)}
 				</AnimatePresence>

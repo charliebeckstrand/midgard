@@ -141,7 +141,7 @@ const INTERACTIVE_CELL_CONTENT =
 	'a,button,input,select,textarea,label,[role="button"],[role="menuitem"],[role="checkbox"],[contenteditable="true"]'
 
 /** Whether the event originated inside interactive cell content. @internal */
-export function fromInteractiveContent(target: EventTarget | null): boolean {
+export function isInInteractive(target: EventTarget | null): boolean {
 	return target instanceof Element && target.closest(INTERACTIVE_CELL_CONTENT) != null
 }
 

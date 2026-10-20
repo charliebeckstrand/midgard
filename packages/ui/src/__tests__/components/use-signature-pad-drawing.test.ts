@@ -199,7 +199,7 @@ describe('useSignaturePadDrawing', () => {
 		})
 
 		act(() => {
-			result.current.commit()
+			result.current.tryCommit()
 		})
 
 		expect(setCurrent).toHaveBeenCalledWith('data:,strokes')
@@ -209,7 +209,7 @@ describe('useSignaturePadDrawing', () => {
 		const { result, setCurrent } = setup()
 
 		act(() => {
-			result.current.commit()
+			result.current.tryCommit()
 		})
 
 		expect(setCurrent).not.toHaveBeenCalled()
@@ -221,7 +221,7 @@ describe('useSignaturePadDrawing', () => {
 		let committed: boolean | undefined
 
 		act(() => {
-			committed = result.current.commit()
+			committed = result.current.tryCommit()
 		})
 
 		expect(committed).toBe(false)
@@ -231,7 +231,7 @@ describe('useSignaturePadDrawing', () => {
 		})
 
 		act(() => {
-			committed = result.current.commit()
+			committed = result.current.tryCommit()
 		})
 
 		expect(committed).toBe(true)
@@ -245,13 +245,13 @@ describe('useSignaturePadDrawing', () => {
 		})
 
 		act(() => {
-			result.current.commit()
+			result.current.tryCommit()
 		})
 
 		setCurrent.mockClear()
 
 		act(() => {
-			result.current.commit()
+			result.current.tryCommit()
 		})
 
 		expect(setCurrent).not.toHaveBeenCalled()
@@ -316,13 +316,13 @@ describe('useSignaturePadDrawing', () => {
 			let committed: boolean | undefined
 
 			act(() => {
-				committed = result.current.commit(pointerEvent(palm))
+				committed = result.current.tryCommit(pointerEvent(palm))
 			})
 
 			expect(committed).toBe(false)
 
 			act(() => {
-				committed = result.current.commit(pointerEvent({ pointerType: 'pen' }))
+				committed = result.current.tryCommit(pointerEvent({ pointerType: 'pen' }))
 			})
 
 			expect(committed).toBe(true)
@@ -338,7 +338,7 @@ describe('useSignaturePadDrawing', () => {
 			let committed: boolean | undefined
 
 			act(() => {
-				committed = result.current.commit(pointerEvent(second))
+				committed = result.current.tryCommit(pointerEvent(second))
 			})
 
 			expect(committed).toBe(false)
@@ -346,7 +346,7 @@ describe('useSignaturePadDrawing', () => {
 			expect(setCurrent).not.toHaveBeenCalled()
 
 			act(() => {
-				committed = result.current.commit(pointerEvent())
+				committed = result.current.tryCommit(pointerEvent())
 			})
 
 			expect(committed).toBe(true)
@@ -403,7 +403,7 @@ describe('useSignaturePadDrawing', () => {
 			expect(onDrawStart).toHaveBeenCalledOnce()
 
 			act(() => {
-				result.current.commit()
+				result.current.tryCommit()
 			})
 
 			act(() => {

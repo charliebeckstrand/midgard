@@ -62,7 +62,7 @@ export function NavItem({
 }: NavMenuItemProps) {
 	const {
 		ref: itemRef,
-		current: isCurrent,
+		current: resolvedCurrent,
 		indicator: { ref: indicatorRef, tapHandlers },
 		handleClick,
 	} = useNavItem({ current, value, href: props.href, match, preventClose, onClick })
@@ -92,7 +92,7 @@ export function NavItem({
 					// Navigation writes no field, so a locked scope, such as a submitting
 					// form, leaves it live.
 					lockable={false}
-					data-current={dataAttr(isCurrent)}
+					data-current={dataAttr(resolvedCurrent)}
 					className={cn(k.item.button({ affix: hasAffix }), className)}
 					onClick={handleClick}
 					// Consumer props spread first; the type, the anchor a kata
@@ -101,7 +101,7 @@ export function NavItem({
 					{...props}
 					type={props.href === undefined ? 'button' : undefined}
 					data-slot="nav-item-inner"
-					aria-current={isCurrent ? (props.href ? 'page' : 'true') : undefined}
+					aria-current={resolvedCurrent ? (props.href ? 'page' : 'true') : undefined}
 				>
 					<TouchTarget>
 						{icon && <Icon icon={icon} />}
@@ -114,7 +114,7 @@ export function NavItem({
 					{suffix}
 				</div>
 			)}
-			{isCurrent && (
+			{resolvedCurrent && (
 				<ActiveIndicator
 					ref={indicatorRef}
 					className={hasAffix ? cn(k.item.indicator) : undefined}

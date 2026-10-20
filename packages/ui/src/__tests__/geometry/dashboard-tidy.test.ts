@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { describeTidy } from '../../modules/dashboard/engine/dashboard-announcements'
-import { collides } from '../../modules/dashboard/engine/dashboard-layout'
+import { isColliding } from '../../modules/dashboard/engine/dashboard-layout'
 import { tidyCells } from '../../modules/dashboard/engine/dashboard-tidy'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 import { cell, origins } from '../helpers/dashboard-cells'
@@ -69,7 +69,7 @@ describe('tidyCells', () => {
 
 		const tidy = tidyCells(board)
 
-		for (const a of tidy) for (const b of tidy) expect(collides(a, b)).toBe(false)
+		for (const a of tidy) for (const b of tidy) expect(isColliding(a, b)).toBe(false)
 	})
 
 	it('holds a tile that already overlaps a placed tile where it is', () => {

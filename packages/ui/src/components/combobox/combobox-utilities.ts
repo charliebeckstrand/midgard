@@ -95,13 +95,13 @@ export function resolveInputDisplay<T>({
  * Enter convenience: when the list has narrowed to a single option, selects it
  * even if nothing is highlighted. The roving hook's activation key, not this
  * function, selects the *active* (highlighted) option. The caller runs
- * {@link enterKeepsSelection} first, so the function does not click a sole
+ * {@link shouldKeepSelection} first, so the function does not click a sole
  * option that Enter keeps.
  *
  * @returns `true` when a sole option was found and clicked, else `false`.
  * @internal
  */
-export function selectSoleOption(container: HTMLElement): boolean {
+export function trySelectSoleOption(container: HTMLElement): boolean {
 	const items = container.querySelectorAll<HTMLElement>(OPTION_SELECTOR)
 
 	if (items.length === 1) {
@@ -123,12 +123,12 @@ export function selectSoleOption(container: HTMLElement): boolean {
  * A click on the selected option toggles it, and the toggle clears a `nullable`
  * value. Enter chooses, so only a click and the clear button clear. The roving
  * hook clicks the highlighted option on Enter, so the caller runs this check
- * before it gives Enter to the roving hook or to {@link selectSoleOption}.
+ * before it gives Enter to the roving hook or to {@link trySelectSoleOption}.
  *
  * @param multiple - The combobox holds a `multiple` selection, where Enter toggles.
  * @internal
  */
-export function enterKeepsSelection(container: HTMLElement, multiple: boolean): boolean {
+export function shouldKeepSelection(container: HTMLElement, multiple: boolean): boolean {
 	if (multiple) return false
 
 	const items = container.querySelectorAll<HTMLElement>(OPTION_SELECTOR)

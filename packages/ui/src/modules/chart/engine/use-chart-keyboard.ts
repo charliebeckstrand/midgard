@@ -7,7 +7,7 @@ import { clamp } from '../../../utilities'
 import { isArrowKey } from '../../../utilities/keyboard-navigation'
 import { hasBrowserModifier } from '../../../utilities/modifier-keys'
 import { type ChartOrientation, project, type Vec, valueCoord } from './chart-orientation'
-import { type ChartHoverStore, samePoint } from './context'
+import { type ChartHoverStore, isSamePoint } from './context'
 
 /**
  * The per-category anchor points a chart hands its frame for keyboard
@@ -80,11 +80,11 @@ export function hasFocusTargets(targets: ChartFocusTargets): boolean {
 	return targets.points.some((stops) => stops.length > 0)
 }
 
-/** The first (`-1`) or last (`+1`) category that carries a stop, or `-1` when none do. @internal */
+/** The first (`-1`) or last (`+1`) category that hasStops a stop, or `-1` when none do. @internal */
 function edgeCategory(targets: ChartFocusTargets, dir: 1 | -1): number {
-	const carries = (stops: Vec[]) => stops.length > 0
+	const hasStops = (stops: Vec[]) => stops.length > 0
 
-	return dir < 0 ? targets.points.findIndex(carries) : targets.points.findLastIndex(carries)
+	return dir < 0 ? targets.points.findIndex(hasStops) : targets.points.findLastIndex(hasStops)
 }
 
 /**
@@ -424,11 +424,11 @@ export function moveCursor(
 type ResolvedStop = { live: ChartCursor; anchor: Vec | null; series: number | null }
 
 /** Whether two resolved stops sit on one point or rule, in one category, on one series. @internal */
-function sameStop(prev: ResolvedStop | null, next: ResolvedStop | null): boolean {
+function isSameStop(prev: ResolvedStop | null, next: ResolvedStop | null): boolean {
 	if (prev === null || next === null) return prev === next
 
 	return (
-		samePoint(prev.anchor, next.anchor) &&
+		isSamePoint(prev.anchor, next.anchor) &&
 		prev.live.category === next.live.category &&
 		prev.live.reference === next.live.reference &&
 		prev.series === next.series
@@ -436,7 +436,7 @@ function sameStop(prev: ResolvedStop | null, next: ResolvedStop | null): boolean
 }
 
 /** Whether two cursors hold one category, lane, rule, and series. @internal */
-function sameCursor(a: ChartCursor | null, b: ChartCursor | null): boolean {
+function isSameCursor(a: ChartCursor | null, b: ChartCursor | null): boolean {
 	if (a === null || b === null) return a === b
 
 	return (
@@ -559,7 +559,7 @@ export function useChartKeyboard(
 		live !== null && targets
 			? { live, anchor: cursorPoint(live, targets), series: cursorSeries(live, targets) }
 			: null,
-		sameStop,
+		isSameStop,
 	)
 
 	// Carries the cursor to `next`, with its emphasis and its readout. A reference
@@ -570,7 +570,7 @@ export function useChartKeyboard(
 	// the cursor parks on, or the hover index and the series that the cursor
 	// writes, or `null` when it writes none.
 	const applyCursor = (next: ChartCursor | null): ChartCursorRead | null => {
-		if (!sameCursor(cursor, next)) setCursor(next)
+		if (!isSameCursor(cursor, next)) setCursor(next)
 
 		const rule = cursorRule(next, targets)
 
@@ -601,7 +601,7 @@ export function useChartKeyboard(
 	// moves the readout only while the store holds the point that the keyboard
 	// wrote last. A pointer that took the readout since then keeps it.
 	const reanchor = useEffectEvent((next: ChartCursor) => {
-		if (cursor === null || !samePoint(store.get().point, written.current)) return
+		if (cursor === null || !isSamePoint(store.get().point, written.current)) return
 
 		applyCursor(next)
 	})

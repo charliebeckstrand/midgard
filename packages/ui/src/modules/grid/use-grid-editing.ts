@@ -34,8 +34,8 @@ import {
 	type GridDraftKey,
 	isCellEditing,
 	isSameCell,
+	isSameEdit,
 	NEW_ROW_KEY,
-	sameCell,
 } from './engine/grid-editing-utilities'
 import { resolveNewRow } from './engine/grid-new-row'
 import type { GridRowStep } from './engine/grid-range/range'
@@ -512,7 +512,7 @@ export function useGridEditing<T>({
 	// once the consumer applies it.
 	const writeActiveCell = useCallback(
 		(next: GridActiveEdit | null) => {
-			if (sameCell(activeEditRef.current, next)) return
+			if (isSameEdit(activeEditRef.current, next)) return
 
 			if (controlled) {
 				requestCell(next)

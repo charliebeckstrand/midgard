@@ -2,7 +2,7 @@ import { createEmitter } from '../../../utilities/emitter'
 import { getOrCompute } from '../../../utilities/get-or-compute'
 import { parseFrames, parseStack } from './events-probes'
 import { createReport, type ReportInput } from './events-report'
-import { CAPTURE_KEY, readStorage, writeStorage } from './events-storage'
+import { CAPTURE_KEY, readStorage, tryWriteStorage } from './events-storage'
 import { formatLine, getKindWidth } from './events-text'
 import type { EventBug, EventEntry, EventKind, EventReport, EventStorage } from './types'
 
@@ -208,7 +208,7 @@ export class EventStore {
 
 		this.capture = start
 
-		writeStorage(this.storage, CAPTURE_KEY, JSON.stringify(start))
+		tryWriteStorage(this.storage, CAPTURE_KEY, JSON.stringify(start))
 
 		this.insert(entry)
 
@@ -229,7 +229,7 @@ export class EventStore {
 
 		this.capture = undefined
 
-		writeStorage(this.storage, CAPTURE_KEY, null)
+		tryWriteStorage(this.storage, CAPTURE_KEY, null)
 
 		this.insert(entry, (entries) => {
 			const index = entries.indexOf(entry)
@@ -293,7 +293,7 @@ export class EventStore {
 		clearTimeout(this.saveTimer)
 
 		if (!this.preserve) {
-			writeStorage(this.storage, key('entries'), null)
+			tryWriteStorage(this.storage, key('entries'), null)
 
 			return
 		}
@@ -301,7 +301,7 @@ export class EventStore {
 		let count = this.entries.length
 
 		while (
-			!writeStorage(
+			!tryWriteStorage(
 				this.storage,
 				key('entries'),
 				JSON.stringify(this.entries.slice(this.entries.length - count)),
@@ -406,7 +406,7 @@ export class EventStore {
 
 	/** Sets a flag of the tab, and tells the listeners. A flag that the storage does not keep does not change. */
 	private setFlag(field: string, on: boolean): void {
-		if (writeStorage(this.storage, key(field), on ? '1' : null)) this.flags.set(field, on)
+		if (tryWriteStorage(this.storage, key(field), on ? '1' : null)) this.flags.set(field, on)
 
 		this.changes.emit()
 	}

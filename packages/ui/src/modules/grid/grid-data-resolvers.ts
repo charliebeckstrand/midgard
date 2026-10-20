@@ -524,7 +524,7 @@ export function resolveNewRowIndex(args: {
  *
  * @internal
  */
-export function rowReorderPermitted(args: {
+export function canReorderRows(args: {
 	loading: boolean
 	/** Whether there are source rows to drag at all. */
 	hasRows: boolean

@@ -54,7 +54,7 @@ export type ChartHoverStore = {
  *
  * @internal
  */
-export function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
+export function isSamePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
 	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
 }
 
@@ -73,7 +73,7 @@ export function createChartHoverStore(): ChartHoverStore {
 	return {
 		get: () => state,
 		set: (index, point, onData = true) => {
-			if (state.index === index && state.onData === onData && samePoint(state.point, point)) {
+			if (state.index === index && state.onData === onData && isSamePoint(state.point, point)) {
 				return
 			}
 
@@ -115,7 +115,7 @@ export type ChartMarkRef = { series: number; datum: number | null }
  * a datum emphasis lights only its own. A group-level query passes no `datum`
  * and reads the series alone. @internal
  */
-function markLights(mark: ChartMarkRef, series: number, datum: number | null | undefined): boolean {
+function isMarkLit(mark: ChartMarkRef, series: number, datum: number | null | undefined): boolean {
 	if (mark.series !== series) return false
 
 	return datum === undefined || mark.datum === null || mark.datum === datum
@@ -145,20 +145,20 @@ export type ChartMarkEmphasis = {
 	 * emphasized series (and datum, when one is checked). A renderer dims a mark
 	 * where this returns `false`. Omit `datum` for a whole-series group.
 	 */
-	lit: (series: number, datum?: number | null) => boolean
+	isLit: (series: number, datum?: number | null) => boolean
 }
 
 export const [ChartMarkEmphasisContext, useChartMarkEmphasis] = createContext<ChartMarkEmphasis>(
 	'ChartMarkEmphasis',
-	{ default: { mark: null, lit: () => true } },
+	{ default: { mark: null, isLit: () => true } },
 )
 
 /**
  * Whether a datum sits in the held category selection. A group-level query
  * passes no `datum`, and a selection by category never dims a whole series. An
- * empty selection holds nothing, so each datum reads lit. @internal
+ * empty selection holds nothing, so each datum reads isLit. @internal
  */
-function selectionLights(
+function isSelectionLit(
 	selected: ReadonlySet<number> | null,
 	datum: number | null | undefined,
 ): boolean {
@@ -169,7 +169,7 @@ function selectionLights(
  * Resolves the shared {@link ChartMarkEmphasis}. The pointed mark takes the
  * emphasis, unless a category selection is held. The legend or keyboard series
  * lifts to a whole-series reference, and the held selection lights only its own
- * data. Else nothing is emphasized, and every mark reads lit. The frame builds it from its own pointer
+ * data. Else nothing is emphasized, and every mark reads isLit. The frame builds it from its own pointer
  * state and the emphasis and selection that its chart passes down.
  *
  * @param selected - The data indices of the held category selection, or `null`.
@@ -188,19 +188,19 @@ export function chartMarkEmphasis(
 	// while one is held. The tooltip still reads the pointed mark.
 	const holding = selected !== null && selected.size > 0
 
-	const lit = (series: number, datum?: number | null) => {
-		if (pointed !== null && !holding) return markLights(pointed, series, datum)
+	const isLit = (series: number, datum?: number | null) => {
+		if (pointed !== null && !holding) return isMarkLit(pointed, series, datum)
 
-		if (held !== null && !markLights(held, series, datum)) return false
+		if (held !== null && !isMarkLit(held, series, datum)) return false
 
-		return selectionLights(selected, datum)
+		return isSelectionLit(selected, datum)
 	}
 
-	return { mark, lit }
+	return { mark, isLit }
 }
 
 /** Whether two mark references coincide, so a redundant pointed write can bail. @internal */
-export function sameMark(a: ChartMarkRef | null, b: ChartMarkRef | null): boolean {
+export function isSameMark(a: ChartMarkRef | null, b: ChartMarkRef | null): boolean {
 	return a === b || (a !== null && b !== null && a.series === b.series && a.datum === b.datum)
 }
 

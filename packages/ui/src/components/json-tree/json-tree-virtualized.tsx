@@ -171,7 +171,7 @@ function settleFocus(
  * @returns The observer that still waits, or null when the row was already mounted.
  */
 function focusRowOnMount(container: HTMLElement, index: number): MutationObserver | null {
-	const focusRow = () => {
+	const tryFocusRow = () => {
 		const row = rowAt(container, index)
 
 		// Focus that went outside the tree in the meantime stays there.
@@ -184,10 +184,10 @@ function focusRowOnMount(container: HTMLElement, index: number): MutationObserve
 		return row !== null
 	}
 
-	if (focusRow()) return null
+	if (tryFocusRow()) return null
 
 	const observer = new MutationObserver(() => {
-		if (focusRow()) observer.disconnect()
+		if (tryFocusRow()) observer.disconnect()
 	})
 
 	observer.observe(container, { childList: true, subtree: true })

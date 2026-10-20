@@ -26,12 +26,12 @@ import { AREA_SPARE_FRACTION, POINT_HIT_RADIUS, POINT_RADIUS } from '../map-cons
 import { cachedRegionIndex, type MapBounds, regionsMeeting } from '../map-geometry/locate'
 import {
 	areaReach,
-	boxNear,
 	featureRings,
+	isNearBox,
+	isNearRings,
 	type MapAreaBox,
 	type MapFrameBox,
 	projectArea,
-	ringsNear,
 } from '../map-geometry/mark'
 import type { LngLat, MapFeature, MapPoint2D } from '../types'
 
@@ -57,7 +57,7 @@ export const NO_REGION_CLAIM: MapRegionSpare = () => Number.POSITIVE_INFINITY
  * A region measured once per fit: the whole region's box, the boxes of the rings
  * inside it, and the room they hold.
  *
- * The outer box is the reject the ring walk needs in front of it. `ringsNear`
+ * The outer box is the reject the ring walk needs in front of it. `isNearRings`
  * returns on its first hit and walks every ring on a miss. A miss is the common
  * case for a candidate the geographic grid admitted. A dot that admits
  * Alaska therefore pays 137 box tests to learn it stands in Florida. One test
@@ -319,10 +319,10 @@ function wholeBox(boxes: readonly MapAreaBox[]): MapFrameBox | null {
  *
  * @internal
  */
-function regionNear(region: MeasuredRegion, at: MapPoint2D, reach: number): boolean {
-	if (region.whole === null || !boxNear(region.whole, at, reach)) return false
+function isNearRegion(region: MeasuredRegion, at: MapPoint2D, reach: number): boolean {
+	if (region.whole === null || !isNearBox(region.whole, at, reach)) return false
 
-	return region.boxes.length < 2 || ringsNear(region.boxes, at, reach)
+	return region.boxes.length < 2 || isNearRings(region.boxes, at, reach)
 }
 
 /**
@@ -334,11 +334,11 @@ function regionNear(region: MeasuredRegion, at: MapPoint2D, reach: number): bool
  * zones satisfies both. It is what keeps a dot just inside a large state from
  * blanketing the small one across the border.
  *
- * Containment is never tested. `ringsNear` asks whether a region draws within
+ * Containment is never tested. `isNearRings` asks whether a region draws within
  * the dot's reach, which is the question the claim actually turns on. A dot
  * outside a region but near enough to cover part of it takes that region's
  * ground as surely as one standing in the middle. The grid's own answer is a
- * box test, and so names regions the dot cannot reach. `ringsNear` is the
+ * box test, and so names regions the dot cannot reach. `isNearRings` is the
  * tighter filter behind it that makes the over-approximation harmless, and it
  * reads the projected boxes rather than the geographic ones.
  *
@@ -390,7 +390,7 @@ export function regionSpare(
 	// Held across calls and cleared per call rather than allocated per call: the
 	// grid yields a region once per cell its box covers, so a large state arrives
 	// twenty times for one dot, and each repeat would otherwise pay a full
-	// `ringsNear` walk of every ring it holds. The resolver is not reentrant.
+	// `isNearRings` walk of every ring it holds. The resolver is not reentrant.
 	const seen = new Set<number>()
 
 	return (at, unitsPerPixel) => {
@@ -417,7 +417,7 @@ export function regionSpare(
 
 			const held = measure(region)
 
-			if (!regionNear(held, at, reach)) continue
+			if (!isNearRegion(held, at, reach)) continue
 
 			room = Math.min(room, (held.reach / unitsPerPixel) * AREA_SPARE_FRACTION)
 

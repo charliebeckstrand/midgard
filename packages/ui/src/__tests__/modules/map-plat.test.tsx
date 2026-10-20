@@ -352,7 +352,7 @@ describe('MapPlat', () => {
 
 		fireEvent.pointerEnter(east as HTMLButtonElement)
 
-		// The layer recedes as one group and the focused category redraws lit
+		// The layer recedes as one group and the focused category redraws isLit
 		// above it — the chart marks' isolation pattern.
 		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
 
@@ -464,7 +464,7 @@ describe('MapPlat', () => {
 		fireEvent.click(east as HTMLButtonElement)
 
 		// The color is restored and washing back in. The emphasis waits it out:
-		// a lit copy mounted now would paint the category's landed color over the
+		// a isLit copy mounted now would paint the category's landed color over the
 		// very wash bringing it there, and the reader would never see it move.
 		expect(allRegions(container)[0]?.getAttribute('class')).toContain('fill-blue-600')
 
@@ -522,7 +522,7 @@ describe('MapPlat', () => {
 
 		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
 
-		// The layer recedes behind the pointed region's lit copy — identical
+		// The layer recedes behind the pointed region's isLit copy — identical
 		// geometry, so the opaque copy covers its dimmed original exactly.
 		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
 
@@ -931,7 +931,7 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(track).not.toBeNull()
 
-		// The layer recedes as one group; the snapped bin's regions redraw lit.
+		// The layer recedes as one group; the snapped bin's regions redraw isLit.
 		const receded = () =>
 			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes('opacity-25')
 
@@ -1279,7 +1279,7 @@ describe('MapPlat controlled emphasis', () => {
 
 		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
 
-		// Alpha is the East region: its lit copy holds at full strength above the
+		// Alpha is the East region: its isLit copy holds at full strength above the
 		// receded layer.
 		const lit = bySlot(container, 'map-regions-lit')
 

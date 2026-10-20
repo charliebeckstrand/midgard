@@ -41,7 +41,7 @@ import {
 	pinMenuChoices,
 } from './engine/grid-pin/overrides'
 import type { GridRangeFill } from './engine/grid-range/fill'
-import { sortsEqual } from './engine/grid-sort/state'
+import { isSortEqual } from './engine/grid-sort/state'
 import type { GridColumnGroup } from './grid-group-types'
 import type { GridColumn, GridMenuItem } from './types'
 
@@ -119,7 +119,7 @@ function sortMenuItems<T>(args: {
 
 	const items: GridMenuItem[] = []
 
-	if (!sortsEqual(sort, [{ column: column.id, direction: 'asc' }])) {
+	if (!isSortEqual(sort, [{ column: column.id, direction: 'asc' }])) {
 		items.push({
 			key: 'sort-asc',
 			label: intl.formatMessage(gridMessages.sortAscending),
@@ -128,7 +128,7 @@ function sortMenuItems<T>(args: {
 		})
 	}
 
-	if (!sortsEqual(sort, [{ column: column.id, direction: 'desc' }])) {
+	if (!isSortEqual(sort, [{ column: column.id, direction: 'desc' }])) {
 		items.push({
 			key: 'sort-desc',
 			label: intl.formatMessage(gridMessages.sortDescending),

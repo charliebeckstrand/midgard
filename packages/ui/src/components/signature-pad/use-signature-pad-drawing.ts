@@ -30,25 +30,25 @@ type SignatureDrawingOptions = {
 
 /**
  * Pointer-driven drawing on the signature canvas: strokes between successive
- * points, a dot on a bare tap, and a commit that snapshots to a data URL.
+ * points, a dot on a bare tap, and a tryCommit that snapshots to a data URL.
  *
  * @internal
  * @param options - The `canvasRef`, stroke styling, the `disabled`/`readOnly`
  * flags, the `empty`/`setEmpty`/`setCurrent` state hooks, the
  * `onDrawStart` report, and the `onInk` report of each mark.
- * @returns The `handlePointerDown`, `handlePointerMove`, and `commit` handlers
+ * @returns The `handlePointerDown`, `handlePointerMove`, and `tryCommit` handlers
  * to wire onto the `<canvas>`.
  * @remarks
  * `handlePointerDown` starts a stroke only on a primary press (`isPrimaryPress`), so a
  * secondary button, a macOS Ctrl-click, and a second finger draw nothing. It captures the pointer
- * so a stroke continues past the canvas edge. `commit` gives the snapshot to
+ * so a stroke continues past the canvas edge. `tryCommit` gives the snapshot to
  * `setCurrent`, which the state hook records as shown, so its value-sync effect
- * skips a repaint of a value it just drew. `commit` returns `true` only
+ * skips a repaint of a value it just drew. `tryCommit` returns `true` only
  * when it committed a stroke, and `false` when no stroke was in progress.
  *
  * Only the pointer that started the stroke extends it, and only its release
  * ends it. A second finger or a resting palm draws no line and does not end
- * the stroke. `commit` with no event ends the stroke of any pointer.
+ * the stroke. `tryCommit` with no event ends the stroke of any pointer.
  */
 export function useSignaturePadDrawing({
 	canvasRef,
@@ -80,7 +80,7 @@ export function useSignaturePadDrawing({
 
 		// Acquire the context before capturing the pointer or marking a stroke
 		// active: on a context-less pad the pointerdown must be a clean no-op, or
-		// `commit` would later toDataURL an unpainted canvas and emit a value while
+		// `tryCommit` would later toDataURL an unpainted canvas and emit a value while
 		// `empty` stays true (placeholder over a "signed" pad, clear button hidden).
 		const context = canvasRef.current?.getContext('2d')
 
@@ -94,7 +94,7 @@ export function useSignaturePadDrawing({
 
 		cursorHold.start()
 
-		// The stroke is now established: every guard above passed, and `commit`
+		// The stroke is now established: every guard above passed, and `tryCommit`
 		// owes a value. The report rides this line, so a pad that draws nothing
 		// stays silent.
 		onDrawStart?.()
@@ -147,7 +147,7 @@ export function useSignaturePadDrawing({
 		if (empty) setEmpty(false)
 	}
 
-	const commit = (event?: ReactPointerEvent): boolean => {
+	const tryCommit = (event?: ReactPointerEvent): boolean => {
 		if (!press.held()) {
 			cursorHold.end()
 
@@ -172,5 +172,5 @@ export function useSignaturePadDrawing({
 		return true
 	}
 
-	return { handlePointerDown, handlePointerMove, commit }
+	return { handlePointerDown, handlePointerMove, tryCommit }
 }

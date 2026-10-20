@@ -6,7 +6,7 @@ import { ITEM_SELECTOR } from './tree-constants'
  * The focus move that a horizontal arrow makes from a tree row (WAI-ARIA APG tree).
  * `ArrowRight` on an open branch moves to its first child. `ArrowLeft` on a closed
  * branch or a leaf moves to its parent. The open and the close of a branch are the
- * job of the branch row, see {@link branchToggleKey}.
+ * job of the branch row, see {@link isToggleKey}.
  *
  * The arrows follow the reading order, so they swap in a right-to-left layout.
  *
@@ -32,7 +32,7 @@ export function treeMoveForKey(
  *
  * @internal
  */
-export function branchToggleKey(event: KeyboardEvent<HTMLElement>, open: boolean): boolean {
+export function isToggleKey(event: KeyboardEvent<HTMLElement>, open: boolean): boolean {
 	const key = logicalArrowKey(event.key, event.currentTarget)
 
 	return open ? key === 'ArrowLeft' : key === 'ArrowRight'

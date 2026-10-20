@@ -1,27 +1,27 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { sameElements } from '../../utilities/same-elements'
+import { isSameElements } from '../../utilities/same-elements'
 
-describe('sameElements', () => {
+describe('isSameElements', () => {
 	it('matches lists with the same items in the same order', () => {
-		expect(sameElements(['a', 'b'], ['a', 'b'])).toBe(true)
+		expect(isSameElements(['a', 'b'], ['a', 'b'])).toBe(true)
 
-		expect(sameElements([], [])).toBe(true)
+		expect(isSameElements([], [])).toBe(true)
 	})
 
 	it('rejects a different length, order or item', () => {
-		expect(sameElements(['a'], ['a', 'b'])).toBe(false)
+		expect(isSameElements(['a'], ['a', 'b'])).toBe(false)
 
-		expect(sameElements(['a', 'b'], ['b', 'a'])).toBe(false)
+		expect(isSameElements(['a', 'b'], ['b', 'a'])).toBe(false)
 
-		expect(sameElements([{}], [{}])).toBe(false)
+		expect(isSameElements([{}], [{}])).toBe(false)
 	})
 
 	it('matches undefined only to undefined', () => {
-		expect(sameElements(undefined, undefined)).toBe(true)
+		expect(isSameElements(undefined, undefined)).toBe(true)
 
-		expect(sameElements(undefined, [])).toBe(false)
+		expect(isSameElements(undefined, [])).toBe(false)
 
-		expect(sameElements([], undefined)).toBe(false)
+		expect(isSameElements([], undefined)).toBe(false)
 	})
 })

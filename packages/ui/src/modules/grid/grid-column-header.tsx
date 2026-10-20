@@ -21,7 +21,7 @@ import { columnLabel } from './engine/grid-column/label'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
 import { columnShiftStyle } from './engine/grid-reorder-compute'
 import { ariaSortValue } from './engine/grid-sort/state'
-import { showsFilterButton } from './engine/grid-table/filter-view'
+import { shouldShowButton } from './engine/grid-table/filter-view'
 import type { GridColumnResizeActions } from './engine/grid-table/resize-view'
 import { GridColumnFilterButton } from './grid-column-filter-button'
 import { GridColumnHeaderLabel, GridPinnedHeaderLabel } from './grid-column-header-label'
@@ -133,7 +133,7 @@ function headerAffordances({
 	return (
 		<>
 			<GridGroupByButton column={column} />
-			{filter && showsFilterButton(filter, column.id, interactive, filterQuery) && (
+			{filter && shouldShowButton(filter, column.id, interactive, filterQuery) && (
 				<GridColumnFilterButton column={column} filter={filter} query={filterQuery} />
 			)}
 		</>
@@ -270,8 +270,8 @@ export type GridColumnSortable = {
 	listeners: DraggableSyntheticListeners
 	/** The horizontal translate of the drag, in px. */
 	x: number
-	isDragging: boolean
-	isSorting: boolean
+	dragging: boolean
+	sorting: boolean
 }
 
 /** Does nothing with a node, for the static bindings. @internal */
@@ -287,8 +287,8 @@ const STATIC_COLUMN_SORTABLE: GridColumnSortable = {
 	attributes: undefined,
 	listeners: undefined,
 	x: 0,
-	isDragging: false,
-	isSorting: false,
+	dragging: false,
+	sorting: false,
 }
 
 /**
@@ -341,8 +341,7 @@ export function GridReorderableColumnHeaderView({
 }: GridReorderableColumnHeaderProps & { sortable: GridColumnSortable }) {
 	const intl = useIntl()
 
-	const { setNodeRef, setActivatorNodeRef, attributes, listeners, x, isDragging, isSorting } =
-		sortable
+	const { setNodeRef, setActivatorNodeRef, attributes, listeners, x, dragging, sorting } = sortable
 
 	// The header animates its live drag translate onto a CSS variable on the
 	// enclosing <table> (the nearest common ancestor of this header and its
@@ -365,7 +364,7 @@ export function GridReorderableColumnHeaderView({
 		[setNodeRef, setActivatorNodeRef, handle],
 	)
 
-	useColumnReorderShift(tableRef, columnIndex, x, isDragging, isSorting)
+	useColumnReorderShift(tableRef, columnIndex, x, dragging, sorting)
 
 	const canResize = resizeActions !== null && interactive
 
@@ -390,7 +389,7 @@ export function GridReorderableColumnHeaderView({
 			ref={setHeaderNodeRef}
 			aria-colindex={ariaColIndex}
 			aria-sort={ariaSortValue(column.sortable && interactive, sorted, direction)}
-			data-dragging={dataAttr(isDragging)}
+			data-dragging={dataAttr(dragging)}
 			data-resizable={dataAttr(canResize)}
 			data-grid-col={gridCol}
 			className={cn(
@@ -418,7 +417,7 @@ export function GridReorderableColumnHeaderView({
 			<span data-grid-header className={cn(k.reorder.layout)}>
 				{handle && (
 					<SortableGrip
-						sortable={{ setActivatorNodeRef, attributes, listeners, dragging: isDragging }}
+						sortable={{ setActivatorNodeRef, attributes, listeners, dragging: dragging }}
 						label={intl.formatMessage(reorderMessages.reorderHandle, { item: columnLabel(column) })}
 						className={cn(k.reorder.handle)}
 					/>

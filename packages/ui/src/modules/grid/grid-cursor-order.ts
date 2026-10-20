@@ -84,7 +84,7 @@ export function detailCursorRows<T>(
 }
 
 /** Whether two orders name the same rows, in the same order, with the same state. @internal */
-function sameOrder(a: readonly GridCursorRow[], b: readonly GridCursorRow[]): boolean {
+function isSameOrder(a: readonly GridCursorRow[], b: readonly GridCursorRow[]): boolean {
 	if (a.length !== b.length) return false
 
 	return a.every((entry, index) => {
@@ -117,7 +117,7 @@ export function useGridCursorOrder(order: readonly GridCursorRow[]): void {
 	useLayoutEffect(() => {
 		const published = publishedRef.current
 
-		if (published !== null && (order === published || sameOrder(order, published))) return
+		if (published !== null && (order === published || isSameOrder(order, published))) return
 
 		publishedRef.current = order
 

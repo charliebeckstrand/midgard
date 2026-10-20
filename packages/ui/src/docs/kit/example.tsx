@@ -149,7 +149,7 @@ export function ExampleFrame({
 	})
 
 	// The frame stays at its start edge, and the drag moves its end edge.
-	const isRtl = useIsRtl()
+	const rtl = useIsRtl()
 
 	const intl = useIntl()
 
@@ -161,7 +161,7 @@ export function ExampleFrame({
 			: intl.formatMessage(messages.playground)
 
 	const resize = usePanelResize({
-		side: isRtl ? 'right' : 'left',
+		side: rtl ? 'right' : 'left',
 		open: true,
 		getFloor: frameFloor,
 		getCeiling: frameCeiling,

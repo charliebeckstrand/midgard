@@ -5,7 +5,7 @@ import {
 	NEW_ROW_ADD_COLUMN_ID,
 	withNewRowAddColumn,
 } from '../../modules/grid/engine/grid-new-row-column'
-import { sameFrozenLayout, sameFrozenStructure } from '../../modules/grid/engine/grid-pin/layout'
+import { isSameLayout, isSameStructure } from '../../modules/grid/engine/grid-pin/layout'
 import {
 	createFrozenOffsetStore,
 	writeFrozenOffsets,
@@ -180,15 +180,15 @@ describe('frozen offsets apart from the structure', () => {
 	}
 
 	it('reads two layouts as one structure when only an offset moved', () => {
-		expect(sameFrozenStructure(before, after)).toBe(true)
+		expect(isSameStructure(before, after)).toBe(true)
 
-		expect(sameFrozenLayout(before, after)).toBe(false)
+		expect(isSameLayout(before, after)).toBe(false)
 	})
 
 	it('reads a new structure when the boundary moves or a column changes edge', () => {
-		expect(sameFrozenStructure(before, buildLayout([['name', 160]]))).toBe(false)
+		expect(isSameStructure(before, buildLayout([['name', 160]]))).toBe(false)
 
-		expect(sameFrozenStructure(before, buildLayout([['name', 160]], [['email', 200]]))).toBe(false)
+		expect(isSameStructure(before, buildLayout([['name', 160]], [['email', 200]]))).toBe(false)
 	})
 
 	it('gives the committed offset only for the edge that the layout commits', () => {

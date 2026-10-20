@@ -7,8 +7,8 @@ import {
 	travelOffset,
 } from '../../modules/dashboard/engine/dashboard-drag'
 import {
+	canFit,
 	type DashboardCell,
-	fits,
 	ROW_SUBDIVISION,
 } from '../../modules/dashboard/engine/dashboard-layout'
 import { cell, origins } from '../helpers/dashboard-cells'
@@ -197,7 +197,7 @@ describe('nearestFit', () => {
 
 /**
  * The reference search: it sorts each origin in the travel range by distance, and
- * takes the first that fits. The sort is stable, so a tie goes to the upper row,
+ * takes the first that canFit. The sort is stable, so a tie goes to the upper row,
  * then to the left column. The start cell wins a tie at its distance.
  */
 function sortedFit(
@@ -228,7 +228,7 @@ function sortedFit(
 
 	candidates.sort((a, b) => a.distance - b.distance)
 
-	const hit = candidates.find((item) => fits(board, { ...origin, x: item.x, y: item.y }, 24))
+	const hit = candidates.find((item) => canFit(board, { ...origin, x: item.x, y: item.y }, 24))
 
 	if (hit === undefined || (hit.x === origin.x && hit.y === origin.y)) return null
 

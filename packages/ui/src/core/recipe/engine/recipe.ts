@@ -44,7 +44,7 @@ const MEMO_CAP = 1024
 
 /**
  * A compound rule pre-split into its conditions and class payload. {@link
- * expand} normalized the conditions to axis-lookup strings, so {@link matches}
+ * expand} normalized the conditions to axis-lookup strings, so {@link isMatch}
  * compares them against the resolved values directly.
  *
  * @internal
@@ -276,13 +276,13 @@ function buildValues(
 }
 
 /** True when every pre-split condition in `rule` equals the resolved value. @internal */
-function matches(rule: CompiledRule, values: Record<string, string | undefined>): boolean {
+function isMatch(rule: CompiledRule, values: Record<string, string | undefined>): boolean {
 	return rule.conditions.every(([key, required]) => required === values[key])
 }
 
 /**
  * Composes base + matching variant axes + the palette pair + compound rules
- * into the class list. Order matches the pre-compiled engine: palette classes
+ * into the class list. Order isMatch the pre-compiled engine: palette classes
  * land before user compound classes, so user rules still win merge conflicts.
  *
  * @internal
@@ -303,7 +303,7 @@ function collectClasses(plan: Plan, values: Record<string, string | undefined>):
 	}
 
 	for (const rule of plan.rules) {
-		if (matches(rule, values)) classes.push(rule.class)
+		if (isMatch(rule, values)) classes.push(rule.class)
 	}
 
 	return classes

@@ -22,7 +22,7 @@ import {
 	NEW_ROW_ADD_COLUMN_ID,
 } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
-import { fromInteractiveContent } from './engine/grid-row/cell'
+import { isInInteractive } from './engine/grid-row/cell'
 import { stickyHeadInset } from './engine/grid-sticky-insets'
 import { GridAddRowButton } from './grid-add-row-button'
 import { GridCellEditor } from './grid-cell-editor'
@@ -40,7 +40,7 @@ function inert(): undefined {
 }
 
 /** A focus claim that the new-row slot answers through its own `claimSlot`. @internal */
-function noClaim(): boolean {
+function isClaimed(): boolean {
 	return false
 }
 
@@ -117,7 +117,7 @@ function GridNewRowCell<T>({
 	const seat = (event: MouseEvent<HTMLTableCellElement>) => {
 		const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
 
-		if (!inCell || fromInteractiveContent(event.target)) return
+		if (!inCell || isInInteractive(event.target)) return
 
 		event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
 
@@ -142,7 +142,7 @@ function GridNewRowCell<T>({
 				readDraft={session.readDraft}
 				endSession={inert}
 				entrySeed={inert}
-				claimFocus={noClaim}
+				claimFocus={isClaimed}
 				resumeCell={inert}
 				managed
 				settle="none"

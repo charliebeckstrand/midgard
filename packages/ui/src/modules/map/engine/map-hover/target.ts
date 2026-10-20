@@ -27,12 +27,12 @@ export type MapHoverTarget =
 	  }
 
 /** Whether two hover targets name the same mark, so a redundant write can bail. @internal */
-export function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
+export function isSameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
 	if (a === b) return true
 
 	if (a === null || b === null || a.kind !== b.kind) return false
 
-	return sameMark(a, b) && (a.kind === 'region' || a.stop === (b as { stop: number }).stop)
+	return isSameMark(a, b) && (a.kind === 'region' || a.stop === (b as { stop: number }).stop)
 }
 
 /**
@@ -42,12 +42,12 @@ export function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): 
  * therefore draws under a single wrapper and a single dim class, where two
  * hundred dots would otherwise need two hundred.
  *
- * {@link sameTarget} is this plus the stop, so a third target kind is added
+ * {@link isSameTarget} is this plus the stop, so a third target kind is added
  * here once rather than in two comparisons that must agree.
  *
  * @internal
  */
-export function sameMark(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
+export function isSameMark(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
 	if (a === b) return true
 
 	if (a === null || b === null || a.kind !== b.kind) return false
@@ -70,7 +70,7 @@ export function sameMark(a: MapHoverTarget | null, b: MapHoverTarget | null): bo
  *
  * @internal
  */
-export function mapMarkDimmed(
+export function isMarkDimmed(
 	pointed: MapHoverTarget | null,
 	self: MapHoverTarget,
 	emphasis: string | null,
@@ -79,7 +79,7 @@ export function mapMarkDimmed(
 	// Compared by mark, not by stop: a plural mark draws under one wrapper, so
 	// pointing one of its dots must light the whole group rather than dim the rest
 	// of itself.
-	if (pointed !== null) return !sameMark(pointed, self)
+	if (pointed !== null) return !isSameMark(pointed, self)
 
 	return emphasis !== null && emphasis !== groupId
 }

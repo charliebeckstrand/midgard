@@ -68,13 +68,13 @@ function getDayFlags(
 	date: Date,
 	rangeStart: Date | null | undefined,
 	effectiveEnd: Date | null | undefined,
-): { isEdge: boolean; isInnerRange: boolean; isStartEdge: boolean; isEndEdge: boolean } {
-	const isEdge =
+): { terminal: boolean; between: boolean; leading: boolean; trailing: boolean } {
+	const terminal =
 		(rangeStart != null && isSameDay(date, rangeStart)) ||
 		(effectiveEnd != null && isSameDay(date, effectiveEnd))
 
 	if (rangeStart == null || effectiveEnd == null) {
-		return { isEdge, isInnerRange: false, isStartEdge: false, isEndEdge: false }
+		return { terminal, between: false, leading: false, trailing: false }
 	}
 
 	// The earlier endpoint is the start edge, in either selection order.
@@ -86,10 +86,10 @@ function getDayFlags(
 	const spans = isBeforeDay(first, last)
 
 	return {
-		isEdge,
-		isInnerRange: isBetween(date, first, last),
-		isStartEdge: spans && isSameDay(date, first),
-		isEndEdge: spans && isSameDay(date, last),
+		terminal,
+		between: isBetween(date, first, last),
+		leading: spans && isSameDay(date, first),
+		trailing: spans && isSameDay(date, last),
 	}
 }
 
@@ -162,20 +162,16 @@ export function CalendarRange({
 		(context: CalendarDayContextValue): CalendarDayProps => {
 			const { date } = context
 
-			const { isEdge, isInnerRange, isStartEdge, isEndEdge } = getDayFlags(
-				date,
-				rangeStart,
-				effectiveEnd,
-			)
+			const { terminal, between, leading, trailing } = getDayFlags(date, rangeStart, effectiveEnd)
 
 			return {
-				selected: isEdge,
-				variant: isInnerRange ? 'soft' : undefined,
-				color: isInnerRange ? 'blue' : undefined,
+				selected: terminal,
+				variant: between ? 'soft' : undefined,
+				color: between ? 'blue' : undefined,
 				className: cn(
-					isInnerRange && 'rounded-none',
-					isStartEdge && k.day.range.start,
-					isEndEdge && k.day.range.end,
+					between && 'rounded-none',
+					leading && k.day.range.start,
+					trailing && k.day.range.end,
 				),
 				...hoverHandlers(onHoverDate, date),
 			}

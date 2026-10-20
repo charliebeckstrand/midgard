@@ -642,8 +642,8 @@ describe('MenuContent', () => {
 					value={{
 						open,
 						menuId: 'menu',
-						isDropdown: true,
-						isSheet: false,
+						placed: true,
+						sheeted: false,
 						floatingStyles: {},
 						getReferenceProps: (props = {}) => props,
 						getFloatingProps: () => ({}),

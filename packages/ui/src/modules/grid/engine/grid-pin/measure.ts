@@ -1,5 +1,5 @@
 import type { GridColumn } from '../../types'
-import { sameNumberMap } from '../grid-table/equality'
+import { isSameNumberMap } from '../grid-table/equality'
 import type { PinSide } from './overrides'
 
 /**
@@ -120,6 +120,6 @@ export function frozenOffsets(cells: FrozenCell[]): FrozenOffsets {
  *
  * @internal
  */
-export function sameFrozenOffsets(a: FrozenOffsets | null, b: FrozenOffsets): boolean {
-	return a != null && sameNumberMap(a.left, b.left) && sameNumberMap(a.right, b.right)
+export function isSameOffsets(a: FrozenOffsets | null, b: FrozenOffsets): boolean {
+	return a != null && isSameNumberMap(a.left, b.left) && isSameNumberMap(a.right, b.right)
 }

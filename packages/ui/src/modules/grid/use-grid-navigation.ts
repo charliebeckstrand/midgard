@@ -19,8 +19,8 @@ import {
 	clamp,
 	createEmitter,
 	FOCUSABLE_SELECTOR,
+	isSameElements,
 	noopSubscribe,
-	sameElements,
 } from '../../utilities'
 import { createPressOwner, isPrimaryPress, type PressOwner } from '../../utilities/primary-press'
 import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
@@ -28,7 +28,7 @@ import {
 	type GridRangeCells,
 	type GridRowDistance,
 	type GridRowStep,
-	inRangeRect,
+	isInRect,
 	rangeCells,
 	rangeRect,
 } from './engine/grid-range/range'
@@ -247,7 +247,7 @@ const MOVEMENT_KEYS = new Set([
  *
  * @internal
  */
-function browserOwnsKey(event: KeyboardEvent): boolean {
+function isBrowserKey(event: KeyboardEvent): boolean {
 	if (!MOVEMENT_KEYS.has(event.key)) return false
 
 	if (event.altKey) return true
@@ -951,7 +951,7 @@ export function useGridNavigation({
 
 			const place = orderRef.current ? (orderIndexRef.current.cursorByRow.get(row) ?? -1) : row
 
-			return place !== -1 && inRangeRect(rect, place, col)
+			return place !== -1 && isInRect(rect, place, col)
 		},
 		[readCorners],
 	)
@@ -1028,7 +1028,7 @@ export function useGridNavigation({
 		setActive((prev) => reseat(prev, order, seated))
 	})
 
-	// Built once. The cells call `isActive` and `isStopActive` in their render,
+	// Built once. The cells call `active` and `isStopActive` in their render,
 	// through `useSyncExternalStore`, so those two stay plain methods. They read
 	// the order when a cell calls them.
 	const [store] = useState<GridNavStore>(() => ({
@@ -1076,7 +1076,8 @@ export function useGridNavigation({
 			layoutRef.current = next
 
 			const moved =
-				seen !== null && !(sameElements(seen.rows, rowKeys) && sameElements(seen.cols, columnIds))
+				seen !== null &&
+				!(isSameElements(seen.rows, rowKeys) && isSameElements(seen.cols, columnIds))
 
 			// The cells under the range moved, so its rectangle names other cells now.
 			if (moved) setAnchor(null)
@@ -1205,7 +1206,7 @@ export function useGridNavigation({
 
 			// A browser shortcut keeps its key: history on Alt or Cmd with an arrow, a
 			// tab switch on Ctrl with a page key.
-			if (browserOwnsKey(event)) return
+			if (isBrowserKey(event)) return
 
 			// A grid with no cell takes no key. The cursor seeds at the first cell when
 			// a key arrives before focus has.

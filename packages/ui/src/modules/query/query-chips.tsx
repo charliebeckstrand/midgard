@@ -12,10 +12,10 @@ import { k } from '../../recipes/kata/query-chips'
 import { combinatorLabel } from './engine/query-messages'
 import {
 	formatQuerySummary,
+	isSpaced,
 	type QuerySummaryRuleToken,
 	type QuerySummaryToken,
 	renderToken,
-	spacedBefore,
 	summarizeQuery,
 } from './engine/query-summary'
 import type { QueryField, QueryGroup } from './engine/types'
@@ -275,7 +275,7 @@ export function QueryChips({
 	// sentence, as `QuerySummary` spaces it; the flex row ignores the space.
 	const body = tokens.map((token, index) => (
 		<Fragment key={`${token.kind}:${token.id}`}>
-			{spacedBefore(tokens[index - 1], token) && ' '}
+			{isSpaced(tokens[index - 1], token) && ' '}
 			{renderPart(token)}
 		</Fragment>
 	))

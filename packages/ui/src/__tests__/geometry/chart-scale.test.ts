@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	bandBoundaries,
 	bandScale,
-	headroomFits,
+	isHeadroomFit,
 	linearScale,
 	nearestBandIndex,
 } from '../../modules/chart/engine/chart-scale'
@@ -129,7 +129,7 @@ describe('linearScale', () => {
 		// across, frame by frame, landing it on the line each time. Sweep the
 		// plot heights a resize passes through: past the affordability cutoff the
 		// gap holds strictly past the threshold; under it nothing is reserved and
-		// the same headroomFits verdict sheds the labels instead.
+		// the same isHeadroomFit verdict sheds the labels instead.
 		const values = [12, -6, 9, -14, 18, 7]
 
 		for (let rangePx = 40; rangePx <= 400; rangePx += 1) {
@@ -137,7 +137,7 @@ describe('linearScale', () => {
 
 			if (!scale) throw new Error('scale must resolve')
 
-			if (!headroomFits(25, rangePx)) {
+			if (!isHeadroomFit(25, rangePx)) {
 				// Unaffordable: the domain stays at its plain nice bounds.
 				const base = linearScale({ values, range: [rangePx, 0], tickTarget: 4 })
 

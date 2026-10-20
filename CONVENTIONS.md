@@ -201,7 +201,10 @@ The [`no-abbreviated-binding`](.biome/plugins/no-abbreviated-binding.grit) Biome
 - `parse` splits raw input.
 - `to` changes a value into a different form.
 - `describe` names a DOM node.
-- `is` and `has` give a boolean.
+- `is`, `has`, `can`, and `should` ask a question and give a boolean.
+- `try` does a thing and gives `true` when it did it.
+
+A boolean value, prop, or parameter takes no `is`. Write `open`, `pending`, and `transposed`, not `isOpen`. For a noun, use an adjective that states the fact, such as `listed` for an array and `atTop` for a top edge. A value that holds a function keeps `is`, because the function is a predicate. A name that copies a field of a DOM or library type, such as `isTrusted`, keeps that field name. [`boolean-name-boundary.test.ts`](packages/ui/src/__tests__/boundary/boolean-name-boundary.test.ts) holds both rules.
 
 Do not end a name with `Of`, as `rowOf` does. That name does not tell if the function reads, searches, builds, or converts. A lookup table is not a function. Give it the name of its value and of its key, as `sectionByPath` does.
 

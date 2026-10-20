@@ -39,7 +39,7 @@ export const deliveryStops: { at: LngLat; label: string; detail: string }[] = [
 ]
 
 /** Whether a position is in a `geoBounds` box. A box across the antimeridian has its west edge east of its east edge. */
-function withinBox([[west, south], [east, north]]: [LngLat, LngLat], [lon, lat]: LngLat): boolean {
+function isInBox([[west, south], [east, north]]: [LngLat, LngLat], [lon, lat]: LngLat): boolean {
 	const inLongitude = west <= east ? lon >= west && lon <= east : lon >= west || lon <= east
 
 	return inLongitude && lat >= south && lat <= north
@@ -58,7 +58,7 @@ const bounds = states.features.map((state) => {
  */
 export const stopStates: (string | null)[] = deliveryStops.map(
 	(stop) =>
-		bounds.find((state) => withinBox(state.box, stop.at) && geoContains(state.shape, stop.at))
+		bounds.find((state) => isInBox(state.box, stop.at) && geoContains(state.shape, stop.at))
 			?.name ?? null,
 )
 

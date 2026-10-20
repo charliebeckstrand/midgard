@@ -59,7 +59,7 @@ export function nextSort(
  *
  * @internal
  */
-export function sortsEqual(a: GridSortState[], b: GridSortState[]): boolean {
+export function isSortEqual(a: GridSortState[], b: GridSortState[]): boolean {
 	if (a === b) return true
 
 	if (a.length !== b.length) return false

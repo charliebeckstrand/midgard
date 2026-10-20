@@ -83,7 +83,7 @@ type FileConstraints = {
  *
  * @internal
  */
-export function matchesAccept(file: File, accept: string | undefined): boolean {
+export function isAccepted(file: File, accept: string | undefined): boolean {
 	const tokens = (accept ?? '')
 		.split(',')
 		.map((token) => token.trim().toLowerCase())
@@ -122,7 +122,7 @@ export function partitionFiles(
 	const kept: File[] = []
 
 	for (const file of files) {
-		if (!matchesAccept(file, accept)) {
+		if (!isAccepted(file, accept)) {
 			rejected.push({ file, reason: 'type' })
 		} else if (maxSize != null && file.size > maxSize) {
 			rejected.push({ file, reason: 'size' })

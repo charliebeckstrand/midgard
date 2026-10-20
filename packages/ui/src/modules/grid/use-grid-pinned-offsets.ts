@@ -8,7 +8,7 @@ import {
 	type FrozenOffsets,
 	frozenHeaderCells,
 	frozenOffsets,
-	sameFrozenOffsets,
+	isSameOffsets,
 } from './engine/grid-pin/measure'
 import type { GridColumn } from './types'
 
@@ -90,7 +90,7 @@ export function useGridPinnedOffsets<T>({
 
 		const next = frozenOffsets(scan)
 
-		if (sameFrozenOffsets(publishedRef.current, next)) return null
+		if (isSameOffsets(publishedRef.current, next)) return null
 
 		publishedRef.current = next
 

@@ -93,7 +93,7 @@ export function useGridEditLeave({
 
 			if (rowKey === null) return
 
-			const inEditors = (node: Element) => {
+			const isInEditors = (node: Element) => {
 				const hit = isInGrid(node, grid) ? sessionTarget(node) : null
 
 				return hit !== null && hit.rowKey === rowKey && hit.columnId !== null
@@ -101,7 +101,7 @@ export function useGridEditLeave({
 
 			const next = event.relatedTarget instanceof Element ? event.relatedTarget : null
 
-			const verdict = readLeave({ commitOn, grid, from, next, inEditors })
+			const verdict = readLeave({ commitOn, grid, from, next, inEditors: isInEditors })
 
 			if (verdict === 'leave') exitSession(rowKey, 'save', false)
 

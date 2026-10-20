@@ -13,7 +13,7 @@ import {
 	useCallback,
 } from 'react'
 import { isComposing } from '../../utilities'
-import { enterKeepsSelection, selectSoleOption } from './combobox-utilities'
+import { shouldKeepSelection, trySelectSoleOption } from './combobox-utilities'
 
 type ComboboxInputParams<T> = {
 	value: T | T[] | undefined
@@ -80,7 +80,7 @@ export function isReservedTextboxKey(event: KeyboardEvent<HTMLInputElement>): bo
  * is always `type="text"`, which always reports a selection. It is the hook's
  * pinned contract (`use-combobox-input.test.ts`), so it stays.
  */
-function arrowOpensClosedMenu(event: KeyboardEvent<HTMLInputElement>): boolean {
+function shouldOpenMenu(event: KeyboardEvent<HTMLInputElement>): boolean {
 	const { selectionStart, selectionEnd, value } = event.currentTarget
 
 	if (selectionStart === null || selectionEnd === null || value === '') return true
@@ -107,7 +107,7 @@ function closedMenuKeyDown(
 ): void {
 	if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
 
-	if (!arrowOpensClosedMenu(event)) return
+	if (!shouldOpenMenu(event)) return
 
 	event.preventDefault()
 
@@ -124,7 +124,7 @@ function closedMenuKeyDown(
  *
  * @returns `true` when the function used the key, else `false`.
  */
-function openMenuEnter(
+function tryOpenMenuEnter(
 	event: KeyboardEvent<HTMLInputElement>,
 	container: HTMLElement | null,
 	multiple: boolean,
@@ -132,7 +132,7 @@ function openMenuEnter(
 ): boolean {
 	if (event.key !== 'Enter' || !container) return false
 
-	if (enterKeepsSelection(container, multiple)) {
+	if (shouldKeepSelection(container, multiple)) {
 		event.preventDefault()
 
 		keep()
@@ -140,7 +140,7 @@ function openMenuEnter(
 		return true
 	}
 
-	if (!selectSoleOption(container)) return false
+	if (!trySelectSoleOption(container)) return false
 
 	event.preventDefault()
 
@@ -276,7 +276,7 @@ export function useComboboxInput<T>({
 				return
 			}
 
-			if (openMenuEnter(event, optionsRef.current, multiple, keep)) return
+			if (tryOpenMenuEnter(event, optionsRef.current, multiple, keep)) return
 
 			rovingKeyDown(event)
 		},

@@ -77,7 +77,7 @@ export function joinPath(parentPath: string, childKey: string | number): string 
 }
 
 /** True when a node's key or scalar value contains `term` (case-insensitive); branch values never match directly. @internal */
-export function matchesSearch(key: string | number | undefined, value: JsonValue, term: string) {
+export function isMatch(key: string | number | undefined, value: JsonValue, term: string) {
 	if (!term) return false
 
 	const lower = term.toLowerCase()
@@ -89,13 +89,12 @@ export function matchesSearch(key: string | number | undefined, value: JsonValue
 }
 
 /** Recursive fallback for {@link filterEntries} when no {@link SearchIndex} is supplied: true if any descendant matches. @internal */
-export function treeContainsMatch(value: JsonValue, term: string): boolean {
+export function hasMatch(value: JsonValue, term: string): boolean {
 	if (!term) return false
 
 	return getEntries(value).some(
 		([childKey, childValue]) =>
-			matchesSearch(childKey, childValue, term) ||
-			(isBranch(childValue) && treeContainsMatch(childValue, term)),
+			isMatch(childKey, childValue, term) || (isBranch(childValue) && hasMatch(childValue, term)),
 	)
 }
 
@@ -108,15 +107,15 @@ export function buildSearchIndex(data: JsonValue, term: string): SearchIndex {
 
 	if (!term || !isBranch(data)) return index
 
-	function walk(value: JsonValue): boolean {
+	function isMatched(value: JsonValue): boolean {
 		if (!isBranch(value)) return false
 
 		let contains = false
 
 		for (const [childKey, childValue] of getEntries(value)) {
-			if (matchesSearch(childKey, childValue, term)) contains = true
+			if (isMatch(childKey, childValue, term)) contains = true
 
-			if (isBranch(childValue) && walk(childValue)) contains = true
+			if (isBranch(childValue) && isMatched(childValue)) contains = true
 		}
 
 		index.set(value, contains)
@@ -124,7 +123,7 @@ export function buildSearchIndex(data: JsonValue, term: string): SearchIndex {
 		return contains
 	}
 
-	walk(data)
+	isMatched(data)
 
 	return index
 }
@@ -137,8 +136,8 @@ export function filterEntries(
 ) {
 	return entries.filter(
 		([key, value]) =>
-			matchesSearch(key, value, term) ||
-			(isBranch(value) && (index ? index.get(value) === true : treeContainsMatch(value, term))),
+			isMatch(key, value, term) ||
+			(isBranch(value) && (index ? index.get(value) === true : hasMatch(value, term))),
 	)
 }
 
@@ -157,17 +156,17 @@ export function collectMatchPaths(
 ): Set<string> {
 	const paths = new Set<string>()
 
-	function walk(value: JsonValue, path: string) {
+	function isMatched(value: JsonValue, path: string) {
 		if (!isBranch(value) || index.get(value) !== true) return
 
 		paths.add(path)
 
 		for (const [childKey, childValue] of getEntries(value)) {
-			walk(childValue, joinPath(path, childKey))
+			isMatched(childValue, joinPath(path, childKey))
 		}
 	}
 
-	if (isBranch(data)) walk(data, encodePathSegment(rootKey ?? '$'))
+	if (isBranch(data)) isMatched(data, encodePathSegment(rootKey ?? '$'))
 
 	return paths
 }
@@ -180,20 +179,20 @@ export function collectPaths(
 ): Set<string> {
 	const paths = new Set<string>()
 
-	function walk(value: JsonValue, path: string, depth: number) {
+	function isMatched(value: JsonValue, path: string, depth: number) {
 		if (!isBranch(value) || depth >= maxDepth) return
 
 		paths.add(path)
 
 		for (const [childKey, childValue] of getEntries(value)) {
-			walk(childValue, joinPath(path, childKey), depth + 1)
+			isMatched(childValue, joinPath(path, childKey), depth + 1)
 		}
 	}
 
 	if (isBranch(data)) {
 		const rootPath = encodePathSegment(rootKey ?? '$')
 
-		walk(data, rootPath, 0)
+		isMatched(data, rootPath, 0)
 	}
 
 	return paths
@@ -292,14 +291,14 @@ export function flattenTree({
 }: FlattenTreeOptions): FlatNode[] {
 	const rows: FlatNode[] = []
 
-	function walk(
+	function isMatched(
 		value: JsonValue,
 		keyName: string | number | undefined,
 		path: string,
 		depth: number,
 		position: FlatSetPosition,
 	) {
-		const highlighted = search ? matchesSearch(keyName, value, search) : false
+		const highlighted = search ? isMatch(keyName, value, search) : false
 
 		if (!isBranch(value)) {
 			if (filter && search && !highlighted) return
@@ -335,13 +334,13 @@ export function flattenTree({
 		for (const [index, [childKey, childValue]] of entries.entries()) {
 			const childPath = joinPath(path, childKey)
 
-			walk(childValue, childKey, childPath, depth + 1, { setSize: count, posInSet: index + 1 })
+			isMatched(childValue, childKey, childPath, depth + 1, { setSize: count, posInSet: index + 1 })
 		}
 
 		rows.push({ type: 'branch-close', path, depth, value })
 	}
 
-	walk(data, rootKey, encodePathSegment(rootKey ?? '$'), 0, { setSize: 1, posInSet: 1 })
+	isMatched(data, rootKey, encodePathSegment(rootKey ?? '$'), 0, { setSize: 1, posInSet: 1 })
 
 	return rows
 }

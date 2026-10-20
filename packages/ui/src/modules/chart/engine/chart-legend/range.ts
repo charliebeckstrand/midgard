@@ -11,7 +11,7 @@
 
 import type { ChartOrientation } from '../chart-orientation'
 import { COMPACT_WIDTH, isSparkBox } from '../chart-tier'
-import { type ChartLegendPlacement, legendAside } from './schema'
+import { type ChartLegendPlacement, isLegendAside } from './schema'
 
 /**
  * The object form of a color-scaled chart's `legend` prop: the scale bar's
@@ -47,7 +47,7 @@ export type ResolvedRangeLegend = {
  * @internal
  */
 function getOrientation(placement: ChartLegendPlacement): ChartOrientation {
-	return legendAside(placement) ? 'vertical' : 'horizontal'
+	return isLegendAside(placement) ? 'vertical' : 'horizontal'
 }
 
 /** The placement a `legend` prop names, before the box adjusts it. @internal */
@@ -84,7 +84,7 @@ export function rangeLegendPlacement(
 
 	// A stacked placement is already horizontal and stays put. An unmeasured box
 	// (width 0) keeps the request, because there is nothing to adjust to.
-	return legendAside(requested) && width > 0 && width < COMPACT_WIDTH ? 'bottom' : requested
+	return isLegendAside(requested) && width > 0 && width < COMPACT_WIDTH ? 'bottom' : requested
 }
 
 /**

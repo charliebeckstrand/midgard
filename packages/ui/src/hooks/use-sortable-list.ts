@@ -27,7 +27,7 @@ import {
 import type { IntlShape } from '../primitives/intl/types'
 import { useIntl } from '../primitives/intl/use-intl'
 import type { Orientation } from '../types'
-import { sameElements } from '../utilities'
+import { isSameElements } from '../utilities'
 import { useDragCursor } from './use-drag-cursor'
 import { useIsRtl } from './use-is-rtl'
 import { useSortableSensors } from './use-sortable-sensors'
@@ -187,7 +187,7 @@ export function useSortableList<T>({
 
 	const [itemIds, setItemIds] = useState(keys)
 
-	if (!sameElements(itemIds, keys)) setItemIds(keys)
+	if (!isSameElements(itemIds, keys)) setItemIds(keys)
 
 	const rtl = useIsRtl()
 

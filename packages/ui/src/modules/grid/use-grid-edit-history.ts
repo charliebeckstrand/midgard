@@ -34,7 +34,7 @@ export type GridEditHistory = {
 }
 
 /** Whether two history states say the same. */
-function sameState(a: GridHistoryState, b: GridHistoryState): boolean {
+function isSameState(a: GridHistoryState, b: GridHistoryState): boolean {
 	return a.canUndo === b.canUndo && a.canRedo === b.canRedo
 }
 
@@ -69,7 +69,7 @@ export function useGridEditHistory(
 
 		const state = { canUndo: next.undo.length > 0, canRedo: next.redo.length > 0 }
 
-		if (sameState(state, reportedRef.current)) return
+		if (isSameState(state, reportedRef.current)) return
 
 		reportedRef.current = state
 

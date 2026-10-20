@@ -6,7 +6,7 @@ import {
 	returnElement,
 	returnFlagged,
 } from '../../modules/grid/engine/grid-edit-focus'
-import { claimedBySurface, editorMove, ownNode } from '../../modules/grid/engine/grid-edit-keys'
+import { editorMove, isSurfaceKey, ownNode } from '../../modules/grid/engine/grid-edit-keys'
 import { readLeave } from '../../modules/grid/engine/grid-edit-leave'
 
 /**
@@ -180,15 +180,15 @@ describe('the key rules of an edit session', () => {
 
 		const table = at<HTMLTableElement>(host, 'table')
 
-		expect(claimedBySurface(keyOn(table, at(host, 'input'), 'Escape'))).toBe(false)
+		expect(isSurfaceKey(keyOn(table, at(host, 'input'), 'Escape'))).toBe(false)
 
 		expect(
-			claimedBySurface(keyOn(table, at(host, 'input'), 'Escape', { defaultPrevented: true })),
+			isSurfaceKey(keyOn(table, at(host, 'input'), 'Escape', { defaultPrevented: true })),
 		).toBe(true)
 
-		expect(
-			claimedBySurface(keyOn(table, at(host, '[data-floating-ui-portal] button'), 'Escape')),
-		).toBe(true)
+		expect(isSurfaceKey(keyOn(table, at(host, '[data-floating-ui-portal] button'), 'Escape'))).toBe(
+			true,
+		)
 	})
 
 	it('reads no row or cell of a grid nested in this one', () => {

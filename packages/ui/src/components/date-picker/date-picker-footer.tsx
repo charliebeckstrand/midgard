@@ -44,7 +44,7 @@ export function DatePickerFooter({
 			className={cn(k.footer)}
 		>
 			{footerButtons.map((kind, index) => {
-				const isActive = active?.zone === 'footer' && active.index === index
+				const highlighted = active?.zone === 'footer' && active.index === index
 
 				if (kind === 'clear') {
 					return (
@@ -55,7 +55,7 @@ export function DatePickerFooter({
 							color="amber"
 							onClick={onClear}
 							aria-label={intl.formatMessage(intlMessages.clearSelection)}
-							className={cn(isActive && k.day.active)}
+							className={cn(highlighted && k.day.active)}
 							data-index={index}
 						>
 							{intl.formatMessage(intlMessages.clear)}
@@ -70,7 +70,7 @@ export function DatePickerFooter({
 						variant="soft"
 						color="blue"
 						onClick={onToday}
-						className={cn(isActive && k.day.active)}
+						className={cn(highlighted && k.day.active)}
 						data-index={index}
 					>
 						{intl.formatMessage(datePickerMessages.today)}

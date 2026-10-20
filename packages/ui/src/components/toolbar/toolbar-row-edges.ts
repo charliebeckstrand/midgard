@@ -36,7 +36,7 @@ export function markRowEdges(toolbar: HTMLElement | null, orientation: ToolbarOr
 
 	if (separators.length === 0) return
 
-	const edges = orientation === 'horizontal' && wraps(toolbar) ? rowEdges(toolbar) : undefined
+	const edges = orientation === 'horizontal' && isWrapped(toolbar) ? rowEdges(toolbar) : undefined
 
 	for (const separator of separators) {
 		if (edges?.has(separator)) separator.setAttribute(ROW_EDGE_ATTRIBUTE, '')
@@ -54,7 +54,7 @@ function boxedChildren(toolbar: HTMLElement): Element[] {
  * one starts at or below the bottom of the first. It reads two boxes only.
  * @internal
  */
-function wraps(toolbar: HTMLElement): boolean {
+function isWrapped(toolbar: HTMLElement): boolean {
 	const children = boxedChildren(toolbar)
 
 	const first = children[0]

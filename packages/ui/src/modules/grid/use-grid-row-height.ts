@@ -52,7 +52,7 @@ export function useGridRowHeight(
 			if (!enabled || !table) return
 
 			/** Sets the height of the first row, and returns whether it had one. */
-			const read = () => {
+			const tryMeasure = () => {
 				const height = table.querySelector<HTMLElement>(ROW_SELECTOR)?.offsetHeight ?? 0
 
 				if (height <= 0) return false
@@ -62,10 +62,10 @@ export function useGridRowHeight(
 				return true
 			}
 
-			if (read()) return
+			if (tryMeasure()) return
 
 			const observer = new ResizeObserver(() => {
-				if (read()) observer.disconnect()
+				if (tryMeasure()) observer.disconnect()
 			})
 
 			observer.observe(table)

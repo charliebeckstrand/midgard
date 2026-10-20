@@ -18,8 +18,8 @@
 import { clamp } from '../../../utilities'
 import {
 	bottom,
+	canFit,
 	type DashboardCell,
-	fits,
 	moveCell,
 	overlapArea,
 	ROW_SUBDIVISION,
@@ -104,8 +104,8 @@ export function travelOffset(
  *
  * @remarks
  * The search walks out from row `y`, one row up and one row down at each step.
- * No origin `d` rows away is nearer than `d²`, so the walk stops when `d²` passes
- * the best distance. On a board with no overlap the start cell fits, so the cost
+ * No origin `d` rows away is isNearer than `d²`, so the walk stops when `d²` passes
+ * the best distance. On a board with no overlap the start cell canFit, so the cost
  * follows the length of the drag, not the depth of the board. Between equal
  * distances, the upper row wins, and then the left column.
  *
@@ -155,7 +155,7 @@ type FitCandidate = { x: number; y: number; distance: number }
 
 /**
  * The rows `step` rows from `y`, inside `[0, maxY]`. The upper row comes first,
- * and {@link nearer} settles a tie with a row that a later step visits.
+ * and {@link isNearer} settles a tie with a row that a later step visits.
  */
 function rowsAt(y: number, step: number, maxY: number): number[] {
 	const rows = step === 0 ? [y] : [y - step, y + step]
@@ -163,7 +163,7 @@ function rowsAt(y: number, step: number, maxY: number): number[] {
 	return rows.filter((cy) => cy >= 0 && cy <= maxY)
 }
 
-/** The nearer of `best` and each origin in row `cy` where the tile fits. */
+/** The isNearer of `best` and each origin in row `cy` where the tile canFit. */
 function scanRow(search: FitSearch, cy: number, best: FitCandidate | null): FitCandidate | null {
 	const { snapshot, origin, x, y, maxX, columns } = search
 
@@ -179,23 +179,23 @@ function scanRow(search: FitSearch, cy: number, best: FitCandidate | null): FitC
 			distance: ((cx - x) * ROW_SUBDIVISION) ** 2 + (cy - y) ** 2 + home,
 		}
 
-		if (result !== null && !nearer(candidate, result)) continue
+		if (result !== null && !isNearer(candidate, result)) continue
 
-		if (fits(snapshot, { ...origin, x: cx, y: cy }, columns)) result = candidate
+		if (canFit(snapshot, { ...origin, x: cx, y: cy }, columns)) result = candidate
 	}
 
 	return result
 }
 
 /** Whether `a` comes before `b`: by distance, then by row, then by column. */
-function nearer(a: FitCandidate, b: FitCandidate): boolean {
+function isNearer(a: FitCandidate, b: FitCandidate): boolean {
 	if (a.distance !== b.distance) return a.distance < b.distance
 
 	return a.y === b.y ? a.x < b.x : a.y < b.y
 }
 
 /** Whether `peer` can reorder with `origin`: it is not static, and it has the span of `origin`. */
-function reorderable(peer: DashboardCell, origin: DashboardCell): boolean {
+function canReorder(peer: DashboardCell, origin: DashboardCell): boolean {
 	return !peer.static && peer.w === origin.w && peer.h === origin.h
 }
 
@@ -223,8 +223,8 @@ function dominantPeer(
 			area > most ||
 			(area === most &&
 				dominant !== undefined &&
-				reorderable(peer, origin) &&
-				!reorderable(dominant, origin))
+				canReorder(peer, origin) &&
+				!canReorder(dominant, origin))
 
 		if (wins) {
 			dominant = peer
@@ -261,7 +261,7 @@ export function dragPreview(
 
 	const target = { ...origin, x, y }
 
-	if (fits(snapshot, target, columns)) {
+	if (canFit(snapshot, target, columns)) {
 		return { cells: moveCell(snapshot, id, x, y), kind: 'move' }
 	}
 
@@ -282,7 +282,7 @@ function reorderPreview(
 ): DashboardDragPreview | null {
 	const partner = dominantPeer(snapshot, origin, target)
 
-	if (partner === undefined || !reorderable(partner, origin)) return null
+	if (partner === undefined || !canReorder(partner, origin)) return null
 
 	if (overlapArea(partner, target) * 2 < origin.w * origin.h) return null
 

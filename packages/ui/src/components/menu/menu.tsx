@@ -122,7 +122,7 @@ export function Menu({
 		handleContextMenu,
 		handleContextKeyDown,
 		handleContextPointerDown,
-		isContextSurface,
+		contextLive,
 	} = useMenuRoot({
 		open,
 		defaultOpen,
@@ -138,7 +138,7 @@ export function Menu({
 	// A dropdown can sit in phrasing content such as a `<p>`, and its panel renders in a
 	// portal, so its root is a `<span>`. A context menu wraps block page content, and a
 	// static panel renders in place, so their root is a `<div>`.
-	const Root = state.isDropdown ? 'span' : 'div'
+	const Root = state.placed ? 'span' : 'div'
 
 	return (
 		<MenuActionsContext value={actions}>
@@ -149,7 +149,7 @@ export function Menu({
 				open submenu's arrow keys arrive. A dropdown roves by
 				`aria-activedescendant` from there, so the pointer marks `data-active`;
 				every other mode roves by real focus and the pointer moves it. */}
-					<MenuPointerLevel virtual={state.isDropdown && !state.isSheet} owner={actions.triggerRef}>
+					<MenuPointerLevel virtual={state.placed && !state.sheeted} owner={actions.triggerRef}>
 						<Root
 							data-slot="menu"
 							// contents: this wrapper must not participate in layout, or it
@@ -157,17 +157,13 @@ export function Menu({
 							// grid container the caller placed the menu in, breaking alignment.
 							// A context surface turns off the iOS callout, because a long press
 							// there opens the menu. The property inherits through `contents`.
-							className={cn(
-								'contents',
-								isContextSurface && '[-webkit-touch-callout:none]',
-								className,
-							)}
+							className={cn('contents', contextLive && '[-webkit-touch-callout:none]', className)}
 							// No role: the wrapper holds arbitrary page content and implements no
 							// keyboard model of its own. Stamping role="application" here would
 							// suppress AT browse-mode for everything inside it, so it is omitted.
 							// The key and press captures only record how the next open starts, so
 							// the menu knows whether to restore focus when it closes.
-							{...(isContextSurface && {
+							{...(contextLive && {
 								...touchContextMenu,
 								onContextMenu: handleContextMenu,
 								onKeyDownCapture: handleContextKeyDown,

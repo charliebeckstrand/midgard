@@ -26,7 +26,7 @@ import {
 	GEOFENCE_CIRCLE_STEPS,
 	POINT_HIT_RADIUS,
 } from './map-constants'
-import { areaReach, type MapAreaBox, type MapAreaRing, ringsNear } from './map-geometry/mark'
+import { areaReach, isNearRings, type MapAreaBox, type MapAreaRing } from './map-geometry/mark'
 import type { LngLat, MapPoint2D } from './types'
 
 /** Degrees in one radian: meters of arc become the angle `geoCircle` takes. @internal */
@@ -143,5 +143,5 @@ export function zoneBudget(rings: readonly MapAreaRing[], unitsPerPixel: number)
  * @internal
  */
 export function zoneSpare(zone: MapZoneBudget, at: MapPoint2D): number {
-	return ringsNear(zone.rings, at, zone.margin) ? zone.spare : Number.POSITIVE_INFINITY
+	return isNearRings(zone.rings, at, zone.margin) ? zone.spare : Number.POSITIVE_INFINITY
 }

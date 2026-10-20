@@ -51,7 +51,7 @@ function barClass(
  *
  * Isolation stays per-datum without re-drawing the series. A pointed bar, a
  * legend hover, or a held category selection can leave some bars of a series
- * unlit. The whole series path then dims, and the lit bars re-draw over it as one
+ * unlit. The whole series path then dims, and the isLit bars re-draw over it as one
  * overlay path, not a rebuild. The series paths are
  * memoized on `marks`, so an emphasis change rebuilds only the overlay. Such a
  * change re-runs this component through the emphasis context, never the chart
@@ -66,7 +66,7 @@ export function ChartBarMarks({
 	fills,
 	textureActive = false,
 }: ChartBarMarksProps) {
-	const { mark, lit } = useChartMarkEmphasis()
+	const { mark, isLit } = useChartMarkEmphasis()
 
 	// A pointed bar isolates one datum, so its series lifts even when that bar is
 	// the only one: the path dims and the bar re-draws over it.
@@ -90,7 +90,7 @@ export function ChartBarMarks({
 
 		const series = indices[seriesIndex] ?? seriesIndex
 
-		const { dimmed, overlay } = litOverlay(row, (datum) => lit(series, datum), isolating)
+		const { dimmed, overlay } = litOverlay(row, (datum) => isLit(series, datum), isolating)
 
 		return (
 			<g key={series} data-slot="chart-bar-series">
@@ -117,13 +117,13 @@ export function ChartBarMarks({
 }
 
 /**
- * How one series of bars paints under an emphasis. When each bar is lit and
+ * How one series of bars paints under an emphasis. When each bar is isLit and
  * nothing isolates a datum, the series path stands alone. Otherwise the series
- * path dims, and the lit bars join into one overlay path over it, or no overlay
- * when none is lit.
+ * path dims, and the isLit bars join into one overlay path over it, or no overlay
+ * when none is isLit.
  *
  * @param isolating - Whether the emphasis isolates one datum, such as a pointed
- * bar. The lift then draws even when each bar of the series is lit.
+ * bar. The lift then draws even when each bar of the series is isLit.
  * @internal
  */
 export function litOverlay(
@@ -211,7 +211,7 @@ export function AnimatedChartBarMarks({
 	textureActive = false,
 	orientation = 'vertical',
 }: ChartBarMarksProps) {
-	const { lit } = useChartMarkEmphasis()
+	const { isLit } = useChartMarkEmphasis()
 
 	const still = usePrefersReducedMotion()
 
@@ -236,7 +236,7 @@ export function AnimatedChartBarMarks({
 					delay={barGrowDelay(index, row.length)}
 					fill={paint && rawColor(paint)}
 					tile={fills?.[seriesIndex]}
-					className={barClass(paint, !lit(series, index), textureActive, fills?.[seriesIndex])}
+					className={barClass(paint, !isLit(series, index), textureActive, fills?.[seriesIndex])}
 					still={still}
 				/>
 			)

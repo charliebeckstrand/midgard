@@ -87,7 +87,7 @@ The sequential-scale primitives the data-driven color charts share: the chorople
 | `ListenerRegistryOptions` *(type)* | How a registry makes the source of a key, attaches its listener, and whether it keeps an empty entry. |
 | `subscribeDocumentEvent` | Subscribes to a document event via one shared listener per type; returns an unsubscribe fn. |
 | `subscribeMediaQuery` | Subscribes to a media query via one shared `MediaQueryList` and `change` listener per query string; returns an unsubscribe fn. |
-| `matchesMediaQuery` | Whether a media query currently matches, read from the shared `MediaQueryList` when registered (client only). |
+| `isMediaMatch` | Whether a media query currently matches, read from the shared `MediaQueryList` when registered (client only). |
 | `NO_HOVER_QUERY` | The `(hover: none)` query, which matches a device with no hover, such as a phone. |
 | `PHONE_QUERY` | The query that matches a phone: no hover, and a viewport narrower than the `sm` breakpoint. A dropdown `Menu` and a `DatePicker` open as a bottom sheet there. |
 | `REDUCED_MOTION_QUERY` | The `(prefers-reduced-motion: reduce)` query, for a caller that reads it outside React. |
@@ -138,7 +138,7 @@ The sequential-scale primitives the data-driven color charts share: the chorople
 | `toggleItem` | Returns a copy of `set` with `item` toggled (removed if present, added otherwise); no mutation. |
 | `moveItem` | Returns a copy of `items` with the item at `from` moved to index `to`. No mutation. |
 | `toggleListItem` | Returns a copy of `list` with `item` toggled: removed if present, else added at the end. No mutation. |
-| `sameElements` | Whether two lists hold the same items in the same order, by reference. `undefined` matches only `undefined`. |
+| `isSameElements` | Whether two lists hold the same items in the same order, by reference. `undefined` matches only `undefined`. |
 | `keyByOccurrence` | Pairs each string with a React-key-safe id that is unique for any input, keying repeats by occurrence index. |
 | `rangeKeys` | Builds `count` stable `${prefix}-${index}` keys for fixed-length placeholder loops (skeletons). |
 | `isDataColumn` | True for content columns; false for the selection-checkbox and row-actions columns. |

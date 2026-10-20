@@ -13,8 +13,8 @@ import {
 	EMPTY_FROZEN_LAYOUT,
 	type FrozenLayout,
 	frozenLayout,
-	sameFrozenLayout,
-	sameFrozenStructure,
+	isSameLayout,
+	isSameStructure,
 } from './engine/grid-pin/layout'
 import type { FrozenOffsets } from './engine/grid-pin/measure'
 import { createFrozenOffsetStore, writeFrozenOffsets } from './engine/grid-pin/offsets'
@@ -89,10 +89,10 @@ export function useGridPinningView<T>(args: {
 
 	const layout = useStableValue<FrozenLayout>(
 		hasPinned ? frozenLayout(sections, widths, measured) : EMPTY_FROZEN_LAYOUT,
-		sameFrozenLayout,
+		isSameLayout,
 	)
 
-	const structure = useStableValue<FrozenLayout>(layout, sameFrozenStructure)
+	const structure = useStableValue<FrozenLayout>(layout, isSameStructure)
 
 	useLayoutEffect(() => {
 		const prev = offsets.commit(layout)

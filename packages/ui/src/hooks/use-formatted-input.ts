@@ -36,7 +36,7 @@ export type FormattedInputOptions = {
 	ref?: Ref<HTMLInputElement>
 }
 
-const defaultMeaningful = (char: string) => /[A-Za-z0-9+]/.test(char)
+const isMeaningful = (char: string) => /[A-Za-z0-9+]/.test(char)
 
 /**
  * Caret-preserving reformat engine for formatted text inputs: the stateless
@@ -51,7 +51,7 @@ const defaultMeaningful = (char: string) => /[A-Za-z0-9+]/.test(char)
  */
 export function useFormattedInput({
 	format,
-	meaningful = defaultMeaningful,
+	meaningful = isMeaningful,
 	atEnd = 'restore',
 	ref: externalRef,
 }: FormattedInputOptions) {

@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { dismisses, dismissFrame, swipeStep } from '../../components/lightbox/lightbox-utilities'
+import {
+	dismissFrame,
+	shouldDismiss,
+	swipeStep,
+} from '../../components/lightbox/lightbox-utilities'
 
 describe('swipeStep', () => {
 	it('steps forward on a far swipe to the left, and back on a far swipe to the right', () => {
@@ -35,23 +39,23 @@ describe('dismisses', () => {
 	const still = { x: 0, y: 0 }
 
 	it('closes on a far swipe in any direction', () => {
-		expect(dismisses({ x: 0, y: 120 }, still, 800)).toBe(true)
+		expect(shouldDismiss({ x: 0, y: 120 }, still, 800)).toBe(true)
 
-		expect(dismisses({ x: 0, y: -120 }, still, 800)).toBe(true)
+		expect(shouldDismiss({ x: 0, y: -120 }, still, 800)).toBe(true)
 
-		expect(dismisses({ x: -120, y: 0 }, still, 800)).toBe(true)
+		expect(shouldDismiss({ x: -120, y: 0 }, still, 800)).toBe(true)
 	})
 
 	it('closes on a short, fast flick, and not on a short, slow swipe', () => {
-		expect(dismisses({ x: 0, y: 30 }, { x: 0, y: 0.8 }, 800)).toBe(true)
+		expect(shouldDismiss({ x: 0, y: 30 }, { x: 0, y: 0.8 }, 800)).toBe(true)
 
-		expect(dismisses({ x: 0, y: 30 }, { x: 0, y: 0.1 }, 800)).toBe(false)
+		expect(shouldDismiss({ x: 0, y: 30 }, { x: 0, y: 0.1 }, 800)).toBe(false)
 	})
 
 	it('does not close on a flick back toward the start, or on no travel', () => {
-		expect(dismisses({ x: 0, y: 30 }, { x: 0, y: -0.8 }, 800)).toBe(false)
+		expect(shouldDismiss({ x: 0, y: 30 }, { x: 0, y: -0.8 }, 800)).toBe(false)
 
-		expect(dismisses(still, { x: 0, y: 0.8 }, 800)).toBe(false)
+		expect(shouldDismiss(still, { x: 0, y: 0.8 }, 800)).toBe(false)
 	})
 })
 

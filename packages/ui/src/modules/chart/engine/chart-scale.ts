@@ -163,7 +163,7 @@ function niceBound(
  * The largest share of the range a headroom reservation can take per side. At
  * the cap, a both-sided reservation still leaves the data half the plot. Past
  * it the plot is too short to afford labels at all, so nothing is reserved.
- * {@link headroomFits} (the same predicate) tells the layout to shed them.
+ * {@link isHeadroomFit} (the same predicate) tells the layout to shed them.
  *
  * @internal
  */
@@ -178,7 +178,7 @@ const HEADROOM_CAP = 0.25
  *
  * @internal
  */
-export function headroomFits(headroom: number, rangePx: number): boolean {
+export function isHeadroomFit(headroom: number, rangePx: number): boolean {
 	return headroom > 0 && rangePx > 0 && headroom / rangePx <= HEADROOM_CAP
 }
 
@@ -193,7 +193,7 @@ export function headroomFits(headroom: number, rangePx: number): boolean {
  *
  * A one-sided widen grows the span, so the other side is tested again against
  * the new span. When that side then falls short and is free, both sides solve
- * together. An unaffordable ask (see {@link headroomFits}) reserves nothing:
+ * together. An unaffordable ask (see {@link isHeadroomFit}) reserves nothing:
  * the layout sheds the labels by the same test, so no label renders against
  * unreserved edges.
  *
@@ -211,7 +211,7 @@ function reserveHeadroom(args: {
 }): [number, number] {
 	const { low, high, rawLow, rawHigh, rangePx, headroom, pinnedLow, pinnedHigh } = args
 
-	if (!headroomFits(headroom, rangePx)) return [low, high]
+	if (!isHeadroomFit(headroom, rangePx)) return [low, high]
 
 	const f = headroom / rangePx
 

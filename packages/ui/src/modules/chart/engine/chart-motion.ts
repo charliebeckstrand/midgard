@@ -134,7 +134,7 @@ export const SLICE_UNFADE = { duration: duration[200], ease: ease.in } as const
  *
  * @internal
  */
-function valueVertical(orientation: ChartOrientation): boolean {
+function isVertical(orientation: ChartOrientation): boolean {
 	return orientation === 'vertical'
 }
 
@@ -146,7 +146,7 @@ function valueVertical(orientation: ChartOrientation): boolean {
  * @internal
  */
 export function barGrow(orientation: ChartOrientation, positive: boolean) {
-	return valueVertical(orientation)
+	return isVertical(orientation)
 		? { initial: { scaleY: 0 }, animate: { scaleY: 1 }, style: { originY: positive ? 1 : 0 } }
 		: { initial: { scaleX: 0 }, animate: { scaleX: 1 }, style: { originX: positive ? 0 : 1 } }
 }
@@ -161,7 +161,7 @@ export function barGrow(orientation: ChartOrientation, positive: boolean) {
  * @internal
  */
 export function referenceRise(orientation: ChartOrientation, offset: number) {
-	return valueVertical(orientation)
+	return isVertical(orientation)
 		? { initial: { y: offset }, animate: { y: 0 } }
 		: { initial: { x: offset }, animate: { x: 0 } }
 }

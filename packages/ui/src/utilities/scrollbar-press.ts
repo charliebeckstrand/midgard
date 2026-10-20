@@ -41,10 +41,10 @@ export function isScrollbarPress(
 
 	// The root (html/body) scrolls the page even though its computed overflow is
 	// `visible`; floating-ui treats the last traversable node as scrollable.
-	const isRoot = target === document.documentElement || target === document.body
+	const atRoot = target === document.documentElement || target === document.body
 
-	const scrollableX = isRoot || isScrollOverflow(style.overflowX)
-	const scrollableY = isRoot || isScrollOverflow(style.overflowY)
+	const scrollableX = atRoot || isScrollOverflow(style.overflowX)
+	const scrollableY = atRoot || isScrollOverflow(style.overflowY)
 
 	const canScrollX =
 		scrollableX && target.clientWidth > 0 && target.scrollWidth > target.clientWidth

@@ -14,7 +14,7 @@ import { isInGrid } from './grid-editing-utilities'
  *
  * @internal
  */
-function inWatched(args: {
+function isWatched(args: {
 	commitOn: CommitOn
 	grid: HTMLElement
 	node: Element
@@ -35,7 +35,7 @@ function inWatched(args: {
  * - A window blur stays. It names no `next` element while the document has
  *   no focus. Any other move with no `next` element goes to the page body,
  *   and leaves.
- * - A `next` in the table's DOM reads by {@link inWatched}.
+ * - A `next` in the table's DOM reads by {@link isWatched}.
  * - A `next` outside the table's DOM is `'ask'`. Only the React tree can tell
  *   a surface that the grid renders from an unrelated element, so the focus
  *   event that follows decides.
@@ -51,13 +51,13 @@ export function readLeave(args: {
 }): 'stay' | 'leave' | 'ask' {
 	const { grid, from, next } = args
 
-	if (grid.contains(from) && !inWatched({ ...args, node: from })) return 'stay'
+	if (grid.contains(from) && !isWatched({ ...args, node: from })) return 'stay'
 
 	if (next === null) return document.hasFocus() ? 'leave' : 'stay'
 
 	if (!grid.contains(next)) return 'ask'
 
-	return inWatched({ ...args, node: next }) ? 'stay' : 'leave'
+	return isWatched({ ...args, node: next }) ? 'stay' : 'leave'
 }
 
 /**

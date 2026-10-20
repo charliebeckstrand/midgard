@@ -26,7 +26,7 @@ import {
  * until the drop, but it lists `'Files'` in `dataTransfer.types` from
  * `dragenter` on. A text, link, or element drag does not list it.
  */
-function carriesFiles(event: DragEvent): boolean {
+function hasFiles(event: DragEvent): boolean {
 	return event.dataTransfer?.types.includes('Files') ?? false
 }
 
@@ -186,7 +186,7 @@ export function useFileUploadHandlers({
 	// handles the drop natively. A drag with no file gets the same treatment.
 	const handleDragEnter = useCallback(
 		(event: DragEvent) => {
-			if (disabled || !carriesFiles(event)) return
+			if (disabled || !hasFiles(event)) return
 
 			event.preventDefault()
 
@@ -201,7 +201,7 @@ export function useFileUploadHandlers({
 	// `dragenter`/`dragleave` own the depth counter.
 	const handleDragOver = useCallback(
 		(event: DragEvent) => {
-			if (disabled || !carriesFiles(event)) return
+			if (disabled || !hasFiles(event)) return
 
 			event.preventDefault()
 
@@ -213,7 +213,7 @@ export function useFileUploadHandlers({
 	// Symmetric with `handleDragEnter`: a drag with no file was never counted,
 	// so its `dragleave` must not count down.
 	const handleDragLeave = useCallback((event: DragEvent) => {
-		if (!carriesFiles(event)) return
+		if (!hasFiles(event)) return
 
 		event.preventDefault()
 

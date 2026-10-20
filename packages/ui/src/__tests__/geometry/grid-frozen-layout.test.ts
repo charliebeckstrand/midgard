@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { sameFrozenLayout } from '../../modules/grid/engine/grid-pin/layout'
+import { isSameLayout } from '../../modules/grid/engine/grid-pin/layout'
 import type { FrozenOffsets } from '../../modules/grid/engine/grid-pin/measure'
 import { buildLayout, type Pin } from '../helpers/grid-frozen-layout'
 
@@ -63,7 +63,7 @@ describe('frozen column layout', () => {
 	it('reads two resolutions equal only when every frozen column lands identically', () => {
 		const layout = buildLayout(left, right)
 
-		expect(sameFrozenLayout(layout, buildLayout(left, right))).toBe(true)
+		expect(isSameLayout(layout, buildLayout(left, right))).toBe(true)
 
 		// A drag on a column ahead of the stack moves the ones behind it.
 		const dragged = buildLayout(
@@ -74,9 +74,9 @@ describe('frozen column layout', () => {
 			right,
 		)
 
-		expect(sameFrozenLayout(layout, dragged)).toBe(false)
+		expect(isSameLayout(layout, dragged)).toBe(false)
 
 		// An unpin puts the boundary — and the edge rule with it — on another column.
-		expect(sameFrozenLayout(layout, buildLayout([['name', 160]], right))).toBe(false)
+		expect(isSameLayout(layout, buildLayout([['name', 160]], right))).toBe(false)
 	})
 })

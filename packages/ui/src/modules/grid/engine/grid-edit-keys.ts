@@ -6,7 +6,7 @@
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { hasBrowserModifier } from '../../../utilities/modifier-keys'
 import { FLOATING_PORTAL } from './grid-constants'
-import { NATIVE_ENTER, tabStaysInCell } from './grid-editing-utilities'
+import { isTabInCell, NATIVE_ENTER } from './grid-editing-utilities'
 
 /**
  * `node` when its nearest `<table>` is `table`, else `null`. A detail panel can
@@ -30,23 +30,23 @@ export function ownNode(node: Element | null, table: HTMLTableElement | null): E
  * own React tree. The commit on leave must not read it for the element that
  * takes focus: an unrelated surface on the page matches it too. @internal
  */
-function inFloatingSurface(node: Element): boolean {
+function isInSurface(node: Element): boolean {
 	return node.closest(FLOATING_PORTAL) !== null || node.closest('[aria-expanded="true"]') !== null
 }
 
 /**
  * Whether a key press belongs to a floating surface inside the grid rather than
  * to the session. A press already consumed (`defaultPrevented`) qualifies, and
- * so does a press from focus in a surface (see {@link inFloatingSurface}). The
+ * so does a press from focus in a surface (see {@link isInSurface}). The
  * surface's own document-level key layer runs after the table's handler, so the
  * session stands down and lets that layer take the press.
  *
  * @internal
  */
-export function claimedBySurface(event: ReactKeyboardEvent<HTMLTableElement>): boolean {
+export function isSurfaceKey(event: ReactKeyboardEvent<HTMLTableElement>): boolean {
 	if (event.defaultPrevented || !(event.target instanceof Element)) return true
 
-	return inFloatingSurface(event.target)
+	return isInSurface(event.target)
 }
 
 /** Where a move key takes the session from an open editor. @internal */
@@ -58,7 +58,7 @@ export type SessionMove = 'down' | 'next' | 'previous' | 'here'
  * which enter a cell. A key with Ctrl, Cmd, or Alt is the editor's shortcut.
  * Enter on an element that acts on it natively stays with that element. Tab
  * that has a next control in the same cell stays with the browser (see
- * {@link tabStaysInCell}).
+ * {@link isTabInCell}).
  *
  * @internal
  */
@@ -70,7 +70,7 @@ export function editorMove(event: ReactKeyboardEvent<HTMLTableElement>): Session
 	// Tab moves between the controls of one cell first. Only Tab past the last
 	// control, or Shift+Tab past the first, commits and moves.
 	if (event.key === 'Tab') {
-		if (tabStaysInCell(target, event.shiftKey)) return null
+		if (isTabInCell(target, event.shiftKey)) return null
 
 		return event.shiftKey ? 'previous' : 'next'
 	}

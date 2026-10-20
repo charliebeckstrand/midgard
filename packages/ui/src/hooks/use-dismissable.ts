@@ -2,7 +2,7 @@
 
 import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
-import { pressLandsInSurfaceOpenedWithin } from '../utilities/floating-portal-registry'
+import { isPressInSurface } from '../utilities/floating-portal-registry'
 import { isScrollbarPress } from '../utilities/scrollbar-press'
 import { useEscapeLayer } from './use-escape-layer'
 
@@ -30,7 +30,7 @@ export type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
  * A floating surface opened from inside the boundary portals out of its DOM
  * subtree: a menu in a non-modal sheet's footer, say. Plain containment
  * therefore reads a press in it as outside. Such a press counts as inside (see
- * `pressLandsInSurfaceOpenedWithin`); without that, the boundary closes on
+ * `isPressInSurface`); without that, the boundary closes on
  * pointer-down and unmounts the menu before its click can fire.
  *
  * @returns The container ref defining the outside-pointer boundary. Attach it
@@ -70,7 +70,7 @@ export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 
 			if (!(target instanceof Node)) return dismiss()
 
-			if (el.contains(target) || pressLandsInSurfaceOpenedWithin(el, target)) return
+			if (el.contains(target) || isPressInSurface(el, target)) return
 
 			// A press on a scrollbar gutter starts a pan, not a press outside. The test forces
 			// a style recalc, so it runs after the cheap ancestry tests, as in

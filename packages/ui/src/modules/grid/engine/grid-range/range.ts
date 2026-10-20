@@ -38,7 +38,7 @@ export function rangeRect(anchor: GridRangeCorner, focus: GridRangeCorner): Grid
 }
 
 /** Whether the place `row` and the column `col` are inside `rect`. @internal */
-export function inRangeRect(rect: GridRangeRect, row: number, col: number): boolean {
+export function isInRect(rect: GridRangeRect, row: number, col: number): boolean {
 	return row >= rect.top && row <= rect.bottom && col >= rect.left && col <= rect.right
 }
 

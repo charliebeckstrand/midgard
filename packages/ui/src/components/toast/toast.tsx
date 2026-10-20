@@ -121,7 +121,7 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 
 	// The order, the motion, and the gap of the stack follow the edge that the
 	// stack is on at the viewport.
-	const isTop = useResponsiveValue(physical, 'bottom').startsWith('top')
+	const atTop = useResponsiveValue(physical, 'bottom').startsWith('top')
 
 	// Gate on post-mount state rather than `typeof document`: an SSR/client
 	// branch makes the first client render diverge from the server HTML and
@@ -197,7 +197,7 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 					className={cn(
 						k.scroll,
 						resolveVariant(physical, k.position.scroll),
-						!isTop && 'flex-col-reverse',
+						!atTop && 'flex-col-reverse',
 					)}
 				>
 					<AnimatePresence onExitComplete={handleExitComplete}>
@@ -205,7 +205,7 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 							<ToastAlert
 								key={toast.id}
 								toast={toast}
-								edge={isTop ? 'top' : 'bottom'}
+								edge={atTop ? 'top' : 'bottom'}
 								zIndex={toasts.length - index}
 								closable={toast.closable}
 								onOpenChange={(open, id) => {

@@ -22,10 +22,10 @@ import {
 } from './engine/grid-group/segments'
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import {
-	detailOpen,
 	getGroupKey,
 	groupedWindowRowCount,
-	groupTotaled,
+	hasGroupTotal,
+	isDetailOpen,
 	totalItemKey,
 } from './engine/grid-items/items'
 import { gridMessages } from './engine/grid-messages'
@@ -155,7 +155,7 @@ function GridDetailCursorOrderImpl<T>({
 	const order = useMemo(
 		() =>
 			detailCursorRows(rows, rowKeys, (row, key) =>
-				detailOpen(row, key, { expanded, rowExpandable }),
+				isDetailOpen(row, key, { expanded, rowExpandable }),
 			),
 		[rows, rowKeys, expanded, rowExpandable],
 	)
@@ -342,7 +342,7 @@ function renderGrouped<T>(
 
 	// The per-group total is meaningful only once a column aggregates; the gate
 	// is body-wide, so resolve it once here rather than per group in renderGroup.
-	const totaled = groupTotaled(props.groupTotalRow, visibleColumns)
+	const totaled = hasGroupTotal(props.groupTotalRow, visibleColumns)
 
 	if (rowWindow) {
 		return (
@@ -416,7 +416,7 @@ function rowPlaces<T>(
 	for (const [index, row] of rows.entries()) {
 		places.push(next)
 
-		next += expansion && detailOpen(row, rowKeys[index] as string | number, expansion) ? 2 : 1
+		next += expansion && isDetailOpen(row, rowKeys[index] as string | number, expansion) ? 2 : 1
 	}
 
 	return places

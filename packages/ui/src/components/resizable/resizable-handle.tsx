@@ -42,9 +42,9 @@ const alwaysResize = { checkForDefaultPrevented: false }
  *
  * @internal
  */
-function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): number {
-	const increase = isHorizontal ? 'ArrowRight' : 'ArrowDown'
-	const decrease = isHorizontal ? 'ArrowLeft' : 'ArrowUp'
+function resizeDeltaForKey(key: string, horizontal: boolean, step: number): number {
+	const increase = horizontal ? 'ArrowRight' : 'ArrowDown'
+	const decrease = horizontal ? 'ArrowLeft' : 'ArrowUp'
 
 	if (key === increase) return step
 
@@ -89,9 +89,9 @@ export function ResizableHandle({
 	const panelMinSize = Math.round(range.min)
 	const panelMaxSize = Math.round(range.max)
 
-	const isHorizontal = orientation === 'horizontal'
+	const horizontal = orientation === 'horizontal'
 
-	const isDragging = dragging === handleIndex
+	const dragged = dragging === handleIndex
 
 	const onKeyDown = useCallback(
 		(event: KeyboardEvent) => {
@@ -101,7 +101,7 @@ export function ResizableHandle({
 			// horizontal arrows swap: ArrowLeft grows it.
 			const delta = resizeDeltaForKey(
 				logicalArrowKey(event.key, event.currentTarget),
-				isHorizontal,
+				horizontal,
 				step,
 			)
 
@@ -111,7 +111,7 @@ export function ResizableHandle({
 				resize(handleIndex, delta)
 			}
 		},
-		[handleIndex, isHorizontal, resize],
+		[handleIndex, horizontal, resize],
 	)
 
 	return (
@@ -120,7 +120,7 @@ export function ResizableHandle({
 			label={ariaLabel ?? intl.formatMessage(messages.label)}
 			// A separator's orientation is its own, not the group's flex axis: the
 			// handle between side-by-side panels is a vertical bar.
-			orientation={isHorizontal ? 'vertical' : 'horizontal'}
+			orientation={horizontal ? 'vertical' : 'horizontal'}
 			value={panelSize}
 			min={panelMinSize}
 			max={panelMaxSize}
@@ -128,7 +128,7 @@ export function ResizableHandle({
 			controls={handleIndex < panelConfigs.length ? panelId(handleIndex) : undefined}
 			// The group finds its handles by this anchor, so a consumer cannot replace it.
 			data-slot="resizable-handle"
-			data-dragging={dataAttr(isDragging)}
+			data-dragging={dataAttr(dragged)}
 			onPointerDown={composeEventHandlers(
 				onPointerDown,
 				(event) => startDrag(handleIndex, event),
@@ -137,9 +137,9 @@ export function ResizableHandle({
 			onKeyDown={composeEventHandlers(onKeyDownProp, onKeyDown, alwaysResize)}
 			className={cn(
 				k.handle.base,
-				isHorizontal ? k.handle.horizontal : k.handle.vertical,
+				horizontal ? k.handle.horizontal : k.handle.vertical,
 				k.grip.base,
-				isHorizontal ? k.grip.horizontal : k.grip.vertical,
+				horizontal ? k.grip.horizontal : k.grip.vertical,
 				className,
 			)}
 		/>

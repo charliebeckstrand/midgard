@@ -8,7 +8,7 @@ import { useTouchTap } from '../../../hooks/use-touch-tap'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { TICK_CHAR_WIDTH } from '../engine/chart-constants'
-import { type PieSlice, pieCentroidRadius, segmentLabelFits } from '../engine/chart-geometry/pie'
+import { isLabelFit, type PieSlice, pieCentroidRadius } from '../engine/chart-geometry/pie'
 import { SLICE_FADE, SLICE_SWEEP, SLICE_UNFADE, SLICE_UNSWEEP } from '../engine/chart-motion'
 import { textureClass, textureStyle } from '../engine/chart-pattern-defs'
 import { seriesGroupClass } from '../engine/chart-series'
@@ -142,7 +142,7 @@ export function segmentLabelItems({
 
 		const centroidRadius = pieCentroidRadius(radius, innerRadius, slice.share)
 
-		const fits = segmentLabelFits(text.length, slice.share, centroidRadius, depth, TICK_CHAR_WIDTH)
+		const fits = isLabelFit(text.length, slice.share, centroidRadius, depth, TICK_CHAR_WIDTH)
 
 		return fits ? [{ slice, text }] : []
 	})

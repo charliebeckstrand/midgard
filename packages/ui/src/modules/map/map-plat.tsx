@@ -20,7 +20,7 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import { useLocale } from '../../providers/locale'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
-import { legendAside } from '../chart/engine/chart-legend/schema'
+import { isLegendAside } from '../chart/engine/chart-legend/schema'
 import type { ChartItemClick } from '../chart/engine/types'
 import {
 	MapPlatContext,
@@ -1268,7 +1268,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		},
 	)
 
-	const aside = legendAside(legendPlacement)
+	const aside = isLegendAside(legendPlacement)
 
 	// The SVG fills its box through the viewBox rather than pixel dimensions, so
 	// the box (not the marks) owns the size. The view frame is the canonical

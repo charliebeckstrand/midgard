@@ -131,7 +131,7 @@ const KEEP_ALL: CapturePlan = { pruned: new Set(), shifts: new Map() }
  *
  * @internal
  */
-function paintsNothing(style: CSSStyleDeclaration): boolean {
+function isHidden(style: CSSStyleDeclaration): boolean {
 	if (style.display === 'none') return true
 
 	if (style.position !== 'absolute' && style.position !== 'fixed') return false
@@ -190,7 +190,7 @@ function copyComputedStyle(computed: CSSStyleDeclaration, clone: Element, extra:
  * Walks a source tree and its clone in lockstep, and freezes each node's
  * computed style onto the clone ({@link copyComputedStyle}). The detached copy
  * then lays out and paints exactly as rendered. The walk drops each child that
- * paints nothing ({@link paintsNothing}). It empties each box that the plan
+ * paints nothing ({@link isHidden}). It empties each box that the plan
  * prunes, and moves each box that the plan moves.
  *
  * @internal
@@ -229,17 +229,17 @@ function freezeStyleTree(
 
 		const style = getComputedStyle(sourceChild)
 
-		if (paintsNothing(style) && !isSvgResource(sourceChild)) cloneChild.remove()
+		if (isHidden(style) && !isSvgResource(sourceChild)) cloneChild.remove()
 		else freezeStyleTree(sourceChild, cloneChild, style, plan)
 	}
 }
 
 /** Tells whether each sibling of `element` paints nothing. @internal */
-function paintsAlone(element: Element): boolean {
+function isAlone(element: Element): boolean {
 	const siblings = element.parentElement?.children ?? []
 
 	for (const sibling of siblings) {
-		if (sibling !== element && !paintsNothing(getComputedStyle(sibling))) return false
+		if (sibling !== element && !isHidden(getComputedStyle(sibling))) return false
 	}
 
 	return true
@@ -259,7 +259,7 @@ function legendBoxes(root: HTMLElement): Set<Element> {
 	for (const legend of root.querySelectorAll(LEGEND_SELECTOR)) {
 		let box: Element = legend
 
-		while (box.parentElement && box.parentElement !== root && paintsAlone(box)) {
+		while (box.parentElement && box.parentElement !== root && isAlone(box)) {
 			box = box.parentElement
 		}
 
@@ -307,7 +307,7 @@ function closeBand(box: Element, shifts: Map<Element, Shift>): void {
 	let band = Number.POSITIVE_INFINITY
 
 	for (const sibling of parent.children) {
-		if (sibling === box || paintsNothing(getComputedStyle(sibling))) continue
+		if (sibling === box || isHidden(getComputedStyle(sibling))) continue
 
 		const reach = distance(sibling.getBoundingClientRect())
 

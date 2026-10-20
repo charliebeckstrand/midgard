@@ -30,7 +30,7 @@ function isClipping(overflow: string): boolean {
 }
 
 /** Whether one axis scrolls: by its overflow value, and by its size when `overflowing`. */
-function axisScrolls(
+function isAxisScrollable(
 	overflow: string,
 	scrollSize: number,
 	clientSize: number,
@@ -62,10 +62,15 @@ export function getScroller(
 	) {
 		const { overflowX, overflowY } = getComputedStyle(element)
 
-		const block = axisScrolls(overflowY, element.scrollHeight, element.clientHeight, overflowing)
+		const block = isAxisScrollable(
+			overflowY,
+			element.scrollHeight,
+			element.clientHeight,
+			overflowing,
+		)
 
 		const across =
-			inline && axisScrolls(overflowX, element.scrollWidth, element.clientWidth, overflowing)
+			inline && isAxisScrollable(overflowX, element.scrollWidth, element.clientWidth, overflowing)
 
 		if (block || across) return element
 

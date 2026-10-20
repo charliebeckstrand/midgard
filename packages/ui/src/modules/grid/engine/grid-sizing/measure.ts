@@ -182,7 +182,7 @@ type ColumnScan = { widest: number; pending: PendingLeaf[] }
  *
  * @internal
  */
-function laysOutElements(leaf: HTMLElement): boolean {
+function hasVisibleChild(leaf: HTMLElement): boolean {
 	for (const child of leaf.children) {
 		if (!(child instanceof HTMLElement) || !child.hidden) return true
 	}
@@ -199,7 +199,7 @@ function laysOutElements(leaf: HTMLElement): boolean {
  * A text-only leaf resolves here. Clipped or not, `nowrap` text lays out at its
  * full width under the overflow, so its intrinsic width (see
  * {@link intrinsicWidth}) reads true in place. A leaf holding element children
- * that lay out (see {@link laysOutElements}) does not. An atomic shrink-to-fit
+ * that lay out (see {@link hasVisibleChild}) does not. An atomic shrink-to-fit
  * box (a Badge's `fit-content`) genuinely narrows into a tight cell. Its
  * in-place rect therefore reports the shrunk width, not the natural one. Those
  * leaves defer to {@link resolvePendingLeaves}. A cell with no leaf (the
@@ -224,7 +224,7 @@ function scanBodyCells(cells: HTMLElement[]): ColumnScan {
 
 		const chrome = td.getBoundingClientRect().width - leaf.offsetWidth
 
-		if (laysOutElements(leaf)) {
+		if (hasVisibleChild(leaf)) {
 			pending.push({ leaf, chrome })
 		} else {
 			const need = chrome + intrinsicWidth(leaf)

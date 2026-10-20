@@ -78,21 +78,21 @@ export const CalendarGrid = memo(function CalendarGrid({
 				{days.map((date) => {
 					const disabled = isDisabled(date)
 
-					const isToday = today != null && isSameDay(date, today)
+					const current = today != null && isSameDay(date, today)
 
-					const isSelected = value != null && isSameDay(date, value)
+					const picked = value != null && isSameDay(date, value)
 
-					const isActive = activeGridDate != null && isSameDay(date, activeGridDate)
+					const active = activeGridDate != null && isSameDay(date, activeGridDate)
 
 					const dayProps = getDayProps?.({
 						date,
 						disabled,
-						today: isToday,
-						selected: isSelected,
-						active: isActive,
+						today: current,
+						selected: picked,
+						active: active,
 					})
 
-					const selected = dayProps?.selected ?? isSelected
+					const selected = dayProps?.selected ?? picked
 
 					const gridColumnStart = date.getDate() === 1 ? firstDayColumn : undefined
 
@@ -101,13 +101,13 @@ export const CalendarGrid = memo(function CalendarGrid({
 							key={date.toISOString()}
 							date={date}
 							disabled={disabled}
-							isToday={isToday}
-							isActive={isActive}
+							today={current}
+							active={active}
 							selected={selected}
 							variant={dayProps?.variant}
 							color={dayProps?.color}
 							className={dayProps?.className}
-							id={isActive ? activeDescendantId : undefined}
+							id={active ? activeDescendantId : undefined}
 							gridColumnStart={gridColumnStart}
 							localeTag={localeTag}
 							onSelect={onSelect}

@@ -2,8 +2,8 @@
 import { describe, expect, it } from 'vitest'
 import type { DashboardCell } from '../../modules/dashboard/engine/dashboard-layout'
 import {
-	drivesHeight,
-	drivesWidth,
+	isHeightDriven,
+	isWidthDriven,
 	resizeFloor,
 	resizeLimits,
 	resizePreview,
@@ -49,13 +49,17 @@ describe('resizePreview', () => {
 
 describe('edges', () => {
 	it('maps each edge to the axes that it drives', () => {
-		expect([drivesWidth('e'), drivesWidth('s'), drivesWidth('se')]).toEqual([true, false, true])
+		expect([isWidthDriven('e'), isWidthDriven('s'), isWidthDriven('se')]).toEqual([
+			true,
+			false,
+			true,
+		])
 
-		expect(drivesHeight('se', undefined)).toBe(true)
+		expect(isHeightDriven('se', undefined)).toBe(true)
 
-		expect(drivesHeight('se', 16 / 9)).toBe(false)
+		expect(isHeightDriven('se', 16 / 9)).toBe(false)
 
-		expect(drivesHeight('e', undefined)).toBe(false)
+		expect(isHeightDriven('e', undefined)).toBe(false)
 	})
 })
 

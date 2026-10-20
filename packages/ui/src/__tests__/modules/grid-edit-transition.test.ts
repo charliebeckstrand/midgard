@@ -3,13 +3,13 @@ import { describe, expect, it } from 'vitest'
 import {
 	crossRowEntry,
 	initialSessionRow,
+	isSettledAt,
 	moveSessionRow,
 	planTransition,
 	readControlledCell,
 	readInitialCell,
 	readSettled,
 	type SettledCell,
-	settledAt,
 	settleOn,
 	writeRowsPlan,
 } from '../../modules/grid/engine/grid-edit-transition'
@@ -115,7 +115,7 @@ describe('readInitialCell', () => {
 	})
 })
 
-describe('readSettled and settledAt', () => {
+describe('readSettled and isSettledAt', () => {
 	const settled: SettledCell = {
 		raw: at(2),
 		cell: at(1),
@@ -129,9 +129,9 @@ describe('readSettled and settledAt', () => {
 	})
 
 	it('holds a cell only with no wait', () => {
-		expect(settledAt(settled, at(2))).toBe(false)
+		expect(isSettledAt(settled, at(2))).toBe(false)
 
-		expect(settledAt({ raw: at(1), cell: at(1) }, at(1))).toBe(true)
+		expect(isSettledAt({ raw: at(1), cell: at(1) }, at(1))).toBe(true)
 	})
 })
 

@@ -279,7 +279,7 @@ export function buildColumnFilters<T>(args: {
  *
  * @internal
  */
-export function showsFilterButton(
+export function shouldShowButton(
 	filter: GridColumnFilter,
 	columnId: string | number,
 	interactive: boolean,

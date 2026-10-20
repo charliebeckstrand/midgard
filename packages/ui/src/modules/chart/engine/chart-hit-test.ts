@@ -46,18 +46,12 @@ const MARK_HOLD_RATIO = 0.5
  *
  * @internal
  */
-export function beatsHeldMark(challengerSquared: number, heldSquared: number): boolean {
+export function isDecisive(challengerSquared: number, heldSquared: number): boolean {
 	return challengerSquared < heldSquared * (MARK_HOLD_RATIO * MARK_HOLD_RATIO)
 }
 
 /** Whether the pointer sits inside one bar's span, its band axis widened by `gap`. @internal */
-function withinBar(
-	mark: BarMark,
-	x: number,
-	y: number,
-	gap: number,
-	orientation: ChartOrientation,
-) {
+function isInBar(mark: BarMark, x: number, y: number, gap: number, orientation: ChartOrientation) {
 	return orientation === 'vertical'
 		? x >= mark.x - gap && x <= mark.x1 + gap && y >= mark.top && y <= mark.bottom
 		: x >= mark.x && x <= mark.x1 && y >= mark.top - gap && y <= mark.bottom + gap
@@ -91,7 +85,7 @@ export function barMarkAt(
 			for (let datum = 0; datum < row.length; datum++) {
 				const mark = row[datum]
 
-				if (mark != null && withinBar(mark, x, y, slack, orientation)) return { series, datum }
+				if (mark != null && isInBar(mark, x, y, slack, orientation)) return { series, datum }
 			}
 		}
 	}
@@ -141,7 +135,7 @@ function runDistanceSquared(run: LinePoint[], x: number, y: number): number {
  * off every line. The nearest wins where two overlap, so the isolation lifts
  * the line the pointer truly follows rather than whichever drew first. A `held`
  * series (the one already emphasized) keeps the win while it stays within the
- * catch, unless a challenger {@link beatsHeldMark | decisively} closes. The
+ * catch, unless a challenger {@link isDecisive | decisively} closes. The
  * resolution is sticky across the midline between two close strokes, rather
  * than flipping on the knife edge. Each series brings its gap-split runs, so
  * the test never bridges a gap. A smooth curve is tested against its chords,
@@ -183,7 +177,7 @@ export function nearestSeriesLine(
 		held !== null &&
 		best.series !== held &&
 		heldDistance <= tolerance * tolerance &&
-		!beatsHeldMark(best.distanceSquared, heldDistance)
+		!isDecisive(best.distanceSquared, heldDistance)
 	) {
 		return held
 	}

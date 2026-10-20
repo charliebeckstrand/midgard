@@ -9,7 +9,7 @@ import {
 	type Responsive,
 	valueAt,
 } from '../types/responsive'
-import { matchesMediaQuery, subscribeMediaQuery } from '../utilities/media-query'
+import { isMediaMatch, subscribeMediaQuery } from '../utilities/media-query'
 
 /*
  * Re-exported here, not only from `types`, because it is this hook's parameter type. The
@@ -66,7 +66,7 @@ export function useResponsiveValue<T>(value: Responsive<T>, fallback: T): T {
 	)
 
 	const getSnapshot = useCallback(
-		(): Breakpoint => named.find((bp) => matchesMediaQuery(query(bp))) ?? 'initial',
+		(): Breakpoint => named.find((bp) => isMediaMatch(query(bp))) ?? 'initial',
 		[named],
 	)
 

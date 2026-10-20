@@ -129,10 +129,7 @@ function useEntranceLatch(current: boolean, initiallyReady: boolean, release: ()
  *
  * @internal
  */
-function matchesCurrent(
-	value: string | undefined,
-	contextValue: string | null | undefined,
-): boolean {
+function isCurrent(value: string | undefined, contextValue: string | null | undefined): boolean {
 	return value === undefined || contextValue === undefined || contextValue === value
 }
 
@@ -230,7 +227,7 @@ export function CurrentContent({
 
 	const inheritedActive = useCurrentPanelActive()
 
-	const current = matchesCurrent(value, context?.value)
+	const current = isCurrent(value, context?.value)
 
 	// Fold across nesting: a panel is active only when it matches and every
 	// ancestor panel does too, so a panel that an animating container keeps

@@ -20,7 +20,7 @@ export function isReferenceDisabled(reference: unknown): boolean {
  * `disabled` change on `reference`, on a node inside it, or on a `<fieldset>`
  * that contains it.
  */
-function affectsReference(reference: Element, record: MutationRecord): boolean {
+function isAffecting(reference: Element, record: MutationRecord): boolean {
 	if (record.type === 'childList') return true
 
 	const target = record.target
@@ -51,7 +51,7 @@ function affectsReference(reference: Element, record: MutationRecord): boolean {
  */
 export function observeReferenceDisabled(reference: Element, onChange: () => void): () => void {
 	const observer = new MutationObserver((records) => {
-		if (records.some((record) => affectsReference(reference, record))) onChange()
+		if (records.some((record) => isAffecting(reference, record))) onChange()
 	})
 
 	const watch = { attributes: true, attributeFilter: ['disabled'], subtree: true }

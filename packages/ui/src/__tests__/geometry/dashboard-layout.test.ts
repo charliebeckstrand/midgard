@@ -2,19 +2,19 @@
 import { describe, expect, it } from 'vitest'
 import {
 	bottom,
+	canFit,
 	clampSpan,
-	collides,
 	type DashboardCell,
 	type DashboardTileDemands,
 	deriveHeight,
-	fits,
+	isColliding,
+	isSameGeometry,
 	mergeLayout,
 	minColumns,
 	placeEntries,
 	readingOrder,
 	resolveCell,
 	resolveLayout,
-	sameGeometry,
 	shiftCells,
 	sortByOrder,
 	swapCells,
@@ -27,7 +27,7 @@ const overlaps = (cells: readonly DashboardCell[]) =>
 	cells.flatMap((a, index) =>
 		cells
 			.slice(index + 1)
-			.filter((b) => collides(a, b))
+			.filter((b) => isColliding(a, b))
 			.map((b) => [a.id, b.id]),
 	)
 
@@ -108,17 +108,17 @@ describe('collision and fit', () => {
 	const board = [cell('a', 0, 0, 12, 10), cell('b', 12, 0, 12, 10)]
 
 	it('reads edge contact as clear', () => {
-		expect(collides(board[0] as DashboardCell, board[1] as DashboardCell)).toBe(false)
+		expect(isColliding(board[0] as DashboardCell, board[1] as DashboardCell)).toBe(false)
 	})
 
 	it('ignores the cell with the same id', () => {
-		expect(fits(board, cell('a', 0, 0, 12, 10), 24)).toBe(true)
+		expect(canFit(board, cell('a', 0, 0, 12, 10), 24)).toBe(true)
 	})
 
 	it('rejects an overlap and a placement past the edge', () => {
-		expect(fits(board, cell('c', 6, 5, 12, 10), 24)).toBe(false)
+		expect(canFit(board, cell('c', 6, 5, 12, 10), 24)).toBe(false)
 
-		expect(fits(board, cell('c', 20, 20, 8, 10), 24)).toBe(false)
+		expect(canFit(board, cell('c', 20, 20, 8, 10), 24)).toBe(false)
 	})
 
 	it('finds the bottom edge, less one cell on request', () => {
@@ -351,9 +351,9 @@ describe('resolveLayout', () => {
 	it('compares geometry id by id', () => {
 		const a = [cell('a', 0, 0, 8, 10), cell('b', 8, 0, 8, 10)]
 
-		expect(sameGeometry(a, [...a].reverse())).toBe(true)
+		expect(isSameGeometry(a, [...a].reverse())).toBe(true)
 
-		expect(sameGeometry(a, [cell('a', 0, 0, 8, 10), cell('b', 8, 1, 8, 10)])).toBe(false)
+		expect(isSameGeometry(a, [cell('a', 0, 0, 8, 10), cell('b', 8, 1, 8, 10)])).toBe(false)
 	})
 })
 

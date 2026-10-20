@@ -6,7 +6,7 @@ import { cn, dataAttr } from '../../core'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/grid'
 import type { GridDetailExpansion } from './engine/grid-group/resolve'
-import { detailOpen } from './engine/grid-items/items'
+import { isDetailOpen } from './engine/grid-items/items'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import {
@@ -151,7 +151,7 @@ export function renderRow<T>(
 	// open. Both flow to the row as primitives so the memoized row still holds.
 	const expandable = props.expansion?.rowExpandable(row) ?? false
 
-	const expanded = props.expansion ? detailOpen(row, key, props.expansion) : false
+	const expanded = props.expansion ? isDetailOpen(row, key, props.expansion) : false
 
 	const rowProps = {
 		columns: props.visibleColumns,

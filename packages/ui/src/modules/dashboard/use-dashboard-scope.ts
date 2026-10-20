@@ -26,7 +26,7 @@ export type DashboardScope = {
 	selections: readonly DashboardSelection[]
 	/**
 	 * The query that this reader sees: the filter, and the selections of the other
-	 * tiles. Show it with `QuerySummary`, or apply it with `evaluateQuery`. An empty
+	 * tiles. Show it with `QuerySummary`, or apply it with `isSatisfied`. An empty
 	 * selection value shows with the `isEmpty` label of the field. When the field
 	 * does not offer `isEmpty`, it shows as `is Empty`. It keeps its identity
 	 * until the filter or a selection of another tile changes.

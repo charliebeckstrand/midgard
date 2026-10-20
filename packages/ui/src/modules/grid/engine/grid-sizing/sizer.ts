@@ -281,7 +281,7 @@ export function createColumnSizer({
 
 	// Whether a column lacks the fact that a pass reads for it: the floor of a data
 	// column, or the width of a content-sized one.
-	function lacksFact<T>(col: GridColumn<T>): boolean {
+	function isMissingFact<T>(col: GridColumn<T>): boolean {
 		const id = String(col.id)
 
 		if (isDataColumn(col)) return !floors.has(id)
@@ -308,7 +308,7 @@ export function createColumnSizer({
 
 		const fitted = env.columns.filter(isContentSized)
 
-		const unfloored = env.columns.some(lacksFact)
+		const unfloored = env.columns.some(isMissingFact)
 
 		// A held column needs no content, so a grid whose every column is held reads
 		// again only for a missing fact or a provisional pass. A content-sized column

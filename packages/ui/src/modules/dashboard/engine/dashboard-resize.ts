@@ -6,13 +6,13 @@
 
 import { clamp } from '../../../utilities/clamp'
 import {
+	canFit,
 	clampSpan,
 	type DashboardCell,
 	type DashboardTileDemands,
-	fits,
 	heightAt,
+	isSameGeometry,
 	minColumns,
-	sameGeometry,
 } from './dashboard-layout'
 
 /** The edge that a resize handle drives. The corner drives both axes. */
@@ -113,12 +113,12 @@ export function resizeRange(limits: DashboardResizeLimits, x: number): Dashboard
 }
 
 /** Whether an edge drives the width. */
-export function drivesWidth(edge: DashboardResizeEdge): boolean {
+export function isWidthDriven(edge: DashboardResizeEdge): boolean {
 	return edge !== 's'
 }
 
 /** Whether an edge drives the height. A tile with a fixed ratio has no free height. */
-export function drivesHeight(edge: DashboardResizeEdge, ratio: number | undefined): boolean {
+export function isHeightDriven(edge: DashboardResizeEdge, ratio: number | undefined): boolean {
 	return edge !== 'e' && ratio === undefined
 }
 
@@ -126,7 +126,7 @@ export function drivesHeight(edge: DashboardResizeEdge, ratio: number | undefine
  * The cells after the tile `id` resizes toward `w` × `h`, or `null` when the
  * tile cannot change. The width resolves first, then the height. Each axis
  * clamps into its limits, and then it backs off one unit at a time until the cell
- * fits. The width never passes the right edge, even for a larger minimum.
+ * canFit. The width never passes the right edge, even for a larger minimum.
  */
 export function resizePreview(
 	snapshot: readonly DashboardCell[],
@@ -147,7 +147,7 @@ export function resizePreview(
 
 	while (
 		width > minW &&
-		!fits(snapshot, { ...origin, w: width, h: heightAt(width, origin.h, ratio) }, columns)
+		!canFit(snapshot, { ...origin, w: width, h: heightAt(width, origin.h, ratio) }, columns)
 	) {
 		width -= 1
 	}
@@ -155,14 +155,14 @@ export function resizePreview(
 	let height = heightAt(width, clampSpan(Math.round(h), minH, maxH), ratio)
 
 	if (ratio === undefined) {
-		while (height > minH && !fits(snapshot, { ...origin, w: width, h: height }, columns)) {
+		while (height > minH && !canFit(snapshot, { ...origin, w: width, h: height }, columns)) {
 			height -= 1
 		}
 	}
 
 	const next = { ...origin, w: width, h: height }
 
-	if (!fits(snapshot, next, columns)) return null
+	if (!canFit(snapshot, next, columns)) return null
 
 	if (next.w === origin.w && next.h === origin.h) return null
 
@@ -170,11 +170,11 @@ export function resizePreview(
 }
 
 /** Whether two previews paint the same board. Two `null` previews are the same. */
-export function samePreview(
+export function isSamePreview(
 	a: readonly DashboardCell[] | null,
 	b: readonly DashboardCell[] | null,
 ): boolean {
 	if (a === null || b === null) return a === b
 
-	return sameGeometry(a, b)
+	return isSameGeometry(a, b)
 }

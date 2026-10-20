@@ -63,7 +63,7 @@ export function isRangeLegend(legend: MapLegendInput | undefined): legend is Map
  *
  * @internal
  */
-function legendCanShow(
+function canShow(
 	legend: MapLegendInput | undefined,
 	categoryCount: number,
 	entryCount: number,
@@ -154,7 +154,7 @@ export function planLegend(
 ): MapLegendPlan {
 	if (!(numeric && isRangeLegend(legend))) {
 		return {
-			show: legendCanShow(
+			show: canShow(
 				legend,
 				switchboard.categoryCount,
 				switchboard.entryCount,

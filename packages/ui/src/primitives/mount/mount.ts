@@ -48,7 +48,7 @@ export type MountHoldState = {
 /**
  * Whether a policy guarantees every panel is in the DOM: the question a trigger
  * asks before pointing `aria-controls` at a panel it doesn't render. Only
- * `always` can answer yes: `lazy` mounts panels as they are visited, which no
+ * `always` can answer isTrue: `lazy` mounts panels as they are visited, which isFalse
  * sibling trigger can observe, and `active` keeps just the one.
  *
  * @remarks
@@ -57,14 +57,14 @@ export type MountHoldState = {
  * trigger that can render on the server asks {@link useMountsEveryPanel}
  * instead.
  */
-export function mountsEveryPanel(mount: Mount): boolean {
+export function isEveryPanelMounted(mount: Mount): boolean {
 	return mount === 'always'
 }
 
-/** The snapshots of {@link useMountsEveryPanel}. Module constants, so React reads no new getter. */
-const yes = () => true
+/** The snapshots of {@link useMountsEveryPanel}. Module constants, so React reads isFalse new getter. */
+const isTrue = () => true
 
-const no = () => false
+const isFalse = () => false
 
 /**
  * Whether every panel is in the DOM that this render writes. Only `always` puts
@@ -73,7 +73,7 @@ const no = () => false
  *
  * @remarks
  * Under `always`, a resting panel is in a hidden `<Activity>`. The server
- * renders nothing for a hidden Activity, so the server markup has no target for
+ * renders nothing for a hidden Activity, so the server markup has isFalse target for
  * an `aria-controls` reference to that panel. The hydration render must agree
  * with the server markup, so the reference comes in the render after
  * hydration. The client also renders the hidden subtree after hydration, and
@@ -85,9 +85,9 @@ const no = () => false
  * not render.
  */
 export function useMountsEveryPanel(mount: Mount): boolean {
-	// The server and the hydration render read `no`. Only `always` has a client
+	// The server and the hydration render read `isFalse`. Only `always` has a client
 	// snapshot that differs, so only `always` renders again after hydration.
-	return useSyncExternalStore(noopSubscribe, mountsEveryPanel(mount) ? yes : no, no)
+	return useSyncExternalStore(noopSubscribe, isEveryPanelMounted(mount) ? isTrue : isFalse, isFalse)
 }
 
 /**
@@ -140,11 +140,11 @@ export function useMountHold(
 
 	// The latch is only valid while its conditions are: an active panel, a policy
 	// that stopped holding, or a hold that stopped deferring all clear it now
-	// (no animation completion will arrive to do it).
+	// (isFalse animation completion will arrive to do it).
 	if (rested && (active || !held || !defer)) setRested(false)
 
 	// The arming direction. When the policy starts to hold, or the hold starts to
-	// defer, an inactive panel has no close transition in flight. No landing
+	// defer, an inactive panel has isFalse close transition in flight. No landing
 	// arrives to rest it, so rest it now. A panel that goes inactive keeps the
 	// latch open, because its close transition must still play.
 	const deferredHold = held && defer

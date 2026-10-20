@@ -83,7 +83,7 @@ function nextReport(
  *
  * @internal
  */
-function samePages(prev: PdfViewerPage[] | undefined, next: PdfViewerPage[] | undefined) {
+function isSamePages(prev: PdfViewerPage[] | undefined, next: PdfViewerPage[] | undefined) {
 	if (prev === next) return true
 
 	if (!prev || !next || prev.length !== next.length) return false
@@ -98,7 +98,7 @@ function samePages(prev: PdfViewerPage[] | undefined, next: PdfViewerPage[] | un
 /**
  * The identity of the viewer's document, for the hooks that reset per document.
  *
- * Consumer `pages` keep their previous reference while {@link samePages} holds. An inline
+ * Consumer `pages` keep their previous reference while {@link isSamePages} holds. An inline
  * array literal therefore keeps one identity across parent renders. With no `pages`, the
  * key is `src`, which stays stable while the cache publishes each rasterized page.
  *
@@ -107,7 +107,7 @@ function samePages(prev: PdfViewerPage[] | undefined, next: PdfViewerPage[] | un
 function useDocumentKey(pagesProp: PdfViewerPage[] | undefined, src: string | undefined) {
 	const [held, setHeld] = useState(pagesProp)
 
-	const same = held === pagesProp || samePages(held, pagesProp)
+	const same = held === pagesProp || isSamePages(held, pagesProp)
 
 	// A change of content adjusts the held pages during render. React then renders
 	// again at once, before it commits.
@@ -550,13 +550,13 @@ export function usePdfViewer({
 	// each page of a streaming load. Both reset hooks take this one key.
 	const documentKey = useDocumentKey(pagesProp, src)
 
-	const { rotation, isTransposed, rotate } = usePdfViewerPageRotation(safePage, documentKey)
+	const { rotation, transposed, rotate } = usePdfViewerPageRotation(safePage, documentKey)
 
 	const { pageSize, onImageLoad } = usePdfViewerPageSize(activePage, safePage, documentKey)
 
-	// `isTransposed` is the invalidation key; the viewport re-measures
+	// `transposed` is the invalidation key; the viewport re-measures
 	// synchronously on rotation flip, before paint.
-	const viewportSize = usePdfViewerViewportSize(viewportRef, isTransposed)
+	const viewportSize = usePdfViewerViewportSize(viewportRef, transposed)
 
 	// Aspect ratio drives the viewport height. US Letter (8.5 × 11) is the
 	// pre-load fallback. Unset when there is no content to display.

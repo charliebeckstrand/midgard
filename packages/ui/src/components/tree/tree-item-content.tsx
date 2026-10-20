@@ -13,7 +13,7 @@ import { k } from '../../recipes/kata/tree'
 import { Icon } from '../icon'
 import { useTreeContext, useTreePosition } from './context'
 import { CHECK_SELECTOR } from './tree-constants'
-import { branchToggleKey } from './tree-keyboard'
+import { isToggleKey } from './tree-keyboard'
 
 /**
  * Props for {@link TreeItemContent}.
@@ -114,7 +114,7 @@ export function TreeItemContent({
 		}
 		// A branch opens on the arrow toward its children and closes on the arrow
 		// back. The tree moves focus on the other two cases.
-		if (hasChildren && branchToggleKey(event, open)) {
+		if (hasChildren && isToggleKey(event, open)) {
 			event.preventDefault()
 
 			onOpenChange(!open)

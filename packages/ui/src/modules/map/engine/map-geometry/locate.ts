@@ -200,12 +200,12 @@ export function cachedRegionIndex(features: MapFeature[]): MapRegionIndex {
 }
 
 /** Whether a box holds a position: the cheap test before the exact one. @internal */
-function within(box: MapBounds | null, [lon, lat]: LngLat): boolean {
+function isWithin(box: MapBounds | null, [lon, lat]: LngLat): boolean {
 	return box !== null && lon >= box.west && lon <= box.east && lat >= box.south && lat <= box.north
 }
 
 /** Whether two boxes meet: the cheap test the query below filters its cells with. @internal */
-function overlaps(box: MapBounds | null, other: MapBounds): boolean {
+function isOverlapping(box: MapBounds | null, other: MapBounds): boolean {
 	return (
 		box !== null &&
 		box.west <= other.east &&
@@ -230,7 +230,7 @@ function overlaps(box: MapBounds | null, other: MapBounds): boolean {
 export function regionAt(index: MapRegionIndex, features: MapFeature[], at: LngLat): number {
 	const holder = (candidates: number[]): number => {
 		for (const region of candidates) {
-			if (!within(index.bounds[region] ?? null, at)) continue
+			if (!isWithin(index.bounds[region] ?? null, at)) continue
 
 			const geometry = features[region]?.geometry
 
@@ -246,7 +246,7 @@ export function regionAt(index: MapRegionIndex, features: MapFeature[], at: LngL
 }
 
 /**
- * Every region whose box meets a box, as indices into the feature list. A
+ * Every region whose box isMeeting a box, as indices into the feature list. A
  * conservative answer over conservative boxes: it can name a region the shape
  * does not touch, and never miss one it does.
  *
@@ -270,10 +270,10 @@ export function* regionsMeeting(index: MapRegionIndex, box: MapBounds): Generato
 	// agreement would never find any.
 
 	// One closure per call rather than one generator per cell (see the loop below).
-	const meets = (region: number) => overlaps(index.bounds[region] ?? null, box)
+	const isMeeting = (region: number) => isOverlapping(index.bounds[region] ?? null, box)
 
 	for (const region of index.oversized) {
-		if (meets(region)) yield region
+		if (isMeeting(region)) yield region
 	}
 
 	const firstColumn = columnAt(box.west)
@@ -289,7 +289,7 @@ export function* regionsMeeting(index: MapRegionIndex, box: MapBounds): Generato
 	for (let row = rowAt(box.south); row <= lastRow; row++) {
 		for (let column = firstColumn; column <= lastColumn; column++) {
 			for (const region of index.cells.get(cellKey(column, row)) ?? []) {
-				if (meets(region)) yield region
+				if (isMeeting(region)) yield region
 			}
 		}
 	}

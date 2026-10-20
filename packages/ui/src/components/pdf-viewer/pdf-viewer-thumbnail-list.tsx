@@ -156,17 +156,17 @@ export function PdfViewerThumbnailList({
 				: null}
 
 			{items.map((item) => {
-				const isCurrent = item.pageNumber === safePage
+				const current = item.pageNumber === safePage
 
 				return (
 					<li key={item.key} data-index={item.pageNumber - 1}>
 						<button
-							ref={isCurrent ? scrollCurrentIntoView : undefined}
+							ref={current ? scrollCurrentIntoView : undefined}
 							type="button"
 							data-slot="pdf-viewer-thumbnail"
-							data-current={dataAttr(isCurrent)}
+							data-current={dataAttr(current)}
 							aria-label={intl.formatMessage(pdfViewerMessages.goTo, { page: item.label })}
-							aria-current={isCurrent ? 'page' : undefined}
+							aria-current={current ? 'page' : undefined}
 							className={cn(k.thumbnail.base)}
 							onClick={() => {
 								goToPage(item.pageNumber)

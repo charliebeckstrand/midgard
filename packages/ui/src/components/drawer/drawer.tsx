@@ -248,7 +248,7 @@ export function DrawerPanel({
 
 	const grip = handle === true && hasFixedHeight
 
-	const isGlass = surface === 'glass'
+	const resolvedGlass = surface === 'glass'
 
 	// The gesture is held here, by the component that owns the panel it writes to.
 	// A pixel height means nothing off the screen it was set on, so it stays in
@@ -308,11 +308,11 @@ export function DrawerPanel({
 				// `group-data-glass/glass`, which needs the named group and the attribute on
 				// one element. Rows inside take their hover wash at double strength, because
 				// 5% under the translucency of the panel reads as no hover at all.
-				data-glass={dataAttr(isGlass)}
+				data-glass={dataAttr(resolvedGlass)}
 				data-open={dataAttr(open)}
 				className={cn(
 					'group/drawer',
-					isGlass && 'group/glass',
+					resolvedGlass && 'group/glass',
 					k.panel({ surface, height }),
 					// A non-modal overlay turns off pointer events on its full-viewport
 					// root, so the page stays live. The panel turns them on again for itself.

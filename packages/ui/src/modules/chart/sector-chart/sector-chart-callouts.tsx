@@ -4,7 +4,7 @@ import { cn } from '../../../core'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
-import { getOrCompute, sameElements } from '../../../utilities'
+import { getOrCompute, isSameElements } from '../../../utilities'
 import { MARK_GAP } from '../engine/chart-constants'
 import {
 	CALLOUT_GAP,
@@ -103,7 +103,10 @@ export function calloutTexts(
 
 	const full = formatTexts(spec, values)
 
-	return { full, shown: sameElements(values, sliceValues) ? full : formatTexts(spec, sliceValues) }
+	return {
+		full,
+		shown: isSameElements(values, sliceValues) ? full : formatTexts(spec, sliceValues),
+	}
 }
 
 /** Fits the pie of one value set, once for each frame width that a render asks for. @internal */
@@ -160,7 +163,7 @@ export function calloutRoom(show: boolean, spec: CalloutSpec): number {
  *
  * @internal
  */
-function calloutsSpark(fitRadius: number, vMargin: number, width: number): boolean {
+function isSpark(fitRadius: number, vMargin: number, width: number): boolean {
 	return isSparkBox(width, 2 * fitRadius + 2 * vMargin)
 }
 
@@ -178,20 +181,20 @@ export function calloutFitRadius(
 		// Below the spark floor the labels starve the pie, so size a bare square
 		// (`height = width`, the resolver value net of the `2·vMargin` the frame
 		// adds) for the dropped-callout pie to fill rather than a collapsing sliver.
-		return calloutsSpark(radius, vMargin, frameWidth) ? frameWidth / 2 - vMargin : radius
+		return isSpark(radius, vMargin, frameWidth) ? frameWidth / 2 - vMargin : radius
 	}
 }
 
 /**
  * Whether the callouts draw at the measured `frameWidth`. They are on where they
  * fit, and off where they would starve the pie to the spark floor (see
- * {@link calloutsSpark}). The chart then falls back to bare marks. Weighed on the full dataset like the frame
+ * {@link isSpark}). The chart then falls back to bare marks. Weighed on the full dataset like the frame
  * sizing, so a toggled slice never flips the labels on or off under a steady
  * frame.
  *
  * @internal
  */
-export function calloutsShown(
+export function hasCallouts(
 	show: boolean,
 	spec: CalloutSpec,
 	vMargin: number,
@@ -199,7 +202,7 @@ export function calloutsShown(
 ): boolean {
 	if (!show) return false
 
-	return !calloutsSpark(spec.fit(frameWidth).radius, vMargin, frameWidth)
+	return !isSpark(spec.fit(frameWidth).radius, vMargin, frameWidth)
 }
 
 /**

@@ -41,7 +41,7 @@ export type ColorDragHandlers = {
  * does not change.
  * @internal
  */
-export function inDisabledFieldset(element: Element): boolean {
+export function isInDisabledFieldset(element: Element): boolean {
 	for (
 		let fieldset = element.closest('fieldset');
 		fieldset;
@@ -69,7 +69,7 @@ function holdPress(event: ReactMouseEvent<HTMLElement>): void {
  * @param ref - The tracked element; its bounding rect normalizes pointer coordinates.
  * @param onPosition - Receives the clamped `0-1` position on press and on each tracked move.
  * @param disabled - When set, press is ignored and no drag begins. A disabled
- *   ancestor `<fieldset>` has the same effect (see {@link inDisabledFieldset}).
+ *   ancestor `<fieldset>` has the same effect (see {@link isInDisabledFieldset}).
  * @param cursor - The cursor of the track at rest, which the page holds while the press holds.
  * @returns The {@link ColorDragHandlers} bag to spread onto `ref`'s element.
  * @remarks
@@ -110,7 +110,7 @@ export function useColorDrag(
 
 	const onPointerDown = useCallback(
 		(event: ReactPointerEvent<HTMLElement>) => {
-			if (disabled || inDisabledFieldset(event.currentTarget) || !press.claim(event)) return
+			if (disabled || isInDisabledFieldset(event.currentTarget) || !press.claim(event)) return
 
 			holdTextSelection(event)
 

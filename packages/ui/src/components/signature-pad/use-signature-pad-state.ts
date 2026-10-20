@@ -177,7 +177,7 @@ export function useSignaturePadState({
 	const {
 		handlePointerDown,
 		handlePointerMove,
-		commit: commitStroke,
+		tryCommit: commitStroke,
 	} = useSignaturePadDrawing({
 		canvasRef,
 		disabled: control.disabled,

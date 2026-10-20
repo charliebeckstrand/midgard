@@ -19,9 +19,9 @@ import { useMapHoverActions } from './context'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
 import {
+	isWheelDecaying,
 	pointerGap,
 	pointerMidpoint,
-	wheelDecays,
 	wheelPush,
 	wheelTravel,
 	wheelZoomFactor,
@@ -29,11 +29,11 @@ import {
 import { type MapZoomInput, type MapZoomSettings, mapZoomSettings } from './engine/map-zoom/input'
 import {
 	constrainTransform,
+	isSameTransform,
 	MAP_FIT_TRANSFORM,
 	type MapTransform,
 	type MapViewFrame,
 	panTransform,
-	sameTransform,
 	showTransform,
 	zoomTransform,
 } from './engine/map-zoom/transform'
@@ -196,7 +196,7 @@ export function useMapZoom({
 	 * Compared by value, because `constrainTransform` mints a fresh object each
 	 * render and a settled view must not report per notch.
 	 */
-	useReportedChange(transform, onViewChange, sameTransform)
+	useReportedChange(transform, onViewChange, isSameTransform)
 
 	const [gesturing, setGesturing] = useState(false)
 
@@ -223,7 +223,7 @@ export function useMapZoom({
 		live.current = { ...live.current, transform: next }
 
 		setHeld((prev) =>
-			sameTransform(prev.transform, next) ? prev : { subject: prev.subject, transform: next },
+			isSameTransform(prev.transform, next) ? prev : { subject: prev.subject, transform: next },
 		)
 	}, [])
 
@@ -421,7 +421,7 @@ export function useMapZoom({
 	}
 
 	function release(event: PointerEvent<HTMLElement>) {
-		if (fromTouch(event)) return
+		if (isTouch(event)) return
 
 		// The travel before the lift is part of the pinch, so it applies first.
 		flushPinch()
@@ -572,12 +572,12 @@ export function useMapZoom({
 	useMapTouchPinch(touchDriven, framed, svgRef, onTouch)
 
 	/** Whether the pointer handlers leave this event to {@link onTouch}. */
-	function fromTouch(event: PointerEvent<HTMLElement>) {
+	function isTouch(event: PointerEvent<HTMLElement>) {
 		return touchDriven && event.pointerType === 'touch'
 	}
 
 	function onPointerDown(event: PointerEvent<HTMLElement>) {
-		if (fromTouch(event)) return
+		if (isTouch(event)) return
 
 		// A right-click or a macOS Ctrl-click opens the region menu the plat
 		// reports for, so only a primary press starts a gesture. A further
@@ -656,7 +656,7 @@ export function useMapZoom({
 	}
 
 	function onPointerMove(event: PointerEvent<HTMLElement>) {
-		if (fromTouch(event)) return
+		if (isTouch(event)) return
 
 		const prev = pointers.current.get(event.pointerId)
 
@@ -817,7 +817,7 @@ function useWheelZoom(
 			// page's and a reader is never held on the map. Holding the key says the
 			// opposite (the reader aimed this at the map), so it is taken either
 			// way, and a shift-wheel never scrolls the page sideways under them.
-			if (modifier === null && sameTransform(next, from)) return
+			if (modifier === null && isSameTransform(next, from)) return
 
 			event.preventDefault()
 
@@ -1024,7 +1024,7 @@ function takeWheelTail(
 ) {
 	const held = stream.current
 
-	if (held === null || !wheelDecays(push, held.push, held.coasting)) {
+	if (held === null || !isWheelDecaying(push, held.push, held.coasting)) {
 		stream.current = null
 
 		return

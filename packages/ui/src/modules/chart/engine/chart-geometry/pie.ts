@@ -341,7 +341,7 @@ export function pieSlices(
  *
  * @internal
  */
-export function segmentLabelFits(
+export function isLabelFit(
 	chars: number,
 	share: number,
 	centroidRadius: number,

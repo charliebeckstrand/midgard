@@ -57,11 +57,11 @@ export function __resetCnMemo(): void {
  *
  * @internal
  */
-function keyable(inputs: readonly ClassValue[]): boolean {
+function isKeyable(inputs: readonly ClassValue[]): boolean {
 	for (const input of inputs) {
 		if (input == null || typeof input === 'string' || typeof input === 'boolean') continue
 
-		if (Array.isArray(input) && keyable(input)) continue
+		if (Array.isArray(input) && isKeyable(input)) continue
 
 		return false
 	}
@@ -140,7 +140,7 @@ function walk(node: MemoNode, inputs: readonly ClassValue[]): MemoNode | null {
  * classes. It is also bounded by {@link MEMO_CAP}.
  */
 export function cn(...inputs: ClassValue[]): string {
-	if (!keyable(inputs)) return twMerge(clsx(inputs))
+	if (!isKeyable(inputs)) return twMerge(clsx(inputs))
 
 	const node = walk(root, inputs)
 

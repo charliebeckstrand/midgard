@@ -1,7 +1,11 @@
 'use client'
 
 import { Fragment, type ReactNode, type TransitionEvent, useMemo, useRef } from 'react'
-import { detailOpen, detailWindowItems, type GridDetailWindowItem } from './engine/grid-items/items'
+import {
+	detailWindowItems,
+	type GridDetailWindowItem,
+	isDetailOpen,
+} from './engine/grid-items/items'
 import { itemAriaRowIndex } from './engine/grid-row/shell'
 import { detailCursorRows, useGridCursorOrder } from './grid-cursor-order'
 import { GridDetailRow } from './grid-detail-row'
@@ -144,7 +148,7 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 	const cursorOrder = useMemo(
 		() =>
 			detailCursorRows(rows, rowKeys, (row, key) =>
-				detailOpen(row, key, { expanded, rowExpandable: rowExpandable ?? NEVER_EXPANDABLE }),
+				isDetailOpen(row, key, { expanded, rowExpandable: rowExpandable ?? NEVER_EXPANDABLE }),
 			),
 		[rows, rowKeys, expanded, rowExpandable],
 	)

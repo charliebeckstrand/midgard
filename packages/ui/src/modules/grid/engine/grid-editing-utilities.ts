@@ -497,7 +497,7 @@ export function isInGrid(node: Element | null, grid: HTMLElement | null): boolea
  * the last element, or Shift+Tab from the first, leaves the cell. A single
  * control therefore always leaves it (WCAG 2.1.1). @internal
  */
-export function tabStaysInCell(target: Element, backward: boolean): boolean {
+export function isTabInCell(target: Element, backward: boolean): boolean {
 	const cell = target.closest('td[data-grid-col]')
 
 	if (!cell) return false
@@ -517,7 +517,7 @@ export function isSameCell(coord: GridActiveEdit | null, cell: GridActiveEdit): 
 }
 
 /** Whether two coords name the same cell; two null coords do too. @internal */
-export function sameCell(a: GridActiveEdit | null, b: GridActiveEdit | null): boolean {
+export function isSameEdit(a: GridActiveEdit | null, b: GridActiveEdit | null): boolean {
 	return a === b || (b !== null && isSameCell(a, b))
 }
 

@@ -146,7 +146,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 
 	// Renders as a <button> when onValueChange is set. Linear mode disables upcoming steps.
 	if (onValueChange !== undefined) {
-		const isDisabled = disabled === true || (linear && state === 'upcoming')
+		const blocked = disabled === true || (linear && state === 'upcoming')
 
 		return (
 			<li data-slot="stepper-item" {...props} className={cn(k.item.base, layout.item)}>
@@ -161,7 +161,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 					// them all, after hydration. The server markup holds the current panel
 					// only.
 					aria-controls={hasPanels && (state === 'current' || everyPanel) ? panelId : undefined}
-					disabled={isDisabled}
+					disabled={blocked}
 					onClick={() => onValueChange(value)}
 					className={cn(stepClasses, k.item.button, className)}
 				>

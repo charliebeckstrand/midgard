@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { valuesEqual } from '../../modules/form/engine/form-dirty'
+import { isValueEqual } from '../../modules/form/engine/form-dirty'
 import { formReducer } from '../../modules/form/engine/form-reducer'
 import { runValidators } from '../../modules/form/engine/form-validate'
 import type {
@@ -532,60 +532,60 @@ describe('formReducer', () => {
 	})
 })
 
-describe('valuesEqual', () => {
+describe('isValueEqual', () => {
 	it('treats reference-equal values as equal', () => {
 		const o = { a: 1 }
 
-		expect(valuesEqual(o, o)).toBe(true)
+		expect(isValueEqual(o, o)).toBe(true)
 	})
 
 	it('handles primitives via Object.is', () => {
-		expect(valuesEqual(1, 1)).toBe(true)
+		expect(isValueEqual(1, 1)).toBe(true)
 
-		expect(valuesEqual('a', 'a')).toBe(true)
+		expect(isValueEqual('a', 'a')).toBe(true)
 
-		expect(valuesEqual(Number.NaN, Number.NaN)).toBe(true)
+		expect(isValueEqual(Number.NaN, Number.NaN)).toBe(true)
 
-		expect(valuesEqual(0, -0)).toBe(false)
+		expect(isValueEqual(0, -0)).toBe(false)
 
-		expect(valuesEqual(null, undefined)).toBe(false)
+		expect(isValueEqual(null, undefined)).toBe(false)
 	})
 
 	it('compares Date by timestamp', () => {
-		expect(valuesEqual(new Date(2026, 0, 1), new Date(2026, 0, 1))).toBe(true)
+		expect(isValueEqual(new Date(2026, 0, 1), new Date(2026, 0, 1))).toBe(true)
 
-		expect(valuesEqual(new Date(2026, 0, 1), new Date(2026, 0, 2))).toBe(false)
+		expect(isValueEqual(new Date(2026, 0, 1), new Date(2026, 0, 2))).toBe(false)
 	})
 
 	it('compares arrays structurally', () => {
-		expect(valuesEqual([], [])).toBe(true)
+		expect(isValueEqual([], [])).toBe(true)
 
-		expect(valuesEqual(['a', 'b'], ['a', 'b'])).toBe(true)
+		expect(isValueEqual(['a', 'b'], ['a', 'b'])).toBe(true)
 
-		expect(valuesEqual(['a', 'b'], ['a', 'c'])).toBe(false)
+		expect(isValueEqual(['a', 'b'], ['a', 'c'])).toBe(false)
 
-		expect(valuesEqual([1], [1, 2])).toBe(false)
+		expect(isValueEqual([1], [1, 2])).toBe(false)
 	})
 
 	it('compares plain objects structurally', () => {
-		expect(valuesEqual({}, {})).toBe(true)
+		expect(isValueEqual({}, {})).toBe(true)
 
-		expect(valuesEqual({ a: 1 }, { a: 1 })).toBe(true)
+		expect(isValueEqual({ a: 1 }, { a: 1 })).toBe(true)
 
-		expect(valuesEqual({ a: 1, b: 2 }, { a: 1, b: 2 })).toBe(true)
+		expect(isValueEqual({ a: 1, b: 2 }, { a: 1, b: 2 })).toBe(true)
 
-		expect(valuesEqual({ a: 1, b: 2 }, { a: 1, b: 3 })).toBe(false)
+		expect(isValueEqual({ a: 1, b: 2 }, { a: 1, b: 3 })).toBe(false)
 
-		expect(valuesEqual({ a: 1 }, { a: 1, b: 2 })).toBe(false)
+		expect(isValueEqual({ a: 1 }, { a: 1, b: 2 })).toBe(false)
 	})
 
 	it('recurses into nested arrays and objects', () => {
 		expect(
-			valuesEqual({ tags: ['a', 'b'], meta: { x: 1 } }, { tags: ['a', 'b'], meta: { x: 1 } }),
+			isValueEqual({ tags: ['a', 'b'], meta: { x: 1 } }, { tags: ['a', 'b'], meta: { x: 1 } }),
 		).toBe(true)
 
 		expect(
-			valuesEqual({ tags: ['a', 'b'], meta: { x: 1 } }, { tags: ['a', 'b'], meta: { x: 2 } }),
+			isValueEqual({ tags: ['a', 'b'], meta: { x: 1 } }, { tags: ['a', 'b'], meta: { x: 2 } }),
 		).toBe(false)
 	})
 
@@ -594,8 +594,8 @@ describe('valuesEqual', () => {
 
 		const f2 = new File([], 'a.txt')
 
-		expect(valuesEqual(f1, f1)).toBe(true)
+		expect(isValueEqual(f1, f1)).toBe(true)
 
-		expect(valuesEqual(f1, f2)).toBe(false)
+		expect(isValueEqual(f1, f2)).toBe(false)
 	})
 })

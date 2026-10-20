@@ -22,7 +22,7 @@ import type { ChartContextMenuConfig } from '../chart-context-menu'
 import { ChartContextMenu } from '../chart-context-menu'
 import { ChartHeader } from '../chart-header'
 import { legendBandRow } from '../chart-legend/band'
-import { type ChartLegendPlacement, legendAside } from '../chart-legend/schema'
+import { type ChartLegendPlacement, isLegendAside } from '../chart-legend/schema'
 import { ChartMenuButton } from '../chart-menu-button'
 import type { ChartOrientation } from '../chart-orientation'
 import { ChartPlotBox } from '../chart-plot-box'
@@ -43,7 +43,7 @@ import {
 	ChartTierContext,
 	chartMarkEmphasis,
 	createChartHoverStore,
-	sameMark,
+	isSameMark,
 } from '../context'
 import type { ChartReadoutSource } from '../types'
 import { type ChartFocusTargets, useChartKeyboard } from '../use-chart-keyboard'
@@ -488,7 +488,7 @@ export function ChartFrame({
 	const pointMark = useCallback((mark: ChartMarkRef | null) => {
 		// Bail on a no-op so sweeping within one mark (or off the marks entirely
 		// once already clear) costs no mark re-render, the same guard the hover store keeps.
-		setPointedMark((prev) => (sameMark(prev, mark) ? prev : mark))
+		setPointedMark((prev) => (isSameMark(prev, mark) ? prev : mark))
 	}, [])
 
 	// The setters keep their identity, so the value does too.
@@ -595,7 +595,7 @@ export function ChartFrame({
 		</svg>
 	)
 
-	const aside = legendAside(legendPlacement)
+	const aside = isLegendAside(legendPlacement)
 
 	// A free-form fill frame grabs the container's height itself, since no ratio
 	// wrapper supplies it; a ratio-with-legend frame instead leans on the figure's

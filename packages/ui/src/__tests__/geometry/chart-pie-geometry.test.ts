@@ -6,12 +6,12 @@ import {
 	CALLOUT_LEADER,
 	CALLOUT_LINE,
 	CALLOUT_NUB,
+	isLabelFit,
 	type PieSlice,
 	pieCalloutFit,
 	pieCallouts,
 	pieCentroidRadius,
 	pieSlices,
-	segmentLabelFits,
 } from '../../modules/chart/engine/chart-geometry/pie'
 import { estimateTextWidth } from '../../modules/chart/engine/chart-text-width'
 
@@ -473,18 +473,18 @@ describe('pieCalloutFit', () => {
 	})
 })
 
-describe('segmentLabelFits', () => {
+describe('isLabelFit', () => {
 	it('admits wide slices and rejects slivers', () => {
 		// A quarter slice at centroid radius 60: clearance ≈ 42px.
-		expect(segmentLabelFits(3, 0.25, 60, 96, 7.2)).toBe(true)
+		expect(isLabelFit(3, 0.25, 60, 96, 7.2)).toBe(true)
 
 		// A 2% sliver: clearance ≈ 3.8px can't hold any text.
-		expect(segmentLabelFits(2, 0.02, 60, 96, 7.2)).toBe(false)
+		expect(isLabelFit(2, 0.02, 60, 96, 7.2)).toBe(false)
 	})
 
 	it('always admits the full circle and never a too-shallow ring', () => {
-		expect(segmentLabelFits(8, 1, 60, 96, 7.2)).toBe(true)
+		expect(isLabelFit(8, 1, 60, 96, 7.2)).toBe(true)
 
-		expect(segmentLabelFits(2, 0.5, 60, 12, 7.2)).toBe(false)
+		expect(isLabelFit(2, 0.5, 60, 12, 7.2)).toBe(false)
 	})
 })

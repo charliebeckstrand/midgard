@@ -15,12 +15,12 @@ import { type DashboardCommit, endGesture, measureGesture, startGesture } from '
 import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import {
 	type DashboardResizeEdge,
-	drivesHeight,
-	drivesWidth,
+	isHeightDriven,
+	isSamePreview,
+	isWidthDriven,
 	resizeFloor,
 	resizeLimits,
 	resizePreview,
-	samePreview,
 } from './engine/dashboard-resize'
 import type { DashboardStore } from './engine/dashboard-store'
 import type { DashboardGestureEndEvent, DashboardGestureStartEvent } from './types'
@@ -200,13 +200,15 @@ export function useDashboardResize({
 				const { x, y } = inCanvas(pointer.x, pointer.y)
 
 				// The end edge of a right-to-left tile is its left edge, so a travel to the left grows it.
-				const dw = drivesWidth(edge) ? (inline * (x - start.x)) / pitch : 0
+				const dw = isWidthDriven(edge) ? (inline * (x - start.x)) / pitch : 0
 
-				const dh = drivesHeight(edge, limits.ratio) ? ((y - start.y) * ROW_SUBDIVISION) / pitch : 0
+				const dh = isHeightDriven(edge, limits.ratio)
+					? ((y - start.y) * ROW_SUBDIVISION) / pitch
+					: 0
 
 				const preview = resizePreview(snapshot, id, origin.w + dw, origin.h + dh, limits)
 
-				if (samePreview(preview, gesture.preview)) return
+				if (isSamePreview(preview, gesture.preview)) return
 
 				store.setState({ gesture: { ...gesture, preview } })
 			}
@@ -294,9 +296,9 @@ export function useDashboardResize({
 			const { origin, inline, snapshot, limits } = context
 
 			// The arrow keys follow the screen: in a right-to-left tile the end edge is on the left.
-			const w = drivesWidth(edge) ? origin.w + inline * dw : origin.w
+			const w = isWidthDriven(edge) ? origin.w + inline * dw : origin.w
 
-			const h = drivesHeight(edge, limits.ratio) ? origin.h + dh : origin.h
+			const h = isHeightDriven(edge, limits.ratio) ? origin.h + dh : origin.h
 
 			const preview = resizePreview(snapshot, id, w, h, limits)
 

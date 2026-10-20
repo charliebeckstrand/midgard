@@ -4,10 +4,10 @@ import { clusterPoints } from '../../modules/map/engine/map-cluster/group'
 import { POINT_RADIUS } from '../../modules/map/engine/map-constants'
 import { clientToFrame, frameToClient } from '../../modules/map/engine/map-projection/frame'
 import {
+	isWheelDecaying,
 	mapZoomKey,
 	pointerGap,
 	pointerMidpoint,
-	wheelDecays,
 	wheelPush,
 	wheelTravel,
 	wheelZoomFactor,
@@ -17,10 +17,10 @@ import { mapZoomSettings } from '../../modules/map/engine/map-zoom/input'
 import {
 	applyTransform,
 	constrainTransform,
+	isSameTransform,
 	MAP_FIT_TRANSFORM,
 	type MapTransform,
 	panTransform,
-	sameTransform,
 	showTransform,
 	transformAttribute,
 	zoomTransform,
@@ -227,11 +227,11 @@ describe('transformAttribute', () => {
 	})
 })
 
-describe('sameTransform', () => {
+describe('isSameTransform', () => {
 	it('reads two equal transforms as one, so a redundant commit can bail', () => {
-		expect(sameTransform({ x: 1, y: 2, k: 3 }, { x: 1, y: 2, k: 3 })).toBe(true)
+		expect(isSameTransform({ x: 1, y: 2, k: 3 }, { x: 1, y: 2, k: 3 })).toBe(true)
 
-		expect(sameTransform({ x: 1, y: 2, k: 3 }, { x: 1, y: 2, k: 4 })).toBe(false)
+		expect(isSameTransform({ x: 1, y: 2, k: 3 }, { x: 1, y: 2, k: 4 })).toBe(false)
 	})
 })
 
@@ -285,28 +285,28 @@ describe('wheelPush', () => {
 	})
 })
 
-describe('wheelDecays', () => {
+describe('isWheelDecaying', () => {
 	it('reads a smaller push as the stream running down', () => {
-		expect(wheelDecays(30, 40, false)).toBe(true)
+		expect(isWheelDecaying(30, 40, false)).toBe(true)
 	})
 
 	it('reads a growing push as a hand back on the trackpad', () => {
-		expect(wheelDecays(50, 40, false)).toBe(false)
+		expect(isWheelDecaying(50, 40, false)).toBe(false)
 
-		expect(wheelDecays(50, 40, true)).toBe(false)
+		expect(isWheelDecaying(50, 40, true)).toBe(false)
 	})
 
 	it('takes a steady push for a wheel still being turned until the stream has run down', () => {
 		// A mouse notch reports a fixed delta, so an unchanged push is a hand on the
 		// wheel — and a reader who let the key go and kept scrolling must not find
 		// the page held under them.
-		expect(wheelDecays(40, 40, false)).toBe(false)
+		expect(isWheelDecaying(40, 40, false)).toBe(false)
 	})
 
 	it('takes the same push for momentum once the stream is coasting, since a decay plateaus', () => {
 		// By the time momentum repeats a figure it has rounded down to a pixel or
 		// two, which is exactly the travel the page must not be given.
-		expect(wheelDecays(40, 40, true)).toBe(true)
+		expect(isWheelDecaying(40, 40, true)).toBe(true)
 	})
 })
 

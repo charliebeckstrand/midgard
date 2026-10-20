@@ -12,7 +12,7 @@ import {
 	findColumn,
 	type GridActiveEdit,
 	isColumnEditable,
-	sameCell,
+	isSameEdit,
 } from './grid-editing-utilities'
 
 /**
@@ -57,8 +57,8 @@ export function readSettled(
 }
 
 /** Whether a settled value holds `cell`, as its value and its cell, with no wait. @internal */
-export function settledAt(settled: SettledCell, cell: GridActiveEdit | null): boolean {
-	return !settled.wait && sameCell(settled.raw, cell) && sameCell(settled.cell, cell)
+export function isSettledAt(settled: SettledCell, cell: GridActiveEdit | null): boolean {
+	return !settled.wait && isSameEdit(settled.raw, cell) && isSameEdit(settled.cell, cell)
 }
 
 /**
@@ -173,7 +173,7 @@ export function readControlledCell<T>(
 ): GridActiveEdit | null {
 	const held = readSettled(settled, rows)
 
-	if (sameCell(raw, settled.raw)) return held
+	if (isSameEdit(raw, settled.raw)) return held
 
 	return raw !== null && rows.has(raw.rowKey) && isEditableCell(raw, source) ? raw : held
 }
@@ -215,7 +215,7 @@ export function planTransition<T>(args: {
 
 	const next = raw !== null && isEditableCell(raw, args.source) ? raw : null
 
-	const asked = request !== null && sameCell(request.to, raw)
+	const asked = request !== null && isSameEdit(request.to, raw)
 
 	const endRows = new Set(asked ? request.endRows : [])
 

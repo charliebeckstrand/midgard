@@ -5,7 +5,7 @@ import { defineMessage } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
-import { branchToggleKey } from '../tree/tree-keyboard'
+import { isToggleKey } from '../tree/tree-keyboard'
 import { type FlatSetPosition, NodeKey } from './json-tree-utilities'
 
 /** The summary of a branch, such as "3 items". */
@@ -18,7 +18,7 @@ const itemsMessage = defineMessage<{ count: number }>({
 type JsonTreeBranchHeaderProps = {
 	depth: number
 	keyName?: string | number
-	isArray: boolean
+	listed: boolean
 	open: boolean
 	count: number
 	highlighted: boolean
@@ -52,7 +52,7 @@ type JsonTreeBranchHeaderProps = {
 export function JsonTreeBranchHeader({
 	depth,
 	keyName,
-	isArray,
+	listed,
 	open,
 	count,
 	highlighted,
@@ -67,8 +67,8 @@ export function JsonTreeBranchHeader({
 
 	const intl = useIntl()
 
-	const openBracket = isArray ? '[' : '{'
-	const closeBracket = isArray ? ']' : '}'
+	const openBracket = listed ? '[' : '{'
+	const closeBracket = listed ? ']' : '}'
 
 	// The summary shows only for a branch with items.
 	const summary = intl.formatMessage(itemsMessage, { count })
@@ -76,7 +76,7 @@ export function JsonTreeBranchHeader({
 	// The row opens on the arrow toward its children and closes on the arrow
 	// back. The tree moves focus on the other two cases.
 	const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-		if (!branchToggleKey(event, open)) return
+		if (!isToggleKey(event, open)) return
 
 		event.preventDefault()
 

@@ -13,7 +13,7 @@ import {
 } from 'react'
 import { composeEventHandlers } from '../../core'
 import { GRID_ROLE } from './engine/grid-constants'
-import { fromInteractiveContent } from './engine/grid-row/cell'
+import { isInInteractive } from './engine/grid-row/cell'
 import { clearStickyChrome, obscuringInsets, setScrollMargin } from './engine/grid-sticky-insets'
 import type { GridColumn } from './types'
 import { type Coord, useGridNavContext } from './use-grid-navigation'
@@ -49,7 +49,7 @@ export function GridNavCell({
 
 	const ref = useRef<HTMLSpanElement>(null)
 
-	const isActive = useSyncExternalStore(
+	const active = useSyncExternalStore(
 		store.subscribe,
 		useCallback(
 			() => (stop === undefined ? store.isActive(row, col) : store.isStopActive(stop)),
@@ -59,13 +59,13 @@ export function GridNavCell({
 	)
 
 	// A one-stop row holds no cell of a range.
-	const isInRange = useSyncExternalStore(
+	const inRange = useSyncExternalStore(
 		store.subscribe,
 		useCallback(() => stop === undefined && store.isInRange(row, col), [store, row, col, stop]),
 		() => false,
 	)
 
-	const fillHandle = stop === undefined && isActive ? store.fillHandle : null
+	const fillHandle = stop === undefined && active ? store.fillHandle : null
 
 	// The active cell holds the fill handle, which one overlay shows on it.
 	useLayoutEffect(() => {
@@ -87,24 +87,24 @@ export function GridNavCell({
 
 		if (!cell) return
 
-		cell.toggleAttribute('data-in-range', isInRange)
+		cell.toggleAttribute('data-in-range', inRange)
 
 		return () => {
 			cell.removeAttribute('data-in-range')
 		}
-	}, [isInRange])
+	}, [inRange])
 
 	useLayoutEffect(() => {
 		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')
 
 		if (!cell) return
 
-		cell.toggleAttribute('data-active', isActive)
+		cell.toggleAttribute('data-active', active)
 
 		// A cell scrolls into view once for each change of the cursor. A cell that
 		// mounts active again, as a scroll brings its row back into a window,
 		// leaves the scroll where the reader put it.
-		if (isActive && store.claimReveal()) {
+		if (active && store.claimReveal()) {
 			// Hold the cell clear of the grid's sticky header and pinned columns as it
 			// scrolls into view, so the focus indicator is never obscured (WCAG 2.4.11).
 			const insets = obscuringInsets(cell)
@@ -125,7 +125,7 @@ export function GridNavCell({
 		return () => {
 			cell.removeAttribute('data-active')
 		}
-	}, [isActive, store])
+	}, [active, store])
 
 	return (
 		<>
@@ -185,7 +185,7 @@ export function seatingCellProps<T>(args: {
 				// The pressed cell is in view, and the cursor reveals it. A focus that
 				// scrolls would reveal the whole table, and WebKit then scrolls the
 				// page under the finger between the two taps of a double tap.
-				if (inCell && !fromInteractiveContent(event.target)) {
+				if (inCell && !isInInteractive(event.target)) {
 					event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })
 
 					seat({ row: rowIndex, col: colIndex }, event)
@@ -220,7 +220,7 @@ function touchEntryProps(
 			(event: PointerEvent<HTMLTableCellElement>) => {
 				const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
 
-				touch.onPointerDown(inCell && !fromInteractiveContent(event.target) ? coord : null, event)
+				touch.onPointerDown(inCell && !isInInteractive(event.target) ? coord : null, event)
 			},
 		),
 		onPointerMove: composeEventHandlers(columnProps?.onPointerMove, touch.onPointerMove, {
@@ -257,7 +257,7 @@ export function useGridNavStopProps(key: string): ComponentProps<'td'> {
 		onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
 			const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
 
-			if (!inCell || fromInteractiveContent(event.target)) return
+			if (!inCell || isInInteractive(event.target)) return
 
 			// As on a data cell, the pressed cell is in view, so the focus does not scroll.
 			event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })

@@ -321,7 +321,7 @@ function getStart(field: Field): Value | undefined {
 }
 
 /** Tells if `value` is a value of `field`. An omitted value is, unless the field is required. */
-function accepts(field: Field, value: Value | undefined): boolean {
+function isAccepted(field: Field, value: Value | undefined): boolean {
 	if (field.kind !== 'choice') {
 		return value === undefined || typeof value === (field.kind === 'number' ? 'number' : 'string')
 	}
@@ -343,7 +343,7 @@ function resolveValues(fields: readonly Field[], picked: Values): Values {
 	return Object.fromEntries(
 		fields.map((field) => [
 			field.name,
-			Object.hasOwn(picked, field.name) && accepts(field, picked[field.name])
+			Object.hasOwn(picked, field.name) && isAccepted(field, picked[field.name])
 				? picked[field.name]
 				: getStart(field),
 		]),

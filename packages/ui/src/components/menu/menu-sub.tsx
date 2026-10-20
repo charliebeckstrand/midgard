@@ -135,9 +135,9 @@ export type MenuSubProps = {
  * @see {@link MenuItem}
  */
 export function MenuSub(props: MenuSubProps) {
-	const { isSheet } = useMenuState()
+	const { sheeted } = useMenuState()
 
-	return isSheet ? <MenuSubSheet {...props} /> : <MenuSubFloating {...props} />
+	return sheeted ? <MenuSubSheet {...props} /> : <MenuSubFloating {...props} />
 }
 
 /**

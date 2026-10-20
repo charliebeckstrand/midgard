@@ -5,17 +5,17 @@ import { useControllable } from '../../hooks'
 import {
 	type CellRequest,
 	type CrossRowEntry,
+	isSettledAt,
 	planTransition,
 	readControlledCell,
 	readSettled,
 	type SessionRow,
 	type SettledCell,
-	settledAt,
 	settleOn,
 	type TransitionPlan,
 	writeRowsPlan,
 } from './engine/grid-edit-transition'
-import { type GridActiveEdit, sameCell } from './engine/grid-editing-utilities'
+import { type GridActiveEdit, isSameEdit } from './engine/grid-editing-utilities'
 import type { GridEditSource } from './grid-data-types'
 import type { GridEditableConfig } from './grid-editing-types'
 import { UNEDITABLE_CELL_WARNING } from './use-grid-editing-warnings'
@@ -86,7 +86,7 @@ export function useActiveCell<T>({
 		!controlled &&
 		cellScoped &&
 		entry !== null &&
-		sameCell(candidate, entry.to) &&
+		isSameEdit(candidate, entry.to) &&
 		editableRows.has(entry.from.rowKey)
 
 	// Adjusting the state here is React's answer to a value gone stale against its
@@ -267,7 +267,7 @@ export function useGridCellBinding<T>({
 
 			// The render read a declined entry as the cell it left. Write the
 			// state back to that cell, and report it, as the entry was reported.
-			if (sameCell(raw, entry.to) && sameCell(activeEditRef.current, entry.from)) {
+			if (isSameEdit(raw, entry.to) && isSameEdit(activeEditRef.current, entry.from)) {
 				sessionRowRef.current = entry.sessionRow
 
 				setActiveCellValue(entry.from)
@@ -307,14 +307,14 @@ export function useGridCellBinding<T>({
 			// uncontrolled binding held.
 			const held = uncontrolledRef.current
 
-			const base = switched && !settledAt(settled, held) ? { raw: held, cell: held } : settled
+			const base = switched && !isSettledAt(settled, held) ? { raw: held, cell: held } : settled
 
 			if (base !== settled) setSettled(base)
 
 			const from = landWait(base)
 
 			// An equal value moves nothing. A request that did not land was declined.
-			if (!sameCell(raw, from.raw)) applyTransition(raw, from, request)
+			if (!isSameEdit(raw, from.raw)) applyTransition(raw, from, request)
 			else if (request) {
 				dropIntents()
 

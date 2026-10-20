@@ -7,19 +7,19 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 	return proto === null || proto === Object.prototype
 }
 
-/** Element-wise {@link valuesEqual} over two arrays. @internal */
-function arraysEqual(a: unknown[], b: unknown[]): boolean {
-	return a.length === b.length && a.every((item, i) => valuesEqual(item, b[i]))
+/** Element-wise {@link isValueEqual} over two arrays. @internal */
+function isArrayEqual(a: unknown[], b: unknown[]): boolean {
+	return a.length === b.length && a.every((item, i) => isValueEqual(item, b[i]))
 }
 
-/** Key-wise {@link valuesEqual} over two plain objects. @internal */
-function plainObjectsEqual(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
+/** Key-wise {@link isValueEqual} over two plain objects. @internal */
+function isPlainObjectEqual(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
 	const aKeys = Object.keys(a)
 	const bKeys = Object.keys(b)
 
 	return (
 		aKeys.length === bKeys.length &&
-		aKeys.every((key) => Object.hasOwn(b, key) && valuesEqual(a[key], b[key]))
+		aKeys.every((key) => Object.hasOwn(b, key) && isValueEqual(a[key], b[key]))
 	)
 }
 
@@ -30,21 +30,21 @@ function plainObjectsEqual(a: Record<string, unknown>, b: Record<string, unknown
  *
  * @internal
  */
-export function valuesEqual(a: unknown, b: unknown): boolean {
+export function isValueEqual(a: unknown, b: unknown): boolean {
 	if (Object.is(a, b)) return true
 
 	if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
 
-	if (Array.isArray(a) && Array.isArray(b)) return arraysEqual(a, b)
+	if (Array.isArray(a) && Array.isArray(b)) return isArrayEqual(a, b)
 
-	if (isPlainObject(a) && isPlainObject(b)) return plainObjectsEqual(a, b)
+	if (isPlainObject(a) && isPlainObject(b)) return isPlainObjectEqual(a, b)
 
 	return false
 }
 
 /**
  * Gives the dirty flag of each field: `true` when the value of the field is not
- * equal to its default, by {@link valuesEqual}.
+ * equal to its default, by {@link isValueEqual}.
  *
  * @remarks The keys of `values` decide the fields, so a key that only the
  * defaults hold gets no flag.
@@ -57,7 +57,7 @@ export function dirtyFields(
 	const flags: Record<string, boolean> = {}
 
 	for (const key in values) {
-		flags[key] = !valuesEqual(values[key], defaults[key])
+		flags[key] = !isValueEqual(values[key], defaults[key])
 	}
 
 	return flags

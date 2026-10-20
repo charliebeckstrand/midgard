@@ -658,10 +658,11 @@ function nextJob(held: Held, wanted: number[]): QueuedJob | null {
 
 	const shown = shownPages(held)
 
-	const missing = (index: number) => !hasRaster(pages[index]) && !held.skipped.has(`${index}:full`)
+	const isMissing = (index: number) =>
+		!hasRaster(pages[index]) && !held.skipped.has(`${index}:full`)
 
 	for (const index of shown) {
-		if (missing(index)) return { index, raster: 'full', factor: 1 }
+		if (isMissing(index)) return { index, raster: 'full', factor: 1 }
 	}
 
 	const sharp = sharpJob(held, shown)
@@ -669,7 +670,7 @@ function nextJob(held: Held, wanted: number[]): QueuedJob | null {
 	if (sharp) return sharp
 
 	for (const index of wanted) {
-		if (missing(index)) return { index, raster: 'full', factor: 1 }
+		if (isMissing(index)) return { index, raster: 'full', factor: 1 }
 	}
 
 	const tiles = [...new Set([...held.thumbnails.values()].flat())].sort((a, b) => a - b)
@@ -797,11 +798,11 @@ function trimDocument(src: string, held: Held, excess: number): number {
  */
 function land(src: string, held: Held, running: RunningJob, result: PdfRasterResult | Error) {
 	// A free clears the job, so a render that it stopped is no longer the job of the entry.
-	const isCurrent = documents.get(src) === held && held.job === running && held.renderer !== null
+	const current = documents.get(src) === held && held.job === running && held.renderer !== null
 
 	if (held.job === running) held.job = null
 
-	if (!isCurrent) {
+	if (!current) {
 		if (!(result instanceof Error)) discard(result)
 
 		return

@@ -5,14 +5,14 @@ import { k } from '../../recipes/kata/map'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import { type MapRegionLayer, paintAt } from './engine/map-region/paint'
 
-/** Props for {@link MapRegionsLit}: what the emphasis holds lit above the receded layer. @internal */
+/** Props for {@link MapRegionsLit}: what the emphasis holds isLit above the receded layer. @internal */
 type MapRegionsLitProps = MapRegionLayer & {
 	pointed: MapHoverTarget | null
 	emphasis: string | null
 }
 
 /**
- * The lit copies above the receded layer, the chart marks' isolation
+ * The isLit copies above the receded layer, the chart marks' isolation
  * pattern. The layer dims as one group, and the emphasized marks draw again
  * at full strength over it. A pointed region redraws alone; a legend focus
  * redraws its category. The copies are `pointer-events-none` and carry no
@@ -29,8 +29,8 @@ export function MapRegionsLit({
 	regionCategory,
 	paints,
 }: MapRegionsLitProps) {
-	// The lit set is the exact complement of the shared dim rule
-	// (`mapMarkDimmed` in engine/map-hover/target.ts: change one, change
+	// The isLit set is the exact complement of the shared dim rule
+	// (`isMarkDimmed` in engine/map-hover/target.ts: change one, change
 	// both): the pointed mark wins over a still-held legend focus, so a
 	// pointed region lights alone, a pointed overlay entry lights nothing
 	// here (the whole layer recedes behind it), else the focused category

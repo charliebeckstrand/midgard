@@ -176,16 +176,16 @@ function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNod
 
 		if (!isValidElement(child)) return child
 
-		const isTile = isTileElement(child)
+		const keep = isTileElement(child)
 
-		const key = isTile ? `tile:${child.props.id}` : child.key
+		const key = keep ? `tile:${child.props.id}` : child.key
 
 		return (
 			<DashboardTileRankContext
 				key={key}
-				value={{ rank: [slot, 0, 0], grouped: !isTile && !isSpecTilesElement(child) }}
+				value={{ rank: [slot, 0, 0], grouped: !keep && !isSpecTilesElement(child) }}
 			>
-				{isTile ? cloneElement(child, { key }) : child}
+				{keep ? cloneElement(child, { key }) : child}
 			</DashboardTileRankContext>
 		)
 	})
@@ -490,13 +490,13 @@ export function Dashboard({
 	)
 
 	// The root reads flags only, so a preview never renders the root again.
-	const readEditable = () => store.getView().editable
+	const isEditable = () => store.getView().editable
 
-	const editable = useSyncExternalStore(store.subscribe, readEditable, readEditable)
+	const editable = useSyncExternalStore(store.subscribe, isEditable, isEditable)
 
-	const readProjected = () => store.getView().projected
+	const isProjected = () => store.getView().projected
 
-	const projected = useSyncExternalStore(store.subscribe, readProjected, readProjected)
+	const projected = useSyncExternalStore(store.subscribe, isProjected, isProjected)
 
 	// The first render paints the saved layout, so the mount value is `false` and the
 	// app hears only a change.
@@ -504,9 +504,9 @@ export function Dashboard({
 
 	// The store gesture owns the drag. The dnd-kit drag of a tile can outlive the
 	// gesture after an edit exit, and the tile can unmount before the drag ends.
-	const readDragging = () => store.getState().gesture?.kind === 'drag'
+	const isDragging = () => store.getState().gesture?.kind === 'drag'
 
-	const dragging = useSyncExternalStore(store.subscribe, readDragging, readDragging)
+	const dragging = useSyncExternalStore(store.subscribe, isDragging, isDragging)
 
 	// The layer only takes the press from the surfaces under it. dnd-kit cancels the drag.
 	useEscapeLayer({ open: dragging, onDismiss: noop })

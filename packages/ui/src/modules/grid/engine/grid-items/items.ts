@@ -76,7 +76,7 @@ export function getGroupKey<T>(group: GridGroup<T>): string | number {
  * Whether each group shows a total row: `groupTotalRow` is set, and a visible
  * column aggregates. @internal
  */
-export function groupTotaled<T>(
+export function hasGroupTotal<T>(
 	groupTotalRow: boolean | undefined,
 	columns: GridColumn<T>[],
 ): boolean {
@@ -300,7 +300,7 @@ type DetailWiring<T> = {
  * Whether the detail panel of `row` is open: its key is expanded, and the row
  * can expand. @internal
  */
-export function detailOpen<T>(row: T, key: string | number, expansion: DetailWiring<T>): boolean {
+export function isDetailOpen<T>(row: T, key: string | number, expansion: DetailWiring<T>): boolean {
 	return expansion.expanded.has(key) && expansion.rowExpandable(row)
 }
 
@@ -331,7 +331,7 @@ export function detailWindowItems<T>(args: {
 
 		const reactKey = detailItemKey(rowKey)
 
-		if (detailOpen(row, rowKey, args.expansion)) {
+		if (isDetailOpen(row, rowKey, args.expansion)) {
 			items.push({
 				kind: 'detail',
 				key: reactKey,
@@ -377,7 +377,7 @@ export function detailWindowRowCount<T>(
 	let count = rows.length
 
 	rows.forEach((row, index) => {
-		if (detailOpen(row, rowKeys[index] as string | number, expansion)) count += 1
+		if (isDetailOpen(row, rowKeys[index] as string | number, expansion)) count += 1
 	})
 
 	return count
@@ -416,7 +416,7 @@ export function bodyRowCount<T>(args: {
 	expansion: DetailWiring<T> | null | undefined
 }): number {
 	if (args.groups) {
-		return groupedWindowRowCount(args.groups, groupTotaled(args.groupTotalRow, args.columns))
+		return groupedWindowRowCount(args.groups, hasGroupTotal(args.groupTotalRow, args.columns))
 	}
 
 	if (args.expansion) return detailWindowRowCount(args.rows, args.rowKeys, args.expansion)

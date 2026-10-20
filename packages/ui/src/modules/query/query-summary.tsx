@@ -4,7 +4,7 @@ import { type ComponentProps, Fragment } from 'react'
 import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/query-summary'
-import { type QuerySummaryToken, spacedBefore, summarizeQuery } from './engine/query-summary'
+import { isSpaced, type QuerySummaryToken, summarizeQuery } from './engine/query-summary'
 import type { QueryField, QueryGroup } from './engine/types'
 
 /**
@@ -68,7 +68,7 @@ export function QuerySummary({ value, fields, className, ...props }: QuerySummar
 			{tokens.map((token, index) => (
 				// The kind and the source node name a token, as they do in QueryChips.
 				<Fragment key={`${token.kind}:${token.id}`}>
-					{spacedBefore(tokens[index - 1], token) && ' '}
+					{isSpaced(tokens[index - 1], token) && ' '}
 					<SummaryToken token={token} />
 				</Fragment>
 			))}

@@ -117,7 +117,7 @@ export type MeasuredVirtualWindowOptions = VirtualWindowOptions & {
  *
  * @internal
  */
-const adjustAboveViewport = (
+const shouldAdjust = (
 	item: VirtualItem,
 	_delta: number,
 	instance: Virtualizer<HTMLElement, Element>,
@@ -528,7 +528,7 @@ function useWindowVirtualizer(options: WindowVirtualizerOptions, adjustAbove: bo
 
 	instance.setOptions(resolved)
 
-	if (adjustAbove) instance.shouldAdjustScrollPositionOnItemSizeChange = adjustAboveViewport
+	if (adjustAbove) instance.shouldAdjustScrollPositionOnItemSizeChange = shouldAdjust
 
 	// One identity for the mount, as the library method has.
 	const [scrollToIndex] = useState(

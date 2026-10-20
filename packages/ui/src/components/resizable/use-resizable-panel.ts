@@ -105,7 +105,7 @@ function clampPair(sizes: number[], leftIndex: number, constraints: PanelConfig[
 const SEED_EPSILON = 1e-9
 
 /** Whether each size is in the min/max of its panel, in the tolerance. */
-function meetsBounds(sizes: number[], configs: PanelConfig[]): boolean {
+function isInBounds(sizes: number[], configs: PanelConfig[]): boolean {
 	return sizes.every((size, index) => {
 		const config = configs[index]
 
@@ -205,11 +205,11 @@ function seedSizes(configs: PanelConfig[]): number[] {
 		sizes = clampPair(sizes, leftIndex, configs)
 	}
 
-	if (meetsBounds(sizes, configs)) return sizes
+	if (isInBounds(sizes, configs)) return sizes
 
 	const filled = fillBounds(base, configs)
 
-	return filled && meetsBounds(filled, configs) ? filled : sizes
+	return filled && isInBounds(filled, configs) ? filled : sizes
 }
 
 type PanelResize = {

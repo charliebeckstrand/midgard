@@ -343,7 +343,7 @@ export function dismissFrame(
  * @param height - The height of the stage.
  * @internal
  */
-export function dismisses(travel: Vector, speed: Vector, height: number): boolean {
+export function shouldDismiss(travel: Vector, speed: Vector, height: number): boolean {
 	const distance = Math.hypot(travel.x, travel.y)
 
 	if (distance === 0) return false

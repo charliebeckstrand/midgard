@@ -33,8 +33,8 @@ import {
 	CALLOUT_TEXT_CLASS,
 	calloutFitRadius,
 	calloutRoom,
-	calloutsShown,
 	calloutTexts,
+	hasCallouts,
 	resolveCallouts,
 	resolveFit,
 	SectorChartCallouts,
@@ -269,7 +269,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// Callouts need a wide horizontal band; where that band would starve the pie to
 	// the spark floor, drop them and draw a bare pie: the sizing already squared
 	// the frame to receive it.
-	const drawCallouts = calloutsShown(showCallouts, calloutSpec, vMargin, frameWidth)
+	const drawCallouts = hasCallouts(showCallouts, calloutSpec, vMargin, frameWidth)
 
 	// A dropped callout returns the pie to the plain gap all round, so it fills the
 	// square rather than holding the taller callout band's margin.

@@ -62,7 +62,7 @@ function toQueryField(
 }
 
 /** Whether the column's sheet offers facets: a `select` without explicit options, or a `number`. @internal */
-function takesFacets(column: FilterColumn): boolean {
+function hasFacets(column: FilterColumn): boolean {
 	return (column.filterType === 'select' && !column.filterOptions) || column.filterType === 'number'
 }
 
@@ -176,7 +176,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	// effect. With no applied query it opens on one empty rule. An unapplied draft
 	// is dropped on close.
 	function openSheet() {
-		const next = takesFacets(column) ? filter.facets(column.id) : null
+		const next = hasFacets(column) ? filter.facets(column.id) : null
 
 		setFacets(next)
 

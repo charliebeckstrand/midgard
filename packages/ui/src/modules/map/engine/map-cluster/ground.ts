@@ -11,7 +11,7 @@
  * targets a reader has to aim at precisely. They pay that for an ambiguity that only ever existed
  * between them.
  *
- * A dot's ground is instead its full target MINUS whatever lies nearer to a neighbor. The boundary
+ * A dot's ground is instead its full target MINUS whatever lies isNearer to a neighbor. The boundary
  * between two dots is the perpendicular bisector of the segment joining them. Each therefore keeps
  * the whole of its finger target outward. The contested middle divides once, evenly, along a line a
  * reader could have drawn themselves. It is also the only division that cannot depend on draw
@@ -48,7 +48,7 @@ export type MapGround = MapPoint2D[]
  *
  * @internal
  */
-function contests(at: MapPoint2D, other: MapPoint2D, reach: number): boolean {
+function isContested(at: MapPoint2D, other: MapPoint2D, reach: number): boolean {
 	const apart = squared(at, other)
 
 	// Coincident dots are excluded, not divided: the bisector of a zero-length segment has no
@@ -59,7 +59,7 @@ function contests(at: MapPoint2D, other: MapPoint2D, reach: number): boolean {
 }
 
 /** Whether `point` is on `at`'s side of the bisector: ties fall inside, so a boundary point is owned. @internal */
-function nearer(point: MapPoint2D, mid: MapPoint2D, nx: number, ny: number): boolean {
+function isNearer(point: MapPoint2D, mid: MapPoint2D, nx: number, ny: number): boolean {
 	return (point.x - mid.x) * nx + (point.y - mid.y) * ny <= 0
 }
 
@@ -96,13 +96,13 @@ function clipToHalf(ring: MapGround, mid: MapPoint2D, nx: number, ny: number): M
 
 		if (b === undefined) continue
 
-		const aIn = nearer(a, mid, nx, ny)
+		const aIn = isNearer(a, mid, nx, ny)
 
 		if (aIn) kept.push(a)
 
 		// The crossing point joins the ring whichever way the edge is leaving or entering, which is what
 		// keeps the result closed.
-		if (aIn !== nearer(b, mid, nx, ny)) kept.push(crossing(a, b, mid, nx, ny))
+		if (aIn !== isNearer(b, mid, nx, ny)) kept.push(crossing(a, b, mid, nx, ny))
 	}
 
 	return kept
@@ -112,7 +112,7 @@ function clipToHalf(ring: MapGround, mid: MapPoint2D, nx: number, ny: number): M
  * The ground a dot keeps, or `null` when no neighbor is close enough to want any of it.
  *
  * Starts from the square bounding the dot's own target, so the ring is finite for a `clipPath` to
- * draw. Every cut lands inside it, because a bisector that contests the target at all crosses that
+ * draw. Every cut lands inside it, because a bisector that isContested the target at all crosses that
  * square. The circle supplies the curve; this supplies only the straight edges.
  *
  * @param at - The dot's projected frame position.
@@ -128,7 +128,7 @@ export function ownGround(
 	neighbors: readonly MapPoint2D[],
 	reach: number,
 ): MapGround | null {
-	const near = neighbors.filter((other) => contests(at, other, reach))
+	const near = neighbors.filter((other) => isContested(at, other, reach))
 
 	if (near.length === 0) return null
 
@@ -144,7 +144,7 @@ export function ownGround(
 
 		const dy = other.y - at.y
 
-		// The raw delta, not a unit normal: `nearer` reads only the sign of a dot product against it and
+		// The raw delta, not a unit normal: `isNearer` reads only the sign of a dot product against it and
 		// `crossing` reads a ratio of two, so any positive scaling cancels out of both. Normalizing would
 		// buy a square root and a rounding step per neighbor to reach the same ring.
 		ring = clipToHalf(ring, { x: at.x + dx / 2, y: at.y + dy / 2 }, dx, dy)

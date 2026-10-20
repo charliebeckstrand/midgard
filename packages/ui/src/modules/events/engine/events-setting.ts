@@ -1,6 +1,6 @@
 import { createEmitter } from '../../../utilities/emitter'
 import { noop } from '../../../utilities/noop'
-import { CAPTURE_KEY, getStorage, readStorage, writeStorage } from './events-storage'
+import { CAPTURE_KEY, getStorage, readStorage, tryWriteStorage } from './events-storage'
 import type { EventSource } from './types'
 
 // The settings of the events: whether they run, and whether the panel is
@@ -164,5 +164,5 @@ function readLocal(key: string): string | null {
 }
 
 function writeLocal(key: string, on: boolean): void {
-	writeStorage(local(), key, on ? '1' : null)
+	tryWriteStorage(local(), key, on ? '1' : null)
 }

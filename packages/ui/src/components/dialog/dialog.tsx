@@ -178,7 +178,7 @@ export function DialogPanel({
 
 	const surface = useResolvedSurface(glass)
 
-	const isGlass = surface === 'glass'
+	const resolvedGlass = surface === 'glass'
 
 	// A map with no `initial` value docks there, in the CSS and in the motion alike.
 	const align = withInitial(alignProp, 'bottom')
@@ -234,11 +234,11 @@ export function DialogPanel({
 					// Half the marker `hannou.tint.glass` keys on; the `group/glass` class
 					// below is the other half. See `recipes/kiso/hannou/glass-item.ts`. A
 					// command palette's rows hover inside this panel, not inside a popover.
-					data-glass={dataAttr(isGlass)}
+					data-glass={dataAttr(resolvedGlass)}
 					data-open={dataAttr(open)}
 					className={cn(
 						'pointer-events-auto',
-						isGlass && 'group/glass',
+						resolvedGlass && 'group/glass',
 						k.panel({ surface, width }),
 						resolveVariant(align, k.align.panel),
 						className,

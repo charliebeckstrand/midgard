@@ -100,7 +100,7 @@ export function useNavItem({ current, value, href, match, preventClose, onClick 
 	const onPath = usePathMatch(href, match)
 	const scrollWithin = useScrollWithin()
 
-	const isCurrent = current ?? (value === undefined ? onPath : item.current)
+	const resolvedCurrent = current ?? (value === undefined ? onPath : item.current)
 
 	// Scroll once per becoming-current edge, tracked in a ref. The effect also
 	// re-fires without an edge: StrictMode's dev double-invoke replays layout
@@ -110,7 +110,7 @@ export function useNavItem({ current, value, href, match, preventClose, onClick 
 	const scrolledRef = useRef(false)
 
 	useLayoutEffect(() => {
-		if (!isCurrent) {
+		if (!resolvedCurrent) {
 			scrolledRef.current = false
 
 			return
@@ -121,7 +121,7 @@ export function useNavItem({ current, value, href, match, preventClose, onClick 
 		scrolledRef.current = true
 
 		scrollWithin(ref.current, { block: 'nearest' })
-	}, [isCurrent, scrollWithin])
+	}, [resolvedCurrent, scrollWithin])
 
 	// The selection is the activation of the item, so a consumer
 	// `preventDefault()` does not cancel it. The close is side behavior, so the
@@ -136,5 +136,5 @@ export function useNavItem({ current, value, href, match, preventClose, onClick 
 		{ checkForDefaultPrevented: false },
 	)
 
-	return { ref, current: isCurrent, indicator, handleClick }
+	return { ref, current: resolvedCurrent, indicator, handleClick }
 }

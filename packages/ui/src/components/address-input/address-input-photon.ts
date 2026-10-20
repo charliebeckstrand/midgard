@@ -173,7 +173,7 @@ export type PhotonProviderOptions = {
 }
 
 /** Whether the name of a match holds the full name of a state, as a whole word. */
-function namesState(feature: PhotonFeature, state: UsState): boolean {
+function hasStateName(feature: PhotonFeature, state: UsState): boolean {
 	const words = ` ${(feature.properties.name ?? '').toLowerCase().replace(/[^a-z]+/g, ' ')} `
 
 	return words.includes(` ${state.name.toLowerCase()} `)
@@ -199,7 +199,7 @@ function parseBox(extent: unknown): [number, number, number, number] | undefined
  * (`-180` to `180`). A box like this holds most of the globe, so it does not
  * keep a search near the area.
  */
-function spansGlobe([west, , east]: [number, number, number, number]): boolean {
+function isSpanningGlobe([west, , east]: [number, number, number, number]): boolean {
 	return east - west >= 180
 }
 
@@ -371,7 +371,7 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 
 		const features = await search(
 			rest,
-			spansGlobe(box)
+			isSpanningGlobe(box)
 				? { near: { latitude, longitude }, localize: false, count }
 				: { box, localize: false, count },
 			signal,
@@ -446,7 +446,7 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 			searchInState(inState.rest, inState.state, signal),
 		])
 
-		const named = typed.some((feature) => namesState(feature, inState.state))
+		const named = typed.some((feature) => hasStateName(feature, inState.state))
 
 		return (named || scoped.length === 0 ? typed : scoped).map(featureToSuggestion)
 	}
@@ -498,7 +498,7 @@ function featureToSuggestion(feature: PhotonFeature): AddressSuggestion {
 	// match has no name, as for a plain address.
 	const own = (kind: string) => (properties.type === kind ? properties.name : undefined)
 
-	const isPostcode = properties.osm_value === 'postcode'
+	const postal = properties.osm_value === 'postcode'
 
 	const road = properties.street === undefined ? own('street') : undefined
 
@@ -509,7 +509,7 @@ function featureToSuggestion(feature: PhotonFeature): AddressSuggestion {
 				: [properties.housenumber, road].filter(Boolean).join(' '),
 		city: properties.city ?? own('city'),
 		state: properties.state ?? own('state'),
-		postcode: properties.postcode ?? (isPostcode ? properties.name : undefined),
+		postcode: properties.postcode ?? (postal ? properties.name : undefined),
 		country: properties.country ?? own('country'),
 	}
 
@@ -528,7 +528,7 @@ function featureToSuggestion(feature: PhotonFeature): AddressSuggestion {
 		id: featureId(properties),
 		label: primary,
 		description: rest.join(', ') || undefined,
-		name: isPostcode ? undefined : properties.name,
+		name: postal ? undefined : properties.name,
 		address,
 		latitude,
 		longitude,

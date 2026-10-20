@@ -57,9 +57,9 @@ export function useControllable<T>({
 
 	if (value !== undefined && !controlled) setControlled(true)
 
-	const isControlled = controlled || value !== undefined
+	const external = controlled || value !== undefined
 
-	const currentValue = isControlled ? (value ?? undefined) : internalValue
+	const currentValue = external ? (value ?? undefined) : internalValue
 
 	// The value on screen, as of the last commit.
 	const shownRef = useRef(currentValue)
@@ -77,7 +77,7 @@ export function useControllable<T>({
 	// commits nothing.
 	const pendingRef = useRef<T | undefined | typeof NONE>(NONE)
 
-	const controlledRef = useRef(isControlled)
+	const controlledRef = useRef(external)
 
 	// A ref, not an effect event. A caller can set the value during render
 	// (`useTooltipState` closes a tooltip that turns off, as an adjustment during
@@ -92,7 +92,7 @@ export function useControllable<T>({
 
 		pendingRef.current = NONE
 
-		controlledRef.current = isControlled
+		controlledRef.current = external
 
 		onValueChangeRef.current = onValueChange
 	})

@@ -51,7 +51,7 @@ export function invertTransform(at: MapPoint2D, transform: MapTransform): MapPoi
 }
 
 /** Whether two transforms sit at the same place, so a redundant commit can bail. @internal */
-export function sameTransform(a: MapTransform, b: MapTransform): boolean {
+export function isSameTransform(a: MapTransform, b: MapTransform): boolean {
 	return a === b || (a.x === b.x && a.y === b.y && a.k === b.k)
 }
 

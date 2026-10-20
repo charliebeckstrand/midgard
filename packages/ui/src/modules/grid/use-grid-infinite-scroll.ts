@@ -314,7 +314,7 @@ function evaluateLoadMore(args: {
  *
  * @internal
  */
-function armOnScroll(state: LoadMoreState, scrollTop: number): boolean {
+function tryArm(state: LoadMoreState, scrollTop: number): boolean {
 	const moved = state.restTop !== scrollTop
 
 	state.restTop = scrollTop
@@ -359,7 +359,7 @@ type GridInfiniteScrollParams = {
  * resolves. That means at most one fire per user scroll interaction. A scroll
  * event on the container arms the next fire, and firing consumes the arm. The
  * arm edge runs one evaluation in the next frame, so a short scroll after a
- * failed fetch retries when the window does not move (see `armOnScroll`). A
+ * failed fetch retries when the window does not move (see `tryArm`). A
  * geometry-bounded viewport-fill also fires while the loaded rows don't yet
  * overflow the container. When the container turns out unbounded (its height
  * grows with the content instead of windowing it), fetching stops and a
@@ -395,7 +395,7 @@ export function useGridInfiniteScroll({
 	const threshold = infiniteScroll?.threshold ?? 0
 
 	// One evaluation against the newest props, for the arm edge of a scroll (see
-	// `armOnScroll`).
+	// `tryArm`).
 	const evaluateOnArm = useEffectEvent((state: LoadMoreState) => {
 		evaluateLoadMore({
 			state,
@@ -423,7 +423,7 @@ export function useGridInfiniteScroll({
 
 		// A resize observation runs after layout, and so after each offset that
 		// layout moved: an anchor correction, or a clamp at the scroll end. It
-		// records that offset as the rest offset of `armOnScroll`. It reads the
+		// records that offset as the rest offset of `tryArm`. It reads the
 		// offset of a layout that is already done, so it forces no layout.
 		const rest = () => {
 			if (stateRef.current) stateRef.current.restTop = element.scrollTop
@@ -440,7 +440,7 @@ export function useGridInfiniteScroll({
 		const onScroll = () => {
 			const state = stateRef.current
 
-			if (!state || !armOnScroll(state, element.scrollTop) || frame) return
+			if (!state || !tryArm(state, element.scrollTop) || frame) return
 
 			frame = requestAnimationFrame(() => {
 				frame = 0

@@ -54,7 +54,7 @@ export const [GridSettleContext, useGridSettle] = createContext<GridSettleStore 
 )
 
 /** Reads no drag, for a read outside a `<Grid>` and on the server. @internal */
-const notResizing = () => false
+const isResizing = () => false
 
 /**
  * Reads whether a column drag-resize is in flight. The grid's truncation
@@ -72,8 +72,8 @@ export function useGridResizing(): boolean {
 
 	return useSyncExternalStore(
 		settle?.subscribeResizing ?? noopSubscribe,
-		settle?.resizing ?? notResizing,
-		notResizing,
+		settle?.resizing ?? isResizing,
+		isResizing,
 	)
 }
 

@@ -3,7 +3,7 @@ import {
 	type FrozenCell,
 	frozenHeaderCells,
 	frozenOffsets,
-	sameFrozenOffsets,
+	isSameOffsets,
 } from '../../modules/grid/engine/grid-pin/measure'
 import type { GridColumn } from '../../modules/grid/types'
 
@@ -127,15 +127,15 @@ describe('frozen column measurement', () => {
 		const measure = () =>
 			frozenOffsets(frozenHeaderCells(render([48, 100, 90, 40, 40, 60]), columns, side))
 
-		expect(sameFrozenOffsets(measure(), measure())).toBe(true)
+		expect(isSameOffsets(measure(), measure())).toBe(true)
 
 		// A frozen column that changed width moves the ones behind it.
 		const moved = frozenOffsets(frozenHeaderCells(render([48, 120, 90, 40, 40, 60]), columns, side))
 
-		expect(sameFrozenOffsets(measure(), moved)).toBe(false)
+		expect(isSameOffsets(measure(), moved)).toBe(false)
 
 		// No prior measurement is never equal.
-		expect(sameFrozenOffsets(null, measure())).toBe(false)
+		expect(isSameOffsets(null, measure())).toBe(false)
 	})
 
 	it('accumulates only across the cells it is handed', () => {

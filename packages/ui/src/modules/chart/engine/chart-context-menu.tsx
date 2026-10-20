@@ -221,7 +221,7 @@ export function ChartContextMenu({
 	// neutral tab stop focused and Escape shuts it.
 	const closeRef = useRef<HTMLButtonElement>(null)
 
-	const isFullscreen = useChartFullscreen()
+	const inFullscreen = useChartFullscreen()
 
 	const intl = useIntl()
 
@@ -436,7 +436,7 @@ export function ChartContextMenu({
 	// copy. It renders bare, so the enlarged chart never nests a second menu or
 	// recurses. The rule lives here because this component provides
 	// `ChartFullscreenContext`: a caller cannot forget to apply it.
-	if (isFullscreen) return <>{children}</>
+	if (inFullscreen) return <>{children}</>
 
 	return (
 		<>

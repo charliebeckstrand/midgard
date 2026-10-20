@@ -46,8 +46,8 @@ import { useChartTextWidth } from '../engine/use-chart-text-width'
 import {
 	type HeatmapChartProps,
 	type HeatmapMatrix,
+	isSameSeries,
 	resolveMatrix,
-	sameHeatmapSeries,
 } from './heatmap-chart-schema'
 
 /** The classes of a row label, as the y axis draws it. @internal */
@@ -235,7 +235,7 @@ export function useHeatmapChart<T>(
 	// A series literal is a new object on each render of the caller. It is held
 	// while its fields keep their values, so the grid memos below hold through a
 	// parent render.
-	const primary = useStableValue(series, sameHeatmapSeries)
+	const primary = useStableValue(series, isSameSeries)
 
 	const matrix = useMemo(
 		() =>

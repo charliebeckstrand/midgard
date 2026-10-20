@@ -24,7 +24,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
 import { noop } from '../../utilities/noop'
 import type { TooltipProps } from './tooltip'
-import { reopensOnEnable, type TooltipIntent } from './tooltip-intent'
+import { shouldReopen, type TooltipIntent } from './tooltip-intent'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
 
 /** Options for {@link useTooltipState}. @internal */
@@ -229,7 +229,7 @@ export function useTooltipState({
 		if (
 			wasDisabled &&
 			!disabled &&
-			reopensOnEnable({ enabled, trigger }, pointerRef.current) &&
+			shouldReopen({ enabled, trigger }, pointerRef.current) &&
 			domReference?.matches(':hover')
 		)
 			setOpen(true)
@@ -309,7 +309,7 @@ export function useTooltipState({
 		pointerRef.current = intent.pointer
 
 		// The options can change between the record and the replay.
-		const reenabled = intent.reenabled && reopensOnEnable({ enabled, trigger }, intent.pointer)
+		const reenabled = intent.reenabled && shouldReopen({ enabled, trigger }, intent.pointer)
 
 		return replayIntent({ ...intent, reenabled }, reference, context, setOpen, delay)
 	})

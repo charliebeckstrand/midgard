@@ -10,7 +10,7 @@ import { once } from '../../utilities'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { useMapHoverActions } from './context'
 import { MAP_CURSOR_INSET, MAP_ZOOM_FIT } from './engine/map-constants'
-import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
+import { isSameTarget, type MapHoverTarget } from './engine/map-hover/target'
 import { isActivateKey, moveCursor } from './engine/map-keyboard/cursor'
 import type { MapStop } from './engine/map-keyboard/stops'
 import { frameToClient } from './engine/map-projection/frame'
@@ -196,7 +196,7 @@ export function useMapKeyboard({
 		// it names the same mark: the cursor is a dependency of the effects below,
 		// and a refit frame would otherwise re-run them all for a mark that has not
 		// moved.
-		setCursor((prev) => (sameTarget(prev, stop?.target ?? null) ? prev : (stop?.target ?? null)))
+		setCursor((prev) => (isSameTarget(prev, stop?.target ?? null) ? prev : (stop?.target ?? null)))
 
 		const svg = svgRef.current
 

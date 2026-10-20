@@ -1,6 +1,6 @@
 import { type PointerEvent, useRef } from 'react'
 import { useTouchHold } from '../../hooks/use-touch-hold'
-import { inPortaledPanel } from './use-menu-root'
+import { isInPortaledPanel } from './use-menu-root'
 
 /** Hold time, in ms, before a touch opens the context menu. Android opens its own at about 500. */
 export const TOUCH_CONTEXT_MENU_DELAY = 500
@@ -62,7 +62,7 @@ export function useMenuTouchHold() {
 
 			// A press on a row of the open menu is a press on that row, however long the
 			// finger rests. A hold there would open nothing and drop the click that ends it.
-			if (inPortaledPanel(event.target, event.currentTarget)) return
+			if (isInPortaledPanel(event.target, event.currentTarget)) return
 
 			claimed.add(event.nativeEvent)
 

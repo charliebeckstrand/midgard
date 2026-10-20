@@ -94,7 +94,7 @@ export function foreignFloatingPortal(container: Element, target: Node): Element
  *
  * @internal
  */
-export function referenceOpenedWithin(container: Element, portal: Element): boolean {
+export function isOpenedWithin(container: Element, portal: Element): boolean {
 	const reference = portalReferences.get(portal)?.()
 
 	return reference != null && container.contains(reference)
@@ -118,10 +118,10 @@ export function referenceOpenedWithin(container: Element, portal: Element): bool
  *
  * @internal
  */
-export function pressLandsInSurfaceOpenedWithin(container: Element, target: Node): boolean {
+export function isPressInSurface(container: Element, target: Node): boolean {
 	if (publishedCount === 0) return false
 
 	const portal = foreignFloatingPortal(container, target)
 
-	return portal != null && referenceOpenedWithin(container, portal)
+	return portal != null && isOpenedWithin(container, portal)
 }

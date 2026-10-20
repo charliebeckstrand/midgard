@@ -5,7 +5,7 @@ import { writeRootDensity } from '../../core/density'
 import { rootReducedMotionClass } from '../../core/motion/root'
 import { rootOffcanvasSidebarClass } from '../../core/sidebar/root'
 import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
-import { matchesMediaQuery, subscribeMediaQuery } from '../../utilities/media-query'
+import { isMediaMatch, subscribeMediaQuery } from '../../utilities/media-query'
 import { levelToStep } from '../density/context'
 import {
 	DARK_SCHEME,
@@ -84,7 +84,9 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 
 		const root = document.documentElement
 
-		const apply = (dark: boolean) => root.classList.toggle('dark', dark)
+		const apply = (dark: boolean) => {
+			root.classList.toggle('dark', dark)
+		}
 
 		const sync = () => {
 			const stored = readChoice(THEME)
@@ -94,11 +96,9 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 			unsubscribeScheme = undefined
 
 			if (stored === 'system') {
-				apply(matchesMediaQuery(DARK_SCHEME))
+				apply(isMediaMatch(DARK_SCHEME))
 
-				unsubscribeScheme = subscribeMediaQuery(DARK_SCHEME, () =>
-					apply(matchesMediaQuery(DARK_SCHEME)),
-				)
+				unsubscribeScheme = subscribeMediaQuery(DARK_SCHEME, () => apply(isMediaMatch(DARK_SCHEME)))
 			} else {
 				apply(stored === 'dark')
 			}

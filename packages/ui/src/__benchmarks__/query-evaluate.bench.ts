@@ -2,7 +2,7 @@
 
 import { bench, describe } from 'vitest'
 import { isQueryActive } from '../modules/query/engine/query-active'
-import { evaluateQuery, matchQueryRule } from '../modules/query/engine/query-evaluate'
+import { isRuleMatch, isSatisfied } from '../modules/query/engine/query-evaluate'
 import { formatQuerySummary, summarizeQuery } from '../modules/query/engine/query-summary'
 import type { QueryGroup, QueryNode } from '../modules/query/engine/types'
 import { QUERY_FIELDS, QUERY_TREES, type Shipment, shipments } from './fixtures'
@@ -10,7 +10,7 @@ import { QUERY_FIELDS, QUERY_TREES, type Shipment, shipments } from './fixtures'
 /**
  * What a built query costs to *use*, where `query-builder.bench.ts` measures
  * what it costs to edit. Three readers sit on different clocks:
- * {@link evaluateQuery} runs once per row — a client-side filter walks the
+ * {@link isSatisfied} runs once per row — a client-side filter walks the
  * whole tree for every row in the dataset, so its per-row cost multiplies by
  * ten or a hundred thousand; {@link isQueryActive} and {@link summarizeQuery}
  * run once per render of whatever affordance shows the query.
@@ -50,7 +50,7 @@ const row = rows[0] as Shipment
 
 const getValue = (field: string) => (row as unknown as Record<string, unknown>)[field]
 
-describe('query-evaluate · evaluateQuery (once per row)', () => {
+describe('query-evaluate · isSatisfied (once per row)', () => {
 	// The per-row walk, folded both ways over the same tree.
 	//
 	// The fold evaluates each child into a local before combining it, so neither
@@ -65,11 +65,11 @@ describe('query-evaluate · evaluateQuery (once per row)', () => {
 		const disjunction = withCombinator(tree, 'or')
 
 		bench(`${label} · and`, () => {
-			evaluateQuery(conjunction, getValue)
+			isSatisfied(conjunction, getValue)
 		})
 
 		bench(`${label} · or`, () => {
-			evaluateQuery(disjunction, getValue)
+			isSatisfied(disjunction, getValue)
 		})
 	}
 })
@@ -84,7 +84,7 @@ describe('query-evaluate · a client-side filter pass (1,000 rows)', () => {
 
 		bench(`${label} · 1,000 rows`, () => {
 			rows.filter((candidate) =>
-				evaluateQuery(
+				isSatisfied(
 					disjunction,
 					(field) => (candidate as unknown as Record<string, unknown>)[field],
 				),
@@ -93,25 +93,25 @@ describe('query-evaluate · a client-side filter pass (1,000 rows)', () => {
 	}
 })
 
-describe('query-evaluate · matchQueryRule (per rule, per row)', () => {
+describe('query-evaluate · isRuleMatch (per rule, per row)', () => {
 	// The leaf the walk repeats: a Map-free object lookup, an empty-value gate,
 	// then the matcher. The three bars are its distinct exits — an unknown
 	// operator answers immediately, an empty rule value answers after the gate,
 	// and a real comparison runs the matcher.
 	bench('unknown operator (returns true immediately)', () => {
-		matchQueryRule('__absent__', 'delivered', 'x')
+		isRuleMatch('__absent__', 'delivered', 'x')
 	})
 
 	bench('empty rule value (gated before the matcher)', () => {
-		matchQueryRule('equals', 'delivered', '')
+		isRuleMatch('equals', 'delivered', '')
 	})
 
 	bench('equals · matcher runs', () => {
-		matchQueryRule('equals', 'delivered', 'delivered')
+		isRuleMatch('equals', 'delivered', 'delivered')
 	})
 
 	bench('contains · matcher runs', () => {
-		matchQueryRule('contains', 'Seattle → Denver', 'Denver')
+		isRuleMatch('contains', 'Seattle → Denver', 'Denver')
 	})
 })
 

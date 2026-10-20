@@ -6,7 +6,7 @@ import { k as chart } from '../../recipes/kata/chart'
 import { k } from '../../recipes/kata/map'
 import { noop } from '../../utilities'
 import { legendBandRow } from '../chart/engine/chart-legend/band'
-import { legendAside } from '../chart/engine/chart-legend/schema'
+import { isLegendAside } from '../chart/engine/chart-legend/schema'
 import { ChartPlotBox } from '../chart/engine/chart-plot-box'
 import { useMapZoomView } from './context'
 import type { MapLegendPlacement } from './engine/types'
@@ -66,7 +66,7 @@ export function MapFrame({
 	style,
 	...props
 }: MapFrameProps) {
-	const aside = legendAside(legendPlacement)
+	const aside = isLegendAside(legendPlacement)
 
 	// The plot alone sits under the view transform's provider. The legend answers
 	// the toggles and the emphasis, never the view, so keeping it outside is what

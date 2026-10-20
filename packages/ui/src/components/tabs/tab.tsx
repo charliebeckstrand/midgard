@@ -121,7 +121,7 @@ export function Tab({
 	// a ref read.
 	const { ref: indicatorRef, tapHandlers } = useActiveIndicator()
 
-	const isSegment = tabsContext?.variant === 'segment'
+	const segmented = tabsContext?.variant === 'segment'
 
 	const orientation = tabsContext?.orientation ?? 'horizontal'
 
@@ -146,7 +146,7 @@ export function Tab({
 	// so a segment tab also waits for a registered panel.
 	const panelMounted = current || tabsContext?.panelsMounted
 
-	const panelsExpected = !isSegment || tabsContext?.panelsPresent
+	const panelsExpected = !segmented || tabsContext?.panelsPresent
 
 	const panelInDom = id !== undefined || (panelMounted && panelsExpected)
 
@@ -184,7 +184,7 @@ export function Tab({
 
 	// A selection that does not move focus scrolls the tab into the viewport of
 	// the list. The segment variant has no viewport.
-	const selectScrollRef = useTabSelectScroll(current, orientation, !isSegment)
+	const selectScrollRef = useTabSelectScroll(current, orientation, !segmented)
 
 	const setTab = useComposedRefs(selectScrollRef, consumerRef)
 
@@ -213,7 +213,7 @@ export function Tab({
 					type="button"
 					className={cn(
 						k.trigger({ stretch }),
-						isSegment ? k.segment.item : k.tab({ orientation }),
+						segmented ? k.segment.item : k.tab({ orientation }),
 						className,
 					)}
 					onClick={handleClick}
@@ -226,7 +226,7 @@ export function Tab({
 			{current && (
 				<ActiveIndicator
 					ref={indicatorRef}
-					className={cn(isSegment ? k.segment.indicator : k.indicator({ orientation }))}
+					className={cn(segmented ? k.segment.indicator : k.indicator({ orientation }))}
 				/>
 			)}
 		</span>

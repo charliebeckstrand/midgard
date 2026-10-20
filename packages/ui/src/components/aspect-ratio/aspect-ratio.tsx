@@ -34,15 +34,15 @@ export function AspectRatio({
 	// A number that the browser drops, or that collapses the box, gives the default.
 	const value = typeof ratio === 'number' && !(Number.isFinite(ratio) && ratio > 0) ? '1/1' : ratio
 
-	const isPreset = typeof value === 'string'
+	const preset = typeof value === 'string'
 
 	return (
 		<div
 			data-slot="aspect-ratio"
-			className={cn('overflow-hidden', isPreset && k.ratio[value], className)}
+			className={cn('overflow-hidden', preset && k.ratio[value], className)}
 			// The consumer style spreads first, and the ratio wins (CONVENTIONS.md §3.9). A preset
 			// removes the inline ratio, so that the class sets the ratio.
-			style={{ ...style, aspectRatio: isPreset ? undefined : value }}
+			style={{ ...style, aspectRatio: preset ? undefined : value }}
 			{...props}
 		>
 			{children}

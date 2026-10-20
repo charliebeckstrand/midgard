@@ -9,12 +9,12 @@ import {
 	areaReach,
 	dotPath,
 	featureRings,
+	isNearRings,
 	lineAnchor,
 	linePath,
 	projectArea,
 	projectPoint,
 	ringAnchor,
-	ringsNear,
 	ringsPath,
 	SQUARE_DOT_CORNER,
 	squareDotStroke,
@@ -794,7 +794,7 @@ describe('projectArea and ringsPath', () => {
  * already walked, so a dot standing nowhere near a territory costs four compares
  * per ring rather than a pass over its vertices.
  */
-describe('ringsNear', () => {
+describe('isNearRings', () => {
 	/** One frame unit per degree, so a position reads straight off the coordinates. */
 	const flat = (position: [number, number]) => ({ x: position[0], y: position[1] })
 
@@ -811,25 +811,25 @@ describe('ringsNear', () => {
 
 		// With none, the box is the whole question; with a reach, a position that far
 		// out still counts as competing for the ring's ground.
-		expect(ringsNear(rings, { x: 16, y: 5 }, 0)).toBe(false)
+		expect(isNearRings(rings, { x: 16, y: 5 }, 0)).toBe(false)
 
-		expect(ringsNear(rings, { x: 16, y: 5 }, 10)).toBe(true)
+		expect(isNearRings(rings, { x: 16, y: 5 }, 10)).toBe(true)
 	})
 
 	it('reads every ring, so either part of a split territory answers', () => {
 		const parts = projectArea([[square(10)], [square(10, 40)]], flat)
 
-		expect(ringsNear(parts, { x: 5, y: 5 }, 0)).toBe(true)
+		expect(isNearRings(parts, { x: 5, y: 5 }, 0)).toBe(true)
 
-		expect(ringsNear(parts, { x: 45, y: 5 }, 0)).toBe(true)
+		expect(isNearRings(parts, { x: 45, y: 5 }, 0)).toBe(true)
 
 		// And the ground between the two clusters belongs to neither.
-		expect(ringsNear(parts, { x: 25, y: 5 }, 0)).toBe(false)
+		expect(isNearRings(parts, { x: 25, y: 5 }, 0)).toBe(false)
 	})
 
 	it('finds nothing near a territory the projection dropped', () => {
 		expect(
-			ringsNear(
+			isNearRings(
 				projectArea([[square(10)]], () => null),
 				{ x: 5, y: 5 },
 				1000,

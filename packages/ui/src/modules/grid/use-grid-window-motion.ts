@@ -105,7 +105,7 @@ function applyChange<K>(
 }
 
 /** Whether `flips` opens or closes nothing. @internal */
-function noFlips<G>(flips: GridMotionFlips<G>) {
+function isEmpty<G>(flips: GridMotionFlips<G>) {
 	return flips.opened.length + flips.closed.length === 0
 }
 
@@ -163,7 +163,7 @@ export function useGridWindowMotion<L, S, G, K>(
 
 		const captured = source.capture(live)
 
-		if (reducedMotion || noFlips(flips)) {
+		if (reducedMotion || isEmpty(flips)) {
 			setState({
 				applied: live,
 				captured,

@@ -58,7 +58,7 @@ const SUBMENU_ENTRY: Record<string, 'first' | 'last' | undefined> = {
  *
  * @internal
  */
-function inCorridor(point: Point, prev: Point, from: Point, rect: DOMRect): boolean {
+function isInCorridor(point: Point, prev: Point, from: Point, rect: DOMRect): boolean {
 	const edge = rect.left >= from.x ? rect.left : rect.right
 
 	const run = edge - from.x
@@ -118,7 +118,7 @@ type MenuPointerValue = {
 	moveCursor: (row: HTMLElement) => void
 	/**
 	 * Registers `subKey`'s floating panel, whose rect is the corridor
-	 * ({@link inCorridor}) a traveling pointer is measured against. Called with
+	 * ({@link isInCorridor}) a traveling pointer is measured against. Called with
 	 * `null` as the panel unmounts.
 	 */
 	registerPanel: (subKey: string, node: HTMLElement | null) => void
@@ -198,7 +198,7 @@ export type MenuPointerLevelProps = {
  * need a grace period. That is the diagonal from a parent row to a row inside
  * the panel it opened, which cuts across the rows between. It is read off the
  * pointer's course instead. That corridor is the triangle from where the pointer left the
- * parent row to the panel's near edge ({@link inCorridor}). Arrivals inside it
+ * parent row to the panel's near edge ({@link isInCorridor}). Arrivals inside it
  * are the sweep passing through, not a new destination. Geometry says what a
  * timer would have had to guess, and says it without holding anything up.
  *
@@ -291,7 +291,7 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 
 		if (rect.width === 0 || rect.height === 0) return false
 
-		return inCorridor(point, prev ?? from, from, rect)
+		return isInCorridor(point, prev ?? from, from, rect)
 	}, [])
 
 	const hoverRow = useCallback(

@@ -393,11 +393,11 @@ function dispatchBatch<T>(
 }
 
 /**
- * Commits every staged cell that the session closed, one `onCommit` batch per
+ * Commits every staged cell that the session isClosed, one `onCommit` batch per
  * row. It hands the cells `validate` refused to `onReject`, and returns the
  * cells saved across them as {@link SavedCells}, for the commit announcement.
  * A row with no sink to reach counts nothing, so the announcement never speaks
- * a commit that did not happen. Each closed draft leaves the store. A draft of
+ * a commit that did not happen. Each isClosed draft leaves the store. A draft of
  * a cell that is still open stays staged. A batch whose sink returns a promise
  * is not saved yet, so it is not counted. It returns in `inFlight`, with the
  * drafts of its changed cells.
@@ -409,7 +409,7 @@ function dispatchBatch<T>(
  * share a path. It is also why a cell-scoped batch usually carries one change
  * with no arithmetic saying so: one cell was open, so one closes. A session that
  * narrowed an already-open row is the exception, and it needs no special case
- * either. The cells it closed commit together, per row, like any other.
+ * either. The cells it isClosed commit together, per row, like any other.
  *
  * The open state is the session's, not the render's. An editor that unmounts
  * for virtualization, a page change, or a hidden column leaves its cell open,
@@ -430,7 +430,7 @@ export function flushClosedCells<T>(args: {
 
 	// The new-row slot is always open. Its drafts leave through an add, never
 	// through this sweep.
-	const closed = args.drafts.take(
+	const isClosed = args.drafts.take(
 		(rowKey, columnId) =>
 			rowKey !== NEW_ROW_KEY &&
 			!isCellEditing({
@@ -441,7 +441,7 @@ export function flushClosedCells<T>(args: {
 			}),
 	)
 
-	for (const [rowKey, rowDrafts] of closed) {
+	for (const [rowKey, rowDrafts] of isClosed) {
 		// The take above keeps the new-row slot, so this never matches. It narrows
 		// the key to a data row key.
 		if (rowKey === NEW_ROW_KEY) continue
@@ -676,9 +676,9 @@ export function settleDrafts(args: {
 
 /**
  * Drops each reopened draft of a cell-scoped session whose row the consumer
- * closed or deleted, and returns the count. A row that left the set between
- * two sweeps, `before` and `after`, was closed by the consumer unless the
- * grid closed it (`gridClosed`). A row that is no longer in the source rows
+ * isClosed or deleted, and returns the count. A row that left the set between
+ * two sweeps, `before` and `after`, was isClosed by the consumer unless the
+ * grid isClosed it (`gridClosed`). A row that is no longer in the source rows
  * is deleted. Neither row opens again for the refusal, so its draft would
  * otherwise wait forever. It also forgets each grid close whose row left.
  *
@@ -695,16 +695,16 @@ export function dropStrandedHolds<T>(args: {
 }): number {
 	const { before, after, gridClosed, getRow } = args
 
-	const gone = (rowKey: string | number) => getRow(rowKey) === undefined
+	const isGone = (rowKey: string | number) => getRow(rowKey) === undefined
 
-	const closed = (rowKey: string | number) =>
+	const isClosed = (rowKey: string | number) =>
 		before.has(rowKey) && !after.has(rowKey) && !gridClosed.has(rowKey)
 
 	// A draft of the new-row slot is never reopened, so the slot test never
 	// fails. It narrows the key to a data row key for the two sets.
 	const dropped = args.drafts.drop(
 		(rowKey, _, draft) =>
-			draft.reopened && rowKey !== NEW_ROW_KEY && (closed(rowKey) || gone(rowKey)),
+			draft.reopened && rowKey !== NEW_ROW_KEY && (isClosed(rowKey) || isGone(rowKey)),
 	)
 
 	// A grid close is spent once its row leaves the set. A close that has not

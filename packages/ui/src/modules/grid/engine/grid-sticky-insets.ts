@@ -147,7 +147,7 @@ function slotInsets(cell: HTMLElement): { top: number; bottom: number } {
  * right-to-left grid too.
  * @internal
  */
-function clearsSides(cell: HTMLElement): boolean {
+function isClear(cell: HTMLElement): boolean {
 	const style = getComputedStyle(cell)
 
 	return !(style.position === 'sticky' && (style.left !== 'auto' || style.right !== 'auto'))
@@ -162,7 +162,7 @@ function clearsSides(cell: HTMLElement): boolean {
  * scroll container of its own is not moved.
  *
  * @remarks The side edges take a correction only where a pinned column can
- * cover the cell (see {@link clearsSides}).
+ * cover the cell (see {@link isClear}).
  *
  * @internal
  */
@@ -189,7 +189,7 @@ export function clearStickyChrome(
 	else if (rect.bottom > edgeBottom)
 		scroller.scrollTop += Math.min(rect.bottom - edgeBottom, rect.top - edgeTop)
 
-	if (!clearsSides(cell)) return
+	if (!isClear(cell)) return
 
 	const edgeLeft = box.left + scroller.clientLeft + insets.left
 

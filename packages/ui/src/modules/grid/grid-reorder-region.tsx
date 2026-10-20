@@ -168,8 +168,8 @@ function SortableColumnHeader(props: GridReorderableColumnHeaderProps) {
 				attributes,
 				listeners,
 				x: transform?.x ?? 0,
-				isDragging: dragging,
-				isSorting: sorting,
+				dragging: dragging,
+				sorting: sorting,
 			}}
 		/>
 	)

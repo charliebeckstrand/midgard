@@ -59,16 +59,16 @@ export const input: EventSource = (note) => {
 
 		if (GESTURE_ENDS.has(event.type)) gesture = undefined
 
-		const isKeyboard = event instanceof KeyboardEvent
+		const keyed = event instanceof KeyboardEvent
 
-		const keyText = isKeyboard ? ` ${formatChord(event)}` : ''
+		const keyText = keyed ? ` ${formatChord(event)}` : ''
 
 		const synthetic = event.isTrusted ? '' : ' synthetic'
 
 		note({
 			kind: 'input',
 			text: `${event.type}${keyText} ${describeTarget(event.target)}${synthetic}`,
-			detail: isKeyboard ? { key: event.key, code: event.code, repeat: event.repeat } : undefined,
+			detail: keyed ? { key: event.key, code: event.code, repeat: event.repeat } : undefined,
 			batch,
 		})
 

@@ -11,7 +11,7 @@ import {
 } from 'react'
 import { useHoverAcrossScroll } from '../../hooks'
 import { createEmitter } from '../../utilities'
-import { samePoint } from '../chart/engine/context'
+import { isSamePoint } from '../chart/engine/context'
 import {
 	type MapHoverActions,
 	MapHoverActionsContext,
@@ -21,7 +21,7 @@ import {
 	type MapPointedStore,
 } from './context'
 import { targetAt } from './engine/map-hover/anchor'
-import { type MapHoverTarget, sameMark, sameTarget } from './engine/map-hover/target'
+import { isSameMark, isSameTarget, type MapHoverTarget } from './engine/map-hover/target'
 import { useMapRegionPreload } from './use-map-region-preload'
 
 /** Props for {@link MapHoverProvider}. @internal */
@@ -65,7 +65,7 @@ function createPointedStore(): MapPointedStore & {
 		publish: (next, emphasis) => {
 			// Pinned at mark granularity: a move to another stop of the same mark
 			// keeps the held target, so it publishes nothing.
-			const mark = sameMark(pointed, next) ? pointed : next
+			const mark = isSameMark(pointed, next) ? pointed : next
 
 			if (mark === pointed && emphasis === focus) return
 
@@ -134,9 +134,9 @@ export function MapHoverProvider({
 		// target object), so the pointed-mark context below changes only on a
 		// crossing, never per pixel.
 		setState((prev) => {
-			const same = sameTarget(prev.target, target)
+			const same = isSameTarget(prev.target, target)
 
-			if (same && samePoint(prev.point, point)) return prev
+			if (same && isSamePoint(prev.point, point)) return prev
 
 			return { target: same ? prev.target : target, point }
 		})

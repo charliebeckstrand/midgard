@@ -39,7 +39,7 @@ const MOUSE_LIKE = new Set(['mouse', 'pen', ''])
  * rests on a node that mounted under it.
  * @internal
  */
-export function reopensOnEnable(options: IntentOptions, pointer: string | null): boolean {
+export function shouldReopen(options: IntentOptions, pointer: string | null): boolean {
 	return (
 		options.enabled && options.trigger === 'hover' && (pointer === null || MOUSE_LIKE.has(pointer))
 	)
@@ -109,7 +109,7 @@ function trackModality(): void {
  * `useFocus`: a keyboard focus opens it, and the focus that a tap or a click
  * gives a button does not.
  */
-function focusOpens(event: FocusEvent): boolean {
+function shouldOpen(event: FocusEvent): boolean {
 	const target = event.target
 
 	if (!(target instanceof Element)) return true
@@ -146,7 +146,7 @@ function listenForIntent(
 
 	let disabled = isReferenceDisabled(node)
 
-	const pending = () => intent.hover !== null || intent.focus !== null || intent.click !== null
+	const isPending = () => intent.hover !== null || intent.focus !== null || intent.click !== null
 
 	const onPointerDown = (event: PointerEvent) => {
 		intent.pointer = event.pointerType
@@ -176,7 +176,7 @@ function listenForIntent(
 	const onFocusIn = (event: FocusEvent) => {
 		void tooltipBody.load()
 
-		if (!readOptions().enabled || blockFocus || !focusOpens(event)) return
+		if (!readOptions().enabled || blockFocus || !shouldOpen(event)) return
 
 		intent.focus = event
 	}
@@ -219,7 +219,7 @@ function listenForIntent(
 	}
 
 	const onWindowBlur = () => {
-		if (!pending() && node === doc.activeElement) blockFocus = true
+		if (!isPending() && node === doc.activeElement) blockFocus = true
 	}
 
 	const stopObserver = observeReferenceDisabled(node, () => {
@@ -228,7 +228,7 @@ function listenForIntent(
 		if (
 			disabled &&
 			!next &&
-			reopensOnEnable(readOptions(), intent.pointer) &&
+			shouldReopen(readOptions(), intent.pointer) &&
 			node.matches(':hover')
 		) {
 			intent.reenabled = true

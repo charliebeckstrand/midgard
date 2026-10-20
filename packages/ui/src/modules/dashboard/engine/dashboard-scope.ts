@@ -10,7 +10,7 @@
 
 import { toggleListItem } from '../../../utilities'
 import { isQueryActive } from '../../query/engine/query-active'
-import { asText, evaluateQuery } from '../../query/engine/query-evaluate'
+import { asText, isSatisfied } from '../../query/engine/query-evaluate'
 import type { QueryGroup, QueryNode, QueryRule } from '../../query/engine/types'
 
 /**
@@ -112,9 +112,9 @@ export function liveSelections(
 	selections: readonly DashboardSelection[],
 	mounted: { has: (id: string) => boolean },
 ): readonly DashboardSelection[] {
-	const live = (item: DashboardSelection) => item.source === '' || mounted.has(item.source)
+	const isLive = (item: DashboardSelection) => item.source === '' || mounted.has(item.source)
 
-	return selections.every(live) ? selections : selections.filter(live)
+	return selections.every(isLive) ? selections : selections.filter(isLive)
 }
 
 /** The empty selection, shared so that a miss keeps one identity. */
@@ -206,5 +206,5 @@ export function scopeRows<T>(
 ): T[] {
 	if (!isScopeActive(query)) return [...rows]
 
-	return rows.filter((row) => evaluateQuery(query, (field) => getValue(row, field)))
+	return rows.filter((row) => isSatisfied(query, (field) => getValue(row, field)))
 }

@@ -7,7 +7,7 @@ import { k } from '../../recipes/kata/color-panel'
 import { clamp } from '../../utilities'
 import { colorMessages } from './color-messages'
 import { useColorPanelContext } from './context'
-import { type DragPosition, inDisabledFieldset, useColorDrag } from './use-color-drag'
+import { type DragPosition, isInDisabledFieldset, useColorDrag } from './use-color-drag'
 
 /**
  * The 2D saturation × brightness field. X maps to saturation, Y (inverted) to
@@ -75,7 +75,7 @@ export function ColorArea() {
 		}
 
 		// The fieldset walk runs only for a key that the area takes.
-		if (inDisabledFieldset(event.currentTarget)) return
+		if (isInDisabledFieldset(event.currentTarget)) return
 
 		event.preventDefault()
 

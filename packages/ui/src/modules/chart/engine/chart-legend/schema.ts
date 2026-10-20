@@ -85,7 +85,7 @@ export function resolveLegend(
  *
  * @internal
  */
-export function legendVisible(legend: ResolvedLegend['value'], count: number): boolean {
+export function isLegendVisible(legend: ResolvedLegend['value'], count: number): boolean {
 	return Boolean(legend ?? count > 1)
 }
 
@@ -96,18 +96,18 @@ export function legendVisible(legend: ResolvedLegend['value'], count: number): b
  *
  * @internal
  */
-export function legendAside(legend: ResolvedLegend['value']): boolean {
+export function isLegendAside(legend: ResolvedLegend['value']): boolean {
 	return legend === 'left' || legend === 'right'
 }
 
 /**
  * Whether the legend bands inside the plot's aspect box. It shows and sits along
  * the top or bottom, rather than down a side. It therefore stacks above or below
- * the plot, and costs the tier its chrome reserve. The {@link legendVisible} and
- * {@link legendAside} composite the frame policy reads before resolving the tier.
+ * the plot, and costs the tier its chrome reserve. The {@link isLegendVisible} and
+ * {@link isLegendAside} composite the frame policy reads before resolving the tier.
  *
  * @internal
  */
-export function legendBands(legend: ResolvedLegend['value'], count: number): boolean {
-	return legendVisible(legend, count) && !legendAside(legend)
+export function isLegendBanded(legend: ResolvedLegend['value'], count: number): boolean {
+	return isLegendVisible(legend, count) && !isLegendAside(legend)
 }

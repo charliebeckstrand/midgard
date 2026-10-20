@@ -16,7 +16,7 @@
  * already derives the measured fit itself from. The claim is tested rather than
  * trusted. The buffer keeps one witness position. A fit that does not place it
  * where the affine says refuses the buffer, instead of drawing from it
- * ({@link agrees}).
+ * ({@link isConsistent}).
  *
  * The strings are the walk's own, byte for byte, wherever `d3-geo` would resample
  * the geography the same way at both fits. `geoPath` refines a curve until its
@@ -40,7 +40,7 @@
  * Two cases stay on the direct walk, because the arithmetic above is what fails
  * on them rather than the buffer. A geography carrying anything but area
  * rings (a point, a line) is drawn by `d3-geo` from more than the ring
- * vertices this records ({@link areaOnly}). And a projection carrying an
+ * vertices this records ({@link isAreaOnly}). And a projection carrying an
  * explicit `clipExtent` cuts in frame units that do not scale with it. The same
  * buffer read at two scales would then keep two different pieces of the
  * geography ({@link affineBasis}).
@@ -82,7 +82,7 @@ export type MapProjectedAtlas = {
 	translate: [number, number]
 	/**
 	 * One position of the drawn geography and where it landed, so a later fit can
-	 * be tested against the buffer rather than trusted ({@link agrees}). `null`
+	 * be tested against the buffer rather than trusted ({@link isConsistent}). `null`
 	 * where no feature offered one that projects, which refuses every later fit.
 	 */
 	witness: { position: LngLat; x: number; y: number } | null
@@ -100,7 +100,7 @@ export type MapProjectedAtlas = {
  *
  * @internal
  */
-export function areaOnly(features: MapFeature[]): boolean {
+export function isAreaOnly(features: MapFeature[]): boolean {
 	return features.every(
 		({ geometry }) =>
 			geometry === null || geometry.type === 'Polygon' || geometry.type === 'MultiPolygon',
@@ -200,7 +200,7 @@ const WITNESS_TOLERANCE = 1e-6
  * call against a pass of tens of thousands. It turns every one of those into a
  * fallback to the direct walk, rather than a wrong map.
  */
-function agrees(
+function isConsistent(
 	atlas: MapProjectedAtlas,
 	fitted: GeoProjection,
 	factor: number,
@@ -227,7 +227,7 @@ function agrees(
  * boundary is therefore exactly a `moveTo`, and needs no other mark.
  *
  * `beginPath`, `closePath`, and `arc` are the interface's, and only the first
- * two are ever reached. {@link areaOnly} keeps every geometry that would draw an
+ * two are ever reached. {@link isAreaOnly} keeps every geometry that would draw an
  * arc off this path. A ring's close needs no mark, because its end is the next
  * ring's start.
  *
@@ -271,7 +271,7 @@ export function projectAtlas(
 	features: MapFeature[],
 	projection: GeoProjection,
 ): MapProjectedAtlas | null {
-	if (!areaOnly(features)) return null
+	if (!isAreaOnly(features)) return null
 
 	const basis = affineBasis(projection)
 
@@ -443,7 +443,7 @@ function coordinate(rounded: number): string {
  * The scale and translation that carry the buffer's own frame onto `fitted`, or
  * `null` where it cannot be carried there. That is a projection that gained a
  * `clipExtent`, one scaled to nothing, or one the witness refuses
- * ({@link agrees}).
+ * ({@link isConsistent}).
  *
  * Stated once because two readers need the same arithmetic and must not drift.
  * {@link emitRegionPaths} applies it to every coordinate to write a fit's paths.
@@ -471,7 +471,7 @@ function frameAffine(
 
 	const dy = basis.translate[1] - atlas.translate[1] * factor
 
-	return agrees(atlas, fitted, factor, dx, dy) ? { factor, dx, dy } : null
+	return isConsistent(atlas, fitted, factor, dx, dy) ? { factor, dx, dy } : null
 }
 
 /**
@@ -530,14 +530,14 @@ export function carriedTransform(
  * feature drew no ring. It is `null` for the whole atlas where `fitted` cannot
  * be reached from the buffer's own fit. That is a projection that gained a
  * `clipExtent`, one scaled to nothing, or one that fails the witness
- * ({@link agrees}). The
+ * ({@link isConsistent}). The
  * caller then falls back to the direct walk, as it does for a buffer that never
  * built.
  *
  * The output is `geoPath`'s own. `M` goes at each ring's first point, `L` along
  * the rest, and `Z` to close it, each coordinate rounded the way
  * `geoPath.digits` rounds it. Rings are what a region is here
- * ({@link areaOnly}), so every one of them closes. Byte for byte up to the frame
+ * ({@link isAreaOnly}), so every one of them closes. Byte for byte up to the frame
  * the buffer was drawn at, for the reason
  * this file's header gives.
  *

@@ -94,7 +94,10 @@ function isContextMenuKey(event: KeyboardEvent): boolean {
  *
  * @internal
  */
-export function inPortaledPanel(target: EventTarget | null, surface: EventTarget | null): boolean {
+export function isInPortaledPanel(
+	target: EventTarget | null,
+	surface: EventTarget | null,
+): boolean {
 	const panel = target instanceof Element ? target.closest('[role="menu"]') : null
 
 	return panel !== null && surface instanceof Node && !surface.contains(panel)
@@ -103,7 +106,7 @@ export function inPortaledPanel(target: EventTarget | null, surface: EventTarget
 /**
  * Disclosure, positioning, and density state for {@link Menu}, split into a
  * `state`/`actions` pair plus the handlers of the context surface and an
- * `isContextSurface` flag. The right-click `handleContextMenu` opens the menu. The
+ * `contextLive` flag. The right-click `handleContextMenu` opens the menu. The
  * `handleContextKeyDown` and `handleContextPointerDown` captures tell a keyboard
  * open from a pointer open, and only a keyboard open restores focus on close.
  * Drives all three menu modes. A `placement` gives the dropdown. A
@@ -123,23 +126,23 @@ export function useMenuRoot({
 	sheet = true,
 	disabled = false,
 }: MenuStateOptions) {
-	const isDropdown = placement !== undefined
+	const placed = placement !== undefined
 
 	const phone = useMediaQuery(PHONE_QUERY)
 
-	const isSheet = isDropdown && sheet && phone
+	const sheeted = placed && sheet && phone
 
-	const isStatic = defaultOpen && !isDropdown
+	const inline = defaultOpen && !placed
 
 	// Only a true right-click context menu wires `onContextMenu`. A static menu is
-	// also `!isDropdown`, but suppressing its native context menu (via
+	// also `!placed`, but suppressing its native context menu (via
 	// `handleContextMenu`'s preventDefault) buys nothing: its panel is already open.
-	const isContextMenu = !isDropdown && !isStatic
+	const contextual = !placed && !inline
 
 	// A disabled context menu keeps its wrapper, so the content under it keeps its
 	// state. It wires no surface and does not open, so the native menu of the
 	// browser opens. A dropdown and a static menu ignore the flag.
-	const suppressed = isContextMenu && disabled
+	const suppressed = contextual && disabled
 
 	// The trigger (`aria-haspopup="menu"`) and the panel (`role="menu"`) carry
 	// their own roles; `role: null` suppresses floating-ui's `useRole`, which
@@ -154,16 +157,16 @@ export function useMenuRoot({
 			onOpenChange,
 			role: null,
 			placement: placement ?? 'bottom-start',
-			matchReferenceWidth: isDropdown,
+			matchReferenceWidth: placed,
 			// A menu taller than the space on its side of the trigger shrinks into
 			// that space and scrolls, instead of running off the screen. The cut
 			// falls at the middle of a row, so the clipped row shows the overflow.
 			fitHeight: snapMenuHeight,
 			// A static menu renders inline and stays visible: `MenuContent` gates
-			// the panel on `isStatic`, not on `open`. Left dismissable it would take
+			// the panel on `inline`, not on `open`. Left dismissable it would take
 			// a slot on the shared Escape stack, report a close that changes nothing,
 			// and swallow the press meant for an enclosing Dialog.
-			dismissable: !isStatic,
+			dismissable: !inline,
 			gate: (next) => !next || !suppressed,
 		})
 
@@ -225,9 +228,9 @@ export function useMenuRoot({
 	useEffect(() => {
 		if (open) return
 
-		if (isContextMenu) triggerRef.current = null
+		if (contextual) triggerRef.current = null
 		else clearVirtualActive(triggerRef)
-	}, [open, isContextMenu, triggerRef])
+	}, [open, contextual, triggerRef])
 
 	// Toggling the menu is floating-ui's, not the trigger's: `useClick` supplies
 	// the keyboard activation a cloned non-button child never gets from the
@@ -255,13 +258,13 @@ export function useMenuRoot({
 		(element: Element | null, clientX: number, clientY: number) => {
 			refs.setPositionReference(cursorAnchor(element, clientX, clientY))
 
-			if (isContextMenu) triggerRef.current = keyboardOpener.current
+			if (contextual) triggerRef.current = keyboardOpener.current
 
 			keyboardOpener.current = null
 
 			setOpen(true)
 		},
-		[setOpen, refs, isContextMenu, triggerRef],
+		[setOpen, refs, contextual, triggerRef],
 	)
 
 	const handleContextMenu = useCallback(
@@ -283,7 +286,7 @@ export function useMenuRoot({
 			// or reposition the menu: anchoring to an element within a floating panel
 			// would make the menu chase its own moving rect, jittering it across the
 			// screen. Suppress the native menu (above) and leave the panel where it is.
-			if (inPortaledPanel(event.target, event.currentTarget)) return
+			if (isInPortaledPanel(event.target, event.currentTarget)) return
 
 			openAt(event.target instanceof Element ? event.target : null, event.clientX, event.clientY)
 		},
@@ -308,14 +311,14 @@ export function useMenuRoot({
 		() => ({
 			open,
 			menuId,
-			isDropdown,
-			isSheet,
+			placed,
+			sheeted,
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
 			size,
 		}),
-		[open, menuId, isDropdown, isSheet, floatingStyles, getReferenceProps, getFloatingProps, size],
+		[open, menuId, placed, sheeted, floatingStyles, getReferenceProps, getFloatingProps, size],
 	)
 
 	const actions = useMemo(
@@ -324,7 +327,7 @@ export function useMenuRoot({
 			close,
 			dismissToTab,
 			rovingKeyDown,
-			static: isStatic,
+			static: inline,
 			triggerRef,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,
@@ -335,7 +338,7 @@ export function useMenuRoot({
 			close,
 			dismissToTab,
 			rovingKeyDown,
-			isStatic,
+			inline,
 			triggerRef,
 			refs.setReference,
 			refs.setFloating,
@@ -349,6 +352,6 @@ export function useMenuRoot({
 		handleContextMenu,
 		handleContextKeyDown,
 		handleContextPointerDown,
-		isContextSurface: isContextMenu && !suppressed,
+		contextLive: contextual && !suppressed,
 	}
 }

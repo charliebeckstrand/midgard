@@ -1,7 +1,7 @@
 'use client'
 
 import { type KeyboardEvent as ReactKeyboardEvent, type RefObject, useCallback } from 'react'
-import { claimedBySurface, editorMove, ownNode, type SessionMove } from './engine/grid-edit-keys'
+import { editorMove, isSurfaceKey, ownNode, type SessionMove } from './engine/grid-edit-keys'
 import type { CellRequest, SessionRow } from './engine/grid-edit-transition'
 import {
 	EDITOR_FOCUSABLE,
@@ -237,12 +237,12 @@ export function useGridEditKeys<T>({
 	// Escape anywhere in an editing grid abandons its session, so it never reads
 	// as dead while a draft stands. The move keys act only from an open editor
 	// (see `editorMove`). Every key stands down while the press belongs to a
-	// floating surface (see `claimedBySurface`) or to an input method. The first
+	// floating surface (see `isSurfaceKey`) or to an input method. The first
 	// press closes that surface, and the next reaches the session.
 	const sessionKeys = useCallback(
 		(event: ReactKeyboardEvent<HTMLTableElement>) => {
 			// The new-row slot keeps its own keys, and no data session reads them.
-			if (claimedBySurface(event) || readKeyPress(event).composing || newRowKeys(event)) return
+			if (isSurfaceKey(event) || readKeyPress(event).composing || newRowKeys(event)) return
 
 			const target = event.target as Element
 

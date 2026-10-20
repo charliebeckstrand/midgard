@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useSyncExternalStore } from 'react'
-import { matchesMediaQuery, subscribeMediaQuery } from '../utilities/media-query'
+import { isMediaMatch, subscribeMediaQuery } from '../utilities/media-query'
 
 /** True when `query` matches the viewport. Defaults to true during SSR. */
 export function useMediaQuery(query: string): boolean {
@@ -10,7 +10,7 @@ export function useMediaQuery(query: string): boolean {
 		[query],
 	)
 
-	const getSnapshot = useCallback(() => matchesMediaQuery(query), [query])
+	const getSnapshot = useCallback(() => isMediaMatch(query), [query])
 
 	return useSyncExternalStore(subscribe, getSnapshot, () => true)
 }

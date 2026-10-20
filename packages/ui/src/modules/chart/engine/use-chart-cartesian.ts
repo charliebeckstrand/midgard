@@ -26,7 +26,7 @@ import {
 } from './chart-cartesian/series'
 import { resolveStackMode } from './chart-cartesian/stack'
 import { GUTTER_LABEL_ROOM, LABEL_CHAR_WIDTH, TICK_TARGET } from './chart-constants'
-import { chartFrameLayout, frameFills } from './chart-frame/sizing'
+import { chartFrameLayout, isFilling } from './chart-frame/sizing'
 import {
 	type BandLabel,
 	type CartesianLayout,
@@ -35,7 +35,12 @@ import {
 	verticalLayout,
 } from './chart-layout'
 import type { ChartLegendItem, ChartLegendReference } from './chart-legend/legend'
-import { legendAside, legendBands, type ResolvedLegend, resolveLegend } from './chart-legend/schema'
+import {
+	isLegendAside,
+	isLegendBanded,
+	type ResolvedLegend,
+	resolveLegend,
+} from './chart-legend/schema'
 import { seriesDataKey } from './chart-motion'
 import type { ChartOrientation, PlotRect } from './chart-orientation'
 import { type ChartTexture, useChartTexture } from './chart-pattern-defs'
@@ -324,7 +329,7 @@ export type CartesianChart = {
 function cartesianChrome<T>(props: CartesianData<T>, legend: ResolvedLegend['value']): ChartChrome {
 	return {
 		headerLines: headerLineCount(props.title, props.subtitle),
-		legend: legendBands(legend, props.series.length),
+		legend: isLegendBanded(legend, props.series.length),
 	}
 }
 
@@ -412,7 +417,7 @@ export function useChartCartesian<T>(
 	// box and bands beside it. Only the side / stacked distinction needs the prop
 	// (a legend shows for two or more series unless it is forced), so it takes no
 	// measurement.
-	const aside = legendAside(legend)
+	const aside = isLegendAside(legend)
 
 	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
 
@@ -620,7 +625,7 @@ export function useChartCartesian<T>(
 		fixedWidth: width,
 		height: frameHeight,
 		reserve,
-		fill: frameFills(sizing),
+		fill: isFilling(sizing),
 		outerAspect,
 		tier: policy.tier,
 		legendRows: policy.legendRows,

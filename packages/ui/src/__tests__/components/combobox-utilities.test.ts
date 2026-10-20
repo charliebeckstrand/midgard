@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
-	enterKeepsSelection,
 	resolveInputDisplay,
 	resolveInputTitle,
-	selectSoleOption,
+	shouldKeepSelection,
+	trySelectSoleOption,
 } from '../../components/combobox/combobox-utilities'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 
@@ -231,7 +231,7 @@ describe('resolveInputDisplay', () => {
 	})
 })
 
-describe('selectSoleOption', () => {
+describe('trySelectSoleOption', () => {
 	it('clicks and returns true when exactly one option is present', () => {
 		const container = document.createElement('div')
 
@@ -245,7 +245,7 @@ describe('selectSoleOption', () => {
 
 		container.appendChild(option)
 
-		expect(selectSoleOption(container)).toBe(true)
+		expect(trySelectSoleOption(container)).toBe(true)
 
 		expect(clicked).toHaveBeenCalled()
 	})
@@ -265,17 +265,17 @@ describe('selectSoleOption', () => {
 
 		container.appendChild(b)
 
-		expect(selectSoleOption(container)).toBe(false)
+		expect(trySelectSoleOption(container)).toBe(false)
 	})
 
 	it('returns false when there are no options', () => {
 		const container = document.createElement('div')
 
-		expect(selectSoleOption(container)).toBe(false)
+		expect(trySelectSoleOption(container)).toBe(false)
 	})
 })
 
-describe('enterKeepsSelection', () => {
+describe('shouldKeepSelection', () => {
 	const optionIn = (container: HTMLElement, ...attributes: string[]) => {
 		const option = document.createElement('div')
 
@@ -297,7 +297,7 @@ describe('enterKeepsSelection', () => {
 
 		optionIn(container, 'data-selected')
 
-		expect(enterKeepsSelection(container, multiple)).toBe(keeps)
+		expect(shouldKeepSelection(container, multiple)).toBe(keeps)
 	})
 
 	it('reads the highlighted option of a longer list', () => {
@@ -307,7 +307,7 @@ describe('enterKeepsSelection', () => {
 
 		optionIn(container, 'data-active', 'data-selected')
 
-		expect(enterKeepsSelection(container, false)).toBe(true)
+		expect(shouldKeepSelection(container, false)).toBe(true)
 	})
 
 	it('does not keep an option that is not selected', () => {
@@ -317,7 +317,7 @@ describe('enterKeepsSelection', () => {
 
 		optionIn(container)
 
-		expect(enterKeepsSelection(container, false)).toBe(false)
+		expect(shouldKeepSelection(container, false)).toBe(false)
 	})
 })
 

@@ -277,9 +277,9 @@ export function ChartLineMarks({
 	fills,
 	textureActive = false,
 }: ChartLineMarksProps) {
-	const { lit } = useChartMarkEmphasis()
+	const { isLit } = useChartMarkEmphasis()
 
-	return lineSeriesGroups(list, lit, fills, {
+	return lineSeriesGroups(list, isLit, fills, {
 		fill,
 		stroke,
 		textureActive,
@@ -306,7 +306,7 @@ export function AnimatedChartLineMarks({
 
 	const wipe = plot && list.some((series) => series.dashed)
 
-	const { lit } = useChartMarkEmphasis()
+	const { isLit } = useChartMarkEmphasis()
 
 	const still = usePrefersReducedMotion()
 
@@ -334,7 +334,7 @@ export function AnimatedChartLineMarks({
 
 			{lineSeriesGroups(
 				list,
-				lit,
+				isLit,
 				fills,
 				{ fill, stroke, textureActive, animated: true, still },
 				wipe ? `url(#${wipeId})` : undefined,

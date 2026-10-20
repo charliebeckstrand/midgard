@@ -2,7 +2,7 @@ import { compileQuery } from '../../../query/engine/query-evaluate'
 import { isQueryGroup } from '../../../query/engine/query-node'
 import type { GridColumn, GridColumnFilterState } from '../../types'
 
-/** A test that one row passes or fails. `index` is the position of the row in its data. @internal */
+/** A test that one row isPassing or fails. `index` is the position of the row in its data. @internal */
 export type RowTest<T> = (row: T, index: number) => boolean
 
 /** The compiled column filters, by column id. @internal */
@@ -80,14 +80,14 @@ export function filterRowIndices<T>(rows: readonly T[], tests: readonly RowTest<
 	for (let index = 0; index < rows.length; index++) {
 		const row = rows[index] as T
 
-		if (passes(row, index, tests)) kept.push(index)
+		if (isPassing(row, index, tests)) kept.push(index)
 	}
 
 	return kept
 }
 
-/** Whether a row passes every test. It stops at the first test that fails. @internal */
-function passes<T>(row: T, index: number, tests: readonly RowTest<T>[]): boolean {
+/** Whether a row isPassing every test. It stops at the first test that fails. @internal */
+function isPassing<T>(row: T, index: number, tests: readonly RowTest<T>[]): boolean {
 	for (const test of tests) {
 		if (!test(row, index)) return false
 	}
@@ -100,7 +100,7 @@ function passes<T>(row: T, index: number, tests: readonly RowTest<T>[]): boolean
  * Two values are the same when a `Set` holds them as one.
  *
  * @remarks
- * `useFacetSource` in `use-grid-client-view.ts` passes the filters that the facets
+ * `useFacetSource` in `use-grid-client-view.ts` isPassing the filters that the facets
  * of a column read. The result then holds the keys of the faceted unique
  * values of the engine.
  *
@@ -116,7 +116,7 @@ export function uniqueValues<T>(
 	for (let index = 0; index < rows.length; index++) {
 		const row = rows[index] as T
 
-		if (passes(row, index, tests)) values.add(read(row))
+		if (isPassing(row, index, tests)) values.add(read(row))
 	}
 
 	return values

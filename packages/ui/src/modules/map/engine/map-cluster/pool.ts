@@ -90,7 +90,7 @@ export function createDotPool(
 
 			const next = entry === undefined ? undefined : entryDots(entry, hidden, project)
 
-			if (sameDots(held.get(id), next)) return
+			if (isSameDots(held.get(id), next)) return
 
 			const pool = new Map(held)
 
@@ -159,7 +159,7 @@ function entryDots(
 }
 
 /** Whether two lists of dots stand at the same positions, in order. @internal */
-function sameDots(
+function isSameDots(
 	prev: readonly MapPoint2D[] | undefined,
 	next: readonly MapPoint2D[] | undefined,
 ): boolean {

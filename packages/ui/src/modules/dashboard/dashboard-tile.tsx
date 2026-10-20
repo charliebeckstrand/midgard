@@ -25,10 +25,10 @@ import { useDashboardTileDrag } from './use-dashboard-tile-drag'
 const DEFAULT_MIN_WIDTH = 320
 
 /** Whether the gestures of the board are live. */
-const selectEditable = (view: DashboardView) => view.editable
+const isEditable = (view: DashboardView) => view.editable
 
 /** Whether the board paints the responsive re-pack. */
-const selectProjected = (view: DashboardView) => view.projected
+const isProjected = (view: DashboardView) => view.projected
 
 /**
  * Whether a tile draws a header row. A tile with standard controls always has
@@ -249,9 +249,9 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	const cell = useDashboardTileCell(id, { ratio, minWidth, label, defaultSize, minSize, maxSize })
 
-	const editable = useDashboardStore(selectEditable)
+	const editable = useDashboardStore(isEditable)
 
-	const projected = useDashboardStore(selectProjected)
+	const projected = useDashboardStore(isProjected)
 
 	const resizing = useDashboardStore(
 		useCallback(

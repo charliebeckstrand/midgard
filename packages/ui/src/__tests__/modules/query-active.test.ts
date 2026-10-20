@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { isQueryActive } from '../../modules/query/engine/query-active'
-import { evaluateQuery } from '../../modules/query/engine/query-evaluate'
+import { isSatisfied } from '../../modules/query/engine/query-evaluate'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
 import { summarizeQuery } from '../../modules/query/engine/query-summary'
 import type { QueryField, QueryRule } from '../../modules/query/engine/types'
@@ -166,7 +166,7 @@ describe('the active judgment, the summary, and the evaluator', () => {
 	it.each(cases)('gives one reading for %s', (_, patch, constrains) => {
 		const group = createGroup('and', [{ ...createRule(), ...patch }])
 
-		const rejects = rows.some((row) => !evaluateQuery(group, (field) => row[field]))
+		const rejects = rows.some((row) => !isSatisfied(group, (field) => row[field]))
 
 		expect(rejects).toBe(constrains)
 

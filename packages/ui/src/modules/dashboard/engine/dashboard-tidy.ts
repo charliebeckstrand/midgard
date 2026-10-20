@@ -11,7 +11,7 @@
 import { type DashboardCell, patchCells } from './dashboard-layout'
 
 /** Whether two cells share a column. */
-function sharesColumn(a: DashboardCell, b: DashboardCell): boolean {
+function hasSharedColumn(a: DashboardCell, b: DashboardCell): boolean {
 	return a.x < b.x + b.w && b.x < a.x + a.w
 }
 
@@ -41,7 +41,7 @@ export function tidyCells(cells: readonly DashboardCell[]): readonly DashboardCe
 		// tile that overlaps the cell holds it where it is. A placed tile lower down
 		// is a static tile under the cell, which an upward move cannot meet.
 		for (const other of placed) {
-			if (sharesColumn(cell, other) && other.y < cell.y + cell.h) {
+			if (hasSharedColumn(cell, other) && other.y < cell.y + cell.h) {
 				y = Math.max(y, Math.min(other.y + other.h, cell.y))
 			}
 		}

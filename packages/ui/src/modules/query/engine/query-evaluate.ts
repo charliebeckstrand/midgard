@@ -4,7 +4,7 @@ import type { QueryGroup, QueryNode } from './types'
 /**
  * Whether a value counts as filled for an operator that needs one. Nullish,
  * blank or whitespace-only strings, and empty arrays read as empty.
- * {@link imposesConstraint} reads it, so an operator that needs a value puts no
+ * {@link hasConstraint} reads it, so an operator that needs a value puts no
  * constraint on the rows while its value is empty.
  *
  * @internal
@@ -86,7 +86,7 @@ export function isBlank(value: unknown): boolean {
  * Predicate per operator value, over a field value and the rule's value. Mirrors
  * the default operator sets in {@link getOperators}; text matches are
  * case-insensitive, date comparisons rely on ISO (`YYYY-MM-DD`) string order.
- * A predicate gets only a rule value that {@link imposesConstraint} accepts, so
+ * A predicate gets only a rule value that {@link hasConstraint} accepts, so
  * it does not check the shape of that value.
  *
  * @internal
@@ -185,7 +185,7 @@ function isNumeric(value: unknown): boolean {
  *
  * @internal
  */
-export function imposesConstraint(operator: string, value: unknown): boolean {
+export function hasConstraint(operator: string, value: unknown): boolean {
 	if (!Object.hasOwn(matchers, operator)) return false
 
 	if (VALUELESS_OPERATORS.has(operator)) return true
@@ -200,13 +200,13 @@ export function imposesConstraint(operator: string, value: unknown): boolean {
 /**
  * Tests one operator against a field value and a rule value, or gives
  * `undefined` when the rule puts no constraint on the rows. See
- * {@link matchQueryRule} for the cases. The fold in {@link evaluateQuery} drops
+ * {@link isRuleMatch} for the cases. The fold in {@link isSatisfied} drops
  * such a rule.
  *
  * @internal
  */
 function testRule(operator: string, fieldValue: unknown, ruleValue: unknown): boolean | undefined {
-	if (!imposesConstraint(operator, ruleValue)) return undefined
+	if (!hasConstraint(operator, ruleValue)) return undefined
 
 	return matchers[operator]?.(fieldValue, ruleValue)
 }
@@ -225,7 +225,7 @@ function testRule(operator: string, fieldValue: unknown, ruleValue: unknown): bo
  *
  * Value-less operators (`is Empty`, `is true`, …) evaluate regardless.
  */
-export function matchQueryRule(operator: string, fieldValue: unknown, ruleValue: unknown): boolean {
+export function isRuleMatch(operator: string, fieldValue: unknown, ruleValue: unknown): boolean {
 	return testRule(operator, fieldValue, ruleValue) ?? true
 }
 
@@ -260,7 +260,7 @@ function foldGroup(group: QueryGroup, getValue: (field: string) => unknown): boo
  * precedence: sequential, matching the builder's visual order).
  *
  * @remarks A child that puts no constraint on the rows drops out of the fold,
- * with its combinator. Such a child is a rule that {@link matchQueryRule} passes
+ * with its combinator. Such a child is a rule that {@link isRuleMatch} passes
  * as no constraint, or a group of such children. So `A OR (blank rule)` reads
  * as `A`, as the summary shows it. A query with no constraint matches every row.
  *
@@ -268,7 +268,7 @@ function foldGroup(group: QueryGroup, getValue: (field: string) => unknown): boo
  * @param getValue - Resolves a field name to that row's value.
  * @returns Whether the row satisfies the query.
  */
-export function evaluateQuery(group: QueryGroup, getValue: (field: string) => unknown): boolean {
+export function isSatisfied(group: QueryGroup, getValue: (field: string) => unknown): boolean {
 	return foldGroup(group, getValue) ?? true
 }
 
@@ -285,7 +285,7 @@ type CompiledStep = { and: boolean; test: CompiledQuery }
 
 /**
  * Compiles one node, or gives `null` when the node puts no constraint on the
- * rows. {@link imposesConstraint} reads only the operator and the rule value,
+ * rows. {@link hasConstraint} reads only the operator and the rule value,
  * so the compile makes that judgment one time, not one time for each row.
  *
  * @internal
@@ -293,7 +293,7 @@ type CompiledStep = { and: boolean; test: CompiledQuery }
 function compileNode(node: QueryNode): CompiledQuery | null {
 	if (node.type === 'group') return compileGroup(node)
 
-	if (!imposesConstraint(node.operator, node.value)) return null
+	if (!hasConstraint(node.operator, node.value)) return null
 
 	const match = matchers[node.operator] as (fieldValue: unknown, ruleValue: unknown) => boolean
 
@@ -337,7 +337,7 @@ function compileGroup(group: QueryGroup): CompiledQuery | null {
 
 /**
  * Compiles a query tree into a test that gives the result of
- * {@link evaluateQuery}. It gives `null` when the tree puts no constraint on
+ * {@link isSatisfied}. It gives `null` when the tree puts no constraint on
  * the rows.
  *
  * @remarks

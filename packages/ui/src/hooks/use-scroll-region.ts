@@ -12,7 +12,7 @@ import { observeScrollExtent } from './observe-scroll-extent'
  *
  * @internal
  */
-function scrollsOn(node: HTMLElement): boolean {
+function isScrollable(node: HTMLElement): boolean {
 	const style = getComputedStyle(node)
 
 	return (
@@ -108,7 +108,7 @@ export function useScrollRegion(options: ScrollRegionOptions = {}): RefCallback<
 			}
 
 			const update = () => {
-				const next = scrollsOn(node)
+				const next = isScrollable(node)
 
 				if (next === scrolls) return
 

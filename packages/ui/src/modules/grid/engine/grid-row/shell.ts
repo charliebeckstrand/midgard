@@ -5,10 +5,10 @@ import type { GridColumn } from '../../types'
 import { isNewRowAddColumn } from '../grid-new-row-column'
 import {
 	cellContext,
-	fromInteractiveContent,
 	type GridCellClick,
 	type GridCellRovingActivate,
 	type GridRowClick,
+	isInInteractive,
 	resolveCellContext,
 } from './cell'
 
@@ -52,7 +52,7 @@ function rowPointerHandler<T>(args: {
 	if (!onRow && !onCell) return undefined
 
 	return (event) => {
-		if (fromInteractiveContent(event.target)) return
+		if (isInInteractive(event.target)) return
 
 		if (onCell) {
 			const cell = resolveCellContext(columns, row, rowKey, event.target)

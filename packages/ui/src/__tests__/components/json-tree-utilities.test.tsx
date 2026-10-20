@@ -8,11 +8,11 @@ import {
 	filterEntries,
 	flattenTree,
 	getEntries,
+	hasMatch,
 	isBranch,
+	isMatch,
 	joinPath,
-	matchesSearch,
 	normalizeSearch,
-	treeContainsMatch,
 	valueType,
 } from '../../components/json-tree/json-tree-utilities'
 import type { JsonValue } from '../../components/json-tree/types'
@@ -101,35 +101,35 @@ describe('getEntries', () => {
 	})
 })
 
-describe('matchesSearch', () => {
+describe('isMatch', () => {
 	it('returns false when term is empty', () => {
-		expect(matchesSearch('key', 'value', '')).toBe(false)
+		expect(isMatch('key', 'value', '')).toBe(false)
 	})
 
 	it('matches against the key (case-insensitive)', () => {
-		expect(matchesSearch('Name', 'Alice', 'name')).toBe(true)
+		expect(isMatch('Name', 'Alice', 'name')).toBe(true)
 	})
 
 	it('matches against a primitive value (case-insensitive)', () => {
-		expect(matchesSearch('k', 'Alice', 'alice')).toBe(true)
+		expect(isMatch('k', 'Alice', 'alice')).toBe(true)
 	})
 
 	it('does not match against branch values', () => {
-		expect(matchesSearch('k', { nested: 'alice' }, 'alice')).toBe(false)
+		expect(isMatch('k', { nested: 'alice' }, 'alice')).toBe(false)
 	})
 })
 
-describe('treeContainsMatch', () => {
+describe('hasMatch', () => {
 	it('finds a match nested in a child branch', () => {
-		expect(treeContainsMatch({ outer: { inner: 'needle' } }, 'needle')).toBe(true)
+		expect(hasMatch({ outer: { inner: 'needle' } }, 'needle')).toBe(true)
 	})
 
 	it('returns false when the tree has no match', () => {
-		expect(treeContainsMatch({ a: 'x' }, 'needle')).toBe(false)
+		expect(hasMatch({ a: 'x' }, 'needle')).toBe(false)
 	})
 
 	it('returns false when term is empty', () => {
-		expect(treeContainsMatch({ a: 'x' }, '')).toBe(false)
+		expect(hasMatch({ a: 'x' }, '')).toBe(false)
 	})
 })
 

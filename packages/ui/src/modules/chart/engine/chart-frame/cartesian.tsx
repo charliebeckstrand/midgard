@@ -2,16 +2,11 @@ import type { ReactElement, ReactNode } from 'react'
 import type { AccessibleName } from '../../../../types'
 import { ChartCartesianAxes } from '../chart-axes/cartesian'
 import type { ChartValueAxisId } from '../chart-axes/schema'
-import {
-	ChartCrosshair,
-	type Crosshair,
-	crosshairSnaps,
-	resolveCrosshair,
-} from '../chart-crosshair'
+import { ChartCrosshair, type Crosshair, isSnapping, resolveCrosshair } from '../chart-crosshair'
 import type { ChartLineSeries } from '../chart-geometry/line'
-import { ChartHitArea, cartesianHitActive } from '../chart-hit-area'
+import { ChartHitArea, isHitActive } from '../chart-hit-area'
 import { ChartLegend } from '../chart-legend/legend'
-import { legendAside } from '../chart-legend/schema'
+import { isLegendAside } from '../chart-legend/schema'
 import { ChartMarksLayer } from '../chart-marks/layer'
 import { referenceText } from '../chart-reference'
 import {
@@ -163,7 +158,7 @@ export function ChartCartesianFrame({
 
 	const rails = resolveCrosshair(crosshair ?? defaultCrosshair)
 
-	const snapping = crosshairSnaps(rails)
+	const snapping = isSnapping(rails)
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
@@ -215,7 +210,7 @@ export function ChartCartesianFrame({
 						referenceHidden={chart.referenceHidden}
 						onToggle={chart.toggleSeries}
 						onToggleReference={chart.toggleReference}
-						panel={legendAside(resolvedLegend.value)}
+						panel={isLegendAside(resolvedLegend.value)}
 						maxRows={chart.legendRows}
 						texture={tex.active}
 						inert={resolvedLegend.inert}
@@ -273,7 +268,7 @@ export function ChartCartesianFrame({
 
 			{!crosshairOver && marksLayer}
 
-			{cartesianHitActive(showTooltip, rails, chart.onBandClick, count) && (
+			{isHitActive(showTooltip, rails, chart.onBandClick, count) && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}

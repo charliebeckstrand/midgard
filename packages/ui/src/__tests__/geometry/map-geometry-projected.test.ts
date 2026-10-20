@@ -5,9 +5,9 @@ import { describe, expect, it } from 'vitest'
 import type { MapFeature, MapTopology } from '../../modules/map'
 import {
 	affineBasis,
-	areaOnly,
 	carriedTransform,
 	emitRegionPaths,
+	isAreaOnly,
 	type MapProjectedAtlas,
 	probeCanonicalFit,
 	projectAtlas,
@@ -283,7 +283,7 @@ describe('projectAtlas + emitRegionPaths', () => {
 		] as MapFeature['geometry'][]) {
 			const features = [...FIXTURE_GEOJSON.features, feature(geometry)]
 
-			expect(areaOnly(features)).toBe(false)
+			expect(isAreaOnly(features)).toBe(false)
 
 			expect(projectAtlas(features, projection)).toBeNull()
 		}

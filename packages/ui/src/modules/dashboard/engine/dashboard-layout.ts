@@ -314,7 +314,7 @@ export function gridArea(cell: DashboardCell): string {
 }
 
 /** Whether the boxes of two different cells overlap. */
-export function collides(a: DashboardCell, b: DashboardCell): boolean {
+export function isColliding(a: DashboardCell, b: DashboardCell): boolean {
 	if (a.id === b.id) return false
 
 	if (a.x + a.w <= b.x || a.x >= b.x + b.w) return false
@@ -326,14 +326,14 @@ export function collides(a: DashboardCell, b: DashboardCell): boolean {
  * Whether a placement holds: inside the columns, not above the top edge, and
  * clear of each other cell. The cell with the same id does not count.
  */
-export function fits(
+export function canFit(
 	cells: readonly DashboardCell[],
 	cell: DashboardCell,
 	columns: number,
 ): boolean {
 	if (cell.x < 0 || cell.y < 0 || cell.x + cell.w > columns) return false
 
-	return cells.every((other) => !collides(other, cell))
+	return cells.every((other) => !isColliding(other, cell))
 }
 
 /** The first row under all cells, less the cell `except` when you name one. */
@@ -451,7 +451,7 @@ export function shiftCells(
 type ClampedEntry = { item: DashboardLayoutItem; cell: DashboardCell }
 
 /** Whether the clamp moves the cell off the saved origin or the saved span of the entry. */
-function clampMoves({ item, cell }: ClampedEntry): boolean {
+function isClamped({ item, cell }: ClampedEntry): boolean {
 	return cell.x !== item.x || cell.y !== item.y || cell.w !== item.w
 }
 
@@ -468,14 +468,14 @@ function bySavedPlace(a: ClampedEntry, b: ClampedEntry): number {
  * of `entries`, and the cells on new rows go last.
  */
 function holdBack(entries: readonly ClampedEntry[]): DashboardCell[] {
-	const moved = entries.filter(clampMoves).sort(bySavedPlace)
+	const moved = entries.filter(isClamped).sort(bySavedPlace)
 
-	const held = entries.filter((entry) => !clampMoves(entry)).map(({ cell }) => cell)
+	const held = entries.filter((entry) => !isClamped(entry)).map(({ cell }) => cell)
 
 	const back = new Set<ClampedEntry>()
 
 	for (const entry of moved) {
-		if (held.some((other) => collides(other, entry.cell))) back.add(entry)
+		if (held.some((other) => isColliding(other, entry.cell))) back.add(entry)
 		else held.push(entry.cell)
 	}
 
@@ -619,7 +619,7 @@ export function sortByOrder<T>(
 }
 
 /** Whether two layouts place each cell in the same place, id by id. */
-export function sameGeometry(a: readonly DashboardCell[], b: readonly DashboardCell[]): boolean {
+export function isSameGeometry(a: readonly DashboardCell[], b: readonly DashboardCell[]): boolean {
 	if (a.length !== b.length) return false
 
 	const byId = new Map(b.map((cell) => [cell.id, cell]))
@@ -627,17 +627,17 @@ export function sameGeometry(a: readonly DashboardCell[], b: readonly DashboardC
 	return a.every((cell) => {
 		const other = byId.get(cell.id)
 
-		return other !== undefined && sameCell(cell, other)
+		return other !== undefined && isSameCell(cell, other)
 	})
 }
 
 /** Whether two cells have the same geometry and the same static flag. */
-export function sameCell(a: DashboardCell, b: DashboardCell): boolean {
+export function isSameCell(a: DashboardCell, b: DashboardCell): boolean {
 	return a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h && a.static === b.static
 }
 
 /** Whether two saved items hold the same geometry, so a caller can keep the first. */
-function sameItem(a: DashboardLayoutItem, b: DashboardLayoutItem): boolean {
+function isSameItem(a: DashboardLayoutItem, b: DashboardLayoutItem): boolean {
 	return (
 		a.id === b.id &&
 		a.x === b.x &&
@@ -729,7 +729,7 @@ export function mergeLayout(
 
 		const next = toLayoutItem(cell, demands.get(item.id))
 
-		return sameItem(item, next) ? item : next
+		return isSameItem(item, next) ? item : next
 	})
 
 	for (const cell of cells) {

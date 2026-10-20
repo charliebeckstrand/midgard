@@ -115,7 +115,7 @@ export function frozenLayout(
  *
  * @internal
  */
-export function sameFrozenLayout(a: FrozenLayout, b: FrozenLayout): boolean {
+export function isSameLayout(a: FrozenLayout, b: FrozenLayout): boolean {
 	if (a === b) return true
 
 	if (a.size !== b.size) return false
@@ -144,7 +144,7 @@ export function sameFrozenLayout(a: FrozenLayout, b: FrozenLayout): boolean {
  *
  * @internal
  */
-export function sameFrozenStructure(a: FrozenLayout, b: FrozenLayout): boolean {
+export function isSameStructure(a: FrozenLayout, b: FrozenLayout): boolean {
 	if (a === b) return true
 
 	if (a.size !== b.size) return false

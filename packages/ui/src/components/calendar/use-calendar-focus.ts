@@ -241,7 +241,7 @@ const DAY_BUTTON = 'button'
  * because the roving grid does that move.
  * @internal
  */
-function moveDay(
+function tryMoveDay(
 	event: KeyboardEvent,
 	grid: HTMLElement | null,
 	dayGrid: CalendarDayGrid,
@@ -294,7 +294,7 @@ function moveDay(
  * @returns `true` when the key is ArrowUp on the top row.
  * @internal
  */
-function crossToHeader(
+function tryCrossToHeader(
 	event: KeyboardEvent,
 	header: HTMLElement | null,
 	grid: HTMLElement | null,
@@ -415,8 +415,8 @@ export function useCalendarFocus({
 			// A day grid moves by date, so its arrows never leave the grid. Only a
 			// grid with no date model bridges to the header.
 			const handled = dayGrid
-				? moveDay(event, gridRef.current, dayGrid)
-				: crossToHeader(event, headerRef.current, gridRef.current, cols)
+				? tryMoveDay(event, gridRef.current, dayGrid)
+				: tryCrossToHeader(event, headerRef.current, gridRef.current, cols)
 
 			if (handled) {
 				preventAndStop(event, stopPropagation)

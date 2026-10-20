@@ -45,7 +45,7 @@ import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { PortalDragOverlay } from '../../primitives/portal/portal-drag-overlay'
 import { k } from '../../recipes/kata/grid-group'
-import { sameElements } from '../../utilities'
+import { isSameElements } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
 import {
@@ -306,7 +306,7 @@ export function GridGroupManager({
 	// value of the group sortable, so the rows under it do not render.
 	const groupSortIds = useStableValue(
 		groupZones.map((zone) => `${GROUP_PREFIX}${zone.id}`),
-		sameElements,
+		isSameElements,
 	)
 
 	const rootRef = useRef<HTMLDivElement>(null)
@@ -524,7 +524,7 @@ function GridGroupManagerZoneView({
 
 	// A rename gives each zone a new list of the same ids. The held list keeps the
 	// sortable context of the zone, so the context renders no row.
-	const visibleIds = useStableValue(filteredIds, sameElements)
+	const visibleIds = useStableValue(filteredIds, isSameElements)
 
 	// Colors already taken by other groups: offered disabled, so a color maps to
 	// at most one group. Memoized so a drag/hover re-render doesn't rescan every

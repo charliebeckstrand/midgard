@@ -62,7 +62,7 @@ function toTarget(snapshot: GridActiveEdit | string | number | null): OverlayTar
 }
 
 /** Whether two targets name the same row and the same cell. @internal */
-function sameTarget(a: OverlayTarget | null, b: OverlayTarget | null): boolean {
+function isSameTarget(a: OverlayTarget | null, b: OverlayTarget | null): boolean {
 	if (a === null || b === null) return a === b
 
 	return a.rowKey === b.rowKey && a.columnId === b.columnId
@@ -134,7 +134,7 @@ export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditO
 	// the overlay slides out, after the session let it go.
 	const [shown, setShown] = useState<OverlayTarget | null>(target)
 
-	if (target !== null && !sameTarget(target, shown)) setShown(target)
+	if (target !== null && !isSameTarget(target, shown)) setShown(target)
 
 	// Whether a save waits for its commit.
 	const [busy, setBusy] = useState(false)

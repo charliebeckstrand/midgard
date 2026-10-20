@@ -7,7 +7,7 @@ import { ChartAxis } from '../engine/chart-axes/axis'
 import { ChartFrame } from '../engine/chart-frame/frame'
 import { ChartHitArea } from '../engine/chart-hit-area'
 import { rangeLegendPlacement, resolveRangeLegend } from '../engine/chart-legend/range'
-import { legendAside } from '../engine/chart-legend/schema'
+import { isLegendAside } from '../engine/chart-legend/schema'
 import { readoutCell } from '../engine/chart-series'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartMarkRef } from '../engine/context'
@@ -95,7 +95,8 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 	// A side rail takes a share of a fixed width, so the plot measures the width
 	// that remains. The placement reads the width alone, so it resolves before
 	// the frame sizes the plot.
-	const sharedWidth = legend !== false && legendAside(rangeLegendPlacement(legend, containerWidth))
+	const sharedWidth =
+		legend !== false && isLegendAside(rangeLegendPlacement(legend, containerWidth))
 
 	const {
 		ref,

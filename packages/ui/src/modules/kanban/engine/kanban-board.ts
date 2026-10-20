@@ -5,7 +5,7 @@
  * move, so no lookup scans the board.
  */
 
-import { sameElements } from '../../../utilities'
+import { isSameElements } from '../../../utilities'
 
 /** Minimum a {@link Kanban} column must satisfy: a stable `id` and an `items` array; extend it with column metadata. */
 export type KanbanColumnBase<T> = { id: string; items: T[] }
@@ -80,7 +80,7 @@ export function reuseColumnIds<T>(
 
 		const prevIds = prev[column.id]
 
-		const same = sameElements(prevIds, ids)
+		const same = isSameElements(prevIds, ids)
 
 		next[column.id] = same && prevIds ? prevIds : ids
 

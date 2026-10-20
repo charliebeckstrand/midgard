@@ -5,7 +5,7 @@ import { useStableValue } from '../../hooks/use-stable-value'
 import type { ChatMessageData } from './engine/types'
 
 /** Whether two message lists hold the same ids in the same order. @internal */
-function sameIds(prev: readonly ChatMessageData[], next: readonly ChatMessageData[]): boolean {
+function isSameIds(prev: readonly ChatMessageData[], next: readonly ChatMessageData[]): boolean {
 	return prev.length === next.length && next.every((message, i) => message.id === prev[i]?.id)
 }
 
@@ -29,7 +29,7 @@ export function useChatTranscriptItemKey(
 ): (index: number) => string | number {
 	// The held list keeps the ids of the messages, so the getter reads only ids
 	// from it.
-	const held = useStableValue(messages, sameIds)
+	const held = useStableValue(messages, isSameIds)
 
 	return useCallback((index: number) => held[index]?.id ?? index, [held])
 }

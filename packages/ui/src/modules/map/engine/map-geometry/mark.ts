@@ -10,8 +10,8 @@
  * closure the plat hands down. The region layer instead projects whole features
  * through `d3-geo`'s own path generator.
  *
- * The area primitives (`featureRings`, `projectArea`, `areaReach`, `boxNear`,
- * `ringsNear`) now answer three subsystems rather than one:
+ * The area primitives (`featureRings`, `projectArea`, `areaReach`, `isNearBox`,
+ * `isNearRings`) now answer three subsystems rather than one:
  *
  * - The geofence that first wanted them.
  * - The ZIP dissolve.
@@ -221,7 +221,7 @@ export function ringAnchor(ring: LngLat[]): LngLat[] {
 export type MapFrameBox = { left: number; top: number; right: number; bottom: number }
 
 /**
- * What {@link ringsNear} actually reads: the boxes alone. Stated apart from
+ * What {@link isNearRings} actually reads: the boxes alone. Stated apart from
  * {@link MapAreaRing} so a caller that has finished measuring can drop the
  * vertex arrays, and keep placing dots against what is left. An atlas region
  * runs to thousands of points, and holding them for a box test is the whole
@@ -245,12 +245,12 @@ export type MapAreaRing = {
 
 /**
  * Whether one box holds a position once grown by `margin`. It is the test
- * {@link ringsNear} runs per ring. It is stated once, so a caller holding a
+ * {@link isNearRings} runs per ring. It is stated once, so a caller holding a
  * single box can ask it without wrapping that box in a list.
  *
  * @internal
  */
-export function boxNear(box: MapFrameBox, at: MapPoint2D, margin: number): boolean {
+export function isNearBox(box: MapFrameBox, at: MapPoint2D, margin: number): boolean {
 	return (
 		at.x >= box.left - margin &&
 		at.x <= box.right + margin &&
@@ -280,11 +280,11 @@ export function boxNear(box: MapFrameBox, at: MapPoint2D, margin: number): boole
  *
  * @internal
  */
-export function ringsNear(rings: readonly MapAreaBox[], at: MapPoint2D, margin: number): boolean {
+export function isNearRings(rings: readonly MapAreaBox[], at: MapPoint2D, margin: number): boolean {
 	// A loop rather than `some`: every dot on a map asks this of every zone, and a
 	// callback would be a fresh allocation per call rather than per zone.
 	for (const { box } of rings) {
-		if (boxNear(box, at, margin)) return true
+		if (isNearBox(box, at, margin)) return true
 	}
 
 	return false

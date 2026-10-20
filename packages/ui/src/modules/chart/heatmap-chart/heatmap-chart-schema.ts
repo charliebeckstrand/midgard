@@ -14,7 +14,7 @@
  */
 
 import type { AccessibleName } from '../../../types'
-import { parseNumeric, sameElements } from '../../../utilities'
+import { isSameElements, parseNumeric } from '../../../utilities'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import type { ChartLegendPlacement } from '../engine/chart-legend/schema'
 import type { ChartBaseProps, DataKey } from '../engine/types'
@@ -211,7 +211,7 @@ export function resolveMatrix<T>(
  *
  * @internal
  */
-export function sameHeatmapSeries<T>(
+export function isSameSeries<T>(
 	a: HeatmapChartSeries<T> | undefined,
 	b: HeatmapChartSeries<T> | undefined,
 ): boolean {
@@ -226,7 +226,7 @@ export function sameHeatmapSeries<T>(
 		a.colorName === b.colorName &&
 		a.bins === b.bins &&
 		a.binning === b.binning &&
-		sameElements(a.colorRange, b.colorRange) &&
-		sameElements(a.colorDomain, b.colorDomain)
+		isSameElements(a.colorRange, b.colorRange) &&
+		isSameElements(a.colorDomain, b.colorDomain)
 	)
 }

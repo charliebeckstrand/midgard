@@ -89,7 +89,7 @@ export function chartFrameSizing(
  *
  * @internal
  */
-export function frameFills(sizing: FrameSizing): boolean {
+export function isFilling(sizing: FrameSizing): boolean {
 	return sizing.mode === 'fill' || sizing.mode === 'aspect-fill'
 }
 
