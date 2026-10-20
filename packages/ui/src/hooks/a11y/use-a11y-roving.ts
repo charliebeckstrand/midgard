@@ -26,8 +26,9 @@ export type VirtualItemSource = {
 	/** Total number of items in the full (unwindowed) list. */
 	count: number
 	/**
-	 * Stable id for the item at `index` — must match the `id` the row renders
-	 * with, so `aria-activedescendant` resolves once the row mounts.
+	 * Stable id for the item at `index`. It must match the `id` that the row
+	 * renders with, so that `aria-activedescendant` resolves once the row
+	 * mounts.
 	 */
 	getKey: (index: number) => string
 	/** Whether the item at `index` is disabled; navigation skips it. */
@@ -162,7 +163,7 @@ function resolveVirtualItemIndex(source: VirtualItemSource, id: string | undefin
  *
  * - Clears a stale `data-active` row.
  * - Points the owner's `aria-activedescendant` at `id`, even before the row
- *   mounts — a windowed-out row isn't in the DOM yet.
+ *   mounts. A row out of the window is not in the DOM yet.
  * - Marks `data-active`/`aria-selected` on it once it is.
  *
  * Idempotent, so it is safe to call again once a row that wasn't mounted the
@@ -669,9 +670,9 @@ function resolveRovingContext(
 	// stays on an owner outside it, such as the trigger of a closing menu.
 	if (container?.closest('[inert]')) return null
 
-	// None of the keydown paths of indexed mode read `items`; skip the DOM query
-	// rather than run it (plus the array allocation) on every keystroke —
-	// including arrow-key auto-repeat — for a dead value. Virtual mode also needs
+	// None of the keydown paths of indexed mode read `items`. Skip the DOM query
+	// (and the array allocation), which would otherwise run for a dead value on
+	// every keystroke, arrow-key auto-repeat included. Virtual mode also needs
 	// `activeIndexRef`, which holds its logical index.
 	const indexed =
 		config.itemSource && (!isVirtual || config.activeIndexRef) ? config.itemSource : null
@@ -1014,8 +1015,8 @@ function handleEscapeBlur(
  * Focus-mode Tab containment: Tab / Shift+Tab step to the next / previous item
  * instead of leaving the widget, wrapping at both ends. With focus resting on
  * the container rather than an item (`currentIndex` -1), Tab enters at the
- * first item and Shift+Tab at the last. Virtual mode is out of scope — its
- * focus sits on an owning input the user must be able to Tab away from.
+ * first item and Shift+Tab at the last. Virtual mode is out of scope. Its
+ * focus sits on an owning input that the user must be able to Tab away from.
  *
  * @returns True once the key is Tab and the trap is on, so the caller stops.
  * @internal
@@ -1105,7 +1106,7 @@ export type RovingOptions = NavigationConfig & {
 	/** Focus mode: move to the first / last item even when nothing in the container has focus. */
 	focusOnEmpty?: boolean
 	/**
-	 * Focus mode: hold Tab inside the widget — Tab / Shift+Tab step through the
+	 * Focus mode: hold Tab inside the widget. Tab / Shift+Tab step through the
 	 * items and wrap at the ends rather than carrying focus out. For a surface
 	 * the user leaves by dismissing it, such as a menu closed with `Escape` or a
 	 * selection. Never for one embedded in the page's tab order.
@@ -1201,8 +1202,8 @@ export type RovingOptions = NavigationConfig & {
 	 * index. Required alongside `itemSource` because a windowed-out active row
 	 * has no DOM `data-active` marker for the hook to read the index back off
 	 * of between keystrokes. The caller also writes it directly, via
-	 * `setVirtualActiveIndexed`, to seed the highlight outside a keypress — on
-	 * open, on a filter change.
+	 * `setVirtualActiveIndexed`, to seed the highlight outside a keypress, such
+	 * as on open or on a filter change.
 	 */
 	activeIndexRef?: RefObject<number>
 }
@@ -1233,8 +1234,8 @@ export type RovingOptions = NavigationConfig & {
  *
  * @returns A stable `onKeyDown` handler to attach to the container; it reads
  * items from `containerRef` on each press, so the item set can change between
- * presses. With `trapTab`, Tab is consumed and rove the items rather than
- * carrying focus out. The `tabIndex` ownership (focus mode + `manageTabIndex`) and the
+ * presses. With `trapTab`, the handler takes Tab and roves the items rather
+ * than carrying focus out. The `tabIndex` ownership (focus mode + `manageTabIndex`) and the
  * `aria-activedescendant` mirroring run as an effect, independent of the
  * handler.
  */
