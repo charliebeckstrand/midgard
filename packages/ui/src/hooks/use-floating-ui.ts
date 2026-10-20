@@ -595,11 +595,17 @@ function pressLandsInNestedSurface(
 	return !(reference != null && targetPortal.contains(reference))
 }
 
+/**
+ * The popup role that floating-ui stamps on the floating element, with the
+ * `aria-haspopup`, `aria-controls`, and `aria-expanded` of the reference.
+ */
+export type FloatingRole = 'listbox' | 'menu' | 'dialog' | 'tooltip'
+
 /** Options for {@link useFloatingDismissal}. @internal */
 type FloatingDismissalOptions = {
 	open: boolean
 	/** The popup role, or `null` for a surface that owns its roles. */
-	role: 'listbox' | 'menu' | 'dialog' | 'tooltip' | null
+	role: FloatingRole | null
 	/** Whether the surface answers Escape and an outside press. */
 	dismissable: boolean
 }
@@ -662,7 +668,7 @@ export type FloatingUIOptions = FloatingPanelOptions & {
 	 * wrapper, nesting a duplicate widget around the real one
 	 * (combobox-in-combobox, listbox-in-listbox). @defaultValue 'listbox'
 	 */
-	role?: 'listbox' | 'menu' | 'dialog' | 'tooltip' | null
+	role?: FloatingRole | null
 }
 
 /**

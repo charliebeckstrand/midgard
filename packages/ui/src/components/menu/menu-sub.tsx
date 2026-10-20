@@ -18,7 +18,7 @@ import { useFloatingUI } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import { fitMiddleware } from '../../hooks/use-floating-ui'
-import { useOpenChange } from '../../hooks/use-open-change'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
@@ -161,7 +161,7 @@ function MenuSubSheet({
 }: MenuSubProps) {
 	const [open, setOpen] = useState(false)
 
-	useOpenChange(open, onOpenChange)
+	useReportedChange(open, onOpenChange)
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
@@ -294,7 +294,7 @@ function MenuSubFloating({
 	// Watched rather than wrapped around a call site: this row does not own the state. The
 	// enclosing level does, and it flips on routes the row never runs — a sibling taking
 	// the cursor, a pointer sweep resolving elsewhere, the level closing the whole menu.
-	useOpenChange(open, onOpenChange)
+	useReportedChange(open, onOpenChange)
 
 	// Whether the pending open must pull focus into the panel: set by the
 	// keyboard and click paths, left clear by hover so a pointer sweep across the

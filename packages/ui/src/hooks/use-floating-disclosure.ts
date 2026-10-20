@@ -11,11 +11,10 @@ import { type CSSProperties, type RefObject, useCallback, useLayoutEffect, useRe
 import { useControllableFlag } from './use-controllable'
 import {
 	type FloatingPanelOptions,
+	type FloatingRole,
 	useFloatingDismissal,
 	useFloatingPanel,
 } from './use-floating-ui'
-
-type FloatingDisclosureRole = 'dialog' | 'menu' | 'tooltip' | 'listbox'
 
 type FloatingDisclosureGate = (
 	next: boolean,
@@ -37,7 +36,7 @@ export type FloatingDisclosureOptions = Omit<
 	 * component hand-rolls those on inner elements. A role here also stamps
 	 * the positioning wrapper with a duplicate.
 	 */
-	role: FloatingDisclosureRole | null
+	role: FloatingRole | null
 	/**
 	 * Vetoes an open-state transition when it returns `false`. A transition that
 	 * an interaction hook of floating-ui requests gives its reason, such as
