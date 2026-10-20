@@ -111,7 +111,7 @@ describe('API extractor', { timeout: 60_000 }, () => {
 
 		expect(initialFocus?.default).toBeUndefined()
 
-		expect(initialFocus?.description).toMatch(/Default: the first tabbable child\.$/)
+		expect(initialFocus?.description).toMatch(/Default: the first tabbable element in the panel\.$/)
 	})
 
 	it('leaves out an internal prop', async () => {
