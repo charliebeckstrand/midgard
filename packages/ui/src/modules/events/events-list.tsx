@@ -11,7 +11,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
 import { getOrCompute } from '../../utilities/get-or-compute'
-import { columnsOf, type EventRow, summaryOf } from './engine/events-text'
+import { type EventRow, formatColumns, formatSummary } from './engine/events-text'
 import type { EventEntry } from './engine/types'
 import { eventsMessages } from './events-messages'
 
@@ -21,7 +21,7 @@ const keys = new WeakMap<EventEntry, number>()
 
 let lastKey = 0
 
-function entryKeyOf(entry: EventEntry): number {
+function getEntryKey(entry: EventEntry): number {
 	return getOrCompute(keys, entry, () => ++lastKey)
 }
 
@@ -30,7 +30,7 @@ function entryKeyOf(entry: EventEntry): number {
  * or the batch of a row of more than one event.
  */
 function getKey(row: EventRow): string {
-	return row.length === 1 ? `entry ${entryKeyOf(row[0])}` : `batch ${row[0].batch}`
+	return row.length === 1 ? `entry ${getEntryKey(row[0])}` : `batch ${row[0].batch}`
 }
 
 /** The open state of the lines, by the key of each line. */
@@ -80,7 +80,7 @@ function EventLine({
 
 	const head = (
 		<span className={cn('flex font-mono text-xs', color)}>
-			<span className="shrink-0 whitespace-pre">{columnsOf(entry, width)}</span>
+			<span className="shrink-0 whitespace-pre">{formatColumns(entry, width)}</span>
 			{panel === undefined ? (
 				// The gap is the gap of the toggle, so the texts of the two kinds of line
 				// start in one column.
@@ -149,8 +149,8 @@ function EventRowLine({ row, ...props }: LineProps & { row: EventRow }) {
 	return (
 		<EventLine
 			entry={row[0]}
-			text={summaryOf(row)}
-			panel={row.map((entry) => <EntryLine key={entryKeyOf(entry)} entry={entry} {...props} />)}
+			text={formatSummary(row)}
+			panel={row.map((entry) => <EntryLine key={getEntryKey(entry)} entry={entry} {...props} />)}
 			width={props.width}
 			open={props.openState.isOpen(key)}
 			onOpenChange={(next) => props.openState.setOpen(key, next)}

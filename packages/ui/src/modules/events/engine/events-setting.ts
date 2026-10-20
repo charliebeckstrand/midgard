@@ -1,6 +1,6 @@
 import { createEmitter } from '../../../utilities/emitter'
 import { noop } from '../../../utilities/noop'
-import { CAPTURE_KEY, readStorage, storageOf, writeStorage } from './events-storage'
+import { CAPTURE_KEY, getStorage, readStorage, writeStorage } from './events-storage'
 import type { EventSource } from './types'
 
 // The settings of the events: whether they run, and whether the panel is
@@ -157,7 +157,7 @@ function syncAttributes(): void {
 export const SCRIPT = `(function(){try{var l=localStorage,r=document.documentElement;if(l.getItem(${JSON.stringify(ON_KEY)})!=='1')return;r.setAttribute(${JSON.stringify(ON_ATTRIBUTE)},'');if(l.getItem(${JSON.stringify(PINNED_KEY)})==='1')r.setAttribute(${JSON.stringify(PINNED_ATTRIBUTE)},'');if(sessionStorage.getItem(${JSON.stringify(CAPTURE_KEY)})!==null)r.setAttribute(${JSON.stringify(CAPTURE_ATTRIBUTE)},'')}catch(e){}})()`
 
 /** The `localStorage` of the page. The settings are off where the storage throws, such as with site data off. */
-const local = () => storageOf(() => localStorage)
+const local = () => getStorage(() => localStorage)
 
 function readLocal(key: string): string | null {
 	return readStorage(local(), key)

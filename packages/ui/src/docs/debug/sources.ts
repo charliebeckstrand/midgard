@@ -56,10 +56,10 @@ const readings: EventSource = (note) => {
  * calls of one callback of one component is one batch.
  */
 const components: EventSource = (note) => {
-	const { batchOf, stop } = bursts()
+	const { getBatch, stop } = bursts()
 
 	const unlisten = listenComponentEvents(({ source, name, path, text, detail }) =>
-		note({ kind: source, name, text, detail, batch: batchOf(`${name} ${path}`) }),
+		note({ kind: source, name, text, detail, batch: getBatch(`${name} ${path}`) }),
 	)
 
 	return () => {

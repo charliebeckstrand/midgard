@@ -1,4 +1,4 @@
-import { framesOf, readViewport, stackOf } from './events-probes'
+import { parseFrames, parseStack, readViewport } from './events-probes'
 import { CAPTURE_ATTRIBUTE, REPORTS_ATTRIBUTE, type StartEventsOptions } from './events-setting'
 import { setEventSink } from './events-sink'
 import { calls } from './events-sources/calls'
@@ -12,7 +12,7 @@ import { overlay } from './events-sources/overlay'
 import { paint } from './events-sources/paint'
 import { scroll } from './events-sources/scroll'
 import { height, resize } from './events-sources/viewport'
-import { storageOf } from './events-storage'
+import { getStorage } from './events-storage'
 import { EventStore, type NewEntry } from './events-store'
 import { isOwn } from './events-target'
 import type { EventLine, EventSource } from './types'
@@ -46,7 +46,7 @@ let stop: (() => void) | undefined
  * follow the reports and the capture of the store.
  */
 function create(): EventStore {
-	const next = new EventStore(storageOf(() => sessionStorage))
+	const next = new EventStore(getStorage(() => sessionStorage))
 
 	const mark = () => {
 		const root = document.documentElement
@@ -110,11 +110,11 @@ export function begin(target: EventStore, cause?: string): void {
 
 	target.addSeparator(`──── ${cause ?? navigation?.type ?? 'load'} ${location.pathname}`)
 
-	target.add(entryOf({ kind: 'load', text: 'viewport', detail: readViewport() }))
+	target.add(toEntry({ kind: 'load', text: 'viewport', detail: readViewport() }))
 }
 
 /** The event of a line, with the scroll position of now and the time of now by default. A bug line holds its stacks in the detail. */
-function entryOf({
+function toEntry({
 	kind,
 	text,
 	detail,
@@ -128,9 +128,9 @@ function entryOf({
 
 	if (name !== undefined) entry.name = name
 
-	const stack = bug ? stackOf(bug.error) : []
+	const stack = bug ? parseStack(bug.error) : []
 
-	const componentStack = framesOf(bug?.componentStack)
+	const componentStack = parseFrames(bug?.componentStack)
 
 	if (detail !== undefined) entry.detail = detail
 	else if (stack.length > 0 || componentStack.length > 0) entry.detail = { stack, componentStack }
@@ -151,8 +151,8 @@ export function listen(target: EventStore, options: StartEventsOptions = {}): ()
 	const note = (line: EventLine) => {
 		if (!running) return
 
-		if (line.bug) target.addBug(entryOf(line), line.bug)
-		else target.add(entryOf(line))
+		if (line.bug) target.addBug(toEntry(line), line.bug)
+		else target.add(toEntry(line))
 	}
 
 	const sources = [...SOURCES, ...(options.calls ? [calls] : []), ...(options.sources ?? [])]

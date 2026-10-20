@@ -10,23 +10,23 @@ const KIND_WIDTH = 'viewport'.length
 export type EventRow = readonly [EventEntry, ...EventEntry[]]
 
 /** What the kind column shows: the name of the event, else its kind. */
-function nameOf(entry: EventEntry): string {
+function getKindLabel(entry: EventEntry): string {
 	return entry.name ?? entry.kind
 }
 
 /** The width of the kind column: the longest kind, or the longest name in the list. */
-export function kindWidthOf(entries: readonly EventEntry[]): number {
-	return entries.reduce((width, entry) => Math.max(width, nameOf(entry).length), KIND_WIDTH)
+export function getKindWidth(entries: readonly EventEntry[]): number {
+	return entries.reduce((width, entry) => Math.max(width, getKindLabel(entry).length), KIND_WIDTH)
 }
 
 /** The columns before the text of a line: the time, the scroll position, and the kind or the name. */
-export function columnsOf(entry: EventEntry, width: number): string {
-	return `${String(entry.time).padStart(6)} y${String(entry.y).padEnd(5)} ${nameOf(entry).padEnd(width)} `
+export function formatColumns(entry: EventEntry, width: number): string {
+	return `${String(entry.time).padStart(6)} y${String(entry.y).padEnd(5)} ${getKindLabel(entry).padEnd(width)} `
 }
 
 /** One line with no detail: the columns, then the text. Copy and the trail of a report write it. */
-export function lineOf(entry: EventEntry, width: number): string {
-	return columnsOf(entry, width) + entry.text
+export function formatLine(entry: EventEntry, width: number): string {
+	return formatColumns(entry, width) + entry.text
 }
 
 /**
@@ -34,7 +34,7 @@ export function lineOf(entry: EventEntry, width: number): string {
  * one batch are one row, at the place of the first event of the batch. The
  * events of other batches and the events with no batch keep their places.
  */
-export function rowsOf(entries: readonly EventEntry[], batched: boolean): EventRow[] {
+export function groupRows(entries: readonly EventEntry[], batched: boolean): EventRow[] {
 	if (!batched) return entries.map((entry) => [entry])
 
 	const rows: [EventEntry, ...EventEntry[]][] = []
@@ -65,7 +65,7 @@ export function rowsOf(entries: readonly EventEntry[], batched: boolean): EventR
  * the count of the events, and the time from the first to the last, such as
  * `pointerdown button … click button (8 lines, 3 ms)`.
  */
-export function summaryOf(row: EventRow): string {
+export function formatSummary(row: EventRow): string {
 	const first = row[0]
 
 	const last = row.at(-1) ?? first
@@ -77,12 +77,12 @@ export function summaryOf(row: EventRow): string {
  * One event as text: the columns, then the text. A detail follows as indented
  * JSON, each line under the start of the text.
  */
-function detailedLineOf(entry: EventEntry, width: number): string {
-	const text = lineOf(entry, width)
+function formatDetailedLine(entry: EventEntry, width: number): string {
+	const text = formatLine(entry, width)
 
 	if (entry.detail === undefined) return text
 
-	const indent = ' '.repeat(columnsOf(entry, width).length)
+	const indent = ' '.repeat(formatColumns(entry, width).length)
 
 	const detail = JSON.stringify(entry.detail, null, 2).replaceAll('\n', `\n${indent}`)
 
@@ -93,10 +93,12 @@ function detailedLineOf(entry: EventEntry, width: number): string {
  * One row as text. A row of a batch is the columns of its first event and the
  * summary, then each event, indented by two spaces.
  */
-export function rowTextOf(row: EventRow, width: number): string {
-	if (row.length === 1) return detailedLineOf(row[0], width)
+export function formatRow(row: EventRow, width: number): string {
+	if (row.length === 1) return formatDetailedLine(row[0], width)
 
-	const entries = row.map((entry) => `  ${detailedLineOf(entry, width).replaceAll('\n', '\n  ')}`)
+	const entries = row.map(
+		(entry) => `  ${formatDetailedLine(entry, width).replaceAll('\n', '\n  ')}`,
+	)
 
-	return [columnsOf(row[0], width) + summaryOf(row), ...entries].join('\n')
+	return [formatColumns(row[0], width) + formatSummary(row), ...entries].join('\n')
 }

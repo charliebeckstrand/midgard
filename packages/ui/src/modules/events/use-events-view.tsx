@@ -16,9 +16,9 @@ import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { Text } from '../../components/text'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { markdownOf } from './engine/events-report'
+import { formatMarkdown } from './engine/events-report'
 import type { EventStore } from './engine/events-store'
-import { kindWidthOf, rowsOf, rowTextOf } from './engine/events-text'
+import { formatRow, getKindWidth, groupRows } from './engine/events-text'
 import { EventsCopyButton } from './events-copy-button'
 import { EventsFlagField } from './events-flag-field'
 import { EventsList, type EventsOpenState } from './events-list'
@@ -145,7 +145,7 @@ export function useEventsView(live: boolean): EventsViewParts {
 	)
 
 	if (report) {
-		const markdown = markdownOf(report)
+		const markdown = formatMarkdown(report)
 
 		return {
 			store,
@@ -241,9 +241,9 @@ export function useEventsView(live: boolean): EventsViewParts {
 			),
 		}
 
-	const rows = rowsOf(entries, batched)
+	const rows = groupRows(entries, batched)
 
-	const width = kindWidthOf(entries)
+	const width = getKindWidth(entries)
 
 	return {
 		store,
@@ -269,7 +269,7 @@ export function useEventsView(live: boolean): EventsViewParts {
 			),
 		footer: (
 			<>
-				<EventsCopyButton text={() => rows.map((row) => rowTextOf(row, width)).join('\n')} />
+				<EventsCopyButton text={() => rows.map((row) => formatRow(row, width)).join('\n')} />
 				{captureButton}
 				{clearButton}
 			</>

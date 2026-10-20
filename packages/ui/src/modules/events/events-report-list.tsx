@@ -10,7 +10,7 @@ import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
-import { markdownOf, titleOf } from './engine/events-report'
+import { formatMarkdown, formatTitle } from './engine/events-report'
 import type { EventEntry, EventReport } from './engine/types'
 import { eventsMessages } from './events-messages'
 
@@ -53,7 +53,7 @@ function ReportLine({
 					>
 						<Icon icon={<ListX />} />
 					</Button>
-					<CopyButton size="sm" icon={<Copy />} text={() => markdownOf(entry)} />
+					<CopyButton size="sm" icon={<Copy />} text={() => formatMarkdown(entry)} />
 					<Button
 						variant="bare"
 						size="sm"
@@ -72,7 +72,7 @@ function ReportLine({
 						report.origin === 'capture' ? k.kind.capture : k.kind.error,
 					)}
 				>
-					{titleOf(entry)}
+					{formatTitle(entry)}
 				</Text>
 				<Text tone="muted" className="truncate text-xs">
 					{report.page} · {intl.formatTime(new Date(report.at), { timeStyle: 'medium' })} ·{' '}

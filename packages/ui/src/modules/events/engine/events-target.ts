@@ -16,7 +16,7 @@ export function isOwn(target: unknown): boolean {
 }
 
 /** A short name of an event target: the tag, the anchor, and the value of an input. */
-export function targetNameOf(target: unknown): string {
+export function describeTarget(target: unknown): string {
 	if (!(target instanceof Element) || target === document.documentElement) return 'page'
 
 	const slot = target.getAttribute('data-slot')
@@ -30,11 +30,11 @@ export function targetNameOf(target: unknown): string {
  * Where an element is: its name and the name of each ancestor with a slot,
  * its box, and the scroll position of its scroll container.
  */
-export function placeOf(el: Element): string {
-	const names = [targetNameOf(el)]
+export function describePlace(el: Element): string {
+	const names = [describeTarget(el)]
 
 	for (let ancestor = el.parentElement; ancestor; ancestor = ancestor.parentElement)
-		if (ancestor.hasAttribute('data-slot')) names.unshift(targetNameOf(ancestor))
+		if (ancestor.hasAttribute('data-slot')) names.unshift(describeTarget(ancestor))
 
 	const { x, y, width, height } = el.getBoundingClientRect()
 
@@ -43,7 +43,7 @@ export function placeOf(el: Element): string {
 	const scroller = findScrollableAncestor(el.parentElement)
 
 	const scroll = scroller
-		? `, in ${targetNameOf(scroller)} scrolled ${Math.round(scroller.scrollLeft)},${Math.round(scroller.scrollTop)}`
+		? `, in ${describeTarget(scroller)} scrolled ${Math.round(scroller.scrollLeft)},${Math.round(scroller.scrollTop)}`
 		: ''
 
 	return `${names.join(' > ')} at ${box[0]},${box[1]} ${box[2]}×${box[3]}${scroll}`

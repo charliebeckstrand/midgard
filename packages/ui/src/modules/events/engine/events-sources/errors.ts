@@ -1,9 +1,9 @@
-import { targetNameOf } from '../events-target'
+import { describeTarget } from '../events-target'
 import type { EventSource } from '../types'
 import { addListeners, all } from './dom'
 
 /** The URL that an element loads, as its `src` or `href` attribute gives it. */
-function resourceOf(target: unknown): string {
+function getResourceUrl(target: unknown): string {
 	if (!(target instanceof Element)) return ''
 
 	return target.getAttribute('src') ?? target.getAttribute('href') ?? ''
@@ -24,7 +24,7 @@ export const errors: EventSource = (note) =>
 			else
 				note({
 					kind: 'error',
-					text: `load fails ${targetNameOf(event.target)} ${resourceOf(event.target)}`,
+					text: `load fails ${describeTarget(event.target)} ${getResourceUrl(event.target)}`,
 					bug: { origin: 'window' },
 				})
 		}),

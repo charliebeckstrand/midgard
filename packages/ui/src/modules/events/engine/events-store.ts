@@ -1,9 +1,9 @@
 import { createEmitter } from '../../../utilities/emitter'
 import { getOrCompute } from '../../../utilities/get-or-compute'
-import { framesOf, stackOf } from './events-probes'
+import { parseFrames, parseStack } from './events-probes'
 import { createReport, type ReportInput } from './events-report'
 import { CAPTURE_KEY, readStorage, writeStorage } from './events-storage'
-import { kindWidthOf, lineOf } from './events-text'
+import { formatLine, getKindWidth } from './events-text'
 import type { EventBug, EventEntry, EventKind, EventReport, EventStorage } from './types'
 
 // The store of the events of one tab: the events in time order, the reports
@@ -161,7 +161,7 @@ export class EventStore {
 			return
 		}
 
-		const stack = stackOf(bug.error)
+		const stack = parseStack(bug.error)
 
 		const same = this.entries.find(
 			({ text, report }) => report && text === entry.text && report.stack[0] === stack[0],
@@ -182,11 +182,11 @@ export class EventStore {
 		this.insert(created, (entries) => {
 			const index = entries.indexOf(created)
 
-			const report = this.reportOf(this.trailOf(entries.slice(0, index)), {
+			const report = this.buildReport(this.getTrail(entries.slice(0, index)), {
 				title: created.text,
 				origin: bug.origin,
 				stack,
-				componentStack: framesOf(bug.componentStack),
+				componentStack: parseFrames(bug.componentStack),
 				route: bug.route,
 			})
 
@@ -236,7 +236,7 @@ export class EventStore {
 
 			const trail = entries.slice(0, index).filter(({ id }) => id >= start.id)
 
-			const report = this.reportOf(trail, {
+			const report = this.buildReport(trail, {
 				title: entry.text,
 				origin: 'capture',
 				stack: [],
@@ -349,7 +349,8 @@ export class EventStore {
 
 				report.route ??= bug.route
 
-				if (report.componentStack.length === 0) report.componentStack = framesOf(bug.componentStack)
+				if (report.componentStack.length === 0)
+					report.componentStack = parseFrames(bug.componentStack)
 
 				return { ...entry, report }
 			}),
@@ -360,7 +361,7 @@ export class EventStore {
 	 * The events that the trail of a bug holds: each event from the start of a
 	 * capture that runs, else the last {@link TRAIL_LENGTH} events.
 	 */
-	private trailOf(before: readonly EventEntry[]): readonly EventEntry[] {
+	private getTrail(before: readonly EventEntry[]): readonly EventEntry[] {
 		const start = this.capture
 
 		return start
@@ -369,15 +370,15 @@ export class EventStore {
 	}
 
 	/** The report of the page now, with the lines of `trail`. */
-	private reportOf(
+	private buildReport(
 		trail: readonly EventEntry[],
 		input: Omit<ReportInput, 'trail' | 'pointer' | 'focus'>,
 	): EventReport {
-		const width = kindWidthOf(trail)
+		const width = getKindWidth(trail)
 
 		return createReport({
 			...input,
-			trail: trail.map((entry) => lineOf(entry, width)),
+			trail: trail.map((entry) => formatLine(entry, width)),
 			pointer: this.pointer?.deref(),
 			focus: this.focus?.deref(),
 		})

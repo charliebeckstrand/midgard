@@ -7,7 +7,7 @@ import { addListeners, all, bursts } from './dom'
  * the viewport. A burst of resizes is one batch.
  */
 export const resize: EventSource = (note) => {
-	const { batchOf, stop } = bursts()
+	const { getBatch, stop } = bursts()
 
 	return all([
 		addListeners(window, ['resize'], () =>
@@ -15,7 +15,7 @@ export const resize: EventSource = (note) => {
 				kind: 'viewport',
 				text: 'window resize',
 				detail: readViewport(),
-				batch: batchOf('resize'),
+				batch: getBatch('resize'),
 			}),
 		),
 		addListeners(window.visualViewport, ['resize'], () =>
@@ -23,7 +23,7 @@ export const resize: EventSource = (note) => {
 				kind: 'viewport',
 				text: 'visual resize',
 				detail: readViewport(),
-				batch: batchOf('resize'),
+				batch: getBatch('resize'),
 			}),
 		),
 		stop,

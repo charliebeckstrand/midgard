@@ -1,4 +1,4 @@
-import { isOwn, targetNameOf } from '../events-target'
+import { describeTarget, isOwn } from '../events-target'
 import type { EventSource } from '../types'
 import { addListeners, nextBatch, QUIET } from './dom'
 
@@ -14,7 +14,7 @@ export const scroll: EventSource = (note) => {
 		if (!scrolling) {
 			batch = nextBatch()
 
-			note({ kind: 'scroll', text: `scroll starts ${targetNameOf(event.target)}`, batch })
+			note({ kind: 'scroll', text: `scroll starts ${describeTarget(event.target)}`, batch })
 		}
 
 		clearTimeout(scrolling)

@@ -1,4 +1,4 @@
-import { isOwn, targetNameOf } from '../events-target'
+import { describeTarget, isOwn } from '../events-target'
 import type { EventSource } from '../types'
 import { addListeners, nextBatch } from './dom'
 
@@ -28,7 +28,7 @@ const MODIFIERS = [
 ] as const
 
 /** A key and its modifiers, such as `Shift+Tab`. A modifier that is the key itself goes out of the modifiers. */
-function chordOf(event: KeyboardEvent): string {
+function formatChord(event: KeyboardEvent): string {
 	const key = event.key === ' ' ? 'Space' : event.key
 
 	const modifiers = MODIFIERS.filter(([flag, name]) => event[flag] && name !== event.key)
@@ -61,13 +61,13 @@ export const input: EventSource = (note) => {
 
 		const isKeyboard = event instanceof KeyboardEvent
 
-		const keyText = isKeyboard ? ` ${chordOf(event)}` : ''
+		const keyText = isKeyboard ? ` ${formatChord(event)}` : ''
 
 		const synthetic = event.isTrusted ? '' : ' synthetic'
 
 		note({
 			kind: 'input',
-			text: `${event.type}${keyText} ${targetNameOf(event.target)}${synthetic}`,
+			text: `${event.type}${keyText} ${describeTarget(event.target)}${synthetic}`,
 			detail: isKeyboard ? { key: event.key, code: event.code, repeat: event.repeat } : undefined,
 			batch,
 		})
