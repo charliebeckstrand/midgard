@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { useState } from 'react'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { fireEvent, present, renderUI, waitFor } from '../../helpers'
+import { fireEvent, frames, present, renderUI, waitFor } from '../../helpers'
 import { centerOf } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
@@ -433,5 +434,79 @@ describe('grid frozen offsets follow a width change in its frame (real browser)'
 		const [, seen] = reports
 
 		expect(Number.parseFloat(seen?.offset ?? '')).toBeNear(seen?.width ?? Number.NaN, HALF_PIXEL)
+	})
+
+	/*
+	 * The rows land in the frame of the width change. A commit in the observer
+	 * callback that also rendered the rows grew the scroll region of the table,
+	 * which the observer of that region watches above the header cells. The
+	 * browser then fired "ResizeObserver loop completed with undelivered
+	 * notifications" on `window`. The rows update in an animation frame callback,
+	 * so React renders them in a later task unless a commit in the callback
+	 * renders them first.
+	 */
+	it('moves a frozen follower in the frame of rows that land, with no ResizeObserver loop error', async () => {
+		const errors: string[] = []
+
+		const record = (event: ErrorEvent) => {
+			if (event.message.includes('ResizeObserver loop')) errors.push(event.message)
+		}
+
+		window.addEventListener('error', record)
+
+		onTestFinished(() => window.removeEventListener('error', record))
+
+		const late: Row[] = Array.from({ length: 20 }, (_, index) => ({
+			id: index + 1,
+			name: `A much longer name ${index + 1}`,
+			code: `CODE-${index + 1}-WIDE`,
+			a: 'A',
+		}))
+
+		let land = () => {}
+
+		function LateRows() {
+			const [loaded, setLoaded] = useState(false)
+
+			land = () => setLoaded(true)
+
+			return (
+				<Grid
+					resizable={false}
+					columns={columns}
+					rows={loaded ? late : []}
+					getKey={(row) => row.id}
+					loading={!loaded}
+				/>
+			)
+		}
+
+		const { container } = renderUI(<LateRows />)
+
+		await waitFor(() => expect(head(container, 'code').style.insetInlineStart).not.toBe(''))
+
+		await frames()
+
+		await new Promise<void>((resolve) =>
+			requestAnimationFrame(() => {
+				land()
+
+				head(container, 'name').style.minWidth = '300px'
+
+				resolve()
+			}),
+		)
+
+		await frames()
+
+		expect(container.querySelectorAll('td[data-grid-col="name"]').length).toBeGreaterThan(0)
+
+		// The follower sits flush against the final width of the column ahead of it.
+		expect(Number.parseFloat(head(container, 'code').style.insetInlineStart)).toBeNear(
+			head(container, 'name').getBoundingClientRect().width,
+			HALF_PIXEL,
+		)
+
+		expect(errors).toEqual([])
 	})
 })

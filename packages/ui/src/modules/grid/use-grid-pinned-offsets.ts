@@ -2,7 +2,6 @@
 
 import type { ColumnPinningState } from '@tanstack/react-table'
 import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
 import { pinSide } from './engine/grid-pin/layout'
 import {
 	type FrozenCell,
@@ -29,6 +28,11 @@ type GridPinnedOffsetsOptions<T> = {
 	columns: GridColumn<T>[]
 	/** Grid wrapper holding the rendered header. */
 	containerRef: RefObject<HTMLElement | null> | undefined
+	/**
+	 * Writes a new measurement to the frozen cells, before the browser paints. The
+	 * observer calls it before it updates the state, which commits in a later task.
+	 */
+	write: (offsets: FrozenOffsets) => void
 }
 
 /**
@@ -59,6 +63,7 @@ export function useGridPinnedOffsets<T>({
 	pinning,
 	columns,
 	containerRef,
+	write,
 }: GridPinnedOffsetsOptions<T>): FrozenOffsets | null {
 	const enabled = frozen && !engineSized
 
@@ -76,19 +81,22 @@ export function useGridPinnedOffsets<T>({
 		return frozenHeaderCells(container, columns, (id) => pinSide(pinning, id))
 	}, [enabled, pinning, columns, containerRef])
 
+	// Returns the measurement when it moved an offset, and `null` otherwise.
 	const publish = useCallback((scan: FrozenCell[]) => {
 		// No frozen cell resolved: the header hasn't rendered, or its row is mid column
 		// change. Hold the last measurement rather than dropping back to the engine's
 		// sums, which would jump the frozen columns for a frame.
-		if (scan.length === 0) return
+		if (scan.length === 0) return null
 
 		const next = frozenOffsets(scan)
 
-		if (sameFrozenOffsets(publishedRef.current, next)) return
+		if (sameFrozenOffsets(publishedRef.current, next)) return null
 
 		publishedRef.current = next
 
 		setOffsets(next)
+
+		return next
 	}, [])
 
 	useLayoutEffect(() => {
@@ -105,15 +113,26 @@ export function useGridPinnedOffsets<T>({
 
 		// A frozen column's width is the only input to the offsets, so observing the
 		// frozen header cells is the whole trigger set. Each tick re-scans, since a
-		// column change can have replaced the cells since this ran. The update
-		// commits in the callback, as the sizing observer's does, so the followers
-		// move in the frame of the width change and not one painted frame late.
-		const observer = new ResizeObserver(() => flushSync(() => publish(cells())))
+		// column change can have replaced the cells since this ran.
+		//
+		// The callback writes the new offsets to the cells, so the followers move in
+		// the frame of the width change and not one painted frame late. The state
+		// update renders plainly, in a later task, and that render reads the same
+		// offsets. A commit in the callback (`flushSync`) also rendered each update
+		// that waits, because React renders the sync and default lanes together. Rows
+		// that land in the frame of the tick then grew the scroll region of the table
+		// in the same delivery. Its observer watches it above the header cells, so the
+		// browser fired "ResizeObserver loop completed with undelivered notifications".
+		const observer = new ResizeObserver(() => {
+			const next = publish(cells())
+
+			if (next) write(next)
+		})
 
 		for (const { cell } of scan) observer.observe(cell)
 
 		return () => observer.disconnect()
-	}, [enabled, publish, cells])
+	}, [enabled, publish, cells, write])
 
 	// Gated on the way out rather than cleared in the effect above, so a grid that
 	// releases its last frozen column (or turns resizable) falls back to the engine
