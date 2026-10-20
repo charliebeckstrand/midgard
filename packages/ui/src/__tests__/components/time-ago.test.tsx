@@ -21,7 +21,7 @@ describe('TimeAgo', () => {
 	})
 
 	it('renders a <time> element with data-slot="time-ago"', () => {
-		const { container } = renderUI(<TimeAgo date={new Date()} />)
+		const { container } = renderUI(<TimeAgo value={new Date()} />)
 
 		const el = bySlot(container, 'time-ago')
 
@@ -33,7 +33,7 @@ describe('TimeAgo', () => {
 	it('sets the dateTime attribute to the ISO string', () => {
 		const date = new Date('2026-04-29T11:30:00Z')
 
-		const { container } = renderUI(<TimeAgo date={date} />)
+		const { container } = renderUI(<TimeAgo value={date} />)
 
 		expect(bySlot(container, 'time-ago')).toHaveAttribute('dateTime', date.toISOString())
 	})
@@ -41,7 +41,7 @@ describe('TimeAgo', () => {
 	it('renders a relative string for past timestamps', () => {
 		const past = new Date(Date.now() - 5 * MINUTE)
 
-		const { container } = renderUI(<TimeAgo date={past} locale="en-US" />)
+		const { container } = renderUI(<TimeAgo value={past} locale="en-US" />)
 
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('5 minutes ago')
 	})
@@ -51,7 +51,7 @@ describe('TimeAgo', () => {
 
 		const { container } = renderUI(
 			<LocaleProvider locale="de-DE">
-				<TimeAgo date={past} />
+				<TimeAgo value={past} />
 			</LocaleProvider>,
 		)
 
@@ -63,7 +63,7 @@ describe('TimeAgo', () => {
 
 		const { container } = renderUI(
 			<LocaleProvider locale="de-DE">
-				<TimeAgo date={past} locale="en-US" />
+				<TimeAgo value={past} locale="en-US" />
 			</LocaleProvider>,
 		)
 
@@ -73,7 +73,7 @@ describe('TimeAgo', () => {
 	it('renders a relative string for future timestamps', () => {
 		const future = new Date(Date.now() + 3 * HOUR)
 
-		const { container } = renderUI(<TimeAgo date={future} locale="en-US" />)
+		const { container } = renderUI(<TimeAgo value={future} locale="en-US" />)
 
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('in 3 hours')
 	})
@@ -81,13 +81,13 @@ describe('TimeAgo', () => {
 	it('accepts ISO strings and numeric timestamps', () => {
 		const past = Date.now() - 2 * DAY
 
-		const { container } = renderUI(<TimeAgo date={past} locale="en-US" />)
+		const { container } = renderUI(<TimeAgo value={past} locale="en-US" />)
 
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('2 days ago')
 	})
 
 	it('renders no tooltip by default', () => {
-		const { container } = renderUI(<TimeAgo date={new Date()} locale="en-US" />)
+		const { container } = renderUI(<TimeAgo value={new Date()} locale="en-US" />)
 
 		// Clicking a plain <time> wires no tooltip, so nothing opens.
 		act(() => {
@@ -103,7 +103,7 @@ describe('TimeAgo', () => {
 		const { container } = renderUI(
 			<Tooltip>
 				<TooltipTrigger>
-					<TimeAgo date={date} locale="en-US" />
+					<TimeAgo value={date} locale="en-US" />
 				</TooltipTrigger>
 				<TooltipContent>{date.toLocaleString('en-US')}</TooltipContent>
 			</Tooltip>,
@@ -122,7 +122,7 @@ describe('TimeAgo', () => {
 	it('applies a custom format function', () => {
 		const past = new Date(Date.now() - 90 * SECOND)
 
-		const { container } = renderUI(<TimeAgo date={past} format={(ms) => `${Math.round(ms)}ms`} />)
+		const { container } = renderUI(<TimeAgo value={past} format={(ms) => `${Math.round(ms)}ms`} />)
 
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('-90000ms')
 	})
@@ -130,7 +130,7 @@ describe('TimeAgo', () => {
 	it('updates as time passes', async ({ clock }) => {
 		const past = new Date(Date.now() - 1 * MINUTE)
 
-		const { container } = renderUI(<TimeAgo date={past} locale="en-US" />)
+		const { container } = renderUI(<TimeAgo value={past} locale="en-US" />)
 
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('1 minute ago')
 
@@ -144,13 +144,13 @@ describe('TimeAgo', () => {
 
 		const setInterval = vi.spyOn(window, 'setInterval')
 
-		renderUI(<TimeAgo date={past} interval={1000} />)
+		renderUI(<TimeAgo value={past} interval={1000} />)
 
 		expect(setInterval).toHaveBeenCalledWith(expect.any(Function), 1000)
 	})
 
 	it('forwards HTML attributes to the time element', () => {
-		const { container } = renderUI(<TimeAgo date={new Date()} id="ts" className="custom" />)
+		const { container } = renderUI(<TimeAgo value={new Date()} id="ts" className="custom" />)
 
 		const el = bySlot(container, 'time-ago')
 
@@ -160,7 +160,7 @@ describe('TimeAgo', () => {
 	})
 
 	it('renders a plain <span> (not an empty <time>) when the date is invalid', () => {
-		const { container } = renderUI(<TimeAgo date="not-a-date" />)
+		const { container } = renderUI(<TimeAgo value="not-a-date" />)
 
 		const el = bySlot(container, 'time-ago')
 

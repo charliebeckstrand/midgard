@@ -8,7 +8,7 @@ export default function CustomFormat() {
 
 	return (
 		<TimeAgo
-			date={now - 90 * SECOND}
+			value={now - 90 * SECOND}
 			format={(diffMs) => `${Math.round(Math.abs(diffMs) / SECOND)}s ago`}
 		/>
 	)

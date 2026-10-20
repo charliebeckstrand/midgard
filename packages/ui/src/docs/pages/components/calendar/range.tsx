@@ -35,7 +35,7 @@ export default function Range() {
 				rangeEnd={end}
 				hoverDate={end === null ? hover : null}
 				onHoverDate={setHover}
-				onValueChange={pick}
+				onDayPress={pick}
 			/>
 			<Text>Value: {start && end ? `${format(start)} to ${format(end)}` : 'Empty'}</Text>
 		</>

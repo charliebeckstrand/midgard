@@ -6,5 +6,5 @@ export default function TimeAgoPlayground(props: TimeAgoProps) {
 
 	if (now === null) return null
 
-	return <TimeAgo {...props} date={now - 30 * SECOND} />
+	return <TimeAgo {...props} value={now - 30 * SECOND} />
 }

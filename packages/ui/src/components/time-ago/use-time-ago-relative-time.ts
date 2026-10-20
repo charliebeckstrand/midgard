@@ -93,7 +93,7 @@ export function resolveRefreshInterval(interval: number | 'auto', absMs: number)
 }
 
 type RelativeTimeOptions = {
-	date: Date | string | number
+	value: Date | string | number
 	/** Override the default `Intl.RelativeTimeFormat` output. */
 	format?: (diffMs: number, now: Date, then: Date) => string
 	/** Locale for the default formatter. */
@@ -109,7 +109,7 @@ type RelativeTimeOptions = {
 type RelativeTimeResult = {
 	/** The parsed target date. */
 	then: Date
-	/** Whether `date` parsed to a real timestamp. */
+	/** Whether `value` parsed to a real timestamp. */
 	valid: boolean
 	/** Formatted relative string; empty before mount or for an invalid date. */
 	text: string
@@ -130,7 +130,7 @@ type RelativeTimeResult = {
  * @internal
  */
 export function useTimeAgoRelativeTime({
-	date,
+	value,
 	format,
 	locale,
 	interval = 'auto',
@@ -139,7 +139,7 @@ export function useTimeAgoRelativeTime({
 	// produces no relative text; hydration matches at unit boundaries.
 	const [now, setNow] = useState<Date | null>(null)
 
-	const then = useMemo(() => (date instanceof Date ? date : new Date(date)), [date])
+	const then = useMemo(() => (value instanceof Date ? value : new Date(value)), [value])
 
 	const valid = !Number.isNaN(then.getTime())
 

@@ -25,6 +25,7 @@ import {
 	selectedPresetIds,
 	togglePresetValue,
 } from './date-picker-relative-utilities'
+import { orderDates } from './date-picker-utilities'
 import type { FooterButton } from './use-date-picker-keyboard'
 
 /** The two surfaces of the relative popover: the preset list or the custom Start/End inputs. @internal */
@@ -220,16 +221,13 @@ export function useDatePickerRelativeState({
 
 			if (!next.from || !next.to) return
 
-			const span: DatePickerRelativeValue =
-				next.from.getTime() <= next.to.getTime()
-					? { from: next.from, to: next.to }
-					: { from: next.to, to: next.from }
+			const [from, to] = orderDates(next.from, next.to)
 
 			// A custom range isn't a preset, so drop any prior pick: the chip/highlight
 			// must range-match, not favor a stale preset.
 			setPickedIds(new Set())
 
-			setValue([span])
+			setValue([{ from, to }])
 		},
 		[field.readOnly, setValue],
 	)

@@ -9,9 +9,9 @@ export default function Future() {
 
 	return (
 		<Stack gap="xs">
-			<TimeAgo date={now + 10 * MINUTE} />
-			<TimeAgo date={now + 4 * HOUR} />
-			<TimeAgo date={now + 7 * DAY} />
+			<TimeAgo value={now + 10 * MINUTE} />
+			<TimeAgo value={now + 4 * HOUR} />
+			<TimeAgo value={now + 7 * DAY} />
 		</Stack>
 	)
 }

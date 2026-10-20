@@ -16,7 +16,7 @@ export default function CustomLocale() {
 			{locales.map((locale) => (
 				<Flex key={locale} gap="sm" align="center">
 					<Code>{locale}</Code>
-					<TimeAgo date={now - 5 * MINUTE} locale={locale} />
+					<TimeAgo value={now - 5 * MINUTE} locale={locale} />
 				</Flex>
 			))}
 		</Stack>

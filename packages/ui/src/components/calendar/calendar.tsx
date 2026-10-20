@@ -20,7 +20,7 @@ import { k, type scale } from '../../recipes/kata/calendar'
 import { Box } from '../../structure/box'
 import { resolveLocale } from '../../utilities'
 import type { ButtonVariants } from '../button'
-import { CalendarGrid } from './calendar-grid'
+import { CalendarGrid, getDayState } from './calendar-grid'
 import { CalendarHeader } from './calendar-header'
 import {
 	formatMonthName,
@@ -322,22 +322,11 @@ export function Calendar({
 		dayGrid,
 	})
 
-	// A day is selected as the grid marks it: `getDayProps` can override the
-	// match with `value`, as a range does for its two endpoints.
+	// A day is selected as the grid marks it, so the Tab stop of the grid that
+	// `getEntryDate` gives is a day that the grid paints selected.
 	const isSelected = useCallback(
-		(date: Date) => {
-			const selected = value != null && sameDay(date, value)
-
-			const dayProps = getDayProps?.({
-				date,
-				disabled: isDisabled(date),
-				today: today != null && sameDay(date, today),
-				selected,
-				active: activeGridDate != null && sameDay(date, activeGridDate),
-			})
-
-			return dayProps?.selected ?? selected
-		},
+		(date: Date) =>
+			getDayState(date, { today, value, activeGridDate, isDisabled, getDayProps }).selected,
 		[value, getDayProps, isDisabled, today, activeGridDate],
 	)
 

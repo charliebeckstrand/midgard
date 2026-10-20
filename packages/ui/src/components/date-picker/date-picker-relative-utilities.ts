@@ -4,14 +4,13 @@ import { getOrCompute } from '../../utilities/get-or-compute'
 import { sameDay } from '../calendar/calendar-utilities'
 import { datePickerMessages } from './date-picker-messages'
 import {
-	addDays,
-	addMonths,
 	endOfMonth,
 	endOfYear,
 	formatRange,
 	startOfDay,
 	startOfMonth,
 	startOfYear,
+	stepDate,
 } from './date-picker-utilities'
 
 /**
@@ -144,7 +143,7 @@ const PRESET_SPECS: PresetSpec[] = [
 		id: 'yesterday',
 		label: (intl) => intl.formatMessage(presetMessages.yesterday),
 		resolve: (now) => {
-			const day = addDays(startOfDay(now), -1)
+			const day = stepDate(startOfDay(now), { days: -1 })
 
 			return { from: day, to: day }
 		},
@@ -152,17 +151,17 @@ const PRESET_SPECS: PresetSpec[] = [
 	{
 		id: 'last-7-days',
 		label: lastDays(7),
-		resolve: (now) => ({ from: addDays(startOfDay(now), -6), to: startOfDay(now) }),
+		resolve: (now) => ({ from: stepDate(startOfDay(now), { days: -6 }), to: startOfDay(now) }),
 	},
 	{
 		id: 'last-30-days',
 		label: lastDays(30),
-		resolve: (now) => ({ from: addDays(startOfDay(now), -29), to: startOfDay(now) }),
+		resolve: (now) => ({ from: stepDate(startOfDay(now), { days: -29 }), to: startOfDay(now) }),
 	},
 	{
 		id: 'last-90-days',
 		label: lastDays(90),
-		resolve: (now) => ({ from: addDays(startOfDay(now), -89), to: startOfDay(now) }),
+		resolve: (now) => ({ from: stepDate(startOfDay(now), { days: -89 }), to: startOfDay(now) }),
 	},
 	{
 		id: 'this-month',
@@ -173,7 +172,7 @@ const PRESET_SPECS: PresetSpec[] = [
 		id: 'last-month',
 		label: (intl) => intl.formatMessage(presetMessages.lastMonth),
 		resolve: (now) => {
-			const prior = addMonths(now, -1)
+			const prior = stepDate(now, { months: -1 })
 
 			return { from: startOfMonth(prior), to: endOfMonth(prior) }
 		},
@@ -187,7 +186,7 @@ const PRESET_SPECS: PresetSpec[] = [
 		id: 'last-year',
 		label: (intl) => intl.formatMessage(presetMessages.lastYear),
 		resolve: (now) => {
-			const prior = addMonths(now, -12)
+			const prior = stepDate(now, { months: -12 })
 
 			return { from: startOfYear(prior), to: endOfYear(prior) }
 		},

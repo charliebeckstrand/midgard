@@ -13,6 +13,28 @@ type DatePickerInputTabParams = {
 }
 
 /**
+ * Moves a Tab at an edge of `from` into `to`: a forward Tab from the last
+ * tabbable of `from` goes to the first of `to`, and a backward Tab from the
+ * first of `from` goes to the last of `to`. Other keys and Tabs pass.
+ *
+ * @internal
+ */
+function wrapTab(event: KeyboardEvent<Element>, from: Element, to: Element | null): void {
+	if (event.key !== 'Tab') return
+
+	const source = getTabbableElements(from)
+	const target = getTabbableElements(to)
+
+	const edge = event.shiftKey ? source[0] : source.at(-1)
+
+	if (target.length === 0 || event.target !== edge) return
+
+	event.preventDefault()
+
+	;(event.shiftKey ? target.at(-1) : target[0])?.focus()
+}
+
+/**
  * Closes the Tab cycle for `input` mode while the calendar is open: DateInput
  * → calendar button → dialog content → back to the DateInput. The editable
  * reference group lives outside `FloatingFocusManager`'s modal guards, which
@@ -30,22 +52,7 @@ export function useDatePickerInputTab({ open, triggerRef, floatingRef }: DatePic
 	// DateInput) wraps to the dialog's last.
 	const onReferenceKeyDown = useCallback(
 		(event: KeyboardEvent<Element>) => {
-			if (event.key !== 'Tab' || !open) return
-
-			const group = getTabbableElements(event.currentTarget)
-			const dialog = getTabbableElements(floatingRef.current)
-
-			if (dialog.length === 0) return
-
-			if (!event.shiftKey && event.target === group[group.length - 1]) {
-				event.preventDefault()
-
-				dialog[0]?.focus()
-			} else if (event.shiftKey && event.target === group[0]) {
-				event.preventDefault()
-
-				dialog[dialog.length - 1]?.focus()
-			}
+			if (open) wrapTab(event, event.currentTarget, floatingRef.current)
 		},
 		[open, floatingRef],
 	)
@@ -54,22 +61,7 @@ export function useDatePickerInputTab({ open, triggerRef, floatingRef }: DatePic
 	// DateInput; backward Tab from its first lands on the calendar button.
 	const onDialogKeyDown = useCallback(
 		(event: KeyboardEvent<Element>) => {
-			if (event.key !== 'Tab' || !open) return
-
-			const group = getTabbableElements(triggerRef.current)
-			const dialog = getTabbableElements(event.currentTarget)
-
-			if (group.length === 0 || dialog.length === 0) return
-
-			if (!event.shiftKey && event.target === dialog[dialog.length - 1]) {
-				event.preventDefault()
-
-				group[0]?.focus()
-			} else if (event.shiftKey && event.target === dialog[0]) {
-				event.preventDefault()
-
-				group[group.length - 1]?.focus()
-			}
+			if (open) wrapTab(event, event.currentTarget, triggerRef.current)
 		},
 		[open, triggerRef],
 	)

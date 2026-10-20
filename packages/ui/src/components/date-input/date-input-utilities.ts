@@ -1,8 +1,9 @@
-import { CalendarDate, DateFormatter, endOfMonth } from '@internationalized/date'
+import { CalendarDate, DateFormatter } from '@internationalized/date'
 import type { ReactNode } from 'react'
 import { formatDatePattern } from '../../primitives/intl/intl-date-pattern'
 import type { IntlShape } from '../../primitives/intl/types'
-import { resolveLocale } from '../../utilities'
+import { getOrCompute, resolveLocale } from '../../utilities'
+import { fromCalendarDate } from '../calendar/calendar-utilities'
 import { dateInputMessages } from './date-input-messages'
 
 /**
@@ -103,30 +104,21 @@ export function resolveDateInputFormat(
  * @internal
  */
 export function localeDateInputFormat(locale?: string): DateInputFormat {
-	const tag = resolveLocale(locale)
+	return getOrCompute(layoutByLocale, resolveLocale(locale), (tag) => {
+		const parts = new DateFormatter(tag, {
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+		}).formatToParts(ORDER_REFERENCE)
 
-	const cached = layoutByLocale.get(tag)
+		// Which field leads settles it: the three supported layouts are year-, day-,
+		// and month-first, so nothing after the first field discriminates.
+		const first = parts.find(
+			(part) => part.type === 'year' || part.type === 'month' || part.type === 'day',
+		)?.type
 
-	if (cached) return cached
-
-	const parts = new DateFormatter(tag, {
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit',
-	}).formatToParts(ORDER_REFERENCE)
-
-	// Which field leads settles it: the three supported layouts are year-, day-,
-	// and month-first, so nothing after the first field discriminates.
-	const first = parts.find(
-		(part) => part.type === 'year' || part.type === 'month' || part.type === 'day',
-	)?.type
-
-	const layout: DateInputFormat =
-		first === 'year' ? 'YYYY-MM-DD' : first === 'day' ? 'DD/MM/YYYY' : 'MM/DD/YYYY'
-
-	layoutByLocale.set(tag, layout)
-
-	return layout
+		return first === 'year' ? 'YYYY-MM-DD' : first === 'day' ? 'DD/MM/YYYY' : 'MM/DD/YYYY'
+	})
 }
 
 /** Running mask state: closed segments and the segment being typed. @internal */
@@ -282,10 +274,6 @@ export function formatDateValue(date: Date, format: DateInputFormat): string {
 	return segments.map((segment) => parts[segment.part]).join(separator)
 }
 
-/** Day count for a 1-based month, accounting for leap years. @internal */
-const daysInMonth = (year: number, month: number) =>
-	endOfMonth(new CalendarDate(year, month, 1)).day
-
 /**
  * Parses masked text back to a Date at local midnight. Returns `undefined`
  * unless every segment is complete and the result is a real calendar date
@@ -314,15 +302,13 @@ export function parseDateText(text: string, format: DateInputFormat): Date | und
 
 	if (month === undefined || day === undefined || year === undefined) return undefined
 
-	if (year < 1 || month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month))
-		return undefined
+	// A `CalendarDate` holds an impossible day, month, or year at the nearest real
+	// one, so a held field marks a text that is not a real date.
+	const parsed = new CalendarDate(year, month, day)
 
-	const date = new Date(year, month - 1, day)
+	if (parsed.year !== year || parsed.month !== month || parsed.day !== day) return undefined
 
-	// Two-digit years would otherwise resolve to 19xx.
-	date.setFullYear(year)
-
-	return date
+	return fromCalendarDate(parsed)
 }
 
 /**

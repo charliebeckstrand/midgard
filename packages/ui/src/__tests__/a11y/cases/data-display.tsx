@@ -549,7 +549,7 @@ export const dataDisplayCases: readonly Case[] = [
 	{
 		// Relative timestamp rendered into a <time> with a machine-readable datetime.
 		name: 'time ago',
-		element: <TimeAgo key="ta" date={new Date('2026-01-01T00:00:00Z')} />,
+		element: <TimeAgo key="ta" value={new Date('2026-01-01T00:00:00Z')} />,
 	},
 	{
 		// Disclosure: the trigger button controls its panel via aria-expanded/

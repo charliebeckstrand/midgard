@@ -1,7 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import {
-	addDays,
 	clampDate,
 	endOfMonth,
 	endOfYear,
@@ -76,30 +75,6 @@ describe('startOfDay', () => {
 	})
 })
 
-describe('addDays', () => {
-	it('shifts the date forward by N days', () => {
-		const result = addDays(new Date(2024, 0, 10), 5)
-
-		expect(result.getDate()).toBe(15)
-	})
-
-	it('rolls into the next month when needed', () => {
-		const result = addDays(new Date(2024, 0, 30), 5)
-
-		expect(result.getMonth()).toBe(1)
-
-		expect(result.getDate()).toBe(4)
-	})
-
-	it('rolls back into the previous month for negative amounts', () => {
-		const result = addDays(new Date(2024, 1, 3), -5)
-
-		expect(result.getMonth()).toBe(0)
-
-		expect(result.getDate()).toBe(29)
-	})
-})
-
 describe('stepDate', () => {
 	it('moves by days and by months inside years 1 to 9999', () => {
 		expect(stepDate(day(1, 0, 2), { days: -1 })).toEqual(day(1, 0, 1))
@@ -109,6 +84,12 @@ describe('stepDate', () => {
 		expect(stepDate(day(9999, 11, 30), { days: 1 })).toEqual(day(9999, 11, 31))
 
 		expect(stepDate(day(2024, 0, 31), { months: 1 })).toEqual(day(2024, 1, 29))
+	})
+
+	it('rolls into the next or the previous month', () => {
+		expect(stepDate(day(2024, 0, 30), { days: 5 })).toEqual(day(2024, 1, 4))
+
+		expect(stepDate(day(2024, 1, 3), { days: -5 })).toEqual(day(2024, 0, 29))
 	})
 
 	it('stays on the first day when a step goes back before year 1', () => {

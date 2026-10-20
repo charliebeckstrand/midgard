@@ -16,9 +16,9 @@ import {
 	togglePresetValue,
 } from '../../components/date-picker/date-picker-relative-utilities'
 import {
-	addDays,
 	formatRange,
 	startOfDay,
+	stepDate,
 } from '../../components/date-picker/date-picker-utilities'
 import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
 
@@ -53,12 +53,12 @@ describe('DEFAULT_RELATIVE_PRESETS', () => {
 		})
 
 		expect(resolve('last-30-days')).toEqual({
-			from: addDays(startOfDay(NOW), -29),
+			from: stepDate(startOfDay(NOW), { days: -29 }),
 			to: new Date(2025, 5, 15),
 		})
 
 		expect(resolve('last-90-days')).toEqual({
-			from: addDays(startOfDay(NOW), -89),
+			from: stepDate(startOfDay(NOW), { days: -89 }),
 			to: new Date(2025, 5, 15),
 		})
 	})
