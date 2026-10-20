@@ -16,7 +16,7 @@ import { regionPaths } from '../../modules/map/engine/map-geometry/region'
 import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
 import { canonicalFit, scaleCanonicalFit } from '../../modules/map/engine/map-projection/fit'
-import { fitMapProjection } from '../../modules/map/engine/map-projection/resolve'
+import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /**
@@ -232,7 +232,7 @@ describe('projectAtlas + emitRegionPaths', () => {
 	})
 
 	it('emits byte for byte across two direct fits of one passed projection', () => {
-		// The escape-hatch path: a consumer's own d3 instance, which `fitMapProjection`
+		// The escape-hatch path: a consumer's own d3 instance, which `fitProjection`
 		// fits in place rather than deriving by arithmetic, so its two fits reach the
 		// emit through d3's own `fitSize` and not through `scaleCanonicalFit`. On the
 		// atlas rather than the fixture squares, whose four-vertex edges straddle a
@@ -240,9 +240,9 @@ describe('projectAtlas + emitRegionPaths', () => {
 		// above instead of this path.
 		const instance = geoMercator()
 
-		const atlas = projected(stateFeatures, fitMapProjection(instance, stateFeatures, 640, 480))
+		const atlas = projected(stateFeatures, fitProjection(instance, stateFeatures, 640, 480))
 
-		const refit = fitMapProjection(instance, stateFeatures, 300, 200)
+		const refit = fitProjection(instance, stateFeatures, 300, 200)
 
 		expect(emitRegionPaths(atlas, refit)).toEqual(regionPaths(stateFeatures, refit))
 	})

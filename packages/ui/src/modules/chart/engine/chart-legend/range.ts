@@ -46,7 +46,7 @@ export type ResolvedRangeLegend = {
  *
  * @internal
  */
-function rangeLegendOrientation(placement: ChartLegendPlacement): ChartOrientation {
+function getOrientation(placement: ChartLegendPlacement): ChartOrientation {
 	return legendAside(placement) ? 'vertical' : 'horizontal'
 }
 
@@ -130,5 +130,5 @@ export function resolveRangeLegend(
 	// that then proves spark-small sheds it on the next commit instead.
 	const show = legend !== false && (width === 0 || !isSparkBox(width, height))
 
-	return { show, placement, orientation: rangeLegendOrientation(placement) }
+	return { show, placement, orientation: getOrientation(placement) }
 }

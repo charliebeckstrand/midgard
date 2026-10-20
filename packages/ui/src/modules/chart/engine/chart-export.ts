@@ -452,7 +452,7 @@ function drawnBox(root: HTMLElement, plan: CapturePlan, full: CaptureBox): Captu
 
 /**
  * Prepares the capture of a chart for an image export. It is the synchronous
- * half of {@link rasterizeChartImage}. It reads the live chart and writes nothing
+ * half of {@link rasterizeImage}. It reads the live chart and writes nothing
  * to it. It clones the root and freezes the computed style of each node onto the
  * clone. It drops each node that paints nothing, such as the hidden data table.
  * The clone of the root has no margin, so it fills the box from its origin.
@@ -465,7 +465,7 @@ function drawnBox(root: HTMLElement, plan: CapturePlan, full: CaptureBox): Captu
  * @returns The clone and the box that the bitmap crops to.
  * @internal
  */
-export function prepareChartCapture(root: HTMLElement, includeLegend: boolean): ChartCapture {
+export function prepareCapture(root: HTMLElement, includeLegend: boolean): ChartCapture {
 	const rect = root.getBoundingClientRect()
 
 	const full: CaptureBox = {
@@ -608,13 +608,13 @@ async function encode(
  * @param options - The bitmap `type` and whether to keep the legend.
  * @returns The encoded image, or `null` when the canvas cannot encode it.
  */
-export async function rasterizeChartImage(
+export async function rasterizeImage(
 	root: HTMLElement,
 	{ type, includeLegend }: { type: ChartImageType; includeLegend: boolean },
 ): Promise<Blob | null> {
 	// Synchronous capture: measure and clone before the first await, so the
 	// image shows the chart as it is now.
-	const { clone, box, ground } = prepareChartCapture(root, includeLegend)
+	const { clone, box, ground } = prepareCapture(root, includeLegend)
 
 	// The clone keeps the size of the root. It moves by the crop origin, so the
 	// crop fills the image.

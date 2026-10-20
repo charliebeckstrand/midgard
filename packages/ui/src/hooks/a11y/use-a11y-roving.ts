@@ -652,7 +652,7 @@ type RovingKeyContext = {
  *
  * @internal
  */
-function resolveRovingContext(
+function resolveContext(
 	container: HTMLElement | null,
 	itemSelector: string,
 	mode: 'focus' | 'virtual',
@@ -1369,7 +1369,7 @@ export function useA11yRoving(
 
 			if (handleEscapeBlur(event, containerRef.current, escapeBlurs, mode)) return
 
-			const resolved = resolveRovingContext(containerRef.current, itemSelector, mode, {
+			const resolved = resolveContext(containerRef.current, itemSelector, mode, {
 				itemSource: itemSourceRef?.current ?? null,
 				activeIndexRef,
 				manageTabIndex,

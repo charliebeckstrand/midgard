@@ -20,7 +20,7 @@ type HeaderActionsStore = {
 }
 
 /** Creates an empty {@link HeaderActionsStore}. @internal */
-function createHeaderActionsStore(): HeaderActionsStore {
+function createStore(): HeaderActionsStore {
 	let element: HTMLElement | null = null
 
 	const { subscribe, emit } = createEmitter()
@@ -78,7 +78,7 @@ export type HeaderActionsProps = {
 export function HeaderActions({ children }: HeaderActionsProps) {
 	// A store, not state: the element arrives after the first commit, and only
 	// the widget that reads it renders again.
-	const [store] = useState(createHeaderActionsStore)
+	const [store] = useState(createStore)
 
 	return <HeaderActionsContext value={store}>{children}</HeaderActionsContext>
 }

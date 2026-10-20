@@ -11,7 +11,7 @@ import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { useMapHoverActions } from './context'
 import { MAP_CURSOR_INSET, MAP_ZOOM_FIT } from './engine/map-constants'
 import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
-import { isMapActivateKey, moveMapCursor } from './engine/map-keyboard/cursor'
+import { isActivateKey, moveCursor } from './engine/map-keyboard/cursor'
 import type { MapStop } from './engine/map-keyboard/stops'
 import { frameToClient } from './engine/map-projection/frame'
 import { mapZoomKey, zoomKeyFactor } from './engine/map-zoom/gesture'
@@ -274,7 +274,7 @@ export function useMapKeyboard({
 
 	/** Moves the cursor for a navigation key, or leaves the region on Escape. */
 	const onMoveKey = (event: KeyboardEvent<HTMLElement>) => {
-		const move = moveMapCursor(at(), event.key, stops())
+		const move = moveCursor(at(), event.key, stops())
 
 		if (!move.handled) return
 
@@ -325,7 +325,7 @@ export function useMapKeyboard({
 		// Enter and Space pick the mark under the cursor — the click's keyboard
 		// counterpart, and half the reason the map is navigable. Space would
 		// otherwise scroll the page out from under the reader.
-		if (isMapActivateKey(event.key)) {
+		if (isActivateKey(event.key)) {
 			if (cursor === null) return
 
 			event.preventDefault()

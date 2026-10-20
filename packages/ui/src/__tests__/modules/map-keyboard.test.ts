@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import {
-	isMapActivateKey,
-	moveMapCursor,
+	isActivateKey,
+	moveCursor,
 	stepNearest,
 } from '../../modules/map/engine/map-keyboard/cursor'
 import { type MapStop, mapStops } from '../../modules/map/engine/map-keyboard/stops'
@@ -24,15 +24,15 @@ const ROW = [region(0, 0, 0), region(1, 10, 0), region(2, 20, 0)]
 /** Two stops stacked north to south; frame y grows downward, so index 1 is south. */
 const COLUMN = [region(0, 0, 0), region(1, 0, 10)]
 
-describe('isMapActivateKey', () => {
+describe('isActivateKey', () => {
 	it('takes Enter and Space, and nothing else', () => {
-		expect(isMapActivateKey('Enter')).toBe(true)
+		expect(isActivateKey('Enter')).toBe(true)
 
-		expect(isMapActivateKey(' ')).toBe(true)
+		expect(isActivateKey(' ')).toBe(true)
 
-		expect(isMapActivateKey('Spacebar')).toBe(false)
+		expect(isActivateKey('Spacebar')).toBe(false)
 
-		expect(isMapActivateKey('ArrowUp')).toBe(false)
+		expect(isActivateKey('ArrowUp')).toBe(false)
 	})
 })
 
@@ -212,52 +212,52 @@ describe('stepNearest', () => {
 	})
 })
 
-describe('moveMapCursor', () => {
+describe('moveCursor', () => {
 	it('enters at the first stop on the first arrow rather than stepping past it', () => {
-		expect(moveMapCursor(null, 'ArrowRight', ROW).stop).toBe(ROW[0])
+		expect(moveCursor(null, 'ArrowRight', ROW).stop).toBe(ROW[0])
 
-		expect(moveMapCursor(null, 'ArrowUp', ROW).stop).toBe(ROW[0])
+		expect(moveCursor(null, 'ArrowUp', ROW).stop).toBe(ROW[0])
 	})
 
 	it('steps by compass direction once the cursor is on the map', () => {
-		expect(moveMapCursor(0, 'ArrowRight', ROW).stop).toBe(ROW[1])
+		expect(moveCursor(0, 'ArrowRight', ROW).stop).toBe(ROW[1])
 
-		expect(moveMapCursor(1, 'ArrowLeft', ROW).stop).toBe(ROW[0])
+		expect(moveCursor(1, 'ArrowLeft', ROW).stop).toBe(ROW[0])
 	})
 
 	it('holds the cursor at the edge instead of wrapping to the far side', () => {
-		expect(moveMapCursor(2, 'ArrowRight', ROW).stop).toBe(ROW[2])
+		expect(moveCursor(2, 'ArrowRight', ROW).stop).toBe(ROW[2])
 
-		expect(moveMapCursor(0, 'ArrowLeft', ROW).stop).toBe(ROW[0])
+		expect(moveCursor(0, 'ArrowLeft', ROW).stop).toBe(ROW[0])
 	})
 
 	it('jumps to the ends of the list with Home and End', () => {
-		expect(moveMapCursor(1, 'Home', ROW).stop).toBe(ROW[0])
+		expect(moveCursor(1, 'Home', ROW).stop).toBe(ROW[0])
 
-		expect(moveMapCursor(1, 'End', ROW).stop).toBe(ROW[2])
+		expect(moveCursor(1, 'End', ROW).stop).toBe(ROW[2])
 	})
 
 	it('clears on Escape', () => {
-		expect(moveMapCursor(1, 'Escape', ROW)).toEqual({ handled: true, leave: true, stop: null })
+		expect(moveCursor(1, 'Escape', ROW)).toEqual({ handled: true, leave: true, stop: null })
 	})
 
 	it('leaves an unhandled key alone', () => {
-		expect(moveMapCursor(1, 'a', ROW).handled).toBe(false)
+		expect(moveCursor(1, 'a', ROW).handled).toBe(false)
 	})
 
 	it('claims a navigation key on a map with no stop, but does not leave', () => {
 		// A zoom map earns the stop with nothing to navigate. The key must not
 		// scroll the page, and only Escape takes focus off the map.
 		for (const key of ['ArrowRight', 'ArrowUp', 'Home', 'End']) {
-			expect(moveMapCursor(null, key, [])).toEqual({ handled: true, leave: false, stop: null })
+			expect(moveCursor(null, key, [])).toEqual({ handled: true, leave: false, stop: null })
 		}
 
-		expect(moveMapCursor(null, 'Escape', [])).toEqual({ handled: true, leave: true, stop: null })
+		expect(moveCursor(null, 'Escape', [])).toEqual({ handled: true, leave: true, stop: null })
 	})
 
 	it('re-enters at the first stop when the cursor names one the list has lost', () => {
 		// An overlay that unmounts, or a geography swap, shortens the list under a
 		// parked cursor.
-		expect(moveMapCursor(9, 'ArrowRight', ROW).stop).toBe(ROW[0])
+		expect(moveCursor(9, 'ArrowRight', ROW).stop).toBe(ROW[0])
 	})
 })

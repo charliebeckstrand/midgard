@@ -24,12 +24,12 @@ function flatten(value: ModeValue): string[] {
 	return value.flatMap((item) => (typeof item === 'string' ? [item] : [...item]))
 }
 
-function isModePair(entry: ColorEntry): entry is { light: ModeValue; dark: ModeValue } {
+function isPair(entry: ColorEntry): entry is { light: ModeValue; dark: ModeValue } {
 	return typeof entry === 'object' && !Array.isArray(entry) && 'light' in entry
 }
 
 function resolveEntry(entry: ColorEntry): string[] {
-	if (isModePair(entry)) return [...flatten(entry.light), ...flatten(entry.dark)]
+	if (isPair(entry)) return [...flatten(entry.light), ...flatten(entry.dark)]
 
 	return flatten(entry)
 }

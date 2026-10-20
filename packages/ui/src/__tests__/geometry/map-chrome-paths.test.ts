@@ -11,7 +11,7 @@ import {
 	EMPTY_CHROME,
 	graticuleStep,
 } from '../../modules/map/engine/map-geometry/chrome'
-import { fitMapProjection } from '../../modules/map/engine/map-projection/resolve'
+import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import { subpathCount } from '../helpers/geometry/svg-path'
 import { HALF_PIXEL } from '../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
@@ -27,7 +27,7 @@ const FRAME_EDGE_TOLERANCE = 0.05
  * Held once: nothing here mutates a projection, and the cache keys on this
  * instance, so a fresh fit per call would test a different memo each time.
  */
-const FITTED = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 400, 200)
+const FITTED = fitProjection('mercator', FIXTURE_GEOJSON.features, 400, 200)
 
 describe('graticuleStep', () => {
 	it('reads the prop as off, the default step, or a given one', () => {
@@ -134,11 +134,11 @@ describe('cachedChromePaths', () => {
 
 		const { features } = FIXTURE_GEOJSON
 
-		fitMapProjection(passed, features.slice(0, 1), 400, 200)
+		fitProjection(passed, features.slice(0, 1), 400, 200)
 
 		const before = cachedChromePaths(passed, 10, true)
 
-		fitMapProjection(passed, features.slice(1), 400, 200)
+		fitProjection(passed, features.slice(1), 400, 200)
 
 		const after = cachedChromePaths(passed, 10, true)
 

@@ -12,14 +12,14 @@ import {
 	WEEK,
 	YEAR,
 } from '../../utilities/time-units'
-import { subscribeTimeAgoTick } from './time-ago-ticker'
+import { subscribeTick } from './time-ago-ticker'
 
 type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
 
 // `Intl.RelativeTimeFormat` construction is expensive; the cache holds one instance per locale.
 const relativeTimeFormatCache = new Map<string, Intl.RelativeTimeFormat>()
 
-function getRelativeTimeFormat(locale: string | undefined) {
+function getFormatter(locale: string | undefined) {
 	return getOrCompute(
 		relativeTimeFormatCache,
 		locale ?? '',
@@ -56,7 +56,7 @@ function pickUnit(absMs: number): { unit: Unit; value: number } {
 function formatDefault(locale: string | undefined, diffMs: number): string {
 	const { unit, value } = pickUnit(Math.abs(diffMs))
 
-	return getRelativeTimeFormat(locale).format(Math.round(diffMs > 0 ? value : -value), unit)
+	return getFormatter(locale).format(Math.round(diffMs > 0 ? value : -value), unit)
 }
 
 function adaptiveInterval(absMs: number) {
@@ -157,7 +157,7 @@ export function useTimeAgoRelativeTime({
 		// TimeAgo on the page, paused while the tab is hidden).
 		setNow(new Date())
 
-		return subscribeTimeAgoTick(intervalMs, () => setNow(new Date()))
+		return subscribeTick(intervalMs, () => setNow(new Date()))
 	}, [intervalMs, valid])
 
 	if (!valid || now === null) return { then, valid, text: '' }

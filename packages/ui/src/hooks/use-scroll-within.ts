@@ -27,7 +27,7 @@ export type ScrollWithinOptions = {
  *
  * @internal
  */
-function resolveScrollOffset(
+function resolveOffset(
 	alignment: ScrollAlignment | undefined,
 	offset: number,
 	nodeSize: number,
@@ -75,7 +75,7 @@ export function scrollNodeWithin(
 	// scrollTop/clientHeight are padding-box metrics while the rect edges are
 	// border-box; subtract the leading border so a bordered scroller doesn't
 	// overstate the offset and over-scroll.
-	const top = resolveScrollOffset(
+	const top = resolveOffset(
 		block,
 		nodeRect.top - scrollerRect.top - scroller.clientTop,
 		nodeRect.height,
@@ -83,7 +83,7 @@ export function scrollNodeWithin(
 		scroller.scrollTop,
 	)
 
-	const left = resolveScrollOffset(
+	const left = resolveOffset(
 		inline,
 		nodeRect.left - scrollerRect.left - scroller.clientLeft,
 		nodeRect.width,

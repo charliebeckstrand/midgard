@@ -36,12 +36,12 @@ import {
 	calloutsShown,
 	calloutTexts,
 	resolveCallouts,
-	resolveSectorFit,
+	resolveFit,
 	SectorChartCallouts,
 } from './sector-chart-callouts'
 import {
 	donutCenterStyle,
-	resolveSectorLabels,
+	resolveLabels,
 	sectorFrame,
 	sectorFrameSizing,
 	sectorLegendItems,
@@ -168,7 +168,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// ratio there instead.
 	const frameAspectRatio = chartAspectRatio(aspectRatio, undefined, useChartFullscreen())
 
-	const { segment: showSegmentLabels, callouts: showCallouts } = resolveSectorLabels(labels)
+	const { segment: showSegmentLabels, callouts: showCallouts } = resolveLabels(labels)
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
@@ -275,7 +275,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// square rather than holding the taller callout band's margin.
 	const drawVMargin = drawCallouts ? vMargin : MARK_GAP * 2
 
-	const pieFit = resolveSectorFit(drawCallouts, calloutSpec, frameWidth)
+	const pieFit = resolveFit(drawCallouts, calloutSpec, frameWidth)
 
 	const radius = Math.max(0, Math.min(pieFit.radius, frameHeight / 2 - drawVMargin))
 

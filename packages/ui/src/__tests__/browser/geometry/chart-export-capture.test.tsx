@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import { beforeAll, describe, expect, it, onTestFinished } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
-import { type ChartCapture, prepareChartCapture } from '../../../modules/chart/engine/chart-export'
+import { type ChartCapture, prepareCapture } from '../../../modules/chart/engine/chart-export'
 import { LineChart } from '../../../modules/chart/line-chart'
 import { attach, getSlot, noop, present, renderUI, waitFor } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
@@ -111,7 +111,7 @@ describe('chart image capture (real browser)', () => {
 
 		const legend = relative(getSlot(root, 'chart-legend'), root)
 
-		const { result, mutations } = watched(root, () => prepareChartCapture(root, false))
+		const { result, mutations } = watched(root, () => prepareCapture(root, false))
 
 		// The live chart does not change: no hidden legend and no reflow.
 		expect(mutations).toHaveLength(0)
@@ -134,7 +134,7 @@ describe('chart image capture (real browser)', () => {
 
 		const svg = relative(drawing(root), root)
 
-		const { box, clone } = prepareChartCapture(root, false)
+		const { box, clone } = prepareCapture(root, false)
 
 		expect(box.width).toBeNear(svg.width, PIXEL)
 
@@ -159,7 +159,7 @@ describe('chart image capture (real browser)', () => {
 
 		expect(relative(getSlot(root, 'chart-legend'), root).left).toBeGreaterThan(svg.right)
 
-		const { box, clone } = prepareChartCapture(root, false)
+		const { box, clone } = prepareCapture(root, false)
 
 		expect(box.width).toBeNear(svg.width, PIXEL)
 
@@ -179,7 +179,7 @@ describe('chart image capture (real browser)', () => {
 
 		const header = relative(getSlot(root, 'chart-header'), root)
 
-		const { box, clone } = prepareChartCapture(root, false)
+		const { box, clone } = prepareCapture(root, false)
 
 		layOut(clone)
 
@@ -203,7 +203,7 @@ describe('chart image capture (real browser)', () => {
 
 		const svg = relative(drawing(root), root)
 
-		const { box } = prepareChartCapture(root, false)
+		const { box } = prepareCapture(root, false)
 
 		expect(box.y + box.height).toBeNear(svg.bottom, PIXEL)
 
@@ -219,7 +219,7 @@ describe('chart image capture (real browser)', () => {
 
 		expect(root.querySelector('[data-slot="chart-reference-list"]')).not.toBeNull()
 
-		const { clone, box } = prepareChartCapture(root, true)
+		const { clone, box } = prepareCapture(root, true)
 
 		expect(clone.querySelector('table, tr, td')).toBeNull()
 
@@ -248,7 +248,7 @@ describe('chart image capture (real browser)', () => {
 
 		const svg = relative(drawing(root), root)
 
-		const { box, clone } = prepareChartCapture(root, true)
+		const { box, clone } = prepareCapture(root, true)
 
 		layOut(clone)
 
@@ -292,7 +292,7 @@ describe('chart image ground (real browser)', () => {
 		// text of a dark theme could not be read.
 		const root = await chartOn({ background: 'rgb(9, 9, 11)' })
 
-		expect(prepareChartCapture(root, true).ground).toEqual(['rgb(9, 9, 11)'])
+		expect(prepareCapture(root, true).ground).toEqual(['rgb(9, 9, 11)'])
 	})
 
 	it('layers a translucent surface over the one beneath it, outermost first', async () => {
@@ -301,10 +301,7 @@ describe('chart image ground (real browser)', () => {
 			{ background: 'rgba(255, 255, 255, 0.1)' },
 		)
 
-		expect(prepareChartCapture(root, true).ground).toEqual([
-			'rgb(9, 9, 11)',
-			'rgba(255, 255, 255, 0.1)',
-		])
+		expect(prepareCapture(root, true).ground).toEqual(['rgb(9, 9, 11)', 'rgba(255, 255, 255, 0.1)'])
 	})
 })
 
@@ -349,7 +346,7 @@ describe('chart image resources (real browser)', () => {
 
 		expect(root.querySelectorAll('pattern').length).toBeGreaterThan(0)
 
-		const { clone } = prepareChartCapture(root, true)
+		const { clone } = prepareCapture(root, true)
 
 		expect(clone.querySelectorAll('pattern')).toHaveLength(root.querySelectorAll('pattern').length)
 	})

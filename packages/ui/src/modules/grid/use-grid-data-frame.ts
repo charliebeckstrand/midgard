@@ -17,9 +17,9 @@ import {
 	type ResolvedInfiniteScroll,
 	resolveAriaRowCount,
 	resolveFooterStats,
-	resolveGridSemantics,
 	resolveHover,
 	resolveResizeLayout,
+	resolveSemantics,
 } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
 import type { GridRowsProps } from './grid-row'
@@ -323,10 +323,10 @@ export function useGridDataFrame<T>({
 	})
 
 	// Grid semantics (role="grid" + global indices) and the select-all label,
-	// derived together from the rendered-window mode; see `resolveGridSemantics`.
+	// derived together from the rendered-window mode; see `resolveSemantics`.
 	// The manual grouped body interleaves header and leaf rows without index
 	// bookkeeping, so it stays a native table like the client grouped body.
-	const semantics = resolveGridSemantics(
+	const semantics = resolveSemantics(
 		intl,
 		virtualized,
 		pagination,

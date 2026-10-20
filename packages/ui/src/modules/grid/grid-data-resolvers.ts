@@ -343,7 +343,7 @@ export type GridSemantics = { enabled: boolean; rowOffset: number; selectAllLabe
  *
  * @internal
  */
-export function resolveGridSemantics(
+export function resolveSemantics(
 	intl: IntlShape,
 	virtualizeEnabled: boolean,
 	pagination: GridPaginationView | null,

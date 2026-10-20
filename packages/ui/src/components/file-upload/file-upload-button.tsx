@@ -9,11 +9,7 @@ import { Button } from '../button'
 import { Icon } from '../icon'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
 import { fileUploadMessages } from './file-upload-messages'
-import {
-	type FileUploadButtonProps,
-	splitFileUploadProps,
-	useFileUploadState,
-} from './file-upload-state'
+import { type FileUploadButtonProps, splitProps, useFileUploadState } from './file-upload-state'
 import { triggerLabel } from './file-upload-utilities'
 
 /**
@@ -30,7 +26,7 @@ import { triggerLabel } from './file-upload-utilities'
 export function FileUploadButton(allProps: FileUploadButtonProps) {
 	const intl = useIntl()
 
-	const { shared, rest } = splitFileUploadProps(allProps)
+	const { shared, rest } = splitProps(allProps)
 
 	const { className, children, size, color, variant, ...props } = rest
 

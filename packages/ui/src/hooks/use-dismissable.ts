@@ -74,7 +74,7 @@ export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 
 			// A press on a scrollbar gutter starts a pan, not a press outside. The test forces
 			// a style recalc, so it runs after the cheap ancestry tests, as in
-			// `isFloatingOutsidePress`.
+			// `isOutsidePress`.
 			if (target instanceof HTMLElement && isScrollbarPress(event, target)) return
 
 			dismiss()

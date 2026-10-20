@@ -82,7 +82,7 @@ function legendCanShow(
  *
  * @internal
  */
-function resolveLegendPlacement(
+function resolvePlacement(
 	legend: MapLegendInput | undefined,
 	numeric: boolean,
 ): MapLegendPlacement {
@@ -91,7 +91,7 @@ function resolveLegendPlacement(
 	return numeric ? 'right' : 'bottom'
 }
 
-/** The scale the range bar reads, kept together so {@link planMapLegend} can gate on all of it at once. @internal */
+/** The scale the range bar reads, kept together so {@link planLegend} can gate on all of it at once. @internal */
 type MapRangeScale = {
 	colorRange: string[] | undefined
 	valueExtent: [number, number] | null
@@ -145,7 +145,7 @@ type MapLegendPlan = {
  *
  * @internal
  */
-export function planMapLegend(
+export function planLegend(
 	legend: MapLegendInput | undefined,
 	numeric: boolean,
 	box: { width: number; height: number },
@@ -160,7 +160,7 @@ export function planMapLegend(
 				switchboard.entryCount,
 				switchboard.hasOverlayChildren,
 			),
-			placement: resolveLegendPlacement(legend, numeric),
+			placement: resolvePlacement(legend, numeric),
 			range: null,
 		}
 	}

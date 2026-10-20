@@ -6,7 +6,7 @@ import { createEmitter } from '../../utilities/emitter'
  * Reads the step on the root element: the scope of the app. It returns `md`
  * when the root has no class for a step.
  */
-function readRootStep(): DensityStep {
+function getSnapshot(): DensityStep {
 	return readRootDensity(document.documentElement)
 }
 
@@ -21,7 +21,7 @@ let readers = 0
  * Calls `listener` when the step on the root element changes. Each reader
  * shares one observer of the root.
  */
-function subscribeRootStep(listener: () => void) {
+function subscribe(listener: () => void) {
 	const unsubscribe = rootChange.subscribe(listener)
 
 	if (readers++ === 0) {
@@ -45,7 +45,7 @@ function subscribeRootStep(listener: () => void) {
 }
 
 /** The server has no root element to read, so it renders the `md` step. */
-function serverRootStep(): DensityStep {
+function getServerSnapshot(): DensityStep {
 	return 'md'
 }
 
@@ -63,5 +63,5 @@ function serverRootStep(): DensityStep {
  * @internal
  */
 export function useDensityRoot(): DensityStep {
-	return useSyncExternalStore(subscribeRootStep, readRootStep, serverRootStep)
+	return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 }

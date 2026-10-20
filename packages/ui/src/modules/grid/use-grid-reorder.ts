@@ -17,7 +17,7 @@ const EMPTY_COLUMNS: never[] = []
 
 /** Options for {@link useGridReorder}. @internal */
 type GridReorderOptions<T> = {
-	/** Whether header column reordering is enabled (the resolved {@link resolveGridReorder} `enabled`). */
+	/** Whether header column reordering is enabled (the resolved {@link resolveReorder} `enabled`). */
 	reorder: boolean
 	/** The ordered, visible columns the header renders. */
 	visibleColumns: GridColumn<T>[]

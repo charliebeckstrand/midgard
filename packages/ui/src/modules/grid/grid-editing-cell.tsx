@@ -30,7 +30,7 @@ type GridEditingCellProps<T> = {
  * cleanup that removes the mark. A ref callback for {@link GridPendingCell}.
  * @internal
  */
-function markCellBusy(node: HTMLElement) {
+function markBusy(node: HTMLElement) {
 	const cell = node.closest<HTMLElement>('[role="gridcell"]')
 
 	cell?.setAttribute('aria-busy', 'true')
@@ -48,7 +48,7 @@ function markCellBusy(node: HTMLElement) {
  */
 function GridPendingCell({ children }: { children: ReactNode }) {
 	return (
-		<span ref={markCellBusy} data-slot="grid-edit-pending" className={cn(k.edit.pending)}>
+		<span ref={markBusy} data-slot="grid-edit-pending" className={cn(k.edit.pending)}>
 			{children}
 		</span>
 	)

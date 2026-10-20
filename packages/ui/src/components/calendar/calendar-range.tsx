@@ -64,7 +64,7 @@ export type CalendarRangeProps = {
  *
  * @internal
  */
-function computeRangeDayFlags(
+function getDayFlags(
 	date: Date,
 	rangeStart: Date | null | undefined,
 	effectiveEnd: Date | null | undefined,
@@ -162,7 +162,7 @@ export function CalendarRange({
 		(context: CalendarDayContextValue): CalendarDayProps => {
 			const { date } = context
 
-			const { isEdge, isInnerRange, isStartEdge, isEndEdge } = computeRangeDayFlags(
+			const { isEdge, isInnerRange, isStartEdge, isEndEdge } = getDayFlags(
 				date,
 				rangeStart,
 				effectiveEnd,

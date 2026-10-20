@@ -423,7 +423,7 @@ export function useFloatingPanel({
 	return { refs, floatingStyles, context }
 }
 
-/** Ref shape {@link isFloatingOutsidePress} needs from a floating panel's `refs`. @internal */
+/** Ref shape {@link isOutsidePress} needs from a floating panel's `refs`. @internal */
 type FloatingOutsidePressRefs = Pick<
 	ExtendedRefs<ReferenceType>,
 	'floating' | 'domReference' | 'reference'
@@ -478,12 +478,12 @@ function useFloatingPortalReference(
 }
 
 /**
- * Closes `context` on a document `pointerdown` that {@link isFloatingOutsidePress}
+ * Closes `context` on a document `pointerdown` that {@link isOutsidePress}
  * calls outside the panel, while `enabled`.
  *
  * @remarks
  * The listener stands in for floating-ui's own `outsidePress`, which the two
- * callers disable — see {@link isFloatingOutsidePress} for why. One hook rather
+ * callers disable — see {@link isOutsidePress} for why. One hook rather
  * than the same effect in each, so the guard and the predicate cannot drift
  * apart between them.
  *
@@ -507,7 +507,7 @@ function useFloatingOutsidePress(
 		if (!enabled) return
 
 		const onPointerDown = (event: PointerEvent) => {
-			if (isFloatingOutsidePress(event, refs)) onOpenChange(false, event, 'outside-press')
+			if (isOutsidePress(event, refs)) onOpenChange(false, event, 'outside-press')
 		}
 
 		return subscribeDocumentEvent('pointerdown', onPointerDown)
@@ -522,7 +522,7 @@ function useFloatingOutsidePress(
  * one, as is the calendar's month/year popover inside a DatePicker dialog.
  * Those surfaces teleport outside this
  * panel's DOM subtree, so the containment checks miss them;
- * {@link pressLandsInNestedSurface} owns that relation and the rule it applies.
+ * {@link isPressInNested} owns that relation and the rule it applies.
  *
  * @see {@link useFloatingOutsidePress}, the document `pointerdown` listener
  * {@link useFloatingUI} and `useFloatingDisclosure` share, instead of
@@ -531,7 +531,7 @@ function useFloatingOutsidePress(
  * other modal on the page has marked sibling elements `inert`, exactly the case
  * whenever a floating panel opens inside a Dialog/Sheet.
  */
-function isFloatingOutsidePress(event: PointerEvent, refs: FloatingOutsidePressRefs): boolean {
+function isOutsidePress(event: PointerEvent, refs: FloatingOutsidePressRefs): boolean {
 	const target = event.target
 
 	if (!(target instanceof Node)) return false
@@ -546,12 +546,12 @@ function isFloatingOutsidePress(event: PointerEvent, refs: FloatingOutsidePressR
 	// panel.
 	if (floating.contains(target) || refs.domReference.current?.contains(target)) return false
 
-	// `pressLandsInNestedSurface` is pure DOM ancestry; `isScrollbarPress` forces
+	// `isPressInNested` is pure DOM ancestry; `isScrollbarPress` forces
 	// a style recalc and four layout reads. Same verdict either way, so the cheap
 	// one decides first — a press into a nested surface, which is what this
 	// predicate exists for, never reaches the recalc.
 	return !(
-		pressLandsInNestedSurface(floating, target, refs) ||
+		isPressInNested(floating, target, refs) ||
 		(target instanceof HTMLElement && isScrollbarPress(event, target))
 	)
 }
@@ -572,11 +572,7 @@ function isFloatingOutsidePress(event: PointerEvent, refs: FloatingOutsidePressR
  *
  * @internal
  */
-function pressLandsInNestedSurface(
-	floating: Element,
-	target: Node,
-	refs: FloatingOutsidePressRefs,
-): boolean {
+function isPressInNested(floating: Element, target: Node, refs: FloatingOutsidePressRefs): boolean {
 	const targetPortal = foreignFloatingPortal(floating, target)
 
 	if (!targetPortal) return false

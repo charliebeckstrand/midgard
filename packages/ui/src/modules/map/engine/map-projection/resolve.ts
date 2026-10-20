@@ -93,7 +93,7 @@ export function collection(features: MapFeature[]): GeoPermissibleObjects {
  *
  * @internal
  */
-export function resolveMapProjection(spec: MapProjection): GeoProjection {
+export function resolveProjection(spec: MapProjection): GeoProjection {
 	if (spec === 'mercator') return geoMercator()
 
 	if (spec === 'albers-usa') return geoAlbersUsa()
@@ -110,13 +110,13 @@ export function resolveMapProjection(spec: MapProjection): GeoProjection {
  *
  * @internal
  */
-export function fitMapProjection(
+export function fitProjection(
 	spec: MapProjection,
 	features: MapFeature[],
 	width: number,
 	height: number,
 ): GeoProjection {
-	const projection = resolveMapProjection(spec)
+	const projection = resolveProjection(spec)
 
 	if (features.length === 0 || width <= 0 || height <= 0) return projection
 

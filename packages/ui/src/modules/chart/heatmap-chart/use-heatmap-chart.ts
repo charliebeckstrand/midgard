@@ -46,7 +46,7 @@ import { useChartTextWidth } from '../engine/use-chart-text-width'
 import {
 	type HeatmapChartProps,
 	type HeatmapMatrix,
-	resolveHeatmapMatrix,
+	resolveMatrix,
 	sameHeatmapSeries,
 } from './heatmap-chart-schema'
 
@@ -240,7 +240,7 @@ export function useHeatmapChart<T>(
 	const matrix = useMemo(
 		() =>
 			primary
-				? resolveHeatmapMatrix(data, primary)
+				? resolveMatrix(data, primary)
 				: { columns: [], rows: [], values: [] as (number | null)[][] },
 		[data, primary],
 	)

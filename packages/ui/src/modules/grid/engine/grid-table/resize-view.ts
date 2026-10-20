@@ -186,7 +186,7 @@ export function columnResizeActions<T>(
 
 			const header = table.getFlatHeaders().find((entry) => entry.column.id === String(id))
 
-			if (header) withResizeDirection(table, header.getResizeHandler())(event)
+			if (header) withDirection(table, header.getResizeHandler())(event)
 		},
 		nudge: (id, delta) => {
 			const column = table.getColumn(String(id))
@@ -212,7 +212,7 @@ export function columnResizeActions<T>(
  *
  * @internal
  */
-function withResizeDirection<T>(
+function withDirection<T>(
 	table: EngineTable<T>,
 	handler: (event: unknown) => void,
 ): (event: unknown) => void {

@@ -22,11 +22,7 @@ import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
 import { fileUploadMessages } from './file-upload-messages'
-import {
-	type FileUploadDropProps,
-	splitFileUploadProps,
-	useFileUploadState,
-} from './file-upload-state'
+import { type FileUploadDropProps, splitProps, useFileUploadState } from './file-upload-state'
 import { formatFileNames, selectionSummary, triggerLabel } from './file-upload-utilities'
 
 /**
@@ -184,7 +180,7 @@ function DropSelection({
 export function FileUploadDrop(allProps: FileUploadDropProps) {
 	const intl = useIntl()
 
-	const { shared, rest } = splitFileUploadProps(allProps)
+	const { shared, rest } = splitProps(allProps)
 
 	// The type names the element-agnostic base, so the spread carries no `ref`.
 	const {

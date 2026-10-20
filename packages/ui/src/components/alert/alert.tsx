@@ -161,7 +161,7 @@ export type AlertProps = Omit<AlertVariants, 'color'> &
  *
  * @internal
  */
-function resolveAlertPresentation(
+function resolvePresentation(
 	severity: AlertSeverity | undefined,
 	politeSeverity: boolean,
 	color: AlertColor | undefined,
@@ -301,7 +301,7 @@ export function Alert({
 
 	if (!open) return null
 
-	const { resolvedColor, resolvedIcon, role } = resolveAlertPresentation(
+	const { resolvedColor, resolvedIcon, role } = resolvePresentation(
 		severity,
 		politeSeverity,
 		color,

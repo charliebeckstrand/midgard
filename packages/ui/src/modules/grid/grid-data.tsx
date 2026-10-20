@@ -9,10 +9,10 @@ import { useDensityStep } from '../../primitives/density'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { GridContext, GridSettleContext } from './context'
 import { gridWrapperClass, resolveStep } from './engine/grid-data/classes'
-import { assertGridProps } from './engine/grid-data/guards'
+import { assertProps } from './engine/grid-data/guards'
 import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
 import { manualGroupPredicate } from './engine/grid-group/resolve'
-import { resolveGridReorder } from './engine/grid-reorder-compute'
+import { resolveReorder } from './engine/grid-reorder-compute'
 import { GridBusyStatus } from './grid-busy-status'
 import { GridDataDialogs } from './grid-data-dialogs'
 import { resolveHighlightQuery, rowReorderPermitted } from './grid-data-resolvers'
@@ -133,8 +133,8 @@ export function GridData<T>({
 	className,
 }: GridDataProps<T>) {
 	// Up-front invariants for the mutually-dependent props (virtualize/maxHeight,
-	// infiniteScroll/virtualize, infiniteScroll-vs-pagination); see `assertGridProps`.
-	assertGridProps({
+	// infiniteScroll/virtualize, infiniteScroll-vs-pagination); see `assertProps`.
+	assertProps({
 		virtualize,
 		maxHeight,
 		infiniteScroll: infiniteScrollConfig,
@@ -500,7 +500,7 @@ export function GridData<T>({
 	// the header reads `canReorder` to register each draggable cell against it.
 	// `reorderHandle` picks the grip vs. whole-header drag affordance the
 	// headers render.
-	const { enabled: reorderEnabled, handle: reorderHandle } = resolveGridReorder(reorder)
+	const { enabled: reorderEnabled, handle: reorderHandle } = resolveReorder(reorder)
 
 	const { canReorder, sortable: columnSortable } = useGridReorder<T>({
 		reorder: reorderEnabled,

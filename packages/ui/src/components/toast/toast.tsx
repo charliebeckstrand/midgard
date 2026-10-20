@@ -212,7 +212,7 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 									// The only dismissal a reader drives directly, so it names itself.
 									if (!open) dismiss(id, 'close')
 								}}
-								onLeave={() => moveFocusFromClosingToast(returnFocusRef.current)}
+								onLeave={() => returnFocus(returnFocusRef.current)}
 								onPause={pause}
 								onResume={resume}
 								onReset={reset}
@@ -234,7 +234,7 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
  * moves.
  * @internal
  */
-function moveFocusFromClosingToast(returnTo: HTMLElement | null) {
+function returnFocus(returnTo: HTMLElement | null) {
 	const active = document.activeElement
 
 	const item = active?.closest('[data-slot="toast-viewport"] li')

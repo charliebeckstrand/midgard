@@ -10,7 +10,7 @@ import type { GeoProjection } from 'd3-geo'
 import { MAP_CANONICAL_WIDTH } from '../map-constants'
 import type { MapTransform } from '../map-zoom/transform'
 import type { MapFeature, MapNamedProjection, MapProjection } from '../types'
-import { collection, fitProjectionWidth, resolveMapProjection } from './resolve'
+import { collection, fitProjectionWidth, resolveProjection } from './resolve'
 
 /**
  * A projection fit to the canonical {@link MAP_CANONICAL_WIDTH}-wide frame,
@@ -40,7 +40,7 @@ export type MapCanonicalFit = {
 export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCanonicalFit | null {
 	if (features.length === 0) return null
 
-	const projection = resolveMapProjection(spec)
+	const projection = resolveProjection(spec)
 
 	const height = fitProjectionWidth(projection, collection(features), MAP_CANONICAL_WIDTH)
 
@@ -97,7 +97,7 @@ export function scaleCanonicalFit(
 
 	const [tx, ty] = canonical.projection.translate()
 
-	return resolveMapProjection(spec)
+	return resolveProjection(spec)
 		.scale(canonical.projection.scale() * k)
 		.translate([tx * k + x, ty * k + y])
 }

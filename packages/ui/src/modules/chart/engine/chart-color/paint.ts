@@ -57,7 +57,7 @@ export type ChartPaint =
  *
  * @internal
  */
-function isColorSlot(color: string): color is ChartColorSlot {
+function isSlot(color: string): color is ChartColorSlot {
 	return Object.hasOwn(k.series, color)
 }
 
@@ -68,7 +68,7 @@ function isColorSlot(color: string): color is ChartColorSlot {
  * @internal
  */
 export function resolvePaint(color: ChartColor): ChartPaint {
-	if (isColorSlot(color)) {
+	if (isSlot(color)) {
 		const { stroke, fill, text } = k.series[color]
 
 		return { kind: 'slot', slot: color, stroke, fill, text }

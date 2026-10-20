@@ -37,7 +37,7 @@ export function loadMotionFeatures(set: MotionFeatureSet): Promise<FeatureBundle
 }
 
 /** The bundle that serves a set, or `null` before it arrives. */
-function readMotionFeatures(set: MotionFeatureSet): FeatureBundle | null {
+function readFeatures(set: MotionFeatureSet): FeatureBundle | null {
 	// `domMax` holds each feature of `domAnimation`, so it serves both sets.
 	return chunks[set].read() ?? chunks.layout.read()
 }
@@ -52,7 +52,7 @@ function readMotionFeatures(set: MotionFeatureSet): FeatureBundle | null {
  * @internal
  */
 export function motionFeatures(set: MotionFeatureSet): FeatureBundle | LazyFeatureBundle {
-	return readMotionFeatures(set) ?? chunks[set].load
+	return readFeatures(set) ?? chunks[set].load
 }
 
 /**
@@ -65,7 +65,7 @@ export function motionFeatures(set: MotionFeatureSet): FeatureBundle | LazyFeatu
  * @internal
  */
 export function prefetchMotionFeatures(): () => void {
-	if (readMotionFeatures('animation')) return noop
+	if (readFeatures('animation')) return noop
 
 	return chunks.animation.idle(1)
 }
