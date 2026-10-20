@@ -192,11 +192,7 @@ export function DateInput({
 		onValueChange,
 		// A reset to the same day is no external change for the override below, so
 		// the reset ends the typed entry and its verdict here.
-		onReset: () => {
-			setEditingText(null)
-
-			verdict.clear()
-		},
+		onReset: () => dropEntry(),
 	})
 
 	const separator = dateInputSeparator(format)
@@ -221,6 +217,13 @@ export function DateInput({
 		},
 	})
 
+	// Drops the typed text and its verdict, so the field shows the value again.
+	const dropEntry = () => {
+		setEditingText(null)
+
+		verdict.clear()
+	}
+
 	// An external change or a form reset overrides any in-progress text. The
 	// hook keeps the last own commit, so it can tell an external change (a form
 	// reset, a calendar pick) apart from the echo of that commit.
@@ -228,11 +231,7 @@ export function DateInput({
 		date,
 		name,
 		editing: editingText !== null,
-		onOverride: () => {
-			setEditingText(null)
-
-			verdict.clear()
-		},
+		onOverride: dropEntry,
 	})
 
 	/*

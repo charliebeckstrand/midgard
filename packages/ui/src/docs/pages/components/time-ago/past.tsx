@@ -9,11 +9,11 @@ export default function Past() {
 
 	return (
 		<Stack gap="xs">
-			<TimeAgo date={now - 5 * MINUTE} />
-			<TimeAgo date={now - 2 * HOUR} />
-			<TimeAgo date={now - 3 * DAY} />
-			<TimeAgo date={now - 30 * DAY} />
-			<TimeAgo date={now - 365 * DAY} />
+			<TimeAgo value={now - 5 * MINUTE} />
+			<TimeAgo value={now - 2 * HOUR} />
+			<TimeAgo value={now - 3 * DAY} />
+			<TimeAgo value={now - 30 * DAY} />
+			<TimeAgo value={now - 365 * DAY} />
 		</Stack>
 	)
 }

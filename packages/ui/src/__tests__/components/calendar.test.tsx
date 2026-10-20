@@ -345,7 +345,7 @@ describe('Calendar day press', () => {
 	it('reports a second press of the range start day in CalendarRange', async () => {
 		const user = setupUser()
 
-		const onValueChange = vi.fn()
+		const onDayPress = vi.fn()
 
 		function Harness() {
 			const [start, setStart] = useState<Date | null>(null)
@@ -353,8 +353,8 @@ describe('Calendar day press', () => {
 			return (
 				<CalendarRange
 					rangeStart={start}
-					onValueChange={(date) => {
-						onValueChange(date)
+					onDayPress={(date) => {
+						onDayPress(date)
 
 						setStart(date)
 					}}
@@ -368,7 +368,7 @@ describe('Calendar day press', () => {
 
 		await user.click(screen.getAllByRole('option', { name: /\b12\b/ })[0] as HTMLElement)
 
-		expect(onValueChange).toHaveBeenCalledTimes(2)
+		expect(onDayPress).toHaveBeenCalledTimes(2)
 	})
 })
 

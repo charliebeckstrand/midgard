@@ -5,7 +5,7 @@ import { ariaAttr, cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
 import { CalendarDayCell } from './calendar-day-cell'
-import { sameDay } from './calendar-utilities'
+import { getDayState } from './calendar-utilities'
 
 type CalendarGridProps = {
 	gridRef: RefObject<HTMLDivElement | null>
@@ -58,6 +58,8 @@ export const CalendarGrid = memo(function CalendarGrid({
 	activeDescendantId,
 	multiselectable,
 }: CalendarGridProps) {
+	const dayInput = { today, value, activeGridDate, isDisabled, getDayProps }
+
 	return (
 		<div className={k.grid}>
 			{weekdays.map((day) => (
@@ -76,23 +78,7 @@ export const CalendarGrid = memo(function CalendarGrid({
 				className="col-span-7 grid grid-cols-7"
 			>
 				{days.map((date) => {
-					const disabled = isDisabled(date)
-
-					const isToday = today != null && sameDay(date, today)
-
-					const isSelected = value != null && sameDay(date, value)
-
-					const isActive = activeGridDate != null && sameDay(date, activeGridDate)
-
-					const dayProps = getDayProps?.({
-						date,
-						disabled,
-						today: isToday,
-						selected: isSelected,
-						active: isActive,
-					})
-
-					const selected = dayProps?.selected ?? isSelected
+					const { context, dayProps, selected } = getDayState(date, dayInput)
 
 					const gridColumnStart = date.getDate() === 1 ? firstDayColumn : undefined
 
@@ -100,14 +86,14 @@ export const CalendarGrid = memo(function CalendarGrid({
 						<CalendarDayCell
 							key={date.toISOString()}
 							date={date}
-							disabled={disabled}
-							isToday={isToday}
-							isActive={isActive}
+							disabled={context.disabled}
+							isToday={context.today}
+							isActive={context.active}
 							selected={selected}
 							variant={dayProps?.variant}
 							color={dayProps?.color}
 							className={dayProps?.className}
-							id={isActive ? activeDescendantId : undefined}
+							id={context.active ? activeDescendantId : undefined}
 							gridColumnStart={gridColumnStart}
 							localeTag={localeTag}
 							onSelect={onSelect}

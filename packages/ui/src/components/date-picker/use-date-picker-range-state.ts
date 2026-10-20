@@ -5,6 +5,7 @@ import { useCallback, useMemo, useReducer, useRef } from 'react'
 
 import { useLocale } from '../../providers/locale'
 import type { CalendarActive, CalendarHandle } from '../calendar'
+import { orderDates } from '../calendar/calendar-utilities'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
@@ -139,18 +140,12 @@ export function useDatePickerRangeState({
 			if (rangeStart === null) {
 				dispatch({ type: 'startRange', date })
 			} else {
-				const start = rangeStart
-
-				const end = date
-
-				const range: [Date, Date] = start.getTime() <= end.getTime() ? [start, end] : [end, start]
-
 				// Pin the end so the span stays rendered through the exit animation,
 				// then commit now: the trigger and `onValueChange` update on this
 				// click instead of waiting for `onExitComplete`.
-				dispatch({ type: 'pinEndpoint', date: end })
+				dispatch({ type: 'pinEndpoint', date })
 
-				setValue(range)
+				setValue(orderDates(rangeStart, date))
 
 				closeCalendar()
 			}
@@ -220,7 +215,8 @@ export function useDatePickerRangeState({
 			rangeEnd: rangeStart === null ? committedEnd : null,
 			hoverDate: rangeStart !== null ? hoverDate : null,
 			onHoverDate,
-			onValueChange: handleSelect,
+			// A press, not a change: the second press of a range commits it.
+			onDayPress: handleSelect,
 			active: open ? active : null,
 			calendarRef,
 		},

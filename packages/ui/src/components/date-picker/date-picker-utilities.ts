@@ -61,21 +61,6 @@ export function startOfDay(date: Date): Date {
 	return fromCalendarDate(toCalendarDate(date))
 }
 
-/** Date shifted by `amount` calendar days (negative goes back). @internal */
-export function addDays(date: Date, amount: number): Date {
-	return fromCalendarDate(toCalendarDate(date).add({ days: amount }))
-}
-
-/**
- * Date shifted by `amount` months, clamping day-of-month to the target month's
- * length (Jan 31 + 1 month → Feb 28/29).
- *
- * @internal
- */
-export function addMonths(date: Date, amount: number): Date {
-	return fromCalendarDate(toCalendarDate(date).add({ months: amount }))
-}
-
 /**
  * Date moved by `step`, as {@link stepDay} moves a day. A step that leaves
  * years 1 to 9999 gives `date` itself, so a move at a limit stays put, as the

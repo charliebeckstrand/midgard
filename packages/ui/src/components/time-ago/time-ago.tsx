@@ -5,9 +5,10 @@ import { cn } from '../../core'
 import { useLocale } from '../../providers/locale'
 import { useTimeAgoRelativeTime } from './use-time-ago-relative-time'
 
-/** Props for {@link TimeAgo}: the `date` to age plus `format`/`locale`/`interval` overrides over the `<time>` surface. */
+/** Props for {@link TimeAgo}: the `value` to age plus `format`/`locale`/`interval` overrides over the `<time>` surface. */
 export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' | 'title'> & {
-	date: Date | string | number
+	/** The instant to age: a `Date`, an ISO string, or a timestamp in milliseconds, as on `DateTime`. */
+	value: Date | string | number
 	/** Override the default `Intl.RelativeTimeFormat` output. */
 	format?: (diffMs: number, now: Date, then: Date) => string
 	/**
@@ -42,13 +43,13 @@ export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' 
  * refreshes on the resolved interval. Lay out for the eventual text to avoid a
  * shift on hydrate.
  *
- * Hydration is deterministic only when `date` is the same value on the server
- * and on the client, because `dateTime` comes from `date`. A `date` that render
+ * Hydration is deterministic only when `value` is the same value on the server
+ * and on the client, because `dateTime` comes from `value`. A `value` that render
  * reads from `Date.now()` gives a hydration mismatch. Read the current time in
  * an effect, or pass a fixed timestamp.
  */
 export function TimeAgo({
-	date,
+	value,
 	format,
 	locale,
 	interval = 'auto',
@@ -58,7 +59,7 @@ export function TimeAgo({
 	const ambient = useLocale()
 
 	const { then, valid, text } = useTimeAgoRelativeTime({
-		date,
+		value,
 		format,
 		locale: locale ?? ambient.locale,
 		interval,

@@ -92,7 +92,7 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onDayPress(Jan10))
 
 			expect(onChange).not.toHaveBeenCalled()
 
@@ -112,9 +112,9 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onDayPress(Jan10))
 
-			act(() => result.current.calendar.onValueChange(Jan20))
+			act(() => result.current.calendar.onDayPress(Jan20))
 
 			expect(result.current.open).toBe(false)
 
@@ -139,9 +139,9 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan20))
+			act(() => result.current.calendar.onDayPress(Jan20))
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onDayPress(Jan10))
 
 			expect(onChange).toHaveBeenCalledWith([Jan10, Jan20])
 		})
@@ -155,9 +155,9 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onDayPress(Jan10))
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onDayPress(Jan10))
 
 			expect(onChange).toHaveBeenCalledWith([Jan10, Jan10])
 		})
@@ -174,7 +174,7 @@ describe('useDatePickerRangeState', () => {
 			// Before the first click, hover state is suppressed.
 			expect(result.current.calendar.hoverDate).toBeNull()
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onDayPress(Jan10))
 
 			act(() => result.current.calendar.onHoverDate(Jan20))
 
@@ -186,11 +186,11 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onDayPress(Jan10))
 
 			act(() => result.current.calendar.onHoverDate(Jan15))
 
-			act(() => result.current.calendar.onValueChange(Jan20))
+			act(() => result.current.calendar.onDayPress(Jan20))
 
 			act(() => result.current.onExitComplete())
 
@@ -242,7 +242,7 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onDayPress(Jan10))
 
 			expect(result.current.footer.footerButtons).toEqual([])
 		})
@@ -254,9 +254,9 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onDayPress(Jan10))
 
-			act(() => result.current.calendar.onValueChange(Jan20))
+			act(() => result.current.calendar.onDayPress(Jan20))
 
 			act(() => result.current.onExitComplete())
 
@@ -273,7 +273,7 @@ describe('useDatePickerRangeState', () => {
 	})
 
 	describe('min/max clamping', () => {
-		it('passes a date from calendar.onValueChange through without a clamp', () => {
+		it('passes a date from calendar.onDayPress through without a clamp', () => {
 			// The Calendar disables the days outside min/max, so the hook does not clamp
 			// a clicked date. Only the keyboard cursor is clamped.
 			const onChange = vi.fn()
@@ -289,9 +289,9 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan15))
+			act(() => result.current.calendar.onDayPress(Jan15))
 
-			act(() => result.current.calendar.onValueChange(Jan20))
+			act(() => result.current.calendar.onDayPress(Jan20))
 
 			expect(onChange).toHaveBeenCalledWith([Jan15, Jan20])
 		})
@@ -537,7 +537,7 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onDayPress(Jan10))
 
 			// First arrow materializes the cursor on the start date.
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
@@ -572,7 +572,7 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onDayPress(Jan10))
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
 
@@ -589,7 +589,7 @@ describe('useDatePickerRangeState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onDayPress(Jan10))
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
 
@@ -639,9 +639,9 @@ describe('useDatePickerRangeState', () => {
 				}),
 			)
 
-			act(() => result.current.calendar.onValueChange(Jan10))
+			act(() => result.current.calendar.onDayPress(Jan10))
 
-			act(() => result.current.calendar.onValueChange(Jan20))
+			act(() => result.current.calendar.onDayPress(Jan20))
 
 			act(() => result.current.onClear())
 

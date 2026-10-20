@@ -10,6 +10,7 @@ import {
 } from '@internationalized/date'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { getOrCompute } from '../../utilities'
+import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
 
 /**
  * The first year that the calendar can show. `@internationalized/date` holds
@@ -200,11 +201,51 @@ export function isDayInRange(date: Date, min?: Date, max?: Date): boolean {
 	return !(min && isBeforeDay(date, min)) && !(max && isBeforeDay(max, date))
 }
 
+/** The two dates with the earlier day first. Two dates of one day keep their order. @internal */
+export function orderDates(a: Date, b: Date): [Date, Date] {
+	return isBeforeDay(b, a) ? [b, a] : [a, b]
+}
+
 /** True when `date` falls strictly between the endpoints (exclusive); the caller can give the endpoints in either order. @internal */
 export function isBetween(date: Date, start: Date, end: Date): boolean {
-	const [lo, hi] = isBeforeDay(start, end) ? [start, end] : [end, start]
+	const [lo, hi] = orderDates(start, end)
 
 	return isBeforeDay(lo, date) && isBeforeDay(date, hi)
+}
+
+/** The inputs of {@link getDayState} that are the same for each day of a render. @internal */
+type DayStateInput = {
+	today: Date | null
+	value: Date | null | undefined
+	activeGridDate: Date | null
+	isDisabled: (date: Date) => boolean
+	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
+}
+
+/**
+ * The state of the cell of `date`: the context that `getDayProps` gets, the
+ * overrides that it returns, and the selection. `getDayProps` can override the
+ * match with `value`, as a range does for its two endpoints. The grid paints
+ * each cell from it, and the calendar finds the Tab stop of the grid from it,
+ * so the two agree.
+ *
+ * @internal
+ */
+export function getDayState(
+	date: Date,
+	{ today, value, activeGridDate, isDisabled, getDayProps }: DayStateInput,
+): { context: CalendarDayContextValue; dayProps: CalendarDayProps | undefined; selected: boolean } {
+	const context: CalendarDayContextValue = {
+		date,
+		disabled: isDisabled(date),
+		today: today != null && sameDay(date, today),
+		selected: value != null && sameDay(date, value),
+		active: activeGridDate != null && sameDay(date, activeGridDate),
+	}
+
+	const dayProps = getDayProps?.(context)
+
+	return { context, dayProps, selected: dayProps?.selected ?? context.selected }
 }
 
 /** Local-midnight `Date` for every day of `year`/`month` (0-based month), in order. @internal */

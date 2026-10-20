@@ -7,6 +7,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale'
 import { wrap } from '../../utilities'
+import { orderDates } from '../calendar/calendar-utilities'
 import { NAVIGATION_KEYS } from '../calendar/use-calendar-focus'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
@@ -220,16 +221,13 @@ export function useDatePickerRelativeState({
 
 			if (!next.from || !next.to) return
 
-			const span: DatePickerRelativeValue =
-				next.from.getTime() <= next.to.getTime()
-					? { from: next.from, to: next.to }
-					: { from: next.to, to: next.from }
+			const [from, to] = orderDates(next.from, next.to)
 
 			// A custom range isn't a preset, so drop any prior pick: the chip/highlight
 			// must range-match, not favor a stale preset.
 			setPickedIds(new Set())
 
-			setValue([span])
+			setValue([{ from, to }])
 		},
 		[field.readOnly, setValue],
 	)
