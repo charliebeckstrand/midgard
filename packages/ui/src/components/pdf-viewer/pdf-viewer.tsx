@@ -61,9 +61,9 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 * Fires when the document at `src` opens, with its page count. The pages
 	 * render after it, the active page first.
 	 *
-	 * The viewer owns the whole fetch-and-rasterize lifecycle and reported neither
-	 * end of it, so a consumer had to re-fetch `src` to learn what happened. Use
-	 * this callback to reveal chrome beside the viewer, or to record the count.
+	 * The viewer owns the whole fetch-and-rasterize lifecycle, so this callback
+	 * and `onError` are how a consumer learns its outcome without a fetch of its
+	 * own. Use it to reveal chrome beside the viewer, or to record the count.
 	 * A viewer given `pages` directly loads nothing and fires neither callback. A
 	 * cached document fires on the first render, because it is already ready.
 	 */

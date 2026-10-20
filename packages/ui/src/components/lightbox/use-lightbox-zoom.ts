@@ -10,6 +10,7 @@ import {
 	type LightboxPoint,
 	type LightboxView,
 	panView,
+	parseMatrix,
 	REST_VIEW,
 	viewTransform,
 	ZOOM_DOUBLE_TAP,
@@ -73,11 +74,7 @@ function getSpan([a, b]: readonly [LightboxPoint, LightboxPoint]) {
 
 /** The view that `photo` paints now, while a zoom tween moves it too. */
 function paintedView(photo: HTMLElement): LightboxView {
-	const matrix = /^matrix\(([^)]+)\)$/.exec(getComputedStyle(photo).transform)
-
-	if (!matrix) return REST_VIEW
-
-	const [scale = 1, , , , x = 0, y = 0] = (matrix[1] ?? '').split(',').map(Number)
+	const [scale = 1, , , , x = 0, y = 0] = parseMatrix(getComputedStyle(photo).transform)
 
 	return { x, y, scale }
 }

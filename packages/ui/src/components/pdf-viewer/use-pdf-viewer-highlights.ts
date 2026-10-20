@@ -101,9 +101,9 @@ export type PdfViewerHighlightsResult = {
  * though it were stable.
  *
  * The pass is O(every highlight in the document), not O(on-screen regions): filtering by page has
- * to visit them all. Measured, that is well under a memo's own overhead for any realistic document.
- * Past roughly 5,000 highlights it stops being free per frame under a continuous resize or zoom
- * drag. `'fraction'` (the default) is a pass-through.
+ * to visit them all. For a realistic document that is well under a memo's own overhead. Only a
+ * very large set of highlights makes it cost a frame under a continuous resize or zoom drag.
+ * `'fraction'` (the default) is a pass-through.
  * @internal
  */
 export function usePdfViewerHighlights({

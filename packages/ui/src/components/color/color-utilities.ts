@@ -7,7 +7,11 @@
 import { clamp } from '../../utilities'
 import type { ColorFormat, Hsva, Rgba } from './types'
 
-/** Clamp an HSVA into its canonical ranges (`h 0-360`, `s/v 0-100`, `a 0-1`) at full precision. */
+/**
+ * Clamp an HSVA into its canonical ranges (`h 0-360`, `s/v 0-100`, `a 0-1`) at full precision.
+ *
+ * @internal
+ */
 export function clampHsva({ h, s, v, a }: Hsva): Hsva {
 	return {
 		h: clamp(h, 0, 360),
@@ -38,12 +42,18 @@ function roundHsva({ h, s, v, a }: Hsva): Hsva {
  * match. A hue or a saturation that does not show has no effect, as on a gray
  * or on black. Hue 360 matches hue 0. A difference of one byte, as in
  * `#fefefe` and `#ffffff`, makes the colors different.
+ *
+ * @internal
  */
 export function sameHex(a: Hsva, b: Hsva): boolean {
 	return hsvaToHex(a, true) === hsvaToHex(b, true)
 }
 
-/** Convert HSVA to RGBA; `r`/`g`/`b` round to integers `0-255`, alpha passes through clamped. */
+/**
+ * Convert HSVA to RGBA; `r`/`g`/`b` round to integers `0-255`, alpha passes through clamped.
+ *
+ * @internal
+ */
 export function hsvaToRgba({ h, s, v, a }: Hsva): Rgba {
 	const S = clamp(s, 0, 100) / 100
 	const V = clamp(v, 0, 100) / 100
@@ -73,7 +83,11 @@ export function hsvaToRgba({ h, s, v, a }: Hsva): Rgba {
 	}
 }
 
-/** Convert RGBA to HSVA at full precision; rounding defers to the output edges. Hue is `0` for grays. */
+/**
+ * Convert RGBA to HSVA at full precision; rounding defers to the output edges. Hue is `0` for grays.
+ *
+ * @internal
+ */
 export function rgbaToHsva({ r, g, b, a }: Rgba): Hsva {
 	const R = clamp(r, 0, 255) / 255
 	const G = clamp(g, 0, 255) / 255
@@ -106,7 +120,11 @@ export function rgbaToHsva({ r, g, b, a }: Rgba): Hsva {
 /** @internal Format one `0-255` channel as a zero-padded two-digit lowercase hex pair. */
 const toHex2 = (n: number) => clamp(Math.round(n), 0, 255).toString(16).padStart(2, '0')
 
-/** Parse `#rgb`, `#rgba`, `#rrggbb`, or `#rrggbbaa` (leading `#` optional). Returns `null` for anything else. */
+/**
+ * Parse `#rgb`, `#rgba`, `#rrggbb`, or `#rrggbbaa` (leading `#` optional). Returns `null` for anything else.
+ *
+ * @internal
+ */
 export function hexToRgba(input: string): Rgba | null {
 	let hex = input.trim().replace(/^#/, '')
 
@@ -144,26 +162,40 @@ function rgbaToHex({ r, g, b, a }: Rgba, alpha = false): string {
  *
  * @param alpha - Append the alpha pair.
  * @defaultValue `false`
+ *
+ * @internal
  */
 export function hsvaToHex(hsva: Hsva, alpha = false): string {
 	return rgbaToHex(hsvaToRgba(hsva), alpha)
 }
 
-/** CSS `rgba()` fill for a swatch or preview chip; drops alpha to `1` unless requested. */
+/**
+ * CSS `rgba()` fill for a swatch or preview chip; drops alpha to `1` unless requested.
+ *
+ * @internal
+ */
 export function hsvaToCss(hsva: Hsva, alpha = false): string {
 	const { r, g, b, a } = hsvaToRgba(hsva)
 
 	return `rgba(${r}, ${g}, ${b}, ${alpha ? a : 1})`
 }
 
-/** Parse a hex string to HSVA, or `null` when {@link hexToRgba} rejects it. */
+/**
+ * Parse a hex string to HSVA, or `null` when {@link hexToRgba} rejects it.
+ *
+ * @internal
+ */
 export function hexToHsva(input: string): Hsva | null {
 	const rgba = hexToRgba(input)
 
 	return rgba ? rgbaToHsva(rgba) : null
 }
 
-/** Accept either wire format and land on HSVA. Format-agnostic; a stray string still parses. */
+/**
+ * Accept either wire format and land on HSVA. Format-agnostic; a stray string still parses.
+ *
+ * @internal
+ */
 export function toHsva(value: string | Hsva | undefined | null): Hsva | null {
 	if (value == null) return null
 
@@ -175,7 +207,11 @@ export function pinAlpha(hsva: Hsva, alpha: boolean): Hsva {
 	return alpha ? hsva : { ...hsva, a: 1 }
 }
 
-/** Project the internal HSVA back onto the consumer's wire format. */
+/**
+ * Project the internal HSVA back onto the consumer's wire format.
+ *
+ * @internal
+ */
 export function serializeColor(hsva: Hsva, format: ColorFormat, alpha: boolean): string | Hsva {
 	if (format === 'hsva') return pinAlpha(roundHsva(hsva), alpha)
 
@@ -187,6 +223,8 @@ export function serializeColor(hsva: Hsva, format: ColorFormat, alpha: boolean):
  * An object compares by its rounded channels, with the hue taken modulo 360:
  * hue 360 matches hue 0. A change in a channel that does not show, as the hue
  * of a gray, makes the values different.
+ *
+ * @internal
  */
 export function sameColorValue(
 	a: string | Hsva | null | undefined,

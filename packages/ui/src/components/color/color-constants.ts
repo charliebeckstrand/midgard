@@ -1,11 +1,17 @@
 import type { Hsva } from './types'
 
-/** Opaque black; the fallback when no initial value is given. */
+/**
+ * Opaque black; the fallback when no initial value is given.
+ *
+ * @internal
+ */
 export const DEFAULT_HSVA: Hsva = { h: 0, s: 0, v: 0, a: 1 }
 
 /**
  * Preset swatches rendered when the consumer doesn't supply their own. A
  * Tailwind-`500`-weight spread across the hue wheel plus the neutral ends.
+ *
+ * @internal
  */
 export const DEFAULT_SWATCHES: readonly string[] = [
 	'#ef4444',

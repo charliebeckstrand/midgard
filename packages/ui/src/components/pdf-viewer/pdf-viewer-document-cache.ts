@@ -6,7 +6,7 @@ import type { PdfViewerPage, PdfViewerSlot } from './types'
 /**
  * How many documents' rasterized pages stay resident.
  *
- * Small on purpose. An entry holds one PNG blob per page at up to 2× device scale. A long
+ * Small on purpose. An entry holds the full rasters of its pages as decoded bitmaps. A long
  * document is therefore megabytes, and the bound has to be a real one rather than a reassurance.
  *
  * Four rather than one, because a reader moves between documents as well as parking one. A cap
@@ -21,7 +21,7 @@ const MAX_DOCUMENTS = 4
  *
  * @remarks A reader can go back through this many pages with no render. The pages that a
  * viewer shows, and their neighbors, stay whatever the bound, so the bound applies to the
- * pages that the reader has left. At 1.5x a page is about 200 KiB as PNG and 4.2 MiB decoded.
+ * pages that the reader has left. At 1.5x a page is about 4.2 MiB as a bitmap.
  * @internal
  */
 const MAX_RASTERS = 8
@@ -29,10 +29,10 @@ const MAX_RASTERS = 8
 /**
  * How many bytes of full-raster bitmaps all the documents hold together.
  *
- * @remarks A bitmap is always decoded: a US-Letter page is 7.4 MiB at 2x, where its PNG was
- * about 270 KiB. With {@link MAX_RASTERS} alone, 4 documents hold up to about 236 MiB on a 2x
- * screen. A phone browser can stop a page that holds that much. The pages that a viewer wants stay whatever
- * the budget. The other bitmaps go, those of the least recently used document first.
+ * @remarks A bitmap is always decoded: a US-Letter page is 7.4 MiB at 2x. With
+ * {@link MAX_RASTERS} alone, 4 documents hold up to about 236 MiB on a 2x screen. A phone
+ * browser can stop a page that holds that much. The pages that a viewer wants stay whatever the
+ * budget. The other bitmaps go, those of the least recently used document first.
  * @internal
  */
 const BITMAP_BUDGET = 48 * 1024 * 1024

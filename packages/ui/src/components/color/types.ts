@@ -43,5 +43,9 @@ type ColorHsvaValueProps = {
 	onValueChange?: (value: Hsva) => void
 }
 
-/** Format-discriminated value props shared by `<ColorPanel>` and `<ColorPicker>`. */
+/**
+ * Format-discriminated value props shared by `<ColorPanel>` and `<ColorPicker>`.
+ *
+ * @internal
+ */
 export type ColorValueProps = ColorHexValueProps | ColorHsvaValueProps

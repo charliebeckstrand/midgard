@@ -1,5 +1,5 @@
 import { act, within as inside, renderHook } from '@testing-library/react'
-import { Profiler, useState } from 'react'
+import { createRef, Profiler, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { ColorPanel, ColorPicker } from '../../components/color'
@@ -245,6 +245,25 @@ describe('ColorPanel', () => {
 		expect(bySlot(container, 'color-hex-input')).toBeInTheDocument()
 
 		expect(allBySlot(container, 'color-swatch').length).toBeGreaterThan(0)
+	})
+
+	// §4.3: the panel renders a `<div>`, so it takes the native props of a div.
+	it('forwards native props and the ref to its root', () => {
+		const ref = createRef<HTMLDivElement>()
+
+		const { container } = renderUI(
+			<ColorPanel ref={ref} id="brand" aria-label="Brand color" data-testid="panel" />,
+		)
+
+		const panel = getSlot(container, 'color-panel')
+
+		expect(ref.current).toBe(panel)
+
+		expect(panel).toHaveAttribute('id', 'brand')
+
+		expect(panel).toHaveAttribute('aria-label', 'Brand color')
+
+		expect(panel).toHaveAttribute('data-testid', 'panel')
 	})
 
 	it('supports Home/End and Page keys on the area (APG slider pattern)', () => {

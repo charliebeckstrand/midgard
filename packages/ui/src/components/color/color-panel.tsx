@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { type ComponentProps, useMemo } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import type { scale } from '../../recipes/kata/color-panel'
@@ -47,11 +47,16 @@ type ColorPanelBaseProps = {
 	 * @defaultValue false
 	 */
 	disabled?: boolean
-	className?: string
 }
 
-/** Props for {@link ColorPanel}: presentation options plus format-discriminated value props. */
-export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
+/** The native props of the root `<div>`. The value props own `defaultValue`. */
+type ColorPanelNativeProps = Omit<ComponentProps<'div'>, 'defaultValue' | 'children'>
+
+/**
+ * Props for {@link ColorPanel}: the native props of its root `<div>`,
+ * presentation options, and format-discriminated value props.
+ */
+export type ColorPanelProps = ColorPanelNativeProps & ColorPanelBaseProps & ColorValueProps
 
 /**
  * Inline color picker: a saturation/brightness field with hue and optional
@@ -64,30 +69,25 @@ export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
  *
  * @see {@link ColorPicker} for the popover variant.
  */
-export function ColorPanel(props: ColorPanelProps) {
-	const { alpha = false, swatches, size, disabled, className } = props
-
+export function ColorPanel({
+	value,
+	defaultValue,
+	format = 'hex',
+	onValueChange,
+	alpha = false,
+	...props
+}: ColorPanelProps) {
 	const { hsva, setHsva } = useColorState({
-		value: props.value,
-		defaultValue: props.defaultValue,
-		format: props.format ?? 'hex',
+		value,
+		defaultValue,
+		format,
 		alpha,
 		// The format discriminant keeps callers' value/onValueChange paired; the
 		// handler widens to both wire shapes.
-		onValueChange: props.onValueChange as unknown as ((value: string | Hsva) => void) | undefined,
+		onValueChange: onValueChange as unknown as ((value: string | Hsva) => void) | undefined,
 	})
 
-	return (
-		<ColorPanelView
-			hsva={hsva}
-			setHsva={setHsva}
-			alpha={alpha}
-			swatches={swatches}
-			size={size}
-			disabled={disabled}
-			className={className}
-		/>
-	)
+	return <ColorPanelView hsva={hsva} setHsva={setHsva} alpha={alpha} {...props} />
 }
 
 /**
@@ -106,7 +106,8 @@ export function ColorPanelView({
 	size,
 	disabled = false,
 	className,
-}: ColorPanelBaseProps & ColorState) {
+	...props
+}: ColorPanelNativeProps & ColorPanelBaseProps & ColorState) {
 	const context = useMemo<ColorPanelContextValue>(
 		() => ({ hsva, setHsva, alpha, disabled }),
 		[hsva, setHsva, alpha, disabled],
@@ -116,7 +117,7 @@ export function ColorPanelView({
 
 	return (
 		<ColorPanelContext value={context}>
-			<Box data-slot="color-panel" density={size} className={cn(k(), className)}>
+			<Box {...props} data-slot="color-panel" density={size} className={cn(k(), className)}>
 				<ColorArea />
 
 				<div className={k.sliders}>

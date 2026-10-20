@@ -30,8 +30,7 @@ import { formatFileNames, selectionSummary } from './file-upload-utilities'
  * Shares every internal with {@link FileUploadDrop}: the hidden input is the
  * real control, and selection, limits, and announcements run through
  * {@link useFileUploadHandlers}. It takes no children: the display button
- * shows the selection or the placeholder. The `variant` union these three
- * replace shared one `children` prop, and this arm dropped it in silence.
+ * shows the selection or the placeholder.
  *
  * The display button is not the control. It does not take the id, `required`,
  * or `aria-describedby` of the enclosing `<Control>` / `<Field>`; those go to
@@ -53,19 +52,8 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 
 	const state = useFileUploadState(shared)
 
-	const { accept, multiple } = shared
-	const {
-		control,
-		disabled,
-		invalid,
-		inputRef,
-		files,
-		hasFiles,
-		showTooltip,
-		handleChange,
-		openPicker,
-		clearFiles,
-	} = state
+	const { multiple } = shared
+	const { control, disabled, invalid, files, hasFiles, showTooltip, openPicker, clearFiles } = state
 
 	const glass = useGlass()
 
@@ -120,17 +108,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 
 	return (
 		<div data-slot="file-upload" {...props} className={cn('relative', className)}>
-			<FileUploadHiddenInput
-				ariaLabel={placeholder}
-				control={control}
-				inputRef={inputRef}
-				accept={accept}
-				multiple={multiple}
-				disabled={disabled}
-				invalid={invalid}
-				filesEmpty={!hasFiles}
-				onChange={handleChange}
-			/>
+			<FileUploadHiddenInput {...state.hiddenInput} ariaLabel={placeholder} />
 			{headless ? (
 				<>
 					{field}

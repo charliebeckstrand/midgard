@@ -35,10 +35,9 @@ const regionClasses = new Map<string, string>()
  *
  * @remarks `cn` memoizes only when every argument is a string, and these arguments are
  * arrays (`shades()` returns `string[]`). Each call would otherwise run the full clsx +
- * tailwind-merge over ~14 tokens. There are five colors and two states, so ten results cover every
- * document. Measured at 40 regions, this cuts nearly all of the class work of a layer render. The
- * layer re-renders on every zoom step and every resize frame. The `dimmed` axis doubles the table
- * to twenty entries, which is still every combination a document can produce.
+ * tailwind-merge over the tokens of a region. The colors and the states are a small closed set,
+ * so the table holds every combination that a document can produce, and a layer render does
+ * almost no class work. The layer re-renders on every zoom step and every resize frame.
  * @internal
  */
 function regionClass(color: Color, active: boolean, dimmed: boolean) {
@@ -172,7 +171,7 @@ function PdfViewerHighlightLayer() {
 	const [anchor, setAnchor] = useState<HTMLElement | null>(null)
 
 	// One tab stop for the whole layer, with arrows moving between regions: a dense page
-	// carries 20-40 of them, and they mirror a list the consumer already renders beside
+	// carries many of them, and they mirror a list the consumer already renders beside
 	// the viewer. `aria-current` marks which region holds the resting stop. Off in a
 	// decorative layer: `manageTabIndex` would otherwise seat a tab stop on a span inside
 	// an `aria-hidden` subtree.
@@ -188,7 +187,7 @@ function PdfViewerHighlightLayer() {
 
 	/*
 	 * Whether anything is selected at all. While something is, every other region drops its
-	 * color: one wash among twenty reads as a field of color rather than as a selection.
+	 * color: one wash among many reads as a field of color rather than as a selection.
 	 *
 	 * It is read off `activeLabel`, which the provider already derives with the same scan. A
 	 * label is required of every highlight, so a name in hand and a selected region are the same
@@ -209,9 +208,9 @@ function PdfViewerHighlightLayer() {
 	/*
 	 * The region under the pointer, which names itself while it is there.
 	 *
-	 * A box cannot say what it is, and until now only the *selected* one said so. That left a
-	 * reader to press twenty regions to find the one they wanted. It changed the selection, and
-	 * whatever the consumer hangs off it, twenty times on the way.
+	 * A box cannot say what it is, and otherwise only the *selected* one says so. A reader
+	 * would then press region after region to find the one they want. Each press changes the
+	 * selection, and whatever the consumer hangs off it, on the way.
 	 *
 	 * **A preview sits beside the selection rather than replacing it.** The two are different
 	 * things to a reader. One is where they are working, the other is what they are checking.
@@ -249,8 +248,8 @@ function PdfViewerHighlightLayer() {
 	 *
 	 * Whether the name is being read through (and therefore whether it is faint) is the
 	 * name's own state. It is held there rather than here for the reason the name is a leaf
-	 * at all (see {@link PdfViewerHighlightLabel}). A flip held here would re-render forty
-	 * regions to change one class on a panel three fibers away. It would also dirty the
+	 * at all (see {@link PdfViewerHighlightLabel}). A flip held here would re-render each
+	 * region to change one class on a panel a few fibers away. It would also dirty the
 	 * layer's layout, just before the next pointer move reads a rect against it.
 	 *
 	 * A handle rather than a callback prop because the traffic runs the other way. The layer is
@@ -552,9 +551,10 @@ type PdfViewerActiveNameHandle = {
  * over the box they are pointing at, which is the page saying the press will land there.
  *
  * Faintness flips as the pointer crosses the name's edge, which is the path a reader takes to
- * reach the box under it. Held in the layer, each flip re-rendered forty regions to change one
- * class on a panel three fibers away. It also dirtied the layer's layout, so the next move's
- * box read paid a reflow instead of a cached rect. Here the same flip touches three fibers.
+ * reach the box under it. Held in the layer, each flip would re-render each region to change
+ * one class on a panel a few fibers away. It would also dirty the layer's layout, so the next
+ * move's box read would pay a reflow instead of a cached rect. Here the same flip touches only
+ * the name.
  * It is the rule {@link PdfViewerHighlightLabel} is a leaf for, applied one level up.
  *
  * The name never covers its own region. `offset(8)` holds it clear along the placement axis,

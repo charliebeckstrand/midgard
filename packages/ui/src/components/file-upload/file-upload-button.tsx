@@ -32,9 +32,7 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 
 	const state = useFileUploadState(shared)
 
-	const { accept, multiple } = shared
-	const { control, disabled, invalid, inputRef, hasFiles, handleChange, openPicker, clearFiles } =
-		state
+	const { disabled, hasFiles, openPicker, clearFiles } = state
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
@@ -51,15 +49,8 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 	return (
 		<div data-slot="file-upload" {...props} className={cn(k.button, className)}>
 			<FileUploadHiddenInput
+				{...state.hiddenInput}
 				ariaLabel={triggerLabel(children, intl.formatMessage(fileUploadMessages.upload))}
-				control={control}
-				inputRef={inputRef}
-				accept={accept}
-				multiple={multiple}
-				disabled={disabled}
-				invalid={invalid}
-				filesEmpty={!hasFiles}
-				onChange={handleChange}
 			/>
 			<Button
 				ref={triggerRef}

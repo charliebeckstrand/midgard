@@ -17,6 +17,7 @@ import {
 	type LightboxPoint,
 	type LightboxSample,
 	type LightboxTap,
+	parseMatrix,
 	RESTING_TRANSFORM,
 	recordSample,
 	releaseSpeed,
@@ -174,9 +175,7 @@ function dim(elements: readonly (HTMLElement | null)[], opacity: number) {
 
 /** The travel that the track paints now, in px, while a tween moves it too. */
 function paintedTravel(track: HTMLElement): number {
-	const matrix = /^matrix\(([^)]+)\)$/.exec(getComputedStyle(track).transform)
-
-	return matrix ? Number(matrix[1]?.split(',')[4] ?? 0) : 0
+	return parseMatrix(getComputedStyle(track).transform)[4] ?? 0
 }
 
 function paint(track: HTMLElement, travel: number) {

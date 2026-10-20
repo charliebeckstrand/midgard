@@ -25,6 +25,8 @@ const SHORT_HEX = /^#?[0-9a-f]{3,4}$/i
  * They opt out of an enclosing `<Control>` / `<Field>`, so they do not take
  * its label id, `required`, `aria-describedby` or validation state. They keep
  * its variant.
+ *
+ * @internal
  */
 export function ColorHexInput() {
 	const intl = useIntl()

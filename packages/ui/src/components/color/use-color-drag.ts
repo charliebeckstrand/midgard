@@ -12,10 +12,18 @@ import { clamp } from '../../utilities'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { createPressOwner } from '../../utilities/primary-press'
 
-/** Pointer position within the tracked element, each axis normalized to `0-1`. */
+/**
+ * Pointer position within the tracked element, each axis normalized to `0-1`.
+ *
+ * @internal
+ */
 export type DragPosition = { x: number; y: number }
 
-/** Pointer-event bindings for a draggable track; spread onto the tracked element. */
+/**
+ * Pointer-event bindings for a draggable track; spread onto the tracked element.
+ *
+ * @internal
+ */
 export type ColorDragHandlers = {
 	/**
 	 * Cancels the mousedown of a press, so the press does not move the focus that

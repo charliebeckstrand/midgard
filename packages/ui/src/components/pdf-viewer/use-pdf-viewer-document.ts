@@ -29,8 +29,8 @@ import type { PdfViewerSlot } from './types'
  * to the worker, and `Map.prototype.getOrInsertComputed`, `Math.sumPrecise` and the
  * `Uint8Array` base64 methods. MDN's compatibility data puts its floor at Chrome 147, Firefox
  * 144 and Safari 26.2, far above the floor in `.browserslistrc`. The legacy build carries a
- * polyfill for each one. It costs about 58 KB more in this chunk and 50 KB more in the worker,
- * and both load only when a PDF opens. Its polyfills go on the globals, and only where a
+ * polyfill for each one. It makes this chunk and the worker larger, and both load only when a
+ * PDF opens. Its polyfills go on the globals, and only where a
  * built-in is missing.
  * @internal
  */

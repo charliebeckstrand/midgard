@@ -158,8 +158,12 @@ export function paintedFrame(
 	}
 }
 
-/** The six values of a computed 2D transform, or none for `none` or a 3D transform. */
-function parseMatrix(transform: string): number[] {
+/**
+ * The six values of a computed 2D transform, or none for `none` or a 3D transform.
+ *
+ * @internal
+ */
+export function parseMatrix(transform: string): number[] {
 	const matrix = /^matrix\(([^)]+)\)$/.exec(transform)
 
 	return matrix ? (matrix[1] ?? '').split(',').map(Number) : []
