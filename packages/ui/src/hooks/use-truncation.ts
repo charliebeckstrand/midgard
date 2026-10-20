@@ -39,16 +39,13 @@ const OVERFLOW_SLACK = 0.01
  * pixel those round the gap away. A `clientWidth` rounded up to meet
  * `scrollWidth` reads as a fit while the ellipsis is already painted. A `Range`
  * over the contents therefore supplies the true sub-pixel width, unaffected by
- * the overflow clip.
+ * the overflow clip. The content box is the bounding width less the horizontal
+ * padding, so the element can carry padding.
  *
  * @param el - The single-line element to measure.
- * @param padded - Subtract the element's horizontal padding from its box before
- * comparing. Off by default, since a truncating element must carry no padding or
- * border for its bounding width to *be* its content box. {@link useIsTruncated}
- * measures elements that do carry it.
  * @internal
  */
-export function isOverflowing(el: HTMLElement, padded = false): boolean {
+export function isOverflowing(el: HTMLElement): boolean {
 	if (el.scrollWidth > el.clientWidth) return true
 
 	const range = document.createRange()
@@ -59,7 +56,7 @@ export function isOverflowing(el: HTMLElement, padded = false): boolean {
 	// comparison above is the only signal there.
 	if (typeof range.getBoundingClientRect !== 'function') return false
 
-	const boxWidth = el.getBoundingClientRect().width - (padded ? horizontalPadding(el) : 0)
+	const boxWidth = el.getBoundingClientRect().width - horizontalPadding(el)
 
 	return range.getBoundingClientRect().width - boxWidth > OVERFLOW_SLACK
 }
@@ -123,9 +120,13 @@ export function focusWithoutReveal(el: HTMLElement): void {
  * billed a virtualized grid's scroll step hundreds of forced reads.
  *
  * The overflow test reads `scrollWidth`/`clientWidth` first, and falls back to
- * a `Range` over the contents for sub-pixel clips. The truncating element must
- * therefore be a single line (`nowrap` + ellipsis) with no padding or border of
- * its own.
+ * a `Range` over the contents for sub-pixel clips (see {@link isOverflowing}).
+ * The truncating element must therefore be a single line (`nowrap` + ellipsis)
+ * with no border of its own. It can carry padding.
+ *
+ * The flag says only that the element clips its content. When the element shows
+ * a placeholder in place of a value, the caller holds its reveal closed, because
+ * the reveal has no value to show.
  *
  * @param options - `armRef` is the element whose pointer/focus contact arms the
  * measure. It applies when the reveal's trigger surface is an ancestor of the
@@ -144,7 +145,18 @@ export function focusWithoutReveal(el: HTMLElement): void {
  *   layout settle). It is a no-op until contact arms the element.
  * - Read `contacted` to defer mounting reveal machinery until the first contact
  *   that could ever open it.
- * @internal
+ *
+ * @example
+ * ```tsx
+ * const [ref, truncated] = useTruncation<HTMLSpanElement>()
+ *
+ * <Tooltip disabled={!truncated}>
+ *   <TooltipTrigger>
+ *     <span ref={ref} className="block truncate">{label}</span>
+ *   </TooltipTrigger>
+ *   <TooltipContent>{label}</TooltipContent>
+ * </Tooltip>
+ * ```
  */
 export function useTruncation<E extends HTMLElement>(options?: {
 	armRef?: RefObject<HTMLElement | null>

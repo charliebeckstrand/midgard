@@ -1,14 +1,8 @@
 'use client'
 
-import {
-	type FocusEventHandler,
-	type KeyboardEventHandler,
-	type ReactNode,
-	type Ref,
-	useRef,
-} from 'react'
+import type { FocusEventHandler, KeyboardEventHandler, ReactNode, Ref } from 'react'
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
-import { useIsTruncated } from '../../hooks'
+import { useTruncation } from '../../hooks'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/listbox'
 import { Button } from '../button'
@@ -54,9 +48,7 @@ function ListboxTruncateTooltip({
 	truncate: boolean
 	suppressed: boolean
 }) {
-	const valueRef = useRef<HTMLSpanElement>(null)
-
-	const truncated = useIsTruncated(valueRef, label)
+	const [valueRef, truncated] = useTruncation<HTMLSpanElement>()
 
 	return (
 		<Tooltip disabled={suppressed || !truncated}>

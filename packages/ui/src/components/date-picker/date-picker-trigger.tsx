@@ -4,7 +4,7 @@ import { Calendar as CalendarIcon } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import { useIsTruncated } from '../../hooks'
+import { useTruncation } from '../../hooks'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SelectTrigger } from '../../primitives/select-trigger'
@@ -121,11 +121,9 @@ export function DatePickerTrigger({
 
 	const glass = useGlass()
 
-	const valueRef = useRef<HTMLSpanElement>(null)
+	const [valueRef, isTruncated] = useTruncation<HTMLSpanElement>()
 
 	const buttonRef = useRef<HTMLButtonElement>(null)
-
-	const isTruncated = useIsTruncated(valueRef, displayValue)
 
 	// Mirrors the Listbox/Combobox affordance: the clear button stands in for the
 	// calendar icon while a value is set, clearing on click and returning focus
@@ -191,8 +189,10 @@ export function DatePickerTrigger({
 					onKeyDown={onTriggerKeyDown}
 					className={cn(k.button())}
 				>
+					{/* With no value, the span shows the placeholder, and the tooltip has
+					    nothing to reveal. */}
 					{children ?? (
-						<Tooltip disabled={!truncate || !isTruncated}>
+						<Tooltip disabled={!truncate || !isTruncated || !displayValue}>
 							<TooltipTrigger>{valueNode}</TooltipTrigger>
 							<TooltipContent>{displayValue}</TooltipContent>
 						</Tooltip>
