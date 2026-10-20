@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Profiler, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { GridColumnManager } from '../../modules/grid/grid-column-manager'
 import { GridManagerDialog } from '../../modules/grid/grid-manager-dialog'
@@ -585,6 +585,36 @@ describe('GridColumnManager filtering', () => {
 		expect(allBySlot(container, 'list-item')).toHaveLength(1)
 
 		await user.click(screen.getByRole('button', { name: 'Clear search' }))
+
+		expect(allBySlot(container, 'list-item')).toHaveLength(3)
+	})
+
+	// A deferred query lags the field by one commit. The `Profiler` reads the DOM
+	// at each commit, so it sees a commit that shows the empty field over the
+	// narrowed list.
+	it('restores every column in the same commit that clears the field', async () => {
+		const user = setupUser()
+
+		const stale: number[] = []
+
+		const { container } = renderUI(
+			<Profiler
+				id="manager"
+				onRender={() => {
+					const rows = allBySlot(document.body, 'list-item').length
+
+					if ((field() as HTMLInputElement).value === '' && rows !== 3) stale.push(rows)
+				}}
+			>
+				<GridColumnManager columns={columns} />
+			</Profiler>,
+		)
+
+		await user.type(field(), 'ema')
+
+		await user.click(screen.getByRole('button', { name: 'Clear search' }))
+
+		expect(stale).toEqual([])
 
 		expect(allBySlot(container, 'list-item')).toHaveLength(3)
 	})
