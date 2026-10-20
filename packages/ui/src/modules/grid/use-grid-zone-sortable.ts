@@ -25,7 +25,7 @@ export function useGridZoneSortable(id: string) {
 	} = useMotionSafeSortable({ id })
 
 	const style: CSSProperties = {
-		transform: CSS.Transform.toString(transform),
+		transform: CSS.Translate.toString(transform),
 		transition,
 		opacity: isDragging ? 0.6 : 1,
 		zIndex: isDragging ? 1 : undefined,

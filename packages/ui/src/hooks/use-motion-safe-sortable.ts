@@ -13,11 +13,12 @@ import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
  * @remarks
  * dnd-kit writes its reflow transition (`transform 200ms ease`) as an inline
  * style, and an inline style beats a `motion-reduce:` class. So the hook gives
- * dnd-kit `transition: null` instead. Each sortable that renders the returned
- * `transition` uses this hook.
+ * dnd-kit `transition: null` instead.
  *
  * The role description of the item is in the language of the reader. The
- * `attributes` of the caller can replace it.
+ * `attributes` of the caller can replace it. Each dnd-kit sortable in the
+ * package uses this hook, also a sortable that does not render `transition`.
+ * Thus the role description comes from one place.
  *
  * @internal
  */

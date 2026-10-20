@@ -1,7 +1,7 @@
 'use client'
 
 import { DndContext } from '@dnd-kit/core'
-import { SortableContext, useSortable } from '@dnd-kit/sortable'
+import { SortableContext } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { type ComponentProps, type ReactNode, useId } from 'react'
 import { createContext } from '../../core'
@@ -12,8 +12,6 @@ import {
 	type SortableListOptions,
 	useSortableList,
 } from '../../hooks/use-sortable-list'
-import { reorderMessages } from '../../primitives/intl/intl-reorder'
-import { useIntl } from '../../primitives/intl/use-intl'
 import { restrictToFirstScrollableAncestor } from './engine/grid-reorder-compute'
 import {
 	type GridReorderableColumnHeaderProps,
@@ -158,8 +156,6 @@ function RowSortableScope({ children }: { children: ReactNode }) {
  * @internal
  */
 function SortableColumnHeader(props: GridReorderableColumnHeaderProps) {
-	const intl = useIntl()
-
 	const {
 		setNodeRef,
 		setActivatorNodeRef,
@@ -168,10 +164,7 @@ function SortableColumnHeader(props: GridReorderableColumnHeaderProps) {
 		transform,
 		isDragging,
 		isSorting,
-	} = useSortable({
-		id: String(props.column.id),
-		attributes: { roleDescription: intl.formatMessage(reorderMessages.sortableRole) },
-	})
+	} = useMotionSafeSortable({ id: String(props.column.id) })
 
 	return (
 		<GridReorderableColumnHeaderView
@@ -214,7 +207,7 @@ function SortableRow<T>(props: GridRowProps<T>) {
 		setActivatorNodeRef,
 		attributes,
 		listeners,
-		style: { transform: CSS.Transform.toString(transform), transition },
+		style: { transform: CSS.Translate.toString(transform), transition },
 		dragging: isDragging,
 	}
 
