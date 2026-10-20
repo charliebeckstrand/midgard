@@ -84,8 +84,9 @@ type NavItemOptions = {
  * Only the wiring lives here; each consuming component owns its own markup,
  * slot names, classes, and icon sizing.
  *
- * @returns The scroll-target `ref`, resolved `current`, the active
- * indicator handle, and the composed `handleClick`.
+ * @returns The scroll-target `ref`, resolved `current`, the `aria-current`
+ * token (`'page'` on a link, `'true'` on a button), the active indicator
+ * handle, and the composed `handleClick`.
  */
 export function useNavItem({ current, value, href, match, preventClose, onClick }: NavItemOptions) {
 	const ref = useRef<HTMLSpanElement>(null)
@@ -136,5 +137,9 @@ export function useNavItem({ current, value, href, match, preventClose, onClick 
 		{ checkForDefaultPrevented: false },
 	)
 
-	return { ref, current: isCurrent, indicator, handleClick }
+	// A link marks the current page, and a button marks the current view in the
+	// page.
+	const ariaCurrent: 'page' | 'true' | undefined = isCurrent ? (href ? 'page' : 'true') : undefined
+
+	return { ref, current: isCurrent, ariaCurrent, indicator, handleClick }
 }

@@ -63,6 +63,7 @@ export function NavItem({
 	const {
 		ref: itemRef,
 		current: isCurrent,
+		ariaCurrent,
 		indicator: { ref: indicatorRef, tapHandlers },
 		handleClick,
 	} = useNavItem({ current, value, href: props.href, match, preventClose, onClick })
@@ -101,7 +102,7 @@ export function NavItem({
 					{...props}
 					type={props.href === undefined ? 'button' : undefined}
 					data-slot="nav-item-inner"
-					aria-current={isCurrent ? (props.href ? 'page' : 'true') : undefined}
+					aria-current={ariaCurrent}
 				>
 					<TouchTarget>
 						{icon && <Icon icon={icon} />}
