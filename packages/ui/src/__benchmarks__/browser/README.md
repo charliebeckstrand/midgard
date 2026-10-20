@@ -1,6 +1,6 @@
 # Browser benchmarks
 
-> **The chart, grid, and map modules of `ui`, and its menu, popover, icon, tooltip, and PDF-viewer components, and its query builder, measured in real Chromium.** `pnpm bench:browser` runs the suite. The suite runs no other library, so a change reads against the earlier builds of each module. The jsdom benches one directory up localize a regression, and this suite sizes it.
+> **The chart, grid, and map modules of `ui`, and its menu, popover, icon, tooltip, and PDF-viewer components, its query builder, and its events module, measured in real Chromium.** `pnpm bench:browser` runs the suite. The suite runs no other library, so a change reads against the earlier builds of each module. The jsdom benches one directory up localize a regression, and this suite sizes it.
 
 ## Why a browser suite
 
@@ -790,6 +790,36 @@ Mean ms for one edit, in Chromium. Each figure is the median of three runs.
 | 128 | 1.9 | 10.2 | 2.7 |
 
 The prototype added about 120 lines to `query-builder-sortable.tsx` and `query-builder-sortable-item.tsx`. The memo of the group element held about a dozen dependencies, and a new prop that an item reads had to go into that list by hand. A miss shows a stale item, and no test finds it. The prototype also changed what a reader sees. A rule whose height changed no longer moved the rules below it with a spring. The plain builder moves them with no spring too. The edit costs 3.5 ms at 32 rules, so the fix was not worth its code. Use it again only for groups of many more rules. The better fix is in Motion: a `useMemo` on the context value of `Reorder.Group` lets a memoized item skip the render of its group.
+
+## Events
+
+The events module records each input event, scroll, resize, and load of the page while the events run. This section says what it costs the app on its input path, and what the pinned panel costs for each frame that it renders.
+
+### Methodology
+
+[`events-tap.bench.tsx`](events-tap.bench.tsx) runs three scenarios on a full store: 500 events outside a capture, or 2,000 while one runs, so each new line drops the oldest. `one tap` dispatches the six input events of a tap on a button, with the recorder off and on. `one tap and the frame of the pinned panel` adds one frame from a fake frame clock, in which `EventsPanel` renders the list again. `one window resize` dispatches a `resize` on a page of 5,000 boxes, and then reads the height of the page, as the next frame lays it out.
+
+[`../events-store.bench.ts`](../events-store.bench.ts) is the jsdom ladder under them: `add` on a full store, `save` of the kept copy, and the rows and the Copy text of the list.
+
+### Findings (2026-10-20, this container)
+
+Mean ms in Chromium, the median of three interleaved pairs. The "Prototype" column is the two fixes below, measured before they land.
+
+| Scenario | Main | Prototype |
+| --- | ---: | ---: |
+| tap · events off | 0.02 | 0.02 |
+| tap · events on · 500 | 0.20 | 0.19 |
+| tap · events on · 2,000 · capture | 0.65 | 0.70 |
+| tap and frame · pinned panel · 500 | 10.02 | 3.88 |
+| tap and frame · pinned panel · 2,000 · capture | 30.42 | 4.35 |
+| resize · events off | 23.70 | 24.00 |
+| resize · events on · 500 | 72.38 | 24.14 |
+
+**The pinned panel renders each row of the list.** `List` with `virtual` windows over the nearest ancestor with `data-scroll-region`, and the body of the panel ([`events-panel.tsx`](../../modules/events/events-panel.tsx)) does not carry it. So each frame with a new event renders each of the 500 or 2,000 rows. With the attribute on the body, the frame no longer grows with the store.
+
+**Each resize lays out the page two more times.** The viewport source reads the viewport units from a probe element ([`events-probes.ts`](../../modules/events/engine/events-probes.ts)), and each reading adds the probe to the page and removes it. Each change lays out the page again. A probe that stays in the page while the recorder runs, with strict containment, makes a resize cost what it costs with the events off. On a phone, the visual viewport resizes while the address bar shows or hides, so a scroll pays this too. An overlay that opens reads the same probe.
+
+**The rest does not move a frame.** A tap costs 0.2 ms with the events on, and 0.7 ms during a capture, against 0.02 ms off. Most of the step is the store: each `add` copies the list and counts its reports, so it grows with the store (0.014 ms at 500 and 0.054 ms at 2,000 in jsdom). The kept copy (`save`, 0.22 and 1.28 ms) runs after a burst, and the Copy text (0.64 and 3.32 ms) runs on a press of Copy. The rows of the list and the width of the kind column (0.05 and 0.20 ms in jsdom) build again in each live render, a small part of the frame. With the React Compiler and the scroll region, the frame of the panel is about 3.5 ms, the rows in view rendering again.
 
 ## PDF viewer
 
