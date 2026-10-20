@@ -16,9 +16,9 @@ function overflows(el: HTMLElement | null, text: string): boolean {
  *
  * @remarks
  * Re-measures via a `ResizeObserver` and after `document.fonts.ready`, so it
- * stays accurate across resizes and late font loads. One observer per element,
- * unlike `useTruncation`'s shared one — this hook's callers mount a handful of
- * elements, not a virtualized grid of them. Layout-effect based; SSR yields
+ * stays accurate across resizes and late font loads. It keeps one observer per
+ * element, unlike `useTruncation`'s shared one, because this hook's callers
+ * mount a handful of elements, not a virtualized grid of them. Layout-effect based; SSR yields
  * `false` until the first client measurement.
  * @returns `true` while the text is truncated, else `false`.
  */
@@ -28,8 +28,8 @@ export function useIsTruncated(ref: RefObject<HTMLElement | null>, text: string)
 	// The subscription below measures the newest string when it fires.
 	const check = useEffectEvent(() => setTruncated(overflows(ref.current, text)))
 
-	// The subscription tracks the element, not the string: re-keying it on `text`
-	// would tear down and rebuild the observer — and re-subscribe `fonts.ready` —
+	// The subscription tracks the element, not the string. Re-keying it on `text`
+	// would tear down and rebuild the observer (and re-subscribe `fonts.ready`)
 	// on every character.
 	useLayoutEffect(() => {
 		const el = ref.current

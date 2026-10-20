@@ -5,12 +5,12 @@ import { useIsTruncated } from '../../hooks/use-is-truncated'
 import { renderUI, waitFor } from '../helpers'
 
 /**
- * {@link useIsTruncated} measures the laid-out contents with a `Range`. jsdom
- * implements no `Range` geometry, so its unit suite can only exercise the hook
- * against a stub; the claims that matter — that a clipped overflow still
- * measures its full text width, that a fitting string does not, and that
- * nothing is injected into the measured element — are layout claims and ride the
- * real browser.
+ * {@link useIsTruncated} reads a sub-pixel clip from a `Range` over the
+ * laid-out contents. jsdom implements no `Range` geometry, so its unit suite can
+ * only exercise the hook against a stub. The claims that matter are layout
+ * claims, so they ride the real browser: a clipped overflow still measures its
+ * full text width, a fitting string does not, and nothing is injected into the
+ * measured element.
  */
 describe('useIsTruncated (real browser)', () => {
 	beforeAll(() => page.viewport(800, 600))

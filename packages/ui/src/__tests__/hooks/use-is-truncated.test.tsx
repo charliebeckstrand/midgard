@@ -11,7 +11,7 @@ import { useIsTruncated } from '../../hooks/use-is-truncated'
  * width, a fitting one does not, padding comes out of the content box, the
  * element keeps its own text with nothing injected, and a real resize
  * re-measures with no re-render to prompt it. What stays here is the arithmetic
- * at the edge — equal widths, and widths a fraction of a pixel apart. Those
+ * at the edge: equal widths, and widths a fraction of a pixel apart. Those
  * need the two numbers set exactly, and a browser gives what the font and the
  * layout engine produce, not what a case asks for.
  */

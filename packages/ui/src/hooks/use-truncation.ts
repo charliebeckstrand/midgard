@@ -89,9 +89,10 @@ let programmaticFocus = false
  * genuine hover or keyboard focus opens the reveal on that same dispatch. A
  * programmatic focus wants neither. It opens no reveal. It can land inside a
  * React commit (a grid editor focused from a post-mount effect), where
- * `flushSync` cannot flush and warns. Callers that move focus into a possibly-truncated cell
- * during render/commit route through here, so the arm commits through a plain
- * update. That is the same eventual state, without the mid-render flush.
+ * `flushSync` cannot flush and warns. Callers that move focus into a
+ * possibly-truncated cell during render/commit route through here, so the arm
+ * commits through a plain update. That is the same eventual state, without the
+ * mid-render flush.
  *
  * @internal
  */
@@ -125,10 +126,6 @@ export function focusWithoutReveal(el: HTMLElement): void {
  * a `Range` over the contents for sub-pixel clips. The truncating element must
  * therefore be a single line (`nowrap` + ellipsis) with no padding or border of
  * its own.
- *
- * Shared by the grid's data-cell and header truncation ({@link useGridTruncation}
- * layers a resize-settle backstop on top) and by the chart and map legends'
- * entry labels.
  *
  * @param options - `armRef` is the element whose pointer/focus contact arms the
  * measure. It applies when the reveal's trigger surface is an ancestor of the
@@ -182,9 +179,8 @@ export function useTruncation<E extends HTMLElement>(options?: {
 	// they bind: a consumer that reparents the measured element while it stays
 	// mounted (a cell wrapping its span in a lazily-mounted tooltip) commits a
 	// replacement node the effect never sees on its own, stranding the bindings
-	// on the detached one. The callback ref puts a replacement in state — and only
-	// a replacement, so the plain mount pays no extra render and binds the node
-	// of the ref.
+	// on the detached one. The callback ref puts only a replacement in state, so
+	// the plain mount pays no extra render and binds the node of the ref.
 	const [replacement, setReplacement] = useState<E | null>(null)
 
 	const bound = useRef(false)
@@ -205,16 +201,16 @@ export function useTruncation<E extends HTMLElement>(options?: {
 		bound.current = true
 
 		// The width observation and the font-settle re-measure exist to keep an
-		// armed flag current; before contact nothing reads it, so both defer to the
-		// first arm — an unvisited cell costs two listener registrations and
-		// nothing else (a virtualized scroll step otherwise pays an observe /
-		// unobserve and a `fonts.ready` subscription per recycled cell).
+		// armed flag current. Before contact nothing reads it, so both defer to the
+		// first arm. An unvisited cell costs two listener registrations and nothing
+		// else (a virtualized scroll step otherwise pays an observe / unobserve and
+		// a `fonts.ready` subscription per recycled cell).
 		let unobserve: (() => void) | null = null
 
 		const watch = () => {
 			unobserve = resize(el, measure)
 
-			if (document.fonts?.ready) document.fonts.ready.then(measure).catch(() => {})
+			document.fonts?.ready.then(measure)
 		}
 
 		const arm = () => {
@@ -228,16 +224,16 @@ export function useTruncation<E extends HTMLElement>(options?: {
 				measure()
 			}
 
-			// Synchronous commit, because ordering decides whether the reveal opens:
-			// the tooltip's hover logic rides React's root-delegated events, and this
+			// Synchronous commit, because ordering decides whether the reveal opens.
+			// The tooltip's hover logic rides React's root-delegated events, and this
 			// element-level listener fires first on the same `pointerover`/`focusin`
-			// dispatch — flushing here lands `truncated` (and the tooltip's `enabled`)
+			// dispatch. Flushing here lands `truncated` (and the tooltip's `enabled`)
 			// before the hover logic evaluates the very contact that armed it.
 			//
-			// A programmatic focus (see `focusWithoutReveal`) is the exception: it
+			// A programmatic focus (see `focusWithoutReveal`) is the exception. It
 			// opens no reveal and can arm this listener from inside a React commit,
-			// where `flushSync` cannot flush and warns. It commits plainly there — the
-			// same eventual state the mid-render flush would have deferred to anyway.
+			// where `flushSync` cannot flush and warns. It commits plainly there, the
+			// same eventual state that the mid-render flush defers to anyway.
 			if (programmaticFocus) commit()
 			else flushSync(commit)
 		}
