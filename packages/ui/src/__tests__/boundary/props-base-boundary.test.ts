@@ -177,6 +177,10 @@ const NO_BASE_EXEMPT = new Map<string, string>([
 		'its `display: contents` host carries only the density and direction scope of the portal',
 	],
 	[
+		'primitives/touch-target/touch-target.tsx → TouchTargetProps',
+		'it has no root: it puts a hidden hit area before its children, inside the host',
+	],
+	[
 		'providers/ui/ui-document.tsx → UIDocumentProps',
 		'it renders the whole document, `<html>` with its `<head>` and `<body>`, so no one element owns its props',
 	],
