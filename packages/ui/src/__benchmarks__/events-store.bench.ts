@@ -1,18 +1,18 @@
 import { bench, describe } from 'vitest'
 import {
-	CAPACITY,
 	CAPTURE_CAPACITY,
+	EVENT_CAPACITY,
 	EventStore,
 	type NewEntry,
 } from '../modules/events/engine/events-store'
-import { kindWidth, rowsOf, rowText } from '../modules/events/engine/events-text'
+import { formatRow, getKindWidth, groupRows } from '../modules/events/engine/events-text'
 import type { EventStorage } from '../modules/events/engine/types'
 
 /**
  * What the store of the events costs an app while the events run. Each
  * browser operation, such as a tap with its eight input events, writes one
  * event per line, so `add` runs on the input path of the app. The store holds
- * {@link CAPACITY} events outside a capture and {@link CAPTURE_CAPACITY} while
+ * {@link EVENT_CAPACITY} events outside a capture and {@link CAPTURE_CAPACITY} while
  * one runs, so each rung runs on a store that is full: the steady state of a
  * session, where each new event drops the oldest.
  *
@@ -119,9 +119,9 @@ function fullStore(count: number, { capture = false, preserve = false } = {}) {
 }
 
 describe('events-store · add (one line of a full store)', () => {
-	const full = fullStore(CAPACITY)
+	const full = fullStore(EVENT_CAPACITY)
 
-	bench(`${CAPACITY} events`, () => {
+	bench(`${EVENT_CAPACITY} events`, () => {
 		full.store.add(entryAt(full.next++))
 	})
 
@@ -133,9 +133,9 @@ describe('events-store · add (one line of a full store)', () => {
 })
 
 describe('events-store · save (the kept copy)', () => {
-	const full = fullStore(CAPACITY, { preserve: true })
+	const full = fullStore(EVENT_CAPACITY, { preserve: true })
 
-	bench(`${CAPACITY} events`, () => {
+	bench(`${EVENT_CAPACITY} events`, () => {
 		full.store.save()
 	})
 
@@ -147,21 +147,21 @@ describe('events-store · save (the kept copy)', () => {
 })
 
 describe('events-text · the rows and the Copy text of the list', () => {
-	for (const count of [CAPACITY, CAPTURE_CAPACITY]) {
-		const { entries } = fullStore(count, { capture: count > CAPACITY }).store
+	for (const count of [EVENT_CAPACITY, CAPTURE_CAPACITY]) {
+		const { entries } = fullStore(count, { capture: count > EVENT_CAPACITY }).store
 
-		bench(`rowsOf + kindWidth · ${count} events`, () => {
-			rowsOf(entries, true)
+		bench(`groupRows + getKindWidth · ${count} events`, () => {
+			groupRows(entries, true)
 
-			kindWidth(entries)
+			getKindWidth(entries)
 		})
 
-		const rows = rowsOf(entries, true)
+		const rows = groupRows(entries, true)
 
-		const width = kindWidth(entries)
+		const width = getKindWidth(entries)
 
 		bench(`Copy text · ${count} events`, () => {
-			rows.map((row) => rowText(row, width)).join('\n')
+			rows.map((row) => formatRow(row, width)).join('\n')
 		})
 	}
 })
