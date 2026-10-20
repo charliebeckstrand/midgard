@@ -1,4 +1,5 @@
 import { clamp } from '../../../utilities'
+import type { ThumbIndex } from './types'
 
 /**
  * Snaps `raw` to the nearest multiple of `step`, offset by `min`, and then
@@ -29,4 +30,20 @@ export function boundRange(range: [number, number], min: number, max: number): [
 	const hi = clamp(range[1], min, max)
 
 	return lo <= hi ? [lo, hi] : [hi, lo]
+}
+
+/**
+ * Whether a value for thumb `index` passes the other thumb of `current`. In
+ * `swap` overlap, the value then moves to the slot of the other thumb, and the
+ * focus and the drag follow it there. The keyboard and the pointer hooks call
+ * it, so a key and a drag swap at the same value.
+ *
+ * @internal
+ */
+export function crossesOtherThumb(
+	index: ThumbIndex,
+	value: number,
+	current: [number, number],
+): boolean {
+	return index === 0 ? value > current[1] : value < current[0]
 }

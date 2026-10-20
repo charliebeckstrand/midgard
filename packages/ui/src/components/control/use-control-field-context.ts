@@ -32,7 +32,7 @@ type ControlFieldOverrides = {
  * parent control cascade and spreads the `useA11yControl` bundle off the field
  * id. That bundle is the label, description, and error slots.
  *
- * Three wrappers share it. {@link ControlField} (the envelope behind
+ * The field wrappers share it. {@link ControlField} (the envelope behind
  * `CheckboxField` / `RadioField` / `SwitchField`) passes no overrides and
  * inherits everything. `Field` passes its own `autoComplete`, `disabled`, and
  * `severity` props. `Control` passes all of its own cascade props.

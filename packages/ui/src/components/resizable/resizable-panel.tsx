@@ -5,6 +5,9 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/resizable'
 import { useOptionalResizable, useResizableIndex } from './context'
 
+/** The size weight of a panel that gives no `defaultSize`. @internal */
+export const DEFAULT_PANEL_SIZE = 50
+
 /**
  * Props for {@link ResizablePanel}: an initial size weight, and min/max bounds
  * as percentages of the group. The root `<div>` takes the rest. Inside a group,
@@ -42,7 +45,7 @@ export type ResizablePanelProps = ComponentProps<'div'> & {
  */
 export function ResizablePanel(props: ResizablePanelProps) {
 	const {
-		defaultSize = 50,
+		defaultSize = DEFAULT_PANEL_SIZE,
 		minSize: _minSize,
 		maxSize: _maxSize,
 		className,

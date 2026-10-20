@@ -7,6 +7,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { Button, type ButtonProps } from '../button'
+import { useControlLock } from '../control/context'
 import { useHoldButtonGesture } from './use-hold-button-gesture'
 
 /**
@@ -66,6 +67,10 @@ export type HoldButtonProps = Omit<
  * not submit. After `onHoldComplete`, a `submit` button calls
  * `form.requestSubmit()` with itself as the submitter, and a `reset` button
  * calls `form.reset()`. The default `type` is `button`.
+ *
+ * In a locked scope, such as a `Form` while a submit runs, the hold is the
+ * activation that the lock cancels. A press starts no hold, and a lock that
+ * comes during a hold cancels it. Pass `lockable={false}` to keep it live.
  * @see {@link useHoldButtonGesture} for the timer, fill animation, and guards.
  */
 export function HoldButton({
@@ -74,6 +79,7 @@ export function HoldButton({
 	onHoldStart,
 	onHoldCancel,
 	disabled,
+	lockable = true,
 	children,
 	className,
 	onPointerDown,
@@ -114,9 +120,13 @@ export function HoldButton({
 		if (type !== 'button') event.preventDefault()
 	}
 
+	// A locked scope cancels each activation of a button, and the hold is the
+	// activation of this one.
+	const locked = useControlLock() && lockable
+
 	const { fillRef, start, cancel } = useHoldButtonGesture({
 		duration,
-		disabled,
+		disabled: disabled || locked,
 		onHoldComplete: handleHoldComplete,
 		onHoldStart,
 		onHoldCancel,
@@ -158,6 +168,7 @@ export function HoldButton({
 			ref={composedRef}
 			type={type}
 			disabled={disabled}
+			lockable={lockable}
 			data-slot={slot}
 			className={cn('relative overflow-hidden select-none [-webkit-touch-callout:none]', className)}
 			onPointerDown={composeEventHandlers(onPointerDown, (event) => {

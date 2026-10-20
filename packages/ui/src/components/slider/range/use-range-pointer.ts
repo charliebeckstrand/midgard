@@ -7,7 +7,7 @@ import { useStableEvent } from '../../../hooks/use-stable-event'
 import { clamp } from '../../../utilities'
 import { holdTextSelection } from '../../../utilities/hold-text-selection'
 import { createPressOwner } from '../../../utilities/primary-press'
-import { snapValue } from './range-utilities'
+import { crossesOtherThumb, snapValue } from './range-utilities'
 import type { OverlapMode, ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeUpdate } from './use-range-update'
 
@@ -49,22 +49,6 @@ function resolveDraggingThumb(
 	pendingStackedRef.current = null
 
 	return thumb
-}
-
-/**
- * After `useRangeUpdate` re-sorts on swap, follows `draggingRef` to the new
- * slot of the written value. The caller moves the focus to that slot.
- *
- * @internal
- */
-function applySwapResort(
-	dragging: ThumbIndex,
-	snapped: number,
-	current: [number, number],
-	draggingRef: ThumbRef,
-): void {
-	if (dragging === 0 && snapped > current[1]) draggingRef.current = 1
-	else if (dragging === 1 && snapped < current[0]) draggingRef.current = 0
 }
 
 /**
@@ -309,19 +293,21 @@ export function useRangePointer(options: {
 
 			const raw = valueFromPointer(event.clientX)
 
-			// Passes the index active when this move began.
-			if (overlap === 'swap') {
-				const snapped = snapValue(raw, min, max, step)
+			// `useRangeUpdate` re-sorts a swap, so the drag follows the value to the
+			// other slot. The focus follows it too, so an arrow key then drives the
+			// thumb that the pointer dragged.
+			if (
+				overlap === 'swap' &&
+				crossesOtherThumb(dragging, snapValue(raw, min, max, step), current)
+			) {
+				const other: ThumbIndex = dragging === 0 ? 1 : 0
 
-				applySwapResort(dragging, snapped, current, draggingRef)
+				draggingRef.current = other
 
-				// The value moved to the other slot, so the focus follows it there.
-				// Then an arrow key drives the thumb that the pointer dragged.
-				if (draggingRef.current !== null && draggingRef.current !== dragging) {
-					focusThumb(thumbRefs, draggingRef.current)
-				}
+				focusThumb(thumbRefs, other)
 			}
 
+			// Passes the index active when this move began.
 			update(dragging, raw)
 		},
 		[

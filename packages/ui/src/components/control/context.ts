@@ -51,9 +51,6 @@ export type ControlContextValue = {
  * through `useControlProps`. The size is not in the context: a set `size`
  * makes the control a density scope, and each field takes its step in CSS.
  *
- * Read by input, textarea, switch, listbox, combobox, datepicker, checkbox,
- * radio.
- *
  * @returns The enclosing {@link ControlContextValue}, or `undefined` when no
  * `<Control>` / `<Field>` is mounted above the caller.
  * @see {@link useControlProps} for the shared resolution helper.

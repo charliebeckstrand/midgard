@@ -11,10 +11,11 @@ import {
 import { useDragCursor } from '../../hooks'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import type { Orientation } from '../../types'
 import { clamp } from '../../utilities'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { createPressOwner } from '../../utilities/primary-press'
-import type { PanelConfig, ResizableOrientation } from './types'
+import type { PanelConfig } from './types'
 
 type DragState = {
 	handleIndex: number
@@ -23,10 +24,8 @@ type DragState = {
 	availableSize: number
 	/** Whether the group lays out right to left. A horizontal drag then mirrors. */
 	rtl: boolean
-	/** The pointer that started the drag. The events of another pointer do not move or end it. */
-	pointerId: number
 	/** The axis that `startPos` and `availableSize` are measured on. */
-	orientation: ResizableOrientation
+	orientation: Orientation
 }
 
 /**
@@ -214,7 +213,7 @@ function seedSizes(configs: PanelConfig[]): number[] {
 
 type PanelResize = {
 	groupRef: RefObject<HTMLDivElement | null>
-	orientation: ResizableOrientation
+	orientation: Orientation
 	panelConfigs: PanelConfig[]
 	onSizesChange?: (sizes: number[]) => void
 	onResizeStart?: (handleIndex: number) => void
@@ -344,7 +343,6 @@ export function useResizablePanel({
 			startSizes: [...sizes],
 			availableSize,
 			rtl: isRtl(group),
-			pointerId: event.pointerId,
 			orientation,
 		}
 

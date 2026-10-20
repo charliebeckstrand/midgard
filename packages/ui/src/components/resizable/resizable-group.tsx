@@ -12,10 +12,11 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/resizable'
+import type { Orientation } from '../../types'
 import { ResizableContext, ResizableIndexContext } from './context'
 import { ResizableHandle } from './resizable-handle'
-import { ResizablePanel, type ResizablePanelProps } from './resizable-panel'
-import type { PanelConfig, ResizableOrientation } from './types'
+import { DEFAULT_PANEL_SIZE, ResizablePanel, type ResizablePanelProps } from './resizable-panel'
+import type { PanelConfig } from './types'
 import { useResizablePanel } from './use-resizable-panel'
 
 /**
@@ -28,7 +29,7 @@ export type ResizableGroupProps = ComponentProps<'div'> & {
 	 * them in a column.
 	 * @defaultValue 'horizontal'
 	 */
-	orientation?: ResizableOrientation
+	orientation?: Orientation
 	/** Fires when a resize changes the sizes, with the panel sizes (percentages summing to 100). */
 	onSizesChange?: (sizes: number[]) => void
 	/**
@@ -88,7 +89,7 @@ export function ResizableGroup({
 				return [
 					{
 						key: String(child.key),
-						defaultSize: props.defaultSize ?? 50,
+						defaultSize: props.defaultSize ?? DEFAULT_PANEL_SIZE,
 						minSize: props.minSize ?? 0,
 						maxSize: props.maxSize ?? 100,
 					},

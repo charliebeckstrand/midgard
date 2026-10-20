@@ -2,10 +2,11 @@
 
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { createContext } from '../../core'
-import type { PanelConfig, ResizableOrientation } from './types'
+import type { Orientation } from '../../types'
+import type { PanelConfig } from './types'
 
 type ResizableContextType = {
-	orientation: ResizableOrientation
+	orientation: Orientation
 	dragging: number | null
 	sizes: number[]
 	panelConfigs: PanelConfig[]
@@ -36,7 +37,7 @@ export const [ResizableContext, useOptionalResizable] = createContext<ResizableC
 export function useResizable(): ResizableContextType {
 	const context = useOptionalResizable()
 
-	if (!context) throw new Error('useResizable must be used within <Resizable>')
+	if (!context) throw new Error('ResizableHandle must be used within <ResizableGroup>')
 
 	return context
 }

@@ -20,7 +20,7 @@ export type ControlFieldProps = {
  * id + context wiring; each field renders its own slot element as the child.
  *
  * It layers nothing of its own over the cascade: `Field` is the same envelope
- * with three overrides and a slot div.
+ * with its own overrides and a slot div.
  *
  * @internal Not on the barrel: used by the field wrappers, not consumers.
  */
