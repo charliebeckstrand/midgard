@@ -8,7 +8,7 @@ import {
 	type QueryNode,
 	type QueryRule,
 } from '../../../modules/query'
-import { allBySlot, getSlot, renderUI, screen } from '../../helpers'
+import { allBySlot, frames, getSlot, renderUI, screen } from '../../helpers'
 import { drag } from '../helpers/drag'
 
 /**
@@ -78,7 +78,7 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 		container.querySelector<HTMLElement>(`[data-slot="query-sortable"][data-node-id="${id}"]`)
 
 	/** Presses `grip` and moves the pointer down by `distance`, in twelve steps. */
-	const dragDown = (grip: HTMLElement, distance: number) => {
+	const dragDown = (grip: HTMLElement, distance: number, init?: PointerEventInit) => {
 		const box = grip.getBoundingClientRect()
 
 		const from = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
@@ -88,7 +88,7 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 			y: from.y + ((index + 1) * distance) / 12,
 		}))
 
-		return drag(grip, from, path)
+		return drag(grip, from, path, init)
 	}
 
 	const grip = (name: string) => screen.getByRole('button', { name: `Reorder ${name}` })
@@ -132,6 +132,36 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 		await expect.poll(() => first.hasAttribute('data-dragging')).toBe(false)
 
 		expect(screen.getByText('Dropped Name contains a, position 2 of 3.')).toBeInTheDocument()
+	})
+
+	// On macOS a Ctrl-click is the secondary click. Motion lets it start a drag,
+	// and the context menu can take the release, so the grip refuses it.
+	it('starts no drag from a Ctrl-click on the grip', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(<Harness initial={flat} onValueChange={onValueChange} />)
+
+		const first = sortable(container, 'a')
+
+		const second = sortable(container, 'b')
+
+		if (!first || !second) throw new Error('expected nodes')
+
+		const held = await dragDown(
+			grip('Name contains a'),
+			second.getBoundingClientRect().height * 1.5,
+			{ ctrlKey: true },
+		)
+
+		await frames()
+
+		expect(first).not.toHaveAttribute('data-dragging')
+
+		expect(rootOrder(container)).toEqual(['a', 'b', 'c'])
+
+		await held.release()
+
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('puts the nodes back and commits nothing when Escape cancels the drag', async () => {

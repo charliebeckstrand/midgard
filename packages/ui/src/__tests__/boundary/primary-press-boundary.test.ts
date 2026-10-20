@@ -13,6 +13,12 @@ import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers
 // So no source file compares a `button` with 0 by hand, in either order. A
 // file that must read the button itself is on the list below with the reason.
 // The scan reads the docs site too.
+//
+// A drag start calls `holdTextSelection` after its press gate. So each file
+// that calls it also gates the press with `isPrimaryPress` or a press owner.
+// Before, the reorder grips of List and QueryBuilder started a Motion drag from
+// a Ctrl-click, and the drag stayed live after the context menu took the
+// release.
 
 /** The one file that owns the test. */
 const HOME = 'utilities/primary-press.ts'
@@ -21,6 +27,13 @@ const HOME = 'utilities/primary-press.ts'
 const KEPT: Record<string, string> = {
 	'modules/map/use-map-zoom.ts':
 		'a further pointer of a pinch is not the primary pointer, so `onPointerDown` reads its button after `isPrimaryPress` refuses it',
+}
+
+/** Files that call `holdTextSelection` with no press gate, each with the reason. */
+const UNGATED: Record<string, string> = {
+	'utilities/hold-text-selection.ts': 'the home of `holdTextSelection`',
+	'modules/map/use-map-touch-tap.ts':
+		'it counts each touch contact to find a pinch, so it holds text selection for a touch that is not primary; a touch press starts no drag',
 }
 
 const EQ = '[!=]==?'
@@ -48,6 +61,23 @@ function buttonFiles(): Set<string> {
 
 		// Prose that names the button is not a use of it.
 		if (readsButtonZero(stripSourceComments(source))) files.add(rel)
+	})
+
+	return files
+}
+
+/** Each source file that calls `holdTextSelection`, with whether it gates the press. */
+function holdFiles(): Map<string, boolean> {
+	const files = new Map<string, boolean>()
+
+	walkSource(srcDir, (path, source) => {
+		if (!/\.(?:tsx?|mts|cts)$/.test(path)) return
+
+		const code = stripSourceComments(source)
+
+		if (!/\bholdTextSelection\(/.test(code)) return
+
+		files.set(srcRelative(path), /\b(?:isPrimaryPress|createPressOwner)\b/.test(code))
 	})
 
 	return files
@@ -81,5 +111,24 @@ describe('primary-press boundary', () => {
 		const stale = Object.keys(KEPT).filter((rel) => !files.has(rel))
 
 		expect(stale, `KEPT entries that no longer apply:\n  ${stale.join('\n  ')}`).toEqual([])
+	})
+
+	it('gates the press of each drag start that holds text selection', () => {
+		const violations = [...holdFiles()]
+			.filter(([rel, gated]) => !gated && !(rel in UNGATED))
+			.map(([rel]) => rel)
+
+		expect(
+			violations,
+			`files that call \`holdTextSelection\` with no press gate (call \`isPrimaryPress\` or \`createPressOwner\` from \`utilities/primary-press\` first, or list the file in UNGATED with the reason):\n  ${violations.join('\n  ')}`,
+		).toEqual([])
+	})
+
+	it('lists only files that still call holdTextSelection with no press gate', () => {
+		const files = holdFiles()
+
+		const stale = Object.keys(UNGATED).filter((rel) => files.get(rel) !== false)
+
+		expect(stale, `UNGATED entries that no longer apply:\n  ${stale.join('\n  ')}`).toEqual([])
 	})
 })

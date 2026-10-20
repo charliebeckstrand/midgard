@@ -5,6 +5,7 @@ import type { ComponentProps, PointerEvent } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/list'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import { Icon } from '../icon'
 import { useListContext, useListItemContext } from './context'
 
@@ -13,8 +14,8 @@ export type ListHandleProps = ComponentProps<'span'>
 
 /**
  * Drag handle for a sortable {@link ListItem}, defaulting to a grip icon.
- * Starts the drag of the item when the list is interactive, and shows
- * a disabled grip when the list is disabled. Renders nothing in a read-only
+ * Starts the drag of the item from a primary press when the list is
+ * interactive, and shows a disabled grip when the list is disabled. Renders nothing in a read-only
  * list (no `onReorder`) and in a single-item list, because those lists have
  * no order to change. Decorative (`aria-hidden`); keyboard reorder lives on
  * the item.
@@ -30,6 +31,8 @@ export function ListHandle({ children, className, onPointerDown, ...props }: Lis
 	if (itemCount <= 1 || (!interactive && !disabled)) return null
 
 	const startDrag = (event: PointerEvent<HTMLSpanElement>) => {
+		if (!isPrimaryPress(event)) return
+
 		holdTextSelection(event)
 
 		reorder?.controls.start(event)

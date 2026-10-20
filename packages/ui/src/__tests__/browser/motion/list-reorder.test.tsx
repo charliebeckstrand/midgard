@@ -20,7 +20,7 @@ describe('List pointer reorder (real browser)', () => {
 	]
 
 	/** Presses the grip of `row` and moves the pointer down past the next row. */
-	const dragDown = async (row: HTMLElement, next: HTMLElement) => {
+	const dragDown = async (row: HTMLElement, next: HTMLElement, init?: PointerEventInit) => {
 		const handle = getSlot(row, 'list-handle')
 
 		const box = handle.getBoundingClientRect()
@@ -34,7 +34,7 @@ describe('List pointer reorder (real browser)', () => {
 			y: from.y + ((index + 1) * step * 1.3) / 12,
 		}))
 
-		return drag(handle, from, path)
+		return drag(handle, from, path, init)
 	}
 
 	it('drags a row past the next one and reports the order once, on the drop', async () => {
@@ -73,6 +73,36 @@ describe('List pointer reorder (real browser)', () => {
 
 	// The drop maps keys back to items. Each item must reach `onReorder` whole,
 	// also when the item is an array, such as an `Object.entries` tuple.
+	// On macOS a Ctrl-click is the secondary click. Motion lets it start a drag,
+	// and the context menu can take the release, so the grip refuses it.
+	it('starts no drag from a Ctrl-click on the grip', async () => {
+		const onReorder = vi.fn()
+
+		const { container } = renderUI(
+			<List items={items} getKey={(item) => item.id} onReorder={onReorder}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+
+		const list = getSlot(container, 'list')
+
+		const [first, second] = allBySlot(list, 'list-item')
+
+		if (!first || !second) throw new Error('expected rows')
+
+		const held = await dragDown(first, second, { ctrlKey: true })
+
+		await frames()
+
+		expect(first).not.toHaveAttribute('data-dragging')
+
+		expect(allBySlot(list, 'list-item').map((row) => row.dataset.itemId)).toEqual(['a', 'b', 'c'])
+
+		await held.release()
+
+		expect(onReorder).not.toHaveBeenCalled()
+	})
+
 	it('reports each tuple item whole on the drop', async () => {
 		const onReorder = vi.fn()
 
