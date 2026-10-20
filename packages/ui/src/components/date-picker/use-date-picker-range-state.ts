@@ -5,11 +5,12 @@ import { useCallback, useMemo, useReducer, useRef } from 'react'
 
 import { useLocale } from '../../providers/locale'
 import type { CalendarActive, CalendarHandle } from '../calendar'
+import { orderDates } from '../calendar/calendar-utilities'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
-import { clampDate, formatRange, orderDates, stepDate } from './date-picker-utilities'
+import { clampDate, formatRange, stepDate } from './date-picker-utilities'
 import {
 	type FooterButton,
 	useDatePickerGridEntry,

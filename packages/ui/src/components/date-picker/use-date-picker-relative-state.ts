@@ -7,6 +7,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale'
 import { wrap } from '../../utilities'
+import { orderDates } from '../calendar/calendar-utilities'
 import { NAVIGATION_KEYS } from '../calendar/use-calendar-focus'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
@@ -25,7 +26,6 @@ import {
 	selectedPresetIds,
 	togglePresetValue,
 } from './date-picker-relative-utilities'
-import { orderDates } from './date-picker-utilities'
 import type { FooterButton } from './use-date-picker-keyboard'
 
 /** The two surfaces of the relative popover: the preset list or the custom Start/End inputs. @internal */

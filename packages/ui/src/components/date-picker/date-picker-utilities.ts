@@ -98,8 +98,3 @@ export function startOfYear(date: Date): Date {
 export function endOfYear(date: Date): Date {
 	return fromCalendarDate(toCalendarDate(date).set({ month: 12, day: 31 }))
 }
-
-/** The two dates with the earlier one first. @internal */
-export function orderDates(a: Date, b: Date): [Date, Date] {
-	return a.getTime() <= b.getTime() ? [a, b] : [b, a]
-}

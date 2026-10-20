@@ -12,7 +12,7 @@ import {
 	type CalendarDayProps,
 	type CalendarHandle,
 } from './calendar'
-import { isBeforeDay, isBetween, sameDay } from './calendar-utilities'
+import { isBeforeDay, isBetween, orderDates, sameDay } from './calendar-utilities'
 
 /** Props for {@link CalendarRange}: the controlled `rangeStart`/`rangeEnd` endpoints, hover-date tracking, bounds, locale/size, and `ref`. */
 export type CalendarRangeProps = {
@@ -72,9 +72,7 @@ function getDayFlags(
 	}
 
 	// The earlier endpoint is the start edge, in either selection order.
-	const [first, last] = isBeforeDay(effectiveEnd, rangeStart)
-		? [effectiveEnd, rangeStart]
-		: [rangeStart, effectiveEnd]
+	const [first, last] = orderDates(rangeStart, effectiveEnd)
 
 	// A range of one day has no band, so its cell keeps each corner round.
 	const spans = isBeforeDay(first, last)

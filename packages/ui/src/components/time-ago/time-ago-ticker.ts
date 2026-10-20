@@ -1,5 +1,5 @@
+import { getOrCompute } from '../../utilities'
 import { subscribeDocumentEvent } from '../../utilities/document-listener'
-import { getOrCompute } from '../../utilities/get-or-compute'
 
 type Subscriber = () => void
 
@@ -72,14 +72,10 @@ function handleVisibility(): void {
 export function subscribeTick(intervalMs: number, subscriber: Subscriber): () => void {
 	unsubscribeVisibility ??= subscribeDocumentEvent('visibilitychange', handleVisibility)
 
-	const bucket = getOrCompute(
-		buckets,
-		intervalMs,
-		(): Bucket => ({
-			subscribers: new Set(),
-			timer: null,
-		}),
-	)
+	const bucket = getOrCompute(buckets, intervalMs, () => ({
+		subscribers: new Set<Subscriber>(),
+		timer: null,
+	}))
 
 	bucket.subscribers.add(subscriber)
 

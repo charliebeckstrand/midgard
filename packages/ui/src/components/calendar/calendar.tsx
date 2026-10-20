@@ -20,11 +20,12 @@ import { k, type scale } from '../../recipes/kata/calendar'
 import { Box } from '../../structure/box'
 import { resolveLocale } from '../../utilities'
 import type { ButtonVariants } from '../button'
-import { CalendarGrid, getDayState } from './calendar-grid'
+import { CalendarGrid } from './calendar-grid'
 import { CalendarHeader } from './calendar-header'
 import {
 	formatMonthName,
 	getCalendarDays,
+	getDayState,
 	getFirstDayColumn,
 	getMonthLabels,
 	getWeekdayLabels,
