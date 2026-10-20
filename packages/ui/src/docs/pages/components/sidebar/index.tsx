@@ -1,7 +1,7 @@
 import api from 'virtual:docs/api/components/sidebar'
 import type { ComponentType } from 'react'
 import { cn } from 'ui/core'
-import { ApiTable, ExampleFrame, metaOf, Playground } from '../../../kit/index.ts'
+import { ApiTable, ExampleFrame, getMeta, Playground } from '../../../kit/index.ts'
 import ItemSize from './item-size.tsx'
 import SidebarPlayground from './playground.tsx'
 import SectionsDividerAndSpacer from './sections-divider-and-spacer.tsx'
@@ -14,7 +14,7 @@ import WithSuffixSlot from './with-suffix-slot.tsx'
 // `tall` frame has the height of a layout, so a footer or a spacer has room.
 function SidebarExample({ of: Of, tall = false }: { of: ComponentType; tall?: boolean }) {
 	return (
-		<ExampleFrame meta={metaOf(Of)}>
+		<ExampleFrame meta={getMeta(Of)}>
 			<div
 				className={cn(
 					'overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800',

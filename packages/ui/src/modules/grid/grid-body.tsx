@@ -23,8 +23,8 @@ import {
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import {
 	detailOpen,
+	getGroupKey,
 	groupedWindowRowCount,
-	groupKeyOf,
 	groupTotaled,
 	totalItemKey,
 } from './engine/grid-items/items'
@@ -225,7 +225,7 @@ function renderGroup<T>(
 
 	// The group's row-manager color tints its header aggregates, total footer, and
 	// rail; the leaves render in the engine's natural order (row order isn't managed).
-	const color = presentation?.color(groupKeyOf(group))
+	const color = presentation?.color(getGroupKey(group))
 
 	return (
 		<Fragment key={group.id}>
@@ -337,7 +337,7 @@ function renderGroupedBody<T>(
 	const ordered = applyRowKeyOrder(
 		groups,
 		rowGroupPresentation?.groupOrder ?? undefined,
-		groupKeyOf,
+		getGroupKey,
 	)
 
 	// The per-group total is meaningful only once a column aggregates; the gate

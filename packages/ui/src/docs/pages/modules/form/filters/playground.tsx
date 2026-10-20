@@ -15,7 +15,8 @@ const statuses = [
 	{ value: 'inactive', label: 'Inactive' },
 ]
 
-const labelOf = (value: string) => statuses.find((status) => status.value === value)?.label ?? value
+const getLabel = (value: string) =>
+	statuses.find((status) => status.value === value)?.label ?? value
 
 export default function FiltersPlayground(props: FormFiltersProps) {
 	return (
@@ -28,7 +29,7 @@ export default function FiltersPlayground(props: FormFiltersProps) {
 					</FormFiltersField>
 					<FormFiltersField name="status">
 						<Label>Status</Label>
-						<Select nullable placeholder="All statuses" displayValue={labelOf}>
+						<Select nullable placeholder="All statuses" displayValue={getLabel}>
 							{statuses.map((status) => (
 								<SelectOption key={status.value} value={status.value}>
 									<SelectLabel>{status.label}</SelectLabel>

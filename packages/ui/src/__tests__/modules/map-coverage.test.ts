@@ -51,7 +51,7 @@ const zips: MapFeatureCollection = {
 }
 
 /** The hook over the fixtures, for a stated territory. */
-const coverageOf = (coverage: string) =>
+const renderCoverage = (coverage: string) =>
 	renderHook(() => useMapCoverage({ coverage, zips, regions: counties })).result.current
 
 /** Which regions a resolved frame draws. */
@@ -60,7 +60,7 @@ const framed = (geography: { features: MapFeature[] } | null) =>
 
 describe('useMapCoverage', () => {
 	it('frames the whole state a territory lands in, split into its counties', () => {
-		const { geography, groups, codes } = coverageOf('60601')
+		const { geography, groups, codes } = renderCoverage('60601')
 
 		expect(codes).toEqual(['60601'])
 
@@ -72,7 +72,7 @@ describe('useMapCoverage', () => {
 	})
 
 	it('frames both states where a territory reaches across the line', () => {
-		const { geography, groups } = coverageOf('60601, 46002')
+		const { geography, groups } = renderCoverage('60601, 46002')
 
 		expect(groups.sort()).toEqual(['17', '18'])
 
@@ -80,21 +80,21 @@ describe('useMapCoverage', () => {
 	})
 
 	it('reads a ZIP3 prefix as every code under it', () => {
-		expect(coverageOf('606').codes).toEqual(['60601', '60602'])
+		expect(renderCoverage('606').codes).toEqual(['60601', '60602'])
 	})
 
 	it('reads a range, and takes an exception back out of it', () => {
-		expect(coverageOf('46001-60602').codes).toHaveLength(4)
+		expect(renderCoverage('46001-60602').codes).toHaveLength(4)
 
-		expect(coverageOf('46001-60602, !46001').codes).toEqual(['60601', '60602', '46002'])
+		expect(renderCoverage('46001-60602, !46001').codes).toEqual(['60601', '60602', '46002'])
 	})
 
 	it('orders a range stated backwards, rather than reading it as empty', () => {
-		expect(coverageOf('60602-46001').codes).toEqual(coverageOf('46001-60602').codes)
+		expect(renderCoverage('60602-46001').codes).toEqual(renderCoverage('46001-60602').codes)
 	})
 
 	it('hands back the rings a geofence draws, one polygon per uncombined code', () => {
-		const { area, dissolved } = coverageOf('606')
+		const { area, dissolved } = renderCoverage('606')
 
 		expect(area).toHaveLength(2)
 
@@ -103,7 +103,7 @@ describe('useMapCoverage', () => {
 	})
 
 	it('frames nothing where the territory is empty', () => {
-		const { geography, area, codes } = coverageOf('')
+		const { geography, area, codes } = renderCoverage('')
 
 		expect(codes).toEqual([])
 
@@ -113,11 +113,11 @@ describe('useMapCoverage', () => {
 	})
 
 	it('frames nothing where the territory matches no code in the atlas', () => {
-		expect(coverageOf('90210').geography).toBeNull()
+		expect(renderCoverage('90210').geography).toBeNull()
 	})
 
 	it('reports an unreadable term without voiding the rest of the territory', () => {
-		const { codes, invalid } = coverageOf('606, chicago')
+		const { codes, invalid } = renderCoverage('606, chicago')
 
 		expect(codes).toEqual(['60601', '60602'])
 
@@ -224,7 +224,7 @@ describe('useMapCoverage', () => {
 	})
 
 	it('states the rings in the shape MapGeofence takes for an area', () => {
-		const { area } = coverageOf('60601')
+		const { area } = renderCoverage('60601')
 
 		const [polygon] = area
 

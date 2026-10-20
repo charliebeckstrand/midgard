@@ -92,7 +92,7 @@ function typedSeed<T>(
 
 /**
  * The value a printable key seeds into an editor of the new-row slot, or `null`
- * when the key must not open it. The slot holds no value, so `kindOf` names
+ * when the key must not open it. The slot holds no value, so `getKind` names
  * the editor. As in a data row, only an editor that the grid infers takes a
  * seed.
  *
@@ -101,11 +101,11 @@ function typedSeed<T>(
 function slotSeed<T>(
 	press: GridKeyPress,
 	col: GridColumn<T> | undefined,
-	kindOf: (column: GridColumn<T>) => EditorKind,
+	getKind: (column: GridColumn<T>) => EditorKind,
 ): string | number | null {
 	if (!col || col.editCell || !isColumnEditable(col)) return null
 
-	return seedFromKey(press, kindOf(col))
+	return seedFromKey(press, getKind(col))
 }
 
 /**
@@ -693,7 +693,7 @@ export function useGridCursor<T>({
 		readSource: readFillSource,
 		showRange: nav.showRange,
 		fill: fillFromHandle,
-		cellCoordOf: nav.cellCoordOf,
+		parseCellCoord: nav.parseCellCoord,
 		rowStep: nav.rowStep,
 		rowDistance: nav.rowDistance,
 		scrollContainerRef,

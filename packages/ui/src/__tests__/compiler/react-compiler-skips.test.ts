@@ -39,7 +39,7 @@ const DECLARED_NAME = /(?:function\*?\s+|(?:const|let|var)\s+)([A-Za-z_$][\w$]*)
  * `Refs` or `Todo`. The message is not used, because some messages hold an
  * internal id that changes when other code in the file changes.
  */
-function causeOf(event: LoggerEvent): string {
+function getCause(event: LoggerEvent): string {
 	if (event.kind === 'CompileError') return event.detail.category
 
 	if (event.kind === 'CompileSkip') return event.reason
@@ -89,7 +89,7 @@ function moduleSkips(file: string, source: string): Record<string, string> {
 			event.kind === 'CompileSkip' ||
 			event.kind === 'PipelineError'
 		) {
-			events.push({ fnLoc: event.fnLoc, cause: causeOf(event) })
+			events.push({ fnLoc: event.fnLoc, cause: getCause(event) })
 		}
 	}
 

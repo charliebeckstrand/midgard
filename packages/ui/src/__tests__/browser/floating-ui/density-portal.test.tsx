@@ -19,7 +19,7 @@ import { present, renderUI, screen, waitFor } from '../../helpers'
  * Rides the real floating engine because the jsdom and default browser suites render a portal
  * inline, inside the scope. There the claim passes with no bridge.
  */
-const fontOf = (node: HTMLElement) => Number.parseFloat(getComputedStyle(node).fontSize)
+const readFontSize = (node: HTMLElement) => Number.parseFloat(getComputedStyle(node).fontSize)
 
 describe('density scopes across portals (real browser)', () => {
 	afterEach(() => {
@@ -46,7 +46,7 @@ describe('density scopes across portals (real browser)', () => {
 
 		expect(title.closest('[data-slot="density"]')).toBeNull()
 
-		expect(fontOf(title)).toBe(font)
+		expect(readFontSize(title)).toBe(font)
 	})
 
 	it('sizes a menu row at the step of a compact provider', async () => {
@@ -69,7 +69,7 @@ describe('density scopes across portals (real browser)', () => {
 
 		expect(row.closest('[data-slot="density"]')).toBeNull()
 
-		expect(fontOf(row)).toBe(14)
+		expect(readFontSize(row)).toBe(14)
 	})
 
 	it('sizes a menu row and a popover panel at the step of the root', async () => {
@@ -105,7 +105,7 @@ describe('density scopes across portals (real browser)', () => {
 
 		const row = await screen.findByRole('menuitem', { name: 'Copy' })
 
-		expect(fontOf(row)).toBe(14)
+		expect(readFontSize(row)).toBe(14)
 	})
 
 	it('sizes a submenu row at the step of its parent menu', async () => {
@@ -125,7 +125,7 @@ describe('density scopes across portals (real browser)', () => {
 
 		const row = await screen.findByRole('menuitem', { name: 'Nested' })
 
-		expect(fontOf(row)).toBe(18)
+		expect(readFontSize(row)).toBe(18)
 	})
 
 	it.each([
@@ -147,7 +147,7 @@ describe('density scopes across portals (real browser)', () => {
 
 		const tip = await screen.findByText('Tip')
 
-		await waitFor(() => expect(fontOf(tip)).toBe(font))
+		await waitFor(() => expect(readFontSize(tip)).toBe(font))
 	})
 
 	it('sizes a listbox option at the step of a compact provider', async () => {
@@ -166,7 +166,7 @@ describe('density scopes across portals (real browser)', () => {
 
 		expect(option.closest('[data-slot="density"]')).toBeNull()
 
-		expect(fontOf(option)).toBe(14)
+		expect(readFontSize(option)).toBe(14)
 	})
 
 	it('sizes a combobox option at the step of a compact provider', async () => {
@@ -185,7 +185,7 @@ describe('density scopes across portals (real browser)', () => {
 
 		expect(option.closest('[data-slot="density"]')).toBeNull()
 
-		expect(fontOf(option)).toBe(14)
+		expect(readFontSize(option)).toBe(14)
 	})
 
 	// A control slot is a scope one step below its control in CSS only. A panel that
@@ -210,6 +210,6 @@ describe('density scopes across portals (real browser)', () => {
 
 		const tip = await screen.findByText('Tip')
 
-		await waitFor(() => expect(fontOf(tip)).toBe(18))
+		await waitFor(() => expect(readFontSize(tip)).toBe(18))
 	})
 })

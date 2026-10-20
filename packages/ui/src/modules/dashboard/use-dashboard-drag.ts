@@ -76,7 +76,7 @@ function cancelSensor(drag: SensedDrag): void {
 }
 
 /** The name that the live region reads for a tile. */
-function labelOf(store: DashboardStore, id: string): string {
+function getLabel(store: DashboardStore, id: string): string {
 	return store.getState().demands.get(id)?.label ?? id
 }
 
@@ -323,7 +323,7 @@ export function useDashboardDrag({
 				const cell = currentCell(store, id)
 
 				return cell
-					? describeDragStart(intl, labelOf(store, id), cell, store.getState().columns)
+					? describeDragStart(intl, getLabel(store, id), cell, store.getState().columns)
 					: undefined
 			},
 			onDragMove: ({ active }) => {
@@ -335,11 +335,11 @@ export function useDashboardDrag({
 
 				const cell = gesture?.preview?.find((item) => item.id === id) ?? null
 
-				const partner = gesture?.partner ? labelOf(store, gesture.partner) : null
+				const partner = gesture?.partner ? getLabel(store, gesture.partner) : null
 
 				return describeDragMove(
 					intl,
-					labelOf(store, id),
+					getLabel(store, id),
 					cell,
 					columns,
 					gesture?.change ?? null,
@@ -358,7 +358,7 @@ export function useDashboardDrag({
 
 				if (cell === null) return undefined
 
-				return describeDragEnd(intl, labelOf(store, id), cell, store.getState().columns, settled)
+				return describeDragEnd(intl, getLabel(store, id), cell, store.getState().columns, settled)
 			},
 			onDragCancel: ({ active }) => {
 				const id = String(active.id)
@@ -368,7 +368,7 @@ export function useDashboardDrag({
 				const cell = store.getView().cells.get(id)
 
 				return cell
-					? describeDragCancel(intl, labelOf(store, id), cell, store.getState().columns)
+					? describeDragCancel(intl, getLabel(store, id), cell, store.getState().columns)
 					: undefined
 			},
 		}

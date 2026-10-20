@@ -10,7 +10,7 @@ import {
 import { defineMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
-import { slugOf, tabName } from './tab-name.ts'
+import { tabName, toSlug } from './tab-name.ts'
 
 const sectionsMessage = defineMessage({
 	id: 'docs.tabs.sections',
@@ -51,7 +51,7 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 
 	// Each tab but the first is a folder. The prerender renders each page, so a
 	// tab with no folder, or a folder with no tab, fails the build.
-	const slugs = others.map(slugOf).toSorted()
+	const slugs = others.map(toSlug).toSorted()
 
 	const folders = pages.find((link) => link.path === page)?.tabs ?? []
 
@@ -61,7 +61,7 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 		)
 	}
 
-	const current = trimSlash(pathname).slice(page.length + 1) || slugOf(first)
+	const current = trimSlash(pathname).slice(page.length + 1) || toSlug(first)
 
 	const [intent, setIntent] = useState<string>()
 
@@ -74,17 +74,17 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 				if (tab === null) return
 
 				// The page keeps its scroll position when the tab changes.
-				navigate(tab === slugOf(first) ? '.' : tab, { preventScrollReset: true })
+				navigate(tab === toSlug(first) ? '.' : tab, { preventScrollReset: true })
 			}}
 		>
 			<TabList aria-label={intl.formatMessage(sectionsMessage)}>
 				{tabs.map((tab) => (
-					<Tab key={tab} value={slugOf(tab)} onPreload={setIntent}>
-						{tabName(intl, slugOf(tab), tab)}
+					<Tab key={tab} value={toSlug(tab)} onPreload={setIntent}>
+						{tabName(intl, toSlug(tab), tab)}
 					</Tab>
 				))}
 			</TabList>
-			{intent && intent !== slugOf(first) && <PrefetchPageLinks page={`${page}/${intent}`} />}
+			{intent && intent !== toSlug(first) && <PrefetchPageLinks page={`${page}/${intent}`} />}
 			<TabContents animate={false}>
 				<TabContent value={current}>
 					<Stack gap="xl">{outlet ?? children}</Stack>

@@ -121,7 +121,7 @@ describe('useVirtualWindow commits around a scroll (real browser)', () => {
 	it('commits no scroll render after a list change above the viewport', async () => {
 		const handle = { prepend: (_ids: number[]) => {} }
 
-		const heightOf = (id: number) => 30 + ((id * 37) % 90)
+		const getHeight = (id: number) => 30 + ((id * 37) % 90)
 
 		let commits = 0
 
@@ -158,7 +158,7 @@ describe('useVirtualWindow commits around a scroll (real browser)', () => {
 								ref={measureRef}
 								data-index={item.index}
 								data-row={id}
-								style={{ height: heightOf(id) }}
+								style={{ height: getHeight(id) }}
 							>
 								Row {id}
 							</div>

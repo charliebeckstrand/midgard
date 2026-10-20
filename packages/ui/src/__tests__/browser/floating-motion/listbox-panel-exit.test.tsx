@@ -6,7 +6,7 @@ import { Listbox } from '../../../components/listbox'
 import { ListboxOption } from '../../../components/listbox/listbox-option'
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
 import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 
 /**
  * The panels of Listbox and Combobox do not use `FloatingSurface`. Each renders
@@ -31,7 +31,7 @@ const focused = () => present(document.activeElement, 'the focused element')
 
 /** Whether a press at the center of `element` lands on it or inside it. */
 function hits(element: Element) {
-	const at = centerOf(element)
+	const at = getCenter(element)
 
 	return element.contains(document.elementFromPoint(at.x, at.y))
 }

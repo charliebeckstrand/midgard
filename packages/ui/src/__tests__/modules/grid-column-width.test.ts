@@ -24,7 +24,7 @@ const defs: EngineColumnDef<Row>[] = [
 	{ id: 'bounded', minSize: 80, maxSize: 200 },
 ]
 
-function engineOf(sizing: ColumnSizingState) {
+function makeEngine(sizing: ColumnSizingState) {
 	// Outside React, the engine takes its reactivity from TanStack Store. In the
 	// grid, `useTable` adds this feature.
 	const features = { ...gridFeatures, coreReactivityFeature: storeReactivityBindings() }
@@ -44,7 +44,7 @@ describe('columnWidth', () => {
 		['with a width under the floor', { floored: 10, bounded: 5 }],
 		['with a width over the cap', { capped: 900, bounded: 999 }],
 	])('agrees with the engine %s', (_, sizing: ColumnSizingState) => {
-		const table = engineOf(sizing)
+		const table = makeEngine(sizing)
 
 		for (const column of table.getAllLeafColumns()) {
 			expect(columnWidth(column.columnDef, sizing[column.id])).toBe(column.getSize())
@@ -52,7 +52,7 @@ describe('columnWidth', () => {
 	})
 
 	it('keys each width by column id', () => {
-		const table = engineOf({ sized: 260 })
+		const table = makeEngine({ sized: 260 })
 
 		const widths = columnWidths(table.getAllLeafColumns(), { sized: 260 })
 

@@ -249,12 +249,12 @@ export function nearestSeriesArea(
 	// The top edge of the series before, at `x`: the lower edge of a stacked ribbon.
 	let below: number | null = null
 
-	const baseOf = typeof base === 'number' ? () => base : base
+	const getBase = typeof base === 'number' ? () => base : base
 
 	for (let series = 0; series < seriesRuns.length; series++) {
 		const top = seriesTopAt(seriesRuns[series] as LinePoint[][], x)
 
-		const lower = stacked && series > 0 ? below : baseOf(series)
+		const lower = stacked && series > 0 ? below : getBase(series)
 
 		below = top
 

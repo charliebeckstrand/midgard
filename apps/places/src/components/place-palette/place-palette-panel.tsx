@@ -136,7 +136,7 @@ export function PlacePalettePanel({ sources, open, onOpenChange }: PlacePaletteP
 
 	const dwell = useTimeout()
 
-	const commandOf = (id: string | null): PaletteCommand | undefined => {
+	const findCommand = (id: string | null): PaletteCommand | undefined => {
 		if (id === null || !id.startsWith(prefix)) return undefined
 
 		const [source, command] = id.slice(prefix.length).split('-').map(Number)
@@ -154,19 +154,19 @@ export function PlacePalettePanel({ sources, open, onOpenChange }: PlacePaletteP
 
 		dwell.clear()
 
-		const preload = commandOf(id)?.preload
+		const preload = findCommand(id)?.preload
 
 		if (preload !== undefined) dwell.set(preload, PRELOAD_DWELL_MS)
 	}
 
-	const optionOf = (target: EventTarget | null): string | null =>
+	const findOption = (target: EventTarget | null): string | null =>
 		target instanceof Element ? (target.closest('[role=option]')?.id ?? null) : null
 
 	// The pointer. The palette is in a portal, and React sends the events of a
 	// portal to its React parents, so this wrapper gets them.
-	const handlePointerOver = (event: PointerEvent) => activate(optionOf(event.target))
+	const handlePointerOver = (event: PointerEvent) => activate(findOption(event.target))
 
-	const handlePointerOut = (event: PointerEvent) => activate(optionOf(event.relatedTarget))
+	const handlePointerOut = (event: PointerEvent) => activate(findOption(event.relatedTarget))
 
 	return (
 		<div className="contents" onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}>

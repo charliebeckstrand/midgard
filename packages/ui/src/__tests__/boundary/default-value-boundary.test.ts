@@ -265,7 +265,7 @@ function scan(): Scan {
 
 		const { program, checker } = project
 
-		const exportsOf = (file: string): readonly TsSymbol[] => {
+		const getExports = (file: string): readonly TsSymbol[] => {
 			const source = program.getSourceFile(file)
 
 			const module = source && checker.getSymbolAtLocation(source)
@@ -282,7 +282,7 @@ function scan(): Scan {
 
 		for (const [key, namespace] of Object.entries(kataModules)) {
 			const symbolByName = new Map(
-				exportsOf(join(kataDir, basename(key))).map((symbol) => [symbol.name, symbol]),
+				getExports(join(kataDir, basename(key))).map((symbol) => [symbol.name, symbol]),
 			)
 
 			for (const { path, recipe } of reachedRecipes(namespace)) {
@@ -302,9 +302,9 @@ function scan(): Scan {
 			}
 		}
 
-		const types = scanKataTypes(project, exportsOf, recipeByType, violations)
+		const types = scanKataTypes(project, getExports, recipeByType, violations)
 
-		const components = publicComponents(project, exportsOf, violations)
+		const components = publicComponents(project, getExports, violations)
 
 		let destructured = 0
 
@@ -343,13 +343,13 @@ function scan(): Scan {
 /** Rules 1 to 3: hold the tags on the exported types of the kata to the recipe defaults. */
 function scanKataTypes(
 	project: Project,
-	exportsOf: (file: string) => readonly TsSymbol[],
+	getExports: (file: string) => readonly TsSymbol[],
 	recipeByType: ReadonlyMap<number, Recipe>,
 	violations: Set<string>,
 ): number {
 	const { checker } = project
 
-	const variantProps = exportsOf(engineTypes).find((symbol) => symbol.name === 'VariantProps')
+	const variantProps = getExports(engineTypes).find((symbol) => symbol.name === 'VariantProps')
 
 	if (!variantProps) throw new Error('the checker found no `VariantProps` in the recipe engine')
 
@@ -358,7 +358,7 @@ function scanKataTypes(
 	for (const key of Object.keys(kataModules)) {
 		const label = `recipes/kata/${basename(key)}`
 
-		for (const exported of exportsOf(join(kataDir, basename(key)))) {
+		for (const exported of getExports(join(kataDir, basename(key)))) {
 			const declaration = exported.declarations[0]?.resolve(project)
 
 			if (!declaration || !isTypeAliasDeclaration(declaration)) continue
@@ -432,7 +432,7 @@ function scanKataTypes(
  */
 function publicComponents(
 	project: Project,
-	exportsOf: (file: string) => readonly TsSymbol[],
+	getExports: (file: string) => readonly TsSymbol[],
 	violations: Set<string>,
 ): Component[] {
 	const { checker } = project
@@ -476,7 +476,7 @@ function publicComponents(
 	const seen = new Set<number>()
 
 	for (const barrel of publicBarrels()) {
-		for (const exported of exportsOf(barrel)) {
+		for (const exported of getExports(barrel)) {
 			if (!/^[A-Z]/.test(exported.name)) continue
 
 			const target = resolved(checker, exported)

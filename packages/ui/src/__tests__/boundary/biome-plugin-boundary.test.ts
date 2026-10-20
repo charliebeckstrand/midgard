@@ -186,6 +186,23 @@ export { useReducedMotion, AnimatePresence, motion, useReduced, useFramerReduced
 `,
 		},
 	],
+	'no-of-suffixed-binding': [
+		{
+			file: 'names.ts',
+			source: `import { expectTypeOf } from 'vitest'
+declare const rows: string[]
+export function rowOf(index: number) { return rows[index] } // flag
+export const labelOf = (index: number) => rows[index] // flag
+export const sectionOf = new Map<string, string>() // flag
+export const pick = (keyOf: (row: string) => string) => rows.map(keyOf) // flag
+export const { sizeOf } = { sizeOf: 1 } // flag
+export function getRow(index: number) { return rows[index] }
+export const startOfDay = 0
+export const messages = { pageOf: 'Page {page} of {total}' }
+export const check = expectTypeOf
+`,
+		},
+	],
 	'no-physical-side': [
 		{
 			file: 'side.tsx',

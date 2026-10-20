@@ -39,7 +39,7 @@ function barrels(): string[] {
  * A union with another member, such as `'sm' | 'md' | number`, gives its text
  * in `type`.
  */
-function stringLiteralsOf(prop: PropApi): string[] {
+function getStrings(prop: PropApi): string[] {
 	if (prop.values) return prop.values.filter((value) => typeof value === 'string')
 
 	return (prop.type ?? '')
@@ -56,7 +56,7 @@ async function sizeAxesOfApi(): Promise<Record<string, DensityStep[]>> {
 		for (const component of Object.values(await extractor.extract(barrel))) {
 			const size = component.props.find((prop) => prop.name === 'size')
 
-			const literals = size ? stringLiteralsOf(size) : []
+			const literals = size ? getStrings(size) : []
 
 			if (literals.length === 0 || !literals.every(isDensityStep)) continue
 

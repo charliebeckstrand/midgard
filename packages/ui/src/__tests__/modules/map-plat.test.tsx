@@ -303,13 +303,13 @@ describe('MapPlat', () => {
 	})
 
 	it('keeps a toggled-off category tied to its value when the data reorders', () => {
-		const labelOf = (el: Element) =>
+		const readLabel = (el: Element) =>
 			bySlot(el as HTMLElement, 'map-legend-label')?.textContent ?? ''
 
 		const pressedByLabel = (root: HTMLElement) =>
 			Object.fromEntries(
 				allBySlot(root, 'map-legend-item').map((el) => [
-					labelOf(el),
+					readLabel(el),
 					el.getAttribute('aria-pressed'),
 				]),
 			)
@@ -324,7 +324,7 @@ describe('MapPlat', () => {
 			}),
 		)
 
-		const west = allBySlot(container, 'map-legend-item').find((el) => labelOf(el) === 'West')
+		const west = allBySlot(container, 'map-legend-item').find((el) => readLabel(el) === 'West')
 
 		fireEvent.click(west as HTMLButtonElement)
 
@@ -800,7 +800,7 @@ describe('MapPlat choropleth mode', () => {
 	// A three-stop scale, pale → deep; bins default to one per stop.
 	const RANGE = ['#dbeafe', '#3b82f6', '#1e3a8a']
 
-	const fillOf = (el?: Element) => el?.getAttribute('fill')
+	const readFill = (el?: Element) => el?.getAttribute('fill')
 
 	function choropleth(extra?: Partial<Parameters<typeof MapPlat<(typeof NUMERIC)[number]>>[0]>) {
 		const props = {
@@ -852,11 +852,11 @@ describe('MapPlat choropleth mode', () => {
 
 		// A=0 lands in the first (pale) bin, C=100 in the last (deep) one: distinct
 		// inline fills (the exact color → bin mapping is unit-tested in map-value-scale).
-		expect(fillOf(alpha)).toBeTruthy()
+		expect(readFill(alpha)).toBeTruthy()
 
-		expect(fillOf(gamma)).toBeTruthy()
+		expect(readFill(gamma)).toBeTruthy()
 
-		expect(fillOf(alpha)).not.toBe(fillOf(gamma))
+		expect(readFill(alpha)).not.toBe(readFill(gamma))
 	})
 
 	it('leaves an unmatched region on the neutral no-data fill class', () => {
@@ -873,7 +873,7 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(beta?.getAttribute('class')).toContain('fill-zinc-200')
 
-		expect(fillOf(beta)).toBeNull()
+		expect(readFill(beta)).toBeNull()
 	})
 
 	it('shows one legend entry per bin, largest first, labeled by value range', () => {
@@ -1315,7 +1315,8 @@ describe('MapPlat legend reporting', () => {
 	const entries = (container: HTMLElement) =>
 		allBySlot(container, 'map-legend-item') as HTMLButtonElement[]
 
-	const labelOf = (el: Element) => bySlot(el as HTMLElement, 'map-legend-label')?.textContent ?? ''
+	const readLabel = (el: Element) =>
+		bySlot(el as HTMLElement, 'map-legend-label')?.textContent ?? ''
 
 	it('reports the ids a legend switch turns off, and the set it restores', () => {
 		const onHiddenChange = vi.fn()
@@ -1401,7 +1402,7 @@ describe('MapPlat legend reporting', () => {
 
 		const [first] = entries(container)
 
-		expect(labelOf(first as HTMLButtonElement)).not.toBe('')
+		expect(readLabel(first as HTMLButtonElement)).not.toBe('')
 
 		fireEvent.pointerEnter(first as HTMLButtonElement)
 

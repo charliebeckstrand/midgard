@@ -16,7 +16,7 @@ describe('Indeterminate ProgressBar (real browser)', () => {
 		document.documentElement.classList.remove(rootReducedMotionClass)
 	})
 
-	function fillOf(container: HTMLElement) {
+	function readFill(container: HTMLElement) {
 		const fill = bySlot(container, 'progress-bar')?.firstElementChild
 
 		if (!fill) throw new Error('expected the fill')
@@ -33,7 +33,7 @@ describe('Indeterminate ProgressBar (real browser)', () => {
 
 		await nextPaint()
 
-		const fill = fillOf(container)
+		const fill = readFill(container)
 
 		const start = fill.getBoundingClientRect().left
 
@@ -53,7 +53,7 @@ describe('Indeterminate ProgressBar (real browser)', () => {
 
 		await nextPaint()
 
-		const fill = fillOf(container)
+		const fill = readFill(container)
 
 		const start = fill.getBoundingClientRect().left
 

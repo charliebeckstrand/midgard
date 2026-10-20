@@ -70,7 +70,7 @@ const KIND_LABELS: Readonly<Record<SearchKind, MessageDescriptor>> = defineMessa
 
 // The section of each page, by its path. The result of a page shows the name
 // of its section in the language of the reader.
-const sectionOf: ReadonlyMap<string, string> = new Map(
+const sectionByPath: ReadonlyMap<string, string> = new Map(
 	pages.map((page) => [page.path, page.category]),
 )
 
@@ -137,8 +137,8 @@ function Results({ onPick }: { onPick: () => void }) {
 	// Where the entry is. The section of a page and the name of a tab, as in
 	// "Grid › Sorting", show in the language of the reader. The names from the
 	// code stay as they are.
-	const contextOf = (option: Option): string => {
-		const section = option.kind === 'page' ? sectionOf.get(option.href) : undefined
+	const formatContext = (option: Option): string => {
+		const section = option.kind === 'page' ? sectionByPath.get(option.href) : undefined
 
 		if (section !== undefined) return sectionLabel(intl, section)
 
@@ -190,7 +190,7 @@ function Results({ onPick }: { onPick: () => void }) {
 							<CommandPaletteText>
 								<CommandPaletteLabel>{option.label}</CommandPaletteLabel>
 								<CommandPaletteDescription>
-									{`${intl.formatMessage(KIND_LABELS[option.kind])} · ${contextOf(option)}`}
+									{`${intl.formatMessage(KIND_LABELS[option.kind])} · ${formatContext(option)}`}
 								</CommandPaletteDescription>
 							</CommandPaletteText>
 						</CommandPaletteItem>

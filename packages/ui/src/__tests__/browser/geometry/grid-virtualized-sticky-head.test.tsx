@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, frames, getSlot, present, renderUI, screen, waitFor } from '../../helpers'
-import { boxOf } from '../../helpers/geometry/box'
+import { measureBox } from '../../helpers/geometry/box'
 import { PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -108,7 +108,7 @@ describe('grid virtualized cursor under a sticky header (real browser)', () => {
 		const cell = activeCell()
 
 		// The outer box takes the side edges of the cell, so the check reads the top and the bottom only.
-		expect({ ...boxOf(cell), ...clearBox(scroll) }).toContainBox(cell, { tolerance: PIXEL })
+		expect({ ...measureBox(cell), ...clearBox(scroll) }).toContainBox(cell, { tolerance: PIXEL })
 
 		const [written] = writes
 

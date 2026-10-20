@@ -58,7 +58,7 @@ const VARIABLE_LIKE = new Set([
 ])
 
 /** The initializer of a node, or `undefined` for a node that has none. */
-function initializerOf(node: Node): Node | undefined {
+function getInitializer(node: Node): Node | undefined {
 	return (node as Node & { initializer?: Node }).initializer
 }
 
@@ -136,7 +136,7 @@ function nextDocHost(node: Node): Node | undefined {
 	// initializer of that declaration, so only a property reads its initializer.
 	const initializer =
 		above.kind === SyntaxKind.PropertyDeclaration || above.kind === SyntaxKind.PropertyAssignment
-			? initializerOf(above)
+			? getInitializer(above)
 			: undefined
 
 	return firstVariable(above) || initializer === node ? above : undefined
@@ -151,7 +151,7 @@ function nextDocHost(node: Node): Node | undefined {
 export function docComments(host: Node): JSDoc[] {
 	const docs: JSDoc[] = []
 
-	const initializer = VARIABLE_LIKE.has(host.kind) ? initializerOf(host) : undefined
+	const initializer = VARIABLE_LIKE.has(host.kind) ? getInitializer(host) : undefined
 
 	if (initializer) docs.push(...ownedDoc(host, initializer))
 

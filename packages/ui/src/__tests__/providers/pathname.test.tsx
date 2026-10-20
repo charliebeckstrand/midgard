@@ -5,7 +5,7 @@ import { UIProvider } from '../../providers/ui'
 import { renderUI, screen } from '../helpers'
 
 /** The `aria-current` of the link with the name. */
-function currentOf(name: string) {
+function readCurrent(name: string) {
 	return screen.getByRole('link', { name }).getAttribute('aria-current')
 }
 
@@ -22,9 +22,9 @@ describe('UIProvider pathname', () => {
 			</UIProvider>,
 		)
 
-		expect(currentOf('Users')).toBe('page')
+		expect(readCurrent('Users')).toBe('page')
 
-		expect(currentOf('Home')).toBeNull()
+		expect(readCurrent('Home')).toBeNull()
 	})
 
 	it('matches each path under the href with match="prefix", at a segment boundary', () => {
@@ -44,11 +44,11 @@ describe('UIProvider pathname', () => {
 			</UIProvider>,
 		)
 
-		expect(currentOf('Users')).toBe('page')
+		expect(readCurrent('Users')).toBe('page')
 
-		expect(currentOf('Use')).toBeNull()
+		expect(readCurrent('Use')).toBeNull()
 
-		expect(currentOf('Exact')).toBeNull()
+		expect(readCurrent('Exact')).toBeNull()
 	})
 
 	it('lets an explicit current win over the pathname', () => {
@@ -62,7 +62,7 @@ describe('UIProvider pathname', () => {
 			</UIProvider>,
 		)
 
-		expect(currentOf('Users')).toBeNull()
+		expect(readCurrent('Users')).toBeNull()
 	})
 
 	it('keeps the pathname of the outer provider when a nested provider omits it', () => {
@@ -76,7 +76,7 @@ describe('UIProvider pathname', () => {
 			</UIProvider>,
 		)
 
-		expect(currentOf('Users')).toBe('page')
+		expect(readCurrent('Users')).toBe('page')
 	})
 
 	it('moves the current item when the pathname changes', () => {
@@ -97,9 +97,9 @@ describe('UIProvider pathname', () => {
 
 		rerender(<Items pathname="/security" />)
 
-		expect(currentOf('Security')).toBe('page')
+		expect(readCurrent('Security')).toBe('page')
 
-		expect(currentOf('Users')).toBeNull()
+		expect(readCurrent('Users')).toBeNull()
 	})
 
 	it('marks no item outside a provider with a pathname', () => {
@@ -109,6 +109,6 @@ describe('UIProvider pathname', () => {
 			</Sidebar>,
 		)
 
-		expect(currentOf('Users')).toBeNull()
+		expect(readCurrent('Users')).toBeNull()
 	})
 })

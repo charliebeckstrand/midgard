@@ -166,7 +166,7 @@ function firstPosition(features: MapFeature[]): LngLat | null {
  * empty geography, or one that falls entirely outside the projection's own
  * frame.
  */
-function witnessOf(
+function buildWitness(
 	features: MapFeature[],
 	projection: GeoProjection,
 ): MapProjectedAtlas['witness'] {
@@ -301,7 +301,7 @@ export function projectAtlas(
 		points: Float64Array.from(sink.xy),
 		ringStart: Uint32Array.from(sink.ringStart),
 		regionRing: Uint32Array.from(regionRing),
-		witness: witnessOf(features, projection),
+		witness: buildWitness(features, projection),
 		...basis,
 	}
 }

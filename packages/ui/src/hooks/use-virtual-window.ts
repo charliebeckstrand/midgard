@@ -302,7 +302,7 @@ function indexOfKey(
 }
 
 /** The index of each key of the list, the first one where a key repeats. @internal */
-function keyIndexOf(
+function buildKeyIndex(
 	count: number,
 	getItemKey: (index: number) => VirtualItem['key'],
 ): Map<VirtualItem['key'], number> {
@@ -347,7 +347,7 @@ function holdStartAnchor(
 	let keyIndex: Map<VirtualItem['key'], number> | null = null
 
 	const listIndex = () => {
-		keyIndex ??= keyIndexOf(count, getItemKey)
+		keyIndex ??= buildKeyIndex(count, getItemKey)
 
 		return keyIndex
 	}

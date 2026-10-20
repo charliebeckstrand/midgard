@@ -117,7 +117,7 @@ export type ApiTask =
  * from low to high, then `false` and `true`.
  */
 function compareLiterals(a: Literal, b: Literal): number {
-	const byRank = rankOf(a) - rankOf(b)
+	const byRank = getRank(a) - getRank(b)
 
 	if (byRank !== 0) return byRank
 
@@ -130,7 +130,7 @@ function compareLiterals(a: Literal, b: Literal): number {
 	return Number(a) - Number(b)
 }
 
-function rankOf(value: Literal): number {
+function getRank(value: Literal): number {
 	if (typeof value === 'string') return isDensityStep(value) ? 0 : 1
 
 	return typeof value === 'number' ? 2 : 3
@@ -302,7 +302,7 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 	function component(exported: TsSymbol): ComponentApi | undefined {
 		if (!/^[A-Z]/.test(exported.name)) return undefined
 
-		const symbol = targetOf(exported)
+		const symbol = resolveAlias(exported)
 
 		const type = symbol.flags & SymbolFlags.Value ? checker.getTypeOfSymbol(symbol) : undefined
 
@@ -310,7 +310,7 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 
 		if (!signature) return undefined
 
-		const members = membersOf(checker.getParameterType(signature, 0))
+		const members = collectMembers(checker.getParameterType(signature, 0))
 
 		// A prop that `ui` declares, also when a package declares it too, such as
 		// the `color` of a button and of an HTML element.
@@ -318,7 +318,7 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 
 		const description = checker.getDocumentationCommentOfSymbol(symbol)
 
-		const elements = elementsOf(symbol, signature, [...members.keys()])
+		const elements = collectElements(symbol, signature, [...members.keys()])
 
 		const apis = own.flatMap(([member, required]) => prop(member, required) ?? []).toSorted(byName)
 
@@ -339,7 +339,7 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 	 * requires one of the alternatives, as each arm of `AccessibleName`
 	 * requires its label.
 	 */
-	function membersOf(props: Type | undefined): Map<TsSymbol, boolean> {
+	function collectMembers(props: Type | undefined): Map<TsSymbol, boolean> {
 		const common = props ? checker.getPropertiesOfType(props) : []
 
 		const names = new Set(common.map((member) => member.name))
@@ -380,11 +380,14 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 		// `ContextMenu` gives `Menu`. It is not in the API of the component.
 		if (tags.has('internal')) return undefined
 
-		const taken = takenOf(type, defined)
+		const taken = readTaken(type, defined)
 
 		const deprecated = tags.get('deprecated')
 
-		const { code, sentence } = defaultOf(tags.get('defaultValue') ?? '', taken.values !== undefined)
+		const { code, sentence } = parseDefault(
+			tags.get('defaultValue') ?? '',
+			taken.values !== undefined,
+		)
 
 		const description = [
 			checker.getDocumentationCommentOfSymbol(symbol),
@@ -393,7 +396,7 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 			.filter(Boolean)
 			.join('\n\n')
 
-		const value = defaultValueOf(code)
+		const value = parseDefaultValue(code)
 
 		return {
 			name: symbol.name,
@@ -401,7 +404,7 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 			...(required && { required: true }),
 			...(code && { default: code }),
 			...(value !== undefined && { defaultValue: value }),
-			...rangeOf(symbol.name, tags),
+			...readRange(symbol.name, tags),
 			...(description && { description }),
 			...(deprecated !== undefined && { deprecated }),
 		}
@@ -411,14 +414,14 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 	 * What a prop takes: the members of a union of literals, or the text of
 	 * another type. A responsive type gives both.
 	 */
-	function takenOf(type: Type, defined: Type): Pick<PropApi, 'type' | 'values' | 'responsive'> {
-		const responsive = responsiveOf(defined)
+	function readTaken(type: Type, defined: Type): Pick<PropApi, 'type' | 'values' | 'responsive'> {
+		const responsive = readResponsive(defined)
 
-		if (responsive) return { type: textOf(type, defined), values: responsive, responsive: true }
+		if (responsive) return { type: formatType(type, defined), values: responsive, responsive: true }
 
-		const values = valuesOf(defined)
+		const values = readValues(defined)
 
-		return values ? { values } : { type: textOf(type, defined) }
+		return values ? { values } : { type: formatType(type, defined) }
 	}
 
 	/**
@@ -427,7 +430,7 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 	 * member, so the alias prints in its place. The alias also holds its
 	 * `null`. Another type keeps its `null` member.
 	 */
-	function textOf(type: Type, defined: Type): string {
+	function formatType(type: Type, defined: Type): string {
 		if (type.getAliasSymbol()) return checker.typeToString(type, undefined, format)
 
 		const text = checker.typeToString(defined, undefined, format)
@@ -443,14 +446,14 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 	 * names, such as the 300 languages of Shiki, keeps its name. A generic
 	 * alias, such as `NonNullable<…>`, makes a union but gives it no name.
 	 */
-	function valuesOf(type: Type): Literal[] | undefined {
+	function readValues(type: Type): Literal[] | undefined {
 		if (!type.isUnionType()) return undefined
 
 		const named =
 			type.getAliasSymbol()?.declarations.some(isPackage) &&
 			type.getAliasTypeArguments().length === 0
 
-		return named ? undefined : literalsOf(type.getTypes())
+		return named ? undefined : toLiterals(type.getTypes())
 	}
 
 	/**
@@ -458,7 +461,7 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 	 * `T` and one object whose keys are breakpoints. The test is on the shape,
 	 * so an alias of the type, such as `ResponsiveGap`, passes too.
 	 */
-	function responsiveOf(type: Type): Literal[] | undefined {
+	function readResponsive(type: Type): Literal[] | undefined {
 		if (!type.isUnionType()) return undefined
 
 		const members = type.getTypes()
@@ -471,12 +474,12 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 
 		if (keys.length === 0 || !keys.every(isBreakpoint)) return undefined
 
-		return literalsOf(members.filter((member) => member.isLiteralType()))
+		return toLiterals(members.filter((member) => member.isLiteralType()))
 	}
 
-	/** The value of the code of a default: a literal, or a constant that {@link constantOf} reads. */
-	function defaultValueOf(code: string | undefined): DefaultValue | undefined {
-		return code === undefined ? undefined : (literalOfCode(code) ?? constantOf(code))
+	/** The value of the code of a default: a literal, or a constant that {@link findConstant} reads. */
+	function parseDefaultValue(code: string | undefined): DefaultValue | undefined {
+		return code === undefined ? undefined : (literalOfCode(code) ?? findConstant(code))
 	}
 
 	/**
@@ -484,17 +487,17 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 	 * object of literals with breakpoints for keys, such as
 	 * `DESCRIPTION_LIST_ORIENTATION`.
 	 */
-	function constantOf(name: string): BreakpointValues | undefined {
+	function findConstant(name: string): BreakpointValues | undefined {
 		const exported = exports.find((symbol) => symbol.name === name)
 
-		const symbol = exported && targetOf(exported)
+		const symbol = exported && resolveAlias(exported)
 
 		const type = symbol && symbol.flags & SymbolFlags.Variable && checker.getTypeOfSymbol(symbol)
 
 		const members = type ? checker.getPropertiesOfType(type) : []
 
 		const named = new Map(
-			members.map((member) => [member.name, literalOf(checker.getTypeOfSymbol(member))]),
+			members.map((member) => [member.name, toLiteral(checker.getTypeOfSymbol(member))]),
 		)
 
 		const breakpoints = BREAKPOINTS.filter((bp) => named.get(bp) !== undefined)
@@ -506,12 +509,16 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 	}
 
 	/** The symbol that an export names: the declaration that an alias, such as a re-export, stands for. */
-	function targetOf(exported: TsSymbol): TsSymbol {
+	function resolveAlias(exported: TsSymbol): TsSymbol {
 		return exported.flags & SymbolFlags.Alias ? checker.getAliasedSymbol(exported) : exported
 	}
 
 	/** The tags whose HTML attributes a component takes ({@link readComponent}). */
-	function elementsOf(component: TsSymbol, signature: Signature, members: TsSymbol[]): string[] {
+	function collectElements(
+		component: TsSymbol,
+		signature: Signature,
+		members: TsSymbol[],
+	): string[] {
 		const inherited = members.filter(
 			(member) => EVENT.test(member.name) && member.declarations.every(isPackage),
 		)
@@ -581,7 +588,7 @@ type Walk = {
 function readComponent(walk: Walk, symbol: TsSymbol, signature: Signature): void {
 	bindCall(walk, symbol)
 
-	const node = sourceOf(signature.declaration)
+	const node = getSource(signature.declaration)
 
 	const [parameter] = node && walk.ast.isFunctionLikeDeclaration(node) ? node.parameters : []
 
@@ -598,14 +605,14 @@ function bindCall(walk: Walk, symbol: TsSymbol): void {
 
 	const signature = call && ast.isCallExpression(call) && checker.getResolvedSignature(call)
 
-	const callee = signature ? sourceOf(signature.getTarget()?.declaration) : undefined
+	const callee = signature ? getSource(signature.getTarget()?.declaration) : undefined
 
 	if (!signature || !callee || !ast.isFunctionLikeDeclaration(callee)) return
 
 	const types = checker.getTypeOfSymbol(signature.getParameters())
 
 	callee.parameters.forEach((parameter, index) => {
-		const bound = typeParameterOf(walk, parameter.type)
+		const bound = findTypeParameter(walk, parameter.type)
 
 		const type = types[index]
 
@@ -645,7 +652,7 @@ function readReference(walk: Walk, node: TypeReferenceNode): void {
 		for (const argument of node.typeArguments ?? []) readType(walk, argument)
 
 		for (const declaration of symbol.declarations) {
-			readAlias(walk, sourceOf(declaration), node.typeArguments ?? [])
+			readAlias(walk, getSource(declaration), node.typeArguments ?? [])
 		}
 	}
 }
@@ -695,7 +702,7 @@ function readElement(walk: Walk, argument: Node | Type | undefined): void {
 		addTag(walk, argument.literal.text)
 	}
 
-	const parameter = typeParameterOf(walk, argument)
+	const parameter = findTypeParameter(walk, argument)
 
 	if (parameter) readElement(walk, walk.bindings.get(parameter.id))
 
@@ -720,7 +727,7 @@ function addTag(walk: Walk, tag: string): void {
 }
 
 /** The type parameter that a type names, such as the `T` of `ComponentProps<T>`. */
-function typeParameterOf(walk: Walk, node: Node | undefined): TsSymbol | undefined {
+function findTypeParameter(walk: Walk, node: Node | undefined): TsSymbol | undefined {
 	const symbol =
 		node && walk.ast.isTypeReferenceNode(node) ? symbolAt(walk, node.typeName) : undefined
 
@@ -735,7 +742,7 @@ function symbolAt({ ts, checker }: Walk, name: Node): TsSymbol | undefined {
 }
 
 /** The node of a declaration in `ui`. A declaration in a package gives none. */
-function sourceOf(declaration: NodeHandle | undefined): Node | undefined {
+function getSource(declaration: NodeHandle | undefined): Node | undefined {
 	return declaration && !isPackage(declaration) ? declaration.resolve() : undefined
 }
 
@@ -761,13 +768,13 @@ function literalOfCode(code: string): Literal | undefined {
 }
 
 /** The `@minimum` and the `@maximum` tags of a prop, each when the prop has it. */
-function rangeOf(
+function readRange(
 	prop: string,
 	tags: ReadonlyMap<string, string>,
 ): Pick<PropApi, 'minimum' | 'maximum'> {
-	const minimum = boundOf(prop, 'minimum', tags.get('minimum'))
+	const minimum = parseBound(prop, 'minimum', tags.get('minimum'))
 
-	const maximum = boundOf(prop, 'maximum', tags.get('maximum'))
+	const maximum = parseBound(prop, 'maximum', tags.get('maximum'))
 
 	if (minimum !== undefined && maximum !== undefined && minimum > maximum) {
 		throw new Error(`docs: the @minimum of the prop ${prop} is above its @maximum`)
@@ -780,7 +787,7 @@ function rangeOf(
 }
 
 /** The number of a `@minimum` or a `@maximum` tag, or `undefined` for no tag. */
-function boundOf(prop: string, tag: string, text: string | undefined): number | undefined {
+function parseBound(prop: string, tag: string, text: string | undefined): number | undefined {
 	if (text === undefined) return undefined
 
 	const value = Number(text.trim())
@@ -793,15 +800,15 @@ function boundOf(prop: string, tag: string, text: string | undefined): number | 
 }
 
 /** The value of a literal type, or `undefined` for another type. */
-function literalOf(type: Type | undefined): Literal | undefined {
+function toLiteral(type: Type | undefined): Literal | undefined {
 	if (!type?.isLiteralType() || typeof type.value === 'bigint') return undefined
 
 	return type.value
 }
 
 /** The values of literal types, in order, or `undefined` when one type is not a literal. */
-function literalsOf(types: readonly Type[]): Literal[] | undefined {
-	const values = types.flatMap((type) => literalOf(type) ?? [])
+function toLiterals(types: readonly Type[]): Literal[] | undefined {
+	const values = types.flatMap((type) => toLiteral(type) ?? [])
 
 	return values.length === types.length ? values.toSorted(compareLiterals) : undefined
 }
@@ -822,7 +829,7 @@ function isPackage(declaration: { path: string }): boolean {
  * or the state of the enclosing Control.", gives that code too: the value
  * when no context sets it.
  */
-function defaultOf(tag: string, literal: boolean): { code?: string; sentence?: string } {
+function parseDefault(tag: string, literal: boolean): { code?: string; sentence?: string } {
 	const text = plainText(tag)
 
 	if (!text.endsWith('.')) return text ? { code: text } : {}

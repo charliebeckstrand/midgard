@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn, type GridColumnGroup } from '../../../modules/grid'
 import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
-import { boxOf, centerOf } from '../../helpers/geometry/box'
+import { getCenter, measureBox } from '../../helpers/geometry/box'
 import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -78,7 +78,7 @@ describe('grid cursor focus not obscured (real browser)', () => {
 
 			// The outer box takes the side edges of the cell, so the check reads the top and the bottom only.
 			const clear = {
-				...boxOf(cell),
+				...measureBox(cell),
 				top: header.getBoundingClientRect().bottom,
 				bottom: scroll.getBoundingClientRect().top + scroll.clientHeight,
 			}
@@ -292,11 +292,11 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 			const left = scroll.getBoundingClientRect().left + scroll.clientLeft
 
 			// The outer box takes the top and the bottom of the cell, so the check reads the side edges only.
-			expect({ ...boxOf(cell), left, right: left + scroll.clientWidth }).toContainBox(box, {
+			expect({ ...measureBox(cell), left, right: left + scroll.clientWidth }).toContainBox(box, {
 				tolerance: PIXEL,
 			})
 
-			const center = centerOf(box)
+			const center = getCenter(box)
 
 			for (const x of [box.left + 2, center.x, box.right - 2]) {
 				expect(cell.contains(document.elementFromPoint(x, center.y))).toBe(true)
@@ -321,7 +321,7 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 		it(`moves a cell out from under a ${side}-pinned column${where}`, async () => {
 			const { grid, scroll, press, expectUncovered } = renderGrid(side, dir)
 
-			const cellOf = (id: string) =>
+			const getCell = (id: string) =>
 				present(grid.querySelector<HTMLElement>(`tbody td[data-grid-col="${id}"]`), `a ${id} cell`)
 
 			const pinned = present(
@@ -347,12 +347,12 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 			// under it in full.
 			const box = pinned.getBoundingClientRect()
 
-			const cell = cellOf(target).getBoundingClientRect()
+			const cell = getCell(target).getBoundingClientRect()
 
 			scroll.scrollLeft += cell.left - (box.left + (box.width - cell.width) / 2)
 
 			await waitFor(() => {
-				const under = cellOf(target).getBoundingClientRect()
+				const under = getCell(target).getBoundingClientRect()
 
 				expect(under.left).toBeGreaterThanOrEqual(pinned.getBoundingClientRect().left - 1)
 
@@ -365,7 +365,7 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 			const pinOnLeft = (side === 'left') === (dir === 'ltr')
 
 			await waitFor(() => {
-				const moved = cellOf(target).getBoundingClientRect()
+				const moved = getCell(target).getBoundingClientRect()
 
 				const cover = pinned.getBoundingClientRect()
 

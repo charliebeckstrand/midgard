@@ -27,7 +27,7 @@ export type Highlight = (code: string, lang: string, theme: string) => Promise<S
 export type ExampleMeta = {
 	/** The title of the example, from the file name: `with-icon.tsx` gives `With icon`. Each playground has the title `Playground`. */
 	title: string
-	/** The id of the heading of the example, from {@link headingIdOf}: `with-icon.tsx` gives `with-icon`. */
+	/** The id of the heading of the example, from {@link toHeadingId}: `with-icon.tsx` gives `with-icon`. */
 	id: string
 	/** For a playground, the name of the component that takes the props. */
 	component?: string
@@ -46,7 +46,7 @@ export type Parse = (code: string, options: { lang: 'tsx' }) => ESTree.Program
 export const CODE = 'virtual:docs/code/'
 
 /** The public id of the code module of the folder of the example at `file` in `pages`. */
-export function codeIdOf(pages: string, file: string): string {
+export function toCodeId(pages: string, file: string): string {
 	return CODE + normalizePath(path.relative(pages, path.dirname(file)))
 }
 
@@ -54,7 +54,7 @@ export function codeIdOf(pages: string, file: string): string {
  * The key of the example at `file` in the code module of its folder: the name
  * of the file.
  */
-export function codeKeyOf(file: string): string {
+export function toCodeKey(file: string): string {
 	return path.basename(file, '.tsx')
 }
 
@@ -66,7 +66,7 @@ export const EXAMPLE = /(?<!\/index)\.tsx$/
 export const PLAYGROUND = 'playground'
 
 function isPlayground(file: string): boolean {
-	const key = codeKeyOf(file)
+	const key = toCodeKey(file)
 
 	return key === PLAYGROUND || key.startsWith(`${PLAYGROUND}-`)
 }
@@ -75,8 +75,8 @@ function isPlayground(file: string): boolean {
  * The id of the heading of the example at `file`: the name of the file. Each
  * playground of a page shares one heading, `playground`.
  */
-export function headingIdOf(file: string): string {
-	return isPlayground(file) ? PLAYGROUND : codeKeyOf(file)
+export function toHeadingId(file: string): string {
+	return isPlayground(file) ? PLAYGROUND : toCodeKey(file)
 }
 
 type Example = {
@@ -164,10 +164,10 @@ export function attachMeta(
 	const { name, spread } = example
 
 	const meta = [
-		`title: ${JSON.stringify(humanize(headingIdOf(file)))}`,
-		`id: ${JSON.stringify(headingIdOf(file))}`,
+		`title: ${JSON.stringify(humanize(toHeadingId(file)))}`,
+		`id: ${JSON.stringify(toHeadingId(file))}`,
 		...(spread ? [`component: ${JSON.stringify(spread.component)}`] : []),
-		`code: () => import(${JSON.stringify(codeIdOf(pages, file))}).then((module) => module.default[${JSON.stringify(codeKeyOf(file))}])`,
+		`code: () => import(${JSON.stringify(toCodeId(pages, file))}).then((module) => module.default[${JSON.stringify(toCodeKey(file))}])`,
 	]
 
 	return `\nObject.assign(${name}, { ${meta.join(', ')} })\n`
@@ -231,7 +231,7 @@ export async function exampleFiles(folder: string): Promise<string[]> {
 
 /**
  * Loads the code module of a folder: the code of each example in `files`, by
- * {@link codeKeyOf}, highlighted with `highlight`.
+ * {@link toCodeKey}, highlighted with `highlight`.
  */
 export async function loadCodes(
 	parse: Parse,
@@ -243,6 +243,6 @@ export async function loadCodes(
 	)
 
 	return Object.fromEntries(
-		codes.flatMap(([file, code]) => (code ? [[codeKeyOf(file), code]] : [])),
+		codes.flatMap(([file, code]) => (code ? [[toCodeKey(file), code]] : [])),
 	)
 }

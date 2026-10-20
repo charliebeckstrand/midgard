@@ -106,7 +106,7 @@ describe('grid virtualized master-detail body (real browser)', () => {
 	const drift = (anchor: HTMLElement, count: number) =>
 		sampleDrift(() => anchor, anchor.getBoundingClientRect().top, count)
 
-	const keyOf = (row: HTMLElement) => Number(row.getAttribute('data-grid-row'))
+	const readKey = (row: HTMLElement) => Number(row.getAttribute('data-grid-row'))
 
 	it('animates a panel open and closed in view, and holds the row above it still', async () => {
 		const { scroll, body } = await renderGrid()
@@ -115,7 +115,7 @@ describe('grid virtualized master-detail body (real browser)', () => {
 
 		const [anchor, target] = rowsInView(scroll, body) as [HTMLElement, HTMLElement]
 
-		const key = keyOf(target)
+		const key = readKey(target)
 
 		control.set(new Set([key]))
 
@@ -152,7 +152,7 @@ describe('grid virtualized master-detail body (real browser)', () => {
 
 		const anchor = present(rowsInView(scroll, body)[0], 'a row in view')
 
-		const key = keyOf(above)
+		const key = readKey(above)
 
 		control.set(new Set([key]))
 
@@ -182,7 +182,7 @@ describe('grid virtualized master-detail body (real browser)', () => {
 
 		expect(table).toHaveAttribute('aria-rowcount', String(rows.length + 1))
 
-		const key = keyOf(present(rowsInView(scroll, body)[1], 'a row in view'))
+		const key = readKey(present(rowsInView(scroll, body)[1], 'a row in view'))
 
 		control.set(new Set([key]))
 

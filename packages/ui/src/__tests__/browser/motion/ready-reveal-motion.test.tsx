@@ -14,7 +14,7 @@ describe('ReadyReveal crossfade (real Motion)', () => {
 		</ReadyReveal>
 	)
 
-	const layerOf = (testId: string) => {
+	const getLayer = (testId: string) => {
 		const layer = document.querySelector(`[data-testid="${testId}"]`)?.parentElement
 
 		if (!layer) throw new Error(`${testId} layer did not render`)
@@ -25,24 +25,24 @@ describe('ReadyReveal crossfade (real Motion)', () => {
 	it('rests the placeholder of a reveal that mounts ready', async () => {
 		renderUI(reveal(true))
 
-		await waitFor(() => expect(getComputedStyle(layerOf('p')).display).toBe('none'))
+		await waitFor(() => expect(getComputedStyle(getLayer('p')).display).toBe('none'))
 
-		expect(getComputedStyle(layerOf('c')).opacity).toBe('1')
+		expect(getComputedStyle(getLayer('c')).opacity).toBe('1')
 	})
 
 	it('fades the placeholder in when a reveal that mounted ready clears', async () => {
 		const { rerender } = renderUI(reveal(true))
 
-		await waitFor(() => expect(getComputedStyle(layerOf('p')).display).toBe('none'))
+		await waitFor(() => expect(getComputedStyle(getLayer('p')).display).toBe('none'))
 
 		rerender(reveal(false))
 
 		// Before the fix, the placeholder stayed at opacity 0 and the content faded
 		// out, so the box showed neither layer.
 		await waitFor(() => {
-			expect(getComputedStyle(layerOf('p')).opacity).toBe('1')
+			expect(getComputedStyle(getLayer('p')).opacity).toBe('1')
 
-			expect(getComputedStyle(layerOf('c')).opacity).toBe('0')
+			expect(getComputedStyle(getLayer('c')).opacity).toBe('0')
 		})
 	})
 
@@ -51,14 +51,14 @@ describe('ReadyReveal crossfade (real Motion)', () => {
 
 		rerender(reveal(true))
 
-		await waitFor(() => expect(getComputedStyle(layerOf('p')).display).toBe('none'))
+		await waitFor(() => expect(getComputedStyle(getLayer('p')).display).toBe('none'))
 
 		rerender(reveal(false))
 
 		await waitFor(() => {
-			expect(getComputedStyle(layerOf('p')).opacity).toBe('1')
+			expect(getComputedStyle(getLayer('p')).opacity).toBe('1')
 
-			expect(getComputedStyle(layerOf('c')).opacity).toBe('0')
+			expect(getComputedStyle(getLayer('c')).opacity).toBe('0')
 		})
 	})
 })

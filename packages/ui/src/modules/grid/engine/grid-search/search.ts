@@ -31,7 +31,7 @@ const haystacks = new WeakMap<readonly unknown[], WeakMap<object, string[]>>()
  *
  * @internal
  */
-function haystacksOf<T>(
+function buildHaystacks<T>(
 	rows: readonly T[],
 	columns: readonly GridColumn<T>[],
 	readers: ((row: T) => unknown)[],
@@ -65,7 +65,7 @@ function haystacksOf<T>(
  * `null` or `undefined` matches nothing. A grid with no searched column keeps
  * every row. `grid-search.test.ts` holds the parity with the engine.
  *
- * The test reads the cached haystack of each row (see {@link haystacksOf}), so
+ * The test reads the cached haystack of each row (see {@link buildHaystacks}), so
  * it holds for the rows at the positions of `rows` only. A query that holds
  * the separator of the haystack reads the cells instead.
  *
@@ -84,7 +84,7 @@ export function compileSearch<T>(
 	const needle = query.toLowerCase()
 
 	if (!needle.includes(SEPARATOR)) {
-		const text = haystacksOf(rows, columns, readers)
+		const text = buildHaystacks(rows, columns, readers)
 
 		return (_, index) => (text[index] as string).includes(needle)
 	}

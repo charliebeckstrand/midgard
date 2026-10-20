@@ -169,7 +169,7 @@ function sitesIn(file: string, parsed: SourceFile): Site[] {
 			const parameter = node.parameters[0]
 
 			if (isObjectBindingPattern(parameter.name)) {
-				const rest = restOf(parameter.name, parameter.type, parsed)
+				const rest = findRest(parameter.name, parameter.type, parsed)
 
 				if (rest) rests.push(rest)
 			}
@@ -183,18 +183,18 @@ function sitesIn(file: string, parsed: SourceFile): Site[] {
 
 			// A destructure with its own type reads that type.
 			if (node.type) {
-				const rest = restOf(node.name, node.type, parsed)
+				const rest = findRest(node.name, node.type, parsed)
 
 				if (rest) rests.push(rest)
 			} else if (parameter && isIdentifier(parameter.name) && parameter.name.text === source) {
-				const rest = restOf(node.name, parameter.type, parsed)
+				const rest = findRest(node.name, parameter.type, parsed)
 
 				if (rest) rests.push(rest)
 			}
 		}
 
 		/** The binding of a spread name, innermost first. */
-		const bindingOf = (name: string) => rests.findLast((rest) => rest.name === name)
+		const findBinding = (name: string) => rests.findLast((rest) => rest.name === name)
 
 		if (isJsxOpeningElement(node) || isJsxSelfClosingElement(node)) {
 			const before: Attribute[] = []
@@ -223,7 +223,7 @@ function sitesIn(file: string, parsed: SourceFile): Site[] {
 
 				const name = text(uncast(property.expression))
 
-				const binding = bindingOf(name)
+				const binding = findBinding(name)
 
 				// `props` and `rest` stay consumer spreads under any type, as before.
 				if (CONSUMER_SPREAD.test(name) || binding?.native) {
@@ -265,7 +265,7 @@ function sitesIn(file: string, parsed: SourceFile): Site[] {
  * has one. A type reference reads the alias of that name in the same file, so
  * `{ ...labelProps }: KanbanProps<T>` reads `type KanbanProps<T> = …`.
  */
-function restOf(
+function findRest(
 	pattern: ObjectBindingPattern,
 	type: TypeNode | undefined,
 	parsed: SourceFile,

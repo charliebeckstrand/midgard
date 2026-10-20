@@ -111,11 +111,11 @@ function KeyboardBoard({ onValueChange }: { onValueChange?: (next: Column[]) => 
 }
 
 /** The card of `id` on the board. */
-const cardOf = (root: HTMLElement, id: string) =>
+const getCard = (root: HTMLElement, id: string) =>
 	present(root.querySelector(`[data-card-id="${id}"]`), `[data-card-id="${id}"]`)
 
 /** The handle of the card of `id`: the keyboard stop of the card. */
-const handleOf = (root: HTMLElement, id: string) =>
+const getHandle = (root: HTMLElement, id: string) =>
 	present(
 		root.querySelector<HTMLElement>(`[data-slot="kanban-card-handle"][data-card-id="${id}"]`),
 		`handle ${id}`,
@@ -277,7 +277,7 @@ describe('KanbanCard', () => {
 		// gives it the role description and the instructions.
 		const handle = screen.getByRole('button', { name: 'Drag One' })
 
-		expect(handle).toBe(handleOf(container, '1'))
+		expect(handle).toBe(getHandle(container, '1'))
 
 		expect(handle.tagName).toBe('BUTTON')
 
@@ -560,7 +560,7 @@ describe('KanbanCard', () => {
 
 		const card = getSlot(container, 'kanban-card')
 
-		const handle = handleOf(container, '1')
+		const handle = getHandle(container, '1')
 
 		handle.focus()
 
@@ -669,15 +669,15 @@ describe('Kanban keyboard reorder', () => {
 	it('moves focus between cards with arrow keys when no card is lifted', () => {
 		const { container } = renderUI(<KeyboardBoard />)
 
-		handleOf(container, 'a').focus()
+		getHandle(container, 'a').focus()
 
-		fireEvent.keyDown(handleOf(container, 'a'), { key: 'ArrowDown' })
+		fireEvent.keyDown(getHandle(container, 'a'), { key: 'ArrowDown' })
 
-		expect(document.activeElement).toBe(handleOf(container, 'b'))
+		expect(document.activeElement).toBe(getHandle(container, 'b'))
 
-		fireEvent.keyDown(handleOf(container, 'b'), { key: 'ArrowRight' })
+		fireEvent.keyDown(getHandle(container, 'b'), { key: 'ArrowRight' })
 
-		expect(document.activeElement).toBe(handleOf(container, 'd'))
+		expect(document.activeElement).toBe(getHandle(container, 'd'))
 	})
 
 	it('reorders within the column when a lifted card is moved down', () => {
@@ -685,13 +685,13 @@ describe('Kanban keyboard reorder', () => {
 
 		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
 
-		const handle = handleOf(container, 'a')
+		const handle = getHandle(container, 'a')
 
 		handle.focus()
 
 		fireEvent.keyDown(handle, { key: ' ' })
 
-		expect(cardOf(container, 'a')).toHaveAttribute('data-lifted')
+		expect(getCard(container, 'a')).toHaveAttribute('data-lifted')
 
 		fireEvent.keyDown(handle, { key: 'ArrowDown' })
 
@@ -705,7 +705,7 @@ describe('Kanban keyboard reorder', () => {
 
 		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
 
-		const handle = handleOf(container, 'a')
+		const handle = getHandle(container, 'a')
 
 		handle.focus()
 
@@ -725,17 +725,17 @@ describe('Kanban keyboard reorder', () => {
 
 		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
 
-		const handle = handleOf(container, 'a')
+		const handle = getHandle(container, 'a')
 
 		handle.focus()
 
 		fireEvent.keyDown(handle, { key: ' ' })
 
-		expect(cardOf(container, 'a')).toHaveAttribute('data-lifted')
+		expect(getCard(container, 'a')).toHaveAttribute('data-lifted')
 
 		fireEvent.keyDown(handle, { key: 'Escape' })
 
-		expect(cardOf(container, 'a')).not.toHaveAttribute('data-lifted')
+		expect(getCard(container, 'a')).not.toHaveAttribute('data-lifted')
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
@@ -745,7 +745,7 @@ describe('Kanban keyboard reorder', () => {
 
 		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
 
-		const handle = handleOf(container, 'a')
+		const handle = getHandle(container, 'a')
 
 		handle.focus()
 
@@ -795,7 +795,7 @@ describe('Kanban drag instructions', () => {
 	it('describes the lift keys of the board, not the keys of dnd-kit', () => {
 		const { container } = renderUI(<KeyboardBoard />)
 
-		const handle = handleOf(container, 'a')
+		const handle = getHandle(container, 'a')
 
 		const instructions = document.getElementById(handle.getAttribute('aria-describedby') ?? '')
 
@@ -808,7 +808,7 @@ describe('Kanban keyboard announcements', () => {
 	// lifted state can't be lost to an `await` yielding mid-sequence; only the
 	// final message is awaited.
 	const liftedCard = (container: HTMLElement) => {
-		const handle = handleOf(container, 'a')
+		const handle = getHandle(container, 'a')
 
 		handle.focus()
 

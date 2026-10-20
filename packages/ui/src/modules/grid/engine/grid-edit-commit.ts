@@ -12,7 +12,7 @@ import type { GridSaveOutcome } from './grid-announcements'
 import { columnLabel } from './grid-column/label'
 import type { GridHistoryCell, GridHistoryStep } from './grid-edit-history'
 import {
-	columnOf,
+	findColumn,
 	type GridActiveEdit,
 	type GridDraft,
 	type GridDraftStore,
@@ -51,7 +51,7 @@ type RowDrafts = Map<string | number, GridDraft>
  * column can lock mid-session, and `onCommit` on an earlier cell can hand back
  * new rows before a later one flushes. A snapshot would answer for the state the
  * editor opened against instead of the state it commits into. The row snapshot
- * applies only where no live row exists. `rowOf` finds the live row (see
+ * applies only where no live row exists. `getRow` finds the live row (see
  * {@link rowLookup}).
  *
  * @internal
@@ -60,11 +60,11 @@ function flushRow<T>(
 	rowKey: string | number,
 	drafts: RowDrafts,
 	source: GridEditSource<T>,
-	rowOf: (rowKey: string | number) => T | undefined,
+	getRow: (rowKey: string | number) => T | undefined,
 ): { row: T | undefined; changes: GridCellChange[]; refused: GridCellChange[] } {
 	const { columns } = source
 
-	const live = rowOf(rowKey)
+	const live = getRow(rowKey)
 
 	const changes: GridCellChange[] = []
 
@@ -95,7 +95,7 @@ function checkCell<T>(
 	row: T,
 	cell: GridCellChange,
 ): 'keep' | 'drop' | 'refuse' {
-	const col = columnOf(columns, cell.columnId)
+	const col = findColumn(columns, cell.columnId)
 
 	// The mount predicate closes a locked column's editor on the next render,
 	// so the staged value must not write either — the two gates answer to the
@@ -114,7 +114,7 @@ function checkCell<T>(
  * else `row` and its key in the language of the reader, as the reorder
  * announcement names it. @internal
  */
-function rowNameOf<T>(
+function getRowName<T>(
 	source: GridEditSource<T>,
 	rowKey: string | number,
 	row: T | undefined,
@@ -124,7 +124,7 @@ function rowNameOf<T>(
 
 /** The label of a column in a save announcement, else its id. @internal */
 function cellLabel<T>(source: GridEditSource<T>, columnId: string | number): string {
-	const col = columnOf(source.columns, columnId)
+	const col = findColumn(source.columns, columnId)
 
 	return col ? columnLabel(col) : String(columnId)
 }
@@ -135,7 +135,7 @@ function cellLabel<T>(source: GridEditSource<T>, columnId: string | number): str
  * column with no `field` has no value that the grid can read, so its change
  * is not in the history. @internal
  */
-function historyOf<T>(
+function buildHistory<T>(
 	changes: GridCellChange[],
 	row: T | undefined,
 	source: GridEditSource<T>,
@@ -145,7 +145,7 @@ function historyOf<T>(
 	const cells: GridHistoryCell[] = []
 
 	for (const change of changes) {
-		const col = columnOf(source.columns, change.columnId)
+		const col = findColumn(source.columns, change.columnId)
 
 		if (col?.field == null) continue
 
@@ -205,14 +205,14 @@ export function rowLookup<T>(
  */
 export function readHistoryCell<T>(
 	source: GridEditSource<T>,
-	rowOf: (rowKey: string | number) => T | undefined,
+	getRow: (rowKey: string | number) => T | undefined,
 	cell: GridHistoryCell,
 ): { value: unknown } | null {
-	const col = columnOf(source.columns, cell.columnId)
+	const col = findColumn(source.columns, cell.columnId)
 
 	if (col?.field == null || !isColumnEditable(col)) return null
 
-	const row = rowOf(cell.rowKey)
+	const row = getRow(cell.rowKey)
 
 	return row == null ? null : { value: row[col.field] }
 }
@@ -317,7 +317,7 @@ function sendTally(): SendTally {
 }
 
 /** The {@link SavedCells} of a tally. It names the row when one row saved. @internal */
-function savedOf(tally: SendTally): SavedCells {
+function toSaved(tally: SendTally): SavedCells {
 	return {
 		columns: tally.columns,
 		row: tally.rows === 1 ? tally.row : undefined,
@@ -357,11 +357,11 @@ function dispatchBatch<T>(
 
 	if (!changes.length || !onCommit) return
 
-	const cells = batch.record ? historyOf(changes, row, source) : []
+	const cells = batch.record ? buildHistory(changes, row, source) : []
 
 	const result = onCommit(changes)
 
-	const name = rowNameOf(source, rowKey, row)
+	const name = getRowName(source, rowKey, row)
 
 	if (!isThenable(result)) {
 		for (const change of changes) tally.columns.push(cellLabel(source, change.columnId))
@@ -422,7 +422,7 @@ export function flushClosedCells<T>(args: {
 	editableRows: Set<string | number>
 	activeEdit: GridActiveEdit | null
 	source: GridEditSource<T>
-	rowOf: (rowKey: string | number) => T | undefined
+	getRow: (rowKey: string | number) => T | undefined
 	onCommit: CommitSink | undefined
 	onReject: ((refused: GridCellChange[]) => void) | undefined
 }): { saved: SavedCells; inFlight: InFlightBatch[] } {
@@ -446,7 +446,7 @@ export function flushClosedCells<T>(args: {
 		// the key to a data row key.
 		if (rowKey === NEW_ROW_KEY) continue
 
-		const { row, changes, refused } = flushRow(rowKey, rowDrafts, args.source, args.rowOf)
+		const { row, changes, refused } = flushRow(rowKey, rowDrafts, args.source, args.getRow)
 
 		// Reported per row, like the commit batch beside it, and independent of it:
 		// a row whose every cell was refused reaches no sink at all otherwise.
@@ -459,7 +459,7 @@ export function flushClosedCells<T>(args: {
 		)
 	}
 
-	return { saved: savedOf(tally), inFlight: tally.inFlight }
+	return { saved: toSaved(tally), inFlight: tally.inFlight }
 }
 
 /**
@@ -482,14 +482,14 @@ export type GridFillCell = GridCellChange
  */
 export function writeTarget<T>(
 	source: GridEditSource<T>,
-	rowOf: (rowKey: string | number) => T | undefined,
+	getRow: (rowKey: string | number) => T | undefined,
 	cell: GridCellRef,
 ): { col: GridColumn<T>; field: keyof T; row: T } | null {
-	const col = columnOf(source.columns, cell.columnId)
+	const col = findColumn(source.columns, cell.columnId)
 
 	if (col?.field == null || !isColumnEditable(col)) return null
 
-	const row = rowOf(cell.rowKey)
+	const row = getRow(cell.rowKey)
 
 	return row == null ? null : { col, field: col.field, row }
 }
@@ -504,10 +504,10 @@ export function writeTarget<T>(
  */
 export function pasteChange<T>(
 	source: GridEditSource<T>,
-	rowOf: (rowKey: string | number) => T | undefined,
+	getRow: (rowKey: string | number) => T | undefined,
 	cell: GridPasteCell,
 ): { change: GridCellChange; fits: boolean } | null {
-	const target = writeTarget(source, rowOf, cell)
+	const target = writeTarget(source, getRow, cell)
 
 	if (!target) return null
 
@@ -589,12 +589,12 @@ export function sendCells<T>(args: {
 	changes: readonly GridCellChange[]
 	outcome: GridSaveOutcome
 	source: GridEditSource<T>
-	rowOf: (rowKey: string | number) => T | undefined
+	getRow: (rowKey: string | number) => T | undefined
 	onCommit: CommitSink | undefined
 	check: boolean
 	history: readonly GridHistoryCell[]
 }): { saved: SavedCells; inFlight: InFlightBatch[]; refused: GridCellChange[] } {
-	const { outcome, source, rowOf, check } = args
+	const { outcome, source, getRow, check } = args
 
 	const historyRows = byRow(args.history)
 
@@ -603,7 +603,7 @@ export function sendCells<T>(args: {
 	const refused: GridCellChange[] = []
 
 	for (const [rowKey, rowChanges] of byRow(args.changes)) {
-		const row = rowOf(rowKey)
+		const row = getRow(rowKey)
 
 		const checked = check ? checkRow(rowChanges, row, source) : { changes: rowChanges, refused: [] }
 
@@ -626,7 +626,7 @@ export function sendCells<T>(args: {
 		)
 	}
 
-	return { saved: savedOf(tally), inFlight: tally.inFlight, refused }
+	return { saved: toSaved(tally), inFlight: tally.inFlight, refused }
 }
 
 /**
@@ -691,11 +691,11 @@ export function dropStrandedHolds<T>(args: {
 	before: Set<string | number>
 	after: Set<string | number>
 	gridClosed: Set<string | number>
-	rowOf: (rowKey: string | number) => T | undefined
+	getRow: (rowKey: string | number) => T | undefined
 }): number {
-	const { before, after, gridClosed, rowOf } = args
+	const { before, after, gridClosed, getRow } = args
 
-	const gone = (rowKey: string | number) => rowOf(rowKey) === undefined
+	const gone = (rowKey: string | number) => getRow(rowKey) === undefined
 
 	const closed = (rowKey: string | number) =>
 		before.has(rowKey) && !after.has(rowKey) && !gridClosed.has(rowKey)

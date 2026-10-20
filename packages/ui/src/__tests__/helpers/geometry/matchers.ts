@@ -1,7 +1,6 @@
 import type { MatcherResult } from 'vitest'
 import {
 	type BoxSource,
-	boxOf,
 	describeSource,
 	EDGES,
 	type EdgeValues,
@@ -9,6 +8,7 @@ import {
 	formatBox,
 	formatLength,
 	isBoxSource,
+	measureBox,
 	overhang,
 } from './box'
 
@@ -48,7 +48,7 @@ declare module 'vitest' {
 	interface Matchers<T> extends GeometryMatchers<T> {}
 }
 
-function sourceOf(value: unknown, role: string): BoxSource {
+function toSource(value: unknown, role: string): BoxSource {
 	if (!isBoxSource(value)) {
 		throw new TypeError(
 			`expected ${role} to be an element or a box with numeric left, top, right, and bottom`,
@@ -58,7 +58,7 @@ function sourceOf(value: unknown, role: string): BoxSource {
 	return value
 }
 
-function toleranceOf(options: BoxMatchOptions | undefined): number {
+function getTolerance(options: BoxMatchOptions | undefined): number {
 	const tolerance = options?.tolerance ?? 0
 
 	if (!(tolerance >= 0)) {
@@ -76,12 +76,12 @@ function misses(values: EdgeValues, tolerance: number, magnitude: (n: number) =>
 }
 
 function toContainBox(received: unknown, inner: unknown, options?: BoxMatchOptions): MatcherResult {
-	const outerSource = sourceOf(received, 'the received value')
-	const innerSource = sourceOf(inner, 'the inner box')
-	const tolerance = toleranceOf(options)
+	const outerSource = toSource(received, 'the received value')
+	const innerSource = toSource(inner, 'the inner box')
+	const tolerance = getTolerance(options)
 
-	const outer = boxOf(outerSource)
-	const box = boxOf(innerSource)
+	const outer = measureBox(outerSource)
+	const box = measureBox(innerSource)
 	const past = overhang(box, outer)
 
 	const pass = EDGES.every((edge) => past[edge] <= tolerance)
@@ -103,12 +103,12 @@ function toMatchBox(
 	expected: unknown,
 	options?: BoxMatchOptions,
 ): MatcherResult {
-	const actualSource = sourceOf(received, 'the received value')
-	const expectedSource = sourceOf(expected, 'the expected box')
-	const tolerance = toleranceOf(options)
+	const actualSource = toSource(received, 'the received value')
+	const expectedSource = toSource(expected, 'the expected box')
+	const tolerance = getTolerance(options)
 
-	const actual = boxOf(actualSource)
-	const target = boxOf(expectedSource)
+	const actual = measureBox(actualSource)
+	const target = measureBox(expectedSource)
 	const delta = edgeDelta(actual, target)
 
 	const pass = EDGES.every((edge) => Math.abs(delta[edge]) <= tolerance)

@@ -41,7 +41,7 @@ function rampAt(path: string): string {
  * The px value of `ramp` at each step. A text ramp gives its font size. A ring
  * utility subtracts its 1 px ring. Each other ramp gives its spacing stop.
  */
-function pxOf(ramp: string): Record<DensityStep, number> {
+function parsePx(ramp: string): Record<DensityStep, number> {
 	const match = /density-([a-z-]+)-\[([^\]]+)\](?:\/\[--[a-z0-9-]+\])?$/.exec(ramp)
 
 	if (!match) throw new Error(`Not a ramp: ${ramp}`)
@@ -75,16 +75,16 @@ describe('density geometry', () => {
 		})
 
 		it.each(densitySteps)('renders the formula at %s', (step) => {
-			expect(pxOf(ramp)[step]).toBe(formula(step))
+			expect(parsePx(ramp)[step]).toBe(formula(step))
 		})
 	})
 
 	describe.each(densitySteps)('at %s', (step) => {
-		const body = pxOf(dan.text.body)[step]
+		const body = parsePx(dan.text.body)[step]
 
-		const chip = pxOf(dan.text.chip)[step]
+		const chip = parsePx(dan.text.chip)[step]
 
-		const icon = pxOf(dan.size.icon.base)[step]
+		const icon = parsePx(dan.size.icon.base)[step]
 
 		const leading = lineHeight(step)
 
@@ -99,17 +99,17 @@ describe('density geometry', () => {
 		})
 
 		it('gives an icon-only button the height of a labeled button', () => {
-			const square = icon + 2 * pxOf(dan.space.button.base)[step]
+			const square = icon + 2 * parsePx(dan.space.button.base)[step]
 
-			const labeled = chip + 8 + 2 * pxOf(dan.space.button.label)[step]
+			const labeled = chip + 8 + 2 * parsePx(dan.space.button.label)[step]
 
 			expect(square).toBe(labeled)
 		})
 
 		it('gives a control the height of a button', () => {
-			const control = body + 8 + 2 * pxOf(dan.space.control.y)[step]
+			const control = body + 8 + 2 * parsePx(dan.space.control.y)[step]
 
-			const button = chip + 8 + 2 * pxOf(dan.space.button.label)[step]
+			const button = chip + 8 + 2 * parsePx(dan.space.button.label)[step]
 
 			expect(control).toBe(button)
 		})
@@ -153,9 +153,11 @@ describe('spacing steps', () => {
 
 	describe.each(Object.entries(scales))('dan.%s', (_, scale) => {
 		it.each(Object.entries(scale))('extends the %s stop by the rule', (_, ramp) => {
-			const { sm, md, lg } = pxOf(ramp)
+			const { sm, md, lg } = parsePx(ramp)
 
-			expect(densitySteps.map((step) => pxOf(ramp)[step])).toStrictEqual(spacingSteps(sm, md, lg))
+			expect(densitySteps.map((step) => parsePx(ramp)[step])).toStrictEqual(
+				spacingSteps(sm, md, lg),
+			)
 		})
 	})
 
@@ -163,7 +165,7 @@ describe('spacing steps', () => {
 		it.each(Object.keys(dan.gap.scale) as (keyof typeof dan.gap.scale)[])(
 			'fills the gap of the %s stop at each step',
 			(stop) => {
-				const gap = pxOf(dan.gap.scale[stop])
+				const gap = parsePx(dan.gap.scale[stop])
 
 				const ramp = dan.gap.touch[axis][stop]
 
@@ -171,7 +173,7 @@ describe('spacing steps', () => {
 					new RegExp(`^density-set-\\[[^\\]]+\\]/\\[--touch-target-gap-${axis}\\]$`),
 				)
 
-				expect(pxOf(ramp)).toStrictEqual(gap)
+				expect(parsePx(ramp)).toStrictEqual(gap)
 			},
 		)
 	})
@@ -182,7 +184,7 @@ describe('spacing steps', () => {
  * than one stepped class, such as the track of the slider, gives each class, and
  * each path takes the number of its class, such as `size.slider.input.track#1`.
  */
-function rampsOf(node: unknown, path: string[] = []): [string, string][] {
+function collectRamps(node: unknown, path: string[] = []): [string, string][] {
 	if (typeof node === 'string') {
 		const classes = node
 			.split(/\s+/)
@@ -195,14 +197,14 @@ function rampsOf(node: unknown, path: string[] = []): [string, string][] {
 	}
 
 	if (node && typeof node === 'object' && !Array.isArray(node)) {
-		return Object.entries(node).flatMap(([key, child]) => rampsOf(child, [...path, key]))
+		return Object.entries(node).flatMap(([key, child]) => collectRamps(child, [...path, key]))
 	}
 
 	return []
 }
 
 /** The values of `ramp` at each step, as written. */
-const valuesOf = (ramp: string) =>
+const parseValues = (ramp: string) =>
 	(/\[([^\]]+)\](?:\/\[--[a-z0-9-]+\])?$/.exec(ramp)?.[1] ?? '').split(',')
 
 /**
@@ -243,7 +245,7 @@ const sharedRamps = new Set([
 ])
 
 describe('every ramp of dan', () => {
-	const ramps = rampsOf(dan)
+	const ramps = collectRamps(dan)
 
 	it('finds the ramps', () => {
 		expect(ramps.length).toBeGreaterThan(100)
@@ -252,7 +254,7 @@ describe('every ramp of dan', () => {
 	const own = ramps.filter(([path]) => !(path in slotRamps) && !sharedRamps.has(path))
 
 	it.each(own)('gives dan.%s a distinct value at each step', (_, ramp) => {
-		const values = valuesOf(ramp)
+		const values = parseValues(ramp)
 
 		expect(values).toHaveLength(5)
 
@@ -260,11 +262,11 @@ describe('every ramp of dan', () => {
 	})
 
 	it.each(Object.entries(slotRamps))('reads dan.%s at the slot step', (path, source) => {
-		const ramp = rampsOf(dan).find(([name]) => name === path)?.[1] ?? ''
+		const ramp = collectRamps(dan).find(([name]) => name === path)?.[1] ?? ''
 
-		const values = valuesOf(ramp)
+		const values = parseValues(ramp)
 
-		const sourceValues = valuesOf(source)
+		const sourceValues = parseValues(source)
 
 		expect(densitySteps.map((step) => values[densitySteps.indexOf(step)])).toStrictEqual(
 			densitySteps.map((step) => sourceValues[densitySteps.indexOf(slotStep(step))]),
@@ -281,9 +283,9 @@ describe('the line of a skeleton', () => {
 	] as const
 
 	it.each(lines)('gives dan.%s the line of its text at each step', (_, line, text) => {
-		const height = pxOf(line)
+		const height = parsePx(line)
 
-		const size = pxOf(text)
+		const size = parsePx(text)
 
 		for (const step of densitySteps) expect(height[step]).toBe(size[step] + 8)
 	})

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Menu, MenuContent, MenuItem, MenuSub } from '../../../components/menu'
 import { TOUCH_CONTEXT_MENU_DELAY } from '../../../components/menu/use-menu-touch-hold'
 import { fireEvent, frames, renderUI, screen, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { pause } from '../helpers/wall-clock'
 
 /**
@@ -37,7 +37,7 @@ describe('a press inside an open context menu (real browser)', () => {
 
 		const surface = screen.getByTestId('surface')
 
-		const at = centerOf(surface)
+		const at = getCenter(surface)
 
 		fireEvent.contextMenu(surface, { clientX: at.x, clientY: at.y })
 
@@ -57,7 +57,7 @@ describe('a press inside an open context menu (real browser)', () => {
 
 		const row = screen.getByRole('menuitem', { name })
 
-		const at = centerOf(row)
+		const at = getCenter(row)
 
 		fireEvent.contextMenu(row, { clientX: at.x + 40, clientY: at.y + 40 })
 
@@ -75,7 +75,7 @@ describe('a press inside an open context menu (real browser)', () => {
 
 		const row = screen.getByRole('menuitem', { name })
 
-		const at = centerOf(row)
+		const at = getCenter(row)
 
 		fireEvent.pointerDown(row, { ...touch, clientX: at.x, clientY: at.y })
 

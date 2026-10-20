@@ -12,20 +12,20 @@ import { restoreRootAfterCase } from './restore-root.ts'
 // shows the not-found page, and the header, the title, and the sidebar agree.
 
 /** The route config with a stub for each module. The not-found route shows a marker, and each other route shows its children. */
-function stubsOf(entries: readonly RouteConfigEntry[]): RouteObject[] {
+function makeStubs(entries: readonly RouteConfigEntry[]): RouteObject[] {
 	return entries.map(({ id, path, index, caseSensitive, children }) => {
 		const Component = () => (path === '*' ? <p>No page</p> : <Outlet />)
 
 		return index
 			? { id, index: true, Component }
-			: { id, path, caseSensitive, Component, children: stubsOf(children ?? []) }
+			: { id, path, caseSensitive, Component, children: makeStubs(children ?? []) }
 	})
 }
 
 function renderAt(path: string) {
 	restoreRootAfterCase()
 
-	const router = createMemoryRouter([{ path: '/', Component: App, children: stubsOf(routes) }], {
+	const router = createMemoryRouter([{ path: '/', Component: App, children: makeStubs(routes) }], {
 		initialEntries: [path],
 	})
 

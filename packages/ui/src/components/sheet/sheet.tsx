@@ -256,8 +256,8 @@ export function SheetPanel({
 	const resize = usePanelResize({
 		side: edge,
 		open,
-		floorOf: (panel, size) => sheetFloor(panel, size, axis),
-		ceilingOf: (panel, viewport) => sheetCeiling(panel, viewport, axis),
+		getFloor: (panel, size) => sheetFloor(panel, size, axis),
+		getCeiling: (panel, viewport) => sheetCeiling(panel, viewport, axis),
 	})
 
 	// The gesture reads the node only while the panel has a handle. A consumer

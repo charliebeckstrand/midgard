@@ -11,7 +11,7 @@ import { budget } from '../helpers/wall-clock'
  */
 describe('HoldButton fill (real Motion)', () => {
 	/** The horizontal scale that the fill paints now. */
-	function scaleOf(fill: Element): number {
+	function readScale(fill: Element): number {
 		const transform = getComputedStyle(fill).transform
 
 		return transform === 'none' ? 1 : new DOMMatrixReadOnly(transform).a
@@ -38,7 +38,7 @@ describe('HoldButton fill (real Motion)', () => {
 			complete = true
 		})
 
-		expect(scaleOf(fill)).toBe(0)
+		expect(readScale(fill)).toBe(0)
 
 		const scales: number[] = []
 
@@ -49,7 +49,7 @@ describe('HoldButton fill (real Motion)', () => {
 		// or two frames, and a stalled frame skips it.
 		await sampleUntil(
 			() => {
-				const scale = scaleOf(fill)
+				const scale = readScale(fill)
 
 				scales.push(scale)
 
@@ -68,7 +68,7 @@ describe('HoldButton fill (real Motion)', () => {
 		fireEvent.pointerDown(button, { isPrimary: true, button: 0 })
 
 		await sampleUntil(
-			() => scaleOf(fill),
+			() => readScale(fill),
 			(scale) => scale > 0.3,
 			{ deadline: budget(3000) },
 		)
@@ -76,10 +76,10 @@ describe('HoldButton fill (real Motion)', () => {
 		fireEvent.pointerUp(button, { button: 0 })
 
 		// The reset starts from the painted scale, and does not jump to 1 first.
-		expect(scaleOf(fill)).toBeLessThan(0.9)
+		expect(readScale(fill)).toBeLessThan(0.9)
 
 		await sampleUntil(
-			() => scaleOf(fill),
+			() => readScale(fill),
 			(scale) => scale === 0,
 			{ deadline: budget(3000) },
 		)

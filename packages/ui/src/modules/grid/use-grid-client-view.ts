@@ -22,14 +22,14 @@ import {
 	toggleGroupExpanded,
 	toRowLeaf,
 } from './engine/grid-group/tree'
-import { pageBounds, pageCountOf, shownPageIndex } from './engine/grid-pagination-utilities'
+import { pageBounds, resolvePageCount, shownPageIndex } from './engine/grid-pagination-utilities'
 import { compileSearch } from './engine/grid-search/search'
 import { cachedSortOrder, materializeSort, type SmartSortField } from './engine/grid-sort/utilities'
 import {
+	buildLeaves,
 	type ClientView,
 	identityOrder,
 	keepInOrder,
-	leavesOf,
 	mirrorSignature,
 	rowsAt,
 	sliceOrder,
@@ -186,7 +186,7 @@ export function useGridClientView<T>(args: {
 		const shownPage =
 			pageIndex === undefined || pageSize === undefined
 				? undefined
-				: shownPageIndex(pageIndex, pageCountOf({ rows: total, pageSize }))
+				: shownPageIndex(pageIndex, resolvePageCount({ rows: total, pageSize }))
 
 		// The engine keeps an empty set whole, and slices any other.
 		const bounds =
@@ -319,7 +319,7 @@ export function useGridRowModel<T>(args: {
 	const leaves = useMemo<GridLeaf<T>[] | null>(
 		() =>
 			groups || manualGroupRow
-				? leavesOf({ rows, getKey, groups, manualGroupRow, order: null })
+				? buildLeaves({ rows, getKey, groups, manualGroupRow, order: null })
 				: null,
 		[groups, manualGroupRow, rows, getKey],
 	)

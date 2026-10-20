@@ -9,7 +9,7 @@ import {
 	CardTitle,
 } from '../../components/card'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, densityStepOf, present, renderUI } from '../helpers'
+import { bySlot, present, readDensityStep, renderUI } from '../helpers'
 
 describe('Card', () => {
 	it('keeps its frame around explicit skeleton children', () => {
@@ -120,7 +120,7 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		expect(densityStepOf(present(bySlot(container, 'card-title'), 'card title'))).toBe('sm')
+		expect(readDensityStep(present(bySlot(container, 'card-title'), 'card title'))).toBe('sm')
 	})
 
 	it('CardDescription follows the Card scope on the small text ramp', () => {
@@ -175,7 +175,7 @@ describe('Card size system', () => {
 
 		// An explicit size opens a density scope; the client Button resolves
 		// its size through it.
-		expect(densityStepOf(present(bySlot(container, 'button'), 'button'))).toBe('sm')
+		expect(readDensityStep(present(bySlot(container, 'button'), 'button'))).toBe('sm')
 	})
 
 	it('Buttons inside an unsized Card follow the ambient density', () => {
@@ -191,7 +191,7 @@ describe('Card size system', () => {
 
 		// No explicit size, no scope of its own: the ambient cascade reaches
 		// the client Button untouched.
-		expect(densityStepOf(present(bySlot(container, 'button'), 'button'))).toBe('sm')
+		expect(readDensityStep(present(bySlot(container, 'button'), 'button'))).toBe('sm')
 	})
 
 	// The frame owns the outer padding on every edge: Card carries its padding

@@ -183,7 +183,7 @@ function namesState(feature: PhotonFeature, state: UsState): boolean {
  * A Photon extent as the `bbox` parameter takes it: west, south, east, north.
  * `undefined` where the extent is not four numbers.
  */
-function boxOf(extent: unknown): [number, number, number, number] | undefined {
+function parseBox(extent: unknown): [number, number, number, number] | undefined {
 	if (!Array.isArray(extent) || extent.length !== 4) return undefined
 
 	if (!extent.every((value) => typeof value === 'number')) return undefined
@@ -361,7 +361,7 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 
 		const [area] = await request(params, signal)
 
-		const box = boxOf(area?.properties.extent)
+		const box = parseBox(area?.properties.extent)
 
 		if (area === undefined || box === undefined) return []
 

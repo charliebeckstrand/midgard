@@ -33,9 +33,9 @@ import {
 	CALLOUT_TEXT_CLASS,
 	calloutFitRadius,
 	calloutRoom,
-	calloutSpecOf,
 	calloutsShown,
 	calloutTexts,
+	resolveCallouts,
 	resolveSectorFit,
 	SectorChartCallouts,
 } from './sector-chart-callouts'
@@ -210,7 +210,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		CALLOUT_CHAR_WIDTH,
 	)
 
-	const calloutSpec = calloutSpecOf(calloutText, values, sliceValues, calloutWidth.width)
+	const calloutSpec = resolveCallouts(calloutText, values, sliceValues, calloutWidth.width)
 
 	const vMargin = showCallouts ? CALLOUT_LEADER + CALLOUT_LINE : MARK_GAP * 2
 

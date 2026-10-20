@@ -256,17 +256,17 @@ const dateCell = () =>
  * is a true order too.
  */
 const orderableRows = () =>
-	rowsOf(fc.oneof(plainCell(), dateCell())).filter((rows) => rows.length > 0)
+	makeRows(fc.oneof(plainCell(), dateCell())).filter((rows) => rows.length > 0)
 
 /** Rows built from a cell generator, each carrying its original index. */
-function rowsOf(cell: fc.Arbitrary<unknown>) {
+function makeRows(cell: fc.Arbitrary<unknown>) {
 	return fc
 		.array(fc.tuple(cell, cell), { minLength: 1, maxLength: 12 })
 		.map((pairs) => pairs.map(([a, b], id) => ({ id, a, b }) as PropertyRow))
 }
 
 /** Cells of any kind, including the mix the ordering properties leave out. */
-const anyRows = () => rowsOf(fc.oneof(plainCell(), dateCell()))
+const anyRows = () => makeRows(fc.oneof(plainCell(), dateCell()))
 
 /** One smart field over a named cell. */
 function field(key: 'a' | 'b', descending: boolean): SmartSortField<PropertyRow> {

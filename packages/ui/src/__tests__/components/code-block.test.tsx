@@ -6,11 +6,11 @@ import { CodeBlock, primeCodeBlock } from '../../components/code/code-block'
 import {
 	attach,
 	bySlot,
-	densityStepOf,
 	expectAnnouncement,
 	fireEvent,
 	getSlot,
 	present,
+	readDensityStep,
 	renderUI,
 	screen,
 	stubClipboard,
@@ -444,7 +444,7 @@ describe('CodeBlock size', () => {
 
 		expect(block).not.toHaveAttribute('size')
 
-		expect(densityStepOf(present(block.firstElementChild, 'scroll container'))).toBe('lg')
+		expect(readDensityStep(present(block.firstElementChild, 'scroll container'))).toBe('lg')
 
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})

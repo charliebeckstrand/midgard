@@ -39,9 +39,9 @@ describe('rangeCells', () => {
 	it('steps over the places that hold no data row', () => {
 		// Place 0 is a group header, and places 1 to 4 hold data rows 0 to 3,
 		// except place 3, which is a group total.
-		const dataRowOf = (row: number) => [-1, 0, 1, -1, 2][row] ?? -1
+		const toDataRow = (row: number) => [-1, 0, 1, -1, 2][row] ?? -1
 
-		const cells = rangeCells({ row: 4, col: 2 }, { row: 0, col: 1 }, dataRowOf)
+		const cells = rangeCells({ row: 4, col: 2 }, { row: 0, col: 1 }, toDataRow)
 
 		expect(cells.rows).toEqual([0, 1, 2])
 

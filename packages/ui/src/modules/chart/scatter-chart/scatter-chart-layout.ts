@@ -8,7 +8,7 @@
 import { compactFormat, fractionFormat } from '../../../utilities'
 import type { ChartAxisTick } from '../engine/chart-axes/axis'
 import type { ScatterAxes } from '../engine/chart-axes/schema'
-import { legendItemOf } from '../engine/chart-cartesian/series'
+import { toLegendItem } from '../engine/chart-cartesian/series'
 import type { ChartPaint } from '../engine/chart-color/paint'
 import { seriesPaint } from '../engine/chart-color/palette'
 import {
@@ -30,10 +30,10 @@ import {
 } from '../engine/chart-geometry/scatter'
 import {
 	axisTitleAt,
+	buildValueTicks,
 	type ChartAxisTitlePlacement,
 	plotRect,
 	valueAxisRange,
-	valueTicksOf,
 } from '../engine/chart-layout'
 import type { ChartLegendItem } from '../engine/chart-legend/legend'
 import { legendVisible, type ResolvedLegend } from '../engine/chart-legend/schema'
@@ -91,7 +91,7 @@ export function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): Sca
 /**
  * The legend entries: on request, or by default once a second series needs
  * telling apart. Each entry reads as the entry of a cartesian series does
- * ({@link legendItemOf}).
+ * ({@link toLegendItem}).
  *
  * @internal
  */
@@ -99,7 +99,7 @@ export function scatterLegendItems(
 	metas: ScatterMeta[],
 	legend: ResolvedLegend['value'],
 ): ChartLegendItem[] | null {
-	return legendVisible(legend, metas.length) ? metas.map(legendItemOf) : null
+	return legendVisible(legend, metas.length) ? metas.map(toLegendItem) : null
 }
 
 /** The number formats of the scatter: the readout's, and the tick labels' of each axis. @internal */
@@ -266,7 +266,7 @@ export function scatterScales(args: {
 		max: pins.max,
 	})
 
-	const yTicks = valueTicksOf(yScale, format)
+	const yTicks = buildValueTicks(yScale, format)
 
 	const base = plotRect(
 		frameWidth,
@@ -300,7 +300,7 @@ export function scatterScales(args: {
 
 	const xScale = linearScale({ values: xValues, range: xRange, ...xOptions })
 
-	const xTicks = valueTicksOf(xScale, formatX)
+	const xTicks = buildValueTicks(xScale, formatX)
 
 	return {
 		plot,

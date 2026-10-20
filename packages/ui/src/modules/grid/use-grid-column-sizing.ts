@@ -42,7 +42,7 @@ type GridColumnSizingOptions<T> = {
 	containerRef: RefObject<HTMLElement | null> | undefined
 	/**
 	 * Fingerprint of the set of rendered rows, supplied by the caller from data it
-	 * already holds (see `rowsSignatureOf`). A page turn or filter that changes the
+	 * already holds (see `hashKeys`). A page turn or filter that changes the
 	 * visible rows re-measures, since new content can be wider. A sort reorders
 	 * the same rows, so it keeps the fingerprint and re-measures nothing. This
 	 * hook therefore never forces the engine's Row-per-datum model just to
@@ -334,7 +334,7 @@ export function useGridColumnSizing<T>({
 
 	// What the sizer reads for one command, or `null` with no layout (jsdom,
 	// display:none, a collapsed panel), where a DOM read measures nothing.
-	const envOf = useCallback((): ColumnSizerEnv<T> | null => {
+	const readEnv = useCallback((): ColumnSizerEnv<T> | null => {
 		const container = containerRef?.current
 
 		const width = container ? fitWidth(container) : 0
@@ -351,7 +351,7 @@ export function useGridColumnSizing<T>({
 			columns,
 			// Reserve the table's horizontal border chrome (see `tableChrome`).
 			space: fitContent ? 0 : width - tableChrome(container, table.getTotalSize()),
-			sizeOf: (id) => table.getColumn(id)?.getSize() ?? DEFAULT_COLUMN_SIZE,
+			getSize: (id) => table.getColumn(id)?.getSize() ?? DEFAULT_COLUMN_SIZE,
 			measure: (scan) => measureColumns({ columns, container, scan }),
 		}
 	}, [containerRef, columns, fitContent, table, structSignature, sizer])
@@ -387,7 +387,7 @@ export function useGridColumnSizing<T>({
 
 	const refit = useCallback(
 		(fresh: boolean) => {
-			const env = automatic ? envOf() : null
+			const env = automatic ? readEnv() : null
 
 			// No layout, or nothing to size: settle anyway. There is no measurement to wait
 			// for, and a held paint would hide the table for good in an environment that
@@ -414,14 +414,14 @@ export function useGridColumnSizing<T>({
 
 			commit(write)
 		},
-		[automatic, envOf, table, sizer, commit, publishFloors],
+		[automatic, readEnv, table, sizer, commit, publishFloors],
 	)
 
 	// Runs one auto-size action. The actions run under a controlled binding too:
 	// only the automatic fit stands down there.
 	const act = useCallback(
 		(command: (env: ColumnSizerEnv<T>) => ColumnSizingWrite | null) => {
-			const env = resizable ? envOf() : null
+			const env = resizable ? readEnv() : null
 
 			if (!env) return
 
@@ -431,7 +431,7 @@ export function useGridColumnSizing<T>({
 
 			if (write) commit(write)
 		},
-		[resizable, envOf, commit, publishFloors],
+		[resizable, readEnv, commit, publishFloors],
 	)
 
 	const autoSizeColumn = useCallback(

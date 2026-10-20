@@ -17,17 +17,17 @@ const ENTRIES: readonly SearchEntry[] = [
 ]
 
 /** The hrefs of the matches of `query`, in order. */
-function hrefsOf(query: string): string[] {
+function matchHrefs(query: string): string[] {
 	return matchEntries(ENTRIES, query).map((entry) => entry.href)
 }
 
 describe('matchEntries', () => {
 	it('gives each page for an empty query', () => {
-		expect(hrefsOf('  ')).toEqual(['/button', '/copy-button', '/modules/grid'])
+		expect(matchHrefs('  ')).toEqual(['/button', '/copy-button', '/modules/grid'])
 	})
 
 	it('puts an entry whose label holds the query before one that only its context matches', () => {
-		expect(hrefsOf('button')).toEqual([
+		expect(matchHrefs('button')).toEqual([
 			'/button',
 			'/button#api-Button',
 			'/copy-button',
@@ -37,16 +37,16 @@ describe('matchEntries', () => {
 	})
 
 	it('matches each word in the label or the context', () => {
-		expect(hrefsOf('grid sort')).toEqual(['/modules/grid/sorting'])
+		expect(matchHrefs('grid sort')).toEqual(['/modules/grid/sorting'])
 
-		expect(hrefsOf('button variant')).toEqual(['/button#api-Button-variant'])
+		expect(matchHrefs('button variant')).toEqual(['/button#api-Button-variant'])
 	})
 
 	it('ignores case and the marks of a component name', () => {
-		expect(hrefsOf('<BUTTON')).toEqual(hrefsOf('button'))
+		expect(matchHrefs('<BUTTON')).toEqual(matchHrefs('button'))
 	})
 
 	it('gives no entry when a word matches nothing', () => {
-		expect(hrefsOf('button nothing')).toEqual([])
+		expect(matchHrefs('button nothing')).toEqual([])
 	})
 })

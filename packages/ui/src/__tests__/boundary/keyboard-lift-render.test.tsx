@@ -72,7 +72,7 @@ const columns: Column[] = ['todo', 'doing', 'done'].map((id) => ({
 // memo keeps its card content stable in the same way.
 const contentCache = new Map<string, ReactNode>()
 
-function contentOf(item: Item): ReactNode {
+function renderContent(item: Item): ReactNode {
 	let content = contentCache.get(item.id)
 
 	if (!content) {
@@ -104,7 +104,7 @@ function Board() {
 					<KanbanColumnBody>
 						{column.items.map((item) => (
 							<KanbanCard key={item.id} value={item.id}>
-								{contentOf(item)}
+								{renderContent(item)}
 							</KanbanCard>
 						))}
 					</KanbanColumnBody>

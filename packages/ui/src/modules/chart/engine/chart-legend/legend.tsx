@@ -69,9 +69,9 @@ function useLegendFit(
 			// orders correctly.
 			const rowHeight = controls[0]?.offsetHeight || 1
 
-			const bucketOf = (control: HTMLElement) => Math.round(control.offsetTop / rowHeight)
+			const getBucket = (control: HTMLElement) => Math.round(control.offsetTop / rowHeight)
 
-			const buckets = [...new Set(controls.map(bucketOf))].sort((a, b) => a - b)
+			const buckets = [...new Set(controls.map(getBucket))].sort((a, b) => a - b)
 
 			// The row packs from its inline start, which is the right edge in RTL.
 			// The offset parent of each control is the wrapper of the ghost, which
@@ -79,7 +79,7 @@ function useLegendFit(
 			const rtl = isRtl(ghost)
 
 			const rects = controls.map((control) => ({
-				row: buckets.indexOf(bucketOf(control)),
+				row: buckets.indexOf(getBucket(control)),
 				right: rtl
 					? ghost.clientWidth - control.offsetLeft
 					: control.offsetLeft + control.offsetWidth,

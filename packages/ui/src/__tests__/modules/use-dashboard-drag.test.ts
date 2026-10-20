@@ -91,7 +91,7 @@ function renderDrag(store: DashboardStore, canvasRef = makeCanvas()) {
 }
 
 /** The keyboard coordinate getter that the hook gives to the keyboard sensor. */
-function coordinateGetterOf(context: ReturnType<typeof renderDrag>['context']) {
+function getCoordinateGetter(context: ReturnType<typeof renderDrag>['context']) {
 	const getter = context.sensors
 		?.map((descriptor) => (descriptor.options as { coordinateGetter?: unknown }).coordinateGetter)
 		.find((option) => option !== undefined)
@@ -156,7 +156,7 @@ describe('useDashboardDrag', () => {
 		it('gives no step while no drag is live', () => {
 			const { context } = renderDrag(makeStore())
 
-			expect(step(coordinateGetterOf(context), 'ArrowRight')).toBeUndefined()
+			expect(step(getCoordinateGetter(context), 'ArrowRight')).toBeUndefined()
 		})
 
 		it('gives no step for a key off the arrows', () => {
@@ -164,7 +164,7 @@ describe('useDashboardDrag', () => {
 
 			context.onDragStart?.(start('alpha'))
 
-			const getter = coordinateGetterOf(context)
+			const getter = getCoordinateGetter(context)
 
 			expect(step(getter, 'Space')).toBeUndefined()
 
@@ -182,7 +182,7 @@ describe('useDashboardDrag', () => {
 			// Alpha travels 16 columns, which is 800 px. The delta goes four columns past that edge.
 			context.onDragMove?.(move('alpha', 1000))
 
-			const getter = coordinateGetterOf(context)
+			const getter = getCoordinateGetter(context)
 
 			const next = getter(new KeyboardEvent('keydown', { code: 'ArrowLeft' }), {
 				currentCoordinates: { x: 1000, y: 0 },

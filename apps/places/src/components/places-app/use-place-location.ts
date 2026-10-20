@@ -55,7 +55,7 @@ export type PlaceLocationHandle = PlaceLocation & {
 	 * The address that {@link openAt} writes for the same view and selection,
 	 * for a link that opens it from a new tab.
 	 */
-	hrefOf: (view: PlaceView, selected: PlaceSelection) => string
+	toHref: (view: PlaceView, selected: PlaceSelection) => string
 	/**
 	 * States the view the opening rule settled on, without a history entry.
 	 *
@@ -172,7 +172,7 @@ export function usePlaceLocation(): PlaceLocationHandle {
 		[write],
 	)
 
-	const hrefOf = useCallback(
+	const toHref = useCallback(
 		(view: PlaceView, selected: PlaceSelection) => compose({ view, selected, step: PANEL_START }),
 		[compose],
 	)
@@ -210,7 +210,7 @@ export function usePlaceLocation(): PlaceLocationHandle {
 		setStep,
 		settleView,
 		openAt,
-		hrefOf,
+		toHref,
 		setAdding,
 	}
 }

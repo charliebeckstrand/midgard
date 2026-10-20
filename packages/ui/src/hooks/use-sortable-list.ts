@@ -252,7 +252,7 @@ export function useSortableList<T>({
 	)
 
 	// Read at drag time, so an inline `describe` or `getKey` keeps the announcements.
-	const nameOf = useStableEvent((id: string) => {
+	const getName = useStableEvent((id: string) => {
 		const item = items.find((candidate) => getKey(candidate) === id)
 
 		if (item === undefined) return intl.formatMessage(reorderMessages.unnamedItem)
@@ -265,14 +265,14 @@ export function useSortableList<T>({
 	// `useKeyboardLifted`.
 	const accessibility = useMemo(
 		() => ({
-			announcements: sortableAnnouncements(intl, itemIds, nameOf),
+			announcements: sortableAnnouncements(intl, itemIds, getName),
 			screenReaderInstructions: {
 				draggable: intl.formatMessage(
 					keyboardSensor ? reorderMessages.sensorInstructions : reorderMessages.liftInstructions,
 				),
 			},
 		}),
-		[intl, itemIds, nameOf, keyboardSensor],
+		[intl, itemIds, getName, keyboardSensor],
 	)
 
 	const dndContextProps = useMemo(

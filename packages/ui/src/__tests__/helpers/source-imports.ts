@@ -46,7 +46,7 @@ function isRuntimeClause(clause: string): boolean {
 }
 
 /** Each `import … from` and `export … from` statement of `content`, in order. */
-export function importsOf(content: string): ImportRef[] {
+export function parseImports(content: string): ImportRef[] {
 	return [...content.matchAll(IMPORT)].map((match) => ({
 		specifier: match[3] as string,
 		runtime: isRuntimeClause((match[1] ?? match[2]) as string),

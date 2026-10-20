@@ -19,7 +19,7 @@
 
 import { POINT_CLUSTER_GAP, POINT_RADIUS } from '../map-constants'
 import type { LngLat, MapPoint2D } from '../types'
-import { bucket, cellOf, squared, walkNear } from './grid'
+import { bucket, squared, toCellKey, walkNear } from './grid'
 import { clusterRadius, MAX_CLUSTER_RADIUS } from './radius'
 
 /**
@@ -138,7 +138,7 @@ export function clusterPoints(
 	}
 
 	// Both phases measure in frame units: the broad phase takes a whole dot-to-dot
-	// reach, and the rule below takes the gap alone with `markOf` converting each
+	// reach, and the rule below takes the gap alone with `buildMark` converting each
 	// mark's radius to match.
 	const seeds = seedGroups(positions, project, (POINT_RADIUS * 2 + gap) * unitsPerPixel)
 
@@ -195,7 +195,7 @@ function seedGroups(
 
 		groups.push(group)
 
-		bucket(cells, cellOf(at, reach)).push(group)
+		bucket(cells, toCellKey(at, reach)).push(group)
 	}
 
 	return groups
@@ -252,12 +252,12 @@ function mergeRound(
 	const reach = MAX_CLUSTER_RADIUS * 2 * unitsPerPixel + gap
 
 	for (const group of groups) {
-		const mark = markOf(group, unitsPerPixel)
+		const mark = buildMark(group, unitsPerPixel)
 
 		const host = mark === null ? -1 : hostFor(cells, marks, mark, gap, reach)
 
 		if (host === -1) {
-			if (mark !== null) bucket(cells, cellOf(mark.at, reach)).push(next.length)
+			if (mark !== null) bucket(cells, toCellKey(mark.at, reach)).push(next.length)
 
 			next.push(group)
 
@@ -270,7 +270,7 @@ function mergeRound(
 
 		next[host] = merged
 
-		const grown = markOf(merged, unitsPerPixel)
+		const grown = buildMark(merged, unitsPerPixel)
 
 		marks[host] = grown
 
@@ -278,7 +278,7 @@ function mergeRound(
 		// cell now; index it there too. The entry left behind costs at most a
 		// repeated test, never a missed pair, because every test reads the live
 		// mark rather than the cell it was filed under.
-		if (grown !== null) bucket(cells, cellOf(grown.at, reach)).push(host)
+		if (grown !== null) bucket(cells, toCellKey(grown.at, reach)).push(host)
 	}
 
 	return next
@@ -365,7 +365,7 @@ function nearestSeed(
  *
  * @internal
  */
-function markOf(group: MapClusterSeed, unitsPerPixel: number): MapClusterMark | null {
+function buildMark(group: MapClusterSeed, unitsPerPixel: number): MapClusterMark | null {
 	const at = center(group)
 
 	return at === null ? null : { at, radius: clusterRadius(group.members.length) * unitsPerPixel }
@@ -377,7 +377,7 @@ function markOf(group: MapClusterSeed, unitsPerPixel: number): MapClusterMark | 
  * have to be asked.
  *
  * Every term is frame units by the time it reaches here: `clusterPoints` scaled
- * the gap, and `markOf` scaled the radii. The rule therefore reads in one unit.
+ * the gap, and `buildMark` scaled the radii. The rule therefore reads in one unit.
  *
  * @internal
  */

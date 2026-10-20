@@ -24,7 +24,7 @@ const SERIES = [
 	{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
 ] as const
 
-function tierOf(container: HTMLElement): string | undefined {
+function readTier(container: HTMLElement): string | undefined {
 	return container.querySelector<HTMLElement>('[data-slot="chart"]')?.dataset.tier
 }
 
@@ -42,7 +42,7 @@ describe('chart tier header reserve (real browser)', () => {
 			</div>,
 		)
 
-		await waitFor(() => expect(tierOf(container)).toBe('spark'))
+		await waitFor(() => expect(readTier(container)).toBe('spark'))
 
 		// Spark drops the legend with the rest of the chrome.
 		expect(container.querySelector('[data-slot="chart-legend"]')).toBeNull()
@@ -57,7 +57,7 @@ describe('chart tier header reserve (real browser)', () => {
 
 		// No header band to reserve, so the taller plot clears the spark floor and the
 		// frame keeps its chrome — the legend still shows.
-		await waitFor(() => expect(tierOf(container)).toBe('compact'))
+		await waitFor(() => expect(readTier(container)).toBe('compact'))
 
 		expect(container.querySelector('[data-slot="chart-legend"]')).not.toBeNull()
 	})

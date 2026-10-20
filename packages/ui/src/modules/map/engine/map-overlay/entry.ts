@@ -66,7 +66,7 @@ export type MapOverlayEntry = {
 	 * a route whose geometry lands from the network — therefore needs no
 	 * re-registration. An inline `at={[lon, lat]}` never churns the ledger.
 	 *
-	 * Required, like the sibling `stopOf`. One hook registers every mark on the
+	 * Required, like the sibling `getStop`. One hook registers every mark on the
 	 * map, and it always passes this. An optional field only bought the reader
 	 * a fallback for a mark that cannot exist. A mark with no geometry yet
 	 * answers with the empty list.
@@ -129,5 +129,5 @@ export type MapOverlayEntry = {
 	 * table row. Stable like {@link stopsAt}, so a regrouping never re-registers;
 	 * the mark itself resolves off the live grouping it holds.
 	 */
-	stopOf: (index: number) => number | null
+	getStop: (index: number) => number | null
 }

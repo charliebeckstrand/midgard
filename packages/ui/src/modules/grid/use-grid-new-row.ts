@@ -19,9 +19,9 @@ import { describeRowAdd } from './engine/grid-announcements'
 import { GRID_ROLE } from './engine/grid-constants'
 import {
 	collectNewRow,
-	columnOf,
 	EDITOR_FOCUSABLE,
 	type EditorKind,
+	findColumn,
 	type GridDraftStore,
 	inferEditorKind,
 	isColumnEditable,
@@ -33,7 +33,7 @@ import {
 	type SinkOutcome,
 	trackSink,
 } from './engine/grid-editing-utilities'
-import { type NewRowFlight, restoreRefused, slotColumnOf } from './engine/grid-new-row'
+import { findSlotColumn, type NewRowFlight, restoreRefused } from './engine/grid-new-row'
 import type { GridEditSource } from './grid-data-types'
 import type { GridNewRowSession } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
@@ -190,7 +190,7 @@ export function useGridNewRow<T>({
 	)
 
 	// The mounted editor of a cell of the slot, in this grid.
-	const editorOf = useCallback(
+	const findEditor = useCallback(
 		(columnId: string | number) => {
 			const table = tableRef.current
 
@@ -317,12 +317,12 @@ export function useGridNewRow<T>({
 		(columnId: string | number, seed?: string | number) => {
 			if (flightRef.current !== null) return
 
-			const column = columnOf(dataColumnsRef.current, columnId)
+			const column = findColumn(dataColumnsRef.current, columnId)
 
 			if (!column || !isColumnEditable(column)) return
 
 			if (seed === undefined) {
-				const editor = editorOf(columnId)
+				const editor = findEditor(columnId)
 
 				editor?.focus()
 
@@ -337,7 +337,7 @@ export function useGridNewRow<T>({
 
 			remount()
 		},
-		[drafts, dataColumnsRef, editorOf],
+		[drafts, dataColumnsRef, findEditor],
 	)
 
 	// F2 puts focus back on the tab stop, with the cursor on the cell. Escape
@@ -369,7 +369,10 @@ export function useGridNewRow<T>({
 			// the slot in the tab order, so the browser keeps it.
 			if (hasBrowserModifier(event)) return true
 
-			const columnId = slotColumnOf(cell.getAttribute('data-grid-new-col'), dataColumnsRef.current)
+			const columnId = findSlotColumn(
+				cell.getAttribute('data-grid-new-col'),
+				dataColumnsRef.current,
+			)
 
 			if (columnId === undefined) return true
 

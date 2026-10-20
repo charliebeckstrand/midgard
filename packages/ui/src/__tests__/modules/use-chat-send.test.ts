@@ -9,7 +9,7 @@ import {
 import { deferred } from '../helpers'
 
 /** A transport that yields the given chunks in order: cumulative prose, or blocks. */
-function streamOf(...chunks: (string | ChatPart[])[]): ChatTransport {
+function makeStream(...chunks: (string | ChatPart[])[]): ChatTransport {
 	return () =>
 		(async function* () {
 			for (const chunk of chunks) yield chunk
@@ -30,7 +30,7 @@ describe('useChatSend', () => {
 		// written before the reload.
 		const { result } = renderHook(() =>
 			useChatSend({
-				transport: streamOf('ok'),
+				transport: makeStream('ok'),
 				initialMessages: [
 					{ id: 'server-1', sender: 'user', content: 'seed' },
 					{ id: 'server-2', sender: 'assistant', content: 'reply' },
@@ -44,7 +44,7 @@ describe('useChatSend', () => {
 	it('assigns an id only to the seed message that carries none', () => {
 		const { result } = renderHook(() =>
 			useChatSend({
-				transport: streamOf('ok'),
+				transport: makeStream('ok'),
 				initialMessages: [
 					{ id: 'server-1', sender: 'user', content: 'seed' },
 					{ sender: 'assistant', content: 'reply' },
@@ -62,7 +62,7 @@ describe('useChatSend', () => {
 
 		const { result, rerender } = renderHook(() =>
 			useChatSend({
-				transport: streamOf('ok'),
+				transport: makeStream('ok'),
 				initialMessages: [
 					{ id: 'server-1', sender: 'user', content: 'hi' },
 					{ id: 'server-1', sender: 'assistant', content: 'hello' },
@@ -85,7 +85,7 @@ describe('useChatSend', () => {
 
 		renderHook(() =>
 			useChatSend({
-				transport: streamOf('ok'),
+				transport: makeStream('ok'),
 				initialMessages: [
 					{ id: 'server-1', sender: 'user', content: 'hi' },
 					{ sender: 'assistant', content: 'hello' },
@@ -99,7 +99,7 @@ describe('useChatSend', () => {
 	it('edits a seed message by the id it was persisted under', async () => {
 		// The end the fix exists for: a target written before a reload still
 		// reaches its message after one.
-		const transport = vi.fn(streamOf('x'))
+		const transport = vi.fn(makeStream('x'))
 
 		const { result } = renderHook(() =>
 			useChatSend({
@@ -123,7 +123,7 @@ describe('useChatSend', () => {
 
 		const { result } = renderHook(() =>
 			useChatSend({
-				transport: streamOf('Hello'),
+				transport: makeStream('Hello'),
 				initialMessages: [{ sender: 'assistant', content: 'Welcome' }],
 			}),
 		)
@@ -145,7 +145,7 @@ describe('useChatSend', () => {
 		const onSent = vi.fn()
 
 		const { result } = renderHook(() =>
-			useChatSend({ transport: streamOf('Hel', 'Hello'), onSent }),
+			useChatSend({ transport: makeStream('Hel', 'Hello'), onSent }),
 		)
 
 		await act(async () => {
@@ -164,7 +164,7 @@ describe('useChatSend', () => {
 	})
 
 	it('trims input and no-ops on empty content', async () => {
-		const transport = vi.fn(streamOf('x'))
+		const transport = vi.fn(makeStream('x'))
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -199,12 +199,12 @@ describe('useChatSend', () => {
 	})
 
 	it('retry regenerates the reply to the last user message, dropping the previous reply', async () => {
-		const transports = [streamOf('first reply'), streamOf('second reply')]
+		const transports = [makeStream('first reply'), makeStream('second reply')]
 
 		let call = 0
 
 		const transport: ChatTransport = (content, signal) =>
-			transports[call++]?.(content, signal) ?? streamOf()(content, signal)
+			transports[call++]?.(content, signal) ?? makeStream()(content, signal)
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -237,7 +237,7 @@ describe('useChatSend', () => {
 			// The first send fails before its first chunk.
 			if (call === 1) return failingStream('boom')
 
-			return streamOf('recovered')(content, signal)
+			return makeStream('recovered')(content, signal)
 		}
 
 		const { result } = renderHook(() => useChatSend({ transport }))
@@ -258,7 +258,7 @@ describe('useChatSend', () => {
 	})
 
 	it('retry no-ops with no user message in the transcript', async () => {
-		const transport = vi.fn(streamOf('x'))
+		const transport = vi.fn(makeStream('x'))
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -272,12 +272,12 @@ describe('useChatSend', () => {
 	})
 
 	it('edit replaces a user message and regenerates from there, dropping later turns', async () => {
-		const transports = [streamOf('first reply'), streamOf('second reply')]
+		const transports = [makeStream('first reply'), makeStream('second reply')]
 
 		let call = 0
 
 		const transport: ChatTransport = (content, signal) =>
-			transports[call++]?.(content, signal) ?? streamOf()(content, signal)
+			transports[call++]?.(content, signal) ?? makeStream()(content, signal)
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -302,7 +302,7 @@ describe('useChatSend', () => {
 	})
 
 	it('edit no-ops for an unknown id, a non-user message, or empty content', async () => {
-		const transport = vi.fn(streamOf('x'))
+		const transport = vi.fn(makeStream('x'))
 
 		const { result } = renderHook(() =>
 			useChatSend({
@@ -524,7 +524,7 @@ describe('useChatSend', () => {
 	})
 
 	it('stop no-ops when nothing is in flight', () => {
-		const { result } = renderHook(() => useChatSend({ transport: streamOf('x') }))
+		const { result } = renderHook(() => useChatSend({ transport: makeStream('x') }))
 
 		expect(() => result.current.stop()).not.toThrow()
 
@@ -547,7 +547,7 @@ describe('useChatSend', () => {
 				})()
 			}
 
-			return streamOf('second reply')(content, signal)
+			return makeStream('second reply')(content, signal)
 		}
 
 		const { result } = renderHook(() => useChatSend({ transport }))
@@ -587,7 +587,7 @@ describe('useChatSend over a stream of parts', () => {
 	const chart: ChatPart = { kind: 'embed', id: 'e1', name: 'stops-trend', data: [4, 14] }
 
 	it('lands a reply that arrives as blocks alone', async () => {
-		const { result } = renderHook(() => useChatSend({ transport: streamOf([chart]) }))
+		const { result } = renderHook(() => useChatSend({ transport: makeStream([chart]) }))
 
 		await act(async () => {
 			await result.current.send('how are stops trending?')
@@ -601,7 +601,7 @@ describe('useChatSend over a stream of parts', () => {
 
 	it('keeps prose already streamed when a block arrives after it', async () => {
 		const { result } = renderHook(() =>
-			useChatSend({ transport: streamOf('Late stops rose.', [chart]) }),
+			useChatSend({ transport: makeStream('Late stops rose.', [chart]) }),
 		)
 
 		await act(async () => {
@@ -618,7 +618,7 @@ describe('useChatSend over a stream of parts', () => {
 		// The whole point of the widening: one reply holds prose that streams
 		// beside a chart that arrived once.
 		const { result } = renderHook(() =>
-			useChatSend({ transport: streamOf('Late stops', [chart], 'Late stops rose to 14.') }),
+			useChatSend({ transport: makeStream('Late stops', [chart], 'Late stops rose to 14.') }),
 		)
 
 		await act(async () => {
@@ -634,7 +634,7 @@ describe('useChatSend over a stream of parts', () => {
 	it('leaves a string-only transport rendering exactly as it did', async () => {
 		// The compatibility claim. A transport written before parts existed yields
 		// strings, and the reply it builds stays a string.
-		const { result } = renderHook(() => useChatSend({ transport: streamOf('Hel', 'Hello') }))
+		const { result } = renderHook(() => useChatSend({ transport: makeStream('Hel', 'Hello') }))
 
 		await act(async () => {
 			await result.current.send('hi')
@@ -687,7 +687,7 @@ describe('useChatSend over a stream of parts', () => {
 	it('sends the prose of a block reply again on retry, dropping what it cannot carry', async () => {
 		// `retry` re-sends the last *user* message, which holds prose, so the
 		// projection is lossless here. Stated so the boundary is on the record.
-		const transport = vi.fn(streamOf([chart]))
+		const transport = vi.fn(makeStream([chart]))
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -722,7 +722,7 @@ describe('useChatSend settling a running step', () => {
 	it('marks a step the transport left running as failed when the stream ends', async () => {
 		// The rule that lets a `tool` block carry a running status at all. Without
 		// it the step draws a spinner nothing ever stops.
-		const { result } = renderHook(() => useChatSend({ transport: streamOf([running]) }))
+		const { result } = renderHook(() => useChatSend({ transport: makeStream([running]) }))
 
 		await act(async () => {
 			await result.current.send('which are late?')
@@ -789,7 +789,7 @@ describe('useChatSend settling a running step', () => {
 	it('leaves a step the transport settled alone', async () => {
 		const finished: ChatToolPart = { ...running, status: 'done' }
 
-		const { result } = renderHook(() => useChatSend({ transport: streamOf([finished]) }))
+		const { result } = renderHook(() => useChatSend({ transport: makeStream([finished]) }))
 
 		await act(async () => {
 			await result.current.send('which are late?')

@@ -19,7 +19,7 @@ export type LightboxContextValue = {
 	/** The image of the thumbnail of a photo, if a trigger renders one. */
 	thumbnail: (index: number) => HTMLImageElement | undefined
 	/** How the thumbnail at a URL loaded, or `undefined` while it loads. */
-	loadOf: (source: string) => LightboxLoad | undefined
+	getLoad: (source: string) => LightboxLoad | undefined
 	/** Records how the thumbnail at a URL loaded. The first record for a URL holds. */
 	record: (source: string, load: LightboxLoad) => void
 }

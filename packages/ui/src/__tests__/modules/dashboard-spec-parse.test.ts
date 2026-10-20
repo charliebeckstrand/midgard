@@ -271,7 +271,7 @@ describe('parseDashboardSelection', () => {
 	]
 
 	/** The kind and the path of each issue. */
-	const issuesOf = (input: unknown) =>
+	const parseIssues = (input: unknown) =>
 		parseDashboardSelection(input).issues.map((issue) => [issue.kind, issue.path])
 
 	it('keeps a sound selection value whole, through a JSON round trip, with no issue', () => {
@@ -289,7 +289,7 @@ describe('parseDashboardSelection', () => {
 
 		expect(parseDashboardSelection({ source: 'regions' }).selections).toEqual([])
 
-		expect(issuesOf({ source: 'regions' })).toEqual([['invalid-list', '']])
+		expect(parseIssues({ source: 'regions' })).toEqual([['invalid-list', '']])
 	})
 
 	it('drops each malformed selection, reports its index, and keeps each other one as it is', () => {
@@ -309,7 +309,7 @@ describe('parseDashboardSelection', () => {
 
 		expect(selections[0]).toBe(SELECTION[0])
 
-		expect(issuesOf(input)).toEqual([
+		expect(parseIssues(input)).toEqual([
 			['invalid-selection', '[0]'],
 			['invalid-selection', '[1]'],
 			['invalid-selection', '[2]'],
@@ -324,7 +324,7 @@ describe('parseDashboardSelection', () => {
 
 		expect(parseDashboardSelection(input).selections).toEqual([SELECTION[1]])
 
-		expect(issuesOf(input)).toEqual([['invalid-selection', '[0]']])
+		expect(parseIssues(input)).toEqual([['invalid-selection', '[0]']])
 	})
 
 	it('drops and reports a selection that repeats the source and the field of an earlier one', () => {
@@ -344,7 +344,7 @@ describe('parseDashboardSelection', () => {
 
 		expect(selections).not.toContain(repeat)
 
-		expect(issuesOf(input)).toEqual([['duplicate-selection', '[3]']])
+		expect(parseIssues(input)).toEqual([['duplicate-selection', '[3]']])
 	})
 
 	it('keeps a later selection when the earlier one with its source and field has no values', () => {
@@ -352,6 +352,6 @@ describe('parseDashboardSelection', () => {
 
 		expect(parseDashboardSelection(input).selections).toEqual([SELECTION[0]])
 
-		expect(issuesOf(input)).toEqual([['invalid-selection', '[0]']])
+		expect(parseIssues(input)).toEqual([['invalid-selection', '[0]']])
 	})
 })

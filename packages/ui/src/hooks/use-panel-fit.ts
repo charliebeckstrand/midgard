@@ -36,7 +36,7 @@ export type PanelFitOptions = {
 	 */
 	dragged: boolean
 	/** Where the panel stops. Shared with the gesture, so the two agree. */
-	ceilingOf: PanelCeiling
+	getCeiling: PanelCeiling
 	/** The travel between two content heights. The panel's kata states it. */
 	transition: ValueAnimationTransition<number>
 }
@@ -74,7 +74,7 @@ export type PanelFitOptions = {
 export function usePanelFit({
 	enabled,
 	dragged,
-	ceilingOf,
+	getCeiling,
 	transition,
 }: PanelFitOptions): RefCallback<HTMLDivElement> {
 	// The panel as state rather than a ref, for the reason the gesture holds it
@@ -147,7 +147,7 @@ export function usePanelFit({
 
 			panel.toggleAttribute(
 				'data-full',
-				next.block >= ceilingOf(panel, dockExtent(panel, 'height')) - SUBPIXEL,
+				next.block >= getCeiling(panel, dockExtent(panel, 'height')) - SUBPIXEL,
 			)
 
 			if (Math.abs(from - next.block) < SUBPIXEL || reduced) return
@@ -180,7 +180,7 @@ export function usePanelFit({
 
 			observer.disconnect()
 		}
-	}, [panel, enabled, dragged, ceilingOf, transition, reduced])
+	}, [panel, enabled, dragged, getCeiling, transition, reduced])
 
 	return ref
 }

@@ -28,7 +28,7 @@ type FillDrag = {
  * @param readSource - The source block at the press, or `null` for none.
  * @param showRange - Shows the range between two data cells.
  * @param fill - Fills `count` lines after the source in `direction`.
- * @param cellCoordOf - The data cell that an element id names, or `null`.
+ * @param parseCellCoord - The data cell that an element id names, or `null`.
  * @param rowStep - The data row a number of rows away, over the rows that the cursor shows.
  * @param rowDistance - The count of rows between two data rows, over the rows that the cursor shows.
  * @param scrollContainerRef - The scroll region of the grid, or `null` when it does not scroll.
@@ -42,7 +42,7 @@ export function useGridFillDrag({
 	readSource,
 	showRange,
 	fill,
-	cellCoordOf,
+	parseCellCoord,
 	rowStep,
 	rowDistance,
 	scrollContainerRef,
@@ -51,7 +51,7 @@ export function useGridFillDrag({
 	readSource: () => GridFillRect | null
 	showRange: (from: Coord, to: Coord) => void
 	fill: (source: GridFillRect, direction: GridFillDirection, count: number) => void
-	cellCoordOf: (id: string) => Coord | null
+	parseCellCoord: (id: string) => Coord | null
 	rowStep: GridRowStep
 	rowDistance: GridRowDistance
 	scrollContainerRef: RefObject<HTMLElement | null>
@@ -82,7 +82,7 @@ export function useGridFillDrag({
 	const start = useGridRangeDrag({
 		onCell: grow,
 		onEnd: release,
-		cellCoordOf,
+		parseCellCoord,
 		scrollContainerRef,
 		press,
 	})

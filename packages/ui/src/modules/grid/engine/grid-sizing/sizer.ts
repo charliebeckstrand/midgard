@@ -35,7 +35,7 @@ export type ColumnSizerEnv<T> = {
 	 */
 	space: number
 	/** The engine's current width (px) of a column. */
-	sizeOf: (id: string) => number
+	getSize: (id: string) => number
 	/** Reads the DOM facts for the columns in `scan` (see {@link measureColumns}). */
 	measure: (scan: ReadonlySet<string>) => ColumnMeasurement
 }
@@ -156,7 +156,7 @@ function keptWidth<T>(
 	const seed = parsePxWidth(col.width)
 
 	if (seed == null || !isDataColumn(col) || holds.has(id) || released.has(id)) {
-		return env.sizeOf(id)
+		return env.getSize(id)
 	}
 
 	return clamp(seed, col.minWidth ?? 0, col.maxWidth ?? Number.MAX_SAFE_INTEGER)
@@ -233,14 +233,14 @@ export function createColumnSizer({
 		seen = measurement.cells > 0
 	}
 
-	function floorOf<T>(col: GridColumn<T>): number {
+	function getFloor<T>(col: GridColumn<T>): number {
 		return floors.get(String(col.id)) ?? col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE
 	}
 
-	function profileOf<T>(col: GridColumn<T>): ColumnSizeProfile {
+	function buildProfile<T>(col: GridColumn<T>): ColumnSizeProfile {
 		const id = String(col.id)
 
-		const floor = floorOf(col)
+		const floor = getFloor(col)
 
 		return {
 			id,
@@ -274,7 +274,7 @@ export function createColumnSizer({
 		return Object.fromEntries(
 			cols.map((col) => [
 				String(col.id),
-				contentWidth(col, floorOf(col), widest.get(String(col.id)) ?? 0, false),
+				contentWidth(col, getFloor(col), widest.get(String(col.id)) ?? 0, false),
 			]),
 		)
 	}
@@ -332,7 +332,7 @@ export function createColumnSizer({
 		const space = mode === 'auto' ? Math.max(0, env.space - kept) : 0
 
 		return {
-			sizing: { ...content, ...allocateColumnWidths(joined.map(profileOf), space) },
+			sizing: { ...content, ...allocateColumnWidths(joined.map(buildProfile), space) },
 			replace: false,
 			persist: 'none',
 		}

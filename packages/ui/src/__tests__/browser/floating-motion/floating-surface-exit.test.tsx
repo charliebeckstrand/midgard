@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../../../components/pop
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
 import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 
 /**
  * A closed floating surface stays on screen for its exit, and `AnimatePresence`
@@ -34,7 +34,7 @@ const focused = () => present(document.activeElement, 'the focused element')
 
 /** Whether a press at the center of `element` lands on it or inside it. */
 function hits(element: Element) {
-	const at = centerOf(element)
+	const at = getCenter(element)
 
 	return element.contains(document.elementFromPoint(at.x, at.y))
 }
@@ -75,7 +75,7 @@ async function openContextMenu(onAction: (name: string) => void, reduced = false
 
 	const surface = screen.getByTestId('surface')
 
-	const at = centerOf(surface)
+	const at = getCenter(surface)
 
 	fireEvent.contextMenu(surface, { clientX: at.x, clientY: at.y })
 
@@ -88,7 +88,7 @@ async function openContextMenu(onAction: (name: string) => void, reduced = false
 
 /** Moves the pointer onto a row, which takes the cursor of its level. */
 function hover(element: HTMLElement) {
-	const at = centerOf(element)
+	const at = getCenter(element)
 
 	fireEvent.pointerMove(element, { clientX: at.x, clientY: at.y, pointerType: 'mouse' })
 }

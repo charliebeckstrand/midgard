@@ -8,7 +8,12 @@
 import type { GridEditSource } from '../grid-data-types'
 import type { GridEditableConfig } from '../grid-editing-types'
 import { EMPTY_SET } from './grid-constants'
-import { columnOf, type GridActiveEdit, isColumnEditable, sameCell } from './grid-editing-utilities'
+import {
+	findColumn,
+	type GridActiveEdit,
+	isColumnEditable,
+	sameCell,
+} from './grid-editing-utilities'
 
 /**
  * Whether a cell that a consumer names can hold a session: its row is in the
@@ -16,7 +21,7 @@ import { columnOf, type GridActiveEdit, isColumnEditable, sameCell } from './gri
  * construction. A consumer's `cell` does not, so it is read here. @internal
  */
 function isEditableCell<T>(cell: GridActiveEdit, source: GridEditSource<T>): boolean {
-	const col = columnOf(source.columns, cell.columnId)
+	const col = findColumn(source.columns, cell.columnId)
 
 	if (!col || !isColumnEditable(col)) return false
 

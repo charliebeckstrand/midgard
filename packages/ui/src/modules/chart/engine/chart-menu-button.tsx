@@ -43,7 +43,7 @@ export type ChartMenuButtonProps = {
 }
 
 /** The item of `entries` with `key`, or `undefined`. */
-function itemOf(entries: ContextMenuEntry[], key: string): ContextMenuItem | undefined {
+function findItem(entries: ContextMenuEntry[], key: string): ContextMenuItem | undefined {
 	return entries.find((entry): entry is ContextMenuItem => 'key' in entry && entry.key === key)
 }
 
@@ -108,12 +108,12 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 
 	if (host === null) return menu
 
-	const viewData = itemOf(entries, 'view-data')
+	const viewData = findItem(entries, 'view-data')
 
 	return createPortal(
 		<span
 			data-slot="chart-header-actions"
-			data-own-fullscreen={dataAttr(itemOf(entries, 'fullscreen') !== undefined)}
+			data-own-fullscreen={dataAttr(findItem(entries, 'fullscreen') !== undefined)}
 			className="contents"
 		>
 			{viewData?.onAction && (

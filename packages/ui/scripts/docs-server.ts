@@ -56,7 +56,7 @@ async function isFile(file: string): Promise<boolean> {
  * The file that a path of the site gets, or `undefined` for a path that does
  * not decode, such as `/%E0%A4%A`. The server answers such a path with 400.
  */
-export async function fileOf(root: string, pathname: string): Promise<string | undefined> {
+export async function resolveFile(root: string, pathname: string): Promise<string | undefined> {
 	let decoded: string
 
 	try {
@@ -81,7 +81,10 @@ export async function fileOf(root: string, pathname: string): Promise<string | u
 /** Start the server of the docs build, and give its origin, such as `http://localhost:3456`. */
 export async function serveDocs(port: number): Promise<{ origin: string; server: Server }> {
 	const server = createServer(async (request, response) => {
-		const file = await fileOf(CLIENT_DIR, new URL(request.url ?? '/', 'http://localhost').pathname)
+		const file = await resolveFile(
+			CLIENT_DIR,
+			new URL(request.url ?? '/', 'http://localhost').pathname,
+		)
 
 		if (file === undefined) {
 			response.writeHead(400).end()

@@ -855,7 +855,7 @@ describe('areaReach', () => {
 		[shift + side, 0],
 	]
 
-	const reachOf = (polygons: [number, number][][][]) => areaReach(projectArea(polygons, flat))
+	const getReach = (polygons: [number, number][][][]) => areaReach(projectArea(polygons, flat))
 
 	it('reads a circle as its own radius', () => {
 		// `circleRing`'s form, which most zones on a map are, and the measure is exact
@@ -866,11 +866,11 @@ describe('areaReach', () => {
 			return [40 * Math.cos(turn), 40 * Math.sin(turn)]
 		})
 
-		expect(reachOf([[wheel]])).toBeNear(40, HALF_FRAME_UNIT)
+		expect(getReach([[wheel]])).toBeNear(40, HALF_FRAME_UNIT)
 	})
 
 	it('reads a square as half its side', () => {
-		expect(reachOf([[square(10)]])).toBe(5)
+		expect(getReach([[square(10)]])).toBe(5)
 	})
 
 	it('reads a diagonal corridor as its width, not its diagonal', () => {
@@ -884,25 +884,25 @@ describe('areaReach', () => {
 			[3, -3],
 		]
 
-		expect(reachOf([[band]])).toBeLessThan(5)
+		expect(getReach([[band]])).toBeLessThan(5)
 	})
 
 	it('lets the widest part answer for a territory in several parts', () => {
 		// Two clusters standing clear of one another, the way a dissolved coverage
 		// area falls: the one a reader is looking at is the one with room in it.
-		expect(reachOf([[square(10)], [square(30, 40)]])).toBe(15)
+		expect(getReach([[square(10)], [square(30, 40)]])).toBe(15)
 	})
 
 	it('measures the same whichever way a ring winds', () => {
 		// A dissolved territory arrives in the winding its arcs held, and no pass
 		// rewinds it — so the measure may not depend on the direction.
-		expect(reachOf([[square(10).reverse()]])).toBe(5)
+		expect(getReach([[square(10).reverse()]])).toBe(5)
 	})
 
 	it('measures nothing for a ring collapsed to one position', () => {
 		// No perimeter to divide by, so the ring holds no room.
 		expect(
-			reachOf([
+			getReach([
 				[
 					[
 						[3, 3],
@@ -1123,7 +1123,7 @@ const polygonFeatures = () =>
 		.map((specs) => specs.map((spec, index) => polygonFeature(`P${index}`, ringsFor(spec))))
 
 /** Every polygon of a feature, whatever its geometry kind. */
-function polygonsOf(feature: MapFeature): number[][][][] {
+function getPolygons(feature: MapFeature): number[][][][] {
 	const geometry = feature.geometry as { type: string; coordinates: unknown }
 
 	if (geometry?.type === 'Polygon') return [geometry.coordinates as number[][][]]
@@ -1139,7 +1139,7 @@ describe('rewindFeatures · properties', () => {
 	// large one.
 	test.prop([polygonFeatures()])('winds every exterior small and every hole large', (features) => {
 		for (const feature of rewindFeatures(features)) {
-			for (const rings of polygonsOf(feature)) {
+			for (const rings of getPolygons(feature)) {
 				rings.forEach((ring, index) => {
 					if (index === 0) expect(ringArea(ring)).toBeLessThanOrEqual(HALF_SPHERE)
 					else expect(ringArea(ring)).toBeGreaterThanOrEqual(HALF_SPHERE)
@@ -1154,22 +1154,22 @@ describe('rewindFeatures · properties', () => {
 		const source = new Set<unknown>()
 
 		for (const feature of features) {
-			for (const rings of polygonsOf(feature))
+			for (const rings of getPolygons(feature))
 				for (const ring of rings) for (const at of ring) source.add(at)
 		}
 
 		for (const feature of rewindFeatures(features)) {
-			for (const rings of polygonsOf(feature)) {
+			for (const rings of getPolygons(feature)) {
 				for (const ring of rings) for (const at of ring) expect(source.has(at)).toBe(true)
 			}
 		}
 	})
 
 	test.prop([polygonFeatures()])('keeps every ring, above the degenerate band', (features) => {
-		const before = features.map((feature) => polygonsOf(feature).map((rings) => rings.length))
+		const before = features.map((feature) => getPolygons(feature).map((rings) => rings.length))
 
 		const after = rewindFeatures(features).map((feature) =>
-			polygonsOf(feature).map((rings) => rings.length),
+			getPolygons(feature).map((rings) => rings.length),
 		)
 
 		expect(after).toEqual(before)

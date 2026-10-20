@@ -19,7 +19,7 @@ import type { Coord } from './use-grid-navigation'
  * @param onCell - Takes the data cell under the pointer.
  * @param onEnd - Runs when a release ends the drag. A drag that an unmount cuts
  *   off does not call it.
- * @param cellCoordOf - The data cell that an element id names, or `null`.
+ * @param parseCellCoord - The data cell that an element id names, or `null`.
  * @param scrollContainerRef - The scroll region of the grid, or `null` when it does not scroll.
  * @param press - The pointer that drives the drag. A press while it holds a drag
  *   starts no drag and does not cut the drag that runs.
@@ -30,13 +30,13 @@ import type { Coord } from './use-grid-navigation'
 export function useGridRangeDrag({
 	onCell,
 	onEnd,
-	cellCoordOf,
+	parseCellCoord,
 	scrollContainerRef,
 	press,
 }: {
 	onCell: (coord: Coord) => void
 	onEnd?: () => void
-	cellCoordOf: (id: string) => Coord | null
+	parseCellCoord: (id: string) => Coord | null
 	scrollContainerRef: RefObject<HTMLElement | null>
 	press: PressOwner
 }): (event: MouseEvent<HTMLElement>, root?: HTMLElement | null) => void {
@@ -61,7 +61,7 @@ export function useGridRangeDrag({
 
 			if (!cell || cell.closest(GRID_ROLE) !== grid) return
 
-			const coord = cellCoordOf(cell.id)
+			const coord = parseCellCoord(cell.id)
 
 			if (coord) onCell(coord)
 		}

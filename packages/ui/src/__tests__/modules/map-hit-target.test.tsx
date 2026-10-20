@@ -308,7 +308,7 @@ describe('dot hit targets', () => {
  * because jsdom performs no layout and cannot say what a pointer at a coordinate would reach.
  */
 describe('crowded marks divide their targets', () => {
-	function clipOf(target: Element | null) {
+	function readClip(target: Element | null) {
 		const reference = target?.getAttribute('clip-path')
 
 		return reference?.match(/^url\(#(.+)\)$/)?.[1] ?? null
@@ -335,7 +335,7 @@ describe('crowded marks divide their targets', () => {
 		const { container } = renderUI(overlayPlat(<MapPoint label="Depot" at={[15, 5]} />))
 
 		// The common case pays for nothing: no clip attribute, no clipPath element, no id.
-		expect(clipOf(bySlot(container, 'map-point-hit'))).toBeNull()
+		expect(readClip(bySlot(container, 'map-point-hit'))).toBeNull()
 
 		expect(container.querySelector('clipPath')).toBeNull()
 	})
@@ -356,7 +356,7 @@ describe('crowded marks divide their targets', () => {
 		expect(targets).toHaveLength(2)
 
 		for (const target of targets) {
-			expect(clipOf(target)).toBeNull()
+			expect(readClip(target)).toBeNull()
 		}
 	})
 
@@ -391,13 +391,13 @@ describe('crowded marks divide their targets', () => {
 
 		const { container: nearPin, unmount } = beside([5.4, 5.2])
 
-		expect(clipOf(bySlot(nearPin, 'map-point-hit'))).not.toBeNull()
+		expect(readClip(bySlot(nearPin, 'map-point-hit'))).not.toBeNull()
 
 		unmount()
 
 		const { container: nearMiddle } = beside([15.4, 5.2])
 
-		expect(clipOf(bySlot(nearMiddle, 'map-point-hit'))).toBeNull()
+		expect(readClip(bySlot(nearMiddle, 'map-point-hit'))).toBeNull()
 	})
 
 	it('clips both points when two separate marks crowd each other', () => {
@@ -409,7 +409,7 @@ describe('crowded marks divide their targets', () => {
 
 		// BOTH, and to different rings: the cut is symmetric, so neither dot's ownership depends on the
 		// order the two were declared in.
-		const ids = targets.map((target) => clipOf(target))
+		const ids = targets.map((target) => readClip(target))
 
 		expect(ids.every((id) => id !== null)).toBe(true)
 
@@ -450,7 +450,7 @@ describe('crowded marks divide their targets', () => {
 		const { container, rerender } = renderUI(plat([60, 5]))
 
 		for (const target of allBySlot(container, 'map-point-hit')) {
-			expect(clipOf(target)).toBeNull()
+			expect(readClip(target)).toBeNull()
 		}
 
 		// The move changes no entry of the ledger, so only the moved stops can tell the pool to gather
@@ -458,13 +458,13 @@ describe('crowded marks divide their targets', () => {
 		rerender(plat([15.4, 5.2]))
 
 		for (const target of allBySlot(container, 'map-point-hit')) {
-			expect(clipOf(target)).not.toBeNull()
+			expect(readClip(target)).not.toBeNull()
 		}
 
 		rerender(plat([60, 5]))
 
 		for (const target of allBySlot(container, 'map-point-hit')) {
-			expect(clipOf(target)).toBeNull()
+			expect(readClip(target)).toBeNull()
 		}
 	})
 
@@ -480,11 +480,11 @@ describe('crowded marks divide their targets', () => {
 
 		const { container, rerender } = renderUI(plat([60, 5]))
 
-		expect(clipOf(bySlot(container, 'map-point-hit'))).toBeNull()
+		expect(readClip(bySlot(container, 'map-point-hit'))).toBeNull()
 
 		rerender(plat([15.4, 5.2]))
 
-		expect(clipOf(bySlot(container, 'map-point-hit'))).not.toBeNull()
+		expect(readClip(bySlot(container, 'map-point-hit'))).not.toBeNull()
 	})
 
 	it('does not let a route or a zone contest a point’s ground', () => {
@@ -492,7 +492,7 @@ describe('crowded marks divide their targets', () => {
 
 		// A zone's claim is a `spare` budget, not a boundary — it paints a face rather than a dot, so
 		// there is no line to divide along and nothing here to clip against.
-		expect(clipOf(bySlot(container, 'map-point-hit'))).toBeNull()
+		expect(readClip(bySlot(container, 'map-point-hit'))).toBeNull()
 	})
 })
 

@@ -25,7 +25,7 @@ const layout: DashboardLayoutItem[] = [
 ]
 
 // A selection names a field, so its badge shows the label of that field.
-const labelOf = (name: string) => fields.find((field) => field.name === name)?.label ?? name
+const getLabel = (name: string) => fields.find((field) => field.name === name)?.label ?? name
 
 const startFilter: QueryGroup = {
 	id: 'filter',
@@ -56,7 +56,7 @@ export default function Query() {
 				<QuerySummary value={filter} fields={fields} />
 				{selection.map((item) => (
 					<Badge key={`${item.source}:${item.field}`}>
-						{labelOf(item.field)}: {item.values.join(', ')}
+						{getLabel(item.field)}: {item.values.join(', ')}
 					</Badge>
 				))}
 				<Spacer />

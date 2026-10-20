@@ -9,7 +9,7 @@ function renderFit(dragged: boolean) {
 			usePanelFit({
 				enabled: false,
 				dragged: props.dragged,
-				ceilingOf: () => 10_000,
+				getCeiling: () => 10_000,
 				transition: { duration: 0 },
 			}),
 		{ initialProps: { dragged } },

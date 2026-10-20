@@ -3,13 +3,13 @@ import { MapGeofence, MapPlat, MapPoint, MapPoints } from '../../../modules/map'
 import { clusterRadius } from '../../../modules/map/engine/map-cluster/radius'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../../modules/map/engine/map-constants'
 import { allBySlot, getSlot, renderUI } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 import { zoomToCeiling } from '../helpers/map-zoom'
 
 /** The drawn radius of a hit circle, which its box is twice. */
-function radiusOf(element: Element) {
+function measureRadius(element: Element) {
 	return element.getBoundingClientRect().width / 2
 }
 
@@ -88,7 +88,7 @@ describe('dot hit target by pointer modality', () => {
 
 		const zone = getSlot(document.body, 'map-geofence-hit')
 
-		const { x: cx, y: cy } = centerOf(dot)
+		const { x: cx, y: cy } = getCenter(dot)
 
 		// Probed off the budget the depot actually took rather than off fixed
 		// offsets, so the case reads the boundary between the two marks wherever the
@@ -133,7 +133,7 @@ describe('dot hit target by pointer modality', () => {
 		// not the sliver the yard could spare: a summary took that whole finger target
 		// while one figure served every dot, and a target inside the summary would
 		// leave the mark a reader can see a dead rim.
-		expect(radiusOf(summary)).toBeNear(clusterRadius(2), HALF_PIXEL)
+		expect(measureRadius(summary)).toBeNear(clusterRadius(2), HALF_PIXEL)
 	})
 
 	it('holds that target inside the coarse reach through every scale the view takes', () => {
@@ -149,9 +149,9 @@ describe('dot hit target by pointer modality', () => {
 
 		const dot = getSlot(container, 'map-point-hit')
 
-		const radii = [radiusOf(dot)]
+		const radii = [measureRadius(dot)]
 
-		zoomToCeiling(plot, () => radii.push(radiusOf(dot)))
+		zoomToCeiling(plot, () => radii.push(measureRadius(dot)))
 
 		// The target grows with the zone under it — a catchment eight times as wide
 		// on screen has eight times the room to spare — and stops at the reach a
@@ -192,7 +192,7 @@ describe('dot hit target by pointer modality', () => {
 		// narrow target on each other rather than on a zone: a neighbor that close
 		// is the whole reason a dot gives its reach back.
 		for (const target of targets) {
-			const { x, y } = centerOf(target)
+			const { x, y } = getCenter(target)
 
 			expect(document.elementFromPoint(x, y)).toBe(target)
 		}

@@ -134,7 +134,7 @@ function makeCMapPdf(): Uint8Array {
  *
  * @returns The share of the pixels of the page that are dark, from 0 to 1.
  */
-async function inkOf(bytes: Uint8Array): Promise<number> {
+async function measureInk(bytes: Uint8Array): Promise<number> {
 	const src = servePdf(bytes)
 
 	const { container } = renderUI(
@@ -183,11 +183,11 @@ describe('pdf viewer binary data (real browser)', () => {
 	afterEach(() => resetDocumentCache())
 
 	it('renders a JPEG 2000 image', { timeout: budget(15_000) }, async () => {
-		expect(await inkOf(makeImagePdf('/Filter /JPXDecode', JPX))).toBeGreaterThan(0.9)
+		expect(await measureInk(makeImagePdf('/Filter /JPXDecode', JPX))).toBeGreaterThan(0.9)
 	})
 
 	it('renders a CCITT fax image', { timeout: budget(15_000) }, async () => {
-		const ink = await inkOf(
+		const ink = await measureInk(
 			makeImagePdf(
 				'/BitsPerComponent 1 /ColorSpace /DeviceGray /Filter /CCITTFaxDecode /DecodeParms << /K -1 /Columns 16 /Rows 16 >>',
 				CCITT,
@@ -200,7 +200,7 @@ describe('pdf viewer binary data (real browser)', () => {
 	it('renders text in a font with a predefined CMap', { timeout: budget(15_000) }, async () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-		expect(await inkOf(makeCMapPdf())).toBeGreaterThan(0.01)
+		expect(await measureInk(makeCMapPdf())).toBeGreaterThan(0.01)
 
 		expect(warn).toHaveBeenCalledWith(
 			expect.stringContaining('Cannot load system font: MidgardMissingGothic'),

@@ -16,9 +16,9 @@ import { LocaleProvider } from '../../providers/locale'
 import {
 	attach,
 	bySlot,
-	densityStepOf,
 	fireEvent,
 	getSlot,
+	readDensityStep,
 	renderUI,
 	screen,
 	setupUser,
@@ -603,11 +603,11 @@ describe('SidebarItem', () => {
 		)
 
 		// md host → sm control; lg host → md; an explicit size prop wins.
-		expect(densityStepOf(screen.getByRole('button', { name: 'auto' }))).toBe('sm')
+		expect(readDensityStep(screen.getByRole('button', { name: 'auto' }))).toBe('sm')
 
-		expect(densityStepOf(screen.getByRole('button', { name: 'from-lg' }))).toBe('md')
+		expect(readDensityStep(screen.getByRole('button', { name: 'from-lg' }))).toBe('md')
 
-		expect(densityStepOf(screen.getByRole('button', { name: 'explicit' }))).toBe('lg')
+		expect(readDensityStep(screen.getByRole('button', { name: 'explicit' }))).toBe('lg')
 	})
 
 	it('omits the affix slots when no prefix or suffix is provided', () => {

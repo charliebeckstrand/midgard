@@ -76,9 +76,9 @@ export function useGridCursorColumns<T>({
 	return useMemo(() => {
 		if (!enabled) return columns
 
-		const indexOf = (row: T) => rowIndexMapRef.current.get(row) ?? -1
+		const getRowIndex = (row: T) => rowIndexMapRef.current.get(row) ?? -1
 
-		const colOf = (id: string | number) => colIndexMapRef.current.get(id) ?? -1
+		const getColumnIndex = (id: string | number) => colIndexMapRef.current.get(id) ?? -1
 
 		return columns.map((col): GridIndexedColumn<T> => {
 			if (!isDataColumn(col)) return col
@@ -97,7 +97,7 @@ export function useGridCursorColumns<T>({
 				? (row: T, rowIndex: number): ReactNode => (
 						<GridEditingCell
 							rowIndex={rowIndex}
-							colIndex={colOf(col.id)}
+							colIndex={getColumnIndex(col.id)}
 							rowKey={rowKeysRef.current[rowIndex] ?? rowIndex}
 							row={row}
 							column={col}
@@ -105,7 +105,7 @@ export function useGridCursorColumns<T>({
 						/>
 					)
 				: (row: T, rowIndex: number): ReactNode => (
-						<GridNavCell row={rowIndex} col={colOf(col.id)}>
+						<GridNavCell row={rowIndex} col={getColumnIndex(col.id)}>
 							{renderCell?.(row)}
 						</GridNavCell>
 					)
@@ -127,8 +127,8 @@ export function useGridCursorColumns<T>({
 				className: cn(k.nav.cell, col.className),
 				cellAt,
 				cellPropsAt,
-				cellProps: (row: T) => cellPropsAt(row, indexOf(row)),
-				cell: (row: T) => cellAt(row, indexOf(row)),
+				cellProps: (row: T) => cellPropsAt(row, getRowIndex(row)),
+				cell: (row: T) => cellAt(row, getRowIndex(row)),
 			}
 		})
 	}, [enabled, editing, columns, rowIndexMapRef, colIndexMapRef, rowKeysRef, cellId, seat, touch])

@@ -38,7 +38,7 @@ export function cellKey(cx: number, cy: number): number {
 }
 
 /** The cell key a frame position falls under. @internal */
-export function cellOf(at: MapPoint2D, reach: number): number {
+export function toCellKey(at: MapPoint2D, reach: number): number {
 	return cellKey(Math.floor(at.x / reach), Math.floor(at.y / reach))
 }
 

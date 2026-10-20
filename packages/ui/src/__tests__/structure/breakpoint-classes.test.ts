@@ -31,20 +31,20 @@ const MIN_BREAKPOINTS = BREAKPOINTS.filter(
 )
 
 /** The keys of `record`. The type of `record` makes sure that each key is there. */
-function keysOf<K extends string>(record: Record<K, true>): K[] {
+function getKeys<K extends string>(record: Record<K, true>): K[] {
 	return Object.keys(record) as K[]
 }
 
 const STEPS = Object.keys(ma.gap) as Array<keyof typeof ma.gap>
 
-const DIRECTIONS = keysOf<FlexDirection>({
+const DIRECTIONS = getKeys<FlexDirection>({
 	row: true,
 	col: true,
 	'row-reverse': true,
 	'col-reverse': true,
 })
 
-const ALIGNS = keysOf<FlexAlign>({
+const ALIGNS = getKeys<FlexAlign>({
 	start: true,
 	center: true,
 	end: true,
@@ -52,7 +52,7 @@ const ALIGNS = keysOf<FlexAlign>({
 	baseline: true,
 })
 
-const JUSTIFIES = keysOf<FlexJustify>({
+const JUSTIFIES = getKeys<FlexJustify>({
 	start: true,
 	center: true,
 	end: true,
@@ -63,9 +63,9 @@ const JUSTIFIES = keysOf<FlexJustify>({
 
 const COUNTS: ColumnCount[] = [1, 2, 3, 4, 6]
 
-const ORIENTATIONS = keysOf<Orientation>({ horizontal: true, vertical: true })
+const ORIENTATIONS = getKeys<Orientation>({ horizontal: true, vertical: true })
 
-const RATIOS = keysOf<SplitRatio>({
+const RATIOS = getKeys<SplitRatio>({
 	'1/4': true,
 	'1/3': true,
 	'1/2': true,

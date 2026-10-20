@@ -78,7 +78,7 @@ function fakeGrid(args: {
 	const env = (): ColumnSizerEnv<Row> => ({
 		columns: grid.columns,
 		space: grid.space,
-		sizeOf: (id) => grid.state[id] ?? 150,
+		getSize: (id) => grid.state[id] ?? 150,
 		measure,
 	})
 

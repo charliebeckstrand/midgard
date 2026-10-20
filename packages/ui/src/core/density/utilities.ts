@@ -100,13 +100,13 @@ const layer = '@layer density'
  * so a weight does not use such a name. A property of the consumer with the
  * name of a weight changes the density with no error.
  */
-const weightOf = (step: DensityStep) => `--ui-d${step}`
+const toWeight = (step: DensityStep) => `--ui-d${step}`
 
 /**
  * The custom property that holds the host weight of `step`. Only a scope with
  * a step sets it, so a control slot reads the weights of its host.
  */
-const hostWeightOf = (step: DensityStep) => `--ui-h${step}`
+const toHostWeight = (step: DensityStep) => `--ui-h${step}`
 
 /** A stop of the spacing scale, such as `2` or `1.5`. */
 const isStop = (value: string) => /^\d+(\.\d+)?$/.test(value)
@@ -154,7 +154,7 @@ const sum = (terms: readonly string[]) =>
 		: '0'
 
 /** The weight of `step`. */
-const weight = (step: DensityStep) => `var(${weightOf(step)})`
+const weight = (step: DensityStep) => `var(${toWeight(step)})`
 
 /** The sum of the weights of `steps`. */
 const weights = (steps: readonly DensityStep[]) =>
@@ -276,7 +276,7 @@ function lengths(values: ByStep<string>): string {
 }
 
 /** The theme scale of the names that each kind of stepped utility takes. */
-const scaleOf: Partial<Record<UtilityValue, string>> = { radius: 'radius', size: 'container' }
+const scaleByValue: Partial<Record<UtilityValue, string>> = { radius: 'radius', size: 'container' }
 
 /** The declarations of a stepped utility of `entry` with `values`. */
 function declare(entry: UtilityEntry, values: ByStep<string>): CssInJs {
@@ -301,7 +301,7 @@ function declare(entry: UtilityEntry, values: ByStep<string>): CssInJs {
 	}
 
 	const named = (value: string) =>
-		isStop(value) ? `calc(var(--spacing) * ${value})` : `var(--${scaleOf[kind]}-${value})`
+		isStop(value) ? `calc(var(--spacing) * ${value})` : `var(--${scaleByValue[kind]}-${value})`
 
 	return each(properties, lengths(mapSteps(values, named)))
 }
@@ -360,7 +360,7 @@ function stepped(
  * modifier and for a name that the stepped classes read. Tailwind removes the brackets of an arbitrary modifier, and
  * the function also removes them if they are there.
  */
-function propertyOf(modifier: string | null): string | null {
+function parseProperty(modifier: string | null): string | null {
 	const name = modifier?.replace(/^\[(.*)\]$/, '$1')
 
 	return name && /^--[a-z0-9-]+$/i.test(name) && !RESERVED.test(name) ? name : null
@@ -370,7 +370,7 @@ function propertyOf(modifier: string | null): string | null {
 const RESERVED = /^--(?:ui-[dh](?:xs|sm|md|lg|xl)|spacing|tw-[a-z0-9-]*)$/i
 
 /** The selectors of the scopes of `step`: a root class, if the step has one, and `data-density`. */
-function scopeOf(step: DensityStep): string {
+function formatScope(step: DensityStep): string {
 	const attribute = `[data-density='${step}']`
 
 	const mark = (rootDensityClasses as Partial<ByStep<string>>)[step]
@@ -385,8 +385,8 @@ function weightsAt(step: DensityStep): Record<string, string> {
 			const on = other === step ? '1' : '0'
 
 			return [
-				[weightOf(other), on],
-				[hostWeightOf(other), on],
+				[toWeight(other), on],
+				[toHostWeight(other), on],
 			]
 		}),
 	)
@@ -406,18 +406,18 @@ function weightsAt(step: DensityStep): Record<string, string> {
 function scopes(): CssInJs {
 	const rules: CssInJs = { ':root': weightsAt('md') }
 
-	for (const step of densitySteps) rules[scopeOf(step)] = weightsAt(step)
+	for (const step of densitySteps) rules[formatScope(step)] = weightsAt(step)
 
 	rules["[data-density='slot']"] = Object.fromEntries(
 		densitySteps.map((step) => {
 			const hosts = densitySteps
 				.filter((host) => slotStep(host) === step)
-				.map((host) => `var(${hostWeightOf(host)})`)
+				.map((host) => `var(${toHostWeight(host)})`)
 
 			const total =
 				hosts.length === 0 ? '0' : hosts.length === 1 ? hosts[0] : `calc(${hosts.join(' + ')})`
 
-			return [weightOf(step), total as string]
+			return [toWeight(step), total as string]
 		}),
 	)
 
@@ -435,7 +435,7 @@ export const handler: PluginCreator = ({ addBase, matchUtilities, theme }) => {
 
 	matchUtilities({
 		'density-set': stepped(valid.margin, (values, modifier) => {
-			const property = propertyOf(modifier)
+			const property = parseProperty(modifier)
 
 			return property ? { [property]: stops(values) } : null
 		}),

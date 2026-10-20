@@ -2,7 +2,7 @@
 
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { valueLabelHeadroom } from '../engine/chart-geometry/label'
-import { type LineInterpolation, lineSeriesOf } from '../engine/chart-geometry/line'
+import { buildLineSeries, type LineInterpolation } from '../engine/chart-geometry/line'
 import { nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
 import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
@@ -85,7 +85,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 	const floor = chart.plot.y + chart.plot.height
 
 	// One band-center array for every series — they all span the same categories.
-	const list = lineSeriesOf(chart.drawn, chart.bandPositions, floor, interpolation, points)
+	const list = buildLineSeries(chart.drawn, chart.bandPositions, floor, interpolation, points)
 
 	const seriesRuns = list.map((series) => series.geometry.runs)
 

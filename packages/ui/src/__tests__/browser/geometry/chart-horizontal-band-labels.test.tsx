@@ -3,7 +3,7 @@ import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { GUTTER_MAX } from '../../../modules/chart/engine/chart-constants'
 import { getSlot, renderUI, waitFor } from '../../helpers'
-import { boxOf } from '../../helpers/geometry/box'
+import { measureBox } from '../../helpers/geometry/box'
 import { installDocsFont } from '../helpers/docs-font'
 
 /**
@@ -50,10 +50,10 @@ async function bandLabels(width: number) {
 	if (!svg) throw new Error('expected the plot drawing')
 
 	return {
-		frame: boxOf(svg),
+		frame: measureBox(svg),
 		labels: texts.map((text) => ({
 			text: text.textContent,
-			left: boxOf(text).left,
+			left: measureBox(text).left,
 			// The label ends GUTTER_GAP before the plot, so its anchor bounds the gutter.
 			anchor: Number(text.getAttribute('x')),
 		})),

@@ -25,7 +25,7 @@ const minusSignRe = /\u2212/g
 // A decimal keypad follows the region of the device, not the locale of the
 // field. Thus it can offer only the other mark: "," in an en-US field, or "."
 // in a de-DE field.
-function otherMarkOf(decimal: string) {
+function getOtherMark(decimal: string) {
 	if (decimal === '.') return ','
 
 	if (decimal === ',') return '.'
@@ -53,7 +53,7 @@ function otherDecimalIndex(
 	decimal: string,
 	maxFractionDigits: number,
 ) {
-	const other = otherMarkOf(decimal)
+	const other = getOtherMark(decimal)
 
 	if (other === undefined || typedMark < 0 || maxFractionDigits === 0) return -1
 
@@ -80,7 +80,7 @@ function fieldDecimalIndex(
 	decimal: string,
 	maxFractionDigits: number,
 ) {
-	const other = otherMarkOf(decimal)
+	const other = getOtherMark(decimal)
 
 	if (other === undefined) return -1
 
@@ -99,7 +99,7 @@ function decimalIndexAfterEdit(
 	decimal: string,
 	maxFractionDigits: number,
 ) {
-	const other = otherMarkOf(decimal)
+	const other = getOtherMark(decimal)
 
 	if (other === undefined) return -1
 
@@ -268,7 +268,7 @@ export function parseEditing(
 	decimal: string,
 	maxFractionDigits: number,
 ) {
-	const other = otherMarkOf(decimal)
+	const other = getOtherMark(decimal)
 
 	const marked = withDecimalAt(
 		text,

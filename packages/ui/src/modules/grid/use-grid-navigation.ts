@@ -332,15 +332,15 @@ function resolvePageStep(key: string, container: HTMLElement | null, table: HTML
 }
 
 /**
- * The data rows of a published order. `cursorOf` maps each data row index to
+ * The data rows of a published order. `cursorByRow` maps each data row index to
  * its place in the order. `rows` gives the data row indexes that the order
- * shows, in its order, and `placeOf` gives the place of each among them. A
+ * shows, in its order, and `placeByRow` gives the place of each among them. A
  * data row that the order does not show is in none of them. @internal
  */
 type OrderIndex = {
-	cursorOf: Map<number, number>
+	cursorByRow: Map<number, number>
 	rows: number[]
-	placeOf: Map<number, number>
+	placeByRow: Map<number, number>
 }
 
 /** The {@link OrderIndex} of a published order, in one walk of it. @internal */
@@ -348,16 +348,16 @@ function indexOrder(
 	order: readonly GridCursorRow[] | null,
 	rowIndexMap: Map<unknown, number>,
 ): OrderIndex {
-	const index: OrderIndex = { cursorOf: new Map(), rows: [], placeOf: new Map() }
+	const index: OrderIndex = { cursorByRow: new Map(), rows: [], placeByRow: new Map() }
 
 	order?.forEach((entry, row) => {
 		const data = entry.kind === 'data' ? rowIndexMap.get(entry.row) : undefined
 
 		if (data === undefined) return
 
-		index.cursorOf.set(data, row)
+		index.cursorByRow.set(data, row)
 
-		index.placeOf.set(data, index.rows.length)
+		index.placeByRow.set(data, index.rows.length)
 
 		index.rows.push(data)
 	})
@@ -685,7 +685,7 @@ export function useGridNavigation({
 	/** Moves the cursor to a data cell, and keeps the range anchor where it is. */
 	extendTo: (coord: Coord) => void
 	/** The data cell that an element id names, or `null` for another id. */
-	cellCoordOf: (id: string) => Coord | null
+	parseCellCoord: (id: string) => Coord | null
 	/** The anchor of the range, reactive, so a reader can follow a change of the range. */
 	rangeAnchor: Coord | null
 	/** The cells of the range at call time, or `null` for no range. */
@@ -750,17 +750,17 @@ export function useGridNavigation({
 	const count = useCallback(() => orderRef.current?.length ?? rowsRef.current.length, [rowsRef])
 
 	/** The data row index of a cursor row, or -1 for a row that holds no data. */
-	const dataRowOf = useCallback(
+	const toDataRow = useCallback(
 		(row: number): number =>
 			dataRowIn({ order: orderRef.current, rowIndexMap: rowIndexMapRef.current }, row),
 		[rowIndexMapRef],
 	)
 
 	/** The cursor row of a data row index, or -1 for a data row the order does not show. */
-	const cursorRowOf = useCallback((row: number): number => {
+	const toCursorRow = useCallback((row: number): number => {
 		if (!orderRef.current || row === NEW_ROW_INDEX) return row
 
-		return orderIndexRef.current.cursorOf.get(row) ?? -1
+		return orderIndexRef.current.cursorByRow.get(row) ?? -1
 	}, [])
 
 	/**
@@ -770,7 +770,7 @@ export function useGridNavigation({
 	 */
 	const rowPlace = useCallback(
 		(row: number): number => {
-			if (orderRef.current) return orderIndexRef.current.placeOf.get(row) ?? -1
+			if (orderRef.current) return orderIndexRef.current.placeByRow.get(row) ?? -1
 
 			return row >= 0 && row < rowsRef.current.length ? row : -1
 		},
@@ -820,10 +820,10 @@ export function useGridNavigation({
 	const holdAnchor = useCallback(() => {
 		const from = readActive()
 
-		const seed = from && from.row !== NEW_ROW_INDEX && dataRowOf(from.row) !== -1 ? from : null
+		const seed = from && from.row !== NEW_ROW_INDEX && toDataRow(from.row) !== -1 ? from : null
 
 		setAnchor((held) => held ?? seed)
-	}, [readActive, dataRowOf])
+	}, [readActive, toDataRow])
 
 	// The two corners of the range at call time, or `null` for no range.
 	const readCorners = useCallback(() => {
@@ -873,29 +873,29 @@ export function useGridNavigation({
 	// speaks it. A data row that a published order does not show is not moved to.
 	const moveTo = useCallback(
 		(coord: Coord) => {
-			const row = cursorRowOf(coord.row)
+			const row = toCursorRow(coord.row)
 
 			if (row === -1) return
 
 			moveToCursor({ row, col: coord.col })
 		},
-		[cursorRowOf, moveToCursor],
+		[toCursorRow, moveToCursor],
 	)
 
 	// Extends the range to a data cell, as Shift with a click or a drag does. The
 	// pointer is on the cell, so the cell is in the window.
 	const extendTo = useCallback(
 		(coord: Coord) => {
-			const row = cursorRowOf(coord.row)
+			const row = toCursorRow(coord.row)
 
 			if (row === -1 || !range) return
 
 			moveToCursor({ row, col: coord.col }, true, true)
 		},
-		[cursorRowOf, moveToCursor, range],
+		[toCursorRow, moveToCursor, range],
 	)
 
-	const cellCoordOf = useCallback(
+	const parseCellCoord = useCallback(
 		(id: string): Coord | null => {
 			const match = CELL_ID_TAIL.exec(id)
 
@@ -911,16 +911,21 @@ export function useGridNavigation({
 
 	const [press] = useState(createPressOwner)
 
-	const startDrag = useGridRangeDrag({ onCell: extendTo, cellCoordOf, scrollContainerRef, press })
+	const startDrag = useGridRangeDrag({
+		onCell: extendTo,
+		parseCellCoord,
+		scrollContainerRef,
+		press,
+	})
 
 	// Shows the range between two data cells, the first as its anchor and the
 	// second as the cursor, as the drag of the fill handle grows it. The pointer
 	// is on the second cell, so the cell is in the window.
 	const showRange = useCallback(
 		(from: Coord, to: Coord) => {
-			const anchorRow = cursorRowOf(from.row)
+			const anchorRow = toCursorRow(from.row)
 
-			const row = cursorRowOf(to.row)
+			const row = toCursorRow(to.row)
 
 			if (anchorRow === -1 || row === -1 || !range) return
 
@@ -930,7 +935,7 @@ export function useGridNavigation({
 
 			setActive((prev) => (prev?.row === row && prev.col === to.col ? prev : { row, col: to.col }))
 		},
-		[cursorRowOf, range],
+		[toCursorRow, range],
 	)
 
 	// A press on a data cell. Without the range, it only seats the cursor. With
@@ -944,7 +949,7 @@ export function useGridNavigation({
 
 			const rect = rangeRect(corners.from, corners.to)
 
-			const place = orderRef.current ? (orderIndexRef.current.cursorOf.get(row) ?? -1) : row
+			const place = orderRef.current ? (orderIndexRef.current.cursorByRow.get(row) ?? -1) : row
 
 			return place !== -1 && inRangeRect(rect, place, col)
 		},
@@ -983,8 +988,8 @@ export function useGridNavigation({
 	const readRange = useCallback((): GridRangeCells | null => {
 		const corners = readCorners()
 
-		return corners ? rangeCells(corners.from, corners.to, dataRowOf) : null
-	}, [readCorners, dataRowOf])
+		return corners ? rangeCells(corners.from, corners.to, toDataRow) : null
+	}, [readCorners, toDataRow])
 
 	// Records the key of each row the cursor seats on, against the order it was
 	// seated in. A later order looks the row up by that key. A new order counts
@@ -1034,7 +1039,7 @@ export function useGridNavigation({
 
 			if (current === null || current.col !== col) return false
 
-			const data = dataRowOf(current.row)
+			const data = toDataRow(current.row)
 
 			return data !== -1 && data === row
 		},
@@ -1168,7 +1173,7 @@ export function useGridNavigation({
 	const onCellKey = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>, base: Coord) => {
 			if (event.key === 'Enter' || event.key === ' ') {
-				activateOrSelectRow(event, { row: dataRowOf(base.row), col: base.col })
+				activateOrSelectRow(event, { row: toDataRow(base.row), col: base.col })
 			} else if (event.key === 'Escape' && readActive()) {
 				event.preventDefault()
 
@@ -1177,7 +1182,7 @@ export function useGridNavigation({
 				else setActive(null)
 			}
 		},
-		[activateOrSelectRow, dataRowOf, readActive, activeCursor],
+		[activateOrSelectRow, toDataRow, readActive, activeCursor],
 	)
 
 	const onKeyDown = useCallback(
@@ -1385,7 +1390,7 @@ export function useGridNavigation({
 		seat,
 		press,
 		extendTo,
-		cellCoordOf,
+		parseCellCoord,
 		rangeAnchor: enabled ? anchor : null,
 		readRange,
 		showRange,

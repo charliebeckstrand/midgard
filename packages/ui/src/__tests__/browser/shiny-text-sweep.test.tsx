@@ -13,7 +13,7 @@ describe('ShinyText sweep (real browser)', () => {
 		document.documentElement.classList.remove(rootReducedMotionClass)
 	})
 
-	function sweepOf(container: HTMLElement) {
+	function readSweep(container: HTMLElement) {
 		const text = bySlot(container, 'shiny-text')
 
 		if (!text) throw new Error('expected the text')
@@ -24,7 +24,7 @@ describe('ShinyText sweep (real browser)', () => {
 	it('runs the sweep while the text is in view', async () => {
 		const { container } = renderUI(<ShinyText>Shine</ShinyText>)
 
-		const sweep = sweepOf(container)
+		const sweep = readSweep(container)
 
 		await expect.poll(sweep).toEqual(['shiny-text'])
 	})
@@ -36,7 +36,7 @@ describe('ShinyText sweep (real browser)', () => {
 
 		const { container } = renderUI(<ShinyText>Shine</ShinyText>)
 
-		const sweep = sweepOf(container)
+		const sweep = readSweep(container)
 
 		// The class waits for the in-view report, so the text must be in view
 		// first for the empty list to mean anything.

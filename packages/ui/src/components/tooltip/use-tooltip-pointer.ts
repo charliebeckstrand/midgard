@@ -61,7 +61,7 @@ export type TooltipPointerOptions = {
  *
  * @internal
  */
-function layoutBoxOf(origin: Element) {
+function measureBox(origin: Element) {
 	if (origin instanceof HTMLElement) {
 		return {
 			width: origin.offsetWidth,
@@ -93,12 +93,12 @@ function layoutBoxOf(origin: Element) {
  *
  * @internal
  */
-function clientPointOf(origin: Element | null, x: number, y: number) {
+function toClientPoint(origin: Element | null, x: number, y: number) {
 	if (!origin) return { left: x, top: y }
 
 	const box = origin.getBoundingClientRect()
 
-	const layout = layoutBoxOf(origin)
+	const layout = measureBox(origin)
 
 	const scaleX = layout.width > 0 ? box.width / layout.width : 1
 
@@ -157,7 +157,7 @@ export function useTooltipPointer({
 
 		setPositionReference({
 			getBoundingClientRect() {
-				const { left, top } = clientPointOf(originRef.current, x, y)
+				const { left, top } = toClientPoint(originRef.current, x, y)
 
 				return { x: left, y: top, width: 0, height: 0, top, left, right: left, bottom: top }
 			},

@@ -3,10 +3,10 @@ import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
 import {
 	type Box,
-	boxOf,
-	centerOf,
 	formatLength,
+	getCenter,
 	isBoxSource,
+	measureBox,
 	overhang,
 } from '../helpers/geometry/box'
 import { FLOAT, LAYOUT_UNIT, PIXEL } from '../helpers/geometry/tolerance'
@@ -182,7 +182,7 @@ describe('toBeNear', () => {
 
 describe('box helpers', () => {
 	it('keeps only the four edges of a bounding box', () => {
-		expect(boxOf(fakeElement(frame))).toEqual(frame)
+		expect(measureBox(fakeElement(frame))).toEqual(frame)
 	})
 
 	it('copies a box whose edges are getters, as a DOMRect keeps them', () => {
@@ -204,13 +204,13 @@ describe('box helpers', () => {
 			}
 		}
 
-		expect({ ...boxOf(new Rect()) }).toEqual({ left: 1, top: 2, right: 3, bottom: 4 })
+		expect({ ...measureBox(new Rect()) }).toEqual({ left: 1, top: 2, right: 3, bottom: 4 })
 	})
 
 	it('gives the center of a box and of an element', () => {
-		expect(centerOf(frame)).toEqual({ x: 50, y: 25 })
+		expect(getCenter(frame)).toEqual({ x: 50, y: 25 })
 
-		expect(centerOf(fakeElement({ left: 10, top: 20, right: 11, bottom: 23 }))).toEqual({
+		expect(getCenter(fakeElement({ left: 10, top: 20, right: 11, bottom: 23 }))).toEqual({
 			x: 10.5,
 			y: 21.5,
 		})

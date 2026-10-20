@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
 import { bySlot, present, renderUI, waitFor } from '../../helpers'
-import { centerOf } from '../../helpers/geometry/box'
+import { getCenter } from '../../helpers/geometry/box'
 import { settledRect } from '../helpers/sample'
 
 /**
@@ -100,7 +100,7 @@ describe('pointer readout under a transformed ancestor (real browser)', () => {
 
 		const scaleY = origin.height / ORIGIN.height
 
-		expect(centerOf(box).x).toBeCloseTo(origin.left + OFFSET.x * scaleX, 0)
+		expect(getCenter(box).x).toBeCloseTo(origin.left + OFFSET.x * scaleX, 0)
 
 		expect(box.bottom).toBeCloseTo(origin.top + OFFSET.y * scaleY - GAP, 0)
 	})
@@ -126,7 +126,10 @@ describe('pointer readout under a transformed ancestor (real browser)', () => {
 
 			const scaleY = origin.height / ORIGIN.height
 
-			expect(centerOf(box).x).toBeCloseTo(origin.left + (element.clientLeft + OFFSET.x) * scaleX, 0)
+			expect(getCenter(box).x).toBeCloseTo(
+				origin.left + (element.clientLeft + OFFSET.x) * scaleX,
+				0,
+			)
 
 			expect(box.bottom).toBeCloseTo(origin.top + (element.clientTop + OFFSET.y) * scaleY - GAP, 0)
 		},
@@ -137,7 +140,7 @@ describe('pointer readout under a transformed ancestor (real browser)', () => {
 
 		const box = (await openPanel()).getBoundingClientRect()
 
-		expect(centerOf(box).x).toBeCloseTo(CLIENT.x, 0)
+		expect(getCenter(box).x).toBeCloseTo(CLIENT.x, 0)
 
 		expect(box.bottom).toBeCloseTo(CLIENT.y - GAP, 0)
 	})

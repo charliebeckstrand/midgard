@@ -37,7 +37,7 @@
 import { clamp } from '../../../../utilities'
 import { POINT_HIT_RADIUS } from '../map-constants'
 import type { MapPoint2D } from '../types'
-import { bucket, cellOf, squared, walkNear } from './grid'
+import { bucket, squared, toCellKey, walkNear } from './grid'
 import { MAX_CLUSTER_RADIUS } from './radius'
 
 /**
@@ -148,7 +148,7 @@ function indexed(marks: readonly MapDotMark[], unitsPerPixel: number): number[] 
 	const cells = new Map<number, number[]>()
 
 	marks.forEach((mark, index) => {
-		if (mark.at !== null) bucket(cells, cellOf(mark.at, reach)).push(index)
+		if (mark.at !== null) bucket(cells, toCellKey(mark.at, reach)).push(index)
 	})
 
 	return marks.map(({ at }, index) => {

@@ -78,7 +78,7 @@ type ShelfGrid = {
  * The row span of the tile `cell` at `w` columns. A tile that takes the height
  * of its content gets the rows that hold that height and the gutter.
  */
-function spanOf(cell: DashboardCell, w: number, grid: ShelfGrid): number {
+function resolveSpan(cell: DashboardCell, w: number, grid: ShelfGrid): number {
 	const content = grid.heights?.get(cell.id)
 
 	if (content !== undefined && grid.row > 0) {
@@ -114,7 +114,7 @@ function placeShelf(
 
 		if (remainder > 0) remainder -= 1
 
-		const h = spanOf(cell, w, grid)
+		const h = resolveSpan(cell, w, grid)
 
 		into.set(cell.id, { ...cell, x, y, w, h })
 

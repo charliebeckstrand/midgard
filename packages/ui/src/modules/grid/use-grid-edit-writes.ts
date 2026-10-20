@@ -32,7 +32,7 @@ import {
 	historyValue,
 	recordWrite,
 } from './engine/grid-edit-history'
-import { coordOf, type GridDraftStore, readKeyPress } from './engine/grid-editing-utilities'
+import { findCoord, type GridDraftStore, readKeyPress } from './engine/grid-editing-utilities'
 import type { GridEditSource } from './grid-data-types'
 import type { GridCellChange, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
@@ -78,7 +78,7 @@ export function useGridEditWrites<T>({
 	const { on: historyOn, record: recordEntry, take: takeStep } = history
 
 	// Sends a batch of changes that no session staged through the sink, and
-	// announces and tracks it as the commit sweep does. `rowOf` reads the live
+	// announces and tracks it as the commit sweep does. `getRow` reads the live
 	// rows, so a caller that already indexed them passes its own. A write that
 	// no history value came from, such as a paste, passes `write`: its cells go
 	// through the checks of a save, and its refusals, with the ones the caller
@@ -90,7 +90,7 @@ export function useGridEditWrites<T>({
 		(
 			changes: readonly GridCellChange[],
 			outcome: GridSaveOutcome,
-			rowOf: (rowKey: string | number) => T | undefined,
+			getRow: (rowKey: string | number) => T | undefined,
 			write?: { refused: readonly GridCellChange[]; skipped: number },
 			cells: readonly GridHistoryCell[] = [],
 		) => {
@@ -98,7 +98,7 @@ export function useGridEditWrites<T>({
 				changes,
 				outcome,
 				source: editSourceRef.current,
-				rowOf,
+				getRow,
 				onCommit: hasCommit ? sendCommit : undefined,
 				check: write !== undefined,
 				history: cells,
@@ -130,7 +130,7 @@ export function useGridEditWrites<T>({
 		(cells: readonly GridPasteCell[]) => {
 			const source = editSourceRef.current
 
-			const rowOf = rowLookup(source)
+			const getRow = rowLookup(source)
 
 			const changes: GridCellChange[] = []
 
@@ -141,14 +141,14 @@ export function useGridEditWrites<T>({
 			for (const cell of cells) {
 				const drafted = drafts.read(cell.rowKey, cell.columnId) !== undefined
 
-				const paste = drafted ? null : pasteChange(source, rowOf, cell)
+				const paste = drafted ? null : pasteChange(source, getRow, cell)
 
 				if (!paste) skipped++
 				else if (paste.fits) changes.push(paste.change)
 				else refused.push(paste.change)
 			}
 
-			submitCells(changes, 'pasted', rowOf, { refused, skipped })
+			submitCells(changes, 'pasted', getRow, { refused, skipped })
 		},
 		[editSourceRef, drafts, submitCells],
 	)
@@ -159,7 +159,7 @@ export function useGridEditWrites<T>({
 		(cells: readonly GridFillCell[]) => {
 			const source = editSourceRef.current
 
-			const rowOf = rowLookup(source)
+			const getRow = rowLookup(source)
 
 			const changes: GridCellChange[] = []
 
@@ -168,11 +168,11 @@ export function useGridEditWrites<T>({
 			for (const cell of cells) {
 				const drafted = drafts.read(cell.rowKey, cell.columnId) !== undefined
 
-				if (drafted || !writeTarget(source, rowOf, cell)) skipped++
+				if (drafted || !writeTarget(source, getRow, cell)) skipped++
 				else changes.push(cell)
 			}
 
-			submitCells(changes, 'filled', rowOf, { refused: [], skipped })
+			submitCells(changes, 'filled', getRow, { refused: [], skipped })
 		},
 		[editSourceRef, drafts, submitCells],
 	)
@@ -183,7 +183,7 @@ export function useGridEditWrites<T>({
 		(cell: GridHistoryCell | undefined) => {
 			if (!cell) return
 
-			const coord = coordOf(rowKeysRef.current, dataColumnsRef.current, cell)
+			const coord = findCoord(rowKeysRef.current, dataColumnsRef.current, cell)
 
 			if (coord.row !== -1 && coord.col !== -1) moveTo(coord)
 		},
@@ -201,10 +201,10 @@ export function useGridEditWrites<T>({
 
 			const source = editSourceRef.current
 
-			const rowOf = rowLookup(source)
+			const getRow = rowLookup(source)
 
 			const result = takeStep(step, {
-				current: (cell) => readHistoryCell(source, rowOf, cell),
+				current: (cell) => readHistoryCell(source, getRow, cell),
 				drafted: (cell) => drafts.read(cell.rowKey, cell.columnId) !== undefined,
 			})
 
@@ -222,7 +222,7 @@ export function useGridEditWrites<T>({
 				value: historyValue(cell, step),
 			}))
 
-			submitCells(changes, historyOutcome(step), rowOf, undefined, cells)
+			submitCells(changes, historyOutcome(step), getRow, undefined, cells)
 
 			if (moveCursor) moveToCell(cells[0])
 

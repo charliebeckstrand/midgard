@@ -44,7 +44,7 @@ function plotSvg(container: HTMLElement): SVGSVGElement {
 }
 
 /** The host box that a case resizes. */
-function hostOf(container: HTMLElement): HTMLElement {
+function getHost(container: HTMLElement): HTMLElement {
 	return present(container.querySelector('[data-testid="host"]'), 'the host')
 }
 
@@ -80,7 +80,7 @@ describe('chart resize tracking (real browser)', () => {
 				</div>,
 			)
 
-			const host = hostOf(container)
+			const host = getHost(container)
 
 			await waitFor(() => expect(frameWidth(container)).toBe('600'))
 
@@ -109,7 +109,7 @@ describe('chart resize tracking (real browser)', () => {
 			</div>,
 		)
 
-		const host = hostOf(container)
+		const host = getHost(container)
 
 		const contents = getSlot(container, 'tab-contents')
 
@@ -137,7 +137,7 @@ describe('chart resize tracking (real browser)', () => {
 			</div>,
 		)
 
-		const host = hostOf(container)
+		const host = getHost(container)
 
 		await waitFor(() => expect(frameWidth(container)).toBe('600'))
 
@@ -194,7 +194,7 @@ describe('chart resize tracking (real browser)', () => {
 			</div>,
 		)
 
-		const host = hostOf(container)
+		const host = getHost(container)
 
 		const tier = () => {
 			const root = container.querySelector<HTMLElement>('[data-slot="chart"]')
@@ -243,7 +243,7 @@ describe('chart resize tracking (real browser)', () => {
 			</div>,
 		)
 
-		const host = hostOf(container)
+		const host = getHost(container)
 
 		/** The committed drawing size tracks the plot box — width and height alike. */
 		const tracks = () => {
@@ -365,7 +365,7 @@ describe('chart fill-mode resize stability (real browser)', () => {
 			</div>,
 		)
 
-		const host = hostOf(container)
+		const host = getHost(container)
 
 		await waitFor(() => expect(frameWidth(container)).toBe('400'))
 
