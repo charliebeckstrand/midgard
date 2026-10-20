@@ -13,6 +13,7 @@ import { hannou, iro, ji, kasane, omote, sen, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { fg, grab } = hannou
+const { forced } = sen
 const { text } = iro
 const { rounded } = kasane
 
@@ -21,6 +22,9 @@ const { rounded } = kasane
  * at the center of a gutter. A layer inset by half a gutter carries them, so no
  * guide draws on the outer edge of the board. The root sets the gutter and the
  * column count as CSS variables, because both are props.
+ *
+ * Forced colors remove a gradient background. Under forced colors the layer
+ * therefore takes no adjust, and it draws the hairlines in `GrayText`.
  */
 const guides = [
 	"before:pointer-events-none before:absolute before:content-['']",
@@ -31,6 +35,8 @@ const guides = [
 		'before:bg-[linear-gradient(to_right,var(--color-zinc-100)_1px,transparent_1px)]',
 		'dark:before:bg-[linear-gradient(to_right,var(--color-zinc-800)_1px,transparent_1px)]',
 	),
+	'forced-colors:before:forced-color-adjust-none',
+	'forced-colors:before:bg-[linear-gradient(to_right,GrayText_1px,transparent_1px)]',
 ]
 
 /**
@@ -156,12 +162,14 @@ const missing = 'flex size-full items-center justify-center p-2 text-center'
 
 /**
  * The landing placeholder of a dragged tile. It takes the radius of the tile
- * card, which is a card of the `sm` step.
+ * card, which is a card of the `sm` step. Forced colors remove its fill, so it
+ * then draws an outline.
  */
 const placeholder = [
 	'pointer-events-none',
 	rounded.sm,
 	...mode('bg-zinc-200/60', 'dark:bg-zinc-800/60'),
+	forced.outline,
 ].join(' ')
 
 /**
@@ -198,6 +206,9 @@ const handle = defineRecipe({
  * A resize splitter on one edge of a tile. The bar shows on hover, focus, and
  * drag. Where the primary pointer is coarse, the bar stays in view, because a
  * touch screen matches no hover, and a tap matches no focus-visible.
+ *
+ * The reader sees the bar only by its background, which forced colors remove.
+ * The bar then paints in `CanvasText`, as the shape of a resize grip does.
  */
 const resizeHandle = defineRecipe({
 	base: [
@@ -206,6 +217,7 @@ const resizeHandle = defineRecipe({
 		'hover:after:opacity-100 focus-visible:after:opacity-100 data-resizing:after:opacity-100',
 		'pointer-coarse:after:opacity-100',
 		...mode('after:bg-zinc-400', 'dark:after:bg-zinc-600'),
+		'forced-colors:after:bg-[CanvasText]',
 		...sen.focus.ring,
 	],
 	edge: {
