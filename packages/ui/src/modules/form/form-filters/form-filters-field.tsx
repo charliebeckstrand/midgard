@@ -70,7 +70,7 @@ export function FormFiltersField<V = unknown>({
 }: FormFiltersFieldProps<V>) {
 	const { value: filterValue, setValue } = useFormFilters()
 
-	const { fieldWidth: width } = useFormFiltersAxis()
+	const { width } = useFormFiltersAxis()
 
 	if (typeof children === 'function') {
 		const renderProps: FormFiltersFieldRenderProps<V> = {

@@ -20,7 +20,7 @@ export function formFiltersAxis(layout: FormFiltersLayout): {
 	rail: boolean
 	direction: ResponsiveDirection
 	align: ResponsiveAlign
-	fieldWidth: string
+	width: string
 } {
 	const rail = layout === 'rail'
 
@@ -35,6 +35,6 @@ export function formFiltersAxis(layout: FormFiltersLayout): {
 		align: rail ? 'end' : STACK_ALIGN,
 		// A stacked field fills its column. A rail's field keeps the width that it
 		// was given and does not shrink, so the row overflows and scrolls.
-		fieldWidth: rail ? 'shrink-0' : 'w-full',
+		width: rail ? 'shrink-0' : 'w-full',
 	}
 }

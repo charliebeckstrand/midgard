@@ -39,7 +39,7 @@ export function FormFiltersSkeleton({
 	fieldClassName,
 	className,
 }: FormFiltersSkeletonProps) {
-	const { rail, direction, align, fieldWidth } = formFiltersAxis(layout)
+	const { rail, direction, align, width } = formFiltersAxis(layout)
 
 	return (
 		<Flex
@@ -50,7 +50,7 @@ export function FormFiltersSkeleton({
 			className={cn(rail && 'overflow-hidden', className)}
 		>
 			{rangeKeys(fields, 'field').map((fieldKey) => (
-				<ControlSkeleton key={fieldKey} className={cn(fieldWidth, fieldClassName)} />
+				<ControlSkeleton key={fieldKey} className={cn(width, fieldClassName)} />
 			))}
 		</Flex>
 	)

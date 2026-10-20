@@ -56,7 +56,7 @@ export function useFormFiltersAxis(): {
 	rail: boolean
 	direction: ResponsiveDirection
 	align: ResponsiveAlign
-	fieldWidth: string
+	width: string
 } {
 	return formFiltersAxis(useFormFilters().layout)
 }
