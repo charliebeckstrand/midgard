@@ -1,13 +1,12 @@
 'use client'
 
-import { useComposedRefs } from 'motion/react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/stepper'
 import { useStepper } from './context'
 
 /** Props for {@link StepperSeparator}: `className` plus `<li>` attributes, `ref` included. */
-export type StepperSeparatorProps = {} & ComponentProps<'li'>
+export type StepperSeparatorProps = ComponentProps<'li'>
 
 /**
  * Decorative connector rule drawn between adjacent {@link StepperStep}s,
@@ -19,21 +18,11 @@ export type StepperSeparatorProps = {} & ComponentProps<'li'>
  * a display-only stepper. The `aria-hidden` keeps it out of the step count.
  * The `ref` gets the `<li>` as an `HTMLLIElement`.
  */
-export function StepperSeparator({ className, ref, ...props }: StepperSeparatorProps) {
+export function StepperSeparator({ className, ...props }: StepperSeparatorProps) {
 	const { layout } = useStepper()
-
-	const composedRef = useComposedRefs<HTMLLIElement>(ref)
 
 	const classes = cn(k.separator.base, layout.separator, className)
 
 	// The row is an <ol>, which holds only <li> children.
-	return (
-		<li
-			data-slot="stepper-separator"
-			aria-hidden="true"
-			className={classes}
-			{...props}
-			ref={composedRef}
-		/>
-	)
+	return <li data-slot="stepper-separator" aria-hidden="true" className={classes} {...props} />
 }

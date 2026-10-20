@@ -41,6 +41,20 @@ type ListboxPanelProps = {
 }
 
 /**
+ * The element that the focus lands on when the panel opens: the selected
+ * option, so the arrow keys resume from the current value, else the listbox.
+ *
+ * @internal
+ */
+function initialFocusTarget(node: HTMLElement): HTMLElement {
+	return (
+		node.querySelector<HTMLElement>('[role="option"][data-selected]') ??
+		node.querySelector<HTMLElement>('[data-slot="popover-panel"]') ??
+		node
+	)
+}
+
+/**
  * Internal: the listbox menu surface rendered through `Portal`.
  * Owns the entry/exit animation and the listbox role; the caller supplies
  * floating positioning and open state.
@@ -63,9 +77,8 @@ export function ListboxPanel({
 	onTabOut,
 	children,
 }: ListboxPanelProps) {
-	// The element `FloatingFocusManager` lands focus on when the panel opens:
-	// the selected option (arrow keys resume from the current value), else the
-	// listbox itself. Populated in the floating node's ref callback, which
+	// The element `FloatingFocusManager` lands focus on when the panel opens,
+	// from `initialFocusTarget`. Populated in the floating node's ref callback, which
 	// fires after the option children commit; the manager then reads it before
 	// running its initial-focus effect.
 	const initialFocusRef = useRef<HTMLElement | null>(null)
@@ -82,12 +95,7 @@ export function ListboxPanel({
 
 		if (!open || !node || node.contains(document.activeElement)) return
 
-		const target =
-			node.querySelector<HTMLElement>('[role="option"][data-selected]') ??
-			node.querySelector<HTMLElement>('[data-slot="popover-panel"]') ??
-			node
-
-		target.focus({ preventScroll: true })
+		initialFocusTarget(node).focus({ preventScroll: true })
 	}, [open])
 
 	// The portal carries the density scope of the listbox. An explicit `size` is
@@ -114,10 +122,7 @@ export function ListboxPanel({
 
 						floatingRef.current = node
 
-						initialFocusRef.current =
-							node?.querySelector<HTMLElement>('[role="option"][data-selected]') ??
-							node?.querySelector<HTMLElement>('[data-slot="popover-panel"]') ??
-							node
+						initialFocusRef.current = node && initialFocusTarget(node)
 					}}
 					style={floatingStyles}
 					className={cn(k.portal)}

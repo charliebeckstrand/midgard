@@ -28,10 +28,6 @@ export function useListboxState<T>({
 		onValueChange: onOpenChange,
 	})
 
-	const close = useCallback(() => {
-		setOpen(false)
-	}, [setOpen])
-
 	const { toggle, commit, flushPending, selectionValue } = useDeferredToggle<T>({
 		multiple,
 		nullable,
@@ -44,16 +40,14 @@ export function useListboxState<T>({
 		(newValue: T) => {
 			if (!multiple) {
 				commit(newValue)
-				close()
+
+				setOpen(false)
 			} else {
 				toggle(newValue)
 			}
 		},
-		[multiple, toggle, commit, close],
+		[multiple, toggle, commit, setOpen],
 	)
 
-	// `close` looks unused from Listbox, which never destructures it: `select`
-	// calls it internally. It is the hook's tested contract, not dead code:
-	// `use-listbox-state.test.ts` exercises it directly and goes red without it.
-	return { open, setOpen, close, select, flushPending, selectionValue }
+	return { open, setOpen, select, flushPending, selectionValue }
 }

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { useListboxState } from '../../components/listbox/use-listbox-state'
 
 describe('useListboxState', () => {
-	it('starts closed, opens via setOpen, and closes via close()', () => {
+	it('starts closed, and opens and closes via setOpen', () => {
 		const { result } = renderHook(() =>
 			useListboxState<string>({
 				multiple: false,
@@ -22,7 +22,7 @@ describe('useListboxState', () => {
 		expect(result.current.open).toBe(true)
 
 		act(() => {
-			result.current.close()
+			result.current.setOpen(false)
 		})
 
 		expect(result.current.open).toBe(false)
@@ -64,20 +64,22 @@ describe('useListboxState', () => {
 		expect(result.current.open).toBe(true)
 	})
 
-	it('returns a stable close handler across renders', () => {
+	it('returns a stable select handler across renders', () => {
+		const setValue = vi.fn()
+
 		const { result, rerender } = renderHook(() =>
 			useListboxState<string>({
 				multiple: false,
 				nullable: false,
 				value: undefined,
-				setValue: vi.fn(),
+				setValue,
 			}),
 		)
 
-		const first = result.current.close
+		const first = result.current.select
 
 		rerender()
 
-		expect(result.current.close).toBe(first)
+		expect(result.current.select).toBe(first)
 	})
 })
