@@ -73,7 +73,7 @@ export const k = defineKata(
 )
 
 /** Recipe variant props for the {@link Dialog} panel: its styling axes (`surface`, `width`), for consumers composing custom slots. */
-export type DialogPanelVariants = Omit<VariantProps<typeof k>, 'surface' | 'width'> & {
+export type DialogPanelVariants = Omit<VariantProps<typeof k>, 'surface' | 'width' | 'align'> & {
 	/** The surface of the panel: `flat` is opaque, and `glass` is translucent and blurred. @defaultValue 'flat' */
 	surface?: VariantProps<typeof k>['surface']
 	/** The maximum width of the panel. @defaultValue 'lg' */
