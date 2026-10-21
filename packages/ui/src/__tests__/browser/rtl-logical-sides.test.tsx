@@ -71,7 +71,7 @@ describe('logical sides under dir=rtl', () => {
 	it('description-list term gutter is on the inline end (left)', () => {
 		const { container } = renderUI(
 			<div dir="rtl">
-				<dl className={cn(dl.base, resolveVariant('horizontal', dl.orientation))}>
+				<dl className={dl({ orientation: 'horizontal' }).base}>
 					<dt>Term</dt>
 					<dd>Detail</dd>
 				</dl>

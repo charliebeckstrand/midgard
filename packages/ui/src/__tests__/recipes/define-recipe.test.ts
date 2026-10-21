@@ -474,3 +474,88 @@ describe('defineGroup', () => {
 		)
 	})
 })
+
+describe('defineKata responsive axes', () => {
+	const unit = defineKata({
+		base: 'flex',
+		responsive: { align: { start: 'items-start', end: 'items-end' } },
+		slots: {
+			box: { base: 'p-0', responsive: { align: { start: 'p-4', end: 'p-2' } } },
+			label: 'truncate',
+		},
+		defaults: { align: 'start' },
+	})
+
+	it('takes a bare value as a plain axis', () => {
+		expect(unit({ align: 'end' }).base).toBe('flex items-end')
+	})
+
+	it('prefixes the classes of each breakpoint of a map', () => {
+		const slots = unit({ align: { initial: 'start', md: 'end' } })
+
+		expect(slots.base).toBe('flex items-start md:items-end')
+		expect(slots.box).toBe('p-4 md:p-2')
+		expect(slots.label).toBe('truncate')
+	})
+
+	it('holds the default below the first breakpoint of a map with no initial value', () => {
+		expect(unit({ align: { lg: 'end' } }).base).toBe('flex items-start lg:items-end')
+	})
+
+	it('memoizes each map by its values', () => {
+		expect(unit({ align: { sm: 'end' } })).toBe(unit({ align: { sm: 'end' } }))
+		expect(unit({ align: { sm: 'end' } })).not.toBe(unit({ align: { md: 'end' } }))
+	})
+
+	it('lists the responsive axes in its config', () => {
+		expect(unit.config.responsive).toEqual(['align'])
+	})
+
+	it('types a responsive prop as a value or a map', () => {
+		expectTypeOf<VariantProps<typeof unit>['align']>().toEqualTypeOf<
+			| 'start'
+			| 'end'
+			| Partial<Record<'initial' | 'sm' | 'md' | 'lg' | 'xl' | '2xl', 'start' | 'end'>>
+			| undefined
+		>()
+
+		expect(unit({ align: { xl: 'end' } }).base).toBe('flex items-start xl:items-end')
+	})
+
+	it('keeps the other props plain', () => {
+		const plain = defineKata({
+			base: 'a',
+			size: { sm: 'b', lg: 'c' },
+			responsive: { align: { start: 'd' } },
+		})
+
+		expectTypeOf<VariantProps<typeof plain>['size']>().toEqualTypeOf<'sm' | 'lg' | undefined>()
+
+		expect(plain({ size: 'lg', align: 'start' }).base).toBe('a c d')
+	})
+
+	it('gives a unit the responsive axes of its group', () => {
+		const group = defineGroup({ responsive: { side: { left: 'left-0', right: 'right-0' } } })
+
+		const member = defineKata({ extends: group, base: 'fixed' })
+
+		expect(member({ side: { initial: 'left', md: 'right' } }).base).toBe('fixed left-0 md:right-0')
+		expect(member.config.responsive).toEqual(['side'])
+	})
+
+	it('throws on an axis that is responsive and plain in one slot', () => {
+		expect(() =>
+			defineKata({ align: { start: 'a' }, responsive: { align: { start: 'b' } } }),
+		).toThrow(/declares the axis "align" twice/)
+	})
+
+	it('throws on a compound rule that reads a responsive axis', () => {
+		expect(() =>
+			defineKata({
+				size: { sm: 'a' },
+				responsive: { align: { start: 'b' } },
+				compound: [{ align: 'start', size: 'sm', class: 'c' }],
+			}),
+		).toThrow(/reads the responsive axis "align"/)
+	})
+})

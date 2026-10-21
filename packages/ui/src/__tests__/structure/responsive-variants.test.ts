@@ -1,8 +1,9 @@
 // @vitest-environment node
 
 import { __unstable__loadDesignSystem, compile } from '@tailwindcss/node'
+import clsx, { type ClassValue } from 'clsx'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { k as descriptionList } from '../../recipes/kata/description-list'
+import { twMerge } from '../../core/tw-merge'
 import { k as dialog } from '../../recipes/kata/dialog'
 import { k as events } from '../../recipes/kata/events'
 import { k as offcanvas } from '../../recipes/kata/offcanvas'
@@ -25,9 +26,71 @@ import { uiRoot } from '../helpers/walk-source'
 
 const ENTRY = `@import 'tailwindcss';\n@import './tailwind.css';`
 
+/** The kata modules, by file. */
+const modules = import.meta.glob<Record<string, unknown>>('../../recipes/kata/*.ts', {
+	eager: true,
+})
+
+/** A unit, as this test reads it: the resolved config of each slot and its responsive axes. */
+type UnitLike = {
+	config: {
+		responsive: readonly string[]
+		slots: Record<string, { variants: Record<string, Record<string, ClassValue>> }>
+	}
+}
+
+function isUnit(value: unknown): value is UnitLike {
+	return (
+		typeof value === 'function' &&
+		'config' in value &&
+		Array.isArray((value.config as { responsive?: unknown }).responsive)
+	)
+}
+
+/**
+ * Each responsive axis of each slot of each unit, and of each unit that a
+ * kata holds as an extra. A unit names its responsive axes, so this list
+ * needs no entry by hand.
+ */
+function unitAxes(): [string, Record<string, string>][] {
+	const axes: [string, Record<string, string>][] = []
+
+	const read = (name: string, unit: UnitLike) => {
+		for (const axis of unit.config.responsive) {
+			for (const [slot, config] of Object.entries(unit.config.slots)) {
+				const values = config.variants[axis]
+
+				if (values === undefined) continue
+
+				const table = Object.fromEntries(
+					Object.entries(values).map(([value, classes]) => [value, twMerge(clsx(classes))]),
+				)
+
+				axes.push([`${name} ${slot} ${axis}`, table])
+			}
+		}
+	}
+
+	for (const [file, exports] of Object.entries(modules)) {
+		const name = file.replace(/^.*\/(.*)\.ts$/, '$1')
+
+		for (const value of Object.values(exports)) {
+			if (!isUnit(value)) continue
+
+			read(name, value)
+
+			for (const [key, extra] of Object.entries(value)) {
+				if (isUnit(extra)) read(`${name} ${key}`, extra)
+			}
+		}
+	}
+
+	return axes
+}
+
 /** Each responsive variant axis of a component: its name and its table of classes. */
 const AXES: ReadonlyArray<readonly [string, Record<string, string>]> = [
-	['DescriptionList orientation', descriptionList.orientation],
+	...unitAxes(),
 	['Stepper row orientation', stepper.base.orientation],
 	['Stepper step orientation', stepper.step.orientation],
 	['Stepper item orientation', stepper.item.orientation],
