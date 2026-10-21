@@ -394,10 +394,10 @@ export function GridReorderableColumnHeaderView({
 			data-resizable={dataAttr(canResize)}
 			data-grid-col={gridCol}
 			className={cn(
-				stickyHeader ? k.sticky.head : k.reorder.shift,
-				k.reorder.cell,
+				stickyHeader ? k.sticky.head : k.reorder.cell.shift,
+				k.reorder.cell.base,
 				// Handle-less: the whole cell is the grab target (grabbing while lifted).
-				!handle && k.reorder.grab,
+				!handle && k.reorder.cell.grab,
 				// Anchor the absolute resize handle on a non-sticky header (a sticky
 				// header already positions itself; this header's shift transform also
 				// forms a containing block, so `relative` just keeps the anchor explicit).

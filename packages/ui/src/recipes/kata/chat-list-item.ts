@@ -1,10 +1,10 @@
-import { defineRecipe, mode } from '../../core/recipe'
+import { defineRecipe } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { nav, cursor } = hannou
 const { text } = iro
-const { size } = ji
+const { size, weight } = ji
 const { flex } = narabi
 const { focus } = sen
 
@@ -47,7 +47,7 @@ export const k = defineRecipe({
 			// to the `<button>` branch only: a static `<span>` has nothing to trigger.
 			overlay: ['after:absolute after:inset-0'],
 		},
-		title: ['truncate', 'font-medium', size.md, ...mode('text-zinc-950', 'dark:text-white')],
+		title: ['truncate', weight.medium, size.md, ...text.default],
 		preview: ['truncate', size.sm, ...text.muted],
 		// `relative z-10` lifts the action controls above the active indicator and the
 		// select overlay so they stay clickable.

@@ -163,7 +163,7 @@ type GridScrollRegionProps = {
 	expandable: boolean
 	/** Whether the table holds a grouped body, under client or manual grouping. */
 	grouped: boolean
-	/** Whether the body is a window. A flat master-detail or grouped body clears the native scroll anchor after a clamp (see {@link useGridClampAnchor}). A windowed one turns the native scroll anchor off (see `k.sticky.windowed`). */
+	/** Whether the body is a window. A flat master-detail or grouped body clears the native scroll anchor after a clamp (see {@link useGridClampAnchor}). A windowed one turns the native scroll anchor off (see `k.sticky.wrapper.windowed`). */
 	virtualized: boolean
 	children: ReactNode
 }
@@ -171,8 +171,8 @@ type GridScrollRegionProps = {
 /**
  * The sticky/virtualized scroll container around the table, or the table
  * untouched when no scroll wrapper is needed. `maxHeight="fill"` sizes by
- * flexing into the parent's box (see `k.fill`) rather than an inline cap; any
- * other value caps the wrapper directly. Split out of {@link GridData} so the
+ * flexing into the parent's box (see `k.sticky.wrapper.fill`) rather than an
+ * inline cap; any other value caps the wrapper directly. Split out of {@link GridData} so the
  * branching stays off its complexity budget. @internal
  */
 export function GridScrollRegion({
@@ -199,9 +199,9 @@ export function GridScrollRegion({
 			ref={scrollRef}
 			data-slot="grid-scroll"
 			className={cn(
-				k.sticky.wrapper,
-				itemBody && virtualized && k.sticky.windowed,
-				fillHeight && k.fill.scroll,
+				k.sticky.wrapper.base,
+				itemBody && virtualized && k.sticky.wrapper.windowed,
+				fillHeight && k.sticky.wrapper.fill,
 			)}
 			style={maxHeight && !fillHeight ? { maxHeight } : undefined}
 		>

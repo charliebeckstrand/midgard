@@ -242,7 +242,7 @@ function GridNewRowAddCell({
 			data-grid-new-col={NEW_ROW_ADD_COLUMN_ID}
 			aria-colindex={ariaColIndex}
 			aria-busy={ariaAttr(pending)}
-			className={cn(className, k.row.new.add)}
+			className={cn(className, k.row.new.cell.add)}
 		>
 			<span
 				ref={controlRef}
@@ -307,7 +307,7 @@ export function GridNewRow<T>({
 
 	const draftRow = readDraftRow()
 
-	const edge = session.position === 'top' ? k.row.new.top : k.row.new.bottom
+	const edge = session.position === 'top' ? k.row.new.cell.top : k.row.new.cell.bottom
 
 	return (
 		<tbody ref={bodyRef} data-slot="grid-new-row-body">
@@ -323,9 +323,9 @@ export function GridNewRow<T>({
 
 					const className = cn(
 						pinned.className,
-						k.row.new.cell,
+						k.row.new.cell.base,
 						edge,
-						pinned.style !== undefined && k.row.new.pinned,
+						pinned.style !== undefined && k.row.new.cell.pinned,
 					)
 
 					const ariaColIndex = ariaRowIndex !== undefined ? index + 1 : undefined

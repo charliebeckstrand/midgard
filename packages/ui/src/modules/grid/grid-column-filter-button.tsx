@@ -303,7 +303,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 							// aria-expanded, wired by MenuTrigger.
 							aria-label={intl.formatMessage(gridMessages.filterActive, { column: label })}
 							data-active={dataAttr(true)}
-							className={cn(k.filter.button)}
+							className={cn(k.filter.button.base)}
 						>
 							{/* The active icon adds a "+" so the applied state reads by shape,
 							    not the accent color alone (WCAG 1.4.1). */}
@@ -332,7 +332,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 					aria-haspopup="dialog"
 					aria-expanded={open}
 					// The resting muted tint, dropped once a filter accents the button.
-					className={cn(k.filter.button, k.filter.idle)}
+					className={cn(k.filter.button.base, k.filter.button.idle)}
 					onClick={() => handleOpenChange(true)}
 				>
 					<Icon icon={<ListFilter />} />
