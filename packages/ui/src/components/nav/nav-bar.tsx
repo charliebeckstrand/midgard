@@ -49,16 +49,18 @@ export function NavBar({
 }: NavBarProps) {
 	const intl = useIntl()
 
+	const slots = k({ variant })
+
 	return (
 		<NavBarContext value={true}>
 			<ActiveIndicatorScope>
 				<nav
 					data-slot="nav-bar"
 					aria-label={ariaLabel ?? intl.formatMessage(messages.label)}
-					className={cn(k.bar.base({ variant }), className)}
+					className={cn(slots.bar, className)}
 					{...props}
 				>
-					<div data-slot="nav-bar-rail" className={cn(k.bar.rail)}>
+					<div data-slot="nav-bar-rail" className={slots.rail}>
 						{children}
 					</div>
 				</nav>

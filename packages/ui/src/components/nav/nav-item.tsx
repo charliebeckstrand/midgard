@@ -70,21 +70,23 @@ export function NavItem({
 
 	// Affixes render as siblings of the inner button, not nested inside it; a
 	// slot can host its own interactive element. With an affix present the row
-	// goes flex and takes over the interaction chrome (the `affix` slot on both
-	// recipes), so the slots sit inside the hover tint and focus ring.
+	// goes flex and takes over the interaction chrome (the `affix` axis of the
+	// unit), so the slots sit inside the hover tint and focus ring.
 	const hasAffix = prefix != null || suffix != null
+
+	const slots = k.item({ affix: hasAffix })
 
 	return (
 		<li
 			ref={itemRef as Ref<HTMLLIElement>}
 			data-slot="nav-item"
-			className={k.item.base({ affix: hasAffix })}
+			className={slots.base}
 			{...tapHandlers}
 		>
 			{prefix != null && (
 				// Each slot is a density scope one step below the item. A slot is a
 				// `<div>`, so it can hold flow content.
-				<div data-slot="nav-item-prefix" data-density="slot" className={cn(k.item.prefix)}>
+				<div data-slot="nav-item-prefix" data-density="slot" className={slots.prefix}>
 					{prefix}
 				</div>
 			)}
@@ -94,7 +96,7 @@ export function NavItem({
 					// form, leaves it live.
 					lockable={false}
 					data-current={dataAttr(isCurrent)}
-					className={cn(k.item.button({ affix: hasAffix }), className)}
+					className={cn(slots.button, className)}
 					onClick={handleClick}
 					// Consumer props spread first; the type, the anchor a kata
 					// `has-[]` rule reads, and the current marker below take precedence.
@@ -111,15 +113,12 @@ export function NavItem({
 				</Button>
 			</HeadlessProvider>
 			{suffix != null && (
-				<div data-slot="nav-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
+				<div data-slot="nav-item-suffix" data-density="slot" className={slots.suffix}>
 					{suffix}
 				</div>
 			)}
 			{isCurrent && (
-				<ActiveIndicator
-					ref={indicatorRef}
-					className={hasAffix ? cn(k.item.indicator) : undefined}
-				/>
+				<ActiveIndicator ref={indicatorRef} className={hasAffix ? slots.indicator : undefined} />
 			)}
 		</li>
 	)

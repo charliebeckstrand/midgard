@@ -103,6 +103,8 @@ export function PopoverContent({
 
 	const glass = useResolvedSurface(glassProp) === 'glass'
 
+	const slots = k({ surface: glass ? 'glass' : 'flat' })
+
 	useA11yAutoFocus(content, open && autoFocus)
 
 	return (
@@ -122,7 +124,7 @@ export function PopoverContent({
 			<m.div
 				data-slot="popover-content"
 				{...props}
-				{...k.panel.motion}
+				{...k.motion}
 				ref={setPanel}
 				id={panelId}
 				tabIndex={autoFocus ? -1 : undefined}
@@ -130,13 +132,13 @@ export function PopoverContent({
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
 				data-open={dataAttr(open)}
-				className={cn(k.text, glass && k.panel.glass)}
+				className={slots.content}
 			>
 				<Box
 					bg={glass ? 'none' : 'popover'}
 					radius="lg"
 					outline={glass || undefined}
-					className={cn(k.padding, className)}
+					className={cn(slots.body, className)}
 				>
 					{children}
 				</Box>

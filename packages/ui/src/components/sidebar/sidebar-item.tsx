@@ -81,6 +81,8 @@ export function SidebarItem({
 	// so the slots sit inside the hover tint and focus ring.
 	const hasAffix = prefix != null || suffix != null
 
+	const slots = k.item({ affix: hasAffix })
+
 	// Resolved by the Sidebar root: false in the drawer of a layout, so the
 	// drawer keeps plain items.
 	const mini = useSidebarMini()
@@ -92,7 +94,7 @@ export function SidebarItem({
 			lockable={false}
 			data-current={dataAttr(isCurrent)}
 			className={cn(
-				k.item.button({ affix: hasAffix }),
+				slots.button,
 				// In the mini rail this Button is the tooltip trigger; restore the nav
 				// cursor over the trigger's help-cursor default.
 				mini && '*:cursor-pointer',
@@ -124,11 +126,11 @@ export function SidebarItem({
 			ref={itemRef as Ref<HTMLLIElement & HTMLDivElement>}
 			data-slot="sidebar-item"
 			density={size}
-			className={k.item.base({ affix: hasAffix })}
+			className={slots.base}
 			{...tapHandlers}
 		>
 			{prefix != null && (
-				<div data-slot="sidebar-item-prefix" data-density="slot" className={cn(k.item.prefix)}>
+				<div data-slot="sidebar-item-prefix" data-density="slot" className={slots.prefix}>
 					{prefix}
 				</div>
 			)}
@@ -145,14 +147,14 @@ export function SidebarItem({
 				)}
 			</HeadlessProvider>
 			{suffix != null && (
-				<div data-slot="sidebar-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
+				<div data-slot="sidebar-item-suffix" data-density="slot" className={slots.suffix}>
 					{suffix}
 				</div>
 			)}
 			{isCurrent && (
 				// A current affixed row re-draws its focus ring on the active indicator,
 				// the topmost full-row surface; a plain row keeps the default.
-				<ActiveIndicator ref={indicatorRef} className={cn(hasAffix && k.item.indicator)} />
+				<ActiveIndicator ref={indicatorRef} className={hasAffix ? slots.indicator : undefined} />
 			)}
 		</PolymorphicStatic>
 	)

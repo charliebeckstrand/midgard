@@ -8,7 +8,7 @@
 
 The three ways a kata builds a unit (a unit that extends a [`kumi`](../kumi/README.md) group, a unit with no group, or `defineRecipe` directly) are in [`../README.md`](../README.md#2-direction). Each of them composes the tokens of [`kiso/`](../kiso/README.md).
 
-When a component and primitive share the same UI surface (e.g. `components/popover/` and `primitives/popover/PopoverPanel`), one kata serves both: `kata/popover.ts` exposes flat slots (`k.trigger`, `k.portal`, `k.text`, `k.panel`) that both consumers read.
+When a component and primitive share the same UI surface (e.g. `components/popover/` and `primitives/popover/PopoverPanel`), one kata serves both: `kata/popover.ts` is one unit, and both consumers read its slots (`base`, `trigger`, `portal`, `content`, `body`).
 
 ## 2. Shape
 

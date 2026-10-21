@@ -6,11 +6,14 @@ import { Kbd, type KbdProps } from '../kbd'
 /** The slots of a row of the menu. */
 const row = k.item()
 
+/** The slots of a menu panel. */
+const panel = k()
+
 /** Props for {@link MenuSection}: native `<fieldset>` attributes. */
 export type MenuSectionProps = ComponentProps<'fieldset'>
 
 /** A group of related menu items under a {@link MenuHeading}; renders a `<fieldset>`. */
-export const MenuSection = createSlot('fieldset', 'menu-section', k.section)
+export const MenuSection = createSlot('fieldset', 'menu-section', panel.section)
 
 /** Props for {@link MenuHeading}: native `<legend>` attributes. */
 export type MenuHeadingProps = ComponentProps<'legend'>
@@ -20,13 +23,13 @@ export type MenuHeadingProps = ComponentProps<'legend'>
  * `MenuSection` only. HTML allows a `<legend>` only as the first child of a
  * `<fieldset>`, so a `MenuHeading` in another place is invalid and names nothing.
  */
-export const MenuHeading = createSlot('legend', 'menu-heading', k.heading)
+export const MenuHeading = createSlot('legend', 'menu-heading', panel.heading)
 
 /** Props for {@link MenuSeparator}: native `<hr>` attributes. */
 export type MenuSeparatorProps = ComponentProps<'hr'>
 
 /** Visual divider between menu groups; renders an `<hr>`. */
-export const MenuSeparator = createSlot('hr', 'menu-separator', k.separator)
+export const MenuSeparator = createSlot('hr', 'menu-separator', panel.separator)
 
 /** Props for {@link MenuLabel}: native `<span>` attributes. */
 export type MenuLabelProps = ComponentProps<'span'>

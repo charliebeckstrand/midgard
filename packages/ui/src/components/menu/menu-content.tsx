@@ -11,6 +11,9 @@ import { MenuSheet } from './menu-sheet'
 import { MenuViewport } from './menu-viewport'
 import { MENUITEM_SELECTOR } from './use-menu-root'
 
+/** The slots of a menu panel. */
+const panel = k()
+
 /** Props for {@link MenuContent}: an optional accessible name for the menu. */
 export type MenuContentProps = {
 	className?: string
@@ -122,13 +125,13 @@ export function MenuContent({
 	else if (!named && isDropdown) labelledby = triggerId
 
 	const header = titled ? (
-		<div data-slot="menu-header" className={k.header.base}>
-			<div id={titleId} className={cn(k.header.title)}>
+		<div data-slot="menu-header" className={panel.header}>
+			<div id={titleId} className={panel.title}>
 				{title}
 			</div>
 
 			{described ? (
-				<div id={descriptionId} className={cn(k.header.description)}>
+				<div id={descriptionId} className={panel.description}>
 					{description}
 				</div>
 			) : null}
@@ -153,7 +156,7 @@ export function MenuContent({
 				autoFocus={false}
 				// The page reaches the menu with Tab, so one row holds the Tab stop.
 				manageTabIndex
-				className={cn(k.content, className)}
+				className={cn(panel.base, className)}
 			>
 				{header}
 
@@ -168,7 +171,7 @@ export function MenuContent({
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
-			className={k.surface}
+			className={panel.surface}
 		>
 			<PopoverPanel
 				density={size}
@@ -198,7 +201,7 @@ export function MenuContent({
 				trapTab={!isDropdown}
 				typeahead
 				glass={glass}
-				className={cn(k.floating, k.content, className)}
+				className={cn(panel.floating, panel.base, className)}
 				onKeyDown={(event) => {
 					if (event.key !== 'Escape') return
 

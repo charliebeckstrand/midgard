@@ -36,9 +36,9 @@ export function SidebarSkeleton({ items = 5, size, className }: SidebarSkeletonP
 	const rowKeys = rangeKeys(items, 'row')
 
 	return (
-		<div data-density={size} className={cn(k.list, className)}>
+		<div data-density={size} className={cn(k().list, className)}>
 			{rowKeys.map((rowKey) => (
-				<div key={rowKey} className={k.item.base()}>
+				<div key={rowKey} className={k.item().base}>
 					<div className={cn(k.item.box)}>
 						<Placeholder className={cn(k.skeleton.icon)} />
 						<Placeholder className={cn(k.skeleton.label)} />

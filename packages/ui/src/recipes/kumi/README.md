@@ -49,6 +49,7 @@ A unit cannot remove a class of its group, so the shared structure stays shared.
 | `slider` (`slider/`) | `base` (the track variable), with the `color` axis | `slider`, `slider-range` |
 | `panel` (`panel/`) | `base` (the panel), with the `surface` axis; `backdrop`, `header`, `title`, `description`, `content`, `body`, `footer` | `dialog`, `drawer`, `sheet`, `panel` |
 | `item` (`item/`) | `base` (the row chrome); `label`, `text`, `description`, `shortcut` | `option`, the `item` units of `menu` and `command-palette` |
+| `nav` (`nav/`) | `base` (the `<li>` wrapper) and `button`, with the `affix` axis that trades the chrome between them; `indicator`, `prefix`, `suffix` | The `item` units of `nav` and `sidebar` |
 
 ## 4. Rules
 

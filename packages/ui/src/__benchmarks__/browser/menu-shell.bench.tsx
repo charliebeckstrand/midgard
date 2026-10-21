@@ -36,13 +36,12 @@ import { autoUpdate, FloatingPortal, flip, offset, shift, useFloating } from '@f
 import { AnimatePresence, motion } from 'motion/react'
 import { bench, describe } from 'vitest'
 import { Menu, MenuContent, MenuTrigger } from '../../components/menu'
-import { cn } from '../../core'
 import { PopoverPanel } from '../../primitives/popover'
 import { k } from '../../recipes/kata/popover'
 import { reactHost, WINDOW } from './harness'
 
-/** The classes `PopoverPanel` resolves for its default surface, hoisted so no rung re-merges them. */
-const PANEL = cn(k.panel.surface, k.panel.base)
+/** The classes `PopoverPanel` resolves for its default surface. */
+const PANEL = k().base
 
 /** One iteration: mount the surface `render` builds, then tear the root down. */
 function mount(render: () => React.ReactNode) {
@@ -57,12 +56,12 @@ function mount(render: () => React.ReactNode) {
 const RUNGS: [string, () => React.ReactNode][] = [
 	['1 · plain div', () => <div className={PANEL} />],
 	// The same element under `motion`, with the panel's own enter/exit config.
-	['2 · motion.div', () => <motion.div className={PANEL} {...k.panel.motion} />],
+	['2 · motion.div', () => <motion.div className={PANEL} {...k.motion} />],
 	[
 		'3 · AnimatePresence + motion.div',
 		() => (
 			<AnimatePresence>
-				<motion.div className={PANEL} {...k.panel.motion} />
+				<motion.div className={PANEL} {...k.motion} />
 			</AnimatePresence>
 		),
 	],

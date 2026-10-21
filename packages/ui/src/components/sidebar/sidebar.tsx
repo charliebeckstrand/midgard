@@ -107,7 +107,7 @@ export function Sidebar({
 					data-slot="sidebar"
 					data-mini={dataAttr(resolvedMini)}
 					aria-label={ariaLabel ?? intl.formatMessage(messages.label)}
-					className={cn(k.base, className)}
+					className={cn(k().base, className)}
 					// Roving is a keyboard model no consumer switches off, so a consumer's
 					// preventDefault() does not cancel it (CONVENTIONS.md §3.9).
 					onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown, {

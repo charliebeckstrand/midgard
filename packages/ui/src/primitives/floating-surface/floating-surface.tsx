@@ -139,7 +139,7 @@ export function FloatingSurface({
 			ref={setWrapper}
 			data-slot="floating-surface"
 			style={style ? { ...floatingStyles, ...style } : floatingStyles}
-			className={cn(k.portal, className)}
+			className={cn(k().portal, className)}
 			// Routed through getFloatingProps so consumer handlers compose
 			// with floating-ui's own instead of being overwritten.
 			{...getFloatingProps(rest)}

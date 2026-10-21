@@ -9,6 +9,9 @@ import { Kbd, type KbdProps } from '../kbd'
 /** The slots of a result row. */
 const row = k.item()
 
+/** The slots of the result listbox. */
+const list = k()
+
 // A stable reference; an inline literal re-derives the scope every render.
 const GROUP_SLOTS = { heading: 'labelledby' } satisfies Record<string, A11yRelation>
 
@@ -59,7 +62,7 @@ export function CommandPaletteGroup({ className, children, ...props }: CommandPa
 		<div
 			data-slot="command-palette-group"
 			{...scope.ariaProps}
-			className={cn(k.group, className)}
+			className={cn(list.group, className)}
 			{...props}
 			role="group"
 		>
@@ -91,7 +94,7 @@ export function CommandPaletteHeading({ className, id, ...props }: CommandPalett
 		<div
 			id={headingId}
 			data-slot="command-palette-heading"
-			className={cn(k.title, className)}
+			className={cn(list.title, className)}
 			{...props}
 		/>
 	)

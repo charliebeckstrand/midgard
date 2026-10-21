@@ -7,7 +7,6 @@ import {
 	type KeybindingFilter,
 	type KeybindingsMap,
 } from 'tinykeys'
-import { cn } from '../../core'
 import { useControllableFlag } from '../../hooks/use-controllable'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
@@ -45,6 +44,9 @@ const messages = defineMessages({
 			'The name of the dialog that searches the commands of an app. It has no visible title.',
 	},
 })
+
+/** The slots of the result listbox. */
+const list = k()
 
 /** The palette docks to the bottom edge on a compact viewport, and floats near the top from medium. */
 const PALETTE_ALIGN = adaptive({
@@ -283,7 +285,7 @@ export function CommandPalette({
 								role="listbox"
 								aria-label={placeholder}
 								data-slot="command-palette-list"
-								className={cn(k.list)}
+								className={list.base}
 							>
 								<VirtualItemSourceContext value={virtualSourceRef}>
 									{children}
@@ -293,7 +295,7 @@ export function CommandPalette({
 							    no-results status is a sibling `<output>`. It stays in the
 							    accessibility tree, and it holds text only on zero results: a live
 							    region speaks only a change of text. */}
-							<output data-slot="command-palette-no-results" className={cn(k.empty)}>
+							<output data-slot="command-palette-no-results" className={list.empty}>
 								{empty ? intl.formatMessage(intlMessages.noResults) : null}
 							</output>
 						</DialogBody>

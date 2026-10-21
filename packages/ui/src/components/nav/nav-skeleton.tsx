@@ -34,9 +34,9 @@ export function NavSkeleton({ items = 3, orientation = 'vertical', className }: 
 	const rowKeys = rangeKeys(items, 'row')
 
 	return (
-		<div className={cn(k.list.base, k.list.orientation[orientation], className)}>
+		<div className={cn(k({ orientation }).base, className)}>
 			{rowKeys.map((rowKey) => (
-				<div key={rowKey} className={k.item.base()}>
+				<div key={rowKey} className={k.item().base}>
 					<div className={cn(k.item.box)}>
 						<Placeholder className={cn(k.skeleton.icon)} />
 						<Placeholder className={k.skeleton.label} />

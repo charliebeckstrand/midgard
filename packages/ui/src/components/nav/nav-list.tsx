@@ -37,7 +37,7 @@ export function NavList({ orientation, className, children, ...props }: NavListP
 			<ul
 				data-slot="nav-list"
 				data-orientation={resolvedOrientation}
-				className={cn(k.list.base, k.list.orientation[resolvedOrientation], className)}
+				className={cn(k({ orientation: resolvedOrientation }).base, className)}
 				{...props}
 			>
 				{children}

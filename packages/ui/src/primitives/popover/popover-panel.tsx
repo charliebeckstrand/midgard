@@ -179,7 +179,7 @@ export function PopoverPanel({
 				id={id}
 				data-slot="popover-panel"
 				// Half the marker `hannou.tint.glass` keys on; the `group/glass` class
-				// below is the other half. See `recipes/kiso/hannou/glass-item.ts`.
+				// of the glass surface is the other half. See `recipes/kiso/hannou/glass-item.ts`.
 				data-glass={dataAttr(glass)}
 				data-density={density}
 				data-open={dataAttr(open)}
@@ -191,17 +191,13 @@ export function PopoverPanel({
 				// panel only sets it on the listbox role.
 				aria-multiselectable={role === 'listbox' ? multiselectable : undefined}
 				tabIndex={-1}
-				{...k.panel.motion}
+				{...k.motion}
 				// Roving is a keyboard model no consumer switches off, so a consumer's
 				// preventDefault() does not cancel it (CONVENTIONS.md §3.9).
 				onKeyDown={composeEventHandlers(onKeyDownProp, handleKeyDown, {
 					checkForDefaultPrevented: false,
 				})}
-				className={cn(
-					glass ? ['group/glass', k.panel.glass, k.panel.ring] : k.panel.surface,
-					k.panel.base,
-					className,
-				)}
+				className={cn(k({ surface: glass ? 'glass' : 'flat' }).base, className)}
 			>
 				<Density step={density}>
 					<VirtualItemSourceContext value={virtualSourceRef}>{children}</VirtualItemSourceContext>
