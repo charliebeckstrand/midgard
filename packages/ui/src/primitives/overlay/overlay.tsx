@@ -237,27 +237,20 @@ export function Overlay({
 		if (active instanceof HTMLElement && node.contains(active)) active.blur()
 	}, [open, inert])
 
+	const slots = k({ cover: coverChrome, scoped })
+
 	const panel = (
 		<div
 			ref={setPanel}
 			data-slot="overlay"
 			{...props}
-			className={cn(
-				coverChrome ? k.cover : k.base,
-				scoped ? k.scoped : k.frame,
-				!modal && 'pointer-events-none',
-				className,
-			)}
+			className={cn(slots.base, !modal && 'pointer-events-none', className)}
 		>
 			{(backdrop || catchesPress) && (
 				<m.div
 					{...k.motion}
 					data-slot="overlay-backdrop"
-					className={
-						backdrop
-							? (backdropClassName ?? cn('absolute inset-0', k.backdrop.base))
-							: 'absolute inset-0'
-					}
+					className={backdrop ? (backdropClassName ?? slots.backdrop) : 'absolute inset-0'}
 					// React carries a click in the portal up the component tree, and each
 					// panel stops its own clicks. The backdrop stops its clicks too. If it
 					// did not, the press that dismisses a menu sheet would also click the
