@@ -1,5 +1,5 @@
 import { mode } from '../../core/recipe'
-import { hannou, ji, kasane, narabi } from '../kiso'
+import { hannou, iro, ji, kasane, narabi } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { rounded } = kasane
@@ -33,5 +33,5 @@ export const k = {
 	 * The selected-state check icon: its color and its size. The size is the
 	 * glyph size of each step.
 	 */
-	check: [...mode('text-green-600', 'dark:text-green-500'), dan.size.check.box],
+	check: [...iro.marker.green, dan.size.check.box],
 } as const

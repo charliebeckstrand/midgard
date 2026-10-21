@@ -314,7 +314,7 @@ function plainText(tokens: Token[]): string {
 function renderTable(token: Tokens.Table, key: number, offset: number): ReactNode {
 	return (
 		<MarkdownTableScroll key={key}>
-			<table className={cn(k.table)}>
+			<table className={cn(k.table.base)}>
 				<thead>
 					<tr>{token.header.map((cell, index) => renderCell('th', k.th, cell, index, offset))}</tr>
 				</thead>
