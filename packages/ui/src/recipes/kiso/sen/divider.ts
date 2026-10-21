@@ -9,11 +9,12 @@
 
 import { mode } from '../../../core/recipe'
 
-import { contrastMore, tone } from './tone'
+import { border } from './border'
+import { contrastMore } from './tone'
 
 export const divider = {
 	/** Top border: `border-t` with subtle color. */
-	top: ['border-t', ...tone.borderSubtle],
+	top: ['border-t', ...border.color.subtle],
 	/** Children separator: `divide-y` on the parent. */
 	between: mode(
 		['divide-y divide-zinc-950/10', contrastMore.divide.light],

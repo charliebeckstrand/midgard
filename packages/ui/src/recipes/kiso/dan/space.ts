@@ -81,11 +81,13 @@ export const space = {
 	},
 	/** The padding of an alert and of the scroll box of a code block. */
 	alert: scale.p.lg,
-	/**
-	 * The inset of the copy button of a code block: the top and the end padding
-	 * of the block, which the scroll box beside it does not cover.
-	 */
-	codeCopy: 'density-pt-[2,3,4,5,6] density-pe-[2,3,4,5,6]',
+	code: {
+		/**
+		 * The inset of the copy button of a code block: the top and the end padding
+		 * of the block, which the scroll box beside it does not cover.
+		 */
+		copy: 'density-pt-[2,3,4,5,6] density-pe-[2,3,4,5,6]',
+	},
 	/** The padding of a popover panel. */
 	popover: scale.p.lg,
 	/**
@@ -372,12 +374,12 @@ export const space = {
 		top: 'density-set-[0.25,0.5,1,1.5,2.5]/[--ui-details-top]',
 	},
 	field: {
-		/** The gap from a label, or a label row, to the control under it. */
-		label:
-			'[&>[data-slot=label]:has(+*:not([data-slot=description]))]:density-mb-[0.25,0.5,1,1.5,2.5]',
-		/** The gap from a label row (a child that holds the label) to the control under it. */
-		labelRow:
-			'[&>:has(>[data-slot=label]):has(+*:not([data-slot=description]))]:density-mb-[0.25,0.5,1,1.5,2.5]',
+		label: {
+			/** The gap from a label to the control under it. */
+			base: '[&>[data-slot=label]:has(+*:not([data-slot=description]))]:density-mb-[0.25,0.5,1,1.5,2.5]',
+			/** The gap from a label row (a child that holds the label) to the control under it. */
+			row: '[&>:has(>[data-slot=label]):has(+*:not([data-slot=description]))]:density-mb-[0.25,0.5,1,1.5,2.5]',
+		},
 		/** The gap from a description to the slot under it. */
 		description: '[&>[data-slot=description]+[data-slot]]:density-mt-[0.25,0.5,1,1.5,2.5]',
 		/** The gap from a control to the slot under it. */

@@ -18,7 +18,7 @@ export const field = [
 	// wrapper (Listbox/Select, DatePicker) generates no box, so a margin placed
 	// on it would be dropped. The `:not(description)` arm lets a description hug
 	// the label instead; its own gap to the control is the next rule's job.
-	space.field.label,
+	space.field.label.base,
 	// A label row: a child, such as a Flex, that holds the label beside an
 	// adornment, such as an info button with a tooltip. The button cannot go in
 	// the label, because a label must not hold a second labelable element. The
@@ -26,7 +26,7 @@ export const field = [
 	// weight. The rule names the row by its label and not by its anchor, so a
 	// wrapper that renames the anchor of the row keeps the rule.
 	'[&>*>[data-slot=label]]:font-medium',
-	space.field.labelRow,
+	space.field.label.row,
 	space.field.description,
 	space.field.control,
 	// A list of controls, such as a reorderable list of inputs, takes the gap that
@@ -47,6 +47,6 @@ export const field = [
 	// above: a message directly under a label is the field's only content, and one
 	// under a description takes the tighter gap that the rule above gives it. The
 	// compound selector outranks that rule, so the exclusions are what keep it.
-	// This rule also gives the gap to an alert under a space.field.
+	// This rule also gives the gap to an alert under a field.
 	space.field.message,
 ]

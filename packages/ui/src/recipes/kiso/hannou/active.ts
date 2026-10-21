@@ -6,7 +6,7 @@
  *
  * A roved row does not take focus, so this wash is the only mark of the cursor.
  * Thus it has the two forms of the hover/focus wash. Inside a glass parent it
- * takes the step of `glassItem`, where 5% reads as nothing. Under forced colors
+ * takes the step of `tint.glass.base`, where 5% reads as nothing. Under forced colors
  * it maps to `Highlight` and `HighlightText`, as `sen.forced.focus` does for a
  * focused row. The forced pair wins with `!` over each wash and hover step,
  * because a hovered row is often the roved row.

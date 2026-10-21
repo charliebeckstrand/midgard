@@ -1,26 +1,31 @@
 /**
- * Sen border: 1 px borders in the four library tones. Each entry bundles
- * the `border` width utility with its tone-pair from `sen/tone`. The
- * `color` group exposes the color-only pair for consumers that already apply
- * the border-width class themselves.
+ * Sen border: 1 px borders in the four library tones. `default` bundles the
+ * `border` width utility with the default color. The `color` group holds the
+ * color only, for a composite that already applies the border width.
  *
  * Layer: kiso · Concern: borders
  */
 
-import { tone } from './tone'
+import { mode } from '../../../core/recipe'
+
+import { contrastMore } from './tone'
+
+const { light, dark } = contrastMore.border
+
+/** The color of each border only, for composites that already apply the width. */
+const color = {
+	/** The default color: low contrast. */
+	default: mode(['border-zinc-950/10', light], ['dark:border-white/10', dark]),
+	/** The emphasis color. */
+	emphasis: mode(['border-zinc-950/20', light], ['dark:border-white/20', dark]),
+	/** The subtle color. */
+	subtle: mode(['border-zinc-950/5', light], ['dark:border-white/5', dark]),
+	/** Transparent: reserves layout space without a visible edge. */
+	transparent: mode('border-transparent', 'dark:border-transparent'),
+} as const
 
 export const border = {
 	/** Default border: 1 px, low-contrast palette. */
-	default: ['border', ...tone.border],
-	/** The color of each border only, for composites that already apply the width. */
-	color: {
-		/** The default color. */
-		default: tone.border,
-		/** The emphasis color. */
-		emphasis: tone.borderEmphasis,
-		/** The subtle color. */
-		subtle: tone.borderSubtle,
-		/** Transparent: reserves layout space without a visible edge. */
-		transparent: tone.borderTransparent,
-	},
+	default: ['border', ...color.default],
+	color,
 } as const

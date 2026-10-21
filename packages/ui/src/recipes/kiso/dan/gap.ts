@@ -86,20 +86,24 @@ export const gap = {
 		chips: 'density-set-[2.75,3.25,3.75,4.25,4.25]/[--touch-target-gap-x]',
 		/** The touch gap between two toggle fields on a coarse pointer, as `dan.space.fieldset.toggle` gives it. */
 		toggle: 'pointer-coarse:density-set-[4,5,6,7,8]/[--touch-target-gap-y]',
-		/** The touch gaps in a toolbar group, as `toolbarGroup` gives them. */
-		toolbarGroup: {
-			x: 'density-set-[0,0.25,0.5,1,1.5]/[--touch-target-gap-x]',
-			y: 'density-set-[0,0.25,0.5,1,1.5]/[--touch-target-gap-y]',
+		toolbar: {
+			/** The touch gaps in a toolbar group, as `toolbar.group` gives them. */
+			group: {
+				x: 'density-set-[0,0.25,0.5,1,1.5]/[--touch-target-gap-x]',
+				y: 'density-set-[0,0.25,0.5,1,1.5]/[--touch-target-gap-y]',
+			},
 		},
 	},
 	/** The default gap: a card footer, the calendar footer, and the segment control. */
 	default: scale.sm,
-	/**
-	 * The gap in a toolbar group: at each density step, the toolbar gap
-	 * (`scale.xs`) of the step below, and 0 at `xs`. It is thus smaller than
-	 * the toolbar gap at each step, so a group reads as one cluster.
-	 */
-	toolbarGroup: 'density-gap-[0,0.25,0.5,1,1.5]',
+	toolbar: {
+		/**
+		 * The gap in a toolbar group: at each density step, the toolbar gap
+		 * (`scale.xs`) of the step below, and 0 at `xs`. It is thus smaller than
+		 * the toolbar gap at each step, so a group reads as one cluster.
+		 */
+		group: 'density-gap-[0,0.25,0.5,1,1.5]',
+	},
 	/**
 	 * The gap between two stacked toasts, at the `sm` stop of `scale`. It is a
 	 * custom property and not a `gap`, because a toast pads its own item with it,

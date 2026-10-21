@@ -1,6 +1,6 @@
 /**
- * Shaku icon: icon dimension scale. `icon.size` is the scale: the text size of
- * each step plus 4 px (`core/density/geometry.ts`). Two forms project it.
+ * Shaku icon: the forms of the icon scale. The scale is the text size of each
+ * step plus 4 px (`iconSize` in `core/density/geometry.ts`). Two forms project it.
  * `icon.base` sizes an icon element by the step of its nearest density scope,
  * and Icon reads it. `icon.slot.base` sizes the `data-slot="icon"` children of
  * a parent the same way, and Badge, Button, Nav, Sidebar, and `narabi.item`
@@ -15,16 +15,8 @@
 import { dan } from '../dan'
 
 export const icon = {
-	/** The scale: the size of an icon at each step. */
-	size: {
-		xs: 'size-4',
-		sm: 'size-4.5',
-		md: 'size-5',
-		lg: 'size-5.5',
-		xl: 'size-6',
-	},
 	/**
-	 * `size` in a stepped `density-size` class: an icon with no `size` takes the
+	 * The scale in a stepped `density-size` class: an icon with no `size` takes the
 	 * step of its nearest density scope.
 	 */
 	base: dan.size.icon.base,
