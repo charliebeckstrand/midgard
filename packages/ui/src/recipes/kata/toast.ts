@@ -1,3 +1,10 @@
+/**
+ * Toast kata: the unit of the `<Toast>` stack. The root slot `base` is the fixed
+ * viewport, `scroll` is the stack in it, `item` pads each toast on its `edge`,
+ * and `card` is the width of a toast. The `position` tables, which `Toast`
+ * resolves with `resolveVariant`, and the motion configs are extras.
+ */
+import { defineKata } from '../../core/recipe'
 import { dan, sou, ugoki } from '../kiso'
 
 const { spring, toast } = ugoki
@@ -35,35 +42,42 @@ const position = {
 	},
 } as const
 
-export const k = {
-	viewport: [
-		sou.toast,
-		'fixed top-0 bottom-0 flex flex-col',
-		// The stack keeps clear of the notch and the home indicator in a page with
-		// `viewport-fit=cover`. Elsewhere each inset is zero, and the padding is 1rem.
-		'p-4 pt-[max(--spacing(4),env(safe-area-inset-top))] pb-[max(--spacing(4),env(safe-area-inset-bottom))]',
-		'pointer-events-none',
-	],
-	scroll: [
-		'flex flex-col max-h-full overflow-y-auto overscroll-contain',
-		dan.size.toast.width,
-		'pointer-events-auto',
-	],
-	position,
-	card: 'w-(--ui-toast-card)',
-	motion: toast,
-	/** The motion under reduced motion: the toast shows with no slide. */
-	still: { top: ugoki.still(toast.top), bottom: ugoki.still(toast.bottom) },
-	/** Neighbor re-pack after a dismissal: the FLIP `layout` spring the stack reflows on. */
-	spring: spring.reflow,
-	/**
-	 * The item of each toast, padded by the gap on the side that faces the next
-	 * toast. The gap steps with the density. The exit animates the padding to 0,
-	 * so the neighbors slide in. The padding is a class, so the exit starts from
-	 * its computed length.
-	 */
-	item: {
-		top: [dan.gap.toast, 'pb-(--toast-gap)'],
-		bottom: [dan.gap.toast, 'pt-(--toast-gap)'],
+export const k = defineKata(
+	{
+		base: [
+			sou.toast,
+			'fixed top-0 bottom-0 flex flex-col',
+			// The stack keeps clear of the notch and the home indicator in a page with
+			// `viewport-fit=cover`. Elsewhere each inset is zero, and the padding is 1rem.
+			'p-4 pt-[max(--spacing(4),env(safe-area-inset-top))] pb-[max(--spacing(4),env(safe-area-inset-bottom))]',
+			'pointer-events-none',
+		],
+		slots: {
+			scroll: [
+				'flex flex-col max-h-full overflow-y-auto overscroll-contain',
+				dan.size.toast.width,
+				'pointer-events-auto',
+			],
+			/**
+			 * The item of each toast, padded by the gap on the side that faces the next
+			 * toast. The gap steps with the density. The exit animates the padding to 0,
+			 * so the neighbors slide in. The padding is a class, so the exit starts from
+			 * its computed length.
+			 */
+			item: {
+				base: dan.gap.toast,
+				edge: { top: 'pb-(--toast-gap)', bottom: 'pt-(--toast-gap)' },
+			},
+			card: 'w-(--ui-toast-card)',
+		},
+		defaults: { edge: 'top' },
 	},
-}
+	{
+		position,
+		motion: toast,
+		/** The motion under reduced motion: the toast shows with no slide. */
+		still: { top: ugoki.still(toast.top), bottom: ugoki.still(toast.bottom) },
+		/** Neighbor re-pack after a dismissal: the FLIP `layout` spring the stack reflows on. */
+		spring: spring.reflow,
+	},
+)

@@ -55,7 +55,7 @@ describe('safe-area insets on edge surfaces', () => {
 	})
 
 	it('pads the toast stack at both ends', () => {
-		const className = toast.viewport.join(' ')
+		const className = toast().base
 
 		expect(className).toContain('env(safe-area-inset-top)')
 

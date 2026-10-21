@@ -12,9 +12,12 @@ import { k as input } from '../../recipes/kata/input'
 import { k as listbox } from '../../recipes/kata/listbox'
 import { k as nav } from '../../recipes/kata/nav'
 import { k as numberInput } from '../../recipes/kata/number-input'
+import { k as overlay } from '../../recipes/kata/overlay'
 import { k as panel } from '../../recipes/kata/panel'
 import { k as popover } from '../../recipes/kata/popover'
 import { k as textarea } from '../../recipes/kata/textarea'
+import { k as toast } from '../../recipes/kata/toast'
+import { k as tooltip } from '../../recipes/kata/tooltip'
 import { omote } from '../../recipes/kiso'
 
 // The output gate of the recipe migration. It resolves each part of each kata
@@ -80,6 +83,7 @@ const RENAMES: Record<string, string> = {
 	'nav.k.bar': 'nav.k.bar.base',
 	'nav.k.bar()': 'nav.k.bar.base()',
 	'nav.k.rail': 'nav.k.bar.rail',
+	'toast.k.base': 'toast.k.viewport',
 	...Object.fromEntries(
 		[
 			'animate.opacity',
@@ -118,7 +122,7 @@ const REPEATS: Record<string, string> = {
 }
 
 /** The parts of main that left the surface of each kata: fragments that only a kata reads. */
-const DROPPED = /^panel\.k\.(gap|inset)\./
+const DROPPED = /^(panel\.k\.(gap|inset)\.|overlay\.k\.backdrop\.glass$)/
 
 /**
  * The paths that a composition replaces. The new paths are the slots of the
@@ -126,8 +130,8 @@ const DROPPED = /^panel\.k\.(gap|inset)\./
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base)(\(\))?$/,
-	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+))$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop))(\(\))?$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base))$/,
 }
 
 /** The output of main, by path. */
@@ -461,6 +465,49 @@ describe('kata output', () => {
 				read(`nav.k.list.orientation.${orientation}`),
 			)
 		}
+
+		// The tooltip bubble with the surface, and the trigger with the cursor, that
+		// the components added on main. The `default` surface of main is `flat`.
+		for (const [surface, main] of [
+			['flat', 'default'],
+			['glass', 'glass'],
+		] as const) {
+			check(
+				`tooltip base ${surface}`,
+				tooltip({ surface }).base,
+				read('tooltip.k.content.base'),
+				read(`tooltip.k.content.surface.${main}`),
+			)
+		}
+		check('tooltip trigger', tooltip({ enabled: false }).trigger, read('tooltip.k.trigger.base'))
+		check(
+			'tooltip trigger enabled',
+			tooltip({ enabled: true }).trigger,
+			read('tooltip.k.trigger.base'),
+			read('tooltip.k.trigger.cursor'),
+		)
+
+		for (const edge of ['top', 'bottom'] as const) {
+			check(`toast item ${edge}`, toast({ edge }).item, read(`toast.k.item.${edge}`))
+		}
+
+		// The overlay box: the rung and the box that Overlay picked on main.
+		for (const cover of [false, true]) {
+			for (const scoped of [false, true]) {
+				check(
+					`overlay base ${cover} ${scoped}`,
+					overlay({ cover, scoped }).base,
+					read(cover ? 'overlay.k.cover' : 'overlay.k.base'),
+					read(scoped ? 'overlay.k.scoped' : 'overlay.k.frame'),
+				)
+			}
+		}
+		check(
+			'overlay backdrop',
+			overlay().backdrop,
+			'absolute inset-0',
+			read('overlay.k.backdrop.base'),
+		)
 
 		expect(rows.filter(([, current, expected]) => current !== expected)).toEqual([])
 	})

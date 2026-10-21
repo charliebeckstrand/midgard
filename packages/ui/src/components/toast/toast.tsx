@@ -21,6 +21,9 @@ import { useToastViewport } from './context'
 import { ToastAlert } from './toast-alert'
 import { TOAST_POSITION, type ToastPosition } from './types'
 
+/** The slots of the toast stack. */
+const stack = k()
+
 const messages = defineMessages({
 	notifications: {
 		id: 'ui.toast.notifications',
@@ -190,12 +193,12 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 				// two empty stacks on one page do not give two of the same name.
 				aria-label={hasToasts ? intl.formatMessage(messages.notifications) : undefined}
 				dir={dir ?? undefined}
-				className={cn(k.viewport, resolveVariant(physical, k.position.viewport))}
+				className={cn(stack.base, resolveVariant(physical, k.position.viewport))}
 			>
 				{/* A list, so AT gives the count of the toasts and the position of each. */}
 				<ol
 					className={cn(
-						k.scroll,
+						stack.scroll,
 						resolveVariant(physical, k.position.scroll),
 						!isTop && 'flex-col-reverse',
 					)}
