@@ -30,7 +30,7 @@ export function MarkdownTableScroll({ children }: { children: ReactNode }) {
 	const scrollRegionRef = useScrollRegion({ label: intl.formatMessage(messages.table) })
 
 	return (
-		<div ref={scrollRegionRef} className={cn(k.tableScroll)}>
+		<div ref={scrollRegionRef} className={cn(k.table.scroll)}>
 			{children}
 		</div>
 	)

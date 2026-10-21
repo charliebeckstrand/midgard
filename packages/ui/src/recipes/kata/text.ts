@@ -25,21 +25,10 @@ const { text: hue } = palette.bare
 
 export const k = defineRecipe(
 	{
-		tone: {
-			default: [...text.default],
-			primary: [...text.primary],
-			success: [...text.success],
-			warning: [...text.warning],
-			error: [...text.error],
-			muted: [...text.muted],
-		},
+		tone: text,
 		color: {
 			current: mode('text-current', 'dark:text-current'),
-			zinc: [...hue.zinc],
-			red: [...hue.red],
-			amber: [...hue.amber],
-			green: [...hue.green],
-			blue: [...hue.blue],
+			...hue,
 		},
 		defaults: { tone: 'default' },
 		// One line: the `md` line, or the line of the explicit `size`.

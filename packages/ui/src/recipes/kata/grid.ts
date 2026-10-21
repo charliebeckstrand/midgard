@@ -677,28 +677,19 @@ export const k = {
 			'cursor-col-resize touch-none select-none outline-none',
 		],
 		// Grip line, which the handle draws as its `::after`: a short 2px rounded
-		// bar (`h-4`), its 2px width matching the `ResizableHandle` grip
-		// (`kata/resizable`) so every resize affordance reads the same, centered in
-		// the grab zone (`justify-center` on the handle) one cell-padding in from the
-		// trailing edge. Always visible: muted at rest, tinting on hover, turning
-		// accent on keyboard focus or active drag. Focus shows as a color change, not
-		// an outset ring, so the scroll container can't clip it.
+		// bar (`h-4`) in the resize grip ink (`sen.grip`) of the `ResizableHandle`
+		// grip, so every resize affordance reads the same. It is centered in the grab
+		// zone (`justify-center` on the handle) one cell-padding in from the trailing
+		// edge. Always visible: muted at rest, tinting on hover, turning accent on
+		// keyboard focus or active drag. Focus shows as a color change, not an outset
+		// ring, so the scroll container can't clip it.
 		grip: [
-			'after:h-4 after:w-0.5 after:rounded-full',
+			'after:h-4 after:w-0.5',
 			'after:transition-colors',
-			...mode(
-				'after:bg-zinc-300 hover:after:bg-zinc-400',
-				'dark:after:bg-zinc-600 dark:hover:after:bg-zinc-500',
-			),
-			'focus-visible:after:bg-blue-500 dark:focus-visible:after:bg-blue-500',
+			...sen.grip,
 			'data-resizing:after:bg-blue-500 dark:data-resizing:after:bg-blue-500',
-			'forced-colors:after:bg-[CanvasText]',
-			// Each state color above outranks the shape, so the shape repeats in each state.
-			'forced-colors:hover:after:bg-[CanvasText] forced-colors:focus-visible:after:bg-[CanvasText] forced-colors:data-resizing:after:bg-[CanvasText]',
-			// Forced colors remove the focus color of the grip. This outline on the bar
-			// marks the focused handle there, as `kiso/panel/grip.ts` FOCUS does.
-			'forced-colors:focus-visible:after:outline-solid forced-colors:focus-visible:after:outline-2',
-			'forced-colors:focus-visible:after:outline-offset-2 forced-colors:focus-visible:after:outline-[Highlight]',
+			// The drag color outranks the shape too, so the shape repeats under it.
+			'forced-colors:data-resizing:after:bg-[CanvasText]',
 		],
 	},
 	filter: {

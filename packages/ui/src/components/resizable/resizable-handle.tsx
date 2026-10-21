@@ -137,9 +137,9 @@ export function ResizableHandle({
 			onKeyDown={composeEventHandlers(onKeyDownProp, onKeyDown, alwaysResize)}
 			className={cn(
 				k.handle.base,
-				isHorizontal ? k.handle.horizontal : k.handle.vertical,
+				k.handle.orientation[orientation],
 				k.grip.base,
-				isHorizontal ? k.grip.horizontal : k.grip.vertical,
+				k.grip.orientation[orientation],
 				className,
 			)}
 		/>
