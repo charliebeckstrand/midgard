@@ -7,6 +7,7 @@ import type { scale as controlScale } from '../../recipes/kata/control'
 import type { Button } from '../button'
 import { useControl } from '../control/context'
 import { useControlTarget } from '../control/use-control-target'
+import type { FileUploadHiddenInputProps } from './file-upload-hidden-input'
 import type { FileRejection } from './file-upload-utilities'
 import { useFileUploadHandlers } from './use-file-upload-handlers'
 
@@ -130,7 +131,11 @@ export type FileUploadButtonProps = Omit<ComponentProps<'div'>, 'defaultValue' |
 		children?: ReactNode
 	}
 
-/** Hook output plus the derived selection flags every variant renderer shares. */
+/**
+ * Hook output plus the derived selection flags every variant renderer shares.
+ *
+ * @internal
+ */
 export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
 	control: ReturnType<typeof useControl>
 	/** The `disabled` prop, else the disabled state of the enclosing Control. */
@@ -143,6 +148,11 @@ export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
 	 * clipped. The `drop` variant detects the clip (`useTruncation`), and the
 	 * `input` variant relies on this flag alone. */
 	showTooltip: boolean
+	/**
+	 * The props of the hidden input, less the accessible name that each
+	 * component draws from its own trigger.
+	 */
+	hiddenInput: Omit<FileUploadHiddenInputProps, 'ariaLabel'>
 }
 
 /**
@@ -185,9 +195,9 @@ export function splitProps<P extends FileUploadSharedProps>({
 }
 
 /**
- * The state every file-upload component shares: the hidden input's handlers,
- * the resolved Control context, the merged `invalid` flag, and the two derived
- * selection flags.
+ * The state every file-upload component shares: the handlers, the props of
+ * the hidden input, the resolved Control context, the merged `invalid` flag,
+ * and the derived selection flags.
  *
  * @remarks
  * The three components differ in what they draw, not in how they pick. This is
@@ -197,19 +207,7 @@ export function splitProps<P extends FileUploadSharedProps>({
  * @internal
  */
 export function useFileUploadState(props: FileUploadSharedProps): FileUploadRenderState {
-	const {
-		name,
-		value,
-		defaultValue,
-		onValueChange,
-		accept,
-		multiple,
-		maxSize,
-		maxCount,
-		onAccept,
-		onReject,
-		onDragOverChange,
-	} = props
+	const { multiple, maxCount, ...options } = props
 
 	// Mirrors Control/Field id + invalid + required + error-message wiring onto
 	// the hidden `<input type="file">`, the real control in each component. The
@@ -218,33 +216,39 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 
 	// The hidden input takes the id of the Control, so a FormErrorSummary links
 	// the field to it.
-	useControlTarget(name, control?.id)
+	useControlTarget(props.name, control?.id)
 
 	// The same cascade as `useControlProps`: an explicit prop wins over the Control.
 	const disabled = props.disabled ?? control?.disabled
 
 	const handlers = useFileUploadHandlers({
-		name,
-		value,
-		defaultValue,
-		onValueChange,
+		...options,
 		disabled,
-		accept,
-		maxSize,
 		// A single-file component takes one file at most. The picker holds to
 		// that, but a drop can carry many.
 		maxCount: multiple ? maxCount : Math.min(maxCount ?? 1, 1),
-		onAccept,
-		onReject,
-		onDragOverChange,
 	})
+
+	const invalid = control?.severity === 'error' || handlers.invalid || undefined
+
+	const hasFiles = handlers.files.length > 0
 
 	return {
 		...handlers,
 		control,
 		disabled,
-		invalid: control?.severity === 'error' || handlers.invalid || undefined,
-		hasFiles: handlers.files.length > 0,
+		invalid,
+		hasFiles,
 		showTooltip: Boolean(multiple && handlers.files.length > 1),
+		hiddenInput: {
+			control,
+			inputRef: handlers.inputRef,
+			accept: props.accept,
+			multiple,
+			disabled,
+			invalid,
+			filesEmpty: !hasFiles,
+			onChange: handlers.handleChange,
+		},
 	}
 }

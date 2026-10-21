@@ -486,7 +486,7 @@ export function usePdfViewer({
 	 *
 	 * Nullable rather than a seeded boolean, because the answer depends on something no
 	 * initializer can see. A one-page document has no navigation to offer. Pinning a rail
-	 * beside it spends 224px of a panel that is often the narrower half of a split. That width
+	 * beside it spends the rail width of a panel that is often the narrower half of a split. That width
 	 * goes on a tile of the page already on screen. The page count arrives with the document,
 	 * since pdf.js has to parse the file first.
 	 *

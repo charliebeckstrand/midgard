@@ -23,6 +23,8 @@ const RGB: ReadonlyArray<'r' | 'g' | 'b'> = ['r', 'g', 'b']
  * @remarks The channel inputs are sub-parts, not the field control. They opt
  * out of an enclosing `<Control>` / `<Field>`, so they do not take its
  * `required`, `aria-describedby` or validation state. They keep its variant.
+ *
+ * @internal
  */
 export function ColorChannelInputs() {
 	const intl = useIntl()

@@ -130,8 +130,8 @@ export type PdfViewerFit = 'page' | 'width'
  * press turns it on again. `'config'` makes it open a dialog, where the reader sets the
  * power, the lens size and the dwell, and turns the loupe off.
  *
- * The off switch moves into the dialog because the toolbar control is no longer a switch.
- * Without it, `'config'` would take away the one thing `'simple'` always offered.
+ * Under `'config'` the toolbar control is not a switch, so the dialog holds the off switch.
+ * Without it, `'config'` would take away the one thing `'simple'` always offers.
  */
 export type PdfViewerMagnifierMode = 'simple' | 'config'
 
@@ -170,8 +170,8 @@ export type PdfViewerMagnifierDelay = 'none' | 'default'
  * for the page that needs a different power, a different lens, or the dialog.
  *
  * Every setting is a named step rather than a raw number. The config dialog offers a fixed
- * set, and has to show which of them is current. Each `'md'` is the value the loupe
- * always had, so an object that names none of them is the loupe as it was.
+ * set, and has to show which of them is current. Each setting defaults to the step of the
+ * bare `magnifier`, so an object that names none of them gives the same loupe.
  */
 export type PdfViewerMagnifierOptions = {
 	/**

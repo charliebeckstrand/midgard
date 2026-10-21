@@ -5,7 +5,12 @@ import { invalidAttrs } from '../../core'
 import type { ControlContextValue } from '../control/context'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 
-type FileUploadHiddenInputProps = {
+/**
+ * Props for {@link FileUploadHiddenInput}.
+ *
+ * @internal
+ */
+export type FileUploadHiddenInputProps = {
 	ariaLabel: string
 	control: ControlContextValue | undefined
 	inputRef: Ref<HTMLInputElement>
@@ -24,6 +29,8 @@ type FileUploadHiddenInputProps = {
  * from the first render. A registered Label also names it through
  * `aria-labelledby`. With no Label, each variant
  * supplies a name drawn from its visible trigger.
+ *
+ * @internal
  */
 export function FileUploadHiddenInput({
 	ariaLabel,

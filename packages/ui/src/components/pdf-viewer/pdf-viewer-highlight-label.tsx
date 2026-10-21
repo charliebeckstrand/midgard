@@ -9,14 +9,14 @@ import { TooltipAnchor } from '../tooltip/tooltip-anchor'
  * Because the boxes are the one thing on the page that cannot say what they are. A reader
  * often arrives from a list beside the viewer, where a selection picks a region. On a dense
  * page the ring and the deeper wash say *which* box was picked, without saying which of
- * twenty fields picked it. The name is already required of every highlight and
+ * the fields picked it. The name is already required of every highlight and
  * already on the region as its `aria-label`; this is the sighted reader's copy of it.
  *
  * @remarks **A leaf, deliberately, and the layer must keep it that way.** Floating-ui commits
  * every reposition through `flushSync`, and `autoUpdate` fires on ancestor scroll, ancestor
- * resize, element resize and layout shift. Holding this state in the layer therefore made one
- * un-batchable re-render of all 20-40 regions per frame of a scroll. That path's
- * `regionClass` cache exists to save microseconds. Here the same commit touches three fibers.
+ * resize, element resize and layout shift. Holding this state in the layer would therefore
+ * make one un-batchable re-render of each region per frame of a scroll. That path's
+ * `regionClass` cache exists to save microseconds. Here the same commit touches only the leaf.
  * The layer passes the anchor element down; nothing about the panel's position reaches it.
  *
  * **It takes no pointer events**, persisted or not. A name is not somewhere to travel to, and

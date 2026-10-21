@@ -14,12 +14,7 @@ import { useReportedChange } from '../../hooks/use-reported-change'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { fileUploadMessages } from './file-upload-messages'
-import {
-	type FileRejection,
-	fileListToArray,
-	formatFileNames,
-	partitionFiles,
-} from './file-upload-utilities'
+import { type FileRejection, formatFileNames, partitionFiles } from './file-upload-utilities'
 
 /**
  * Tells if a drag carries files. The browser keeps `dataTransfer.files` empty
@@ -126,7 +121,7 @@ export function useFileUploadHandlers({
 		(fileList: FileList | null) => {
 			if (!fileList) return
 
-			const { accepted, rejected } = partitionFiles(fileListToArray(fileList), {
+			const { accepted, rejected } = partitionFiles(Array.from(fileList), {
 				accept,
 				maxSize,
 				maxCount,

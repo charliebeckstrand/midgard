@@ -17,9 +17,8 @@ type PdfViewerHighlightsProviderProps = PdfViewerHighlightsOptions & { children:
  * region lives here. Activating one re-renders this provider and the layer that reads
  * its context, not `PdfViewer`, and therefore not the toolbar or the thumbnail rail. The
  * `children` element it receives keeps its identity across an activation, so React skips
- * the viewport subtree too; only the layer, a context consumer, re-renders. Measured at 20
- * pages × 40 regions, an uncontrolled activation renders the gate and the layer and
- * nothing else.
+ * the viewport subtree too; only the layer, a context consumer, re-renders. An uncontrolled
+ * activation renders the gate and the layer and nothing else.
  *
  * That holds for selection the viewer owns. A consumer whose `onActiveHighlightChange`
  * stores the id above `&lt;PdfViewer&gt;` re-renders the whole viewer from its own state change,

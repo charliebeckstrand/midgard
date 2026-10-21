@@ -1,6 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { dismisses, dismissFrame, swipeStep } from '../../components/lightbox/lightbox-utilities'
+import {
+	dismisses,
+	dismissFrame,
+	parseMatrix,
+	swipeStep,
+} from '../../components/lightbox/lightbox-utilities'
 
 describe('swipeStep', () => {
 	it('steps forward on a far swipe to the left, and back on a far swipe to the right', () => {
@@ -72,5 +77,17 @@ describe('dismissFrame', () => {
 		expect(transform).toBe('translate(60px, 437.5px) scale(0.75)')
 
 		expect(opacity).toBe(0)
+	})
+})
+
+describe('parseMatrix', () => {
+	it('reads the six values of a computed 2D transform', () => {
+		expect(parseMatrix('matrix(1.5, 0, 0, 1.5, -20, 12.5)')).toEqual([1.5, 0, 0, 1.5, -20, 12.5])
+	})
+
+	it('reads no values for no transform or a 3D transform', () => {
+		expect(parseMatrix('none')).toEqual([])
+
+		expect(parseMatrix('matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)')).toEqual([])
 	})
 })

@@ -27,6 +27,8 @@ function getEyeDropper(): EyeDropperConstructor | undefined {
  * after hydration. A render that does not hydrate draws it in its first
  * commit. A dismissed picker rejects with `AbortError`, and the button ignores
  * it.
+ *
+ * @internal
  */
 export function ColorEyedropper({ className }: { className?: string }) {
 	const intl = useIntl()

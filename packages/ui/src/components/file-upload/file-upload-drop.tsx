@@ -171,8 +171,7 @@ function DropSelection({
  * to the control that replaces it (WCAG 2.4.3).
  *
  * It stands a fixed height and takes another through `className`, the way
- * `<SignaturePad>` does. It used to wrap itself in an `<AspectRatio>` for a
- * `ratio` prop, which is a whole dependency for what one class states.
+ * `<SignaturePad>` does.
  *
  * @see {@link FileUploadInput} · {@link FileUploadButton}
  * @see {@link useFileUploadHandlers}
@@ -196,12 +195,11 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 
 	const state = useFileUploadState(shared)
 
-	const { accept, multiple } = shared
+	const { multiple } = shared
 	const {
 		control,
 		disabled,
 		invalid,
-		inputRef,
 		files,
 		hasFiles,
 		showTooltip,
@@ -294,14 +292,8 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 			{/* Sibling of the trigger, not nested inside it: a focusable `<input>`
 			    inside an interactive control produces nested-interactive markup. */}
 			<FileUploadHiddenInput
+				{...state.hiddenInput}
 				ariaLabel={triggerLabel(children, intl.formatMessage(fileUploadMessages.uploadFile))}
-				control={control}
-				inputRef={inputRef}
-				accept={accept}
-				multiple={multiple}
-				disabled={disabled}
-				invalid={invalid}
-				filesEmpty={!hasFiles}
 				onChange={handlePickChange}
 			/>
 			{filled ? (

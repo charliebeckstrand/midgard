@@ -14,15 +14,6 @@ export function triggerLabel(children: ReactNode, fallback: string): string {
 }
 
 /**
- * Materializes a DOM `FileList` (or `null`) into a real array.
- *
- * @returns The files as an array; empty when `fileList` is `null`.
- */
-export function fileListToArray(fileList: FileList | null): File[] {
-	return Array.from(fileList ?? [])
-}
-
-/**
  * Joins file names into a comma-separated label, e.g. for an input's display
  * value.
  *
@@ -113,6 +104,8 @@ export function matchesAccept(file: File, accept: string | undefined): boolean {
  *
  * @returns `{ accepted, rejected }`: the kept files and the `FileRejection`s,
  * each tagged with the constraint it tripped.
+ *
+ * @internal
  */
 export function partitionFiles(
 	files: File[],

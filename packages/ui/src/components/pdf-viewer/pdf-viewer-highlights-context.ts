@@ -13,7 +13,7 @@ import type { PdfViewerHighlightsResult } from './use-pdf-viewer-highlights'
  *
  * The main context is plain React context with no selector. Putting the active
  * region in there would therefore re-render both on every click, and the rail
- * renders five nodes per page. Sitting outside this provider, they cannot.
+ * renders a tile for each page. Sitting outside this provider, they cannot.
  *
  * @internal
  */
