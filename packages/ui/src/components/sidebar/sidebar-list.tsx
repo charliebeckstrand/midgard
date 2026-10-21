@@ -17,7 +17,7 @@ export type SidebarListProps = ComponentProps<'ul'>
 export function SidebarList({ className, children, ...props }: SidebarListProps) {
 	return (
 		<SidebarListContext value={true}>
-			<ul data-slot="sidebar-list" className={cn(k.list, className)} {...props}>
+			<ul data-slot="sidebar-list" className={cn(k().list, className)} {...props}>
 				{children}
 			</ul>
 		</SidebarListContext>

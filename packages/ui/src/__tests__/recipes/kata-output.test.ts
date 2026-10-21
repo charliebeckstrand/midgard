@@ -10,8 +10,10 @@ import { k as datePicker } from '../../recipes/kata/date-picker'
 import { k as fileUpload } from '../../recipes/kata/file-upload'
 import { k as input } from '../../recipes/kata/input'
 import { k as listbox } from '../../recipes/kata/listbox'
+import { k as nav } from '../../recipes/kata/nav'
 import { k as numberInput } from '../../recipes/kata/number-input'
 import { k as panel } from '../../recipes/kata/panel'
+import { k as popover } from '../../recipes/kata/popover'
 import { k as textarea } from '../../recipes/kata/textarea'
 import { omote } from '../../recipes/kiso'
 
@@ -64,11 +66,32 @@ const RENAMES: Record<string, string> = {
 	'sheet.k.base': 'sheet.k.panel',
 	'sheet.k.base()': 'sheet.k.panel()',
 	'panel.k.stack': 'panel.k.base',
+	'menu.k.base': 'menu.k.content',
+	'menu.k.header': 'menu.k.header.base',
+	'menu.k.title': 'menu.k.header.title',
+	'menu.k.description': 'menu.k.header.description',
 	'menu.k.item.base': 'menu.k.item',
 	'menu.k.item.label': 'menu.k.label',
 	'menu.k.item.text': 'menu.k.text',
 	'menu.k.item.description': 'menu.k.description',
 	'menu.k.item.shortcut': 'menu.k.shortcut',
+	'command-palette.k.base': 'command-palette.k.list',
+	'popover.k.body': 'popover.k.padding',
+	'nav.k.bar': 'nav.k.bar.base',
+	'nav.k.bar()': 'nav.k.bar.base()',
+	'nav.k.rail': 'nav.k.bar.rail',
+	...Object.fromEntries(
+		[
+			'animate.opacity',
+			'animate.scale',
+			'exit.opacity',
+			'exit.scale',
+			'initial.opacity',
+			'initial.scale',
+			'transition.duration',
+			'transition.ease',
+		].map((key) => [`popover.k.motion.${key}`, `popover.k.panel.motion.${key}`]),
+	),
 	'command-palette.k.item.base': 'command-palette.k.item',
 	'command-palette.k.item.label': 'command-palette.k.label',
 	'command-palette.k.item.text': 'command-palette.k.text',
@@ -103,8 +126,8 @@ const DROPPED = /^panel\.k\.(gap|inset)\./
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field)(\(\))?$/,
-	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button)$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base)(\(\))?$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+))$/,
 }
 
 /** The output of main, by path. */
@@ -401,6 +424,41 @@ describe('kata output', () => {
 				omote.panel.chrome,
 				read('panel.k.base'),
 				omote.panel.axis[surface],
+			)
+		}
+
+		// The root of the popover unit: the panel, with the surface that PopoverPanel
+		// added on main. The content takes the glass fill that PopoverContent added.
+		check(
+			'popover base flat',
+			popover({ surface: 'flat' }).base,
+			read('popover.k.panel.surface'),
+			read('popover.k.panel.base'),
+		)
+		check(
+			'popover base glass',
+			popover({ surface: 'glass' }).base,
+			'group/glass',
+			read('popover.k.panel.glass'),
+			read('popover.k.panel.ring'),
+			read('popover.k.panel.base'),
+		)
+		check('popover content flat', popover({ surface: 'flat' }).content, read('popover.k.text'))
+		check(
+			'popover content glass',
+			popover({ surface: 'glass' }).content,
+			read('popover.k.text'),
+			read('popover.k.panel.glass'),
+		)
+
+		// The root of the nav unit: the list, with the orientation that NavList
+		// added on main.
+		for (const orientation of ['horizontal', 'vertical'] as const) {
+			check(
+				`nav base ${orientation}`,
+				nav({ orientation }).base,
+				read('nav.k.list.base'),
+				read(`nav.k.list.orientation.${orientation}`),
 			)
 		}
 

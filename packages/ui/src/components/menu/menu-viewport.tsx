@@ -36,7 +36,7 @@ export function MenuViewport({ ref, children }: MenuViewportProps) {
 	const capped = useMenuCapped()
 
 	return (
-		<div ref={ref} data-slot="menu-viewport" className={k.viewport({ capped })}>
+		<div ref={ref} data-slot="menu-viewport" className={k({ capped }).viewport}>
 			{children}
 		</div>
 	)

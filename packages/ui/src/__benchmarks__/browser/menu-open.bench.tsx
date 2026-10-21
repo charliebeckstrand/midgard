@@ -37,25 +37,9 @@
  * `PopoverPanel`; the rows keep their element identity and stand. `no rows` is
  * therefore the reposition, and the step to `24 rows` is what the rows would
  * add if a change reached them.
- *
- * The third scenario sizes one suspect against those two. `PopoverPanel` builds
- * its `className` from `k.panel.base`, `k.panel.surface`, `k.panel.ring`, and
- * `k.panel.glass`, which are arrays. `cn` memoizes only string, boolean, and
- * nullish arguments (`core/cn.ts`), so one array sends the whole call to an
- * un-memoized merge. Every open panel in the library therefore takes that path
- * on every render. The rung prices one such call against a pre-flattened
- * string, so a reader can weigh it against the open and the re-render above.
- *
- * `cn` touches no DOM, so `../recipe.bench.ts` is where its other rungs live.
- * This one sits here because the whole finding is a ratio. The open and the
- * re-render are the terms it divides into, and one engine must price all
- * three. The file already holds a browser, so the rung costs four windows.
  */
 
 import { bench, describe } from 'vitest'
-import { cn } from '../../core'
-import { k as menu } from '../../recipes/kata/menu'
-import { k } from '../../recipes/kata/popover'
 import { reactHost, settle, WINDOW } from './harness'
 import { Dropdown } from './menu-probe'
 
@@ -145,32 +129,4 @@ describe('menu · open panel, one re-render', () => {
 			WINDOW.slow,
 		)
 	}
-})
-
-/** What `MenuContent` hands `PopoverPanel` as its `className`. */
-const CONTENT = cn('relative', menu.content)
-
-/** The same two bundles, merged once at module scope — what a fix would ship. */
-const FLAT_SURFACE = cn(k.panel.surface, k.panel.base)
-
-const FLAT_GLASS = cn('group/glass', k.panel.glass, k.panel.ring, k.panel.base)
-
-describe('cn · one panel className', () => {
-	// The call `PopoverPanel` makes today, on its default surface and on glass.
-	// The glass branch also builds a fresh array literal per render.
-	bench('arrays · the surface branch (a memo miss)', () => {
-		cn(k.panel.surface, k.panel.base, CONTENT)
-	})
-
-	bench('arrays · the glass branch (a memo miss)', () => {
-		cn(['group/glass', k.panel.glass, k.panel.ring], k.panel.base, CONTENT)
-	})
-
-	bench('pre-flattened · the surface branch (a memo hit)', () => {
-		cn(FLAT_SURFACE, CONTENT)
-	})
-
-	bench('pre-flattened · the glass branch (a memo hit)', () => {
-		cn(FLAT_GLASS, CONTENT)
-	})
 })

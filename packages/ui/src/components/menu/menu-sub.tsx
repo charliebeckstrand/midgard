@@ -37,6 +37,9 @@ import {
 } from './use-menu-pointer'
 import { MENUITEM_SELECTOR } from './use-menu-root'
 
+/** The slots of a menu panel. */
+const panel = k()
+
 /**
  * Keys that open a submenu from its roved parent row. Direction keys are
  * deliberately absent. The panel takes whichever side has room
@@ -547,7 +550,7 @@ function MenuSubFloating({
 					setFloating={setPanel}
 					floatingStyles={floatingStyles}
 					getFloatingProps={getFloatingProps}
-					className={k.surface}
+					className={panel.surface}
 				>
 					<PopoverPanel
 						open={open}
@@ -563,12 +566,12 @@ function MenuSubFloating({
 						trapTab
 						typeahead
 						glass={glass}
-						// `k.floating` puts the panel back in flow (its recipe base is
+						// `floating` puts the panel back in flow (its recipe base is
 						// `absolute`) so the positioning wrapper shrink-wraps to it. Without
 						// it the wrapper measures 0×0 and the engine has no width to place
 						// against: a left-side placement would land on top of the parent
 						// menu. {@link MenuContent} does the same for its floating panel.
-						className={cn(k.floating, k.content)}
+						className={cn(panel.floating, panel.base)}
 						onKeyDown={handlePanelKeyDown}
 					>
 						<MenuViewport ref={setRows}>{children}</MenuViewport>

@@ -239,7 +239,7 @@ const TINT_CONSUMERS: readonly {
 	// The segment box, inked by its items.
 	{ file: 'recipes/kata/tabs.ts', surfaces: [segment.item] },
 	// The `solid` bar; items ink at `iro.text.default`, not at a muted rung.
-	{ file: 'recipes/kata/nav.ts', surfaces: [nav.item.button({ affix: false })] },
+	{ file: 'recipes/kata/nav.ts', surfaces: [nav.item({ affix: false }).button] },
 	{ file: 'recipes/kata/toolbar.ts', surfaces: [] },
 	{ file: 'recipes/kata/box.ts', surfaces: [] },
 	// The skeleton bubble, which holds placeholders and no ink.

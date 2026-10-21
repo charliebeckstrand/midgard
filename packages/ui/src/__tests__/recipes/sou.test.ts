@@ -64,7 +64,7 @@ describe('sou', () => {
 	it('lifts the pdf loupe above the rung every floating panel portals on', () => {
 		expect(pdfViewer.viewport.page.magnifier.lens).toContain(sou.lens)
 
-		expect(popover.portal).toContain(sou.float)
+		expect(popover().portal).toContain(sou.float)
 
 		expect(rung('lens')).toBeGreaterThan(rung('float'))
 	})

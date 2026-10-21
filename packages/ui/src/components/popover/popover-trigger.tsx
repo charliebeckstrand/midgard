@@ -13,6 +13,9 @@ import {
 import { k } from '../../recipes/kata/popover'
 import { usePopoverContext } from './context'
 
+/** The slots of a popover. */
+const slots = k()
+
 /**
  * Props for {@link PopoverTrigger}. The `<button>` of the trigger takes the rest.
  * With a single element child, the clone of the child takes the rest instead.
@@ -122,7 +125,7 @@ export function PopoverTrigger({ children, className, ref, ...props }: PopoverTr
 				}}
 				ref={setTrigger}
 				slot="popover-trigger"
-				className={cn(k.trigger, className)}
+				className={cn(slots.trigger, className)}
 			/>
 		)
 	}
@@ -135,7 +138,7 @@ export function PopoverTrigger({ children, className, ref, ...props }: PopoverTr
 			ref={setTrigger}
 			type="button"
 			{...disclosureProps(open, panelId, dialog ? 'dialog' : undefined, props)}
-			className={cn(k.trigger, className)}
+			className={cn(slots.trigger, className)}
 		>
 			{children}
 		</button>

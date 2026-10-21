@@ -6,4 +6,4 @@ import { k } from '../../recipes/kata/sidebar'
 export type SidebarDividerProps = ComponentProps<'hr'>
 
 /** Horizontal rule separating groups of items within a `Sidebar`. */
-export const SidebarDivider = createSlot('hr', 'sidebar-divider', k.divider)
+export const SidebarDivider = createSlot('hr', 'sidebar-divider', k().divider)

@@ -6,4 +6,4 @@ import { k } from '../../recipes/kata/sidebar'
 export type SidebarSectionProps = ComponentProps<'div'>
 
 /** A block that groups related sidebar content (a heading, a `SidebarList`, a divider). */
-export const SidebarSection = createSlot('div', 'sidebar-section', k.section)
+export const SidebarSection = createSlot('div', 'sidebar-section', k().section)
