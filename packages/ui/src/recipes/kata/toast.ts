@@ -3,12 +3,17 @@ import { dan } from '../kiso/dan'
 
 const { spring, toast } = ugoki
 
+/** The scroll of a corner stack, which takes the width of its cards. */
+const corner = 'w-fit [--ui-toast-card:var(--ui-toast-width)]'
+
+/** The scroll of a full-edge stack, which fills the viewport, as its cards do. */
+const edge = 'w-full [--ui-toast-card:100%]'
+
 /**
  * The classes of each physical `position` of the viewport, the stack in it,
  * and its cards. `Toast` resolves a `start` or `end` corner to a physical one
  * first. Each value writes the same properties, so a breakpoint replaces each
- * one (`resolveVariant`). A corner stack takes the width of its cards, and a
- * full-edge stack and its cards fill the viewport.
+ * one (`resolveVariant`).
  */
 const position = {
 	viewport: {
@@ -22,12 +27,12 @@ const position = {
 		// biome-ignore-end lint/plugin/no-physical-side: each of these positions names a physical corner or edge
 	},
 	scroll: {
-		'top-right': 'w-fit [--ui-toast-card:var(--ui-toast-width)]',
-		'top-left': 'w-fit [--ui-toast-card:var(--ui-toast-width)]',
-		'bottom-right': 'w-fit [--ui-toast-card:var(--ui-toast-width)]',
-		'bottom-left': 'w-fit [--ui-toast-card:var(--ui-toast-width)]',
-		top: 'w-full [--ui-toast-card:100%]',
-		bottom: 'w-full [--ui-toast-card:100%]',
+		'top-right': corner,
+		'top-left': corner,
+		'bottom-right': corner,
+		'bottom-left': corner,
+		top: edge,
+		bottom: edge,
 	},
 } as const
 

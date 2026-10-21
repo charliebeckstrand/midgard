@@ -7,7 +7,7 @@ export const k = {
 	portal: popover.portal,
 	text: ['text-pretty', popover.text],
 	panel: popover.panel,
-	/** The padding of the panel at each step: `p-3`, `p-4`, and `p-6`. */
+	/** The padding of the panel at each density step: the `lg` stop of the padding scale. */
 	padding: dan.space.popover,
 }
 

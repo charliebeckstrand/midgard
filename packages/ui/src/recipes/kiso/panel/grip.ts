@@ -5,6 +5,7 @@
  */
 
 import { mode } from '../../../core/recipe'
+import { hannou } from '../hannou'
 
 /**
  * The stroke the grip takes when a reader tabs to it.
@@ -37,6 +38,14 @@ const BAR = [
 ]
 
 export const grip = {
+	/**
+	 * The grab area that holds the bar and the tab stop. It centers the bar, and
+	 * `hannou.grab.default` carries the rest, including the `touch-none` that
+	 * makes the gesture work at all under a finger. The stroke goes on the bar
+	 * (see `FOCUS`), so the area suppresses the browser's own, which would draw
+	 * around the whole reach.
+	 */
+	area: ['items-center justify-center', ...hannou.grab.default, 'outline-hidden'],
 	/**
 	 * The bar the reader sees and aims at, which the grab area draws as its
 	 * `::after`. It is keyed by the line the separator draws. That is the same

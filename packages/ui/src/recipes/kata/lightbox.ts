@@ -6,6 +6,22 @@ const { focus, ring } = sen
 const { rail } = omote
 const { duration, ease } = ugoki
 
+/**
+ * The move of the close button and the step bar to the next photo. It has the
+ * time and the curve of `motion.step` (Motion `easeOut`).
+ */
+const stepTransition =
+	'transition-[inset] duration-250 ease-[cubic-bezier(0,0,0.58,1)] motion-reduce:transition-none'
+
+/**
+ * The image in a thumbnail button. The image takes the radius itself. A clip of
+ * the button instead leaves rough corners on the dim thumbnails.
+ */
+const image = 'block size-full rounded-[inherit] object-cover'
+
+/** The timing of the flight of the photo, which the scrim fade shares. */
+const raise = { duration: duration[300], ease: ease.out }
+
 export const k = {
 	/**
 	 * The thumbnail button. The reader presses it to raise the photo. The image
@@ -16,7 +32,7 @@ export const k = {
 		/** The box of a thumbnail, which a placeholder takes when the thumbnail does not load. */
 		base: ['relative block overflow-hidden', rounded.lg],
 		button: ['cursor-zoom-in disabled:cursor-default', focus.ring],
-		image: 'block size-full rounded-[inherit] object-cover',
+		image,
 		/** The placeholder over a thumbnail that loads. */
 		placeholder: 'absolute inset-0 size-full rounded-[inherit]',
 		/**
@@ -95,10 +111,7 @@ export const k = {
 		 * The close button with `closable`: one gap above the photo, at its end. A
 		 * step moves it to the next photo, with the slide (see `bar`).
 		 */
-		shown: [
-			'absolute end-(--lightbox-end) bottom-(--lightbox-edge)',
-			'transition-[inset] duration-250 ease-[cubic-bezier(0,0,0.58,1)] motion-reduce:transition-none',
-		],
+		shown: ['absolute end-(--lightbox-end) bottom-(--lightbox-edge)', stepTransition],
 		/**
 		 * The close button with no `closable`: in the top corner at the end of the
 		 * line, and clear until it has the keyboard focus.
@@ -107,13 +120,9 @@ export const k = {
 	},
 	/**
 	 * The row of the step controls, one gap below the photo. A step moves it to
-	 * the next photo with the slide: the move starts with the slide, and it has
-	 * the time and the curve of `motion.step` (Motion `easeOut`).
+	 * the next photo with the slide, and the move starts with the slide.
 	 */
-	bar: [
-		'absolute inset-x-0 top-(--lightbox-edge) flex justify-center',
-		'transition-[inset] duration-250 ease-[cubic-bezier(0,0,0.58,1)] motion-reduce:transition-none',
-	],
+	bar: ['absolute inset-x-0 top-(--lightbox-edge) flex justify-center', stepTransition],
 	/**
 	 * The pill that holds the previous button, the count, and the next button.
 	 * It does not follow the color scheme, and the buttons take its text color.
@@ -145,23 +154,21 @@ export const k = {
 		],
 		/** The thumbnail of the photo that the viewer shows. It is solid. */
 		current: 'opacity-100 hover:opacity-100',
-		/**
-		 * The image takes the radius itself. A clip of the button instead leaves
-		 * rough corners on the dim thumbnails.
-		 */
-		image: 'block size-full rounded-[inherit] object-cover',
+		image,
 	},
-	/** A step button in the pill. */
-	step: 'rounded-full',
-	/**
-	 * A step button at the first or the last photo. It keeps its place, so the
-	 * count stays in the center, and it does not show.
-	 */
-	ended: 'invisible',
+	step: {
+		/** A step button in the pill. */
+		base: 'rounded-full',
+		/**
+		 * A step button at the first or the last photo. It keeps its place, so the
+		 * count stays in the center, and it does not show.
+		 */
+		ended: 'invisible',
+	},
 	count: 'min-w-16 text-center text-sm tabular-nums',
 	motion: {
 		/** The flight of the photo from its thumbnail to the stage, and back. */
-		raise: { duration: duration[300], ease: ease.out },
+		raise,
 		/** The step from one photo to the next. */
 		step: { duration: duration[250], ease: ease.out },
 		/** The fade of the photo under reduced motion. */
@@ -171,6 +178,6 @@ export const k = {
 		 * so the scrim is dark when the photo lands on the stage, and clear when
 		 * the photo lands in its thumbnail.
 		 */
-		scrim: { ...ugoki.overlay, transition: { duration: duration[300], ease: ease.out } },
+		scrim: { ...ugoki.overlay, transition: raise },
 	},
 }

@@ -7,6 +7,10 @@ const { backdrop } = omote
 const { popover } = ugoki
 const { surface, layout } = panel
 
+/** The panel of a `center` or a `top` align, which floats in the box. */
+const floating =
+	'rounded-t-2xl rounded-b-2xl max-h-full overflow-y-visible overscroll-auto [--ui-panel-safe:0px]'
+
 /**
  * The panel and backdrop recipes of the {@link Dialog}. Dialog uses the default
  * slots of `createPanel`, so it does not build them through `bridge.panel`.
@@ -46,9 +50,8 @@ export const k = {
 		panel: {
 			bottom:
 				'rounded-t-2xl rounded-b-none max-h-[85%] overflow-y-auto overscroll-contain [--ui-panel-safe:env(safe-area-inset-bottom)]',
-			center:
-				'rounded-t-2xl rounded-b-2xl max-h-full overflow-y-visible overscroll-auto [--ui-panel-safe:0px]',
-			top: 'rounded-t-2xl rounded-b-2xl max-h-full overflow-y-visible overscroll-auto [--ui-panel-safe:0px]',
+			center: floating,
+			top: floating,
 		},
 	},
 	/** The motion of a floating panel (`desktop`) and of a panel on the bottom edge (`mobile`). */
