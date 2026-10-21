@@ -10,7 +10,6 @@ import { k as queryBuilder } from '../../recipes/kata/query-builder'
 import { k as sheet } from '../../recipes/kata/sheet'
 import { k as sidebarLayout } from '../../recipes/kata/sidebar-layout'
 import { k as stepper } from '../../recipes/kata/stepper'
-import { k as toast } from '../../recipes/kata/toast'
 import { BREAKPOINT_WIDTHS, type MinBreakpoint, resolveVariant } from '../../types/responsive'
 import { noop } from '../../utilities/noop'
 import { uiRoot } from '../helpers/walk-source'
@@ -96,8 +95,6 @@ const AXES: ReadonlyArray<readonly [string, Record<string, string>]> = [
 	['Stepper title orientation', stepper.title.orientation],
 	['Stepper separator orientation', stepper.separator.orientation],
 	['Stepper content orientation', stepper.content.orientation],
-	['Toast viewport position', toast.position.viewport],
-	['Toast stack position', toast.position.scroll],
 	['Sheet right layout', sheet.layout.side.right],
 	['Sheet left layout', sheet.layout.side.left],
 	['Sheet top layout', sheet.layout.side.top],
