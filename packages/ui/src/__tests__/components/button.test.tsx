@@ -389,7 +389,7 @@ describe('Button', () => {
 			expect(readDensityStep(present(bySlot(container, 'button'), 'button'))).toBe('xl')
 
 			// The stepped classes give `xl` a value of its own.
-			expect(findSteps([k.config.base], 'density-text-').xl).toBe('xl')
+			expect(findSteps([k.config.slots.base.base], 'density-text-').xl).toBe('xl')
 		})
 	})
 

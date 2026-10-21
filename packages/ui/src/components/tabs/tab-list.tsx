@@ -85,7 +85,7 @@ export function TabList({
 
 	const orientation = tabsContext?.orientation ?? 'horizontal'
 
-	const parts = k({ orientation })
+	const slots = k({ orientation })
 
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -106,7 +106,7 @@ export function TabList({
 			ref={setList}
 			data-slot="tab-list"
 			data-orientation={orientation}
-			className={cn(isSegment ? k.segment.control : parts.list, className)}
+			className={cn(isSegment ? k.segment.control : slots.list, className)}
 			// Consumer props spread first; the role, the orientation and the roving
 			// handler below take precedence.
 			{...props}
@@ -134,7 +134,7 @@ export function TabList({
 					ref={setScroller}
 					data-slot="tab-list-scroll"
 					data-scroll-region
-					className={parts.scroll}
+					className={slots.scroll}
 				>
 					{list}
 				</div>

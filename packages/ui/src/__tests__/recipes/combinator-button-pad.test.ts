@@ -22,7 +22,7 @@ describe('QueryChips combinator-button pad', () => {
 	for (const prefix of LISTS) {
 		const own = findSteps(queryChips.combinator.button, prefix)
 
-		const source = findSteps([button.config.base], prefix)
+		const source = findSteps([button.config.slots.base.base], prefix)
 
 		for (const step of SHIFTED) {
 			it(`${prefix}: the ${step} value is the Button value at ${stepDown(step)}`, () => {

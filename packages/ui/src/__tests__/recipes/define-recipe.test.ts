@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { definePalette, defineRecipe } from '../../core/recipe'
+import { defineKata, definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { k as button } from '../../recipes/kata/button'
 
 describe('defineRecipe', () => {
@@ -212,7 +212,7 @@ describe('defineRecipe', () => {
 	it('keeps the default color active when only variant is overridden', () => {
 		// Guards the (variant × default-color) compound: omitting `color` must
 		// still resolve the default.
-		const classes = button({ variant: 'soft' })
+		const classes = button({ variant: 'soft' }).base
 
 		// The (soft × zinc) compound from button.ts emits bg-zinc-500/15.
 		expect(classes).toContain('bg-zinc-500/15')
@@ -290,57 +290,63 @@ describe('defineRecipe', () => {
 	})
 })
 
-describe('defineRecipe with parts', () => {
-	const recipe = defineRecipe({
-		base: 'root',
-		parts: { list: 'list', tab: 'tab' },
-		orientation: {
-			horizontal: { base: 'col', list: 'border-b' },
-			vertical: { base: 'row', tab: 'px-2' },
+describe('defineKata', () => {
+	const kata = defineKata({
+		slots: {
+			base: { base: 'root', orientation: { horizontal: 'col', vertical: 'row' } },
+			list: { base: 'list', orientation: { horizontal: 'border-b', vertical: 'border-s' } },
+			tab: {
+				base: 'tab',
+				stretch: { true: 'w-full', false: '' },
+				compound: [{ stretch: true, orientation: 'vertical', class: 'grow' }],
+			},
 		},
-		stretch: {
-			true: { tab: 'w-full' },
-			false: {},
-		},
-		compound: [{ orientation: 'vertical', stretch: true, class: { list: 'grow' } }],
 		defaults: { orientation: 'horizontal', stretch: false },
 	})
 
-	it('returns the classes of each part from one call', () => {
-		expect(recipe()).toEqual({ base: 'root col', list: 'list border-b', tab: 'tab' })
+	it('resolves each slot from one set of props', () => {
+		expect(kata()).toEqual({ base: 'root col', list: 'list border-b', tab: 'tab' })
 
-		expect(recipe({ orientation: 'vertical', stretch: true })).toEqual({
+		expect(kata({ orientation: 'vertical', stretch: true })).toEqual({
 			base: 'root row',
-			list: 'list grow',
-			tab: 'tab px-2 w-full',
+			list: 'list border-s',
+			tab: 'tab w-full grow',
 		})
 	})
 
-	it('gives a class value that is not a part map to the root part', () => {
-		const plain = defineRecipe({ parts: { icon: 'icon' }, tone: { muted: 'text-zinc-500' } })
-
-		expect(plain({ tone: 'muted' })).toEqual({ base: 'text-zinc-500', icon: 'icon' })
+	it('returns the same object for the same resolved props', () => {
+		expect(kata({ orientation: 'horizontal' })).toBe(kata())
 	})
 
-	it('types the output by the declared parts', () => {
-		expect(Object.keys(recipe())).toEqual(['base', 'list', 'tab'])
+	it('exposes the shared defaults and the axes of each slot', () => {
+		expect(kata.config.defaults).toEqual({ orientation: 'horizontal', stretch: false })
 
-		expectTypeOf(recipe()).toEqualTypeOf<{
+		expect(Object.keys(kata.config.variants)).toEqual(['orientation', 'stretch'])
+
+		expect(kata.config.variants.orientation?.vertical).toEqual({ base: 'row', list: 'border-s' })
+	})
+
+	it('types the output by the slots and merges the props of each slot', () => {
+		expectTypeOf(kata()).toEqualTypeOf<{
 			readonly base: string
 			readonly list: string
 			readonly tab: string
 		}>()
 
-		expectTypeOf(recipe)
-			.parameter(0)
-			.toEqualTypeOf<{ orientation?: 'horizontal' | 'vertical'; stretch?: boolean } | undefined>()
+		expectTypeOf<VariantProps<typeof kata>>().toEqualTypeOf<
+			{ orientation?: 'horizontal' | 'vertical' } & { stretch?: boolean }
+		>()
+
+		expect(Object.keys(kata())).toEqual(['base', 'list', 'tab'])
 	})
 
-	it('rejects a part map that names an undeclared part, a part named base, and slots', () => {
-		expect(() => defineRecipe({ parts: { a: 'a' }, size: { sm: { b: 'b' } } })).toThrow(/part "b"/)
+	it('rejects a slot with its own defaults or slots, and an extra that collides', () => {
+		expect(() =>
+			defineKata({ slots: { base: { size: { sm: 'a' }, defaults: { size: 'sm' } } } }),
+		).toThrow(/slot "base"/)
 
-		expect(() => defineRecipe({ parts: { base: 'a' } })).toThrow(/root part/)
+		expect(() => defineKata({ slots: { base: { slots: { icon: 'a' } } } })).toThrow(/slot "base"/)
 
-		expect(() => defineRecipe({ parts: { a: 'a' }, slots: { b: 'b' } })).toThrow(/not both/)
+		expect(() => defineKata({ slots: { base: {} } }, { config: {} })).toThrow(/extra name/)
 	})
 })

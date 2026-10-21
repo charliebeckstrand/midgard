@@ -1,4 +1,5 @@
 export { applyRecipe } from './applicator'
+export { defineKata } from './kata'
 export { definePalette } from './palette'
 export { defineRecipe } from './recipe'
 export type { RecipeConfig, VariantProps } from './types'

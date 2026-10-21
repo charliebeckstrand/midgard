@@ -9,11 +9,11 @@ import { twMerge } from '../../core/tw-merge'
 // classes of each part, so a change to the snapshot is a change of the output.
 //
 // The gate reads a part in the same way for each shape of kata. The path of a
-// part is its key path under the export. A recipe that returns parts gives
-// `k.<part>` for each part, the same path as a static slot or a sibling recipe
+// part is its key path under the export. A unit that returns slots gives
+// `k.<slot>` for each slot, the same path as a static slot or a sibling recipe
 // of the old shape. An axis that does not change the classes of a part is not
 // in the key of that part. Thus a part keeps its key when a kata merges its
-// recipes into one recipe with more axes.
+// recipes into one unit with more axes.
 //
 // This gate is temporary. Delete it when the recipe migration ends.
 
@@ -24,12 +24,14 @@ const modules = import.meta.glob<Record<string, unknown>>('../../recipes/kata/*.
 
 /**
  * The parts that a migration renamed, from the new path to the path on main. The
- * root part of a recipe with parts is `base`, so the part that was the root
- * recipe of a kata takes that name.
+ * root slot of a unit is `base`, so the part that was the root recipe of a kata
+ * takes that name.
  */
 const RENAMES: Record<string, string> = {
 	'tabs.k.base': 'tabs.k.group',
 	'tabs.k.base()': 'tabs.k.group()',
+	'button.k.base': 'button.k',
+	'button.k.base()': 'button.k()',
 }
 
 /** The limit of the combinations of one recipe. A larger recipe varies one axis at a time. */

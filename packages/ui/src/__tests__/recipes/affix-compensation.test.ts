@@ -60,7 +60,9 @@ describe('control affix has-button compensation', () => {
 
 		const hostPx = hostPxAt(step)
 
-		const buttonPx = Number(findSteps([button.config.base], 'density-p-ring-')[buttonSize])
+		const buttonPx = Number(
+			findSteps([button.config.slots.base.base], 'density-p-ring-')[buttonSize],
+		)
 
 		const expected = hostPx - buttonPx + CHIP_INSET
 
@@ -89,7 +91,9 @@ describe('control affix has-button compensation', () => {
 
 			const hostPx = hostPxAt(step)
 
-			const buttonPx = Number(findSteps([button.config.base], 'density-p-ring-')[buttonSize])
+			const buttonPx = Number(
+				findSteps([button.config.slots.base.base], 'density-p-ring-')[buttonSize],
+			)
 
 			return hostPx - buttonPx
 		})

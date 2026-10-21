@@ -61,7 +61,7 @@ Each bridge is a pure function `(<tokens>, overlay?) => k`, reached through the 
 
 ## Kata: shape
 
-Every kata exports its runtime surface as `k`, plus its `scale` when it has one. [`src/recipes/kata/README.md`](../src/recipes/kata/README.md) gives the three shapes of `k`, the key-name rules, and the `@defaultValue` rule for variant types that `default-value-boundary.test.ts` gates.
+Every kata exports its runtime surface as `k`, plus its `scale` when it has one. [`src/recipes/kata/README.md`](../src/recipes/kata/README.md) gives the shapes of `k`, the key-name rules, and the `@defaultValue` rule for variant types that `default-value-boundary.test.ts` gates.
 
 ## Recipe engine
 
@@ -70,6 +70,7 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 | Export | Summary |
 |---|---|
 | `defineRecipe` | The recipe primitive. It builds a callable recipe from a `RecipeConfig`, applying `base` → `variants` → `compound` → `defaults` per call (clsx + tailwind-merge). |
+| `defineKata` | Builds the recipe of a unit from a `slots` map of recipe configs, with the root slot `base`. The slots share one set of props and one set of defaults, and a call returns the class string of each slot. |
 | `definePalette` | Declares the color × variant matrix of a recipe. The engine derives the `color` axis from its keys. |
 | `applyRecipe` | Merge helper a bridge calls to fold the overlay of a kata over the standard config of an archetype. |
 | `mode` / `defineColors` | Fuse colocated light (`hiru`) and dark (`yoru`) values into the flat `string[]` the engine consumes. |

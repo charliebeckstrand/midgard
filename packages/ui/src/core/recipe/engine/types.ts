@@ -1,9 +1,9 @@
 /**
  * Public types for the recipe engine.
  *
- * `RecipeConfig` is the shape a kata declares: the reserved fields
- * (`base`, `parts`, `palette`, `compound`, `slots`, `defaults`, `skeleton`)
- * plus any number of variant axes as top-level fields. `Recipe<C>` is what
+ * `RecipeConfig` is the shape of a recipe: the reserved fields (`base`,
+ * `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus any number of
+ * variant axes as top-level fields. `Recipe<C>` is what
  * `defineRecipe` returns. `VariantProps<R>` extracts the prop shape
  * from either side; use it in kata to type the consumer-facing
  * `<Name>Variants` export.
@@ -54,21 +54,7 @@ type SlotClasses<S> = [S] extends [object]
 	: string
 
 /** Reserved top-level config field names; kata must not use these as axis names. */
-export type ReservedField =
-	| 'base'
-	| 'parts'
-	| 'palette'
-	| 'compound'
-	| 'slots'
-	| 'defaults'
-	| 'skeleton'
-
-/**
- * The classes that an axis value or a compound rule gives to each part of a
- * recipe with `parts`. `base` is the root part. A part that the map does not
- * name takes no classes from that value.
- */
-export type PartClasses = { readonly [part: string]: ClassValue }
+export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults' | 'skeleton'
 
 /**
  * A recipe config: the reserved fields plus any number of variant axes at the
@@ -77,13 +63,6 @@ export type PartClasses = { readonly [part: string]: ClassValue }
  */
 export type RecipeConfig = {
 	base?: ClassValue
-	/**
-	 * The parts of the unit, other than its root part `base`. A recipe with parts
-	 * returns the classes of each part from one call: `k({ orientation }).list`.
-	 * An axis value or a compound rule can then give classes to each part with a
-	 * {@link PartClasses} map. A recipe does not have both `parts` and `slots`.
-	 */
-	parts?: Record<string, ClassValue>
 	palette?: PaletteConfig
 	compound?: CompoundRule[]
 	slots?: Record<string, SlotValue>
@@ -106,26 +85,14 @@ export type RecipeConfig = {
  */
 export type ResolvedConfig = {
 	base?: ClassValue
-	parts: Record<string, ClassValue>
 	variants: Record<string, Record<string, ClassValue>>
 	compound: CompoundRule[]
 	slots: Record<string, SlotValue>
 	defaults: Record<string, string | number | boolean>
 }
 
-/** The names of the parts of a recipe with `parts`: the root part `base` and each declared part. */
-type PartNames<C> = C extends { parts: infer P } ? 'base' | (keyof P & string) : never
-
-/**
- * What a call of a recipe returns: the class string of the root, or an object
- * that holds the class string of each part when the recipe has `parts`.
- */
-export type RecipeOutput<C> = [PartNames<C>] extends [never]
-	? string
-	: { readonly [K in PartNames<C>]: string }
-
 export type Recipe<C extends RecipeConfig> = {
-	(props?: ComputedProps<C>): RecipeOutput<C>
+	(props?: ComputedProps<C>): string
 	/** Resolved config, exposed for introspection. */
 	readonly config: ResolvedConfig
 } & {
