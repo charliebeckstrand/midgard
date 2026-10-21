@@ -58,6 +58,7 @@ export function SidebarItem({
 	const {
 		ref: itemRef,
 		current: isCurrent,
+		ariaCurrent,
 		indicator: { ref: indicatorRef, tapHandlers },
 		handleClick,
 	} = useNavItem({ current, href: props.href, match, preventClose, onClick })
@@ -84,9 +85,6 @@ export function SidebarItem({
 	// drawer keeps plain items.
 	const mini = useSidebarMini()
 
-	// A link marks the current page, and a button marks the current view.
-	const currentToken = props.href ? 'page' : 'true'
-
 	const inner = (
 		<Button
 			// Navigation writes no field, so a locked scope, such as a submitting
@@ -107,7 +105,7 @@ export function SidebarItem({
 			{...props}
 			type={props.href === undefined ? 'button' : undefined}
 			data-slot="sidebar-item-inner"
-			aria-current={isCurrent ? currentToken : undefined}
+			aria-current={ariaCurrent}
 			// The rail tooltip echoes the accessible name, so its description would
 			// repeat the name. The explicit key wins over the description of the
 			// trigger, and keeps the description of the consumer.

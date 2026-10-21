@@ -1,17 +1,11 @@
 'use client'
 
-import {
-	type RefObject,
-	useCallback,
-	useDeferredValue,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from 'react'
+import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { useControllableFlag } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 import { useFrozenOnClose } from '../../hooks/use-frozen-on-close'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useDeferredQueryText } from '../../primitives/query/query'
 
 type ComboboxStateParams<T> = {
 	multiple: boolean
@@ -63,10 +57,7 @@ export function useComboboxState<T>({
 }: ComboboxStateParams<T>) {
 	const [query, setQueryInternal] = useState('')
 
-	// An empty query bypasses deferral; the filter clears immediately.
-	const deferredQueryInternal = useDeferredValue(query)
-
-	const deferredQuery = query === '' ? '' : deferredQueryInternal
+	const deferredQuery = useDeferredQueryText(query)
 
 	// The setters repeat a value: each keystroke opens the panel, and an outside
 	// press and then the input blur both close it. The controllable reports only

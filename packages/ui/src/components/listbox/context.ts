@@ -1,13 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
-
-type ListboxContextValue<T = unknown> = {
-	value: T | T[] | undefined
-	multiple: boolean
-	onSelect: (value: T) => void
-	capitalize: boolean
-}
+import type { OptionSelectionContext } from '../../primitives/option'
 
 /**
  * Selection state shared from the {@link Listbox} root to its options. The
@@ -15,6 +9,9 @@ type ListboxContextValue<T = unknown> = {
  *
  * @internal
  */
-export const [ListboxContext, useListboxContext] = createContext<ListboxContextValue>('Listbox', {
-	error: 'ListboxOption must be used within <Listbox> or <Select>',
-})
+export const [ListboxContext, useListboxContext] = createContext<OptionSelectionContext>(
+	'Listbox',
+	{
+		error: 'ListboxOption must be used within <Listbox> or <Select>',
+	},
+)

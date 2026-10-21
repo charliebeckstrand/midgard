@@ -1,11 +1,9 @@
 'use client'
 
-import { AnimatePresence } from 'motion/react'
 import { createElement, isValidElement, type ReactNode, useLayoutEffect, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
-import { MountHold, useMountHold } from '../../primitives/mount'
-import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
-import { ReducedMotion } from '../../primitives/reduced-motion'
+import { useMountHold } from '../../primitives/mount'
+import { MountPresence } from '../../primitives/mount/mount-presence'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/tree'
 import { flattenFragments } from '../../utilities/children'
@@ -112,23 +110,9 @@ export function TreeItemChildren({ id, open, label, children }: TreeItemChildren
 		</TreeContext>
 	)
 
-	// `active` unmounts the closed group, so its exit rides `AnimatePresence` and
-	// the recipe's enter/exit pair applies as written.
-	if (!hold.held) {
-		return (
-			<ReducedMotion>
-				<AnimatePresence initial={false}>{open && group(k.motion)}</AnimatePresence>
-			</ReducedMotion>
-		)
-	}
-
-	if (!hold.present) return null
-
 	return (
-		<ReducedMotion>
-			<MountHold hold={hold} name="tree-group">
-				{group(heldMotionProps(k.motion, open, hold))}
-			</MountHold>
-		</ReducedMotion>
+		<MountPresence open={open} hold={hold} preset={k.motion} name="tree-group">
+			{group}
+		</MountPresence>
 	)
 }

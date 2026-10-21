@@ -26,9 +26,10 @@ import {
 import {
 	clearVirtualActive,
 	clearVirtualActiveIndexed,
-	isVirtualActiveRowGone,
-	isVirtualTopMatchSeated,
+	followVirtualHighlight,
+	type HighlightOrigin,
 	queryItems,
+	runRovingKey,
 	seedVirtualTopMatch,
 	setVirtualActive,
 	setVirtualActiveIndexed,
@@ -38,8 +39,9 @@ import {
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
-import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { hasSelection } from '../../primitives/option/option'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
@@ -49,7 +51,7 @@ import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
 import { Icon } from '../icon'
-import { InputClearButton } from '../input/input-clear-button'
+import { SelectionClearButton } from '../input/input-clear-button'
 import { OPTION_SELECTOR } from './combobox-constants'
 import { ComboboxInput } from './combobox-input'
 import { ComboboxPanel } from './combobox-panel'
@@ -277,8 +279,7 @@ type ComboboxMultipleProps<T> = {
 /**
  * Seeds the virtual highlight to the top match via {@link seedVirtualTopMatch},
  * with this combobox's selector and `ariaSelected: false` (options own their
- * selection state) applied. Shared by the highlight-anchoring effect and the
- * option-swap re-anchor observer below.
+ * selection state) applied, for the highlight-anchoring effect below.
  *
  * @internal
  */
@@ -294,8 +295,8 @@ function seedTopMatch(
 }
 
 /**
- * Seats the highlight for an arrow-key open. It goes on the current selection,
- * so the menu opens with the active value. A plain open leaves the highlight
+ * Puts the highlight on the current selection for an arrow-key open, so the
+ * menu opens with the active value. A plain open leaves the highlight
  * empty, and so does an arrow-key open with nothing selected. Single mode
  * only: `multiple` carries no single selection.
  *
@@ -307,7 +308,7 @@ function seedTopMatch(
  *
  * @internal
  */
-export function seatOnArrowOpen(
+export function highlightSelection(
 	node: HTMLElement,
 	source: VirtualItemSource | null,
 	multiple: boolean,
@@ -330,21 +331,8 @@ export function seatOnArrowOpen(
 }
 
 /**
- * The origin of the highlight, which {@link reanchorOnOptionSwap} reads when the
- * rows change:
- *
- * - `'empty'`: the highlight is empty by design, as after a plain open.
- * - `'seeded'`: a filter change put the highlight on the top match, or found no
- *   row for it.
- * - `'moved'`: a key set the highlight, with an arrow key or an arrow-key open.
- *
- * @internal
- */
-export type HighlightOrigin = 'empty' | 'seeded' | 'moved'
-
-/**
- * Re-anchors the highlight when the rows change under an unchanged query, as
- * when async data arrives. `originRef` decides the move:
+ * Moves the highlight with the options when the rows change under an unchanged
+ * query, as when async data arrives. `originRef` decides the move:
  *
  * - An empty highlight stays empty. A change to the window of a source does
  *   not seed row 0 after a plain open.
@@ -359,26 +347,22 @@ export type HighlightOrigin = 'empty' | 'seeded' | 'moved'
  *
  * @internal
  */
-export function reanchorOnOptionSwap(
+export function followOptions(
 	node: HTMLElement,
 	virtualSourceRef: RefObject<VirtualItemSource | null>,
 	activeIndexRef: RefObject<number>,
 	inputRef: RefObject<HTMLInputElement | null>,
 	originRef: RefObject<HighlightOrigin>,
 ): void {
-	if (originRef.current === 'empty') return
-
-	const source = virtualSourceRef.current
-
-	if (originRef.current === 'seeded') {
-		if (isVirtualTopMatchSeated(node, OPTION_SELECTOR, source, activeIndexRef, inputRef)) return
-	} else if (!isVirtualActiveRowGone(source, activeIndexRef, inputRef)) {
-		return
-	}
-
-	seedTopMatch(node, source, activeIndexRef, inputRef)
-
-	originRef.current = 'seeded'
+	followVirtualHighlight(
+		originRef,
+		node,
+		OPTION_SELECTOR,
+		virtualSourceRef.current,
+		activeIndexRef,
+		inputRef,
+		{ ariaSelected: false },
+	)
 }
 
 /**
@@ -590,17 +574,10 @@ export function Combobox<T>({
 	})
 
 	// A key that moves the highlight makes it the user's, so a new top match does
-	// not take it. A move writes `aria-activedescendant` before the handler
-	// returns, also for a row of a source that is not mounted yet.
+	// not take it.
 	const rovingKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLInputElement>) => {
-			const before = inputRef.current?.getAttribute('aria-activedescendant')
-
-			handleKeyDown(event)
-
-			if (inputRef.current?.getAttribute('aria-activedescendant') !== before) {
-				highlightOriginRef.current = 'moved'
-			}
+			runRovingKey(highlightOriginRef, inputRef.current, () => handleKeyDown(event))
 		},
 		[handleKeyDown],
 	)
@@ -687,11 +664,11 @@ export function Combobox<T>({
 
 	// Keeps the virtual highlight anchored to a real option: clears
 	// `aria-activedescendant` while the menu is closed, on each filter change
-	// seeds it through `seedTopMatch`, and on an arrow-key open seats it through
-	// `seatOnArrowOpen`. Skips the initial query; the first arrow key then picks
-	// the first option. Passes `ariaSelected: false`; options own their
-	// selection state. Each path records the origin of the highlight in
-	// `highlightOriginRef`.
+	// seeds it through `seedTopMatch`, and on an arrow-key open puts it on the
+	// selection through `highlightSelection`. Skips the initial query; the first
+	// arrow key then picks the first option. Passes `ariaSelected: false`;
+	// options own their selection state. Each path records the origin of the
+	// highlight in `highlightOriginRef`.
 	//
 	// Under a registered `virtualSourceRef`, index math replaces the DOM query
 	// (a windowed-out option isn't in the DOM to find), via
@@ -731,7 +708,7 @@ export function Combobox<T>({
 		if (anchorSelected) {
 			lastQueryRef.current = deferredQuery
 
-			seatOnArrowOpen(optionsNode, source, multiple, activeIndexRef, inputRef)
+			highlightSelection(optionsNode, source, multiple, activeIndexRef, inputRef)
 
 			highlightOriginRef.current = 'moved'
 
@@ -755,7 +732,7 @@ export function Combobox<T>({
 	// re-rendering on its own async state), where no render of this component
 	// observes it; a MutationObserver on the options wrapper does.
 	//
-	// The origin of the highlight decides the move (see `reanchorOnOptionSwap`).
+	// The origin of the highlight decides the move (see `followOptions`).
 	// An empty highlight stays empty, a seeded one follows the top match, and a
 	// moved one stays while its row exists.
 	useEffect(() => {
@@ -766,7 +743,7 @@ export function Combobox<T>({
 		if (!node) return
 
 		const observer = new MutationObserver(() =>
-			reanchorOnOptionSwap(node, virtualSourceRef, activeIndexRef, inputRef, highlightOriginRef),
+			followOptions(node, virtualSourceRef, activeIndexRef, inputRef, highlightOriginRef),
 		)
 
 		observer.observe(node, { childList: true, subtree: true })
@@ -846,19 +823,13 @@ export function Combobox<T>({
 		[scrollWithin],
 	)
 
-	const hasValue = multiple
-		? Array.isArray(value) && value.length > 0
-		: value !== undefined && !Array.isArray(value)
+	const hasValue = hasSelection(value, multiple)
 
 	const showClear = clearable && hasValue && !locked
 
 	const clearSuffix = showClear ? (
-		<InputClearButton
-			label={intl.formatMessage(intlMessages.clearSelection)}
-			onMouseDown={(event) => event.stopPropagation()}
-			onClick={(event) => {
-				event.stopPropagation()
-
+		<SelectionClearButton
+			onClear={() => {
 				setValue(multiple ? ([] as T[]) : undefined)
 
 				// A handler owns the focus follow-up, so the default doesn't run first: the
@@ -870,8 +841,6 @@ export function Combobox<T>({
 					return
 				}
 
-				// Nothing else can hold it: this button unmounts with the value it just
-				// cleared, so without this focus falls to the body.
 				inputRef.current?.focus()
 			}}
 		/>

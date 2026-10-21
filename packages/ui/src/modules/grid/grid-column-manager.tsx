@@ -5,7 +5,6 @@ import {
 	type ReactNode,
 	type RefObject,
 	useCallback,
-	useDeferredValue,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -20,6 +19,7 @@ import { cn, createContext } from '../../core'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { useDeferredQueryText } from '../../primitives/query/query'
 import { k } from '../../recipes/kata/grid-column-manager'
 import { toggleItem } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
@@ -470,11 +470,8 @@ export function GridColumnManager({
 
 	// The field echoes each keystroke at once while the filtered re-render (every
 	// group, and under the group editor its whole zone tree) settles behind it.
-	// An empty query bypasses deferral, as in Combobox and CommandPalette, so a
-	// cleared field lists every column in the same commit.
-	const deferredQueryInternal = useDeferredValue(query)
-
-	const deferredQuery = query === '' ? '' : deferredQueryInternal
+	// A cleared field lists every column in the same commit.
+	const deferredQuery = useDeferredQueryText(query)
 
 	// One normalized needle for every group's filter; empty (matching everything)
 	// with no query, or with the field turned off.

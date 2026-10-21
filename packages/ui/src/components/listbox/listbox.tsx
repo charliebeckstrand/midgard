@@ -16,8 +16,9 @@ import type { ScaleStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { isTypeaheadKey } from '../../hooks/a11y/use-typeahead'
 import { useFormValue } from '../../primitives/form/use-form-value'
-import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { hasSelection } from '../../primitives/option/option'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/listbox'
@@ -25,7 +26,7 @@ import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
 import { Icon } from '../icon'
-import { InputClearButton } from '../input/input-clear-button'
+import { SelectionClearButton } from '../input/input-clear-button'
 import { ListboxContext } from './context'
 import { ListboxButton } from './listbox-button'
 import { ListboxPanel } from './listbox-panel'
@@ -179,13 +180,6 @@ export type ListboxProps<T> = ListboxBaseProps & {
 	 */
 	displayValue?: (value: T) => ReactNode
 } & (ListboxSingleProps<T> | ListboxMultipleProps<T>)
-
-/** True when the listbox holds a selection: a non-empty array in `multiple` mode, else a defined scalar. @internal */
-function hasSelection<T>(value: T | T[] | undefined, multiple: boolean): boolean {
-	return multiple
-		? Array.isArray(value) && value.length > 0
-		: value !== undefined && !Array.isArray(value)
-}
 
 /**
  * Select-style dropdown over arbitrary `<ListboxOption>` values: single or
@@ -453,16 +447,10 @@ export function Listbox<T>({
 	const showClear = clearable && hasValue && !locked
 
 	const clearSuffix = showClear ? (
-		<InputClearButton
-			label={intl.formatMessage(intlMessages.clearSelection)}
-			onMouseDown={(event) => event.stopPropagation()}
-			onClick={(event) => {
-				event.stopPropagation()
-
+		<SelectionClearButton
+			onClear={() => {
 				setValue(multiple ? ([] as T[]) : undefined)
 
-				// The clear button unmounts once the selection is empty; focus
-				// returns to the trigger instead of falling to <body> (WCAG 2.4.3).
 				triggerRef.current?.focus()
 			}}
 		/>

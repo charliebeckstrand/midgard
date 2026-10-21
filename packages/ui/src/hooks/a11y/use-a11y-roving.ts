@@ -541,7 +541,7 @@ export function isVirtualTopMatchSeated(
  *
  * @internal
  */
-export function isVirtualActiveRowGone(
+function isVirtualActiveRowGone(
 	source: VirtualItemSource | null,
 	activeIndexRef: RefObject<number>,
 	activeDescendantRef: RefObject<HTMLElement | null>,
@@ -551,6 +551,87 @@ export function isVirtualActiveRowGone(
 	const activeId = activeDescendantRef.current?.getAttribute('aria-activedescendant')
 
 	return !!activeId && document.getElementById(activeId) === null
+}
+
+/**
+ * The origin of a virtual highlight, which {@link followVirtualHighlight}
+ * reads when the rows change:
+ *
+ * - `'empty'`: the highlight is empty by design, as after a plain open.
+ * - `'seeded'`: a filter change put the highlight on the top match, or found no
+ *   row for it.
+ * - `'moved'`: a key set the highlight.
+ *
+ * @internal
+ */
+export type HighlightOrigin = 'empty' | 'seeded' | 'moved'
+
+/**
+ * Seeds the highlight again through {@link seedVirtualTopMatch} when the rows
+ * change under an unchanged query and the origin calls for it, and records the
+ * seed in `originRef`. An empty highlight stays empty. A seeded highlight
+ * follows the top match: it takes a seed when it is not where
+ * {@link isVirtualTopMatchSeated} reads it. A moved highlight stays while its
+ * row exists: it takes a seed when {@link isVirtualActiveRowGone} reads the row
+ * gone.
+ *
+ * @returns Whether the highlight took a seed.
+ *
+ * @internal
+ */
+export function followVirtualHighlight(
+	originRef: RefObject<HighlightOrigin>,
+	container: HTMLElement | null,
+	itemSelector: string,
+	source: VirtualItemSource | null,
+	activeIndexRef: RefObject<number>,
+	activeDescendantRef: RefObject<HTMLElement | null>,
+	options?: { ariaSelected?: boolean },
+): boolean {
+	const origin = originRef.current
+
+	if (origin === 'empty') return false
+
+	const stale =
+		origin === 'seeded'
+			? !isVirtualTopMatchSeated(
+					container,
+					itemSelector,
+					source,
+					activeIndexRef,
+					activeDescendantRef,
+				)
+			: isVirtualActiveRowGone(source, activeIndexRef, activeDescendantRef)
+
+	if (!stale) return false
+
+	seedVirtualTopMatch(container, itemSelector, source, activeIndexRef, activeDescendantRef, options)
+
+	originRef.current = 'seeded'
+
+	return true
+}
+
+/**
+ * Runs the key handler of a virtual roving list. A key that moves the
+ * highlight makes it the user's, so `originRef` records `'moved'`. A move
+ * writes `aria-activedescendant` on `activeDescendant` before the handler
+ * returns, also for a row of a source that is not mounted yet.
+ *
+ * @internal
+ */
+export function runRovingKey(
+	originRef: RefObject<HighlightOrigin>,
+	activeDescendant: HTMLElement | null,
+	run: () => void,
+): void {
+	const before = activeDescendant?.getAttribute('aria-activedescendant')
+
+	run()
+
+	if (activeDescendant?.getAttribute('aria-activedescendant') !== before) {
+		originRef.current = 'moved'
+	}
 }
 
 /**

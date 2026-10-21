@@ -6,15 +6,11 @@ import {
 	ComboboxLabel,
 	ComboboxOption,
 } from '../../components/combobox'
-import {
-	type HighlightOrigin,
-	reanchorOnOptionSwap,
-	seatOnArrowOpen,
-} from '../../components/combobox/combobox'
+import { followOptions, highlightSelection } from '../../components/combobox/combobox'
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { Control } from '../../components/control'
 import { Description, Field, Fieldset, Label, Message } from '../../components/fieldset'
-import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
+import type { HighlightOrigin, VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { Form } from '../../modules/form'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
@@ -976,7 +972,7 @@ describe('Combobox active-descendant keyboard model', () => {
 // The seam of the observer that re-anchors the highlight. A plain-object source
 // takes the place of the one that `VirtualOptions` registers, so no virtualizer
 // runs (CONVENTIONS §10.3).
-describe('reanchorOnOptionSwap', () => {
+describe('followOptions', () => {
 	let lists = 0
 
 	/** An attached list of option rows and its input, as the panel and the trigger hold them. */
@@ -1022,7 +1018,7 @@ describe('reanchorOnOptionSwap', () => {
 
 		const originRef = { current: options.origin }
 
-		reanchorOnOptionSwap(
+		followOptions(
 			node,
 			{ current: options.source ?? null },
 			activeIndexRef,
@@ -1109,7 +1105,7 @@ describe('reanchorOnOptionSwap', () => {
 
 		node.append(next)
 
-		reanchorOnOptionSwap(node, { current: null }, { current: -1 }, { current: input }, originRef)
+		followOptions(node, { current: null }, { current: -1 }, { current: input }, originRef)
 
 		expect(input).toHaveAttribute('aria-activedescendant', next.id)
 	})
@@ -1173,7 +1169,7 @@ describe('reanchorOnOptionSwap', () => {
 // The seam of the arrow-key open under a registered source. A plain-object
 // source takes the place of the one that `VirtualOptions` registers, so no
 // virtualizer runs (CONVENTIONS §10.3).
-describe('seatOnArrowOpen', () => {
+describe('highlightSelection', () => {
 	function seat(isDisabled: (index: number) => boolean) {
 		const node = attach(document.createElement('div'))
 
@@ -1188,7 +1184,7 @@ describe('seatOnArrowOpen', () => {
 
 		const activeIndexRef = { current: -1 }
 
-		seatOnArrowOpen(node, source, false, activeIndexRef, { current: input })
+		highlightSelection(node, source, false, activeIndexRef, { current: input })
 
 		return { input, activeIndexRef }
 	}

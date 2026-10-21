@@ -221,6 +221,18 @@ export type OptionSelectionContext<TValue = unknown> = {
 	capitalize?: boolean
 }
 
+/**
+ * Tells whether a host holds a selection: a non-empty array in `multiple`
+ * mode, else a defined value that is not an array.
+ *
+ * @internal
+ */
+export function hasSelection(value: unknown, multiple: boolean): boolean {
+	return multiple
+		? Array.isArray(value) && value.length > 0
+		: value !== undefined && !Array.isArray(value)
+}
+
 // The host's `capitalize` flag, which each `Option` hands to its own `Label`.
 // A `Label` that reads the whole selection context re-renders on each selection
 // change. This boolean does not change with the selection, so a `Label` skips

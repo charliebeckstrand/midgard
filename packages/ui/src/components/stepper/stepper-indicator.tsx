@@ -8,7 +8,7 @@ import { k } from '../../recipes/kata/stepper'
 import { useStepper, useStepperStep } from './context'
 
 /** Props for {@link StepperIndicator}: `className` plus `<span>` attributes. */
-export type StepperIndicatorProps = {} & ComponentProps<'span'>
+export type StepperIndicatorProps = ComponentProps<'span'>
 
 /**
  * The leading marker of a {@link StepperStep} (number, checkmark, or dot)
