@@ -8,7 +8,6 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrentItem } from '../../primitives/current/current'
 import { k } from '../../recipes/kata/tabs'
-import { ButtonBase } from '../button/button-base'
 import { useTabsContext } from './context'
 import { useTabSelectScroll } from './use-tab-list-scroll'
 
@@ -191,10 +190,7 @@ export function Tab({
 
 	return (
 		<span className={slots.wrapper} {...tapHandlers}>
-			<ButtonBase
-				// A tab changes no value, so a locked scope, such as a submitting
-				// form, leaves it live.
-				lockable={false}
+			<button
 				// Forwards the full button surface (aria-label, data-testid,
 				// onBlur, title, …); the tab wiring below wins over any
 				// colliding consumer prop. A caller's onPointerEnter / onFocus
@@ -217,7 +213,7 @@ export function Tab({
 				onFocus={handleFocus}
 			>
 				{children}
-			</ButtonBase>
+			</button>
 			{current && (
 				<ActiveIndicator
 					ref={indicatorRef}

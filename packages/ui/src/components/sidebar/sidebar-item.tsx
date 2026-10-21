@@ -4,11 +4,10 @@ import type { Ref } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { ActiveIndicator } from '../../primitives/active-indicator'
-import { PolymorphicStatic } from '../../primitives/polymorphic'
+import { Polymorphic, PolymorphicStatic } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
 import { k, type scale } from '../../recipes/kata/sidebar'
 import { partitionByType } from '../../utilities/children'
-import { ButtonBase } from '../button/button-base'
 import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from '../nav/use-nav-item'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -85,10 +84,8 @@ export function SidebarItem({
 	const mini = useSidebarMini()
 
 	const inner = (
-		<ButtonBase
-			// Navigation writes no field, so a locked scope, such as a submitting
-			// form, leaves it live.
-			lockable={false}
+		<Polymorphic
+			as="button"
 			data-current={dataAttr(isCurrent)}
 			className={cn(
 				k.item.button({ affix: hasAffix }),
@@ -114,7 +111,7 @@ export function SidebarItem({
 				{icon && <Icon icon={icon} />}
 				{children}
 			</TouchTarget>
-		</ButtonBase>
+		</Polymorphic>
 	)
 
 	return (

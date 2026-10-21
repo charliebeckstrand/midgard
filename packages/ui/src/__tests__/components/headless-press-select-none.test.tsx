@@ -7,7 +7,7 @@ import { renderUI, screen } from '../helpers'
 /**
  * A press target built on a bare button keeps the `select-none` of a button.
  *
- * Tab, NavItem, and SidebarItem render a `ButtonBase`, which has no button recipe and so no
+ * Tab, NavItem, and SidebarItem render a plain `<button>`, which has no button recipe and so no
  * `select-none *:select-none`. A long press on iOS then selected the label
  * text. iOS Safari can select the text in a child of a `select-none` element, so the children
  * also set it.

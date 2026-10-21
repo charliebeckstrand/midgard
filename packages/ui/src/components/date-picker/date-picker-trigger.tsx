@@ -9,7 +9,6 @@ import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
-import { ButtonBase } from '../button/button-base'
 import { Icon } from '../icon'
 import { SelectionClearButton } from '../input/input-clear-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -160,7 +159,7 @@ export function DatePickerTrigger({
 				) : undefined
 			}
 		>
-			<ButtonBase
+			<button
 				ref={buttonRef}
 				type="button"
 				id={triggerId}
@@ -196,7 +195,7 @@ export function DatePickerTrigger({
 						<Icon icon={<CalendarIcon />} />
 					</span>
 				)}
-			</ButtonBase>
+			</button>
 		</SelectTrigger>
 	)
 }

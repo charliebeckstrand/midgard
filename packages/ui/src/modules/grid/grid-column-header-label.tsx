@@ -2,7 +2,6 @@
 
 import { ArrowDown, ArrowUp, Pin } from 'lucide-react'
 import { type ReactElement, type ReactNode, useRef } from 'react'
-import { ButtonBase } from '../../components/button/button-base'
 import { Icon } from '../../components/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
@@ -117,7 +116,7 @@ export function GridColumnHeaderLabel({
 		<GridHeaderTitle
 			title={column.title}
 			control={(title) => (
-				<ButtonBase
+				<button
 					type="button"
 					className={cn(k.sort.button)}
 					// A Shift-click folds this column into the existing sort (multi-column);
@@ -146,7 +145,7 @@ export function GridColumnHeaderLabel({
 							{intl.formatNumber(sortPriority)}
 						</span>
 					)}
-				</ButtonBase>
+				</button>
 			)}
 		/>
 	)

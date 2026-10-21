@@ -3,9 +3,9 @@
 import type { Ref } from 'react'
 import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
+import { Polymorphic } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
 import { k } from '../../recipes/kata/nav'
-import { ButtonBase } from '../button/button-base'
 import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from './use-nav-item'
 
@@ -87,10 +87,8 @@ export function NavItem({
 					{prefix}
 				</div>
 			)}
-			<ButtonBase
-				// Navigation writes no field, so a locked scope, such as a submitting
-				// form, leaves it live.
-				lockable={false}
+			<Polymorphic
+				as="button"
 				data-current={dataAttr(isCurrent)}
 				className={cn(k.item.button({ affix: hasAffix }), className)}
 				onClick={handleClick}
@@ -106,7 +104,7 @@ export function NavItem({
 					{icon && <Icon icon={icon} />}
 					{children}
 				</TouchTarget>
-			</ButtonBase>
+			</Polymorphic>
 			{suffix != null && (
 				<div data-slot="nav-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
 					{suffix}

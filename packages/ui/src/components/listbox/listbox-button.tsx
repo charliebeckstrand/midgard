@@ -4,7 +4,6 @@ import type { FocusEventHandler, KeyboardEventHandler, ReactNode, Ref } from 're
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import { useTruncation } from '../../hooks'
 import { k } from '../../recipes/kata/listbox'
-import { ButtonBase } from '../button/button-base'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 type ListboxButtonProps = {
@@ -89,7 +88,7 @@ export function ListboxButton({
 	truncateTooltipSuppressed,
 }: ListboxButtonProps) {
 	return (
-		<ButtonBase
+		<button
 			type="button"
 			id={id}
 			ref={ref}
@@ -124,6 +123,6 @@ export function ListboxButton({
 					{label || <span className={cn(k.placeholder)}>{placeholder}</span>}
 				</span>
 			)}
-		</ButtonBase>
+		</button>
 	)
 }

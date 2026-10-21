@@ -1,5 +1,6 @@
 'use client'
 
+import type { ComponentProps, Ref } from 'react'
 import { Children } from 'react'
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
@@ -9,8 +10,10 @@ import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
 import { useSlots } from '../../providers/headless/use-slots'
 import { k } from '../../recipes/kata/button'
+import { useControlLock } from '../control/context'
+import { Link } from '../link'
 import { LoadingSpinner } from '../loading'
-import { ButtonBase, type ButtonBaseProps } from './button-base'
+import { loadingProps, lockedProps } from './button-constants'
 import { type ButtonOwnProps, isIconElement, isVisuallyHiddenElement } from './button-utilities'
 import { useButtonDefaults } from './context'
 
@@ -50,9 +53,13 @@ export function Button({
 	size,
 	className,
 	children,
+	href,
+	ref,
 	loading = false,
+	lockable = true,
 	prefix,
 	suffix,
+	type,
 	'data-slot': slot = 'button',
 	...props
 }: ButtonProps) {
@@ -62,6 +69,10 @@ export function Button({
 
 	const slots = useSlots(k, { variant, color })
 
+	// A locked scope, such as a form that submits, makes the button inert. A link
+	// leaves the page, and the lock does not reach it.
+	const locked = useControlLock() && lockable && href === undefined
+
 	// Non-icon children count as a text label; labeled buttons use control height
 	// (see `data-has-label` in the button recipe), icon-only buttons stay square.
 	// A visually hidden child, such as an `sr-only` name, takes no room, so it is
@@ -70,33 +81,62 @@ export function Button({
 		(child) => !isIconElement(child) && !isVisuallyHiddenElement(child),
 	)
 
+	// Shared across the anchor and button renders; consumer `props` spread later
+	// can still override.
+	const sharedProps = {
+		'data-slot': slot,
+		// Always written, the recipe default included: the children that size
+		// themselves in a button (LoadingSpinner, LoadingDots, Kbd) select a
+		// parent with `data-variant`, which survives a wrapper that rewrites
+		// `data-slot`.
+		'data-variant': variant ?? 'solid',
+		'data-density': size,
+		'data-has-prefix': !!prefix || undefined,
+		'data-has-suffix': !!suffix || undefined,
+		'data-has-label': hasLabel || undefined,
+		className: cn(slots.base, className),
+	}
+
+	const content = (
+		<TouchTarget>
+			<Density step={size}>
+				{/* The spinner takes the place of the leading content while the button loads. */}
+				{loading ? <LoadingSpinner label={intl.formatMessage(intlMessages.loading)} /> : prefix}
+				{/* The spinner takes the place of the icon of an icon-only button, so the
+				    button keeps its square. The icon stays for assistive technology. */}
+				{loading && !hasLabel ? <span className="sr-only">{children}</span> : children}
+				{suffix}
+			</Density>
+		</TouchTarget>
+	)
+
+	if (href !== undefined) {
+		return (
+			<Link
+				ref={ref as Ref<HTMLAnchorElement>}
+				{...sharedProps}
+				href={href}
+				type={type}
+				{...(props as Omit<ComponentProps<typeof Link>, 'href' | 'className'>)}
+				{...(loading && loadingProps)}
+			>
+				{content}
+			</Link>
+		)
+	}
+
 	return (
-		<ButtonBase
-			data-slot={slot}
-			// Always written, the recipe default included: the children that size
-			// themselves in a button (LoadingSpinner, LoadingDots, Kbd) select a
-			// parent with `data-variant`, which survives a wrapper that rewrites
-			// `data-slot`.
-			data-variant={variant ?? 'solid'}
-			data-density={size}
-			data-has-prefix={!!prefix || undefined}
-			data-has-suffix={!!suffix || undefined}
-			data-has-label={hasLabel || undefined}
-			className={cn(slots.base, className)}
-			loading={loading}
-			// Consumer props spread later can still override the data attributes.
-			{...(props as ButtonBaseProps)}
+		<button
+			ref={ref as Ref<HTMLButtonElement>}
+			{...sharedProps}
+			{...(props as Omit<ComponentProps<'button'>, 'className'>)}
+			type={type}
+			// A loading or locked button stays enabled, so it keeps the focus that it
+			// has. These props cancel its activation instead of `disabled`.
+			{...(locked && lockedProps)}
+			{...(loading && loadingProps)}
 		>
-			<TouchTarget>
-				<Density step={size}>
-					{/* The spinner takes the place of the leading content while the button loads. */}
-					{loading ? <LoadingSpinner label={intl.formatMessage(intlMessages.loading)} /> : prefix}
-					{/* The spinner takes the place of the icon of an icon-only button, so the
-					    button keeps its square. The icon stays for assistive technology. */}
-					{loading && !hasLabel ? <span className="sr-only">{children}</span> : children}
-					{suffix}
-				</Density>
-			</TouchTarget>
-		</ButtonBase>
+			{content}
+		</button>
 	)
 }

@@ -19,7 +19,7 @@ function cancelActivation(event: MouseEvent<HTMLElement>) {
  * - The click that the Enter key in a field sends to the submit button of its form.
  * - The middle click that opens an anchor in a new tab.
  *
- * Shared by the standard and headless renderers.
+ * Shared by the button and the anchor of `Button`.
  *
  * @internal
  */

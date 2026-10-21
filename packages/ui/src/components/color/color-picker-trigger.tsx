@@ -7,7 +7,6 @@ import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/color-picker'
 import { k } from '../../recipes/kata/color-picker'
-import { ButtonBase } from '../button/button-base'
 import { hsvaToCss, hsvaToHex } from './color-utilities'
 import type { Hsva } from './types'
 
@@ -87,7 +86,7 @@ export function ColorPickerTrigger({
 			size={size}
 			className={cn(k.root, className)}
 		>
-			<ButtonBase
+			<button
 				type="button"
 				id={triggerId}
 				aria-haspopup="dialog"
@@ -115,7 +114,7 @@ export function ColorPickerTrigger({
 						    outer span keeps the inherited direction, so the code stays next to the swatch. */}
 					<span dir="ltr">{label}</span>
 				</span>
-			</ButtonBase>
+			</button>
 		</SelectTrigger>
 	)
 }
