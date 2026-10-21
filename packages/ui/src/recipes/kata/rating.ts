@@ -33,14 +33,7 @@ const { focus } = sen
  * rating that takes the ink of the row it sits in. Each color resolves to the
  * `marker` shade, which clears the graphical 3:1 floor on the page surface.
  */
-const color = {
-	current: 'text-current',
-	zinc: marker.zinc,
-	red: marker.red,
-	amber: marker.amber,
-	green: marker.green,
-	blue: marker.blue,
-}
+const color = { current: 'text-current', ...marker }
 
 /**
  * One star's box: the position the clipped fill is measured against. It carries

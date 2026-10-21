@@ -9,15 +9,13 @@
  * the trigger to its content, and `skeleton` is the form of DatePickerSkeleton.
  */
 import { defineRecipe } from '../../core/recipe'
-import { hannou, iro, kokkaku, narabi, sen } from '../kiso'
+import { iro, kokkaku, narabi, sen } from '../kiso'
 import { control } from '../kiso/control'
 import { dan } from '../kiso/dan'
 import { popover } from '../kiso/popover'
 
-const { cursor } = hannou
 const { focus } = sen
 const { text } = iro
-const { reset, density } = control
 const { field, flex } = narabi
 const { fit, picker } = popover
 
@@ -25,11 +23,7 @@ const button = defineRecipe({
 	base: [
 		flex.row,
 		'justify-between',
-		...reset.base,
-		'text-start',
-		'appearance-none',
-		...cursor,
-		...density,
+		...control.button,
 		// The calendar icon is inside the button, not in a suffix slot. This gap
 		// keeps it the control `px` from the value, as the Listbox chevron is.
 		dan.gap.datePicker,
