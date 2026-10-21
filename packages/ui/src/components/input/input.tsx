@@ -14,6 +14,7 @@ import type { ScaleStep } from '../../core/density'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { useSlots } from '../../providers/headless/use-slots'
 import type { scale } from '../../recipes/kata/input'
 import { type InputVariants, k } from '../../recipes/kata/input'
 import { clearNativeInput } from '../../utilities'
@@ -60,7 +61,8 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
  * Text input with optional `prefix`/`suffix` affixes and an optional clear
  * button.
  * Resolves variant and invalid state from enclosing Control, Form, and
- * GlassProvider context, and drops to a bare `<input>` under headless context.
+ * GlassProvider context. Under headless context, the input and its affixes
+ * render bare, with no frame and no classes.
  * The size takes the step of the nearest density scope through stepped
  * classes. An explicit `size` writes that scope on the frame. Plain text in
  * an affix has the text size of the input at each step.
@@ -70,10 +72,9 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
  * `defaultValue` reaches the element only while the input is uncontrolled, so
  * a bound input ignores it (§7.2).
  * `invalid` OR's the prop, the bound field, and any ambient Control error.
- * Under headless context the affix frame and recipe classes are all skipped.
  * The clear button of `clearable` comes before the `suffix`. It keeps the focus
  * in the input. When the button goes away while it has the focus, the focus
- * goes to the input. The button does not show under headless context. On an
+ * goes to the input. On an
  * uncontrolled input, it follows a native form reset.
  * @see {@link InputFrame}
  */
@@ -154,20 +155,6 @@ export function Input({
 			}
 		: field.attrs.onChange
 
-	const inputEl = (
-		<input
-			ref={setRefs}
-			data-slot="input"
-			type={type}
-			{...rest}
-			{...field.attrs}
-			onChange={handleChange}
-			className={cn(!field.headless && k({ variant: field.variant }).field, className)}
-		/>
-	)
-
-	if (field.headless) return inputEl
-
 	const editable = !field.attrs.disabled && !field.attrs.readOnly
 
 	const clearButton =
@@ -191,10 +178,22 @@ export function Input({
 			(clearButton ?? suffix)
 		)
 
-	const slots = k({
+	const slots = useSlots(k, {
 		variant: field.variant,
 		affixed: isAffixPresent(prefix) || isAffixPresent(frameSuffix),
 	})
+
+	const inputEl = (
+		<input
+			ref={setRefs}
+			data-slot="input"
+			type={type}
+			{...rest}
+			{...field.attrs}
+			onChange={handleChange}
+			className={cn(slots.field, className)}
+		/>
+	)
 
 	return (
 		<InputFrame input={inputEl} prefix={prefix} suffix={frameSuffix} slots={slots} density={size} />

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { ControlFrame } from '../../primitives/control'
+import { Shell } from '../../providers/headless/shell'
 
 type InputFrameProps = {
 	input: ReactNode
@@ -31,7 +32,8 @@ export function isAffixPresent(affix: ReactNode) {
  * slot is a scope one step below the frame (`data-density="slot"`), so the slot
  * content renders one step smaller than the input. The caller resolves the
  * slots of its unit, with `affixed` from {@link isAffixPresent}, which also
- * guards each affix here.
+ * guards each affix here. Under `<HeadlessProvider>`, the frame and each affix
+ * slot drop their element, and the affixes render bare beside the field.
  *
  * @internal
  */
@@ -43,17 +45,17 @@ export function InputFrame({ input, prefix, suffix, slots, density }: InputFrame
 	return (
 		<ControlFrame density={density} className={cn(slots.base)}>
 			{hasPrefix && (
-				<span data-slot="prefix" data-density="slot" className={cn(slots.prefix)}>
+				<Shell data-slot="prefix" data-density="slot" className={cn(slots.prefix)}>
 					{prefix}
-				</span>
+				</Shell>
 			)}
 
 			{input}
 
 			{hasSuffix && (
-				<span data-slot="suffix" data-density="slot" className={cn(slots.suffix)}>
+				<Shell data-slot="suffix" data-density="slot" className={cn(slots.suffix)}>
 					{suffix}
-				</span>
+				</Shell>
 			)}
 		</ControlFrame>
 	)

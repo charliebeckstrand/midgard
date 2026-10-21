@@ -5,7 +5,7 @@ import { useId, useRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useGlass } from '../../providers/glass/context'
-import { useHeadless } from '../../providers/headless/context'
+import { useSlots } from '../../providers/headless/use-slots'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -56,8 +56,6 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 
 	const glass = useGlass()
 
-	const headless = useHeadless()
-
 	const label = selectionSummary(intl, files, multiple)
 
 	const valueId = useId()
@@ -82,7 +80,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 	const variant = control?.variant ?? (glass ? 'glass' : undefined)
 
 	// The suffix always holds the clear or the browse button, so the frame is affixed.
-	const slots = k.input({ variant, affixed: true })
+	const slots = useSlots(k.input, { variant, affixed: true })
 
 	// The display button is not the control, so it takes no Field id, `required`,
 	// or `aria-describedby`. It shows the state of the Field through its own props.
@@ -96,7 +94,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 					aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${valueId}` : undefined}
 					disabled={disabled}
 					{...invalidAttrs(invalid)}
-					className={cn(!headless && slots.field, k.cursor)}
+					className={cn(slots.field, k.cursor)}
 					onClick={openPicker}
 				>
 					<span id={valueId} className={cn(k.value, !label && k.placeholder)}>
@@ -111,45 +109,32 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 	return (
 		<div data-slot="file-upload" {...props} className={cn('relative', className)}>
 			<FileUploadHiddenInput {...state.hiddenInput} ariaLabel={placeholder} />
-			{headless ? (
-				<>
-					{field}
-					{hasFiles && (
+			<InputFrame
+				input={field}
+				prefix={undefined}
+				suffix={
+					hasFiles ? (
 						<InputClearButton
 							label={intl.formatMessage(fileUploadMessages.clear, { count: files.length })}
 							disabled={disabled}
 							onClick={handleClear}
 						/>
-					)}
-				</>
-			) : (
-				<InputFrame
-					input={field}
-					prefix={undefined}
-					suffix={
-						hasFiles ? (
-							<InputClearButton
-								label={intl.formatMessage(fileUploadMessages.clear, { count: files.length })}
-								disabled={disabled}
-								onClick={handleClear}
-							/>
-						) : (
-							<Button
-								type="button"
-								variant="bare"
-								className="pointer-events-auto"
-								aria-label={intl.formatMessage(fileUploadMessages.browse)}
-								disabled={disabled}
-								onClick={handleBrowse}
-							>
-								<Icon icon={<Upload />} />
-							</Button>
-						)
-					}
-					slots={slots}
-					density={size}
-				/>
-			)}
+					) : (
+						<Button
+							type="button"
+							variant="bare"
+							className="pointer-events-auto"
+							aria-label={intl.formatMessage(fileUploadMessages.browse)}
+							disabled={disabled}
+							onClick={handleBrowse}
+						>
+							<Icon icon={<Upload />} />
+						</Button>
+					)
+				}
+				slots={slots}
+				density={size}
+			/>
 		</div>
 	)
 }

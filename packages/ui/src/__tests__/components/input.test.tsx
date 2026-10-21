@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Input } from '../../components/input'
 import { Form } from '../../modules/form'
+import { HeadlessProvider } from '../../providers/headless'
 import { act, bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 describe('Input', () => {
@@ -323,5 +324,27 @@ describe('Input defaultValue under a binding (§7.2)', () => {
 
 			expect(suffix.textContent).toBe('.example.com')
 		})
+	})
+})
+
+describe('Input under headless context', () => {
+	it('renders the input and its affixes bare, with no frame and no classes', () => {
+		const { container } = renderUI(
+			<HeadlessProvider>
+				<Input className="custom" prefix={<b>$</b>} defaultValue="1" clearable />
+			</HeadlessProvider>,
+		)
+
+		const input = getSlot(container, 'input')
+
+		expect(input.className).toBe('custom')
+
+		expect(bySlot(container, 'control-frame')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'prefix')).not.toBeInTheDocument()
+
+		expect(screen.getByText('$').parentElement).toBe(container)
+
+		expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument()
 	})
 })

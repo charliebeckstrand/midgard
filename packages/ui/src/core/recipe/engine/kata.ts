@@ -110,6 +110,11 @@ export type Kata<C> = {
 	(props?: KataProps<C>): KataOutput<C>
 	/** Resolved config, exposed for introspection. */
 	readonly config: KataResolvedConfig<C>
+	/**
+	 * The output of the unit with no classes: each slot is an empty string. A
+	 * headless component renders it in place of `k(props)` (`useSlots`).
+	 */
+	readonly bare: KataOutput<C>
 }
 
 /**
@@ -269,7 +274,7 @@ export function defineGroup(config: UnitInput, extras?: Record<string, unknown>)
  * motion configs) attached as direct properties; the recipe stays callable.
  * @throws If a child slot is named `base`, or declares its own `defaults` or
  * `slots`, because the unit holds the defaults and a slot does not nest.
- * @throws If an extras key collides with a function built-in or `config`.
+ * @throws If an extras key collides with a function built-in, `config`, or `bare`.
  */
 export function defineKata<C extends UnitInput>(config: C): Kata<C> & GroupExtrasOf<C>
 export function defineKata<C extends UnitInput, X extends Record<string, unknown>>(
@@ -312,7 +317,7 @@ export function defineKata<C extends UnitInput, X extends Record<string, unknown
 
 	if (attached !== undefined) {
 		for (const key of Object.keys(attached)) {
-			if (key in kata || key === 'config') {
+			if (key in kata || key === 'config' || key === 'bare') {
 				throw new Error(`defineKata: extra name "${key}" collides with a recipe property`)
 			}
 		}
@@ -341,6 +346,10 @@ export function defineKata<C extends UnitInput, X extends Record<string, unknown
 	} as KataResolvedConfig<C>
 
 	Object.defineProperty(kata, 'config', { value: resolved, enumerable: false })
+
+	const bare = Object.freeze(Object.fromEntries(slots.map(([name]) => [name, ''])))
+
+	Object.defineProperty(kata, 'bare', { value: bare, enumerable: false })
 
 	return kata as Kata<C> & X
 }

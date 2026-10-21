@@ -91,7 +91,10 @@ describe('Textarea', () => {
 
 		expect(container.firstElementChild).toBe(el)
 
-		expect(screen.queryByText('send')).toBeNull()
+		// The actions are content, so they stay, with no row around them.
+		expect(el.nextElementSibling).toBe(screen.getByText('send'))
+
+		expect(bySlot(container, 'textarea-actions')).not.toBeInTheDocument()
 	})
 
 	it('coerces a null controlled value to an empty string and stays controlled', async () => {

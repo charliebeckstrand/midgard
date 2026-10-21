@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
+import { useHeadless } from '../../providers/headless/context'
 import { PolymorphicStatic } from '../polymorphic'
 
 /** Props for {@link ControlFrame}: the density step and the standard `span` attributes. */
@@ -22,8 +23,13 @@ export type ControlFrameProps = ComponentProps<'span'> & {
  * holds the chrome, the radius, and the surface of its frame. The classes take
  * the step of the nearest density scope through stepped `density-*` classes,
  * so the frame reads no context.
+ *
+ * Under `<HeadlessProvider>`, the frame renders its children alone, with no
+ * element, so a headless control is its bare field.
  */
 export function ControlFrame({ className, density, children, ...props }: ControlFrameProps) {
+	if (useHeadless()) return children
+
 	return (
 		<PolymorphicStatic
 			as="span"
