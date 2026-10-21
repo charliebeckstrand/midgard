@@ -28,26 +28,17 @@ export function StepperIndicator({ className, children, ...props }: StepperIndic
 
 	const interactive = onValueChange !== undefined
 
+	const slots = k({ interactive, state })
+
 	const content =
-		children ??
-		(state === 'completed' && <Check aria-hidden="true" className={k.indicator.check} />)
+		children ?? (state === 'completed' && <Check aria-hidden="true" className={slots.check} />)
 
 	return (
-		<span
-			data-slot="stepper-indicator"
-			className={cn(
-				k.indicator.base,
-				interactive && k.indicator.interactive,
-				state === 'current' && k.indicator.current,
-				state === 'completed' && k.indicator.completed,
-				className,
-			)}
-			{...props}
-		>
+		<span data-slot="stepper-indicator" className={cn(slots.indicator, className)} {...props}>
 			{state === 'current' && (
-				<ActiveIndicator className={cn(k.indicator.active)} style={{ borderRadius: '9999px' }} />
+				<ActiveIndicator className={slots.fill} style={{ borderRadius: '9999px' }} />
 			)}
-			{content !== false && <span className={cn(k.indicator.content)}>{content}</span>}
+			{content !== false && <span className={slots.glyph}>{content}</span>}
 		</span>
 	)
 }

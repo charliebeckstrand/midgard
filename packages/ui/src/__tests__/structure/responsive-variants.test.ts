@@ -9,7 +9,6 @@ import { k as offcanvas } from '../../recipes/kata/offcanvas'
 import { k as queryBuilder } from '../../recipes/kata/query-builder'
 import { k as sheet } from '../../recipes/kata/sheet'
 import { k as sidebarLayout } from '../../recipes/kata/sidebar-layout'
-import { k as stepper } from '../../recipes/kata/stepper'
 import { BREAKPOINT_WIDTHS, type MinBreakpoint, resolveVariant } from '../../types/responsive'
 import { noop } from '../../utilities/noop'
 import { uiRoot } from '../helpers/walk-source'
@@ -89,12 +88,6 @@ function unitAxes(): [string, Record<string, string>][] {
 /** Each responsive variant axis of a component: its name and its table of classes. */
 const AXES: ReadonlyArray<readonly [string, Record<string, string>]> = [
 	...unitAxes(),
-	['Stepper row orientation', stepper.base.orientation],
-	['Stepper step orientation', stepper.step.orientation],
-	['Stepper item orientation', stepper.item.orientation],
-	['Stepper title orientation', stepper.title.orientation],
-	['Stepper separator orientation', stepper.separator.orientation],
-	['Stepper content orientation', stepper.content.orientation],
 	['Sheet right layout', sheet.layout.side.right],
 	['Sheet left layout', sheet.layout.side.left],
 	['Sheet top layout', sheet.layout.side.top],

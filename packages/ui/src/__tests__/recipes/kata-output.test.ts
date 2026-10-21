@@ -17,6 +17,7 @@ import { k as numberInput } from '../../recipes/kata/number-input'
 import { k as overlay } from '../../recipes/kata/overlay'
 import { k as panel } from '../../recipes/kata/panel'
 import { k as popover } from '../../recipes/kata/popover'
+import { k as stepper } from '../../recipes/kata/stepper'
 import { k as textarea } from '../../recipes/kata/textarea'
 import { k as toast } from '../../recipes/kata/toast'
 import { k as tooltip } from '../../recipes/kata/tooltip'
@@ -86,6 +87,11 @@ const RENAMES: Record<string, string> = {
 	'nav.k.bar()': 'nav.k.bar.base()',
 	'nav.k.rail': 'nav.k.bar.rail',
 	'toast.k.base': 'toast.k.viewport',
+	'stepper.k.button': 'stepper.k.item.button',
+	'stepper.k.title()': 'stepper.k.title.base()',
+	'stepper.k.check': 'stepper.k.indicator.check',
+	'stepper.k.fill': 'stepper.k.indicator.active',
+	'stepper.k.glyph': 'stepper.k.indicator.content',
 	...Object.fromEntries(
 		[
 			'animate.opacity',
@@ -132,8 +138,8 @@ const DROPPED = /^(panel\.k\.(gap|inset)\.|overlay\.k\.backdrop\.glass$)/
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll))(\(\))?$/,
-	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+))$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title))(\(\))?$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive)))$/,
 }
 
 /** The output of main, by path. */
@@ -548,6 +554,52 @@ describe('kata output', () => {
 				read('toast.k.scroll'),
 				read(`toast.k.position.scroll.${position}`),
 			)
+		}
+
+		// The parts of a stepper, with the orientation that the stepper resolved by
+		// breakpoint on main.
+		for (const orientation of ['horizontal', 'vertical'] as const) {
+			const slots = stepper({ orientation })
+
+			for (const part of ['base', 'content', 'item', 'separator', 'step'] as const) {
+				check(
+					`stepper ${part} ${orientation}`,
+					slots[part],
+					read(`stepper.k.${part}.base`),
+					read(`stepper.k.${part}.orientation.${orientation}`),
+				)
+			}
+
+			// The title of main is a string in which `text-sm` sorts after
+			// `leading-none`, so a merge of it drops the leading. Thus the title with no
+			// orientation is compared as a set, and this check adds the orientation to it.
+			for (const interactive of [false, true]) {
+				check(
+					`stepper title ${orientation} ${interactive}`,
+					stepper({ orientation, interactive }).title,
+					stepper({ interactive }).title,
+					read(`stepper.k.title.orientation.${orientation}`),
+				)
+			}
+		}
+
+		for (const interactive of [false, true]) {
+			expect(stepper({ interactive }).title.split(' ').sort()).toEqual(
+				read('stepper.k.title.base', `interactive=${interactive}`).split(' ').sort(),
+			)
+		}
+
+		// The indicator of a step, with the marks that the indicator added on main.
+		for (const interactive of [false, true]) {
+			for (const state of ['completed', 'current', 'upcoming'] as const) {
+				check(
+					`stepper indicator ${interactive} ${state}`,
+					stepper({ interactive, state }).indicator,
+					read('stepper.k.indicator.base'),
+					interactive && read('stepper.k.indicator.interactive'),
+					state !== 'upcoming' && read(`stepper.k.indicator.${state}`),
+				)
+			}
 		}
 
 		// The panel and the box of a dialog, with the align that the dialog

@@ -2,35 +2,14 @@
 
 import { createContext } from '../../core'
 import type { Mount } from '../../primitives/mount'
-import { k } from '../../recipes/kata/stepper'
-import { type Orientation, type Responsive, resolveVariant } from '../../types'
+import type { k } from '../../recipes/kata/stepper'
+import type { Orientation } from '../../types'
 
 /** Layout axis of a {@link Stepper}'s step row: `horizontal` or `vertical`. */
 export type StepperOrientation = Orientation
 
-/** The orientation classes of each part of a stepper, at each breakpoint that its `orientation` names. */
-export type StepperLayout = Record<
-	'base' | 'step' | 'item' | 'title' | 'separator' | 'content',
-	string
->
-
-/**
- * Resolves the orientation table of each part of the stepper once. The parts
- * then read their classes from the context, and a step does not resolve them
- * again. The skeleton uses the same classes.
- *
- * @internal
- */
-export function stepperLayout(orientation: Responsive<StepperOrientation>): StepperLayout {
-	return {
-		base: resolveVariant(orientation, k.base.orientation),
-		step: resolveVariant(orientation, k.step.orientation),
-		item: resolveVariant(orientation, k.item.orientation),
-		title: resolveVariant(orientation, k.title.orientation),
-		separator: resolveVariant(orientation, k.separator.orientation),
-		content: resolveVariant(orientation, k.content.orientation),
-	}
-}
+/** The slots of a stepper, resolved for its `orientation` and whether its steps are buttons. */
+export type StepperSlots = ReturnType<typeof k>
 
 /** A step's position relative to the stepper's current `value`: already passed, active, or not yet reached. */
 export type StepState = 'completed' | 'current' | 'upcoming'
@@ -38,8 +17,8 @@ export type StepState = 'completed' | 'current' | 'upcoming'
 type StepperContextValue = {
 	value: number
 	onValueChange?: (value: number) => void
-	/** The orientation classes of each part, from the `orientation` of the stepper. */
-	layout: StepperLayout
+	/** The slots of each part, from the `orientation` of the stepper. */
+	slots: StepperSlots
 	linear: boolean
 	/** Stable id base wiring each step button to its panel. */
 	baseId: string
