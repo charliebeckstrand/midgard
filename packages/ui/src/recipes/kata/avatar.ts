@@ -1,7 +1,6 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
-import { iro, kasane, kokkaku, narabi } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, kasane, kokkaku, narabi } from '../kiso'
 
 const { matrix } = iro
 const { rounded } = kasane

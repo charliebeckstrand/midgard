@@ -8,8 +8,7 @@
 
 import { defineScale } from '../../core/density'
 import { mode } from '../../core/recipe'
-import { iro, kokkaku, type SeriesSlot, sen, zu } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, kokkaku, type SeriesSlot, sen, zu } from '../kiso'
 
 const { text } = iro
 

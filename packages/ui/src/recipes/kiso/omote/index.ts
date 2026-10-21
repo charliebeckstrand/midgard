@@ -3,15 +3,15 @@
  * `bg.tint`, `bg.popover`, `bg.skeleton`); the other keys carry the
  * composed chromes that wrap a fill with ring / blur / pulse / etc.
  * One file per concern; this barrel assembles the named bundle that
- * every kata reads. The `blur` and `fade` fragments stay out of
- * the bundle: only the chromes in this folder compose them, except
- * the menu viewport, which reads `fade.block` from its own file.
+ * every kata reads. The `blur` fragment stays out of the bundle: only
+ * the chromes in this folder compose it.
  */
 
 import { backdrop } from './backdrop'
 import { bg } from './bg'
 import { checkerboard } from './checkerboard'
 import { content } from './content'
+import { fade } from './fade'
 import { glass } from './glass'
 import { panel } from './panel'
 import { popover } from './popover'
@@ -28,5 +28,7 @@ export const omote = {
 	content,
 	skeleton,
 	rail,
+	/** The edge fade of a scroll container, as a mask. */
+	fade,
 	checkerboard,
 } as const

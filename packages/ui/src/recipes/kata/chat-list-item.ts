@@ -1,6 +1,5 @@
 import { defineRecipe } from '../../core/recipe'
-import { hannou, iro, ji, narabi, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, narabi, sen } from '../kiso'
 
 const { cursor, tint } = hannou
 const { text } = iro

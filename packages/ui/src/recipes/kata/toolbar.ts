@@ -5,8 +5,7 @@
  * controls.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { kasane, narabi, omote, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, kasane, narabi, omote, sen } from '../kiso'
 
 const { rounded } = kasane
 const { flex } = narabi

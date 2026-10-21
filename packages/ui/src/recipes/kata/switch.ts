@@ -1,7 +1,6 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, kasane, kokkaku, sen } from '../kiso'
 import { hidden, validation } from '../kumi/check'
 
 const { cursor, disabled } = hannou

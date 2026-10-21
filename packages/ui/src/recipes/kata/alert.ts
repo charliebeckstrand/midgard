@@ -1,6 +1,5 @@
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
-import { iro, ji, kasane, narabi, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, ji, kasane, narabi, sen } from '../kiso'
 
 const { matrix, palette } = iro
 const { weight, leading } = ji

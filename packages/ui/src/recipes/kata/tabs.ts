@@ -8,8 +8,7 @@
  */
 import { defineScale } from '../../core/density'
 import { defineKata, mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
 const { cursor, disabled, fg } = hannou
 const { on, text } = iro

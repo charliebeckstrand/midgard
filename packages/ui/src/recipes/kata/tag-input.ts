@@ -1,5 +1,4 @@
-import { omote, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, omote, sen } from '../kiso'
 
 const { focus } = sen
 

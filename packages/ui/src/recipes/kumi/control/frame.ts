@@ -6,9 +6,7 @@
  * Layer: kumi · Group: control · Concern: frame
  */
 
-import { dan } from '../../kiso/dan'
-import { kasane } from '../../kiso/kasane'
-import { narabi } from '../../kiso/narabi'
+import { dan, kasane, narabi } from '../../kiso'
 import { radius } from './density'
 
 const { layers } = kasane

@@ -1,7 +1,6 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { iro, ji, kokkaku, narabi } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, ji, kokkaku, narabi } from '../kiso'
 
 const { text } = iro
 const { weight } = ji

@@ -18,8 +18,7 @@
 
 import { defineScale } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, iro, kokkaku, narabi, sen, ugoki } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, kokkaku, narabi, sen, ugoki } from '../kiso'
 import { hidden } from '../kumi/check'
 
 const { cursor, disabled } = hannou

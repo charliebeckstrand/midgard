@@ -1,5 +1,4 @@
-import { hannou, ji, kasane, narabi, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, ji, kasane, narabi, sen } from '../kiso'
 import { validation } from '../kumi/check'
 
 const { disabled } = hannou

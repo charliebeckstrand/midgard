@@ -6,8 +6,7 @@
  * captures, and the bugs. `hash` colors the hash of a report. The colors are
  * the `onSurface` shades of the ramp, which clear AA on the surface.
  */
-import { iro, omote } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, omote } from '../kiso'
 import type { ByLayout } from './offcanvas'
 
 const { x, top, bottom } = dan.space.panel

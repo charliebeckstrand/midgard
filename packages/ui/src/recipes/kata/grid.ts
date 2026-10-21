@@ -7,8 +7,7 @@
  * stepped.
  */
 import { defineRecipe, mode, type PaletteColor } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
 const { busy, cursor, fg, grab } = hannou
 const { text } = iro

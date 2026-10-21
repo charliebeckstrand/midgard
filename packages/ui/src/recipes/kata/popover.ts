@@ -6,8 +6,7 @@
  * panel too. `panel` holds the parts of the floating panel.
  */
 import { defineScale } from '../../core/density'
-import { hannou, iro, kasane, omote, sen, sou, ugoki } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, kasane, omote, sen, sou, ugoki } from '../kiso'
 
 const { cursor } = hannou
 const { rounded } = kasane

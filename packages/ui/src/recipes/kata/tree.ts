@@ -8,8 +8,7 @@
  */
 import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
 import { rest } from '../kumi/check'
 
 const { cursor, fg } = hannou

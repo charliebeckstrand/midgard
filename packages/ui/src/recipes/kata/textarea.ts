@@ -1,6 +1,5 @@
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { kokkaku, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, kokkaku, sen } from '../kiso'
 import { control } from '../kumi/control'
 
 export { scale } from '../kumi/control'

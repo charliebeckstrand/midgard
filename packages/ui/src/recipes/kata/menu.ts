@@ -20,9 +20,7 @@
  */
 import { defineScale } from '../../core/density'
 import { defineKata, defineRecipe, mode } from '../../core/recipe'
-import { iro, ji, narabi, sen } from '../kiso'
-import { dan } from '../kiso/dan'
-import { fade } from '../kiso/omote/fade'
+import { dan, iro, ji, narabi, omote, sen } from '../kiso'
 import { item } from '../kumi/item'
 
 const { text } = iro
@@ -56,7 +54,7 @@ const viewport = defineRecipe({
 		// solid color to fade into; a mask fades the scrolled content itself.
 		// The edge with content behind it fades, in CSS with no script. When the
 		// rows fit, no mask applies.
-		...fade.block,
+		...omote.fade.block,
 	],
 	// Off by default: a menu is normally a short, fixed item set, where a cap
 	// clips the last row and reads as truncation rather than as more content

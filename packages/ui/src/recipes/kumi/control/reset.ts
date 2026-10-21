@@ -6,7 +6,7 @@
  * Layer: kumi · Group: control · Concern: input reset
  */
 
-import { iro } from '../../kiso/iro'
+import { iro } from '../../kiso'
 
 const { text } = iro
 

@@ -1,6 +1,5 @@
 import { defineKata } from '../../core/recipe'
-import { hannou, kasane, kokkaku, narabi, omote, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 import { picker } from '../kumi/control'
 
 export { scale } from '../kumi/control'

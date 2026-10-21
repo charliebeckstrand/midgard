@@ -10,8 +10,7 @@
  * of DatePickerSkeleton. The group gives `root` and the base of `content`.
  */
 import { defineKata, defineRecipe } from '../../core/recipe'
-import { hannou, iro, kokkaku, narabi, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, kokkaku, narabi, sen } from '../kiso'
 import { picker } from '../kumi/control'
 
 export { scale } from '../kumi/control'

@@ -19,8 +19,7 @@
  */
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { omote, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, omote, sen } from '../kiso'
 
 const { bg } = omote
 

@@ -1,5 +1,4 @@
-import { kasane, omote, sen, ugoki } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, kasane, omote, sen, ugoki } from '../kiso'
 
 const { rounded } = kasane
 const { focus, ring } = sen

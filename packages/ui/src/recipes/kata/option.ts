@@ -1,6 +1,5 @@
 import { defineKata, mode } from '../../core/recipe'
-import { iro, ji, narabi } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, ji, narabi } from '../kiso'
 import { item } from '../kumi/item'
 
 const { flex } = narabi

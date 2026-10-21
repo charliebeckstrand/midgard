@@ -1,5 +1,4 @@
-import { sou, ugoki } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, sou, ugoki } from '../kiso'
 
 const { spring, toast } = ugoki
 

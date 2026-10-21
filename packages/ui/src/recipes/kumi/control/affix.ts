@@ -71,9 +71,7 @@
  * Layer: kumi · Group: control · Concern: affix
  */
 
-import { dan } from '../../kiso/dan'
-import { iro } from '../../kiso/iro'
-import { narabi } from '../../kiso/narabi'
+import { dan, iro, narabi } from '../../kiso'
 
 export const affix = {
 	/**

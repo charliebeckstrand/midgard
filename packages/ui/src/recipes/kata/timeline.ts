@@ -1,6 +1,5 @@
 import { type Color, defineRecipe, type VariantProps } from '../../core/recipe'
-import { iro, ji, kokkaku, omote, ugoki } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, ji, kokkaku, omote, ugoki } from '../kiso'
 import type { SwatchVariants } from './swatch'
 
 const { marker, text } = iro

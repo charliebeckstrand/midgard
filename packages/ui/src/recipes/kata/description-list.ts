@@ -1,5 +1,4 @@
-import { iro, ji, kokkaku } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, ji, kokkaku } from '../kiso'
 
 const { text } = iro
 const { weight } = ji

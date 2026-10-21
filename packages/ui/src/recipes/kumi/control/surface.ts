@@ -7,7 +7,7 @@
  */
 
 import { mode } from '../../../core/recipe'
-import { omote } from '../../kiso/omote'
+import { omote } from '../../kiso'
 
 const { glass } = omote
 

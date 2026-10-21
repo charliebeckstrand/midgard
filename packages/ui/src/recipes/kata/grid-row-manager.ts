@@ -5,8 +5,7 @@
  * zone's tint comes from the shared `kata/grid-group` `outline` (Card outline).
  * So this carries only the flex layout.
  */
-import { iro, ji, narabi } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, ji, narabi } from '../kiso'
 
 const { text } = iro
 const { weight } = ji

@@ -9,8 +9,7 @@
  */
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
-import { kasane, narabi, omote, shaku } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, kasane, narabi, omote, shaku } from '../kiso'
 
 const { rounded } = kasane
 const { mark } = shaku

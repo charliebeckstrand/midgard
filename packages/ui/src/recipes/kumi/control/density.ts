@@ -26,8 +26,7 @@
  */
 
 import { defineScale } from '../../../core/density'
-import { dan } from '../../kiso/dan'
-import { ji } from '../../kiso/ji'
+import { dan, ji } from '../../kiso'
 import { affix } from './affix'
 
 /** The radius at each step. The frame also takes it (`./frame.ts`). */

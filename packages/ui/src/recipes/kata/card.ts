@@ -1,6 +1,5 @@
 import { defineScale } from '../../core/density'
-import { iro, narabi } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, narabi } from '../kiso'
 
 const { text } = iro
 const { flex } = narabi
