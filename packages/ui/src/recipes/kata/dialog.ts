@@ -15,21 +15,17 @@ const floating =
 export const k = defineKata(
 	{
 		extends: panel,
-		slots: {
-			base: {
-				base: [
-					'relative',
-					'w-full',
-					inset.x,
-					inset.top,
-					// The bottom padding. On the bottom edge, the `align` table also adds the
-					// inset of the home indicator in a page with `viewport-fit=cover`.
-					inset.safe,
-				],
-				/** The maximum width of the panel. */
-				width: shaku.panel,
-			},
-		},
+		base: [
+			'relative',
+			'w-full',
+			inset.x,
+			inset.top,
+			// The bottom padding. On the bottom edge, the `align` table also adds the
+			// inset of the home indicator in a page with `viewport-fit=cover`.
+			inset.safe,
+		],
+		/** The maximum width of the panel. */
+		width: shaku.panel,
 		defaults: { width: 'lg' },
 	},
 	{

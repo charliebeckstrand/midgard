@@ -8,37 +8,33 @@ const { checkbox } = kokkaku
 export const k = defineKata(
 	{
 		extends: check,
+		base: [
+			'[--check-border:transparent]',
+			// One selector list holds the checked and the indeterminate state. The
+			// indeterminate arm reads `data-indeterminate`, not `:indeterminate`.
+			// Only a client effect sets the DOM property, so the server HTML has only
+			// the attribute.
+			'has-[:checked,[data-indeterminate]]:bg-(--check-bg) has-[:checked,[data-indeterminate]]:border-(--check-border)',
+			'not-has-disabled:has-[:checked,[data-indeterminate]]:hover:opacity-90',
+			// The box takes the step of the nearest density scope.
+			checkbox.box,
+			dan.radius.check,
+		],
+		color: defineColors({
+			zinc: '[--check-mark:var(--color-white)] [--check-bg:var(--color-zinc-600)] [--check-border:var(--color-zinc-700)]/90',
+		}),
 		slots: {
-			base: {
-				base: [
-					'[--check-border:transparent]',
-					// One selector list holds the checked and the indeterminate state. The
-					// indeterminate arm reads `data-indeterminate`, not `:indeterminate`.
-					// Only a client effect sets the DOM property, so the server HTML has only
-					// the attribute.
-					'has-[:checked,[data-indeterminate]]:bg-(--check-bg) has-[:checked,[data-indeterminate]]:border-(--check-border)',
-					'not-has-disabled:has-[:checked,[data-indeterminate]]:hover:opacity-90',
-					// The box takes the step of the nearest density scope.
-					checkbox.box,
-					dan.radius.check,
-				],
-				color: defineColors({
-					zinc: '[--check-mark:var(--color-white)] [--check-bg:var(--color-zinc-600)] [--check-border:var(--color-zinc-700)]/90',
-				}),
-			},
 			/**
 			 * The check mark: the sibling that follows the native input. It shows when
 			 * the input is checked or carries `data-indeterminate`, and it takes the
 			 * step of the nearest density scope. Each class selects the mark itself,
 			 * so Chromium tests the rules only against the marks.
 			 */
-			mark: {
-				base: [
-					'pointer-events-none absolute stroke-(--check-mark) opacity-0',
-					'[:is(:checked,[data-indeterminate])~&]:opacity-100',
-					dan.size.check.mark,
-				],
-			},
+			mark: [
+				'pointer-events-none absolute stroke-(--check-mark) opacity-0',
+				'[:is(:checked,[data-indeterminate])~&]:opacity-100',
+				dan.size.check.mark,
+			],
 		},
 	},
 	{ skeleton: checkbox },

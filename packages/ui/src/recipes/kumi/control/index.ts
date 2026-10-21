@@ -28,19 +28,17 @@ const { cursor } = hannou
 const { fit } = narabi
 
 export const control = defineGroup({
+	base: frame,
+	/**
+	 * The surface of the frame. `default` fills it. `outline` has no fill,
+	 * and the frame draws only its ring. `glass` is the surface inside a
+	 * glass overlay.
+	 */
+	variant: { default: surface.default, outline: [], glass: surface.glass },
 	slots: {
-		base: {
-			base: frame,
-			/**
-			 * The surface of the frame. `default` fills it. `outline` has no fill,
-			 * and the frame draws only its ring. `glass` is the surface inside a
-			 * glass overlay.
-			 */
-			variant: { default: surface.default, outline: [], glass: surface.glass },
-		},
-		field: { base: [...reset, ...density] },
-		prefix: { base: [...affix.base, ...affix.prefix] },
-		suffix: { base: [...affix.base, ...affix.suffix] },
+		field: [...reset, ...density],
+		prefix: [...affix.base, ...affix.prefix],
+		suffix: [...affix.base, ...affix.suffix],
 	},
 	defaults: { variant: 'default' },
 })
@@ -61,8 +59,8 @@ const press = [
 export const trigger = defineGroup({
 	extends: control,
 	slots: {
-		prefix: { base: press },
-		suffix: { base: press },
+		prefix: press,
+		suffix: press,
 	},
 })
 
@@ -83,7 +81,7 @@ export const list = defineGroup(
 			 * fits below its trigger flips above, and a panel that fits on neither side
 			 * shrinks into the larger space (the floating middleware chain).
 			 */
-			options: { base: ['max-h-80', fit.scroll] },
+			options: ['max-h-80', fit.scroll],
 		},
 	},
 	{

@@ -1,8 +1,9 @@
 /**
  * defineKata: the recipe of a unit. A unit is a set of slots, and each slot is a
  * recipe, in the shape that `defineRecipe` takes. The slots share one set of
- * props, so one call resolves each slot: `k({ orientation }).list`. The root
- * slot is `base`.
+ * props, so one call resolves each slot: `k({ orientation }).list`. The config
+ * is the recipe of the root slot `base`, and `slots` holds the child slots. A
+ * child slot with no axes can be only its classes.
  *
  * A slot declares only the axes that change it. An axis with the same name in
  * two slots is one prop, and the unit holds the defaults of each prop once.
@@ -21,14 +22,33 @@ import type { CompoundRule, ComputedProps, RecipeConfig, ResolvedConfig } from '
 /** The default of each prop of a unit. */
 type Defaults = Record<string, string | number | boolean>
 
-/**
- * The slots of a group or a unit, by name. Each field of a slot that is not
- * reserved is an axis, so a slot takes any field name.
- */
-type Slots = Record<string, RecipeConfig & Record<string, unknown>>
+/** A slot as the engine holds it: a recipe config. Each field that is not reserved is an axis. */
+type Slot = RecipeConfig & Record<string, unknown>
 
-/** The config of a group: its slots, the defaults of its props, and the group that it extends. */
-type GroupInput = { extends?: Group; slots?: Slots; defaults?: Defaults }
+/** The slots of a group or a unit, by name. The root slot is `base`. */
+type Slots = Record<string, Slot>
+
+/** A child slot as a config writes it: a recipe config, or only its classes. */
+type SlotInput =
+	| string
+	| readonly ClassValue[]
+	| (Omit<Slot, 'slots' | 'defaults'> & Record<string, unknown>)
+
+/** The fields of a unit config that are not its root recipe. */
+type UnitField = 'extends' | 'slots' | 'defaults'
+
+/**
+ * The config of a group or a unit. The config is the recipe of its root slot
+ * `base`: `base`, `palette`, `compound`, and the axes. `slots` holds the child
+ * slots, `defaults` holds the default of each prop of each slot, and `extends`
+ * names the group that it extends.
+ */
+type UnitInput = Omit<RecipeConfig, 'slots' | 'defaults'> &
+	Record<string, unknown> & {
+		extends?: Group
+		slots?: Record<string, SlotInput>
+		defaults?: Defaults
+	}
 
 /** The shared structure of a family of units, which a unit `extends`. */
 export type Group<S = Slots, X = unknown> = {
@@ -37,22 +57,22 @@ export type Group<S = Slots, X = unknown> = {
 	readonly extras: X
 }
 
-/**
- * The config of a unit. A unit that extends no group declares its root slot
- * `base`. A unit that extends a group can take `base` from the group.
- */
-type KataConfig =
-	| { extends?: undefined; slots: { base: RecipeConfig } & Slots; defaults?: Defaults }
-	| { extends: Group; slots?: Slots; defaults?: Defaults }
-
 /** The slots of a group and of a unit, merged: a slot in both takes the axes of both. */
 type MergeSlots<A, B> = {
 	[K in keyof A | keyof B]: (K extends keyof A ? A[K] : unknown) &
 		(K extends keyof B ? B[K] : unknown)
 }
 
-/** The slots that a unit config declares, or none. */
-type OwnSlotsOf<C> = C extends { slots: infer S } ? S : Record<never, never>
+/** A child slot as a recipe config: a slot written as its classes is its `base`. */
+type ToSlot<S> = S extends string | readonly unknown[] ? { base: S } : S
+
+/** The root slot of a config: each field that is not a unit field. */
+type RootOf<C> = Omit<C, UnitField>
+
+/** The slots that a config declares: its root, and each child slot. */
+type OwnSlotsOf<C> = { base: RootOf<C> } & (C extends { slots: infer S }
+	? { [K in keyof S]: ToSlot<S[K]> }
+	: Record<never, never>)
 
 /** The slots of a unit: its own, merged over the slots of the group that it extends. */
 type SlotsOf<C> = C extends { extends: Group<infer G> }
@@ -80,7 +100,7 @@ export type KataOutput<C> = { readonly [K in keyof SlotsOf<C>]: string }
  * of each slot, with the classes that each value gives to each slot, and
  * `slots` holds the resolved config of each slot.
  */
-export type KataResolvedConfig<C = KataConfig> = {
+export type KataResolvedConfig<C = UnitInput> = {
 	defaults: Defaults
 	variants: Record<string, Record<string, Record<string, ClassValue>>>
 	slots: { readonly [K in keyof SlotsOf<C>]: ResolvedConfig }
@@ -115,7 +135,7 @@ function toKeyPart(value: unknown): string {
  * @throws If the group and the unit both declare a palette.
  * @internal
  */
-function mergeSlot(name: string, group?: RecipeConfig, unit?: RecipeConfig): RecipeConfig {
+function mergeSlot(name: string, group?: Slot, unit?: Slot): Slot {
 	if (group === undefined) return unit ?? {}
 
 	if (unit === undefined) return group
@@ -144,7 +164,7 @@ function mergeSlot(name: string, group?: RecipeConfig, unit?: RecipeConfig): Rec
 		merged[key] = axis
 	}
 
-	return merged as RecipeConfig
+	return merged as Slot
 }
 
 /** The names of the props that a slot reads: its axes and the conditions of its compound rules. @internal */
@@ -156,30 +176,54 @@ function readPropNames(config: ResolvedConfig): string[] {
 	return [...Object.keys(config.variants), ...conditions]
 }
 
-/** Throws if a slot declares its own `defaults` or `slots`. @internal */
-function assertSlots(caller: string, slots: Slots): void {
-	for (const [name, slot] of Object.entries(slots)) {
+/** The fields of a config that are not the recipe of its root slot. @internal */
+const UNIT_FIELDS: ReadonlySet<string> = new Set(['extends', 'slots', 'defaults'])
+
+/**
+ * Reads the slots of a config: the root slot `base` from the fields of the
+ * config, and each child slot from `slots`. A child slot written as its
+ * classes becomes a slot with that `base`.
+ *
+ * @throws If a child slot is named `base`, or declares its own `defaults` or `slots`.
+ * @internal
+ */
+function readSlots(caller: string, config: UnitInput): Slots {
+	const root = Object.entries(config).filter(([key]) => !UNIT_FIELDS.has(key))
+
+	const slots: Slots = root.length > 0 ? { base: Object.fromEntries(root) } : {}
+
+	for (const [name, value] of Object.entries(config.slots ?? {})) {
+		if (name === 'base') throw new Error(`${caller}: the root slot "base" is the config itself`)
+
+		const slot = (
+			typeof value === 'string' || Array.isArray(value) ? { base: value } : value
+		) as Slot
+
 		if (slot.defaults !== undefined || slot.slots !== undefined) {
 			throw new Error(`${caller}: slot "${name}" declares defaults or slots`)
 		}
+
+		slots[name] = slot
 	}
+
+	return slots
 }
 
 /**
  * Merges a unit or a group over the group that it extends: each slot, the
  * defaults, and the extras. A config that extends no group keeps its own.
  *
- * @throws If a slot declares its own `defaults` or `slots`.
+ * @throws If a child slot is named `base`, or declares its own `defaults` or `slots`.
  * @internal
  */
-function mergeOver(caller: string, config: GroupInput, extras?: Record<string, unknown>) {
-	const { extends: group, slots: own = {} } = config
+function inherit(caller: string, config: UnitInput, extras?: Record<string, unknown>) {
+	const { extends: group } = config
 
-	assertSlots(caller, own)
+	const own = readSlots(caller, config)
 
 	const slots: Slots = {}
 
-	for (const name of new Set([...Object.keys(group?.slots ?? {}), ...Object.keys(own)])) {
+	for (const name of new Set(['base', ...Object.keys(group?.slots ?? {}), ...Object.keys(own)])) {
 		slots[name] = mergeSlot(name, group?.slots[name], own[name])
 	}
 
@@ -196,18 +240,18 @@ function mergeOver(caller: string, config: GroupInput, extras?: Record<string, u
  * the family carries. It builds no recipe: a unit builds it when it extends
  * the group. A group can extend a group, with the merge of a unit.
  *
- * @param config - The `slots` of the group, each a recipe config, the
+ * @param config - The recipe of the root slot, the child `slots`, the
  * `defaults` of their props, and the group that it `extends`.
  * @param extras - Kata-shaped siblings that each unit of the family carries.
- * @throws If a slot declares its own `defaults` or `slots`.
+ * @throws If a child slot is named `base`, or declares its own `defaults` or `slots`.
  */
-export function defineGroup<C extends GroupInput>(config: C): Group<SlotsOf<C>, GroupExtrasOf<C>>
-export function defineGroup<C extends GroupInput, X extends Record<string, unknown>>(
+export function defineGroup<C extends UnitInput>(config: C): Group<SlotsOf<C>, GroupExtrasOf<C>>
+export function defineGroup<C extends UnitInput, X extends Record<string, unknown>>(
 	config: C,
 	extras: X,
 ): Group<SlotsOf<C>, GroupExtrasOf<C> & X>
-export function defineGroup(config: GroupInput, extras?: Record<string, unknown>): Group {
-	const { slots, defaults, extras: merged = {} } = mergeOver('defineGroup', config, extras)
+export function defineGroup(config: UnitInput, extras?: Record<string, unknown>): Group {
+	const { slots, defaults, extras: merged = {} } = inherit('defineGroup', config, extras)
 
 	return Object.freeze({ slots, defaults, extras: merged })
 }
@@ -215,34 +259,28 @@ export function defineGroup(config: GroupInput, extras?: Record<string, unknown>
 /**
  * Builds the recipe of a unit from the recipe of each slot.
  *
- * @param config - The `slots` of the unit, each a recipe config, with the root
- * slot `base`, and the `defaults` of the props that the slots share. With
- * `extends`, the unit merges its slots over the slots of the group, its
- * defaults over the defaults of the group, and its extras over the extras of
- * the group (see {@link mergeSlot}).
+ * @param config - The recipe of the root slot `base` (`base`, `palette`,
+ * `compound`, and the axes), the child `slots`, and the `defaults` of the
+ * props that the slots share. A child slot is a recipe config, or only its
+ * classes. With `extends`, the unit merges its slots over the slots of the
+ * group, its defaults over the defaults of the group, and its extras over the
+ * extras of the group (see {@link mergeSlot}).
  * @param extras - Optional kata-shaped siblings (`segment`, `skeleton`,
  * motion configs) attached as direct properties; the recipe stays callable.
- * @throws If a slot declares its own `defaults` or `slots`, because the unit
- * holds the defaults and a slot does not nest.
- * @throws If the unit has no root slot `base`, from itself or from its group.
+ * @throws If a child slot is named `base`, or declares its own `defaults` or
+ * `slots`, because the unit holds the defaults and a slot does not nest.
  * @throws If an extras key collides with a function built-in or `config`.
  */
-export function defineKata<C extends KataConfig>(config: C): Kata<C> & GroupExtrasOf<C>
-export function defineKata<C extends KataConfig, X extends Record<string, unknown>>(
+export function defineKata<C extends UnitInput>(config: C): Kata<C> & GroupExtrasOf<C>
+export function defineKata<C extends UnitInput, X extends Record<string, unknown>>(
 	config: C,
 	extras: X,
 ): Kata<C> & GroupExtrasOf<C> & X
-export function defineKata<C extends KataConfig, X extends Record<string, unknown>>(
+export function defineKata<C extends UnitInput, X extends Record<string, unknown>>(
 	config: C,
 	extras?: X,
 ): Kata<C> | (Kata<C> & X) {
-	const {
-		slots: configs,
-		defaults,
-		extras: attached,
-	} = mergeOver('defineKata', config as KataConfig, extras)
-
-	if (configs.base === undefined) throw new Error('defineKata: the unit has no root slot "base"')
+	const { slots: configs, defaults, extras: attached } = inherit('defineKata', config, extras)
 
 	const slots = Object.entries(configs).map(
 		([name, slot]) => [name, defineRecipe({ ...slot, defaults })] as const,

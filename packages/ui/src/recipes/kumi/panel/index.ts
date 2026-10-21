@@ -31,25 +31,23 @@ const { scale } = dan.gap
 export const stack = `flex flex-col ${scale.lg}`
 
 export const panel = defineGroup({
+	base: [...omote.panel.chrome, stack],
+	/** The surface of the panel: `flat` is opaque, and `glass` is translucent and blurred. */
+	surface: omote.panel.axis,
 	slots: {
-		base: {
-			base: [...omote.panel.chrome, stack],
-			/** The surface of the panel: `flat` is opaque, and `glass` is translucent and blurred. */
-			surface: omote.panel.axis,
-		},
 		backdrop: {
 			base: 'absolute inset-0',
 			surface: { glass: omote.backdrop.glass, flat: omote.backdrop.base },
 		},
 		/** Optional wrapper around title + description for the tighter `sm` gap; sits outside the body's overflow container. */
-		header: { base: `flex flex-col ${scale.sm}` },
+		header: `flex flex-col ${scale.sm}`,
 		/** Color, leading, and the balanced wrap of a heading (`kata/heading.ts`) only; weight and font size are derived from the heading scale by the Title component. */
-		title: { base: [...text.default, leading.none, '[text-wrap-style:balance]'] },
-		description: { base: [...text.muted, size.md, leading.tight] },
+		title: [...text.default, leading.none, '[text-wrap-style:balance]'],
+		description: [...text.muted, size.md, leading.tight],
 		/** Optional wrapper around body + footer; a Form or similar can wrap both while preserving the panel's slot rhythm. */
-		content: { base: `flex flex-col min-h-0 ${scale.lg}` },
-		body: { base: [...text.muted, 'min-h-0 overflow-y-auto overscroll-contain'] },
-		footer: { base: ['flex items-center justify-end', scale.sm] },
+		content: `flex flex-col min-h-0 ${scale.lg}`,
+		body: [...text.muted, 'min-h-0 overflow-y-auto overscroll-contain'],
+		footer: ['flex items-center justify-end', scale.sm],
 	},
 	defaults: { surface: 'flat' },
 })

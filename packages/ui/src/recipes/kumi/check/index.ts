@@ -103,11 +103,12 @@ const color = {
 } as const
 
 export const check = defineGroup({
+	/** The layout shell and the surface of the box or the circle. */
+	base: [...shell, ...surface],
+	color,
 	slots: {
-		/** The layout shell and the surface of the box or the circle. */
-		base: { base: [...shell, ...surface], color },
 		/** Visually-hidden native `<input>` overlaying the custom check surface. */
-		input: { base: hidden },
+		input: hidden,
 	},
 	defaults: { color: 'zinc' },
 })

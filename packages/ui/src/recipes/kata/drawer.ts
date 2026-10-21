@@ -27,70 +27,66 @@ const SQUARE_AT_EDGE = 'rounded-t-xl data-full:rounded-t-none'
 export const k = defineKata(
 	{
 		extends: panel,
+		base: [
+			// The panel sits on the bottom edge of the overlay root. Each height below
+			// is a share of the root, so a panel in a scoped overlay fits its container.
+			'absolute inset-x-0 bottom-0',
+			// In a page with `viewport-fit=cover`, this keeps the footer clear of the
+			// home indicator. Elsewhere the inset is zero.
+			'pb-[env(safe-area-inset-bottom)]',
+			'overflow-hidden',
+			'w-full',
+		],
+		// How much of the screen the panel docks over. `auto` and `fit` grow to
+		// their content; `half` and `full` fix the height instead, for a panel whose
+		// own content scrolls: a detail panel beside the thing it describes, and a
+		// form that owns the screen while it is up.
+		//
+		// The two grown steps differ in where they stop. `auto` stops short of the
+		// top edge, which leaves the page behind visible and is what a drawer is
+		// for. `fit` goes to the screen, for a panel the reader navigates within:
+		// a step whose content runs long is a panel that has to hold it, and one
+		// clamped short of the edge would strand the last of it behind a scroll the
+		// screen had room for.
+		//
+		// `full` and `fit` square the top corners against the screen edge, because
+		// a rounded corner there reads as a panel that failed to reach it: `full`
+		// at rest, `fit` on the steps that stand it there, and either fixed step once
+		// a drag leaves it at the ceiling. `auto` never reaches the edge, so it never
+		// squares.
+		//
+		// A panel handed a new fixed `height` grows or shrinks into it rather than
+		// jumping: the two fixed steps are lengths, which interpolate. A grown one
+		// has no second length, so nothing here can move it. `fit` hands that to
+		// `usePanelFit`, which measures the length and travels it under Framer
+		// Motion; `auto` snaps.
+		height: {
+			auto: 'max-h-[85%] rounded-t-xl',
+			fit: ['max-h-full', SQUARE_AT_EDGE, css.corner, css.duration],
+			half: ['h-1/2', SQUARE_AT_EDGE, css.size, css.duration, RESIZING],
+			full: ['h-full', SQUARE_AT_EDGE, css.size, css.duration, RESIZING],
+		},
 		slots: {
-			base: {
-				base: [
-					// The panel sits on the bottom edge of the overlay root. Each height below
-					// is a share of the root, so a panel in a scoped overlay fits its container.
-					'absolute inset-x-0 bottom-0',
-					// In a page with `viewport-fit=cover`, this keeps the footer clear of the
-					// home indicator. Elsewhere the inset is zero.
-					'pb-[env(safe-area-inset-bottom)]',
-					'overflow-hidden',
-					'w-full',
-				],
-				// How much of the screen the panel docks over. `auto` and `fit` grow to
-				// their content; `half` and `full` fix the height instead, for a panel whose
-				// own content scrolls: a detail panel beside the thing it describes, and a
-				// form that owns the screen while it is up.
-				//
-				// The two grown steps differ in where they stop. `auto` stops short of the
-				// top edge, which leaves the page behind visible and is what a drawer is
-				// for. `fit` goes to the screen, for a panel the reader navigates within:
-				// a step whose content runs long is a panel that has to hold it, and one
-				// clamped short of the edge would strand the last of it behind a scroll the
-				// screen had room for.
-				//
-				// `full` and `fit` square the top corners against the screen edge, because
-				// a rounded corner there reads as a panel that failed to reach it: `full`
-				// at rest, `fit` on the steps that stand it there, and either fixed step once
-				// a drag leaves it at the ceiling. `auto` never reaches the edge, so it never
-				// squares.
-				//
-				// A panel handed a new fixed `height` grows or shrinks into it rather than
-				// jumping: the two fixed steps are lengths, which interpolate. A grown one
-				// has no second length, so nothing here can move it. `fit` hands that to
-				// `usePanelFit`, which measures the length and travels it under Framer
-				// Motion; `auto` snaps.
-				height: {
-					auto: 'max-h-[85%] rounded-t-xl',
-					fit: ['max-h-full', SQUARE_AT_EDGE, css.corner, css.duration],
-					half: ['h-1/2', SQUARE_AT_EDGE, css.size, css.duration, RESIZING],
-					full: ['h-full', SQUARE_AT_EDGE, css.size, css.duration, RESIZING],
-				},
-			},
 			// The top padding is the panel's inset, and a handle already is one. Under a
 			// handle the stock header would sit a whole step below the grip, which is
 			// what made the first consumer hand-roll its own header row rather than use
 			// this slot.
-			title: { base: [inset.x, inset.top, 'group-data-handle/drawer:pt-0'] },
-			description: { base: inset.x },
-			footer: { base: [inset.x, inset.bottom] },
-			body: {
-				base: [
-					flex.fill,
-					'overflow-y-auto overscroll-y-contain',
-					inset.x,
-					inset.first.drawer,
-					inset.last.drawer,
-				],
-			},
+			title: [inset.x, inset.top, 'group-data-handle/drawer:pt-0'],
+			description: inset.x,
+			footer: [inset.x, inset.bottom],
+			body: [
+				flex.fill,
+				'overflow-y-auto overscroll-y-contain',
+				inset.x,
+				inset.first.drawer,
+				inset.last.drawer,
+			],
 			/**
 			 * The optional wrapper around the body and the footer. `half` and `full` fix
 			 * the height of the panel. The wrapper fills that height, so the body can
 			 * grow and the footer stays at the foot of the panel.
 			 */
-			content: { base: flex.fill },
+			content: flex.fill,
 		},
 		defaults: { height: 'auto' },
 	},

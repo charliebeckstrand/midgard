@@ -11,14 +11,12 @@ const { border } = sen
 export const k = defineKata(
 	{
 		extends: control,
+		/**
+		 * The frame when an actions row is present: it draws the border, and
+		 * it stacks the field above the actions row.
+		 */
+		actions: { true: [...border.default, 'flex-col items-stretch'], false: [] },
 		slots: {
-			base: {
-				/**
-				 * The frame when an actions row is present: it draws the border, and
-				 * it stacks the field above the actions row.
-				 */
-				actions: { true: [...border.default, 'flex-col items-stretch'], false: [] },
-			},
 			field: {
 				base: ['block', textarea.floor],
 				resize: {
@@ -33,14 +31,12 @@ export const k = defineKata(
 			 * Right-justified actions row beneath the textarea. Its gap also caps the
 			 * hit areas of the actions (`TouchTarget`), so they do not overlap.
 			 */
-			actions: {
-				base: [
-					'flex items-center justify-end mt-auto',
-					dan.gap.scale.sm,
-					'pe-2 pb-2',
-					dan.gap.touch.x.sm,
-				],
-			},
+			actions: [
+				'flex items-center justify-end mt-auto',
+				dan.gap.scale.sm,
+				'pe-2 pb-2',
+				dan.gap.touch.x.sm,
+			],
 		},
 		defaults: { resize: 'none', actions: false },
 	},

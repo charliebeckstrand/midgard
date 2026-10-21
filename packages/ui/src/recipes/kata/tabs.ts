@@ -78,12 +78,10 @@ const segment = {
 
 export const k = defineKata(
 	{
+		/** The tab group: it stacks the list and the panels, and the orientation sets its axis. */
+		base: ['flex', dan.gap.scale.lg],
+		orientation: { horizontal: 'flex-col', vertical: 'flex-row' },
 		slots: {
-			/** The tab group: it stacks the list and the panels, and the orientation sets its axis. */
-			base: {
-				base: ['flex', dan.gap.scale.lg],
-				orientation: { horizontal: 'flex-col', vertical: 'flex-row' },
-			},
 			/**
 			 * The underline list, which draws the baseline rail (`border-b` /
 			 * `border-s`) that the tabs sit on. A horizontal list sizes to
@@ -188,7 +186,7 @@ export const k = defineKata(
 			 * a panel that holds its own focusable content (and is never tabbable) never
 			 * shows it.
 			 */
-			panel: { base: focus.ring },
+			panel: focus.ring,
 		},
 		defaults: { orientation: 'horizontal', stretch: false },
 	},

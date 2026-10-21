@@ -13,8 +13,8 @@ export const k = defineKata(
 		extends: list,
 		slots: {
 			/** The button that opens the list. */
-			field: { base: [flex.row, 'text-start', 'appearance-none', ...cursor] },
-			panel: { base: 'relative min-w-full' },
+			field: [flex.row, 'text-start', 'appearance-none', ...cursor],
+			panel: 'relative min-w-full',
 		},
 	},
 	{

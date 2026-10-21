@@ -42,45 +42,41 @@ const DOCKED_STEPS = Object.entries(shaku.panel).flatMap(([width, cap]) => [
 export const k = defineKata(
 	{
 		extends: panel,
+		base: 'absolute overflow-y-auto overscroll-contain',
+		side: {
+			// The `layout` table gives a side its insets and its corners.
+			right: 'w-full',
+			left: 'w-full',
+			//
+			// A sheet docked across takes the height of its content. `max-h-full`
+			// stops it at the screen, so a tall sheet scrolls its body and does not
+			// run off the far edge.
+			top: [slide.top, 'max-h-full pt-[env(safe-area-inset-top)]'],
+			bottom: [slide.bottom, 'max-h-full pb-[env(safe-area-inset-bottom)]'],
+		},
+		// The named steps are max-widths and nothing more, so they stay the shared
+		// scale. `fit` is a different kind of answer (the panel takes the width of
+		// what it holds), so it is stated here rather than pushed into a scale
+		// Dialog also reads.
+		//
+		// Every step is empty on the axis, because a width only means something on
+		// the sides it is docked across. The compounds below give each named step
+		// to `right` and `left`, and the `layout` table gives `fit` and `full` their
+		// classes. A `top` or `bottom` sheet spans the screen, and a cap or a
+		// shrink-wrap would pull a full-width panel into a corner.
+		width: { ...STEPS, fit: [] },
+		compound: DOCKED_STEPS,
 		slots: {
-			base: {
-				base: 'absolute overflow-y-auto overscroll-contain',
-				side: {
-					// The `layout` table gives a side its insets and its corners.
-					right: 'w-full',
-					left: 'w-full',
-					//
-					// A sheet docked across takes the height of its content. `max-h-full`
-					// stops it at the screen, so a tall sheet scrolls its body and does not
-					// run off the far edge.
-					top: [slide.top, 'max-h-full pt-[env(safe-area-inset-top)]'],
-					bottom: [slide.bottom, 'max-h-full pb-[env(safe-area-inset-bottom)]'],
-				},
-				// The named steps are max-widths and nothing more, so they stay the shared
-				// scale. `fit` is a different kind of answer (the panel takes the width of
-				// what it holds), so it is stated here rather than pushed into a scale
-				// Dialog also reads.
-				//
-				// Every step is empty on the axis, because a width only means something on
-				// the sides it is docked across. The compounds below give each named step
-				// to `right` and `left`, and the `layout` table gives `fit` and `full` their
-				// classes. A `top` or `bottom` sheet spans the screen, and a cap or a
-				// shrink-wrap would pull a full-width panel into a corner.
-				width: { ...STEPS, fit: [] },
-				compound: DOCKED_STEPS,
-			},
-			title: { base: [inset.x, inset.top] },
-			description: { base: inset.x },
-			footer: { base: [inset.x, inset.bottom] },
-			body: {
-				base: [
-					flex.fill,
-					'overflow-y-auto overscroll-contain',
-					inset.x,
-					inset.first.sheet,
-					inset.last.sheet,
-				],
-			},
+			title: [inset.x, inset.top],
+			description: inset.x,
+			footer: [inset.x, inset.bottom],
+			body: [
+				flex.fill,
+				'overflow-y-auto overscroll-contain',
+				inset.x,
+				inset.first.sheet,
+				inset.last.sheet,
+			],
 		},
 		defaults: { side: 'right', width: 'md' },
 	},

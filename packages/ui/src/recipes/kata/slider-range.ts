@@ -12,29 +12,25 @@ export { scale }
 
 export const k = defineKata({
 	extends: slider,
+	/** The box that holds the track, the fill, and the thumbs. */
+	base: [
+		'relative',
+		'w-full',
+		...cursor,
+		'select-none',
+		'touch-none',
+		disabled,
+		dan.space.slider.y,
+	],
 	slots: {
-		/** The box that holds the track, the fill, and the thumbs. */
-		base: {
-			base: [
-				'relative',
-				'w-full',
-				...cursor,
-				'select-none',
-				'touch-none',
-				disabled,
-				dan.space.slider.y,
-			],
-		},
-		track: {
-			base: [
-				'absolute inset-x-0',
-				rounded.full,
-				'bg-(--slider-track)',
-				forced.outline,
-				kokkaku.slider.track,
-			],
-		},
-		fill: { base: ['absolute', rounded.full, 'bg-(--slider-fill)', forced.mark] },
+		track: [
+			'absolute inset-x-0',
+			rounded.full,
+			'bg-(--slider-track)',
+			forced.outline,
+			kokkaku.slider.track,
+		],
+		fill: ['absolute', rounded.full, 'bg-(--slider-fill)', forced.mark],
 		thumb: {
 			base: [
 				'absolute',

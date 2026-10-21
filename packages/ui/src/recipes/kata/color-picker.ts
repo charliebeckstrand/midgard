@@ -33,7 +33,7 @@ export const k = defineKata(
 		extends: picker,
 		slots: {
 			/** The button that opens the picker. */
-			field: { base: [flex.row, 'text-start', 'appearance-none', ...cursor] },
+			field: [flex.row, 'text-start', 'appearance-none', ...cursor],
 		},
 	},
 	{

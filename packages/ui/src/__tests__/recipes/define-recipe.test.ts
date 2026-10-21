@@ -298,8 +298,9 @@ describe('defineRecipe', () => {
 
 describe('defineKata', () => {
 	const kata = defineKata({
+		base: 'root',
+		orientation: { horizontal: 'col', vertical: 'row' },
 		slots: {
-			base: { base: 'root', orientation: { horizontal: 'col', vertical: 'row' } },
 			list: { base: 'list', orientation: { horizontal: 'border-b', vertical: 'border-s' } },
 			tab: {
 				base: 'tab',
@@ -346,23 +347,36 @@ describe('defineKata', () => {
 		expect(Object.keys(kata())).toEqual(['base', 'list', 'tab'])
 	})
 
-	it('rejects a slot with its own defaults or slots, and an extra that collides', () => {
+	it('rejects a child slot named base, a slot with its own defaults or slots, and an extra that collides', () => {
+		expect(() => defineKata({ slots: { base: 'a' } })).toThrow(/root slot "base"/)
+
 		expect(() =>
-			defineKata({ slots: { base: { size: { sm: 'a' }, defaults: { size: 'sm' } } } }),
-		).toThrow(/slot "base"/)
+			defineKata({ slots: { icon: { size: { sm: 'a' }, defaults: { size: 'sm' } } } }),
+		).toThrow(/slot "icon"/)
 
-		expect(() => defineKata({ slots: { base: { slots: { icon: 'a' } } } })).toThrow(/slot "base"/)
+		expect(() => defineKata({ slots: { icon: { slots: { mark: 'a' } } } })).toThrow(/slot "icon"/)
 
-		expect(() => defineKata({ slots: { base: {} } }, { config: {} })).toThrow(/extra name/)
+		expect(() => defineKata({}, { config: {} })).toThrow(/extra name/)
+	})
+
+	it('reads a child slot written as its classes as its base', () => {
+		const unit = defineKata({ base: 'root', slots: { icon: ['a', 'b'], label: 'c' } })
+
+		expect(unit()).toEqual({ base: 'root', icon: 'a b', label: 'c' })
+	})
+
+	it('gives a unit with no root classes an empty root', () => {
+		expect(defineKata({ slots: { icon: 'a' } })()).toEqual({ base: '', icon: 'a' })
 	})
 })
 
 describe('defineGroup', () => {
 	const group = defineGroup(
 		{
+			base: 'frame',
+			variant: { default: 'fill', glass: '' },
 			slots: {
-				base: { base: 'frame', variant: { default: 'fill', glass: '' } },
-				field: { base: 'reset' },
+				field: 'reset',
 			},
 			defaults: { variant: 'default' },
 		},
@@ -372,9 +386,11 @@ describe('defineGroup', () => {
 	const unit = defineKata(
 		{
 			extends: group,
+			base: 'row',
+			variant: { glass: 'blur' },
+			affixed: { true: 'grid', false: '' },
 			slots: {
-				base: { base: 'row', variant: { glass: 'blur' }, affixed: { true: 'grid', false: '' } },
-				number: { base: 'spin' },
+				number: 'spin',
 			},
 			defaults: { affixed: false },
 		},
@@ -425,7 +441,13 @@ describe('defineGroup', () => {
 
 	it('extends a group with a group, with the merge of a unit', () => {
 		const child = defineGroup(
-			{ extends: group, slots: { field: { base: 'press' } }, defaults: { variant: 'glass' } },
+			{
+				extends: group,
+				slots: {
+					field: 'press',
+				},
+				defaults: { variant: 'glass' },
+			},
 			{ marker: 'child' },
 		)
 
@@ -442,22 +464,13 @@ describe('defineGroup', () => {
 		expectTypeOf(leaf()).toEqualTypeOf<{ readonly base: string; readonly field: string }>()
 	})
 
-	it('rejects a unit with no root slot, and a palette in the group and in the unit', () => {
-		expect(() => defineKata({ extends: defineGroup({ slots: { field: {} } }) })).toThrow(
-			/root slot "base"/,
-		)
-
+	it('rejects a palette in the group and in the unit', () => {
 		const palette = definePalette({
 			solid: { zinc: ['a'], red: [], amber: [], green: [], blue: [] },
 		})
 
-		expect(() =>
-			defineKata({
-				extends: defineGroup({ slots: { base: { palette } } }),
-				slots: { base: { palette } },
-			}),
-		).toThrow(/palette in the group and in the unit/)
-
-		expect(() => defineGroup({ slots: { base: { defaults: { a: 'b' } } } })).toThrow(/slot "base"/)
+		expect(() => defineKata({ extends: defineGroup({ palette }), palette })).toThrow(
+			/palette in the group and in the unit/,
+		)
 	})
 })
