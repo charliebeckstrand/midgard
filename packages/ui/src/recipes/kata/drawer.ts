@@ -1,7 +1,14 @@
+/**
+ * Drawer kata: object-literal surface for the `<Drawer>` bottom panel, built by
+ * bridging the shared `panel` recipe. The `panel` sub-recipe axes on `surface`
+ * and `height`. The `backdrop` mirrors the glass/flat surface. The bridged
+ * `title` / `description` / `body` / `footer` slots, the `content` wrapper, the
+ * `handle` drag grip, and `motion` complete the chrome.
+ */
 import { defineScale } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { hannou, narabi, omote, ugoki } from '../kiso'
+import { narabi, omote, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 import { panel } from '../kiso/panel'
 
@@ -63,7 +70,7 @@ export const k = {
 			// Motion; `auto` snaps.
 			height: {
 				auto: 'max-h-[85%] rounded-t-xl',
-				fit: ['max-h-full rounded-t-xl', 'data-full:rounded-t-none', css.corner, css.duration],
+				fit: ['max-h-full', SQUARE_AT_EDGE, css.corner, css.duration],
 				half: ['h-1/2', SQUARE_AT_EDGE, css.size, css.duration, RESIZING],
 				full: ['h-full', SQUARE_AT_EDGE, css.size, css.duration, RESIZING],
 			},
@@ -97,13 +104,12 @@ export const k = {
 	 * that it draws as its `::after`, which the reader actually sees (`bar`).
 	 *
 	 * The grab area is the full width, so the reach is the panel's rather than the
-	 * bar's. `hannou.grab.default` carries the rest, including the `touch-none`
-	 * that makes the gesture work at all under a finger.
+	 * bar's. `panel.grip.area` carries the rest.
 	 */
 	handle: {
 		base: [
 			flex.row,
-			'w-full shrink-0 items-center justify-center',
+			'w-full shrink-0',
 			// Even top and bottom: the handle is the panel's own inset, so the space
 			// under it is what sets the first slot off (a header adding its own on
 			// top would read as a gap between the grip and the title).
@@ -112,10 +118,7 @@ export const k = {
 			// slot gap: left in the flow it floats a whole step above the first thing
 			// under it. The padding above sets it off instead.
 			layout.gap.flush,
-			...hannou.grab.default,
-			// The stroke goes on the bar, not here (see the archetype's grip). This
-			// suppresses the browser's own, which would draw around the whole reach.
-			'outline-hidden',
+			...grip.area,
 		],
 		bar: grip.bar.horizontal,
 	},

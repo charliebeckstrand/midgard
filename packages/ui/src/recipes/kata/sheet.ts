@@ -9,7 +9,7 @@
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { hannou, narabi, omote, shaku, ugoki } from '../kiso'
+import { narabi, omote, shaku, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
 const { flex, slide } = narabi
@@ -132,21 +132,13 @@ export const k = {
 	 * not the column of slots, because the slots run along it. The grab area is
 	 * the full height, so the reach is the panel's rather than the bar's. On a
 	 * sheet docked across, the grip is a row at the edge that faces the screen.
-	 * Neither covers a slot. `hannou.grab.default` carries the rest, including the
-	 * `touch-none` that makes the gesture work at all under a finger.
+	 * Neither covers a slot. `panel.grip.area` carries the rest.
 	 *
 	 * `side` puts it on the edge that faces the screen: a right-hand sheet grows
 	 * leftward, so its grip is on the left.
 	 */
 	handle: {
-		base: [
-			flex.col,
-			'z-10 items-center justify-center',
-			...hannou.grab.default,
-			// The stroke goes on the bar, not here (see the archetype's grip). This
-			// suppresses the browser's own, which would draw around the whole reach.
-			'outline-hidden',
-		],
+		base: [flex.col, 'z-10', ...panel.grip.area],
 		side: {
 			// The full-height reach belongs to the two side arms only. In the base, it
 			// survives the `bottom-0` of a cross arm, and the strip covers the panel.

@@ -503,7 +503,7 @@ export function LightboxStage({
 										ref={previousRef}
 										variant="plain"
 										color="inherit"
-										className={cn(k.step, at === 0 && k.ended)}
+										className={cn(k.step.base, at === 0 && k.step.ended)}
 										aria-label={labels.previous}
 										disabled={at === 0}
 										onClick={() => stepBy(-1)}
@@ -519,7 +519,7 @@ export function LightboxStage({
 										ref={nextRef}
 										variant="plain"
 										color="inherit"
-										className={cn(k.step, at === count - 1 && k.ended)}
+										className={cn(k.step.base, at === count - 1 && k.step.ended)}
 										aria-label={labels.next}
 										disabled={at === count - 1}
 										onClick={() => stepBy(1)}
