@@ -26,8 +26,8 @@ import {
 import {
 	clearVirtualActive,
 	clearVirtualActiveIndexed,
+	followVirtualHighlight,
 	type HighlightOrigin,
-	isVirtualHighlightStale,
 	queryItems,
 	runRovingKey,
 	seedVirtualTopMatch,
@@ -279,8 +279,7 @@ type ComboboxMultipleProps<T> = {
 /**
  * Seeds the virtual highlight to the top match via {@link seedVirtualTopMatch},
  * with this combobox's selector and `ariaSelected: false` (options own their
- * selection state) applied. Shared by the highlight-anchoring effect and the
- * option-swap re-anchor observer below.
+ * selection state) applied, for the highlight-anchoring effect below.
  *
  * @internal
  */
@@ -355,24 +354,15 @@ export function followOptions(
 	inputRef: RefObject<HTMLInputElement | null>,
 	originRef: RefObject<HighlightOrigin>,
 ): void {
-	const source = virtualSourceRef.current
-
-	if (
-		!isVirtualHighlightStale(
-			originRef.current,
-			node,
-			OPTION_SELECTOR,
-			source,
-			activeIndexRef,
-			inputRef,
-		)
-	) {
-		return
-	}
-
-	seedTopMatch(node, source, activeIndexRef, inputRef)
-
-	originRef.current = 'seeded'
+	followVirtualHighlight(
+		originRef,
+		node,
+		OPTION_SELECTOR,
+		virtualSourceRef.current,
+		activeIndexRef,
+		inputRef,
+		{ ariaSelected: false },
+	)
 }
 
 /**
@@ -587,9 +577,7 @@ export function Combobox<T>({
 	// not take it.
 	const rovingKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLInputElement>) => {
-			if (runRovingKey(inputRef.current, () => handleKeyDown(event))) {
-				highlightOriginRef.current = 'moved'
-			}
+			runRovingKey(highlightOriginRef, inputRef.current, () => handleKeyDown(event))
 		},
 		[handleKeyDown],
 	)

@@ -66,9 +66,8 @@ export function CollapsePanel({ children, className, ...props }: CollapsePanelPr
 	// region landmark, so each panel would add one landmark to the page.
 	const { id } = panelProps
 
-	// The panel's identity (element, a11y wiring, classes) is one shape across
-	// every branch below; only how it animates (or whether it does) differs. The
-	// consumer props spread first, so the id wiring and the motion win.
+	// One shape for the unheld and the held panel; only how it animates differs.
+	// The consumer props spread first, so the id wiring and the motion win.
 	const panel = (motionProps: object, contentProps?: object) => (
 		<m.div
 			data-slot="collapse-panel"

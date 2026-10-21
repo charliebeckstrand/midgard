@@ -13,8 +13,8 @@ import {
 	useState,
 } from 'react'
 import {
+	followVirtualHighlight,
 	type HighlightOrigin,
-	isVirtualHighlightStale,
 	runRovingKey,
 	seedVirtualTopMatch,
 	useA11yRoving,
@@ -222,24 +222,9 @@ export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteS
 
 		const list = listRef.current
 
-		if (
-			!isVirtualHighlightStale(
-				originRef.current,
-				list,
-				ITEM_SELECTOR,
-				source,
-				activeIndexRef,
-				inputRef,
-			)
-		) {
-			return
+		if (followVirtualHighlight(originRef, list, ITEM_SELECTOR, source, activeIndexRef, inputRef)) {
+			reportActiveFromDom()
 		}
-
-		seedVirtualTopMatch(list, ITEM_SELECTOR, source, activeIndexRef, inputRef)
-
-		originRef.current = 'seeded'
-
-		reportActiveFromDom()
 	})
 
 	// The deferred query of the last seed. The seed effect below reads and writes
@@ -298,9 +283,7 @@ export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteS
 
 			// A key that moves the highlight makes it the reader's, so a change of the
 			// results leaves it.
-			if (runRovingKey(inputRef.current, () => rovingKeyDown(event))) {
-				originRef.current = 'moved'
-			}
+			runRovingKey(originRef, inputRef.current, () => rovingKeyDown(event))
 
 			reportActiveFromDom()
 		},
