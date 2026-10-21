@@ -21,7 +21,9 @@ export const k = defineRecipe({
 		// replace them under forced colors.
 		...slider.thumb,
 
-		// --slider-value is set inline (0-100%); --slider-fill / --slider-track come from the color variant.
+		// --slider-value is set inline (0-100%). --slider-fill comes from the color variant,
+		// and --slider-track is the same for each color.
+		slider.track,
 		// A native range runs from the inline start, so the fill does too.
 		'[--slider-run:to_right] rtl:[--slider-run:to_left]',
 		'[&::-webkit-slider-runnable-track]:w-full',

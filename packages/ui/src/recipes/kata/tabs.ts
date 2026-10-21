@@ -152,7 +152,7 @@ export const k = {
 	trigger,
 	indicator,
 	panel,
-	segment: { control: segment.control.base, item: segment.item.base, indicator: segment.indicator },
+	segment,
 	// Two units flow through this kata: the underline tab list and the
 	// segment box behind `<Segment>`.
 	skeleton: {

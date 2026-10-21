@@ -9,8 +9,8 @@
  * sheet, surface + height for drawer). Unlike
  * `control` / `check`, the bridge doesn't own the variants. The kata
  * defines them via its own `defineRecipe` call and hands the result to
- * `panel(t, { … })`, which composes the bundle's `layout` with caller
- * extras.
+ * `panel(t, { … })`, which composes the bundle's `layout` with the classes
+ * that the caller adds.
  */
 
 /** The slice of the `panel` token bundle the bridge reads. */
@@ -24,10 +24,8 @@ type PanelTokens = {
 	}
 }
 
-type Slot = {
-	/** Classes appended after the `panel.layout.*` default for this slot. */
-	extra?: string | string[]
-}
+/** The classes that a slot adds after its `panel.layout.*` default. */
+type Slot = string | string[]
 
 type PanelInput<P, B = undefined> = {
 	/** Recipe for the panel root element. Defines positioning, size, glass, etc. */
@@ -46,7 +44,7 @@ type PanelInput<P, B = undefined> = {
 	footer?: Slot
 }
 
-const toArray = (value?: string | string[]): string[] => (value == null ? [] : [value].flat())
+const toArray = (value?: Slot): string[] => (value == null ? [] : [value].flat())
 
 /**
  * Build the panel slot bundle from the `panel` tokens and the caller input.
@@ -54,8 +52,8 @@ const toArray = (value?: string | string[]): string[] => (value == null ? [] : [
  * `panel` and (optional) `backdrop` are caller-supplied `defineRecipe(...)`
  * results; they carry the kata's variants and stay callable. Consumers
  * keep `VariantProps<typeof result.panel>` inference. The other slots are
- * zero-variant class fragments built from the bundle's `layout` plus
- * optional caller extras.
+ * zero-variant class fragments built from the bundle's `layout` plus the
+ * classes that the caller adds.
  */
 export function panel<P, B = undefined>(
 	t: PanelTokens,
@@ -77,10 +75,10 @@ export function panel<P, B = undefined>(
 		// cast normalizes the optional field to match the return. When B
 		// is inferred from a passed recipe, the cast is a no-op.
 		backdrop: input.backdrop as B,
-		title: [...layout.title, ...toArray(input.title?.extra)],
-		description: [...layout.description, ...toArray(input.description?.extra)],
-		header: [layout.header, ...toArray(input.header?.extra)],
-		body: [...layout.body, ...toArray(input.body?.extra)],
-		footer: [...layout.footer, ...toArray(input.footer?.extra)],
+		title: [...layout.title, ...toArray(input.title)],
+		description: [...layout.description, ...toArray(input.description)],
+		header: [layout.header, ...toArray(input.header)],
+		body: [...layout.body, ...toArray(input.body)],
+		footer: [...layout.footer, ...toArray(input.footer)],
 	}
 }

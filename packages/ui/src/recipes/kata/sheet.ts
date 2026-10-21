@@ -47,7 +47,7 @@ export const k = {
 	...bridge.panel(panel, {
 		panel: defineRecipe({
 			base: [
-				...panel.surface.chrome.flat(),
+				...panel.surface.chrome,
 				panel.layout.base,
 				'absolute overflow-y-auto overscroll-contain',
 			],
@@ -78,18 +78,16 @@ export const k = {
 			defaults: { side: 'right', width: 'md', surface: 'flat' },
 		}),
 		backdrop: bridge.backdrop(backdrop),
-		title: { extra: [inset.x, inset.top] },
-		description: { extra: inset.x },
-		footer: { extra: [inset.x, inset.bottom] },
-		body: {
-			extra: [
-				flex.fill,
-				'overflow-y-auto overscroll-contain',
-				inset.x,
-				inset.first.sheet,
-				inset.last.sheet,
-			],
-		},
+		title: [inset.x, inset.top],
+		description: inset.x,
+		footer: [inset.x, inset.bottom],
+		body: [
+			flex.fill,
+			'overflow-y-auto overscroll-contain',
+			inset.x,
+			inset.first.sheet,
+			inset.last.sheet,
+		],
 	}),
 	/**
 	 * The classes of each `layout` of the panel. Each value writes the same

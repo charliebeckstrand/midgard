@@ -86,7 +86,7 @@ const shell = [
 	'touch-manipulation',
 ]
 
-/** Pre-assembled chrome: shell + surface. The applicator's standard base. */
+/** Pre-assembled chrome: shell + surface. The standard base of `bridge.check`. */
 const base = [...shell, ...surface]
 
 /**

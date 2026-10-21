@@ -37,7 +37,7 @@ type ControlTokens = {
 	density: ClassValue
 	reset: { number: ClassValue }
 	surface: { default: ClassValue; glass: ClassValue }
-	check: { base: ClassValue; hidden: ClassValue; disabled: ClassValue }
+	check: { base: ClassValue; hidden: ClassValue }
 }
 
 /** The standard control config / extras, built from the supplied tokens. */

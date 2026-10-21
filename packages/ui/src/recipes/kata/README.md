@@ -1,24 +1,24 @@
-# Kata 型 — Form
+# Kata 型: Form
 
-> **Scope:** per-unit recipes. One file per unit — usually `src/components/<name>/`, sometimes `src/primitives/<name>/` when the primitive needs its own recipe surface. A layout takes `<name>-layout.ts`, so `sidebar-layout.ts` and the Sidebar component's `sidebar.ts` do not collide.
+> **Scope:** per-unit recipes. One file per unit: usually `src/components/<name>/`, sometimes `src/primitives/<name>/` when the primitive needs its own recipe surface. A layout takes `<name>-layout.ts`, so `sidebar-layout.ts` and the Sidebar component's `sidebar.ts` do not collide.
 
 ## 1. Boundary
 
-`kata/` is internal — omitted from `package.json` `exports` and not re-exported from `src/recipes/index.ts`. **Kata is the only recipe funnel for consumers, and the only layer that touches kiso**: every value a component or primitive reads from the design system flows through its kata, and every kiso token reaches the system through a kata. Consumers reach kata via relative path: `from '../../recipes/kata/<name>'`. Sideways composition between kata is forbidden — shared concerns promote by role: shared *data* to a kiso semantic bundle, shared *wiring* to a katakana bridge. `recipe-boundary.test.ts` pins the `exports` omission and the types-only barrel. The `no-value-import-from-recipes-barrel` and `no-value-import-from-sibling-kata` Biome plugins pin the kata funnel and the ban on value imports between kata. A type-only import between kata carries no value, so it is allowed; `status.ts` takes its dot variants from `swatch.ts` that way. `chart.ts` and `map.ts` share their palette, inks, and motion through the kiso [`zu`](../kiso/README.md#4-semantic-tier--archetype-bundles) bundle. The full list of boundary tests and lint rules lives in [`../README.md`](../README.md#3-boundary).
+`kata/` is internal: it is omitted from `package.json` `exports` and not re-exported from `src/recipes/index.ts`. **Kata is the only recipe funnel for consumers, and the only layer that touches kiso**: every value a component or primitive reads from the design system flows through its kata, and every kiso token reaches the system through a kata. Consumers reach kata via relative path: `from '../../recipes/kata/<name>'`. Sideways composition between kata is forbidden. Shared concerns promote by role: shared *data* to a kiso semantic bundle, shared *wiring* to a katakana bridge. `recipe-boundary.test.ts` pins the `exports` omission and the types-only barrel. The `no-value-import-from-recipes-barrel` and `no-value-import-from-sibling-kata` Biome plugins pin the kata funnel and the ban on value imports between kata. A type-only import between kata carries no value, so it is allowed; `status.ts` takes its dot variants from `swatch.ts` that way. `chart.ts` and `map.ts` share their palette, inks, and motion through the kiso [`zu`](../kiso/README.md#4-semantic-tier-archetype-bundles) bundle. The full list of boundary tests and lint rules lives in [`../README.md`](../README.md#3-boundary).
 
-The three ways a kata reaches the layers below — a katakana bridge, `defineRecipe` directly, or a `kiso/<archetype>` bundle directly — are described in [`../README.md`](../README.md#2-direction). All three compose [`kiso/`](../kiso/README.md) freely for tokens.
+The three ways a kata reaches the layers below (a katakana bridge, `defineRecipe` directly, or a `kiso/<archetype>` bundle directly) are described in [`../README.md`](../README.md#2-direction). All three compose [`kiso/`](../kiso/README.md) freely for tokens.
 
-When a component and primitive share the same UI surface (e.g. `components/popover/` and `primitives/popover/PopoverPanel`), one kata serves both — `kata/popover.ts` exposes flat slots (`k.trigger`, `k.portal`, `k.text`, `k.panel`) that both consumers read.
+When a component and primitive share the same UI surface (e.g. `components/popover/` and `primitives/popover/PopoverPanel`), one kata serves both: `kata/popover.ts` exposes flat slots (`k.trigger`, `k.portal`, `k.text`, `k.panel`) that both consumers read.
 
 ## 2. Shape
 
 Each kata exports its runtime surface as `k`, and its `scale` when it has one. The shape `k` takes depends on how the kata reaches the recipe layer:
 
-- **Archetype kata** (`k = bridge.<archetype>(tokens, {...})`) — the kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which builds and returns the `k` surface. The bridge owns the recipe construction; the kata supplies the tokens and per-call overlays.
-- **Recipe-shaped kata** (`k = defineRecipe(...)`) — `k` is a `defineRecipe(...)` callable, used as `k({ variant, size, … })`. Slots and sibling sub-recipes attach as direct properties (`k.title`, `k.thumb`) via the `defineRecipe(config, extras)` form. A density-native kata has no size axis: its stepped classes take the step of the nearest density scope.
-- **Object-literal kata** (`k = { … }`) — `k` is a plain object. Used when the component has no top-level variants axis but still needs a curated surface (slot fragments, sub-recipes, motion configs, skeleton data). Recipes for individual slots are inner `defineRecipe(...)` callables: `k.button({ size })`, `k.panel({ surface })`.
+- **Archetype kata** (`k = bridge.<archetype>(tokens, {...})`): the kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which builds and returns the `k` surface. The bridge owns the recipe construction; the kata supplies the tokens and per-call overlays.
+- **Recipe-shaped kata** (`k = defineRecipe(...)`): `k` is a `defineRecipe(...)` callable, used as `k({ variant, size, … })`. Slots and sibling sub-recipes attach as direct properties (`k.title`, `k.thumb`) via the `defineRecipe(config, extras)` form. A density-native kata has no size axis: its stepped classes take the step of the nearest density scope.
+- **Object-literal kata** (`k = { … }`): `k` is a plain object. Used when the component has no top-level variants axis but still needs a curated surface (slot fragments, sub-recipes, motion configs, skeleton data). Recipes for individual slots are inner `defineRecipe(...)` callables: `k.button({ size })`, `k.panel({ surface })`.
 
-Type exports sit alongside, derived from the concrete result — `type FooVariants = VariantProps<typeof k>` (or `VariantProps<typeof k.button>`). Archetype kata derive theirs the same way, since the bridge is generic over the tokens and exposes no standalone variant type.
+Type exports sit alongside, derived from the concrete result: `type FooVariants = VariantProps<typeof k>` (or `VariantProps<typeof k.button>`). Archetype kata derive theirs the same way, since the bridge is generic over the tokens and exposes no standalone variant type.
 
 `VariantProps` maps the axes of the recipe, so no declaration holds the TSDoc of an axis. When the recipe or its bridge sets a default for an axis, the type declares that axis again. The new declaration has a description and a `@defaultValue` tag that equals the default. It keeps the type of the recipe:
 
@@ -48,15 +48,15 @@ Filenames are `<name>.ts`, matching the component folder.
 
 Several kata share archetypes whose tokens live in [`kiso/<archetype>`](../kiso/README.md) and whose wiring lives in a [`katakana`](../katakana/README.md) bridge. The kata reads the token bundle and hands it to the bridge; it is a thin call site. The archetype → bridge → kata-member mapping is the [katakana Modules table](../katakana/README.md#4-modules); the token-composition view (which primitives each bundle composes, and which kata reach it) is the [kiso Semantic tier table](../kiso/README.md).
 
-Kata that need only a subset of a semantic bundle reach `kiso/<archetype>` directly — see [`../README.md`](../README.md#2-direction) for the subset list and the [katakana](../katakana/README.md) and [kiso](../kiso/README.md) READMEs for the full archetype contracts.
+Kata that need only a subset of a semantic bundle reach `kiso/<archetype>` directly. See [`../README.md`](../README.md#2-direction) for the subset list and the [katakana](../katakana/README.md) and [kiso](../kiso/README.md) READMEs for the full archetype contracts.
 
 ## 4. Rules
 
-- **Compose, don't redefine.** A kata that reinvents a recipe already in a katakana bridge or a kiso bundle is a defect — fold it into the existing module.
+- **Compose, don't redefine.** A kata that reinvents a recipe already in a katakana bridge or a kiso bundle is a defect. Fold it into the existing module.
 - **No sideways imports.** Kata never import values from sibling kata. A type-only import is allowed (§1). Shared concerns promote by role: shared *data* to a kiso semantic bundle, shared *wiring* to a katakana bridge. `import { k as <name> }` in a component is a signal the archetype belongs in a bridge.
 - **Variants earn their axis.** Add a variant axis when ≥2 components or call sites need it. Single-use variants stay inline.
 - **Keys by part.** Name each key of `k` by the rules in [`../README.md`](../README.md#4-key-names): one word for each key, and a part with children is an object whose own classes are `base`.
-- **Header when non-obvious.** Open a kata with a summary doccomment only when its structure isn't self-evident from the body — it serves more than one unit, sources a non-standard token (inline `mode()` colors rather than an `iro` palette), bridges or composes another recipe, or groups slots non-trivially. A canonical recipe-shaped matrix (`variant × color × size`) needs none; the header is the signal that something here is worth reading first.
+- **Header when non-obvious.** Open a kata with a summary doccomment only when its structure isn't self-evident from the body: it serves more than one unit, sources a non-standard token (inline `mode()` colors rather than an `iro` palette), bridges or composes another recipe, or groups slots non-trivially. A canonical recipe-shaped matrix (`variant × color × size`) needs none; the header is the signal that something here is worth reading first.
 
 ---
 

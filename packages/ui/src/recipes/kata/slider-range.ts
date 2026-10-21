@@ -19,6 +19,7 @@ const range = defineRecipe({
 		'touch-none',
 		disabled,
 		dan.space.slider.y,
+		slider.track,
 	],
 	color,
 	defaults: { color: 'blue' },

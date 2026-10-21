@@ -14,7 +14,7 @@ const { surface, layout } = panel
 export const k = {
 	panel: defineRecipe({
 		base: [
-			...surface.chrome.flat(),
+			...surface.chrome,
 			layout.base,
 			'relative',
 			'w-full',
