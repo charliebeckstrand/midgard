@@ -236,7 +236,7 @@ const TINT_CONSUMERS: readonly {
 		],
 	},
 	// The control track, inked by `segment/item.ts`.
-	{ file: 'recipes/kiso/segment/control.ts', surfaces: [segment.item.base] },
+	{ file: 'recipes/kiso/segment/control.ts', surfaces: [segment.item] },
 	// The `solid` bar; items ink at `hannou.nav.base`, not at a muted rung.
 	{ file: 'recipes/kata/nav.ts', surfaces: [nav.item.button({ affix: false })] },
 	{ file: 'recipes/kata/toolbar.ts', surfaces: [] },
@@ -347,7 +347,7 @@ describe('segment archetype contrast', () => {
 	const SEPARATION = 2
 
 	it.each(MODES)('selected item clears text AA on the %s pill', (mode) => {
-		expect(segment.item.base).toContain(SELECTED[mode])
+		expect(segment.item).toContain(SELECTED[mode])
 
 		expect(getContrast(SELECTED[mode], PILL[mode])).toBeGreaterThanOrEqual(TEXT_AA)
 	})
@@ -356,7 +356,7 @@ describe('segment archetype contrast', () => {
 	// clearing AA by darkening the resting item the rest of the way to the
 	// selected ink would satisfy 1.4.3 and erase the distinction.
 	it.each(MODES)('resting stays subordinate to selected in %s mode', (mode) => {
-		expect(segment.item.base).toContain(MUTED[mode])
+		expect(segment.item).toContain(MUTED[mode])
 
 		expect(getContrast(SELECTED[mode], WASH[mode])).toBeGreaterThanOrEqual(
 			SEPARATION * getContrast(MUTED[mode], WASH[mode]),

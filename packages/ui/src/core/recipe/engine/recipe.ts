@@ -26,14 +26,19 @@ import type {
 	VariantAxis,
 } from './types'
 
-const RESERVED: ReadonlySet<ReservedField> = new Set([
-	'base',
-	'palette',
-	'compound',
-	'slots',
-	'defaults',
-	'skeleton',
-])
+/**
+ * The reserved config fields. The record type makes the list match
+ * {@link ReservedField}: a field that the type names and the record does not
+ * have is a type error, and so is a field that the record adds.
+ */
+const RESERVED = {
+	base: true,
+	palette: true,
+	compound: true,
+	slots: true,
+	defaults: true,
+	skeleton: true,
+} as const satisfies Record<ReservedField, true>
 
 /**
  * Memo entries per recipe. Combinations of declared axis values stay far
@@ -404,7 +409,7 @@ function expand(config: RecipeConfig): Expansion {
 	const variants: Record<string, Record<string, ClassValue>> = {}
 
 	for (const [key, value] of Object.entries(config)) {
-		if (RESERVED.has(key as ReservedField)) continue
+		if (Object.hasOwn(RESERVED, key)) continue
 
 		variants[key] = { ...(value as VariantAxis) }
 	}

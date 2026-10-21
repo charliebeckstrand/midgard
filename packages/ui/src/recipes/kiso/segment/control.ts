@@ -16,17 +16,15 @@ const { rounded } = kasane
 const { flex } = narabi
 const { bg } = omote
 
-export const control = {
-	// `self-start` keeps the control hugging its content width inside the
-	// `flex flex-col` tab-group, overriding `align-items: stretch` on the cross axis.
-	// `max-w-full` holds it inside its container: where the labels do not fit on
-	// one line, the items shrink and wrap their labels, and the page does not widen.
-	base: [
-		flex.inline,
-		'self-start max-w-full',
-		...bg.tint,
-		rounded.lg,
-		`p-1 ${dan.gap.default}`,
-		ji.ramp,
-	],
-} as const
+// `self-start` keeps the control hugging its content width inside the
+// `flex flex-col` tab-group, overriding `align-items: stretch` on the cross axis.
+// `max-w-full` holds it inside its container: where the labels do not fit on
+// one line, the items shrink and wrap their labels, and the page does not widen.
+export const control = [
+	flex.inline,
+	'self-start max-w-full',
+	...bg.tint,
+	rounded.lg,
+	`p-1 ${dan.gap.default}`,
+	ji.ramp,
+] as const

@@ -26,7 +26,7 @@ export const k = {
 	...bridge.panel(panel, {
 		panel: defineRecipe({
 			base: [
-				...surface.chrome.flat(),
+				...surface.chrome,
 				layout.base,
 				// The panel sits on the bottom edge of the overlay root. Each height below
 				// is a share of the root, so a panel in a scoped overlay fits its container.
@@ -74,18 +74,16 @@ export const k = {
 		// handle the stock header would sit a whole step below the grip, which is
 		// what made the first consumer hand-roll its own header row rather than use
 		// this slot.
-		title: { extra: [layout.inset.x, layout.inset.top, 'group-data-handle/drawer:pt-0'] },
-		description: { extra: layout.inset.x },
-		footer: { extra: [layout.inset.x, layout.inset.bottom] },
-		body: {
-			extra: [
-				flex.fill,
-				'overflow-y-auto overscroll-y-contain',
-				layout.inset.x,
-				layout.inset.first.drawer,
-				layout.inset.last.drawer,
-			],
-		},
+		title: [layout.inset.x, layout.inset.top, 'group-data-handle/drawer:pt-0'],
+		description: layout.inset.x,
+		footer: [layout.inset.x, layout.inset.bottom],
+		body: [
+			flex.fill,
+			'overflow-y-auto overscroll-y-contain',
+			layout.inset.x,
+			layout.inset.first.drawer,
+			layout.inset.last.drawer,
+		],
 	}),
 	/**
 	 * The optional wrapper around the body and the footer. The bridge has no slot

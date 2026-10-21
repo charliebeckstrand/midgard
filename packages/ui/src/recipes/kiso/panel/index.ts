@@ -1,8 +1,8 @@
 /**
  * Panel archetype: slot bundle shared by dialog, drawer, sheet, box, panel, and grid.
- * Owns the surface (fill + chrome), the slot layout (title /
+ * Owns the surface (chrome, and fill + chrome), the slot layout (title /
  * description / header / body / footer arrangement), and the drag grip
- * a resizable panel is taken by. The katakana applicator wraps these
+ * a resizable panel is taken by. The katakana panel bridge wraps these
  * with caller-supplied panel + backdrop recipes.
  */
 

@@ -1,8 +1,8 @@
 /**
- * Panel archetype: surface. The fill, chrome, and combined base used by
- * dialog, drawer, sheet, box, and grid. Three shapes: fill only,
- * chrome only (ring + forced-color outline), and fill + chrome combined. And
- * `axis`, the `surface` variant axis of the dialog, drawer, and sheet panels.
+ * Panel archetype: surface. The chrome and the combined base used by dialog,
+ * drawer, sheet, box, and grid. Two shapes: chrome only (ring + forced-color
+ * outline), and fill + chrome combined. And `axis`, the `surface` variant axis
+ * of the dialog, drawer, and sheet panels.
  *
  * Layer: kiso · Archetype: panel · Concern: surface
  */
@@ -14,8 +14,6 @@ const { bg, glass } = omote
 const { ring } = sen
 
 export const surface = {
-	/** Background fill only. */
-	bg: bg.surface,
 	/** Chrome only: ring + forced-color outline, no fill. */
 	chrome: ring.default,
 	/** Fill + chrome, everything a floating panel needs. */
