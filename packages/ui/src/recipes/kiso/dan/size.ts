@@ -34,7 +34,7 @@ const panel = 'density-w-[64,72,80,88,96]'
 
 export const size = {
 	icon: {
-		/** An icon and a loading spinner. `shaku.icon.size` holds the same steps. */
+		/** An icon and a loading spinner, at the glyph scale. */
 		base: glyph,
 		/** An icon in the icon slot of a host. */
 		slot: '*:data-[slot=icon]:density-size-[4,4.5,5,5.5,6]',

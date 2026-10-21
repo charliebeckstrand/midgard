@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 
-import { tintSurface } from '../../recipes/kiso/hannou/tint-surface'
+import { tint } from '../../recipes/kiso/hannou/tint'
 import { contrastRatio, parseColor } from '../../utilities/contrast'
 import { themeColor } from '../helpers/contrast'
 
@@ -19,7 +19,7 @@ const SURFACE = { light: 'white', dark: 'zinc-900' } as const
 
 /** The color token of the `hover:bg-*` class for one mode. */
 function hoverToken(mode: 'light' | 'dark'): string {
-	const hover = tintSurface
+	const hover = tint.surface
 		.flatMap((className) => className.split(' '))
 		.filter((className) => className.startsWith('dark:') === (mode === 'dark'))
 		.map((className) => /hover:bg-([a-z]+(?:-\d{2,3})?)$/.exec(className)?.[1])

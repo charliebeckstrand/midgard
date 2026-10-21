@@ -41,8 +41,8 @@ const group = defineRecipe({
 	// so it sizes as a `<div>` does.
 	base: [flex.row, 'min-w-auto'],
 	orientation: {
-		horizontal: ['flex-row', dan.gap.toolbarGroup, dan.gap.touch.toolbarGroup.x],
-		vertical: ['flex-col', dan.gap.toolbarGroup, dan.gap.touch.toolbarGroup.y],
+		horizontal: ['flex-row', dan.gap.toolbar.group, dan.gap.touch.toolbar.group.x],
+		vertical: ['flex-col', dan.gap.toolbar.group, dan.gap.touch.toolbar.group.y],
 	},
 	defaults: { orientation: 'horizontal' },
 })

@@ -1,7 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 
-import { contrastMore, tone } from '../../recipes/kiso/sen/tone'
+import { sen } from '../../recipes/kiso/sen'
+import { contrastMore } from '../../recipes/kiso/sen/tone'
 import { contrastRatio, WCAG_NON_TEXT } from '../../utilities/contrast'
 import { SURFACE, tinted } from '../helpers/contrast'
 
@@ -14,7 +15,18 @@ import { SURFACE, tinted } from '../helpers/contrast'
  * for more contrast (`prefers-contrast: more`) got the faint lines.
  */
 describe('sen tone under prefers-contrast: more', () => {
-	const visible = Object.entries(tone).filter(([name]) => name !== 'borderTransparent')
+	const lines: Record<string, Record<string, readonly string[]>> = {
+		border: sen.border.color,
+		outline: sen.outline,
+		ring: { default: sen.ring.default, inset: sen.ring.inset },
+		divider: sen.divider,
+	}
+
+	const visible = Object.entries(lines).flatMap(([line, tones]) =>
+		Object.entries(tones)
+			.filter(([name]) => name !== 'transparent')
+			.map(([name, classes]) => [`${line}.${name}`, classes] as const),
+	)
 
 	it.each(visible)('gives the %s tone a step in each mode', (_, classes) => {
 		expect(classes.some((className) => className.startsWith('contrast-more:'))).toBe(true)

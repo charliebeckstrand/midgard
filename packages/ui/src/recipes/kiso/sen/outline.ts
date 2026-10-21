@@ -11,15 +11,35 @@
  * Layer: kiso · Concern: outlines
  */
 
-import { tone } from './tone'
+import { mode } from '../../../core/recipe'
+
+import { contrastMore } from './tone'
+
+const { light, dark } = contrastMore.outline
 
 const inset = '-outline-offset-1'
 
+/** The width and the color of each outline, in each mode. */
+const color = {
+	default: mode(
+		['outline-1 outline-zinc-950/10', light],
+		['dark:outline-1 dark:outline-white/10', dark],
+	),
+	strong: mode(
+		['outline-1 outline-zinc-950/15', light],
+		['dark:outline-1 dark:outline-white/15', dark],
+	),
+	subtle: mode(
+		['outline-1 outline-zinc-950/5', light],
+		['dark:outline-1 dark:outline-white/5', dark],
+	),
+}
+
 export const outline = {
 	/** Default outline: 1 px line, low-contrast palette. */
-	default: ['outline', inset, ...tone.outline],
+	default: ['outline', inset, ...color.default],
 	/** Stronger outline: emphasis on dark backgrounds. */
-	strong: ['outline', inset, ...tone.outlineStrong],
+	strong: ['outline', inset, ...color.strong],
 	/** Subtle outline: secondary separators. */
-	subtle: ['outline', inset, ...tone.outlineSubtle],
+	subtle: ['outline', inset, ...color.subtle],
 } as const

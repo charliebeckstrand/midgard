@@ -53,7 +53,7 @@ export const k = defineRecipe(
 				// tall, the glyph centers on the first code line, and a block of one line
 				// is vertically centered. The close button of an alert uses the same
 				// line box.
-				line: [flex.row, 'h-lh box-content', dan.space.codeCopy, text],
+				line: [flex.row, 'h-lh box-content', dan.space.code.copy, text],
 				// The colors of the button, for the canvas of the theme. The block picks
 				// `dark` or `light` from the background of its theme. The canvas does not
 				// change with the color mode, but the bare button takes the colors of the

@@ -1,15 +1,16 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { densitySteps } from '../../core/density'
+import { iconSize } from '../../core/density/geometry'
 import { shaku } from '../../recipes/kiso/shaku'
 import { findSteps } from '../helpers/class-stops'
 
 /**
- * The icon forms repeat the icon scale, the ramps in a stepped `density-size` class. Tailwind needs
- * each class as a literal, so the forms cannot be built from the scale. This pins each step of each
- * form to the scale.
+ * The icon forms repeat the icon scale (`iconSize`), the ramps in a stepped `density-size` class.
+ * Tailwind needs each class as a literal, so the forms cannot be built from the scale. This pins
+ * each step of each form to the scale, in spacing units of 4 px.
  */
-const scale = (step: (typeof densitySteps)[number]) => shaku.icon.size[step].replace('size-', '')
+const scale = (step: (typeof densitySteps)[number]) => String(iconSize(step) / 4)
 
 describe('shaku icon ramps', () => {
 	it('icon.base holds the icon size of each step', () => {

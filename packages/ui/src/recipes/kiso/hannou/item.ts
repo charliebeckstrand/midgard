@@ -18,7 +18,6 @@ import { sen } from '../sen'
 
 import { cursor } from './cursor'
 import { disabled } from './disabled'
-import { glassItem } from './glass-item'
 import { tint } from './tint'
 
 const { text } = iro
@@ -35,6 +34,6 @@ export const item = [
 	forced.focus,
 	disabled,
 	cursor,
-	tint,
-	glassItem,
+	tint.base,
+	tint.glass.base,
 ]

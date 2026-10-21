@@ -98,7 +98,7 @@ export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:tex
  * (7.73:1), which is why `kata/list` inks one rung across every row variant.
  *
  * Two paths deliberately not taken. Raising `muted` itself to `zinc-600` would
- * delete this fork, but `muted` has ~83 recipe call sites. `zinc-500` is the
+ * delete this fork, but many recipes read `muted`. `zinc-500` is the
  * correct least-emphatic rung *for the page*: a design call, not an
  * engineering one. And a fourth color-major `RAMP` role would force red /
  * amber / green / blue rungs with no consumer to size them against. When a
