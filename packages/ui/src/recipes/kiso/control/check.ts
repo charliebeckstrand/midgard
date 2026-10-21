@@ -16,7 +16,7 @@ import { hannou } from '../hannou'
 import { narabi } from '../narabi'
 import { sen } from '../sen'
 
-const { cursor, fg } = hannou
+const { cursor } = hannou
 const { flex } = narabi
 const { focus, forced } = sen
 
@@ -112,6 +112,4 @@ export const check = {
 	color,
 	/** Validation ring fragment keyed off the overlaid input's `data-*` state; spread by the switch track and the signature pad, already folded into `surface` for checkbox / radio. */
 	validation,
-	/** Disabled-state text class for the surrounding field wrapper. */
-	disabled: fg.disabled,
 } as const

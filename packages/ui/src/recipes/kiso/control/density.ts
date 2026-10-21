@@ -35,7 +35,7 @@ import { affix } from './affix'
 export const radius = dan.radius.control
 
 /** The vertical padding at each step. */
-export const py = dan.space.control.y
+const py = dan.space.control.y
 
 export const density = [
 	dan.space.control.x,

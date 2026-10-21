@@ -1,6 +1,6 @@
 /**
  * Control archetype: input element. Pre-assembled text-input base,
- * the bare element `reset` plus the kasane rounded corner.
+ * the bare element `reset.base` plus the kasane rounded corner.
  *
  * Layer: kiso · Archetype: control · Concern: input
  */
@@ -11,4 +11,4 @@ import { reset } from './reset'
 
 const { rounded } = kasane
 
-export const input = [...reset, rounded.lg]
+export const input = [...reset.base, rounded.lg]

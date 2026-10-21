@@ -1,23 +1,14 @@
 import { defineRecipe } from '../../core/recipe'
-import { hannou, kasane, kokkaku, omote, sen } from '../kiso'
+import { kasane, kokkaku, omote, sen } from '../kiso'
 import { control } from '../kiso/control'
 import { dan } from '../kiso/dan'
 import { popover } from '../kiso/popover'
 
-const { cursor } = hannou
 const { rounded } = kasane
-const { reset, density } = control
 const { fit, picker } = popover
 
 const button = defineRecipe({
-	base: [
-		`flex items-center ${dan.gap.scale.sm}`,
-		...reset.base,
-		'text-start',
-		'appearance-none',
-		...cursor,
-		...density,
-	],
+	base: [`flex items-center ${dan.gap.scale.sm}`, ...control.button],
 })
 
 /** The text of the color value in the trigger, cut to one line. */

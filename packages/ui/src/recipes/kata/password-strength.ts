@@ -2,14 +2,14 @@
  * Password-strength kata: object-literal surface for the strength meter and
  * rule checklist. Two `level`-axed sub-recipes (`segment` bar fill, `label`
  * text) keyed by strength tier (weak / fair / good / strong / empty). The
- * rule rows pair a pass/fail icon with pass/fail text color. Tier colors
- * are authored inline with `mode()`: meter-specific, not a shared palette.
+ * rule rows pair a pass/fail icon with pass/fail text color. A tier fills
+ * with the `iro.meter` shade of its color, as a progress bar does.
  */
-import { defineRecipe, mode } from '../../core/recipe'
+import { defineRecipe } from '../../core/recipe'
 import { iro, ji, kasane, narabi, omote } from '../kiso'
 import { dan } from '../kiso/dan'
 
-const { palette, text } = iro
+const { meter, palette, text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
@@ -18,10 +18,10 @@ const { bg } = omote
 const segment = defineRecipe({
 	base: [flex.fill, 'h-1', rounded.full, ...bg.skeleton.base],
 	level: {
-		weak: mode('bg-red-600', 'dark:bg-red-500'),
-		fair: mode('bg-amber-600', 'dark:bg-amber-500'),
-		good: mode('bg-blue-600', 'dark:bg-blue-500'),
-		strong: mode('bg-green-600', 'dark:bg-green-500'),
+		weak: meter.red.bg,
+		fair: meter.amber.bg,
+		good: meter.blue.bg,
+		strong: meter.green.bg,
 		empty: '',
 	},
 	defaults: { level: 'empty' },
