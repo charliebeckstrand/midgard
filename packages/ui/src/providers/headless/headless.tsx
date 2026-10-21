@@ -10,7 +10,8 @@ export type HeadlessProviderProps = {
 
 /**
  * Escape-hatch provider that strips chrome from headless-aware descendants so
- * they render the bare semantic element.
+ * they render the bare semantic element. Their content stays: an affix, a
+ * clear button, or a row of actions renders bare beside the element.
  *
  * @remarks
  * Renders as a pass-through (no host element), keeping the disabled child a
