@@ -14,7 +14,7 @@ import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
-import { adaptive, type Responsive, resolveVariant, withInitial } from '../../types'
+import { adaptive, type Responsive, withInitial } from '../../types'
 import { DialogClose, DialogDefaultFooter } from './slots'
 
 /** Where a {@link DialogPanel} sits: docked to the `bottom` edge, or floating at the `center` or the `top`. */
@@ -189,31 +189,18 @@ export function DialogPanel({
 		returnFocusTo,
 	})
 
-	const slots = k({ surface, width })
+	const slots = k({ surface, width, align })
 
 	return (
 		<Overlay {...overlayProps} backdropClassName={slots.backdrop}>
-			<div
-				className={cn(
-					// The overlay root is positioned in both modes, so the wrapper fills the
-					// root: the part of the screen that the reader sees, or the `container`.
-					'pointer-events-none absolute inset-0 flex min-h-full justify-center',
-					resolveVariant(align, k.align.box),
-				)}
-			>
+			<div className={slots.box}>
 				<m.div
 					data-slot={slot}
 					{...props}
 					{...panelProps}
 					// A command palette's rows hover inside this panel, not inside a popover,
 					// so they take the glass wash that the panel opens.
-					className={cn(
-						'pointer-events-auto',
-						panelClassName,
-						slots.base,
-						resolveVariant(align, k.align.panel),
-						className,
-					)}
+					className={cn('pointer-events-auto', panelClassName, slots.base, className)}
 				>
 					<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 						{children}

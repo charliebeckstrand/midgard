@@ -4,7 +4,6 @@ import { __unstable__loadDesignSystem, compile } from '@tailwindcss/node'
 import clsx, { type ClassValue } from 'clsx'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { twMerge } from '../../core/tw-merge'
-import { k as dialog } from '../../recipes/kata/dialog'
 import { k as events } from '../../recipes/kata/events'
 import { k as offcanvas } from '../../recipes/kata/offcanvas'
 import { k as queryBuilder } from '../../recipes/kata/query-builder'
@@ -97,8 +96,6 @@ const AXES: ReadonlyArray<readonly [string, Record<string, string>]> = [
 	['Stepper title orientation', stepper.title.orientation],
 	['Stepper separator orientation', stepper.separator.orientation],
 	['Stepper content orientation', stepper.content.orientation],
-	['Dialog box align', dialog.align.box],
-	['Dialog panel align', dialog.align.panel],
 	['Toast viewport position', toast.position.viewport],
 	['Toast stack position', toast.position.scroll],
 	['Sheet right layout', sheet.layout.side.right],

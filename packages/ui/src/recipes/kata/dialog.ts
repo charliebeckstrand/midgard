@@ -26,30 +26,42 @@ export const k = defineKata(
 		],
 		/** The maximum width of the panel. */
 		width: shaku.panel,
-		defaults: { width: 'lg' },
-	},
-	{
 		/**
 		 * The classes of each `align` of the panel and of the box around it. Each
-		 * value writes the same properties, so a breakpoint replaces each one
-		 * (`resolveVariant`). `bottom` docks the panel to the bottom edge as a sheet:
-		 * it spans the width, rounds its top corners only, and scrolls past 85% of
-		 * the height. `center` and `top` float it in a box with an inset of 1rem on
-		 * each edge, so its full height stops 1rem short of each.
+		 * value writes the same properties, so a breakpoint replaces each one.
+		 * `bottom` docks the panel to the bottom edge as a sheet: it spans the
+		 * width, rounds its top corners only, and scrolls past 85% of the height.
+		 * `center` and `top` float it in a box with an inset of 1rem on each edge,
+		 * so its full height stops 1rem short of each.
 		 */
-		align: {
-			box: {
-				bottom: 'items-end p-0',
-				center: 'items-center p-4',
-				top: 'items-start p-4',
-			},
-			panel: {
+		responsive: {
+			align: {
 				bottom:
 					'rounded-t-2xl rounded-b-none max-h-[85%] overflow-y-auto overscroll-contain [--ui-panel-safe:env(safe-area-inset-bottom)]',
 				center: floating,
 				top: floating,
 			},
 		},
+		slots: {
+			/**
+			 * The box around the panel. The overlay root is positioned in both modes,
+			 * so the box fills the root: the part of the screen that the reader sees,
+			 * or the `container`.
+			 */
+			box: {
+				base: 'pointer-events-none absolute inset-0 flex min-h-full justify-center',
+				responsive: {
+					align: {
+						bottom: 'items-end p-0',
+						center: 'items-center p-4',
+						top: 'items-start p-4',
+					},
+				},
+			},
+		},
+		defaults: { width: 'lg' },
+	},
+	{
 		/** The motion of a floating panel (`desktop`) and of a panel on the bottom edge (`mobile`). */
 		motion: { desktop: popover, mobile: ugoki.panel.bottom },
 		/**
