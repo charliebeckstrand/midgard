@@ -6,7 +6,7 @@ import {
 	ComboboxLabel,
 	ComboboxOption,
 } from '../../components/combobox'
-import { followOptions, seatOnArrowOpen } from '../../components/combobox/combobox'
+import { followOptions, highlightSelection } from '../../components/combobox/combobox'
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { Control } from '../../components/control'
 import { Description, Field, Fieldset, Label, Message } from '../../components/fieldset'
@@ -1169,7 +1169,7 @@ describe('followOptions', () => {
 // The seam of the arrow-key open under a registered source. A plain-object
 // source takes the place of the one that `VirtualOptions` registers, so no
 // virtualizer runs (CONVENTIONS §10.3).
-describe('seatOnArrowOpen', () => {
+describe('highlightSelection', () => {
 	function seat(isDisabled: (index: number) => boolean) {
 		const node = attach(document.createElement('div'))
 
@@ -1184,7 +1184,7 @@ describe('seatOnArrowOpen', () => {
 
 		const activeIndexRef = { current: -1 }
 
-		seatOnArrowOpen(node, source, false, activeIndexRef, { current: input })
+		highlightSelection(node, source, false, activeIndexRef, { current: input })
 
 		return { input, activeIndexRef }
 	}

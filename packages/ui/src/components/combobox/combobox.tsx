@@ -295,8 +295,8 @@ function seedTopMatch(
 }
 
 /**
- * Seats the highlight for an arrow-key open. It goes on the current selection,
- * so the menu opens with the active value. A plain open leaves the highlight
+ * Puts the highlight on the current selection for an arrow-key open, so the
+ * menu opens with the active value. A plain open leaves the highlight
  * empty, and so does an arrow-key open with nothing selected. Single mode
  * only: `multiple` carries no single selection.
  *
@@ -308,7 +308,7 @@ function seedTopMatch(
  *
  * @internal
  */
-export function seatOnArrowOpen(
+export function highlightSelection(
 	node: HTMLElement,
 	source: VirtualItemSource | null,
 	multiple: boolean,
@@ -664,11 +664,11 @@ export function Combobox<T>({
 
 	// Keeps the virtual highlight anchored to a real option: clears
 	// `aria-activedescendant` while the menu is closed, on each filter change
-	// seeds it through `seedTopMatch`, and on an arrow-key open seats it through
-	// `seatOnArrowOpen`. Skips the initial query; the first arrow key then picks
-	// the first option. Passes `ariaSelected: false`; options own their
-	// selection state. Each path records the origin of the highlight in
-	// `highlightOriginRef`.
+	// seeds it through `seedTopMatch`, and on an arrow-key open puts it on the
+	// selection through `highlightSelection`. Skips the initial query; the first
+	// arrow key then picks the first option. Passes `ariaSelected: false`;
+	// options own their selection state. Each path records the origin of the
+	// highlight in `highlightOriginRef`.
 	//
 	// Under a registered `virtualSourceRef`, index math replaces the DOM query
 	// (a windowed-out option isn't in the DOM to find), via
@@ -708,7 +708,7 @@ export function Combobox<T>({
 		if (anchorSelected) {
 			lastQueryRef.current = deferredQuery
 
-			seatOnArrowOpen(optionsNode, source, multiple, activeIndexRef, inputRef)
+			highlightSelection(optionsNode, source, multiple, activeIndexRef, inputRef)
 
 			highlightOriginRef.current = 'moved'
 
