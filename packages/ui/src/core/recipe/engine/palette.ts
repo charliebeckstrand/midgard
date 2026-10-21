@@ -1,18 +1,10 @@
 /**
- * definePalette(): declares a recipe's color × variant matrix.
+ * definePalette(): declares a recipe's variant × color matrix.
  *
- * First argument: the matrix. Each entry takes one of two shapes:
- *
- *   1. `Record<Color, string[]>`: a single per-color record. Pass
- *      `iro.palette.plain.text` directly when a variant pulls from one
- *      slot.
- *   2. `readonly Record<Color, string[]>[]`: an array of records merged
- *      per color. Pass `[solid.bg, solid.text, solid.hover]` to bundle
- *      several iro.palette slots into one variant.
- *
- * Subsequent arguments: per-color overlays. Each `{ color → class }` map
- * applies its classes to every variant in the matrix; covers non-palette
- * color values like `inherit`. Multiple overlays merge left-to-right.
+ * The matrix is keyed by variant and then by color. Each entry is the literal
+ * class string of that variant in that color, light and dark classes
+ * together, because Tailwind's scanner finds only whole class literals. A
+ * synthetic color such as `inherit` is one more key of each variant.
  *
  * Lives on `RecipeConfig.palette` rather than on a variant axis: the
  * variant scaffold (`{ outline: 'ring-1 ring-inset', … }`) and the palette
@@ -25,22 +17,14 @@ import type { Color } from '../colors'
 
 import type { CompoundRule } from './types'
 
-type PaletteEntry<C extends string = Color> = Record<C, string[]> | readonly Record<C, string[]>[]
-
-export type PaletteConfig<
-	E extends string = never,
-	M extends string = string,
-	C extends string = Color,
-> = {
-	matrix: Record<M, PaletteEntry<C>>
-	overlays: Record<E, ClassValue>
+export type PaletteConfig<M extends string = string, C extends string = Color> = {
+	matrix: Record<M, Record<C, ClassValue>>
 }
 
-export function definePalette<M extends string, E extends string = never, C extends string = Color>(
-	matrix: Record<M, PaletteEntry<C>>,
-	...overlays: Record<E, ClassValue>[]
-): PaletteConfig<E, M, C> {
-	return { matrix, overlays: Object.assign({}, ...overlays) as Record<E, ClassValue> }
+export function definePalette<M extends string, C extends string = Color>(
+	matrix: Record<M, Record<C, ClassValue>>,
+): PaletteConfig<M, C> {
+	return { matrix }
 }
 
 /** The palette's `variant → color → classes` lookup, in rule order. */
@@ -51,12 +35,9 @@ export type PalettePairs = Map<string, Map<string, ClassValue[]>>
  * alongside the nested {@link PalettePairs} lookup the compiled call path
  * reads. The flat rules stay for `.config` introspection.
  *
- * The color set is derived from the keys of the matrix's own entries, not a
- * fixed list. A kata reading the standard `iro.palette` expands over the five
- * standard colors, while one reading `iro.extended` also picks up the
- * extended set. Overlay keys (synthetic values like `inherit`) join the axis
- * with a single class shared across every variant. A color key carrying both
- * a matrix rule and an overlay rule keeps them in that order.
+ * The color set is derived from the keys of the matrix, not a fixed list. A
+ * kata that writes the five standard colors expands over them, and a kata
+ * that also writes the extended set picks it up.
  */
 export function expandPalette(config: PaletteConfig): {
 	colorScaffold: Record<string, ClassValue>
@@ -70,43 +51,18 @@ export function expandPalette(config: PaletteConfig): {
 	const pairs: PalettePairs = new Map()
 
 	for (const [variant, entry] of Object.entries(config.matrix)) {
-		const perColor = resolveEntry(entry)
-
 		const colors = new Map<string, ClassValue[]>()
 
 		pairs.set(variant, colors)
 
-		for (const [color, classValue] of Object.entries(perColor)) {
+		for (const [color, classValue] of Object.entries<ClassValue>(entry)) {
 			colorScaffold[color] = ''
 
 			compound.push({ variant, color, class: classValue } as CompoundRule)
 
 			colors.set(color, [classValue])
 		}
-
-		for (const [extraColor, classValue] of Object.entries<ClassValue>(config.overlays)) {
-			colorScaffold[extraColor] = ''
-
-			compound.push({ variant, color: extraColor, class: classValue } as CompoundRule)
-
-			colors.set(extraColor, [...(colors.get(extraColor) ?? []), classValue])
-		}
 	}
 
 	return { colorScaffold, compound, pairs }
-}
-
-/** Resolves a matrix entry to a per-color class map, merging array entries by color key. */
-function resolveEntry(entry: PaletteEntry): Record<string, string[]> {
-	if (!Array.isArray(entry)) return entry as Record<string, string[]>
-
-	const out: Record<string, string[]> = {}
-
-	for (const record of entry as readonly Record<string, string[]>[]) {
-		for (const [color, classes] of Object.entries(record)) {
-			out[color] = [...(out[color] ?? []), ...classes]
-		}
-	}
-
-	return out
 }

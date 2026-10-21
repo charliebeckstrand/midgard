@@ -8,7 +8,7 @@
 import { defineRecipe } from '../../core/recipe'
 import { dan, iro, ji, kasane, narabi, omote } from '../kiso'
 
-const { meter, palette, text } = iro
+const { meter, text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
@@ -48,7 +48,7 @@ export const k = {
 		base: [flex.inline, dan.gap.scale.xs, size.sm],
 		icon: {
 			base: 'size-4 shrink-0',
-			pass: palette.bare.text.green,
+			pass: 'text-green-700 dark:text-green-500',
 			fail: text.muted,
 		},
 		text: {

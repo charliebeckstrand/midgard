@@ -2,7 +2,8 @@
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { colors, extendedColors } from '../../core/recipe'
+import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
+import { k as button } from '../../recipes/kata/button'
 import { k as commandPalette } from '../../recipes/kata/command-palette'
 import { k as kanban } from '../../recipes/kata/kanban'
 import { k as list } from '../../recipes/kata/list'
@@ -12,11 +13,7 @@ import { k as option } from '../../recipes/kata/option'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
 import { k as tabs } from '../../recipes/kata/tabs'
 import { hannou, iro, omote } from '../../recipes/kiso'
-import {
-	onSurface as extendedOnSurface,
-	onTint as extendedOnTint,
-} from '../../recipes/kiso/iro/extended-palette'
-import { marker, onSurface, onTint, strong } from '../../recipes/kiso/iro/ramp'
+import { marker, onSurface, strong } from '../../recipes/kiso/iro/ramp'
 import { getContrast, SURFACE, tinted } from '../helpers/contrast'
 import { collectPatternViolations, srcDir } from '../helpers/walk-source'
 
@@ -50,23 +47,6 @@ describe('iro ramp contrast', () => {
 		})
 	})
 
-	describe('onTint clears text AA on the soft fill and a plain surface', () => {
-		it.each(colors)('%s', (color) => {
-			const [light, dark] = onTint[color]
-
-			// The 15% soft-palette wash behind this foreground.
-			const wash = iro.palette.soft.bg[color].join(' ')
-
-			expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
-
-			expect(getContrast(light, tinted(wash, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
-
-			expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
-
-			expect(getContrast(dark, tinted(wash, SURFACE.dark))).toBeGreaterThanOrEqual(TEXT_AA)
-		})
-	})
-
 	it('strong (max-emphasis neutral) clears text AA', () => {
 		const [light, dark] = strong
 
@@ -87,36 +67,60 @@ describe('iro ramp contrast', () => {
 })
 
 /**
- * The same drift guard for the opt-in extended palette (`iro.extended`).
- * The extended ramp only carries the two foreground roles the wide palette
- * reads — `onSurface` (bare text) and `onTint` (plain / soft / outline text) —
- * so both must clear text AA on their declared surfaces in both modes.
+ * The same drift guard for the palette strings of the chromatic kata. Button
+ * writes every color that a chromatic kata offers, and `palette-parity.test.ts`
+ * holds Alert, Avatar, and Badge to the same classes. The text of the soft,
+ * outline, and plain variants sits on the 15% soft fill or on the page, and the
+ * text of the bare variant sits on the page.
  */
-describe('iro extended palette contrast', () => {
-	describe('onSurface clears text AA on the page surface', () => {
-		it.each(extendedColors)('%s', (color) => {
-			const [light, dark] = extendedOnSurface[color]
+describe('chromatic palette contrast', () => {
+	const hues = [...colors, ...extendedColors]
+
+	/** The classes of a Button in a variant and a color. */
+	function resolve(variant: 'soft' | 'outline' | 'plain' | 'bare', color: string): string[] {
+		return button({ variant, color: color as PaletteColor }).base.split(' ')
+	}
+
+	/** The text classes of a resolved Button with no state prefix: its light and its dark class. */
+	function ink(list: string[]): { light: string; dark: string } {
+		const light = list.find((name) => name.startsWith('text-'))
+
+		const dark = list.find((name) => name.startsWith('dark:text-'))
+
+		if (light === undefined || dark === undefined)
+			throw new Error(`no [light, dark] text pair in: ${list.join(' ')}`)
+
+		return { light, dark }
+	}
+
+	describe.each(['soft', 'outline', 'plain'] as const)(
+		'%s text clears text AA on the soft fill and the page',
+		(variant) => {
+			it.each(hues)('%s', (color) => {
+				const { light, dark } = ink(resolve(variant, color))
+
+				const wash = resolve('soft', color)
+					.filter((name) => name.startsWith('bg-'))
+					.join(' ')
+
+				expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
+
+				expect(getContrast(light, tinted(wash, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
+
+				expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
+
+				expect(getContrast(dark, tinted(wash, SURFACE.dark))).toBeGreaterThanOrEqual(TEXT_AA)
+			})
+		},
+	)
+
+	describe('bare text clears text AA on the page', () => {
+		it.each(hues)('%s', (color) => {
+			const { light, dark } = ink(resolve('bare', color))
 
 			expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
 
 			expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
-		})
-	})
-
-	describe('onTint clears text AA on the soft fill and a plain surface', () => {
-		it.each(extendedColors)('%s', (color) => {
-			const [light, dark] = extendedOnTint[color]
-
-			// The 15% soft-palette wash behind this foreground.
-			const wash = iro.extended.soft.bg[color].join(' ')
-
-			expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
-
-			expect(getContrast(light, tinted(wash, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
-
-			expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
-
-			expect(getContrast(dark, tinted(wash, SURFACE.dark))).toBeGreaterThanOrEqual(TEXT_AA)
 		})
 	})
 })

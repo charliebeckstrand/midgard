@@ -224,12 +224,11 @@ describe('defineRecipe', () => {
 		expect(classes).toContain('bg-zinc-500/15')
 	})
 
-	it('palette overlay applies when caller picks the trailing color', () => {
+	it('a synthetic color is one more key of the matrix', () => {
 		const recipe = defineRecipe({
-			palette: definePalette(
-				{ solid: { zinc: ['solid-zinc'], red: ['solid-red'], amber: [], green: [], blue: [] } },
-				{ inherit: 'solid-inherit' },
-			),
+			palette: definePalette({
+				solid: { zinc: 'solid-zinc', red: 'solid-red', inherit: 'solid-inherit' },
+			}),
 			defaults: { variant: 'solid', color: 'zinc' },
 		})
 
