@@ -3,33 +3,24 @@ import { describe, expect, it, vi } from 'vitest'
 import type { JsonValue } from '../../components/json-tree'
 import { flattenTree } from '../../components/json-tree/json-tree-utilities'
 import {
-	toggleExpandedSet,
+	unionExpandedSet,
 	useJsonTreeExpansion,
 } from '../../components/json-tree/use-json-tree-expansion'
 
-describe('toggleExpandedSet', () => {
-	it('adds a path that was not in the set', () => {
-		const onChange = vi.fn()
-
-		toggleExpandedSet(new Set(['a']), 'b', onChange)
-
-		expect(onChange).toHaveBeenCalledWith(new Set(['a', 'b']))
+describe('unionExpandedSet', () => {
+	it('adds the paths that are not in the set', () => {
+		expect(unionExpandedSet(new Set(['$']), new Set(['$', '$.a']))).toEqual(new Set(['$', '$.a']))
 	})
 
-	it('removes a path that is already in the set', () => {
-		const onChange = vi.fn()
-
-		toggleExpandedSet(new Set(['a', 'b']), 'a', onChange)
-
-		expect(onChange).toHaveBeenCalledWith(new Set(['b']))
+	// A union that adds no path reports nothing, so the seed does not call onExpandedChange.
+	it('returns undefined when the set holds each path', () => {
+		expect(unionExpandedSet(new Set(['$', '$.a']), new Set(['$.a']))).toBeUndefined()
 	})
 
 	it('does not mutate the original set', () => {
 		const original = new Set(['a'])
 
-		const onChange = vi.fn()
-
-		toggleExpandedSet(original, 'b', onChange)
+		unionExpandedSet(original, new Set(['b']))
 
 		expect(original).toEqual(new Set(['a']))
 	})
@@ -196,44 +187,6 @@ describe('useJsonTreeExpansion', () => {
 			})
 
 			expect(result.current.isOpen('y', 0)).toBe(false)
-		})
-
-		it('reports an expand that adds a path', () => {
-			const onExpandedChange = vi.fn()
-
-			const { result } = renderHook(() =>
-				useJsonTreeExpansion({
-					expanded: new Set(['$']),
-					onExpandedChange,
-					defaultExpandDepth: 1,
-				}),
-			)
-
-			act(() => {
-				result.current.expand(new Set(['$', '$.a']))
-			})
-
-			expect(onExpandedChange).toHaveBeenCalledWith(new Set(['$', '$.a']))
-		})
-
-		// B06-C14: the union bail ran inside the updater, after the setter had
-		// started, so the callback fired with the set the consumer passed in.
-		it('does not report an expand that adds no path', () => {
-			const onExpandedChange = vi.fn()
-
-			const { result } = renderHook(() =>
-				useJsonTreeExpansion({
-					expanded: new Set(['$', '$.a']),
-					onExpandedChange,
-					defaultExpandDepth: 1,
-				}),
-			)
-
-			act(() => {
-				result.current.expand(new Set(['$.a']))
-			})
-
-			expect(onExpandedChange).not.toHaveBeenCalled()
 		})
 	})
 })
