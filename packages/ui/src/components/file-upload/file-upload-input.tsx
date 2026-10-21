@@ -7,7 +7,6 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { k } from '../../recipes/kata/file-upload'
-import { k as inputKata } from '../../recipes/kata/input'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { InputClearButton } from '../input/input-clear-button'
@@ -82,6 +81,9 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 
 	const variant = control?.variant ?? (glass ? 'glass' : undefined)
 
+	// The suffix always holds the clear or the browse button, so the frame is affixed.
+	const slots = k.input({ variant, affixed: true })
+
 	// The display button is not the control, so it takes no Field id, `required`,
 	// or `aria-describedby`. It shows the state of the Field through its own props.
 	const field = (
@@ -94,7 +96,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 					aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${valueId}` : undefined}
 					disabled={disabled}
 					{...invalidAttrs(invalid)}
-					className={cn(!headless && inputKata({ variant }).field, k.field, k.cursor)}
+					className={cn(!headless && slots.field, k.cursor)}
 					onClick={openPicker}
 				>
 					<span id={valueId} className={cn(k.value, !label && k.placeholder)}>
@@ -144,7 +146,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 							</Button>
 						)
 					}
-					variant={variant}
+					slots={slots}
 					density={size}
 				/>
 			)}

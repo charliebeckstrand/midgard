@@ -7,8 +7,10 @@ import { twMerge } from '../../core/tw-merge'
 import { k as colorPicker } from '../../recipes/kata/color-picker'
 import { k as combobox } from '../../recipes/kata/combobox'
 import { k as datePicker } from '../../recipes/kata/date-picker'
+import { k as fileUpload } from '../../recipes/kata/file-upload'
 import { k as input } from '../../recipes/kata/input'
 import { k as listbox } from '../../recipes/kata/listbox'
+import { k as numberInput } from '../../recipes/kata/number-input'
 import { k as panel } from '../../recipes/kata/panel'
 import { k as textarea } from '../../recipes/kata/textarea'
 import { omote } from '../../recipes/kiso'
@@ -90,8 +92,8 @@ const DROPPED = /^panel\.k\.(gap|inset)\./
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base)(\(\))?$/,
-	main: /^(control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button)$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field)(\(\))?$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button)$/,
 }
 
 /** The output of main, by path. */
@@ -363,6 +365,21 @@ describe('kata output', () => {
 			)
 			check(`${name} field`, filled.field, read(field))
 		}
+
+		// The field of FileUpload is the field of an Input with the layout of the
+		// display button. Its frame and affixes are those of an affixed Input.
+		for (const variant of ['default', 'outline', 'glass'] as const) {
+			const own = fileUpload.input({ variant, affixed: true })
+
+			const shared = input({ variant, affixed: true })
+
+			check(`file-upload base ${variant}`, own.base, shared.base)
+			check(`file-upload prefix ${variant}`, own.prefix, shared.prefix)
+			check(`file-upload suffix ${variant}`, own.suffix, shared.suffix)
+			check(`file-upload field ${variant}`, own.field, shared.field, read('file-upload.k.field'))
+		}
+
+		check('number-input field', numberInput.field, read('input.k.number'), 'tabular-nums')
 
 		// The root of the panel unit: the panel surface, moved from kiso as it was on
 		// main, over the column of the slots.

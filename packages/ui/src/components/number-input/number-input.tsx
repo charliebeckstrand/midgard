@@ -7,7 +7,7 @@ import { announce, cn, composeEventHandlers } from '../../core'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { k } from '../../recipes/kata/input'
+import { k } from '../../recipes/kata/number-input'
 import { clamp } from '../../utilities'
 import { Button } from '../button'
 import { useControl } from '../control/context'
@@ -192,7 +192,7 @@ export function NumberInput({
 			min={min}
 			max={max}
 			step={step}
-			className={cn(k().number, 'tabular-nums', className)}
+			className={cn(k.field, className)}
 			suffix={
 				// Keep focus on the input when a stepper is pressed. The buttons are
 				// tabIndex -1 and mutate silently, so a focus shift would blur the

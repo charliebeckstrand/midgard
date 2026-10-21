@@ -191,13 +191,12 @@ export function Input({
 			(clearButton ?? suffix)
 		)
 
+	const slots = k({
+		variant: field.variant,
+		affixed: isAffixPresent(prefix) || isAffixPresent(frameSuffix),
+	})
+
 	return (
-		<InputFrame
-			input={inputEl}
-			prefix={prefix}
-			suffix={frameSuffix}
-			variant={field.variant}
-			density={size}
-		/>
+		<InputFrame input={inputEl} prefix={prefix} suffix={frameSuffix} slots={slots} density={size} />
 	)
 }

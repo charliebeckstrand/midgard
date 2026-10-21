@@ -4,13 +4,13 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { ControlFrame } from '../../primitives/control'
-import { type InputVariants, k } from '../../recipes/kata/input'
 
 type InputFrameProps = {
 	input: ReactNode
 	prefix: ReactNode
 	suffix: ReactNode
-	variant: InputVariants['variant']
+	/** The slots of the unit: the frame (`base`) and the affix slots. */
+	slots: { readonly base: string; readonly prefix: string; readonly suffix: string }
 	/** The `size` of the input. A step makes the frame a density scope. */
 	density?: DensityStep
 }
@@ -29,17 +29,16 @@ export function isAffixPresent(affix: ReactNode) {
 /**
  * Density-scoped affix frame around the bare `<input>`. Each prefix and suffix
  * slot is a scope one step below the frame (`data-density="slot"`), so the slot
- * content renders one step smaller than the input. {@link isAffixPresent}
- * serves both the wrapper class and the render guards.
+ * content renders one step smaller than the input. The caller resolves the
+ * slots of its unit, with `affixed` from {@link isAffixPresent}, which also
+ * guards each affix here.
  *
  * @internal
  */
-export function InputFrame({ input, prefix, suffix, variant, density }: InputFrameProps) {
+export function InputFrame({ input, prefix, suffix, slots, density }: InputFrameProps) {
 	const hasPrefix = isAffixPresent(prefix)
 
 	const hasSuffix = isAffixPresent(suffix)
-
-	const slots = k({ variant, affixed: hasPrefix || hasSuffix })
 
 	return (
 		<ControlFrame density={density} className={cn(slots.base)}>
