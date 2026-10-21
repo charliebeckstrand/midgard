@@ -135,7 +135,7 @@ export function TabContent({ value, className, ref: consumerRef, ...props }: Tab
 			ref={composedRef}
 			slotPrefix="tab"
 			value={value}
-			className={cn(k.panel, className)}
+			className={cn(k().panel, className)}
 			// Consumer props spread first; the panel's identity and its APG focus
 			// stop below take precedence, because the matching Tab points at these ids.
 			{...props}

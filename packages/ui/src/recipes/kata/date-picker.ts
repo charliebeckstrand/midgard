@@ -1,34 +1,25 @@
 /**
- * Date-picker kata: object-literal surface for the `<DatePicker>` trigger and
- * its popover. A stepped `button`, a stepped `content.body`, and a `value`
- * sub-recipe with a truncate axis drive the control, the popover inset, and the
- * value text. `control` (the input-mode field adjacency), `icon`, `placeholder`, and
- * the `content` group are slots.
+ * Date-picker kata: the unit of the `<DatePicker>` trigger, which extends the
+ * picker group, and the extras of its popover. The `field` slot is the button
+ * that opens the calendar. A stepped `content.body` and a `value` sub-recipe
+ * with a truncate axis drive the popover inset and the value text. `control`
+ * (the input-mode field adjacency), `icon`, `placeholder`, and the `content`
+ * group are extras.
  * `relative` adds the layout of the relative popover: the preset `list`, the
- * `custom` range affordance, and the trigger chip row. `root` sizes the box of
- * the trigger to its content, and `skeleton` is the form of DatePickerSkeleton.
+ * `custom` range affordance, and the trigger chip row. `skeleton` is the form
+ * of DatePickerSkeleton. The group gives `root` and the base of `content`.
  */
-import { defineRecipe } from '../../core/recipe'
-import { iro, kokkaku, narabi, sen } from '../kiso'
-import { control } from '../kiso/control'
-import { dan } from '../kiso/dan'
-import { popover } from '../kiso/popover'
+import { defineKata, defineRecipe } from '../../core/recipe'
+import { dan, hannou, iro, kokkaku, narabi, sen } from '../kiso'
+import { picker } from '../kumi/control'
 
+export { scale } from '../kumi/control'
+
+const { cursor } = hannou
 const { focus } = sen
 const { text } = iro
-const { field, flex } = narabi
-const { fit, picker } = popover
-
-const button = defineRecipe({
-	base: [
-		flex.row,
-		'justify-between',
-		...control.button,
-		// The calendar icon is inside the button, not in a suffix slot. This gap
-		// keeps it the control `px` from the value, as the Listbox chevron is.
-		dan.gap.datePicker,
-	],
-})
+const { field, fit, flex } = narabi
+const { content } = picker.extras
 
 const value = defineRecipe({
 	base: 'block',
@@ -45,9 +36,7 @@ const value = defineRecipe({
 // The body scrolls when the floating layer caps the height of the panel.
 const body = [flex.col, dan.space.box.base, dan.gap.y.sm, fit.scroll]
 
-export const k = {
-	root: picker.root,
-	button,
+const extras = {
 	value,
 	// Input mode wraps the DateInput (its frame plus the error Message) in the
 	// floating reference, so the Field's child-combinator adjacency can't reach
@@ -58,8 +47,8 @@ export const k = {
 	placeholder: text.muted,
 	skeleton: kokkaku.datePicker,
 	content: {
-		...picker.content,
-		portal: [focus.ring, ...picker.content.portal],
+		...content,
+		portal: [focus.ring, ...content.portal],
 		body,
 		sheet: {
 			// The drawer of the bottom sheet on a phone. It holds focus for the
@@ -107,5 +96,23 @@ export const k = {
 	},
 }
 
-/** The size scale of the control: each step from `xs` to `xl`. */
-export const scale = control.scale
+export const k = defineKata(
+	{
+		extends: picker,
+		slots: {
+			field: {
+				base: [
+					flex.row,
+					'justify-between',
+					'text-start',
+					'appearance-none',
+					...cursor,
+					// The calendar icon is inside the button, not in a suffix slot. This gap
+					// keeps it the control `px` from the value, as the Listbox chevron is.
+					dan.gap.datePicker,
+				],
+			},
+		},
+	},
+	extras,
+)

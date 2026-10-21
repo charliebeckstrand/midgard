@@ -73,8 +73,8 @@ describe('recipe · memo hit vs miss (same recipe, same payload)', () => {
 	})
 
 	// The axis is built from `Object.fromEntries`, so its type carries an index
-	// signature — which the engine's `AxesOf` mapped type deliberately refuses to
-	// widen into a variant union (see `engine/applicator.ts`). A kata always
+	// signature. The variant types of the engine do not widen it into a variant
+	// union (see `engine/types.ts`). A kata always
 	// declares its values as literals; only a generated axis like this one needs
 	// the call signature spelled out.
 	const call = wide as unknown as (props: { slot: string }) => string
@@ -98,7 +98,7 @@ describe('recipe · compose (twMerge ∘ clsx, what a miss runs)', () => {
 	// base + variant resolves to. `tailwind-merge` scans every class for
 	// conflicts, so this scales with the payload — which is why the memo above
 	// matters more for a heavy kata than for a light one.
-	const config = button.config
+	const config = button.config.slots.base
 
 	const light = ['inline-flex', 'p-2', 'rounded-md']
 
@@ -118,7 +118,7 @@ describe('recipe · cn (once per element per render)', () => {
 	// mounted tree, where the arguments are the same objects render after render:
 	// a leaf with nothing but the recipe, a leaf with a caller override, a
 	// composite folding in state and layout.
-	const recipeOutput = button({ variant: 'solid', color: 'zinc' })
+	const recipeOutput = button({ variant: 'solid', color: 'zinc' }).base
 
 	bench('recipe output only', () => {
 		cn(recipeOutput)
@@ -170,7 +170,7 @@ describe('recipe · defineRecipe (creation, once per module load)', () => {
 	// slot's classes eagerly. A page that imports a hundred components pays this a
 	// hundred times before it renders anything, so it is startup cost, not render
 	// cost — measured against a bare recipe to separate the palette's share.
-	const config = button.config
+	const config = button.config.slots.base
 
 	bench('bare (base + one axis)', () => {
 		defineRecipe({ base: 'inline-flex', size: { sm: 'p-1', md: 'p-2' }, defaults: { size: 'md' } })

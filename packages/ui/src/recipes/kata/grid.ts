@@ -7,9 +7,7 @@
  * stepped.
  */
 import { defineRecipe, mode, type PaletteColor } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
-import { dan } from '../kiso/dan'
-import { panel } from '../kiso/panel'
+import { dan, hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
 const { busy, cursor, fg, grab } = hannou
 const { text } = iro
@@ -800,7 +798,7 @@ export const k = {
 			'px-3 py-2',
 			rounded.md,
 			'shadow-md',
-			...panel.surface.base,
+			...omote.panel.base,
 			size.sm,
 			weight.medium,
 		],

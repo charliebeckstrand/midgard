@@ -1,6 +1,5 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { iro, ji, narabi, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, ji, narabi, sen } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji

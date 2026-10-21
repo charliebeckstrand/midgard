@@ -9,8 +9,7 @@
  * `active`). `skeleton` is the form of the lines of the `KanbanCardSkeleton`.
  */
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
 const { disabled, grab } = hannou
 const { on, text } = iro

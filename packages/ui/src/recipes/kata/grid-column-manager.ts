@@ -1,5 +1,4 @@
-import { hannou, iro, narabi, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, narabi, sen } from '../kiso'
 
 const { cursor, fg } = hannou
 const { text } = iro

@@ -6,8 +6,7 @@
  * toggle, chevron, and the collapse motion config round out the surface.
  */
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
 const { text } = iro

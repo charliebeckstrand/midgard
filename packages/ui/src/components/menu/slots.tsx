@@ -3,6 +3,9 @@ import { cn, createSlot } from '../../core'
 import { k } from '../../recipes/kata/menu'
 import { Kbd, type KbdProps } from '../kbd'
 
+/** The slots of a row of the menu. */
+const row = k.item()
+
 /** Props for {@link MenuSection}: native `<fieldset>` attributes. */
 export type MenuSectionProps = ComponentProps<'fieldset'>
 
@@ -29,7 +32,7 @@ export const MenuSeparator = createSlot('hr', 'menu-separator', k.separator)
 export type MenuLabelProps = ComponentProps<'span'>
 
 /** Primary text of a {@link MenuItem}; renders a `<span>`. */
-export const MenuLabel = createSlot('span', 'menu-label', k.label)
+export const MenuLabel = createSlot('span', 'menu-label', row.label)
 
 /** Props for {@link MenuText}: native `<span>` attributes. */
 export type MenuTextProps = ComponentProps<'span'>
@@ -50,18 +53,18 @@ export type MenuTextProps = ComponentProps<'span'>
  * </MenuItem>
  * ```
  */
-export const MenuText = createSlot('span', 'menu-text', k.text)
+export const MenuText = createSlot('span', 'menu-text', row.text)
 
 /** Props for {@link MenuDescription}: native `<span>` attributes. */
 export type MenuDescriptionProps = ComponentProps<'span'>
 
 /** Secondary descriptive text within a {@link MenuItem}; renders a `<span>`. */
-export const MenuDescription = createSlot('span', 'menu-description', k.description)
+export const MenuDescription = createSlot('span', 'menu-description', row.description)
 
 /** Props for {@link MenuShortcut}: identical to {@link KbdProps}. */
 export type MenuShortcutProps = KbdProps
 
 /** Trailing keyboard-shortcut hint for a {@link MenuItem}; styled {@link Kbd}. */
 export function MenuShortcut({ className, ...props }: MenuShortcutProps) {
-	return <Kbd data-slot="menu-shortcut" className={cn(k.shortcut, className)} {...props} />
+	return <Kbd data-slot="menu-shortcut" className={cn(row.shortcut, className)} {...props} />
 }

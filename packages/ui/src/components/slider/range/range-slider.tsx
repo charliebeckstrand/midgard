@@ -267,6 +267,8 @@ export function RangeSlider({
 
 	// Each thumb is bounded by the other: the start thumb runs from `min` to the
 	// end value, and the end thumb from the start value to `max`.
+	const slots = k({ color })
+
 	const renderThumb = (thumb: ThumbIndex) => (
 		<button
 			ref={thumbRefs[thumb]}
@@ -284,7 +286,7 @@ export function RangeSlider({
 			aria-readonly={ariaAttr(resolvedReadOnly)}
 			{...validation}
 			data-slot="slider-range-thumb"
-			className={cn(k.thumb(), 'top-1/2 -translate-y-1/2')}
+			className={cn(slots.thumb, 'top-1/2 -translate-y-1/2')}
 			style={{ insetInlineStart: `${thumb === 0 ? lo : hi}%` }}
 			// A read-only thumb takes no value key, so the key does what it does on the page.
 			onKeyDown={resolvedReadOnly ? undefined : handleKeyDown(thumb)}
@@ -299,7 +301,7 @@ export function RangeSlider({
 			data-slot="slider-range"
 			data-density={size}
 			data-disabled={dataAttr(resolvedDisabled)}
-			className={cn(k.base({ color }), className)}
+			className={cn(slots.base, className)}
 			style={style}
 			onPointerDown={onPointerDown}
 			onPointerMove={onPointerMove}
@@ -311,12 +313,12 @@ export function RangeSlider({
 			<div
 				ref={trackRef}
 				data-slot="slider-range-track"
-				className={cn(k.track(), 'top-1/2 -translate-y-1/2')}
+				className={cn(slots.track, 'top-1/2 -translate-y-1/2')}
 			>
 				{/* Filled range */}
 				<div
 					data-slot="slider-range-fill"
-					className={cn(k.fill, 'h-full')}
+					className={cn(slots.fill, 'h-full')}
 					style={{ insetInlineStart: `${lo}%`, insetInlineEnd: `${100 - hi}%` }}
 				/>
 			</div>

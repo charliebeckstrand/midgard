@@ -21,7 +21,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { hasSelection } from '../../primitives/option/option'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
-import type { scale } from '../../recipes/kata/listbox'
+import { k, type scale } from '../../recipes/kata/listbox'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
@@ -493,7 +493,8 @@ export function Listbox<T>({
 					open={open}
 					setReference={refs.setReference}
 					getReferenceProps={getReferenceProps}
-					glass={glass}
+					// A trigger in a glass overlay paints no fill, so it takes the `outline` surface.
+					slots={k({ variant: glass ? 'outline' : 'default' })}
 					size={size}
 					className={className}
 					data-slot={slot}

@@ -62,7 +62,7 @@ function ConfirmBody({ describes, children }: { describes: boolean; children: Re
 			id={describes ? descriptionId : undefined}
 			data-slot="confirm-body"
 			data-scroll-region
-			className={cn(!describes && panel.base, 'min-h-0 overflow-y-auto overscroll-contain')}
+			className={cn(!describes && panel.stack, 'min-h-0 overflow-y-auto overscroll-contain')}
 		>
 			{children}
 		</div>

@@ -1,7 +1,6 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
-import { shaku } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, shaku } from '../kiso'
 
 const { mark } = shaku
 

@@ -3,8 +3,7 @@
  * the Sidebar component (`kata/sidebar.ts`).
  */
 import { defineRecipe } from '../../core/recipe'
-import { narabi, omote, sen, sou } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, narabi, omote, sen, sou } from '../kiso'
 import type { ByLayout } from './offcanvas'
 
 const { flex } = narabi

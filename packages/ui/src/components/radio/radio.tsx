@@ -138,12 +138,14 @@ export function Radio({
 				}
 			: undefined
 
+	const slots = k({ color })
+
 	return (
 		<label
 			data-slot="control"
 			data-density={size}
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
-			className={cn(k({ color }), className)}
+			className={cn(slots.base, className)}
 		>
 			<input
 				// Consumer props spread first; `type`, the native grouping `name`,
@@ -160,9 +162,9 @@ export function Radio({
 				onChange={handleChange}
 				aria-describedby={resolvedDescribedBy}
 				{...validation}
-				className={k.input()}
+				className={slots.input}
 			/>
-			<span data-slot="radio-indicator" aria-hidden="true" className={k.indicator()} />
+			<span data-slot="radio-indicator" aria-hidden="true" className={slots.indicator} />
 		</label>
 	)
 }

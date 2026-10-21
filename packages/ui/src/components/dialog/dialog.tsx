@@ -189,8 +189,10 @@ export function DialogPanel({
 		returnFocusTo,
 	})
 
+	const slots = k({ surface, width })
+
 	return (
-		<Overlay {...overlayProps} backdropClassName={k.backdrop({ surface })}>
+		<Overlay {...overlayProps} backdropClassName={slots.backdrop}>
 			<div
 				className={cn(
 					// The overlay root is positioned in both modes, so the wrapper fills the
@@ -208,7 +210,7 @@ export function DialogPanel({
 					className={cn(
 						'pointer-events-auto',
 						panelClassName,
-						k.panel({ surface, width }),
+						slots.base,
 						resolveVariant(align, k.align.panel),
 						className,
 					)}

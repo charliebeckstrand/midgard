@@ -1,10 +1,8 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
-import { bridge } from '../katakana'
-import { iro, kasane, kokkaku, narabi } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, kasane, kokkaku, narabi } from '../kiso'
 
-const { palette } = iro
+const { matrix } = iro
 const { rounded } = kasane
 const { flex } = narabi
 
@@ -37,7 +35,7 @@ export const k = defineRecipe(
 			soft: 'border border-transparent',
 			outline: 'border',
 		},
-		palette: definePalette(bridge.palette(palette)),
+		palette: definePalette(matrix.palette),
 		defaults: { variant: 'solid', color: 'zinc' },
 		// The skeleton takes the size and the margin of an avatar in a SidebarItem,
 		// so the row keeps its height when the avatar replaces the skeleton.

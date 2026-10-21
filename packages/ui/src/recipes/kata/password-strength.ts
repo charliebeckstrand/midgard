@@ -6,8 +6,7 @@
  * with the `iro.meter` shade of its color, as a progress bar does.
  */
 import { defineRecipe } from '../../core/recipe'
-import { iro, ji, kasane, narabi, omote } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, ji, kasane, narabi, omote } from '../kiso'
 
 const { meter, palette, text } = iro
 const { size, weight } = ji

@@ -16,8 +16,7 @@
  */
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { iro, kokkaku } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, kokkaku } from '../kiso'
 
 const { palette, text } = iro
 

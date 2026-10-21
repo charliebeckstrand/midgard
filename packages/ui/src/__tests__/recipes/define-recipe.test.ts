@@ -1,6 +1,12 @@
 // @vitest-environment node
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { definePalette, defineRecipe } from '../../core/recipe'
+import {
+	defineGroup,
+	defineKata,
+	definePalette,
+	defineRecipe,
+	type VariantProps,
+} from '../../core/recipe'
 import { k as button } from '../../recipes/kata/button'
 
 describe('defineRecipe', () => {
@@ -212,7 +218,7 @@ describe('defineRecipe', () => {
 	it('keeps the default color active when only variant is overridden', () => {
 		// Guards the (variant × default-color) compound: omitting `color` must
 		// still resolve the default.
-		const classes = button({ variant: 'soft' })
+		const classes = button({ variant: 'soft' }).base
 
 		// The (soft × zinc) compound from button.ts emits bg-zinc-500/15.
 		expect(classes).toContain('bg-zinc-500/15')
@@ -287,5 +293,184 @@ describe('defineRecipe', () => {
 		expect(() => defineRecipe({}, { config: {} })).toThrow(/extra name/)
 
 		expect(() => defineRecipe({}, { name: 'x' })).toThrow(/extra name/)
+	})
+})
+
+describe('defineKata', () => {
+	const kata = defineKata({
+		base: 'root',
+		orientation: { horizontal: 'col', vertical: 'row' },
+		slots: {
+			list: { base: 'list', orientation: { horizontal: 'border-b', vertical: 'border-s' } },
+			tab: {
+				base: 'tab',
+				stretch: { true: 'w-full', false: '' },
+				compound: [{ stretch: true, orientation: 'vertical', class: 'grow' }],
+			},
+		},
+		defaults: { orientation: 'horizontal', stretch: false },
+	})
+
+	it('resolves each slot from one set of props', () => {
+		expect(kata()).toEqual({ base: 'root col', list: 'list border-b', tab: 'tab' })
+
+		expect(kata({ orientation: 'vertical', stretch: true })).toEqual({
+			base: 'root row',
+			list: 'list border-s',
+			tab: 'tab w-full grow',
+		})
+	})
+
+	it('returns the same object for the same resolved props', () => {
+		expect(kata({ orientation: 'horizontal' })).toBe(kata())
+	})
+
+	it('exposes the shared defaults and the axes of each slot', () => {
+		expect(kata.config.defaults).toEqual({ orientation: 'horizontal', stretch: false })
+
+		expect(Object.keys(kata.config.variants)).toEqual(['orientation', 'stretch'])
+
+		expect(kata.config.variants.orientation?.vertical).toEqual({ base: 'row', list: 'border-s' })
+	})
+
+	it('types the output by the slots and merges the props of each slot', () => {
+		expectTypeOf(kata()).toEqualTypeOf<{
+			readonly base: string
+			readonly list: string
+			readonly tab: string
+		}>()
+
+		expectTypeOf<VariantProps<typeof kata>>().toEqualTypeOf<
+			{ orientation?: 'horizontal' | 'vertical' } & { stretch?: boolean }
+		>()
+
+		expect(Object.keys(kata())).toEqual(['base', 'list', 'tab'])
+	})
+
+	it('rejects a child slot named base, a slot with its own defaults or slots, and an extra that collides', () => {
+		expect(() => defineKata({ slots: { base: 'a' } })).toThrow(/root slot "base"/)
+
+		expect(() =>
+			defineKata({ slots: { icon: { size: { sm: 'a' }, defaults: { size: 'sm' } } } }),
+		).toThrow(/slot "icon"/)
+
+		expect(() => defineKata({ slots: { icon: { slots: { mark: 'a' } } } })).toThrow(/slot "icon"/)
+
+		expect(() => defineKata({}, { config: {} })).toThrow(/extra name/)
+	})
+
+	it('reads a child slot written as its classes as its base', () => {
+		const unit = defineKata({ base: 'root', slots: { icon: ['a', 'b'], label: 'c' } })
+
+		expect(unit()).toEqual({ base: 'root', icon: 'a b', label: 'c' })
+	})
+
+	it('gives a unit with no root classes an empty root', () => {
+		expect(defineKata({ slots: { icon: 'a' } })()).toEqual({ base: '', icon: 'a' })
+	})
+})
+
+describe('defineGroup', () => {
+	const group = defineGroup(
+		{
+			base: 'frame',
+			variant: { default: 'fill', glass: '' },
+			slots: {
+				field: 'reset',
+			},
+			defaults: { variant: 'default' },
+		},
+		{ marker: 'group' },
+	)
+
+	const unit = defineKata(
+		{
+			extends: group,
+			base: 'row',
+			variant: { glass: 'blur' },
+			affixed: { true: 'grid', false: '' },
+			slots: {
+				number: 'spin',
+			},
+			defaults: { affixed: false },
+		},
+		{ own: 'unit' },
+	)
+
+	it('holds the slots, the defaults, and the extras as data', () => {
+		expect(group.defaults).toEqual({ variant: 'default' })
+
+		expect(group.extras).toEqual({ marker: 'group' })
+
+		expect(Object.isFrozen(group)).toBe(true)
+	})
+
+	it('merges a unit over its group: group classes first, then the unit', () => {
+		expect(unit()).toEqual({ base: 'frame row fill', field: 'reset', number: 'spin' })
+
+		expect(unit({ variant: 'glass', affixed: true })).toEqual({
+			base: 'frame row blur grid',
+			field: 'reset',
+			number: 'spin',
+		})
+	})
+
+	it('merges the defaults and the extras of the group and the unit', () => {
+		expect(unit.config.defaults).toEqual({ variant: 'default', affixed: false })
+
+		expect(unit.marker).toBe('group')
+
+		expect(unit.own).toBe('unit')
+	})
+
+	it('types the props and the output from the group and the unit', () => {
+		expectTypeOf(unit()).toEqualTypeOf<{
+			readonly base: string
+			readonly field: string
+			readonly number: string
+		}>()
+
+		expectTypeOf<VariantProps<typeof unit>['variant']>().toEqualTypeOf<
+			'default' | 'glass' | undefined
+		>()
+
+		expectTypeOf<VariantProps<typeof unit>['affixed']>().toEqualTypeOf<boolean | undefined>()
+
+		expect(Object.keys(unit())).toEqual(['base', 'field', 'number'])
+	})
+
+	it('extends a group with a group, with the merge of a unit', () => {
+		const child = defineGroup(
+			{
+				extends: group,
+				slots: {
+					field: 'press',
+				},
+				defaults: { variant: 'glass' },
+			},
+			{ marker: 'child' },
+		)
+
+		expect(child.defaults).toEqual({ variant: 'glass' })
+
+		expect(child.extras).toEqual({ marker: 'child' })
+
+		const leaf = defineKata({ extends: child })
+
+		expect(leaf()).toEqual({ base: 'frame', field: 'reset press' })
+
+		expect(leaf({ variant: 'default' }).base).toBe('frame fill')
+
+		expectTypeOf(leaf()).toEqualTypeOf<{ readonly base: string; readonly field: string }>()
+	})
+
+	it('rejects a palette in the group and in the unit', () => {
+		const palette = definePalette({
+			solid: { zinc: ['a'], red: [], amber: [], green: [], blue: [] },
+		})
+
+		expect(() => defineKata({ extends: defineGroup({ palette }), palette })).toThrow(
+			/palette in the group and in the unit/,
+		)
 	})
 })

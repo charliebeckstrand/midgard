@@ -54,12 +54,12 @@ describe('logical sides under dir=rtl', () => {
 	})
 
 	it('vertical tab list rules the inline start (right)', () => {
-		const style = rtl(tabs.list({ orientation: 'vertical' }))
+		const style = rtl(tabs({ orientation: 'vertical' }).list)
 		expect([style.borderRightWidth, style.borderLeftWidth]).toEqual(['1px', '0px'])
 	})
 
 	it('vertical tab indicator sits on the inline start (right)', () => {
-		const style = rtl(`absolute ${tabs.indicator({ orientation: 'vertical' })}`)
+		const style = rtl(`absolute ${tabs({ orientation: 'vertical' }).indicator}`)
 		expect(style.right).toBe('-1px')
 	})
 
@@ -124,7 +124,7 @@ describe('logical sides under dir=rtl', () => {
 	})
 
 	it('textarea actions row pads the inline end (left)', () => {
-		const style = rtl(cn(textarea.actions))
+		const style = rtl(cn(textarea().actions))
 		expect([style.paddingLeft, style.paddingRight]).toEqual(['8px', '0px'])
 	})
 

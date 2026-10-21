@@ -11,8 +11,7 @@
  * - The hover and de-emphasis treatments.
  */
 import { mode } from '../../core/recipe'
-import { hannou, kokkaku, omote, type SeriesSlot, sen, zu } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, kokkaku, omote, type SeriesSlot, sen, zu } from '../kiso'
 
 const { palette, ink, motion } = zu
 

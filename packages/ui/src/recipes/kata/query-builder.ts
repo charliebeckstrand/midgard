@@ -9,8 +9,7 @@
  * a node, its drag `handle`, and the AND/OR `separator` when the builder reorders.
  */
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
 const { disabled, grab } = hannou
 const { text } = iro

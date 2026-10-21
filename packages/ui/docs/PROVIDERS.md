@@ -72,7 +72,7 @@ Escape hatch that strips chrome from headless-aware descendants so they render t
 
 | Export | Summary |
 |---|---|
-| `HeadlessProvider` | Escape-hatch provider that strips chrome from headless-aware descendants so they render the bare semantic element. |
+| `HeadlessProvider` | Escape-hatch provider that strips chrome from headless-aware descendants so they render the bare semantic element. Their content, such as an affix or a clear button, stays. |
 | `HeadlessProviderProps` *(type)* | Props for `HeadlessProvider`. |
 | `useHeadless` | Reads the ambient headless flag; `false` outside a `<HeadlessProvider>`. |
 

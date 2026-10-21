@@ -1,20 +1,13 @@
 import { defineScale, type ScaleStep } from '../../core/density'
-import { defineColors, defineRecipe, type VariantProps } from '../../core/recipe'
-import { bridge } from '../katakana'
-import { kokkaku } from '../kiso'
-import { control } from '../kiso/control'
-import { dan } from '../kiso/dan'
+import { defineColors, defineKata, type VariantProps } from '../../core/recipe'
+import { dan, kokkaku } from '../kiso'
+import { check } from '../kumi/check'
 
 const { checkbox } = kokkaku
 
-const color = defineColors({
-	zinc: '[--check-mark:var(--color-white)] [--check-bg:var(--color-zinc-600)] [--check-border:var(--color-zinc-700)]/90',
-	...control.check.color,
-})
-
-export const k = bridge.check(
-	control,
+export const k = defineKata(
 	{
+		extends: check,
 		base: [
 			'[--check-border:transparent]',
 			// One selector list holds the checked and the indeterminate state. The
@@ -27,24 +20,24 @@ export const k = bridge.check(
 			checkbox.box,
 			dan.radius.check,
 		],
-		color,
-		skeleton: checkbox,
-	},
-	{
-		/**
-		 * The check mark: the sibling that follows the native input. It shows when
-		 * the input is checked or carries `data-indeterminate`, and it takes the
-		 * step of the nearest density scope. Each class selects the mark itself,
-		 * so Chromium tests the rules only against the marks.
-		 */
-		mark: defineRecipe({
-			base: [
+		color: defineColors({
+			zinc: '[--check-mark:var(--color-white)] [--check-bg:var(--color-zinc-600)] [--check-border:var(--color-zinc-700)]/90',
+		}),
+		slots: {
+			/**
+			 * The check mark: the sibling that follows the native input. It shows when
+			 * the input is checked or carries `data-indeterminate`, and it takes the
+			 * step of the nearest density scope. Each class selects the mark itself,
+			 * so Chromium tests the rules only against the marks.
+			 */
+			mark: [
 				'pointer-events-none absolute stroke-(--check-mark) opacity-0',
 				'[:is(:checked,[data-indeterminate])~&]:opacity-100',
 				dan.size.check.mark,
 			],
-		}),
+		},
 	},
+	{ skeleton: checkbox },
 )
 
 /** The size scale of {@link Checkbox}: the steps of its box, radius, and mark. */

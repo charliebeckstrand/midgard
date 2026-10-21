@@ -1,9 +1,9 @@
 import { defineScale } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
-import { hannou, ji, kokkaku, narabi, sen, shaku } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, kokkaku, narabi, sen, shaku } from '../kiso'
 
-const { nav, cursor } = hannou
+const { cursor, tint } = hannou
+const { text } = iro
 const { flex, inset } = narabi
 const { divider, focus } = sen
 
@@ -53,7 +53,11 @@ const itemBox = [
  */
 const itemButton = defineRecipe({
 	base: [
-		...nav.base,
+		// A long press on iOS selects the label text. iOS Safari can select the text in
+		// a child of a `select-none` item, so the children also set it. The headless
+		// Button of an item drops the `select-none` of the button recipe.
+		...text.default,
+		'select-none *:select-none',
 		...cursor,
 		'group relative z-10',
 		...itemBox,
@@ -69,7 +73,7 @@ const itemButton = defineRecipe({
 	],
 	affix: {
 		true: ['outline-none', 'min-w-0 flex-1'],
-		false: [nav.tint, nav.focus],
+		false: [tint.hover, focus.inset],
 	},
 	defaults: { affix: false },
 })
@@ -88,7 +92,7 @@ const itemBase = defineRecipe({
 			flex.row,
 			// The wrapper only needs a radius when it carries the affixed row chrome.
 			dan.radius.control,
-			...nav.tint,
+			...tint.hover,
 			...focus.within.row,
 		],
 		false: '',

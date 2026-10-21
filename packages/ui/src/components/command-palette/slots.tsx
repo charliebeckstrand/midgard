@@ -6,6 +6,9 @@ import { type A11yRelation, useA11yScope } from '../../hooks'
 import { k } from '../../recipes/kata/command-palette'
 import { Kbd, type KbdProps } from '../kbd'
 
+/** The slots of a result row. */
+const row = k.item()
+
 // A stable reference; an inline literal re-derives the scope every render.
 const GROUP_SLOTS = { heading: 'labelledby' } satisfies Record<string, A11yRelation>
 
@@ -98,7 +101,7 @@ export function CommandPaletteHeading({ className, id, ...props }: CommandPalett
 export type CommandPaletteLabelProps = ComponentProps<'span'>
 
 /** Primary text slot for a {@link CommandPaletteItem}. */
-export const CommandPaletteLabel = createSlot('span', 'command-palette-label', k.label)
+export const CommandPaletteLabel = createSlot('span', 'command-palette-label', row.label)
 
 /** Props for {@link CommandPaletteText}; extends native `<span>` attributes. */
 export type CommandPaletteTextProps = ComponentProps<'span'>
@@ -119,7 +122,7 @@ export type CommandPaletteTextProps = ComponentProps<'span'>
  * </CommandPaletteItem>
  * ```
  */
-export const CommandPaletteText = createSlot('span', 'command-palette-text', k.text)
+export const CommandPaletteText = createSlot('span', 'command-palette-text', row.text)
 
 /** Props for {@link CommandPaletteDescription}; extends native `<span>` attributes. */
 export type CommandPaletteDescriptionProps = ComponentProps<'span'>
@@ -128,7 +131,7 @@ export type CommandPaletteDescriptionProps = ComponentProps<'span'>
 export const CommandPaletteDescription = createSlot(
 	'span',
 	'command-palette-description',
-	k.description,
+	row.description,
 )
 
 /** Props for {@link CommandPaletteShortcut}; same as {@link KbdProps}. */
@@ -137,6 +140,6 @@ export type CommandPaletteShortcutProps = KbdProps
 /** Keyboard-shortcut hint slot for a {@link CommandPaletteItem}, built on Kbd. */
 export function CommandPaletteShortcut({ className, ...props }: CommandPaletteShortcutProps) {
 	return (
-		<Kbd data-slot="command-palette-shortcut" className={cn(k.shortcut, className)} {...props} />
+		<Kbd data-slot="command-palette-shortcut" className={cn(row.shortcut, className)} {...props} />
 	)
 }

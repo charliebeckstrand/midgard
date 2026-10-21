@@ -45,13 +45,15 @@ type PanelSlots = {
  * @see {@link PanelProviders}
  */
 export function createPanel(slotPrefix: string, slots?: PanelSlots) {
+	const defaults = k()
+
 	const {
-		title: titleClass = k.title,
-		description: descriptionClass = k.description,
-		header: headerClass = k.header,
-		body: bodyClass = k.body,
-		footer: footerClass = k.footer,
-		content: contentClass = k.content,
+		title: titleClass = defaults.title,
+		description: descriptionClass = defaults.description,
+		header: headerClass = defaults.header,
+		body: bodyClass = defaults.body,
+		footer: footerClass = defaults.footer,
+		content: contentClass = defaults.content,
 	} = slots ?? {}
 
 	function Title({ className, id, level = 2, ...props }: PanelTitleProps) {

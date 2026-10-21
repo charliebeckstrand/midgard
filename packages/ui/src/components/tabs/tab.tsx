@@ -188,8 +188,10 @@ export function Tab({
 
 	const setTab = useComposedRefs(selectScrollRef, consumerRef)
 
+	const slots = k({ orientation, stretch })
+
 	return (
-		<span className={k.wrapper({ stretch })} {...tapHandlers}>
+		<span className={slots.wrapper} {...tapHandlers}>
 			<HeadlessProvider>
 				<Button
 					// A tab changes no value, so a locked scope, such as a submitting
@@ -211,11 +213,7 @@ export function Tab({
 					tabIndex={current ? 0 : -1}
 					disabled={disabled}
 					type="button"
-					className={cn(
-						k.trigger({ stretch }),
-						isSegment ? k.segment.item : k.tab({ orientation }),
-						className,
-					)}
+					className={cn(slots.trigger, isSegment ? k.segment.item : slots.tab, className)}
 					onClick={handleClick}
 					onPointerEnter={handlePointerEnter}
 					onFocus={handleFocus}
@@ -226,7 +224,7 @@ export function Tab({
 			{current && (
 				<ActiveIndicator
 					ref={indicatorRef}
-					className={cn(isSegment ? k.segment.indicator : k.indicator({ orientation }))}
+					className={cn(isSegment ? k.segment.indicator : slots.indicator)}
 				/>
 			)}
 		</span>

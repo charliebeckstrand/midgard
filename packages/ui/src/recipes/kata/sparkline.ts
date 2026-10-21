@@ -10,8 +10,7 @@
 
 import { defineScale } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
-import { iro, kokkaku, ugoki } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, kokkaku, ugoki } from '../kiso'
 
 export const k = defineRecipe(
 	{

@@ -6,11 +6,11 @@ import { k as dashboard } from '../../recipes/kata/dashboard'
 import { k as grid } from '../../recipes/kata/grid'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
+import { k as popover } from '../../recipes/kata/popover'
 import { k as resizable } from '../../recipes/kata/resizable'
 import { k as tooltip } from '../../recipes/kata/tooltip'
 import { omote } from '../../recipes/kiso/omote'
-import { panel } from '../../recipes/kiso/panel'
-import { popover } from '../../recipes/kiso/popover'
+import { grip } from '../../recipes/kumi/panel'
 import { classNames } from '../helpers/class-stops'
 
 /**
@@ -27,10 +27,10 @@ describe('edges and state marks under forced colors', () => {
 	const region = pdfViewer.viewport.page.highlights.region
 
 	const parts: [string, unknown][] = [
-		['the panel surface', panel.surface.base],
-		['the panel chrome', panel.surface.chrome],
-		['the horizontal grip bar', panel.grip.bar.horizontal],
-		['the vertical grip bar', panel.grip.bar.vertical],
+		['the panel surface', omote.panel.base],
+		['the panel chrome', omote.panel.chrome],
+		['the horizontal grip bar', grip.bar.horizontal],
+		['the vertical grip bar', grip.bar.vertical],
 		['the flat popover surface', omote.popover],
 		['the popover panel', [popover.panel.base, popover.panel.surface]],
 		['the glass popover panel', [popover.panel.base, popover.panel.glass, popover.panel.ring]],

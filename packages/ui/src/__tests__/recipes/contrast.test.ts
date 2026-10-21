@@ -10,13 +10,13 @@ import { k as menu } from '../../recipes/kata/menu'
 import { k as nav } from '../../recipes/kata/nav'
 import { k as option } from '../../recipes/kata/option'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
+import { k as tabs } from '../../recipes/kata/tabs'
 import { hannou, iro, omote } from '../../recipes/kiso'
 import {
 	onSurface as extendedOnSurface,
 	onTint as extendedOnTint,
 } from '../../recipes/kiso/iro/extended-palette'
 import { marker, onSurface, onTint, strong } from '../../recipes/kiso/iro/ramp'
-import { segment } from '../../recipes/kiso/segment'
 import { getContrast, SURFACE, tinted } from '../helpers/contrast'
 import { collectPatternViolations, srcDir } from '../helpers/walk-source'
 
@@ -31,6 +31,8 @@ import { collectPatternViolations, srcDir } from '../helpers/walk-source'
 const TEXT_AA = 4.5
 
 const NON_TEXT_AA = 3
+
+const { segment } = tabs
 
 describe('iro ramp contrast', () => {
 	it('reproduces the documented green-600-on-white ratio (helper sanity)', () => {
@@ -148,8 +150,8 @@ const HOVER = byMode(hannou.tint.base)
 
 /**
  * The composited ground the interaction washes paint: `hannou.tint` (hover /
- * focus), `hannou.active` (the roved row), and `hannou.item`, which bundles the
- * first.
+ * focus), `hannou.active` (the roved row), and the item group (`kumi/item`),
+ * which bundles both.
  *
  * Kept apart from {@link WASH} rather than folded into it. The two agree in
  * light — both `zinc-950/5` — and part in dark, where `omote.bg.tint` is
@@ -168,7 +170,7 @@ const MUTED = byMode(iro.on.wash.muted)
  * A foreground class carrying a palette color, whatever utility and state
  * prefixes it wears (`dark:has-disabled:text-zinc-400`). Filters a recipe
  * fragment down to its inks, so a fragment mixing ink with layout
- * (`hannou.nav.base` carries `select-none`) is measured as declared rather
+ * (a nav item carries `select-none`) is measured as declared rather
  * than transcribed. The hues come off `core/recipe`'s own lists: a fourth copy
  * of them here would silently stop matching a newly added color, and an ink
  * this filter drops is an ink the guard below never measures.
@@ -201,8 +203,7 @@ function inksByMode(surfaces: readonly ClassTree[]): Record<Mode, string[]> {
 /**
  * Every recipe that paints `omote.bg.tint`, against the surfaces whose ink
  * lands on that wash — read off the recipes themselves, not transcribed, so
- * what is measured is what a consumer actually paints. For the segment
- * archetype those surfaces sit in a different file from the track.
+ * what is measured is what a consumer actually paints.
  *
  * `surfaces: []` marks a recipe that hands the wash to content it doesn't ink,
  * so no ink of its own can be measured: `toolbar` hosts Buttons carrying their
@@ -216,7 +217,7 @@ function inksByMode(surfaces: readonly ClassTree[]): Record<Mode, string[]> {
  *
  * The reconciliation is keyed on every spelling that reaches a wash, not on one
  * token: `bg.tint` for the opaque fill, and `hannou.tint` / `hannou.active` /
- * `hannou.item` for the interaction washes. Each entry names the ground its
+ * the item group for the interaction washes. Each entry names the ground its
  * inks land on, so the two grounds are measured apart where they differ.
  */
 const TINT_CONSUMERS: readonly {
@@ -235,29 +236,29 @@ const TINT_CONSUMERS: readonly {
 			list.description,
 		],
 	},
-	// The control track, inked by `segment/item.ts`.
-	{ file: 'recipes/kiso/segment/control.ts', surfaces: [segment.item] },
-	// The `solid` bar; items ink at `hannou.nav.base`, not at a muted rung.
+	// The segment box, inked by its items.
+	{ file: 'recipes/kata/tabs.ts', surfaces: [segment.item] },
+	// The `solid` bar; items ink at `iro.text.default`, not at a muted rung.
 	{ file: 'recipes/kata/nav.ts', surfaces: [nav.item.button({ affix: false })] },
 	{ file: 'recipes/kata/toolbar.ts', surfaces: [] },
 	{ file: 'recipes/kata/box.ts', surfaces: [] },
 	// The skeleton bubble, which holds placeholders and no ink.
 	{ file: 'recipes/kata/chat-transcript.ts', surfaces: [] },
-	// The interaction washes. `hannou.item` grounds a hovered or focused row and
+	// The interaction washes. The item group grounds a hovered or focused row and
 	// `hannou.active` a roved one; both sit a step darker than `bg.tint` in dark.
 	{
 		file: 'recipes/kata/menu.ts',
-		surfaces: [menu.item, menu.description],
+		surfaces: [menu.item().base, menu.item().description],
 		ground: HOVER_WASH,
 	},
 	{
 		file: 'recipes/kata/option.ts',
-		surfaces: [option.base, option.description],
+		surfaces: [option().base, option().description],
 		ground: HOVER_WASH,
 	},
 	{
 		file: 'recipes/kata/command-palette.ts',
-		surfaces: [commandPalette.item, commandPalette.description],
+		surfaces: [commandPalette.item().base, commandPalette.item().description],
 		ground: HOVER_WASH,
 	},
 ]
@@ -298,7 +299,7 @@ describe('tint wash foreground contrast', () => {
 				{ label: 'bg.tint', regex: /\bbg\.tint\b/g },
 				{ label: 'hannou.tint', regex: /\bhannou\.tint\b/g },
 				{ label: 'hannou.active', regex: /\bhannou\.active\b/g },
-				{ label: 'hannou.item', regex: /\bhannou\.item\b/g },
+				{ label: 'item group', regex: /\bfrom '\.\.\/kumi\/item'/g },
 			],
 			stripComments: true,
 		}).map((line) => line.split(' → ')[0])

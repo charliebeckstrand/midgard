@@ -11,8 +11,7 @@
 
 import { defineScale } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
-import { iro, kasane, kokkaku, omote, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, kasane, kokkaku, omote, sen } from '../kiso'
 
 const { text } = iro
 const { rounded } = kasane

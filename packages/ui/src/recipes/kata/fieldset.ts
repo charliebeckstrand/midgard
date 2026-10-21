@@ -6,8 +6,7 @@
  * static, threading the disabled state down through the group.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, narabi } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, narabi } from '../kiso'
 
 const { cursor, disabled } = hannou
 const { text } = iro

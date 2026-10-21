@@ -30,7 +30,7 @@ export type BadgeProps = BadgeBaseProps & PolymorphicStaticProps<'span', 'prefix
  * children take that step. Prefix and suffix icons size through the stepped
  * icon projection of the badge. Inside a control affix slot, leave `size`
  * unset. The slot is a scope one step below the host control, and the affix
- * compensation constants in `kiso/control/affix` assume that chip. An explicit
+ * compensation constants in `kumi/control/affix` assume that chip. An explicit
  * `size` fixes the chip at one step for each density.
  */
 export function Badge({

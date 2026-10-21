@@ -29,7 +29,7 @@ import type { RovedCase } from './types'
 /**
  * Roved items whose description ink lands on the item wash (#592).
  *
- * `hannou.item`'s hover/focus wash and `hannou.active`'s `data-active` wash are
+ * The hover/focus wash of the item group and the `data-active` wash of `hannou.active` are
  * the same `bg-zinc-950/5` ground, and every other corpus case renders its
  * popover at rest — so neither wash is painted where a gate can see it, which is
  * why `zinc-500` descriptions sat at 4.34:1 unnoticed.

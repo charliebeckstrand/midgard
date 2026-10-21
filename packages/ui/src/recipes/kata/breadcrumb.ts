@@ -1,6 +1,5 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
 
 const { fg } = hannou
 const { text } = iro

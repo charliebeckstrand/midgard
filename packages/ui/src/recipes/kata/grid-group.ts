@@ -7,8 +7,7 @@
  * editor (`manager`) and its Card outline colors (`outline`).
  */
 import type { PaletteColor } from '../../core/recipe'
-import { hannou, iro, kasane, narabi, omote, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, kasane, narabi, omote, sen } from '../kiso'
 
 const { fg, grab } = hannou
 const { text } = iro

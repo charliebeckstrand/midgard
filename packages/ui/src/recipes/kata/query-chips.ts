@@ -5,8 +5,7 @@
  * `combinator` with the pad of its Button (`combinator.button`), the
  * nested-group `bracket`, and the `empty` text.
  */
-import { iro, ji, narabi } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, ji, narabi } from '../kiso'
 
 const { text } = iro
 const { weight } = ji

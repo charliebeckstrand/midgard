@@ -115,10 +115,10 @@
 											"**/providers/**",
 											"**/recipes/kata",
 											"**/recipes/kata/**",
-											"**/recipes/katakana",
-											"**/recipes/katakana/**"
+											"**/recipes/kumi",
+											"**/recipes/kumi/**"
 										],
-										"message": "Top-level hooks are reusable building blocks consumed by components, primitives, and other hooks. They must not import from components, structure, layouts, providers, or recipe-layer internals (kata / katakana). Importing from primitives is allowed; hooks may read context from primitive providers."
+										"message": "Top-level hooks are reusable building blocks consumed by components, primitives, and other hooks. They must not import from components, structure, layouts, providers, or recipe-layer internals (kata / kumi). Importing from primitives is allowed; hooks may read context from primitive providers."
 									}
 								]
 							}
@@ -138,12 +138,12 @@
 								"patterns": [
 									{
 										"group": [
-											"**/recipes/katakana",
-											"**/recipes/katakana/**",
+											"**/recipes/kumi",
+											"**/recipes/kumi/**",
 											"**/recipes/kiso",
 											"**/recipes/kiso/**"
 										],
-										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
+										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/kumi or recipes/kiso bypasses the kata curation. It pulls group or substrate fragments into the consuming layer."
 									},
 									{
 										"group": [
@@ -174,8 +174,8 @@
 								"patterns": [
 									{
 										"group": [
-											"**/katakana",
-											"**/katakana/**",
+											"**/kumi",
+											"**/kumi/**",
 											"**/kata",
 											"**/kata/**",
 											"**/components",
@@ -191,7 +191,7 @@
 											"**/providers",
 											"**/providers/**"
 										],
-										"message": "kiso holds the design-system tokens and sits at the bottom of the recipe stack. A kiso module may compose its siblings within kiso. An import from katakana, kata, components, structure, layouts, primitives, hooks, or providers inverts the dependency direction. It can also pull stateful React context into the recipe substrate. Per-module consumer documentation is in recipes/kiso/README.md."
+										"message": "kiso holds the design-system tokens and sits at the bottom of the recipe stack. A kiso module may compose its siblings within kiso. An import from kumi, kata, components, structure, layouts, primitives, hooks, or providers inverts the dependency direction. It can also pull stateful React context into the recipe substrate. Per-module consumer documentation is in recipes/kiso/README.md."
 									}
 								]
 							}
@@ -201,7 +201,7 @@
 			}
 		},
 		{
-			"includes": ["packages/ui/src/recipes/katakana/**"],
+			"includes": ["packages/ui/src/recipes/kumi/**"],
 			"linter": {
 				"rules": {
 					"style": {
@@ -210,8 +210,23 @@
 							"options": {
 								"patterns": [
 									{
-										"group": ["**/kiso", "**/kiso/**"],
-										"message": "katakana is the bridge layer. A bridge receives kiso token bundles by argument and wires them into the recipe surface a kata exports. It must not import kiso at all, not even types. Each bridge declares the token shape it needs as its own contract, and is generic over the bundle passed in. A kiso import, value or type, means a token reference is hardcoded in the bridge rather than injected by the calling kata."
+										"group": [
+											"**/kata",
+											"**/kata/**",
+											"**/components",
+											"**/components/**",
+											"**/structure",
+											"**/structure/**",
+											"**/layouts",
+											"**/layouts/**",
+											"**/primitives",
+											"**/primitives/**",
+											"**/hooks",
+											"**/hooks/**",
+											"**/providers",
+											"**/providers/**"
+										],
+										"message": "kumi holds the groups: the shared structure of a family of units. A group reads kiso tokens and the recipe engine, and a kata unit extends it. An import from kata, components, structure, layouts, primitives, hooks, or providers inverts the dependency direction."
 									}
 								]
 							}
@@ -237,12 +252,12 @@
 								"patterns": [
 									{
 										"group": [
-											"**/recipes/katakana",
-											"**/recipes/katakana/**",
+											"**/recipes/kumi",
+											"**/recipes/kumi/**",
 											"**/recipes/kiso",
 											"**/recipes/kiso/**"
 										],
-										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
+										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/kumi or recipes/kiso bypasses the kata curation. It pulls group or substrate fragments into the consuming layer."
 									},
 									{
 										"group": ["**/recipes", "**/recipes/**"],
@@ -267,12 +282,12 @@
 								"patterns": [
 									{
 										"group": [
-											"**/recipes/katakana",
-											"**/recipes/katakana/**",
+											"**/recipes/kumi",
+											"**/recipes/kumi/**",
 											"**/recipes/kiso",
 											"**/recipes/kiso/**"
 										],
-										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
+										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/kumi or recipes/kiso bypasses the kata curation. It pulls group or substrate fragments into the consuming layer."
 									}
 								]
 							}
@@ -295,12 +310,12 @@
 								"patterns": [
 									{
 										"group": [
-											"**/recipes/katakana",
-											"**/recipes/katakana/**",
+											"**/recipes/kumi",
+											"**/recipes/kumi/**",
 											"**/recipes/kiso",
 											"**/recipes/kiso/**"
 										],
-										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
+										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/kumi or recipes/kiso bypasses the kata curation. It pulls group or substrate fragments into the consuming layer."
 									}
 								]
 							}
@@ -416,8 +431,7 @@
 				"packages/ui/src/**",
 				"!packages/ui/src/**/__tests__/**",
 				"!packages/ui/src/**/__benchmarks__/**",
-				"!packages/ui/src/recipes/kata/**/*.ts",
-				"!packages/ui/src/recipes/katakana/**/*.ts"
+				"!packages/ui/src/recipes/kata/**/*.ts"
 			],
 			"plugins": ["./.biome/plugins/no-unsanctioned-define-recipe.grit"]
 		},

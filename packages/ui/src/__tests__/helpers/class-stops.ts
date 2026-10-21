@@ -57,7 +57,7 @@ export function findSteps(
  * variant of the button kata.
  */
 export function findBarePad(size: DensityStep): number {
-	const bare = button.config.variants.variant?.bare as readonly unknown[]
+	const bare = button.config.slots.base.variants.variant?.bare as readonly unknown[]
 
 	return Number(findSteps(bare, 'not-data-has-label:density-p-')[size])
 }

@@ -17,14 +17,14 @@ describe('safe-area insets on edge surfaces', () => {
 
 	it('pads the drawer at every height', () => {
 		for (const height of ['auto', 'fit', 'half', 'full'] as const) {
-			expect(drawer.panel({ height })).toContain(bottom)
+			expect(drawer({ height }).base).toContain(bottom)
 		}
 	})
 
 	it('pads each sheet side on the edge it meets', () => {
-		expect(sheet.panel({ side: 'bottom' })).toContain(bottom)
+		expect(sheet({ side: 'bottom' }).base).toContain(bottom)
 
-		expect(sheet.panel({ side: 'top' })).toContain('env(safe-area-inset-top)')
+		expect(sheet({ side: 'top' }).base).toContain('env(safe-area-inset-top)')
 
 		expect(sheet.layout.side.right.flush).toContain(bottom)
 
@@ -33,7 +33,7 @@ describe('safe-area insets on edge surfaces', () => {
 
 	// `browser/density-contract.test.tsx` holds the length of this inset at each step.
 	it('pads the dialog where it docks to the bottom edge, at each density step', () => {
-		const classes = dialog.panel({}).split(' ')
+		const classes = dialog({}).base.split(' ')
 
 		expect(classes).not.toContain('density-pb-[4,5,6,7,8]')
 
@@ -48,10 +48,10 @@ describe('safe-area insets on edge surfaces', () => {
 
 	it('pads each drawer height by the inset alone', () => {
 		for (const height of ['auto', 'fit', 'half', 'full'] as const) {
-			expect(drawer.panel({ height })).toContain(`pb-[${bottom}]`)
+			expect(drawer({ height }).base).toContain(`pb-[${bottom}]`)
 		}
 
-		expect(sheet.panel({ side: 'bottom' })).toContain(`pb-[${bottom}]`)
+		expect(sheet({ side: 'bottom' }).base).toContain(`pb-[${bottom}]`)
 	})
 
 	it('pads the toast stack at both ends', () => {

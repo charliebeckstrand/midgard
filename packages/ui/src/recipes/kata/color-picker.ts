@@ -1,15 +1,12 @@
-import { defineRecipe } from '../../core/recipe'
-import { kasane, kokkaku, omote, sen } from '../kiso'
-import { control } from '../kiso/control'
-import { dan } from '../kiso/dan'
-import { popover } from '../kiso/popover'
+import { defineKata } from '../../core/recipe'
+import { dan, hannou, kasane, kokkaku, narabi, omote, sen } from '../kiso'
+import { picker } from '../kumi/control'
 
+export { scale } from '../kumi/control'
+
+const { cursor } = hannou
 const { rounded } = kasane
-const { fit, picker } = popover
-
-const button = defineRecipe({
-	base: [`flex items-center ${dan.gap.scale.sm}`, ...control.button],
-})
+const { fit, flex } = narabi
 
 /** The text of the color value in the trigger, cut to one line. */
 const value = ['block', 'truncate']
@@ -30,17 +27,21 @@ const swatch = {
 	checkerboard: [omote.checkerboard, 'bg-size-[8px_8px]'],
 }
 
-export const k = {
-	root: picker.root,
-	button,
-	value,
-	swatch,
-	skeleton: kokkaku.colorPicker,
-	content: {
-		...picker.content,
-		scroll: fit.scroll,
+export const k = defineKata(
+	{
+		extends: picker,
+		slots: {
+			/** The button that opens the picker. */
+			field: [flex.row, 'text-start', 'appearance-none', ...cursor],
+		},
 	},
-}
-
-/** The size scale of the control: each step from `xs` to `xl`. */
-export const scale = control.scale
+	{
+		value,
+		swatch,
+		skeleton: kokkaku.colorPicker,
+		content: {
+			...picker.extras.content,
+			scroll: fit.scroll,
+		},
+	},
+)

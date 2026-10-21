@@ -92,7 +92,7 @@ export const space = {
 	popover: scale.p.lg,
 	/**
 	 * The inset of a dialog, a drawer, and a sheet: the same length on the four
-	 * sides. `panel.layout.inset` is this set, and its doc gives the rule.
+	 * sides. The `inset` of the panel group (`kumi/panel`) is this set, and its doc gives the rule.
 	 */
 	panel: {
 		/** The inset at the left edge and at the right edge, on the panel or on each slot. */

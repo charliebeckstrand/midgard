@@ -108,7 +108,7 @@ export function Button({
 		(child) => !isIconElement(child) && !isVisuallyHiddenElement(child),
 	)
 
-	const classes = cn(k({ variant, color }), className)
+	const classes = cn(k({ variant, color }).base, className)
 
 	// Shared across the anchor and button renders; consumer `props` spread later
 	// can still override.

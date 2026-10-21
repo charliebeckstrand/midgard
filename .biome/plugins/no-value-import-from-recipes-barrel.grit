@@ -7,7 +7,7 @@ language js
 //
 // An `import type`, or a named import whose every specifier is `type`, is
 // exempt. The other half of the contract, no import at all from
-// `recipes/katakana` or `recipes/kiso`, is `noRestrictedImports` in
+// `recipes/kumi` or `recipes/kiso`, is `noRestrictedImports` in
 // `biome.json`. That rule reads an `import type` as a value import, so it
 // cannot express this exemption.
 //

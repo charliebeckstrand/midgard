@@ -13,6 +13,9 @@
  *     color. `line[1].inset` is the 1 px inset ring. An outset ring is for a
  *     mark on content, such as a selected PDF region, where an inset ring would
  *     cover the content.
+ *   - `thumb`: the rings of the native range thumb, in the WebKit and the Gecko
+ *     form. Under forced colors the range shows its native thumb in system
+ *     colors, and the outline of the input marks the focus.
  *
  * Layer: kiso · Concern: rings
  */
@@ -44,10 +47,41 @@ const line = {
 	},
 } as const
 
+/**
+ * The rings of the native range thumb. Tailwind reads only literal class names,
+ * so each pseudo-element writes its own rings. Under forced colors the range is
+ * native (`forced.control`), so the thumb takes system colors, and the outline
+ * of the input marks the focus and the invalid state.
+ */
+const thumb = [
+	forced.control,
+	...forced.ring.outset,
+	...forced.invalid.outset,
+
+	'[&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-zinc-950/20',
+	'dark:[&::-webkit-slider-thumb]:ring-white/20',
+	// An invalid range rings its thumb in red, as an invalid checkbox rings its box.
+	'data-invalid:[&::-webkit-slider-thumb]:ring-2',
+	'data-invalid:[&::-webkit-slider-thumb]:ring-red-600',
+	'focus-visible:[&::-webkit-slider-thumb]:ring-4',
+	'focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
+	'dark:focus-visible:[&::-webkit-slider-thumb]:ring-blue-500',
+
+	'[&::-moz-range-thumb]:ring-1 [&::-moz-range-thumb]:ring-zinc-950/20',
+	'dark:[&::-moz-range-thumb]:ring-white/20',
+	'data-invalid:[&::-moz-range-thumb]:ring-2',
+	'data-invalid:[&::-moz-range-thumb]:ring-red-600',
+	'focus-visible:[&::-moz-range-thumb]:ring-4',
+	'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
+	'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-500',
+]
+
 export const ring = {
 	/** Default ring: 1 px line, low-contrast palette, and an outline under forced colors. */
 	default: [...line[1].outset, ...color],
 	/** Inset ring: sits inside the element, subtle in light / stronger in dark. */
 	inset: [...line[1].inset, ...color],
 	line,
+	/** The rings of the native range thumb, with the native range under forced colors. */
+	thumb,
 } as const

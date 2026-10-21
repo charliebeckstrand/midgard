@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { type DensityStep, stepDown } from '../../core/density'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as button } from '../../recipes/kata/button'
-import { control } from '../../recipes/kiso/control'
+import { affix } from '../../recipes/kumi/control/affix'
+import { density } from '../../recipes/kumi/control/density'
 import { findBarePad, findSteps, findStop } from '../helpers/class-stops'
 
 // Affix `data-slot` compensation invariant.
@@ -33,6 +34,9 @@ import { findBarePad, findSteps, findStop } from '../helpers/class-stops'
 // Each host above `xs`: its slot is one step below it. The slot of an `xs`
 // host is `xs` too (no step is below `xs`), so it takes the values of the
 // slot of an `sm` host.
+/** The fragments of the control group that the invariant reads. */
+const control = { affix, density }
+
 const STEPS = ['sm', 'md', 'lg', 'xl'] as const satisfies readonly DensityStep[]
 
 const CHIP_INSET = 0.5
@@ -60,7 +64,9 @@ describe('control affix has-button compensation', () => {
 
 		const hostPx = hostPxAt(step)
 
-		const buttonPx = Number(findSteps([button.config.base], 'density-p-ring-')[buttonSize])
+		const buttonPx = Number(
+			findSteps([button.config.slots.base.base], 'density-p-ring-')[buttonSize],
+		)
 
 		const expected = hostPx - buttonPx + CHIP_INSET
 
@@ -89,7 +95,9 @@ describe('control affix has-button compensation', () => {
 
 			const hostPx = hostPxAt(step)
 
-			const buttonPx = Number(findSteps([button.config.base], 'density-p-ring-')[buttonSize])
+			const buttonPx = Number(
+				findSteps([button.config.slots.base.base], 'density-p-ring-')[buttonSize],
+			)
 
 			return hostPx - buttonPx
 		})

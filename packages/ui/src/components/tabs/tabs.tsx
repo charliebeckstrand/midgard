@@ -122,7 +122,7 @@ export function Tabs({
 						data-slot="tab-group"
 						data-orientation={resolvedOrientation}
 						density={size}
-						className={cn(k.group({ orientation: resolvedOrientation }), className)}
+						className={cn(k({ orientation: resolvedOrientation }).base, className)}
 						{...props}
 					>
 						{children}

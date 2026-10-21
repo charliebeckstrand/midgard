@@ -9,8 +9,7 @@
  * and one lookup for each of its items.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, omote, sen, ugoki } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, kasane, omote, sen, ugoki } from '../kiso'
 
 const { fg, grab } = hannou
 const { forced } = sen

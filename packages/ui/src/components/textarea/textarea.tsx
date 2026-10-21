@@ -5,6 +5,8 @@ import { type ComponentProps, type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { ControlFrame } from '../../primitives/control'
+import { Shell } from '../../providers/headless/shell'
+import { useSlots } from '../../providers/headless/use-slots'
 import type { scale } from '../../recipes/kata/textarea'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import type { ControlVariant } from '../control/context'
@@ -47,7 +49,8 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * Multi-line text control with optional `autoResize` and an `actions` slot.
  * Resolves variant and binding from enclosing `<Form>`, `<Control>`, and
  * `<GlassProvider>` contexts, and takes the step of the nearest density scope.
- * Under headless context, it drops to a bare `<textarea>`.
+ * Under headless context, the textarea and its actions render bare, with no
+ * frame and no classes.
  *
  * @remarks Shares the control setup of Input through {@link useInputControl},
  * including the §7.3 value contract that `useInputValue` owns. `defaultValue`
@@ -59,8 +62,7 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * floor. With `actions`, the frame stacks the field above a right-justified
  * actions row.
  * A set `size` opens a density scope. The actions row gets the affix size, one
- * step below the textarea, as the Input affixes do. Under headless context the
- * frame, the recipe classes, and the actions row are all skipped.
+ * step below the textarea, as the Input affixes do.
  * `invalid` forces the validation state on or off. When omitted, the state
  * comes from the bound field and an enclosing Control, as on Input.
  */
@@ -109,9 +111,14 @@ export function Textarea({
 
 	useTextareaAutoResize(fieldRef, autoResize)
 
-	// Under headless context the actions row is not rendered, so it sets no layout.
-	// An absent slot (`undefined`, `null`, or `false`) renders no row either.
-	const hasActions = !field.headless && actions != null && actions !== false
+	// An absent slot (`undefined`, `null`, or `false`) renders no row.
+	const hasActions = actions != null && actions !== false
+
+	const slots = useSlots(k, {
+		variant: field.variant,
+		resize: hasActions ? 'none' : resize,
+		actions: hasActions,
+	})
 
 	const textarea = (
 		<textarea
@@ -122,31 +129,18 @@ export function Textarea({
 			// The bound field state comes after the rest props (§3.9). Thus a stray
 			// `aria-invalid` or `id` cannot change the state of a bound field.
 			{...field.attrs}
-			className={cn(
-				!field.headless &&
-					k({
-						variant: field.variant,
-						resize: hasActions ? 'none' : resize,
-					}),
-				hasActions && k.bare,
-				className,
-			)}
+			className={cn(slots.field, className)}
 		/>
 	)
 
-	if (field.headless) return textarea
-
 	return (
-		<ControlFrame
-			density={size}
-			className={cn(hasActions && k.frame, k.surface({ variant: field.variant }))}
-		>
+		<ControlFrame density={size} className={cn(slots.base)}>
 			{textarea}
 			{/* The ControlFrame is a `<span>`, so the actions row is a `<span>` too. */}
 			{hasActions && (
-				<span data-slot="textarea-actions" data-density="slot" className={cn(k.actions)}>
+				<Shell data-slot="textarea-actions" data-density="slot" className={cn(slots.actions)}>
 					{actions}
-				</span>
+				</Shell>
 			)}
 		</ControlFrame>
 	)

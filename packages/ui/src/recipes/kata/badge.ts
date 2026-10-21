@@ -4,16 +4,14 @@
  * are `density-*` classes in the base, not an axis.
  * Reads `iro.extended` rather than `iro.palette`, so its `color` axis
  * carries the extended hues. The rest of the surface is the shared chromatic
- * palette wired through `bridge.palette`.
+ * palette matrix (`iro.matrix.extended`).
  */
 
 import { defineScale, type ScaleStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
-import { bridge } from '../katakana'
-import { iro, ji, kasane, kokkaku, narabi, sen, shaku } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, ji, kasane, kokkaku, narabi, sen, shaku } from '../kiso'
 
-const { extended } = iro
+const { extended, matrix } = iro
 const { weight } = ji
 const { rounded } = kasane
 const { badge } = kokkaku
@@ -50,7 +48,7 @@ export const k = defineRecipe(
 			// Badges step 4px, not Button's 8px: a text line-height floors a badge
 			// near 22px, so an 8px scale anchored at md=30 leaves no room for xs.
 			// Horizontal padding still grows 0.5/step to hold the affix
-			// chip-alignment lockstep (`kiso/control/affix.ts`).
+			// chip-alignment lockstep (`kumi/control/affix.ts`).
 			//
 			// Each step is in a stepped `density-*` class: the badge takes the step of its
 			// nearest density scope, and an explicit `size` makes the badge its own
@@ -77,7 +75,7 @@ export const k = defineRecipe(
 		// Opt into the wide palette: Badge's `color` axis carries the standard set
 		// plus the extended hues (rose / violet / sky).
 		palette: definePalette({
-			...bridge.palette(extended),
+			...matrix.extended,
 			plain: extended.plain.text,
 		}),
 		// `radius: 'full'` caps swallow horizontal space, so pills read tighter than

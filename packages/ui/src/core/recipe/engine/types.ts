@@ -1,9 +1,9 @@
 /**
  * Public types for the recipe engine.
  *
- * `RecipeConfig` is the shape a kata declares: six reserved fields
- * (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus
- * any number of variant axes as top-level fields. `Recipe<C>` is what
+ * `RecipeConfig` is the shape of a recipe: the reserved fields (`base`,
+ * `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus any number of
+ * variant axes as top-level fields. `Recipe<C>` is what
  * `defineRecipe` returns. `VariantProps<R>` extracts the prop shape
  * from either side; use it in kata to type the consumer-facing
  * `<Name>Variants` export.
@@ -77,11 +77,6 @@ export type RecipeConfig = {
 	skeleton?: unknown
 }
 
-/** The non-reserved (variant axis) fields of a config. */
-type AxesOf<C> = {
-	[K in keyof C as K extends ReservedField ? never : K]: C[K] extends VariantAxis ? C[K] : never
-}
-
 /**
  * The expanded config, exposed as `recipe.config` for introspection: axes
  * spliced with the palette, and compound rules flattened with their
@@ -126,24 +121,41 @@ type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string 
  */
 type AxisValue<A> = 'true' extends keyof A ? ('false' extends keyof A ? boolean : keyof A) : keyof A
 
+/** The `variant` axis and the color set of the palette of a config, or `never` without a palette. */
+type PaletteAxes<C> = C extends { palette: PaletteConfig<infer E, infer M, infer Col> }
+	? { variant: M & string; color: Col | (E & string) }
+	: never
+
+/** The prop value of an axis: its keys, joined with the palette variants for the `variant` axis. */
+type PropValue<C, K extends keyof C> = K extends 'variant'
+	? ExplicitVariantKeys<C> | PaletteAxes<C>['variant']
+	: C[K] extends VariantAxis
+		? AxisValue<C[K]>
+		: never
+
+/** The props that a palette adds: `color`, and `variant` when the config has no explicit `variant` axis. */
+type PaletteProps<C> = [PaletteAxes<C>] extends [never]
+	? unknown
+	: { color?: PaletteAxes<C>['color'] } & ('variant' extends keyof C
+			? unknown
+			: { variant?: PaletteAxes<C>['variant'] })
+
 /**
  * Computed prop shape for a given config; used internally and by `VariantProps`.
  *
- * @remarks A config without a `variant` axis or a palette adds `unknown` to the
- * axis props, not `Record<never, never>`. An intersection with an empty object
- * type stops the weak-type check of TypeScript, so a call such as `k(true)`
- * would compile. The engine then reads no prop and gives the defaults.
+ * @remarks Each axis maps to its prop through a mapped type that only filters
+ * the keys, so the prop keeps the TSDoc of its axis. That includes a `variant`
+ * axis that a palette adds to. TypeScript keeps the TSDoc only when the mapped
+ * type keeps the key, so the `color` prop of a palette has no TSDoc of its own.
+ *
+ * A config without a `variant` axis or a palette adds `unknown` to the axis
+ * props, not `Record<never, never>`. An intersection with an empty object type
+ * stops the weak-type check of TypeScript, so a call such as `k(true)` would
+ * compile. The engine then reads no prop and gives the defaults.
  */
 export type ComputedProps<C> = {
-	[K in keyof AxesOf<C> as K extends 'variant' ? never : K]?: AxisValue<AxesOf<C>[K]>
-} & (C extends { palette: PaletteConfig<infer E, infer M, infer Col> }
-	? {
-			variant?: (M & string) | ExplicitVariantKeys<C>
-			color?: Col | (E & string)
-		}
-	: C extends { variant: VariantAxis }
-		? { variant?: ExplicitVariantKeys<C> }
-		: unknown)
+	[K in keyof C as K extends ReservedField ? never : K]?: PropValue<C, K>
+} & PaletteProps<C>
 
 /**
  * Extracts the prop shape from either a `Recipe<C>` or a `RecipeConfig`.
@@ -155,7 +167,7 @@ export type ComputedProps<C> = {
  * @example
  *   export type ButtonVariants = VariantProps<typeof button>
  */
-export type VariantProps<R> = R extends (props?: infer P) => string
+export type VariantProps<R> = R extends (props?: infer P) => unknown
 	? NonNullable<P>
 	: R extends RecipeConfig
 		? ComputedProps<R>

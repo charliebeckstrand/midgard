@@ -6,8 +6,7 @@
  * `day` slot holds the `active` state classes and the `range` edge classes.
  */
 import { defineScale } from '../../core/density'
-import { iro, ji, kokkaku, narabi, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, iro, ji, kokkaku, narabi, sen } from '../kiso'
 
 const { palette, text } = iro
 const { weight } = ji

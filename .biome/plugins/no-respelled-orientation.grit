@@ -12,8 +12,8 @@ language js
 //
 // Reach is the `includes` beside this plugin in `biome.json`: the shipped
 // source directories of `ui`, minus tests and benchmarks. `types/` holds the
-// one definition. `recipes/` is out of reach, because `katakana` declares its
-// token contract by structure and imports nothing from `kiso`.
+// one definition. `recipes/` is out of reach, because a recipe declares its
+// axes by structure.
 TsUnionType(types = $types) as $union where {
 	$types <: some TsStringLiteralType() as $horizontal where {
 		$horizontal <: r"['\"]horizontal['\"]"

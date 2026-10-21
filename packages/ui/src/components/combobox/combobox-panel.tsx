@@ -96,7 +96,7 @@ export function ComboboxPanel({
 						role="none"
 						autoFocus={false}
 						glass={glass}
-						className={cn('relative', k.options)}
+						className={cn('relative', k().options)}
 						onKeyDown={(event) => {
 							if (event.key !== 'Escape') return
 
@@ -118,11 +118,11 @@ export function ComboboxPanel({
 							aria-label={ariaLabel}
 							aria-labelledby={ariaLabel ? undefined : ariaLabelledby}
 							aria-multiselectable={ariaAttr(multiple)}
-							className={cn(k.list)}
+							className={cn(k().list)}
 						>
 							{children}
 						</div>
-						<output className={cn(k.empty)}>{intl.formatMessage(intlMessages.noResults)}</output>
+						<output className={cn(k().empty)}>{intl.formatMessage(intlMessages.noResults)}</output>
 					</PopoverPanel>
 				</div>
 			</div>

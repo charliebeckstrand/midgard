@@ -1,5 +1,4 @@
-import { omote } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, omote } from '../kiso'
 
 const { rail } = omote
 

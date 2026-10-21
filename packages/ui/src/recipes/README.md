@@ -1,54 +1,60 @@
 # Recipes
 
-> **Scope:** the design layer of the `ui` package. Data lives in Kiso (tokens), structure in Katakana (the bridge), application in Kata (per-unit). All three layers are internal: `package.json` `exports` does not list `./recipes`, and the barrel re-exports types only.
+> **Scope:** the design layer of the `ui` package. Data lives in Kiso (tokens), the shared structure of a family in Kumi (groups), and application in Kata (per-unit). All three layers are internal: `package.json` `exports` does not list `./recipes`, and the barrel re-exports types only.
 
 ## 1. Layers
 
 | Layer | Role | What |
 |---|---|---|
-| [Kiso 基礎: Tokens](./kiso/README.md) | Data | Two tiers of design tokens: **primitive** atoms (`dan` · `iro` · `ji` · `ma` · `narabi` · `omote` · `hannou` · `sen` · `shaku` · `sou` · `tsunagi` · `ugoki` · `kokkaku` · `kasane` · `kara`) and **semantic** archetype bundles (`control` · `popover` · `segment` · `panel` · `slider` · `zu`) composed from them. |
-| [Katakana 片仮名: Bridge](./katakana/README.md) | Structure | Pure functions that receive a kiso token bundle and wire it into a recipe surface. Imports only the recipe engine, **never kiso values**. |
-| [Kata 型: Form](./kata/README.md) | Application | Per-unit recipes: the funnel for components and primitives, and **the only layer that touches kiso**. |
+| [Kiso 基礎: Tokens](./kiso/README.md) | Data | The token families: `dan` · `hannou` · `iro` · `ji` · `kara` · `kasane` · `kokkaku` · `ma` · `narabi` · `omote` · `sen` · `shaku` · `sou` · `tsunagi` · `ugoki` · `zu`. Each family has a Japanese name, and each key under it has an English name. |
+| [Kumi 組: Groups](./kumi/README.md) | Structure | The shared structure of a family of units: slots, axes, and defaults in the shape of a unit. A unit extends its group. Reads kiso and the recipe engine. |
+| [Kata 型: Form](./kata/README.md) | Application | Per-unit recipes: the funnel for components and primitives. |
 
-The recipe engine (`defineRecipe`, `definePalette`), the color axis (`colors`, `Color`), the `mode` / `shades` authoring helpers, and the bridge helper (`applyRecipe`) live in [`core/recipe/`](../core/recipe). Files in `katakana` and `kata` import them directly.
+The recipe engine (`defineRecipe`, `defineKata`, `defineGroup`, `definePalette`), the color axis (`colors`, `Color`), and the `mode` / `shades` authoring helpers live in [`core/recipe/`](../core/recipe). Files in `kumi` and `kata` import them directly.
 
 ## 2. Direction
 
-Dependencies point one way: `kata → kiso` (tokens) and `kata → katakana` (structure); the bridge receives tokens by argument and never reaches back into kiso. Components and primitives funnel through their kata (`from '../../recipes/kata/<name>'`); kata is the single curated surface for every unit.
+Dependencies point one way: `kata → kumi → kiso`, and `kata → kiso`. A kata and a group read kiso through its barrel (`from '../kiso'`). Components and primitives funnel through their kata (`from '../../recipes/kata/<name>'`), so kata is the single curated surface for each unit.
 
-A kata reaches the layers below in one of three ways:
+A kata builds a unit in one of three ways:
 
-- **Through a bridge** (`bridge.<archetype>(tokens, overlay)`) when the kata matches an archetype shape (input, textarea, checkbox, drawer, …). The kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which owns the variant axes and slot wiring.
-- **Through `defineRecipe` directly** (`from '../../core/recipe'`) when the kata doesn't fit any archetype (button, alert, card, code, …), composing kiso tokens itself.
-- **Through `kiso/<archetype>` directly** when the kata needs a *subset* of a semantic bundle without the bridge (combobox / listbox / date-picker use control's reset / density; dialog / drawer / sheet / box use panel's surface / layout; slider / slider-range share the slider color table).
+- **A unit that extends a group** (`defineKata({ extends: <group>, … })`), when the kata is a member of a family, such as Input, Listbox, Checkbox, or Dialog. The unit gets each slot, axis, and default of the group, and adds its own.
+- **A unit with no group** (`defineKata({ … })`), when the kata has slots or axes that no other kata shares, such as Button.
+- **A static part or a plain recipe** (`defineRecipe`), when a kata has not moved to a unit yet. The kata composes kiso tokens itself.
 
-The alias problem dissolves because the bridge is namespaced: a kata imports the token bundle under its bare archetype name and the bridge as `bridge.<archetype>`.
+The config of a unit is the recipe of its root slot, `base`. `slots` holds only the child slots, and a child slot with no axes can be only its classes:
 
 ```ts
-import { control } from '../kiso/control'   // tokens (bare name)
-import { bridge } from '../katakana'        // the bridge layer
-export const k = bridge.control(control, { base: 'block', slots: { … } })
+import { input } from '../kumi/control'
+
+export const k = defineKata({
+  extends: input,
+  slots: { field: 'flex items-center text-start' },
+})
 ```
+
+A unit has a `bare` output, in which each slot is `''`. A component resolves its slots with `useSlots(unit, props)`, which gives the bare output under `HeadlessProvider`.
 
 ## 3. Boundary
 
-Cross-layer value imports are forbidden. The barrel `index.ts` re-exports foundational types only (`Color` / `Ma` / `GroupOrientation`) so consumers can derive prop unions without threading the type through their kata. No runtime value passes through the barrel.
+Cross-layer value imports are forbidden. The barrel `index.ts` re-exports foundational types only (`Color` / `Ma` / `GroupOrientation`), so consumers can derive prop unions without threading the type through their kata. No runtime value passes through the barrel.
 
-The contract is pinned by:
+These pin the contract:
 
-- `__tests__/boundary/recipe-boundary.test.ts`: the barrel is types-only; `package.json` `exports` never lists `./recipes`.
-- `biome.json`, the `recipes/kiso/**` override: kiso never reaches upward into katakana, kata, components, primitives, layouts, hooks, or providers.
-- `biome.json`, the `recipes/katakana/**` override: katakana imports nothing from kiso (neither values nor types).
-- `.biome/plugins/no-unsanctioned-define-recipe.grit`: `defineRecipe` is invoked only in `recipes/kata/*` and `recipes/katakana/*`.
+- `__tests__/boundary/recipe-boundary.test.ts`: the barrel is types-only, and `package.json` `exports` never lists `./recipes`.
+- `__tests__/boundary/kiso-families.test.ts`: the kiso barrel exports each family and no other value, and a kata or a group reads kiso through the barrel only.
+- `biome.json`, the `recipes/kiso/**` override: kiso never reaches upward into kumi, kata, components, primitives, layouts, hooks, or providers.
+- `biome.json`, the `recipes/kumi/**` override: kumi reads kiso and the recipe engine, and never reaches upward into kata, components, primitives, layouts, hooks, or providers.
+- `.biome/plugins/no-unsanctioned-define-recipe.grit`: only `recipes/kata/*` calls `defineRecipe`.
 - `.biome/plugins/no-value-import-from-recipes-barrel.grit`: components, structure, modules, primitives, and layouts import no value from the `recipes` barrel, so each value arrives through `recipes/kata/<name>`.
 - `.biome/plugins/no-value-import-from-sibling-kata.grit`: a kata imports no value from a sibling kata.
 
 ## 4. Key names
 
-The keys of a kata surface, a kiso bundle, and a bridge result follow one pattern, so a reader finds a part by its scope. The rules:
+The keys of a kata surface, a kiso family, and a group follow one pattern, so a reader finds a part by its scope. The rules:
 
 1. **One word for each key.** A compound name nests under the part that it belongs to: `bar.rail`, not `barRail`.
-2. **The part holds its children.** A part with children is an object, and its own classes are `base`: `bar: { base, rail }`. The root part of a kata is `base` too.
+2. **The part holds its children.** A part with children is an object, and its own classes are `base`: `bar: { base, rail }`. The root part of a kata is `base` too. In a `defineKata` unit, the config itself is the root slot `base`, and each other part is a key of `slots`.
 3. **One element, one key.** Keys that always go on the same element merge into one key. A key that adds to a part in some states only nests under that part: `trigger: { base, cursor }`.
 4. **A recipe can nest.** A recipe that a kata calls holds a nested part in a slot group, and the engine merges each entry: `slots: { trigger: { base, button } }` gives `k.trigger.base`.
 5. **A config stays whole.** A motion config, a per-color record, and a step map are leaves. Do not put a child key in one.

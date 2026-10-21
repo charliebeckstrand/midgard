@@ -194,7 +194,7 @@ export function ComboboxInput({
 			required={required && !selected}
 			value={display}
 			placeholder={placeholder}
-			className={cn(k())}
+			className={cn(k().field)}
 			{...handlers}
 		/>
 	)

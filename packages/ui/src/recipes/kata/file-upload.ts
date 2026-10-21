@@ -1,6 +1,6 @@
-import { mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
-import { dan } from '../kiso/dan'
+import { defineKata, mode } from '../../core/recipe'
+import { dan, hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+import { input } from '../kumi/control'
 
 const { cursor, disabled } = hannou
 const { text } = iro
@@ -38,8 +38,11 @@ export const k = {
 	overlay: ['absolute inset-0', rounded.lg, focus.ring, ...cursor],
 	icon: 'shrink-0',
 	label: [weight.medium, text.default],
-	/** The display button of `FileUploadInput`. It lays out its text as the text of an input. */
-	field: 'flex items-center text-start',
+	/**
+	 * The unit of `FileUploadInput`, which extends the input group. The field is
+	 * the display button, which lays out its text as the text of an input.
+	 */
+	input: defineKata({ extends: input, slots: { field: 'flex items-center text-start' } }),
 	/** The selection summary or the placeholder inside the display button. Block, so that the ellipsis paints. */
 	value: 'block min-w-0 truncate',
 	/** The placeholder inside the display button, in the shade of an input placeholder. */

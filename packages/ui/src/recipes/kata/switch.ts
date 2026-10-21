@@ -1,14 +1,12 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, sen } from '../kiso'
-import { control } from '../kiso/control'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, kasane, kokkaku, sen } from '../kiso'
+import { hidden, validation } from '../kumi/check'
 
 const { cursor, disabled } = hannou
 const { text } = iro
 const { rounded } = kasane
 const { focus, ring } = sen
-const { check } = control
 
 const color = defineColors({
 	zinc: {
@@ -97,7 +95,7 @@ const choice = defineRecipe(
 				'dark:data-[position=center]:not-data-static:hover:bg-white/15',
 			),
 			'not-data-[position=center]:not-data-static:hover:opacity-90',
-			...check.validation,
+			...validation,
 			dan.size.row,
 			dan.size.switch.choice,
 		],
@@ -136,7 +134,7 @@ export const k = defineRecipe(
 			'not-has-[:disabled,[aria-readonly=true]]:has-checked:hover:opacity-90 not-has-[:disabled,[aria-readonly=true]]:has-checked:group-has-[[data-slot=label]:hover]/field:opacity-90',
 			// Validation ring overrides the resting / checked track ring when the
 			// input carries a data-* severity attribute.
-			...check.validation,
+			...validation,
 			'has-disabled:opacity-50',
 			// The track takes the step of the nearest density scope.
 			...kokkaku.switch.track,
@@ -146,7 +144,7 @@ export const k = defineRecipe(
 		skeleton: kokkaku.switch,
 	},
 	{
-		input: defineRecipe({ base: check.hidden }),
+		input: defineRecipe({ base: hidden }),
 		/**
 		 * The thumb: the sibling that follows the native input. It moves and takes
 		 * the colors of the switch when the input is checked, and it takes the step

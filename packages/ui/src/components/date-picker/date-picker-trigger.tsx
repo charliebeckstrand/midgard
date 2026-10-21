@@ -117,6 +117,9 @@ export function DatePickerTrigger({
 
 	const glass = useGlass()
 
+	// A trigger in a glass overlay paints no fill, so it takes the `outline` surface.
+	const slots = k({ variant: glass ? 'outline' : 'default' })
+
 	const [valueRef, truncated] = useTruncation<HTMLSpanElement>()
 
 	const buttonRef = useRef<HTMLButtonElement>(null)
@@ -143,7 +146,7 @@ export function DatePickerTrigger({
 			open={open}
 			setReference={setReference}
 			getReferenceProps={getReferenceProps}
-			glass={glass}
+			slots={slots}
 			size={size}
 			className={cn(k.root, className)}
 			suffix={
@@ -179,7 +182,7 @@ export function DatePickerTrigger({
 					{...validation}
 					onClick={() => onOpenChange(!open)}
 					onKeyDown={onTriggerKeyDown}
-					className={cn(k.button())}
+					className={cn(slots.field)}
 				>
 					{/* With no value, the span shows the placeholder, and the tooltip has
 					    nothing to reveal. */}

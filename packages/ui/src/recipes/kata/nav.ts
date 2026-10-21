@@ -11,10 +11,10 @@
  * - `skeleton` is the form of the `<NavSkeleton>` rows.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, ji, kasane, kokkaku, narabi, omote, sen, shaku } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, kasane, kokkaku, narabi, omote, sen, shaku } from '../kiso'
 
-const { nav, cursor } = hannou
+const { cursor, tint } = hannou
+const { text } = iro
 const { rounded } = kasane
 const { flex, inset } = narabi
 const { border, focus } = sen
@@ -42,7 +42,11 @@ const itemBox = [flex.row, 'w-full', dan.space.nav.item, dan.gap.item, ji.ramp, 
 const itemShell = [
 	'group',
 	...itemBox,
-	...nav.base,
+	// A long press on iOS selects the label text. iOS Safari can select the text in
+	// a child of a `select-none` item, so the children also set it. The headless
+	// Button of an item drops the `select-none` of the button recipe.
+	...text.default,
+	'select-none *:select-none',
 	...shaku.icon.slot.base,
 	...cursor,
 	'text-start',
@@ -58,7 +62,7 @@ const itemShell = [
 const base = defineRecipe({
 	base: ['group relative list-none'],
 	affix: {
-		true: [flex.row, dan.gap.scale.xs, dan.radius.control, ...nav.tint, ...focus.within.row],
+		true: [flex.row, dan.gap.scale.xs, dan.radius.control, ...tint.hover, ...focus.within.row],
 		false: '',
 	},
 	defaults: { affix: false },
@@ -74,7 +78,7 @@ const button = defineRecipe({
 	base: [...itemShell, 'relative z-10'],
 	affix: {
 		true: ['outline-none', 'min-w-0 flex-1'],
-		false: [...nav.tint, nav.focus],
+		false: [...tint.hover, focus.inset],
 	},
 	defaults: { affix: false },
 })

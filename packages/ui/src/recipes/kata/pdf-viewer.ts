@@ -8,8 +8,7 @@
  * - The `viewport`, with its per-`page` frame and skeleton placeholders.
  */
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, narabi, omote, sen, sou } from '../kiso'
-import { dan } from '../kiso/dan'
+import { dan, hannou, iro, ji, narabi, omote, sen, sou } from '../kiso'
 
 const { cursor } = hannou
 const { palette, text } = iro

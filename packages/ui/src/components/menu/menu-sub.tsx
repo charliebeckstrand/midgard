@@ -225,7 +225,7 @@ function MenuSubSheet({
 				data-disabled={dataAttr(disabled)}
 				data-slot="menu-sub-trigger"
 				data-open={dataAttr(open)}
-				className={cn('group/option', k.item, k.sub.trigger, className)}
+				className={cn('group/option', k.item().base, k.sub.trigger, className)}
 				onClick={handleClick}
 				onKeyDown={handleTriggerKeyDown}
 				onPointerMove={handlePointerMove}
@@ -523,7 +523,7 @@ function MenuSubFloating({
 				// works inside the panel, so the trail back to the menu it came from
 				// reads as live.
 				data-open={dataAttr(open)}
-				className={cn('group/option', k.item, k.sub.trigger, className)}
+				className={cn('group/option', k.item().base, k.sub.trigger, className)}
 				{...getReferenceProps({
 					onPointerMove: handlePointerMove,
 					onBlur: handleBlur,

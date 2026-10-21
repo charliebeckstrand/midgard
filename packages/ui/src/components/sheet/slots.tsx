@@ -32,12 +32,14 @@ export type SheetContentProps = PanelContentProps
  * with the panel's a11y context to supply the dialog's accessible name and
  * description; `Header`/`Body`/`Footer` lay out the panel's regions.
  */
+const slots = k()
+
 const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = createPanel('sheet', {
-	title: k.title,
-	description: k.description,
-	header: k.header,
-	body: k.body,
-	footer: k.footer,
+	title: slots.title,
+	description: slots.description,
+	header: slots.header,
+	body: slots.body,
+	footer: slots.footer,
 })
 
 /** Props for {@link SheetClose}: one clickable child, or none for the standard Close button. */

@@ -31,7 +31,7 @@ import type {
  * {@link ReservedField}: a field that the type names and the record does not
  * have is a type error, and so is a field that the record adds.
  */
-const RESERVED = {
+export const RESERVED = {
 	base: true,
 	palette: true,
 	compound: true,

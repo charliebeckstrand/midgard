@@ -102,7 +102,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 		'data-slot': 'command-palette-item',
 		'data-disabled': disabled || undefined,
 		'aria-disabled': disabled || undefined,
-		className: cn(k.item, className),
+		className: cn(k.item().base, className),
 		onClick: handleSelect,
 		onMouseDown: holdFocus,
 	}
