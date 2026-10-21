@@ -11,7 +11,7 @@
  * - The hover and de-emphasis treatments.
  */
 import { mode } from '../../core/recipe'
-import { kokkaku, omote, type SeriesSlot, sen, ugoki, zu } from '../kiso'
+import { hannou, kokkaku, omote, type SeriesSlot, sen, zu } from '../kiso'
 import { dan } from '../kiso/dan'
 
 const { palette, ink, motion } = zu
@@ -107,11 +107,10 @@ export const k = {
 		 * their numbers are not in yet, so every one of them holds the no-data fill.
 		 *
 		 * On the group, so it inherits to every path and thousands of regions carry no
-		 * class of their own. That is the same reason the cursor rides the group. Gated
-		 * to `motion-safe`, with a standing dim in its place for the reader who asked
-		 * for less motion. It is never both, since the pulse already troughs to that
-		 * opacity. That is the pair `kata/grid`'s `body.settling` and
-		 * `kata/chat-message`'s `streaming` carry. A loading state that renders as
+		 * class of their own. That is the same reason the cursor rides the group. It is
+		 * `hannou.busy`: the pulse, with a standing dim in its place for the reader who
+		 * asked for less motion. `kata/grid`'s `body.settling` and
+		 * `kata/chat-message`'s `streaming` carry the same pair. A loading state that renders as
 		 * nothing at all for that reader is the gray map this token exists to disambiguate.
 		 *
 		 * Distinct from {@link MapSkeleton}, which stands in for a plat with no ATLAS.
@@ -120,7 +119,7 @@ export const k = {
 		 * screen. A fully gray map reads as "nobody covers anywhere", which is a
 		 * statement about coverage rather than about a request in flight.
 		 */
-		loading: [ugoki.css.pulse, 'motion-reduce:opacity-50'],
+		loading: hannou.busy,
 		/**
 		 * The pointed region's lit copy carries the hover emphasis statically:
 		 * it is the hovered region by definition, and `:hover` can't reach the

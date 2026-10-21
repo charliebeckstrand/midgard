@@ -1,11 +1,12 @@
 /**
  * Hannou (反応): response. Interaction feedback (hover, press, focus,
- * disabled, cursor) plus the kata-shaped item / nav surfaces
+ * disabled, busy, cursor) plus the kata-shaped item / nav surfaces
  * that compose those primitives. One file per concern; this barrel
  * assembles the named bundle that every kata reads.
  */
 
 import { active } from './active'
+import { busy } from './busy'
 import { cursor, grab } from './cursor'
 import { disabled } from './disabled'
 import { fg } from './fg'
@@ -20,6 +21,8 @@ export const hannou = {
 	nav,
 	/** Disabled / dormant state. */
 	disabled,
+	/** A part that waits on data: the pulse, or a standing dim under reduced motion. */
+	busy,
 	/** Cursor feedback: pointer when interactive, not-allowed when disabled. */
 	cursor,
 	/** A surface the reader drags: the grab cursors, and the touch and selection rules a drag needs (`default`). */

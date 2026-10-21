@@ -187,7 +187,7 @@ export function GridPagination({ pagination, label, labelledBy }: GridPagination
 	return (
 		<div data-slot="grid-pagination" className={cn(k.footer.base)}>
 			<div className={cn(k.footer.bar)}>
-				<div className={cn(k.footer.controls, !showPicker && k.footer.bare.controls)}>
+				<div className={cn(k.footer.controls.base, !showPicker && k.footer.controls.bare)}>
 					{showPicker && (
 						<Select<number>
 							aria-label={intl.formatMessage(gridMessages.rowsPerPage)}
@@ -206,7 +206,7 @@ export function GridPagination({ pagination, label, labelledBy }: GridPagination
 				</div>
 
 				{showNav && (
-					<div ref={navRef} className={cn(k.footer.nav, !showPicker && k.footer.bare.nav)}>
+					<div ref={navRef} className={cn(k.footer.nav.base, !showPicker && k.footer.nav.bare)}>
 						{labelledBy && (
 							<span id={wordId} hidden>
 								{intl.formatMessage(gridMessages.paginationWord)}

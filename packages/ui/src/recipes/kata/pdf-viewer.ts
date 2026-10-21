@@ -199,7 +199,6 @@ export const k = {
 					'rounded-full',
 					'shadow-2xl',
 					...ring.line[1].inset,
-					border.color.default,
 					...mode('bg-white ring-zinc-950/20', 'dark:bg-zinc-950 dark:ring-white/20'),
 				],
 				/** The lens diameter for each step of `magnifier.size`: 144, 192 and 240 pixels. */

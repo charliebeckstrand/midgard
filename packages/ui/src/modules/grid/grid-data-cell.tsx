@@ -160,7 +160,7 @@ function GridReorderableCell({
 			{...cellProps}
 			data-dragging={dataAttr(dragging)}
 			data-grid-col={id}
-			className={cn(k.reorder.cell, k.reorder.shift, className, cellProps?.className)}
+			className={cn(k.reorder.cell.base, k.reorder.cell.shift, className, cellProps?.className)}
 			style={{ ...cellProps?.style, ...columnShiftStyle(columnIndex) }}
 		>
 			{children}

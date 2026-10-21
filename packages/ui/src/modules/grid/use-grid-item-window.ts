@@ -142,7 +142,7 @@ export function gridWindowView(
  * The start anchor of `useVirtualWindow` holds it still.
  *
  * The scroller of a windowed master-detail or grouped body has
- * `overflow-anchor: none` (see `k.sticky.windowed`), so the start anchor is
+ * `overflow-anchor: none` (see `k.sticky.wrapper.windowed`), so the start anchor is
  * the only correction. The native scroll anchoring of the browser can keep a
  * stale correction after a clamp at the scroll end. A panel that opens there
  * then moves the rows in view by its height.
