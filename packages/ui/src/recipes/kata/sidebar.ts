@@ -45,7 +45,13 @@ const itemBox = [
 	dan.radius.control,
 ]
 
-const itemBase = defineRecipe({
+/**
+ * The inner button of an item. Affixless it carries the full interaction
+ * surface (hover tint + inset keyboard focus). Affixed, the row owns that
+ * chrome, so the button only suppresses the UA outline and flexes to fill the
+ * row, and the affix slots render inside the hover tint and focus ring.
+ */
+const itemButton = defineRecipe({
 	base: [
 		...nav.base,
 		...cursor,
@@ -61,15 +67,11 @@ const itemBase = defineRecipe({
 		...shaku.icon.slot.base,
 		dan.size.icon.spinner,
 	],
-	// Where the interaction surface lives. `item`: on the element itself, the
-	// affixless default. `row`: re-seated on the wrapper (`k.item.row`) so affix
-	// slots render inside the hover tint and focus ring; the item then only
-	// suppresses the UA outline and flexes to fill the row.
-	chrome: {
-		item: [nav.tint, nav.focus],
-		row: ['outline-none', 'min-w-0 flex-1'],
+	affix: {
+		true: ['outline-none', 'min-w-0 flex-1'],
+		false: [nav.tint, nav.focus],
 	},
-	defaults: { chrome: 'item' },
+	defaults: { affix: false },
 })
 
 /**
@@ -79,7 +81,7 @@ const itemBase = defineRecipe({
  * focus projects onto the row ring via `:has`. The row-focus ring wraps the
  * affixes; each affix control keeps its own ring inside it.
  */
-const itemRow = defineRecipe({
+const itemBase = defineRecipe({
 	base: ['group relative list-none'],
 	affix: {
 		true: [
@@ -113,8 +115,11 @@ const itemPrefix = [...affix, inset.prefix]
 
 const itemSuffix = [...affix, inset.suffix]
 
-/** The cap on the hit areas of a stack of items: the `gap-0.5` of the stack (`TouchTarget`). */
-const stackTargets = '[--touch-target-gap-y:--spacing(0.5)]'
+/**
+ * A stack of items. Its gap also caps the hit areas of the items (`TouchTarget`),
+ * so two adjacent items split the gap and do not overlap.
+ */
+const stack = [flex.col, 'gap-0.5', '[--touch-target-gap-y:--spacing(0.5)]']
 
 /**
  * The scroll of the nav and of its body: on the vertical axis only. A sidebar
@@ -128,9 +133,10 @@ const scroll = 'overflow-x-hidden overflow-y-auto overscroll-contain'
 export const k = {
 	base: ['group/sidebar', mini.rail, scroll, flex.col, dan.gap.y.lg, 'h-full', 'p-6'],
 	item: {
+		/** The `<li>` or `<div>` wrapper; pass `affix` to take over the interaction chrome. */
 		base: itemBase,
-		/** Wrapper-row surface for affixed items; pairs with `base({ chrome: 'row' })`. */
-		row: itemRow,
+		/** The inner button; pass `affix` to defer the chrome to the row. */
+		button: itemButton,
 		/**
 		 * Focus projection for the active indicator inside an affixed row.
 		 * Browsers paint the row's own ring beneath the indicator's opaque pill,
@@ -144,14 +150,13 @@ export const k = {
 		/** The box of the inner button, with no interaction surface, for the skeleton row. */
 		box: itemBox,
 	},
-	// `stackTargets` caps the hit areas, so two adjacent items do not overlap.
-	section: [flex.col, 'gap-0.5', stackTargets],
-	list: [flex.col, 'gap-0.5', stackTargets],
+	section: stack,
+	list: stack,
 	label: ['truncate', mini.srOnly],
 	header: [flex.row, dan.gap.scale.md],
 	body: [scroll, flex.col, flex.fill, dan.gap.scale.lg],
 	divider: divider.top,
-	footer: ['sticky bottom-0', flex.col, 'gap-0.5', stackTargets, 'mt-auto'],
+	footer: ['sticky bottom-0', ...stack, 'mt-auto'],
 	// A sidebar item has the form of a nav item. The mini rail removes the label
 	// line, as it hides the label of a real item.
 	skeleton: {

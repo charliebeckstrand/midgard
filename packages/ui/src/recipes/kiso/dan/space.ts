@@ -303,10 +303,10 @@ export const space = {
 		x: scale.px.md,
 		/** The bottom padding of an underline tab. */
 		bottom,
-		pill: {
-			/** The inline padding of a pill tab. */
+		vertical: {
+			/** The inline padding of a vertical tab. */
 			x: scale.px.lg,
-			/** The block padding of a pill tab. */
+			/** The block padding of a vertical tab. */
 			y: 'density-py-[1,1.5,2,2.5,3]',
 		},
 		skeleton: {
@@ -316,7 +316,7 @@ export const space = {
 			start: 'density-ms-[2,3,4,5,6]',
 			/** The end margin of a tab skeleton. */
 			end: 'density-me-[2,3,4,5,6]',
-			/** The block margin of a pill tab skeleton. */
+			/** The block margin of a vertical tab skeleton. */
 			y: 'density-my-[1,1.5,2,2.5,3]',
 		},
 	},

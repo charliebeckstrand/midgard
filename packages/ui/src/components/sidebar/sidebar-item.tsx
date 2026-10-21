@@ -77,7 +77,7 @@ export function SidebarItem({
 
 	// Affixes render as siblings of the inner button, not nested inside it;
 	// a slot can host its own interactive element. With an affix present the
-	// row goes flex and takes over the interaction chrome (`chrome: 'row'`),
+	// row goes flex and takes over the interaction chrome (`affix`),
 	// so the slots sit inside the hover tint and focus ring.
 	const hasAffix = prefix != null || suffix != null
 
@@ -92,7 +92,7 @@ export function SidebarItem({
 			lockable={false}
 			data-current={dataAttr(isCurrent)}
 			className={cn(
-				k.item.base({ chrome: hasAffix ? 'row' : 'item' }),
+				k.item.button({ affix: hasAffix }),
 				// In the mini rail this Button is the tooltip trigger; restore the nav
 				// cursor over the trigger's help-cursor default.
 				mini && '*:cursor-pointer',
@@ -124,7 +124,7 @@ export function SidebarItem({
 			ref={itemRef as Ref<HTMLLIElement & HTMLDivElement>}
 			data-slot="sidebar-item"
 			density={size}
-			className={k.item.row({ affix: hasAffix })}
+			className={k.item.base({ affix: hasAffix })}
 			{...tapHandlers}
 		>
 			{prefix != null && (

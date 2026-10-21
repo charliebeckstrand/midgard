@@ -54,7 +54,7 @@ The keys of a kata surface, a kiso bundle, and a bridge result follow one patter
 5. **A config stays whole.** A motion config, a per-color record, and a step map are leaves. Do not put a child key in one.
 6. **A kata exports `k`, its scale, and its types.** The scale is `scale`, or `scale.<part>` when the kata has two (`scale.bar`, `scale.gauge`).
 
-In `dan`, a ramp nests under the unit that reads it, then the part or the side: `space.box.bottom`, `space.tab.pill.x`, `size.menu.max`.
+In `dan`, a ramp nests under the unit that reads it, then the part or the side: `space.box.bottom`, `space.tab.vertical.x`, `size.menu.max`.
 
 Two names keep their form. A key that names a component with a name of two words keeps the name of the component (`colorPanel`, `datePicker`). A key that mirrors a public prop or a library term keeps that name, such as the `stickyHeader` axis, which mirrors the prop of `SidebarLayout`.
 

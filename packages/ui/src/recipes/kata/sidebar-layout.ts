@@ -54,16 +54,21 @@ const actions = defineRecipe({
 	base: ['flex items-center shrink-0', gap.default],
 })
 
-// The panel shows in the inline layout only. It sticks to the top of the page.
-// It is as tall as the layout at its minimum (`100cqh`), and it scrolls on its
-// own. A long sidebar thus does not scroll with the page. A scroll that reaches
-// the end of the panel stops there and does not move on to the page
-// (`overscroll-contain`).
+// The column of the panel and of the aside, which show in the inline layout
+// only. It sticks to the top of the page. It is as tall as the layout at its
+// minimum (`100cqh`), and it scrolls on its own. A long sidebar thus does not
+// scroll with the page. A scroll that reaches the end of the column stops there
+// and does not move on to the page (`overscroll-contain`).
+const column = [
+	'shrink-0 min-w-0',
+	'sticky top-0 h-[100cqh] overscroll-contain',
+	'overflow-x-hidden overflow-y-auto',
+]
+
+// The panel on the start edge holds the sidebar.
 const panel = defineRecipe({
 	base: [
-		'shrink-0 min-w-0',
-		'sticky top-0 h-[100cqh] overscroll-contain',
-		'overflow-x-hidden overflow-y-auto',
+		...column,
 		// The panel hides while the sidebar is offcanvas.
 		'sidebar-offcanvas:hidden',
 		// A mini sidebar sets the rail width; the panel follows it instead of
@@ -73,17 +78,8 @@ const panel = defineRecipe({
 	],
 })
 
-// The aside on the end edge shows in the inline layout only. It sticks to the
-// top of the page and is as tall as the layout at its minimum, as the panel
-// is. Its content takes its own width. A scroll that reaches the end of the
-// aside stops there and does not move on to the page.
-const aside = defineRecipe({
-	base: [
-		'shrink-0 min-w-0',
-		'sticky top-0 h-[100cqh] overscroll-contain',
-		'overflow-x-hidden overflow-y-auto',
-	],
-})
+// The aside on the end edge. Its content takes its own width.
+const aside = defineRecipe({ base: column })
 
 // The hot zone shows in the inline layout while the sidebar is offcanvas.
 const floatingHotZone = defineRecipe({

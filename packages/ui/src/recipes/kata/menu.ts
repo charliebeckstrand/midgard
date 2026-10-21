@@ -23,9 +23,9 @@ import { dan } from '../kiso/dan'
 import { fade } from '../kiso/omote/fade'
 import { popover } from '../kiso/popover'
 
-const { on, text } = iro
+const { text } = iro
 const { size, weight } = ji
-const { flex, description } = narabi
+const { flex } = narabi
 const { divider } = sen
 const { fit } = popover
 
@@ -37,7 +37,7 @@ const item = [
 	'group/option',
 	flex.row,
 	'w-full',
-	...hannou.item,
+	...hannou.item.base,
 	...hannou.active,
 	...narabi.item,
 	`${dan.gap.option} ${dan.space.menu.item.x} ${dan.space.option.y}`,
@@ -119,13 +119,10 @@ export const k = {
 	},
 	section: 'first:pt-0 last:pb-0',
 	heading: ['px-3 pb-1 pt-2', size.xs, weight.medium, text.muted],
-	label: 'truncate',
-	// A column that stacks a label over its description.
-	text: narabi.text,
-	// `on.wash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
-	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
-	description: [description, on.wash.muted],
-	shortcut: 'ms-auto',
+	label: hannou.item.label,
+	text: hannou.item.text,
+	description: hannou.item.description,
+	shortcut: hannou.item.shortcut,
 	separator: divider.top,
 } as const
 
