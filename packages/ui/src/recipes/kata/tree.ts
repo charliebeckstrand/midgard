@@ -9,6 +9,7 @@
 import { defineScale } from '../../core/density'
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
+import { control } from '../kiso/control'
 import { dan } from '../kiso/dan'
 
 const { cursor, fg } = hannou
@@ -31,7 +32,7 @@ const itemContent = defineRecipe(
 			focus.inset,
 			...cursor,
 			'select-none',
-			...mode('data-open:text-zinc-950', 'dark:data-open:text-white'),
+			...fg.open,
 			ji.ramp,
 		],
 	},
@@ -54,10 +55,8 @@ const check = [
 	'justify-center',
 	kokkaku.checkbox.box,
 	dan.radius.check,
-	...mode(
-		['bg-white', 'border border-zinc-950/50', 'group-hover/tree-item:border-zinc-950/70'],
-		['dark:bg-white/5', 'dark:border-white/35', 'dark:group-hover/tree-item:border-white/50'],
-	),
+	...control.check.rest,
+	...mode('group-hover/tree-item:border-zinc-950/70', 'dark:group-hover/tree-item:border-white/50'),
 	'data-checked:bg-zinc-600 data-checked:border-zinc-700/90',
 	'dark:data-checked:bg-zinc-600 dark:data-checked:border-zinc-700/90',
 	'data-checked:group-hover/tree-item:opacity-90',

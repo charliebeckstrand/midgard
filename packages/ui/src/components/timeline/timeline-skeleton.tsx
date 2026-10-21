@@ -47,7 +47,7 @@ export function TimelineSkeleton({
 					<span
 						className={cn(
 							k.marker.base,
-							orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,
+							k.marker.orientation[orientation],
 							k.marker.palette.zinc.line.before,
 							k.marker.palette.zinc.line.after,
 						)}

@@ -135,21 +135,23 @@ export const k = {
 		dot: 'z-10 relative size-full',
 		/** The pulse animation of a decorative dot, applied when `pulse` is set. A StatusDot pulses itself. */
 		pulse: css.pulse,
-		vertical: [
-			'col-start-1 row-start-1 self-center justify-self-center',
-			'before:bottom-full before:left-1/2 before:-translate-x-1/2',
-			'before:h-screen before:w-0.5',
-			'after:top-full after:left-1/2 after:-translate-x-1/2',
-			'after:h-screen after:w-0.5',
-		],
-		horizontal: [
-			// inset-s-[6.5px] centers the rail on the marker.
-			'absolute top-0 inset-s-[6.5px]',
-			'before:inset-e-full before:top-1/2 before:-translate-y-1/2',
-			'before:h-0.5 before:w-screen',
-			'after:inset-s-full after:top-1/2 after:-translate-y-1/2',
-			'after:h-0.5 after:w-screen',
-		],
+		orientation: {
+			vertical: [
+				'col-start-1 row-start-1 self-center justify-self-center',
+				'before:bottom-full before:left-1/2 before:-translate-x-1/2',
+				'before:h-screen before:w-0.5',
+				'after:top-full after:left-1/2 after:-translate-x-1/2',
+				'after:h-screen after:w-0.5',
+			],
+			horizontal: [
+				// inset-s-[6.5px] centers the rail on the marker.
+				'absolute top-0 inset-s-[6.5px]',
+				'before:inset-e-full before:top-1/2 before:-translate-y-1/2',
+				'before:h-0.5 before:w-screen',
+				'after:inset-s-full after:top-1/2 after:-translate-y-1/2',
+				'after:h-0.5 after:w-screen',
+			],
+		},
 		palette,
 	},
 	title,

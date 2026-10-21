@@ -1,6 +1,5 @@
 import type { ComponentProps } from 'react'
 import { createSlot } from '../../core'
-import { k } from '../../recipes/kata/table'
 
 /** Props for {@link TableRow}: native `<tr>` attributes, including a `ref` to the row. */
 export type TableRowProps = ComponentProps<'tr'>
@@ -14,4 +13,4 @@ export type TableRowProps = ComponentProps<'tr'>
  * @remarks Forwards `ref` to the underlying `<tr>`, so a client caller can make
  * the row a drag node (e.g. the data table's reorderable rows).
  */
-export const TableRow = createSlot('tr', 'table-row', k.row)
+export const TableRow = createSlot('tr', 'table-row')

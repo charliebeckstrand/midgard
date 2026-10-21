@@ -5,7 +5,7 @@
  * density scope. That scope is the `<table>` when it has a `size`, else the
  * scope around it. The `projection` holds the outline-, stripe-, and hover-varying
  * child selectors the `<table>` casts onto descendants. Cells therefore read no
- * context, and the family renders in RSC. `head`, `row`, and `empty` are
+ * context, and the family renders in RSC. `head`, `caption`, and `empty` are
  * static slots.
  */
 import { defineScale } from '../../core/density'
@@ -80,10 +80,7 @@ export const k = {
 	head: [text.muted],
 	// Above the table and aligned to the start, with the muted color of the head.
 	caption: ['caption-top text-start pb-2', size.sm, text.muted],
-	// A summary row group. It takes no style of its own; a caller sets the weight of a totals row.
-	foot: [],
 	header,
-	row: [],
 	cell,
 	projection,
 	empty: ['text-center', text.muted],

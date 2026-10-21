@@ -1,4 +1,4 @@
-import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
@@ -57,7 +57,7 @@ export const k = defineRecipe(
 				text.muted,
 				fg.hover,
 				'text-start',
-				...mode('aria-expanded:text-zinc-950', 'dark:aria-expanded:text-white'),
+				...fg.expanded,
 				// The item draws the focus ring, and its forced-colors outline.
 				'focus-visible:outline-none',
 				...disabled,
