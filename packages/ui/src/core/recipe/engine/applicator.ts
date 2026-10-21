@@ -14,7 +14,7 @@ import type { Recipe, RecipeConfig, ReservedField, SlotValue } from './types'
  * folds against when the caller declares no overlay. Spelled
  * `Record<never, never>` rather than `{}`. The alternatives (`object`,
  * `unknown`, `Record<keyof any, never>`) all widen or carry an index
- * signature. That signature poisons the engine's `AxesOf` and slot mapped
+ * signature. That signature poisons the engine's prop and slot mapped
  * types, and resolves every string axis to `boolean | undefined` in consumer
  * prop unions.
  */

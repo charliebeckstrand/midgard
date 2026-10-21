@@ -85,6 +85,8 @@ export function TabList({
 
 	const orientation = tabsContext?.orientation ?? 'horizontal'
 
+	const parts = k({ orientation })
+
 	const ref = useRef<HTMLDivElement>(null)
 
 	// Roving reads `ref`, so a consumer `ref` joins it, with the tabbable floor.
@@ -104,7 +106,7 @@ export function TabList({
 			ref={setList}
 			data-slot="tab-list"
 			data-orientation={orientation}
-			className={cn(isSegment ? k.segment.control : k.list({ orientation }), className)}
+			className={cn(isSegment ? k.segment.control : parts.list, className)}
 			// Consumer props spread first; the role, the orientation and the roving
 			// handler below take precedence.
 			{...props}
@@ -132,7 +134,7 @@ export function TabList({
 					ref={setScroller}
 					data-slot="tab-list-scroll"
 					data-scroll-region
-					className={k.scroll({ orientation })}
+					className={parts.scroll}
 				>
 					{list}
 				</div>

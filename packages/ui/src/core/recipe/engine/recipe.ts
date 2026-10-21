@@ -18,8 +18,10 @@ import { expandPalette, type PalettePairs } from './palette'
 import type {
 	CompoundRule,
 	ComputedProps,
+	PartClasses,
 	Recipe,
 	RecipeConfig,
+	RecipeOutput,
 	ReservedField,
 	ResolvedConfig,
 	SlotValue,
@@ -33,6 +35,7 @@ import type {
  */
 const RESERVED = {
 	base: true,
+	parts: true,
 	palette: true,
 	compound: true,
 	slots: true,
@@ -62,6 +65,12 @@ type CompiledRule = {
 /** The per-call execution plan {@link compile} derives once at creation. @internal */
 type Plan = {
 	base: ClassValue
+	/**
+	 * The parts other than `base`, with the classes of each, when the recipe has
+	 * `parts`. A recipe without parts has `undefined`, and its call returns one
+	 * string.
+	 */
+	parts: [name: string, classes: ClassValue][] | undefined
 	/** `Object.entries(variants)`, hoisted out of the call path. */
 	variantEntries: [axis: string, axisMap: Record<string, ClassValue>][]
 	/** The palette's pair lookup from {@link expandPalette}; empty without a palette. */
@@ -84,6 +93,8 @@ type Plan = {
  */
 type Expansion = {
 	resolved: ResolvedConfig
+	/** True when the config declares `parts`, so the call returns an object of parts. */
+	hasParts: boolean
 	palettePairs: PalettePairs
 	userCompound: CompoundRule[]
 }
@@ -93,20 +104,23 @@ type Expansion = {
  *
  * - `base`, `variants`, `compound`, and `defaults` apply per call through
  *   `clsx` + `tailwind-merge`;
+ * - `parts` names the parts of the unit beside its root part `base`. The call
+ *   then returns the class string of each part, and an axis value or a
+ *   compound rule gives classes to each part with a part map;
  * - `slots` pre-merge onto the recipe as direct properties, and a slot group
  *   pre-merges each of its entries;
  * - `palette` expands into an implicit `color` axis;
  * - `extras` attach arbitrary kata-shaped siblings.
  *
  * The kata binds the result as `k`: `k(...)` for the variant call, `k.title`
- * for slot classes.
+ * for slot classes, and `k(...).list` for a part.
  *
  * @remarks Calls are memoized per resolved variant combination: the first
  * call with a given combination composes and merges classes, every later one
- * returns the cached string.
+ * returns the cached result.
  *
- * @param config - Recipe definition; reserved fields (`base`, `palette`,
- * `compound`, `slots`, `defaults`, `skeleton`) are special-cased, every other
+ * @param config - Recipe definition; reserved fields (`base`, `parts`,
+ * `palette`, `compound`, `slots`, `defaults`, `skeleton`) are special-cased, every other
  * top-level field becomes a variant axis.
  * @param extras - Optional kata-shaped siblings (`motion`, sub-recipes,
  * fragment maps) attached as direct properties; the recipe stays callable.
@@ -133,9 +147,9 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 
 	const plan = compile(expansion)
 
-	const memo = new Map<string, string>()
+	const memo = new Map<string, RecipeOutput<C>>()
 
-	function recipe(props?: ComputedProps<C>): string {
+	function recipe(props?: ComputedProps<C>): RecipeOutput<C> {
 		const raw = props as Record<string, unknown> | undefined
 
 		const key = raw === undefined ? plan.defaultKey : memoKey(plan, raw)
@@ -146,7 +160,7 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 
 		const values = buildValues(plan, raw)
 
-		const result = twMerge(clsx(collectClasses(plan, values)))
+		const result = compose(plan, values) as RecipeOutput<C>
 
 		if (memo.size >= MEMO_CAP) memo.clear()
 
@@ -287,31 +301,79 @@ function matches(rule: CompiledRule, values: Record<string, string | undefined>)
 
 /**
  * Composes base + matching variant axes + the palette pair + compound rules
- * into the class list. Palette classes land before user compound classes, so
- * user rules still win merge conflicts.
+ * into the class list of each part. Palette classes land before user compound
+ * classes, so user rules still win merge conflicts. A recipe without parts has
+ * the one part `base`.
  *
  * @internal
  */
-function collectClasses(plan: Plan, values: Record<string, string | undefined>): ClassValue[] {
-	const classes: ClassValue[] = [plan.base]
+function collectClasses(
+	plan: Plan,
+	values: Record<string, string | undefined>,
+): Map<string, ClassValue[]> {
+	const classes = new Map<string, ClassValue[]>([['base', [plan.base]]])
+
+	for (const [name, part] of plan.parts ?? []) classes.set(name, [part])
+
+	const add = (value: ClassValue) => {
+		for (const [name, part] of splitParts(plan, value)) classes.get(name)?.push(part)
+	}
 
 	for (const [axis, axisMap] of plan.variantEntries) {
 		const value = values[axis]
 
-		if (value !== undefined && value in axisMap) classes.push(axisMap[value])
+		if (value !== undefined && value in axisMap) add(axisMap[value])
 	}
 
 	if (values.variant !== undefined && values.color !== undefined) {
 		const paletteClasses = plan.palette.get(values.variant)?.get(values.color)
 
-		if (paletteClasses !== undefined) classes.push(paletteClasses)
+		if (paletteClasses !== undefined) add(paletteClasses)
 	}
 
 	for (const rule of plan.rules) {
-		if (matches(rule, values)) classes.push(rule.class)
+		if (matches(rule, values)) add(rule.class)
 	}
 
 	return classes
+}
+
+/**
+ * Splits a class value into the classes of each part. In a recipe with parts, a
+ * plain object is a {@link PartClasses} map, and any other value goes to `base`.
+ * A recipe without parts gives each value to `base`, because it has no other
+ * part.
+ *
+ * @internal
+ */
+function splitParts(plan: Plan, value: ClassValue): [name: string, classes: ClassValue][] {
+	if (plan.parts === undefined || !isPartClasses(value)) return [['base', value]]
+
+	return Object.entries(value)
+}
+
+/** True when a value is a plain object, which a recipe with parts reads as a part map. @internal */
+function isPartClasses(value: unknown): value is PartClasses {
+	return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/**
+ * Merges the classes of each part. A recipe without parts gives the string of
+ * `base`, and a recipe with parts gives a frozen object of the strings.
+ *
+ * @internal
+ */
+function compose(
+	plan: Plan,
+	values: Record<string, string | undefined>,
+): string | Readonly<Record<string, string>> {
+	const classes = collectClasses(plan, values)
+
+	if (plan.parts === undefined) return twMerge(clsx(classes.get('base')))
+
+	return Object.freeze(
+		Object.fromEntries([...classes].map(([name, list]) => [name, twMerge(clsx(list))])),
+	)
 }
 
 /**
@@ -322,7 +384,7 @@ function collectClasses(plan: Plan, values: Record<string, string | undefined>):
  *
  * @internal
  */
-function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
+function compile({ resolved, hasParts, palettePairs, userCompound }: Expansion): Plan {
 	const defaults = Object.fromEntries(
 		Object.entries(resolved.defaults).map(([key, value]) => [key, axisKey(value)]),
 	)
@@ -350,6 +412,7 @@ function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
 
 	const plan: Plan = {
 		base: resolved.base,
+		parts: hasParts ? Object.entries(resolved.parts) : undefined,
 		variantEntries: Object.entries(resolved.variants),
 		palette: palettePairs,
 		rules,
@@ -392,6 +455,43 @@ function applyPaletteToVariants(
 }
 
 /**
+ * Checks the part names of a config with `parts`. The config must not have
+ * `slots`, a part must not be named `base`, and a part map must name only
+ * `base` and the declared parts.
+ *
+ * @internal
+ */
+function checkParts(
+	config: RecipeConfig,
+	variants: Record<string, Record<string, ClassValue>>,
+	compound: CompoundRule[],
+): void {
+	if (config.slots !== undefined) {
+		throw new Error('defineRecipe: a recipe has `parts` or `slots`, not both')
+	}
+
+	const names = new Set(['base', ...Object.keys(config.parts ?? {})])
+
+	if (Object.hasOwn(config.parts ?? {}, 'base')) {
+		throw new Error('defineRecipe: `base` is the root part, so `parts` must not declare it')
+	}
+
+	const values = [
+		...Object.values(variants).flatMap((axis) => Object.values(axis)),
+		...compound.map((rule) => rule.class),
+	]
+
+	for (const value of values) {
+		if (!isPartClasses(value)) continue
+
+		for (const name of Object.keys(value)) {
+			if (!names.has(name))
+				throw new Error(`defineRecipe: part "${name}" is not declared in \`parts\``)
+		}
+	}
+}
+
+/**
  * Collects each non-reserved top-level field as a variant axis, then splices
  * `palette` into the `variant` / `color` axes and compounds via
  * {@link applyPaletteToVariants}. Hands {@link compile} the palette pair
@@ -420,9 +520,13 @@ function expand(config: RecipeConfig): Expansion {
 
 	const userCompound = (config.compound ?? []).map(normalizeRule)
 
+	if (config.parts !== undefined) checkParts(config, variants, userCompound)
+
 	return {
+		hasParts: config.parts !== undefined,
 		resolved: {
 			base: config.base,
+			parts: config.parts ?? {},
 			variants,
 			// User compounds follow palette compounds; later rules take precedence.
 			compound: [...paletteExpansion.compound, ...userCompound],

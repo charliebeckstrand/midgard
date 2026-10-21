@@ -1,9 +1,9 @@
 /**
  * Public types for the recipe engine.
  *
- * `RecipeConfig` is the shape a kata declares: six reserved fields
- * (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus
- * any number of variant axes as top-level fields. `Recipe<C>` is what
+ * `RecipeConfig` is the shape a kata declares: the reserved fields
+ * (`base`, `parts`, `palette`, `compound`, `slots`, `defaults`, `skeleton`)
+ * plus any number of variant axes as top-level fields. `Recipe<C>` is what
  * `defineRecipe` returns. `VariantProps<R>` extracts the prop shape
  * from either side; use it in kata to type the consumer-facing
  * `<Name>Variants` export.
@@ -54,7 +54,21 @@ type SlotClasses<S> = [S] extends [object]
 	: string
 
 /** Reserved top-level config field names; kata must not use these as axis names. */
-export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults' | 'skeleton'
+export type ReservedField =
+	| 'base'
+	| 'parts'
+	| 'palette'
+	| 'compound'
+	| 'slots'
+	| 'defaults'
+	| 'skeleton'
+
+/**
+ * The classes that an axis value or a compound rule gives to each part of a
+ * recipe with `parts`. `base` is the root part. A part that the map does not
+ * name takes no classes from that value.
+ */
+export type PartClasses = { readonly [part: string]: ClassValue }
 
 /**
  * A recipe config: the reserved fields plus any number of variant axes at the
@@ -63,6 +77,13 @@ export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'default
  */
 export type RecipeConfig = {
 	base?: ClassValue
+	/**
+	 * The parts of the unit, other than its root part `base`. A recipe with parts
+	 * returns the classes of each part from one call: `k({ orientation }).list`.
+	 * An axis value or a compound rule can then give classes to each part with a
+	 * {@link PartClasses} map. A recipe does not have both `parts` and `slots`.
+	 */
+	parts?: Record<string, ClassValue>
 	palette?: PaletteConfig
 	compound?: CompoundRule[]
 	slots?: Record<string, SlotValue>
@@ -77,11 +98,6 @@ export type RecipeConfig = {
 	skeleton?: unknown
 }
 
-/** The non-reserved (variant axis) fields of a config. */
-type AxesOf<C> = {
-	[K in keyof C as K extends ReservedField ? never : K]: C[K] extends VariantAxis ? C[K] : never
-}
-
 /**
  * The expanded config, exposed as `recipe.config` for introspection: axes
  * spliced with the palette, and compound rules flattened with their
@@ -90,14 +106,26 @@ type AxesOf<C> = {
  */
 export type ResolvedConfig = {
 	base?: ClassValue
+	parts: Record<string, ClassValue>
 	variants: Record<string, Record<string, ClassValue>>
 	compound: CompoundRule[]
 	slots: Record<string, SlotValue>
 	defaults: Record<string, string | number | boolean>
 }
 
+/** The names of the parts of a recipe with `parts`: the root part `base` and each declared part. */
+type PartNames<C> = C extends { parts: infer P } ? 'base' | (keyof P & string) : never
+
+/**
+ * What a call of a recipe returns: the class string of the root, or an object
+ * that holds the class string of each part when the recipe has `parts`.
+ */
+export type RecipeOutput<C> = [PartNames<C>] extends [never]
+	? string
+	: { readonly [K in PartNames<C>]: string }
+
 export type Recipe<C extends RecipeConfig> = {
-	(props?: ComputedProps<C>): string
+	(props?: ComputedProps<C>): RecipeOutput<C>
 	/** Resolved config, exposed for introspection. */
 	readonly config: ResolvedConfig
 } & {
@@ -126,24 +154,41 @@ type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string 
  */
 type AxisValue<A> = 'true' extends keyof A ? ('false' extends keyof A ? boolean : keyof A) : keyof A
 
+/** The `variant` axis and the color set of the palette of a config, or `never` without a palette. */
+type PaletteAxes<C> = C extends { palette: PaletteConfig<infer E, infer M, infer Col> }
+	? { variant: M & string; color: Col | (E & string) }
+	: never
+
+/** The prop value of an axis: its keys, joined with the palette variants for the `variant` axis. */
+type PropValue<C, K extends keyof C> = K extends 'variant'
+	? ExplicitVariantKeys<C> | PaletteAxes<C>['variant']
+	: C[K] extends VariantAxis
+		? AxisValue<C[K]>
+		: never
+
+/** The props that a palette adds: `color`, and `variant` when the config has no explicit `variant` axis. */
+type PaletteProps<C> = [PaletteAxes<C>] extends [never]
+	? unknown
+	: { color?: PaletteAxes<C>['color'] } & ('variant' extends keyof C
+			? unknown
+			: { variant?: PaletteAxes<C>['variant'] })
+
 /**
  * Computed prop shape for a given config; used internally and by `VariantProps`.
  *
- * @remarks A config without a `variant` axis or a palette adds `unknown` to the
- * axis props, not `Record<never, never>`. An intersection with an empty object
- * type stops the weak-type check of TypeScript, so a call such as `k(true)`
- * would compile. The engine then reads no prop and gives the defaults.
+ * @remarks Each axis maps to its prop through a mapped type that only filters
+ * the keys, so the prop keeps the TSDoc of its axis. That includes a `variant`
+ * axis that a palette adds to. TypeScript keeps the TSDoc only when the mapped
+ * type keeps the key, so the `color` prop of a palette has no TSDoc of its own.
+ *
+ * A config without a `variant` axis or a palette adds `unknown` to the axis
+ * props, not `Record<never, never>`. An intersection with an empty object type
+ * stops the weak-type check of TypeScript, so a call such as `k(true)` would
+ * compile. The engine then reads no prop and gives the defaults.
  */
 export type ComputedProps<C> = {
-	[K in keyof AxesOf<C> as K extends 'variant' ? never : K]?: AxisValue<AxesOf<C>[K]>
-} & (C extends { palette: PaletteConfig<infer E, infer M, infer Col> }
-	? {
-			variant?: (M & string) | ExplicitVariantKeys<C>
-			color?: Col | (E & string)
-		}
-	: C extends { variant: VariantAxis }
-		? { variant?: ExplicitVariantKeys<C> }
-		: unknown)
+	[K in keyof C as K extends ReservedField ? never : K]?: PropValue<C, K>
+} & PaletteProps<C>
 
 /**
  * Extracts the prop shape from either a `Recipe<C>` or a `RecipeConfig`.
@@ -155,7 +200,7 @@ export type ComputedProps<C> = {
  * @example
  *   export type ButtonVariants = VariantProps<typeof button>
  */
-export type VariantProps<R> = R extends (props?: infer P) => string
+export type VariantProps<R> = R extends (props?: infer P) => unknown
 	? NonNullable<P>
 	: R extends RecipeConfig
 		? ComputedProps<R>

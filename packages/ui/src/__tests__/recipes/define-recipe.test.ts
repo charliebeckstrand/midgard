@@ -289,3 +289,58 @@ describe('defineRecipe', () => {
 		expect(() => defineRecipe({}, { name: 'x' })).toThrow(/extra name/)
 	})
 })
+
+describe('defineRecipe with parts', () => {
+	const recipe = defineRecipe({
+		base: 'root',
+		parts: { list: 'list', tab: 'tab' },
+		orientation: {
+			horizontal: { base: 'col', list: 'border-b' },
+			vertical: { base: 'row', tab: 'px-2' },
+		},
+		stretch: {
+			true: { tab: 'w-full' },
+			false: {},
+		},
+		compound: [{ orientation: 'vertical', stretch: true, class: { list: 'grow' } }],
+		defaults: { orientation: 'horizontal', stretch: false },
+	})
+
+	it('returns the classes of each part from one call', () => {
+		expect(recipe()).toEqual({ base: 'root col', list: 'list border-b', tab: 'tab' })
+
+		expect(recipe({ orientation: 'vertical', stretch: true })).toEqual({
+			base: 'root row',
+			list: 'list grow',
+			tab: 'tab px-2 w-full',
+		})
+	})
+
+	it('gives a class value that is not a part map to the root part', () => {
+		const plain = defineRecipe({ parts: { icon: 'icon' }, tone: { muted: 'text-zinc-500' } })
+
+		expect(plain({ tone: 'muted' })).toEqual({ base: 'text-zinc-500', icon: 'icon' })
+	})
+
+	it('types the output by the declared parts', () => {
+		expect(Object.keys(recipe())).toEqual(['base', 'list', 'tab'])
+
+		expectTypeOf(recipe()).toEqualTypeOf<{
+			readonly base: string
+			readonly list: string
+			readonly tab: string
+		}>()
+
+		expectTypeOf(recipe)
+			.parameter(0)
+			.toEqualTypeOf<{ orientation?: 'horizontal' | 'vertical'; stretch?: boolean } | undefined>()
+	})
+
+	it('rejects a part map that names an undeclared part, a part named base, and slots', () => {
+		expect(() => defineRecipe({ parts: { a: 'a' }, size: { sm: { b: 'b' } } })).toThrow(/part "b"/)
+
+		expect(() => defineRecipe({ parts: { base: 'a' } })).toThrow(/root part/)
+
+		expect(() => defineRecipe({ parts: { a: 'a' }, slots: { b: 'b' } })).toThrow(/not both/)
+	})
+})

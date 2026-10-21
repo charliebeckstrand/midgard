@@ -16,7 +16,7 @@ import { k as tabs } from '../../recipes/kata/tabs'
 const ROWS = [
 	{ name: 'CommandPalette item', classes: cn(palette.item), light: 'text-zinc-950' },
 	{ name: 'Menu item', classes: cn(menu.item), light: 'text-zinc-950' },
-	{ name: 'Tab', classes: tabs.tab({ orientation: 'horizontal' }), light: 'text-zinc-500' },
+	{ name: 'Tab', classes: tabs({ orientation: 'horizontal' }).tab, light: 'text-zinc-500' },
 ]
 
 describe('the text color of an item row', () => {

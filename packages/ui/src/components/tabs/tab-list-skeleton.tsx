@@ -37,7 +37,7 @@ export function TabListSkeleton({
 }: TabListSkeletonProps) {
 	return renderRowSkeleton({
 		count: tabs,
-		root: [k.list({ orientation }), orientation === 'horizontal' && k.skeleton.gap, className],
+		root: [k({ orientation }).list, orientation === 'horizontal' && k.skeleton.gap, className],
 		item: k.skeleton.tab[orientation],
 		density: size,
 	})
