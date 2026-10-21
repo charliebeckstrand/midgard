@@ -2,7 +2,7 @@
 
 import { domMax, LazyMotion, Reorder } from 'motion/react'
 import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
-import { cn, dataAttr, querySlot } from '../../../core'
+import { dataAttr, querySlot } from '../../../core'
 import { useKeyboardReorder } from '../../../hooks/use-keyboard-reorder'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { useReorderDrag } from '../../../hooks/use-reorder-drag'
@@ -122,7 +122,7 @@ export function QueryBuilderSortable({ group, separator, node }: QueryBuilderSor
 					onReorder={setDraft}
 					data-slot="query-sortable-list"
 					data-sorting={dataAttr(sorting)}
-					className={cn(k.sortable.list)}
+					className={k().sortable}
 				>
 					{order.flatMap((id, index) => {
 						const child = byKey.get(id)
@@ -135,7 +135,7 @@ export function QueryBuilderSortable({ group, separator, node }: QueryBuilderSor
 							between ? (
 								// The separator keeps its slot through the drag, so it takes the
 								// key of the node that the slot holds before the drag.
-								<div key={`${children[index]?.id}-separator`} className={cn(k.sortable.separator)}>
+								<div key={`${children[index]?.id}-separator`} className={k().separator}>
 									{between}
 								</div>
 							) : null,

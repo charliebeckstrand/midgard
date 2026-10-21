@@ -4,13 +4,15 @@ import { PinOff } from 'lucide-react'
 import { Button } from '../../components/button'
 import { Heading } from '../../components/heading'
 import { Icon } from '../../components/icon'
-import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
 import { setEventsPinned } from './engine/events-setting'
 import { eventsMessages } from './events-messages'
 import { useEventsView } from './use-events-view'
+
+/** The slots of the pinned panel. */
+const slots = k()
 
 /**
  * The pinned panel of the events: the view of `useEventsView` as a card that
@@ -27,8 +29,8 @@ export function EventsPanel() {
 	const intl = useIntl()
 
 	return (
-		<div className={cn(k.panel.base)}>
-			<Flex wrap align="center" gap="md" className={cn(k.row)}>
+		<div className={slots.base}>
+			<Flex wrap align="center" gap="md" className={slots.row}>
 				<Heading level={2} className="sr-only">
 					{label}
 				</Heading>
@@ -45,10 +47,10 @@ export function EventsPanel() {
 			</Flex>
 			{/* The body is the scroll region of the virtual list, so the list renders
 			    only the rows in view. */}
-			<div data-scroll-region className={cn(k.panel.body)}>
+			<div data-scroll-region className={slots.body}>
 				{body}
 			</div>
-			<Flex align="center" gap="sm" className={cn(k.panel.footer)}>
+			<Flex align="center" gap="sm" className={slots.footer}>
 				{footer}
 			</Flex>
 		</div>

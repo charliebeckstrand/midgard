@@ -78,7 +78,7 @@ function ReportLine({
 					{report.page} · {intl.formatTime(new Date(report.at), { timeStyle: 'medium' })} ·{' '}
 					{report.origin}
 				</Text>
-				<Text className={cn('truncate font-mono text-xs', k.hash)}>{report.hash}</Text>
+				<Text className={cn('truncate font-mono text-xs', k().hash)}>{report.hash}</Text>
 			</span>
 		</ListItem>
 	)

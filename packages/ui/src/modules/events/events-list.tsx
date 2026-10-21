@@ -93,7 +93,7 @@ function EventLine({
 				// color of the line.
 				<CollapseTrigger className="min-w-0 items-start text-start text-xs aria-expanded:*:first:rotate-90">
 					{slot}
-					<span className={cn('min-w-0', color ?? k.text)}>{text}</span>
+					<span className={cn('min-w-0', color ?? k().text)}>{text}</span>
 				</CollapseTrigger>
 			)}
 		</span>

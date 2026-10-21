@@ -4,11 +4,7 @@ import { __unstable__loadDesignSystem, compile } from '@tailwindcss/node'
 import clsx, { type ClassValue } from 'clsx'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { twMerge } from '../../core/tw-merge'
-import { k as events } from '../../recipes/kata/events'
-import { k as offcanvas } from '../../recipes/kata/offcanvas'
-import { k as queryBuilder } from '../../recipes/kata/query-builder'
 import { k as sheet } from '../../recipes/kata/sheet'
-import { k as sidebarLayout } from '../../recipes/kata/sidebar-layout'
 import { BREAKPOINT_WIDTHS, type MinBreakpoint, resolveVariant } from '../../types/responsive'
 import { noop } from '../../utilities/noop'
 import { uiRoot } from '../helpers/walk-source'
@@ -94,20 +90,6 @@ const AXES: ReadonlyArray<readonly [string, Record<string, string>]> = [
 	['Sheet bottom layout', sheet.layout.side.bottom],
 	['Sheet fit width layout', sheet.layout.width.fit],
 	['Sheet full width layout', sheet.layout.width.full],
-	['QueryBuilder parts orientation', queryBuilder.parts.base],
-	['QueryBuilder part orientation', queryBuilder.parts.item],
-	['QueryBuilder range orientation', queryBuilder.parts.range],
-	['Offcanvas drawer-only block', offcanvas.drawer.block],
-	['Offcanvas inline-only block', offcanvas.inline.block],
-	['Offcanvas inline-only flex', offcanvas.inline.flex],
-	['Offcanvas inline-only inline flex', offcanvas.inline.inlineFlex],
-	['SidebarLayout root layout', sidebarLayout.layout.base],
-	['SidebarLayout peek layout', sidebarLayout.layout.peek],
-	['SidebarLayout content wrapper layout', sidebarLayout.layout.wrapper],
-	['SidebarLayout content layout', sidebarLayout.layout.content],
-	['SidebarLayout sticky header layout', sidebarLayout.layout.stickyHeader],
-	['SidebarLayout header layout', sidebarLayout.layout.header],
-	['EventsButton layout', events.button],
 ]
 
 const MIN_BREAKPOINTS = Object.keys(BREAKPOINT_WIDTHS) as MinBreakpoint[]

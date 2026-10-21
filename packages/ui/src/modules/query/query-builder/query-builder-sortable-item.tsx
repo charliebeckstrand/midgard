@@ -2,7 +2,7 @@
 
 import { type DragControls, Reorder, useDragControls } from 'motion/react'
 import { type KeyboardEvent, type PointerEvent, type ReactNode, useState } from 'react'
-import { cn, dataAttr } from '../../../core'
+import { dataAttr } from '../../../core'
 import { reorderMessages } from '../../../primitives/intl/intl-reorder'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { SortableGrip } from '../../../primitives/sortable-grip/sortable-grip'
@@ -73,7 +73,7 @@ export function QueryBuilderSortableItem({
 			value={id}
 			dragListener={false}
 			dragControls={controls}
-			transition={instant ? k.sortable.instant : undefined}
+			transition={instant ? k.instant : undefined}
 			onDragStart={() => {
 				setDragging(true)
 				onDragStart(id, controls)
@@ -85,7 +85,7 @@ export function QueryBuilderSortableItem({
 			data-slot="query-sortable"
 			data-node-id={id}
 			data-dragging={dataAttr(held)}
-			className={cn(k.sortable.base)}
+			className={k().item}
 		>
 			{handle && (
 				<SortableGrip
@@ -110,10 +110,10 @@ export function QueryBuilderSortableItem({
 					label={intl.formatMessage(reorderMessages.reorderHandle, { item: label })}
 					size="sm"
 					disabled={disabled}
-					className={cn(k.sortable.handle)}
+					className={k().handle}
 				/>
 			)}
-			<div className={cn(k.sortable.node)}>{children}</div>
+			<div className={k().node}>{children}</div>
 		</Reorder.Item>
 	)
 }

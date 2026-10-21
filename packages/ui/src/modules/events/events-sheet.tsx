@@ -12,13 +12,11 @@ import {
 	SheetPanel,
 	SheetTitle,
 } from '../../components/sheet'
-import { cn } from '../../core'
 import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { k as offcanvas } from '../../recipes/kata/offcanvas'
 import { Flex } from '../../structure/flex'
-import { resolveVariant } from '../../types'
 import { hasEventsDock, setEventsPinned, subscribeEventsDocks } from './engine/events-setting'
 import { eventsMessages } from './events-messages'
 import { useEventsView } from './use-events-view'
@@ -67,7 +65,7 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetPanel side="bottom" className="max-h-full">
 				{/* The row takes the inset of the title, as the slot does. */}
-				<Flex wrap align="center" gap="md" className={cn(k.row)}>
+				<Flex wrap align="center" gap="md" className={k().row}>
 					<SheetTitle className="sr-only p-0">{label}</SheetTitle>
 					{title}
 					{actions}
@@ -77,7 +75,7 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 							variant="bare"
 							size="sm"
 							aria-label={intl.formatMessage(eventsMessages.pin)}
-							className={resolveVariant(layout, offcanvas.inline.inlineFlex)}
+							className={offcanvas({ layout }).inlineInlineFlex}
 							onClick={() => {
 								setEventsPinned(true)
 

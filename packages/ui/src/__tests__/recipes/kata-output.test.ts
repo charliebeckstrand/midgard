@@ -9,14 +9,18 @@ import { k as combobox } from '../../recipes/kata/combobox'
 import { k as datePicker } from '../../recipes/kata/date-picker'
 import { k as descriptionList } from '../../recipes/kata/description-list'
 import { k as dialog } from '../../recipes/kata/dialog'
+import { k as events } from '../../recipes/kata/events'
 import { k as fileUpload } from '../../recipes/kata/file-upload'
 import { k as input } from '../../recipes/kata/input'
 import { k as listbox } from '../../recipes/kata/listbox'
 import { k as nav } from '../../recipes/kata/nav'
 import { k as numberInput } from '../../recipes/kata/number-input'
+import { k as offcanvas } from '../../recipes/kata/offcanvas'
 import { k as overlay } from '../../recipes/kata/overlay'
 import { k as panel } from '../../recipes/kata/panel'
 import { k as popover } from '../../recipes/kata/popover'
+import { k as queryBuilder } from '../../recipes/kata/query-builder'
+import { k as sidebarLayout } from '../../recipes/kata/sidebar-layout'
 import { k as stepper } from '../../recipes/kata/stepper'
 import { k as textarea } from '../../recipes/kata/textarea'
 import { k as toast } from '../../recipes/kata/toast'
@@ -87,8 +91,36 @@ const RENAMES: Record<string, string> = {
 	'nav.k.bar()': 'nav.k.bar.base()',
 	'nav.k.rail': 'nav.k.bar.rail',
 	'toast.k.base': 'toast.k.viewport',
+	'events.k.base': 'events.k.panel.base',
+	'events.k.body': 'events.k.panel.body',
+	'events.k.footer': 'events.k.panel.footer',
+	...Object.fromEntries(
+		[
+			['group()', 'group.base'],
+			['handle', 'sortable.handle'],
+			['instant.duration', 'sortable.instant.duration'],
+			['item', 'sortable.base'],
+			['node', 'sortable.node'],
+			['separator', 'sortable.separator'],
+			['sortable', 'sortable.list'],
+		].map(([current, main]) => [`query-builder.k.${current}`, `query-builder.k.${main}`]),
+	),
 	'stepper.k.button': 'stepper.k.item.button',
 	'stepper.k.title()': 'stepper.k.title.base()',
+	...Object.fromEntries(
+		[
+			['base()', 'base'],
+			['aside()', 'aside'],
+			['navbar()', 'navbar'],
+			['panel()', 'panel'],
+			['buffer()', 'floating.buffer'],
+			['peek()', 'floating.peek'],
+			['sheet', 'floating.sheet'],
+			['sheetBody', 'floating.body'],
+			['wrapper()', 'content.wrapper'],
+			['content()', 'content.base'],
+		].map(([current, main]) => [`sidebar-layout.k.${current}`, `sidebar-layout.k.${main}`]),
+	),
 	'stepper.k.check': 'stepper.k.indicator.check',
 	'stepper.k.fill': 'stepper.k.indicator.active',
 	'stepper.k.glyph': 'stepper.k.indicator.content',
@@ -138,8 +170,8 @@ const DROPPED = /^(panel\.k\.(gap|inset)\.|overlay\.k\.backdrop\.glass$)/
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title))(\(\))?$/,
-	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive)))$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex|inlineInlineFlex)|events\.k\.button|query-builder\.k\.(parts|part|range))(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|pin|headerActions|(pin|headerActions)\(\))$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?))$/,
 }
 
 /** The output of main, by path. */
@@ -600,6 +632,146 @@ describe('kata output', () => {
 					state !== 'upcoming' && read(`stepper.k.indicator.${state}`),
 				)
 			}
+		}
+
+		// The parts of the offcanvas and of the sidebar layout, with the layout that
+		// each part resolved by breakpoint on main.
+		for (const layout of ['drawer', 'inline'] as const) {
+			const parts = offcanvas({ layout })
+
+			check(
+				`offcanvas drawerBlock ${layout}`,
+				parts.drawerBlock,
+				read(`offcanvas.k.drawer.block.${layout}`),
+			)
+
+			for (const [slot, display] of [
+				['inlineBlock', 'block'],
+				['inlineFlex', 'flex'],
+				['inlineInlineFlex', 'inlineFlex'],
+			] as const) {
+				check(
+					`offcanvas ${slot} ${layout}`,
+					parts[slot],
+					read(`offcanvas.k.inline.${display}.${layout}`),
+				)
+			}
+
+			const slots = sidebarLayout({ layout })
+
+			const shown = (only: 'drawer' | 'inline', display = 'block') =>
+				read(`offcanvas.k.${only}.${display}.${layout}`)
+
+			check(
+				`sidebar-layout base ${layout}`,
+				slots.base,
+				read('sidebar-layout.k.base'),
+				read(`sidebar-layout.k.layout.base.${layout}`),
+			)
+			check(
+				`sidebar-layout navbar ${layout}`,
+				slots.navbar,
+				read('sidebar-layout.k.navbar'),
+				shown('drawer'),
+			)
+			check(
+				`sidebar-layout panel ${layout}`,
+				slots.panel,
+				read('sidebar-layout.k.panel'),
+				shown('inline'),
+			)
+			check(
+				`sidebar-layout aside ${layout}`,
+				slots.aside,
+				read('sidebar-layout.k.aside'),
+				shown('inline'),
+			)
+			check(
+				`sidebar-layout buffer ${layout}`,
+				slots.buffer,
+				read('sidebar-layout.k.floating.buffer'),
+				shown('inline'),
+			)
+			check(
+				`sidebar-layout peek ${layout}`,
+				slots.peek,
+				read('sidebar-layout.k.floating.peek'),
+				read(`sidebar-layout.k.layout.peek.${layout}`),
+			)
+			check(
+				`sidebar-layout wrapper ${layout}`,
+				slots.wrapper,
+				read('sidebar-layout.k.content.wrapper'),
+				read(`sidebar-layout.k.layout.wrapper.${layout}`),
+			)
+			check(
+				`sidebar-layout content ${layout}`,
+				slots.content,
+				read('sidebar-layout.k.content.base'),
+				read(`sidebar-layout.k.layout.content.${layout}`),
+			)
+			check(
+				`sidebar-layout header ${layout}`,
+				slots.header,
+				read('sidebar-layout.k.header', 'stickyHeader=false'),
+				read(`sidebar-layout.k.layout.header.${layout}`),
+			)
+			check(
+				`sidebar-layout sticky header ${layout}`,
+				[slots.header, slots.pin],
+				read('sidebar-layout.k.header', 'stickyHeader=true'),
+				read(`sidebar-layout.k.layout.header.${layout}`),
+				read(`sidebar-layout.k.layout.stickyHeader.${layout}`),
+			)
+			check(
+				`sidebar-layout header actions ${layout}`,
+				slots.headerActions,
+				read('sidebar-layout.k.actions'),
+				shown('inline', 'flex'),
+			)
+		}
+
+		// The header button of the events, with the layout that the button resolved
+		// by breakpoint on main.
+		for (const layout of ['drawer', 'inline'] as const) {
+			check(
+				`events button ${layout}`,
+				events({ layout }).button,
+				'hidden [:root[data-events]_&]:contents',
+				read(`events.k.button.${layout}`),
+			)
+		}
+
+		// The group of a query builder, and the parts of a rule with the orientation
+		// that the rule resolved by breakpoint on main.
+		check('query-builder group', queryBuilder().group, read('query-builder.k.group.base'))
+		check(
+			'query-builder group nested',
+			queryBuilder({ nested: true }).group,
+			read('query-builder.k.group.base'),
+			read('query-builder.k.group.nested'),
+		)
+
+		for (const orientation of ['horizontal', 'vertical'] as const) {
+			const slots = queryBuilder({ orientation })
+
+			check(
+				`query-builder parts ${orientation}`,
+				slots.parts,
+				read(`query-builder.k.parts.base.${orientation}`),
+			)
+			check(
+				`query-builder part ${orientation}`,
+				slots.part,
+				read('query-builder.k.parts.width'),
+				read(`query-builder.k.parts.item.${orientation}`),
+			)
+			check(
+				`query-builder range ${orientation}`,
+				slots.range,
+				read('query-builder.k.parts.width'),
+				read(`query-builder.k.parts.range.${orientation}`),
+			)
 		}
 
 		// The panel and the box of a dialog, with the align that the dialog

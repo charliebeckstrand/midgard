@@ -117,7 +117,7 @@ export function QueryBuilder({
 
 	return (
 		<QueryBuilderProvider state={state} actions={actions} register={register}>
-			<Fieldset data-slot="query-builder" disabled={disabled} className={cn(k.base, className)}>
+			<Fieldset data-slot="query-builder" disabled={disabled} className={cn(k().base, className)}>
 				<QueryBuilderGroup group={root} root />
 			</Fieldset>
 		</QueryBuilderProvider>

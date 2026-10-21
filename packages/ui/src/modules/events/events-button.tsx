@@ -4,12 +4,10 @@ import { Activity } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
-import { cn } from '../../core'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
-import { resolveVariant } from '../../types'
 import { createLazyModule } from '../../utilities/lazy-module'
 import { noop } from '../../utilities/noop'
 import { loadTools } from './events-load'
@@ -66,10 +64,7 @@ export function EventsButton() {
 
 	// The attribute marks the button as a part of the tools (`TOOL_ATTRIBUTE`).
 	return (
-		<span
-			data-events-tool=""
-			className={cn('hidden [:root[data-events]_&]:contents', resolveVariant(layout, k.button))}
-		>
+		<span data-events-tool="" className={k({ layout }).button}>
 			<Button
 				variant="bare"
 				aria-label={intl.formatMessage(eventsMessages.events)}

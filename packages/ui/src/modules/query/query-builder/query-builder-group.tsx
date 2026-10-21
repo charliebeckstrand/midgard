@@ -139,9 +139,9 @@ function QueryBuilderGroupImpl({
 			data-slot="query-group"
 			data-combinator={group.combinator}
 			aria-label={root ? undefined : intl.formatMessage(queryBuilderMessages.group)}
-			className={cn(k.group.base, !root && k.group.nested, className)}
+			className={cn(k({ nested: !root }).group, className)}
 		>
-			<div className={cn(k.group.base)}>
+			<div className={k().group}>
 				{group.children.length === 0 ? (
 					<Alert
 						severity="warning"
@@ -153,7 +153,7 @@ function QueryBuilderGroupImpl({
 					<QueryBuilderSortable group={group} separator={separator} node={node} />
 				) : (
 					group.children.map((child, index) => (
-						<div key={child.id} className={cn(k.group.base)}>
+						<div key={child.id} className={k().group}>
 							{separator(index)}
 							{node(child)}
 						</div>
@@ -161,7 +161,7 @@ function QueryBuilderGroupImpl({
 				)}
 			</div>
 
-			<Flex gap="sm" className={cn(k.actions)}>
+			<Flex gap="sm" className={k().actions}>
 				<Menu placement="bottom-start">
 					<MenuTrigger>
 						<Button
@@ -197,7 +197,7 @@ function QueryBuilderGroupImpl({
 									color="red"
 									aria-label={intl.formatMessage(queryBuilderMessages.removeGroup)}
 									disabled={disabled}
-									className={k.remove}
+									className={k().remove}
 									onHoldComplete={() => remove(group.id)}
 								>
 									{intl.formatMessage(queryBuilderMessages.removeGroup)}

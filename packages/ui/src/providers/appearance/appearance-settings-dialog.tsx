@@ -14,7 +14,6 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/offcanvas'
 import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
-import { resolveVariant } from '../../types'
 import { densityLevels } from '../density/context'
 import { useLocaleChoice } from '../locale/context'
 import { localeOptions } from '../locale/locale-choice'
@@ -173,7 +172,7 @@ export function AppearanceSettingsDialog({
 									/>
 								</Field>
 								{sidebarLayout && (
-									<Field className={resolveVariant(sidebarLayout, k.inline.block)}>
+									<Field className={k({ layout: sidebarLayout }).inlineBlock}>
 										<Label>{intl.formatMessage(appearanceMessages.sidebar)}</Label>
 										<ChoiceListbox
 											options={choices(sidebarModes)}
