@@ -1,5 +1,5 @@
 /**
- * Control archetype: affix slot padding.
+ * Control group: affix slot padding.
  *
  * Affix padding equals the control `px` (`density-px-ring-*` in
  * `./density.ts`); a text affix's content aligns with the input text in an
@@ -68,12 +68,12 @@
  * `__tests__/recipes/affix-compensation.test.ts` pins the margin to the control
  * `px` at each step.
  *
- * Layer: kiso · Archetype: control · Concern: affix
+ * Layer: kumi · Group: control · Concern: affix
  */
 
-import { dan } from '../dan'
-import { iro } from '../iro'
-import { narabi } from '../narabi'
+import { dan } from '../../kiso/dan'
+import { iro } from '../../kiso/iro'
+import { narabi } from '../../kiso/narabi'
 
 export const affix = {
 	/**

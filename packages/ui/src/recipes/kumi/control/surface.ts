@@ -1,14 +1,14 @@
 /**
- * Control archetype: surface vocabulary. `default` paints a solid surface,
+ * Control group: surface vocabulary. `default` paints a solid surface,
  * `glass` is transparent + blurred for nested-in-overlay contexts. The
  * `outline` variant has no fill here; its kata layer their own borders. The check-input branch reuses the same
  * shape via `kiso/control/check.ts`.
  *
- * Layer: kiso · Archetype: control · Concern: surface
+ * Layer: kumi · Group: control · Concern: surface
  */
 
 import { mode } from '../../../core/recipe'
-import { omote } from '../omote'
+import { omote } from '../../kiso/omote'
 
 const { glass } = omote
 

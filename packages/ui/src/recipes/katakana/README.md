@@ -10,9 +10,9 @@ The contract is pinned by the `recipes/katakana/**` override in `biome.json` (no
 
 ## 2. Shape
 
-Every bridge is a function `(<tokens>, …) => k` generic only over its per-call overlay. The bridge builds the standard config from the injected tokens at each call, so bridges call `applyRecipe(standard(tokens), overlay, extras)` (control, check) or hand-roll the returned bundle (panel, palette). No bridge has a step axis: the density classes are stepped utilities in the base, so a kata's variant types hold only its other axes. The pass-through bridge stays generic and annotates its return with the token field types:
+Every bridge is a function `(<tokens>, …) => k` generic only over its per-call overlay. The bridge builds the standard config from the injected tokens at each call, so bridges call `applyRecipe(standard(tokens), overlay, extras)` (check) or hand-roll the returned bundle (panel, palette). No bridge has a step axis: the density classes are stepped utilities in the base, so a kata's variant types hold only its other axes. The pass-through bridge stays generic and annotates its return with the token field types:
 
-- `control` / `check`: build the standard config / extras from the `control` token contract and forward to `applyRecipe`. The kata derives variants from `VariantProps<typeof k>`.
+- `check`: builds the standard config and extras from the `check` token contract and forwards them to `applyRecipe`. The kata derives variants from `VariantProps<typeof k>`.
 - `panel`: the kata supplies its own `defineRecipe` results (each panel has different variants); the bridge composes the `panel` bundle's `layout` into the standard title / description / header / body / footer slots.
 - `palette`: no `defineRecipe` calls; bundles the solid / soft / outline slots of an `iro` palette into the matrix that `definePalette` takes. Generic over the color set, so the wider `iro` palette widens the `color` axis of the kata.
 
@@ -26,7 +26,6 @@ The barrel surfaces the `bridge` object only, `palette` and `backdrop` included.
 
 | Bridge     | Tokens          | Returns                                                                                  | Kata members                                  |
 | ---------- | --------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `control`  | `kiso/control`  | Outer-frame recipe + the `surface` recipe of the ControlFrame + the `number` slot.     | `input`, `textarea`                           |
 | `check`    | `kiso/control`  | Check-surface recipe + visually-hidden `input`.                                          | `checkbox`, `radio`                           |
 | `panel`    | `kiso/panel`    | Caller `panel` / `backdrop` recipes + standard slot bundle.                              | `drawer`, `sheet`                             |
 | `backdrop` | `omote.backdrop`| Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`). *Shared recipe, not an archetype.* | `dialog`, `drawer`, `sheet`       |
@@ -34,7 +33,7 @@ The barrel surfaces the `bridge` object only, `palette` and `backdrop` included.
 
 `backdrop` is a small shared recipe rather than an archetype: the panel bridge does not build it. Each modal panel builds it directly (`bridge.backdrop(omote.backdrop)`). Drawer and Sheet hand the result to `bridge.panel(…, { backdrop })`. Dialog uses the default slots of `createPanel`, so it has no `bridge.panel` call and keeps the backdrop on its own `k`.
 
-`popover` has no bridge: it has one kata, `kata/popover`, which reads `kiso/popover` directly. `segment` has no bridge: Segment and Tabs share it through one kata, `kata/tabs`, which reads `kiso/segment` directly. `slider` has no bridge: it is a pure color bundle the slider kata read from `kiso/slider` directly. Kata that need only a subset of an archetype's fragments (combobox / listbox / date-picker / color-picker / select / switch / box) likewise read the bundle from `kiso/<archetype>` without a bridge.
+`popover` has no bridge: it has one kata, `kata/popover`, which reads `kiso/popover` directly. `segment` has no bridge: Segment and Tabs share it through one kata, `kata/tabs`, which reads `kiso/segment` directly. `slider` has no bridge: it is a pure color bundle the slider kata read from `kiso/slider` directly. Kata that need only a subset of an archetype's fragments (switch, box) likewise read the bundle from `kiso/<archetype>` without a bridge. The framed controls have no bridge: they extend the control group in [`kumi/control`](../kumi/README.md).
 
 ## 5. Rules
 

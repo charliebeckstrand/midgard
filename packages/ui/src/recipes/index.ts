@@ -5,14 +5,17 @@
  *               are dan / iro / ji / ma / narabi / omote / hannou / sen /
  *               shaku / sou / tsunagi / ugoki / kokkaku / kasane / kara. The
  *               semantic archetype bundles (control / popover / segment /
- *               panel / slider / zu) are composed from them. Read only by
- *               kata.
+ *               panel / slider / zu) are composed from them. Read by kumi
+ *               and kata.
+ *   kumi/     - the groups. The shared structure of a family of units, in
+ *               the shape of a unit (`defineGroup`). A kata unit extends its
+ *               group. Read only by kata.
  *   katakana/ - the bridge. Pure functions that receive a kiso token
  *               bundle by argument and wire it into a recipe surface,
  *               importing only the recipe engine, never kiso values.
  *               Reached through the namespaced `bridge` object.
  *   kata/     - per-component recipes (1:1 with `src/components/<name>/`).
- *               The only layer that touches kiso; drives the bridge.
+ *               Reads kumi and kiso, and drives the bridge.
  *               Consumed by components and primitives.
  *
  * Components, modules, and primitives reach the recipe layer through their

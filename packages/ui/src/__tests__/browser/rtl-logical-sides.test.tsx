@@ -124,7 +124,7 @@ describe('logical sides under dir=rtl', () => {
 	})
 
 	it('textarea actions row pads the inline end (left)', () => {
-		const style = rtl(cn(textarea.actions))
+		const style = rtl(cn(textarea().actions))
 		expect([style.paddingLeft, style.paddingRight]).toEqual(['8px', '0px'])
 	})
 

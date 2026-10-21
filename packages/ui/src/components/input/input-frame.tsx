@@ -39,12 +39,12 @@ export function InputFrame({ input, prefix, suffix, variant, density }: InputFra
 
 	const hasSuffix = isAffixPresent(suffix)
 
-	const hasAffix = hasPrefix || hasSuffix
+	const slots = k({ variant, affixed: hasPrefix || hasSuffix })
 
 	return (
-		<ControlFrame density={density} className={cn(k.surface({ variant }), hasAffix && k.frame)}>
+		<ControlFrame density={density} className={cn(slots.base)}>
 			{hasPrefix && (
-				<span data-slot="prefix" data-density="slot" className={cn(k.affix.base, k.affix.prefix)}>
+				<span data-slot="prefix" data-density="slot" className={cn(slots.prefix)}>
 					{prefix}
 				</span>
 			)}
@@ -52,7 +52,7 @@ export function InputFrame({ input, prefix, suffix, variant, density }: InputFra
 			{input}
 
 			{hasSuffix && (
-				<span data-slot="suffix" data-density="slot" className={cn(k.affix.base, k.affix.suffix)}>
+				<span data-slot="suffix" data-density="slot" className={cn(slots.suffix)}>
 					{suffix}
 				</span>
 			)}

@@ -112,7 +112,7 @@ export function ListboxButton({
 				onBlur={onBlur}
 				onKeyDown={onKeyDown}
 				{...validation}
-				className={cn(k())}
+				className={cn(k().field)}
 			>
 				{/* The truncation measure reads a string, so a node label skips the tooltip. */}
 				{truncateTooltip && typeof label === 'string' && label ? (

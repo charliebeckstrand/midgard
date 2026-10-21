@@ -4,14 +4,13 @@ import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, ReactNode, Ref } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import type { scale } from '../../recipes/kata/select'
-import { k } from '../../recipes/kata/select'
+import type { scale } from '../../recipes/kata/control'
 import { ControlFrame } from '../control'
 import { PolymorphicStatic } from '../polymorphic'
 
 /**
  * Props for {@link SelectTrigger}: the floating-reference wiring the caller
- * owns (`open`, `setReference`, `getReferenceProps`), the `glass` / `size`
+ * owns (`open`, `setReference`, `getReferenceProps`), the `slots` / `size`
  * presentation, and the prefix / suffix slot content. The root `<div>` takes
  * the rest. The floating interactions compose their handlers with the handlers
  * of the rest.
@@ -20,7 +19,11 @@ export type SelectTriggerProps = Omit<ComponentProps<'div'>, 'prefix' | 'childre
 	open: boolean
 	setReference: Ref<HTMLDivElement>
 	getReferenceProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
-	glass: boolean
+	/**
+	 * The classes of the frame and of the affix slots: the `base`, `prefix`, and
+	 * `suffix` slots of the unit of the control, such as `k({ variant }).base`.
+	 */
+	slots: { readonly base: string; readonly prefix: string; readonly suffix: string }
 	/**
 	 * The density step of the host. Omit it to take the step of the nearest
 	 * density scope. A step makes the trigger a density scope.
@@ -56,7 +59,7 @@ export function SelectTrigger({
 	open,
 	setReference,
 	getReferenceProps,
-	glass,
+	slots,
 	size,
 	prefix,
 	suffix,
@@ -83,13 +86,9 @@ export function SelectTrigger({
 			ref={setRoot}
 			className={cn(className)}
 		>
-			<ControlFrame
-				data-open={dataAttr(open)}
-				className={cn(!glass && k.surface.default)}
-				{...frameProps}
-			>
+			<ControlFrame data-open={dataAttr(open)} className={cn(slots.base)} {...frameProps}>
 				{prefix && (
-					<span data-slot="prefix" data-density="slot" className={cn(k.affix.base, k.affix.prefix)}>
+					<span data-slot="prefix" data-density="slot" className={cn(slots.prefix)}>
 						{prefix}
 					</span>
 				)}
@@ -98,7 +97,7 @@ export function SelectTrigger({
 					<span
 						data-slot="suffix"
 						data-density="slot"
-						className={cn('peer/suffix', k.affix.base, k.affix.suffix)}
+						className={cn('peer/suffix', slots.suffix)}
 						{...suffixProps}
 					>
 						{suffix}

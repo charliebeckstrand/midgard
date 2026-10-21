@@ -1,16 +1,17 @@
 # Recipes
 
-> **Quick-glance index of the recipe (design) layer.** Variants flow through three layers: Kiso (tokens) → Katakana (bridge) → Kata (per-unit). All three are **internal**: `package.json` `exports` does not list `./recipes`, and the barrel re-exports types only. Components and primitives reach the layer through their owning kata (`from '../../recipes/kata/<name>'`), never a deeper layer directly. For the full architecture, boundary tests, and authoring rules, read the in-tree READMEs linked per section.
+> **Quick-glance index of the recipe (design) layer.** Variants flow through four layers: Kiso (tokens), Kumi (groups), Katakana (bridge), and Kata (per-unit). All four are **internal**: `package.json` `exports` does not list `./recipes`, and the barrel re-exports types only. Components and primitives reach the layer through their owning kata (`from '../../recipes/kata/<name>'`), never a deeper layer directly. For the full architecture, boundary tests, and authoring rules, read the in-tree READMEs linked per section.
 
 ## Layers
 
 | Layer | Role | Summary |
 |---|---|---|
 | **Kiso** 基礎 | Data | Design tokens in two tiers: primitive atoms and semantic archetype bundles. Emits Tailwind class fragments only; never calls `defineRecipe`. Read only by kata. |
+| **Kumi** 組 | Groups | The shared structure of a family of units, declared with `defineGroup`. A unit kata `extends` a group. Reads kiso; never builds a recipe. |
 | **Katakana** 片仮名 | Structure | Pure bridge functions that receive a kiso token bundle by argument and wire it into a recipe surface. Imports only the recipe engine, never kiso (values or types). |
 | **Kata** 型 | Application | Per-unit recipe, 1:1 with a component, a primitive, a structure unit, a module part, or a layout. The only layer that touches kiso and the single curated surface a unit reads. |
 
-Dependencies point one way: `kata → kiso` (tokens) and `kata → katakana` (structure); the bridge receives tokens by argument and never reaches back into kiso. See [`src/recipes/README.md`](../src/recipes/README.md).
+Dependencies point one way: `kata → kumi → kiso` (groups), `kata → kiso` (tokens), and `kata → katakana` (structure); the bridge receives tokens by argument and never reaches back into kiso. See [`src/recipes/README.md`](../src/recipes/README.md).
 
 ## Kiso: primitive tier
 
@@ -40,12 +41,21 @@ Archetype bundles compose primitive atoms into the multi-fragment shape an arche
 
 | Bundle | Composes | Consumers |
 |---|---|---|
-| `control` | Field archetype: frame, surface, input, reset, density, radius, scale, affix, and check (composes `kasane`). | `bridge.control` / `bridge.check`; subset reach from combobox, listbox, date-picker, select, switch, color-picker, rating, signature-pad, toggle, control. |
+| `control` | Check fragments: `check`. The framed controls are the control group in `kumi/control`. | `bridge.check`; subset reach from switch, rating, signature-pad, tree. |
 | `popover` | Floating overlay fragments, and the `picker` group that date-picker and color-picker share. *No bridge.* | `kata/popover`; subset reach from combobox, listbox, date-picker, color-picker, menu. |
 | `segment` | Segmented control: `control` / `item` fragments plus `indicator` color fragments. *No bridge.* | `kata/tabs`, which Segment and Tabs share. |
 | `panel` | Panel archetype: `surface`, `layout` (the slots and the `inset` at each edge), and the resize `grip`. | `bridge.panel`; subset reach from dialog, panel, grid, command-palette. |
 | `slider` | Slider palette: the `--slider-fill` / `--slider-track` CSS-variable bundle per color, and the size `scale` that both sliders share. *No bridge.* | `kata/slider`, `kata/slider-range`. |
 | `zu` 図 | Data-viz substrate: the categorical series `palette`, the chrome and readout `ink`, and the reveal `motion`. *No bridge.* | `kata/chart`, `kata/map`. |
+
+## Kumi: groups
+
+A group holds slots, axes, and defaults in the shape of a unit. A unit kata that `extends` a group merges its own over them. Full contract in [`src/recipes/kumi/README.md`](../src/recipes/kumi/README.md).
+
+| Group | Units |
+|---|---|
+| `control` | `input`, `textarea` |
+| `trigger` (extends `control`) | `listbox`, `combobox`, `date-picker`, `color-picker` |
 
 ## Katakana: bridges
 
@@ -53,7 +63,6 @@ Each bridge is a pure function `(<tokens>, overlay?) => k`, reached through the 
 
 | Bridge | Tokens | Returns | Kata members |
 |---|---|---|---|
-| `control` | `kiso/control` | Outer-frame recipe + the `surface` recipe of the ControlFrame + the `number` slot. | `input`, `textarea` |
 | `check` | `kiso/control` | Check-surface recipe + visually-hidden `input` + `disabled` text. | `checkbox`, `radio` |
 | `panel` | `kiso/panel` | Caller `panel` / `backdrop` recipes + standard slot bundle. | `drawer`, `sheet` |
 | `backdrop` | `omote.backdrop` | Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`). *Shared recipe, not an archetype.* | `dialog`, `drawer`, `sheet` |
@@ -71,6 +80,7 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 |---|---|
 | `defineRecipe` | The recipe primitive. It builds a callable recipe from a `RecipeConfig`, applying `base` → `variants` → `compound` → `defaults` per call (clsx + tailwind-merge). |
 | `defineKata` | Builds the recipe of a unit from a `slots` map of recipe configs, with the root slot `base`. The slots share one set of props and one set of defaults, and a call returns the class string of each slot. |
+| `defineGroup` | Declares a group: slots, defaults, and extras in the shape of a unit, which a unit kata `extends`. A group can extend a group. |
 | `definePalette` | Declares the color × variant matrix of a recipe. The engine derives the `color` axis from its keys. |
 | `applyRecipe` | Merge helper a bridge calls to fold the overlay of a kata over the standard config of an archetype. |
 | `mode` / `defineColors` | Fuse colocated light (`hiru`) and dark (`yoru`) values into the flat `string[]` the engine consumes. |
@@ -95,4 +105,4 @@ Cross-layer value imports are illegal. Boundary tests and lint rules pin the rul
 
 ---
 
-**See also:** [`COMPONENTS.md`](COMPONENTS.md) · [`CORE.md`](CORE.md) · [`../REFERENCE.md`](../REFERENCE.md) · in-tree: [`recipes`](../src/recipes/README.md), [`kiso`](../src/recipes/kiso/README.md), [`katakana`](../src/recipes/katakana/README.md), [`kata`](../src/recipes/kata/README.md). Keep this current per [`CONVENTIONS.md` §12](../../../CONVENTIONS.md).
+**See also:** [`COMPONENTS.md`](COMPONENTS.md) · [`CORE.md`](CORE.md) · [`../REFERENCE.md`](../REFERENCE.md) · in-tree: [`recipes`](../src/recipes/README.md), [`kiso`](../src/recipes/kiso/README.md), [`kumi`](../src/recipes/kumi/README.md), [`katakana`](../src/recipes/katakana/README.md), [`kata`](../src/recipes/kata/README.md). Keep this current per [`CONVENTIONS.md` §12](../../../CONVENTIONS.md).

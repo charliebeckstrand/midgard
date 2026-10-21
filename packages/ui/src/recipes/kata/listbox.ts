@@ -1,18 +1,23 @@
-import { defineRecipe } from '../../core/recipe'
-import { iro, narabi } from '../kiso'
-import { control } from '../kiso/control'
+import { defineKata, defineRecipe } from '../../core/recipe'
+import { hannou, iro, narabi } from '../kiso'
 import { popover } from '../kiso/popover'
+import { trigger } from '../kumi/control'
 
+export { scale } from '../kumi/control'
+
+const { cursor } = hannou
 const { text } = iro
 const { flex } = narabi
 const { list } = popover
 
-export const k = defineRecipe(
+export const k = defineKata(
 	{
-		base: [flex.row, ...control.button],
+		extends: trigger,
 		slots: {
-			options: list.options,
-			panel: 'relative min-w-full',
+			/** The button that opens the list. */
+			field: { base: [flex.row, 'text-start', 'appearance-none', ...cursor] },
+			options: { base: list.options },
+			panel: { base: 'relative min-w-full' },
 		},
 	},
 	{
@@ -29,6 +34,3 @@ export const k = defineRecipe(
 		placeholder: text.muted,
 	},
 )
-
-/** The size scale of the control: each step from `xs` to `xl`. */
-export const scale = control.scale

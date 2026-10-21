@@ -1,32 +1,9 @@
 /**
- * Control archetype: the framed surface that wraps a user-input element.
- *
- * Consumed by input, textarea, select, listbox, combobox, date-picker,
- * color-picker, checkbox, radio, switch, rating, and ControlFrame. Exposes
- * class fragments (frame, surface, reset, input, button, density, radius,
- * scale, affix, check) that each kata composes into its own recipe.
- * `reset.base` strips the inner element, and `reset.number` hides the spinners
- * of a number input.
+ * The check inputs: the fragments that checkbox, radio, switch, rating,
+ * signature-pad, and tree compose into their own recipes. The framed text and
+ * picker controls are the control group (`kumi/control`).
  */
 
-import { affix } from './affix'
-import { button } from './button'
 import { check } from './check'
-import { density, radius, scale } from './density'
-import { frame } from './frame'
-import { input } from './input'
-import { reset } from './reset'
-import { surface } from './surface'
 
-export const control = {
-	frame,
-	surface,
-	reset,
-	input,
-	button,
-	density,
-	radius,
-	scale,
-	affix,
-	check,
-} as const
+export const control = { check } as const

@@ -63,7 +63,7 @@ describe('Input', () => {
 		expect(container.querySelector('[data-testid="suffix"]')).toBeInTheDocument()
 
 		// Each affix renders inside its data-slot span; the stamp also gates
-		// the input's autofill margin (`affix.autofill`, kiso/control/affix.ts).
+		// the input's autofill margin (`affix.autofill`, kumi/control/affix.ts).
 		expect(container.querySelector('[data-slot="prefix"]')?.textContent).toBe('$')
 
 		expect(container.querySelector('[data-slot="suffix"]')?.textContent).toBe('USD')

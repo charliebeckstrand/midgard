@@ -94,7 +94,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 					aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${valueId}` : undefined}
 					disabled={disabled}
 					{...invalidAttrs(invalid)}
-					className={cn(!headless && inputKata({ variant }), k.field, k.cursor)}
+					className={cn(!headless && inputKata({ variant }).field, k.field, k.cursor)}
 					onClick={openPicker}
 				>
 					<span id={valueId} className={cn(k.value, !label && k.placeholder)}>

@@ -162,7 +162,7 @@ export function Input({
 			{...rest}
 			{...field.attrs}
 			onChange={handleChange}
-			className={cn(!field.headless && k({ variant: field.variant }), className)}
+			className={cn(!field.headless && k({ variant: field.variant }).field, className)}
 		/>
 	)
 

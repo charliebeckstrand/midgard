@@ -50,7 +50,7 @@ export const k = defineRecipe(
 			// Badges step 4px, not Button's 8px: a text line-height floors a badge
 			// near 22px, so an 8px scale anchored at md=30 leaves no room for xs.
 			// Horizontal padding still grows 0.5/step to hold the affix
-			// chip-alignment lockstep (`kiso/control/affix.ts`).
+			// chip-alignment lockstep (`kumi/control/affix.ts`).
 			//
 			// Each step is in a stepped `density-*` class: the badge takes the step of its
 			// nearest density scope, and an explicit `size` makes the badge its own

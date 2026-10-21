@@ -1,6 +1,12 @@
 // @vitest-environment node
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { defineKata, definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
+import {
+	defineGroup,
+	defineKata,
+	definePalette,
+	defineRecipe,
+	type VariantProps,
+} from '../../core/recipe'
 import { k as button } from '../../recipes/kata/button'
 
 describe('defineRecipe', () => {
@@ -348,5 +354,110 @@ describe('defineKata', () => {
 		expect(() => defineKata({ slots: { base: { slots: { icon: 'a' } } } })).toThrow(/slot "base"/)
 
 		expect(() => defineKata({ slots: { base: {} } }, { config: {} })).toThrow(/extra name/)
+	})
+})
+
+describe('defineGroup', () => {
+	const group = defineGroup(
+		{
+			slots: {
+				base: { base: 'frame', variant: { default: 'fill', glass: '' } },
+				field: { base: 'reset' },
+			},
+			defaults: { variant: 'default' },
+		},
+		{ marker: 'group' },
+	)
+
+	const unit = defineKata(
+		{
+			extends: group,
+			slots: {
+				base: { base: 'row', variant: { glass: 'blur' }, affixed: { true: 'grid', false: '' } },
+				number: { base: 'spin' },
+			},
+			defaults: { affixed: false },
+		},
+		{ own: 'unit' },
+	)
+
+	it('holds the slots, the defaults, and the extras as data', () => {
+		expect(group.defaults).toEqual({ variant: 'default' })
+
+		expect(group.extras).toEqual({ marker: 'group' })
+
+		expect(Object.isFrozen(group)).toBe(true)
+	})
+
+	it('merges a unit over its group: group classes first, then the unit', () => {
+		expect(unit()).toEqual({ base: 'frame row fill', field: 'reset', number: 'spin' })
+
+		expect(unit({ variant: 'glass', affixed: true })).toEqual({
+			base: 'frame row blur grid',
+			field: 'reset',
+			number: 'spin',
+		})
+	})
+
+	it('merges the defaults and the extras of the group and the unit', () => {
+		expect(unit.config.defaults).toEqual({ variant: 'default', affixed: false })
+
+		expect(unit.marker).toBe('group')
+
+		expect(unit.own).toBe('unit')
+	})
+
+	it('types the props and the output from the group and the unit', () => {
+		expectTypeOf(unit()).toEqualTypeOf<{
+			readonly base: string
+			readonly field: string
+			readonly number: string
+		}>()
+
+		expectTypeOf<VariantProps<typeof unit>['variant']>().toEqualTypeOf<
+			'default' | 'glass' | undefined
+		>()
+
+		expectTypeOf<VariantProps<typeof unit>['affixed']>().toEqualTypeOf<boolean | undefined>()
+
+		expect(Object.keys(unit())).toEqual(['base', 'field', 'number'])
+	})
+
+	it('extends a group with a group, with the merge of a unit', () => {
+		const child = defineGroup(
+			{ extends: group, slots: { field: { base: 'press' } }, defaults: { variant: 'glass' } },
+			{ marker: 'child' },
+		)
+
+		expect(child.defaults).toEqual({ variant: 'glass' })
+
+		expect(child.extras).toEqual({ marker: 'child' })
+
+		const leaf = defineKata({ extends: child })
+
+		expect(leaf()).toEqual({ base: 'frame', field: 'reset press' })
+
+		expect(leaf({ variant: 'default' }).base).toBe('frame fill')
+
+		expectTypeOf(leaf()).toEqualTypeOf<{ readonly base: string; readonly field: string }>()
+	})
+
+	it('rejects a unit with no root slot, and a palette in the group and in the unit', () => {
+		expect(() => defineKata({ extends: defineGroup({ slots: { field: {} } }) })).toThrow(
+			/root slot "base"/,
+		)
+
+		const palette = definePalette({
+			solid: { zinc: ['a'], red: [], amber: [], green: [], blue: [] },
+		})
+
+		expect(() =>
+			defineKata({
+				extends: defineGroup({ slots: { base: { palette } } }),
+				slots: { base: { palette } },
+			}),
+		).toThrow(/palette in the group and in the unit/)
+
+		expect(() => defineGroup({ slots: { base: { defaults: { a: 'b' } } } })).toThrow(/slot "base"/)
 	})
 })

@@ -70,6 +70,9 @@ export function ColorPickerTrigger({
 }: ColorPickerTriggerProps) {
 	const glass = useGlass()
 
+	// A trigger in a glass overlay paints no fill, so it takes the `outline` surface.
+	const slots = k({ variant: glass ? 'outline' : 'default' })
+
 	const swatchColor = hsvaToCss(hsva, alpha)
 
 	const label = hsvaToHex(hsva, alpha).toUpperCase()
@@ -81,7 +84,7 @@ export function ColorPickerTrigger({
 			open={open}
 			setReference={setReference}
 			getReferenceProps={getReferenceProps}
-			glass={glass}
+			slots={slots}
 			size={size}
 			className={cn(k.root, className)}
 		>
@@ -101,7 +104,7 @@ export function ColorPickerTrigger({
 					data-disabled={dataAttr(disabled)}
 					{...validation}
 					onClick={() => onOpenChange(!open)}
-					className={cn(k.button())}
+					className={cn(slots.field)}
 				>
 					<span
 						data-slot="color-picker-swatch"

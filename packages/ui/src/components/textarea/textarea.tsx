@@ -113,6 +113,12 @@ export function Textarea({
 	// An absent slot (`undefined`, `null`, or `false`) renders no row either.
 	const hasActions = !field.headless && actions != null && actions !== false
 
+	const slots = k({
+		variant: field.variant,
+		resize: hasActions ? 'none' : resize,
+		actions: hasActions,
+	})
+
 	const textarea = (
 		<textarea
 			data-slot="textarea"
@@ -122,29 +128,18 @@ export function Textarea({
 			// The bound field state comes after the rest props (§3.9). Thus a stray
 			// `aria-invalid` or `id` cannot change the state of a bound field.
 			{...field.attrs}
-			className={cn(
-				!field.headless &&
-					k({
-						variant: field.variant,
-						resize: hasActions ? 'none' : resize,
-					}),
-				hasActions && k.bare,
-				className,
-			)}
+			className={cn(!field.headless && slots.field, className)}
 		/>
 	)
 
 	if (field.headless) return textarea
 
 	return (
-		<ControlFrame
-			density={size}
-			className={cn(hasActions && k.frame, k.surface({ variant: field.variant }))}
-		>
+		<ControlFrame density={size} className={cn(slots.base)}>
 			{textarea}
 			{/* The ControlFrame is a `<span>`, so the actions row is a `<span>` too. */}
 			{hasActions && (
-				<span data-slot="textarea-actions" data-density="slot" className={cn(k.actions)}>
+				<span data-slot="textarea-actions" data-density="slot" className={cn(slots.actions)}>
 					{actions}
 				</span>
 			)}

@@ -9,11 +9,14 @@
  * "no kiso import" contract is pinned by the `recipes/katakana/**` override in
  * `biome.json`.
  *
- * Five archetypes, and two of them have bridges:
+ * Two archetypes have bridges:
  *
- * - `control` and `check`, the Control family: text-input and check-input
- *   branches;
+ * - `check`, the check-input branch of the Control family;
  * - `panel`, the panel bundle shared by Drawer and Sheet.
+ *
+ * The framed text and picker controls extend the control group
+ * (`kumi/control`), which replaces the `control` bridge. The other bridges move
+ * to groups in the same way.
  *
  * `popover` has no bridge: `kata/popover` reads `kiso/popover` directly, as
  * the other floating kata do. `segment` has no bridge: Segment and Tabs share
@@ -30,7 +33,7 @@
  *
  *     import { control } from '../kiso/control'
  *     import { bridge } from '../katakana'
- *     export const k = bridge.control(control, { base: 'block', slots: { … } })
+ *     export const k = bridge.check(control, { … })
  *
  * **What the barrel surfaces.** The `bridge` object only: the archetype
  * wirings, the `backdrop` shared recipe, and the `palette` wiring. That wiring
@@ -43,8 +46,8 @@
  */
 
 import { backdrop } from './backdrop'
-import { check, control } from './control'
+import { check } from './check'
 import { palette } from './palette'
 import { panel } from './panel'
 
-export const bridge = { control, check, panel, backdrop, palette }
+export const bridge = { check, panel, backdrop, palette }

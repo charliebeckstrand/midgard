@@ -1,13 +1,14 @@
-import type { VariantProps } from '../../core/recipe'
-import { bridge } from '../katakana'
+import { defineKata, type VariantProps } from '../../core/recipe'
 import { ji } from '../kiso'
-import { control } from '../kiso/control'
+import { control } from '../kumi/control'
 
-export const k = bridge.control(control, {
-	base: 'block',
+export { scale } from '../kumi/control'
+
+export const k = defineKata({
+	extends: control,
 	slots: {
 		/**
-		 * ControlFrame layout when a prefix/suffix affix is present. The frame
+		 * The frame: its layout when a prefix or a suffix is present. The frame
 		 * has the step of the control, so `ji.ramp` gives it the text size of
 		 * the input. Text in an affix, such as the brand of a CreditCardInput,
 		 * inherits that size. The slot is a scope one step below the control, so
@@ -26,16 +27,31 @@ export const k = bridge.control(control, {
 		 * add button aligns it with the first row of tags (`add` of the TagInput
 		 * kata).
 		 */
-		frame: [
-			'group/control flex items-center',
-			'has-[[data-slot=tags][data-wrap]]:grid',
-			'has-[[data-slot=tags][data-wrap]]:grid-cols-[minmax(0,1fr)_auto]',
-			'has-[[data-slot=tags][data-wrap]]:*:data-[slot=suffix]:col-start-2',
-			'has-[[data-slot=tags][data-wrap]]:*:data-[slot=suffix]:row-start-1',
-			'has-[[data-slot=tags][data-wrap]]:*:data-[slot=suffix]:self-start',
-			'has-[[data-slot=tags][data-wrap]]:[&>input]:col-span-2',
-			ji.ramp,
-		],
+		base: {
+			affixed: {
+				true: [
+					'group/control flex items-center',
+					'has-[[data-slot=tags][data-wrap]]:grid',
+					'has-[[data-slot=tags][data-wrap]]:grid-cols-[minmax(0,1fr)_auto]',
+					'has-[[data-slot=tags][data-wrap]]:*:data-[slot=suffix]:col-start-2',
+					'has-[[data-slot=tags][data-wrap]]:*:data-[slot=suffix]:row-start-1',
+					'has-[[data-slot=tags][data-wrap]]:*:data-[slot=suffix]:self-start',
+					'has-[[data-slot=tags][data-wrap]]:[&>input]:col-span-2',
+					ji.ramp,
+				],
+				false: [],
+			},
+		},
+		field: { base: 'block' },
+		/** Hides the native spinners, and gives `<input type="number">` the look of text. */
+		number: {
+			base: [
+				'[appearance:textfield]',
+				'[&::-webkit-inner-spin-button]:m-0',
+				'[&::-webkit-inner-spin-button]:appearance-none',
+				'[&::-webkit-outer-spin-button]:appearance-none',
+			],
+		},
 		/**
 		 * A prefix or a suffix. It has no gap, so two controls in it touch, such
 		 * as a clear button and the calendar button of a date input. Then each
@@ -47,19 +63,17 @@ export const k = bridge.control(control, {
 		 * add button of a TagInput, so it does not shrink. In a narrow frame, the
 		 * prefix and the input shrink.
 		 */
-		affix: {
-			base: [...control.affix.base, 'has-[>*+*]:[--touch-target-gap-x:0px]'],
-			prefix: control.affix.prefix,
-			suffix: [...control.affix.suffix, 'shrink-0'],
-		},
+		prefix: { base: 'has-[>*+*]:[--touch-target-gap-x:0px]' },
+		suffix: { base: ['has-[>*+*]:[--touch-target-gap-x:0px]', 'shrink-0'] },
 	},
+	defaults: { affixed: false },
 })
 
-/** Recipe variant props for {@link Input}: the styling axes its kata exposes, for consumers composing custom slots. */
-export type InputVariants = Omit<VariantProps<typeof k>, 'variant'> & {
+/**
+ * Recipe variant props for {@link Input}: the styling axes its kata exposes, for consumers composing custom slots.
+ * The frame sets `affixed` from its affixes, so it is not a prop.
+ */
+export type InputVariants = Omit<VariantProps<typeof k>, 'variant' | 'affixed'> & {
 	/** The surface of the control: `default` fills it, and `outline` draws a border with no fill. @defaultValue 'default' */
 	variant?: VariantProps<typeof k>['variant']
 }
-
-/** The size scale of the control: each step from `xs` to `xl`. */
-export const scale = control.scale

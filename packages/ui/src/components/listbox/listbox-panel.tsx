@@ -139,7 +139,7 @@ export function ListboxPanel({
 						multiselectable={multiple || undefined}
 						typeahead
 						glass={glass}
-						className={cn(k.panel, k.options)}
+						className={cn(k().panel, k().options)}
 					>
 						{children}
 					</PopoverPanel>

@@ -1,7 +1,15 @@
 // @vitest-environment node
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import clsx, { type ClassValue } from 'clsx'
 import { describe, expect, it } from 'vitest'
 import { twMerge } from '../../core/tw-merge'
+import { k as colorPicker } from '../../recipes/kata/color-picker'
+import { k as combobox } from '../../recipes/kata/combobox'
+import { k as datePicker } from '../../recipes/kata/date-picker'
+import { k as input } from '../../recipes/kata/input'
+import { k as listbox } from '../../recipes/kata/listbox'
+import { k as textarea } from '../../recipes/kata/textarea'
 
 // The output gate of the recipe migration. It resolves each part of each kata
 // for each combination of its axes, and it compares the class sets with the
@@ -15,7 +23,14 @@ import { twMerge } from '../../core/tw-merge'
 // in the key of that part. Thus a part keeps its key when a kata merges its
 // recipes into one unit with more axes.
 //
-// This gate is temporary. Delete it when the recipe migration ends.
+// A part can also move to an element that held the classes of several parts
+// on main. The control units are an example: the frame of an Input held the
+// classes of ControlFrame, of the surface recipe, and of the affix layout. The
+// gate then composes the parts of main, and it compares the result with the
+// slot of the unit (`COMPOSED`).
+//
+// The snapshot is the output of main. It does not change while the migration
+// runs. This gate is temporary. Delete it when the recipe migration ends.
 
 /** The kata modules, by file. */
 const modules = import.meta.glob<Record<string, unknown>>('../../recipes/kata/*.ts', {
@@ -33,6 +48,21 @@ const RENAMES: Record<string, string> = {
 	'button.k.base': 'button.k',
 	'button.k.base()': 'button.k()',
 }
+
+/**
+ * The paths that a composition replaces. The new paths are the slots of the
+ * control units, and the main paths are the parts that each slot composes.
+ */
+const COMPOSED = {
+	current:
+		/^(input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)(\(\))?$/,
+	main: /^(control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button)$/,
+}
+
+/** The output of main, by path. */
+const main = JSON.parse(
+	readFileSync(join(import.meta.dirname, '__snapshots__/kata-output.json'), 'utf8'),
+) as Record<string, string | Record<string, string>>
 
 /** The limit of the combinations of one recipe. A larger recipe varies one axis at a time. */
 const COMBINATION_CAP = 4096
@@ -183,7 +213,7 @@ function walk(value: unknown, path: string, out: Record<string, unknown>): void 
 }
 
 describe('kata output', () => {
-	it('keeps the classes of each kata part', async () => {
+	it('keeps the classes of each kata part', () => {
 		const out: Record<string, unknown> = {}
 
 		for (const [file, exports] of Object.entries(modules).sort(([a], [b]) => a.localeCompare(b))) {
@@ -192,14 +222,121 @@ describe('kata output', () => {
 			for (const [key, value] of Object.entries(exports)) walk(value, `${name}.${key}`, out)
 		}
 
-		const sorted = Object.fromEntries(
-			Object.entries(out)
-				.map(([path, value]) => [RENAMES[path] ?? path, value] as const)
-				.sort(([a], [b]) => a.localeCompare(b)),
-		)
+		const current = Object.entries(out)
+			.filter(([path]) => !COMPOSED.current.test(path))
+			.map(([path, value]) => [RENAMES[path] ?? path, value] as const)
+			.sort(([a], [b]) => a.localeCompare(b))
 
-		await expect(`${JSON.stringify(sorted, null, '\t')}\n`).toMatchFileSnapshot(
-			'./__snapshots__/kata-output.json',
-		)
+		const expected = Object.entries(main)
+			.filter(([path]) => !COMPOSED.main.test(path))
+			.sort(([a], [b]) => a.localeCompare(b))
+
+		expect(Object.fromEntries(current)).toEqual(Object.fromEntries(expected))
+	})
+
+	it('composes each slot of a control unit from the parts of main', () => {
+		const rows: [label: string, current: string, expected: string][] = []
+
+		const check = (label: string, current: unknown, ...expected: unknown[]) =>
+			rows.push([label, classes(current), classes(expected)])
+
+		const frame = [read('control.k.frame.base'), read('control.k.frame.radius')]
+
+		for (const variant of ['default', 'outline', 'glass'] as const) {
+			for (const affixed of [false, true]) {
+				const slots = input({ variant, affixed })
+
+				const layout = affixed ? read('input.k.frame') : ''
+
+				check(
+					`input base ${variant} ${affixed}`,
+					slots.base,
+					frame,
+					read('input.k.surface', `variant=${variant}`),
+					layout,
+				)
+				check(`input field ${variant}`, slots.field, read('input.k'))
+				check(
+					'input prefix',
+					slots.prefix,
+					read('input.k.affix.base'),
+					read('input.k.affix.prefix'),
+				)
+				check(
+					'input suffix',
+					slots.suffix,
+					read('input.k.affix.base'),
+					read('input.k.affix.suffix'),
+				)
+			}
+
+			for (const actions of [false, true]) {
+				for (const resize of ['none', 'vertical', 'horizontal'] as const) {
+					const slots = textarea({ variant, actions, resize })
+
+					const bare = actions ? read('textarea.k.bare') : ''
+
+					check(
+						`textarea base ${variant} ${actions}`,
+						slots.base,
+						frame,
+						actions ? read('textarea.k.frame') : '',
+						read('textarea.k.surface', `variant=${variant}`),
+					)
+					check(
+						`textarea field ${resize} ${actions}`,
+						slots.field,
+						read('textarea.k', `resize=${resize}`),
+						bare,
+					)
+				}
+			}
+		}
+
+		const triggers = [
+			['listbox', listbox, 'listbox.k'],
+			['combobox', combobox, 'combobox.k'],
+			['date-picker', datePicker, 'date-picker.k.button'],
+			['color-picker', colorPicker, 'color-picker.k.button'],
+		] as const
+
+		for (const [name, unit, field] of triggers) {
+			const filled = (unit as typeof listbox)({ variant: 'default' })
+
+			// A trigger in a glass overlay takes the `outline` surface: no fill.
+			const glass = (unit as typeof listbox)({ variant: 'outline' })
+
+			check(`${name} base`, filled.base, frame, read('select.k.surface.default'))
+			check(`${name} base glass`, glass.base, frame)
+			check(
+				`${name} prefix`,
+				filled.prefix,
+				read('select.k.affix.base'),
+				read('select.k.affix.prefix'),
+			)
+			check(
+				`${name} suffix`,
+				filled.suffix,
+				read('select.k.affix.base'),
+				read('select.k.affix.suffix'),
+			)
+			check(`${name} field`, filled.field, read(field))
+		}
+
+		expect(rows.filter(([, current, expected]) => current !== expected)).toEqual([])
 	})
 })
+
+/** The classes of a path of main, or of one combination of its axes. */
+function read(path: string, combination?: string): string {
+	const value = main[path]
+
+	if (typeof value === 'string') return value
+
+	const classes = combination === undefined ? undefined : value?.[combination]
+
+	if (classes === undefined)
+		throw new Error(`kata output: main has no "${path}" ${combination ?? ''}`)
+
+	return classes
+}

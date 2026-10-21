@@ -7,6 +7,7 @@ export {
 } from './colors'
 export {
 	applyRecipe,
+	defineGroup,
 	defineKata,
 	definePalette,
 	defineRecipe,
