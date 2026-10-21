@@ -2,17 +2,17 @@
  * The palette color sets.
  *
  * `colors` is the **standard** palette every chromatic kata carries by
- * default. `extendedColors` is an **opt-in** set a kata offers by writing
- * its strings in its palette.
+ * default. `extendedColors` is an **opt-in** set a kata offers by reading
+ * the `extended` palette of iro.
  *
  * The recipe engine derives a palette's `color` axis from the keys of the
  * matrix it's handed (`engine/palette.ts`). A kata that writes the extended
  * colors therefore gains the extra values with no engine change.
  *
  * Adding a standard color: append to `colors`, then add its string to each
- * variant of each chromatic kata, and its rows to the maps in `iro/*`. Adding
- * an extended color: append to `extendedColors` and add its strings to the
- * kata that offer the extended set.
+ * variant of `palette` and `hover` in `iro/palette.ts`, and its rows to the
+ * other maps in `iro/*`. Adding an extended color: append to `extendedColors`
+ * and add its strings to `extended` and `hover`.
  */
 
 export const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const

@@ -1,6 +1,8 @@
 /**
- * Iro ramp: the color-major source of truth for foreground shades, projected
- * into the role-major maps consumers read.
+ * Iro ramp: the foreground shades of the page surface, as `[light, dark]`
+ * pairs. `onSurface` reads the bare entries of the palette (`palette.ts`). The
+ * other roles are color-major rows here, projected into the role-major maps
+ * consumers read.
  *
  * One row per palette color naming the shade each *role* plays as a foreground,
  * light value first and the `dark:`-prefixed value second. The values are full
@@ -10,16 +12,7 @@
  * a lighter dark rung, and the zinc `marker` rides the stronger light rung
  * (600), so a neutral spinner or star reads as firmly as a chromatic one.
  *
- * The chromatic kata (Alert, Avatar, Badge, Button) write their own literal
- * palette strings. Their muted `bare` text uses the `onSurface` shades, and
- * their soft, outline, and plain text is one rung stronger, for the 15% soft
- * fill. `contrast.test.ts` measures those strings in place.
- *
  * Roles:
- *   - `onSurface`: foreground on the page / card surface (white · zinc-900).
- *     The semantic intent bundle reads this; clears AA (4.5:1) on its own
- *     surface. The neutral washes are a different ground with their own rung:
- *     `onWash.muted` below.
  *   - `marker`: chromatic dot / glyph (status, spinner, timeline) on the page
  *     surface. Graphical; the non-text 3:1 floor (1.4.11) lands a rung lighter
  *     than the text ramp for the low-contrast hues.
@@ -33,37 +26,41 @@
 
 import type { Color } from '../../../core/recipe'
 
+import { palette } from './palette'
 import { type Pair, project } from './project'
 
 type ColorRamp = {
-	onSurface: Pair
 	marker: Pair
 }
 
 const RAMP = {
 	zinc: {
-		onSurface: ['text-zinc-500', 'dark:text-zinc-400'],
 		marker: ['text-zinc-600', 'dark:text-zinc-400'],
 	},
 	red: {
-		onSurface: ['text-red-600', 'dark:text-red-500'],
 		marker: ['text-red-600', 'dark:text-red-500'],
 	},
 	amber: {
-		onSurface: ['text-amber-700', 'dark:text-amber-500'],
 		marker: ['text-amber-600', 'dark:text-amber-500'],
 	},
 	green: {
-		onSurface: ['text-green-700', 'dark:text-green-500'],
 		marker: ['text-green-600', 'dark:text-green-500'],
 	},
 	blue: {
-		onSurface: ['text-blue-600', 'dark:text-blue-500'],
 		marker: ['text-blue-600', 'dark:text-blue-500'],
 	},
 } satisfies Record<Color, ColorRamp>
 
-export const onSurface = project(RAMP, 'onSurface')
+/**
+ * Foreground on the page / card surface (white · zinc-900): the text of a bare
+ * entry of the palette, as a `[light, dark]` pair. It clears AA (4.5:1) on its
+ * own surface, and the semantic intent bundle reads it. The neutral washes are
+ * a different ground with their own rung: `onWash.muted` below.
+ */
+export const onSurface = Object.fromEntries(
+	Object.entries(palette.bare).map(([color, value]) => [color, value.split(' ')]),
+) as Record<keyof typeof palette.bare, [light: string, dark: string]>
+
 export const marker = project(RAMP, 'marker')
 
 /** Max-emphasis neutral foreground: the `default` intent and the `bare` zinc hover. */

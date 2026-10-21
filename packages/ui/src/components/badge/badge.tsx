@@ -3,7 +3,8 @@ import { cn, dataAttr } from '../../core'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { type BadgeVariants, k } from '../../recipes/kata/badge'
 
-type BadgeBaseProps = BadgeVariants & {
+// The badge sets `interactive` from `href`, so the prop is not open.
+type BadgeBaseProps = Omit<BadgeVariants, 'interactive'> & {
 	className?: string
 	/** Leading content (typically an icon), rendered before `children`. */
 	prefix?: ReactNode
@@ -53,7 +54,7 @@ export function Badge({
 			data-has-suffix={dataAttr(!!suffix)}
 			href={href}
 			render={render}
-			className={cn(k({ variant, color, radius }), className)}
+			className={cn(k({ variant, color, radius, interactive: href !== undefined }), className)}
 			{...props}
 			// The affix of a control selects the anchor to fit a chip, so it comes
 			// after the spread (CONVENTIONS.md §3.9).

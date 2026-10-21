@@ -4,14 +4,31 @@ import { definePalette, defineRecipe } from '../../core/recipe'
 import { k as badge } from '../../recipes/kata/badge'
 
 describe('palette', () => {
-	it('exposes the matrix unchanged on the returned config', () => {
-		const matrix = {
-			solid: { zinc: 'z-solid', red: 'r-solid', amber: '', green: '', blue: '' },
-		}
+	it('joins the cells of each matrix in order', () => {
+		const config = definePalette(
+			{ solid: { zinc: 'z-rest', red: 'r-rest' } },
+			{ solid: { zinc: 'z-hover', red: 'r-hover' } },
+			{ solid: { inherit: 'i' } },
+		)
 
-		const config = definePalette(matrix)
+		expect(config.matrix).toEqual({
+			solid: { zinc: ['z-rest', 'z-hover'], red: ['r-rest', 'r-hover'], inherit: ['i'] },
+		})
+	})
 
-		expect(config.matrix).toBe(matrix)
+	it('unions the colors of each matrix into the color axis', () => {
+		const recipe = defineRecipe({
+			palette: definePalette(
+				{ solid: { zinc: 'z-rest' } },
+				{ solid: { zinc: 'z-hover' } },
+				{ solid: { inherit: 'i' } },
+			),
+			defaults: { variant: 'solid' },
+		})
+
+		expect(recipe({ color: 'zinc' })).toBe('z-rest z-hover')
+
+		expect(recipe({ color: 'inherit' })).toBe('i')
 	})
 
 	it('scaffolds compound rules for every (variant × palette color)', () => {

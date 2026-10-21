@@ -67,9 +67,9 @@ describe('iro ramp contrast', () => {
 })
 
 /**
- * The same drift guard for the palette strings of the chromatic kata. Button
- * writes every color that a chromatic kata offers, and `palette-parity.test.ts`
- * holds Alert, Avatar, and Badge to the same classes. The text of the soft,
+ * The same drift guard for the palette of iro (`iro/palette.ts`). Button reads
+ * each variant and color of it, so the test measures each entry through
+ * Button. The text of the soft,
  * outline, and plain variants sits on the 15% soft fill or on the page, and the
  * text of the bare variant sits on the page.
  */

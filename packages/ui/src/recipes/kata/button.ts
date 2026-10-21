@@ -1,12 +1,16 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, definePalette, type VariantProps } from '../../core/recipe'
-import { dan, hannou, ji, kokkaku, narabi, sen, shaku } from '../kiso'
+import { dan, hannou, iro, ji, kokkaku, narabi, sen, shaku } from '../kiso'
 
 const { cursor, disabled } = hannou
+const { extended, hover, palette } = iro
 const { weight } = ji
 const { button } = kokkaku
 const { flex } = narabi
 const { focus, ring } = sen
+
+/** The `inherit` entry of a variant that does not fill the button: the text around it, with a wash of that text on hover. */
+const inherit = 'text-inherit not-disabled:not-data-disabled:hover:bg-current/15'
 
 export const k = defineKata(
 	{
@@ -52,78 +56,16 @@ export const k = defineKata(
 			// label is present.
 			bare: [focus.inset, dan.space.button.bare],
 		},
-		// One literal class string for each variant and color. `inherit` takes the text
-		// color around the button. A text color cannot fill a button, so a solid or a
-		// soft button with `inherit` paints the fill of zinc, the default color.
-		palette: definePalette({
-			solid: {
-				zinc: 'bg-zinc-600 text-white not-disabled:not-data-disabled:hover:bg-zinc-700',
-				red: 'bg-red-600 text-white not-disabled:not-data-disabled:hover:bg-red-700',
-				amber: 'bg-amber-500 text-amber-950 not-disabled:not-data-disabled:hover:bg-amber-600',
-				green: 'bg-green-700 text-white not-disabled:not-data-disabled:hover:bg-green-800',
-				blue: 'bg-blue-600 text-white not-disabled:not-data-disabled:hover:bg-blue-700',
-				rose: 'bg-rose-600 text-white not-disabled:not-data-disabled:hover:bg-rose-700',
-				violet: 'bg-violet-600 text-white not-disabled:not-data-disabled:hover:bg-violet-700',
-				sky: 'bg-sky-700 text-white not-disabled:not-data-disabled:hover:bg-sky-800',
-				inherit: 'bg-zinc-600 text-white not-disabled:not-data-disabled:hover:bg-zinc-700',
-			},
-			soft: {
-				zinc: 'bg-zinc-500/15 text-zinc-700 dark:text-zinc-400 not-disabled:not-data-disabled:hover:bg-zinc-500/30',
-				red: 'bg-red-500/15 text-red-700 dark:text-red-400 not-disabled:not-data-disabled:hover:bg-red-500/30',
-				amber:
-					'bg-amber-500/15 text-amber-800 dark:text-amber-400 not-disabled:not-data-disabled:hover:bg-amber-500/30',
-				green:
-					'bg-green-500/15 text-green-800 dark:text-green-400 not-disabled:not-data-disabled:hover:bg-green-500/30',
-				blue: 'bg-blue-500/15 text-blue-700 dark:text-blue-400 not-disabled:not-data-disabled:hover:bg-blue-500/30',
-				rose: 'bg-rose-500/15 text-rose-700 dark:text-rose-400 not-disabled:not-data-disabled:hover:bg-rose-500/30',
-				violet:
-					'bg-violet-500/15 text-violet-700 dark:text-violet-400 not-disabled:not-data-disabled:hover:bg-violet-500/30',
-				sky: 'bg-sky-500/15 text-sky-700 dark:text-sky-400 not-disabled:not-data-disabled:hover:bg-sky-500/30',
-				inherit:
-					'bg-zinc-500/15 text-zinc-700 dark:text-zinc-400 not-disabled:not-data-disabled:hover:bg-zinc-500/30',
-			},
-			outline: {
-				zinc: 'ring-zinc-800 dark:ring-zinc-600 text-zinc-700 dark:text-zinc-400 not-disabled:not-data-disabled:hover:bg-zinc-500/15',
-				red: 'ring-red-600 dark:ring-red-700 text-red-700 dark:text-red-400 not-disabled:not-data-disabled:hover:bg-red-500/15',
-				amber:
-					'ring-amber-500 dark:ring-amber-600 text-amber-800 dark:text-amber-400 not-disabled:not-data-disabled:hover:bg-amber-500/15',
-				green:
-					'ring-green-600 dark:ring-green-700 text-green-800 dark:text-green-400 not-disabled:not-data-disabled:hover:bg-green-500/15',
-				blue: 'ring-blue-600 dark:ring-blue-700 text-blue-700 dark:text-blue-400 not-disabled:not-data-disabled:hover:bg-blue-500/15',
-				rose: 'ring-rose-600 dark:ring-rose-700 text-rose-700 dark:text-rose-400 not-disabled:not-data-disabled:hover:bg-rose-500/15',
-				violet:
-					'ring-violet-600 dark:ring-violet-700 text-violet-700 dark:text-violet-400 not-disabled:not-data-disabled:hover:bg-violet-500/15',
-				sky: 'ring-sky-600 dark:ring-sky-700 text-sky-700 dark:text-sky-400 not-disabled:not-data-disabled:hover:bg-sky-500/15',
-				inherit: 'text-inherit not-disabled:not-data-disabled:hover:bg-current/15',
-			},
-			plain: {
-				zinc: 'text-zinc-700 dark:text-zinc-400 not-disabled:not-data-disabled:hover:bg-zinc-500/15',
-				red: 'text-red-700 dark:text-red-400 not-disabled:not-data-disabled:hover:bg-red-500/15',
-				amber:
-					'text-amber-800 dark:text-amber-400 not-disabled:not-data-disabled:hover:bg-amber-500/15',
-				green:
-					'text-green-800 dark:text-green-400 not-disabled:not-data-disabled:hover:bg-green-500/15',
-				blue: 'text-blue-700 dark:text-blue-400 not-disabled:not-data-disabled:hover:bg-blue-500/15',
-				rose: 'text-rose-700 dark:text-rose-400 not-disabled:not-data-disabled:hover:bg-rose-500/15',
-				violet:
-					'text-violet-700 dark:text-violet-400 not-disabled:not-data-disabled:hover:bg-violet-500/15',
-				sky: 'text-sky-700 dark:text-sky-400 not-disabled:not-data-disabled:hover:bg-sky-500/15',
-				inherit: 'text-inherit not-disabled:not-data-disabled:hover:bg-current/15',
-			},
-			bare: {
-				zinc: 'text-zinc-500 dark:text-zinc-400 not-disabled:not-data-disabled:hover:text-zinc-950 dark:not-disabled:not-data-disabled:hover:text-white',
-				red: 'text-red-600 dark:text-red-500 not-disabled:not-data-disabled:hover:text-red-700 dark:not-disabled:not-data-disabled:hover:text-red-400',
-				amber:
-					'text-amber-700 dark:text-amber-500 not-disabled:not-data-disabled:hover:text-amber-800 dark:not-disabled:not-data-disabled:hover:text-amber-400',
-				green:
-					'text-green-700 dark:text-green-500 not-disabled:not-data-disabled:hover:text-green-800 dark:not-disabled:not-data-disabled:hover:text-green-400',
-				blue: 'text-blue-600 dark:text-blue-500 not-disabled:not-data-disabled:hover:text-blue-700 dark:not-disabled:not-data-disabled:hover:text-blue-400',
-				rose: 'text-rose-600 dark:text-rose-500 not-disabled:not-data-disabled:hover:text-rose-700 dark:not-disabled:not-data-disabled:hover:text-rose-400',
-				violet:
-					'text-violet-600 dark:text-violet-400 not-disabled:not-data-disabled:hover:text-violet-700 dark:not-disabled:not-data-disabled:hover:text-violet-400',
-				sky: 'text-sky-700 dark:text-sky-500 not-disabled:not-data-disabled:hover:text-sky-700 dark:not-disabled:not-data-disabled:hover:text-sky-400',
-				inherit: 'text-inherit not-disabled:not-data-disabled:hover:bg-current/15',
-			},
+		// The colors at rest in the standard and the extended hues, and the hover,
+		// from the palette of iro. `inherit` takes the text color around the button.
+		// A text color cannot fill a button, so a solid or a soft button with
+		// `inherit` paints the fill of zinc, the default color.
+		palette: definePalette(palette, extended, hover, {
+			solid: { inherit: [palette.solid.zinc, hover.solid.zinc] },
+			soft: { inherit: [palette.soft.zinc, hover.soft.zinc] },
+			outline: { inherit },
+			plain: { inherit },
+			bare: { inherit },
 		}),
 		defaults: { variant: 'solid', color: 'zinc' },
 	},

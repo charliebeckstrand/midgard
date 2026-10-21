@@ -4,7 +4,7 @@
  * `body`, and its `footer`. `kind` colors the kinds that stand apart from the
  * DOM events: the callbacks of the components and of the modules, the
  * captures, and the bugs. `hash` colors the hash of a report. The colors are
- * the shades of each hue that clear AA on the surface.
+ * the bare entries of the extended palette, which clear AA on the surface.
  */
 import { dan, iro, omote } from '../kiso'
 import type { ByLayout } from './offcanvas'
@@ -31,10 +31,10 @@ export const k = {
 	},
 	text: [...iro.text.default],
 	kind: {
-		component: 'text-sky-700 dark:text-sky-500',
-		module: 'text-violet-600 dark:text-violet-400',
+		component: iro.extended.bare.sky,
+		module: iro.extended.bare.violet,
 		capture: iro.text.primary,
 		error: iro.text.error,
 	},
-	hash: 'text-rose-600 dark:text-rose-500',
+	hash: iro.extended.bare.rose,
 } as const

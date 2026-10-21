@@ -4,9 +4,9 @@
  * (default / primary / success / warning / error / muted) and is the
  * meaning-bearing axis. It is an emphasis ladder, not the feedback set
  * `severity` names on Alert and the Control cascade. `color` names a hue in
- * place of a purpose, and writes the shade of that hue that clears AA on the
- * page surface, the `onSurface` shade that `tone` also reads. A consumer sets one or the other: tone for emphasis,
- * color for a hue.
+ * place of a purpose, and reads the bare entry of that hue in the palette: the
+ * shade that clears AA on the page surface, which `tone` also reads. A consumer
+ * sets one or the other: tone for emphasis, color for a hue.
  *
  * `size` is a density step from `xs` to `xl` (`text-xs` to `text-xl`). The
  * component writes it as a density scope, and `sized` gives the text the step
@@ -18,18 +18,18 @@ import { defineScale, type ScaleStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { dan, iro, kokkaku } from '../kiso'
 
-const { text } = iro
+const { palette, text } = iro
 
 export const k = defineRecipe(
 	{
 		tone: text,
 		color: {
 			current: mode('text-current', 'dark:text-current'),
-			zinc: 'text-zinc-500 dark:text-zinc-400',
-			red: 'text-red-600 dark:text-red-500',
-			amber: 'text-amber-700 dark:text-amber-500',
-			green: 'text-green-700 dark:text-green-500',
-			blue: 'text-blue-600 dark:text-blue-500',
+			zinc: palette.bare.zinc,
+			red: palette.bare.red,
+			amber: palette.bare.amber,
+			green: palette.bare.green,
+			blue: palette.bare.blue,
 		},
 		defaults: { tone: 'default' },
 		// One line: the `md` line, or the line of the explicit `size`.
