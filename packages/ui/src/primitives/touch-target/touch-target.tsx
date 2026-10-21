@@ -1,4 +1,7 @@
+'use client'
+
 import type { ReactNode } from 'react'
+import { useHeadless } from '../../providers/headless/context'
 
 /**
  * The classes of the expansion span. The span holds the floor in a custom
@@ -54,8 +57,13 @@ export type TouchTargetProps = {
  * pointer. It then finds each pair of hit areas that overlap. Axe cannot stand
  * in for these pins, because its target-size rule measures the host's own
  * border-box and never sees the span.
+ *
+ * The span is chrome. Under `HeadlessProvider`, `TouchTarget` renders its
+ * children alone, as `Shell` does.
  */
 export function TouchTarget({ children }: TouchTargetProps) {
+	if (useHeadless()) return children
+
 	return (
 		<>
 			<span data-slot="touch-target" className={area} aria-hidden="true" />

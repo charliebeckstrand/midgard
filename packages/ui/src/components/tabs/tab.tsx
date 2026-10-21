@@ -7,9 +7,8 @@ import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrentItem } from '../../primitives/current/current'
-import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/tabs'
-import { Button } from '../button'
+import { ButtonBase } from '../button/button-base'
 import { useTabsContext } from './context'
 import { useTabSelectScroll } from './use-tab-list-scroll'
 
@@ -88,7 +87,7 @@ function resolveState(options: {
 }
 
 /**
- * Single tab trigger: a headless `<Button>` carrying `role="tab"`, roving
+ * Single tab trigger: a bare button carrying `role="tab"`, roving
  * `tabIndex`, and an `<ActiveIndicator>` while selected. Its padding and text
  * follow the nearest density scope. In the `tab` variant it
  * auto-wires `aria-controls` to its `<TabContent>` via the Tabs base id +
@@ -192,35 +191,33 @@ export function Tab({
 
 	return (
 		<span className={slots.wrapper} {...tapHandlers}>
-			<HeadlessProvider>
-				<Button
-					// A tab changes no value, so a locked scope, such as a submitting
-					// form, leaves it live.
-					lockable={false}
-					// Forwards the full button surface (aria-label, data-testid,
-					// onBlur, title, …); the tab wiring below wins over any
-					// colliding consumer prop. A caller's onPointerEnter / onFocus
-					// are composed (run first) rather than forwarded, so the preload
-					// intent can chain onto them.
-					{...props}
-					ref={setTab}
-					data-slot="tab"
-					data-current={dataAttr(current)}
-					role="tab"
-					id={tabId}
-					aria-selected={current}
-					aria-controls={panelInDom ? controlsId : undefined}
-					tabIndex={current ? 0 : -1}
-					disabled={disabled}
-					type="button"
-					className={cn(slots.trigger, isSegment ? k.segment.item : slots.tab, className)}
-					onClick={handleClick}
-					onPointerEnter={handlePointerEnter}
-					onFocus={handleFocus}
-				>
-					{children}
-				</Button>
-			</HeadlessProvider>
+			<ButtonBase
+				// A tab changes no value, so a locked scope, such as a submitting
+				// form, leaves it live.
+				lockable={false}
+				// Forwards the full button surface (aria-label, data-testid,
+				// onBlur, title, …); the tab wiring below wins over any
+				// colliding consumer prop. A caller's onPointerEnter / onFocus
+				// are composed (run first) rather than forwarded, so the preload
+				// intent can chain onto them.
+				{...props}
+				ref={setTab}
+				data-slot="tab"
+				data-current={dataAttr(current)}
+				role="tab"
+				id={tabId}
+				aria-selected={current}
+				aria-controls={panelInDom ? controlsId : undefined}
+				tabIndex={current ? 0 : -1}
+				disabled={disabled}
+				type="button"
+				className={cn(slots.trigger, isSegment ? k.segment.item : slots.tab, className)}
+				onClick={handleClick}
+				onPointerEnter={handlePointerEnter}
+				onFocus={handleFocus}
+			>
+				{children}
+			</ButtonBase>
 			{current && (
 				<ActiveIndicator
 					ref={indicatorRef}

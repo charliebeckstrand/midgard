@@ -2,6 +2,7 @@ import { Activity, createRef, type ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { DensityProvider } from '../../providers/density'
+import { useHeadless } from '../../providers/headless'
 import {
 	act,
 	bySlot,
@@ -243,6 +244,24 @@ describe('Tab', () => {
 			'density-px-[1,2,3,4,5]',
 			'density-pb-[2,3,4,5,6]',
 		)
+	})
+
+	// The tab renders a bare button and sets no headless scope, so a component
+	// in its label keeps its chrome.
+	it('sets no headless scope for its label', () => {
+		function Probe() {
+			return <span data-slot="probe">{String(useHeadless())}</span>
+		}
+
+		const { container } = renderUI(
+			<TabList aria-label="Tabs">
+				<Tab current>
+					<Probe />
+				</Tab>
+			</TabList>,
+		)
+
+		expect(bySlot(container, 'probe')).toHaveTextContent('false')
 	})
 
 	it('follows the scope of a DensityProvider when used à la carte (TabList + Tab without <Tabs>)', () => {

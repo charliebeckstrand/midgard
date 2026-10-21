@@ -8,7 +8,7 @@ import { Icon } from '../icon'
  *
  * @internal
  */
-export type ButtonBaseProps = ButtonVariants & {
+export type ButtonOwnProps = ButtonVariants & {
 	/**
 	 * Swaps the leading content for a spinner, or the icon of an icon-only
 	 * button, and gates activation. The button keeps its focus.

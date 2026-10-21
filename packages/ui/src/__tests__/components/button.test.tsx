@@ -297,6 +297,20 @@ describe('Button', () => {
 		expect(screen.getByRole('button')).toHaveTextContent('BeforeLabelAfter')
 	})
 
+	it('drops its classes and its hit area under the headless provider', () => {
+		const { container } = renderUI(
+			<HeadlessProvider>
+				<Button type="button" className="custom">
+					Label
+				</Button>
+			</HeadlessProvider>,
+		)
+
+		expect(getSlot(container, 'button').className).toBe('custom')
+
+		expect(container.querySelector('[data-slot="touch-target"]')).toBeNull()
+	})
+
 	// A button can sit in a line of text, so its skeleton has to be able to as well.
 	it('stands in for a button inside a paragraph, as server markup and inline', () => {
 		const holder = document.createElement('div')

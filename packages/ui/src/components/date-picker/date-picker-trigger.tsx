@@ -7,10 +7,9 @@ import type { ScaleStep } from '../../core/density'
 import { useTruncation } from '../../hooks'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
-import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
-import { Button } from '../button'
+import { ButtonBase } from '../button/button-base'
 import { Icon } from '../icon'
 import { SelectionClearButton } from '../input/input-clear-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -161,45 +160,43 @@ export function DatePickerTrigger({
 				) : undefined
 			}
 		>
-			<HeadlessProvider>
-				<Button
-					ref={buttonRef}
-					type="button"
-					id={triggerId}
-					role="combobox"
-					aria-label={ariaLabel}
-					aria-haspopup="dialog"
-					aria-expanded={open}
-					aria-controls={open ? dialogId : undefined}
-					aria-describedby={describedBy}
-					aria-readonly={ariaAttr(readOnly)}
-					aria-required={ariaAttr(required)}
-					data-slot="datepicker-button"
-					disabled={disabled}
-					data-readonly={dataAttr(readOnly)}
-					data-open={dataAttr(open)}
-					data-disabled={dataAttr(disabled)}
-					{...validation}
-					onClick={() => onOpenChange(!open)}
-					onKeyDown={onTriggerKeyDown}
-					className={cn(slots.field)}
-				>
-					{/* With no value, the span shows the placeholder, and the tooltip has
-					    nothing to reveal. */}
-					{children ?? (
-						<Tooltip disabled={!truncate || !truncated || !displayValue}>
-							<TooltipTrigger>{valueNode}</TooltipTrigger>
-							<TooltipContent>{displayValue}</TooltipContent>
-						</Tooltip>
-					)}
-					{!showClear && (
-						// A slot scope, so the icon is one step below the trigger.
-						<span data-density="slot" className={cn(k.icon)}>
-							<Icon icon={<CalendarIcon />} />
-						</span>
-					)}
-				</Button>
-			</HeadlessProvider>
+			<ButtonBase
+				ref={buttonRef}
+				type="button"
+				id={triggerId}
+				role="combobox"
+				aria-label={ariaLabel}
+				aria-haspopup="dialog"
+				aria-expanded={open}
+				aria-controls={open ? dialogId : undefined}
+				aria-describedby={describedBy}
+				aria-readonly={ariaAttr(readOnly)}
+				aria-required={ariaAttr(required)}
+				data-slot="datepicker-button"
+				disabled={disabled}
+				data-readonly={dataAttr(readOnly)}
+				data-open={dataAttr(open)}
+				data-disabled={dataAttr(disabled)}
+				{...validation}
+				onClick={() => onOpenChange(!open)}
+				onKeyDown={onTriggerKeyDown}
+				className={cn(slots.field)}
+			>
+				{/* With no value, the span shows the placeholder, and the tooltip has
+				    nothing to reveal. */}
+				{children ?? (
+					<Tooltip disabled={!truncate || !truncated || !displayValue}>
+						<TooltipTrigger>{valueNode}</TooltipTrigger>
+						<TooltipContent>{displayValue}</TooltipContent>
+					</Tooltip>
+				)}
+				{!showClear && (
+					// A slot scope, so the icon is one step below the trigger.
+					<span data-density="slot" className={cn(k.icon)}>
+						<Icon icon={<CalendarIcon />} />
+					</span>
+				)}
+			</ButtonBase>
 		</SelectTrigger>
 	)
 }

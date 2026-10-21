@@ -2,12 +2,11 @@
 
 import { ArrowDown, ArrowUp, Pin } from 'lucide-react'
 import { type ReactElement, type ReactNode, useRef } from 'react'
-import { Button } from '../../components/button'
+import { ButtonBase } from '../../components/button/button-base'
 import { Icon } from '../../components/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
 import { useGridResizing } from './context'
 import { columnLabel } from './engine/grid-column/label'
@@ -115,43 +114,41 @@ export function GridColumnHeaderLabel({
 	if (!column.sortable || !interactive) return <GridHeaderTitle title={column.title} />
 
 	return (
-		<HeadlessProvider>
-			<GridHeaderTitle
-				title={column.title}
-				control={(title) => (
-					<Button
-						type="button"
-						className={cn(k.sort.button)}
-						// A Shift-click folds this column into the existing sort (multi-column);
-						// a plain click collapses the sort to just this column.
-						onClick={(event) => toggleSort(column.id, event.shiftKey)}
-						// The explicit name overrides the inner badge, so fold the multi-column
-						// sort priority into it; otherwise the digit is never announced (WCAG 1.3.1).
-						aria-label={
-							sortPriority != null
-								? intl.formatMessage(gridMessages.sortByPriority, {
-										column: columnLabel(column),
-										priority: sortPriority,
-									})
-								: intl.formatMessage(gridMessages.sortBy, { column: columnLabel(column) })
-						}
-						// A string title is in the name, and the tooltip echoes it, so its
-						// description would repeat the name. The explicit key wins over the
-						// description of the trigger. Any other title leaves the column id in
-						// the name, and the description gives the visible title.
-						{...(typeof column.title === 'string' && { 'aria-describedby': undefined })}
-					>
-						{title}
-						{sortDirectionIcon(sorted, direction)}
-						{sortPriority != null && (
-							<span aria-hidden className={cn(k.sort.badge)}>
-								{intl.formatNumber(sortPriority)}
-							</span>
-						)}
-					</Button>
-				)}
-			/>
-		</HeadlessProvider>
+		<GridHeaderTitle
+			title={column.title}
+			control={(title) => (
+				<ButtonBase
+					type="button"
+					className={cn(k.sort.button)}
+					// A Shift-click folds this column into the existing sort (multi-column);
+					// a plain click collapses the sort to just this column.
+					onClick={(event) => toggleSort(column.id, event.shiftKey)}
+					// The explicit name overrides the inner badge, so fold the multi-column
+					// sort priority into it; otherwise the digit is never announced (WCAG 1.3.1).
+					aria-label={
+						sortPriority != null
+							? intl.formatMessage(gridMessages.sortByPriority, {
+									column: columnLabel(column),
+									priority: sortPriority,
+								})
+							: intl.formatMessage(gridMessages.sortBy, { column: columnLabel(column) })
+					}
+					// A string title is in the name, and the tooltip echoes it, so its
+					// description would repeat the name. The explicit key wins over the
+					// description of the trigger. Any other title leaves the column id in
+					// the name, and the description gives the visible title.
+					{...(typeof column.title === 'string' && { 'aria-describedby': undefined })}
+				>
+					{title}
+					{sortDirectionIcon(sorted, direction)}
+					{sortPriority != null && (
+						<span aria-hidden className={cn(k.sort.badge)}>
+							{intl.formatNumber(sortPriority)}
+						</span>
+					)}
+				</ButtonBase>
+			)}
+		/>
 	)
 }
 

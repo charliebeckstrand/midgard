@@ -5,10 +5,9 @@ import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
-import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/color-picker'
 import { k } from '../../recipes/kata/color-picker'
-import { Button } from '../button'
+import { ButtonBase } from '../button/button-base'
 import { hsvaToCss, hsvaToHex } from './color-utilities'
 import type { Hsva } from './types'
 
@@ -88,37 +87,35 @@ export function ColorPickerTrigger({
 			size={size}
 			className={cn(k.root, className)}
 		>
-			<HeadlessProvider>
-				<Button
-					type="button"
-					id={triggerId}
-					aria-haspopup="dialog"
-					aria-expanded={open}
-					aria-controls={open ? dialogId : undefined}
-					aria-describedby={describedBy}
-					data-slot="color-picker-button"
-					aria-disabled={ariaAttr(readOnly && !open)}
-					data-readonly={dataAttr(readOnly)}
-					disabled={disabled}
-					data-open={dataAttr(open)}
-					data-disabled={dataAttr(disabled)}
-					{...validation}
-					onClick={() => onOpenChange(!open)}
-					className={cn(slots.field)}
+			<ButtonBase
+				type="button"
+				id={triggerId}
+				aria-haspopup="dialog"
+				aria-expanded={open}
+				aria-controls={open ? dialogId : undefined}
+				aria-describedby={describedBy}
+				data-slot="color-picker-button"
+				aria-disabled={ariaAttr(readOnly && !open)}
+				data-readonly={dataAttr(readOnly)}
+				disabled={disabled}
+				data-open={dataAttr(open)}
+				data-disabled={dataAttr(disabled)}
+				{...validation}
+				onClick={() => onOpenChange(!open)}
+				className={cn(slots.field)}
+			>
+				<span
+					data-slot="color-picker-swatch"
+					className={cn(k.swatch.base, alpha && k.swatch.checkerboard)}
 				>
-					<span
-						data-slot="color-picker-swatch"
-						className={cn(k.swatch.base, alpha && k.swatch.checkerboard)}
-					>
-						<span className={cn(k.swatch.fill)} style={{ backgroundColor: swatchColor }} />
-					</span>
-					<span className={cn(k.value, 'min-w-0 flex-1 font-mono')}>
-						{/* A hex code reads left to right in each direction, so the '#' stays at the left. The
-							    outer span keeps the inherited direction, so the code stays next to the swatch. */}
-						<span dir="ltr">{label}</span>
-					</span>
-				</Button>
-			</HeadlessProvider>
+					<span className={cn(k.swatch.fill)} style={{ backgroundColor: swatchColor }} />
+				</span>
+				<span className={cn(k.value, 'min-w-0 flex-1 font-mono')}>
+					{/* A hex code reads left to right in each direction, so the '#' stays at the left. The
+						    outer span keeps the inherited direction, so the code stays next to the swatch. */}
+					<span dir="ltr">{label}</span>
+				</span>
+			</ButtonBase>
 		</SelectTrigger>
 	)
 }

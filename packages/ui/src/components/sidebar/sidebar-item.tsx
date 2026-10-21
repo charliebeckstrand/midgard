@@ -6,10 +6,9 @@ import type { ScaleStep } from '../../core/density'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
-import { HeadlessProvider } from '../../providers/headless'
 import { k, type scale } from '../../recipes/kata/sidebar'
 import { partitionByType } from '../../utilities/children'
-import { Button } from '../button'
+import { ButtonBase } from '../button/button-base'
 import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from '../nav/use-nav-item'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -27,7 +26,7 @@ export type SidebarItemProps = NavItemProps & {
 }
 
 /**
- * Navigation row inside a `Sidebar`, rendering as a `Button` (or `Link` when
+ * Navigation row inside a `Sidebar`, rendering as a bare button (or `Link` when
  * `href` is set) marked `aria-current` while `current`: `"page"` on a link, and
  * `"true"` on a button, which switches a view in the page. Without `current`, a
  * link is current when its `href` matches the `pathname` of `UIProvider` (see
@@ -86,14 +85,14 @@ export function SidebarItem({
 	const mini = useSidebarMini()
 
 	const inner = (
-		<Button
+		<ButtonBase
 			// Navigation writes no field, so a locked scope, such as a submitting
 			// form, leaves it live.
 			lockable={false}
 			data-current={dataAttr(isCurrent)}
 			className={cn(
 				k.item.button({ affix: hasAffix }),
-				// In the mini rail this Button is the tooltip trigger; restore the nav
+				// In the mini rail this button is the tooltip trigger; restore the nav
 				// cursor over the trigger's help-cursor default.
 				mini && '*:cursor-pointer',
 				className,
@@ -115,7 +114,7 @@ export function SidebarItem({
 				{icon && <Icon icon={icon} />}
 				{children}
 			</TouchTarget>
-		</Button>
+		</ButtonBase>
 	)
 
 	return (
@@ -132,18 +131,16 @@ export function SidebarItem({
 					{prefix}
 				</div>
 			)}
-			<HeadlessProvider>
-				{mini ? (
-					// The label renders twice: visually hidden inside the rail button
-					// (keeping the accessible name) and as the tooltip surface.
-					<Tooltip placement="right">
-						<TooltipTrigger>{inner}</TooltipTrigger>
-						<TooltipContent>{tooltip}</TooltipContent>
-					</Tooltip>
-				) : (
-					inner
-				)}
-			</HeadlessProvider>
+			{mini ? (
+				// The label renders twice: visually hidden inside the rail button
+				// (keeping the accessible name) and as the tooltip surface.
+				<Tooltip placement="right">
+					<TooltipTrigger>{inner}</TooltipTrigger>
+					<TooltipContent>{tooltip}</TooltipContent>
+				</Tooltip>
+			) : (
+				inner
+			)}
 			{suffix != null && (
 				<div data-slot="sidebar-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
 					{suffix}

@@ -5,14 +5,14 @@ import { Tab, TabList, Tabs } from '../../components/tabs'
 import { renderUI, screen } from '../helpers'
 
 /**
- * A press target built on a headless Button keeps the `select-none` of a button.
+ * A press target built on a bare button keeps the `select-none` of a button.
  *
- * Tab, NavItem, and SidebarItem render a `<Button>` under a `HeadlessProvider`, which drops the
- * button recipe and its `select-none *:select-none`. A long press on iOS then selected the label
+ * Tab, NavItem, and SidebarItem render a `ButtonBase`, which has no button recipe and so no
+ * `select-none *:select-none`. A long press on iOS then selected the label
  * text. iOS Safari can select the text in a child of a `select-none` element, so the children
  * also set it.
  */
-describe('a headless press target under a long press', () => {
+describe('a bare press target under a long press', () => {
 	function expectNoSelection(element: HTMLElement) {
 		expect(element).toHaveClass('select-none', '*:select-none')
 	}

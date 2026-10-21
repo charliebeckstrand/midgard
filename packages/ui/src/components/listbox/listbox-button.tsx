@@ -3,9 +3,8 @@
 import type { FocusEventHandler, KeyboardEventHandler, ReactNode, Ref } from 'react'
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import { useTruncation } from '../../hooks'
-import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/listbox'
-import { Button } from '../button'
+import { ButtonBase } from '../button/button-base'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 type ListboxButtonProps = {
@@ -63,7 +62,7 @@ function ListboxTruncateTooltip({
 }
 
 /**
- * The listbox trigger button wrapped in {@link HeadlessProvider}, deferring
+ * The listbox trigger: a bare button that defers its
  * appearance to the surrounding {@link SelectTrigger} chrome. Carries the
  * combobox role + popup wiring and the truncated/placeholdered label slot.
  *
@@ -90,43 +89,41 @@ export function ListboxButton({
 	truncateTooltipSuppressed,
 }: ListboxButtonProps) {
 	return (
-		<HeadlessProvider>
-			<Button
-				type="button"
-				id={id}
-				ref={ref}
-				role="combobox"
-				aria-haspopup="listbox"
-				aria-expanded={open}
-				aria-controls={open ? controlsId : undefined}
-				aria-label={ariaLabel}
-				aria-labelledby={ariaLabelledby}
-				aria-describedby={describedBy}
-				aria-readonly={ariaAttr(readOnly)}
-				aria-required={ariaAttr(required)}
-				data-slot="listbox-button"
-				disabled={disabled}
-				data-readonly={dataAttr(readOnly)}
-				data-open={dataAttr(open)}
-				data-disabled={dataAttr(disabled)}
-				onBlur={onBlur}
-				onKeyDown={onKeyDown}
-				{...validation}
-				className={cn(k().field)}
-			>
-				{/* The truncation measure reads a string, so a node label skips the tooltip. */}
-				{truncateTooltip && typeof label === 'string' && label ? (
-					<ListboxTruncateTooltip
-						label={label}
-						truncate={truncate}
-						suppressed={truncateTooltipSuppressed}
-					/>
-				) : (
-					<span className={cn(k.value({ truncate }))}>
-						{label || <span className={cn(k.placeholder)}>{placeholder}</span>}
-					</span>
-				)}
-			</Button>
-		</HeadlessProvider>
+		<ButtonBase
+			type="button"
+			id={id}
+			ref={ref}
+			role="combobox"
+			aria-haspopup="listbox"
+			aria-expanded={open}
+			aria-controls={open ? controlsId : undefined}
+			aria-label={ariaLabel}
+			aria-labelledby={ariaLabelledby}
+			aria-describedby={describedBy}
+			aria-readonly={ariaAttr(readOnly)}
+			aria-required={ariaAttr(required)}
+			data-slot="listbox-button"
+			disabled={disabled}
+			data-readonly={dataAttr(readOnly)}
+			data-open={dataAttr(open)}
+			data-disabled={dataAttr(disabled)}
+			onBlur={onBlur}
+			onKeyDown={onKeyDown}
+			{...validation}
+			className={cn(k().field)}
+		>
+			{/* The truncation measure reads a string, so a node label skips the tooltip. */}
+			{truncateTooltip && typeof label === 'string' && label ? (
+				<ListboxTruncateTooltip
+					label={label}
+					truncate={truncate}
+					suppressed={truncateTooltipSuppressed}
+				/>
+			) : (
+				<span className={cn(k.value({ truncate }))}>
+					{label || <span className={cn(k.placeholder)}>{placeholder}</span>}
+				</span>
+			)}
+		</ButtonBase>
 	)
 }

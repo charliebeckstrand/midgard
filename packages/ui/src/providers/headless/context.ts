@@ -12,7 +12,8 @@ import { createContext } from '../../core'
  * content, such as an affix or a clear button.
  *
  * A component does not read the flag for its chrome. `useSlots` gives the bare
- * output of its unit, and `ControlFrame` and `Shell` drop their element.
+ * output of its unit, and `ControlFrame`, `Shell`, and `TouchTarget` drop their
+ * element.
  *
  * @returns `useHeadless()` reads the ambient flag; `false` outside any
  * `<HeadlessProvider>` (the configured default), so the hook is safe to call anywhere.

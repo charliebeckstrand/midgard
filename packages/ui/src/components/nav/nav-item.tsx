@@ -4,9 +4,8 @@ import type { Ref } from 'react'
 import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { TouchTarget } from '../../primitives/touch-target'
-import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/nav'
-import { Button } from '../button'
+import { ButtonBase } from '../button/button-base'
 import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from './use-nav-item'
 
@@ -27,8 +26,8 @@ type OmitEach<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 export type NavMenuItemProps = OmitEach<NavItemProps, 'value'> & { value?: string }
 
 /**
- * Navigation link/button within a {@link NavList}. Renders a polymorphic
- * {@link Button} as an `<li>`, marking itself `aria-current` and mounting
+ * Navigation link/button within a {@link NavList}. Renders a bare button, or
+ * a link when `href` is set, in an `<li>`, marking itself `aria-current` and mounting
  * the scope's active indicator when current. Current resolves from `current`,
  * else from the `value` selection binding, else from an `href` that matches the
  * `pathname` of `UIProvider` (see `match`). Hosts `prefix`/`suffix` affix slots outside the
@@ -88,28 +87,26 @@ export function NavItem({
 					{prefix}
 				</div>
 			)}
-			<HeadlessProvider>
-				<Button
-					// Navigation writes no field, so a locked scope, such as a submitting
-					// form, leaves it live.
-					lockable={false}
-					data-current={dataAttr(isCurrent)}
-					className={cn(k.item.button({ affix: hasAffix }), className)}
-					onClick={handleClick}
-					// Consumer props spread first; the type, the anchor a kata
-					// `has-[]` rule reads, and the current marker below take precedence.
-					// A link takes no type, because the type of an anchor names a MIME type.
-					{...props}
-					type={props.href === undefined ? 'button' : undefined}
-					data-slot="nav-item-inner"
-					aria-current={ariaCurrent}
-				>
-					<TouchTarget>
-						{icon && <Icon icon={icon} />}
-						{children}
-					</TouchTarget>
-				</Button>
-			</HeadlessProvider>
+			<ButtonBase
+				// Navigation writes no field, so a locked scope, such as a submitting
+				// form, leaves it live.
+				lockable={false}
+				data-current={dataAttr(isCurrent)}
+				className={cn(k.item.button({ affix: hasAffix }), className)}
+				onClick={handleClick}
+				// Consumer props spread first; the type, the anchor a kata
+				// `has-[]` rule reads, and the current marker below take precedence.
+				// A link takes no type, because the type of an anchor names a MIME type.
+				{...props}
+				type={props.href === undefined ? 'button' : undefined}
+				data-slot="nav-item-inner"
+				aria-current={ariaCurrent}
+			>
+				<TouchTarget>
+					{icon && <Icon icon={icon} />}
+					{children}
+				</TouchTarget>
+			</ButtonBase>
 			{suffix != null && (
 				<div data-slot="nav-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
 					{suffix}
