@@ -1,8 +1,8 @@
 /**
- * Hannou (反応): response. Interaction feedback (hover, press, focus,
- * disabled, busy, cursor) plus the kata-shaped item / nav surfaces
- * that compose those primitives. One file per concern; this barrel
- * assembles the named bundle that every kata reads.
+ * Hannou (反応): response. Interaction feedback: hover, press, focus,
+ * disabled, busy, and cursor. One file per concern; this barrel assembles the
+ * named bundle that every kata reads. The row chrome that composes these
+ * tokens is a group (`kumi/item`).
  */
 
 import { active } from './active'
@@ -10,15 +10,9 @@ import { busy } from './busy'
 import { cursor, grab } from './cursor'
 import { disabled } from './disabled'
 import { fg } from './fg'
-import { item } from './item'
-import { nav } from './nav'
 import { tint } from './tint'
 
 export const hannou = {
-	/** The menu and option row: its chrome (`base`) and its text parts. */
-	item,
-	/** Nav-item chrome in layers (`base`, `tint`, `focus`), so katas can re-seat the surface on a wrapper row. */
-	nav,
 	/** Disabled / dormant state. */
 	disabled,
 	/** A part that waits on data: the pulse, or a standing dim under reduced motion. */

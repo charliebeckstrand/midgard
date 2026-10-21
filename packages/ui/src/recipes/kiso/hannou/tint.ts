@@ -1,8 +1,8 @@
 /**
  * Hannou tint: the hover and focus washes. `base` is the mode-neutral wash on
- * the active surface: 5% zinc on light, 5% white on dark. The menu and option
- * item chrome (`hannou.item`) reads it, and so does any kata that wants the
- * same wash. The other entries are its forms for other grounds. Each wash is
+ * the active surface: 5% zinc on light, 5% white on dark. The item group
+ * (`kumi/item`) reads it for the row of a menu or a list, and so does any kata
+ * that wants the same wash. The other entries are its forms for other grounds. Each wash is
  * guarded against a disabled or `data-disabled` element.
  *
  * Layer: kiso · Concern: hover/focus tint
@@ -16,6 +16,11 @@ export const tint = {
 		'not-disabled:not-data-disabled:hover:bg-zinc-950/5 not-disabled:not-data-disabled:focus:bg-zinc-950/5',
 		'dark:not-disabled:not-data-disabled:hover:bg-white/5 dark:not-disabled:not-data-disabled:focus:bg-white/5',
 	),
+	/**
+	 * The hover wash alone, with no focus form and no disabled guard. A nav row
+	 * takes it, because the row marks its focus with a ring and not with a wash.
+	 */
+	hover: mode('hover:bg-zinc-950/5', 'dark:hover:bg-white/5'),
 	/**
 	 * `base` on the `::before` layer, not on the element. Use it where the
 	 * element keeps square corners and a rounded inner layer carries the wash. The

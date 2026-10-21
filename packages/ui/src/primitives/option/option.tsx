@@ -43,6 +43,9 @@ export type OptionProps = {
 // Selection and the focus hold run after a consumer `preventDefault()`.
 const alwaysRun = { checkForDefaultPrevented: false }
 
+/** The slots of an option row. */
+const slots = k()
+
 /**
  * Shared option row for select-like components: stamps `role="option"` with
  * `aria-selected`/`aria-disabled`, renders a selected-state check icon, and handles Enter/Space activation.
@@ -87,7 +90,7 @@ function OptionImpl({
 			data-slot="icon"
 			className={cn(
 				'relative invisible shrink-0 self-center group-data-selected/option:visible',
-				k.check,
+				slots.check,
 			)}
 		/>
 	)
@@ -95,7 +98,7 @@ function OptionImpl({
 	return (
 		<div
 			id={optionId}
-			className={cn(k.base)}
+			className={cn(slots.base)}
 			{...props}
 			// After the spread: a consumer prop must not drop the row out of the
 			// list (role), the roving model (tabIndex), or its state.
@@ -137,7 +140,7 @@ function OptionImpl({
 					: onMouseDown
 			}
 		>
-			<span className={cn(k.content, className)}>{children}</span>
+			<span className={cn(slots.content, className)}>{children}</span>
 			{checkIcon}
 		</div>
 	)
@@ -154,7 +157,7 @@ export type OptionLabelProps = ComponentProps<'span'>
 
 /** Primary label for a select-like option. */
 export function OptionLabel({ className, ...props }: OptionLabelProps) {
-	return <span {...props} className={cn(k.label, className)} />
+	return <span {...props} className={cn(slots.label, className)} />
 }
 
 /** Props for {@link OptionDescription}. */
@@ -163,7 +166,7 @@ export type OptionDescriptionProps = ComponentProps<'span'>
 /** Secondary description for a select-like option. */
 export function OptionDescription({ className, children, ...props }: OptionDescriptionProps) {
 	return (
-		<span {...props} className={cn(k.description, className)}>
+		<span {...props} className={cn(slots.description, className)}>
 			<span className="flex-1 truncate">{children}</span>
 		</span>
 	)
@@ -177,7 +180,7 @@ export type OptionTextProps = ComponentProps<'span'>
  * the description sits beside the label. It takes the free width of the row.
  */
 export function OptionText({ className, ...props }: OptionTextProps) {
-	return <span {...props} className={cn(k.text, className)} />
+	return <span {...props} className={cn(slots.text, className)} />
 }
 
 /** Props for a select-like option produced by `createSelectOption`; `value` is matched against the host's selection. */

@@ -64,6 +64,16 @@ const RENAMES: Record<string, string> = {
 	'sheet.k.base': 'sheet.k.panel',
 	'sheet.k.base()': 'sheet.k.panel()',
 	'panel.k.stack': 'panel.k.base',
+	'menu.k.item.base': 'menu.k.item',
+	'menu.k.item.label': 'menu.k.label',
+	'menu.k.item.text': 'menu.k.text',
+	'menu.k.item.description': 'menu.k.description',
+	'menu.k.item.shortcut': 'menu.k.shortcut',
+	'command-palette.k.item.base': 'command-palette.k.item',
+	'command-palette.k.item.label': 'command-palette.k.label',
+	'command-palette.k.item.text': 'command-palette.k.text',
+	'command-palette.k.item.description': 'command-palette.k.description',
+	'command-palette.k.item.shortcut': 'command-palette.k.shortcut',
 }
 
 /**
@@ -72,6 +82,7 @@ const RENAMES: Record<string, string> = {
  * only another unit held on main.
  */
 const REPEATS: Record<string, string> = {
+	'option.k.shortcut': 'menu.k.shortcut',
 	...Object.fromEntries(
 		['title', 'description', 'header', 'body', 'footer', 'content'].map((slot) => [
 			`dialog.k.${slot}`,

@@ -14,8 +14,8 @@ import { k as tabs } from '../../recipes/kata/tabs'
 // muted. Each row here keeps both colors of its recipe after the merge.
 
 const ROWS = [
-	{ name: 'CommandPalette item', classes: cn(palette.item), light: 'text-zinc-950' },
-	{ name: 'Menu item', classes: cn(menu.item), light: 'text-zinc-950' },
+	{ name: 'CommandPalette item', classes: palette.item().base, light: 'text-zinc-950' },
+	{ name: 'Menu item', classes: menu.item().base, light: 'text-zinc-950' },
 	{ name: 'Tab', classes: tabs({ orientation: 'horizontal' }).tab, light: 'text-zinc-500' },
 ]
 

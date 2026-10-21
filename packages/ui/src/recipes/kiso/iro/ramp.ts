@@ -108,7 +108,7 @@ export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:tex
  * `__tests__/recipes/contrast.test.ts` measures this rung against the wash for
  * every kata registered in `TINT_CONSUMERS`. That registry reconciles on every
  * spelling that reaches a wash: `bg.tint` for the opaque fill, `hannou.tint` /
- * `hannou.active` / `hannou.item` for the interaction ones. Each entry names
+ * `hannou.active` / the item group (`kumi/item`) for the interaction ones. Each entry names
  * the ground its inks land on, so the two grounds are measured apart where dark
  * parts them.
  */

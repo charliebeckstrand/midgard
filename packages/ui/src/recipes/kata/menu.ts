@@ -2,7 +2,9 @@
  * Menu kata: the object-literal surface of the `<Menu>` and `<Dropdown>`
  * popover lists. The panel is a density scope. The `item` row, the
  * `header.title`, and the `viewport` scroll container take the step of that
- * scope through stepped classes. The other parts are static:
+ * scope through stepped classes. `item` is the unit of a row, which extends
+ * the item group: its root, and its `label`, `text`, `description`, and
+ * `shortcut` slots. The other parts are static:
  *
  * - `content` is the panel box, and `surface` and `floating` are the wrapper
  *   and the panel of a floating menu.
@@ -13,34 +15,35 @@
  * - `sub` holds the parts of a submenu. `trigger` is the wash on an open
  *   parent row, and `chevron` and `group` are parts of a submenu in the bottom
  *   sheet.
- * - `section`, `heading`, `label`, `text`, `description`, `shortcut`, and the
- *   `separator` divider are the other parts of a panel.
+ * - `section`, `heading`, and the `separator` divider are the other parts of
+ *   a panel.
  */
 import { defineScale } from '../../core/density'
-import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, narabi, sen } from '../kiso'
+import { defineKata, defineRecipe, mode } from '../../core/recipe'
+import { iro, ji, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 import { fade } from '../kiso/omote/fade'
+import { item } from '../kumi/item'
 
 const { text } = iro
 const { size, weight } = ji
 const { fit, flex } = narabi
 const { divider } = sen
 
-const item = [
-	// `hannou.active` layers the `data-active` wash beside `hannou.item`'s
-	// focus/hover wash: a dropdown roves its items via `aria-activedescendant`
-	// (focus stays on the trigger), marking the active row `data-active` rather
-	// than focusing it, so the highlight must key off that too.
-	'group/option',
-	flex.row,
-	'w-full',
-	...hannou.item.base,
-	...hannou.active,
-	...narabi.item,
-	`${dan.gap.option} ${dan.space.menu.item.x} ${dan.space.option.y}`,
-	ji.ramp,
-]
+/**
+ * The row of a menu. The menu pads its row by the step of the nearest density
+ * scope, and lays out an icon, a label, and a shortcut on one line.
+ */
+const row = defineKata({
+	extends: item,
+	base: [
+		flex.row,
+		'w-full',
+		...narabi.item,
+		`${dan.gap.option} ${dan.space.menu.item.x} ${dan.space.option.y}`,
+		ji.ramp,
+	],
+})
 
 // The scrollable item region inside the panel.
 const viewport = defineRecipe({
@@ -91,7 +94,7 @@ export const k = {
 	sub: {
 		// A `MenuSub` parent keeps its wash while the panel is open (`data-open`),
 		// so the row the pointer traveled from still reads as the live trail back:
-		// `hannou.item`'s hover tint alone drops the moment the pointer leaves it.
+		// The hover wash of the row alone drops the moment the pointer leaves it.
 		// Forced colors remove the wash, so the row draws an outline there instead:
 		// an edge rather than the `Highlight` fill of the roving cursor.
 		trigger: [
@@ -106,7 +109,7 @@ export const k = {
 		group: 'min-w-0 space-y-0.5 ps-4',
 	},
 	viewport,
-	item,
+	item: row,
 	header: {
 		// The box of the title and the description of a panel, above its rows. The
 		// header does not shrink, so the rows below it scroll when the panel is
@@ -117,10 +120,6 @@ export const k = {
 	},
 	section: 'first:pt-0 last:pb-0',
 	heading: ['px-3 pb-1 pt-2', size.xs, weight.medium, text.muted],
-	label: hannou.item.label,
-	text: hannou.item.text,
-	description: hannou.item.description,
-	shortcut: hannou.item.shortcut,
 	separator: divider.top,
 } as const
 

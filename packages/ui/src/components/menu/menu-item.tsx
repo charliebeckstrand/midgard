@@ -76,7 +76,7 @@ export function MenuItem(props: MenuItemProps) {
 	// picks up from the row the pointer left off on.
 	const handlePointerMove = useMenuRowPointer(disabled)
 
-	const classes = cn('group/option', k.item, className)
+	const classes = cn('group/option', k.item().base, className)
 
 	if (props.href !== undefined) {
 		const {

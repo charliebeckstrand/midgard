@@ -2,7 +2,7 @@ import { defineRecipe } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
-const { nav, cursor } = hannou
+const { cursor, tint } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { flex } = narabi
@@ -20,7 +20,7 @@ export const k = defineRecipe({
 		'p-ring-2',
 		'rounded-[--spacing(2)]',
 		...cursor,
-		nav.tint,
+		tint.hover,
 		// Keyboard focus projects onto the whole item: when the inner select control
 		// is focus-visible the ring wraps the entire row, not just the text region.
 		// Action controls keep their own ring, so roving into them reads distinctly.
