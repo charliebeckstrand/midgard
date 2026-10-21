@@ -6,7 +6,6 @@ export {
 	type PaletteColor,
 } from './colors'
 export {
-	applyRecipe,
 	defineGroup,
 	defineKata,
 	definePalette,

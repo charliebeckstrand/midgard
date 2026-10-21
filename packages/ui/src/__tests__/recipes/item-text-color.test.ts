@@ -1,6 +1,5 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { cn } from '../../core'
 import { k as palette } from '../../recipes/kata/command-palette'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as tabs } from '../../recipes/kata/tabs'

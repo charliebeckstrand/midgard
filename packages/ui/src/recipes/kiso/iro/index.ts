@@ -11,7 +11,8 @@
  * keyed by purpose in turn, since what varies on that ground is emphasis.
  *
  * `palette` is the standard five-color set (zinc / red / amber / green /
- * blue). `extended` is the opt-in wide palette: the same shape keyed by every
+ * blue). `matrix` holds its solid, soft, and outline slots in the form that
+ * `definePalette` takes. `extended` is the opt-in wide palette: the same shape keyed by every
  * standard color plus the extended set (rose / violet / sky). A kata reads it
  * in place of `palette` to offer the broader `color` axis.
  *
@@ -22,6 +23,7 @@
 import { bare } from './bare'
 import { extendedPalette } from './extended-palette'
 import { intent } from './intent'
+import { matrix } from './matrix'
 import { meter } from './meter'
 import { outline } from './outline'
 import { plain } from './plain'
@@ -29,9 +31,16 @@ import { marker, onWash } from './ramp'
 import { soft } from './soft'
 import { solid } from './solid'
 
+const palette = { solid, soft, outline, plain, bare }
+
 export const iro = {
-	palette: { solid, soft, outline, plain, bare },
+	palette,
 	extended: extendedPalette,
+	/**
+	 * The solid, soft, and outline slots of `palette` and of `extended`, in the
+	 * form that `definePalette` takes. The chromatic surfaces read it.
+	 */
+	matrix: { palette: matrix(palette), extended: matrix(extendedPalette) },
 	text: intent,
 	marker,
 	meter,

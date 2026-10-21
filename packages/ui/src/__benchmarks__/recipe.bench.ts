@@ -73,8 +73,8 @@ describe('recipe · memo hit vs miss (same recipe, same payload)', () => {
 	})
 
 	// The axis is built from `Object.fromEntries`, so its type carries an index
-	// signature — which the engine's `AxesOf` mapped type deliberately refuses to
-	// widen into a variant union (see `engine/applicator.ts`). A kata always
+	// signature. The variant types of the engine do not widen it into a variant
+	// union (see `engine/types.ts`). A kata always
 	// declares its values as literals; only a generated axis like this one needs
 	// the call signature spelled out.
 	const call = wide as unknown as (props: { slot: string }) => string

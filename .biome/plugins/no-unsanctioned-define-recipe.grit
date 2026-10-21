@@ -1,22 +1,21 @@
 language js
 
-// `defineRecipe` is the kata surface's own tool. A kata that matches no
-// archetype calls it directly, and a kata that matches one routes through its
-// katakana applicator. Anywhere else, a recipe defined in place escapes the
-// layering the package reads its styling through.
+// `defineRecipe` is the kata surface's own tool. A kata calls it directly, or
+// it builds a unit with `defineKata`. Anywhere else, a recipe defined in place
+// escapes the layering the package reads its styling through.
 //
 // The specifier is matched by regex rather than by literal, so it accepts any
 // path that ends in `core/recipe`: a deep relative path, a package path, and
 // either quote style.
 //
 // The sanctioned files are the `includes` beside this plugin in `biome.json`:
-// the kata surface and the katakana applicators.
+// the kata surface.
 `import $clause from $src` where {
 	$clause <: contains or { `defineRecipe`, `defineRecipe as $_` },
 	$src <: r"['\"].*core/recipe['\"]"
 } where {
 	register_diagnostic(
 		span = $clause,
-		message = "defineRecipe belongs to the kata surface: call it from `recipes/kata`, or route through `recipes/katakana`"
+		message = "defineRecipe belongs to the kata surface: call it from `recipes/kata`"
 	)
 }

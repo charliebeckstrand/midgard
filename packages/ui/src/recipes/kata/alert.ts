@@ -1,9 +1,8 @@
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
-import { bridge } from '../katakana'
 import { iro, ji, kasane, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 
-const { palette } = iro
+const { matrix, palette } = iro
 const { weight, leading } = ji
 const { rounded } = kasane
 const { flex } = narabi
@@ -27,7 +26,7 @@ export const k = defineRecipe({
 	variant: {
 		outline: ring.line[1].inset,
 	},
-	palette: definePalette({ ...bridge.palette(palette), plain: palette.plain.text }),
+	palette: definePalette({ ...matrix.palette, plain: palette.plain.text }),
 	slots: {
 		icon: 'shrink-0 self-center',
 		title: [titleRamp, weight.semibold],

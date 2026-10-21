@@ -1,4 +1,3 @@
-export { applyRecipe } from './applicator'
 export { defineGroup, defineKata } from './kata'
 export { definePalette } from './palette'
 export { defineRecipe } from './recipe'
