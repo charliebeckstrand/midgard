@@ -105,7 +105,7 @@ const tab = defineRecipe({
 		],
 		vertical: [
 			'after:inset-y-0 after:-inset-s-px after:w-0.5',
-			`${dan.space.tab.pill.x} ${dan.space.tab.pill.y}`,
+			`${dan.space.tab.vertical.x} ${dan.space.tab.vertical.y}`,
 		],
 	},
 	defaults: { orientation: 'horizontal' },
@@ -167,7 +167,7 @@ export const scale = defineScale(
 	ji.ramp,
 	dan.space.tab.x,
 	dan.space.tab.bottom,
-	dan.space.tab.pill.x,
-	dan.space.tab.pill.y,
+	dan.space.tab.vertical.x,
+	dan.space.tab.vertical.y,
 	dan.size.segment.base,
 )

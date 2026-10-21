@@ -29,11 +29,11 @@ const affixSlot = ['relative', 'z-10', flex.row, 'shrink-0']
 
 /**
  * The box of an item: the axis, the padding, the gap, the text, and the
- * radius. These take the step of the nearest density scope. At `md` the item
- * is `p-2` with `gap-2` and `text-base`. The skeleton row takes the same box,
- * so the two boxes match.
+ * radius. These take the step of the nearest density scope, as the box of a
+ * sidebar item does. At `md` the item is `p-2` with `gap-2`, `text-base`, and
+ * `rounded-lg`. The skeleton row takes the same box, so the two boxes match.
  */
-const itemBox = [flex.row, 'w-full', dan.space.nav.item, dan.gap.item, ji.ramp, rounded.lg]
+const itemBox = [flex.row, 'w-full', dan.space.nav.item, dan.gap.item, ji.ramp, dan.radius.control]
 
 /**
  * Shared item structure minus the interaction surface. The icon takes the
@@ -58,7 +58,7 @@ const itemShell = [
 const base = defineRecipe({
 	base: ['group relative list-none'],
 	affix: {
-		true: [`flex items-center ${dan.gap.scale.xs}`, ...nav.tint, rounded.lg, ...focus.within.row],
+		true: [flex.row, dan.gap.scale.xs, dan.radius.control, ...nav.tint, ...focus.within.row],
 		false: '',
 	},
 	defaults: { affix: false },

@@ -6,7 +6,7 @@
 
 `kiso/` is internal. Its **values** are read only by `kata/`; the katakana bridge receives kiso tokens by argument and imports nothing from kiso, not even types. Components, primitives, and layouts reach kiso through their owning kata (`recipes/kata/<name>`). Foundational types (`Color`, `Ma`, `GroupOrientation`) flow through the types-only `recipes` barrel so consumers can derive prop unions without threading the type through their funnel.
 
-Composition flows downward only. Within kiso, semantic bundles compose primitive atoms, and atoms can compose sibling atoms. `narabi` reads `dan` · `sen` · `shaku`, and `omote` reads `sen` · `ugoki`. `hannou` reads `iro` · `ji` · `kasane` · `sen` · `ugoki`. `kokkaku` reads `dan` · `ji` · `kasane` · `shaku`, and `shaku` reads `dan` · `ji` · `kasane`. `ji` reads `dan`, which reads no other module. Kiso never reaches upward into `katakana/` or `kata/`. The contract is pinned by the `recipes/kiso/**` override in `biome.json`; the full boundary list lives in [`../README.md`](../README.md#3-boundary).
+Composition flows downward only. Within kiso, semantic bundles compose primitive atoms, and atoms can compose sibling atoms. `narabi` reads `dan` · `sen` · `shaku`, and `omote` reads `sen` · `ugoki`. `hannou` reads `iro` · `ji` · `kasane` · `narabi` · `sen` · `ugoki`. `kokkaku` reads `dan` · `ji` · `kasane` · `shaku`, and `shaku` reads `dan` · `ji` · `kasane`. `ji` reads `dan`, which reads no other module. Kiso never reaches upward into `katakana/` or `kata/`. The contract is pinned by the `recipes/kiso/**` override in `biome.json`; the full boundary list lives in [`../README.md`](../README.md#3-boundary).
 
 ## 2. Shape
 

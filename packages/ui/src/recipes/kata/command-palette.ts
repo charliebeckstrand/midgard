@@ -9,9 +9,9 @@ import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kara, narabi, shaku } from '../kiso'
 import { panel } from '../kiso/panel'
 
-const { on, text } = iro
+const { text } = iro
 const { size, weight } = ji
-const { flex, description } = narabi
+const { flex } = narabi
 
 export const k = {
 	// A group after any sibling takes the slot gap of the panel, which is the
@@ -33,7 +33,7 @@ export const k = {
 		'w-full',
 		'px-2',
 		'py-2.5 sm:py-1.5',
-		...hannou.item,
+		...hannou.item.base,
 		...narabi.item,
 		// The chrome of a row is fixed, so its icon and its gap are fixed at `md`
 		// too.
@@ -51,11 +51,8 @@ export const k = {
 			'dark:not-disabled:not-data-disabled:data-active:hover:bg-white/10 dark:group-data-glass/glass:not-disabled:not-data-disabled:data-active:hover:bg-white/20',
 		),
 	],
-	label: 'truncate',
-	// A column that stacks a label over its description.
-	text: narabi.text,
-	// `on.wash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
-	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
-	description: [description, size.xs, on.wash.muted],
-	shortcut: 'ms-auto',
+	label: hannou.item.label,
+	text: hannou.item.text,
+	description: [hannou.item.description, size.xs],
+	shortcut: hannou.item.shortcut,
 } as const

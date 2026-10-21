@@ -11,7 +11,7 @@
 const box = 'density-rounded-[1,1.5,2,2.5,3]'
 
 export const radius = {
-	/** The radius of a control and a sidebar item. */
+	/** The radius of a control, a nav item, and a sidebar item. */
 	control: box,
 	/** The radius of a button. */
 	button: box,

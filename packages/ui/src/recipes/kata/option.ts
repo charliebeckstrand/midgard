@@ -1,13 +1,12 @@
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi } from '../kiso'
+import { hannou, ji, kasane, narabi } from '../kiso'
 import { dan } from '../kiso/dan'
 
-const { on } = iro
 const { rounded } = kasane
-const { flex, description } = narabi
+const { flex } = narabi
 
 const base = [
-	...hannou.item,
+	...hannou.item.base,
 	'group/option grid w-full items-baseline',
 	// The check column is as wide as the check, which takes the step of the nearest
 	// scope. The check of a row that is not selected is invisible, so it keeps the
@@ -27,12 +26,9 @@ const base = [
 export const k = {
 	base,
 	content: [flex.row, 'min-w-0', narabi.item],
-	label: 'truncate group-data-selected/option:font-bold',
-	// A column that stacks a label over its description.
-	text: narabi.text,
-	// `on.wash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
-	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
-	description: [description, on.wash.muted],
+	label: [hannou.item.label, 'group-data-selected/option:font-bold'],
+	text: hannou.item.text,
+	description: hannou.item.description,
 	/**
 	 * The selected-state check icon: its color and its size. The size is the
 	 * glyph size of each step.

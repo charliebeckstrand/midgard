@@ -14,6 +14,7 @@ import { nav } from './nav'
 import { tint } from './tint'
 
 export const hannou = {
+	/** The menu and option row: its chrome (`base`) and its text parts. */
 	item,
 	/** Nav-item chrome in layers (`base`, `tint`, `focus`), so katas can re-seat the surface on a wrapper row. */
 	nav,
