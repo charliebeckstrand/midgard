@@ -47,6 +47,12 @@ const RENAMES: Record<string, string> = {
 	'tabs.k.base()': 'tabs.k.group()',
 	'button.k.base': 'button.k',
 	'button.k.base()': 'button.k()',
+	'slider.k.base': 'slider.k',
+	'slider.k.base()': 'slider.k()',
+	'checkbox.k.base': 'checkbox.k',
+	'checkbox.k.base()': 'checkbox.k()',
+	'radio.k.base': 'radio.k',
+	'radio.k.base()': 'radio.k()',
 }
 
 /**

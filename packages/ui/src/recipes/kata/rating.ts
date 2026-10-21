@@ -19,8 +19,8 @@
 import { defineScale } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { hannou, iro, kokkaku, narabi, sen, ugoki } from '../kiso'
-import { control } from '../kiso/control'
 import { dan } from '../kiso/dan'
+import { hidden } from '../kumi/check'
 
 const { cursor, disabled } = hannou
 const { css } = ugoki
@@ -111,7 +111,7 @@ export const k = defineRecipe(
 		 */
 		clearing: 'opacity-40',
 		/** Visually-hidden native radio, overlaying its own star. */
-		input: control.check.hidden,
+		input: hidden,
 	},
 )
 

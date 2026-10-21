@@ -1,7 +1,9 @@
 /**
  * The control group: the shared structure of the framed controls. Input and
- * Textarea extend `control`. Listbox, Combobox, DatePicker, and ColorPicker
- * extend `trigger`, which is a control that opens a picker.
+ * Textarea extend `control`. A `trigger` is a control that opens a floating
+ * panel. Listbox and Combobox extend `list`, a trigger that opens a list of
+ * options. DatePicker and ColorPicker extend `picker`, a trigger that opens a
+ * picker dialog.
  *
  * - `base` is the frame (`<ControlFrame>`): the kasane chrome, the radius, and
  *   the surface that `variant` sets.
@@ -13,7 +15,7 @@
  */
 
 import { defineGroup } from '../../../core/recipe'
-import { hannou } from '../../kiso/hannou'
+import { hannou, iro, narabi, omote, sou, ugoki } from '../../kiso'
 import { affix } from './affix'
 import { density } from './density'
 import { frame } from './frame'
@@ -23,6 +25,7 @@ import { surface } from './surface'
 export { scale } from './density'
 
 const { cursor } = hannou
+const { fit } = narabi
 
 export const control = defineGroup({
 	slots: {
@@ -54,7 +57,7 @@ const press = [
 	'group-has-[:disabled,[data-disabled]]/control:cursor-not-allowed',
 ]
 
-/** A control that opens a picker. Its affixes are press targets. */
+/** A control that opens a floating panel. Its affixes are press targets. */
 export const trigger = defineGroup({
 	extends: control,
 	slots: {
@@ -62,3 +65,48 @@ export const trigger = defineGroup({
 		suffix: { base: press },
 	},
 })
+
+/**
+ * A trigger that opens a list of options. The panel rides the `float` rung of
+ * the stacking order, which clears every overlay rung, because a list opens
+ * from inside a modal panel too.
+ */
+export const list = defineGroup(
+	{
+		extends: trigger,
+		slots: {
+			/**
+			 * The scroll region of the options. The cap is 320px, about eight rows. The
+			 * old 240px (the classic Tailwind example value, never a reasoned one) forced
+			 * a scrollbar at seven options, and the dashboard picker hit it with screen to
+			 * spare. The cap binds only on a list that exceeds it. A panel that no longer
+			 * fits below its trigger flips above, and a panel that fits on neither side
+			 * shrinks into the larger space (the floating middleware chain).
+			 */
+			options: { base: ['max-h-80', fit.scroll] },
+		},
+	},
+	{
+		/** The positioned wrapper of the panel. */
+		portal: [sou.float, fit.wrapper],
+	},
+)
+
+/**
+ * A trigger that opens a picker dialog. `root` sizes the box of the trigger to
+ * its content. The box does not fill its parent, and it does not get wider
+ * than its parent. `content` holds the classes of the dialog panel.
+ */
+export const picker = defineGroup(
+	{ extends: trigger },
+	{
+		root: ['w-fit', 'max-w-full'],
+		content: {
+			portal: [sou.float, fit.wrapper],
+			motion: ugoki.popover,
+			column: fit.column,
+			text: iro.text.default,
+			glass: omote.glass,
+		},
+	},
+)

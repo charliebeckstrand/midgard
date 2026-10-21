@@ -1,3 +1,4 @@
+export { dan } from './dan'
 export { hannou } from './hannou'
 export { iro } from './iro'
 export { ji } from './ji'

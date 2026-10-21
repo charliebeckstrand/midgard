@@ -121,6 +121,8 @@ export function Checkbox({
 
 	const Mark = indeterminate ? Minus : Check
 
+	const slots = k({ color })
+
 	return (
 		<label
 			data-slot="control"
@@ -128,7 +130,7 @@ export function Checkbox({
 			data-disabled={dataAttr(resolvedDisabled)}
 			hidden={hidden}
 			style={style}
-			className={cn(k({ color }), className)}
+			className={cn(slots.base, className)}
 		>
 			<input
 				// Consumer props spread first; the resolved §7.2 binding, the
@@ -149,9 +151,9 @@ export function Checkbox({
 				aria-readonly={ariaAttr(resolvedReadOnly)}
 				aria-describedby={resolvedDescribedBy}
 				{...validation}
-				className={k.input()}
+				className={slots.input}
 			/>
-			<Mark data-slot="checkbox-check" aria-hidden="true" className={k.mark()} strokeWidth={2} />
+			<Mark data-slot="checkbox-check" aria-hidden="true" className={slots.mark} strokeWidth={2} />
 		</label>
 	)
 }

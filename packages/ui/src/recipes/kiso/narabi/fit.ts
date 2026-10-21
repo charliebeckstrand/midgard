@@ -1,11 +1,11 @@
 /**
- * Popover archetype: the height fit of a floating panel. The `fitHeight`
+ * Narabi fit: the height fit of a floating panel. The `fitHeight`
  * option of the floating layer writes a max-height on the positioned wrapper
  * when the panel is taller than the space on its side of the trigger. The
  * wrapper is a column, so each `min-h-0` item between the wrapper and the
  * scroll region shrinks into that cap, and the scroll region scrolls.
  *
- * Layer: kiso · Archetype: popover · Concern: fit
+ * Layer: kiso · Concern: fit
  */
 
 export const fit = {

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { k as radio } from '../../recipes/kata/radio'
 import { k as switchKata } from '../../recipes/kata/switch'
 import { k as text } from '../../recipes/kata/text'
-import { control } from '../../recipes/kiso/control'
+import { check } from '../../recipes/kumi/check'
 import { contrastRatio, WCAG_AA_TEXT, WCAG_NON_TEXT } from '../../utilities/contrast'
 import { getContrast, SURFACE, tinted } from '../helpers/contrast'
 
@@ -47,7 +47,7 @@ describe('Text color contrast', () => {
 })
 
 describe('check surface edge contrast', () => {
-	const { base: surface } = control.check
+	const surface = check.slots.base.base
 
 	it('the resting border clears 3:1 against the light page', () => {
 		const fill = tinted(only(surface, /^bg-white$/), SURFACE.light)
@@ -66,7 +66,7 @@ describe('check surface edge contrast', () => {
 	})
 
 	it('the checked zinc radio fill clears 3:1 in each mode', () => {
-		const classes = getClasses(radio({ color: 'zinc' }))
+		const classes = getClasses(radio({ color: 'zinc' }).base)
 
 		const light = only(classes, /^\[--check-bg:/)
 

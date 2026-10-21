@@ -21,13 +21,11 @@ import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
 import { fade } from '../kiso/omote/fade'
-import { popover } from '../kiso/popover'
 
 const { text } = iro
 const { size, weight } = ji
-const { flex } = narabi
+const { fit, flex } = narabi
 const { divider } = sen
-const { fit } = popover
 
 const item = [
 	// `hannou.active` layers the `data-active` wash beside `hannou.item`'s

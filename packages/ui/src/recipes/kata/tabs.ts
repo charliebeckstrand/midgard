@@ -2,23 +2,79 @@
  * Tabs kata: serves both the underline `<Tabs>` list and the `<Segment>` box,
  * two units through one surface. The slots of the underline tabs share the
  * `orientation` and `stretch` props, and each slot declares the axes that
- * change it. The root slot `base` is the tab group. `segment` reads
- * the kiso segment recipe, which Segment and Tabs share through this kata, and
+ * change it. The root slot `base` is the tab group. `segment` holds the parts
+ * of the segment box, which Segment and Tabs share through this kata, and
  * `skeleton` carries a loading placeholder for each unit.
  */
 import { defineScale } from '../../core/density'
 import { defineKata, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 import { dan } from '../kiso/dan'
-import { segment } from '../kiso/segment'
 
 const { cursor, disabled, fg } = hannou
-const { text } = iro
+const { on, text } = iro
 const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { rail } = omote
+const { bg, rail } = omote
 const { border, focus, forced } = sen
+
+/**
+ * The segment box: the rounded box with a sliding indicator, behind `<Segment>`
+ * and `<Tabs variant="segment">`. The gap, the padding, and the text take the
+ * step of the nearest density scope.
+ */
+const segment = {
+	/**
+	 * The box that holds the items and the indicator. `self-start` keeps the box
+	 * at the width of its content inside the `flex flex-col` tab group, over the
+	 * `align-items: stretch` of the cross axis. `max-w-full` holds it inside its
+	 * container: where the labels do not fit on one line, the items shrink and
+	 * wrap their labels, and the page does not widen.
+	 */
+	control: [
+		flex.inline,
+		'self-start max-w-full',
+		...bg.tint,
+		rounded.lg,
+		`p-1 ${dan.gap.default}`,
+		ji.ramp,
+	],
+	/** One item of the box: the layout, the focus ring, and the disabled and cursor states. */
+	item: [
+		flex.row,
+		'justify-center',
+		// A label stays on one line while the control fits its container. Where it
+		// does not, the item shrinks to its longest word and the label wraps.
+		'text-center text-balance',
+		rounded.lg,
+		weight.medium,
+		// iOS Safari can select the text in a child of a `select-none` item on a long
+		// press, so the children also set it.
+		'select-none *:select-none',
+		// The selected item steps to full-strength ink and the rest stay muted, as
+		// the underline tab does. The indicator is then not the only mark of the
+		// selected item, and the distinction does not rest on a fill alone (WCAG
+		// 1.4.1).
+		//
+		// `on.wash.muted`, not `muted`: an item sits on the wash track of the box,
+		// which `muted` is not legal over. See `iro/ramp.ts`.
+		...on.wash.muted,
+		...fg.current,
+		// The ring alone marks focus. The `::after` marker of a tab has no position
+		// here, so it becomes a flex item, and the gap widens the focused item.
+		focus.ring,
+		...disabled,
+		...cursor,
+		`${dan.text.small} ${dan.space.segment.item.x} ${dan.space.row.y}`,
+		// An icon is the small text size plus 4 px, as an icon beside body text is.
+		dan.size.icon.small,
+		'*:data-[slot=icon]:shrink-0',
+		dan.gap.item,
+	],
+	/** The sliding fill that marks the active item and moves between the items. */
+	indicator: mode('bg-white', 'dark:bg-zinc-600'),
+} as const
 
 export const k = defineKata(
 	{

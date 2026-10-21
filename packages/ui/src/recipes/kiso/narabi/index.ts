@@ -6,6 +6,7 @@
 
 import { description } from './description'
 import { field } from './field'
+import { fit } from './fit'
 import { flex } from './flex'
 import { group } from './group'
 import { inset } from './inset'
@@ -24,4 +25,6 @@ export const narabi = {
 	description,
 	text,
 	flex,
+	/** The height fit of a floating panel: the wrapper, a column, and the scroll region. */
+	fit,
 } as const

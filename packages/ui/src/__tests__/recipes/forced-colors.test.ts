@@ -6,11 +6,11 @@ import { k as dashboard } from '../../recipes/kata/dashboard'
 import { k as grid } from '../../recipes/kata/grid'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
+import { k as popover } from '../../recipes/kata/popover'
 import { k as resizable } from '../../recipes/kata/resizable'
 import { k as tooltip } from '../../recipes/kata/tooltip'
 import { omote } from '../../recipes/kiso/omote'
 import { panel } from '../../recipes/kiso/panel'
-import { popover } from '../../recipes/kiso/popover'
 import { classNames } from '../helpers/class-stops'
 
 /**

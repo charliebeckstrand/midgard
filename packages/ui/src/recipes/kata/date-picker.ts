@@ -1,27 +1,26 @@
 /**
  * Date-picker kata: the unit of the `<DatePicker>` trigger, which extends the
- * trigger group, and the extras of its popover. The `field` slot is the button
+ * picker group, and the extras of its popover. The `field` slot is the button
  * that opens the calendar. A stepped `content.body` and a `value` sub-recipe
  * with a truncate axis drive the popover inset and the value text. `control`
  * (the input-mode field adjacency), `icon`, `placeholder`, and the `content`
  * group are extras.
  * `relative` adds the layout of the relative popover: the preset `list`, the
- * `custom` range affordance, and the trigger chip row. `root` sizes the box of
- * the trigger to its content, and `skeleton` is the form of DatePickerSkeleton.
+ * `custom` range affordance, and the trigger chip row. `skeleton` is the form
+ * of DatePickerSkeleton. The group gives `root` and the base of `content`.
  */
 import { defineKata, defineRecipe } from '../../core/recipe'
 import { hannou, iro, kokkaku, narabi, sen } from '../kiso'
 import { dan } from '../kiso/dan'
-import { popover } from '../kiso/popover'
-import { trigger } from '../kumi/control'
+import { picker } from '../kumi/control'
 
 export { scale } from '../kumi/control'
 
 const { cursor } = hannou
 const { focus } = sen
 const { text } = iro
-const { field, flex } = narabi
-const { fit, picker } = popover
+const { field, fit, flex } = narabi
+const { content } = picker.extras
 
 const value = defineRecipe({
 	base: 'block',
@@ -39,7 +38,6 @@ const value = defineRecipe({
 const body = [flex.col, dan.space.box.base, dan.gap.y.sm, fit.scroll]
 
 const extras = {
-	root: picker.root,
 	value,
 	// Input mode wraps the DateInput (its frame plus the error Message) in the
 	// floating reference, so the Field's child-combinator adjacency can't reach
@@ -50,8 +48,8 @@ const extras = {
 	placeholder: text.muted,
 	skeleton: kokkaku.datePicker,
 	content: {
-		...picker.content,
-		portal: [focus.ring, ...picker.content.portal],
+		...content,
+		portal: [focus.ring, ...content.portal],
 		body,
 		sheet: {
 			// The drawer of the bottom sheet on a phone. It holds focus for the
@@ -101,7 +99,7 @@ const extras = {
 
 export const k = defineKata(
 	{
-		extends: trigger,
+		extends: picker,
 		slots: {
 			field: {
 				base: [

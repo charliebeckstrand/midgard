@@ -1,27 +1,24 @@
 /**
- * Control archetype: check-input branch. `hidden` overlays a native input
- * on top of the custom surface; keyboard, focus, and form semantics stay
- * on the native element. `surface` paints the visible box / circle with the
- * standard hover and disabled treatment.
+ * The check group: the shared structure of `<Checkbox>` and `<Radio>`. The
+ * `base` slot is the visible box or circle, with the standard hover and
+ * disabled treatment. The `input` slot is the native input over it, so the
+ * keyboard, the focus, and the form semantics stay on the native element.
+ * The `color` axis sets the accent of a checked control, and each unit adds
+ * its own `zinc`.
  *
- * `base` pre-assembles the layout shell (position, inline-flex centering,
- * focus outline, cursor states) plus the surface fragment as a single
- * importable fragment.
- *
- * Layer: kiso · Archetype: control · Concern: check
+ * Switch, Rating, SignaturePad, and Tree read the `hidden`, `validation`, and
+ * `rest` fragments.
  */
 
-import { mode } from '../../../core/recipe'
-import { hannou } from '../hannou'
-import { narabi } from '../narabi'
-import { sen } from '../sen'
+import { defineGroup, mode } from '../../../core/recipe'
+import { hannou, narabi, sen } from '../../kiso'
 
 const { cursor } = hannou
 const { flex } = narabi
 const { focus, forced } = sen
 
 /** Visually hidden native input overlaying the custom check surface. */
-const hidden = ['absolute inset-0', 'opacity-0', ...cursor, forced.control]
+export const hidden = ['absolute inset-0', 'opacity-0', ...cursor, forced.control]
 
 /**
  * Validation ring keyed off the overlaid input's `data-*` state: red / amber /
@@ -32,7 +29,7 @@ const hidden = ['absolute inset-0', 'opacity-0', ...cursor, forced.control]
  * Forced colors remove the ring, so an invalid control takes the outline of
  * `forced.invalid` there.
  */
-const validation = [
+export const validation = [
 	'has-[[data-invalid],[data-warning],[data-valid]]:ring-2',
 	'has-[[data-invalid]]:ring-red-600',
 	'has-[[data-warning]]:ring-amber-500',
@@ -45,7 +42,7 @@ const validation = [
  * is the only mark of an unchecked control, so it keeps a 3:1 contrast against
  * the page in each mode (WCAG 1.4.11). The check box of a Tree row takes it too.
  */
-const rest = mode(
+export const rest = mode(
 	['bg-white', 'border border-zinc-950/50'],
 	['dark:bg-white/5', 'dark:border-white/35'],
 )
@@ -88,16 +85,13 @@ const shell = [
 	'touch-manipulation',
 ]
 
-/** Pre-assembled chrome: shell + surface. The standard base of `bridge.check`. */
-const base = [...shell, ...surface]
-
 /**
  * Checked-state accent colors shared by the checkbox and radio kata: each
  * injects the foreground mark, fill, and border into `--check-mark` /
  * `--check-bg` / `--check-border` for one accent. The zinc accent diverges per
  * component (checkbox uses a neutral fill, radio a high-contrast one). Each kata
- * defines its own zinc and spreads these four. Literal class strings;
- * Tailwind's scanner extracts them statically.
+ * adds its own zinc. Literal class strings; Tailwind's scanner extracts them
+ * statically.
  */
 const color = {
 	red: '[--check-mark:var(--color-white)] [--check-bg:var(--color-red-600)] [--check-border:var(--color-red-800)]/90',
@@ -108,11 +102,12 @@ const color = {
 	blue: '[--check-mark:var(--color-white)] [--check-bg:var(--color-blue-600)] [--check-border:var(--color-blue-800)]/90',
 } as const
 
-export const check = {
-	hidden,
-	rest,
-	base,
-	color,
-	/** Validation ring fragment keyed off the overlaid input's `data-*` state; spread by the switch track and the signature pad, already folded into `surface` for checkbox / radio. */
-	validation,
-} as const
+export const check = defineGroup({
+	slots: {
+		/** The layout shell and the surface of the box or the circle. */
+		base: { base: [...shell, ...surface], color },
+		/** Visually-hidden native `<input>` overlaying the custom check surface. */
+		input: { base: hidden },
+	},
+	defaults: { color: 'zinc' },
+})

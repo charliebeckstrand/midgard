@@ -173,7 +173,7 @@ export function Slider({
 			}}
 			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
 			onBlur={composeEventHandlers(onBlur, setTouched, { checkForDefaultPrevented: false })}
-			className={cn(k({ color }), className)}
+			className={cn(k({ color }).base, className)}
 			style={{ ...style, '--slider-value': `${percent}%` } as CSSProperties}
 			{...props}
 		/>

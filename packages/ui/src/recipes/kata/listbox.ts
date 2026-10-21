@@ -1,22 +1,19 @@
 import { defineKata, defineRecipe } from '../../core/recipe'
 import { hannou, iro, narabi } from '../kiso'
-import { popover } from '../kiso/popover'
-import { trigger } from '../kumi/control'
+import { list } from '../kumi/control'
 
 export { scale } from '../kumi/control'
 
 const { cursor } = hannou
 const { text } = iro
 const { flex } = narabi
-const { list } = popover
 
 export const k = defineKata(
 	{
-		extends: trigger,
+		extends: list,
 		slots: {
 			/** The button that opens the list. */
 			field: { base: [flex.row, 'text-start', 'appearance-none', ...cursor] },
-			options: { base: list.options },
 			panel: { base: 'relative min-w-full' },
 		},
 	},
@@ -30,7 +27,6 @@ export const k = defineKata(
 			},
 			defaults: { truncate: true },
 		}),
-		portal: list.portal,
 		placeholder: text.muted,
 	},
 )

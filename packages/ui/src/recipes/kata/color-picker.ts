@@ -1,15 +1,13 @@
 import { defineKata } from '../../core/recipe'
 import { hannou, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 import { dan } from '../kiso/dan'
-import { popover } from '../kiso/popover'
-import { trigger } from '../kumi/control'
+import { picker } from '../kumi/control'
 
 export { scale } from '../kumi/control'
 
 const { cursor } = hannou
 const { rounded } = kasane
-const { flex } = narabi
-const { fit, picker } = popover
+const { fit, flex } = narabi
 
 /** The text of the color value in the trigger, cut to one line. */
 const value = ['block', 'truncate']
@@ -32,19 +30,18 @@ const swatch = {
 
 export const k = defineKata(
 	{
-		extends: trigger,
+		extends: picker,
 		slots: {
 			/** The button that opens the picker. */
 			field: { base: [flex.row, 'text-start', 'appearance-none', ...cursor] },
 		},
 	},
 	{
-		root: picker.root,
 		value,
 		swatch,
 		skeleton: kokkaku.colorPicker,
 		content: {
-			...picker.content,
+			...picker.extras.content,
 			scroll: fit.scroll,
 		},
 	},
