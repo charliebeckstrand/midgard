@@ -25,6 +25,9 @@ const surfaceStroke = mode(
 	'dark:stroke-(--surface-fill,var(--color-zinc-950))',
 )
 
+/** The muted ink of SVG text: a tick label and an axis title. */
+const mutedFill = mode('fill-zinc-500', 'dark:fill-zinc-400')
+
 /** A named chart color slot: the eight categorical slots plus `zinc`. */
 export type ChartColorSlot = SeriesSlot
 
@@ -40,10 +43,10 @@ export const k = {
 		/** The axis baseline, a step firmer than the grid. */
 		line: ink.axis.line,
 		/** SVG value-axis title ink: a step smaller and firmer than the ticks it names. */
-		title: ['text-xs', 'font-medium', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
+		title: ['text-xs', 'font-medium', ...mutedFill],
 	},
 	/** SVG tick-label ink: muted, tabular for vertical alignment. */
-	tick: ['text-sm', 'tabular-nums', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
+	tick: ['text-sm', 'tabular-nums', ...mutedFill],
 	/** Legend / tooltip label ink (HTML text; marks carry the color, text never does). */
 	label: ink.label,
 	/** Tooltip value ink: the strong element, values lead. */

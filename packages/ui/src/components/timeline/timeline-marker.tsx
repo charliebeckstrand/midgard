@@ -69,7 +69,7 @@ export function TimelineMarker({
 			// decorative marker carries none.
 			className={cn(
 				k.marker.base,
-				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,
+				k.marker.orientation[orientation],
 				k.marker.palette[lineBefore ?? 'zinc'].line.before,
 				k.marker.palette[lineAfter ?? 'zinc'].line.after,
 			)}

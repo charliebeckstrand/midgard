@@ -68,7 +68,7 @@ export const k = {
 		dan.gap.scale.xs,
 		text.muted,
 		fg.hover,
-		...mode('data-open:text-zinc-950', 'dark:data-open:text-white'),
+		...fg.open,
 		rounded.lg,
 	],
 	content: [flex.inline, 'min-w-0', dan.gap.scale.xs],

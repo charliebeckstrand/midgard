@@ -1,4 +1,3 @@
-import { mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen, ugoki } from '../kiso'
 import { dan } from '../kiso/dan'
 
@@ -19,7 +18,7 @@ export const k = {
 		fg.hover,
 		// The open color reads the `aria-expanded` of the trigger itself. Thus an open
 		// outer Collapse does not give its color to the trigger of a nested Collapse.
-		...mode('aria-expanded:text-zinc-950', 'dark:aria-expanded:text-white'),
+		...fg.expanded,
 		focus.ring,
 		...disabled,
 		...cursor,

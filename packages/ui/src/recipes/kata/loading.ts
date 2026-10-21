@@ -12,14 +12,7 @@ const { flex } = narabi
  * it. Each color uses the `iro.marker` shade, which clears non-text 3:1 on the
  * page. `current` inherits the surrounding text color.
  */
-const color = {
-	current: 'text-current',
-	zinc: marker.zinc,
-	red: marker.red,
-	amber: marker.amber,
-	green: marker.green,
-	blue: marker.blue,
-}
+const color = { current: 'text-current', ...marker }
 
 /**
  * A single ellipsis dot. The pulse animation is `motion-safe:`-gated, resting

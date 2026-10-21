@@ -41,9 +41,18 @@ const validation = [
 ]
 
 /**
- * Custom check surface (the visible box / circle). The resting border is the
- * only mark of an unchecked control, so it keeps a 3:1 contrast against the
- * page in each mode (WCAG 1.4.11).
+ * The resting box: the fill and the border of an unchecked control. The border
+ * is the only mark of an unchecked control, so it keeps a 3:1 contrast against
+ * the page in each mode (WCAG 1.4.11). The check box of a Tree row takes it too.
+ */
+const rest = mode(
+	['bg-white', 'border border-zinc-950/50'],
+	['dark:bg-white/5', 'dark:border-white/35'],
+)
+
+/**
+ * Custom check surface (the visible box / circle): the resting box and its
+ * hover border.
  *
  * The neutral hover border skips a checked control and an indeterminate
  * checkbox. It has a higher specificity than the checked border of the kata, so
@@ -55,17 +64,10 @@ const validation = [
  * checked.
  */
 const surface = [
+	...rest,
 	...mode(
-		[
-			'bg-white',
-			'border border-zinc-950/50',
-			'not-has-[:disabled,:checked,[data-indeterminate]]:hover:border-zinc-950/70 not-has-[:disabled,:checked,[data-indeterminate]]:group-has-[[data-slot=label]:hover]/field:border-zinc-950/70',
-		],
-		[
-			'dark:bg-white/5',
-			'dark:border-white/35',
-			'dark:not-has-[:disabled,:checked,[data-indeterminate]]:hover:border-white/50 dark:not-has-[:disabled,:checked,[data-indeterminate]]:group-has-[[data-slot=label]:hover]/field:border-white/50',
-		],
+		'not-has-[:disabled,:checked,[data-indeterminate]]:hover:border-zinc-950/70 not-has-[:disabled,:checked,[data-indeterminate]]:group-has-[[data-slot=label]:hover]/field:border-zinc-950/70',
+		'dark:not-has-[:disabled,:checked,[data-indeterminate]]:hover:border-white/50 dark:not-has-[:disabled,:checked,[data-indeterminate]]:group-has-[[data-slot=label]:hover]/field:border-white/50',
 	),
 	'has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50',
 	...validation,
@@ -108,6 +110,7 @@ const color = {
 
 export const check = {
 	hidden,
+	rest,
 	base,
 	color,
 	/** Validation ring fragment keyed off the overlaid input's `data-*` state; spread by the switch track and the signature pad, already folded into `surface` for checkbox / radio. */
