@@ -26,13 +26,15 @@ export type DrawerFooterProps = PanelFooterProps
 /** Props for {@link DrawerContent} (`<div>` attributes). */
 export type DrawerContentProps = PanelContentProps
 
+const slots = k()
+
 const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = createPanel('drawer', {
-	title: k.title,
-	description: k.description,
-	header: k.header,
-	body: k.body,
-	footer: k.footer,
-	content: k.content,
+	title: slots.title,
+	description: slots.description,
+	header: slots.header,
+	body: slots.body,
+	footer: slots.footer,
+	content: slots.content,
 })
 
 /** Props for {@link DrawerClose}: one clickable child, or none for the standard Close button. */

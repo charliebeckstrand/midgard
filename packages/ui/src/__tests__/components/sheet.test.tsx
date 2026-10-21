@@ -148,16 +148,16 @@ describe('SheetClose', () => {
 		expect(getSlot(document.body, 'sheet').className).not.toMatch(/sm:max-w-/)
 
 		for (const width of Object.keys(shaku.panel) as (keyof typeof shaku.panel)[]) {
-			expect(k.panel({ side, width })).not.toMatch(/sm:max-w-/)
+			expect(k({ side, width }).base).not.toMatch(/sm:max-w-/)
 		}
 	})
 
 	it.each(['right', 'left'] as const)('caps a %s sheet at the step it asks for', (side) => {
-		expect(k.panel({ side })).toContain(shaku.panel.md)
+		expect(k({ side }).base).toContain(shaku.panel.md)
 
-		expect(k.panel({ side, width: 'xs' })).toContain(shaku.panel.xs)
+		expect(k({ side, width: 'xs' }).base).toContain(shaku.panel.xs)
 
-		expect(k.panel({ side, width: 'xs' })).not.toContain(shaku.panel.md)
+		expect(k({ side, width: 'xs' }).base).not.toContain(shaku.panel.md)
 	})
 })
 

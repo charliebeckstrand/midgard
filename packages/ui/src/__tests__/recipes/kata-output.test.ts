@@ -9,7 +9,9 @@ import { k as combobox } from '../../recipes/kata/combobox'
 import { k as datePicker } from '../../recipes/kata/date-picker'
 import { k as input } from '../../recipes/kata/input'
 import { k as listbox } from '../../recipes/kata/listbox'
+import { k as panel } from '../../recipes/kata/panel'
 import { k as textarea } from '../../recipes/kata/textarea'
+import { omote } from '../../recipes/kiso'
 
 // The output gate of the recipe migration. It resolves each part of each kata
 // for each combination of its axes, and it compares the class sets with the
@@ -53,7 +55,34 @@ const RENAMES: Record<string, string> = {
 	'checkbox.k.base()': 'checkbox.k()',
 	'radio.k.base': 'radio.k',
 	'radio.k.base()': 'radio.k()',
+	'dialog.k.base': 'dialog.k.panel',
+	'dialog.k.base()': 'dialog.k.panel()',
+	'drawer.k.base': 'drawer.k.panel',
+	'drawer.k.base()': 'drawer.k.panel()',
+	'sheet.k.base': 'sheet.k.panel',
+	'sheet.k.base()': 'sheet.k.panel()',
+	'panel.k.stack': 'panel.k.base',
 }
+
+/**
+ * The new paths that repeat a part of main, to the path of that part. A unit
+ * that extends a group gets each slot of the group, so it can hold a slot that
+ * only another unit held on main.
+ */
+const REPEATS: Record<string, string> = {
+	...Object.fromEntries(
+		['title', 'description', 'header', 'body', 'footer', 'content'].map((slot) => [
+			`dialog.k.${slot}`,
+			`panel.k.${slot}`,
+		]),
+	),
+	'sheet.k.content': 'panel.k.content',
+	'panel.k.backdrop': 'dialog.k.backdrop',
+	'panel.k.backdrop()': 'dialog.k.backdrop()',
+}
+
+/** The parts of main that left the surface of each kata: fragments that only a kata reads. */
+const DROPPED = /^panel\.k\.(gap|inset)\./
 
 /**
  * The paths that a composition replaces. The new paths are the slots of the
@@ -61,7 +90,7 @@ const RENAMES: Record<string, string> = {
  */
 const COMPOSED = {
 	current:
-		/^(input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)(\(\))?$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base)(\(\))?$/,
 	main: /^(control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button)$/,
 }
 
@@ -228,16 +257,22 @@ describe('kata output', () => {
 			for (const [key, value] of Object.entries(exports)) walk(value, `${name}.${key}`, out)
 		}
 
+		for (const [path, source] of Object.entries(REPEATS)) {
+			expect(out[path], path).toEqual(main[source])
+		}
+
 		const current = Object.entries(out)
-			.filter(([path]) => !COMPOSED.current.test(path))
+			.filter(([path]) => !COMPOSED.current.test(path) && !Object.hasOwn(REPEATS, path))
 			.map(([path, value]) => [RENAMES[path] ?? path, value] as const)
 			.sort(([a], [b]) => a.localeCompare(b))
 
 		const expected = Object.entries(main)
-			.filter(([path]) => !COMPOSED.main.test(path))
+			.filter(([path]) => !COMPOSED.main.test(path) && !DROPPED.test(path))
 			.sort(([a], [b]) => a.localeCompare(b))
 
-		expect(Object.fromEntries(current)).toEqual(Object.fromEntries(expected))
+		expect(Object.fromEntries(current.map(sortAxes))).toEqual(
+			Object.fromEntries(expected.map(sortAxes)),
+		)
 	})
 
 	it('composes each slot of a control unit from the parts of main', () => {
@@ -329,9 +364,36 @@ describe('kata output', () => {
 			check(`${name} field`, filled.field, read(field))
 		}
 
+		// The root of the panel unit: the panel surface, moved from kiso as it was on
+		// main, over the column of the slots.
+		for (const surface of ['flat', 'glass'] as const) {
+			check(
+				`panel base ${surface}`,
+				panel({ surface }).base,
+				omote.panel.chrome,
+				read('panel.k.base'),
+				omote.panel.axis[surface],
+			)
+		}
+
 		expect(rows.filter(([, current, expected]) => current !== expected)).toEqual([])
 	})
 })
+
+/**
+ * A path with the axes of each combination in sorted order. A unit lists the
+ * axes of its group first, so the order of the axes in a key can change.
+ */
+function sortAxes([path, value]: readonly [string, unknown]): [string, unknown] {
+	if (typeof value !== 'object' || value === null) return [path, value]
+
+	const entries = Object.entries(value).map(([key, classes]) => [
+		key.split(',').sort().join(','),
+		classes,
+	])
+
+	return [path, Object.fromEntries(entries)]
+}
 
 /** The classes of a path of main, or of one combination of its axes. */
 function read(path: string, combination?: string): string {

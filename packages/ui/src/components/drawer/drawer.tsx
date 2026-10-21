@@ -269,8 +269,10 @@ export function DrawerPanel({
 
 	const full = resize.size === null ? height === 'full' : resize.atCeiling
 
+	const slots = k({ surface, height })
+
 	return (
-		<Overlay {...overlayProps} backdropClassName={k.backdrop({ surface })}>
+		<Overlay {...overlayProps} backdropClassName={slots.backdrop}>
 			<m.div
 				{...props}
 				{...panelProps}
@@ -279,7 +281,7 @@ export function DrawerPanel({
 				data-slot="drawer"
 				data-density={size}
 				data-height={height ?? 'auto'}
-				className={cn('group/drawer', k.panel({ surface, height }), panelClassName, className)}
+				className={cn('group/drawer', slots.base, panelClassName, className)}
 				// The panel eases between its `height` variants, which is right for a step
 				// and wrong for a finger: eased, each frame's height becomes an animation
 				// toward where the pointer already is, so the edge trails the drag and

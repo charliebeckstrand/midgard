@@ -257,8 +257,10 @@ export function SheetPanel({
 
 	const sized = handle && (resize.resizing || resize.size !== null)
 
+	const slots = k({ side: edge, width, surface })
+
 	return (
-		<Overlay {...overlayProps} backdropClassName={k.backdrop({ surface })}>
+		<Overlay {...overlayProps} backdropClassName={slots.backdrop}>
 			<m.div
 				{...props}
 				{...panelProps}
@@ -279,7 +281,7 @@ export function SheetPanel({
 				// `style` comes first, so the dragged size wins.
 				style={sized ? { ...style, [axis]: resize.size ?? undefined, maxWidth: 'none' } : style}
 				className={cn(
-					k.panel({ side: edge, width, surface }),
+					slots.base,
 					resolveVariant(layout, k.layout.side[edge]),
 					(width === 'fit' || width === 'full') &&
 						axis === 'width' &&

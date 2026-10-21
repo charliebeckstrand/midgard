@@ -13,6 +13,7 @@ import { bg } from './bg'
 import { checkerboard } from './checkerboard'
 import { content } from './content'
 import { glass } from './glass'
+import { panel } from './panel'
 import { popover } from './popover'
 import { rail } from './rail'
 import { skeleton } from './skeleton'
@@ -21,6 +22,8 @@ export const omote = {
 	bg,
 	popover,
 	glass,
+	/** The surface of a panel: the chrome, the fill and the chrome, and the `surface` axis of a modal panel. */
+	panel,
 	backdrop,
 	content,
 	skeleton,

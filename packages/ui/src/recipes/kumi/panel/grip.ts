@@ -1,11 +1,11 @@
 /**
- * Panel archetype: the drag grip. Shared by drawer and sheet.
+ * Panel group: the drag grip. Drawer and Sheet share it.
  *
- * Layer: kiso · Archetype: panel · Concern: grip
+ * Layer: kumi · Group: panel · Concern: grip
  */
 
 import { mode } from '../../../core/recipe'
-import { hannou } from '../hannou'
+import { hannou } from '../../kiso'
 
 /**
  * The stroke the grip takes when a reader tabs to it.

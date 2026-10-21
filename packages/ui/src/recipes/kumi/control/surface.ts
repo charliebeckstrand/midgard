@@ -1,8 +1,7 @@
 /**
  * Control group: surface vocabulary. `default` paints a solid surface,
  * `glass` is transparent + blurred for nested-in-overlay contexts. The
- * `outline` variant has no fill here; its kata layer their own borders. The check-input branch reuses the same
- * shape via `kiso/control/check.ts`.
+ * `outline` variant has no fill here; its kata layer their own borders.
  *
  * Layer: kumi · Group: control · Concern: surface
  */
