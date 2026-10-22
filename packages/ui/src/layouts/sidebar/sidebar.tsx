@@ -391,15 +391,10 @@ export function SidebarLayoutHeader({
 	// nested layout keeps the prop of that layout.
 	const sticky = layout?.stickyHeader ?? false
 
-	const slots = k({ layout: placement })
+	const slots = k({ layout: placement, stickyHeader: sticky })
 
 	return (
-		<header
-			{...props}
-			ref={setHeader}
-			data-slot="header"
-			className={cn(slots.header, sticky && slots.pin, className)}
-		>
+		<header {...props} ref={setHeader} data-slot="header" className={cn(slots.header, className)}>
 			<div className="flex-1 min-w-0">{children}</div>
 			{actions && <div className={slots.headerActions}>{actions}</div>}
 		</header>

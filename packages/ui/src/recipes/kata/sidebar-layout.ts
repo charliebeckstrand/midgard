@@ -4,7 +4,7 @@
  * The other slots are its parts: the `navbar` of the drawer layout, the inline
  * `panel` and `aside`, the `actions`, the parts of the floating sidebar (`peek`,
  * `sheet`, `sheetBody`, `buffer`), the content (`wrapper`, `content`), the
- * `header` and its `pin`, the `body`, and the `footer`.
+ * `header`, the `body`, and the `footer`.
  */
 import { defineKata } from '../../core/recipe'
 import { dan, narabi, omote, sen, sou } from '../kiso'
@@ -107,7 +107,7 @@ const content = [
 ]
 
 // The padding follows the nearest density scope. A header with `stickyHeader`
-// adds the `pin`, and it sticks in the inline layout only. In the drawer layout, the navbar
+// sticks in the inline layout only. In the drawer layout, the navbar
 // is the one sticky bar of the page, and the header scrolls with the content.
 // Two stacked sticky bars show a seam on iOS. The header takes these classes
 // itself from its own layout, so a header in a nested layout does not stick.
@@ -159,11 +159,15 @@ export const k = defineKata({
 				},
 			},
 		},
-		header: { base: header, responsive: { layout: top } },
-		/** The sticky classes of a header with `stickyHeader`. */
-		pin: {
-			base: ['top-0 z-20', 'bg-(--surface-fill)'],
-			responsive: { layout: { drawer: 'static', inline: 'sticky' } },
+		header: {
+			base: header,
+			responsive: { layout: top },
+			/** A header with `stickyHeader` takes the fill of the content, over the content that scrolls under it. */
+			stickyHeader: { true: ['top-0 z-20', 'bg-(--surface-fill)'], false: '' },
+			compound: [
+				{ stickyHeader: true, layout: 'drawer', class: 'static' },
+				{ stickyHeader: true, layout: 'inline', class: 'sticky' },
+			],
 		},
 		/** The actions in the header, which show in the inline layout only. */
 		headerActions: { base: actions, responsive: { layout: shows.inline.flex } },

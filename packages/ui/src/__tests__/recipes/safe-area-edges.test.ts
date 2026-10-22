@@ -26,9 +26,9 @@ describe('safe-area insets on edge surfaces', () => {
 
 		expect(sheet({ side: 'top' }).base).toContain('env(safe-area-inset-top)')
 
-		expect(sheet.layout.side.right.flush).toContain(bottom)
+		expect(sheet({ side: 'right', layout: 'flush' }).base).toContain(bottom)
 
-		expect(sheet.layout.side.left.flush).toContain(bottom)
+		expect(sheet({ side: 'left', layout: 'flush' }).base).toContain(bottom)
 	})
 
 	// `browser/density-contract.test.tsx` holds the length of this inset at each step.

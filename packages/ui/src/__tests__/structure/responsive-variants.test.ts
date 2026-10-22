@@ -4,7 +4,6 @@ import { __unstable__loadDesignSystem, compile } from '@tailwindcss/node'
 import clsx, { type ClassValue } from 'clsx'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { twMerge } from '../../core/tw-merge'
-import { k as sheet } from '../../recipes/kata/sheet'
 import { BREAKPOINT_WIDTHS, type MinBreakpoint, resolveVariant } from '../../types/responsive'
 import { noop } from '../../utilities/noop'
 import { uiRoot } from '../helpers/walk-source'
@@ -28,7 +27,13 @@ const modules = import.meta.glob<Record<string, unknown>>('../../recipes/kata/*.
 type UnitLike = {
 	config: {
 		responsive: readonly string[]
-		slots: Record<string, { variants: Record<string, Record<string, ClassValue>> }>
+		slots: Record<
+			string,
+			{
+				variants: Record<string, Record<string, ClassValue>>
+				compound: ReadonlyArray<Record<string, unknown> & { class: ClassValue }>
+			}
+		>
 	}
 }
 
@@ -44,6 +49,10 @@ function isUnit(value: unknown): value is UnitLike {
  * Each responsive axis of each slot of each unit, and of each unit that a
  * kata holds as an extra. A unit names its responsive axes, so this list
  * needs no entry by hand.
+ *
+ * The compound rules that read a responsive axis are a table too: the rules
+ * with the same other conditions, keyed by the value of the axis. A
+ * breakpoint replaces the classes of one rule with the classes of the next.
  */
 function unitAxes(): [string, Record<string, string>][] {
 	const axes: [string, Record<string, string>][] = []
@@ -60,6 +69,27 @@ function unitAxes(): [string, Record<string, string>][] {
 				)
 
 				axes.push([`${name} ${slot} ${axis}`, table])
+			}
+
+			for (const [slot, config] of Object.entries(unit.config.slots)) {
+				const groups = new Map<string, Record<string, string>>()
+
+				for (const { class: classes, ...conditions } of config.compound) {
+					if (!(axis in conditions)) continue
+
+					const rest = Object.entries(conditions)
+						.filter(([key]) => key !== axis)
+						.map(([key, value]) => `${key}=${String(value)}`)
+						.join(' ')
+
+					const group = groups.get(rest) ?? {}
+
+					group[String(conditions[axis])] = twMerge(clsx(classes))
+
+					groups.set(rest, group)
+				}
+
+				for (const [rest, table] of groups) axes.push([`${name} ${slot} ${axis} (${rest})`, table])
 			}
 		}
 	}
@@ -82,15 +112,7 @@ function unitAxes(): [string, Record<string, string>][] {
 }
 
 /** Each responsive variant axis of a component: its name and its table of classes. */
-const AXES: ReadonlyArray<readonly [string, Record<string, string>]> = [
-	...unitAxes(),
-	['Sheet right layout', sheet.layout.side.right],
-	['Sheet left layout', sheet.layout.side.left],
-	['Sheet top layout', sheet.layout.side.top],
-	['Sheet bottom layout', sheet.layout.side.bottom],
-	['Sheet fit width layout', sheet.layout.width.fit],
-	['Sheet full width layout', sheet.layout.width.full],
-]
+const AXES: ReadonlyArray<readonly [string, Record<string, string>]> = unitAxes()
 
 const MIN_BREAKPOINTS = Object.keys(BREAKPOINT_WIDTHS) as MinBreakpoint[]
 

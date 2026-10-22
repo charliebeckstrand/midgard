@@ -16,7 +16,7 @@ import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
-import { adaptive, type Responsive, resolveVariant } from '../../types'
+import { adaptive, type Responsive } from '../../types'
 import { sheetCeiling, sheetFloor } from './sheet-floor'
 import { SheetHandle } from './sheet-handle'
 import { SheetClose, SheetDefaultFooter } from './slots'
@@ -257,7 +257,7 @@ export function SheetPanel({
 
 	const sized = handle && (resize.resizing || resize.size !== null)
 
-	const slots = k({ side: edge, width, surface })
+	const slots = k({ side: edge, width, surface, layout })
 
 	return (
 		<Overlay {...overlayProps} backdropClassName={slots.backdrop}>
@@ -280,15 +280,7 @@ export function SheetPanel({
 				// set on the press and the pointer moves after the render. The consumer
 				// `style` comes first, so the dragged size wins.
 				style={sized ? { ...style, [axis]: resize.size ?? undefined, maxWidth: 'none' } : style}
-				className={cn(
-					slots.base,
-					resolveVariant(layout, k.layout.side[edge]),
-					(width === 'fit' || width === 'full') &&
-						axis === 'width' &&
-						resolveVariant(layout, k.layout.width[width]),
-					panelClassName,
-					className,
-				)}
+				className={cn(slots.base, panelClassName, className)}
 			>
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 					{handle ? (
