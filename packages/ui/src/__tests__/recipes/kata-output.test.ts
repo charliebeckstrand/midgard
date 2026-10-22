@@ -621,19 +621,6 @@ describe('kata output', () => {
 			)
 		}
 
-		// The indicator of a step, with the marks that the indicator added on main.
-		for (const interactive of [false, true]) {
-			for (const state of ['completed', 'current', 'upcoming'] as const) {
-				check(
-					`stepper indicator ${interactive} ${state}`,
-					stepper({ interactive, state }).indicator,
-					read('stepper.k.indicator.base'),
-					interactive && read('stepper.k.indicator.interactive'),
-					state !== 'upcoming' && read(`stepper.k.indicator.${state}`),
-				)
-			}
-		}
-
 		// The parts of the offcanvas and of the sidebar layout, with the layout that
 		// each part resolved by breakpoint on main.
 		for (const layout of ['drawer', 'inline'] as const) {

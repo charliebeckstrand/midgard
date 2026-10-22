@@ -4,7 +4,6 @@ import { Check } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
-import { k } from '../../recipes/kata/stepper'
 import { useStepper, useStepperStep } from './context'
 
 /** Props for {@link StepperIndicator}: `className` plus `<span>` attributes. */
@@ -13,7 +12,7 @@ export type StepperIndicatorProps = ComponentProps<'span'>
 /**
  * The leading marker of a {@link StepperStep} (number, checkmark, or dot)
  * styled by the step's state. Renders an animated `<ActiveIndicator>` overlay on
- * the current step and an `interactive` variant when the stepper is navigable.
+ * the current step, and a hover and a focus mark when the stepper is navigable.
  *
  * @remarks
  * A completed step fills green and draws a checkmark. `<StepperStep>` injects a
@@ -23,12 +22,8 @@ export type StepperIndicatorProps = ComponentProps<'span'>
  * blue fill.
  */
 export function StepperIndicator({ className, children, ...props }: StepperIndicatorProps) {
-	const { onValueChange } = useStepper()
+	const { slots } = useStepper()
 	const { state } = useStepperStep()
-
-	const interactive = onValueChange !== undefined
-
-	const slots = k({ interactive, state })
 
 	const content =
 		children ?? (state === 'completed' && <Check aria-hidden="true" className={slots.check} />)
