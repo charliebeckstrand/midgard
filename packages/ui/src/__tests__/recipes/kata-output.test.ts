@@ -16,6 +16,7 @@ import { k as dialog } from '../../recipes/kata/dialog'
 import { k as events } from '../../recipes/kata/events'
 import { k as fileUpload } from '../../recipes/kata/file-upload'
 import { k as flex } from '../../recipes/kata/flex'
+import { k as gridGroup } from '../../recipes/kata/grid-group'
 import { k as input } from '../../recipes/kata/input'
 import { k as jsonTree } from '../../recipes/kata/json-tree'
 import { k as listbox } from '../../recipes/kata/listbox'
@@ -74,6 +75,12 @@ const RENAMES: Record<string, string> = {
 	'active-indicator.k.base': 'active-indicator.k.fill',
 	'chrome.k.base': 'chrome.k.region',
 	'icon.k.base': 'icon.k.ramp',
+	...Object.fromEntries(
+		[['base', 'cell']].map(([current, main]) => [
+			`grid-group.k.${current}`,
+			`grid-group.k.${main}`,
+		]),
+	),
 	'tabs.k.base': 'tabs.k.group',
 	'tabs.k.base()': 'tabs.k.group()',
 	'button.k.base': 'button.k',
@@ -183,8 +190,8 @@ const DROPPED = /^(panel\.k\.(gap|inset)\.|overlay\.k\.backdrop\.glass$)/
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split|aspect-ratio|card|group|placeholder|status)\.k\.base|json-tree\.k\.(base|content|value)|markdown\.k\.(heading|li|td|th))(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
-	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+|aspect-ratio\.k\.ratio\.[\w/]+|(card|group)\.k\.base|placeholder\.k\.(fill|pulse|shape)|status\.k\.pulse|json-tree\.k\.(base|windowed|content|highlight|color\.\w+)|markdown\.k\.(align\.\w+|heading\.\d|li|task|td|th))$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split|aspect-ratio|card|group|placeholder|status)\.k\.base|json-tree\.k\.(base|content|value)|grid-group\.k\.(outline|rule)|markdown\.k\.(heading|li|td|th))(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+|aspect-ratio\.k\.ratio\.[\w/]+|(card|group)\.k\.base|placeholder\.k\.(fill|pulse|shape)|status\.k\.pulse|json-tree\.k\.(base|windowed|content|highlight|color\.\w+)|grid-group\.k\.(outline\.\w+|rule\.(base|neutral|color\.\w+))|markdown\.k\.(align\.\w+|heading\.\d|li|task|td|th))$/,
 }
 
 /** The output of main, by path. */
@@ -960,6 +967,37 @@ describe('kata output', () => {
 				task && read('markdown.k.task'),
 			)
 		}
+
+		// The grid group unit: a group with no color takes the neutral rule and the
+		// outline of the Card.
+		for (const color of [
+			'zinc',
+			'red',
+			'amber',
+			'green',
+			'blue',
+			'rose',
+			'violet',
+			'sky',
+		] as const) {
+			const slots = gridGroup({ color })
+
+			check(
+				`grid-group rule ${color}`,
+				slots.rule,
+				read('grid-group.k.rule.base'),
+				read(`grid-group.k.rule.color.${color}`),
+			)
+			check(`grid-group outline ${color}`, slots.outline, read(`grid-group.k.outline.${color}`))
+		}
+
+		check(
+			'grid-group rule neutral',
+			gridGroup().rule,
+			read('grid-group.k.rule.base'),
+			read('grid-group.k.rule.neutral'),
+		)
+		check('grid-group outline neutral', gridGroup().outline)
 
 		for (const align of [undefined, 'left', 'right', 'center'] as const) {
 			const slots = markdown({ align })

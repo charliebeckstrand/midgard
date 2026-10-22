@@ -387,7 +387,7 @@ export function GridGroupManager({
 				onDragEnd={manager.handleDragEnd}
 				onDragCancel={manager.handleDragCancel}
 			>
-				<div ref={rootRef} className={cn(k.manager.base)}>
+				<div ref={rootRef} className={k().manager.base}>
 					{ungroupedZone && (
 						<GridGroupManagerZoneView
 							zone={ungroupedZone}
@@ -402,7 +402,7 @@ export function GridGroupManager({
 						{/* A list, so assistive tech reads the count of the groups. With no
 						    group, no empty list adds a gap to the stack. */}
 						{groupZones.length > 0 && (
-							<ul className={cn(k.manager.groups)}>
+							<ul className={k().manager.groups}>
 								{groupZones.map((zone) => (
 									<GridGroupManagerGroupZone
 										key={zone.id}
@@ -544,7 +544,7 @@ function GridGroupManagerZoneView({
 			ref={setNodeRef}
 			// A colored group tints its Card outline to match; the ungrouped pool and
 			// colorless groups keep the default neutral outline.
-			className={cn(k.manager.zone.base, zone.group?.color && k.outline[zone.group.color])}
+			className={cn(k().manager.zone.base, k({ color: zone.group?.color }).outline)}
 		>
 			<CardHeader>
 				{zone.group ? (
@@ -567,7 +567,7 @@ function GridGroupManagerZoneView({
 					// as an empty group: it still holds the columns it holds. An `output`
 					// (implicit `role="status"`) so emptying one zone is announced even while
 					// the rest of the editor still has matches.
-					<output className={cn(k.manager.zone.empty)}>
+					<output className={k().manager.zone.empty}>
 						{columnIds.length > 0 ? intl.formatMessage(intlMessages.noResults) : emptyLabel}
 					</output>
 				) : (
@@ -625,11 +625,11 @@ function GridGroupManagerZoneHeader({
 	const label = columnLabel(group)
 
 	return (
-		<div className={cn(k.manager.zone.header)}>
+		<div className={k().manager.zone.header}>
 			{handle}
 
 			<Input
-				className={cn(k.manager.zone.name)}
+				className={k().manager.zone.name}
 				data-group-name=""
 				aria-label={intl.formatMessage(gridMessages.groupNameFor, { group: label })}
 				placeholder={intl.formatMessage(gridMessages.groupName)}
@@ -720,7 +720,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 		<li
 			ref={setNodeRef}
 			style={style}
-			className={cn(k.manager.row.base)}
+			className={k().manager.row.base}
 			data-dragging={dataAttr(dragging)}
 		>
 			<GridManagerGrip
@@ -729,7 +729,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 			/>
 
 			<GridManagerCheckboxRow
-				className={cn(k.manager.row.control)}
+				className={k().manager.row.control}
 				columnTitle={item.title}
 				checked={!hidden.has(item.id)}
 				// Held disabled through a drag so it stays put (visible, not toggled)
@@ -821,12 +821,12 @@ function GridGroupManagerColumnRowOverlay({
 	const label = columnLabel(item)
 
 	return (
-		<div className={cn(k.manager.row.base, k.manager.row.overlay)} data-dragging="">
+		<div className={cn(k().manager.row.base, k().manager.row.overlay)} data-dragging="">
 			{/* The pointer rides the overlay, so its grip shows the held hand. */}
 			<GridManagerGrip />
 
 			<GridManagerCheckboxRow
-				className={cn(k.manager.row.control)}
+				className={k().manager.row.control}
 				columnTitle={item.title}
 				checked={checked}
 				disabled
