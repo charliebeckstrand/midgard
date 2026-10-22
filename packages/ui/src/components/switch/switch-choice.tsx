@@ -172,7 +172,7 @@ export function SwitchChoice<T extends string = string>({
 	/** The `<label>` over the native radio of one position: one third of the track. */
 	function zone(at: Position, option: T | null, label?: string) {
 		return (
-			<label key={at} data-slot="switch-choice-zone" className={cn(k.choice.zone)}>
+			<label key={at} data-slot="switch-choice-zone" className={k().choice.zone}>
 				<input
 					// The off radio carries the reset, because it renders in each state.
 					ref={option === null ? resetRef : undefined}
@@ -185,7 +185,7 @@ export function SwitchChoice<T extends string = string>({
 					disabled={resolvedDisabled}
 					aria-label={label}
 					{...validation}
-					className={k.input()}
+					className={k().input}
 					onChange={() => commit(option)}
 					onClick={(event) => handleClick(event, option)}
 				/>
@@ -201,7 +201,7 @@ export function SwitchChoice<T extends string = string>({
 				data-slot="switch-choice-label"
 				data-checked={dataAttr(position === at)}
 				data-disabled={dataAttr(resolvedDisabled)}
-				className={cn(k.choice.label)}
+				className={k().choice.label}
 			>
 				{option.label}
 			</label>
@@ -235,7 +235,7 @@ export function SwitchChoice<T extends string = string>({
 			aria-labelledby={labelledBy}
 			aria-describedby={describedBy}
 			aria-readonly={ariaAttr(resolvedReadOnly)}
-			className={cn(k.choice({ color }), className)}
+			className={cn(k({ color }).choice.base, className)}
 			onBlur={handleBlur}
 		>
 			{caption('start', start)}
@@ -244,13 +244,13 @@ export function SwitchChoice<T extends string = string>({
 				data-slot="switch-choice-track"
 				data-position={position}
 				data-static={dataAttr(!live)}
-				className={cn(k.choice.track)}
+				className={k().choice.track}
 			>
 				{zone('start', start.value)}
 				{zone('center', null, offLabel ?? intl.formatMessage(messages.off))}
 				{zone('end', end.value)}
 
-				<span data-slot="switch-choice-thumb" aria-hidden="true" className={cn(k.choice.thumb)} />
+				<span data-slot="switch-choice-thumb" aria-hidden="true" className={k().choice.thumb} />
 			</span>
 
 			{caption('end', end)}

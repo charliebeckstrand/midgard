@@ -1,7 +1,6 @@
 'use client'
 
 import { useId, useMemo } from 'react'
-import { cn } from '../../core'
 import { useDevWarning } from '../../hooks/use-dev-warning'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
@@ -76,13 +75,13 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 			data-slot="color-swatches"
 			role="radiogroup"
 			aria-label={intl.formatMessage(colorMessages.swatches)}
-			className={k.swatches}
+			className={k().swatches}
 		>
 			{parsedSwatches.map(({ key, swatch, parsed }) => (
 				<label
 					key={key}
 					data-slot="color-swatch"
-					className={cn(k.swatch)}
+					className={k().swatch}
 					style={{ backgroundColor: swatch }}
 				>
 					<input

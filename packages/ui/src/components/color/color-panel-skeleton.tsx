@@ -49,12 +49,12 @@ export function ColorPanelSkeleton({
 	const cells = rangeKeys(swatches ? swatches.length : 0, 'swatch')
 
 	return (
-		<div data-density={size} aria-hidden="true" className={cn(k(), 'relative', className)}>
+		<div data-density={size} aria-hidden="true" className={cn(k().base, 'relative', className)}>
 			<Placeholder className="absolute inset-0 size-full" />
 
 			<div className={k.skeleton.area} />
 
-			<div className={k.sliders}>
+			<div className={k().sliders}>
 				<div className={k.skeleton.track} />
 				{alpha && <div className={k.skeleton.track} />}
 			</div>
@@ -62,7 +62,7 @@ export function ColorPanelSkeleton({
 			<div className={k.skeleton.fields} />
 
 			{cells.length > 0 && (
-				<div className={k.swatches}>
+				<div className={k().swatches}>
 					{cells.map((cellKey) => (
 						<div key={cellKey} className={k.skeleton.swatch} />
 					))}

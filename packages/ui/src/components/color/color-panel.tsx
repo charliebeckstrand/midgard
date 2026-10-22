@@ -117,18 +117,18 @@ export function ColorPanelView({
 
 	return (
 		<ColorPanelContext value={context}>
-			<Box {...props} data-slot="color-panel" density={size} className={cn(k(), className)}>
+			<Box {...props} data-slot="color-panel" density={size} className={cn(k().base, className)}>
 				<ColorArea />
 
-				<div className={k.sliders}>
+				<div className={k().sliders}>
 					<ColorSlider channel="hue" />
 					{alpha && <ColorSlider channel="alpha" />}
 				</div>
 
-				<div className={cn(k.preview.row)}>
+				<div className={k().preview.row}>
 					<span
 						data-slot="color-preview"
-						className={cn('group', k.preview.base, alpha && k.checkerboard)}
+						className={cn('group', k().preview.base, alpha && k().checkerboard)}
 					>
 						<span className="block size-full" style={{ backgroundColor: previewColor }} />
 					</span>

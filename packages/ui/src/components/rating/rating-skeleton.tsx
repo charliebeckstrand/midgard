@@ -31,8 +31,8 @@ export type RatingSkeletonProps = {
 export function RatingSkeleton({ count = 5, size, className }: RatingSkeletonProps) {
 	return renderRowSkeleton({
 		count,
-		root: [k(), className],
-		item: [k.skeleton.base, k.glyph],
+		root: [k().base, className],
+		item: [k.skeleton.base, k().glyph],
 		density: size,
 		as: 'span',
 	})

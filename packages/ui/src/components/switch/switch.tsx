@@ -124,7 +124,7 @@ export function Switch({
 			data-disabled={dataAttr(resolvedDisabled)}
 			hidden={hidden}
 			style={style}
-			className={cn(k({ color }), className)}
+			className={cn(k({ color }).base, className)}
 		>
 			<input
 				// Consumer props spread first; the switch role, the synced
@@ -145,9 +145,9 @@ export function Switch({
 				onChange={handleChange}
 				aria-describedby={describedBy}
 				{...validation}
-				className={k.input()}
+				className={k().input}
 			/>
-			<span data-slot="switch-thumb" aria-hidden="true" className={k.thumb()} />
+			<span data-slot="switch-thumb" aria-hidden="true" className={k().thumb} />
 		</label>
 	)
 }

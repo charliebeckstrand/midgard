@@ -10,7 +10,7 @@
  */
 
 import { defineScale } from '../../core/density'
-import { defineRecipe } from '../../core/recipe'
+import { defineKata } from '../../core/recipe'
 import { dan, iro, kasane, kokkaku, omote, sen } from '../kiso'
 
 const { text } = iro
@@ -41,64 +41,70 @@ const track = [
 
 const preview = ['relative shrink-0 overflow-hidden', rounded.md, dan.size.colorPanel.preview]
 
-export const k = defineRecipe(
+export const k = defineKata(
 	{
 		base: ['flex flex-col select-none', kokkaku.colorPanel.width, dan.gap.loose],
-		skeleton: kokkaku.colorPanel,
-	},
-	{
-		area: {
-			base: area,
-			/** White-to-transparent wash painting the saturation axis over the hue base. */
-			saturation: 'absolute inset-0 bg-[linear-gradient(to_right,#fff,transparent)]',
-			/** Transparent-to-black wash painting the value axis. */
-			value: 'absolute inset-0 bg-[linear-gradient(to_top,#000,transparent)]',
-		},
-		track: {
-			base: track,
+		slots: {
+			area: {
+				base: area,
+				slots: {
+					/** White-to-transparent wash painting the saturation axis over the hue base. */
+					saturation: 'absolute inset-0 bg-[linear-gradient(to_right,#fff,transparent)]',
+					/** Transparent-to-black wash painting the value axis. */
+					value: 'absolute inset-0 bg-[linear-gradient(to_top,#000,transparent)]',
+				},
+			},
+			track: {
+				base: track,
+				slots: {
+					/**
+					 * The native range input over the track. It is transparent and lets the
+					 * pointer through, so the track keeps the drag. The input keeps the
+					 * focus, the keys, and the semantics.
+					 */
+					input: 'absolute inset-0 m-0 size-full appearance-none opacity-0 pointer-events-none',
+				},
+			},
+			preview: {
+				base: preview,
+				slots: {
+					/**
+					 * Preview swatch + hex field share a row beneath the sliders. The gap
+					 * also caps the hit areas (`TouchTarget`), so the copy button of the hex
+					 * field and the eyedropper after it do not overlap.
+					 */
+					row: ['flex items-center', dan.gap.scale.sm, dan.gap.touch.x.sm],
+				},
+			},
+			handle,
+			/** Full hue wheel laid left to right for the hue track. */
+			hue: 'bg-[linear-gradient(to_right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]',
+			/** Alpha / preview chequerboard surfaced behind translucent color. */
+			checkerboard: [omote.checkerboard, 'bg-size-[12px_12px]'],
+			/** Full-width stack for the hue (and optional alpha) tracks. */
+			sliders: `flex flex-col ${dan.gap.scale.sm}`,
+			/** The grid of the channel inputs. */
+			channels: ['grid', dan.gap.scale.sm],
+			/** Label-above-input column for one channel input. */
+			field: `flex min-w-0 flex-col ${dan.gap.scale.xs}`,
+			label: ['text-[10px] font-medium uppercase tracking-wide', ...text.muted],
+			swatches: 'grid grid-cols-10 gap-1.5',
 			/**
-			 * The native range input over the track. It is transparent and lets the
-			 * pointer through, so the track keeps the drag. The input keeps the
-			 * focus, the keys, and the semantics.
+			 * One preset chip: a label around a visually hidden radio. The inset ring
+			 * gives a white or a black chip an edge on the panel. The outline shows
+			 * when the radio inside has keyboard focus.
 			 */
-			input: 'absolute inset-0 m-0 size-full appearance-none opacity-0 pointer-events-none',
+			swatch: [
+				'relative cursor-pointer',
+				kokkaku.colorPanel.swatch,
+				rounded.md,
+				...ring.inset,
+				'hover:scale-110',
+				...focus.outline,
+			],
 		},
-		preview: {
-			base: preview,
-			/**
-			 * Preview swatch + hex field share a row beneath the sliders. The gap
-			 * also caps the hit areas (`TouchTarget`), so the copy button of the hex
-			 * field and the eyedropper after it do not overlap.
-			 */
-			row: ['flex items-center', dan.gap.scale.sm, dan.gap.touch.x.sm],
-		},
-		handle,
-		/** Full hue wheel laid left to right for the hue track. */
-		hue: 'bg-[linear-gradient(to_right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]',
-		/** Alpha / preview chequerboard surfaced behind translucent color. */
-		checkerboard: [omote.checkerboard, 'bg-size-[12px_12px]'],
-		/** Full-width stack for the hue (and optional alpha) tracks. */
-		sliders: `flex flex-col ${dan.gap.scale.sm}`,
-		/** The grid of the channel inputs. */
-		channels: ['grid', dan.gap.scale.sm],
-		/** Label-above-input column for one channel input. */
-		field: `flex min-w-0 flex-col ${dan.gap.scale.xs}`,
-		label: ['text-[10px] font-medium uppercase tracking-wide', ...text.muted],
-		swatches: 'grid grid-cols-10 gap-1.5',
-		/**
-		 * One preset chip: a label around a visually hidden radio. The inset ring
-		 * gives a white or a black chip an edge on the panel. The outline shows
-		 * when the radio inside has keyboard focus.
-		 */
-		swatch: [
-			'relative cursor-pointer',
-			kokkaku.colorPanel.swatch,
-			rounded.md,
-			...ring.inset,
-			'hover:scale-110',
-			...focus.outline,
-		],
 	},
+	{ skeleton: kokkaku.colorPanel },
 )
 
 /** The size scale of {@link ColorPanel}: the steps of its area, channels, preview, and gap. */
