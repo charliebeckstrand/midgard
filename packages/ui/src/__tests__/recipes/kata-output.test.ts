@@ -4,13 +4,16 @@ import { join } from 'node:path'
 import clsx, { type ClassValue } from 'clsx'
 import { describe, expect, it } from 'vitest'
 import { twMerge } from '../../core/tw-merge'
+import { k as box } from '../../recipes/kata/box'
 import { k as colorPicker } from '../../recipes/kata/color-picker'
 import { k as combobox } from '../../recipes/kata/combobox'
+import { k as container } from '../../recipes/kata/container'
 import { k as datePicker } from '../../recipes/kata/date-picker'
 import { k as descriptionList } from '../../recipes/kata/description-list'
 import { k as dialog } from '../../recipes/kata/dialog'
 import { k as events } from '../../recipes/kata/events'
 import { k as fileUpload } from '../../recipes/kata/file-upload'
+import { k as flex } from '../../recipes/kata/flex'
 import { k as input } from '../../recipes/kata/input'
 import { k as listbox } from '../../recipes/kata/listbox'
 import { k as nav } from '../../recipes/kata/nav'
@@ -170,8 +173,8 @@ const DROPPED = /^(panel\.k\.(gap|inset)\.|overlay\.k\.backdrop\.glass$)/
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base)(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
-	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+))$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split)\.k\.base)(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+)$/,
 }
 
 /** The output of main, by path. */
@@ -804,6 +807,59 @@ describe('kata output', () => {
 					sheet({ side, width, layout }).base,
 					read('sheet.k.panel', `side=${side},width=${width},surface=flat`),
 					sheetLayout(side, width, layout),
+				)
+			}
+		}
+
+		// The structure units, from the tables of main. The `0` step of the
+		// spacing scale is now a stepped rule in the `density` layer, so a
+		// breakpoint replaces it (a plain `p-0` outranked that layer).
+		const spacing = (axis: string, step: string) =>
+			step === '0'
+				? `density-${axis}-[0,0,0,0,0]`
+				: read(`box.k.${axis === 'p' ? 'padding' : axis}.${step}`)
+
+		for (const step of ['0', 'xs', 'sm', 'md', 'lg', 'xl'] as const) {
+			const value = step === '0' ? 0 : step
+
+			for (const axis of ['p', 'px', 'py'] as const) {
+				check(`box ${axis} ${step}`, box({ [axis]: value }).base, spacing(axis, step))
+			}
+
+			check(
+				`flex gap ${step}`,
+				flex({ gap: value }).base,
+				'flex flex-row',
+				step === '0' ? 'density-gap-[0,0,0,0,0]' : read(`flex.k.gap.${step}`),
+			)
+		}
+
+		for (const radius of ['none', 'sm', 'md', 'lg', 'xl', 'full'] as const) {
+			check(`box radius ${radius}`, box({ radius }).base, read(`box.k.radius.${radius}`))
+		}
+
+		for (const bg of ['none', 'surface', 'tint', 'popover'] as const) {
+			check(`box bg ${bg}`, box({ bg }).base, read(`box.k.bg.${bg}`))
+		}
+
+		check('box outline', box({ outline: true }).base, read('box.k.outline.base'))
+
+		for (const outline of ['subtle', 'strong'] as const) {
+			check(
+				`box outline ${outline}`,
+				box({ outline }).base,
+				read(`box.k.outline.weight.${outline}`),
+			)
+		}
+
+		for (const size of ['sm', 'md', 'lg', 'xl', 'full'] as const) {
+			for (const padding of ['0', 'sm', 'md', 'lg'] as const) {
+				check(
+					`container ${size} ${padding}`,
+					container({ width: size, padding: padding === '0' ? 0 : padding }).base,
+					'w-full h-full mx-auto',
+					read(`container.k.padding.${padding}`),
+					read(`container.k.size.${size}`),
 				)
 			}
 		}

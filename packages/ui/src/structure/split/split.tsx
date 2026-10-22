@@ -1,13 +1,11 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import {
-	type ResponsiveSplitAlign,
-	type ResponsiveSplitGap,
-	type ResponsiveSplitOrientation,
-	type ResponsiveSplitRatio,
-	resolveAlign,
-	resolveGap,
-	resolveTemplate,
+import { k } from '../../recipes/kata/split'
+import type {
+	ResponsiveSplitAlign,
+	ResponsiveSplitGap,
+	ResponsiveSplitOrientation,
+	ResponsiveSplitRatio,
 } from './variants'
 
 /** Props for {@link Split}: layout knobs (`orientation`, `ratio`, `gap`, `align`) plus `<div>` attributes. */
@@ -45,9 +43,9 @@ export type SplitProps = {
  * renders in React Server Components.
  */
 export function Split({
-	orientation = 'horizontal',
-	ratio = '1/2',
-	gap = 'lg',
+	orientation,
+	ratio,
+	gap,
 	align,
 	className,
 	children,
@@ -57,13 +55,7 @@ export function Split({
 		<div
 			data-slot="split"
 			{...props}
-			className={cn(
-				'grid',
-				resolveTemplate(orientation, ratio),
-				resolveGap(gap),
-				resolveAlign(align),
-				className,
-			)}
+			className={cn(k({ orientation, ratio, gap, align }).base, className)}
 		>
 			{children}
 		</div>

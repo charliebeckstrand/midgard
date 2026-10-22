@@ -116,10 +116,15 @@ type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string 
 
 /**
  * The prop value type for an axis. If the axis has both `true` and `false`
- * keys, it accepts a boolean (a common shorthand for binary variants).
- * Otherwise it accepts the union of literal keys (string or number).
+ * keys, it accepts a boolean (a common shorthand for binary variants), and
+ * each other key of the axis. Otherwise it accepts the union of literal keys
+ * (string or number).
  */
-type AxisValue<A> = 'true' extends keyof A ? ('false' extends keyof A ? boolean : keyof A) : keyof A
+type AxisValue<A> = 'true' extends keyof A
+	? 'false' extends keyof A
+		? boolean | Exclude<keyof A, 'true' | 'false'>
+		: keyof A
+	: keyof A
 
 /** The `variant` axis and the color set of the palette of a config, or `never` without a palette. */
 type PaletteAxes<C> = C extends { palette: PaletteConfig<infer M, infer Col> }

@@ -233,6 +233,9 @@ const slotRamps = {
  *   - The top padding of the sidebar layout header in the drawer layout is 0
  *     at each step. It is a ramp so that it is in the layer of the padding of
  *     the inline layout, and a breakpoint can switch the two.
+ *   - The `0` stop of the spacing scale (`space.none` and `gap.none`) is 0 at
+ *     each step, for the same reason: a breakpoint switches it with a stop of
+ *     the scale.
  */
 const sharedRamps = new Set([
 	'size.sidebar.width',
@@ -242,6 +245,10 @@ const sharedRamps = new Set([
 	'gap.touch.tags.y',
 	'gap.touch.chips',
 	'space.shell.top.none',
+	'space.none.p',
+	'space.none.px',
+	'space.none.py',
+	'gap.none',
 ])
 
 describe('every ramp of dan', () => {
