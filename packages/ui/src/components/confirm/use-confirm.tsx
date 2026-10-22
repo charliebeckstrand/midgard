@@ -46,7 +46,7 @@ export type ConfirmOptions = Pick<ConfirmProps, 'title' | 'description'> & {
 export type ConfirmFunction = (options: ConfirmOptions) => Promise<boolean>
 
 /** The callbacks of the promise of the open question. @internal */
-type Settle = { resolve: (confirmed: boolean) => void; reject: (error: unknown) => void }
+type Resolvers = { resolve: (confirmed: boolean) => void; reject: (error: unknown) => void }
 
 /** The question that the host shows, and whether its `action` runs. @internal */
 type Question = { options: ConfirmOptions; loading: boolean }
@@ -79,11 +79,11 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 	// A question loads the module itself, so it can reject with the error.
 	const dialog = useLazyModule(confirmModule, false)
 
-	const settleRef = useRef<Settle | null>(null)
+	const settleRef = useRef<Resolvers | null>(null)
 
 	// Closes the dialog, and gives back the callbacks of the open promise one
 	// time, so the caller answers it.
-	const settle = useCallback((): Settle | null => {
+	const settle = useCallback((): Resolvers | null => {
 		const current = settleRef.current
 
 		settleRef.current = null

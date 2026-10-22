@@ -8,13 +8,13 @@ import { type DensityStep, densitySteps, type InnerStep, toInnerStep, valuesBySt
 export type Ramp = `density-${string}-[${string}]`
 
 /** The items of a list such as `2,3,4`. */
-type Split<List extends string> = List extends `${infer Head},${infer Tail}`
-	? [Head, ...Split<Tail>]
+type Items<List extends string> = List extends `${infer Head},${infer Tail}`
+	? [Head, ...Items<Tail>]
 	: [List]
 
 /** The values of a ramp, in step order. */
 type RampValues<R extends string> = R extends `density-${string}-[${infer List}]`
-	? Split<List>
+	? Items<List>
 	: never
 
 /** The outer steps of five values that differ from their inner neighbor. */

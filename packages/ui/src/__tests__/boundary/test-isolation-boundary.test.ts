@@ -473,14 +473,14 @@ function inTestTree(path: string): boolean {
 }
 
 /** The parse of a module, by its path. */
-type Parse = (file: string) => SourceFile
+type Parser = (file: string) => SourceFile
 
 /**
  * The parse of each module that the scan reads. The files in `files` go into
  * one project. A module that `files` does not hold goes into a project of its
  * own.
  */
-function parser(server: TypeScriptServer, files: readonly string[]): Parse {
+function parser(server: TypeScriptServer, files: readonly string[]): Parser {
 	const sources = server.parse(files)
 
 	return (file) => {
@@ -500,7 +500,7 @@ const exportedWritersByFile = new Map<string, Set<string>>()
  * `__tests__` tree is read with the rules of a test file. A module of the
  * source tree gives the names in `SOURCE_WRITERS`.
  */
-function exportedWriters(file: string, parse: Parse): Set<string> {
+function exportedWriters(file: string, parse: Parser): Set<string> {
 	if (!inTestTree(file)) {
 		return new Set(SOURCE_WRITERS[srcRelative(file)] ?? [])
 	}
@@ -560,7 +560,7 @@ function exportedWriters(file: string, parse: Parse): Set<string> {
  * The parts of a module that the scan reads. `writers` holds each function of
  * the module that writes shared state, and each import of a writer.
  */
-function scanModule(file: string, parse: Parse) {
+function scanModule(file: string, parse: Parser) {
 	const source = parse(file)
 
 	const moduleLets = new Set<string>()
@@ -761,7 +761,7 @@ function scanModule(file: string, parse: Parse) {
  * that comes after an `await`, with no `throwIfAborted()` between the latest
  * `await` and the write.
  */
-function unguardedLateWrites(file: string, parse: Parse): string[] {
+function unguardedLateWrites(file: string, parse: Parser): string[] {
 	const { source, writeLabel } = scanModule(file, parse)
 
 	const late: string[] = []
