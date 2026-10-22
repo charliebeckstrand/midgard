@@ -548,13 +548,40 @@ describe('defineKata responsive axes', () => {
 		).toThrow(/declares the axis "align" twice/)
 	})
 
-	it('throws on a compound rule that reads a responsive axis', () => {
-		expect(() =>
-			defineKata({
-				size: { sm: 'a' },
-				responsive: { align: { start: 'b' } },
-				compound: [{ align: 'start', size: 'sm', class: 'c' }],
-			}),
-		).toThrow(/reads the responsive axis "align"/)
+	describe('compound rules that read a responsive axis', () => {
+		const panel = defineKata({
+			base: 'absolute',
+			side: { left: 'w-full', top: 'max-h-full' },
+			responsive: { layout: { flush: '', floating: '' } },
+			compound: [
+				{ side: 'left', layout: 'flush', class: 'left-0 rounded-none' },
+				{ side: 'left', layout: 'floating', class: 'left-4 rounded-xl' },
+				{ side: 'top', layout: 'flush', class: 'rounded-none' },
+				{ side: 'top', layout: 'floating', class: 'rounded-xl' },
+			],
+			defaults: { side: 'left', layout: 'flush' },
+		})
+
+		it('applies the rule of a bare value', () => {
+			expect(panel({ layout: 'floating' }).base).toBe('absolute w-full left-4 rounded-xl')
+		})
+
+		it('prefixes the rule that holds at each breakpoint of a map', () => {
+			expect(panel({ layout: { initial: 'flush', md: 'floating' } }).base).toBe(
+				'absolute w-full left-0 rounded-none md:left-4 md:rounded-xl',
+			)
+		})
+
+		it('reads the plain axes and the defaults at each breakpoint', () => {
+			expect(panel({ side: 'top', layout: { lg: 'floating' } }).base).toBe(
+				'absolute max-h-full rounded-none lg:rounded-xl',
+			)
+		})
+
+		it('applies a rule only at the breakpoints that name a value', () => {
+			expect(panel({ layout: { initial: 'floating', sm: 'floating', xl: 'flush' } }).base).toBe(
+				'absolute w-full left-4 rounded-xl sm:left-4 sm:rounded-xl xl:left-0 xl:rounded-none',
+			)
+		})
 	})
 })

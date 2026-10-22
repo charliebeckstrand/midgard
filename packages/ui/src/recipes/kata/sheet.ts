@@ -3,8 +3,8 @@
 /**
  * Sheet kata: the unit of the `<Sheet>` edge drawer, which extends the panel
  * group. The `base` slot is the panel, with the `side`, `width`, and `surface`
- * axes. The `backdrop` follows the glass or flat surface. The `layout` table,
- * the `handle` drag grip, and the `motion` are extras.
+ * axes and the responsive `layout` axis. The `backdrop` follows the glass or
+ * flat surface. The `handle` drag grip and the `motion` are extras.
  */
 import { defineKata, type VariantProps } from '../../core/recipe'
 import { narabi, shaku, ugoki } from '../kiso'
@@ -39,12 +39,50 @@ const DOCKED_STEPS = Object.entries(shaku.panel).flatMap(([width, cap]) => [
 	{ side: 'left', width, class: cap },
 ])
 
+/**
+ * The insets of each `layout` of a panel on a side that a width docks across.
+ * A `flush` panel meets the screen edges, and it keeps its content clear of
+ * the home indicator in a page with `viewport-fit=cover`. A `floating` panel
+ * stands 1rem in from the edges. The rules of the two layouts on one side
+ * write the same properties, so a breakpoint replaces each one.
+ */
+const INSETS = [
+	{
+		side: 'right',
+		layout: 'flush',
+		class: 'top-0 right-0 bottom-0 pb-[env(safe-area-inset-bottom)]',
+	},
+	{ side: 'right', layout: 'floating', class: 'top-4 right-4 bottom-4 pb-0' },
+	{
+		side: 'left',
+		layout: 'flush',
+		class: 'top-0 bottom-0 left-0 pb-[env(safe-area-inset-bottom)]',
+	},
+	{ side: 'left', layout: 'floating', class: 'top-4 bottom-4 left-4 pb-0' },
+]
+
+/**
+ * The width of a `fit` or a `full` panel on a side, in each `layout`. A flush
+ * panel fills the screen. A floating panel takes the cap and no second inset:
+ * the `w-full` of the side under the cap already puts the far edge a step in
+ * from the screen's. A second inset over-constrains the box once a drag sets a
+ * width, and the browser can then drop the docked inset, so the sheet comes
+ * away from its edge. A floating `fit` panel takes the width of its content
+ * under the cap.
+ */
+const DOCKED_WIDTHS = (['right', 'left'] as const).flatMap((side) => [
+	{ side, width: 'fit', layout: 'flush', class: 'w-full max-w-none' },
+	{ side, width: 'fit', layout: 'floating', class: `w-max ${CAP}` },
+	{ side, width: 'full', layout: 'flush', class: 'w-full max-w-none' },
+	{ side, width: 'full', layout: 'floating', class: `w-full ${CAP}` },
+])
+
 export const k = defineKata(
 	{
 		extends: panel,
 		base: 'absolute overflow-y-auto overscroll-contain',
 		side: {
-			// The `layout` table gives a side its insets and its corners.
+			// The `layout` rules give a side its insets.
 			right: 'w-full',
 			left: 'w-full',
 			//
@@ -61,11 +99,17 @@ export const k = defineKata(
 		//
 		// Every step is empty on the axis, because a width only means something on
 		// the sides it is docked across. The compounds below give each named step
-		// to `right` and `left`, and the `layout` table gives `fit` and `full` their
+		// to `right` and `left`, and the `layout` rules give `fit` and `full` their
 		// classes. A `top` or `bottom` sheet spans the screen, and a cap or a
 		// shrink-wrap would pull a full-width panel into a corner.
 		width: { ...STEPS, fit: [] },
-		compound: DOCKED_STEPS,
+		/**
+		 * Where the panel sits on its side: `flush` with the screen edges and
+		 * square corners, or `floating` 1rem in from them with round corners. The
+		 * compound rules give a side its insets.
+		 */
+		responsive: { layout: { flush: 'rounded-none', floating: 'rounded-xl' } },
+		compound: [...DOCKED_STEPS, ...INSETS, ...DOCKED_WIDTHS],
 		slots: {
 			title: [inset.x, inset.top],
 			description: inset.x,
@@ -81,41 +125,6 @@ export const k = defineKata(
 		defaults: { side: 'right', width: 'md' },
 	},
 	{
-		/**
-		 * The classes of each `layout` of the panel. Each value writes the same
-		 * properties, so a breakpoint replaces each one (`resolveVariant`). A `flush`
-		 * panel meets the screen edges with square corners. A `floating` panel on a
-		 * side stands 1rem in from the edges, and each `floating` panel rounds its
-		 * corners. A flush side keeps its content clear of the home indicator in a
-		 * page with `viewport-fit=cover`.
-		 */
-		layout: {
-			side: {
-				right: {
-					flush: 'top-0 right-0 bottom-0 rounded-none pb-[env(safe-area-inset-bottom)]',
-					floating: 'top-4 right-4 bottom-4 rounded-xl pb-0',
-				},
-				left: {
-					flush: 'top-0 bottom-0 left-0 rounded-none pb-[env(safe-area-inset-bottom)]',
-					floating: 'top-4 bottom-4 left-4 rounded-xl pb-0',
-				},
-				top: { flush: 'rounded-none', floating: 'rounded-xl' },
-				bottom: { flush: 'rounded-none', floating: 'rounded-xl' },
-			},
-			/**
-			 * The width of a `fit` or a `full` panel on a side. A flush panel fills the
-			 * screen. A floating panel takes the cap and no second inset: the `w-full`
-			 * of the side under the cap already puts the far edge a step in from the
-			 * screen's. A second inset over-constrains the box once a drag sets a
-			 * width, and the browser can then drop the docked inset, so the sheet comes
-			 * away from its edge. A floating `fit` panel takes the width of its content
-			 * under the cap.
-			 */
-			width: {
-				fit: { flush: 'w-full max-w-none', floating: `w-max ${CAP}` },
-				full: { flush: 'w-full max-w-none', floating: `w-full ${CAP}` },
-			},
-		},
 		/**
 		 * The drag handle: a grab area tall enough to aim at (`base`), and the bar
 		 * that it draws as its `::after`, which the reader actually sees (`bar`).
@@ -160,7 +169,10 @@ export const k = defineKata(
 )
 
 /** Recipe variant props for the {@link Sheet} panel: its styling axes (`side`, `width`, `surface`), for consumers composing custom slots. */
-export type SheetPanelVariants = Omit<VariantProps<typeof k>, 'side' | 'width' | 'surface'> & {
+export type SheetPanelVariants = Omit<
+	VariantProps<typeof k>,
+	'side' | 'width' | 'surface' | 'layout'
+> & {
 	/** The edge of the screen that the panel docks to. @defaultValue 'right' */
 	side?: VariantProps<typeof k>['side']
 	/** The maximum width of a panel on the left or the right side. `fit` takes the width of the content. @defaultValue 'md' */

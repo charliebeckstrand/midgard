@@ -20,12 +20,14 @@ import { k as overlay } from '../../recipes/kata/overlay'
 import { k as panel } from '../../recipes/kata/panel'
 import { k as popover } from '../../recipes/kata/popover'
 import { k as queryBuilder } from '../../recipes/kata/query-builder'
+import { k as sheet } from '../../recipes/kata/sheet'
 import { k as sidebarLayout } from '../../recipes/kata/sidebar-layout'
 import { k as stepper } from '../../recipes/kata/stepper'
 import { k as textarea } from '../../recipes/kata/textarea'
 import { k as toast } from '../../recipes/kata/toast'
 import { k as tooltip } from '../../recipes/kata/tooltip'
 import { omote } from '../../recipes/kiso'
+import { type Responsive, resolveVariant } from '../../types/responsive'
 
 // The output gate of the recipe migration. It resolves each part of each kata
 // for each combination of its axes, and it compares the class sets with the
@@ -73,8 +75,6 @@ const RENAMES: Record<string, string> = {
 	'dialog.k.base()': 'dialog.k.panel()',
 	'drawer.k.base': 'drawer.k.panel',
 	'drawer.k.base()': 'drawer.k.panel()',
-	'sheet.k.base': 'sheet.k.panel',
-	'sheet.k.base()': 'sheet.k.panel()',
 	'panel.k.stack': 'panel.k.base',
 	'menu.k.base': 'menu.k.content',
 	'menu.k.header': 'menu.k.header.base',
@@ -170,8 +170,8 @@ const DROPPED = /^(panel\.k\.(gap|inset)\.|overlay\.k\.backdrop\.glass$)/
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range))(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|pin|headerActions|(pin|headerActions)\(\))$/,
-	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?))$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base)(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+))$/,
 }
 
 /** The output of main, by path. */
@@ -675,7 +675,7 @@ describe('kata output', () => {
 			)
 			check(
 				`sidebar-layout sticky header ${layout}`,
-				[slots.header, slots.pin],
+				sidebarLayout({ layout, stickyHeader: true }).header,
 				read('sidebar-layout.k.header', 'stickyHeader=true'),
 				read(`sidebar-layout.k.layout.header.${layout}`),
 				read(`sidebar-layout.k.layout.stickyHeader.${layout}`),
@@ -687,6 +687,21 @@ describe('kata output', () => {
 				shown('inline', 'flex'),
 			)
 		}
+
+		// A sticky header by breakpoint: the compound rules that read the layout
+		// take the prefix of each breakpoint, as the table of main did.
+		const byBreakpoint = { initial: 'drawer', lg: 'inline' } as const
+
+		check(
+			'sidebar-layout sticky header by breakpoint',
+			sidebarLayout({ layout: byBreakpoint, stickyHeader: true }).header,
+			read('sidebar-layout.k.header', 'stickyHeader=true'),
+			resolveVariant(byBreakpoint, table('sidebar-layout.k.layout.header', ['drawer', 'inline'])),
+			resolveVariant(
+				byBreakpoint,
+				table('sidebar-layout.k.layout.stickyHeader', ['drawer', 'inline']),
+			),
+		)
 
 		// The header button of the events, with the layout that the button resolved
 		// by breakpoint on main.
@@ -758,6 +773,41 @@ describe('kata output', () => {
 			}
 		}
 
+		// The panel of a sheet, with the layout that the sheet resolved by
+		// breakpoint on main: the classes of its side, and of a `fit` or a `full`
+		// width on a side that a width docks across.
+
+		const sheetLayout = (side: string, width: string, layout: Responsive<'flush' | 'floating'>) => [
+			resolveVariant(layout, table(`sheet.k.layout.side.${side}`, ['flush', 'floating'])),
+			(side === 'right' || side === 'left') && (width === 'fit' || width === 'full')
+				? resolveVariant(layout, table(`sheet.k.layout.width.${width}`, ['flush', 'floating']))
+				: '',
+		]
+
+		for (const side of ['right', 'left', 'top', 'bottom'] as const) {
+			for (const width of ['sm', 'md', 'fit', 'full'] as const) {
+				for (const surface of ['flat', 'glass'] as const) {
+					for (const layout of ['flush', 'floating'] as const) {
+						check(
+							`sheet base ${side} ${width} ${surface} ${layout}`,
+							sheet({ side, width, surface, layout }).base,
+							read('sheet.k.panel', `side=${side},width=${width},surface=${surface}`),
+							sheetLayout(side, width, layout),
+						)
+					}
+				}
+
+				const layout = { initial: 'flush', md: 'floating' } as const
+
+				check(
+					`sheet base ${side} ${width} by breakpoint`,
+					sheet({ side, width, layout }).base,
+					read('sheet.k.panel', `side=${side},width=${width},surface=flat`),
+					sheetLayout(side, width, layout),
+				)
+			}
+		}
+
 		expect(rows.filter(([, current, expected]) => current !== expected)).toEqual([])
 	})
 })
@@ -775,6 +825,11 @@ function sortAxes([path, value]: readonly [string, unknown]): [string, unknown] 
 	])
 
 	return [path, Object.fromEntries(entries)]
+}
+
+/** The table of a responsive axis of main: the classes of each value, read at `path.value`. */
+function table(path: string, values: string[]): Record<string, string> {
+	return Object.fromEntries(values.map((value) => [value, read(`${path}.${value}`)]))
 }
 
 /** The classes of a path of main, or of one combination of its axes. */
