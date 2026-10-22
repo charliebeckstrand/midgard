@@ -46,7 +46,7 @@ export function StatusDot({
 			color={cn(k.color[status])}
 			label={label}
 			data-slot="status-dot"
-			className={cn(pulse && k.pulse, className)}
+			className={cn(k({ pulse }).base, className)}
 			{...props}
 		/>
 	)
