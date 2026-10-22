@@ -1,12 +1,12 @@
 /**
- * Data-table kata: the object-literal surface of the table chrome around
- * `kata/table`. It styles the sticky head, the toolbar, the sort controls, the
- * column and row drag-reorder, and the row-loading pulse. It has no top-level
- * variants axis. It has one sub-recipe: `sort.icon`, which the active sort
- * inks or mutes. The `resize.metrics` and `row.group.reveal.pad` classes are
- * stepped.
+ * Data-table kata: the sheet of the table chrome around `kata/table`. It styles
+ * the sticky head, the toolbar, the sort controls, the column and row
+ * drag-reorder, and the row-loading pulse. It is a plain object of class lists
+ * and not a unit, because many files of the grid read it, and a cell reads its
+ * classes with no call. The `resize.metrics` and `row.group.reveal.pad` classes
+ * are stepped.
  */
-import { defineRecipe, mode, type PaletteColor } from '../../core/recipe'
+import { mode, type PaletteColor } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
 const { busy, cursor, fg, grab } = hannou
@@ -17,12 +17,6 @@ const { flex } = narabi
 const { backdrop } = omote
 const { focus, ring } = sen
 const { instant, spring } = ugoki
-
-/** Sort-direction arrow: inked while its column is the active sort, muted otherwise. */
-const sortIcon = defineRecipe({
-	active: { true: text.default, false: text.muted },
-	defaults: { active: false },
-})
 
 /**
  * The trailing padding (`pe-*`, the inline end) of each resizable header (a
@@ -445,7 +439,9 @@ export const k = {
 			'[[data-dragging]_&]:hover:not-disabled:text-zinc-500',
 			'dark:[[data-dragging]_&]:hover:not-disabled:text-zinc-400',
 		],
-		icon: sortIcon,
+		// The sort arrow, which shows only on the column of the active sort. It keeps
+		// its size while the title beside it truncates.
+		icon: [text.default, 'shrink-0'],
 		// Priority number beside the arrow under a multi-column sort: small, muted,
 		// tabular (so digits hold their box), and non-shrinking next to the title.
 		badge: [size.xs, 'leading-none', 'tabular-nums', 'shrink-0', text.muted],

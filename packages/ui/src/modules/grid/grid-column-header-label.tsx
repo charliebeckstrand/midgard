@@ -22,8 +22,7 @@ function sortDirectionIcon(
 ): ReactElement | null {
 	if (!sorted) return null
 
-	// `shrink-0` keeps the arrow at full size while the adjacent title truncates.
-	const className = cn(k.sort.icon({ active: true }), 'shrink-0')
+	const className = cn(k.sort.icon)
 
 	if (direction === 'asc') return <Icon icon={<ArrowUp />} className={className} />
 
