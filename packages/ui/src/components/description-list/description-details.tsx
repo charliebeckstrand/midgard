@@ -12,4 +12,4 @@ export type DescriptionDetailsProps = ComponentProps<'dd'>
  * @remarks
  * Static leaf with no client boundary: renders in React Server Components.
  */
-export const DescriptionDetails = createSlot('dd', 'dl-details', k.details)
+export const DescriptionDetails = createSlot('dd', 'dl-details', k().details)
