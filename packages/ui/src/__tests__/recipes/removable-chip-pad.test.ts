@@ -19,7 +19,7 @@ import { findBarePad, findSteps } from '../helpers/class-stops'
 // The chip is a `radius: 'full'` pill: its px is the step of the `radius:
 // 'full'` compound ramp, which bumps each step one stop above the base ramp.
 function findPillPx(size: DensityStep): number {
-	const rules = badge.config.compound as ReadonlyArray<Record<string, unknown>>
+	const rules = badge.config.slots.base.compound as ReadonlyArray<Record<string, unknown>>
 
 	const pill = rules.filter((rule) => rule.radius === 'full').map((rule) => rule.class)
 

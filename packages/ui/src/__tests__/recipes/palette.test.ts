@@ -87,11 +87,11 @@ describe('palette', () => {
 	})
 
 	it('Badge writes the extended colors: they resolve to their classes', () => {
-		expect(badge({ variant: 'solid', color: 'rose' })).toContain('bg-rose-600')
+		expect(badge({ variant: 'solid', color: 'rose' }).base).toContain('bg-rose-600')
 
-		expect(badge({ variant: 'soft', color: 'violet' })).toContain('bg-violet-500/15')
+		expect(badge({ variant: 'soft', color: 'violet' }).base).toContain('bg-violet-500/15')
 
 		// The standard colors resolve beside them.
-		expect(badge({ variant: 'solid', color: 'zinc' })).toContain('bg-zinc-600')
+		expect(badge({ variant: 'solid', color: 'zinc' }).base).toContain('bg-zinc-600')
 	})
 })

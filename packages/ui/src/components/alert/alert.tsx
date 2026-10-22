@@ -202,19 +202,19 @@ function AlertContent({
 	children: ReactNode
 }) {
 	return (
-		<div className={cn(k.content, resolvedIcon ? k.columns : 'flex flex-col')}>
-			{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k.icon)} />}
+		<div className={cn(k().content, resolvedIcon ? k().columns : 'flex flex-col')}>
+			{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k().icon)} />}
 
 			{hasContent(title) && (
-				<div className={cn(k.title, resolvedIcon && 'self-center')}>{title}</div>
+				<div className={cn(k().title, resolvedIcon && 'self-center')}>{title}</div>
 			)}
 
-			{hasContent(description) && <div className={cn(k.description)}>{description}</div>}
+			{hasContent(description) && <div className={cn(k().description)}>{description}</div>}
 
 			{renderChildren(children)}
 
 			{hasContent(actions) && (
-				<div className={cn(k.actions, resolvedIcon && 'col-start-2')}>
+				<div className={cn(k().actions, resolvedIcon && 'col-start-2')}>
 					<ButtonDefaultsProvider value={actionDefaults}>{actions}</ButtonDefaultsProvider>
 				</div>
 			)}
@@ -315,7 +315,7 @@ export function Alert({
 			{...props}
 			ref={setRoot}
 			role={role}
-			className={cn(k({ variant, color: resolvedColor }), className)}
+			className={cn(k({ variant, color: resolvedColor }).base, className)}
 		>
 			<AlertContent
 				resolvedIcon={resolvedIcon}
@@ -332,7 +332,7 @@ export function Alert({
 			</AlertContent>
 
 			{closable && (
-				<div className={cn(k.close)}>
+				<div className={cn(k().close)}>
 					<Button
 						// A dismissal writes no field, so a locked scope, such as a
 						// submitting form, leaves it live.

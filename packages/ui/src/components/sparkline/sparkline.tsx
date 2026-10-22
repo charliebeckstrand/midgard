@@ -297,7 +297,7 @@ export function Sparkline({
 	...props
 }: SparklineProps) {
 	// An explicit `width` or `height` fixes the box. Otherwise the box is the
-	// 3:1 drawing, and the stepped classes of `k.svg` scale it to the step.
+	// 3:1 drawing, and the stepped classes of `k().svg` scale it to the step.
 	const fixed = width !== undefined || height !== undefined
 
 	const strokeWidth = clamp(rawStrokeWidth, STROKE_WIDTH.min, STROKE_WIDTH.max)
@@ -343,7 +343,7 @@ export function Sparkline({
 	const svg = (
 		<svg
 			aria-hidden="true"
-			className={fixed ? 'block' : cn(k.svg)}
+			className={fixed ? 'block' : cn(k().svg)}
 			width={fixed ? boxWidth : undefined}
 			height={fixed ? boxHeight : undefined}
 			viewBox={`0 0 ${boxWidth} ${boxHeight}`}
@@ -363,7 +363,7 @@ export function Sparkline({
 			data-density={size}
 			{...props}
 			role="img"
-			className={cn(k(), className)}
+			className={cn(k().base, className)}
 		>
 			{animate ? <ReducedMotion>{svg}</ReducedMotion> : svg}
 		</span>

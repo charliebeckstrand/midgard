@@ -18,12 +18,12 @@
  * legend.
  */
 import { defineScale, type ScaleStep } from '../../core/density'
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineKata, type VariantProps } from '../../core/recipe'
 import { dan, omote, sen } from '../kiso'
 
 const { bg } = omote
 
-export const k = defineRecipe({
+export const k = defineKata({
 	base: ['inline-block', 'shrink-0'],
 	// Shape sets only the corner radius; the dimensions come from the shape
 	// compounds below, so no two size utilities collide.

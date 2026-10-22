@@ -198,7 +198,7 @@ export function Avatar({
 		<>
 			{alt && <span role="img" aria-label={alt} />}
 			{initials && (
-				<svg className={k.initials} viewBox="0 0 100 100" aria-hidden="true">
+				<svg className={k().initials} viewBox="0 0 100 100" aria-hidden="true">
 					<text
 						// The style overrides the font size of the recipe for long text only.
 						style={{ fontSize: initialsFontSize(initials) }}
@@ -216,7 +216,7 @@ export function Avatar({
 			{src && (
 				<span
 					data-slot="avatar-image"
-					className={k.image}
+					className={k().image}
 					style={{ backgroundImage: cssUrl(src) }}
 				/>
 			)}
@@ -227,7 +227,7 @@ export function Avatar({
 		return (
 			<span
 				data-density={size}
-				className={cn(k({ variant, color }), className)}
+				className={cn(k({ variant, color }).base, className)}
 				{...props}
 				// The ring of AvatarGroup selects the anchor, so it comes after the spread.
 				data-slot="avatar"
@@ -242,16 +242,16 @@ export function Avatar({
 	return (
 		<span
 			data-density={size}
-			className={cn(k.status.base, className)}
+			className={cn(k().status.base, className)}
 			{...props}
 			// The size of an avatar in a SidebarItem selects the anchor, so it comes
 			// after the spread.
 			data-slot="avatar-with-status"
 		>
-			<span data-slot="avatar" className={cn(k({ variant, color }))}>
+			<span data-slot="avatar" className={cn(k({ variant, color }).base)}>
 				{content}
 			</span>
-			<StatusDot status={status} className={cn(k.status.dot)} />
+			<StatusDot status={status} className={k().status.dot} />
 			{/* Color alone conveys status; the sr-only span names it for assistive technology. */}
 			<span className="sr-only">
 				{statusLabel ?? <IntlMessage message={statusMessages[status]} />}

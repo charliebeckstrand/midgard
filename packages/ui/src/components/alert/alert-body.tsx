@@ -10,4 +10,4 @@ import { k } from '../../recipes/kata/alert'
  *
  * @internal
  */
-export const AlertBody = createSlot('div', 'alert-body', k.body)
+export const AlertBody = createSlot('div', 'alert-body', k().body)
