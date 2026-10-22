@@ -11,8 +11,7 @@
  * the base of the part. Tailwind scans whole class literals, and
  * `ui/tailwind.css` lists each prefixed form in an `@source inline(...)` line.
  *
- * `interactive` is true when the steps are buttons. `state` is the state of a
- * step against the current value.
+ * `interactive` is true when the steps are buttons.
  */
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
@@ -117,36 +116,31 @@ export const k = defineKata(
 				responsive: { orientation: { horizontal: 'contents', vertical: 'flex' } },
 			},
 			/**
-			 * A completed step fills green, so it does not read as the current step or
-			 * an upcoming step. The hover of a completed step comes after the neutral
-			 * hover of `interactive`, and the merge keeps it. The current step paints its
-			 * content in white on the blue fill.
+			 * The marker of a step. It reads the `data-state` of its step: a completed
+			 * step fills green, so it does not read as the current step or an upcoming
+			 * step, and the current step paints its content in white on the blue fill.
 			 */
-			indicator: {
-				base: [
-					'relative',
-					flex.inline,
-					'justify-center',
-					'size-4.5 shrink-0',
-					rounded.full,
-					...mode('bg-zinc-400', 'dark:bg-zinc-600'),
-				],
-				interactive: {
-					true: [
-						'group-enabled:group-hover:bg-zinc-500',
-						'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
-					],
-					false: '',
-				},
-				state: {
-					completed: [
-						'bg-green-600 dark:bg-green-600 text-white',
-						'group-enabled:group-hover:bg-green-500',
-					],
-					current: 'text-white',
-					upcoming: '',
-				},
-			},
+			indicator: [
+				'relative',
+				flex.inline,
+				'justify-center',
+				'size-4.5 shrink-0',
+				rounded.full,
+				...mode('bg-zinc-400', 'dark:bg-zinc-600'),
+				// The hover and the focus of a step button. A display-only step is an
+				// `li`, which is never enabled or focused, so these do not match there.
+				'group-enabled:group-hover:bg-zinc-500',
+				'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
+				// The state of the step (`data-state`). Each state class has one more
+				// variant than the class that it overrides, so it wins by specificity.
+				...mode(
+					'group-data-[state=completed]:bg-green-600',
+					'dark:group-data-[state=completed]:bg-green-600',
+				),
+				'group-data-[state=completed]:text-white',
+				'group-enabled:group-hover:group-data-[state=completed]:bg-green-500',
+				'group-data-[state=current]:text-white',
+			],
 			/** The blue fill of the current step. */
 			fill: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
 			/**
@@ -158,7 +152,7 @@ export const k = defineKata(
 			check: 'size-2.5 stroke-[3.5]',
 			description: [size.sm, ...text.muted],
 		},
-		defaults: { interactive: false, state: 'upcoming' },
+		defaults: { interactive: false },
 	},
 	{ skeleton: kokkaku.stepper },
 )
