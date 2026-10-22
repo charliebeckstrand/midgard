@@ -63,7 +63,7 @@ export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'default
  */
 export type RecipeConfig = {
 	base?: ClassValue
-	palette?: PaletteConfig
+	palette?: PaletteConfig<string, string>
 	compound?: CompoundRule[]
 	slots?: Record<string, SlotValue>
 	defaults?: Record<string, string | number | boolean>
@@ -97,7 +97,7 @@ export type Recipe<C extends RecipeConfig> = {
 	readonly config: ResolvedConfig
 } & {
 	[K in keyof NonNullable<C['slots']>]: SlotClasses<NonNullable<C['slots']>[K]>
-} & SkeletonOf<C>
+} & Skeleton<C>
 
 /**
  * The `skeleton` property of a recipe. A config without a `skeleton` field
@@ -105,7 +105,7 @@ export type Recipe<C extends RecipeConfig> = {
  * before it reads the field. A read of `C['skeleton']` on a config without the
  * field gives `unknown`, and that type would put `k.skeleton` on each recipe.
  */
-type SkeletonOf<C> = 'skeleton' extends keyof C
+type Skeleton<C> = 'skeleton' extends keyof C
 	? C[keyof C & 'skeleton'] extends undefined
 		? unknown
 		: { skeleton: C[keyof C & 'skeleton'] }
@@ -122,8 +122,8 @@ type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string 
 type AxisValue<A> = 'true' extends keyof A ? ('false' extends keyof A ? boolean : keyof A) : keyof A
 
 /** The `variant` axis and the color set of the palette of a config, or `never` without a palette. */
-type PaletteAxes<C> = C extends { palette: PaletteConfig<infer E, infer M, infer Col> }
-	? { variant: M & string; color: Col | (E & string) }
+type PaletteAxes<C> = C extends { palette: PaletteConfig<infer M, infer Col> }
+	? { variant: M & string; color: Col }
 	: never
 
 /** The prop value of an axis: its keys, joined with the palette variants for the `variant` axis. */

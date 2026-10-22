@@ -11,7 +11,7 @@ import { mode } from '../../core/recipe'
 import { dan, hannou, iro, ji, narabi, omote, sen, sou } from '../kiso'
 
 const { cursor } = hannou
-const { palette, text } = iro
+const { text } = iro
 const { size, weight } = ji
 const { flex } = narabi
 const { bg, rail, skeleton } = omote
@@ -250,9 +250,22 @@ export const k = {
 					 * `base`, because `ring-inset` would also turn the selected stroke inward.
 					 */
 					edge: ring.line[1].inset,
-					/** Translucent per-color wash, from the shared palette. */
-					fill: palette.soft.bg,
-					ring: palette.outline.ring,
+					/** Translucent per-color wash: the soft fill of a Badge or a Button. */
+					fill: {
+						zinc: 'bg-zinc-500/15',
+						red: 'bg-red-500/15',
+						amber: 'bg-amber-500/15',
+						green: 'bg-green-500/15',
+						blue: 'bg-blue-500/15',
+					},
+					/** The per-color edge: the outline ring of a Badge or a Button. */
+					ring: {
+						zinc: 'ring-zinc-800 dark:ring-zinc-600',
+						red: 'ring-red-600 dark:ring-red-700',
+						amber: 'ring-amber-500 dark:ring-amber-600',
+						green: 'ring-green-600 dark:ring-green-700',
+						blue: 'ring-blue-600 dark:ring-blue-700',
+					},
 					/** The selected region: its stroke and lift (`base`), and its wash (`fill`). */
 					active: {
 						/**
@@ -268,13 +281,19 @@ export const k = {
 						 */
 						base: [...ring.line[2].outset, 'z-10'],
 						/**
-						 * The wash: the palette's doubled rung.
+						 * The wash: the doubled rung of the fill.
 						 *
 						 * A heavier stroke alone did not carry it. At 15% over printed ink the fill is
 						 * near-invisible either way, so the only thing distinguishing the selection was
 						 * one pixel of ring.
 						 */
-						fill: palette.soft.strong,
+						fill: {
+							zinc: 'bg-zinc-500/30',
+							red: 'bg-red-500/30',
+							amber: 'bg-amber-500/30',
+							green: 'bg-green-500/30',
+							blue: 'bg-blue-500/30',
+						},
 					},
 					/**
 					 * A resting region under the pointer: the same stroke, doubled.
@@ -302,16 +321,16 @@ export const k = {
 					 * pick it out: the eye still reads a field of color. Taking the *color* off
 					 * the rest leaves exactly one thing colored.
 					 *
-					 * Only the color, though. These keep the palette's own zinc fill and ring, at
+					 * Only the color, though. These keep the zinc fill and ring, at
 					 * the same weight as any resting region. A reader can therefore still see where
 					 * every other field sits on the page. Blanking them would answer "which one is
 					 * selected" by destroying the answer to "where is everything else".
 					 *
-					 * Both halves of each pair come from the palette for a reason. The colors being
+					 * The ring writes both halves of its pair for a reason. The colors being
 					 * overridden are light/dark pairs, and supplying only a base leaves the `dark:`
 					 * half of the old color standing.
 					 */
-					dimmed: [palette.soft.bg.zinc, ...palette.outline.ring.zinc],
+					dimmed: 'bg-zinc-500/15 ring-zinc-800 dark:ring-zinc-600',
 				},
 			},
 		},

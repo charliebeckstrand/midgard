@@ -2,12 +2,15 @@ import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, definePalette, type VariantProps } from '../../core/recipe'
 import { dan, hannou, iro, ji, kokkaku, narabi, sen, shaku } from '../kiso'
 
-const { extended } = iro
 const { cursor, disabled } = hannou
+const { extended, hover, palette } = iro
 const { weight } = ji
 const { button } = kokkaku
 const { flex } = narabi
 const { focus, ring } = sen
+
+/** The `inherit` entry of a variant that does not fill the button: the text around it, with a wash of that text on hover. */
+const inherit = 'text-inherit not-disabled:not-data-disabled:hover:bg-current/15'
 
 export const k = defineKata(
 	{
@@ -53,28 +56,17 @@ export const k = defineKata(
 			// label is present.
 			bare: [focus.inset, dan.space.button.bare],
 		},
-		// Opt into the wide palette: Button's `color` axis carries the standard set
-		// plus the extended hues (rose / violet / sky), matching Badge.
-		palette: definePalette(
-			{
-				solid: [extended.solid.bg, extended.solid.text, extended.solid.hover],
-				soft: [extended.soft.bg, extended.soft.text, extended.soft.hover],
-				outline: [extended.outline.ring, extended.outline.text, extended.outline.hover],
-				plain: [extended.plain.text, extended.plain.hover],
-				bare: [extended.bare.text, extended.bare.hover],
-			},
-			// Synthetic color entry: inherits parent text color with a hover wash on non-disabled elements.
-			{ inherit: ['text-inherit', 'not-disabled:not-data-disabled:hover:bg-current/15'] },
-		),
-		// `inherit` is the text color around the button, and a text color cannot fill
-		// a button. A solid or a soft button with `inherit` thus paints the fill of
-		// the default color. A compound rule comes after the palette pair, so its
-		// classes win the merge.
-		compound: (['solid', 'soft'] as const).map((variant) => ({
-			variant,
-			color: 'inherit',
-			class: [extended[variant].bg.zinc, extended[variant].text.zinc, extended[variant].hover.zinc],
-		})),
+		// The colors at rest in the standard and the extended hues, and the hover,
+		// from the palette of iro. `inherit` takes the text color around the button.
+		// A text color cannot fill a button, so a solid or a soft button with
+		// `inherit` paints the fill of zinc, the default color.
+		palette: definePalette(palette, extended, hover, {
+			solid: { inherit: [palette.solid.zinc, hover.solid.zinc] },
+			soft: { inherit: [palette.soft.zinc, hover.soft.zinc] },
+			outline: { inherit },
+			plain: { inherit },
+			bare: { inherit },
+		}),
 		defaults: { variant: 'solid', color: 'zinc' },
 	},
 	{ skeleton: button },

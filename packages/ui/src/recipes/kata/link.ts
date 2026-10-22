@@ -5,7 +5,11 @@ const { palette } = iro
 
 export const k = defineRecipe({
 	color: {
-		...palette.bare.text,
+		zinc: palette.bare.zinc,
+		red: palette.bare.red,
+		amber: palette.bare.amber,
+		green: palette.bare.green,
+		blue: palette.bare.blue,
 		// One class for both modes. A `dark:` half would outlive the merge with a host
 		// whose own text color has no `dark:` form, such as a solid Button or Badge that
 		// renders through Link, and would win over that color in dark mode.

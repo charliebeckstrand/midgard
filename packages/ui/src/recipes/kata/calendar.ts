@@ -8,7 +8,7 @@
 import { defineScale } from '../../core/density'
 import { dan, iro, ji, kokkaku, narabi, sen } from '../kiso'
 
-const { palette, text } = iro
+const { hover, palette, text } = iro
 const { weight } = ji
 const { flex } = narabi
 const { focus } = sen
@@ -43,12 +43,7 @@ export const k = {
 	footer,
 	picker: {
 		grid: pickerGrid,
-		current: [
-			weight.semibold,
-			palette.soft.bg.blue,
-			palette.soft.text.blue,
-			palette.soft.hover.blue,
-		],
+		current: [weight.semibold, palette.soft.blue, hover.soft.blue],
 	},
 	weekday,
 	day: {

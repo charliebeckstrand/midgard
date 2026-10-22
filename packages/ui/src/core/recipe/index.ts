@@ -14,4 +14,3 @@ export {
 	type VariantProps,
 } from './engine'
 export { defineColors, mode } from './mode'
-export { shades } from './shades'

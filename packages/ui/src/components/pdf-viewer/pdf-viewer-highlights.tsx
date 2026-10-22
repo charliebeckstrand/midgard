@@ -34,7 +34,7 @@ const regionClasses = new Map<string, string>()
  * The region's classes for one `(color, active)` pair, computed once.
  *
  * @remarks `cn` memoizes only when every argument is a string, and these arguments are
- * arrays (`shades()` returns `string[]`). Each call would otherwise run the full clsx +
+ * arrays (`base` and `edge` are `string[]`). Each call would otherwise run the full clsx +
  * tailwind-merge over the tokens of a region. The colors and the states are a small closed set,
  * so the table holds every combination that a document can produce, and a layer render does
  * almost no class work. The layer re-renders on every zoom step and every resize frame.

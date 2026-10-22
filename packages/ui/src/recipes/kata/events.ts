@@ -4,14 +4,12 @@
  * `body`, and its `footer`. `kind` colors the kinds that stand apart from the
  * DOM events: the callbacks of the components and of the modules, the
  * captures, and the bugs. `hash` colors the hash of a report. The colors are
- * the `onSurface` shades of the ramp, which clear AA on the surface.
+ * the bare entries of the extended palette, which clear AA on the surface.
  */
 import { dan, iro, omote } from '../kiso'
 import type { ByLayout } from './offcanvas'
 
 const { x, top, bottom } = dan.space.panel
-
-const onSurface = iro.extended.bare.text
 
 // The header button follows the layout of the enclosing sidebar layout. The
 // pinned panel shows only beside the inline panel, so the button hides while
@@ -33,10 +31,10 @@ export const k = {
 	},
 	text: [...iro.text.default],
 	kind: {
-		component: onSurface.sky,
-		module: onSurface.violet,
+		component: iro.extended.bare.sky,
+		module: iro.extended.bare.violet,
 		capture: iro.text.primary,
 		error: iro.text.error,
 	},
-	hash: onSurface.rose,
+	hash: iro.extended.bare.rose,
 } as const

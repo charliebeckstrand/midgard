@@ -1,7 +1,7 @@
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { dan, iro, ji, kasane, narabi, sen } from '../kiso'
 
-const { matrix, palette } = iro
+const { palette } = iro
 const { weight, leading } = ji
 const { rounded } = kasane
 const { flex } = narabi
@@ -25,7 +25,13 @@ export const k = defineRecipe({
 	variant: {
 		outline: ring.line[1].inset,
 	},
-	palette: definePalette({ ...matrix.palette, plain: palette.plain.text }),
+	// The colors at rest, from the palette of iro. An alert takes no hover.
+	palette: definePalette({
+		solid: palette.solid,
+		soft: palette.soft,
+		outline: palette.outline,
+		plain: palette.plain,
+	}),
 	slots: {
 		icon: 'shrink-0 self-center',
 		title: [titleRamp, weight.semibold],

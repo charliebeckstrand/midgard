@@ -2,16 +2,17 @@
  * The palette color sets.
  *
  * `colors` is the **standard** palette every chromatic kata carries by
- * default. `extendedColors` is an **opt-in** set a kata pulls in through
- * `iro.extended`.
+ * default. `extendedColors` is an **opt-in** set a kata offers by reading
+ * the `extended` palette of iro.
  *
  * The recipe engine derives a palette's `color` axis from the keys of the
- * matrix it's handed (`engine/palette.ts`). A kata that reads the wider bundle
- * therefore gains the extra values with no engine change.
+ * matrix it's handed (`engine/palette.ts`). A kata that writes the extended
+ * colors therefore gains the extra values with no engine change.
  *
- * Adding a standard color: append to `colors`, then add a row to every
- * per-color map in `iro/*`. Adding an extended color: append to
- * `extendedColors` and add its rows to `iro/extended-palette.ts`.
+ * Adding a standard color: append to `colors`, then add its string to each
+ * variant of `palette` and `hover` in `iro/palette.ts`, and its rows to the
+ * other maps in `iro/*`. Adding an extended color: append to `extendedColors`
+ * and add its strings to `extended` and `hover`.
  */
 
 export const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
@@ -20,8 +21,8 @@ export const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 export type Color = (typeof colors)[number]
 
 /**
- * The extended palette: opt-in chromatic choices a kata surfaces by reading
- * `iro.extended`. Not part of the {@link Color standard set}; a
+ * The extended palette: opt-in chromatic choices a kata surfaces by writing
+ * them in its palette. Not part of the {@link Color standard set}; a
  * component offers these only when its kata declares the wider palette (e.g.
  * Badge).
  */
