@@ -20,9 +20,15 @@
  */
 
 import clsx, { type ClassValue } from 'clsx'
-import { atBreakpoint, BREAKPOINTS, type Responsive } from '../../../types/responsive'
+import {
+	atBreakpoint,
+	BREAKPOINTS,
+	type Breakpoint,
+	type Responsive,
+	valueAt,
+} from '../../../types/responsive'
 import { twMerge } from '../../tw-merge'
-import { defineRecipe, RESERVED } from './recipe'
+import { axisKey, defineRecipe, RESERVED } from './recipe'
 import type { CompoundRule, ComputedProps, RecipeConfig, ResolvedConfig } from './types'
 
 /** The default of each prop of a unit. */
@@ -285,135 +291,83 @@ function liftResponsive(caller: string, slots: Slots): Set<string> {
 /** A slot recipe of a unit, by name. */
 type SlotRecipe = readonly [name: string, recipe: ReturnType<typeof defineRecipe>]
 
-/** The classes of each value of each responsive axis of one slot. */
-type SlotTables = ReadonlyArray<readonly [axis: string, table: Record<string, string>]>
-
-/** A compound rule of a slot that reads a responsive axis: its conditions, and its classes as one string. */
+/**
+ * A rule of a slot that a breakpoint can prefix: a value of a responsive axis,
+ * or a compound rule that reads one. A value is a rule with one condition.
+ */
 type ResponsiveRule = {
 	readonly conditions: ReadonlyArray<readonly [axis: string, value: string]>
 	readonly classes: string
 }
 
-/** The responsive axes of each slot, and the compound rules that read one. */
-type SlotResponsive = { readonly tables: SlotTables; readonly rules: readonly ResponsiveRule[] }
-
 /**
- * Reads the table of each responsive axis of each slot, and each compound rule
- * that reads a responsive axis, with the classes as one string, so a
- * breakpoint can prefix them.
+ * Reads the rules of each slot that a breakpoint can prefix, with the classes
+ * of each as one string: each value of a responsive axis, and each compound
+ * rule that reads a responsive axis. A rule with no classes is left out.
  *
  * @internal
  */
-function readResponsive(slots: readonly SlotRecipe[], responsive: Set<string>): SlotResponsive[] {
+function readResponsive(slots: readonly SlotRecipe[], responsive: Set<string>): ResponsiveRule[][] {
 	return slots.map(([, recipe]) => {
-		const tables = [...responsive].flatMap((axis) => {
-			const values = recipe.config.variants[axis]
+		const values = [...responsive].flatMap((axis) =>
+			Object.entries(recipe.config.variants[axis] ?? {}).map(([value, classes]) => ({
+				[axis]: value,
+				class: classes,
+			})),
+		)
 
-			if (values === undefined) return []
+		return [...values, ...recipe.config.compound].flatMap((rule: CompoundRule) => {
+			const { class: value, ...rest } = rule
 
-			const table = Object.fromEntries(
-				Object.entries(values).map(([value, classes]) => [value, twMerge(clsx(classes))]),
-			)
+			const conditions = Object.entries(rest as Record<string, string>)
 
-			return [[axis, table] as const]
+			const classes = twMerge(clsx(value))
+
+			if (classes === '' || !conditions.some(([axis]) => responsive.has(axis))) return []
+
+			return [{ conditions, classes }]
 		})
-
-		const rules = recipe.config.compound.flatMap((rule: CompoundRule) => {
-			const conditions = Object.entries(rule)
-				.filter(([key]) => key !== 'class')
-				.map(([key, value]) => [key, String(value)] as const)
-
-			if (!conditions.some(([axis]) => responsive.has(axis))) return []
-
-			return [{ conditions, classes: twMerge(clsx(rule.class)) }]
-		})
-
-		return { tables, rules }
 	})
-}
-
-/**
- * The classes of each compound rule that reads a responsive axis, behind the
- * prefix of each breakpoint where a map of an axis that it reads names a
- * value, when each of its conditions holds for the values in force there. The
- * rules over the values of an axis write the same properties, as the values
- * of a table do, so a breakpoint replaces the classes of the rule below it.
- *
- * @internal
- */
-function prefixedRules(
-	rules: readonly ResponsiveRule[],
-	props: Record<string, unknown> | undefined,
-	flat: Record<string, unknown>,
-	defaults: Defaults,
-): string[] {
-	// The value of each axis in force at the breakpoint, from the initial values up.
-	const current: Record<string, unknown> = { ...defaults }
-
-	for (const [axis, value] of Object.entries(flat)) if (value !== undefined) current[axis] = value
-
-	return BREAKPOINTS.flatMap((bp) => {
-		if (bp === 'initial') return []
-
-		const named = namedAt(props, bp)
-
-		for (const [axis, value] of named) current[axis] = value
-
-		const axes = new Set(named.map(([axis]) => axis))
-
-		return rules
-			.filter(
-				({ conditions }) =>
-					conditions.some(([axis]) => axes.has(axis)) &&
-					conditions.every(([axis, value]) => String(current[axis]) === value),
-			)
-			.map(({ classes }) => atBreakpoint(classes, bp))
-	})
-}
-
-/** Each responsive axis that a map of the props names at the breakpoint, with the value there. @internal */
-function namedAt(
-	props: Record<string, unknown> | undefined,
-	bp: (typeof BREAKPOINTS)[number],
-): (readonly [axis: string, value: unknown])[] {
-	return Object.entries(props ?? {}).flatMap(([axis, map]) =>
-		isMap(map) && map[bp] !== undefined ? [[axis, map[bp]] as const] : [],
-	)
 }
 
 /**
  * The classes of a slot behind the prefix of each breakpoint that a map of a
- * responsive axis names, in breakpoint order, then the classes of each
- * compound rule that reads a responsive axis (`prefixedRules`). The `initial`
- * value takes no prefix, so the recipe of the slot gives it.
+ * responsive axis names, in breakpoint order. The `initial` value takes no
+ * prefix, so the recipe of the slot gives it.
+ *
+ * A rule applies at a breakpoint where a map of an axis that it reads names a
+ * value, when each of its conditions holds for the values in force there
+ * (`valueAt`). The rules over the values of an axis write the same
+ * properties, so a breakpoint replaces the classes of the rule below it.
  *
  * @internal
  */
 function prefixed(
-	{ tables, rules }: SlotResponsive,
-	props: Record<string, unknown> | undefined,
-	flat: Record<string, unknown>,
+	rules: readonly ResponsiveRule[],
+	props: Record<string, unknown>,
 	defaults: Defaults,
 ): string[] {
-	const classes = tables.flatMap(([axis, table]) => {
-		const map = props?.[axis]
+	if (rules.length === 0) return []
 
-		if (!isMap(map)) return []
+	const named = (axis: string, bp: Breakpoint) => {
+		const map = props[axis]
 
-		return BREAKPOINTS.flatMap((bp) => {
-			const value = map[bp]
+		return isMap(map) && map[bp] !== undefined
+	}
 
-			if (bp === 'initial' || value === undefined) return []
+	const current = (axis: string, bp: Breakpoint) =>
+		axisKey(valueAt(props[axis] as Responsive<unknown>, bp, defaults[axis]) ?? defaults[axis])
 
-			const entry = table[String(value)]
-
-			return entry ? [atBreakpoint(entry, bp)] : []
-		})
-	})
-
-	if (rules.length === 0) return classes
-
-	return [...classes, ...prefixedRules(rules, props, flat, defaults)]
+	return BREAKPOINTS.flatMap((bp) =>
+		rules
+			.filter(
+				({ conditions }) =>
+					bp !== 'initial' &&
+					conditions.some(([axis]) => named(axis, bp)) &&
+					conditions.every(([axis, value]) => current(axis, bp) === value),
+			)
+			.map(({ classes }) => atBreakpoint(classes, bp)),
+	)
 }
 
 /**
@@ -533,7 +487,7 @@ export function defineKata<C extends UnitInput, X extends Record<string, unknown
 		([name, slot]) => [name, defineRecipe({ ...slot, defaults })] as const,
 	)
 
-	const tables = readResponsive(slots, responsive)
+	const rules = readResponsive(slots, responsive)
 
 	const names = [...new Set(slots.flatMap(([, recipe]) => readPropNames(recipe.config)))]
 
@@ -555,10 +509,7 @@ export function defineKata<C extends UnitInput, X extends Record<string, unknown
 				slots.map(([name, recipe], index) => {
 					const classes = recipe(flat)
 
-					const extra =
-						flat === raw || tables[index] === undefined
-							? []
-							: prefixed(tables[index], raw, flat ?? {}, defaults)
+					const extra = flat === raw ? [] : prefixed(rules[index] ?? [], raw ?? {}, defaults)
 
 					return [
 						name,

@@ -213,7 +213,7 @@ function mergeSlot(value: SlotValue): unknown {
  *
  * @internal
  */
-function axisKey(value: unknown): string | undefined {
+export function axisKey(value: unknown): string | undefined {
 	return value === undefined || value === null ? undefined : String(value)
 }
 

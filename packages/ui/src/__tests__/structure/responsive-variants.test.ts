@@ -50,9 +50,10 @@ function isUnit(value: unknown): value is UnitLike {
  * kata holds as an extra. A unit names its responsive axes, so this list
  * needs no entry by hand.
  *
- * The compound rules that read a responsive axis are a table too: the rules
- * with the same other conditions, keyed by the value of the axis. A
- * breakpoint replaces the classes of one rule with the classes of the next.
+ * A value of an axis is a rule with one condition, as the engine reads it.
+ * The rules that read the axis with the same other conditions are a table,
+ * keyed by the value of the axis. A breakpoint replaces the classes of one
+ * rule with the classes of the next.
  */
 function unitAxes(): [string, Record<string, string>][] {
 	const axes: [string, Record<string, string>][] = []
@@ -60,21 +61,14 @@ function unitAxes(): [string, Record<string, string>][] {
 	const read = (name: string, unit: UnitLike) => {
 		for (const axis of unit.config.responsive) {
 			for (const [slot, config] of Object.entries(unit.config.slots)) {
-				const values = config.variants[axis]
-
-				if (values === undefined) continue
-
-				const table = Object.fromEntries(
-					Object.entries(values).map(([value, classes]) => [value, twMerge(clsx(classes))]),
-				)
-
-				axes.push([`${name} ${slot} ${axis}`, table])
-			}
-
-			for (const [slot, config] of Object.entries(unit.config.slots)) {
 				const groups = new Map<string, Record<string, string>>()
 
-				for (const { class: classes, ...conditions } of config.compound) {
+				const values = Object.entries(config.variants[axis] ?? {}).map(([value, classes]) => ({
+					[axis]: value,
+					class: classes,
+				}))
+
+				for (const { class: classes, ...conditions } of [...values, ...config.compound]) {
 					if (!(axis in conditions)) continue
 
 					const rest = Object.entries(conditions)
@@ -89,7 +83,9 @@ function unitAxes(): [string, Record<string, string>][] {
 					groups.set(rest, group)
 				}
 
-				for (const [rest, table] of groups) axes.push([`${name} ${slot} ${axis} (${rest})`, table])
+				for (const [rest, table] of groups) {
+					axes.push([`${name} ${slot} ${axis}${rest === '' ? '' : ` (${rest})`}`, table])
+				}
 			}
 		}
 	}

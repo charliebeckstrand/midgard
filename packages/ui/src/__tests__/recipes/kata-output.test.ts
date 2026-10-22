@@ -692,17 +692,15 @@ describe('kata output', () => {
 		// take the prefix of each breakpoint, as the table of main did.
 		const byBreakpoint = { initial: 'drawer', lg: 'inline' } as const
 
-		const byLayout = (path: string) => ({
-			drawer: read(`${path}.drawer`),
-			inline: read(`${path}.inline`),
-		})
-
 		check(
 			'sidebar-layout sticky header by breakpoint',
 			sidebarLayout({ layout: byBreakpoint, stickyHeader: true }).header,
 			read('sidebar-layout.k.header', 'stickyHeader=true'),
-			resolveVariant(byBreakpoint, byLayout('sidebar-layout.k.layout.header')),
-			resolveVariant(byBreakpoint, byLayout('sidebar-layout.k.layout.stickyHeader')),
+			resolveVariant(byBreakpoint, table('sidebar-layout.k.layout.header', ['drawer', 'inline'])),
+			resolveVariant(
+				byBreakpoint,
+				table('sidebar-layout.k.layout.stickyHeader', ['drawer', 'inline']),
+			),
 		)
 
 		// The header button of the events, with the layout that the button resolved
@@ -778,15 +776,11 @@ describe('kata output', () => {
 		// The panel of a sheet, with the layout that the sheet resolved by
 		// breakpoint on main: the classes of its side, and of a `fit` or a `full`
 		// width on a side that a width docks across.
-		const layouts = (path: string) => ({
-			flush: read(`${path}.flush`),
-			floating: read(`${path}.floating`),
-		})
 
 		const sheetLayout = (side: string, width: string, layout: Responsive<'flush' | 'floating'>) => [
-			resolveVariant(layout, layouts(`sheet.k.layout.side.${side}`)),
+			resolveVariant(layout, table(`sheet.k.layout.side.${side}`, ['flush', 'floating'])),
 			(side === 'right' || side === 'left') && (width === 'fit' || width === 'full')
-				? resolveVariant(layout, layouts(`sheet.k.layout.width.${width}`))
+				? resolveVariant(layout, table(`sheet.k.layout.width.${width}`, ['flush', 'floating']))
 				: '',
 		]
 
@@ -831,6 +825,11 @@ function sortAxes([path, value]: readonly [string, unknown]): [string, unknown] 
 	])
 
 	return [path, Object.fromEntries(entries)]
+}
+
+/** The table of a responsive axis of main: the classes of each value, read at `path.value`. */
+function table(path: string, values: string[]): Record<string, string> {
+	return Object.fromEntries(values.map((value) => [value, read(`${path}.${value}`)]))
 }
 
 /** The classes of a path of main, or of one combination of its axes. */

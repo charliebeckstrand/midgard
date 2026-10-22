@@ -40,30 +40,25 @@ const DOCKED_STEPS = Object.entries(shaku.panel).flatMap(([width, cap]) => [
 ])
 
 /**
- * The classes of each `layout` of the panel on each side. A `flush` panel meets
- * the screen edges with square corners. A `floating` panel on a side stands
- * 1rem in from the edges, and each `floating` panel rounds its corners. A flush
- * side keeps its content clear of the home indicator in a page with
- * `viewport-fit=cover`. The rules of the two layouts on one side write the same
- * properties, so a breakpoint replaces each one.
+ * The insets of each `layout` of a panel on a side that a width docks across.
+ * A `flush` panel meets the screen edges, and it keeps its content clear of
+ * the home indicator in a page with `viewport-fit=cover`. A `floating` panel
+ * stands 1rem in from the edges. The rules of the two layouts on one side
+ * write the same properties, so a breakpoint replaces each one.
  */
-const LAYOUTS = [
+const INSETS = [
 	{
 		side: 'right',
 		layout: 'flush',
-		class: 'top-0 right-0 bottom-0 rounded-none pb-[env(safe-area-inset-bottom)]',
+		class: 'top-0 right-0 bottom-0 pb-[env(safe-area-inset-bottom)]',
 	},
-	{ side: 'right', layout: 'floating', class: 'top-4 right-4 bottom-4 rounded-xl pb-0' },
+	{ side: 'right', layout: 'floating', class: 'top-4 right-4 bottom-4 pb-0' },
 	{
 		side: 'left',
 		layout: 'flush',
-		class: 'top-0 bottom-0 left-0 rounded-none pb-[env(safe-area-inset-bottom)]',
+		class: 'top-0 bottom-0 left-0 pb-[env(safe-area-inset-bottom)]',
 	},
-	{ side: 'left', layout: 'floating', class: 'top-4 bottom-4 left-4 rounded-xl pb-0' },
-	{ side: 'top', layout: 'flush', class: 'rounded-none' },
-	{ side: 'top', layout: 'floating', class: 'rounded-xl' },
-	{ side: 'bottom', layout: 'flush', class: 'rounded-none' },
-	{ side: 'bottom', layout: 'floating', class: 'rounded-xl' },
+	{ side: 'left', layout: 'floating', class: 'top-4 bottom-4 left-4 pb-0' },
 ]
 
 /**
@@ -87,7 +82,7 @@ export const k = defineKata(
 		extends: panel,
 		base: 'absolute overflow-y-auto overscroll-contain',
 		side: {
-			// The `layout` rules give a side its insets and its corners.
+			// The `layout` rules give a side its insets.
 			right: 'w-full',
 			left: 'w-full',
 			//
@@ -109,12 +104,12 @@ export const k = defineKata(
 		// shrink-wrap would pull a full-width panel into a corner.
 		width: { ...STEPS, fit: [] },
 		/**
-		 * Where the panel sits on its side: `flush` with the screen edges, or
-		 * `floating` 1rem in from them. The axis has no classes of its own: the
-		 * compound rules of each side give them.
+		 * Where the panel sits on its side: `flush` with the screen edges and
+		 * square corners, or `floating` 1rem in from them with round corners. The
+		 * compound rules give a side its insets.
 		 */
-		responsive: { layout: { flush: '', floating: '' } },
-		compound: [...DOCKED_STEPS, ...LAYOUTS, ...DOCKED_WIDTHS],
+		responsive: { layout: { flush: 'rounded-none', floating: 'rounded-xl' } },
+		compound: [...DOCKED_STEPS, ...INSETS, ...DOCKED_WIDTHS],
 		slots: {
 			title: [inset.x, inset.top],
 			description: inset.x,
