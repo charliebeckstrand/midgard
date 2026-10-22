@@ -346,14 +346,22 @@ describe('defineKata', () => {
 		expect(Object.keys(kata())).toEqual(['base', 'list', 'tab'])
 	})
 
-	it('rejects a child slot named base, a slot with its own defaults or slots, and an extra that collides', () => {
+	it('rejects a child slot named base, a slot with its own defaults, and an extra that collides', () => {
 		expect(() => defineKata({ slots: { base: 'a' } })).toThrow(/root slot "base"/)
 
 		expect(() =>
 			defineKata({ slots: { icon: { size: { sm: 'a' }, defaults: { size: 'sm' } } } }),
 		).toThrow(/slot "icon"/)
 
-		expect(() => defineKata({ slots: { icon: { slots: { mark: 'a' } } } })).toThrow(/slot "icon"/)
+		expect(() => defineKata({ slots: { icon: { slots: { base: 'a' } } } })).toThrow(
+			/classes of slot "icon"/,
+		)
+
+		expect(() => defineKata({ slots: { 'icon.mark': 'a' } })).toThrow(/dot in its name/)
+
+		expect(() =>
+			defineKata({ slots: { icon: { slots: { mark: { defaults: { size: 'sm' } } } } } }),
+		).toThrow(/slot "icon.mark"/)
 
 		expect(() => defineKata({}, { config: {} })).toThrow(/extra name/)
 	})
@@ -366,6 +374,95 @@ describe('defineKata', () => {
 
 	it('gives a unit with no root classes an empty root', () => {
 		expect(defineKata({ slots: { icon: 'a' } })()).toEqual({ base: '', icon: 'a' })
+	})
+})
+
+describe('defineKata slots under a slot', () => {
+	const tree = defineKata({
+		base: 'tree',
+		slots: {
+			chevron: {
+				base: 'chevron',
+				open: { true: 'rotate-90', false: '' },
+				slots: { spacer: 'w-4', mark: { base: 'mark', open: { true: 'on', false: 'off' } } },
+			},
+			tool: { slots: { head: 'head', name: { base: 'name', size: { sm: 'text-sm' } } } },
+		},
+		defaults: { open: false, size: 'sm' },
+	})
+
+	it('nests the output of a slot with child slots, with its own classes as base', () => {
+		expect(tree()).toEqual({
+			base: 'tree',
+			chevron: { base: 'chevron', spacer: 'w-4', mark: 'mark off' },
+			tool: { head: 'head', name: 'name text-sm' },
+		})
+
+		expect(tree({ open: true }).chevron).toEqual({
+			base: 'chevron rotate-90',
+			spacer: 'w-4',
+			mark: 'mark on',
+		})
+	})
+
+	it('freezes each record, and the bare output keeps the shape', () => {
+		expect(Object.isFrozen(tree().chevron)).toBe(true)
+
+		expect(tree.bare).toEqual({
+			base: '',
+			chevron: { base: '', spacer: '', mark: '' },
+			tool: { head: '', name: '' },
+		})
+	})
+
+	it('names a slot under a slot by its path in the config', () => {
+		expect(Object.keys(tree.config.slots)).toEqual([
+			'base',
+			'chevron',
+			'chevron.spacer',
+			'chevron.mark',
+			'tool.head',
+			'tool.name',
+		])
+
+		expect(tree.config.variants.open?.true).toEqual({ chevron: 'rotate-90', 'chevron.mark': 'on' })
+	})
+
+	it('types the nested output and the props of each slot under a slot', () => {
+		expectTypeOf(tree().chevron).toEqualTypeOf<
+			{ readonly base: string } & {
+				readonly spacer: string
+				readonly mark: string
+			}
+		>()
+
+		expectTypeOf(tree().tool).toEqualTypeOf<{ readonly head: string; readonly name: string }>()
+
+		expectTypeOf<VariantProps<typeof tree>>().toHaveProperty('open')
+
+		expectTypeOf<VariantProps<typeof tree>>().toHaveProperty('size')
+
+		expect(Object.keys(tree().tool)).toEqual(['head', 'name'])
+	})
+
+	it('merges a slot under a slot of a group with the same slot of the unit', () => {
+		const group = defineGroup({ slots: { chevron: { slots: { spacer: 'w-4' } } } })
+
+		const unit = defineKata({
+			extends: group,
+			slots: { chevron: { slots: { spacer: 'shrink-0', mark: 'mark' } } },
+		})
+
+		expect(unit().chevron).toEqual({ spacer: 'w-4 shrink-0', mark: 'mark' })
+	})
+
+	it('takes a responsive axis of a slot under a slot', () => {
+		const unit = defineKata({
+			slots: { row: { slots: { gap: { responsive: { gap: { sm: 'gap-1', lg: 'gap-4' } } } } } },
+			defaults: { gap: 'sm' },
+		})
+
+		expect(unit({ gap: { initial: 'sm', md: 'lg' } }).row.gap).toBe('gap-1 md:gap-4')
 	})
 })
 

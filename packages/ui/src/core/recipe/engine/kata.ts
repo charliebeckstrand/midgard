@@ -5,6 +5,11 @@
  * is the recipe of the root slot `base`, and `slots` holds the child slots. A
  * child slot with no axes can be only its classes.
  *
+ * A child slot can hold child slots of its own under `slots`. The output of that
+ * slot is then a record, as the output of the unit is: its own classes are
+ * `base`, and each child slot has its name (`k().chevron.base`,
+ * `k().chevron.spacer`). A slot that holds only child slots has no `base`.
+ *
  * A slot declares only the axes that change it. An axis with the same name in
  * two slots is one prop, and the unit holds the defaults of each prop once.
  *
@@ -43,11 +48,18 @@ type Slots = Record<string, Slot>
 /** The responsive axes of a slot, by name. */
 type ResponsiveAxes = Record<string, Record<string, ClassValue>>
 
-/** A child slot as a config writes it: a recipe config, or only its classes. */
+/**
+ * A child slot as a config writes it: a recipe config, or only its classes. A
+ * recipe config can hold child slots of its own under `slots`.
+ */
 type SlotInput =
 	| string
 	| readonly ClassValue[]
-	| (Omit<Slot, 'slots' | 'defaults'> & Record<string, unknown> & { responsive?: ResponsiveAxes })
+	| (Omit<Slot, 'slots' | 'defaults'> &
+			Record<string, unknown> & {
+				responsive?: ResponsiveAxes
+				slots?: { readonly [name: string]: SlotInput }
+			})
 
 /** The fields of a unit config that are not its root recipe. */
 type UnitField = 'extends' | 'slots' | 'defaults'
@@ -87,16 +99,46 @@ type Lifted<S> = S extends { responsive: infer R } ? Omit<S, 'responsive'> & R :
 /** A child slot as a recipe config: a slot written as its classes is its `base`. */
 type Child<S> = S extends string | readonly unknown[] ? { base: S } : Lifted<S>
 
+/** The child slots of a slot, or none. */
+type Children<S> = S extends { slots: infer N } ? N : Record<never, never>
+
+/** True when a slot declares classes or axes beside its child slots. */
+type HasOwn<S> = [keyof Omit<S, 'slots'>] extends [never] ? false : true
+
+/**
+ * The class strings of a slot: a string, or, for a slot with child slots, a
+ * record with its own classes as `base` and each child slot by name.
+ */
+type SlotOutput<S> = S extends { slots: infer N }
+	? (HasOwn<S> extends true ? { readonly base: string } : unknown) & {
+			readonly [K in keyof N]: SlotOutput<Child<N[K]>>
+		}
+	: string
+
+/** The recipe configs of a slot and of each slot under it, as a union. */
+type Configs<S> = S extends { slots: infer N }
+	? Omit<S, 'slots'> | { [K in keyof N]: Configs<Child<N[K]>> }[keyof N]
+	: S
+
+/** The props of each recipe config of a union, as a union. */
+type SlotAxes<S> = S extends unknown ? ComputedProps<S> : never
+
 /** The root slot of a config: each field that is not a unit field. */
 type Root<C> = Lifted<Omit<C, UnitField>>
 
-/** The names of the responsive axes of one slot as a config writes it. */
-type SlotKeys<S> = S extends { responsive: infer R } ? keyof R & string : never
+/**
+ * The names of the responsive axes of one slot as a config writes it, and of
+ * each slot under it, to a depth of four slots (`D` counts the depth).
+ */
+type SlotKeys<S, D extends unknown[] = []> =
+	| (S extends { responsive: infer R } ? keyof R & string : never)
+	| (D['length'] extends 4
+			? never
+			: { [K in keyof Children<S>]: SlotKeys<Children<S>[K], [...D, 0]> }[keyof Children<S>])
 
 /** The names of the responsive axes of a config: its own, and the axes of its group. */
 type ResponsiveKeys<C> =
 	| SlotKeys<C>
-	| (C extends { slots: infer S } ? { [K in keyof S]: SlotKeys<S[K]> }[keyof S] : never)
 	| (C extends { extends: Group<unknown, unknown, infer R> } ? R : never)
 
 /** The props of a unit with each responsive axis as a {@link Responsive} value. */
@@ -124,24 +166,29 @@ type Intersection<U> = (U extends unknown ? (value: U) => void : never) extends 
 
 /** The props of a unit: the props of each slot, merged. An axis in two slots is one prop. */
 export type KataProps<C> = ResponsiveProps<
-	Intersection<{ [K in keyof UnitSlots<C>]: ComputedProps<UnitSlots<C>[K]> }[keyof UnitSlots<C>]>,
+	Intersection<
+		{ [K in keyof UnitSlots<C>]: SlotAxes<Configs<UnitSlots<C>[K]>> }[keyof UnitSlots<C>]
+	>,
 	ResponsiveKeys<C>
 >
 
-/** The class string of each slot of a unit. */
-export type KataOutput<C> = { readonly [K in keyof UnitSlots<C>]: string }
+/** The class strings of each slot of a unit (see {@link SlotOutput}). */
+export type KataOutput<C> = { readonly [K in keyof UnitSlots<C>]: SlotOutput<UnitSlots<C>[K]> }
 
 /**
  * The resolved config of a unit, for introspection. `variants` holds each axis
  * of each slot, with the classes that each value gives to each slot, and
- * `slots` holds the resolved config of each slot.
+ * `slots` holds the resolved config of each slot. A slot under a slot has its
+ * path as its name: `chevron.spacer`.
  */
 export type KataResolvedConfig<C = UnitInput> = {
 	defaults: Defaults
 	/** The names of the responsive axes. */
 	responsive: readonly string[]
 	variants: Record<string, Record<string, Record<string, ClassValue>>>
-	slots: { readonly [K in keyof UnitSlots<C>]: ResolvedConfig }
+	slots: { readonly [K in keyof UnitSlots<C>]: ResolvedConfig } & {
+		readonly [path: string]: ResolvedConfig
+	}
 }
 
 export type Kata<C> = {
@@ -149,7 +196,7 @@ export type Kata<C> = {
 	/** Resolved config, exposed for introspection. */
 	readonly config: KataResolvedConfig<C>
 	/**
-	 * The output of the unit with no classes: each slot is an empty string. A
+	 * The output of the unit with no classes: each class string is empty. A
 	 * headless component renders it in place of `k(props)` (`useSlots`).
 	 */
 	readonly bare: KataOutput<C>
@@ -236,7 +283,7 @@ const UNIT_FIELDS: ReadonlySet<string> = new Set(['extends', 'slots', 'defaults'
  * config, and each child slot from `slots`. A child slot written as its
  * classes becomes a slot with that `base`.
  *
- * @throws If a child slot is named `base`, or declares its own `defaults` or `slots`.
+ * @throws If a child slot is named `base`, or declares its own `defaults`.
  * @internal
  */
 function readSlots(caller: string, config: UnitInput): { slots: Slots; responsive: Set<string> } {
@@ -244,21 +291,116 @@ function readSlots(caller: string, config: UnitInput): { slots: Slots; responsiv
 
 	const slots: Slots = root.length > 0 ? { base: Object.fromEntries(root) } : {}
 
-	for (const [name, value] of Object.entries(config.slots ?? {})) {
-		if (name === 'base') throw new Error(`${caller}: the root slot "base" is the config itself`)
-
-		const slot = (
-			typeof value === 'string' || Array.isArray(value) ? { base: value } : value
-		) as Slot
-
-		if (slot.defaults !== undefined || slot.slots !== undefined) {
-			throw new Error(`${caller}: slot "${name}" declares defaults or slots`)
-		}
-
-		slots[name] = slot
-	}
+	readChildren(caller, config.slots ?? {}, undefined, slots)
 
 	return { slots, responsive: liftResponsive(caller, slots) }
+}
+
+/**
+ * The path of a child slot: the path of its parent, a dot, and its name.
+ *
+ * @throws If the name is `base` or has a dot.
+ * @internal
+ */
+function readPath(caller: string, name: string, parent: string | undefined): string {
+	if (name === 'base') {
+		throw new Error(
+			parent === undefined
+				? `${caller}: the root slot "base" is the config itself`
+				: `${caller}: the classes of slot "${parent}" are its config itself, not a child "base"`,
+		)
+	}
+
+	const path = parent === undefined ? name : `${parent}.${name}`
+
+	if (name.includes('.')) throw new Error(`${caller}: slot "${path}" has a dot in its name`)
+
+	return path
+}
+
+/**
+ * Adds each child slot of a slot to `slots`, by its path. A slot under a slot
+ * has the path of its parent, a dot, and its name: `chevron.spacer`. The fields
+ * of a slot other than `slots` are its own recipe, and a slot with none adds
+ * only its child slots.
+ *
+ * @throws If a child slot is named `base` or has a dot in its name, or declares its own `defaults`.
+ * @internal
+ */
+function readChildren(
+	caller: string,
+	children: Readonly<Record<string, SlotInput>>,
+	parent: string | undefined,
+	slots: Slots,
+): void {
+	for (const [name, value] of Object.entries(children)) {
+		const path = readPath(caller, name, parent)
+
+		if (typeof value === 'string' || Array.isArray(value)) {
+			slots[path] = { base: value } as Slot
+
+			continue
+		}
+
+		const { slots: nested, ...own } = value as Slot & {
+			slots?: Readonly<Record<string, SlotInput>>
+		}
+
+		if (own.defaults !== undefined) throw new Error(`${caller}: slot "${path}" declares defaults`)
+
+		if (Object.keys(own).length > 0) slots[path] = own as Slot
+
+		if (nested !== undefined) readChildren(caller, nested, path, slots)
+	}
+}
+
+/**
+ * Nests the class string of each slot by its path. A slot with child slots
+ * gives a record, with its own classes as `base`.
+ *
+ * @internal
+ */
+function nest(entries: ReadonlyArray<readonly [path: string, classes: string]>) {
+	const parents = new Set(
+		entries.flatMap(([path]) =>
+			path
+				.split('.')
+				.slice(0, -1)
+				.map((_, index, keys) => keys.slice(0, index + 1).join('.')),
+		),
+	)
+
+	const output: Record<string, unknown> = {}
+
+	const records: Record<string, unknown>[] = [output]
+
+	for (const [path, classes] of entries) {
+		const keys = path.split('.')
+
+		if (parents.has(path)) keys.push('base')
+
+		const last = keys.pop() as string
+
+		let record = output
+
+		for (const key of keys) {
+			if (record[key] === undefined) {
+				const child: Record<string, unknown> = {}
+
+				records.push(child)
+
+				record[key] = child
+			}
+
+			record = record[key] as Record<string, unknown>
+		}
+
+		record[last] = classes
+	}
+
+	for (const record of records) Object.freeze(record)
+
+	return output
 }
 
 /**
@@ -401,7 +543,7 @@ function initialProps(
  * Merges a unit or a group over the group that it extends: each slot, the
  * defaults, and the extras. A config that extends no group keeps its own.
  *
- * @throws If a child slot is named `base`, or declares its own `defaults` or `slots`.
+ * @throws If a child slot is named `base`, or declares its own `defaults`.
  * @internal
  */
 function inherit(caller: string, config: UnitInput, extras?: Record<string, unknown>) {
@@ -434,7 +576,7 @@ function inherit(caller: string, config: UnitInput, extras?: Record<string, unkn
  * @param config - The recipe of the root slot, the child `slots`, the
  * `defaults` of their props, and the group that it `extends`.
  * @param extras - Kata-shaped siblings that each unit of the family carries.
- * @throws If a child slot is named `base`, or declares its own `defaults` or `slots`.
+ * @throws If a child slot is named `base`, or declares its own `defaults`.
  */
 export function defineGroup<C extends UnitInput>(
 	config: C,
@@ -460,13 +602,13 @@ export function defineGroup(config: UnitInput, extras?: Record<string, unknown>)
  * @param config - The recipe of the root slot `base` (`base`, `palette`,
  * `compound`, and the axes), the child `slots`, and the `defaults` of the
  * props that the slots share. A child slot is a recipe config, or only its
- * classes. With `extends`, the unit merges its slots over the slots of the
+ * classes, and a recipe config can hold child slots under `slots`. With `extends`, the unit merges its slots over the slots of the
  * group, its defaults over the defaults of the group, and its extras over the
  * extras of the group (see {@link mergeSlot}).
  * @param extras - Optional kata-shaped siblings (`segment`, `skeleton`,
  * motion configs) attached as direct properties; the recipe stays callable.
- * @throws If a child slot is named `base`, or declares its own `defaults` or
- * `slots`, because the unit holds the defaults and a slot does not nest.
+ * @throws If a child slot is named `base`, or declares its own `defaults`,
+ * because the unit holds the defaults.
  * @throws If an extras key collides with a function built-in, `config`, or `bare`.
  */
 export function defineKata<C extends UnitInput>(config: C): Kata<C> & Extras<C>
@@ -506,19 +648,17 @@ export function defineKata<C extends UnitInput, X extends Record<string, unknown
 
 		const flat = initialProps(raw, responsive)
 
-		const result = Object.freeze(
-			Object.fromEntries(
-				slots.map(([name, recipe], index) => {
-					const classes = recipe(flat)
+		const result = nest(
+			slots.map(([name, recipe], index) => {
+				const classes = recipe(flat)
 
-					const extra = flat === raw ? [] : prefixed(rules[index] ?? [], raw ?? {}, defaults)
+				const extra = flat === raw ? [] : prefixed(rules[index] ?? [], raw ?? {}, defaults)
 
-					return [
-						name,
-						extra.length === 0 ? classes : [classes, ...extra].filter(Boolean).join(' '),
-					]
-				}),
-			),
+				return [
+					name,
+					extra.length === 0 ? classes : [classes, ...extra].filter(Boolean).join(' '),
+				] as const
+			}),
 		) as KataOutput<C>
 
 		if (memo.size >= MEMO_CAP) memo.clear()
@@ -561,7 +701,7 @@ export function defineKata<C extends UnitInput, X extends Record<string, unknown
 
 	Object.defineProperty(kata, 'config', { value: resolved, enumerable: false })
 
-	const bare = Object.freeze(Object.fromEntries(slots.map(([name]) => [name, ''])))
+	const bare = nest(slots.map(([name]) => [name, ''] as const))
 
 	Object.defineProperty(kata, 'bare', { value: bare, enumerable: false })
 

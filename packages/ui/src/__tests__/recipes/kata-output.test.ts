@@ -44,7 +44,8 @@ import { type Responsive, resolveVariant } from '../../types/responsive'
 // The gate reads a part in the same way for each shape of kata. The path of a
 // part is its key path under the export. A unit that returns slots gives
 // `k.<slot>` for each slot, the same path as a static slot or a sibling recipe
-// of the old shape. An axis that does not change the classes of a part is not
+// of the old shape. A slot under a slot gives `k.<slot>.<child>`, the path of a
+// nested part of the old shape. An axis that does not change the classes of a part is not
 // in the key of that part. Thus a part keeps its key when a kata merges its
 // recipes into one unit with more axes.
 //
@@ -274,6 +275,18 @@ function reduce(
 	return keep.length === 0 && values.length === 1 ? (values[0] as string) : table
 }
 
+/**
+ * The key path of each class string of a unit output. A slot with child slots
+ * gives a record, so its class strings take the key path under it.
+ */
+function slotPaths(output: Record<string, unknown>): string[][] {
+	return Object.entries(output).flatMap(([key, value]) =>
+		typeof value === 'object' && value !== null
+			? slotPaths(value as Record<string, unknown>).map((rest) => [key, ...rest])
+			: [[key]],
+	)
+}
+
 function walk(value: unknown, path: string, out: Record<string, unknown>): void {
 	if (isRecipe(value)) {
 		const axes = Object.entries(value.config.variants).map(
@@ -288,14 +301,21 @@ function walk(value: unknown, path: string, out: Record<string, unknown>): void 
 
 		const parts =
 			typeof defaults === 'object' && defaults !== null
-				? Object.keys(defaults as Record<string, unknown>).map(
-						(part) => [part, `${path}.${part}`] as const,
+				? slotPaths(defaults as Record<string, unknown>).map(
+						(part) => [part, `${path}.${part.join('.')}`] as const,
 					)
 				: [[undefined, path] as const]
 
 		for (const [part, partPath] of parts) {
 			const pick = (result: unknown) =>
-				classes(part === undefined ? result : (result as Record<string, unknown>)[part])
+				classes(
+					part === undefined
+						? result
+						: part.reduce<unknown>(
+								(record, key) => (record as Record<string, unknown>)[key],
+								result,
+							),
+				)
 
 			const reduced = reduce(
 				results.map(({ combo, result }) => ({ combo, out: pick(result) })),
