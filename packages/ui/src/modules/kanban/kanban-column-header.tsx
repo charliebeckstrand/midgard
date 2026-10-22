@@ -15,7 +15,7 @@ export type KanbanColumnHeaderProps = ComponentProps<'div'>
  */
 export function KanbanColumnHeader({ children, className, ...props }: KanbanColumnHeaderProps) {
 	return (
-		<div {...props} data-slot="kanban-column-header" className={cn(k.column.header, className)}>
+		<div {...props} data-slot="kanban-column-header" className={cn(k().column.header, className)}>
 			{children}
 		</div>
 	)

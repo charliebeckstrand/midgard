@@ -1,7 +1,6 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Sheet, SheetBody, SheetPanel } from '../../../components/sheet'
-import { cn } from '../../../core'
 import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../../core/sidebar/root'
 import { SidebarLayout, SidebarLayoutBody } from '../../../layouts'
 import { k as pdf } from '../../../recipes/kata/pdf-viewer'
@@ -112,7 +111,7 @@ describe('sidebar layout in RTL (real browser)', () => {
 
 		const { container } = renderUI(
 			<div className="flex w-[600px] overflow-hidden">
-				<aside className={cn(pdf.sidebar.base, pdf.sidebar.closed)} />
+				<aside className={pdf({ open: false }).sidebar.base} />
 				<main className="flex-1">Page</main>
 			</div>,
 		)

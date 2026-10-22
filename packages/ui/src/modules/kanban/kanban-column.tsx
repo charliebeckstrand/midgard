@@ -114,7 +114,7 @@ export function KanbanColumn({
 					// and the reference appears only while a title is mounted.
 					aria-label={ariaLabel}
 					aria-labelledby={ariaLabelledby ?? (!ariaLabel && hasTitle ? titleId : undefined)}
-					className={cn(k.column.base, className)}
+					className={cn(k().column.base, className)}
 				>
 					{children}
 				</Card>

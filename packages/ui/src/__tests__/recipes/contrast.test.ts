@@ -378,11 +378,11 @@ describe('PdfViewer viewport message', () => {
 	const getClasses = (fragment: unknown): string[] =>
 		[fragment].flat(Number.POSITIVE_INFINITY).join(' ').split(' ').filter(Boolean)
 
-	const ground = getClasses(pdfViewer.viewport.base).filter((className) =>
+	const ground = getClasses(pdfViewer().viewport.base).filter((className) =>
 		/^(?:dark:)?bg-zinc-\d+$/.test(className),
 	)
 
-	const ink = getClasses(pdfViewer.viewport.page.empty).filter((className) =>
+	const ink = getClasses(pdfViewer().viewport.page.empty).filter((className) =>
 		FOREGROUND.test(className),
 	)
 
@@ -405,7 +405,7 @@ describe('PdfViewer viewport message', () => {
  * so it never takes the `data-over` fill.
  */
 describe('Kanban empty column message', () => {
-	const inks = inksByMode([kanban.column.empty])
+	const inks = inksByMode([kanban().column.empty])
 
 	it.each(MODES)('clears text AA on the %s column fill', (mode) => {
 		expect(inks[mode]).not.toEqual([])

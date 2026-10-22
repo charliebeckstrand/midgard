@@ -11,7 +11,6 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { cn } from '../../core'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { scrollNodeWithin } from '../../hooks/use-scroll-within'
 import { defineMessage } from '../../primitives/intl/intl-messages'
@@ -330,7 +329,7 @@ export function LightboxStage({
 	const bar = controls && count > 1
 
 	// A tall photo leaves room above and below it for the controls that show.
-	const frame = cn(k.frame.base, closable || bar ? k.frame.controls : k.frame.bare)
+	const slots = k({ chrome: closable || bar, blurred: blur, closable })
 
 	// The place of the photo that the controls show. The photos follow `index`,
 	// the photo in the center slot, which changes when a slide lands. Each
@@ -402,21 +401,21 @@ export function LightboxStage({
 					{...k.motion.scrim}
 					data-slot="lightbox-blur"
 					aria-hidden="true"
-					className={k.blur}
+					className={slots.blur}
 				/>
 			)}
-			<div ref={backdropRef} className={k.dim}>
+			<div ref={backdropRef} className={slots.dim}>
 				<m.div
 					{...k.motion.scrim}
 					data-slot="lightbox-backdrop"
 					aria-hidden="true"
-					className={blur ? k.backdrop.blurred : k.backdrop.base}
+					className={slots.backdrop}
 				/>
 			</div>
 			{/* The stage takes only the pointer. Escape, the close button, and the
 			    arrow keys give each of its actions to the keyboard. */}
-			<div ref={stageRef} data-slot="lightbox-stage" {...track.handlers} className={k.stage}>
-				<div ref={trackRef} className={k.track}>
+			<div ref={stageRef} data-slot="lightbox-stage" {...track.handlers} className={slots.stage}>
+				<div ref={trackRef} className={slots.track}>
 					{slotsAround(index, photos).map(({ offset, photo }) => {
 						const placeholder = photo.thumbnail && photo.thumbnail !== photo.src
 
@@ -429,7 +428,7 @@ export function LightboxStage({
 								data-offset={offset}
 								aria-hidden={offset === 0 ? undefined : true}
 								inert={offset !== 0}
-								className={cn(k.slot, frame)}
+								className={slots.slot}
 								// One slot width and one gap for each place from the center.
 								style={{ insetInlineStart: `calc(${offset} * (100% + var(--spacing) * 4))` }}
 							>
@@ -441,7 +440,7 @@ export function LightboxStage({
 									width={photo.width}
 									height={photo.height}
 									draggable={false}
-									className={k.photo}
+									className={slots.photo}
 									// The thumbnail is in the cache, so it paints at once under the photo.
 									style={placeholder ? { backgroundImage: `url("${photo.thumbnail}")` } : undefined}
 								/>
@@ -450,11 +449,11 @@ export function LightboxStage({
 					})}
 				</div>
 			</div>
-			<div ref={controlsRef} className={k.dim}>
+			<div ref={controlsRef} className={slots.dim}>
 				<m.div
 					{...k.motion.scrim}
 					data-slot="lightbox-controls"
-					className={cn(k.controls, frame)}
+					className={slots.controls}
 					style={aimed && controlsFrame(aimed)}
 				>
 					{/* With no `closable`, the button shows only when it has the
@@ -467,14 +466,14 @@ export function LightboxStage({
 						type="button"
 						aria-label={labels.close}
 						onClick={handleClose}
-						className={cn(closable ? k.close.shown : k.close.hidden)}
+						className={slots.close}
 					>
 						<Icon icon={<X />} />
 					</Button>
 					{bar && (
-						<div className={cn(k.bar)}>
+						<div className={slots.bar}>
 							{thumbnails ? (
-								<div ref={setRow} className={cn(k.thumbnails)}>
+								<div ref={setRow} className={slots.thumbnails}>
 									{photos.map((photo, place) => (
 										<button
 											key={photo.index}
@@ -482,7 +481,7 @@ export function LightboxStage({
 											aria-current={place === at ? 'true' : undefined}
 											// One tab stop: the arrow keys move the focus along the row.
 											tabIndex={place === at ? 0 : -1}
-											className={cn(k.thumbnail.base, place === at && k.thumbnail.current)}
+											className={k({ current: place === at }).thumbnail.base}
 											onClick={() => track.go(place)}
 										>
 											<img
@@ -490,27 +489,27 @@ export function LightboxStage({
 												alt={photo.alt}
 												draggable={false}
 												decoding="async"
-												className={k.thumbnail.image}
+												className={slots.thumbnail.image}
 											/>
 										</button>
 									))}
 								</div>
 							) : (
-								<div className={cn(k.pill)}>
+								<div className={slots.pill}>
 									<Button
 										lockable={false}
 										type="button"
 										ref={previousRef}
 										variant="plain"
 										color="inherit"
-										className={cn(k.step.base, at === 0 && k.step.ended)}
+										className={k({ ended: at === 0 }).step}
 										aria-label={labels.previous}
 										disabled={at === 0}
 										onClick={() => stepBy(-1)}
 									>
 										<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
 									</Button>
-									<span aria-hidden="true" className={k.count}>
+									<span aria-hidden="true" className={slots.count}>
 										{intl.formatNumber(at + 1)} / {intl.formatNumber(count)}
 									</span>
 									<Button
@@ -519,7 +518,7 @@ export function LightboxStage({
 										ref={nextRef}
 										variant="plain"
 										color="inherit"
-										className={cn(k.step.base, at === count - 1 && k.step.ended)}
+										className={k({ ended: at === count - 1 }).step}
 										aria-label={labels.next}
 										disabled={at === count - 1}
 										onClick={() => stepBy(1)}

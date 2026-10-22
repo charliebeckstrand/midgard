@@ -10,8 +10,6 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { cn } from '../../core'
-import type { Color } from '../../core/recipe'
 import { useA11yAnnouncements, useA11yRoving } from '../../hooks'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
@@ -23,44 +21,6 @@ import { usePdfViewerHighlightsContext } from './pdf-viewer-highlights-context'
 import { pdfViewerMessages } from './pdf-viewer-messages'
 import type { PdfViewerHighlightRect } from './types'
 import { HIGHLIGHT_ID_ATTR, HIGHLIGHT_SELECTOR } from './use-pdf-viewer-highlights'
-
-const layer = k.viewport.page.highlights
-
-const regionKata = layer.region
-
-const regionClasses = new Map<string, string>()
-
-/**
- * The region's classes for one `(color, active)` pair, computed once.
- *
- * @remarks `cn` memoizes only when every argument is a string, and these arguments are
- * arrays (`base` and `edge` are `string[]`). Each call would otherwise run the full clsx +
- * tailwind-merge over the tokens of a region. The colors and the states are a small closed set,
- * so the table holds every combination that a document can produce, and a layer render does
- * almost no class work. The layer re-renders on every zoom step and every resize frame.
- * @internal
- */
-function regionClass(color: Color, active: boolean, dimmed: boolean) {
-	const key = `${color}:${active}:${dimmed}`
-
-	let classes = regionClasses.get(key)
-
-	if (classes === undefined) {
-		classes = cn(
-			regionKata.base,
-			active ? regionKata.active.fill[color] : regionKata.fill[color],
-			regionKata.ring[color],
-			// Selected or resting, never both. The resting edge is inset, and its `ring-inset`
-			// would turn the outset stroke of the selected region inward. See the kata's `edge`.
-			active ? regionKata.active.base : [regionKata.edge, regionKata.hover],
-			dimmed && regionKata.dimmed,
-		)
-
-		regionClasses.set(key, classes)
-	}
-
-	return classes
-}
 
 /** Percentages of the layer, which is the page image's twin, so the browser rescales every region on a zoom change with no React work. @internal */
 function regionStyle({ x, y, width, height }: PdfViewerHighlightRect) {
@@ -444,7 +404,7 @@ function PdfViewerHighlightLayer() {
 		<div
 			ref={layerRef}
 			data-slot="pdf-viewer-highlights"
-			className={cn(layer.base, !interactive && layer.inert)}
+			className={k({ interactive }).viewport.page.highlights.base}
 			// Hidden, not unmounted: a reader who reads the page under the boxes comes back
 			// to the same selection.
 			hidden={!highlightsVisible}
@@ -482,7 +442,10 @@ function PdfViewerHighlightLayer() {
 						'aria-current': region.active || undefined,
 					})}
 					ref={region.active ? activeRegionRef : undefined}
-					className={regionClass(region.color, region.active, anyActive && !region.active)}
+					className={
+						k({ color: region.color, active: region.active, dimmed: anyActive && !region.active })
+							.viewport.page.highlights.region
+					}
 					style={regionStyle(region.rect)}
 				/>
 			))}
@@ -617,7 +580,7 @@ function PdfViewerActiveName({
 			anchor={anchor}
 			label={label}
 			open={open}
-			surfaceClassName={cn(layer.label.base, behind && layer.label.behind)}
+			surfaceClassName={k({ behind }).viewport.page.highlights.label}
 		/>
 	)
 }

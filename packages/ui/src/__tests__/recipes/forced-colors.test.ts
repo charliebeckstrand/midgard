@@ -24,7 +24,7 @@ import { classNames } from '../helpers/class-stops'
  * loses its fallback fails the table.
  */
 describe('edges and state marks under forced colors', () => {
-	const region = pdfViewer.viewport.page.highlights.region
+	const region = (active: boolean) => pdfViewer({ active }).viewport.page.highlights.region
 
 	const parts: [string, unknown][] = [
 		['the panel surface', omote.panel.base],
@@ -40,8 +40,8 @@ describe('edges and state marks under forced colors', () => {
 		['the soft alert', alert({ variant: 'soft', color: 'red' })],
 		['the solid alert', alert({ variant: 'solid', color: 'red' })],
 		['the outline alert', alert({ variant: 'outline', color: 'red' })],
-		['the PDF region', region.edge],
-		['the selected PDF region', region.active.base],
+		['the PDF region', region(false)],
+		['the selected PDF region', region(true)],
 		['the landing placeholder of a dashboard drag', dashboard.placeholder],
 	]
 
@@ -61,7 +61,7 @@ describe('edges and state marks under forced colors', () => {
 	// The selected region draws a heavier stroke than a resting one, so the
 	// selection does not depend on the wash, which forced colors remove.
 	it('draws the selected PDF region heavier than a resting one', () => {
-		expect(classNames([region.active.base])).toContain('forced-colors:outline-2')
+		expect(classNames([region(true)])).toContain('forced-colors:outline-2')
 	})
 })
 

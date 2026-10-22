@@ -29,10 +29,10 @@ export function KanbanCardSurface({ children, className, ...props }: KanbanCardS
 	const content = items.filter((item) => !isHandle(item))
 
 	return (
-		<Card {...props} bg="surface" data-slot="kanban-card" className={cn(k.card.base, className)}>
+		<Card {...props} bg="surface" data-slot="kanban-card" className={cn(k().card.base, className)}>
 			{handles}
 			{content.length > 0 ? (
-				<div data-slot="kanban-card-content" className={cn(k.card.content)}>
+				<div data-slot="kanban-card-content" className={k().card.content}>
 					{content}
 				</div>
 			) : null}

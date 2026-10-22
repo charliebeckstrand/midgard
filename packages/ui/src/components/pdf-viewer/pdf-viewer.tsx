@@ -286,10 +286,10 @@ export function PdfViewer({
 					{...props}
 					ref={rootRef}
 					aria-label={ariaLabel}
-					className={cn(k.base, fitMode === 'width' && k.fill, className)}
+					className={cn(k({ fit: fitMode }).base, className)}
 				>
 					<PdfViewerToolbar />
-					<div className={cn(k.body)}>
+					<div className={k().body}>
 						<PdfViewerThumbnails />
 						<PdfViewerMagnifierProvider settings={magnifierSettings}>
 							<PdfViewerHighlightsProvider

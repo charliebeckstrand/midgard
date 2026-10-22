@@ -1,7 +1,6 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { cn } from '../../core'
 import { useA11yLiveRegion, useScrollRegion } from '../../hooks'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
@@ -66,7 +65,7 @@ export function PdfViewerViewport() {
 		<div
 			ref={composedViewportRef}
 			data-slot="pdf-viewer-viewport"
-			className={cn(k.viewport.base, fit === 'width' && k.viewport.scrolls)}
+			className={k({ fit }).viewport.base}
 			// The flex basis sets the width in a box with a width of its own. `naturalWidth` is the
 			// width in a box that sizes to its content, where the fitted page cannot give one.
 			style={{ aspectRatio, width: naturalWidth }}
@@ -84,14 +83,14 @@ export function PdfViewerViewport() {
 					ref={setReference}
 					{...referenceProps}
 					data-slot="pdf-viewer-page-frame"
-					className={cn(k.viewport.page.frame)}
+					className={k().viewport.page.frame}
 					style={{ width: frameWidth, height: frameHeight }}
 				>
 					<PdfViewerPageImage
 						key={activePage.id ?? safePage}
 						page={activePage}
 						alt={pageLabel(intl, activePage, safePage)}
-						className={cn(k.viewport.page.base)}
+						className={k().viewport.page.base}
 						style={{
 							width: imageWidth,
 							height: imageHeight,
@@ -104,7 +103,7 @@ export function PdfViewerViewport() {
 					<PdfViewerMagnifier />
 				</div>
 			) : error ? (
-				<div role="alert" className={cn(k.viewport.page.empty)}>
+				<div role="alert" className={k().viewport.page.empty}>
 					{intl.formatMessage(pdfViewerMessages.loadFailed, { message: error.message })}
 				</div>
 			) : loading || pending || activePage ? (
@@ -113,10 +112,10 @@ export function PdfViewerViewport() {
 				<output
 					data-slot="pdf-viewer-page-frame"
 					aria-label={intl.formatMessage(pdfViewerMessages.loading)}
-					className={cn(k.viewport.page.placeholder)}
+					className={k().viewport.page.placeholder}
 				/>
 			) : (
-				<div className={cn(k.viewport.page.empty)}>
+				<div className={k().viewport.page.empty}>
 					{intl.formatMessage(pdfViewerMessages.noPages)}
 				</div>
 			)}
