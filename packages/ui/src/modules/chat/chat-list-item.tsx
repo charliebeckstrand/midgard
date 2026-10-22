@@ -69,8 +69,8 @@ export function ChatListItem({
 
 	const body = (
 		<>
-			<span className={k.title}>{title}</span>
-			{preview !== undefined && <span className={k.preview}>{preview}</span>}
+			<span className={k().title}>{title}</span>
+			{preview !== undefined && <span className={k().preview}>{preview}</span>}
 		</>
 	)
 
@@ -80,7 +80,7 @@ export function ChatListItem({
 			// The keyboard navigation of ChatList selects the anchor, so it comes after the spread.
 			data-slot="chat-list-item"
 			data-current={dataAttr(current)}
-			className={cn(k(), className)}
+			className={cn(k().base, className)}
 		>
 			{onSelect ? (
 				<button
@@ -88,23 +88,23 @@ export function ChatListItem({
 					data-slot="chat-list-item-select"
 					aria-current={current ? 'true' : undefined}
 					onClick={onSelect}
-					className={cn(k.select.base, k.select.overlay)}
+					className={k({ overlay: true }).select}
 				>
 					{body}
 				</button>
 			) : (
-				<span data-slot="chat-list-item-select" className={k.select.base}>
+				<span data-slot="chat-list-item-select" className={k().select}>
 					{body}
 				</span>
 			)}
 
 			{actions !== undefined && (
-				<div data-slot="chat-list-item-actions" data-density="slot" className={k.actions}>
+				<div data-slot="chat-list-item-actions" data-density="slot" className={k().actions}>
 					{actions}
 				</div>
 			)}
 
-			{current && <ActiveIndicator className={k.indicator} />}
+			{current && <ActiveIndicator className={k().indicator} />}
 		</Wrapper>
 	)
 }

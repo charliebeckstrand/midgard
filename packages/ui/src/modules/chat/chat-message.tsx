@@ -128,14 +128,16 @@ export const ChatMessage = memo(function ChatMessage({
 }: ChatMessageProps) {
 	const resolvedSender = sender ?? 'assistant'
 
+	const slots = k({ sender, streaming })
+
 	return (
 		<div
 			data-slot="chat-message"
 			{...props}
 			data-sender={resolvedSender}
-			className={cn(k({ sender }), className)}
+			className={cn(slots.base, className)}
 		>
-			<div data-slot="chat-message-bubble" className={cn(k.bubble({ sender, streaming }))}>
+			<div data-slot="chat-message-bubble" className={slots.bubble}>
 				<span data-slot="chat-message-author" className="sr-only">
 					<IntlMessage message={AUTHOR[resolvedSender]} />:{' '}
 				</span>
@@ -146,18 +148,18 @@ export const ChatMessage = memo(function ChatMessage({
 						<ChatMessageBlock
 							key={part.id}
 							part={part}
-							className={index === 0 ? undefined : cn(k.part)}
+							className={index === 0 ? undefined : slots.part}
 						/>
 					))
 				)}
 			</div>
 			{timestamp !== undefined && (
-				<div data-slot="chat-message-timestamp" className={cn(k.timestamp)}>
+				<div data-slot="chat-message-timestamp" className={slots.timestamp}>
 					{timestamp}
 				</div>
 			)}
 			{actions !== undefined && (
-				<div data-slot="chat-message-actions" className={cn(k.actions)}>
+				<div data-slot="chat-message-actions" className={slots.actions}>
 					{actions}
 				</div>
 			)}

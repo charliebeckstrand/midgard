@@ -47,7 +47,7 @@ describe('logical sides under dir=rtl', () => {
 	})
 
 	it('user chat bubble squares the bottom inline-end corner (bottom-left)', () => {
-		const style = rtl(chat.bubble({ sender: 'user' }))
+		const style = rtl(chat({ sender: 'user' }).bubble)
 		expect(style.borderBottomLeftRadius).not.toBe(style.borderTopLeftRadius)
 		expect(style.borderBottomRightRadius).toBe(style.borderTopRightRadius)
 	})

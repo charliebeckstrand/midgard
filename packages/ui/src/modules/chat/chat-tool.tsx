@@ -93,11 +93,11 @@ export function ChatTool({ part, className }: ChatToolProps) {
 	const head = (
 		<>
 			<StatusDot size="sm" status={status} pulse={pulse} label={intl.formatMessage(label)} />
-			<span data-slot="chat-tool-name" className={cn(k.tool.name)}>
+			<span data-slot="chat-tool-name" className={k().tool.name}>
 				{part.name}
 			</span>
 			{part.summary !== undefined && (
-				<span data-slot="chat-tool-summary" className={cn(k.tool.summary)}>
+				<span data-slot="chat-tool-summary" className={k().tool.summary}>
 					{part.summary}
 				</span>
 			)}
@@ -105,14 +105,14 @@ export function ChatTool({ part, className }: ChatToolProps) {
 	)
 
 	return (
-		<div data-slot="chat-tool" data-status={part.status} className={cn(k.tool.base, className)}>
+		<div data-slot="chat-tool" data-status={part.status} className={cn(k().tool.base, className)}>
 			{part.detail === undefined ? (
-				<div className={cn(k.tool.head)}>{head}</div>
+				<div className={k().tool.head}>{head}</div>
 			) : (
 				<Collapse mount="lazy">
-					<CollapseTrigger className={cn(k.tool.head, k.tool.trigger)}>{head}</CollapseTrigger>
+					<CollapseTrigger className={cn(k().tool.head, k().tool.trigger)}>{head}</CollapseTrigger>
 					<CollapsePanel>
-						<div data-slot="chat-tool-detail" className={cn(k.tool.details)}>
+						<div data-slot="chat-tool-detail" className={k().tool.details}>
 							<Markdown headingOffset={MESSAGE_HEADING_OFFSET}>{part.detail}</Markdown>
 						</div>
 					</CollapsePanel>

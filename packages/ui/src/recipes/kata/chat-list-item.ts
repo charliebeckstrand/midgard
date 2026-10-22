@@ -1,4 +1,4 @@
-import { defineRecipe } from '../../core/recipe'
+import { defineKata } from '../../core/recipe'
 import { dan, hannou, iro, ji, narabi, sen } from '../kiso'
 
 const { cursor, tint } = hannou
@@ -7,7 +7,7 @@ const { size, weight } = ji
 const { flex } = narabi
 const { focus } = sen
 
-export const k = defineRecipe({
+export const k = defineKata({
 	base: [
 		'group relative',
 		// Inside a ChatList the row is an `<li>`; drop the list marker.
@@ -39,12 +39,15 @@ export const k = defineRecipe({
 			// `relative` here would make it that pseudo-element's containing block
 			// instead, shrinking the overlay down to the button's own `flex-1` box.
 			base: [flex.col, 'min-w-0 flex-1', 'text-start', 'outline-none', 'z-10', ...cursor],
-			// Stretches the select button's hit area over the whole `relative` row via a
+			// `overlay` stretches the select button's hit area over the whole `relative` row via a
 			// pointer-capturing `::after` (the inverse of the overlay in `kasane.layers`,
 			// which adds `pointer-events-none` to *stop* this). The button only spans `flex-1`, so
 			// without this the padding, gap, and actions chrome wouldn't select. Applied
 			// to the `<button>` branch only: a static `<span>` has nothing to trigger.
-			overlay: ['after:absolute after:inset-0'],
+			overlay: {
+				true: 'after:absolute after:inset-0',
+				false: '',
+			},
 		},
 		title: ['truncate', weight.medium, size.md, ...text.default],
 		preview: ['truncate', size.sm, ...text.muted],
@@ -57,4 +60,5 @@ export const k = defineRecipe({
 		// re-draws the ring on the indicator itself (the topmost full-row surface).
 		indicator: focus.within.indicator,
 	},
+	defaults: { overlay: false },
 })
