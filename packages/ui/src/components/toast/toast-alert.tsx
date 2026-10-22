@@ -1,7 +1,6 @@
 'use client'
 
 import { type RefObject, useEffect, useEffectEvent, useLayoutEffect, useRef } from 'react'
-import { cn } from '../../core'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
@@ -190,7 +189,7 @@ export function ToastAlert({
 		<m.li
 			ref={itemRef}
 			layout
-			className={cn(k.item[edge])}
+			className={k({ edge }).item}
 			style={{ zIndex }}
 			exit={toast.dismissed ? manualDismiss : autoDismiss}
 			transition={layoutTransition}
@@ -230,7 +229,7 @@ export function ToastAlert({
 					actions={toast.actions}
 					closable={closable}
 					onOpenChange={(open) => onOpenChange(open, toast.id)}
-					className={cn(k.card)}
+					className={k().card}
 				/>
 			</m.div>
 		</m.li>

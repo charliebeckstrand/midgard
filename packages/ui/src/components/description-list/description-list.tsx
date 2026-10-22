@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/description-list'
-import { adaptive, type Orientation, type Responsive, resolveVariant } from '../../types'
+import { adaptive, type Orientation, type Responsive } from '../../types'
 
 /** The default `orientation` of {@link DescriptionList}: vertical on a compact viewport, horizontal from medium. */
 export const DESCRIPTION_LIST_ORIENTATION = adaptive({
@@ -51,7 +51,7 @@ export function DescriptionList({
 		<dl
 			data-slot="dl"
 			data-orientation={typeof orientation === 'string' ? orientation : undefined}
-			className={cn(k.base, resolveVariant(orientation, k.orientation), className)}
+			className={cn(k({ orientation }).base, className)}
 			{...props}
 		/>
 	)

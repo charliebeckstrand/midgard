@@ -108,7 +108,7 @@ export function TooltipBody({
 				onBlur={(event) => {
 					if (!event.currentTarget.contains(event.relatedTarget)) setFocusedPanel(null)
 				}}
-				className={cn(k.content.base, k.content.surface[glass ? 'glass' : 'default'], className)}
+				className={cn(k({ surface: glass ? 'glass' : 'flat' }).base, className)}
 			>
 				{children}
 			</m.div>

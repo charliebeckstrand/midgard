@@ -12,4 +12,4 @@ export type DescriptionTermProps = ComponentProps<'dt'>
  * @remarks
  * Static leaf with no client boundary: renders in React Server Components.
  */
-export const DescriptionTerm = createSlot('dt', 'dl-term', k.term)
+export const DescriptionTerm = createSlot('dt', 'dl-term', k().term)

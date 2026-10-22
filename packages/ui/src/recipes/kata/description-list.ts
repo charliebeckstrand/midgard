@@ -1,3 +1,4 @@
+import { defineKata } from '../../core/recipe'
 import { dan, iro, ji, kokkaku } from '../kiso'
 
 const { text } = iro
@@ -5,8 +6,9 @@ const { weight } = ji
 
 /**
  * The list is a grid in each orientation, and the orientations differ only in
- * their columns and the gutter of a term. Each value of `orientation` writes
- * the same properties, so a breakpoint replaces each one (`resolveVariant`).
+ * their columns and the gutter of a term. `orientation` is a responsive axis:
+ * each of its values writes the same properties, so a breakpoint replaces each
+ * one.
  *
  * The list projects its layout onto direct `dt` and `dd` children. Term and
  * details are static leaves that carry only their text styling, so neither
@@ -29,19 +31,23 @@ const base = [
 	dan.space.detail.top,
 ].join(' ')
 
-/**
- * The classes of each orientation. Tailwind scans whole class literals, and
- * `ui/tailwind.css` lists each prefixed form in an `@source inline(...)` line.
- */
-const orientation = {
-	horizontal: 'grid-cols-[min(50%,--spacing(56))_auto] [&>dt]:pe-2 [&>dt+dd]:pt-0',
-	vertical: 'grid-cols-1 [&>dt]:pe-0 [&>dt+dd]:pt-(--ui-details-top)',
-} as const
-
-export const k = {
-	base,
-	orientation,
-	term: [text.muted, weight.medium],
-	details: text.default,
-	skeleton: kokkaku.descriptionList,
-} as const
+export const k = defineKata(
+	{
+		base,
+		/**
+		 * The classes of each orientation. Tailwind scans whole class literals, and
+		 * `ui/tailwind.css` lists each prefixed form in an `@source inline(...)` line.
+		 */
+		responsive: {
+			orientation: {
+				horizontal: 'grid-cols-[min(50%,--spacing(56))_auto] [&>dt]:pe-2 [&>dt+dd]:pt-0',
+				vertical: 'grid-cols-1 [&>dt]:pe-0 [&>dt+dd]:pt-(--ui-details-top)',
+			},
+		},
+		slots: {
+			term: [text.muted, weight.medium],
+			details: text.default,
+		},
+	},
+	{ skeleton: kokkaku.descriptionList },
+)
