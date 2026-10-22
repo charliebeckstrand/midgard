@@ -1,4 +1,4 @@
-import { defineKata, defineRecipe } from '../../core/recipe'
+import { defineKata } from '../../core/recipe'
 import { hannou, iro, narabi } from '../kiso'
 import { list } from '../kumi/control'
 
@@ -15,18 +15,17 @@ export const k = defineKata(
 			/** The button that opens the list. */
 			field: [flex.row, 'text-start', 'appearance-none', ...cursor],
 			panel: 'relative min-w-full',
-		},
-	},
-	{
-		value: defineRecipe({
-			truncate: {
-				// `block`, because a truncation tooltip stamps `inline-flex` on the span, and an
-				// ellipsis paints against a block box. A flex item is a block box anyway.
-				true: 'block flex-1 min-w-0 truncate',
-				false: '',
+			/** The text of the selected value. */
+			value: {
+				truncate: {
+					// `block`, because a truncation tooltip stamps `inline-flex` on the span, and an
+					// ellipsis paints against a block box. A flex item is a block box anyway.
+					true: 'block flex-1 min-w-0 truncate',
+					false: '',
+				},
 			},
-			defaults: { truncate: true },
-		}),
-		placeholder: text.muted,
+		},
+		defaults: { truncate: true },
 	},
+	{ placeholder: text.muted },
 )

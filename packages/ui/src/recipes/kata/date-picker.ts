@@ -1,15 +1,15 @@
 /**
  * Date-picker kata: the unit of the `<DatePicker>` trigger, which extends the
  * picker group, and the extras of its popover. The `field` slot is the button
- * that opens the calendar. A stepped `content.body` and a `value` sub-recipe
- * with a truncate axis drive the popover inset and the value text. `control`
+ * that opens the calendar, and the `value` slot, with a `truncate` axis, is the
+ * text in it. A stepped `content.body` gives the popover inset. `control`
  * (the input-mode field adjacency), `icon`, `placeholder`, and the `content`
  * group are extras.
  * `relative` adds the layout of the relative popover: the preset `list`, the
  * `custom` range affordance, and the trigger chip row. `skeleton` is the form
  * of DatePickerSkeleton. The group gives `root` and the base of `content`.
  */
-import { defineKata, defineRecipe } from '../../core/recipe'
+import { defineKata } from '../../core/recipe'
 import { dan, hannou, iro, kokkaku, narabi, sen } from '../kiso'
 import { picker } from '../kumi/control'
 
@@ -21,15 +21,6 @@ const { text } = iro
 const { field, fit, flex } = narabi
 const { content } = picker.extras
 
-const value = defineRecipe({
-	base: 'block',
-	truncate: {
-		true: 'truncate',
-		false: '',
-	},
-	defaults: { truncate: true },
-})
-
 // Portal-only inset around the Calendar plus the Calendar-to-footer gap;
 // an inline Calendar carries no chrome of its own, so this lives here,
 // not in the calendar kata. Each takes the step of the nearest density scope.
@@ -37,7 +28,6 @@ const value = defineRecipe({
 const body = [flex.col, dan.space.box.base, dan.gap.y.sm, fit.scroll]
 
 const extras = {
-	value,
 	// Input mode wraps the DateInput (its frame plus the error Message) in the
 	// floating reference, so the Field's child-combinator adjacency can't reach
 	// the nested message. Reuse that same adjacency here to space the message
@@ -112,7 +102,16 @@ export const k = defineKata(
 					dan.gap.datePicker,
 				],
 			},
+			/** The text of the selected value. */
+			value: {
+				base: 'block',
+				truncate: {
+					true: 'truncate',
+					false: '',
+				},
+			},
 		},
+		defaults: { truncate: true },
 	},
 	extras,
 )

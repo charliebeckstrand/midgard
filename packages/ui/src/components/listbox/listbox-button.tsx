@@ -53,7 +53,7 @@ function ListboxTruncateTooltip({
 	return (
 		<Tooltip disabled={suppressed || !truncated}>
 			<TooltipTrigger>
-				<span ref={valueRef} className={cn(k.value({ truncate }))}>
+				<span ref={valueRef} className={k({ truncate }).value}>
 					{label}
 				</span>
 			</TooltipTrigger>
@@ -122,7 +122,7 @@ export function ListboxButton({
 						suppressed={truncateTooltipSuppressed}
 					/>
 				) : (
-					<span className={cn(k.value({ truncate }))}>
+					<span className={k({ truncate }).value}>
 						{label || <span className={cn(k.placeholder)}>{placeholder}</span>}
 					</span>
 				)}
