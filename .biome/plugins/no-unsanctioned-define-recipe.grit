@@ -1,21 +1,22 @@
 language js
 
-// `defineRecipe` is the kata surface's own tool. A kata calls it directly, or
-// it builds a unit with `defineKata`. Anywhere else, a recipe defined in place
-// escapes the layering the package reads its styling through.
+// `defineRecipe` is a tool of the recipe engine. A kata builds a unit with
+// `defineKata`, which calls the engine for each slot. A recipe defined in
+// place escapes the layering the package reads its styling through.
 //
 // The specifier is matched by regex rather than by literal, so it accepts any
 // path that ends in `core/recipe`: a deep relative path, a package path, and
 // either quote style.
 //
-// The sanctioned files are the `includes` beside this plugin in `biome.json`:
-// the kata surface.
+// The tests and the benchmarks are outside the `includes` beside this plugin
+// in `biome.json`. The engine imports `defineRecipe` by a path that this
+// pattern does not match.
 `import $clause from $src` where {
 	$clause <: contains or { `defineRecipe`, `defineRecipe as $_` },
 	$src <: r"['\"].*core/recipe['\"]"
 } where {
 	register_diagnostic(
 		span = $clause,
-		message = "defineRecipe belongs to the kata surface: call it from `recipes/kata`"
+		message = "defineRecipe belongs to the recipe engine: build a unit with `defineKata`"
 	)
 }

@@ -1,12 +1,13 @@
 /**
- * Kanban kata: object-literal surface for the `<Kanban>` board, its columns, and
- * cards. No variants axis. A column and a card are each a `Card`, so the card
- * kata gives their padding, radius, and outline, and each steps with density.
- * This kata adds the layout and the drag states on top. The `column` group nests
- * `base` / `header` / `title` / `body` / `empty` slots, and `base` marks the
- * column a card is over. The `card` group nests `base`, the `content` column,
- * the `handle` (`base`, `lifted`), and the drag-state classes (`lifted`,
- * `active`). `skeleton` is the form of the lines of the `KanbanCardSkeleton`.
+ * Kanban kata: the unit of the `<Kanban>` board, its columns, and cards. A
+ * column and a card are each a `Card`, so the card kata gives their padding,
+ * radius, and outline, and each steps with density. This kata adds the layout
+ * and the drag states on top. The root slot is the board. The `column` slot
+ * holds `base`, `header`, `title`, `body`, and `empty`, and `column.base` marks
+ * the column a card is over. The `card` slot holds `base`, the `content`
+ * column, the drag states `lifted` and `active`, and the `handle`, whose
+ * `lifted` axis marks a lifted card. `skeleton` is the form of the lines of
+ * the `KanbanCardSkeleton`.
  */
 import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
@@ -48,7 +49,7 @@ export const k = defineKata(
 				},
 			},
 			// The card is a `Card` with the `surface` fill. It holds its handle at its
-			// start edge, centered on its height, and the `cardContent` column beside it.
+			// start edge, centered on its height, and the `card.content` column beside it.
 			// A card holds no media, so it does not clip: the focus ring of the handle
 			// stays whole at each density step.
 			card: {

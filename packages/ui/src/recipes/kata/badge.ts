@@ -1,7 +1,7 @@
 /**
- * Badge kata: the inline status/label chip. Recipe-shaped: a `variant` ×
- * `color` × `radius` matrix over the signature kasane chrome. The size steps
- * are `density-*` classes in the base, not an axis.
+ * Badge kata: the unit of the inline status/label chip: a `variant` × `color`
+ * × `radius` matrix over the signature kasane chrome. The size steps are
+ * `density-*` classes in the base, not an axis.
  * Its `color` axis carries the standard hues and the extended hues (rose /
  * violet / sky). The colors come from the palette of iro: the colors at rest,
  * and the hover for a badge that is a link.

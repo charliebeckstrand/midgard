@@ -1,6 +1,8 @@
 /**
- * Progress kata: recipe-shaped surface serving both the linear `<ProgressBar>`
- * and the radial `<ProgressGauge>`. Its colors are the `iro.meter` shades,
+ * Progress kata: the unit of both the linear `<ProgressBar>` and the radial
+ * `<ProgressGauge>`. The root slot is the track of the bar, and `bar.fill` and
+ * `bar.indeterminate` are its fills. The `gauge` slot holds `base`, `label`,
+ * and `track`, the parts of the gauge. Its colors are the `iro.meter` shades,
  * which Sparkline also reads. The bar fill reads the `bg` row, and the gauge
  * ring reads the `stroke` row. The track and the label of the gauge use fixed
  * tokens.

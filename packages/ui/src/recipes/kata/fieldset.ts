@@ -1,9 +1,10 @@
 /**
- * Fieldset kata: object-literal surface for `<Fieldset>` and the form-field
- * primitives. `legend`, `label`, `description`, and `message` take the text
- * step of their nearest density scope through `ji.ramp`; `message` adds an
- * error/warning/success severity axis. The `base` and `field` slots are
- * static, threading the disabled state down through the group.
+ * Fieldset kata: the unit of `<Fieldset>` and the form-field primitives.
+ * `legend`, `label`, `description`, and `message` take the text step of their
+ * nearest density scope through `ji.ramp`. The `as` axis of `label` gives the
+ * element of the label, and the `severity` axis of `message` gives the
+ * error/warning/success color. The `base` and `field` slots are static, and
+ * they thread the disabled state down through the group.
  */
 import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, iro, ji, narabi } from '../kiso'

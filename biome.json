@@ -430,8 +430,7 @@
 			"includes": [
 				"packages/ui/src/**",
 				"!packages/ui/src/**/__tests__/**",
-				"!packages/ui/src/**/__benchmarks__/**",
-				"!packages/ui/src/recipes/kata/**/*.ts"
+				"!packages/ui/src/**/__benchmarks__/**"
 			],
 			"plugins": ["./.biome/plugins/no-unsanctioned-define-recipe.grit"]
 		},

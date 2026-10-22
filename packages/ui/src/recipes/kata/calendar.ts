@@ -1,9 +1,10 @@
 /**
- * Calendar kata: object-literal surface for `<Calendar>`'s month grid and its
- * month/year `picker`. The `base`, `header`, `footer`, `weekday`, and
- * `picker.grid` slots take the step of the nearest density scope through
- * stepped classes. The `grid`, `day`, and `skeleton` slots are static. The
- * `day` slot holds the `active` state classes and the `range` edge classes.
+ * Calendar kata: the unit of the `<Calendar>` month grid and its month/year
+ * picker. The `base`, `header`, `footer`, `weekday`, and `picker.grid` slots
+ * take the step of the nearest density scope through stepped classes. The
+ * `grid`, `day`, and `picker.current` slots are static. The `day.active` slot
+ * holds the state classes of a day, and the `start` and `end` axes of the
+ * `day.range` slot give the edge classes. `skeleton` is an extra.
  */
 import { defineScale } from '../../core/density'
 import { defineKata } from '../../core/recipe'

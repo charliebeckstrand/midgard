@@ -1,9 +1,10 @@
 /**
- * Password-strength kata: object-literal surface for the strength meter and
- * rule checklist. Two `level`-axed sub-recipes (`segment` bar fill, `label`
- * text) keyed by strength tier (weak / fair / good / strong / empty). The
- * rule rows pair a pass/fail icon with pass/fail text color. A tier fills
- * with the `iro.meter` shade of its color, as a progress bar does.
+ * Password-strength kata: the unit of the strength meter and the rule
+ * checklist. The `level` axis of the `segment` bar fill and of the `label`
+ * text is the strength tier (weak / fair / good / strong / empty). The
+ * `passed` axis of the `rule.icon` and `rule.text` slots pairs a pass/fail
+ * icon with a pass/fail text color. A tier fills with the `iro.meter` shade of
+ * its color, as a progress bar does.
  */
 import { defineKata } from '../../core/recipe'
 import { dan, iro, ji, kasane, narabi, omote } from '../kiso'
