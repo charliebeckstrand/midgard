@@ -9,4 +9,4 @@ export type TableHeadProps = ComponentProps<'thead'>
  * The `<thead>` of a {@link Table}, grouping its header row(s). Static leaf:
  * renders in React Server Components.
  */
-export const TableHead = createSlot('thead', 'table-head', k.head)
+export const TableHead = createSlot('thead', 'table-head', k().head)

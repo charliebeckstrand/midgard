@@ -119,10 +119,7 @@ export function Table({
 			<table
 				{...tableProps}
 				className={cn(
-					k.base,
-					outline && k.projection.outline,
-					stripe && k.projection.striped[stripe],
-					hover && k.projection.hover,
+					k({ outline, stripe: stripe || undefined, hover }).base,
 					className,
 					tableProps?.className,
 				)}

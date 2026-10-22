@@ -10,4 +10,4 @@ export type FieldsetProps = ComponentProps<'fieldset'>
  * `<Legend>` and lay out each control as a `<Field>` (`<Label>`, the control,
  * `<Description>`, and `<Message>`).
  */
-export const Fieldset = createSlot('fieldset', 'fieldset', k.base)
+export const Fieldset = createSlot('fieldset', 'fieldset', k().base)

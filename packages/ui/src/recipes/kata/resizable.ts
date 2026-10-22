@@ -1,32 +1,23 @@
-import { defineRecipe } from '../../core/recipe'
+import { defineKata } from '../../core/recipe'
 import { narabi, sen } from '../kiso'
 
 const { flex } = narabi
 
-const group = defineRecipe({
+// The root slot is the group. The `orientation` of the handle is the orientation
+// of the group, which is the axis that the handle resizes.
+export const k = defineKata({
 	base: ['flex h-full w-full overflow-hidden'],
 	orientation: { horizontal: 'flex-row', vertical: 'flex-col' },
+	slots: {
+		panel: 'relative overflow-hidden',
+		/** The handle, and the grip that it draws as its `::after`, so the states of the grip are the states of the handle. */
+		handle: {
+			base: ['relative', flex.row, 'shrink-0 justify-center', 'outline-none touch-none', sen.grip],
+			orientation: {
+				horizontal: ['px-2 cursor-col-resize', 'after:h-6 after:w-0.5'],
+				vertical: ['py-2 cursor-row-resize', 'after:w-6 after:h-0.5'],
+			},
+		},
+	},
 	defaults: { orientation: 'horizontal' },
 })
-
-export const k = {
-	group,
-	panel: 'relative overflow-hidden',
-	// The `orientation` tables of the handle and the grip are keyed by the
-	// orientation of the group, which is the axis that the handle resizes.
-	handle: {
-		base: ['relative', flex.row, 'shrink-0 justify-center', 'outline-none touch-none'],
-		orientation: {
-			horizontal: 'px-2 cursor-col-resize',
-			vertical: 'py-2 cursor-row-resize',
-		},
-	},
-	/** The grip that the handle draws as its `::after`, so the states of the grip are the states of the handle. */
-	grip: {
-		base: sen.grip,
-		orientation: {
-			horizontal: 'after:h-6 after:w-0.5',
-			vertical: 'after:w-6 after:h-0.5',
-		},
-	},
-} as const

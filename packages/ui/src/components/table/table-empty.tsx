@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
 import { IntlMessage } from '../../primitives/intl/intl-message'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { k } from '../../recipes/kata/table'
@@ -46,7 +45,7 @@ export function TableEmpty({ columns, children }: TableEmptyProps) {
 	return (
 		<TableBody>
 			<TableRow>
-				<TableCell colSpan={columns} className={cn(k.empty)}>
+				<TableCell colSpan={columns} className={k().empty}>
 					{content}
 				</TableCell>
 			</TableRow>

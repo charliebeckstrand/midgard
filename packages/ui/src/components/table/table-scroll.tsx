@@ -48,7 +48,7 @@ export function TableScroll({
 			{...props}
 			ref={composedRef}
 			density={density}
-			className={cn(scrolls && k.scroll, className)}
+			className={cn(k({ scrolls }).scroll, className)}
 		>
 			{children}
 		</Box>

@@ -12,4 +12,4 @@ export type LegendProps = ComponentProps<'legend'>
  * @remarks Static leaf: renders in React Server Components. Its text takes the
  * step of the nearest density scope, as the Label does.
  */
-export const Legend = createSlot('legend', 'legend', k.legend)
+export const Legend = createSlot('legend', 'legend', k().legend)

@@ -16,4 +16,4 @@ export type TableCaptionProps = ComponentProps<'caption'>
  * `id` of the caption, else from its text when the text is a string. An
  * `aria-label` or `aria-labelledby` in the `tableProps` of the Table wins.
  */
-export const TableCaption = createSlot('caption', 'table-caption', k.caption)
+export const TableCaption = createSlot('caption', 'table-caption', k().caption)

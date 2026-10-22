@@ -145,7 +145,7 @@ export function Message({
 	// render their children.
 	if (severity === 'error' && !rendersError) return null
 
-	const classes = cn(k.message({ severity }), className)
+	const classes = cn(k({ severity }).message, className)
 
 	// Errors use `role="alert"` (assertive); success feedback uses `role="status"` (polite).
 	const role = severity === 'error' ? 'alert' : 'status'

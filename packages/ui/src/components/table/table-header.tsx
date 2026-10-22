@@ -33,7 +33,7 @@ export function TableHeader({
 			ref={ref}
 			scope={scope}
 			data-slot="table-header"
-			className={cn(k.header(), className)}
+			className={cn(k().header, className)}
 			{...props}
 		>
 			{children}
