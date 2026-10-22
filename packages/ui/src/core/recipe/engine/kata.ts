@@ -67,20 +67,18 @@ type MergeSlots<A, B> = {
 type ToSlot<S> = S extends string | readonly unknown[] ? { base: S } : S
 
 /** The root slot of a config: each field that is not a unit field. */
-type RootOf<C> = Omit<C, UnitField>
+type RootSlot<C> = Omit<C, UnitField>
 
 /** The slots that a config declares: its root, and each child slot. */
-type OwnSlotsOf<C> = { base: RootOf<C> } & (C extends { slots: infer S }
+type OwnSlots<C> = { base: RootSlot<C> } & (C extends { slots: infer S }
 	? { [K in keyof S]: ToSlot<S[K]> }
 	: Record<never, never>)
 
 /** The slots of a unit: its own, merged over the slots of the group that it extends. */
-type SlotsOf<C> = C extends { extends: Group<infer G> }
-	? MergeSlots<G, OwnSlotsOf<C>>
-	: OwnSlotsOf<C>
+type UnitSlots<C> = C extends { extends: Group<infer G> } ? MergeSlots<G, OwnSlots<C>> : OwnSlots<C>
 
 /** The extras of the group that a unit extends, or none. */
-type GroupExtrasOf<C> = C extends { extends: Group<unknown, infer X> } ? X : unknown
+type GroupExtras<C> = C extends { extends: Group<unknown, infer X> } ? X : unknown
 
 /** Merges a union of prop shapes into one shape. */
 type Merge<U> = (U extends unknown ? (value: U) => void : never) extends (value: infer I) => void
@@ -89,11 +87,11 @@ type Merge<U> = (U extends unknown ? (value: U) => void : never) extends (value:
 
 /** The props of a unit: the props of each slot, merged. An axis in two slots is one prop. */
 export type KataProps<C> = Merge<
-	{ [K in keyof SlotsOf<C>]: ComputedProps<SlotsOf<C>[K]> }[keyof SlotsOf<C>]
+	{ [K in keyof UnitSlots<C>]: ComputedProps<UnitSlots<C>[K]> }[keyof UnitSlots<C>]
 >
 
 /** The class string of each slot of a unit. */
-export type KataOutput<C> = { readonly [K in keyof SlotsOf<C>]: string }
+export type KataOutput<C> = { readonly [K in keyof UnitSlots<C>]: string }
 
 /**
  * The resolved config of a unit, for introspection. `variants` holds each axis
@@ -103,7 +101,7 @@ export type KataOutput<C> = { readonly [K in keyof SlotsOf<C>]: string }
 export type KataResolvedConfig<C = UnitInput> = {
 	defaults: Defaults
 	variants: Record<string, Record<string, Record<string, ClassValue>>>
-	slots: { readonly [K in keyof SlotsOf<C>]: ResolvedConfig }
+	slots: { readonly [K in keyof UnitSlots<C>]: ResolvedConfig }
 }
 
 export type Kata<C> = {
@@ -250,11 +248,11 @@ function inherit(caller: string, config: UnitInput, extras?: Record<string, unkn
  * @param extras - Kata-shaped siblings that each unit of the family carries.
  * @throws If a child slot is named `base`, or declares its own `defaults` or `slots`.
  */
-export function defineGroup<C extends UnitInput>(config: C): Group<SlotsOf<C>, GroupExtrasOf<C>>
+export function defineGroup<C extends UnitInput>(config: C): Group<UnitSlots<C>, GroupExtras<C>>
 export function defineGroup<C extends UnitInput, X extends Record<string, unknown>>(
 	config: C,
 	extras: X,
-): Group<SlotsOf<C>, GroupExtrasOf<C> & X>
+): Group<UnitSlots<C>, GroupExtras<C> & X>
 export function defineGroup(config: UnitInput, extras?: Record<string, unknown>): Group {
 	const { slots, defaults, extras: merged = {} } = inherit('defineGroup', config, extras)
 
@@ -276,11 +274,11 @@ export function defineGroup(config: UnitInput, extras?: Record<string, unknown>)
  * `slots`, because the unit holds the defaults and a slot does not nest.
  * @throws If an extras key collides with a function built-in, `config`, or `bare`.
  */
-export function defineKata<C extends UnitInput>(config: C): Kata<C> & GroupExtrasOf<C>
+export function defineKata<C extends UnitInput>(config: C): Kata<C> & GroupExtras<C>
 export function defineKata<C extends UnitInput, X extends Record<string, unknown>>(
 	config: C,
 	extras: X,
-): Kata<C> & GroupExtrasOf<C> & X
+): Kata<C> & GroupExtras<C> & X
 export function defineKata<C extends UnitInput, X extends Record<string, unknown>>(
 	config: C,
 	extras?: X,
