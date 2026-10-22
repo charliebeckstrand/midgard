@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineKata, type VariantProps } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
 
 const { cursor, fg } = hannou
@@ -14,7 +14,7 @@ const { focus } = sen
  * and hides the other items. Below the `2xs` width, it keeps only the
  * current page. Previous and Next stay in the row at each width.
  */
-const list = defineRecipe({
+const list = {
 	base: [
 		flex.row,
 		'list-none',
@@ -23,9 +23,9 @@ const list = defineRecipe({
 		'@max-sm/pagination:[&>li:not(:has([aria-current=page]),:has(+li_[aria-current=page]),:has(+li+li_[aria-current=page]),:has([aria-current=page])+li,:has([aria-current=page])+li+li)]:hidden',
 		'@max-2xs/pagination:[&>li:not(:has([aria-current=page]))]:hidden',
 	],
-})
+}
 
-const button = defineRecipe({
+const button = {
 	base: [
 		// `z-1` lifts the button above its sibling active indicator.
 		'relative z-1',
@@ -43,14 +43,13 @@ const button = defineRecipe({
 		true: [...text.default],
 		false: [...text.muted, ...fg.hover],
 	},
-	defaults: { current: false },
-})
+}
 
-const gap = defineRecipe({
+const gap = {
 	base: [flex.inline, 'justify-center', 'min-w-9', size.sm, ...text.muted, 'select-none'],
-})
+}
 
-export const k = defineRecipe(
+export const k = defineKata(
 	{
 		// The gap also caps the hit areas of Previous and Next (`TouchTarget`). A
 		// narrow grid hides the page list, and the two buttons then sit side by side.
@@ -66,21 +65,24 @@ export const k = defineRecipe(
 			dan.gap.scale.xs,
 			dan.gap.touch.x.xs,
 		],
-		skeleton: kokkaku.pagination,
-	},
-	{
-		list,
-		page: {
+		slots: {
+			list,
 			/** Positioning wrapper around each page button; hosts the active indicator. */
-			base: 'group relative inline-flex',
-			button,
+			page: {
+				base: 'group relative inline-flex',
+				slots: {
+					button,
+				},
+			},
+			gap,
 		},
-		gap,
+		defaults: { current: false },
 	},
+	{ skeleton: kokkaku.pagination },
 )
 
 /** Recipe variant props for the {@link PaginationPage} button: its styling axes (`current`), for consumers composing custom slots. */
-export type PageButtonVariants = Omit<VariantProps<typeof button>, 'current'> & {
+export type PageButtonVariants = {
 	/** Whether the button is the current page. @defaultValue false */
-	current?: VariantProps<typeof button>['current']
+	current?: VariantProps<typeof k>['current']
 }

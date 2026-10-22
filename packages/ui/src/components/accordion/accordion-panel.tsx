@@ -75,9 +75,9 @@ export function AccordionPanel({ className, children, ...props }: AccordionPanel
 			{...a11yProps}
 			{...motionProps}
 			data-open={dataAttr(open)}
-			className={cn(k.panel)}
+			className={cn(k().panel)}
 		>
-			<div className={cn(k.body, className)}>{children}</div>
+			<div className={cn(k().body, className)}>{children}</div>
 		</m.div>
 	)
 

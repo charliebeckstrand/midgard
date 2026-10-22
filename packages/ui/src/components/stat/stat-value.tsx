@@ -18,7 +18,7 @@ export function StatValue({ size, className, children, ...props }: StatValueProp
 			as="div"
 			data-slot="stat-value"
 			density={size}
-			className={cn(k.value(), className)}
+			className={cn(k().value, className)}
 			{...props}
 		>
 			{children}

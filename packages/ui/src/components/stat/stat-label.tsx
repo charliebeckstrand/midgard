@@ -11,4 +11,4 @@ export type StatLabelProps = ComponentProps<'div'>
  * nearest density scope: `text-xs` at `sm`, `text-sm` at `md`, and `text-base`
  * at `lg`. Compose `<StatLabelSkeleton>` in the loading tree.
  */
-export const StatLabel = createSlot('div', 'stat-label', k.label)
+export const StatLabel = createSlot('div', 'stat-label', k().label)

@@ -16,7 +16,7 @@ export type StatDeltaProps = StatDeltaVariants & {} & ComponentProps<'div'>
  */
 export function StatDelta({ trend, className, children, ...props }: StatDeltaProps) {
 	return (
-		<div data-slot="stat-delta" className={cn(k.delta({ trend }), className)} {...props}>
+		<div data-slot="stat-delta" className={cn(k({ trend }).delta, className)} {...props}>
 			{children}
 		</div>
 	)

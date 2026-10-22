@@ -10,4 +10,4 @@ export type StatDescriptionProps = ComponentProps<'div'>
  * Static leaf: renders in React Server Components. Compose
  * `<StatDescriptionSkeleton>` in the loading tree.
  */
-export const StatDescription = createSlot('div', 'stat-description', k.description)
+export const StatDescription = createSlot('div', 'stat-description', k().description)

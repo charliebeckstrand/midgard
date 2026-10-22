@@ -31,7 +31,7 @@ export function Pagination({ className, ...props }: PaginationProps) {
 		<nav
 			data-slot="pagination"
 			aria-label={intl.formatMessage(paginationMessages.label)}
-			className={cn(k(), className)}
+			className={cn(k().base, className)}
 			{...props}
 		/>
 	)

@@ -1,5 +1,5 @@
 import { defineScale, type ScaleStep } from '../../core/density'
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineKata, type VariantProps } from '../../core/recipe'
 import { dan, iro, ji, kokkaku, narabi } from '../kiso'
 
 const { text } = iro
@@ -10,33 +10,31 @@ const { flex } = narabi
 // scope. An explicit `size` on StatValue makes the value its own scope.
 const label = [...text.muted, weight.medium, dan.text.small]
 
-const value = defineRecipe({
+const value = {
 	base: [weight.semibold, 'tracking-tight tabular-nums', ...text.default, dan.text.h1],
-})
+}
 
-const delta = defineRecipe({
+const delta = {
 	base: [flex.inline, dan.text.small, dan.gap.scale.xs, weight.medium, 'tabular-nums'],
 	trend: {
 		up: text.success,
 		down: text.error,
 		neutral: text.muted,
 	},
-	defaults: { trend: 'neutral' },
-})
+}
 
-export const k = defineRecipe(
+export const k = defineKata(
 	{
 		base: [flex.col, 'justify-center', 'h-full', dan.gap.scale.xs],
 		slots: {
+			label,
+			value,
+			delta,
 			description: [dan.text.small, ...text.muted],
 		},
-		skeleton: kokkaku.stat,
+		defaults: { trend: 'neutral' },
 	},
-	{
-		label,
-		value,
-		delta,
-	},
+	{ skeleton: kokkaku.stat },
 )
 
 /** The size scale of {@link StatValue}: the steps of its text. */
@@ -51,11 +49,11 @@ export type StatValueVariants = {
 	size?: ScaleStep<typeof scale>
 }
 /** Recipe variant props for {@link StatDelta}: its styling axes (`trend`), for consumers composing custom slots. */
-export type StatDeltaVariants = Omit<VariantProps<typeof delta>, 'trend'> & {
+export type StatDeltaVariants = {
 	/**
 	 * The direction of the change, which sets the color: the success color for
 	 * `up`, the error color for `down`, and the muted color for `neutral`.
 	 * @defaultValue 'neutral'
 	 */
-	trend?: VariantProps<typeof delta>['trend']
+	trend?: VariantProps<typeof k>['trend']
 }

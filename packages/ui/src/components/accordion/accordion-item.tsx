@@ -81,7 +81,7 @@ export function AccordionItem({
 				{...props}
 				data-open={dataAttr(open)}
 				data-disabled={dataAttr(disabled)}
-				className={cn(k.item({ variant }), className)}
+				className={cn(k({ variant }).item, className)}
 			>
 				{children}
 			</div>

@@ -16,7 +16,7 @@ export type PaginationListProps = ComponentProps<'ol'>
 export function PaginationList({ className, children, ...props }: PaginationListProps) {
 	return (
 		<ActiveIndicatorScope>
-			<ol data-slot="pagination-list" className={cn(k.list(), className)} {...props}>
+			<ol data-slot="pagination-list" className={cn(k().list, className)} {...props}>
 				{children}
 			</ol>
 		</ActiveIndicatorScope>

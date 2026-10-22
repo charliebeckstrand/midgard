@@ -156,7 +156,12 @@ export function Accordion(props: AccordionProps) {
 
 	return (
 		<AccordionContext value={context}>
-			<div {...rest} ref={setRoot} data-slot="accordion" className={cn(k({ variant }), className)}>
+			<div
+				{...rest}
+				ref={setRoot}
+				data-slot="accordion"
+				className={cn(k({ variant }).base, className)}
+			>
 				{children}
 			</div>
 		</AccordionContext>
