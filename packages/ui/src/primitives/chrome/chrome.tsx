@@ -62,7 +62,7 @@ export function Chrome({ className, children, ref, ...props }: ChromeProps) {
 	const setRegion = useComposedRefs<HTMLDivElement>(registerRegion, ref)
 
 	return (
-		<div ref={setRegion} data-slot="chrome" className={cn(k.region, className)} {...props}>
+		<div ref={setRegion} data-slot="chrome" className={cn(k().base, className)} {...props}>
 			{children}
 		</div>
 	)

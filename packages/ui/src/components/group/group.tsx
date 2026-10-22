@@ -61,7 +61,7 @@ export function Group({
 		<Box
 			density={size}
 			data-orientation={orientation}
-			className={cn(k.base(orientation), className)}
+			className={cn(k({ orientation }).base, className)}
 			{...props}
 			data-slot="group"
 		>

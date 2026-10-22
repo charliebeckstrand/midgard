@@ -1,12 +1,13 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import type { VariantProps } from '../../core/recipe'
 import { k } from '../../recipes/kata/aspect-ratio'
 
 /**
  * An aspect-ratio preset: a ratio (`1/1`, `4/3`, `3/2`, `16/9`, `21/9`) or
  * `auto`. `square` and `video` are aliases of `1/1` and `16/9`.
  */
-export type AspectRatioPreset = keyof typeof k.ratio
+export type AspectRatioPreset = NonNullable<VariantProps<typeof k>['ratio']>
 
 /** Props for {@link AspectRatio}; extends `<div>` attributes with `ratio`. */
 export type AspectRatioProps = {
@@ -39,7 +40,7 @@ export function AspectRatio({
 	return (
 		<div
 			data-slot="aspect-ratio"
-			className={cn('overflow-hidden', isPreset && k.ratio[value], className)}
+			className={cn(k({ ratio: isPreset ? value : undefined }).base, className)}
 			// The consumer style spreads first, and the ratio wins (CONVENTIONS.md §3.9). A preset
 			// removes the inline ratio, so that the class sets the ratio.
 			style={{ ...style, aspectRatio: isPreset ? undefined : value }}

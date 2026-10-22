@@ -64,7 +64,7 @@ export function Card({
 			density={size}
 			bg={bg}
 			outline={outline}
-			className={cn('overflow-clip -outline-offset-1', k.base, className)}
+			className={cn(k().base, className)}
 			{...props}
 		>
 			{children}
