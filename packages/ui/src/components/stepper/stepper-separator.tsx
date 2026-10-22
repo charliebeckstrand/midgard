@@ -2,7 +2,6 @@
 
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import { k } from '../../recipes/kata/stepper'
 import { useStepper } from './context'
 
 /** Props for {@link StepperSeparator}: `className` plus `<li>` attributes, `ref` included. */
@@ -19,9 +18,9 @@ export type StepperSeparatorProps = ComponentProps<'li'>
  * The `ref` gets the `<li>` as an `HTMLLIElement`.
  */
 export function StepperSeparator({ className, ...props }: StepperSeparatorProps) {
-	const { layout } = useStepper()
+	const { slots } = useStepper()
 
-	const classes = cn(k.separator.base, layout.separator, className)
+	const classes = cn(slots.separator, className)
 
 	// The row is an <ol>, which holds only <li> children.
 	return <li data-slot="stepper-separator" aria-hidden="true" className={classes} {...props} />

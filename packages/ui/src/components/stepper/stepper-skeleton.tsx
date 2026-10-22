@@ -4,7 +4,7 @@ import { k } from '../../recipes/kata/stepper'
 import type { Responsive } from '../../types'
 import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
-import { type StepperOrientation, stepperLayout } from './context'
+import type { StepperOrientation } from './context'
 
 /** Props for {@link StepperSkeleton}: the placeholder step count and the `orientation` of the stepper. */
 export type StepperSkeletonProps = {
@@ -42,17 +42,17 @@ export function StepperSkeleton({
 }: StepperSkeletonProps) {
 	const stepKeys = rangeKeys(steps, 'step')
 
-	const layout = stepperLayout(orientation)
+	const slots = k({ orientation })
 
 	return (
-		<div className={cn(k.base.base, layout.base, className)}>
+		<div className={cn(slots.base, className)}>
 			{stepKeys.map((stepKey, index) => (
 				<Fragment key={stepKey}>
-					{index > 0 && <div className={cn(k.separator.base, layout.separator)} />}
-					<div className={cn(k.step.base, layout.step, 'cursor-default')}>
+					{index > 0 && <div className={slots.separator} />}
+					<div className={cn(slots.step, 'cursor-default')}>
 						<Placeholder className={cn(k.skeleton.indicator)} />
-						<div className={cn(k.content.base, layout.content)}>
-							<Placeholder className={cn(k.title.base(), layout.title, k.skeleton.title)} />
+						<div className={slots.content}>
+							<Placeholder className={cn(slots.title, k.skeleton.title)} />
 						</div>
 					</div>
 				</Fragment>

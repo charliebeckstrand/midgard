@@ -12,7 +12,7 @@ import { k } from '../recipes/kata/offcanvas'
 import { Box } from '../structure/box'
 import { Flex } from '../structure/flex'
 import { Stack } from '../structure/stack'
-import { mapResponsive, type Responsive, resolveVariant } from '../types'
+import { mapResponsive, type Responsive } from '../types'
 import { StackedLayout } from './stacked'
 
 /** The filters and the content stack in the drawer layout, and sit side by side inline. */
@@ -80,6 +80,8 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
 	const { open, setOpen, layout } = useOffcanvas({ layout: layoutProp, onOpenChange })
 
+	const slots = k({ layout })
+
 	const intl = useIntl()
 
 	const filtersLabel = intl.formatMessage(intlMessages.filters)
@@ -97,9 +99,9 @@ export function DashboardLayout({
 						    and the trigger of the drawer in the drawer layout. The trigger is
 						    then in a landmark. */}
 						<aside aria-label={filtersLabel} data-slot="filters" className="shrink-0">
-							<Stack className={resolveVariant(layout, k.inline.flex)}>{filters}</Stack>
+							<Stack className={slots.inlineFlex}>{filters}</Stack>
 
-							<Box className={resolveVariant(layout, k.drawer.block)}>
+							<Box className={slots.drawerBlock}>
 								<DrawerTrigger>
 									<Button type="button" variant="outline">
 										<Icon icon={<SlidersHorizontal />} />

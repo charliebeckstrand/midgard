@@ -15,6 +15,9 @@ import { type EventRow, formatColumns, formatSummary } from './engine/events-tex
 import type { EventEntry } from './engine/types'
 import { eventsMessages } from './events-messages'
 
+/** The slots of the events. */
+const slots = k()
+
 // The key of each line. An event is an object that the store keeps until it
 // drops the event, so the key of a line stays while the line stays.
 const keys = new WeakMap<EventEntry, number>()
@@ -93,7 +96,7 @@ function EventLine({
 				// color of the line.
 				<CollapseTrigger className="min-w-0 items-start text-start text-xs aria-expanded:*:first:rotate-90">
 					{slot}
-					<span className={cn('min-w-0', color ?? k.text)}>{text}</span>
+					<span className={cn('min-w-0', color ?? slots.text)}>{text}</span>
 				</CollapseTrigger>
 			)}
 		</span>

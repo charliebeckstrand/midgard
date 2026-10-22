@@ -5,7 +5,6 @@ import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useMountsEveryPanel } from '../../primitives/mount'
-import { k } from '../../recipes/kata/stepper'
 import { hasChildOfType, partitionByType } from '../../utilities/children'
 import { StepperStepContext, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
@@ -106,7 +105,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 	const {
 		value: currentValue,
 		onValueChange,
-		layout,
+		slots,
 		linear,
 		baseId,
 		hasPanels,
@@ -122,13 +121,11 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 
 	const everyPanel = useMountsEveryPanel(mount)
 
-	const stepClasses = cn(k.step.base, layout.step)
-
-	const classes = cn(stepClasses, className)
+	const classes = cn(slots.step, className)
 
 	const layoutChildren = useMemo(
-		() => partitionChildren(ensureIndicator(children), cn(k.content.base, layout.content)),
-		[children, layout.content],
+		() => partitionChildren(ensureIndicator(children), slots.content),
+		[children, slots.content],
 	)
 
 	const providerValue = useMemo(() => ({ value, state }), [value, state])
@@ -149,7 +146,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 		const isDisabled = disabled === true || (linear && state === 'upcoming')
 
 		return (
-			<li data-slot="stepper-item" {...props} className={cn(k.item.base, layout.item)}>
+			<li data-slot="stepper-item" {...props} className={slots.item}>
 				<button
 					type="button"
 					id={triggerId}
@@ -163,7 +160,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 					aria-controls={hasPanels && (state === 'current' || everyPanel) ? panelId : undefined}
 					disabled={isDisabled}
 					onClick={() => onValueChange(value)}
-					className={cn(stepClasses, k.item.button, className)}
+					className={cn(slots.step, slots.button, className)}
 				>
 					{inner}
 				</button>

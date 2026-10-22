@@ -11,7 +11,7 @@ import { cn } from '../../../core'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'
-import { mapResponsive, type Orientation, resolveVariant } from '../../../types'
+import { mapResponsive, type Orientation } from '../../../types'
 import { describeNode } from '../engine/query-announcements'
 import { createRule } from '../engine/query-node'
 import { getOperators, operatorLabel, operatorValueLabel } from '../engine/query-operators'
@@ -98,9 +98,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 
 	const onRemove = useCallback(() => remove(rule.id), [remove, rule.id])
 
-	const partClass = cn(k.parts.width, resolveVariant(orientation, k.parts.item))
-
-	const rangeClass = cn(k.parts.width, resolveVariant(orientation, k.parts.range))
+	const slots = k({ orientation })
 
 	const removeRef = useFocusableRef(focusKeys.node(rule.id))
 
@@ -133,13 +131,13 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 			aria-label={describeNode(intl, rule, fields)}
 			gap="sm"
 			full
-			className={cn(k.rule, className)}
+			className={cn(slots.rule, className)}
 		>
 			<Flex
 				flex="1"
 				gap="sm"
 				direction={mapResponsive(orientation, toDirection)}
-				className={resolveVariant(orientation, k.parts.base)}
+				className={slots.parts}
 			>
 				{!hideFieldSelector && (
 					<Select
@@ -148,7 +146,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 						onValueChange={onFieldChange}
 						placeholder={fieldLabel}
 						aria-label={fieldLabel}
-						className={partClass}
+						className={slots.part}
 					>
 						{fields.map((entry) => (
 							<ListboxOption key={entry.name} value={entry.name}>
@@ -164,7 +162,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					onValueChange={onOperatorChange}
 					placeholder={operatorName}
 					aria-label={operatorName}
-					className={partClass}
+					className={slots.part}
 				>
 					{operators.map((operator) => (
 						<ListboxOption key={operator.value} value={operator.value}>
@@ -177,7 +175,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 				    affixes puts its `className` on the inner `<input>`, not on the
 				    frame that the row sizes. */}
 				{field && !selectedOperator?.noValue && (
-					<div className={selectedOperator?.range ? rangeClass : partClass}>
+					<div className={selectedOperator?.range ? slots.range : slots.part}>
 						<QueryBuilderRuleValue
 							field={field}
 							value={rule.value}
@@ -192,7 +190,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 				    as static text in the value column. The rule then still reads as a
 				    sentence. There is nothing to edit, hence no control. */}
 				{subject && (
-					<Flex align="center" full className={cn(k.value, partClass)}>
+					<Flex align="center" full className={cn(slots.value, slots.part)}>
 						{subject}
 					</Flex>
 				)}
@@ -206,7 +204,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					color="red"
 					aria-label={intl.formatMessage(queryBuilderMessages.removeRule)}
 					disabled={disabled}
-					className={k.remove}
+					className={slots.remove}
 					onClick={onRemove}
 				>
 					<Icon icon={<Trash />} />

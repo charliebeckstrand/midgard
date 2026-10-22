@@ -1,8 +1,8 @@
 /**
  * Toast kata: the unit of the `<Toast>` stack. The root slot `base` is the fixed
  * viewport, `scroll` is the stack in it, `item` pads each toast on its `edge`,
- * and `card` is the width of a toast. The `position` tables, which `Toast`
- * resolves with `resolveVariant`, and the motion configs are extras.
+ * and `card` is the width of a toast. `position` is a responsive axis of the
+ * viewport and the stack. The motion configs are extras.
  */
 import { defineKata } from '../../core/recipe'
 import { dan, sou, ugoki } from '../kiso'
@@ -16,10 +16,10 @@ const corner = 'w-fit [--ui-toast-card:var(--ui-toast-width)]'
 const edge = 'w-full [--ui-toast-card:100%]'
 
 /**
- * The classes of each physical `position` of the viewport, the stack in it,
- * and its cards. `Toast` resolves a `start` or `end` corner to a physical one
+ * The classes of each physical `position` of the viewport and of the stack in
+ * it, which also sets the width of its cards. `Toast` resolves a `start` or `end` corner to a physical one
  * first. Each value writes the same properties, so a breakpoint replaces each
- * one (`resolveVariant`).
+ * one.
  */
 const position = {
 	viewport: {
@@ -52,12 +52,16 @@ export const k = defineKata(
 			'p-4 pt-[max(--spacing(4),env(safe-area-inset-top))] pb-[max(--spacing(4),env(safe-area-inset-bottom))]',
 			'pointer-events-none',
 		],
+		responsive: { position: position.viewport },
 		slots: {
-			scroll: [
-				'flex flex-col max-h-full overflow-y-auto overscroll-contain',
-				dan.size.toast.width,
-				'pointer-events-auto',
-			],
+			scroll: {
+				base: [
+					'flex flex-col max-h-full overflow-y-auto overscroll-contain',
+					dan.size.toast.width,
+					'pointer-events-auto',
+				],
+				responsive: { position: position.scroll },
+			},
 			/**
 			 * The item of each toast, padded by the gap on the side that faces the next
 			 * toast. The gap steps with the density. The exit animates the padding to 0,
@@ -73,7 +77,6 @@ export const k = defineKata(
 		defaults: { edge: 'top' },
 	},
 	{
-		position,
 		motion: toast,
 		/** The motion under reduced motion: the toast shows with no slide. */
 		still: { top: ugoki.still(toast.top), bottom: ugoki.still(toast.bottom) },

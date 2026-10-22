@@ -41,9 +41,9 @@ describe('safe-area insets on edge surfaces', () => {
 
 		expect(classes).toContain('pb-[calc(var(--ui-panel-bottom)+var(--ui-panel-safe,0px))]')
 
-		expect(dialog.align.panel.bottom).toContain(`[--ui-panel-safe:${bottom}]`)
+		expect(dialog({ align: 'bottom' }).base).toContain(`[--ui-panel-safe:${bottom}]`)
 
-		expect(dialog.align.panel.center).toContain('[--ui-panel-safe:0px]')
+		expect(dialog({ align: 'center' }).base).toContain('[--ui-panel-safe:0px]')
 	})
 
 	it('pads each drawer height by the inset alone', () => {

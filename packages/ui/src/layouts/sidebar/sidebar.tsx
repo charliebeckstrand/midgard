@@ -30,10 +30,9 @@ import { OffcanvasContext } from '../../primitives/offcanvas'
 import { Portal } from '../../primitives/portal'
 import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/appearance-storage'
 import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
-import { k as offcanvas } from '../../recipes/kata/offcanvas'
 import { k } from '../../recipes/kata/sidebar-layout'
 import { Flex } from '../../structure/flex'
-import { type Responsive, resolveVariant } from '../../types'
+import type { Responsive } from '../../types'
 import { type StickyBars, useStickyBars } from './use-sticky-bars'
 
 const [SidebarLayoutContext] = createContext<{
@@ -187,6 +186,8 @@ export function SidebarLayout({
 }: SidebarLayoutProps) {
 	const { open, setOpen, close, layout } = useOffcanvas({ layout: layoutProp, onOpenChange })
 
+	const slots = k({ layout })
+
 	const intl = useIntl()
 
 	const [floatingOpen, setFloatingOpen] = useState(false)
@@ -266,20 +267,13 @@ export function SidebarLayout({
 				data-slot="sidebar-layout"
 				{...props}
 				ref={setRoot}
-				className={cn(k.base(), resolveVariant(layout, k.layout.base), className)}
+				className={cn(slots.base, className)}
 			>
 				{/* Hot zone to peek the floating sidebar. It shows only while offcanvas. */}
-				<div
-					aria-hidden
-					className={cn(k.floating.peek(), resolveVariant(layout, k.layout.peek))}
-					onPointerEnter={() => setFloatingOpen(true)}
-				/>
+				<div aria-hidden className={slots.peek} onPointerEnter={() => setFloatingOpen(true)} />
 
 				{/* Inline sidebar when locked. It hides while offcanvas. */}
-				<div
-					data-slot="sidebar-panel"
-					className={cn(k.panel(), resolveVariant(layout, offcanvas.inline.block))}
-				>
+				<div data-slot="sidebar-panel" className={slots.panel}>
 					{sidebar}
 				</div>
 
@@ -295,10 +289,10 @@ export function SidebarLayout({
 						// The peek closes when the pointer leaves, or on a tap outside it, so it has
 						// no Close row.
 						footer={null}
-						className={cn(k.floating.sheet(), flush)}
+						className={cn(slots.sheet, flush)}
 					>
 						<div
-							className={k.floating.body()}
+							className={slots.sheetBody}
 							onPointerEnter={() => setFloatingOpen(true)}
 							onPointerLeave={closeOnLeave}
 						>
@@ -314,7 +308,7 @@ export function SidebarLayout({
 				<Portal open={floatingOpen}>
 					<div
 						aria-hidden
-						className={cn(k.floating.buffer(), resolveVariant(layout, offcanvas.inline.block))}
+						className={slots.buffer}
 						onPointerEnter={() => setFloatingOpen(true)}
 						onPointerLeave={closeOnLeave}
 					/>
@@ -337,7 +331,7 @@ export function SidebarLayout({
 					<section
 						ref={setBar}
 						aria-label={intl.formatMessage(messages.navigationBar)}
-						className={cn(k.navbar(), resolveVariant(layout, offcanvas.drawer.block))}
+						className={slots.navbar}
 					>
 						<Flex align="center">
 							<DrawerTrigger>
@@ -349,24 +343,19 @@ export function SidebarLayout({
 								/>
 							</DrawerTrigger>
 							{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
-							{actions && <div className={cn(k.actions(), 'ms-auto')}>{actions}</div>}
+							{actions && <div className={cn(slots.actions, 'ms-auto')}>{actions}</div>}
 						</Flex>
 					</section>
 				</Drawer>
 
 				{/* Content */}
-				<div className={cn(k.content.wrapper(), resolveVariant(layout, k.layout.wrapper))}>
-					<div className={cn(k.content.base(), resolveVariant(layout, k.layout.content))}>
-						{children}
-					</div>
+				<div className={slots.wrapper}>
+					<div className={slots.content}>{children}</div>
 				</div>
 
 				{/* Inline aside: on the end edge, after the content. */}
 				{aside && (
-					<div
-						data-slot="sidebar-aside"
-						className={cn(k.aside(), resolveVariant(layout, offcanvas.inline.block))}
-					>
+					<div data-slot="sidebar-aside" className={slots.aside}>
 						{aside}
 					</div>
 				)}
@@ -402,24 +391,17 @@ export function SidebarLayoutHeader({
 	// nested layout keeps the prop of that layout.
 	const sticky = layout?.stickyHeader ?? false
 
+	const slots = k({ layout: placement })
+
 	return (
 		<header
 			{...props}
 			ref={setHeader}
 			data-slot="header"
-			className={cn(
-				k.header({ stickyHeader: sticky }),
-				resolveVariant(placement, k.layout.header),
-				sticky && resolveVariant(placement, k.layout.stickyHeader),
-				className,
-			)}
+			className={cn(slots.header, sticky && slots.pin, className)}
 		>
 			<div className="flex-1 min-w-0">{children}</div>
-			{actions && (
-				<div className={cn(k.actions(), resolveVariant(placement, offcanvas.inline.flex))}>
-					{actions}
-				</div>
-			)}
+			{actions && <div className={slots.headerActions}>{actions}</div>}
 		</header>
 	)
 }
@@ -432,10 +414,10 @@ export type SidebarLayoutBodyProps = ComponentProps<'main'>
  * with the page at each width. It grows into the free height of the content
  * region, so the footer sits at the bottom of a short page.
  */
-export const SidebarLayoutBody = createSlot('main', 'body', k.body())
+export const SidebarLayoutBody = createSlot('main', 'body', k().body)
 
 /** Props for {@link SidebarLayoutFooter} (`<footer>` attributes). */
 export type SidebarLayoutFooterProps = ComponentProps<'footer'>
 
 /** Footer slot for {@link SidebarLayout} (`data-slot="footer"`). */
-export const SidebarLayoutFooter = createSlot('footer', 'footer', k.footer())
+export const SidebarLayoutFooter = createSlot('footer', 'footer', k().footer)

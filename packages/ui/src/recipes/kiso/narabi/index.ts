@@ -11,6 +11,7 @@ import { flex } from './flex'
 import { group } from './group'
 import { inset } from './inset'
 import { item } from './item'
+import { offcanvas } from './offcanvas'
 import { slide } from './slide'
 import { text } from './text'
 import { toggle } from './toggle'
@@ -27,4 +28,5 @@ export const narabi = {
 	flex,
 	/** The height fit of a floating panel: the wrapper, a column, and the scroll region. */
 	fit,
+	offcanvas,
 } as const

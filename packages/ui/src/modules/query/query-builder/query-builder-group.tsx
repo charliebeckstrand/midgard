@@ -21,6 +21,9 @@ import { queryBuilderMessages } from './query-builder-messages'
 import { QueryBuilderRule } from './query-builder-rule'
 import { QueryBuilderSortable } from './query-builder-sortable'
 
+/** The slots of the query builder. */
+const slots = k()
+
 /** Props for {@link QueryBuilderGroup}: the group node to render and whether it is the tree root. @internal */
 export type QueryBuilderGroupProps = {
 	/** The group node to render, with its child rules and groups. */
@@ -139,9 +142,9 @@ function QueryBuilderGroupImpl({
 			data-slot="query-group"
 			data-combinator={group.combinator}
 			aria-label={root ? undefined : intl.formatMessage(queryBuilderMessages.group)}
-			className={cn(k.group.base, !root && k.group.nested, className)}
+			className={cn(k({ nested: !root }).group, className)}
 		>
-			<div className={cn(k.group.base)}>
+			<div className={slots.group}>
 				{group.children.length === 0 ? (
 					<Alert
 						severity="warning"
@@ -153,7 +156,7 @@ function QueryBuilderGroupImpl({
 					<QueryBuilderSortable group={group} separator={separator} node={node} />
 				) : (
 					group.children.map((child, index) => (
-						<div key={child.id} className={cn(k.group.base)}>
+						<div key={child.id} className={slots.group}>
 							{separator(index)}
 							{node(child)}
 						</div>
@@ -161,7 +164,7 @@ function QueryBuilderGroupImpl({
 				)}
 			</div>
 
-			<Flex gap="sm" className={cn(k.actions)}>
+			<Flex gap="sm" className={slots.actions}>
 				<Menu placement="bottom-start">
 					<MenuTrigger>
 						<Button
@@ -197,7 +200,7 @@ function QueryBuilderGroupImpl({
 									color="red"
 									aria-label={intl.formatMessage(queryBuilderMessages.removeGroup)}
 									disabled={disabled}
-									className={k.remove}
+									className={slots.remove}
 									onHoldComplete={() => remove(group.id)}
 								>
 									{intl.formatMessage(queryBuilderMessages.removeGroup)}

@@ -11,6 +11,9 @@ import { QueryBuilderProvider } from './context'
 import { QueryBuilderGroup } from './query-builder-group'
 import { useQueryBuilderTree } from './use-query-builder-tree'
 
+/** The slots of the query builder. */
+const slots = k()
+
 /** The default `orientation` of a {@link QueryBuilder}: the parts of a rule stack on a compact viewport, and share a row from medium. */
 export const QUERY_BUILDER_ORIENTATION = adaptive({
 	compact: 'vertical',
@@ -117,7 +120,7 @@ export function QueryBuilder({
 
 	return (
 		<QueryBuilderProvider state={state} actions={actions} register={register}>
-			<Fieldset data-slot="query-builder" disabled={disabled} className={cn(k.base, className)}>
+			<Fieldset data-slot="query-builder" disabled={disabled} className={cn(slots.base, className)}>
 				<QueryBuilderGroup group={root} root />
 			</Fieldset>
 		</QueryBuilderProvider>

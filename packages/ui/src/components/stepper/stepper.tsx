@@ -12,7 +12,7 @@ import { k } from '../../recipes/kata/stepper'
 import { Stack } from '../../structure/stack'
 import type { Responsive } from '../../types'
 import { partitionByType } from '../../utilities/children'
-import { StepperContext, type StepperOrientation, stepperLayout } from './context'
+import { StepperContext, type StepperOrientation } from './context'
 import { stepperMessages } from './stepper-messages'
 import { StepperPanels } from './stepper-panels'
 
@@ -175,22 +175,22 @@ export function Stepper({
 
 	const hasPanels = panelsChildren.length > 0
 
-	const layout = useMemo(() => stepperLayout(orientation), [orientation])
+	const slots = k({ orientation, interactive })
 
 	const contextValue = useMemo(
 		() => ({
 			value: current,
 			onValueChange: interactive ? setCurrent : undefined,
-			layout,
+			slots,
 			linear,
 			baseId,
 			hasPanels,
 			mount,
 		}),
-		[current, interactive, setCurrent, layout, linear, baseId, hasPanels, mount],
+		[current, interactive, setCurrent, slots, linear, baseId, hasPanels, mount],
 	)
 
-	const rowClassName = cn(k.base.base, layout.base, className)
+	const rowClassName = cn(slots.base, className)
 
 	// The steps are an ordered list, so AT gives the count and the position of
 	// each step. An interactive row also groups its step buttons as a toolbar,

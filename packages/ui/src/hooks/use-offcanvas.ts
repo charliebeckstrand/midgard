@@ -43,12 +43,13 @@ export type OffcanvasOptions = {
  * @param options `layout`, the layout at each breakpoint, and `onOpenChange`,
  * reported on every transition of the open flag.
  * @remarks The hook reads `layout` with `useResponsiveValue`, which reads the
- * same breakpoints as the classes that `resolveVariant` gives for it. While the
+ * same breakpoints as the classes of a responsive axis. While the
  * layout is `inline`, the drawer stays closed, and a `setOpen(true)` has no
  * effect. A map that names no `initial` value takes `drawer` there.
  * @returns `{ open, setOpen, close, layout }`: the open flag, its setter, a
  * memoized `close` convenience, and the layout with its `initial` value. Give
- * that layout to `resolveVariant`, so that the CSS agrees with the open flag.
+ * that layout to the `layout` axis of the offcanvas kata, so that the CSS
+ * agrees with the open flag.
  */
 export function useOffcanvas({ layout = OFFCANVAS_LAYOUT, onOpenChange }: OffcanvasOptions = {}) {
 	const [choice, setOpen] = useState(false)

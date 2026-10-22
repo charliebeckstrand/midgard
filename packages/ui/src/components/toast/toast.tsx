@@ -13,16 +13,13 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/toast'
-import { mapResponsive, type Responsive, resolveVariant, withInitial } from '../../types'
+import { mapResponsive, type Responsive, withInitial } from '../../types'
 import { subscribeDocumentEvent } from '../../utilities/document-listener'
 import { getTabbableElements } from '../../utilities/focusable-selector'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { useToastViewport } from './context'
 import { ToastAlert } from './toast-alert'
 import { TOAST_POSITION, type ToastPosition } from './types'
-
-/** The slots of the toast stack. */
-const stack = k()
 
 const messages = defineMessages({
 	notifications: {
@@ -122,6 +119,8 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 		'bottom',
 	)
 
+	const stack = k({ position: physical })
+
 	// The order, the motion, and the gap of the stack follow the edge that the
 	// stack is on at the viewport.
 	const isTop = useResponsiveValue(physical, 'bottom').startsWith('top')
@@ -193,16 +192,10 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 				// two empty stacks on one page do not give two of the same name.
 				aria-label={hasToasts ? intl.formatMessage(messages.notifications) : undefined}
 				dir={dir ?? undefined}
-				className={cn(stack.base, resolveVariant(physical, k.position.viewport))}
+				className={stack.base}
 			>
 				{/* A list, so AT gives the count of the toasts and the position of each. */}
-				<ol
-					className={cn(
-						stack.scroll,
-						resolveVariant(physical, k.position.scroll),
-						!isTop && 'flex-col-reverse',
-					)}
-				>
+				<ol className={cn(stack.scroll, !isTop && 'flex-col-reverse')}>
 					<AnimatePresence onExitComplete={handleExitComplete}>
 						{toasts.map((toast, index) => (
 							<ToastAlert
