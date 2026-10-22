@@ -10,6 +10,9 @@ import { k } from '../../../recipes/kata/query-builder'
 import { holdTextSelection } from '../../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../../utilities/primary-press'
 
+/** The slots of the query builder. */
+const slots = k()
+
 /** Props for {@link QueryBuilderSortableItem}. @internal */
 type QueryBuilderSortableItemProps = {
 	/** The id of the node, as its group's `Reorder.Group` keys it. */
@@ -85,7 +88,7 @@ export function QueryBuilderSortableItem({
 			data-slot="query-sortable"
 			data-node-id={id}
 			data-dragging={dataAttr(held)}
-			className={k().item}
+			className={slots.item}
 		>
 			{handle && (
 				<SortableGrip
@@ -110,10 +113,10 @@ export function QueryBuilderSortableItem({
 					label={intl.formatMessage(reorderMessages.reorderHandle, { item: label })}
 					size="sm"
 					disabled={disabled}
-					className={k().handle}
+					className={slots.handle}
 				/>
 			)}
-			<div className={k().node}>{children}</div>
+			<div className={slots.node}>{children}</div>
 		</Reorder.Item>
 	)
 }

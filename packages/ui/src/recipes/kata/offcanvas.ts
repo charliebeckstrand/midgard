@@ -8,13 +8,12 @@
 import { defineKata } from '../../core/recipe'
 import { narabi } from '../kiso'
 
-const { drawer, inline } = narabi.offcanvas
+const shows = narabi.offcanvas
 
 export const k = defineKata({
 	slots: {
-		drawerBlock: { base: '', responsive: { layout: drawer.block } },
-		inlineBlock: { base: '', responsive: { layout: inline.block } },
-		inlineFlex: { base: '', responsive: { layout: inline.flex } },
-		inlineInlineFlex: { base: '', responsive: { layout: inline.inlineFlex } },
+		drawerBlock: { responsive: { layout: shows.drawer.block } },
+		inlineBlock: { responsive: { layout: shows.inline.block } },
+		inlineFlex: { responsive: { layout: shows.inline.flex } },
 	},
 })

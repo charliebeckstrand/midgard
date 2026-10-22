@@ -18,18 +18,9 @@ const { rounded } = kasane
 const { flex } = narabi
 const { border, focus } = sen
 
-/*
- * The field, operator, and value of a rule share the row from a zero basis. A
- * range value holds two number inputs, each with its steppers, so it takes two
- * shares. The minimum width lets a part shrink past the intrinsic width of an
- * input, so the shares hold. It also keeps the text of a part readable in a
- * container that sizes to its content, where the equal shares otherwise cut
- * the longest text. The row (`parts`) wraps a part that cannot get its minimum
- * to a new line. In a `vertical` rule the parts stack, each at full width.
- * `orientation` is a responsive axis, and each of its values writes the same
- * properties. The width of each part is `w-full`: in a row, the zero basis of
- * `flex-1` decides it.
- */
+/** A part of a `vertical` rule, which stacks at full width. */
+const stacked = 'min-w-auto flex-initial'
+
 export const k = defineKata(
 	{
 		base: [flex.col, `${dan.gap.scale.md} p-3`, border.default, rounded.lg],
@@ -42,20 +33,31 @@ export const k = defineKata(
 				},
 			},
 			rule: ['p-2.5', border.default, rounded.lg],
+			/**
+			 * The field, operator, and value of a rule share the row from a zero basis.
+			 * A range value holds two number inputs, each with its steppers, so it
+			 * takes two shares. The minimum width lets a part shrink past the intrinsic
+			 * width of an input, so the shares hold. It also keeps the text of a part
+			 * readable in a container that sizes to its content, where the equal shares
+			 * otherwise cut the longest text. The row wraps a part that cannot get its
+			 * minimum to a new line. In a `vertical` rule the parts stack. `orientation`
+			 * is a responsive axis, and each of its values writes the same properties.
+			 */
 			parts: {
-				base: '',
 				responsive: { orientation: { vertical: 'flex-nowrap', horizontal: 'flex-wrap' } },
 			},
+			/** A part of a rule. Its width is `w-full`: in a row, the zero basis of `flex-1` decides it. */
 			part: {
 				base: 'w-full',
 				responsive: {
-					orientation: { vertical: 'min-w-auto flex-initial', horizontal: 'min-w-32 flex-1' },
+					orientation: { vertical: stacked, horizontal: 'min-w-32 flex-1' },
 				},
 			},
+			/** A range value, which takes two shares of the row. */
 			range: {
 				base: 'w-full',
 				responsive: {
-					orientation: { vertical: 'min-w-auto flex-initial', horizontal: 'min-w-48 flex-2' },
+					orientation: { vertical: stacked, horizontal: 'min-w-48 flex-2' },
 				},
 			},
 			remove: 'flex-none',

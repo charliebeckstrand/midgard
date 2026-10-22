@@ -17,7 +17,7 @@ export type StepState = 'completed' | 'current' | 'upcoming'
 type StepperContextValue = {
 	value: number
 	onValueChange?: (value: number) => void
-	/** The slots of each part, from the `orientation` of the stepper. */
+	/** The slots of each part, from the `orientation` of the stepper and whether its steps are buttons. */
 	slots: StepperSlots
 	linear: boolean
 	/** Stable id base wiring each step button to its panel. */

@@ -16,8 +16,8 @@ const corner = 'w-fit [--ui-toast-card:var(--ui-toast-width)]'
 const edge = 'w-full [--ui-toast-card:100%]'
 
 /**
- * The classes of each physical `position` of the viewport, the stack in it,
- * and its cards. `Toast` resolves a `start` or `end` corner to a physical one
+ * The classes of each physical `position` of the viewport and of the stack in
+ * it, which also sets the width of its cards. `Toast` resolves a `start` or `end` corner to a physical one
  * first. Each value writes the same properties, so a breakpoint replaces each
  * one.
  */

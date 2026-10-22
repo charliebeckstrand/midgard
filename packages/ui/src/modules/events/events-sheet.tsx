@@ -15,7 +15,6 @@ import {
 import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
-import { k as offcanvas } from '../../recipes/kata/offcanvas'
 import { Flex } from '../../structure/flex'
 import { hasEventsDock, setEventsPinned, subscribeEventsDocks } from './engine/events-setting'
 import { eventsMessages } from './events-messages'
@@ -50,6 +49,8 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 	// Outside a sidebar layout no aside shows, so Pin never shows.
 	const layout = useSidebarLayoutPlacement() ?? 'drawer'
 
+	const slots = k({ layout })
+
 	// A layout effect runs before the effect of the overlay that reports the
 	// open, so the store does not record the open of the sheet. A sheet that
 	// unmounts while it is open does not leave the store paused.
@@ -65,7 +66,7 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetPanel side="bottom" className="max-h-full">
 				{/* The row takes the inset of the title, as the slot does. */}
-				<Flex wrap align="center" gap="md" className={k().row}>
+				<Flex wrap align="center" gap="md" className={slots.row}>
 					<SheetTitle className="sr-only p-0">{label}</SheetTitle>
 					{title}
 					{actions}
@@ -75,7 +76,7 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 							variant="bare"
 							size="sm"
 							aria-label={intl.formatMessage(eventsMessages.pin)}
-							className={offcanvas({ layout }).inlineInlineFlex}
+							className={slots.pin}
 							onClick={() => {
 								setEventsPinned(true)
 

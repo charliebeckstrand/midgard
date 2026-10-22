@@ -121,9 +121,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 
 	const everyPanel = useMountsEveryPanel(mount)
 
-	const stepClasses = slots.step
-
-	const classes = cn(stepClasses, className)
+	const classes = cn(slots.step, className)
 
 	const layoutChildren = useMemo(
 		() => partitionChildren(ensureIndicator(children), slots.content),
@@ -162,7 +160,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 					aria-controls={hasPanels && (state === 'current' || everyPanel) ? panelId : undefined}
 					disabled={isDisabled}
 					onClick={() => onValueChange(value)}
-					className={cn(stepClasses, slots.button, className)}
+					className={cn(slots.step, slots.button, className)}
 				>
 					{inner}
 				</button>

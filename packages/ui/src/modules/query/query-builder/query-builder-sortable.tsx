@@ -15,6 +15,9 @@ import type { QueryGroup, QueryNode } from '../engine/types'
 import { useQueryBuilderActions, useQueryBuilderState } from './context'
 import { QueryBuilderSortableItem } from './query-builder-sortable-item'
 
+/** The slots of the query builder. */
+const slots = k()
+
 /** Props for {@link QueryBuilderSortable}. @internal */
 type QueryBuilderSortableProps = {
 	/** The group whose children reorder. */
@@ -122,7 +125,7 @@ export function QueryBuilderSortable({ group, separator, node }: QueryBuilderSor
 					onReorder={setDraft}
 					data-slot="query-sortable-list"
 					data-sorting={dataAttr(sorting)}
-					className={k().sortable}
+					className={slots.sortable}
 				>
 					{order.flatMap((id, index) => {
 						const child = byKey.get(id)
@@ -135,7 +138,7 @@ export function QueryBuilderSortable({ group, separator, node }: QueryBuilderSor
 							between ? (
 								// The separator keeps its slot through the drag, so it takes the
 								// key of the node that the slot holds before the drag.
-								<div key={`${children[index]?.id}-separator`} className={k().separator}>
+								<div key={`${children[index]?.id}-separator`} className={slots.separator}>
 									{between}
 								</div>
 							) : null,

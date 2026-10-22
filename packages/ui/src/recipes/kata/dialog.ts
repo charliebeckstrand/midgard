@@ -27,8 +27,7 @@ export const k = defineKata(
 		/** The maximum width of the panel. */
 		width: shaku.panel,
 		/**
-		 * The classes of each `align` of the panel and of the box around it. Each
-		 * value writes the same properties, so a breakpoint replaces each one.
+		 * The classes of each `align` of the panel. Each value writes the same properties, so a breakpoint replaces each one.
 		 * `bottom` docks the panel to the bottom edge as a sheet: it spans the
 		 * width, rounds its top corners only, and scrolls past 85% of the height.
 		 * `center` and `top` float it in a box with an inset of 1rem on each edge,

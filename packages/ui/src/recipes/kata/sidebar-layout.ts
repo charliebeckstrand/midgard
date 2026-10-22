@@ -49,7 +49,7 @@ const navbar = ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', space.shell.ba
 
 // The actions of the layout, in the navbar of the drawer layout and in the
 // header of the inline layout. The gap between the actions follows the nearest density scope.
-const actions = ['flex items-center shrink-0', gap.default]
+const actions = [flex.row, 'shrink-0', gap.default]
 
 // The column of the panel and of the aside, which show in the inline layout
 // only. It sticks to the top of the page. It is as tall as the layout at its
@@ -111,7 +111,7 @@ const content = [
 // is the one sticky bar of the page, and the header scrolls with the content.
 // Two stacked sticky bars show a seam on iOS. The header takes these classes
 // itself from its own layout, so a header in a nested layout does not stick.
-const header = ['flex items-center shrink-0', space.shell.bottom]
+const header = [flex.row, 'shrink-0', space.shell.bottom]
 
 // The body grows into the free height of the content region, so the footer
 // sits at the bottom of a short page. It scrolls with the page.
