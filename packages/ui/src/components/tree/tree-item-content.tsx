@@ -121,6 +121,8 @@ export function TreeItemContent({
 		}
 	}
 
+	const slots = k({ current })
+
 	return (
 		<div
 			role="treeitem"
@@ -138,18 +140,13 @@ export function TreeItemContent({
 			tabIndex={-1}
 			data-slot="tree-item-content"
 			data-open={dataAttr(open)}
-			className={cn(
-				'group/tree-item',
-				k.item.content(),
-				current && k.item.content.current,
-				className,
-			)}
+			className={cn('group/tree-item', slots.item.content, className)}
 			onClick={handleClick}
 			onKeyDown={handleKeyDown}
 		>
 			{/* The column turns, not the icon: the transition of the recipe is on the column. */}
 			<span
-				className={cn(k.chevron, 'rtl:-scale-x-100', open && 'rotate-90 rtl:-rotate-90')}
+				className={cn(slots.chevron, 'rtl:-scale-x-100', open && 'rotate-90 rtl:-rotate-90')}
 				aria-hidden="true"
 			>
 				{hasChildren && <Icon icon={<ChevronRight />} />}
@@ -159,26 +156,26 @@ export function TreeItemContent({
 					data-slot="tree-item-check"
 					data-checked={dataAttr(checked !== false)}
 					aria-hidden="true"
-					className={cn(k.check.base)}
+					className={slots.check.base}
 				>
 					{checked === 'mixed' ? (
-						<Minus className={cn(k.check.mark)} strokeWidth={2} />
+						<Minus className={slots.check.mark} strokeWidth={2} />
 					) : (
-						checked && <Check className={cn(k.check.mark)} strokeWidth={2} />
+						checked && <Check className={slots.check.mark} strokeWidth={2} />
 					)}
 				</span>
 			)}
 			{prefix != null && (
-				<span data-slot="tree-item-prefix" className={k.affix}>
+				<span data-slot="tree-item-prefix" className={slots.affix}>
 					{prefix}
 				</span>
 			)}
 			{icon && <Icon icon={icon} />}
-			<span id={labelId} className={k.label}>
+			<span id={labelId} className={slots.label}>
 				{label}
 			</span>
 			{suffix != null && (
-				<span data-slot="tree-item-suffix" className={k.affix}>
+				<span data-slot="tree-item-suffix" className={slots.affix}>
 					{suffix}
 				</span>
 			)}

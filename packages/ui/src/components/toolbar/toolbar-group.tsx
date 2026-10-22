@@ -23,7 +23,7 @@ export function ToolbarGroup({ className, children, ...props }: ToolbarGroupProp
 		<fieldset
 			data-slot="toolbar-group"
 			{...props}
-			className={cn(k.group({ orientation }), className)}
+			className={cn(k({ orientation }).group, className)}
 		>
 			{children}
 		</fieldset>

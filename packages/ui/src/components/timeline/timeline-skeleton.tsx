@@ -40,22 +40,17 @@ export function TimelineSkeleton({
 }: TimelineSkeletonProps) {
 	const itemKeys = rangeKeys(items, 'item')
 
+	const slots = k({ orientation })
+
 	return (
-		<ol aria-hidden="true" className={cn(k.base({ orientation }), className)}>
+		<ol aria-hidden="true" className={cn(slots.base, className)}>
 			{itemKeys.map((itemKey) => (
-				<li key={itemKey} className={k.item({ orientation })}>
-					<span
-						className={cn(
-							k.marker.base,
-							k.marker.orientation[orientation],
-							k.marker.palette.zinc.line.before,
-							k.marker.palette.zinc.line.after,
-						)}
-					>
-						<Placeholder as="span" className={cn(k.marker.dot, k.skeleton.dot)} />
+				<li key={itemKey} className={slots.item}>
+					<span className={slots.marker.base}>
+						<Placeholder as="span" className={cn(slots.marker.dot, k.skeleton.dot)} />
 					</span>
-					<Placeholder className={cn(k.title({ orientation }), k.skeleton.title)} />
-					<Placeholder className={cn(k.timestamp({ orientation }), k.skeleton.timestamp)} />
+					<Placeholder className={cn(slots.title, k.skeleton.title)} />
+					<Placeholder className={cn(slots.timestamp, k.skeleton.timestamp)} />
 				</li>
 			))}
 		</ol>

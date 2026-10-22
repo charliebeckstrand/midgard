@@ -12,5 +12,5 @@ export type BreadcrumbItemProps = ComponentProps<'li'>
  */
 export function BreadcrumbItem({ className, ...props }: BreadcrumbItemProps) {
 	// `data-slot` after the spread: the fit of a collapsing trail selects on it.
-	return <li className={cn(k.item(), className)} {...props} data-slot="breadcrumb-item" />
+	return <li className={cn(k().item, className)} {...props} data-slot="breadcrumb-item" />
 }

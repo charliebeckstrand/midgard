@@ -50,11 +50,13 @@ export function ListSkeleton({
 }: ListSkeletonProps) {
 	const rowKeys = rangeKeys(items, 'row')
 
+	const slots = k({ variant, orientation })
+
 	const list = (
-		<div className={cn(k.base({ variant, orientation }), className)}>
+		<div className={cn(slots.base, className)}>
 			{rowKeys.map((rowKey) => (
-				<div key={rowKey} className={k.item({ variant })}>
-					<div className={k.content()}>
+				<div key={rowKey} className={slots.item}>
+					<div className={slots.content}>
 						<Placeholder className={k.skeleton.label} />
 						{description ? <Placeholder className={k.skeleton.description} /> : null}
 					</div>
@@ -64,5 +66,5 @@ export function ListSkeleton({
 	)
 
 	// A horizontal list is in a rail, so the placeholder row is in one too.
-	return orientation === 'horizontal' ? <div className={cn(k.rail)}>{list}</div> : list
+	return orientation === 'horizontal' ? <div className={slots.rail}>{list}</div> : list
 }

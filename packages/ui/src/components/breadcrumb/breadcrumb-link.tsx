@@ -37,7 +37,7 @@ export function BreadcrumbLink({
 			href={href}
 			render={render}
 			data-slot="breadcrumb-link"
-			className={cn(k.link({ current, interactive: href !== undefined }), k.crumb(), className)}
+			className={cn(k({ current, interactive: href !== undefined }).link, className)}
 			{...props}
 			// After the spread: `current` owns the state. A consumer value holds
 			// only while the crumb is not current.
@@ -48,11 +48,11 @@ export function BreadcrumbLink({
 			    collapses, so the crumb still announces where it goes; the mark is drawn
 			    from CSS and says nothing. Outside a collapsing trail the mark is not
 			    displayed and the label is a plain span. */}
-			<span data-slot="breadcrumb-label" className={k.label()}>
+			<span data-slot="breadcrumb-label" className={k().label}>
 				{children}
 			</span>
 
-			<span data-slot="breadcrumb-mark" aria-hidden="true" className={k.mark()} />
+			<span data-slot="breadcrumb-mark" aria-hidden="true" className={k().mark} />
 		</PolymorphicStatic>
 	)
 }

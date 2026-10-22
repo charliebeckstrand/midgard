@@ -6,4 +6,4 @@ import { k } from '../../recipes/kata/list'
 export type ListDescriptionProps = ComponentProps<'span'>
 
 /** Secondary supporting text for a {@link ListItem}, rendered as a muted `<span>`. */
-export const ListDescription = createSlot('span', 'list-description', k.description)
+export const ListDescription = createSlot('span', 'list-description', k().description)

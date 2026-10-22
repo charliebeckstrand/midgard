@@ -16,7 +16,7 @@ export type BreadcrumbSkeletonProps = {
 export function BreadcrumbSkeleton({ crumbs = 3, className }: BreadcrumbSkeletonProps) {
 	return renderRowSkeleton({
 		count: crumbs,
-		root: [k.list(), className],
+		root: [k().list, className],
 		item: k.skeleton.item,
 		separator: k.skeleton.separator,
 	})

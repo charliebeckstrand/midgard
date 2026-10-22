@@ -1,7 +1,7 @@
 'use client'
 
 import { createElement, isValidElement, type ReactNode, useLayoutEffect, useMemo } from 'react'
-import { cn, dataAttr } from '../../core'
+import { dataAttr } from '../../core'
 import { useMountHold } from '../../primitives/mount'
 import { MountPresence } from '../../primitives/mount/mount-presence'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
@@ -103,7 +103,7 @@ export function TreeItemChildren({ id, open, label, children }: TreeItemChildren
 				// Roving skips the items of a group without this mark. See `ROVING_ITEM_SELECTOR`.
 				data-open={dataAttr(open)}
 				{...motionProps}
-				className={cn(indent && k.group.indent)}
+				className={k({ indent }).group}
 			>
 				{stampTreePositions(children)}
 			</m.div>

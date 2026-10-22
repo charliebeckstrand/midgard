@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { twMerge } from '../../core/tw-merge'
 import { k as aspectRatio } from '../../recipes/kata/aspect-ratio'
 import { k as box } from '../../recipes/kata/box'
+import { k as breadcrumb } from '../../recipes/kata/breadcrumb'
 import { k as calendar } from '../../recipes/kata/calendar'
 import { k as card } from '../../recipes/kata/card'
 import { k as colorPicker } from '../../recipes/kata/color-picker'
@@ -45,9 +46,11 @@ import { k as stepper } from '../../recipes/kata/stepper'
 import { k as tableKata } from '../../recipes/kata/table'
 import { k as tagInput } from '../../recipes/kata/tag-input'
 import { k as textarea } from '../../recipes/kata/textarea'
+import { k as timeline } from '../../recipes/kata/timeline'
 import { k as toast } from '../../recipes/kata/toast'
 import { k as toggleIconButton } from '../../recipes/kata/toggle-icon-button'
 import { k as tooltip } from '../../recipes/kata/tooltip'
+import { k as tree } from '../../recipes/kata/tree'
 import { omote } from '../../recipes/kiso'
 import { type Responsive, resolveVariant } from '../../types/responsive'
 
@@ -88,6 +91,11 @@ const RENAMES: Record<string, string> = {
 	'chrome.k.base': 'chrome.k.region',
 	'icon.k.base': 'icon.k.ramp',
 	'toggle.k.base': 'toggle.k.group',
+	'timeline.k.color.amber': 'timeline.k.marker.palette.amber.dot',
+	'timeline.k.color.blue': 'timeline.k.marker.palette.blue.dot',
+	'timeline.k.color.green': 'timeline.k.marker.palette.green.dot',
+	'timeline.k.color.red': 'timeline.k.marker.palette.red.dot',
+	'timeline.k.color.zinc': 'timeline.k.marker.palette.zinc.dot',
 	'resizable.k.base': 'resizable.k.group',
 	'resizable.k.base()': 'resizable.k.group()',
 	...Object.fromEntries(
@@ -205,8 +213,8 @@ const DROPPED = /^(panel\.k\.(gap|inset)\.|overlay\.k\.backdrop\.glass$)/
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.base|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split|aspect-ratio|card|group|placeholder|status)\.k\.base|json-tree\.k\.(base|content|value)|grid-group\.k\.(outline|rule)|form-filters\.k\.row|calendar\.k\.day\.range|kanban\.k\.card\.handle|password-strength\.k\.rule\.(icon|text)|resizable\.k\.handle|table\.k\.(base|scroll)|pdf-viewer\.k\.(base|viewport\.page\.highlights\.(base|label|region)|viewport\.page\.magnifier\.lens|sidebar\.base|thumbnails|viewport\.base)|lightbox\.k\.(base|backdrop|close|controls|slot|step|thumbnail\.base|trigger\.base|trigger\.image)|query-chips\.k\.combinator|tag-input\.k\.(base|tags)|signature-pad\.k\.base|toggle-icon-button\.k\.(base|icon)|markdown\.k\.(heading|li|td|th))(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
-	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+|aspect-ratio\.k\.ratio\.[\w/]+|(card|group)\.k\.base|placeholder\.k\.(fill|pulse|shape)|status\.k\.pulse|json-tree\.k\.(base|windowed|content|highlight|color\.\w+)|grid-group\.k\.(outline\.\w+|rule\.(base|neutral|color\.\w+))|form-filters\.k\.rail|calendar\.k\.day\.range\.\w+|kanban\.k\.card\.handle\.\w+|password-strength\.k\.rule\.(icon|text)\.\w+|resizable\.k\.(grip|handle)\.\w+(\.\w+)?|table\.k\.(base|scroll|projection\.[\w.]+)|pdf-viewer\.k\.(base|fill|sidebar\.(base|closed|travel)|thumbnails\.\w+|viewport\.(base|scrolls)|viewport\.page\.(highlights\.(base|inert|label\.\w+|region\.[\w.]+)|magnifier\.(lens|size\.\w+)))|lightbox\.k\.((backdrop|close|frame|step)\.\w+|controls|slot|thumbnail\.(base|current)|trigger\.(base|button|image|raised))|query-chips\.k\.combinator\.\w+|tag-input\.k\.tags\.\w+|signature-pad\.k\.base|toggle-icon-button\.k\.icon\.\w+|markdown\.k\.(align\.\w+|heading\.\d|li|task|td|th))$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.base|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split|aspect-ratio|card|group|placeholder|status)\.k\.base|json-tree\.k\.(base|content|value)|grid-group\.k\.(outline|rule)|form-filters\.k\.row|calendar\.k\.day\.range|kanban\.k\.card\.handle|password-strength\.k\.rule\.(icon|text)|resizable\.k\.handle|table\.k\.(base|scroll)|pdf-viewer\.k\.(base|viewport\.page\.highlights\.(base|label|region)|viewport\.page\.magnifier\.lens|sidebar\.base|thumbnails|viewport\.base)|lightbox\.k\.(base|backdrop|close|controls|slot|step|thumbnail\.base|trigger\.base|trigger\.image)|query-chips\.k\.combinator|tag-input\.k\.(base|tags)|signature-pad\.k\.base|toggle-icon-button\.k\.(base|icon)|markdown\.k\.(heading|li|td|th)|breadcrumb\.k\.(base|link)|tree\.k\.(item\.content|group)|timeline\.k\.(marker\.dot|marker\.base))(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+|aspect-ratio\.k\.ratio\.[\w/]+|(card|group)\.k\.base|placeholder\.k\.(fill|pulse|shape)|status\.k\.pulse|json-tree\.k\.(base|windowed|content|highlight|color\.\w+)|grid-group\.k\.(outline\.\w+|rule\.(base|neutral|color\.\w+))|form-filters\.k\.rail|calendar\.k\.day\.range\.\w+|kanban\.k\.card\.handle\.\w+|password-strength\.k\.rule\.(icon|text)\.\w+|resizable\.k\.(grip|handle)\.\w+(\.\w+)?|table\.k\.(base|scroll|projection\.[\w.]+)|pdf-viewer\.k\.(base|fill|sidebar\.(base|closed|travel)|thumbnails\.\w+|viewport\.(base|scrolls)|viewport\.page\.(highlights\.(base|inert|label\.\w+|region\.[\w.]+)|magnifier\.(lens|size\.\w+)))|lightbox\.k\.((backdrop|close|frame|step)\.\w+|controls|slot|thumbnail\.(base|current)|trigger\.(base|button|image|raised))|query-chips\.k\.combinator\.\w+|tag-input\.k\.tags\.\w+|signature-pad\.k\.base|toggle-icon-button\.k\.icon\.\w+|markdown\.k\.(align\.\w+|heading\.\d|li|task|td|th)|breadcrumb\.k\.(crumb|link(\(\))?)|tree\.k\.(item\.content(\.current|\(\))?|group\.indent)|timeline\.k\.marker\.(base|dot|pulse|orientation\.\w+|palette\.\w+\.line\.\w+))$/,
 }
 
 /** The output of main, by path. */
@@ -1265,6 +1273,56 @@ describe('kata output', () => {
 
 			check(`markdown th ${align}`, slots.th, read('markdown.k.th'), aligned)
 			check(`markdown td ${align}`, slots.td, read('markdown.k.td'), aligned)
+		}
+
+		for (const current of [false, true]) {
+			for (const interactive of [false, true]) {
+				check(
+					`breadcrumb link ${current} ${interactive}`,
+					breadcrumb({ current, interactive }).link,
+					read('breadcrumb.k.crumb'),
+					read('breadcrumb.k.link', `current=${current},interactive=${interactive}`),
+				)
+			}
+		}
+
+		for (const current of [false, true]) {
+			check(
+				`tree content ${current}`,
+				tree({ current }).item.content,
+				read('tree.k.item.content'),
+				current && read('tree.k.item.content.current'),
+			)
+		}
+
+		for (const indent of [false, true]) {
+			check(`tree group ${indent}`, tree({ indent }).group, indent && read('tree.k.group.indent'))
+		}
+
+		for (const pulse of [false, true]) {
+			check(
+				`timeline dot ${pulse}`,
+				timeline({ pulse }).marker.dot,
+				read('timeline.k.marker.dot'),
+				pulse && read('timeline.k.marker.pulse'),
+			)
+		}
+
+		const hues = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+
+		for (const orientation of ['vertical', 'horizontal'] as const) {
+			for (const lineBefore of hues) {
+				for (const lineAfter of hues) {
+					check(
+						`timeline marker ${orientation} ${lineBefore} ${lineAfter}`,
+						timeline({ orientation, lineBefore, lineAfter }).marker.base,
+						read('timeline.k.marker.base'),
+						read(`timeline.k.marker.orientation.${orientation}`),
+						read(`timeline.k.marker.palette.${lineBefore}.line.before`),
+						read(`timeline.k.marker.palette.${lineAfter}.line.after`),
+					)
+				}
+			}
 		}
 
 		expect(rows.filter(([, current, expected]) => current !== expected)).toEqual([])

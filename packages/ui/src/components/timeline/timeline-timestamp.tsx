@@ -28,7 +28,7 @@ export function TimelineTimestamp({
 }: TimelineTimestampProps) {
 	const { orientation } = useTimeline()
 
-	const classes = cn(k.timestamp({ orientation }), className)
+	const classes = cn(k({ orientation }).timestamp, className)
 
 	if (dateTime === undefined) {
 		return (

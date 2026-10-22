@@ -31,7 +31,7 @@ export function ToolbarSeparator({ className }: ToolbarSeparatorProps) {
 			orientation={horizontal ? 'vertical' : 'horizontal'}
 			soft
 			className={cn(
-				k.separator({ orientation }),
+				k({ orientation }).separator,
 				horizontal && 'data-row-edge:invisible',
 				className,
 			)}

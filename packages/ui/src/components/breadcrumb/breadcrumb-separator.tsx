@@ -29,7 +29,7 @@ export function BreadcrumbSeparator({ children, className, ...props }: Breadcrum
 		<li
 			data-slot="breadcrumb-separator"
 			aria-hidden="true"
-			className={cn(k.separator(), className)}
+			className={cn(k().separator, className)}
 			{...props}
 		>
 			{children ?? DEFAULT_SEPARATOR}

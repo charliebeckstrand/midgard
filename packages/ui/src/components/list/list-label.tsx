@@ -6,4 +6,4 @@ import { k } from '../../recipes/kata/list'
 export type ListLabelProps = ComponentProps<'span'>
 
 /** Primary text label for a {@link ListItem}, rendered as a styled `<span>`. */
-export const ListLabel = createSlot('span', 'list-label', k.label)
+export const ListLabel = createSlot('span', 'list-label', k().label)

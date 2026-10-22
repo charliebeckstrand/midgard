@@ -72,7 +72,7 @@ export function Toolbar({
 				role="toolbar"
 				aria-orientation={orientation}
 				onKeyDown={handleKeyDown}
-				className={cn(k.base({ orientation, variant }), className)}
+				className={cn(k({ orientation, variant }).base, className)}
 			>
 				{children}
 			</div>

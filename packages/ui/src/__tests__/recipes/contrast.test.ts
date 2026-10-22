@@ -235,9 +235,9 @@ const TINT_CONSUMERS: readonly {
 	{
 		file: 'recipes/kata/list.ts',
 		surfaces: [
-			list.item({ variant: 'solid' }),
-			list.content({ interactive: true }),
-			list.description,
+			list({ variant: 'solid' }).item,
+			list({ interactive: true }).content,
+			list().description,
 		],
 	},
 	// The segment box, inked by its items.

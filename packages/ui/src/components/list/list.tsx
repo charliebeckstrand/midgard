@@ -350,7 +350,7 @@ export function List<T>({
 		'aria-label': ariaLabel,
 		'data-slot': 'list',
 		'data-orientation': orientation,
-		className: cn(k.base({ variant, orientation }), className),
+		className: cn(k({ variant, orientation }).base, className),
 		style,
 	}
 
@@ -379,7 +379,7 @@ export function List<T>({
 	return (
 		<ListContext value={contextValue}>
 			{orientation === 'horizontal' ? (
-				<div ref={railRef} data-slot="list-rail" className={cn(k.rail)}>
+				<div ref={railRef} data-slot="list-rail" className={k().rail}>
 					{list}
 				</div>
 			) : (
