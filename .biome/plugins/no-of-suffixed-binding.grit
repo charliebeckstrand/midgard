@@ -14,7 +14,7 @@ language js
 // id such as `pageOf` passes.
 //
 // The plugin also matches the name of a `type` or an `interface` declaration.
-// A generic type that computes a type starts with a verb too, as `GetRoot`
+// A type takes the shortest noun for the type that it gives, as `Root`
 // does, not `RootOf`.
 //
 // Reach is the `includes` beside this plugin in `biome.json`: the apps and the
@@ -35,7 +35,7 @@ or {
 		$name <: r"[A-Z][A-Za-z0-9]*Of",
 		register_diagnostic(
 			span = $name,
-			message = "start the type name with a verb that says what the type computes (`Get`, `To`, `Parse`, `Merge`, …), not an `Of` suffix (e.g. RootOf → GetRoot) (CONVENTIONS §8.5)"
+			message = "name the type with the shortest noun for the type that it gives, not with an `Of` suffix (e.g. RootOf → Root) (CONVENTIONS §8.5)"
 		)
 	}
 }

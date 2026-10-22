@@ -13,7 +13,7 @@ type Split<List extends string> = List extends `${infer Head},${infer Tail}`
 	: [List]
 
 /** The values of a ramp, in step order. */
-type ParseRamp<R extends string> = R extends `density-${string}-[${infer List}]`
+type RampValues<R extends string> = R extends `density-${string}-[${infer List}]`
 	? Split<List>
 	: never
 
@@ -27,7 +27,7 @@ type OuterSteps<Values> = Values extends [infer XS, infer SM, unknown, infer LG,
  * `sm`, `md`, and `lg`. Five values also give `xs` when its value differs from
  * the `sm` value, and `xl` when its value differs from the `lg` value.
  */
-export type RampSteps<R extends string> = InnerStep | OuterSteps<ParseRamp<R>>
+export type RampSteps<R extends string> = InnerStep | OuterSteps<RampValues<R>>
 
 /**
  * A size scale: the steps that a component renders with a look of its own.

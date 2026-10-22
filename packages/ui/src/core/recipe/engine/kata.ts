@@ -82,15 +82,15 @@ type Lift<S> = S extends { responsive: infer R } ? Omit<S, 'responsive'> & R : S
 type ToSlot<S> = S extends string | readonly unknown[] ? { base: S } : Lift<S>
 
 /** The root slot of a config: each field that is not a unit field. */
-type GetRoot<C> = Lift<Omit<C, UnitField>>
+type Root<C> = Lift<Omit<C, UnitField>>
 
 /** The names of the responsive axes of one slot as a config writes it. */
-type GetResponsiveAxes<S> = S extends { responsive: infer R } ? keyof R & string : never
+type SlotKeys<S> = S extends { responsive: infer R } ? keyof R & string : never
 
 /** The names of the responsive axes of a config: its own, and the axes of its group. */
 type ResponsiveKeys<C> =
-	| GetResponsiveAxes<C>
-	| (C extends { slots: infer S } ? { [K in keyof S]: GetResponsiveAxes<S[K]> }[keyof S] : never)
+	| SlotKeys<C>
+	| (C extends { slots: infer S } ? { [K in keyof S]: SlotKeys<S[K]> }[keyof S] : never)
 	| (C extends { extends: Group<unknown, unknown, infer R> } ? R : never)
 
 /** The props of a unit with each responsive axis as a {@link Responsive} value. */
@@ -99,17 +99,15 @@ type WithResponsive<P, R> = [R] extends [never]
 	: { [K in keyof P]: K extends R ? Responsive<NonNullable<P[K]>> : P[K] }
 
 /** The slots that a config declares: its root, and each child slot. */
-type GetOwnSlots<C> = { base: GetRoot<C> } & (C extends { slots: infer S }
+type OwnSlots<C> = { base: Root<C> } & (C extends { slots: infer S }
 	? { [K in keyof S]: ToSlot<S[K]> }
 	: Record<never, never>)
 
 /** The slots of a unit: its own, merged over the slots of the group that it extends. */
-type GetSlots<C> = C extends { extends: Group<infer G> }
-	? MergeSlots<G, GetOwnSlots<C>>
-	: GetOwnSlots<C>
+type UnitSlots<C> = C extends { extends: Group<infer G> } ? MergeSlots<G, OwnSlots<C>> : OwnSlots<C>
 
 /** The extras of the group that a unit extends, or none. */
-type GetExtras<C> = C extends { extends: Group<unknown, infer X> } ? X : unknown
+type Extras<C> = C extends { extends: Group<unknown, infer X> } ? X : unknown
 
 /** Merges a union of prop shapes into one shape. */
 type Merge<U> = (U extends unknown ? (value: U) => void : never) extends (value: infer I) => void
@@ -118,12 +116,12 @@ type Merge<U> = (U extends unknown ? (value: U) => void : never) extends (value:
 
 /** The props of a unit: the props of each slot, merged. An axis in two slots is one prop. */
 export type KataProps<C> = WithResponsive<
-	Merge<{ [K in keyof GetSlots<C>]: ComputedProps<GetSlots<C>[K]> }[keyof GetSlots<C>]>,
+	Merge<{ [K in keyof UnitSlots<C>]: ComputedProps<UnitSlots<C>[K]> }[keyof UnitSlots<C>]>,
 	ResponsiveKeys<C>
 >
 
 /** The class string of each slot of a unit. */
-export type KataOutput<C> = { readonly [K in keyof GetSlots<C>]: string }
+export type KataOutput<C> = { readonly [K in keyof UnitSlots<C>]: string }
 
 /**
  * The resolved config of a unit, for introspection. `variants` holds each axis
@@ -135,7 +133,7 @@ export type KataResolvedConfig<C = UnitInput> = {
 	/** The names of the responsive axes. */
 	responsive: readonly string[]
 	variants: Record<string, Record<string, Record<string, ClassValue>>>
-	slots: { readonly [K in keyof GetSlots<C>]: ResolvedConfig }
+	slots: { readonly [K in keyof UnitSlots<C>]: ResolvedConfig }
 }
 
 export type Kata<C> = {
@@ -414,11 +412,11 @@ function inherit(caller: string, config: UnitInput, extras?: Record<string, unkn
  */
 export function defineGroup<C extends UnitInput>(
 	config: C,
-): Group<GetSlots<C>, GetExtras<C>, ResponsiveKeys<C>>
+): Group<UnitSlots<C>, Extras<C>, ResponsiveKeys<C>>
 export function defineGroup<C extends UnitInput, X extends Record<string, unknown>>(
 	config: C,
 	extras: X,
-): Group<GetSlots<C>, GetExtras<C> & X, ResponsiveKeys<C>>
+): Group<UnitSlots<C>, Extras<C> & X, ResponsiveKeys<C>>
 export function defineGroup(config: UnitInput, extras?: Record<string, unknown>): Group {
 	const {
 		slots,
@@ -445,11 +443,11 @@ export function defineGroup(config: UnitInput, extras?: Record<string, unknown>)
  * `slots`, because the unit holds the defaults and a slot does not nest.
  * @throws If an extras key collides with a function built-in, `config`, or `bare`.
  */
-export function defineKata<C extends UnitInput>(config: C): Kata<C> & GetExtras<C>
+export function defineKata<C extends UnitInput>(config: C): Kata<C> & Extras<C>
 export function defineKata<C extends UnitInput, X extends Record<string, unknown>>(
 	config: C,
 	extras: X,
-): Kata<C> & GetExtras<C> & X
+): Kata<C> & Extras<C> & X
 export function defineKata<C extends UnitInput, X extends Record<string, unknown>>(
 	config: C,
 	extras?: X,

@@ -97,7 +97,7 @@ export type Recipe<C extends RecipeConfig> = {
 	readonly config: ResolvedConfig
 } & {
 	[K in keyof NonNullable<C['slots']>]: SlotClasses<NonNullable<C['slots']>[K]>
-} & GetSkeleton<C>
+} & Skeleton<C>
 
 /**
  * The `skeleton` property of a recipe. A config without a `skeleton` field
@@ -105,7 +105,7 @@ export type Recipe<C extends RecipeConfig> = {
  * before it reads the field. A read of `C['skeleton']` on a config without the
  * field gives `unknown`, and that type would put `k.skeleton` on each recipe.
  */
-type GetSkeleton<C> = 'skeleton' extends keyof C
+type Skeleton<C> = 'skeleton' extends keyof C
 	? C[keyof C & 'skeleton'] extends undefined
 		? unknown
 		: { skeleton: C[keyof C & 'skeleton'] }

@@ -212,7 +212,7 @@ Do not write `isSameDay`, `isInGrid`, or `valuesEqual`. The [`no-alternate-predi
 
 A boolean value takes no `is` when its word is an adjective, as a prop does: `transposed`, `controlled`, `empty`. The bare word must be free in the scope. Keep `is` for a noun (`isArray`) and for a word that is taken (`isGlass` beside the `glass` prop). Keep a name that a library gives (`isDragging`). Do not make up a weaker word only to drop `is`. Rename a name only when the new name is clearer.
 
-Do not end a name with `Of`, as `rowOf` does. That name does not tell if the function reads, searches, builds, or converts. A lookup table is not a function. Give it the name of its value and of its key, as `sectionByPath` does. A generic type that computes a type follows the same rule. Start its name with a verb, as `GetRoot` and `ToSlot` do, and do not end it with `Of`.
+Do not end a name with `Of`, as `rowOf` does. That name does not tell if the function reads, searches, builds, or converts. A lookup table is not a function. Give it the name of its value and of its key, as `sectionByPath` does. A type also does not end with `Of`. A type does not get data, so it does not start with a verb. Give it the shortest noun for the type that it gives, as `Root` does.
 
 Use the shortest name that still tells what the function does (§8.4). A name does not repeat what its file tells, so the column sizer reads its environment with `readEnv`, not `readSizerEnv`. An export keeps a word only when an importer needs that word to tell the export from a different name, as `resolveStackMode` and `resolveStackAxis` do. The [`no-of-suffixed-binding`](.biome/plugins/no-of-suffixed-binding.grit) Biome plugin finds an `Of` suffix on a value or a type in the apps and the packages.
 
