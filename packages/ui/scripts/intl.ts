@@ -17,7 +17,7 @@ import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseAst } from 'vite'
-import type { Parse } from '../src/docs/plugin/examples.ts'
+import type { Parser } from '../src/docs/plugin/examples.ts'
 import { tabEntries, titleEntries } from '../src/docs/plugin/titles.ts'
 import { type CatalogEntry, type CatalogSource, catalogText, extractCatalog } from './intl-catalog'
 
@@ -57,7 +57,7 @@ export const DOCS_CATALOG_SOURCE: CatalogSource = { srcDir: DOCS_DIR, skipped: [
  * descriptor.
  */
 export async function extractDocsCatalog(): Promise<Record<string, CatalogEntry>> {
-	const parse: Parse = (code, options) => parseAst(code, options)
+	const parse: Parser = (code, options) => parseAst(code, options)
 
 	const [messages, titles, tabs] = await Promise.all([
 		extractCatalog(DOCS_CATALOG_SOURCE),

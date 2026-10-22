@@ -3,7 +3,7 @@ import path from 'node:path'
 import { toApiId } from '../kit/anchors.ts'
 import { humanize } from '../kit/humanize.ts'
 import type { BarrelApi } from './api.ts'
-import { exampleFiles, examplesIn, type Parse, toHeadingId } from './examples.ts'
+import { exampleFiles, examplesIn, type Parser, toHeadingId } from './examples.ts'
 import { findPages } from './pages.ts'
 
 /** What an entry of the search is. */
@@ -38,7 +38,7 @@ async function readBarrels(folder: string): Promise<string[]> {
  */
 export async function searchEntries(
 	docs: string,
-	parse: Parse,
+	parse: Parser,
 	readApi: (barrel: string) => Promise<BarrelApi>,
 ): Promise<SearchEntry[]> {
 	const pages = path.join(docs, 'pages')
