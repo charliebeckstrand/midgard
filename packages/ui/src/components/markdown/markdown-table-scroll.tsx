@@ -1,7 +1,6 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -30,7 +29,7 @@ export function MarkdownTableScroll({ children }: { children: ReactNode }) {
 	const scrollRegionRef = useScrollRegion({ label: intl.formatMessage(messages.table) })
 
 	return (
-		<div ref={scrollRegionRef} className={cn(k.table.scroll)}>
+		<div ref={scrollRegionRef} className={k().table.scroll}>
 			{children}
 		</div>
 	)

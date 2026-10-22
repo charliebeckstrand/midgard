@@ -100,10 +100,10 @@ const TYPE = cn(CHIP, 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc
 // The color of a default by the kind of its literal: the colors of the JSON
 // tree of `ui`, and two more for an array and an object.
 const KINDS: readonly [RegExp, string | readonly string[]][] = [
-	[/^['"`]/, k.color.string],
-	[/^-?\d/, k.color.number],
-	[/^(?:true|false)$/, k.color.boolean],
-	[/^(?:null|undefined)$/, k.color.null],
+	[/^['"`]/, k({ type: 'string' }).value],
+	[/^-?\d/, k({ type: 'number' }).value],
+	[/^(?:true|false)$/, k({ type: 'boolean' }).value],
+	[/^(?:null|undefined)$/, k({ type: 'null' }).value],
 	[/^\[/, 'text-sky-600 dark:text-sky-400'],
 	[/^\{/, 'text-rose-600 dark:text-rose-400'],
 ]

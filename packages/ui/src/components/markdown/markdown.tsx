@@ -144,7 +144,7 @@ export const Markdown = memo(function Markdown({
 			{...props}
 			// The chat message recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
 			data-slot="markdown"
-			className={cn(k.base, className)}
+			className={cn(k().base, className)}
 		>
 			<MarkdownRenderer tokens={lex(children, breaks)} headingOffset={headingOffset} />
 		</div>

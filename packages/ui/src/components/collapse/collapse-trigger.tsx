@@ -41,7 +41,7 @@ export function CollapseTrigger({ className, children, onClick, ...props }: Coll
 			// The toggle is the activation the trigger exists to perform, so a
 			// consumer's preventDefault() does not cancel it (CONVENTIONS.md §3.9).
 			onClick={composeEventHandlers(onClick, toggle, { checkForDefaultPrevented: false })}
-			className={cn(k.trigger, className)}
+			className={cn(k().trigger, className)}
 		>
 			{children}
 		</button>

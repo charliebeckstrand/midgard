@@ -32,17 +32,17 @@ function rtl(className: string, tag: 'div' | 'ul' | 'blockquote' | 'dl' = 'div')
 
 describe('logical sides under dir=rtl', () => {
 	it('markdown ul pads the inline start (right)', () => {
-		const style = rtl(cn(markdown.ul), 'ul')
+		const style = rtl(markdown().ul, 'ul')
 		expect([style.paddingRight, style.paddingLeft]).toEqual(['20px', '0px'])
 	})
 
 	it('markdown blockquote rules the inline start (right)', () => {
-		const style = rtl(cn(markdown.blockquote), 'blockquote')
+		const style = rtl(markdown().blockquote, 'blockquote')
 		expect([style.borderRightWidth, style.borderLeftWidth]).toEqual(['2px', '0px'])
 	})
 
 	it('markdown task checkbox spaces the inline end (left)', () => {
-		const style = rtl(cn(markdown.checkbox))
+		const style = rtl(markdown().checkbox)
 		expect([style.marginLeft, style.marginRight]).toEqual(['8px', '0px'])
 	})
 

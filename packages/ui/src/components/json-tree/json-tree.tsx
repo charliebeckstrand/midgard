@@ -301,7 +301,7 @@ export function JsonTree({
 				role="tree"
 				aria-label={label}
 				aria-labelledby={ariaLabelledby}
-				className={cn(k.base, className)}
+				className={cn(k().base, className)}
 				onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown)}
 			>
 				<JsonTreeNode keyName={rootKey} value={data} />

@@ -1,4 +1,3 @@
-import { cn } from '../../core'
 import { type JsonValueType, k } from '../../recipes/kata/json-tree'
 import type { JsonValue } from './types'
 
@@ -346,16 +345,16 @@ export function NodeKey({ keyName }: { keyName?: string | number }) {
 	if (typeof keyName === 'number') {
 		return (
 			<>
-				<span className={cn(k.index)}>{keyName}</span>
-				<span className={cn(k.punctuation)}>:</span>
+				<span className={k().index}>{keyName}</span>
+				<span className={k().punctuation}>:</span>
 			</>
 		)
 	}
 
 	return (
 		<>
-			<span className={cn(k.color.key)}>{JSON.stringify(keyName)}</span>
-			<span className={cn(k.punctuation)}>:</span>
+			<span className={k({ type: 'key' }).value}>{JSON.stringify(keyName)}</span>
+			<span className={k().punctuation}>:</span>
 		</>
 	)
 }
@@ -371,5 +370,5 @@ export function PrimitiveValue({ value }: { value: JsonValue }) {
 
 	const display = type === 'string' ? JSON.stringify(value) : String(value)
 
-	return <span className={cn(k.color[type])}>{display}</span>
+	return <span className={k({ type }).value}>{display}</span>
 }

@@ -116,7 +116,7 @@ export function Collapse({
 				{...props}
 				data-slot="collapse"
 				data-open={dataAttr(open)}
-				className={cn(k.base, className)}
+				className={cn(k().base, className)}
 			>
 				{children}
 			</div>
