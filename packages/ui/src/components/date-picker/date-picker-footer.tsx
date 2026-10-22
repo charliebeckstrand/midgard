@@ -41,7 +41,7 @@ export function DatePickerFooter({
 			role="toolbar"
 			aria-label={intl.formatMessage(datePickerMessages.actions)}
 			data-slot="calendar-footer"
-			className={cn(k.footer)}
+			className={k().footer}
 		>
 			{footerButtons.map((kind, index) => {
 				const clear = kind === 'clear'
@@ -54,7 +54,7 @@ export function DatePickerFooter({
 						color={clear ? 'amber' : 'blue'}
 						onClick={clear ? onClear : onToday}
 						aria-label={clear ? intl.formatMessage(intlMessages.clearSelection) : undefined}
-						className={cn(active?.zone === 'footer' && active.index === index && k.day.active)}
+						className={cn(active?.zone === 'footer' && active.index === index && k().day.active)}
 						data-index={index}
 					>
 						{intl.formatMessage(clear ? intlMessages.clear : datePickerMessages.today)}

@@ -1,11 +1,10 @@
+import { defineKata } from '../../core/recipe'
 import { dan, hannou, narabi } from '../kiso'
 
 const { fg } = hannou
 const { toggle, group } = narabi
 
-export const k = {
-	// The field row also dims the label of a disabled control.
-	field: [...toggle, ...fg.disabled],
+export const k = defineKata({
 	// The field rows stop the iOS double-tap wait (`narabi/toggle.ts`). The group
 	// also stops it, so that a tap in the gap between two rows does not wait. The
 	// touch gap is the gap between two rows (`dan.space.fieldset.field`), so the
@@ -16,11 +15,15 @@ export const k = {
 	// label is short, and a finger press often lands that far from its target.
 	// Thus a press went to the next row. The gap steps with density, and a single
 	// toggle has no gap, so it keeps its height.
-	group: [
+	base: [
 		...group,
 		'touch-manipulation',
 		dan.gap.touch.y.sm,
 		dan.space.fieldset.toggle,
 		dan.gap.touch.toggle,
 	],
-}
+	slots: {
+		// The field row also dims the label of a disabled control.
+		field: [...toggle, ...fg.disabled],
+	},
+})

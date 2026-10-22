@@ -166,8 +166,7 @@ export function CalendarRange({
 				color: isInnerRange ? 'blue' : undefined,
 				className: cn(
 					isInnerRange && 'rounded-none',
-					isStartEdge && k.day.range.start,
-					isEndEdge && k.day.range.end,
+					k({ start: isStartEdge, end: isEndEdge }).day.range,
 				),
 				...hoverHandlers(onHoverDate, date),
 			}

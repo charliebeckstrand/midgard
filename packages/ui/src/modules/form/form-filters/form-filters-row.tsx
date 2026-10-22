@@ -68,7 +68,7 @@ export function FormFiltersRow({ equal, className, children }: FormFiltersRowPro
 			align={align}
 			full
 			flex="auto"
-			className={cn(equal && '*:flex-1', rail && k.rail, rail && className)}
+			className={cn(k({ equal, rail }).row, rail && className)}
 		>
 			{children}
 		</Flex>

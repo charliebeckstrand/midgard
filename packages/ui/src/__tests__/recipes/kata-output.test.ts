@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { twMerge } from '../../core/tw-merge'
 import { k as aspectRatio } from '../../recipes/kata/aspect-ratio'
 import { k as box } from '../../recipes/kata/box'
+import { k as calendar } from '../../recipes/kata/calendar'
 import { k as card } from '../../recipes/kata/card'
 import { k as colorPicker } from '../../recipes/kata/color-picker'
 import { k as combobox } from '../../recipes/kata/combobox'
@@ -16,6 +17,7 @@ import { k as dialog } from '../../recipes/kata/dialog'
 import { k as events } from '../../recipes/kata/events'
 import { k as fileUpload } from '../../recipes/kata/file-upload'
 import { k as flex } from '../../recipes/kata/flex'
+import { k as formFilters } from '../../recipes/kata/form-filters'
 import { k as gridGroup } from '../../recipes/kata/grid-group'
 import { k as input } from '../../recipes/kata/input'
 import { k as jsonTree } from '../../recipes/kata/json-tree'
@@ -29,12 +31,16 @@ import { k as panel } from '../../recipes/kata/panel'
 import { k as placeholder } from '../../recipes/kata/placeholder'
 import { k as popover } from '../../recipes/kata/popover'
 import { k as queryBuilder } from '../../recipes/kata/query-builder'
+import { k as queryChips } from '../../recipes/kata/query-chips'
 import { k as sheet } from '../../recipes/kata/sheet'
 import { k as sidebarLayout } from '../../recipes/kata/sidebar-layout'
+import { k as signaturePad } from '../../recipes/kata/signature-pad'
 import { k as status } from '../../recipes/kata/status'
 import { k as stepper } from '../../recipes/kata/stepper'
+import { k as tagInput } from '../../recipes/kata/tag-input'
 import { k as textarea } from '../../recipes/kata/textarea'
 import { k as toast } from '../../recipes/kata/toast'
+import { k as toggleIconButton } from '../../recipes/kata/toggle-icon-button'
 import { k as tooltip } from '../../recipes/kata/tooltip'
 import { omote } from '../../recipes/kiso'
 import { type Responsive, resolveVariant } from '../../types/responsive'
@@ -75,6 +81,7 @@ const RENAMES: Record<string, string> = {
 	'active-indicator.k.base': 'active-indicator.k.fill',
 	'chrome.k.base': 'chrome.k.region',
 	'icon.k.base': 'icon.k.ramp',
+	'toggle.k.base': 'toggle.k.group',
 	...Object.fromEntries(
 		[['base', 'cell']].map(([current, main]) => [
 			`grid-group.k.${current}`,
@@ -190,8 +197,8 @@ const DROPPED = /^(panel\.k\.(gap|inset)\.|overlay\.k\.backdrop\.glass$)/
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split|aspect-ratio|card|group|placeholder|status)\.k\.base|json-tree\.k\.(base|content|value)|grid-group\.k\.(outline|rule)|markdown\.k\.(heading|li|td|th))(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
-	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+|aspect-ratio\.k\.ratio\.[\w/]+|(card|group)\.k\.base|placeholder\.k\.(fill|pulse|shape)|status\.k\.pulse|json-tree\.k\.(base|windowed|content|highlight|color\.\w+)|grid-group\.k\.(outline\.\w+|rule\.(base|neutral|color\.\w+))|markdown\.k\.(align\.\w+|heading\.\d|li|task|td|th))$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.base|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split|aspect-ratio|card|group|placeholder|status)\.k\.base|json-tree\.k\.(base|content|value)|grid-group\.k\.(outline|rule)|form-filters\.k\.row|calendar\.k\.day\.range|query-chips\.k\.combinator|tag-input\.k\.(base|tags)|signature-pad\.k\.base|toggle-icon-button\.k\.(base|icon)|markdown\.k\.(heading|li|td|th))(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+|aspect-ratio\.k\.ratio\.[\w/]+|(card|group)\.k\.base|placeholder\.k\.(fill|pulse|shape)|status\.k\.pulse|json-tree\.k\.(base|windowed|content|highlight|color\.\w+)|grid-group\.k\.(outline\.\w+|rule\.(base|neutral|color\.\w+))|form-filters\.k\.rail|calendar\.k\.day\.range\.\w+|query-chips\.k\.combinator\.\w+|tag-input\.k\.tags\.\w+|signature-pad\.k\.base|toggle-icon-button\.k\.icon\.\w+|markdown\.k\.(align\.\w+|heading\.\d|li|task|td|th))$/,
 }
 
 /** The output of main, by path. */
@@ -496,7 +503,7 @@ describe('kata output', () => {
 			check(`file-upload field ${variant}`, own.field, shared.field, read('file-upload.k.field'))
 		}
 
-		check('number-input field', numberInput.field, read('input.k.number'), 'tabular-nums')
+		check('number-input base', numberInput().base, read('input.k.number'), 'tabular-nums')
 
 		// The root of the panel unit: the panel surface, moved from kiso as it was on
 		// main, over the column of the slots.
@@ -998,6 +1005,59 @@ describe('kata output', () => {
 			read('grid-group.k.rule.neutral'),
 		)
 		check('grid-group outline neutral', gridGroup().outline)
+
+		// The form units. The signature pad takes the height that its component
+		// wrote, and a row of the form filters takes the classes of each flag.
+		check('signature-pad base', signaturePad().base, read('signature-pad.k.base'), 'h-40')
+
+		for (const equal of [false, true]) {
+			for (const rail of [false, true]) {
+				check(
+					`form-filters row ${equal} ${rail}`,
+					formFilters({ equal, rail }).row,
+					equal && '*:flex-1',
+					rail && read('form-filters.k.rail'),
+				)
+			}
+		}
+
+		for (const start of [false, true]) {
+			for (const end of [false, true]) {
+				check(
+					`calendar range ${start} ${end}`,
+					calendar({ start, end }).day.range,
+					start && read('calendar.k.day.range.start'),
+					end && read('calendar.k.day.range.end'),
+				)
+			}
+		}
+
+		for (const readOnly of [false, true]) {
+			check(
+				`query-chips combinator ${readOnly}`,
+				queryChips({ readOnly }).combinator,
+				read('query-chips.k.combinator.base'),
+				!readOnly && read('query-chips.k.combinator.button'),
+			)
+		}
+
+		for (const wrap of [false, true]) {
+			check(
+				`tag-input tags ${wrap}`,
+				tagInput({ wrap }).tags,
+				read('tag-input.k.tags.base'),
+				!wrap && read('tag-input.k.tags.scroll'),
+			)
+		}
+
+		for (const active of [false, true]) {
+			check(
+				`toggle-icon-button icon ${active}`,
+				toggleIconButton({ active }).icon,
+				read('toggle-icon-button.k.icon.base'),
+				read(`toggle-icon-button.k.icon.${active ? 'active' : 'inactive'}`),
+			)
+		}
 
 		for (const align of [undefined, 'left', 'right', 'center'] as const) {
 			const slots = markdown({ align })

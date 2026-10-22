@@ -124,18 +124,18 @@ function QueryChip({ token, onRemove, disabled, register }: QueryChipProps) {
 	return (
 		<BadgeRemovable
 			label={renderToken(token)}
-			className={cn(k.chip)}
+			className={k().chip}
 			disabled={disabled}
 			removeRef={ref}
 			removeProps={{ 'data-slot': 'query-chip-remove' }}
 			onRemove={onRemove && (() => onRemove(token))}
 		>
-			<span className={cn(k.field)}>{token.field}</span>{' '}
-			<span className={cn(k.operator)}>{token.operator}</span>
+			<span className={k().field}>{token.field}</span>{' '}
+			<span className={k().operator}>{token.operator}</span>
 			{token.value != null && (
 				<>
 					{' '}
-					<span className={cn(k.value)}>{token.value}</span>
+					<span className={k().value}>{token.value}</span>
 				</>
 			)}
 		</BadgeRemovable>
@@ -244,10 +244,10 @@ export function QueryChips({
 		}
 
 		if (token.kind === 'group-open' || token.kind === 'group-close') {
-			return <span className={cn(k.bracket)}>{token.kind === 'group-open' ? '(' : ')'}</span>
+			return <span className={k().bracket}>{token.kind === 'group-open' ? '(' : ')'}</span>
 		}
 
-		if (readOnly) return <span className={cn(k.combinator.base)}>{token.label}</span>
+		if (readOnly) return <span className={k({ readOnly: true }).combinator}>{token.label}</span>
 
 		const next = combinatorLabel(intl, token.combinator === 'and' ? 'or' : 'and')
 
@@ -258,7 +258,7 @@ export function QueryChips({
 				data-slot="query-chips-combinator"
 				aria-label={intl.formatMessage(messages.switchTo, { combinator: token.label, next })}
 				disabled={disabled}
-				className={cn(k.combinator.base, k.combinator.button)}
+				className={k({ readOnly: false }).combinator}
 				onClick={() => {
 					actions.updateCombinator(token.id, token.combinator === 'and' ? 'or' : 'and')
 
@@ -291,7 +291,7 @@ export function QueryChips({
 				data-density="slot"
 				data-readonly=""
 				aria-label={ariaLabel}
-				className={cn(k.base, 'min-w-auto', className)}
+				className={cn(k().base, 'min-w-auto', className)}
 			>
 				{body}
 			</fieldset>
@@ -314,10 +314,10 @@ export function QueryChips({
 			// The row takes focus only when its last chip goes. It is not a Tab stop
 			// unless the consumer makes it one.
 			tabIndex={props.tabIndex ?? (empty ? -1 : undefined)}
-			className={cn(k.base, className)}
+			className={cn(k().base, className)}
 			onKeyDown={composeEventHandlers(onKeyDownProp, onKeyDown)}
 		>
-			{empty ? <span className={cn(k.empty)}>{emptyLabel}</span> : body}
+			{empty ? <span className={k().empty}>{emptyLabel}</span> : body}
 			{/* The full sentence keeps the brackets for assistive technology, which
 			    hears only the focused control inside the toolbar. */}
 			<span id={descriptionId} hidden>

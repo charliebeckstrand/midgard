@@ -1,7 +1,7 @@
 'use client'
 
 import { type KeyboardEventHandler, memo, type RefObject } from 'react'
-import { ariaAttr, cn } from '../../core'
+import { ariaAttr } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
 import { CalendarDayCell } from './calendar-day-cell'
@@ -61,9 +61,9 @@ export const CalendarGrid = memo(function CalendarGrid({
 	const dayInput = { today, value, activeGridDate, isDisabled, getDayProps }
 
 	return (
-		<div className={k.grid}>
+		<div className={k().grid}>
 			{weekdays.map((day) => (
-				<div key={day} className={cn(k.weekday)} aria-hidden="true">
+				<div key={day} className={k().weekday} aria-hidden="true">
 					{day}
 				</div>
 			))}

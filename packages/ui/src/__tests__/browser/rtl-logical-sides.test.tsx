@@ -128,7 +128,7 @@ describe('logical sides under dir=rtl', () => {
 	})
 
 	it('signature pad actions sit at the inline end (left)', () => {
-		const style = rtl(cn(signaturePad.actions))
+		const style = rtl(signaturePad().actions)
 		expect(style.left).toBe('8px')
 	})
 
