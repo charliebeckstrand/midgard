@@ -1,4 +1,3 @@
-import { beforeAll } from 'vitest'
 import { loadGridDataDialogs } from '../../modules/grid/grid-data-dialogs'
 import { loadGridReorderKit } from '../../modules/grid/grid-region'
 
@@ -10,4 +9,9 @@ import { loadGridReorderKit } from '../../modules/grid/grid-region'
 // dialog or drags at once does not depend on the order. This file runs after
 // `module-mocks.ts`, so the grid loads against the mocks. The `integration`
 // project mocks modules per file, so it runs no such load.
-beforeAll(() => Promise.all([loadGridDataDialogs(), loadGridReorderKit()]))
+//
+// The load is a top-level await, not a `beforeAll`. It is an import, as the
+// static imports above are, and an import has no time limit. On a cold module
+// cache, the compiled run (`vitest.compiler.config.ts`) transforms the grid for
+// the first file of each worker, and that took more than the hook limit.
+await Promise.all([loadGridDataDialogs(), loadGridReorderKit()])

@@ -2,9 +2,7 @@
  * Iro projection: turn a color-major ramp into the role-major
  * `[light, dark]` map the recipe engine consumes. The color-major ramp holds
  * one row per color, each naming the `[light, dark]` shades it plays per
- * foreground role. Shared by the
- * standard `ramp` and the extended ramp in `extended-palette.ts`, which differ
- * only in their color key set.
+ * foreground role. `ramp.ts` is the one caller.
  *
  * Layer: kiso · Concern: color projection
  */

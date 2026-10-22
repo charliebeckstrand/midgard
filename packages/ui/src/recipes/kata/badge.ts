@@ -2,16 +2,16 @@
  * Badge kata: the inline status/label chip. Recipe-shaped: a `variant` ×
  * `color` × `radius` matrix over the signature kasane chrome. The size steps
  * are `density-*` classes in the base, not an axis.
- * Reads `iro.extended` rather than `iro.palette`, so its `color` axis
- * carries the extended hues. The rest of the surface is the shared chromatic
- * palette matrix (`iro.matrix.extended`).
+ * Its `color` axis carries the standard hues and the extended hues (rose /
+ * violet / sky). The colors come from the palette of iro: the colors at rest,
+ * and the hover for a badge that is a link.
  */
 
 import { defineScale, type ScaleStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { dan, iro, ji, kasane, kokkaku, narabi, sen, shaku } from '../kiso'
 
-const { extended, matrix } = iro
+const { extended, hover, palette } = iro
 const { weight } = ji
 const { rounded } = kasane
 const { badge } = kokkaku
@@ -20,15 +20,15 @@ const { focus, ring } = sen
 
 /**
  * The hover wash of a link badge: one compound rule for each variant and color,
- * from the hover slot of the palette. A Button of the same variant and color
- * takes the same wash.
+ * from the hover of the palette. A Button of the same variant and color takes
+ * the same wash.
  */
 const linkHover = (['solid', 'soft', 'outline', 'plain'] as const).flatMap((variant) =>
-	Object.entries(extended[variant].hover).map(([color, hover]) => ({
+	Object.entries(hover[variant]).map(([color, wash]) => ({
 		variant,
 		color,
 		interactive: true,
-		class: hover,
+		class: wash,
 	})),
 )
 
@@ -72,12 +72,16 @@ export const k = defineRecipe(
 			true: '',
 			false: '',
 		},
-		// Opt into the wide palette: Badge's `color` axis carries the standard set
-		// plus the extended hues (rose / violet / sky).
-		palette: definePalette({
-			...matrix.extended,
-			plain: extended.plain.text,
-		}),
+		// Badge's `color` axis carries the standard set plus the extended hues.
+		palette: definePalette(
+			{ solid: palette.solid, soft: palette.soft, outline: palette.outline, plain: palette.plain },
+			{
+				solid: extended.solid,
+				soft: extended.soft,
+				outline: extended.outline,
+				plain: extended.plain,
+			},
+		),
 		// `radius: 'full'` caps swallow horizontal space, so pills read tighter than
 		// the base `px` (tuned for the default `radius: 'md'`): most visibly at small
 		// sizes. Bump every pill one `px` step (the later class replaces the base

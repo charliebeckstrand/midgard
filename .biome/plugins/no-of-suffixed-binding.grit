@@ -13,13 +13,29 @@ language js
 // its name (`expectTypeOf`). An object key is not a binding, so an intl message
 // id such as `pageOf` passes.
 //
+// The plugin also matches the name of a `type` or an `interface` declaration.
+// A type takes the shortest noun for the type that it gives, as `Root`
+// does, not `RootOf`.
+//
 // Reach is the `includes` beside this plugin in `biome.json`: the apps and the
 // packages, with their tests.
-JsIdentifierBinding() as $binding where {
-	$binding <: r"[a-z][A-Za-z0-9]*Of",
-	$binding <: not within or { JsImport(), JsExport(export_clause = JsExportNamedFromClause()) },
-	register_diagnostic(
-		span = $binding,
-		message = "start the name with a verb that says what the function does (`get`, `read`, `find`, `build`, `format`, `parse`, `to`, …), not an `Of` suffix; a lookup table takes a `<value>By<key>` name (CONVENTIONS §8.5)"
-	)
+or {
+	JsIdentifierBinding() as $binding where {
+		$binding <: r"[a-z][A-Za-z0-9]*Of",
+		$binding <: not within or { JsImport(), JsExport(export_clause = JsExportNamedFromClause()) },
+		register_diagnostic(
+			span = $binding,
+			message = "start the name with a verb that says what the function does (`get`, `read`, `find`, `build`, `format`, `parse`, `to`, …), not an `Of` suffix; a lookup table takes a `<value>By<key>` name (CONVENTIONS §8.5)"
+		)
+	},
+	or {
+		TsTypeAliasDeclaration(binding_identifier = $name),
+		TsInterfaceDeclaration(id = $name)
+	} where {
+		$name <: r"[A-Z][A-Za-z0-9]*Of",
+		register_diagnostic(
+			span = $name,
+			message = "name the type with the shortest noun for the type that it gives, not with an `Of` suffix (e.g. RootOf → Root) (CONVENTIONS §8.5)"
+		)
+	}
 }

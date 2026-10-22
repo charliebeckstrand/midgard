@@ -5,15 +5,15 @@
  * button, `text` is the text of an entry, and `hash` colors the hash of a
  * report. The `kind` extra colors the kinds that stand apart from the DOM
  * events: the callbacks of the components and of the modules, the captures,
- * and the bugs. The colors are the `onSurface` shades of the ramp, which clear
- * AA on the surface.
+ * and the bugs. The colors are the bare entries of the extended palette, which
+ * clear AA on the surface.
  */
 import { defineKata } from '../../core/recipe'
 import { dan, iro, omote } from '../kiso'
 
 const { x, top, bottom } = dan.space.panel
 
-const onSurface = iro.extended.bare.text
+const { bare } = iro.extended
 
 export const k = defineKata(
 	{
@@ -40,13 +40,13 @@ export const k = defineKata(
 				},
 			},
 			text: [...iro.text.default],
-			hash: onSurface.rose,
+			hash: bare.rose,
 		},
 	},
 	{
 		kind: {
-			component: onSurface.sky,
-			module: onSurface.violet,
+			component: bare.sky,
+			module: bare.violet,
 			capture: iro.text.primary,
 			error: iro.text.error,
 		},
