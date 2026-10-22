@@ -28,10 +28,10 @@ export type PaletteConfig<M extends string = string, C extends string = Color> =
 type Matrix = { readonly [variant: string]: { readonly [color: string]: ClassValue } }
 
 /** The variants of the matrices. */
-type Variants<T extends readonly Matrix[]> = keyof T[number] & string
+type GetVariants<T extends readonly Matrix[]> = keyof T[number] & string
 
 /** The colors of the matrices: each key of each variant of each matrix. */
-type Colors<T extends readonly Matrix[]> = T[number] extends infer X
+type GetColors<T extends readonly Matrix[]> = T[number] extends infer X
 	? X extends Matrix
 		? { [V in keyof X]: keyof X[V] }[keyof X] & string
 		: never
@@ -39,7 +39,7 @@ type Colors<T extends readonly Matrix[]> = T[number] extends infer X
 
 export function definePalette<const T extends readonly Matrix[]>(
 	...matrices: T
-): PaletteConfig<Variants<T>, Colors<T>> {
+): PaletteConfig<GetVariants<T>, GetColors<T>> {
 	const matrix: Record<string, Record<string, ClassValue[]>> = {}
 
 	for (const each of matrices) {
@@ -54,7 +54,7 @@ export function definePalette<const T extends readonly Matrix[]>(
 		}
 	}
 
-	return { matrix } as PaletteConfig<Variants<T>, Colors<T>>
+	return { matrix } as PaletteConfig<GetVariants<T>, GetColors<T>>
 }
 
 /** The palette's `variant → color → classes` lookup, in rule order. */
