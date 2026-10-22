@@ -1,11 +1,13 @@
 import { defineScale } from '../../core/density'
+import { defineKata } from '../../core/recipe'
 import { dan, iro, narabi } from '../kiso'
 
 const { text } = iro
 const { flex } = narabi
 
 /**
- * Card kata. Each step is a `density-*` class. Each part takes the step of its
+ * Card kata: the unit of `<Card>`. The `base` slot is the card, and the
+ * `header`, `body`, `footer`, and `description` slots are its sections. Each step is a `density-*` class. Each part takes the step of its
  * nearest density scope. That scope is the card itself when it has a `size`,
  * else the scope around it. The card itself (`base`) owns the outer padding
  * and the radius. A section pads only an inner edge that it shares with a
@@ -25,13 +27,15 @@ const { flex } = narabi
  * the row is wider than the card. The gap also spaces the lines. The body
  * breaks a token that is wider than its line.
  */
-export const k = {
-	base: [dan.space.box.base, dan.radius.card],
-	header: [text.default, dan.space.card.header.bottom],
-	body: 'wrap-break-word',
-	footer: [flex.row, 'flex-wrap', dan.space.card.footer.top, dan.gap.default],
-	description: [dan.text.small, text.muted],
-} as const
+export const k = defineKata({
+	base: ['overflow-clip -outline-offset-1', dan.space.box.base, dan.radius.card],
+	slots: {
+		header: [text.default, dan.space.card.header.bottom],
+		body: 'wrap-break-word',
+		footer: [flex.row, 'flex-wrap', dan.space.card.footer.top, dan.gap.default],
+		description: [dan.text.small, text.muted],
+	},
+})
 
 /**
  * The size scale of {@link Card}: the steps of its padding, gap, and radius

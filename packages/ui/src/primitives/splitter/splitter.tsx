@@ -61,7 +61,7 @@ export function Splitter({
 	return (
 		<hr
 			{...props}
-			className={cn(k.base, className)}
+			className={cn(k().base, className)}
 			tabIndex={0}
 			aria-label={label}
 			aria-orientation={orientation}

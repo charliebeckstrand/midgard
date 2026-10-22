@@ -14,4 +14,4 @@ export type CardBodyProps = ComponentProps<'div'>
  * @remarks
  * Static leaf: renders in React Server Components.
  */
-export const CardBody = createSlot('div', 'card-body', k.body)
+export const CardBody = createSlot('div', 'card-body', k().body)

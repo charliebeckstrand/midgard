@@ -1,3 +1,5 @@
+import { defineKata } from '../../core/recipe'
+
 // Preset ratios only; numeric ratios are applied inline via `style` by the
 // component.
 const ratio = {
@@ -9,11 +11,16 @@ const ratio = {
 	auto: 'aspect-auto',
 } as const
 
-export const k = {
+/**
+ * Aspect ratio kata: the unit of `<AspectRatio>`. The `base` slot is the box,
+ * with the `ratio` axis of the presets. A numeric ratio sets no axis.
+ */
+export const k = defineKata({
+	base: 'overflow-hidden',
 	ratio: {
 		...ratio,
 		// The aliases of `1/1` and `16/9`, with the class of each ratio.
 		square: ratio['1/1'],
 		video: ratio['16/9'],
 	},
-} as const
+})

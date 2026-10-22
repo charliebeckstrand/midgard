@@ -15,4 +15,4 @@ export type CardHeaderProps = ComponentProps<'div'>
  * @remarks
  * Static leaf: renders in React Server Components.
  */
-export const CardHeader = createSlot('div', 'card-header', k.header)
+export const CardHeader = createSlot('div', 'card-header', k().header)

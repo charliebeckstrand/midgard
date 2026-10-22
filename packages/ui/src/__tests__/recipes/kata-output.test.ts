@@ -4,7 +4,9 @@ import { join } from 'node:path'
 import clsx, { type ClassValue } from 'clsx'
 import { describe, expect, it } from 'vitest'
 import { twMerge } from '../../core/tw-merge'
+import { k as aspectRatio } from '../../recipes/kata/aspect-ratio'
 import { k as box } from '../../recipes/kata/box'
+import { k as card } from '../../recipes/kata/card'
 import { k as colorPicker } from '../../recipes/kata/color-picker'
 import { k as combobox } from '../../recipes/kata/combobox'
 import { k as container } from '../../recipes/kata/container'
@@ -64,6 +66,7 @@ const modules = import.meta.glob<Record<string, unknown>>('../../recipes/kata/*.
  * takes that name.
  */
 const RENAMES: Record<string, string> = {
+	'chrome.k.base': 'chrome.k.region',
 	'tabs.k.base': 'tabs.k.group',
 	'tabs.k.base()': 'tabs.k.group()',
 	'button.k.base': 'button.k',
@@ -173,8 +176,8 @@ const DROPPED = /^(panel\.k\.(gap|inset)\.|overlay\.k\.backdrop\.glass$)/
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split)\.k\.base)(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
-	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+)$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split|aspect-ratio|card|group)\.k\.base)(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+|aspect-ratio\.k\.ratio\.[\w/]+|(card|group)\.k\.base)$/,
 }
 
 /** The output of main, by path. */
@@ -862,6 +865,20 @@ describe('kata output', () => {
 					read(`container.k.size.${size}`),
 				)
 			}
+		}
+
+		// The layout units, from the parts of main. The card and the aspect ratio
+		// take the base classes that their components wrote. The group frame was
+		// a function on main, so `group.test.tsx` holds it.
+		check('card base', card().base, 'overflow-clip -outline-offset-1', read('card.k.base'))
+
+		for (const ratio of ['21/9', '16/9', '4/3', '3/2', '1/1', 'auto', 'square', 'video'] as const) {
+			check(
+				`aspect-ratio ${ratio}`,
+				aspectRatio({ ratio }).base,
+				'overflow-hidden',
+				read(`aspect-ratio.k.ratio.${ratio}`),
+			)
 		}
 
 		expect(rows.filter(([, current, expected]) => current !== expected)).toEqual([])

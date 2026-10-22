@@ -17,4 +17,4 @@ export type CardFooterProps = ComponentProps<'div'>
  * @remarks
  * Static leaf: renders in React Server Components.
  */
-export const CardFooter = createSlot('div', 'card-footer', k.footer)
+export const CardFooter = createSlot('div', 'card-footer', k().footer)
