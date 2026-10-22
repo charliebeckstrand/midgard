@@ -1,12 +1,10 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import {
-	type ResponsiveColumnCount,
-	type ResponsiveColumnsAlign,
-	type ResponsiveColumnsGap,
-	resolveAlign,
-	resolveColumns,
-	resolveGap,
+import { k } from '../../recipes/kata/columns'
+import type {
+	ResponsiveColumnCount,
+	ResponsiveColumnsAlign,
+	ResponsiveColumnsGap,
 } from './variants'
 
 /** Props for {@link Columns}: `columns`, `gap`, and `align`, plus `<div>` attributes. */
@@ -40,26 +38,9 @@ export type ColumnsProps = {
  * @remarks
  * Static leaf with no client boundary: renders in React Server Components.
  */
-export function Columns({
-	columns = 1,
-	gap = 'lg',
-	align,
-	className,
-	children,
-	...props
-}: ColumnsProps) {
+export function Columns({ columns, gap, align, className, children, ...props }: ColumnsProps) {
 	return (
-		<div
-			data-slot="columns"
-			className={cn(
-				'grid',
-				resolveColumns(columns),
-				resolveGap(gap),
-				resolveAlign(align),
-				className,
-			)}
-			{...props}
-		>
+		<div data-slot="columns" className={cn(k({ columns, gap, align }).base, className)} {...props}>
 			{children}
 		</div>
 	)

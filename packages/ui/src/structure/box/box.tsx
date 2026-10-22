@@ -2,15 +2,7 @@ import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/box'
-import {
-	type BoxBg,
-	type BoxOutline,
-	type BoxRadius,
-	type ResponsiveBoxPadding,
-	resolvePadding,
-	resolvePx,
-	resolvePy,
-} from './variants'
+import type { BoxBg, BoxOutline, BoxRadius, ResponsiveBoxPadding } from './variants'
 
 type BoxBaseProps = {
 	/**
@@ -63,20 +55,6 @@ export type BoxProps<Omitted extends PropertyKey = never> = Omit<BoxBaseProps, O
 	PolymorphicStaticProps<'div', Omitted>
 
 /**
- * Maps an `outline` prop to its kata class(es): `true` selects the default
- * weight, a named weight indexes the outline map, falsy emits nothing.
- *
- * @internal
- */
-function resolveOutline(outline: BoxOutline | undefined): string | readonly string[] | undefined {
-	if (!outline) return undefined
-
-	if (outline === true) return k.outline.base
-
-	return k.outline.weight[outline]
-}
-
-/**
  * Static layout primitive for padding, radius, background, and outline tokens.
  * Renders in React Server Components. Every token is explicit; an omitted token
  * applies no style. A `density` step makes the box a density scope.
@@ -105,15 +83,7 @@ export function Box({
 			density={density}
 			href={href}
 			render={render}
-			className={cn(
-				resolvePadding(p),
-				resolvePx(px),
-				resolvePy(py),
-				radius && k.radius[radius],
-				bg && k.bg[bg],
-				resolveOutline(outline),
-				className,
-			)}
+			className={cn(k({ p, px, py, radius, bg, outline }).base, className)}
 			{...props}
 		>
 			{children}

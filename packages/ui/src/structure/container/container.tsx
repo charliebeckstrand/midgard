@@ -1,11 +1,12 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import type { VariantProps } from '../../core/recipe'
 import { k } from '../../recipes/kata/container'
 
 /** Max-width token for {@link Container}. */
-export type ContainerSize = keyof typeof k.size
+export type ContainerSize = NonNullable<VariantProps<typeof k>['width']>
 /** Horizontal-padding token for {@link Container}. The token `0` removes the padding. */
-export type ContainerPadding = keyof typeof k.padding
+export type ContainerPadding = NonNullable<VariantProps<typeof k>['padding']>
 
 /** Props for {@link Container}: max-width `size` and horizontal `padding` tokens atop native `<div>` attributes. */
 export type ContainerProps = {
@@ -29,17 +30,11 @@ export type ContainerProps = {
  * Centered page wrapper that fills the height of its parent. It has a maximum
  * width from `lg` up and horizontal `padding` at every width.
  */
-export function Container({
-	size = 'md',
-	padding = 'md',
-	className,
-	children,
-	...props
-}: ContainerProps) {
+export function Container({ size, padding, className, children, ...props }: ContainerProps) {
 	return (
 		<div
 			data-slot="container"
-			className={cn('w-full h-full mx-auto', k.padding[padding], k.size[size], className)}
+			className={cn(k({ width: size, padding }).base, className)}
 			{...props}
 		>
 			{children}

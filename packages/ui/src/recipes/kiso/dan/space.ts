@@ -47,6 +47,16 @@ const bottom = 'density-pb-[2,3,4,5,6]'
 
 export const space = {
 	scale,
+	/**
+	 * No padding, as a stepped rule for each axis of `scale`. It is in the layer
+	 * of `scale`, so a breakpoint can switch it with a stop of `scale`. A plain
+	 * `p-0` outranks that layer.
+	 */
+	none: {
+		p: 'density-p-[0,0,0,0,0]',
+		px: 'density-px-[0,0,0,0,0]',
+		py: 'density-py-[0,0,0,0,0]',
+	},
 
 	box: {
 		/** The padding of a box: a card, a list, or a date picker body. */

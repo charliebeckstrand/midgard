@@ -62,6 +62,11 @@ const narrow = 'density-gap-[0.5,0.75,1,1.25,1.5]'
 
 export const gap = {
 	scale,
+	/**
+	 * No gap, as a stepped rule. It is in the layer of `scale`, so a breakpoint
+	 * can switch it with a stop of `scale`. A plain `gap-0` outranks that layer.
+	 */
+	none: 'density-gap-[0,0,0,0,0]',
 	/** The inline gap at each stop of `scale`. */
 	x: scaleX,
 	/** The block gap at each stop of `scale`. */

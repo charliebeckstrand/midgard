@@ -1,15 +1,12 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/flex'
 import { defaultAlignFromDirection } from './flex-utilities'
-import {
-	type ResponsiveAlign,
-	type ResponsiveDirection,
-	type ResponsiveGap,
-	type ResponsiveJustify,
-	resolveAlign,
-	resolveDirection,
-	resolveGap,
-	resolveJustify,
+import type {
+	ResponsiveAlign,
+	ResponsiveDirection,
+	ResponsiveGap,
+	ResponsiveJustify,
 } from './variants'
 
 /** Props for {@link Flex}: responsive direction/gap/alignment plus wrap and fill modifiers atop native `<div>` attributes. */
@@ -86,25 +83,18 @@ export function Flex({
 	children,
 	...props
 }: FlexProps) {
-	const resolvedAlign = align ?? defaultAlignFromDirection(direction)
+	const slots = k({
+		direction,
+		align: align ?? defaultAlignFromDirection(direction),
+		gap,
+		justify,
+		wrap,
+		full,
+		flex: flex || undefined,
+	})
 
 	return (
-		<Element
-			data-slot="flex"
-			className={cn(
-				resolveDirection(direction),
-				resolveAlign(resolvedAlign),
-				resolveGap(gap),
-				resolveJustify(justify),
-				'flex',
-				wrap && 'flex-wrap',
-				full && 'w-full',
-				flex === '1' && 'flex-1',
-				flex === 'auto' && 'flex-auto',
-				className,
-			)}
-			{...props}
-		>
+		<Element data-slot="flex" className={cn(slots.base, className)} {...props}>
 			{children}
 		</Element>
 	)

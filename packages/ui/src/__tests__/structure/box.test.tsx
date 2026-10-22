@@ -129,7 +129,7 @@ describe('Box responsive padding', () => {
 
 		const className = bySlot(container, 'box')?.className ?? ''
 
-		expect(className).toContain('px-0')
+		expect(className).toContain('density-px-[0,0,0,0,0]')
 
 		expect(className).toContain('lg:density-px-[4,5,6,7,8]')
 
