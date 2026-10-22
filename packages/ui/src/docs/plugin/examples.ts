@@ -36,7 +36,7 @@ export type ExampleMeta = {
 }
 
 /** Parses TSX, as the `parse` of a plugin context does. */
-export type Parse = (code: string, options: { lang: 'tsx' }) => ESTree.Program
+export type Parser = (code: string, options: { lang: 'tsx' }) => ESTree.Program
 
 /**
  * The public id of the code module of a folder in `pages`. The module holds
@@ -181,7 +181,7 @@ export function attachMeta(
  * an example.
  */
 async function readCode(
-	parse: Parse,
+	parse: Parser,
 	highlight: Highlight,
 	file: string,
 ): Promise<ExampleCode | undefined> {
@@ -206,7 +206,7 @@ async function readCode(
  * The files in `files` that are examples. A module with no default export,
  * such as the data that examples share, is not one.
  */
-export async function examplesIn(parse: Parse, files: readonly string[]): Promise<string[]> {
+export async function examplesIn(parse: Parser, files: readonly string[]): Promise<string[]> {
 	const examples = await Promise.all(
 		files.map(async (file) => {
 			const source = await readFile(file, 'utf8')
@@ -234,7 +234,7 @@ export async function exampleFiles(folder: string): Promise<string[]> {
  * {@link toCodeKey}, highlighted with `highlight`.
  */
 export async function loadCodes(
-	parse: Parse,
+	parse: Parser,
 	highlight: Highlight,
 	files: readonly string[],
 ): Promise<Record<string, ExampleCode>> {

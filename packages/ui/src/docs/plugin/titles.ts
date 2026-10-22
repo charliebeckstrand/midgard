@@ -5,7 +5,7 @@ import type { CatalogEntry } from '../../../scripts/intl-catalog.ts'
 import { TITLE_ID } from '../kit/example-title.ts'
 import { humanize } from '../kit/humanize.ts'
 import { TAB_ID, toSlug } from '../kit/tab-name.ts'
-import { exampleFiles, examplesIn, type Parse, PLAYGROUND, toHeadingId } from './examples.ts'
+import { exampleFiles, examplesIn, type Parser, PLAYGROUND, toHeadingId } from './examples.ts'
 import { findPages } from './pages.ts'
 
 /**
@@ -16,7 +16,7 @@ import { findPages } from './pages.ts'
  */
 export async function titleEntries(
 	docs: string,
-	parse: Parse,
+	parse: Parser,
 ): Promise<Record<string, CatalogEntry>> {
 	const pages = path.join(docs, 'pages')
 
@@ -77,7 +77,7 @@ function readTabs(program: ESTree.Program): string[] | undefined {
  */
 export async function tabEntries(
 	docs: string,
-	parse: Parse,
+	parse: Parser,
 ): Promise<Record<string, CatalogEntry>> {
 	const pages = path.join(docs, 'pages')
 

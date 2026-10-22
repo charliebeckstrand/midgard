@@ -70,19 +70,19 @@ export type Group<S = Slots, X = unknown, R extends string = string> = {
 }
 
 /** The slots of a group and of a unit, merged: a slot in both takes the axes of both. */
-type MergeSlots<A, B> = {
+type Merged<A, B> = {
 	[K in keyof A | keyof B]: (K extends keyof A ? A[K] : unknown) &
 		(K extends keyof B ? B[K] : unknown)
 }
 
 /** A slot with its responsive axes as axes. */
-type Lift<S> = S extends { responsive: infer R } ? Omit<S, 'responsive'> & R : S
+type Lifted<S> = S extends { responsive: infer R } ? Omit<S, 'responsive'> & R : S
 
 /** A child slot as a recipe config: a slot written as its classes is its `base`. */
-type ToSlot<S> = S extends string | readonly unknown[] ? { base: S } : Lift<S>
+type Child<S> = S extends string | readonly unknown[] ? { base: S } : Lifted<S>
 
 /** The root slot of a config: each field that is not a unit field. */
-type Root<C> = Lift<Omit<C, UnitField>>
+type Root<C> = Lifted<Omit<C, UnitField>>
 
 /** The names of the responsive axes of one slot as a config writes it. */
 type SlotKeys<S> = S extends { responsive: infer R } ? keyof R & string : never
@@ -94,29 +94,31 @@ type ResponsiveKeys<C> =
 	| (C extends { extends: Group<unknown, unknown, infer R> } ? R : never)
 
 /** The props of a unit with each responsive axis as a {@link Responsive} value. */
-type WithResponsive<P, R> = [R] extends [never]
+type ResponsiveProps<P, R> = [R] extends [never]
 	? P
 	: { [K in keyof P]: K extends R ? Responsive<NonNullable<P[K]>> : P[K] }
 
 /** The slots that a config declares: its root, and each child slot. */
 type OwnSlots<C> = { base: Root<C> } & (C extends { slots: infer S }
-	? { [K in keyof S]: ToSlot<S[K]> }
+	? { [K in keyof S]: Child<S[K]> }
 	: Record<never, never>)
 
 /** The slots of a unit: its own, merged over the slots of the group that it extends. */
-type UnitSlots<C> = C extends { extends: Group<infer G> } ? MergeSlots<G, OwnSlots<C>> : OwnSlots<C>
+type UnitSlots<C> = C extends { extends: Group<infer G> } ? Merged<G, OwnSlots<C>> : OwnSlots<C>
 
 /** The extras of the group that a unit extends, or none. */
 type Extras<C> = C extends { extends: Group<unknown, infer X> } ? X : unknown
 
-/** Merges a union of prop shapes into one shape. */
-type Merge<U> = (U extends unknown ? (value: U) => void : never) extends (value: infer I) => void
+/** The intersection of a union of prop shapes: one shape with the fields of each. */
+type Intersection<U> = (U extends unknown ? (value: U) => void : never) extends (
+	value: infer I,
+) => void
 	? I
 	: never
 
 /** The props of a unit: the props of each slot, merged. An axis in two slots is one prop. */
-export type KataProps<C> = WithResponsive<
-	Merge<{ [K in keyof UnitSlots<C>]: ComputedProps<UnitSlots<C>[K]> }[keyof UnitSlots<C>]>,
+export type KataProps<C> = ResponsiveProps<
+	Intersection<{ [K in keyof UnitSlots<C>]: ComputedProps<UnitSlots<C>[K]> }[keyof UnitSlots<C>]>,
 	ResponsiveKeys<C>
 >
 
