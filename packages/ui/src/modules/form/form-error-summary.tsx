@@ -173,7 +173,7 @@ export function FormErrorSummary({
 							) : (
 								<a
 									href={`#${id}`}
-									className={cn(linkK({ underline: true }))}
+									className={cn(linkK({ underline: true }).base)}
 									onClick={(event) => focusControl(event, id)}
 								>
 									{issue}

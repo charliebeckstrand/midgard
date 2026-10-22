@@ -1,5 +1,5 @@
 import { defineScale } from '../../core/density'
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineKata, type VariantProps } from '../../core/recipe'
 import { dan, iro, ji, kokkaku } from '../kiso'
 
 const { text } = iro
@@ -56,14 +56,13 @@ export const scale = defineScale(ramp[1], ramp[2], ramp[3], ramp[4], ramp[5], ra
  * `text-wrap-style`, because `text-balance` sets the `text-wrap` shorthand, and
  * that shorthand also cancels the `nowrap` of a `truncate` class.
  */
-export const k = defineRecipe(
+export const k = defineKata(
 	{
 		base: [...text.default, '[text-wrap-style:balance]'],
 		level: levelWeight,
 		defaults: { level: 1 },
-		skeleton: heading,
 	},
-	{ ramp, weight: levelWeight },
+	{ ramp, weight: levelWeight, skeleton: heading },
 )
 
 /** Recipe variant props for {@link Heading}: the styling axis its kata exposes (`level`), for consumers composing custom slots. */

@@ -37,7 +37,7 @@ export function Heading({ level = 1, size, className, children, ...props }: Head
 			as={`h${level}`}
 			data-slot="heading"
 			density={size}
-			className={cn(k({ level }), k.ramp[level], className)}
+			className={cn(k({ level }).base, k.ramp[level], className)}
 			{...props}
 		>
 			{children}

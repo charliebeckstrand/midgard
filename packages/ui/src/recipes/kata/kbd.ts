@@ -1,12 +1,12 @@
 import { defineScale, type ScaleStep } from '../../core/density'
-import { defineRecipe } from '../../core/recipe'
+import { defineKata } from '../../core/recipe'
 import { dan, shaku } from '../kiso'
 
 const { mark } = shaku
 
 // The mark holds the key at its glyph width. The key takes the step of its
 // nearest density scope, and an explicit `size` makes the key its own scope.
-export const k = defineRecipe({
+export const k = defineKata({
 	base: [
 		'inline-flex items-center justify-center',
 		...mark.base,

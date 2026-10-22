@@ -18,7 +18,7 @@ export type KbdProps = ComponentProps<'kbd'> & {
  */
 export function Kbd({ size, className, children, ...props }: KbdProps) {
 	return (
-		<kbd data-slot="kbd" data-density={size} className={cn(k(), className)} {...props}>
+		<kbd data-slot="kbd" data-density={size} className={cn(k().base, className)} {...props}>
 			{children}
 		</kbd>
 	)

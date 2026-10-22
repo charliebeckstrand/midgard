@@ -34,7 +34,7 @@ describe('Text color contrast', () => {
 	const hues = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 	it.each(hues)('%s clears text AA in each mode', (color) => {
-		const classes = getClasses(text({ color }))
+		const classes = getClasses(text({ color }).base)
 
 		const light = only(classes, /^text-[a-z]+-\d+$/)
 

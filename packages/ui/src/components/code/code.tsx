@@ -31,7 +31,7 @@ export function Code({ className, size, children, ...props }: CodeProps) {
 			data-slot="code"
 			dir="ltr"
 			density={size}
-			className={cn(k(), className)}
+			className={cn(k().base, className)}
 			{...props}
 		>
 			{children}

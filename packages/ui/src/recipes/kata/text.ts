@@ -1,5 +1,5 @@
 /**
- * Text kata: recipe-shaped surface for `<Text>` with two independent color
+ * Text kata: the unit of `<Text>`, with two independent color
  * axes plus a type scale. `tone` pulls the semantic `iro.text` tokens
  * (default / primary / success / warning / error / muted) and is the
  * meaning-bearing axis. It is an emphasis ladder, not the feedback set
@@ -15,12 +15,12 @@
  * `sm` one, such as the trailing readout of a legend entry under its label.
  */
 import { defineScale, type ScaleStep } from '../../core/density'
-import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { defineKata, mode, type VariantProps } from '../../core/recipe'
 import { dan, iro, kokkaku } from '../kiso'
 
 const { palette, text } = iro
 
-export const k = defineRecipe(
+export const k = defineKata(
 	{
 		tone: text,
 		color: {
@@ -32,10 +32,10 @@ export const k = defineRecipe(
 			blue: palette.bare.blue,
 		},
 		defaults: { tone: 'default' },
-		// One line: the `md` line, or the line of the explicit `size`.
-		skeleton: { base: kokkaku.text.line, density: true as const },
 	},
 	{
+		// One line: the `md` line, or the line of the explicit `size`.
+		skeleton: { base: kokkaku.text.line, density: true as const },
 		/** The text ramp of a Text with a `size`. */
 		sized: dan.text.chip,
 	},

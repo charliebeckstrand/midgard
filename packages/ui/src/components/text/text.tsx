@@ -33,7 +33,7 @@ export function Text({ as = 'p', tone, color, size, className, children, ...prop
 			as={as}
 			data-slot="text"
 			density={size}
-			className={cn(k({ tone, color }), size && k.sized, className)}
+			className={cn(k({ tone, color }).base, size && k.sized, className)}
 			{...props}
 		>
 			{children}

@@ -102,6 +102,6 @@ describe('k.weight', () => {
 	})
 
 	it.each(levels)('is the weight that the recipe gives level %i', (level) => {
-		expect(k({ level })).toContain(k.weight[level])
+		expect(k({ level }).base).toContain(k.weight[level])
 	})
 })
