@@ -551,7 +551,7 @@ export function Dashboard({
 							ref={canvasRef}
 							data-slot="dashboard-canvas"
 							style={canvasStyle(columns, gap)}
-							className={cn(k.canvas({ editable }))}
+							className={k({ editable }).base}
 						>
 							<DashboardTitleLevelContext value={titleLevel}>{tiles}</DashboardTitleLevelContext>
 

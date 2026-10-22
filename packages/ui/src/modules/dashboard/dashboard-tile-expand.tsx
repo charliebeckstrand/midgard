@@ -15,7 +15,6 @@ import {
 	DialogTrigger,
 } from '../../components/dialog'
 import { Icon } from '../../components/icon'
-import { cn } from '../../core'
 import { HeaderActions } from '../../primitives/header-actions'
 import { IntlMessage } from '../../primitives/intl/intl-message'
 import { intlMessages } from '../../primitives/intl/intl-messages'
@@ -145,7 +144,7 @@ export function DashboardTileExpand({
 						<div
 							data-slot="dashboard-tile-expanded"
 							style={{ aspectRatio: shape }}
-							className={cn(k.expanded)}
+							className={k().expanded}
 						>
 							{/* The expanded copy of the widget does not reach the header row of the
 							    tile behind the dialog: its controls stay in its own layout. */}

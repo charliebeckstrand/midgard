@@ -1,14 +1,11 @@
 /**
- * Dashboard kata: the surface of the dashboard module. It styles the canvas, the
- * tile chrome, the drag grip, the resize splitters, and the landing placeholder.
- * The widgets inside a tile keep their own recipes.
- *
- * Each class list that is not a recipe is one string, joined once at module load.
- * `cn` memoizes a call by a walk over its strings (`core/cn.ts`). A string takes
- * one memo node and one lookup on each render of a tile. An array takes one node
- * and one lookup for each of its items.
+ * Dashboard kata: the unit of the dashboard module. The root slot is the canvas,
+ * and the other slots are the tile chrome, the drag grip, the resize splitters,
+ * and the landing placeholder. The widgets inside a tile keep their own kata.
+ * A call of the unit gives one memoized string for each slot, so a tile passes
+ * one string to `cn` for each part on each render.
  */
-import { defineRecipe, mode } from '../../core/recipe'
+import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, omote, sen, ugoki } from '../kiso'
 
 const { fg, grab } = hannou
@@ -42,13 +39,12 @@ const guides = [
  * The canvas: a CSS grid whose rows the root sizes from the container width. The
  * root is the inline-size container that the row unit reads.
  */
-const canvas = defineRecipe({
+const canvas = {
 	// No explicit width: a block grows into its negative margins, which is how the
 	// canvas reaches half a gutter past the container on each side.
 	base: ['relative grid'],
 	editable: { true: guides, false: '' },
-	defaults: { editable: false },
-})
+}
 
 /**
  * The positioned shell of a tile. The shell carries the grid area and the half-gap
@@ -58,26 +54,24 @@ const canvas = defineRecipe({
  * later tiles at 10, and under the lifted tile at 30. A dropped tile has lost its
  * raise, so without it the later tiles paint over the glide.
  */
-const tile = defineRecipe({
+const tile = {
 	base: ['relative min-h-0 min-w-0 data-gliding:z-20'],
 	lifted: { true: 'z-30', false: '' },
-	defaults: { lifted: false },
-})
+}
 
 /**
  * The card of a tile: a column of the header row and the content box. A movable
  * card in edit mode shows a dashed outline. The grip is its drag surface, so the
  * card keeps touch scrolling.
  */
-const card = defineRecipe({
+const card = {
 	base: ['relative flex size-full min-h-0 flex-col'],
 	editable: {
 		true: ['select-none', 'outline-dashed', ...mode('outline-zinc-300', 'dark:outline-zinc-700')],
 		false: '',
 	},
 	dragging: { true: 'shadow-xl', false: '' },
-	defaults: { editable: false, dragging: false },
-})
+}
 
 /**
  * The header row: the grip, the title block, and the actions. It pads its
@@ -107,7 +101,7 @@ const header = [
 	`flex min-w-0 items-center gap-2 ${dan.space.box.bottom} [--touch-target-gap-x:0px]`,
 	'pointer-coarse:has-data-own-fullscreen:**:data-[slot=dashboard-tile-expand]:hidden',
 	dan.space.dashboard.bare,
-].join(' ')
+]
 
 /**
  * The title block, which shrinks before it pushes the actions out. Each line in
@@ -132,7 +126,7 @@ const actions = 'flex shrink-0 items-center gap-2'
  * The content box is the inline-size container of the widget. A container query
  * or a `cqi` unit in the widget therefore reads the tile, and not the board.
  */
-const content = defineRecipe({
+const content = {
 	base: '@container relative',
 	natural: {
 		// The box fills the height that the header leaves, and a taller widget scrolls in it.
@@ -140,8 +134,7 @@ const content = defineRecipe({
 		// The box takes the height of the widget, and the board gives the tile the rows for it.
 		true: 'flex-none',
 	},
-	defaults: { natural: false },
-})
+}
 
 /**
  * The content box of an expanded tile, in its dialog. The tile sets the ratio
@@ -169,14 +162,14 @@ const placeholder = [
 	rounded.sm,
 	...mode('bg-zinc-200/60', 'dark:bg-zinc-800/60'),
 	forced.outline,
-].join(' ')
+]
 
 /**
  * The drag grip. It has the box of a bare icon button, so the header row keeps
  * its height when edit mode swaps the controls of the tile for the grip. The
  * floating form sits on the corner of a tile that has no header row.
  */
-const handle = defineRecipe({
+const handle = {
 	base: [
 		'flex shrink-0 items-center justify-center',
 		dan.size.button.icon,
@@ -198,8 +191,7 @@ const handle = defineRecipe({
 	// own raise, because the z-10 of the kiso raise ties with the chrome of the
 	// later tiles.
 	dragging: { true: sen.focus.lifted.outline, false: '' },
-	defaults: { floating: false, dragging: false },
-})
+}
 
 /**
  * A resize splitter on one edge of a tile. The bar shows on hover, focus, and
@@ -209,7 +201,7 @@ const handle = defineRecipe({
  * The reader sees the bar only by its background, which forced colors remove.
  * The bar then paints in `CanvasText`, as the shape of a resize grip does.
  */
-const resizeHandle = defineRecipe({
+const resize = {
 	base: [
 		'absolute z-10 touch-none select-none',
 		"after:absolute after:rounded-full after:opacity-0 motion-safe:after:transition-opacity after:content-['']",
@@ -234,7 +226,7 @@ const resizeHandle = defineRecipe({
 			'after:bottom-[3px] after:end-[3px] after:size-1.5',
 		],
 	},
-})
+}
 
 /** The chip that shows the span of a tile while it resizes. */
 const readout = [
@@ -247,23 +239,33 @@ const readout = [
 	...sen.border.default,
 	...omote.bg.surface,
 	...mode('text-zinc-700', 'dark:text-zinc-300'),
-].join(' ')
+]
 
-export const k = {
-	canvas,
-	tile,
-	card,
-	header,
-	heading,
-	actions,
-	content,
-	expanded,
-	error,
-	missing,
-	placeholder,
-	handle,
-	resize: { handle: resizeHandle, readout },
+export const k = defineKata(
+	{
+		...canvas,
+		slots: {
+			tile,
+			card,
+			header,
+			heading,
+			actions,
+			content,
+			expanded,
+			error,
+			missing,
+			placeholder,
+			handle,
+			resize: {
+				slots: {
+					handle: resize,
+					readout,
+				},
+			},
+		},
+		defaults: { editable: false, lifted: false, dragging: false, natural: false, floating: false },
+	},
 	// Motion transition configs, applied imperatively (`animate()` in
 	// `use-dashboard-flip.ts`), never passed to `cn`.
-	motion: { glide: ugoki.glide },
-} as const
+	{ motion: { glide: ugoki.glide } },
+)

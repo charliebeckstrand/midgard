@@ -42,7 +42,7 @@ describe('edges and state marks under forced colors', () => {
 		['the outline alert', alert({ variant: 'outline', color: 'red' })],
 		['the PDF region', region(false)],
 		['the selected PDF region', region(true)],
-		['the landing placeholder of a dashboard drag', dashboard.placeholder],
+		['the landing placeholder of a dashboard drag', dashboard().placeholder],
 	]
 
 	it.each(parts)('keeps a paint on %s', (_name, part) => {
@@ -130,7 +130,7 @@ describe('resize grips under forced colors', () => {
  */
 describe('dashboard edit mode under forced colors', () => {
 	it('keeps the column guides', () => {
-		const classes = classNames([dashboard.canvas({ editable: true })])
+		const classes = classNames([dashboard({ editable: true }).base])
 
 		expect(classes).toContain('forced-colors:before:forced-color-adjust-none')
 
@@ -142,7 +142,7 @@ describe('dashboard edit mode under forced colors', () => {
 	})
 
 	it.each(['e', 's', 'se'] as const)('keeps the shape of the %s resize bar', (edge) => {
-		expect(classNames([dashboard.resize.handle({ edge })])).toContain(
+		expect(classNames([dashboard({ edge }).resize.handle])).toContain(
 			'forced-colors:after:bg-[CanvasText]',
 		)
 	})

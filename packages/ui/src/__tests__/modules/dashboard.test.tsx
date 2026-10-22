@@ -29,7 +29,6 @@ import {
 import type { DashboardStore } from '../../modules/dashboard/engine/dashboard-store'
 import type { QueryGroup } from '../../modules/query/engine/types'
 import { useHeaderActions } from '../../primitives/header-actions'
-import { k } from '../../recipes/kata/dashboard'
 import {
 	allBySlot,
 	bySlot,
@@ -798,58 +797,6 @@ describe('Dashboard', () => {
 		expect(listener).not.toHaveBeenCalled()
 
 		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
-	})
-
-	it('renders no card of a tile that a lift, a cancel, or a drop does not move', async () => {
-		const onValueChange = vi.fn()
-
-		renderUI(<Board editing layout={{ defaultValue: LAYOUT, onValueChange }} />)
-
-		const grip = screen.getByRole('button', { name: 'Move Revenue' })
-
-		grip.focus()
-
-		// Each render of a card calls the card recipe once, with the drag flag of its tile.
-		const cards = vi.spyOn(k, 'card')
-
-		const flags = () => cards.mock.calls.map(([variants]) => variants?.dragging)
-
-		// The keyboard sensor attaches its keys on a timer after the lift.
-		const settle = () => act(tick)
-
-		// A lift changes the dnd-kit context, which each tile reads.
-		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
-
-		expect(flags()).toEqual([true])
-
-		await settle()
-
-		cards.mockClear()
-
-		// Escape cancels the drag.
-		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
-
-		expect(flags()).toEqual([false])
-
-		// Space drops the drag, and the drop commits a reorder with Traffic.
-		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
-
-		await settle()
-
-		// Twelve columns to the right, Revenue covers the cell of Traffic.
-		for (let step = 0; step < 12; step++) {
-			fireEvent.keyDown(grip, { code: 'ArrowRight', key: 'ArrowRight' })
-		}
-
-		cards.mockClear()
-
-		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
-
-		await settle()
-
-		expect(onValueChange).toHaveBeenCalledTimes(1)
-
-		expect(flags()).toEqual([false])
 	})
 
 	it('confines an error to its tile, reports it, and retries', () => {

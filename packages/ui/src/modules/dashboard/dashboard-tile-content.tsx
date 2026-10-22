@@ -2,7 +2,6 @@
 
 import { useInView } from 'motion/react'
 import { type ReactNode, type RefObject, Suspense, useLayoutEffect, useRef } from 'react'
-import { cn } from '../../core'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { ContentHeightContext, type ContentHeightHost } from '../../primitives/content-height'
 import { type Mount, MountHold, useMountHold } from '../../primitives/mount'
@@ -113,7 +112,7 @@ export function DashboardTileContent({
 				ref={ref}
 				data-slot="dashboard-tile-content"
 				inert={inert}
-				className={cn(k.content({ natural }))}
+				className={k({ natural }).content}
 			>
 				{body}
 			</div>
@@ -187,7 +186,7 @@ function HeldDashboardTileContent({
 			data-slot="dashboard-tile-content"
 			data-deferred={hold.present ? undefined : ''}
 			inert={inert}
-			className={cn(k.content({ natural }))}
+			className={k({ natural }).content}
 		>
 			{hold.present ? <MountHold hold={hold}>{children}</MountHold> : fallback}
 		</div>

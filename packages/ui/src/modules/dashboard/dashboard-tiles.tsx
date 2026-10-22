@@ -2,7 +2,6 @@
 
 import { memo, type ReactNode, useMemo } from 'react'
 import { Text } from '../../components/text'
-import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
@@ -28,7 +27,7 @@ function DashboardTileMissing({ widget }: { widget: string }) {
 	const intl = useIntl()
 
 	return (
-		<div data-slot="dashboard-tile-missing" className={cn(k.missing)}>
+		<div data-slot="dashboard-tile-missing" className={k().missing}>
 			<Text tone="muted">{intl.formatMessage(dashboardMessages.missing, { widget })}</Text>
 		</div>
 	)
