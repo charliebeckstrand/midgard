@@ -80,7 +80,7 @@ export function SortableGrip({
 					aria-hidden="true"
 					data-slot="icon"
 					data-density={size}
-					className={cn('shrink-0', k.ramp)}
+					className={cn('shrink-0', k().base)}
 				/>
 			)}
 		</button>

@@ -58,7 +58,7 @@ export function Icon({ icon, size, className, label }: IconProps) {
 		'data-density': numeric ? undefined : size,
 		className: cn(
 			'shrink-0',
-			!numeric && k.ramp,
+			!numeric && k().base,
 			(icon.props as { className?: string }).className,
 			className,
 		),

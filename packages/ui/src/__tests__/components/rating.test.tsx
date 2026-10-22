@@ -548,7 +548,7 @@ describe('RatingSkeleton', () => {
 	// extras into the config. A change in them is a change in the silhouette.
 	// The stepped glyph `density-size-*` wins over the Placeholder's default height.
 	const placeholder =
-		'bg-zinc-200 dark:bg-zinc-700 motion-safe:animate-pulse block density-any:h-4 rounded-sm'
+		'bg-zinc-200 dark:bg-zinc-700 block density-any:h-4 motion-safe:animate-pulse rounded-sm'
 
 	// The glyph and the gap are stepped classes, so the browser picks the step of the nearest
 	// scope. The real row and its stars share them.

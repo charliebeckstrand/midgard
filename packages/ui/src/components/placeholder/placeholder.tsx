@@ -37,7 +37,7 @@ export function Placeholder({
 		<Element
 			data-slot="placeholder"
 			aria-hidden="true"
-			className={cn(k.fill, pulse && k.pulse, k.shape, className)}
+			className={cn(k({ pulse }).base, className)}
 			{...props}
 		/>
 	)
