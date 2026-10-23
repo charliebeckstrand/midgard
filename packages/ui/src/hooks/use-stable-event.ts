@@ -25,7 +25,7 @@ import { useEffectEvent, useState } from 'react'
  *
  * Do not call the handler during render. It throws, as an effect event does.
  *
- * @param handler The function to call. It can change on each render.
+ * @param handler - The function to call. It can change on each render.
  * @returns A function with one identity for the mount.
  * @internal
  */

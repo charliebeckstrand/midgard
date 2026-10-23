@@ -115,7 +115,7 @@ export type ValueLabelPoint = { x: number; y: number; value: number }
  * The point position, not the raw value, sets the label anchor, so a stacked
  * ribbon labels each series at its own edge.
  *
- * @param gapSkipped Whether `points` already dropped the null categories (a
+ * @param gapSkipped - Whether `points` already dropped the null categories (a
  * line's gap-split geometry) rather than carrying one entry per category (a
  * stacked ribbon's continuous edge).
  * @internal

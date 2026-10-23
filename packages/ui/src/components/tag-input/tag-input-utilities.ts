@@ -122,7 +122,7 @@ export type TokenRejection = Omit<TokenBatch, 'accepted'>
  * then `validate`. Thus `validate` sees only new candidates that fit, from
  * every channel.
  *
- * @param room How many more tags fit; `Number.POSITIVE_INFINITY` when uncapped.
+ * @param room - How many more tags fit; `Number.POSITIVE_INFINITY` when uncapped.
  */
 export function classifyTokens(
 	raw: readonly string[],

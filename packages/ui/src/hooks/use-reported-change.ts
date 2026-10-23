@@ -10,9 +10,9 @@ import { useEffect, useEffectEvent, useRef } from 'react'
  * and the report rides it directly. Reach for this where the value is derived, or is
  * written from routes the surface never runs itself. Each caller names its own.
  *
- * @param value The committed value.
- * @param onChange The caller's callback, raised once per change.
- * @param isSame Compares the reported value with the next one. Defaults to `Object.is`.
+ * @param value - The committed value.
+ * @param onChange - The caller's callback, raised once per change.
+ * @param isSame - Compares the reported value with the next one. Defaults to `Object.is`.
  * Pass one where the value is rebuilt each render, so identity moves and the content does
  * not.
  * @remarks The ref seeds from the mount value, so a surface that mounts in a reported

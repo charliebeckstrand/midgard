@@ -73,12 +73,12 @@ type ValueLabelChart = {
  * its own value axis. A dual-axis chart therefore labels a currency series
  * against `y` and a percent against `y2`.
  *
- * @param list The drawn line or area series, aligned with `metas`.
- * @param metas The values and the value axis of each series in `list`.
- * @param gapSkipped Whether the points of each series already drop the null
+ * @param list - The drawn line or area series, aligned with `metas`.
+ * @param metas - The values and the value axis of each series in `list`.
+ * @param gapSkipped - Whether the points of each series already drop the null
  * categories. A stacked ribbon's edge carries one point for each category, so
  * it passes `false`.
- * @param obstacles The boxes of the standing reference labels
+ * @param obstacles - The boxes of the standing reference labels
  * ({@link placeReferenceLabels}). A point label that meets one drops.
  * @internal
  */

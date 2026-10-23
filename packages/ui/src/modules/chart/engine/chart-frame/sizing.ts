@@ -113,7 +113,7 @@ export function frameFills(sizing: FrameSizing): boolean {
  * beside the plot at its own width. The drawing therefore holds its ratio next
  * to the panel, rather than sharing a box with it.
  *
- * @param aside Whether the legend bands beside the plot (a left / right panel)
+ * @param aside - Whether the legend bands beside the plot (a left / right panel)
  * rather than above or below it. A side legend keeps the ratio on the plot box.
  * Every other live-ratio frame carries it on the figure, so the parent can clamp
  * the chart.

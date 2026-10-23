@@ -5,8 +5,12 @@ import { getScroller } from '../utilities/get-scroller'
 /** Where a node must land within the scroller, per axis. Mirrors native `scrollIntoView`. */
 type ScrollAlignment = 'start' | 'center' | 'end' | 'nearest'
 
-/** Options for {@link useScrollWithin}: the scroll container and the behavior a scroll into view takes. */
+/** Options for {@link useScrollWithin}: the motion of the scroll and the alignment on each axis. */
 export type ScrollWithinOptions = {
+	/**
+	 * How the scroller moves to the node, as in native `scrollIntoView`.
+	 * @defaultValue 'auto'
+	 */
 	behavior?: ScrollBehavior
 	/**
 	 * Block-axis (vertical) alignment.

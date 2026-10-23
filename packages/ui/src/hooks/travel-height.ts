@@ -24,9 +24,9 @@ import { type AnimationPlaybackControls, animate, type ValueAnimationTransition 
  * frame put it. A caller that hands the height to something else needs exactly
  * that.
  *
- * @param from The height the element rested at, which is the one the reader saw.
- * @param to The height its content now asks for.
- * @param onSettle Runs once the box is back with layout, for a caller that has
+ * @param from - The height the element rested at, which is the one the reader saw.
+ * @param to - The height its content now asks for.
+ * @param onSettle - Runs once the box is back with layout, for a caller that has
  * to re-read it. Never runs for a travel the caller stopped.
  * @returns The travel, for a caller that has to stop or replace it.
  * @internal

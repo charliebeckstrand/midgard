@@ -10,8 +10,8 @@ import { useEffect } from 'react'
  * @remarks Use it for a setting that fails silently: a prop that has no
  * effect in the configuration around it. The warning tells the developer so.
  *
- * @param active Whether the setting that fails is present now.
- * @param message The text of the warning.
+ * @param active - Whether the setting that fails is present now.
+ * @param message - The text of the warning.
  * @internal
  */
 export function useDevWarning(active: boolean, message: string): void {

@@ -39,11 +39,11 @@ export const OVERFLOW_CHIP_RESERVE = 48
  * spilling to a new one. Entries wrap in order, so the first `n` rects are exactly the first
  * `n` entries: the return is a prefix length.
  *
- * @param rects Each entry's wrapped row and far edge, in DOM (wrap) order.
- * @param maxRows The tier's row cap; `0` shows nothing (the legend is gone).
- * @param containerWidth The wrap's content-box width, the far edge the chip
+ * @param rects - Each entry's wrapped row and far edge, in DOM (wrap) order.
+ * @param maxRows - The tier's row cap; `0` shows nothing (the legend is gone).
+ * @param containerWidth - The wrap's content-box width, the far edge the chip
  * must fit inside.
- * @param chipReserve The room the chip needs beside the last entry ({@link
+ * @param chipReserve - The room the chip needs beside the last entry ({@link
  * OVERFLOW_CHIP_RESERVE}).
  * @internal
  */

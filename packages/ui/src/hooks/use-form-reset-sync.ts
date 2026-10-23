@@ -19,8 +19,8 @@ import { useStableEvent } from './use-stable-event'
  * or mounts again, gets the listener too. Unmount, or a change of `enabled` to
  * `false`, removes the listener and cancels a waiting frame.
  *
- * @param enabled Listens only when `true`. Give `false` when React controls the value.
- * @param onReset Receives the input after the reset. It can change on each render.
+ * @param enabled - Listens only when `true`. Give `false` when React controls the value.
+ * @param onReset - Receives the input after the reset. It can change on each render.
  * @returns A callback ref for the input that the form reverts.
  * @internal
  */

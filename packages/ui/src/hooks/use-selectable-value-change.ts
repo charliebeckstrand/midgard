@@ -8,8 +8,9 @@ import { useCallback } from 'react'
  * Single-select passes straight through, reporting a cleared selection as the
  * `null` the value cascade already emits (CONVENTIONS §7.3).
  *
- * @returns A stable handler that forwards to `onValueChange`, dropping the call
- * when the selection is cleared and `multiple` is true.
+ * @returns A handler that forwards to `onValueChange`, dropping the call when
+ * the selection is cleared and `multiple` is true. It keeps its identity while
+ * `onValueChange` and `multiple` keep theirs.
  */
 export function useSelectableValueChange<T>(
 	onValueChange: ((value: T | T[] | null) => void) | undefined,

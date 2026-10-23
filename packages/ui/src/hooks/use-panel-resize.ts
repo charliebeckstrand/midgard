@@ -11,6 +11,7 @@ import {
 import { dataAttr } from '../core'
 import { clamp, pct } from '../utilities'
 import { holdTextSelection } from '../utilities/hold-text-selection'
+import { hasBrowserModifier } from '../utilities/modifier-keys'
 import { isPrimaryPress } from '../utilities/primary-press'
 import { type DragCursor, useDragCursor } from './use-drag-cursor'
 
@@ -470,6 +471,9 @@ export function usePanelResize({
 	}
 
 	function onKeyDown(event: ReactKeyboardEvent<HTMLElement>) {
+		// A chord with Ctrl, Meta, or Alt is for the browser, such as Back on Alt+Left.
+		if (hasBrowserModifier(event)) return
+
 		if (event.key !== grow && event.key !== shrink) return
 
 		event.preventDefault()
