@@ -18,4 +18,14 @@ describe('readoutToCsv grid', () => {
 
 		expect(csv.split('\r\n')).toEqual([',Revenue,Margin', 'Q1,10,4', 'Q2,20,', 'Q3,30,'])
 	})
+
+	it('writes the corner of the readout into the first header cell', () => {
+		const csv = readoutToCsv({
+			corner: 'Commits',
+			categories: ['9'],
+			rows: [{ label: 'Mon', swatchClass: '', swatch: 'rect', values: ['1'] }],
+		})
+
+		expect(csv.split('\r\n')).toEqual(['Commits,Mon', '9,1'])
+	})
 })

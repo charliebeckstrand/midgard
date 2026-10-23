@@ -66,7 +66,7 @@ const ChartTableBody = memo(function ChartTableBody({
 
 				<thead>
 					<tr>
-						<td />
+						<td>{readout.corner}</td>
 
 						{readout.rows.map((row, index) => (
 							<th key={row.index ?? index} scope="col">

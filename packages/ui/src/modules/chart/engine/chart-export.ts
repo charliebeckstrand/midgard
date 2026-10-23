@@ -639,8 +639,8 @@ export async function rasterizeImage(
 }
 
 /**
- * Builds a CSV from a chart's readout: a leading empty corner cell, then one
- * column per series, and one row per category. It is the same category × series
+ * Builds a CSV from a chart's readout: a leading corner cell (the readout's
+ * `corner`, else empty), then one column per series, and one row per category. It is the same category × series
  * grid that the visually-hidden data table renders, so the export mirrors what
  * assistive tech reads. Values are the chart's formatted display strings.
  *
@@ -648,7 +648,7 @@ export async function rasterizeImage(
  * @returns The CSV text, CRLF-delimited.
  */
 export function readoutToCsv(readout: ChartReadout): string {
-	const header = ['', ...readout.rows.map((row) => row.label)]
+	const header = [readout.corner ?? '', ...readout.rows.map((row) => row.label)]
 
 	const body = readout.categories.map((category, index) => [
 		category,

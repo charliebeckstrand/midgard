@@ -466,6 +466,12 @@ type ChartReadoutRow = {
  * @internal
  */
 export type ChartReadout = {
+	/**
+	 * The text of the corner cell above the categories, in the data table and the
+	 * CSV header. The heatmap names its value there, because its rows are not
+	 * series and every cell holds the same measure. Absent, the corner is empty.
+	 */
+	corner?: string
 	categories: string[]
 	rows: ChartReadoutRow[]
 }

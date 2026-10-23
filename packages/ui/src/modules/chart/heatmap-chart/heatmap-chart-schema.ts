@@ -48,7 +48,10 @@ export type HeatmapChartSeries<T> = {
 	 * so under `'quantile'` the scale spans the data extent and this is ignored.
 	 */
 	colorDomain?: [number, number]
-	/** The value's display name; the legend caption and table header. AG Charts' `colorName`. */
+	/**
+	 * The value's display name: the legend caption, and the corner header of the
+	 * data table and the CSV. AG Charts' `colorName`.
+	 */
 	colorName?: string
 	/**
 	 * Bin count for the scale and its legend.
