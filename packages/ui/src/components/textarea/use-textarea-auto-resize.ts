@@ -31,17 +31,19 @@ function fitTextarea(textarea: HTMLTextAreaElement): void {
  * Keep the height of a textarea equal to the height of its content while
  * `enabled` is true.
  *
- * @remarks The hook fits the field on each `input` event, and before paint after
- * a render that changed its text or its `rows`, such as a controlled write,
- * which sends no `input` event. It also fits the field when its content box
- * changes and the hook did not cause the change: a new width changes the line
- * wraps, and a new `size` or density scope changes the padding and the text
- * size. The resize observer ignores a change that comes from a height write of
- * the hook, and it defers the fit by one frame, so the fit does not start a
- * resize-observer loop. After a native reset of the form, the hook fits the
- * field in the next frame, because the browser restores the value after the
- * `reset` event. When `enabled` becomes false, the hook removes the inline
- * height.
+ * @remarks The hook fits the field on each `input` event. It also fits the
+ * field before paint after a render that changed its text or its `rows`. A
+ * controlled write is such a render, and it sends no `input` event.
+ *
+ * The hook also fits the field when its content box changes for a cause other
+ * than the hook. A new width changes the line wraps. A new `size` or density
+ * scope changes the padding and the text size. The resize observer ignores a
+ * change that comes from a height write of the hook. It defers the fit by one
+ * frame, so the fit does not start a resize-observer loop.
+ *
+ * After a native reset of the form, the hook fits the field in the next frame.
+ * The browser restores the value after the `reset` event. When `enabled`
+ * becomes false, the hook removes the inline height.
  *
  * The hook sets the height in script and does not use `field-sizing: content`,
  * because Safari below 26.2 and Firefox do not support that property. The

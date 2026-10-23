@@ -17,12 +17,12 @@ export type ButtonBaseProps = ButtonVariants & {
 	loading?: boolean
 	/**
 	 * Lets a locked scope, such as a `Form` while a submit runs, make the button
-	 * inert. An inert button keeps its focus and its place in the tab
-	 * order, and cancels each activation. Pass `false` for a button that must
-	 * work while the scope is locked, such as the Cancel of a drawer. A library
-	 * button that writes no field, such as a `Tab` or a `CopyButton`, passes
-	 * `false` too. A button with an `href` is a link, and the lock does not
-	 * reach it.
+	 * inert. An inert button keeps its focus and its place in the tab order, and
+	 * cancels each activation. Pass `false` for a button that must work while
+	 * the scope is locked, such as the Cancel of a drawer. A library button that
+	 * writes no field, such as a `Tab`, a `CopyButton`, or a `ToggleIconButton`,
+	 * passes `false` too. A button with an `href` is a link, and the lock does
+	 * not reach it.
 	 * @defaultValue true
 	 */
 	lockable?: boolean

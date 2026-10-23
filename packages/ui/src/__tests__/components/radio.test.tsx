@@ -40,7 +40,7 @@ describe('Radio', () => {
 
 		const wrapper = bySlot(container, 'control')
 
-		expect(wrapper).toHaveAttribute('data-disabled')
+		expect(wrapper).toHaveAttribute('data-disabled', '')
 	})
 })
 

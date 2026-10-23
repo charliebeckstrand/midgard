@@ -1,7 +1,7 @@
 'use client'
 
 import type { ChangeEventHandler, ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k, type RadioVariants } from '../../recipes/kata/radio'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
@@ -26,7 +26,7 @@ export type RadioProps = RadioVariants & {
  * and invalid state resolve from the enclosing Control. A read-only
  * {@link RadioGroup} also makes the radio read-only. In a RadioGroup, the radio
  * does not adopt the id or the description of a `<Field>` or `<Control>` that
- * holds the group; wrap it in a {@link RadioField} to give it an id. The
+ * holds the group. Wrap it in a {@link RadioField} to give it an id. The
  * circle takes the step of the nearest density scope, and an explicit `size`
  * opens a scope on the label.
  *
@@ -144,7 +144,7 @@ export function Radio({
 		<label
 			data-slot="control"
 			data-density={size}
-			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
+			data-disabled={dataAttr(resolvedDisabled)}
 			className={cn(slots.base, className)}
 		>
 			<input

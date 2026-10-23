@@ -14,6 +14,7 @@ import { useInputValue } from '../../components/input/use-input-value'
 import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from '../../components/popover'
 import { Sheet, SheetPanel } from '../../components/sheet'
 import { Tab, TabList, Tabs } from '../../components/tabs'
+import { ToggleIconButton } from '../../components/toggle-icon-button'
 import {
 	Form,
 	FormFilters,
@@ -514,6 +515,8 @@ describe('Form', () => {
 
 		const onValueChange = vi.fn()
 
+		const onPressedChange = vi.fn()
+
 		const { container } = renderUI(
 			<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
 				<Tabs value="a" onValueChange={onValueChange}>
@@ -523,6 +526,7 @@ describe('Form', () => {
 					</TabList>
 				</Tabs>
 				<CopyButton text="token" aria-label="Copy token" />
+				<ToggleIconButton icon={<svg />} aria-label="Pin" onPressedChange={onPressedChange} />
 				<Button type="button">Preview</Button>
 				<SubmittingProbe />
 			</Form>,
@@ -544,6 +548,14 @@ describe('Form', () => {
 		fireEvent.click(billing)
 
 		expect(onValueChange).toHaveBeenCalledWith('b')
+
+		const pin = screen.getByRole('button', { name: 'Pin' })
+
+		expect(pin).not.toHaveAttribute('aria-disabled')
+
+		fireEvent.click(pin)
+
+		expect(onPressedChange).toHaveBeenCalledWith(true)
 
 		await act(async () => {
 			pending.resolve()

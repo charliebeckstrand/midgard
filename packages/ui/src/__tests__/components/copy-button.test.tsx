@@ -346,6 +346,20 @@ describe('CopyButton', () => {
 		await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'))
 	})
 
+	it('copies when a consumer onClick prevents the default, because the copy is the activation', async () => {
+		const writeText = vi.fn().mockResolvedValue(undefined)
+
+		stubClipboard({ writeText })
+
+		const { container } = renderUI(
+			<CopyButton text="hello" onClick={(event) => event.preventDefault()} />,
+		)
+
+		fireEvent.click(present<HTMLButtonElement>(container.querySelector('button'), 'button'))
+
+		await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'))
+	})
+
 	it('announces success to a live region on copy', async () => {
 		const writeText = vi.fn().mockResolvedValue(undefined)
 
