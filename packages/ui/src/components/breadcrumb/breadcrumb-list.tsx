@@ -9,4 +9,4 @@ export type BreadcrumbListProps = ComponentProps<'ol'>
  * Ordered list (`<ol>`) holding the crumbs and separators of a `<Breadcrumb>`.
  * Static leaf: renders in React Server Components.
  */
-export const BreadcrumbList = createSlot('ol', 'breadcrumb-list', k.list())
+export const BreadcrumbList = createSlot('ol', 'breadcrumb-list', k().list)

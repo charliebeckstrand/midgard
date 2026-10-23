@@ -67,12 +67,7 @@ export function TimelineMarker({
 			data-slot="timeline-marker"
 			// ARIA stays on the TimelineItem <li>, which announces aria-current; the
 			// decorative marker carries none.
-			className={cn(
-				k.marker.base,
-				k.marker.orientation[orientation],
-				k.marker.palette[lineBefore ?? 'zinc'].line.before,
-				k.marker.palette[lineAfter ?? 'zinc'].line.after,
-			)}
+			className={k({ orientation, lineBefore, lineAfter }).marker.base}
 		>
 			{color != null ? (
 				// A color-only marker is decorative: paint the dot straight from the
@@ -81,8 +76,8 @@ export function TimelineMarker({
 				<Swatch
 					shape="circle"
 					variant={variant}
-					color={cn(k.marker.palette[color].dot)}
-					className={cn(k.marker.dot, pulse && k.marker.pulse)}
+					color={cn(k.color[color])}
+					className={k({ pulse }).marker.dot}
 				/>
 			) : (
 				<StatusDot
@@ -91,7 +86,7 @@ export function TimelineMarker({
 					pulse={pulse}
 					// Names the dot when it carries a semantic status; a color-only marker stays decorative.
 					label={status ? capitalizeFirst(status) : undefined}
-					className={k.marker.dot}
+					className={k().marker.dot}
 				/>
 			)}
 		</span>

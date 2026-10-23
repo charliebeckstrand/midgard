@@ -45,7 +45,7 @@ export function ListHandle({ children, className, onPointerDown, ...props }: Lis
 			aria-hidden="true"
 			data-dragging={dataAttr(dragging)}
 			data-disabled={dataAttr(disabled)}
-			className={cn(k.handle, className)}
+			className={cn(k().handle, className)}
 			// The drag start is the activation of the handle, so a consumer's
 			// preventDefault() does not cancel it (CONVENTIONS.md §3.9).
 			onPointerDown={

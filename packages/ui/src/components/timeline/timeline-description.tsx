@@ -16,7 +16,7 @@ export function TimelineDescription({ className, children, ...props }: TimelineD
 		<p
 			data-slot="timeline-description"
 			{...props}
-			className={cn(k.description({ orientation }), className)}
+			className={cn(k({ orientation }).description, className)}
 		>
 			{children}
 		</p>

@@ -86,7 +86,7 @@ describe('logical sides under dir=rtl', () => {
 	})
 
 	it('horizontal timeline marker sits at the inline start (right)', () => {
-		const style = rtl(cn(timeline.marker.base, timeline.marker.orientation.horizontal))
+		const style = rtl(timeline({ orientation: 'horizontal' }).marker.base)
 		expect(style.right).toBe('6.5px')
 	})
 

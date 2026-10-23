@@ -208,6 +208,8 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 		},
 	}
 
+	const slots = k({ variant, lifted, interactive, stretched, rounded })
+
 	const row = {
 		ref: setNodeRef,
 		...(stopOnRow ? reorderProps : {}),
@@ -219,16 +221,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 		'data-dragging': dataAttr(dragging),
 		'data-lifted': dataAttr(lifted),
 		'data-interactive': dataAttr(interactive),
-		className: cn(
-			k.item({
-				variant,
-				lifted,
-				interactive,
-				stretched,
-				rounded,
-			}),
-			className,
-		),
+		className: cn(slots.item, className),
 	}
 
 	const content = (
@@ -237,7 +230,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 			<Polymorphic
 				as={as}
 				href={href}
-				className={k.content({ interactive, lifted, stretched })}
+				className={slots.content}
 				{...props}
 				{...(stopOnContent ? reorderProps : {})}
 				// The keyboard model and a kata rule select this anchor, so it comes after

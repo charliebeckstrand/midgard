@@ -64,7 +64,7 @@ export function Timeline({
 				{...props}
 				ref={setRoot}
 				data-slot="timeline"
-				className={cn(k.base({ orientation }), className)}
+				className={cn(k({ orientation }).base, className)}
 			>
 				{children}
 			</ol>

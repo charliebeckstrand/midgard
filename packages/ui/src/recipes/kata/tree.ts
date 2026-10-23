@@ -1,13 +1,13 @@
 /**
- * Tree kata: object-literal surface for the `<Tree>` treeview. The
- * `item.content` row, its `chevron`, and the `check.mark` take the step of the
- * nearest density scope. The static slots cover the `base` container, the
- * `check` box, `affix`, `label`, and `group`. `group.indent` pads each nested
- * group, and `motion` is the collapse transition. `skeleton` is the form of the
+ * Tree kata: the unit of the `<Tree>` treeview. The `content` row, its
+ * `chevron`, and the check `mark` take the step of the nearest density scope.
+ * The other slots are the `base` container, the `check` box, `affix`, `label`,
+ * and `group`. The `indent` axis of `group` pads each nested group, and
+ * `motion` is the collapse transition. `skeleton` is the form of the
  * `TreeSkeleton` rows.
  */
 import { defineScale } from '../../core/density'
-import { defineRecipe, mode } from '../../core/recipe'
+import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
 import { rest } from '../kumi/check'
 
@@ -20,27 +20,6 @@ const { css, collapse } = ugoki
 
 /** The box of a row: its layout, padding, and gap. The skeleton rows take it too. */
 const row = [flex.row, 'w-full', dan.space.tree.y, dan.space.tree.x, dan.gap.scale.sm]
-
-const itemContent = defineRecipe(
-	{
-		base: [
-			...row,
-			text.muted,
-			fg.hover,
-			rounded.lg,
-			focus.inset,
-			...cursor,
-			'select-none',
-			...fg.open,
-			ji.ramp,
-		],
-	},
-	{
-		// Forced colors map the text of each row to `CanvasText`, so the current
-		// row also takes an underline there.
-		current: [text.default, 'forced-colors:underline forced-colors:decoration-2'],
-	},
-)
 
 /**
  * The check box of a checkable row. It is a picture of the state, not a
@@ -80,38 +59,68 @@ const chevron = [
 	css.duration,
 ]
 
-export const k = {
-	base: [
-		flex.col,
-		// Trims the outer block padding of the first and last visible rows, so the
-		// tree is flush with its container. The last visible row is the row of a
-		// last item with no open group, in a chain of last items with open groups.
-		'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
-		'[&_[data-slot=tree-item]:last-child:not(:has(>[data-slot=tree-group][data-open])):not([data-slot=tree-item]:not(:last-child)_*):not([data-slot=tree-group]:not([data-open])_*)>[role=treeitem]]:pb-0',
-	],
-	item: {
-		content: itemContent,
+export const k = defineKata(
+	{
+		base: [
+			flex.col,
+			// Trims the outer block padding of the first and last visible rows, so the
+			// tree is flush with its container. The last visible row is the row of a
+			// last item with no open group, in a chain of last items with open groups.
+			'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
+			'[&_[data-slot=tree-item]:last-child:not(:has(>[data-slot=tree-group][data-open])):not([data-slot=tree-item]:not(:last-child)_*):not([data-slot=tree-group]:not([data-open])_*)>[role=treeitem]]:pb-0',
+		],
+		slots: {
+			item: {
+				slots: {
+					/** The row of an item: the treeitem. */
+					content: {
+						base: [
+							...row,
+							text.muted,
+							fg.hover,
+							rounded.lg,
+							focus.inset,
+							...cursor,
+							'select-none',
+							...fg.open,
+							ji.ramp,
+						],
+						// Forced colors map the text of each row to `CanvasText`, so the current
+						// row also takes an underline there.
+						current: {
+							true: [text.default, 'forced-colors:underline forced-colors:decoration-2'],
+							false: '',
+						},
+					},
+				},
+			},
+			chevron,
+			check: {
+				base: check,
+				slots: {
+					mark,
+				},
+			},
+			/** Prefix/suffix slot wrappers flanking the label. The slots hold no control. */
+			affix: 'flex flex-none items-center',
+			label: 'flex-1 truncate text-start',
+			// A group has no clip of its own: its motion clips it only while its height
+			// moves.
+			group: {
+				/**
+				 * The start padding of a nested group when `indent` is enabled. It equals
+				 * the chevron width plus the row gap, so each depth adds one step of it.
+				 */
+				indent: {
+					true: dan.space.tree.indent,
+					false: '',
+				},
+			},
+		},
+		defaults: { current: false, indent: false },
 	},
-	chevron,
-	check: {
-		base: check,
-		mark,
-	},
-	/** Prefix/suffix slot wrappers flanking the label. The slots hold no control. */
-	affix: 'flex flex-none items-center',
-	label: 'flex-1 truncate text-start',
-	// A group has no clip of its own: its motion clips it only while its height
-	// moves.
-	group: {
-		/**
-		 * The start padding of a nested group when `indent` is enabled. It equals
-		 * the chevron width plus the row gap, so each depth adds one step of it.
-		 */
-		indent: dan.space.tree.indent,
-	},
-	motion: collapse.fade,
-	skeleton: { ...kokkaku.tree, row },
-} as const
+	{ motion: collapse.fade, skeleton: { ...kokkaku.tree, row } },
+)
 
 /** The size scale of {@link Tree}: the steps of its icon, row, and indent. */
 export const scale = defineScale(

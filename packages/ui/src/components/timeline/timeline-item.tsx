@@ -62,7 +62,7 @@ export function TimelineItem(props: TimelineItemProps) {
 			{...rest}
 			data-current={dataAttr(current)}
 			aria-current={current ? 'step' : undefined}
-			className={cn(k.item({ orientation }), className)}
+			className={cn(k({ orientation }).item, className)}
 		>
 			<TimelineContext value={providerValue}>
 				<TimelineMarker {...markerConfig} />

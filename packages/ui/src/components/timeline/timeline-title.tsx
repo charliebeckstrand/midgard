@@ -33,7 +33,7 @@ export function TimelineTitle({ className, level, children, ...props }: Timeline
 		<Element
 			data-slot="timeline-title"
 			{...props}
-			className={cn(k.title({ orientation }), className)}
+			className={cn(k({ orientation }).title, className)}
 		>
 			{children}
 		</Element>

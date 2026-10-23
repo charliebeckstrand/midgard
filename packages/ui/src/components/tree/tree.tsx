@@ -117,7 +117,7 @@ export function Tree({
 				role="tree"
 				data-slot="tree"
 				density={size}
-				className={cn(k.base, className)}
+				className={cn(k().base, className)}
 				onKeyDown={handleKeyDown}
 			>
 				{stampTreePositions(children)}
