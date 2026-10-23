@@ -47,6 +47,7 @@ import {
 	sectorLegendItems,
 	sectorReadout,
 	sliceActivation,
+	sliceShares,
 } from './sector-chart-frame'
 import { SectorChartMarks, SectorSegmentLabels, segmentLabelItems } from './sector-chart-marks'
 
@@ -192,6 +193,8 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
 	const sliceValues = values.map((value, index) => (hidden.has(index) ? null : value))
 
+	const shares = sliceShares(sliceValues)
+
 	// Callouts sit outside the pie, so reserve room for the widest one and shrink
 	// the pie to fit: its label never spills past the frame's clip. The frame
 	// sizes from the full dataset and the pie fits the visible slices, whose
@@ -308,18 +311,30 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// A cached thunk ({@link ChartReadoutSource}): slices are few, but the frame
 	// contract defers every readout to its first consumer all the same. Its inputs
 	// are new on each render, so the rows, the fields, the color order, and the
-	// format hold them while their content stays the same. A parent render then
-	// formats no row again. An empty pie has no readout, so the menu drops its
-	// data actions.
+	// formats hold them while their content stays the same. A parent render then
+	// formats no row again. The shares follow the toggled slices, whose set keeps
+	// its identity until a toggle. An empty pie has no readout, so the menu drops
+	// its data actions.
 	const readoutInput = useStableValue(
-		{ data, entry, categories, format, labels: sliceLabels, paints, values },
+		{
+			data,
+			entry,
+			categories,
+			format,
+			locale,
+			percent,
+			labels: sliceLabels,
+			paints,
+			values,
+		},
 		(prev, next) =>
 			prev.data === next.data &&
 			prev.entry.xKey === next.entry.xKey &&
 			prev.entry.yKey === next.entry.yKey &&
 			prev.entry.yName === next.entry.yName &&
 			prev.categories === next.categories &&
-			prev.format === next.format,
+			prev.format === next.format &&
+			prev.locale === next.locale,
 	)
 
 	const readout = useMemo(
@@ -331,15 +346,18 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 							readoutInput.paints,
 							readoutInput.entry.yName ?? readoutInput.entry.yKey,
 							readoutInput.values,
-							readoutInput.format,
+							sliceShares(
+								readoutInput.values.map((value, index) => (hidden.has(index) ? null : value)),
+							),
+							{ value: readoutInput.format, percent: readoutInput.percent },
 						),
 					)
 				: null,
-		[readoutInput],
+		[readoutInput, hidden],
 	)
 
 	const legendItems = hasLegend
-		? sectorLegendItems(sliceLabels, paints, colors, sliceValues, aside, percent)
+		? sectorLegendItems(sliceLabels, paints, colors, shares, aside, percent)
 		: null
 
 	const labelItems = segmentLabelItems({

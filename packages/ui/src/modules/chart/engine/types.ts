@@ -118,10 +118,12 @@ export type ScatterChartSeries<T> = Pick<ChartSeries<T>, 'yKey' | 'yName' | 'col
 	/** The field holding each point's numeric x position. */
 	xKey: DataKey<T>
 	/**
-	 * The field sizing each point: the bubble encoding. Sizes scale by area
-	 * (radii on a square root) between `size` and `maxSize` over this series' own
-	 * size extent. {@link BubbleChartSeries.sizeKey} gives the rule for a size of
-	 * zero, a negative size, and a size that is not finite.
+	 * The field sizing each point: the bubble encoding. The area of a disc is in
+	 * proportion to its size. The largest size across every sized series takes
+	 * the `maxSize` diameter, so one size draws one area in each series. A small
+	 * size takes at least the `size` diameter, so its disc stays visible.
+	 * {@link BubbleChartSeries.sizeKey} gives the rule for a size of zero, a
+	 * negative size, and a size that is not finite.
 	 */
 	sizeKey?: DataKey<T>
 	/**
@@ -151,8 +153,8 @@ export type BubbleChartSeries<T> = ScatterChartSeries<T> & {
 	 * the disc as follows:
 	 *
 	 * - A size of zero draws the smallest disc, at the series' `size` diameter.
-	 * - A negative size draws no disc. The point takes no part in the size
-	 *   extent, the hit test, or the keyboard stops. The tooltip of its x column
+	 * - A negative size draws no disc. The point takes no part in the largest
+	 *   size, the hit test, or the keyboard stops. The tooltip of its x column
 	 *   and the data table still read it.
 	 * - A size that is not finite (`null`, blank, or text that does not parse)
 	 *   draws the smallest disc too. The point stays, and is not dropped.
@@ -275,11 +277,13 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * the readout to a click and gives the plot a pointer cursor, dismissing on a
 	 * second click of the same mark.
 	 *
-	 * The tooltip also gates keyboard navigation of the plot. Each arrow key
-	 * that moves the cursor onto a point speaks the readout of that point
-	 * through a polite live region, because the tooltip is `aria-hidden`. A key
-	 * that moves the cursor onto a reference line speaks the label and the value
-	 * of that line. A pointer hover speaks nothing.
+	 * The tooltip also gates keyboard navigation of the plot. A chart with a
+	 * click callback keeps the navigation with the tooltip off, so Enter and
+	 * Space can fire it. Each arrow key that moves the cursor onto a point
+	 * speaks the readout of that point through a polite live region, because
+	 * the tooltip is `aria-hidden`. A key that moves the cursor onto a
+	 * reference line speaks the label and the value of that line. A pointer
+	 * hover speaks nothing.
 	 * @defaultValue true
 	 */
 	tooltip?: boolean | ChartTooltipConfig

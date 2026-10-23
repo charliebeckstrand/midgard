@@ -160,27 +160,6 @@ describe('labelPoints', () => {
 			{ x: 20, y: 30, value: 9 },
 		])
 	})
-
-	it('reads each category by index when points are not gap-skipped (stacked ribbon)', () => {
-		// A stacked ribbon's top edge carries one point per category — the gap
-		// included — so the value reads straight off `values[index]`, and the null
-		// category takes no label. The gap-skipping zip would have shifted 20 onto
-		// the middle point and dropped the last to 0.
-		const points = labelPoints(
-			[null, 10, 20],
-			[
-				{ x: 0, y: 100 },
-				{ x: 20, y: 80 },
-				{ x: 40, y: 60 },
-			],
-			false,
-		)
-
-		expect(points).toEqual([
-			{ x: 20, y: 80, value: 10 },
-			{ x: 40, y: 60, value: 20 },
-		])
-	})
 })
 
 describe('labelBesideY', () => {

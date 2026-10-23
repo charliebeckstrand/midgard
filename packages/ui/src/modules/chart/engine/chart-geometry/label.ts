@@ -102,41 +102,20 @@ export function valueLabelHeadroom(
 export type ValueLabelPoint = { x: number; y: number; value: number }
 
 /**
- * Pairs a series' rendered points with the values behind them. Two point shapes
- * reach this:
+ * Pairs a series' rendered points with the values behind them. The points
+ * already drop the null categories, so the finite values align one-to-one with
+ * them in draw order. The point position, not the raw value, sets the label
+ * anchor, so a stacked ribbon labels each series at its own edge.
  *
- * - A gap-skipping line (or unstacked area), whose `points` already drop the
- *   null categories. The finite values align one-to-one with them in draw order.
- * - A stacked ribbon's continuous top edge, whose `points` carry one entry per
- *   category, nulls included. Each reads its value straight off `values[index]`,
- *   and a null category takes no label.
- *
- * The point position, not the raw value, sets the label anchor, so a stacked
- * ribbon labels each series at its own edge.
- *
- * @param gapSkipped - Whether `points` already dropped the null categories (a
- * line's gap-split geometry) rather than carrying one entry per category (a
- * stacked ribbon's continuous edge).
  * @internal
  */
 export function labelPoints(
 	values: (number | null)[],
 	points: { x: number; y: number }[],
-	gapSkipped = true,
 ): ValueLabelPoint[] {
-	if (gapSkipped) {
-		const finite = values.filter(
-			(value): value is number => value != null && Number.isFinite(value),
-		)
+	const finite = values.filter((value): value is number => value != null && Number.isFinite(value))
 
-		return points.map((point, index) => ({ x: point.x, y: point.y, value: finite[index] ?? 0 }))
-	}
-
-	return points.flatMap((point, index) => {
-		const value = values[index]
-
-		return value != null && Number.isFinite(value) ? [{ x: point.x, y: point.y, value }] : []
-	})
+	return points.map((point, index) => ({ x: point.x, y: point.y, value: finite[index] ?? 0 }))
 }
 
 /** One series' labelable points, the ink its labels take, and its formatter. @internal */
@@ -400,7 +379,6 @@ export function resolveValueLabels(
 	config: ValueLabelConfig | undefined,
 	list: LabelableSeries[],
 	plot: PlotRect,
-	gapSkipped = true,
 	obstacles?: LabelBox[],
 ): PlacedValueLabel[] {
 	if ((!config?.endpoints && !config?.extremes) || list.length !== 1) return []
@@ -409,7 +387,7 @@ export function resolveValueLabels(
 		series: list.map((entry) => ({
 			fill: entry.fill ?? '',
 			color: entry.color,
-			points: labelPoints(entry.values, entry.points, gapSkipped),
+			points: labelPoints(entry.values, entry.points),
 			format: entry.format,
 		})),
 		plot,

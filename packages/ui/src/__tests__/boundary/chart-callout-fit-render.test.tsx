@@ -5,7 +5,8 @@ import { act, allBySlot, fireEvent, renderUI } from '../helpers'
 /**
  * A callout pie fits its disc to the frame once in a render. The frame sizing,
  * the callout gate, and the drawing read that one fit, and each callout text
- * formats once. A hidden slice gives the visible slices a fit of their own.
+ * formats once. The readout formats each share once, however many renders
+ * read it. A hidden slice gives the visible slices a fit of their own.
  *
  * The fit count reads `pieCalloutFit`, the format count reads the percent
  * formatter, and the render count reads the slice layer, which the chart body
@@ -75,8 +76,8 @@ beforeEach(() => {
 
 describe('pie callout fit', () => {
 	it('fits the pie once and formats each callout text once in a render', () => {
-		// No legend, so each percent format is a callout text. No height, so the
-		// frame sizes from the callout fit too.
+		// No legend, so each percent format is a callout text or a readout cell. No
+		// height, so the frame sizes from the callout fit too.
 		renderUI(
 			<PieChart
 				aria-label="Traffic by source"
@@ -92,7 +93,8 @@ describe('pie callout fit', () => {
 
 		expect(counts.fits).toBe(counts.renders)
 
-		expect(counts.formats).toBe(counts.renders * DATA.length)
+		// The readout formats each share once more, the first time the table reads it.
+		expect(counts.formats).toBe((counts.renders + 1) * DATA.length)
 	})
 
 	it('fits the visible slices once more while a slice is hidden', () => {

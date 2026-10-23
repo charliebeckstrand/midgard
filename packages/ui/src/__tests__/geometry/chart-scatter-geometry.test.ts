@@ -4,7 +4,7 @@ import {
 	anchorEndTicks,
 	diameterRange,
 	scatterMarkAt,
-	sizeDomain,
+	sizePeak,
 	sizeRadius,
 	uniqueXValues,
 } from '../../modules/chart/engine/chart-geometry/scatter'
@@ -56,8 +56,8 @@ describe('scatter geometry', () => {
 		expect(scatterMarkAt(marks, 10, 10, 0)).toEqual({ series: 1, datum: 0 })
 	})
 
-	it('folds the size extent of any count of points', () => {
-		// A spread into `Math.min` throws past the engine's argument limit.
+	it('folds the largest size of any count of points, across every series', () => {
+		// A spread into `Math.max` throws past the engine's argument limit.
 		const many = Array.from({ length: 500_000 }, (_, row) => ({
 			x: row,
 			y: row,
@@ -65,9 +65,13 @@ describe('scatter geometry', () => {
 			size: row % 7 === 0 ? null : row,
 		}))
 
-		expect(sizeDomain(many)).toEqual([1, 499_999])
+		expect(sizePeak([many])).toBe(499_999)
 
-		expect(sizeDomain([{ x: 0, y: 0, row: 0, size: null }])).toBeNull()
+		expect(sizePeak([[{ x: 0, y: 0, row: 0, size: null }]])).toBeNull()
+
+		const sized = (sizes: number[]) => sizes.map((size, row) => ({ x: row, y: row, row, size }))
+
+		expect(sizePeak([sized([1, 10]), sized([10, 100])])).toBe(100)
 	})
 
 	it('holds the emphasized disc across the midline until a challenger decisively closes', () => {
@@ -94,42 +98,45 @@ describe('scatter geometry', () => {
 		expect(nearestStopIndex([], 5)).toBeNull()
 	})
 
-	it('scales bubble radii by area between the diameter range ends', () => {
+	it('scales bubble areas with the size, from zero to the largest size', () => {
 		const diameters = diameterRange(8, 28)
 
-		const small = sizeRadius(1, [1, 100], diameters)
+		expect(sizeRadius(100, 100, diameters)).toBeNear(14, RADIUS_TOLERANCE)
 
-		const large = sizeRadius(100, [1, 100], diameters)
+		// Area-true: a quarter of the size is a quarter of the area, so half the radius.
+		expect(sizeRadius(25, 100, diameters)).toBeNear(7, RADIUS_TOLERANCE)
 
-		expect(small).toBeNear(4, RADIUS_TOLERANCE)
+		// Sizes 1% apart draw areas 1% apart, not the two ends of the diameter range.
+		const ratio = (sizeRadius(101, 101, diameters) / sizeRadius(100, 101, diameters)) ** 2
 
-		expect(large).toBeNear(14, RADIUS_TOLERANCE)
-
-		// Area-true: a quarter of the size is half the radius span, not a quarter.
-		expect(sizeRadius(25, [0, 100], diameters)).toBeNear(4 + (14 - 4) / 2, RADIUS_TOLERANCE)
+		expect(ratio).toBeNear(1.01, 0.0001)
 	})
 
-	it('reads equal sizes as mid-range and a sizeless point as smallest', () => {
+	it('floors a small size at the smallest diameter, and reads a sizeless point there too', () => {
 		const diameters = diameterRange(8, 28)
 
-		expect(sizeRadius(7, [7, 7], diameters)).toBeNear(9, RADIUS_TOLERANCE)
+		expect(sizeRadius(1, 100, diameters)).toBeNear(4, RADIUS_TOLERANCE)
 
-		expect(sizeRadius(null, [1, 100], diameters)).toBeNear(4, RADIUS_TOLERANCE)
+		expect(sizeRadius(null, 100, diameters)).toBeNear(4, RADIUS_TOLERANCE)
+
+		expect(sizeRadius(null, null, diameters)).toBeNear(4, RADIUS_TOLERANCE)
 	})
 
 	it('draws a zero size at the smallest diameter and a negative size as no disc', () => {
 		const diameters = diameterRange(8, 28)
 
-		// Every size is zero, so the extent collapses. The discs still read smallest, not mid-range.
-		expect(sizeRadius(0, [0, 0], diameters)).toBeNear(4, RADIUS_TOLERANCE)
+		// Every size is zero, so the peak is zero. The discs read smallest.
+		expect(sizeRadius(0, 0, diameters)).toBeNear(4, RADIUS_TOLERANCE)
 
-		expect(sizeRadius(-3, [0, 16], diameters)).toBe(0)
+		expect(sizeRadius(-3, 16, diameters)).toBe(0)
 	})
 
-	it('leaves a negative size out of the size extent', () => {
-		const sized = [-5, 4, 16].map((size, row) => ({ x: row, y: row, row, size }))
+	it('leaves a negative size out of the largest size', () => {
+		const sized = (sizes: number[]) => sizes.map((size, row) => ({ x: row, y: row, row, size }))
 
-		expect(sizeDomain(sized)).toEqual([4, 16])
+		expect(sizePeak([sized([-5, 4, 16])])).toBe(16)
+
+		expect(sizePeak([sized([-5])])).toBeNull()
 	})
 
 	it('anchors the edge ticks inward and leaves interior ones centered', () => {

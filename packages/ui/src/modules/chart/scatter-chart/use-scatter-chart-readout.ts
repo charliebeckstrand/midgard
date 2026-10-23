@@ -8,6 +8,21 @@ import { scatterReadoutValues } from '../engine/chart-geometry/scatter'
 import type { ChartReadout, ScatterChartSeries } from '../engine/types'
 import type { ScatterMeta } from './scatter-chart-layout'
 
+/**
+ * The size measure of a series as the readout names it, for example
+ * `weight: 4`, or `null` for a series that reads no size.
+ *
+ * @internal
+ */
+export function sizeLabel(
+	meta: ScatterMeta,
+	formatSize: (value: number) => string,
+): ((size: number) => string) | null {
+	const name = meta.sizeName
+
+	return name === null ? null : (size) => `${name}: ${formatSize(size)}`
+}
+
 /** The readout behind the discs: unique x columns crossed with each series' points. @internal */
 function scatterReadout(
 	visible: ScatterMeta[],
@@ -26,12 +41,7 @@ function scatterReadout(
 			swatchClass: textClass(meta.paint) ?? '',
 			swatchColor: rawColor(meta.paint),
 			swatch: 'rect',
-			values: scatterReadoutValues(
-				meta.points,
-				uniqueXs,
-				format,
-				meta.sizeName === null ? null : (size) => `${meta.sizeName}: ${formatSize(size)}`,
-			),
+			values: scatterReadoutValues(meta.points, uniqueXs, format, sizeLabel(meta, formatSize)),
 		})),
 	}
 }

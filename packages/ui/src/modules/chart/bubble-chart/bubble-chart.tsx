@@ -19,10 +19,12 @@ export type BubbleChartProps<T = never> = AccessibleName &
 
 /**
  * A bubble chart: the {@link ScatterChart} with the size encoding required, so
- * every series carries a third measure. Each disc's area scales with its
- * `sizeKey` value between the series' `size` and `maxSize` diameters. The
- * discs fill translucently so overlapping points stay severally readable, and
- * the tooltip and data table read the size measure beside each value.
+ * every series carries a third measure. Each disc's area is in proportion to
+ * its `sizeKey` value, from zero to the largest size across the series, which
+ * takes the `maxSize` diameter. A small value takes at least the `size`
+ * diameter. The discs fill translucently so overlapping points stay severally
+ * readable, and the tooltip and data table read the size measure beside each
+ * value.
  *
  * @remarks Everything else is the scatter contract: linear scales both ways,
  * parse-tolerant rows, legend toggles, unique-x keyboard roving, a point-click

@@ -1,7 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BubbleChart } from '../../modules/chart/bubble-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
-import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI, setupUser } from '../helpers'
+import {
+	act,
+	allBySlot,
+	bySlot,
+	expectAnnouncement,
+	fireEvent,
+	getSlot,
+	renderUI,
+	setupUser,
+} from '../helpers'
 
 type Stop = { distance: unknown; dwell: unknown; weight?: unknown }
 
@@ -451,6 +460,50 @@ describe('BubbleChart', () => {
 		expect(bySlot(container, 'chart-table')?.textContent).toContain('34 (weight: 4)')
 	})
 
+	it('draws one size at one area across series', () => {
+		const { container } = renderUI(
+			<BubbleChart
+				aria-label="Two sized series"
+				data={[
+					{ x: 1, a: 1, b: null, sa: 1, sb: null },
+					{ x: 2, a: 2, b: null, sa: 10, sb: null },
+					{ x: 3, a: null, b: 3, sa: null, sb: 10 },
+					{ x: 4, a: null, b: 4, sa: null, sb: 100 },
+				]}
+				width={480}
+				series={[
+					{ xKey: 'x', yKey: 'a', sizeKey: 'sa' },
+					{ xKey: 'x', yKey: 'b', sizeKey: 'sb' },
+				]}
+			/>,
+		)
+
+		const radii = points(container).map((disc) => Number(disc.getAttribute('r')))
+
+		// Size 10 reads the same in both series, and size 100 takes the largest disc.
+		expect(radii).toHaveLength(4)
+
+		expect(radii[1]).toBeNear(radii[2] as number, 0.01)
+
+		expect(radii[3]).toBeNear(14, 0.01)
+	})
+
+	it('draws the smallest disc for a series whose sizes all fail to parse', () => {
+		const { container } = renderUI(
+			<BubbleChart
+				aria-label="Unsized"
+				data={[
+					{ distance: 12, dwell: 34, weight: null },
+					{ distance: 48, dwell: 18, weight: null },
+				]}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', sizeKey: 'weight', size: 20 }]}
+			/>,
+		)
+
+		expect(points(container).map((disc) => Number(disc.getAttribute('r')))).toEqual([10, 10])
+	})
+
 	it('draws no disc for a negative size and keeps the point in the data table only', () => {
 		const onPointClick = vi.fn()
 
@@ -499,6 +552,39 @@ describe('BubbleChart', () => {
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('48')
+	})
+
+	it('names the one point under the keyboard cursor in a shared column', async () => {
+		const { container } = renderUI(
+			<BubbleChart
+				aria-label="Dwell against distance, sized by weight"
+				data={[
+					{ distance: 10, dwell: 5, weight: 2 },
+					{ distance: 10, dwell: 9, weight: 30 },
+					{ distance: 10, dwell: 1, weight: 4 },
+				]}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', sizeKey: 'weight', yName: 'Dwell' }]}
+			/>,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		// The first arrow lands on the first point. The value-axis arrows then step
+		// the column in screen order, and each stop speaks its own point.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await expectAnnouncement(/^10, Dwell: 5 \(weight: 2\)\s*$/)
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		await expectAnnouncement(/^10, Dwell: 1 \(weight: 4\)\s*$/)
+
+		fireEvent.keyDown(plot, { key: 'ArrowUp' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowUp' })
+
+		await expectAnnouncement(/^10, Dwell: 9 \(weight: 30\)\s*$/)
 	})
 
 	it('reports the clicked disc by series and data row', () => {

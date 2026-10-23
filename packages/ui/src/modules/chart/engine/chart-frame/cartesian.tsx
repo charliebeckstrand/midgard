@@ -54,13 +54,6 @@ export type CartesianStops = {
 export type CartesianValueLabelSeries = {
 	/** The drawn series, in the order the labels resolve their overlaps. */
 	list: ChartLineSeries[]
-	/**
-	 * Whether the points of each series already drop the null categories. A
-	 * stacked ribbon's edge carries one point for each category, so it passes
-	 * `false`.
-	 * @defaultValue true
-	 */
-	gapSkipped?: boolean
 }
 
 /** Props for {@link ChartCartesianFrame}. @internal */
@@ -323,7 +316,6 @@ export function ChartCartesianFrame({
 						labels,
 						valueLabels.list,
 						valueLabels.list.map((entry) => chart.metas[entry.index] ?? NO_VALUES),
-						valueLabels.gapSkipped,
 						referenceLabels?.flatMap((placed) => (placed ? [placed.box] : [])),
 					)}
 					animate={animate}

@@ -130,6 +130,15 @@ export function plotName(label: PlotName): PlotName {
 }
 
 /**
+ * Whether the keyboard cursor has an answer: the tooltip shows what it reads, or
+ * Enter and Space fire a click. A sparkline takes no click, so its cursor needs
+ * the tooltip.
+ */
+function keyboardAnswers(tooltipShown: boolean, clickable: boolean, spark: boolean): boolean {
+	return tooltipShown || (clickable && !spark)
+}
+
+/**
  * The plot region's attributes: the keyboard tab stop and its focus ring when
  * `keyboard` makes the region navigable, else a plain non-focusable region. It
  * takes the space its siblings leave: `flex-1` along the figure's main axis,
@@ -343,12 +352,15 @@ export type ChartFrameProps = AccessibleName & {
 	describeReference?: (reference: number) => string | null
 	/**
 	 * The text of the point at a stop of {@link focus}, for a chart whose stops do
-	 * not index {@link readout}'s categories. A key that moves the cursor onto the
-	 * point speaks this text. Absent, the frame speaks the readout at the index of
-	 * the stop. The heatmap names one cell with it, because its stops write a
-	 * row-major cell index and its readout has one category for each column.
+	 * not index {@link readout}'s categories, or whose readout cell holds more than
+	 * one point. It takes the hover index, the series, and the place of the stop in
+	 * its category. A key that moves the cursor onto the point speaks this text.
+	 * Absent, the frame speaks the readout at the index of the stop. The heatmap
+	 * names one cell with it, because its stops write a row-major cell index and
+	 * its readout has one category for each column. The scatter names one point,
+	 * because its readout joins the points that share an x.
 	 */
-	describePoint?: (index: number, series: number | null) => string | null
+	describePoint?: (index: number, series: number | null, stop: number) => string | null
 	/**
 	 * The keyboard cursor emphasizes the series it lands on (`null` off any), in
 	 * the same channel as the legend. The marks then recede the rest and the
@@ -517,9 +529,9 @@ export function ChartFrame({
 	// The tooltip is `aria-hidden`, so a key that moves the cursor onto a point
 	// also speaks the readout of that point through the shared polite live
 	// region. A pointer move speaks nothing.
-	const announceRead = (index: number, series: number | null) => {
+	const announceRead = (index: number, series: number | null, stop: number) => {
 		const text = describePoint
-			? describePoint(index, series)
+			? describePoint(index, series, stop)
 			: readout && describeReadout(readout(), index, series, readoutOrder)
 
 		if (text) announce(text)
@@ -535,10 +547,12 @@ export function ChartFrame({
 
 	// Arrow-key navigation over the value points and reference lines, driving the
 	// same hover the pointer does: a tab stop only where a readout can answer it.
+	// A click callback keeps the stop with the tooltip off, so Enter and Space fire
+	// what a click fires. The live region then names the point alone.
 	const keyboard = useChartKeyboard(
 		focus,
 		orientation ?? 'vertical',
-		tooltipShown && readout !== null,
+		readout !== null && keyboardAnswers(tooltipShown, onActivate !== undefined, spark),
 		hoverStore,
 		setActiveReference,
 		keyboardEmphasis ? setSeriesFocus : ignoreActiveSeries,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
-import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, expectAnnouncement, fireEvent, getSlot, renderUI } from '../helpers'
 
 const DATA = [
 	{ day: 'Mon', organic: 20, paid: 10 },
@@ -134,6 +134,44 @@ describe('AreaChart', () => {
 		fireEvent.pointerMove(getSlot(container, 'chart-hit'), { clientX: 200, clientY: 5 })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Tue')
+	})
+
+	it('gives a stacked gap no marker and no keyboard stop', async () => {
+		const gapped = [
+			{ day: 'Mon', organic: 20, paid: 10 },
+			{ day: 'Tue', organic: null, paid: 14 },
+			{ day: 'Wed', organic: 24, paid: 12 },
+		]
+
+		const { container } = renderUI(
+			<AreaChart
+				aria-label="Traffic by channel"
+				data={gapped}
+				series={[
+					{ xKey: 'day', yKey: 'organic', yName: 'Organic' },
+					{ xKey: 'day', yKey: 'paid', yName: 'Paid' },
+				]}
+				width={400}
+				stacked
+				points
+			/>,
+		)
+
+		// Organic has no Tue value, so its ribbon passes Tue at no thickness and draws no dot there.
+		expect(allBySlot(container, 'chart-point')).toHaveLength(5)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		// Tue offers the one stop that has a value, so a second step down stays on Paid.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		await expectAnnouncement(/^Tue, Paid: 14/)
 	})
 
 	it('marks the lone point of each series in a one-category stack', () => {

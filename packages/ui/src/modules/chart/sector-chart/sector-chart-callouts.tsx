@@ -21,6 +21,7 @@ import { SLICE_FADE, SLICE_UNFADE } from '../engine/chart-motion'
 import type { TextWidth } from '../engine/chart-text-width'
 import { isSparkBox } from '../engine/chart-tier'
 import { useChartSeriesEmphasis } from '../engine/context'
+import { sliceShares } from './sector-chart-frame'
 import { sliceGroupClass, sweepDelay } from './sector-chart-marks'
 
 /** A placed callout with its resolved label text. @internal */
@@ -76,13 +77,8 @@ function calloutLabelText({ labels, percent }: CalloutText, index: number, share
 
 /** Every row's callout text, indexed like `values`; a row with no slice reads `''`. @internal */
 function formatTexts(spec: CalloutText, values: (number | null)[]): string[] {
-	const total = values.reduce<number>(
-		(sum, value) => sum + (value != null && value > 0 ? value : 0),
-		0,
-	)
-
-	return values.map((value, index) =>
-		value != null && value > 0 && total > 0 ? calloutLabelText(spec, index, value / total) : '',
+	return sliceShares(values).map((share, index) =>
+		share == null ? '' : calloutLabelText(spec, index, share),
 	)
 }
 
