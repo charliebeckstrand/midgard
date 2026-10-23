@@ -4,7 +4,7 @@ import { type ReactNode, useMemo } from 'react'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
-import { fractionFormat, once, percentFormat, sameElements } from '../../../utilities'
+import { fractionFormat, once, percentFormat } from '../../../utilities'
 import { categorySlots } from '../engine/chart-color/palette'
 import { MARK_GAP, TICK_TARGET } from '../engine/chart-constants'
 import { ChartFrame } from '../engine/chart-frame/frame'
@@ -310,12 +310,23 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 
 	// A cached thunk ({@link ChartReadoutSource}): slices are few, but the frame
 	// contract defers every readout to its first consumer all the same. Its inputs
-	// are new on each render, so the rows, the fields, the color order, the
-	// shares, and the formats hold them while their content stays the same. A
-	// parent render then formats no row again. An empty pie has no readout, so
-	// the menu drops its data actions.
+	// are new on each render, so the rows, the fields, the color order, and the
+	// formats hold them while their content stays the same. A parent render then
+	// formats no row again. The shares follow the toggled slices, whose set keeps
+	// its identity until a toggle. An empty pie has no readout, so the menu drops
+	// its data actions.
 	const readoutInput = useStableValue(
-		{ data, entry, categories, format, percent, labels: sliceLabels, paints, values, shares },
+		{
+			data,
+			entry,
+			categories,
+			format,
+			locale,
+			percent,
+			labels: sliceLabels,
+			paints,
+			values,
+		},
 		(prev, next) =>
 			prev.data === next.data &&
 			prev.entry.xKey === next.entry.xKey &&
@@ -323,8 +334,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			prev.entry.yName === next.entry.yName &&
 			prev.categories === next.categories &&
 			prev.format === next.format &&
-			prev.percent === next.percent &&
-			sameElements(prev.shares, next.shares),
+			prev.locale === next.locale,
 	)
 
 	const readout = useMemo(
@@ -336,12 +346,14 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 							readoutInput.paints,
 							readoutInput.entry.yName ?? readoutInput.entry.yKey,
 							readoutInput.values,
-							readoutInput.shares,
+							sliceShares(
+								readoutInput.values.map((value, index) => (hidden.has(index) ? null : value)),
+							),
 							{ value: readoutInput.format, percent: readoutInput.percent },
 						),
 					)
 				: null,
-		[readoutInput],
+		[readoutInput, hidden],
 	)
 
 	const legendItems = hasLegend
