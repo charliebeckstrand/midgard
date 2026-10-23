@@ -41,16 +41,22 @@ type MapRegionReadout = {
 }
 
 /**
- * The rows whose region key names a region on the map. A row that matches no
- * region, such as a total, draws nothing, so it must not stretch the color
- * scale of the regions.
+ * The rows that the regions on the map join: for each region id, the last row
+ * with that id, as {@link regionValueJoin} reads it. A row that matches no
+ * region, such as a total, draws nothing. An earlier row with the same id as a
+ * later row draws nothing too. Neither row must stretch the color scale of the
+ * regions.
  *
  * @internal
  */
 function joinedRows<T>(data: T[], regionKey: DataKey<T>, regionIds: readonly string[]): T[] {
-	const ids = new Set(regionIds)
+	const byRegion = new Map(data.map((datum) => [String(datum[regionKey]), datum]))
 
-	return data.filter((datum) => ids.has(String(datum[regionKey])))
+	return [...new Set(regionIds)].flatMap((id) => {
+		const datum = byRegion.get(id)
+
+		return datum === undefined ? [] : [datum]
+	})
 }
 
 /**

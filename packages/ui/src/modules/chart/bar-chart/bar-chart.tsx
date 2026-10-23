@@ -13,6 +13,7 @@ import { barMarkAt } from '../engine/chart-hit-test'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
 import type { ChartOrientation } from '../engine/chart-orientation'
 import type { BandScale } from '../engine/chart-scale'
+import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
 import type { CartesianChartProps } from '../engine/types'
 import { useChartCartesian } from '../engine/use-chart-cartesian'
 
@@ -48,6 +49,12 @@ export type BarChartProps<T = never> = CartesianChartProps<T> & {
 	 * @defaultValue false
 	 */
 	thick?: boolean
+	/**
+	 * With `references`, each reference rule's value draws beside it in place of
+	 * its hover tooltip. A bar takes no point labels, so `references` is the one
+	 * key. Off by default; the tooltip and data table carry the full readout.
+	 */
+	labels?: Pick<ChartValueLabelConfig, 'references'>
 }
 
 /**
@@ -86,6 +93,8 @@ function stackedColumns(
  * The band-axis arrows step categories, and the value-axis arrows cycle each
  * category's series values, transposed with the orientation. A reference line joins that
  * value-axis roving, receding the marks when the cursor reaches it.
+ * `labels.references` drawing its value beside it stands in for the hover and
+ * drops the rove.
  * @example
  * ```tsx
  * <BarChart

@@ -89,6 +89,14 @@ describe('resolveColorBins', () => {
 
 		expect(bins.at(-1)?.hi).toBe(90)
 	})
+
+	it('collapses a flat domain to one bin, as the quantile bins do', () => {
+		const bins = resolveColorBins([5, 5], ['#000000', '#808080', '#ffffff'])
+
+		expect(bins).toEqual(resolveQuantileBins([5, 5], ['#000000', '#808080', '#ffffff']).bins)
+
+		expect(bins).toEqual([{ color: '#000000', lo: 5, hi: 5 }])
+	})
 })
 
 describe('binIndex', () => {

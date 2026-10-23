@@ -103,6 +103,8 @@ export function valueExtent(
  * `colorRange`, low → high. The default is one bin per color stop, or `bins`
  * buckets resampled from the stops when set. The last bin's `hi` is pinned to
  * the domain max so the top edge folds in rather than opening a bucket past it.
+ * A domain with no span is one bin, as {@link resolveQuantileBins} gives, because
+ * {@link binIndex} puts every value of that domain in bin `0`.
  *
  * @internal
  */
@@ -113,7 +115,7 @@ export function resolveColorBins(
 ): ColorBin[] {
 	const [min, max] = domain
 
-	const count = Math.max(1, bins ?? colorRange.length)
+	const count = max > min ? Math.max(1, bins ?? colorRange.length) : 1
 
 	const step = (max - min) / count
 

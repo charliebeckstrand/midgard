@@ -25,12 +25,13 @@ import { useChartCartesian } from '../engine/use-chart-cartesian'
 export type AreaChartProps<T = never> = CartesianChartProps<T> & {
 	/**
 	 * Draws a hover crosshair. Alone among the cartesian charts this defaults on:
-	 * a snapping vertical category rule (`{ y: true, snap: true }`) that meets the
-	 * nearest band-edge point and carries the tooltip there. Smooth interpolation
-	 * drops the snap so the rule and tooltip track the pointer along the curve
-	 * between points. Pass `true`, a {@link Crosshair} object, or `false` to
+	 * a snapping vertical category rule (`{ x: false, y: true, snap: true }`) that
+	 * meets the nearest band-edge point and carries the tooltip there. Unstacked
+	 * smooth interpolation drops the snap so the rule and tooltip track the
+	 * pointer along the curve between points. Stacked ribbons draw straight, so
+	 * they keep the snap. Pass `true`, a {@link Crosshair} object, or `false` to
 	 * override the default.
-	 * @defaultValue a snapping y-rule, unsnapped when `interpolation` is `'smooth'`.
+	 * @defaultValue a snapping y-rule, unsnapped when unstacked with `interpolation: 'smooth'`.
 	 */
 	crosshair?: boolean | Crosshair
 	/**
@@ -201,10 +202,10 @@ function stackedRibbons(
  *
  * @remarks Stacked bands treat a missing value as zero to stay continuous, but
  * the gap takes no marker, value label, or keyboard stop. The unstacked variant
- * breaks its lines at gaps like {@link LineChart}. The
- * crosshair defaults on here (a snapping y-rule meeting the nearest point), and
- * drops the snap under smooth interpolation; override it with the `crosshair`
- * prop. Focus the plot to drive the crosshair and tooltip by keyboard. The
+ * breaks its lines at gaps like {@link LineChart}. The crosshair defaults on
+ * here (a snapping y-rule meeting the nearest point), and drops the snap under
+ * unstacked smooth interpolation; override it with the `crosshair` prop. Focus
+ * the plot to drive the crosshair and tooltip by keyboard. The
  * band-axis arrows step categories, and the value-axis arrows step each
  * category's points in screen order. Those points are a stack's cumulative band
  * edges when stacked, and each series' own point otherwise. A reference line
