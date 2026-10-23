@@ -1,9 +1,10 @@
 /**
- * Map kata: object-literal surface for the geography map module. The series
- * palette, frame inks, readout inks, and reveal motion come from the kiso `zu`
- * bundle, which the chart kata reads too. The two data-viz modules read as one
- * color system, and the CVD-validated slot order must never fork. The map's
- * own region tokens sit beside them:
+ * Map kata: the sheet of the geography map module. Many files read it with no
+ * call, so it stays a plain object. The series palette, frame inks, readout
+ * inks, and reveal motion come from the kiso `zu` bundle, which the chart kata
+ * reads too. The two data-viz modules read as one color system, and the
+ * CVD-validated slot order must never fork. The map's own region tokens sit
+ * beside them:
  *
  * - The no-data fill.
  * - The surface-color boundary seam.

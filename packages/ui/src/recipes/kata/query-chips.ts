@@ -1,9 +1,9 @@
 /**
- * Query-chips kata: object-literal surface for the `<QueryChips>` filter bar.
- * No variants axis. The flat slots are the wrapping `base` row and the rule
- * `chip` with its `field`, `operator`, and `value` parts. The rest are the AND/OR
- * `combinator` with the pad of its Button (`combinator.button`), the
- * nested-group `bracket`, and the `empty` text.
+ * Query-chips kata: the unit of the `<QueryChips>` filter bar. The root slot is
+ * the wrapping row. The `chip` slot is a rule, with its `field`, `operator`,
+ * and `value` parts. The rest are the AND/OR `combinator`, with the pad of its
+ * Button and a `readOnly` axis, the nested-group `bracket`, and the `empty`
+ * text.
  */
 import { defineKata } from '../../core/recipe'
 import { dan, iro, ji, narabi } from '../kiso'

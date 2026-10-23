@@ -1,9 +1,9 @@
 /**
- * Chart kata: object-literal surface for every chart in the chart module. The
- * series palette, the shared inks, and the reveal motion come from the kiso
- * `zu` bundle, which the map kata reads too. This surface adds the chart's own
- * chrome: the axis title, the tick labels, the marker stroke, the focus ring,
- * and the spark posture.
+ * Chart kata: the sheet of every chart in the chart module. Many files read
+ * it with no call, so it stays a plain object. The series palette, the shared
+ * inks, and the reveal motion come from the kiso `zu` bundle, which the map
+ * kata reads too. This sheet adds the chart's own chrome: the axis title, the
+ * tick labels, the marker stroke, the focus ring, and the spark posture.
  */
 
 import { defineScale } from '../../core/density'
