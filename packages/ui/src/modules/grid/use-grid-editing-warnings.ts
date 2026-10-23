@@ -10,21 +10,21 @@ export type CommitOn = NonNullable<GridEditableConfig['commitOn']>
  * mount as under row scope. @internal
  */
 const CELL_SCOPE_WITHOUT_SESSION_WARNING =
-	"Grid: `editable.scope: 'cell'` narrows a session the grid owns, but `editable.session` is 'manual', where the consumer names a row and never a cell. The row's editors all mount, as under scope 'row' — set `session: 'managed'` to scope a session to one cell."
+	"Grid: `editable.scope: 'cell'` narrows a session the grid owns, but `editable.session` is 'manual', where the consumer names a row and never a cell. The row's editors all mount, as under scope 'row'. Set `session: 'managed'` to scope a session to one cell."
 
 /**
  * The warning for `cell` or `defaultCell` outside the cell-scoped, grid-owned
  * session that it binds. The binding is inert there. @internal
  */
 const ACTIVE_CELL_WITHOUT_SCOPE_WARNING =
-	"Grid: `editable.cell` and `editable.defaultCell` bind the cell of a cell-scoped session, and this grid has none. The binding has no effect — set `session: 'managed'` and `scope: 'cell'` to bind the cell."
+	"Grid: `editable.cell` and `editable.defaultCell` bind the cell of a cell-scoped session, and this grid has none. The binding has no effect. Set `session: 'managed'` and `scope: 'cell'` to bind the cell."
 
 /**
  * The warning for a `commitOn` that asks for more than `'explicit'` without the
  * grid-owned session that it commits. The consumer owns every exit there. @internal
  */
 const COMMIT_ON_WITHOUT_SESSION_WARNING =
-	"Grid: `editable.commitOn` commits a session that the grid owns, but `editable.session` is 'manual', where you own every exit. The setting has no effect — set `session: 'managed'` to commit a session on leave."
+	"Grid: `editable.commitOn` commits a session that the grid owns, but `editable.session` is 'manual', where you own every exit. The setting has no effect. Set `session: 'managed'` to commit a session on leave."
 
 /**
  * The commit policy that applies, from the policy the config asks for. The

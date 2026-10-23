@@ -530,7 +530,7 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 	autoSizeBody: {
 		id: 'ui.grid.autoSizeBody',
 		defaultMessage:
-			'This fits every column to its content and replaces the column widths you saved. Your other layout preferences — order, visibility, and pinned columns — stay just as they are.',
+			'This fits every column to its content and replaces the column widths you saved. Your other layout preferences (order, visibility, and pinned columns) stay just as they are.',
 		description:
 			'The text of the dialog that asks before it fits every column of a grid to its content.',
 	},
@@ -548,7 +548,7 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 	resetBody: {
 		id: 'ui.grid.resetBody',
 		defaultMessage:
-			'This discards the column widths you saved, and the grid sizes the columns to fit its width again. Your other layout preferences — order, visibility, and pinned columns — stay just as they are.',
+			'This discards the column widths you saved, and the grid sizes the columns to fit its width again. Your other layout preferences (order, visibility, and pinned columns) stay just as they are.',
 		description:
 			'The text of the dialog that asks before it discards the saved column widths of a grid.',
 	},

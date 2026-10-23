@@ -42,11 +42,11 @@ import { type Coord, type GridNewRowPosition, NEW_ROW_INDEX } from './use-grid-n
 
 /** The warning for a slot under a session that the consumer owns. @internal */
 const MANUAL_NEW_ROW_WARNING =
-	"Grid: `editable.newRow` adds a row through the keys of a session that the grid owns, but `editable.session` is 'manual'. The grid renders no new row — set `session: 'managed'` to show it."
+	"Grid: `editable.newRow` adds a row through the keys of a session that the grid owns, but `editable.session` is 'manual'. The grid renders no new row. Set `session: 'managed'` to show it."
 
 /** The warning for a slot with no sink to take its row. @internal */
 const SINKLESS_NEW_ROW_WARNING =
-	'Grid: `editable.newRow` needs `editable.onRowAdd` to take the row. The grid renders no new row — pass `onRowAdd` to show it.'
+	'Grid: `editable.newRow` needs `editable.onRowAdd` to take the row. The grid renders no new row. Pass `onRowAdd` to show it.'
 
 /**
  * Owns the new-row slot of an editable grid ({@link GridEditableConfig.newRow}).

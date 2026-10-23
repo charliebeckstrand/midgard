@@ -1,5 +1,5 @@
 import { getOrCompute } from '../../../../utilities'
-import { computeSortOrder, type SmartSortField } from '../grid-sort/utilities'
+import { computeSortOrder, naturalCollator, type SmartSortField } from '../grid-sort/utilities'
 import { type GridGroup, toRowLeaf } from './tree'
 
 /**
@@ -37,6 +37,8 @@ export type GroupSort<T> = { fields: SmartSortField<T>[]; grouped: boolean[] }
  * @param args.order - The indices that the sort keeps, in sorted order, when
  *   the sort has only smart fields. A custom `sortFn` need not be a consistent
  *   order, so its groups sort their own rows, as the engine does.
+ * @param args.locale - The locale that collates the text values, as the flat
+ *   sort does. `undefined` uses the locale of the runtime.
  * @internal
  */
 export function groupRows<T>(args: {
@@ -47,6 +49,7 @@ export function groupRows<T>(args: {
 	columnId: string
 	read: (row: T) => unknown
 	getKey: (row: T, index: number) => string | number
+	locale?: string
 }): GridGroup<T>[] {
 	const members = groupMembers(args.rows, args.kept, args.read)
 
@@ -104,14 +107,17 @@ export function orderGroups<T>(args: {
 	columnId: string
 	read: (row: T) => unknown
 	getKey: (row: T, index: number) => string | number
+	locale?: string
 }): GridGroup<T>[] {
 	const { rows, members, sort, columnId, read } = args
 
 	const { keys, lists } = members
 
-	const sorted = sort ? sortLeaves(rows, lists, args.order, sort) : lists
+	const collator = naturalCollator(args.locale)
 
-	const groupOrder = sort ? sortGroups(rows, lists, sort) : keys.map((_, index) => index)
+	const sorted = sort ? sortLeaves(rows, lists, args.order, sort, collator) : lists
+
+	const groupOrder = sort ? sortGroups(rows, lists, sort, collator) : keys.map((_, index) => index)
 
 	return groupOrder.map((position) => {
 		const indices = sorted[position] as number[]
@@ -143,6 +149,7 @@ function sortLeaves<T>(
 	lists: readonly number[][],
 	order: readonly number[] | null,
 	sort: GroupSort<T>,
+	collator: Intl.Collator,
 ): number[][] {
 	if (order && sort.fields.every((field) => field.sortFn === null)) {
 		const groupByRow = new Int32Array(rows.length).fill(-1)
@@ -166,6 +173,7 @@ function sortLeaves<T>(
 		const positions = computeSortOrder(
 			list.map((index) => rows[index] as T),
 			sort.fields,
+			collator,
 		)
 
 		return positions.map((position) => list[position] as number)
@@ -183,6 +191,7 @@ function sortGroups<T>(
 	rows: readonly T[],
 	lists: readonly number[][],
 	sort: GroupSort<T>,
+	collator: Intl.Collator,
 ): number[] {
 	const firsts = lists.map((list) => rows[list[0] as number] as T)
 
@@ -190,5 +199,5 @@ function sortGroups<T>(
 		field.sortFn !== null || sort.grouped[index] ? field : { ...field, accessor: () => undefined },
 	)
 
-	return computeSortOrder(firsts, fields)
+	return computeSortOrder(firsts, fields, collator)
 }

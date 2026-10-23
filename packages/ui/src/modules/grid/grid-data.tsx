@@ -55,7 +55,7 @@ function useMaxHeightGuard(maxHeight: string | undefined): void {
 		if (!maxHeight?.trim().endsWith('%')) return
 
 		console.warn(
-			`<Grid maxHeight="${maxHeight}">: a percentage can't bind — the grid's wrapper is auto-height, so the scroll container gets no bounded height and virtualization degrades to rendering every row. Use a fixed CSS length, or \`maxHeight="fill"\` inside a CSS-sized parent.`,
+			`<Grid maxHeight="${maxHeight}">: a percentage can't bind. The grid's wrapper is auto-height, so the scroll container gets no bounded height and virtualization degrades to rendering every row. Use a fixed CSS length, or \`maxHeight="fill"\` inside a CSS-sized parent.`,
 		)
 	}, [maxHeight])
 }

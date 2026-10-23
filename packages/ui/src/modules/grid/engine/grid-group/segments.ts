@@ -1,5 +1,5 @@
 import type { GridGroupHeaderRow } from '../../grid-data-types'
-import { compareDirected, toSortKey } from '../grid-sort/utilities'
+import { compareDirected, naturalCollator, toSortKey } from '../grid-sort/utilities'
 import type { GridLeaf } from './tree'
 
 /**
@@ -68,22 +68,27 @@ export function segmentManualGroupRows<T>(
  * children never leave their header. Returns the segments untouched when no
  * group sort is active. Pure, so the group-sort contract is unit-testable.
  *
+ * @param locale - The locale that collates the text values, as the flat sort
+ *   does. `undefined` uses the locale of the runtime.
  * @internal
  */
 export function orderManualGroupSegments<T>(
 	segments: GridManualGroupSegment<T>[],
 	direction: 'asc' | 'desc' | null,
+	locale?: string,
 ): GridManualGroupSegment<T>[] {
 	if (!direction) return segments
 
 	const descending = direction === 'desc'
+
+	const collator = naturalCollator(locale)
 
 	const headerless = segments.filter((segment) => segment.header === null)
 
 	const headed = segments
 		.filter((segment) => segment.header !== null)
 		.map((segment) => ({ segment, key: toSortKey(segment.info?.value) }))
-		.sort((a, b) => compareDirected(a.key, b.key, descending))
+		.sort((a, b) => compareDirected(a.key, b.key, descending, collator))
 		.map(({ segment }) => segment)
 
 	return [...headerless, ...headed]

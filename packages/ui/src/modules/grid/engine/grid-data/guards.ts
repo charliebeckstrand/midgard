@@ -29,19 +29,19 @@ export function assertProps(args: {
 }): void {
 	if ((args.virtualize || args.infiniteScroll) && !args.maxHeight) {
 		throw new Error(
-			'<Grid virtualize / infiniteScroll> requires `maxHeight` — the windowed rows need a scroll container of known size: a fixed CSS length, or `"fill"` inside a CSS-sized parent.',
+			'<Grid virtualize / infiniteScroll> requires `maxHeight`. The windowed rows need a scroll container of known size: a fixed CSS length, or `"fill"` inside a CSS-sized parent.',
 		)
 	}
 
 	if (args.infiniteScroll && args.virtualize === false) {
 		throw new Error(
-			'<Grid infiniteScroll> windows the loaded rows through the virtualized scroll container — it implies `virtualize`, which must not be explicitly `false`.',
+			'<Grid infiniteScroll> windows the loaded rows through the virtualized scroll container, so it implies `virtualize`, which must not be explicitly `false`.',
 		)
 	}
 
 	if (args.infiniteScroll && args.pagination) {
 		throw new Error(
-			'<Grid> takes either `pagination` or `infiniteScroll`, not both — infinite scroll replaces the paged footer.',
+			'<Grid> takes either `pagination` or `infiniteScroll`, not both. Infinite scroll replaces the paged footer.',
 		)
 	}
 }

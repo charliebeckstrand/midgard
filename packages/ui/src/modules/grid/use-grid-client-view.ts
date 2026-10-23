@@ -247,6 +247,10 @@ export function useGroupTree<T>(args: {
 
 	const kept = clientView?.kept ?? null
 
+	// The groups collate in the locale of the nearest `LocaleProvider`, as the
+	// flat sort does.
+	const { locale } = useLocale()
+
 	// The members of the groups depend on the rows and the filters, not on the
 	// sort, so a sort change orders the groups again and collects nothing.
 	const members = useMemo(() => (read ? groupMembers(rows, kept, read) : null), [read, rows, kept])
@@ -271,8 +275,9 @@ export function useGroupTree<T>(args: {
 			columnId,
 			read,
 			getKey,
+			locale,
 		})
-	}, [columnId, read, members, clientView, sort, rows, getKey])
+	}, [columnId, read, members, clientView, sort, rows, getKey, locale])
 
 	const groups = useMemo(() => (closed ? expandGroups(closed, expanded) : null), [closed, expanded])
 
@@ -378,7 +383,7 @@ export function useFilterModeMismatchWarning(args: {
 		if (Boolean(globalManual) === Boolean(columnManual)) return
 
 		console.warn(
-			"Grid: the global search and column filters share one table-wide filtering mode, but their `manual` flags disagree. The grid runs manual (server) filtering for both, so the client-side surface won't filter locally — set both `manual` the same.",
+			"Grid: the global search and column filters share one table-wide filtering mode, but their `manual` flags disagree. The grid runs manual (server) filtering for both, so the client-side surface won't filter locally. Set both `manual` the same.",
 		)
 	}, [globalConfigured, hasColumnFilters, globalManual, columnManual])
 }

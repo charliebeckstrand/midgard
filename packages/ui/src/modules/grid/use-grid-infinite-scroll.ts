@@ -212,7 +212,7 @@ function warnUnbounded(state: LoadMoreState): void {
 	state.warned = true
 
 	console.error(
-		'<Grid infiniteScroll>: virtualize is not windowing — the scroll container has no bounded height, so every loaded row renders and `onLoadMore` would fetch without end. Give the grid a fixed `maxHeight` (a percentage cannot bind), or `maxHeight="fill"` inside a CSS-sized parent.',
+		'<Grid infiniteScroll>: virtualize is not windowing. The scroll container has no bounded height, so every loaded row renders and `onLoadMore` would fetch without end. Give the grid a fixed `maxHeight` (a percentage cannot bind), or `maxHeight="fill"` inside a CSS-sized parent.',
 	)
 }
 
