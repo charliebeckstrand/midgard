@@ -24,6 +24,7 @@
 | `compactFormat` | Compact notation to one fraction digit (`48.2K`) for a `locale`, as a stable formatter. Chart ticks in a narrow frame take it. |
 | `resolveFormat` | Resolves a `FormatSpec` to a cached `(value) => string` formatter: number, integer, currency, percent, compact, or prefixed id. |
 | `FormatSpec` *(type)* | What to format a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id`. |
+| `FormatDefaults` *(type)* | The locale, the currency, and the base `Intl.NumberFormat` options that a `FormatSpec` resolves against. `useFormat` gives them from `<LocaleProvider>`. |
 
 ## Locale
 
@@ -59,6 +60,8 @@ The sequential-scale primitives the data-driven color charts share: the chorople
 | `valueExtent` | The `[min, max]` of the finite values, an explicit override, or `null` when nothing spans a domain. |
 | `resolveBinScale` | Resolves one color scale: the painted `ColorBin`s and the `assign` rule its marks read, from one resolution per `Binning` (`'linear'` or `'quantile'`). |
 | `ColorBin` *(type)* | One bin: its `color` and the `[lo, hi]` value range it covers. |
+| `binColors` | `n` colors sampled at equal steps from a color range, low to high. |
+| `BinScale` *(type)* | The painted bins of one color scale, the quantile thresholds, and the `assign` rule. The return type of `resolveBinScale`. |
 
 ## Caret & formatted input
 
@@ -66,6 +69,7 @@ The sequential-scale primitives the data-driven color charts share: the chorople
 |---|---|
 | `countMeaningful` | Counts characters in `s[0, end)` matching `keep`; anchors a caret across reformat insert/remove of separators. `keep` gets each character, its index, and `s`. |
 | `cursorForCount` | Inverse of `countMeaningful`: string offset past the target-th meaningful char, clamped to bounds. |
+| `isDecimalDigit` | A `keep` predicate for a mask that keeps only digits: a decimal digit in the Basic Multilingual Plane. Import it from `utilities/caret`. |
 
 ## Dismiss layers
 
@@ -74,6 +78,19 @@ The sequential-scale primitives the data-driven color charts share: the chorople
 | `registerDismissLayer` | Puts a layer on the Escape-dismiss stack at its open order; returns its unregister fn. |
 | `nextDismissOrder` | Gives the next open order for `registerDismissLayer`. Call it in the render that opens a layer. |
 | `isTopDismissLayer` | True when `layer` is the topmost layer on the dismiss stack. |
+
+## Floating portals
+
+Import these from `utilities/floating-portal-registry`. They tell whether a press landed in a surface that opened from inside a container. Each portal is a sibling node, so the DOM cannot tell.
+
+| Export | Summary |
+|---|---|
+| `closestFloatingPortal` | The floating portal node that a target sits in, or `null`. A target that is not an element sits in none. |
+| `publishPortalReference` | Records the reference element of the surface in a portal node, so that another surface can find it. Returns the teardown. |
+| `hasPortalReference` | Whether the surface in a portal node recorded a reference. |
+| `foreignFloatingPortal` | The floating portal that a press landed in, when it is not the portal of the container. |
+| `referenceOpenedWithin` | Whether the surface in a portal node was opened from inside a container. |
+| `pressLandsInSurfaceOpenedWithin` | Whether a press landed in a floating surface opened from inside a container. `useDismissable` asks it for a boundary that is not a floating panel. |
 
 ## Events
 
@@ -95,6 +112,14 @@ The sequential-scale primitives the data-driven color charts share: the chorople
 | `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
 | `isScrollOverflow` | Whether an `overflow` value lets the user scroll the box: `auto`, `scroll`, or `overlay`. Import it from `utilities/scroll-overflow`. |
 | `isScrollbarPress` | Whether a press landed on the scrollbar gutter of an element, not on its content. A floating surface does not dismiss for a gutter press. |
+| `hasBrowserModifier` | Whether a key press or a click holds Ctrl, Meta, or Alt. Such a chord is for the browser, so a handler does not take it. Import it from `utilities/modifier-keys`. |
+| `isPrimaryPress` | Whether a press can start a gesture: the primary pointer, the primary button, and no Ctrl. Import it from `utilities/primary-press`. |
+| `createPressOwner` | A `PressOwner` that holds a gesture for one pointer from its press to its end. Import it from `utilities/primary-press`. |
+| `PressOwner` *(type)* | The `claim`, `held`, `owns`, and `release` calls that `createPressOwner` returns. |
+| `holdTextSelection` | Turns off text selection on the whole page while a touch holds a surface, so iOS does not select text next to it. Import it from `utilities/hold-text-selection`. |
+| `TEXT_SELECTION_RELEASE_DELAY` | The time in ms that text selection stays off after the last held touch ends. |
+| `createLazyModule` | A `LazyModule` from a dynamic import: one shared load, a read for `useSyncExternalStore`, and an idle start. Import it from `utilities/lazy-module`. |
+| `LazyModule` *(type)* | The `load`, `read`, `subscribe`, and `idle` calls that `createLazyModule` returns. |
 | `printInHiddenFrame` | Prints a document through a hidden iframe, and reclaims the frame after the print or on a failure. |
 | `requestIdle` | Calls a callback in idle time. A browser with no `requestIdleCallback`, such as Safari, calls it after a fallback delay, with no deadline. Import it from `utilities/idle`. |
 | `cancelIdle` | Cancels a callback that `requestIdle` scheduled. |
@@ -114,6 +139,8 @@ The sequential-scale primitives the data-driven color charts share: the chorople
 | `measureContentBox` | The content box of an element. Use it to size a drawing surface, such as a canvas, inside a border or padding. |
 | `BorderBox` *(type)* | An element's border box, on the two axes a resize is read along: `inline` and `block`. |
 | `ContentBox` *(type)* | An element's content box in CSS px: `width` and `height`. The return type of `measureContentBox`. |
+| `getScroller` | The nearest element from a start node up that scrolls, or `null`. The walk stops below `<body>`. Import it from `utilities/get-scroller`. |
+| `ScrollerOptions` *(type)* | Options for `getScroller`: `inline`, `overflowing`, and `stopAtClip`. |
 | `forceStyleFlush` | Makes the browser compute styles and layout now, so a CSS transition has a style to start from. It is a call, not a bare `offsetHeight` read, which the React Compiler removes. |
 
 ## Keyboard navigation
@@ -121,6 +148,7 @@ The sequential-scale primitives the data-driven color charts share: the chorople
 | Export | Summary |
 |---|---|
 | `FOCUSABLE_SELECTOR` | Selector for the descendants in the tab order: links with an `href`, enabled form controls, and any element whose `tabindex` is not `-1`. |
+| `getTabbableElements` | The elements of a subtree in the tab order, in document order. It also drops a hidden input and a control that a `<fieldset disabled>` disables. Import it from `utilities/focusable-selector`. |
 | `nextIndexForKey` | Next roving index for a key press (1D or 2D grid), or `null` if unhandled; wraps at both ends. |
 | `isArrowKey` | Whether a key is one of the four arrow keys, whatever the direction of the layout. |
 | `crossAxisDelta` | Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. |
@@ -142,10 +170,35 @@ The sequential-scale primitives the data-driven color charts share: the chorople
 | `sameElements` | Whether two lists hold the same items in the same order, by reference. `undefined` matches only `undefined`. |
 | `keyByOccurrence` | Pairs each string with a React-key-safe id that is unique for any input, keying repeats by occurrence index. |
 | `rangeKeys` | Builds `count` stable `${prefix}-${index}` keys for fixed-length placeholder loops (skeletons). |
-| `isDataColumn` | True for content columns; false for the selection-checkbox and row-actions columns. |
+| `isDataColumn` | True for a content column. False for the selection-checkbox, row-actions, drag-handle, and expander columns. |
 | `noop` | No-op function. |
 | `noopSubscribe` | A `useSyncExternalStore` subscription that never fires. It serves a read with no store, and a snapshot that changes only at hydration. |
 | `once` | Wraps a thunk so it computes at most once. A throw caches nothing, so the next call runs the thunk again. |
+| `randomId` | A random version 4 UUID, also on an origin that is not a secure context. Import it from `utilities/random-id`. |
+
+## Children
+
+Import these from `utilities/children`. Each one reads through each Fragment, so a slot in a Fragment counts as a direct child.
+
+| Export | Summary |
+|---|---|
+| `flattenFragments` | The children in one flat list, each with a key that is unique in the list and stays with it when a keyed Fragment moves. |
+| `FlatChild` *(type)* | One child from `flattenFragments`: its `node` and its `key`. |
+| `isElementOfType` | Whether a child is an element of a given component. |
+| `hasChildOfType` | Whether a child of a given component is present. |
+| `partitionByType` | Splits the children into the elements of a given component and the rest, each keyed from `flattenFragments`. |
+
+## Export
+
+Import these from `utilities/export-output`.
+
+| Export | Summary |
+|---|---|
+| `copyText` | Writes text to the clipboard when the API is available. A failed write does nothing. |
+| `csvField` | Escapes one CSV field per RFC 4180, and guards a field that a spreadsheet reads as a formula. |
+| `CsvFieldOptions` *(type)* | Options for `csvField`: `formatted` keeps a formatted number as it is. |
+| `neutralizeFormula` | Puts a quote before a field that a spreadsheet would run as a formula. A signed plain number passes. |
+| `downloadCsv` | Downloads a CSV document as a UTF-8 file with a byte order mark. |
 
 ---
 

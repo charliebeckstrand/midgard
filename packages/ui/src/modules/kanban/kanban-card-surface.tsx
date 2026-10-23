@@ -1,9 +1,10 @@
 'use client'
 
-import { Children, type ComponentProps, isValidElement, type ReactNode } from 'react'
+import type { ComponentProps } from 'react'
 import { Card } from '../../components/card'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
+import { partitionByType } from '../../utilities/children'
 import { KanbanCardHandle } from './kanban-card-handle'
 
 /** Props for {@link KanbanCardSurface}: the `<div>` attributes of the card. @internal */
@@ -15,18 +16,17 @@ export type KanbanCardSurfaceProps = ComponentProps<'div'>
  * in one `content` column beside the handle. The card on the board and its
  * drag overlay both render it, so the overlay has the box of the card.
  *
- * @remarks Client component. A handle aligns only as a direct child of the
- * card. The surface writes the `kanban-card` anchor after the spread, because
- * the move announcements and the keyboard read it.
+ * @remarks Client component. A handle aligns as a child of the card, also
+ * inside a Fragment. The surface writes the `kanban-card` anchor after the
+ * spread, because the move announcements and the keyboard read it.
  *
  * @internal
  */
 export function KanbanCardSurface({ children, className, ...props }: KanbanCardSurfaceProps) {
-	const items = Children.toArray(children)
+	const { matched: handles, rest } = partitionByType(children, KanbanCardHandle)
 
-	const handles = items.filter(isHandle)
-
-	const content = items.filter((item) => !isHandle(item))
+	// A `false` or `null` slot renders nothing, so it opens no content column.
+	const content = rest.filter((node) => node != null)
 
 	return (
 		<Card {...props} bg="surface" data-slot="kanban-card" className={cn(k().card.base, className)}>
@@ -39,6 +39,3 @@ export function KanbanCardSurface({ children, className, ...props }: KanbanCardS
 		</Card>
 	)
 }
-
-/** Whether `node` is a handle element, which the card holds at its start edge. */
-const isHandle = (node: ReactNode) => isValidElement(node) && node.type === KanbanCardHandle

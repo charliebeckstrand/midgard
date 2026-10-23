@@ -1,4 +1,4 @@
-import { createRef, useState } from 'react'
+import { createRef, Fragment, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Kanban,
@@ -318,6 +318,61 @@ describe('KanbanCard', () => {
 		const results = await axe(container)
 
 		expect(results.violations).toEqual([])
+	})
+
+	it('holds a handle inside a Fragment at the start edge, out of the content column', () => {
+		const { container } = renderUI(
+			<Kanban
+				columns={columns}
+				getKey={(item: Item) => item.id}
+				onReorder={() => {}}
+				aria-label="Board"
+			>
+				<KanbanColumn value="todo" aria-label="Todo">
+					<KanbanColumnBody>
+						<KanbanCard value="1" aria-label="One">
+							<Fragment key="body">
+								<KanbanCardHandle />
+								One
+							</Fragment>
+						</KanbanCard>
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		const card = bySlot(container, 'kanban-card')
+
+		const handle = screen.getByRole('button', { name: 'Drag One' })
+
+		expect(card?.firstElementChild).toBe(handle)
+
+		expect(bySlot(container, 'kanban-card-content')).toHaveTextContent('One')
+
+		expect(bySlot(container, 'kanban-card-content')).not.toContainElement(handle)
+	})
+
+	it('opens no content column for a card that holds only a handle and an empty slot', () => {
+		const { container } = renderUI(
+			<Kanban
+				columns={columns}
+				getKey={(item: Item) => item.id}
+				onReorder={() => {}}
+				aria-label="Board"
+			>
+				<KanbanColumn value="todo" aria-label="Todo">
+					<KanbanColumnBody>
+						<KanbanCard value="1" aria-label="One">
+							<KanbanCardHandle />
+							{false}
+							{null}
+						</KanbanCard>
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		expect(container.querySelector('[data-slot="kanban-card-content"]')).toBeNull()
 	})
 
 	it('names the handle from its own aria-label', () => {

@@ -37,8 +37,13 @@ const portalReferences = new WeakMap<Element, () => Element | null>()
  */
 let publishedCount = 0
 
-/** The floating portal `node` sits in, if any. @internal */
-export function closestFloatingPortal(node: Node | null | undefined): Element | null {
+/**
+ * The floating portal `node` sits in, if any. A target that is not an element,
+ * such as the `relatedTarget` of a focus event, sits in none.
+ *
+ * @internal
+ */
+export function closestFloatingPortal(node: EventTarget | null | undefined): Element | null {
 	return node instanceof Element ? node.closest(PORTAL_SELECTOR) : null
 }
 

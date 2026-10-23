@@ -10,6 +10,7 @@ import {
 	returnedText,
 } from '../primitives/intl/intl-reorder'
 import { useIntl } from '../primitives/intl/use-intl'
+import { sameElements } from '../utilities'
 import { useDragCursorHold } from './use-drag-cursor'
 
 /**
@@ -142,7 +143,7 @@ export function useReorderDrag({ ids, onReorder, name, onStart }: ReorderDragOpt
 
 		announce(droppedText(intl, name(live.id), getSlot(order, live.id)), { assertive: true })
 
-		if (onReorder === undefined || order.every((id, index) => id === ids[index])) return
+		if (onReorder === undefined || sameElements(order, ids)) return
 
 		onReorder(order, live.id)
 	}, [ids, onReorder, setDraft, cursor, unlisten, name, intl])

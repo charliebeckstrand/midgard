@@ -1,9 +1,10 @@
 'use client'
 
-import { Children, type HTMLAttributes, isValidElement, type ReactNode } from 'react'
+import { Children, type HTMLAttributes, type ReactNode } from 'react'
 import { ariaAttr, cn } from '../../core'
 import { useScrollRegion } from '../../hooks'
 import { k } from '../../recipes/kata/kanban'
+import { isElementOfType } from '../../utilities/children'
 import { KanbanCardSkeleton } from './kanban-card-skeleton'
 
 /**
@@ -34,7 +35,7 @@ export function KanbanColumnBody({ empty, children, className, ...props }: Kanba
 	const hasChildren = items.length > 0
 
 	// A skeleton is not a card. A list of skeletons only has no item for AT.
-	const loading = items.every((item) => isValidElement(item) && item.type === KanbanCardSkeleton)
+	const loading = items.every((item) => isElementOfType(item, KanbanCardSkeleton))
 
 	const scrollRegionRef = useScrollRegion()
 

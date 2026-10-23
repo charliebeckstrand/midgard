@@ -4,8 +4,8 @@
  */
 
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { closestFloatingPortal } from '../../../utilities/floating-portal-registry'
 import { hasBrowserModifier } from '../../../utilities/modifier-keys'
-import { FLOATING_PORTAL } from './grid-constants'
 import { NATIVE_ENTER, tabStaysInCell } from './grid-editing-utilities'
 
 /**
@@ -31,7 +31,7 @@ export function ownNode(node: Element | null, table: HTMLTableElement | null): E
  * takes focus: an unrelated surface on the page matches it too. @internal
  */
 function inFloatingSurface(node: Element): boolean {
-	return node.closest(FLOATING_PORTAL) !== null || node.closest('[aria-expanded="true"]') !== null
+	return closestFloatingPortal(node) !== null || node.closest('[aria-expanded="true"]') !== null
 }
 
 /**

@@ -22,8 +22,9 @@ import {
 	noopSubscribe,
 	sameElements,
 } from '../../utilities'
+import { closestFloatingPortal } from '../../utilities/floating-portal-registry'
 import { createPressOwner, isPrimaryPress, type PressOwner } from '../../utilities/primary-press'
-import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
+import { NAV_PAGE_STEP } from './engine/grid-constants'
 import {
 	type GridRangeCells,
 	type GridRowDistance,
@@ -1288,7 +1289,7 @@ export function useGridNavigation({
 			// Focus returning from a transient floating overlay (e.g. a context menu
 			// portaled after the table) is not a Tab-into the grid; leave the cursor
 			// unseated rather than seeding the last cell behind the dismissed menu.
-			if (from instanceof Element && from.closest(FLOATING_PORTAL)) return
+			if (closestFloatingPortal(from)) return
 
 			// Entering backwards (Shift+Tab from after the grid) lands on the last cell;
 			// forwards lands on the first. The new-row slot counts as a row of the order.
@@ -1322,7 +1323,7 @@ export function useGridNavigation({
 		// grid (e.g. its context menu), so the active cell is restored on close.
 		// This mirrors the `onFocus` portal guard that declines to re-seed on
 		// return.
-		if (next instanceof Element && next.closest(FLOATING_PORTAL)) return
+		if (closestFloatingPortal(next)) return
 
 		// Keep it seated, too, while the whole window loses focus (a switch of the
 		// window or the tab), so the reader comes back to the same cell.

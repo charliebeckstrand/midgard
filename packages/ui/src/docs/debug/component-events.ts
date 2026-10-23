@@ -1,5 +1,6 @@
 import type { JsonValue } from 'ui/json-tree'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
+import { sameElements } from '../../utilities/same-elements.ts'
 
 // The component events of the docs events: each call of an `on…` callback that
 // a page gives to a component, such as the `onValueChange` of `Tabs`. The
@@ -134,7 +135,7 @@ function copy(value: object, map: (key: string | number, item: unknown) => unkno
 	if (Array.isArray(value)) {
 		const items = value.map((item, index) => map(index, item))
 
-		return items.every((item, index) => item === value[index]) ? value : items
+		return sameElements(items, value) ? value : items
 	}
 
 	const changes: Record<string, unknown> = {}

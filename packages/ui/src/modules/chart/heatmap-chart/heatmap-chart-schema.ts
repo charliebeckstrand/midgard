@@ -14,7 +14,7 @@
  */
 
 import type { AccessibleName } from '../../../types'
-import { parseNumeric, sameElements } from '../../../utilities'
+import { getOrCompute, parseNumeric, sameElements } from '../../../utilities'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import type { ChartLegendPlacement } from '../engine/chart-legend/schema'
 import type { ChartBaseProps, DataKey } from '../engine/types'
@@ -169,18 +169,12 @@ export function resolveMatrix<T>(
 	const colIndex = new Map<string, number>()
 	const rowIndex = new Map<string, number>()
 
-	const index = (label: string, order: string[], seen: Map<string, number>): number => {
-		const at = seen.get(label)
+	const index = (label: string, order: string[], seen: Map<string, number>): number =>
+		getOrCompute(seen, label, () => {
+			order.push(label)
 
-		if (at !== undefined) return at
-
-		const next = order.length
-
-		order.push(label)
-		seen.set(label, next)
-
-		return next
-	}
+			return order.length - 1
+		})
 
 	// First pass fixes the axes so the matrix is rectangular before filling.
 	for (const datum of data) {
