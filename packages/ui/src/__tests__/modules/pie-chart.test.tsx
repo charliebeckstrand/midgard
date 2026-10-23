@@ -111,6 +111,28 @@ describe('PieChart', () => {
 		expect(dimmed).toEqual([true, false, true])
 	})
 
+	it('dims no slice for a selection that holds only rows with no slice', () => {
+		const dimmed = (selectedCategories: string[]) => {
+			const { container, unmount } = renderUI(
+				chart({ data: [...DATA, { source: 'Social', visits: 0 }], selectedCategories }),
+			)
+
+			const classes = allBySlot(container, 'chart-slice').map((slice) =>
+				slice.closest('g')?.getAttribute('class')?.includes('opacity-25'),
+			)
+
+			unmount()
+
+			return classes
+		}
+
+		// Social draws no slice, so a selection of it alone lifts nothing and recedes nothing.
+		expect(dimmed(['Social'])).toEqual([false, false, false])
+
+		// With a drawn slice in the selection, that slice lights alone.
+		expect(dimmed(['Social', 'Direct'])).toEqual([true, false, true])
+	})
+
 	it('keeps a slice color when a filter removes the other slices', () => {
 		const categories = DATA.map((row) => row.source)
 
