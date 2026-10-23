@@ -10,16 +10,18 @@ import { gridMessages } from './engine/grid-messages'
  * The polite live-region message for the grid: `Loading` while loading, then
  * (after a short debounce so a fast filter/search doesn't chatter) a settled
  * row-count summary. Assistive tech hears the load start, its result, and later
- * result-count changes from filtering, search, or paging.
+ * result-count changes from filtering, search, or paging. A failed
+ * infinite-scroll load says so at once, because the trailing row that shows
+ * its error is not a live region.
  *
  * @internal
  */
-function useStatusMessage(loading: boolean, rowCount: number): string {
+function useStatusMessage(loading: boolean, rowCount: number, failed: boolean): string {
 	const intl = useIntl()
 
 	// The state holds what the region says, not its text, so the text follows
 	// the locale of the reader.
-	const [said, setSaid] = useState<'loading' | number | null>(null)
+	const [said, setSaid] = useState<'loading' | 'failed' | number | null>(null)
 
 	useEffect(() => {
 		if (loading) {
@@ -28,14 +30,22 @@ function useStatusMessage(loading: boolean, rowCount: number): string {
 			return
 		}
 
+		if (failed) {
+			setSaid('failed')
+
+			return
+		}
+
 		const id = setTimeout(() => setSaid(rowCount), GRID_STATUS_DEBOUNCE_MS)
 
 		return () => clearTimeout(id)
-	}, [loading, rowCount])
+	}, [loading, rowCount, failed])
 
 	if (said === null) return ''
 
 	if (said === 'loading') return intl.formatMessage(intlMessages.loading)
+
+	if (said === 'failed') return intl.formatMessage(gridMessages.loadFailed)
 
 	return intl.formatMessage(gridMessages.rowsResult, { count: said })
 }
@@ -54,8 +64,17 @@ function useStatusMessage(loading: boolean, rowCount: number): string {
  *
  * @internal
  */
-export function GridBusyStatus({ loading, rowCount }: { loading: boolean; rowCount: number }) {
-	const message = useStatusMessage(loading, rowCount)
+export function GridBusyStatus({
+	loading,
+	rowCount,
+	failed,
+}: {
+	loading: boolean
+	rowCount: number
+	/** Says that an infinite-scroll load failed: the binding holds an `error`. */
+	failed: boolean
+}) {
+	const message = useStatusMessage(loading, rowCount, failed)
 
 	return (
 		<span role="status" data-slot="grid-busy-status" className="sr-only">

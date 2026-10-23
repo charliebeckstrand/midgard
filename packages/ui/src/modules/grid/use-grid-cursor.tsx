@@ -45,6 +45,7 @@ import { parseTsv, toTsv } from './engine/grid-range/tsv'
 import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
 import { resolveCellAt } from './engine/grid-row/bridges'
 import type { GridCellClick, GridCellClickContext } from './engine/grid-row/cell'
+import { findDataRow, spokenRowNumber } from './engine/grid-row/shell'
 import type { GridEditSource } from './grid-data-types'
 import { GridEditOverlay } from './grid-edit-overlay'
 import { GridEditingSessionContext, GridNewRowContext } from './grid-editing-context'
@@ -381,19 +382,47 @@ export function useGridCursor<T>({
 
 		const columns = dataColumnsRef.current
 
-		const corner = ({ row, col }: Coord) => ({
+		// The number that the screen reader speaks for the row, or `null` when a
+		// windowed body left the row out of the document.
+		const spoken = (row: number) => {
+			const key = rowKeysRef.current[row]
+
+			const node =
+				key === undefined || !tableRef.current ? null : findDataRow(tableRef.current, key)
+
+			return node ? spokenRowNumber(node) : null
+		}
+
+		const { from, to } = cells
+
+		// The rows from the anchor to the cursor, negative when the cursor is above.
+		const span = to.row - from.row
+
+		const ownFrom = spoken(from.row)
+
+		const ownTo = spoken(to.row)
+
+		// A windowed body can leave one corner out of the document. Its number then
+		// follows from the other corner. That is exact while no group header or
+		// detail panel is between the two. With no corner in the document, the
+		// number is the place of the row in the data.
+		const fromRow = ownFrom ?? (ownTo === null ? from.row + 1 : ownTo - span)
+
+		const toRow = ownTo ?? fromRow + span
+
+		const corner = ({ col }: Coord, row: number) => ({
 			column: columns[col]
 				? columnLabel(columns[col])
 				: intl.formatMessage(gridMessages.columnNumber, { number: col + 1 }),
-			row: row + 1,
+			row,
 		})
 
 		announce(
 			describeRange(
 				intl,
 				{ rows: cells.rows.length, cols: cells.cols.length },
-				corner(cells.from),
-				corner(cells.to),
+				corner(from, fromRow),
+				corner(to, toRow),
 			),
 		)
 	})

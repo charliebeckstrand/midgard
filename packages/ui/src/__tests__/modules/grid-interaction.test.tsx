@@ -543,6 +543,38 @@ describe('Grid busy live region', () => {
 		expect(screen.getByText('No results')).toBeInTheDocument()
 	})
 
+	// The trailing row shows the error of a failed load-more, and the region
+	// says that the load failed, so a reader who does not see the row hears it.
+	it('announces a failed infinite-scroll load, then the next count', async ({ clock }) => {
+		const busy = () => document.querySelector('[data-slot="grid-busy-status"]')
+
+		const grid = (shown: Row[], error?: string) => (
+			<Grid
+				columns={columns}
+				rows={shown}
+				getKey={getKey}
+				maxHeight="200px"
+				infiniteScroll={{ onLoadMore: () => {}, error }}
+			/>
+		)
+
+		const view = renderUI(grid(rows))
+
+		await clock.advance(GRID_STATUS_DEBOUNCE_MS)
+
+		expect(busy()).toHaveTextContent('2 rows')
+
+		view.rerender(grid(rows, 'The next rows did not load.'))
+
+		expect(busy()).toHaveTextContent("Couldn't load data")
+
+		view.rerender(grid([...rows, { id: 3, name: 'Carol' }]))
+
+		await clock.advance(GRID_STATUS_DEBOUNCE_MS)
+
+		expect(busy()).toHaveTextContent('3 rows')
+	})
+
 	// A live region speaks a change of its text, not the text it mounts with. A
 	// grid that mounts while it loads must therefore commit the region empty, and
 	// fill it in a later commit.

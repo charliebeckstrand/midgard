@@ -66,6 +66,7 @@ function Editor() {
 			onToggle={noop}
 			order={order}
 			onOrderChange={noop}
+			reorderable
 		/>
 	)
 }

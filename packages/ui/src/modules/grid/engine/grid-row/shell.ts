@@ -168,6 +168,36 @@ export function ariaRowIndex(rowIndexOffset: number, index: number): number {
 }
 
 /**
+ * The number that a screen reader speaks for a row of the table: its
+ * `aria-rowindex`, else its place among the rows of the table, the header rows
+ * included. An announcement that names a row uses this number, so the reader
+ * hears one number for each row.
+ *
+ * @internal
+ */
+export function spokenRowNumber(row: HTMLTableRowElement): number {
+	const index = Number(row.getAttribute('aria-rowindex'))
+
+	return index > 0 ? index : row.rowIndex + 1
+}
+
+/**
+ * The data row of a grid with the given key, among the rows of its own body. A
+ * windowed body can leave the row out of the document, and the result is then
+ * `null`.
+ *
+ * @internal
+ */
+export function findDataRow(
+	table: HTMLTableElement,
+	key: string | number,
+): HTMLTableRowElement | null {
+	return table.querySelector<HTMLTableRowElement>(
+		`:scope > tbody > tr[data-grid-row="${CSS.escape(String(key))}"]`,
+	)
+}
+
+/**
  * The `aria-rowindex` of an item of a windowed grouped or master-detail body.
  * `position` is its place among the rows that assistive tech sees. A closing
  * row has position `-1`, and it carries no index. A table with no grid
