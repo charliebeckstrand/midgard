@@ -191,15 +191,14 @@ function scatterTitles(
 }
 
 /**
- * The inset a spark plot needs on every edge, so its largest disc clears the
- * frame rather than clipping. It is the widest disc radius across the visible
- * points, plus the half of the surface ring that strokes outside that radius.
- * The painted edge (not just the fill) therefore clears. Falls back to the
- * plain {@link MARKER_RADIUS} when
- * there is nothing to measure.
+ * How far the largest disc paints past its center: the widest disc radius
+ * across the visible points, plus the half of the surface ring that strokes
+ * outside that radius. A frame edge that keeps this inset therefore clears the
+ * painted edge, not just the fill. Falls back to the plain
+ * {@link MARKER_RADIUS} when there is nothing to measure.
  * @internal
  */
-function sparkMarkInset(visible: ScatterMeta[]): number {
+function discReach(visible: ScatterMeta[]): number {
 	const widest = visible.reduce(
 		(outer, meta) =>
 			meta.drawn.reduce((inner, point) => Math.max(inner, meta.radius(point.size)), outer),
@@ -207,6 +206,20 @@ function sparkMarkInset(visible: ScatterMeta[]): number {
 	)
 
 	return widest + MARKER_RING_WIDTH / 2
+}
+
+/**
+ * An x range narrowed so each end keeps `reach` from the frame edge, where it
+ * does not already. A range that is too narrow for both ends collapses to its
+ * middle.
+ * @internal
+ */
+function clearEdges(range: [number, number], reach: number, frameWidth: number): [number, number] {
+	const start = Math.max(range[0], reach)
+
+	const end = Math.min(range[1], frameWidth - reach)
+
+	return start <= end ? [start, end] : [(start + end) / 2, (start + end) / 2]
 }
 
 /**
@@ -252,17 +265,20 @@ export function scatterScales(args: {
 
 	// A spark scatter fits its domain tight (like a spark line, filling the box
 	// rather than sinking into the empty air a nice-stepped scale leaves) and
-	// insets every edge by the widest disc's radius so the marks read centered and
-	// clear the frame instead of clipping at it. A framed plot keeps the axis
+	// insets every edge by the reach of the widest disc so the marks read centered
+	// and clear the frame instead of clipping at it. A framed plot keeps the axis
 	// reservations: the ceiling tick's top pad and the x-axis band down the value
-	// axis, the gutter and end-label inset across.
+	// axis, the gutter and end-label inset across. Each frame edge with no axis
+	// band past it still keeps the reach, so a large bubble never clips there.
 	const scaleTicks = spark ? 0 : tickTarget
 
-	const inset = spark ? sparkMarkInset(visible) : 0
+	const reach = discReach(visible)
 
-	const yFloor = frameHeight - (drawAxes ? X_AXIS_HEIGHT + xTitleBand : inset)
+	const inset = spark ? reach : 0
 
-	const yCeiling = spark ? inset : PLOT_TOP_PAD
+	const yFloor = frameHeight - (drawAxes ? X_AXIS_HEIGHT + xTitleBand : reach)
+
+	const yCeiling = spark ? inset : Math.max(PLOT_TOP_PAD, reach)
 
 	const yScale = linearScale({
 		values: visible.flatMap((meta) => meta.points.map((point) => point.y)),
@@ -282,12 +298,14 @@ export function scatterScales(args: {
 	)
 
 	// The title bands narrow the plot from the base gutter / axis-band reservation
-	// the way the yScale range already dropped the x title's height.
+	// the way the yScale range already dropped the x title's height. A framed plot
+	// spans the y range, so its gridlines meet the ceiling tick where the disc
+	// reach lowered it.
 	const plot: PlotRect = {
 		x: base.x + yTitleBand,
-		y: base.y,
+		y: spark ? base.y : yCeiling,
 		width: Math.max(0, base.width - yTitleBand),
-		height: Math.max(0, base.height - xTitleBand),
+		height: spark ? Math.max(0, base.height - xTitleBand) : Math.max(0, yFloor - yCeiling),
 	}
 
 	const xValues = visible.flatMap((meta) => meta.points.map((point) => point.x))
@@ -302,7 +320,11 @@ export function scatterScales(args: {
 	// axis, so its ticks stay bare and centered over the tight-fit span.
 	const xProbe = drawAxes ? linearScale({ values: xValues, range: span, ...xOptions }) : null
 
-	const xRange = xProbe ? valueAxisRange([{ ticks: xProbe.ticks, format: formatX }], span) : span
+	const xRange = clearEdges(
+		xProbe ? valueAxisRange([{ ticks: xProbe.ticks, format: formatX }], span) : span,
+		reach,
+		frameWidth,
+	)
 
 	const xScale = linearScale({ values: xValues, range: xRange, ...xOptions })
 

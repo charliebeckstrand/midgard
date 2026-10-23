@@ -41,6 +41,7 @@ import {
 } from './sector-chart-callouts'
 import {
 	donutCenterStyle,
+	drawnSelection,
 	resolveLabels,
 	sectorFrame,
 	sectorFrameSizing,
@@ -108,7 +109,9 @@ export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	 * full strength, and each other slice recedes with the dim of a legend hover.
 	 * A hover never re-lights a slice while a selection is held. Pair it with
 	 * `onCategoryClick` to hold a selection, for example the source of a
-	 * dashboard cross-filter. An empty list, or no list, selects nothing.
+	 * dashboard cross-filter. An empty list, or no list, selects nothing. A
+	 * label whose row draws no slice (a zero, a negative, or a toggled-off
+	 * value) selects nothing either.
 	 */
 	selectedCategories?: readonly string[]
 	/**
@@ -300,8 +303,10 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 
 	const sliceless = new Set(values.flatMap((_, index) => (drawn.has(index) ? [] : [index])))
 
-	// The held selection keys off the same label that a slice click reports.
-	const selectedSlices = selectedIndices(sliceLabels, selectedCategories)
+	// The held selection keys off the same label that a slice click reports. It
+	// keeps only the rows that draw a slice, for the same reason as the emphasis:
+	// a selection of sliceless rows alone would recede every real slice.
+	const selectedSlices = drawnSelection(selectedIndices(sliceLabels, selectedCategories), drawn)
 
 	const calloutItems =
 		drawCallouts && radius > 0

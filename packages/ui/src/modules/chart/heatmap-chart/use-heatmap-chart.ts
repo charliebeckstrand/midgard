@@ -111,9 +111,19 @@ function heatmapTicks(
 	return { x, y }
 }
 
-/** The visually-hidden data table's readout: columns across, rows down, one value per cell. @internal */
-function heatmapReadout(matrix: HeatmapMatrix, format: (value: number) => string): ChartReadout {
+/**
+ * The visually-hidden data table's readout: one value per cell, with the
+ * `colorName` of the value in the corner.
+ *
+ * @internal
+ */
+function heatmapReadout(
+	matrix: HeatmapMatrix,
+	format: (value: number) => string,
+	colorName: string | undefined,
+): ChartReadout {
 	return {
+		corner: colorName,
 		categories: matrix.columns,
 		rows: matrix.rows.map((label, row) => ({
 			label,
@@ -357,11 +367,13 @@ export function useHeatmapChart<T>(
 	const format = formatValue ?? fractionFormat(locale)
 
 	// A cached thunk ({@link ChartReadoutSource}). The data table and the context
-	// menu's CSV actions call it. It holds while the matrix and the format hold, so
-	// a parent render formats no cell again.
+	// menu's CSV actions call it. It holds while the matrix, the format, and the
+	// value name hold, so a parent render formats no cell again.
+	const colorName = primary?.colorName
+
 	const readout = useMemo(
-		() => (cols > 0 && rows > 0 ? once(() => heatmapReadout(matrix, format)) : null),
-		[cols, rows, matrix, format],
+		() => (cols > 0 && rows > 0 ? once(() => heatmapReadout(matrix, format, colorName)) : null),
+		[cols, rows, matrix, format, colorName],
 	)
 
 	const focus = useMemo(() => heatmapFocus(cols, rows, xBand, yBand), [cols, rows, xBand, yBand])

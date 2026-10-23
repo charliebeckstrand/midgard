@@ -488,6 +488,41 @@ describe('BubbleChart', () => {
 		expect(radii[3]).toBeNear(14, 0.01)
 	})
 
+	it.each([true, false])('keeps each disc inside the frame (axes: %s)', (axes) => {
+		const { container } = renderUI(
+			<BubbleChart
+				aria-label="Edge discs"
+				data={[
+					{ distance: 0, dwell: 0, weight: 10 },
+					{ distance: 10, dwell: 10, weight: 10 },
+					{ distance: 5, dwell: 5, weight: 1 },
+				]}
+				width={400}
+				height={200}
+				axes={axes}
+				series={[{ xKey: 'distance', yKey: 'dwell', sizeKey: 'weight' }]}
+			/>,
+		)
+
+		for (const disc of points(container)) {
+			const [cx, cy, r] = ['cx', 'cy', 'r'].map((name) => Number(disc.getAttribute(name))) as [
+				number,
+				number,
+				number,
+			]
+
+			expect(cy - r).toBeGreaterThanOrEqual(0)
+
+			expect(cx + r).toBeLessThanOrEqual(400)
+
+			if (!axes) {
+				expect(cx - r).toBeGreaterThanOrEqual(0)
+
+				expect(cy + r).toBeLessThanOrEqual(200)
+			}
+		}
+	})
+
 	it('draws the smallest disc for a series whose sizes all fail to parse', () => {
 		const { container } = renderUI(
 			<BubbleChart

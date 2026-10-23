@@ -166,6 +166,15 @@ describe('HeatmapChart', () => {
 		expect(table?.textContent).toContain('—')
 	})
 
+	it('names the value in the corner of the data table', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Activity" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		// Every cell holds a count of commits, so the corner above the row headers names it.
+		expect(getSlot(container, 'chart-table').querySelector('thead td')?.textContent).toBe('Commits')
+	})
+
 	it('keeps a prop that the heatmap does not take off the plot region', () => {
 		const { container } = renderUI(
 			<HeatmapChart

@@ -128,6 +128,19 @@ export function sectorFrame(
 }
 
 /**
+ * The held selection narrowed to the rows that draw a slice, or `null` with no
+ * selection.
+ *
+ * @internal
+ */
+export function drawnSelection(
+	selected: ReadonlySet<number> | null,
+	drawn: ReadonlySet<number>,
+): ReadonlySet<number> | null {
+	return selected && new Set([...selected].filter((index) => drawn.has(index)))
+}
+
+/**
  * Each row's `0..1` share of the positive whole, indexed like `values`, or
  * `null` for a row that takes no slice (a missing, non-positive, or toggled-off
  * value). The callouts, the legend panel, and the readout all read it, so they
