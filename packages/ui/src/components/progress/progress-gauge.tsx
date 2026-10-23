@@ -4,6 +4,7 @@ import { useMotionValue, useTransform } from 'motion/react'
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k, type ProgressGaugeVariants } from '../../recipes/kata/progress'
@@ -40,7 +41,10 @@ export type ProgressGaugeProps = AccessibleName &
 		 * @defaultValue 'zinc'
 		 */
 		color?: ProgressColor
-		/** Center readout; pass `true` to render the rounded percentage, or a node for custom content. */
+		/**
+		 * Center readout; pass `true` to render the rounded percentage in the
+		 * digits of the locale, or a node for custom content.
+		 */
 		centerLabel?: ReactNode | boolean
 		/**
 		 * Ring thickness in viewBox units, held between 1 and 6. A thinner ring
@@ -88,7 +92,10 @@ export function ProgressGauge({
 
 	const offset = circumference - (percent / 100) * circumference
 
-	const label = centerLabel === true ? Math.round(percent) : centerLabel
+	const intl = useIntl()
+
+	// The readout is a number that the reader sees, so it takes the digits of the locale.
+	const label = centerLabel === true ? intl.formatNumber(Math.round(percent)) : centerLabel
 
 	// The ring mounts at its value. A sweep up from zero on mount plays again
 	// each time a tab panel brings the gauge back. The fill animates

@@ -267,7 +267,7 @@ export function Alert({
 }: AlertProps) {
 	const [open, setOpen] = useControllableFlag({
 		value: openProp,
-		defaultValue: defaultOpen ?? true,
+		defaultValue: defaultOpen,
 		onValueChange: onOpenChange,
 	})
 

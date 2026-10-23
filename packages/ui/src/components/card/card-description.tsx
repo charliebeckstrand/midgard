@@ -2,7 +2,7 @@ import type { ComponentProps } from 'react'
 import { createSlot } from '../../core'
 import { k } from '../../recipes/kata/card'
 
-/** Props for {@link CardDescription}; a slotted `<p>` that accepts `render` for composition. */
+/** Props for {@link CardDescription}: native `<p>` attributes. */
 export type CardDescriptionProps = ComponentProps<'p'>
 
 /**

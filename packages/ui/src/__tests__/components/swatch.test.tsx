@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Swatch } from '../../components/swatch'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Swatch', () => {
 	it('passes through HTML attributes and applies the currentColor class', () => {
@@ -111,9 +111,17 @@ describe('Swatch', () => {
 		expect(el).toHaveStyle({ color: 'oklch(0.62 0.19 259)' })
 	})
 
-	it('lets an explicit style prop win over a raw color', () => {
-		const { container } = renderUI(<Swatch color="#2563eb" style={{ color: 'rgb(1, 2, 3)' }} />)
+	it('lets a raw color win over the color of a style prop, and keeps the other keys', () => {
+		const { container } = renderUI(
+			<Swatch color="#2563eb" style={{ color: 'rgb(1, 2, 3)', opacity: 0.5 }} />,
+		)
 
-		expect(bySlot(container, 'swatch')).toHaveStyle({ color: 'rgb(1, 2, 3)' })
+		expect(bySlot(container, 'swatch')).toHaveStyle({ color: '#2563eb', opacity: '0.5' })
+	})
+
+	it('keeps the img role of a label when a consumer passes another role', () => {
+		renderUI(<Swatch label="Revenue" role="presentation" />)
+
+		expect(screen.getByRole('img', { name: 'Revenue' })).toBeInTheDocument()
 	})
 })

@@ -25,6 +25,17 @@ describe('Card', () => {
 
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
+
+	it('keeps the CardHeader anchor when a consumer passes another data-slot, as the footer pad reads it', () => {
+		const { container } = renderUI(
+			<Card>
+				<CardHeader data-slot="custom">Title</CardHeader>
+				<CardFooter>Actions</CardFooter>
+			</Card>,
+		)
+
+		expect(bySlot(container, 'card-header')).toBeInTheDocument()
+	})
 })
 
 describe('Card size system', () => {
