@@ -28,10 +28,12 @@ export type AccordionSkeletonProps = AccordionVariants & {
 export function AccordionSkeleton({ items = 3, variant, className }: AccordionSkeletonProps) {
 	const itemKeys = rangeKeys(items, 'item')
 
+	const slots = k({ variant })
+
 	return (
-		<div className={cn(k({ variant }), className)}>
+		<div className={cn(slots.base, className)}>
 			{itemKeys.map((itemKey) => (
-				<div key={itemKey} className={k.item({ variant })}>
+				<div key={itemKey} className={slots.item}>
 					<div className={cn(k.header)}>
 						<Placeholder className={k.skeleton.label} />
 						<Placeholder className={cn(k.skeleton.indicator)} />

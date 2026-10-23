@@ -160,14 +160,14 @@ describe('accordion header focus under forced colors', () => {
 	const gate = 'has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]'
 
 	it('draws the focus outline of the item behind the gate of its ring', () => {
-		const item = classNames([accordion.item()])
+		const item = classNames([accordion().item])
 
 		expect(item).toContain(`${gate}:ring-2`)
 		expect(item).toContain(`forced-colors:${gate}:outline-[Highlight]`)
 	})
 
 	it('removes the outline of the header with no forced-colors outline', () => {
-		const trigger = classNames([accordion.trigger])
+		const trigger = classNames([accordion().trigger])
 
 		expect(trigger).toContain('focus-visible:outline-none')
 		expect(trigger).not.toContain('focus-visible:outline-hidden')

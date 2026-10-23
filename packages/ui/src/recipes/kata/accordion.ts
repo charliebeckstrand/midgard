@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineKata, type VariantProps } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
 
 const { cursor, disabled, fg } = hannou
@@ -7,23 +7,6 @@ const { rounded } = kasane
 const { flex } = narabi
 const { border, divider, focus } = sen
 const { collapse, css } = ugoki
-
-const item = defineRecipe({
-	base: [
-		// Content in the item can read the `data-open` of the item through this group.
-		'group/accordion-item',
-		// The item rings while its own header button has keyboard focus. A nested
-		// accordion is in the panel, so the focus of a nested header does not ring the
-		// item.
-		...focus.within.heading,
-	],
-	variant: {
-		separated: ['overflow-hidden', rounded.lg, ...border.default],
-		outline: ['first:rounded-t-[inherit]', 'last:rounded-b-[inherit]'],
-		plain: '',
-	},
-	defaults: { variant: 'separated' },
-})
 
 /**
  * The box of an item header: the axis, the gap, the padding, and the text. The
@@ -38,7 +21,7 @@ const header = [
 	ji.ramp,
 ]
 
-export const k = defineRecipe(
+export const k = defineKata(
 	{
 		base: flex.col,
 		variant: {
@@ -47,6 +30,21 @@ export const k = defineRecipe(
 			plain: divider.between,
 		},
 		slots: {
+			item: {
+				base: [
+					// Content in the item can read the `data-open` of the item through this group.
+					'group/accordion-item',
+					// The item rings while its own header button has keyboard focus. A nested
+					// accordion is in the panel, so the focus of a nested header does not ring the
+					// item.
+					...focus.within.heading,
+				],
+				variant: {
+					separated: ['overflow-hidden', rounded.lg, ...border.default],
+					outline: ['first:rounded-t-[inherit]', 'last:rounded-b-[inherit]'],
+					plain: '',
+				},
+			},
 			trigger: [
 				...header,
 				// The open look reads the `aria-expanded` of the button itself, and the
@@ -83,9 +81,8 @@ export const k = defineRecipe(
 			],
 		},
 		defaults: { variant: 'separated' },
-		skeleton: kokkaku.accordion,
 	},
-	{ item, motion: collapse.fade, header },
+	{ motion: collapse.fade, header, skeleton: kokkaku.accordion },
 )
 
 /** Recipe variant props for {@link Accordion}: the styling axes its kata exposes (`variant`), for consumers composing custom slots. */
@@ -98,7 +95,7 @@ export type AccordionVariants = Omit<VariantProps<typeof k>, 'variant'> & {
 	variant?: VariantProps<typeof k>['variant']
 }
 /** Recipe variant props for an {@link Accordion} item: its styling axes (`variant`), for consumers composing custom slots. */
-export type AccordionItemVariants = Omit<VariantProps<typeof item>, 'variant'> & {
+export type AccordionItemVariants = {
 	/** The style of the item, which matches the `variant` of its accordion. @defaultValue 'separated' */
-	variant?: VariantProps<typeof item>['variant']
+	variant?: VariantProps<typeof k>['variant']
 }

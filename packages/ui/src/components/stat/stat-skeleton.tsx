@@ -42,7 +42,7 @@ export function StatSkeleton({
 	className,
 }: StatSkeletonProps) {
 	return (
-		<div className={cn(k(), className)}>
+		<div className={cn(k().base, className)}>
 			<StatLabelSkeleton />
 			<StatValueSkeleton size={size} />
 			{delta ? <StatDeltaSkeleton /> : null}

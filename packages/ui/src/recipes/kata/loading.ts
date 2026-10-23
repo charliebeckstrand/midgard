@@ -1,5 +1,5 @@
 import { defineScale, type ScaleStep } from '../../core/density'
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineKata, type VariantProps } from '../../core/recipe'
 import { dan, iro, narabi } from '../kiso'
 
 const { marker } = iro
@@ -19,9 +19,9 @@ const color = { current: 'text-current', ...marker }
  * a stepped `density-*` class, so the dot takes the step of its nearest
  * density scope, as the spinner does.
  */
-const dot = defineRecipe({
+const dot = {
 	base: ['shrink-0 rounded-full bg-current', 'motion-safe:animate-pulse', dan.size.dot],
-})
+}
 
 /**
  * Rotating SVG indicator: indeterminate spinner. The spin is
@@ -31,21 +31,18 @@ const dot = defineRecipe({
  * spinner takes the icon ramp, so a spinner and an icon at one step have one
  * size.
  */
-const spinner = defineRecipe({
+const spinner = {
 	base: ['inline-block shrink-0 motion-safe:animate-spin', dan.size.icon.base],
 	color,
+}
+
+export const k = defineKata({
+	// The gap between the dots takes the step of the nearest density scope.
+	base: [flex.inline, 'shrink-0', dan.gap.dots],
+	color,
+	slots: { dot, spinner },
 	defaults: { color: 'current' },
 })
-
-export const k = defineRecipe(
-	{
-		// The gap between the dots takes the step of the nearest density scope.
-		base: [flex.inline, 'shrink-0', dan.gap.dots],
-		color,
-		defaults: { color: 'current' },
-	},
-	{ dot, spinner },
-)
 
 /**
  * The size scales. `dots` is the scale of {@link LoadingDots}: the steps of the
@@ -65,9 +62,9 @@ export type LoadingDotsVariants = Omit<VariantProps<typeof k>, 'color'> & {
 	size?: ScaleStep<typeof scale.dots>
 }
 /** Recipe variant props for {@link LoadingSpinner}: its `color` axis and the `size` step, for consumers composing custom slots. */
-export type LoadingSpinnerVariants = Omit<VariantProps<typeof spinner>, 'color'> & {
+export type LoadingSpinnerVariants = {
 	/** The color of the spinner. `current` takes the color of the text around it. @defaultValue 'current' */
-	color?: VariantProps<typeof spinner>['color']
+	color?: VariantProps<typeof k>['color']
 	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: ScaleStep<typeof scale.spinner>
 }

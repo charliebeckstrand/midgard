@@ -85,13 +85,13 @@ export function ProgressBar({
 			aria-valuenow={determinate ? clamp(value, 0, max) : undefined}
 			aria-valuemin={0}
 			aria-valuemax={max}
-			className={cn(k(), className)}
+			className={cn(k().base, className)}
 		>
 			{determinate ? (
 				// The `m` fill animates with the features that a `ReducedMotion` root loads.
 				<ReducedMotion>
 					<m.div
-						className={k.bar.fill({ color })}
+						className={k({ color }).bar.fill}
 						initial={false}
 						animate={{ width: `${percent}%` }}
 						transition={still ? k.still : k.spring}
@@ -99,7 +99,7 @@ export function ProgressBar({
 				</ReducedMotion>
 			) : (
 				// A CSS animation runs the sweep, from the inline start to the inline end.
-				<div className={cn(k.bar.fill({ color }), k.bar.indeterminate)} />
+				<div className={cn(k({ color }).bar.fill, k().bar.indeterminate)} />
 			)}
 		</div>
 	)

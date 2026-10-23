@@ -13,4 +13,4 @@ export type StatProps = ComponentProps<'div'>
  * React Server Components; mirror its tree with the matching `*Skeleton` parts
  * while loading.
  */
-export const Stat = createSlot('div', 'stat', k())
+export const Stat = createSlot('div', 'stat', k().base)

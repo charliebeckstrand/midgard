@@ -7,7 +7,7 @@
  */
 
 import { defineScale, type ScaleStep } from '../../core/density'
-import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { defineKata, mode, type VariantProps } from '../../core/recipe'
 import { dan, iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
 
 const { meter, text } = iro
@@ -17,7 +17,7 @@ const { flex } = narabi
 const { spring } = ugoki
 const { forced } = sen
 
-const fill = defineRecipe({
+const fill = {
 	base: ['h-full', rounded.full, forced.mark],
 	color: {
 		zinc: meter.zinc.bg,
@@ -26,18 +26,15 @@ const fill = defineRecipe({
 		green: meter.green.bg,
 		blue: meter.blue.bg,
 	},
-	defaults: { color: 'zinc' },
-})
+}
 
-const gauge = defineRecipe({
-	base: ['relative', flex.inline, 'justify-center', kokkaku.progress.gauge.diameter],
-})
+const gauge = ['relative', flex.inline, 'justify-center', kokkaku.progress.gauge.diameter]
 
-const label = defineRecipe({
+const label = {
 	base: ['absolute', weight.semibold, ...text.default, dan.text.small, 'tabular-nums'],
-})
+}
 
-export const k = defineRecipe(
+export const k = defineKata(
 	{
 		base: [
 			'overflow-hidden',
@@ -46,33 +43,40 @@ export const k = defineRecipe(
 			forced.outline,
 			kokkaku.progress.bar.height,
 		],
-		skeleton: kokkaku.progress,
+		slots: {
+			bar: {
+				slots: {
+					fill,
+					/**
+					 * Indeterminate fill: a third of the track that sweeps from the start of
+					 * the track to past its end, on a loop. The keyframes are in
+					 * `ui/tailwind.css`. Under reduced motion the fill holds still at the
+					 * start of the track.
+					 */
+					indeterminate: [
+						'w-1/3',
+						'motion-safe:animate-progress-sweep',
+						'rtl:motion-safe:animate-progress-sweep-rtl',
+					],
+				},
+			},
+			gauge: {
+				base: gauge,
+				slots: {
+					label,
+					track: mode('stroke-zinc-200', 'dark:stroke-zinc-700'),
+				},
+			},
+		},
+		defaults: { color: 'zinc' },
 	},
 	{
+		skeleton: kokkaku.progress,
 		color: meter,
 		/** Value-fill settle: the bar and gauge move to each new value on this spring. */
 		spring: spring.settle,
 		/** Value-fill jump: under reduced motion, the bar and gauge go to their value at once. */
 		still: ugoki.instant,
-		bar: {
-			fill,
-			/**
-			 * Indeterminate fill: a third of the track that sweeps from the start of
-			 * the track to past its end, on a loop. The keyframes are in
-			 * `ui/tailwind.css`. Under reduced motion the fill holds still at the
-			 * start of the track.
-			 */
-			indeterminate: [
-				'w-1/3',
-				'motion-safe:animate-progress-sweep',
-				'rtl:motion-safe:animate-progress-sweep-rtl',
-			],
-		},
-		gauge: {
-			base: gauge,
-			label,
-			track: mode('stroke-zinc-200', 'dark:stroke-zinc-700'),
-		},
 	},
 )
 
@@ -92,9 +96,9 @@ export type ProgressTrackVariants = {
 	size?: ScaleStep<typeof scale.bar>
 }
 /** Props for the {@link ProgressBar} fill: its `color`. */
-export type ProgressBarFillVariants = Omit<VariantProps<typeof fill>, 'color'> & {
+export type ProgressBarFillVariants = {
 	/** The color of the fill. @defaultValue 'zinc' */
-	color?: VariantProps<typeof fill>['color']
+	color?: VariantProps<typeof k>['color']
 }
 /** Props for the {@link ProgressGauge} root: the `size` step that the component writes as a density scope. */
 export type ProgressGaugeVariants = {

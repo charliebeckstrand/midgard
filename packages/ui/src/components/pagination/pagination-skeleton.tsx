@@ -20,7 +20,7 @@ export type PaginationSkeletonProps = {
 export function PaginationSkeleton({ pages = 7, className }: PaginationSkeletonProps) {
 	return renderRowSkeleton({
 		count: pages,
-		root: [k(), className],
+		root: [k().base, className],
 		item: (index) => (index === 0 || index === pages - 1 ? k.skeleton.nav : k.skeleton.item),
 	})
 }

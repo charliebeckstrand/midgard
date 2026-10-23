@@ -114,7 +114,7 @@ export function ProgressGauge({
 			aria-valuenow={clamp(value, 0, max)}
 			aria-valuemin={0}
 			aria-valuemax={max}
-			className={cn(k.gauge.base(), className)}
+			className={cn(k().gauge.base, className)}
 		>
 			<svg
 				aria-hidden="true"
@@ -128,7 +128,7 @@ export function ProgressGauge({
 					r={radius}
 					fill="none"
 					strokeWidth={strokeWidth}
-					className={cn(k.gauge.track)}
+					className={k().gauge.track}
 				/>
 
 				{/* Fill. The `m` circle animates with the features that a `ReducedMotion` root loads. */}
@@ -150,7 +150,7 @@ export function ProgressGauge({
 				</ReducedMotion>
 			</svg>
 
-			{label != null && label !== false && <span className={k.gauge.label()}>{label}</span>}
+			{label != null && label !== false && <span className={k().gauge.label}>{label}</span>}
 		</div>
 	)
 }

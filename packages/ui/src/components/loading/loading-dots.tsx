@@ -22,7 +22,7 @@ const DOT_DELAYS = [
 ] as const
 
 // The class of each dot. It takes no input, so it is built once.
-const dotClass = k.dot()
+const dotClass = k().dot
 
 /**
  * Indeterminate loading indicator: three breathing dots rendered as a live
@@ -37,7 +37,7 @@ export function LoadingDots({ size, color, label, className, ...props }: Loading
 		<output
 			data-slot="loading-dots"
 			data-density={size}
-			className={cn(k({ color }), className)}
+			className={cn(k({ color }).base, className)}
 			{...props}
 		>
 			{DOT_DELAYS.map((delay) => (

@@ -35,7 +35,7 @@ export function LoadingSpinner({ size, color, label, className, ...props }: Load
 		<output
 			data-slot="loading-spinner"
 			data-density={size}
-			className={cn(k.spinner({ color }), className)}
+			className={cn(k({ color }).spinner, className)}
 			{...props}
 		>
 			{SPINNER_SVG}

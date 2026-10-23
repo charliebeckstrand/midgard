@@ -66,10 +66,10 @@ export function AccordionTrigger({
 				onKeyDown={composeEventHandlers(onKeyDown, onTriggerKeyDown, {
 					checkForDefaultPrevented: false,
 				})}
-				className={cn(k.trigger, className)}
+				className={cn(k().trigger, className)}
 			>
 				<span className="flex-1">{children}</span>
-				<Icon icon={<ChevronDown />} className={cn(k.indicator)} />
+				<Icon icon={<ChevronDown />} className={cn(k().indicator)} />
 			</button>
 		</Heading>
 	)
