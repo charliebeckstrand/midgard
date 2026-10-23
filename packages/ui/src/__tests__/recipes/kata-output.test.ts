@@ -21,6 +21,8 @@ import { k as formFilters } from '../../recipes/kata/form-filters'
 import { k as gridGroup } from '../../recipes/kata/grid-group'
 import { k as input } from '../../recipes/kata/input'
 import { k as jsonTree } from '../../recipes/kata/json-tree'
+import { k as kanban } from '../../recipes/kata/kanban'
+import { k as lightbox } from '../../recipes/kata/lightbox'
 import { k as listbox } from '../../recipes/kata/listbox'
 import { k as markdown } from '../../recipes/kata/markdown'
 import { k as nav } from '../../recipes/kata/nav'
@@ -28,6 +30,7 @@ import { k as numberInput } from '../../recipes/kata/number-input'
 import { k as offcanvas } from '../../recipes/kata/offcanvas'
 import { k as overlay } from '../../recipes/kata/overlay'
 import { k as panel } from '../../recipes/kata/panel'
+import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
 import { k as placeholder } from '../../recipes/kata/placeholder'
 import { k as popover } from '../../recipes/kata/popover'
 import { k as queryBuilder } from '../../recipes/kata/query-builder'
@@ -197,8 +200,8 @@ const DROPPED = /^(panel\.k\.(gap|inset)\.|overlay\.k\.backdrop\.glass$)/
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.base|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split|aspect-ratio|card|group|placeholder|status)\.k\.base|json-tree\.k\.(base|content|value)|grid-group\.k\.(outline|rule)|form-filters\.k\.row|calendar\.k\.day\.range|query-chips\.k\.combinator|tag-input\.k\.(base|tags)|signature-pad\.k\.base|toggle-icon-button\.k\.(base|icon)|markdown\.k\.(heading|li|td|th))(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
-	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+|aspect-ratio\.k\.ratio\.[\w/]+|(card|group)\.k\.base|placeholder\.k\.(fill|pulse|shape)|status\.k\.pulse|json-tree\.k\.(base|windowed|content|highlight|color\.\w+)|grid-group\.k\.(outline\.\w+|rule\.(base|neutral|color\.\w+))|form-filters\.k\.rail|calendar\.k\.day\.range\.\w+|query-chips\.k\.combinator\.\w+|tag-input\.k\.tags\.\w+|signature-pad\.k\.base|toggle-icon-button\.k\.icon\.\w+|markdown\.k\.(align\.\w+|heading\.\d|li|task|td|th))$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.base|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split|aspect-ratio|card|group|placeholder|status)\.k\.base|json-tree\.k\.(base|content|value)|grid-group\.k\.(outline|rule)|form-filters\.k\.row|calendar\.k\.day\.range|kanban\.k\.card\.handle|pdf-viewer\.k\.(base|viewport\.page\.highlights\.(base|label|region)|viewport\.page\.magnifier\.lens|sidebar\.base|thumbnails|viewport\.base)|lightbox\.k\.(base|backdrop|close|controls|slot|step|thumbnail\.base|trigger\.base|trigger\.image)|query-chips\.k\.combinator|tag-input\.k\.(base|tags)|signature-pad\.k\.base|toggle-icon-button\.k\.(base|icon)|markdown\.k\.(heading|li|td|th))(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+|aspect-ratio\.k\.ratio\.[\w/]+|(card|group)\.k\.base|placeholder\.k\.(fill|pulse|shape)|status\.k\.pulse|json-tree\.k\.(base|windowed|content|highlight|color\.\w+)|grid-group\.k\.(outline\.\w+|rule\.(base|neutral|color\.\w+))|form-filters\.k\.rail|calendar\.k\.day\.range\.\w+|kanban\.k\.card\.handle\.\w+|pdf-viewer\.k\.(base|fill|sidebar\.(base|closed|travel)|thumbnails\.\w+|viewport\.(base|scrolls)|viewport\.page\.(highlights\.(base|inert|label\.\w+|region\.[\w.]+)|magnifier\.(lens|size\.\w+)))|lightbox\.k\.((backdrop|close|frame|step)\.\w+|controls|slot|thumbnail\.(base|current)|trigger\.(base|button|image|raised))|query-chips\.k\.combinator\.\w+|tag-input\.k\.tags\.\w+|signature-pad\.k\.base|toggle-icon-button\.k\.icon\.\w+|markdown\.k\.(align\.\w+|heading\.\d|li|task|td|th))$/,
 }
 
 /** The output of main, by path. */
@@ -1029,6 +1032,149 @@ describe('kata output', () => {
 					start && read('calendar.k.day.range.start'),
 					end && read('calendar.k.day.range.end'),
 				)
+			}
+		}
+
+		for (const lifted of [false, true]) {
+			check(
+				`kanban handle ${lifted}`,
+				kanban({ lifted }).card.handle,
+				read('kanban.k.card.handle.base'),
+				lifted && read('kanban.k.card.handle.lifted'),
+			)
+		}
+
+		// The lightbox unit. Its axes take the parts that its components chose.
+		for (const flag of [false, true]) {
+			const slots = lightbox({
+				blurred: flag,
+				chrome: flag,
+				closable: flag,
+				current: flag,
+				ended: flag,
+				interactive: flag,
+				raised: flag,
+			})
+
+			const frame = [
+				read('lightbox.k.frame.base'),
+				read(`lightbox.k.frame.${flag ? 'controls' : 'bare'}`),
+			]
+
+			check(
+				`lightbox backdrop ${flag}`,
+				slots.backdrop,
+				read(`lightbox.k.backdrop.${flag ? 'blurred' : 'base'}`),
+			)
+			check(
+				`lightbox close ${flag}`,
+				slots.close,
+				read(`lightbox.k.close.${flag ? 'shown' : 'hidden'}`),
+			)
+			check(`lightbox controls ${flag}`, slots.controls, read('lightbox.k.controls'), frame)
+			check(`lightbox slot ${flag}`, slots.slot, read('lightbox.k.slot'), frame)
+			check(
+				`lightbox step ${flag}`,
+				slots.step,
+				read('lightbox.k.step.base'),
+				flag && read('lightbox.k.step.ended'),
+			)
+			check(
+				`lightbox thumbnail ${flag}`,
+				slots.thumbnail.base,
+				read('lightbox.k.thumbnail.base'),
+				flag && read('lightbox.k.thumbnail.current'),
+			)
+			check(
+				`lightbox trigger ${flag}`,
+				slots.trigger.base,
+				read('lightbox.k.trigger.base'),
+				flag && read('lightbox.k.trigger.button'),
+			)
+			check(
+				`lightbox trigger image ${flag}`,
+				slots.trigger.image,
+				read('lightbox.k.trigger.image'),
+				flag && read('lightbox.k.trigger.raised'),
+			)
+		}
+
+		// The PDF viewer unit. Its axes take the parts that its components chose.
+		for (const fit of ['page', 'width'] as const) {
+			const slots = pdfViewer({ fit })
+
+			check(
+				`pdf-viewer base ${fit}`,
+				slots.base,
+				read('pdf-viewer.k.base'),
+				fit === 'width' && read('pdf-viewer.k.fill'),
+			)
+			check(
+				`pdf-viewer viewport ${fit}`,
+				slots.viewport.base,
+				read('pdf-viewer.k.viewport.base'),
+				fit === 'width' && read('pdf-viewer.k.viewport.scrolls'),
+			)
+		}
+
+		for (const flag of [false, true]) {
+			const slots = pdfViewer({ animates: flag, open: flag, interactive: flag, behind: flag })
+
+			check(
+				`pdf-viewer sidebar ${flag}`,
+				slots.sidebar.base,
+				read('pdf-viewer.k.sidebar.base'),
+				flag ? read('pdf-viewer.k.sidebar.travel') : read('pdf-viewer.k.sidebar.closed'),
+			)
+			check(
+				`pdf-viewer highlights ${flag}`,
+				slots.viewport.page.highlights.base,
+				read('pdf-viewer.k.viewport.page.highlights.base'),
+				!flag && read('pdf-viewer.k.viewport.page.highlights.inert'),
+			)
+			check(
+				`pdf-viewer highlight label ${flag}`,
+				slots.viewport.page.highlights.label,
+				read('pdf-viewer.k.viewport.page.highlights.label.base'),
+				flag && read('pdf-viewer.k.viewport.page.highlights.label.behind'),
+			)
+		}
+
+		for (const layout of ['list', 'grid'] as const) {
+			check(
+				`pdf-viewer thumbnails ${layout}`,
+				pdfViewer({ layout }).thumbnails,
+				read(`pdf-viewer.k.thumbnails.${layout === 'grid' ? 'grid' : 'base'}`),
+			)
+		}
+
+		for (const diameter of ['sm', 'md', 'lg'] as const) {
+			check(
+				`pdf-viewer lens ${diameter}`,
+				pdfViewer({ diameter }).viewport.page.magnifier.lens,
+				read('pdf-viewer.k.viewport.page.magnifier.lens'),
+				read(`pdf-viewer.k.viewport.page.magnifier.size.${diameter}`),
+			)
+		}
+
+		// A region as `pdf-viewer-highlights.tsx` composed it on main.
+		const region = 'pdf-viewer.k.viewport.page.highlights.region'
+
+		for (const color of ['zinc', 'red', 'amber', 'green', 'blue'] as const) {
+			for (const active of [false, true]) {
+				for (const dimmed of [false, true]) {
+					check(
+						`pdf-viewer region ${color} ${active} ${dimmed}`,
+						pdfViewer({ color, active, dimmed }).viewport.page.highlights.region,
+						read(`${region}.base`),
+						read(active ? `${region}.active.fill.${color}` : `${region}.fill.${color}`),
+						read(`${region}.ring.${color}`),
+						active
+							? read(`${region}.active.base`)
+							: [read(`${region}.edge`), read(`${region}.hover`)],
+						dimmed && read(`${region}.dimmed`),
+					)
+				}
 			}
 		}
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { type Ref, type RefObject, useEffect, useRef } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
+import { ariaAttr, dataAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { rangeKeys } from '../../utilities'
@@ -135,7 +135,7 @@ export function PdfViewerThumbnailList({
 			ref={listRef}
 			data-slot="pdf-viewer-thumbnails"
 			aria-hidden={ariaAttr(placeholdersOnly)}
-			className={cn(layout === 'grid' ? k.thumbnails.grid : k.thumbnails.base)}
+			className={k({ layout }).thumbnails}
 		>
 			{placeholdersOnly
 				? PLACEHOLDER_KEYS.map((key) => (
@@ -144,12 +144,12 @@ export function PdfViewerThumbnailList({
 							<span
 								aria-hidden="true"
 								data-slot="pdf-viewer-thumbnail-placeholder"
-								className={cn(k.thumbnail.placeholder)}
+								className={k().thumbnail.placeholder}
 							>
-								<span className={cn(k.thumbnail.frame)}>
-									<span className={cn(k.thumbnail.skeleton)} />
+								<span className={k().thumbnail.frame}>
+									<span className={k().thumbnail.skeleton} />
 								</span>
-								<span className={cn(k.thumbnail.label)}>{'\u00a0'}</span>
+								<span className={k().thumbnail.label}>{'\u00a0'}</span>
 							</span>
 						</li>
 					))
@@ -167,29 +167,24 @@ export function PdfViewerThumbnailList({
 							data-current={dataAttr(isCurrent)}
 							aria-label={intl.formatMessage(pdfViewerMessages.goTo, { page: item.label })}
 							aria-current={isCurrent ? 'page' : undefined}
-							className={cn(k.thumbnail.base)}
+							className={k().thumbnail.base}
 							onClick={() => {
 								goToPage(item.pageNumber)
 
 								onSelect?.()
 							}}
 						>
-							<span className={cn(k.thumbnail.frame)}>
+							<span className={k().thumbnail.frame}>
 								{item.thumbnail ? (
-									<img
-										src={item.thumbnail}
-										alt=""
-										loading="lazy"
-										className={cn(k.thumbnail.image)}
-									/>
+									<img src={item.thumbnail} alt="" loading="lazy" className={k().thumbnail.image} />
 								) : (
 									<span
 										data-slot="pdf-viewer-thumbnail-skeleton"
-										className={cn(k.thumbnail.skeleton)}
+										className={k().thumbnail.skeleton}
 									/>
 								)}
 							</span>
-							<span className={cn(k.thumbnail.label)}>{intl.formatNumber(item.pageNumber)}</span>
+							<span className={k().thumbnail.label}>{intl.formatNumber(item.pageNumber)}</span>
 						</button>
 					</li>
 				)

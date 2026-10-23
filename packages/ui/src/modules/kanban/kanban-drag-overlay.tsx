@@ -35,7 +35,7 @@ export function KanbanDragOverlay({
 					data-overlay="true"
 					// The clone follows a live drag.
 					data-dragging=""
-					className={cn(k.card.active, entry?.className)}
+					className={cn(k().card.active, entry?.className)}
 				>
 					{entry?.children}
 				</KanbanCardSurface>

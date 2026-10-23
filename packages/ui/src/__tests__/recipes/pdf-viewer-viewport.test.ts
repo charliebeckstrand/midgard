@@ -17,7 +17,7 @@ describe('the PdfViewer viewport', () => {
 			onDependency: noop,
 		})
 
-		const centering = [k.viewport.base]
+		const centering = [k().viewport.base]
 			.flat(Number.POSITIVE_INFINITY)
 			.flatMap((value) => String(value).split(' '))
 			.filter((name) => /^(items|justify)-/.test(name))

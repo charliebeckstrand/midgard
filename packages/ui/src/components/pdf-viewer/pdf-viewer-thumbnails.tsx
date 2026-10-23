@@ -2,7 +2,6 @@
 
 import { X } from 'lucide-react'
 import { useId, useMemo, useRef } from 'react'
-import { cn } from '../../core'
 import { useA11yRoving, useScrollWithin } from '../../hooks'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { MountHold, useMountHold } from '../../primitives/mount'
@@ -92,11 +91,7 @@ export function PdfViewerThumbnails() {
 					aria-labelledby={sidebarTitleId}
 					aria-hidden={!sidebarOpen}
 					inert={!sidebarOpen}
-					className={cn(
-						k.sidebar.base,
-						sidebarAnimates && k.sidebar.travel,
-						!sidebarOpen && k.sidebar.closed,
-					)}
+					className={k({ animates: sidebarAnimates, open: sidebarOpen }).sidebar.base}
 					onKeyDown={handleSidebarKeyDown}
 					// The slide is a CSS margin transition, so its landing is the
 					// element's own `transitionend` rather than an animation callback.
@@ -110,7 +105,7 @@ export function PdfViewerThumbnails() {
 					}}
 				>
 					<MountHold hold={sidebarHold} name="pdf-viewer-sidebar">
-						<div id={sidebarTitleId} className={cn(k.sidebar.header)}>
+						<div id={sidebarTitleId} className={k().sidebar.header}>
 							{intl.formatMessage(pdfViewerMessages.pages)}
 						</div>
 						<PdfViewerThumbnailList

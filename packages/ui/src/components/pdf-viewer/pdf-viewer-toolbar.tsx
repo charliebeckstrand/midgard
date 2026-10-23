@@ -2,7 +2,6 @@
 
 import { Highlighter, PanelLeft, PanelLeftDashed, RotateCw, ScanSearch } from 'lucide-react'
 
-import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
@@ -77,12 +76,12 @@ export function PdfViewerToolbar() {
 	)
 
 	return (
-		<div className={cn(k.toolbar.frame)}>
+		<div className={k().toolbar.frame}>
 			<Toolbar
 				aria-label={intl.formatMessage(pdfViewerMessages.controls)}
-				className={cn(k.toolbar.base)}
+				className={k().toolbar.base}
 			>
-				<div className={cn(k.toolbar.section)}>
+				<div className={k().toolbar.section}>
 					{total > 0 && (
 						<>
 							{railed && (
@@ -143,7 +142,7 @@ export function PdfViewerToolbar() {
 									/
 								</span>
 								{/* `-total`, not `-status`: the viewport's live region owns that anchor. */}
-								<span data-slot="pdf-viewer-page-total" className={cn(k.toolbar.total)}>
+								<span data-slot="pdf-viewer-page-total" className={k().toolbar.total}>
 									<span aria-hidden="true">{intl.formatNumber(total)}</span>
 									<span className="sr-only">
 										{intl.formatMessage(pdfViewerMessages.ofTotal, { total })}
@@ -154,7 +153,7 @@ export function PdfViewerToolbar() {
 					)}
 				</div>
 
-				<div className={cn(k.toolbar.section)}>
+				<div className={k().toolbar.section}>
 					<PdfViewerZoomControls zoom={zoom} disabled={controlsDisabled} />
 					<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.view)}>
 						<PdfViewerToolbarButton

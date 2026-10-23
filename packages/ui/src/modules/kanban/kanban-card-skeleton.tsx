@@ -26,8 +26,8 @@ export type KanbanCardSkeletonProps = {
 export function KanbanCardSkeleton({ className }: KanbanCardSkeletonProps) {
 	return (
 		<li aria-hidden="true">
-			<Card bg="surface" className={cn(k.card.base, className)}>
-				<div className={cn(k.card.content)}>
+			<Card bg="surface" className={cn(k().card.base, className)}>
+				<div className={k().card.content}>
 					<Placeholder className={k.skeleton.line} />
 					<Placeholder className={k.skeleton.meta} />
 				</div>

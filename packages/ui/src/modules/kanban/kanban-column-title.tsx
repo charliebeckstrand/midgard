@@ -31,7 +31,7 @@ export function KanbanColumnTitle({ className, ...props }: KanbanColumnTitleProp
 			{...props}
 			// The column group refers to this id, so it comes after the spread.
 			id={titleId}
-			className={cn(k.column.title, className)}
+			className={cn(k().column.title, className)}
 		/>
 	)
 }

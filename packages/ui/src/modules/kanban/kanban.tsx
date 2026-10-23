@@ -176,7 +176,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 						data-slot="kanban"
 						{...labelProps}
 						ref={boardRef}
-						className={cn(k.base, className)}
+						className={cn(k().base, className)}
 					>
 						{children}
 					</section>

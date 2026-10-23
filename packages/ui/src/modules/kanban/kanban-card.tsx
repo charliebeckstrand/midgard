@@ -136,7 +136,7 @@ function KanbanCardImpl({ value: cardId, id, children, className, ...props }: Ka
 			data-card-id={cardId}
 			data-dragging={dataAttr(dragging)}
 			data-lifted={dataAttr(lifted)}
-			className={cn(lifted && k.card.lifted, className)}
+			className={cn(lifted && k().card.lifted, className)}
 		>
 			{children}
 		</KanbanCardSurface>

@@ -1,7 +1,6 @@
 'use client'
 
 import { FloatingPortal } from '@floating-ui/react'
-import { cn } from '../../core'
 import { usePortalContainer } from '../../primitives/portal'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext } from './context'
@@ -55,11 +54,11 @@ export function PdfViewerMagnifier() {
 				{...floatingProps}
 				data-slot="pdf-viewer-magnifier"
 				aria-hidden
-				className={cn(k.viewport.page.magnifier.lens, k.viewport.page.magnifier.size[size])}
+				className={k({ diameter: size }).viewport.page.magnifier.lens}
 				style={floatingStyles}
 			>
 				<div
-					className={cn(k.viewport.page.magnifier.stage)}
+					className={k().viewport.page.magnifier.stage}
 					style={{
 						width: frameWidth,
 						height: frameHeight,
@@ -69,7 +68,7 @@ export function PdfViewerMagnifier() {
 					<PdfViewerPageImage
 						page={activePage}
 						alt=""
-						className={cn(k.viewport.page.base)}
+						className={k().viewport.page.base}
 						style={{ width: imageWidth, height: imageHeight, transform }}
 					/>
 				</div>

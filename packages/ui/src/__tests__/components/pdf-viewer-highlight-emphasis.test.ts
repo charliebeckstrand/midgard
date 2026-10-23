@@ -1,6 +1,5 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
 
 /**
@@ -12,20 +11,11 @@ import { k } from '../../recipes/kata/pdf-viewer'
  * mode and silently inert in dark. That has bitten this surface twice.
  */
 
-const { region } = k.viewport.page.highlights
+const resting = k({ color: 'amber', active: false }).viewport.page.highlights.region
 
-const resting = cn(region.base, region.fill.amber, region.ring.amber, region.edge, region.hover)
+const selected = k({ color: 'amber', active: true }).viewport.page.highlights.region
 
-const selected = cn(region.base, region.active.fill.amber, region.ring.amber, region.active.base)
-
-const dimmed = cn(
-	region.base,
-	region.fill.amber,
-	region.ring.amber,
-	region.edge,
-	region.hover,
-	region.dimmed,
-)
+const dimmed = k({ color: 'amber', active: false, dimmed: true }).viewport.page.highlights.region
 
 describe('a region at rest', () => {
 	it('carries its own color, softly', () => {
@@ -94,8 +84,8 @@ describe('every other region while one is selected', () => {
 })
 
 /**
- * The selected region takes no resting edge and no hover step. The composition in
- * `pdf-viewer-highlights.tsx` keeps them apart, and this pins the pairing that it relies on.
+ * The selected region takes no resting edge and no hover step. The `active` axis of the
+ * `region` slot keeps them apart, and this pins the pairing that it relies on.
  */
 describe('the selected region under the pointer', () => {
 	it('takes no hover step, so its emphasis survives', () => {

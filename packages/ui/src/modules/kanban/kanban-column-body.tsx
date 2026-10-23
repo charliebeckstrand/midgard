@@ -46,7 +46,7 @@ export function KanbanColumnBody({ empty, children, className, ...props }: Kanba
 				data-slot="kanban-column-body"
 				aria-hidden={ariaAttr(loading)}
 				{...props}
-				className={cn(k.column.body, className)}
+				className={cn(k().column.body, className)}
 			>
 				{children}
 			</ul>
@@ -58,9 +58,9 @@ export function KanbanColumnBody({ empty, children, className, ...props }: Kanba
 			ref={scrollRegionRef}
 			data-slot="kanban-column-body"
 			{...props}
-			className={cn(k.column.body, className)}
+			className={cn(k().column.body, className)}
 		>
-			{empty ? <div className={cn(k.column.empty)}>{empty}</div> : null}
+			{empty ? <div className={k().column.empty}>{empty}</div> : null}
 		</div>
 	)
 }

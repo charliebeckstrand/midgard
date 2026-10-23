@@ -2,7 +2,6 @@
 
 import { ScanSearch } from 'lucide-react'
 import { useId } from 'react'
-import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Stack } from '../../structure/stack'
@@ -167,9 +166,9 @@ function PdfViewerMagnifierChoice<T extends string>({
 	const intl = useIntl()
 
 	return (
-		<Fieldset className={cn(k.settings.group)}>
+		<Fieldset className={k().settings.group}>
 			<Legend id={legendId}>{label}</Legend>
-			<RadioGroup aria-labelledby={legendId} className={cn(k.settings.options)}>
+			<RadioGroup aria-labelledby={legendId} className={k().settings.options}>
 				{options.map((option) => (
 					<RadioField key={option.value}>
 						<Radio

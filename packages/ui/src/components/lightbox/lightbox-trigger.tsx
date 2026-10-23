@@ -67,7 +67,7 @@ export function LightboxTrigger({
 				role={photo.alt ? 'img' : undefined}
 				aria-label={photo.alt || undefined}
 				aria-hidden={photo.alt ? undefined : true}
-				className={cn(k.trigger.base, className)}
+				className={cn(k().trigger.base, className)}
 			/>
 		)
 	}
@@ -81,9 +81,9 @@ export function LightboxTrigger({
 			disabled={!ready || props.disabled}
 			onClick={composeEventHandlers(onClick, () => show(index))}
 			aria-haspopup="dialog"
-			className={cn(k.trigger.base, k.trigger.button, className)}
+			className={cn(k({ interactive: true }).trigger.base, className)}
 		>
-			{ready ? null : <Placeholder className={k.trigger.placeholder} />}
+			{ready ? null : <Placeholder className={k().trigger.placeholder} />}
 			<img
 				ref={(image) => {
 					if (!image) return
@@ -106,7 +106,7 @@ export function LightboxTrigger({
 					record(source, { width, height })
 				}}
 				onError={() => record(source, 'failed')}
-				className={cn(k.trigger.image, (shown === index || !ready) && k.trigger.raised)}
+				className={k({ raised: shown === index || !ready }).trigger.image}
 			/>
 		</button>
 	)
