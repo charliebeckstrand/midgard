@@ -18,23 +18,27 @@ import { useChartHover, useChartTier } from './context'
 
 /**
  * The object form of a cartesian chart's hover crosshair: two rules, both on
- * unless overridden. `x` is the horizontal rule across the value axis, `y` the
- * vertical rule down the category axis. Each defaults on, so set one `false` to
- * draw only the other (both `false` draws none). Without `snap` each rule
- * tracks the pointer exactly. With it the pair meets the nearest data point:
- * the horizontal at that point's value, the vertical at its category. The
- * tooltip rides that same intersection.
+ * unless overridden. `x` is the value rule, which marks a value, and `y` is the
+ * category rule, which marks a category. A vertical chart draws the value rule
+ * horizontally and the category rule vertically. `orientation="horizontal"`
+ * swaps the two directions. Each defaults on, so set one `false` to draw only
+ * the other (both `false` draws none). Without `snap` each rule tracks the
+ * pointer exactly. With it the pair meets the nearest data point: the value
+ * rule at that point's value, the category rule at its category. The tooltip
+ * rides that same intersection.
  *
  * @remarks The `crosshair` prop also takes `true` as shorthand for both rules.
  */
 export type Crosshair = {
 	/**
-	 * Draw the horizontal rule across the value axis.
+	 * Draw the value rule: horizontal in a vertical chart, vertical in a
+	 * horizontal one.
 	 * @defaultValue true
 	 */
 	x?: boolean
 	/**
-	 * Draw the vertical rule down the category axis.
+	 * Draw the category rule: vertical in a vertical chart, horizontal in a
+	 * horizontal one.
 	 * @defaultValue true
 	 */
 	y?: boolean

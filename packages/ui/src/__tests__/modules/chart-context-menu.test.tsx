@@ -540,11 +540,27 @@ describe('Chart menu button', () => {
 		expect(screen.queryByRole('button', { name: 'View data for Revenue' })).toBeNull()
 	})
 
-	it('shows none on an untitled chart outside a box, or with the menu off', () => {
-		const untitled = renderUI(<BarChart aria-label="Revenue" data={data} series={[...series]} />)
+	it('sits in the corner of an untitled chart, which draws no header', () => {
+		// A touch on a chart opens no readout, so the button is the one way to View
+		// data on a touch screen. A chart with no title still needs it.
+		const { container } = renderUI(
+			<BarChart aria-label="Revenue" data={data} series={[...series]} width={400} />,
+		)
 
-		expect(bySlot(untitled.container, 'chart-menu-button')).toBeNull()
+		const button = getSlot(container, 'chart-menu-button')
 
+		expect(bySlot(container, 'chart-header')).toBeNull()
+
+		expect(getSlot(container, 'chart').contains(button)).toBe(true)
+
+		expect(getSlot(container, 'chart-plot').contains(button)).toBe(false)
+
+		fireEvent.click(button.querySelector('button') as Element)
+
+		expect(screen.getByRole('menuitem', { name: 'View data' })).toBeInTheDocument()
+	})
+
+	it('shows none with the menu off', () => {
 		const off = renderUI(
 			<BarChart
 				title="Revenue"

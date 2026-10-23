@@ -35,7 +35,7 @@ describe('chart Escape then Tab returns to the plot (real browser)', () => {
 
 		const plot = getSlot(container, 'chart-plot')
 
-		const after = present(container.querySelector('button:last-child'), 'button:last-child')
+		const after = present(container.querySelector(':scope > button:last-child'), 'the after button')
 
 		plot.focus()
 

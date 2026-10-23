@@ -71,6 +71,9 @@ const AREA_SHOWN = { opacity: 1 }
 /** @internal */
 const AREA_EXIT = { opacity: 0, transition: AREA_UNFADE }
 
+/** How far a stroke paints past its path: its half-width, and its round cap. @internal */
+const WIPE_REACH = LINE_STROKE_WIDTH / 2
+
 /** The draw of a solid stroke along its own length. @internal */
 const LINE_HIDDEN = { pathLength: 0 }
 
@@ -315,11 +318,14 @@ export function AnimatedChartLineMarks({
 			{wipe && (
 				<defs>
 					<clipPath id={wipeId} data-slot="chart-line-wipe">
+						{/* The clip stays on after the wipe, so it holds the plot and the reach
+						    of the stroke past it. A line at the ceiling or the floor keeps its
+						    whole stroke. */}
 						<m.rect
-							x={plot.x}
-							y={plot.y}
-							width={plot.width}
-							height={plot.height}
+							x={plot.x - WIPE_REACH}
+							y={plot.y - WIPE_REACH}
+							width={plot.width + 2 * WIPE_REACH}
+							height={plot.height + 2 * WIPE_REACH}
 							style={{ originX: 0 }}
 							// The server renders the wipe open, or the dashed line is clipped away
 							// until the motion features load.

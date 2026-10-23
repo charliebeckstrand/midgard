@@ -56,12 +56,13 @@ function findItem(entries: ContextMenuEntry[], key: string): ContextMenuItem | u
  *
  * Inside a box that gives a header actions element ({@link useHeaderActions}),
  * such as a dashboard tile, the button goes into the header row of the box with a
- * portal. Otherwise it sits at the end of the chart header. A chart with no
- * title then has no button. The button covers no mark in either place.
+ * portal. Otherwise it sits at the end of the chart header. The button covers no
+ * mark in either place.
  *
- * A chart that draws no header, such as the heatmap and the choropleth, puts
- * the button in the top end corner of the chart instead. There it can cover a
- * mark, but it reserves no height.
+ * A chart that draws no header puts the button in the top end corner of the
+ * chart instead: the heatmap, the choropleth, a chart with `heading` off, and a
+ * chart with no title or subtitle. There it can cover a mark, but it reserves no
+ * height.
  *
  * In the header row of a box, a View data button comes before the menu
  * button on each pointer, when the menu has the View data entry. The menu has

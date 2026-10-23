@@ -29,8 +29,9 @@ export type LegendEmphasis<Key> = {
  * pointed switch that is not live yields to the keyboard focus. The handlers
  * keep their identity.
  *
- * @param containerRef - The legend.
- * @param selector - The switches inside the legend, in render order.
+ * @param containers - The boxes that hold the switches, in render order: the
+ * legend, and a popover that holds the switches past its cap.
+ * @param selector - The switches inside the boxes, in render order.
  * @param keyAt - The key of the switch at a position, or `null` for no emphasis.
  * @param onEmphasis - Receives the emphasized key, or `null`.
  * @param live - Whether a key can take the emphasis. Absent, every key can.
@@ -38,7 +39,7 @@ export type LegendEmphasis<Key> = {
  * @internal
  */
 export function useLegendEmphasis<Key>(
-	containerRef: RefObject<HTMLElement | null>,
+	containers: readonly RefObject<HTMLElement | null>[],
 	selector: string,
 	keyAt: (position: number) => Key | null,
 	onEmphasis: (key: Key | null) => void,
@@ -55,11 +56,11 @@ export function useLegendEmphasis<Key>(
 			return
 		}
 
-		const switches = containerRef.current?.querySelectorAll<HTMLElement>(selector)
+		const switches = containers.flatMap((container) =>
+			Array.from(container.current?.querySelectorAll<HTMLElement>(selector) ?? []),
+		)
 
-		const position = switches
-			? Array.from(switches).findIndex((element) => element.matches(':focus-visible'))
-			: -1
+		const position = switches.findIndex((element) => element.matches(':focus-visible'))
 
 		const focused = position === -1 ? null : keyAt(position)
 

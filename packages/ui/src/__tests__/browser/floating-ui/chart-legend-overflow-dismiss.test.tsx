@@ -72,4 +72,37 @@ describe('chart legend overflow dismiss (real browser)', () => {
 
 		expect(dimmedBars(container)).toBe(0)
 	})
+
+	it('emphasizes the series of an overflow switch that holds the keyboard focus', async () => {
+		const { container } = renderUI(
+			<BarChart aria-label="Ten series" data={data} series={series} width={360} legend="bottom" />,
+		)
+
+		await waitFor(() => expect(overflowChip(container)).not.toBeNull())
+
+		// A keyboard focus has a visible ring, as a focus on a row entry has.
+		;(overflowChip(container) as HTMLButtonElement).focus()
+
+		await userEvent.keyboard('{Enter}')
+
+		const panel = await waitFor(() =>
+			present(document.querySelector('[data-slot="chart-legend-overflow"]'), 'the overflow panel'),
+		)
+
+		// The open seats the focus on the panel. Tab moves it to the first switch.
+		await userEvent.keyboard('{Tab}')
+
+		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
+
+		await waitFor(() => expect(dimmedBars(container)).toBeGreaterThan(0))
+
+		// Escape closes the panel, and the emphasis goes with it.
+		await userEvent.keyboard('{Escape}')
+		await waitFor(() =>
+			expect(document.querySelector('[data-slot="chart-legend-overflow"]')).toBeNull(),
+		)
+		await frames()
+
+		expect(dimmedBars(container)).toBe(0)
+	})
 })
