@@ -135,7 +135,9 @@ function stepCategory(targets: ChartFocusTargets, from: number, dir: 1 | -1): nu
  * What a cursor step lands on: the reference line it parks on, or the hover
  * index and the series that it writes. @internal
  */
-type ChartCursorRead = { reference: number } | { index: number; series: number | null }
+type ChartCursorRead =
+	| { reference: number }
+	| { index: number; series: number | null; stop: number }
 
 /** The reference line a cursor parks on, or `null` off any live rule. @internal */
 function cursorRule(
@@ -495,7 +497,8 @@ function sameCursor(a: ChartCursor | null, b: ChartCursor | null): boolean {
  * cursor sits on. It is `null` off any series: a reference, a cleared cursor, or
  * a chart with no series map.
  * @param onRead - Called when a key moves the cursor onto a data point, with the
- * hover index and the series that the cursor writes. The frame announces the
+ * hover index, the series that the cursor writes, and the place of the stop in
+ * its category. The frame announces the
  * readout of that point through it. A re-anchor, a pointer move, and a stop on a
  * reference line do not call it.
  * @param onReadReference - Called when a key moves the cursor onto a reference
@@ -515,7 +518,7 @@ export function useChartKeyboard(
 	store: ChartHoverStore,
 	setReference: (reference: number | null) => void,
 	setActiveSeries: (series: number | null) => void,
-	onRead?: (index: number, series: number | null) => void,
+	onRead?: (index: number, series: number | null, stop: number) => void,
 	onReadReference?: (reference: number) => void,
 	onActivate?: (index: number, stop: number) => void,
 ): PlotTabStopProps | null {
@@ -589,7 +592,7 @@ export function useChartKeyboard(
 
 			store.set(index, point, true)
 
-			return { index, series }
+			return { index, series, stop: next.value }
 		}
 
 		store.set(null, null)
@@ -624,7 +627,7 @@ export function useChartKeyboard(
 			return
 		}
 
-		onRead?.(landed.index, landed.series)
+		onRead?.(landed.index, landed.series, landed.stop)
 	}
 
 	// Enter and Space activate the point under the cursor, as a click does. With

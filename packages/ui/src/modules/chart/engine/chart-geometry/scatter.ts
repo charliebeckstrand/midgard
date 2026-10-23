@@ -349,9 +349,25 @@ export function scatterSnappedStop(
 }
 
 /**
- * One series' readout cells, per unique x: each point's formatted y, with its
- * size measure in parentheses where one was read. Duplicates at an x are
- * joined, and an em-dash stands where the series has no point there.
+ * One point's readout text: its formatted y, with its size measure in
+ * parentheses where one was read.
+ *
+ * @internal
+ */
+export function scatterPointText(
+	point: ScatterDatum,
+	format: (value: number) => string,
+	formatSize: ((value: number) => string) | null,
+): string {
+	return formatSize && point.size !== null
+		? `${format(point.y)} (${formatSize(point.size)})`
+		: format(point.y)
+}
+
+/**
+ * One series' readout cells, per unique x: each point's {@link scatterPointText}.
+ * Duplicates at an x are joined, and an em-dash stands where the series has no
+ * point there.
  *
  * @internal
  */
@@ -364,11 +380,7 @@ export function scatterReadoutValues(
 	const byX = groupByX(points, (point) => point)
 
 	return uniqueXs.map((x) => {
-		const cells = (byX.get(x) ?? []).map((point) =>
-			formatSize && point.size !== null
-				? `${format(point.y)} (${formatSize(point.size)})`
-				: format(point.y),
-		)
+		const cells = (byX.get(x) ?? []).map((point) => scatterPointText(point, format, formatSize))
 
 		return cells.length > 0 ? cells.join(', ') : READOUT_GAP
 	})

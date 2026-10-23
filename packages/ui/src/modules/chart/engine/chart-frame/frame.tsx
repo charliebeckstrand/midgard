@@ -352,12 +352,15 @@ export type ChartFrameProps = AccessibleName & {
 	describeReference?: (reference: number) => string | null
 	/**
 	 * The text of the point at a stop of {@link focus}, for a chart whose stops do
-	 * not index {@link readout}'s categories. A key that moves the cursor onto the
-	 * point speaks this text. Absent, the frame speaks the readout at the index of
-	 * the stop. The heatmap names one cell with it, because its stops write a
-	 * row-major cell index and its readout has one category for each column.
+	 * not index {@link readout}'s categories, or whose readout cell holds more than
+	 * one point. It takes the hover index, the series, and the place of the stop in
+	 * its category. A key that moves the cursor onto the point speaks this text.
+	 * Absent, the frame speaks the readout at the index of the stop. The heatmap
+	 * names one cell with it, because its stops write a row-major cell index and
+	 * its readout has one category for each column. The scatter names one point,
+	 * because its readout joins the points that share an x.
 	 */
-	describePoint?: (index: number, series: number | null) => string | null
+	describePoint?: (index: number, series: number | null, stop: number) => string | null
 	/**
 	 * The keyboard cursor emphasizes the series it lands on (`null` off any), in
 	 * the same channel as the legend. The marks then recede the rest and the
@@ -526,9 +529,9 @@ export function ChartFrame({
 	// The tooltip is `aria-hidden`, so a key that moves the cursor onto a point
 	// also speaks the readout of that point through the shared polite live
 	// region. A pointer move speaks nothing.
-	const announceRead = (index: number, series: number | null) => {
+	const announceRead = (index: number, series: number | null, stop: number) => {
 		const text = describePoint
-			? describePoint(index, series)
+			? describePoint(index, series, stop)
 			: readout && describeReadout(readout(), index, series, readoutOrder)
 
 		if (text) announce(text)

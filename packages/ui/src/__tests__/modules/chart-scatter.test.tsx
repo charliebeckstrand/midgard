@@ -1,7 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BubbleChart } from '../../modules/chart/bubble-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
-import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI, setupUser } from '../helpers'
+import {
+	act,
+	allBySlot,
+	bySlot,
+	expectAnnouncement,
+	fireEvent,
+	getSlot,
+	renderUI,
+	setupUser,
+} from '../helpers'
 
 type Stop = { distance: unknown; dwell: unknown; weight?: unknown }
 
@@ -499,6 +508,39 @@ describe('BubbleChart', () => {
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('48')
+	})
+
+	it('names the one point under the keyboard cursor in a shared column', async () => {
+		const { container } = renderUI(
+			<BubbleChart
+				aria-label="Dwell against distance, sized by weight"
+				data={[
+					{ distance: 10, dwell: 5, weight: 2 },
+					{ distance: 10, dwell: 9, weight: 30 },
+					{ distance: 10, dwell: 1, weight: 4 },
+				]}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', sizeKey: 'weight', yName: 'Dwell' }]}
+			/>,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		// The first arrow lands on the first point. The value-axis arrows then step
+		// the column in screen order, and each stop speaks its own point.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await expectAnnouncement(/^10, Dwell: 5 \(weight: 2\)\s*$/)
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		await expectAnnouncement(/^10, Dwell: 1 \(weight: 4\)\s*$/)
+
+		fireEvent.keyDown(plot, { key: 'ArrowUp' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowUp' })
+
+		await expectAnnouncement(/^10, Dwell: 9 \(weight: 30\)\s*$/)
 	})
 
 	it('reports the clicked disc by series and data row', () => {

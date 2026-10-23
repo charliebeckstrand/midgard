@@ -13,6 +13,7 @@ import {
 	type ScatterSnapStop,
 	scatterMarkAt,
 	scatterMarks,
+	scatterPointText,
 	scatterSnapColumns,
 	scatterSnappedStop,
 	scatterSnapSeries,
@@ -44,7 +45,7 @@ import {
 	type ChartScatterSeries,
 	ScatterChartMarks,
 } from './scatter-chart-marks'
-import { useScatterChartReadout } from './use-scatter-chart-readout'
+import { sizeLabel, useScatterChartReadout } from './use-scatter-chart-readout'
 
 /**
  * The frame switches the point charts (Scatter / Bubble) add on top of
@@ -394,6 +395,23 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		formatSize,
 	)
 
+	// A keyboard stop speaks its one point: the x, the series, and the value with
+	// its size. The readout joins the points that share an x, so it cannot tell
+	// the stops of one column apart.
+	const describePoint = (column: number, _series: number | null, stop: number) => {
+		const hit = snapStops[column]?.[stop]
+
+		const meta = hit && visible[hit.series]
+
+		const point = hit && meta?.drawn[hit.datum]
+
+		const x = uniqueXs[column]
+
+		if (!meta || !point || x === undefined) return null
+
+		return `${formatX(x)}, ${meta.label}: ${scatterPointText(point, format, sizeLabel(meta, formatSize))}`
+	}
+
 	const rails = resolveCrosshair(crosshair)
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
@@ -438,6 +456,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			tooltip={showTooltip}
 			snap={snapTargets(rails, bandPositions, snapColumns)}
 			focus={cartesianFocus(bandPositions, snapColumns, 'vertical', undefined, stopSeries)}
+			describePoint={describePoint}
 			keyboardEmphasis
 			onActivate={activatePoint}
 			className={className}
