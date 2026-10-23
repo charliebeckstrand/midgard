@@ -159,6 +159,34 @@ describe('GridColumnManager', () => {
 		expect(onOrderChange).not.toHaveBeenCalled()
 	})
 
+	// The group editor takes the place of the flat list when the groups are
+	// bound. Without reorder, a column changes its group only through the
+	// "Move to" menu, and a group keeps its place.
+	it('renders no drag handles in the group editor when reorderable is false', () => {
+		const groups = [{ id: 'contact', title: 'Contact', columns: ['email'] }]
+
+		const view = (reorderable: boolean) => (
+			<GridColumnManager
+				columns={columns}
+				reorderable={reorderable}
+				groups={groups}
+				onGroupsChange={vi.fn()}
+			/>
+		)
+
+		const { rerender } = renderUI(view(true))
+
+		expect(screen.getByRole('button', { name: 'Reorder Email' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Reorder group Contact' })).toBeInTheDocument()
+
+		rerender(view(false))
+
+		expect(screen.queryAllByRole('button', { name: /^Reorder/ })).toHaveLength(0)
+
+		expect(screen.getByRole('button', { name: 'Move Email' })).toBeInTheDocument()
+	})
+
 	it('still toggles visibility when reorderable is false', async () => {
 		const onHiddenChange = vi.fn()
 

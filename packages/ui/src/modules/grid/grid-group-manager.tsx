@@ -166,6 +166,12 @@ export type GridGroupManagerProps = {
 	order: (string | number)[]
 	/** Commits the next column order after a within-ungrouped reorder. */
 	onOrderChange: (order: (string | number)[]) => void
+	/**
+	 * Renders the drag grips of the columns and the groups. When `false`, the
+	 * editor renders no grip, and a column changes its group only through its
+	 * "Move to" menu.
+	 */
+	reorderable: boolean
 }
 
 /**
@@ -251,8 +257,10 @@ export function groupManagerAnnouncements(
  * an ungrouped pool. Each zone carries a name {@link Input}, a color
  * {@link Menu}, a remove button, and its member columns. Columns drag between zones (pointer or
  * keyboard) to change membership; each row also carries a "Move to" menu as an
- * accessible alternative to the drag. Group edits commit through
- * `onGroupsChange`; visibility stays on the shared hidden set. Under the
+ * accessible alternative to the drag. Without `reorderable`, the editor drops
+ * the grips, and the "Move to" menu is the only way to change a group. Group
+ * edits commit through `onGroupsChange`; visibility stays on the shared hidden
+ * set. Under the
  * manager's filter each zone renders only its matching members, holding the rest
  * in place (see `matches`).
  *
@@ -267,6 +275,7 @@ export function GridGroupManager({
 	onToggle,
 	order,
 	onOrderChange,
+	reorderable,
 }: GridGroupManagerProps) {
 	const manager = useGridGroupManager({ groups, onGroupsChange, columns, order, onOrderChange })
 
@@ -359,6 +368,7 @@ export function GridGroupManager({
 		removeGroup,
 		assign: manager.assign,
 		movedRef,
+		reorderable,
 	}
 
 	const intl = useIntl()
@@ -461,6 +471,8 @@ type GridGroupManagerZoneViewProps = {
 	assign: (columnId: string | number, groupId: string | number | null) => void
 	/** The column whose Move trigger held focus as its row unmounted. */
 	movedRef: RefObject<string | number | null>
+	/** Renders the drag grips of the column rows and of the group. */
+	reorderable: boolean
 	/** The group-reorder drag handle, placed ahead of the name Input; absent on the ungrouped pool. */
 	handle?: ReactNode
 }
@@ -478,7 +490,7 @@ function GridGroupManagerGroupZone(props: GridGroupManagerZoneViewProps) {
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
 		useGridZoneSortable(`${GROUP_PREFIX}${props.zone.id}`)
 
-	const handle = (
+	const handle = props.reorderable && (
 		<GridManagerGrip
 			sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
 			label={intl.formatMessage(gridMessages.groupHandle, {
@@ -508,6 +520,7 @@ function GridGroupManagerZoneView({
 	removeGroup,
 	assign,
 	movedRef,
+	reorderable,
 	handle,
 }: GridGroupManagerZoneViewProps) {
 	const intl = useIntl()
@@ -588,6 +601,7 @@ function GridGroupManagerZoneView({
 										onToggle={onToggle}
 										assign={assign}
 										movedRef={movedRef}
+										reorderable={reorderable}
 									/>
 								)
 							})}
@@ -668,6 +682,8 @@ type GridGroupManagerColumnRowProps = {
 	assign: (columnId: string | number, groupId: string | number | null) => void
 	/** The column whose Move trigger held focus as its row unmounted. */
 	movedRef: RefObject<string | number | null>
+	/** Renders the drag grip of the row. */
+	reorderable: boolean
 }
 
 /**
@@ -685,6 +701,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 	onToggle,
 	assign,
 	movedRef,
+	reorderable,
 }: GridGroupManagerColumnRowProps) {
 	// The shared sortable hides the source row (`opacity: 0`) while it drags, and
 	// the editor's `<DragOverlay>` stands in, as in List and Kanban.
@@ -723,10 +740,12 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 			className={k().manager.row.base}
 			data-dragging={dataAttr(dragging)}
 		>
-			<GridManagerGrip
-				sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
-				label={intl.formatMessage(reorderMessages.reorderHandle, { item: label })}
-			/>
+			{reorderable && (
+				<GridManagerGrip
+					sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
+					label={intl.formatMessage(reorderMessages.reorderHandle, { item: label })}
+				/>
+			)}
 
 			<GridManagerCheckboxRow
 				className={k().manager.row.control}
