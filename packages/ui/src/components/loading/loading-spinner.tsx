@@ -33,10 +33,11 @@ const SPINNER_SVG = (
 export function LoadingSpinner({ size, color, label, className, ...props }: LoadingSpinnerProps) {
 	return (
 		<output
-			data-slot="loading-spinner"
 			data-density={size}
 			className={cn(k({ color }).spinner, className)}
 			{...props}
+			// The sidebar sizes the spinner by its anchor, so it comes after the spread.
+			data-slot="loading-spinner"
 		>
 			{SPINNER_SVG}
 			<span className="sr-only">{label ?? <IntlMessage message={intlMessages.loading} />}</span>

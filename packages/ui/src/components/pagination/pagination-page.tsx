@@ -3,7 +3,7 @@
 import { cn } from '../../core'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
-import { k } from '../../recipes/kata/pagination'
+import { k, type PageButtonVariants } from '../../recipes/kata/pagination'
 
 type PaginationPageBaseProps = {
 	/**
@@ -11,7 +11,7 @@ type PaginationPageBaseProps = {
 	 * shared active indicator.
 	 * @defaultValue false
 	 */
-	current?: boolean
+	current?: PageButtonVariants['current']
 	className?: string
 }
 

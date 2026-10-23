@@ -156,8 +156,8 @@ export type AvatarProps = AvatarVariants & {
 	 */
 	status?: Status
 	/**
-	 * Accessible text for the status dot. Defaults to the name of the `status`,
-	 * such as "Active", in the language of the reader.
+	 * Accessible text for the status dot.
+	 * @defaultValue The name of the `status`, such as `'Active'`, in the language of the reader.
 	 */
 	statusLabel?: string
 } & Omit<ComponentProps<'span'>, 'children'>

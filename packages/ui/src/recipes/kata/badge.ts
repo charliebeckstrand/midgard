@@ -131,7 +131,7 @@ export type BadgeVariants = Omit<
 	variant?: VariantProps<typeof k>['variant']
 	/** The palette color of the badge. @defaultValue 'zinc' */
 	color?: VariantProps<typeof k>['color']
-	/** Whether the badge is a link, which takes a hover wash. @defaultValue false */
+	/** Marks the badge as a link, which takes a hover wash. @defaultValue false */
 	interactive?: VariantProps<typeof k>['interactive']
 	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: ScaleStep<typeof scale>

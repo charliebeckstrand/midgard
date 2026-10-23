@@ -3,7 +3,7 @@ import { cn } from '../../core'
 import { k, type StatDeltaVariants } from '../../recipes/kata/stat'
 
 /** Props for {@link StatDelta}: the `trend` variant plus `<div>` attributes. */
-export type StatDeltaProps = StatDeltaVariants & {} & ComponentProps<'div'>
+export type StatDeltaProps = StatDeltaVariants & ComponentProps<'div'>
 
 /**
  * Period-over-period change indicator, tinted by `trend` (up/down/neutral). Static

@@ -5,8 +5,7 @@ import type { AriaRole, KeyboardEvent, MouseEventHandler, ReactNode, Ref } from 
 import { cn } from '../../core'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import type { Color } from '../../recipes'
-import { k } from '../../recipes/kata/badge'
+import { type BadgeVariants, k } from '../../recipes/kata/badge'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Badge } from './badge'
@@ -36,8 +35,8 @@ export type BadgeRemovableProps = {
 	 * `label` names only the remove button.
 	 */
 	children?: ReactNode
-	/** Badge color. */
-	color?: Color
+	/** The palette color of the chip. @defaultValue 'zinc' */
+	color?: BadgeVariants['color']
 	/** The ARIA role of the chip, for example `listitem`. */
 	role?: AriaRole
 	className?: string

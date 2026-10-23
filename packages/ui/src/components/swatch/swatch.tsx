@@ -113,10 +113,11 @@ export function Swatch({
 			data-variant={variant ?? 'solid'}
 			data-density={size}
 			className={cn(k({ shape, variant }).base, colorClass, className)}
-			// A raw `color` inks inline; an explicit `style` prop still wins on conflict.
-			style={colorStyle ? { ...colorStyle, ...style } : style}
-			{...labelProps}
+			// The consumer style spreads first, and a raw `color` wins (CONVENTIONS.md §3.9).
+			style={colorStyle ? { ...style, ...colorStyle } : style}
 			{...props}
+			// After the spread: `label` owns the role and the name, so they stay paired.
+			{...labelProps}
 		/>
 	)
 }

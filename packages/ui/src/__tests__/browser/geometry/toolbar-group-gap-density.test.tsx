@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../../components/toolbar'
-import type { ToolbarOrientation } from '../../../components/toolbar/types'
 import { type DensityStep, densitySteps, writeRootDensity } from '../../../core/density'
+import type { Orientation } from '../../../types'
 import { frames, getSlot, renderUI } from '../../helpers'
 import { LAYOUT_UNIT } from '../../helpers/geometry/tolerance'
 
@@ -22,7 +22,7 @@ const TOOLBAR_GAP = { xs: 1, sm: 2, md: 4, lg: 6, xl: 10 } as const satisfies Re
 	number
 >
 
-function Probe({ orientation }: { orientation: ToolbarOrientation }) {
+function Probe({ orientation }: { orientation: Orientation }) {
 	return (
 		<Toolbar aria-label="Editor" orientation={orientation}>
 			<ToolbarGroup aria-label="a">

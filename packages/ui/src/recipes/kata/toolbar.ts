@@ -58,7 +58,7 @@ export const k = defineKata({
 
 /** Recipe variant props for {@link Toolbar}: the styling axes its kata exposes (`orientation`, `variant`), for consumers composing custom slots. */
 export type ToolbarVariants = Omit<VariantProps<typeof k>, 'orientation' | 'variant'> & {
-	/** The axis of the toolbar. @defaultValue 'horizontal' */
+	/** The layout axis of the toolbar, and the axis of its arrow-key navigation. @defaultValue 'horizontal' */
 	orientation?: VariantProps<typeof k>['orientation']
 	/** The frame of the toolbar: no frame, a border, or a tinted fill. @defaultValue 'plain' */
 	variant?: VariantProps<typeof k>['variant']

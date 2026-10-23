@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('ProgressBar', () => {
@@ -78,6 +79,16 @@ describe('ProgressGauge', () => {
 		renderUI(<ProgressGauge value={42} centerLabel aria-label="Progress" />)
 
 		expect(screen.getByText('42')).toBeInTheDocument()
+	})
+
+	it('writes the numeric readout in the digits of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="ar-EG">
+				<ProgressGauge value={42} centerLabel aria-label="Progress" />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByText('٤٢')).toBeInTheDocument()
 	})
 
 	it('renders a custom label node when provided', () => {

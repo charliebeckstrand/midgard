@@ -4,7 +4,7 @@ import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { k, type StatValueVariants } from '../../recipes/kata/stat'
 
 /** Props for {@link StatValue}: the `size` variant plus `<div>` attributes. */
-export type StatValueProps = StatValueVariants & {} & ComponentProps<'div'>
+export type StatValueProps = StatValueVariants & ComponentProps<'div'>
 
 /**
  * Headline figure of a `Stat`: the metric's primary number. Static leaf:

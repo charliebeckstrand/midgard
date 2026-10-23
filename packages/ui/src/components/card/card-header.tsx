@@ -1,8 +1,8 @@
 import type { ComponentProps } from 'react'
-import { createSlot } from '../../core'
+import { cn } from '../../core'
 import { k } from '../../recipes/kata/card'
 
-/** Props for {@link CardHeader}; a slotted `<div>` that accepts `render` for composition. */
+/** Props for {@link CardHeader}: native `<div>` attributes. */
 export type CardHeaderProps = ComponentProps<'div'>
 
 /**
@@ -15,4 +15,13 @@ export type CardHeaderProps = ComponentProps<'div'>
  * @remarks
  * Static leaf: renders in React Server Components.
  */
-export const CardHeader = createSlot('div', 'card-header', k().header)
+export function CardHeader({ className, ...props }: CardHeaderProps) {
+	return (
+		<div
+			className={cn(k().header, className)}
+			{...props}
+			// The pad of the footer reads the anchor, so it comes after the spread.
+			data-slot="card-header"
+		/>
+	)
+}

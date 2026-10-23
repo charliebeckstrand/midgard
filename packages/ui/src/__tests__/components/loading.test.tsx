@@ -61,4 +61,10 @@ describe('LoadingSpinner', () => {
 		// Rests as a static glyph under prefers-reduced-motion rather than spinning.
 		expect(spinner?.className).toContain('motion-safe:animate-spin')
 	})
+
+	it('keeps its anchor when a consumer passes another data-slot, as the sidebar reads it', () => {
+		const { container } = renderUI(<LoadingSpinner data-slot="custom" />)
+
+		expect(bySlot(container, 'loading-spinner')).toBeInTheDocument()
+	})
 })
