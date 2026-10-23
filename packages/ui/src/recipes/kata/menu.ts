@@ -81,9 +81,13 @@ export const k = defineKata(
 			// The box of the title and the description of a panel, above its rows. The
 			// header does not shrink, so the rows below it scroll when the panel is
 			// capped.
-			header: 'shrink-0 px-3 pb-1 pt-2',
-			title: [ji.ramp, weight.semibold, text.default],
-			description: [size.xs, text.muted],
+			header: {
+				base: 'shrink-0 px-3 pb-1 pt-2',
+				slots: {
+					title: [ji.ramp, weight.semibold, text.default],
+					description: [size.xs, text.muted],
+				},
+			},
 			section: 'first:pt-0 last:pb-0',
 			heading: ['px-3 pb-1 pt-2', size.xs, weight.medium, text.muted],
 			separator: divider.top,

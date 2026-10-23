@@ -270,7 +270,11 @@ export function SidebarLayout({
 				className={cn(slots.base, className)}
 			>
 				{/* Hot zone to peek the floating sidebar. It shows only while offcanvas. */}
-				<div aria-hidden className={slots.peek} onPointerEnter={() => setFloatingOpen(true)} />
+				<div
+					aria-hidden
+					className={slots.floating.peek}
+					onPointerEnter={() => setFloatingOpen(true)}
+				/>
 
 				{/* Inline sidebar when locked. It hides while offcanvas. */}
 				<div data-slot="sidebar-panel" className={slots.panel}>
@@ -289,10 +293,10 @@ export function SidebarLayout({
 						// The peek closes when the pointer leaves, or on a tap outside it, so it has
 						// no Close row.
 						footer={null}
-						className={cn(slots.sheet, flush)}
+						className={cn(slots.floating.sheet, flush)}
 					>
 						<div
-							className={slots.sheetBody}
+							className={slots.floating.body}
 							onPointerEnter={() => setFloatingOpen(true)}
 							onPointerLeave={closeOnLeave}
 						>
@@ -308,7 +312,7 @@ export function SidebarLayout({
 				<Portal open={floatingOpen}>
 					<div
 						aria-hidden
-						className={slots.buffer}
+						className={slots.floating.buffer}
 						onPointerEnter={() => setFloatingOpen(true)}
 						onPointerLeave={closeOnLeave}
 					/>
@@ -349,8 +353,8 @@ export function SidebarLayout({
 				</Drawer>
 
 				{/* Content */}
-				<div className={slots.wrapper}>
-					<div className={slots.content}>{children}</div>
+				<div className={slots.content.wrapper}>
+					<div className={slots.content.base}>{children}</div>
 				</div>
 
 				{/* Inline aside: on the end edge, after the content. */}
@@ -394,9 +398,14 @@ export function SidebarLayoutHeader({
 	const slots = k({ layout: placement, stickyHeader: sticky })
 
 	return (
-		<header {...props} ref={setHeader} data-slot="header" className={cn(slots.header, className)}>
+		<header
+			{...props}
+			ref={setHeader}
+			data-slot="header"
+			className={cn(slots.header.base, className)}
+		>
 			<div className="flex-1 min-w-0">{children}</div>
-			{actions && <div className={slots.headerActions}>{actions}</div>}
+			{actions && <div className={slots.header.actions}>{actions}</div>}
 		</header>
 	)
 }

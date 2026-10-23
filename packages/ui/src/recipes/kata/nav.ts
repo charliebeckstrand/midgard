@@ -58,9 +58,11 @@ export const k = defineKata(
 					outline: [...border.color.default],
 					plain: [...border.color.transparent],
 				},
+				slots: {
+					/** The row of items in a `<NavBar>`. While it overflows, the edge with more items behind it fades. */
+					rail: [flex.row, dan.gap.scale.lg, ...rail],
+				},
 			},
-			/** The row of items in a `<NavBar>`. While it overflows, the edge with more items behind it fades. */
-			rail: [flex.row, dan.gap.scale.lg, ...rail],
 		},
 		defaults: { variant: 'solid' },
 	},

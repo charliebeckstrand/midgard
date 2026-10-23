@@ -26,14 +26,15 @@ export function StepperIndicator({ className, children, ...props }: StepperIndic
 	const { state } = useStepperStep()
 
 	const content =
-		children ?? (state === 'completed' && <Check aria-hidden="true" className={slots.check} />)
+		children ??
+		(state === 'completed' && <Check aria-hidden="true" className={slots.indicator.check} />)
 
 	return (
-		<span data-slot="stepper-indicator" className={cn(slots.indicator, className)} {...props}>
+		<span data-slot="stepper-indicator" className={cn(slots.indicator.base, className)} {...props}>
 			{state === 'current' && (
-				<ActiveIndicator className={slots.fill} style={{ borderRadius: '9999px' }} />
+				<ActiveIndicator className={slots.indicator.fill} style={{ borderRadius: '9999px' }} />
 			)}
-			{content !== false && <span className={slots.glyph}>{content}</span>}
+			{content !== false && <span className={slots.indicator.glyph}>{content}</span>}
 		</span>
 	)
 }

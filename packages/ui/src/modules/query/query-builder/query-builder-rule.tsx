@@ -137,7 +137,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 				flex="1"
 				gap="sm"
 				direction={mapResponsive(orientation, toDirection)}
-				className={slots.parts}
+				className={slots.parts.base}
 			>
 				{!hideFieldSelector && (
 					<Select
@@ -146,7 +146,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 						onValueChange={onFieldChange}
 						placeholder={fieldLabel}
 						aria-label={fieldLabel}
-						className={slots.part}
+						className={slots.parts.item}
 					>
 						{fields.map((entry) => (
 							<ListboxOption key={entry.name} value={entry.name}>
@@ -162,7 +162,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					onValueChange={onOperatorChange}
 					placeholder={operatorName}
 					aria-label={operatorName}
-					className={slots.part}
+					className={slots.parts.item}
 				>
 					{operators.map((operator) => (
 						<ListboxOption key={operator.value} value={operator.value}>
@@ -175,7 +175,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 				    affixes puts its `className` on the inner `<input>`, not on the
 				    frame that the row sizes. */}
 				{field && !selectedOperator?.noValue && (
-					<div className={selectedOperator?.range ? slots.range : slots.part}>
+					<div className={selectedOperator?.range ? slots.parts.range : slots.parts.item}>
 						<QueryBuilderRuleValue
 							field={field}
 							value={rule.value}
@@ -190,7 +190,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 				    as static text in the value column. The rule then still reads as a
 				    sentence. There is nothing to edit, hence no control. */}
 				{subject && (
-					<Flex align="center" full className={cn(slots.value, slots.part)}>
+					<Flex align="center" full className={cn(slots.value, slots.parts.item)}>
 						{subject}
 					</Flex>
 				)}

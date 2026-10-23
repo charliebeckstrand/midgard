@@ -125,7 +125,7 @@ export function QueryBuilderSortable({ group, separator, node }: QueryBuilderSor
 					onReorder={setDraft}
 					data-slot="query-sortable-list"
 					data-sorting={dataAttr(sorting)}
-					className={slots.sortable}
+					className={slots.sortable.list}
 				>
 					{order.flatMap((id, index) => {
 						const child = byKey.get(id)
@@ -138,7 +138,7 @@ export function QueryBuilderSortable({ group, separator, node }: QueryBuilderSor
 							between ? (
 								// The separator keeps its slot through the drag, so it takes the
 								// key of the node that the slot holds before the drag.
-								<div key={`${children[index]?.id}-separator`} className={slots.separator}>
+								<div key={`${children[index]?.id}-separator`} className={slots.sortable.separator}>
 									{between}
 								</div>
 							) : null,

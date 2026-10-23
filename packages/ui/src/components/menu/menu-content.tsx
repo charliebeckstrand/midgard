@@ -125,13 +125,13 @@ export function MenuContent({
 	else if (!named && isDropdown) labelledby = triggerId
 
 	const header = titled ? (
-		<div data-slot="menu-header" className={panel.header}>
-			<div id={titleId} className={panel.title}>
+		<div data-slot="menu-header" className={panel.header.base}>
+			<div id={titleId} className={panel.header.title}>
 				{title}
 			</div>
 
 			{described ? (
-				<div id={descriptionId} className={panel.description}>
+				<div id={descriptionId} className={panel.header.description}>
 					{description}
 				</div>
 			) : null}
