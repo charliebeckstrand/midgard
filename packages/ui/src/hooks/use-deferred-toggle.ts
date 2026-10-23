@@ -5,7 +5,7 @@ import { toggleListItem } from '../utilities'
 import { useFrozenOnClose } from './use-frozen-on-close'
 import { useStableEvent } from './use-stable-event'
 
-/** Options for {@link useDeferredToggle}: the flag it mirrors and how long it holds the old value. */
+/** Options for {@link useDeferredToggle}: the selection mode, the value and its setter, and the open state that ends the freeze. */
 export type DeferredToggleOptions<T> = {
 	/** Multi-select mode: the held value is an array and toggling adds / removes entries. */
 	multiple: boolean

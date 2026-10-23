@@ -30,7 +30,7 @@ type FloatingDisclosureGate = (
 	reason?: OpenChangeReason,
 ) => boolean
 
-/** Options for {@link useFloatingDisclosure}: the open-state triad it binds. */
+/** Options for {@link useFloatingDisclosure}: the panel options, the open-state triad, the role, the gate, and the dismiss and signal flags. */
 export type FloatingDisclosureOptions = Omit<
 	FloatingPanelOptions,
 	'open' | 'onOpenChange' | 'returnFocusTo'
@@ -76,7 +76,7 @@ export type FloatingDisclosureOptions = Omit<
 
 // Explicit return type: `@floating-ui/react-dom` is a transitive dep TS
 // can't express in a portable `.d.ts` (TS2742); same constraint as `useFloatingPanel`.
-/** Return shape of {@link useFloatingDisclosure}: the resolved open state and its setter. */
+/** Return shape of {@link useFloatingDisclosure}: the open state and its setters, the trigger ref, the floating-ui wiring, and the dismiss and role interactions. */
 export type FloatingDisclosureResult = {
 	open: boolean
 	setOpen: (open: boolean) => void

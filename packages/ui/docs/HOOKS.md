@@ -13,7 +13,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useControllable` | Holds a controlled or uncontrolled value with one setter, and reports only a change. |
 | `useControllableFlag` | The boolean form of `useControllable` for `open`, `pressed`, or `checked`. The value is never `undefined`. |
 | `useDeferredToggle` | Listbox/Combobox toggle logic; freezes the rendered selection through the panel's close animation. |
-| `useSelectableValueChange` | Wraps `onValueChange` to drop the "cleared to undefined" event in multi-select mode. |
+| `useSelectableValueChange` | Wraps `onValueChange` to drop the cleared (`null`) event in multi-select mode. |
 | `useIdleLoad` | Loads a value, such as the module of a menu, in idle time after the mount. The mounts of one loader share one load. |
 | `useIntentLoad` | `useIdleLoad` that also loads on a pointer, a focus, or a press, for a trigger that loads its code first. |
 | `useTimeout` | One restartable timer with stable `set`, `clear`, and `pending`, for a debounce or a dwell delay. It clears on unmount, and holds a delay past the platform limit at that limit. |
