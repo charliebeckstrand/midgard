@@ -722,6 +722,38 @@ describe('the range legend under quantile binning, continued', () => {
 		expect(track).toHaveAttribute('aria-valuetext', '1–5')
 	})
 
+	it('reads the lowest class at rest, and an arrow from rest lands on it', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Load"
+				width={400}
+				data={cells([0, 45, 90])}
+				series={[
+					{ xKey: 'hour', yKey: 'day', colorKey: 'n', colorRange: ['#fff', '#888', '#000'] },
+				]}
+			/>,
+		)
+
+		const track = getSlot(container, 'heatmap-range-track')
+
+		// At rest the slider sits at its min, so it names the class of the min.
+		expect(track).toHaveAttribute('aria-valuenow', '0')
+
+		expect(track).toHaveAttribute('aria-valuetext', '0–30')
+
+		// A click focuses the track with no probe. The first arrow wakes the probe
+		// where the slider sits, so it cannot skip the lowest class.
+		act(() => track.focus())
+
+		fireEvent.keyDown(track, { key: 'ArrowUp' })
+
+		expect(track).toHaveAttribute('aria-valuetext', '0–30')
+
+		fireEvent.keyDown(track, { key: 'ArrowUp' })
+
+		expect(track).toHaveAttribute('aria-valuetext', '30–60')
+	})
+
 	it('leaves a key chord with Ctrl, Meta, or Alt to the browser', () => {
 		const { container } = renderUI(
 			<HeatmapChart

@@ -202,8 +202,10 @@ type RangeKeyContext = {
  * - Down / Left step a class toward the min.
  * - Home / End jump to the ends.
  *
- * Both arrow pairs answer, so either orientation reads along its natural axis.
- * Escape blurs instead and is handled by the caller.
+ * At rest the slider sits at the min, its `aria-valuenow`. An arrow from rest
+ * therefore reads the min, as a keyboard focus does, and does not step past
+ * the lowest class. Both arrow pairs answer, so either orientation reads along
+ * its natural axis. Escape blurs instead and is handled by the caller.
  *
  * @internal
  */
@@ -216,29 +218,29 @@ function rangeKeyValue(key: string, probe: number | null, context: RangeKeyConte
 		return (low + high) / 2
 	}
 
-	const current = probe === null ? 0 : getBin(probe)
-
-	// Tied thresholds leave a class with no width, whose center reads back into
-	// a neighbor. A step walks on until it reaches a class it can land in.
-	const step = (direction: 1 | -1) => {
-		for (let bin = current + direction; bin >= 0 && bin < bins; bin += direction) {
-			const value = center(bin)
-
-			if (getBin(value) !== current) return value
-		}
-
-		return center(current)
-	}
-
-	if (key === 'ArrowUp' || key === 'ArrowRight') return step(1)
-
-	if (key === 'ArrowDown' || key === 'ArrowLeft') return step(-1)
-
 	if (key === 'Home') return min
 
 	if (key === 'End') return max
 
-	return null
+	const up = key === 'ArrowUp' || key === 'ArrowRight'
+
+	if (!up && key !== 'ArrowDown' && key !== 'ArrowLeft') return null
+
+	if (probe === null) return min
+
+	const current = getBin(probe)
+
+	const direction = up ? 1 : -1
+
+	// Tied thresholds leave a class with no width, whose center reads back into
+	// a neighbor. A step walks on until it reaches a class it can land in.
+	for (let bin = current + direction; bin >= 0 && bin < bins; bin += direction) {
+		const value = center(bin)
+
+		if (getBin(value) !== current) return value
+	}
+
+	return center(current)
 }
 
 /** Props for {@link RangeScaleLabels}. @internal */
@@ -350,8 +352,8 @@ type RangeTrackProps = {
 	probe: number | null
 	/** The probe's distance along the bar, from {@link probePercent}. */
 	probeOffset: number
-	/** The probed class's range, announced through `aria-valuetext`; absent at rest. */
-	valueText?: string
+	/** The range of the probed class, or at rest of the class of the min, announced through `aria-valuetext`. */
+	valueText: string
 	/** The host's hover glyph pinned into the track. */
 	arrow?: ReactNode
 	onPointerMove: (event: PointerEvent<HTMLDivElement>) => void
@@ -577,7 +579,7 @@ export function RangeLegend({
 					domain={domain}
 					probe={probe}
 					probeOffset={probeOffset}
-					valueText={probe === null ? undefined : binLabel(getBin(probe))}
+					valueText={binLabel(getBin(probe ?? min))}
 					arrow={arrow}
 					onPointerMove={track}
 					// The keyboard side rides `:focus-visible`, the same gate as the ring. A
