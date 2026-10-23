@@ -114,6 +114,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `FloatingHeightSnap` | A function that lowers the `fitHeight` cap of `useFloatingPanel` to a height that suits the content. |
 | `FloatingPanelOptions` / `FloatingPanelResult` | Options and return shape of `useFloatingPanel`. |
 | `FloatingPlacement` | A floating-ui placement, or `<side>-auto`, which aligns the panel to the edge that is nearer to the reference. |
+| `FloatingRole` | The popup role that `useFloatingUI` and `useFloatingDisclosure` stamp on the floating element: `listbox`, `menu`, `dialog`, or `tooltip`. |
 | `FormattedInputOptions` | Options for `useFormattedInput`: the `format` pass, the meaningful-character test, and the ref to compose. |
 | `IdScopeOptions` | Options for `useIdScope`: the id to adopt in place of a generated one. |
 | `KeybindingsOptions` | Options for `useKeybindings`: the enable gate, the target, the capture phase, and the skip predicate. |
