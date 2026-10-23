@@ -44,7 +44,7 @@ function ChatEmbedMissing({ name }: { name: string }) {
 	const intl = useIntl()
 
 	return (
-		<span data-slot="chat-embed-fallback" className={cn(k.embed.fallback)}>
+		<span data-slot="chat-embed-fallback" className={k().embed.fallback}>
 			{intl.formatMessage(messages.missing, { name })}
 		</span>
 	)
@@ -95,7 +95,7 @@ export function ChatEmbed({ part, className }: ChatEmbedProps) {
 	// effects paused and no space reserved, until the reader reached it.
 	if (mount === 'always') {
 		return (
-			<div data-slot="chat-embed" data-embed={part.name} className={cn(k.embed.base, className)}>
+			<div data-slot="chat-embed" data-embed={part.name} className={cn(k().embed.base, className)}>
 				{render(part)}
 			</div>
 		)
@@ -167,7 +167,7 @@ function HeldChatEmbed({ part, className, mount, render, address, reached }: Hel
 			// view's height says so on the part; this default is what a chart runs to.
 			style={hold.present ? undefined : { minHeight: part.height ?? DEFERRED_HEIGHT }}
 			data-deferred={hold.present ? undefined : ''}
-			className={cn(k.embed.base, className)}
+			className={cn(k().embed.base, className)}
 		>
 			{hold.present && <MountHold hold={hold}>{render(part)}</MountHold>}
 		</div>

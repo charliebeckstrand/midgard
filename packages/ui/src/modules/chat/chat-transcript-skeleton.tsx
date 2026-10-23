@@ -40,8 +40,8 @@ export function ChatTranscriptSkeleton({ messages = 4, className }: ChatTranscri
 				const sender = index % 2 === 0 ? 'user' : 'assistant'
 
 				return (
-					<div key={messageKey} className={index > 0 ? cn(k.row) : undefined}>
-						<div className={cn(kMessage({ sender }))}>
+					<div key={messageKey} className={index > 0 ? k().row : undefined}>
+						<div className={kMessage({ sender }).base}>
 							<div className={cn(k.skeleton.bubble, k.skeleton.tail[sender])}>
 								{k.skeleton.lines[sender].map((width) => (
 									<Placeholder key={width} className={cn(k.skeleton.line, width)} />

@@ -206,7 +206,7 @@ export function ChatTranscript({
 			ref={setContainer}
 			role="log"
 			aria-live="off"
-			className={cn(k(), className)}
+			className={cn(k().base, className)}
 		>
 			{count > 0 && (
 				<div className="mx-auto">
@@ -224,7 +224,7 @@ export function ChatTranscript({
 								ref={measureRef}
 								data-index={index}
 								data-slot="chat-transcript-row"
-								className={index > 0 ? cn(k.row) : undefined}
+								className={index > 0 ? k().row : undefined}
 							>
 								<ChatRowContext value={key}>
 									<ChatMessage
