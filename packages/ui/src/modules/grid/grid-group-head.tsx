@@ -105,17 +105,6 @@ function GridGroupHeadCell({
 	// covers a pinned column (see `buildGroupSpans`), so it needs no sticky offset.
 	const pinned = span.kind === 'plain'
 
-	// A group draws a 2px rule under its Badge, spanning the cell's content width:
-	// inset by the header padding, so it aligns with the column titles and splits
-	// from the neighboring group. Colored in the group's hue, or a neutral gray
-	// when it has none (matching a colorless row group's rail), so clearing a color
-	// leaves the underline in place rather than dropping it.
-	const group = span.kind === 'group' ? span.group : null
-
-	const hue = group?.color ? k.rule.color[group.color] : k.rule.neutral
-
-	const ruleColor = group ? hue : null
-
 	// The description of a group reaches the keyboard and a screen reader as
 	// hidden text that the band describes itself by. The tooltip over the badge
 	// is for a pointer, and a badge takes no focus.
@@ -134,7 +123,7 @@ function GridGroupHeadCell({
 			data-group-id={span.kind === 'group' ? span.group.id : undefined}
 			aria-describedby={description ? descriptionId : undefined}
 			className={cn(
-				k.cell,
+				k().base,
 				stickyHeader && gridK.sticky.head,
 				pinned && pinnedClassName(pinning, span.leadColumnId, { header: true }),
 			)}
@@ -142,7 +131,7 @@ function GridGroupHeadCell({
 			data-grid-pin={pinned ? pinnedCellAttribute(pinning, span.leadColumnId) : undefined}
 		>
 			{span.kind === 'group' && (
-				<div className={cn(k.content)}>
+				<div className={k().content}>
 					<GridGroupBand
 						group={span.group}
 						collapsed={header.collapsed.has(span.group.id)}
@@ -150,13 +139,17 @@ function GridGroupHeadCell({
 						onToggleCollapse={header.onToggleCollapse}
 					/>
 
-					{ruleColor && (
-						<div
-							data-slot="grid-group-rule"
-							className={cn(k.rule.base, ruleColor)}
-							aria-hidden="true"
-						/>
-					)}
+					{/* A group draws a 2px rule under its Badge, spanning the cell's content
+					    width: inset by the header padding, so it aligns with the column titles
+					    and splits from the neighboring group. Colored in the group's hue, or a
+					    neutral gray when it has none (matching a colorless row group's rail),
+					    so clearing a color leaves the underline in place rather than dropping
+					    it. */}
+					<div
+						data-slot="grid-group-rule"
+						className={k({ color: span.group.color }).rule}
+						aria-hidden="true"
+					/>
 
 					{description && (
 						<span id={descriptionId} className="sr-only">
@@ -215,13 +208,13 @@ function GridGroupBand({ group, collapsed, hiddenCount, onToggleCollapse }: Grid
 	)
 
 	// Non-collapsible: the Badge alone, flush with its column's left edge.
-	if (!group.collapsible) return <span className={cn(k.band.row)}>{badgeWithTooltip}</span>
+	if (!group.collapsible) return <span className={k().band.row}>{badgeWithTooltip}</span>
 
 	// Collapsible: the Badge leads (so it lines up with the column), then a bare
 	// icon Button folds the group (the chevron alone lives in the button, so it
 	// brightens on hover). The `+N` count trails the toggle when collapsed.
 	return (
-		<span className={cn(k.band.row)}>
+		<span className={k().band.row}>
 			{badgeWithTooltip}
 
 			<Button
@@ -237,11 +230,11 @@ function GridGroupBand({ group, collapsed, hiddenCount, onToggleCollapse }: Grid
 				{/* A column group folds horizontally: a caret to the inline start while
 				    collapsed, and to the inline end once expanded (where its columns show).
 				    The caret mirrors in a right-to-left grid. */}
-				<Icon icon={collapsed ? <ChevronLeft /> : <ChevronRight />} className={cn(k.band.caret)} />
+				<Icon icon={collapsed ? <ChevronLeft /> : <ChevronRight />} className={k().band.caret} />
 			</Button>
 
 			{collapsed && hiddenCount > 0 && (
-				<span className={cn(k.count)}>+{intl.formatNumber(hiddenCount)}</span>
+				<span className={k().count}>+{intl.formatNumber(hiddenCount)}</span>
 			)}
 		</span>
 	)

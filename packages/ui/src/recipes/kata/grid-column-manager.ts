@@ -1,3 +1,4 @@
+import { defineKata } from '../../core/recipe'
 import { dan, hannou, iro, narabi, sen } from '../kiso'
 
 const { cursor, fg } = hannou
@@ -5,21 +6,23 @@ const { text } = iro
 const { flex } = narabi
 const { divider, focus } = sen
 
-export const k = {
+export const k = defineKata({
 	base: [flex.col, dan.gap.scale.sm],
-	// Leading slot for a frozen row, occupying (and aligned to) where an orderable
-	// row's drag grip sits (`px-3 -ms-3 -me-3`), so the checkboxes line up across
-	// the prepended, scrolling, and appended groups.
-	lead: [flex.inline, 'flex-none', 'justify-center', 'px-3', '-ms-3', '-me-3'],
-	// Interactive pin control: the per-row menu trigger that pins left/right or
-	// unpins. Muted at rest, tinting on hover/focus like the header's pin button.
-	pin: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, cursor, 'select-none'],
-	// Static, non-interactive glyph: the edge arrow on a locked row (an immutable
-	// freeze; ArrowLeftToLine / ArrowRightToLine), or the pin indicator on a frozen
-	// row when the manager has no pin handler. Muted, matching the resting tint of
-	// the interactive control.
-	icon: [flex.inline, 'shrink-0', text.muted],
-	// Stands in for the lists when the filter matches no column in any group.
-	empty: [text.muted, 'py-1'],
-	footer: [flex.row, 'justify-end', dan.gap.scale.xs, 'pt-2', ...divider.top],
-} as const
+	slots: {
+		// Leading slot for a frozen row, occupying (and aligned to) where an orderable
+		// row's drag grip sits (`px-3 -ms-3 -me-3`), so the checkboxes line up across
+		// the prepended, scrolling, and appended groups.
+		lead: [flex.inline, 'flex-none', 'justify-center', 'px-3', '-ms-3', '-me-3'],
+		// Interactive pin control: the per-row menu trigger that pins left/right or
+		// unpins. Muted at rest, tinting on hover/focus like the header's pin button.
+		pin: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, cursor, 'select-none'],
+		// Static, non-interactive glyph: the edge arrow on a locked row (an immutable
+		// freeze; ArrowLeftToLine / ArrowRightToLine), or the pin indicator on a frozen
+		// row when the manager has no pin handler. Muted, matching the resting tint of
+		// the interactive control.
+		icon: [flex.inline, 'shrink-0', text.muted],
+		// Stands in for the lists when the filter matches no column in any group.
+		empty: [text.muted, 'py-1'],
+		footer: [flex.row, 'justify-end', dan.gap.scale.xs, 'pt-2', ...divider.top],
+	},
+})

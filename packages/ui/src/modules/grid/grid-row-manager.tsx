@@ -71,12 +71,12 @@ export function GridRowManager({
 	})
 
 	return (
-		<div data-slot="grid-row-manager" className={cn(k.base, className)}>
+		<div data-slot="grid-row-manager" className={cn(k().base, className)}>
 			<DndContext {...dndContextProps} modifiers={GROUP_DRAG_MODIFIERS}>
 				<SortableContext items={itemIds} strategy={strategy}>
 					{/* A list, so assistive tech reads the count of the zones and the
 					    position of each. The DndContext nodes stay outside it. */}
-					<ul className={cn(k.list)}>
+					<ul className={k().list}>
 						{groups.map((group) => (
 							<GridRowManagerZone
 								key={group.key}
@@ -118,17 +118,17 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 		<li ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>
 			{/* Content sits directly in the Card, so its padding is uniform on every
 			    edge. A CardHeader would add a bottom gap for a body that isn't here. */}
-			<Card className={cn(group.color && groupK.outline[group.color])}>
-				<div className={cn(k.zone.header)}>
-					<div className={cn(k.zone.main)}>
+			<Card className={groupK({ color: group.color }).outline}>
+				<div className={k().zone.header}>
+					<div className={k().zone.main}>
 						<GridManagerGrip
 							sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
 							label={intl.formatMessage(gridMessages.groupHandle, { group: label })}
 						/>
 
-						<span className={cn(k.zone.label)}>{group.label}</span>
+						<span className={k().zone.label}>{group.label}</span>
 
-						<span className={cn(k.zone.count)}>({intl.formatNumber(group.count)})</span>
+						<span className={k().zone.count}>({intl.formatNumber(group.count)})</span>
 					</div>
 
 					<GridManagerColorMenu

@@ -2,7 +2,6 @@
 
 import { GripVertical } from 'lucide-react'
 import { Icon } from '../../components/icon'
-import { cn } from '../../core'
 import {
 	SortableGrip,
 	type SortableGripBindings,
@@ -26,11 +25,11 @@ export function GridManagerGrip({
 }) {
 	if (!sortable) {
 		return (
-			<span data-dragging="" className={cn(k.manager.row.grip)}>
+			<span data-dragging="" className={k().manager.row.grip}>
 				<Icon icon={<GripVertical />} />
 			</span>
 		)
 	}
 
-	return <SortableGrip sortable={sortable} label={label} className={cn(k.manager.row.grip)} />
+	return <SortableGrip sortable={sortable} label={label} className={k().manager.row.grip} />
 }

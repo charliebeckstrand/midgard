@@ -70,7 +70,7 @@ function useManagerDirection(root: RefObject<HTMLElement | null>): boolean {
  * @internal
  */
 function GridColumnManagerNoResults() {
-	return <output className={cn(k.empty)}>{useIntl().formatMessage(intlMessages.noResults)}</output>
+	return <output className={k().empty}>{useIntl().formatMessage(intlMessages.noResults)}</output>
 }
 
 /**
@@ -221,7 +221,7 @@ function GridColumnPinControl({
 			<MenuTrigger>
 				<button
 					type="button"
-					className={cn(k.pin)}
+					className={k().pin}
 					aria-label={intl.formatMessage(gridMessages.pinColumn, { column: columnLabel(item) })}
 				>
 					<Icon icon={side ? <Pin /> : <EllipsisVertical />} />
@@ -259,15 +259,15 @@ function frozenLeading(item: GridColumnManagerItem, onPinChange: PinChange | und
 				item={item}
 				side={item.pinned}
 				onPinChange={onPinChange}
-				className={cn(k.lead)}
+				className={k().lead}
 				placement="bottom-start"
 			/>
 		)
 	}
 
 	return (
-		<span className={cn(k.lead)}>
-			<span aria-hidden="true" className={cn(k.icon)}>
+		<span className={k().lead}>
+			<span aria-hidden="true" className={k().icon}>
 				<Icon icon={<Pin />} />
 			</span>
 		</span>
@@ -282,8 +282,8 @@ function GridColumnLockedEdge({ side }: { side: 'left' | 'right' }) {
 	const rtl = useManagerRtl()
 
 	return (
-		<span className={cn(k.lead)}>
-			<span aria-hidden="true" className={cn(k.icon)}>
+		<span className={k().lead}>
+			<span aria-hidden="true" className={k().icon}>
 				<Icon
 					icon={physicalSide(side, rtl) === 'right' ? <ArrowRightToLine /> : <ArrowLeftToLine />}
 				/>
@@ -568,7 +568,7 @@ export function GridColumnManager({
 
 	return (
 		<ManagerRtlContext value={rtl}>
-			<div ref={rootRef} data-slot="grid-column-manager" className={cn(k.base, className)}>
+			<div ref={rootRef} data-slot="grid-column-manager" className={cn(k().base, className)}>
 				{filterable && (
 					<SearchInput
 						value={query}
@@ -626,7 +626,7 @@ export function GridColumnManager({
 					</>
 				)}
 				{onSavePreset && (
-					<div className={cn(k.footer)}>
+					<div className={k().footer}>
 						<Button type="button" variant="soft" size="sm" onClick={handleSavePreset}>
 							{savePresetLabel}
 						</Button>
