@@ -101,6 +101,7 @@
 		"test:browser": {
 			"dependsOn": ["^build"],
 			"env": ["DENSITY_ENGINES"],
+			"passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"],
 			"inputs": [
 				"src/**",
 				"vitest.browser.config.ts",
