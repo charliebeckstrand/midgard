@@ -135,7 +135,7 @@ export const hover = {
 		blue: 'not-disabled:not-data-disabled:hover:text-blue-700 dark:not-disabled:not-data-disabled:hover:text-blue-400',
 		rose: 'not-disabled:not-data-disabled:hover:text-rose-700 dark:not-disabled:not-data-disabled:hover:text-rose-400',
 		violet:
-			'not-disabled:not-data-disabled:hover:text-violet-700 dark:not-disabled:not-data-disabled:hover:text-violet-400',
-		sky: 'not-disabled:not-data-disabled:hover:text-sky-700 dark:not-disabled:not-data-disabled:hover:text-sky-400',
+			'not-disabled:not-data-disabled:hover:text-violet-700 dark:not-disabled:not-data-disabled:hover:text-violet-300',
+		sky: 'not-disabled:not-data-disabled:hover:text-sky-800 dark:not-disabled:not-data-disabled:hover:text-sky-400',
 	},
 } as const
