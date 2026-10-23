@@ -129,7 +129,9 @@ function yearless(value: string): boolean {
  * date reads day-first, or year-first after a four-digit year, also as a local
  * date. `Date.parse` reads the dotted form month-first. A month name with a
  * day and no year, such as `Jun 10`, names no instant (see {@link yearless}).
- * Any other string goes through `Date.parse`.
+ * Any other string goes through `Date.parse`. A string reads without its outer
+ * whitespace, as the shape test of {@link dateCategoryFormat} does. Thus
+ * ` 10.06.2026` reads day-first, and not month-first through `Date.parse`.
  *
  * @returns The instant, or `null` when the value holds no parseable date: the
  * row then anchors no tick and the axis falls back to plain labels.
@@ -144,7 +146,7 @@ export function parseInstant(value: unknown): number | null {
 
 	if (typeof value === 'number') return Number.isFinite(value) ? value : null
 
-	if (typeof value === 'string') return stringInstant(value)
+	if (typeof value === 'string') return stringInstant(value.trim())
 
 	return null
 }

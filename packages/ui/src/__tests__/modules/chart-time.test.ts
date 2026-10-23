@@ -64,6 +64,15 @@ describe('parseInstant', () => {
 		expect(parseInstant('10 June 2026')).toBe(Date.parse('10 June 2026'))
 	})
 
+	it('reads a string padded with whitespace as the same date', () => {
+		// `Date.parse` reads ` 10.06.2026` month-first, as October 6.
+		expect(parseInstant(' 10.06.2026 ')).toBe(new Date(2026, 5, 10).getTime())
+
+		expect(parseInstant(' 2026-06-10\t')).toBe(new Date(2026, 5, 10).getTime())
+
+		expect(parseInstant(' Jun 10 ')).toBeNull()
+	})
+
 	it('returns null for a dotted date outside the calendar', () => {
 		expect(parseInstant('10.13.2026')).toBeNull()
 
@@ -441,6 +450,14 @@ describe('dateCategoryFormat', () => {
 		expect(format?.('10.06.2026')).toBe('10.06.')
 
 		expect(format?.('13.06.2026')).toBe('13.06.')
+	})
+
+	it('labels a padded dotted axis day-first, as the unpadded one', () => {
+		const format = dateCategoryFormat([' 10.06.2026', '11.06.2026 '], 2026, 'en-US')
+
+		expect(format?.(' 10.06.2026')).toBe('06/10')
+
+		expect(format?.('11.06.2026 ')).toBe('06/11')
 	})
 
 	it('returns null for bare years, so a year axis keeps its labels', () => {
