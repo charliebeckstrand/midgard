@@ -324,9 +324,9 @@ describe('axisTitleAt', () => {
 
 describe('lineMarkReach', () => {
 	it('reaches the ring edge of a point marker, else the half-width of the stroke', () => {
-		expect(lineMarkReach(true)).toBe(MARKER_RADIUS + MARKER_RING_WIDTH / 2)
+		expect(lineMarkReach(true, false)).toBe(MARKER_RADIUS + MARKER_RING_WIDTH / 2)
 
-		expect(lineMarkReach(false)).toBe(LINE_STROKE_WIDTH / 2)
+		expect(lineMarkReach(false, false)).toBe(LINE_STROKE_WIDTH / 2)
 	})
 })
 

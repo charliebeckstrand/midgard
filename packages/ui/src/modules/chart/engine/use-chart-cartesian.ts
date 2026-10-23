@@ -487,8 +487,8 @@ export function useChartCartesian<T>(
 	// memoized rather than re-run on every render: a hover, a legend toggle, or
 	// a resize commit does not change any of its inputs.
 	const { categories, rawCategories, readoutCategory } = useMemo(
-		() => resolveCategories(data, xKey, timeAxis, axes.x?.format, locale),
-		[data, xKey, timeAxis, axes.x?.format, locale],
+		() => resolveCategories(data, xKey, timeAxis, axes.x?.format, locale, times),
+		[data, xKey, timeAxis, axes.x?.format, locale, times],
 	)
 
 	// The public category-activation callback resolved to the hit layer's

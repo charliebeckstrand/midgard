@@ -397,7 +397,7 @@ export type CartesianLayoutInput = {
  *
  * @internal
  */
-export function lineMarkReach(points: boolean, isolated = false): number {
+export function lineMarkReach(points: boolean, isolated: boolean): number {
 	return points || isolated ? MARKER_RADIUS + MARKER_RING_WIDTH / 2 : LINE_STROKE_WIDTH / 2
 }
 

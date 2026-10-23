@@ -590,31 +590,27 @@ export function dateCategoryFormat(
 }
 
 /**
- * The time-of-day fields that a time-axis readout needs for `values`. They are
+ * The time-of-day fields that a time-axis readout needs for `times`. They are
  * none when every row sits at local midnight, the hour and minute when a row
  * carries a time of day, and the second too when a row carries seconds. Rows
  * within one day thus read apart, as the hour and minute ticks of the axis do.
  *
  * @internal
  */
-function timeOfDay(values: readonly unknown[]): Intl.DateTimeFormatOptions {
-	let fields: Intl.DateTimeFormatOptions = {}
+function timeOfDay(times: readonly (number | null)[]): Intl.DateTimeFormatOptions {
+	let minutes = false
 
-	for (const value of values) {
-		const time = parseInstant(value)
-
+	for (const time of times) {
 		if (time === null) continue
 
 		const date = new Date(time)
 
 		if (date.getSeconds() !== 0) return { hour: 'numeric', minute: '2-digit', second: '2-digit' }
 
-		if (date.getHours() !== 0 || date.getMinutes() !== 0) {
-			fields = { hour: 'numeric', minute: '2-digit' }
-		}
+		minutes ||= date.getHours() !== 0 || date.getMinutes() !== 0
 	}
 
-	return fields
+	return minutes ? { hour: 'numeric', minute: '2-digit' } : {}
 }
 
 /**
@@ -625,18 +621,19 @@ function timeOfDay(values: readonly unknown[]): Intl.DateTimeFormatOptions {
  * one formatter across the rows.
  *
  * @param locale - BCP 47 tag; defaults to the runtime locale.
- * @param values - Each row's raw `xKey` value, which decides the time fields.
+ * @param times - The instant of each row (see {@link parseInstant}), which
+ * decides the time fields.
  * @internal
  */
 export function timeCategory(
-	locale?: string,
-	values: readonly unknown[] = [],
+	locale: string | undefined,
+	times: readonly (number | null)[],
 ): (value: unknown) => string {
 	const format = new DateFormatter(resolveLocale(locale), {
 		year: 'numeric',
 		month: 'short',
 		day: 'numeric',
-		...timeOfDay(values),
+		...timeOfDay(times),
 	})
 
 	return (value) => {

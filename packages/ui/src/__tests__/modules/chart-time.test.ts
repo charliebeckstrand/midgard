@@ -341,7 +341,7 @@ describe('timeTicks with a library zone that differs from the system zone', () =
 
 describe('timeCategory', () => {
 	it('formats a row value as a medium locale date', () => {
-		const format = timeCategory('en-US')
+		const format = timeCategory('en-US', [])
 
 		expect(format('2026-01-05')).toBe('Jan 5, 2026')
 
@@ -349,25 +349,27 @@ describe('timeCategory', () => {
 	})
 
 	it('falls back to the string form of an unparseable value', () => {
-		expect(timeCategory('en-US')('Q1')).toBe('Q1')
+		expect(timeCategory('en-US', [])('Q1')).toBe('Q1')
 	})
 
 	it('adds the time of day when a row carries one', () => {
 		const rows = ['2026-06-01T10:00', '2026-06-01T10:30']
 
-		const format = timeCategory('en-US', rows)
+		const format = timeCategory('en-US', rows.map(parseInstant))
 
 		expect(rows.map(format)).toEqual(['Jun 1, 2026, 10:00 AM', 'Jun 1, 2026, 10:30 AM'])
 	})
 
 	it('adds the seconds when a row carries them', () => {
-		expect(timeCategory('en-US', ['2026-06-01T10:00:15'])('2026-06-01T10:00:15')).toBe(
-			'Jun 1, 2026, 10:00:15 AM',
-		)
+		expect(
+			timeCategory('en-US', [parseInstant('2026-06-01T10:00:15')])('2026-06-01T10:00:15'),
+		).toBe('Jun 1, 2026, 10:00:15 AM')
 	})
 
 	it('keeps the date alone when every row sits at midnight', () => {
-		expect(timeCategory('en-US', ['2026-06-01', '2026-06-02'])('2026-06-01')).toBe('Jun 1, 2026')
+		expect(
+			timeCategory('en-US', ['2026-06-01', '2026-06-02'].map(parseInstant))('2026-06-01'),
+		).toBe('Jun 1, 2026')
 	})
 })
 
@@ -375,7 +377,7 @@ describe('dateCategoryFormat', () => {
 	it('keeps the raw labels of month-and-day values with no year', () => {
 		expect(dateCategoryFormat(['Jun 10', 'Jun 11', 'Jun 12'], 2026, 'en-US')).toBeNull()
 
-		expect(timeCategory('en-US')('Jun 10')).toBe('Jun 10')
+		expect(timeCategory('en-US', [])('Jun 10')).toBe('Jun 10')
 	})
 
 	it('labels a single-year span month/day, dropping the reference year', () => {

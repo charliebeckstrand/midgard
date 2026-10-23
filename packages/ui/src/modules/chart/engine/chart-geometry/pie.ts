@@ -177,7 +177,7 @@ function donutBack(
  * way they do through a real pie. @internal
  */
 function pieBack(cx: number, cy: number, start: number, end: number, half: number): string {
-	if (half <= 0) return `L ${pathPoint({ x: cx, y: cy })}`
+	if (half <= 0) return `L ${coord(cx)} ${coord(cy)}`
 
 	const sweep = end - start
 
