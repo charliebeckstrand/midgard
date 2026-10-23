@@ -70,6 +70,34 @@ describe('Toolbar', () => {
 		expect(document.activeElement).toBe(second)
 	})
 
+	it('runs a consumer onKeyDown first, and roving still moves focus after a preventDefault', () => {
+		const keys: string[] = []
+
+		const { container } = renderUI(
+			<Toolbar
+				aria-label="Editor"
+				onKeyDown={(event) => {
+					keys.push(event.key)
+
+					event.preventDefault()
+				}}
+			>
+				<button type="button">A</button>
+				<button type="button">B</button>
+			</Toolbar>,
+		)
+
+		const [first, second] = Array.from(container.querySelectorAll('button'))
+
+		first?.focus()
+
+		fireEvent.keyDown(getSlot(container, 'toolbar'), { key: 'ArrowRight' })
+
+		expect(keys).toEqual(['ArrowRight'])
+
+		expect(document.activeElement).toBe(second)
+	})
+
 	it('skips disabled items during keyboard navigation', () => {
 		const { container } = renderUI(
 			<Toolbar aria-label="Editor">
@@ -332,5 +360,17 @@ describe('ToolbarSeparator', () => {
 		expect(el).not.toHaveAttribute('aria-orientation')
 
 		expect(el?.className).toContain('density-my-[0.25,0.5,1,1.5,2.5]')
+	})
+
+	it('takes the native attributes of its rule, and keeps its anchor for the row edges', () => {
+		const { container } = renderUI(
+			<Toolbar aria-label="Editor">
+				<button type="button">A</button>
+				<ToolbarSeparator id="rule" data-slot="custom" />
+				<button type="button">B</button>
+			</Toolbar>,
+		)
+
+		expect(bySlot(container, 'toolbar-separator')).toHaveAttribute('id', 'rule')
 	})
 })

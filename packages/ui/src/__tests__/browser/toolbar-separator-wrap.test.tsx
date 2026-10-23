@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
-import type { ToolbarOrientation } from '../../components/toolbar/types'
+import type { Orientation } from '../../types'
 import { renderUI, waitFor } from '../helpers'
 
 /**
@@ -16,7 +16,7 @@ import { renderUI, waitFor } from '../helpers'
 describe('Toolbar separator on a wrapped row (real browser)', () => {
 	beforeAll(() => page.viewport(800, 600))
 
-	function Probe({ width, orientation }: { width: number; orientation?: ToolbarOrientation }) {
+	function Probe({ width, orientation }: { width: number; orientation?: Orientation }) {
 		return (
 			<div style={{ width }}>
 				<Toolbar aria-label="Editor" orientation={orientation}>

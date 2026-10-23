@@ -83,6 +83,6 @@ export const k = defineKata(
 
 /** Recipe variant props for the {@link PaginationPage} button: its styling axes (`current`), for consumers composing custom slots. */
 export type PageButtonVariants = {
-	/** Whether the button is the current page. @defaultValue false */
+	/** Marks the button as the current page. @defaultValue false */
 	current?: VariantProps<typeof k>['current']
 }

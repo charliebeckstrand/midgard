@@ -1,11 +1,11 @@
 'use client'
 
 import { createContext } from '../../core'
-import type { ToolbarOrientation } from './types'
+import type { Orientation } from '../../types'
 
 /** Shared by `<Toolbar>` to its `<ToolbarGroup>`/`<ToolbarSeparator>` descendants. */
 export type ToolbarContextValue = {
-	orientation: ToolbarOrientation
+	orientation: Orientation
 }
 
 export const [ToolbarContext, useToolbarContext] = createContext<ToolbarContextValue>('Toolbar')

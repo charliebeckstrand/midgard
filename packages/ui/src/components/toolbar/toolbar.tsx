@@ -2,25 +2,18 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useLayoutEffect, useMemo, useRef } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useA11yRoving, useResizeObserver } from '../../hooks'
 import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
 import type { AccessibleName } from '../../types'
 import { ToolbarContext, type ToolbarContextValue } from './context'
 import { TOOLBAR_ITEM_SELECTOR } from './toolbar-constants'
 import { markRowEdges } from './toolbar-row-edges'
-import type { ToolbarOrientation } from './types'
 
 /** Props for {@link Toolbar}. Requires `aria-label` or `aria-labelledby`. */
 export type ToolbarProps = AccessibleName &
-	Omit<ToolbarVariants, 'orientation'> &
-	Omit<ComponentProps<'div'>, 'onKeyDown' | 'aria-label' | 'aria-labelledby'> & {
-		/**
-		 * Layout axis and arrow-key navigation direction.
-		 * @defaultValue 'horizontal'
-		 */
-		orientation?: ToolbarOrientation
-	}
+	ToolbarVariants &
+	Omit<ComponentProps<'div'>, 'aria-label' | 'aria-labelledby'>
 
 /**
  * ARIA toolbar grouping related controls with roving-tabindex arrow-key
@@ -41,6 +34,7 @@ export function Toolbar({
 	className,
 	children,
 	ref: consumerRef,
+	onKeyDown,
 	...labelProps
 }: ToolbarProps) {
 	const ref = useRef<HTMLDivElement>(null)
@@ -71,7 +65,10 @@ export function Toolbar({
 				data-slot="toolbar"
 				role="toolbar"
 				aria-orientation={orientation}
-				onKeyDown={handleKeyDown}
+				// Roving takes no gate: the consumer's handler runs first, then roving.
+				onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown, {
+					checkForDefaultPrevented: false,
+				})}
 				className={cn(k({ orientation, variant }).base, className)}
 			>
 				{children}

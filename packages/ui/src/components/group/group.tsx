@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import type { GroupOrientation } from '../../recipes'
@@ -14,12 +14,10 @@ type GroupBaseProps = {
 	 * density scope. A step makes the group a density scope.
 	 */
 	size?: ScaleStep<typeof scale>
-	className?: string
-	children?: ReactNode
 }
 
 /** Props for {@link Group}: `orientation` and `size` atop native `<div>` attributes. */
-export type GroupProps = GroupBaseProps & Omit<ComponentProps<'div'>, 'className'>
+export type GroupProps = GroupBaseProps & ComponentProps<'div'>
 
 /**
  * A container that joins adjacent children visually. It carries the `tsunagi` join
