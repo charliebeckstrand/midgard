@@ -59,7 +59,7 @@ export type ChartCategoryAxis = {
 	 * day, hour) chosen against the tick target. Each tick sits at its true
 	 * position between the evenly spaced rows, formatted for the runtime locale
 	 * through `@internationalized/date`. The tooltip and data table read the same
-	 * dates.
+	 * dates, with the time of day where a row carries one.
 	 * Rows stay index-aligned, so spacing is uniform: the ticks track time, the
 	 * marks track order. Under `orientation="horizontal"` this types the vertical
 	 * band axis. Falls back to plain labels when fewer than two rows carry a

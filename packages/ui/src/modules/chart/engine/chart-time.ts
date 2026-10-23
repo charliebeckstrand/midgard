@@ -590,18 +590,50 @@ export function dateCategoryFormat(
 }
 
 /**
- * A category formatter for a time axis: each row's raw `xKey` value as a medium
- * locale date. The tooltip and data table thus read the same dates the axis
- * labels do. An unparseable value falls back to its string form. Holds one
- * formatter across the rows.
+ * The time-of-day fields that a time-axis readout needs for `times`. They are
+ * none when every row sits at local midnight, the hour and minute when a row
+ * carries a time of day, and the second too when a row carries seconds. Rows
+ * within one day thus read apart, as the hour and minute ticks of the axis do.
  *
  * @internal
  */
-export function timeCategory(locale?: string): (value: unknown) => string {
+function timeOfDay(times: readonly (number | null)[]): Intl.DateTimeFormatOptions {
+	let minutes = false
+
+	for (const time of times) {
+		if (time === null) continue
+
+		const date = new Date(time)
+
+		if (date.getSeconds() !== 0) return { hour: 'numeric', minute: '2-digit', second: '2-digit' }
+
+		minutes ||= date.getHours() !== 0 || date.getMinutes() !== 0
+	}
+
+	return minutes ? { hour: 'numeric', minute: '2-digit' } : {}
+}
+
+/**
+ * A category formatter for a time axis: each row's raw `xKey` value as a medium
+ * locale date, with the time of day when a row carries one (see
+ * {@link timeOfDay}). The tooltip and data table thus read the same instants
+ * the axis labels do. An unparseable value falls back to its string form. Holds
+ * one formatter across the rows.
+ *
+ * @param locale - BCP 47 tag; defaults to the runtime locale.
+ * @param times - The instant of each row (see {@link parseInstant}), which
+ * decides the time fields.
+ * @internal
+ */
+export function timeCategory(
+	locale: string | undefined,
+	times: readonly (number | null)[],
+): (value: unknown) => string {
 	const format = new DateFormatter(resolveLocale(locale), {
 		year: 'numeric',
 		month: 'short',
 		day: 'numeric',
+		...timeOfDay(times),
 	})
 
 	return (value) => {

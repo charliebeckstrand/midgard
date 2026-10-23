@@ -54,7 +54,7 @@ describe('chart-time partial ISO dates west of UTC', () => {
 	it('reads a YYYY-MM tooltip date in its own month', () => {
 		inNewYork()
 
-		expect(timeCategory('en-US')('2026-01')).toBe('Jan 1, 2026')
+		expect(timeCategory('en-US', [])('2026-01')).toBe('Jan 1, 2026')
 	})
 })
 

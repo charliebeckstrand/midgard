@@ -22,7 +22,7 @@ import {
 	buildValueTicks,
 	type CartesianLayoutInput,
 	horizontalLayout,
-	lineMarkReach,
+	markReach,
 	plotRect,
 	thinned,
 	valueAxisRange,
@@ -322,11 +322,33 @@ describe('axisTitleAt', () => {
 	})
 })
 
-describe('lineMarkReach', () => {
-	it('reaches the ring edge of a point marker, else the half-width of the stroke', () => {
-		expect(lineMarkReach(true)).toBe(MARKER_RADIUS + MARKER_RING_WIDTH / 2)
+describe('markReach', () => {
+	const ring = MARKER_RADIUS + MARKER_RING_WIDTH / 2
 
-		expect(lineMarkReach(false)).toBe(LINE_STROKE_WIDTH / 2)
+	const stroke = LINE_STROKE_WIDTH / 2
+
+	const line = (values: (number | null)[]) => ({ swatch: 'line' as const, values })
+
+	it('reaches the ring edge of a point marker, else the half-width of the stroke', () => {
+		expect(markReach([line([1, 2, 3])], true, false)).toBe(ring)
+
+		expect(markReach([line([1, 2, 3])], false, false)).toBe(stroke)
+	})
+
+	it('reaches the ring edge where a point with a gap on each side draws a marker', () => {
+		expect(markReach([line([1, 2, 3]), line([1, null, 3])], false, false)).toBe(ring)
+	})
+
+	it('counts a gap of a stack as zero, so only a single category is a lone point', () => {
+		expect(markReach([line([1, null, 3])], false, true)).toBe(stroke)
+
+		expect(markReach([line([1])], false, true)).toBe(ring)
+	})
+
+	it('reserves nothing when no visible series draws a line', () => {
+		expect(markReach([{ swatch: 'rect', values: [1, null, 3] }], true, false)).toBe(0)
+
+		expect(markReach([], true, false)).toBe(0)
 	})
 })
 

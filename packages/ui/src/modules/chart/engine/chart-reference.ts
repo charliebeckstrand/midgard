@@ -75,9 +75,9 @@ export const DEFAULT_REFERENCE_COLOR = 'zinc' satisfies ChartColorSlot
  * One unique key per rule: its axis and its label, or its axis and its value
  * where it has no label, with the occurrence added to a repeat. The label is
  * the identity of a labeled rule, so a rule such as an average keeps its key
- * when its value moves with the data. Two rules can share a key on two axes, or
- * on one axis. The drawn rules and the parity list key their React nodes on it,
- * and the legend toggle keys each hidden rule on it.
+ * when its value moves with the data. Two rules with one label on one axis
+ * thus take two keys. The drawn rules and the parity list key their React
+ * nodes on it, and the legend toggle keys each hidden rule on it.
  *
  * @internal
  */

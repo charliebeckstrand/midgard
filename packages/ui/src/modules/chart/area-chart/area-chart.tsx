@@ -12,7 +12,6 @@ import {
 	lineGeometry,
 } from '../engine/chart-geometry/line'
 import { nearestSeriesArea } from '../engine/chart-hit-test'
-import { lineMarkReach } from '../engine/chart-layout'
 import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
 import type { CartesianChartProps } from '../engine/types'
@@ -248,7 +247,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		categoryRule: 'zero',
 		swatch: () => 'line',
 		stack: stacked,
-		markInset: lineMarkReach(points),
+		points,
 		// Reserve the room the point labels need past the data extremes, so a
 		// label at an edge sits clear of the band edge rather than flip onto it.
 		valueHeadroom: (visible) => valueLabelHeadroom(labels, visible.length),

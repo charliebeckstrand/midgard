@@ -262,10 +262,15 @@ export function nearestSeriesArea(
 
 		if (reach === null) continue
 
+		// The reach is signed: a pointer in the stroke slack sits outside the top
+		// edge, at a negative reach. Its distance to the edge is the size of the
+		// reach either way.
+		const distance = Math.abs(reach)
+
 		if (stacked && reach >= 0) {
 			inside = series
-		} else if (reach < nearestReach) {
-			nearestReach = reach
+		} else if (distance < nearestReach) {
+			nearestReach = distance
 
 			nearest = series
 		}

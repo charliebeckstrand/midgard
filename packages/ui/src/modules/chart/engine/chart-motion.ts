@@ -181,7 +181,7 @@ const NULL_WORD = 0x7ff80001
  * data changes. It reads the *values*, not the drawn geometry. It therefore
  * holds through a resize (same numbers at new coordinates), and a legend toggle
  * (the caller feeds every series, visible or not). It changes only when the
- * underlying data does, as under the Ship Date filter re-running the query.
+ * underlying data does.
  *
  * @remarks Two 32-bit hashes over the bits of each value, not a joined string.
  * Each chart render reads the key, so a string of every value cost a

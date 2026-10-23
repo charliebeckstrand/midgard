@@ -28,6 +28,8 @@ type ResolvedCategories = {
  *
  * @param locale - BCP 47 tag from `<LocaleProvider>`; `undefined` falls back to
  * the runtime locale, which is what a chart outside a provider gets.
+ * @param times - The instant of each row on a time axis, which the readout
+ * reads its time fields from. Absent off a time axis.
  * @internal
  */
 export function resolveCategories<T>(
@@ -36,6 +38,7 @@ export function resolveCategories<T>(
 	timeAxis: boolean,
 	formatCategory: ((value: unknown) => string) | undefined,
 	locale: string | undefined,
+	times: readonly (number | null)[] = [],
 ): ResolvedCategories {
 	const rawValues = xKey ? data.map((datum) => datum[xKey]) : []
 
@@ -49,6 +52,6 @@ export function resolveCategories<T>(
 		// Without a formatter the labels *are* the raw categories; one pass, one array.
 		categories: categoryFormat ? rawValues.map(categoryFormat) : rawCategories,
 		rawCategories,
-		readoutCategory: categoryFormat ?? (timeAxis ? timeCategory(locale) : undefined),
+		readoutCategory: categoryFormat ?? (timeAxis ? timeCategory(locale, times) : undefined),
 	}
 }

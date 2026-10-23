@@ -87,6 +87,27 @@ describe('chart time axis', () => {
 		expect(table).not.toContain('2026-01-01')
 	})
 
+	it('reads each row of a one-day span apart in the table', () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Visits by minute"
+				data={MINUTES}
+				series={[{ xKey: 'at', yKey: 'visits', yName: 'Visits' }]}
+				width={600}
+				axes={{ x: { type: 'time' } }}
+			/>,
+		)
+
+		const headers = [...(bySlot(container, 'chart-table')?.querySelectorAll('th') ?? [])].map(
+			(cell) => cell.textContent,
+		)
+
+		// Every row falls on 1 June, so a date alone would read the same twelve times.
+		expect(headers).toContain('Jun 1, 2026, 10:01 AM')
+
+		expect(headers).toContain('Jun 1, 2026, 10:45 AM')
+	})
+
 	it("leaves the axis categorical by default, normalizing the date keys to the locale's form", () => {
 		const category = bySlot(line().container, 'chart-axis-x')?.textContent ?? ''
 
