@@ -81,7 +81,7 @@ describe('grid commit on leave vs a date picker slot (real floating engine)', ()
 		// The pick went through the surface, so the session still holds the cell.
 		expect(onCommit).not.toHaveBeenCalled()
 
-		const input = screen.getByRole('textbox', { name: 'Edit Due, row 1' })
+		const input = screen.getByRole('textbox', { name: 'Edit Due, row 2' })
 
 		expect(input).toBeInTheDocument()
 

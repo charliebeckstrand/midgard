@@ -52,7 +52,7 @@ describe('grid draft of a virtualized-out row (real browser)', () => {
 			'[data-slot="grid-scroll"]',
 		)
 
-		const editor = () => screen.queryByRole('textbox', { name: 'Edit Name, row 1' })
+		const editor = () => screen.queryByRole('textbox', { name: 'Edit Name, row 2' })
 
 		const scrollTo = (top: number) => {
 			scroll.scrollTop = top

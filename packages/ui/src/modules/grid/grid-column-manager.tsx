@@ -94,7 +94,7 @@ export type GridColumnManagerProps = {
 	columns: GridColumnManagerItem[]
 
 	/**
-	 * Whether the manager carries its filter field: a {@link SearchInput} above
+	 * Shows the filter field of the manager: a {@link SearchInput} above
 	 * the lists. It narrows every group (frozen, orderable, and the group
 	 * editor's zones) to the columns whose label matches the typed text.
 	 *
@@ -125,15 +125,16 @@ export type GridColumnManagerProps = {
 	 */
 	defaultOrder?: (string | number)[]
 
-	/** Called with the next order when the order changes. The order holds every column id. */
+	/** Fires when the order changes, with the next order. The order holds every column id. */
 	onOrderChange?: (order: (string | number)[]) => void
 
 	/**
-	 * Whether the scrolling columns can be dragged to reorder. When `false`, the
+	 * Lets the user drag the scrolling columns to reorder them. When `false`, the
 	 * orderable list drops its drag handles and renders read-only: visibility
-	 * toggles and pin controls still work. {@link Grid} forwards its
-	 * {@link GridProps.reorder} flag here, so the manager only reorders columns
-	 * when the grid opts in.
+	 * toggles and pin controls still work. The group editor drops its grips too,
+	 * and a column changes its group only through its "Move to" menu.
+	 * {@link Grid} forwards its {@link GridProps.reorder} flag here, so the
+	 * manager only reorders columns when the grid opts in.
 	 * @defaultValue true
 	 */
 	reorderable?: boolean
@@ -147,7 +148,7 @@ export type GridColumnManagerProps = {
 	 */
 	defaultHidden?: Set<string | number>
 
-	/** Called with the next set of hidden column ids after a visibility toggle. */
+	/** Fires when a visibility toggle changes the hidden columns, with the next set of their ids. */
 	onHiddenChange?: (hidden: Set<string | number>) => void
 
 	/**
@@ -171,8 +172,8 @@ export type GridColumnManagerProps = {
 	onGroupsChange?: (groups: GridColumnGroup[]) => void
 
 	/**
-	 * Called with the current order and hidden ids as a {@link GridPreferences}
-	 * snapshot when the save-preset button is pressed. Presence of the handler
+	 * Fires when the user presses the save-preset button, with the current order
+	 * and hidden ids as a {@link GridPreferences} snapshot. Presence of the handler
 	 * also shows the button.
 	 */
 	onSavePreset?: (preset: GridPreferences) => void
@@ -600,6 +601,7 @@ export function GridColumnManager({
 								onToggle={toggle}
 								order={order}
 								onOrderChange={setOrder}
+								reorderable={reorderable}
 							/>
 						) : visibleOrderable.length === 0 && orderableColumns.length > 0 ? (
 							// Only the scrolling region emptied: a frozen row still matches, so the

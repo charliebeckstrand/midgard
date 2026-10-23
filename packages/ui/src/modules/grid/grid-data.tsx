@@ -9,7 +9,7 @@ import { useDensityStep } from '../../primitives/density'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { GridContext, GridSettleContext } from './context'
 import { gridWrapperClass, resolveStep } from './engine/grid-data/classes'
-import { assertProps } from './engine/grid-data/guards'
+import { assertProps, hasErrorSlot } from './engine/grid-data/guards'
 import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
 import { manualGroupPredicate } from './engine/grid-group/resolve'
 import { resolveReorder } from './engine/grid-reorder-compute'
@@ -55,7 +55,7 @@ function useMaxHeightGuard(maxHeight: string | undefined): void {
 		if (!maxHeight?.trim().endsWith('%')) return
 
 		console.warn(
-			`<Grid maxHeight="${maxHeight}">: a percentage can't bind — the grid's wrapper is auto-height, so the scroll container gets no bounded height and virtualization degrades to rendering every row. Use a fixed CSS length, or \`maxHeight="fill"\` inside a CSS-sized parent.`,
+			`<Grid maxHeight="${maxHeight}">: a percentage can't bind. The grid's wrapper is auto-height, so the scroll container gets no bounded height and virtualization degrades to rendering every row. Use a fixed CSS length, or \`maxHeight="fill"\` inside a CSS-sized parent.`,
 		)
 	}, [maxHeight])
 }
@@ -748,7 +748,11 @@ export function GridData<T>({
 						data-resizing={dataAttr(resizing)}
 						className={gridWrapperClass(maxHeight === 'fill')}
 					>
-						<GridBusyStatus loading={loading} rowCount={dataRowCount} />
+						<GridBusyStatus
+							loading={loading}
+							rowCount={dataRowCount}
+							failed={hasErrorSlot(infiniteScroll?.error)}
+						/>
 
 						{/* Covers the grid (toolbar included), while an async export resolves
 					    its rows, whichever surface started it. */}

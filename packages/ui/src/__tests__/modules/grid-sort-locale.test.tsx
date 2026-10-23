@@ -22,9 +22,17 @@ function bodyOrder(container: HTMLElement): string[] {
 	return [...container.querySelectorAll('tbody td')].map((cell) => cell.textContent ?? '')
 }
 
+/** The order of the group header rows, by the group key. */
+function groupOrder(container: HTMLElement): string[] {
+	return [...container.querySelectorAll<HTMLElement>('tr[data-group-row]')].map(
+		(row) => row.dataset.groupKey ?? '',
+	)
+}
+
 /**
  * The string sort collates in the locale of the nearest `LocaleProvider`, as
- * the formatted values of the grid do. Swedish sorts `ä` after `z`.
+ * the formatted values of the grid do. Swedish sorts `ä` after `z`. The order
+ * of the client groups follows the same collation.
  */
 describe('Grid sort locale', () => {
 	it('collates the string sort in the locale of the provider', () => {
@@ -46,5 +54,27 @@ describe('Grid sort locale', () => {
 		const english = renderUI(<LocaleProvider locale="en">{grid}</LocaleProvider>)
 
 		expect(bodyOrder(english.container)).toEqual(['a', 'ä', 'z'])
+	})
+
+	it('collates the order of the client groups in the locale of the provider', () => {
+		const grid = (
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				groupBy={{ value: 'name' }}
+				sort={{ defaultValue: [{ column: 'name', direction: 'asc' }] }}
+			/>
+		)
+
+		const swedish = renderUI(<LocaleProvider locale="sv">{grid}</LocaleProvider>)
+
+		expect(groupOrder(swedish.container)).toEqual(['a', 'z', 'ä'])
+
+		swedish.unmount()
+
+		const english = renderUI(<LocaleProvider locale="en">{grid}</LocaleProvider>)
+
+		expect(groupOrder(english.container)).toEqual(['a', 'ä', 'z'])
 	})
 })

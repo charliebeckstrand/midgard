@@ -41,7 +41,7 @@ export type GridAggCellContext<T> = {
 export type GridColumn<T> = {
 	id: string | number
 	title?: ReactNode
-	/** Whether this data column is sortable. Set `false` to opt a column out; sorting flows through the grid's `sort` binding. @defaultValue true */
+	/** Lets the user sort this data column. Set `false` to opt a column out; sorting flows through the grid's `sort` binding. @defaultValue true */
 	sortable?: boolean
 	/**
 	 * Client-side comparator for this column, overriding the smart default (which

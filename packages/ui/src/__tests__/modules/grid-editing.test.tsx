@@ -2596,7 +2596,7 @@ describe('Grid active-cell binding', () => {
 		// outer grid. The outer editor opens and does not take focus.
 		expect(inner).toHaveFocus()
 
-		expect(view.getByRole('textbox', { name: 'Edit Name, row 2' })).not.toHaveFocus()
+		expect(view.getByRole('textbox', { name: 'Edit Name, row 4' })).not.toHaveFocus()
 	})
 
 	it('moves focus into the entered editor while focus is inside the grid', () => {
@@ -3240,9 +3240,9 @@ describe('Grid commitOn', () => {
 
 		editName(view)
 
-		expect(view.queryByRole('button', { name: 'Save Name, row 1' })).toBeNull()
+		expect(view.queryByRole('button', { name: 'Save Name, row 2' })).toBeNull()
 
-		const discard = view.button('Discard Name, row 1')
+		const discard = view.button('Discard Name, row 2')
 
 		// Focus that moves to the settle control does not leave the session, so
 		// the press discards rather than commits first.
@@ -3262,9 +3262,9 @@ describe('Grid commitOn', () => {
 
 		editName(view)
 
-		expect(view.button('Save Name, row 1')).toBeInTheDocument()
+		expect(view.button('Save Name, row 2')).toBeInTheDocument()
 
-		expect(view.button('Discard Name, row 1')).toBeInTheDocument()
+		expect(view.button('Discard Name, row 2')).toBeInTheDocument()
 	})
 
 	it('commits a controlled cell on leave, reporting null, without a focus move', () => {
@@ -6150,10 +6150,11 @@ describe('Grid-owned session beside a grid nested in a detail row', () => {
 			/>,
 		)
 
-		// The second outer row is Bob, at row index 1.
+		// The second outer row is Bob, at row index 1. The open panel of Alice is
+		// row 3, so the reader hears Bob as row 4.
 		fireEvent.doubleClick(present(view.getByText('Bob').closest('td'), 'the name cell of Bob'))
 
-		fireEvent.change(view.getByRole('textbox', { name: 'Edit Name, row 2' }), {
+		fireEvent.change(view.getByRole('textbox', { name: 'Edit Name, row 4' }), {
 			target: { value: 'Bobby' },
 		})
 
@@ -6169,7 +6170,7 @@ describe('Grid-owned session beside a grid nested in a detail row', () => {
 
 		expect(view.onCommit).not.toHaveBeenCalled()
 
-		expect(view.getByRole('textbox', { name: 'Edit Name, row 2' })).toHaveValue('Bobby')
+		expect(view.getByRole('textbox', { name: 'Edit Name, row 4' })).toHaveValue('Bobby')
 	})
 })
 
@@ -6311,7 +6312,7 @@ describe('Grid row actions edit', () => {
 
 		view.press('Edit Bob')
 
-		expect(document.activeElement).toBe(view.getByRole('textbox', { name: 'Edit Name, row 2' }))
+		expect(document.activeElement).toBe(view.getByRole('textbox', { name: 'Edit Name, row 3' }))
 	})
 
 	it('returns focus to the control as the row saves', () => {
@@ -6319,7 +6320,7 @@ describe('Grid row actions edit', () => {
 
 		const pencil = view.press('Edit Bob')
 
-		fireEvent.change(view.getByRole('textbox', { name: 'Edit Name, row 2' }), {
+		fireEvent.change(view.getByRole('textbox', { name: 'Edit Name, row 3' }), {
 			target: { value: 'Bobby' },
 		})
 

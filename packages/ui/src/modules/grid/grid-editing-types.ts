@@ -419,7 +419,7 @@ export type GridEditableConfig = {
 	 */
 	onCellChange?: (cell: GridCellRef | null) => void
 	/**
-	 * Called when staged cells commit, with one {@link GridCellChange} per changed cell
+	 * Fires when staged cells commit, with one {@link GridCellChange} per changed cell
 	 * of a row, batched into a single call. Cells commit when the session closes
 	 * them, not when their editors unmount. Saving a row (removing it from the
 	 * set) closes all of them at once; a cell-scoped session usually closes one
@@ -554,7 +554,7 @@ export type GridEditableConfig = {
 	 */
 	newRow?: 'top' | 'bottom'
 	/**
-	 * Called when the user adds the row that {@link GridEditableConfig.newRow}
+	 * Fires when the user adds the row that {@link GridEditableConfig.newRow}
 	 * shows. `values` maps the `field` of each editable column to the value
 	 * that the user entered, or the column id for a column with no `field`.
 	 * It holds only the cells with a value. An empty text, `null`, and no entry

@@ -130,7 +130,7 @@ describe('grid editor width (real browser)', () => {
 
 		const host = present<HTMLElement>(slot.parentElement, 'the editor host')
 
-		const save = screen.getByRole('button', { name: 'Save Name, row 1' })
+		const save = screen.getByRole('button', { name: 'Save Name, row 2' })
 
 		const pair = present<HTMLElement>(save.parentElement, 'the settle pair')
 

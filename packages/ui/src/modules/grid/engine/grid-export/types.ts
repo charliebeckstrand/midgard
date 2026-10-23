@@ -78,7 +78,7 @@ export type GridExportConfig<T> = GridToolSurfaces & {
 }
 
 /**
- * Every form {@link GridDataProps.exportable} accepts:
+ * Every form {@link GridDataProps.exportable} takes:
  *
  * - `false` to disable export.
  * - `true` for the full built-in set.

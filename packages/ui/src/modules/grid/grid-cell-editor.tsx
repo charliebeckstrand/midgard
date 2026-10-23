@@ -28,6 +28,7 @@ import {
 	NEW_ROW_KEY,
 } from './engine/grid-editing-utilities'
 import { gridMessages } from './engine/grid-messages'
+import { spokenRowNumber } from './engine/grid-row/shell'
 import { GridEditInputs } from './grid-edit-inputs'
 import type {
 	GridEditingSession,
@@ -296,6 +297,22 @@ export function GridCellEditor<T>({
 
 	const hostRef = useRef<HTMLSpanElement>(null)
 
+	// The number that a screen reader speaks for the row of the cell, so the name
+	// of the editor and the position of the row agree. The row is in the
+	// document only after the mount, so the first render counts one header row
+	// above the data. Each render reads the number again, because a sort or a
+	// panel above the row can move it.
+	const [spokenRow, setSpokenRow] = useState(rowIndex + 2)
+
+	useLayoutEffect(() => {
+		const row = hostRef.current?.closest('tr')
+
+		const number = row ? spokenRowNumber(row) : spokenRow
+
+		// A set of the same number can still render the editor again.
+		if (number !== spokenRow) setSpokenRow(number)
+	})
+
 	// Tell the truncating content of the cell that an editor is open, before the
 	// focus claim below. The focus arms the truncation reveal, and the reveal
 	// must not reparent the editor that the focus went to.
@@ -376,7 +393,7 @@ export function GridCellEditor<T>({
 	// column id rather than to a position that shifts as columns move.
 	const label = newRow
 		? intl.formatMessage(gridMessages.cellInNewRow, { column: columnLabel(column) })
-		: intl.formatMessage(gridMessages.cellInRow, { column: columnLabel(column), row: rowIndex + 1 })
+		: intl.formatMessage(gridMessages.cellInRow, { column: columnLabel(column), row: spokenRow })
 
 	const ariaLabel = intl.formatMessage(gridMessages.editCell, { cell: label })
 

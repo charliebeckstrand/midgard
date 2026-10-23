@@ -158,11 +158,11 @@ describe('Grid surface in a locale', () => {
 
 		fireEvent.doubleClick(firstCell(container, 'name'))
 
-		expect(screen.getByRole('textbox', { name: 'Editar Name, fila 1' })).toBeInTheDocument()
+		expect(screen.getByRole('textbox', { name: 'Editar Name, fila 2' })).toBeInTheDocument()
 
-		expect(screen.getByRole('button', { name: 'Guardar Name, fila 1' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Guardar Name, fila 2' })).toBeInTheDocument()
 
-		expect(screen.getByRole('button', { name: 'Descartar Name, fila 1' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Descartar Name, fila 2' })).toBeInTheDocument()
 	})
 
 	it('shows the refusal of the grid in the language of the locale', async () => {
@@ -179,7 +179,7 @@ describe('Grid surface in a locale', () => {
 
 		fireEvent.doubleClick(firstCell(container, 'name'))
 
-		const input = screen.getByRole('textbox', { name: 'Editar Name, fila 1' })
+		const input = screen.getByRole('textbox', { name: 'Editar Name, fila 2' })
 
 		fireEvent.change(input, { target: { value: 'Alicia' } })
 

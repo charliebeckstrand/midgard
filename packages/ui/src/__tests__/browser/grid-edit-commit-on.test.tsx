@@ -115,9 +115,9 @@ describe('grid commit on leave (real browser)', () => {
 
 		await editName(view)
 
-		expect(screen.queryByRole('button', { name: 'Save Name, row 1' })).toBeNull()
+		expect(screen.queryByRole('button', { name: 'Save Name, row 2' })).toBeNull()
 
-		await userEvent.click(screen.getByRole('button', { name: 'Discard Name, row 1' }))
+		await userEvent.click(screen.getByRole('button', { name: 'Discard Name, row 2' }))
 
 		expect(view.onCommit).not.toHaveBeenCalled()
 

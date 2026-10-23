@@ -143,6 +143,24 @@ describe('orderManualGroupSegments', () => {
 
 		expect(shape(ordered).map(([id]) => id)).toEqual(['N', 'T'])
 	})
+
+	it('collates the values in the given locale', () => {
+		const ids = (locale: string) =>
+			shape(
+				orderManualGroupSegments(
+					segmentManualGroupRows(
+						rows([header('AE', 'ä'), header('Z', 'z'), header('A', 'a')]),
+						groupRow,
+					),
+					'asc',
+					locale,
+				),
+			).map(([id]) => id)
+
+		expect(ids('sv')).toEqual(['A', 'Z', 'AE'])
+
+		expect(ids('en')).toEqual(['A', 'AE', 'Z'])
+	})
 })
 
 /** A display row list: leaves and headers in any order, ids unique by position. */

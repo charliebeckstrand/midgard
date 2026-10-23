@@ -13,6 +13,7 @@ import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty } from '../../components/table'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { ReducedMotion } from '../../primitives/reduced-motion'
+import { useLocale } from '../../providers/locale'
 import { hasErrorSlot } from './engine/grid-data/guards'
 import { applyRowKeyOrder } from './engine/grid-group/row-manager'
 import {
@@ -454,6 +455,10 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 
 	const intl = useIntl()
 
+	// A sort on the grouped column collates in the locale of the nearest
+	// `LocaleProvider`, as the flat sort does.
+	const { locale } = useLocale()
+
 	if (loading) return <GridLoadingBody columns={visibleColumns} pinning={pinning} />
 
 	// An error state pre-empts the empty slot: a failed fetch has no rows, but the
@@ -486,6 +491,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		const segments = orderManualGroupSegments(
 			segmentManualGroupRows(manualRows, manualGroup.groupRow),
 			manualGroupSort,
+			locale,
 		)
 
 		return (

@@ -263,7 +263,31 @@ describe('Grid range', () => {
 
 		fireEvent.keyDown(grid, { key: 'ArrowRight', shiftKey: true })
 
-		await expectAnnouncement('Range of 3 rows and 2 columns, Name row 1 to Role row 3')
+		// The header is row 1, so the rows count as a screen reader counts them.
+		await expectAnnouncement('Range of 3 rows and 2 columns, Name row 2 to Role row 4')
+	})
+
+	it('speaks the row numbers of the page in the full set', async () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				range
+				pagination={{ defaultValue: { pageIndex: 1, pageSize: 2 } }}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.mouseDown(cell(0, 0))
+
+		fireEvent.keyDown(grid, { key: 'ArrowRight', shiftKey: true })
+
+		expect(cell(0, 0).closest('tr')).toHaveAttribute('aria-rowindex', '4')
+
+		await expectAnnouncement('Range of 1 row and 2 columns, Name row 4 to Role row 4')
 	})
 })
 
@@ -308,6 +332,33 @@ describe('Grid range over grouped rows', () => {
 		expect(marked).toEqual(['10 units', '30 units', '20 units'])
 
 		expect(copy()).toBe('10\n30\n20')
+	})
+
+	it('speaks the row numbers with the group headers counted', async () => {
+		renderUI(
+			<Grid
+				columns={saleColumns}
+				rows={sales}
+				getKey={(row) => row.id}
+				groupBy={{ value: 'region' }}
+				navigable
+				range
+			/>,
+		)
+
+		const unitsCell = (text: string) => screen.getByText(text).closest('td') as HTMLElement
+
+		fireEvent.mouseDown(unitsCell('10 units'))
+
+		fireEvent.mouseUp(unitsCell('10 units'))
+
+		fireEvent.mouseDown(unitsCell('20 units'), { shiftKey: true })
+
+		const rowIndex = (text: string) => unitsCell(text).closest('tr')?.getAttribute('aria-rowindex')
+
+		expect([rowIndex('10 units'), rowIndex('20 units')]).toEqual(['3', '6'])
+
+		await expectAnnouncement('Range of 3 rows and 1 column, Units row 3 to Units row 6')
 	})
 })
 
