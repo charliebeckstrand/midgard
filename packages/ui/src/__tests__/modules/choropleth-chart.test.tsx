@@ -423,6 +423,50 @@ describe('ChoroplethChart value domain', () => {
 		// A total row names no region, so it must not stretch the scale.
 		expect(fills([...rows, { region: 'TOTAL', pop: 10_000 }])).toEqual(fills(rows))
 	})
+
+	it('ignores an earlier row that a later row with the same id replaces', () => {
+		const rows: Row[] = [
+			{ region: 'A', pop: 0 },
+			{ region: 'B', pop: 50 },
+			{ region: 'C', pop: 100 },
+		]
+
+		// Region A joins its last row, so the replaced row must not stretch the scale.
+		expect(fills([{ region: 'A', pop: 10_000 }, ...rows])).toEqual(fills(rows))
+	})
+
+	it('draws one class when every region has the same value, as quantile binning does', () => {
+		const flat = (binning: 'linear' | 'quantile') => {
+			const { container, unmount } = renderUI(
+				<ChoroplethChart
+					aria-label="Population"
+					geography={FIXTURE_GEOJSON}
+					data={[
+						{ region: 'A', pop: 5 },
+						{ region: 'B', pop: 5 },
+					]}
+					series={[
+						{ idKey: 'region', colorKey: 'pop', colorRange: ['#fff', '#888', '#000'], binning },
+					]}
+					width={400}
+				/>,
+			)
+
+			const out = {
+				items: allBySlot(container, 'map-legend-item').map((item) => item.textContent),
+				fills: allRegions(container).map((region) => region.getAttribute('fill')),
+			}
+
+			unmount()
+
+			return out
+		}
+
+		// Three classes of one value would list "5" three times.
+		expect(flat('linear').items).not.toEqual(['5', '5', '5'])
+
+		expect(flat('linear')).toEqual(flat('quantile'))
+	})
 })
 
 describe('under a LocaleProvider', () => {
