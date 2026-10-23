@@ -316,7 +316,7 @@ export function DashboardTile(props: DashboardTileProps) {
 				padding: 'calc(var(--dashboard-gap) / 2)',
 				transform: carried ? `translate3d(${carried.x}px, ${carried.y}px, 0)` : undefined,
 			}}
-			className={cn(k.tile({ lifted: drag.dragging || resizing }), className)}
+			className={cn(k({ lifted: drag.dragging || resizing }).tile, className)}
 		>
 			<DashboardTileCard
 				id={id}

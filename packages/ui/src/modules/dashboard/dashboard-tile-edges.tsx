@@ -1,7 +1,6 @@
 'use client'
 
 import { memo, useCallback, useLayoutEffect } from 'react'
-import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
@@ -88,7 +87,7 @@ export const DashboardTileEdges = memo(function DashboardTileEdges({
 			<DashboardResizeHandle edge="se" {...shared} />
 
 			{resizing && (
-				<div data-slot="dashboard-resize-readout" className={cn(k.resize.readout)}>
+				<div data-slot="dashboard-resize-readout" className={k().resize.readout}>
 					{intl.formatNumber(cell.w)} × {intl.formatNumber(cell.h)}
 				</div>
 			)}

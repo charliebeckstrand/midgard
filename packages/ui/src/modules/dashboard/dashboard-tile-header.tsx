@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react'
 import { CardDescription, CardTitle } from '../../components/card'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { cn } from '../../core'
 import { useTruncation } from '../../hooks/use-truncation'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardTitleLevel } from './context'
@@ -98,11 +97,13 @@ export function DashboardTileHeader({
 	editing,
 	onError,
 }: DashboardTileHeaderProps) {
+	const slots = k()
+
 	return (
-		<div data-slot="card-header" className={cn(k.header)}>
+		<div data-slot="card-header" className={slots.header}>
 			{handle}
 
-			<div className={cn(k.heading)}>
+			<div className={slots.heading}>
 				{title !== undefined && <DashboardTileTitle id={titleId} title={title} editing={editing} />}
 
 				{description !== undefined && (
@@ -112,7 +113,7 @@ export function DashboardTileHeader({
 				)}
 			</div>
 
-			<div data-slot="dashboard-tile-actions" className={cn(k.actions)}>
+			<div data-slot="dashboard-tile-actions" className={slots.actions}>
 				{clear}
 
 				{actions !== undefined && (

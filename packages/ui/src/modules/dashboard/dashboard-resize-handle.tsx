@@ -1,7 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, type PointerEvent, useLayoutEffect, useRef } from 'react'
-import { cn, dataAttr } from '../../core'
+import { dataAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Splitter } from '../../primitives/splitter/splitter'
 import { k } from '../../recipes/kata/dashboard'
@@ -108,7 +108,7 @@ export function DashboardResizeHandle({
 		'data-slot': 'dashboard-resize-handle',
 		'data-edge': edge,
 		'data-resizing': dataAttr(resizing),
-		className: cn(k.resize.handle({ edge })),
+		className: k({ edge }).resize.handle,
 		onPointerDown: (event: PointerEvent<HTMLElement>) => beginResize(id, edge, event),
 	}
 

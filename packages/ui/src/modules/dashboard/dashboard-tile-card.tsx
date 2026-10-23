@@ -2,7 +2,7 @@
 
 import { memo, type ReactNode, type RefObject } from 'react'
 import { Card } from '../../components/card'
-import { cn, dataAttr } from '../../core'
+import { dataAttr } from '../../core'
 import type { ContentHeightHost } from '../../primitives/content-height'
 import { HeaderActions, HeaderActionsSlot } from '../../primitives/header-actions'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
@@ -101,6 +101,8 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 }: DashboardTileCardProps) {
 	const intl = useIntl()
 
+	const slots = k({ editable: movable, dragging, floating: !hasHeader })
+
 	// The grip is the only part of the tile that starts a drag, so the rest of
 	// the card keeps touch scrolling. With the keyboard, Space picks the tile
 	// up, the arrow keys move it, and Space drops it. A tile with no header row
@@ -110,7 +112,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 			data-slot="dashboard-handle"
 			sortable={{ ...grip, dragging }}
 			label={intl.formatMessage(reorderMessages.moveHandle, { item: label })}
-			className={cn(k.handle({ floating: !hasHeader, dragging }))}
+			className={slots.handle}
 		/>
 	)
 
@@ -149,7 +151,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 				bg="surface"
 				{...(title === undefined ? {} : { role: 'group', 'aria-labelledby': titleId })}
 				data-dragging={dataAttr(dragging)}
-				className={cn(k.card({ editable: movable, dragging }))}
+				className={slots.card}
 			>
 				{!hasHeader && handle}
 

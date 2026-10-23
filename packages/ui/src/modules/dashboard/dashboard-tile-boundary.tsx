@@ -3,7 +3,6 @@
 import { Component, type ErrorInfo, type ReactNode, Suspense } from 'react'
 import { Button } from '../../components/button'
 import { Text } from '../../components/text'
-import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/dashboard'
 import { dashboardMessages } from './dashboard-messages'
@@ -69,7 +68,7 @@ function DashboardTileError({ label, onRetry }: { label: string; onRetry: () => 
 	const intl = useIntl()
 
 	return (
-		<div data-slot="dashboard-tile-error" role="alert" className={cn(k.error)}>
+		<div data-slot="dashboard-tile-error" role="alert" className={k().error}>
 			<Text tone="muted">{intl.formatMessage(dashboardMessages.failed, { label })}</Text>
 
 			{/* `Button` sets no `type`, and a `submit` would send an enclosing form. */}

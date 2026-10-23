@@ -1,6 +1,5 @@
 'use client'
 
-import { cn } from '../../core'
 import { k } from '../../recipes/kata/dashboard'
 import { gridArea } from './engine/dashboard-layout'
 import { useDashboardStore } from './use-dashboard-store'
@@ -23,7 +22,7 @@ export function DashboardPlaceholder() {
 			aria-hidden
 			// The canvas publishes the gutter, and the placeholder insets half of it on each side, as a tile does.
 			style={{ gridArea: gridArea(cell), margin: 'calc(var(--dashboard-gap) / 2)' }}
-			className={cn(k.placeholder)}
+			className={k().placeholder}
 		/>
 	)
 }

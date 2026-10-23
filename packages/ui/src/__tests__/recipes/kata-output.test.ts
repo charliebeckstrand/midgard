@@ -91,6 +91,8 @@ const RENAMES: Record<string, string> = {
 	'chrome.k.base': 'chrome.k.region',
 	'icon.k.base': 'icon.k.ramp',
 	'toggle.k.base': 'toggle.k.group',
+	'dashboard.k.base': 'dashboard.k.canvas',
+	'dashboard.k.base()': 'dashboard.k.canvas()',
 	'timeline.k.color.amber': 'timeline.k.marker.palette.amber.dot',
 	'timeline.k.color.blue': 'timeline.k.marker.palette.blue.dot',
 	'timeline.k.color.green': 'timeline.k.marker.palette.green.dot',
