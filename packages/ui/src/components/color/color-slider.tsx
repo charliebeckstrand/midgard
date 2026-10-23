@@ -106,8 +106,8 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 			data-slot="color-slider"
 			data-channel={channel}
 			className={cn(
-				k.track.base,
-				isHue ? k.hue : k.checkerboard,
+				k().track.base,
+				isHue ? k().hue : k().checkerboard,
 				disabled && 'pointer-events-none opacity-50',
 			)}
 			onMouseDown={drag.onMouseDown}
@@ -143,13 +143,13 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 							})
 						: intl.formatNumber(Math.round(value * 100) / 100, { style: 'percent' })
 				}
-				className={k.track.input}
+				className={k().track.input}
 				onKeyDown={handleKeyDown}
 				onChange={handleChange}
 			/>
 			<div
 				data-slot="color-slider-thumb"
-				className={cn(k.handle, 'top-1/2')}
+				className={cn(k().handle, 'top-1/2')}
 				style={{ left: `${pct(value, 0, max)}%` }}
 			/>
 		</div>

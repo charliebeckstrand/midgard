@@ -97,7 +97,7 @@ export function ColorArea() {
 				brightness: Math.round(hsva.v) / 100,
 			})}
 			aria-disabled={ariaAttr(disabled)}
-			className={cn(k.area.base, disabled && 'pointer-events-none opacity-50')}
+			className={cn(k().area.base, disabled && 'pointer-events-none opacity-50')}
 			style={{ backgroundColor: `hsl(${hsva.h} 100% 50%)` }}
 			onMouseDown={drag.onMouseDown}
 			onPointerDown={drag.onPointerDown}
@@ -107,11 +107,11 @@ export function ColorArea() {
 			onLostPointerCapture={drag.onLostPointerCapture}
 			onKeyDown={handleKeyDown}
 		>
-			<div aria-hidden="true" className={k.area.saturation} />
-			<div aria-hidden="true" className={k.area.value} />
+			<div aria-hidden="true" className={k().area.saturation} />
+			<div aria-hidden="true" className={k().area.value} />
 			<div
 				data-slot="color-area-thumb"
-				className={cn(k.handle)}
+				className={k().handle}
 				style={{ left: `${hsva.s}%`, top: `${100 - hsva.v}%` }}
 			/>
 		</div>

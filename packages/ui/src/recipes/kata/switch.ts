@@ -1,5 +1,5 @@
 import { defineScale, type ScaleStep } from '../../core/density'
-import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { defineColors, defineKata, mode, type VariantProps } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, kokkaku, sen } from '../kiso'
 import { hidden, validation } from '../kumi/check'
 
@@ -77,48 +77,12 @@ const thumb = [
  * track is off at `center` and takes the colors of a checked switch at `start`
  * and at `end`.
  */
-const choice = defineRecipe(
-	{
-		base: ['group/switch-choice inline-flex w-fit items-center', dan.gap.x.md, ...disabled],
-		color,
-		defaults: { color: 'zinc' },
-	},
-	{
-		track: [
-			'relative inline-flex shrink-0',
-			focus.outline,
-			rounded.full,
-			...track,
-			'not-data-[position=center]:bg-(--switch-bg) not-data-[position=center]:ring-(--switch-bg-ring)',
-			...mode(
-				'data-[position=center]:not-data-static:hover:bg-zinc-300',
-				'dark:data-[position=center]:not-data-static:hover:bg-white/15',
-			),
-			'not-data-[position=center]:not-data-static:hover:opacity-90',
-			...validation,
-			dan.size.row,
-			dan.size.switch.choice,
-		],
-		/** One third of the track: the `<label>` over the radio of one position. */
-		zone: ['relative flex-1', ...cursor],
-		thumb: [
-			...thumb,
-			'[[data-position=center]>&]:translate-x-full rtl:[[data-position=center]>&]:-translate-x-full',
-			'[[data-position=end]>&]:translate-x-[200%] rtl:[[data-position=end]>&]:-translate-x-[200%]',
-			'[:not([data-position=center])>&]:bg-(--switch) [:not([data-position=center])>&]:shadow-(color:--switch-shadow) [:not([data-position=center])>&]:ring-(--switch-ring)',
-		],
-		/** The text of an option beside the track. The option that is on takes the default text color. */
-		label: [
-			'select-none',
-			...text.muted,
-			...mode('data-checked:text-zinc-950', 'dark:data-checked:text-white'),
-			ji.ramp,
-			...cursor,
-		],
-	},
-)
+const choice = {
+	base: ['group/switch-choice inline-flex w-fit items-center', dan.gap.x.md, ...disabled],
+	color,
+}
 
-export const k = defineRecipe(
+export const k = defineKata(
 	{
 		base: [
 			'relative inline-flex shrink-0 items-center',
@@ -140,29 +104,68 @@ export const k = defineRecipe(
 			...kokkaku.switch.track,
 		],
 		color,
+		slots: {
+			input: hidden,
+			/**
+			 * The thumb: the sibling that follows the native input. It moves and takes
+			 * the colors of the switch when the input is checked, and it takes the step
+			 * of the nearest density scope. Each class selects the thumb itself, so
+			 * Chromium tests the rules only against the thumbs. At each step, the track
+			 * is two thumbs and two gaps wide, so a checked thumb moves by a translate
+			 * of its own width. That value does not change with the density, so a change
+			 * of density starts no transition and the thumb settles with its track.
+			 */
+			thumb: {
+				base: [
+					...thumb,
+					'[:checked~&]:translate-x-full rtl:[:checked~&]:-translate-x-full',
+					'[:checked~&]:bg-(--switch) [:checked~&]:shadow-(color:--switch-shadow) [:checked~&]:ring-(--switch-ring)',
+				],
+			},
+			/**
+			 * The three-way switch of {@link SwitchChoice}. Its child slots are the
+			 * parts of that switch.
+			 */
+			choice: {
+				...choice,
+				slots: {
+					track: [
+						'relative inline-flex shrink-0',
+						focus.outline,
+						rounded.full,
+						...track,
+						'not-data-[position=center]:bg-(--switch-bg) not-data-[position=center]:ring-(--switch-bg-ring)',
+						...mode(
+							'data-[position=center]:not-data-static:hover:bg-zinc-300',
+							'dark:data-[position=center]:not-data-static:hover:bg-white/15',
+						),
+						'not-data-[position=center]:not-data-static:hover:opacity-90',
+						...validation,
+						dan.size.row,
+						dan.size.switch.choice,
+					],
+					/** One third of the track: the `<label>` over the radio of one position. */
+					zone: ['relative flex-1', ...cursor],
+					thumb: [
+						...thumb,
+						'[[data-position=center]>&]:translate-x-full rtl:[[data-position=center]>&]:-translate-x-full',
+						'[[data-position=end]>&]:translate-x-[200%] rtl:[[data-position=end]>&]:-translate-x-[200%]',
+						'[:not([data-position=center])>&]:bg-(--switch) [:not([data-position=center])>&]:shadow-(color:--switch-shadow) [:not([data-position=center])>&]:ring-(--switch-ring)',
+					],
+					/** The text of an option beside the track. The option that is on takes the default text color. */
+					label: [
+						'select-none',
+						...text.muted,
+						...mode('data-checked:text-zinc-950', 'dark:data-checked:text-white'),
+						ji.ramp,
+						...cursor,
+					],
+				},
+			},
+		},
 		defaults: { color: 'zinc' },
-		skeleton: kokkaku.switch,
 	},
-	{
-		input: defineRecipe({ base: hidden }),
-		/**
-		 * The thumb: the sibling that follows the native input. It moves and takes
-		 * the colors of the switch when the input is checked, and it takes the step
-		 * of the nearest density scope. Each class selects the thumb itself, so
-		 * Chromium tests the rules only against the thumbs. At each step, the track
-		 * is two thumbs and two gaps wide, so a checked thumb moves by a translate
-		 * of its own width. That value does not change with the density, so a change
-		 * of density starts no transition and the thumb settles with its track.
-		 */
-		thumb: defineRecipe({
-			base: [
-				...thumb,
-				'[:checked~&]:translate-x-full rtl:[:checked~&]:-translate-x-full',
-				'[:checked~&]:bg-(--switch) [:checked~&]:shadow-(color:--switch-shadow) [:checked~&]:ring-(--switch-ring)',
-			],
-		}),
-		choice,
-	},
+	{ skeleton: kokkaku.switch },
 )
 
 /** The size scale of {@link Switch}: the steps of its track and thumb. */

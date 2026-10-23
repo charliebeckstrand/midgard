@@ -79,7 +79,7 @@ describe('check surface edge contrast', () => {
 })
 
 describe('Switch track edge contrast', () => {
-	const classes = getClasses(switchKata({}))
+	const classes = getClasses(switchKata({}).base)
 
 	it('the off ring clears 3:1 against the light page', () => {
 		const track = tinted(only(classes, /^bg-zinc-\d+$/), SURFACE.light)

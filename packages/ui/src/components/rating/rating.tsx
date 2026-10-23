@@ -274,7 +274,7 @@ export function Rating({
 
 	const stars = rangeKeys(count, 'star')
 
-	const rowClass = cn(k({ color }), k.group, className)
+	const rowClass = cn(k({ color }).base, k().group, className)
 
 	// A touch has no hover, so it previews nothing. A tap also sends the
 	// compatibility mouse events, with no leave after them, so the preview reads
@@ -305,15 +305,15 @@ export function Rating({
 
 		return (
 			<>
-				<Star aria-hidden="true" className={cn(k.glyph, k.track)} />
+				<Star aria-hidden="true" className={cn(k().glyph, k().track)} />
 
 				{fill > 0 && (
 					<span
 						data-slot="rating-fill"
-						className={cn(k.clip, clearing && k.clearing)}
+						className={k({ clearing }).clip}
 						style={{ width: `${fill * 100}%` }}
 					>
-						<Star aria-hidden="true" fill="currentColor" className={k.glyph} />
+						<Star aria-hidden="true" fill="currentColor" className={k().glyph} />
 					</span>
 				)}
 			</>
@@ -370,7 +370,7 @@ export function Rating({
 								data-slot="rating-star"
 								aria-hidden="true"
 								fill="currentColor"
-								className={k.glyph}
+								className={k().glyph}
 							/>
 						)
 					}
@@ -381,13 +381,13 @@ export function Rating({
 								key={key}
 								data-slot="rating-star"
 								aria-hidden="true"
-								className={cn(k.glyph, k.track)}
+								className={cn(k().glyph, k().track)}
 							/>
 						)
 					}
 
 					return (
-						<span key={key} data-slot="rating-star" className={k.star()}>
+						<span key={key} data-slot="rating-star" className={k().star}>
 							{glyphs(index + 1)}
 						</span>
 					)
@@ -430,7 +430,7 @@ export function Rating({
 					value={score}
 					checked={current === score}
 					aria-label={getValueText(score, count)}
-					className={cn(k.input)}
+					className={k().input}
 					onChange={() => commit(score)}
 					onClick={(event) => {
 						handleClick(event, score)
@@ -483,10 +483,10 @@ export function Rating({
 				// order.
 				if (step === 0.5) {
 					return (
-						<span key={key} data-slot="rating-star" className={k.star({ interactive: true })}>
-							{choice(star - 0.5, { slot: 'rating-half', className: k.half({ side: 'start' }) })}
+						<span key={key} data-slot="rating-star" className={k({ interactive: true }).star}>
+							{choice(star - 0.5, { slot: 'rating-half', className: k({ side: 'start' }).half })}
 
-							{choice(star, { slot: 'rating-half', className: k.half({ side: 'end' }) })}
+							{choice(star, { slot: 'rating-half', className: k({ side: 'end' }).half })}
 
 							{glyphs(star)}
 						</span>
@@ -495,7 +495,7 @@ export function Rating({
 
 				return choice(
 					star,
-					{ slot: 'rating-star', className: k.star({ interactive: true }) },
+					{ slot: 'rating-star', className: k({ interactive: true }).star },
 					glyphs(star),
 				)
 			})}

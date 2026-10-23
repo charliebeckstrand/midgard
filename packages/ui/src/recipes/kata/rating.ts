@@ -17,7 +17,7 @@
  */
 
 import { defineScale } from '../../core/density'
-import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { defineKata, mode, type VariantProps } from '../../core/recipe'
 import { dan, hannou, iro, kokkaku, narabi, sen, ugoki } from '../kiso'
 import { hidden } from '../kumi/check'
 
@@ -39,28 +39,26 @@ const color = { current: 'text-current', ...marker }
  * the cursor and the focus ring for the interactive form, where the box is a
  * `<label>` over its own native radio.
  */
-const star = defineRecipe({
+const star = {
 	base: ['relative', flex.inline, 'shrink-0', focus.outline],
 	interactive: {
 		true: [...cursor],
 		false: '',
 	},
-	defaults: { interactive: false },
-})
+}
 
 /**
  * One half of a star at a half step: the `<label>` over the radio for that
  * score. The halves sit on the inline axis, so they mirror in a right-to-left
  * row as the fill does.
  */
-const half = defineRecipe({
+const half = {
 	base: 'absolute inset-y-0 w-1/2',
 	side: {
 		start: 'start-0',
 		end: 'end-0',
 	},
-	defaults: { side: 'start' },
-})
+}
 
 /**
  * The empty glyph under every star, in the neutral the unfilled part reads as.
@@ -72,50 +70,52 @@ const track = [
 	...mode('group-data-invalid/rating:text-red-600', 'dark:group-data-invalid/rating:text-red-500'),
 ]
 
-export const k = defineRecipe(
+export const k = defineKata(
 	{
 		base: [flex.inline, 'w-fit', ...disabled, kokkaku.rating.gap],
 		color,
-		defaults: { color: 'amber' },
-		skeleton: kokkaku.rating,
+		slots: {
+			/** The group that the track reads the invalid state of the row from. The skeleton does not take it. */
+			group: 'group/rating',
+			star,
+			half,
+			track,
+			/** The glyph size at each step. The track and the fill share it, so the two stack exactly. */
+			glyph: kokkaku.rating.star,
+			/**
+			 * The window a partly-filled star draws its fill inside. Absolute over the
+			 * track glyph and clipping at its own width, which the component sets from
+			 * the value. The glyph within keeps its full size, so the star is cut and
+			 * never squeezed. The window starts at the inline start, so a part star
+			 * fills from the right in a right-to-left row.
+			 */
+			clip: {
+				base: [
+					'absolute inset-y-0 start-0 overflow-hidden pointer-events-none',
+					// For the clearing recede below, which is a hover answer and reads as a
+					// jump without it.
+					css.opacity,
+				],
+				/**
+				 * The fill's treatment while the pointer rests on the star that would clear
+				 * the score. Every other star previews what a click would set, and this one
+				 * previews what a click would take away. Without the recede it previews
+				 * nothing at all, because the row it would leave behind is the row already
+				 * drawn. Worst at a score of one, where the pointer is on the only filled
+				 * star and no part of the row answers it.
+				 */
+				clearing: { true: 'opacity-40', false: '' },
+			},
+			/** Visually-hidden native radio, overlaying its own star. */
+			input: hidden,
+		},
+		defaults: { color: 'amber', interactive: false, side: 'start', clearing: false },
 	},
-	{
-		/** The group that the track reads the invalid state of the row from. The skeleton does not take it. */
-		group: 'group/rating',
-		star,
-		half,
-		track,
-		/** The glyph size at each step. The track and the fill share it, so the two stack exactly. */
-		glyph: kokkaku.rating.star,
-		/**
-		 * The window a partly-filled star draws its fill inside. Absolute over the
-		 * track glyph and clipping at its own width, which the component sets from
-		 * the value. The glyph within keeps its full size, so the star is cut and
-		 * never squeezed. The window starts at the inline start, so a part star
-		 * fills from the right in a right-to-left row.
-		 */
-		clip: [
-			'absolute inset-y-0 start-0 overflow-hidden pointer-events-none',
-			// For the clearing recede below, which is a hover answer and reads as a
-			// jump without it.
-			css.opacity,
-		],
-		/**
-		 * The fill's treatment while the pointer rests on the star that would clear
-		 * the score. Every other star previews what a click would set, and this one
-		 * previews what a click would take away. Without the recede it previews
-		 * nothing at all, because the row it would leave behind is the row already
-		 * drawn. Worst at a score of one, where the pointer is on the only filled
-		 * star and no part of the row answers it.
-		 */
-		clearing: 'opacity-40',
-		/** Visually-hidden native radio, overlaying its own star. */
-		input: hidden,
-	},
+	{ skeleton: kokkaku.rating },
 )
 
 /** Recipe variant props for {@link Rating}: the `color` axis of its kata, for consumers composing custom slots. */
-export type RatingVariants = Omit<VariantProps<typeof k>, 'color'> & {
+export type RatingVariants = {
 	/** The color of the filled stars. @defaultValue 'amber' */
 	color?: VariantProps<typeof k>['color']
 }
