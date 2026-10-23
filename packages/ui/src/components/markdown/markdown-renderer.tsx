@@ -1,8 +1,6 @@
-import type { ClassValue } from 'clsx'
 import type { Token, Tokens } from 'marked'
 import { Fragment, type ReactNode } from 'react'
 import type { BundledLanguage } from 'shiki'
-import { cn } from '../../core'
 import { k } from '../../recipes/kata/markdown'
 import { clamp } from '../../utilities'
 import { Code, CodeBlock } from '../code'
@@ -122,14 +120,14 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 			const Tag = HEADING_TAGS[clamp(depth + offset, 1, 6) - 1] ?? 'h1'
 
 			return (
-				<Tag key={index} className={cn(k.heading[depth])}>
+				<Tag key={index} className={k({ level: depth }).heading}>
 					{renderChildren(token.tokens, offset)}
 				</Tag>
 			)
 		}
 		case 'paragraph':
 			return (
-				<p key={index} className={cn(k.paragraph)}>
+				<p key={index} className={k().paragraph}>
 					{renderChildren(token.tokens, offset, taskLabel)}
 				</p>
 			)
@@ -141,19 +139,19 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 			)
 		case 'strong':
 			return (
-				<strong key={index} className={cn(k.strong)}>
+				<strong key={index} className={k().strong}>
 					{renderChildren(token.tokens, offset)}
 				</strong>
 			)
 		case 'em':
 			return (
-				<em key={index} className={cn(k.em)}>
+				<em key={index} className={k().em}>
 					{renderChildren(token.tokens, offset)}
 				</em>
 			)
 		case 'del':
 			return (
-				<del key={index} className={cn(k.del)}>
+				<del key={index} className={k().del}>
 					{renderChildren(token.tokens, offset)}
 				</del>
 			)
@@ -163,7 +161,7 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 					key={index}
 					href={safeUrl(token.href)}
 					title={decodeTitle(token.title)}
-					className={cn(k.link)}
+					className={k().link}
 				>
 					{renderChildren(token.tokens, offset)}
 				</a>
@@ -175,7 +173,7 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 					src={safeUrl(token.href, true)}
 					alt={imageAlt(token)}
 					title={decodeTitle(token.title)}
-					className={cn(k.img)}
+					className={k().img}
 				/>
 			)
 		case 'codespan':
@@ -188,7 +186,7 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 			return <CodeBlock key={index} code={token.text} lang={resolveLang(token.lang)} />
 		case 'blockquote':
 			return (
-				<blockquote key={index} className={cn(k.blockquote)}>
+				<blockquote key={index} className={k().blockquote}>
 					{renderChildren(token.tokens, offset)}
 				</blockquote>
 			)
@@ -205,13 +203,13 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 					disabled
 					readOnly
 					aria-label={taskLabel}
-					className={cn(k.checkbox)}
+					className={k().checkbox}
 				/>
 			)
 		case 'table':
 			return renderTable(token as Tokens.Table, index, offset)
 		case 'hr':
-			return <hr key={index} className={cn(k.hr)} />
+			return <hr key={index} className={k().hr} />
 		case 'br':
 			return <br key={index} />
 		case 'escape':
@@ -249,14 +247,14 @@ function renderList(token: Tokens.List, key: number, offset: number): ReactNode 
 		const start = typeof token.start === 'number' && token.start !== 1 ? token.start : undefined
 
 		return (
-			<ol key={key} className={cn(k.ol)} start={start}>
+			<ol key={key} className={k().ol} start={start}>
 				{items}
 			</ol>
 		)
 	}
 
 	return (
-		<ul key={key} className={cn(k.ul)}>
+		<ul key={key} className={k().ul}>
 			{items}
 		</ul>
 	)
@@ -264,7 +262,7 @@ function renderList(token: Tokens.List, key: number, offset: number): ReactNode 
 
 function renderListItem(item: Tokens.ListItem, index: number, offset: number): ReactNode {
 	return (
-		<li key={index} className={cn(k.li, item.task && k.task)}>
+		<li key={index} className={k({ task: item.task }).li}>
 			{renderChildren(item.tokens, offset, item.task ? taskLabel(item.tokens) : undefined)}
 		</li>
 	)
@@ -314,9 +312,9 @@ function plainText(tokens: Token[]): string {
 function renderTable(token: Tokens.Table, key: number, offset: number): ReactNode {
 	return (
 		<MarkdownTableScroll key={key}>
-			<table className={cn(k.table.base)}>
+			<table className={k().table.base}>
 				<thead>
-					<tr>{token.header.map((cell, index) => renderCell('th', k.th, cell, index, offset))}</tr>
+					<tr>{token.header.map((cell, index) => renderCell('th', cell, index, offset))}</tr>
 				</thead>
 				<tbody>{token.rows.map((row, index) => renderRow(row, index, offset))}</tbody>
 			</table>
@@ -325,28 +323,21 @@ function renderTable(token: Tokens.Table, key: number, offset: number): ReactNod
 }
 
 function renderRow(row: Tokens.TableCell[], index: number, offset: number): ReactNode {
-	return (
-		<tr key={index}>{row.map((cell, column) => renderCell('td', k.td, cell, column, offset))}</tr>
-	)
+	return <tr key={index}>{row.map((cell, column) => renderCell('td', cell, column, offset))}</tr>
 }
 
 /** Renders one table cell: a `th` in the head, a `td` in the body. */
 function renderCell(
 	Cell: 'th' | 'td',
-	className: ClassValue,
 	cell: Tokens.TableCell,
 	index: number,
 	offset: number,
 ): ReactNode {
 	return (
-		<Cell key={index} className={cn(className, alignClass(cell.align))}>
+		<Cell key={index} className={k({ align: cell.align ?? undefined })[Cell]}>
 			{renderChildren(cell.tokens, offset)}
 		</Cell>
 	)
-}
-
-function alignClass(align: Tokens.TableCell['align']): string | undefined {
-	return align ? k.align[align] : undefined
 }
 
 /**

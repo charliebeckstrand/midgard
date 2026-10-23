@@ -2,7 +2,7 @@
 
 import { AnimatePresence } from 'motion/react'
 import { memo, useId, useMemo, useState } from 'react'
-import { cn, dataAttr } from '../../core'
+import { dataAttr } from '../../core'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
@@ -228,7 +228,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 							{...k.motion}
 						>
 							{/* The children are one depth in, and the close bracket aligns with the header. */}
-							<div className={cn(k.indent)}>
+							<div className={k().indent}>
 								<JsonTreeContext value={childContextValue}>
 									{visibleEntries.map(([childKey, childValue]) => (
 										<JsonTreeNode key={String(childKey)} keyName={childKey} value={childValue} />

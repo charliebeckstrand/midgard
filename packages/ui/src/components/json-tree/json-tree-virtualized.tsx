@@ -431,7 +431,7 @@ export function JsonTreeVirtualized({
 			role="tree"
 			aria-label={ariaLabel}
 			aria-labelledby={ariaLabelledby}
-			className={cn(k.base, k.windowed, className)}
+			className={cn(k({ windowed: true }).base, className)}
 			style={{ ...rootProps.style, maxHeight, overflow: 'auto' }}
 			// Focus parks here while the focused row is outside the window.
 			tabIndex={-1}
@@ -441,7 +441,7 @@ export function JsonTreeVirtualized({
 				<div
 					role="presentation"
 					data-slot="json-tree-spacer"
-					className={k.spacer}
+					className={k().spacer}
 					style={{ height: topSpacer }}
 				/>
 			)}
@@ -466,7 +466,7 @@ export function JsonTreeVirtualized({
 				<div
 					role="presentation"
 					data-slot="json-tree-spacer"
-					className={k.spacer}
+					className={k().spacer}
 					style={{ height: bottomSpacer }}
 				/>
 			)}

@@ -84,13 +84,13 @@ export function JsonTreeBranchHeader({
 	}
 
 	const content = (
-		<span id={contentId} className={cn(k.content, highlighted && k.highlight)}>
+		<span id={contentId} className={k({ highlighted }).content}>
 			<NodeKey keyName={keyName} />
-			<span className={cn(k.punctuation)}>{openBracket}</span>
+			<span className={k().punctuation}>{openBracket}</span>
 			{!open && (
 				<>
-					{count > 0 && <span className={cn(k.summary)}>{summary}</span>}
-					<span className={cn(k.punctuation)}>{closeBracket}</span>
+					{count > 0 && <span className={k().summary}>{summary}</span>}
+					<span className={k().punctuation}>{closeBracket}</span>
 				</>
 			)}
 		</span>
@@ -104,7 +104,7 @@ export function JsonTreeBranchHeader({
 
 	if (!collapsible) {
 		return (
-			<div className={cn(k.row)}>
+			<div className={k().row}>
 				<div
 					role="treeitem"
 					aria-owns={owns}
@@ -114,9 +114,9 @@ export function JsonTreeBranchHeader({
 					aria-posinset={posInSet}
 					tabIndex={tabIndex}
 					data-fixed=""
-					className={cn(k.leaf)}
+					className={k().leaf}
 				>
-					<span className={k.chevron.spacer} aria-hidden="true" />
+					<span className={k().chevron.spacer} aria-hidden="true" />
 					{content}
 				</div>
 			</div>
@@ -124,7 +124,7 @@ export function JsonTreeBranchHeader({
 	}
 
 	return (
-		<div className={cn(k.row)}>
+		<div className={k().row}>
 			<button
 				type="button"
 				role="treeitem"
@@ -138,11 +138,11 @@ export function JsonTreeBranchHeader({
 				tabIndex={tabIndex}
 				data-slot="json-node-toggle"
 				data-open={dataAttr(open)}
-				className={cn(k.toggle)}
+				className={k().toggle}
 				onClick={onToggle}
 				onKeyDown={handleKeyDown}
 			>
-				<span className={cn(k.chevron.base)} aria-hidden="true">
+				<span className={k().chevron.base} aria-hidden="true">
 					<Icon
 						icon={<ChevronRight />}
 						size="sm"

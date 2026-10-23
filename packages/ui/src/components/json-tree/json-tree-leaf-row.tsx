@@ -1,4 +1,4 @@
-import { cn, dataAttr } from '../../core'
+import { dataAttr } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
 import { type FlatSetPosition, NodeKey, PrimitiveValue } from './json-tree-utilities'
 import type { JsonValue } from './types'
@@ -30,7 +30,7 @@ export function JsonTreeLeafRow({
 }: JsonTreeLeafRowProps) {
 	return (
 		<div data-highlighted={dataAttr(highlighted)}>
-			<div className={cn(k.row)}>
+			<div className={k().row}>
 				<div
 					role="treeitem"
 					aria-level={depth + 1}
@@ -38,10 +38,10 @@ export function JsonTreeLeafRow({
 					aria-posinset={posInSet}
 					tabIndex={(tabbable ?? depth === 0) ? 0 : -1}
 					data-slot="json-node"
-					className={cn(k.leaf)}
+					className={k().leaf}
 				>
-					<span className={k.chevron.spacer} aria-hidden="true" />
-					<span className={cn(k.content, highlighted && k.highlight)}>
+					<span className={k().chevron.spacer} aria-hidden="true" />
+					<span className={k({ highlighted }).content}>
 						<NodeKey keyName={keyName} />
 						<PrimitiveValue value={value} />
 					</span>

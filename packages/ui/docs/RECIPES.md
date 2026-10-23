@@ -62,7 +62,7 @@ The substrate that kumi and kata call, in [`src/core/recipe/`](../src/core/recip
 | Export | Summary |
 |---|---|
 | `defineRecipe` | The recipe primitive. It builds a callable recipe from a `RecipeConfig`, applying `base` → `variants` → `compound` → `defaults` per call (clsx + tailwind-merge). |
-| `defineKata` | Builds the recipe of a unit. The config is the recipe of the root slot `base`, and `slots` holds the child slots. The slots share one set of props and one set of defaults, and a call returns the class string of each slot. `k.bare` is the output with each slot empty, for a headless component. |
+| `defineKata` | Builds the recipe of a unit. The config is the recipe of the root slot `base`, and `slots` holds the child slots. The slots share one set of props and one set of defaults, and a call returns the class string of each slot. A slot can hold child slots under its own `slots`. Its output is then a record of its own classes (`base`) and each child slot (`k().chevron.spacer`). `k.bare` is the output with each slot empty, for a headless component. |
 | `defineGroup` | Declares a group: a config in the shape of a unit, and its extras, which a unit kata `extends`. A group can extend a group. |
 | `definePalette` | Declares the variant × color matrix of a recipe from one or more matrices, such as the `palette` and the `hover` of iro. The cells of the same variant and color join in order. The engine derives the `color` axis from the keys. |
 | `mode` / `defineColors` | Fuse colocated light (`hiru`) and dark (`yoru`) values into the flat `string[]` the engine consumes. |

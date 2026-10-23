@@ -1,11 +1,11 @@
 /**
- * JSON-tree kata: object-literal surface for the collapsible JSON viewer.
- * Carries a per-value-type syntax-color table (`color`, keyed by
- * {@link JsonValueType}) authored inline with `mode()`. These editor-style
+ * JSON-tree kata: the unit of the collapsible JSON viewer. The `value` slot
+ * takes a syntax color for each {@link JsonValueType} (the `type` axis),
+ * authored inline with `mode()`. These editor-style
  * hues are local to this viewer, not a shared iro palette. Rows, the expand
  * toggle, chevron, and the collapse motion config round out the surface.
  */
-import { mode } from '../../core/recipe'
+import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
@@ -41,49 +41,62 @@ const row = [
 	'forced-colors:has-focus-visible:-outline-offset-2 forced-colors:has-focus-visible:outline-[Highlight]',
 ]
 
-export const k = {
-	base: ['inline-flex flex-col', family.mono],
-	/**
-	 * A spacer of the windowed tree. It holds the height of the rows outside the
-	 * window. It has no content, so in the `base` flex column it shrinks to zero
-	 * when the tree has a bounded height. Then the tree cannot scroll past its
-	 * first window. `shrink-0` keeps its size.
-	 */
-	spacer: 'shrink-0',
-	/**
-	 * The scroller of the windowed tree. Focus parks on it while the focused row is outside
-	 * the window. `focus.inset` removes the browser outline and draws the inset ring of the
-	 * library. The scroll clips an outset ring.
-	 */
-	windowed: focus.inset,
-	row,
-	leaf: [flex.row, flex.fill, 'min-w-0 outline-none', dan.gap.scale.xs],
-	toggle: [
-		flex.row,
-		flex.fill,
-		'min-w-0 text-start',
-		...cursor,
-		'outline-none',
-		dan.gap.scale.xs,
-		text.muted,
-		fg.hover,
-		...fg.open,
-		rounded.lg,
-	],
-	content: [flex.inline, 'min-w-0', dan.gap.scale.xs],
-	chevron: {
-		base: ['flex-none', css.transform, css.duration],
-		spacer: 'inline-block w-4 flex-none',
+export const k = defineKata(
+	{
+		base: ['inline-flex flex-col', family.mono],
+		/**
+		 * The scroller of the windowed tree. Focus parks on it while the focused row is outside
+		 * the window. `focus.inset` removes the browser outline and draws the inset ring of the
+		 * library. The scroll clips an outset ring.
+		 */
+		windowed: { true: focus.inset, false: '' },
+		slots: {
+			/**
+			 * A spacer of the windowed tree. It holds the height of the rows outside the
+			 * window. It has no content, so in the `base` flex column it shrinks to zero
+			 * when the tree has a bounded height. Then the tree cannot scroll past its
+			 * first window. `shrink-0` keeps its size.
+			 */
+			spacer: 'shrink-0',
+			row,
+			leaf: [flex.row, flex.fill, 'min-w-0 outline-none', dan.gap.scale.xs],
+			toggle: [
+				flex.row,
+				flex.fill,
+				'min-w-0 text-start',
+				...cursor,
+				'outline-none',
+				dan.gap.scale.xs,
+				text.muted,
+				fg.hover,
+				...fg.open,
+				rounded.lg,
+			],
+			content: {
+				base: [flex.inline, 'min-w-0', dan.gap.scale.xs],
+				highlighted: {
+					true: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), rounded.lg],
+					false: '',
+				},
+			},
+			chevron: {
+				base: ['flex-none', css.transform, css.duration],
+				slots: {
+					/** The box in place of the chevron on a row that does not open, so the rows align. */
+					spacer: 'inline-block w-4 flex-none',
+				},
+			},
+			index: text.muted,
+			punctuation: text.muted,
+			summary: text.muted,
+			/**
+			 * The start padding of the children of a nested group. It equals the chevron
+			 * spacer plus the row gap, so each depth adds one step of it.
+			 */
+			indent: 'ps-5',
+			/** The syntax color of a value or a key, by {@link JsonValueType}. */
+			value: { type: color },
+		},
 	},
-	index: text.muted,
-	punctuation: text.muted,
-	summary: text.muted,
-	/**
-	 * The start padding of the children of a nested group. It equals the chevron
-	 * spacer plus the row gap, so each depth adds one step of it.
-	 */
-	indent: 'ps-5',
-	highlight: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), rounded.lg],
-	motion: collapse.fade,
-	color,
-} as const
+	{ motion: collapse.fade },
+)

@@ -17,7 +17,9 @@ import { k as events } from '../../recipes/kata/events'
 import { k as fileUpload } from '../../recipes/kata/file-upload'
 import { k as flex } from '../../recipes/kata/flex'
 import { k as input } from '../../recipes/kata/input'
+import { k as jsonTree } from '../../recipes/kata/json-tree'
 import { k as listbox } from '../../recipes/kata/listbox'
+import { k as markdown } from '../../recipes/kata/markdown'
 import { k as nav } from '../../recipes/kata/nav'
 import { k as numberInput } from '../../recipes/kata/number-input'
 import { k as offcanvas } from '../../recipes/kata/offcanvas'
@@ -44,7 +46,8 @@ import { type Responsive, resolveVariant } from '../../types/responsive'
 // The gate reads a part in the same way for each shape of kata. The path of a
 // part is its key path under the export. A unit that returns slots gives
 // `k.<slot>` for each slot, the same path as a static slot or a sibling recipe
-// of the old shape. An axis that does not change the classes of a part is not
+// of the old shape. A slot under a slot gives `k.<slot>.<child>`, the path of a
+// nested part of the old shape. An axis that does not change the classes of a part is not
 // in the key of that part. Thus a part keeps its key when a kata merges its
 // recipes into one unit with more axes.
 //
@@ -180,8 +183,8 @@ const DROPPED = /^(panel\.k\.(gap|inset)\.|overlay\.k\.backdrop\.glass$)/
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split|aspect-ratio|card|group|placeholder|status)\.k\.base)(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
-	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+|aspect-ratio\.k\.ratio\.[\w/]+|(card|group)\.k\.base|placeholder\.k\.(fill|pulse|shape)|status\.k\.pulse)$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.field|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split|aspect-ratio|card|group|placeholder|status)\.k\.base|json-tree\.k\.(base|content|value)|markdown\.k\.(heading|li|td|th))(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+|aspect-ratio\.k\.ratio\.[\w/]+|(card|group)\.k\.base|placeholder\.k\.(fill|pulse|shape)|status\.k\.pulse|json-tree\.k\.(base|windowed|content|highlight|color\.\w+)|markdown\.k\.(align\.\w+|heading\.\d|li|task|td|th))$/,
 }
 
 /** The output of main, by path. */
@@ -274,6 +277,18 @@ function reduce(
 	return keep.length === 0 && values.length === 1 ? (values[0] as string) : table
 }
 
+/**
+ * The key path of each class string of a unit output. A slot with child slots
+ * gives a record, so its class strings take the key path under it.
+ */
+function slotPaths(output: Record<string, unknown>): string[][] {
+	return Object.entries(output).flatMap(([key, value]) =>
+		typeof value === 'object' && value !== null
+			? slotPaths(value as Record<string, unknown>).map((rest) => [key, ...rest])
+			: [[key]],
+	)
+}
+
 function walk(value: unknown, path: string, out: Record<string, unknown>): void {
 	if (isRecipe(value)) {
 		const axes = Object.entries(value.config.variants).map(
@@ -288,14 +303,21 @@ function walk(value: unknown, path: string, out: Record<string, unknown>): void 
 
 		const parts =
 			typeof defaults === 'object' && defaults !== null
-				? Object.keys(defaults as Record<string, unknown>).map(
-						(part) => [part, `${path}.${part}`] as const,
+				? slotPaths(defaults as Record<string, unknown>).map(
+						(part) => [part, `${path}.${part.join('.')}`] as const,
 					)
 				: [[undefined, path] as const]
 
 		for (const [part, partPath] of parts) {
 			const pick = (result: unknown) =>
-				classes(part === undefined ? result : (result as Record<string, unknown>)[part])
+				classes(
+					part === undefined
+						? result
+						: part.reduce<unknown>(
+								(record, key) => (record as Record<string, unknown>)[key],
+								result,
+							),
+				)
 
 			const reduced = reduce(
 				results.map(({ combo, result }) => ({ combo, out: pick(result) })),
@@ -896,6 +918,56 @@ describe('kata output', () => {
 				read('placeholder.k.shape'),
 			)
 			check(`status ${pulse}`, status({ pulse }).base, pulse && read('status.k.pulse'))
+		}
+
+		// The disclosure units. The JSON tree and the Markdown prose take an axis
+		// where their components added a part of main.
+		for (const windowed of [false, true]) {
+			check(
+				`json-tree base ${windowed}`,
+				jsonTree({ windowed }).base,
+				read('json-tree.k.base'),
+				windowed && read('json-tree.k.windowed'),
+			)
+		}
+
+		for (const highlighted of [false, true]) {
+			check(
+				`json-tree content ${highlighted}`,
+				jsonTree({ highlighted }).content,
+				read('json-tree.k.content'),
+				highlighted && read('json-tree.k.highlight'),
+			)
+		}
+
+		for (const type of ['key', 'string', 'number', 'boolean', 'null'] as const) {
+			check(`json-tree value ${type}`, jsonTree({ type }).value, read(`json-tree.k.color.${type}`))
+		}
+
+		for (const level of [1, 2, 3, 4, 5, 6] as const) {
+			check(
+				`markdown heading ${level}`,
+				markdown({ level }).heading,
+				read(`markdown.k.heading.${level}`),
+			)
+		}
+
+		for (const task of [false, true]) {
+			check(
+				`markdown li ${task}`,
+				markdown({ task }).li,
+				read('markdown.k.li'),
+				task && read('markdown.k.task'),
+			)
+		}
+
+		for (const align of [undefined, 'left', 'right', 'center'] as const) {
+			const slots = markdown({ align })
+
+			const aligned = align && read(`markdown.k.align.${align}`)
+
+			check(`markdown th ${align}`, slots.th, read('markdown.k.th'), aligned)
+			check(`markdown td ${align}`, slots.td, read('markdown.k.td'), aligned)
 		}
 
 		expect(rows.filter(([, current, expected]) => current !== expected)).toEqual([])

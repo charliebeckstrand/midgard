@@ -2,7 +2,7 @@
  * Markdown kata: per-element prose surface for `<Markdown>`. The renderer walks
  * marked's tokens to a React tree, and pulls each element's classes from the
  * matching slot. Styling therefore rides on the target element, not the
- * wrapper. No variants axis. There is one slot per prose element: `base` (the
+ * wrapper. There is one slot per prose element: `base` (the
  * block wrapper), the `heading` level map, block text, lists, table parts, and
  * `img`. Code spans and fenced blocks render through the `Code` / `CodeBlock`
  * components instead of a slot here (see `markdown-renderer.tsx`).
@@ -16,7 +16,7 @@
  * markers, and the structural rule/border colors are the kata's concern;
  * foreground color is the container's.
  */
-import { mode } from '../../core/recipe'
+import { defineKata, mode } from '../../core/recipe'
 import { ji, omote, sen } from '../kiso'
 
 const { size, weight } = ji
@@ -26,49 +26,59 @@ const { size, weight } = ji
 // grows with the heading and stays below the heading text.
 const headingBase = [weight.semibold, '[&_code]:text-[0.875em]']
 
-export const k = {
+/** The alignment of a table cell that its column marks. */
+// biome-ignore lint/plugin/no-physical-side: a table column that `:---` marks is left-aligned by name, and the map renders that name as the author wrote it
+const align = { left: 'text-left', right: 'text-right', center: 'text-center' }
+
+export const k = defineKata({
 	// First/last-child margin collapse so the prose sits flush in its container
 	// (API-reference rows, Example previews). No color: inherits the container.
 	base: ['[&>:first-child]:mt-0', '[&>:last-child]:mb-0'],
+	slots: {
+		heading: {
+			base: headingBase,
+			level: {
+				1: [size.xl, 'mt-6 mb-3'],
+				2: [size.lg, 'mt-6 mb-3'],
+				3: [size.md, 'mt-5 mb-2'],
+				4: [size.sm, 'mt-4 mb-2'],
+				5: [size.sm, 'mt-4 mb-2'],
+				6: [size.sm, 'mt-4 mb-2'],
+			},
+		},
 
-	heading: {
-		1: [...headingBase, size.xl, 'mt-6 mb-3'],
-		2: [...headingBase, size.lg, 'mt-6 mb-3'],
-		3: [...headingBase, size.md, 'mt-5 mb-2'],
-		4: [...headingBase, size.sm, 'mt-4 mb-2'],
-		5: [...headingBase, size.sm, 'mt-4 mb-2'],
-		6: [...headingBase, size.sm, 'mt-4 mb-2'],
+		paragraph: 'my-3',
+		strong: weight.semibold,
+		em: 'italic',
+		del: 'line-through',
+		// Underlined and medium-weight, not colored: it stays distinguishable from
+		// body text by underline alone (WCAG 1.4.1) and inherits the prose color.
+		link: [weight.medium, 'underline underline-offset-2'],
+
+		ul: 'my-3 list-disc ps-5',
+		ol: 'my-3 list-decimal ps-5',
+		// A list item tightens any nested list and drops its marker for a task item.
+		li: {
+			base: 'my-1 [&>:is(ul,ol)]:my-1',
+			task: { true: 'list-none', false: '' },
+		},
+		checkbox: 'me-2',
+
+		blockquote: ['my-4 border-s-2 ps-4 italic', ...mode('border-zinc-300', 'dark:border-zinc-700')],
+		hr: ['border-0 border-t', ...sen.border.color.default, 'my-6'],
+
+		table: {
+			base: 'w-full text-start',
+			slots: {
+				// A wide table scrolls in its own box (`omote.rail`), so the container of
+				// the prose does not scroll.
+				scroll: ['my-4', ...omote.rail],
+			},
+		},
+		// Emphasis rule under the header, default rule under cells.
+		th: { base: [weight.semibold, 'border-b px-3 py-2', ...sen.border.color.emphasis], align },
+		td: { base: ['border-b px-3 py-2', ...sen.border.color.default], align },
+
+		img: 'my-4 max-w-full rounded-lg',
 	},
-
-	paragraph: 'my-3',
-	strong: weight.semibold,
-	em: 'italic',
-	del: 'line-through',
-	// Underlined and medium-weight, not colored: it stays distinguishable from
-	// body text by underline alone (WCAG 1.4.1) and inherits the prose color.
-	link: [weight.medium, 'underline underline-offset-2'],
-
-	// A list item tightens any nested list and drops its marker for a task item.
-	ul: 'my-3 list-disc ps-5',
-	ol: 'my-3 list-decimal ps-5',
-	li: 'my-1 [&>:is(ul,ol)]:my-1',
-	task: 'list-none',
-	checkbox: 'me-2',
-
-	blockquote: ['my-4 border-s-2 ps-4 italic', ...mode('border-zinc-300', 'dark:border-zinc-700')],
-	hr: ['border-0 border-t', ...sen.border.color.default, 'my-6'],
-
-	table: {
-		base: 'w-full text-start',
-		// A wide table scrolls in its own box (`omote.rail`), so the container of
-		// the prose does not scroll.
-		scroll: ['my-4', ...omote.rail],
-	},
-	// Emphasis rule under the header, default rule under cells.
-	th: [weight.semibold, 'border-b px-3 py-2', ...sen.border.color.emphasis],
-	td: ['border-b px-3 py-2', ...sen.border.color.default],
-	// biome-ignore lint/plugin/no-physical-side: a table column that `:---` marks is left-aligned by name, and the map renders that name as the author wrote it
-	align: { left: 'text-left', right: 'text-right', center: 'text-center' },
-
-	img: 'my-4 max-w-full rounded-lg',
-} as const
+})

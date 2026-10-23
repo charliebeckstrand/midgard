@@ -33,6 +33,8 @@ export const k = defineKata({
 })
 ```
 
+A child slot can hold child slots of its own under `slots` (§4 rule 2).
+
 A unit has a `bare` output, in which each slot is `''`. A component resolves its slots with `useSlots(unit, props)`, which gives the bare output under `HeadlessProvider`.
 
 ## 3. Boundary
@@ -54,7 +56,7 @@ These pin the contract:
 The keys of a kata surface, a kiso family, and a group follow one pattern, so a reader finds a part by its scope. The rules:
 
 1. **One word for each key.** A compound name nests under the part that it belongs to: `bar.rail`, not `barRail`.
-2. **The part holds its children.** A part with children is an object, and its own classes are `base`: `bar: { base, rail }`. The root part of a kata is `base` too. In a `defineKata` unit, the config itself is the root slot `base`, and each other part is a key of `slots`.
+2. **The part holds its children.** A part with children is an object, and its own classes are `base`: `bar: { base, rail }`. The root part of a kata is `base` too. In a `defineKata` unit, the config itself is the root slot `base`, and each other part is a key of `slots`. A slot with children holds them under its own `slots`: `slots: { chevron: { base, slots: { spacer } } }` gives `k().chevron.base` and `k().chevron.spacer`.
 3. **One element, one key.** Keys that always go on the same element merge into one key. A key that adds to a part in some states only nests under that part: `trigger: { base, cursor }`.
 4. **A recipe can nest.** A recipe that a kata calls holds a nested part in a slot group, and the engine merges each entry: `slots: { trigger: { base, button } }` gives `k.trigger.base`.
 5. **A config stays whole.** A motion config, a per-color record, and a step map are leaves. Do not put a child key in one.
