@@ -79,8 +79,8 @@ const SEARCH_PREFIX = <Icon icon={<Search />} />
  * Clearing drives a native `input` event, so controlled and uncontrolled
  * consumers see the same change. It then returns focus to the field as the
  * clear button unmounts (WCAG 2.4.3). Escape in a field that holds a query
- * clears it the same way and consumes the key, so an enclosing Dialog or
- * popover closes only on an Escape in the empty field. `loading` suppresses
+ * clears it the same way and consumes the key. Thus an Escape closes an
+ * enclosing Dialog or popover only when the field is empty. `loading` suppresses
  * the clear button: a spinner occupies the suffix while a query is in flight.
  * `clearable={false}` suppresses it outright.
  *

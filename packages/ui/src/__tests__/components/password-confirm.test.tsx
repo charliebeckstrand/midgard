@@ -42,7 +42,7 @@ describe('PasswordConfirmRepeat', () => {
 
 		expect(onChange).toHaveBeenCalledOnce()
 
-		expect(confirm).toHaveAttribute('data-warning')
+		expect(confirm).toHaveAttribute('data-warning', '')
 	})
 
 	it('applies data-warning when passwords differ and the confirm was last edited', () => {
@@ -55,7 +55,7 @@ describe('PasswordConfirmRepeat', () => {
 
 		const { confirm } = enter('abc', 'abcd')
 
-		expect(confirm).toHaveAttribute('data-warning')
+		expect(confirm).toHaveAttribute('data-warning', '')
 	})
 
 	it('describes the confirm input by the warning while the mismatch holds', () => {

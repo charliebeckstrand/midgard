@@ -6,6 +6,7 @@ import { ControlField } from '../control/control-field'
 
 /** Props for {@link RadioField}: native `<div>` attributes plus an optional `htmlFor` to pin the generated id. */
 export type RadioFieldProps = {
+	/** Pins the generated control id instead of auto-generating one. */
 	htmlFor?: string
 } & ComponentProps<'div'>
 

@@ -1,6 +1,7 @@
 'use client'
 
 import type { ChangeEvent } from 'react'
+import { dataAttr } from '../../core'
 import { useAriaIds } from '../../hooks'
 import { PasswordInput, type PasswordInputProps } from '../password-input'
 import { usePasswordConfirm } from './context'
@@ -52,7 +53,7 @@ export function PasswordConfirmRepeat({
 
 	return (
 		<PasswordInput
-			{...(showWarning ? { 'data-warning': true } : {})}
+			data-warning={dataAttr(showWarning)}
 			// Otherwise only the visual `data-warning` signals a mismatch; surface
 			// it programmatically too. A caller-supplied `invalid` still wins.
 			invalid={invalid ?? (showWarning || undefined)}

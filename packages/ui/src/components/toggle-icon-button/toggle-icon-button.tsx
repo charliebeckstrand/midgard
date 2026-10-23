@@ -54,6 +54,9 @@ export type ToggleIconButtonProps = AccessibleName & {
  * @remarks
  * A consumer `onClick` runs before the toggle. Its `preventDefault()` does not
  * cancel the toggle, because the toggle is the activation of the button.
+ *
+ * The toggle writes no field, so it stays live in a locked scope, such as a
+ * `Form` while a submit runs.
  */
 export function ToggleIconButton({
 	pressed: pressedProp,
@@ -85,6 +88,9 @@ export function ToggleIconButton({
 		// No library selector reads the anchor, so it goes before the spread and a
 		// wrapper such as CopyButton can re-anchor the button (CONVENTIONS.md §3.9).
 		<Button
+			// A toggle writes no field, so a locked scope, such as a submitting
+			// form, leaves it live.
+			lockable={false}
 			data-slot="toggle-icon-button"
 			{...props}
 			type="button"

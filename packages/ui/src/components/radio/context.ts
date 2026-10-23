@@ -21,7 +21,7 @@ export type RadioGroupContextValue = {
 
 /**
  * The state of the enclosing {@link RadioGroup}. The `ControlContext` cannot
- * carry it: a group with no `<Control>` above it has no id to give, and a
+ * carry it. A group with no `<Control>` above it has no id to give, and a
  * radio adopts the id of that context.
  *
  * @internal

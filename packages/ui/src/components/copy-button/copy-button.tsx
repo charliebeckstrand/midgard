@@ -1,8 +1,8 @@
 'use client'
 
 import { Check, Clipboard } from 'lucide-react'
-import { type ComponentProps, type ReactElement, useCallback } from 'react'
-import { dataAttr } from '../../core'
+import type { ComponentProps, ReactElement } from 'react'
+import { composeEventHandlers, dataAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button, type ButtonVariants } from '../button'
 import { ToggleIconButtonIcons } from '../toggle-icon-button/toggle-icon-button-icons'
@@ -64,14 +64,18 @@ export type CopyButtonProps = {
  * Clipboard-copy control with the look of ToggleIconButton. Writes `text`, flips to a check glyph, and reverts after `timeout`.
  *
  * @remarks
- * It is an action, not a toggle, so it sets no `aria-pressed`. Stays enabled
- * and keeps focus through the success window so keyboard focus survives
- * (WCAG 2.4.3); a second copy during the write or the window is ignored. The
+ * It is an action, not a toggle, so it sets no `aria-pressed`. It stays
+ * enabled through the success window, so it keeps the keyboard focus (WCAG
+ * 2.4.3). It ignores a second copy during the write or the window. The
  * accessible name becomes "Copied" while flipped, otherwise the caller's
  * `aria-label` or "Copy to clipboard". The button has a `data-copied`
  * attribute only while the copied state holds, so a style can select that
  * state (`data-copied:` or `not-data-copied:`). A consumer cannot override the
  * attribute.
+ *
+ * A consumer `onClick` runs before the copy. Its `preventDefault()` does not
+ * cancel the copy, because the copy is the activation of the button.
+ *
  * @see {@link useCopyButtonState} for the clipboard write and revert timing.
  * @see {@link ToggleIconButton} for the two-state icon control that it looks like.
  */
@@ -94,15 +98,12 @@ export function CopyButton({
 
 	// The button stays enabled and focused through the success window;
 	// disabling a focused control drops keyboard focus to <body> (WCAG 2.4.3).
-	// The hook drops a copy during the write and in the window.
-	const handleClick = useCallback<NonNullable<CopyButtonProps['onClick']>>(
-		(event) => {
-			onClick?.(event)
-
-			void copy()
-		},
-		[onClick, copy],
-	)
+	// The hook drops a copy during the write and in the window. The copy is the
+	// activation the button exists to perform, so a consumer's preventDefault()
+	// does not cancel it (CONVENTIONS.md §3.9).
+	const handleClick = composeEventHandlers(onClick, () => void copy(), {
+		checkForDefaultPrevented: false,
+	})
 
 	return (
 		<Button

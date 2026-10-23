@@ -38,8 +38,8 @@ type CopyStateResult = {
 /**
  * Drives the transient copied state behind {@link CopyButton}: writes `text` to
  * the clipboard, flags success for `timeout` ms, then reverts. Use it to give
- * a control other than `CopyButton` the same copied state, such as a `Button`
- * with a text label that shows "Copy" and then "Copied" in green.
+ * the same copied state to a control other than `CopyButton`. An example is a
+ * `Button` with a text label that shows "Copy" and then "Copied" in green.
  *
  * @returns `{ copied, copy }`: `copied` is the current success flag; `copy`
  * writes to the clipboard and, on success, raises the flag and starts the revert

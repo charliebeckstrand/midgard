@@ -163,6 +163,11 @@ export const c = <div aria-pressed={open ? true : undefined} /> // flag
 export const d = <img aria-label={alt || undefined} alt="" />
 export const e = <div aria-busy={open} data-open={open ? 'yes' : undefined} />
 // aria-busy={open || undefined} in a comment
+export const f = <div {...(open ? { 'data-open': true } : {})} /> // flag
+export const g = <div {...(open ? { 'aria-busy': true } : {})} /> // flag
+export const h = <div {...(open ? { 'data-open': '' } : {})} /> // flag
+export const i = <div {...(open ? { title: alt } : {})} />
+export const j = <div {...(open ? { 'data-state': 'open' } : {})} />
 `,
 		},
 	],
