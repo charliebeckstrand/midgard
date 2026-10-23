@@ -45,7 +45,7 @@ import { parseTsv, toTsv } from './engine/grid-range/tsv'
 import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
 import { resolveCellAt } from './engine/grid-row/bridges'
 import type { GridCellClick, GridCellClickContext } from './engine/grid-row/cell'
-import { findDataRow, spokenRowNumber } from './engine/grid-row/shell'
+import { ariaRowIndex } from './engine/grid-row/shell'
 import type { GridEditSource } from './grid-data-types'
 import { GridEditOverlay } from './grid-edit-overlay'
 import { GridEditingSessionContext, GridNewRowContext } from './grid-editing-context'
@@ -316,6 +316,7 @@ export function useGridCursor<T>({
 		rowKeysRef,
 		dataColumnsRef,
 		editSourceRef,
+		rowIndexOffsetRef,
 	} = refs
 
 	// Enter on the cursor's active cell begins the edit session: the keyboard
@@ -348,7 +349,7 @@ export function useGridCursor<T>({
 		range: cursorEnabled && range,
 	})
 
-	const { readRange, rangeAnchor } = nav
+	const { readRange, toCursorRow, rangeAnchor } = nav
 
 	// A copy while the tab stop has focus writes the range as TSV, or the active
 	// cell with no range. The native event needs no clipboard permission. The
@@ -382,46 +383,22 @@ export function useGridCursor<T>({
 
 		const columns = dataColumnsRef.current
 
-		// The number that the screen reader speaks for the row, or `null` when a
-		// windowed body left the row out of the document.
-		const spoken = (row: number) => {
-			const key = rowKeysRef.current[row]
-
-			const node =
-				key === undefined || !tableRef.current ? null : findDataRow(tableRef.current, key)
-
-			return node ? spokenRowNumber(node) : null
-		}
-
-		const { from, to } = cells
-
-		const ownFrom = spoken(from.row)
-
-		const ownTo = spoken(to.row)
-
-		// A windowed body can leave one corner out of the document. Its number then
-		// keeps the offset of the other corner. That is exact while no group header
-		// or detail panel is between the two. With no corner in the document, the
-		// number is the place of the row in the data.
-		const shift = ownFrom !== null ? ownFrom - from.row : ownTo !== null ? ownTo - to.row : 1
-
-		const fromRow = ownFrom ?? from.row + shift
-
-		const toRow = ownTo ?? to.row + shift
-
-		const corner = ({ col }: Coord, row: number) => ({
+		// The `aria-rowindex` of the row: its place in the cursor's order counts the
+		// group headers, totals, and detail panels above it. A windowed body can
+		// leave the row out of the document, so the number does not come from there.
+		const corner = ({ row, col }: Coord) => ({
 			column: columns[col]
 				? columnLabel(columns[col])
 				: intl.formatMessage(gridMessages.columnNumber, { number: col + 1 }),
-			row,
+			row: ariaRowIndex(rowIndexOffsetRef.current, toCursorRow(row)),
 		})
 
 		announce(
 			describeRange(
 				intl,
 				{ rows: cells.rows.length, cols: cells.cols.length },
-				corner(from, fromRow),
-				corner(to, toRow),
+				corner(cells.from),
+				corner(cells.to),
 			),
 		)
 	})

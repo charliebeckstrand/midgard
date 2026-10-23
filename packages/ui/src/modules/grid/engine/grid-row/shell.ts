@@ -170,8 +170,11 @@ export function ariaRowIndex(rowIndexOffset: number, index: number): number {
 /**
  * The number that a screen reader speaks for a row of the table: its
  * `aria-rowindex`, else its place among the rows of the table, the header rows
- * included. An announcement that names a row uses this number, so the reader
- * hears one number for each row.
+ * included. The label of a cell editor names its row with this number, so the
+ * reader hears one number for each row. The range announcement cannot read the
+ * document, because a windowed body can leave a corner out. It calculates the
+ * same number with {@link ariaRowIndex} from the place of the row in the
+ * cursor's order.
  *
  * @internal
  */

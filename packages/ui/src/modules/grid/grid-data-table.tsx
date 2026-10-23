@@ -84,8 +84,8 @@ type GridDataTableProps<T> = {
 	/** Grid semantics and the row indexes. */
 	semantics: {
 		enabled: boolean
-		/** The index of the first row of the page. */
-		rowOffset: number
+		/** The `aria-rowindex` offset of the first row of the body (see `ariaRowIndex`). */
+		rowIndexOffset: number
 		/** 1 when a group band adds a header row, else 0. */
 		groupRowOffset: number
 		ariaRowCount: number
@@ -225,9 +225,7 @@ export function GridDataTable<T>({
 					visibleColumns={columns}
 					pinning={pinning}
 					gridSemantics={semantics.enabled}
-					rowIndexOffset={
-						semantics.rowOffset + semantics.groupRowOffset + Number(newRow.place === 'top')
-					}
+					rowIndexOffset={semantics.rowIndexOffset}
 					rowRoving={roving.rovingRows}
 					rowStaticStop={roving.rowStaticStop}
 					cellRoving={roving.rovingCells}
