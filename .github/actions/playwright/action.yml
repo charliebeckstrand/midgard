@@ -1,5 +1,5 @@
 name: Playwright
-description: Restore the Playwright browsers from the cache, and install them on a miss.
+description: Restore the Playwright browsers and their system packages from the cache, and install them on a miss.
 
 # Each job that runs a browser uses this action after `setup`: `browser`,
 # `density`, and `docs` in ci.yml, visual.yml, and browser-stress.yml. One copy
@@ -45,6 +45,8 @@ runs:
         echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
         echo "executable=$(node -p "require('playwright').chromium.executablePath()")" >> "$GITHUB_OUTPUT"
         echo "browsers=$(echo $BROWSERS | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+        echo "image-os=$ImageOS" >> "$GITHUB_OUTPUT"
+        echo "image-version=$ImageVersion" >> "$GITHUB_OUTPUT"
     - uses: actions/cache@v6
       with:
         path: ~/.cache/ms-playwright
@@ -58,12 +60,46 @@ runs:
     # library, Chromium does not launch, and the error names the library.
     # Put `--with-deps` back then.
     #
-    # Each other list installs with `--with-deps`. No run showed that the
-    # runner image holds each library that Firefox and WebKit load, and the
-    # cache holds no system package. Only the `density` job pays that apt run.
+    # Each other list installs with `--with-deps`. The runner image does not
+    # hold the libraries that Firefox and WebKit load. Only the `density` job
+    # pays that apt run: about 185 packages and 140 MB. A slow mirror gave
+    # about 50 KB/s, and the job hung until its time limit.
+    #
+    # So the steps below keep the `.deb` files of that run in a cache.
+    # On a hit, apt finds each file on disk and downloads none. apt still
+    # reads the package index first, and that is a small download.
+    #
+    # The image version is in the key, but a restore key matches each older
+    # image and each older Playwright. apt checks each `.deb` against the
+    # index, downloads only the packages that changed, and `autoclean`
+    # removes the superseded files before the save.
+    - if: inputs.browsers != 'chromium'
+      uses: actions/cache@v6
+      with:
+        path: ~/.cache/playwright-apt
+        key: ${{ runner.os }}-playwright-apt-${{ steps.playwright.outputs.image-os }}-${{ steps.playwright.outputs.browsers }}-${{ steps.playwright.outputs.version }}-${{ steps.playwright.outputs.image-version }}
+        restore-keys: ${{ runner.os }}-playwright-apt-${{ steps.playwright.outputs.image-os }}-${{ steps.playwright.outputs.browsers }}-
+    # apt-get keeps each package that it downloads, unless a configuration
+    # file stops it. This file makes sure that the files stay for the save.
+    - if: inputs.browsers != 'chromium'
+      shell: bash
+      run: |
+        echo 'Binary::apt-get::APT::Keep-Downloaded-Packages "true";' | sudo tee /etc/apt/apt.conf.d/99playwright-keep-debs > /dev/null
+        mkdir -p ~/.cache/playwright-apt
+        find ~/.cache/playwright-apt -maxdepth 1 -name '*.deb' -exec sudo cp -t /var/cache/apt/archives {} +
+        echo "Restored $(find ~/.cache/playwright-apt -maxdepth 1 -name '*.deb' | wc -l) packages from the cache."
     - shell: bash
       env:
         BROWSERS: ${{ inputs.browsers }}
         DEPS: ${{ inputs.browsers != 'chromium' && '--with-deps' || '' }}
       # Not quoted: the list splits into one argument for each browser.
       run: pnpm --filter ui exec playwright install $DEPS $BROWSERS
+    # apt writes the files as root, with read access for each user. The copy
+    # belongs to the runner user, so the cache can save it.
+    - if: inputs.browsers != 'chromium'
+      shell: bash
+      run: |
+        sudo apt-get autoclean
+        find ~/.cache/playwright-apt -maxdepth 1 -name '*.deb' -delete
+        find /var/cache/apt/archives -maxdepth 1 -name '*.deb' -exec cp -t ~/.cache/playwright-apt {} +
+        echo "Kept $(find ~/.cache/playwright-apt -maxdepth 1 -name '*.deb' | wc -l) packages for the cache."
