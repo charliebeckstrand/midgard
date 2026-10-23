@@ -28,14 +28,14 @@ const dayRows = rangeKeys(6, 'week')
  */
 export function CalendarSkeleton({ size, className }: CalendarSkeletonProps) {
 	return (
-		<div data-density={size} aria-hidden="true" className={cn(k.base, 'relative', className)}>
+		<div data-density={size} aria-hidden="true" className={cn(k().base, 'relative', className)}>
 			<Placeholder className="absolute inset-0 size-full" />
 
-			<div className={cn(k.header, k.skeleton.row)} />
+			<div className={cn(k().header, k.skeleton.row)} />
 
-			<div className={k.grid}>
+			<div className={k().grid}>
 				{weekdays.map((weekdayKey) => (
-					<div key={weekdayKey} className={cn(k.weekday)} />
+					<div key={weekdayKey} className={k().weekday} />
 				))}
 
 				{dayRows.map((rowKey) => (

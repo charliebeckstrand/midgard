@@ -65,8 +65,8 @@ export const CalendarHeader = memo(function CalendarHeader({
 			nextLabel={intl.formatMessage(calendarMessages.nextMonth)}
 			onPrev={onPrevMonth}
 			onNext={onNextMonth}
-			prevClassName={cn(activeIndex === 0 && k.day.active)}
-			nextClassName={cn(activeIndex === 2 && k.day.active)}
+			prevClassName={cn(activeIndex === 0 && k().day.active)}
+			nextClassName={cn(activeIndex === 2 && k().day.active)}
 			prevIndex={0}
 			nextIndex={2}
 		>
@@ -80,7 +80,7 @@ export const CalendarHeader = memo(function CalendarHeader({
 				localeTag={localeTag}
 				open={pickerOpen}
 				onOpenChange={onPickerOpenChange}
-				triggerClassName={cn(activeIndex === 1 && k.day.active)}
+				triggerClassName={cn(activeIndex === 1 && k().day.active)}
 				triggerIndex={1}
 			/>
 		</CalendarToolbar>

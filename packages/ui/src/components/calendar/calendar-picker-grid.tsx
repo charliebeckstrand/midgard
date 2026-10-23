@@ -77,7 +77,7 @@ export function CalendarPickerGrid({
 				role="listbox"
 				aria-label={gridLabel}
 				onKeyDown={onGridKeyDown}
-				className={cn(k.picker.grid)}
+				className={k().picker.grid}
 			>
 				{cells.map((cell) => (
 					<Button
@@ -92,7 +92,7 @@ export function CalendarPickerGrid({
 						onClick={cell.onSelect}
 						className={cn(
 							cellBlock && 'w-full',
-							cell.current && !cell.selected && k.picker.current,
+							cell.current && !cell.selected && k().picker.current,
 						)}
 					>
 						{cell.label}

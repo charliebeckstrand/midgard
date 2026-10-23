@@ -70,7 +70,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 			onMouseEnter={onMouseEnter}
 			onMouseLeave={onMouseLeave}
 			style={gridColumnStart ? { gridColumnStart } : undefined}
-			className={cn(k.day.base, isActive && k.day.active, className)}
+			className={cn(k().day.base, isActive && k().day.active, className)}
 		>
 			{formatInteger(date.getDate(), localeTag)}
 		</Button>

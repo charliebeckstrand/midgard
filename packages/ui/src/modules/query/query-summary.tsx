@@ -21,21 +21,21 @@ export type QuerySummaryProps = Omit<ComponentProps<'span'>, 'children'> & {
 /** Renders one summary token: a muted combinator or bracket, or a rule as field · operator · value. @internal */
 function SummaryToken({ token }: { token: QuerySummaryToken }) {
 	if (token.kind === 'combinator') {
-		return <span className={cn(k.combinator)}>{token.label}</span>
+		return <span className={k().combinator}>{token.label}</span>
 	}
 
-	if (token.kind === 'group-open') return <span className={cn(k.bracket)}>(</span>
+	if (token.kind === 'group-open') return <span className={k().bracket}>(</span>
 
-	if (token.kind === 'group-close') return <span className={cn(k.bracket)}>)</span>
+	if (token.kind === 'group-close') return <span className={k().bracket}>)</span>
 
 	return (
 		<span>
-			<span className={cn(k.field)}>{token.field}</span>{' '}
-			<span className={cn(k.operator)}>{token.operator}</span>
+			<span className={k().field}>{token.field}</span>{' '}
+			<span className={k().operator}>{token.operator}</span>
 			{token.value != null && (
 				<>
 					{' '}
-					<span className={cn(k.value)}>{token.value}</span>
+					<span className={k().value}>{token.value}</span>
 				</>
 			)}
 		</span>
@@ -64,7 +64,7 @@ export function QuerySummary({ value, fields, className, ...props }: QuerySummar
 	if (tokens.length === 0) return null
 
 	return (
-		<span data-slot="query-summary" {...props} className={cn(k.base, className)}>
+		<span data-slot="query-summary" {...props} className={cn(k().base, className)}>
 			{tokens.map((token, index) => (
 				// The kind and the source node name a token, as they do in QueryChips.
 				<Fragment key={`${token.kind}:${token.id}`}>

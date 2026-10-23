@@ -175,7 +175,7 @@ export function FormFilters<T extends FilterValue = FilterValue>({
 			<FormFiltersNameContext value={name}>
 				{/* `min-w-auto` replaces the min-content floor of a `<fieldset>`, so the
 			    bar sizes as a `<div>` does. */}
-				<fieldset data-slot="form-filters" {...props} className={cn(k.base, className)}>
+				<fieldset data-slot="form-filters" {...props} className={cn(k().base, className)}>
 					<FormProvider store={store} actions={formActions} resets={resets}>
 						{/* A bar inside a Form holds its own fields. It unlocks them while the
 						Form submits, and keeps them out of the targets of its summary. */}

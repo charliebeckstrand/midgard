@@ -6,6 +6,7 @@
  * `day` slot holds the `active` state classes and the `range` edge classes.
  */
 import { defineScale } from '../../core/density'
+import { defineKata } from '../../core/recipe'
 import { dan, iro, ji, kokkaku, narabi, sen } from '../kiso'
 
 const { hover, palette, text } = iro
@@ -36,28 +37,39 @@ const weekday = [
 	dan.text.small,
 ]
 
-export const k = {
-	base,
-	grid: `grid grid-cols-7 ${cellTargets}`,
-	header,
-	footer,
-	picker: {
-		grid: pickerGrid,
-		current: [weight.semibold, palette.soft.blue, hover.soft.blue],
-	},
-	weekday,
-	day: {
-		base: 'w-full ring-inset',
-		active: [...focus.virtual],
-		// Each endpoint squares the corners that face the band. The sides are
-		// logical, so the corners mirror with the grid in a right-to-left region.
-		range: {
-			start: 'rounded-e-none',
-			end: 'rounded-s-none',
+export const k = defineKata(
+	{
+		base,
+		slots: {
+			grid: `grid grid-cols-7 ${cellTargets}`,
+			header,
+			footer,
+			picker: {
+				slots: {
+					grid: pickerGrid,
+					// The cell of the current month or year, when it is not the selected cell.
+					current: [weight.semibold, palette.soft.blue, hover.soft.blue],
+				},
+			},
+			weekday,
+			day: {
+				base: 'w-full ring-inset',
+				slots: {
+					// The ring of the active cell or control. Focus stays on the grid, so the
+					// ring is virtual.
+					active: [...focus.virtual],
+					// Each endpoint squares the corners that face the band. The sides are
+					// logical, so the corners mirror with the grid in a right-to-left region.
+					range: {
+						start: { true: 'rounded-e-none', false: '' },
+						end: { true: 'rounded-s-none', false: '' },
+					},
+				},
+			},
 		},
 	},
-	skeleton: kokkaku.calendar,
-} as const
+	{ skeleton: kokkaku.calendar },
+)
 
 /** The size scale of {@link Calendar}: the steps of its width, header margin, gap, and weekday text. */
 export const scale = defineScale(

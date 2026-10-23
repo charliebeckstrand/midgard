@@ -5,6 +5,7 @@
  * `combinator` with the pad of its Button (`combinator.button`), the
  * nested-group `bracket`, and the `empty` text.
  */
+import { defineKata } from '../../core/recipe'
 import { dan, iro, ji, narabi } from '../kiso'
 
 const { text } = iro
@@ -19,7 +20,7 @@ const { flex } = narabi
  * `md` step. At `md` the chips are `sm` Badges with `text-sm`, and a
  * combinator is an `xs` Button with `text-xs`.
  */
-export const k = {
+export const k = defineKata({
 	// The row caps the hit areas of the chip controls (`TouchTarget`) at the space
 	// between them. Along the row, a remove button is the `gap-1.5` and the
 	// `density-px-ring` end pad of its pill from the combinator: 13px in all at
@@ -33,23 +34,29 @@ export const k = {
 		'[--touch-target-gap-y:--spacing(3)]',
 		dan.text.chip,
 	],
-	// The chip is a Badge with no `size`, so it takes the step of the row. The
-	// leading pad of the removable chip is `removable` of the Badge kata.
-	chip: ['max-w-full'],
-	field: [...text.default],
-	operator: [...text.muted],
-	value: [weight.semibold, ...text.default],
-	// The combinator is one step below the chips. No step is below `xs`, so at
-	// `xs` the combinator takes the `xs` values.
-	combinator: {
-		base: [dan.text.combinator, weight.medium, ...text.muted, 'uppercase'],
-		/**
-		 * The pad of the combinator Button: the values of the Button kata, one step
-		 * below the step of the row. The Button has no `size`, so it takes the step
-		 * of the row, and these classes replace its own stepped pad.
-		 */
-		button: [dan.space.combinator.base, dan.space.combinator.label, dan.radius.combinator],
+	slots: {
+		// The chip is a Badge with no `size`, so it takes the step of the row. The
+		// leading pad of the removable chip is `removable` of the Badge kata.
+		chip: ['max-w-full'],
+		field: [...text.default],
+		operator: [...text.muted],
+		value: [weight.semibold, ...text.default],
+		// The combinator is one step below the chips. No step is below `xs`, so at
+		// `xs` the combinator takes the `xs` values.
+		combinator: {
+			base: [dan.text.combinator, weight.medium, ...text.muted, 'uppercase'],
+			/**
+			 * The pad of the combinator Button: the values of the Button kata, one step
+			 * below the step of the row. The Button has no `size`, so it takes the step
+			 * of the row, and these classes replace its own stepped pad. A read-only row
+			 * shows the combinator as text, with no pad.
+			 */
+			readOnly: {
+				true: '',
+				false: [dan.space.combinator.base, dan.space.combinator.label, dan.radius.combinator],
+			},
+		},
+		bracket: [...text.muted],
+		empty: [...text.muted],
 	},
-	bracket: [...text.muted],
-	empty: [...text.muted],
-} as const
+})

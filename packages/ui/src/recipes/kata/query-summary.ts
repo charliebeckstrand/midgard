@@ -4,16 +4,19 @@
  * `field`/`operator`/`value` parts of a rule, the muted AND/OR `combinator`, and
  * the nested-group `bracket`.
  */
+import { defineKata } from '../../core/recipe'
 import { iro, ji } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
 
-export const k = {
+export const k = defineKata({
 	base: [size.sm],
-	field: [...text.default],
-	operator: [...text.muted],
-	value: [weight.medium, ...text.default],
-	combinator: [size.xs, weight.medium, ...text.muted, 'uppercase'],
-	bracket: [...text.muted],
-} as const
+	slots: {
+		field: [...text.default],
+		operator: [...text.muted],
+		value: [weight.medium, ...text.default],
+		combinator: [size.xs, weight.medium, ...text.muted, 'uppercase'],
+		bracket: [...text.muted],
+	},
+})

@@ -1,6 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { KeyboardEventHandler, ReactNode, RefObject } from 'react'
-import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -55,7 +54,7 @@ export function CalendarToolbar({
 }: CalendarToolbarProps) {
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: a keydown delegation surface for the buttons in the row, not an interactive control. Each button is a Tab stop.
-		<div ref={toolbarRef} data-slot={slot} onKeyDown={onKeyDown} className={cn(k.header)}>
+		<div ref={toolbarRef} data-slot={slot} onKeyDown={onKeyDown} className={k().header}>
 			<Button
 				type="button"
 				variant="plain"

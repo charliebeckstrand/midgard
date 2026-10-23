@@ -207,7 +207,7 @@ export function SignaturePad({
 			data-empty={dataAttr(empty)}
 			data-disabled={dataAttr(resolvedDisabled)}
 			data-readonly={dataAttr(resolvedReadOnly)}
-			className={cn(k.base, 'h-40', className)}
+			className={cn(k().base, className)}
 		>
 			<canvas
 				id={id}
@@ -228,7 +228,7 @@ export function SignaturePad({
 				{...validation}
 				// A disabled pad refuses input; a read-only pad only shows its value.
 				className={cn(
-					k.canvas,
+					k().canvas,
 					resolvedDisabled ? 'cursor-not-allowed' : resolvedReadOnly && 'cursor-default',
 				)}
 				onPointerDown={handlePointerDown}
@@ -238,12 +238,12 @@ export function SignaturePad({
 				onPointerLeave={commit}
 			/>
 			{empty && !resolvedDisabled && !resolvedReadOnly && (
-				<div data-slot="signature-pad-placeholder" className={cn(k.placeholder)}>
+				<div data-slot="signature-pad-placeholder" className={k().placeholder}>
 					{placeholder}
 				</div>
 			)}
 			{clearable && !resolvedDisabled && !resolvedReadOnly && !empty && (
-				<div data-slot="signature-pad-actions" className={cn(k.actions)}>
+				<div data-slot="signature-pad-actions" className={k().actions}>
 					<Button
 						type="button"
 						size="sm"

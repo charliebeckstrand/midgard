@@ -349,7 +349,7 @@ export function TagInput({
 				aria-label={intl.formatMessage(messages.tags)}
 				gap="xs"
 				wrap={wrap}
-				className={cn(k.tags.base, !wrap && k.tags.scroll)}
+				className={k({ wrap }).tags}
 			>
 				{keyedTags.map(({ value: tag, key }, index) => (
 					// The chip sits in the prefix scope of the host Input, one step below
@@ -361,7 +361,7 @@ export function TagInput({
 						role="listitem"
 						label={tag}
 						color={tagColor}
-						className={cn(k.badge)}
+						className={k().badge}
 						removeProps={{
 							onMouseDown: (event) => event.preventDefault(),
 							onClick: (event) => event.stopPropagation(),
@@ -384,7 +384,7 @@ export function TagInput({
 		) : undefined
 
 	// The box of the add button while the tags wrap.
-	const addBox = wrap && tags.length > 0 ? k.add : undefined
+	const addBox = wrap && tags.length > 0
 
 	const addButton = (
 		<Button
@@ -439,11 +439,11 @@ export function TagInput({
 				// tags, so it aligns with the first row. The boxes are always there and
 				// only their classes change, so the first tag does not remount the
 				// button and take its focus.
-				<span className={cn(addBox?.row)}>
-					<span className={cn(addBox?.chip)}>{addButton}</span>
+				<span className={cn(addBox && k().add.row)}>
+					<span className={cn(addBox && k().add.chip)}>{addButton}</span>
 				</span>
 			}
-			className={cn(k.input, className, atMax && 'cursor-not-allowed')}
+			className={cn(k().input, className, atMax && 'cursor-not-allowed')}
 		/>
 	)
 }
