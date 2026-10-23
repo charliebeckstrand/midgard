@@ -1,9 +1,9 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineKata, type VariantProps } from '../../core/recipe'
 import { iro } from '../kiso'
 
 const { palette } = iro
 
-export const k = defineRecipe({
+export const k = defineKata({
 	color: {
 		zinc: palette.bare.zinc,
 		red: palette.bare.red,

@@ -25,7 +25,7 @@ export function Link({ href, color, underline, className, target, rel, ...props 
 			data-slot="link"
 			target={target}
 			rel={resolveLinkRel(target, rel)}
-			className={cn(k({ color, underline }), className)}
+			className={cn(k({ color, underline }).base, className)}
 			{...props}
 		/>
 	)

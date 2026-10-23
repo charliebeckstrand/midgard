@@ -9,6 +9,7 @@ import { k as box } from '../../recipes/kata/box'
 import { k as breadcrumb } from '../../recipes/kata/breadcrumb'
 import { k as calendar } from '../../recipes/kata/calendar'
 import { k as card } from '../../recipes/kata/card'
+import { k as code } from '../../recipes/kata/code'
 import { k as colorPicker } from '../../recipes/kata/color-picker'
 import { k as combobox } from '../../recipes/kata/combobox'
 import { k as container } from '../../recipes/kata/container'
@@ -92,6 +93,16 @@ const RENAMES: Record<string, string> = {
 	'chrome.k.base': 'chrome.k.region',
 	'icon.k.base': 'icon.k.ramp',
 	'toggle.k.base': 'toggle.k.group',
+	'code.k.base': 'code.k',
+	'kbd.k.base': 'kbd.k',
+	'divider.k.base': 'divider.k',
+	'divider.k.base()': 'divider.k()',
+	'heading.k.base': 'heading.k',
+	'heading.k.base()': 'heading.k()',
+	'link.k.base': 'link.k',
+	'link.k.base()': 'link.k()',
+	'text.k.base': 'text.k',
+	'text.k.base()': 'text.k()',
 	'dashboard.k.base': 'dashboard.k.canvas',
 	'dashboard.k.base()': 'dashboard.k.canvas()',
 	'timeline.k.color.amber': 'timeline.k.marker.palette.amber.dot',
@@ -216,8 +227,8 @@ const DROPPED = /^(panel\.k\.(gap|inset)\.|overlay\.k\.backdrop\.glass$)/
  */
 const COMPOSED = {
 	current:
-		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.base|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split|aspect-ratio|card|group|placeholder|status)\.k\.base|json-tree\.k\.(base|content|value)|grid-group\.k\.(outline|rule)|form-filters\.k\.row|calendar\.k\.day\.range|kanban\.k\.card\.handle|password-strength\.k\.rule\.(icon|text)|resizable\.k\.handle|table\.k\.(base|scroll)|pdf-viewer\.k\.(base|viewport\.page\.highlights\.(base|label|region)|viewport\.page\.magnifier\.lens|sidebar\.base|thumbnails|viewport\.base)|lightbox\.k\.(base|backdrop|close|controls|slot|step|thumbnail\.base|trigger\.base|trigger\.image)|query-chips\.k\.combinator|tag-input\.k\.(base|tags)|signature-pad\.k\.base|toggle-icon-button\.k\.(base|icon)|markdown\.k\.(heading|li|td|th)|breadcrumb\.k\.(base|link)|tree\.k\.(item\.content|group)|timeline\.k\.(marker\.dot|marker\.base)|grid\.k\.sort\.icon)(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
-	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+|aspect-ratio\.k\.ratio\.[\w/]+|(card|group)\.k\.base|placeholder\.k\.(fill|pulse|shape)|status\.k\.pulse|json-tree\.k\.(base|windowed|content|highlight|color\.\w+)|grid-group\.k\.(outline\.\w+|rule\.(base|neutral|color\.\w+))|form-filters\.k\.rail|calendar\.k\.day\.range\.\w+|kanban\.k\.card\.handle\.\w+|password-strength\.k\.rule\.(icon|text)\.\w+|resizable\.k\.(grip|handle)\.\w+(\.\w+)?|table\.k\.(base|scroll|projection\.[\w.]+)|pdf-viewer\.k\.(base|fill|sidebar\.(base|closed|travel)|thumbnails\.\w+|viewport\.(base|scrolls)|viewport\.page\.(highlights\.(base|inert|label\.\w+|region\.[\w.]+)|magnifier\.(lens|size\.\w+)))|lightbox\.k\.((backdrop|close|frame|step)\.\w+|controls|slot|thumbnail\.(base|current)|trigger\.(base|button|image|raised))|query-chips\.k\.combinator\.\w+|tag-input\.k\.tags\.\w+|signature-pad\.k\.base|toggle-icon-button\.k\.icon\.\w+|markdown\.k\.(align\.\w+|heading\.\d|li|task|td|th)|breadcrumb\.k\.(crumb|link(\(\))?)|tree\.k\.(item\.content(\.current|\(\))?|group\.indent)|timeline\.k\.marker\.(base|dot|pulse|orientation\.\w+|palette\.\w+\.line\.\w+)|grid\.k\.sort\.icon(\(\))?)$/,
+		/^((input|textarea|listbox|combobox|date-picker|color-picker)\.k\.(base|field|prefix|suffix)|panel\.k\.base|file-upload\.k\.input\.\w+|number-input\.k\.base|popover\.k\.(base|content)|nav\.k\.base|tooltip\.k\.(base|trigger)|toast\.k\.item|overlay\.k\.(base|backdrop)|description-list\.k\.base|dialog\.k\.(base|box)|toast\.k\.(base|scroll)|stepper\.k\.(base|content|indicator|item|separator|step|title)|offcanvas\.k\.(base|drawerBlock|inlineBlock|inlineFlex)|events\.k\.(button|pin)|query-builder\.k\.(parts|part|range)|sheet\.k\.base|(box|columns|container|flex|split|aspect-ratio|card|group|placeholder|status)\.k\.base|json-tree\.k\.(base|content|value)|grid-group\.k\.(outline|rule)|form-filters\.k\.row|calendar\.k\.day\.range|kanban\.k\.card\.handle|password-strength\.k\.rule\.(icon|text)|resizable\.k\.handle|table\.k\.(base|scroll)|pdf-viewer\.k\.(base|viewport\.page\.highlights\.(base|label|region)|viewport\.page\.magnifier\.lens|sidebar\.base|thumbnails|viewport\.base)|lightbox\.k\.(base|backdrop|close|controls|slot|step|thumbnail\.base|trigger\.base|trigger\.image)|query-chips\.k\.combinator|tag-input\.k\.(base|tags)|signature-pad\.k\.base|toggle-icon-button\.k\.(base|icon)|markdown\.k\.(heading|li|td|th)|breadcrumb\.k\.(base|link)|tree\.k\.(item\.content|group)|timeline\.k\.(marker\.dot|marker\.base)|grid\.k\.sort\.icon|code\.k\.block\.copy\.button)(\(\))?$|query-builder\.k\.group$|^sidebar-layout\.k\.(base|aside|navbar|panel|buffer|peek|wrapper|content|header|headerActions(\(\))?)$/,
+	main: /^(file-upload\.k\.field|input\.k\.number|control\.k\.frame\.(base|radius)|select\.k\.(affix\.(base|prefix|suffix)|surface\.default)|select\.scale|input\.k(\.(affix\.(base|prefix|suffix)|frame|surface|surface\(\)))?|textarea\.k(\.(bare|frame|number|surface|surface\(\))|\(\))?|(listbox|combobox)\.k|(date|color)-picker\.k\.button|popover\.k\.(panel\.(base|glass|ring|surface)|text)|nav\.k\.list\.(base|orientation\.\w+)|tooltip\.k\.(content\.(base|surface\.\w+)|trigger\.(base|cursor))|toast\.k\.item\.\w+|overlay\.k\.(base|cover|frame|scoped|backdrop\.base)|description-list\.k\.(base|orientation\.\w+)|dialog\.k\.(panel(\(\))?|align\.\w+\.\w+)|toast\.k\.(viewport|scroll|position\.\w+\.[\w-]+)|stepper\.k\.((base|content|item|separator|step|title)\.(base(\(\))?|orientation\.\w+)|indicator\.(base|completed|current|interactive))|sidebar-layout\.k\.(header|layout\.\w+\.\w+)|offcanvas\.k\.(drawer|inline)\.\w+\.\w+|events\.k\.button\.\w+|query-builder\.k\.(group\.nested|parts\.\w+(\.\w+)?)|sheet\.k\.(panel(\(\))?|layout\.\w+\.\w+\.\w+)|box\.k\.\w+\.\w+(\.\w+)?|container\.k\.\w+\.\w+|flex\.k\.gap\.\w+|aspect-ratio\.k\.ratio\.[\w/]+|(card|group)\.k\.base|placeholder\.k\.(fill|pulse|shape)|status\.k\.pulse|json-tree\.k\.(base|windowed|content|highlight|color\.\w+)|grid-group\.k\.(outline\.\w+|rule\.(base|neutral|color\.\w+))|form-filters\.k\.rail|calendar\.k\.day\.range\.\w+|kanban\.k\.card\.handle\.\w+|password-strength\.k\.rule\.(icon|text)\.\w+|resizable\.k\.(grip|handle)\.\w+(\.\w+)?|table\.k\.(base|scroll|projection\.[\w.]+)|pdf-viewer\.k\.(base|fill|sidebar\.(base|closed|travel)|thumbnails\.\w+|viewport\.(base|scrolls)|viewport\.page\.(highlights\.(base|inert|label\.\w+|region\.[\w.]+)|magnifier\.(lens|size\.\w+)))|lightbox\.k\.((backdrop|close|frame|step)\.\w+|controls|slot|thumbnail\.(base|current)|trigger\.(base|button|image|raised))|query-chips\.k\.combinator\.\w+|tag-input\.k\.tags\.\w+|signature-pad\.k\.base|toggle-icon-button\.k\.icon\.\w+|markdown\.k\.(align\.\w+|heading\.\d|li|task|td|th)|breadcrumb\.k\.(crumb|link(\(\))?)|tree\.k\.(item\.content(\.current|\(\))?|group\.indent)|timeline\.k\.marker\.(base|dot|pulse|orientation\.\w+|palette\.\w+\.line\.\w+)|grid\.k\.sort\.icon(\(\))?|code\.k\.block\.copy\.button\.\w+)$/,
 }
 
 /** The output of main, by path. */
@@ -1329,6 +1340,14 @@ describe('kata output', () => {
 		}
 
 		check('grid sort icon', gridKata.sort.icon, read('grid.k.sort.icon', 'active=true'), 'shrink-0')
+
+		for (const canvas of ['dark', 'light'] as const) {
+			check(
+				`code copy ${canvas}`,
+				code({ canvas }).block.copy.button,
+				read(`code.k.block.copy.button.${canvas}`),
+			)
+		}
 
 		expect(rows.filter(([, current, expected]) => current !== expected)).toEqual([])
 	})

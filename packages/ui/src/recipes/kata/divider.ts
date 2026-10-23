@@ -1,9 +1,9 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineKata, type VariantProps } from '../../core/recipe'
 import { sen } from '../kiso'
 
 const { border } = sen
 
-export const k = defineRecipe({
+export const k = defineKata({
 	base: ['border-0'],
 	orientation: {
 		horizontal: 'w-full border-t',

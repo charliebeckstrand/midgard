@@ -30,7 +30,7 @@ export function Divider({
 		<hr
 			data-slot="divider"
 			data-orientation={orientation}
-			className={cn(k({ orientation, soft }), className)}
+			className={cn(k({ orientation, soft }).base, className)}
 			// Consumer props spread first; the orientation below takes precedence.
 			{...props}
 			aria-orientation={orientation === 'vertical' ? 'vertical' : undefined}

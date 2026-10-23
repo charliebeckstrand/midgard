@@ -381,18 +381,20 @@ export function CodeBlock({
 	// default canvas.
 	const canvas = highlight?.bg
 
+	const slots = k({ canvas: highlight?.type === 'light' ? 'light' : 'dark' })
+
 	return (
 		<div
 			data-slot="code-block"
 			data-density={size}
-			className={cn(k.block.base, className)}
+			className={cn(slots.block.base, className)}
 			{...props}
 			// The style of the caller spreads first, and the canvas of the theme comes
 			// after it. `omote.bg.code` reads `--code-canvas`.
 			style={canvas ? ({ ...style, '--code-canvas': canvas } as CSSProperties) : style}
 		>
 			{/* Code reads left to right in each locale, so an RTL ancestor must not mirror it. */}
-			<div ref={scrollRegionRef} dir="ltr" className={cn(k.block.content)}>
+			<div ref={scrollRegionRef} dir="ltr" className={slots.block.content}>
 				{highlight ? (
 					<div
 						// The cache key gives each snippet its own element. A switch between two
@@ -404,19 +406,17 @@ export function CodeBlock({
 						dangerouslySetInnerHTML={{ __html: highlight.html }}
 					/>
 				) : (
-					<pre className={cn(k.block.fallback)} tabIndex={-1}>
+					<pre className={slots.block.fallback} tabIndex={-1}>
 						<code>{code}</code>
 					</pre>
 				)}
 			</div>
 			{copy && (
-				<div className={cn(k.block.copy.line)}>
+				<div className={slots.block.copy.line}>
 					<CopyButton
 						text={code}
 						size="sm"
-						className={cn(
-							highlight?.type === 'light' ? k.block.copy.button.light : k.block.copy.button.dark,
-						)}
+						className={slots.block.copy.button}
 						onCopyError={announceCopyError}
 					/>
 				</div>
