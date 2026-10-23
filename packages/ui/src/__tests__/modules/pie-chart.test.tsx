@@ -278,6 +278,28 @@ describe('PieChart', () => {
 		expect(table?.textContent).toContain('—')
 	})
 
+	it('reads each slice share in the tooltip and table, re-shared as slices toggle', () => {
+		const { container } = renderUI(chart())
+
+		const cells = () =>
+			[...getSlot(container, 'chart-table').querySelectorAll('tbody td')].map(
+				(cell) => cell.textContent,
+			)
+
+		expect(cells()).toEqual(['60 (60%)', '25 (25%)', '15 (15%)'])
+
+		fireEvent.pointerEnter(allBySlot(container, 'chart-slice')[0] as Element)
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('60 (60%)')
+
+		fireEvent.pointerLeave(allBySlot(container, 'chart-slice')[0] as Element)
+
+		// A slice toggled off keeps its value in the table but takes no share.
+		fireEvent.click(allBySlot(container, 'chart-legend-item')[1] as Element)
+
+		expect(cells()).toEqual(['60 (80%)', '25', '15 (20%)'])
+	})
+
 	it('reads a null value as missing (an em-dash) in the data table, not as 0', () => {
 		const { container } = renderUI(
 			<PieChart

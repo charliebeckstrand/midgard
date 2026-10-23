@@ -127,13 +127,38 @@ export function sectorFrame(
 	}
 }
 
-/** The values behind the slices for the tooltip and table; `null` with no rows. @internal */
+/**
+ * Each row's `0..1` share of the positive whole, indexed like `values`, or
+ * `null` for a row that takes no slice (a missing, non-positive, or toggled-off
+ * value). The callouts, the legend panel, and the readout all read it, so they
+ * agree on each percent.
+ *
+ * @internal
+ */
+export function sliceShares(values: (number | null)[]): (number | null)[] {
+	const total = values.reduce<number>(
+		(sum, value) => sum + (value != null && value > 0 ? value : 0),
+		0,
+	)
+
+	return values.map((value) => (value != null && value > 0 && total > 0 ? value / total : null))
+}
+
+/**
+ * The values behind the slices for the tooltip and table; `null` with no rows.
+ * A slice's cell trails its value with its share, for example `30 (50%)`, so the
+ * share reads with no segment label or callout. A row with no slice reads its
+ * value alone.
+ *
+ * @internal
+ */
 export function sectorReadout(
 	labels: string[],
 	paints: SlotPaint[],
 	valueLabel: string,
 	values: (number | null)[],
-	format: (value: number) => string,
+	shares: (number | null)[],
+	format: { value: (value: number) => string; percent: (share: number) => string },
 ): ChartReadout | null {
 	if (labels.length === 0) return null
 
@@ -145,7 +170,13 @@ export function sectorReadout(
 				swatchClass: '',
 				swatchClasses: paints.map((paint) => cn(paint.text)),
 				swatch: 'rect',
-				values: values.map((value) => readoutCell(value, format)),
+				values: values.map((value, index) => {
+					const cell = readoutCell(value, format.value)
+
+					const share = shares[index]
+
+					return share == null ? cell : `${cell} (${format.percent(share)})`
+				}),
 			},
 		],
 	}
@@ -162,19 +193,14 @@ export function sectorLegendItems(
 	labels: string[],
 	paints: SlotPaint[],
 	colors: ChartColorSlot[],
-	sliceValues: (number | null)[],
+	shares: (number | null)[],
 	panel: boolean,
 	percent: (share: number) => string,
 ): ChartLegendItem[] {
-	const total = sliceValues.reduce<number>(
-		(sum, value) => sum + (value != null && value > 0 ? value : 0),
-		0,
-	)
-
 	return labels.map((label, index) => {
-		const value = sliceValues[index]
+		const value = shares[index]
 
-		const share = value != null && value > 0 && total > 0 ? percent(value / total) : '—'
+		const share = value == null ? '—' : percent(value)
 
 		return {
 			index,

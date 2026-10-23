@@ -4,7 +4,7 @@ import { type ReactNode, useMemo } from 'react'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
-import { fractionFormat, once, percentFormat } from '../../../utilities'
+import { fractionFormat, once, percentFormat, sameElements } from '../../../utilities'
 import { categorySlots } from '../engine/chart-color/palette'
 import { MARK_GAP, TICK_TARGET } from '../engine/chart-constants'
 import { ChartFrame } from '../engine/chart-frame/frame'
@@ -47,6 +47,7 @@ import {
 	sectorLegendItems,
 	sectorReadout,
 	sliceActivation,
+	sliceShares,
 } from './sector-chart-frame'
 import { SectorChartMarks, SectorSegmentLabels, segmentLabelItems } from './sector-chart-marks'
 
@@ -192,6 +193,8 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
 	const sliceValues = values.map((value, index) => (hidden.has(index) ? null : value))
 
+	const shares = sliceShares(sliceValues)
+
 	// Callouts sit outside the pie, so reserve room for the widest one and shrink
 	// the pie to fit: its label never spills past the frame's clip. The frame
 	// sizes from the full dataset and the pie fits the visible slices, whose
@@ -307,19 +310,21 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 
 	// A cached thunk ({@link ChartReadoutSource}): slices are few, but the frame
 	// contract defers every readout to its first consumer all the same. Its inputs
-	// are new on each render, so the rows, the fields, the color order, and the
-	// format hold them while their content stays the same. A parent render then
-	// formats no row again. An empty pie has no readout, so the menu drops its
-	// data actions.
+	// are new on each render, so the rows, the fields, the color order, the
+	// shares, and the formats hold them while their content stays the same. A
+	// parent render then formats no row again. An empty pie has no readout, so
+	// the menu drops its data actions.
 	const readoutInput = useStableValue(
-		{ data, entry, categories, format, labels: sliceLabels, paints, values },
+		{ data, entry, categories, format, percent, labels: sliceLabels, paints, values, shares },
 		(prev, next) =>
 			prev.data === next.data &&
 			prev.entry.xKey === next.entry.xKey &&
 			prev.entry.yKey === next.entry.yKey &&
 			prev.entry.yName === next.entry.yName &&
 			prev.categories === next.categories &&
-			prev.format === next.format,
+			prev.format === next.format &&
+			prev.percent === next.percent &&
+			sameElements(prev.shares, next.shares),
 	)
 
 	const readout = useMemo(
@@ -331,7 +336,8 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 							readoutInput.paints,
 							readoutInput.entry.yName ?? readoutInput.entry.yKey,
 							readoutInput.values,
-							readoutInput.format,
+							readoutInput.shares,
+							{ value: readoutInput.format, percent: readoutInput.percent },
 						),
 					)
 				: null,
@@ -339,7 +345,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	)
 
 	const legendItems = hasLegend
-		? sectorLegendItems(sliceLabels, paints, colors, sliceValues, aside, percent)
+		? sectorLegendItems(sliceLabels, paints, colors, shares, aside, percent)
 		: null
 
 	const labelItems = segmentLabelItems({

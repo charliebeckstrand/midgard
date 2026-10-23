@@ -16,9 +16,10 @@ export type PieChartProps<T = never> = SectorBaseProps<T>
  * labels, and a visually-hidden data table. For a ring with center content, use
  * {@link DonutChart}.
  *
- * @remarks Slice colors follow the fixed categorical slot order. Rows with
- * non-positive values take no slice but keep their true value in the table;
- * missing values show an em-dash there. Focus the plot to read it by keyboard:
+ * @remarks Slice colors follow the fixed categorical slot order. The tooltip
+ * and the table read each slice's value with its share, for example `30 (50%)`.
+ * Rows with non-positive values take no slice but keep their true value in the
+ * table; missing values show an em-dash there. Focus the plot to read it by keyboard:
  * the arrow keys walk the slices, the tooltip riding each centroid. The slice
  * under the cursor stands alone, and the other slices recede.
  * @example
