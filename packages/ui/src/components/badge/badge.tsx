@@ -54,7 +54,7 @@ export function Badge({
 			data-has-suffix={dataAttr(!!suffix)}
 			href={href}
 			render={render}
-			className={cn(k({ variant, color, radius, interactive: href !== undefined }), className)}
+			className={cn(k({ variant, color, radius, interactive: href !== undefined }).base, className)}
 			{...props}
 			// The affix of a control selects the anchor to fit a chip, so it comes
 			// after the spread (CONVENTIONS.md §3.9).

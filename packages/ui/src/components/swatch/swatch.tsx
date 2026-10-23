@@ -112,7 +112,7 @@ export function Swatch({
 			data-shape={shape ?? 'square'}
 			data-variant={variant ?? 'solid'}
 			data-density={size}
-			className={cn(k({ shape, variant }), colorClass, className)}
+			className={cn(k({ shape, variant }).base, colorClass, className)}
 			// A raw `color` inks inline; an explicit `style` prop still wins on conflict.
 			style={colorStyle ? { ...colorStyle, ...style } : style}
 			{...labelProps}

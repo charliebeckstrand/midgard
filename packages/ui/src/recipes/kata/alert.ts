@@ -1,4 +1,4 @@
-import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineKata, definePalette, type VariantProps } from '../../core/recipe'
 import { dan, iro, ji, kasane, narabi, sen } from '../kiso'
 
 const { palette } = iro
@@ -20,7 +20,7 @@ const titleRamp = dan.text.title
  * outline is a box-shadow. Forced colors remove both, so the base carries a
  * forced outline to keep the edge of each variant.
  */
-export const k = defineRecipe({
+export const k = defineKata({
 	base: [flex.row, 'w-fit', dan.space.alert, dan.gap.scale.sm, rounded.lg, ji.ramp, forced.outline],
 	variant: {
 		outline: ring.line[1].inset,

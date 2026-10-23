@@ -8,7 +8,7 @@
  */
 
 import { defineScale, type ScaleStep } from '../../core/density'
-import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineKata, definePalette, type VariantProps } from '../../core/recipe'
 import { dan, iro, ji, kasane, kokkaku, narabi, sen, shaku } from '../kiso'
 
 const { extended, hover, palette } = iro
@@ -32,7 +32,7 @@ const linkHover = (['solid', 'soft', 'outline', 'plain'] as const).flatMap((vari
 	})),
 )
 
-export const k = defineRecipe(
+export const k = defineKata(
 	{
 		base: [
 			'group',
@@ -91,9 +91,9 @@ export const k = defineRecipe(
 		// base scale (and the affix `px` lockstep keyed off it) stays put.
 		compound: [{ radius: 'full', class: dan.space.badge.pill }, ...linkHover],
 		defaults: { variant: 'solid', color: 'zinc', radius: 'md', interactive: false },
-		skeleton: badge,
 	},
 	{
+		skeleton: badge,
 		/**
 		 * The leading pad of a removable chip: an `outline` pill whose suffix is
 		 * a `bare` remove Button with no `size`. `BadgeRemovable` builds the

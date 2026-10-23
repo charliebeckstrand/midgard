@@ -32,7 +32,7 @@ export function AvatarGroup({ size, className, children, ...props }: AvatarGroup
 			as="div"
 			data-slot="avatar-group"
 			density={size}
-			className={cn(k.group.base, k.group.outline, k.group.spacing, className)}
+			className={cn(k().group, className)}
 			{...props}
 		>
 			{children}

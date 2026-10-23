@@ -63,7 +63,7 @@ describe('logical sides under dir=rtl', () => {
 	})
 
 	it('avatar status dot sits on the top inline-end corner (left)', () => {
-		const style = rtl(cn(avatar.status.dot))
+		const style = rtl(avatar().status.dot)
 		expect(style.left).toBe('0px')
 	})
 

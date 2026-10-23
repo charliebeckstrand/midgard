@@ -1,5 +1,5 @@
 import { defineScale, type ScaleStep } from '../../core/density'
-import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineKata, definePalette, type VariantProps } from '../../core/recipe'
 import { dan, iro, kasane, kokkaku, narabi } from '../kiso'
 
 const { palette } = iro
@@ -13,7 +13,7 @@ const { flex } = narabi
  */
 const sidebarItemMargin = '[&:is([data-slot=sidebar-item]>:not([data-density=slot])>*)]:-m-0.5'
 
-export const k = defineRecipe(
+export const k = defineKata(
 	{
 		base: [
 			'inline-grid place-items-center align-middle overflow-hidden',
@@ -42,55 +42,56 @@ export const k = defineRecipe(
 			outline: palette.outline,
 		}),
 		defaults: { variant: 'solid', color: 'zinc' },
-		// The skeleton takes the size and the margin of an avatar in a SidebarItem,
-		// so the row keeps its height when the avatar replaces the skeleton.
-		skeleton: {
-			...kokkaku.avatar,
-			base: [...kokkaku.avatar.base, dan.size.avatar.sidebar, sidebarItemMargin],
-		},
-	},
-	{
-		initials: 'select-none fill-current text-[48px] font-medium uppercase',
-		/**
-		 * The background layer of the image. A browser leaves out a background in
-		 * print by default, so the layer asks for its colors and image in print.
-		 */
-		image:
-			'size-full bg-cover bg-center [-webkit-print-color-adjust:exact] [print-color-adjust:exact]',
-		/** Avatar-group container classes. */
-		group: {
-			base: flex.row,
+		slots: {
+			initials: 'select-none fill-current text-[48px] font-medium uppercase',
 			/**
-			 * The gap around each descendant avatar circle, in the color of the page.
-			 * `**:` reaches an avatar inside its with-status wrapper, so the gap
-			 * follows the round box. The gap is an outline, not a ring, because forced
-			 * colors keep an outline and remove a box-shadow.
+			 * The background layer of the image. A browser leaves out a background in
+			 * print by default, so the layer asks for its colors and image in print.
 			 */
-			outline:
-				'**:data-[slot=avatar]:outline-2 **:data-[slot=avatar]:outline-solid **:data-[slot=avatar]:outline-white dark:**:data-[slot=avatar]:outline-zinc-900',
+			image:
+				'size-full bg-cover bg-center [-webkit-print-color-adjust:exact] [print-color-adjust:exact]',
 			/**
-			 * Overlap of each avatar onto the one before it, at the step of the
+			 * The avatar group. Its `outline` is the gap around each descendant avatar
+			 * circle, in the color of the page. `**:` reaches an avatar inside its
+			 * with-status wrapper, so the gap follows the round box. The gap is an
+			 * outline, not a ring, because forced colors keep an outline and remove a
+			 * box-shadow.
+			 *
+			 * The overlap of each avatar onto the one before it is at the step of the
 			 * nearest density scope. The overlap and the gap outline together stay
 			 * narrower than the space at the side of two initials, so the next
 			 * avatar does not cover the initials. The group keeps the value of its
 			 * step, so an avatar with its own `size` takes the overlap of the group.
 			 */
-			spacing: dan.space.avatar.overlap,
-		},
-		/** An avatar with a status. */
-		status: {
+			group: [
+				flex.row,
+				'**:data-[slot=avatar]:outline-2 **:data-[slot=avatar]:outline-solid **:data-[slot=avatar]:outline-white dark:**:data-[slot=avatar]:outline-zinc-900',
+				dan.space.avatar.overlap,
+			],
 			/**
 			 * The wrapper of an avatar with a status. It fits the circle, so a
 			 * stretching flex or grid parent cannot widen it and move the dot off the
 			 * circle. In a SidebarItem, the wrapper is in the flow of the row, so it
 			 * takes the margin.
 			 */
-			base: ['relative inline-flex size-fit', sidebarItemMargin],
-			/** The indicator, on the top inline-end corner of the avatar, with a gap around it, as in a group. */
-			dot: [
-				'absolute top-0 inset-e-0',
-				'outline-2 outline-solid outline-white dark:outline-zinc-900',
-			],
+			status: {
+				base: ['relative inline-flex size-fit', sidebarItemMargin],
+				slots: {
+					/** The indicator, on the top inline-end corner of the avatar, with a gap around it, as in a group. */
+					dot: [
+						'absolute top-0 inset-e-0',
+						'outline-2 outline-solid outline-white dark:outline-zinc-900',
+					],
+				},
+			},
+		},
+	},
+	{
+		// The skeleton takes the size and the margin of an avatar in a SidebarItem,
+		// so the row keeps its height when the avatar replaces the skeleton.
+		skeleton: {
+			...kokkaku.avatar,
+			base: [...kokkaku.avatar.base, dan.size.avatar.sidebar, sidebarItemMargin],
 		},
 	},
 )

@@ -121,7 +121,7 @@ describe('control affix has-badge compensation', () => {
 
 		const hostPx = hostPxAt(step)
 
-		const badgePx = Number(findSteps([badge.config.base], 'density-px-ring-')[badgeSize])
+		const badgePx = Number(findSteps([badge.config.slots.base.base], 'density-px-ring-')[badgeSize])
 
 		const expected = hostPx - badgePx + CHIP_INSET
 
@@ -144,7 +144,9 @@ describe('control affix has-badge compensation', () => {
 
 			const hostPx = hostPxAt(step)
 
-			const badgePx = Number(findSteps([badge.config.base], 'density-px-ring-')[badgeSize])
+			const badgePx = Number(
+				findSteps([badge.config.slots.base.base], 'density-px-ring-')[badgeSize],
+			)
 
 			return hostPx - badgePx
 		})
