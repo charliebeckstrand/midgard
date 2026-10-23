@@ -12,7 +12,7 @@
 
 import { parseNumeric } from '../../../../utilities'
 import type { ChartAxisTick } from '../chart-axes/axis'
-import { BUBBLE_MAX_DIAMETER, BUBBLE_MIN_DIAMETER, MARKER_RADIUS } from '../chart-constants'
+import { BUBBLE_MAX_DIAMETER, BUBBLE_MIN_DIAMETER } from '../chart-constants'
 import { coord } from '../chart-coords'
 import { beatsHeldMark } from '../chart-hit-test'
 import { READOUT_GAP } from '../chart-series'
@@ -96,28 +96,25 @@ export function uniqueXValues(seriesData: ScatterDatum[][]): number[] {
 }
 
 /**
- * One series' size extent, for the bubble radius scaling; `null` when no point
- * carries a finite size that is not negative (a plain scatter series). A
- * negative size draws no disc, so it takes no part in the extent.
+ * The largest size across the sized series, for the bubble radius scaling;
+ * `null` when no point carries a finite size that is not negative. Every series
+ * scales by this one peak, so one size draws one area in each series. A
+ * negative size draws no disc, so it takes no part in the peak.
  *
  * @internal
  */
-export function sizeDomain(points: ScatterDatum[]): [number, number] | null {
-	// One fold, as `linearScale` reads its extent: a spread into `Math.min` copies
+export function sizePeak(series: ScatterDatum[][]): number | null {
+	// One fold, as `linearScale` reads its extent: a spread into `Math.max` copies
 	// the sizes and throws past the argument limit of the engine.
-	let low = Number.POSITIVE_INFINITY
+	let peak = Number.NEGATIVE_INFINITY
 
-	let high = Number.NEGATIVE_INFINITY
-
-	for (const { size } of points) {
-		if (size === null || size < 0) continue
-
-		if (size < low) low = size
-
-		if (size > high) high = size
+	for (const points of series) {
+		for (const { size } of points) {
+			if (size !== null && size > peak) peak = size
+		}
 	}
 
-	return low <= high ? [low, high] : null
+	return peak >= 0 ? peak : null
 }
 
 /** The diameter range a series scales its bubbles into, from its spec or the defaults. @internal */
@@ -128,40 +125,29 @@ export function diameterRange(size?: number, maxSize?: number): [number, number]
 }
 
 /**
- * A point's radius. Bubbles interpolate on the square root of the size, between
- * the diameter range's ends over the series' own size extent. Area, not
- * diameter, carries the quantity. A sizeless series takes the plain marker
- * radius. In a sized series:
+ * A bubble's radius. The area of a disc is in proportion to its size, from zero
+ * to the {@link sizePeak}, which takes the largest diameter. A size whose disc
+ * would be smaller than the smallest diameter takes that diameter, so the disc
+ * stays visible. Also:
  *
  * - A size that is not finite (`null`), or a size of zero, takes the smallest
  *   diameter.
  * - A negative size takes `0`, for no disc.
- * - A degenerate extent reads mid-range, because equal sizes must read equal,
- *   not minimal.
  *
  * @internal
  */
 export function sizeRadius(
 	size: number | null,
-	domain: [number, number] | null,
+	peak: number | null,
 	diameters: [number, number],
 ): number {
-	if (domain === null) return MARKER_RADIUS
-
 	const [minDiameter, maxDiameter] = diameters
 
-	if (size === null || size === 0) return minDiameter / 2
+	if (size !== null && size < 0) return 0
 
-	if (size < 0) return 0
+	if (size === null || size === 0 || peak === null || peak <= 0) return minDiameter / 2
 
-	const [low, high] = [Math.sqrt(Math.max(0, domain[0])), Math.sqrt(Math.max(0, domain[1]))]
-
-	// Half the mid diameter: equal sizes read equal, not minimal.
-	if (high === low) return (minDiameter + maxDiameter) / 4
-
-	const t = (Math.sqrt(Math.max(0, size)) - low) / (high - low)
-
-	return (minDiameter + t * (maxDiameter - minDiameter)) / 2
+	return Math.max(minDiameter, maxDiameter * Math.sqrt(size / peak)) / 2
 }
 
 /** Whether a point draws a disc: every point does, except one with a negative size. @internal */
@@ -190,7 +176,7 @@ export type ScatterMark = {
 
 /**
  * Projects one series' points onto drawable marks through the two scales, each
- * radius resolved from the series' size extent.
+ * radius resolved through the `radius` of the series.
  *
  * @internal
  */

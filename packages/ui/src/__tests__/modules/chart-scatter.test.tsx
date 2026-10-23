@@ -460,6 +460,50 @@ describe('BubbleChart', () => {
 		expect(bySlot(container, 'chart-table')?.textContent).toContain('34 (weight: 4)')
 	})
 
+	it('draws one size at one area across series', () => {
+		const { container } = renderUI(
+			<BubbleChart
+				aria-label="Two sized series"
+				data={[
+					{ x: 1, a: 1, b: null, sa: 1, sb: null },
+					{ x: 2, a: 2, b: null, sa: 10, sb: null },
+					{ x: 3, a: null, b: 3, sa: null, sb: 10 },
+					{ x: 4, a: null, b: 4, sa: null, sb: 100 },
+				]}
+				width={480}
+				series={[
+					{ xKey: 'x', yKey: 'a', sizeKey: 'sa' },
+					{ xKey: 'x', yKey: 'b', sizeKey: 'sb' },
+				]}
+			/>,
+		)
+
+		const radii = points(container).map((disc) => Number(disc.getAttribute('r')))
+
+		// Size 10 reads the same in both series, and size 100 takes the largest disc.
+		expect(radii).toHaveLength(4)
+
+		expect(radii[1]).toBeNear(radii[2] as number, 0.01)
+
+		expect(radii[3]).toBeNear(14, 0.01)
+	})
+
+	it('draws the smallest disc for a series whose sizes all fail to parse', () => {
+		const { container } = renderUI(
+			<BubbleChart
+				aria-label="Unsized"
+				data={[
+					{ distance: 12, dwell: 34, weight: null },
+					{ distance: 48, dwell: 18, weight: null },
+				]}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', sizeKey: 'weight', size: 20 }]}
+			/>,
+		)
+
+		expect(points(container).map((disc) => Number(disc.getAttribute('r')))).toEqual([10, 10])
+	})
+
 	it('draws no disc for a negative size and keeps the point in the data table only', () => {
 		const onPointClick = vi.fn()
 

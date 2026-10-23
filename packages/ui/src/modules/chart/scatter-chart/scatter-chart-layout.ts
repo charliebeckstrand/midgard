@@ -25,7 +25,7 @@ import {
 	type ScatterDatum,
 	scatterData,
 	scatterDrawn,
-	sizeDomain,
+	sizePeak,
 	sizeRadius,
 } from '../engine/chart-geometry/scatter'
 import {
@@ -66,10 +66,16 @@ export type ScatterMeta = {
  * @internal
  */
 export function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): ScatterMeta[] {
-	return series.map((entry, index) => {
-		const points = scatterData(data, entry)
+	const parsed = series.map((entry) => scatterData(data, entry))
 
-		const domain = entry.sizeKey === undefined ? null : sizeDomain(points)
+	// One peak for every sized series, hidden ones included, so a size draws one
+	// area in each series and a legend toggle moves no disc.
+	const peak = sizePeak(parsed.filter((_, index) => series[index]?.sizeKey !== undefined))
+
+	return series.map((entry, index) => {
+		const points = parsed[index] ?? []
+
+		const sized = entry.sizeKey !== undefined
 
 		const diameters = diameterRange(entry.size, entry.maxSize)
 
@@ -81,9 +87,9 @@ export function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): Sca
 			points,
 			// A plain series reads no size, so each of its points draws.
 			drawn: entry.sizeKey === undefined ? points : scatterDrawn(points),
-			sized: domain !== null,
+			sized,
 			sizeName: entry.sizeKey === undefined ? null : (entry.sizeName ?? entry.sizeKey),
-			radius: (size) => sizeRadius(size, domain, diameters),
+			radius: sized ? (size) => sizeRadius(size, peak, diameters) : () => MARKER_RADIUS,
 		}
 	})
 }
