@@ -75,9 +75,6 @@ type ValueLabelChart = {
  *
  * @param list - The drawn line or area series, aligned with `metas`.
  * @param metas - The values and the value axis of each series in `list`.
- * @param gapSkipped - Whether the points of each series already drop the null
- * categories. A stacked ribbon's edge carries one point for each category, so
- * it passes `false`.
  * @param obstacles - The boxes of the standing reference labels
  * ({@link placeReferenceLabels}). A point label that meets one drops.
  * @internal
@@ -87,7 +84,6 @@ export function cartesianValueLabels(
 	config: ChartValueLabelConfig | undefined,
 	list: { paint: ChartPaint; geometry: { points: { x: number; y: number }[] } }[],
 	metas: { values: (number | null)[]; axis: ChartValueAxisId }[],
-	gapSkipped = true,
 	obstacles?: LabelBox[],
 ): PlacedValueLabel[] {
 	if (!chart.valueLabelRoom) return []
@@ -108,7 +104,6 @@ export function cartesianValueLabels(
 			}
 		}),
 		chart.plot,
-		gapSkipped,
 		obstacles,
 	)
 }

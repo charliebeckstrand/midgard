@@ -75,83 +75,72 @@ function tooltipSnapPoints(stacked: boolean, snapPoints: number[][], count: numb
 }
 
 /**
- * The value points keyboard navigation anchors to. Unstacked, they are the
- * per-series points the pointer snaps to. Stacked, the pointer floats free but
- * the keyboard still needs a stop per band. Each category therefore hands over
- * its ribbons' cumulative top edges (the boundaries the eye already reads)
- * top to bottom of the stack.
+ * The keyboard stops: per category, the value points and the series index behind
+ * each. Unstacked, they are the per-series points the pointer snaps to. Stacked,
+ * the pointer floats free but the keyboard still needs a stop per band. Each
+ * category therefore hands over its ribbons' cumulative top edges (the
+ * boundaries the eye already reads), top to bottom of the stack, and the drawn
+ * series behind each ribbon names its stop. A series with no value at the
+ * category takes no stop there, because a null is a gap.
  *
  * @internal
  */
-function focusPoints(
+function focusStops(
 	stacked: boolean,
-	snapPoints: number[][],
-	bands: StackedAreaGeometry[],
-	count: number,
-): number[][] {
-	if (!stacked) return snapPoints
-
-	return Array.from({ length: count }, (_, index) => {
-		const edges: number[] = []
-
-		for (const band of bands) {
-			const y = band.points[index]?.y
-
-			if (y != null && Number.isFinite(y)) edges.push(y)
-		}
-
-		return edges
-	})
-}
-
-/**
- * The series index behind each keyboard stop, aligned to {@link focusPoints} so
- * the cursor's value lane resolves to the series it reads. Unstacked, the stops
- * are the per-series snap points, so the cartesian series map carries straight
- * through. Stacked, each stop is a ribbon's top edge, so the drawn series behind
- * that ribbon names it. Stops drop by the same finite-edge gate the points use,
- * so the two stay in step.
- *
- * @internal
- */
-function focusSeries(
-	stacked: boolean,
-	snapSeries: number[][],
+	snap: { points: number[][]; series: number[][] },
 	drawn: DrawnSeries[],
 	bands: StackedAreaGeometry[],
 	count: number,
-): number[][] {
-	if (!stacked) return snapSeries
+): { points: number[][]; series: number[][] } {
+	if (!stacked) return snap
 
-	return Array.from({ length: count }, (_, index) => {
-		const series: number[] = []
+	const points: number[][] = []
+
+	const series: number[][] = []
+
+	for (let index = 0; index < count; index++) {
+		const edges: number[] = []
+
+		const owners: number[] = []
 
 		for (const [order, band] of bands.entries()) {
 			const y = band.points[index]?.y
 
 			const meta = drawn[order]?.meta
 
-			if (meta && y != null && Number.isFinite(y)) series.push(meta.index)
+			if (meta && y !== undefined && Number.isFinite(meta.values[index])) {
+				edges.push(y)
+
+				owners.push(meta.index)
+			}
 		}
 
-		return series
-	})
+		points.push(edges)
+
+		series.push(owners)
+	}
+
+	return { points, series }
 }
 
 /**
  * Adapts one stacked band to the line-marks geometry shape (one segment, one
- * ribbon). A band of one category draws no ribbon, so its lone point is
- * isolated, as a line marks a point that no segment reaches.
+ * ribbon). The ribbon and the hit test run through every category, but the
+ * points keep only the categories with a value: a null is a gap, so it takes no
+ * marker and no value label. A band of one category draws no ribbon, so its
+ * lone point is isolated, as a line marks a point that no segment reaches.
  *
  * @internal
  */
-function stackedToLine(band: StackedAreaGeometry): LineSeriesGeometry {
+function stackedToLine(band: StackedAreaGeometry, values: (number | null)[]): LineSeriesGeometry {
+	const points = band.points.filter((_, index) => Number.isFinite(values[index]))
+
 	return {
 		segments: band.line ? [band.line] : [],
 		areas: band.area ? [band.area] : [],
-		points: band.points,
+		points,
 		runs: band.points.length > 0 ? [band.points] : [],
-		isolated: band.points.length === 1 ? band.points : [],
+		isolated: band.points.length === 1 ? points : [],
 	}
 }
 
@@ -167,7 +156,10 @@ function areaGeometry(
 	},
 ): LineSeriesGeometry {
 	if (args.stacked) {
-		return stackedToLine(args.stackedGeometry[order] ?? { line: '', area: '', points: [] })
+		return stackedToLine(
+			args.stackedGeometry[order] ?? { line: '', area: '', points: [] },
+			entry.meta.values,
+		)
 	}
 
 	// The wash closes to the series' own zero baseline, not the plot floor: on a
@@ -207,8 +199,9 @@ function stackedRibbons(
  * axis, gridlines, legend, crosshair tooltip, and the visually-hidden table.
  * The category axis rules on the zero line that the washes stand on.
  *
- * @remarks Stacked bands treat a missing value as zero to stay continuous; the
- * unstacked variant breaks its lines at gaps like {@link LineChart}. The
+ * @remarks Stacked bands treat a missing value as zero to stay continuous, but
+ * the gap takes no marker, value label, or keyboard stop. The unstacked variant
+ * breaks its lines at gaps like {@link LineChart}. The
  * crosshair defaults on here (a snapping y-rule meeting the nearest point), and
  * drops the snap under smooth interpolation; override it with the `crosshair`
  * prop. Focus the plot to drive the crosshair and tooltip by keyboard. The
@@ -329,14 +322,14 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 				points: tooltipSnapPoints(stacked, chart.snapPoints, xs.length),
 				series: chart.snapSeries,
 			}}
-			focusStops={{
-				points: focusPoints(stacked, chart.snapPoints, stackedGeometry, xs.length),
-				series: focusSeries(stacked, chart.snapSeries, drawn, stackedGeometry, xs.length),
-			}}
-			// Stacked ribbons carry a top-edge point for each category (nulls
-			// included), not the gap-skipped points of a line, so the labels read each
-			// category's value by index.
-			valueLabels={{ list, gapSkipped: !stacked }}
+			focusStops={focusStops(
+				stacked,
+				{ points: chart.snapPoints, series: chart.snapSeries },
+				drawn,
+				stackedGeometry,
+				xs.length,
+			)}
+			valueLabels={{ list }}
 		/>
 	)
 }
