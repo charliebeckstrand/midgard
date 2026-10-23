@@ -299,10 +299,10 @@ export function GridCellEditor<T>({
 
 	// The number that a screen reader speaks for the row of the cell, so the name
 	// of the editor and the position of the row agree. The row is in the
-	// document only after the mount, so the first render counts the data rows.
-	// Each render reads the number again, because a sort or a panel above the
-	// row can move it.
-	const [spokenRow, setSpokenRow] = useState(rowIndex + 1)
+	// document only after the mount, so the first render counts one header row
+	// above the data. Each render reads the number again, because a sort or a
+	// panel above the row can move it.
+	const [spokenRow, setSpokenRow] = useState(rowIndex + 2)
 
 	useLayoutEffect(() => {
 		const row = hostRef.current?.closest('tr')

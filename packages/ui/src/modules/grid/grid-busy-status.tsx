@@ -21,7 +21,7 @@ function useStatusMessage(loading: boolean, rowCount: number, failed: boolean): 
 
 	// The state holds what the region says, not its text, so the text follows
 	// the locale of the reader.
-	const [said, setSaid] = useState<'loading' | 'failed' | number | null>(null)
+	const [said, setSaid] = useState<'loading' | number | null>(null)
 
 	useEffect(() => {
 		if (loading) {
@@ -30,22 +30,16 @@ function useStatusMessage(loading: boolean, rowCount: number, failed: boolean): 
 			return
 		}
 
-		if (failed) {
-			setSaid('failed')
-
-			return
-		}
-
 		const id = setTimeout(() => setSaid(rowCount), GRID_STATUS_DEBOUNCE_MS)
 
 		return () => clearTimeout(id)
-	}, [loading, rowCount, failed])
+	}, [loading, rowCount])
+
+	if (failed && !loading) return intl.formatMessage(gridMessages.loadFailed)
 
 	if (said === null) return ''
 
 	if (said === 'loading') return intl.formatMessage(intlMessages.loading)
-
-	if (said === 'failed') return intl.formatMessage(gridMessages.loadFailed)
 
 	return intl.formatMessage(gridMessages.rowsResult, { count: said })
 }

@@ -146,6 +146,16 @@ const [GroupManagerGroupsContext] = createContext<GridColumnGroup[]>('GridGroupM
 	default: [],
 })
 
+/**
+ * Whether the editor renders the drag grips of its groups and column rows (see
+ * {@link GridGroupManagerProps.reorderable}).
+ *
+ * @internal
+ */
+const [GroupManagerReorderableContext] = createContext<boolean>('GridGroupManagerReorderable', {
+	default: true,
+})
+
 /** Props for {@link GridGroupManager}. @internal */
 export type GridGroupManagerProps = {
 	groups: GridColumnGroup[]
@@ -260,9 +270,8 @@ export function groupManagerAnnouncements(
  * accessible alternative to the drag. Without `reorderable`, the editor drops
  * the grips, and the "Move to" menu is the only way to change a group. Group
  * edits commit through `onGroupsChange`; visibility stays on the shared hidden
- * set. Under the
- * manager's filter each zone renders only its matching members, holding the rest
- * in place (see `matches`).
+ * set. Under the manager's filter each zone renders only its matching members,
+ * holding the rest in place (see `matches`).
  *
  * @internal
  */
@@ -368,7 +377,6 @@ export function GridGroupManager({
 		removeGroup,
 		assign: manager.assign,
 		movedRef,
-		reorderable,
 	}
 
 	const intl = useIntl()
@@ -386,69 +394,71 @@ export function GridGroupManager({
 
 	return (
 		<GroupManagerGroupsContext value={groups}>
-			<DndContext
-				id={dndId}
-				accessibility={accessibility}
-				sensors={sensors}
-				collisionDetection={groupAwareCollision}
-				measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
-				onDragStart={manager.handleDragStart}
-				onDragOver={manager.handleDragOver}
-				onDragEnd={manager.handleDragEnd}
-				onDragCancel={manager.handleDragCancel}
-			>
-				<div ref={rootRef} className={k().manager.base}>
-					{ungroupedZone && (
-						<GridGroupManagerZoneView
-							zone={ungroupedZone}
-							columnIds={manager.zoneMap[UNGROUPED] ?? []}
-							{...shared}
-						/>
-					)}
-
-					{/* Groups reorder as a vertical list, dragged by the handle beside each
-					    name; the grid's group order follows this order. */}
-					<SortableContext items={groupSortIds} strategy={verticalListSortingStrategy}>
-						{/* A list, so assistive tech reads the count of the groups. With no
-						    group, no empty list adds a gap to the stack. */}
-						{groupZones.length > 0 && (
-							<ul className={k().manager.groups}>
-								{groupZones.map((zone) => (
-									<GridGroupManagerGroupZone
-										key={zone.id}
-										zone={zone}
-										columnIds={manager.zoneMap[String(zone.id)] ?? []}
-										{...shared}
-									/>
-								))}
-							</ul>
+			<GroupManagerReorderableContext value={reorderable}>
+				<DndContext
+					id={dndId}
+					accessibility={accessibility}
+					sensors={sensors}
+					collisionDetection={groupAwareCollision}
+					measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+					onDragStart={manager.handleDragStart}
+					onDragOver={manager.handleDragOver}
+					onDragEnd={manager.handleDragEnd}
+					onDragCancel={manager.handleDragCancel}
+				>
+					<div ref={rootRef} className={k().manager.base}>
+						{ungroupedZone && (
+							<GridGroupManagerZoneView
+								zone={ungroupedZone}
+								columnIds={manager.zoneMap[UNGROUPED] ?? []}
+								{...shared}
+							/>
 						)}
-					</SortableContext>
 
-					<Button
-						ref={newGroupRef}
-						type="button"
-						variant="soft"
-						onClick={manager.addGroup}
-						className="self-start"
-					>
-						<Icon icon={<Plus />} />
-						{intl.formatMessage(gridMessages.newGroup)}
-					</Button>
-				</div>
+						{/* Groups reorder as a vertical list, dragged by the handle beside each
+					    name; the grid's group order follows this order. */}
+						<SortableContext items={groupSortIds} strategy={verticalListSortingStrategy}>
+							{/* A list, so assistive tech reads the count of the groups. With no
+						    group, no empty list adds a gap to the stack. */}
+							{groupZones.length > 0 && (
+								<ul className={k().manager.groups}>
+									{groupZones.map((zone) => (
+										<GridGroupManagerGroupZone
+											key={zone.id}
+											zone={zone}
+											columnIds={manager.zoneMap[String(zone.id)] ?? []}
+											{...shared}
+										/>
+									))}
+								</ul>
+							)}
+						</SortableContext>
 
-				{/* The dragged row's stand-in: a full, inert clone of the grip, disabled
+						<Button
+							ref={newGroupRef}
+							type="button"
+							variant="soft"
+							onClick={manager.addGroup}
+							className="self-start"
+						>
+							<Icon icon={<Plus />} />
+							{intl.formatMessage(gridMessages.newGroup)}
+						</Button>
+					</div>
+
+					{/* The dragged row's stand-in: a full, inert clone of the grip, disabled
 				    checkbox, and label. The source row can therefore hide while dragging,
 				    without the checkbox appearing to vanish. Mounted always; child gated on drag. */}
-				<PortalDragOverlay>
-					{activeItem ? (
-						<GridGroupManagerColumnRowOverlay
-							item={activeItem}
-							checked={!hidden.has(activeItem.id)}
-						/>
-					) : null}
-				</PortalDragOverlay>
-			</DndContext>
+					<PortalDragOverlay>
+						{activeItem ? (
+							<GridGroupManagerColumnRowOverlay
+								item={activeItem}
+								checked={!hidden.has(activeItem.id)}
+							/>
+						) : null}
+					</PortalDragOverlay>
+				</DndContext>
+			</GroupManagerReorderableContext>
 		</GroupManagerGroupsContext>
 	)
 }
@@ -471,8 +481,6 @@ type GridGroupManagerZoneViewProps = {
 	assign: (columnId: string | number, groupId: string | number | null) => void
 	/** The column whose Move trigger held focus as its row unmounted. */
 	movedRef: RefObject<string | number | null>
-	/** Renders the drag grips of the column rows and of the group. */
-	reorderable: boolean
 	/** The group-reorder drag handle, placed ahead of the name Input; absent on the ungrouped pool. */
 	handle?: ReactNode
 }
@@ -490,7 +498,7 @@ function GridGroupManagerGroupZone(props: GridGroupManagerZoneViewProps) {
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
 		useGridZoneSortable(`${GROUP_PREFIX}${props.zone.id}`)
 
-	const handle = props.reorderable && (
+	const handle = use(GroupManagerReorderableContext) && (
 		<GridManagerGrip
 			sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
 			label={intl.formatMessage(gridMessages.groupHandle, {
@@ -520,7 +528,6 @@ function GridGroupManagerZoneView({
 	removeGroup,
 	assign,
 	movedRef,
-	reorderable,
 	handle,
 }: GridGroupManagerZoneViewProps) {
 	const intl = useIntl()
@@ -601,7 +608,6 @@ function GridGroupManagerZoneView({
 										onToggle={onToggle}
 										assign={assign}
 										movedRef={movedRef}
-										reorderable={reorderable}
 									/>
 								)
 							})}
@@ -682,8 +688,6 @@ type GridGroupManagerColumnRowProps = {
 	assign: (columnId: string | number, groupId: string | number | null) => void
 	/** The column whose Move trigger held focus as its row unmounted. */
 	movedRef: RefObject<string | number | null>
-	/** Renders the drag grip of the row. */
-	reorderable: boolean
 }
 
 /**
@@ -701,12 +705,13 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 	onToggle,
 	assign,
 	movedRef,
-	reorderable,
 }: GridGroupManagerColumnRowProps) {
 	// The shared sortable hides the source row (`opacity: 0`) while it drags, and
 	// the editor's `<DragOverlay>` stands in, as in List and Kanban.
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
 		useSortableItem({ id: String(item.id) })
+
+	const reorderable = use(GroupManagerReorderableContext)
 
 	const intl = useIntl()
 

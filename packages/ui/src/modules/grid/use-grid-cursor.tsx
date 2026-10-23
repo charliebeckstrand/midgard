@@ -395,20 +395,19 @@ export function useGridCursor<T>({
 
 		const { from, to } = cells
 
-		// The rows from the anchor to the cursor, negative when the cursor is above.
-		const span = to.row - from.row
-
 		const ownFrom = spoken(from.row)
 
 		const ownTo = spoken(to.row)
 
 		// A windowed body can leave one corner out of the document. Its number then
-		// follows from the other corner. That is exact while no group header or
-		// detail panel is between the two. With no corner in the document, the
+		// keeps the offset of the other corner. That is exact while no group header
+		// or detail panel is between the two. With no corner in the document, the
 		// number is the place of the row in the data.
-		const fromRow = ownFrom ?? (ownTo === null ? from.row + 1 : ownTo - span)
+		const shift = ownFrom !== null ? ownFrom - from.row : ownTo !== null ? ownTo - to.row : 1
 
-		const toRow = ownTo ?? fromRow + span
+		const fromRow = ownFrom ?? from.row + shift
+
+		const toRow = ownTo ?? to.row + shift
 
 		const corner = ({ col }: Coord, row: number) => ({
 			column: columns[col]
