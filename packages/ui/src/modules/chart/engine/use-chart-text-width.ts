@@ -1,33 +1,42 @@
 'use client'
 
 import { type RefObject, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { ELLIPSIS, estimateTextFit, type TextFit, type TextWidth } from './chart-text-width'
+import {
+	ELLIPSIS,
+	estimateTextFit,
+	graphemeEnds,
+	type TextFit,
+	type TextWidth,
+} from './chart-text-width'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 
 /**
  * The longest start of `text` that fits in `maxWidth` with the ellipsis after
- * it. `node` holds `text` and is in the layout. The advance of each start comes
- * from one layout, and the box of the cut text then confirms the fit, because
- * the glyphs can paint past the advance.
+ * it. Each start ends on a whole character ({@link graphemeEnds}). `node` holds
+ * `text` and is in the layout. The advance of each start comes from one
+ * layout, and the box of the cut text then confirms the fit, because the
+ * glyphs can paint past the advance.
  *
  * @internal
  */
 function fitNode(node: SVGTextElement, text: string, ellipsis: number, maxWidth: number): TextFit {
-	let kept = text.length
+	const ends = [0, ...graphemeEnds(text)]
 
-	while (kept > 0 && node.getSubStringLength(0, kept) + ellipsis > maxWidth) kept--
+	let at = ends.length - 1
+
+	while (at > 0 && node.getSubStringLength(0, ends[at] ?? 0) + ellipsis > maxWidth) at--
 
 	for (;;) {
-		const cut = `${text.slice(0, kept).trimEnd()}${ELLIPSIS}`
+		const cut = `${text.slice(0, ends[at]).trimEnd()}${ELLIPSIS}`
 
 		node.textContent = cut
 
 		const width = node.getBBox().width
 
-		if (width <= maxWidth || kept === 0) return { text: cut, width }
+		if (width <= maxWidth || at === 0) return { text: cut, width }
 
-		kept--
+		at--
 	}
 }
 

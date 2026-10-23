@@ -67,10 +67,10 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	/**
 	 * Custom entries to add to the menu, rendered in array order.
 	 *
-	 * Pass a function to build them from the mark under the pointer. It is the hook for a per-mark
-	 * action ("View the shipments behind this bar"), whose label can name the mark it will act on.
-	 * It is called
-	 * with `index: null` when the right-click missed every mark, so an item that needs one can be omitted.
+	 * Pass a function to build them from the mark under the pointer. It is the hook
+	 * for a per-mark action ("View the shipments behind this bar"), whose label can
+	 * name the mark it will act on. It is called with `index: null` when the
+	 * right-click missed every mark, so an item that needs one can be omitted.
 	 */
 	items?: ContextMenuItem[] | ((target: ChartContextMenuTarget) => ContextMenuItem[])
 	/**

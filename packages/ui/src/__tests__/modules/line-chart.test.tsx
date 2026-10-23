@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { LINE_STROKE_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { seriesValues } from '../../modules/chart/engine/chart-series'
 import { LineChart } from '../../modules/chart/line-chart'
 import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
@@ -371,6 +372,42 @@ describe('LineChart', () => {
 		expect(dashed?.getAttribute('clip-path')).toMatch(/^url\(#chart-line-wipe-/)
 
 		expect(allBySlot(container, 'chart-point')).toHaveLength(6)
+	})
+
+	it('keeps the whole stroke of an animated dashed line inside its wipe clip', () => {
+		// The rows span the nice domain exactly, so the line touches the ceiling and
+		// the floor of the plot. The clip stays on after the wipe, so a clip of the
+		// plot rect alone cut the outer half of the stroke there.
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Dashed extremes"
+				animate
+				data={[
+					{ week: 'a', value: 0 },
+					{ week: 'b', value: 50 },
+					{ week: 'c', value: 100 },
+				]}
+				series={[{ xKey: 'week', yKey: 'value', yName: 'Value', dashed: true }]}
+				width={400}
+				height={200}
+			/>,
+		)
+
+		const clip = getSlot(container, 'chart-line-wipe').querySelector('rect')
+
+		const ys = [
+			...(bySlot(container, 'chart-line')?.getAttribute('d') ?? '').matchAll(
+				/[ML] [\d.]+ ([\d.]+)/g,
+			),
+		].map((match) => Number(match[1]))
+
+		const top = Number(clip?.getAttribute('y'))
+
+		const bottom = top + Number(clip?.getAttribute('height'))
+
+		expect(top).toBeLessThanOrEqual(Math.min(...ys) - LINE_STROKE_WIDTH / 2)
+
+		expect(bottom).toBeGreaterThanOrEqual(Math.max(...ys) + LINE_STROKE_WIDTH / 2)
 	})
 
 	it('curves the lines under smooth interpolation', () => {

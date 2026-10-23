@@ -222,13 +222,13 @@ type ChartLegendOverflowSwitchProps = {
 	texture: boolean
 	/** Toggles this entry's series on or off. */
 	onToggle: (index: number) => void
-	/** Pointer enter/leave emphasis: the series index while pointed, `null` on leave. */
-	onEmphasis: (index: number | null) => void
+	/** The legend's shared pointer and focus emphasis. */
+	emphasis: LegendEmphasis<number>
 }
 
 /**
- * One switch in the `+N` overflow popover: the same series toggle and
- * hover-emphasis as a row entry. It carries the full label, and none of the row's
+ * One switch in the `+N` overflow popover: the same series toggle, and the same
+ * pointer and focus emphasis, as a row entry. It carries the full label, and none of the row's
  * reveal-tooltip machinery. The popover is a roomy surface with no width
  * pressure, so nothing needs clipping. The row's per-commit
  * {@link useTruncation} layout read would also thrash against the floating
@@ -243,7 +243,7 @@ function ChartLegendOverflowSwitch({
 	off,
 	texture,
 	onToggle,
-	onEmphasis,
+	emphasis,
 }: ChartLegendOverflowSwitchProps) {
 	return (
 		<Button
@@ -256,9 +256,11 @@ function ChartLegendOverflowSwitch({
 			onClick={() => onToggle(item.index)}
 			// A tap is not a point, as on `LegendSwitch`.
 			onPointerEnter={(event) => {
-				if (event.pointerType !== 'touch') onEmphasis(item.index)
+				if (event.pointerType !== 'touch') emphasis.point(item.index)
 			}}
-			onPointerLeave={() => onEmphasis(null)}
+			onPointerLeave={() => emphasis.point(null)}
+			onFocus={emphasis.sync}
+			onBlur={emphasis.sync}
 		>
 			<ChartLegendSwatch item={item} off={off} texture={texture} />
 
@@ -550,6 +552,10 @@ export function ChartLegend({
 }: ChartLegendProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
+	// The popover past the cap. It renders outside the legend, so the emphasis
+	// reads the focus of its switches through this second box.
+	const overflowRef = useRef<HTMLDivElement>(null)
+
 	const intl = useIntl()
 
 	const [page, setPage] = useState(0)
@@ -604,11 +610,12 @@ export function ChartLegend({
 	const { focusSeries: setSeriesFocus, pointReference: setReferenceActive } = useChartActions()
 
 	// The pointed entry wins, else the keyboard-focused one. Buttons render in
-	// `pageItems` order, so a focused button's position names its entry there. The
-	// entry carries the series index that the emphasis keys off, which the display
-	// order of the legend need not match.
+	// `pageItems` order, and the overflow popover holds the entries past the row,
+	// so a focused button's position names its entry there. The entry carries the
+	// series index that the emphasis keys off, which the display order of the
+	// legend need not match.
 	const emphasis = useLegendEmphasis(
-		ref,
+		[ref, overflowRef],
 		'button[data-slot="chart-legend-item"]',
 		(position) => pageItems[position]?.index ?? null,
 		setSeriesFocus,
@@ -621,7 +628,7 @@ export function ChartLegend({
 	// rule that the chips skip. A chip that is off names a pulled rule, so it is not
 	// live and recedes nothing.
 	const referenceEmphasis = useLegendEmphasis(
-		ref,
+		[ref, overflowRef],
 		'button[data-slot="chart-legend-reference"]',
 		(position) => references[position]?.index ?? null,
 		setReferenceActive,
@@ -643,14 +650,19 @@ export function ChartLegend({
 	}
 
 	// Escape closes the overflow popover and unmounts the switch under a resting
-	// pointer, so no `pointerleave` reaches it. The close therefore clears the
-	// pointed switch of both emphases.
+	// pointer, or the switch that holds the focus, so no `pointerleave` or `blur`
+	// reaches it. The close therefore clears both emphases. The focus goes back
+	// to the `+N` chip, which emphasizes nothing.
 	const onOverflowOpenChange = (open: boolean) => {
 		if (open) return
 
 		emphasis.point(null)
 
 		referenceEmphasis.point(null)
+
+		setSeriesFocus(null)
+
+		setReferenceActive(null)
 	}
 
 	// The row is a toolbar (one Tab stop, arrow-key roving, Escape to drop focus)
@@ -792,6 +804,7 @@ export function ChartLegend({
 
 					<PopoverContent autoFocus aria-label={intl.formatMessage(chartMessages.moreEntries)}>
 						<div
+							ref={overflowRef}
 							data-slot="chart-legend-overflow"
 							// The popover is outside the legend, so it caps the hit areas of
 							// its entries at its own gap (`TouchTarget`).
@@ -804,7 +817,7 @@ export function ChartLegend({
 									off={hidden.has(item.index)}
 									texture={texture}
 									onToggle={onToggle}
-									onEmphasis={emphasis.point}
+									emphasis={emphasis}
 								/>
 							))}
 

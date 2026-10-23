@@ -153,7 +153,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 	// The pointed entry wins, else the keyboard-focused one, the same rule as the
 	// chart legend. A click's focus shows no ring, so it emphasizes nothing.
 	const emphasis = useLegendEmphasis(
-		ref,
+		[ref],
 		'[data-slot="map-legend-item"]',
 		(position) => items[position]?.id ?? null,
 		onFocus,
