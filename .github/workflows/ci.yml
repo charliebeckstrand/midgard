@@ -192,29 +192,62 @@ jobs:
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
+  # The `playwright` version that packages/ui pins, for the tag of the
+  # container image of `density`. One statement of the version means that the
+  # image and the npm package cannot drift: a bump of `playwright` changes the
+  # image in the same commit. A job of its own, because `container` resolves
+  # before the steps of its job run.
+  playwright-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: packages/ui/package.json
+          sparse-checkout-cone-mode: false
+      - id: version
+        run: echo "version=$(jq -r '.devDependencies.playwright' packages/ui/package.json)" >> "$GITHUB_OUTPUT"
+
   # The density files of the browser suite in Firefox and WebKit, the
   # `density-firefox` and `density-webkit` instances of
   # packages/ui/vitest.browser.config.ts. A separate job, not a matrix entry
-  # of `browser`: only this job installs the two browsers, and their system
-  # packages. The two instances hold a few files, so one job runs them with no
-  # shard. `DENSITY_ENGINES` adds the two instances, and `--project` runs only
-  # them, so the Chromium instances stay in `browser`.
+  # of `browser`: only this job runs the two browsers. The two instances hold
+  # a few files, so one job runs them with no shard. `DENSITY_ENGINES` adds
+  # the two instances, and `--project` runs only them, so the Chromium
+  # instances stay in `browser`.
+  #
+  # The job runs in the Playwright image, which holds Firefox, WebKit, and
+  # each system package that they load. `playwright install --with-deps` ran
+  # apt for about 185 packages and 140 MB. A slow Ubuntu mirror stalled it,
+  # and the job hung until its time limit on several pull requests. In the
+  # image, the job downloads no browser and runs no apt. The tag must match
+  # the `playwright` package, or the browsers in the image do not launch, so
+  # `playwright-version` supplies it. `resolute` is the Ubuntu of
+  # `ubuntu-latest`.
   density:
+    needs: playwright-version
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    container: mcr.microsoft.com/playwright:v${{ needs.playwright-version.outputs.version }}-resolute
     steps:
       - uses: actions/checkout@v7
+      # The workspace belongs to the runner user, and the container runs as
+      # root, so git refuses the repository that Turbo reads. checkout trusts
+      # the workspace only for its own step.
+      - run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/turbo-cache
         with:
           name: density
-      - uses: ./.github/actions/playwright
-        with:
-          browsers: firefox webkit
-      # Filtered to `ui`, as in `browser`.
+      # Filtered to `ui`, as in `browser`. The container runs as root, and
+      # Firefox does not start as root when HOME belongs to another user.
+      # GitHub sets HOME to a directory of the runner user.
       - run: pnpm turbo run test:browser --filter=ui --summarize -- --project density-firefox --project density-webkit
         env:
           DENSITY_ENGINES: 1
+          HOME: /root
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
@@ -305,7 +338,7 @@ jobs:
   # Add each new job to `needs`. The job runs when a needed job fails, and then
   # it fails. A needed job that fails, is cancelled, or is skipped makes it fail.
   ci-ok:
-    needs: [gate, build, test, browser, density, docs, compiler]
+    needs: [gate, build, test, browser, playwright-version, density, docs, compiler]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
