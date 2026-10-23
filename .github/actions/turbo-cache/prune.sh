@@ -9,7 +9,8 @@
 # their hashes.
 set -euo pipefail
 
-keep=$(jq -r '.tasks[].hash' .turbo/runs/*.json | sort -u)
+# Node, not jq: the Playwright image of the `density` job holds no jq.
+keep=$(node -e 'for (const file of process.argv.slice(1)) for (const task of require(require("node:path").resolve(file)).tasks) console.log(task.hash)' .turbo/runs/*.json | sort -u)
 
 for entry in .turbo/cache/*; do
 	hash=$(basename "$entry")

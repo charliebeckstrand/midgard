@@ -1,33 +1,21 @@
 name: Playwright
-description: Restore the Playwright browsers and their system packages from the cache, and install them on a miss.
+description: Restore Playwright Chromium from the cache, and install it on a miss.
 
-# Each job that runs a browser uses this action after `setup`: `browser`,
-# `density`, and `docs` in ci.yml, visual.yml, and browser-stress.yml. One copy
-# keeps the cache key the same in each job that installs the same browsers, so
-# those jobs share one cache entry.
+# Each job that runs Chromium uses this action after `setup`: `browser` and
+# `docs` in ci.yml, visual.yml, and browser-stress.yml. One copy keeps the
+# cache key the same in each job, so those jobs share one cache entry.
 #
-# `browsers` defaults to Chromium. Each instance of vitest.browser.config.ts
-# uses Chromium, except `density-firefox` and `density-webkit`, and only the
-# `density` job runs those two. Only that job installs Firefox and WebKit, so
-# each other job downloads and restores Chromium only.
+# The `density` job does not use this action. It runs Firefox and WebKit in
+# the Playwright container image, which holds the browsers and their system
+# packages (ci.yml).
 #
-# The download of Chromium is ~170MB, so the key is the inputs that decide the
-# browser builds: the resolved `playwright` version, which `pnpm install` has
-# already put on disk, and the browser list. A lockfile hash missed on every
-# dependency bump, and `rangeStrategy: update-lockfile` makes each bot pull
-# request one. The list is in the key because actions/cache does not save on a
-# hit. With one key for two lists, the job that saved first would decide the
-# entry for each job: the other list would download its browsers on each run,
-# or restore browsers that it does not use. There is no restore key: a prefix
-# match would give back a superseded revision that `install` then downloads
-# beside it, so the cache would hold both. `install` is idempotent. On a hit,
-# it skips the download.
-inputs:
-  browsers:
-    description: The Playwright browsers to install, separated by spaces.
-    required: false
-    default: chromium
-
+# The download of Chromium is ~170MB, so the key is the input that decides the
+# browser build: the resolved `playwright` version, which `pnpm install` has
+# already put on disk. A lockfile hash missed on every dependency bump, and
+# `rangeStrategy: update-lockfile` makes each bot pull request one. There is
+# no restore key: a prefix match would give back a superseded revision that
+# `install` then downloads beside it, so the cache would hold both. `install`
+# is idempotent. On a hit, it skips the download.
 outputs:
   executable:
     description: The path of the Playwright Chromium executable.
@@ -39,19 +27,16 @@ runs:
     - id: playwright
       working-directory: packages/ui
       shell: bash
-      env:
-        BROWSERS: ${{ inputs.browsers }}
       run: |
         echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
         echo "executable=$(node -p "require('playwright').chromium.executablePath()")" >> "$GITHUB_OUTPUT"
-        echo "browsers=$(echo $BROWSERS | tr ' ' '-')" >> "$GITHUB_OUTPUT"
-        echo "image-os=$ImageOS" >> "$GITHUB_OUTPUT"
-        echo "image-version=$ImageVersion" >> "$GITHUB_OUTPUT"
+    # The key ends in `chromium`, as when the action took a browser list, so
+    # the entry that the jobs already share stays valid.
     - uses: actions/cache@v6
       with:
         path: ~/.cache/ms-playwright
-        key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}-${{ steps.playwright.outputs.browsers }}
-    # Chromium alone installs with no system packages. The runner image already
+        key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}-chromium
+    # Chromium installs with no system packages. The runner image already
     # holds each library that headless Chromium loads. `--with-deps` ran apt
     # on each run, and apt fetched about 35 MB from the Ubuntu mirrors: newer
     # builds of ten of those libraries, and the font packages. A slow mirror
@@ -59,47 +44,5 @@ runs:
     # browser suite passes without those fonts. If a runner image drops a
     # library, Chromium does not launch, and the error names the library.
     # Put `--with-deps` back then.
-    #
-    # Each other list installs with `--with-deps`. The runner image does not
-    # hold the libraries that Firefox and WebKit load. Only the `density` job
-    # pays that apt run: about 185 packages and 140 MB. A slow mirror gave
-    # about 50 KB/s, and the job hung until its time limit.
-    #
-    # So the steps below keep the `.deb` files of that run in a cache.
-    # On a hit, apt finds each file on disk and downloads none. apt still
-    # reads the package index first, and that is a small download.
-    #
-    # The image version is in the key, but a restore key matches each older
-    # image and each older Playwright. apt checks each `.deb` against the
-    # index, downloads only the packages that changed, and `autoclean`
-    # removes the superseded files before the save.
-    - if: inputs.browsers != 'chromium'
-      uses: actions/cache@v6
-      with:
-        path: ~/.cache/playwright-apt
-        key: ${{ runner.os }}-playwright-apt-${{ steps.playwright.outputs.image-os }}-${{ steps.playwright.outputs.browsers }}-${{ steps.playwright.outputs.version }}-${{ steps.playwright.outputs.image-version }}
-        restore-keys: ${{ runner.os }}-playwright-apt-${{ steps.playwright.outputs.image-os }}-${{ steps.playwright.outputs.browsers }}-
-    # apt-get keeps each package that it downloads, unless a configuration
-    # file stops it. This file makes sure that the files stay for the save.
-    - if: inputs.browsers != 'chromium'
-      shell: bash
-      run: |
-        echo 'Binary::apt-get::APT::Keep-Downloaded-Packages "true";' | sudo tee /etc/apt/apt.conf.d/99playwright-keep-debs > /dev/null
-        mkdir -p ~/.cache/playwright-apt
-        find ~/.cache/playwright-apt -maxdepth 1 -name '*.deb' -exec sudo cp -t /var/cache/apt/archives {} +
-        echo "Restored $(find ~/.cache/playwright-apt -maxdepth 1 -name '*.deb' | wc -l) packages from the cache."
     - shell: bash
-      env:
-        BROWSERS: ${{ inputs.browsers }}
-        DEPS: ${{ inputs.browsers != 'chromium' && '--with-deps' || '' }}
-      # Not quoted: the list splits into one argument for each browser.
-      run: pnpm --filter ui exec playwright install $DEPS $BROWSERS
-    # apt writes the files as root, with read access for each user. The copy
-    # belongs to the runner user, so the cache can save it.
-    - if: inputs.browsers != 'chromium'
-      shell: bash
-      run: |
-        sudo apt-get autoclean
-        find ~/.cache/playwright-apt -maxdepth 1 -name '*.deb' -delete
-        find /var/cache/apt/archives -maxdepth 1 -name '*.deb' -exec cp -t ~/.cache/playwright-apt {} +
-        echo "Kept $(find ~/.cache/playwright-apt -maxdepth 1 -name '*.deb' | wc -l) packages for the cache."
+      run: pnpm --filter ui exec playwright install chromium
