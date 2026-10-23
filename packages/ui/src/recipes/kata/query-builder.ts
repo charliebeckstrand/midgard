@@ -4,9 +4,11 @@
  * axis frames a group inside another group. `rule` is a rule row, and `remove`
  * is its remove control. `value` is the fixed text that stands in for the
  * input of an operator with no value, and `actions` is the action cluster.
- * `parts` is the row of the parts of a rule, and `part` and `range` size each
- * part. `sortable`, `item`, `handle`, `node`, and `separator` are the parts of
- * a builder that reorders. The `instant` motion is an extra.
+ * `parts` is the row of the parts of a rule, and `parts.item` and
+ * `parts.range` size each part. The parts of a builder that reorders nest under
+ * `sortable`: `sortable` is a node, and `sortable.list`, `sortable.handle`,
+ * `sortable.node`, and `sortable.separator` are the other parts. The `instant`
+ * motion is an extra.
  */
 import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
@@ -45,63 +47,72 @@ export const k = defineKata(
 			 */
 			parts: {
 				responsive: { orientation: { vertical: 'flex-nowrap', horizontal: 'flex-wrap' } },
-			},
-			/** A part of a rule. Its width is `w-full`: in a row, the zero basis of `flex-1` decides it. */
-			part: {
-				base: 'w-full',
-				responsive: {
-					orientation: { vertical: stacked, horizontal: 'min-w-32 flex-1' },
-				},
-			},
-			/** A range value, which takes two shares of the row. */
-			range: {
-				base: 'w-full',
-				responsive: {
-					orientation: { vertical: stacked, horizontal: 'min-w-48 flex-2' },
+				slots: {
+					/** A part of a rule. Its width is `w-full`: in a row, the zero basis of `flex-1` decides it. */
+					item: {
+						base: 'w-full',
+						responsive: {
+							orientation: { vertical: stacked, horizontal: 'min-w-32 flex-1' },
+						},
+					},
+					/** A range value, which takes two shares of the row. */
+					range: {
+						base: 'w-full',
+						responsive: {
+							orientation: { vertical: stacked, horizontal: 'min-w-48 flex-2' },
+						},
+					},
 				},
 			},
 			remove: 'flex-none',
 			value: ['px-3', size.sm, ...text.muted],
 			actions: [flex.row, dan.gap.scale.sm],
 			/**
-			 * The children of a group while they reorder. The box adds no layout, and
-			 * it marks a drag in progress for the separators below.
+			 * A node of a builder that reorders. A held node sits over its neighbors on
+			 * an opaque surface, so the nodes it passes do not show through it.
 			 */
-			sortable: 'group/sortable contents',
-			/**
-			 * A held node sits over its neighbors on an opaque surface, so the nodes it
-			 * passes do not show through it.
-			 */
-			item: [
-				'flex items-start gap-1.5',
-				'data-dragging:relative data-dragging:z-10',
-				'data-dragging:rounded-lg data-dragging:shadow-lg',
-				...mode('data-dragging:bg-white', 'dark:data-dragging:bg-zinc-900'),
-			],
-			/**
-			 * The grip centers on the first control line of a rule: the rule's border
-			 * and `p-2.5`, then half a control. Beside a group, it sits at the same
-			 * height.
-			 */
-			handle: [
-				'mt-4.5 flex size-6 shrink-0 items-center justify-center',
-				rounded.md,
-				...grab.default,
-				...text.muted,
-				...mode(
-					'hover:not-disabled:bg-zinc-100 hover:not-disabled:text-zinc-700',
-					'dark:hover:not-disabled:bg-zinc-800 dark:hover:not-disabled:text-zinc-300',
-				),
-				...focus.ring,
-				...disabled,
-				'disabled:cursor-not-allowed',
-			],
-			node: 'min-w-0 flex-1',
-			/**
-			 * The AND/OR between two nodes aligns with the nodes, past the grip and the
-			 * gap. The nodes move over it during a drag, so it fades until the drop.
-			 */
-			separator: ['ps-7.5', 'motion-safe:transition-opacity group-data-sorting/sortable:opacity-0'],
+			sortable: {
+				base: [
+					'flex items-start gap-1.5',
+					'data-dragging:relative data-dragging:z-10',
+					'data-dragging:rounded-lg data-dragging:shadow-lg',
+					...mode('data-dragging:bg-white', 'dark:data-dragging:bg-zinc-900'),
+				],
+				slots: {
+					/**
+					 * The children of a group while they reorder. The box adds no layout, and
+					 * it marks a drag in progress for the separators below.
+					 */
+					list: 'group/sortable contents',
+					/**
+					 * The grip centers on the first control line of a rule: the rule's border
+					 * and `p-2.5`, then half a control. Beside a group, it sits at the same
+					 * height.
+					 */
+					handle: [
+						'mt-4.5 flex size-6 shrink-0 items-center justify-center',
+						rounded.md,
+						...grab.default,
+						...text.muted,
+						...mode(
+							'hover:not-disabled:bg-zinc-100 hover:not-disabled:text-zinc-700',
+							'dark:hover:not-disabled:bg-zinc-800 dark:hover:not-disabled:text-zinc-300',
+						),
+						...focus.ring,
+						...disabled,
+						'disabled:cursor-not-allowed',
+					],
+					node: 'min-w-0 flex-1',
+					/**
+					 * The AND/OR between two nodes aligns with the nodes, past the grip and the
+					 * gap. The nodes move over it during a drag, so it fades until the drop.
+					 */
+					separator: [
+						'ps-7.5',
+						'motion-safe:transition-opacity group-data-sorting/sortable:opacity-0',
+					],
+				},
+			},
 		},
 		defaults: { nested: false },
 	},

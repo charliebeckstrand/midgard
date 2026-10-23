@@ -88,7 +88,7 @@ export function QueryBuilderSortableItem({
 			data-slot="query-sortable"
 			data-node-id={id}
 			data-dragging={dataAttr(held)}
-			className={slots.item}
+			className={slots.sortable.base}
 		>
 			{handle && (
 				<SortableGrip
@@ -113,10 +113,10 @@ export function QueryBuilderSortableItem({
 					label={intl.formatMessage(reorderMessages.reorderHandle, { item: label })}
 					size="sm"
 					disabled={disabled}
-					className={slots.handle}
+					className={slots.sortable.handle}
 				/>
 			)}
-			<div className={slots.node}>{children}</div>
+			<div className={slots.sortable.node}>{children}</div>
 		</Reorder.Item>
 	)
 }

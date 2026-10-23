@@ -99,9 +99,9 @@ export function DashboardLayout({
 						    and the trigger of the drawer in the drawer layout. The trigger is
 						    then in a landmark. */}
 						<aside aria-label={filtersLabel} data-slot="filters" className="shrink-0">
-							<Stack className={slots.inlineFlex}>{filters}</Stack>
+							<Stack className={slots.inline.flex}>{filters}</Stack>
 
-							<Box className={slots.drawerBlock}>
+							<Box className={slots.drawer.block}>
 								<DrawerTrigger>
 									<Button type="button" variant="outline">
 										<Icon icon={<SlidersHorizontal />} />

@@ -2,9 +2,10 @@
  * Sidebar layout kata: the unit of `layouts/sidebar`. It is not the kata of the
  * Sidebar component (`kata/sidebar.ts`). The root slot `base` is the layout.
  * The other slots are its parts: the `navbar` of the drawer layout, the inline
- * `panel` and `aside`, the `actions`, the parts of the floating sidebar (`peek`,
- * `sheet`, `sheetBody`, `buffer`), the content (`wrapper`, `content`), the
- * `header`, the `body`, and the `footer`.
+ * `panel` and `aside`, the `actions`, the parts of the floating sidebar
+ * (`floating.peek`, `floating.sheet`, `floating.body`, `floating.buffer`), the
+ * `content` and its `content.wrapper`, the `header` and its `header.actions`,
+ * the `body`, and the `footer`.
  */
 import { defineKata } from '../../core/recipe'
 import { dan, narabi, omote, sen, sou } from '../kiso'
@@ -84,7 +85,7 @@ const sheetBody = [flex.col, 'h-full', sidebarWidth]
 
 // Portaled to the body, so it escapes the layout's stacking context and needs a
 // ladder rung rather than a local `z-30` like the hot zone above
-// (`peek`). It is the sidebar's own furniture, which is the `chrome`
+// (`floating.peek`). It is the sidebar's own furniture, which is the `chrome`
 // rung's other inhabitant. It starts at the far edge of the floating sheet at
 // each step.
 const buffer = [sou.chrome, 'fixed top-0 bottom-0 w-10', dan.size.sidebar.edge]
@@ -132,22 +133,17 @@ export const k = defineKata({
 		// The aside on the end edge. Its content takes its own width.
 		aside: { base: column, responsive: { layout: shows.inline.block } },
 		actions,
-		peek: {
-			base: peek,
-			responsive: {
-				layout: { drawer: 'sidebar-offcanvas:hidden', inline: 'sidebar-offcanvas:block' },
-			},
-		},
-		sheet,
-		sheetBody,
-		buffer: { base: buffer, responsive: { layout: shows.inline.block } },
-		wrapper: {
-			base: wrapper,
-			responsive: {
-				layout: {
-					drawer: 'py-0 pe-0 sidebar-offcanvas:ps-0',
-					inline: 'py-2 pe-2 sidebar-offcanvas:ps-2',
+		floating: {
+			slots: {
+				peek: {
+					base: peek,
+					responsive: {
+						layout: { drawer: 'sidebar-offcanvas:hidden', inline: 'sidebar-offcanvas:block' },
+					},
 				},
+				sheet,
+				body: sheetBody,
+				buffer: { base: buffer, responsive: { layout: shows.inline.block } },
 			},
 		},
 		content: {
@@ -156,6 +152,17 @@ export const k = defineKata({
 				layout: {
 					drawer: `${omote.content.flat} not-has-[[data-slot=header]]:${top.drawer}`,
 					inline: `${omote.content.card} not-has-[[data-slot=header]]:${top.inline}`,
+				},
+			},
+			slots: {
+				wrapper: {
+					base: wrapper,
+					responsive: {
+						layout: {
+							drawer: 'py-0 pe-0 sidebar-offcanvas:ps-0',
+							inline: 'py-2 pe-2 sidebar-offcanvas:ps-2',
+						},
+					},
 				},
 			},
 		},
@@ -168,9 +175,11 @@ export const k = defineKata({
 				{ stickyHeader: true, layout: 'drawer', class: 'static' },
 				{ stickyHeader: true, layout: 'inline', class: 'sticky' },
 			],
+			slots: {
+				/** The actions in the header, which show in the inline layout only. */
+				actions: { base: actions, responsive: { layout: shows.inline.flex } },
+			},
 		},
-		/** The actions in the header, which show in the inline layout only. */
-		headerActions: { base: actions, responsive: { layout: shows.inline.flex } },
 		body,
 		footer: 'shrink-0',
 	},

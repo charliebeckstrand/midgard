@@ -57,10 +57,10 @@ export function NavBar({
 				<nav
 					data-slot="nav-bar"
 					aria-label={ariaLabel ?? intl.formatMessage(messages.label)}
-					className={cn(slots.bar, className)}
+					className={cn(slots.bar.base, className)}
 					{...props}
 				>
-					<div data-slot="nav-bar-rail" className={slots.rail}>
+					<div data-slot="nav-bar-rail" className={slots.bar.rail}>
 						{children}
 					</div>
 				</nav>

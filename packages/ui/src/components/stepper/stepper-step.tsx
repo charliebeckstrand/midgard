@@ -146,7 +146,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 		const isDisabled = disabled === true || (linear && state === 'upcoming')
 
 		return (
-			<li data-slot="stepper-item" {...props} className={slots.item}>
+			<li data-slot="stepper-item" {...props} className={slots.item.base}>
 				<button
 					type="button"
 					id={triggerId}
@@ -160,7 +160,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 					aria-controls={hasPanels && (state === 'current' || everyPanel) ? panelId : undefined}
 					disabled={isDisabled}
 					onClick={() => onValueChange(value)}
-					className={cn(slots.step, slots.button, className)}
+					className={cn(slots.step, slots.item.button, className)}
 				>
 					{inner}
 				</button>

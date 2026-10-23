@@ -172,7 +172,7 @@ export function AppearanceSettingsDialog({
 									/>
 								</Field>
 								{sidebarLayout && (
-									<Field className={k({ layout: sidebarLayout }).inlineBlock}>
+									<Field className={k({ layout: sidebarLayout }).inline.block}>
 										<Label>{intl.formatMessage(appearanceMessages.sidebar)}</Label>
 										<ChoiceListbox
 											options={choices(sidebarModes)}

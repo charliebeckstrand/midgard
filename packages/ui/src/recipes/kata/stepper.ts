@@ -1,9 +1,10 @@
 /**
  * Stepper kata: the unit of the `<Stepper>` family. The root slot `base` is the
  * row of steps. `step` is a step, `item` is the `li` around a step button, and
- * `button` is that button. `title`, `separator`, and `content` are the other
- * parts of a step. `indicator` is the marker of a step, and `fill`, `glyph`, and
- * `check` are the parts in it. The `skeleton` form is an extra.
+ * `item.button` is that button. `title`, `separator`, and `content` are the
+ * other parts of a step. `indicator` is the marker of a step, and
+ * `indicator.fill`, `indicator.glyph`, and `indicator.check` are the parts in
+ * it. The `skeleton` form is an extra.
  *
  * `orientation` is a responsive axis of the row and of each part that changes
  * with it. Each value of an orientation table writes the same properties, so a
@@ -69,9 +70,11 @@ export const k = defineKata(
 						vertical: 'min-w-auto w-full py-1',
 					},
 				},
+				slots: {
+					/** The step button inside an `li`. The `li` holds the vertical padding of the step. */
+					button: 'py-0',
+				},
 			},
-			/** The step button inside an `li`. The `li` holds the vertical padding of the step. */
-			button: 'py-0',
 			title: {
 				base: [size.sm, weight.medium, leading.none, ...text.muted],
 				interactive: {
@@ -120,36 +123,40 @@ export const k = defineKata(
 			 * step fills green, so it does not read as the current step or an upcoming
 			 * step, and the current step paints its content in white on the blue fill.
 			 */
-			indicator: [
-				'relative',
-				flex.inline,
-				'justify-center',
-				'size-4.5 shrink-0',
-				rounded.full,
-				...mode('bg-zinc-400', 'dark:bg-zinc-600'),
-				// The hover and the focus of a step button. A display-only step is an
-				// `li`, which is never enabled or focused, so these do not match there.
-				'group-enabled:group-hover:bg-zinc-500',
-				'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
-				// The state of the step (`data-state`). Each state class has one more
-				// variant than the class that it overrides, so it wins by specificity.
-				...mode(
-					'group-data-[state=completed]:bg-green-600',
-					'dark:group-data-[state=completed]:bg-green-600',
-				),
-				'group-data-[state=completed]:text-white',
-				'group-enabled:group-hover:group-data-[state=completed]:bg-green-500',
-				'group-data-[state=current]:text-white',
-			],
-			/** The blue fill of the current step. */
-			fill: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
-			/**
-			 * The content of the indicator, a number or a glyph. It comes after the fill
-			 * in the DOM at the same `z-10`, so it paints above the fill.
-			 */
-			glyph: 'relative z-10 inline-flex',
-			/** The checkmark of a completed step. */
-			check: 'size-2.5 stroke-[3.5]',
+			indicator: {
+				base: [
+					'relative',
+					flex.inline,
+					'justify-center',
+					'size-4.5 shrink-0',
+					rounded.full,
+					...mode('bg-zinc-400', 'dark:bg-zinc-600'),
+					// The hover and the focus of a step button. A display-only step is an
+					// `li`, which is never enabled or focused, so these do not match there.
+					'group-enabled:group-hover:bg-zinc-500',
+					'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
+					// The state of the step (`data-state`). Each state class has one more
+					// variant than the class that it overrides, so it wins by specificity.
+					...mode(
+						'group-data-[state=completed]:bg-green-600',
+						'dark:group-data-[state=completed]:bg-green-600',
+					),
+					'group-data-[state=completed]:text-white',
+					'group-enabled:group-hover:group-data-[state=completed]:bg-green-500',
+					'group-data-[state=current]:text-white',
+				],
+				slots: {
+					/** The blue fill of the current step. */
+					fill: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
+					/**
+					 * The content of the indicator, a number or a glyph. It comes after the fill
+					 * in the DOM at the same `z-10`, so it paints above the fill.
+					 */
+					glyph: 'relative z-10 inline-flex',
+					/** The checkmark of a completed step. */
+					check: 'size-2.5 stroke-[3.5]',
+				},
+			},
 			description: [size.sm, ...text.muted],
 		},
 		defaults: { interactive: false },
