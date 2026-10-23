@@ -1012,4 +1012,30 @@ describe('reference value labels', () => {
 
 		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
 	})
+	it('labels the rules of a horizontal bar chart in the first row down from the top', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				orientation="horizontal"
+				reference={[{ value: 60, label: 'Goal' }]}
+				labels={{ references: true }}
+			/>,
+		)
+
+		const label = bySlot(container, 'chart-reference-label')
+
+		expect(label?.textContent).toBe('Goal')
+
+		// The rule is vertical, so the label stands at the rule's x near its top end.
+		const line = rule(container)
+
+		expect(Number(label?.getAttribute('x'))).toBeCloseTo(Number(line?.getAttribute('x1')), 1)
+
+		expect(Number(label?.getAttribute('y'))).toBeLessThan(Number(line?.getAttribute('y2')) / 2)
+
+		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(1)
+	})
 })
