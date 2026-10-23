@@ -267,6 +267,24 @@ describe('usePanelResize', () => {
 			expect(result.current.size).toBeNull()
 		})
 
+		// A chord with Ctrl, Meta, or Alt is for the browser: Alt+Left and Cmd+Left go
+		// back in the history of the page.
+		it.each([
+			['Ctrl', { ctrlKey: true }],
+			['Meta', { metaKey: true }],
+			['Alt', { altKey: true }],
+		])('leaves an arrow with %s to the browser', (_name, modifier) => {
+			const { result } = renderAttached('left')
+
+			const event = makeKeyEvent<HTMLElement>('ArrowLeft', modifier)
+
+			act(() => result.current.handleProps.onKeyDown(event))
+
+			expect(event.preventDefault).not.toHaveBeenCalled()
+
+			expect(result.current.size).toBeNull()
+		})
+
 		// A key step that eased would leave the next step measuring a box still on its
 		// way, and the drawer floor then fell below the chrome. A key step lands at once
 		// instead, until a press of the pointer or a close.
