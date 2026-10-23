@@ -440,6 +440,37 @@ describe('LineChart', () => {
 		])
 	})
 
+	it('orders a dual-axis legend and tooltip by where each line ends on its own axis', () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Revenue and rate"
+				data={[
+					{ day: 'a', revenue: 5000, rate: 0.1 },
+					{ day: 'b', revenue: 1000, rate: 0.9 },
+				]}
+				series={[
+					{ xKey: 'day', yKey: 'revenue', yName: 'Revenue' },
+					{ xKey: 'day', yKey: 'rate', yName: 'Rate', axis: 'y2' },
+				]}
+				width={400}
+				crosshair={{ x: true, y: true, snap: true }}
+			/>,
+		)
+
+		// Revenue ends at its floor and Rate at its ceiling, so Rate leads, though
+		// its raw value is the smaller one.
+		expect(allBySlot(container, 'chart-legend-item').map((el) => el.textContent)).toEqual([
+			'Rate',
+			'Revenue',
+		])
+
+		fireEvent.pointerMove(getSlot(container, 'chart-hit'), { clientX: 390, clientY: 10 })
+
+		const text = getSlot(container, 'tooltip-content').textContent ?? ''
+
+		expect(text.indexOf('Rate')).toBeLessThan(text.indexOf('Revenue'))
+	})
+
 	it('orders the tooltip rows to match the legend, not the series order', () => {
 		const { container } = renderUI(
 			<LineChart

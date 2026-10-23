@@ -5,6 +5,7 @@
  * math is unit-testable in isolation.
  */
 
+import type { ChartValueAxisId } from '../chart-axes/schema'
 import { paintSlot, rawColor, textClass } from '../chart-color/paint'
 import { seriesPaint } from '../chart-color/palette'
 import type { ChartLegendItem } from '../chart-legend/legend'
@@ -117,37 +118,68 @@ export function barProjection(drawn: DrawnSeries[], fallback: number) {
 }
 
 /**
- * A series' latest finite value: its position at the right edge, where the
- * eye reads a line's order. A trailing gap falls back to the last real value;
- * an all-null series has none and sinks with negative infinity.
+ * Where each series' latest finite value sits on its own value axis, by series
+ * index: `0` at the lowest value that any series on that axis carries, `1` at
+ * the highest. The latest value is the position at the right edge, where the
+ * eye reads a line's order. A trailing gap falls back to the last real value,
+ * and an all-null series has none, so it sinks with negative infinity.
+ *
+ * The extent counts the hidden series too, so a legend toggle moves no switch.
+ * On one axis the place keeps the order of the raw values. Across `y` and `y2`
+ * it compares where the lines end, not two numbers on different scales.
  *
  * @internal
  */
-function latestValue(values: (number | null)[]): number {
-	return values.findLast((value) => value != null) ?? Number.NEGATIVE_INFINITY
+function latestPlaces(metas: SeriesMeta[]): Map<number, number> {
+	const extents = new Map<ChartValueAxisId, [number, number]>()
+
+	for (const meta of metas) {
+		for (const value of meta.values) {
+			if (value == null) continue
+
+			const [low, high] = extents.get(meta.axis) ?? [value, value]
+
+			extents.set(meta.axis, [Math.min(low, value), Math.max(high, value)])
+		}
+	}
+
+	return new Map(
+		metas.map((meta) => {
+			const latest = meta.values.findLast((value) => value != null)
+
+			const [low, high] = extents.get(meta.axis) ?? [0, 0]
+
+			if (latest == null) return [meta.index, Number.NEGATIVE_INFINITY]
+
+			return [meta.index, high === low ? 0.5 : (latest - low) / (high - low)]
+		}),
+	)
 }
 
 /**
- * Orders two series by their latest value, largest first: the legend's
- * visible top-to-bottom order when a chart opts into
- * {@link CartesianConfig.legendByValue}. Equal or all-null series fall back to
- * the caller's order, so the sort stays stable and never returns `NaN`.
+ * The metas in legend order. With `byValue` set, they sort by their
+ * {@link latestPlaces}, highest first: the marks' visible top-to-bottom order.
+ * Equal or all-null series fall back to the caller's order, so the sort stays
+ * stable. Else the caller's series order stays untouched. The sort runs on a
+ * copy, so the list the scales and marks read keeps its series order.
  *
+ * @param metas - The series to order.
+ * @param byValue - Whether to sort by place.
+ * @param all - Every series, hidden ones included, that the places measure against.
  * @internal
  */
-function byLatestValue(a: SeriesMeta, b: SeriesMeta): number {
-	return latestValue(b.values) - latestValue(a.values) || a.index - b.index
-}
+function orderLegend(
+	metas: SeriesMeta[],
+	byValue: boolean | undefined,
+	all: SeriesMeta[] = metas,
+): SeriesMeta[] {
+	if (!byValue) return metas
 
-/**
- * The metas in legend order: sorted into the marks' visible value order when
- * `byValue` is set, else the caller's series order untouched. The sort runs on
- * a copy, so the list the scales and marks read keeps its series order.
- *
- * @internal
- */
-function orderLegend(metas: SeriesMeta[], byValue: boolean | undefined): SeriesMeta[] {
-	return byValue ? [...metas].sort(byLatestValue) : metas
+	const places = latestPlaces(all)
+
+	const place = (meta: SeriesMeta) => places.get(meta.index) ?? Number.NEGATIVE_INFINITY
+
+	return [...metas].sort((a, b) => place(b) - place(a) || a.index - b.index)
 }
 
 /**
@@ -167,10 +199,11 @@ export function orderReadout(
 	stacked: boolean,
 	orientation: ChartOrientation,
 	byValue: boolean | undefined,
+	all: SeriesMeta[] = visible,
 ): number[] {
 	if (stacked && orientation === 'vertical') return visible.map((meta) => meta.index).reverse()
 
-	return orderLegend(visible, byValue).map((meta) => meta.index)
+	return orderLegend(visible, byValue, all).map((meta) => meta.index)
 }
 
 /** The fields of a series that its legend entry reads. @internal */

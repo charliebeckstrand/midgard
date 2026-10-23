@@ -50,7 +50,9 @@ export type LineChartProps<T = never> = CartesianChartProps<T> & {
  * The tooltip snaps when the `crosshair` snaps.
  *
  * @remarks The value domain follows the data; pin `min` / `max` to compare
- * charts on one scale. Focus the plot to drive the crosshair and tooltip by
+ * charts on one scale. The legend and the tooltip list the series top to
+ * bottom by where each line ends on its own axis, not in the `series` order.
+ * Focus the plot to drive the crosshair and tooltip by
  * keyboard: the band-axis arrows step categories, the value-axis arrows cycle
  * each category's series values. A reference line joins that value-axis roving,
  * receding the marks when the cursor reaches it. `labels.references` drawing its

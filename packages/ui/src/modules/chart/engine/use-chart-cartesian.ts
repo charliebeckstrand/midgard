@@ -101,9 +101,9 @@ export type CartesianConfig<T> = {
 	 */
 	orientation?: ChartOrientation
 	/**
-	 * Order the legend switches by each series' latest value, largest first. They
-	 * then read top-to-bottom in the marks' own visible order, rather than the
-	 * caller's series order. That is the overlapping lines a {@link LineChart} draws.
+	 * Order the legend switches by where each series' latest value sits on its
+	 * own value axis, highest first. They then read top-to-bottom in the marks'
+	 * own visible order, rather than the caller's series order. That is the overlapping lines a {@link LineChart} draws.
 	 * Off (the default) keeps the series order, which the drawn order of
 	 * grouped bars and stacks must match.
 	 * @defaultValue false
@@ -593,7 +593,7 @@ export function useChartCartesian<T>(
 	// reversed, else the legend's value order); the readout keeps series order for
 	// the hidden table. Empty without a readout to order.
 	const readoutOrder = readout
-		? orderReadout(visible, stack, orientation, config.legendByValue)
+		? orderReadout(visible, stack, orientation, config.legendByValue, metas)
 		: []
 
 	// Reference lines map onto their own axis's scale the way the rules do, kept
