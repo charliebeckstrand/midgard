@@ -194,13 +194,13 @@ export function isSparkBox(width: number, height: number): boolean {
  * those at the layout boundary. A policy is therefore deterministic in its box
  * alone, and testable without a render.
  *
- * @param width The plot box's width in px: pays for the value gutter, the
+ * @param width - The plot box's width in px: pays for the value gutter, the
  * number format, and the band-label density.
- * @param height The plot box's height in px: pays for the tick count and the
+ * @param height - The plot box's height in px: pays for the tick count and the
  * band-axis row.
- * @param tickCap The tick ceiling (`TICK_TARGET`), so space can take ticks
+ * @param tickCap - The tick ceiling (`TICK_TARGET`), so space can take ticks
  * away but never add past it.
- * @param fill The frame fills its container (`aspectRatio={false}`), so the
+ * @param fill - The frame fills its container (`aspectRatio={false}`), so the
  * measured `height` is the remainder the chart's own chrome leaves: a value
  * every chrome decision perturbs. Spark dropping the header and legend (or the
  * legend taking another row) moves the very remainder that decided it. That is a
@@ -213,7 +213,7 @@ export function isSparkBox(width: number, height: number): boolean {
  * feed back into. A very short fill box draws a cramped-but-stable frame
  * rather than a sparkline; a caller wanting spark-by-height passes a `height`
  * or ratio instead.
- * @param orientation The direction of the bars, which decides the dimension
+ * @param orientation - The direction of the bars, which decides the dimension
  * that pays for the band axis.
  * @internal
  */
@@ -319,12 +319,12 @@ export function chartChromeReserve({ headerLines, legend }: ChartChrome): number
  * is defused inside {@link chartPolicy} instead, whose `fill` flag resolves the
  * chrome-affecting decisions from the width alone.
  *
- * @param measuredHeight The plot's measured drawing height, still the drawing's.
- * @param width The measured plot (and figure) width.
- * @param figureAspect The `width / height` the figure carries: set only for the
+ * @param measuredHeight - The plot's measured drawing height, still the drawing's.
+ * @param width - The measured plot (and figure) width.
+ * @param figureAspect - The `width / height` the figure carries: set only for the
  * stacked aspect-fill frame, `null` / `undefined` otherwise, which passes the
  * measured height straight through.
- * @param chrome The header and stacked legend the figure lays out around the plot.
+ * @param chrome - The header and stacked legend the figure lays out around the plot.
  * @internal
  */
 export function policyPlotHeight(

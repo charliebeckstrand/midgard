@@ -16,10 +16,10 @@ import { useStableEvent } from './use-stable-event'
  * the motion library hands back can: the preset's own `animate` object on the way in, its
  * `exit` on the way out.
  *
- * @param open Current open state, as handed to the presence gate.
- * @param arrival The active preset's `animate` target, compared by identity. Presets are
+ * @param open - Current open state, as handed to the presence gate.
+ * @param arrival - The active preset's `animate` target, compared by identity. Presets are
  * module constants, so the identity holds.
- * @param onOpenComplete The caller's callback, raised once per arrival.
+ * @param onOpenComplete - The caller's callback, raised once per arrival.
  * @returns `onAnimationComplete` to spread onto the animated element, plus `report`. A
  * panel that can arrive with no animation to land (Collapse's `animate={false}`) uses
  * `report` to say so.

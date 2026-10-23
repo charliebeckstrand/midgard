@@ -40,7 +40,7 @@ export type OffcanvasOptions = {
  * Manages offcanvas sidebar state: open/close plus auto-close
  * when the viewport widens to an `inline` layout.
  *
- * @param options `layout`, the layout at each breakpoint, and `onOpenChange`,
+ * @param options - `layout`, the layout at each breakpoint, and `onOpenChange`,
  * reported on every transition of the open flag.
  * @remarks The hook reads `layout` with `useResponsiveValue`, which reads the
  * same breakpoints as the classes of a responsive axis. While the

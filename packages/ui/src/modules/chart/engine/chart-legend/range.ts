@@ -69,10 +69,10 @@ function requestedPlacement(
  * The placement reads the width alone, so a chart can resolve it before it
  * sizes the plot.
  *
- * @param legend The caller's `legend` prop.
- * @param width The box width the placement decides against, as for
+ * @param legend - The caller's `legend` prop.
+ * @param width - The box width the placement decides against, as for
  * {@link resolveRangeLegend}.
- * @param defaultPlacement Where the bar sits when the prop names none.
+ * @param defaultPlacement - Where the bar sits when the prop names none.
  * @internal
  */
 export function rangeLegendPlacement(
@@ -97,12 +97,12 @@ export function rangeLegendPlacement(
  * plot. A left/right placement stands the bar vertical,
  * a top/bottom one lays it horizontal.
  *
- * @param legend The caller's `legend` prop.
- * @param width The box width the placement decides against. Pass the chart's own
+ * @param legend - The caller's `legend` prop.
+ * @param width - The box width the placement decides against. Pass the chart's own
  * container, not the plot. Moving the bar off the side then never feeds the
  * plot's own width back and oscillates the placement.
- * @param height The box height, for the spark-floor check.
- * @param defaultPlacement Where the bar sits when the prop names none.
+ * @param height - The box height, for the spark-floor check.
+ * @param defaultPlacement - Where the bar sits when the prop names none.
  * @internal
  */
 export function resolveRangeLegend(
