@@ -5,6 +5,7 @@
  */
 
 import { clamp } from '../../../../utilities'
+import { coord } from '../chart-coords'
 import type { TextWidth } from '../chart-text-width'
 
 /** One drawable slice: its path, source index, share, and tooltip anchor. @internal */
@@ -86,9 +87,16 @@ export function pieCentroidRadius(radius: number, innerRadius: number, share: nu
 	return (2 / 3) * radius * areaFactor
 }
 
+/** A point as a path `d` writes it, through {@link coord}. @internal */
+function pathPoint(point: { x: number; y: number }): string {
+	return `${coord(point.x)} ${coord(point.y)}`
+}
+
 /** `A` command to `end` on `radius`, sweeping clockwise when `sweep` is 1. @internal */
 function arc(radius: number, large: 0 | 1, sweep: 0 | 1, end: { x: number; y: number }): string {
-	return `A ${radius} ${radius} 0 ${large} ${sweep} ${end.x} ${end.y}`
+	const r = coord(radius)
+
+	return `A ${r} ${r} 0 ${large} ${sweep} ${pathPoint(end)}`
 }
 
 /** The full ring (or disc) a single non-zero value degenerates to. @internal */
@@ -98,7 +106,7 @@ function fullCircle(cx: number, cy: number, radius: number, inner: number): stri
 	const bottom = at(cx, cy, radius, 180)
 
 	// One 360° arc collapses to nothing; two half arcs draw the circle.
-	const outer = `M ${top.x} ${top.y} ${arc(radius, 1, 1, bottom)} ${arc(radius, 1, 1, top)}`
+	const outer = `M ${pathPoint(top)} ${arc(radius, 1, 1, bottom)} ${arc(radius, 1, 1, top)}`
 
 	if (inner <= 0) return `${outer} Z`
 
@@ -107,7 +115,7 @@ function fullCircle(cx: number, cy: number, radius: number, inner: number): stri
 	const innerBottom = at(cx, cy, inner, 180)
 
 	// The counter-swept inner circle punches the hole under the nonzero fill rule.
-	return `${outer} M ${innerTop.x} ${innerTop.y} ${arc(inner, 1, 0, innerBottom)} ${arc(inner, 1, 0, innerTop)} Z`
+	return `${outer} M ${pathPoint(innerTop)} ${arc(inner, 1, 0, innerBottom)} ${arc(inner, 1, 0, innerTop)} Z`
 }
 
 /**
@@ -155,7 +163,7 @@ function donutBack(
 
 	const in0 = edgePoint(cx, cy, start, along, half)
 
-	return `L ${in1.x} ${in1.y} ${arc(inner, spanLarge(end - start, half, inner), 0, in0)}`
+	return `L ${pathPoint(in1)} ${arc(inner, spanLarge(end - start, half, inner), 0, in0)}`
 }
 
 /**
@@ -169,21 +177,21 @@ function donutBack(
  * way they do through a real pie. @internal
  */
 function pieBack(cx: number, cy: number, start: number, end: number, half: number): string {
-	if (half <= 0) return `L ${cx} ${cy}`
+	if (half <= 0) return `L ${pathPoint({ x: cx, y: cy })}`
 
 	const sweep = end - start
 
 	if (sweep <= 180) {
 		const tip = at(cx, cy, half / Math.sin((sweep * Math.PI) / 360), start + sweep / 2)
 
-		return `L ${tip.x} ${tip.y}`
+		return `L ${pathPoint(tip)}`
 	}
 
 	const tangent1 = edgePoint(cx, cy, end, 0, -half)
 
 	const tangent0 = edgePoint(cx, cy, start, 0, half)
 
-	return `L ${tangent1.x} ${tangent1.y} ${arc(half, 0, 0, tangent0)}`
+	return `L ${pathPoint(tangent1)} ${arc(half, 0, 0, tangent0)}`
 }
 
 /**
@@ -207,7 +215,7 @@ function slicePath(
 
 	const outer1 = edgePoint(cx, cy, end, outerAlong, -half)
 
-	const outer = `M ${outer0.x} ${outer0.y} ${arc(radius, spanLarge(end - start, half, radius), 1, outer1)}`
+	const outer = `M ${pathPoint(outer0)} ${arc(radius, spanLarge(end - start, half, radius), 1, outer1)}`
 
 	const back =
 		inner > half ? donutBack(cx, cy, inner, start, end, half) : pieBack(cx, cy, start, end, half)

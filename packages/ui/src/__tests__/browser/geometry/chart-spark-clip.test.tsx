@@ -100,6 +100,27 @@ describe('spark box holds every mark (real browser)', () => {
 		expect(container.querySelectorAll('[data-slot="chart-value-labels"] text')).toHaveLength(0)
 	})
 
+	it('line with lone points at its extremes, markers off', async () => {
+		// A point with a gap on each side draws a marker even with `points` off.
+		// The first row is the minimum and the last the maximum, so their markers
+		// border the floor, the ceiling, and both band ends.
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Lone point spark"
+				data={CATEGORIES.map((label, index) => ({
+					label,
+					value: [10, null, 40, 60, null, 50, null, 90][index] ?? null,
+				}))}
+				series={[{ xKey: 'label', yKey: 'value', yName: 'Value' }]}
+				{...SPARK}
+			/>,
+		)
+
+		expect(container.querySelectorAll('[data-slot="chart-point"]').length).toBeGreaterThan(0)
+
+		await expectNoClip(container)
+	})
+
 	it('area, stacked with points and value labels', async () => {
 		const { container } = renderUI(
 			<AreaChart

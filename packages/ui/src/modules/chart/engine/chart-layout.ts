@@ -389,15 +389,16 @@ export type CartesianLayoutInput = {
 }
 
 /**
- * How far a line-drawn series' marks paint past their data coordinate: the dot
- * marker's ring edge under `points`, else the path stroke's half-width. The
+ * How far a line-drawn series' marks paint past their data coordinate. It is
+ * the dot marker's ring edge under `points`, or where a point with a gap on each
+ * side draws its marker (`isolated`), else the path stroke's half-width. The
  * {@link CartesianLayoutInput.markInset} the line, area, and combo charts pass,
  * shared so the reach tracks the mark constants from one place.
  *
  * @internal
  */
-export function lineMarkReach(points: boolean): number {
-	return points ? MARKER_RADIUS + MARKER_RING_WIDTH / 2 : LINE_STROKE_WIDTH / 2
+export function lineMarkReach(points: boolean, isolated = false): number {
+	return points || isolated ? MARKER_RADIUS + MARKER_RING_WIDTH / 2 : LINE_STROKE_WIDTH / 2
 }
 
 /**

@@ -7,6 +7,7 @@ import { type StackedAreaGeometry, stackedAreas } from '../engine/chart-geometry
 import { valueLabelHeadroom } from '../engine/chart-geometry/label'
 import {
 	type ChartLineSeries,
+	hasIsolatedPoint,
 	type LineInterpolation,
 	type LineSeriesGeometry,
 	lineGeometry,
@@ -248,7 +249,13 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		categoryRule: 'zero',
 		swatch: () => 'line',
 		stack: stacked,
-		markInset: lineMarkReach(points),
+		// A stack counts a gap as zero, so its one lone point is the point of a
+		// single category.
+		markInset: (visible) =>
+			lineMarkReach(
+				points,
+				stacked ? props.data.length === 1 : visible.some((meta) => hasIsolatedPoint(meta.values)),
+			),
 		// Reserve the room the point labels need past the data extremes, so a
 		// label at an edge sits clear of the band edge rather than flip onto it.
 		valueHeadroom: (visible) => valueLabelHeadroom(labels, visible.length),

@@ -49,6 +49,6 @@ export function resolveCategories<T>(
 		// Without a formatter the labels *are* the raw categories; one pass, one array.
 		categories: categoryFormat ? rawValues.map(categoryFormat) : rawCategories,
 		rawCategories,
-		readoutCategory: categoryFormat ?? (timeAxis ? timeCategory(locale) : undefined),
+		readoutCategory: categoryFormat ?? (timeAxis ? timeCategory(locale, rawValues) : undefined),
 	}
 }

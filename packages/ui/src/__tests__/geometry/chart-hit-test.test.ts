@@ -193,6 +193,30 @@ describe('nearestSeriesArea', () => {
 		expect(nearestSeriesArea(stack, 200, 50, 30)).toBeNull()
 	})
 
+	it('reads the stroke slack by its distance, as the inside of a wash', () => {
+		// Series 0 tops out at y=64, series 1 at y=60, both washing down to y=200.
+		const close = [
+			[
+				[
+					{ x: 0, y: 64 },
+					{ x: 100, y: 64 },
+				],
+			],
+			[
+				[
+					{ x: 0, y: 60 },
+					{ x: 100, y: 60 },
+				],
+			],
+		]
+
+		// 1px inside series 1, 3px above series 0 in its stroke slack.
+		expect(nearestSeriesArea(close, 200, 50, 61)).toBe(1)
+
+		// 3px inside series 1, 1px above series 0.
+		expect(nearestSeriesArea(close, 200, 50, 63)).toBe(0)
+	})
+
 	const runs = [
 		[
 			[

@@ -113,10 +113,11 @@ export type CartesianConfig<T> = {
 	 * (see {@link CartesianLayoutInput.markInset}). The layouts reserve it on every
 	 * plot edge whenever the axis chrome is off (spark, or an explicit
 	 * `axes={false}`). A mark at a data extreme therefore clears the frame, instead
-	 * of clipping at it. Bars end at their coordinate, so {@link BarChart} omits it.
-	 * @defaultValue 0
+	 * of clipping at it. The hook calls it with the visible series, because a
+	 * lone point of a visible series draws a marker. Bars end at their coordinate,
+	 * so {@link BarChart} omits it. Absent, no room is reserved.
 	 */
-	markInset?: number
+	markInset?: (visible: readonly SeriesMeta[]) => number
 	/**
 	 * Pixels of clear room to reserve past a data extreme on the value axis (see
 	 * {@link CartesianLayoutInput.valueHeadroom}). The hook calls it with the
@@ -530,7 +531,7 @@ export function useChartCartesian<T>(
 		times,
 		locale,
 		count: data.length,
-		markInset: config.markInset,
+		markInset: config.markInset?.(visible),
 		valueHeadroom: config.valueHeadroom?.(visible) ?? 0,
 		visibleValues: visible.map((meta) => ({
 			values: meta.values,

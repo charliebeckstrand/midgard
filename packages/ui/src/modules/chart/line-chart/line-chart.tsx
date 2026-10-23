@@ -2,7 +2,11 @@
 
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { valueLabelHeadroom } from '../engine/chart-geometry/label'
-import { buildLineSeries, type LineInterpolation } from '../engine/chart-geometry/line'
+import {
+	buildLineSeries,
+	hasIsolatedPoint,
+	type LineInterpolation,
+} from '../engine/chart-geometry/line'
 import { nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
 import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
@@ -73,7 +77,11 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		zeroBaseline: false,
 		swatch: () => 'line',
 		legendByValue: true,
-		markInset: lineMarkReach(points),
+		markInset: (visible) =>
+			lineMarkReach(
+				points,
+				visible.some((meta) => hasIsolatedPoint(meta.values)),
+			),
 		// Reserve the room the point labels need past the data extremes, so a
 		// label at an edge sits clear of the line rather than flip onto it.
 		valueHeadroom: (visible) => valueLabelHeadroom(labels, visible.length),

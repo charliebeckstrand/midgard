@@ -77,6 +77,20 @@ describe('pieCentroidRadius', () => {
 describe('pieSlices', () => {
 	const FRAME = { cx: 100, cy: 100, radius: 80 }
 
+	it('rounds every path coordinate as the other mark builders do', () => {
+		const paths = [
+			...pieSlices([3, 5, 7], { ...FRAME, pad: 4 }),
+			...pieSlices([3, 5, 7], { ...FRAME, innerRadius: 48, pad: 4 }),
+			...pieSlices([1], { ...FRAME, innerRadius: 48 }),
+		].flatMap((slice) => [slice.d, slice.hit])
+
+		for (const d of paths) {
+			for (const number of d.match(/-?\d+(\.\d+)?/g) ?? []) {
+				expect(number.split('.')[1]?.length ?? 0).toBeLessThanOrEqual(2)
+			}
+		}
+	})
+
 	it('sweeps shares clockwise from the top, proportional to the whole', () => {
 		const slices = pieSlices([50, 50], FRAME)
 

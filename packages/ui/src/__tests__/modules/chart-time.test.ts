@@ -351,6 +351,24 @@ describe('timeCategory', () => {
 	it('falls back to the string form of an unparseable value', () => {
 		expect(timeCategory('en-US')('Q1')).toBe('Q1')
 	})
+
+	it('adds the time of day when a row carries one', () => {
+		const rows = ['2026-06-01T10:00', '2026-06-01T10:30']
+
+		const format = timeCategory('en-US', rows)
+
+		expect(rows.map(format)).toEqual(['Jun 1, 2026, 10:00 AM', 'Jun 1, 2026, 10:30 AM'])
+	})
+
+	it('adds the seconds when a row carries them', () => {
+		expect(timeCategory('en-US', ['2026-06-01T10:00:15'])('2026-06-01T10:00:15')).toBe(
+			'Jun 1, 2026, 10:00:15 AM',
+		)
+	})
+
+	it('keeps the date alone when every row sits at midnight', () => {
+		expect(timeCategory('en-US', ['2026-06-01', '2026-06-02'])('2026-06-01')).toBe('Jun 1, 2026')
+	})
 })
 
 describe('dateCategoryFormat', () => {

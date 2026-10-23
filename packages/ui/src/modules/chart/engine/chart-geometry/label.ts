@@ -8,16 +8,15 @@
  * A reader gets the numbers without the tooltip. The chart layer only feeds
  * the value labels a lone series. A multi-series plot would crowd its labels
  * between lines with no reliable place to put them, so those charts fall back
- * to the tooltip (see {@link resolveValueLabels}). Placement measures every
- * label first, and keeps each centered on its own point. One that would
- * overshoot the top or bottom flips to the point's other side, still pinned to
- * its mark. One that would cross a side of the plot anchors inward from its
- * point instead: it starts at the point near the left side, and ends at it
- * near the right. A label never slides past its point, since a slid label
+ * to the tooltip (see {@link resolveValueLabels}). Placement estimates the
+ * width of every label first, and keeps each centered on its own point. One
+ * that would overshoot the top or bottom flips to the point's other side, still
+ * pinned to its mark. One that would cross a side of the plot anchors inward
+ * from its point instead: it starts at the point near the left side, and ends
+ * at it near the right. A label never slides past its point, since a slid label
  * lands on the neighboring marks, and one that still does not fit hides.
- * Overlaps resolve
- * by priority: extremes outrank endpoints, and a label whose box meets one
- * already placed is dropped rather than stacked.
+ * Overlaps resolve by priority: extremes outrank endpoints, and a label whose
+ * box meets one already placed is dropped rather than stacked.
  *
  * The standing reference labels place first (see {@link referenceLabels}), by
  * the same rule: each takes the first free spot of a short list beside its

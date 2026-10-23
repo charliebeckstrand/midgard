@@ -590,18 +590,53 @@ export function dateCategoryFormat(
 }
 
 /**
- * A category formatter for a time axis: each row's raw `xKey` value as a medium
- * locale date. The tooltip and data table thus read the same dates the axis
- * labels do. An unparseable value falls back to its string form. Holds one
- * formatter across the rows.
+ * The time-of-day fields that a time-axis readout needs for `values`. They are
+ * none when every row sits at local midnight, the hour and minute when a row
+ * carries a time of day, and the second too when a row carries seconds. Rows
+ * within one day thus read apart, as the hour and minute ticks of the axis do.
  *
  * @internal
  */
-export function timeCategory(locale?: string): (value: unknown) => string {
+function timeOfDay(values: readonly unknown[]): Intl.DateTimeFormatOptions {
+	let fields: Intl.DateTimeFormatOptions = {}
+
+	for (const value of values) {
+		const time = parseInstant(value)
+
+		if (time === null) continue
+
+		const date = new Date(time)
+
+		if (date.getSeconds() !== 0) return { hour: 'numeric', minute: '2-digit', second: '2-digit' }
+
+		if (date.getHours() !== 0 || date.getMinutes() !== 0) {
+			fields = { hour: 'numeric', minute: '2-digit' }
+		}
+	}
+
+	return fields
+}
+
+/**
+ * A category formatter for a time axis: each row's raw `xKey` value as a medium
+ * locale date, with the time of day when a row carries one (see
+ * {@link timeOfDay}). The tooltip and data table thus read the same instants
+ * the axis labels do. An unparseable value falls back to its string form. Holds
+ * one formatter across the rows.
+ *
+ * @param locale - BCP 47 tag; defaults to the runtime locale.
+ * @param values - Each row's raw `xKey` value, which decides the time fields.
+ * @internal
+ */
+export function timeCategory(
+	locale?: string,
+	values: readonly unknown[] = [],
+): (value: unknown) => string {
 	const format = new DateFormatter(resolveLocale(locale), {
 		year: 'numeric',
 		month: 'short',
 		day: 'numeric',
+		...timeOfDay(values),
 	})
 
 	return (value) => {

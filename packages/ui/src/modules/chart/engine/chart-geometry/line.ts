@@ -240,6 +240,21 @@ export function decimateRun(run: LinePoint[]): LinePoint[] {
 	return out
 }
 
+/**
+ * Whether `values` hold a point with a gap or an end on each side. That is the
+ * point that {@link lineGeometry} puts in `isolated`, which draws a marker even
+ * with the markers off.
+ *
+ * @internal
+ */
+export function hasIsolatedPoint(values: readonly (number | null)[]): boolean {
+	for (let index = 0; index < values.length; index++) {
+		if (values[index] != null && values[index - 1] == null && values[index + 1] == null) return true
+	}
+
+	return false
+}
+
 /** Splits the values into contiguous non-null runs of plotted points. @internal */
 function runs(values: (number | null)[], xs: number[], map: (value: number) => number) {
 	const out: LinePoint[][] = []

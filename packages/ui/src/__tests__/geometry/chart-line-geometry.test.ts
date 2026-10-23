@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { lineGeometry } from '../../modules/chart/engine/chart-geometry/line'
+import { hasIsolatedPoint, lineGeometry } from '../../modules/chart/engine/chart-geometry/line'
 
 describe('lineGeometry', () => {
 	const identity = (value: number) => value
@@ -115,5 +115,23 @@ describe('lineGeometry', () => {
 
 			expect(drawn).toBeLessThan((geometry.runs[index]?.length ?? 0) / 2)
 		}
+	})
+})
+
+describe('hasIsolatedPoint', () => {
+	it('finds a point with a gap or an end on each side', () => {
+		expect(hasIsolatedPoint([1, 2, null, 4, null])).toBe(true)
+
+		expect(hasIsolatedPoint([7, null, 1, 2])).toBe(true)
+
+		expect(hasIsolatedPoint([5])).toBe(true)
+	})
+
+	it('finds none where every point joins a segment', () => {
+		expect(hasIsolatedPoint([1, 2, null, 4, 5])).toBe(false)
+
+		expect(hasIsolatedPoint([null, null])).toBe(false)
+
+		expect(hasIsolatedPoint([])).toBe(false)
 	})
 })
