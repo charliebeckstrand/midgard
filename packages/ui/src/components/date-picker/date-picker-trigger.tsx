@@ -133,7 +133,7 @@ export function DatePickerTrigger({
 	const valueNode = (
 		<span
 			ref={valueRef}
-			className={cn(k.value({ truncate }), truncate ? 'min-w-0 flex-1 overflow-hidden' : 'flex-1')}
+			className={cn(k({ truncate }).value, truncate ? 'min-w-0 flex-1 overflow-hidden' : 'flex-1')}
 		>
 			{displayValue || <span className={cn(k.placeholder)}>{placeholder}</span>}
 		</span>
