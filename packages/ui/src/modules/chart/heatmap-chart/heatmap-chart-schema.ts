@@ -170,7 +170,11 @@ export function resolveMatrix<T>(
 	const rowIndex = new Map<string, number>()
 
 	const index = (label: string, order: string[], seen: Map<string, number>): number =>
-		getOrCompute(seen, label, () => order.push(label) - 1)
+		getOrCompute(seen, label, () => {
+			order.push(label)
+
+			return order.length - 1
+		})
 
 	// First pass fixes the axes so the matrix is rectangular before filling.
 	for (const datum of data) {
