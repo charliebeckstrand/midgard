@@ -10,6 +10,7 @@
 import { clamp } from '../../../utilities/clamp'
 import { moveItem } from '../../../utilities/move-item'
 import { finiteOrUndefined } from '../../../utilities/parse-numeric'
+import { sameElements } from '../../../utilities/same-elements'
 
 /**
  * Sub-rows per column width, so the row pitch is a quarter of the column pitch.
@@ -700,7 +701,7 @@ export function placeEntries(
 		return { ...item, x: cell.x, y: cell.y, w: cell.w }
 	})
 
-	return placed.every((item, index) => item === first[index]) ? first : placed
+	return sameElements(placed, first) ? first : placed
 }
 
 /**

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { NO_CURSOR_QUERY } from '../utilities/media-query'
+import { matchesMediaQuery, NO_CURSOR_QUERY } from '../utilities/media-query'
 import { noop } from '../utilities/noop'
 
 /**
@@ -66,7 +66,7 @@ export function holdDragCursor(cursor: DragCursor = 'grabbing'): () => void {
 	// A device with no pointer that hovers, such as a phone, shows no cursor. The
 	// rule then does nothing but restyle each element of the page, at the start
 	// and at the end of the drag, which stalls the frames of a touch drag.
-	if (window.matchMedia(NO_CURSOR_QUERY).matches) return noop
+	if (matchesMediaQuery(NO_CURSOR_QUERY)) return noop
 
 	const hold = { cursor }
 

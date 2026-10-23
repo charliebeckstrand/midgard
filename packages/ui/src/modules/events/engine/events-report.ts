@@ -1,3 +1,4 @@
+import { matchesMediaQuery } from '../../../utilities/media-query'
 import { readViewport } from './events-probes'
 import { describePlace } from './events-target'
 import type { EventEntry, EventReport } from './types'
@@ -33,7 +34,7 @@ export function hashText(text: string): string {
 
 /** The report of the page now. */
 export function createReport({ title, pointer, focus, ...input }: ReportInput): EventReport {
-	const pointerKind = matchMedia('(pointer: coarse)').matches ? 'coarse' : 'fine'
+	const pointerKind = matchesMediaQuery('(pointer: coarse)') ? 'coarse' : 'fine'
 
 	const offline = navigator.onLine ? '' : ', offline'
 

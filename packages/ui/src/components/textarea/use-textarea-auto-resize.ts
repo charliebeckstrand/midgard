@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useLayoutEffect, useRef } from 'react'
+import { measureContentBox } from '../../utilities/measure-box'
 
 /**
  * Set the height of a textarea to the height of its content.
@@ -97,13 +98,8 @@ export function useTextareaAutoResize(
 		// inline height is a write of the hook (or a drag of the resize handle), so
 		// the change it causes needs no fit. A change with the same inline height
 		// comes from the layout or the styles.
-		const style = getComputedStyle(textarea)
-
 		let width = textarea.clientWidth
-		let box =
-			textarea.clientHeight -
-			Number.parseFloat(style.paddingTop) -
-			Number.parseFloat(style.paddingBottom)
+		let box = measureContentBox(textarea).height
 		let inline = textarea.style.height
 
 		const observer = new ResizeObserver(([entry]) => {

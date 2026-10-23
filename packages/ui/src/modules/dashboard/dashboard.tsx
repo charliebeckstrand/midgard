@@ -2,11 +2,9 @@
 
 import { DndContext } from '@dnd-kit/core'
 import {
-	Children,
 	type ComponentProps,
 	type CSSProperties,
 	cloneElement,
-	Fragment,
 	isValidElement,
 	type ReactElement,
 	type ReactNode,
@@ -26,6 +24,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/dashboard'
 import type { AccessibleName } from '../../types'
 import { noop } from '../../utilities'
+import { flattenFragments, isElementOfType } from '../../utilities/children'
 import type { QueryGroup } from '../query/engine/types'
 import {
 	type DashboardActions,
@@ -37,7 +36,7 @@ import {
 import type { DashboardCommit } from './dashboard-gesture'
 import { DashboardPlaceholder } from './dashboard-placeholder'
 import { DashboardTile, type DashboardTileProps } from './dashboard-tile'
-import { DashboardTiles, type DashboardTilesProps } from './dashboard-tiles'
+import { DashboardTiles } from './dashboard-tiles'
 import {
 	type DashboardCell,
 	type DashboardLayoutItem,
@@ -85,39 +84,15 @@ function canvasStyle(columns: number, gap: number): CSSProperties {
 	}
 }
 
-/** Whether a child is a `DashboardTile` element, which the reading order can place. */
-function isTileElement(child: unknown): child is ReactElement<DashboardTileProps> {
-	return isValidElement<DashboardTileProps>(child) && child.type === DashboardTile
-}
-
-/** Whether a child is a `DashboardTiles` element, whose spec tiles the board can name. */
-function isSpecTilesElement(child: unknown): child is ReactElement<DashboardTilesProps> {
-	return isValidElement<DashboardTilesProps>(child) && child.type === DashboardTiles
-}
-
 /**
- * The children in one flat list, through each Fragment. Each element takes a key
- * that is unique in the list, and that stays with the element.
- *
- * @remarks
- * `Children.toArray` escapes each key, so a key of the app never meets the key
- * of an index. A Fragment adds its own key to the key of each child. A keyed
- * Fragment therefore keeps the state of its children when it moves.
+ * The children in one flat list, through each Fragment. Each element takes its
+ * key from {@link flattenFragments}, so the key is unique in the list and stays
+ * with the element when a keyed Fragment moves.
  */
-function flattenBoardChildren(children: ReactNode, prefix = ''): ReactNode[] {
-	return Children.toArray(children).flatMap((child) => {
-		if (!isValidElement(child)) return [child]
-
-		const key = `${prefix}${child.key}`
-
-		// `Children.toArray` escapes each colon in a key of the app, and each of its keys
-		// starts with a period. Thus a colon meets a period only at the join of a Fragment path.
-		if (child.type === Fragment) {
-			return flattenBoardChildren((child.props as { children?: ReactNode }).children, `${key}:`)
-		}
-
-		return [cloneElement(child, { key })]
-	})
+function flattenBoardChildren(children: ReactNode): ReactNode[] {
+	return flattenFragments(children).map(({ node, key }) =>
+		isValidElement(node) ? cloneElement(node, { key }) : node,
+	)
 }
 
 /**
@@ -130,9 +105,9 @@ function declaredTiles(children: ReactNode): Set<string> {
 	const ids = new Set<string>()
 
 	for (const node of flattenBoardChildren(children)) {
-		if (isTileElement(node)) ids.add(node.props.id)
+		if (isElementOfType(node, DashboardTile)) ids.add(node.props.id)
 
-		if (isSpecTilesElement(node)) for (const tile of node.props.tiles) ids.add(tile.id)
+		if (isElementOfType(node, DashboardTiles)) for (const tile of node.props.tiles) ids.add(tile.id)
 	}
 
 	return ids
@@ -157,7 +132,9 @@ function declaredTiles(children: ReactNode): Set<string> {
 function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNode[] {
 	const items = flattenBoardChildren(children)
 
-	const slots = items.flatMap((child, index) => (isTileElement(child) ? [index] : []))
+	const slots = items.flatMap((child, index) =>
+		isElementOfType(child, DashboardTile) ? [index] : [],
+	)
 
 	// The markup slot of each tile, in reading order.
 	const sources = sortByOrder(
@@ -176,14 +153,14 @@ function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNod
 
 		if (!isValidElement(child)) return child
 
-		const isTile = isTileElement(child)
+		const isTile = isElementOfType(child, DashboardTile)
 
 		const key = isTile ? `tile:${child.props.id}` : child.key
 
 		return (
 			<DashboardTileRankContext
 				key={key}
-				value={{ rank: [slot, 0, 0], grouped: !isTile && !isSpecTilesElement(child) }}
+				value={{ rank: [slot, 0, 0], grouped: !isTile && !isElementOfType(child, DashboardTiles) }}
 			>
 				{isTile ? cloneElement(child, { key }) : child}
 			</DashboardTileRankContext>

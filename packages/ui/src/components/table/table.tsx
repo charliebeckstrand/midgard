@@ -1,7 +1,8 @@
-import { Children, type ComponentProps, isValidElement, type ReactNode } from 'react'
+import { Children, type ComponentProps, type ReactNode } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { k, type scale } from '../../recipes/kata/table'
+import { isElementOfType } from '../../utilities/children'
 import { TableCaption, type TableCaptionProps } from './table-caption'
 import { TableScroll } from './table-scroll'
 
@@ -133,7 +134,7 @@ export function Table({
 /** Finds the props of a {@link TableCaption} child, which the scroll region takes its name from. */
 function captionProps(children: ReactNode): TableCaptionProps | undefined {
 	for (const child of Children.toArray(children)) {
-		if (isValidElement<TableCaptionProps>(child) && child.type === TableCaption) return child.props
+		if (isElementOfType(child, TableCaption)) return child.props
 	}
 
 	return undefined
