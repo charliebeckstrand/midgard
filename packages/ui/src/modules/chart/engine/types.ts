@@ -275,11 +275,13 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * the readout to a click and gives the plot a pointer cursor, dismissing on a
 	 * second click of the same mark.
 	 *
-	 * The tooltip also gates keyboard navigation of the plot. Each arrow key
-	 * that moves the cursor onto a point speaks the readout of that point
-	 * through a polite live region, because the tooltip is `aria-hidden`. A key
-	 * that moves the cursor onto a reference line speaks the label and the value
-	 * of that line. A pointer hover speaks nothing.
+	 * The tooltip also gates keyboard navigation of the plot. A chart with a
+	 * click callback keeps the navigation with the tooltip off, so Enter and
+	 * Space can fire it. Each arrow key that moves the cursor onto a point
+	 * speaks the readout of that point through a polite live region, because
+	 * the tooltip is `aria-hidden`. A key that moves the cursor onto a
+	 * reference line speaks the label and the value of that line. A pointer
+	 * hover speaks nothing.
 	 * @defaultValue true
 	 */
 	tooltip?: boolean | ChartTooltipConfig

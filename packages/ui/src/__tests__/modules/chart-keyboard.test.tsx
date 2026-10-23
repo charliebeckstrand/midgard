@@ -1125,6 +1125,62 @@ describe('chart keyboard activation', () => {
 		expect(onCellClick).toHaveBeenCalledWith({ x: '10', y: 'Mon' }, [0, 1])
 	})
 
+	it('keeps the tab stop and fires the click with the tooltip off', async () => {
+		const onCategoryClick = vi.fn()
+
+		const onCellClick = vi.fn()
+
+		const pie = renderUI(
+			<PieChart
+				aria-label="Share"
+				data={SLICES}
+				series={[...SLICE_SERIES]}
+				width={400}
+				tooltip={false}
+				onCategoryClick={onCategoryClick}
+			/>,
+		)
+
+		const heatmap = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={[
+					{ day: 'Mon', hour: '9', commits: 1 },
+					{ day: 'Mon', hour: '10', commits: 9 },
+				]}
+				series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#fff', '#000'] }]}
+				width={400}
+				tooltip={false}
+				onCellClick={onCellClick}
+			/>,
+		)
+
+		const piePlot = getSlot(pie.container, 'chart-plot')
+
+		const heatmapPlot = getSlot(heatmap.container, 'chart-plot')
+
+		expect(piePlot).toHaveAttribute('tabindex', '0')
+
+		expect(heatmapPlot).toHaveAttribute('tabindex', '0')
+
+		fireEvent.keyDown(piePlot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(piePlot, { key: 'ArrowRight' })
+
+		// The tooltip is off, so the live region alone names the slice under the cursor.
+		await expectAnnouncement(/South/)
+
+		fireEvent.keyDown(piePlot, { key: 'Enter' })
+
+		expect(onCategoryClick).toHaveBeenCalledWith('South', 1)
+
+		fireEvent.keyDown(heatmapPlot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(heatmapPlot, { key: ' ' })
+
+		expect(onCellClick).toHaveBeenCalledWith({ x: '9', y: 'Mon' }, [0, 0])
+	})
+
 	it('fires a scatter onPointClick for the focused point, by its data row', () => {
 		const onPointClick = vi.fn()
 

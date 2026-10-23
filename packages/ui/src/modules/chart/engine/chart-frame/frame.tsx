@@ -130,6 +130,15 @@ export function plotName(label: PlotName): PlotName {
 }
 
 /**
+ * Whether the keyboard cursor has an answer: the tooltip shows what it reads, or
+ * Enter and Space fire a click. A sparkline takes no click, so its cursor needs
+ * the tooltip.
+ */
+function keyboardAnswers(tooltipShown: boolean, clickable: boolean, spark: boolean): boolean {
+	return tooltipShown || (clickable && !spark)
+}
+
+/**
  * The plot region's attributes: the keyboard tab stop and its focus ring when
  * `keyboard` makes the region navigable, else a plain non-focusable region. It
  * takes the space its siblings leave: `flex-1` along the figure's main axis,
@@ -535,10 +544,12 @@ export function ChartFrame({
 
 	// Arrow-key navigation over the value points and reference lines, driving the
 	// same hover the pointer does: a tab stop only where a readout can answer it.
+	// A click callback keeps the stop with the tooltip off, so Enter and Space fire
+	// what a click fires. The live region then names the point alone.
 	const keyboard = useChartKeyboard(
 		focus,
 		orientation ?? 'vertical',
-		tooltipShown && readout !== null,
+		readout !== null && keyboardAnswers(tooltipShown, onActivate !== undefined, spark),
 		hoverStore,
 		setActiveReference,
 		keyboardEmphasis ? setSeriesFocus : ignoreActiveSeries,

@@ -487,7 +487,7 @@ function sameCursor(a: ChartCursor | null, b: ChartCursor | null): boolean {
  *
  * @param targets - The per-category anchor points and reference stops to navigate, or `undefined` on a chart with none.
  * @param orientation - Which screen axis the value runs along, so the arrows map to the right axes and steps sort in screen order.
- * @param enabled - Whether a readout is mounted to answer the cursor: the tooltip that makes navigation legible.
+ * @param enabled - Whether a readout answers the cursor: the tooltip that makes navigation legible, or a click callback that Enter and Space fire.
  * @param store - The hover store. Each step moves its hover to the cursor's
  * anchor, and Escape reads it for a readout to clear.
  * @param setReference - The emphasis setter, moved to the reference line the cursor parks on, or `null` off it.
