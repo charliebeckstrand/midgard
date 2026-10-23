@@ -7,6 +7,7 @@ import {
 	compareSortKeys,
 	computeSortOrder,
 	materializeSort,
+	naturalCollator,
 	type SmartSortField,
 	type SortKey,
 	sortRowsSmart,
@@ -14,6 +15,12 @@ import {
 } from '../modules/grid/engine/grid-sort/utilities'
 import { parseNumeric } from '../utilities'
 import { type Shipment, shipmentKey, shipments } from './fixtures'
+
+const collator = naturalCollator('en-US')
+
+const compareValues = (a: unknown, b: unknown) => compareSmart(a, b, collator)
+
+const compareKeys = (a: SortKey, b: SortKey) => compareSortKeys(a, b, collator)
 
 // The grid's client sort runs these comparators O(n log n) times per sorted
 // column, over regex-heavy numeric parsing and a locale-aware string fallback —
@@ -44,11 +51,11 @@ describe('grid-sort · compareSmart (raw, un-decorated)', () => {
 		const numberValues = numbers(count)
 
 		bench(`${count.toLocaleString()} · string column`, () => {
-			stringValues.slice().sort(compareSmart)
+			stringValues.slice().sort(compareValues)
 		})
 
 		bench(`${count.toLocaleString()} · numeric column`, () => {
-			numberValues.slice().sort(compareSmart)
+			numberValues.slice().sort(compareValues)
 		})
 	}
 })
@@ -63,11 +70,11 @@ describe('grid-sort · compareSortKeys (pre-decorated, render path)', () => {
 		const numberKeys: SortKey[] = numbers(count).map(toSortKey)
 
 		bench(`${count.toLocaleString()} · string keys`, () => {
-			stringKeys.slice().sort(compareSortKeys)
+			stringKeys.slice().sort(compareKeys)
 		})
 
 		bench(`${count.toLocaleString()} · numeric keys`, () => {
-			numberKeys.slice().sort(compareSortKeys)
+			numberKeys.slice().sort(compareKeys)
 		})
 	}
 })
@@ -134,14 +141,14 @@ describe('grid-sort · sortRowsSmart split (compute vs materialize)', () => {
 
 		// The permutation of a pre-sorted set, so `materializeSort` is benched over a
 		// real order rather than the identity — the exact array the cache hands it.
-		const order = computeSortOrder(rows, [stringField])
+		const order = computeSortOrder(rows, [stringField], collator)
 
 		bench(`${count.toLocaleString()} · computeSortOrder · string column (the cached half)`, () => {
-			computeSortOrder(rows, [stringField])
+			computeSortOrder(rows, [stringField], collator)
 		})
 
 		bench(`${count.toLocaleString()} · computeSortOrder · numeric column (the cached half)`, () => {
-			computeSortOrder(rows, [numberField])
+			computeSortOrder(rows, [numberField], collator)
 		})
 
 		bench(`${count.toLocaleString()} · materializeSort (paid every flip)`, () => {
@@ -151,7 +158,7 @@ describe('grid-sort · sortRowsSmart split (compute vs materialize)', () => {
 		bench(
 			`${count.toLocaleString()} · sortRowsSmart · string column (compute + materialize)`,
 			() => {
-				sortRowsSmart(rows, shipmentKey, [stringField])
+				sortRowsSmart(rows, shipmentKey, [stringField], collator)
 			},
 		)
 	}
@@ -168,17 +175,17 @@ describe('grid-sort · first flip (the other direction of a cached order)', () =
 		bench(`${count.toLocaleString()} · string column · turn the cached order around`, () => {
 			const columns = {}
 
-			cachedSortOrder(rows, columns, 'origin:asc', [stringField])
+			cachedSortOrder(rows, columns, 'origin:asc', [stringField], undefined, 'en-US')
 
-			cachedSortOrder(rows, columns, 'origin:desc', [descending], 'origin:asc')
+			cachedSortOrder(rows, columns, 'origin:desc', [descending], 'origin:asc', 'en-US')
 		})
 
 		bench(`${count.toLocaleString()} · string column · sort both directions (no mirror)`, () => {
 			const columns = {}
 
-			cachedSortOrder(rows, columns, 'origin:asc', [stringField])
+			cachedSortOrder(rows, columns, 'origin:asc', [stringField], undefined, 'en-US')
 
-			cachedSortOrder(rows, columns, 'origin:desc', [descending])
+			cachedSortOrder(rows, columns, 'origin:desc', [descending], undefined, 'en-US')
 		})
 	}
 })
