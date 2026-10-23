@@ -32,6 +32,7 @@ import {
 	type CartesianLayout,
 	type ChartAxisTitlePlacement,
 	horizontalLayout,
+	markReach,
 	verticalLayout,
 } from './chart-layout'
 import type { ChartLegendItem, ChartLegendReference } from './chart-legend/legend'
@@ -109,15 +110,16 @@ export type CartesianConfig<T> = {
 	 */
 	legendByValue?: boolean
 	/**
-	 * How far, in px, the chart's widest mark paints past its data coordinate
-	 * (see {@link CartesianLayoutInput.markInset}). The layouts reserve it on every
-	 * plot edge whenever the axis chrome is off (spark, or an explicit
-	 * `axes={false}`). A mark at a data extreme therefore clears the frame, instead
-	 * of clipping at it. The hook calls it with the visible series, because a
-	 * lone point of a visible series draws a marker. Bars end at their coordinate,
-	 * so {@link BarChart} omits it. Absent, no room is reserved.
+	 * The line marks draw a marker at each point: the `points` prop of the
+	 * chart. The hook reads how far the visible marks paint past their data
+	 * coordinate from it and from the series ({@link markReach}). The layouts
+	 * reserve that reach on every plot edge whenever the axis chrome is off
+	 * (spark, or an explicit `axes={false}`). A mark at a data extreme therefore
+	 * clears the frame, instead of clipping at it. Bars end at their coordinate,
+	 * so {@link BarChart} omits it.
+	 * @defaultValue false
 	 */
-	markInset?: (visible: readonly SeriesMeta[]) => number
+	points?: boolean
 	/**
 	 * Pixels of clear room to reserve past a data extreme on the value axis (see
 	 * {@link CartesianLayoutInput.valueHeadroom}). The hook calls it with the
@@ -531,7 +533,7 @@ export function useChartCartesian<T>(
 		times,
 		locale,
 		count: data.length,
-		markInset: config.markInset?.(visible),
+		markInset: markReach(visible, config.points, stack),
 		valueHeadroom: config.valueHeadroom?.(visible) ?? 0,
 		visibleValues: visible.map((meta) => ({
 			values: meta.values,

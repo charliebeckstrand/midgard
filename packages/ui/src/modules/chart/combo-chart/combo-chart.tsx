@@ -9,11 +9,9 @@ import { valueLabelHeadroom } from '../engine/chart-geometry/label'
 import {
 	buildLineSeries,
 	type ChartLineSeries,
-	hasIsolatedPoint,
 	type LineInterpolation,
 } from '../engine/chart-geometry/line'
 import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
-import { lineMarkReach } from '../engine/chart-layout'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
 import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
@@ -160,18 +158,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		zeroBaseline: true,
 		categoryRule: 'zero',
 		swatch: (_, index) => (series[index]?.type === 'bar' ? 'rect' : 'line'),
-		// Only the line and area series paint past their coordinate (bars end at
-		// theirs), so the inset stands only where such a series exists to need it.
-		markInset: (visible) => {
-			const lines = visible.filter((meta) => series[meta.index]?.type !== 'bar')
-
-			return lines.length > 0
-				? lineMarkReach(
-						points,
-						lines.some((meta) => hasIsolatedPoint(meta.values)),
-					)
-				: 0
-		},
+		points,
 		// Reserve the room the point labels need past the data extremes. Only the
 		// visible line and area series carry labels, so only they count toward the
 		// single-series gate. The room widens the value axis the bars share.

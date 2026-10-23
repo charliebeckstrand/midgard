@@ -25,6 +25,7 @@ import {
 	TICK_ROTATION_HEIGHT,
 	X_AXIS_HEIGHT,
 } from './chart-constants'
+import { hasIsolatedPoint } from './chart-geometry/line'
 import { bandExtent, type PlotRect, valueExtent } from './chart-orientation'
 import {
 	type BandScale,
@@ -388,16 +389,33 @@ export type CartesianLayoutInput = {
 	valueHeadroom?: number
 }
 
+/** One visible series, as {@link markReach} reads it. @internal */
+type ReachSeries = { swatch: 'rect' | 'line'; values: readonly (number | null)[] }
+
 /**
- * How far a line-drawn series' marks paint past their data coordinate. It is
- * the dot marker's ring edge under `points`, or where a point with a gap on each
- * side draws its marker (`isolated`), else the path stroke's half-width. The
- * {@link CartesianLayoutInput.markInset} the line, area, and combo charts pass,
- * shared so the reach tracks the mark constants from one place.
+ * How far the marks of the visible series paint past their data coordinate:
+ * the {@link CartesianLayoutInput.markInset} of every cartesian chart. A bar
+ * ends at its coordinate, so only a line series counts. Its reach is the edge
+ * of the marker ring where a marker draws, else the half-width of the stroke.
+ * A marker draws at each point under `points`, and at each point with a gap on
+ * each side. A stack counts a gap as zero, so its only such point is the point
+ * of a single category. With no line series, the reach is `0`.
  *
  * @internal
  */
-export function lineMarkReach(points: boolean, isolated: boolean): number {
+export function markReach(
+	visible: readonly ReachSeries[],
+	points: boolean | undefined,
+	stacked: boolean,
+): number {
+	const lines = visible.filter((series) => series.swatch === 'line')
+
+	if (lines.length === 0) return 0
+
+	const isolated = lines.some((series) =>
+		stacked ? series.values.length === 1 : hasIsolatedPoint(series.values),
+	)
+
 	return points || isolated ? MARKER_RADIUS + MARKER_RING_WIDTH / 2 : LINE_STROKE_WIDTH / 2
 }
 
