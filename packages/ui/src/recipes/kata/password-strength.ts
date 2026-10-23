@@ -5,7 +5,7 @@
  * rule rows pair a pass/fail icon with pass/fail text color. A tier fills
  * with the `iro.meter` shade of its color, as a progress bar does.
  */
-import { defineRecipe } from '../../core/recipe'
+import { defineKata } from '../../core/recipe'
 import { dan, iro, ji, kasane, narabi, omote } from '../kiso'
 
 const { meter, palette, text } = iro
@@ -14,46 +14,41 @@ const { rounded } = kasane
 const { flex } = narabi
 const { bg } = omote
 
-const segment = defineRecipe({
-	base: [flex.fill, 'h-1', rounded.full, ...bg.skeleton.base],
-	level: {
-		weak: meter.red.bg,
-		fair: meter.amber.bg,
-		good: meter.blue.bg,
-		strong: meter.green.bg,
-		empty: '',
-	},
-	defaults: { level: 'empty' },
-})
-
-const label = defineRecipe({
-	base: [size.sm, weight.medium],
-	level: {
-		weak: text.error,
-		fair: text.warning,
-		good: text.primary,
-		strong: text.success,
-		empty: text.muted,
-	},
-	defaults: { level: 'empty' },
-})
-
-export const k = {
+export const k = defineKata({
 	base: [flex.col, dan.gap.scale.sm],
-	meter: [flex.row, dan.gap.scale.xs],
-	segment,
-	label,
-	rules: [flex.col, 'gap-0.5'],
-	rule: {
-		base: [flex.inline, dan.gap.scale.xs, size.sm],
-		icon: {
-			base: 'size-4 shrink-0',
-			pass: palette.bare.green,
-			fail: text.muted,
+	slots: {
+		meter: [flex.row, dan.gap.scale.xs],
+		segment: {
+			base: [flex.fill, 'h-1', rounded.full, ...bg.skeleton.base],
+			level: {
+				weak: meter.red.bg,
+				fair: meter.amber.bg,
+				good: meter.blue.bg,
+				strong: meter.green.bg,
+				empty: '',
+			},
 		},
-		text: {
-			base: text.muted,
-			pass: text.default,
+		label: {
+			base: [size.sm, weight.medium],
+			level: {
+				weak: text.error,
+				fair: text.warning,
+				good: text.primary,
+				strong: text.success,
+				empty: text.muted,
+			},
+		},
+		rules: [flex.col, 'gap-0.5'],
+		rule: {
+			base: [flex.inline, dan.gap.scale.xs, size.sm],
+			slots: {
+				icon: {
+					base: 'size-4 shrink-0',
+					passed: { true: palette.bare.green, false: text.muted },
+				},
+				text: { passed: { true: text.default, false: text.muted } },
+			},
 		},
 	},
-} as const
+	defaults: { level: 'empty' },
+})

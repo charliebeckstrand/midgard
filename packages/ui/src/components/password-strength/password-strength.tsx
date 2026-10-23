@@ -163,14 +163,14 @@ export function PasswordStrength({
 
 	const { results, level } = usePasswordStrength({ value, rules, onStrengthChange })
 
-	const liveLabel = useA11yLiveRegion({ className: k.label({ level }) })
+	const liveLabel = useA11yLiveRegion({ className: k({ level }).label })
 
 	const activeCount = level === 'empty' ? 0 : strengthLevels.indexOf(level) + 1
 
 	const label = intl.formatMessage(levelMessages[level])
 
 	return (
-		<div data-slot="password-strength" {...props} className={cn(k.base, className)}>
+		<div data-slot="password-strength" {...props} className={cn(k().base, className)}>
 			{/* A native meter cannot draw the segments, so it carries the value for AT, and the segment row is decorative. */}
 			<meter
 				value={activeCount}
@@ -180,33 +180,28 @@ export function PasswordStrength({
 				aria-label={intl.formatMessage(messages.meter)}
 				className="sr-only"
 			/>
-			<div aria-hidden="true" className={cn(k.meter)}>
+			<div aria-hidden="true" className={k().meter}>
 				{strengthLevels.map((strengthLevel, index) => (
 					<div
 						key={strengthLevel}
 						data-slot="password-strength-segment"
 						data-active={dataAttr(index < activeCount)}
-						className={k.segment({
-							level: index < activeCount ? level : 'empty',
-						})}
+						className={k({ level: index < activeCount ? level : 'empty' }).segment}
 					/>
 				))}
 			</div>
 			<div {...liveLabel}>{label}</div>
 			{showRules && (
-				<ul className={cn(k.rules)}>
+				<ul className={k().rules}>
 					{results.map(({ rule, passed }) => (
 						<li
 							key={rule.id}
 							data-slot="password-strength-rule"
 							data-passed={dataAttr(passed)}
-							className={cn(k.rule.base)}
+							className={k().rule.base}
 						>
-							<Icon
-								icon={passed ? <Check /> : <Dot />}
-								className={cn(k.rule.icon.base, passed ? k.rule.icon.pass : k.rule.icon.fail)}
-							/>
-							<span className={cn(passed ? k.rule.text.pass : k.rule.text.base)}>{rule.label}</span>
+							<Icon icon={passed ? <Check /> : <Dot />} className={k({ passed }).rule.icon} />
+							<span className={k({ passed }).rule.text}>{rule.label}</span>
 							{/* Otherwise only the (decorative) icon and color convey pass/fail. */}
 							<span className="sr-only">
 								{', '}

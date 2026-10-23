@@ -9,7 +9,7 @@
  * static slots.
  */
 import { defineScale } from '../../core/density'
-import { defineRecipe } from '../../core/recipe'
+import { defineKata } from '../../core/recipe'
 import { dan, iro, ji, omote } from '../kiso'
 
 const { text } = iro
@@ -19,18 +19,8 @@ const { rail } = omote
 // Cell padding for each step.
 const padding = [dan.space.cell.x, dan.space.cell.y]
 
-const cell = defineRecipe({
-	base: [text.default, padding],
-})
-
-// A browser centers a `<th>` through its own stylesheet, and the `text-start` of
-// the table does not reach it. So the header states its alignment, as a cell does.
-const header = defineRecipe({
-	base: ['text-start font-bold', text.muted, padding],
-})
-
 /**
- * Table-side projections onto descendant cells. Cells and headers are
+ * The axes of the table that project onto its descendant cells. Cells and headers are
  * static leaves that carry only their own padding steps. The `<table>` element
  * sets the outline-, stripe-, and hover-varying properties on them. No
  * descendant therefore reads context, and the whole family renders in React
@@ -68,22 +58,28 @@ const projection = {
 	hover: ['[&>tbody>tr]:hover:bg-zinc-950/5', 'dark:[&>tbody>tr]:hover:bg-white/5'],
 } as const
 
-export const k = {
-	// The scroll container. While the table overflows, the edge with more
-	// columns behind it fades, and the container is a tab stop with an inset ring.
-	scroll: [...rail],
+export const k = defineKata({
 	base: 'w-full text-start text-base',
-	// Color only. A `border.color.subtle` sat here with no border *width*, so it
-	// painted nothing: the shipped header carries no rule. Restoring one is a
-	// visual change, not a cleanup: it needs a width and a design call.
-	head: [text.muted],
-	// Above the table and aligned to the start, with the muted color of the head.
-	caption: ['caption-top text-start pb-2', size.sm, text.muted],
-	header,
-	cell,
-	projection,
-	empty: ['text-center', text.muted],
-}
+	outline: { true: projection.outline, false: '' },
+	stripe: projection.striped,
+	hover: { true: projection.hover, false: '' },
+	slots: {
+		// The scroll container. While the table overflows, the edge with more
+		// columns behind it fades, and the container is a tab stop with an inset ring.
+		scroll: { scrolls: { true: [...rail], false: '' } },
+		// Color only. A `border.color.subtle` sat here with no border *width*, so it
+		// painted nothing: the shipped header carries no rule. Restoring one is a
+		// visual change, not a cleanup: it needs a width and a design call.
+		head: [text.muted],
+		// Above the table and aligned to the start, with the muted color of the head.
+		caption: ['caption-top text-start pb-2', size.sm, text.muted],
+		// A browser centers a `<th>` through its own stylesheet, and the `text-start` of
+		// the table does not reach it. So the header states its alignment, as a cell does.
+		header: ['text-start font-bold', text.muted, padding],
+		cell: [text.default, padding],
+		empty: ['text-center', text.muted],
+	},
+})
 
 /** The size scale of {@link Table}: the steps of its cell padding. */
 export const scale = defineScale(dan.space.cell.x, dan.space.cell.y)

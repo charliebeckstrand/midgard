@@ -66,7 +66,7 @@ export function ResizablePanel(props: ResizablePanelProps) {
 			data-slot="resizable-panel"
 			{...rest}
 			id={group && panelIndex !== undefined ? group.panelId(panelIndex) : rest.id}
-			className={cn(k.panel, className)}
+			className={cn(k().panel, className)}
 			style={{ ...style, flex: `${size} 0 0px` }}
 		>
 			{children}

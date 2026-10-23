@@ -98,7 +98,7 @@ export function Label(props: LabelProps) {
 		const { as, className, id: _, children, ...rest } = props
 
 		return (
-			<span id={id} className={cn(k.label({ as }), className)} {...rest} data-slot="label">
+			<span id={id} className={cn(k({ as }).label, className)} {...rest} data-slot="label">
 				{children}
 			</span>
 		)
@@ -110,7 +110,7 @@ export function Label(props: LabelProps) {
 		<label
 			id={id}
 			htmlFor={htmlFor ?? control?.id}
-			className={cn(k.label({ as }), className)}
+			className={cn(k({ as }).label, className)}
 			{...rest}
 			data-slot="label"
 			onMouseDown={composeEventHandlers(onMouseDown, keepControlFocus)}

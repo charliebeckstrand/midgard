@@ -91,7 +91,7 @@ export function Control({
 				data-slot="control"
 				density={size}
 				data-disabled={dataAttr(value.disabled)}
-				className={cn(k.field, className)}
+				className={cn(k().field, className)}
 			>
 				{children}
 			</Box>

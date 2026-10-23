@@ -151,7 +151,7 @@ export function ResizableGroup({
 				{...props}
 				ref={composedRef}
 				data-orientation={orientation}
-				className={cn(k.group({ orientation }), className)}
+				className={cn(k({ orientation }).base, className)}
 			>
 				{wrapped}
 			</div>

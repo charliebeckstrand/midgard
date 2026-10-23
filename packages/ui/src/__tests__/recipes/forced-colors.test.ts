@@ -76,8 +76,8 @@ describe('edges and state marks under forced colors', () => {
  */
 describe('resize grips under forced colors', () => {
 	const grips: [string, unknown][] = [
-		['the horizontal Resizable grip', [resizable.grip.base, resizable.grip.orientation.horizontal]],
-		['the vertical Resizable grip', [resizable.grip.base, resizable.grip.orientation.vertical]],
+		['the horizontal Resizable grip', resizable({ orientation: 'horizontal' }).handle],
+		['the vertical Resizable grip', resizable({ orientation: 'vertical' }).handle],
 		['the Grid column resize grip', grid.resize.grip],
 	]
 

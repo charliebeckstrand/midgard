@@ -26,7 +26,7 @@ export function Description({ className, id, ...props }: DescriptionProps) {
 	return (
 		<p
 			id={id ?? control?.descriptionId}
-			className={cn(k.description(), className)}
+			className={cn(k().description, className)}
 			{...props}
 			data-slot="description"
 		/>

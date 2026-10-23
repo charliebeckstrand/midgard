@@ -55,7 +55,7 @@ export function Field({
 		<ControlContext value={value}>
 			<div
 				data-disabled={dataAttr(value.disabled)}
-				className={cn(k.field, className)}
+				className={cn(k().field, className)}
 				{...props}
 				data-slot="field"
 			>

@@ -14,4 +14,4 @@ export type TableCellProps = ComponentProps<'td'>
  * @remarks Forwards `ref` to the underlying `<td>`, so a client caller can make
  * the cell a drag node (e.g. the data table's reorderable columns).
  */
-export const TableCell = createSlot('td', 'table-cell', k.cell())
+export const TableCell = createSlot('td', 'table-cell', k().cell)
