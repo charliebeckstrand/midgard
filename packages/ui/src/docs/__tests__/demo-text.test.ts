@@ -55,8 +55,49 @@ describe('findDemoText', () => {
 		expect(texts(code)).toEqual(['For more information, see the guide.'])
 	})
 
-	it('leaves code as it is: a value, a class, a key, and a template with a value', () => {
-		const code = `export default () => <Select value="draft" className="flex" aria-label={\`Row \${n}\`} />`
+	it('leaves code as it is: a value, a class, and a template with a call', () => {
+		const code = `export default () => <Select value="draft" className="flex" aria-label={\`Row \${row(n)}\`} />`
+
+		expect(texts(code)).toEqual([])
+	})
+
+	it('finds a template whose values are names and properties, as a message', () => {
+		const code = `export default () => (
+			<p aria-label={\`Edit \${row.name}, row \${index}\`}>{\`\${count} stops\`}{\`\${a}-\${b}\`}</p>
+		)`
+
+		expect(texts(code)).toEqual(['Edit {name}, row {index}', '{count} stops'])
+	})
+
+	it('leaves a template whose values give one name twice', () => {
+		const code = `export default () => <p title={\`\${a.name} and \${b.name}\`} />`
+
+		expect(texts(code)).toEqual([])
+	})
+
+	it('finds each word of a call of words, with an id from its domain and its key', () => {
+		const code = `
+			import { words } from '../../../data/words.ts'
+			export const statuses = words('order-status', { pending: 'Pending', label: 'Shipped' })
+		`
+
+		expect(findDemoText(parse(code), code, FILE).map(({ id, text }) => [id, text])).toEqual([
+			['docs.data.order-status.pending', 'Pending'],
+			['docs.data.order-status.label', 'Shipped'],
+		])
+	})
+
+	it('fails on a word that is not a literal', () => {
+		const code = `
+			import { words } from '../../../data/words.ts'
+			export const statuses = words('order-status', { pending: name })
+		`
+
+		expect(() => texts(code)).toThrow(/literal words/)
+	})
+
+	it('reads a call of another function named words as code', () => {
+		const code = "const words = (a, b) => b; words('x', { pending: 'Pending' })"
 
 		expect(texts(code)).toEqual([])
 	})
@@ -92,6 +133,33 @@ describe('translateDemo', () => {
 		expect(translated).toContain('{"Guardar {"}')
 
 		expect(() => parse(translated)).not.toThrow()
+	})
+
+	it('writes a template again from its translation, with the values of the source', () => {
+		const code = `export default () => <p title={\`Edit \${row.name}, row \${index}\`} />`
+
+		const messages = {
+			[toDemoId('Edit {name}, row {index}')]: "Fila {index}: editar a {name} `'{'`",
+		}
+
+		const translated = translateDemo(parse(code), code, FILE, messages)
+
+		expect(translated).toContain(`title={\`Fila \${index}: editar a \${row.name} \\\`{\\\`\`}`)
+
+		expect(() => parse(translated)).not.toThrow()
+	})
+
+	it('writes each word of the demo data from the message of its id', () => {
+		const code = `
+			import { words } from '../../../data/words.ts'
+			export const statuses = words('order-status', { pending: 'Pending' })
+		`
+
+		const translated = translateDemo(parse(code), code, FILE, {
+			'docs.data.order-status.pending': 'Pendiente',
+		})
+
+		expect(translated).toContain("{ pending: 'Pendiente' }")
 	})
 
 	it('keeps a text with no translation in English', () => {

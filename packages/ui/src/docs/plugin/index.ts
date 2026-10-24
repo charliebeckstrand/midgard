@@ -103,6 +103,9 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 
 	const pages = path.join(docs, 'pages')
 
+	// The modules of the demo data, which have copies as the modules of `pages/` do.
+	const demoData = path.join(docs, 'data')
+
 	const extractor = createApiWorker(ui)
 
 	// Shiki highlights the examples in a thread (`highlight-worker.ts`). On the
@@ -301,7 +304,11 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 			},
 		},
 		transform: {
-			filter: { id: { include: [prefixRegex(`${pages}/`), prefixRegex(`${lang}/`)] } },
+			filter: {
+				id: {
+					include: [prefixRegex(`${pages}/`), prefixRegex(`${demoData}/`), prefixRegex(`${lang}/`)],
+				},
+			},
 			async handler(code, id) {
 				if (id.startsWith(`${lang}/`)) return { code: appCatalog(code), map: null }
 
@@ -317,9 +324,12 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 
 				const { source, query } = copies.source(parse, code, file, language, preloads)
 
-				const result = await labelExample(parse(source), source, file, pages, query, (target) =>
-					this.resolve(target, id).then((resolved) => resolved?.id),
-				)
+				// A module of the demo data is not an example, and it labels no event.
+				const result = file.startsWith(`${pages}/`)
+					? await labelExample(parse(source), source, file, pages, query, (target) =>
+							this.resolve(target, id).then((resolved) => resolved?.id),
+						)
+					: undefined
 
 				if (result === undefined) return source === code ? null : { code: source, map: null }
 

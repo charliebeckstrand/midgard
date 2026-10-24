@@ -145,13 +145,48 @@ export function formatPlainMessage(text: string): string {
 
 /** The text of an ICU message with no argument. It throws for an argument or a tag. */
 export function parsePlainMessage(message: string): string {
-	return parse(message)
-		.map((element) => {
-			if (element.type !== TYPE.literal) {
+	return parseValueMessage(message)
+		.map((part) => {
+			if (typeof part !== 'string') {
 				throw new Error(`the message "${message}" holds an argument or a tag`)
 			}
 
-			return element.value
+			return part
 		})
 		.join('')
+}
+
+/**
+ * One part of a message whose arguments are plain values, such as
+ * `{count} stops`: a text, or the name of an argument.
+ */
+export type MessagePart = string | { name: string }
+
+/**
+ * The ICU message of `parts`. Each apostrophe in a text doubles, and a brace
+ * or an angle bracket goes in quotes, so {@link parseValueMessage} gives
+ * `parts` back.
+ */
+export function formatValueMessage(parts: readonly MessagePart[]): string {
+	return parts
+		.map((part) =>
+			typeof part === 'string'
+				? part.replaceAll("'", "''").replace(/[{}<>]+/g, (special) => `'${special}'`)
+				: `{${part.name}}`,
+		)
+		.join('')
+}
+
+/**
+ * The parts of an ICU message whose arguments are plain values. It throws for
+ * an argument with a type, such as a plural, and for a tag.
+ */
+export function parseValueMessage(message: string): MessagePart[] {
+	return parse(message).map((element) => {
+		if (element.type === TYPE.literal) return element.value
+
+		if (element.type === TYPE.argument) return { name: element.value }
+
+		throw new Error(`the message "${message}" holds an argument with a type or a tag`)
+	})
 }
