@@ -49,6 +49,33 @@ function describeZoom(intl: IntlShape, transform: MapTransform): string {
 	return intl.formatMessage(mapZoomMessage, { scale: transform.k / MAP_ZOOM_FIT })
 }
 
+/** The stop list, and each stop's position in it by {@link stopKey}. @internal */
+type MapResolvedStops = { value: MapStop[]; where: Map<string, number> }
+
+/**
+ * Reads the stop list for a version of the moves. It resolves the list on the
+ * first read, and again only when the version changes.
+ *
+ * @internal
+ */
+function stopResolver(resolveStops: () => MapStop[]): (version: number) => MapResolvedStops {
+	let held: (MapResolvedStops & { version: number }) | null = null
+
+	return (version) => {
+		if (held === null || held.version !== version) {
+			const value = resolveStops()
+
+			held = {
+				version,
+				value,
+				where: new Map(value.map((stop, index) => [stopKey(stop.target), index])),
+			}
+		}
+
+		return held
+	}
+}
+
 /** What {@link useMapKeyboard} needs from the plat to drive a cursor. @internal */
 export type MapKeyboardOptions = {
 	/** Whether the cursor has an output: a readout, a pick, or both; `false` leaves the region unfocusable. */
@@ -176,23 +203,7 @@ export function useMapKeyboard({
 	// cursor visits never resolves.
 	const moved = useSyncExternalStore(moves.subscribe, moves.version, moves.version)
 
-	const resolved = useMemo(() => {
-		let held: { version: number; value: MapStop[]; where: Map<string, number> } | null = null
-
-		return (version: number) => {
-			if (held === null || held.version !== version) {
-				const value = resolveStops()
-
-				held = {
-					version,
-					value,
-					where: new Map(value.map((stop, index) => [stopKey(stop.target), index])),
-				}
-			}
-
-			return held
-		}
-	}, [resolveStops])
+	const resolved = useMemo(() => stopResolver(resolveStops), [resolveStops])
 
 	const stops = (): MapStop[] => resolved(moved).value
 
