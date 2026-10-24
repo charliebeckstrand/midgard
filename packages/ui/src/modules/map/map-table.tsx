@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react'
 import { ariaAttr } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { rangeKeys } from '../../utilities'
 import { READOUT_GAP } from '../chart/engine/chart-series'
 import type { MapOverlayEntry } from './engine/map-overlay/entry'
@@ -123,7 +124,12 @@ export const MapTable = memo(function MapTable({
 	// ledger alone: a pick moves which row reads as current, never what any row
 	// says, and a two-hundred-dot set would otherwise re-resolve every readout to
 	// move one attribute.
-	const rows = useMemo(() => entries.flatMap(markRows), [entries])
+	const intl = useIntl()
+
+	const rows = useMemo(
+		() => entries.flatMap((entry) => markRows(entry, intl.formatNumber)),
+		[entries, intl],
+	)
 
 	const pickedRow = useMemo(
 		() => selectedMarkRow(entries, selectedOverlay),

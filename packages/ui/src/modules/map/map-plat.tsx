@@ -1193,6 +1193,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// pair. Bound once rather than spelled at each of them.
 	const readable = tooltip && pointReadout
 
+	const intl = useIntl()
+
 	// What the tooltip reads, held once: the tooltip shows it, and the keyboard
 	// cursor speaks the same text for the stop it moves onto.
 	const tooltipProps = useMemo<MapTooltipProps>(
@@ -1204,8 +1206,18 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			entries: tooltipEntries,
 			hidden,
 			nameRegions,
+			formatNumber: intl.formatNumber,
 		}),
-		[regionNames, regionCategory, regionValues, categoryMetas, tooltipEntries, hidden, nameRegions],
+		[
+			regionNames,
+			regionCategory,
+			regionValues,
+			categoryMetas,
+			tooltipEntries,
+			hidden,
+			nameRegions,
+			intl,
+		],
 	)
 
 	// Without the readout the cursor still speaks the name of its stop, so a
@@ -1252,8 +1264,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	// The range bar's default format writes numbers in the ambient locale, as the readout does.
 	const { locale } = useLocale()
-
-	const intl = useIntl()
 
 	const {
 		show: showLegend,

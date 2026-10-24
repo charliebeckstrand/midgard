@@ -10,7 +10,7 @@ import { useMapHoverState } from './context'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import { seriesSwatchClass } from './engine/map-legend/items'
 import type { MapStopRow } from './engine/map-overlay/entry'
-import { markReadout } from './engine/map-overlay/readout'
+import { type MapNumberFormat, markReadout } from './engine/map-overlay/readout'
 import {
 	categoryLegendId,
 	type MapCategoryMeta,
@@ -46,6 +46,8 @@ export type MapTooltipProps = {
 	hidden: ReadonlySet<string>
 	/** Name a region no row matched, rather than staying away. See {@link MapPlatProps.nameRegions}. */
 	nameRegions?: boolean
+	/** Writes the position of an unnamed stop in the number format of the reader's locale. */
+	formatNumber: MapNumberFormat
 }
 
 /** What the tooltip shows for the current target: a title and an optional swatch row. @internal */
@@ -94,6 +96,7 @@ function resolve(
 		entries,
 		hidden,
 		nameRegions,
+		formatNumber,
 	}: MapTooltipProps,
 ): MapTooltipContent | null {
 	if (target.kind === 'entry') {
@@ -105,7 +108,7 @@ function resolve(
 
 		// The one readout rule, shared with the table: the pointer and a screen
 		// reader must never disagree about the same dot.
-		const readout = markReadout(entry, target.stop)
+		const readout = markReadout(entry, target.stop, formatNumber)
 
 		return {
 			title: readout.name,
@@ -168,13 +171,18 @@ export function describeMapTarget(target: MapHoverTarget, props: MapTooltipProps
  */
 export function nameMapTarget(
 	target: MapHoverTarget,
-	{ regionNames, entries, hidden }: Pick<MapTooltipProps, 'regionNames' | 'entries' | 'hidden'>,
+	{
+		regionNames,
+		entries,
+		hidden,
+		formatNumber,
+	}: Pick<MapTooltipProps, 'regionNames' | 'entries' | 'hidden' | 'formatNumber'>,
 ): string | null {
 	if (target.kind === 'region') return regionNames[target.index] || null
 
 	const entry = hidden.has(target.id) ? undefined : entries.get(target.id)
 
-	return entry === undefined ? null : markReadout(entry, target.stop).name || null
+	return entry === undefined ? null : markReadout(entry, target.stop, formatNumber).name || null
 }
 
 /**

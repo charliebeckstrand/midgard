@@ -404,7 +404,7 @@ export function MapPoints({
 				// frame regrouped around it.
 				if (count === 1 && first !== undefined && lone !== undefined) {
 					return {
-						label: lone.label ?? stopName(shared.label, first),
+						label: lone.label ?? stopName(shared.label, first, intl.formatNumber),
 						detail: lone.detail,
 						swatch,
 						color: lone.color,
@@ -422,7 +422,7 @@ export function MapPoints({
 				// Resolved through the same fallback a lone dot's own readout takes, so a stop
 				// is named identically whether or not it ended up merged.
 				const labels = members.map(
-					(member) => points[member]?.label ?? stopName(shared.label, member),
+					(member) => points[member]?.label ?? stopName(shared.label, member, intl.formatNumber),
 				)
 
 				return { label: shared.label, swatch, detail: clusterDetail(count, span, labels) }
