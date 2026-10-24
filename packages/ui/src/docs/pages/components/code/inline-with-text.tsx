@@ -4,7 +4,7 @@ import { Text } from 'ui/text'
 export default function InlineWithText() {
 	return (
 		<Text>
-			Run <Code>pnpm install</Code> to install dependencies.
+			To install the dependencies, run <Code>pnpm install</Code>.
 		</Text>
 	)
 }

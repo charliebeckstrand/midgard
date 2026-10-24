@@ -343,6 +343,21 @@ An `aria-label` names the content, not the demo: "Monthly revenue", not "Line ch
 | The opening of an event prop in TSDoc | Fires when | Called when, Runs when, Invoked when |
 | The opening of a boolean prop in TSDoc | A verb in the third person that says what `true` does, such as "Shows" | Whether, Show |
 
+The Spanish catalogs use the words of the next table for the same ideas. The catalog of `ui` (`src/primitives/intl/lang/es.json`) sets them, and the catalogs of the docs use the same words. The text addresses the reader as "tú". A button and a menu item take the infinitive, such as "Guardar". An instruction takes the imperative, such as "Selecciona un país". An adjective agrees with its noun in gender and number. The value of a prop in a playground agrees with the name of the prop, such as "Densidad: Compacta" and "Tamaño: Mediano":
+
+| Idea | Word | Not |
+|---|---|---|
+| Take an item out of a list or a group | Quitar | Eliminar, Borrar |
+| Destroy an item | Eliminar | Borrar, Quitar |
+| Empty a field or a selection | Borrar | Limpiar, Eliminar |
+| Put an item in a list or a group | Añadir | Agregar |
+| Stop an action and keep the state | Cancelar | Abortar |
+| Shut a panel or a dialog | Cerrar | Salir |
+| Start or end a session | Iniciar sesión, Cerrar sesión | Acceder, Salir |
+| An email address | Correo | Email, E-mail, Mail |
+| A dashboard | Tablero | Panel |
+| Go back to the first state | Restablecer | Reiniciar |
+
 13.10 The API reference shows the TSDoc of `ui`, and the kit text around it. The first sentence of a component or a type is a noun phrase that states what it is (§12.1). The props of one idea use one wording in each component, such as the openings in §13.9. A controlled or a default state names its state, such as "Controlled open state". The kit text uses the same words as the TSDoc.
 
 13.11 The text of a demo shows in the language of the reader. `pnpm intl` writes a catalog entry for each literal of `pages/` that is text. Such a literal is JSX text or a string as a JSX child. It is also the value of a text attribute, a text prop, or a text property of an object. The names of text are the names that `intl-coverage-boundary.test.ts` reads. The docs plugin builds the copy of each module in each language with the translations in place, and "Show code" shows the copy. Thus a demo holds plain literals, not messages. Write the character in JSX text, not a character reference such as `&amp;`. A template with a value stays as written, so put a value in JSX next to its text. When you add or change a demo text, run `pnpm intl` and add the translation to each catalog in `src/docs/lang`. A text that is the same in each language, such as a file name or a shortcut, keeps its English text in the translation.

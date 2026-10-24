@@ -93,7 +93,7 @@
 	},
 	"docs.demo.00d60e31a4e6": {
 		"defaultMessage": "Run",
-		"description": "Text of a demo in the docs, in components/code/inline-with-text.tsx, components/kbd/inside-a-button.tsx."
+		"description": "Text of a demo in the docs, in components/kbd/inside-a-button.tsx."
 	},
 	"docs.demo.00ff7398c308": {
 		"defaultMessage": "Search commands",
@@ -862,6 +862,10 @@
 	"docs.demo.3a17aa4e4abb": {
 		"defaultMessage": "Stages",
 		"description": "Text of a demo in the docs as aria-label, in components/list/interactive-rows.tsx, components/list/playground.tsx."
+	},
+	"docs.demo.3a1b82fbf9a7": {
+		"defaultMessage": "To install the dependencies, run",
+		"description": "Text of a demo in the docs, in components/code/inline-with-text.tsx."
 	},
 	"docs.demo.3a2e1e7edb78": {
 		"defaultMessage": "Express shipping arrives in one business day. Order before 2:00 PM to ship the same day.",
@@ -2566,10 +2570,6 @@
 	"docs.demo.afaf1f88cbae": {
 		"defaultMessage": "TraceMonkey paper",
 		"description": "Text of a demo in the docs as aria-label, in components/pdf-viewer/playground.tsx."
-	},
-	"docs.demo.afbb31941ea0": {
-		"defaultMessage": "to install dependencies.",
-		"description": "Text of a demo in the docs, in components/code/inline-with-text.tsx."
 	},
 	"docs.demo.afec2b22114c": {
 		"defaultMessage": "Playback speed",
