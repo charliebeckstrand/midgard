@@ -70,6 +70,12 @@ describe('ChatListItem', () => {
 		expect(screen.getByRole('button', { name: 'Active' })).toHaveAttribute('aria-current', 'true')
 	})
 
+	it('marks a static current row with aria-current', () => {
+		const { container } = renderUI(<ChatListItem title="Active" current />)
+
+		expect(bySlot(container, 'chat-list-item-select')).toHaveAttribute('aria-current', 'true')
+	})
+
 	it('mounts an active indicator for the current conversation only', () => {
 		const current = renderUI(<ChatListItem title="Active" current onSelect={vi.fn()} />)
 

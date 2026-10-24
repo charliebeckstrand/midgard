@@ -523,6 +523,123 @@ describe('useChatSend', () => {
 		expect(onSent).not.toHaveBeenCalled()
 	})
 
+	it('stop before the first chunk leaves no empty reply', async () => {
+		const gate = deferred()
+
+		const transport: ChatTransport = () =>
+			(async function* () {
+				await gate.promise
+
+				yield 'late'
+			})()
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		let sendPromise!: Promise<void>
+
+		act(() => {
+			sendPromise = result.current.send('hi')
+		})
+
+		await waitFor(() => expect(result.current.messages).toHaveLength(2))
+
+		act(() => {
+			result.current.stop()
+		})
+
+		gate.resolve()
+
+		await act(async () => {
+			await sendPromise
+		})
+
+		expect(result.current.messages).toEqual([expect.objectContaining({ sender: 'user' })])
+	})
+
+	it('stop ends the send at once when the transport ignores the signal', async () => {
+		const gate = deferred()
+
+		const transport: ChatTransport = () =>
+			(async function* () {
+				yield 'first'
+
+				// The stream waits for its next chunk and does not read the signal.
+				await gate.promise
+
+				yield 'second'
+			})()
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		let sendPromise!: Promise<void>
+
+		act(() => {
+			sendPromise = result.current.send('hi')
+		})
+
+		await waitFor(() => expect(result.current.messages[1]).toMatchObject({ content: 'first' }))
+
+		act(() => {
+			result.current.stop()
+		})
+
+		await act(async () => {
+			await sendPromise
+		})
+
+		expect(result.current.streaming).toBe(false)
+
+		expect(result.current.messages[1]).toMatchObject({ content: 'first' })
+
+		// The stop frees the composer for the next send.
+		await act(async () => {
+			const next = result.current.send('again')
+
+			gate.resolve()
+
+			await next
+		})
+
+		expect(result.current.messages.map((message) => message.content)).toEqual([
+			'hi',
+			'first',
+			'again',
+			'second',
+		])
+	})
+
+	it('stop ends the send at once while the transport has not given its stream', async () => {
+		const gate = deferred()
+
+		const transport: ChatTransport = async () => {
+			await gate.promise
+
+			return makeStream('late')('', new AbortController().signal)
+		}
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		let sendPromise!: Promise<void>
+
+		act(() => {
+			sendPromise = result.current.send('hi')
+		})
+
+		act(() => {
+			result.current.stop()
+		})
+
+		await act(async () => {
+			await sendPromise
+		})
+
+		expect(result.current.streaming).toBe(false)
+
+		expect(result.current.messages).toHaveLength(1)
+
+		gate.resolve()
+	})
+
 	it('stop no-ops when nothing is in flight', () => {
 		const { result } = renderHook(() => useChatSend({ transport: makeStream('x') }))
 
