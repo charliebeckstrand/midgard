@@ -29,12 +29,12 @@ type ReorderValues = {
 }
 
 /**
- * The messages of a reorder: the live-region text of a pick-up, a move, a
- * drop, and a return, the instructions of the keyboard, and the names of the
- * reorder handles. A list, a query builder, a Kanban, and a grid use them, for
- * a pointer drag and for the keyboard. The handle of a dnd-kit item speaks
- * its role with `sortableRole` or `draggableRole`, in place of the English
- * role of dnd-kit.
+ * The messages of a reorder. They hold the live-region text of a pick-up, a
+ * move, a drop, and a return. They also hold the instructions of the keyboard
+ * and the names of the reorder handles. A list, a query builder, a Kanban, and a grid use
+ * them, for a pointer drag and for the keyboard. The handle of a dnd-kit item
+ * speaks its role with `sortableRole` or `draggableRole`, in place of the
+ * English role of dnd-kit.
  *
  * @internal
  */
@@ -142,8 +142,8 @@ export const reorderMessages: MessageSet<ReorderValues> = defineMessages<Reorder
 
 /**
  * The place of an item: its 1-based `position`, the `total` of its list, and
- * the name of the group that holds it, such as the column of a Kanban card. An
- * empty `container` counts as no group.
+ * the name of the group that holds it. An example group is the column of a
+ * Kanban card. An empty `container` counts as no group.
  *
  * @internal
  */

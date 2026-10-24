@@ -197,7 +197,7 @@ function panelMotion(
  * Under `fade` the outgoing panel fades out, and the incoming panel fades in as
  * the outgoing panel nears transparent. Under `slide` the two panels slide side
  * by side, in the direction that `CurrentContents` reads from their document
- * order, and each panel fades across its slide. The lifecycle edges ride that
+ * order. Each panel fades across its slide. The lifecycle edges ride that
  * switch:
  *
  * - a panel mounting after the container settles enters from its transparent

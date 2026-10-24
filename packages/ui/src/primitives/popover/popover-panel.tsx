@@ -12,9 +12,9 @@ import * as m from '../reduced-motion/reduced-motion-elements'
 import { VirtualItemSourceContext } from '../virtual-options/context'
 
 /**
- * Props for {@link PopoverPanel}. The panel `<m.div>` takes the rest, except the
- * keys that Motion gives its own meaning (as in `CurrentContent`) and the keys
- * that the panel owns: its tab stop and `aria-multiselectable`.
+ * Props for {@link PopoverPanel}. The panel `<m.div>` takes the rest, except
+ * the keys that Motion gives its own meaning (as in `CurrentContent`). The
+ * panel also owns its tab stop and `aria-multiselectable`.
  */
 export type PopoverPanelProps = Omit<
 	ComponentProps<'div'>,
@@ -28,10 +28,10 @@ export type PopoverPanelProps = Omit<
 > & {
 	children: ReactNode
 	/**
-	 * ARIA role for the panel. Override the `listbox` default for menus and
-	 * the like. Set `'none'` for a panel that only holds a widget with its own
-	 * role, such as the listbox of a Combobox. The panel then renders no role
-	 * attribute: it is focusable (`tabIndex={-1}`), and a browser ignores
+	 * ARIA role for the panel. Override the `listbox` default for menus and the
+	 * like. Set `'none'` for a panel that only holds a widget with its own
+	 * role. The listbox of a Combobox is an example. The panel then renders no
+	 * role attribute: it is focusable (`tabIndex={-1}`), and a browser ignores
 	 * `role="none"` on a focusable element.
 	 *
 	 * @defaultValue 'listbox'
@@ -69,8 +69,8 @@ export type PopoverPanelProps = Omit<
 	/**
 	 * Make the panel one Tab stop. The panel sets `tabIndex=0` on one row and
 	 * `tabIndex=-1` on the other rows, and moves the `0` to the row that gets
-	 * focus. Use it for a panel that stays in the page, such as a `static` menu,
-	 * where Tab must reach a row.
+	 * focus. Use it for a panel that stays in the page, where Tab must reach a
+	 * row. A `static` menu is an example.
 	 *
 	 * @defaultValue false
 	 */

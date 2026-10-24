@@ -56,9 +56,9 @@ export type PanelOverlayProps = {
 	/**
 	 * Element to portal into. The panel is then scoped to that element
 	 * (`absolute` positioning, no body scroll lock), which has to establish a
-	 * positioning context. The panel stays in the box of that element: the
-	 * overlay clips it, also during the slide, so the focus that moves into it
-	 * does not scroll that element.
+	 * positioning context. The panel stays in the box of that element, because
+	 * the overlay clips it, also during the slide. Thus the focus that moves
+	 * into it does not scroll that element.
 	 * @defaultValue `document.body`, with full-viewport `fixed` positioning.
 	 */
 	container?: HTMLElement | null
@@ -69,8 +69,8 @@ export type PanelOverlayProps = {
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
 	 * The element that gets the focus when the panel closes. Give it when the
-	 * element that had the focus as the panel opened can be gone at the close,
-	 * or when the focus belongs elsewhere.
+	 * focus belongs elsewhere. Also give it when the element that had the focus
+	 * as the panel opened can be gone at the close.
 	 * @defaultValue the element that had the focus as the panel opened.
 	 */
 	returnFocusTo?: RefObject<HTMLElement | null>

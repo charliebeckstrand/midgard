@@ -66,8 +66,8 @@ function classifyEntries(
  * inline height, handing the box back to `auto` and layout.
  *
  * Reduced motion opts the whole observer out. The container just reflows to
- * each panel switch, and the panels swap in place with their fade (the `fade`
- * fades, and the `still` copy of the `slide`).
+ * each panel switch. The panels swap in place with their fade: the `fade`
+ * fades, and the `still` copy of the `slide`.
  *
  * The tween takes the height transition of the animation: the fade tween, or
  * the spring of the slide.

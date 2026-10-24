@@ -6,9 +6,10 @@ const signal = createEmitter()
 
 /**
  * Broadcasts an overlay-lifecycle signal. Each surface that a reader opens on
- * purpose fires it on open: an `Overlay` (dialog, sheet, drawer), a popover,
- * and a menu (the `signal` option of `useFloatingDisclosure`). Non-modal floats
- * such as tooltips subscribe and close on any signal. Carries no payload.
+ * purpose fires it on open. These are an `Overlay` (dialog, sheet, drawer), a
+ * popover, and a menu (the `signal` option of `useFloatingDisclosure`).
+ * Non-modal floats such as tooltips subscribe and close on any signal. Carries
+ * no payload.
  */
 export function notifyOverlaySignal(): void {
 	signal.emit()

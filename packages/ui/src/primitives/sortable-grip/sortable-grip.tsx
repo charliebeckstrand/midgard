@@ -44,7 +44,7 @@ export type SortableGripProps = Omit<ComponentProps<'button'>, 'ref' | 'type'> &
  * @remarks
  * The `role="button"` of dnd-kit is redundant on a native `<button>`, so the
  * grip drops it. The attributes and the listeners of the sortable come after
- * the consumer props, so a stray prop cannot remove the tab stop or the
+ * the consumer props. Thus a stray prop cannot remove the tab stop or the
  * pressed state. `data-dragging` closes the grab hand while the item is held.
  * The children replace the default grip icon. A primitive never imports
  * `<Icon>` from `components/`, so the grip icon takes the same attributes and

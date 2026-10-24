@@ -17,7 +17,7 @@ export type InlineScriptProps = {
  *
  * The source is the text child of the element. The server renderer of React
  * writes the text of a script as it is, and it escapes only `<script` and
- * `</script`, so the source cannot close the element.
+ * `</script`. Thus the source cannot close the element.
  *
  * It has no `'use client'` and reads no context, so a server component and a
  * client component can each render it.

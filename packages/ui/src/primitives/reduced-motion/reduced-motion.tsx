@@ -44,8 +44,8 @@ export type ReducedMotionProps = {
  * root adds a `MotionConfig`, and the nested roots read its value. A nested root
  * adds a `LazyMotion` only when it needs the layout features and the ancestor
  * does not load them. Thus the shape of the tree depends only on the position
- * of the root, and a change to the reduced-motion setting changes a prop, not
- * the tree. React does not mount the subtree again.
+ * of the root. A change to the reduced-motion setting changes a prop, not the
+ * tree. React does not mount the subtree again.
  */
 export function ReducedMotion({ children, layout = false }: ReducedMotionProps) {
 	const reduced = use(ReducedMotionContext)

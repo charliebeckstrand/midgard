@@ -18,8 +18,9 @@ const [DensityContext, useDensityScope] = createContext<DensityStep | null>('Den
 })
 
 /**
- * Resolves the density step of a client component: the explicit step, else
- * the step of the nearest density scope, else the step on the root element.
+ * Resolves the density step of a client component. It is the explicit step,
+ * else the step of the nearest density scope, else the step on the root
+ * element.
  * The root step is `md` on the server and in the hydration render (see
  * `useDensityRoot`).
  *
@@ -46,8 +47,8 @@ export function useDensityStep(explicit?: DensityStep): DensityStep {
 
 /**
  * Reads the step of the nearest density scope under the root, or `null`
- * outside each such scope. Use it when "no scope" must differ from a step: a
- * `Portal` writes the step of its scope, and writes nothing at the root, so
+ * outside each such scope. Use it when "no scope" must differ from a step. A
+ * `Portal` writes the step of its scope, and it writes nothing at the root, so
  * its panel follows the root element. Each other reader uses
  * {@link useDensityStep}.
  */

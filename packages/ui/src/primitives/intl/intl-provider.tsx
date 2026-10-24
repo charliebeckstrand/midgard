@@ -31,8 +31,8 @@ export type IntlProviderProps = {
  * Gives the controls under it the intl of `locale`, with the catalog of its
  * language. The catalogs are the catalogs of ui, with `catalogs` and the
  * catalogs of each enclosing provider merged over them. There is one intl for
- * each locale and catalog set, so a nested provider in the same locale and with
- * the same catalogs gives the same object, and its subtree does not render
+ * each locale and catalog set. A nested provider in the same locale and with
+ * the same catalogs thus gives the same object, and its subtree does not render
  * again. `LocaleProvider` renders it with its locale.
  *
  * @internal

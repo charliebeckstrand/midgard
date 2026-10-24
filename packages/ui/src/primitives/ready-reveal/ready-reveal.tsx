@@ -121,8 +121,8 @@ const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
  * leaf its own reveal with the same `ready` value. Each reveal then keeps the
  * box of its own leaf, and the leaves reveal together. Give the skeleton the
  * same `size`, `level`, or `orientation` as its leaf. Put `loadingLabel` on one
- * reveal only, or on none when a parent announces the load, so that the
- * announcer speaks the load one time.
+ * reveal only, or on none when a parent announces the load. The announcer then
+ * speaks the load one time.
  */
 export function ReadyReveal({
 	ready,

@@ -5,19 +5,6 @@ import { resolveLinkRel } from '../link/link-rel'
 import { mergeRenderProps } from './polymorphic-render-props'
 import type { PolymorphicRenderProps } from './types'
 
-/**
- * Server-safe sibling of `Polymorphic`: the same `href`-driven link switch
- * with element polymorphism, minus the LinkContext read. The `href` arm
- * renders a plain `<a>`. For the app's router link, pass `render` per call
- * site (e.g. `render={<Link />}` with `next/link`); the element is cloned
- * with the resolved anchor props and the children.
- *
- * Static leaf components (Badge, Box, BreadcrumbLink, …) use this so they can
- * render in React Server Components. Client components keep `Polymorphic`,
- * whose context read resolves the `<UIProvider>`-registered link without
- * call-site wiring.
- */
-
 /** Props for `PolymorphicStatic`; the fallback arm excludes `href` and `render`. */
 export type PolymorphicStaticProps<
 	Fallback extends ElementType,
@@ -41,8 +28,9 @@ export type PolymorphicStaticProps<
  *   props type constrains the fallback arm.
  * @remarks
  * Server-safe counterpart of {@link Polymorphic}: it reads no LinkContext, so
- * the router link must be supplied per call site via `render`. Suits static
- * leaf components that render in React Server Components.
+ * the router link must be supplied per call site via `render`, such as
+ * `render={<Link />}` with `next/link`. Static leaf components (Badge, Box,
+ * BreadcrumbLink) use it, so they can render in React Server Components.
  *
  * The props of the `render` element merge with the resolved props. The
  * classes join, both event handlers run, and a resolved value wins on each
