@@ -1,1 +1,7 @@
-export { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from './active-indicator'
+export {
+	ActiveIndicator,
+	type ActiveIndicatorProps,
+	ActiveIndicatorScope,
+	type ActiveIndicatorScopeProps,
+	useActiveIndicator,
+} from './active-indicator'

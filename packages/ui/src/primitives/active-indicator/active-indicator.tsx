@@ -1,7 +1,7 @@
 'use client'
 
 import { LayoutGroup, type MotionStyle, useAnimate } from 'motion/react'
-import { type ReactNode, type Ref, useCallback, useId } from 'react'
+import { type ComponentProps, type ReactNode, useCallback, useId } from 'react'
 import { cn, createContext } from '../../core'
 import { k } from '../../recipes/kata/active-indicator'
 import { ReducedMotion } from '../reduced-motion'
@@ -24,6 +24,12 @@ const [ActiveIndicatorScopeContext, useActiveIndicatorScope] = createContext<str
 	{ default: undefined },
 )
 
+/** Props for {@link ActiveIndicatorScope}: the group whose indicators share one morph. */
+export type ActiveIndicatorScopeProps = {
+	/** The nav or tab group. */
+	children: ReactNode
+}
+
 /**
  * Scopes active indicators to a single nav / tab group, wrapping children in a
  * Motion `LayoutGroup`. Descendant {@link ActiveIndicator}s then morph against
@@ -35,7 +41,7 @@ const [ActiveIndicatorScopeContext, useActiveIndicatorScope] = createContext<str
  * no morph.
  * @see {@link useActiveIndicatorScope}
  */
-export function ActiveIndicatorScope({ children }: { children: ReactNode }) {
+export function ActiveIndicatorScope({ children }: ActiveIndicatorScopeProps) {
 	const layoutId = `current-indicator-${useId()}`
 
 	return (
@@ -73,6 +79,22 @@ export function useActiveIndicator() {
 }
 
 /**
+ * Props for {@link ActiveIndicator}. The marker `<m.span>` takes the rest,
+ * except `children` and the keys that Motion gives its own meaning (as in
+ * `CurrentContent`).
+ */
+export type ActiveIndicatorProps = Omit<
+	ComponentProps<'span'>,
+	'children' | 'style' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
+> & {
+	/**
+	 * The inline style of the marker. A `borderRadius` here replaces the default radius.
+	 * A Motion style, so the morph can correct the radius as it scales.
+	 */
+	style?: MotionStyle
+}
+
+/**
  * Visual marker that morphs between sibling items via Motion's shared-element
  * transition. Resolves its morph-scope id from the nearest
  * {@link ActiveIndicatorScope}, falling back to the global `'current-indicator'`.
@@ -82,15 +104,7 @@ export function useActiveIndicator() {
  * Motion's layout projection can inverse-scale it mid-morph.
  * @see {@link ActiveIndicatorScope}
  */
-export function ActiveIndicator({
-	ref,
-	className,
-	style,
-}: {
-	ref?: Ref<HTMLSpanElement>
-	className?: string
-	style?: MotionStyle
-}) {
+export function ActiveIndicator({ className, style, ...props }: ActiveIndicatorProps) {
 	const scopedLayoutId = useActiveIndicatorScope()
 
 	const layoutId = scopedLayoutId ?? 'current-indicator'
@@ -102,8 +116,8 @@ export function ActiveIndicator({
 	return (
 		<ReducedMotion layout>
 			<m.span
-				ref={ref}
 				data-slot="active-indicator"
+				{...props}
 				layoutId={layoutId}
 				layoutDependency={instanceId}
 				className={cn('pointer-events-none absolute inset-0', k().base, className)}

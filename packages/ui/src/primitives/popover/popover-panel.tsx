@@ -1,12 +1,7 @@
 'use client'
 
-import {
-	type AriaRole,
-	type KeyboardEventHandler,
-	type ReactNode,
-	useLayoutEffect,
-	useRef,
-} from 'react'
+import { useComposedRefs } from 'motion/react'
+import { type AriaRole, type ComponentProps, type ReactNode, useLayoutEffect, useRef } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useA11yRoving, useScrollWithin, type VirtualItemSource } from '../../hooks'
@@ -17,39 +12,20 @@ import * as m from '../reduced-motion/reduced-motion-elements'
 import { VirtualItemSourceContext } from '../virtual-options/context'
 
 /**
- * Animated listbox-style panel for floating dropdowns (Select, Combobox,
- * Menu). Wires up roving keyboard navigation, optional type-ahead and Tab
- * containment, and autofocus on open. Autofocus lands on the selected item, or
- * on the panel itself when nothing is selected. A `VirtualOptions` with
- * `getOptionId` inside registers its item source here, so the keys reach
- * options outside the rendered window.
- *
- * @remarks Defaults to `role="listbox"`; override `role` for menus and the
- * like. `role="none"` renders no role attribute. `aria-multiselectable` is honored
- * only on listbox roles. Pass `glass` for the translucent surface variant.
- * Pass `open` from the owner, and the panel stamps `data-open` while it is open.
+ * Props for {@link PopoverPanel}. The panel `<m.div>` takes the rest, except the
+ * keys that Motion gives its own meaning (as in `CurrentContent`) and the keys
+ * that the panel owns: its tab stop and `aria-multiselectable`.
  */
-export function PopoverPanel({
-	id,
-	className,
-	children,
-	role = 'listbox',
-	itemSelector = '[role="option"]:not([data-disabled])',
-	autoFocus = true,
-	typeahead = false,
-	trapTab = false,
-	manageTabIndex = false,
-	glass = false,
-	multiselectable,
-	density,
-	open,
-	'aria-label': ariaLabel,
-	'aria-labelledby': ariaLabelledby,
-	'aria-describedby': ariaDescribedby,
-	onKeyDown: onKeyDownProp,
-}: {
-	id?: string
-	className?: string
+export type PopoverPanelProps = Omit<
+	ComponentProps<'div'>,
+	| 'role'
+	| 'tabIndex'
+	| 'aria-multiselectable'
+	| 'onDrag'
+	| 'onDragStart'
+	| 'onDragEnd'
+	| 'onAnimationStart'
+> & {
 	children: ReactNode
 	/**
 	 * ARIA role for the panel. Override the `listbox` default for menus and
@@ -127,14 +103,42 @@ export function PopoverPanel({
 	 * @defaultValue No open state: the panel stamps no `data-open`.
 	 */
 	open?: boolean
-	/** Accessible name for the panel's role (e.g. the listbox), threaded from the owning control. */
-	'aria-label'?: string
-	'aria-labelledby'?: string
-	/** Id of the element that describes the panel, such as the description of a menu. */
-	'aria-describedby'?: string
-	onKeyDown?: KeyboardEventHandler
-}) {
+}
+
+/**
+ * Animated listbox-style panel for floating dropdowns (Select, Combobox,
+ * Menu). Wires up roving keyboard navigation, optional type-ahead and Tab
+ * containment, and autofocus on open. Autofocus lands on the selected item, or
+ * on the panel itself when nothing is selected. A `VirtualOptions` with
+ * `getOptionId` inside registers its item source here, so the keys reach
+ * options outside the rendered window.
+ *
+ * @remarks Defaults to `role="listbox"`; override `role` for menus and the
+ * like. `role="none"` renders no role attribute. `aria-multiselectable` is honored
+ * only on listbox roles. Pass `glass` for the translucent surface variant.
+ * Pass `open` from the owner, and the panel stamps `data-open` while it is open.
+ */
+export function PopoverPanel({
+	className,
+	children,
+	role = 'listbox',
+	itemSelector = '[role="option"]:not([data-disabled])',
+	autoFocus = true,
+	typeahead = false,
+	trapTab = false,
+	manageTabIndex = false,
+	glass = false,
+	multiselectable,
+	density,
+	open,
+	onKeyDown: onKeyDownProp,
+	ref,
+	...props
+}: PopoverPanelProps) {
 	const panelRef = useRef<HTMLDivElement>(null)
+
+	// The autofocus and the roving read the node, so a consumer `ref` joins it.
+	const setPanel = useComposedRefs(panelRef, ref)
 
 	// Registered by a `VirtualOptions` (with `getOptionId`) inside `children`;
 	// null otherwise, which keeps the DOM-query roving.
@@ -175,8 +179,10 @@ export function PopoverPanel({
 	return (
 		<ReducedMotion>
 			<m.div
-				ref={panelRef}
-				id={id}
+				{...props}
+				ref={setPanel}
+				// After the spread: `ListboxPanel` finds the panel by this anchor
+				// (CONVENTIONS.md §3.9).
 				data-slot="popover-panel"
 				// Half the marker `hannou.tint.glass` keys on; the `group/glass` class
 				// of the glass surface is the other half. See `recipes/kiso/hannou/glass-item.ts`.
@@ -184,9 +190,6 @@ export function PopoverPanel({
 				data-density={density}
 				data-open={dataAttr(open)}
 				role={role === 'none' ? undefined : role}
-				aria-label={ariaLabel}
-				aria-labelledby={ariaLabelledby}
-				aria-describedby={ariaDescribedby}
 				// ARIA allows `aria-multiselectable` on listbox and grid roles; this
 				// panel only sets it on the listbox role.
 				aria-multiselectable={role === 'listbox' ? multiselectable : undefined}

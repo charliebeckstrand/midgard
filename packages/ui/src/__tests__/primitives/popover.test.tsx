@@ -1,3 +1,4 @@
+import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { PopoverPanel } from '../../primitives/popover'
 import { fireEvent, renderUI, screen } from '../helpers'
@@ -7,6 +8,27 @@ describe('PopoverPanel', () => {
 		renderUI(<PopoverPanel>options</PopoverPanel>)
 
 		expect(screen.getByRole('listbox')).toBeInTheDocument()
+	})
+
+	it('passes native attributes and a ref to the panel, and keeps its anchor', () => {
+		const ref = createRef<HTMLDivElement>()
+
+		renderUI(
+			<PopoverPanel ref={ref} data-testid="panel" data-slot="custom" title="Options">
+				options
+			</PopoverPanel>,
+		)
+
+		const panel = screen.getByRole('listbox')
+
+		expect(ref.current).toBe(panel)
+
+		expect(panel).toHaveAttribute('data-testid', 'panel')
+
+		expect(panel).toHaveAttribute('title', 'Options')
+
+		// `ListboxPanel` finds the panel by its anchor, so a consumer prop does not rename it.
+		expect(panel).toHaveAttribute('data-slot', 'popover-panel')
 	})
 
 	// Roving is a keyboard model no consumer switches off, so a consumer
