@@ -9,6 +9,7 @@ import {
 	useDeferredValue,
 	useMemo,
 	useRef,
+	useState,
 } from 'react'
 import { cn } from '../../core'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
@@ -32,7 +33,7 @@ import { createDotPool } from './engine/map-cluster/pool'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import type { MapHoverTarget } from './engine/map-hover/target'
-import { mapStops } from './engine/map-keyboard/stops'
+import { createStopMoves, mapStops } from './engine/map-keyboard/stops'
 import { groupLegendId, legendItems, overlaySwatchClass } from './engine/map-legend/items'
 import { planLegend } from './engine/map-legend/plan'
 import { overlaySlotColors } from './engine/map-overlay/slots'
@@ -1079,6 +1080,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[entries, hidden, shape.project],
 	)
 
+	// The moves of the marks, which the cursor reads to resolve its stops again.
+	// One store for the life of the plat, so the value below holds through a move.
+	const [moves] = useState(createStopMoves)
+
 	const plat = useMemo<MapPlatContextValue>(
 		() => ({
 			project: shape.project,
@@ -1088,10 +1093,11 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			hidden,
 			spare,
 			pool,
+			moves,
 			animate,
 			selectedOverlay: markSelection,
 		}),
-		[shape.project, register, colors, order, hidden, spare, pool, animate, markSelection],
+		[shape.project, register, colors, order, hidden, spare, pool, moves, animate, markSelection],
 	)
 
 	const tooltipEntries = useMemo(
@@ -1173,13 +1179,19 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	)
 
 	// Whether anything at all can read out: a matched region, or a registered
-	// overlay. The table and the tab stop take this wider reading: a mark's own
-	// row and its keyboard stop are outputs a map with no rows still has.
+	// overlay. The table takes this wider reading: a mark's own row is an output
+	// a map with no rows still has.
 	const hasReadout = regionsRead || entries.length > 0 || nameRegions
 
-	// `tooltip` asks and `hasReadout` answers; the readout channels all want the
+	// Whether the tooltip and the cursor can read anything out. A region counts
+	// only while its layer answers, because `regionPointer={false}` takes the
+	// regions off the pointer and out of the stop list. The table keeps their
+	// rows, since the switch withdraws the pointer and not the data.
+	const pointReadout = (regions.answers && (regionsRead || nameRegions)) || entries.length > 0
+
+	// `tooltip` asks and `pointReadout` answers; the readout channels all want the
 	// pair. Bound once rather than spelled at each of them.
-	const readable = tooltip && hasReadout
+	const readable = tooltip && pointReadout
 
 	// What the tooltip reads, held once: the tooltip shows it, and the keyboard
 	// cursor speaks the same text for the stop it moves onto.
@@ -1396,6 +1408,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 						activate: activateTarget,
 						describe: describeTarget,
 						resolveStops,
+						moves,
 						view: { width: shape.viewWidth, height: shape.viewHeight },
 						svgRef,
 						subject: shape.features,

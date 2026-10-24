@@ -6,6 +6,7 @@ import type { MapSeriesColor } from '../../recipes/kata/map'
 import { noop } from '../../utilities'
 import type { MapDotPool } from './engine/map-cluster/pool'
 import type { MapHoverTarget } from './engine/map-hover/target'
+import type { MapStopMoves } from './engine/map-keyboard/stops'
 import type { MapOverlayEntry } from './engine/map-overlay/entry'
 import type { LngLat, MapOverlaySelection, MapPoint2D } from './engine/types'
 import type { MapZoom } from './use-map-zoom'
@@ -233,6 +234,12 @@ export type MapPlatContextValue = {
 	 * waypoints and a zone's ring never contest ground they paint nothing on.
 	 */
 	pool: MapDotPool
+	/**
+	 * The moves of the marks, for the keyboard cursor. A mark calls `move` when
+	 * its stops change, and the cursor resolves its stop list again. One store for
+	 * the life of the plat.
+	 */
+	moves: MapStopMoves
 	/** The picked mark, by the plat's own prop name; the named mark haloes the stop it resolves to. */
 	selectedOverlay: MapOverlaySelection | null
 	/** Whether the plat animates; overlays pick their motion renderers off it. */

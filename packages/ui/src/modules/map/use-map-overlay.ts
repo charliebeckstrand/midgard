@@ -30,7 +30,8 @@ function stopFrom(event: { currentTarget: Element }): number {
 /**
  * The props every overlay mark shares: its identity, its legend text and paint,
  * and the pointer reporters. {@link MapRoute}, {@link MapPoint},
- * {@link MapMarker}, and {@link MapPoints} each add their own geometry to these.
+ * {@link MapMarker}, {@link MapPoints}, and {@link MapGeofence} each add their
+ * own geometry to these.
  */
 export type MapOverlayProps = {
 	/**
@@ -138,7 +139,9 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 * A thunk, so a plural mark's O(N) build lands on the one keypress that
 		 * reads it rather than on every render.
 		 *
-		 * Hold its identity until the stops move.
+		 * Hold its identity until the stops move. A new identity tells the keyboard
+		 * cursor to resolve its stops again, so a thunk made inline does that on
+		 * each render.
 		 */
 		stops: () => LngLat[]
 		/**
@@ -321,7 +324,7 @@ export function useMapOverlay({
 	// them the expansion, so the mark reads the expanded set like every other.
 	const groupId = group === undefined ? id : groupLegendId(group)
 
-	const { project, register, colors, order, hidden, spare, pool, animate, selectedOverlay } =
+	const { project, register, colors, order, hidden, spare, pool, moves, animate, selectedOverlay } =
 		useMapPlat()
 
 	const { set } = useMapHoverActions()
@@ -378,6 +381,20 @@ export function useMapOverlay({
 
 		pool.restake(id)
 	}, [pool, id, dots])
+
+	// A move changes no entry of the ledger either, so the keyboard cursor holds the
+	// stops it resolved last. The mark tells it off the identity of `stops`, as it
+	// restakes the pool off `dots`. A layout effect, so that the cursor reads the
+	// new stops before the move paints.
+	const placed = useRef(stops)
+
+	useLayoutEffect(() => {
+		if (placed.current === stops) return
+
+		placed.current = stops
+
+		moves.move()
+	}, [moves, stops])
 
 	const neighbors = useSyncExternalStore(pool.subscribe, pool.neighbors, pool.neighbors)
 

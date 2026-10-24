@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Dialog, DialogPanel } from '../../components/dialog'
-import { MapPlat } from '../../modules/map'
+import { type LngLat, MapPlat, MapPoint, MapRoute } from '../../modules/map'
 import { LocaleProvider } from '../../providers/locale'
 import {
 	act,
@@ -15,7 +15,7 @@ import {
 } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
-import { categoricalPlat } from '../helpers/map-plat'
+import { categoricalPlat, overlayPlat } from '../helpers/map-plat'
 import { allRegions } from '../helpers/map-queries'
 
 /** The tooltip's current text, or `null` while the readout is away. */
@@ -460,6 +460,15 @@ describe('MapPlat keyboard navigation', () => {
 		expect(onRegionClick).not.toHaveBeenCalled()
 	})
 
+	it('takes no tab stop where the caller switched off a layer that was the only output', () => {
+		// The rows match, so the regions have a readout. But `regionPointer={false}`
+		// withdraws it, and no mark or zoom earns the stop. A stop there answers every
+		// key with nothing.
+		const { container } = renderUI(categoricalPlat({ regionPointer: false }))
+
+		expect(bySlot(container, 'map-plot')).not.toHaveAttribute('tabindex')
+	})
+
 	it('keeps the stop while the legend holds every category off', () => {
 		// A toggle is transient: it silences the readout for as long as it holds,
 		// and to take the tab stop away with it would move focus under the reader.
@@ -472,6 +481,68 @@ describe('MapPlat keyboard navigation', () => {
 		for (const toggle of toggles) fireEvent.click(toggle)
 
 		expect(bySlot(container, 'map-plot')).toHaveAttribute('tabindex', '0')
+	})
+})
+
+describe('MapPlat keyboard over marks that move', () => {
+	/** Two points on the fixture's middle row: Pea at the center, and Queue where the case puts it. */
+	function pair(queue: LngLat) {
+		return overlayPlat(
+			<>
+				<MapPoint id="pea" label="Pea" at={[15, 5]} />
+
+				<MapPoint id="queue" label="Queue" at={queue} />
+			</>,
+		)
+	}
+
+	it('steps by where a mark stands now, after it moved', () => {
+		const { container, plot, rerender } = renderNavigable(pair([25, 5]))
+
+		fireEvent.keyDown(plot, { key: 'Home' })
+
+		expect(readout(container)).toBe('Pea')
+
+		// Queue moves from the east of Pea to the west of it.
+		rerender(pair([2, 5]))
+
+		fireEvent.keyDown(plot, { key: 'ArrowLeft' })
+
+		expect(readout(container)).toBe('Queue')
+	})
+
+	it('steps by where a route runs now, after its stops changed', () => {
+		function route(stops: LngLat[]) {
+			return overlayPlat(
+				<>
+					<MapPoint id="pea" label="Pea" at={[15, 5]} />
+
+					<MapRoute id="leg" label="Leg" stops={stops} />
+				</>,
+			)
+		}
+
+		const { container, plot, rerender } = renderNavigable(
+			route([
+				[22, 5],
+				[28, 5],
+			]),
+		)
+
+		fireEvent.keyDown(plot, { key: 'Home' })
+
+		expect(readout(container)).toBe('Pea')
+
+		rerender(
+			route([
+				[2, 5],
+				[8, 5],
+			]),
+		)
+
+		fireEvent.keyDown(plot, { key: 'ArrowLeft' })
+
+		expect(readout(container)).toBe('Leg')
 	})
 })
 
