@@ -22,6 +22,14 @@ export const TITLE_ID = 'docs.title.'
 export const TAB_ID = 'docs.tab.'
 
 /**
+ * The start of the message id of the common name of a page, such as
+ * `docs.page.date-picker` for "Date picker". The rest of the id is the last
+ * part of the path of the page. The page shows its component name, and the
+ * search finds the page by its common name too.
+ */
+export const PAGE_ID = 'docs.page.'
+
+/**
  * The start of the message id of the label of a field of a playground, and of
  * its options. The rest of the id is the name of the prop, such as
  * `docs.prop.placement`, and for an option also the value, such as
@@ -71,6 +79,17 @@ function formatName(intl: IntlShape, id: string, name: string): string {
  */
 export function exampleTitle(intl: IntlShape, id: string, title: string): string {
 	return formatName(intl, `${TITLE_ID}${id}`, title)
+}
+
+/**
+ * The common name of the page at `path` in the language of the reader, such
+ * as "Selector de fecha" for `/date-picker`.
+ *
+ * @param path - The path of the page, such as `/date-picker`.
+ * @param name - The name of the page, such as `DatePicker`.
+ */
+export function pageName(intl: IntlShape, path: string, name: string): string {
+	return formatName(intl, `${PAGE_ID}${path.split('/').at(-1)}`, humanize(name))
 }
 
 /** The path part of a tab: `Server grouping` gives `server-grouping`. */

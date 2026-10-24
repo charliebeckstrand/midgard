@@ -21,7 +21,7 @@ import { createApiExtractor } from '../src/docs/plugin/api.ts'
 import { demoEntries } from '../src/docs/plugin/demo-text.ts'
 import type { Parser } from '../src/docs/plugin/examples.ts'
 import { fieldEntries } from '../src/docs/plugin/fields.ts'
-import { tabEntries, titleEntries } from '../src/docs/plugin/titles.ts'
+import { pageEntries, tabEntries, titleEntries } from '../src/docs/plugin/titles.ts'
 import { type CatalogEntry, type CatalogSource, catalogText, extractCatalog } from './intl-catalog'
 
 const SRC_DIR = fileURLToPath(new URL('../src', import.meta.url))
@@ -55,11 +55,12 @@ export const DOCS_CATALOG_SOURCE: CatalogSource = { srcDir: DOCS_DIR, skipped: [
 
 /**
  * The catalog of the docs app: the message descriptors of its source, the
- * title of each example, which comes from a file name, the name of each tab,
+ * common name of each page, which comes from its component name, the title of
+ * each example, which comes from a file name, the name of each tab,
  * which comes from the `TABS` of a page, and the label and the options of each
  * field of a playground, which come from the API data of its component, and
- * each text of a demo, which comes from a literal in `pages/`. A title, a tab
- * name, a field, and a demo text have no descriptor.
+ * each text of a demo, which comes from a literal in `pages/`. A page name, a
+ * title, a tab name, a field, and a demo text have no descriptor.
  */
 export async function extractDocsCatalog(): Promise<Record<string, CatalogEntry>> {
 	const parse: Parser = (code, options) => parseAst(code, options)
@@ -76,9 +77,14 @@ export async function extractDocsCatalog(): Promise<Record<string, CatalogEntry>
 		])
 
 		return Object.fromEntries(
-			Object.entries({ ...messages, ...titles, ...tabs, ...fields, ...demos }).toSorted(
-				([a], [b]) => (a < b ? -1 : 1),
-			),
+			Object.entries({
+				...messages,
+				...pageEntries(DOCS_DIR),
+				...titles,
+				...tabs,
+				...fields,
+				...demos,
+			}).toSorted(([a], [b]) => (a < b ? -1 : 1)),
 		)
 	} finally {
 		extractor.close()

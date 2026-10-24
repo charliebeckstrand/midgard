@@ -3759,6 +3759,450 @@
 		"defaultMessage": "See each page",
 		"description": "The text of a link on the not-found page. The link goes to the home page, which lists each page of the docs."
 	},
+	"docs.page.accordion": {
+		"defaultMessage": "Accordion",
+		"description": "The common name of the Accordion page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.address-input": {
+		"defaultMessage": "Address input",
+		"description": "The common name of the AddressInput page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.alert": {
+		"defaultMessage": "Alert",
+		"description": "The common name of the Alert page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.appearance": {
+		"defaultMessage": "Appearance",
+		"description": "The common name of the Appearance page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.aspect-ratio": {
+		"defaultMessage": "Aspect ratio",
+		"description": "The common name of the AspectRatio page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.avatar": {
+		"defaultMessage": "Avatar",
+		"description": "The common name of the Avatar page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.badge": {
+		"defaultMessage": "Badge",
+		"description": "The common name of the Badge page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.banner": {
+		"defaultMessage": "Banner",
+		"description": "The common name of the Banner page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.box": {
+		"defaultMessage": "Box",
+		"description": "The common name of the Box page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.breadcrumb": {
+		"defaultMessage": "Breadcrumb",
+		"description": "The common name of the Breadcrumb page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.button": {
+		"defaultMessage": "Button",
+		"description": "The common name of the Button page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.calendar": {
+		"defaultMessage": "Calendar",
+		"description": "The common name of the Calendar page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.card": {
+		"defaultMessage": "Card",
+		"description": "The common name of the Card page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.chart": {
+		"defaultMessage": "Chart",
+		"description": "The common name of the Chart page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.chat": {
+		"defaultMessage": "Chat",
+		"description": "The common name of the Chat page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.checkbox": {
+		"defaultMessage": "Checkbox",
+		"description": "The common name of the Checkbox page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.code": {
+		"defaultMessage": "Code",
+		"description": "The common name of the Code page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.collapse": {
+		"defaultMessage": "Collapse",
+		"description": "The common name of the Collapse page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.color": {
+		"defaultMessage": "Color",
+		"description": "The common name of the Color page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.columns": {
+		"defaultMessage": "Columns",
+		"description": "The common name of the Columns page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.combobox": {
+		"defaultMessage": "Combobox",
+		"description": "The common name of the Combobox page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.command-palette": {
+		"defaultMessage": "Command palette",
+		"description": "The common name of the CommandPalette page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.confirm": {
+		"defaultMessage": "Confirm",
+		"description": "The common name of the Confirm page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.container": {
+		"defaultMessage": "Container",
+		"description": "The common name of the Container page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.context-menu": {
+		"defaultMessage": "Context menu",
+		"description": "The common name of the ContextMenu page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.control": {
+		"defaultMessage": "Control",
+		"description": "The common name of the Control page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.copy-button": {
+		"defaultMessage": "Copy button",
+		"description": "The common name of the CopyButton page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.credit-card-input": {
+		"defaultMessage": "Credit card input",
+		"description": "The common name of the CreditCardInput page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.currency-input": {
+		"defaultMessage": "Currency input",
+		"description": "The common name of the CurrencyInput page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.dashboard": {
+		"defaultMessage": "Dashboard",
+		"description": "The common name of the Dashboard page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.date-input": {
+		"defaultMessage": "Date input",
+		"description": "The common name of the DateInput page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.date-picker": {
+		"defaultMessage": "Date picker",
+		"description": "The common name of the DatePicker page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.date-time": {
+		"defaultMessage": "Date time",
+		"description": "The common name of the DateTime page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.density": {
+		"defaultMessage": "Density",
+		"description": "The common name of the Density page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.description-list": {
+		"defaultMessage": "Description list",
+		"description": "The common name of the DescriptionList page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.dialog": {
+		"defaultMessage": "Dialog",
+		"description": "The common name of the Dialog page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.divider": {
+		"defaultMessage": "Divider",
+		"description": "The common name of the Divider page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.drawer": {
+		"defaultMessage": "Drawer",
+		"description": "The common name of the Drawer page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.events": {
+		"defaultMessage": "Events",
+		"description": "The common name of the Events page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.fieldset": {
+		"defaultMessage": "Fieldset",
+		"description": "The common name of the Fieldset page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.file-upload": {
+		"defaultMessage": "File upload",
+		"description": "The common name of the FileUpload page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.flex": {
+		"defaultMessage": "Flex",
+		"description": "The common name of the Flex page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.form": {
+		"defaultMessage": "Form",
+		"description": "The common name of the Form page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.glass": {
+		"defaultMessage": "Glass",
+		"description": "The common name of the Glass page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.grid": {
+		"defaultMessage": "Grid",
+		"description": "The common name of the Grid page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.group": {
+		"defaultMessage": "Group",
+		"description": "The common name of the Group page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.heading": {
+		"defaultMessage": "Heading",
+		"description": "The common name of the Heading page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.headless": {
+		"defaultMessage": "Headless",
+		"description": "The common name of the Headless page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.hold-button": {
+		"defaultMessage": "Hold button",
+		"description": "The common name of the HoldButton page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.icon": {
+		"defaultMessage": "Icon",
+		"description": "The common name of the Icon page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.input": {
+		"defaultMessage": "Input",
+		"description": "The common name of the Input page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.json-tree": {
+		"defaultMessage": "JSON tree",
+		"description": "The common name of the JsonTree page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.kanban": {
+		"defaultMessage": "Kanban",
+		"description": "The common name of the Kanban page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.kbd": {
+		"defaultMessage": "Kbd",
+		"description": "The common name of the Kbd page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.lightbox": {
+		"defaultMessage": "Lightbox",
+		"description": "The common name of the Lightbox page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.link": {
+		"defaultMessage": "Link",
+		"description": "The common name of the Link page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.list": {
+		"defaultMessage": "List",
+		"description": "The common name of the List page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.listbox": {
+		"defaultMessage": "Listbox",
+		"description": "The common name of the Listbox page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.loading": {
+		"defaultMessage": "Loading",
+		"description": "The common name of the Loading page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.locale": {
+		"defaultMessage": "Locale",
+		"description": "The common name of the Locale page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.map": {
+		"defaultMessage": "Map",
+		"description": "The common name of the Map page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.markdown": {
+		"defaultMessage": "Markdown",
+		"description": "The common name of the Markdown page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.mask-input": {
+		"defaultMessage": "Mask input",
+		"description": "The common name of the MaskInput page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.menu": {
+		"defaultMessage": "Menu",
+		"description": "The common name of the Menu page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.nav": {
+		"defaultMessage": "Nav",
+		"description": "The common name of the Nav page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.number-input": {
+		"defaultMessage": "Number input",
+		"description": "The common name of the NumberInput page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.odometer": {
+		"defaultMessage": "Odometer",
+		"description": "The common name of the Odometer page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.pagination": {
+		"defaultMessage": "Pagination",
+		"description": "The common name of the Pagination page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.password-confirm": {
+		"defaultMessage": "Password confirm",
+		"description": "The common name of the PasswordConfirm page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.password-input": {
+		"defaultMessage": "Password input",
+		"description": "The common name of the PasswordInput page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.password-strength": {
+		"defaultMessage": "Password strength",
+		"description": "The common name of the PasswordStrength page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.pdf-viewer": {
+		"defaultMessage": "PDF viewer",
+		"description": "The common name of the PdfViewer page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.pivot-table": {
+		"defaultMessage": "Pivot table",
+		"description": "The common name of the PivotTable page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.placeholder": {
+		"defaultMessage": "Placeholder",
+		"description": "The common name of the Placeholder page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.popover": {
+		"defaultMessage": "Popover",
+		"description": "The common name of the Popover page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.progress": {
+		"defaultMessage": "Progress",
+		"description": "The common name of the Progress page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.query": {
+		"defaultMessage": "Query",
+		"description": "The common name of the Query page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.radio": {
+		"defaultMessage": "Radio",
+		"description": "The common name of the Radio page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.rating": {
+		"defaultMessage": "Rating",
+		"description": "The common name of the Rating page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.resizable": {
+		"defaultMessage": "Resizable",
+		"description": "The common name of the Resizable page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.search-input": {
+		"defaultMessage": "Search input",
+		"description": "The common name of the SearchInput page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.segment": {
+		"defaultMessage": "Segment",
+		"description": "The common name of the Segment page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.select": {
+		"defaultMessage": "Select",
+		"description": "The common name of the Select page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.sheet": {
+		"defaultMessage": "Sheet",
+		"description": "The common name of the Sheet page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.shiny-text": {
+		"defaultMessage": "Shiny text",
+		"description": "The common name of the ShinyText page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.sidebar": {
+		"defaultMessage": "Sidebar",
+		"description": "The common name of the Sidebar page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.signature-pad": {
+		"defaultMessage": "Signature pad",
+		"description": "The common name of the SignaturePad page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.skeleton": {
+		"defaultMessage": "Skeleton",
+		"description": "The common name of the Skeleton page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.slider": {
+		"defaultMessage": "Slider",
+		"description": "The common name of the Slider page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.spacer": {
+		"defaultMessage": "Spacer",
+		"description": "The common name of the Spacer page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.sparkline": {
+		"defaultMessage": "Sparkline",
+		"description": "The common name of the Sparkline page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.split": {
+		"defaultMessage": "Split",
+		"description": "The common name of the Split page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.stack": {
+		"defaultMessage": "Stack",
+		"description": "The common name of the Stack page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.stat": {
+		"defaultMessage": "Stat",
+		"description": "The common name of the Stat page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.status": {
+		"defaultMessage": "Status",
+		"description": "The common name of the Status page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.stepper": {
+		"defaultMessage": "Stepper",
+		"description": "The common name of the Stepper page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.swatch": {
+		"defaultMessage": "Swatch",
+		"description": "The common name of the Swatch page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.switch": {
+		"defaultMessage": "Switch",
+		"description": "The common name of the Switch page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.table": {
+		"defaultMessage": "Table",
+		"description": "The common name of the Table page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.tabs": {
+		"defaultMessage": "Tabs",
+		"description": "The common name of the Tabs page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.tag-input": {
+		"defaultMessage": "Tag input",
+		"description": "The common name of the TagInput page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.text": {
+		"defaultMessage": "Text",
+		"description": "The common name of the Text page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.textarea": {
+		"defaultMessage": "Textarea",
+		"description": "The common name of the Textarea page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.time-ago": {
+		"defaultMessage": "Time ago",
+		"description": "The common name of the TimeAgo page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.timeline": {
+		"defaultMessage": "Timeline",
+		"description": "The common name of the Timeline page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.toast": {
+		"defaultMessage": "Toast",
+		"description": "The common name of the Toast page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.toggle-icon-button": {
+		"defaultMessage": "Toggle icon button",
+		"description": "The common name of the ToggleIconButton page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.toolbar": {
+		"defaultMessage": "Toolbar",
+		"description": "The common name of the Toolbar page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.tooltip": {
+		"defaultMessage": "Tooltip",
+		"description": "The common name of the Tooltip page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.tree": {
+		"defaultMessage": "Tree",
+		"description": "The common name of the Tree page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.ui": {
+		"defaultMessage": "UI",
+		"description": "The common name of the UI page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
 	"docs.pageError.body": {
 		"defaultMessage": "Reload the page to try again.",
 		"description": "The text under the heading of a page of the docs that fails to render."
