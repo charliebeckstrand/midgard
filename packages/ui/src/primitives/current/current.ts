@@ -140,8 +140,8 @@ export function useCurrentItem(value: string | undefined): {
 }
 
 /**
- * How a `CurrentContents` animates a panel switch: `fade` fades the outgoing
- * panel out and the incoming panel in, `slide` slides the two panels side by
+ * How a `CurrentContents` animates a panel switch. `fade` fades the outgoing
+ * panel out and the incoming panel in. `slide` slides the two panels side by
  * side, and `false` swaps them with no animation.
  *
  * @internal
@@ -179,8 +179,8 @@ export type CurrentContentsState = {
 }
 
 /**
- * The side a switch travels to: `1` when the incoming panel comes after the
- * outgoing panel in the reading order, and `-1` when it comes before it.
+ * The side a switch travels to. It is `1` when the incoming panel comes after
+ * the outgoing panel in the reading order, and `-1` when it comes before it.
  *
  * @internal
  */

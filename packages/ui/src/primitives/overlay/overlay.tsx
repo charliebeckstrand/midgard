@@ -67,9 +67,9 @@ export type OverlayProps = {
 	 */
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
-	 * Element to receive the focus when a modal overlay closes. Give it when the
-	 * element that had the focus as the overlay opened can be gone at the
-	 * close, or when the focus belongs elsewhere.
+	 * Element to receive the focus when a modal overlay closes. Give it when
+	 * the focus belongs elsewhere. Also give it when the element that had the
+	 * focus as the overlay opened can be gone at the close.
 	 *
 	 * @defaultValue the element that had the focus as the overlay opened.
 	 */

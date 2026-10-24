@@ -74,9 +74,9 @@ const OVERSCAN = 10
  * Finds its scroll container by walking up to the nearest ancestor with a
  * scrollable `overflow-y`. In a select-like panel, that is `PopoverPanel`'s own
  * `overflow-y-auto` + `max-h-*` styling, not the plain `role="listbox"` element
- * `PopoverPanel` wraps. A `CommandPalette` has no such panel, so the caller
- * gives `VirtualOptions` a wrapper with a definite height and `overflow-y:
- * auto`, as the `children` TSDoc of the palette tells. Renders only rows in the
+ * `PopoverPanel` wraps. A `CommandPalette` has no such panel. Its caller gives
+ * `VirtualOptions` a wrapper with a definite height and `overflow-y: auto`, as
+ * the `children` TSDoc of the palette tells. Renders only rows in the
  * viewport plus overscan; the rest are represented by top/bottom spacer divs.
  * Each rendered row sits in a presentational wrapper that measures its real
  * height. A row height changes with the density and with a description line,

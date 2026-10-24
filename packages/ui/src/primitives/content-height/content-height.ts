@@ -21,7 +21,7 @@ export type ContentHeightHost = {
  * The box that encloses the reader, or `null` outside such a box. A widget that
  * scrolls inside a box of fixed height reads it. When the box is available, the
  * widget can claim the height of its content and show its content in the flow
- * of the page, so the page has no scroll region inside a scroll region.
+ * of the page. The page then has no scroll region inside a scroll region.
  *
  * @example
  * ```tsx

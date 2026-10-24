@@ -9,7 +9,7 @@ import type {
 import { createSelectOption } from '../../primitives/option'
 import { useListboxContext } from './context'
 
-/** Props for {@link ListboxOption}: a selectable `value` plus the shared option attributes. */
+/** Props for {@link ListboxOption}: a selectable `value` plus the shared option attributes. The row `<div>` takes the rest. */
 export type ListboxOptionProps = SelectOptionProps
 
 /** Props for {@link ListboxLabel}: the option's primary-text slot attributes. */

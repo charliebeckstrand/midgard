@@ -15,8 +15,8 @@ type FormValueOptions<T> = {
 	/** Fires with the committed value, or `null` once it is cleared (CONVENTIONS §7.3). */
 	onValueChange?: (value: T | null) => void
 	/**
-	 * Runs after a reset of the value: a reset of the Form that binds `name`, or
-	 * a native form reset that sets the uncontrolled value back to
+	 * Runs after a reset of the value. That is a reset of the Form that binds
+	 * `name`, or a native form reset that sets the uncontrolled value back to
 	 * `defaultValue`. It clears the state that the control keeps beside the
 	 * value, such as a typed draft. It runs before the paint.
 	 */

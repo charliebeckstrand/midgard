@@ -30,9 +30,9 @@ export type PanelSurfaceOptions<P extends Pick<HTMLMotionProps<'div'>, 'animate'
 
 /**
  * The wiring that Dialog, Sheet, and Drawer share around their animated panel.
- * It reads the open state of the root, and it gives the props of the `Overlay`,
- * the props of the panel element, and the classes of the panel that each
- * surface needs. Thus one rule holds across the family:
+ * It reads the open state of the root. It gives the props of the `Overlay`, the
+ * props of the panel element, and the classes of the panel that each surface
+ * needs. Thus one rule holds across the family:
  *
  * - `modal` is `true` unless the consumer sets `false`.
  * - The slide moves `transform`, which `MotionConfig` does not hold still, so

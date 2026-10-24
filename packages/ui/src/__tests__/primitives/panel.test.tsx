@@ -45,6 +45,18 @@ describe('createPanel', () => {
 		expect(el?.tagName).toBe(tagName)
 	})
 
+	it('Body keeps its anchor, which the resize floor of a sheet or a drawer selects', () => {
+		const { container } = renderUI(<Body data-slot="custom-body">Body content</Body>)
+
+		expect(bySlot(container, 'dialog-body')).toBeInTheDocument()
+	})
+
+	it('Footer keeps the mark that the default footer looks for', () => {
+		const { container } = renderUI(<Footer data-panel-footer="custom">footer buttons</Footer>)
+
+		expect(bySlot(container, 'dialog-footer')).toHaveAttribute('data-panel-footer', '')
+	})
+
 	it('Title applies custom className', () => {
 		const { container } = renderUI(<Title className="custom">Title</Title>)
 

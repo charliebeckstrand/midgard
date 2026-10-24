@@ -9,6 +9,7 @@ import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbo
 import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
+import { PopoverPanel } from '../../../primitives/popover'
 import { noop, screen } from '../../helpers'
 import type { InteractiveCase } from './types'
 
@@ -201,6 +202,19 @@ export const interactive: readonly InteractiveCase[] = [
 				),
 				parts: ['listbox-button', 'control-frame', 'popover-panel'],
 				disabledParts: ['listbox-button'],
+			},
+			{
+				// The panel of the listbox, alone: it stamps the open state that its
+				// owner passes, and it has no disabled state.
+				component: 'PopoverPanel',
+				render: ({ open }) => (
+					<PopoverPanel open={open} aria-label="Status" autoFocus={false}>
+						<div role="option" tabIndex={-1} aria-selected={false}>
+							Active
+						</div>
+					</PopoverPanel>
+				),
+				parts: ['popover-panel'],
 			},
 		],
 	},

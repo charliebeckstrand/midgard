@@ -59,9 +59,9 @@ export type HeaderActionsProps = {
  * header row, and a widget reads the element of the slot with
  * {@link useHeaderActions}.
  *
- * Each `HeaderActions` starts a new scope. A copy of the widget that must not
- * reach the header row, such as the copy in an expanded view, goes in a
- * `HeaderActions` with no slot. It then reads `null`.
+ * Each `HeaderActions` starts a new scope. Put a copy of the widget that must
+ * not reach the header row in a `HeaderActions` with no slot. The copy in an
+ * expanded view is an example. It then reads `null`.
  *
  * @example
  * ```tsx

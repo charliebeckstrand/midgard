@@ -96,8 +96,8 @@ export type TriggerChildProps = {
  * The trigger writes its `slot` only on a host element child, such as a
  * `<button>`, that has no `data-slot` of its own. A component child, such as
  * a `<Button>`, keeps the anchor that it writes for itself. The key stays out
- * of the props of a component child, because an undefined value also
- * overrides an anchor that the component writes before its spread.
+ * of the props of a component child. An undefined value also overrides an
+ * anchor that the component writes before its spread.
  *
  * @internal
  */
@@ -127,7 +127,7 @@ export function TriggerChild({ child, props, ref, slot, className }: TriggerChil
  * calls `preventDefault()`. `props` go on the clone after the merged `onClick`.
  *
  * A close or clear part, such as `PopoverClose`, lends its action to the child
- * with this, and leaves the rest of the child as it is.
+ * with this. The rest of the child stays as it is.
  *
  * @internal
  */

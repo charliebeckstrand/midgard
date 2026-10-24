@@ -19,8 +19,8 @@ export type ControlFrameProps = ComponentProps<'span'> & {
  *
  * @remarks
  * The frame has no classes of its own. The control that renders it gives the
- * `base` slot of its unit as `className`, and each unit of the control group
- * holds the chrome, the radius, and the surface of its frame. The classes take
+ * `base` slot of its unit as `className`. Each unit of the control group holds
+ * the chrome, the radius, and the surface of its frame. The classes take
  * the step of the nearest density scope through stepped `density-*` classes,
  * so the frame reads no context.
  *

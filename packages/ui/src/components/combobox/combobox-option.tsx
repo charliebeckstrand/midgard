@@ -9,7 +9,7 @@ import type {
 import { createSelectOption } from '../../primitives/option'
 import { useComboboxContext } from './context'
 
-/** Props for {@link ComboboxOption}; `value` is matched against the combobox selection. */
+/** Props for {@link ComboboxOption}; `value` is matched against the combobox selection. The row `<div>` takes the rest. */
 export type ComboboxOptionProps = SelectOptionProps
 
 /** Props for {@link ComboboxLabel}; extends native `<span>` attributes. */

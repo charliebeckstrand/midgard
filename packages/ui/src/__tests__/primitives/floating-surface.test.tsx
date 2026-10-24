@@ -102,14 +102,16 @@ describe('FloatingSurface', () => {
 		expect(document.querySelector('[data-slot="live"]')).not.toHaveAttribute('inert')
 	})
 
-	it('merges caller style over floatingStyles on the positioned wrapper', () => {
+	it('merges caller style under floatingStyles on the positioned wrapper', () => {
 		renderUI(
 			<FloatingSurface
 				open
 				setFloating={noop}
-				floatingStyles={{ position: 'absolute' }}
+				floatingStyles={{ position: 'absolute', top: 0 }}
 				getFloatingProps={mergeFloatingProps}
-				style={{ pointerEvents: 'auto' }}
+				// The position keys carry the placement, so a caller value of the same
+				// key must not move the surface (CONVENTIONS.md §3.9).
+				style={{ pointerEvents: 'auto', position: 'fixed', top: 40 }}
 				data-slot="merged-style"
 			>
 				<span>panel</span>
@@ -119,6 +121,8 @@ describe('FloatingSurface', () => {
 		const surface = document.querySelector<HTMLElement>('[data-slot="merged-style"]')
 
 		expect(surface?.style.position).toBe('absolute')
+
+		expect(surface?.style.top).toBe('0px')
 
 		expect(surface?.style.pointerEvents).toBe('auto')
 	})

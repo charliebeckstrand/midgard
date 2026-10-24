@@ -1,1 +1,1 @@
-export { PopoverPanel } from './popover-panel'
+export { PopoverPanel, type PopoverPanelProps } from './popover-panel'

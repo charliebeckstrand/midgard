@@ -1,7 +1,7 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import { type ComponentProps, memo, type ReactNode, use, useCallback, useId } from 'react'
+import { type ComponentProps, memo, use, useCallback, useId } from 'react'
 import { ariaAttr, cn, composeEventHandlers, createContext, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/option'
 import { capitalizeFirst, getOrCompute } from '../../utilities'
@@ -183,16 +183,21 @@ export function OptionText({ className, ...props }: OptionTextProps) {
 	return <span {...props} className={cn(slots.text, className)} />
 }
 
-/** Props for a select-like option produced by `createSelectOption`; `value` is matched against the host's selection. */
+/**
+ * Props for a select-like option produced by `createSelectOption`; `value` is
+ * matched against the host's selection. The row `<div>` takes the rest, except
+ * the keys that the option owns: its role, its selection state, and its tab stop.
+ */
 export type SelectOptionProps<TValue = unknown> = {
+	/** The value that a press on the option selects. */
 	value: TValue
 	/**
 	 * Disables the option, so that it cannot be selected.
 	 * @defaultValue false
 	 */
 	disabled?: boolean
+	/** The classes of the content of the option, which holds `children` beside the check icon. */
 	className?: string
-	children?: ReactNode
 	/**
 	 * Explicit id, overriding the auto-generated one. Set this when the option
 	 * renders inside a `VirtualOptions` with `getOptionId`. The host needs a
@@ -209,7 +214,10 @@ export type SelectOptionProps<TValue = unknown> = {
 	'aria-setsize'?: number
 	/** Windowed-list a11y position from `VirtualOptions`' render `meta`; see `aria-setsize`. */
 	'aria-posinset'?: number
-}
+} & Omit<
+	ComponentProps<'div'>,
+	'onSelect' | 'role' | 'aria-selected' | 'aria-disabled' | 'tabIndex'
+>
 
 /**
  * Selection state a {@link createSelectOption} host exposes through its context:
@@ -298,9 +306,7 @@ export function createSelectOption<
 		disabled,
 		className,
 		children,
-		id,
-		'aria-setsize': ariaSetsize,
-		'aria-posinset': ariaPosinset,
+		...props
 	}: SelectOptionProps<TValue>) {
 		const { value: selectedValue, multiple, onSelect, capitalize } = config.useSelection()
 
@@ -315,15 +321,13 @@ export function createSelectOption<
 		return (
 			<CapitalizeContext value={capitalize ?? false}>
 				<Option
-					id={id}
+					data-slot={`${config.slotPrefix}-option`}
+					{...props}
 					selected={selected}
 					disabled={disabled}
 					onSelect={handleSelect}
-					data-slot={`${config.slotPrefix}-option`}
 					className={className}
 					activeDescendant={config.activeDescendant}
-					aria-setsize={ariaSetsize}
-					aria-posinset={ariaPosinset}
 					// Focus-roving single-select only: active-descendant lists keep DOM
 					// focus on the input (the option never sees the keydown), and
 					// multi-select toggles stay put until an explicit Enter/Space/click.

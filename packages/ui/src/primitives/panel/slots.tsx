@@ -98,10 +98,12 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 	function Body({ className, ...props }: PanelBodyProps) {
 		return (
 			<div
-				data-slot={`${slotPrefix}-body`}
 				data-scroll-region
 				className={cn(bodyClass, className)}
 				{...props}
+				// After the spread: the resize floor of a sheet or a drawer selects the
+				// body by this anchor (CONVENTIONS.md §3.9).
+				data-slot={`${slotPrefix}-body`}
 			/>
 		)
 	}
@@ -110,10 +112,11 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 		return (
 			<div
 				data-slot={`${slotPrefix}-footer`}
-				// The mark that the default footer of the root looks for.
-				data-panel-footer=""
 				className={cn(footerClass, className)}
 				{...props}
+				// The mark that the default footer of the root looks for. It comes after
+				// the spread, so a consumer prop cannot remove it (CONVENTIONS.md §3.9).
+				data-panel-footer=""
 			/>
 		)
 	}

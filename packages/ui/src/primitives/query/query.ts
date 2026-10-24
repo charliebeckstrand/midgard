@@ -52,8 +52,8 @@ export function useQueryValue(query: string, deferredQuery: string): QueryContex
 
 /**
  * The deferred copy of a query, for a filter of a heavy list. An empty query
- * bypasses the deferral, so a cleared filter shows every item in the same
- * commit, and a reset does not paint one stale frame of the prior filter.
+ * bypasses the deferral. A cleared filter thus shows every item in the same
+ * commit, and a reset paints no stale frame of the prior filter.
  *
  * @param query - Live query text, updated on every keystroke.
  * @returns The deferred query, or `''` at once when `query` is empty.

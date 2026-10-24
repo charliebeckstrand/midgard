@@ -138,7 +138,9 @@ export function FloatingSurface({
 		<div
 			ref={setWrapper}
 			data-slot="floating-surface"
-			style={style ? { ...floatingStyles, ...style } : floatingStyles}
+			// The position keys carry the placement, so they come after the caller
+			// style (CONVENTIONS.md §3.9).
+			style={style ? { ...style, ...floatingStyles } : floatingStyles}
 			className={cn(k().portal, className)}
 			// Routed through getFloatingProps so consumer handlers compose
 			// with floating-ui's own instead of being overwritten.

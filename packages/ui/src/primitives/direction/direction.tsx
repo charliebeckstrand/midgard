@@ -18,8 +18,8 @@ const [DirectionContext, useDirectionScope] = createContext<TextDirection | null
 
 /**
  * Reads the direction of the nearest direction scope, or `null` outside each
- * scope. A portal reads it and writes it as `dir` on its host, so a surface in
- * the portal lays out in the direction of the place that opened it.
+ * scope. A portal reads it and writes it as `dir` on its host. A surface in the
+ * portal thus lays out in the direction of the place that opened it.
  */
 export { useDirectionScope }
 
@@ -27,7 +27,9 @@ export { useDirectionScope }
 export type DirectionProps = {
 	/**
 	 * The direction of the scope. Omit it to render the children with no scope.
-	 * @defaultValue `'ltr'`, or the direction of the enclosing scope.
+	 *
+	 * @defaultValue No scope: the children keep the direction of the enclosing
+	 * scope, or of the root element outside each scope.
 	 */
 	dir?: TextDirection
 	children: ReactNode
