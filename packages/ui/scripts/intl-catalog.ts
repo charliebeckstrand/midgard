@@ -15,8 +15,32 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { readdir } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import { extract } from '@formatjs/cli-lib'
-import { parse } from '@formatjs/icu-messageformat-parser'
+import { parse, TYPE } from '@formatjs/icu-messageformat-parser'
 import { isStructurallySame } from '@formatjs/icu-messageformat-parser/manipulator.js'
+
+/** The attributes and props that carry text for a person. */
+export const TEXT_ATTRIBUTES: ReadonlySet<string> = new Set([
+	'alt',
+	'aria-braillelabel',
+	'aria-brailleroledescription',
+	'aria-description',
+	'aria-label',
+	'aria-placeholder',
+	'aria-roledescription',
+	'aria-valuetext',
+	'description',
+	'label',
+	'placeholder',
+	'title',
+])
+
+/** The name of a prop that takes text, such as `emptyLabel`. */
+export const TEXT_PROP = /(?:Label|Title|Placeholder|Description|Text)$/
+
+/** Tells if an attribute, a prop, or a property named `name` carries text for a person. */
+export function isTextName(name: string): boolean {
+	return TEXT_ATTRIBUTES.has(name) || TEXT_PROP.test(name)
+}
 
 /** One message of the source catalog: the English default and the note for the translator. */
 export type CatalogEntry = { defaultMessage: string; description?: string }
@@ -106,4 +130,28 @@ export function argumentErrors(
 	}
 
 	return errors
+}
+
+/**
+ * `text` as an ICU message with no argument, such as the text of a demo of the
+ * docs. A brace or an angle bracket goes in quotes, and each apostrophe then
+ * doubles, so {@link parsePlainMessage} gives `text` back.
+ */
+export function formatPlainMessage(text: string): string {
+	if (!/[{}<>]/.test(text)) return text
+
+	return text.replaceAll("'", "''").replace(/[{}<>]+/g, (special) => `'${special}'`)
+}
+
+/** The text of an ICU message with no argument. It throws for an argument or a tag. */
+export function parsePlainMessage(message: string): string {
+	return parse(message)
+		.map((element) => {
+			if (element.type !== TYPE.literal) {
+				throw new Error(`the message "${message}" holds an argument or a tag`)
+			}
+
+			return element.value
+		})
+		.join('')
 }

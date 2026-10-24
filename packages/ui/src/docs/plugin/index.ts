@@ -3,15 +3,19 @@ import { prefixRegex } from '@rolldown/pluginutils'
 import { Piscina } from 'piscina'
 import type {
 	DevEnvironment,
+	Environment,
 	EnvironmentModuleGraph,
 	EnvironmentModuleNode,
+	ESTree,
 	Plugin,
 	ViteDevServer,
 } from 'vite'
 import type { ShikiHighlight } from '../../components/code/code-shiki-highlighter.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { type BarrelApi, createApiWorker, TASKS_AHEAD } from './api.ts'
+import { readClientManifest } from './asset-urls.ts'
 import { labelPage } from './component-events.ts'
+import { appCatalog, createCopies, manifestPreloads, type Preloads, readLangId } from './copies.ts'
 import {
 	attachMeta,
 	CODE,
@@ -20,6 +24,7 @@ import {
 	exampleFiles,
 	type Highlight,
 	loadCodes,
+	type Parser,
 	toCodeId,
 } from './examples.ts'
 import type { HighlightTask } from './highlight-worker.ts'
@@ -33,6 +38,9 @@ const API = `${VIRTUAL}api/`
 const PAGES = `${VIRTUAL}pages`
 
 const SEARCH = `${VIRTUAL}search`
+
+// The module of `localize`, which a page or a tab module imports (`copies.ts`).
+const LOCALIZE = path.resolve(import.meta.dirname, '..', 'kit', 'localize.tsx')
 
 // A source file of `ui`: TypeScript, outside the docs and the tests.
 const SOURCE = /^(?!.*\/__tests__\/).*\.tsx?$/
@@ -69,11 +77,18 @@ function data(value: unknown): string {
  * - `virtual:docs/code/<folder>`: the code of each example in a folder of `pages/`, highlighted ({@link loadCodes}).
  * - `virtual:docs/search`: the entries of the search of the docs ({@link searchEntries}).
  *
- * It transforms each module of `pages/` with one parse. It adds the title and
- * the code module to the default export of each example ({@link attachMeta}),
- * and it sends each value that the JSX gives to a component through the
- * Event log ({@link labelPage}). In dev, an edit to a source file of `ui`
- * updates the API data of the open pages with no reload.
+ * It transforms each module of `pages/`. It adds the title and the code module
+ * to the default export of each example ({@link attachMeta}), and it sends
+ * each value that the JSX gives to a component through the Event log
+ * ({@link labelPage}). It gives the copy of each module in each language that
+ * has a catalog, such as `button/index.tsx?lang=es`, with each demo text in
+ * that language ({@link createCopies}). Each page and each tab module shows
+ * the copy in the language of the reader. The catalog
+ * that the app imports has no demo text. In dev, an edit to a source file of
+ * `ui` updates the API data of the open pages with no reload.
+ *
+ * The server build reads the manifest of the client build in `clientDir`, so
+ * the Spanish HTML of a page preloads the chunks of the Spanish copy.
  *
  * In dev, a page or a tab that is added, removed or renamed in `pages/`
  * changes the routes. React Router reads the routes only when the server
@@ -81,7 +96,7 @@ function data(value: unknown): string {
  * again. An edit to an `index.tsx` that changes only the name of a page
  * updates `virtual:docs/pages`.
  */
-export function reactDocs(): Plugin {
+export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 	const docs = path.resolve(import.meta.dirname, '..')
 
 	const ui = path.resolve(docs, '..', '..')
@@ -114,6 +129,27 @@ export function reactDocs(): Plugin {
 	// The code of the examples of each folder. The client build and the server
 	// build import the same examples, so each highlight runs once for both.
 	const codes = new Map<string, Promise<Record<string, ExampleCode>>>()
+
+	// The copy of each module of `pages/` in each language that has a catalog.
+	const copies = createCopies(docs, LOCALIZE)
+
+	// The URLs of the chunks of each copy, which the server build preloads.
+	let serverPreloads: Preloads | undefined
+
+	/** The preloads of the copies in `environment`. Only the server build renders HTML. */
+	function readPreloads({ config }: Environment): Preloads | undefined {
+		if (!clientDir || config.consumer !== 'server' || config.command !== 'build') return undefined
+
+		serverPreloads ??= manifestPreloads(
+			() => readClientManifest(clientDir),
+			config.root,
+			config.base,
+		)
+
+		return serverPreloads
+	}
+
+	const lang = path.join(docs, 'lang')
 
 	// The entries of the search. They read each page and the API data of each
 	// barrel that a page shows, so an edit to either makes them stale.
@@ -150,6 +186,44 @@ export function reactDocs(): Plugin {
 		const module = environment.moduleGraph.getModuleById(virtualId(PAGES))
 
 		return module && links.get(environment.name) !== formatLinks(found) ? [module] : []
+	}
+
+	/**
+	 * The modules that an edit to `file` in `pages/` makes stale: for an
+	 * `index.tsx`, the links of the pages ({@link staleLinks}); for an example,
+	 * its code module and its importers. It gives `null` when the server restarts.
+	 */
+	function stalePage(
+		file: string,
+		environment: DevEnvironment,
+		server: ViteDevServer,
+		modules: readonly EnvironmentModuleNode[],
+	): EnvironmentModuleNode[] | null {
+		if (file.endsWith('/index.tsx')) return staleLinks(environment, server)
+
+		forgetCode(file)
+
+		return staleExample(environment.moduleGraph, pages, file, modules)
+	}
+
+	/** Forgets the code of the folder of the example `file`, in each language. */
+	function forgetCode(file: string): void {
+		const code = toCodeId(pages, file)
+
+		for (const name of codes.keys()) {
+			if (readLangId(name.slice(CODE.length)).file === code.slice(CODE.length)) codes.delete(name)
+		}
+	}
+
+	/** The copies in each language, which an edit to a translation makes stale. */
+	function staleTranslations(graph: EnvironmentModuleGraph): EnvironmentModuleNode[] {
+		copies.forget()
+
+		codes.clear()
+
+		return [...graph.idToModuleMap.values()].filter(
+			(module) => readLangId(module.id ?? '').language !== undefined,
+		)
 	}
 
 	/**
@@ -206,16 +280,20 @@ export function reactDocs(): Plugin {
 				}
 
 				if (name.startsWith(CODE)) {
-					const folder = path.join(pages, name.slice(CODE.length))
+					const parse: Parser = this.parse.bind(this)
 
-					const files = await exampleFiles(folder)
+					// The code module of a copy, such as `virtual:docs/code/button?lang=es`,
+					// gives the code of the copy.
+					const { file: folder, language } = readLangId(name.slice(CODE.length))
+
+					const files = await exampleFiles(path.join(pages, folder))
 
 					for (const file of files) this.addWatchFile(file)
 
+					const translate = copies.translate(parse, language)
+
 					return data(
-						await getOrCompute(codes, folder, () =>
-							loadCodes(this.parse.bind(this), highlight, files),
-						),
+						await getOrCompute(codes, name, () => loadCodes(parse, highlight, files, translate)),
 					)
 				}
 
@@ -223,19 +301,29 @@ export function reactDocs(): Plugin {
 			},
 		},
 		transform: {
-			filter: { id: { include: prefixRegex(`${pages}/`), exclude: /(?<!\.tsx)$/ } },
+			filter: { id: { include: [prefixRegex(`${pages}/`), prefixRegex(`${lang}/`)] } },
 			async handler(code, id) {
-				const program = this.parse(code, { lang: 'tsx' })
+				if (id.startsWith(`${lang}/`)) return { code: appCatalog(code), map: null }
 
-				const meta = EXAMPLE.test(id) ? attachMeta(program, code, id, pages) : undefined
+				const { file, language } = readLangId(id)
 
-				const labeled = await labelPage(program, code, async (source) => {
-					return (await this.resolve(source, id))?.id
-				})
+				if (!/\.tsx?$/.test(file) || (!language && !file.endsWith('.tsx'))) return null
 
-				if (meta === undefined && labeled === undefined) return null
+				const syntax = file.endsWith('.tsx') ? 'tsx' : 'ts'
 
-				return { code: `${labeled ?? code}${meta ?? ''}`, map: null }
+				const parse = (source: string) => this.parse(source, { lang: syntax })
+
+				const preloads = readPreloads(this.environment)
+
+				const { source, query } = copies.source(parse, code, file, language, preloads)
+
+				const result = await labelExample(parse(source), source, file, pages, query, (target) =>
+					this.resolve(target, id).then((resolved) => resolved?.id),
+				)
+
+				if (result === undefined) return source === code ? null : { code: source, map: null }
+
+				return { code: result, map: null }
 			},
 		},
 		configureServer() {
@@ -246,16 +334,14 @@ export function reactDocs(): Plugin {
 
 			let stale: EnvironmentModuleNode[] = []
 
-			if (file.startsWith(pages) && file.endsWith('/index.tsx')) {
-				const next = staleLinks(this.environment, server)
+			if (file.startsWith(`${lang}${path.sep}`)) {
+				stale = staleTranslations(graph)
+			} else if (file.startsWith(pages)) {
+				const next = stalePage(file, this.environment, server, modules)
 
 				if (next === null) return []
 
 				stale = next
-			} else if (file.startsWith(pages)) {
-				codes.delete(path.dirname(file))
-
-				stale = staleExample(graph, pages, file, modules)
 			} else if (SOURCE.test(file) && !file.startsWith(docs)) {
 				barrels.clear()
 
@@ -296,7 +382,36 @@ function staleExample(
 ): EnvironmentModuleNode[] {
 	if (!EXAMPLE.test(file)) return []
 
-	const code = graph.getModuleById(virtualId(toCodeId(pages, file)))
+	const code = toCodeId(pages, file)
 
-	return [...(code ? [code] : []), ...modules.flatMap((module) => [...module.importers])]
+	// The code module of the folder, and its copy in each language.
+	const codes = [...graph.idToModuleMap.values()].filter(
+		(module) => readLangId(module.id ?? '').file === virtualId(code),
+	)
+
+	return [...codes, ...modules.flatMap((module) => [...module.importers])]
+}
+
+/**
+ * The code of a module of `pages/` with the meta of an example
+ * ({@link attachMeta}) and the event labels of its JSX ({@link labelPage}), or
+ * `undefined` when it needs neither. A data module has no JSX.
+ */
+async function labelExample(
+	program: ESTree.Program,
+	code: string,
+	file: string,
+	pages: string,
+	query: string,
+	resolve: (source: string) => Promise<string | undefined>,
+): Promise<string | undefined> {
+	if (!file.endsWith('.tsx')) return undefined
+
+	const meta = EXAMPLE.test(file) ? attachMeta(program, code, file, pages, query) : undefined
+
+	const labeled = await labelPage(program, code, resolve)
+
+	if (meta === undefined && labeled === undefined) return undefined
+
+	return `${labeled ?? code}${meta ?? ''}`
 }

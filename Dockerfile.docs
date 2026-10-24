@@ -1,8 +1,10 @@
-# The image recipe for the docs site of `ui`, a static site. App Platform builds
-# this image and serves the files at `/app/packages/ui/src/docs/dist/client` in it. The
-# spec in `.do/app.yaml` names that directory. Build it locally with:
+# The image recipe for the docs site of `ui`. App Platform builds this image
+# and runs the server of the docs build in it (`packages/ui/scripts/docs-server.ts`).
+# The server sends the HTML of each page in the locale of the request. Build
+# and run it locally with:
 #
-#   docker build --file Dockerfile.docs .
+#   docker build --file Dockerfile.docs --tag docs .
+#   docker run --publish 8080:8080 docs
 #
 # The stages follow the Dockerfile of the Next apps.
 
@@ -33,3 +35,19 @@ COPY --from=prune /app/out/full/ ./
 # `turbo prune` copies the workspaces, not the shared configs at the root.
 COPY tsconfig.base.json postcss.config.mjs .browserslistrc ./
 RUN pnpm turbo run docs:build --filter=ui
+RUN pnpm --filter ui docs:build-server
+
+# The run stage holds only the pages and the server as one JavaScript file,
+# with no `node_modules`. The server finds the pages at `src/docs/dist/client`
+# from its own folder, so the stage keeps the layout of the package.
+FROM node:${NODE_VERSION}-alpine AS run
+WORKDIR /app
+ENV NODE_ENV=production
+# The service of `.do/app.yaml` sends its requests to this port.
+ENV HOST=0.0.0.0
+ENV PORT=8080
+COPY --from=build --chown=node:node /app/packages/ui/src/docs/dist/client ./src/docs/dist/client
+COPY --from=build --chown=node:node /app/packages/ui/src/docs/dist/docs-server/docs-server.js ./scripts/
+USER node
+EXPOSE 8080
+CMD ["node", "scripts/docs-server.js"]
