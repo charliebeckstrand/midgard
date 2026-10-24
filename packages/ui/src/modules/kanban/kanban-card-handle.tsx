@@ -53,6 +53,7 @@ export type KanbanCardHandleProps = HTMLAttributes<HTMLElement> & {
  */
 export function KanbanCardHandle({
 	'aria-label': ariaLabel,
+	id,
 	children,
 	className,
 	onKeyDown,
@@ -65,7 +66,10 @@ export function KanbanCardHandle({
 
 	const card = useKanbanCardContext()
 
-	const handleId = useId()
+	const generatedId = useId()
+
+	// The handle names itself through this id, so a consumer `id` takes its place.
+	const handleId = id ?? generatedId
 
 	const registerHandle = card?.registerHandle
 
@@ -79,6 +83,7 @@ export function KanbanCardHandle({
 	if (!card || !interactive) {
 		return (
 			<span
+				id={id}
 				onKeyDown={onKeyDown}
 				onBlur={onBlur}
 				{...props}

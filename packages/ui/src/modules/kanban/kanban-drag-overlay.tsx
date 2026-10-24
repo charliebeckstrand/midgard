@@ -9,7 +9,7 @@ import type { KanbanOverlayEntry } from './types'
 /**
  * The picture of a card that follows the pointer through a drag. It renders the
  * box of the card with the content and the `className` of the card `activeId`,
- * which the card writes to the overlay map of the board.
+ * which that card writes to the board while a pointer drags it.
  *
  * @remarks Client component. The clone can hold controls, so it is `inert`:
  * it is out of the accessibility tree and the tab order. The pointer drag reads

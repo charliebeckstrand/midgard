@@ -46,7 +46,7 @@ describe('resolveContextMenuEntries', () => {
 		expect(entries[3]).toBe(items[0])
 	})
 
-	it('orders the custom items before the defaults when position is "before"', () => {
+	it('orders the custom items before the defaults when insert is "before"', () => {
 		const items: ContextMenuItem[] = [{ key: 'c', label: 'Custom', onAction: noop }]
 
 		const entries = resolveContextMenuEntries({ items, insert: 'before' }, defaults)
@@ -68,6 +68,21 @@ describe('resolveContextMenuEntries', () => {
 		)
 
 		const keys = entries.map((entry) => entry.key)
+
+		expect(new Set(keys).size).toBe(keys.length)
+	})
+
+	it('keys the separators apart when the defaults and the custom items are both merged', () => {
+		const item = (key: string): ContextMenuItem => ({ key, label: key, onAction: noop })
+
+		const entries = resolveContextMenuEntries(
+			{ items: mergeContextMenuItems([[item('c')], [item('d')]]) },
+			mergeContextMenuItems([[item('a')], [item('b')]]),
+		)
+
+		const keys = entries.map((entry) => entry.key)
+
+		expect(keys).toHaveLength(7)
 
 		expect(new Set(keys).size).toBe(keys.length)
 	})
@@ -463,7 +478,7 @@ describe('ContextMenuList submenus', () => {
 		},
 	]
 
-	/** The pointer settling on `row` — the arrival a menu reads its cursor off. */
+	/** The pointer settles on `row`. A menu reads its cursor from this arrival. */
 	const settle = (row: HTMLElement) => fireEvent.pointerMove(row, { pointerType: 'mouse' })
 
 	it('renders a submenu entry as one parent row, its own rows withheld until opened', () => {
@@ -530,7 +545,7 @@ describe('ContextMenuList submenus', () => {
 		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toHaveFocus()
 	})
 
-	it('opens on no direction key — the panel picks its own side — and closes on the back arrow', () => {
+	it('opens on no direction key (the panel picks its own side), and closes on the back arrow', () => {
 		open(pinEntries())
 
 		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
@@ -688,8 +703,8 @@ describe('ContextMenuList submenus', () => {
 
 		settle(trigger)
 
-		// The panel is already up, so there is no mount left to seat focus on —
-		// the open path has to take it now rather than arm a flag for the next one.
+		// The panel is already up, so no mount is left to seat focus on. The open
+		// path takes focus now, and arms no flag for the next mount.
 		fireEvent.keyDown(trigger, { key: 'Enter' })
 
 		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toHaveFocus()

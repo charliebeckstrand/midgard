@@ -399,6 +399,32 @@ describe('KanbanCard', () => {
 		expect(handle).not.toHaveAttribute('aria-labelledby')
 	})
 
+	it('gives a consumer id to the handle, and names the handle through it', () => {
+		renderUI(
+			<Kanban
+				columns={columns}
+				getKey={(item: Item) => item.id}
+				onReorder={() => {}}
+				aria-label="Board"
+			>
+				<KanbanColumn value="todo">
+					<KanbanColumnBody>
+						<KanbanCard value="1" id="card-one">
+							<KanbanCardHandle id="handle-one" />
+							One
+						</KanbanCard>
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		const handle = screen.getByRole('button', { name: 'Drag One' })
+
+		expect(handle).toHaveAttribute('id', 'handle-one')
+
+		expect(handle).toHaveAttribute('aria-labelledby', 'handle-one card-one')
+	})
+
 	it('renders no handle on a read-only board', () => {
 		const { container } = renderUI(
 			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">

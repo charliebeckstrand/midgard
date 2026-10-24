@@ -38,10 +38,9 @@ export type ContextMenuSeparator = {
 /**
  * A row that opens a nested menu beside itself rather than acting. It is the
  * parent label a group of related entries collapses under, such as a column
- * menu's Sort, Pin, or Export. It is revealed on hover, on click, or on Enter /
- * Space. Once open it
- * owns the arrows until `Escape` closes it. Nests arbitrarily: a submenu's
- * `items` can hold submenus of their own.
+ * menu's Sort, Pin, or Export. Hover, a click, Enter, or Space opens it. Once
+ * open, it owns the arrows until `Escape` closes it. Nests arbitrarily: a
+ * submenu's `items` can hold submenus of their own.
  */
 export type ContextMenuSubmenu = {
 	/** Stable identity for the row, used as its React key. */
