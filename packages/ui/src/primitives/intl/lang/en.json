@@ -359,6 +359,10 @@
 		"defaultMessage": "Security code",
 		"description": "The name of the field of the 3- or 4-digit security code of a payment card, when no label names it."
 	},
+	"ui.dashboard.atStart": {
+		"defaultMessage": "{item} is over its start place, {cell}. A drop now changes nothing.",
+		"description": "Spoken while a dragged tile is over the place where the drag started. The cell is that place."
+	},
 	"ui.dashboard.canceled": {
 		"defaultMessage": "Canceled. {item} returned to {cell}.",
 		"description": "Spoken when a canceled drag puts a tile back at its place."

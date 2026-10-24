@@ -89,6 +89,7 @@
 	"ui.creditCardInput.invalidExpiry": "Introduce una fecha de vencimiento válida ({format})",
 	"ui.creditCardInput.number": "Número de tarjeta",
 	"ui.creditCardInput.securityCode": "Código de seguridad",
+	"ui.dashboard.atStart": "{item} está sobre su lugar de inicio, {cell}. Soltarlo ahora no cambia nada.",
 	"ui.dashboard.canceled": "Cancelado. {item} volvió a {cell}.",
 	"ui.dashboard.cannotGo": "{item} no puede ir aquí. Soltarlo ahora no cambia nada.",
 	"ui.dashboard.cell": "columna {column, number} de {columns, number}, fila {row, number}, {width, plural, one {# columna} other {# columnas}} de ancho",

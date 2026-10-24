@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import {
+	describeDragAtStart,
 	describeDragCancel,
 	describeDragEnd,
 	describeDragMove,
@@ -51,6 +52,14 @@ describe('describeDragMove', () => {
 		expect(describeDragMove(intlEn, 'Revenue', CELL, 24, 'swap', null)).toBe(moved)
 
 		expect(describeDragMove(intlEn, 'Revenue', CELL, 24, 'shift', null)).toBe(moved)
+	})
+})
+
+describe('describeDragAtStart', () => {
+	it('names the start cell, where a drop changes nothing', () => {
+		expect(describeDragAtStart(intlEn, 'Revenue', CELL, 24)).toBe(
+			'Revenue is over its start place, column 3 of 24, row 2, 8 columns wide. A drop now changes nothing.',
+		)
 	})
 })
 

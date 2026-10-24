@@ -14,6 +14,7 @@ import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type DashboardCommit, endGesture, measureGesture, startGesture } from './dashboard-gesture'
 import {
+	describeDragAtStart,
 	describeDragCancel,
 	describeDragEnd,
 	describeDragMove,
@@ -332,6 +333,15 @@ export function useDashboardDrag({
 				if (!owns(id)) return undefined
 
 				const { gesture, columns } = store.getState()
+
+				const start = gesture?.snapshot.find((item) => item.id === id)
+
+				const target = targetRef.current
+
+				// A target at the start cell has no preview, as a blocked target has. But the tile can go there.
+				if (start !== undefined && target?.x === start.x && target.y === start.y) {
+					return describeDragAtStart(intl, getLabel(store, id), start, columns)
+				}
 
 				const cell = gesture?.preview?.find((item) => item.id === id) ?? null
 
