@@ -9,7 +9,7 @@ import { getCenter } from '../../helpers/geometry/box'
  * column's header button opens a right-side modal `Sheet` hosting a single-field
  * `QueryBuilder`; edits stay in a draft until Apply settles them onto the
  * engine. The rule's operator `Select` (and a `date` column's calendar) portal
- * into their own floating-ui portals, outside the sheet's DOM subtree — a press
+ * into their own floating-ui portals, outside the sheet's DOM subtree: a press
  * inside one must not register as an outside dismiss, and the surface must layer
  * above the sheet rather than behind its backdrop. The jsdom suite mocks
  * `@floating-ui/react` away (overlays render inline, no real stacking), so only
@@ -71,7 +71,7 @@ describe('grid column filter sheet (real browser)', () => {
 
 		await screen.findByRole('listbox')
 
-		// Press "Add" — inside the sheet, outside the listbox. The open listbox
+		// Press "Add": inside the sheet, outside the listbox. The open listbox
 		// overlays the row, so dispatch the pointerdown the dismiss listens for
 		// directly rather than via a click Playwright would block as covered.
 		// A pointerdown does not open the menu (the trigger toggles on click).
@@ -160,7 +160,7 @@ describe('grid column filter sheet (real browser)', () => {
 
 /**
  * A `date` column's filter opens a date picker inside the sheet. Its calendar
- * portals out of the sheet, and must layer *above* the sheet's backdrop — the
+ * portals out of the sheet, and must layer *above* the sheet's backdrop: the
  * regression was a calendar painting behind the dimming scrim, unreachable.
  */
 describe('grid column filter sheet: date picker layering (real browser)', () => {
@@ -195,7 +195,7 @@ describe('grid column filter sheet: date picker layering (real browser)', () => 
 			return node
 		})
 
-		// The calendar must be the topmost element at its own center — not covered by
+		// The calendar must be the topmost element at its own center, not covered by
 		// the sheet's backdrop or panel. A behind-the-scrim calendar fails here.
 		const { x, y } = getCenter(calendar)
 

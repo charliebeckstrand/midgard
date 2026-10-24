@@ -57,7 +57,7 @@ import { mountBench, mountBenches, rerenderBench, sharedTree } from './harness'
 /** Rows per section in the sectioned composition, and children per submenu. */
 const GROUP = 6
 
-/** Menus on one page in the fan-out scenario — a per-row action column's worth. */
+/** Menus on one page in the fan-out scenario: a per-row action column's worth. */
 const FAN_OUT = 50
 
 /**
@@ -297,7 +297,7 @@ describe('Menu · submenus (24 rows, open)', () => {
 
 describe('Menu · open ⇄ closed (mounted, 24 rows)', () => {
 	// Re-render alone: the tree mounts in the cycle setup, so a regression here
-	// is the toggle's reconciliation — the panel subtree arriving and leaving —
+	// is the toggle's reconciliation (the panel subtree arriving and leaving)
 	// rather than the mount.
 	rerenderBench(
 		'toggle open',

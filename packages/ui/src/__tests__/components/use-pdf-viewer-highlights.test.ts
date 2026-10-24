@@ -112,7 +112,7 @@ describe('usePdfViewerHighlights', () => {
 	it('divides an inch rect by the extent of the page it is given', () => {
 		const { result } = renderHook(() =>
 			usePdfViewerHighlights({
-				// 0.85 in of 8.5 in wide, 2.2 in of 11 in tall — the first region's fractions.
+				// 0.85 in of 8.5 in wide, 2.2 in of 11 in tall: the first region's fractions.
 				highlights: [
 					{
 						id: 'total',

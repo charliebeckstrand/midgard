@@ -86,7 +86,7 @@ describe('scatter geometry', () => {
 		// Just past the midline the held disc keeps the win.
 		expect(scatterMarkAt(marks, 27, 10, 100, { series: 0, datum: 0 })?.datum).toBe(0)
 
-		// Decisively onto the other disc — under half the held distance — it flips.
+		// Decisively onto the other disc (under half the held distance) it flips.
 		expect(scatterMarkAt(marks, 37, 10, 100, { series: 0, datum: 0 })?.datum).toBe(1)
 	})
 
@@ -154,7 +154,7 @@ describe('scatter geometry', () => {
 	})
 
 	it('leaves a tick sitting interior to a pinned edge centered', () => {
-		// A pinned floor sits at range 40, so the first tick at 60 is interior — only
+		// A pinned floor sits at range 40, so the first tick at 60 is interior, only
 		// the tick that lands on an edge reads inward.
 		const anchored = anchorEndTicks(
 			[

@@ -5,8 +5,8 @@
  * scenario declares its entries and its settle contract and nothing else.
  *
  * The grid suite prepares through `grid-harness.ts` rather than {@link prepare}
- * — its paint-probe settle over sized hosts is a different measurement, not a
- * variation of this one — but it registers through the same {@link benches}.
+ * (its paint-probe settle over sized hosts is a different measurement, not a
+ * variation of this one) but it registers through the same {@link benches}.
  */
 
 import type { ReactNode } from 'react'
@@ -17,23 +17,23 @@ import type { Subject } from './charts'
 
 /**
  * Sample windows for scenarios whose iterations outrun Vitest's 500ms default.
- * A window that takes only ten-odd samples swings run to run — enough to read a
- * noise swing as a regression — so the heavy scenarios widen it to buy the
+ * A window that takes only ten-odd samples swings run to run (enough to read a
+ * noise swing as a regression) so the heavy scenarios widen it to buy the
  * sample count their iteration cost denies them. The jsdom suite needs none of
  * this: its benches take the default window, so the two windows live here
  * rather than at the shared root.
  */
 export const WINDOW = {
-	/** Heavy single-shot iterations — mounts, updates, sorts, resizes. */
+	/** Heavy single-shot iterations: mounts, updates, sorts, resizes. */
 	slow: { time: 2_000 },
-	/** Many-frame settled iterations — pointer sweeps, emphasis flips, scroll round trips. */
+	/** Many-frame settled iterations: pointer sweeps, emphasis flips, scroll round trips. */
 	settled: { time: 2_500 },
 } as const
 
 /** One prepared entry: the report name and the timed run. */
 export type Prepared = { name: string; run: () => void | Promise<void> }
 
-/** One animation frame — the browser's own settle unit. */
+/** One animation frame: the browser's own settle unit. */
 export const frame = () => new Promise(requestAnimationFrame)
 
 /** Settles `count` frames, for work that the module defers past the first one. */
@@ -144,7 +144,7 @@ export function host(size?: { width?: number; height?: number }): HTMLElement {
 /**
  * A React root over a fresh host. `render` and `flush` commit synchronously,
  * the way a consumer's interaction handler pays for a commit, and `destroy`
- * unmounts then removes the host — a hard teardown, so an exit animation never
+ * unmounts then removes the host: a hard teardown, so an exit animation never
  * holds cleanup open past the timed region.
  */
 export function reactHost() {
@@ -212,7 +212,7 @@ export function benches(prepared: Prepared[], options?: BenchOptions) {
 	}
 }
 
-/** Steps in a pointer sweep — enough that per-move work accumulates past the settled frame. */
+/** Steps in a pointer sweep: enough that per-move work accumulates past the settled frame. */
 export const SWEEP = 20
 
 /**

@@ -59,7 +59,7 @@ function wheel(
 }
 
 /**
- * A wheel with the key held — the gesture a default map answers. Most of these
+ * A wheel with the key held: the gesture a default map answers. Most of these
  * only need the map zoomed to assert something else, so they take the armed
  * form and leave the bare {@link wheel} to the tests about who owns a gesture.
  */
@@ -67,7 +67,7 @@ function zoomWheel(svg: SVGSVGElement, deltaY: number): WheelEvent {
 	return wheel(svg, deltaY, { shiftKey: true })
 }
 
-/** A map whose wheel is armed outright — the opt-out, and rare on purpose. */
+/** A map whose wheel is armed outright: the opt-out, and rare on purpose. */
 const DIRECT = { zoom: { modifier: false } } as const
 
 /** Whether the layer currently answers the pointer, which a gesture in flight suspends. */
@@ -155,7 +155,7 @@ describe('MapPlat zoom layer', () => {
 
 	it('leaves the page its touch scrolling by default, and takes only its pinch', () => {
 		// The bargain the key buys on the wheel, kept on touch: one finger scrolls
-		// the page, two pan and pinch — so the browser keeps `pan-x pan-y` and
+		// the page, two pan and pinch, so the browser keeps `pan-x pan-y` and
 		// loses only the pinch that would page-zoom over the map.
 		const { plot } = renderZoomable()
 
@@ -314,7 +314,7 @@ describe('MapPlat wheel, armed by the shift key', () => {
 		const { container, svg } = renderZoomable()
 
 		// At the fit there is nothing to zoom out to, but the reader aimed the
-		// gesture at the map by holding the key — so it never reaches the page,
+		// gesture at the map by holding the key, so it never reaches the page,
 		// where a shift-wheel would scroll it sideways.
 		const event = zoomWheel(svg, 200)
 
@@ -357,7 +357,7 @@ describe('MapPlat wheel after the shift key is let go', () => {
 		zoomWheel(svg, -40)
 
 		// The stream shows it is running down, and then rounds to a figure it
-		// repeats — the last pixels of a decay, and still not the page's.
+		// repeats: the last pixels of a decay, and still not the page's.
 		for (const delta of [-12, -2, -2, -2]) {
 			expect(wheel(svg, delta).defaultPrevented).toBe(true)
 		}
@@ -384,7 +384,7 @@ describe('MapPlat wheel after the shift key is let go', () => {
 		expect(wheel(svg, -30).defaultPrevented).toBe(true)
 
 		// A reader who pushes harder through the tail is scrolling the page, not
-		// coasting out of a zoom — so the map lets go, and stays let go.
+		// coasting out of a zoom, so the map lets go, and stays let go.
 		expect(wheel(svg, -90).defaultPrevented).toBe(false)
 
 		expect(wheel(svg, -20).defaultPrevented).toBe(false)
@@ -396,7 +396,7 @@ describe('MapPlat wheel after the shift key is let go', () => {
 		const { container, svg } = renderZoomable()
 
 		// The browser reports the held gesture on `deltaX`, and the tail after the
-		// release on `deltaY` — one stream, measured the same on either axis.
+		// release on `deltaY`: one stream, measured the same on either axis.
 		wheel(svg, 0, { deltaX: -40, shiftKey: true })
 
 		expect(readScale(container)).toBeGreaterThan(1)
@@ -1032,7 +1032,7 @@ describe('MapPlat wheel zoom', () => {
 		// k the zoom applies above. Dividing it out is the whole rule: one device
 		// pixel, at every scale the view takes. To three places, because that is
 		// where `transformAttribute` rounds the scale the width is read back
-		// against — a hairline out by a ten-thousandth.
+		// against: a hairline out by a ten-thousandth.
 		const layer = bySlot(container, 'map-regions')
 
 		// Two scales sit above the width now: the zoom's, and the refit the layer
@@ -1053,7 +1053,7 @@ describe('MapPlat wheel zoom', () => {
 		const region = container.querySelector('[data-region-index]')
 
 		// A region path states no width and takes no vector effect, so a notch
-		// rewrites one attribute on the group rather than thousands beneath it —
+		// rewrites one attribute on the group rather than thousands beneath it,
 		// and it reprojects nothing, which is what the transform is for.
 		expect(region?.getAttribute('stroke-width')).toBeNull()
 

@@ -231,7 +231,7 @@ describe('useToastTimer', () => {
 	it('ignores an unpaired resume (the hold count floors at zero)', async ({ clock }) => {
 		const { result, start } = setup()
 
-		// A stray release with nothing held must not push the count negative —
+		// A stray release with nothing held must not push the count negative:
 		// that would swallow the next hold and let the timer run under it.
 		act(() => result.current.resume())
 

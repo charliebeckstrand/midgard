@@ -8,7 +8,7 @@ import { getSlot, renderUI } from '../helpers'
  * else.
  *
  * It used to reach for the nearest *overflowing* ancestor of a sentinel at the
- * transcript's end — and a transcript short enough not to overflow is not that
+ * transcript's end, and a transcript short enough not to overflow is not that
  * ancestor, so the search passed through it and scrolled whatever container
  * outside it did. In the docs, switching to the chat demo's Embeds tab scrolled
  * the whole content panel by 89 px; only that tab, because a deferred embed's

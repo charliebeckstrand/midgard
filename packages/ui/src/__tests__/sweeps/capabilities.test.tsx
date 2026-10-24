@@ -36,7 +36,7 @@ import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
  * reaches most of the component tree, so each file that imports it makes
  * another worker build that graph.
  *
- * Each sweep owns the value it passes — the id it spreads, the href it sets —
+ * Each sweep owns the value it passes (the id it spreads, the href it sets)
  * so an entry cannot assert something it did not render.
  */
 const PASS_THROUGH_ID = 'pass-through-subject'

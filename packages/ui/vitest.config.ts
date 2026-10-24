@@ -14,7 +14,7 @@ import { assertions, CI, cleanup, coverageScope, sequence } from './vitest.base.
 // The test files that open with `// @vitest-environment node`: the `pure`
 // project runs exactly these, and `unit` excludes them. The scan skips
 // `geometry/`, which the `geometry` project runs by path. The docblock is the
-// one declaration — Vitest reads it too — and this scan turns it into a
+// one declaration (Vitest reads it too) and this scan turns it into a
 // project so the runner groups the files by `groupOrder`. Under
 // `isolate: false` a worker keeps its environment and module graph only while
 // the environment stays the same; left in `unit`, the shuffle interleaved
@@ -64,7 +64,7 @@ const workspaceScans = [
 // The suites run no setupFiles, so the shared budget below governs them by a
 // rationale they never inherit: it is sized against `asyncUtilTimeout`, and
 // nothing here awaits anything. Every body in the project is synchronous, which
-// also means the budget cannot interrupt one — a scan that never returns holds
+// also means the budget cannot interrupt one: a scan that never returns holds
 // the runner's timer with it. What it can do is fail a slow run, and the
 // pre-push gate makes runs slow: `lefthook` drives `check-types` and
 // `test:changed` through `turbo` at once, so a `tsc` pass competes with these
@@ -161,7 +161,7 @@ export default defineConfig({
 		// most of the transform time of the `unit` project, and much of its import
 		// time. The cache lives under the workspace root's node_modules. CI keys it
 		// on the turbo hash of the packages that ui resolves (ci.yml), so a change
-		// to those packages starts a cold cache. The option is experimental —
+		// to those packages starts a cold cache. The option is experimental:
 		// re-read its release note on each Vitest bump, and drop it if the
 		// invalidation contract changes.
 		experimental: { fsModuleCache: true },
@@ -176,7 +176,7 @@ export default defineConfig({
 		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000 },
 		// Date/calendar tests construct local-time dates (`new Date(y, m, d)`);
 		// pin the zone so every machine renders the same wall-clock day. The
-		// runtime *locale* cannot be pinned here — Node resolves ICU's default at
+		// runtime *locale* cannot be pinned here: Node resolves ICU's default at
 		// process start and `test.env` lands inside the worker afterwards, so it
 		// would read as set and change nothing. The `test` scripts export `LANG`
 		// ahead of Node instead.
@@ -189,10 +189,10 @@ export default defineConfig({
 		css: { include: [/\.css\?url$/] },
 		// `shuffle` selects RandomSequencer, which drops the project grouping
 		// BaseSequencer applies. Every project's files then land in one queue, and
-		// a worker is terminated at each crossing — along with the module graph
+		// a worker is terminated at each crossing: along with the module graph
 		// `isolate: false` exists to keep. Each project below takes its
-		// `groupOrder` from its position in the array — unit, pure, boundary,
-		// workspace, integration, then geometry — which restores the grouping; the shuffle still applies
+		// `groupOrder` from its position in the array (unit, pure, boundary,
+		// workspace, integration, then geometry) which restores the grouping; the shuffle still applies
 		// inside each group. Deriving it means a new project can neither omit the
 		// field nor collide with a sibling, and a project that set it alone would
 		// replace the resolved sequence rather than extend it, losing `shuffle`
@@ -201,7 +201,7 @@ export default defineConfig({
 		// Replay a red run with `VITEST_SEED=<seed> pnpm test`, never with
 		// `--sequence.seed`: a CLI override is shallow-merged over each project's
 		// `test` block, so it replaces the resolved sequence object and drops
-		// `groupOrder` with it — which reorders the very queue the failure came
+		// `groupOrder` with it, which reorders the very queue the failure came
 		// from.
 		sequence,
 		// See `vitest.base.ts`. `resetModules` is barred too; see the unit project
@@ -246,8 +246,8 @@ export default defineConfig({
 						`src/${srcRelative(docsTestDir)}/**/*.test.{ts,tsx}`,
 					],
 					// The browser suite (vitest.browser.config.ts) verifies behavior
-					// jsdom can't — layout/color geometry and, in its floating-ui
-					// project, real-floating-engine focus trapping — so it may not
+					// jsdom can't (layout/color geometry and, in its floating-ui
+					// project, real-floating-engine focus trapping) so it may not
 					// run under this jsdom config. The compiler/ suite runs only in
 					// the compiled run (vitest.compiler.config.ts), and the
 					// docs-build/ suite only after the docs build
@@ -293,7 +293,7 @@ export default defineConfig({
 			{
 				extends: true as const,
 				// Architectural boundary suites (*-boundary.test.ts): node:fs walks
-				// over source text — no DOM, no React, no mocks. A plain node
+				// over source text, no DOM, no React, no mocks. A plain node
 				// environment on one shared worker strips the per-file fork + jsdom
 				// + setup cost they'd pay in the integration project below, which
 				// serializes into real wall clock on few-core CI agents.

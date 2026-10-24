@@ -28,9 +28,9 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 // A text scan cannot decide this. A doccomment legally sits in one of three
 // places, and only the first is a plain declaration:
 //
-//   1. On the declaration     — /** … */ export type Foo = …
-//   2. On an export specifier — export { /** … */ Body as DialogBody }
-//   3. On a destructured pair — /** … */ export const [Ctx, useCtx] =
+//   1. On the declaration: /** … */ export type Foo = …
+//   2. On an export specifier: export { /** … */ Body as DialogBody }
+//   3. On a destructured pair: /** … */ export const [Ctx, useCtx] =
 //                               createContext<T>('Name')
 //
 // A scan that reads only case 1 reports a false gap for the slot re-export
@@ -116,11 +116,11 @@ const PROGRAM_OPTIONS = {
  *
  * None of it is read. The walk reports only on declarations this package wrote,
  * and across all 1,532 barrel exports no hop of any alias chain lands in a
- * dependency — verified by diffing the per-export verdicts against the full
+ * dependency: verified by diffing the per-export verdicts against the full
  * program. Resolution itself is untouched, so a re-export *through* a dependency
  * still resolves; only the file's text is withheld. Were the package to start
  * re-exporting a third-party symbol, that symbol would carry no readable
- * doccomment here and the test would report it as a gap — a loud failure rather
+ * doccomment here and the test would report it as a gap: a loud failure rather
  * than a silent pass.
  *
  * The standing precondition, since both cuts land on the same side of it: no
@@ -193,7 +193,7 @@ function hasDoc(project: Project, chain: readonly TsSymbol[]): boolean {
 			if (leadingDoc(node)) return true
 
 			// A lone re-export carries its doccomment above the statement rather
-			// than inside the braces — `/** … */ export { useFormActions }`. Only a
+			// than inside the braces: `/** … */ export { useFormActions }`. Only a
 			// single-specifier clause qualifies: a doc above a multi-name clause
 			// documents none of them in particular.
 			if (isExportSpecifier(node)) {

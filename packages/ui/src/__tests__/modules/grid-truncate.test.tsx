@@ -3,7 +3,7 @@ import { Grid, type GridColumn } from '../../modules/grid'
 import { renderUI } from '../helpers'
 
 // Behavioural truncation + tooltip (overflow detection, hover) needs real
-// layout and the floating engine — see the browser suite
+// layout and the floating engine: see the browser suite
 // (grid-cell-truncate-tooltip). These cover the structural wiring jsdom can see.
 describe('Grid cell truncation', () => {
 	type Row = { id: number; name: string }

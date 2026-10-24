@@ -76,7 +76,7 @@ describe('sparklineGeometry', () => {
 		const geometry = sparklineGeometry([1, Number.POSITIVE_INFINITY, 3], { ...box })
 
 		// Infinity is outside the finite domain; it must not clamp to the top and
-		// draw a spurious vertex — the line bridges across it, exactly like a NaN.
+		// draw a spurious vertex: the line bridges across it, exactly like a NaN.
 		expect(geometry.line).toBe('M 2 38 L 98 2')
 
 		expect(geometry.bars).toHaveLength(2)
@@ -92,7 +92,7 @@ describe('sparklineGeometry', () => {
 
 	it('closes a multi-point area on the outermost drawn points, not the box corner', () => {
 		// Trailing NaN: the drawn line stops at the last finite point (x=50), so
-		// the fill must close there — not run a wedge out to the right edge (x=98)
+		// the fill must close there, not run a wedge out to the right edge (x=98)
 		// with no line above it.
 		const geometry = sparklineGeometry([1, 3, Number.NaN], { ...box })
 

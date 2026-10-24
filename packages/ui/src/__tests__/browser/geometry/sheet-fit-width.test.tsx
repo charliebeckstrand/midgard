@@ -6,8 +6,8 @@ import { frames, getSlot, present, renderUI } from '../../helpers'
 
 /**
  * Real-browser check of the `fit` sheet around a `fit` grid. Both halves are
- * measurements — the grid states the width its columns come to, and the panel is
- * built around it — and jsdom lays nothing out, so this is the only place the
+ * measurements (the grid states the width its columns come to, and the panel is
+ * built around it) and jsdom lays nothing out, so this is the only place the
  * pair can be seen agreeing.
  *
  * The failure it guards is not a wrong number but an unstable one: a `fill` grid
@@ -34,7 +34,7 @@ function makeColumns(count: number): GridColumn<Row>[] {
 
 /**
  * Opens a fitted sheet around a fitted grid and hands back the panel, the table,
- * and the wrapper that would scroll it sideways — `data-slot="table"`, the
+ * and the wrapper that would scroll it sideways: `data-slot="table"`, the
  * `overflow-x-auto` box the table sits in.
  */
 async function openSheet(columns: GridColumn<Row>[], label: string) {

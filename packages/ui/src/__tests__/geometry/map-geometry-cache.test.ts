@@ -78,7 +78,7 @@ describe('staticMapGeometry', () => {
 		const fromEmpty = staticMapGeometry(FIXTURE_TOPOLOGY, '', 'mercator')
 
 		// `undefined` decodes the topology's first object; `''` names no object and
-		// decodes nothing — the key must not fold the two together.
+		// decodes nothing: the key must not fold the two together.
 		expect(fromDefault.features).toHaveLength(3)
 
 		expect(fromEmpty.features).toHaveLength(0)
@@ -132,7 +132,7 @@ describe('staticMapGeometry', () => {
 
 		const second = staticMapGeometry(FIXTURE_TOPOLOGY, undefined, projection)
 
-		// A mutable instance can't key a shared entry — computed fresh each call.
+		// A mutable instance can't key a shared entry: computed fresh each call.
 		expect(second).not.toBe(first)
 
 		expect(cachedCanonicalPaths(second)).toEqual(cachedCanonicalPaths(first))

@@ -10,7 +10,7 @@ import { renderUI, screen } from '../helpers'
  * holds its paint until the first width pass has run.
  *
  * Asserted against `renderToString` rather than a browser, because the server render *is*
- * the thing that used to paint wrong — and it is the one environment where no layout
+ * the thing that used to paint wrong, and it is the one environment where no layout
  * effect can rescue it.
  */
 describe('grid width settling', () => {
@@ -34,7 +34,7 @@ describe('grid width settling', () => {
 
 		expect(tableTag).not.toBe('')
 
-		// `opacity-0`, not display — the autosizer has to measure this table to size it,
+		// `opacity-0`, not display: the autosizer has to measure this table to size it,
 		// and zero opacity keeps layout and geometry intact.
 		expect(tableTag).toContain('opacity-0')
 	})
@@ -52,7 +52,7 @@ describe('grid width settling', () => {
 	})
 
 	// jsdom has no `ResizeObserver`, so this is the "nothing will ever fit these columns"
-	// bail — worth pinning, because that path hanging hidden would blank every grid in
+	// bail: worth pinning, because that path hanging hidden would blank every grid in
 	// every jsdom test and in any environment without the observer.
 	it('reveals where no ResizeObserver exists rather than hanging hidden', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)

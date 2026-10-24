@@ -55,7 +55,7 @@ describe('verticalLayout value-label room', () => {
 		// the layout grants the label room AND every data extreme maps far enough
 		// from the plot edge that the 21px label flip can never trigger, or it
 		// withholds the room and the chart sheds its labels whole. No height
-		// leaves a label rendering against an unreserved edge — the granted /
+		// leaves a label rendering against an unreserved edge: the granted /
 		// withheld verdict and the scale's reservation come from one predicate
 		// over one range, so they cannot disagree.
 		let granted = 0
@@ -115,7 +115,7 @@ describe('verticalLayout value-label room', () => {
 
 	it('gives one verdict whichever band the tier wears, so shrinking never re-shows labels', () => {
 		// The tier drops the band row at a smaller size, handing its height back
-		// to the plot — the actual range GROWS as the frame shrinks. A verdict
+		// to the plot: the actual range GROWS as the frame shrinks. A verdict
 		// read from the actual range would flip hidden → shown → hidden across
 		// that boundary; reading the floor under the tallest band instead makes
 		// the verdict band-independent, so it can only move one way in a shrink.
@@ -133,7 +133,7 @@ describe('verticalLayout value-label room', () => {
 	})
 
 	it('withholds the reservation with the verdict, so a shed label pads no domain', () => {
-		// Under the cutoff the labels hide — and the domain must stay at its
+		// Under the cutoff the labels hide, and the domain must stay at its
 		// plain nice bounds rather than reserve room for labels that never draw.
 		// The band-off layout at a height whose actual range could afford the
 		// room, but whose floor cannot, is exactly the mid-shrink flash window.
@@ -154,8 +154,8 @@ describe('verticalLayout band-edge inset', () => {
 		const { band, plot } = layout
 
 		// The band range is inset a fixed margin at both ends, so the first slot's
-		// left edge and the last slot's right edge sit BAND_EDGE_PAD inside the plot
-		// — an edge label never crowds the value gutter, and the span stays centered.
+		// left edge and the last slot's right edge sit BAND_EDGE_PAD inside the plot:
+		// an edge label never crowds the value gutter, and the span stays centered.
 		expect(band.center(0) - band.step / 2 - plot.x).toBeNear(BAND_EDGE_PAD, PLOT_EDGE_TOLERANCE)
 
 		expect(plot.x + plot.width - (band.center(5) + band.step / 2)).toBeNear(
@@ -808,7 +808,7 @@ describe('cartesian layout', () => {
 
 		const layout = verticalLayout(gapped)
 
-		// Q1 carries both series in order; Q2 keeps only series 1 — the same slot the
+		// Q1 carries both series in order; Q2 keeps only series 1: the same slot the
 		// position map drops, so a stop and its series index stay paired.
 		expect(layout.snapSeries).toEqual([[0, 1], [1]])
 
@@ -818,7 +818,7 @@ describe('cartesian layout', () => {
 	})
 
 	it('insets the horizontal value axis so its centered end labels clear the frame', () => {
-		// Wide currency-style ticks (0 … 6,000) on a narrow frame — the last label
+		// Wide currency-style ticks (0 … 6,000) on a narrow frame: the last label
 		// centered on the plot's right edge is exactly what overhangs the SVG clip.
 		const layout = horizontalLayout({
 			...input,

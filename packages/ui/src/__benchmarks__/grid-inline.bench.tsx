@@ -88,7 +88,7 @@ describe('Grid · mount→unmount churn', () => {
 describe('Grid · stable-prop rerender (unchanged data)', () => {
 	// A grid embedded in a streaming assistant turn re-renders on every token
 	// while its rows/columns are unchanged. Mounted once; the body measures a
-	// no-op re-render with identical references — near-zero for a well-memoized
+	// no-op re-render with identical references: near-zero for a well-memoized
 	// grid, and the only place a memo regression surfaces.
 	const identical = <Grid columns={COLUMNS} rows={rows20} getKey={shipmentKey} />
 
@@ -117,8 +117,8 @@ describe('Grid · streaming append', () => {
 
 describe('Grid · many grids in one document', () => {
 	// A long conversation holds many independent small grids (one per assistant
-	// turn). Cross-grid overhead — duplicated providers, aggregate mount, any
-	// global-listener contention — only appears when several co-exist.
+	// turn). Cross-grid overhead (duplicated providers, aggregate mount, any
+	// global-listener contention) only appears when several co-exist.
 	mountBenches(
 		[3, 10, 25],
 		(count) => `${count} grids · 10 × 4 each`,

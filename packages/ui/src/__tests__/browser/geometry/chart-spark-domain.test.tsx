@@ -16,7 +16,7 @@ describe('spark-tier value domain (real browser)', () => {
 	it('fits a sparkline to its box rather than a nice-stepped band', async () => {
 		const { container } = renderUI(
 			// A 150px box is under the spark width, so the line drops its axis and fits
-			// [45, 55] tight — a nice-stepped domain would round to [40, 60] and hold
+			// [45, 55] tight: a nice-stepped domain would round to [40, 60] and hold
 			// the line to about half the height.
 			<LineChart
 				aria-label="Spark"

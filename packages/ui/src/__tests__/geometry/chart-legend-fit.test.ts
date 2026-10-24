@@ -15,7 +15,7 @@ const WIDTH = 400
 
 describe('visibleLegendCount', () => {
 	it('shows every entry when none wrap past the cap', () => {
-		// Two rows of entries, cap of two — everything fits, so no chip and the full
+		// Two rows of entries, cap of two: everything fits, so no chip and the full
 		// count returns.
 		const count = visibleLegendCount(
 			rects([0, 120], [0, 250], [1, 130], [1, 260]),
@@ -42,7 +42,7 @@ describe('visibleLegendCount', () => {
 
 	it('trims the last visible entry when the chip would not fit beside it', () => {
 		// The last within-cap entry ends at 380 on the final capped row; the chip
-		// needs 48 more, past the 400 edge — so it drops, and the chip takes its slot.
+		// needs 48 more, past the 400 edge, so it drops, and the chip takes its slot.
 		const count = visibleLegendCount(
 			rects([0, 120], [1, 200], [1, 380], [2, 120]),
 			2,
@@ -54,7 +54,7 @@ describe('visibleLegendCount', () => {
 	})
 
 	it('keeps the last visible entry when the chip fits beside it', () => {
-		// Same shape, but the last entry ends at 300 — the chip's 48 fits within 400,
+		// Same shape, but the last entry ends at 300: the chip's 48 fits within 400,
 		// so it stays.
 		const count = visibleLegendCount(
 			rects([0, 120], [1, 200], [1, 300], [2, 120]),
@@ -78,7 +78,7 @@ describe('visibleLegendCount', () => {
 
 		// Rows: entry0 row0; entries 1-3 row1 (right 180/280/385); entry4 row2 spills.
 		// The final row trims 385 (no room) and 280 (280+48=328 ≤ 400 → fits), so the
-		// cut keeps entry0, entry1(180), entry2(280) — three entries.
+		// cut keeps entry0, entry1(180), entry2(280): three entries.
 		expect(count).toBe(3)
 	})
 

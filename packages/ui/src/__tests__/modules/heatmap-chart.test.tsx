@@ -18,7 +18,7 @@ const ROWS: Row[] = [
 	{ day: 'Mon', hour: '9', commits: 1 },
 	{ day: 'Mon', hour: '10', commits: 9 },
 	{ day: 'Tue', hour: '9', commits: 5 },
-	// (Tue, 10) omitted — a no-data cell.
+	// (Tue, 10) omitted: a no-data cell.
 ]
 
 const RANGE = ['#f7fee7', '#365314']
@@ -231,7 +231,7 @@ describe('HeatmapChart', () => {
 
 		expect(track?.getAttribute('aria-orientation')).toBe('vertical')
 
-		// Low at the bottom, high at the top — the gradient runs upward.
+		// Low at the bottom, high at the top: the gradient runs upward.
 		expect(track?.getAttribute('style')).toContain('linear-gradient(to top')
 	})
 
@@ -244,7 +244,7 @@ describe('HeatmapChart', () => {
 
 		expect(track?.getAttribute('aria-orientation')).toBe('horizontal')
 
-		// Low at the left, high at the right — the gradient runs rightward.
+		// Low at the left, high at the right: the gradient runs rightward.
 		expect(track?.getAttribute('style')).toContain('linear-gradient(to right')
 	})
 
@@ -259,7 +259,7 @@ describe('HeatmapChart', () => {
 			/>,
 		)
 
-		// A left placement is a side rail — vertical, like the default right.
+		// A left placement is a side rail: vertical, like the default right.
 		expect(bySlot(container, 'heatmap-range-track')?.getAttribute('aria-orientation')).toBe(
 			'vertical',
 		)
@@ -270,7 +270,7 @@ describe('HeatmapChart', () => {
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={120} />,
 		)
 
-		// Under the spark width the chrome strips to bare marks — no legend.
+		// Under the spark width the chrome strips to bare marks: no legend.
 		expect(bySlot(container, 'heatmap-legend-box')).toBeNull()
 	})
 
@@ -296,7 +296,7 @@ describe('HeatmapChart', () => {
 		// Nothing dims until the bar is probed.
 		expect(dimmedCount(container)).toBe(0)
 
-		// A horizontal bar reads the pointer's x, not its y — the probe still lands a
+		// A horizontal bar reads the pointer's x, not its y: the probe still lands a
 		// class and dims the cells outside it.
 		fireEvent.pointerMove(track as Element, { clientX: 10 })
 
@@ -321,7 +321,7 @@ describe('HeatmapChart', () => {
 
 		fireEvent.pointerMove(track as Element, { clientY: 10 })
 
-		// Cells outside the probed class dim — the reciprocal of the choropleth's map filter.
+		// Cells outside the probed class dim: the reciprocal of the choropleth's map filter.
 		expect(dimmedCount(container)).toBeGreaterThan(0)
 
 		fireEvent.pointerLeave(track as Element)
@@ -361,7 +361,7 @@ describe('HeatmapChart', () => {
 		expect(dimmedCount(container)).toBeGreaterThan(0)
 
 		// A pointer passing off the bar while it holds focus must not wipe the probe
-		// out from under the keyboard — the dimming and probe survive.
+		// out from under the keyboard: the dimming and probe survive.
 		fireEvent.pointerLeave(track)
 
 		expect(dimmedCount(container)).toBeGreaterThan(0)
@@ -420,7 +420,7 @@ describe('HeatmapChart', () => {
 
 		// jsdom reports a zero box; stand in a screen rect for the plot so the
 		// fraction-across-the-rect math has something to resolve against. The rect
-		// starts at (100, 50) — a raw client delta would drop that origin and land
+		// starts at (100, 50): a raw client delta would drop that origin and land
 		// on the wrong cell, the bug this guards.
 		;(hit as Element).getBoundingClientRect = () => HIT_BOX
 
@@ -433,12 +433,12 @@ describe('HeatmapChart', () => {
 		}
 
 		// Columns are ['9', '10'], rows ['Mon', 'Tue']: Mon/10 = 9 (the max), Mon/9 = 1 (the min).
-		// Top-right cell — the max sits high on the bar.
+		// Top-right cell: the max sits high on the bar.
 		fireEvent.pointerMove(hit as Element, { clientX: 330, clientY: 70 })
 
 		const high = arrowTop()
 
-		// Top-left cell — the min sits low on the bar.
+		// Top-left cell: the min sits low on the bar.
 		fireEvent.pointerMove(hit as Element, { clientX: 130, clientY: 70 })
 
 		const low = arrowTop()
@@ -582,7 +582,7 @@ describe('HeatmapChart cell clicks', () => {
 		;(hit as Element).getBoundingClientRect = () => HIT_BOX
 
 		// Columns are ['9', '10'] and rows ['Mon', 'Tue'], so the top-left cell is
-		// Mon at hour 9 — matrix position [0, 0].
+		// Mon at hour 9: matrix position [0, 0].
 		fireEvent.click(hit, { clientX: 130, clientY: 70 })
 
 		expect(onCellClick).toHaveBeenCalledWith({ x: '9', y: 'Mon' }, [0, 0])

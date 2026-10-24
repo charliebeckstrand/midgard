@@ -9,10 +9,10 @@ import { frames, getSlot, present, renderUI, waitFor } from '../../helpers'
 /**
  * Resize tracking under a real engine: a genuine `ResizeObserver` fires as the
  * host box changes, the chart's aspect-reserved plot box follows through CSS,
- * and the frame's transition commits land the final geometry — no settle
+ * and the frame's transition commits land the final geometry, no settle
  * window, no timers. The tab-hosted case is the docs-page shape that used to
  * cascade: the panel's height is coupled to its width through the chart's
- * aspect box, so every drag frame resizes the panel too — and the fading
+ * aspect box, so every drag frame resizes the panel too, and the fading
  * surface must sit that out at `height: auto`, never pinning to a stale pixel
  * height (a pin here is the height-tracker regression).
  */
@@ -48,7 +48,7 @@ function getHost(container: HTMLElement): HTMLElement {
 	return present(container.querySelector('[data-testid="host"]'), 'the host')
 }
 
-/** The committed frame width — the width component of the plot SVG's viewBox. */
+/** The committed frame width: the width component of the plot SVG's viewBox. */
 function frameWidth(container: HTMLElement): string | undefined {
 	return plotSvg(container).getAttribute('viewBox')?.split(' ')[2]
 }
@@ -115,8 +115,8 @@ describe('chart resize tracking (real browser)', () => {
 
 		await waitFor(() => expect(frameWidth(container)).toBe('600'))
 
-		// The drag: every frame moves the panel's width and — through the chart's
-		// aspect box — its height. The chart tracks; the surface stays on auto.
+		// The drag: every frame moves the panel's width and (through the chart's
+		// aspect box) its height. The chart tracks; the surface stays on auto.
 		for (const width of [640, 680, 720]) {
 			host.style.width = `${width}px`
 
@@ -141,11 +141,11 @@ describe('chart resize tracking (real browser)', () => {
 
 		await waitFor(() => expect(frameWidth(container)).toBe('600'))
 
-		// Grow the box and read the SVG synchronously — before the observer's
+		// Grow the box and read the SVG synchronously, before the observer's
 		// transition commit can land. The drawing renders at its committed pixel
 		// size (its viewBox), not the box's new CSS width, so the geometry never
 		// scales mid-drag. A `size-full` SVG would report the new box width here
-		// while its viewBox still read 600 — the stale-viewBox smear this pins out.
+		// while its viewBox still read 600: the stale-viewBox smear this pins out.
 		host.style.width = '900px'
 
 		const svg = plotSvg(container)
@@ -158,7 +158,7 @@ describe('chart resize tracking (real browser)', () => {
 
 		expect(rendered).toBe(committed)
 
-		// The commit still lands the new size — the box is clipping a growing edge
+		// The commit still lands the new size: the box is clipping a growing edge
 		// sliver for a frame, not holding a stale geometry forever.
 		await waitFor(() => expect(frameWidth(container)).toBe('900'))
 
@@ -170,11 +170,11 @@ describe('chart resize tracking (real browser)', () => {
 		// the header and legend, so the `flex-1` plot's height is the container's less
 		// that chrome. Feed that measured remainder to the tier and it loops at the
 		// spark floor: spark drops the chrome, the remainder jumps back above the
-		// floor, the tier flips to compact, the chrome returns, the remainder drops —
+		// floor, the tier flips to compact, the chrome returns, the remainder drops,
 		// a synchronous re-measure with no fixed point, which React aborts with
 		// "Maximum update depth exceeded". The tier reads the chrome-independent
 		// container box instead, so it settles. Many series force the bottom legend to
-		// WRAP — the case a fixed one-row chrome estimate got wrong (it reappeared as
+		// WRAP: the case a fixed one-row chrome estimate got wrong (it reappeared as
 		// the same loop), which measuring the container rather than estimating fixes.
 		const series = Array.from({ length: 8 }, (_, index) => ({
 			xKey: 'x' as const,
@@ -208,7 +208,7 @@ describe('chart resize tracking (real browser)', () => {
 
 		// Sweep container heights through the region where the plot remainder crosses
 		// the 96px spark floor; at every step the tier must be the same across two
-		// frames — a loop would flicker the tier between reads, or throw "Maximum
+		// frames: a loop would flicker the tier between reads, or throw "Maximum
 		// update depth exceeded" mid-sweep before we ever get to compare.
 		for (let height = 100; height <= 220; height += 4) {
 			host.style.height = `${height}px`
@@ -225,10 +225,10 @@ describe('chart resize tracking (real browser)', () => {
 
 	it('keeps tracking a heatmap resize across a legend placement flip', async () => {
 		// The heatmap's range bar drops from a side rail to a bottom band as the
-		// measured width crosses the compact boundary — a runtime re-arrangement of
+		// measured width crosses the compact boundary: a runtime re-arrangement of
 		// the figure tree that can recreate the plot node. An observer left on the
 		// detached node would freeze the drawing at its last committed size while
-		// the box resizes on — the defect this pins out.
+		// the box resizes on: the defect this pins out.
 		const GRID = ['a', 'b', 'c', 'd'].flatMap((col, columnIndex) =>
 			['x', 'y', 'z'].map((row, rowIndex) => ({ col, row, value: columnIndex + rowIndex })),
 		)
@@ -245,7 +245,7 @@ describe('chart resize tracking (real browser)', () => {
 
 		const host = getHost(container)
 
-		/** The committed drawing size tracks the plot box — width and height alike. */
+		/** The committed drawing size tracks the plot box: width and height alike. */
 		const tracks = () => {
 			const svg = container.querySelector<SVGSVGElement>('[data-slot="chart-plot"] svg')
 
@@ -274,7 +274,7 @@ describe('chart resize tracking (real browser)', () => {
 		expect(asideNow()).toBe(true)
 
 		// Cross the compact boundary: the rail drops to a bottom band, re-arranging
-		// the figure — then every later resize must still commit.
+		// the figure, then every later resize must still commit.
 		host.style.width = '360px'
 
 		await waitFor(() => expect(asideNow()).toBe(false))
@@ -302,8 +302,8 @@ function chartTier(container: HTMLElement): string | null {
 /**
  * Fill mode (`aspectRatio={false}`) under a real engine: the plot's measured
  * height is the remainder the chart's own chrome leaves in the shared
- * container, so any chrome decision read from it — spark dropping the header
- * and legend, the legend-row grant — moves its own input and the layout-effect
+ * container, so any chrome decision read from it (spark dropping the header
+ * and legend, the legend-row grant) moves its own input and the layout-effect
  * re-measure chain loops until React aborts at max update depth (the dashboard
  * tile crash). These pin the fix: fill resolves its chrome from width alone,
  * so a resize sweep across the old spark boundary lands on one stable tier.
@@ -336,7 +336,7 @@ describe('chart fill-mode resize stability (real browser)', () => {
 		)
 	}
 
-	/** Uncaught errors reported while `run` executes — the crash channel React aborts through. */
+	/** Uncaught errors reported while `run` executes: the crash channel React aborts through. */
 	async function collectErrors(run: () => Promise<void>): Promise<unknown[]> {
 		const errors: unknown[] = []
 
@@ -356,7 +356,7 @@ describe('chart fill-mode resize stability (real browser)', () => {
 	it('sweeps an aspect-ratio tile across the old spark boundary without looping', async () => {
 		// The dashboard shape: a tile whose height derives from its width, so a
 		// width drag moves the height every frame. Shrinking walks the plot
-		// remainder through SPARK_HEIGHT — where the tier used to flip between
+		// remainder through SPARK_HEIGHT, where the tier used to flip between
 		// spark (chrome dropped, remainder tall) and compact (chrome kept,
 		// remainder short) until React threw.
 		const { container } = renderUI(
@@ -395,7 +395,7 @@ describe('chart fill-mode resize stability (real browser)', () => {
 	it('mounts a fill pie with a side legend in a small tile without looping', async () => {
 		// The visible dashboard failure: below the side rail's engage width the
 		// panel stacks under the plot, its rows leave a sub-spark remainder, and
-		// the mount settle chain used to flip spark ↔ compact until React threw —
+		// the mount settle chain used to flip spark ↔ compact until React threw,
 		// the tile showing only a clipped legend and no plot.
 		const SLICES = ['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((slice, index) => ({
 			slice,
@@ -427,7 +427,7 @@ describe('chart fill-mode resize stability (real browser)', () => {
 
 	it('degrades to a framed chart, not a loop, when no parent height is definite', async () => {
 		// An auto-height parent gives `h-full` nothing to resolve against, so the
-		// remainder collapses to content — a height fill mode cannot trust. The
+		// remainder collapses to content: a height fill mode cannot trust. The
 		// chrome still resolves from the width: a framed compact chart with a
 		// collapsed plot, never a sparkline and never a re-measure loop.
 		const errors = await collectErrors(async () => {

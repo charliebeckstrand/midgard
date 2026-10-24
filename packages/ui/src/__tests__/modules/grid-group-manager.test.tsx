@@ -255,7 +255,7 @@ describe('groupAwareKeyboardCoordinates', () => {
 	}
 
 	// A group (top 0, height 100) whose body holds column "a" (top 30), trailed by
-	// a second group (top 110) — the layout the grid manager renders. A Down press
+	// a second group (top 110): the layout the grid manager renders. A Down press
 	// while "group:g1" is lifted must step to "group:g2", not the nearer column.
 	function context() {
 		const nodes = new Map<string, HTMLElement>()
@@ -339,7 +339,7 @@ describe('Grid column-group editor', () => {
 	it('creates a group, moves a column into it, and renames it — updating the band', () => {
 		const { container } = renderUI(<Harness />)
 
-		// No band yet — no group configured.
+		// No band yet: no group configured.
 		expect(band(container)).toBeNull()
 
 		fireEvent.click(screen.getByRole('button', { name: 'New group' }))
@@ -615,7 +615,7 @@ describe('Grid column-group editor', () => {
 	it('withholds the move menu until a group exists', () => {
 		renderUI(<Harness />)
 
-		// No groups yet — nothing to move a column into.
+		// No groups yet: nothing to move a column into.
 		expect(screen.queryByRole('button', { name: /^Move / })).toBeNull()
 
 		fireEvent.click(screen.getByRole('button', { name: 'New group' }))

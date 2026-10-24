@@ -9,18 +9,18 @@ import { k as button } from '../recipes/kata/button'
 
 /**
  * The style resolution every component render pays, benched with no DOM and no
- * React. A recipe call and a `cn` merge run once per styled element — the most
- * frequently executed code in the package by orders of magnitude — so a
+ * React. A recipe call and a `cn` merge run once per styled element (the most
+ * frequently executed code in the package by orders of magnitude) so a
  * constant-factor change here moves every mount number in every other bench,
  * and none of those can isolate it.
  *
  * Three costs are separated because they behave differently. A **memo hit** is
  * what a render normally pays: join the resolved values of every relevant key
- * into a string, then read a Map — so it scales with the recipe's *axis count*,
+ * into a string, then read a Map, so it scales with the recipe's *axis count*,
  * not with its class payload. A **memo miss** composes the class list and runs
  * it through `clsx` + `tailwind-merge`, which is one to two orders of magnitude
  * dearer and scales with the payload. **`cn`** is the merge a call site adds on
- * top of the recipe's output, once per element, every render — memoized on its
+ * top of the recipe's output, once per element, every render: memoized on its
  * arguments in its own right (`core/cn.ts`), so these bars read its hit path;
  * the bars that first justified that memo are one rung down in the diff that
  * added it, not here.
@@ -60,7 +60,7 @@ describe('recipe · memo hit vs miss (same recipe, same payload)', () => {
 	// that never does (and pays the cap's clear every 1,024th call). Same recipe
 	// and same class payload on both bars, so the ratio is exactly what the memo
 	// buys. Synthetic because no real kata declares enough combinations to defeat
-	// the memo — the point is the cost of the branch, not that a component takes
+	// the memo: the point is the cost of the branch, not that a component takes
 	// it.
 	const WIDE = 2_048
 
@@ -96,7 +96,7 @@ describe('recipe · compose (twMerge ∘ clsx, what a miss runs)', () => {
 	// The merge itself, without the key join or the Map write, over two payload
 	// sizes: a leaf's handful of classes against the fifty-odd a real kata's
 	// base + variant resolves to. `tailwind-merge` scans every class for
-	// conflicts, so this scales with the payload — which is why the memo above
+	// conflicts, so this scales with the payload, which is why the memo above
 	// matters more for a heavy kata than for a light one.
 	const config = button.config.slots.base
 
@@ -114,7 +114,7 @@ describe('recipe · compose (twMerge ∘ clsx, what a miss runs)', () => {
 })
 
 describe('recipe · cn (once per element per render)', () => {
-	// Every rung is a real call shape at its memo hit — the steady state of a
+	// Every rung is a real call shape at its memo hit: the steady state of a
 	// mounted tree, where the arguments are the same objects render after render:
 	// a leaf with nothing but the recipe, a leaf with a caller override, a
 	// composite folding in state and layout.
@@ -141,7 +141,7 @@ describe('recipe · cn (once per element per render)', () => {
 
 describe('recipe · key join (scales with axis count, not payload)', () => {
 	// A memo hit costs one `resolveValue` and one string append per relevant key,
-	// so a recipe's axis count — plus every key its compound rules condition on —
+	// so a recipe's axis count (plus every key its compound rules condition on)
 	// sets the floor for every render that touches it. These three hold the class
 	// payload fixed and vary only that count.
 	const axis = { a: 'p-1', b: 'p-2', c: 'p-3' }
@@ -169,7 +169,7 @@ describe('recipe · defineRecipe (creation, once per module load)', () => {
 	// palette into the `variant` × `color` axes, compile the plan, then merge each
 	// slot's classes eagerly. A page that imports a hundred components pays this a
 	// hundred times before it renders anything, so it is startup cost, not render
-	// cost — measured against a bare recipe to separate the palette's share.
+	// cost: measured against a bare recipe to separate the palette's share.
 	const config = button.config.slots.base
 
 	bench('bare (base + one axis)', () => {

@@ -1,7 +1,7 @@
 /**
  * Combobox mounts its options behind an `open` gate, so the closed rungs
- * measure the trigger and the query plumbing alone — what a page pays for a
- * combobox nobody has touched — and the open rungs add the rendered options.
+ * measure the trigger and the query plumbing alone (what a page pays for a
+ * combobox nobody has touched) and the open rungs add the rendered options.
  * The virtualized pair at the same counts is what windowing buys once the
  * panel is open. The selection rung times a value change on an open panel
  * alone, which is the path that re-renders each option row.

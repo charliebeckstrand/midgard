@@ -99,7 +99,7 @@ describe('stackedBarMarks', () => {
 
 		const top = upper?.[0]
 
-		// Both segments occupy the same band slot — one column, not a group.
+		// Both segments occupy the same band slot: one column, not a group.
 		expect(top?.x).toBe(bottom?.x)
 
 		expect(top?.x1).toBe(bottom?.x1)
@@ -160,7 +160,7 @@ describe('stackedBarSnaps', () => {
 		const marks = stackedBarMarks([[40], [30]], band, map)
 
 		// Bottom segment tops at its own value (map(40)); the second rides it and
-		// tops at the running total (map(70)) — not map(30), the from-zero position
+		// tops at the running total (map(70)), not map(30), the from-zero position
 		// the shared snap points would carry.
 		expect(stackedBarSnaps(marks, [0, 1], 1).points).toEqual([[map(40), map(70)]])
 	})

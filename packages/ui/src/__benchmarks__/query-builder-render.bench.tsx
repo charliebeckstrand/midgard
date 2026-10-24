@@ -16,7 +16,7 @@ const balanced = makeQueryTree(2, 4)
 
 const deepWide = makeQueryTree(3, 4)
 
-/** Edits per re-render iteration — enough that per-edit work outruns the harness. */
+/** Edits per re-render iteration: enough that per-edit work outruns the harness. */
 const EDITS = 5
 
 describe('QueryBuilder · initial render', () => {

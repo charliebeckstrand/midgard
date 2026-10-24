@@ -1,6 +1,6 @@
 /**
  * The dashboard grid profile: large row counts, virtualization, and the
- * feature columns a data table wears — the sizes `grid-inline.bench.tsx`
+ * feature columns a data table wears, the sizes `grid-inline.bench.tsx`
  * deliberately does not cover. Mount scenarios time one mount plus teardown per
  * iteration; the toggle scenarios re-render a mounted grid, so a regression
  * there is reconciliation, not mount.
@@ -21,11 +21,11 @@ const SELECTABLE: GridColumn<Shipment>[] = [
 	...COLUMNS,
 ]
 
-/** Toggles per re-render iteration — enough that per-toggle work outruns the harness. */
+/** Toggles per re-render iteration: enough that per-toggle work outruns the harness. */
 const TOGGLES = 5
 
 // `shipments` is memoized per (count, seed), so every call below hands back the
-// same array — no aliasing needed to keep the fixture out of the timed region.
+// same array: no aliasing needed to keep the fixture out of the timed region.
 
 describe('Grid · initial render (un-windowed)', () => {
 	// Stops at a thousand rows on purpose. An un-windowed grid mounts every row,

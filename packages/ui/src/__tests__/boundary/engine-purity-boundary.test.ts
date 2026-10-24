@@ -11,17 +11,17 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 // benchable outside React, and importable without dragging the module's React
 // shell in behind it. Four rules carry that:
 //
-//   - no `'use client'` — the engine is not a client boundary
+//   - no `'use client'`: the engine is not a client boundary
 //   - no runtime `react` / `react-dom` / `motion` / `@dnd-kit` / `@floating-ui`
 //     import (a type-only import is fine: `CSSProperties`, `ReactNode`, and
 //     dnd-kit's `ClientRect` describe data the shell renders or hands back)
-//   - no runtime import from the module root — the arrow runs shell → engine,
+//   - no runtime import from the module root: the arrow runs shell → engine,
 //     never back, so the engine stands alone
-//   - no `index` barrel — the engine is imported file-by-file, so a consumer
+//   - no `index` barrel: the engine is imported file-by-file, so a consumer
 //     pays for the leaf it names and nothing else
 //
 // `modules/chart/engine` is deliberately absent. It is a shared substrate
-// rather than a pure core — it holds `.tsx` components and hooks by design — so
+// rather than a pure core (it holds `.tsx` components and hooks by design) so
 // the list is explicit rather than a `modules/*/engine` glob, and a new pure
 // engine opts in by joining it.
 const PURE_ENGINES = [

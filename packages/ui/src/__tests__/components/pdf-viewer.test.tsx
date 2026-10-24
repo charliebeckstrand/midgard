@@ -556,7 +556,7 @@ describe('PdfViewer', () => {
 	 * that is routinely the narrower half of a split on a tile of the page already on screen.
 	 *
 	 * Asserted through the toolbar's own toggle rather than the `inert` attribute, because that
-	 * is the state a reader can see and act on — and `inert` lands a frame later, once the
+	 * is the state a reader can see and act on, and `inert` lands a frame later, once the
 	 * sidebar's slide has settled.
 	 */
 	it('opens with the thumbnail sidebar closed on a single-page document', () => {
@@ -566,7 +566,7 @@ describe('PdfViewer', () => {
 	})
 
 	// The reader's own press outranks that default, and nothing re-derives it out from under
-	// them — the whole reason the state is an override rather than a seeded boolean.
+	// them: the whole reason the state is an override rather than a seeded boolean.
 	it('keeps the sidebar the reader opened on a single-page document', async () => {
 		renderUI(<PdfViewer pages={pages.slice(0, 1)} />)
 
@@ -577,7 +577,7 @@ describe('PdfViewer', () => {
 
 	/*
 	 * The rail is furniture, not an arrival. Where it starts is derived from the page count, and
-	 * that count lands whenever pdf.js finishes parsing — a rail that slid in at that moment
+	 * that count lands whenever pdf.js finishes parsing: a rail that slid in at that moment
 	 * announced the parse. The reader's press is a change they made, and that one travels.
 	 */
 	it('takes no slide until the reader presses the toggle', async () => {
@@ -1061,7 +1061,7 @@ describe('PdfViewer highlights', () => {
 			<PdfViewer
 				pages={sizedPages}
 				highlightUnit="inch"
-				// 0.85 in of 8.5 in wide, 2.2 in of 11 in tall — the 10% / 20% above.
+				// 0.85 in of 8.5 in wide, 2.2 in of 11 in tall: the 10% / 20% above.
 				highlights={[
 					{
 						id: 'total',
@@ -1215,7 +1215,7 @@ describe('PdfViewer highlights', () => {
 	 *
 	 * Queried off `document` and by its own slot, not by the tooltip chrome around it: the
 	 * label portals out of the render container, and the toolbar's buttons wear that same
-	 * chrome — a bare `[data-slot="tooltip-content"]` catches whichever toolbar tooltip the
+	 * chrome; a bare `[data-slot="tooltip-content"]` catches whichever toolbar tooltip the
 	 * click that set up the case left open.
 	 */
 	function highlightLabel() {
@@ -1269,7 +1269,7 @@ describe('PdfViewer highlights', () => {
 
 	/*
 	 * A box cannot say what it is, and a reader looking for one of twenty should not have to
-	 * press each in turn to find out — every press changes the selection, and whatever the
+	 * press each in turn to find out: every press changes the selection, and whatever the
 	 * consumer hangs off it.
 	 */
 	it('names the region under the pointer, without selecting it', () => {
@@ -1298,7 +1298,7 @@ describe('PdfViewer highlights', () => {
 
 	/*
 	 * A preview sits beside the selection rather than taking its place. They are different
-	 * things to a reader — one is where they are working, the other is what they are checking —
+	 * things to a reader (one is where they are working, the other is what they are checking)
 	 * and the selection has a form field and a scroll position standing behind it.
 	 */
 	it('keeps the selected region named while the pointer names another', () => {
@@ -1331,7 +1331,7 @@ describe('PdfViewer highlights', () => {
 	})
 
 	/*
-	 * The selected region already names itself, so hovering it says nothing new — and would say
+	 * The selected region already names itself, so hovering it says nothing new, and would say
 	 * it twice, in two panels a few pixels apart.
 	 */
 	it('does not name the selected region twice when the pointer crosses it', () => {
@@ -1354,7 +1354,7 @@ describe('PdfViewer highlights', () => {
 	 * jsdom does no hit-testing, so this is read off the rule that governs it rather than by
 	 * pointing at anything. The rule is `<FloatingSurface>`'s, deliberately: it drops the
 	 * wrapper to `none` the moment a panel stops being real, so an exiting name cannot swallow
-	 * presses meant for the page — which a subtree that had taken pointer events back on its own
+	 * presses meant for the page, which a subtree that had taken pointer events back on its own
 	 * would go on doing for the whole length of the fade.
 	 * `pdf-viewer-highlight-label.test.tsx` points at a real box through a real name.
 	 *
@@ -1517,8 +1517,8 @@ describe('PdfViewer highlights', () => {
 	/*
 	 * A press somewhere else puts the selection down.
 	 *
-	 * "Somewhere else" is the whole page surface — the page image and the matte a fitted page
-	 * sits in — rather than the boxes alone, because that is where the reader's eye is when they
+	 * "Somewhere else" is the whole page surface (the page image and the matte a fitted page
+	 * sits in) rather than the boxes alone, because that is where the reader's eye is when they
 	 * decide they are done with the one they picked. Escape says the same thing from the
 	 * keyboard; this is the pointer's way to say it, and until now there was none.
 	 */
@@ -1544,7 +1544,7 @@ describe('PdfViewer highlights', () => {
 		expect(screen.getByLabelText('Total charges')).not.toHaveAttribute('aria-current')
 	})
 
-	/** A press on a region is a selection, not a dismissal — the two share one surface. */
+	/** A press on a region is a selection, not a dismissal: the two share one surface. */
 	it('does not clear the selection on a press that lands on a region', () => {
 		const onActiveHighlightChange = vi.fn()
 
@@ -1613,7 +1613,7 @@ describe('PdfViewer highlights', () => {
 
 	/*
 	 * Decoration answers to the consumer alone. Without `onActiveHighlightChange` the boxes are
-	 * not controls — the consumer drives what is marked from a list beside the viewer — so the
+	 * not controls (the consumer drives what is marked from a list beside the viewer) so the
 	 * page must not put down a selection it was handed.
 	 */
 	it('clears nothing on a press when the regions are decoration', () => {
@@ -1657,8 +1657,8 @@ describe('PdfViewer highlights', () => {
 describe('PdfViewer highlight state scoping', () => {
 	// The guard for why activation state lives in its own provider around the viewport
 	// rather than on PdfViewerContext: the subtree the provider wraps must not re-render
-	// when a region is activated, so the toolbar and the thumbnail rail — which sit outside
-	// it and are re-rendered only by a PdfViewer render — cannot either. Asserted at the
+	// when a region is activated, so the toolbar and the thumbnail rail (which sit outside
+	// it and are re-rendered only by a PdfViewer render) cannot either. Asserted at the
 	// provider, because that is where the bailout is observable: a component's own render
 	// count is not reachable from outside it.
 	it('activating a region does not re-render the subtree the provider wraps', () => {
@@ -1717,7 +1717,7 @@ describe('PdfViewer chrome events', () => {
 	 *
 	 * Because what they do is not only the viewer's business: a list beside it marks which of
 	 * its rows can be located on the page, and a hidden overlay makes that mark a promise
-	 * nothing keeps. Events rather than a controlled binding — the reader owns these two
+	 * nothing keeps. Events rather than a controlled binding: the reader owns these two
 	 * switches, and nothing outside should be able to turn them back on under them.
 	 */
 	it('reports the reader hiding and then showing the highlight overlay', () => {
@@ -1732,7 +1732,7 @@ describe('PdfViewer chrome events', () => {
 			/>,
 		)
 
-		// Shown to begin with, so the control offers to hide — which is what a consumer
+		// Shown to begin with, so the control offers to hide, which is what a consumer
 		// mirroring this seeds its own state from.
 		fireEvent.click(screen.getByLabelText('Hide highlights'))
 
@@ -1744,7 +1744,7 @@ describe('PdfViewer chrome events', () => {
 	})
 
 	/**
-	 * The whole of what the reader owns, on every change — the switch here, and the three
+	 * The whole of what the reader owns, on every change: the switch here, and the three
 	 * settings the config dialog carries. A consumer that keeps the preference stores what
 	 * arrives and hands it back as `magnifier`, so a report of only the field that moved
 	 * would not be enough to do that with.
@@ -1807,7 +1807,7 @@ describe('PdfViewer chrome events', () => {
 
 	/**
 	 * Both switches keep their glyph and name the *action* rather than the state, so
-	 * `aria-pressed` was the only thing separating on from off — and no recipe targets it. The
+	 * `aria-pressed` was the only thing separating on from off, and no recipe targets it. The
 	 * fill is what a pointer user reads.
 	 */
 	it.each([
@@ -1834,7 +1834,7 @@ describe('PdfViewer chrome events', () => {
 
 describe('PdfViewer fit', () => {
 	// The guard for the one thing fit="width" cannot do without help. Withholding the page's
-	// aspect ratio is what lets the page overflow and scroll — but it also leaves the root
+	// aspect ratio is what lets the page overflow and scroll, but it also leaves the root
 	// with no height of its own, so it has to fill the box its host gives it or it collapses
 	// to the toolbar. This shipped once without it.
 	it('fills its host box under fit="width"', () => {

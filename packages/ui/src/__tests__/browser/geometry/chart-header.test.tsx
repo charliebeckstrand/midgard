@@ -9,7 +9,7 @@ const ASPECT_SLACK = 0.05
 /**
  * A chart title and subtitle band above the plot inside the aspect box, so the
  * drawing fills the height they leave rather than pushing past a 16/9 tile. At
- * the spark tier — where a header would crowd the marks — they leave the flow for
+ * the spark tier (where a header would crowd the marks) they leave the flow for
  * a centered veil over the plot, faded in on hover or focus. Placement inside the
  * ratio, the veil's rest-state transparency, and its reveal are computed-layout
  * claims jsdom can't resolve, so they ride the real browser.

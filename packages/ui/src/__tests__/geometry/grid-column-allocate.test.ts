@@ -137,7 +137,7 @@ describe('allocateColumnWidths', () => {
 		})
 
 		it('still lifts a frozen column up to its floor before holding it', () => {
-			// A pinned column whose content is below its floor floors first, then holds —
+			// A pinned column whose content is below its floor floors first, then holds:
 			// the freeze caps growth above content, it never starves the header.
 			const frozen: ColumnSizeProfile = {
 				id: 'p',
@@ -195,7 +195,7 @@ describe('allocateColumnWidths', () => {
 
 			expect(sizing).toEqual({ a: 200, b: 200, c: 200 })
 
-			// The table runs wider than the space — content shows, the rest scrolls.
+			// The table runs wider than the space: content shows, the rest scrolls.
 			expect(total(sizing)).toBe(600)
 			expect(total(sizing)).toBeGreaterThan(300)
 		})

@@ -8,7 +8,7 @@ const GLYPH_SLACK = 1.5
 /**
  * Leading header-affordance alignment against a real layout engine. The reorder
  * grip and the pin button precede the column title, but their visible glyph must
- * sit over the column's cell values — not a step to their right. Lucide glyphs
+ * sit over the column's cell values, not a step to their right. Lucide glyphs
  * are optically inset within their box, so a box flush to the cell padding still
  * reads misaligned; the recipe pulls each affordance left by that inset. The gap
  * between glyph ink and the value only resolves in a browser, where `getBBox`
@@ -87,7 +87,7 @@ describe('grid header affordance alignment (real browser)', () => {
 			)
 
 			// The grip's drawn dots land within a glyph-edge hairline of where the value
-			// text starts — not the cell-padding-sized step the un-nudged box would show.
+			// text starts, not the cell-padding-sized step the un-nudged box would show.
 			for (const id of ['name', 'email']) {
 				expect(ink(container, id, dir)).toBeNear(value(container, id, dir), GLYPH_SLACK)
 			}

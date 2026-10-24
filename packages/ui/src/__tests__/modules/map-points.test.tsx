@@ -21,8 +21,8 @@ const STOPS = [
 
 /**
  * Two stops a fraction of a degree apart and one across the frame. The fixture
- * spans 30° over a 400px frame, so the pair lands ~4px apart — inside the merge
- * distance — and the third stands 260px clear of them.
+ * spans 30° over a 400px frame, so the pair lands ~4px apart (inside the merge
+ * distance) and the third stands 260px clear of them.
  */
 const BUNCHED = [
 	{ at: DEPOT, label: 'Depot', detail: '12 pallets' },
@@ -78,7 +78,7 @@ describe('MapPoints', () => {
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('12 pallets')
 
-		// A dot that names itself but carries no detail shows none — the group's
+		// A dot that names itself but carries no detail shows none: the group's
 		// would describe the set, not the dot.
 		fireEvent.pointerEnter(hits[1] as Element, { clientX: 20, clientY: 10 })
 
@@ -267,7 +267,7 @@ describe('MapPoints', () => {
 		expect(onClick).toHaveBeenCalledWith('fleet', 0, [0, 1])
 
 		// The far dot still reports its own index, though a group ahead of it holds
-		// two stops — the caller counts in points, never in groups.
+		// two stops: the caller counts in points, never in groups.
 		fireEvent.click(allBySlot(container, 'map-points-hit')[1] as Element)
 
 		expect(onClick).toHaveBeenLastCalledWith('fleet', 2, [2])
@@ -338,7 +338,7 @@ describe('a summary names the stops it merged', () => {
 			</MapPlat>,
 		)
 
-		// A summary is one mark downstream — one tooltip, one row — so a reader who sees a `2` can only
+		// A summary is one mark downstream (one tooltip, one row) so a reader who sees a `2` can only
 		// learn WHICH two from here. Before this the callback got a count and a span and nothing else.
 		expect(seen.some((labels) => labels.join(', ') === '77002, 84101')).toBe(true)
 	})

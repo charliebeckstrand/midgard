@@ -1,15 +1,15 @@
 /**
- * Quick-filter cost on a live grid — the search-as-you-type path. Each
+ * Quick-filter cost on a live grid: the search-as-you-type path. Each
  * iteration applies a term through the `search` binding of the ui grid,
  * settles until the surviving rows paint, then clears it and settles until the
- * full set is back — so a sample covers both the narrowing and the widening a
+ * full set is back, so a sample covers both the narrowing and the widening a
  * keystroke and a backspace produce.
  *
  * The search scans all eight columns: the ui grid searches the columns that
  * declare a `value` accessor, and each bench column declares one.
  *
  * The terms are drawn from the fixture's own carrier names, so each one
- * survives on a predictable share of the rows — a term matching nothing would
+ * survives on a predictable share of the rows: a term matching nothing would
  * measure an empty render rather than a filter.
  *
  * A second scenario runs the same cycle on a grid that sorts on `id` in

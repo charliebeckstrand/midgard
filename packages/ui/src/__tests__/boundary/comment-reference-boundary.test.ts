@@ -25,8 +25,8 @@ import { startTypeScript, type TypeScriptServer } from '../helpers/ts-server'
 import { isSourceFile, srcDir, srcRelative } from '../helpers/walk-source'
 
 // A comment that names a file or a symbol states a fact about the tree, and the
-// tree moves. CONVENTIONS.md §12.4 bans the nearest spelling of the defect — an
-// audit named from code — on the ground that the reference dangles once the
+// tree moves. CONVENTIONS.md §12.4 bans the nearest spelling of the defect (an
+// audit named from code) on the ground that the reference dangles once the
 // audit goes. These two cases hold that ground for the two references a scan
 // can check: the name of a test or benchmark file, and a `{@link}` target.
 //
@@ -39,7 +39,7 @@ import { isSourceFile, srcDir, srcRelative } from '../helpers/walk-source'
 // Both cases test membership against a set, not resolution in a scope. The
 // distinction decides the link case, so it is written down here:
 //
-//   A `{@link}` target is almost never imported at the site that names it —
+//   A `{@link}` target is almost never imported at the site that names it:
 //   `core/aria-attr.ts` links `dataAttr`, which lives in its sibling. So a
 //   checker resolves the target against the file's own scope and answers
 //   "absent" for a symbol that is present in the package. Measured against a
@@ -150,8 +150,8 @@ function lineAt(content: string, index: number): number {
  *
  * @remarks
  * Read structurally, from the `name` of the node. Every shape that carries a
- * name puts it on `name` — a function, a type, a destructured binding, an
- * import specifier, an object member, a parameter — so one read collects them
+ * name puts it on `name` (a function, a type, a destructured binding, an
+ * import specifier, an object member, a parameter) so one read collects them
  * all.
  *
  * Some references carry a `name` too: a property access, a JSX attribute and
@@ -296,7 +296,7 @@ function readDeclarationsAndLinks(server: TypeScriptServer): {
 		// About half of the tree carries no link at all. Without a link to find,
 		// the parse is not worth its cost, and pass 2 reads the file for
 		// declarations only when a target needs it. The guard is TypeScript's own
-		// trigger — `{ @link Foo }` with a space parses to no link node, and
+		// trigger: `{ @link Foo }` with a space parses to no link node, and
 		// `{@linkcode` and `{@linkplain` both open with this prefix.
 		if (content.includes('{@link')) linked.push(file)
 		else rest.push({ file, content })
@@ -376,7 +376,7 @@ function libraryDir(server: TypeScriptServer): string {
  * them.
  *
  * @remarks
- * A link may name a platform type — `WeakMap`, `ResizeObserver` — which no file
+ * A link may name a platform type (`WeakMap`, `ResizeObserver`) which no file
  * here declares. Every shipped `lib.*.d.ts` is read, rather than the subset
  * `tsconfig.base.json` compiles against, so a link to a type outside the target
  * passes this gate rather than failing it. That is the safe direction: the rule

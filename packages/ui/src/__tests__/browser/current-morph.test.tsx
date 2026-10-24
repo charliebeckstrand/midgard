@@ -8,8 +8,8 @@ import { hasIntermediate, sampleTravel } from './helpers/sample'
 /**
  * Real-browser probe of the current-panel height morph. The jsdom morph test
  * mocks `getBoundingClientRect` to fixed heights, so it can only see the pin;
- * whether the box then *tweens* — instead of snapping to the target the moment
- * anything re-renders — is exactly what jsdom can't observe. The morph runs
+ * whether the box then *tweens* (instead of snapping to the target the moment
+ * anything re-renders) is exactly what jsdom can't observe. The morph runs
  * imperatively (`animate` from `motion`, unmocked in this suite) against real
  * layout, so these tests sample the container's border box across frames and
  * assert it passes through intermediate heights before settling back at
@@ -112,14 +112,14 @@ describe('current-panel height morph (real browser)', () => {
 
 /**
  * The other half of the morph contract: what must NOT happen. A width-coupled
- * resize — a window drag, a panel reflowing text at a new width — has to pass
+ * resize (a window drag, a panel reflowing text at a new width) has to pass
  * through with no morph, no inline pin, and no React commit at all. That
  * silence is what stops one drag frame cascading into every panel's subtree
  * once per `ResizeObserver` frame.
  *
  * jsdom asserted this by stubbing `ResizeObserver`, hand-building
  * `borderBoxSize` entries for a synthetic burst, and stubbing
- * `getBoundingClientRect` to fixed boxes — so it proved the hook's arithmetic
+ * `getBoundingClientRect` to fixed boxes, so it proved the hook's arithmetic
  * over numbers the test supplied, never that a real drag is silent. Here the
  * host really narrows, the panel's text really reflows, and the engine's own
  * observer delivers the frames.

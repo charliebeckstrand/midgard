@@ -73,7 +73,7 @@ describe('Swatch', () => {
 
 			expect(el).toHaveAttribute('data-variant', 'dashed')
 
-			// A box or dot has no length to dash, so it frames with a dashed border —
+			// A box or dot has no length to dash, so it frames with a dashed border,
 			// not the line's gradient fill.
 			expect(el).toHaveClass('border-dashed')
 

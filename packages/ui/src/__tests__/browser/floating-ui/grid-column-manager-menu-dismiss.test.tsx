@@ -9,7 +9,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * Pin-control `Menu` dismissal inside the grid's manager dialog, against the
  * real floating engine. The dialog and the menu both portal through a bare
  * `FloatingPortal`, and `@floating-ui/react` nests a descendant portal inside
- * its nearest ancestor portal by default — so the open menu's own portal node
+ * its nearest ancestor portal by default, so the open menu's own portal node
  * lands *inside* the dialog's portal node. A press elsewhere in the dialog
  * must still register as outside the menu and close it. The jsdom suite mocks
  * `@floating-ui/react` away (real portal nesting never happens), so only this
@@ -41,7 +41,7 @@ describe('grid column manager dialog pin menu dismiss (real browser)', () => {
 
 		await screen.findByRole('menu')
 
-		// Press elsewhere in the dialog — the title — outside the menu's panel.
+		// Press elsewhere in the dialog (the title) outside the menu's panel.
 		await userEvent.click(screen.getByText('Manage columns'))
 
 		await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())

@@ -4,7 +4,7 @@ import { BarChart } from '../../modules/chart/bar-chart'
 import { allBySlot, frames, present, renderUI, waitFor } from '../helpers'
 
 /**
- * The legend emphasizes a series — dimming every other — while an entry is
+ * The legend emphasizes a series (dimming every other) while an entry is
  * pointed at or keyboard-focused. Focus and `:focus-visible` diverge only under
  * real input: a pointer click leaves the switch DOM-focused with no ring, and a
  * backgrounded tab re-fires `focus` on that retained element when the reader
@@ -26,7 +26,7 @@ describe('chart legend focus persistence (real browser)', () => {
 	] as const
 
 	// Each series draws as one `chart-bar` path, so the second path is the second
-	// series — it stands in for "the other series dimmed".
+	// series: it stands in for "the other series dimmed".
 	const otherSeriesBar = (container: HTMLElement) => allBySlot(container, 'chart-bar')[1]
 
 	const dimmed = (el: Element | undefined) =>
@@ -47,7 +47,7 @@ describe('chart legend focus persistence (real browser)', () => {
 
 		const revenue = allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement
 
-		// Toggle the series off then on — a reader inspecting it — so it stays
+		// Toggle the series off then on (a reader inspecting it) so it stays
 		// visible while the button holds the pointer's ring-less focus.
 		await userEvent.click(revenue)
 		await userEvent.click(revenue)
@@ -116,7 +116,7 @@ describe('chart legend focus persistence (real browser)', () => {
 		const before = present<HTMLButtonElement>(container.querySelector('button'), 'button')
 		const revenue = allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement
 
-		// Keyboard-focus the first switch — the other series dims — then point at it
+		// Keyboard-focus the first switch (the other series dims) then point at it
 		// and leave. Hover doesn't disturb the ring, so the focus emphasis must hold.
 		before.focus()
 		await userEvent.tab()
@@ -132,7 +132,7 @@ describe('chart legend focus persistence (real browser)', () => {
 	})
 
 	// A reference chip shares the switches' focus-visible gate but drives the
-	// whole-marks recede (referenceActive), not the per-series dim — so it reads on
+	// whole-marks recede (referenceActive), not the per-series dim, so it reads on
 	// the marks group, which recedes as one to the rule.
 	const marksReceded = (container: HTMLElement) =>
 		(allBySlot(container, 'chart-marks')[0]?.getAttribute('class') ?? '').includes('opacity-25')

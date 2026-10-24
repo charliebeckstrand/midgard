@@ -40,7 +40,7 @@ const TARGETS = cartesianFocus(
 	'vertical',
 )
 
-// A middle category with no finite value — a gap the cursor must step over.
+// A middle category with no finite value: a gap the cursor must step over.
 const GAPPED = cartesianFocus([10, 20, 30], [[100], [], [40]], 'vertical')
 
 describe('chart keyboard cursor', () => {
@@ -82,7 +82,7 @@ describe('chart keyboard cursor', () => {
 	it('steps the value cursor in screen order, not series order', () => {
 		// Series order does not match screen order: index 0 sits at the top (y 20),
 		// index 1 at the bottom (y 80), index 2 in the middle (y 50). ArrowDown must
-		// descend the screen — top, middle, bottom — rather than walk the series list.
+		// descend the screen (top, middle, bottom) rather than walk the series list.
 		const ranked = cartesianFocus([10], [[20, 80, 50]], 'vertical')
 
 		expect(moveCursor({ category: 0, value: 0 }, 'ArrowDown', ranked, 'vertical').cursor).toEqual({
@@ -193,7 +193,7 @@ describe('chart keyboard cursor', () => {
 
 		expect(mapped.series).toEqual([[0, 1], [1]])
 
-		// No map, or an empty one, leaves the field off — a chart whose stops name no series.
+		// No map, or an empty one, leaves the field off: a chart whose stops name no series.
 		expect(cartesianFocus([10], [[40]], 'vertical').series).toBeUndefined()
 
 		expect(cartesianFocus([10], [[40]], 'vertical', undefined, []).series).toBeUndefined()
@@ -213,8 +213,8 @@ describe('chart keyboard cursor', () => {
 
 		expect(cursorSeries({ category: 1, value: 0 }, targets)).toBe(2)
 
-		// A cursor parked on a reference names no series, and a stop past the map — or a
-		// chart carrying none — reads null, leaving the emphasis untouched.
+		// A cursor parked on a reference names no series, and a stop past the map (or a
+		// chart carrying none) reads null, leaving the emphasis untouched.
 		expect(cursorSeries({ category: 0, value: 0, reference: 0 }, targets)).toBeNull()
 
 		expect(cursorSeries({ category: 0, value: 9 }, targets)).toBeNull()
@@ -283,7 +283,7 @@ describe('chart keyboard cursor across a series gap', () => {
 })
 
 // One category, two series at y 20 and 80, and a reference line at y 50 sitting
-// between them — the stop the cursor must reach along the value axis.
+// between them: the stop the cursor must reach along the value axis.
 const REF = cartesianFocus([10], [[20, 80]], 'vertical', [50])
 
 // Two categories carrying the same reference line, so band steps can slide along it.
@@ -348,7 +348,7 @@ describe('chart keyboard cursor with reference lines', () => {
 
 	it('transposes the reference roving onto the horizontal value axis', () => {
 		// Horizontal puts value on x, so the rule sits between the series along x and
-		// the horizontal arrows — not the vertical ones — rove onto it.
+		// the horizontal arrows (not the vertical ones) rove onto it.
 		const horizontal = cartesianFocus([10], [[20, 80]], 'horizontal', [50])
 
 		expect(moveCursor({ category: 0, value: 0 }, 'ArrowRight', horizontal, 'horizontal')).toEqual({
@@ -413,7 +413,7 @@ describe('LineChart keyboard navigation', () => {
 
 	it('sheds the readout tooltip and its keyboard cursor at the spark tier', () => {
 		// Forced to a sparkline, the plot reveals its title veil on hover rather than
-		// a data readout, so the tooltip stands down — and with nothing left for it to
+		// a data readout, so the tooltip stands down, and with nothing left for it to
 		// answer, the region is no longer a keyboard tab stop either. The pointer path
 		// mounts the same one tooltip, so gating its mount here covers hover too.
 		const { container } = renderUI(line({ width: 140 }))
@@ -424,7 +424,7 @@ describe('LineChart keyboard navigation', () => {
 
 		expect(plot).not.toHaveAttribute('tabindex')
 
-		// Driven from the keyboard all the same, no readout mounts — it left with the
+		// Driven from the keyboard all the same, no readout mounts: it left with the
 		// chrome, so no pointer hover could raise it either.
 		act(() => plot.focus())
 
@@ -527,7 +527,7 @@ describe('LineChart keyboard navigation', () => {
 
 		const first = bySlot(container, 'chart-crosshair-x')?.getAttribute('y1')
 
-		// Cycling reaches the second series' point (b = 90) — a different height.
+		// Cycling reaches the second series' point (b = 90): a different height.
 		fireEvent.keyDown(plot, { key: 'ArrowDown' })
 
 		const second = bySlot(container, 'chart-crosshair-x')?.getAttribute('y1')
@@ -549,7 +549,7 @@ describe('LineChart keyboard navigation', () => {
 
 		expect(bySlot(container, 'chart-crosshair-x')).not.toBeNull()
 
-		// Drop the tooltip — and with it the tab stop — while focus stays in the
+		// Drop the tooltip (and with it the tab stop) while focus stays in the
 		// region, so no blur fires. The cursor's hover must clear rather than leaving
 		// a rule stranded over now-unreadable marks.
 		rerender(line({ crosshair: { x: true, y: false }, tooltip: false }))
@@ -631,7 +631,7 @@ describe('LineChart keyboard navigation', () => {
 
 		expect(stepped[1]?.getAttribute('class')).not.toContain('opacity-25')
 
-		// Escape drops the emphasis with the readout — every series reads at full strength.
+		// Escape drops the emphasis with the readout: every series reads at full strength.
 		fireEvent.keyDown(plot, { key: 'Escape' })
 
 		const settled = allBySlot(container, 'chart-line-series')
@@ -672,7 +672,7 @@ describe('LineChart keyboard navigation', () => {
 
 		const marks = allBySlot(container, 'chart-line-series')
 
-		// B (index 1) reads as active; A (index 0) recedes — the series map held its line.
+		// B (index 1) reads as active; A (index 0) recedes: the series map held its line.
 		expect(marks[0]?.getAttribute('class')).toContain('opacity-25')
 
 		expect(marks[1]?.getAttribute('class')).not.toContain('opacity-25')

@@ -10,7 +10,7 @@ const paintedReach = (mark: { r: number }) => mark.r + MARKER_RING_WIDTH / 2
 
 /**
  * A spark scatter fits its box the way a spark line does: the domain fits tight
- * to the data — no axis to nice-step to, so no band of empty air — and every edge
+ * to the data (no axis to nice-step to, so no band of empty air) and every edge
  * insets by the widest disc's radius, so the marks read centered and clear the
  * frame rather than clipping at it. Disc positions against the drawing box are a
  * computed-layout claim jsdom can't resolve, so this rides the real browser.
@@ -18,7 +18,7 @@ const paintedReach = (mark: { r: number }) => mark.r + MARKER_RING_WIDTH / 2
 describe('spark scatter fits and centers in its box (real browser)', () => {
 	beforeAll(() => page.viewport(600, 600))
 
-	// y climbs to 91 and bottoms at 12, x from 1 to 4 — a range a nice-stepped scale
+	// y climbs to 91 and bottoms at 12, x from 1 to 4: a range a nice-stepped scale
 	// would round out to [0, 100], sinking the marks into a low band; tight fitting
 	// pins the extremes to the inset edges instead.
 	const POINTS = [

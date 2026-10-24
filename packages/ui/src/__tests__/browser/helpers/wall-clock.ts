@@ -7,7 +7,7 @@ import { frames } from '../../helpers/frames'
  * `vitest.config.ts` states the rule: machine speed must change when a test
  * passes, never whether it passes. RTL's suite-wide budget obeys it through
  * `asyncUtilTimeout`; a per-call override written as a literal obeys nothing.
- * Use this for a case that needs longer than the suite budget — a real network
+ * Use this for a case that needs longer than the suite budget: a real network
  * double, or rows behind a real timer. Keep the result under the timeout of
  * the case, so an exhausted wait still fails as an RTL timeout carrying the
  * callback's last error. The suite `testTimeout` is 15s on a dev machine, and
@@ -27,7 +27,7 @@ export function budget(ms: number): number {
  * Use it where no signal marks the moment the case waits for: a component's own
  * delay must expire before "nothing happened" means anything. Prefer `waitFor`
  * on an observable wherever one exists, and `frames()` where the wait is for
- * the browser to deliver a measurement — a hold spends its whole value on every
+ * the browser to deliver a measurement: a hold spends its whole value on every
  * green run, where both of those return as soon as the state is real.
  *
  * Start the hold after the event that starts the delay. The hold then ends

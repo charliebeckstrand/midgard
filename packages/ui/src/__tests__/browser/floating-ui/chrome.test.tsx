@@ -75,7 +75,7 @@ describe('a11y focus order (real browser): Chrome', () => {
 		await waitFor(() => expect(first).toHaveFocus())
 
 		// Backward out of the panel reaches the region, not the panel's last
-		// tabbable — no guard is left to bounce it back inside.
+		// tabbable: no guard is left to bounce it back inside.
 		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
 
 		await waitFor(() => expect(tabStrip()).toHaveFocus())
@@ -108,7 +108,7 @@ describe('a11y focus order (real browser): Chrome', () => {
 		expect(strip.closest('[aria-hidden="true"]')).toBeNull()
 
 		// Unregistered: `inert`, which is what holds the tab order off it with no
-		// guard rendered — and which takes its pointer events with it.
+		// guard rendered, and which takes its pointer events with it.
 		expect(sealed().closest('[inert]')).not.toBeNull()
 	})
 

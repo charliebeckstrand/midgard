@@ -22,7 +22,7 @@ describe('MapRoute', () => {
 		expect(route?.getAttribute('class')).toContain('stroke-blue-600')
 
 		// The line's width is stated in device pixels and converted to frame units by
-		// the mark, not by a `vector-effect` — which also draws the whole polyline
+		// the mark, not by a `vector-effect`, which also draws the whole polyline
 		// under a zoom, where a dashed `pathLength` reveal in stroke space would not.
 		expect(route?.getAttribute('stroke-width')).toBe(String(ROUTE_STROKE_WIDTH))
 

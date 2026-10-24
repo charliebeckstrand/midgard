@@ -5,7 +5,7 @@ import { act, mockDomGeometry, renderUI, screen } from '../helpers'
 import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
 
 // The frame's expensive subtree: memoized on the resolved size, so it re-renders
-// only when a dimension it draws from changes — the render a resize should avoid.
+// only when a dimension it draws from changes, the render a resize should avoid.
 // A bail-out in `usePlotFrame` may still re-run the parent once, but React never
 // descends into a memo whose props are unchanged, so its render count is the
 // faithful signal for "the frame re-rendered".
@@ -70,8 +70,8 @@ function Probe({
  * the live node, and that a notification arriving from a detached node is
  * skipped rather than committed as a zero.
  *
- * Each needs a notification produced on demand — one that repeats a size, or
- * arrives from a node already detached — and a real `ResizeObserver` delivers
+ * Each needs a notification produced on demand (one that repeats a size, or
+ * arrives from a node already detached) and a real `ResizeObserver` delivers
  * what layout produces. `resolveFrameSizing`, the pure function these resolve
  * through, is pinned in `resolve-frame-sizing.test.ts` with no DOM at all.
  */
@@ -109,7 +109,7 @@ describe('usePlotFrame observer lifecycle', () => {
 		// Nothing feeds the sizing, so the frame observes nothing at all.
 		expect(observers).toHaveLength(0)
 
-		// Width from the prop, height derived — both ready on the first paint.
+		// Width from the prop, height derived: both ready on the first paint.
 		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('600')
 
 		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('300')
@@ -203,7 +203,7 @@ describe('usePlotFrame observer lifecycle', () => {
 
 		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
 
-		// Each changed size commits as it arrives — no settle window, no timers —
+		// Each changed size commits as it arrives (no settle window, no timers)
 		// so the final notification's size is already the drawn one.
 		resizeTo(plot, { width: 320, height: 0 })
 
@@ -224,7 +224,7 @@ describe('usePlotFrame observer lifecycle', () => {
 	it('re-targets the observer when React swaps the plot node without unmounting the hook', () => {
 		const onMarks = vi.fn()
 
-		// Swapping the wrapper's element type discards its subtree — React
+		// Swapping the wrapper's element type discards its subtree: React
 		// recreates the plot div positionally while the hook's component stays
 		// mounted, the shape a re-arranging layout branch produces with unkeyed
 		// children. The frozen-frame defect: an observer attached by a
@@ -287,7 +287,7 @@ describe('usePlotFrame observer lifecycle', () => {
 
 		// A commit that re-arranges the layout around the plot detaches its node
 		// before the swap's ref updates land; a notification (or the settle
-		// effect) racing that window measures the detached node at 0 × 0 —
+		// effect) racing that window measures the detached node at 0 × 0:
 		// garbage that would flip every size-driven policy downstream. Simulate
 		// the race by reporting the node detached, jsdom-style: a defined
 		// property, so React's own unmount cleanup still finds the node in place.

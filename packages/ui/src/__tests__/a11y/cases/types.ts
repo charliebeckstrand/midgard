@@ -129,7 +129,7 @@ type Scenario = {
 
 /**
  * A scenario in one of the three axe-gated corpora, so it may carry capability
- * columns. The gates that keep their own list — focus, traps, roved — extend
+ * columns. The gates that keep their own list (focus, traps, roved) extend
  * {@link Scenario} instead, because `corpus` does not reach them and a column
  * written there would be swept by nothing.
  */
@@ -208,7 +208,7 @@ export type TrapCase = Scenario & {
  *
  * `element` renders the surface already open. The gate stamps `data-active` on
  * the item rather than driving a hover, because that attribute is what the
- * roving cursor sets — deterministic where a pointer is not, and a listbox roves
+ * roving cursor sets: deterministic where a pointer is not, and a listbox roves
  * its first option on open anyway.
  *
  * `descriptionSlot` names the `data-slot` the recipe inks, stated beside the

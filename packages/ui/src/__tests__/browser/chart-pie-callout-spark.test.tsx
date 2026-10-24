@@ -6,7 +6,7 @@ import { allBySlot, bySlot, present, renderUI, waitFor } from '../helpers'
 /**
  * A callout-labeled pie reserves a wide horizontal band for its two label
  * columns; in a narrow box that band used to starve the pie to a zero radius, the
- * content frame collapsing to a sliver that drew nothing at all — an empty tile.
+ * content frame collapsing to a sliver that drew nothing at all: an empty tile.
  * Where the callouts would drive the frame under the spark floor they now drop,
  * and the pie sizes as a bare square so it always draws its slices. The collapse
  * turned on computed layout jsdom can't resolve (no measurement, a zero width), so
@@ -52,8 +52,8 @@ describe('pie callout labels at the spark floor (real browser)', () => {
 		// The starving callouts are gone.
 		expect(allBySlot(container, 'chart-callout-label')).toHaveLength(0)
 
-		// The frame squared to a bare pie's own footprint — its viewBox height tracks
-		// its width — rather than the thin callout band that collapsed it before.
+		// The frame squared to a bare pie's own footprint (its viewBox height tracks
+		// its width) rather than the thin callout band that collapsed it before.
 		const svg = present<SVGSVGElement>(
 			bySlot(container, 'chart-plot')?.querySelector('svg'),
 			'the chart-plot svg',

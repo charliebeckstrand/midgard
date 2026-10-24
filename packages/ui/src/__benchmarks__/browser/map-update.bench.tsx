@@ -1,10 +1,10 @@
 /**
- * Redraw cost on a live map — the dashboard refresh path, the chart update
+ * Redraw cost on a live map: the dashboard refresh path, the chart update
  * bench's shape over regions. Each scenario mounts the map once (top-level
  * await; the map stays up for the whole run) and each iteration swaps in the
  * other of two same-shape datasets, so every redraw recolors real regions and
  * never bails on an equality guard. The ui module re-renders through its React
- * root. Geometry never changes — an update moves data, not the atlas.
+ * root. Geometry never changes: an update moves data, not the atlas.
  */
 
 import { describe } from 'vitest'

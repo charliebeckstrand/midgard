@@ -106,8 +106,8 @@ export function shipments(count: number, seed = 1): Shipment[] {
 /**
  * The eight `id`/`title` pairs every grid scenario columns over. Held as pairs
  * rather than as a column set because each scenario decorates them
- * differently — sortable, editable, width-pinned, with or without an explicit
- * `cell` — and the shared thing is the field list, not the decoration.
+ * differently (sortable, editable, width-pinned, with or without an explicit
+ * `cell`) and the shared thing is the field list, not the decoration.
  */
 export const SHIPMENT_FIELDS = [
 	['id', 'ID'],
@@ -215,7 +215,7 @@ export function makeQueryTree(depth: number, branching: number): QueryGroup {
 }
 
 /**
- * The JSON trees both json-tree benches run — `json-tree` measures the pure
+ * The JSON trees both json-tree benches run: `json-tree` measures the pure
  * utilities over them, `json-tree-render` the component that walks them, and
  * the two only compare while the sizes match. Branch count grows
  * exponentially: `branching^depth`.
@@ -226,13 +226,13 @@ export const JSON_TREES = {
 	large: makeJsonTree(5, 5),
 } as const
 
-/** A term every leaf path carries, and one no tree holds — the hit and miss ends. */
+/** A term every leaf path carries, and one no tree holds: the hit and miss ends. */
 export const JSON_HIT = 'value-root'
 
 export const JSON_MISS = '__absent__'
 
 /**
- * The query trees both query benches run — `query-builder` edits them,
+ * The query trees both query benches run: `query-builder` edits them,
  * `query-evaluate` reads them, and the two only read against each other while
  * the sizes match, so they are declared once here.
  *
@@ -244,7 +244,7 @@ export const QUERY_TREES = [
 	{ label: 'deep-wide (1,024 rules)', tree: makeQueryTree(4, 4) },
 ] as const
 
-/** Every rule id in a query tree, in walk order — the ids a scenario targets. */
+/** Every rule id in a query tree, in walk order: the ids a scenario targets. */
 export function collectRuleIds(group: QueryGroup): string[] {
 	const ids: string[] = []
 
@@ -329,7 +329,7 @@ export function comboboxOptions(count: number): Option[] {
 /**
  * A compact, chat-realistic column set over {@link Shipment}: four plain columns
  * (two sortable) with no cell renderer, so each cell falls back to the row field
- * named by the column id and truncates by default — the shape an inline chat
+ * named by the column id and truncates by default, the shape an inline chat
  * grid actually mounts. Held to a stable identity so the inline render benches
  * can measure a no-op re-render.
  */
@@ -371,7 +371,7 @@ export function makeColumnSizeProfiles(count: number, seed = 1): ColumnSizeProfi
 /**
  * Rows whose every cell forces the export serializers down their escape branch:
  * each field carries a comma, a double quote, a newline, and the HTML-significant
- * `&<>` — the worst case for {@link rowsToCsv}'s RFC-4180 quoting and
+ * `&<>`, the worst case for {@link rowsToCsv}'s RFC-4180 quoting and
  * `rowsToHtmlTable`'s entity encoding. Deterministic and disjoint from
  * {@link shipments}, which never triggers the escape path.
  */
@@ -408,8 +408,8 @@ const READER_PROSE = [
  * an id on every message.
  *
  * Deterministic through the shared LCG, so a run-to-run difference is the code
- * under test rather than the prose. The reply bodies carry Markdown — a list, a
- * bold run, a blank-line block break — because the bubble lexes what it is
+ * under test rather than the prose. The reply bodies carry Markdown (a list, a
+ * bold run, a blank-line block break) because the bubble lexes what it is
  * given and a transcript of bare words would price the wrong render.
  */
 export function makeTranscript(count: number, seed = 7): ChatMessageData[] {

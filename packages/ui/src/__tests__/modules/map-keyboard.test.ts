@@ -64,7 +64,7 @@ describe('mapStops', () => {
 	})
 
 	it('keeps a region index aligned with the features when an earlier one drops', () => {
-		// The first region has no centroid, so it is not a stop — but the second
+		// The first region has no centroid, so it is not a stop, but the second
 		// must still report index 1, the index the layers draw it at.
 		const stops = mapStops([null, [10, 0]], [], NONE, project)
 
@@ -96,7 +96,7 @@ describe('mapStops', () => {
 
 	it('keeps a stop ordinal aligned with the caller when an earlier one drops', () => {
 		// A plural mark's dot that the projection cannot place draws nothing, but
-		// the dots after it must still report the caller's own index — that ordinal
+		// the dots after it must still report the caller's own index: that ordinal
 		// is what a click and the cursor hand back.
 		const stops = mapStops(
 			[],
@@ -121,8 +121,8 @@ describe('mapStops', () => {
 	it('leaves out a mark the legend has toggled off', () => {
 		// A hidden overlay unmounts its shapes but keeps its registration, so
 		// without this the cursor would stand on a mark that draws nothing, read it
-		// out, and pick it. A toggled-off region is different — it still paints, in
-		// the neutral fill — so the geography stays whole.
+		// out, and pick it. A toggled-off region is different (it still paints, in
+		// the neutral fill) so the geography stays whole.
 		const stops = mapStops(
 			[[0, 0]],
 			[
@@ -178,7 +178,7 @@ describe('stepNearest', () => {
 
 	it('reaches a stop on the diagonal from either of its two wedges', () => {
 		// The four wedges tile the plane, so a stop at 45° lies in two of them and
-		// both readings are true — which is why no step needs a fallback.
+		// both readings are true, which is why no step needs a fallback.
 		const diagonal = [region(0, 0, 0), region(1, 10, 10)]
 
 		expect(stepNearest(diagonal, 0, 'east')).toBe(1)

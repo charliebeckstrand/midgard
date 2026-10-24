@@ -11,12 +11,12 @@ import { plotViewBox } from '../helpers/plot-view-box'
  * beside it, so the drawing holds its ratio regardless of the rail's width
  * rather than squeezing into the space the rail leaves. That the plot's rendered
  * box actually resolves to 16:9 beside the scaling rail (`min(16rem, 40cqw)`) is a
- * computed-layout claim — flex sizing and CSS `aspect-ratio` — that jsdom can't
+ * computed-layout claim (flex sizing and CSS `aspect-ratio`) that jsdom can't
  * measure, so it rides the real browser.
  */
 // File scope, so both blocks below declare the same size. The side-by-side row
 // and the rail are `@sm`-gated on the chart's own width (384px); the 800px chart
-// clears it, so the row layout — not the stack — is what these assertions
+// clears it, so the row layout (not the stack) is what these assertions
 // measure. The second block asserts pixels too, and a `beforeAll` inside the
 // first would leave it running at whatever the page happened to hold.
 beforeAll(() => page.viewport(960, 700))
@@ -35,7 +35,7 @@ describe('chart aspect ratio with a side legend (real browser)', () => {
 	it('draws the plot at 16:9 beside the legend rather than squeezing it', async () => {
 		const { container } = renderUI(
 			// A definite width for the flex row to divide between the plot and the
-			// rail (min(16rem, 40cqw) — 16rem here, capped); the plot fills the
+			// rail (min(16rem, 40cqw): 16rem here, capped); the plot fills the
 			// remainder and reserves 16:9 of it.
 			<div style={{ width: 800 }}>
 				<BarChart
@@ -55,7 +55,7 @@ describe('chart aspect ratio with a side legend (real browser)', () => {
 		const box = getSlot(container, 'aspect-ratio')
 		const legend = getSlot(container, 'chart-legend')
 
-		// The plot box carries the ratio itself — the figure reserves none, so the
+		// The plot box carries the ratio itself: the figure reserves none, so the
 		// drawing can't be squeezed to fit the whole chart into 16:9.
 		expect(figure.style.aspectRatio).toBe('')
 
@@ -63,13 +63,13 @@ describe('chart aspect ratio with a side legend (real browser)', () => {
 
 		const boxRect = box.getBoundingClientRect()
 
-		// The rendered drawing box resolves to 16:9 — the whole point: a side legend
+		// The rendered drawing box resolves to 16:9, the whole point: a side legend
 		// no longer narrows the plot's own ratio.
 		expect(boxRect.width / boxRect.height).toBeNear(16 / 9, ASPECT_SLACK)
 
 		const legendRect = legend.getBoundingClientRect()
 
-		// The legend bands to the right of the plot — a real side-by-side row — and
+		// The legend bands to the right of the plot (a real side-by-side row) and
 		// takes its own rail (~16rem here), so the plot spans only the remainder (well
 		// under the 800px chart) yet still holds its ratio.
 		expect(legendRect.left).toBeGreaterThanOrEqual(boxRect.right - 1)
@@ -88,8 +88,8 @@ describe('chart aspect ratio with a side legend (real browser)', () => {
  * draws into whatever that leaves. A side legend instead keeps the ratio on the
  * plot box and bands beside it. jsdom asserted all of this through
  * `figure.style.aspectRatio` and the presence of `flex-1`, `min-h-0` and
- * `size-full` in class strings — every one of which is there whether or not the
- * box resolves — and supplied the plot's measured remainder itself before
+ * `size-full` in class strings (every one of which is there whether or not the
+ * box resolves) and supplied the plot's measured remainder itself before
  * asserting the drawing followed it.
  */
 describe('chart aspect ratio and legend placement, measured (real browser)', () => {
@@ -137,7 +137,7 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 		)
 
 		// The drawing height is the measured remainder, not the ratio's full
-		// height — which is the claim jsdom could only make by supplying the
+		// height, which is the claim jsdom could only make by supplying the
 		// remainder itself.
 		expect(plotViewBox(container, 'chart-plot').height).toBeNear(plot.clientHeight, HALF_PIXEL)
 

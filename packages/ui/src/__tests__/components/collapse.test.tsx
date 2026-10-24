@@ -222,7 +222,7 @@ describe('Collapse', () => {
 
 			await user.click(screen.getByText('Toggle'))
 
-			// Held, not unmounted — and hidden once the close animation lands.
+			// Held, not unmounted, and hidden once the close animation lands.
 			expect(screen.getByTestId('field')).toBeInTheDocument()
 
 			expect(screen.getByTestId('field')).not.toBeVisible()

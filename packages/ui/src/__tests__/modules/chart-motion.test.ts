@@ -37,7 +37,7 @@ describe('barGrow', () => {
 
 // The data-change transition swaps its generation on this signature: it must
 // change when the values change and hold when they do not, so a resize or a
-// legend toggle — same numbers, or a series merely dropped from the drawn set —
+// legend toggle (same numbers, or a series merely dropped from the drawn set)
 // never replays the reveal, and only a genuine data change does.
 describe('seriesDataKey', () => {
 	it('holds steady when the values are unchanged', () => {

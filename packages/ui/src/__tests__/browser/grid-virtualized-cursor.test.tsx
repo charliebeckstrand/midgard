@@ -5,7 +5,7 @@ import { fireEvent, frames, present, renderUI, screen, waitFor } from '../helper
 /**
  * The keyboard cursor over a virtualized grid (real browser; jsdom renders zero
  * windowed rows). A large jump (Ctrl+End) lands the cursor on a row outside the
- * rendered window — the cursor scrolls it into the window first, so the cell
+ * rendered window: the cursor scrolls it into the window first, so the cell
  * `aria-activedescendant` names is really in the DOM (WCAG 2.1.1 / 4.1.2), not a
  * dangling reference to an unmounted row.
  */
@@ -37,7 +37,7 @@ describe('grid virtualized cursor (real browser)', () => {
 
 		const grid = screen.getByRole('grid')
 
-		// Only a window of rows renders, not all 200 — confirm virtualization is live.
+		// Only a window of rows renders, not all 200: confirm virtualization is live.
 		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
 
 		expect(screen.queryByText('Name 200')).toBeNull()
@@ -90,7 +90,7 @@ describe('grid virtualized cursor (real browser)', () => {
 			const row = Number(/cell-(\d+)-\d+$/.exec(active as string)?.[1])
 
 			// A ~180px viewport over ~36px rows pages ~4 rows: more than one, but fewer
-			// than the fixed NAV_PAGE_STEP of 10 — so the step was measured, not constant.
+			// than the fixed NAV_PAGE_STEP of 10, so the step was measured, not constant.
 			expect(row).toBeGreaterThanOrEqual(2)
 
 			expect(row).toBeLessThan(10)

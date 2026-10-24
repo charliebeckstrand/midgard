@@ -8,7 +8,7 @@ import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 /**
  * `scrollWithin` computes an offset and hands it to `scrollTo`. Its unit suite
  * pins that arithmetic against geometry written by hand, with `scrollTo` itself
- * a spy — so it reads the number the hook asked for and stops there. What it
+ * a spy, so it reads the number the hook asked for and stops there. What it
  * cannot say is whether that number puts the node where the caller meant.
  * These cases close the loop: a real scroller, a real scroll, and the node's
  * own box measured against the scroller's afterwards.

@@ -63,7 +63,7 @@ describe('matchQueryRule', () => {
 
 	it('imposes no constraint when a value-requiring operator has an empty value', () => {
 		// A cleared date rule (operator "on" → equals, value blank) must match every
-		// row, not hide them all — the regression behind "clear the filter and the
+		// row, not hide them all: the regression behind "clear the filter and the
 		// rows don't come back".
 		expect(matchQueryRule('equals', '2026-01-15', '')).toBe(true)
 
@@ -202,7 +202,7 @@ describe('evaluateQuery', () => {
 			{ ...createRule(numberField), combinator: 'or', operator: 'gt', value: 20 },
 		])
 
-		// name is not Bob, but age > 20 — the OR rule carries it.
+		// name is not Bob, but age > 20: the OR rule carries it.
 		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 30 }))).toBe(true)
 
 		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 10 }))).toBe(false)
@@ -495,7 +495,7 @@ const readTruths = (truths: boolean[]) => (field: string) => truths[Number(field
 
 /**
  * The left fold the engine documents: no AND/OR precedence, sequential, in the
- * builder's visual order. Three lines over booleans, against a walk of a tree —
+ * builder's visual order. Three lines over booleans, against a walk of a tree,
  * so the two never share a mistake.
  */
 function foldLeft(leaves: Leaf[]): boolean {

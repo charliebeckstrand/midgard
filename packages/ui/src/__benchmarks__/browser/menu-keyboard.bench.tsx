@@ -8,8 +8,8 @@
  * browser charges. This bench is the honest number.
  *
  * Each rung runs twice, capped and uncapped. A capped panel has a real
- * scroller, so the walk stops at the first ancestor. An uncapped panel — the
- * default — has none, so the walk runs to the top of the document and returns
+ * scroller, so the walk stops at the first ancestor. An uncapped panel (the
+ * default) has none, so the walk runs to the top of the document and returns
  * nothing. The gap between the two pairs is the cost of the fruitless walk.
  *
  * `dispatch only` is the floor to subtract: the same event on the same trigger,

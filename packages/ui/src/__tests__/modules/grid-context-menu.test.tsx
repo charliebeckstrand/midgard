@@ -11,7 +11,7 @@ describe('Grid context menus', () => {
 		{ id: 'role', title: 'Role', cell: (row) => row.role },
 	]
 
-	// Name is groupable, Role is not — for the header menu's group-by item.
+	// Name is groupable, Role is not: for the header menu's group-by item.
 	const groupableColumns: GridColumn<Row>[] = [
 		{
 			id: 'name',
@@ -161,7 +161,7 @@ describe('Grid context menus', () => {
 			/>,
 		)
 
-		// Role isn't groupable — its header carries no group item.
+		// Role isn't groupable: its header carries no group item.
 		rightClick('columnheader', 'Role')
 
 		expect(screen.queryByRole('menuitem', { name: 'Group by “Role”' })).not.toBeInTheDocument()
@@ -604,7 +604,7 @@ describe('Grid context menus', () => {
 
 		expect(screen.getByRole('menuitem', { name: 'Clear sort' })).toBeInTheDocument()
 
-		// A different, unsorted column's menu omits it — and opens its own Sort
+		// A different, unsorted column's menu omits it, and opens its own Sort
 		// menu fresh, rather than carrying the previous column's over.
 		rightClick('columnheader', 'Role')
 
@@ -666,7 +666,7 @@ describe('Grid context menus', () => {
 
 		openSubmenu('Sort')
 
-		// Role sorts ascending, but each row collapses the sort onto Role alone —
+		// Role sorts ascending, but each row collapses the sort onto Role alone:
 		// neither repeats the two-column sort, so neither is withheld.
 		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
 
@@ -733,7 +733,7 @@ describe('Grid context menus', () => {
 		const sequence = Array.from(menu.querySelectorAll('[role="menuitem"], hr'))
 
 		// The table-wide manager reads first, then the clicked column's own
-		// concerns, and no rule divides the defaults — a separator in a grid's menu
+		// concerns, and no rule divides the defaults: a separator in a grid's menu
 		// marks a host's custom items, nothing else.
 		expect(sequence.map((node) => node.textContent?.trim())).toEqual([
 			'Manage columns',
@@ -947,7 +947,7 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
-		// The Sort menu still shows; the Pin menu is withheld outright — a locked
+		// The Sort menu still shows; the Pin menu is withheld outright: a locked
 		// freeze is immutable.
 		expect(screen.getByRole('menuitem', { name: 'Sort' })).toBeInTheDocument()
 

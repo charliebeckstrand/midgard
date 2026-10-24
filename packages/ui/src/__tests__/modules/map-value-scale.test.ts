@@ -106,7 +106,7 @@ describe('resolveValueBins — quantile binning', () => {
 
 		const indexes = skewed.map((row) => assign(row.v))
 
-		// Every bucket is used — ~two rows each — where equal-interval would leave
+		// Every bucket is used (~two rows each) where equal-interval would leave
 		// nine of the ten values in bin 0.
 		expect(new Set(indexes).size).toBe(5)
 
@@ -186,7 +186,7 @@ describe('regionValueJoin', () => {
 			format: round,
 		})
 
-		// `null` and `''` are no-data (the neutral fill), not bin 0 — only the real
+		// `null` and `''` are no-data (the neutral fill), not bin 0; only the real
 		// value bins.
 		expect(regionValueJoin(['a', 'b', 'c'], rows, 'id', 'v', assign, round).regionCategory).toEqual(
 			[null, null, 3],

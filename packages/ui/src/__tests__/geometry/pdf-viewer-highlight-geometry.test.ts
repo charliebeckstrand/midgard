@@ -8,7 +8,7 @@ const FRACTION_TOLERANCE = 5e-4
 
 const rect = { x: 1, y: 2, width: 3, height: 4 }
 
-// 612 × 792 pt is US Letter — 8.5 × 11 inches, at 72 pt to the inch.
+// 612 × 792 pt is US Letter: 8.5 × 11 inches, at 72 pt to the inch.
 const letter: PdfViewerPage = { src: 'page-1.png', pointWidth: 612, pointHeight: 792 }
 
 describe('toFractionRect', () => {

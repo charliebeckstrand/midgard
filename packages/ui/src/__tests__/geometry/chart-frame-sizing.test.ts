@@ -60,8 +60,8 @@ describe('plotRect', () => {
 
 	it('holds the gutter across a one-character change in the widest label', () => {
 		// A nice-tick axis topping out at 8,000 (5 chars) and one at 40,000 (6)
-		// reserve the same gutter, so switching between two charts in a tile — or a
-		// filter shifting the magnitude by a digit — never slides the plot and its
+		// reserve the same gutter, so switching between two charts in a tile (or a
+		// filter shifting the magnitude by a digit) never slides the plot and its
 		// right-anchored labels sideways.
 		const thousands = plotRect(400, 240, true, ['0', '8,000'])
 

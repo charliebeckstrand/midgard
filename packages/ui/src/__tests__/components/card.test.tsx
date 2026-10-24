@@ -218,7 +218,7 @@ describe('Card size system', () => {
 
 		const className = bySlot(container, 'card')?.className ?? ''
 
-		// Frame padding survives — no `:has` collapse zeroes it.
+		// Frame padding survives: no `:has` collapse zeroes it.
 		expect(className).toContain('density-p-[1,2,3,4,5]')
 
 		expect(className).not.toContain(':p-0')

@@ -12,8 +12,8 @@ beforeAll(() => loadGridReorderKit())
  * `reorder={{ handle: false }}` drops the grip and makes the whole column header
  * the drag handle: the header cell itself carries the grab cursor and the
  * pointer/keyboard drag activator, while a sortable column's sort control keeps
- * its pointer cursor as a more specific child. That split — grab on the cell,
- * pointer on the nested sort button — is a real computed-cursor and focus
+ * its pointer cursor as a more specific child. That split (grab on the cell,
+ * pointer on the nested sort button) is a real computed-cursor and focus
  * question, so this runs in the browser suite.
  */
 describe('grid column reorder: whole-header handle (real browser)', () => {
@@ -42,7 +42,7 @@ describe('grid column reorder: whole-header handle (real browser)', () => {
 			<Grid columns={columns} rows={rows} getKey={(row) => row.id} reorder={{ handle: false }} />,
 		)
 
-		// No grip button — the header itself is the handle.
+		// No grip button: the header itself is the handle.
 		expect(screen.queryByRole('button', { name: 'Reorder A' })).toBeNull()
 
 		const headerA = header('a')

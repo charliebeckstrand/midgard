@@ -34,7 +34,7 @@ describe('parseInstant', () => {
 	})
 
 	it('reads a bare YYYY-MM-DD as a local wall-clock day', () => {
-		// Local midnight, not the UTC instant — so a daily key lands on its own day
+		// Local midnight, not the UTC instant, so a daily key lands on its own day
 		// regardless of the runtime timezone.
 		expect(parseInstant('2026-03-15')).toBe(new Date(2026, 2, 15).getTime())
 	})
@@ -115,7 +115,7 @@ describe('timeTicks', () => {
 	})
 
 	it('lines a quarter of daily rows with month-start ticks', () => {
-		// 2026-01-01 through 2026-03-31 — the interval lands on month boundaries.
+		// 2026-01-01 through 2026-03-31: the interval lands on month boundaries.
 		const scale = band(90)
 
 		const ticks = timeTicks({
@@ -165,7 +165,7 @@ describe('timeTicks', () => {
 	})
 
 	it('labels multi-year spans with the year and steps to a coarser interval', () => {
-		// Four years of month-start rows — the axis reads years, not months.
+		// Four years of month-start rows: the axis reads years, not months.
 		const times = Array.from({ length: 48 }, (_, index) =>
 			new Date(2024 + Math.floor(index / 12), index % 12, 1).getTime(),
 		)

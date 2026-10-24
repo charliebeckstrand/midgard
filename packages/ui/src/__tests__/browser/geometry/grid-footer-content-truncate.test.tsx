@@ -51,7 +51,7 @@ describe('grid footer trailing content truncates (real browser)', () => {
 	})
 
 	/**
-	 * A narrow grid whose footer carries a truncating label beside a pinned figure —
+	 * A narrow grid whose footer carries a truncating label beside a pinned figure:
 	 * the shipments drill's reconciliation line, whose label is server-composed from
 	 * the drilled selection and so has no bound.
 	 */

@@ -5,21 +5,21 @@ import { checkFolder, listLeafFolders, type Violation } from '../helpers/filenam
 import { isSourceFile, srcDir } from '../helpers/walk-source'
 
 // Enforces the file-naming convention documented in CONVENTIONS.md §3.3
-// for the modules tree. Module folders follow the component grammar — files
-// prefixed with their leaf folder's name — plus the engine layout.
+// for the modules tree. Module folders follow the component grammar (files
+// prefixed with their leaf folder's name) plus the engine layout.
 //
 // A module's `engine/` directory is its pure functional core, laid out
 // d3-style (see the module ROADMAP's "Engine" section), and carries its own
 // naming contract:
 //
-//   - files directly under `engine/` are named for the module — `<module>-*`
-//     or `use-<module>-*` — as if the folder were the module itself
+//   - files directly under `engine/` are named for the module (`<module>-*`
+//     or `use-<module>-*`) as if the folder were the module itself
 //   - a multi-kind concept becomes a `<module>-<concept>/` directory whose
 //     files take short kind names (`allocate.ts`, `csv.ts`): the directory
 //     supplies the context, so the folder-prefix and symbol-match rules do
 //     not apply inside one (files stay kebab-case)
 //   - engine concept directories never nest further and never carry an
-//     `index.ts(x)` barrel — the engine is imported file-by-file
+//     `index.ts(x)` barrel: the engine is imported file-by-file
 
 const modulesDir = join(srcDir, 'modules')
 

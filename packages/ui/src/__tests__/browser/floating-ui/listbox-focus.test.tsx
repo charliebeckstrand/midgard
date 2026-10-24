@@ -166,7 +166,7 @@ describe('Listbox focus (real browser)', () => {
 			<>
 				{/* `capitalize={false}`: the trigger first-word-capitalizes its display
 				    string by default, which would render the committed value `b` as
-				    `B` — indistinguishable from the option's own label. Verbatim, the
+				    `B`, indistinguishable from the option's own label. Verbatim, the
 				    lowercase text can only have come from `displayValue(value)`, so the
 				    assertion still proves the commit rather than the label. */}
 				<Listbox aria-label="pick" capitalize={false} displayValue={(value: string) => value}>

@@ -94,7 +94,7 @@ describe('ChatMessage', () => {
 
 			// Markdown is color-agnostic and the bubble sets its own foreground, so
 			// ChatMessage must not pour any `text-*` color (nor a per-element
-			// override) onto the markdown wrapper — the bubble's color cascades in.
+			// override) onto the markdown wrapper: the bubble's color cascades in.
 			const markdown = bySlot(container, 'markdown')
 
 			expect(markdown?.className ?? '').not.toMatch(/text-(?:inherit|zinc|white|black)/)

@@ -21,7 +21,7 @@ describe('nested overlay dismiss (real browser): date picker month/year picker',
 		await screen.findByRole('dialog')
 
 		// Open the month/year picker, then switch to the year view via its center
-		// label and pick a year — the press that previously dismissed the dialog.
+		// label and pick a year: the press that previously dismissed the dialog.
 		await userEvent.click(await screen.findByRole('button', { name: /June 2025/ }))
 
 		await userEvent.click(await screen.findByRole('button', { name: '2025' }))

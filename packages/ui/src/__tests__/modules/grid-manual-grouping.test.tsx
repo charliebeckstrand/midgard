@@ -11,7 +11,7 @@ function placeholderRows() {
 
 /**
  * Server-side (manual) row grouping (`groupBy.manual` + the `groupRow` row
- * contract): the backend groups, and `rows` is the rendered sequence — group
+ * contract): the backend groups, and `rows` is the rendered sequence, group
  * headers carrying counts and aggregates, interleaved with the children of
  * expanded groups. Expansion is a controlled key set whose expand toggles fire
  * the `onGroupExpand` lazy-load hook, and the `groupButton` flag adds a per-column
@@ -80,7 +80,7 @@ describe('Grid manual (server-side) row grouping', () => {
 
 	const getKey = (row: Sale) => row.id
 
-	// A leaf row's `<tr>`, found by its cell text — a collapsed group keeps its
+	// A leaf row's `<tr>`, found by its cell text: a collapsed group keeps its
 	// children mounted (hidden via `aria-hidden`) rather than unmounting them.
 	function leafRow(text: string) {
 		return screen.getByText(text).closest('tr')
@@ -163,7 +163,7 @@ describe('Grid manual (server-side) row grouping', () => {
 
 		expect(leafRow('Devon')).toHaveAttribute('aria-hidden', 'true')
 
-		// The grand-total row stands down under manual grouping — the engine would
+		// The grand-total row stands down under manual grouping: the engine would
 		// sum the group-header rows as data.
 		expect(screen.queryByText('Total')).not.toBeInTheDocument()
 	})
@@ -171,7 +171,7 @@ describe('Grid manual (server-side) row grouping', () => {
 	it('sorts the groups by the grouped column, reordering whole group blocks', async () => {
 		const user = setupUser()
 
-		// The grouped column made sortable — its header gains the sort toggle.
+		// The grouped column made sortable: its header gains the sort toggle.
 		const sortableColumns = columns.map((col) =>
 			col.id === 'region' ? { ...col, sortable: true } : col,
 		)
@@ -185,7 +185,7 @@ describe('Grid manual (server-side) row grouping', () => {
 			/>,
 		)
 
-		// True when `b` follows `a` in document order — so `a` leads `b`.
+		// True when `b` follows `a` in document order, so `a` leads `b`.
 		const leads = (a: string, b: string) =>
 			Boolean(
 				screen.getByText(a).compareDocumentPosition(screen.getByText(b)) &
@@ -195,7 +195,7 @@ describe('Grid manual (server-side) row grouping', () => {
 		// Backend order: the West block leads the East block.
 		expect(leads('West (3)', 'East (2)')).toBe(true)
 
-		// Ascending sort on Region reorders the blocks by value — East (E) leads West (W)…
+		// Ascending sort on Region reorders the blocks by value: East (E) leads West (W)…
 		await user.click(screen.getByRole('button', { name: 'Sort by Region' }))
 
 		expect(leads('East (2)', 'West (3)')).toBe(true)
@@ -284,7 +284,7 @@ describe('Grid manual (server-side) row grouping', () => {
 
 		renderUI(<Harness />)
 
-		// Headers alone — no children loaded yet, and no empty slot in their place.
+		// Headers alone: no children loaded yet, and no empty slot in their place.
 		expect(screen.getByText('West (3)')).toBeInTheDocument()
 
 		expect(screen.queryByText('Wade')).not.toBeInTheDocument()
@@ -306,7 +306,7 @@ describe('Grid manual (server-side) row grouping', () => {
 		function Harness() {
 			const [expanded, setExpanded] = useState<Set<string | number>>(new Set())
 
-			// onGroupExpand stands in for a fetch still in flight — no children arrive
+			// onGroupExpand stands in for a fetch still in flight: no children arrive
 			// synchronously, so the opened group has nothing to show but placeholders.
 			return (
 				<Grid
@@ -332,7 +332,7 @@ describe('Grid manual (server-side) row grouping', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Expand group West' }))
 
-		// The group opened the same tick — its unfetched children are stood in for by
+		// The group opened the same tick: its unfetched children are stood in for by
 		// skeleton placeholder rows (West's count is 3, within the cap).
 		expect(placeholderRows()).toHaveLength(Math.min(3, MANUAL_GROUP_PLACEHOLDER_ROWS))
 

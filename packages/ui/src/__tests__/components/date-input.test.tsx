@@ -182,7 +182,7 @@ describe('DateInput', () => {
 
 		expect(screen.getByRole('button', { name: 'Clear date' })).toBeInTheDocument()
 
-		// The clear stands in for the decorative calendar icon — a single trailing
+		// The clear stands in for the decorative calendar icon: a single trailing
 		// affix that holds its place rather than shifting to seat a second.
 		expect(bySlot(container, 'suffix')?.children).toHaveLength(1)
 	})
@@ -881,7 +881,7 @@ describe('DateInput onValidityChange', () => {
 		})
 	})
 
-	// The field clears its own refusal when a value arrives from outside — a form
+	// The field clears its own refusal when a value arrives from outside: a form
 	// reset, a calendar pick. Without a report there, the caller's last verdict
 	// says "wrong" over a field rendering clean, with no route back but retyping.
 	it('reports the verdict a value from outside leaves behind', async () => {

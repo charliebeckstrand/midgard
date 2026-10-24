@@ -2,7 +2,7 @@
  * Tree is recursive, so its cost grows with total node count and depth: each
  * `TreeItem` computes a fresh `childContextValue` memo and renders a button
  * with depth-based padding. The collapsed rung is the same node count with
- * only the top level rendered — what a closed branch actually saves.
+ * only the top level rendered: what a closed branch actually saves.
  */
 
 import type { ReactNode } from 'react'
@@ -30,7 +30,7 @@ function buildTreeNodes(depth: number, branching: number, open: boolean): ReactN
 // Built at collection time: `buildTreeNodes` allocates one element per node, so
 // leaving it in the timed factory would charge the mount for constructing the
 // tree it renders. That distortion is worst exactly where the measurement
-// matters most — the collapsed rung renders only the top level, so the build
+// matters most: the collapsed rung renders only the top level, so the build
 // was four fifths of its number.
 const OPEN = [
 	{ depth: 3, nodes: '100', tree: buildTreeNodes(3, 5, true) },

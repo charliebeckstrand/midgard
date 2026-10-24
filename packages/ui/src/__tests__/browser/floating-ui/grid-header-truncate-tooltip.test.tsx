@@ -172,7 +172,7 @@ describe('grid header truncation tooltip (real browser)', () => {
 
 		const column = { id: 'name', title: longTitle, cell: (row: Row) => row.name } as const
 
-		// Container-scoped throughout — the pointer can be parked over the grid from
+		// Container-scoped throughout: the pointer can be parked over the grid from
 		// an earlier test, auto-opening the hover tooltip whose content duplicates
 		// the title and makes a document-wide text query ambiguous.
 		const settledSpan = async (root: HTMLElement) => {
@@ -206,8 +206,8 @@ describe('grid header truncation tooltip (real browser)', () => {
 
 		let deadZone: number | undefined
 
-		// Step finely (the device sub-pixel is ~1/64px) across the fit boundary — the
-		// integer-rounded chrome estimate can sit a fraction off — to land a clip
+		// Step finely (the device sub-pixel is ~1/64px) across the fit boundary (the
+		// integer-rounded chrome estimate can sit a fraction off) to land a clip
 		// under a tenth of a pixel, what the old slack let slip.
 		for (
 			let width = boundary + 0.6;

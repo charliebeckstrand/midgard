@@ -1,7 +1,7 @@
 /**
  * The at-rest editable grid: no row is in edit mode, so the mount scenarios
- * measure the editing augmentation's per-cell overhead — each cell wired for
- * editing — without mounting an editor per cell. Against the same rungs in
+ * measure the editing augmentation's per-cell overhead (each cell wired for
+ * editing) without mounting an editor per cell. Against the same rungs in
  * `grid.bench.tsx`, the difference is what `editable` costs a grid nobody is
  * editing. The session scenarios are the exception: they open a cell-scoped
  * session and move it, which is the path the commit-and-move keys drive. The
@@ -32,7 +32,7 @@ const SELECTABLE: GridColumn<Shipment>[] = [
 	...COLUMNS,
 ]
 
-/** No row in edit mode — the augmentation is armed, no editor is mounted. */
+/** No row in edit mode: the augmentation is armed, no editor is mounted. */
 const EDITABLE = { rows: new Set<string | number>(), onCommit: noop }
 
 // Built at collection time: only the render belongs inside the timed region.

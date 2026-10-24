@@ -169,7 +169,7 @@ describe('Grid row manager', () => {
 
 		await user.click(screen.getByRole('menuitem', { name: 'Red' }))
 
-		// A complete snapshot — an entry per group — with only Developer colored.
+		// A complete snapshot (an entry per group) with only Developer colored.
 		const committed = onValueChange.mock.calls.at(-1)?.[0]
 
 		expect(committed).toEqual(expect.arrayContaining([{ key: 'Developer', color: 'red' }]))

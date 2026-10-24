@@ -7,8 +7,8 @@ import { renderUI } from '../helpers'
  * chart on the default 16/9 figure shares its aspect box with the header and
  * legend, so measuring the plot's remainder to resolve the tier used to loop:
  * spark drops that chrome, the remainder jumps back above the spark floor, the
- * tier flips to compact, which restores the chrome and drops the remainder again
- * — an oscillation with no fixed point, seen on the docs page as a chart
+ * tier flips to compact, which restores the chrome and drops the remainder again,
+ * an oscillation with no fixed point, seen on the docs page as a chart
  * flickering between two sizes at ~200px. The tier now resolves against the
  * figure's computed `width / ratio` less the chrome, a height no tier decision
  * perturbs, so it settles. This samples the published `data-tier` over many

@@ -4,7 +4,7 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // A barrel names what it exports (CONVENTIONS §4.6). `export *` hides the
 // surface: it re-exports whatever the module gains next, and the barrel tests
-// that read export clauses — `internal-barrel-boundary` among them — cannot see
+// that read export clauses (`internal-barrel-boundary` among them) cannot see
 // through it, so an `@internal` symbol rides out unnoticed.
 //
 // One statement per source module, too: a module split across a value clause

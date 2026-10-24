@@ -18,7 +18,7 @@ const CLOSURE_TOLERANCE_DEGREES = 5e-13
 const GROUND_TOLERANCE_METERS = 5
 
 /**
- * The great-circle distance between two positions, in meters — measured the way
+ * The great-circle distance between two positions, in meters: measured the way
  * the module measures a cluster's own spread (`clusterSpan`), so the assertions
  * below read `circleRing` against the sphere the map already works on.
  */
@@ -34,7 +34,7 @@ describe('circleRing', () => {
 		expect(ring).toHaveLength(GEOFENCE_CIRCLE_STEPS + 1)
 
 		// Closed to the precision the tracing leaves, which is nearer than any
-		// distance the map draws — `ringAnchor` finds the repeat on those terms.
+		// distance the map draws: `ringAnchor` finds the repeat on those terms.
 		expect(ring.at(-1)?.[0]).toBeNear(ring[0]?.[0] as number, CLOSURE_TOLERANCE_DEGREES)
 
 		expect(ring.at(-1)?.[1]).toBeNear(ring[0]?.[1] as number, CLOSURE_TOLERANCE_DEGREES)
@@ -99,7 +99,7 @@ describe('zoneBudget and zoneSpare', () => {
 
 	it('spares a share of the zone’s own room, not the whole of it', () => {
 		// A 60-unit square holds 30 units of inscribed room, so the zone keeps half
-		// and hands out half — a dot at the middle can never blanket what drew it.
+		// and hands out half: a dot at the middle can never blanket what drew it.
 		expect(getBudget(60).spare).toBe(30 * AREA_SPARE_FRACTION)
 	})
 
@@ -123,7 +123,7 @@ describe('zoneBudget and zoneSpare', () => {
 
 	it('reads the budget in device pixels through a zoom', () => {
 		// Under the transform one device pixel spans two frame units, so a zone of
-		// fixed frame width spares half as many pixels — and the band it competes
+		// fixed frame width spares half as many pixels, and the band it competes
 		// over grows to stay one finger target wide on screen.
 		expect(getBudget(60, 2).spare).toBe(15 * AREA_SPARE_FRACTION)
 

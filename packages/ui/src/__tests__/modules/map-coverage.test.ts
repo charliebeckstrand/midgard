@@ -230,7 +230,7 @@ describe('useMapCoverage', () => {
 
 		const ring = polygon?.[0] as LngLat[]
 
-		// Polygon, then ring, then position — GeoJSON MultiPolygon coordinates.
+		// Polygon, then ring, then position: GeoJSON MultiPolygon coordinates.
 		expect(ring[0]).toEqual([0.5, 0.5])
 	})
 })

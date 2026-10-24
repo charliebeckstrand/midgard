@@ -10,8 +10,8 @@ const ASPECT_SLACK = 0.05
  * A side legend lays out against the chart's own container width, not the
  * viewport: a `@container` on the chart root gates the side-by-side row on `@sm`
  * (384px) and reserves a rail that scales with the container (`min(16rem,
- * 40cqw)`). So a chart in a narrow column stacks its legend below — plot at full
- * width, never squeezed to a sliver — even on a wide screen, and sits the legend
+ * 40cqw)`). So a chart in a narrow column stacks its legend below (plot at full
+ * width, never squeezed to a sliver) even on a wide screen, and sits the legend
  * beside only once its own box has room, the rail taking a share of that box
  * rather than a fixed column. Both are computed-layout facts (container queries,
  * flex direction, `cqw`) jsdom can't resolve.
@@ -40,7 +40,7 @@ describe('chart side-legend container query (real browser)', () => {
 
 	it('sits the legend beside the plot and scales the rail with the container', async () => {
 		// 500px is past the `@sm` engage width (384) but well under the old `@xl`
-		// (576) — the rail now engages here, where it once still stacked.
+		// (576): the rail now engages here, where it once still stacked.
 		const { container } = renderUI(<div style={{ width: 500 }}>{chart()}</div>)
 
 		const body = getSlot(container, 'chart-body')
@@ -53,7 +53,7 @@ describe('chart side-legend container query (real browser)', () => {
 		// (the figure stays a column, banding any header above it).
 		expect(getComputedStyle(body).flexDirection).toBe('row')
 
-		// The rail is 40cqw (~200px here), not the old fixed 256 column — it scales
+		// The rail is 40cqw (~200px here), not the old fixed 256 column: it scales
 		// with the container, so it never dominates a modest chart.
 		const railWidth = legend.getBoundingClientRect().width
 
@@ -82,7 +82,7 @@ describe('chart side-legend container query (real browser)', () => {
 		expect(getComputedStyle(body).flexDirection).toBe('column')
 
 		// The plot takes essentially the full 340px column (minus padding), not the
-		// remainder a beside-the-rail layout would leave it — the usable-size guarantee.
+		// remainder a beside-the-rail layout would leave it: the usable-size guarantee.
 		expect(box.getBoundingClientRect().width).toBeGreaterThan(300)
 	})
 })

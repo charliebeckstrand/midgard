@@ -86,7 +86,7 @@ describe('readableInk', () => {
 	})
 
 	it('skips a candidate that fails and takes the next that clears', () => {
-		// On mid-gray white fails (3.95:1) but black clears (5.32:1) — white-first, black wins.
+		// On mid-gray white fails (3.95:1) but black clears (5.32:1); white-first, black wins.
 		expect(readableInk('#808080', ['white', 'black'])).toBe('black')
 	})
 

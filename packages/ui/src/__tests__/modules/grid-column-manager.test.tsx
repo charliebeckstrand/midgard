@@ -62,7 +62,7 @@ describe('GridColumnManager', () => {
 
 	it('lists every orderable column when the stored order is empty', () => {
 		// An empty persisted order (nothing saved yet, or a stale preference) must
-		// not blank the orderable section — absent ids append in declaration order,
+		// not blank the orderable section: absent ids append in declaration order,
 		// the engine's own contract.
 		const { container } = renderUI(<GridColumnManager columns={columns} order={[]} />)
 
@@ -468,7 +468,7 @@ describe('GridColumnManager pinning', () => {
 })
 
 describe('GridColumnManager filtering', () => {
-	// Four orderable columns, two of them ('Beta', 'Delta') matching 'ta' — enough
+	// Four orderable columns, two of them ('Beta', 'Delta') matching 'ta': enough
 	// to reorder one match past another with non-matching columns on both sides.
 	const greek: GridColumnManagerItem[] = [
 		{ id: 'alpha', title: 'Alpha' },
@@ -573,7 +573,7 @@ describe('GridColumnManager filtering', () => {
 
 		beta.focus()
 
-		// Space lifts, ArrowDown drops Beta past Delta — the only other row on
+		// Space lifts, ArrowDown drops Beta past Delta: the only other row on
 		// screen. Alpha and Gamma never moved, so they keep their own slots and only
 		// the two matching ones swap.
 		fireEvent.keyDown(beta, { key: ' ' })

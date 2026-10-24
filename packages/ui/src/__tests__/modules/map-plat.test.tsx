@@ -57,7 +57,7 @@ describe('MapPlat', () => {
 
 	it('paints the neutral geography before the container is measured', () => {
 		// No width and an unmeasured container (jsdom reports 0): the map must
-		// still draw the geography from the canonical fit on the first commit —
+		// still draw the geography from the canonical fit on the first commit;
 		// the SVG appears with its region paths rather than waiting on a measure.
 		const { container } = renderUI(<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} />)
 
@@ -101,7 +101,7 @@ describe('MapPlat', () => {
 
 	it('reserves the frame without geography and paints it once provided', () => {
 		// A lazily fetched atlas passes through as null: no guard at the call
-		// site, no crash — the plot box holds the space, then the geography
+		// site, no crash; the plot box holds the space, then the geography
 		// draws in when it lands.
 		const { container, rerender } = renderUI(
 			<MapPlat aria-label="Backdrop" geography={null} width={400} />,
@@ -120,7 +120,7 @@ describe('MapPlat', () => {
 	it('reserves the US ratio for an albers-usa plat awaiting its geography', () => {
 		// Without geography the frame would fall back to 16/9 and then jump when
 		// the atlas lands; albers-usa is the US, so it holds the US ratio through
-		// the load — no height shift.
+		// the load: no height shift.
 		const { container } = renderUI(
 			<MapPlat aria-label="US" geography={null} projection="albers-usa" />,
 		)
@@ -135,8 +135,8 @@ describe('MapPlat', () => {
 
 		const [alpha] = allRegions(container)
 
-		// A plain <path> carrying the color transition — not a motion opacity
-		// fade — so the geometry is legible at once and only the fill animates on.
+		// A plain <path> carrying the color transition (not a motion opacity
+		// fade) so the geometry is legible at once and only the fill animates on.
 		expect(alpha?.tagName.toLowerCase()).toBe('path')
 
 		expect(alpha?.getAttribute('class')).toContain('transition-colors')
@@ -162,7 +162,7 @@ describe('MapPlat', () => {
 
 		// Past the reveal the stagger is gone. Left standing it delays every later
 		// fill change, and on an atlas of any size nearly every region sits at the
-		// cap — so a legend toggle would pay that beat before its color so much as
+		// cap, so a legend toggle would pay that beat before its color so much as
 		// began to move.
 		expect(region()).not.toContain('transition-delay')
 
@@ -331,7 +331,7 @@ describe('MapPlat', () => {
 		expect(pressedByLabel(container)).toEqual({ East: 'true', West: 'false' })
 
 		// A data update flips first-appearance order to West, then East. An
-		// index-keyed toggle would now strike East — the token `category:1` moved to
+		// index-keyed toggle would now strike East: the token `category:1` moved to
 		// it; the value key keeps West hidden.
 		rerender(
 			categoricalPlat({
@@ -353,7 +353,7 @@ describe('MapPlat', () => {
 		fireEvent.pointerEnter(east as HTMLButtonElement)
 
 		// The layer recedes as one group and the focused category redraws lit
-		// above it — the chart marks' isolation pattern.
+		// above it: the chart marks' isolation pattern.
 		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
 
 		const lit = bySlot(container, 'map-regions-lit')
@@ -455,7 +455,7 @@ describe('MapPlat', () => {
 
 		fireEvent.click(east as HTMLButtonElement)
 
-		// Hiding drops the emphasis outright — a hidden entry can't hold one — so
+		// Hiding drops the emphasis outright (a hidden entry can't hold one) so
 		// the wash out has always played in the open.
 		expect(lit()).toBeNull()
 
@@ -522,7 +522,7 @@ describe('MapPlat', () => {
 
 		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
 
-		// The layer recedes behind the pointed region's lit copy — identical
+		// The layer recedes behind the pointed region's lit copy: identical
 		// geometry, so the opaque copy covers its dimmed original exactly.
 		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
 
@@ -557,8 +557,8 @@ describe('MapPlat', () => {
 
 		fireEvent.pointerEnter(beta as Element, { clientX: 150, clientY: 20 })
 
-		// ...until pointed: the pointer's mark takes the emphasis, its copy —
-		// carrying the static hover brightness — receding even the focused group.
+		// ...until pointed: the pointer's mark takes the emphasis, its copy
+		// (carrying the static hover brightness) receding even the focused group.
 		const copy = bySlot(container, 'map-regions-lit')?.querySelector('path')
 
 		expect(copy?.getAttribute('class')).toContain('fill-orange-600')
@@ -580,7 +580,7 @@ describe('MapPlat', () => {
 
 		const [alpha, , gamma] = allRegions(container)
 
-		// Gamma matches no row: the neutral fill takes no emphasis — isolating
+		// Gamma matches no row: the neutral fill takes no emphasis; isolating
 		// nothing would read as a broken map.
 		fireEvent.pointerEnter(gamma as Element, { clientX: 300, clientY: 20 })
 
@@ -645,7 +645,7 @@ describe('MapPlat', () => {
 
 		expect(tooltip?.textContent).toContain('East')
 
-		// The unmatched region reads nothing — off-the-marks silence.
+		// The unmatched region reads nothing: off-the-marks silence.
 		fireEvent.pointerEnter(gamma as Element, { clientX: 300, clientY: 20 })
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
@@ -658,7 +658,7 @@ describe('MapPlat', () => {
 	})
 
 	it('answers no pointer until something on the map can read out', () => {
-		// A backdrop map — geography, no rows, no overlays — takes the pointer
+		// A backdrop map (geography, no rows, no overlays) takes the pointer
 		// channel away from its regions entirely, the way it already goes without
 		// a tab stop and without a table. Every one of those three reads the join
 		// rather than the prop that asked.
@@ -823,7 +823,7 @@ describe('MapPlat choropleth mode', () => {
 
 		// Thousands of paths carry no width of their own, so a zoom can move the
 		// seam with one attribute instead of re-rendering the atlas. The layer
-		// states it even unzoomed, where the scale is 1 — the constant governs both
+		// states it even unzoomed, where the scale is 1: the constant governs both
 		// views from the one expression, rather than an unzoomed map falling through
 		// to the SVG's initial width and agreeing by coincidence.
 		const region = firstRegion(container)
@@ -833,7 +833,7 @@ describe('MapPlat choropleth mode', () => {
 		expect(region?.getAttribute('vector-effect')).toBeNull()
 
 		// The width is stated against the layer's own frame, which a measured refit
-		// carries onto the drawn one by a scale — so what the browser draws is this
+		// carries onto the drawn one by a scale, so what the browser draws is this
 		// width times that scale, and the rule is the product, not the figure. To
 		// three places, because that is where `transformAttribute` rounds the scale
 		// the width is read back against.
@@ -940,7 +940,7 @@ describe('MapPlat choropleth mode', () => {
 
 		fireEvent.pointerMove(track as Element, { clientY: 10 })
 
-		// Regions outside the snapped bin recede — the switchboard's hover filter.
+		// Regions outside the snapped bin recede: the switchboard's hover filter.
 		expect(receded()).toBe(true)
 
 		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path').length).toBeGreaterThan(0)
@@ -985,7 +985,7 @@ describe('MapPlat choropleth mode', () => {
 
 		const [alpha, beta, gamma] = allRegions(container)
 
-		// A = 0, the domain floor: the arrow reads the value itself — flush to the
+		// A = 0, the domain floor: the arrow reads the value itself, flush to the
 		// bottom (100% from the top), not seated at the lowest bin's band center.
 		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
 
@@ -1008,7 +1008,7 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(track?.getAttribute('aria-orientation')).toBe('vertical')
 
-		// Low at the bottom, high at the top — the gradient runs upward.
+		// Low at the bottom, high at the top: the gradient runs upward.
 		expect(track?.getAttribute('style')).toContain('linear-gradient(to top')
 	})
 
@@ -1019,7 +1019,7 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(track?.getAttribute('aria-orientation')).toBe('horizontal')
 
-		// Low at the left, high at the right — the gradient runs rightward.
+		// Low at the left, high at the right: the gradient runs rightward.
 		expect(track?.getAttribute('style')).toContain('linear-gradient(to right')
 	})
 
@@ -1077,7 +1077,7 @@ describe('MapPlat region click', () => {
 		const onRegionClick = vi.fn()
 
 		// The id a TopoJSON consumer would otherwise re-decode the topology to
-		// recover — here the feature's name rather than its id.
+		// recover: here the feature's name rather than its id.
 		const { container } = renderUI(
 			categoricalPlat({
 				geography: FIXTURE_TOPOLOGY,
@@ -1097,7 +1097,7 @@ describe('MapPlat region click', () => {
 		const { container } = renderUI(categoricalPlat({ onRegionClick }))
 
 		// The gap between regions carries no `data-region-index` anchor. A miss must
-		// report nothing — never coerce the absent attribute to region 0.
+		// report nothing: never coerce the absent attribute to region 0.
 		fireEvent.click(bySlot(container, 'map-regions') as Element)
 
 		expect(onRegionClick).not.toHaveBeenCalled()
@@ -1143,7 +1143,7 @@ describe('MapPlat region click', () => {
 	})
 
 	it('takes no pointer affordance for a right-click alone', () => {
-		// A right-click is not advertised by a cursor — only `onRegionClick` earns
+		// A right-click is not advertised by a cursor; only `onRegionClick` earns
 		// one, so a map that merely names its right-clicked region reads as inert.
 		const { container } = renderUI(categoricalPlat({ onRegionContextMenu: () => {} }))
 
@@ -1204,7 +1204,7 @@ describe('MapPlat selected region', () => {
 
 		expect(bySlot(container, 'map-region-selected')).toBeNull()
 
-		// A stale id — a pick outliving the geography it was made against — must
+		// A stale id (a pick outliving the geography it was made against) must
 		// ring nothing rather than falling to region 0, the miss `indexOf` reports
 		// as -1.
 		rerender(categoricalPlat({ selectedRegion: 'Z' }))
@@ -1240,7 +1240,7 @@ describe('MapPlat selected region', () => {
 	})
 
 	it('takes no pointer affordance from a selection alone', () => {
-		// A map showing a pick made elsewhere — a Select, a route parameter — is a
+		// A map showing a pick made elsewhere (a Select, a route parameter) is a
 		// readout, not a picker: without `onRegionClick` there is no click to
 		// promise.
 		const { container } = renderUI(categoricalPlat({ selectedRegion: 'B' }))

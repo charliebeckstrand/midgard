@@ -65,7 +65,7 @@ describe('Grid per-column filters', () => {
 	const nameContains = (text: string) =>
 		createGroup('and', [{ ...createRule(nameField), operator: 'contains', value: text }])
 
-	/** A query holding one rule with no value — what a seeded or emptied builder leaves. */
+	/** A query holding one rule with no value: what a seeded or emptied builder leaves. */
 	const blankRule = () =>
 		createGroup('and', [{ ...createRule(nameField), operator: 'contains', value: '' }])
 
@@ -81,8 +81,8 @@ describe('Grid per-column filters', () => {
 	it('warns when the search and column filters request different filtering modes', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-		// Client-side search alongside server-side column filters can't coexist —
-		// the engine filters both through one model — so the grid warns.
+		// Client-side search alongside server-side column filters can't coexist
+		// (the engine filters both through one model) so the grid warns.
 		renderUI(
 			<Grid
 				columns={columns}
@@ -331,7 +331,7 @@ describe('Grid per-column filters', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
-		// The sheet opens on a seeded, value-less rule — still inactive.
+		// The sheet opens on a seeded, value-less rule: still inactive.
 		expect(screen.getByRole('button', { name: /^Filter Name/ })).not.toHaveAttribute('data-active')
 
 		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
@@ -341,7 +341,7 @@ describe('Grid per-column filters', () => {
 		// The edit is a draft: nothing reaches the engine, so the button stays inactive.
 		expect(screen.getByRole('button', { name: /^Filter Name/ })).not.toHaveAttribute('data-active')
 
-		// Apply settles it — now the button accents.
+		// Apply settles it: now the button accents.
 		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
 
 		expect(screen.getByRole('button', { name: /^Filter Name/ })).toHaveAttribute('data-active')
@@ -370,8 +370,8 @@ describe('Grid per-column filters', () => {
 
 		fireEvent.change(value, { target: { value: 'Bob' } })
 
-		// Submitting the form — the Apply button is `type="submit"`, so Enter in a
-		// rule input reaches it — settles the draft without a mouse press on Apply.
+		// Submitting the form (the Apply button is `type="submit"`, so Enter in a
+		// rule input reaches it) settles the draft without a mouse press on Apply.
 		const form = value.closest('form')
 
 		if (!form) throw new Error('expected the query builder to be wrapped in a form')
@@ -473,7 +473,7 @@ describe('Grid per-column filters', () => {
 			target: { value: 'Bob' },
 		})
 
-		// Cancel discards the draft — the filter never engaged.
+		// Cancel discards the draft: the filter never engaged.
 		fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
 		expect(screen.getByRole('button', { name: /^Filter Name/ })).not.toHaveAttribute('data-active')
@@ -519,7 +519,7 @@ describe('Grid per-column filters', () => {
 		// No row matches, so the body is empty...
 		expect(screen.getByText('No items')).toBeInTheDocument()
 
-		// ...but the source still has rows, so the header stays live — the filter
+		// ...but the source still has rows, so the header stays live: the filter
 		// button is reachable to clear the filter, and the column stays sortable.
 		expect(screen.getByRole('button', { name: /^Filter Name/ })).toBeInTheDocument()
 
@@ -601,10 +601,10 @@ describe('Grid per-column filters', () => {
 	it('shows an amber "Clear filters" toolbar button only while a filter constrains rows', () => {
 		const { rerender } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		// No active filter — no toolbar clear affordance.
+		// No active filter: no toolbar clear affordance.
 		expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
 
-		// A seeded-but-blank rule constrains nothing, so the button stays hidden —
+		// A seeded-but-blank rule constrains nothing, so the button stays hidden:
 		// the same active test the header accent reads.
 		rerender(
 			<Grid
@@ -695,7 +695,7 @@ describe('Grid per-column filters', () => {
 		expect(document.activeElement).toBe(screen.getByRole('grid'))
 	})
 	describe("affordance: 'menu'", () => {
-		/** The Name header, found by text — its accessible name carries the sort/filter chrome too. */
+		/** The Name header, found by text: its accessible name carries the sort/filter chrome too. */
 		const nameHeader = () => {
 			const header = screen
 				.getAllByRole('columnheader')
@@ -835,7 +835,7 @@ describe('Grid per-column filters', () => {
 		/**
 		 * What a `manual` consumer hands back once its rule matches nothing: the
 		 * filtered set, which is empty. The rule the user has to reach to recover the
-		 * rows is in the header, so the header can't stand down here — under client
+		 * rows is in the header, so the header can't stand down here: under client
 		 * filtering `rows` still held the source, so this case never arose.
 		 */
 		const emptied = (

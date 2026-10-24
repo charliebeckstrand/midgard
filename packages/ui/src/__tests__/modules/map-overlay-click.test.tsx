@@ -86,7 +86,7 @@ describe('overlay identity and click', () => {
 	})
 
 	it('answers a click on every part of a marker', () => {
-		// A marker draws three hit shapes — the connector and both pins — and all
+		// A marker draws three hit shapes (the connector and both pins) and all
 		// of them are the one mark.
 		const onClick = vi.fn()
 
@@ -164,7 +164,7 @@ describe('overlay keyboard reach', () => {
 		)
 
 		// The regions lead the stop list, so End reaches the overlay drawn over
-		// them — the mark a pointer-only click would have stranded.
+		// them: the mark a pointer-only click would have stranded.
 		fireEvent.keyDown(plot, { key: 'End' })
 
 		fireEvent.keyDown(plot, { key: 'Enter' })

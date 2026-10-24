@@ -92,7 +92,7 @@ function stubFixedMediaQuery(mql: MqlMock): void {
 }
 
 /**
- * Stubs `matchMedia`, and returns the mock plus `cross` — set
+ * Stubs `matchMedia`, and returns the mock plus `cross`: set
  * the query's verdict and fire the listener the hook registered. Call before
  * `renderHook`; `cross` reads the captured handler when it runs, not when it is built.
  */

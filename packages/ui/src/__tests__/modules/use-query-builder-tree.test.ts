@@ -10,7 +10,7 @@ const fields: QueryField[] = [
 ]
 
 // Tree-state mechanics live with the headless hook (use-query-tree.test.ts);
-// these cases cover what the builder wrapper adds — the focus registry and its
+// these cases cover what the builder wrapper adds: the focus registry and its
 // focus-aware `remove`.
 describe('useQueryBuilderTree', () => {
 	it('exposes a focus register alongside the tree and actions', () => {

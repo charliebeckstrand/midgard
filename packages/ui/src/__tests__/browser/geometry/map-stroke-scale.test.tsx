@@ -28,7 +28,7 @@ function screenScale(element: SVGGraphicsElement): number {
 
 /**
  * The width the browser will paint `element`'s stroke at, in CSS pixels: the
- * used width — inherited or stated — through the transform it draws under.
+ * used width (inherited or stated) through the transform it draws under.
  */
 function drawnWidth(element: SVGGraphicsElement): number {
 	return Number.parseFloat(getComputedStyle(element).strokeWidth) * screenScale(element)
@@ -55,19 +55,19 @@ function marked() {
 
 /**
  * Every mark spec in this module is a device-pixel figure, and the marks draw in
- * frame units — so between the two sits one multiply, and this file is what
+ * frame units, so between the two sits one multiply, and this file is what
  * checks the browser agrees with it. `MapDot` records why the module owns that
  * multiply rather than asking the browser for it through a `vector-effect`.
  *
  * jsdom can state the attributes and no more (`modules/map-plat-zoom` pins
  * those). Only a real engine resolves an inherited presentation attribute, a
- * used stroke width, and the CTM a mark actually draws under — which is what
+ * used stroke width, and the CTM a mark actually draws under, which is what
  * every case below reads.
  *
  * What is still not covered here: the dash. `isPointInStroke` ignores the dash
  * pattern, and `getBoundingClientRect` on an SVG shape reports geometry without
  * the stroke, so a half-drawn route measures the same as a whole one from
- * script. The vector-effect case stands in for it — the dash only ever
+ * script. The vector-effect case stands in for it: the dash only ever
  * truncated under one.
  */
 describe('map stroke width through the view', () => {
@@ -92,7 +92,7 @@ describe('map stroke width through the view', () => {
 
 		// One sweep for all three, because the view does not reset between sweeps:
 		// a second pass over the same plat would start at the ceiling and measure
-		// the same scale five times over — which is what a sweep per mark did, so
+		// the same scale five times over, which is what a sweep per mark did, so
 		// two of the three marks were only ever read at the ceiling.
 		zoomToCeiling(plot, () => {
 			scales.push(screenScale(gauge))
@@ -157,7 +157,7 @@ describe('map stroke width through the view', () => {
 
 		const dot = present<SVGGeometryElement>(bySlot(container, 'map-point'), 'map-point')
 
-		// The dot is a zero-length subpath, so its only point is its center — and
+		// The dot is a zero-length subpath, so its only point is its center, and
 		// the cap the browser builds around that point is the whole of the mark.
 		// Its own stroke geometry is therefore the last word on how big the dot is,
 		// where a radius derived from the stated width would agree with itself even

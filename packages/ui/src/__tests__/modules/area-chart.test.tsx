@@ -98,7 +98,7 @@ describe('AreaChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		// A point well above the marks — off any fill — still reads, because the
+		// A point well above the marks (off any fill) still reads, because the
 		// default snap carries the tooltip to the nearest band-edge point.
 		fireEvent.pointerMove(hit, { clientX: 200, clientY: 5 })
 
@@ -114,7 +114,7 @@ describe('AreaChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		// Well above the stacked ribbons — off any fill — the snapping tooltip still
+		// Well above the stacked ribbons (off any fill) the snapping tooltip still
 		// reads the pointed category, riding the pointer's height rather than diving
 		// into the fill for a series value.
 		fireEvent.pointerMove(hit, { clientX: 200, clientY: 5 })

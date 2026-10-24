@@ -7,7 +7,7 @@ import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
  * Context-menu outside-press inside a Dialog (real floating engine). A context
  * menu anchors to the right-clicked element through a virtual *position*
  * reference, so its `domReference` stays null. When that menu opens inside a
- * Dialog — itself a floating-ui portal — an outside press within the dialog
+ * Dialog (itself a floating-ui portal) an outside press within the dialog
  * lands in a different portal than the menu's own. The ancestor-vs-descendant
  * portal test must recognize the dialog as an ANCESTOR (it contains the menu's
  * anchor) and let the press dismiss the menu; reading only `domReference` (null
@@ -37,7 +37,7 @@ describe('context menu dismiss inside a dialog (real browser)', () => {
 
 		await screen.findByRole('menu')
 
-		// A press elsewhere inside the dialog — outside the menu — is an ordinary
+		// A press elsewhere inside the dialog (outside the menu) is an ordinary
 		// outside press and must close the menu.
 		const elsewhere = screen.getByRole('button', { name: 'Elsewhere' })
 

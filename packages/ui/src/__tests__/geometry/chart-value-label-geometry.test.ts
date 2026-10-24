@@ -65,7 +65,7 @@ describe('valueLabels', () => {
 
 	it('de-dupes a point that is both an endpoint and an extreme', () => {
 		// Two points: the first is the min and the first endpoint, the last the max
-		// and the last endpoint — four roles, two labels.
+		// and the last endpoint; four roles, two labels.
 		const labels = valueLabels({
 			series: [
 				series([
@@ -122,7 +122,7 @@ describe('valueLabels', () => {
 
 		expect(left?.x).toBe(2)
 
-		// A fitting label anchors on its point's center — never slid inward.
+		// A fitting label anchors on its point's center: never slid inward.
 		const [fits] = valueLabels({
 			series: [series([[100, 50, 12345]])],
 			plot: PLOT,
@@ -133,7 +133,7 @@ describe('valueLabels', () => {
 		expect(fits?.anchor).toBe('middle')
 
 		// A max sits above its point, but a point at the top still flips its label
-		// below — vertically the label never leaves its own mark, so the flip stays.
+		// below: vertically the label never leaves its own mark, so the flip stays.
 		const [top] = valueLabels({
 			series: [series([[100, 2, 9]])],
 			plot: PLOT,
@@ -293,7 +293,7 @@ describe('resolveValueLabels', () => {
 	})
 
 	it('stands the point labels down when the chart has more than one series', () => {
-		// Point labels are single-series only — two series would crowd their
+		// Point labels are single-series only: two series would crowd their
 		// numbers between the lines, so the config is honored only for a lone
 		// series and the tooltip carries the readout otherwise.
 		const twoSeries = [

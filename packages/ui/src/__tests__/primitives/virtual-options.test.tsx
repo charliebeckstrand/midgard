@@ -34,8 +34,8 @@ describe('VirtualOptions', () => {
 		expect(rendered.length).toBeLessThanOrEqual(items.length)
 	})
 
-	// The wrapper mounts even at zero items — the scroll-ancestor walk needs its
-	// ref — so the listbox is never CSS `:empty` under virtualization. Combobox
+	// The wrapper mounts even at zero items (the scroll-ancestor walk needs its
+	// ref) so the listbox is never CSS `:empty` under virtualization. Combobox
 	// and CommandPalette hang their "No results" rules off this attribute
 	// instead; without it a filtered-to-zero virtual list shows a blank panel.
 	it('stamps data-empty on the wrapper when the item list is empty', () => {
@@ -51,9 +51,9 @@ describe('VirtualOptions', () => {
 	})
 })
 
-// Registration doesn't depend on any row actually rendering — `VirtualOptions`
+// Registration doesn't depend on any row actually rendering: `VirtualOptions`
 // builds and publishes the source from `items`/`getOptionId` regardless of the
-// (jsdom-zero-height) windowed subset — so these run under plain jsdom; real
+// (jsdom-zero-height) windowed subset, so these run under plain jsdom; real
 // windowing + keyboard-reachability across the window edge is covered by the
 // browser suite (`test:browser`) and `__tests__/hooks/use-a11y-roving.test.tsx`.
 describe('VirtualOptions: indexed item source registration', () => {

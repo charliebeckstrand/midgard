@@ -9,7 +9,7 @@ import { present, renderUI, screen, waitFor } from '../../helpers'
 /**
  * Layout stability on open (real floating engine), the sibling of
  * `date-picker-spacing`. While open, a `FloatingFocusManager` imperatively
- * inserts a hidden return-focus span as the reference's next sibling — gated on
+ * inserts a hidden return-focus span as the reference's next sibling: gated on
  * the floating element being portaled with a DOM reference, *not* on `modal`,
  * so a non-modal listbox manager inserts it too. Without each picker's
  * `display: contents` wrapper that extra sibling drops the control out of

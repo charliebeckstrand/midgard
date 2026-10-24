@@ -64,7 +64,7 @@ describe('grid row reorder: a drag commits the new order (real browser)', () => 
 
 		const bob = bobGrip.getBoundingClientRect()
 
-		// Lift Alice's grip and drag it just past Bob's midpoint — one slot down — then drop.
+		// Lift Alice's grip and drag it just past Bob's midpoint (one slot down) then drop.
 		const target = bob.y + bob.height / 2 + 2
 
 		const x = from.x + 5

@@ -34,7 +34,7 @@ describe('numericRegionData', () => {
 
 	// Each of the four required fields alone decides the branch: without any one
 	// of them there is no scale to shade by, so the map falls to its neutral
-	// fill. `toEqual({})` is what the assertion turns on — the rows go back with
+	// fill. `toEqual({})` is what the assertion turns on: the rows go back with
 	// the rest, which is the guarantee the choropleth's spread rests on. A caller
 	// spreads the result over its own props, so a branch that handed `data` back
 	// would leave a data-less map holding rows it has no key to join.

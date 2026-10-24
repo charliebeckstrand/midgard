@@ -33,7 +33,7 @@ describe('barMarkAt', () => {
 		// each spanning x 10..30. The gap between them is now vertical.
 		const group = [[bar(10, 30, 50, 70)], [bar(10, 30, 72, 92)]]
 
-		// y=71 falls in the vertical gap — a miss without slack.
+		// y=71 falls in the vertical gap: a miss without slack.
 		expect(barMarkAt(group, 20, 71, 0, 'horizontal')).toBeNull()
 
 		// The slack closes it along y, not x.
@@ -62,7 +62,7 @@ describe('barMarkAt', () => {
 	it('bridges the gap between grouped bars only on the widened pass', () => {
 		const group = [[bar(10, 30, 50, 100)], [bar(32, 52, 50, 100)]]
 
-		// x=31 falls in the bare 2px gap — no body catches it.
+		// x=31 falls in the bare 2px gap: no body catches it.
 		expect(barMarkAt(group, 31, 75)).toBeNull()
 
 		// The widened pass reaches it, resolving to the nearer-first series.
@@ -97,7 +97,7 @@ describe('nearestSeriesLine', () => {
 
 		expect(nearestSeriesLine(two, 50, 132)).toBe(1)
 
-		// 40px from the nearest line — past the generous catch.
+		// 40px from the nearest line: past the generous catch.
 		expect(nearestSeriesLine(two, 50, 60)).toBeNull()
 	})
 
@@ -119,11 +119,11 @@ describe('nearestSeriesLine', () => {
 			],
 		]
 
-		// Just past the midline the held line keeps the win — the flip point is a
+		// Just past the midline the held line keeps the win: the flip point is a
 		// deadband, not a knife edge.
 		expect(nearestSeriesLine(close, 50, 112, undefined, 0)).toBe(0)
 
-		// Decisively onto the other line — under half the held distance — it flips.
+		// Decisively onto the other line (under half the held distance) it flips.
 		expect(nearestSeriesLine(close, 50, 115, undefined, 0)).toBe(1)
 
 		// The hold works symmetrically, and only while the held stays a candidate:
@@ -140,7 +140,7 @@ describe('nearestSeriesLine', () => {
 		// Comfortably on the line.
 		expect(nearestSeriesLine(runs, 50, 106)).not.toBeNull()
 
-		// 12px off — inside the widened catch the tooltip and isolation lean on.
+		// 12px off: inside the widened catch the tooltip and isolation lean on.
 		expect(nearestSeriesLine(runs, 50, 112)).not.toBeNull()
 
 		// Past the tolerance.

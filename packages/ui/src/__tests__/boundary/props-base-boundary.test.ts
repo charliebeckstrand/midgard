@@ -31,7 +31,7 @@ import { startTypeScript } from '../helpers/ts-server'
 import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // `ComponentProps<'tag'>` is the only native-prop base (CONVENTIONS §4.3). It
-// carries `ref`, so the older bases — which drop it — are gone: a props type
+// carries `ref`, so the older bases (which drop it) are gone: a props type
 // built on one of them silently rejects a ref the component would forward.
 // `SlotProps` was an exact alias of `ComponentProps` and is gone with them.
 

@@ -410,7 +410,7 @@ describe('TagInput', () => {
  * until blur refused the whole string as one invalid tag.
  *
  * These fire a real `paste` event with `clipboardData`. `user.type` and `fireEvent.keyDown` cannot
- * reach this path — which is exactly the gap that let the defect ship under a test whose comment
+ * reach this path, which is exactly the gap that let the defect ship under a test whose comment
  * claimed paste coverage.
  */
 function paste(input: HTMLInputElement, text: string) {
@@ -443,7 +443,7 @@ describe('TagInput paste', () => {
 
 		paste(getInput(container), '77002')
 
-		// One code pasted mid-edit is not a commit — it continues the draft, so the user can keep
+		// One code pasted mid-edit is not a commit: it continues the draft, so the user can keep
 		// typing. Nothing is committed until a delimiter, Enter, blur or the Add button.
 		expect(getBadges(container)).toHaveLength(0)
 	})
@@ -464,7 +464,7 @@ describe('TagInput paste', () => {
 		paste(getInput(container), '77002,oops,77003,nope')
 
 		// The batch is not all-or-nothing, and the failures are localized to the exact tokens rather
-		// than announced once and lost — the user edits two words instead of hunting through forty.
+		// than announced once and lost: the user edits two words instead of hunting through forty.
 		expect(getBadges(container).map((badge) => badge.textContent)).toEqual(['77002', '77003'])
 
 		expect(getInput(container)).toHaveValue('oops nope')
@@ -504,7 +504,7 @@ describe('TagInput paste', () => {
 		paste(getInput(container), '77002,77003,77004')
 
 		// `announce` clears then sets on the next microtask, so a live region only ever reports an
-		// observed mutation — the read has to come after that tick, which is the wait this helper holds.
+		// observed mutation: the read has to come after that tick, which is the wait this helper holds.
 		await expectAnnouncement('Added 3 tags')
 
 		// And ONE message, not three: the count replaces what would have been a per-tag stream.

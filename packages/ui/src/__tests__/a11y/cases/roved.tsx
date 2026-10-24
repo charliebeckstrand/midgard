@@ -31,17 +31,17 @@ import type { RovedCase } from './types'
  *
  * The hover/focus wash of the item group and the `data-active` wash of `hannou.active` are
  * the same `bg-zinc-950/5` ground, and every other corpus case renders its
- * popover at rest — so neither wash is painted where a gate can see it, which is
+ * popover at rest, so neither wash is painted where a gate can see it, which is
  * why `zinc-500` descriptions sat at 4.34:1 unnoticed.
  *
  * Each case opens declaratively: the ground under test is the wash, not the open
  * transition. One item per case, because a recipe's `description` slot carries no
- * per-item modifier — a second row would paint the identical class list on the
+ * per-item modifier: a second row would paint the identical class list on the
  * identical ground and cost another full axe pass.
  */
 export const roved: readonly RovedCase[] = [
 	{
-		// `kata/option` — the row shared by Listbox / Select / Combobox.
+		// `kata/option`: the row shared by Listbox / Select / Combobox.
 		name: 'listbox option',
 		element: (
 			<Field key="rlb">
@@ -57,7 +57,7 @@ export const roved: readonly RovedCase[] = [
 		descriptionSlot: 'listbox-description',
 	},
 	{
-		// `kata/menu` — its `group-focus/option:text-white` override covers the
+		// `kata/menu`: its `group-focus/option:text-white` override covers the
 		// focus case only, so a `data-active` row still inks with the muted rung.
 		name: 'menu item',
 		element: (
@@ -78,7 +78,7 @@ export const roved: readonly RovedCase[] = [
 		descriptionSlot: 'menu-description',
 	},
 	{
-		// `kata/command-palette` — the same wash. Its `data-active:hover` deepening
+		// `kata/command-palette`: the same wash. Its `data-active:hover` deepening
 		// to `/10` is a stronger ground than this case paints, so the `/5` measured
 		// here is the binding one.
 		name: 'command palette item',

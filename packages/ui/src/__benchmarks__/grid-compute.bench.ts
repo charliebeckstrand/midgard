@@ -16,7 +16,7 @@ import {
 
 // Pure grid compute that runs on the render hot path (column allocation, pin
 // overlay) or on an export, benched in a node env with no DOM. The DOM-bound
-// measurer (measureColumns) is excluded — its pure downstream
+// measurer (measureColumns) is excluded: its pure downstream
 // allocateColumnWidths is benched with synthetic profiles instead. Import each
 // utility by path; the grid barrel does not re-export them.
 

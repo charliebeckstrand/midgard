@@ -8,7 +8,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * An open overlay survives being parked in `<Activity mode="hidden">` and revealed.
  *
  * Here rather than in either jsdom project because both of those mock
- * `@floating-ui/react`, and the mock renders `FloatingPortal` inline — so the thing under
+ * `@floating-ui/react`, and the mock renders `FloatingPortal` inline, so the thing under
  * test, the lifecycle of floating-ui's own portal node, does not exist there. Against the
  * real engine that node is built in a layout effect and removed in its cleanup, and
  * `<Activity>` runs cleanups to hide a subtree and re-runs the effects to reveal it. Left

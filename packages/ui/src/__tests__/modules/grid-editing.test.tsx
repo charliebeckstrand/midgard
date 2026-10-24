@@ -604,7 +604,7 @@ describe('Grid per-row editing', () => {
 		fireEvent.click(view.getAllByRole('button', { name: 'discard-row' })[0] as HTMLElement)
 
 		// Removing a row from the set is a save, so this transition has no
-		// consumer-driven equivalent — it is the whole reason the slot has it.
+		// consumer-driven equivalent: it is the whole reason the slot has it.
 		expect(onCommit).not.toHaveBeenCalled()
 
 		expect(bySlot(view.container, 'grid-edit-input')).toBeNull()
@@ -756,7 +756,7 @@ describe('Grid per-row editing', () => {
 
 		// Enter belongs to a grid-owned session and to nothing else. Here the
 		// consumer owns entry and exit, so the row stays open and nothing commits
-		// until they say so — and Escape still reverts the cell rather than the row.
+		// until they say so, and Escape still reverts the cell rather than the row.
 		expect(bySlot(container, 'grid-edit-input')).toBeInTheDocument()
 
 		expect(onCommit).not.toHaveBeenCalled()
@@ -779,7 +779,7 @@ describe('Grid per-row editing', () => {
 
 /**
  * Grid-owned edit sessions (`editable.session: 'managed'`): double-clicking
- * an editable data cell — through the grid's built-in cell double-click event —
+ * an editable data cell (through the grid's built-in cell double-click event)
  * or pressing Enter on the keyboard cursor's active cell puts its row into edit
  * mode and focuses that cell's editor; an editor's Enter saves the row as the
  * usual one-batch commit and Escape abandons its staged edits, focus returning
@@ -1000,7 +1000,7 @@ describe("Grid double-click-to-edit (session: 'managed')", () => {
 			target: { value: 'Discarded' },
 		})
 
-		// Focus can leave the editor while its session runs — a Tab out and back, a
+		// Focus can leave the editor while its session runs: a Tab out and back, a
 		// header control, a click on a row that is not editing. Escape has to reach
 		// the session from there too, or it reads as dead while a draft stands.
 		const grid = getByRole('grid')
@@ -1086,8 +1086,8 @@ describe("Grid double-click-to-edit (session: 'managed')", () => {
 
 		fireEvent.doubleClick(cell('name'))
 
-		// The press belongs to the open surface — its document-level escape layer
-		// closes it after this handler — so the session stays alive.
+		// The press belongs to the open surface (its document-level escape layer
+		// closes it after this handler) so the session stays alive.
 		fireEvent.keyDown(getSlot(container, 'open-disclosure'), { key: 'Escape' })
 
 		expect(bySlot(container, 'open-disclosure')).toBeInTheDocument()
@@ -1112,7 +1112,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
 
-		// The sibling cell of the same row keeps its display content — the one
+		// The sibling cell of the same row keeps its display content: the one
 		// difference from row scope, which mounts both editors at once.
 		expect(bySlot(container, 'grid-edit-number-input')).toBeNull()
 	})
@@ -1262,8 +1262,8 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		fireEvent.keyDown(number, { key: 'Escape' })
 
-		// The name cell committed when the session left it; only the count cell —
-		// the one Escape was pressed in — is discarded.
+		// The name cell committed when the session left it; only the count cell
+		// (the one Escape was pressed in) is discarded.
 		expect(onCommit).toHaveBeenCalledTimes(1)
 
 		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
@@ -1290,7 +1290,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 			editable: { scope: 'cell', rows: new Set([1]) },
 		})
 
-		// The consumer's own binding opens the row, so its cells all mount — the
+		// The consumer's own binding opens the row, so its cells all mount: the
 		// row-shaped state a session has not narrowed yet.
 		expect(bySlot(container, 'grid-edit-number-input')).toBeInTheDocument()
 
@@ -1536,7 +1536,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		expect(bySlot(container, 'grid-edit-number-input')).toBeInTheDocument()
 
-		// Inert rather than wrong, so it fails silently — which is what the
+		// Inert rather than wrong, so it fails silently, which is what the
 		// development warning is for.
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining("editable.scope: 'cell'"))
 	})

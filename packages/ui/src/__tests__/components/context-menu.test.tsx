@@ -463,7 +463,7 @@ describe('ContextMenuList submenus', () => {
 		},
 	]
 
-	/** The pointer settling on `row` — the arrival a menu reads its cursor off. */
+	/** The pointer settling on `row`: the arrival a menu reads its cursor off. */
 	const settle = (row: HTMLElement) => fireEvent.pointerMove(row, { pointerType: 'mouse' })
 
 	it('renders a submenu entry as one parent row, its own rows withheld until opened', () => {
@@ -688,7 +688,7 @@ describe('ContextMenuList submenus', () => {
 
 		settle(trigger)
 
-		// The panel is already up, so there is no mount left to seat focus on —
+		// The panel is already up, so there is no mount left to seat focus on:
 		// the open path has to take it now rather than arm a flag for the next one.
 		fireEvent.keyDown(trigger, { key: 'Enter' })
 

@@ -113,7 +113,7 @@ describe('reference lines', () => {
 
 		expect(hexRule).not.toBeNull()
 
-		// A raw color bypasses the slot classes entirely — no stroke-* class — and
+		// A raw color bypasses the slot classes entirely (no stroke-* class) and
 		// strokes inline instead, so the class path is never taken.
 		expect(hexRule?.getAttribute('class') ?? '').not.toContain('stroke-')
 	})
@@ -330,7 +330,7 @@ describe('reference line keyboard navigation', () => {
 	const marksClass = (container: HTMLElement) =>
 		bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
 
-	// The rule's floating readout, found by its swatch — the swatch renders only
+	// The rule's floating readout, found by its swatch: the swatch renders only
 	// inside the tooltip, so its presence proves the rule opened one. Queried off
 	// the document since the surface portals out of the plot.
 	const referenceTooltip = () =>
@@ -352,7 +352,7 @@ describe('reference line keyboard navigation', () => {
 		expect(referenceTooltip()).toBeNull()
 
 		// The value-axis arrow steps onto the rule: the marks recede and the rule
-		// floats the same value-and-label readout pointing it would — focusing reads
+		// floats the same value-and-label readout pointing it would; focusing reads
 		// exactly like hovering.
 		fireEvent.keyDown(plot, { key: 'ArrowDown' })
 
@@ -556,7 +556,7 @@ describe('reference lines in the legend', () => {
 		)
 
 		// One series → one switch; the rule is a separate switch that recedes the
-		// marks like a series entry's emphasis and carries its own toggle — pressed
+		// marks like a series entry's emphasis and carries its own toggle: pressed
 		// while the rule is shown.
 		expect(allBySlot(container, 'chart-legend-item')).toHaveLength(1)
 
@@ -931,7 +931,7 @@ describe('reference value labels', () => {
 
 		expect(Number(label?.getAttribute('y'))).toBeLessThan(ruleY)
 
-		// No transparent hit target — the standing label replaces the hover readout,
+		// No transparent hit target: the standing label replaces the hover readout,
 		// so the rule group carries only the one drawn line.
 		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(1)
 	})

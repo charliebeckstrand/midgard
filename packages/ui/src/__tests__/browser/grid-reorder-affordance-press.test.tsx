@@ -13,7 +13,7 @@ beforeAll(() => loadGridReorderKit())
  * A handle-less header (`reorder={{ handle: false }}`) *is* its own drag
  * activator, so every control inside it sits on the drag target. Pressing one and
  * drifting a few pixels past the sensor's activation distance used to lift the
- * column — and then the surface that control opened took the `pointerup` with it,
+ * column, and then the surface that control opened took the `pointerup` with it,
  * leaving the column held while the pointer moved on toward the sheet. The user
  * saw columns reordering under a pointer that was only traveling to the filter
  * they had just opened.
@@ -51,7 +51,7 @@ describe('grid column reorder: pressing a header affordance (real browser)', () 
 		return cell as HTMLElement
 	}
 
-	/** Press `from` and drift 60px right — well past the sensor's 3px activation distance. */
+	/** Press `from` and drift 60px right: well past the sensor's 3px activation distance. */
 	function pressAndDrift(from: HTMLElement) {
 		const box = from.getBoundingClientRect()
 

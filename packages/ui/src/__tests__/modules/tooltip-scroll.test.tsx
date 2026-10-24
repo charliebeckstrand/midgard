@@ -75,7 +75,7 @@ describe('tooltip across a scroll', () => {
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		// ...and once the scroll settles it returns over the same band — no move.
+		// ...and once the scroll settles it returns over the same band: no move.
 		await clock.advance(150)
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
@@ -308,7 +308,7 @@ describe('tooltip across a scroll', () => {
 
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 
-		// Settle over the ocean — nothing resolves under the pointer.
+		// Settle over the ocean: nothing resolves under the pointer.
 		document.elementFromPoint = vi.fn().mockReturnValue(null)
 
 		movePointer(40, 20)

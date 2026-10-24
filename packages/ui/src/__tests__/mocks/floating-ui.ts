@@ -15,7 +15,7 @@ type MockContext = {
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
 	// The real context tracks the mounted reference/floating elements as state.
-	// Both stay null here — nothing mounts a real floating element — which is
+	// Both stay null here (nothing mounts a real floating element) which is
 	// what consumers reading `context.elements.floating` expect off the browser.
 	elements?: { reference: Element | null; floating: HTMLElement | null }
 }
@@ -105,7 +105,7 @@ function mergeProps(list: (MockProps | undefined)[]): MockProps {
  *     any user-supplied props) via `mergeProps`, chaining handlers.
  *
  * Everything else (positioning, hover, dismiss, portals) is a noop or identity
- * passthrough. Applied globally — see setup/module-mocks.ts.
+ * passthrough. Applied globally: see setup/module-mocks.ts.
  */
 const floatingUIMock = {
 	autoUpdate: noop,

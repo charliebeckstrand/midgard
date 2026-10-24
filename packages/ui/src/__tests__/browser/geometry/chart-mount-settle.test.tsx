@@ -6,12 +6,12 @@ import { frames, renderUI } from '../../helpers'
  * Mount settling under a real engine: a container-measured chart resolves its
  * drawing size from the plot box it measures, but the width-0 first render
  * carries no chrome (spark), so its height measurement is chrome-free and too
- * tall — and when the measured tier mounts the header and legend, the plot
+ * tall, and when the measured tier mounts the header and legend, the plot
  * reflows shorter. `usePlotFrame` drives that measure → reflow → re-measure
  * chain to a fixed point in a layout effect, before the first paint, so the
  * marks never flash a coordinate space the box is about to abandon. This samples
  * the SVG's viewBox height against its box across the first frames and fails on
- * any squish — the mount flicker.
+ * any squish: the mount flicker.
  */
 
 const DATA = [
@@ -20,7 +20,7 @@ const DATA = [
 	{ month: 'Mar', revenue: 47, costs: 33 },
 ]
 
-/** The SVG's viewBox height and the plot box height — a squish frame has them disagree. */
+/** The SVG's viewBox height and the plot box height: a squish frame has them disagree. */
 function sample(container: HTMLElement): { viewBoxHeight: number; boxHeight: number } {
 	const svg = container.querySelector('[data-slot="chart-plot"] svg')
 

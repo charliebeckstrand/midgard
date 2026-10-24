@@ -482,7 +482,7 @@ describe('FormFiltersClear', () => {
 		}
 
 		// Clearing a filter undoes a view and not a record, so the shared default
-		// stays whatever Button's is — an app that wants weight asks for it.
+		// stays whatever Button's is: an app that wants weight asks for it.
 		const plain = bySlot(renderUI(bar({})).container, 'form-filters-clear')?.className ?? ''
 
 		expect(plain).not.toContain('bg-red')

@@ -194,13 +194,13 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		await pause(100)
 
-		// Twenty truncated cells, all closed — no portal nodes left in the DOM.
+		// Twenty truncated cells, all closed: no portal nodes left in the DOM.
 		expect(document.querySelectorAll('[data-floating-ui-portal]')).toHaveLength(0)
 	})
 
 	it('clips every row consistently under auto-fit past the content cap', async () => {
 		// Content this wide exceeds the autosizer's per-column content cap, so the
-		// column settles at the cap rather than growing to fit — and every row clips.
+		// column settles at the cap rather than growing to fit, and every row clips.
 		const huge = `${longName} ${longName} ${longName}`
 
 		const many = Array.from({ length: 5 }, (_, index) => ({ id: index, name: `${huge} ${index}` }))
@@ -230,7 +230,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 	it('reveals the tooltip for a cell clipped by a sub-pixel amount', async (ctx) => {
 		// A pointer drag lands on fractional widths. Find one where the cell clips by
 		// a fraction of a pixel: scroll/client round equal (the integer test reads
-		// "fits") yet a Range measures the content wider than its box — the ellipsis
+		// "fits") yet a Range measures the content wider than its box; the ellipsis
 		// is painted. The prior half-pixel slack left exactly this cell without a
 		// tooltip until the column shrank further; the tooltip must now arm here.
 		const cellSpan = (root: HTMLElement) =>
@@ -247,7 +247,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 				/>,
 			)
 
-		// Container-scoped throughout — the pointer can be parked over the grid from
+		// Container-scoped throughout: the pointer can be parked over the grid from
 		// an earlier test, auto-opening the hover tooltip whose content duplicates
 		// the cell text and makes a document-wide text query ambiguous.
 		const settledSpan = async (root: HTMLElement) => {
@@ -264,7 +264,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		// Probe: the Range overflow at a known column width locates the fractional
 		// fit boundary (content width plus fixed cell chrome) wherever this
-		// environment's font metrics put it — a fixed window drifts off it.
+		// environment's font metrics put it; a fixed window drifts off it.
 		const probe = renderAt(300)
 
 		const boundary = 300 + textOverflow(await settledSpan(probe.container))
@@ -315,7 +315,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		const tip = await screen.findByRole('tooltip')
 
 		// Whichever route opened it, the tooltip must be the one this cell
-		// describes — otherwise a tooltip left over from an earlier width would
+		// describes, otherwise a tooltip left over from an earlier width would
 		// satisfy the assertion and the detector would go untested. The attribute
 		// sits on the trigger, which is not always the measured span.
 		expect(container.querySelector('[aria-describedby]')?.getAttribute('aria-describedby')).toBe(
@@ -360,7 +360,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 	})
 
 	it('clips rows of differing length uniformly at a narrow width', async () => {
-		// The demo names, at a width none of them fits — every row must clip with an
+		// The demo names, at a width none of them fits: every row must clip with an
 		// ellipsis, not just the longer ones.
 		const named = [
 			{ id: 1, name: 'Wade Cooper' },

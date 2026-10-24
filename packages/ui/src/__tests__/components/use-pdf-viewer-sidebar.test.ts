@@ -7,7 +7,7 @@ import { usePdfViewer } from '../../components/pdf-viewer/use-pdf-viewer'
  * When the thumbnail rail is open, which is decided from the page count rather than seeded.
  *
  * Tested on the hook rather than through the viewer, because the case that matters is the one
- * with no pages *yet* — a document still being parsed — and a mounted viewer given no pages at
+ * with no pages *yet* (a document still being parsed) and a mounted viewer given no pages at
  * all renders no rail and no toggle to read the state off.
  */
 
@@ -21,7 +21,7 @@ describe('the thumbnail rail mounts closed', () => {
 	/*
 	 * The bug this rule was written wrong for once: a viewer loading from `src` has no pages
 	 * for as long as pdf.js takes to parse the file, so "open unless the count is exactly one"
-	 * was true through that whole window — and a one-page invoice opened the rail and then
+	 * was true through that whole window, and a one-page invoice opened the rail and then
 	 * visibly shut it.
 	 */
 	it('while the document is still being read', () => {
@@ -42,8 +42,8 @@ describe('it opens for a document worth navigating', () => {
 
 describe('the rail travels only for a press', () => {
 	/*
-	 * The count arrives with the document — pdf.js has to parse the file before it can say how
-	 * many pages there are — so the rail's own default lands several hundred milliseconds after
+	 * The count arrives with the document (pdf.js has to parse the file before it can say how
+	 * many pages there are) so the rail's own default lands several hundred milliseconds after
 	 * the viewer does. Slid in at that moment it read as something arriving late; it is the
 	 * viewer's own furniture, so it is simply there.
 	 */

@@ -12,7 +12,7 @@ import { getSlot, present, renderUI, userEvent, waitFor } from '../helpers'
  */
 describe('chart Escape then Tab returns to the plot (real browser)', () => {
 	// One series, so no legend toggles sit between the plot and the trailing
-	// button — the tab order is before, plot, after and nothing else.
+	// button: the tab order is before, plot, after and nothing else.
 	const data = [
 		{ week: 'W1', a: 10 },
 		{ week: 'W2', a: 30 },

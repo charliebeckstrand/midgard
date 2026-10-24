@@ -76,7 +76,7 @@ describe('frozen column layout', () => {
 
 		expect(sameFrozenLayout(layout, dragged)).toBe(false)
 
-		// An unpin puts the boundary — and the edge rule with it — on another column.
+		// An unpin puts the boundary (and the edge rule with it) on another column.
 		expect(sameFrozenLayout(layout, buildLayout([['name', 160]], right))).toBe(false)
 	})
 })

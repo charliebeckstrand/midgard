@@ -9,8 +9,8 @@ import { pause } from '../helpers/wall-clock'
  * scroll-following only surfaces here. The menu opens at the cursor but anchors
  * to the right-clicked element (its position reference's `contextElement`), so
  * it tracks that element as the surrounding container scrolls instead of staying
- * pinned to the original viewport coordinate. That anchor is position-only — not
- * floating-ui's dismissal reference — so a press on the originating cell still
+ * pinned to the original viewport coordinate. That anchor is position-only (not
+ * floating-ui's dismissal reference) so a press on the originating cell still
  * closes the menu, the inverse case the final test guards.
  */
 describe('grid context menu anchoring (real browser)', () => {
@@ -89,7 +89,7 @@ describe('grid context menu anchoring (real browser)', () => {
 
 		const before = menu.getBoundingClientRect()
 
-		// Right-click a menu item — the panel is portaled out but its contextmenu
+		// Right-click a menu item: the panel is portaled out but its contextmenu
 		// still bubbles to the wrapper. Re-anchoring to an item inside the panel
 		// would make it chase its own rect; the position must instead hold.
 		const item = screen.getByRole('menuitem', { name: 'Copy' })

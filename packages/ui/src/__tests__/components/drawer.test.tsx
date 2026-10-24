@@ -68,8 +68,8 @@ describe('Drawer', () => {
 })
 
 describe('Drawer enter animation', () => {
-	// The motion mock surfaces `initial.transform` as `data-initial-transform`, so the enter offset —
-	// the slide the panel starts from — is observable without an animation runtime.
+	// The motion mock surfaces `initial.transform` as `data-initial-transform`, so the enter offset
+	// (the slide the panel starts from) is observable without an animation runtime.
 	const panel = () => getSlot(document.body, 'drawer')
 
 	it('slides the panel up from the bottom edge on mount', () => {
@@ -169,7 +169,7 @@ describe('Drawer height and size', () => {
 	})
 
 	// `fit` grows to its content like `auto` and stops at the screen rather than
-	// short of it, and it travels between the heights its content asks for — see
+	// short of it, and it travels between the heights its content asks for: see
 	// `usePanelFit`. Both the travel and the squaring are measurements, and jsdom
 	// lays nothing out, so what is left here is the cap and the standing down: the
 	// browser suite (`drawer-fit-travel`) is where the travel itself is asserted.
@@ -286,7 +286,7 @@ describe('Drawer drag handle', () => {
 
 		const { handle } = renderHandled()
 
-		// The splitter pattern: a resizer, not a button, and reachable by keyboard —
+		// The splitter pattern: a resizer, not a button, and reachable by keyboard:
 		// on a panel whose height it alone sets, a drag-only control would leave a
 		// keyboard reader unable to open the panel up.
 		expect(screen.getByRole('separator', { name: 'Resize panel' })).toBe(handle)

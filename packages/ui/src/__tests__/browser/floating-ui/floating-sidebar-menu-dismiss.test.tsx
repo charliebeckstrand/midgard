@@ -13,7 +13,7 @@ import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
  * inside the sidebar portals out of that root, so plain DOM containment reads a
  * press on one of its items as outside: the sheet closed on pointer-down and
  * unmounted the menu before its click could fire, and every item in the user
- * dropdown — impersonate, stop impersonating, sign out — did nothing at all.
+ * dropdown (impersonate, stop impersonating, sign out) did nothing at all.
  *
  * The jsdom suite mocks `@floating-ui/react` away, so overlay panels render
  * inline there and the press never leaves the subtree; only this project sees
@@ -82,7 +82,7 @@ describe('floating sidebar menu dismissal (real browser)', () => {
 
 	// The peek also closes on `pointerleave` of its wrapper. React routes synthetic
 	// enter/leave through the React tree, so the portaled menu counts as inside it
-	// and the travel from trigger to item does not close the peek — the press path
+	// and the travel from trigger to item does not close the peek: the press path
 	// above is not the only way this gesture can break.
 	it('keeps the peek open while the pointer travels onto the menu', async () => {
 		const item = await openPeekMenu(<FloatingSidebar onAction={() => {}} />)

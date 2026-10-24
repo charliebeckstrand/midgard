@@ -81,7 +81,7 @@ function trend(
 }
 
 /**
- * `count` categories × `seriesCount` series of bounded random walks — the
+ * `count` categories × `seriesCount` series of bounded random walks: the
  * plausible dashboard shape, no flat lines and no degenerate domain.
  */
 export function makeTrend(count: number, seriesCount: number, seed = 1): TrendData {

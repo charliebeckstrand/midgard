@@ -1,33 +1,33 @@
 /**
  * What parking a panel costs the PDF viewer, now that the rasterized pages survive it.
  *
- * A panel that parks by *closing* — `Overlay` gates its portal on `open` — unmounts its
+ * A panel that parks by *closing* (`Overlay` gates its portal on `open`) unmounts its
  * children, `PdfViewer` among them. Every park/unpark round trip therefore rebuilds the viewer
  * subtree, and before `pdf-viewer-document-cache.ts` it also re-fetched the PDF and
  * re-rasterized every page, with the reader watching the scan restart from its skeleton. These
  * bars measure what is left of that:
  *
  * - `react root baseline` is the harness overhead to subtract from the mount bars.
- * - `mount + unmount · resident document` is what an unpark pays now: the viewer subtree —
- *   toolbar, page Listbox, thumbnail rail, viewport — built and torn down over a document the
+ * - `mount + unmount · resident document` is what an unpark pays now: the viewer subtree
+ *   (toolbar, page Listbox, thumbnail rail, viewport) built and torn down over a document the
  *   cache already holds.
  * - `mount + unmount · pre-rendered pages` is the same subtree with `pages` supplied, which
  *   bypasses the cache read entirely. It carries the same `src` so the toolbar renders the same
  *   download/print group (it is gated on `documentSrc`), leaving the cache read as the only
- *   difference between the two — so the gap between them is what consulting the cache costs.
+ *   difference between the two, so the gap between them is what consulting the cache costs.
  *
  * **Two things a park used to redo are deliberately not benchmarked here, for different
  * reasons.** The `fetch(src)` half would be measuring someone's network: the only document this
  * repo points at is remote (the demo's `compressed.tracemonkey-pldi-09.pdf`). The rasterization
- * half *was* written against a PDF this file assembles — 551 bytes, correct xref, one US-Letter
- * page, so no fixture and no network — and pdf.js parses it here, but `page.render` threw
+ * half *was* written against a PDF this file assembles (551 bytes, correct xref, one US-Letter
+ * page, so no fixture and no network) and pdf.js parses it here, but `page.render` threw
  * `getOrInsertComputed is not a function`: the modern build of pdf.js 6 calls
  * `Map.prototype.getOrInsertComputed`, which the pinned Playwright Chromium (141) does not
  * implement. The viewer now loads the legacy build, and `pdf-viewer-open.bench.tsx` measures
  * the cold open, which is the saving that the cache gives.
  *
  * The finding is in the README (PDF viewer, Unpark of a resident document). The subtree rebuild
- * dominates, so the expensive half of an unpark is now the React tree rather than the document —
+ * dominates, so the expensive half of an unpark is now the React tree rather than the document,
  * which is the whole point of the cache. And the cache-backed path costs a little more per mount
  * than pre-supplied pages: the store subscription plus the load-guard effect, paid once per mount,
  * against the document fetch and fourteen rasterizations it replaces.
@@ -45,7 +45,7 @@ import {
 import type { PdfViewerPage } from '../../components/pdf-viewer/types'
 import { reactHost, WINDOW } from './harness'
 
-/** How many pages the document carries — the scale the highlights plan measured against. */
+/** How many pages the document carries: the scale the highlights plan measured against. */
 const PAGE_COUNT = 14
 
 /** A 1×1 transparent PNG. These bars measure the viewer's subtree, not image decode. */
@@ -116,7 +116,7 @@ describe('pdf viewer · park and unpark', () => {
 	)
 
 	// The same subtree and the same chrome, with `pages` supplied so the cache is never
-	// consulted. `src` rides along unused for the document actions — `shouldLoadFromSrc` is
+	// consulted. `src` rides along unused for the document actions: `shouldLoadFromSrc` is
 	// false whenever `pages` is set, so nothing here loads.
 	bench(
 		'mount + unmount · pre-rendered pages',

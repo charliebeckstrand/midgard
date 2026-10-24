@@ -6,14 +6,14 @@ import { categoricalPlat } from '../helpers/map-plat'
 /**
  * The keyboard cursor's stops must stay off the mount and the resize paths.
  * `cachedRegionCentroids` runs a `geoCentroid` pass over every ring in the
- * atlas — a large fraction of the cost of a county mount — and the
+ * atlas (a large fraction of the cost of a county mount) and the
  * map's three named mount optimizations exist to keep work of that size off the
  * first commit. So the plat hands the hook a closure, and the hook resolves it
  * on the first navigation key.
  *
  * The mount benchmarks cannot guard this: they warm the cross-instance caches
  * in uncounted iterations and time the steady-state remount, where the pass is
- * already paid. Only a call count shows it, which needs a module mock — so this
+ * already paid. Only a call count shows it, which needs a module mock, so this
  * suite lives in `boundary/`, which runs on forks, rather than in the
  * shared-registry `unit` project (see `test-isolation-boundary`).
  */
@@ -27,7 +27,7 @@ vi.mock('../../modules/map/engine/map-geometry/cache', async (importActual) => {
 
 describe('map centroid deferral', () => {
 	// A block body, not a concise one: `mockClear()` returns the mock, and a
-	// function returned from `beforeEach` is a teardown hook — vitest would call
+	// function returned from `beforeEach` is a teardown hook; vitest would call
 	// the mock itself, with no arguments, after every test.
 	beforeEach(() => {
 		vi.mocked(cachedRegionCentroids).mockClear()

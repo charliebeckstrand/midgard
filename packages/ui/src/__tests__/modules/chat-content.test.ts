@@ -105,7 +105,7 @@ describe('chatPartsText', () => {
 	})
 
 	it('projects an embed to nothing, so the prose around it closes up', () => {
-		// The renderer holds an embed's text — a chart ships its own data table —
+		// The renderer holds an embed's text (a chart ships its own data table)
 		// and this projection cannot reach it. A guess would put a name the reader
 		// never saw into the clipboard, the search index, and the announcement.
 		expect(chatPartsText([text('Twelve stops are late.'), embed('stops-map')])).toBe(

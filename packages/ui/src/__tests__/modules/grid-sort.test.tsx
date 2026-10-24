@@ -180,7 +180,7 @@ describe('Grid client sorting', () => {
 			/>,
 		)
 
-		// By rank (1, 2, 3), not by name — the sortFn overrides the smart default.
+		// By rank (1, 2, 3), not by name: the sortFn overrides the smart default.
 		expect(order()).toEqual(['Bea', 'Cody', 'Aaron'])
 	})
 })
@@ -355,7 +355,7 @@ describe('Grid sort header: reorder-drag hover hold', () => {
 	// While a column drag lifts and mutes its header, the sortable title must not
 	// brighten under the dragging pointer. The hold is a `[data-dragging]`-ancestor
 	// override of `fg.hover` on the sort control; assert it rides the sort button
-	// (computed `:hover` color is unreliable in tests — mirror `list.test.tsx`).
+	// (computed `:hover` color is unreliable in tests: mirror `list.test.tsx`).
 	it('holds the sortable title muted on hover under a dragging ancestor', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={(row) => row.id} reorder />)
 
@@ -392,13 +392,13 @@ describe('Grid animated sorting', () => {
 
 	const order = () => screen.getAllByRole('cell').map((cell) => cell.textContent)
 
-	// The `<tr>`s carrying a row key — the data rows, skipping the header row.
+	// The `<tr>`s carrying a row key: the data rows, skipping the header row.
 	const dataRows = () =>
 		screen.getAllByRole('row').filter((row) => row.hasAttribute('data-grid-row'))
 
 	// The layout FLIP is a browser lifecycle stubbed to a plain `<tr>` here (motion
 	// is globally mocked, CONVENTIONS §10.3); the mock surfaces the `layout` prop as
-	// `data-layout`, so these assert the synchronous seam — the opt-in still sorts,
+	// `data-layout`, so these assert the synchronous seam: the opt-in still sorts,
 	// and it reaches each row as a real `layout` marker only when enabled.
 	it('sorts, and marks every data row for the layout FLIP, when opted in', () => {
 		renderUI(
@@ -458,7 +458,7 @@ describe('Grid animated sorting', () => {
 			/>,
 		)
 
-		// Desc leads with Charlie and trails with Alice — and Alice is the very same
+		// Desc leads with Charlie and trails with Alice, and Alice is the very same
 		// `<tr>` node (moved, not remounted), the identity Framer's `layout` FLIPs.
 		expect(order()).toEqual(['Charlie', 'Bob', 'Alice'])
 

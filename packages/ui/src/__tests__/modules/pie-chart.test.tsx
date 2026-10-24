@@ -88,7 +88,7 @@ describe('PieChart', () => {
 
 		// The zero row is still named in the legend but owns no slice; pointing its
 		// entry (the pointer path sets emphasis directly, unlike focus, which rides
-		// `:focus-visible`) must not dim the real slices — it would recede the whole
+		// `:focus-visible`) must not dim the real slices: it would recede the whole
 		// pie with nothing lifted against them.
 		fireEvent.pointerEnter(items[2] as Element)
 
@@ -272,7 +272,7 @@ describe('PieChart', () => {
 		// slice stops short, so the channel between slices still reads as a slice.
 		expect(hits[0]?.getAttribute('d')).toContain('L 150 100')
 
-		// Pointing the hit layer — as a sweep across the gap would — still names
+		// Pointing the hit layer (as a sweep across the gap would) still names
 		// the slice instead of clearing the readout.
 		fireEvent.pointerMove(hits[1] as Element, { clientX: 150, clientY: 60 })
 
@@ -490,8 +490,8 @@ describe('PieChart', () => {
 	it('restricts the default pie to 16/9 inside the fullscreen dialog', () => {
 		// On the page the default pie fits its own square footprint, which in the
 		// fullscreen dialog overruns the 16/9 panel and renders clipped; the
-		// re-mounted copy reads the fullscreen flag and takes the panel's ratio —
-		// 300 / (16/9) ≈ 169 — so it holds the panel's height instead.
+		// re-mounted copy reads the fullscreen flag and takes the panel's ratio,
+		// 300 / (16/9) ≈ 169, so it holds the panel's height instead.
 		const page = renderUI(chart({ height: undefined }))
 
 		expect(page.container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 300')
@@ -566,7 +566,7 @@ describe('PieChart', () => {
 		expect(items.map((el) => el.textContent)).toEqual(['Search60%', 'Direct25%', 'Referral15%'])
 
 		// Each entry stretches full width so the column shares one edge, but its
-		// own content stays left-justified — a full-width button would otherwise
+		// own content stays left-justified: a full-width button would otherwise
 		// center a shorter row's swatch under a longer one's.
 		for (const item of items) expect(item.className).toContain('justify-start')
 
@@ -577,7 +577,7 @@ describe('PieChart', () => {
 
 		expect(panel.className).not.toContain('grid')
 
-		// The panel always follows the plot in the DOM — under the chart when
+		// The panel always follows the plot in the DOM: under the chart when
 		// stacked; a left panel reverses the container-query row instead of moving.
 		const plot = bySlot(container, 'chart-plot') as Element
 
@@ -621,7 +621,7 @@ describe('PieChart', () => {
 
 		const texts = allBySlot(container, 'chart-legend-item').map((el) => el.textContent)
 
-		// Search is off — em-dash; the survivors re-share the whole: 25/40, 15/40.
+		// Search is off: em-dash; the survivors re-share the whole: 25/40, 15/40.
 		expect(texts).toEqual(['Search—', 'Direct63%', 'Referral38%'])
 	})
 

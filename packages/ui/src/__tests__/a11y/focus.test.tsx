@@ -73,7 +73,7 @@ describe('a11y focus: restoration (dropdown family)', () => {
 		screen.getByRole('menu')
 
 		// Focus stayed on the trigger while the menu was open, so Escape closes it
-		// with the trigger still focused (WCAG 2.4.3) — no restore needed.
+		// with the trigger still focused (WCAG 2.4.3): no restore needed.
 		expect(trigger).toHaveFocus()
 
 		await user.keyboard('{Escape}')

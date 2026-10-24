@@ -5,20 +5,21 @@ import {
 	extractComments,
 	fileBreaks,
 	LIVING_MARKDOWN,
-	MODULE_ROADMAPS,
 	markdownBreaks,
+	PACKAGE_MARKDOWN,
 	RULE_DOCUMENTS,
 	scanPackage,
+	scanUnshipped,
 } from '../helpers/controlled-language'
 import { startTypeScript } from '../helpers/ts-server'
 import { uiRoot, workspaceRoot } from '../helpers/walk-source'
 
 // STE.md is the project's controlled language, and CLAUDE.md §2.5 applies it to
 // every authored statement. This test reads the breaks of the rules that a
-// reader can count, in seven shapes:
+// reader can count, in eight shapes:
 //
-//   1. Rule 10 in the comments is pinned at zero. The rule admits no judgment —
-//      "must" states a requirement and "can" states a possibility — so any site
+//   1. Rule 10 in the comments is pinned at zero. The rule admits no judgment
+//      ("must" states a requirement and "can" states a possibility) so any site
 //      is a break.
 //   2. Rule 6 in the comments is not gated. `pnpm ste:report` lists the
 //      breaks, and review decides what to fix.
@@ -31,12 +32,15 @@ import { uiRoot, workspaceRoot } from '../helpers/walk-source'
 //   6. Cadence rule 5 in the comments is pinned at zero. An em-dash in prose is
 //      always the aside that the rule bans, so any site is a break. A code span
 //      and an `@example` block are not prose, so they keep their em-dashes.
-//   7. Cadence rule 5 in the module roadmaps is pinned at zero. The other rules
-//      are not gated there.
+//   7. Cadence rule 5 in every Markdown file of the package is pinned at zero.
+//      The other rules are not gated outside the curated surface docs.
+//   8. Cadence rule 5 in the comments outside the shipped tree (the test and
+//      benchmark trees, the scripts, and the root configs) is pinned at zero.
+//      The other rules are not gated there.
 //
 // Rule 4 is deliberately absent, and the reason is worth keeping. Its two
-// halves behave differently. The descriptive half is conditional — the rule
-// permits a passive where the active voice is longer or less clear — so a count
+// halves behave differently. The descriptive half is conditional (the rule
+// permits a passive where the active voice is longer or less clear) so a count
 // of those has no correct value to reach. The instruction half is categorical
 // but empty by construction: an imperative's main verb is its first word, which
 // is active, so the only passives inside one sit in a subordinate clause that
@@ -102,10 +106,10 @@ describe('controlled-language boundary', () => {
 		).toEqual([])
 	})
 
-	it('no module roadmap sets an aside between em-dashes (STE.md cadence rule 5)', () => {
+	it('no Markdown file in the package sets an aside between em-dashes (STE.md cadence rule 5)', () => {
 		const violations: string[] = []
 
-		for (const file of MODULE_ROADMAPS) {
+		for (const file of PACKAGE_MARKDOWN) {
 			for (const item of markdownBreaks(file, readFileSync(join(uiRoot, file), 'utf8'))) {
 				if (item.rule === 'aside') violations.push(`${item.file}:${item.line}: ${item.text}`)
 			}
@@ -113,7 +117,18 @@ describe('controlled-language boundary', () => {
 
 		expect(
 			violations,
-			`em-dash aside in a module roadmap. Put the aside in its own sentence or in parentheses, or use a colon or a comma (STE.md cadence rule 5):\n${violations.join('\n')}`,
+			`em-dash aside in a Markdown file. Put the aside in its own sentence or in parentheses, or use a colon or a comma (STE.md cadence rule 5):\n${violations.join('\n')}`,
+		).toEqual([])
+	})
+
+	it('no comment outside the shipped tree sets an aside between em-dashes (STE.md cadence rule 5)', () => {
+		const violations = scanUnshipped(server).map(
+			(item) => `${item.file}:${item.line}: ${item.text}`,
+		)
+
+		expect(
+			violations,
+			`em-dash aside in a comment. Put the aside in its own sentence or in parentheses, or use a colon or a comma (STE.md cadence rule 5):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 

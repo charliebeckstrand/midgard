@@ -7,7 +7,7 @@ import { allBySlot, bySlot, getSlot, renderUI, waitFor } from '../../helpers'
  * The box-law in a real browser: a chart's aspect ratio is a preference a
  * definite-height parent clamps, not a height the drawing forces on the box. A
  * 16:9 chart in a 16:9 tile that spends height on a header is the exact overflow
- * case — the chart's own ratio would run taller than the header leaves — so the
+ * case (the chart's own ratio would run taller than the header leaves) so the
  * chart must fill what is left rather than spilling past the tile. Only computed
  * layout resolves this, so it lives here rather than in jsdom.
  */
@@ -61,7 +61,7 @@ describe('chart box-law (real browser)', () => {
 		const tileRect = tile.getBoundingClientRect()
 		const figureRect = figure.getBoundingClientRect()
 
-		// The figure fits inside the tile — its bottom never crosses the tile's.
+		// The figure fits inside the tile: its bottom never crosses the tile's.
 		expect(figureRect.bottom).toBeLessThanOrEqual(tileRect.bottom + 0.6)
 
 		// It fills most of the ~162px the header leaves rather than forcing its
@@ -70,7 +70,7 @@ describe('chart box-law (real browser)', () => {
 
 		expect(figureRect.height).toBeLessThan(tileRect.height - 30)
 
-		// The plot drew at that clamped height with real marks — not a squished sliver.
+		// The plot drew at that clamped height with real marks, not a squished sliver.
 		expect(svgHeight(container)).toBeGreaterThan(130)
 
 		expect(allBySlot(container, 'chart-bar').length).toBeGreaterThan(0)

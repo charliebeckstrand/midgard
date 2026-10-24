@@ -6,7 +6,7 @@ import { fireEvent, renderUI, screen } from '../helpers'
  * Column pinning chrome in jsdom: the sticky classes and the inline offset styles
  * the cells carry. The offsets come from the engine's size model (deterministic
  * from each column's width), so they assert here even though jsdom paints no
- * sticky layout — the real frozen behavior is covered by the browser suite.
+ * sticky layout: the real frozen behavior is covered by the browser suite.
  */
 describe('Grid column pinning', () => {
 	type Row = { id: number; name: string; email: string; status: string }
@@ -242,8 +242,8 @@ describe('Grid column pinning', () => {
 
 	it('paints a pinned header cell with the fill of the pinned body cell', () => {
 		// Regression: the pinned header kept a plain `bg.surface` (`dark:bg-zinc-900`)
-		// while the body cell already tracked the host, so on mobile — where the
-		// content block is transparent over the darker page — the frozen header stood
+		// while the body cell already tracked the host, so on mobile (where the
+		// content block is transparent over the darker page) the frozen header stood
 		// out as a box. It now shares the fill of the body cell.
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
@@ -270,7 +270,7 @@ describe('Grid column pinning', () => {
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		// The border is a 2px `::after` overlay (`after:w-0.5`) on the sticky cell, not
-		// a CSS border — a collapsed cell border would scroll away with the overflow.
+		// a CSS border: a collapsed cell border would scroll away with the overflow.
 		// Left-frozen (pinned): on the right edge, header and body.
 		expect(headCell(container, 'name')?.classList.contains('after:end-0')).toBe(true)
 
@@ -298,7 +298,7 @@ describe('Grid column pinning', () => {
 
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		// Two left-frozen columns — Name locked, Email pinned. Only the innermost
+		// Two left-frozen columns: Name locked, Email pinned. Only the innermost
 		// (Email, at the scroll boundary) carries the edge border; the outer Name does
 		// not, so the group shows one rule rather than a divider per column.
 		expect(headCell(container, 'email')?.classList.contains('after:end-0')).toBe(true)
@@ -320,7 +320,7 @@ describe('Grid column pinning', () => {
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		// Selection freezes far-left ahead of Name, but only Name (the inner boundary)
-		// carries the edge border — the selection column behind it does not.
+		// carries the edge border: the selection column behind it does not.
 		expect(headCell(container, 'name')?.classList.contains('after:end-0')).toBe(true)
 
 		expect(container.querySelector('thead th')?.classList.contains('after:end-0')).toBe(false)
@@ -381,7 +381,7 @@ describe('Grid column pinning', () => {
 
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		// With nothing pinned the checkbox column carries no sticky chrome — it sits
+		// With nothing pinned the checkbox column carries no sticky chrome: it sits
 		// inline like any column, so an ordinary grid gains no frozen boundary.
 		const selectHead = container.querySelector<HTMLElement>('thead th')
 
@@ -505,7 +505,7 @@ describe('Grid column pinning', () => {
 
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		// The pinned column carries an unpin button; the locked column never does —
+		// The pinned column carries an unpin button; the locked column never does:
 		// its freeze can't be released from the grid.
 		expect(screen.getByRole('button', { name: 'Unpin Email' })).toBeInTheDocument()
 

@@ -57,7 +57,7 @@ describe('lineGeometry', () => {
 	})
 
 	it('leaves a run at drawing resolution byte-for-byte unchanged', () => {
-		// Three points across 800px — far below the two-per-pixel threshold, so
+		// Three points across 800px: far below the two-per-pixel threshold, so
 		// decimation is a no-op and the path is exactly the undecimated one.
 		const geometry = lineGeometry([1, 2, 3], [0, 400, 800], identity, 100)
 
@@ -65,7 +65,7 @@ describe('lineGeometry', () => {
 	})
 
 	it('decimates a dense run for drawing while keeping data full-resolution', () => {
-		// 8,000 points across an 800px span is ten per pixel — far denser than the
+		// 8,000 points across an 800px span is ten per pixel: far denser than the
 		// plot can show, so the drawn path collapses to the per-column envelope.
 		const count = 8_000
 

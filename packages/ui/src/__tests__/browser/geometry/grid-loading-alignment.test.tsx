@@ -7,7 +7,7 @@ import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
  * The loading body's placeholder row against a real layout engine: every
  * skeleton cell must sit in its own column, frozen columns included. Sticky
  * positioning only resolves in a browser (jsdom paints no layout), and the
- * regression this covers is geometric — a frozen column's placeholder that
+ * regression this covers is geometric: a frozen column's placeholder that
  * doesn't stick lands under a scrolling neighbor, so the trailing column reads
  * as pushed aside while the grid loads.
  */
@@ -70,7 +70,7 @@ describe('grid loading row alignment (real browser)', () => {
 
 			const column = (head[index] as HTMLElement).getBoundingClientRect()
 
-			// Same left edge and same width as the header above it — including the
+			// Same left edge and same width as the header above it: including the
 			// right-pinned actions column, which sticks in both rows.
 			expect(placeholder.left).toBeNear(column.left, HALF_PIXEL)
 

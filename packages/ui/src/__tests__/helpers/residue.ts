@@ -46,7 +46,7 @@ import { type GlobalListener, liveGlobalListeners, watchGlobalListeners } from '
  * so the case that fails also points at the line to fix.
  *
  * Extending it exposed a trap in its own placement. Called from the setup's
- * `afterEach`, where it began, it failed eleven cases in six jsdom files — and
+ * `afterEach`, where it began, it failed eleven cases in six jsdom files, and
  * not one was a leak. Every one reclaimed its node in `onTestFinished`, which
  * is what the message below instructs, and `afterEach` runs first. So the
  * guard failed the files that obeyed the rule it enforces. No browser file
@@ -231,7 +231,7 @@ function assertNoResidue(): void {
  * setup file's `beforeEach`.
  *
  * The snapshot is taken now, and the check is registered with
- * `onTestFinished` — the one placement that reads what every other teardown
+ * `onTestFinished`: the one placement that reads what every other teardown
  * left. Measured, the order is the setup's `afterEach`, then each test's own
  * `onTestFinished` in reverse, then this. A test's `afterEach` runs earlier
  * still, so both spellings of a per-test cleanup land before the check.

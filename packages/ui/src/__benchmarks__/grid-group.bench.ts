@@ -20,7 +20,7 @@ import type { GridColumnGroup } from '../modules/grid/grid-group-types'
 import { SHIPMENT_FIELDS, type Shipment, shipments } from './fixtures'
 
 /**
- * Grouping and aggregation — the grid compute `grid-compute.bench.ts` leaves
+ * Grouping and aggregation: the grid compute `grid-compute.bench.ts` leaves
  * out, and the only part of the render hot path that is quadratic in the wrong
  * hands. A grouped body computes one aggregate per aggregated column per group,
  * each a full pass over that group's rows through the regex-heavy
@@ -44,7 +44,7 @@ const numeric = (aggFunc: (typeof AGG_FUNCS)[number]): GridColumn<Shipment> => (
 	aggFunc,
 })
 
-/** The eight shipment columns, undecorated — the set every scenario here starts from. */
+/** The eight shipment columns, undecorated: the set every scenario here starts from. */
 const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({ id, title }))
 
 /** The same eight, each reducing through `aggFunc`. */
@@ -55,7 +55,7 @@ describe('grid-aggregate · aggregateColumn (per group, per column, per render)'
 	// The decode-and-reduce pass. `count` short-circuits to `rows.length` and is
 	// the floor; every numeric reducer walks the rows through `parseNumeric`
 	// first, so they should all land together and well above it. The gap between
-	// `count` and the rest is what parsing costs — and it is paid again for every
+	// `count` and the rest is what parsing costs, and it is paid again for every
 	// aggregated column, since each decodes its own values.
 	for (const count of [100, 1_000, 10_000]) {
 		const rows = shipments(count)
@@ -73,7 +73,7 @@ describe('grid-aggregate · aggregateColumn (per group, per column, per render)'
 describe('grid-aggregate · a grouped body (20 groups × 8 columns)', () => {
 	// What a grouped render actually costs: every aggregated column reduced over
 	// every group's rows. Against one `sum` over the same total rows, the gap is
-	// the per-group, per-column repetition — the shape a shared decode pass would
+	// the per-group, per-column repetition: the shape a shared decode pass would
 	// collapse.
 	const total = 10_000
 
@@ -130,7 +130,7 @@ describe('grid-aggregate · gates and formatting', () => {
 describe('grid-row · cellValue (per cell, per render)', () => {
 	// The value resolution behind every sorted, filtered, exported, and
 	// aggregated cell. `cellValue` re-derives the accessor closure on every call;
-	// hoisting it out — as the aggregate reducers do through `columnAccessor` —
+	// hoisting it out (as the aggregate reducers do through `columnAccessor`)
 	// is the difference these two bars price, multiplied by rows × columns.
 	const row = shipments(100)[0] as Shipment
 

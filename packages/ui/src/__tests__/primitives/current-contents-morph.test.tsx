@@ -13,8 +13,8 @@ import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-res
  * it rests at `height: auto`, and that a real width-coupled drag passes through
  * with no morph and no React commit. The two cases below cannot move there, for
  * the reason that also keeps the chart frame's equality guard under jsdom. Both
- * need a resize sequence delivered on demand — a height-only frame at a fixed
- * width, then a width-coupled frame arriving mid-morph — and a real
+ * need a resize sequence delivered on demand (a height-only frame at a fixed
+ * width, then a width-coupled frame arriving mid-morph) and a real
  * `ResizeObserver` delivers what layout produces, never what a case asks for. A
  * browser attempt at the interrupt could not observe the pin reliably, so it
  * would have asserted nothing at all.

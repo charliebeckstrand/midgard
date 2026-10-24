@@ -17,7 +17,7 @@ import type { TrapCase } from './types'
  * Trap corpus: the modal Overlay family, each behind a `Disclosure` trigger so
  * the gate can drive the full open → Tab-wrap → Escape → restore cycle. All
  * five route through the shared `Overlay` primitive's `<FloatingFocusManager
- * modal>`, but each case guards its own wiring of that primitive — the prop
+ * modal>`, but each case guards its own wiring of that primitive: the prop
  * plumbing a per-component regression breaks first.
  *
  * Only the floating-ui browser project can assert these

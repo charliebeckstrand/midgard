@@ -169,7 +169,7 @@ describe('LineChart', () => {
 	it('summons the tooltip off the lines when the crosshair snaps', () => {
 		const { container } = renderUI(chart({ crosshair: { x: true, y: true, snap: true } }))
 
-		// Far above both lines at W1 — a bare tooltip reads nothing here, but the
+		// Far above both lines at W1: a bare tooltip reads nothing here, but the
 		// snapping crosshair carries it to the nearest point.
 		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 62, clientY: 10 })
 
@@ -242,7 +242,7 @@ describe('LineChart', () => {
 		const bottom = dot(groups[1] as Element)
 
 		// A third of the way down the gap: nearer the top line's stop, yet past
-		// the stroke tolerance from both — the space the snap must cover.
+		// the stroke tolerance from both, the space the snap must cover.
 		const gap = bottom.y - top.y
 
 		expect(gap / 3).toBeGreaterThan(32)
@@ -254,7 +254,7 @@ describe('LineChart', () => {
 		expect(groups[1]?.getAttribute('class')).toContain('opacity-25')
 
 		// Past the midpoint between the stops, both the emphasis and the tooltip
-		// anchor hand over to the other series' point — the tooltip re-anchors
+		// anchor hand over to the other series' point: the tooltip re-anchors
 		// ahead of the pointer, so it can never be caught.
 		fireEvent.pointerMove(hit, {
 			clientX: top.x - plotX,
@@ -288,7 +288,7 @@ describe('LineChart', () => {
 		const top = { x: Number(point.getAttribute('cx')), y: Number(point.getAttribute('cy')) }
 
 		// Past the tolerance in the gap between the lines: the readout reads
-		// nothing here, so nothing isolates either — the two stay in step.
+		// nothing here, so nothing isolates either; the two stay in step.
 		fireEvent.pointerMove(hit, { clientX: top.x - plotX, clientY: top.y + 50 - plotY })
 
 		expect(groups[0]?.getAttribute('class')).not.toContain('opacity-25')
@@ -339,7 +339,7 @@ describe('LineChart', () => {
 
 		// Signups leads the value-ordered legend; churn, the dashed series, follows.
 		// Its line swatch dashes to match the stroke while the solid series stays
-		// solid — the same variant idiom the reference chips use.
+		// solid: the same variant idiom the reference chips use.
 		const [signups, churn] = allBySlot(container, 'chart-legend-item')
 
 		expect(signups?.querySelector('[data-slot="swatch"]')?.getAttribute('data-variant')).toBe(
@@ -363,8 +363,8 @@ describe('LineChart', () => {
 			}),
 		)
 
-		// The dash survives the animated path — it reveals under a wipe clip rather
-		// than the pathLength draw, which would erase it — and the markers still pop.
+		// The dash survives the animated path (it reveals under a wipe clip rather
+		// than the pathLength draw, which would erase it) and the markers still pop.
 		const dashed = allBySlot(container, 'chart-line')[1]
 
 		expect(dashed?.getAttribute('stroke-dasharray')).toBe('6 4')
@@ -433,7 +433,7 @@ describe('LineChart', () => {
 		)
 
 		// 'High' ends at 40 over 'Low' at 12, so it leads the legend though it is
-		// the second series — the switches read in the lines' visible top-down order.
+		// the second series: the switches read in the lines' visible top-down order.
 		expect(allBySlot(container, 'chart-legend-item').map((el) => el.textContent)).toEqual([
 			'High',
 			'Low',
@@ -495,7 +495,7 @@ describe('LineChart', () => {
 		const text = getSlot(container, 'tooltip-content').textContent ?? ''
 
 		// 'High' runs above 'Low', so the readout reads it first though it is the
-		// second series — the same value order the legend takes, not the declared one.
+		// second series: the same value order the legend takes, not the declared one.
 		expect(text).toContain('High')
 
 		expect(text.indexOf('High')).toBeLessThan(text.indexOf('Low'))
@@ -527,7 +527,7 @@ describe('LineChart', () => {
 		const [high, low] = allBySlot(container, 'chart-legend-item') as HTMLButtonElement[]
 
 		// 'High' leads the legend but is the second series; clicking it must strike
-		// 'High' — the series it names, keyed by its own index — and leave 'Low' on.
+		// 'High' (the series it names, keyed by its own index) and leave 'Low' on.
 		fireEvent.click(high as HTMLButtonElement)
 
 		expect(high).toHaveAttribute('aria-pressed', 'false')

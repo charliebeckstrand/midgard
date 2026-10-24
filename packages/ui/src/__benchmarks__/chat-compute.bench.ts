@@ -24,7 +24,7 @@ import { makeTranscript } from './fixtures'
  * The axis is transcript length, because every rule here rebuilds the message
  * list. A chunk arrives many times a second and each one runs `applyReplyChunk`
  * over the whole transcript, so a per-message constant is worth five thousand
- * of itself in a long conversation — that is the claim these benches price.
+ * of itself in a long conversation: that is the claim these benches price.
  *
  * Node env, no DOM. The fixtures are LCG-seeded, so a run-to-run difference is
  * the code rather than the prose.
@@ -51,7 +51,7 @@ const CHART: ChatPart[] = [{ kind: 'embed', id: 'e1', name: 'stops-trend', data:
 describe('chat-transcript · applyReplyChunk (per streamed chunk)', () => {
 	// The one transform on the streaming hot path. It maps the whole list to
 	// reach one reply, so its cost is the transcript's length rather than the
-	// reply's — the number that decides whether a long conversation streams as
+	// reply's: the number that decides whether a long conversation streams as
 	// smoothly as a short one.
 	for (const { label, messages } of STREAMING) {
 		bench(`${label} · string chunk`, () => {
@@ -86,7 +86,7 @@ describe('chat-transcript · the send path (once per send)', () => {
 	}
 
 	// Runs in the `finally` of every send, not only one that ran a step, so the
-	// number that matters is this one — a reply of prose, where the rule finds
+	// number that matters is this one: a reply of prose, where the rule finds
 	// its reply and returns the transcript by reference without walking content.
 	for (const { label, messages } of STREAMING) {
 		bench(`${label} · failReplyTools (nothing to settle)`, () => {

@@ -8,11 +8,11 @@ import { renderUI, waitFor } from '../../helpers'
  * Real-browser check that toggling `ready` holds the reveal's box to the pixel,
  * whichever way the placeholder is mis-sized. The content layer stays live in
  * flow and the placeholder rides out of flow over it, so the real content sizes
- * the box in both states — a skeleton drawn shorter or taller than the content
+ * the box in both states: a skeleton drawn shorter or taller than the content
  * moves nothing. Two silhouettes bracket both directions: `HeadingSkeleton` is
  * sized to its font, standing shorter than the real `Heading`'s line box;
  * `TextareaSkeleton` stands a couple of pixels taller than the real `Textarea`.
- * jsdom can't measure this — it reports zero-size boxes.
+ * jsdom can't measure this: it reports zero-size boxes.
  */
 describe('ReadyReveal layout shift (real browser)', () => {
 	const getRoot = (container: HTMLElement) => {

@@ -114,7 +114,7 @@ describe('a11y focus trap (real browser): date picker input mode', () => {
 		expect(screen.getByRole('button', { name: 'Close calendar' })).toBeInTheDocument()
 
 		// Modal semantics hold for the rest of the page: the sibling button is
-		// still marked away from AT (text query — aria-hidden empties its
+		// still marked away from AT (text query; aria-hidden empties its
 		// computed accessible name).
 		const outside = screen.getByText('Outside').closest('button') as HTMLElement
 

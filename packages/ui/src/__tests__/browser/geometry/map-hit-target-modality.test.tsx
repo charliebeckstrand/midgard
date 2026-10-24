@@ -30,7 +30,7 @@ function measureRadius(element: Element) {
  *
  * The relations between the two radii, and which dots earn the narrower one, are
  * pinned in jsdom (`modules/map-hit-target`); this file says what only a browser
- * can — so every case here puts something under the dot that the narrower target
+ * can, so every case here puts something under the dot that the narrower target
  * is for.
  */
 describe('dot hit target by pointer modality', () => {
@@ -48,7 +48,7 @@ describe('dot hit target by pointer modality', () => {
 		// The attribute is the fallback a browser without CSS `r` keeps.
 		expect(hit.getAttribute('r')).toBe(String(POINT_HIT_RADIUS))
 
-		// The used value is what hit-testing reads — and what the class sets.
+		// The used value is what hit-testing reads, and what the class sets.
 		// `SVGCircleElement.r.baseVal` reflects the attribute, so it cannot say this.
 		// It is the share the catchment spares: past what the dot draws, and short of
 		// the reach the attribute carries.
@@ -92,7 +92,7 @@ describe('dot hit target by pointer modality', () => {
 
 		// Probed off the budget the depot actually took rather than off fixed
 		// offsets, so the case reads the boundary between the two marks wherever the
-		// zone's own measure puts it — which is the thing under test.
+		// zone's own measure puts it, which is the thing under test.
 		const used = Number.parseFloat(getComputedStyle(dot).r)
 
 		expect(used).toBeLessThan(POINT_HIT_RADIUS)
@@ -118,7 +118,7 @@ describe('dot hit target by pointer modality', () => {
 	it('sizes a summary’s target to the summary rather than to what the zone spares', () => {
 		const { container } = renderUI(
 			// Two stops ~4px apart, so they merge into one summary at the first grade,
-			// on a 60 km yard narrower on the frame than the summary drawn over it —
+			// on a 60 km yard narrower on the frame than the summary drawn over it,
 			// so the floor is what decides the size and a browser can read it.
 			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
 				<MapGeofence label="Yard" at={[8, 5]} radius={60_000} />
@@ -153,8 +153,8 @@ describe('dot hit target by pointer modality', () => {
 
 		zoomToCeiling(plot, () => radii.push(measureRadius(dot)))
 
-		// The target grows with the zone under it — a catchment eight times as wide
-		// on screen has eight times the room to spare — and stops at the reach a
+		// The target grows with the zone under it (a catchment eight times as wide
+		// on screen has eight times the room to spare) and stops at the reach a
 		// finger takes, which is the ceiling on every dot at every scale.
 		expect(Math.max(...radii)).toBeLessThanOrEqual(POINT_HIT_RADIUS + 0.1)
 
@@ -171,7 +171,7 @@ describe('dot hit target by pointer modality', () => {
 		const { container } = renderUI(
 			// Two stops 0.14° apart: merged at rest in a 400px frame, and separated by
 			// the 8× ceiling. Marks merge by a device-pixel distance, so a pair that has
-			// just parted always sits about 14px apart — however far in the view sits.
+			// just parted always sits about 14px apart: however far in the view sits.
 			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} zoom>
 				<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [15.14, 5] }]} />
 			</MapPlat>,
@@ -187,7 +187,7 @@ describe('dot hit target by pointer modality', () => {
 		expect(targets).toHaveLength(2)
 
 		// A scaling target was 43.8px per dot across a 14.9px gap, so each one covered
-		// the other's center and the topmost took both readouts — the zoom handed the
+		// the other's center and the topmost took both readouts: the zoom handed the
 		// reader two stops and one of them answered to nothing. The pair earns the
 		// narrow target on each other rather than on a zone: a neighbor that close
 		// is the whole reason a dot gives its reach back.

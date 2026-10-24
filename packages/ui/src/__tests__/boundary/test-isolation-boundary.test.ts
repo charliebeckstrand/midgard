@@ -85,8 +85,8 @@ const testsDir = join(srcDir, '__tests__')
 // rest run on forks.
 const SHARED_REGISTRY_SKIP = new Set(['boundary', 'browser', 'setup'])
 
-// The `unit` project's whole test tree — not only `*.test.*`, since a mock in a
-// helper reaches the same registry — the docs suites it also runs, the
+// The `unit` project's whole test tree (not only `*.test.*`, since a mock in a
+// helper reaches the same registry) the docs suites it also runs, the
 // `boundary` project's own files, and the browser suite, whose instances
 // share one page each (`isolate: false` in vitest.browser.config.ts). Its
 // per-instance doubles live in a `setup/` directory at either depth, which
@@ -903,8 +903,8 @@ describe('test isolation boundary', () => {
 			.split(/name: '/)
 			.slice(1)
 			// Anchored to the option, not to prose: the comment above `isolate` in
-			// each project names the option too, and an unanchored test matches it
-			// — which passes green with the option itself deleted.
+			// each project names the option too, and an unanchored test matches it,
+			// which passes green with the option itself deleted.
 			.filter((block) => /^\s*isolate: false/m.test(block))
 			.map((block) => block.slice(0, block.indexOf("'")))
 

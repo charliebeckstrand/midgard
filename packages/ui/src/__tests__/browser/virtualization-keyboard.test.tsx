@@ -14,16 +14,16 @@ import { renderUI, screen, stubMatchMedia, waitFor } from '../helpers'
 /**
  * Keyboard-complete virtualization (real browser). `VirtualOptions` renders
  * only a windowed subset of a large option list; these assert that keyboard
- * navigation still reaches options outside that window — the gap this
- * workstream closes — rather than stopping at the rendered edge. Real layout
+ * navigation still reaches options outside that window (the gap this
+ * workstream closes) rather than stopping at the rendered edge. Real layout
  * is required: jsdom's zero-size scroll container renders zero rows, so there
  * is no window edge to test against (see `virtualization.test.tsx`).
  *
  * Neither `Combobox` nor `CommandPalette` enables roving type-ahead (their
- * input owns typing as a filter query, not a listbox jump — see
+ * input owns typing as a filter query, not a listbox jump: see
  * `use-a11y-roving.test.tsx` for type-ahead-over-an-indexed-source coverage);
  * arrow reachability is the gap that matters for them. ArrowUp from an empty
- * highlight wraps straight to the last item — the sharpest one-keystroke
+ * highlight wraps straight to the last item: the sharpest one-keystroke
  * demonstration that navigation reaches far outside the rendered window,
  * without needing thousands of individual key presses.
  */
@@ -126,7 +126,7 @@ describe('CommandPalette + VirtualOptions: arrow reaches an item outside the win
 				</button>
 				<CommandPalette open={open} onOpenChange={setOpen} triggerShortcut={false}>
 					{/* Unlike Combobox/Listbox, whose panel already carries a fixed
-				    max-height, CommandPalette's DialogBody sizes to its content —
+				    max-height, CommandPalette's DialogBody sizes to its content:
 				    it needs an explicit, definite-height scrollable wrapper to
 				    virtualize (a max-height alone has no floor to break the
 				    circularity: 0 content -> 0 height -> 0 rendered rows). */}

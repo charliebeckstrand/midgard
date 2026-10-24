@@ -261,8 +261,8 @@ describe('printRows', () => {
 
 	// The frame lifecycle itself is `printInHiddenFrame`'s, and `print-frame.test.ts`
 	// drives it. What is the grid's own is the pair below: `srcdoc` above, and no
-	// `onFail` here. The remaining arm of that gate — a blocked `print()`
-	// propagating rather than being swallowed — is not assertable in jsdom, which
+	// `onFail` here. The remaining arm of that gate (a blocked `print()`
+	// propagating rather than being swallowed) is not assertable in jsdom, which
 	// turns a throwing listener into an unhandled error the runner fails on.
 	it('wires no new-tab fallback, but the frame is still reclaimed', () => {
 		const open = vi.spyOn(window, 'open').mockImplementation(() => null)

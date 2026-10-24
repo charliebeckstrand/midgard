@@ -8,16 +8,16 @@ import { persistentTree } from './harness'
 
 /**
  * Resize cost for the chart module. A window drag delivers one
- * `ResizeObserver` notification per frame, and a chart tracks them live —
+ * `ResizeObserver` notification per frame, and a chart tracks them live:
  * each changed width is one bounded geometry rebuild of that chart alone. So
  * `burst of 60` against `single notification` scales with the burst by
  * design; what must NOT appear is amplification around the charts. The
- * tab-hosted scenario is the docs-page shape — charts inside the fading tab
- * surface, whose height tracker observes the panels — and its burst must
+ * tab-hosted scenario is the docs-page shape (charts inside the fading tab
+ * surface, whose height tracker observes the panels) and its burst must
  * cost no more than its charts' bare bursts summed: the host itself holds
  * `height: auto` through width-coupled resizes and re-renders nothing. When
  * the hosted burst outruns that sum, the host is cascading per notification
- * again — the regression this bench exists to smoke out.
+ * again: the regression this bench exists to smoke out.
  */
 
 type StubInstance = {
@@ -69,7 +69,7 @@ function driveScenario(container: HTMLElement) {
 			Object.defineProperty(plot, 'clientWidth', { value: width, configurable: true })
 		}
 
-		// One act per frame, all observers inside it — the browser delivers every
+		// One act per frame, all observers inside it: the browser delivers every
 		// observation in a single step, then React flushes.
 		act(() => {
 			for (const observer of mine) {

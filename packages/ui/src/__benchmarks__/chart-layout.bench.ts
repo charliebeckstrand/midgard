@@ -19,7 +19,7 @@ import { makeDatedTrend, makeTrend } from './browser/fixtures'
  * The chart layer between the scales and the marks: axis layout, tick
  * formatting, date detection, and the pointer hit test. `chart-scale` and
  * `chart-geometry` bench the numbers going in and the paths coming out; this
- * one benches what decides where they go — the pass every mount and every
+ * one benches what decides where they go: the pass every mount and every
  * resize frame runs before a single mark is built, plus the scan every pointer
  * move runs after.
  *
@@ -74,7 +74,7 @@ describe('chart-layout · cartesian layout (every mount, every resize frame)', (
 	}
 
 	// A five-series chart pools every series into the domain and carries five
-	// snap-point projections per category — the multi-series mount's real shape.
+	// snap-point projections per category: the multi-series mount's real shape.
 	const wide = layoutInput(1_000, 5)
 
 	bench('1,000 categories × 5 series · vertical', () => {
@@ -95,7 +95,7 @@ describe('chart-layout · thinned (band label fit)', () => {
 })
 
 describe('chart-layout · buildValueTicks (Intl format per tick)', () => {
-	// Cheap by tick count — five or six — but each label runs the caller's
+	// Cheap by tick count (five or six) but each label runs the caller's
 	// formatter, and a chart resolves ticks for both value axes on every layout.
 	const scale = linearScale({
 		values: makeTrend(1_000, 1).values.flat(),
@@ -126,7 +126,7 @@ describe('chart-layout · buildValueTicks (Intl format per tick)', () => {
 describe('chart-time · dateCategoryFormat (the are-these-dates probe)', () => {
 	// Runs once per mount over every category. The non-date axis is the common
 	// case and exits on its first value; the all-dates axis parses every one.
-	// The gap between them is what the early exit saves — and the all-dates bar
+	// The gap between them is what the early exit saves, and the all-dates bar
 	// is what a date-keyed chart still pays, unmeasured until now.
 	const labels = makeTrend(10_000, 1).categories
 
@@ -149,7 +149,7 @@ describe('chart-time · dateCategoryFormat (the are-these-dates probe)', () => {
 
 		// What the probe answering "yes" commits the mount to. `resolveCategories`
 		// labels every row through the resolved formatter, and each call parses the
-		// value again and formats it through `Intl` — the axis then thins to a dozen
+		// value again and formats it through `Intl`: the axis then thins to a dozen
 		// labels, but the gutter estimate measures all of them, so the whole array
 		// is built. The probe above is the smaller half of a date axis's cost.
 		const format = dateCategoryFormat(allDates)
@@ -248,7 +248,7 @@ describe('chart-hit-test · nearestSeriesLine (every pointer move)', () => {
 		})
 
 		// Off every line: no candidate ever beats the tolerance, so the scan pays
-		// its full length with nothing to short-circuit on — the worst case, and
+		// its full length with nothing to short-circuit on, the worst case, and
 		// the one a pointer in the plot's empty upper corner actually hits.
 		bench(`${label} · miss`, () => {
 			nearestSeriesLine(seriesRuns, WIDTH / 2, -500)

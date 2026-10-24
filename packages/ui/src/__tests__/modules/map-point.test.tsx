@@ -12,7 +12,7 @@ describe('MapPoint', () => {
 		const dot = bySlot(container, 'map-point')
 
 		// A solid dot: a zero-length round cap in the slot color, whose width is the
-		// dot's own diameter converted to frame units — one to one at the fit.
+		// dot's own diameter converted to frame units, one to one at the fit.
 		expect(dot?.getAttribute('class')).toContain('stroke-blue-600')
 
 		expect(dot?.getAttribute('stroke-width')).toBe(String(POINT_RADIUS * 2))

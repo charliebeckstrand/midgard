@@ -141,7 +141,7 @@ describe('Grid master-detail', () => {
 			/>,
 		)
 
-		// Devon is a Manager — no toggle; the others have one.
+		// Devon is a Manager: no toggle; the others have one.
 		expect(screen.queryByRole('button', { name: /details for row 3/ })).toBeNull()
 
 		expect(screen.getByRole('button', { name: 'Expand details for row 1' })).toBeInTheDocument()
@@ -193,7 +193,7 @@ describe('Grid master-detail', () => {
 		await user.click(screen.getByRole('button', { name: 'Expand details for row 1' }))
 
 		// Reduced motion drops the transition, so the track has nothing to prime and
-		// opens in the commit the toggle lands in — no wake, no second pass.
+		// opens in the commit the toggle lands in: no wake, no second pass.
 		expect(track()).toHaveAttribute('data-open')
 
 		await user.click(screen.getByRole('button', { name: 'Collapse details for row 1' }))

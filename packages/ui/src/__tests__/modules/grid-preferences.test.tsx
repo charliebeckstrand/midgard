@@ -4,7 +4,7 @@ import { fireEvent, renderUI, screen } from '../helpers'
 
 /**
  * The consolidated `preferences` snapshot seeds every column dimension's initial
- * state in one prop — order, hidden, sizing, pins — equivalent to setting each
+ * state in one prop (order, hidden, sizing, pins) equivalent to setting each
  * binding's `defaultValue`, and applied at first render so it lands server-side
  * (no post-mount reflow). An explicit per-binding value/defaultValue wins over
  * the snapshot for that dimension.
@@ -74,7 +74,7 @@ describe('Grid preferences', () => {
 		)
 
 		// The fixed-layout <colgroup> renders the seeded width (autosize doesn't run
-		// in jsdom, so this is the pure engine seed — SSR would paint the same).
+		// in jsdom, so this is the pure engine seed: SSR would paint the same).
 		const cols = container.querySelectorAll('colgroup col')
 		const nameCol = Array.from(cols).find((c) => (c as HTMLElement).style.width === '240px')
 
@@ -141,7 +141,7 @@ describe('Grid preferences', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Auto-size all columns' }))
 
-		// No confirmation — the action runs (and saves the widths it sets).
+		// No confirmation: the action runs (and saves the widths it sets).
 		expect(screen.queryByText('Auto-size all columns?')).not.toBeInTheDocument()
 	})
 

@@ -109,7 +109,7 @@ describe('chart textures', () => {
 
 	it('centers the axis-aligned lines in their legend swatches', () => {
 		// Four series map to slots blue, orange, violet, green (k.order): the two
-		// diagonals, then the vertical- and horizontal-line textures — the slots
+		// diagonals, then the vertical- and horizontal-line textures, the slots
 		// whose swatches must read as one line down / across the box's center.
 		const { container } = renderUI(
 			<BarChart

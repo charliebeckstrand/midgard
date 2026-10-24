@@ -4,7 +4,7 @@ import { getSlot, renderUI, screen } from '../../helpers'
 
 /**
  * `ReadyReveal`'s content layer is a plain block `div`, so **an inline-level child sits in a line
- * box and a block-level one does not** — which decides whether the reveal is the height of what
+ * box and a block-level one does not**, which decides whether the reveal is the height of what
  * it holds.
  *
  * Not a hypothetical. The AP review bar puts three controls on one row, two of them inside a
@@ -15,15 +15,15 @@ import { getSlot, renderUI, screen } from '../../helpers'
  * controls are `flex w-fit` rather than `inline-flex`, and this is the fact it depends on.
  *
  * Pinned here rather than there because it is a property of this primitive, and because only the
- * real browser can see it — jsdom reports no line boxes at all, so the app's jsdom suite would
+ * real browser can see it: jsdom reports no line boxes at all, so the app's jsdom suite would
  * pass either way.
  *
  * **The first case pins a limitation, not a desirable property.** Blockifying the content layer
  * (making it `grid` or `flex`) would fix this for every consumer and is the better end state; it
  * is unmade only because it changes the height of every reveal in the app holding an inline
  * child, which wants its own change and its own look at those call sites. Whoever makes it should
- * change the first case below to expect equality — the invariant the primitive's own comment
- * claims — and drop `flex w-fit` from `review-bar.tsx`, not work around this test.
+ * change the first case below to expect equality (the invariant the primitive's own comment
+ * claims) and drop `flex w-fit` from `review-bar.tsx`, not work around this test.
  */
 
 /** A 20px-tall control, at a type step shorter than the 24px line-height it will inherit. */

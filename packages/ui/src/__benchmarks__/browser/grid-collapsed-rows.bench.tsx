@@ -1,13 +1,13 @@
 /**
  * What resting a grouped grid's collapsed leaf rows in `<Activity mode="hidden">`
- * saves on the visible commit — and where the boundary has to sit for the saving
+ * saves on the visible commit, and where the boundary has to sit for the saving
  * to be real.
  *
  * A grouped body stands virtualization down, so every leaf of every group is
  * mounted whatever its group's expansion, and a body-wide update re-renders the
  * collapsed ones alongside the visible few. A hidden Activity does not delete
- * that work — its children still render, at a lower priority, and their DOM
- * still catches up — but it moves the work off the synchronous commit, so what
+ * that work (its children still render, at a lower priority, and their DOM
+ * still catches up) but it moves the work off the synchronous commit, so what
  * the user waits on is the expanded rows alone.
  *
  * `flushSync` is therefore the measurement: it returns when the visible commit
@@ -15,16 +15,16 @@
  *
  * The two rested bars differ only in where the boundary sits, which is the whole
  * point. React defers what is *below* an Activity and nothing above it, so a row
- * that wraps its own `<tr>` — `RowInside`, the shape a row component reaches for
- * first — still runs its body on the visible commit: the props object, the class
+ * that wraps its own `<tr>` (`RowInside`, the shape a row component reaches for
+ * first) still runs its body on the visible commit: the props object, the class
  * join, the per-column element map. Only its children's fibers are deferred.
- * Hoisting the boundary above the row body — `RowAbove`, a hold shell around a
- * separate body component — is what actually takes the row off the commit.
+ * Hoisting the boundary above the row body (`RowAbove`, a hold shell around a
+ * separate body component) is what actually takes the row off the commit.
  *
  * Shaped after the module's grouped body rather than importing it: `Grid` owns
  * the engine, the column model, and the reveal recipe, none of which this
  * measures. The per-row work below stands in for what a real leaf row does
- * before it returns — enough of it that the two boundaries are distinguishable.
+ * before it returns: enough of it that the two boundaries are distinguishable.
  */
 
 import { Activity, Fragment, useState } from 'react'
@@ -178,14 +178,14 @@ describe('grid · grouped body · collapsed-row update', () => {
 	// the synchronous commit, which is what the module did before the hold.
 	bench('collapsed rows live', () => live(), WINDOW.settled)
 
-	// Held, but from inside the row — the 475 collapsed row bodies still run.
+	// Held, but from inside the row: the 475 collapsed row bodies still run.
 	bench('rested · boundary inside the row', () => restedInside(), WINDOW.settled)
 
 	// Held from above the row body, which is what actually defers it.
 	bench('rested · boundary above the row', () => restedAbove(), WINDOW.settled)
 
 	// The ceiling: every group open, so nothing can be deferred. Against
-	// `collapsed rows live` it shows what collapsing bought before the hold —
+	// `collapsed rows live` it shows what collapsing bought before the hold:
 	// nothing, since a zero-height row still renders.
 	bench('all expanded · live', () => allExpandedLive(), WINDOW.settled)
 

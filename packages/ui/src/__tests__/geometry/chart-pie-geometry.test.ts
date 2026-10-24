@@ -172,7 +172,7 @@ describe('pieSlices', () => {
 		const [first] = pieSlices([1, 1, 1, 1], { ...FRAME, pad: 6 })
 
 		// The visible wedge stops at its knife-cut tip short of the middle; the hit
-		// wedge has no gap, so it runs its straight edges to the exact center —
+		// wedge has no gap, so it runs its straight edges to the exact center:
 		// claiming the slice's half of every channel, no dead zone in the gap.
 		expect(first?.hit).toContain(`L ${FRAME.cx} ${FRAME.cy}`)
 
@@ -344,7 +344,7 @@ describe('pieCalloutFit', () => {
 		})
 
 		// Each callout's far edge: past its nub by the label's own width, outward
-		// from center on its side — 0 at the left frame edge, `frameWidth` at right.
+		// from center on its side; 0 at the left frame edge, `frameWidth` at right.
 		const farEdges = callouts.map((callout) => {
 			const extent = (texts[callout.index]?.length ?? 0) * CALLOUT_CHAR_WIDTH
 
@@ -355,7 +355,7 @@ describe('pieCalloutFit', () => {
 
 		expect(Math.min(...farEdges)).toBeNear(0, COORDINATE_TOLERANCE)
 
-		// Not every label reaches an edge — only the widest-reaching one per side.
+		// Not every label reaches an edge, only the widest-reaching one per side.
 		expect(farEdges.some((edge) => edge > 5 && edge < frameWidth - 5)).toBe(true)
 	})
 

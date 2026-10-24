@@ -8,14 +8,14 @@ import { FIXTURE_GEOJSON } from '../helpers/map-geography'
  * A zooming plat still answers a pick, in a real browser.
  *
  * Only a browser can say this. The plot takes pointer capture to track a pan,
- * and a captured pointer retargets its own `pointerup` — and the `click` the
- * down/up pair produces — to the capturing element. Capture taken on contact
+ * and a captured pointer retargets its own `pointerup` (and the `click` the
+ * down/up pair produces) to the capturing element. Capture taken on contact
  * therefore routes every click to the plot itself, and no region or mark ever
  * sees one: the map draws, hovers, and zooms exactly as before, and silently
  * stops opening anything.
  *
- * The input has to be the browser's own — `userEvent` from `vitest/browser`,
- * which drives Playwright — not the DOM-synthesizing library of the same name.
+ * The input has to be the browser's own (`userEvent` from `vitest/browser`,
+ * which drives Playwright) not the DOM-synthesizing library of the same name.
  * A synthesized click is dispatched straight at its target, so the retarget the
  * real engine performs never happens and the case passes against the break. That
  * blind spot is shared with jsdom, where `setPointerCapture` is a stub, and it is
@@ -78,7 +78,7 @@ describe('picking a zooming map', () => {
 		const box = plot.getBoundingClientRect()
 
 		// Well past the pan threshold, so the press is a pan rather than a shaky
-		// pick — which is the whole distinction the click suppression rests on.
+		// pick, which is the whole distinction the click suppression rests on.
 		await userEvent.dragAndDrop(plot, plot, {
 			sourcePosition: { x: 40, y: 40 },
 			targetPosition: { x: box.width - 40, y: box.height - 40 },

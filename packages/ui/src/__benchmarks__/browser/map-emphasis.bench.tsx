@@ -1,6 +1,6 @@
 /**
  * Legend-emphasis cost on a live map: one iteration emphasizes the first
- * category — every region outside it recedes — settles two frames, releases,
+ * category (every region outside it recedes) settles two frames, releases,
  * and settles again. The iteration sends real pointer events to the legend
  * chip of the ui switchboard.
  */

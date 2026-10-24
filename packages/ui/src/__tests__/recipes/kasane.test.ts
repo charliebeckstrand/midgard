@@ -9,7 +9,7 @@ describe('kasane.layers', () => {
 	// stay transparent to pointer events; otherwise the `::before`/`::after`
 	// (which belong to the frame) intercept clicks and cursors meant for the
 	// non-positioned affix slots below them. The leak is light-mode only because
-	// `surface.default` hides `::before` in dark mode — see layers.ts.
+	// `surface.default` hides `::before` in dark mode: see layers.ts.
 	it('keeps the inset fill from capturing pointer events', () => {
 		expect(layers.join(' ')).toContain('before:pointer-events-none')
 	})

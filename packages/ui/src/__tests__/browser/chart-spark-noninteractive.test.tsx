@@ -9,14 +9,14 @@ import { allBySlot, bySlot, getSlot, renderUI, waitFor } from '../helpers'
 /**
  * A sparkline is non-interactive. At the spark tier a chart draws bare marks and
  * mounts none of the pointer chrome: no hit layer over the plot, and so no
- * crosshair or tooltip — both driven by the hover the hit layer feeds — and the
+ * crosshair or tooltip (both driven by the hover the hit layer feeds) and the
  * keyboard is already off at spark. Scatter, bubble, and the heatmap also shed
  * the x/y value labels the wider tiers carry, which the cartesian charts already
  * dropped through their axis gate. The frame owns all of it: it renders the
- * drawing pointer-inert — no mark hover styling or reference-rule pointer can
- * engage — and publishes the tier so the interactive layers stand themselves
- * down. Hit testing and hover engagement are computed-layout facts — the tier
- * resolves from the measured box — so this rides the real browser the way the
+ * drawing pointer-inert (no mark hover styling or reference-rule pointer can
+ * engage) and publishes the tier so the interactive layers stand themselves
+ * down. Hit testing and hover engagement are computed-layout facts (the tier
+ * resolves from the measured box) so this rides the real browser the way the
  * tier anatomy does.
  */
 describe('spark tier is non-interactive (real browser)', () => {
@@ -83,7 +83,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 		expect(allBySlot(container, 'chart-bar').length).toBeGreaterThan(0)
 
-		// No hit layer, so the pointer feeds no hover — the crosshair and tooltip that
+		// No hit layer, so the pointer feeds no hover: the crosshair and tooltip that
 		// ride it can never draw.
 		expect(bySlot(container, 'chart-hit')).toBeNull()
 
@@ -180,7 +180,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 	// One category, so the lone bar spans the chart's own center: hovering the
 	// chart root parks the pointer on the bar's pixels without aiming. `tooltip`
-	// off and no crosshair, so no hit rect covers the marks at either tier — the
+	// off and no crosshair, so no hit rect covers the marks at either tier: the
 	// only difference between the pair is the spark pointer veto.
 	const ONE_BAR = [{ month: 'January', revenue: 60_000 }]
 
@@ -225,10 +225,10 @@ describe('spark tier is non-interactive (real browser)', () => {
 		expect(box.bottom).toBeGreaterThan(point.y)
 
 		// Hovering the chart, not the mark: the drawing is pointer-inert here, so
-		// the mark could never take the pointer to begin with — which is the point.
+		// the mark could never take the pointer to begin with, which is the point.
 		await userEvent.hover(root)
 
-		// The pointer arrived — the root reads :hover — yet the inert mark never
+		// The pointer arrived (the root reads :hover) yet the inert mark never
 		// does, and with no hit layer to feed it, nothing lights the bar either.
 		await waitFor(() => expect(root.matches(':hover')).toBe(true))
 
@@ -247,7 +247,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 		expect(lifted(container)).toBe(false)
 
 		// The hit layer covers the plot and takes the pointer, so the hover goes
-		// through it — aimed at the bar's own center, so that bar is the pointed
+		// through it: aimed at the bar's own center, so that bar is the pointed
 		// datum rather than a neighbor.
 		const barBox = mark.getBoundingClientRect()
 
@@ -282,7 +282,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 		const rule = getSlot(container, 'chart-reference-line')
 
-		// The rule still draws — spark strips interactivity, not the ink — but as
+		// The rule still draws (spark strips interactivity, not the ink) but as
 		// the bare stroke alone: no transparent hit line widens it into a target.
 		expect(rule.querySelectorAll('line')).toHaveLength(1)
 
@@ -294,7 +294,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 		await waitFor(() => expect(root.matches(':hover')).toBe(true))
 
-		// Pointing where the rule sits recedes no marks — the hover rendering, whose
+		// Pointing where the rule sits recedes no marks: the hover rendering, whose
 		// pointer-enter drives that emphasis (and the tooltip), never mounted.
 		const marks = getSlot(container, 'chart-marks')
 
@@ -309,8 +309,8 @@ describe('spark tier is non-interactive (real browser)', () => {
 		// The hover rendering: the drawn stroke under its wide transparent hit line.
 		expect(rule.querySelectorAll('line')).toHaveLength(2)
 
-		// Park the pointer on the rule's row. The hover targets the plot region — an
-		// SVG <g> has no client rects, so Playwright would wait on it forever — and
+		// Park the pointer on the rule's row. The hover targets the plot region (an
+		// SVG <g> has no client rects, so Playwright would wait on it forever) and
 		// the rule's hit line wins the point as its descendant, over the hit rect the
 		// default tooltip keeps mounted beneath it. The receded marks prove the rule's
 		// pointer-enter fired; the readout it also opens rides the floating engine

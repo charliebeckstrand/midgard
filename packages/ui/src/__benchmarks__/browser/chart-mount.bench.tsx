@@ -66,7 +66,7 @@ describe('mount · heatmap · 24 × 8 cells', () => {
 	mountBenches(heatmapCharts(), makeTrend(24, 8))
 })
 
-// The same line scenarios over ISO-date categories — the time-series dashboard
+// The same line scenarios over ISO-date categories: the time-series dashboard
 // shape, and the one the plain-label scenarios above never reach. The ui module
 // probes whether all categories parse as dates and formats them through `Intl`
 // when they do, where a non-date axis exits on its first value. Held beside the

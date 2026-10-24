@@ -21,7 +21,7 @@ describe('chart legend truncation tooltip (real browser)', () => {
 	it('reveals the full label on hover when a panel entry is clipped', async () => {
 		const { container } = renderPie()
 
-		// The clipped entry (a whole switch) — hovering it, overlay and all, must
+		// The clipped entry (a whole switch): hovering it, overlay and all, must
 		// surface the tooltip, not the hidden data table's copy of the name.
 		const entry = allBySlot(container, 'chart-legend-item')[0] as HTMLElement
 

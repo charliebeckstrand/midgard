@@ -12,7 +12,7 @@ import { themeColor } from '../helpers/contrast'
  * fill, so its ink clears the non-text 3:1 floor (WCAG 1.4.11). The rule is
  * white-first: `white` wherever white clears the floor, near-black `zinc-950`
  * only where it can't. This asserts every hue's authored pick, in both modes,
- * is exactly what the `readableInk` utility derives from Tailwind's own theme —
+ * is exactly what the `readableInk` utility derives from Tailwind's own theme,
  * so a shade or palette edit that leaves a label unreadable, or that reaches
  * for dark ink where white would have held, fails here.
  */

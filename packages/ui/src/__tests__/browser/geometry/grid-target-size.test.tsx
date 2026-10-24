@@ -8,8 +8,8 @@ import { getCenter } from '../../helpers/geometry/box'
  * render a 20px glyph, under the 24x24 minimum. A centered transparent `::before`
  * expands the *hit* area without moving the glyph. Verified in a real browser
  * (the pseudo-element's hit area needs a layout engine) by probing points just
- * outside the glyph box — top, bottom, and right; the left edge sits flush to the
- * table's scroll boundary, with no adjacent target — and confirming the control is
+ * outside the glyph box (top, bottom, and right; the left edge sits flush to the
+ * table's scroll boundary, with no adjacent target) and confirming the control is
  * still the element under the pointer there.
  */
 describe('grid target size (real browser)', () => {

@@ -23,7 +23,7 @@ const compareValues = (a: unknown, b: unknown) => compareSmart(a, b, collator)
 const compareKeys = (a: SortKey, b: SortKey) => compareSortKeys(a, b, collator)
 
 // The grid's client sort runs these comparators O(n log n) times per sorted
-// column, over regex-heavy numeric parsing and a locale-aware string fallback —
+// column, over regex-heavy numeric parsing and a locale-aware string fallback:
 // pure functions with no DOM, benched in a node env (no React noise). Values are
 // drawn from the shared Shipment fixture so run-to-run variance reflects the code,
 // not the data. The barrel does not re-export the utilities, so import by path
@@ -34,7 +34,7 @@ const pool10k = shipments(10_000)
 // Column projections exercise the comparator's distinct leaves: `origin` is the
 // locale-aware string fallback (the meaningful stress), `weight` is the cheap
 // numeric subtract (the floor), `createdAt` is an ISO string that never parses
-// as a number (worst case — full decorate, then string compare).
+// as a number (worst case, full decorate, then string compare).
 const strings = (count: number) => pool10k.slice(0, count).map((row) => row.origin)
 
 const numbers = (count: number) => pool10k.slice(0, count).map((row) => row.weight)
@@ -43,8 +43,8 @@ const dates = (count: number) => pool10k.slice(0, count).map((row) => row.create
 
 describe('grid-sort · compareSmart (raw, un-decorated)', () => {
 	// The full decorate-and-compare cost per pair: compareSmart re-decorates both
-	// arguments on every call (the render path caches keys — see compareSortKeys
-	// below — this is the uncached ceiling).
+	// arguments on every call (the render path caches keys, see compareSortKeys
+	// below, so this is the uncached ceiling).
 	for (const count of [50, 1_000, 10_000]) {
 		const stringValues = strings(count)
 
@@ -62,7 +62,7 @@ describe('grid-sort · compareSmart (raw, un-decorated)', () => {
 
 describe('grid-sort · compareSortKeys (pre-decorated, render path)', () => {
 	// What the engine actually runs: values are decorated once (toSortKey), then
-	// the keys sort with no reparsing. Split by leaf — all-string keys are
+	// the keys sort with no reparsing. Split by leaf: all-string keys are
 	// localeCompare-bound, all-numeric keys are a plain subtract.
 	for (const count of [50, 1_000, 10_000]) {
 		const stringKeys: SortKey[] = strings(count).map(toSortKey)
@@ -120,7 +120,7 @@ describe('grid-sort · parseNumeric (per-value)', () => {
 // apart (see `useGridClientView`): `computeSortOrder` is the costly decode-and-sort that
 // a re-sort of unchanged rows by a seen spec reuses; `materializeSort` is the cheap
 // projection paid on every flip regardless. The ratio between them is what the
-// permutation cache trades on — a flip skips the former and pays only the latter —
+// permutation cache trades on (a flip skips the former and pays only the latter)
 // so a regression that inflates `materializeSort` (or shrinks the gap) is a
 // regression in the cache's value, caught here before the browser suite feels it.
 const stringField: SmartSortField<Shipment> = {
@@ -140,7 +140,7 @@ describe('grid-sort · sortRowsSmart split (compute vs materialize)', () => {
 		const rows = shipments(count)
 
 		// The permutation of a pre-sorted set, so `materializeSort` is benched over a
-		// real order rather than the identity — the exact array the cache hands it.
+		// real order rather than the identity: the exact array the cache hands it.
 		const order = computeSortOrder(rows, [stringField], collator)
 
 		bench(`${count.toLocaleString()} · computeSortOrder · string column (the cached half)`, () => {

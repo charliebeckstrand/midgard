@@ -5,7 +5,7 @@ import { renderUI, screen } from '../helpers'
 /**
  * The `outline` variant's cell borders. The grid draws them from its `<table>` in
  * `border-collapse: separate` mode (see `kata/grid` `outline`), not by forwarding
- * `outline` to `<Table>` — collapse-mode borders weld to the table grid and scroll
+ * `outline` to `<Table>`: collapse-mode borders weld to the table grid and scroll
  * out from under the sticky header and frozen columns, opening a seam above the
  * header and shifting a frozen column's leading rule. Separate borders ride the
  * cell, so the sticky/frozen frame holds; these assert the projection is applied
@@ -28,7 +28,7 @@ describe('Grid outline', () => {
 
 		const table = screen.getByRole('table')
 
-		// Separate, flush cells — the model that keeps sticky/frozen borders stable.
+		// Separate, flush cells: the model that keeps sticky/frozen borders stable.
 		expect(table).toHaveClass('border-separate')
 
 		expect(table).toHaveClass('border-spacing-0')

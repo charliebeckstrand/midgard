@@ -216,7 +216,7 @@ describe('Grid resizable columns', () => {
 
 	// The engine's resize handler ends only on `mouseup`. A right-click opens the
 	// context menu, which swallows that `mouseup`, so a resize begun on a
-	// right-click never ends — the column stays stuck tracking the pointer. The
+	// right-click never ends: the column stays stuck tracking the pointer. The
 	// handle starts a resize on a primary press only.
 	it('starts a resize on a primary-button press', () => {
 		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)

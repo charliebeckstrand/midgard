@@ -1,5 +1,5 @@
 /**
- * Data-refresh cost on a live grid — the polling dashboard path. Each
+ * Data-refresh cost on a live grid: the polling dashboard path. Each
  * scenario mounts the grid once (top-level await; the grid stays up for the
  * whole run) and each iteration swaps in the other of two same-id datasets,
  * so every refresh moves real cell values through stable row identities and

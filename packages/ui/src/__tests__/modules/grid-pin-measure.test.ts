@@ -45,7 +45,7 @@ describe('frozen column measurement', () => {
 		const cells = [...container.querySelectorAll('th')]
 
 		// The band row's cell carries no column id, so only the column-header row's
-		// data columns are marked — the anchor the scan resolves that row through.
+		// data columns are marked: the anchor the scan resolves that row through.
 		const headerCells = options.band ? cells.slice(1) : cells
 
 		headerCells.forEach((cell, index) => {
@@ -140,7 +140,7 @@ describe('frozen column measurement', () => {
 
 	it('accumulates only across the cells it is handed', () => {
 		// The accumulation is the pure half of the measurement, so it reads any
-		// supplied cell set — the hook hands it the scan's output.
+		// supplied cell set: the hook hands it the scan's output.
 		const cell = (width: number) =>
 			({ getBoundingClientRect: () => ({ width }) }) as unknown as HTMLElement
 

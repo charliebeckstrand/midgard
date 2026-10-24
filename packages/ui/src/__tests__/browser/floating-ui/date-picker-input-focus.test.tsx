@@ -8,7 +8,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * seize DOM focus onto the dialog container, dropping it from the editable
  * DateInput (WCAG 2.4.3). `input` mode now passes a negative `initialFocus`
  * (floating-ui's `ignoreInitialFocus`) so focus stays on the reference and the
- * grid is roved through the input's `aria-activedescendant` — the same shape as
+ * grid is roved through the input's `aria-activedescendant`: the same shape as
  * the Menu dropdown fix. Only the real engine exercises this: the jsdom mock
  * never moves focus into the trap, so the seizure it prevents can't be observed
  * there.
@@ -53,7 +53,7 @@ describe('a11y open focus (real browser): date picker input mode', () => {
 		const dialog = await screen.findByRole('dialog')
 
 		// Open-focus lands on the editable field (not the toggle, not the dialog),
-		// and the real modal manager leaves it there — the input sits inside the
+		// and the real modal manager leaves it there: the input sits inside the
 		// reference, so focus-out never fires. The user can type immediately.
 		await waitFor(() => expect(input).toHaveFocus())
 

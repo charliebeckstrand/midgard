@@ -8,7 +8,7 @@ import { frames, present, renderUI, screen, waitFor } from '../../helpers'
  *
  * `usePlotFrame` measures its own box and resolves a drawing size from it. Under
  * an aspect policy the height derives from the width, so a height-only resize
- * must change nothing and must not redraw the frame's expensive subtree — the
+ * must change nothing and must not redraw the frame's expensive subtree: the
  * render a resize is supposed to avoid. Under a fill policy the height is an
  * input, so the same resize must redraw.
  *

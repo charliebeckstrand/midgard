@@ -19,7 +19,7 @@ describe('parseNumeric', () => {
 
 		expect(parseNumeric('-$50')).toBe(-50)
 
-		// A leading decimal point and surrounding whitespace still read as numbers —
+		// A leading decimal point and surrounding whitespace still read as numbers:
 		// the fast-reject gate runs after the trim and admits a `.`-led value.
 		expect(parseNumeric('.5')).toBe(0.5)
 

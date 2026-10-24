@@ -6,7 +6,7 @@ import { renderUI, waitFor } from '../helpers'
  * The width gate, in the environment that produces the column jump.
  *
  * The gate holds the table's paint until a width pass reads real body cells. A body
- * with no data cells to read — the loading skeleton, the error slot, an empty result —
+ * with no data cells to read (the loading skeleton, the error slot, an empty result)
  * opens it at once, because that body is the state to show.
  *
  * Needs a real `ResizeObserver` and real layout, so it lives here: under jsdom the grid
@@ -27,7 +27,7 @@ describe('grid width settling (real browser)', () => {
 
 	const getKey = (row: Row) => row.id
 
-	/** The gate is a class on the table itself — see `GridData`'s width-settling comment. */
+	/** The gate is a class on the table itself: see `GridData`'s width-settling comment. */
 	const hidden = () => document.querySelector('table')?.className.includes('opacity-0') ?? null
 
 	it('shows the loading skeleton before any rows have been measured', () => {

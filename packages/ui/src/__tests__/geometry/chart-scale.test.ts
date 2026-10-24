@@ -79,7 +79,7 @@ describe('linearScale', () => {
 
 	it('reserves label headroom past an unpinned extreme, solving for the grown span', () => {
 		// Pin the floor so only the ceiling widens. The peak (97) otherwise sits
-		// 3px below the nice ceiling of 100 — too little for a ~21px label. The
+		// 3px below the nice ceiling of 100: too little for a ~21px label. The
 		// widened ceiling must leave a full 21px once the larger span is accounted
 		// for; a naive px→value pass would fall short.
 		const base = linearScale({ values: [3, 97], range: [100, 0], tickTarget: 4, min: 0 })
@@ -124,7 +124,7 @@ describe('linearScale', () => {
 		// The label placement flips a label to its point's other side when the
 		// point sits within 21px (offset + height) of the plot edge. The reserved
 		// headroom must clear that threshold with slack at EVERY size a label can
-		// render at — a reservation that only met it would leave the extreme's
+		// render at: a reservation that only met it would leave the extreme's
 		// label exactly on the flip boundary, and a live resize would dance it
 		// across, frame by frame, landing it on the line each time. Sweep the
 		// plot heights a resize passes through: past the affordability cutoff the
@@ -196,7 +196,7 @@ describe('linearScale', () => {
 
 	it('fits the domain tight to the data at the spark tier, drawing no ticks', () => {
 		// A spark scale carries no axis (`tickTarget` 0), so it fits the domain to the
-		// data extent rather than nice-stepping [3, 47] out to [0, 50] — the sparkline
+		// data extent rather than nice-stepping [3, 47] out to [0, 50]: the sparkline
 		// spans its box top to bottom instead of sinking into a band of air.
 		const scale = linearScale({ values: [3, 47], range: [100, 0], tickTarget: 0 })
 
@@ -426,7 +426,7 @@ describe('nearestBandIndex', () => {
 // same scales over a generated domain, so a tick that lands off its step
 // shrinks to the smallest series that shows it.
 //
-// The generators stay on realistic chart numbers — integers, and thousandths of
+// The generators stay on realistic chart numbers: integers, and thousandths of
 // one. A pair of subnormal doubles gives a span whose nice step underflows to
 // zero, which is a shape no chart reaches and no tick loop ends on.
 const value = () =>
