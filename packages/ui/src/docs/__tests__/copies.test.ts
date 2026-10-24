@@ -11,11 +11,13 @@ import {
 } from '../plugin/copies.ts'
 import { toDemoId } from '../plugin/demo-text.ts'
 
-// The copy of a module of `pages/` in a language has each demo text in that
+// The copy of a module of `pages/` or of `data/` in a language has each demo text in that
 // language. Each page and each tab module shows the copy in the language of
 // the reader.
 
 const PAGES = path.resolve(import.meta.dirname, '..', 'pages')
+
+const DATA = path.resolve(import.meta.dirname, '..', 'data')
 
 const FILE = path.join(PAGES, 'components', 'button', 'demo.tsx')
 
@@ -28,19 +30,22 @@ describe('the copy of a module in a language', () => {
 		expect(readLangId(FILE)).toEqual({ file: FILE })
 	})
 
-	it('points each import of a module of pages at its copy', () => {
+	it('points each import of a module of pages or of data at its copy', () => {
 		const code = [
 			"import Example from './example.tsx'",
 			"import { rows } from '../table/data.ts'",
+			"import { orderStatuses } from '../../../data/commerce.ts'",
 			"import { Button } from 'ui/button'",
 			"import { Playground } from '../../../kit/index.ts'",
 		].join('\n')
 
-		const pointed = pointImports(parse(code), code, FILE, PAGES, 'es')
+		const pointed = pointImports(parse(code), code, FILE, [PAGES, DATA], 'es')
 
 		expect(pointed).toContain(`from "./example.tsx?lang=es"`)
 
 		expect(pointed).toContain(`from "../table/data.ts?lang=es"`)
+
+		expect(pointed).toContain(`from "../../../data/commerce.ts?lang=es"`)
 
 		expect(pointed).toContain(`from 'ui/button'`)
 
@@ -85,8 +90,12 @@ describe('the copy of a module in a language', () => {
 })
 
 describe('appCatalog', () => {
-	it('drops the demo text from the catalog that the app imports', () => {
-		const catalog = JSON.stringify({ 'docs.api.default': 'Default', [toDemoId('Save')]: 'Guardar' })
+	it('drops the demo text and the data words from the catalog that the app imports', () => {
+		const catalog = JSON.stringify({
+			'docs.api.default': 'Default',
+			[toDemoId('Save')]: 'Guardar',
+			'docs.data.order-status.pending': 'Pendiente',
+		})
 
 		expect(JSON.parse(appCatalog(catalog))).toEqual({ 'docs.api.default': 'Default' })
 	})

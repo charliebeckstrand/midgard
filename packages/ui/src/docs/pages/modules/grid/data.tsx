@@ -1,6 +1,7 @@
 import { Badge } from 'ui/badge'
 import type { GridColumn } from 'ui/grid'
 import { useIntl } from 'ui/primitives/intl'
+import { words } from '../../../data/words.ts'
 
 export type Person = {
 	id: number
@@ -21,10 +22,7 @@ export const people: Person[] = [
 export const roles = ['Developer', 'Designer', 'Manager', 'Analyst']
 
 // The label of each status. The data keeps the status in lowercase.
-export const statusLabels: Record<Person['status'], string> = {
-	active: 'Active',
-	inactive: 'Inactive',
-}
+export const statusLabels = words('person-status', { active: 'Active', inactive: 'Inactive' })
 
 // The badge of a status, with its label.
 export function StatusBadge({ status }: { status: Person['status'] }) {

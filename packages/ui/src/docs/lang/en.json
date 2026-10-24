@@ -71,6 +71,14 @@
 		"defaultMessage": "Toggle sidebar",
 		"description": "The name of the button in the header that shows or hides the sidebar on a wide screen."
 	},
+	"docs.data.person-status.active": {
+		"defaultMessage": "Active",
+		"description": "A word of the demo data in the docs: the word for \"active\" in the domain \"person-status\", in modules/grid/data.tsx."
+	},
+	"docs.data.person-status.inactive": {
+		"defaultMessage": "Inactive",
+		"description": "A word of the demo data in the docs: the word for \"inactive\" in the domain \"person-status\", in modules/grid/data.tsx."
+	},
 	"docs.demo.005d0b7e5c26": {
 		"defaultMessage": "pnpm install",
 		"description": "Text of a demo in the docs, in components/code/inline-with-text.tsx, components/code/playground.tsx."
@@ -270,6 +278,10 @@
 	"docs.demo.1215ec467ba3": {
 		"defaultMessage": "Your bio is saved.",
 		"description": "Text of a demo in the docs, in components/textarea/validation.tsx."
+	},
+	"docs.demo.12296be9896d": {
+		"defaultMessage": "Uploaded {name}",
+		"description": "Text of a demo in the docs, in components/file-upload/upload-progress.tsx. The argument {name} is a value from the code."
 	},
 	"docs.demo.1254829bd999": {
 		"defaultMessage": "Release notes",
@@ -530,6 +542,10 @@
 	"docs.demo.22a970d2e5b1": {
 		"defaultMessage": "Completed",
 		"description": "Text of a demo in the docs, in providers/density/playground.tsx."
+	},
+	"docs.demo.2313fe21ea84": {
+		"defaultMessage": "Edit {name}",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/events/row-click.tsx. The argument {name} is a value from the code."
 	},
 	"docs.demo.23537df6a4c4": {
 		"defaultMessage": "Send the launch email",
@@ -891,6 +907,10 @@
 		"defaultMessage": "Billing",
 		"description": "Text of a demo in the docs, in components/menu/title-and-description.tsx, components/nav/with-content.tsx."
 	},
+	"docs.demo.3b064a935fc8": {
+		"defaultMessage": "{name} by month",
+		"description": "Text of a demo in the docs as aria-label, in modules/dashboard/widgets.tsx. The argument {name} is a value from the code."
+	},
 	"docs.demo.3ba37c617eff": {
 		"defaultMessage": "January 2026",
 		"description": "Text of a demo in the docs, in components/timeline/playground.tsx."
@@ -1018,6 +1038,10 @@
 	"docs.demo.4852dd4b95ff": {
 		"defaultMessage": "Kansas City distribution network",
 		"description": "Text of a demo in the docs as aria-label, in modules/map/route/with-markers.tsx."
+	},
+	"docs.demo.485aaef91f4d": {
+		"defaultMessage": "Counties of {name}",
+		"description": "Text of a demo in the docs as aria-label, in modules/map/county/drill-into-counties.tsx. The argument {name} is a value from the code."
 	},
 	"docs.demo.486f6390960b": {
 		"defaultMessage": "Wade Cooper",
@@ -1170,6 +1194,10 @@
 	"docs.demo.513740128f95": {
 		"defaultMessage": "GB29 NWBK 6016 1331 9268 19",
 		"description": "Text of a demo in the docs as placeholder, in components/mask-input/custom-format.tsx."
+	},
+	"docs.demo.5157cec0aa55": {
+		"defaultMessage": "Revenue by {by}",
+		"description": "Text of a demo in the docs as aria-label, in modules/dashboard/widgets.tsx. The argument {by} is a value from the code."
 	},
 	"docs.demo.518db6c298ca": {
 		"defaultMessage": "Fort Worth",
@@ -1671,6 +1699,10 @@
 		"defaultMessage": "Send invite",
 		"description": "Text of a demo in the docs, in modules/form/playground.tsx."
 	},
+	"docs.demo.76faaef2da50": {
+		"defaultMessage": "Notification {next}",
+		"description": "Text of a demo in the docs as title, in components/toast/max-toasts.tsx. The argument {next} is a value from the code."
+	},
 	"docs.demo.77184595bde3": {
 		"defaultMessage": "Ascending",
 		"description": "Text of a demo in the docs as label, in components/context-menu/submenus.tsx."
@@ -1698,6 +1730,10 @@
 	"docs.demo.79479a6c76d8": {
 		"defaultMessage": "Descending",
 		"description": "Text of a demo in the docs as label, in components/context-menu/submenus.tsx."
+	},
+	"docs.demo.79859f24823c": {
+		"defaultMessage": "Edit order {id}",
+		"description": "Text of a demo in the docs as aria-label, in providers/density/playground.tsx. The argument {id} is a value from the code."
 	},
 	"docs.demo.798ca2ce18bf": {
 		"defaultMessage": "Create account",
@@ -1963,6 +1999,10 @@
 		"defaultMessage": "⌘O",
 		"description": "Text of a demo in the docs, in components/kbd/inside-a-button.tsx."
 	},
+	"docs.demo.8a4fbf41f653": {
+		"defaultMessage": "{name} by period, last 12 periods",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/sparkline/in-cell-sparklines.tsx. The argument {name} is a value from the code."
+	},
 	"docs.demo.8a7525b1492f": {
 		"defaultMessage": "Notes",
 		"description": "Text of a demo in the docs, in components/textarea/max-height.tsx."
@@ -2066,6 +2106,10 @@
 	"docs.demo.8fc93dd8736b": {
 		"defaultMessage": "View all components",
 		"description": "Text of a demo in the docs, in components/link/playground.tsx."
+	},
+	"docs.demo.90331fd234ad": {
+		"defaultMessage": "{speed} seconds per sweep",
+		"description": "Text of a demo in the docs, in components/shiny-text/speed.tsx. The argument {speed} is a value from the code."
 	},
 	"docs.demo.906115657390": {
 		"defaultMessage": "Delivered",
@@ -2511,6 +2555,10 @@
 		"defaultMessage": "India",
 		"description": "Text of a demo in the docs as label, in providers/locale/locale-provider.tsx."
 	},
+	"docs.demo.ac69b1b3140d": {
+		"defaultMessage": "{name} trend, last 12 periods",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/sparkline/in-cell-sparklines.tsx. The argument {name} is a value from the code."
+	},
 	"docs.demo.ac7c949f1211": {
 		"defaultMessage": "Inactive",
 		"description": "Text of a demo in the docs as label, in modules/form/filters/playground.tsx, modules/form/filters/search-and-status.tsx."
@@ -2671,6 +2719,10 @@
 		"defaultMessage": "Delivery to Japan can take up to two weeks.",
 		"description": "Text of a demo in the docs, in components/select/validation.tsx."
 	},
+	"docs.demo.b78005cf4f8f": {
+		"defaultMessage": "Upload of {name}",
+		"description": "Text of a demo in the docs as aria-label, in components/file-upload/upload-progress.tsx. The argument {name} is a value from the code."
+	},
 	"docs.demo.b79cac926e0b": {
 		"defaultMessage": "Help",
 		"description": "Text of a demo in the docs, in components/drawer/fit-content.tsx, components/tabs/keep-panel-state.tsx."
@@ -2803,6 +2855,10 @@
 		"defaultMessage": "How was your order?",
 		"description": "Text of a demo in the docs, in components/rating/in-a-form.tsx."
 	},
+	"docs.demo.bf21e494ff33": {
+		"defaultMessage": "{email} is on the list.",
+		"description": "Text of a demo in the docs as description, in modules/form/success-and-failure.tsx. The argument {email} is a value from the code."
+	},
 	"docs.demo.bf3763383aaf": {
 		"defaultMessage": "Customer",
 		"description": "Text of a demo in the docs as title, in modules/grid/groups/server-side-grouping.tsx, providers/density/playground.tsx."
@@ -2894,6 +2950,10 @@
 	"docs.demo.c85a8d1cf19c": {
 		"defaultMessage": "Text formatting",
 		"description": "Text of a demo in the docs as aria-label, in components/toolbar/with-groups.tsx."
+	},
+	"docs.demo.c864c393d403": {
+		"defaultMessage": "Delete order {id}",
+		"description": "Text of a demo in the docs as aria-label, in providers/density/playground.tsx. The argument {id} is a value from the code."
 	},
 	"docs.demo.c88a0b907419": {
 		"defaultMessage": "Success",
@@ -3191,6 +3251,10 @@
 		"defaultMessage": "Save changes",
 		"description": "Text of a demo in the docs, in components/card/with-header-and-footer.tsx, structure/flex/composed-with-buttons.tsx."
 	},
+	"docs.demo.dde07654d9fb": {
+		"defaultMessage": "KC → {abbreviation}",
+		"description": "Text of a demo in the docs as label, in modules/map/route/with-markers.tsx. The argument {abbreviation} is a value from the code."
+	},
 	"docs.demo.de0a9d8401ac": {
 		"defaultMessage": "Configure your project name, description, and visibility.",
 		"description": "Text of a demo in the docs, in components/card/with-header-and-footer.tsx."
@@ -3254,6 +3318,10 @@
 	"docs.demo.e26399294ed4": {
 		"defaultMessage": "Returns from Canada are free.",
 		"description": "Text of a demo in the docs, in components/select/validation.tsx."
+	},
+	"docs.demo.e27c6a5d3f93": {
+		"defaultMessage": "Value: {picked} ({zone} time)",
+		"description": "Text of a demo in the docs, in modules/map/select-a-state.tsx. The arguments {picked} and {zone} are values from the code."
 	},
 	"docs.demo.e2a57b4a96e0": {
 		"defaultMessage": "Bordered input",
@@ -3674,6 +3742,10 @@
 	"docs.demo.fe3e90add6a3": {
 		"defaultMessage": "Sunrise over green hills",
 		"description": "Text of a demo in the docs as alt, in components/lightbox/photos.ts."
+	},
+	"docs.demo.fea603abe2c7": {
+		"defaultMessage": "Uploading {name}…",
+		"description": "Text of a demo in the docs, in components/file-upload/upload-progress.tsx. The argument {name} is a value from the code."
 	},
 	"docs.demo.fea75f4d1cba": {
 		"defaultMessage": "Delivery date",

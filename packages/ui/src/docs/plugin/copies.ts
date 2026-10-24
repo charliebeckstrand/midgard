@@ -2,15 +2,15 @@ import path from 'node:path'
 import { type ESTree, normalizePath } from 'vite'
 import { readTranslations } from '../../../scripts/intl-catalog.ts'
 import type { Manifest } from './asset-urls.ts'
-import { DEMO_ID, translateDemo } from './demo-text.ts'
+import { DATA_ID, DEMO_ID, demoFolders, translateDemo } from './demo-text.ts'
 import type { Parser, Translate } from './examples.ts'
 import { findPages } from './pages.ts'
 
-// The copy of a module of `pages/` in a language, such as
+// The copy of a module of `pages/` or of `data/` in a language, such as
 // `button/index.tsx?lang=es`, has each demo text in that language
-// (`demo-text.ts`). Each import of a module of `pages/` in a copy points at
-// the copy of that module in the same language. Each page and each tab module
-// shows the copy in the language of the reader (`kit/localize.tsx`).
+// (`demo-text.ts`). Each import of a module of `pages/` or of `data/` in a copy
+// points at the copy of that module in the same language. Each page and each
+// tab module shows the copy in the language of the reader (`kit/localize.tsx`).
 
 /** Parses one module, with the syntax of its file. */
 type Parse = (code: string) => ESTree.Program
@@ -34,15 +34,16 @@ export function readLangId(id: string): { file: string; language?: string } {
 }
 
 /**
- * `code` with each relative import of a module in `pages` pointed at the copy
- * of that module in `language`, so a copy imports the copies of the examples
- * and of the data that it uses. An import of the kit or of `ui` stays as it is.
+ * `code` with each relative import of a module in one of `roots` pointed at
+ * the copy of that module in `language`, so a copy imports the copies of the
+ * examples and of the data that it uses. An import of the kit or of `ui` stays
+ * as it is.
  */
 export function pointImports(
 	program: ESTree.Program,
 	code: string,
 	file: string,
-	pages: string,
+	roots: readonly string[],
 	language: string,
 ): string {
 	const sources = program.body.flatMap((statement) =>
@@ -63,7 +64,7 @@ export function pointImports(
 
 		const target = path.resolve(path.dirname(file), value)
 
-		if (!target.startsWith(`${pages}${path.sep}`)) continue
+		if (!roots.some((root) => target.startsWith(`${root}${path.sep}`))) continue
 
 		pointed =
 			pointed.slice(0, source.start) +
@@ -155,14 +156,19 @@ export function copyChunks(manifest: Manifest, key: string): string[] {
 }
 
 /**
- * The JSON of a catalog of the docs as the app imports it, with no demo text.
- * Each copy of a module holds the demo text in its language, so the app does
- * not look up a demo text, and the bundle does not carry it.
+ * The JSON of a catalog of the docs as the app imports it, with no demo text
+ * and no word of the demo data. Each copy of a module holds them in its
+ * language, so the app does not look them up, and the bundle does not carry
+ * them.
  */
 export function appCatalog(code: string): string {
 	const messages = Object.entries(JSON.parse(code) as Record<string, string>)
 
-	return JSON.stringify(Object.fromEntries(messages.filter(([id]) => !id.startsWith(DEMO_ID))))
+	return JSON.stringify(
+		Object.fromEntries(
+			messages.filter(([id]) => !id.startsWith(DEMO_ID) && !id.startsWith(DATA_ID)),
+		),
+	)
 }
 
 /** The URL of each chunk that the copy of the module `file` in `language` adds ({@link copyChunks}). */
@@ -185,10 +191,10 @@ export function manifestPreloads(read: () => Manifest, root: string, base: strin
 	}
 }
 
-/** The copies of the modules of `pages/` in each language that has a catalog ({@link createCopies}). */
+/** The copies of the modules of `pages/` and of `data/` in each language that has a catalog ({@link createCopies}). */
 export type Copies = {
 	/**
-	 * The source of the module `file` of `pages/` in `language`, and the query
+	 * The source of the module `file` of `pages/` or of `data/` in `language`, and the query
 	 * of the copy. With no `language`, the source of the English module: a page
 	 * or a tab module gives its page in the language of the reader.
 	 */
@@ -206,11 +212,14 @@ export type Copies = {
 }
 
 /**
- * The copies of the modules in `docs/pages` in each language that has a
- * catalog in `docs/lang`. `kit` is the module of `localize`.
+ * The copies of the modules in `docs/pages` and in `docs/data` in each
+ * language that has a catalog in `docs/lang`. `kit` is the module of
+ * `localize`.
  */
 export function createCopies(docs: string, kit: string): Copies {
 	const pages = path.join(docs, 'pages')
+
+	const roots = demoFolders(docs)
 
 	// The translated messages of each language, by language. An edit to a
 	// catalog clears them.
@@ -252,7 +261,7 @@ export function createCopies(docs: string, kit: string): Copies {
 	function translatedSource(parse: Parse, code: string, file: string, language: string): string {
 		const translated = translateDemo(parse(code), code, file, readMessages(language))
 
-		return pointImports(parse(translated), translated, file, pages, language)
+		return pointImports(parse(translated), translated, file, roots, language)
 	}
 
 	return {

@@ -16,6 +16,7 @@ import { type BarrelApi, createApiWorker, TASKS_AHEAD } from './api.ts'
 import { readClientManifest } from './asset-urls.ts'
 import { labelPage } from './component-events.ts'
 import { appCatalog, createCopies, manifestPreloads, type Preloads, readLangId } from './copies.ts'
+import { demoFolders } from './demo-text.ts'
 import {
 	attachMeta,
 	CODE,
@@ -301,7 +302,14 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 			},
 		},
 		transform: {
-			filter: { id: { include: [prefixRegex(`${pages}/`), prefixRegex(`${lang}/`)] } },
+			filter: {
+				id: {
+					include: [
+						...demoFolders(docs).map((folder) => prefixRegex(`${folder}/`)),
+						prefixRegex(`${lang}/`),
+					],
+				},
+			},
 			async handler(code, id) {
 				if (id.startsWith(`${lang}/`)) return { code: appCatalog(code), map: null }
 
@@ -317,9 +325,12 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 
 				const { source, query } = copies.source(parse, code, file, language, preloads)
 
-				const result = await labelExample(parse(source), source, file, pages, query, (target) =>
-					this.resolve(target, id).then((resolved) => resolved?.id),
-				)
+				// A module of the demo data is not an example, and it labels no event.
+				const result = file.startsWith(`${pages}/`)
+					? await labelExample(parse(source), source, file, pages, query, (target) =>
+							this.resolve(target, id).then((resolved) => resolved?.id),
+						)
+					: undefined
 
 				if (result === undefined) return source === code ? null : { code: source, map: null }
 
