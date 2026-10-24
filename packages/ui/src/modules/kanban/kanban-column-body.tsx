@@ -21,8 +21,9 @@ export type KanbanColumnBodyProps = HTMLAttributes<HTMLElement> & {
  *
  * @remarks With cards, the body is a `<ul>`, and each card is in an `<li>`, so
  * AT gives the count of the cards and the position of each. On an interactive
- * board, the dnd-kit node of each card is a `<div>` inside its `<li>`. The `empty` placeholder is not a list item, so the body is a `<div>`
- * while it shows it. A {@link KanbanCardSkeleton} is an `aria-hidden` item, so
+ * board, the dnd-kit node of each card is a `<div>` inside its `<li>`. The
+ * `empty` placeholder is not a list item, so the body is a `<div>` while it
+ * shows it. A {@link KanbanCardSkeleton} is an `aria-hidden` item, so
  * a body that holds only skeletons hides the list as a whole: AT then finds no
  * list with no items. While the cards overflow the body, the body is a tab stop.
  */

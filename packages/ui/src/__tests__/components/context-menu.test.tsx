@@ -46,7 +46,7 @@ describe('resolveContextMenuEntries', () => {
 		expect(entries[3]).toBe(items[0])
 	})
 
-	it('orders the custom items before the defaults when position is "before"', () => {
+	it('orders the custom items before the defaults when insert is "before"', () => {
 		const items: ContextMenuItem[] = [{ key: 'c', label: 'Custom', onAction: noop }]
 
 		const entries = resolveContextMenuEntries({ items, insert: 'before' }, defaults)
@@ -68,6 +68,21 @@ describe('resolveContextMenuEntries', () => {
 		)
 
 		const keys = entries.map((entry) => entry.key)
+
+		expect(new Set(keys).size).toBe(keys.length)
+	})
+
+	it('keys the separators apart when the defaults and the custom items are both merged', () => {
+		const item = (key: string): ContextMenuItem => ({ key, label: key, onAction: noop })
+
+		const entries = resolveContextMenuEntries(
+			{ items: mergeContextMenuItems([[item('c')], [item('d')]]) },
+			mergeContextMenuItems([[item('a')], [item('b')]]),
+		)
+
+		const keys = entries.map((entry) => entry.key)
+
+		expect(keys).toHaveLength(7)
 
 		expect(new Set(keys).size).toBe(keys.length)
 	})
@@ -530,7 +545,7 @@ describe('ContextMenuList submenus', () => {
 		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toHaveFocus()
 	})
 
-	it('opens on no direction key — the panel picks its own side — and closes on the back arrow', () => {
+	it('opens on no direction key (the panel picks its own side), and closes on the back arrow', () => {
 		open(pinEntries())
 
 		const trigger = screen.getByRole('menuitem', { name: 'Pin' })

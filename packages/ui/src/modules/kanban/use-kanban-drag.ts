@@ -22,8 +22,8 @@ import type { KanbanOverlayEntry } from './types'
  * `activeId` and overlay, applies cross-column moves live on drag-over and
  * commits same-column reorders on drag-end, emitting the next columns through
  * `onReorder`. Returns the active id, the column that the drop goes to, the
- * overlay map, the per-column item ids, the dnd-kit drag handlers, and the
- * dnd-kit `accessibility` of the board.
+ * overlay entry and its setter, the per-column item ids, the dnd-kit drag
+ * handlers, and the dnd-kit `accessibility` of the board.
  *
  * @remarks
  * A cross-column drag reports the move into the new column on drag-over. The
@@ -55,7 +55,9 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	// The column that holds the card at the drag start.
 	const [originColumnId, setOriginColumnId] = useState<string | null>(null)
 
-	const overlayMap = useRef(new Map<string, KanbanOverlayEntry>())
+	// The content of the dragged card. The card writes it while a pointer drags
+	// it, so the overlay follows the content that the card has now.
+	const [overlayEntry, setOverlayEntry] = useState<KanbanOverlayEntry>()
 
 	// A column whose card ids do not change keeps its array. The array is the
 	// `items` of the column's `SortableContext`, so a new array renders each card
@@ -165,14 +167,26 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		freshMove.current = { from, columns }
 	}
 
-	const handleDragEnd = (event: DragEndEvent) => {
+	// The drop and the cancel end the drag the same way. It gives the columns
+	// from the drag start, or `null` when no move occurred.
+	const endDrag = () => {
 		clearFreshMove()
 
 		setActiveId(null)
 
 		setOriginColumnId(null)
 
+		setOverlayEntry(undefined)
+
+		const origin = originColumns.current
+
 		originColumns.current = null
+
+		return origin
+	}
+
+	const handleDragEnd = (event: DragEndEvent) => {
+		endDrag()
 
 		const { active, over } = event
 
@@ -187,15 +201,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	}
 
 	const handleDragCancel = () => {
-		clearFreshMove()
-
-		setActiveId(null)
-
-		setOriginColumnId(null)
-
-		const origin = originColumns.current
-
-		originColumns.current = null
+		const origin = endDrag()
 
 		if (origin) onReorder?.(origin)
 	}
@@ -231,7 +237,8 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	return {
 		activeId,
 		dropColumnId,
-		overlayMap,
+		overlayEntry,
+		setOverlayEntry,
 		columnItemIds,
 		handleDragStart,
 		handleDragOver,

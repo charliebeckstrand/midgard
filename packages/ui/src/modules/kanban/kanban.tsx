@@ -96,7 +96,8 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	const {
 		activeId,
 		dropColumnId,
-		overlayMap,
+		overlayEntry,
+		setOverlayEntry,
 		columnItemIds,
 		handleDragStart: rawDragStart,
 		handleDragOver,
@@ -141,11 +142,11 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 			// A read-only board has no reorder to disable, so its handles stay hidden.
 			disabled: !!disabled && onReorder !== undefined,
 			liftedStore,
-			overlayMap,
+			setOverlayEntry,
 			onCardKeyDown,
 			onCardBlur,
 		}),
-		[interactive, disabled, onReorder, liftedStore, overlayMap, onCardKeyDown, onCardBlur],
+		[interactive, disabled, onReorder, liftedStore, setOverlayEntry, onCardKeyDown, onCardBlur],
 	)
 
 	// Column-facing drag state: churns every drag-over move; confined to columns.
@@ -180,12 +181,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 					>
 						{children}
 					</section>
-					{interactive ? (
-						<KanbanDragOverlay
-							activeId={activeId}
-							entry={activeId ? overlayMap.current.get(activeId) : undefined}
-						/>
-					) : null}
+					{interactive ? <KanbanDragOverlay activeId={activeId} entry={overlayEntry} /> : null}
 				</DndContext>
 			</KanbanDragStateContext>
 		</KanbanContext>

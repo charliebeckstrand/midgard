@@ -1,6 +1,15 @@
 'use client'
 
-import { type ComponentProps, memo, useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import {
+	type ComponentProps,
+	memo,
+	useCallback,
+	useEffect,
+	useId,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+} from 'react'
 import { cn, dataAttr } from '../../core'
 import { useSortableItem } from '../../hooks'
 import { useDevWarning } from '../../hooks/use-dev-warning'
@@ -31,7 +40,8 @@ export type KanbanCardProps = Omit<ComponentProps<'li'>, 'value'> & {
  * Draggable card within a {@link KanbanColumn}, keyed by `value`. Wires the
  * `@dnd-kit` sortable bindings when the board is interactive, gives the keyboard
  * bindings to its {@link KanbanCardHandle}, and mirrors its content into the
- * drag overlay. Renders inert when the board is read-only.
+ * drag overlay. On a read-only or a disabled board, the card takes no drag
+ * bindings.
  *
  * @remarks
  * Client component. The card is a list item of the `<ul>` of its column body.
@@ -47,7 +57,7 @@ export type KanbanCardProps = Omit<ComponentProps<'li'>, 'value'> & {
  * re-render the whole board.
  */
 function KanbanCardImpl({ value: cardId, id, children, className, ...props }: KanbanCardProps) {
-	const { interactive, disabled, liftedStore, overlayMap } = useKanbanContext()
+	const { interactive, disabled, liftedStore, setOverlayEntry } = useKanbanContext()
 
 	// Surfaces the column context for use within this card.
 	const { itemIds } = useKanbanColumnContext()
@@ -110,20 +120,13 @@ function KanbanCardImpl({ value: cardId, id, children, className, ...props }: Ka
 		[cardId, setActivatorNodeRef, attributes, listeners, dragging, lifted, itemId, registerHandle],
 	)
 
-	// Keep the drag-overlay content and className in sync with the card's latest props.
-	// Runs post-commit (not in render) so it stays pure under concurrent/StrictMode;
-	// the map is populated at mount, well before any drag reads it.
-	useEffect(() => {
-		if (interactive) overlayMap.current.set(cardId, { children, className })
-
-		// Drop the entry when the card unmounts (deleted, or moved off the board)
-		// so the map can't grow unbounded across the board's lifetime. A card moved
-		// across columns re-sets its own entry on remount within the same effect
-		// flush (cleanup runs before setup), so the overlay never sees a gap.
-		return () => {
-			overlayMap.current.delete(cardId)
-		}
-	}, [interactive, cardId, children, className, overlayMap])
+	// The card that a pointer drags gives the drag overlay its content. A card
+	// that moves to another column mounts there, so the overlay takes the content
+	// that the card has in that column. A layout effect, so the overlay paints
+	// with the content from its first frame.
+	useLayoutEffect(() => {
+		if (dragging) setOverlayEntry({ children, className })
+	}, [dragging, children, className, setOverlayEntry])
 
 	// A read-only or disabled card takes no drag bindings. The list item carries
 	// the name, and the handle reads it. The drag attributes, the pointer

@@ -1,14 +1,14 @@
 'use client'
 
 import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
-import type { KeyboardEvent, RefObject } from 'react'
+import type { KeyboardEvent } from 'react'
 import { createContext } from '../../core'
 import type { KeyedStore } from '../../utilities'
 import type { KanbanOverlayEntry } from './types'
 
 /**
- * Card-facing board state: interactivity, the keyboard-lift store, the overlay map,
- * and card event handlers. Deliberately excludes the pointer-drag `activeId`
+ * Card-facing board state: interactivity, the keyboard-lift store, the overlay
+ * setter, and card event handlers. Deliberately excludes the pointer-drag `activeId`
  * and per-column ordering; see {@link KanbanDragStateValue}. A pointer drag
  * churns those every move, and must not re-render every card on the board.
  */
@@ -28,8 +28,11 @@ export type KanbanContextValue = {
 	 * when its own lift changes.
 	 */
 	liftedStore: KeyedStore<string, boolean>
-	/** Live map of card content and `className` keyed by card id, used by the drag overlay. */
-	overlayMap: RefObject<Map<string, KanbanOverlayEntry>>
+	/**
+	 * Sets the content and the `className` that the drag overlay shows. The card
+	 * that a pointer drags calls it. It keeps its identity.
+	 */
+	setOverlayEntry: (entry: KanbanOverlayEntry) => void
 	/** Keyboard handler for cards. It keeps its identity. */
 	onCardKeyDown: (cardId: string, event: KeyboardEvent) => void
 	/** Blur handler; clears lifted state when focus leaves a card. */
@@ -75,8 +78,8 @@ export type KanbanColumnContextValue = {
 	/** Title-slot registrar; the column emits `aria-labelledby` only while a title is mounted. */
 	registerTitle: () => () => void
 	/**
-	 * The id that the title renders with. The column `<fieldset>` refers to it
-	 * through `aria-labelledby`. Each column mounts its own id, so two boards
+	 * The id that the title renders with. The column group refers to it through
+	 * `aria-labelledby`. Each column mounts its own id, so two boards
 	 * with the same column keys do not share an id.
 	 */
 	titleId: string
