@@ -3,7 +3,7 @@ import path from 'node:path'
 import type { ESTree } from 'vite'
 import type { CatalogEntry } from '../../../scripts/intl-catalog.ts'
 import { humanize } from '../kit/humanize.ts'
-import { TAB_ID, TITLE_ID, toSlug } from '../kit/names.ts'
+import { PAGE_ID, TAB_ID, TITLE_ID, toSlug } from '../kit/names.ts'
 import { exampleFiles, examplesIn, type Parser, PLAYGROUND, toHeadingId } from './examples.ts'
 import { findPages } from './pages.ts'
 
@@ -44,6 +44,34 @@ export async function titleEntries(
 			},
 		]),
 	)
+}
+
+/**
+ * The catalog entries of the common names of the pages: one for each page,
+ * keyed by the last part of its path, with the name of the component in words
+ * as the default, such as "Date picker" for `DatePicker`. The search finds a
+ * page by this name (`kit/names.ts`).
+ */
+export function pageEntries(docs: string): Record<string, CatalogEntry> {
+	const entries = findPages(docs).map(({ path: route, name }) => {
+		const id = `${PAGE_ID}${route.split('/').at(-1)}`
+
+		return [
+			id,
+			{
+				defaultMessage: humanize(name),
+				description: `The common name of the ${name} page of the docs, which the search finds. Use the noun that a reader of the language searches for.`,
+			},
+		] as const
+	})
+
+	const ids = entries.map(([id]) => id)
+
+	const twice = ids.find((id, index) => ids.indexOf(id) !== index)
+
+	if (twice) throw new Error(`docs: two pages have the id ${twice}`)
+
+	return Object.fromEntries(entries.toSorted(([a], [b]) => (a < b ? -1 : 1)))
 }
 
 /** The names in the `TABS` constant of a module, such as `['Variants', 'Sorting']`. */

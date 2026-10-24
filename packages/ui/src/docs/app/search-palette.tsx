@@ -13,7 +13,7 @@ import {
 import { useTimeout } from 'ui/hooks'
 import { defineMessage, defineMessages, type MessageDescriptor, useIntl } from 'ui/primitives/intl'
 import { VirtualOptions } from 'ui/primitives/virtual-options'
-import { exampleTitle, tabName } from '../kit/names.ts'
+import { exampleTitle, pageName, tabName } from '../kit/names.ts'
 import type { SearchEntry, SearchKind } from '../plugin/search.ts'
 import { sectionLabel } from './app-messages.ts'
 import { matchEntries } from './search-match.ts'
@@ -73,8 +73,8 @@ const sectionByPath: ReadonlyMap<string, string> = new Map(
 	pages.map((page) => [page.path, page.category]),
 )
 
-/** An entry with the id of its option. */
-type Option = SearchEntry & { id: string }
+/** An entry with the id of its option, and the common name of a page. */
+type Option = SearchEntry & { id: string; alias?: string }
 
 const options: readonly Option[] = entries.map((entry, index) => ({
 	...entry,
@@ -135,11 +135,16 @@ function Results({ onPick }: { onPick: () => void }) {
 
 	// Where the entry is. The section of a page and the name of a tab, as in
 	// "Grid › Sorting", show in the language of the reader. The names from the
-	// code stay as they are.
+	// code stay as they are. A page shows its common name before its section,
+	// when the name is not the same as the label.
 	const formatContext = (option: Option): string => {
 		const section = option.kind === 'page' ? sectionByPath.get(option.href) : undefined
 
-		if (section !== undefined) return sectionLabel(intl, section)
+		if (section !== undefined) {
+			const label = sectionLabel(intl, section)
+
+			return option.alias ? `${option.alias} · ${label}` : label
+		}
 
 		const [page, tab] = option.context.split(' › ')
 
@@ -149,8 +154,9 @@ function Results({ onPick }: { onPick: () => void }) {
 	}
 
 	// The title of an example and the name of a tab show in the language of the
-	// reader, and the query matches that text. The names from the code stay as
-	// they are.
+	// reader, and the query matches that text. A page keeps its name from the
+	// code, and the query also matches its common name, such as "Botón" for
+	// Button.
 	const localized = useMemo(
 		() =>
 			options.map((option) => {
@@ -159,6 +165,12 @@ function Results({ onPick }: { onPick: () => void }) {
 						...option,
 						label: exampleTitle(intl, option.href.split('#')[1] ?? '', option.label),
 					}
+				}
+
+				if (option.kind === 'page') {
+					const alias = pageName(intl, option.href, option.label)
+
+					return alias.toLowerCase() === option.label.toLowerCase() ? option : { ...option, alias }
 				}
 
 				if (option.kind === 'tab') {

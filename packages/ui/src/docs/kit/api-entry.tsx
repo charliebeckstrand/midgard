@@ -187,12 +187,16 @@ function PropRow({ component, prop }: { component: string; prop: PropApi }) {
 								<IntlMessage message={messages.deprecated} />
 							</Badge>
 						</TooltipTrigger>
-						{prop.deprecated && <TooltipContent>{prop.deprecated}</TooltipContent>}
+						{prop.deprecated && (
+							<TooltipContent>
+								<span lang={TSDOC_LANG}>{prop.deprecated}</span>
+							</TooltipContent>
+						)}
 					</Tooltip>
 				)}
 			</Flex>
 			<PropFacts prop={prop} />
-			{prop.description && <Markdown>{prop.description}</Markdown>}
+			{prop.description && <Markdown lang={TSDOC_LANG}>{prop.description}</Markdown>}
 		</Stack>
 	)
 }
@@ -219,6 +223,13 @@ function PropSection({
 		</Stack>
 	)
 }
+
+/**
+ * The language of the TSDoc of ui, which stays English in each language of
+ * the docs (CONVENTIONS.md §13.10). The `lang` of the text tells a screen
+ * reader to read it with an English voice.
+ */
+const TSDOC_LANG = 'en'
 
 /** The tags whose HTML attributes the component also takes. */
 function ElementsNote({ elements }: { elements: readonly string[] }) {
@@ -255,7 +266,7 @@ function ElementsNote({ elements }: { elements: readonly string[] }) {
 export function ApiEntry({ component }: { component: ComponentApi }) {
 	return (
 		<Stack gap="lg">
-			{component.description && <Markdown>{component.description}</Markdown>}
+			{component.description && <Markdown lang={TSDOC_LANG}>{component.description}</Markdown>}
 			{component.props.length + component.events.length > 0 ? (
 				<Stack gap="xl">
 					<PropSection

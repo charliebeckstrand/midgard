@@ -46,6 +46,28 @@ describe('matchEntries', () => {
 		expect(matchHrefs('<BUTTON')).toEqual(matchHrefs('button'))
 	})
 
+	it('finds a label with accents from a query with none', () => {
+		const entries = [
+			{ kind: 'tab', label: 'Ordenación', href: '/modules/grid/sorting', context: 'Grid' },
+		] as const
+
+		expect(matchEntries(entries, 'ordenacion').map((entry) => entry.href)).toEqual([
+			'/modules/grid/sorting',
+		])
+	})
+
+	it('finds a page by its common name, as well as it finds the page by its name', () => {
+		const entries = [
+			{ kind: 'example', label: 'Botón de silencio', href: '/toggle#mute', context: 'Toggle' },
+			{ kind: 'page', label: 'Button', href: '/button', context: 'Components', alias: 'Botón' },
+		] as const
+
+		expect(matchEntries(entries, 'boton').map((entry) => entry.href)).toEqual([
+			'/button',
+			'/toggle#mute',
+		])
+	})
+
 	it('gives no entry when a word matches nothing', () => {
 		expect(matchHrefs('button nothing')).toEqual([])
 	})
