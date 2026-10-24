@@ -35,8 +35,11 @@ export type ExampleMeta = {
 	code: () => Promise<ExampleCode>
 }
 
+/** The source of a module in the language of a copy (`demo-text.ts`). */
+export type Translate = (code: string, file: string) => string
+
 /** Parses TSX, as the `parse` of a plugin context does. */
-export type Parser = (code: string, options: { lang: 'tsx' }) => ESTree.Program
+export type Parser = (code: string, options: { lang: 'ts' | 'tsx' }) => ESTree.Program
 
 /**
  * The public id of the code module of a folder in `pages`. The module holds
@@ -153,13 +156,16 @@ export function readExample(
  * The code that adds the {@link ExampleMeta} of an example module to its
  * default export. `program` is the parse of `code`. The code goes at the end
  * of the module and moves no other code, so the transform keeps the source
- * map as it is. It gives no code for a module that is not an example.
+ * map as it is. It gives no code for a module that is not an example. The
+ * `query` of a copy in a language, such as `?lang=es`, goes on the id of the
+ * code module, so "Show code" shows the copy.
  */
 export function attachMeta(
 	program: ESTree.Program,
 	code: string,
 	file: string,
 	pages: string,
+	query = '',
 ): string | undefined {
 	const example = readExample(program, code, file)
 
@@ -171,7 +177,7 @@ export function attachMeta(
 		`title: ${JSON.stringify(humanize(toHeadingId(file)))}`,
 		`id: ${JSON.stringify(toHeadingId(file))}`,
 		...(spread ? [`component: ${JSON.stringify(spread.component)}`] : []),
-		`code: () => import(${JSON.stringify(toCodeId(pages, file))}).then((module) => module.default[${JSON.stringify(toCodeKey(file))}])`,
+		`code: () => import(${JSON.stringify(toCodeId(pages, file) + query)}).then((module) => module.default[${JSON.stringify(toCodeKey(file))}])`,
 	]
 
 	return `\nObject.assign(${name}, { ${meta.join(', ')} })\n`
@@ -188,8 +194,9 @@ async function readCode(
 	parse: Parser,
 	highlight: Highlight,
 	file: string,
+	translate: Translate,
 ): Promise<ExampleCode | undefined> {
-	const source = await readFile(file, 'utf8')
+	const source = translate(await readFile(file, 'utf8'), file)
 
 	const example = readExample(parse(source, { lang: 'tsx' }), source, file)
 
@@ -235,15 +242,17 @@ export async function exampleFiles(folder: string): Promise<string[]> {
 
 /**
  * Loads the code module of a folder: the code of each example in `files`, by
- * {@link toCodeKey}, highlighted with `highlight`.
+ * {@link toCodeKey}, highlighted with `highlight`. `translate` gives the source
+ * of the copy in a language.
  */
 export async function loadCodes(
 	parse: Parser,
 	highlight: Highlight,
 	files: readonly string[],
+	translate: Translate = (code) => code,
 ): Promise<Record<string, ExampleCode>> {
 	const codes = await Promise.all(
-		files.map(async (file) => [file, await readCode(parse, highlight, file)] as const),
+		files.map(async (file) => [file, await readCode(parse, highlight, file, translate)] as const),
 	)
 
 	return Object.fromEntries(

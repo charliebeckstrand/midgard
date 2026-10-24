@@ -11,6 +11,7 @@ import { UIProvider } from 'ui/providers/ui'
 import { describe, expect, it, vi } from 'vitest'
 import { CI } from '../../../vitest.base.ts'
 import { catalogs } from '../app/catalogs.ts'
+import type { LocalizedPage } from '../kit/localize.tsx'
 import { findPages, type Page } from '../plugin/pages.ts'
 import { restoreRootAfterCase } from './restore-root.ts'
 
@@ -49,7 +50,7 @@ import { restoreRootAfterCase } from './restore-root.ts'
 // project loads the plugin (`vitest.config.ts`).
 
 /** The page modules and the tab modules, keyed by module path. */
-const modules = import.meta.glob<ComponentType>(
+const modules = import.meta.glob<LocalizedPage>(
 	['../pages/*/*/index.tsx', '../pages/*/*/*/index.tsx'],
 	{ import: 'default' },
 )
@@ -220,13 +221,23 @@ type Walk = {
 	visited: ReadonlySet<string>
 }
 
-/** Loads the default export of the page or the tab in `folder`. */
-function load(folder: string): Promise<ComponentType> {
+/** The locale of the smoke render. */
+const LOCALE = 'es-ES'
+
+/**
+ * Loads the default export of the page or the tab in `folder`, with its copy
+ * in {@link LOCALE}, so the first render shows the copy (`kit/localize.tsx`).
+ */
+async function load(folder: string): Promise<ComponentType> {
 	const loader = modules[toPath(folder)]
 
 	if (!loader) throw new Error(`docs: no module at ${toPath(folder)}`)
 
-	return loader()
+	const page = await loader()
+
+	await page.preload(LOCALE)
+
+	return page
 }
 
 /**
@@ -250,7 +261,7 @@ async function walk(page: Page): Promise<Walk> {
 
 	const { container } = render(
 		<MemoryRouter initialEntries={[page.path]}>
-			<LocaleProvider locale="es-ES" catalogs={catalogs}>
+			<LocaleProvider locale={LOCALE} catalogs={catalogs}>
 				<UIProvider link={RouterLink}>
 					<AppearanceProvider>
 						<VisitedPaths visited={visited} />

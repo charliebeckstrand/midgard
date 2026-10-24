@@ -6,7 +6,8 @@ const HOISTED_STYLESHEET = 'link[rel="stylesheet"][data-precedence]'
 
 /**
  * Puts back the theme class and the density step that `AppearanceProvider`
- * writes to the root element and does not remove on unmount. The window is
+ * writes to the root element and does not remove on unmount, and the `lang`
+ * that the shell writes (`app/root.tsx`). The window is
  * shared across the files of a worker, so a step left on the root would reach
  * a later file that reads it.
  *
@@ -21,12 +22,17 @@ export function restoreRootAfterCase(): void {
 
 	const dark = root.classList.contains('dark')
 
+	const lang = root.getAttribute('lang')
+
 	const stylesheets = new Set(document.head.querySelectorAll(HOISTED_STYLESHEET))
 
 	onTestFinished(() => {
 		writeRootDensity(root, density)
 
 		root.classList.toggle('dark', dark)
+
+		if (lang === null) root.removeAttribute('lang')
+		else root.setAttribute('lang', lang)
 
 		for (const link of document.head.querySelectorAll(HOISTED_STYLESHEET)) {
 			if (!stylesheets.has(link)) link.remove()

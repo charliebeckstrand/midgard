@@ -57,7 +57,8 @@ function readBundle(): BundleReport {
 /**
  * The total holds lazy chunks that no page loads before it hydrates: the
  * grammars and the themes of the `CodeBlock` worker, the code of each example,
- * the API data, and the files that pdf.js loads at run time. Most of its
+ * the API data, the copy of each page in Spanish, and the files that pdf.js
+ * loads at run time. Most of its
  * growth is such files, and it does not move the eager sum.
  *
  * The eager sum is the chunks that each page preloads: the router, React, the
@@ -65,7 +66,7 @@ function readBundle(): BundleReport {
  * there first.
  */
 const BUDGETS = [
-	{ label: 'total gzip', budgetKb: 5400, of: (report: BundleReport) => report.totalGzip },
+	{ label: 'total gzip', budgetKb: 6000, of: (report: BundleReport) => report.totalGzip },
 	{ label: 'eager gzip', budgetKb: 290, of: (report: BundleReport) => report.eagerGzip },
 ]
 

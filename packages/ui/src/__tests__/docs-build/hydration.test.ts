@@ -13,6 +13,10 @@ import { HYDRATED } from '../../../scripts/docs-server'
 // more. A page whose files all come from the cache hydrates, but a deploy
 // removed its other chunks. Such a page must also reload one time, at the
 // start or when the reader comes back to the tab.
+//
+// The server sends the HTML of each page in the language of the reader
+// (`scripts/docs-server.ts`), and the page hydrates in that language. So the
+// text of a Spanish page stays after hydration.
 
 /**
  * The home page, component pages, a module page, a page with a tab in its
@@ -46,14 +50,26 @@ afterAll(async () => {
 	await browser?.close()
 })
 
-/** Opens a tab at the width of a phone. The tab closes after the case, also after a timeout. */
-async function openTab(): Promise<Page> {
-	const tab = await browser.newPage({ viewport: { width: 390, height: 844 } })
+/**
+ * Opens a tab at the width of a phone, with the browser languages of `locale`.
+ * The tab closes after the case, also after a timeout.
+ */
+async function openTab(locale = 'en-US'): Promise<Page> {
+	const tab = await browser.newPage({ viewport: { width: 390, height: 844 }, locale })
 
 	onTestFinished(() => tab.close())
 
 	return tab
 }
+
+/**
+ * A script that keeps the text of the page as its HTML gives it, before the
+ * page scripts run, in `data-text` of the root element. It is the source of an
+ * init script, which runs in the page, not in the case.
+ */
+const KEEP_HTML_TEXT = `document.addEventListener('DOMContentLoaded', () => {
+	document.documentElement.dataset.text = document.body.innerText
+})`
 
 /**
  * Loads `/button` with HTML that names a missing `chunk` for the first
@@ -117,6 +133,44 @@ describe('a prerendered page of the docs build', () => {
 
 		// A recoverable error comes after the first commit, so wait for the page to settle.
 		await tab.waitForLoadState('networkidle')
+
+		expect(errors).toEqual([])
+	})
+})
+
+describe('a prerendered page of the docs build in Spanish', () => {
+	it.each(PAGES)('%s hydrates in Spanish, and keeps the text of its HTML', async (path) => {
+		const tab = await openTab('es-ES')
+
+		const errors: string[] = []
+
+		tab.on('pageerror', (error) => errors.push(error.message))
+
+		tab.on('console', (message) => {
+			if (message.type() === 'error') errors.push(message.text())
+		})
+
+		await tab.addInitScript({ content: KEEP_HTML_TEXT })
+
+		await tab.goto(`${origin}${path}`)
+
+		await tab.waitForFunction(HYDRATED)
+
+		await tab.waitForLoadState('networkidle')
+
+		const { lang, before, after } = await tab.evaluate(() => ({
+			lang: document.documentElement.lang,
+			before: document.documentElement.dataset.text ?? '',
+			after: document.body.innerText,
+		}))
+
+		expect(lang).toBe('es')
+
+		// Each line of the HTML stays after hydration. A page can add text, such
+		// as the row count of a grid, and the fallback document has no text.
+		const lines = new Set(after.split('\n'))
+
+		expect(before.split('\n').filter((line) => !lines.has(line))).toEqual([])
 
 		expect(errors).toEqual([])
 	})

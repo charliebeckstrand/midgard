@@ -5,13 +5,23 @@ import type {
 	DevEnvironment,
 	EnvironmentModuleGraph,
 	EnvironmentModuleNode,
+	ESTree,
 	Plugin,
 	ViteDevServer,
 } from 'vite'
+import { readTranslations } from '../../../scripts/intl-catalog.ts'
 import type { ShikiHighlight } from '../../components/code/code-shiki-highlighter.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { type BarrelApi, createApiWorker, TASKS_AHEAD } from './api.ts'
 import { labelPage } from './component-events.ts'
+import {
+	DEMO_ID,
+	localizeRoute,
+	pointImports,
+	readLangId,
+	toLangQuery,
+	translateDemo,
+} from './demo-text.ts'
 import {
 	attachMeta,
 	CODE,
@@ -20,6 +30,8 @@ import {
 	exampleFiles,
 	type Highlight,
 	loadCodes,
+	type Parser,
+	type Translate,
 	toCodeId,
 } from './examples.ts'
 import type { HighlightTask } from './highlight-worker.ts'
@@ -33,6 +45,9 @@ const API = `${VIRTUAL}api/`
 const PAGES = `${VIRTUAL}pages`
 
 const SEARCH = `${VIRTUAL}search`
+
+// The module of `localize`, which a page or a tab module imports ({@link localizeRoute}).
+const LOCALIZE = path.resolve(import.meta.dirname, '..', 'kit', 'localize.tsx')
 
 // A source file of `ui`: TypeScript, outside the docs and the tests.
 const SOURCE = /^(?!.*\/__tests__\/).*\.tsx?$/
@@ -69,11 +84,15 @@ function data(value: unknown): string {
  * - `virtual:docs/code/<folder>`: the code of each example in a folder of `pages/`, highlighted ({@link loadCodes}).
  * - `virtual:docs/search`: the entries of the search of the docs ({@link searchEntries}).
  *
- * It transforms each module of `pages/` with one parse. It adds the title and
- * the code module to the default export of each example ({@link attachMeta}),
- * and it sends each value that the JSX gives to a component through the
- * Event log ({@link labelPage}). In dev, an edit to a source file of `ui`
- * updates the API data of the open pages with no reload.
+ * It transforms each module of `pages/`. It adds the title and the code module
+ * to the default export of each example ({@link attachMeta}), and it sends
+ * each value that the JSX gives to a component through the Event log
+ * ({@link labelPage}). It gives the copy of each module in each language that
+ * has a catalog, such as `button/index.tsx?lang=es`, with each demo text in
+ * that language ({@link translateDemo}). Each page and each tab module shows
+ * the copy in the language of the reader ({@link localizeRoute}). The catalog
+ * that the app imports has no demo text. In dev, an edit to a source file of
+ * `ui` updates the API data of the open pages with no reload.
  *
  * In dev, a page or a tab that is added, removed or renamed in `pages/`
  * changes the routes. React Router reads the routes only when the server
@@ -115,6 +134,70 @@ export function reactDocs(): Plugin {
 	// build import the same examples, so each highlight runs once for both.
 	const codes = new Map<string, Promise<Record<string, ExampleCode>>>()
 
+	// The translated messages of the docs, by language. An edit to a catalog
+	// clears them.
+	let translations: Map<string, Readonly<Record<string, string>>> | undefined
+
+	const lang = path.join(docs, 'lang')
+
+	/** The translated messages of each language that has a catalog, by language. */
+	function readLanguages(): Map<string, Readonly<Record<string, string>>> {
+		translations ??= new Map(
+			readTranslations(lang).map(({ language, messages }) => [language, messages]),
+		)
+
+		return translations
+	}
+
+	/** The translated messages of `language`. A language with no catalog gives none. */
+	function readMessages(language: string): Readonly<Record<string, string>> {
+		return readLanguages().get(language) ?? {}
+	}
+
+	/**
+	 * The source of the module `file` of `pages/`, and the query of its copy.
+	 * A copy in a language has each demo text in that language, and each
+	 * import of a module of `pages/` points at its copy (`demo-text.ts`).
+	 */
+	function pageSource(
+		parse: (code: string) => ESTree.Program,
+		code: string,
+		file: string,
+		language: string | undefined,
+	): { source: string; query: string } {
+		if (language === undefined) return { source: englishSource(parse, code, file), query: '' }
+
+		return {
+			source: translatedSource(parse, code, file, pages, language, readMessages(language)),
+			query: toLangQuery(language),
+		}
+	}
+
+	// The page and the tab modules: the route modules of `app/routes.ts`. The
+	// routes change only when the server starts again.
+	let routeFiles: Set<string> | undefined
+
+	/**
+	 * The source of the English module `file` of `pages/`. A page or a tab
+	 * module gives its page in the language of the reader ({@link localizeRoute}).
+	 */
+	function englishSource(
+		parse: (code: string) => ESTree.Program,
+		code: string,
+		file: string,
+	): string {
+		routeFiles ??= new Set(
+			findPages(docs).flatMap((page) => [
+				path.join(pages, page.folder, 'index.tsx'),
+				...page.tabs.map((tab) => path.join(pages, page.folder, tab, 'index.tsx')),
+			]),
+		)
+
+		if (!routeFiles.has(file)) return code
+
+		return localizeRoute(parse(code), code, file, [...readLanguages().keys()], LOCALIZE)
+	}
+
 	// The entries of the search. They read each page and the API data of each
 	// barrel that a page shows, so an edit to either makes them stale.
 	let search: Promise<SearchEntry[]> | undefined
@@ -150,6 +233,60 @@ export function reactDocs(): Plugin {
 		const module = environment.moduleGraph.getModuleById(virtualId(PAGES))
 
 		return module && links.get(environment.name) !== formatLinks(found) ? [module] : []
+	}
+
+	/**
+	 * The code of the examples `files` for the code module `name`. The code
+	 * module of a copy in a language, such as `virtual:docs/code/button?lang=es`,
+	 * gives the code of the copy.
+	 */
+	function loadCode(name: string, files: readonly string[], parse: Parser) {
+		const { language } = readLangId(name)
+
+		const translate: Translate | undefined = language
+			? (code, file) =>
+					translateDemo(parse(code, { lang: 'tsx' }), code, file, readMessages(language))
+			: undefined
+
+		return loadCodes(parse, highlight, files, translate)
+	}
+
+	/**
+	 * The modules that an edit to `file` in `pages/` makes stale: for an
+	 * `index.tsx`, the links of the pages ({@link staleLinks}); for an example,
+	 * its code module and its importers. It gives `null` when the server restarts.
+	 */
+	function stalePage(
+		file: string,
+		environment: DevEnvironment,
+		server: ViteDevServer,
+		modules: readonly EnvironmentModuleNode[],
+	): EnvironmentModuleNode[] | null {
+		if (file.endsWith('/index.tsx')) return staleLinks(environment, server)
+
+		forgetCode(file)
+
+		return staleExample(environment.moduleGraph, pages, file, modules)
+	}
+
+	/** Forgets the code of the folder of the example `file`, in each language. */
+	function forgetCode(file: string): void {
+		const code = toCodeId(pages, file)
+
+		for (const name of codes.keys()) {
+			if (readLangId(name.slice(CODE.length)).file === code.slice(CODE.length)) codes.delete(name)
+		}
+	}
+
+	/** The copies in each language, which an edit to a translation makes stale. */
+	function staleTranslations(graph: EnvironmentModuleGraph): EnvironmentModuleNode[] {
+		translations = undefined
+
+		codes.clear()
+
+		return [...graph.idToModuleMap.values()].filter(
+			(module) => readLangId(module.id ?? '').language !== undefined,
+		)
 	}
 
 	/**
@@ -206,36 +343,42 @@ export function reactDocs(): Plugin {
 				}
 
 				if (name.startsWith(CODE)) {
-					const folder = path.join(pages, name.slice(CODE.length))
+					const parse: Parser = this.parse.bind(this)
 
-					const files = await exampleFiles(folder)
+					const { file: rest } = readLangId(name.slice(CODE.length))
+
+					const files = await exampleFiles(path.join(pages, rest))
 
 					for (const file of files) this.addWatchFile(file)
 
-					return data(
-						await getOrCompute(codes, folder, () =>
-							loadCodes(this.parse.bind(this), highlight, files),
-						),
-					)
+					return data(await getOrCompute(codes, name, () => loadCode(name, files, parse)))
 				}
 
 				return null
 			},
 		},
 		transform: {
-			filter: { id: { include: prefixRegex(`${pages}/`), exclude: /(?<!\.tsx)$/ } },
+			filter: { id: { include: [prefixRegex(`${pages}/`), prefixRegex(`${lang}/`)] } },
 			async handler(code, id) {
-				const program = this.parse(code, { lang: 'tsx' })
+				if (id.startsWith(`${lang}/`)) return { code: appCatalog(code), map: null }
 
-				const meta = EXAMPLE.test(id) ? attachMeta(program, code, id, pages) : undefined
+				const { file, language } = readLangId(id)
 
-				const labeled = await labelPage(program, code, async (source) => {
-					return (await this.resolve(source, id))?.id
-				})
+				if (!/\.tsx?$/.test(file) || (!language && !file.endsWith('.tsx'))) return null
 
-				if (meta === undefined && labeled === undefined) return null
+				const syntax = file.endsWith('.tsx') ? 'tsx' : 'ts'
 
-				return { code: `${labeled ?? code}${meta ?? ''}`, map: null }
+				const parse = (source: string) => this.parse(source, { lang: syntax })
+
+				const { source, query } = pageSource(parse, code, file, language)
+
+				const result = await labelExample(parse(source), source, file, pages, query, (target) =>
+					this.resolve(target, id).then((resolved) => resolved?.id),
+				)
+
+				if (result === undefined) return source === code ? null : { code: source, map: null }
+
+				return { code: result, map: null }
 			},
 		},
 		configureServer() {
@@ -246,16 +389,14 @@ export function reactDocs(): Plugin {
 
 			let stale: EnvironmentModuleNode[] = []
 
-			if (file.startsWith(pages) && file.endsWith('/index.tsx')) {
-				const next = staleLinks(this.environment, server)
+			if (file.startsWith(`${lang}${path.sep}`)) {
+				stale = staleTranslations(graph)
+			} else if (file.startsWith(pages)) {
+				const next = stalePage(file, this.environment, server, modules)
 
 				if (next === null) return []
 
 				stale = next
-			} else if (file.startsWith(pages)) {
-				codes.delete(path.dirname(file))
-
-				stale = staleExample(graph, pages, file, modules)
 			} else if (SOURCE.test(file) && !file.startsWith(docs)) {
 				barrels.clear()
 
@@ -296,7 +437,65 @@ function staleExample(
 ): EnvironmentModuleNode[] {
 	if (!EXAMPLE.test(file)) return []
 
-	const code = graph.getModuleById(virtualId(toCodeId(pages, file)))
+	const code = toCodeId(pages, file)
 
-	return [...(code ? [code] : []), ...modules.flatMap((module) => [...module.importers])]
+	// The code module of the folder, and its copy in each language.
+	const codes = [...graph.idToModuleMap.values()].filter(
+		(module) => readLangId(module.id ?? '').file === virtualId(code),
+	)
+
+	return [...codes, ...modules.flatMap((module) => [...module.importers])]
+}
+
+/**
+ * The JSON of a catalog of the docs as the app imports it, with no demo text.
+ * Each copy of a module holds the demo text in its language (`demo-text.ts`),
+ * so the app does not look up a demo text, and the bundle does not carry it.
+ */
+function appCatalog(code: string): string {
+	const messages = Object.entries(JSON.parse(code) as Record<string, string>)
+
+	return JSON.stringify(Object.fromEntries(messages.filter(([id]) => !id.startsWith(DEMO_ID))))
+}
+
+/**
+ * The source of the copy of the module `file` in `language`: each demo text
+ * in that language, and each import of a module of `pages/` pointed at its
+ * copy in the same language.
+ */
+function translatedSource(
+	parse: (code: string) => ESTree.Program,
+	code: string,
+	file: string,
+	pages: string,
+	language: string,
+	messages: Readonly<Record<string, string>>,
+): string {
+	const translated = translateDemo(parse(code), code, file, messages)
+
+	return pointImports(parse(translated), translated, file, pages, language)
+}
+
+/**
+ * The code of a module of `pages/` with the meta of an example
+ * ({@link attachMeta}) and the event labels of its JSX ({@link labelPage}), or
+ * `undefined` when it needs neither. A data module has no JSX.
+ */
+async function labelExample(
+	program: ESTree.Program,
+	code: string,
+	file: string,
+	pages: string,
+	query: string,
+	resolve: (source: string) => Promise<string | undefined>,
+): Promise<string | undefined> {
+	if (!file.endsWith('.tsx')) return undefined
+
+	const meta = EXAMPLE.test(file) ? attachMeta(program, code, file, pages, query) : undefined
+
+	const labeled = await labelPage(program, code, resolve)
+
+	if (meta === undefined && labeled === undefined) return undefined
+
+	return `${labeled ?? code}${meta ?? ''}`
 }
