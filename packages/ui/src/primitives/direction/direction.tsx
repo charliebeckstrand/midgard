@@ -27,8 +27,9 @@ export { useDirectionScope }
 export type DirectionProps = {
 	/**
 	 * The direction of the scope. Omit it to render the children with no scope.
-	 * They then keep the direction of the enclosing scope, or of the root element
-	 * outside each scope.
+	 *
+	 * @defaultValue No scope: the children keep the direction of the enclosing
+	 * scope, or of the root element outside each scope.
 	 */
 	dir?: TextDirection
 	children: ReactNode
