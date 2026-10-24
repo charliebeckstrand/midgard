@@ -147,7 +147,6 @@ export function Portal({ open, container, ssr = false, onExitComplete, children 
 	const surface = (
 		<div
 			data-slot="portal"
-			data-h={String(hydrated)}
 			data-density={density ?? undefined}
 			dir={dir ?? undefined}
 			className="contents"
