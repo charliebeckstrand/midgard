@@ -2,6 +2,15 @@
 import { describe, expect, it } from 'vitest'
 import { definePalette, defineRecipe } from '../../core/recipe'
 import { k as badge } from '../../recipes/kata/badge'
+import { iro } from '../../recipes/kiso'
+
+/** The text color of a class string in one mode: `light` takes the classes without `dark:`. */
+const textColor = (classes: string, mode: 'light' | 'dark') =>
+	classes
+		.split(' ')
+		.filter((name) => name.startsWith('dark:') === (mode === 'dark'))
+		.map((name) => name.split(':').at(-1))
+		.find((name) => name?.startsWith('text-'))
 
 describe('palette', () => {
 	it('joins the cells of each matrix in order', () => {
@@ -93,5 +102,17 @@ describe('palette', () => {
 
 		// The standard colors resolve beside them.
 		expect(badge({ variant: 'solid', color: 'zinc' }).base).toContain('bg-zinc-600')
+	})
+
+	it('gives each bare color a hover text that differs from its rest text, in both modes', () => {
+		const rest = { ...iro.palette.bare, ...iro.extended.bare }
+
+		for (const [color, classes] of Object.entries(rest)) {
+			const hover = iro.hover.bare[color as keyof typeof rest]
+
+			for (const mode of ['light', 'dark'] as const) {
+				expect(textColor(hover, mode), `${color} ${mode}`).not.toBe(textColor(classes, mode))
+			}
+		}
 	})
 })
