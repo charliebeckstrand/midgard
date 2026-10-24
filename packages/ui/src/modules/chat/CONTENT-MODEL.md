@@ -1,4 +1,4 @@
-# Chat content model — design record
+# Chat content model: design record
 
 > **Why the chat's content model has the shape it has.** [`ROADMAP.md`](ROADMAP.md) §3 planned to grow `ChatPart` into a flat, block-level union of five kinds. Four candidate models were built against the requirements the later increments place on it, and each was attacked on four lenses. This file records what the model must satisfy, the defects found in the planned shape, why the highest-scoring candidate lost, and what the judgment refuted. Read it before you add a kind.
 

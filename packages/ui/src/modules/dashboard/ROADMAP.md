@@ -48,7 +48,7 @@ A selection applies while the tile that made it is on the board. A remove theref
 
 The server cannot see which tiles mount. It therefore applies a selection while its tile has a saved entry or the children of the board declare that tile. The board reads each `DashboardTile` child, also inside a Fragment, and each spec tile of a `DashboardTiles` child. Each hydration render reads the same state as the server.
 
-## Engine — the substrate
+## Engine: the substrate
 
 The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layout`, `dashboard-drag`, `dashboard-resize`, `dashboard-responsive`, `dashboard-scope`, `dashboard-spec`, `dashboard-spec-parse`, `dashboard-preset`, `dashboard-tidy`, `dashboard-announcements`, and `dashboard-store`. Each file is framework-free, and each has its own test suite.
 

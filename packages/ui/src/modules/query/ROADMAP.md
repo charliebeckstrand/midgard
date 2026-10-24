@@ -30,7 +30,7 @@ A `between` rule now reads the span of its data. `QueryField.span` holds the `[m
 
 The summary now names an operator that the field does not offer. Before, [`describeRule`](engine/query-summary.ts) read the label only from the operator set of the field. A blank dashboard selection makes an `isEmpty` rule on a field of each type, so a `number` field showed the raw `isEmpty`. Now the label comes from the set of the field, then from the default set of the field type, then from the other built-in sets. So `isEmpty` on a `number` field reads `is Empty`, and `equals` on a `date` field whose custom operators leave out `equals` reads `on`. A parity test holds the evaluator operators and the built-in sets equal, so no active rule shows a raw operator name.
 
-## Engine — the substrate
+## Engine: the substrate
 
 Every domain concept lands in [`engine/`](engine), the module's pure functional core: no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` imports, no `index` barrel (the engine is imported file-by-file), no runtime imports from the module root.
 

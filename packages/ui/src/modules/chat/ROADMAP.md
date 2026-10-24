@@ -28,7 +28,7 @@ A view waits until a reader reaches it. Increment 9 put `ChatEmbedProvider` over
 
 The transcript holds at 5,000 messages. Increment 7's benches put a streamed chunk at 41 ms over 5,000 messages, against a 16 ms frame. Increment 10 windows the transcript, so a chunk re-renders the rows near the viewport and not the whole list. On the machine that took both runs, a chunk over 5,000 messages now costs about 1 ms, under the 500-message cost it had before. The window keys its rows by message id, pins through the virtualizer, and remembers each embed a reader reached.
 
-## Engine — the substrate
+## Engine: the substrate
 
 Every framework-free rule the chat holds must live in `engine/`, laid out like the grid, query, and map engines. The layering invariant is theirs, verbatim: no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` import, no runtime import from the module root, and no `index` barrel, because the engine is imported file-by-file. The module joins the `PURE_ENGINES` list in [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts), which is how a new engine opts in, and [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filename-boundary.test.ts) already holds the file layout the moment the directory exists.
 
@@ -40,13 +40,13 @@ The engine grows by increment rather than at once. Increment 1 moves what exists
 
 In order. Each one lands on its own and leaves the module whole.
 
-### 1. Extract the engine — done
+### 1. Extract the engine: done
 
 Move the rules; change no behavior. `chat-transcript.ts` takes the six list transforms out of `useChatSend` — append a user message, open a reply, apply a snapshot, drop an empty reply, truncate to the last user message, and truncate to an edited one — each as `(messages, …) => messages` over an id the caller supplies. `chat-draft.ts` takes the trim-and-guard rule that `ChatPrompt` and `useChatDraft` write separately, so the composer and the draft hook can never disagree about what is sendable. `types.ts` takes the vocabulary.
 
 The hook keeps its whole signature and becomes the React shell over those transforms: state, the `AbortController`, and the effect ordering stay in `use-chat-send.ts`. The public surface must not move, which is the bar query's extraction set and met. The proof is a pure `*.test.ts` per engine file, plus the existing 8 suites green and unedited — an edited suite means the move changed behavior.
 
-### 2. One speaker vocabulary — done
+### 2. One speaker vocabulary: done
 
 One breaking change, because `role` and `type` cannot move apart. `role: 'user' | 'assistant' | 'system'` is the single axis across the data, the component, and the recipe, and the hand-map at `chat-transcript.tsx:40` is gone. `system` is expressible in data, which it was not. `Chat` left `ui`: no `ui` component read it, and [`page.tsx`](../../../../../apps/admin/app/(signed-in)/(dashboard)/users/[userId]/page.tsx) casts the gateway's JSON to it directly, so camelCase in `ui` would have made that cast a lie. `sending` became `streaming` to match every component it feeds, `onSent` documents that it reports a completed send rather than the submit gesture, and `useChatList` became `useInChatList` because it reports a nesting fact rather than list state. #1976 later took `useInChatList` out of the barrel.
 
@@ -60,7 +60,7 @@ The scoped allowlist is the answer rather than a placeholder. Narrowing `ToggleG
 
 That cost was the reason to rename. The allowance did not reach app code, which got the same lint failure. The axis is now `sender` in the data, the component, and the recipe, and the override is gone. `role` on a chat element is again only the ARIA attribute.
 
-### 3. The content model — done
+### 3. The content model: done
 
 A message became parts. `ChatPart` is a discriminated union — `text` first, then `embed`, `tool`, `file`, and `citation` as later increments add them — and a message carries `string | ChatPart[]`. The engine normalizes, so `content: string` keeps working as one text part and no caller rewrote its transcript to adopt the union. `chat-content/` owns the union, the normalization, and the plain-text projection that copy, search, and the announcement in increment 6 all read.
 
@@ -74,7 +74,7 @@ The inline citation is held for the first backlog entry, and the reason is not t
 
 Three shapes were measured against this increment and refuted. A Markdown-encoded model, which scored highest and streamed best, is spoofable — a user message that holds the vocabulary is byte-identical to an assistant's — and its projection returns the source that [`markdown-renderer.tsx`](../../components/markdown/markdown-renderer.tsx) drops by design to the clipboard and the screen reader. An open discriminant surrenders the compiler-checked switch and buys nothing a `name` field does not. A projection parameterized by purpose dies at `retry`, whose string is the wire payload. For the whole record, see [`CONTENT-MODEL.md`](CONTENT-MODEL.md).
 
-### 4. The embed seam — done
+### 4. The embed seam: done
 
 A chart, a grid, or a map reaches a message through a registry, and the chat module imports none of them. [`ChatEmbedProvider`](chat-embed-provider.tsx) takes a record of renderers keyed by an embed name, a message's `embed` part names one and carries its data, and an unregistered name renders a stated fallback rather than nothing. Context is the seam, as it is in [`use-map-legend-registry.ts`](../map/use-map-legend-registry.ts), and a record is the whole registry here: a renderer is known where the app composes, where an overlay mounts and unmounts under the plat, so this one needs no ledger and no ordering.
 
@@ -86,7 +86,7 @@ Two engine arms fell out of the union, and the compiler asked for both. An embed
 
 Nesting merges rather than replaces: an inner provider adds to an outer one and wins on a shared name. That is what lets `ui/modules/chat/embeds` — a second entry point holding the adapters for the three modules and nothing else — sit under an app's own provider. It stays unbuilt. [`package.json`](../../../package.json) needs no change: its `./modules/*` pattern matches across `/`, so `ui/modules/chat/embeds` resolves already. [`docs/MODULES.md`](../../../docs/MODULES.md) states one entry point per module, so that page needs a change when the entry point lands. The registry alone answers the demo, which draws a reply carrying a sparkline over a renderer the demo registers.
 
-### 5. A stream of parts — done
+### 5. A stream of parts: done
 
 `ChatTransport` yielded `string`, and each string was the whole reply so far. An embed that arrives part-way through a reply cannot be expressed that way, so the transport now yields a part list beside the string. The string arm keeps its exact meaning — cumulative text, replace the bubble — so every transport written before this still runs, and it is a widening rather than a break: `AsyncIterable<string>` satisfies `AsyncIterable<string | ChatPart[]>` with no edit at the call site. [`chat-stream.ts`](engine/chat-stream.ts) owns both reconciliations: a string replaces the part `TEXT_PART_ID` names, and a part list merges by id, so a chart that arrives after two paragraphs does not discard them. It is one file, not a directory, because one kind of fold lives there — the rule [`map-geofence.ts`](../map/engine/map-geofence.ts) stands on.
 
@@ -100,7 +100,7 @@ A per-part completeness flag was refuted, and this increment did not reintroduce
 
 This is the increment that makes an agent reply a document rather than a message. It landed after the registry, because a part that names an unregistered embed must already have somewhere to land.
 
-### 6. The reply the reader cannot see — done
+### 6. The reply the reader cannot see: done
 
 The `streaming` pulse was visual only, so a screen-reader user was told nothing while a reply arrived, and a naive live region would have been worse — it would read every snapshot of a reply that rewrites itself many times a second. The rule is to announce the settled reply once, and to announce that a reply started, not each chunk of it. [`chat-announcements.ts`](engine/chat-announcements.ts) holds it as one pure builder, on the model [`grid-announcements.ts`](../grid/engine/grid-announcements.ts) set: `describeTranscript` returns one status string, the transcript narrates it through [`useA11yAnnouncements`](../../hooks/a11y/use-a11y-announcements.ts), and the announcer speaks only when that string changes. While a reply streams the string is a constant, so a hundred chunks are one announcement.
 
@@ -112,7 +112,7 @@ Three quieter rules fell out. A transcript ending on the reader's own message sa
 
 The corpus gained the transcript, which it had never held. That is what caught the contrast defect increment 4 shipped: the fallback line used `text.muted`, whose token contract is AA against the page and the card, and on the assistant bubble's own fill it measured 3.8:1. It now inherits the bubble's foreground and reads as an aside by slant, the same bargain the markdown kata takes. The jsdom gate could never have found it — it has no layout and no color — so the case earns its place in the Chromium gate.
 
-### 7. Measure the transcript — done
+### 7. Measure the transcript: done
 
 Chat had no benchmark, so every claim about a long conversation was a guess. It now holds two: [`chat-compute.bench.ts`](../../__benchmarks__/chat-compute.bench.ts) over the pure transforms in node, and [`chat-render.bench.tsx`](../../__benchmarks__/chat-render.bench.tsx) over the React tree in jsdom, both on a 50-, 500-, and 5,000-message LCG-seeded fixture. The numbers below are jsdom on one machine: read them against each other, never as absolutes.
 
@@ -124,7 +124,7 @@ The memo is working, and it is what keeps the failure from being far worse. A ch
 
 So virtualization is earned rather than assumed, and it is the next item rather than part of this one — the increment was to measure, and shipping the answer inside it would be the thing the section warns against. It lands as its own entry in the backlog, carrying the threshold these numbers set.
 
-### 8. Agent steps and tool calls — done
+### 8. Agent steps and tool calls: done
 
 A reply that ran a query can now show it, both because a reader trusts an answer more when the work behind it is visible and because a wrong filter is otherwise invisible. `tool` is the union's third kind, drawn as a collapsible step over the [`Collapse`](../../components/collapse) the package already ships. The leverage the entry predicted holds: `formatQuerySummary` renders a query tree to one plain line, so a step over a query writes no formatter of its own — the demo's summary is that line's shape.
 
@@ -139,7 +139,7 @@ The color lesson from the fallback repeated itself twice more, which is worth re
 The kata for it is a fragment map, `k.tool.{base,head,trigger,name,summary,details}`, rather than six `tool*` slots. The pieces only ever appear together, and `name` is not expressible as a top-level slot at all — it collides with the recipe function's own `name`, which `defineRecipe` throws on.
 
 
-### 9. Lazy-load the embeds — done
+### 9. Lazy-load the embeds: done
 
 A view is the most expensive thing a reply can carry, and increment 7 measured the wrong thing to see it: `makeTranscript` generates prose, so the 41 ms chunk and the 1.9 s mount at 5,000 messages hold no embed at all. A bench that carries one says something different. A `BarChart` on every assistant reply mounts in 151 ms over 50 messages and 1,568 ms over 500, against roughly 38 ms and 300 ms for the same transcript carrying none — about 4 ms per chart, where a text bubble costs well under one.
 
@@ -158,7 +158,7 @@ That default reserve is the honest weak point. A view of another height makes th
 This is the increment that makes virtualization optional for a dashboard chat rather than required. It does not replace it, and the entry below says where the line falls.
 
 
-### 10. Window the transcript — done
+### 10. Window the transcript: done
 
 Increment 7 put a number on the transcript: a streamed chunk at 5,000 messages cost 41 ms, and the bar was to hold the 500-message cost, about 3.4 ms, out to 5,000. The fix went into the package's one virtualizer, because the limit was there and not in the chat. `content-visibility: auto` could not change the number, because the 41 ms was React that rebuilt 5,000 elements.
 

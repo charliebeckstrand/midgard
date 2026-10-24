@@ -2,7 +2,7 @@
 
 > **Goal: benchmark-driven optimization of the centralized engine — faster and steadier, measured on every change.** The feature migration is done (AG-Grid-class power on a TanStack Table engine, its pure core factored into [`engine/`](engine)); this file retires the feature backlog and turns the module toward speed and stability. Every claim here is a measured number, held with the browser suite ([`__benchmarks__/browser`](../../__benchmarks__/browser)) that sizes each change and the node benches ([`grid-compute.bench.ts`](../../__benchmarks__/grid-compute.bench.ts), [`grid-sorting.bench.ts`](../../__benchmarks__/grid-sorting.bench.ts)) that localize the layer.
 
-## Baseline — the engine refactor did not regress; it won
+## Baseline: the engine refactor did not regress; it won
 
 The first question this roadmap had to answer — did centralizing the engine (taking the body and sort off the row model in #957, then factoring the module into `engine/` in #961) cost anything at runtime — has a clean answer: no, and by a wide margin. The check is a pure-engine A/B — the last commit before the engine work (`c35dad9`) against `HEAD`, deps identical, the sort and mount browser harnesses byte-for-byte unchanged across the span, so the delta is the engine and nothing else. Mean ms per iteration, real Chromium, this container (2026-07-11):
 
@@ -16,7 +16,7 @@ The first question this roadmap had to answer — did centralizing the engine (t
 
 The centralized engine is not a tax to claw back — it is the single largest speedup in the module's history, and it also halved sort's run-to-run variance (±26–30% pre-refactor to ±16–19% post). The regression hunt found the opposite of a regression; the optimization work below builds up from a proven floor, not down from a suspected hole.
 
-## Sort — where the time goes
+## Sort: where the time goes
 
 The node benches localized where sort's time went before avenue 4 landed. The comparator was never the problem — the engine already runs the decorated path (values decorated once through `toSortKey`, then `compareSortKeys` over the keys, over a single reused `Intl.Collator`; the per-call `localeCompare` tax was banked before this work began) — and that pass is ~5 ms for 10,000 rows. But the whole `sortRowsSmart` (decode + sort + materialize) is ~50 ms for 100,000 rows, ~45% of the 111 ms the browser sort cost, and every asc↔desc flip re-ran all of it from scratch. The `sortRowsSmart` split bench now holds that line: at 100,000 rows `computeSortOrder` (the cached half) is ~69 ms against `materializeSort`'s ~2 ms, so a cached flip pays ~33× less. The remaining ~46 ms of the browser sort is the top-level React commit and the virtualizer recompute — not the ~30-row window, which is memoized and moves rather than remounts — so avenue 1 (imperative repaint) targets an already-small surface and is held as low-ROI until a profile says otherwise.
 
@@ -42,7 +42,7 @@ The shipped avenues (2, 4, 7) are recorded with their numbers; the open ones (1,
 
 The loop is the one the benchmark README documents: snapshot, optimize, compare. `pnpm bench:browser -- --outputJson baseline.json` before an avenue, `--compare baseline.json` after, so every change carries its own before/after and no regression drifts in silently. When a browser scenario moves, the node benches (`pnpm bench`) and the pure cores (`grid-sort/utilities`, `grid-sizing/allocate`) are the ladder down to the responsible function — the same descend-to-localize the chart and map suites use. An avenue ships only when its browser number improves and no other regresses; the browser suite is the scoreboard, re-run per change.
 
-## Engine — the substrate the optimization rides
+## Engine: the substrate the optimization rides
 
 Every avenue lands in [`engine/`](engine), the module's pure functional core: a d3-style library of framework-free functions each feature slice consumes, all callable and benchable outside React, which is why the sort and allocation costs above are measurable as pure functions before they are measured as renders. The layering invariant is what keeps them optimizable in isolation — no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` imports, no runtime imports from the module root, no `index` barrel.
 
