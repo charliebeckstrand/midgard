@@ -16,6 +16,7 @@ const messages = defineMessages<{
 	cell: { column: number; columns: number; row: number; width: number }
 	dragStart: TileAtCell
 	cannotGo: { item: string }
+	atStart: TileAtCell
 	swaps: TileAtCell & { partner: string }
 	shifts: TileAtCell & { partner: string }
 	moves: TileAtCell
@@ -44,6 +45,12 @@ const messages = defineMessages<{
 		id: 'ui.dashboard.cannotGo',
 		defaultMessage: '{item} cannot go here. A drop now changes nothing.',
 		description: 'Spoken while a dragged tile is over a place where it cannot go.',
+	},
+	atStart: {
+		id: 'ui.dashboard.atStart',
+		defaultMessage: '{item} is over its start place, {cell}. A drop now changes nothing.',
+		description:
+			'Spoken while a dragged tile is over the place where the drag started. The cell is that place.',
 	},
 	swaps: {
 		id: 'ui.dashboard.swaps',
@@ -140,6 +147,19 @@ export function describeDragMove(
 	}
 
 	return intl.formatMessage(messages.moves, { item: label, cell: place })
+}
+
+/** The text when a drag target is the start cell of the tile, where a drop changes nothing. */
+export function describeDragAtStart(
+	intl: IntlShape,
+	label: string,
+	cell: DashboardCell,
+	columns: number,
+): string {
+	return intl.formatMessage(messages.atStart, {
+		item: label,
+		cell: describeCell(intl, cell, columns),
+	})
 }
 
 /** The text when a drop commits, or changes nothing. */

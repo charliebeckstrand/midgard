@@ -39,8 +39,8 @@ const STEPS: Record<string, readonly [number, number]> = {
  * live; the arrow keys on a focused splitter step it by one grid unit and commit
  * at once. After each step, the focused splitter scrolls into view, so its focus
  * ring stays on screen. The corner takes the pointer only, because the two edges
- * already serve the keyboard. Each edge reports the span on its axis, and the
- * range that the limits of the tile allow.
+ * already serve the keyboard. Each edge reports the span on its axis in columns
+ * or rows, and the range that the limits of the tile allow.
  *
  * @remarks
  * A saved span can be outside the limits, because the saved layout renders as
@@ -69,6 +69,9 @@ export function DashboardResizeHandle({
 
 	// The south edge of a free-form tile has no most height unless the tile sets one.
 	const most = horizontal ? range.maxH : range.maxW
+
+	// The span is in grid units, so the number alone does not say what it counts.
+	const unit = horizontal ? dashboardMessages.rows : dashboardMessages.columns
 
 	const ref = useRef<HTMLHRElement>(null)
 
@@ -121,6 +124,7 @@ export function DashboardResizeHandle({
 			label={intl.formatMessage(dashboardMessages.resize, { label })}
 			orientation={horizontal ? 'horizontal' : 'vertical'}
 			value={span}
+			valueText={intl.formatMessage(unit, { count: span })}
 			min={least}
 			max={most === undefined ? undefined : Math.max(most, span)}
 			onKeyDown={onKeyDown}

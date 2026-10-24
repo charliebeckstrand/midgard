@@ -18,7 +18,7 @@ type DashboardBinding<T> = {
 	value?: T | null
 	/** The initial value when uncontrolled. */
 	defaultValue?: T
-	/** Receives each committed change. */
+	/** Fires with each committed change. */
 	onValueChange?: (value: T) => void
 }
 

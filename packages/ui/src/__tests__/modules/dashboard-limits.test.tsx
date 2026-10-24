@@ -182,6 +182,32 @@ describe('DashboardTile limits', () => {
 		expect(southB).toHaveAttribute('aria-valuemin', '5')
 	})
 
+	it('names the span of each splitter in its unit, so a reader hears more than a number', () => {
+		renderUI(
+			<ControlledDashboard
+				aria-label="Board"
+				editing
+				initial={[{ id: 'a', x: 0, y: 0, w: 1, h: 18 }]}
+			>
+				<DashboardTile id="a" minWidth={0} />
+			</ControlledDashboard>,
+		)
+
+		const [east, south] = screen.getAllByRole('separator', { name: 'Resize a' })
+
+		expect(east).toHaveAttribute('aria-valuetext', '1 column')
+
+		expect(south).toHaveAttribute('aria-valuetext', '18 rows')
+
+		pressSplitter('a', 0, 'ArrowRight')
+
+		pressSplitter('a', 1, 'ArrowUp')
+
+		expect(east).toHaveAttribute('aria-valuetext', '2 columns')
+
+		expect(south).toHaveAttribute('aria-valuetext', '17 rows')
+	})
+
 	it('reports the minWidth floor as the least width, and the right edge as the most', () => {
 		// At a 50 px pitch and a 12 px gap, the default minWidth of 320 px needs 7 columns.
 		renderUI(

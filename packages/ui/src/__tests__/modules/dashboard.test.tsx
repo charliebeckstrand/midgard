@@ -1849,6 +1849,23 @@ describe('Dashboard gesture owner', () => {
 		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: GRID })
 	})
 
+	it('narrates a return to the start cell as the start, not as a place it cannot go', async () => {
+		renderUI(<Grid />)
+
+		// One column to the right, Orders moves into free cells.
+		const grip = await lift('Move Orders', 'ArrowRight', 1)
+
+		expect(dragNarration()).toBe('Orders moves to column 2 of 24, row 11, 8 columns wide.')
+
+		fireEvent.keyDown(grip, { code: 'ArrowLeft', key: 'ArrowLeft' })
+
+		expect(dragNarration()).toBe(
+			'Orders is over its start place, column 1 of 24, row 11, 8 columns wide. A drop now changes nothing.',
+		)
+
+		await drop(grip)
+	})
+
 	it('narrates Escape after a preview, and ends the drag once as canceled', async () => {
 		const onLayout = vi.fn()
 
