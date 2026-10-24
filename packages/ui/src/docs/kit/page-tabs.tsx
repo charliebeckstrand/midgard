@@ -10,7 +10,7 @@ import {
 import { defineMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
-import { tabName, toSlug } from './tab-name.ts'
+import { tabName, toSlug } from './names.ts'
 
 const sectionsMessage = defineMessage({
 	id: 'docs.tabs.sections',

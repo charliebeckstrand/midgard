@@ -6,9 +6,11 @@ import { Link, MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { Heading } from 'ui/heading'
 import type { LinkProps } from 'ui/primitives/link'
 import { AppearanceProvider } from 'ui/providers/appearance'
+import { LocaleProvider } from 'ui/providers/locale'
 import { UIProvider } from 'ui/providers/ui'
 import { describe, expect, it, vi } from 'vitest'
 import { CI } from '../../../vitest.base.ts'
+import { catalogs } from '../app/catalogs.ts'
 import { findPages, type Page } from '../plugin/pages.ts'
 import { restoreRootAfterCase } from './restore-root.ts'
 
@@ -28,6 +30,12 @@ import { restoreRootAfterCase } from './restore-root.ts'
 // a playground.
 // `page-coverage.test.ts` asks whether a page exists, and this test asks
 // whether the page works.
+//
+// The test renders each page in Spanish, with the catalogs of the docs. A name
+// from the code that shows as text, such as the title of an example or the
+// label of a field of a playground, writes an error when the Spanish catalog
+// has no message for it (`kit/names.ts`). So a page fails when `pnpm intl`
+// misses a name that the page shows.
 //
 // The rules (`AXE_RULES`) are the structural ones that a page breaks most.
 // They find a button with no name, and a role that lacks its required
@@ -224,8 +232,8 @@ function load(folder: string): Promise<ComponentType> {
 /**
  * Renders a page at its path, with a child route for each tab, as the routes
  * of the docs app give it. The providers are the providers of the shell of the
- * docs app, and the `h1` of the page is the heading of the header of the
- * shell. It then opens each tab. In each state, it reads the ids, finds the
+ * docs app, in Spanish, and the `h1` of the page is the heading of the header
+ * of the shell. It then opens each tab. In each state, it reads the ids, finds the
  * examples, and runs axe.
  */
 async function walk(page: Page): Promise<Walk> {
@@ -242,19 +250,21 @@ async function walk(page: Page): Promise<Walk> {
 
 	const { container } = render(
 		<MemoryRouter initialEntries={[page.path]}>
-			<UIProvider link={RouterLink}>
-				<AppearanceProvider>
-					<VisitedPaths visited={visited} />
-					<Heading>{page.name}</Heading>
-					<Routes>
-						<Route path={page.path} element={<Page />}>
-							{tabs.map(([tab, Tab]) => (
-								<Route key={tab} path={tab} element={<Tab />} />
-							))}
-						</Route>
-					</Routes>
-				</AppearanceProvider>
-			</UIProvider>
+			<LocaleProvider locale="es-ES" catalogs={catalogs}>
+				<UIProvider link={RouterLink}>
+					<AppearanceProvider>
+						<VisitedPaths visited={visited} />
+						<Heading>{page.name}</Heading>
+						<Routes>
+							<Route path={page.path} element={<Page />}>
+								{tabs.map(([tab, Tab]) => (
+									<Route key={tab} path={tab} element={<Tab />} />
+								))}
+							</Route>
+						</Routes>
+					</AppearanceProvider>
+				</UIProvider>
+			</LocaleProvider>
 		</MemoryRouter>,
 	)
 

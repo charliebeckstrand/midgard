@@ -28,7 +28,9 @@ const source = readCatalog(DOCS_SOURCE_CATALOG)
 const translations = readTranslations(DOCS_LANG_DIR)
 
 describe('intl catalog of the docs', () => {
-	it('matches the message descriptors of the source', async () => {
+	// The extraction reads the API data of each playground, so it starts a
+	// TypeScript server.
+	it('matches the message descriptors of the source', { timeout: 60_000 }, async () => {
 		const text = catalogText(await extractDocsCatalog())
 
 		expect(readFileSync(DOCS_SOURCE_CATALOG, 'utf8'), 'run `pnpm intl` to write the catalog').toBe(

@@ -10,8 +10,8 @@ import { useIsRtl } from '../../hooks/use-is-rtl.ts'
 import { usePanelResize } from '../../hooks/use-panel-resize.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
-import { exampleTitle } from './example-title.ts'
 import { useLoadThenOpen } from './load-then-open.ts'
+import { exampleTitle } from './names.ts'
 
 const messages = defineMessages({
 	showCode: {

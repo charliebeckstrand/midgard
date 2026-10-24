@@ -93,7 +93,11 @@ type Example = {
  * throws when the default export is not a named function, and when a
  * playground does not spread its props exactly once.
  */
-function readExample(program: ESTree.Program, code: string, file: string): Example | undefined {
+export function readExample(
+	program: ESTree.Program,
+	code: string,
+	file: string,
+): Example | undefined {
 	const exported = program.body.find((node) => node.type === 'ExportDefaultDeclaration')
 
 	if (!exported) return undefined

@@ -133,7 +133,7 @@
 	},
 	"docs.playground.fromSizeClass": {
 		"defaultMessage": "{value} from {sizeClass}",
-		"description": "A value of a prop that holds from a screen width up, such as \"Horizontal from medium\". The value and the size class are names from the code, in English."
+		"description": "A value of a prop that holds from a screen width up, such as \"Horizontal from medium\". The size class is the name of a range of screen widths, such as \"medium\"."
 	},
 	"docs.playground.none": {
 		"defaultMessage": "None",
@@ -151,25 +151,1333 @@
 		"defaultMessage": "Props",
 		"description": "The name of the row of fields above a playground. Each field sets one prop of the component: one of its inputs."
 	},
-	"docs.playground.size.lg": {
+	"docs.playground.sizeClass.expanded": {
+		"defaultMessage": "expanded",
+		"description": "The name of the widest range of screen widths, as in \"Horizontal from expanded\". Write it in lowercase."
+	},
+	"docs.playground.sizeClass.medium": {
+		"defaultMessage": "medium",
+		"description": "The name of the medium range of screen widths, as in \"Horizontal from medium\". Write it in lowercase."
+	},
+	"docs.prop.aggregation": {
+		"defaultMessage": "Aggregation",
+		"description": "The label of a field of a playground in the docs. The field sets the prop aggregation of PivotTable."
+	},
+	"docs.prop.aggregation.avg": {
+		"defaultMessage": "Avg",
+		"description": "An option of the Aggregation field of a playground in the docs. It sets the prop aggregation to 'avg' on PivotTable."
+	},
+	"docs.prop.aggregation.count": {
+		"defaultMessage": "Count",
+		"description": "An option of the Aggregation field of a playground in the docs. It sets the prop aggregation to 'count' on PivotTable."
+	},
+	"docs.prop.aggregation.max": {
+		"defaultMessage": "Max",
+		"description": "An option of the Aggregation field of a playground in the docs. It sets the prop aggregation to 'max' on PivotTable."
+	},
+	"docs.prop.aggregation.min": {
+		"defaultMessage": "Min",
+		"description": "An option of the Aggregation field of a playground in the docs. It sets the prop aggregation to 'min' on PivotTable."
+	},
+	"docs.prop.aggregation.sum": {
+		"defaultMessage": "Sum",
+		"description": "An option of the Aggregation field of a playground in the docs. It sets the prop aggregation to 'sum' on PivotTable."
+	},
+	"docs.prop.align": {
+		"defaultMessage": "Align",
+		"description": "The label of a field of a playground in the docs. The field sets the prop align of Columns, Confirm, DialogPanel, Flex, Split, Stack."
+	},
+	"docs.prop.align.baseline": {
+		"defaultMessage": "Baseline",
+		"description": "An option of the Align field of a playground in the docs. It sets the prop align to 'baseline' on Columns, Flex, Split, Stack."
+	},
+	"docs.prop.align.bottom": {
+		"defaultMessage": "Bottom",
+		"description": "An option of the Align field of a playground in the docs. It sets the prop align to 'bottom' on Confirm, DialogPanel."
+	},
+	"docs.prop.align.center": {
+		"defaultMessage": "Center",
+		"description": "An option of the Align field of a playground in the docs. It sets the prop align to 'center' on Columns, Confirm, DialogPanel, Flex, Split, Stack."
+	},
+	"docs.prop.align.end": {
+		"defaultMessage": "End",
+		"description": "An option of the Align field of a playground in the docs. It sets the prop align to 'end' on Columns, Flex, Split, Stack."
+	},
+	"docs.prop.align.start": {
+		"defaultMessage": "Start",
+		"description": "An option of the Align field of a playground in the docs. It sets the prop align to 'start' on Columns, Flex, Split, Stack."
+	},
+	"docs.prop.align.stretch": {
+		"defaultMessage": "Stretch",
+		"description": "An option of the Align field of a playground in the docs. It sets the prop align to 'stretch' on Columns, Flex, Split, Stack."
+	},
+	"docs.prop.align.top": {
+		"defaultMessage": "Top",
+		"description": "An option of the Align field of a playground in the docs. It sets the prop align to 'top' on Confirm, DialogPanel."
+	},
+	"docs.prop.allowGroups": {
+		"defaultMessage": "Allow groups",
+		"description": "The label of a field of a playground in the docs. The field sets the prop allowGroups of QueryBuilder."
+	},
+	"docs.prop.alpha": {
+		"defaultMessage": "Alpha",
+		"description": "The label of a field of a playground in the docs. The field sets the prop alpha of ColorPicker."
+	},
+	"docs.prop.animate": {
+		"defaultMessage": "Animate",
+		"description": "The label of a field of a playground in the docs. The field sets the prop animate of Collapse, ToggleIconButton."
+	},
+	"docs.prop.animate.fade": {
+		"defaultMessage": "Fade",
+		"description": "An option of the Animate field of a playground in the docs. It sets the prop animate to 'fade' on Collapse."
+	},
+	"docs.prop.animate.slide": {
+		"defaultMessage": "Slide",
+		"description": "An option of the Animate field of a playground in the docs. It sets the prop animate to 'slide' on Collapse."
+	},
+	"docs.prop.autoResize": {
+		"defaultMessage": "Auto resize",
+		"description": "The label of a field of a playground in the docs. The field sets the prop autoResize of Textarea."
+	},
+	"docs.prop.backdrop": {
+		"defaultMessage": "Backdrop",
+		"description": "The label of a field of a playground in the docs. The field sets the prop backdrop of DialogPanel, DrawerPanel, SheetPanel."
+	},
+	"docs.prop.bg": {
+		"defaultMessage": "Bg",
+		"description": "The label of a field of a playground in the docs. The field sets the prop bg of Box, Card."
+	},
+	"docs.prop.bg.none": {
+		"defaultMessage": "None",
+		"description": "An option of the Bg field of a playground in the docs. It sets the prop bg to 'none' on Box, Card."
+	},
+	"docs.prop.bg.popover": {
+		"defaultMessage": "Popover",
+		"description": "An option of the Bg field of a playground in the docs. It sets the prop bg to 'popover' on Box, Card."
+	},
+	"docs.prop.bg.surface": {
+		"defaultMessage": "Surface",
+		"description": "An option of the Bg field of a playground in the docs. It sets the prop bg to 'surface' on Box, Card."
+	},
+	"docs.prop.bg.tint": {
+		"defaultMessage": "Tint",
+		"description": "An option of the Bg field of a playground in the docs. It sets the prop bg to 'tint' on Box, Card."
+	},
+	"docs.prop.bleed": {
+		"defaultMessage": "Bleed",
+		"description": "The label of a field of a playground in the docs. The field sets the prop bleed of Grid."
+	},
+	"docs.prop.breaks": {
+		"defaultMessage": "Breaks",
+		"description": "The label of a field of a playground in the docs. The field sets the prop breaks of Markdown."
+	},
+	"docs.prop.capitalize": {
+		"defaultMessage": "Capitalize",
+		"description": "The label of a field of a playground in the docs. The field sets the prop capitalize of AddressInput, Combobox, Listbox, Select."
+	},
+	"docs.prop.clearOnEmpty": {
+		"defaultMessage": "Clear on empty",
+		"description": "The label of a field of a playground in the docs. The field sets the prop clearOnEmpty of Combobox."
+	},
+	"docs.prop.clearable": {
+		"defaultMessage": "Clearable",
+		"description": "The label of a field of a playground in the docs. The field sets the prop clearable of AddressInput, Combobox, CreditCardInput, CurrencyInput, DateInput, DatePicker, Input, Listbox, MaskInput, NumberInput, PasswordInput, Rating, SearchInput, Select, SignaturePad, TagInput."
+	},
+	"docs.prop.closeOnSelect": {
+		"defaultMessage": "Close on select",
+		"description": "The label of a field of a playground in the docs. The field sets the prop closeOnSelect of AddressInput, Combobox."
+	},
+	"docs.prop.collapse": {
+		"defaultMessage": "Collapse",
+		"description": "The label of a field of a playground in the docs. The field sets the prop collapse of Breadcrumb."
+	},
+	"docs.prop.collapsible": {
+		"defaultMessage": "Collapsible",
+		"description": "The label of a field of a playground in the docs. The field sets the prop collapsible of Accordion, JsonTree."
+	},
+	"docs.prop.collapsible.children": {
+		"defaultMessage": "Children",
+		"description": "An option of the Collapsible field of a playground in the docs. It sets the prop collapsible to 'children' on JsonTree."
+	},
+	"docs.prop.collapsible.root": {
+		"defaultMessage": "Root",
+		"description": "An option of the Collapsible field of a playground in the docs. It sets the prop collapsible to 'root' on JsonTree."
+	},
+	"docs.prop.color": {
+		"defaultMessage": "Color",
+		"description": "The label of a field of a playground in the docs. The field sets the prop color of Avatar, Badge, Button, Checkbox, HoldButton, Link, LoadingDots, LoadingSpinner, ProgressBar, ProgressGauge, Radio, Rating, Slider, Sparkline, Switch, Text, ToggleIconButton."
+	},
+	"docs.prop.color.amber": {
+		"defaultMessage": "Amber",
+		"description": "An option of the Color field of a playground in the docs. It sets the prop color to 'amber' on Avatar, Badge, Button, Checkbox, HoldButton, Link, LoadingDots, LoadingSpinner, ProgressBar, ProgressGauge, Radio, Rating, Slider, Sparkline, Switch, Text, ToggleIconButton."
+	},
+	"docs.prop.color.blue": {
+		"defaultMessage": "Blue",
+		"description": "An option of the Color field of a playground in the docs. It sets the prop color to 'blue' on Avatar, Badge, Button, Checkbox, HoldButton, Link, LoadingDots, LoadingSpinner, ProgressBar, ProgressGauge, Radio, Rating, Slider, Sparkline, Switch, Text, ToggleIconButton."
+	},
+	"docs.prop.color.current": {
+		"defaultMessage": "Current",
+		"description": "An option of the Color field of a playground in the docs. It sets the prop color to 'current' on Link, LoadingDots, LoadingSpinner, Rating, Text."
+	},
+	"docs.prop.color.green": {
+		"defaultMessage": "Green",
+		"description": "An option of the Color field of a playground in the docs. It sets the prop color to 'green' on Avatar, Badge, Button, Checkbox, HoldButton, Link, LoadingDots, LoadingSpinner, ProgressBar, ProgressGauge, Radio, Rating, Slider, Sparkline, Switch, Text, ToggleIconButton."
+	},
+	"docs.prop.color.inherit": {
+		"defaultMessage": "Inherit",
+		"description": "An option of the Color field of a playground in the docs. It sets the prop color to 'inherit' on Button, HoldButton, ToggleIconButton."
+	},
+	"docs.prop.color.red": {
+		"defaultMessage": "Red",
+		"description": "An option of the Color field of a playground in the docs. It sets the prop color to 'red' on Avatar, Badge, Button, Checkbox, HoldButton, Link, LoadingDots, LoadingSpinner, ProgressBar, ProgressGauge, Radio, Rating, Slider, Sparkline, Switch, Text, ToggleIconButton."
+	},
+	"docs.prop.color.rose": {
+		"defaultMessage": "Rose",
+		"description": "An option of the Color field of a playground in the docs. It sets the prop color to 'rose' on Badge, Button, HoldButton, ToggleIconButton."
+	},
+	"docs.prop.color.sky": {
+		"defaultMessage": "Sky",
+		"description": "An option of the Color field of a playground in the docs. It sets the prop color to 'sky' on Badge, Button, HoldButton, ToggleIconButton."
+	},
+	"docs.prop.color.violet": {
+		"defaultMessage": "Violet",
+		"description": "An option of the Color field of a playground in the docs. It sets the prop color to 'violet' on Badge, Button, HoldButton, ToggleIconButton."
+	},
+	"docs.prop.color.zinc": {
+		"defaultMessage": "Zinc",
+		"description": "An option of the Color field of a playground in the docs. It sets the prop color to 'zinc' on Avatar, Badge, Button, Checkbox, HoldButton, Link, LoadingDots, LoadingSpinner, ProgressBar, ProgressGauge, Radio, Rating, Slider, Sparkline, Switch, Text, ToggleIconButton."
+	},
+	"docs.prop.columns": {
+		"defaultMessage": "Columns",
+		"description": "The label of a field of a playground in the docs. The field sets the prop columns of Columns, Dashboard."
+	},
+	"docs.prop.condensed": {
+		"defaultMessage": "Condensed",
+		"description": "The label of a field of a playground in the docs. The field sets the prop condensed of Grid."
+	},
+	"docs.prop.count": {
+		"defaultMessage": "Count",
+		"description": "The label of a field of a playground in the docs. The field sets the prop count of Rating."
+	},
+	"docs.prop.debounceMs": {
+		"defaultMessage": "Debounce ms",
+		"description": "The label of a field of a playground in the docs. The field sets the prop debounceMs of AddressInput."
+	},
+	"docs.prop.defaultItems": {
+		"defaultMessage": "Default items",
+		"description": "The label of a field of a playground in the docs. The field sets the prop defaultItems of ContextMenu."
+	},
+	"docs.prop.defaultOpen": {
+		"defaultMessage": "Default open",
+		"description": "The label of a field of a playground in the docs. The field sets the prop defaultOpen of CommandPalette."
+	},
+	"docs.prop.delay": {
+		"defaultMessage": "Delay",
+		"description": "The label of a field of a playground in the docs. The field sets the prop delay of Tooltip."
+	},
+	"docs.prop.density": {
+		"defaultMessage": "Density",
+		"description": "The label of a field of a playground in the docs. The field sets the prop density of Box, DensityProvider."
+	},
+	"docs.prop.density.compact": {
+		"defaultMessage": "Compact",
+		"description": "An option of the Density field of a playground in the docs. It sets the prop density to 'compact' on DensityProvider."
+	},
+	"docs.prop.density.lg": {
 		"defaultMessage": "Large",
-		"description": "The option of the size field of a playground for the large size."
+		"description": "An option of the Density field of a playground in the docs. It sets the prop density to 'lg' on Box."
 	},
-	"docs.playground.size.md": {
+	"docs.prop.density.loose": {
+		"defaultMessage": "Loose",
+		"description": "An option of the Density field of a playground in the docs. It sets the prop density to 'loose' on DensityProvider."
+	},
+	"docs.prop.density.md": {
 		"defaultMessage": "Medium",
-		"description": "The option of the size field of a playground for the medium size."
+		"description": "An option of the Density field of a playground in the docs. It sets the prop density to 'md' on Box."
 	},
-	"docs.playground.size.sm": {
+	"docs.prop.density.sm": {
 		"defaultMessage": "Small",
-		"description": "The option of the size field of a playground for the small size."
+		"description": "An option of the Density field of a playground in the docs. It sets the prop density to 'sm' on Box."
 	},
-	"docs.playground.size.xl": {
+	"docs.prop.density.snug": {
+		"defaultMessage": "Snug",
+		"description": "An option of the Density field of a playground in the docs. It sets the prop density to 'snug' on DensityProvider."
+	},
+	"docs.prop.density.xl": {
 		"defaultMessage": "Extra large",
-		"description": "The option of the size field of a playground for the largest size."
+		"description": "An option of the Density field of a playground in the docs. It sets the prop density to 'xl' on Box."
 	},
-	"docs.playground.size.xs": {
+	"docs.prop.density.xs": {
 		"defaultMessage": "Extra small",
-		"description": "The option of the size field of a playground for the smallest size."
+		"description": "An option of the Density field of a playground in the docs. It sets the prop density to 'xs' on Box."
+	},
+	"docs.prop.dir": {
+		"defaultMessage": "Dir",
+		"description": "The label of a field of a playground in the docs. The field sets the prop dir of LocaleProvider."
+	},
+	"docs.prop.dir.ltr": {
+		"defaultMessage": "LTR",
+		"description": "An option of the Dir field of a playground in the docs. It sets the prop dir to 'ltr' on LocaleProvider."
+	},
+	"docs.prop.dir.rtl": {
+		"defaultMessage": "RTL",
+		"description": "An option of the Dir field of a playground in the docs. It sets the prop dir to 'rtl' on LocaleProvider."
+	},
+	"docs.prop.direction": {
+		"defaultMessage": "Direction",
+		"description": "The label of a field of a playground in the docs. The field sets the prop direction of Flex."
+	},
+	"docs.prop.direction.col": {
+		"defaultMessage": "Col",
+		"description": "An option of the Direction field of a playground in the docs. It sets the prop direction to 'col' on Flex."
+	},
+	"docs.prop.direction.col-reverse": {
+		"defaultMessage": "Col reverse",
+		"description": "An option of the Direction field of a playground in the docs. It sets the prop direction to 'col-reverse' on Flex."
+	},
+	"docs.prop.direction.row": {
+		"defaultMessage": "Row",
+		"description": "An option of the Direction field of a playground in the docs. It sets the prop direction to 'row' on Flex."
+	},
+	"docs.prop.direction.row-reverse": {
+		"defaultMessage": "Row reverse",
+		"description": "An option of the Direction field of a playground in the docs. It sets the prop direction to 'row-reverse' on Flex."
+	},
+	"docs.prop.disabled": {
+		"defaultMessage": "Disabled",
+		"description": "The label of a field of a playground in the docs. The field sets the prop disabled of AddressInput, ColorPicker, Combobox, ContextMenu, Control, DatePicker, FileUploadDrop, Form, Kanban, Listbox, QueryBuilder, Rating, Select, ShinyText, SignaturePad, Tooltip."
+	},
+	"docs.prop.dismissOnBackdrop": {
+		"defaultMessage": "Dismiss on backdrop",
+		"description": "The label of a field of a playground in the docs. The field sets the prop dismissOnBackdrop of CommandPalette, Confirm, DialogPanel, DrawerPanel, SheetPanel."
+	},
+	"docs.prop.duration": {
+		"defaultMessage": "Duration",
+		"description": "The label of a field of a playground in the docs. The field sets the prop duration of HoldButton, Odometer."
+	},
+	"docs.prop.editing": {
+		"defaultMessage": "Editing",
+		"description": "The label of a field of a playground in the docs. The field sets the prop editing of Dashboard."
+	},
+	"docs.prop.endPoint": {
+		"defaultMessage": "End point",
+		"description": "The label of a field of a playground in the docs. The field sets the prop endPoint of Sparkline."
+	},
+	"docs.prop.fill": {
+		"defaultMessage": "Fill",
+		"description": "The label of a field of a playground in the docs. The field sets the prop fill of Sparkline."
+	},
+	"docs.prop.fit": {
+		"defaultMessage": "Fit",
+		"description": "The label of a field of a playground in the docs. The field sets the prop fit of PdfViewer."
+	},
+	"docs.prop.fit.page": {
+		"defaultMessage": "Page",
+		"description": "An option of the Fit field of a playground in the docs. It sets the prop fit to 'page' on PdfViewer."
+	},
+	"docs.prop.fit.width": {
+		"defaultMessage": "Width",
+		"description": "An option of the Fit field of a playground in the docs. It sets the prop fit to 'width' on PdfViewer."
+	},
+	"docs.prop.flex": {
+		"defaultMessage": "Flex",
+		"description": "The label of a field of a playground in the docs. The field sets the prop flex of Flex, Stack."
+	},
+	"docs.prop.flex.auto": {
+		"defaultMessage": "Auto",
+		"description": "An option of the Flex field of a playground in the docs. It sets the prop flex to 'auto' on Flex, Stack."
+	},
+	"docs.prop.format": {
+		"defaultMessage": "Format",
+		"description": "The label of a field of a playground in the docs. The field sets the prop format of DateInput, DatePicker."
+	},
+	"docs.prop.full": {
+		"defaultMessage": "Full",
+		"description": "The label of a field of a playground in the docs. The field sets the prop full of Flex, Stack."
+	},
+	"docs.prop.gap": {
+		"defaultMessage": "Gap",
+		"description": "The label of a field of a playground in the docs. The field sets the prop gap of Columns, Dashboard, Flex, Split, Stack."
+	},
+	"docs.prop.gap.lg": {
+		"defaultMessage": "Large",
+		"description": "An option of the Gap field of a playground in the docs. It sets the prop gap to 'lg' on Columns, Flex, Split, Stack."
+	},
+	"docs.prop.gap.md": {
+		"defaultMessage": "Medium",
+		"description": "An option of the Gap field of a playground in the docs. It sets the prop gap to 'md' on Columns, Flex, Split, Stack."
+	},
+	"docs.prop.gap.sm": {
+		"defaultMessage": "Small",
+		"description": "An option of the Gap field of a playground in the docs. It sets the prop gap to 'sm' on Columns, Flex, Split, Stack."
+	},
+	"docs.prop.gap.xl": {
+		"defaultMessage": "Extra large",
+		"description": "An option of the Gap field of a playground in the docs. It sets the prop gap to 'xl' on Columns, Flex, Split, Stack."
+	},
+	"docs.prop.gap.xs": {
+		"defaultMessage": "Extra small",
+		"description": "An option of the Gap field of a playground in the docs. It sets the prop gap to 'xs' on Columns, Flex, Split, Stack."
+	},
+	"docs.prop.glass": {
+		"defaultMessage": "Glass",
+		"description": "The label of a field of a playground in the docs. The field sets the prop glass of CommandPalette, Confirm, DialogPanel, DrawerPanel, SheetPanel."
+	},
+	"docs.prop.handle": {
+		"defaultMessage": "Handle",
+		"description": "The label of a field of a playground in the docs. The field sets the prop handle of DrawerPanel, SheetPanel."
+	},
+	"docs.prop.height": {
+		"defaultMessage": "Height",
+		"description": "The label of a field of a playground in the docs. The field sets the prop height of DrawerPanel."
+	},
+	"docs.prop.height.auto": {
+		"defaultMessage": "Auto",
+		"description": "An option of the Height field of a playground in the docs. It sets the prop height to 'auto' on DrawerPanel."
+	},
+	"docs.prop.height.fit": {
+		"defaultMessage": "Fit",
+		"description": "An option of the Height field of a playground in the docs. It sets the prop height to 'fit' on DrawerPanel."
+	},
+	"docs.prop.height.full": {
+		"defaultMessage": "Full",
+		"description": "An option of the Height field of a playground in the docs. It sets the prop height to 'full' on DrawerPanel."
+	},
+	"docs.prop.height.half": {
+		"defaultMessage": "Half",
+		"description": "An option of the Height field of a playground in the docs. It sets the prop height to 'half' on DrawerPanel."
+	},
+	"docs.prop.hideFieldSelector": {
+		"defaultMessage": "Hide field selector",
+		"description": "The label of a field of a playground in the docs. The field sets the prop hideFieldSelector of QueryBuilder."
+	},
+	"docs.prop.hover": {
+		"defaultMessage": "Hover",
+		"description": "The label of a field of a playground in the docs. The field sets the prop hover of Grid, PivotTable, Table."
+	},
+	"docs.prop.indent": {
+		"defaultMessage": "Indent",
+		"description": "The label of a field of a playground in the docs. The field sets the prop indent of Tree."
+	},
+	"docs.prop.indeterminate": {
+		"defaultMessage": "Indeterminate",
+		"description": "The label of a field of a playground in the docs. The field sets the prop indeterminate of Checkbox."
+	},
+	"docs.prop.initials": {
+		"defaultMessage": "Initials",
+		"description": "The label of a field of a playground in the docs. The field sets the prop initials of Avatar."
+	},
+	"docs.prop.input": {
+		"defaultMessage": "Input",
+		"description": "The label of a field of a playground in the docs. The field sets the prop input of DatePicker."
+	},
+	"docs.prop.insert": {
+		"defaultMessage": "Insert",
+		"description": "The label of a field of a playground in the docs. The field sets the prop insert of ContextMenu."
+	},
+	"docs.prop.insert.after": {
+		"defaultMessage": "After",
+		"description": "An option of the Insert field of a playground in the docs. It sets the prop insert to 'after' on ContextMenu."
+	},
+	"docs.prop.insert.before": {
+		"defaultMessage": "Before",
+		"description": "An option of the Insert field of a playground in the docs. It sets the prop insert to 'before' on ContextMenu."
+	},
+	"docs.prop.interactive": {
+		"defaultMessage": "Interactive",
+		"description": "The label of a field of a playground in the docs. The field sets the prop interactive of Tooltip."
+	},
+	"docs.prop.invalid": {
+		"defaultMessage": "Invalid",
+		"description": "The label of a field of a playground in the docs. The field sets the prop invalid of CreditCardInput, CurrencyInput, DateInput, Input, MaskInput, NumberInput, PasswordInput, SearchInput, Textarea."
+	},
+	"docs.prop.justify": {
+		"defaultMessage": "Justify",
+		"description": "The label of a field of a playground in the docs. The field sets the prop justify of Flex, Stack."
+	},
+	"docs.prop.justify.around": {
+		"defaultMessage": "Around",
+		"description": "An option of the Justify field of a playground in the docs. It sets the prop justify to 'around' on Flex, Stack."
+	},
+	"docs.prop.justify.between": {
+		"defaultMessage": "Between",
+		"description": "An option of the Justify field of a playground in the docs. It sets the prop justify to 'between' on Flex, Stack."
+	},
+	"docs.prop.justify.center": {
+		"defaultMessage": "Center",
+		"description": "An option of the Justify field of a playground in the docs. It sets the prop justify to 'center' on Flex, Stack."
+	},
+	"docs.prop.justify.end": {
+		"defaultMessage": "End",
+		"description": "An option of the Justify field of a playground in the docs. It sets the prop justify to 'end' on Flex, Stack."
+	},
+	"docs.prop.justify.evenly": {
+		"defaultMessage": "Evenly",
+		"description": "An option of the Justify field of a playground in the docs. It sets the prop justify to 'evenly' on Flex, Stack."
+	},
+	"docs.prop.justify.start": {
+		"defaultMessage": "Start",
+		"description": "An option of the Justify field of a playground in the docs. It sets the prop justify to 'start' on Flex, Stack."
+	},
+	"docs.prop.layout": {
+		"defaultMessage": "Layout",
+		"description": "The label of a field of a playground in the docs. The field sets the prop layout of FormFilters, SheetPanel."
+	},
+	"docs.prop.layout.floating": {
+		"defaultMessage": "Floating",
+		"description": "An option of the Layout field of a playground in the docs. It sets the prop layout to 'floating' on SheetPanel."
+	},
+	"docs.prop.layout.flush": {
+		"defaultMessage": "Flush",
+		"description": "An option of the Layout field of a playground in the docs. It sets the prop layout to 'flush' on SheetPanel."
+	},
+	"docs.prop.layout.rail": {
+		"defaultMessage": "Rail",
+		"description": "An option of the Layout field of a playground in the docs. It sets the prop layout to 'rail' on FormFilters."
+	},
+	"docs.prop.layout.stack": {
+		"defaultMessage": "Stack",
+		"description": "An option of the Layout field of a playground in the docs. It sets the prop layout to 'stack' on FormFilters."
+	},
+	"docs.prop.level": {
+		"defaultMessage": "Level",
+		"description": "The label of a field of a playground in the docs. The field sets the prop level of Heading."
+	},
+	"docs.prop.linear": {
+		"defaultMessage": "Linear",
+		"description": "The label of a field of a playground in the docs. The field sets the prop linear of Stepper."
+	},
+	"docs.prop.loading": {
+		"defaultMessage": "Loading",
+		"description": "The label of a field of a playground in the docs. The field sets the prop loading of Button, MapPlat, SearchInput."
+	},
+	"docs.prop.lockable": {
+		"defaultMessage": "Lockable",
+		"description": "The label of a field of a playground in the docs. The field sets the prop lockable of Button, HoldButton."
+	},
+	"docs.prop.max": {
+		"defaultMessage": "Max",
+		"description": "The label of a field of a playground in the docs. The field sets the prop max of ProgressBar, ProgressGauge, Slider."
+	},
+	"docs.prop.min": {
+		"defaultMessage": "Min",
+		"description": "The label of a field of a playground in the docs. The field sets the prop min of Slider."
+	},
+	"docs.prop.minQueryLength": {
+		"defaultMessage": "Min query length",
+		"description": "The label of a field of a playground in the docs. The field sets the prop minQueryLength of AddressInput."
+	},
+	"docs.prop.mini": {
+		"defaultMessage": "Mini",
+		"description": "The label of a field of a playground in the docs. The field sets the prop mini of Sidebar."
+	},
+	"docs.prop.modal": {
+		"defaultMessage": "Modal",
+		"description": "The label of a field of a playground in the docs. The field sets the prop modal of DialogPanel, DrawerPanel, SheetPanel."
+	},
+	"docs.prop.multiple": {
+		"defaultMessage": "Multiple",
+		"description": "The label of a field of a playground in the docs. The field sets the prop multiple of Combobox, FileUploadDrop, Listbox."
+	},
+	"docs.prop.nameRegions": {
+		"defaultMessage": "Name regions",
+		"description": "The label of a field of a playground in the docs. The field sets the prop nameRegions of MapPlat."
+	},
+	"docs.prop.nullable": {
+		"defaultMessage": "Nullable",
+		"description": "The label of a field of a playground in the docs. The field sets the prop nullable of AddressInput, Combobox, Listbox, Select."
+	},
+	"docs.prop.orientation": {
+		"defaultMessage": "Orientation",
+		"description": "The label of a field of a playground in the docs. The field sets the prop orientation of BarChart, DescriptionList, Divider, Group, List, NavList, QueryBuilder, ResizableGroup, Split, Stepper, Tabs, Timeline, Toolbar."
+	},
+	"docs.prop.orientation.horizontal": {
+		"defaultMessage": "Horizontal",
+		"description": "An option of the Orientation field of a playground in the docs. It sets the prop orientation to 'horizontal' on BarChart, DescriptionList, Divider, Group, List, NavList, QueryBuilder, ResizableGroup, Split, Stepper, Tabs, Timeline, Toolbar."
+	},
+	"docs.prop.orientation.vertical": {
+		"defaultMessage": "Vertical",
+		"description": "An option of the Orientation field of a playground in the docs. It sets the prop orientation to 'vertical' on BarChart, DescriptionList, Divider, Group, List, NavList, QueryBuilder, ResizableGroup, Split, Stepper, Tabs, Timeline, Toolbar."
+	},
+	"docs.prop.outline": {
+		"defaultMessage": "Outline",
+		"description": "The label of a field of a playground in the docs. The field sets the prop outline of Box, Card, Grid, PivotTable, Table."
+	},
+	"docs.prop.outline.strong": {
+		"defaultMessage": "Strong",
+		"description": "An option of the Outline field of a playground in the docs. It sets the prop outline to 'strong' on Box, Card."
+	},
+	"docs.prop.outline.subtle": {
+		"defaultMessage": "Subtle",
+		"description": "An option of the Outline field of a playground in the docs. It sets the prop outline to 'subtle' on Box, Card."
+	},
+	"docs.prop.p": {
+		"defaultMessage": "P",
+		"description": "The label of a field of a playground in the docs. The field sets the prop p of Box."
+	},
+	"docs.prop.p.lg": {
+		"defaultMessage": "Large",
+		"description": "An option of the P field of a playground in the docs. It sets the prop p to 'lg' on Box."
+	},
+	"docs.prop.p.md": {
+		"defaultMessage": "Medium",
+		"description": "An option of the P field of a playground in the docs. It sets the prop p to 'md' on Box."
+	},
+	"docs.prop.p.sm": {
+		"defaultMessage": "Small",
+		"description": "An option of the P field of a playground in the docs. It sets the prop p to 'sm' on Box."
+	},
+	"docs.prop.p.xl": {
+		"defaultMessage": "Extra large",
+		"description": "An option of the P field of a playground in the docs. It sets the prop p to 'xl' on Box."
+	},
+	"docs.prop.p.xs": {
+		"defaultMessage": "Extra small",
+		"description": "An option of the P field of a playground in the docs. It sets the prop p to 'xs' on Box."
+	},
+	"docs.prop.padding": {
+		"defaultMessage": "Padding",
+		"description": "The label of a field of a playground in the docs. The field sets the prop padding of Container."
+	},
+	"docs.prop.padding.lg": {
+		"defaultMessage": "Large",
+		"description": "An option of the Padding field of a playground in the docs. It sets the prop padding to 'lg' on Container."
+	},
+	"docs.prop.padding.md": {
+		"defaultMessage": "Medium",
+		"description": "An option of the Padding field of a playground in the docs. It sets the prop padding to 'md' on Container."
+	},
+	"docs.prop.padding.sm": {
+		"defaultMessage": "Small",
+		"description": "An option of the Padding field of a playground in the docs. It sets the prop padding to 'sm' on Container."
+	},
+	"docs.prop.placeholder": {
+		"defaultMessage": "Placeholder",
+		"description": "The label of a field of a playground in the docs. The field sets the prop placeholder of SignaturePad."
+	},
+	"docs.prop.placement": {
+		"defaultMessage": "Placement",
+		"description": "The label of a field of a playground in the docs. The field sets the prop placement of AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.bottom": {
+		"defaultMessage": "Bottom",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'bottom' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.bottom-auto": {
+		"defaultMessage": "Bottom auto",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'bottom-auto' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.bottom-end": {
+		"defaultMessage": "Bottom end",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'bottom-end' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.bottom-start": {
+		"defaultMessage": "Bottom start",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'bottom-start' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.left": {
+		"defaultMessage": "Left",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'left' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.left-auto": {
+		"defaultMessage": "Left auto",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'left-auto' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.left-end": {
+		"defaultMessage": "Left end",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'left-end' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.left-start": {
+		"defaultMessage": "Left start",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'left-start' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.right": {
+		"defaultMessage": "Right",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'right' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.right-auto": {
+		"defaultMessage": "Right auto",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'right-auto' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.right-end": {
+		"defaultMessage": "Right end",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'right-end' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.right-start": {
+		"defaultMessage": "Right start",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'right-start' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.top": {
+		"defaultMessage": "Top",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'top' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.top-auto": {
+		"defaultMessage": "Top auto",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'top-auto' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.top-end": {
+		"defaultMessage": "Top end",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'top-end' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.placement.top-start": {
+		"defaultMessage": "Top start",
+		"description": "An option of the Placement field of a playground in the docs. It sets the prop placement to 'top-start' on AddressInput, ColorPicker, Combobox, DatePicker, Listbox, Popover, Select, Tooltip."
+	},
+	"docs.prop.position": {
+		"defaultMessage": "Position",
+		"description": "The label of a field of a playground in the docs. The field sets the prop position of Toast."
+	},
+	"docs.prop.position.bottom": {
+		"defaultMessage": "Bottom",
+		"description": "An option of the Position field of a playground in the docs. It sets the prop position to 'bottom' on Toast."
+	},
+	"docs.prop.position.bottom-end": {
+		"defaultMessage": "Bottom end",
+		"description": "An option of the Position field of a playground in the docs. It sets the prop position to 'bottom-end' on Toast."
+	},
+	"docs.prop.position.bottom-left": {
+		"defaultMessage": "Bottom left",
+		"description": "An option of the Position field of a playground in the docs. It sets the prop position to 'bottom-left' on Toast."
+	},
+	"docs.prop.position.bottom-right": {
+		"defaultMessage": "Bottom right",
+		"description": "An option of the Position field of a playground in the docs. It sets the prop position to 'bottom-right' on Toast."
+	},
+	"docs.prop.position.bottom-start": {
+		"defaultMessage": "Bottom start",
+		"description": "An option of the Position field of a playground in the docs. It sets the prop position to 'bottom-start' on Toast."
+	},
+	"docs.prop.position.top": {
+		"defaultMessage": "Top",
+		"description": "An option of the Position field of a playground in the docs. It sets the prop position to 'top' on Toast."
+	},
+	"docs.prop.position.top-end": {
+		"defaultMessage": "Top end",
+		"description": "An option of the Position field of a playground in the docs. It sets the prop position to 'top-end' on Toast."
+	},
+	"docs.prop.position.top-left": {
+		"defaultMessage": "Top left",
+		"description": "An option of the Position field of a playground in the docs. It sets the prop position to 'top-left' on Toast."
+	},
+	"docs.prop.position.top-right": {
+		"defaultMessage": "Top right",
+		"description": "An option of the Position field of a playground in the docs. It sets the prop position to 'top-right' on Toast."
+	},
+	"docs.prop.position.top-start": {
+		"defaultMessage": "Top start",
+		"description": "An option of the Position field of a playground in the docs. It sets the prop position to 'top-start' on Toast."
+	},
+	"docs.prop.pulse": {
+		"defaultMessage": "Pulse",
+		"description": "The label of a field of a playground in the docs. The field sets the prop pulse of Placeholder, StatusDot."
+	},
+	"docs.prop.px": {
+		"defaultMessage": "Px",
+		"description": "The label of a field of a playground in the docs. The field sets the prop px of Box."
+	},
+	"docs.prop.px.lg": {
+		"defaultMessage": "Large",
+		"description": "An option of the Px field of a playground in the docs. It sets the prop px to 'lg' on Box."
+	},
+	"docs.prop.px.md": {
+		"defaultMessage": "Medium",
+		"description": "An option of the Px field of a playground in the docs. It sets the prop px to 'md' on Box."
+	},
+	"docs.prop.px.sm": {
+		"defaultMessage": "Small",
+		"description": "An option of the Px field of a playground in the docs. It sets the prop px to 'sm' on Box."
+	},
+	"docs.prop.px.xl": {
+		"defaultMessage": "Extra large",
+		"description": "An option of the Px field of a playground in the docs. It sets the prop px to 'xl' on Box."
+	},
+	"docs.prop.px.xs": {
+		"defaultMessage": "Extra small",
+		"description": "An option of the Px field of a playground in the docs. It sets the prop px to 'xs' on Box."
+	},
+	"docs.prop.py": {
+		"defaultMessage": "Py",
+		"description": "The label of a field of a playground in the docs. The field sets the prop py of Box."
+	},
+	"docs.prop.py.lg": {
+		"defaultMessage": "Large",
+		"description": "An option of the Py field of a playground in the docs. It sets the prop py to 'lg' on Box."
+	},
+	"docs.prop.py.md": {
+		"defaultMessage": "Medium",
+		"description": "An option of the Py field of a playground in the docs. It sets the prop py to 'md' on Box."
+	},
+	"docs.prop.py.sm": {
+		"defaultMessage": "Small",
+		"description": "An option of the Py field of a playground in the docs. It sets the prop py to 'sm' on Box."
+	},
+	"docs.prop.py.xl": {
+		"defaultMessage": "Extra large",
+		"description": "An option of the Py field of a playground in the docs. It sets the prop py to 'xl' on Box."
+	},
+	"docs.prop.py.xs": {
+		"defaultMessage": "Extra small",
+		"description": "An option of the Py field of a playground in the docs. It sets the prop py to 'xs' on Box."
+	},
+	"docs.prop.radius": {
+		"defaultMessage": "Radius",
+		"description": "The label of a field of a playground in the docs. The field sets the prop radius of Badge, Box."
+	},
+	"docs.prop.radius.full": {
+		"defaultMessage": "Full",
+		"description": "An option of the Radius field of a playground in the docs. It sets the prop radius to 'full' on Badge, Box."
+	},
+	"docs.prop.radius.lg": {
+		"defaultMessage": "Large",
+		"description": "An option of the Radius field of a playground in the docs. It sets the prop radius to 'lg' on Badge, Box."
+	},
+	"docs.prop.radius.md": {
+		"defaultMessage": "Medium",
+		"description": "An option of the Radius field of a playground in the docs. It sets the prop radius to 'md' on Badge, Box."
+	},
+	"docs.prop.radius.none": {
+		"defaultMessage": "None",
+		"description": "An option of the Radius field of a playground in the docs. It sets the prop radius to 'none' on Badge, Box."
+	},
+	"docs.prop.radius.sm": {
+		"defaultMessage": "Small",
+		"description": "An option of the Radius field of a playground in the docs. It sets the prop radius to 'sm' on Badge, Box."
+	},
+	"docs.prop.radius.xl": {
+		"defaultMessage": "Extra large",
+		"description": "An option of the Radius field of a playground in the docs. It sets the prop radius to 'xl' on Badge, Box."
+	},
+	"docs.prop.range": {
+		"defaultMessage": "Range",
+		"description": "The label of a field of a playground in the docs. The field sets the prop range of DatePicker."
+	},
+	"docs.prop.ratio": {
+		"defaultMessage": "Ratio",
+		"description": "The label of a field of a playground in the docs. The field sets the prop ratio of AspectRatio, Split."
+	},
+	"docs.prop.ratio.auto": {
+		"defaultMessage": "Auto",
+		"description": "An option of the Ratio field of a playground in the docs. It sets the prop ratio to 'auto' on AspectRatio."
+	},
+	"docs.prop.readOnly": {
+		"defaultMessage": "Read only",
+		"description": "The label of a field of a playground in the docs. The field sets the prop readOnly of AddressInput, Checkbox, ColorPicker, Combobox, Control, DatePicker, Listbox, Radio, Rating, Select, SignaturePad, Slider, Switch."
+	},
+	"docs.prop.region": {
+		"defaultMessage": "Region",
+		"description": "The label of a field of a playground in the docs. The field sets the prop region of Accordion."
+	},
+	"docs.prop.regionPointer": {
+		"defaultMessage": "Region pointer",
+		"description": "The label of a field of a playground in the docs. The field sets the prop regionPointer of MapPlat."
+	},
+	"docs.prop.requireRule": {
+		"defaultMessage": "Require rule",
+		"description": "The label of a field of a playground in the docs. The field sets the prop requireRule of QueryBuilder."
+	},
+	"docs.prop.required": {
+		"defaultMessage": "Required",
+		"description": "The label of a field of a playground in the docs. The field sets the prop required of AddressInput, TagInput."
+	},
+	"docs.prop.resize": {
+		"defaultMessage": "Resize",
+		"description": "The label of a field of a playground in the docs. The field sets the prop resize of Textarea."
+	},
+	"docs.prop.resize.horizontal": {
+		"defaultMessage": "Horizontal",
+		"description": "An option of the Resize field of a playground in the docs. It sets the prop resize to 'horizontal' on Textarea."
+	},
+	"docs.prop.resize.none": {
+		"defaultMessage": "None",
+		"description": "An option of the Resize field of a playground in the docs. It sets the prop resize to 'none' on Textarea."
+	},
+	"docs.prop.resize.vertical": {
+		"defaultMessage": "Vertical",
+		"description": "An option of the Resize field of a playground in the docs. It sets the prop resize to 'vertical' on Textarea."
+	},
+	"docs.prop.role": {
+		"defaultMessage": "Role",
+		"description": "The label of a field of a playground in the docs. The field sets the prop role of DialogPanel."
+	},
+	"docs.prop.role.alertdialog": {
+		"defaultMessage": "alertdialog",
+		"description": "An option of the Role field of a playground in the docs. It sets the prop role to 'alertdialog' on DialogPanel."
+	},
+	"docs.prop.role.dialog": {
+		"defaultMessage": "Dialog",
+		"description": "An option of the Role field of a playground in the docs. It sets the prop role to 'dialog' on DialogPanel."
+	},
+	"docs.prop.round": {
+		"defaultMessage": "Round",
+		"description": "The label of a field of a playground in the docs. The field sets the prop round of NumberInput."
+	},
+	"docs.prop.rows": {
+		"defaultMessage": "Rows",
+		"description": "The label of a field of a playground in the docs. The field sets the prop rows of Textarea."
+	},
+	"docs.prop.sender": {
+		"defaultMessage": "Sender",
+		"description": "The label of a field of a playground in the docs. The field sets the prop sender of ChatMessage."
+	},
+	"docs.prop.sender.assistant": {
+		"defaultMessage": "Assistant",
+		"description": "An option of the Sender field of a playground in the docs. It sets the prop sender to 'assistant' on ChatMessage."
+	},
+	"docs.prop.sender.system": {
+		"defaultMessage": "System",
+		"description": "An option of the Sender field of a playground in the docs. It sets the prop sender to 'system' on ChatMessage."
+	},
+	"docs.prop.sender.user": {
+		"defaultMessage": "User",
+		"description": "An option of the Sender field of a playground in the docs. It sets the prop sender to 'user' on ChatMessage."
+	},
+	"docs.prop.severity": {
+		"defaultMessage": "Severity",
+		"description": "The label of a field of a playground in the docs. The field sets the prop severity of Alert, Banner, Control."
+	},
+	"docs.prop.severity.error": {
+		"defaultMessage": "Error",
+		"description": "An option of the Severity field of a playground in the docs. It sets the prop severity to 'error' on Alert, Banner, Control."
+	},
+	"docs.prop.severity.info": {
+		"defaultMessage": "Info",
+		"description": "An option of the Severity field of a playground in the docs. It sets the prop severity to 'info' on Alert, Banner."
+	},
+	"docs.prop.severity.success": {
+		"defaultMessage": "Success",
+		"description": "An option of the Severity field of a playground in the docs. It sets the prop severity to 'success' on Alert, Banner, Control."
+	},
+	"docs.prop.severity.warning": {
+		"defaultMessage": "Warning",
+		"description": "An option of the Severity field of a playground in the docs. It sets the prop severity to 'warning' on Alert, Banner, Control."
+	},
+	"docs.prop.shape": {
+		"defaultMessage": "Shape",
+		"description": "The label of a field of a playground in the docs. The field sets the prop shape of Sparkline, Swatch."
+	},
+	"docs.prop.shape.bar": {
+		"defaultMessage": "Bar",
+		"description": "An option of the Shape field of a playground in the docs. It sets the prop shape to 'bar' on Sparkline."
+	},
+	"docs.prop.shape.circle": {
+		"defaultMessage": "Circle",
+		"description": "An option of the Shape field of a playground in the docs. It sets the prop shape to 'circle' on Swatch."
+	},
+	"docs.prop.shape.line": {
+		"defaultMessage": "Line",
+		"description": "An option of the Shape field of a playground in the docs. It sets the prop shape to 'line' on Sparkline, Swatch."
+	},
+	"docs.prop.shape.square": {
+		"defaultMessage": "Square",
+		"description": "An option of the Shape field of a playground in the docs. It sets the prop shape to 'square' on Swatch."
+	},
+	"docs.prop.sheet": {
+		"defaultMessage": "Sheet",
+		"description": "The label of a field of a playground in the docs. The field sets the prop sheet of DatePicker, Menu."
+	},
+	"docs.prop.showRules": {
+		"defaultMessage": "Show rules",
+		"description": "The label of a field of a playground in the docs. The field sets the prop showRules of PasswordStrength."
+	},
+	"docs.prop.showToggle": {
+		"defaultMessage": "Show toggle",
+		"description": "The label of a field of a playground in the docs. The field sets the prop showToggle of PasswordInput."
+	},
+	"docs.prop.side": {
+		"defaultMessage": "Side",
+		"description": "The label of a field of a playground in the docs. The field sets the prop side of SheetPanel."
+	},
+	"docs.prop.side.bottom": {
+		"defaultMessage": "Bottom",
+		"description": "An option of the Side field of a playground in the docs. It sets the prop side to 'bottom' on SheetPanel."
+	},
+	"docs.prop.side.end": {
+		"defaultMessage": "End",
+		"description": "An option of the Side field of a playground in the docs. It sets the prop side to 'end' on SheetPanel."
+	},
+	"docs.prop.side.left": {
+		"defaultMessage": "Left",
+		"description": "An option of the Side field of a playground in the docs. It sets the prop side to 'left' on SheetPanel."
+	},
+	"docs.prop.side.right": {
+		"defaultMessage": "Right",
+		"description": "An option of the Side field of a playground in the docs. It sets the prop side to 'right' on SheetPanel."
+	},
+	"docs.prop.side.start": {
+		"defaultMessage": "Start",
+		"description": "An option of the Side field of a playground in the docs. It sets the prop side to 'start' on SheetPanel."
+	},
+	"docs.prop.side.top": {
+		"defaultMessage": "Top",
+		"description": "An option of the Side field of a playground in the docs. It sets the prop side to 'top' on SheetPanel."
+	},
+	"docs.prop.size": {
+		"defaultMessage": "Size",
+		"description": "The label of a field of a playground in the docs. The field sets the prop size of AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+	},
+	"docs.prop.size.lg": {
+		"defaultMessage": "Large",
+		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'lg' on AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+	},
+	"docs.prop.size.md": {
+		"defaultMessage": "Medium",
+		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'md' on AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+	},
+	"docs.prop.size.sm": {
+		"defaultMessage": "Small",
+		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'sm' on AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+	},
+	"docs.prop.size.xl": {
+		"defaultMessage": "Extra large",
+		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'xl' on AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+	},
+	"docs.prop.size.xs": {
+		"defaultMessage": "Extra small",
+		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'xs' on AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+	},
+	"docs.prop.soft": {
+		"defaultMessage": "Soft",
+		"description": "The label of a field of a playground in the docs. The field sets the prop soft of Divider."
+	},
+	"docs.prop.speed": {
+		"defaultMessage": "Speed",
+		"description": "The label of a field of a playground in the docs. The field sets the prop speed of ShinyText."
+	},
+	"docs.prop.sphere": {
+		"defaultMessage": "Sphere",
+		"description": "The label of a field of a playground in the docs. The field sets the prop sphere of MapPlat."
+	},
+	"docs.prop.spread": {
+		"defaultMessage": "Spread",
+		"description": "The label of a field of a playground in the docs. The field sets the prop spread of ShinyText."
+	},
+	"docs.prop.stacked": {
+		"defaultMessage": "Stacked",
+		"description": "The label of a field of a playground in the docs. The field sets the prop stacked of BarChart."
+	},
+	"docs.prop.status": {
+		"defaultMessage": "Status",
+		"description": "The label of a field of a playground in the docs. The field sets the prop status of Avatar, StatusDot."
+	},
+	"docs.prop.status.active": {
+		"defaultMessage": "Active",
+		"description": "An option of the Status field of a playground in the docs. It sets the prop status to 'active' on Avatar, StatusDot."
+	},
+	"docs.prop.status.error": {
+		"defaultMessage": "Error",
+		"description": "An option of the Status field of a playground in the docs. It sets the prop status to 'error' on Avatar, StatusDot."
+	},
+	"docs.prop.status.inactive": {
+		"defaultMessage": "Inactive",
+		"description": "An option of the Status field of a playground in the docs. It sets the prop status to 'inactive' on Avatar, StatusDot."
+	},
+	"docs.prop.status.info": {
+		"defaultMessage": "Info",
+		"description": "An option of the Status field of a playground in the docs. It sets the prop status to 'info' on Avatar, StatusDot."
+	},
+	"docs.prop.status.warning": {
+		"defaultMessage": "Warning",
+		"description": "An option of the Status field of a playground in the docs. It sets the prop status to 'warning' on Avatar, StatusDot."
+	},
+	"docs.prop.step": {
+		"defaultMessage": "Step",
+		"description": "The label of a field of a playground in the docs. The field sets the prop step of NumberInput, Rating, Slider."
+	},
+	"docs.prop.streaming": {
+		"defaultMessage": "Streaming",
+		"description": "The label of a field of a playground in the docs. The field sets the prop streaming of ChatMessage."
+	},
+	"docs.prop.striped": {
+		"defaultMessage": "Striped",
+		"description": "The label of a field of a playground in the docs. The field sets the prop striped of Grid, PivotTable, Table."
+	},
+	"docs.prop.striped.even": {
+		"defaultMessage": "Even",
+		"description": "An option of the Striped field of a playground in the docs. It sets the prop striped to 'even' on Grid, PivotTable, Table."
+	},
+	"docs.prop.striped.odd": {
+		"defaultMessage": "Odd",
+		"description": "An option of the Striped field of a playground in the docs. It sets the prop striped to 'odd' on Grid, PivotTable, Table."
+	},
+	"docs.prop.strokeWidth": {
+		"defaultMessage": "Stroke width",
+		"description": "The label of a field of a playground in the docs. The field sets the prop strokeWidth of ProgressGauge, SignaturePad, Sparkline."
+	},
+	"docs.prop.tagColor": {
+		"defaultMessage": "Tag color",
+		"description": "The label of a field of a playground in the docs. The field sets the prop tagColor of TagInput."
+	},
+	"docs.prop.tagColor.amber": {
+		"defaultMessage": "Amber",
+		"description": "An option of the Tag color field of a playground in the docs. It sets the prop tagColor to 'amber' on TagInput."
+	},
+	"docs.prop.tagColor.blue": {
+		"defaultMessage": "Blue",
+		"description": "An option of the Tag color field of a playground in the docs. It sets the prop tagColor to 'blue' on TagInput."
+	},
+	"docs.prop.tagColor.green": {
+		"defaultMessage": "Green",
+		"description": "An option of the Tag color field of a playground in the docs. It sets the prop tagColor to 'green' on TagInput."
+	},
+	"docs.prop.tagColor.red": {
+		"defaultMessage": "Red",
+		"description": "An option of the Tag color field of a playground in the docs. It sets the prop tagColor to 'red' on TagInput."
+	},
+	"docs.prop.tagColor.zinc": {
+		"defaultMessage": "Zinc",
+		"description": "An option of the Tag color field of a playground in the docs. It sets the prop tagColor to 'zinc' on TagInput."
+	},
+	"docs.prop.texture": {
+		"defaultMessage": "Texture",
+		"description": "The label of a field of a playground in the docs. The field sets the prop texture of BarChart."
+	},
+	"docs.prop.thick": {
+		"defaultMessage": "Thick",
+		"description": "The label of a field of a playground in the docs. The field sets the prop thick of BarChart."
+	},
+	"docs.prop.thumbnails": {
+		"defaultMessage": "Thumbnails",
+		"description": "The label of a field of a playground in the docs. The field sets the prop thumbnails of PdfViewer."
+	},
+	"docs.prop.thumbnails.rail": {
+		"defaultMessage": "Rail",
+		"description": "An option of the Thumbnails field of a playground in the docs. It sets the prop thumbnails to 'rail' on PdfViewer."
+	},
+	"docs.prop.thumbnails.sheet": {
+		"defaultMessage": "Sheet",
+		"description": "An option of the Thumbnails field of a playground in the docs. It sets the prop thumbnails to 'sheet' on PdfViewer."
+	},
+	"docs.prop.timeout": {
+		"defaultMessage": "Timeout",
+		"description": "The label of a field of a playground in the docs. The field sets the prop timeout of CopyButton."
+	},
+	"docs.prop.title": {
+		"defaultMessage": "Title",
+		"description": "The label of a field of a playground in the docs. The field sets the prop title of Alert, Banner."
+	},
+	"docs.prop.titleLevel": {
+		"defaultMessage": "Title level",
+		"description": "The label of a field of a playground in the docs. The field sets the prop titleLevel of Dashboard."
+	},
+	"docs.prop.tone": {
+		"defaultMessage": "Tone",
+		"description": "The label of a field of a playground in the docs. The field sets the prop tone of Text."
+	},
+	"docs.prop.tone.default": {
+		"defaultMessage": "Default",
+		"description": "An option of the Tone field of a playground in the docs. It sets the prop tone to 'default' on Text."
+	},
+	"docs.prop.tone.error": {
+		"defaultMessage": "Error",
+		"description": "An option of the Tone field of a playground in the docs. It sets the prop tone to 'error' on Text."
+	},
+	"docs.prop.tone.muted": {
+		"defaultMessage": "Muted",
+		"description": "An option of the Tone field of a playground in the docs. It sets the prop tone to 'muted' on Text."
+	},
+	"docs.prop.tone.primary": {
+		"defaultMessage": "Primary",
+		"description": "An option of the Tone field of a playground in the docs. It sets the prop tone to 'primary' on Text."
+	},
+	"docs.prop.tone.success": {
+		"defaultMessage": "Success",
+		"description": "An option of the Tone field of a playground in the docs. It sets the prop tone to 'success' on Text."
+	},
+	"docs.prop.tone.warning": {
+		"defaultMessage": "Warning",
+		"description": "An option of the Tone field of a playground in the docs. It sets the prop tone to 'warning' on Text."
+	},
+	"docs.prop.tooltip": {
+		"defaultMessage": "Tooltip",
+		"description": "The label of a field of a playground in the docs. The field sets the prop tooltip of MapPlat."
+	},
+	"docs.prop.totals": {
+		"defaultMessage": "Totals",
+		"description": "The label of a field of a playground in the docs. The field sets the prop totals of PivotTable."
+	},
+	"docs.prop.totals.both": {
+		"defaultMessage": "Both",
+		"description": "An option of the Totals field of a playground in the docs. It sets the prop totals to 'both' on PivotTable."
+	},
+	"docs.prop.totals.col": {
+		"defaultMessage": "Col",
+		"description": "An option of the Totals field of a playground in the docs. It sets the prop totals to 'col' on PivotTable."
+	},
+	"docs.prop.totals.none": {
+		"defaultMessage": "None",
+		"description": "An option of the Totals field of a playground in the docs. It sets the prop totals to 'none' on PivotTable."
+	},
+	"docs.prop.totals.row": {
+		"defaultMessage": "Row",
+		"description": "An option of the Totals field of a playground in the docs. It sets the prop totals to 'row' on PivotTable."
+	},
+	"docs.prop.trigger": {
+		"defaultMessage": "Trigger",
+		"description": "The label of a field of a playground in the docs. The field sets the prop trigger of Tooltip."
+	},
+	"docs.prop.trigger.click": {
+		"defaultMessage": "Click",
+		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'click' on Tooltip."
+	},
+	"docs.prop.trigger.hover": {
+		"defaultMessage": "Hover",
+		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'hover' on Tooltip."
+	},
+	"docs.prop.truncate": {
+		"defaultMessage": "Truncate",
+		"description": "The label of a field of a playground in the docs. The field sets the prop truncate of Listbox, Select."
+	},
+	"docs.prop.truncateTooltip": {
+		"defaultMessage": "Truncate tooltip",
+		"description": "The label of a field of a playground in the docs. The field sets the prop truncateTooltip of AddressInput, Combobox, Listbox, Select."
+	},
+	"docs.prop.type": {
+		"defaultMessage": "Type",
+		"description": "The label of a field of a playground in the docs. The field sets the prop type of HoldButton."
+	},
+	"docs.prop.type.button": {
+		"defaultMessage": "Button",
+		"description": "An option of the Type field of a playground in the docs. It sets the prop type to 'button' on HoldButton."
+	},
+	"docs.prop.type.reset": {
+		"defaultMessage": "Reset",
+		"description": "An option of the Type field of a playground in the docs. It sets the prop type to 'reset' on HoldButton."
+	},
+	"docs.prop.type.submit": {
+		"defaultMessage": "Submit",
+		"description": "An option of the Type field of a playground in the docs. It sets the prop type to 'submit' on HoldButton."
+	},
+	"docs.prop.underline": {
+		"defaultMessage": "Underline",
+		"description": "The label of a field of a playground in the docs. The field sets the prop underline of Link."
+	},
+	"docs.prop.validateOn": {
+		"defaultMessage": "Validate on",
+		"description": "The label of a field of a playground in the docs. The field sets the prop validateOn of Form."
+	},
+	"docs.prop.validateOn.change": {
+		"defaultMessage": "Change",
+		"description": "An option of the Validate on field of a playground in the docs. It sets the prop validateOn to 'change' on Form."
+	},
+	"docs.prop.validateOn.submit": {
+		"defaultMessage": "Submit",
+		"description": "An option of the Validate on field of a playground in the docs. It sets the prop validateOn to 'submit' on Form."
+	},
+	"docs.prop.validateOn.touched": {
+		"defaultMessage": "Touched",
+		"description": "An option of the Validate on field of a playground in the docs. It sets the prop validateOn to 'touched' on Form."
+	},
+	"docs.prop.value": {
+		"defaultMessage": "Value",
+		"description": "The label of a field of a playground in the docs. The field sets the prop value of ProgressBar, ProgressGauge."
+	},
+	"docs.prop.variant": {
+		"defaultMessage": "Variant",
+		"description": "The label of a field of a playground in the docs. The field sets the prop variant of Accordion, Alert, Avatar, Badge, Banner, Button, Control, CreditCardInput, CurrencyInput, DateInput, HoldButton, Input, List, MaskInput, NumberInput, PasswordInput, SearchInput, StatusDot, Swatch, Tabs, TagInput, Textarea, Timeline, Toolbar."
+	},
+	"docs.prop.variant.bare": {
+		"defaultMessage": "Bare",
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'bare' on Button, HoldButton, List."
+	},
+	"docs.prop.variant.dashed": {
+		"defaultMessage": "Dashed",
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'dashed' on Swatch."
+	},
+	"docs.prop.variant.default": {
+		"defaultMessage": "Default",
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'default' on Control, CreditCardInput, CurrencyInput, DateInput, Input, MaskInput, NumberInput, PasswordInput, SearchInput, TagInput, Textarea."
+	},
+	"docs.prop.variant.outline": {
+		"defaultMessage": "Outline",
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'outline' on Accordion, Alert, Avatar, Badge, Banner, Button, Control, CreditCardInput, CurrencyInput, DateInput, HoldButton, Input, List, MaskInput, NumberInput, PasswordInput, SearchInput, StatusDot, Swatch, TagInput, Textarea, Timeline, Toolbar."
+	},
+	"docs.prop.variant.plain": {
+		"defaultMessage": "Plain",
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'plain' on Accordion, Alert, Badge, Banner, Button, HoldButton, List, Toolbar."
+	},
+	"docs.prop.variant.segment": {
+		"defaultMessage": "Segment",
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'segment' on Tabs."
+	},
+	"docs.prop.variant.separated": {
+		"defaultMessage": "Separated",
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'separated' on Accordion, List."
+	},
+	"docs.prop.variant.soft": {
+		"defaultMessage": "Soft",
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'soft' on Alert, Avatar, Badge, Banner, Button, HoldButton, Swatch."
+	},
+	"docs.prop.variant.solid": {
+		"defaultMessage": "Solid",
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'solid' on Alert, Avatar, Badge, Banner, Button, HoldButton, List, StatusDot, Swatch, Timeline, Toolbar."
+	},
+	"docs.prop.variant.tab": {
+		"defaultMessage": "Tab",
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'tab' on Tabs."
+	},
+	"docs.prop.width": {
+		"defaultMessage": "Width",
+		"description": "The label of a field of a playground in the docs. The field sets the prop width of CommandPalette, Confirm, DialogPanel, Grid, SheetPanel."
+	},
+	"docs.prop.width.2xl": {
+		"defaultMessage": "2xl",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to '2xl' on CommandPalette, Confirm, DialogPanel, SheetPanel."
+	},
+	"docs.prop.width.3xl": {
+		"defaultMessage": "3xl",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to '3xl' on CommandPalette, Confirm, DialogPanel, SheetPanel."
+	},
+	"docs.prop.width.4xl": {
+		"defaultMessage": "4xl",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to '4xl' on CommandPalette, Confirm, DialogPanel, SheetPanel."
+	},
+	"docs.prop.width.5xl": {
+		"defaultMessage": "5xl",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to '5xl' on CommandPalette, Confirm, DialogPanel, SheetPanel."
+	},
+	"docs.prop.width.6xl": {
+		"defaultMessage": "6xl",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to '6xl' on CommandPalette, Confirm, DialogPanel, SheetPanel."
+	},
+	"docs.prop.width.7xl": {
+		"defaultMessage": "7xl",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to '7xl' on CommandPalette, Confirm, DialogPanel, SheetPanel."
+	},
+	"docs.prop.width.fill": {
+		"defaultMessage": "Fill",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to 'fill' on Grid."
+	},
+	"docs.prop.width.fit": {
+		"defaultMessage": "Fit",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to 'fit' on Grid, SheetPanel."
+	},
+	"docs.prop.width.full": {
+		"defaultMessage": "Full",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to 'full' on CommandPalette, Confirm, DialogPanel, SheetPanel."
+	},
+	"docs.prop.width.lg": {
+		"defaultMessage": "Large",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to 'lg' on CommandPalette, Confirm, DialogPanel, SheetPanel."
+	},
+	"docs.prop.width.md": {
+		"defaultMessage": "Medium",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to 'md' on CommandPalette, Confirm, DialogPanel, SheetPanel."
+	},
+	"docs.prop.width.sm": {
+		"defaultMessage": "Small",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to 'sm' on CommandPalette, Confirm, DialogPanel, SheetPanel."
+	},
+	"docs.prop.width.xl": {
+		"defaultMessage": "Extra large",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to 'xl' on CommandPalette, Confirm, DialogPanel, SheetPanel."
+	},
+	"docs.prop.width.xs": {
+		"defaultMessage": "Extra small",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to 'xs' on CommandPalette, Confirm, DialogPanel, SheetPanel."
+	},
+	"docs.prop.wrap": {
+		"defaultMessage": "Wrap",
+		"description": "The label of a field of a playground in the docs. The field sets the prop wrap of TagInput."
 	},
 	"docs.search.button": {
 		"defaultMessage": "Search docs",
