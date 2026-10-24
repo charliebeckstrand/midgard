@@ -2,6 +2,7 @@
 
 import { Fragment, memo, startTransition, useCallback, useEffect, useMemo, useState } from 'react'
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { getOrCompute, rangeKeys } from '../../utilities'
 import { useMapPlat, useMapZoomScale } from './context'
@@ -274,7 +275,8 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 * summarizing hundreds wants the count. Each entry is that stop's own `label`,
 	 * or its position in the set where it has none. That is the same fallback a
 	 * lone dot's tooltip takes, so a stop reads identically merged or not.
-	 * @defaultValue The count alone.
+	 * @defaultValue The count alone, in the number format of the reader's locale, as
+	 * the summary dot draws it.
 	 */
 	clusterDetail?: (count: number, span: number, labels: string[]) => string
 	/**
@@ -346,6 +348,8 @@ export function MapPoints({
 	// the mark registers, not after.
 	const { project } = useMapPlat()
 
+	const intl = useIntl()
+
 	// What one device pixel spans in the drawn frame. Read here rather than off
 	// `useMapOverlay` below for the same reason `project` is: the grouping decides
 	// what this mark registers, so it has to resolve before the registration does.
@@ -410,7 +414,7 @@ export function MapPoints({
 				// The spread costs a spherical pass per group, so only a caller that
 				// reads it pays for it.
 				if (clusterDetail === undefined) {
-					return { label: shared.label, swatch, detail: String(count) }
+					return { label: shared.label, swatch, detail: intl.formatNumber(count) }
 				}
 
 				const span = clusterSpan(members, positions)
@@ -423,7 +427,7 @@ export function MapPoints({
 
 				return { label: shared.label, swatch, detail: clusterDetail(count, span, labels) }
 			}),
-		[groups, points, positions, shapes, shape, shared.label, clusterDetail],
+		[groups, points, positions, shapes, shape, shared.label, clusterDetail, intl],
 	)
 
 	// Which drawn dot each point landed in, built on the first read and held from

@@ -5,6 +5,7 @@
  * overlays the way the pointer does.
  */
 
+import { createEmitter } from '../../../../utilities'
 import type { MapHoverTarget } from '../map-hover/target'
 import type { MapOverlayEntry } from '../map-overlay/entry'
 import type { LngLat, MapPoint2D } from '../types'
@@ -79,4 +80,48 @@ export function mapStops(
 	}
 
 	return stops
+}
+
+/**
+ * The moves of the overlay marks on a plat, as a store that the keyboard cursor
+ * reads through `useSyncExternalStore`.
+ *
+ * @remarks
+ * A mark reads its stops through a stable getter, so that a move does not write
+ * the ledger again, as the dot pool states (`MapDotPool`). The plat therefore sees no change
+ * when a mark moves, and the cursor holds the stop list that it resolved last.
+ * The mark calls {@link MapStopMoves.move} when its stops change, and the cursor
+ * resolves the list again from the next version.
+ *
+ * @internal
+ */
+export type MapStopMoves = {
+	/** The snapshot: a count that grows by one with each move. */
+	version: () => number
+	/** Calls `listener` after each move, and returns the unsubscribe. */
+	subscribe: (listener: () => void) => () => void
+	/** Records that the stops of a mark changed. */
+	move: () => void
+}
+
+/**
+ * A new {@link MapStopMoves}, at version `0`.
+ *
+ * @returns The store.
+ * @internal
+ */
+export function createStopMoves(): MapStopMoves {
+	const moved = createEmitter()
+
+	let version = 0
+
+	return {
+		version: () => version,
+		subscribe: moved.subscribe,
+		move: () => {
+			version += 1
+
+			moved.emit()
+		},
+	}
 }

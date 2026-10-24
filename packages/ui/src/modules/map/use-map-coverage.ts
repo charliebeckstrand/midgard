@@ -142,7 +142,7 @@ const GROUP_SEPARATOR = '\u001e'
  *   regions: countyTopology,
  * })
  *
- * <MapPlat label="Coverage" geography={geography} projection="albers-usa">
+ * <MapPlat aria-label="Coverage" geography={geography} projection="albers-usa">
  *   <MapGeofence area={area} label="Covered" detail={`${codes.length} ZIPs`} />
  * </MapPlat>
  * ```

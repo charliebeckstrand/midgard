@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MapPlat, MapPoint, MapPoints } from '../../modules/map'
+import { LocaleProvider } from '../../providers/locale'
 import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
@@ -241,6 +242,27 @@ describe('MapPoints', () => {
 		expect(allBySlot(container, 'map-points-dot')).toHaveLength(1)
 
 		expect(bySlot(container, 'map-points-count')?.textContent).toBe('2')
+	})
+
+	it('reads a summary count in the number format of the locale, as its dot draws it', () => {
+		// Twelve hundred stops on one spot merge into one summary.
+		const crowd = Array.from({ length: 1200 }, () => ({ at: DEPOT }))
+
+		const { container } = renderUI(
+			<LocaleProvider locale="de-DE">
+				{overlayPlat(<MapPoints id="fleet" label="Stops" points={crowd} />)}
+			</LocaleProvider>,
+		)
+
+		expect(bySlot(container, 'map-points-count')?.textContent).toBe('1.200')
+
+		fireEvent.pointerEnter(getSlot(container, 'map-points-hit'), { clientX: 10, clientY: 10 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('1.200')
+
+		const row = bySlot(container, 'map-table')?.querySelector('tbody tr:last-child td')
+
+		expect(row?.textContent).toBe('1.200')
 	})
 
 	it('draws every dot where the grouping is off', () => {

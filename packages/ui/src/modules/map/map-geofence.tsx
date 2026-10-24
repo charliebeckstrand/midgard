@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/map'
@@ -177,13 +177,19 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 	// dot, on the beat a wheel notch rebuilds them.
 	const budget = useMemo(() => zoneBudget(rings, unitsPerPixel), [rings, unitsPerPixel])
 
+	// A circle knows its own center, so it never pays a centroid pass to find
+	// one; drawn rings resolve their middle from the vertices. Keyed on the
+	// ordinates, so an inline `at` keeps the identity until the zone moves.
+	const anchor = useCallback(
+		(): LngLat[] => (lon === undefined || lat === undefined ? areaAnchor(polygons) : [[lon, lat]]),
+		[lon, lat, polygons],
+	)
+
 	const { slot, hidden, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'geofence',
 		swatch: 'rect',
-		// A circle knows its own center, so it never pays a centroid pass to find
-		// one; drawn rings resolve their middle from the vertices.
-		stops: () => (at === undefined ? areaAnchor(polygons) : [at]),
+		stops: anchor,
 		// A dot standing on this zone takes a share of the room the zone has, so the
 		// zone stays pointable under it, and takes the whole finger target back the
 		// moment the legend puts this zone away. A share rather than a yes-or-no,

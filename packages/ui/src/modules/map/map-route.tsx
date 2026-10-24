@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { ROUTE_STROKE_WIDTH } from './engine/map-constants'
@@ -28,6 +28,9 @@ export type MapRouteProps = MapOverlayProps & {
 	path?: LngLat[]
 }
 
+/** A route with no stops, shared so its identity holds across renders. @internal */
+const NO_STOPS: LngLat[] = []
+
 /**
  * A route drawn over the geography: a round-joined polyline through its
  * stops, or along a street-following `path`. It registers in the plat's
@@ -47,14 +50,21 @@ export type MapRouteProps = MapOverlayProps & {
 export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 	// The drawn geometry: a routed `path` with coordinates wins; an empty one (a
 	// `false`-overview leg carries totals but no line) falls back to the stops.
-	const points = path && path.length > 0 ? path : (stops ?? [])
+	// Memoized, and empty through one shared array, so the stops below and the
+	// path keep their identity until the route moves.
+	const points = useMemo(
+		() => (path && path.length > 0 ? path : (stops ?? NO_STOPS)),
+		[path, stops],
+	)
+
+	const anchor = useCallback(() => lineAnchor(points), [points])
 
 	const { slot, hidden, project, unitsPerPixel, animate, dim, selected, onPointerLeave, hit } =
 		useMapOverlay({
 			...shared,
 			kind: 'route',
 			swatch: 'line',
-			stops: () => lineAnchor(points),
+			stops: anchor,
 		})
 
 	// Memoized so a hover-driven re-render (the plat's pointer state churns the

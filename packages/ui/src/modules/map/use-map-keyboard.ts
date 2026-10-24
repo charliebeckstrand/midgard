@@ -1,18 +1,25 @@
 'use client'
 
-import { type KeyboardEvent, type RefObject, useEffect, useMemo, useRef, useState } from 'react'
+import {
+	type KeyboardEvent,
+	type RefObject,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from 'react'
 import { announce } from '../../core'
 import { type PlotTabStopProps, usePlotTabStop } from '../../hooks/use-plot-tab-stop'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { once } from '../../utilities'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { useMapHoverActions } from './context'
 import { MAP_CURSOR_INSET, MAP_ZOOM_FIT } from './engine/map-constants'
 import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
 import { isActivateKey, moveCursor } from './engine/map-keyboard/cursor'
-import type { MapStop } from './engine/map-keyboard/stops'
+import type { MapStop, MapStopMoves } from './engine/map-keyboard/stops'
 import { frameToClient } from './engine/map-projection/frame'
 import { mapZoomKey, zoomKeyFactor } from './engine/map-zoom/gesture'
 import { applyTransform, MAP_FIT_TRANSFORM, type MapTransform } from './engine/map-zoom/transform'
@@ -42,6 +49,33 @@ function describeZoom(intl: IntlShape, transform: MapTransform): string {
 	return intl.formatMessage(mapZoomMessage, { scale: transform.k / MAP_ZOOM_FIT })
 }
 
+/** The stop list, and each stop's position in it by {@link stopKey}. @internal */
+type MapResolvedStops = { value: MapStop[]; where: Map<string, number> }
+
+/**
+ * Reads the stop list for a version of the moves. It resolves the list on the
+ * first read, and again only when the version changes.
+ *
+ * @internal
+ */
+function stopResolver(resolveStops: () => MapStop[]): (version: number) => MapResolvedStops {
+	let held: (MapResolvedStops & { version: number }) | null = null
+
+	return (version) => {
+		if (held === null || held.version !== version) {
+			const value = resolveStops()
+
+			held = {
+				version,
+				value,
+				where: new Map(value.map((stop, index) => [stopKey(stop.target), index])),
+			}
+		}
+
+		return held
+	}
+}
+
 /** What {@link useMapKeyboard} needs from the plat to drive a cursor. @internal */
 export type MapKeyboardOptions = {
 	/** Whether the cursor has an output: a readout, a pick, or both; `false` leaves the region unfocusable. */
@@ -53,9 +87,14 @@ export type MapKeyboardOptions = {
 	 * (on counties, a large fraction of the cost of the mount). It must never run
 	 * on the mount or the resize path for a cursor most maps never carry. This is
 	 * called on the first navigation key and not again until a refit, a resize,
-	 * or an overlay registration replaces it.
+	 * or an overlay registration replaces it, or a mark moves (see `moves`).
 	 */
 	resolveStops: () => MapStop[]
+	/**
+	 * The moves of the marks. A mark that moves hands over no new resolver, so
+	 * each move resolves the stops again from the next read.
+	 */
+	moves: MapStopMoves
 	/** The active viewBox width and height, for the frame-to-client conversion. */
 	view: { width: number; height: number }
 	/** The plot's SVG, whose box places a stop in the viewport. */
@@ -127,6 +166,7 @@ export type MapKeyboardOptions = {
 export function useMapKeyboard({
 	enabled,
 	resolveStops,
+	moves,
 	view,
 	svgRef,
 	subject,
@@ -154,27 +194,22 @@ export function useMapKeyboard({
 		setCursor(null)
 	}
 
-	// The resolver's result for its own identity, so a refit or a registration
-	// that hands over a new resolver is the one thing that resolves again. The
-	// index beside it turns the cursor's mark back into its position in O(1): a
-	// county atlas holds three thousand stops, and this is read on every render
-	// while a cursor is live. Resolved on the first read, so a map that no cursor
-	// visits never resolves.
-	const resolved = useMemo(
-		() =>
-			once(() => {
-				const value = resolveStops()
+	// The resolver's result for its own identity and for the version of the moves,
+	// so a refit, a registration, or a move of a mark is what resolves again. A
+	// move hands over no new resolver, so the version is the one sign of it. The
+	// index beside the result turns the cursor's mark back into its position in
+	// O(1): a county atlas holds three thousand stops, and this is read on every
+	// render while a cursor is live. Resolved on the first read, so a map that no
+	// cursor visits never resolves.
+	const moved = useSyncExternalStore(moves.subscribe, moves.version, moves.version)
 
-				return { value, where: new Map(value.map((stop, index) => [stopKey(stop.target), index])) }
-			}),
-		[resolveStops],
-	)
+	const resolved = useMemo(() => stopResolver(resolveStops), [resolveStops])
 
-	const stops = (): MapStop[] => resolved().value
+	const stops = (): MapStop[] => resolved(moved).value
 
 	/** Where `cursor` stands in the current stop list, or `null` once it has left it. */
 	const at = (): number | null =>
-		cursor === null ? null : (resolved().where.get(stopKey(cursor)) ?? null)
+		cursor === null ? null : (resolved(moved).where.get(stopKey(cursor)) ?? null)
 
 	const transform = zoom?.transform ?? MAP_FIT_TRANSFORM
 
