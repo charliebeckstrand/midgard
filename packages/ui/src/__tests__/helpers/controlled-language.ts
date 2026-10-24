@@ -1,3 +1,5 @@
+import { existsSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
 import {
 	type CommentKind,
 	createScanner,
@@ -9,7 +11,7 @@ import {
 	SyntaxKind,
 } from 'typescript/unstable/ast'
 import type { TypeScriptServer } from './ts-server'
-import { srcDir, srcRelative, walkSource } from './walk-source'
+import { srcDir, srcRelative, uiRoot, walkSource } from './walk-source'
 
 /**
  * The controlled-language scan, once run by hand, as a reusable reader. It
@@ -361,6 +363,15 @@ export const LIVING_MARKDOWN = [
 	'docs/STRUCTURE.md',
 	'docs/UTILITIES.md',
 ]
+
+/**
+ * The module roadmaps. The scan reads the list from the tree, so a new roadmap
+ * comes into the scan with no edit here. Paths are relative to the package
+ * root.
+ */
+export const MODULE_ROADMAPS = readdirSync(join(srcDir, 'modules'))
+	.map((module) => `src/modules/${module}/ROADMAP.md`)
+	.filter((file) => existsSync(join(uiRoot, file)))
 
 /**
  * The rule documents at the repository root. Every package follows them, so

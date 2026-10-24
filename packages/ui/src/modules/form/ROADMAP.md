@@ -30,7 +30,7 @@ Three parts act on the state of the form:
 
 `Form` renders `ControlTargetsContext`, a registry of control ids by field name. Each bindable control registers its id there, and so does a form-bound `Message`. A bare control, with no `id` and no `Field` or `Control` around it, registers the id that it renders. `Input`, `Checkbox`, `Switch`, `Slider`, `RangeSlider`, `Rating`, and the pickers make that id with `useIdScope`. The registry counts each registration, so the end of one does not remove the other. A row of a field that registers no id, such as a custom field over `useFormValue`, shows its issue as text. A filter bar opens no registry, so its fields do not take the names of the form.
 
-## Engine — the substrate
+## Engine: the substrate
 
 Each domain concept lands in [`engine/`](engine), the pure functional core of the module. The engine has no `'use client'`, no runtime `react` import, no `index` barrel, and no runtime import from the module root. It holds the vocabulary ([`types.ts`](engine/types.ts)), the validators ([`form-validate.ts`](engine/form-validate.ts)), the dirty flags ([`form-dirty.ts`](engine/form-dirty.ts)), and the reducer ([`form-reducer.ts`](engine/form-reducer.ts)). It also holds the steps of a submit ([`form-submission.ts`](engine/form-submission.ts)), the store ([`form-store.ts`](engine/form-store.ts)), and the schema adapter ([`form-zod-resolver.ts`](engine/form-zod-resolver.ts)). The filter bar reads [`form-filters.ts`](engine/form-filters.ts) and [`form-filters-axis.ts`](engine/form-filters-axis.ts), and the error summary reads [`form-error-summary.ts`](engine/form-error-summary.ts).
 

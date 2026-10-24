@@ -56,7 +56,7 @@ A *statement* is one unit of authored text: a numbered clause, a paragraph, a li
 
 ## Scope in this repository
 
-STE rules 3, 6, and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) reads the comments of the `ui` source tree, the curated surface docs, and the rule documents at the repository root. Cadence rule 5 is gated in the same places: an em-dash aside fails the run. The surface docs and the rule documents carry no debt in the three rules or in cadence rule 5. In the comments, a rule 3 or a rule 10 break fails the run. Rule 6 is not gated in the comments: `pnpm --filter ui ste:report` lists the breaks, and review decides what to fix.
+STE rules 3, 6, and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) reads the comments of the `ui` source tree, the curated surface docs, and the rule documents at the repository root. Cadence rule 5 is gated in the same places and in the module roadmaps: an em-dash aside fails the run. The surface docs and the rule documents carry no debt in the three rules or in cadence rule 5. In the comments, a rule 3 or a rule 10 break fails the run. Rule 6 is not gated in the comments: `pnpm --filter ui ste:report` lists the breaks, and review decides what to fix.
 
 The rule 3 gate reads spelling only, so review holds the rest of rule 3. Rule 6 counts a semicolon-joined compound as one sentence.
 

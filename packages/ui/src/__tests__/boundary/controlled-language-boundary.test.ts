@@ -5,6 +5,7 @@ import {
 	extractComments,
 	fileBreaks,
 	LIVING_MARKDOWN,
+	MODULE_ROADMAPS,
 	markdownBreaks,
 	RULE_DOCUMENTS,
 	scanPackage,
@@ -14,7 +15,7 @@ import { uiRoot, workspaceRoot } from '../helpers/walk-source'
 
 // STE.md is the project's controlled language, and CLAUDE.md §2.5 applies it to
 // every authored statement. This test reads the breaks of the rules that a
-// reader can count, in six shapes:
+// reader can count, in seven shapes:
 //
 //   1. Rule 10 in the comments is pinned at zero. The rule admits no judgment —
 //      "must" states a requirement and "can" states a possibility — so any site
@@ -30,6 +31,8 @@ import { uiRoot, workspaceRoot } from '../helpers/walk-source'
 //   6. Cadence rule 5 in the comments is pinned at zero. An em-dash in prose is
 //      always the aside that the rule bans, so any site is a break. A code span
 //      and an `@example` block are not prose, so they keep their em-dashes.
+//   7. Cadence rule 5 in the module roadmaps is pinned at zero. The other rules
+//      are not gated there.
 //
 // Rule 4 is deliberately absent, and the reason is worth keeping. Its two
 // halves behave differently. The descriptive half is conditional — the rule
@@ -96,6 +99,21 @@ describe('controlled-language boundary', () => {
 		expect(
 			violations,
 			`the curated surface docs are a quick-glance index, so they carry no debt — split the sentence, drop the modal, use the American spelling, or move the aside out of em-dashes (STE.md rules 3, 6, and 10, and cadence rule 5):\n${violations.join('\n')}`,
+		).toEqual([])
+	})
+
+	it('no module roadmap sets an aside between em-dashes (STE.md cadence rule 5)', () => {
+		const violations: string[] = []
+
+		for (const file of MODULE_ROADMAPS) {
+			for (const item of markdownBreaks(file, readFileSync(join(uiRoot, file), 'utf8'))) {
+				if (item.rule === 'aside') violations.push(`${item.file}:${item.line}: ${item.text}`)
+			}
+		}
+
+		expect(
+			violations,
+			`em-dash aside in a module roadmap. Put the aside in its own sentence or in parentheses, or use a colon or a comma (STE.md cadence rule 5):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 
