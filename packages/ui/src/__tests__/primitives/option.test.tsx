@@ -1,4 +1,4 @@
-import { createContext, type FC, Profiler, type ReactNode, use } from 'react'
+import { createContext, createRef, type FC, Profiler, type ReactNode, use } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSelectOption, Option } from '../../primitives/option/option'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
@@ -248,6 +248,51 @@ describe('createSelectOption', () => {
 		const option = bySlot(container, 'test-option')
 
 		expect(option).toBeInTheDocument()
+	})
+
+	it('Option passes native attributes, handlers, and a ref to its row', () => {
+		const ref = createRef<HTMLDivElement>()
+
+		const onMouseEnter = vi.fn()
+
+		renderUI(
+			<TestContext>
+				<SelectOption
+					value="a"
+					ref={ref}
+					title="First"
+					data-testid="option-a"
+					onMouseEnter={onMouseEnter}
+				>
+					Item A
+				</SelectOption>
+			</TestContext>,
+		)
+
+		const option = screen.getByRole('option')
+
+		expect(ref.current).toBe(option)
+
+		expect(option).toHaveAttribute('title', 'First')
+
+		expect(option).toHaveAttribute('data-testid', 'option-a')
+
+		fireEvent.mouseEnter(option)
+
+		expect(onMouseEnter).toHaveBeenCalledOnce()
+	})
+
+	it('Option keeps its role and its selection over consumer attributes', () => {
+		renderUI(
+			<TestContext value="a">
+				{/* @ts-expect-error: the props omit `role`, and a stray value must not land */}
+				<SelectOption value="a" role="button">
+					Item A
+				</SelectOption>
+			</TestContext>,
+		)
+
+		expect(screen.getByRole('option')).toHaveAttribute('aria-selected', 'true')
 	})
 
 	it('Label renders with its data-slot', () => {
