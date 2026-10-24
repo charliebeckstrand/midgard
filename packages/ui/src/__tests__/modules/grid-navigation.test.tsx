@@ -348,7 +348,7 @@ describe('Grid navigable cursor', () => {
 
 		const clamped = grid.getAttribute('aria-activedescendant')
 
-		// The active descendant still resolves to a real cell — it was re-clamped,
+		// The active descendant still resolves to a real cell: it was re-clamped,
 		// not left dangling at the removed row.
 		expect(clamped && document.getElementById(clamped)).toBeInTheDocument()
 	})
@@ -365,7 +365,7 @@ describe('Grid cursor selection', () => {
 		// Seed at the first row, then move the cursor to Bob (row index 1).
 		fireEvent.keyDown(grid, { key: 'ArrowDown' })
 
-		// fireEvent returns false when a handler calls preventDefault — Space must,
+		// fireEvent returns false when a handler calls preventDefault: Space must,
 		// so it never scrolls the grid's own tab stop.
 		const scrolled = fireEvent.keyDown(grid, { key: ' ' })
 

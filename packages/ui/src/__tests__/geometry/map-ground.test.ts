@@ -6,14 +6,14 @@ import type { MapPoint2D } from '../../modules/map/engine/types'
 /**
  * A dot's pointer target keeps its whole outward reach and gives up only the ground lying nearer to a
  * neighbor. These pin the two properties that matter and cannot be seen in a screenshot: the cut
- * lands exactly midway, and it is the same cut from both sides — so the overlap belongs to neither dot
+ * lands exactly midway, and it is the same cut from both sides, so the overlap belongs to neither dot
  * by draw order, which is how the pin drawn underneath used to lose a crescent of its target and its
  * tooltip with it.
  */
 
 const REACH = 22
 
-/** Whether `point` is inside a convex ring — every edge's left side, for a counter-clockwise winding. */
+/** Whether `point` is inside a convex ring: every edge's left side, for a counter-clockwise winding. */
 function inside(ring: MapPoint2D[], point: MapPoint2D): boolean {
 	let sign = 0
 
@@ -102,7 +102,7 @@ describe('ownGround', () => {
 		const ring = ownGround({ x: 0, y: 0 }, [{ x: 20, y: 20 }], REACH) ?? []
 
 		// The bisector is perpendicular to the segment, so the midpoint is the boundary whatever the
-		// bearing — a rule stated once rather than per axis.
+		// bearing: a rule stated once rather than per axis.
 		expect(inside(ring, { x: 9, y: 9 })).toBe(true)
 
 		expect(inside(ring, { x: 11, y: 11 })).toBe(false)
@@ -148,7 +148,7 @@ describe('ownGround', () => {
 		const ring = ownGround({ x: 0, y: 0 }, crowd, REACH)
 
 		// Twelve neighbors a pixel or two away is a pathological case a real map reaches through a
-		// zoom-out. Either a usable ring or `null` — never a two-point sliver, which would clip the
+		// zoom-out. Either a usable ring or `null`: never a two-point sliver, which would clip the
 		// target away entirely and read as a dead pin.
 		expect(ring === null || ring.length >= 3).toBe(true)
 	})

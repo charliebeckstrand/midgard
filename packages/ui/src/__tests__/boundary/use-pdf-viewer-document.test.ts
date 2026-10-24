@@ -31,7 +31,7 @@ const originalFetch = globalThis.fetch
 beforeEach(() => {
 	getDocumentMock.mockReset()
 
-	// Pre-sets workerSrc, so resolveWorker() defers to it and constructs nothing — jsdom has
+	// Pre-sets workerSrc, so resolveWorker() defers to it and constructs nothing: jsdom has
 	// no Worker, and pdf.js pre-sets workerSrc itself under Node, which is what these
 	// tests run on.
 	globalWorkerOptions.workerSrc = 'mock-worker'
@@ -113,12 +113,12 @@ describe('usePdfViewerDocument', () => {
 /**
  * What parking a panel does to the viewer, and what it must now cost.
  *
- * A panel that parks by *closing* — `Overlay` gates its portal on `open` — unmounts its
+ * A panel that parks by *closing* (`Overlay` gates its portal on `open`) unmounts its
  * children, the viewer with them. These cases stand in for that: a mount, an unmount, and a
  * mount again on the same `src`.
  *
  * The document is seeded through the cache's own loader seam rather than by letting the hook
- * rasterize one, because CONVENTIONS §10.3 rules out driving pdf.js in a test — and because it
+ * rasterize one, because CONVENTIONS §10.3 rules out driving pdf.js in a test, and because it
  * is unnecessary here. A cache hit never enters the pdf.js path at all, so the path under test
  * is reachable without it, which is the whole property being asserted.
  */

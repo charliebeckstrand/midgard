@@ -2,7 +2,7 @@
  * Truncation cost on a resize, in the worst case for it: a non-virtualized grid
  * of hundreds-to-thousands of rows whose column shrinks so every cell in it
  * truncates at once. The concern is that a mass truncation charges a per-cell
- * layout read or tooltip mount — so this measures the resize-settle cost with
+ * layout read or tooltip mount, so this measures the resize-settle cost with
  * `truncate` on against `truncate={false}`, and their difference is the whole
  * truncation overhead for the cells the pointer never visited.
  *

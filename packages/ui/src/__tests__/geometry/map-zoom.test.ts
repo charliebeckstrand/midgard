@@ -39,7 +39,7 @@ const RECIPROCAL_TOLERANCE = 5e-13
 
 /**
  * The zoom's pure half: the transform the layer draws through, the gestures that
- * move it, and the two places a scale has to reach past the layer — the
+ * move it, and the two places a scale has to reach past the layer, the
  * frame-to-viewport conversion the readout anchors by, and the pixel merge
  * distance the dots group under.
  */
@@ -74,7 +74,7 @@ describe('mapZoomSettings', () => {
 
 	it('reads every off-form, and a ceiling the fit already reaches, as no zoom', () => {
 		// A ceiling at or under the fit could never move, and such a map must take
-		// none of what a zoom costs — no tab stop it cannot answer, no claim on
+		// none of what a zoom costs: no tab stop it cannot answer, no claim on
 		// touch, and no layer.
 		for (const off of [false, undefined, 0, 1, -4, { max: 1 }, { max: 0.5, modifier: false }]) {
 			expect(mapZoomSettings(off as Parameters<typeof mapZoomSettings>[0])).toBeNull()
@@ -100,7 +100,7 @@ describe('constrainTransform', () => {
 	})
 
 	it('keeps the frame inside the scaled frame, so a pan never carries the geography off', () => {
-		// At k=2 the drawing is 800 x 400, so the view may travel 400 x 200 — and
+		// At k=2 the drawing is 800 x 400, so the view may travel 400 x 200, and
 		// no further in either direction.
 		expect(constrainTransform({ x: 50, y: 10, k: 2 }, VIEW, MAX)).toEqual({ x: 0, y: 0, k: 2 })
 
@@ -206,7 +206,7 @@ describe('showTransform', () => {
 	it('never leaves the pan limits to honor the margin', () => {
 		const at = zoomTransform(MAP_FIT_TRANSFORM, { x: 200, y: 100 }, 2, VIEW, MAX)
 
-		// The frame's own corner cannot be brought a margin clear of the edge — the
+		// The frame's own corner cannot be brought a margin clear of the edge: the
 		// constraint wins, and the view stops at the boundary rather than exposing
 		// ground the fit never framed.
 		const out = showTransform(at, { x: 0, y: 0 }, VIEW, INSET)
@@ -258,7 +258,7 @@ describe('wheelTravel', () => {
 
 	it('falls back to the horizontal axis for a held modifier, where the browser moves the gesture', () => {
 		// Chromium and Firefox report a shift-held wheel on `deltaX` and leave
-		// `deltaY` at zero — the same gesture, on the other axis.
+		// `deltaY` at zero: the same gesture, on the other axis.
 		expect(wheelTravel(0, -120, true)).toBe(-120)
 	})
 
@@ -298,7 +298,7 @@ describe('wheelDecays', () => {
 
 	it('takes a steady push for a wheel still being turned until the stream has run down', () => {
 		// A mouse notch reports a fixed delta, so an unchanged push is a hand on the
-		// wheel — and a reader who let the key go and kept scrolling must not find
+		// wheel, and a reader who let the key go and kept scrolling must not find
 		// the page held under them.
 		expect(wheelDecays(40, 40, false)).toBe(false)
 	})
@@ -386,7 +386,7 @@ describe('clusterPoints under a zoom', () => {
 
 	const GAP = 9
 
-	/** Two dots merge under their own widths plus the gap — in device pixels. */
+	/** Two dots merge under their own widths plus the gap, in device pixels. */
 	const REACH = POINT_RADIUS * 2 + GAP
 
 	// A pair a shade closer than the merge distance: one mark at rest, and the
@@ -402,7 +402,7 @@ describe('clusterPoints under a zoom', () => {
 
 	it('separates it once the zoom spreads the dots past the merge distance', () => {
 		// At k=2 one device pixel spans half a frame unit, so the reach halves and
-		// the pair — unmoved in frame units — no longer meets it.
+		// the pair (unmoved in frame units) no longer meets it.
 		expect(clusterPoints(pair, flat, GAP, 0.5)).toHaveLength(2)
 	})
 
@@ -424,7 +424,7 @@ describe('clusterPoints under a zoom', () => {
 	})
 })
 
-/** Where a drawn point came from — the transform read backwards, for the fixtures alone. */
+/** Where a drawn point came from: the transform read backwards, for the fixtures alone. */
 function invert(at: MapPoint2D, transform: MapTransform): MapPoint2D {
 	return { x: (at.x - transform.x) / transform.k, y: (at.y - transform.y) / transform.k }
 }

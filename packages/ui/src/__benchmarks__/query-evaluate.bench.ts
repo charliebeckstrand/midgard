@@ -10,7 +10,7 @@ import { QUERY_FIELDS, QUERY_TREES, type Shipment, shipments } from './fixtures'
 /**
  * What a built query costs to *use*, where `query-builder.bench.ts` measures
  * what it costs to edit. Three readers sit on different clocks:
- * {@link evaluateQuery} runs once per row — a client-side filter walks the
+ * {@link evaluateQuery} runs once per row; a client-side filter walks the
  * whole tree for every row in the dataset, so its per-row cost multiplies by
  * ten or a hundred thousand; {@link isQueryActive} and {@link summarizeQuery}
  * run once per render of whatever affordance shows the query.
@@ -31,7 +31,7 @@ function withCombinator(group: QueryGroup, combinator: 'and' | 'or'): QueryGroup
 }
 
 /**
- * A tree of blank rules — what a freshly seeded or fully cleared builder holds.
+ * A tree of blank rules: what a freshly seeded or fully cleared builder holds.
  * Every rule reads as no constraint, so `isQueryActive` cannot exit early and
  * must walk to the last node: its worst case, and the state a builder sits in
  * before the user types anything.
@@ -56,7 +56,7 @@ describe('query-evaluate · evaluateQuery (once per row)', () => {
 	// The fold evaluates each child into a local before combining it, so neither
 	// combinator short-circuits: an `and` whose first rule already failed still
 	// walks every remaining rule, and the two bars land together. That is the
-	// finding these bars record — a fold that called the evaluator lazily would
+	// finding these bars record: a fold that called the evaluator lazily would
 	// let a failed `and` (or a satisfied `or`) stop at the first decisive rule,
 	// which on a large tree is most of the walk.
 	for (const { label, tree } of QUERY_TREES) {
@@ -77,7 +77,7 @@ describe('query-evaluate · evaluateQuery (once per row)', () => {
 describe('query-evaluate · a client-side filter pass (1,000 rows)', () => {
 	// What the per-row number above multiplies out to. A grid filtering its own
 	// rows runs this on every keystroke that edits the query, and again on every
-	// dataset refresh — so the per-row walk is charged a thousand times here, and
+	// dataset refresh, so the per-row walk is charged a thousand times here, and
 	// a hundred thousand times on a dashboard-sized set.
 	for (const { label, tree } of QUERY_TREES.slice(0, 2)) {
 		const disjunction = withCombinator(tree, 'or')
@@ -95,7 +95,7 @@ describe('query-evaluate · a client-side filter pass (1,000 rows)', () => {
 
 describe('query-evaluate · matchQueryRule (per rule, per row)', () => {
 	// The leaf the walk repeats: a Map-free object lookup, an empty-value gate,
-	// then the matcher. The three bars are its distinct exits — an unknown
+	// then the matcher. The three bars are its distinct exits: an unknown
 	// operator answers immediately, an empty rule value answers after the gate,
 	// and a real comparison runs the matcher.
 	bench('unknown operator (returns true immediately)', () => {
@@ -118,8 +118,8 @@ describe('query-evaluate · matchQueryRule (per rule, per row)', () => {
 describe('query-active · isQueryActive (per render of the affordance)', () => {
 	// Gates every filter chip, badge, and summary line. It walks until it finds
 	// one constraining rule, so an active query exits on its first rule and stays
-	// flat in the tree size, while an inactive one — every rule blank, what a
-	// freshly seeded or fully cleared builder holds — walks to the last node. The
+	// flat in the tree size, while an inactive one (every rule blank, what a
+	// freshly seeded or fully cleared builder holds) walks to the last node. The
 	// blank bar is therefore both the common resting state and the worst case.
 	for (const { label, tree } of QUERY_TREES) {
 		const blank = blanked(tree)
@@ -137,7 +137,7 @@ describe('query-active · isQueryActive (per render of the affordance)', () => {
 describe('query-summary · summarize and render', () => {
 	// The read view over a query. `summarizeQuery` builds one token per rule plus
 	// the combinators and brackets; `formatQuerySummary` joins them into a line.
-	// Both run per render, and both are linear in the rule count — a thousand-rule
+	// Both run per render, and both are linear in the rule count: a thousand-rule
 	// tree is not a realistic filter chip, but it bounds what a summary costs
 	// before a consumer needs to truncate it.
 	for (const { label, tree } of QUERY_TREES) {

@@ -8,7 +8,7 @@ import { budget, pause } from './helpers/wall-clock'
 /**
  * Infinite scroll over the real virtualizer (jsdom renders zero windowed rows,
  * so end-detection can't be driven there). Scrolling the windowed container to
- * the loaded end trips `onLoadMore`, which grows the row set — the end-to-end
+ * the loaded end trips `onLoadMore`, which grows the row set: the end-to-end
  * path the pure `resolveLoadMore` seam and the boundary render tests can't
  * exercise. Real layout also backs the firing invariant's window checks: the
  * viewport-fill for an under-filled bounded container, the capped fetches +
@@ -127,7 +127,7 @@ describe('grid infinite scroll (real browser)', () => {
 		const onLoadMore = vi.fn()
 
 		// 2 rows (72px) in a 180px viewport: the loaded rows don't overflow, so the
-		// grid fetches to fill — no scroll interaction exists to arm it.
+		// grid fetches to fill; no scroll interaction exists to arm it.
 		renderUI(<InfiniteGrid onLoadMore={onLoadMore} initialCount={2} />)
 
 		// The fill fetches until the rows overflow the viewport (180px / 36px ≈ 5
@@ -151,7 +151,7 @@ describe('grid infinite scroll (real browser)', () => {
 		const onLoadMore = vi.fn()
 
 		// Threshold past the batch size: the appended page lands with the window
-		// still inside the new end's zone — the once-per-scroll-interaction
+		// still inside the new end's zone; the once-per-scroll-interaction
 		// invariant keeps it from chain-fetching back-to-back.
 		function ChainBait() {
 			const [count, setCount] = useState(20)
@@ -193,7 +193,7 @@ describe('grid infinite scroll (real browser)', () => {
 		// a second scroll, which can land after the fetch and re-arm it.
 		scroll.scrollTop = scroll.scrollHeight
 
-		// One scroll interaction, one fire — the 10-row append lands still within
+		// One scroll interaction, one fire: the 10-row append lands still within
 		// the 30-row threshold, but the next fetch waits for the next scroll.
 		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(1))
 
@@ -212,7 +212,7 @@ describe('grid infinite scroll (real browser)', () => {
 
 		// The OOM regression: a percentage maxHeight inside an auto-height parent
 		// never binds, so the container grows with its content instead of
-		// windowing it — every loaded row renders and the load-more condition is
+		// windowing it; every loaded row renders and the load-more condition is
 		// permanently true. The firing invariant must cap this at the bounded
 		// viewport-fill instead of chain-fetching the entire backend.
 		renderUI(<InfiniteGrid onLoadMore={onLoadMore} maxHeight="100%" />)
@@ -224,7 +224,7 @@ describe('grid infinite scroll (real browser)', () => {
 			expect(error).toHaveBeenCalledWith(expect.stringContaining('not windowing')),
 		)
 
-		// At most the bounded fill fired — nothing close to draining the 200-row set.
+		// At most the bounded fill fired: nothing close to draining the 200-row set.
 		expect(onLoadMore.mock.calls.length).toBeLessThanOrEqual(2)
 
 		await pause(150)
@@ -382,7 +382,7 @@ describe('grid infinite scroll (real browser)', () => {
 			'[data-slot="grid-scroll"]',
 		)
 
-		// Park deep in the old set — short of its end, so nothing fires yet.
+		// Park deep in the old set: short of its end, so nothing fires yet.
 		scroll.scrollTop = scroll.scrollHeight / 2
 
 		fireEvent.scroll(scroll)
@@ -597,7 +597,7 @@ describe('grid infinite scroll — stable column widths (real browser)', () => {
 
 		await loadWideTail(container)
 
-		// The wide tail loaded, but the frozen fit never re-measured it — the label
+		// The wide tail loaded, but the frozen fit never re-measured it: the label
 		// column holds its initial width to the pixel.
 		expect(labelWidth(container)).toBe(initial)
 	})
@@ -614,7 +614,7 @@ describe('grid infinite scroll — stable column widths (real browser)', () => {
 		await loadWideTail(container)
 
 		// Without the freeze the appended wide rows re-fit the label column wider than
-		// its initial short-content fit — the shift `stableColumnWidths` suppresses.
+		// its initial short-content fit: the shift `stableColumnWidths` suppresses.
 		await waitFor(() => expect(Number.parseFloat(labelWidth(container))).toBeGreaterThan(initial))
 	})
 })

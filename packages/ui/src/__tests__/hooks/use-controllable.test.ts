@@ -132,7 +132,7 @@ describe('useControllable', () => {
 	})
 
 	it('reports a cleared value as null, whichever nullish clear was passed (§7.3)', () => {
-		// §7.3: the public callback must never emit `undefined` — echoed back into
+		// §7.3: the public callback must never emit `undefined`; echoed back into
 		// `value` it would read as uncontrolled. Both clears converge on `null`.
 		const onValueChange = vi.fn()
 

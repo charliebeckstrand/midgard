@@ -33,7 +33,7 @@ describe('MapPlat chrome', () => {
 		expect(graticule).toHaveAttribute('fill', 'none')
 
 		// The hairline is stated in device pixels and converted to frame units by the
-		// chrome itself — two paths, so it reads the scale rather than inheriting it
+		// chrome itself: two paths, so it reads the scale rather than inheriting it
 		// the way the atlas below it does.
 		expect(graticule).toHaveAttribute('stroke-width', String(CHROME_STROKE_WIDTH))
 

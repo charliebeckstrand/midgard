@@ -6,8 +6,8 @@ import { getCenter } from '../../helpers/geometry/box'
 /**
  * Pointer control of the grid context menu's submenus against the real floating
  * engine, through to the keyboard taking over. The cursor and the travel
- * corridor are both geometry — where the panel landed, and whether the pointer
- * is heading into it — so neither means anything under the jsdom suite's mocked
+ * corridor are both geometry (where the panel landed, and whether the pointer
+ * is heading into it) so neither means anything under the jsdom suite's mocked
  * engine, which renders panels inline and reports every rect as zero; the
  * handoff to the arrows then turns on real focus crossing a portal boundary,
  * which that suite can't reproduce either.

@@ -18,7 +18,7 @@ describe('Grid pagination', () => {
 
 		expect(screen.queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument()
 
-		// Every row renders — the grid did not slice.
+		// Every row renders: the grid did not slice.
 		expect(screen.getByText('Row 25')).toBeInTheDocument()
 	})
 

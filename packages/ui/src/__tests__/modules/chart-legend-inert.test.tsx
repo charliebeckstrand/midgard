@@ -84,7 +84,7 @@ describe('chart legend inert prop', () => {
 		// The whole legend subtree is out of the tab order and off the pointer.
 		expect(legend?.hasAttribute('inert')).toBe(true)
 
-		// No toolbar role — an inert legend holds no focusable control.
+		// No toolbar role: an inert legend holds no focusable control.
 		expect(legend?.getAttribute('role')).toBeNull()
 	})
 

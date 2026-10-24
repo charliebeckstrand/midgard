@@ -13,7 +13,7 @@ beforeAll(() => loadGridReorderKit())
  * During a column-reorder drag the body cells shift via a CSS variable their
  * header writes, rather than each registering its own sortable. The header reads
  * that same variable, so a column's header and its body cells must resolve to the
- * identical transform at every moment of the drag — otherwise the header and body
+ * identical transform at every moment of the drag, otherwise the header and body
  * drift out of phase through the shift transition (a regression that shipped when
  * the header still applied dnd-kit's transform inline while the body read the
  * variable). Real pointer geometry past the activation distance, so this runs in
@@ -61,8 +61,8 @@ describe('grid column reorder: header/body shift stay in phase (real browser)', 
 			expect(body, `column ${id}: body transform must match its header`).toBe(head)
 		}
 
-		// The dragged column A follows the pointer, so its transform is non-identity
-		// — proof the equality checks above aren't a vacuous both-untransformed pass.
+		// The dragged column A follows the pointer, so its transform is non-identity:
+		// proof the equality checks above aren't a vacuous both-untransformed pass.
 		expect(columnTransform('a').head).not.toBe('matrix(1, 0, 0, 1, 0, 0)')
 
 		await held.release()

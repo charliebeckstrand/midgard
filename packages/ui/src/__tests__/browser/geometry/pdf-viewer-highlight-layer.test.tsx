@@ -10,12 +10,12 @@ import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * The overlay's one geometry invariant, in a real browser: the highlight layer is the page
- * image's twin — same box, same transform — which is what lets a region positioned in
+ * image's twin (same box, same transform) which is what lets a region positioned in
  * percentages of the layer land on the same ink at every zoom and every rotation, with no
  * per-region arithmetic.
  *
  * It is asserted here because nothing else can assert it. The two boxes are written in two
- * files — the image in `pdf-viewer-viewport.tsx`, the layer in `pdf-viewer-highlights.tsx` —
+ * files (the image in `pdf-viewer-viewport.tsx`, the layer in `pdf-viewer-highlights.tsx`)
  * and each carries its own style object and its own kata entry, so four sites have to agree
  * and only computed layout says whether they do. `use-pdf-viewer-page-scale.test.ts` proves
  * the transform string both of them read; it cannot prove that both of them read it.

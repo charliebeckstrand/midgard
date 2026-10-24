@@ -26,8 +26,8 @@ import { docsSites, isSourceFile, srcDir, srcRelative, walkSource } from '../hel
 
 // Spread-order boundary. CONVENTIONS.md §3.9 decides what a consumer may
 // override by where an attribute sits relative to `{...props}`. The rule has
-// three parts — the load-bearing attributes, the `data-slot` anchor, and the
-// internal `ref` — and §3.9 states each. This suite holds them; it does not
+// three parts (the load-bearing attributes, the `data-slot` anchor, and the
+// internal `ref`) and §3.9 states each. This suite holds them; it does not
 // restate them.
 //
 // The `ref` part needs to know whether the consumer spread can still carry a
@@ -99,7 +99,7 @@ type Waiver = { order?: number; anchor?: number; ref?: number; note: string }
  * @remarks
  * Every entry is backlog, not exemption: `note` names the audit row or lead
  * that owns it, and the step that closes the row deletes the entry. The count
- * is what makes the waiver narrow — a file-wide waiver would absorb a new
+ * is what makes the waiver narrow: a file-wide waiver would absorb a new
  * violation in an already-waived file, and the pin test fails the moment a
  * count moves in either direction.
  */

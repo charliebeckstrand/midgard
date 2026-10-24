@@ -6,7 +6,7 @@ import { present, renderUI } from '../helpers'
 /**
  * A disabled control must not answer the pointer, however its disabledness is spelled.
  *
- * There are two spellings, and the second is not a shortcut — it is what a control uses when it
+ * There are two spellings, and the second is not a shortcut: it is what a control uses when it
  * has to stay focusable in order to explain itself. `Tooltip` suppresses itself over a natively
  * `disabled` reference (`use-tooltip-state`'s `isReferenceDisabled` matches `:disabled` on the
  * trigger or any descendant), so a button whose whole job is to say *why* it cannot be pressed
@@ -14,7 +14,7 @@ import { present, renderUI } from '../helpers'
  * record's gated "Delete Carrier" is exactly that, and `MenuItem` and the loading-anchor branch
  * are the same pattern.
  *
- * Every hover wash in `kiso/iro` was gated on `not-disabled:` alone — `:not(:disabled)` — which
+ * Every hover wash in `kiso/iro` was gated on `not-disabled:` alone (`:not(:disabled)`) which
  * that element still matches. So it lit up under the pointer while refusing the press, which is
  * the one thing a disabled control must not do.
  *
@@ -39,7 +39,7 @@ describe('a disabled button under the pointer (real browser)', () => {
 		return { before, after: getComputedStyle(button).backgroundColor }
 	}
 
-	/** The `aria-disabled` pattern — focusable, so its tooltip can still open. */
+	/** The `aria-disabled` pattern: focusable, so its tooltip can still open. */
 	it('takes no hover wash when disabled through data-disabled', async () => {
 		const { before, after } = await backgroundBeforeAndAfterHover({
 			'aria-disabled': true,
@@ -49,7 +49,7 @@ describe('a disabled button under the pointer (real browser)', () => {
 		expect(after).toBe(before)
 	})
 
-	/** And the native attribute, which was already right — kept so a fix cannot trade one for the other. */
+	/** And the native attribute, which was already right: kept so a fix cannot trade one for the other. */
 	it('takes no hover wash when natively disabled', async () => {
 		const { before, after } = await backgroundBeforeAndAfterHover({ disabled: true })
 

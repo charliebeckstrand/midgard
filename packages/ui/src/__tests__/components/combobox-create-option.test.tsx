@@ -111,7 +111,7 @@ describe('ComboboxCreateOption', () => {
 
 		expect(screen.getByText('Texas LTL')).toBeInTheDocument()
 
-		// Nothing to create — that name is taken, so the existing row is the answer.
+		// Nothing to create: that name is taken, so the existing row is the answer.
 		expect(screen.queryByText(/^Create/)).toBeNull()
 	})
 
@@ -164,7 +164,7 @@ describe('ComboboxCreateOption', () => {
 
 		await user.keyboard('{Enter}')
 
-		// No deliberate arrow-down first — the sole-option convenience covers the common
+		// No deliberate arrow-down first: the sole-option convenience covers the common
 		// case of naming something new.
 		expect(onValueChange).toHaveBeenCalledWith('Zephyr')
 	})

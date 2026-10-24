@@ -55,7 +55,7 @@ describe('Grid toolbar content', () => {
 	it('carries no toolbar when the consumer passes none', () => {
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		// An unconfigured grid keeps its bare shape — no chrome, and no stray gap
+		// An unconfigured grid keeps its bare shape: no chrome, and no stray gap
 		// above the table.
 		expect(bySlot(container, 'grid-toolbar')).toBeNull()
 	})

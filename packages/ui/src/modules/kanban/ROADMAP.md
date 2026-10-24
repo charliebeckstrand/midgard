@@ -16,7 +16,7 @@ The keyboard follows the APG pattern for a grabbed element. Space lifts and drop
 
 A pointer drag renders only the columns that it touches. The board splits its context in two: the cards read a value that holds still through a drag, and the columns read the drag state. Each card reads its own lift from a keyed store.
 
-## Engine — the substrate
+## Engine: the substrate
 
 The domain lives in [`engine/`](engine), a pure functional core:
 

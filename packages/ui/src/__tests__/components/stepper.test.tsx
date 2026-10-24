@@ -685,7 +685,7 @@ describe('Stepper keyboard navigation', () => {
 
 			await user.click(step('Two'))
 
-			// Held hidden rather than unmounted — the panel has no transition to
+			// Held hidden rather than unmounted: the panel has no transition to
 			// wait on, so the hold applies on the step change itself.
 			expect(screen.getByTestId('first')).not.toBeVisible()
 
@@ -698,7 +698,7 @@ describe('Stepper keyboard navigation', () => {
 			renderUI(<Flow mount="always" />)
 
 			// Every panel is in the DOM, so aria-controls resolves off the current
-			// step too — which it cannot under `active` or `lazy`.
+			// step too, which it cannot under `active` or `lazy`.
 			for (const name of ['One', 'Two']) {
 				const controls = step(name).getAttribute('aria-controls')
 

@@ -140,7 +140,7 @@ describe('MapPlat selected overlay', () => {
 		)
 
 		// Value parity for the pick: assistive tech reads it off the table, never
-		// off the halo alone — and exactly one row carries it.
+		// off the halo alone, and exactly one row carries it.
 		expect(tableRows(container)).toEqual([
 			['Depot', null],
 			['Leg', 'true'],
@@ -192,7 +192,7 @@ describe('MapPoints selected dot', () => {
 
 	it('counts the pick in the points the caller passed, never in the drawn dots', () => {
 		// Two points merge into the first drawn dot, so point 2 and dot 2 name
-		// different marks — and only the caller's own numbering can name a row it
+		// different marks, and only the caller's own numbering can name a row it
 		// owns.
 		const { container } = renderUI(
 			plat(<MapPoints id="fleet" label="Stops" points={BUNCHED} cluster={false} />, {
@@ -220,7 +220,7 @@ describe('MapPoints selected dot', () => {
 		)
 
 		// One row per drawn dot, and the current one is the summary the pick fell
-		// into — the row the halo sits on, resolved through the one mapper both
+		// into: the row the halo sits on, resolved through the one mapper both
 		// surfaces read.
 		expect(tableRows(container)).toEqual([
 			['Stops', 'true'],

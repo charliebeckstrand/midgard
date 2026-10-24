@@ -110,7 +110,7 @@ describe('control affix has-button compensation', () => {
 //
 // Same geometry as the has-button arm, but Badge sits one notch below
 // Button on the shared `px` scale (`kata/badge.ts`), so its stepped-down
-// padding is 0.5 smaller and the slot pads 0.5 more — the constant lands
+// padding is 0.5 smaller and the slot pads 0.5 more: the constant lands
 // at `2`, not `1.5`. The test reads `badge.px` directly; if the badge
 // scale drifts back into step with Button, the constant moves and the
 // assertion names the step.

@@ -548,8 +548,8 @@ describe('photonProvider', () => {
 
 		const results = await photonProvider('clearwater', { signal: new AbortController().signal })
 
-		// Photon indexes one object as several documents — this relation is both a
-		// village and a locality — so the object alone does not identify a match.
+		// Photon indexes one object as several documents (this relation is both a
+		// village and a locality) so the object alone does not identify a match.
 		expect(results[0]?.id).not.toBe(results[1]?.id)
 	})
 
@@ -1049,8 +1049,8 @@ describe('AddressInput onError', () => {
 		await waitFor(() => expect(onError).toHaveBeenCalledExactlyOnceWith(outage))
 	})
 
-	// An abort is the field's own doing — a keystroke supersedes the request in
-	// flight — so it is no failure to report.
+	// An abort is the field's own doing (a keystroke supersedes the request in
+	// flight) so it is no failure to report.
 	it('says nothing when the request is aborted', async ({ clock }) => {
 		const onError = vi.fn()
 

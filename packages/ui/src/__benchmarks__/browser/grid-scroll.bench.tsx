@@ -1,10 +1,10 @@
 /**
- * Scroll-sweep cost on a live grid — the virtualization stress that decides
+ * Scroll-sweep cost on a live grid: the virtualization stress that decides
  * whether a hundred-thousand-row grid feels instant. Each iteration steps
  * the scroll container from top to bottom and back in `STEPS` even jumps,
  * yielding one animation frame per step so the scroll handler, the window
  * recompute, and the row recycling land inside the timed region, then
- * settles until the terminal rows actually paint — a grid may leave blanks
+ * settles until the terminal rows actually paint: a grid may leave blanks
  * mid-flight, but the sweep is not over until the far end is drawn.
  */
 

@@ -1,18 +1,18 @@
 /**
  * Mount cost for the map's overlay marks, which the region benches never
- * touch — every other map bench draws geography and no marks at all, so a
+ * touch: every other map bench draws geography and no marks at all, so a
  * regression in a mark's own render path was invisible to the suite.
  *
  * The first two subjects are the same two hundred dots, drawn the two ways the
  * module offers: one `MapPoint` each, and one `MapPoints` holding all of them.
  * Every `MapPoint` claims its own legend entry, so the singular form pays two
- * hundred registrations — each a state commit that re-sorts the ledger and
- * re-renders the legend — against the plural form's one.
+ * hundred registrations (each a state commit that re-sorts the ledger and
+ * re-renders the legend) against the plural form's one.
  *
  * The rest put a drawn zone under those dots, which is the one scene in the
  * module where two marks price each other. A dot on a zone sizes its pointer
  * target against the room that zone can spare, so every dot reads every visible
- * zone once per rebuild — and the suite could not see that at all while its
+ * zone once per rebuild, and the suite could not see that at all while its
  * overlay benches drew marks on bare geography. It went unseen once already: the
  * zone's own measure sat inside the per-dot answer, so two hundred dots walked a
  * territory's ~9,900 vertices two hundred times for one figure that never varied.
@@ -65,7 +65,7 @@ function overlayMaps(): Subject<typeof LATTICE_DOTS>[] {
 
 /**
  * The same plural mark with a coverage territory drawn under it. The zone goes
- * first, so the dots draw over it and the wash stays behind them — the order the
+ * first, so the dots draw over it and the wash stays behind them: the order the
  * mark's own docs ask for.
  */
 function zonedMaps(): Subject<typeof LATTICE_DOTS>[] {
@@ -119,7 +119,7 @@ function press(key: string) {
 	plot.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
 }
 
-/** The transform the zoom layer currently holds — how the sanity check reads a notch. */
+/** The transform the zoom layer currently holds: how the sanity check reads a notch. */
 function zoomTransform(): string {
 	return document.querySelector('[data-slot="map-zoom"]')?.getAttribute('transform') ?? ''
 }

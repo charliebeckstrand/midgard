@@ -2,7 +2,7 @@
  * JsonTree's render cost: the `JsonNode` recursion and `filterEntries` dominate
  * it, and `json-tree.bench.ts` isolates that pure logic one rung down. The
  * scenarios span expansion depth, an active search (highlight against prune),
- * and the virtualized window — plus a controlled toggle that re-renders a
+ * and the virtualized window, plus a controlled toggle that re-renders a
  * mounted tree, where a memo regression on a single branch flip surfaces.
  */
 
@@ -58,7 +58,7 @@ describe('JsonTree · virtualized render', () => {
 
 describe('JsonTree · virtualized · re-render on toggle', () => {
 	// Controlled `expanded` flips one mid-tree branch per iteration, so the timed
-	// region is the re-render alone — not the mount.
+	// region is the re-render alone, not the mount.
 	const paths = [...collectPaths(medium, undefined, DEEP)]
 
 	const branch = paths[Math.floor(paths.length / 2)] ?? paths[0] ?? ''

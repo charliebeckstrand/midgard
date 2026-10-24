@@ -8,7 +8,7 @@
  * fails loudly at the missing node instead.
  *
  * The narrowing defaults to `HTMLElement`, which is what almost every caller
- * wants. A suite reading an SVG interface — a CTM, a stroke's own point test —
+ * wants. A suite reading an SVG interface (a CTM, a stroke's own point test)
  * names the element type instead (`present<SVGGeometryElement>(…)`), so it takes
  * the guard without casting the answer back.
  *

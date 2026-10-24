@@ -10,7 +10,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * `onClick` alone. `handleTriggerKeyDown` never opens: on Enter/Space it arms
  * the auto-repeat guard and delegates to `rovingKeyDown`, which no-ops while the
  * panel is unmounted. A native `<button>` is carried by the browser, which
- * synthesizes a click from Enter and from Space-on-keyup — so the default path
+ * synthesizes a click from Enter and from Space-on-keyup, so the default path
  * works and hides the gap. Any other element gets no synthesized click, so the
  * menu cannot be opened from the keyboard at all.
  *

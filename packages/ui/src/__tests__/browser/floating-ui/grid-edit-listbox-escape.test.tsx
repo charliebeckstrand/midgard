@@ -45,7 +45,7 @@ describe('grid edit session Escape vs an open listbox (real floating engine)', (
 
 		// The guard the session's Escape defers by. The jsdom suite mocks
 		// `FloatingPortal` down to an inline render, so this attribute exists only
-		// here — which is why the deferral can only be proven in this project.
+		// here, which is why the deferral can only be proven in this project.
 		expect(document.querySelector('[data-floating-ui-portal]')).not.toBeNull()
 
 		await userEvent.keyboard('{Escape}')

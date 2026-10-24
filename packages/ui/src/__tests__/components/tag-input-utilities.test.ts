@@ -31,7 +31,7 @@ describe('classifyTokens', () => {
 		const batch = classifyTokens(
 			['77002', '77002', 'nope', '77003', '77004'],
 			['77001'],
-			// `room` is how many MORE fit, not the cap — one tag is already held.
+			// `room` is how many MORE fit, not the cap: one tag is already held.
 			2,
 			(tag) => /^\d{5}$/.test(tag),
 		)
@@ -56,7 +56,7 @@ describe('classifyTokens', () => {
 
 		classifyTokens(['held', 'new', 'spare'], ['held'], 1, validate)
 
-		// The documented order is duplicate, then limit, then validate — so validate only ever sees
+		// The documented order is duplicate, then limit, then validate, so validate only ever sees
 		// novel, within-limit candidates however the tokens arrived.
 		expect(validate).toHaveBeenCalledTimes(1)
 

@@ -98,7 +98,7 @@ describe('useGridRowManager', () => {
 
 		expect(result.current.presentation.color('b')).toBe('blue')
 
-		// The overlay names only `b`, not every group — group order stays natural.
+		// The overlay names only `b`, not every group: group order stays natural.
 		expect(result.current.presentation.groupOrder).toBeNull()
 
 		expect(result.current.managerGroups.map((g) => g.key)).toEqual(['a', 'b', 'c'])

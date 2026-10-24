@@ -267,7 +267,7 @@ describe('relativeChips', () => {
 
 describe('matchRelativePreset with an explicit pick (span collisions)', () => {
 	// On 1 January, "Today", "This month", and "This year" all resolve to the same
-	// single-day span — the ambiguity where a bare range match would label a selection
+	// single-day span: the ambiguity where a bare range match would label a selection
 	// by the wrong preset. The real Ship Date cases are "Last 6 months" ≡ "This year"
 	// on 1 July and "This month" ≡ "This quarter" in a quarter's first month.
 	const NEW_YEAR = new Date(2025, 0, 1)

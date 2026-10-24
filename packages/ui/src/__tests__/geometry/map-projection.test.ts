@@ -127,7 +127,7 @@ describe('scaleCanonicalFit', () => {
 			const derived = scaleCanonicalFit(spec, canonical, width, height)
 
 			// The geography sits inside the frame, centered, filling one axis edge
-			// to edge — the fit contract itself.
+			// to edge: the fit contract itself.
 			const [[x0, y0], [x1, y1]] = geoPath(derived).bounds(
 				shape as unknown as Parameters<ReturnType<typeof geoPath>['bounds']>[0],
 			)

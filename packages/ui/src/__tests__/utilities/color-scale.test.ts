@@ -20,7 +20,7 @@ describe('sampleRange', () => {
 
 		expect(sampleRange(range, 1)).toBe('#ff0000')
 
-		// The middle sample lands on the middle stop — verbatim, not re-encoded.
+		// The middle sample lands on the middle stop: verbatim, not re-encoded.
 		expect(sampleRange(range, 0.5)).toBe('#00ff00')
 
 		// A sample between stops mixes in sRGB.
@@ -36,7 +36,7 @@ describe('sampleRange', () => {
 	})
 
 	it('interpolates non-hex stops through the shared color parser', () => {
-		// rgb() stops mix the same as their hex equivalents — the parser folds both.
+		// rgb() stops mix the same as their hex equivalents: the parser folds both.
 		expect(sampleRange(['rgb(0 0 0)', 'rgb(255 255 255)'], 0.5)).toBe('rgb(128 128 128)')
 	})
 })

@@ -19,7 +19,7 @@ describe('MapSkeleton', () => {
 	it('reserves what the projection reserves, so the plat swaps in without a jump', () => {
 		// An atlas-less plat on the default `aspectRatio: 'auto'` reserves
 		// `projectionFallbackAspect`, so a skeleton in front of it must read the
-		// same figure — the generic 16/9 is ~18px taller at 800px wide, in exactly
+		// same figure: the generic 16/9 is ~18px taller at 800px wide, in exactly
 		// the swap this component exists to prevent.
 		const composite = renderUI(<MapSkeleton projection="albers-usa" />)
 

@@ -26,7 +26,7 @@ import {
  * region's color. `map-render.bench.tsx` times the React mount and its
  * static-geometry cache one rung up; the browser suite times the module in a
  * real browser one rung above that. This one isolates the passes underneath
- * both — each linear in the region count, and a counties atlas carries 3,108 of
+ * both: each linear in the region count, and a counties atlas carries 3,108 of
  * them, so a per-region constant is worth three thousand of itself on every
  * mount.
  *
@@ -38,7 +38,7 @@ import {
 // Each atlas already carries its decoded features (`prepareAtlas` in
 // `browser/map-fixtures.ts`); decoding them again here would re-walk every arc
 // of the 3,108 counties at collection for no new data. Its datasets are built
-// once too — a counties `makeZones` allocates two 3,108-element arrays, and
+// once too: a counties `makeZones` allocates two 3,108-element arrays, and
 // three describes below want the same one.
 const ATLASES = [
 	{
@@ -75,7 +75,7 @@ describe('map-geometry · decode + winding (before any fit)', () => {
 })
 
 describe('map-geometry · regionCentroids (the first arrow key)', () => {
-	// Deferred off the mount by design — only a keyboard cursor reads it, and the
+	// Deferred off the mount by design, only a keyboard cursor reads it, and the
 	// pass measures every ring in the atlas, so a county map pays it on the first
 	// arrow key rather than on every mount. `boundary/map-centroid-deferral` gates
 	// that it stays off the mount; this bar is what it costs when it does run, and
@@ -89,7 +89,7 @@ describe('map-geometry · regionCentroids (the first arrow key)', () => {
 
 describe('map-geometry · chromePaths (opt-in graticule + sphere)', () => {
 	// Both parts are off by default, and the graticule's lines cover the globe
-	// whatever the geography frames — so a one-state map pays a world map's pass
+	// whatever the geography frames, so a one-state map pays a world map's pass
 	// and the viewBox clips the rest. That is the trim the ROADMAP's backlog
 	// names; this is the bar it would move.
 	for (const { label, atlas } of ATLASES) {
@@ -110,13 +110,13 @@ describe('map-geometry · chromePaths (opt-in graticule + sphere)', () => {
 describe('map-projection · canonicalFit (the uncached fit)', () => {
 	// Re-projects every coordinate of every geography to measure the fitted
 	// bounds. Paid once per atlas per projection and then held by the
-	// static-geometry cache — but a cache miss pays it on the mount critical
+	// static-geometry cache, but a cache miss pays it on the mount critical
 	// path, and the counties atlas is where that hurts.
 	//
 	// It is the fallback now: the bounds a fit needs are a scan of the points the
 	// projected buffer already holds, so `probeCanonicalFit` measures the frame on
 	// the walk that fills it and this pass runs only where that buffer is
-	// declined. The pair below prices what the fold removed — this bar plus a
+	// declined. The pair below prices what the fold removed: this bar plus a
 	// `projectAtlas` from the region-paths describe, against one walk.
 	for (const { label, atlas } of ATLASES) {
 		bench(`${label} · albers-usa`, () => {
@@ -130,7 +130,7 @@ describe('map-projection · canonicalFit (the uncached fit)', () => {
 })
 
 // Each atlas fitted once for every describe below that draws from a fit. The
-// counties fit is the slowest, and three bars want it — measuring it is
+// counties fit is the slowest, and three bars want it: measuring it is
 // `canonicalFit`'s own bar above, so paying it again per describe would only
 // slow collection.
 const FITTED = ATLASES.map(({ label, atlas }) => {
@@ -145,7 +145,7 @@ describe('map-projection · scaleCanonicalFit (every resize frame)', () => {
 	// The refit a resize runs: pure arithmetic over the cached canonical
 	// parameters, deliberately avoiding the bounds pass `canonicalFit` above
 	// takes. Against that bar it is the whole point of the canonical cache, and
-	// it must stay flat in the region count — it never touches a coordinate.
+	// it must stay flat in the region count: it never touches a coordinate.
 	for (const { label, canonical } of FITTED) {
 		bench(`${label} · refit to 960×600`, () => {
 			scaleCanonicalFit('albers-usa', canonical, 960, 600)
@@ -154,8 +154,8 @@ describe('map-projection · scaleCanonicalFit (every resize frame)', () => {
 })
 
 describe('map-geometry · region paths (the mount’s largest pass)', () => {
-	// A map draws the atlas under two fits in one mount — canonical on the first
-	// commit, measured a beat later — and under another on every resize. The
+	// A map draws the atlas under two fits in one mount (canonical on the first
+	// commit, measured a beat later) and under another on every resize. The
 	// direct walk streams every coordinate through d3-geo each time; the buffer
 	// pays that walk once and emits the strings from it, which is the whole of
 	// what a refit and a resize then cost.
@@ -190,7 +190,7 @@ describe('map-region/category · resolveCategories (derive + paint)', () => {
 		})
 	}
 
-	// An explicit category list skips the derive pass entirely — the difference
+	// An explicit category list skips the derive pass entirely: the difference
 	// is what a consumer buys by declaring its categories up front.
 	const counties = ATLASES[1]
 
@@ -207,7 +207,7 @@ describe('map-region/category · resolveCategories (derive + paint)', () => {
 describe('map-region/category · regionCategoryIndexes (the categorical join)', () => {
 	// Builds a region → row Map and a category → index Map, then walks the
 	// regions. Two allocations plus a lookup per region, on every mount and
-	// every data update — the pass that turns rows into fills.
+	// every data update: the pass that turns rows into fills.
 	for (const { label, atlas, zones } of ATLASES) {
 		const categories = resolveCategories(zones.rows, 'zone')
 
@@ -240,10 +240,10 @@ describe('map-region/value · resolveValueBins (linear vs quantile)', () => {
 describe('map-region/value · regionValueJoin (the numeric join)', () => {
 	// The choropleth's per-region pass: bin assignment, a formatted readout
 	// string, and the raw number, for every region. The format call allocates a
-	// string per region whether or not a tooltip ever shows it — 3,108 of them on
+	// string per region whether or not a tooltip ever shows it: 3,108 of them on
 	// a counties mount, and again on every data update.
 	// Both formatters are hoisted, so the pair differs only in the formatter's own
-	// cost — a closure rebuilt per iteration on one bar would tilt the comparison.
+	// cost: a closure rebuilt per iteration on one bar would tilt the comparison.
 	const intl = new Intl.NumberFormat('en-US')
 
 	const intlFormat = (value: number) => intl.format(value)

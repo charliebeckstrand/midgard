@@ -356,7 +356,7 @@ describe('Listbox', () => {
 		)
 
 		// `font-variant-numeric: tabular-nums` inherits, so the class on the
-		// trigger reaches the value text — no dedicated prop needed.
+		// trigger reaches the value text: no dedicated prop needed.
 		expect(bySlot(container, 'listbox')?.className).toContain('tabular-nums')
 	})
 

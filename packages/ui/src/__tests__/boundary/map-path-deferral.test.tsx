@@ -19,7 +19,7 @@ import { categoricalPlat } from '../helpers/map-plat'
  *
  * The mount benchmarks cannot guard this: they warm the cross-instance caches in
  * uncounted iterations, so the pass is already paid by the time they time
- * anything. Only a call count shows it, which needs a module mock — so this
+ * anything. Only a call count shows it, which needs a module mock, so this
  * suite sits in `boundary/` beside `map-centroid-deferral`, for the reason that
  * one states.
  */
@@ -47,7 +47,7 @@ vi.mock('../../modules/map/engine/map-geometry/region', async (importActual) => 
  * first commit, which is the state after the measurement rather than the one
  * under test. A fresh atlas per call, because the static geometry is memoized on the
  * atlas object and a shared fixture would hand the second case the first's
- * entry — paths and all.
+ * entry: paths and all.
  */
 function plat(extra?: Parameters<typeof categoricalPlat>[0]) {
 	return categoricalPlat({

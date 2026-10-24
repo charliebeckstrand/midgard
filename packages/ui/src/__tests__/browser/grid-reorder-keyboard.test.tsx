@@ -11,7 +11,7 @@ beforeAll(() => loadGridReorderKit())
 /**
  * A keyboard-activated column reorder must give a visible cue. dnd-kit's keyboard
  * sensor starts the drag on Space/Enter over the grip, but the column does not
- * move until an arrow key — so without a state-driven indicator there is nothing
+ * move until an arrow key, so without a state-driven indicator there is nothing
  * on screen to show it is now held. The held column dims its text to the muted
  * foreground (header and body alike, via the shared reorder-cell class): the
  * header already sits at that shade, so the bright body dims to meet it and the
@@ -52,7 +52,7 @@ describe('grid column reorder: keyboard lift indicator (real browser)', () => {
 		const bodyB = cellFor('td', 'b')
 
 		// At rest the header is muted (table header base) but the body is the bright
-		// default, so the two differ — the baseline the drag collapses.
+		// default, so the two differ: the baseline the drag collapses.
 		const restBodyColor = getComputedStyle(bodyA).color
 
 		expect(getComputedStyle(headerA).color).not.toBe(restBodyColor)
@@ -66,7 +66,7 @@ describe('grid column reorder: keyboard lift indicator (real browser)', () => {
 
 		const dragBodyColor = getComputedStyle(bodyA).color
 
-		// The held body dims, landing on the muted shade its header already wears —
+		// The held body dims, landing on the muted shade its header already wears:
 		// head and body now read as one muted column.
 		expect(dragBodyColor).not.toBe(restBodyColor)
 

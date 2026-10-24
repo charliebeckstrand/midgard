@@ -5,7 +5,7 @@ import { fireEvent, present, renderUI, screen } from '../helpers'
 
 // The server-sort settle wash is projected from the `<table>` onto its data
 // `<tbody>`, so assert against the table element's class list (a running
-// animation / opacity is unreliable in jsdom — mirror `grid-sort.test.tsx`).
+// animation / opacity is unreliable in jsdom: mirror `grid-sort.test.tsx`).
 const PULSE = '[&>tbody:first-of-type]:motion-safe:animate-pulse'
 const DIM = '[&>tbody:first-of-type]:motion-reduce:opacity-50'
 
@@ -35,7 +35,7 @@ describe('Grid server-sort settle', () => {
 	const sortByName = () => fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
 
 	// Manual mode with an async row handoff: the sort change lands first, the
-	// reordered rows a commit later — the interval the wash covers.
+	// reordered rows a commit later, the interval the wash covers.
 	function AsyncHarness() {
 		const [sort, setSort] = useState<GridSortState[]>([])
 
@@ -59,7 +59,7 @@ describe('Grid server-sort settle', () => {
 	it('pulses and dims the rows while a server sort is in flight, clearing when the rows land', () => {
 		renderUI(<AsyncHarness />)
 
-		// At rest — no sort in flight — the body carries neither the pulse nor the dim.
+		// At rest (no sort in flight) the body carries neither the pulse nor the dim.
 		expect(table().className).not.toContain(PULSE)
 
 		expect(table().className).not.toContain(DIM)
@@ -81,7 +81,7 @@ describe('Grid server-sort settle', () => {
 
 	it('never dims when the consumer swaps rows in the same commit as the sort', () => {
 		// A synchronous re-sort: the rows derive from the sort, so both change in one
-		// commit and the grid settles at once — no dim flash.
+		// commit and the grid settles at once, no dim flash.
 		function SyncHarness() {
 			const [sort, setSort] = useState<GridSortState[]>([])
 
@@ -118,7 +118,7 @@ describe('Grid server-sort settle', () => {
 
 	it('lifts the wash when a rapid asc→desc→clear settles back to the shown rows', () => {
 		// A server sort where an in-flight sort's reordered rows never arrive before
-		// the next click. Clearing returns to the server's default order — which,
+		// the next click. Clearing returns to the server's default order, which,
 		// with nothing landed between the clicks, is the order already on screen, so
 		// the consumer hands back the same `rows` reference. The grid must still read
 		// the cleared sort as settled, not stay stuck mid-flight (the reported bug).
@@ -131,7 +131,7 @@ describe('Grid server-sort settle', () => {
 				setSort(next)
 
 				// Non-empty sorts are in flight (their rows land later); clearing snaps
-				// back to the default set already shown — an unchanged `rows` reference.
+				// back to the default set already shown: an unchanged `rows` reference.
 				if (next.length === 0) setRows(initialRows)
 			}
 
@@ -147,7 +147,7 @@ describe('Grid server-sort settle', () => {
 
 		renderUI(<RapidHarness />)
 
-		// asc, then desc — each a server sort with no rows yet, so the body settles.
+		// asc, then desc: each a server sort with no rows yet, so the body settles.
 		sortByName()
 
 		expect(table().className).toContain(PULSE)
@@ -157,7 +157,7 @@ describe('Grid server-sort settle', () => {
 		expect(table().className).toContain(PULSE)
 
 		// Clearing returns to unsorted, matching the rows already shown, so the wash
-		// lifts. Before the fix it latched — pulsing on with no sort in flight.
+		// lifts. Before the fix it latched: pulsing on with no sort in flight.
 		sortByName()
 
 		expect(table().className).not.toContain(PULSE)
@@ -183,8 +183,8 @@ describe('Grid server-sort settle', () => {
 
 		sortByName()
 
-		// Client sorting reorders in place with no round trip, so no settle wash —
-		// neither the pulse nor the dim — is projected onto the body.
+		// Client sorting reorders in place with no round trip, so no settle wash
+		// (neither the pulse nor the dim) is projected onto the body.
 		expect(table().className).not.toContain(PULSE)
 
 		expect(table().className).not.toContain(DIM)

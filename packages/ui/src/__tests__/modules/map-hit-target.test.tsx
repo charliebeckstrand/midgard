@@ -49,8 +49,8 @@ function budget(target: Element | null, name: string) {
  * The pointer target on the dot-shaped marks. The size is a rule about the input
  * device and about what stands under the mark, not about the mark itself: the `r`
  * attribute carries the coarse reach on every dot, and the class takes a mouse
- * down to what the ground under the dot can spare — through a custom property the
- * factory sets from that budget — but only where something under it needs those
+ * down to what the ground under the dot can spare (through a custom property the
+ * factory sets from that budget) but only where something under it needs those
  * pixels.
  *
  * The class only resolves in a real browser, so `browser/map-hit-target-modality`
@@ -66,7 +66,7 @@ describe('dot hit targets', () => {
 	})
 
 	it('holds the coarse reach, and pins the fine target to the drawn dot', () => {
-		// WCAG 2.5.5 (enhanced) for a coarse pointer — what `TouchTarget` floors a
+		// WCAG 2.5.5 (enhanced) for a coarse pointer: what `TouchTarget` floors a
 		// finger at, and the reach a finger genuinely needs.
 		expect(POINT_HIT_RADIUS * 2).toBe(44)
 
@@ -74,7 +74,7 @@ describe('dot hit targets', () => {
 		// a `MapGeofence` drawn around a `MapPoint` is what the pixels go back to.
 		expect(POINT_HIT_RADIUS_FINE * 2).toBe(11)
 
-		// The drawn dot exactly — the floor a budget can never take a target under,
+		// The drawn dot exactly: the floor a budget can never take a target under,
 		// since a target narrower than its own dot would leave the dot a dead rim.
 		// This is the class's fallback; `dotHitProps` sets each shape's own figure.
 		//
@@ -105,7 +105,7 @@ describe('dot hit targets', () => {
 			...allBySlot(container, 'map-marker-end-hit'),
 		]
 
-		// A point, both marker pins, and each dot of a set — every one of them.
+		// A point, both marker pins, and each dot of a set: every one of them.
 		expect(targets.length).toBeGreaterThanOrEqual(5)
 
 		for (const target of targets) {
@@ -135,7 +135,7 @@ describe('dot hit targets', () => {
 	it('budgets every corner of a zone drawn through its own marks alike', () => {
 		// The reading this replaced asked whether a dot stood inside the zone, and a
 		// zone strung between the marks it holds puts every one of them on its
-		// boundary — where inside-or-out has no answer and a ray cast is decided by
+		// boundary, where inside-or-out has no answer and a ray cast is decided by
 		// the winding. The three corners on the hull read as outside and the reflex
 		// one read as inside, so one dot of four pointed differently. A share of the
 		// zone's room has an answer everywhere, and it is one answer per zone.
@@ -175,7 +175,7 @@ describe('dot hit targets', () => {
 		const target = bySlot(container, 'map-point-hit')
 
 		// Nothing under the dot to yield to, so it holds the reach a finger needs on
-		// both pointers — and carries no property for a class that isn't there.
+		// both pointers, and carries no property for a class that isn't there.
 		expect(fine(target)).toBe(false)
 
 		expect(present(target, 'point hit target').style.getPropertyValue(k.hit.radius)).toBe('')
@@ -209,7 +209,7 @@ describe('dot hit targets', () => {
 			// Two stops 16px apart in a 400px frame, which is the middle of the window
 			// this case needs: past the 14px merge distance, so each draws its own dot,
 			// and inside the 22px coarse reach, so each stands in the other's target.
-			// Spaced off the merge distance rather than onto it — the pair sat at
+			// Spaced off the merge distance rather than onto it: the pair sat at
 			// 14.000000000000012px, which any change to the fit's last bit merges.
 			overlayPlat(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [16.2, 5] }]} />),
 		)
@@ -239,7 +239,7 @@ describe('dot hit targets', () => {
 		const { container } = renderUI(
 			// A 60 km zone, narrower on the frame than the summary drawn over it, and
 			// two stops ~4px apart so they merge into one summary at the first cluster
-			// grade — wider than the dot a lone stop draws.
+			// grade: wider than the dot a lone stop draws.
 			catchment(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [15.3, 5] }]} />, 60_000),
 		)
 
@@ -250,7 +250,7 @@ describe('dot hit targets', () => {
 		expect(targets).toHaveLength(1)
 
 		// The yard's share is narrower than the mark, and a target inside its own dot
-		// would leave the dot a dead rim — so the zone is what gives way, since a dot
+		// would leave the dot a dead rim, so the zone is what gives way, since a dot
 		// no one can point at reports nothing at all. The grade the summary draws at
 		// rather than one figure for every dot: `clusterRadius` is what the mark passes.
 		expect(budget(targets[0] ?? null, 'summary hit target')).toBe(clusterRadius(2))
@@ -277,7 +277,7 @@ describe('dot hit targets', () => {
 
 	it('holds a marker’s pins precise where a short leg draws them within reach', () => {
 		const { container } = renderUI(
-			// About 15px apart in a 400px frame — each pin's coarse target would cover
+			// About 15px apart in a 400px frame: each pin's coarse target would cover
 			// the other's face.
 			overlayPlat(<MapMarker label="Shuttle" start={[15, 5]} end={[16.05, 5]} />),
 		)
@@ -301,7 +301,7 @@ describe('dot hit targets', () => {
 /**
  * Two separate marks standing within a target's reach of one another used to keep the whole circle
  * each: `crowd.ts` could see only one mark's own dots, so the overlap belonged to whichever drew last
- * and the dot underneath silently lost a crescent of its target — and its tooltip with it.
+ * and the dot underneath silently lost a crescent of its target, and its tooltip with it.
  *
  * Each now clips its target to the ground nearer to itself, so the outward reach is untouched and only
  * the contested middle divides. Asserted on the clip's presence and its ring rather than on a hit test,
@@ -318,7 +318,7 @@ describe('crowded marks divide their targets', () => {
 		return container.querySelector(`clipPath#${id} polygon`)?.getAttribute('points') ?? null
 	}
 
-	/** Two points near enough that each target reaches the other — the case every clip test wants. */
+	/** Two points near enough that each target reaches the other: the case every clip test wants. */
 	function crowded() {
 		return renderUI(
 			overlayPlat(
@@ -367,7 +367,7 @@ describe('crowded marks divide their targets', () => {
 
 		expect(clips).toHaveLength(2)
 
-		// A `<clipPath>` never renders wherever it sits, so this is convention rather than correctness —
+		// A `<clipPath>` never renders wherever it sits, so this is convention rather than correctness:
 		// `MapChrome`'s frame clip and `ChartLine`'s wipe both declare theirs this way, and one clip
 		// declared differently from the others is a thing the next reader has to stop and check. The
 		// queries above and below reach through descendants, so nothing else here would notice it move.
@@ -490,7 +490,7 @@ describe('crowded marks divide their targets', () => {
 	it('does not let a route or a zone contest a point’s ground', () => {
 		const { container } = renderUI(catchment(<MapPoint label="Depot" at={[15, 5]} />))
 
-		// A zone's claim is a `spare` budget, not a boundary — it paints a face rather than a dot, so
+		// A zone's claim is a `spare` budget, not a boundary: it paints a face rather than a dot, so
 		// there is no line to divide along and nothing here to clip against.
 		expect(readClip(bySlot(container, 'map-point-hit'))).toBeNull()
 	})
@@ -501,18 +501,18 @@ describe('crowded marks divide their targets', () => {
  * topmost thing at its own pixels: a 44px target over such a shape puts a 44px hole in it, and a dot
  * near the middle of a small region can put that region out of reach altogether.
  *
- * Answering is not clicking alone — a matched region reads out under the pointer, and a right-click
+ * Answering is not clicking alone: a matched region reads out under the pointer, and a right-click
  * can open a menu on it. Read as clicks alone, the several county maps a coverage drill tiles kept the
  * full finger target on every pin: they take no county pick, because a pick could only be read back
  * onto one of them.
  *
  * The third claimant on the same ground the zones and the neighbors claim, arriving through the same
- * budget — which is why `markTargets` needed to learn nothing for it.
+ * budget, which is why `markTargets` needed to learn nothing for it.
  */
 describe('a dot over regions that answer the pointer', () => {
 	/**
 	 * A frame narrow enough that the fixture's squares are small shapes. The three
-	 * ten-degree squares span the frame, so one draws a third of it — roomy in
+	 * ten-degree squares span the frame, so one draws a third of it: roomy in
 	 * absolute pixels at 400, and a shape with something to lose here.
 	 */
 	const TIGHT = 120
@@ -560,7 +560,7 @@ describe('a dot over regions that answer the pointer', () => {
 
 		expect(fine(target)).toBe(true)
 
-		// Half of what the square itself holds, so the region keeps at least as much as it gives —
+		// Half of what the square itself holds, so the region keeps at least as much as it gives:
 		// the fixture's own geometry rather than a constant.
 		expect(budget(target, 'style')).toBeCloseTo(SQUARE_SPARE, 0)
 	})
@@ -620,12 +620,12 @@ describe('a dot over regions that answer the pointer', () => {
 		)
 
 		// A menu is an output like the other two, and its handler rides the group rather than the
-		// paths — so it answers on a map whose regions read nothing.
+		// paths, so it answers on a map whose regions read nothing.
 		expect(fine(bySlot(container, 'map-point-hit'))).toBe(true)
 	})
 
 	it('keeps the whole target where the regions answer nothing at all', () => {
-		// At `TIGHT`, where a layer that DID answer would narrow this dot — at the wider frame the
+		// At `TIGHT`, where a layer that DID answer would narrow this dot: at the wider frame the
 		// squares can spare a whole finger target, so the case would pass either way and prove
 		// nothing about the bit it names.
 		const { container } = renderUI(
@@ -636,7 +636,7 @@ describe('a dot over regions that answer the pointer', () => {
 
 		// The claim is the answering, not the region layer: an atlas whose rows matched none of its
 		// shapes binds no pointer handlers on them and leads nowhere, so it takes nothing from the dots
-		// over it — the backdrop map `regionsRead` exists to keep cheap.
+		// over it, the backdrop map `regionsRead` exists to keep cheap.
 		expect(fine(bySlot(container, 'map-point-hit'))).toBe(false)
 	})
 
@@ -674,7 +674,7 @@ describe('a dot over regions that answer the pointer', () => {
 
 		expect(targets).toHaveLength(2)
 
-		// One rule, read by every mark through `markTargets` — the reason the third claimant needed no
+		// One rule, read by every mark through `markTargets`: the reason the third claimant needed no
 		// per-mark wiring.
 		for (const target of targets) {
 			expect(fine(target)).toBe(true)
@@ -685,7 +685,7 @@ describe('a dot over regions that answer the pointer', () => {
 		const { container } = renderUI(clickable(<MapPoint label="Buoy" at={[-60, 20]} />))
 
 		// The claim is the region under the dot, so a dot with no region under it owes nothing. The
-		// map-wide reading this replaced could not tell the two apart and charged every dot alike —
+		// map-wide reading this replaced could not tell the two apart and charged every dot alike:
 		// its own stated cost, and the ocean is where a map of places puts a surprising number.
 		expect(fine(bySlot(container, 'map-point-hit'))).toBe(false)
 	})
@@ -704,7 +704,7 @@ describe('a dot over regions that answer the pointer', () => {
 
 /**
  * A choropleth whose atlas has drawn but whose numbers have not arrived takes the no-data fill on
- * every region — which looks exactly like a map where nothing covers anywhere. `pending` makes the
+ * every region, which looks exactly like a map where nothing covers anywhere. `pending` makes the
  * difference visible while the request is in flight.
  */
 describe('a map whose values are still loading', () => {
@@ -717,7 +717,7 @@ describe('a map whose values are still loading', () => {
 
 		const paint = bySlot(container, 'map-regions')?.getAttribute('class')
 
-		// On the GROUP, so it inherits to every path — thousands of regions carry no class of their own,
+		// On the GROUP, so it inherits to every path: thousands of regions carry no class of their own,
 		// the same reason the pointer cursor rides the group. `motion-safe` rather than a bare animation,
 		// with a standing dim in its place rather than nothing: a reader who asked for less motion is
 		// owed the loading state, not just spared the pulse.

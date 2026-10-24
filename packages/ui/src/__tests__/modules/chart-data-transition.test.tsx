@@ -6,7 +6,7 @@ import { act, bySlot, renderUI, stubMatchMedia } from '../helpers'
 /**
  * The data-change transition: an animated chart replays its reveal out-then-in
  * when the resolved data changes, and holds still otherwise. The mechanism is a
- * generation key on the marks group — {@link seriesDataKey} — surfaced as
+ * generation key on the marks group ({@link seriesDataKey}) surfaced as
  * `data-generation`; this asserts the key's behavior, which is what decides
  * whether the reveal replays. The exit/enter frames themselves are not asserted:
  * `motion/react` is mocked in every suite here (jsdom and browser alike, for
@@ -110,7 +110,7 @@ describe('chart data-change transition', () => {
 
 		rerender(bars(NEXT))
 
-		// No generation swap under reduced motion — the new data reconciles in place.
+		// No generation swap under reduced motion: the new data reconciles in place.
 		expect(generation(container)).toBe(before)
 	})
 

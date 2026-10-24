@@ -13,11 +13,11 @@ import { act, frames, renderUI, waitFor } from '../helpers'
  * Real layout is required (jsdom reports zero overflow). The clip is flipped by
  * squeezing the *content* (`letter-spacing`) rather than resizing the box, so
  * the observed box never changes size and the `ResizeObserver` stays silent on
- * its own — isolating the deferred pass without stubbing the shared observer.
+ * its own: isolating the deferred pass without stubbing the shared observer.
  *
  * Overflow measurement is contact-gated (a cell scrolled past but never
  * hovered pays no layout read), so the element is armed with a `pointerover`
- * before the flag is expected to reflect anything — the same contact the reveal
+ * before the flag is expected to reflect anything: the same contact the reveal
  * tooltip it gates always begins with.
  */
 /** A settle subscription that the test fires by hand. */
@@ -77,7 +77,7 @@ describe('useGridTruncation resize-settle reconciliation (real browser)', () => 
 			// overflows, so the flag stays truncated.
 			settle.fire()
 
-			// Now squeeze the content to fit *after* that commit — as a column width
+			// Now squeeze the content to fit *after* that commit, as a column width
 			// settling a frame late would shrink the overflow. The box stays 60px so
 			// the observer doesn't fire, and nothing re-renders, so only the deferred
 			// rAF measure can catch it.

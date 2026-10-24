@@ -5,7 +5,7 @@ import { fireEvent, present, renderUI, waitFor } from '../helpers'
 /**
  * A right-click on the column resize handle must not begin a drag-resize. The
  * engine's resize handler ends only on `mouseup`, which the context menu the
- * same press opens swallows — so a resize started on a right-click never ends,
+ * same press opens swallows, so a resize started on a right-click never ends,
  * leaving the column stuck tracking the pointer. Proven against real layout:
  * the column width only moves for a primary-button drag.
  */
@@ -69,7 +69,7 @@ describe('grid resize handle: right-click (real browser)', () => {
 
 			const y = rect.top + rect.height / 2
 
-			// Press, then move — and never release, the way an opening context menu
+			// Press, then move, and never release, the way an opening context menu
 			// strands the gesture.
 			fireEvent.mouseDown(separator, { ...init, clientX: startX, clientY: y })
 

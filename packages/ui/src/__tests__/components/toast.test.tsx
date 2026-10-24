@@ -459,7 +459,7 @@ describe('Toast: useToast behavior', () => {
 
 		// The pointer parks on the toast (pausing auto-dismiss) and never leaves;
 		// closing it removes the node, so its pointerleave never fires. The unmount
-		// must release the hold — a stuck pause would freeze every later toast.
+		// must release the hold: a stuck pause would freeze every later toast.
 		fireEvent.pointerEnter(screen.getByText('First'), { pointerType: 'mouse' })
 
 		act(() => {
@@ -542,7 +542,7 @@ describe('Toast: useToast behavior', () => {
 		fireEvent.focusIn(title)
 
 		// Focus leaves; the hover hold alone must keep auto-dismiss paused
-		// (WCAG 2.2.1 — no live timer under the user's pointer).
+		// (WCAG 2.2.1: no live timer under the user's pointer).
 		fireEvent.focusOut(title)
 
 		await clock.advance(2000)
@@ -910,7 +910,7 @@ describe('Toast: useToast behavior', () => {
 				api?.toast({ title: 'Second', persist: true })
 			})
 
-			// Evicted to make room, not dismissed by anyone — a caller that retries on
+			// Evicted to make room, not dismissed by anyone: a caller that retries on
 			// dismissal would loop forever if these read alike.
 			expect(onDismiss).toHaveBeenCalledExactlyOnceWith('evicted')
 		})

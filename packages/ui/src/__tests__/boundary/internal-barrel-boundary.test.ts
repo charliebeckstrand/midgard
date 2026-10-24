@@ -6,7 +6,7 @@ import { srcDir, srcRelative, uiRoot, walkSource } from '../helpers/walk-source'
 // `@internal` marks a helper no barrel re-exports (CONVENTIONS.md §12.1). The
 // tag and a barrel entry are mutually exclusive: a symbol on a barrel is public
 // to the package and documents itself as such, while an `@internal` symbol is
-// reached at its module path. Both halves drifted before this test existed —
+// reached at its module path. Both halves drifted before this test existed:
 // the `usePlotFrame` family carried the tag while riding `ui/hooks` and holding
 // rows in HOOKS.md.
 //
@@ -60,7 +60,7 @@ const UNIT_LAYERS = new Set(['components', 'modules', 'primitives', 'providers',
 /**
  * True for a barrel that is a public surface (CONVENTIONS.md §3.5): the layer
  * root for a flat layer, one directory in for a unit layer. A barrel deeper
- * than that is internal composition — a sibling reaches it by module path, and
+ * than that is internal composition: a sibling reaches it by module path, and
  * the symbols it carries stay `@internal` on purpose.
  */
 function isUnitBarrel(layer: string, file: string): boolean {

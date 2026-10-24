@@ -3,15 +3,15 @@
  * A surface that opens and closes as the pointer crosses marks pays, per full
  * cycle, to build its portal + motion + content subtree and tear it back down;
  * `keepMounted` would hold that subtree and toggle visibility instead. The
- * ceiling of that saving is the subtree's build/teardown cost — measured here
- * as `mount + unmount surface` minus the bare `react root` baseline — set
+ * ceiling of that saving is the subtree's build/teardown cost (measured here
+ * as `mount + unmount surface` minus the bare `react root` baseline) set
  * against `reposition (stays mounted)`, the steady-state cost that remains
  * however the surface is held.
  *
  * The catch `keepMounted` fights is narrow: `AnimatePresence` already keeps the
  * node mounted through a close's exit fade, so rapid churn reuses the element
  * rather than rebuilding it. A full rebuild only lands when the pointer stays
- * off the marks past the fade, then returns — so read `mount + unmount` as the
+ * off the marks past the fade, then returns, so read `mount + unmount` as the
  * per-*full-cycle* ceiling, not a per-move cost.
  *
  * The finding is in the README (Popovers, Tooltip surface lifecycle): the

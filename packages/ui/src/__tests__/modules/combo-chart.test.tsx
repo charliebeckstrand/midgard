@@ -74,7 +74,7 @@ describe('ComboChart', () => {
 
 		expect(tooltip?.textContent).toContain('18')
 
-		// One y axis only — no second tick column.
+		// One y axis only: no second tick column.
 		expect(allBySlot(container, 'chart-axis-y')).toHaveLength(1)
 
 		// Between the groups, clear of the margin line, nothing reads.
@@ -101,7 +101,7 @@ describe('ComboChart', () => {
 		// One contiguous run of three points: a single wash under a single edge.
 		expect(allBySlot(container, 'chart-area')).toHaveLength(1)
 
-		// The area's own top edge plus the line series — two stroked paths.
+		// The area's own top edge plus the line series: two stroked paths.
 		expect(allBySlot(container, 'chart-line')).toHaveLength(2)
 	})
 
@@ -201,7 +201,7 @@ describe('ComboChart', () => {
 		// draw-order priority would always hand the hover to the line.
 		expect(Math.abs(areaDot.y - lineDot.y)).toBeLessThanOrEqual(32)
 
-		// On the area's own dot, the area is the nearer stroke — it isolates,
+		// On the area's own dot, the area is the nearer stroke: it isolates,
 		// the line and bars recede.
 		fireEvent.pointerMove(hit, { clientX: areaDot.x - plotX, clientY: areaDot.y - plotY })
 

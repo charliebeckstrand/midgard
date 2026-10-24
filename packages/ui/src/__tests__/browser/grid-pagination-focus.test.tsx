@@ -6,7 +6,7 @@ import { renderUI, screen, userEvent, waitFor } from '../helpers'
  * Pagination keeps focus on a page change (WCAG 2.4.3 / 2.4.7). Activating the
  * control at an extent disables it, dropping browser focus to the body; the footer
  * restores focus to the current-page marker, or to the enabled Previous or Next
- * control where the footer is too narrow to show numbered pages. Real browser — disabling the focused
+ * control where the footer is too narrow to show numbered pages. Real browser: disabling the focused
  * element and the focus transition need a layout/focus engine.
  */
 describe('grid pagination focus (real browser)', () => {
@@ -42,7 +42,7 @@ describe('grid pagination focus (real browser)', () => {
 		await user.click(screen.getByRole('button', { name: 'Next page' }))
 
 		// `aria-current` alone reports null on a miss and names neither where focus
-		// went nor whether the marker the restore targets was there to take it —
+		// went nor whether the marker the restore targets was there to take it,
 		// and the restore ends in an optional chain, so a missing marker is a
 		// silent no-op. This case fails intermittently, so the failure states
 		// both.

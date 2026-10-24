@@ -5,7 +5,7 @@ import { renderUI, screen, userEvent, waitFor } from '../helpers'
 /**
  * Real-browser check that a grid's collapsible rows animate in both directions.
  * A collapsed row rests in `<Activity mode="hidden">` at `display: none`, and a
- * transition needs a rendered style to run from — so a wake that lifted the rest
+ * transition needs a rendered style to run from, so a wake that lifted the rest
  * and opened the reveal in one commit used to snap open and animate only closed.
  * `useGridRevealHold` splits that wake in two, which no jsdom test can see: the
  * reveal is a CSS transition on `grid-template-rows`, and jsdom runs none.
@@ -94,7 +94,7 @@ describe('grid reveal transition (real browser)', () => {
 
 		await waitFor(() => expect(runs).toContain(REVEAL))
 
-		// Groups open by default, so only the reopen exercises the wake — and only
+		// Groups open by default, so only the reopen exercises the wake, and only
 		// once the collapse has landed and the leaf rests at `display: none`.
 		await waitFor(() => expect(getComputedStyle(leaf).display).toBe('none'))
 

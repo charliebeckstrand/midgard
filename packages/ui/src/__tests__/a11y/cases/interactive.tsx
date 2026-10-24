@@ -249,7 +249,7 @@ export const interactive: readonly InteractiveCase[] = [
 	{
 		// Magnifier settings: in `mode: 'config'` the viewer's toolbar carries a button
 		// that opens a dialog instead of a switch. The switch, the three radio groups and
-		// their legends only mount on open, so this case drives it open to assert them —
+		// their legends only mount on open, so this case drives it open to assert them:
 		// the group naming in particular, since a `<legend>` does not name the
 		// `role="radiogroup"` div the options sit in.
 		name: 'pdf viewer magnifier settings',

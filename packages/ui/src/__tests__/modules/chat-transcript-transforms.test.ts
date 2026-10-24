@@ -145,8 +145,8 @@ describe('failReplyTools', () => {
 	})
 
 	it('returns the transcript by reference when it settled nothing', () => {
-		// The shell runs this on every send, so the common case — a reply of prose
-		// — must cost no re-render.
+		// The shell runs this on every send, so the common case (a reply of prose)
+		// must cost no re-render.
 		const messages = [user('u1', 'hi'), assistant('r1', 'Twelve stops are late.')]
 
 		expect(failReplyTools(messages, 'r1')).toBe(messages)

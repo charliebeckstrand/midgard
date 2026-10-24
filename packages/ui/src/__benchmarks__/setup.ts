@@ -4,8 +4,8 @@ import { vi } from 'vitest'
 // strip the animation props.
 //
 // The elements of the test mock (`__tests__/mocks/motion-react.ts`) model
-// animations as instant so lifecycle gated on completion resolves — a `useRef`
-// + `useEffect` + an `animate` comparison per motion element per render — and
+// animations as instant so lifecycle gated on completion resolves: a `useRef`
+// + `useEffect` + an `animate` comparison per motion element per render, and
 // surface `data-layout` / `data-initial-*` for tests to assert. Both are
 // per-element work the shipped path never does, so a bench mounting them would
 // time the mock. The shim replaces only `motion`, and takes every other export

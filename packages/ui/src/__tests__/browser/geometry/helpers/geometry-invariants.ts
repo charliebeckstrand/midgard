@@ -91,8 +91,8 @@ export function clippedText(root: HTMLElement): string[] {
 /**
  * In-flow interactive siblings whose boxes overlap: a missing gap/margin
  * collapsed two controls onto each other. Positioned (`absolute`/`fixed`)
- * elements are excluded — overlaid adornments (input clear buttons, badges)
- * are intentional — and overlap up to 2px is tolerated for joined groups that
+ * elements are excluded, because overlaid adornments (input clear buttons,
+ * badges) are intentional, and overlap up to 2px is tolerated for joined groups that
  * collapse shared borders with `-ml-px`.
  */
 export function overlappingTargets(root: HTMLElement): string[] {

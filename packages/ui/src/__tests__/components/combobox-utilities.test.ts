@@ -45,13 +45,13 @@ describe('resolveInputDisplay', () => {
 		})
 
 		// It used to return empty for any multi selection, which left the combobox showing nothing at
-		// all above a filter that WAS applied — the trigger's whole job.
+		// all above a filter that WAS applied: the trigger's whole job.
 		expect(result).toBe('A')
 	})
 
 	it('counts as soon as a multi selection passes one', () => {
 		// Tighter than `Listbox`, which joins up to three, and for a reason particular to this control:
-		// the trigger is a real text input, so a joined value longer than the field scrolls — the field
+		// the trigger is a real text input, so a joined value longer than the field scrolls; the field
 		// shows the middle of a sentence and scrolling right reveals blank space past its end.
 		expect(
 			resolveInputDisplay({
@@ -77,8 +77,8 @@ describe('resolveInputDisplay', () => {
 	})
 
 	it('lets the caller name what it is counting', () => {
-		// The threshold stays the control's — a text input whose content scrolls has to stop listing
-		// somewhere — while the noun is the caller's. "2 selected" beside a label reading "Postal
+		// The threshold stays the control's (a text input whose content scrolls has to stop listing
+		// somewhere) while the noun is the caller's. "2 selected" beside a label reading "Postal
 		// codes" is fine; in a row of six filters it says how many of nothing in particular.
 		expect(
 			resolveInputDisplay({
@@ -107,7 +107,7 @@ describe('resolveInputDisplay', () => {
 	})
 
 	it('lets the placeholder through when the summary is empty', () => {
-		// The same rule an empty selection follows, applied to a full one — for a field whose values are
+		// The same rule an empty selection follows, applied to a full one: for a field whose values are
 		// typed in rather than picked, where the input has to stay blank and ready after every commit
 		// instead of holding a summary the next keystroke must displace.
 		expect(
@@ -325,7 +325,7 @@ describe('resolveInputTitle', () => {
 	const display = (v: unknown) => v as string
 
 	it('spells out a multi selection the field can only count', () => {
-		// The counterpart to the count: the field says how many are picked, this says which, on hover —
+		// The counterpart to the count: the field says how many are picked, this says which, on hover,
 		// without the field holding a string longer than itself.
 		expect(
 			resolveInputTitle({

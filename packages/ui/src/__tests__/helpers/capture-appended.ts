@@ -9,7 +9,7 @@ import { onTestFinished, vi } from 'vitest'
  * handler, and jsdom fires neither, so every call leaves the node attached.
  * Teardown dispatches the window `focus` a real browser fires when the print
  * dialog closes, which drives the module's own cleanup. Teardown runs through
- * `onTestFinished`, so it survives a throwing assertion above it — and it is
+ * `onTestFinished`, so it survives a throwing assertion above it, and it is
  * registered even when `run` throws, because a node appended before the throw
  * is exactly what this helper exists to reclaim.
  *

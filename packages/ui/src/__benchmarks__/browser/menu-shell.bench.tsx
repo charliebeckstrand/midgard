@@ -12,7 +12,7 @@
  * stays empty throughout, because the rows are already priced next door.
  *
  * The rungs mount open rather than clicking open. The click path is the same
- * tree through a state flip, and a mount reaches every rung — a bare
+ * tree through a state flip, and a mount reaches every rung: a bare
  * `motion.div` has no open state to flip. What this bench reads is the cost of
  * building the shell, not the cost of the flip that asks for it.
  *
@@ -176,7 +176,7 @@ describe('floating-ui · the layer split, vendor only', () => {
  * `Menu root only` mounts the hook tree with no panel to build: the
  * disclosure, the roving handler, the interactions, and the three contexts.
  * `useFloatingDisclosure` calls `useFloating` whether or not the menu is a
- * dropdown, so this rung already carries that hook — it carries no positioning
+ * dropdown, so this rung already carries that hook: it carries no positioning
  * pass, because neither element is registered. The step to the static panel is
  * therefore what `MenuContent` builds: the `Density`, the `PopoverPanel`, and
  * the viewport.

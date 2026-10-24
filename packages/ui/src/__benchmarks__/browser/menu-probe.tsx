@@ -96,7 +96,7 @@ function center(node: HTMLElement): [number, number] {
 	return [rect.left + rect.width / 2, rect.top + rect.height / 2]
 }
 
-/** Reads the handles off the panel `panel` names, less `skip` — a submenu's own parent row. */
+/** Reads the handles off the panel `panel` names, less `skip`: a submenu's own parent row. */
 function readProbe(panel: string, skip?: HTMLElement): Probe {
 	const rows = [...document.querySelectorAll<HTMLElement>(`.${panel} [role="menuitem"]`)]
 

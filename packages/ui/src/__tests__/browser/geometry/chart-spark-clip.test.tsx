@@ -12,12 +12,12 @@ import { renderUI, waitFor } from '../../helpers'
 
 /**
  * The spark box holds every mark it draws: one sweep across the chart family,
- * each type at spark size in its most clip-prone configuration — point markers,
- * value labels, negative extremes, bubbles — asserting no painted element's
+ * each type at spark size in its most clip-prone configuration (point markers,
+ * value labels, negative extremes, bubbles) asserting no painted element's
  * rendered box crosses the drawing box. The layouts reserve each chart's mark
  * reach on every plot edge when the axis chrome is off (`markInset`), so the
- * marks that used to border the frame — a bottom point's lower half, an
- * endpoint's ring at the side — clear it instead of clipping. Painted extents
+ * marks that used to border the frame (a bottom point's lower half, an
+ * endpoint's ring at the side) clear it instead of clipping. Painted extents
  * are computed layout jsdom can't resolve, so the sweep rides the real browser.
  */
 
@@ -52,7 +52,7 @@ const SLICES = [
 /**
  * Every painted element in the chart's plot SVGs sits inside its SVG's own
  * rendered box. The hit rects span the plot by design and take no ink, so they
- * sit out; everything else — marks, rings, labels, rules — must clear.
+ * sit out; everything else (marks, rings, labels, rules) must clear.
  */
 async function expectNoClip(container: HTMLElement) {
 	await waitFor(() => {
@@ -96,7 +96,7 @@ describe('spark box holds every mark (real browser)', () => {
 
 		await expectNoClip(container)
 
-		// The labels themselves stand down at spark — bare marks only.
+		// The labels themselves stand down at spark: bare marks only.
 		expect(container.querySelectorAll('[data-slot="chart-value-labels"] text')).toHaveLength(0)
 	})
 

@@ -6,14 +6,14 @@ import { present, renderUI } from '../helpers'
 /**
  * What the pointer says over a tooltip trigger that cannot be pressed.
  *
- * A trigger wears `cursor-help`, and it wears it on its children too — a trigger is usually a
+ * A trigger wears `cursor-help`, and it wears it on its children too: a trigger is usually a
  * control with an icon in it, and the icon is most of what the pointer is actually over. That
  * child rule is what made a refused action offer the reader help instead of saying it was
  * refused: `hannou.cursor` gives a disabled control `cursor-not-allowed` and `cursor` inherits,
  * so the icon would have taken it for free, but the trigger set it explicitly and won.
  *
  * Rides the real browser because the claim is a computed one. jsdom loads no stylesheet, so
- * `getComputedStyle(…).cursor` there is empty whatever the class list says — the only thing
+ * `getComputedStyle(…).cursor` there is empty whatever the class list says: the only thing
  * assertable without a browser is the class string, which is the mechanism rather than the
  * behavior and stays green through a variant rename that breaks it.
  */

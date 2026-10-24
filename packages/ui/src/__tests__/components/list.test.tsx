@@ -176,7 +176,7 @@ describe('ListItem', () => {
 
 		const className = bySlot(container, 'list-item-content')?.className ?? ''
 
-		// `iro.on.wash.muted`, not the page-surface `muted` — see `iro/ramp.ts`.
+		// `iro.on.wash.muted`, not the page-surface `muted`: see `iro/ramp.ts`.
 		// `__tests__/recipes/contrast.test.ts` owns the ratio; this owns the step.
 		expect(className).toMatch(/(^|\s)text-zinc-600(\s|$)/)
 
@@ -363,7 +363,7 @@ describe('ListItem', () => {
 
 	it('keeps the glass allowance off the variants that carry their own fill', () => {
 		// `tint.glass` outranks a plain wash by selector, so a filled row that emitted
-		// both would take the ambient 10% — which on a solid dark row is the fill
+		// both would take the ambient 10%, which on a solid dark row is the fill
 		// repainted, and on a card is the surface gone.
 		for (const variant of ['separated', 'solid'] as const) {
 			expect(renderWash(variant)).not.toContain('group-data-glass/glass')
@@ -434,7 +434,7 @@ describe('ListItem', () => {
 		const row = bySlot(container, 'list-item')?.className ?? ''
 
 		// The row is the overlay's containing block, and the slots beside the content
-		// column step over it — a trailing control has to stay pressable.
+		// column step over it: a trailing control has to stay pressable.
 		expect(row).toContain('relative')
 
 		expect(row).toContain('[&>*:not([data-slot=list-item-content])]:z-10')
@@ -586,7 +586,7 @@ describe('List keyboard reordering', () => {
 		const content = bySlot(container, 'list-item-content')
 
 		// A link is focusable already, so the reorder keys ride it. Wiring the `<li>` as well put
-		// two stops on every row — one that moved it, one that opened it, and nothing to tell them
+		// two stops on every row: one that moved it, one that opened it, and nothing to tell them
 		// apart. The row keeps the drag node and the transform, and takes no focus.
 		expect(content).toHaveAttribute('tabindex')
 		expect(row).not.toHaveAttribute('tabindex')
@@ -619,7 +619,7 @@ describe('List keyboard reordering', () => {
 			</List>,
 		)
 
-		// Nothing focusable inside a display-only row, so the `<li>` has to be the stop — there is
+		// Nothing focusable inside a display-only row, so the `<li>` has to be the stop: there is
 		// still exactly one per row.
 		expect(bySlot(container, 'list-item')).toHaveAttribute('tabindex')
 		expect(bySlot(container, 'list-item-content')).not.toHaveAttribute('tabindex')
@@ -666,7 +666,7 @@ describe('List keyboard reordering', () => {
 		fireEvent.keyDown(content, { key: 'ArrowDown' })
 
 		// The row's stop and the consumer's props land on the same element, so a plain spread would
-		// have let one silently win — and a consumer's `onKeyDown` quietly disabling reorder on that
+		// have let one silently win, and a consumer's `onKeyDown` quietly disabling reorder on that
 		// row is a bug with nothing pointing at it.
 		expect(onReorder).toHaveBeenCalledWith([items[1], items[0], items[2]])
 		expect(onKeyDown).toHaveBeenCalledTimes(2)

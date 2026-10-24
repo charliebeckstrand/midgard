@@ -634,7 +634,7 @@ describe('useComboboxInput onKeyDown', () => {
 			expect(onPaste).toHaveBeenCalled()
 
 			// A handler that prevented the default read the clipboard and turned it into a selection, so
-			// the query it pasted over is spent — left in place the field stays `editing`, which
+			// the query it pasted over is spent: left in place the field stays `editing`, which
 			// suppresses the resting display (and any placeholder standing in for it) behind text the
 			// consumer has already committed.
 			expect(setQuery).toHaveBeenCalledWith('')

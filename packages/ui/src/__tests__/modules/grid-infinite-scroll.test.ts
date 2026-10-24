@@ -5,8 +5,8 @@ import { resolveLoadMore } from '../../modules/grid/use-grid-infinite-scroll'
 
 describe('resolveLoadMore — overflowing (scroll-driven) regime', () => {
 	// Base case: 50 loaded rows in an overflowing 600px window, the last rendered
-	// row at index 45, threshold 5 — exactly at the loaded end's threshold zone
-	// (45 >= 50 - 1 - 5 = 44) — with a scroll interaction since the last fire.
+	// row at index 45, threshold 5, exactly at the loaded end's threshold zone
+	// (45 >= 50 - 1 - 5 = 44), with a scroll interaction since the last fire.
 	const base = {
 		lastRenderedIndex: 45,
 		count: 50,
@@ -46,7 +46,7 @@ describe('resolveLoadMore — overflowing (scroll-driven) regime', () => {
 	})
 
 	it('holds in the threshold zone without a scroll interaction since the last fire', () => {
-		// The firing invariant: a post-fill fetch needs a user scroll to arm it — a
+		// The firing invariant: a post-fill fetch needs a user scroll to arm it; a
 		// re-render landing near the end (a transient `hasMore` flap, a same-extent
 		// re-render) can't fire on its own.
 		expect(resolveLoadMore({ ...base, armed: false })).toBe('hold')
@@ -54,7 +54,7 @@ describe('resolveLoadMore — overflowing (scroll-driven) regime', () => {
 
 	it('does not chain-fetch when an append lands still within the threshold', () => {
 		// Threshold at/past the batch size: the batch landed (50 → 75) with the
-		// window still in the new end's zone, but the fire consumed the arm — the
+		// window still in the new end's zone, but the fire consumed the arm; the
 		// next fetch waits for the next scroll instead of chaining back-to-back.
 		expect(
 			resolveLoadMore({
@@ -121,14 +121,14 @@ describe('resolveLoadMore — viewport-fill regime', () => {
 
 	it('holds a zero-height viewport rather than fetching blind', () => {
 		// A hidden or not-yet-laid-out grid is no evidence either way: no fetch, no
-		// verdict — the fill resumes when a real measurement arrives.
+		// verdict; the fill resumes when a real measurement arrives.
 		expect(resolveLoadMore({ ...fill, clientHeight: 0 })).toBe('hold')
 	})
 
 	it('declares a viewport that grew with the appended batches unbounded', () => {
 		// The fill began at 600px but the "viewport" now stands at 1200px without
-		// overflowing: the container is sizing to its content — the failure that
-		// once chain-fetched an entire backend — so the fill stops.
+		// overflowing: the container is sizing to its content (the failure that
+		// once chain-fetched an entire backend) so the fill stops.
 		expect(resolveLoadMore({ ...fill, count: 20, fillBase: 600, clientHeight: 1200 })).toBe(
 			'unbounded',
 		)
@@ -137,7 +137,7 @@ describe('resolveLoadMore — viewport-fill regime', () => {
 	it('trusts a fixed-length cap, filling while the viewport grows toward it', () => {
 		// The container's max-height resolved to a fixed length: it is bounded by
 		// construction, so the viewport legitimately grows with the content until
-		// the cap truncates it — small batches keep filling instead of tripping
+		// the cap truncates it; small batches keep filling instead of tripping
 		// the growth check.
 		expect(
 			resolveLoadMore({ ...fill, count: 20, fillBase: 72, clientHeight: 144, capBounded: true }),

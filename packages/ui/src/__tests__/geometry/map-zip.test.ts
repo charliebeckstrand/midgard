@@ -19,7 +19,7 @@ const matcher = (selection: MapZipSelection) => zipMatcher(parseZipSelection(sel
 const held = (selection: MapZipSelection, codes: string[]) => codes.filter(matcher(selection))
 
 /**
- * A grid of unit-square codes as one topology, sharing every interior edge —
+ * A grid of unit-square codes as one topology, sharing every interior edge,
  * which is what makes the dissolve below a real test rather than a concatenation.
  * Codes run left to right, then bottom to top, from `first`.
  */
@@ -53,7 +53,7 @@ function gridTopology(columns: number, rows: number, first: number) {
 			geometries.push({
 				type: 'Polygon',
 				// Counterclockwise: along the bottom, up the right, back along the top,
-				// down the left — d3's own exterior winding.
+				// down the left, d3's own exterior winding.
 				arcs: [[horizontal(x, y), vertical(x + 1, y), ~horizontal(x, y + 1), ~vertical(x, y)]],
 				id: String(first + y * columns + x),
 			})
@@ -68,7 +68,7 @@ function gridTopology(columns: number, rows: number, first: number) {
 }
 
 /**
- * A square feature, wound as RFC 7946 states it — counterclockwise — which is
+ * A square feature, wound as RFC 7946 states it (counterclockwise) which is
  * the winding opposite to the one d3 reads. Raw GeoJSON arrives this way, so the
  * fixtures below carry the hazard the module's rewind pass exists for.
  */
@@ -296,7 +296,7 @@ describe('zipArea over a feature collection', () => {
 
 	it('hands back the features as the source wound them, for the placement to wind', () => {
 		// Rewinding measures a spherical area per ring, and the placement pass
-		// measures almost no codes — so it winds the few it has to and this stays a
+		// measures almost no codes, so it winds the few it has to and this stays a
 		// filter.
 		const [placed] = zipArea(collection, undefined, matcher('60601')).features
 
@@ -355,7 +355,7 @@ describe('regionAt', () => {
 	})
 
 	it('still finds a region too wide for the grid to bucket', () => {
-		// A region spanning every longitude — what an antimeridian-crossing shape
+		// A region spanning every longitude: what an antimeridian-crossing shape
 		// reads as under the conservative bounds walk. It goes in the oversized
 		// list, which every lookup tests after its own cell misses.
 		const wide = rewindFeatures([square('02000', -180, 50, 100)])
@@ -367,7 +367,7 @@ describe('regionAt', () => {
 })
 
 describe('coverage framing', () => {
-	// Two counties in state 17, one in state 18 — the id shape a US county atlas
+	// Two counties in state 17, one in state 18: the id shape a US county atlas
 	// carries, which `defaultRegionGroup` reads the state off.
 	// Rewound the way `useMapCoverage` rewinds its region atlas, since d3 reads a
 	// backwards ring as everything outside it and would place every code at once.
@@ -398,7 +398,7 @@ describe('coverage framing', () => {
 	})
 
 	it('places a code on its box where no region holds its centroid', () => {
-		// A ring around ground the regions leave out — a lakefront code whose middle
+		// A ring around ground the regions leave out: a lakefront code whose middle
 		// is open water. The centroid names no region, and the box still names one.
 		const ringed: MapFeature = {
 			type: 'Feature',
@@ -475,7 +475,7 @@ describe('coverage framing', () => {
 		const frame = groupFrame(regions, new Set(['17']), defaultRegionGroup)
 
 		// Both of state 17's counties, so the map draws the whole state split by
-		// county — the second county holds no covered code and still draws.
+		// county: the second county holds no covered code and still draws.
 		expect(frame?.features.map((shape) => String(shape.id))).toEqual(['17001', '17002'])
 	})
 

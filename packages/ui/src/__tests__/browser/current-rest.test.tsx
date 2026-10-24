@@ -7,7 +7,7 @@ import { renderUI, screen, waitFor } from '../helpers'
  * `mount="always"`, an inactive panel should sleep in `<Activity mode="hidden">`
  * (`display: none`) once its fade-out lands, wake for the crossfade when it
  * becomes current again, and stay in the DOM throughout. This needs a real
- * browser — jsdom never completes the Motion fade that sets the rest latch.
+ * browser: jsdom never completes the Motion fade that sets the rest latch.
  */
 describe('fade-held panel rest (real browser)', () => {
 	it('rests an inactive held panel after its fade-out and wakes it on return', async () => {
@@ -24,7 +24,7 @@ describe('fade-held panel rest (real browser)', () => {
 			</Tabs>,
 		)
 
-		// Panel B mounts inactive, so it rests hidden from the start — present in
+		// Panel B mounts inactive, so it rests hidden from the start: present in
 		// the DOM but display: none.
 		const panelB = screen.getByText('Panel B')
 

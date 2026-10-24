@@ -9,7 +9,7 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
  * with it.
  *
  * `useMapOverlay` reads the pointed mark to resolve one class, and that context
- * republishes on every discrete crossing — region to region included. Against a
+ * republishes on every discrete crossing: region to region included. Against a
  * two-hundred-dot set that rebuilt a `MapDot`, an optional count, a hit circle,
  * and two prop objects per dot, to produce exactly the output already on the
  * screen: on a region-to-region crossing the mark is not the pointed one before
@@ -17,7 +17,7 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
  *
  * `map-hover.bench` cannot show this. Its sweep settles an animation frame per
  * step, so the whole cascade sits inside one frame at this size and the wall
- * clock reads the frame rather than the work — before and after measure the
+ * clock reads the frame rather than the work, before and after measure the
  * same frame time at p75. Only a render count shows it, which needs a module mock,
  * so this suite sits in `boundary/` beside the two deferral gates for the
  * reason those state.

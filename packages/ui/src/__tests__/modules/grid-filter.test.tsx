@@ -52,7 +52,7 @@ describe('Grid search', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
 
 		// Enter bypasses the debounce, so the rows filter without
-		// advancing time — Bob is gone the moment Enter lands.
+		// advancing time: Bob is gone the moment Enter lands.
 		await clock.user.type(screen.getByRole('searchbox'), 'Alice{Enter}')
 
 		expect(screen.getByText('Alice')).toBeInTheDocument()
@@ -226,7 +226,7 @@ describe('Grid search', () => {
 
 			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
 
-			// The non-matching row stays in place — the search marks, it doesn't prune.
+			// The non-matching row stays in place: the search marks, it doesn't prune.
 			expect(screen.getByText('Bob')).toBeInTheDocument()
 
 			// The match is wrapped in a <mark>, carrying only the matched substring.

@@ -26,7 +26,7 @@ import { it } from '../helpers/fake-clock'
  * Grid status messages (WCAG 4.1.3): sort, selection, and page changes narrate
  * to the shared polite live region without moving focus. The region is created
  * lazily on first announce and reset between tests (see `setup/index.ts`), so an
- * empty region right after mount proves the change — not the initial value — spoke.
+ * empty region right after mount proves the change (not the initial value) spoke.
  */
 describe('Grid announcements', () => {
 	type Row = { name: string; age: number }

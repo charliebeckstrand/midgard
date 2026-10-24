@@ -11,15 +11,15 @@ const GAP_SLACK = 2
 /**
  * The side rail reserves a share of the chart's container (`min(16rem, 40cqw)`)
  * so its content never scales the plot, centers the left-aligned entry block
- * within that rail, and clips an over-long label to one line — arming a reveal
+ * within that rail, and clips an over-long label to one line: arming a reveal
  * tooltip through the shared {@link useTruncation} overflow detector the grid's
- * cells use. Every claim here is a computed-layout one — reserved width, centered
- * block, sub-pixel clip — that jsdom, with no layout engine, can't measure, so it
+ * cells use. Every claim here is a computed-layout one (reserved width, centered
+ * block, sub-pixel clip) that jsdom, with no layout engine, can't measure, so it
  * rides the real browser.
  */
 describe('chart legend panel (real browser)', () => {
 	// The rail and its centering are `@sm`-gated on the chart's own width (384px);
-	// the 640px chart below clears it, so the side-by-side layout — not the stack —
+	// the 640px chart below clears it, so the side-by-side layout (not the stack)
 	// is what these assertions measure.
 	beforeAll(() => page.viewport(960, 640))
 
@@ -42,7 +42,7 @@ describe('chart legend panel (real browser)', () => {
 		const panel = getSlot(container, 'chart-legend')
 		const block = getSlot(container, 'chart-legend-items')
 
-		// The rail is `min(16rem, 40cqw)` — 40cqw of this 640px chart is 256px, which
+		// The rail is `min(16rem, 40cqw)`: 40cqw of this 640px chart is 256px, which
 		// meets the 16rem cap, so it reads ~256 here (not a half-width ~320 panel).
 		await waitFor(() => expect(panel.getBoundingClientRect().width).toBeGreaterThan(250))
 
@@ -53,7 +53,7 @@ describe('chart legend panel (real browser)', () => {
 		const blockRect = block.getBoundingClientRect()
 
 		// Short labels leave the block narrower than the reserved column, and the
-		// column centers it — equal gaps on either side rather than pinned to the plot.
+		// column centers it: equal gaps on either side rather than pinned to the plot.
 		expect(blockRect.width).toBeLessThan(panelRect.width)
 
 		const leftGap = blockRect.left - panelRect.left
@@ -62,7 +62,7 @@ describe('chart legend panel (real browser)', () => {
 		expect(leftGap).toBeGreaterThan(1)
 		expect(leftGap).toBeNear(rightGap, GAP_SLACK)
 
-		// The entries still share one left edge — the block's — so their swatches line
+		// The entries still share one left edge (the block's) so their swatches line
 		// up rather than each row centering on its own.
 		for (const item of allBySlot(container, 'chart-legend-item') as HTMLElement[]) {
 			expect(item.getBoundingClientRect().left).toBeNear(blockRect.left, PIXEL)
@@ -84,7 +84,7 @@ describe('chart legend panel (real browser)', () => {
 			/>,
 		)
 
-		// The whole entry (button) is the tooltip trigger — the label span it wraps
+		// The whole entry (button) is the tooltip trigger: the label span it wraps
 		// carries the clip, and the trigger gains `cursor-help` once truncated.
 		const entries = allBySlot(container, 'chart-legend-item') as HTMLElement[]
 		const clip = (entry: HTMLElement) => present(entry.querySelector('.truncate'), '.truncate')
@@ -98,8 +98,8 @@ describe('chart legend panel (real browser)', () => {
 		const long = entries[0] as HTMLElement
 		const short = entries[1] as HTMLElement
 
-		// The detector measures lazily — an entry the pointer never visits pays no
-		// layout read — so contact is what arms it. Nothing observes `truncated`
+		// The detector measures lazily (an entry the pointer never visits pays no
+		// layout read) so contact is what arms it. Nothing observes `truncated`
 		// before then, which is why hovering is a precondition here rather than
 		// part of the claim.
 		await userEvent.hover(long)

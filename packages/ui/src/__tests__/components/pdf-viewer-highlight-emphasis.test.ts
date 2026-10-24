@@ -7,7 +7,7 @@ import { k } from '../../recipes/kata/pdf-viewer'
  *
  * These assert the *composed* classes rather than a rendered box, because the composition is
  * where this goes wrong: each palette color is a light/dark pair, and an override that
- * supplies only the base leaves the `dark:` half of the old value standing — correct in light
+ * supplies only the base leaves the `dark:` half of the old value standing, correct in light
  * mode and silently inert in dark. That has bitten this surface twice.
  */
 
@@ -24,7 +24,7 @@ describe('a region at rest', () => {
 	})
 
 	/*
-	 * A region is a control, and nothing else on the layer said so — the fill and the stroke are
+	 * A region is a control, and nothing else on the layer said so: the fill and the stroke are
 	 * identical whether the boxes are pressable or decoration beside a field list.
 	 *
 	 * A width step inside the resting edge rather than the selected wash: a hover that previewed

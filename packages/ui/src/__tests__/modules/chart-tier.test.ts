@@ -66,7 +66,7 @@ describe('chartPolicy band axis', () => {
 	})
 
 	it('drops the band row below the band-row height even while the gutter stays', () => {
-		// A short, wide banner: band row gone, value gutter kept — the two bind to
+		// A short, wide banner: band row gone, value gutter kept; the two bind to
 		// different dimensions, so a single breakpoint could not say both.
 		const policy = chartPolicy(800, BAND_ROW_HEIGHT - 1, CAP)
 
@@ -172,7 +172,7 @@ describe('chartPolicy fill frame', () => {
 	it('never sparks by height — the measured remainder is chrome-dependent there', () => {
 		// The dashboard-tile crash: a fill plot short enough to read spark drops the
 		// header and legend, the remainder jumps back above the floor, the tier
-		// flips — forever. Under fill the spark decision must ignore the height.
+		// flips, forever. Under fill the spark decision must ignore the height.
 		expect(chartPolicy(400, SPARK_HEIGHT - 1, CAP, true).tier).not.toBe('spark')
 
 		expect(chartPolicy(400, 0, CAP, true).tier).not.toBe('spark')
@@ -193,7 +193,7 @@ describe('chartPolicy fill frame', () => {
 	})
 
 	it('keeps the plot-internal anatomy height-responsive', () => {
-		// Nothing inside the plot box can reflow it — the SVG is out of flow — so
+		// Nothing inside the plot box can reflow it (the SVG is out of flow) so
 		// the band row, tick target, and tier label still read the measured height.
 		const short = chartPolicy(800, BAND_ROW_HEIGHT - 1, CAP, true)
 
@@ -312,7 +312,7 @@ describe('policyPlotHeight', () => {
 	})
 
 	it('is independent of the measured remainder the loop fed back across the spark boundary', () => {
-		// The docs-page failure: at ~200px the *measured* remainder oscillated — the
+		// The docs-page failure: at ~200px the *measured* remainder oscillated; the
 		// compact layout kept the 104px chrome (a sub-spark plot, so the tier read
 		// spark), spark dropped it (a tall plot, so the tier read compact). The
 		// computed height must ignore that measured remainder entirely, so the two

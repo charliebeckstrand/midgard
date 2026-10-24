@@ -20,7 +20,7 @@ export function allBySlot(container: HTMLElement, name: string) {
  * Query a single element by its `data-slot`, and throw when it is absent.
  *
  * The form to reach for. `bySlot` returns `null`, which a caller then either
- * casts away — putting the miss at some later `getBoundingClientRect` — or
+ * casts away (putting the miss at some later `getBoundingClientRect`) or
  * guards by hand, repeating the slot name as the failure message. This states
  * the name once and reports the miss at the query.
  *
@@ -28,8 +28,8 @@ export function allBySlot(container: HTMLElement, name: string) {
  * asserts, and where the slot has more than one match in the container.
  *
  * The narrowing defaults to `HTMLElement`, as `present` does. A caller reading
- * an interface a slot publishes — an input's `value`, a details element's
- * `open` — names the type instead (`getSlot<HTMLInputElement>(…)`).
+ * an interface a slot publishes (an input's `value`, a details element's
+ * `open`) names the type instead (`getSlot<HTMLInputElement>(…)`).
  *
  * @param container - The subtree to search.
  * @param name - The `data-slot` value.

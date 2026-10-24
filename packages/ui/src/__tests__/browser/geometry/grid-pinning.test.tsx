@@ -141,7 +141,7 @@ describe('grid column pinning (real browser)', () => {
 })
 
 /**
- * A stack of frozen columns must sit flush — every one against the next, with no
+ * A stack of frozen columns must sit flush: every one against the next, with no
  * gap for the scrolling columns to show through. The offsets sum the frozen
  * columns' widths, and only a resizable grid's fixed-layout `<colgroup>` makes
  * the engine's column sizes those widths; a non-resizable grid lays out `auto`
@@ -162,7 +162,7 @@ describe('stacked frozen columns under auto layout (real browser)', () => {
 	}))
 
 	// Two frozen columns per edge, one pinned and one locked, behind the selection
-	// column the left edge always leads with — so the group spans every kind of
+	// column the left edge always leads with, so the group spans every kind of
 	// freeze the engine stacks.
 	const columns: GridColumn<Row>[] = [
 		{ id: 'select', selectable: true },
@@ -240,8 +240,8 @@ describe('stacked frozen columns under auto layout (real browser)', () => {
 /**
  * The frozen group's chrome tracks the live layout, not the layout its cells last
  * rendered under. Rows, cells, and headers all hold on `memo`, so a change none
- * of their own props carries — a column joining the group, a width moving under a
- * drag — reaches them only through the pinning controls' identity. Both cases
+ * of their own props carries (a column joining the group, a width moving under a
+ * drag) reaches them only through the pinning controls' identity. Both cases
  * need a real engine: the boundary rule is a painted `::after`, and the sticky
  * offsets take effect only once the body scrolls.
  */
@@ -316,7 +316,7 @@ describe('frozen chrome tracks live pin and size changes (real browser)', () => 
 
 		repin({ email: 'left' })
 
-		// Email joins the group behind Name, so the boundary — and the single rule —
+		// Email joins the group behind Name, so the boundary (and the single rule)
 		// moves to it. Name keeps only the sticky surface.
 		await waitFor(() => expect(hasBoundaryRule(cell(container, 'email'))).toBe(true))
 
@@ -337,7 +337,7 @@ describe('frozen chrome tracks live pin and size changes (real browser)', () => 
 		if (!scroller) throw new Error('scroll container not found')
 
 		// Scroll the body so the frozen columns leave the flow and hold at their
-		// sticky offsets — the only state in which a stale offset shows.
+		// sticky offsets: the only state in which a stale offset shows.
 		scroller.scrollLeft = 240
 
 		scroller.dispatchEvent(new Event('scroll'))

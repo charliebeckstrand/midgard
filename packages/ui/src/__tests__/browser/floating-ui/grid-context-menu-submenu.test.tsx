@@ -8,7 +8,7 @@ import { getCenter } from '../../helpers/geometry/box'
  * floating engine: Enter opens the roved parent onto its first row, `Escape`
  * closes the submenu alone, roving on collapses what was left open, and Tab is
  * held inside the menu. Each hangs on real focus crossing a portal boundary,
- * which the jsdom suite can't reproduce — it mocks `@floating-ui/react`, so the
+ * which the jsdom suite can't reproduce: it mocks `@floating-ui/react`, so the
  * panels render inline there and no crossing happens.
  *
  * @remarks One case, walked end to end: a second `it` would open its menu while
@@ -80,7 +80,7 @@ describe('grid context menu submenus (real browser)', () => {
 		await waitFor(() => expect(item('Sort ascending')).toHaveFocus())
 
 		// Escape collapses it and hands the cursor back to the parent row, stopping
-		// there — the menu it hangs off takes the next press, not this one.
+		// there: the menu it hangs off takes the next press, not this one.
 		fireEvent.keyDown(item('Sort ascending'), { key: 'Escape' })
 
 		await gone('Sort ascending')

@@ -108,7 +108,7 @@ describe(`ChatTranscript · streaming reply (${CHUNKS.length} chunks/iter)`, () 
  * carrying none.
  *
  * This is the cost lazy-loading an embed is meant to avoid, and it is a
- * different one from the stream scenario above — that transcript holds no embed
+ * different one from the stream scenario above: that transcript holds no embed
  * at all, so its per-chunk cost is text bubbles and cannot be moved by
  * deferring a renderer. The pair below is what says how much deferring is
  * worth: a mounted embed is whatever its renderer costs.
@@ -162,7 +162,7 @@ function withEmbeds(messages: ChatMessageData[]): ChatMessageData[] {
 // so without this every policy mounts eagerly and the pair below measures the
 // same thing twice. A never-intersecting observer models the floor: a reader
 // sitting at the newest reply, with every earlier view scrolled away. The truth
-// for a real viewport is between the two rows — a handful of charts, far nearer
+// for a real viewport is between the two rows: a handful of charts, far nearer
 // this floor than the `always` ceiling.
 class NeverInView {
 	observe() {}

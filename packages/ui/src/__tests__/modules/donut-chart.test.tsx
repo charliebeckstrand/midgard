@@ -73,7 +73,7 @@ describe('DonutChart', () => {
 		// Callouts with lopsided label widths shift the pie center off the box center;
 		// the content follows it into the hole rather than staying box-centered. The
 		// frame is widened past the default so the long label's column has room to
-		// draw — a narrower box would starve the pie to the spark floor and drop the
+		// draw: a narrower box would starve the pie to the spark floor and drop the
 		// callouts, leaving nothing to shift the center.
 		const shifted = renderUI(
 			chart({
@@ -273,8 +273,8 @@ describe('DonutChart', () => {
 
 		expect(hits).toHaveLength(3)
 
-		// Pointing the hit layer — as a sweep across the channel between slices
-		// would — still names the slice instead of clearing the readout.
+		// Pointing the hit layer (as a sweep across the channel between slices
+		// would) still names the slice instead of clearing the readout.
 		fireEvent.pointerMove(hits[1] as Element, { clientX: 150, clientY: 40 })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Direct')
@@ -288,7 +288,7 @@ describe('DonutChart', () => {
 
 	it('restricts the default donut to 16/9 inside the fullscreen dialog', () => {
 		// A donut shares the pie's sizing: on the page it fits its own square, and
-		// the fullscreen copy takes the 16/9 panel's ratio — 300 / (16/9) ≈ 169 —
+		// the fullscreen copy takes the 16/9 panel's ratio, 300 / (16/9) ≈ 169,
 		// so it holds the panel's height rather than overrunning it as a square.
 		const page = renderUI(chart({ height: undefined }))
 

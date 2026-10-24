@@ -54,7 +54,7 @@ export const docsTestDir: string = join(srcDir, 'docs', '__tests__')
 
 // Entries a scan of the shipped tree must not descend into: test and bench
 // trees, build output, and dot-directories. A caller that scans the test tree
-// hands in its root directly, which no entry filter can prune — see
+// hands in its root directly, which no entry filter can prune: see
 // test-isolation-boundary. This set prunes at every depth and `skip` only adds
 // to it, so a rule that spans both trees at once keeps its own collector
 // instead; comment-reference-boundary is the one that does.
@@ -65,7 +65,7 @@ const SKIP = new Set(['__tests__', '__benchmarks__', 'node_modules', 'dist'])
  *
  * @remarks
  * Dot-entries, test and benchmark trees, and build output are skipped, plus
- * any caller-supplied `skip` entry names — pruned before the read, so an
+ * any caller-supplied `skip` entry names: pruned before the read, so an
  * excluded tree costs no I/O. `dir` itself is never pruned, so a caller can
  * point this at a tree the default set excludes. Shared by the boundary tests,
  * which scan source layers for forbidden patterns.
@@ -144,7 +144,7 @@ export function docblockEnvironment(content: string): string | undefined {
  * Blank the comments in a source text, so a rule that bans a call does not
  * read prose that names the call as a violation.
  *
- * Line comments go first: a block opener inside one — `providers/*` in prose —
+ * Line comments go first: a block opener inside one (`providers/*` in prose)
  * would otherwise open a block match that runs to the next block closer
  * anywhere in the file and blanks every line between. Block comments are then
  * stripped only where the opener starts a line, so an opener inside a string

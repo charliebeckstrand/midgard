@@ -714,8 +714,8 @@ describe('MenuContent', () => {
 
 		fireEvent.contextMenu(screen.getByTestId('surface'))
 
-		// A context menu has no persistent trigger to hold focus, so — unlike a
-		// dropdown — it moves focus into the panel for keyboard navigation.
+		// A context menu has no persistent trigger to hold focus, so (unlike a
+		// dropdown) it moves focus into the panel for keyboard navigation.
 		expect(screen.getByRole('menu')).toHaveFocus()
 	})
 
@@ -1173,7 +1173,7 @@ describe('MenuSub', () => {
 		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
 
 		// Escape inside the panel collapses it through the enclosing level, which owns
-		// which submenu is open — a route this row never calls itself.
+		// which submenu is open: a route this row never calls itself.
 		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Nested' }), { key: 'Escape' })
 
 		expect(onOpenChange).toHaveBeenLastCalledWith(false)

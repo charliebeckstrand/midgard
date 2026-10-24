@@ -158,7 +158,7 @@ const HOVER = byMode(hannou.tint.base)
  * which bundles both.
  *
  * Kept apart from {@link WASH} rather than folded into it. The two agree in
- * light — both `zinc-950/5` — and part in dark, where `omote.bg.tint` is
+ * light (both `zinc-950/5`) and part in dark, where `omote.bg.tint` is
  * `white/10` against these at `white/5`. A different ground is a different
  * measurement, and assuming they agree is the transcription this file refuses.
  */
@@ -206,13 +206,13 @@ function inksByMode(surfaces: readonly ClassTree[]): Record<Mode, string[]> {
 
 /**
  * Every recipe that paints `omote.bg.tint`, against the surfaces whose ink
- * lands on that wash — read off the recipes themselves, not transcribed, so
+ * lands on that wash: read off the recipes themselves, not transcribed, so
  * what is measured is what a consumer actually paints.
  *
  * `surfaces: []` marks a recipe that hands the wash to content it doesn't ink,
  * so no ink of its own can be measured: `toolbar` hosts Buttons carrying their
  * own variant colors, and `box` surfaces the wash for arbitrary children
- * (`<Box bg="tint">`) — the case the shared rung exists for, and the one no
+ * (`<Box bg="tint">`), the case the shared rung exists for, and the one no
  * static guard can reach.
  *
  * A file, not a token, keys this: the pairing is what needs registering, and
@@ -269,8 +269,8 @@ const TINT_CONSUMERS: readonly {
 
 /**
  * The tint-wash foreground rule. `omote.bg.tint` is not the page surface: it
- * composites to `#f3f3f3` in light, where the ramp's `onSurface` rungs — tuned
- * for the page — lose AA (zinc 4.34:1, red 4.28:1, green 4.44:1 against a
+ * composites to `#f3f3f3` in light, where the ramp's `onSurface` rungs (tuned
+ * for the page) lose AA (zinc 4.34:1, red 4.28:1, green 4.44:1 against a
  * 4.5:1 floor). `iro.on.wash.muted` is the rung that clears it, and this
  * block holds every recipe painting that wash to it, so the next kata that
  * grounds a page-surface ink on the tint fails here rather than in Chromium.
@@ -290,8 +290,8 @@ describe('tint wash foreground contrast', () => {
 
 	/**
 	 * Reconciles the registry against the recipe tree, which is what makes this a
-	 * rule and not a list. Comments are stripped so prose naming the token — this
-	 * file's own subject — doesn't read as a consumer; `omote/bg.ts` declares the
+	 * rule and not a list. Comments are stripped so prose naming the token (this
+	 * file's own subject) doesn't read as a consumer; `omote/bg.ts` declares the
 	 * fill as `tint:` and so never matches. The `boundary` project owns source
 	 * scans generally, but this one is only meaningful beside the registry it
 	 * reconciles, so it stays here rather than splitting the pair across projects.
@@ -334,7 +334,7 @@ describe('tint wash foreground contrast', () => {
 /**
  * Segment archetype separation. The 1.4.3 floor for both of its inks is covered
  * by the tint-wash rule above; what is archetype-specific is the step between
- * them, which is what marks the current item — the selected ink sits on the
+ * them, which is what marks the current item: the selected ink sits on the
  * sliding pill, the resting ink on the track.
  */
 describe('segment archetype contrast', () => {

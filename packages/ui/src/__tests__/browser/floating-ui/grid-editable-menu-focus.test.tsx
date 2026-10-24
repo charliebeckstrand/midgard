@@ -42,7 +42,7 @@ describe('editable grid header menu focus (real browser)', () => {
 
 		const menuItem = await screen.findByRole('menuitem', { name: 'Manage columns' })
 
-		// The real engine portals the menu after the table in the DOM — the boundary
+		// The real engine portals the menu after the table in the DOM: the boundary
 		// the cursor's focus guard keys off.
 		expect(menuItem.closest('[data-floating-ui-portal]')).not.toBeNull()
 

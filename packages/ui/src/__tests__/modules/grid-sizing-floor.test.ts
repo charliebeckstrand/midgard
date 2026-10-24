@@ -17,7 +17,7 @@ describe('clampSizingToFloors', () => {
 	})
 
 	it('leaves a column with no measured floor to the engine minimum', () => {
-		// `age` has no entry — it isn't clamped here; the engine's own `minSize` still
+		// `age` has no entry: it isn't clamped here; the engine's own `minSize` still
 		// applies through `getSize`.
 		expect(clampSizingToFloors({ age: 10 }, new Map([['name', 90]]))).toEqual({ age: 10 })
 	})

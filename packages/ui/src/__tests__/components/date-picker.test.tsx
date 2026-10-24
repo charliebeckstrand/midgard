@@ -1531,8 +1531,8 @@ describe('DatePicker input', () => {
 
 	// The reported bug: opening the calendar seized DOM focus onto the dialog
 	// container, dropping it from the editable field. `input` mode now seeds
-	// open-focus on the DateInput itself — so the user can keep typing and the
-	// keydown stream roves the grid — never the dialog container.
+	// open-focus on the DateInput itself (so the user can keep typing and the
+	// keydown stream roves the grid) never the dialog container.
 	it('focuses the input when the calendar opens, not the dialog', async () => {
 		const user = setupUser()
 

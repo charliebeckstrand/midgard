@@ -1,3 +1,5 @@
+import { readdirSync } from 'node:fs'
+import { join, relative, sep } from 'node:path'
 import {
 	type CommentKind,
 	createScanner,
@@ -9,7 +11,7 @@ import {
 	SyntaxKind,
 } from 'typescript/unstable/ast'
 import type { TypeScriptServer } from './ts-server'
-import { srcDir, srcRelative, walkSource } from './walk-source'
+import { srcDir, srcRelative, uiRoot, walkSource } from './walk-source'
 
 /**
  * The controlled-language scan, once run by hand, as a reusable reader. It
@@ -174,7 +176,7 @@ function proseUnits(comment: Comment, skip: ReadonlySet<string> = SKIP_TAGS): st
  * one word. They name a thing, so they read as one term however many tokens
  * they hold.
  *
- * Emphasis markers go last. A sentence that ends inside bold — `math.** The` —
+ * Emphasis markers go last. A sentence that ends inside bold (`math.** The`)
  * hides its full stop from the sentence reader, which then measures two
  * sentences as one and reports a break neither carries.
  */
@@ -362,6 +364,62 @@ export const LIVING_MARKDOWN = [
 	'docs/UTILITIES.md',
 ]
 
+// Entries that no package scan reads: dependencies, build output, and
+// dot-entries such as `.turbo`.
+const OUTSIDE = new Set(['node_modules', 'dist', 'coverage'])
+
+/** Every file under `dir` that `keep` accepts, with no entry of {@link OUTSIDE}. */
+function packageFiles(dir: string, keep: (file: string) => boolean): string[] {
+	const files: string[] = []
+
+	for (const entry of readdirSync(dir, { withFileTypes: true })) {
+		if (entry.name.startsWith('.') || OUTSIDE.has(entry.name)) continue
+
+		const path = join(dir, entry.name)
+
+		if (entry.isDirectory()) files.push(...packageFiles(path, keep))
+		else if (entry.isFile() && keep(path)) files.push(path)
+	}
+
+	return files
+}
+
+/**
+ * Every Markdown file in the package: the living Markdown, the module
+ * roadmaps and design records, the benchmark notes, and the plans. The scan
+ * reads the list from the tree, so a new file comes into the scan with no edit
+ * here. Paths are relative to the package root.
+ */
+export const PACKAGE_MARKDOWN = packageFiles(uiRoot, (file) => file.endsWith('.md'))
+	.map((file) => relative(uiRoot, file).split(sep).join('/'))
+	.sort()
+
+const UNSHIPPED_TREE = /[\\/](?:__tests__|__benchmarks__)[\\/]/
+
+/**
+ * Every cadence rule 5 break in the comments that {@link scanPackage} does not
+ * read: the test and benchmark trees, the scripts, and the configs at the
+ * package root. A reader of those comments is a reader too, so the aside rule
+ * holds there. The other rules are not gated there.
+ *
+ * @param server - The TypeScript server that parses the files, in one project.
+ */
+export function scanUnshipped(server: TypeScriptServer): Break[] {
+	const files = packageFiles(
+		uiRoot,
+		(file) =>
+			SOURCE_FILE.test(file) && (!file.startsWith(srcDir + sep) || UNSHIPPED_TREE.test(file)),
+	)
+
+	const breaks = [...server.parse(files)].flatMap(([file, source]) =>
+		fileBreaks(relative(uiRoot, file).split(sep).join('/'), source).filter(
+			(item) => item.rule === 'aside',
+		),
+	)
+
+	return breaks.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line)
+}
+
 /**
  * The rule documents at the repository root. Every package follows them, so
  * they carry no debt in rules 6 and 10, and they keep the cadence (CLAUDE.md
@@ -380,7 +438,8 @@ export const RULE_DOCUMENTS = ['CLAUDE.md', 'CONVENTIONS.md', 'STE.md']
  *
  * A unit that holds a `·` is an index list, not a sentence. The component,
  * module, and primitive indexes name their directories that way, and so does
- * every "See also" line.
+ * every "See also" line. An index list sets no aside either, so cadence rule 5
+ * is the one check that reads it.
  */
 export function markdownBreaks(file: string, source: string): Break[] {
 	const breaks: Break[] = []
@@ -400,7 +459,7 @@ export function markdownBreaks(file: string, source: string): Break[] {
 		const units = /^\s*\|/.test(row) ? cells : [row.replace(/^#+\s*/, '')]
 
 		for (const unit of units) {
-			if (unit.includes('·')) continue
+			const list = unit.includes('·')
 
 			const text = normalize(unit)
 
@@ -410,6 +469,8 @@ export function markdownBreaks(file: string, source: string): Break[] {
 				if (sentence.includes(ASIDE)) {
 					breaks.push({ file, line: index + 1, rule: 'aside', text: sentence })
 				}
+
+				if (list) continue
 
 				if (wordCount(sentence) > wordLimit(sentence)) {
 					breaks.push({ file, line: index + 1, rule: 6, text: sentence })

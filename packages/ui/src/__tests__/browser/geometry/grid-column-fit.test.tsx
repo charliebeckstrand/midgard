@@ -35,7 +35,7 @@ const clickMenuItem = (label: string) => {
 /**
  * Content-aware column auto-sizing against a real layout engine. The autosizer
  * reads the container width and the rendered cells' intrinsic widths, then writes
- * column sizing — none of which jsdom provides (it paints no layout, so
+ * column sizing: none of which jsdom provides (it paints no layout, so
  * `clientWidth` is 0 and the autosizer stands down). Here the grid renders inside
  * a known-width frame, so the resolved widths, header truncation, and overflow
  * can be measured.
@@ -246,7 +246,7 @@ describe('grid column auto-sizing (real browser)', () => {
 	)
 
 	it('sizes a badge column to the badges’ natural width, not their clipped width', async () => {
-		// A composed cell — a flex row of Badge chips — is a block box that fills the
+		// A composed cell (a flex row of Badge chips) is a block box that fills the
 		// clipped leaf, so its in-place rect reads the current column width rather than
 		// the width the chips want; only the batched max-content pass can see their
 		// natural row. (A lone Badge inherits the leaf's nowrap and measures true even
@@ -256,7 +256,7 @@ describe('grid column auto-sizing (real browser)', () => {
 		// below and `DEFAULT_CONTENT_MAX` (480px) above: wide enough that the column
 		// must overflow the frame to show them, narrow enough that the automatic
 		// pass's runaway-cell cap never binds. Lengthen them and this measures the
-		// cap instead — which the uncapped "Auto-size all columns" case covers.
+		// cap instead, which the uncapped "Auto-size all columns" case covers.
 		const { container, table, scroll } = render(240, [
 			{
 				id: 'status',
@@ -407,7 +407,7 @@ describe('grid column auto-sizing (real browser)', () => {
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
-		// The bordered table lands on the container exactly — no horizontal scrollbar.
+		// The bordered table lands on the container exactly: no horizontal scrollbar.
 		expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth)
 	})
 
@@ -455,7 +455,7 @@ describe('grid column auto-sizing (real browser)', () => {
 })
 
 /**
- * Auto-sizing a grid whose rows arrive after mount — the potential-lates /
+ * Auto-sizing a grid whose rows arrive after mount: the potential-lates /
  * carriers shape: a loading skeleton, then a virtualized window fed by infinite
  * scroll with `stableColumnWidths`. The first fit has no body cells to read (the
  * skeleton's placeholders carry no column id, and the window resolves its scroll
@@ -474,7 +474,7 @@ describe('grid column auto-sizing with async rows (real browser)', () => {
 	}))
 
 	// `Load ID` is multi-word, so its floor reserves only its affordances and a text
-	// allowance — the column is free to sit at `minWidth` when nothing measures wider.
+	// allowance: the column is free to sit at `minWidth` when nothing measures wider.
 	const columns: GridColumn<Row>[] = [
 		{ id: 'loadId', title: 'Load ID', minWidth: 68, locked: 'left', cell: (row) => row.loadId },
 		{ id: 'customer', title: 'Customer', cell: (row) => row.customer },
@@ -519,8 +519,8 @@ describe('grid column auto-sizing with async rows (real browser)', () => {
 			await waitFor(() => expect(getLeaf(container)).not.toBeNull())
 
 			// The load numbers show whole: the fit that saw the rendered rows superseded
-			// the floor-only one, and `stableColumnWidths` — which freezes the widths
-			// against later batches — never armed on a fit that had measured nothing.
+			// the floor-only one, and `stableColumnWidths` (which freezes the widths
+			// against later batches) never armed on a fit that had measured nothing.
 			const leaf = getLeaf(container) as HTMLElement
 
 			expect(leaf.scrollWidth).toBeLessThanOrEqual(leaf.clientWidth + 1)

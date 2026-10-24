@@ -108,7 +108,7 @@ describe('Tooltip', () => {
 			</Tooltip>,
 		)
 
-		// Mounting already open is not a transition, so there is nothing to report yet —
+		// Mounting already open is not a transition, so there is nothing to report yet:
 		// the same contract the panel family's `onOpenChange` keeps.
 		expect(onOpenChange).not.toHaveBeenCalled()
 
@@ -116,8 +116,8 @@ describe('Tooltip', () => {
 
 		// `open` holds the disclosure controlled, so the interactions still call its
 		// setter and `useControllable` still fires on every set. Reporting the resolved
-		// state rather than that setter is what keeps a close the reader never saw — the
-		// tooltip is still on screen — from being announced.
+		// state rather than that setter is what keeps a close the reader never saw (the
+		// tooltip is still on screen) from being announced.
 		await user.click(trigger)
 
 		expect(screen.getByText('Tooltip text')).toBeInTheDocument()
@@ -292,7 +292,7 @@ describe('Tooltip', () => {
 
 		const { rerender } = renderUI(tip(true))
 
-		// Open with no hover, focus, or click — the reveal is programmatic.
+		// Open with no hover, focus, or click: the reveal is programmatic.
 		expect(screen.getByText('Tooltip text')).toBeInTheDocument()
 
 		// Releasing it hands control back to the idle interactions, so it closes.

@@ -6,7 +6,7 @@ import { renderUI, screen } from '../helpers'
 
 /*
  * The registry and the region's own contract. What a registration *does* to the
- * focus order is the engine's, and this project mocks the engine away —
+ * focus order is the engine's, and this project mocks the engine away:
  * browser/floating-ui/chrome.test.tsx asserts the order and the page
  * marking against the real one.
  */

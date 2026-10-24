@@ -49,7 +49,7 @@ function stubUnparseableBody() {
 	)
 }
 
-/** A request that throws rather than answering — an abort, a timeout, or a dead network. */
+/** A request that throws rather than answering: an abort, a timeout, or a dead network. */
 function stubThrownRequest(error: unknown) {
 	vi.stubGlobal('fetch', vi.fn().mockRejectedValue(error))
 }
@@ -199,7 +199,7 @@ describe('fetchOsrmRoute', () => {
 
 	it('reads the service`s own refusal as no-route, carrying its code', async ({ signal }) => {
 		// OSRM refuses a pair it cannot join under a 200, in its own code and with
-		// no `routes` at all — the dead end a retry can never clear.
+		// no `routes` at all: the dead end a retry can never clear.
 		stubFetch({
 			ok: true,
 			json: { code: 'NoRoute', message: 'Impossible route between points' },

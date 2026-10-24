@@ -1,7 +1,7 @@
 /**
  * MapPlat's jsdom render cost, and the geometry cache underneath it. The
  * browser suite one directory down times the module in a real browser; this
- * one localizes — the mount rungs separate a pre-decoded GeoJSON from a
+ * one localizes: the mount rungs separate a pre-decoded GeoJSON from a
  * topology that must decode first, the cold/warm pair isolates what the
  * static-geometry cache saves on a remount, and the cascade scenarios drive a
  * mounted plat so a hover or a legend emphasis reads as re-render cost alone.
@@ -78,7 +78,7 @@ describe('static geometry · cold vs warm (states-10m)', () => {
 
 	bench('cold: decode + canonical fit + paths (every mount, uncached)', () => {
 		// The paths are a call of their own, so the bar has to make it or it
-		// measures two thirds of what it names — the decode and the fit. Uncached
+		// measures two thirds of what it names: the decode and the fit. Uncached
 		// by construction: the geometry is a fresh object each iteration, so it
 		// misses the paths memo.
 		const paths = cachedCanonicalPaths(
@@ -93,7 +93,7 @@ describe('static geometry · cold vs warm (states-10m)', () => {
 	})
 })
 
-/** Pointer moves per iteration — enough that per-move cascade work accumulates. */
+/** Pointer moves per iteration: enough that per-move cascade work accumulates. */
 const MOVES = 10
 
 /**

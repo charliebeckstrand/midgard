@@ -6,7 +6,7 @@ import { budget } from './helpers/wall-clock'
 
 /**
  * A virtualized fill-height grid whose rows arrive asynchronously (loading
- * skeleton first, data a tick later) — the carriers-list shape. Regression: the
+ * skeleton first, data a tick later): the carriers-list shape. Regression: the
  * default context menu used to unmount with no data and mount when rows
  * arrived, remounting the whole table region; the virtualizer's layout effect
  * then ran before the new scroll container's ref attached (React commits

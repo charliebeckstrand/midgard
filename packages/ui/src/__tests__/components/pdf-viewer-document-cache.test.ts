@@ -20,7 +20,7 @@ import { deferred, tick } from '../helpers'
  *
  * No pdf.js and no `fetch` anywhere in this file: the cache takes its rasterizer as an
  * argument, so every case here drives a promise it owns. That is what CONVENTIONS §10.3 asks
- * for — the synchronous seam rather than a third-party async lifecycle — and it is also the
+ * for (the synchronous seam rather than a third-party async lifecycle) and it is also the
  * whole reason the loader is injected rather than imported.
  */
 function loader() {
@@ -203,7 +203,7 @@ describe('pdf viewer document cache', () => {
 
 	/**
 	 * The fix, stated as a property: a finished document is never rasterized twice. This is what
-	 * parking and reopening a panel does — the viewer unmounts and comes back on the same `src`.
+	 * parking and reopening a panel does: the viewer unmounts and comes back on the same `src`.
 	 */
 	it('runs nothing for a document already rasterized', async () => {
 		const first = loader()
@@ -440,7 +440,7 @@ describe('pdf viewer document cache · bound', () => {
 
 		expect(globalThis.URL.revokeObjectURL).not.toHaveBeenCalledWith('blob:doc-/held.pdf')
 
-		// Losing its last viewer makes it collectable rather than collected — it is still a
+		// Losing its last viewer makes it collectable rather than collected: it is still a
 		// cache, and at the cap there is nothing to reclaim. The next document over the cap is
 		// what actually takes it, since by then it is the oldest unheld entry.
 		unsubscribe()

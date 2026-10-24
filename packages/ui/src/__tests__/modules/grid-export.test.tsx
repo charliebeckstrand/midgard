@@ -72,7 +72,7 @@ describe('rowsToCsv', () => {
 		]
 
 		// Formula leads (`=`, `@`, and a signed non-number) are prefixed with a
-		// quote — the `=` field also gets RFC-quoted for its comma — while the
+		// quote (the `=` field also gets RFC-quoted for its comma) while the
 		// genuine negative and positive numbers pass through untouched.
 		expect(rowsToCsv(columns, items)).toBe(
 			'Label\r\n"\'=HYPERLINK(""http://evil"")"\r\n\'@handle\r\n\'-2+3+cmd|calc\r\n-5\r\n+1.5e3',
@@ -234,7 +234,7 @@ describe('Grid export', () => {
 
 		expect(screen.getByRole('menuitem', { name: 'Export to Excel' })).toBeInTheDocument()
 
-		// Print stays opt-in — it opens the print dialog rather than downloading.
+		// Print stays opt-in: it opens the print dialog rather than downloading.
 		expect(screen.queryByRole('menuitem', { name: 'Print' })).toBeNull()
 	})
 
@@ -728,8 +728,8 @@ describe('Grid export', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
-		// While the fetch is pending the spinner replaces the icon — the two never
-		// render side by side — and the trigger gates re-activation.
+		// While the fetch is pending the spinner replaces the icon (the two never
+		// render side by side) and the trigger gates re-activation.
 		await waitFor(() =>
 			expect(trigger.querySelector('[data-slot="loading-spinner"]')).not.toBeNull(),
 		)
@@ -786,7 +786,7 @@ describe('Grid export', () => {
 
 		const text = await blob.text()
 
-		// Selecting Alice does not narrow the export — exportRows supplies them all.
+		// Selecting Alice does not narrow the export: exportRows supplies them all.
 		expect(text).toContain('Alice,Developer')
 
 		expect(text).toContain('Bob,Designer')
@@ -852,7 +852,7 @@ describe('Grid export', () => {
 
 		renderUI(
 			<Grid
-				// Menus only — no toolbar trigger to spin, which is the case the overlay exists for.
+				// Menus only: no toolbar trigger to spin, which is the case the overlay exists for.
 				exportable={['csv']}
 				columns={columns}
 				rows={pageRow}
@@ -1071,7 +1071,7 @@ describe('useGridExportActions', () => {
 	]
 
 	/**
-	 * Renders the hook's result — the labels it resolved and its pending flag —
+	 * Renders the hook's result (the labels it resolved and its pending flag)
 	 * and exposes the actions for a test to run. A probe component rather than
 	 * `renderHook`, matching how the rest of this suite drives hooks.
 	 */

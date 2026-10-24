@@ -6,7 +6,7 @@ import { tabbables } from '../helpers/tabbables'
 
 /**
  * Modal focus-trap gate (real floating engine). Sweeps the trap corpus
- * (`a11y/cases/traps.tsx`) — the modal Overlay family — asserting the trap a
+ * (`a11y/cases/traps.tsx`) (the modal Overlay family) asserting the trap a
  * keyboard or screen-reader user depends on (WCAG 2.4.3 / 2.1.2): opening
  * pulls focus off the trigger into the surface, real Tab keystrokes wrap
  * within it in both directions, and Escape dismisses and returns focus to the

@@ -22,7 +22,7 @@
  *
  * Read the gaps, not the rows. `never opened` is the floor: the same mount, the
  * same address, and no click. Its teardown is of a closed tree, while every
- * rung above it tears down what the open built — the portal, the rows, and the
+ * rung above it tears down what the open built: the portal, the rows, and the
  * listeners. The step is therefore the open plus that teardown, and no closed
  * floor can subtract it. Read each step as an upper bound on the open alone.
  * The empty panel then separates the shell from the rows, and each row rung

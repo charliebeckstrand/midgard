@@ -1,5 +1,5 @@
 /**
- * Redraw cost on a live chart — the dashboard refresh path. Each scenario
+ * Redraw cost on a live chart: the dashboard refresh path. Each scenario
  * mounts the chart once (top-level await; the tree stays up for the whole
  * run) and each iteration swaps in the other of two same-shape datasets, so
  * every redraw moves real values and never bails on an equality guard. The ui

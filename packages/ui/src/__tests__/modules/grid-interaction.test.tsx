@@ -379,7 +379,7 @@ describe('Grid error state', () => {
 		)
 
 		// The error replaces the body, so the header stands down just like the
-		// empty state — no resize grip, no sort affordance.
+		// empty state: no resize grip, no sort affordance.
 		expect(container.querySelector('hr')).toBeNull()
 
 		expect(screen.queryByRole('button', { name: 'Sort by Name' })).not.toBeInTheDocument()

@@ -8,7 +8,7 @@ import { sou } from '../../recipes/kiso/sou'
  * The stacking ladder, asserted as a ladder.
  *
  * Every rung is read by a surface that portals out of the page's own stacking contexts, where
- * DOM order decides nothing and the number is the whole contract — so the only thing that can
+ * DOM order decides nothing and the number is the whole contract, so the only thing that can
  * be wrong here is the *order*, and the only way it goes wrong is quietly: two surfaces given
  * the same rung look correct until the one that mounts second happens to be the one that
  * should have been underneath. That is exactly how the PDF viewer's hover loupe came to be
@@ -50,14 +50,14 @@ describe('sou', () => {
 		expect(rung('lens')).toBeGreaterThan(rung('float'))
 	})
 
-	/* Unconditional means unconditional — a lens does not get to cover a toast either. */
+	/* Unconditional means unconditional: a lens does not get to cover a toast either. */
 	it('keeps the toast on top', () => {
 		expect(rung('toast')).toBe(Math.max(...LADDER.map(rung)))
 	})
 
 	/*
 	 * The pairing that actually broke, end to end rather than within this table: the loupe
-	 * wears `sou.lens` and every floating panel — a tooltip among them — wears `popover.portal`.
+	 * wears `sou.lens` and every floating panel (a tooltip among them) wears `popover.portal`.
 	 * Asserting the two recipes rather than the two rungs is what catches a future edit that
 	 * moves either one back onto `float`.
 	 */

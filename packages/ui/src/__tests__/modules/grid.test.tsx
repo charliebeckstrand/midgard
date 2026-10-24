@@ -360,7 +360,7 @@ describe('Grid', () => {
 		it('resolves engine row ids when an index-based getKey sorts client-side', async () => {
 			const user = setupUser()
 
-			// Duplicate ids force the key to fold in the row index — the docs "Sticky
+			// Duplicate ids force the key to fold in the row index: the docs "Sticky
 			// header" pattern. A client sort reorders the rows while their engine ids
 			// stay pinned to the original order, so a lookup key taken from the
 			// rendered index used to miss `table.getRow` and throw "could not find
@@ -616,7 +616,7 @@ describe('Grid', () => {
 		it('hides the toolbar button when the manager is off', () => {
 			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} columnManager={false} />)
 
-			// `columnManager={false}` is the master switch — no button, no menu item.
+			// `columnManager={false}` is the master switch: no button, no menu item.
 			expect(screen.queryByRole('button', { name: 'Manage columns' })).not.toBeInTheDocument()
 		})
 
@@ -652,7 +652,7 @@ describe('Grid', () => {
 			)
 
 			// Neither surface offers the manager, so the `open` binding is the only
-			// way in — the dialog has to mount for it, or the binding is inert.
+			// way in: the dialog has to mount for it, or the binding is inert.
 			expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
 		})
 
@@ -1105,7 +1105,7 @@ describe('Grid', () => {
 			)
 
 			// The windowed scroll wrapper and table semantics render as if
-			// `virtualize` were set — infinite scroll implied it.
+			// `virtualize` were set: infinite scroll implied it.
 			expect(bySlot(container, 'grid-scroll')).toBeInTheDocument()
 
 			expect(container.querySelector('table')).toHaveAttribute('role', 'table')
@@ -1302,7 +1302,7 @@ describe('Grid', () => {
 				/>,
 			)
 
-			// hasMore is false: the loaded set is the whole set — 60 rows + the header.
+			// hasMore is false: the loaded set is the whole set, 60 rows + the header.
 			expect(container.querySelector('table')).toHaveAttribute('aria-rowcount', '61')
 		})
 
@@ -1355,7 +1355,7 @@ describe('Grid', () => {
 
 			const scroll = bySlot(container, 'grid-scroll')
 
-			// Fill mode carries no inline max-height cap — the scroll region flexes
+			// Fill mode carries no inline max-height cap: the scroll region flexes
 			// into the parent's box instead (jsdom does no layout; the class-level
 			// behavior is exercised in the browser project).
 			expect(scroll?.style.maxHeight).toBe('')

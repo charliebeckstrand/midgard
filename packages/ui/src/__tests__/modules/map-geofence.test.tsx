@@ -52,7 +52,7 @@ describe('MapGeofence', () => {
 		const hit = bySlot(container, 'map-geofence-hit')
 
 		// A transparent fill is not a painted one, so the hit shape has to opt in
-		// explicitly — `stroke` or the painted default would leave the zone's own
+		// explicitly: `stroke` or the painted default would leave the zone's own
 		// interior dead and only its edge live.
 		expect(hit?.getAttribute('fill')).toBe('transparent')
 
@@ -330,7 +330,7 @@ describe('MapGeofence group', () => {
 
 		expect(items).toHaveLength(1)
 
-		// The zone registers first, so the entry takes its label and its readout —
+		// The zone registers first, so the entry takes its label and its readout:
 		// the depot's own "Depot" stays on the depot, in the tooltip and the table.
 		expect(items[0]?.textContent).toBe('DallasNext day')
 	})
@@ -359,7 +359,7 @@ describe('MapGeofence group', () => {
 		expect(bySlot(container, 'map-geofence')?.getAttribute('class')).toContain('stroke-rose-600')
 
 		// The depot names no color of its own and takes the group's rather than the
-		// next slot — two colors under one label would read as two things. A dot
+		// next slot: two colors under one label would read as two things. A dot
 		// strokes where a zone fills, so the shared hue reads off the stroke here.
 		expect(bySlot(container, 'map-point')?.getAttribute('class')).toContain('stroke-rose-600')
 	})

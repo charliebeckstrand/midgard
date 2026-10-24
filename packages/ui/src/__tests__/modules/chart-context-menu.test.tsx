@@ -272,7 +272,7 @@ describe('Chart context menu', () => {
 		)
 
 		// The secondary button held with Ctrl is the escape hatch to the browser
-		// menu — the same one the grid uses (via isNativeContextMenuRequest).
+		// menu: the same one the grid uses (via isNativeContextMenuRequest).
 		fireEvent.contextMenu(getSlot(container, 'chart'), { ctrlKey: true, button: 2 })
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()

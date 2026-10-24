@@ -8,8 +8,8 @@ import { useGridRowReorder } from '../../modules/grid/use-grid-row-reorder'
 
 /**
  * The reorder lifecycle callbacks (`onReorderStart` / `onReorderEnd`) map the
- * dragged sortable item back to its grid domain id — a column id for the header
- * reorder, a row key for the row reorder — before handing it to the consumer.
+ * dragged sortable item back to its grid domain id (a column id for the header
+ * reorder, a row key for the row reorder) before handing it to the consumer.
  * The drag mechanics themselves ride `useSortableList` (covered by its own
  * tests), which the drag and drop module of the grid calls with the options of
  * each hook. Here we pin that id-mapping layer, driving the drag through the

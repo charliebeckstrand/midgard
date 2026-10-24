@@ -29,7 +29,7 @@ function discsPath(container: HTMLElement): string {
 	return bySlot(container, 'chart-scatter-discs')?.getAttribute('d') ?? ''
 }
 
-/** How many discs a plain series drew — one `M` command opens each. */
+/** How many discs a plain series drew: one `M` command opens each. */
 function discCount(container: HTMLElement): number {
 	return discsPath(container).match(/M/g)?.length ?? 0
 }
@@ -128,7 +128,7 @@ describe('ScatterChart', () => {
 			/>,
 		)
 
-		// Both discs plot on finite coordinates — a wide magnitude range never
+		// Both discs plot on finite coordinates: a wide magnitude range never
 		// leaks a `NaN` into the path that would blank the whole series.
 		expect(discCount(spread.container)).toBe(2)
 
@@ -329,7 +329,7 @@ describe('ScatterChart', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
-	// A scatter point is named by a pair — the series and the datum — and not by
+	// A scatter point is named by a pair (the series and the datum) and not by
 	// one id, so it reports its own identity rather than the `(id, index)` a map
 	// region carries.
 	it('mounts the hit layer for a point-click report alone', () => {

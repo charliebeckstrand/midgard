@@ -307,7 +307,7 @@ describe('SidebarLayout offcanvas mode', () => {
 
 		fireEvent.pointerEnter(hotZone)
 
-		// The sheet paints its own blurred backdrop — no hand-rolled scrim.
+		// The sheet paints its own blurred backdrop: no hand-rolled scrim.
 		const backdrop = document.querySelector('[data-slot="overlay-backdrop"]')
 
 		expect(backdrop).toBeInTheDocument()
@@ -365,7 +365,7 @@ describe('SidebarLayout offcanvas mode', () => {
 
 		fireEvent.pointerEnter(hotZone)
 
-		// Opening paints the start-edge buffer — the open-state signal.
+		// Opening paints the start-edge buffer: the open-state signal.
 		expect(document.body.querySelector(BUFFER)).toBeInTheDocument()
 
 		// Locking the sidebar closes the sheet; going back to offcanvas keeps it

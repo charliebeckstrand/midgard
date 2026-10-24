@@ -7,8 +7,8 @@ import { bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../help
 
 describe('Sheet', () => {
 	// The named `width` steps are max-widths on a panel that fills to them. `fit`
-	// is the other kind of answer — the panel takes the width of what it holds,
-	// capped at the screen less the inset it floats on — so it must drop the fill
+	// is the other kind of answer (the panel takes the width of what it holds,
+	// capped at the screen less the inset it floats on) so it must drop the fill
 	// rather than sit a cap on top of one. What the width comes to is a
 	// measurement, which jsdom has none of; the browser suite asserts that.
 	it('sizes a fitted sheet to its content rather than filling to a step', () => {
@@ -210,7 +210,7 @@ describe('Sheet uncontrolled', () => {
 /*
  * `onOpenComplete` says the panel is up, not that an animation ran. The enter slide's own
  * landing rides on `onAnimationComplete`, and the global motion mock fires that only when
- * the `animate` target *changes* between renders — never on a mount — so no arrival slide
+ * the `animate` target *changes* between renders (never on a mount) so no arrival slide
  * resolves anywhere in the library's coverage. The same gap the Drawer suite records.
  *
  * What these cases do pin is everything around it: that the callback is wired to the
@@ -285,7 +285,7 @@ describe('Sheet handle', () => {
 
 		handle.focus()
 
-		// Twice, because the first press lands on the floor from either direction —
+		// Twice, because the first press lands on the floor from either direction:
 		// an unmeasured panel starts at nothing, so the floor is what clamps it.
 		// The second is the one that says which way the key moves the edge.
 		await setupUser().keyboard(`${key}${key}`)
@@ -301,7 +301,7 @@ describe('Sheet handle', () => {
 		await setupUser().keyboard('{ArrowDown}{ArrowDown}')
 
 		// A sheet along the top is resized by its height, so a width here would
-		// state a number the gesture never took — and clamp the panel with it.
+		// state a number the gesture never took, and clamp the panel with it.
 		expect(panel.style.height).not.toBe('')
 
 		expect(panel.style.width).toBe('')

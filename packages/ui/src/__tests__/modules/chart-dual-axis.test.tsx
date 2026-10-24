@@ -69,7 +69,7 @@ describe('secondary y-axis', () => {
 		const right = tickLabels(container, 'chart-axis-y-right')
 
 		// Left ticks read the shipments domain in dollars; right ticks read the
-		// far smaller rate domain in percent — neither domain swallows the other.
+		// far smaller rate domain in percent: neither domain swallows the other.
 		expect(left.length).toBeGreaterThan(0)
 
 		expect(left.every((label) => label.startsWith('$'))).toBe(true)
@@ -181,7 +181,7 @@ describe('secondary y-axis', () => {
 
 		expect(titles?.textContent).toContain('Week')
 
-		// The band-axis title reads horizontally under the labels — no rotation.
+		// The band-axis title reads horizontally under the labels: no rotation.
 		const week = [...(titles?.querySelectorAll('text') ?? [])].find(
 			(node) => node.textContent === 'Week',
 		)

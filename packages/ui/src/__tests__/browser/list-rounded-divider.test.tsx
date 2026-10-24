@@ -18,7 +18,7 @@ describe('List rounded dividers (real browser)', () => {
 		{ id: 'b', label: 'Bravo' },
 	]
 
-	/** `hannou.tint` — the wash a row takes on a plain surface. */
+	/** `hannou.tint`: the wash a row takes on a plain surface. */
 	const TINT = 0.05
 
 	/** Alpha of a painted color, or 0 for a transparent one. */

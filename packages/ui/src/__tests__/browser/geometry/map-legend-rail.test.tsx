@@ -10,7 +10,7 @@ import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
  * The legend's side rail: every entry holds one line inside the reserved column,
  * its keys centered on the name beside them, and a name too wide for the column
  * clips to an ellipsis and hands itself back through a reveal tooltip. Each claim
- * is a computed-layout one — the reserved width, the clip, the optical center —
+ * is a computed-layout one (the reserved width, the clip, the optical center)
  * that jsdom cannot measure with no layout engine, so they ride the real browser.
  */
 describe('map legend rail (real browser)', () => {
@@ -55,7 +55,7 @@ describe('map legend rail (real browser)', () => {
 
 		const entries = allBySlot(container, 'map-legend-item') as HTMLElement[]
 
-		// The line every entry is measured against, read once — the loop below asks
+		// The line every entry is measured against, read once: the loop below asks
 		// only whether the others match it.
 		const line = (entries[0] as HTMLElement).getBoundingClientRect().height
 
@@ -68,7 +68,7 @@ describe('map legend rail (real browser)', () => {
 			// overhang the column reserved for them.
 			expect(rect.right).toBeLessThanOrEqual(rail.right + 1)
 
-			// One line, whatever the entry carries — the readout sits beside the name
+			// One line, whatever the entry carries: the readout sits beside the name
 			// rather than under it, and the name clips instead of wrapping.
 			expect(rect.height).toBeNear(line, HALF_PIXEL)
 		}
@@ -83,7 +83,7 @@ describe('map legend rail (real browser)', () => {
 
 		const label = getSlot(entry, 'map-legend-label')
 
-		// The name's own painted box, through a Range over its contents — the label
+		// The name's own painted box, through a Range over its contents: the label
 		// span stretches to the column, so its bounding rect is not what the keys read
 		// as centered against.
 		const range = document.createRange()
@@ -116,8 +116,8 @@ describe('map legend rail (real browser)', () => {
 
 		await waitFor(() => expect(clip(long).scrollWidth).toBeGreaterThan(clip(long).clientWidth))
 
-		// The detector measures lazily — an entry no pointer visits pays no layout
-		// read — so contact arms it. Nothing observes the flag before then, which makes
+		// The detector measures lazily (an entry no pointer visits pays no layout
+		// read) so contact arms it. Nothing observes the flag before then, which makes
 		// the hover a precondition here rather than part of the claim.
 		await userEvent.hover(long)
 

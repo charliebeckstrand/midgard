@@ -20,7 +20,7 @@ const LONGITUDE_TOLERANCE = 5e-7
 /** One frame unit per degree, so a reach reads straight off the coordinates. */
 const flat = (position: LngLat): MapPoint2D => ({ x: position[0], y: position[1] })
 
-/** The projection has no image past this meridian — the insets a US composite drops. */
+/** The projection has no image past this meridian: the insets a US composite drops. */
 const clipped = (position: LngLat): MapPoint2D | null => (position[0] > 100 ? null : flat(position))
 
 /** The clear space between mark edges these fixtures group by. */
@@ -58,7 +58,7 @@ describe('clusterPoints', () => {
 	it('measures each dot from the first member of a group, never from a moving mean', () => {
 		// A chain of dots one reach apart. Measured from the mean the broad phase
 		// would creep along the chain; measured from the first member the third dot
-		// is two reaches out and starts its own — and stays its own, because the
+		// is two reaches out and starts its own, and stays its own, because the
 		// marks that result still stand clear of one another.
 		const groups = clusterPoints(
 			[
@@ -121,8 +121,8 @@ describe('clusterPoints', () => {
 	})
 
 	it('merges the summaries whose marks would cover one another', () => {
-		// Two bunches the broad phase keeps apart — their first members stand well
-		// past a dot's reach — until ten stops each grade the marks up to where they
+		// Two bunches the broad phase keeps apart (their first members stand well
+		// past a dot's reach) until ten stops each grade the marks up to where they
 		// draw over the space between them.
 		const reach = clusterRadius(10) * 2 + GAP
 
@@ -183,7 +183,7 @@ describe('clusterSpan', () => {
 		]
 
 		// A degree of longitude at the equator is ~111 km, and the span is the
-		// diameter about the anchor — so the pair spans the degree between them.
+		// diameter about the anchor, so the pair spans the degree between them.
 		expect(clusterSpan([0, 1], pair)).toBeGreaterThan(111_000)
 
 		expect(clusterSpan([0, 1], pair)).toBeLessThan(111_400)
@@ -250,7 +250,7 @@ const dot = (x: number): MapDotMark => ({ at: { x, y: 0 }, radius: POINT_RADIUS 
 describe('neighborRoom', () => {
 	it('leaves a dot only the gap to a neighbor inside the coarse reach', () => {
 		// The gap a zoom leaves the moment a summary parts: well inside 44px. Each
-		// dot reaches to the other's face and stops — 15px between the centers, less
+		// dot reaches to the other's face and stops: 15px between the centers, less
 		// the 5.5px the neighbor paints.
 		expect(neighborRoom([dot(0), dot(15)])).toEqual([9.5, 9.5])
 	})
@@ -323,7 +323,7 @@ describe('neighborRoom', () => {
 
 /**
  * The one rule every dot-shaped mark sizes its pointer target by. Two claims on
- * the ground under a dot arrive as the same measure — a reach in device pixels —
+ * the ground under a dot arrive as the same measure (a reach in device pixels)
  * so the join is their minimum, floored at what the dot paints and capped at the
  * reach a finger takes.
  */
@@ -331,18 +331,18 @@ describe('markTargets', () => {
 	/** A zone that spares every dot the same room, whatever the position. */
 	const spares = (room: number) => () => room
 
-	/** The plat's answer where no zone is drawn at all — the identity of its fold. */
+	/** The plat's answer where no zone is drawn at all: the identity of its fold. */
 	const open = spares(Number.POSITIVE_INFINITY)
 
 	it('keeps the whole target where nothing claims the ground', () => {
-		// Both claims arrive unbounded, so the cap is the only thing left to answer —
+		// Both claims arrive unbounded, so the cap is the only thing left to answer,
 		// which is what says the cap lives here and nowhere below.
 		expect(markTargets([dot(0)], 1, open)).toEqual([POINT_HIT_RADIUS])
 	})
 
 	it('takes the tighter of the zone’s budget and the neighbor’s gap', () => {
 		// The neighbor leaves 9.5px and the zone spares 14px, so the neighbor
-		// decides — and the reverse pairing proves the minimum runs both ways.
+		// decides, and the reverse pairing proves the minimum runs both ways.
 		expect(markTargets([dot(0), dot(15)], 1, spares(14))).toEqual([9.5, 9.5])
 
 		expect(markTargets([dot(0), dot(15)], 1, spares(4))).toEqual([5.5, 5.5])

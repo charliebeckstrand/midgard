@@ -4,7 +4,7 @@ import { fireEvent, present, renderUI, screen } from '../helpers'
 
 /**
  * The column-group band row the Grid draws above its column headers: the band
- * spans its members, keeps grouped columns contiguous, and — when collapsible —
+ * spans its members, keeps grouped columns contiguous, and (when collapsible)
  * folds to its first member behind an expand toggle.
  */
 describe('Grid column groups', () => {
@@ -132,7 +132,7 @@ describe('Grid column groups', () => {
 
 		expect(dataColHeaders()).toEqual(['first', 'last', 'email'])
 
-		// Scope to the header — the group-band collapse toggle lives there, apart
+		// Scope to the header: the group-band collapse toggle lives there, apart
 		// from the toolbar's (default-on) Export dropdown, which also carries
 		// `aria-expanded`.
 		const toggle = container.querySelector<HTMLButtonElement>('thead button[aria-expanded="true"]')
@@ -252,7 +252,7 @@ describe('Grid column groups', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Clear color' }))
 
-		// The color is gone but the underline stays — now a neutral gray.
+		// The color is gone but the underline stays: now a neutral gray.
 		const rule = bandRule(container)
 
 		expect(rule?.className).not.toContain('bg-blue-600')

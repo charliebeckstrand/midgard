@@ -7,7 +7,7 @@ import { act, fireEvent, renderUI, screen } from '../helpers'
  * manual row order only holds against the natural order, so the grip is live
  * only when the rendered rows match the source set; otherwise it renders present
  * but disabled. The drag mechanics themselves ride `useSortableList` (covered by
- * its own tests) — here we pin the render gate, which is the grid's new logic.
+ * its own tests): here we pin the render gate, which is the grid's new logic.
  */
 describe('Grid row reorder', () => {
 	type Row = { name: string; age: number }

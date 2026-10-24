@@ -9,7 +9,7 @@ import { subpathCount } from '../helpers/geometry/svg-path'
 /**
  * How many bars drew. Each visible series is one `chart-bar` path and each bar
  * an `M`-opened subfigure within it, so the count sums the move-tos across the
- * series paths — the per-bar total the marks used to render as separate paths.
+ * series paths: the per-bar total the marks used to render as separate paths.
  */
 function barCount(container: HTMLElement): number {
 	return allBySlot(container, 'chart-bar').reduce(
@@ -18,7 +18,7 @@ function barCount(container: HTMLElement): number {
 	)
 }
 
-/** The isolation overlay bars — one per pointed/snapped datum, re-drawn full over the dimmed series. */
+/** The isolation overlay bars: one per pointed/snapped datum, re-drawn full over the dimmed series. */
 function spots(container: HTMLElement): Element[] {
 	return allBySlot(container, 'chart-bar-spot')
 }
@@ -356,7 +356,7 @@ describe('BarChart', () => {
 		const hit = getSlot(container, 'chart-hit')
 
 		// Movement never summons the readout under the click trigger; it only points
-		// the cursor at the bars — `data-hit` over Q3's bar, none over the gap
+		// the cursor at the bars: `data-hit` over Q3's bar, none over the gap
 		// above it (this chart doesn't snap).
 		fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 })
 
@@ -415,7 +415,7 @@ describe('BarChart', () => {
 
 		expect(clicks).toEqual([['Q3', 2]])
 
-		// Hover tooltips still track — activation never hijacks the readout.
+		// Hover tooltips still track: activation never hijacks the readout.
 		fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
@@ -551,7 +551,7 @@ describe('BarChart', () => {
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		// The next click on the bar still opens it — no dead click from a stray index.
+		// The next click on the bar still opens it: no dead click from a stray index.
 		fireEvent.click(hit, { clientX: 280, clientY: 100 })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
@@ -580,7 +580,7 @@ describe('BarChart', () => {
 
 		const hit = getSlot(snapped.container, 'chart-hit')
 
-		// High above the bars, late in the band axis — off every bar's own span.
+		// High above the bars, late in the band axis: off every bar's own span.
 		const probe = { clientX: Number(hit.getAttribute('width')) * 0.8, clientY: 5 }
 
 		fireEvent.pointerMove(hit, probe)
@@ -710,7 +710,7 @@ describe('BarChart', () => {
 
 		expect(bySlot(both.container, 'chart-crosshair-y')).not.toBeNull()
 
-		// An object without x / y means both too — snap rides along.
+		// An object without x / y means both too: snap rides along.
 		const snapped = renderUI(chart({ crosshair: { snap: true } }))
 
 		fireEvent.pointerMove(getSlot(snapped.container, 'chart-hit'), {
@@ -829,7 +829,7 @@ describe('BarChart', () => {
 
 	it('renders a lone forced-on legend entry as a live switch', () => {
 		// One series defaults the legend off; force it on. The lone entry is still a
-		// switch — a button, the toolbar's sole Tab stop — and toggling it off empties
+		// switch (a button, the toolbar's sole Tab stop) and toggling it off empties
 		// the plot, with the forced-on legend holding the switch that brings it back.
 		const { container } = renderUI(
 			chart({ series: [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }], legend: true }),
@@ -997,14 +997,14 @@ describe('BarChart', () => {
 
 		expect(figure.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
 
-		// The plot box no longer reserves its own ratio — it fills the region the
+		// The plot box no longer reserves its own ratio: it fills the region the
 		// figure sized.
 		expect(bySlot(container, 'aspect-ratio')).toBeNull()
 	})
 
 	it('carries the ratio on the figure even with no legend, so a parent can clamp it', () => {
 		// One series shows no legend, but the ratio still rides the figure as a CSS
-		// preference — a definite-height parent clamps the whole chart (the box-law)
+		// preference: a definite-height parent clamps the whole chart (the box-law)
 		// rather than the plot box forcing its own height and overflowing it.
 		const { container } = renderUI(
 			chart({
@@ -1017,7 +1017,7 @@ describe('BarChart', () => {
 
 		expect(figure.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
 
-		// The plot box reserves no ratio of its own — it fills and measures the figure.
+		// The plot box reserves no ratio of its own: it fills and measures the figure.
 		expect(bySlot(container, 'aspect-ratio')).toBeNull()
 
 		const plot = getSlot(container, 'chart-plot')
@@ -1116,7 +1116,7 @@ describe('BarChart', () => {
 		const stackedText = getSlot(stacked.container, 'tooltip-content').textContent ?? ''
 
 		// Costs piles on top of Revenue, so the readout reverses to read the column top
-		// to bottom — the top segment first.
+		// to bottom: the top segment first.
 		expect(stackedText).toContain('Costs')
 
 		expect(stackedText.indexOf('Costs')).toBeLessThan(stackedText.indexOf('Revenue'))
@@ -1147,7 +1147,7 @@ describe('BarChart', () => {
 		)
 
 		// Thick fills the band, so the bar starts further out than the centered
-		// spec-width one — proof the flag reaches the geometry.
+		// spec-width one: proof the flag reaches the geometry.
 		expect(leftEdge(wide.container)).toBeLessThan(leftEdge(spec.container))
 	})
 })
@@ -1296,7 +1296,7 @@ describe('BarChart tickRotation', () => {
 	}
 
 	it('shows only the first and last label in a compact frame, whatever the rotation', () => {
-		// Below the compact width the band drops to its ends — a more aggressive
+		// Below the compact width the band drops to its ends: a more aggressive
 		// reduction than thinning that tickRotation does not override, since the
 		// tier already spent the room a tilted run would need.
 		const { container } = longChart({ width: 300, axes: { x: { tickRotation: true } } })

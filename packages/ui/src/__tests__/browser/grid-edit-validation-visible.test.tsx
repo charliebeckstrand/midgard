@@ -6,7 +6,7 @@ import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
 /**
  * Editor validation messages stay in view (WCAG 1.4.10). The message renders below
  * the cell, so an edited cell at the scroll container's bottom edge would clip it;
- * it scrolls into view when it appears. Real browser — the clip and the
+ * it scrolls into view when it appears. Real browser: the clip and the
  * scroll-into-view both need a layout engine.
  */
 describe('grid edit validation visibility (real browser)', () => {
@@ -27,7 +27,7 @@ describe('grid edit validation visibility (real browser)', () => {
 		name: `Name ${index + 1}`,
 	}))
 
-	/** The nearest scrollable ancestor — the grid's overflow wrapper. */
+	/** The nearest scrollable ancestor: the grid's overflow wrapper. */
 	const scrollParent = (el: HTMLElement): HTMLElement | null => {
 		let node = el.parentElement
 

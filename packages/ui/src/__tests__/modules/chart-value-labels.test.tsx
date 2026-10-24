@@ -68,7 +68,7 @@ describe('LineChart value labels', () => {
 	it('keeps the extreme labels on their natural sides through the reserved headroom', () => {
 		// Both raw extremes land exactly on nice tick steps, so without the
 		// reserved headroom each would touch its plot edge and flip onto the
-		// line. The reservation clears the flip threshold with slack — the peak's
+		// line. The reservation clears the flip threshold with slack: the peak's
 		// label stays above the peak and the trough's below the trough, and a
 		// resize never dances them across the boundary.
 		const { container } = renderUI(
@@ -104,7 +104,7 @@ describe('LineChart value labels', () => {
 
 	it('keeps a first-point label at the domain ceiling above its point', () => {
 		// Endpoints reserve headroom too: the first value is also the data max
-		// and lands exactly on the nice tick ceiling — without the reservation
+		// and lands exactly on the nice tick ceiling, without the reservation
 		// its label would clip the plot top and flip below, onto the descending
 		// line.
 		const { container } = renderUI(

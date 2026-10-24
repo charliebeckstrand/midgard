@@ -108,8 +108,8 @@ describe('resolveRangeLegend', () => {
 		// Width 0 means "not yet measured", not "too narrow": the request stands AND
 		// the bar shows, so the frame's structure holds steady from first paint to
 		// measurement. Shedding on unmeasured would mount the rail only once the
-		// container measure landed — a transition after the plot's own pre-paint
-		// measure — so the plot would paint full-width first and visibly shrink when
+		// container measure landed (a transition after the plot's own pre-paint
+		// measure) so the plot would paint full-width first and visibly shrink when
 		// the rail arrived (the choropleth's draw-big-then-shrink).
 		expect(resolveRangeLegend('right', 0, 0)).toMatchObject({
 			show: true,
@@ -117,7 +117,7 @@ describe('resolveRangeLegend', () => {
 			orientation: 'vertical',
 		})
 
-		// An explicit `false` still wins — unmeasured reserves, it doesn't force.
+		// An explicit `false` still wins: unmeasured reserves, it doesn't force.
 		expect(resolveRangeLegend(false, 0, 0).show).toBe(false)
 	})
 })

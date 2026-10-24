@@ -36,8 +36,8 @@ const CARRY_TOLERANCE = 5e-7
  * strings coming back identical to the ones that walk would have written. The
  * fixture geography cannot show that: three unit squares under `mercator` never
  * reach a hole, a multipolygon, or the composite's insets. So the identity cases
- * draw `states-10m` under `albers-usa` — the atlas the benchmarks measure and
- * the demos draw — where an island state carries several rings, Alaska and
+ * draw `states-10m` under `albers-usa` (the atlas the benchmarks measure and
+ * the demos draw) where an island state carries several rings, Alaska and
  * Hawaii route to sub-projections of their own, and each inset clips.
  */
 
@@ -78,7 +78,7 @@ describe('projectAtlas + emitRegionPaths', () => {
 		// canonical fit and read again under the measured one, which
 		// `scaleCanonicalFit` derives from it by the same arithmetic the emit
 		// applies. Several boxes, because one could agree by coincidence of scale,
-		// and one of them far above the canonical frame — a real atlas carries
+		// and one of them far above the canonical frame: a real atlas carries
 		// vertices enough that the resampling below never shows on it.
 		const atlas = projected(stateFeatures, canonical.projection)
 
@@ -97,9 +97,9 @@ describe('projectAtlas + emitRegionPaths', () => {
 		// `geoPath` refines a curve until its chord sits within a tolerance measured
 		// in frame units, so the buffer holds the vertices its own fit earned and a
 		// distant frame would have earned others. Nothing on a drawn atlas reaches
-		// that — the case above proves `states-10m` matches from a third of its
+		// that (the case above proves `states-10m` matches from a third of its
 		// canonical width to sixteen times it, being a quantized topology whose own
-		// vertices already sit inside the tolerance — so the bound is pinned on
+		// vertices already sit inside the tolerance) so the bound is pinned on
 		// geography sparse enough to show it: four corners spanning the lower 48,
 		// every edge a long arc under the composite.
 		const quad = [
@@ -161,7 +161,7 @@ describe('projectAtlas + emitRegionPaths', () => {
 	it('measures the same canonical frame as the fit that walks its own bounds', () => {
 		// The fold replaces `canonicalFit`'s bounds pass with a scan of the points
 		// the buffer already holds, so the frame it reports must be the one the
-		// walk reported — a divergence here would reserve a different CSS box and
+		// walk reported: a divergence here would reserve a different CSS box and
 		// reflow the page a beat after mount.
 		const probed = probeCanonicalFit(stateFeatures, 'albers-usa')
 
@@ -208,7 +208,7 @@ describe('projectAtlas + emitRegionPaths', () => {
 
 	it('leaves a passed projection its own precision', () => {
 		// The fold refines the probe walk beyond d3's default, and a passed
-		// instance belongs to the consumer — so the setting is restored, as
+		// instance belongs to the consumer, so the setting is restored, as
 		// `fitProjectionWidth` restores a clip it borrowed.
 		const instance = geoMercator()
 
@@ -388,7 +388,7 @@ describe('projectAtlas + emitRegionPaths', () => {
 
 	it('reports a basis for every built-in projection', () => {
 		// `albers-usa` carries no `clipExtent` method at all, and the other two
-		// default to none — the property the refusal above is the exception to.
+		// default to none: the property the refusal above is the exception to.
 		expect(affineBasis(canonical.projection)).not.toBeNull()
 
 		expect(affineBasis(geoMercator())).not.toBeNull()

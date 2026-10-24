@@ -13,7 +13,7 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 //
 //   - STATIC_COMPONENT_FILES below is the curated list of declared static
 //     *atoms* (text, table parts, inert display leaves). It's a
-//     deliberate contract, not "every hookless file" — most component files
+//     deliberate contract, not "every hookless file": most component files
 //     that read no context are only incidentally hookless composition
 //     wrappers whose interactivity lives in their children, and those are
 //     not server-renderable leaves. Add a file when a component becomes a
@@ -21,7 +21,7 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 //   - Every `*-skeleton.{ts,tsx}` is scanned automatically. Skeleton
 //     variants are static by definition (CONVENTIONS §3.7), a closed set
 //     discoverable by filename, so the scan needs no list and can't drift as
-//     new skeletons land. Do not add skeleton files to the curated list —
+//     new skeletons land. Do not add skeleton files to the curated list:
 //     the scan already owns them.
 //   - STATIC_PRIMITIVE_FILES holds the primitives a static leaf renders
 //     through. A leaf can only be as server-renderable as what it imports,

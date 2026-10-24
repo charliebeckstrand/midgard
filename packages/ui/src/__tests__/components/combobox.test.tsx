@@ -359,7 +359,7 @@ describe('Combobox', () => {
 		const input = bySlot(container, 'combobox-input')
 
 		// Focused first, as a user who typed or tabbed into the field would be. Wrapped,
-		// because focus opens the menu — the state update the clear is about to undo.
+		// because focus opens the menu: the state update the clear is about to undo.
 		act(() => {
 			input?.focus()
 		})

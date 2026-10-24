@@ -32,7 +32,7 @@ describe('Grid row grouping', () => {
 		return screen.getAllByRole('button', { name: /group/ })
 	}
 
-	// A leaf row's `<tr>`, found by its cell text — collapsed groups keep their
+	// A leaf row's `<tr>`, found by its cell text: collapsed groups keep their
 	// rows mounted (hidden via `aria-hidden`) rather than unmounting them.
 	function leafRow(name: string) {
 		return screen.getByText(name).closest('tr')

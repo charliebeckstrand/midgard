@@ -24,7 +24,7 @@ import { host, type Prepared } from './harness'
 /** The fixed box that each grid draws into, so each scenario paints the same viewport. */
 const BOX = { width: GRID_WIDTH, height: GRID_HEIGHT }
 
-/** The first and a mid-viewport row — evidence the visible window painted. */
+/** The first and a mid-viewport row: evidence the visible window painted. */
 export function viewportMarkers(rows: Shipment[]): string[] {
 	return [rows[0]?.id ?? '', rows[8]?.id ?? '']
 }

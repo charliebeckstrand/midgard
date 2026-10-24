@@ -115,7 +115,7 @@ describe('geographyFeatures', () => {
 describe('rewindFeatures', () => {
 	it('passes an already-correct collection through untouched', () => {
 		// The fixture exteriors already follow d3's winding, so every feature is
-		// returned by identity — nothing is cloned.
+		// returned by identity: nothing is cloned.
 		const features = rewindFeatures(FIXTURE_GEOJSON.features)
 
 		expect(features).toBe(FIXTURE_GEOJSON.features)
@@ -164,7 +164,7 @@ describe('rewindFeatures', () => {
 	})
 
 	it('drops a degenerate collinear ring', () => {
-		// Collinear points enclose ~0 one winding and ~4π the other — junk either
+		// Collinear points enclose ~0 one winding and ~4π the other: junk either
 		// way, and the read that flooded the frame in practice.
 		const collinear = [
 			[0, 0],
@@ -261,7 +261,7 @@ describe('rewindFeatures', () => {
 
 	it('keeps a sliver whose planar area is zero but whose spherical area is not', () => {
 		// Collinear along a parallel, so the shoelace cancels to exactly 0 while
-		// the sphere measures ~4.6e-6 sr — thousands of times the degenerate
+		// the sphere measures ~4.6e-6 sr: thousands of times the degenerate
 		// epsilon, and d3 draws it. The drop decision therefore stays on the
 		// spherical measure whatever the plane reports.
 		const alongParallel = [
@@ -284,7 +284,7 @@ describe('rewindFeatures', () => {
 
 	it('rewinds a ring too wide for the plane to judge', () => {
 		// A lune wider than 180° may enclose a pole, where the planar sign stops
-		// tracking the spherical side, so the exact measure decides — and it must
+		// tracking the spherical side, so the exact measure decides, and it must
 		// still fix a mis-wound exterior.
 		const wide = [
 			[-170, -10],
@@ -312,7 +312,7 @@ describe('rewindFeatures', () => {
 
 	it('leaves a ring carrying a non-finite coordinate as it arrived', () => {
 		// A `NaN` reaches the planar measure as a `NaN` bound, and a comparison
-		// against a `NaN` is false whichever way it is written — so the band test
+		// against a `NaN` is false whichever way it is written, so the band test
 		// is negated, and this ring reaches the spherical measure that decided it
 		// before. Written the other way it read as wound the wrong way and was
 		// reversed.
@@ -334,7 +334,7 @@ describe('rewindFeatures', () => {
 		// `us-atlas` ships `counties-albers-10m` and its siblings in frame units,
 		// for drawing through `geoIdentity`. A y of 400 is not a latitude, and the
 		// planar rule weighs one by `cos`, so geometry off the globe is refused
-		// rather than judged — these rings wind as they always did.
+		// rather than judged: these rings wind as they always did.
 		const framed = [
 			[120, 400],
 			[130, 400],
@@ -411,7 +411,7 @@ describe('projectPoint', () => {
 	})
 
 	it('is null where the projection has no image', () => {
-		// The US composite drops coordinates outside its insets — London here.
+		// The US composite drops coordinates outside its insets: London here.
 		const projection = fitProjection('albers-usa', [], 300, 100)
 
 		expect(projectPoint(projection, [-0.13, 51.5])).toBeNull()
@@ -651,7 +651,7 @@ describe('ringsPath · one ring', () => {
 })
 
 describe('ringAnchor', () => {
-	/** An open square about [5, 5] — the same ring every case below reads. */
+	/** An open square about [5, 5]: the same ring every case below reads. */
 	const RING: [number, number][] = [
 		[0, 0],
 		[0, 10],
@@ -665,7 +665,7 @@ describe('ringAnchor', () => {
 		expect(anchor?.[0]).toBeNear(5, LONGITUDE_TOLERANCE)
 
 		// The center is spherical, so it sits a little poleward of the arithmetic
-		// mean of the latitudes — the same reading `geoCentroid` gives a region.
+		// mean of the latitudes: the same reading `geoCentroid` gives a region.
 		expect(anchor?.[1]).toBeNear(5, POLEWARD_TOLERANCE)
 	})
 
@@ -674,7 +674,7 @@ describe('ringAnchor', () => {
 	})
 
 	it('drops a repeat that closes to rounding rather than exactly', () => {
-		// A traced ring — `circleRing`'s — lands its last position a rounding step
+		// A traced ring (`circleRing`'s) lands its last position a rounding step
 		// off its first. Read as a fresh vertex, it would weigh that corner twice.
 		expect(ringAnchor([...RING, [4e-15, -4e-15]])).toEqual(ringAnchor(RING))
 	})
@@ -685,7 +685,7 @@ describe('ringAnchor', () => {
 
 	it('anchors a lone position on itself, exactly', () => {
 		// It reads as its own closing repeat, so the centroid pass sees nothing and
-		// the fallback returns the position untouched — no round trip to drift on.
+		// the fallback returns the position untouched: no round trip to drift on.
 		expect(ringAnchor([[5, 5]])).toEqual([[5, 5]])
 	})
 
@@ -714,7 +714,7 @@ describe('projectArea and ringsPath', () => {
 	/** The path an area draws, in the one call the cases below read it through. */
 	const areaPath = (polygons: [number, number][][][]) => ringsPath(projectArea(polygons, project))
 
-	/** An outer ring with a hole inside it — one polygon, two rings. */
+	/** An outer ring with a hole inside it: one polygon, two rings. */
 	const DONUT: [number, number][][] = [
 		[
 			[2, 2],
@@ -755,8 +755,8 @@ describe('projectArea and ringsPath', () => {
 	it('drops a ring the projection keeps too little of, and keeps the rest', () => {
 		const [outer = []] = DONUT
 
-		// Drops two of the hole's four positions, leaving it two — too few for an
-		// area — while every position of the outer ring survives. A meridian cut
+		// Drops two of the hole's four positions, leaving it two (too few for an
+		// area) while every position of the outer ring survives. A meridian cut
 		// cannot express that: the hole sits inside the outer ring on both axes, so
 		// any threshold that reaches the hole has already cut the ring around it.
 		const clipped = (position: [number, number]) =>
@@ -895,7 +895,7 @@ describe('areaReach', () => {
 
 	it('measures the same whichever way a ring winds', () => {
 		// A dissolved territory arrives in the winding its arcs held, and no pass
-		// rewinds it — so the measure may not depend on the direction.
+		// rewinds it, so the measure may not depend on the direction.
 		expect(getReach([[square(10).reverse()]])).toBe(5)
 	})
 
@@ -1030,8 +1030,8 @@ function ringAround(
  *
  * A wide thin triangle shows the gap: three vertices spanning 117° of longitude
  * measure 3.3e-5 sr as drawn and 12.56 sr once the edges are cut into degree
- * steps. A real atlas is dense — `counties-10m` carries vertices a fraction of
- * a degree apart — so the two readings agree there, which is the ground the
+ * steps. A real atlas is dense (`counties-10m` carries vertices a fraction of
+ * a degree apart) so the two readings agree there, which is the ground the
  * source states its measurement on. The generator matches that density, so the
  * spherical measure is a fair oracle for the planar decision.
  */

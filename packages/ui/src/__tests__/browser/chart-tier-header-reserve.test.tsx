@@ -5,12 +5,12 @@ import { renderUI, waitFor } from '../helpers'
 /**
  * The tier reserves the header band under a real engine. A stacked aspect-fill
  * chart resolves its tier against the figure's `width / ratio` less the chrome
- * it lays out around the plot — the header and the legend. The header reaches the
+ * it lays out around the plot: the header and the legend. The header reaches the
  * frame through the accessible-name spread, so the tier hook must read the title
  * and subtitle too, else it under-reserves and a narrow titled chart reads a
  * crushed compact plot where it should shed its chrome for a clean sparkline.
  * This pins the boundary: at 300px a titled, legended chart reads spark, while
- * the same chart without a title stays compact — so the title provably moves the
+ * the same chart without a title stays compact, so the title provably moves the
  * tier, which it cannot if the hook never sees it.
  */
 
@@ -56,7 +56,7 @@ describe('chart tier header reserve (real browser)', () => {
 		)
 
 		// No header band to reserve, so the taller plot clears the spark floor and the
-		// frame keeps its chrome — the legend still shows.
+		// frame keeps its chrome: the legend still shows.
 		await waitFor(() => expect(readTier(container)).toBe('compact'))
 
 		expect(container.querySelector('[data-slot="chart-legend"]')).not.toBeNull()

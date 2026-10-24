@@ -59,7 +59,7 @@ describe('ChoroplethChart', () => {
 			(td) => td.textContent,
 		)
 
-		// A region reads its own total (its bin only drives the color) — 0 / 50 / 100,
+		// A region reads its own total (its bin only drives the color): 0 / 50 / 100,
 		// never the bucket range string a `format(lo)–format(hi)` bin label would emit.
 		expect(cells).toEqual(expect.arrayContaining(['0', '50', '100']))
 
@@ -141,7 +141,7 @@ describe('ChoroplethChart', () => {
 
 		// And the rows do not reach the map: they carry no join key without a
 		// series, so this is the union's data-less branch and it publishes no
-		// table — what MapPlat itself draws for a geography with no data. The
+		// table, what MapPlat itself draws for a geography with no data. The
 		// props cast this call site used to carry let the rows through instead,
 		// which put out a headerless table of region names against empty value
 		// cells; the branch is what stops it.
@@ -273,7 +273,7 @@ describe('ChoroplethChart context menu', () => {
 
 		expect(dialog).toBeInTheDocument()
 
-		// The re-mounted copy renders bare — its own root carries no context menu, so
+		// The re-mounted copy renders bare: its own root carries no context menu, so
 		// a right-click within it opens nothing.
 		const inner = dialog.querySelector<HTMLElement>('[data-slot="choropleth"]')
 

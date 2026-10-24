@@ -6,9 +6,9 @@ import { renderUI, waitFor } from '../helpers'
  * Real-browser check of ReadyReveal's rest hold. Only the placeholder rests:
  * once the reveal crossfade settles it sleeps in `<Activity mode="hidden">`
  * (`display: none`, skeleton pulse stopped). The content layer stays live in
- * every state so it, not the placeholder, reserves the grid cell's block size —
+ * every state so it, not the placeholder, reserves the grid cell's block size:
  * the guarantee that keeps the swap free of layout shift. This needs a real
- * browser — jsdom never completes the Motion fade that sets the rest latch.
+ * browser: jsdom never completes the Motion fade that sets the rest latch.
  */
 describe('ReadyReveal rest hold (real browser)', () => {
 	it('keeps the content layer live and rests the placeholder after a reveal', async () => {

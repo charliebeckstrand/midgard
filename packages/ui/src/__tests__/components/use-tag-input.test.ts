@@ -15,7 +15,7 @@ describe('useTagInput', () => {
 	})
 
 	/**
-	 * `addTags` returns the tokens `validate` REFUSED, not a success flag — those are the ones the field
+	 * `addTags` returns the tokens `validate` REFUSED, not a success flag: those are the ones the field
 	 * puts back in the draft for the user to fix. A duplicate or an over-cap token is refused too but
 	 * comes back empty, because neither is something anyone retypes. So the outcome to assert is the
 	 * resulting tag list; `rejected` is asserted only where it carries information.
@@ -50,7 +50,7 @@ describe('useTagInput', () => {
 			rejected = result.current.addTags(['b', 'c'])
 		})
 
-		// One slot left, so 'b' lands and 'c' is refused for room — not returned, since the cap is a
+		// One slot left, so 'b' lands and 'c' is refused for room, not returned, since the cap is a
 		// limit the field itself shows rather than a token to retype.
 		expect(result.current.tags).toEqual(['a', 'b'])
 

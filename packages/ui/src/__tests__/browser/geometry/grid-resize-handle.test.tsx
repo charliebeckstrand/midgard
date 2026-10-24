@@ -10,7 +10,7 @@ const HANDLE_HEIGHT_SLACK = 2
 
 /**
  * Resize-handle geometry against a real layout engine. The handle lives in the
- * header, anchored inside its column's trailing edge — it must not overhang the
+ * header, anchored inside its column's trailing edge: it must not overhang the
  * boundary, or the next sticky header's opaque cell clips the grip to a sliver,
  * and on the trailing column the overhang pushes past the table to inflate the
  * horizontal scroll (nudging a right-pinned column at the scroll end). It must
@@ -76,7 +76,7 @@ describe('grid resize handle geometry (real browser)', () => {
 			),
 		)
 
-		// The grip's trailing edge stops at the column boundary — it does not spill
+		// The grip's trailing edge stops at the column boundary: it does not spill
 		// past it into the neighbor, whose opaque sticky header would clip it.
 		expect(grip.right).toBeLessThanOrEqual(roleHeader.getBoundingClientRect().right + 0.5)
 	})
@@ -85,8 +85,8 @@ describe('grid resize handle geometry (real browser)', () => {
 		// The handle lives in the header (it no longer runs the full column height), so
 		// it can't overrun the table bottom: a bordered, un-capped grid stays
 		// un-scrolled. Driving a full-height handle from the table height once ran it a
-		// top-border past the bottom and — the scroll container's `overflow-x-auto`
-		// making the y-axis scrollable too — raised a spurious vertical scrollbar.
+		// top-border past the bottom and (the scroll container's `overflow-x-auto`
+		// making the y-axis scrollable too) raised a spurious vertical scrollbar.
 		const { container } = renderUI(
 			<div style={{ width: '900px' }}>
 				<Grid resizable outline columns={columns} rows={employees} getKey={(row) => row.id} />
@@ -162,7 +162,7 @@ describe('grid resize handle geometry (real browser)', () => {
 
 /**
  * Grip alignment is uniform: every resizable grid centers its grip in the grab
- * zone — one cell-padding in from the trailing border — whether or not its cells
+ * zone (one cell-padding in from the trailing border) whether or not its cells
  * truncate. The handle only has measured geometry in a real browser.
  */
 describe('grid resize grip alignment (real browser)', () => {

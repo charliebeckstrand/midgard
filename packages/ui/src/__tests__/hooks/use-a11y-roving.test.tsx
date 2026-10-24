@@ -1054,7 +1054,7 @@ describe('useA11yRoving: row actions', () => {
 
 describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', () => {
 	// Simulates a virtualizer that has only `mountedIds` in the DOM out of a
-	// much larger logical `count` — the scenario a10k-item VirtualOptions
+	// much larger logical `count`: the scenario a10k-item VirtualOptions
 	// window presents.
 	function mountRow(container: HTMLElement, id: string) {
 		const row = document.createElement('div')
@@ -1197,7 +1197,7 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 
 		result.current(makeKeyEvent('c'))
 
-		// Matches "Cherry" (index 2), not "Cantaloupe" (index 4) — first match
+		// Matches "Cherry" (index 2), not "Cantaloupe" (index 4): first match
 		// from the start.
 		expect(activeIndexRef.current).toBe(2)
 
@@ -1752,7 +1752,7 @@ describe('isVirtualTopMatchSeated', () => {
 
 describe('setVirtualActiveIndexed: mount-catch-up watcher', () => {
 	// The watcher is scoped to the `container` and `index` a single call
-	// resolves, not a persistent ref-driven effect — so it keeps working
+	// resolves, not a persistent ref-driven effect, so it keeps working
 	// however the container's DOM identity behaves across renders (a
 	// `useEffect`-based observer keyed on the container ref can miss a target
 	// that mounts without the owning component re-rendering, e.g. under a real
@@ -1810,7 +1810,7 @@ describe('setVirtualActiveIndexed: mount-catch-up watcher', () => {
 		setVirtualActiveIndexed(container, source, 1, activeIndexRef)
 
 		// The stale index-3 row now appears (e.g. a wide overscan window); its
-		// watcher must not mark it active — activeIndexRef has moved on.
+		// watcher must not mark it active: activeIndexRef has moved on.
 		const staleRow = document.createElement('div')
 
 		staleRow.id = 'stale-opt-3'

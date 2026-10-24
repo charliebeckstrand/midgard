@@ -19,8 +19,8 @@ const label = () => bySlot(document.body, 'pdf-viewer-highlight-label')
  * `@floating-ui/react` down to a no-op `setReference` and measures every rect as zero. What
  * that suite can prove is that the right string appears, disappears with the overlay, and
  * follows the selection. What only a browser can prove is the part the label exists for: that
- * it sits clear of the box it names, and that the two transforms between it and the page —
- * the layer's `rotate()` and the viewport's own scrolling — do not carry it off screen.
+ * it sits clear of the box it names, and that the two transforms between it and the page
+ * (the layer's `rotate()` and the viewport's own scrolling) do not carry it off screen.
  */
 describe('pdf viewer highlight label (real browser)', () => {
 	const pages: PdfViewerPage[] = [
@@ -73,7 +73,7 @@ describe('pdf viewer highlight label (real browser)', () => {
 
 		const box = region.getBoundingClientRect()
 
-		// Above the region — the placement asked for — and not overlapping it, which is the
+		// Above the region (the placement asked for) and not overlapping it, which is the
 		// whole point: a name drawn over the box hides the very content being checked.
 		expect(name.bottom).toBeLessThanOrEqual(box.top + 1)
 
@@ -94,7 +94,7 @@ describe('pdf viewer highlight label (real browser)', () => {
 
 	/*
 	 * The region keeps the focus a press or a roving key put on it. The label anchors to that
-	 * same element, so the one thing it must not do is replace it — an earlier shape of this
+	 * same element, so the one thing it must not do is replace it: an earlier shape of this
 	 * wrapped the active region in a `<Tooltip>`, which changed the element at that position
 	 * and remounted it mid-selection.
 	 */
@@ -124,7 +124,7 @@ describe('pdf viewer highlight label (real browser)', () => {
 		const { x, y } = getCenter(name)
 
 		// What a press there actually reaches. The name takes no pointer events, so it is the
-		// page under the name — which is the whole point of pressing here rather than on it.
+		// page under the name, which is the whole point of pressing here rather than on it.
 		const beneath = present(document.elementFromPoint(x, y), 'what lies under the name')
 
 		expect(beneath).not.toBe(panel)
@@ -155,7 +155,7 @@ describe('pdf viewer highlight label (real browser)', () => {
  * The name as an obstacle, against real layout and the real floating engine.
  *
  * A name is drawn 8px above the box it names, and on a dense page that is somebody else's box.
- * The reader has to be able to reach the box under it — and to see that they can, which is the
+ * The reader has to be able to reach the box under it, and to see that they can, which is the
  * fade. Neither half can be proved where nothing is laid out and nothing is hit-tested: the
  * jsdom suite can say the panel takes no pointer events, and that is all it can say.
  */
@@ -171,8 +171,8 @@ describe('a name that stands over another region (real browser)', () => {
 	]
 
 	/*
-	 * Two boxes, a hair apart. `Above` is deep enough that the name of `Below` — 8px clear of
-	 * `Below`'s top edge — has to land inside it; the test proves that rather than assuming it.
+	 * Two boxes, a hair apart. `Above` is deep enough that the name of `Below` (8px clear of
+	 * `Below`'s top edge) has to land inside it; the test proves that rather than assuming it.
 	 */
 	const highlights: PdfViewerHighlight[] = [
 		{ id: 'above', page: 1, rect: { x: 0.2, y: 0.3, width: 0.5, height: 0.14 }, label: 'Above' },
@@ -226,7 +226,7 @@ describe('a name that stands over another region (real browser)', () => {
 	/*
 	 * A name that moved is a new name, and it covers nothing until the pointer says otherwise.
 	 *
-	 * The selection can move without the viewer touching it — a list beside the viewer drives
+	 * The selection can move without the viewer touching it: a list beside the viewer drives
 	 * `activeHighlightId`, and nothing about that is a pointer event. So the faintness is cleared
 	 * by the name it was measured against changing, rather than by the two paths a press takes;
 	 * measured from the pointer alone, the next name would paint faint over its own region until

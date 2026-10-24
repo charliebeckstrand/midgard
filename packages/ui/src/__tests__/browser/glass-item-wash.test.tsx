@@ -14,10 +14,10 @@ import { getSlot, noop, renderUI, screen } from '../helpers'
  * command palette's rows hover inside.
  */
 describe('Glass item wash (real browser)', () => {
-	/** `hannou.tint` — the wash every row takes on a plain surface. */
+	/** `hannou.tint`: the wash every row takes on a plain surface. */
 	const TINT = 0.05
 
-	/** `hannou.tint.glass` — the deeper wash a row takes inside a glass parent. */
+	/** `hannou.tint.glass`: the deeper wash a row takes inside a glass parent. */
 	const GLASS_WASH = 0.1
 
 	/**

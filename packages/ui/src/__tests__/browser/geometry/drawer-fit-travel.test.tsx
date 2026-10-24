@@ -7,9 +7,9 @@ import { hasIntermediate, sampleTravel } from '../helpers/sample'
 
 /**
  * Real-browser probe of the `fit` drawer's height. Everything this variant does
- * is a measurement — the panel takes the height its content asks for, stops at
+ * is a measurement (the panel takes the height its content asks for, stops at
  * the screen when the content asks for more, and travels between two of those
- * heights rather than snapping — and jsdom lays nothing out, so the jsdom suite
+ * heights rather than snapping) and jsdom lays nothing out, so the jsdom suite
  * can only see the classes. The travel runs imperatively (`animate` from
  * `motion`, unmocked in this suite) against real layout, so these cases sample
  * the panel's border box across frames.
@@ -66,7 +66,7 @@ describe('fit drawer height (real browser)', () => {
 		// panel leaves the height it opened at through the ones between.
 		expect(hasIntermediate(samples, short, short + 200)).toBe(true)
 
-		// It lands on the content's own height — 200 more than it opened at — and
+		// It lands on the content's own height (200 more than it opened at) and
 		// hands the box back to layout.
 		await waitFor(() =>
 			expect(panel.getBoundingClientRect().height - short).toBeNear(200, HALF_PIXEL),

@@ -4,7 +4,7 @@ import { bySlot, fireEvent, present, renderUI, screen } from '../helpers'
 
 /**
  * The Grid's opt-in `footer` summary bar: a row-count total, a selected-row
- * count, and a custom content slot — each rendered only when enabled, and the bar
+ * count, and a custom content slot, each rendered only when enabled, and the bar
  * itself absent when no setting yields output.
  */
 describe('Grid footer', () => {
@@ -103,7 +103,7 @@ describe('Grid footer', () => {
 			<Grid columns={selectColumns} rows={rows} getKey={getKey} footer={{ selectedTotal: true }} />,
 		)
 
-		// selectedTotal alone with nothing selected yields no output — no bar.
+		// selectedTotal alone with nothing selected yields no output: no bar.
 		expect(bySlot(empty.container, 'grid-footer')).toBeNull()
 
 		const selected = renderUI(
@@ -142,7 +142,7 @@ describe('Grid footer', () => {
 			/>,
 		)
 
-		// A selection takes the slot in place — the row total is gone, not stacked.
+		// A selection takes the slot in place: the row total is gone, not stacked.
 		const text = bySlot(selected.container, 'grid-footer')?.textContent
 		expect(text).toContain('1 of 3 rows selected')
 		expect(text).not.toContain('3 rows visible')

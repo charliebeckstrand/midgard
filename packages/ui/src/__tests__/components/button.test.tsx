@@ -29,7 +29,7 @@ describe('Button', () => {
 
 		const button = getSlot<HTMLButtonElement>(container, 'button')
 
-		// No explicit attribute — the DOM applies the native `submit` default, so
+		// No explicit attribute: the DOM applies the native `submit` default, so
 		// the IDL property reads `submit` while the attribute stays absent.
 		expect(button).not.toHaveAttribute('type')
 

@@ -170,7 +170,7 @@ describe('sortRowsSmart', () => {
 
 		const { keys } = sortRowsSmart(rows, keyedByIndex, [field('amount')], collator)
 
-		// Sorted order is b, c, a — but each key carries the row's *source* index.
+		// Sorted order is b, c, a, but each key carries the row's *source* index.
 		expect(keys).toEqual(['b@1', 'c@2', 'a@0'])
 	})
 

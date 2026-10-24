@@ -15,10 +15,10 @@ import { bandScale, linearScale } from '../modules/chart/engine/chart-scale'
 import { makePoints, makeTrend } from './browser/fixtures'
 
 // The chart mark builders project a series' numbers into SVG path `d` strings
-// and hit-test geometry — the work every mount and every update frame pays,
+// and hit-test geometry: the work every mount and every update frame pays,
 // entirely off the DOM. This suite benches them directly in a node env (no
-// React, no jsdom), so an engine optimization — structure-of-arrays points,
-// single-buffer path synthesis, cached coordinate formatting — reads as a core
+// React, no jsdom), so an engine optimization (structure-of-arrays points,
+// single-buffer path synthesis, cached coordinate formatting) reads as a core
 // delta the browser suite can't isolate from React reconciliation and the DOM
 // commit. Data is the shared LCG fixture the browser suite draws, so these
 // numbers sit directly under the end-to-end scenarios one rung up.

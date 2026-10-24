@@ -47,14 +47,14 @@ describe('resolveFrameSizing', () => {
 
 	it('falls back to the full ratio height under aspect-fill before the remainder is measured', () => {
 		// No measured height yet (server render, explicit width, test frame), so the
-		// plot draws from the width alone at the full ratio rather than collapsing —
+		// plot draws from the width alone at the full ratio rather than collapsing:
 		// the browser refines it to the measured remainder once it lands.
 		expect(resolveFrameSizing({ mode: 'aspect-fill', ratio: 16 / 9 }, 320, 0)).toEqual({
 			height: 180,
 			reserve: null,
 		})
 
-		// With no width either, nothing to derive from — the frame shell, no marks.
+		// With no width either, nothing to derive from: the frame shell, no marks.
 		expect(resolveFrameSizing({ mode: 'aspect-fill', ratio: 16 / 9 }, 0, 0)).toEqual({
 			height: 0,
 			reserve: null,
@@ -86,7 +86,7 @@ describe('resolveFrameSizing', () => {
 	})
 
 	it('reserves the content offset and floor before the width is measured, so the box holds', () => {
-		// height stays 0 until the width lands, but the reserve is already known —
+		// height stays 0 until the width lands, but the reserve is already known:
 		// the box holds its height from the first paint instead of collapsing.
 		expect(resolveFrameSizing({ mode: 'content', hMargin: 100, vMargin: 20 }, 0, 0)).toEqual({
 			height: 0,

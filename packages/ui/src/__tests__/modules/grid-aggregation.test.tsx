@@ -37,7 +37,7 @@ const columns: GridColumn<Sale>[] = [
 		aggCell: ({ value }) => `$${value}`,
 	},
 	{
-		// A weighted ratio across two fields — the custom form needs row access,
+		// A weighted ratio across two fields: the custom form needs row access,
 		// not one column's values.
 		id: 'perUnit',
 		title: '$/unit',

@@ -8,8 +8,8 @@
  * The rungs ladder that shell apart, each one a layer further from a bare
  * button. `useMenuRoot only` is the hook tree: floating-ui's own, the
  * disclosure over it, and the roving handler. `trigger only` adds `MenuTrigger`
- * — its component body, the merged reference ref, and the reference-props
- * pass — with no `MenuContent` to build a panel tree. `closed menus` adds that
+ * (its component body, the merged reference ref, and the reference-props
+ * pass) with no `MenuContent` to build a panel tree. `closed menus` adds that
  * tree back, which the portal then discards.
  *
  * Read the gaps, not the rows. Each rung contains the one above it, so the step
@@ -32,7 +32,7 @@ import { reactHost, WINDOW } from './harness'
 /** Menus on one page: a per-row action column's worth. */
 const FAN_OUT = 50
 
-/** Rows behind each closed menu — never rendered, but written by the consumer. */
+/** Rows behind each closed menu: never rendered, but written by the consumer. */
 const ROWS = 6
 
 const keys = comboboxOptions(FAN_OUT).map((option) => option.value)

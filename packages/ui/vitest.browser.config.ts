@@ -156,20 +156,20 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
 /**
  * Real-browser test suite (Vitest browser mode, Playwright: Chromium, and
  * Firefox and WebKit for the density files), split
- * into instances along the `@floating-ui/react` mock boundary — the mock is a
- * setup-file `vi.mock`, so it can only toggle per instance, not per file —
+ * into instances along the `@floating-ui/react` mock boundary (the mock is a
+ * setup-file `vi.mock`, so it can only toggle per instance, not per file)
  * along the scrollbar mode of the browser, and along the geometry category:
  *
  * - `browser`: the layout, scroll, and computed style the jsdom suite can't
- *   see, when the subject is not layout geometry — react-virtual windowing,
+ *   see, when the subject is not layout geometry: react-virtual windowing,
  *   which renders zero rows under jsdom's zero-size viewport, scroll anchors,
  *   and hover color. `@floating-ui/react` is mocked
  *   (browser/setup/module-mocks.ts) so overlay panels render inline and
  *   settled.
  *
  * - `floating-ui` (browser/floating-ui/): the cases that need the live
- *   floating engine — modal focus containment (WCAG 2.4.3 / 2.1.2) and
- *   portal/ARIA wiring through a real `FloatingFocusManager` — with a setup
+ *   floating engine, modal focus containment (WCAG 2.4.3 / 2.1.2) and
+ *   portal/ARIA wiring through a real `FloatingFocusManager`, with a setup
  *   variant that leaves `@floating-ui/react` real (motion stays mocked for
  *   determinism).
  *
@@ -178,8 +178,8 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
  *   leaves `motion/react` real and mocks `@floating-ui/react` as `browser` does.
  *
  * - `geometry` (browser/geometry/): the cases whose subject is layout
- *   geometry — the boxes, hit areas, clipping, alignment, and RTL edges of a
- *   real layout — and the target-size and color-contrast axe rules. Its mocks
+ *   geometry (the boxes, hit areas, clipping, alignment, and RTL edges of a
+ *   real layout) and the target-size and color-contrast axe rules. Its mocks
  *   are the ones `browser` uses, so a file moves between the two with no
  *   change. The `geometry` project of `vitest.config.ts` holds the
  *   computational half, and `pnpm test:geometry` runs the two.
@@ -211,8 +211,8 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
  * `DENSITY_ENGINES=1`. `--project <name>` scopes to one.
  *
  * Instance-level `setupFiles` merge additively onto project-level ones
- * (project's run first), so `index.ts`/`act-environment.ts` — shared by both
- * instances — sit at project level as ordinary relative paths; only the
+ * (project's run first), so `index.ts`/`act-environment.ts` (shared by both
+ * instances) sit at project level as ordinary relative paths; only the
  * per-instance `module-mocks` boundary needs an absolute path, since
  * instance options are merged directly into the already-resolved project
  * config, unlike project-level paths which Vite resolves normally.
@@ -277,8 +277,8 @@ export default defineConfig({
 		globals: true,
 		// The same rule `vitest.config.ts` states: machine speed must change when a
 		// test passes, never whether it passes. Both budgets were Vitest's own
-		// browser defaults until now — `testTimeout ??= browser.enabled ? 15e3 :
-		// 5e3` and `hookTimeout ??= browser.enabled ? 3e4 : 1e4` — so the suite ran
+		// browser defaults until now (`testTimeout ??= browser.enabled ? 15e3 :
+		// 5e3` and `hookTimeout ??= browser.enabled ? 3e4 : 1e4`) so the suite ran
 		// to a number no one here chose and a version bump can move. They are
 		// declared at those values, which pins what a bump would take away.
 		//
@@ -290,7 +290,7 @@ export default defineConfig({
 		//
 		// `asyncUtilTimeout` is RTL's waitFor/findBy budget, injected by
 		// `browser/setup/index.ts`. The browser suite had none, so it ran at RTL's
-		// own 1s default on every machine — the one suite that does real layout, on
+		// own 1s default on every machine: the one suite that does real layout, on
 		// the most loaded page. It scales to 4s on CI now, as the jsdom projects
 		// do, and stays at 1s locally. It sits far below `testTimeout`, so a stuck
 		// wait fails as an RTL timeout carrying the callback's last error rather
@@ -314,7 +314,7 @@ export default defineConfig({
 		// the wall clock of the suite. With the graph shared, the suite takes a
 		// fraction of that time, and every test still passes. The price is the one
 		// the jsdom `unit` project has paid since August: a shared window across a
-		// page's files. The same residue rules apply — remove appended nodes in
+		// page's files. The same residue rules apply: remove appended nodes in
 		// `onTestFinished`, and declare no per-file `vi.mock` (the two
 		// `module-mocks` setup files are the only doubles, and they toggle per
 		// instance).
@@ -334,7 +334,7 @@ export default defineConfig({
 			// its own file. The jsdom projects have carried this guard since the
 			// shared worker landed; this suite shares a page on the same terms and
 			// did not. No browser file assigns `el.focus` today, so this is
-			// prevention rather than a fix — seven tests hit the leak when files
+			// prevention rather than a fix: seven tests hit the leak when files
 			// moved into this suite.
 			'./src/__tests__/setup/restore-prototype-focus.ts',
 			'./src/__tests__/browser/setup/act-environment.ts',

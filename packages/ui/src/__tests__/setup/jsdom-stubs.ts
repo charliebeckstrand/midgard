@@ -165,7 +165,7 @@ HTMLCanvasElement.prototype.getContext = (() => null) as HTMLCanvasElement['getC
 // jsdom implements neither Window's focus() nor print(): each logs a "Not
 // implemented" jsdomError on call. The print paths (grid HTML export's
 // `printRows`, the PDF viewer's `printPdf`) call both on a print iframe's
-// `contentWindow` — a distinct Window from the main one, with its own
+// `contentWindow`: a distinct Window from the main one, with its own
 // own-property `focus`/`print`, so stubbing here alone can't reach it. Neutralize
 // them on the main window for any direct call, and wrap the iframe
 // `contentWindow` getter to neutralize each real print iframe's window once (a

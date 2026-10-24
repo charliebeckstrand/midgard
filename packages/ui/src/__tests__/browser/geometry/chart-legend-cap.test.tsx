@@ -10,7 +10,7 @@ import { subpathCount } from '../../helpers/geometry/svg-path'
  * A stacked legend caps to the frame tier's row budget: the controls past it
  * fold into a `+N` chip that opens the rest as a popover switchboard. So a
  * many-series legend can never take unbounded height from the aspect box and
- * crush the plot, and no switch is ever clipped out of reach — the complaint
+ * crush the plot, and no switch is ever clipped out of reach: the complaint
  * that drove the redesign. The cut is measured from an invisible ghost row that
  * holds every control at all times; that measurement, the bounded height, and
  * the popover mount are computed-layout claims jsdom can't resolve, so this
@@ -65,7 +65,7 @@ describe('chart stacked legend row cap (real browser)', () => {
 		expect(visibleItems.length).toBeGreaterThan(0)
 		expect(visibleItems.length).toBeLessThan(10)
 
-		// The chip's count is exactly the switches it stands in for — none lost.
+		// The chip's count is exactly the switches it stands in for: none lost.
 		const chipCount = Number(chip.getAttribute('aria-label')?.match(/\d+/)?.[0])
 
 		expect(chipCount).toBe(10 - visibleItems.length)
@@ -209,7 +209,7 @@ describe('stacked legend ghost adds no scroll range (real browser)', () => {
 describe('pie stacked legend row cap (real browser)', () => {
 	beforeAll(() => page.viewport(1000, 700))
 
-	// Ten slices under a bottom legend on a narrow pie — the one-row budget the
+	// Ten slices under a bottom legend on a narrow pie: the one-row budget the
 	// 360px box resolves can't hold them, so the cap must bite.
 	const slices = [
 		'Alpha',
@@ -269,10 +269,10 @@ describe('pie stacked legend row cap (real browser)', () => {
 
 /**
  * Spark is the row cap's terminal case: the box is too small for any chrome, so
- * the legend doesn't cap — it drops entirely, with the axes and the header. A
+ * the legend doesn't cap; it drops entirely, with the axes and the header. A
  * two-series chart squeezed to a sparkline would otherwise wrap its legend to two
  * rows and, inside the whole-figure aspect box, hand the plot a 0–12px sliver of
- * dashes beneath it — the very crush the cap exists to prevent, but past where a
+ * dashes beneath it: the very crush the cap exists to prevent, but past where a
  * row budget can help. Dropped, the `flex-1` plot reclaims the box and draws as
  * pure marks. The box arithmetic is real layout, so this rides the browser.
  */
@@ -313,14 +313,14 @@ describe('spark drops the legend to reclaim the box (real browser)', () => {
 
 		expect(bySlot(container, 'chart')).toHaveAttribute('data-tier', 'spark')
 
-		// The legend is gone — not capped, dropped: no row, no measuring ghost, no chip.
+		// The legend is gone, not capped, dropped: no row, no measuring ghost, no chip.
 		expect(bySlot(container, 'chart-legend')).toBeNull()
 
 		expect(allBySlot(container, 'chart-legend-ghost')).toHaveLength(0)
 
 		expect(container.querySelector('[aria-label^="Show "]')).toBeNull()
 
-		// Both series still draw — a sparkline keeps its marks, it only sheds the chrome.
+		// Both series still draw: a sparkline keeps its marks, it only sheds the chrome.
 		expect(allBySlot(container, 'chart-bar').length).toBeGreaterThan(0)
 
 		// The plot reclaims the whole box rather than a sliver: its height lands near

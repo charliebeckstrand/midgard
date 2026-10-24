@@ -57,7 +57,7 @@ describe('MapPlat resize with a passed projection instance (real browser)', () =
 		expect(atFirst).toBeTruthy()
 
 		// The viewBox follows the box the plot was actually given, not a figure the
-		// test supplied — which is the half jsdom could not assert.
+		// test supplied, which is the half jsdom could not assert.
 		expect(plotViewBox(container, 'map-plot').width).toBeNear(plot.clientWidth, HALF_PIXEL)
 
 		const firstWidth = plotViewBox(container, 'map-plot').width

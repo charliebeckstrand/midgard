@@ -28,7 +28,7 @@ describe('MapPlat keyboard navigation', () => {
 		const { plot } = renderNavigable(categoricalPlat())
 
 		// The stop is the role="img" region itself, never a region path: the SVG
-		// is aria-hidden, so a focusable path would be an unreachable stop — and
+		// is aria-hidden, so a focusable path would be an unreachable stop, and
 		// one per region on a county atlas.
 		expect(plot).toHaveAttribute('tabindex', '0')
 
@@ -138,7 +138,7 @@ describe('MapPlat keyboard navigation', () => {
 
 		fireEvent.keyDown(plot, { key: 'End' })
 
-		// Gamma matches no row, so it reads nothing — the same silence the pointer
+		// Gamma matches no row, so it reads nothing: the same silence the pointer
 		// keeps off data. Stepping back west proves the cursor did land there.
 		expect(readout(container)).toBeNull()
 
@@ -286,8 +286,8 @@ describe('MapPlat keyboard navigation', () => {
 
 	it('stays navigable without a readout when the map is still a picker', () => {
 		// tooltip={false} with onRegionClick is a supported pairing. Gating the tab
-		// stop on the readout alone would leave that picker unreachable by keyboard
-		// — the cursor still isolates the region it sits on, so it stays legible.
+		// stop on the readout alone would leave that picker unreachable by keyboard:
+		// the cursor still isolates the region it sits on, so it stays legible.
 		const onRegionClick = vi.fn()
 
 		const { container } = renderUI(categoricalPlat({ tooltip: false, onRegionClick }))
@@ -416,9 +416,9 @@ describe('MapPlat keyboard navigation', () => {
 
 	it('takes no tab stop on a map with nothing to read out', () => {
 		// A backdrop: geography, no rows, no marks. `tooltip` asks for a readout
-		// rather than asserting one, and all three channels are silent here — an
+		// rather than asserting one, and all three channels are silent here (an
 		// unmatched region raises no tooltip, takes no emphasis, and fills no table
-		// row — so the stop would answer every key with nothing.
+		// row) so the stop would answer every key with nothing.
 		const { container } = renderUI(
 			<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} width={400} />,
 		)
@@ -444,7 +444,7 @@ describe('MapPlat keyboard navigation', () => {
 		// the paths bind no handlers, so nothing can be POINTED at, but the cursor
 		// reaches a region through the stop list rather than through the DOM. Left
 		// ungated, a reader arrowed onto the drilled state, heard it named, pressed
-		// Enter, and got nothing — the pick the same switch had already emptied.
+		// Enter, and got nothing: the pick the same switch had already emptied.
 		const onRegionClick = vi.fn()
 
 		const { container, plot } = renderNavigable(

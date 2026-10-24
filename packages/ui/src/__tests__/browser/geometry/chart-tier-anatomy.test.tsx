@@ -9,10 +9,10 @@ const LABEL_SLACK = 0.6
 
 /**
  * The intrinsic tiers resolved in a real browser, where computed layout is real:
- * a chart carves a different anatomy from each box — a full gutter and thinned
+ * a chart carves a different anatomy from each box (a full gutter and thinned
  * band when it has room, a compact-format gutter and end-only band labels when
  * it narrows, a floor pad where a short frame sheds its band row, and bare marks
- * at spark — and no tick label ever crosses the plot's own edge. jsdom resolves
+ * at spark) and no tick label ever crosses the plot's own edge. jsdom resolves
  * none of these (no layout, no text metrics), so they live here.
  */
 
@@ -128,12 +128,12 @@ describe('chart intrinsic tiers (real browser)', () => {
 	it('drops the band row of a short frame yet clears the floor value label', () => {
 		// A wide, short box: compact by height, the band row shed, the value gutter
 		// kept. The floor tick label needs its lower half below the plot floor, which
-		// the floor pad reserves — so it stays inside the SVG instead of clipping.
+		// the floor pad reserves, so it stays inside the SVG instead of clipping.
 		const { container } = renderUI(chart(700, 112))
 
 		expect(bySlot(container, 'chart')).toHaveAttribute('data-tier', 'compact')
 
-		// No band labels — the row is gone.
+		// No band labels: the row is gone.
 		expect(axisTexts(container, 'chart-axis-x')).toHaveLength(0)
 
 		const gutter = axisTexts(container, 'chart-axis-y')
@@ -155,13 +155,13 @@ describe('chart intrinsic tiers (real browser)', () => {
 
 	it('thins the band and keeps full-format ticks in a standard frame', () => {
 		// A standard-but-not-wide frame, where the six long month names still collide
-		// and thin — a wider frame would simply fit them all, which is not the case
+		// and thin: a wider frame would simply fit them all, which is not the case
 		// under test here.
 		const { container } = renderUI(chart(420, 280))
 
 		const band = axisTexts(container, 'chart-axis-x')
 
-		// More than the two ends, fewer than all six long labels — thinned.
+		// More than the two ends, fewer than all six long labels: thinned.
 		expect(band.length).toBeGreaterThan(2)
 
 		expect(band.length).toBeLessThan(MONTHS.length)

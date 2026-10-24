@@ -286,7 +286,7 @@ describe('Dialog click containment', () => {
 /*
  * `onOpenComplete` says the panel is up, not that an animation ran. Its landing rides on
  * `onAnimationComplete`, which the global motion mock fires only when the `animate` target
- * changes between renders — never on a mount — so no arrival resolves in jsdom. Dialog
+ * changes between renders (never on a mount) so no arrival resolves in jsdom. Dialog
  * picks its preset off the `sm` breakpoint rather than a prop, so it has no in-test way to
  * change that target either; the shared gate-and-latch shape is pinned on Sheet, which
  * does. The Drawer suite records the same gap.

@@ -12,7 +12,7 @@ import { getCenter } from '../../helpers/geometry/box'
  * pointer-capturing `::after` on the content area closes that gap.
  *
  * Rides the real browser because the claim is a hit-testing one. The overlay is a
- * pseudo-element, and jsdom loads no stylesheet and runs no layout — there it can
+ * pseudo-element, and jsdom loads no stylesheet and runs no layout: there it can
  * report neither the box nor the element under a point.
  */
 describe('list item hit area (real browser)', () => {
@@ -84,19 +84,19 @@ describe('list item hit area (real browser)', () => {
 		await userEvent.click(row, { position })
 
 		// Playwright's hit-target check walks up from the element under the pointer
-		// to the click target, and the content area is a descendant of the row — so
+		// to the click target, and the content area is a descendant of the row, so
 		// a press that lands on the bare row passes that check and reports a
 		// successful click. The count alone then reads 0 with nothing to say why.
 		// Name the slot under the pointer beside it.
 		const calls = onClick.mock.calls.length
 
 		// This case is an intermittent failure of the suite, and its one recorded
-		// reproduction reads `calls: 0` with the pointer on the right slot — which
+		// reproduction reads `calls: 0` with the pointer on the right slot, which
 		// rules out neither the pointer nor React's own wiring. A `fireEvent` on
 		// the content area reaches the handler through no hit test at all, so
 		// `wired` separates them: false says the tree was not listening, true says
 		// it was and the pointer is the half to read. It goes to the content area
-		// and not the row, because that is where the handler sits — the `<li>` acts
+		// and not the row, because that is where the handler sits: the `<li>` acts
 		// on nothing, which is the whole reason the stretched overlay exists.
 		// Measured after `calls`, so the count above is the pointer's alone.
 		fireEvent.click(getSlot(container, 'list-item-content'))
@@ -121,7 +121,7 @@ describe('list item hit area (real browser)', () => {
 
 		const row = getSlot(container, 'list-item')
 
-		// No handler to serve, so the padding stays the row's own — a row that grew
+		// No handler to serve, so the padding stays the row's own: a row that grew
 		// a target it does not paint would read as clickable and act on nothing.
 		expect(at(row, 5, 5)).toBe(row)
 	})

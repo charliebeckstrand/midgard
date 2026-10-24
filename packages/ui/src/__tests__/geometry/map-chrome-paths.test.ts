@@ -23,7 +23,7 @@ import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 const FRAME_EDGE_TOLERANCE = 0.05
 
 /**
- * A mercator fit to the fixture squares — the fit the plat draws chrome under.
+ * A mercator fit to the fixture squares: the fit the plat draws chrome under.
  * Held once: nothing here mutates a projection, and the cache keys on this
  * instance, so a fresh fit per call would test a different memo each time.
  */
@@ -99,7 +99,7 @@ describe('chromePaths', () => {
 	})
 
 	it("outlines the composite projection's own clip frames", () => {
-		// albers-usa has no single globe edge — it draws the lower-48 box and the
+		// albers-usa has no single globe edge: it draws the lower-48 box and the
 		// two inset boxes. The graticule's clip reads those two as holes in the
 		// first, which is what keeps the insets clear of stray lines.
 		expect(chromePaths(geoAlbersUsa(), null).frame?.match(/Z/g)).toHaveLength(3)

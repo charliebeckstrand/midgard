@@ -33,7 +33,7 @@ describe('a11y geometry (axe): interactive', () => {
 
 /**
  * Scoped to the description slot rather than the document: a palette item's
- * *label* also misses AA on this wash, but by a different mechanism — it carries
+ * *label* also misses AA on this wash, but by a different mechanism; it carries
  * no ink of its own and inherits the `text.muted` of the `body` slot of the panel group through
  * `DialogBody`. That is a separate defect in a shared panel slot, out of #592's
  * scope, and asserting the whole document here would couple this regression case

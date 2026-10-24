@@ -75,8 +75,8 @@ describe('grid column resizing (real browser)', () => {
 
 		const table = present(container.querySelector('table'), 'table')
 
-		// The handle tracks the header cell's height — the affordance lives in the
-		// header — within a hairline cell border.
+		// The handle tracks the header cell's height (the affordance lives in the
+		// header) within a hairline cell border.
 		await waitFor(() => {
 			const handleHeight = separator.getBoundingClientRect().height
 
@@ -98,7 +98,7 @@ describe('grid column resizing (real browser)', () => {
 		// The handle draws the grip as its `::after`.
 		const grip = getComputedStyle(separator, '::after')
 
-		// Always visible — no hover needed; the edge reads as resizable at rest, the
+		// Always visible: no hover needed; the edge reads as resizable at rest, the
 		// whole point of the change versus the old hidden-until-hover grip.
 		await waitFor(() => expect(grip.opacity).toBe('1'))
 
@@ -112,7 +112,7 @@ describe('grid column resizing (real browser)', () => {
 		expect(gripRect.bottom - gripRect.top).toBeLessThan(headerRect.height)
 
 		// Centered in the grab zone (`justify-center`), so it sits a cell-padding inside
-		// the trailing edge — not flush against the border.
+		// the trailing edge, not flush against the border.
 		expect(headerRect.right - gripRect.right).toBeGreaterThan(3)
 	})
 
@@ -221,7 +221,7 @@ describe('grid column resizing (real browser)', () => {
 
 		const { x: startX, y } = getCenter(separator)
 
-		// Hold the drag open — mousedown plus a move, but no mouseup yet.
+		// Hold the drag open: mousedown plus a move, but no mouseup yet.
 		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
 
 		// A failed read below skips the release, and the resize listeners then stay
@@ -251,7 +251,7 @@ describe('grid column resizing (real browser)', () => {
 
 /**
  * Resize and reorder together. A reordering grid shifts every header on a
- * `translateX` CSS variable, so each header is a transformed stacking context —
+ * `translateX` CSS variable, so each header is a transformed stacking context,
  * and the containing block for its absolutely-positioned resize handle. The
  * handle must still anchor to its header and stay the topmost element at the
  * trailing edge so a drag-resize can begin on it. Real geometry, so the browser.
@@ -381,7 +381,7 @@ describe('grid column resize holds the other columns (real browser)', () => {
 			expect(header(container, 'a').getBoundingClientRect().width).toBeGreaterThan(startA + 40),
 		)
 
-		// …and the others held — no redistribution into the space the drag consumed.
+		// …and the others held: no redistribution into the space the drag consumed.
 		expect(header(container, 'b').getBoundingClientRect().width).toBeNear(startB, PIXEL)
 
 		expect(header(container, 'c').getBoundingClientRect().width).toBeNear(startC, PIXEL)

@@ -5,7 +5,7 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/me
 import { frames, renderUI, screen, waitFor } from '../../helpers'
 
 /**
- * Opening a dropdown menu keeps keyboard focus on the trigger — it is never
+ * Opening a dropdown menu keeps keyboard focus on the trigger: it is never
  * pulled into the portaled, animating panel, which a real browser can drop to
  * `<body>` on open (WCAG 2.4.3). Tab off the trigger then closes the menu and
  * carries focus to the next tabbable in one keystroke. Real focus movement needs
@@ -69,7 +69,7 @@ describe('MenuTrigger focus on open (real floating engine)', () => {
 /**
  * A dropdown keeps focus on its trigger, so its items rove by
  * `aria-activedescendant`: arrow keys move a `data-active` cursor over the items
- * and point the trigger at the active row, and Enter activates it — all without
+ * and point the trigger at the active row, and Enter activates it, all without
  * moving focus off the trigger.
  */
 describe('MenuTrigger arrow-key roving (real floating engine)', () => {

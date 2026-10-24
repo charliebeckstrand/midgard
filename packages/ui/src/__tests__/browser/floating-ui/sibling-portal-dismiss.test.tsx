@@ -6,11 +6,11 @@ import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
  * Outside-press across two *unrelated* floating surfaces (real floating engine).
  *
  * `isOutsidePress` spares a press that lands in another floating portal
- * unless that portal contains this panel's own reference — the ancestor test.
+ * unless that portal contains this panel's own reference: the ancestor test.
  * The intent is to spare a press in a nested DESCENDANT surface (a submenu, a
  * picker opened from inside a popover). But "not an ancestor" is not the same
- * predicate as "a descendant": a surface that is merely a sibling — neither
- * containing nor contained by this one — satisfies it too.
+ * predicate as "a descendant": a surface that is merely a sibling (neither
+ * containing nor contained by this one) satisfies it too.
  *
  * That matters because portals here are flat, not nested. `Portal`
  * passes an explicit `root` under a `<UIProvider>`, so every surface's portal is
@@ -18,7 +18,7 @@ import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
  * information at all. The reference-containment test is the sole discriminator.
  *
  * Two surfaces have to be open at once to reach it, and a pointer-driven open
- * would dismiss the first on its way in — so the second is opened through the
+ * would dismiss the first on its way in, so the second is opened through the
  * controlled `open` prop, which is public API.
  *
  * The jsdom suite mocks `@floating-ui/react` away, so only this project can
@@ -58,7 +58,7 @@ describe('outside press across sibling floating portals (real browser)', () => {
 		const rect = second.getBoundingClientRect()
 
 		// A press inside the second panel is outside the first, and the second is
-		// no descendant of it — nothing about the first surface encloses it.
+		// no descendant of it: nothing about the first surface encloses it.
 		fireEvent.pointerDown(second, {
 			clientX: rect.left + 4,
 			clientY: rect.top + 4,

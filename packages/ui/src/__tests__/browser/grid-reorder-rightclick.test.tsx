@@ -11,8 +11,8 @@ beforeAll(() => loadGridReorderKit())
 
 /**
  * The reorder grip must not begin a drag on a context-menu press. dnd-kit's
- * stock pointer sensor drops the secondary button but not a Ctrl-click — the
- * macOS secondary click — which would otherwise start a drag the opening
+ * stock pointer sensor drops the secondary button but not a Ctrl-click (the
+ * macOS secondary click) which would otherwise start a drag the opening
  * context menu strands mid-flight (its pointerup never arrives), leaving the
  * column stuck as if held. A genuine primary press must still drag.
  *
