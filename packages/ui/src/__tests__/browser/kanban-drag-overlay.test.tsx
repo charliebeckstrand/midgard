@@ -7,8 +7,9 @@ import {
 	KanbanColumn,
 	KanbanColumnBody,
 } from '../../modules/kanban'
-import { renderUI } from '../helpers'
-import { drag, type Point } from './helpers/drag'
+import { present, renderUI } from '../helpers'
+import { getCenter } from '../helpers/geometry/box'
+import { drag } from './helpers/drag'
 
 /**
  * Kanban drag overlay (real pointer). The overlay is the picture of the card
@@ -21,13 +22,6 @@ describe('Kanban drag overlay (real browser)', () => {
 	type Item = { id: string }
 
 	type Column = { id: string; items: Item[] }
-
-	/** The center of `el`, in client space. */
-	const getCenter = (el: Element): Point => {
-		const box = el.getBoundingClientRect()
-
-		return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
-	}
 
 	/** A board whose cards name the column that holds them. */
 	function Board({ initial }: { initial: Column[] }) {
@@ -66,13 +60,7 @@ describe('Kanban drag overlay (real browser)', () => {
 			/>,
 		)
 
-		const query = (selector: string) => {
-			const el = container.querySelector<HTMLElement>(selector)
-
-			if (!el) throw new Error(`expected ${selector}`)
-
-			return el
-		}
+		const query = (selector: string) => present(container.querySelector(selector), selector)
 
 		const handle = query('[data-card-id="a"] [data-slot="kanban-card-handle"]')
 

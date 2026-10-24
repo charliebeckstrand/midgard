@@ -167,7 +167,9 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		freshMove.current = { from, columns }
 	}
 
-	const handleDragEnd = (event: DragEndEvent) => {
+	// The drop and the cancel end the drag the same way. It gives the columns
+	// from the drag start, or `null` when no move occurred.
+	const endDrag = () => {
 		clearFreshMove()
 
 		setActiveId(null)
@@ -176,7 +178,15 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 		setOverlayEntry(undefined)
 
+		const origin = originColumns.current
+
 		originColumns.current = null
+
+		return origin
+	}
+
+	const handleDragEnd = (event: DragEndEvent) => {
+		endDrag()
 
 		const { active, over } = event
 
@@ -191,17 +201,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	}
 
 	const handleDragCancel = () => {
-		clearFreshMove()
-
-		setActiveId(null)
-
-		setOriginColumnId(null)
-
-		setOverlayEntry(undefined)
-
-		const origin = originColumns.current
-
-		originColumns.current = null
+		const origin = endDrag()
 
 		if (origin) onReorder?.(origin)
 	}

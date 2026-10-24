@@ -83,7 +83,8 @@ export function KanbanCardHandle({
 	if (!card || !interactive) {
 		return (
 			<span
-				id={id}
+				// The drag overlay copies the handle, and one id names one node.
+				id={card ? id : undefined}
 				onKeyDown={onKeyDown}
 				onBlur={onBlur}
 				{...props}
