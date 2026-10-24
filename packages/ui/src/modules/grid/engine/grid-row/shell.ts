@@ -185,22 +185,6 @@ export function spokenRowNumber(row: HTMLTableRowElement): number {
 }
 
 /**
- * The data row of a grid with the given key, among the rows of its own body. A
- * windowed body can leave the row out of the document, and the result is then
- * `null`.
- *
- * @internal
- */
-export function findDataRow(
-	table: HTMLTableElement,
-	key: string | number,
-): HTMLTableRowElement | null {
-	return table.querySelector<HTMLTableRowElement>(
-		`:scope > tbody > tr[data-grid-row="${CSS.escape(String(key))}"]`,
-	)
-}
-
-/**
  * The `aria-rowindex` of an item of a windowed grouped or master-detail body.
  * `position` is its place among the rows that assistive tech sees. A closing
  * row has position `-1`, and it carries no index. A table with no grid
