@@ -265,6 +265,23 @@ describe('MapPoints', () => {
 		expect(row?.textContent).toBe('1.200')
 	})
 
+	it('numbers an unnamed stop in the number format of the locale', () => {
+		// A thousand and one unnamed stops, every one of them drawn as itself.
+		const fleet = Array.from({ length: 1001 }, (_, index) => ({
+			at: index % 2 === 0 ? DEPOT : SITE,
+		}))
+
+		const { container } = renderUI(
+			<LocaleProvider locale="de-DE">
+				{overlayPlat(<MapPoints id="fleet" label="Stops" points={fleet} cluster={false} />)}
+			</LocaleProvider>,
+		)
+
+		const names = bySlot(container, 'map-table')?.querySelectorAll('tbody th') ?? []
+
+		expect([...names].at(-1)?.textContent).toBe('Stops 1.001')
+	})
+
 	it('draws every dot where the grouping is off', () => {
 		const { container } = renderUI(
 			overlayPlat(<MapPoints id="fleet" label="Stops" points={BUNCHED} cluster={false} />),

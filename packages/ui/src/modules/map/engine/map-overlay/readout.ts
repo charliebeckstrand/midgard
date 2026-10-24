@@ -11,6 +11,9 @@
 
 import type { MapStopRow } from './entry'
 
+/** Writes a number in the number format of the reader's locale, such as `intl.formatNumber`. @internal */
+export type MapNumberFormat = (value: number) => string
+
 /** As much of a registered mark as its readout needs. @internal */
 type MapReadableMark = {
 	label: string
@@ -39,12 +42,16 @@ export type MapMarkReadout = {
  *
  * @internal
  */
-export function markReadout(mark: MapReadableMark, stop: number): MapMarkReadout {
+export function markReadout(
+	mark: MapReadableMark,
+	stop: number,
+	formatNumber: MapNumberFormat,
+): MapMarkReadout {
 	const row = mark.stopRows?.[stop]
 
 	if (row === undefined) return { name: mark.label, detail: mark.detail }
 
-	return { name: row.label ?? stopName(mark.label, stop), detail: row.detail }
+	return { name: row.label ?? stopName(mark.label, stop, formatNumber), detail: row.detail }
 }
 
 /**
@@ -60,10 +67,13 @@ export function markReadout(mark: MapReadableMark, stop: number): MapMarkReadout
  * two renderings of one readout, and a merged dot's `clusterDetail` labels are a third. Three copies
  * of the format is three ways for them to name the same dot differently.
  *
+ * The position goes through `formatNumber`, the number format of the reader's locale, so a stop
+ * reads its number as every other number on the map does.
+ *
  * @internal
  */
-export function stopName(markLabel: string, stop: number): string {
-	return `${markLabel} ${stop + 1}`
+export function stopName(markLabel: string, stop: number, formatNumber: MapNumberFormat): string {
+	return `${markLabel} ${formatNumber(stop + 1)}`
 }
 
 /**
@@ -102,11 +112,14 @@ export function markRowKey(id: string, stop: number): string {
  *
  * @internal
  */
-export function markRows(mark: MapReadableMark & { id: string; kind: string }): MapMarkRow[] {
+export function markRows(
+	mark: MapReadableMark & { id: string; kind: string },
+	formatNumber: MapNumberFormat,
+): MapMarkRow[] {
 	const count = mark.stopRows?.length ?? 0
 
 	return Array.from({ length: Math.max(count, 1) }, (_, stop) => {
-		const readout = markReadout(mark, stop)
+		const readout = markReadout(mark, stop, formatNumber)
 
 		return {
 			key: markRowKey(mark.id, stop),
