@@ -2,7 +2,7 @@ import path from 'node:path'
 import { type ESTree, normalizePath } from 'vite'
 import { readTranslations } from '../../../scripts/intl-catalog.ts'
 import type { Manifest } from './asset-urls.ts'
-import { DATA_ID, DEMO_ID, translateDemo } from './demo-text.ts'
+import { DATA_ID, DEMO_ID, demoFolders, translateDemo } from './demo-text.ts'
 import type { Parser, Translate } from './examples.ts'
 import { findPages } from './pages.ts'
 
@@ -219,7 +219,7 @@ export type Copies = {
 export function createCopies(docs: string, kit: string): Copies {
 	const pages = path.join(docs, 'pages')
 
-	const roots = [pages, path.join(docs, 'data')]
+	const roots = demoFolders(docs)
 
 	// The translated messages of each language, by language. An edit to a
 	// catalog clears them.

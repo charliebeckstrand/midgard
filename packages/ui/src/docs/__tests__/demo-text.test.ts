@@ -14,9 +14,9 @@ const FILE = path.join(PAGES, 'components', 'button', 'demo.tsx')
 
 const parse = (code: string) => parseAst(code, { lang: 'tsx' })
 
-/** The English text of each demo text of `code`, in source order. */
+/** The English message of each demo text of `code`, in source order. */
 function texts(code: string): string[] {
-	return findDemoText(parse(code), code, FILE).map(({ text }) => text)
+	return findDemoText(parse(code), code, FILE).map(({ message }) => message)
 }
 
 describe('findDemoText', () => {
@@ -81,7 +81,7 @@ describe('findDemoText', () => {
 			export const statuses = words('order-status', { pending: 'Pending', label: 'Shipped' })
 		`
 
-		expect(findDemoText(parse(code), code, FILE).map(({ id, text }) => [id, text])).toEqual([
+		expect(findDemoText(parse(code), code, FILE).map(({ id, message }) => [id, message])).toEqual([
 			['docs.data.order-status.pending', 'Pending'],
 			['docs.data.order-status.label', 'Shipped'],
 		])

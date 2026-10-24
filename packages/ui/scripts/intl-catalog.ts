@@ -138,9 +138,7 @@ export function argumentErrors(
  * doubles, so {@link parsePlainMessage} gives `text` back.
  */
 export function formatPlainMessage(text: string): string {
-	if (!/[{}<>]/.test(text)) return text
-
-	return text.replaceAll("'", "''").replace(/[{}<>]+/g, (special) => `'${special}'`)
+	return /[{}<>]/.test(text) ? formatValueMessage([text]) : text
 }
 
 /** The text of an ICU message with no argument. It throws for an argument or a tag. */

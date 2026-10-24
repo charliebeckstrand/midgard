@@ -11,6 +11,7 @@ import {
 	parsePlainMessage,
 	parseValueMessage,
 } from '../../../scripts/intl-catalog.ts'
+import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import type { Parser } from './examples.ts'
 
 // The text of the demos: the literals in `pages/` and in `data/` that a reader
@@ -46,6 +47,15 @@ export const DEMO_ID = 'docs.demo.'
  */
 export const DATA_ID = 'docs.data.'
 
+/**
+ * The folders of the modules with demo text under the folder `docs` of the
+ * docs app: `pages/` and `data/`. Each module in them has a copy in each
+ * language (`copies.ts`).
+ */
+export function demoFolders(docs: string): readonly string[] {
+	return [path.join(docs, 'pages'), path.join(docs, 'data')]
+}
+
 /** The module of `words`, which gives the words of the demo data. */
 const WORDS_MODULE = path.resolve(import.meta.dirname, '..', 'data', 'words.ts')
 
@@ -61,18 +71,20 @@ type Form = 'jsx' | 'string' | 'attribute'
  */
 type Value = { name: string; source: string }
 
-/** One demo text in a module: its place in the source, its message id, and its English text. */
+/** One demo text in a module: its place in the source, its message id, and its English message. */
 export type DemoText = {
 	start: number
 	end: number
 	id: string
-	/** The English text, or for a template the ICU message, such as `{count} stops`. */
-	text: string
+	/** The ICU message of the English text, such as `Save` or `{count} stops`. */
+	message: string
 	form: Form
 	/** The name of the attribute or the property, or `undefined` for JSX text and a word. */
 	name?: string
-	/** The values of a template, one for each argument of its message. */
-	values?: readonly Value[]
+	/** The source of each value of a template, by the name of its argument. */
+	values?: ReadonlyMap<string, string>
+	/** The domain and the key of a word of the demo data. */
+	word?: { domain: string; key: string }
 }
 
 /** A letter of any script. */
@@ -131,20 +143,19 @@ function readString(node: ESTree.Node): string {
 	return ''
 }
 
-/** The name of the argument of a value of a template: the name, or the last property. */
+/**
+ * The name of the argument of a value of a template: `count` for `count`, and
+ * the last property for a chain of properties, such as `name` for `row.name`.
+ * Another value has no name.
+ */
 function valueName(node: ESTree.Node): string | undefined {
 	if (node.type === 'Identifier') return node.name
 
-	if (
-		node.type === 'MemberExpression' &&
-		!node.computed &&
-		node.property.type === 'Identifier' &&
-		valueName(node.object) !== undefined
-	) {
-		return node.property.name
+	if (node.type !== 'MemberExpression' || node.computed || node.property.type !== 'Identifier') {
+		return undefined
 	}
 
-	return undefined
+	return valueName(node.object) && node.property.name
 }
 
 /**
@@ -174,9 +185,7 @@ function templateParts(node: ESTree.TemplateLiteral, values: readonly Value[]): 
 	return node.quasis.flatMap((quasi, index) => {
 		const value = values[index]
 
-		const text = quasi.value.cooked ?? ''
-
-		return [...(text === '' ? [] : [text]), ...(value ? [{ name: value.name }] : [])]
+		return [quasi.value.cooked ?? '', ...(value ? [{ name: value.name }] : [])]
 	})
 }
 
@@ -204,8 +213,8 @@ type Finder = {
 	add: (node: ESTree.Node, form: Form, name?: string) => void
 	/** Adds JSX text. */
 	addJsx: (node: ESTree.JSXText) => void
-	/** Adds a word of the demo data, with its message id. */
-	addWord: (node: Extract<ESTree.Node, { type: 'Literal' }>, id: string) => void
+	/** Adds a word of the demo data, with its domain and its key. */
+	addWord: (node: Extract<ESTree.Node, { type: 'Literal' }>, domain: string, key: string) => void
 }
 
 /** The demo texts that the children of a JSX element or a fragment hold. */
@@ -289,11 +298,11 @@ function findWords(node: ESTree.CallExpression, file: string, finder: Finder): v
 	if (words?.type !== 'ObjectExpression') throw fail('the words are not an object')
 
 	for (const property of words.properties) {
-		const key = property.type === 'Property' ? propertyName(property) : undefined
+		if (property.type !== 'Property') throw fail('a property is a spread')
 
-		if (property.type !== 'Property' || key === undefined || !WORD_KEY.test(key)) {
-			throw fail('a key is not a plain name')
-		}
+		const key = propertyName(property)
+
+		if (key === undefined || !WORD_KEY.test(key)) throw fail('a key is not a plain name')
 
 		const { value } = property
 
@@ -301,7 +310,7 @@ function findWords(node: ESTree.CallExpression, file: string, finder: Finder): v
 			throw fail(`the word "${key}" is not a string`)
 		}
 
-		finder.addWord(value, `${DATA_ID}${domain.value}.${key}`)
+		finder.addWord(value, domain.value, key)
 	}
 }
 
@@ -348,25 +357,47 @@ export function findDemoText(program: ESTree.Program, code: string, file: string
 
 				if (!parts.some((part) => typeof part === 'string' && LETTER.test(part))) return
 
-				const text = formatValueMessage(parts)
+				const message = formatValueMessage(parts)
 
-				const unique = values.filter(
-					(value, index) => values.findIndex((other) => other.name === value.name) === index,
-				)
+				const sources = new Map(values.map((value) => [value.name, value.source]))
 
-				found.set(start, { start, end, id: toDemoId(text), text, form, name, values: unique })
+				found.set(start, {
+					start,
+					end,
+					id: toDemoId(message),
+					message,
+					form,
+					name,
+					values: sources,
+				})
 
 				return
 			}
 
 			const text = readString(node)
 
-			if (LETTER.test(text)) found.set(start, { start, end, id: toDemoId(text), text, form, name })
+			if (LETTER.test(text)) {
+				found.set(start, {
+					start,
+					end,
+					id: toDemoId(text),
+					message: formatPlainMessage(text),
+					form,
+					name,
+				})
+			}
 		},
-		addWord(node, id) {
+		addWord(node, domain, key) {
 			const { start, end } = node
 
-			found.set(start, { start, end, id, text: String(node.value), form: 'string' })
+			found.set(start, {
+				start,
+				end,
+				id: `${DATA_ID}${domain}.${key}`,
+				message: formatPlainMessage(String(node.value)),
+				form: 'string',
+				word: { domain, key },
+			})
 		},
 		addJsx(node) {
 			const raw = code.slice(node.start, node.end)
@@ -383,7 +414,13 @@ export function findDemoText(program: ESTree.Program, code: string, file: string
 
 			const end = node.end - (raw.length - raw.trimEnd().length)
 
-			found.set(start, { start, end, id: toDemoId(text), text, form: 'jsx' })
+			found.set(start, {
+				start,
+				end,
+				id: toDemoId(text),
+				message: formatPlainMessage(text),
+				form: 'jsx',
+			})
 		},
 	}
 
@@ -413,15 +450,13 @@ function escapeTemplate(text: string): string {
 
 /** The template of `found` from its translated message, with each value of the source. */
 function writeTemplate(found: DemoText, file: string, message: string): string {
-	const sources = new Map(found.values?.map((value) => [value.name, value.source]))
-
 	const parts = parseValueMessage(message).map((part) => {
 		if (typeof part === 'string') return escapeTemplate(part)
 
-		const source = sources.get(part.name)
+		const source = found.values?.get(part.name)
 
 		if (source === undefined) {
-			throw new Error(`${file}: the translation of "${found.text}" has no value {${part.name}}`)
+			throw new Error(`${file}: the translation of "${found.message}" has no value {${part.name}}`)
 		}
 
 		return `\${${source}}`
@@ -497,8 +532,8 @@ type Place = {
 }
 
 /** The sentence that names the arguments of a template for the translators. */
-function describeValues(values: readonly Value[]): string {
-	const names = values.map(({ name }) => `{${name}}`)
+function describeValues(values: ReadonlyMap<string, string>): string {
+	const names = [...values.keys()].map((name) => `{${name}}`)
 
 	if (names.length === 1) return `The argument ${names[0]} is a value from the code.`
 
@@ -513,8 +548,8 @@ function describePlace({ found, files, names }: Place): string {
 
 	const where = `in ${shown}${more}`
 
-	if (found.id.startsWith(DATA_ID)) {
-		const [domain, key] = found.id.slice(DATA_ID.length).split('.')
+	if (found.word) {
+		const { domain, key } = found.word
 
 		return `A word of the demo data in the docs: the word for "${key}" in the domain "${domain}", ${where}.`
 	}
@@ -543,20 +578,22 @@ export async function demoEntries(
 
 	/** Adds the text `found` of the module `file` to its place. */
 	function addPlace(found: DemoText, file: string): void {
-		const place = places.get(found.id) ?? { found, files: new Set(), names: new Set() }
+		const place = getOrCompute(places, found.id, () => ({
+			found,
+			files: new Set(),
+			names: new Set(),
+		}))
 
-		if (place.found.text !== found.text) {
-			throw new Error(`${file}: the word ${found.id} is "${place.found.text}" in another module`)
+		if (place.found.message !== found.message) {
+			throw new Error(`${file}: the word ${found.id} is "${place.found.message}" in another module`)
 		}
-
-		places.set(found.id, place)
 
 		place.files.add(path.relative(file.startsWith(pages) ? pages : docs, file))
 
 		if (found.name) place.names.add(found.name)
 	}
 
-	const files = [...(await findModules(pages)), ...(await findModules(path.join(docs, 'data')))]
+	const files = (await Promise.all(demoFolders(docs).map(findModules))).flat()
 
 	for (const file of files) {
 		const code = await readFile(file, 'utf8')
@@ -570,9 +607,7 @@ export async function demoEntries(
 		[...places].map(([id, place]) => [
 			id,
 			{
-				defaultMessage: place.found.values
-					? place.found.text
-					: formatPlainMessage(place.found.text),
+				defaultMessage: place.found.message,
 				description: describePlace(place),
 			},
 		]),

@@ -16,6 +16,7 @@ import { type BarrelApi, createApiWorker, TASKS_AHEAD } from './api.ts'
 import { readClientManifest } from './asset-urls.ts'
 import { labelPage } from './component-events.ts'
 import { appCatalog, createCopies, manifestPreloads, type Preloads, readLangId } from './copies.ts'
+import { demoFolders } from './demo-text.ts'
 import {
 	attachMeta,
 	CODE,
@@ -102,9 +103,6 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 	const ui = path.resolve(docs, '..', '..')
 
 	const pages = path.join(docs, 'pages')
-
-	// The modules of the demo data, which have copies as the modules of `pages/` do.
-	const demoData = path.join(docs, 'data')
 
 	const extractor = createApiWorker(ui)
 
@@ -306,7 +304,10 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 		transform: {
 			filter: {
 				id: {
-					include: [prefixRegex(`${pages}/`), prefixRegex(`${demoData}/`), prefixRegex(`${lang}/`)],
+					include: [
+						...demoFolders(docs).map((folder) => prefixRegex(`${folder}/`)),
+						prefixRegex(`${lang}/`),
+					],
 				},
 			},
 			async handler(code, id) {
