@@ -4,6 +4,8 @@ import { HydratedRouter } from 'react-router/dom'
 import { eventsRootOptions } from 'ui/events'
 import { startDebug } from '../debug/index.tsx'
 import { routerEvents } from '../debug/router.ts'
+import { DocumentLocale } from './document-locale.ts'
+import { readDocumentLocale } from './language.ts'
 import { endStaleBuildWatch, watchStaleBuild } from './stale-build.tsx'
 
 // A deploy replaces the hashed file names under an open tab, so the load of a
@@ -21,11 +23,16 @@ watchStaleBuild()
 // While the events run, the store records from before hydration.
 await startDebug()
 
+// The page hydrates in the locale that the HTML rendered in.
+const locale = readDocumentLocale()
+
 startTransition(() => {
 	hydrateRoot(
 		document,
 		<StrictMode>
-			<HydratedRouter {...routerEvents} />
+			<DocumentLocale value={locale}>
+				<HydratedRouter {...routerEvents} />
+			</DocumentLocale>
 		</StrictMode>,
 		// The bugs of React reach the events through the error callbacks of the root.
 		eventsRootOptions,

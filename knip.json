@@ -20,6 +20,7 @@
 				"src/docs/vite.config.ts",
 				"src/docs/app/**/*.{ts,tsx}",
 				"src/docs/pages/**/index.tsx",
+				"src/docs/kit/localize.tsx",
 				"src/docs/fixtures/main.tsx",
 				"src/docs/fixtures/app.css",
 				"vite.fixtures.config.ts",

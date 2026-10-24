@@ -7,17 +7,16 @@ import { reactDocs } from './plugin/index.ts'
 
 // The docs of ui: `pnpm --filter ui dev` serves them, and `docs:build`
 // prerenders them to `dist/client`.
+const clientDir = path.join(import.meta.dirname, 'dist', 'client')
+
 export default defineConfig({
 	// The root is this folder for each command, also for the preview server
 	// that the prerender starts from the package folder.
 	root: import.meta.dirname,
 	plugins: [
-		reactDocs(),
+		reactDocs({ clientDir }),
 		serverAssetUrls(),
-		serverStylesheetUrl(
-			path.join(import.meta.dirname, 'app', 'app.css'),
-			path.join(import.meta.dirname, 'dist', 'client'),
-		),
+		serverStylesheetUrl(path.join(import.meta.dirname, 'app', 'app.css'), clientDir),
 		tailwindcss(),
 		reactRouter(),
 	],

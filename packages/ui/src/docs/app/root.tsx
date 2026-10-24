@@ -1,6 +1,6 @@
 import pages from 'virtual:docs/pages'
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import {
 	Links,
 	Meta,
@@ -32,6 +32,8 @@ import appCss from './app.css?url'
 import { appMessages } from './app-messages.ts'
 import { catalogs } from './catalogs.ts'
 import { DirectionListbox, DirectionScript } from './direction.tsx'
+import { useDocumentLocale } from './document-locale.ts'
+import { LOCALES } from './language.ts'
 import { PageError } from './page-error.tsx'
 import { NavigateContext, RouterLink } from './router-link.tsx'
 import { DocsSearch, SearchPaletteHost } from './search.tsx'
@@ -46,10 +48,12 @@ const FIRST_PAINT = 'first-paint'
 // The document of each page. `UIDocument` holds `AppearanceProvider`, so each
 // prerendered file has the script of the latin face before its content. The
 // fallback for a path with no page renders no route, so a provider in a route
-// would leave that file with no latin face.
+// would leave that file with no latin face. The root element has the
+// language of the locale that the page renders in.
 export function Layout({ children }: { children: ReactNode }) {
 	return (
 		<UIDocument
+			lang={useDocumentLocale()}
 			className="antialiased"
 			bodyClassName="bg-white text-zinc-950 lg:bg-zinc-100 dark:bg-zinc-950 dark:text-white"
 			head={
@@ -106,13 +110,6 @@ const ACTIONS = (
 // The pinned panel of the events. It takes no props, for the same reason.
 const ASIDE = <EventsAside />
 
-// The locales that a reader can choose in the settings. They are the locales of
-// the apps, so the docs show the same choice. The first is the default. A
-// Spanish locale shows the controls of ui and the text of the shell and the
-// kit in Spanish. The names from the code, the TSDoc, and the text of the
-// demos stay English.
-const LOCALES = ['en', 'es'] as const
-
 const messages = defineMessages({
 	notFound: {
 		id: 'docs.app.notFound',
@@ -139,19 +136,20 @@ const pageTitleMessage = defineMessage<{ page: string }>({
 /**
  * The shell of the docs: the sidebar, the header with the name of the page, and the page.
  *
- * The shell renders in the `en` locale. The build renders each page with the
- * default locale of Node, and the browser hydrates it with the default locale
- * of the reader. A fixed locale makes the two renders agree. After hydration,
- * the shell takes the locale that the reader chooses in the settings. The
- * provider holds the whole shell, so the settings dialog reads the choice, and
- * the shell shows its text in the language of the choice.
+ * The shell renders in the locale of the HTML of the page
+ * (`document-locale.ts`), on the server and in the hydration render, so the
+ * two renders agree. After hydration, the shell takes the locale that the
+ * reader chooses in the settings. The server sends the HTML of that locale, so
+ * the two are the same at the first paint. The provider holds the whole shell,
+ * so the settings dialog reads the choice, and the shell shows its text in the
+ * language of the choice.
  */
 export default function App() {
 	const navigate = useNavigate()
 
 	return (
 		<NavigateContext value={navigate}>
-			<LocaleProvider locale="en" locales={LOCALES} catalogs={catalogs}>
+			<LocaleProvider locale={useDocumentLocale()} locales={LOCALES} catalogs={catalogs}>
 				<Shell />
 			</LocaleProvider>
 		</NavigateContext>
@@ -179,6 +177,13 @@ function Shell() {
 	const docs = intl.formatMessage(appMessages.docs)
 
 	useIdle(warmShiki)
+
+	// The root element has the language of the HTML at the first paint
+	// (`Layout`). When the reader changes the language, it takes the new one,
+	// so a screen reader reads the page in the language of its text.
+	useEffect(() => {
+		document.documentElement.lang = intl.locale
+	}, [intl.locale])
 
 	return (
 		// The links match the path of the page, so the item of a page is current

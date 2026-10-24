@@ -42,7 +42,7 @@ ingress:
         path:
           prefix: /
     - component:
-        name: docs
+        name: docs-server
       match:
         authority:
           exact: docs.ivoryimage.dev
@@ -135,15 +135,33 @@ services:
         type: SECRET
         value: ${CLIENT_IP_SECRET}
 
-static_sites:
-  # The build writes each page to `<path>/index.html`. A path with no page gets
-  # the fallback document, and the app shows its own page for it.
-  - name: docs
+  # The docs site of `ui`. The build writes each page to `<path>/index.html`,
+  # and in Spanish to `<path>/index.es.html`. The server sends the HTML of the
+  # locale of the request at the same path, so the first paint is in the
+  # language of the reader. A path with no page gets the fallback document,
+  # and the app shows its own page for it (`packages/ui/scripts/docs-server.ts`).
+  - name: docs-server
     github:
       repo: charliebeckstrand/midgard
       branch: main
       deploy_on_push: false
     dockerfile_path: Dockerfile.docs
-    # The path in the built image.
-    output_dir: /app/packages/ui/src/docs/dist/client
-    catchall_document: __spa-fallback.html
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    # The same reason as for admin.
+    alerts:
+      - rule: RESTART_COUNT
+        operator: GREATER_THAN
+        value: 2
+        window: FIVE_MINUTES
+      - rule: MEM_UTILIZATION
+        operator: GREATER_THAN
+        value: 80
+        window: TEN_MINUTES
+      - rule: CPU_UTILIZATION
+        operator: GREATER_THAN
+        value: 80
+        window: TEN_MINUTES
+    health_check:
+      http_path: /

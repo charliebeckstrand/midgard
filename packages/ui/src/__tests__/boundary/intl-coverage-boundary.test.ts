@@ -35,6 +35,7 @@ import {
 	TypeFlags,
 } from 'typescript/unstable/sync'
 import { afterAll, describe, expect, it } from 'vitest'
+import { TEXT_ATTRIBUTES, TEXT_PROP } from '../../../scripts/intl-catalog'
 import { startTypeScript } from '../helpers/ts-server'
 import { docsSites, isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
@@ -55,7 +56,8 @@ import { docsSites, isSourceFile, srcDir, srcRelative, walkSource } from '../hel
 //      a selectordinal. The checker reads the type argument of each
 //      `defineMessage` and `defineMessages` call for the type of each value.
 //
-// The docs site is out of scope: its demo text stays English (plan step 4).
+// The docs site is out of scope. Its demo text goes into the docs catalog by
+// the same names of text (`docs/plugin/demo-text.ts`), not through messages.
 
 /** A file that may name no locale, because it finds the default locale. */
 const LOCALE_SOURCE = 'utilities/resolve-locale.ts'
@@ -71,25 +73,6 @@ const ALLOWED = new Map([
 		'A JSON tree shows its data in JSON notation, so an array index stays as JSON writes it.',
 	],
 ])
-
-/** The attributes and props that carry text for a person. */
-const TEXT_ATTRIBUTES = new Set([
-	'alt',
-	'aria-braillelabel',
-	'aria-brailleroledescription',
-	'aria-description',
-	'aria-label',
-	'aria-placeholder',
-	'aria-roledescription',
-	'aria-valuetext',
-	'description',
-	'label',
-	'placeholder',
-	'title',
-])
-
-/** The name of a prop whose default is text, such as `emptyLabel`. */
-const TEXT_PROP = /(?:Label|Title|Placeholder|Description|Text)$/
 
 /** The DOM properties that write the text of a node. */
 const DOM_TEXT = new Set(['textContent', 'innerText', 'ariaLabel', 'title', 'placeholder'])

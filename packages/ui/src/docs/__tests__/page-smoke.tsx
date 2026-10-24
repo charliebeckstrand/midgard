@@ -31,7 +31,9 @@ import { restoreRootAfterCase } from './restore-root.ts'
 // `page-coverage.test.ts` asks whether a page exists, and this test asks
 // whether the page works.
 //
-// The test renders each page in Spanish, with the catalogs of the docs. A name
+// The test renders each page in Spanish, with the catalogs of the docs. It
+// renders the Spanish copy of each page module and each tab module, with each
+// demo text in Spanish (`plugin/copies.ts`). A name
 // from the code that shows as text, such as the title of an example or the
 // label of a field of a playground, writes an error when the Spanish catalog
 // has no message for it (`kit/names.ts`). So a page fails when `pnpm intl`
@@ -48,10 +50,10 @@ import { restoreRootAfterCase } from './restore-root.ts'
 // The pages import the virtual modules of the docs plugin, so the `unit`
 // project loads the plugin (`vitest.config.ts`).
 
-/** The page modules and the tab modules, keyed by module path. */
+/** The Spanish copy of each page module and each tab module, keyed by module path. */
 const modules = import.meta.glob<ComponentType>(
 	['../pages/*/*/index.tsx', '../pages/*/*/*/index.tsx'],
-	{ import: 'default' },
+	{ import: 'default', query: '?lang=es' },
 )
 
 /** Each page module and each tab module, as its module path, in name order. */
@@ -220,8 +222,11 @@ type Walk = {
 	visited: ReadonlySet<string>
 }
 
-/** Loads the default export of the page or the tab in `folder`. */
-function load(folder: string): Promise<ComponentType> {
+/** The locale of the smoke render. */
+const LOCALE = 'es-ES'
+
+/** Loads the Spanish copy of the page or the tab in `folder`. */
+async function load(folder: string): Promise<ComponentType> {
 	const loader = modules[toPath(folder)]
 
 	if (!loader) throw new Error(`docs: no module at ${toPath(folder)}`)
@@ -250,7 +255,7 @@ async function walk(page: Page): Promise<Walk> {
 
 	const { container } = render(
 		<MemoryRouter initialEntries={[page.path]}>
-			<LocaleProvider locale="es-ES" catalogs={catalogs}>
+			<LocaleProvider locale={LOCALE} catalogs={catalogs}>
 				<UIProvider link={RouterLink}>
 					<AppearanceProvider>
 						<VisitedPaths visited={visited} />
