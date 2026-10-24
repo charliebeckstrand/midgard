@@ -31,6 +31,7 @@ import type { GridGroup, GridLeaf } from '../../modules/grid/engine/grid-group/t
 import { isManualPagination } from '../../modules/grid/engine/grid-pagination-utilities'
 import {
 	compareSortKeys,
+	naturalCollator,
 	type SortKey,
 	toSortKey,
 } from '../../modules/grid/engine/grid-sort/utilities'
@@ -94,7 +95,8 @@ function rowSortKey(row: Row<ReferenceFeatures, RowData>, columnId: string): Sor
 
 /**
  * The smart sort of a data column: it orders rows by the {@link SortKey} of
- * their accessor value, as the grid does.
+ * their accessor value, as the grid does. The strings collate in the runtime
+ * locale, as in a grid with no `LocaleProvider`.
  *
  * @remarks
  * The engine negates the result of a comparator for a `desc` column. The
@@ -106,7 +108,7 @@ const smartSort: SortFn<ReferenceFeatures, RowData> = (rowA, rowB, columnId) => 
 
 	const b = rowSortKey(rowB, columnId)
 
-	const result = compareSortKeys(a, b)
+	const result = compareSortKeys(a, b, naturalCollator(undefined))
 
 	if (!a.empty && !b.empty) return result
 

@@ -170,8 +170,11 @@ export function ariaRowIndex(rowIndexOffset: number, index: number): number {
 /**
  * The number that a screen reader speaks for a row of the table: its
  * `aria-rowindex`, else its place among the rows of the table, the header rows
- * included. An announcement that names a row uses this number, so the reader
- * hears one number for each row.
+ * included. The label of a cell editor names its row with this number, so the
+ * reader hears one number for each row. The range announcement cannot read the
+ * document, because a windowed body can leave a corner out. It calculates the
+ * same number with {@link ariaRowIndex} from the place of the row in the
+ * cursor's order.
  *
  * @internal
  */
@@ -179,22 +182,6 @@ export function spokenRowNumber(row: HTMLTableRowElement): number {
 	const index = Number(row.getAttribute('aria-rowindex'))
 
 	return index > 0 ? index : row.rowIndex + 1
-}
-
-/**
- * The data row of a grid with the given key, among the rows of its own body. A
- * windowed body can leave the row out of the document, and the result is then
- * `null`.
- *
- * @internal
- */
-export function findDataRow(
-	table: HTMLTableElement,
-	key: string | number,
-): HTMLTableRowElement | null {
-	return table.querySelector<HTMLTableRowElement>(
-		`:scope > tbody > tr[data-grid-row="${CSS.escape(String(key))}"]`,
-	)
 }
 
 /**

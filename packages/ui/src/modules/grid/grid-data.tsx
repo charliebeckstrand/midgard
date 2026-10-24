@@ -28,7 +28,11 @@ import { useGridSort, useServerSortSettle } from './grid-sort-state'
 import { GridToolbar } from './grid-toolbar'
 import { useGridColumnGroupMenu } from './use-grid-column-group-menu'
 import { useGridDataColumns } from './use-grid-data-columns'
-import { useGridDataCursor, useGridIndexRefs } from './use-grid-data-cursor'
+import {
+	useGridDataCursor,
+	useGridIndexRefs,
+	useGridRowIndexOffsetSync,
+} from './use-grid-data-cursor'
 import { useGridDataFrame } from './use-grid-data-frame'
 import { useGridDataView } from './use-grid-data-view'
 import { useGridExport } from './use-grid-export'
@@ -549,7 +553,8 @@ export function GridData<T>({
 		ariaRowCount,
 		dataRowCount,
 		footerStats,
-		semantics: { enabled: gridSemantics, rowOffset: pageRowOffset, selectAllLabel },
+		semantics: { enabled: gridSemantics, selectAllLabel },
+		rowIndexOffset,
 		rowHover,
 		reorderActive,
 		animateSortRows,
@@ -603,6 +608,9 @@ export function GridData<T>({
 		sort,
 		animateSort: sortConfig?.animate ?? false,
 	})
+
+	// The cursor speaks the row numbers of a range from this offset.
+	useGridRowIndexOffsetSync(indexRefs.rowIndexOffsetRef, rowIndexOffset)
 
 	// The truncating head and cells read the drag state of the settle store (see
 	// `useGridResizing`), not this value, so a sort or a select-all, which churns
@@ -659,7 +667,7 @@ export function GridData<T>({
 			}}
 			semantics={{
 				enabled: gridSemantics,
-				rowOffset: pageRowOffset,
+				rowIndexOffset,
 				groupRowOffset,
 				ariaRowCount,
 				selectAllLabel,

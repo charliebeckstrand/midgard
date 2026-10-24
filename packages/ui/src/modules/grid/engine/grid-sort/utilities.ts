@@ -25,7 +25,9 @@ const collators = new Map<string, Intl.Collator>()
 /**
  * The natural collator of `locale`, or the one of the runtime locale when
  * `locale` is unset (see `resolveLocale`). The string sort of the grid orders
- * by it, so a `LocaleProvider` sets the collation. @internal
+ * by it, so a `LocaleProvider` sets the collation. Each comparator of this file
+ * takes the collator as a required argument. Thus a new caller cannot sort in
+ * the runtime locale by mistake. @internal
  */
 export function naturalCollator(locale: string | undefined): Intl.Collator {
 	return getOrCompute(
@@ -134,15 +136,11 @@ function compareNumbers(a: number, b: number): number {
  * - Then by {@link kindRank}: numbers, then dates, then the rest.
  * - Within a rank, numbers and dates compare by value, and two booleans by
  *   value.
- * - Last, a natural locale-aware string compare.
+ * - Last, a natural string compare by `collator`.
  *
  * @internal
  */
-export function compareSortKeys(
-	a: SortKey,
-	b: SortKey,
-	collator: Intl.Collator = naturalCollator(undefined),
-): number {
+export function compareSortKeys(a: SortKey, b: SortKey, collator: Intl.Collator): number {
 	if (a.empty || b.empty) {
 		if (a.empty && b.empty) return 0
 
@@ -171,17 +169,17 @@ export function compareSortKeys(
  *   of non-numbers.
  * - Dates and booleans compare by their natural order, and a date sorts ahead
  *   of any other non-number.
- * - Everything else falls back to a natural, locale-aware string compare (so
+ * - Everything else falls back to a natural string compare by `collator` (so
  *   `Item 2` precedes `Item 10`).
  *
  * The grid negates the result for descending order.
  *
  * @internal
  */
-export function compareSmart(a: unknown, b: unknown): number {
+export function compareSmart(a: unknown, b: unknown, collator: Intl.Collator): number {
 	if (Object.is(a, b)) return 0
 
-	return compareSortKeys(toSortKey(a), toSortKey(b))
+	return compareSortKeys(toSortKey(a), toSortKey(b), collator)
 }
 
 /**
@@ -231,8 +229,9 @@ export function sortRowsSmart<T>(
 	rows: readonly T[],
 	getKey: (row: T, index: number) => string | number,
 	fields: SmartSortField<T>[],
+	collator: Intl.Collator,
 ): { rows: readonly T[]; keys: (string | number)[] } {
-	return materializeSort(rows, computeSortOrder(rows, fields), getKey)
+	return materializeSort(rows, computeSortOrder(rows, fields, collator), getKey)
 }
 
 /**
@@ -254,7 +253,7 @@ export function sortRowsSmart<T>(
 export function computeSortOrder<T>(
 	rows: readonly T[],
 	fields: SmartSortField<T>[],
-	collator: Intl.Collator = naturalCollator(undefined),
+	collator: Intl.Collator,
 ): number[] {
 	// One index comparator per field, each closing over its decoded keys (the
 	// costly decode runs once here, not per comparison).
@@ -366,8 +365,9 @@ const sortOrders = new WeakMap<object, WeakMap<object, Map<string, number[]>>>()
  *
  * @param columns - The column set that the fields read. A new set drops the orders.
  * @param signature - The column id and the direction of each sort entry.
- * @param mirror - The signature of the same single column in the other direction.
+ * @param mirror - The signature of the same single column in the other direction, or `undefined` for none.
  * @param locale - The locale that the string sort collates in (see {@link naturalCollator}).
+ * `undefined` collates in the runtime locale.
  * @internal
  */
 export function cachedSortOrder<T>(
@@ -375,8 +375,8 @@ export function cachedSortOrder<T>(
 	columns: object,
 	signature: string,
 	fields: SmartSortField<T>[],
-	mirror?: string,
-	locale?: string,
+	mirror: string | undefined,
+	locale: string | undefined,
 ): number[] {
 	const collator = naturalCollator(locale)
 
@@ -479,7 +479,7 @@ export function compareDirected(
 	a: SortKey,
 	b: SortKey,
 	descending: boolean,
-	collator: Intl.Collator = naturalCollator(undefined),
+	collator: Intl.Collator,
 ): number {
 	const raw = compareSortKeys(a, b, collator)
 

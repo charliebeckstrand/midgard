@@ -334,6 +334,10 @@ export function useGridDataFrame<T>({
 		manualGroupingActive,
 	)
 
+	// The `aria-rowindex` offset of the first row of the body: the rows of the
+	// pages before this one, the group band, and a new-row slot at the top.
+	const rowIndexOffset = semantics.rowOffset + groupRowOffset + Number(newRowPlace === 'top')
+
 	// A clickable grid (any row- or cell-level click handler) reads as
 	// actionable through the shared `<Table hover>` wash, layered over any
 	// explicit `hover`; the row keeps its own pointer cursor (see `GridRow`).
@@ -406,6 +410,7 @@ export function useGridDataFrame<T>({
 		dataRowCount,
 		footerStats,
 		semantics,
+		rowIndexOffset,
 		rowHover,
 		reorderActive,
 		animateSortRows,

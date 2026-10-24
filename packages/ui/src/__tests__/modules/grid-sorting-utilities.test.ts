@@ -6,12 +6,15 @@ import {
 	compareSmart,
 	computeSortOrder,
 	materializeSort,
+	naturalCollator,
 	type SmartSortField,
 	sortRowsSmart,
 } from '../../modules/grid/engine/grid-sort/utilities'
 
+const collator = naturalCollator('en-US')
+
 describe('compareSmart', () => {
-	const asc = (values: unknown[]) => [...values].sort(compareSmart)
+	const asc = (values: unknown[]) => [...values].sort((a, b) => compareSmart(a, b, collator))
 
 	it('orders money and comma-grouped numbers numerically, not lexically', () => {
 		expect(asc(['$999', '$1,234', '$90'])).toEqual(['$90', '$999', '$1,234'])
@@ -30,11 +33,11 @@ describe('compareSmart', () => {
 	})
 
 	it('compares dates and booleans by their natural order', () => {
-		expect(compareSmart(new Date(2020, 0, 1), new Date(2021, 0, 1))).toBeLessThan(0)
+		expect(compareSmart(new Date(2020, 0, 1), new Date(2021, 0, 1), collator)).toBeLessThan(0)
 
-		expect(compareSmart(true, false)).toBeGreaterThan(0)
+		expect(compareSmart(true, false, collator)).toBeGreaterThan(0)
 
-		expect(compareSmart(false, true)).toBeLessThan(0)
+		expect(compareSmart(false, true, collator)).toBeLessThan(0)
 	})
 
 	it('ranks dates ahead of text, so a mixed column cannot cycle', () => {
@@ -47,13 +50,13 @@ describe('compareSmart', () => {
 
 		expect(asc(['Mon', later, earlier])).toEqual([earlier, later, 'Mon'])
 
-		expect(compareSmart(earlier, 'Mon')).toBeLessThan(0)
+		expect(compareSmart(earlier, 'Mon', collator)).toBeLessThan(0)
 
-		expect(compareSmart(later, 'Mon')).toBeLessThan(0)
+		expect(compareSmart(later, 'Mon', collator)).toBeLessThan(0)
 	})
 
 	it('keeps numbers ahead of dates', () => {
-		expect(compareSmart(5, new Date(2020, 0, 1))).toBeLessThan(0)
+		expect(compareSmart(5, new Date(2020, 0, 1), collator)).toBeLessThan(0)
 	})
 
 	it('sinks an invalid date and NaN with the empties, and orders the dates around them', () => {
@@ -67,21 +70,21 @@ describe('compareSmart', () => {
 
 		expect(asc([3, Number.NaN, 1])).toEqual([1, 3, Number.NaN])
 
-		expect(compareSmart(invalid, Number.NaN)).toBe(0)
+		expect(compareSmart(invalid, Number.NaN, collator)).toBe(0)
 	})
 
 	it('ranks the infinities as numbers', () => {
 		expect(asc([Infinity, 5, 'a', -Infinity])).toEqual([-Infinity, 5, Infinity, 'a'])
 
-		expect(compareSmart(Infinity, Infinity)).toBe(0)
+		expect(compareSmart(Infinity, Infinity, collator)).toBe(0)
 
-		expect(compareSmart(-Infinity, -Infinity)).toBe(0)
+		expect(compareSmart(-Infinity, -Infinity, collator)).toBe(0)
 	})
 
 	it('treats equal values as equal', () => {
-		expect(compareSmart('x', 'x')).toBe(0)
+		expect(compareSmart('x', 'x', collator)).toBe(0)
 
-		expect(compareSmart(5, 5)).toBe(0)
+		expect(compareSmart(5, 5, collator)).toBe(0)
 	})
 })
 
@@ -99,7 +102,7 @@ describe('sortRowsSmart', () => {
 
 	/** The resulting id order. */
 	const order = (rows: Row[], fields: SmartSortField<Row>[]) =>
-		sortRowsSmart(rows, getKey, fields).rows.map((row) => row.id)
+		sortRowsSmart(rows, getKey, fields, collator).rows.map((row) => row.id)
 
 	it('orders one column by the smart comparator, not lexically', () => {
 		const rows: Row[] = [
@@ -165,7 +168,7 @@ describe('sortRowsSmart', () => {
 
 		const keyedByIndex = (row: Row, index: number) => `${row.id}@${index}`
 
-		const { keys } = sortRowsSmart(rows, keyedByIndex, [field('amount')])
+		const { keys } = sortRowsSmart(rows, keyedByIndex, [field('amount')], collator)
 
 		// Sorted order is b, c, a — but each key carries the row's *source* index.
 		expect(keys).toEqual(['b@1', 'c@2', 'a@0'])
@@ -181,9 +184,9 @@ describe('sortRowsSmart', () => {
 
 			const fields = [field('amount')]
 
-			const composed = materializeSort(rows, computeSortOrder(rows, fields), getKey)
+			const composed = materializeSort(rows, computeSortOrder(rows, fields, collator), getKey)
 
-			expect(composed).toEqual(sortRowsSmart(rows, getKey, fields))
+			expect(composed).toEqual(sortRowsSmart(rows, getKey, fields, collator))
 		})
 
 		it('re-materializes a reused permutation with a different getKey', () => {
@@ -196,7 +199,7 @@ describe('sortRowsSmart', () => {
 			// The permutation is computed once; the cache reuses it across renders
 			// whose getKey identity differs. Both projections must key correctly off
 			// the row's *original* index, never drift with the sorted position.
-			const permutation = computeSortOrder(rows, [field('amount')])
+			const permutation = computeSortOrder(rows, [field('amount')], collator)
 
 			expect(materializeSort(rows, permutation, (row) => row.id).keys).toEqual(['b', 'c', 'a'])
 
@@ -212,9 +215,9 @@ describe('sortRowsSmart', () => {
 				{ id: 'b', amount: 1 },
 			]
 
-			const asc = computeSortOrder(rows, [field('amount')])
+			const asc = computeSortOrder(rows, [field('amount')], collator)
 
-			const desc = computeSortOrder(rows, [field('amount', true)])
+			const desc = computeSortOrder(rows, [field('amount', true)], collator)
 
 			expect(asc).toEqual([2, 0, 1])
 
@@ -284,13 +287,15 @@ function isEmpty(value: unknown): boolean {
 
 describe('compareSmart · properties', () => {
 	test.prop([plainCell()])('reads a value as equal to itself', (value) => {
-		expect(compareSmart(value, value)).toBe(0)
+		expect(compareSmart(value, value, collator)).toBe(0)
 	})
 
 	// Compared as a boolean rather than through `toBe`, which parts `-0` from
 	// `0` and reads a tie as a break.
 	test.prop([plainCell(), plainCell()])('reverses its sign when the sides swap', (a, b) => {
-		expect(Math.sign(compareSmart(a, b)) === -Math.sign(compareSmart(b, a))).toBe(true)
+		expect(
+			Math.sign(compareSmart(a, b, collator)) === -Math.sign(compareSmart(b, a, collator)),
+		).toBe(true)
 	})
 
 	test.prop([orderableRows()])('orders a mixed column transitively', (rows) => {
@@ -298,12 +303,12 @@ describe('compareSmart · properties', () => {
 
 		for (const a of cells) {
 			for (const b of cells) {
-				if (compareSmart(a, b) > 0) continue
+				if (compareSmart(a, b, collator) > 0) continue
 
 				for (const c of cells) {
-					if (compareSmart(b, c) > 0) continue
+					if (compareSmart(b, c, collator) > 0) continue
 
-					expect(compareSmart(a, c)).toBeLessThanOrEqual(0)
+					expect(compareSmart(a, c, collator)).toBeLessThanOrEqual(0)
 				}
 			}
 		}
@@ -312,7 +317,7 @@ describe('compareSmart · properties', () => {
 
 describe('computeSortOrder · properties', () => {
 	test.prop([anyRows(), fc.boolean()])('returns every row once', (rows, descending) => {
-		const order = computeSortOrder(rows, [field('a', descending)])
+		const order = computeSortOrder(rows, [field('a', descending)], collator)
 
 		expect([...order].sort((x, y) => x - y)).toEqual(rows.map((_, index) => index))
 	})
@@ -320,21 +325,21 @@ describe('computeSortOrder · properties', () => {
 	// Stability is the tie-break the engine's `sortIndex` supplies: rows the
 	// fields cannot part hold the order they arrived in.
 	test.prop([anyRows(), fc.boolean()])('holds the order of tied rows', (rows, descending) => {
-		const order = computeSortOrder(rows, [field('a', descending)])
+		const order = computeSortOrder(rows, [field('a', descending)], collator)
 
 		for (let at = 0; at + 1 < order.length; at++) {
 			const before = (rows[order[at] as number] as PropertyRow).a
 
 			const after = (rows[order[at + 1] as number] as PropertyRow).a
 
-			if (compareSmart(before, after) === 0) {
+			if (compareSmart(before, after, collator) === 0) {
 				expect(order[at] as number).toBeLessThan(order[at + 1] as number)
 			}
 		}
 	})
 
 	test.prop([orderableRows()])('leaves an ascending run non-decreasing', (rows) => {
-		const order = computeSortOrder(rows, [field('a', false)])
+		const order = computeSortOrder(rows, [field('a', false)], collator)
 
 		for (let at = 0; at + 1 < order.length; at++) {
 			const before = (rows[order[at] as number] as PropertyRow).a
@@ -343,12 +348,12 @@ describe('computeSortOrder · properties', () => {
 
 			if (isEmpty(before) || isEmpty(after)) continue
 
-			expect(compareSmart(before, after)).toBeLessThanOrEqual(0)
+			expect(compareSmart(before, after, collator)).toBeLessThanOrEqual(0)
 		}
 	})
 
 	test.prop([orderableRows()])('leaves a descending run non-increasing', (rows) => {
-		const order = computeSortOrder(rows, [field('a', true)])
+		const order = computeSortOrder(rows, [field('a', true)], collator)
 
 		for (let at = 0; at + 1 < order.length; at++) {
 			const before = (rows[order[at] as number] as PropertyRow).a
@@ -357,12 +362,12 @@ describe('computeSortOrder · properties', () => {
 
 			if (isEmpty(before) || isEmpty(after)) continue
 
-			expect(compareSmart(before, after)).toBeGreaterThanOrEqual(0)
+			expect(compareSmart(before, after, collator)).toBeGreaterThanOrEqual(0)
 		}
 	})
 
 	test.prop([anyRows(), fc.boolean()])('sinks empties last either way', (rows, descending) => {
-		const order = computeSortOrder(rows, [field('a', descending)])
+		const order = computeSortOrder(rows, [field('a', descending)], collator)
 
 		const empties = order.map((index) => isEmpty((rows[index] as PropertyRow).a))
 
@@ -373,18 +378,18 @@ describe('computeSortOrder · properties', () => {
 	test.prop([anyRows(), fc.boolean(), fc.boolean()])(
 		'consults the second field on a tie alone',
 		(rows, first, second) => {
-			const order = computeSortOrder(rows, [field('a', first), field('b', second)])
+			const order = computeSortOrder(rows, [field('a', first), field('b', second)], collator)
 
 			for (let at = 0; at + 1 < order.length; at++) {
 				const before = rows[order[at] as number] as PropertyRow
 
 				const after = rows[order[at + 1] as number] as PropertyRow
 
-				if (compareSmart(before.a, after.a) !== 0) continue
+				if (compareSmart(before.a, after.a, collator) !== 0) continue
 
 				if (isEmpty(before.b) || isEmpty(after.b)) continue
 
-				const ordered = compareSmart(before.b, after.b)
+				const ordered = compareSmart(before.b, after.b, collator)
 
 				expect(second ? ordered >= 0 : ordered <= 0).toBe(true)
 			}
@@ -400,7 +405,14 @@ describe('cachedSortOrder · properties', () => {
 		(rows, descending) => {
 			const columns = {}
 
-			cachedSortOrder(rows, columns, `a:${descending}`, [field('a', descending)])
+			cachedSortOrder(
+				rows,
+				columns,
+				`a:${descending}`,
+				[field('a', descending)],
+				undefined,
+				'en-US',
+			)
 
 			const flipped = cachedSortOrder(
 				rows,
@@ -408,9 +420,10 @@ describe('cachedSortOrder · properties', () => {
 				`a:${!descending}`,
 				[field('a', !descending)],
 				`a:${descending}`,
+				'en-US',
 			)
 
-			expect(flipped).toEqual(computeSortOrder(rows, [field('a', !descending)]))
+			expect(flipped).toEqual(computeSortOrder(rows, [field('a', !descending)], collator))
 		},
 	)
 
@@ -419,10 +432,10 @@ describe('cachedSortOrder · properties', () => {
 
 		const fields = (descending: boolean) => [field('a', descending), field('b', false)]
 
-		cachedSortOrder(rows, columns, 'asc', fields(false))
+		cachedSortOrder(rows, columns, 'asc', fields(false), undefined, 'en-US')
 
-		expect(cachedSortOrder(rows, columns, 'desc', fields(true), 'asc')).toEqual(
-			computeSortOrder(rows, fields(true)),
+		expect(cachedSortOrder(rows, columns, 'desc', fields(true), 'asc', 'en-US')).toEqual(
+			computeSortOrder(rows, fields(true), collator),
 		)
 	})
 })
@@ -433,8 +446,8 @@ describe('sortRowsSmart · properties', () => {
 		(rows, descending) => {
 			const fields = [field('a', descending)]
 
-			expect(sortRowsSmart(rows, rowKey, fields)).toEqual(
-				materializeSort(rows, computeSortOrder(rows, fields), rowKey),
+			expect(sortRowsSmart(rows, rowKey, fields, collator)).toEqual(
+				materializeSort(rows, computeSortOrder(rows, fields, collator), rowKey),
 			)
 		},
 	)
@@ -444,9 +457,9 @@ describe('sortRowsSmart · properties', () => {
 	test.prop([anyRows(), fc.boolean()])('keys a row at its original index', (rows, descending) => {
 		const fields = [field('a', descending)]
 
-		const order = computeSortOrder(rows, fields)
+		const order = computeSortOrder(rows, fields, collator)
 
-		const { rows: sorted, keys } = sortRowsSmart(rows, rowKey, fields)
+		const { rows: sorted, keys } = sortRowsSmart(rows, rowKey, fields, collator)
 
 		order.forEach((index, at) => {
 			expect(sorted[at]).toBe(rows[index])
@@ -458,7 +471,7 @@ describe('sortRowsSmart · properties', () => {
 	test.prop([anyRows()])('leaves the rows it was handed untouched', (rows) => {
 		const before = [...rows]
 
-		sortRowsSmart(rows, rowKey, [field('a', false)])
+		sortRowsSmart(rows, rowKey, [field('a', false)], collator)
 
 		expect(rows).toEqual(before)
 	})

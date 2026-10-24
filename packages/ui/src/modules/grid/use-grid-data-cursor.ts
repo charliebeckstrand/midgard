@@ -25,8 +25,9 @@ import type { GridScrollRowIntoView } from './use-grid-navigation'
 /**
  * The live index state of {@link GridData}, one ref for each value. The cursor
  * phase makes the cursor with these refs. The view phase fills them after the
- * engine resolves the rows (see {@link useGridIndexSync}). The cursor and the
- * cells read them at event time, and the cells also read them in render.
+ * engine resolves the rows (see {@link useGridIndexSync}), and the frame phase
+ * fills the row offset (see {@link useGridRowIndexOffsetSync}). The cursor and
+ * the cells read them at event time, and the cells also read them in render.
  *
  * @internal
  */
@@ -46,6 +47,8 @@ export type GridIndexRefs<T> = {
 	selectableRef: RefObject<boolean>
 	/** Toggles the selection of a row, by its key. */
 	toggleRowRef: RefObject<((key: string | number) => void) | null>
+	/** The `aria-rowindex` offset of the first row of the body (see `ariaRowIndex`). */
+	rowIndexOffsetRef: RefObject<number>
 }
 
 /** The values that {@link useGridIndexSync} writes, one for each ref of {@link GridIndexRefs}. @internal */
@@ -84,6 +87,8 @@ export function useGridIndexRefs<T>(source: GridEditSource<T>): GridIndexRefs<T>
 
 	const toggleRowRef = useRef<((key: string | number) => void) | null>(null)
 
+	const rowIndexOffsetRef = useRef(0)
+
 	const [refs] = useState(() => ({
 		rowsRef,
 		colCountRef,
@@ -94,6 +99,7 @@ export function useGridIndexRefs<T>(source: GridEditSource<T>): GridIndexRefs<T>
 		editSourceRef,
 		selectableRef,
 		toggleRowRef,
+		rowIndexOffsetRef,
 	}))
 
 	return refs
@@ -119,6 +125,21 @@ function useGridEditSourceSync<T>(
 	useLayoutEffect(() => {
 		editSourceRef.current = source
 	}, [editSourceRef, source])
+}
+
+/**
+ * Writes the `aria-rowindex` offset of the body into its ref, in a layout
+ * effect. Only the events and the timers of the cursor read the ref.
+ *
+ * @internal
+ */
+export function useGridRowIndexOffsetSync(
+	rowIndexOffsetRef: RefObject<number>,
+	offset: number,
+): void {
+	useLayoutEffect(() => {
+		rowIndexOffsetRef.current = offset
+	}, [rowIndexOffsetRef, offset])
 }
 
 /**
