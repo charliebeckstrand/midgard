@@ -86,8 +86,8 @@ function fromIsoDate(value: string): Date | undefined {
 /**
  * The `[min, max]` pair of number inputs for a range rule. Each bound clamps
  * to the field's `span` and to the other bound. With a span, each placeholder
- * is its end of the span alone (`18`), because each input's steppers leave
- * room for a few characters only. With no span, the placeholders are `Min` and
+ * is its end of the span alone (`18`), in the number form of the reader,
+ * because each input's steppers leave room for a few characters only. With no span, the placeholders are `Min` and
  * `Max`.
  *
  * @internal
@@ -111,7 +111,9 @@ function RangeValue({
 			<NumberInput
 				value={lo === '' ? null : lo}
 				placeholder={
-					floor === undefined ? intl.formatMessage(queryBuilderMessages.min) : String(floor)
+					floor === undefined
+						? intl.formatMessage(queryBuilderMessages.min)
+						: intl.formatNumber(floor)
 				}
 				aria-label={intl.formatMessage(queryBuilderMessages.fieldMin, { field: field.label })}
 				min={limits.lo.min}
@@ -123,7 +125,9 @@ function RangeValue({
 			<NumberInput
 				value={hi === '' ? null : hi}
 				placeholder={
-					ceiling === undefined ? intl.formatMessage(queryBuilderMessages.max) : String(ceiling)
+					ceiling === undefined
+						? intl.formatMessage(queryBuilderMessages.max)
+						: intl.formatNumber(ceiling)
 				}
 				aria-label={intl.formatMessage(queryBuilderMessages.fieldMax, { field: field.label })}
 				min={limits.hi.min}

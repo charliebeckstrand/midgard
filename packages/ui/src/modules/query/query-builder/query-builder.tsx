@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { type ComponentProps, useCallback, useMemo } from 'react'
 import { Fieldset } from '../../../components/fieldset'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
@@ -20,8 +20,12 @@ export const QUERY_BUILDER_ORIENTATION = adaptive({
 	medium: 'horizontal',
 }) satisfies Responsive<Orientation>
 
-/** Props for {@link QueryBuilder}: the queryable `fields` and the controlled/uncontrolled query tree. */
-export type QueryBuilderProps = {
+/**
+ * Props for {@link QueryBuilder}: the queryable `fields` and the controlled/uncontrolled query tree.
+ * The root `<fieldset>` takes the rest. The builder writes its groups itself, so it takes no
+ * `children`. `defaultValue` holds a query tree.
+ */
+export type QueryBuilderProps = Omit<ComponentProps<'fieldset'>, 'children' | 'defaultValue'> & {
 	/** Fields available to rules, each with a type and operator set. */
 	fields: QueryField[]
 	/** Controlled query tree. Pair it with `onValueChange`. */
@@ -70,7 +74,6 @@ export type QueryBuilderProps = {
 	 * @defaultValue false
 	 */
 	reorder?: boolean
-	className?: string
 }
 
 /**
@@ -91,6 +94,7 @@ export function QueryBuilder({
 	requireRule = false,
 	reorder = false,
 	className,
+	...props
 }: QueryBuilderProps) {
 	const { root, actions, register } = useQueryBuilderTree({
 		fields,
@@ -120,7 +124,12 @@ export function QueryBuilder({
 
 	return (
 		<QueryBuilderProvider state={state} actions={actions} register={register}>
-			<Fieldset data-slot="query-builder" disabled={disabled} className={cn(slots.base, className)}>
+			<Fieldset
+				data-slot="query-builder"
+				{...props}
+				disabled={disabled}
+				className={cn(slots.base, className)}
+			>
 				<QueryBuilderGroup group={root} root />
 			</Fieldset>
 		</QueryBuilderProvider>

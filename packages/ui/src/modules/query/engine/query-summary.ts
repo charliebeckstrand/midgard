@@ -15,7 +15,8 @@ import type { QueryCombinator, QueryField, QueryGroup, QueryOperator, QueryRule 
  * operator labels, and its value. The value is the rule's own, the operator's
  * fixed `valueLabel` (`is Empty`), or none at all for a value-less operator
  * without one (`is true`). A `select` value resolves to its option label; a one-sided
- * range renders as a `≥`/`≤` bound.
+ * range renders as a `≥`/`≤` bound. A number value is in the number form of
+ * the intl.
  */
 export type QuerySummaryRuleToken = {
 	kind: 'rule'
@@ -48,6 +49,25 @@ export type QuerySummaryToken =
 	| { kind: 'group-close'; id: string }
 
 /**
+ * The fraction digits that a number value keeps in the summary. The value is
+ * what the reader typed, so the summary does not round it.
+ *
+ * @internal
+ */
+const NUMBER_FORMAT = { maximumFractionDigits: 20 } satisfies Intl.NumberFormatOptions
+
+/**
+ * A rule value or a range bound as text. A number goes through `formatNumber`,
+ * so it reads in the number form of `intl` (CONVENTIONS §3.10), as the number
+ * input of the builder shows it. Each other value stays as the app wrote it.
+ *
+ * @internal
+ */
+function valueText(intl: IntlShape, value: unknown): string {
+	return typeof value === 'number' ? intl.formatNumber(value, NUMBER_FORMAT) : String(value ?? '')
+}
+
+/**
  * Formats a range operator's `[min, max]` value: `min and max` when both bounds
  * are set, else the open bound as a `≥`/`≤` relation. Reached only for an active
  * range rule, so the value is a `[min, max]` pair with at least one bound set.
@@ -64,25 +84,28 @@ function describeRange(
 	const [lo, hi] = value as unknown[]
 
 	if (!isBlank(lo) && !isBlank(hi)) {
-		const range = intl.formatMessage(queryMessages.range, { min: `${lo}`, max: `${hi}` })
+		const range = intl.formatMessage(queryMessages.range, {
+			min: valueText(intl, lo),
+			max: valueText(intl, hi),
+		})
 
 		return { kind: 'rule', id, field, operator, value: range }
 	}
 
 	return isBlank(lo)
-		? { kind: 'rule', id, field, operator: '≤', value: `${hi}` }
-		: { kind: 'rule', id, field, operator: '≥', value: `${lo}` }
+		? { kind: 'rule', id, field, operator: '≤', value: valueText(intl, hi) }
+		: { kind: 'rule', id, field, operator: '≥', value: valueText(intl, lo) }
 }
 
-/** Resolves a rule's display value: a `select` maps to its option label, everything else stringifies. @internal */
-function describeValue(field: QueryField | undefined, value: unknown): string {
-	const raw = String(value ?? '')
+/** Resolves a rule's display value: a `select` maps to its option label, and each other value reads through {@link valueText}. @internal */
+function describeValue(intl: IntlShape, field: QueryField | undefined, value: unknown): string {
+	const text = valueText(intl, value)
 
 	if (field?.type === 'select') {
-		return field.options?.find((option) => option.value === value)?.label ?? raw
+		return field.options?.find((option) => option.value === value)?.label ?? text
 	}
 
-	return raw
+	return text
 }
 
 /**
@@ -161,7 +184,7 @@ export function describeRule(
 		id: rule.id,
 		field: label,
 		operator: relation,
-		value: describeValue(field, rule.value),
+		value: describeValue(intl, field, rule.value),
 	}
 }
 

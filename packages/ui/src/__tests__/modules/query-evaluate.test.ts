@@ -49,6 +49,29 @@ describe('matchQueryRule', () => {
 		expect(matchQueryRule('between', '', [-1, 1])).toBe(false)
 	})
 
+	it('reads a number rule value against a cell as a number, as the order operators do', () => {
+		expect(matchQueryRule('equals', '$1,234.50', 1234.5)).toBe(true)
+
+		expect(matchQueryRule('notEquals', '$1,234.50', 1234.5)).toBe(false)
+
+		expect(matchQueryRule('equals', '18.0', 18)).toBe(true)
+
+		expect(matchQueryRule('equals', null, 0)).toBe(false)
+
+		expect(matchQueryRule('notEquals', null, 0)).toBe(true)
+
+		// A text rule value keeps its text match.
+		expect(matchQueryRule('equals', '007', '7')).toBe(false)
+	})
+
+	it('does not put a blank date cell before or after a date', () => {
+		for (const blank of [null, undefined, '', '  ']) {
+			expect(matchQueryRule('before', blank, '2026-01-15')).toBe(false)
+
+			expect(matchQueryRule('after', blank, '2026-01-15')).toBe(false)
+		}
+	})
+
 	it('handles noValue and unknown operators', () => {
 		expect(matchQueryRule('isEmpty', '', undefined)).toBe(true)
 

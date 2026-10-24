@@ -77,17 +77,34 @@ export function isBlank(value: unknown): boolean {
 }
 
 /**
+ * Whether a cell holds the rule value, for `equals` and `notEquals`. A number
+ * rule value, which the number input of the builder writes, reads the cell
+ * through {@link asNumber}, as the order operators do. So the cell `$1,234.50`
+ * holds `1234.5`, and a blank cell holds no number. Each other rule value reads
+ * the cell as text.
+ *
+ * @internal
+ */
+function holdsValue(fieldValue: unknown, ruleValue: unknown): boolean {
+	return typeof ruleValue === 'number'
+		? asNumber(fieldValue) === ruleValue
+		: asText(fieldValue) === asText(ruleValue)
+}
+
+/**
  * Predicate per operator value, over a field value and the rule's value. Mirrors
  * the default operator sets in {@link getOperators}; text matches are
  * case-insensitive, date comparisons rely on ISO (`YYYY-MM-DD`) string order.
- * A predicate gets only a rule value that {@link imposesConstraint} accepts, so
- * it does not check the shape of that value.
+ * A blank date cell is not before or after a date, as a blank number cell
+ * matches no comparison. A predicate gets only a rule value that
+ * {@link imposesConstraint} accepts, so it does not check the shape of that
+ * value.
  *
  * @internal
  */
 const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => boolean> = {
-	equals: (a, b) => asText(a) === asText(b),
-	notEquals: (a, b) => asText(a) !== asText(b),
+	equals: (a, b) => holdsValue(a, b),
+	notEquals: (a, b) => !holdsValue(a, b),
 	contains: (a, b) => asText(a).toLowerCase().includes(asText(b).toLowerCase()),
 	startsWith: (a, b) => asText(a).toLowerCase().startsWith(asText(b).toLowerCase()),
 	endsWith: (a, b) => asText(a).toLowerCase().endsWith(asText(b).toLowerCase()),
@@ -108,8 +125,8 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
 
 		return value >= lo && value <= hi
 	},
-	before: (a, b) => asText(a) < asText(b),
-	after: (a, b) => asText(a) > asText(b),
+	before: (a, b) => !isBlank(a) && asText(a) < asText(b),
+	after: (a, b) => !isBlank(a) && asText(a) > asText(b),
 	isTrue: (a) => a === true,
 	isFalse: (a) => a === false,
 }

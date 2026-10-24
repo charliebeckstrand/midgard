@@ -127,6 +127,19 @@ describe('formatQuerySummary', () => {
 		).toBe('Name contains lee')
 	})
 
+	it('formats a number value and each range bound as a number of the locale', () => {
+		expect(line([rule(ageField, { operator: 'gt', value: 2500000 })])).toBe('Age > 2,500,000')
+
+		expect(line([rule(ageField, { operator: 'between', value: [1000, 2500000.5] })])).toBe(
+			'Age between 1,000 and 2,500,000.5',
+		)
+
+		expect(line([rule(ageField, { operator: 'between', value: ['', 1000] })])).toBe('Age ≤ 1,000')
+
+		// A string value stays as the app wrote it.
+		expect(line([rule(ageField, { operator: 'gt', value: '$1,000' })])).toBe('Age > $1,000')
+	})
+
 	it('renders a date value verbatim', () => {
 		expect(line([rule(joinedField, { operator: 'before', value: '2026-01-01' })])).toBe(
 			'Joined before 2026-01-01',
@@ -372,6 +385,12 @@ describe('formatQuerySummary in a locale', () => {
 		])
 
 		expect(formatQuerySummary(group, fields, intlEs)).toBe('Name está vacío O Age entre 18 y 65')
+	})
+
+	it('gives a number value in the number form of the intl', () => {
+		const group = createGroup('and', [rule(ageField, { operator: 'gt', value: 2500000.5 })])
+
+		expect(formatQuerySummary(group, fields, intlEs)).toBe('Age > 2.500.000,5')
 	})
 
 	it('keeps an operator of the app as the app wrote it', () => {

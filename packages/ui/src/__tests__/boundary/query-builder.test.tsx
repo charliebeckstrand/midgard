@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react'
+import { createRef, type ReactNode, useEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { JsonValue } from '../../components/json-tree'
 import {
@@ -65,6 +65,28 @@ describe('QueryBuilder', () => {
 		expect(group).toBeInTheDocument()
 
 		expect(group).toHaveAttribute('data-combinator', 'and')
+	})
+
+	it('passes the native props of its fieldset through, with the ref', () => {
+		const ref = createRef<HTMLFieldSetElement>()
+
+		renderUI(
+			<QueryBuilder
+				fields={fields}
+				id="filters"
+				aria-label="Order filters"
+				data-testid="qb"
+				ref={ref}
+			/>,
+		)
+
+		const root = screen.getByRole('group', { name: 'Order filters' })
+
+		expect(root).toHaveAttribute('id', 'filters')
+
+		expect(root).toHaveAttribute('data-slot', 'query-builder')
+
+		expect(ref.current).toBe(root)
 	})
 
 	it('renders rules from a provided defaultValue', () => {
