@@ -1,6 +1,7 @@
 'use client'
 
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useRef, useState } from 'react'
+import { noop } from '../../utilities/noop'
 import { randomId } from '../../utilities/random-id'
 import { chatContentText } from './engine/chat-content/text'
 import type { ChatPart } from './engine/chat-content/types'
@@ -144,9 +145,10 @@ export type ChatSend = {
 	edit: (id: string, content: string) => Promise<void>
 	/**
 	 * Aborts the in-flight send, retry, or edit, via the {@link ChatTransport}'s
-	 * `signal`. No-ops when nothing is in flight. Whatever the reply already
-	 * landed stays, and a step still running becomes `failed`. `onError` and
-	 * `onSent` do not fire.
+	 * `signal`. No-ops when nothing is in flight. The send ends at once, also
+	 * when the transport does not read the signal. Whatever the reply already
+	 * landed stays, and a step still running becomes `failed`. A reply that has
+	 * no chunk yet goes. `onError` and `onSent` do not fire.
 	 */
 	stop: () => void
 	/** Escape hatch for direct list edits (e.g. seeding history or clearing). */
@@ -167,10 +169,44 @@ type ReplySteps = {
 	settle: () => void
 }
 
+/** What {@link untilStopped} gives when the stop comes first. @internal */
+const STOPPED = Symbol('stopped')
+
+/** A promise that settles with {@link STOPPED} when `signal` aborts. @internal */
+function whenStopped(signal: AbortSignal): Promise<typeof STOPPED> {
+	return new Promise((resolve) => {
+		if (signal.aborted) resolve(STOPPED)
+		else signal.addEventListener('abort', () => resolve(STOPPED), { once: true })
+	})
+}
+
+/**
+ * The result of `value`, or {@link STOPPED} when the stop comes first. A stop
+ * ends the send at once, also when the transport does not read the signal. A
+ * rejection of `value` after the stop has no reader, so it is dropped.
+ *
+ * @internal
+ */
+function untilStopped<T>(
+	value: Promise<T>,
+	stopped: Promise<typeof STOPPED>,
+): Promise<T | typeof STOPPED> {
+	value.catch(noop)
+
+	return Promise.race([value, stopped])
+}
+
 /**
  * Streams one reply from the transport, and calls each step of `steps` in turn.
  * The function is at module scope, because the React Compiler cannot compile a
- * `finally` clause or a `for await` loop in a hook.
+ * `finally` clause in a hook.
+ *
+ * @remarks Each wait races the stop. So a stop ends the send at once: before
+ * the transport gives its stream, and between two chunks. The stop then calls
+ * the `return` of the iterator, so the cleanup of a transport (such as the
+ * release of a reader) runs when the stream next yields. The call is not
+ * awaited, because a transport that does not read the signal can wait for a
+ * long time.
  *
  * @internal
  */
@@ -180,22 +216,34 @@ async function streamReply(
 	signal: AbortSignal,
 	steps: ReplySteps,
 ): Promise<void> {
+	const stopped = whenStopped(signal)
+
 	try {
-		const stream = await transport(text, signal)
+		const stream = await untilStopped(Promise.resolve(transport(text, signal)), stopped)
+
+		if (stream === STOPPED) return
 
 		steps.open()
 
-		for await (const chunk of stream) {
-			// Checked first so a stop mid-stream leaves the bubble at the last
-			// chunk it folded; breaking here also calls the async iterator's
-			// `return`, so a well-behaved transport's cleanup (e.g. releasing a
-			// reader) runs.
-			if (signal.aborted) break
+		const iterator = stream[Symbol.asyncIterator]()
 
-			steps.fold(chunk)
+		for (;;) {
+			const next = await untilStopped(iterator.next(), stopped)
+
+			// A chunk that lands with the stop is dropped, so the bubble stays at
+			// the last chunk that it folded before the stop.
+			if (next === STOPPED || signal.aborted) {
+				Promise.resolve(iterator.return?.()).catch(noop)
+
+				return
+			}
+
+			if (next.done) break
+
+			steps.fold(next.value)
 		}
 
-		if (!signal.aborted) steps.sent()
+		steps.sent()
 	} catch (error) {
 		// A stop-induced rejection isn't a failure: no rollback, no onError.
 		if (signal.aborted) return
@@ -272,8 +320,9 @@ export function useChatSend({
 					// what keeps a `tool` block from outliving the stream that opened it.
 					// A step still marked running would otherwise draw a spinner nothing
 					// ever stops, the defect that kept a per-part status out of the design
-					// until the shell could settle one.
-					setMessages((prev) => failReplyTools(prev, replyId))
+					// until the shell could settle one. A reply that is still empty goes
+					// too, so a stop before the first chunk leaves no empty bubble.
+					setMessages((prev) => dropEmptyReply(failReplyTools(prev, replyId), replyId))
 
 					controllerRef.current = null
 

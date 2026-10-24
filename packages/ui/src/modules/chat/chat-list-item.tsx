@@ -1,7 +1,7 @@
 'use client'
 
 import type { HTMLAttributes, ReactNode } from 'react'
-import { cn, dataAttr } from '../../core'
+import { ariaAttr, cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/chat-list-item'
 import { useInChatList } from './context'
@@ -37,7 +37,7 @@ export type ChatListItemProps = Omit<HTMLAttributes<HTMLElement>, 'title' | 'onS
  *
  * @remarks
  * The title/preview region is a `<button>` invoking `onSelect` when
- * provided, otherwise a static `<span>`. The button's hit area stretches across
+ * provided, otherwise a static `<span>`. Either one carries `aria-current`. The button's hit area stretches across
  * the whole row via a pointer-capturing `::after`, so clicking the surrounding
  * chrome (row padding, the gap) also selects. `actions` render beside it rather
  * than within it, and sit above the overlay to stay clickable. A control like a
@@ -86,14 +86,18 @@ export function ChatListItem({
 				<button
 					type="button"
 					data-slot="chat-list-item-select"
-					aria-current={current ? 'true' : undefined}
+					aria-current={ariaAttr(current)}
 					onClick={onSelect}
 					className={k({ overlay: true }).select}
 				>
 					{body}
 				</button>
 			) : (
-				<span data-slot="chat-list-item-select" className={k().select}>
+				<span
+					data-slot="chat-list-item-select"
+					aria-current={ariaAttr(current)}
+					className={k().select}
+				>
 					{body}
 				</span>
 			)}

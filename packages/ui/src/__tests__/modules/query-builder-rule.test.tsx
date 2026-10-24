@@ -395,6 +395,19 @@ describe('QueryBuilderRuleValue range', () => {
 		expect(onValueChange).toHaveBeenCalledWith([20, ''])
 	})
 
+	it('shows each end of the span as a number of the locale', () => {
+		const amount: QueryField = { name: 'amount', label: 'Amount', type: 'number', span: [0, 25000] }
+
+		renderUI(
+			<QueryBuilderRuleValue field={amount} value={['', '']} range onValueChange={vi.fn()} />,
+		)
+
+		expect(screen.getByRole('spinbutton', { name: 'Amount maximum' })).toHaveAttribute(
+			'placeholder',
+			'25,000',
+		)
+	})
+
 	it('clamps the maximum to the span alone when the minimum is not a number', () => {
 		renderUI(
 			<QueryBuilderRuleValue field={age} value={['abc', 40]} range onValueChange={vi.fn()} />,
