@@ -347,6 +347,12 @@ export const space = {
 	tree: {
 		/** The block padding of a tree row: the `xs` stop of the padding scale. */
 		y: scale.py.xs,
+		/**
+		 * The space at the top of the group of a last item, in a chain of last
+		 * items: the bottom padding that the row of the item does not have. Its
+		 * stops are the stops of `y`.
+		 */
+		lead: '[[data-slot=tree-item]:last-child:not([data-slot=tree-item]:not(:last-child)_*)>&]:before:density-h-[0.25,0.5,1,1.5,2.5]',
 		/** The inline padding of a tree row: the `sm` stop of the padding scale. */
 		x: scale.px.sm,
 		/** The indent of a nested tree item: the chevron width plus the row gap (`gap.scale.sm`). */

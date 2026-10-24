@@ -64,10 +64,13 @@ export const k = defineKata(
 		base: [
 			flex.col,
 			// Trims the outer block padding of the first and last visible rows, so the
-			// tree is flush with its container. The last visible row is the row of a
-			// last item with no open group, in a chain of last items with open groups.
+			// tree is flush with its container. The last visible row is a row of a
+			// last item, in a chain of last items. Thus each row of that chain has no
+			// bottom padding, and the group of each item in the chain has that space
+			// at its top (`group`). The space then opens and closes with the height
+			// of the group, and no row moves while the group moves.
 			'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
-			'[&_[data-slot=tree-item]:last-child:not(:has(>[data-slot=tree-group][data-open])):not([data-slot=tree-item]:not(:last-child)_*):not([data-slot=tree-group]:not([data-open])_*)>[role=treeitem]]:pb-0',
+			'[&_[data-slot=tree-item]:last-child:not([data-slot=tree-item]:not(:last-child)_*)>[role=treeitem]]:pb-0',
 		],
 		slots: {
 			item: {
@@ -107,6 +110,11 @@ export const k = defineKata(
 			// A group has no clip of its own: its motion clips it only while its height
 			// moves.
 			group: {
+				/** The group of an item in the chain of last items has the bottom padding of its row at its top. */
+				base: [
+					'[[data-slot=tree-item]:last-child:not([data-slot=tree-item]:not(:last-child)_*)>&]:before:block',
+					dan.space.tree.lead,
+				],
 				/**
 				 * The start padding of a nested group when `indent` is enabled. It equals
 				 * the chevron width plus the row gap, so each depth adds one step of it.

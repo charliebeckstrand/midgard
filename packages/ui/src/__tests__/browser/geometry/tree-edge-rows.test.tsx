@@ -1,14 +1,16 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
+import { densitySteps } from '../../../core/density'
 import { present, renderUI } from '../../helpers'
 
 /**
  * The tree removes the outer block padding of its first and last visible
  * rows, so its edges are flush with its container. The last visible row is
  * the last row of the deepest open last branch, not the row of the last
- * top-level item. An open last branch keeps the bottom padding of its row
- * against its first child.
+ * top-level item. The row of an open last branch has no bottom padding, and
+ * its group has that space at its top. Thus the space between the content of
+ * two rows is the same in each pair.
  *
  * Rides the real browser because the claim is a computed one: jsdom loads no
  * stylesheet.
@@ -19,6 +21,17 @@ function pads(row: Element): [number, number] {
 	const style = getComputedStyle(row)
 
 	return [Number.parseFloat(style.paddingTop), Number.parseFloat(style.paddingBottom)]
+}
+
+/** The space between the content of each row and the content of the next row. */
+function spaces(rows: Element[]): number[] {
+	return rows.slice(1).map((row, index) => {
+		const above = present(rows[index], 'row above')
+
+		const top = row.getBoundingClientRect().top + pads(row)[0]
+
+		return top - (above.getBoundingClientRect().bottom - pads(above)[1])
+	})
 }
 
 /** The rows of a tree, in visible order, and the bottom space below the last row. */
@@ -36,13 +49,13 @@ function measure(tree: ReactElement) {
 
 	return {
 		rows,
-		pad: pads(present(rows[0], 'first row'))[1],
+		pad: pads(present(rows[1], 'second row'))[0],
 		bottomSpace: root.getBoundingClientRect().bottom - last.getBoundingClientRect().bottom,
 	}
 }
 
 describe.each(['active', 'always'] as const)('Tree edge rows (mount %s)', (mount) => {
-	it('keeps the pad of an open last branch row and trims its last child row', () => {
+	it('moves the pad of an open last branch row into its group and trims its last child row', () => {
 		const { rows, pad, bottomSpace } = measure(
 			<Tree aria-label="Files" mount={mount}>
 				<TreeItem label="README.md" />
@@ -57,10 +70,12 @@ describe.each(['active', 'always'] as const)('Tree edge rows (mount %s)', (mount
 
 		expect(rows.map(pads)).toStrictEqual([
 			[0, pad],
-			[pad, pad],
+			[pad, 0],
 			[pad, pad],
 			[pad, 0],
 		])
+
+		expect(spaces(rows)).toStrictEqual([2 * pad, 2 * pad, 2 * pad])
 
 		expect(bottomSpace).toBe(0)
 	})
@@ -81,14 +96,32 @@ describe.each(['active', 'always'] as const)('Tree edge rows (mount %s)', (mount
 
 		// The last child `hooks` is a closed branch, so its row is the last visible row.
 		expect(rows.map(pads)).toStrictEqual([
-			[0, pad],
+			[0, 0],
 			[pad, pad],
 			[pad, pad],
 			[pad, 0],
 		])
 
+		expect(spaces(rows)).toStrictEqual([2 * pad, 2 * pad, 2 * pad])
+
 		expect(bottomSpace).toBe(0)
 	})
+
+	it.each(densitySteps)(
+		'gives the group of an open last branch the pad of its row at size %s',
+		(size) => {
+			const { rows, pad } = measure(
+				<Tree aria-label="Files" mount={mount} size={size}>
+					<TreeItem label="README.md" />
+					<TreeItem label="src" defaultOpen>
+						<TreeItem label="a.ts" />
+					</TreeItem>
+				</Tree>,
+			)
+
+			expect(spaces(rows)).toStrictEqual([2 * pad, 2 * pad])
+		},
+	)
 
 	it('trims the row of a closed last branch', () => {
 		const { rows, pad, bottomSpace } = measure(
