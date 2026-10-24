@@ -33,9 +33,9 @@ export type DashboardSelection = {
 /** Options for {@link selectValue}. */
 export type DashboardSelectOptions = {
 	/**
-	 * Add the value to the selection, or remove it when it is already there. Without
-	 * this flag, the value replaces the selection, and a second select of the
-	 * only value clears it.
+	 * Adds the value to the selection, or removes it when it is already there.
+	 * Without this flag, the value replaces the selection, and a second select of
+	 * the only value clears it.
 	 * @defaultValue false
 	 */
 	additive?: boolean

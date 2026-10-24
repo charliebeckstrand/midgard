@@ -53,7 +53,8 @@ export type DashboardLayoutItem = {
 	 */
 	h?: number
 	/**
-	 * A static tile never moves. It does not drag, swap, or resize.
+	 * Holds the tile in its cell. A static tile does not drag, swap, or resize,
+	 * and a tidy does not move it.
 	 * @defaultValue false
 	 */
 	static?: boolean

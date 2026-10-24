@@ -22,15 +22,15 @@ export type DashboardSpecIssueKind =
 	| 'invalid-spec'
 	/** `tiles`, `layout`, or a selection value is not an array, so it becomes empty. */
 	| 'invalid-list'
-	/** A tile has no string `id` or no string `widget`, so the parse drops it. */
+	/** The `id` or the `widget` of a tile is not a string, or it is empty, so the parse drops the tile. */
 	| 'invalid-tile'
 	/** A tile repeats the `id` of an earlier tile, so the parse drops it. */
 	| 'duplicate-tile'
 	/** An optional field of a tile has the wrong shape, so the parse drops the field. */
 	| 'invalid-field'
 	/**
-	 * An entry has no string `id`, a number that is not finite, or a `static` that
-	 * is not a boolean. The parse drops it.
+	 * An entry has an `id` that is not a string or that is empty, a number that is
+	 * not finite, or a `static` that is not a boolean. The parse drops it.
 	 */
 	| 'invalid-entry'
 	/** An entry repeats the `id` of an earlier entry, so the parse drops it. */
@@ -199,7 +199,8 @@ function parseTiles(list: readonly unknown[], issues: DashboardSpecIssue[]): Das
 			issues.push({
 				kind: 'invalid-tile',
 				path,
-				message: 'The tile has no string `id` or no string `widget`. The parse dropped it.',
+				message:
+					'The `id` or the `widget` of the tile is not a string, or it is empty. The parse dropped it.',
 			})
 
 			return
@@ -240,7 +241,7 @@ function parseLayout(
 				kind: 'invalid-entry',
 				path,
 				message:
-					'The entry has no string `id`, a number that is not finite, or a `static` that is not a boolean. The parse dropped it.',
+					'The entry has an `id` that is not a string or that is empty, a number that is not finite, or a `static` that is not a boolean. The parse dropped it.',
 			})
 
 			return
@@ -279,10 +280,10 @@ function parseLayout(
  * repairs it. It drops each part that the board cannot use, keeps each other
  * part, and reports each change.
  *
- * It drops a tile with no string `id` or `widget`, and a tile that repeats an id.
- * It drops an optional field of a tile that has the wrong shape. It drops an
- * entry that is malformed, repeats an id, or names no tile. It drops a `filter`
- * that is not a query tree, or that is deeper than 32 levels.
+ * It drops a tile whose `id` or `widget` is not a string or is empty, and a tile
+ * that repeats an id. It drops an optional field of a tile that has the wrong
+ * shape. It drops an entry that is malformed, repeats an id, or names no tile.
+ * It drops a `filter` that is not a query tree, or that is deeper than 32 levels.
  *
  * @remarks
  * The parse does not check the widget kinds, because a kind that no widget
