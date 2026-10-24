@@ -17,7 +17,9 @@ import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseAst } from 'vite'
+import { createApiExtractor } from '../src/docs/plugin/api.ts'
 import type { Parser } from '../src/docs/plugin/examples.ts'
+import { fieldEntries } from '../src/docs/plugin/fields.ts'
 import { tabEntries, titleEntries } from '../src/docs/plugin/titles.ts'
 import { type CatalogEntry, type CatalogSource, catalogText, extractCatalog } from './intl-catalog'
 
@@ -52,22 +54,32 @@ export const DOCS_CATALOG_SOURCE: CatalogSource = { srcDir: DOCS_DIR, skipped: [
 
 /**
  * The catalog of the docs app: the message descriptors of its source, the
- * title of each example, which comes from a file name, and the name of each
- * tab, which comes from the `TABS` of a page. A title and a tab name have no
- * descriptor.
+ * title of each example, which comes from a file name, the name of each tab,
+ * which comes from the `TABS` of a page, and the label and the options of each
+ * field of a playground, which come from the API data of its component. A
+ * title, a tab name, and a field have no descriptor.
  */
 export async function extractDocsCatalog(): Promise<Record<string, CatalogEntry>> {
 	const parse: Parser = (code, options) => parseAst(code, options)
 
-	const [messages, titles, tabs] = await Promise.all([
-		extractCatalog(DOCS_CATALOG_SOURCE),
-		titleEntries(DOCS_DIR, parse),
-		tabEntries(DOCS_DIR, parse),
-	])
+	const extractor = createApiExtractor(join(SRC_DIR, '..'))
 
-	return Object.fromEntries(
-		Object.entries({ ...messages, ...titles, ...tabs }).toSorted(([a], [b]) => (a < b ? -1 : 1)),
-	)
+	try {
+		const [messages, titles, tabs, fields] = await Promise.all([
+			extractCatalog(DOCS_CATALOG_SOURCE),
+			titleEntries(DOCS_DIR, parse),
+			tabEntries(DOCS_DIR, parse),
+			fieldEntries(DOCS_DIR, parse, (barrel) => extractor.extract(barrel)),
+		])
+
+		return Object.fromEntries(
+			Object.entries({ ...messages, ...titles, ...tabs, ...fields }).toSorted(([a], [b]) =>
+				a < b ? -1 : 1,
+			),
+		)
+	} finally {
+		extractor.close()
+	}
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
