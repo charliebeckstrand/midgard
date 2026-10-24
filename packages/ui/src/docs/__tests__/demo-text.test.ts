@@ -2,14 +2,7 @@
 import path from 'node:path'
 import { parseAst } from 'vite'
 import { describe, expect, it } from 'vitest'
-import {
-	findDemoText,
-	localizeRoute,
-	pointImports,
-	readLangId,
-	toDemoId,
-	translateDemo,
-} from '../plugin/demo-text.ts'
+import { findDemoText, toDemoId, translateDemo } from '../plugin/demo-text.ts'
 
 // The text of a demo is a literal of `pages/` that a reader sees. `pnpm intl`
 // writes a catalog entry for each text, and the docs plugin builds the copy of
@@ -105,56 +98,5 @@ describe('translateDemo', () => {
 		const code = 'export default () => <p>Save</p>'
 
 		expect(translateDemo(parse(code), code, FILE, {})).toBe(code)
-	})
-})
-
-describe('the copy of a module in a language', () => {
-	it('reads the file and the language of a module id', () => {
-		expect(readLangId(`${FILE}?lang=es`)).toEqual({ file: FILE, language: 'es' })
-
-		expect(readLangId(FILE)).toEqual({ file: FILE })
-	})
-
-	it('points each import of a module of pages at its copy', () => {
-		const code = [
-			"import Example from './example.tsx'",
-			"import { rows } from '../table/data.ts'",
-			"import { Button } from 'ui/button'",
-			"import { Playground } from '../../../kit/index.ts'",
-		].join('\n')
-
-		const pointed = pointImports(parse(code), code, FILE, PAGES, 'es')
-
-		expect(pointed).toContain(`from "./example.tsx?lang=es"`)
-
-		expect(pointed).toContain(`from "../table/data.ts?lang=es"`)
-
-		expect(pointed).toContain(`from 'ui/button'`)
-
-		expect(pointed).toContain(`from '../../../kit/index.ts'`)
-	})
-
-	it('wraps the default export of a page with the loader of each copy', () => {
-		const code = 'export default function ButtonPage() {\n\treturn null\n}\n'
-
-		const file = path.join(PAGES, 'components', 'button', 'index.tsx')
-
-		const wrapped = localizeRoute(parse(code), code, file, ['es'], '/kit/localize.tsx')
-
-		expect(wrapped).toContain('function ButtonPage()')
-
-		expect(wrapped).toContain(
-			'export default __localize(ButtonPage, { es: () => import("./index.tsx?lang=es") })',
-		)
-
-		expect(() => parse(wrapped)).not.toThrow()
-	})
-
-	it('fails on a page whose default export is not a named function', () => {
-		const code = 'export default () => null'
-
-		expect(() => localizeRoute(parse(code), code, FILE, ['es'], '/kit/localize.tsx')).toThrow(
-			/named function/,
-		)
 	})
 })

@@ -3,25 +3,19 @@ import { prefixRegex } from '@rolldown/pluginutils'
 import { Piscina } from 'piscina'
 import type {
 	DevEnvironment,
+	Environment,
 	EnvironmentModuleGraph,
 	EnvironmentModuleNode,
 	ESTree,
 	Plugin,
 	ViteDevServer,
 } from 'vite'
-import { readTranslations } from '../../../scripts/intl-catalog.ts'
 import type { ShikiHighlight } from '../../components/code/code-shiki-highlighter.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { type BarrelApi, createApiWorker, TASKS_AHEAD } from './api.ts'
+import { readClientManifest } from './asset-urls.ts'
 import { labelPage } from './component-events.ts'
-import {
-	DEMO_ID,
-	localizeRoute,
-	pointImports,
-	readLangId,
-	toLangQuery,
-	translateDemo,
-} from './demo-text.ts'
+import { appCatalog, createCopies, manifestPreloads, type Preloads, readLangId } from './copies.ts'
 import {
 	attachMeta,
 	CODE,
@@ -31,7 +25,6 @@ import {
 	type Highlight,
 	loadCodes,
 	type Parser,
-	type Translate,
 	toCodeId,
 } from './examples.ts'
 import type { HighlightTask } from './highlight-worker.ts'
@@ -46,7 +39,7 @@ const PAGES = `${VIRTUAL}pages`
 
 const SEARCH = `${VIRTUAL}search`
 
-// The module of `localize`, which a page or a tab module imports ({@link localizeRoute}).
+// The module of `localize`, which a page or a tab module imports (`copies.ts`).
 const LOCALIZE = path.resolve(import.meta.dirname, '..', 'kit', 'localize.tsx')
 
 // A source file of `ui`: TypeScript, outside the docs and the tests.
@@ -89,10 +82,13 @@ function data(value: unknown): string {
  * each value that the JSX gives to a component through the Event log
  * ({@link labelPage}). It gives the copy of each module in each language that
  * has a catalog, such as `button/index.tsx?lang=es`, with each demo text in
- * that language ({@link translateDemo}). Each page and each tab module shows
- * the copy in the language of the reader ({@link localizeRoute}). The catalog
+ * that language ({@link createCopies}). Each page and each tab module shows
+ * the copy in the language of the reader. The catalog
  * that the app imports has no demo text. In dev, an edit to a source file of
  * `ui` updates the API data of the open pages with no reload.
+ *
+ * The server build reads the manifest of the client build in `clientDir`, so
+ * the Spanish HTML of a page preloads the chunks of the Spanish copy.
  *
  * In dev, a page or a tab that is added, removed or renamed in `pages/`
  * changes the routes. React Router reads the routes only when the server
@@ -100,7 +96,7 @@ function data(value: unknown): string {
  * again. An edit to an `index.tsx` that changes only the name of a page
  * updates `virtual:docs/pages`.
  */
-export function reactDocs(): Plugin {
+export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 	const docs = path.resolve(import.meta.dirname, '..')
 
 	const ui = path.resolve(docs, '..', '..')
@@ -134,69 +130,26 @@ export function reactDocs(): Plugin {
 	// build import the same examples, so each highlight runs once for both.
 	const codes = new Map<string, Promise<Record<string, ExampleCode>>>()
 
-	// The translated messages of the docs, by language. An edit to a catalog
-	// clears them.
-	let translations: Map<string, Readonly<Record<string, string>>> | undefined
+	// The copy of each module of `pages/` in each language that has a catalog.
+	const copies = createCopies(docs, LOCALIZE)
+
+	// The URLs of the chunks of each copy, which the server build preloads.
+	let serverPreloads: Preloads | undefined
+
+	/** The preloads of the copies in `environment`. Only the server build renders HTML. */
+	function readPreloads({ config }: Environment): Preloads | undefined {
+		if (!clientDir || config.consumer !== 'server' || config.command !== 'build') return undefined
+
+		serverPreloads ??= manifestPreloads(
+			() => readClientManifest(clientDir),
+			config.root,
+			config.base,
+		)
+
+		return serverPreloads
+	}
 
 	const lang = path.join(docs, 'lang')
-
-	/** The translated messages of each language that has a catalog, by language. */
-	function readLanguages(): Map<string, Readonly<Record<string, string>>> {
-		translations ??= new Map(
-			readTranslations(lang).map(({ language, messages }) => [language, messages]),
-		)
-
-		return translations
-	}
-
-	/** The translated messages of `language`. A language with no catalog gives none. */
-	function readMessages(language: string): Readonly<Record<string, string>> {
-		return readLanguages().get(language) ?? {}
-	}
-
-	/**
-	 * The source of the module `file` of `pages/`, and the query of its copy.
-	 * A copy in a language has each demo text in that language, and each
-	 * import of a module of `pages/` points at its copy (`demo-text.ts`).
-	 */
-	function pageSource(
-		parse: (code: string) => ESTree.Program,
-		code: string,
-		file: string,
-		language: string | undefined,
-	): { source: string; query: string } {
-		if (language === undefined) return { source: englishSource(parse, code, file), query: '' }
-
-		return {
-			source: translatedSource(parse, code, file, pages, language, readMessages(language)),
-			query: toLangQuery(language),
-		}
-	}
-
-	// The page and the tab modules: the route modules of `app/routes.ts`. The
-	// routes change only when the server starts again.
-	let routeFiles: Set<string> | undefined
-
-	/**
-	 * The source of the English module `file` of `pages/`. A page or a tab
-	 * module gives its page in the language of the reader ({@link localizeRoute}).
-	 */
-	function englishSource(
-		parse: (code: string) => ESTree.Program,
-		code: string,
-		file: string,
-	): string {
-		routeFiles ??= new Set(
-			findPages(docs).flatMap((page) => [
-				path.join(pages, page.folder, 'index.tsx'),
-				...page.tabs.map((tab) => path.join(pages, page.folder, tab, 'index.tsx')),
-			]),
-		)
-
-		if (!routeFiles.has(file)) return code
-
-		return localizeRoute(parse(code), code, file, [...readLanguages().keys()], LOCALIZE)
-	}
 
 	// The entries of the search. They read each page and the API data of each
 	// barrel that a page shows, so an edit to either makes them stale.
@@ -236,22 +189,6 @@ export function reactDocs(): Plugin {
 	}
 
 	/**
-	 * The code of the examples `files` for the code module `name`. The code
-	 * module of a copy in a language, such as `virtual:docs/code/button?lang=es`,
-	 * gives the code of the copy.
-	 */
-	function loadCode(name: string, files: readonly string[], parse: Parser) {
-		const { language } = readLangId(name)
-
-		const translate: Translate | undefined = language
-			? (code, file) =>
-					translateDemo(parse(code, { lang: 'tsx' }), code, file, readMessages(language))
-			: undefined
-
-		return loadCodes(parse, highlight, files, translate)
-	}
-
-	/**
 	 * The modules that an edit to `file` in `pages/` makes stale: for an
 	 * `index.tsx`, the links of the pages ({@link staleLinks}); for an example,
 	 * its code module and its importers. It gives `null` when the server restarts.
@@ -280,7 +217,7 @@ export function reactDocs(): Plugin {
 
 	/** The copies in each language, which an edit to a translation makes stale. */
 	function staleTranslations(graph: EnvironmentModuleGraph): EnvironmentModuleNode[] {
-		translations = undefined
+		copies.forget()
 
 		codes.clear()
 
@@ -345,13 +282,19 @@ export function reactDocs(): Plugin {
 				if (name.startsWith(CODE)) {
 					const parse: Parser = this.parse.bind(this)
 
-					const { file: rest } = readLangId(name.slice(CODE.length))
+					// The code module of a copy, such as `virtual:docs/code/button?lang=es`,
+					// gives the code of the copy.
+					const { file: folder, language } = readLangId(name.slice(CODE.length))
 
-					const files = await exampleFiles(path.join(pages, rest))
+					const files = await exampleFiles(path.join(pages, folder))
 
 					for (const file of files) this.addWatchFile(file)
 
-					return data(await getOrCompute(codes, name, () => loadCode(name, files, parse)))
+					const translate = copies.translate(parse, language)
+
+					return data(
+						await getOrCompute(codes, name, () => loadCodes(parse, highlight, files, translate)),
+					)
 				}
 
 				return null
@@ -370,7 +313,9 @@ export function reactDocs(): Plugin {
 
 				const parse = (source: string) => this.parse(source, { lang: syntax })
 
-				const { source, query } = pageSource(parse, code, file, language)
+				const preloads = readPreloads(this.environment)
+
+				const { source, query } = copies.source(parse, code, file, language, preloads)
 
 				const result = await labelExample(parse(source), source, file, pages, query, (target) =>
 					this.resolve(target, id).then((resolved) => resolved?.id),
@@ -445,35 +390,6 @@ function staleExample(
 	)
 
 	return [...codes, ...modules.flatMap((module) => [...module.importers])]
-}
-
-/**
- * The JSON of a catalog of the docs as the app imports it, with no demo text.
- * Each copy of a module holds the demo text in its language (`demo-text.ts`),
- * so the app does not look up a demo text, and the bundle does not carry it.
- */
-function appCatalog(code: string): string {
-	const messages = Object.entries(JSON.parse(code) as Record<string, string>)
-
-	return JSON.stringify(Object.fromEntries(messages.filter(([id]) => !id.startsWith(DEMO_ID))))
-}
-
-/**
- * The source of the copy of the module `file` in `language`: each demo text
- * in that language, and each import of a module of `pages/` pointed at its
- * copy in the same language.
- */
-function translatedSource(
-	parse: (code: string) => ESTree.Program,
-	code: string,
-	file: string,
-	pages: string,
-	language: string,
-	messages: Readonly<Record<string, string>>,
-): string {
-	const translated = translateDemo(parse(code), code, file, messages)
-
-	return pointImports(parse(translated), translated, file, pages, language)
 }
 
 /**

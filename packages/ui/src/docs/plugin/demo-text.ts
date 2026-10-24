@@ -13,8 +13,8 @@ import type { Parser } from './examples.ts'
 // The text of the demos: the literals in `pages/` that a reader sees. `pnpm
 // intl` writes a catalog entry for each text, and the plugin builds a copy of
 // each module of `pages/` for each translation, with each text in the language
-// of the copy. The demo code thus stays plain, and "Show code" shows the text
-// in the language of the reader.
+// of the copy (`copies.ts`). The demo code thus stays plain, and "Show code"
+// shows the text in the language of the reader.
 //
 // A literal is text by the rule of `intl-coverage-boundary.test.ts`: JSX text,
 // a string as a JSX child, and the value of a text attribute or a text prop
@@ -328,97 +328,4 @@ export async function demoEntries(
 			]
 		}),
 	)
-}
-
-/** The query of the copy of a module of `pages/` in a language, such as `?lang=es`. */
-const LANG_QUERY = /\?lang=([a-z]{2,3})$/
-
-/** The query that names the copy of a module in `language`. */
-export function toLangQuery(language: string): string {
-	return `?lang=${language}`
-}
-
-/** The file of a module id and the language of its copy, or `undefined` for the English module. */
-export function readLangId(id: string): { file: string; language?: string } {
-	const match = LANG_QUERY.exec(id)
-
-	return match ? { file: id.slice(0, match.index), language: match[1] } : { file: id }
-}
-
-/**
- * `code` with each relative import of a module in `pages` pointed at the copy
- * of that module in `language`, so a copy imports the copies of the examples
- * and of the data that it uses. An import of the kit or of `ui` stays as it is.
- */
-export function pointImports(
-	program: ESTree.Program,
-	code: string,
-	file: string,
-	pages: string,
-	language: string,
-): string {
-	const sources = program.body.flatMap((statement) =>
-		(statement.type === 'ImportDeclaration' ||
-			statement.type === 'ExportNamedDeclaration' ||
-			statement.type === 'ExportAllDeclaration') &&
-		statement.source
-			? [statement.source]
-			: [],
-	)
-
-	let pointed = code
-
-	for (const source of sources.toReversed()) {
-		const value = String(source.value)
-
-		if (!value.startsWith('.')) continue
-
-		const target = path.resolve(path.dirname(file), value)
-
-		if (!target.startsWith(`${pages}${path.sep}`)) continue
-
-		pointed =
-			pointed.slice(0, source.start) +
-			JSON.stringify(`${value}${toLangQuery(language)}`) +
-			pointed.slice(source.end)
-	}
-
-	return pointed
-}
-
-/**
- * `code` with its default export in the language of the reader: the page or
- * the tab module `file`, with each copy in `languages` ({@link toLangQuery}).
- * The default export of a page or a tab module is a function declaration with
- * a name, and the wrap keeps the function under that name. `kit` is the
- * module of `localize`.
- */
-export function localizeRoute(
-	program: ESTree.Program,
-	code: string,
-	file: string,
-	languages: readonly string[],
-	kit: string,
-): string {
-	const statement = program.body.find(
-		(node): node is ESTree.ExportDefaultDeclaration => node.type === 'ExportDefaultDeclaration',
-	)
-
-	const declaration = statement?.declaration
-
-	if (!statement || declaration?.type !== 'FunctionDeclaration' || !declaration.id) {
-		throw new Error(`${file}: a page or a tab module exports a named function by default`)
-	}
-
-	const copies = languages.map(
-		(language) =>
-			`${language}: () => import(${JSON.stringify(`./${path.basename(file)}${toLangQuery(language)}`)})`,
-	)
-
-	return [
-		code.slice(0, statement.start),
-		code.slice(declaration.start),
-		`\nimport { localize as __localize } from ${JSON.stringify(kit)}`,
-		`\nexport default __localize(${declaration.id.name}, { ${copies.join(', ')} })\n`,
-	].join('')
 }

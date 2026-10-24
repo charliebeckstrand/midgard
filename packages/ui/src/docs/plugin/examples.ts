@@ -35,7 +35,7 @@ export type ExampleMeta = {
 	code: () => Promise<ExampleCode>
 }
 
-/** The source of a module in the language of a copy (`demo-text.ts`). */
+/** The source of a module in the language of a copy (`copies.ts`). */
 export type Translate = (code: string, file: string) => string
 
 /** Parses TSX, as the `parse` of a plugin context does. */

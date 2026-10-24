@@ -57,6 +57,21 @@ export function serverAssetUrls(): Plugin {
 	}
 }
 
+/** A chunk in the manifest of the client build of Vite. */
+type ManifestChunk = { file: string; imports?: string[]; dynamicImports?: string[] }
+
+/** The manifest of the client build of Vite: each chunk, by the path of its module from the root. */
+export type Manifest = Readonly<Record<string, ManifestChunk>>
+
+/**
+ * The manifest of the client build in `clientDir`. React Router builds the
+ * client first, so the server build can read it. React Router removes the
+ * file at the end of the build.
+ */
+export function readClientManifest(clientDir: string): Manifest {
+	return JSON.parse(readFileSync(path.join(clientDir, '.vite', 'manifest.json'), 'utf8'))
+}
+
 /**
  * Gives an import of `stylesheet` with `?url` in the server build the URL of
  * the client build, from the manifest of the client build. Thus the server
@@ -65,8 +80,6 @@ export function serverAssetUrls(): Plugin {
  * The prerender renders no link to the full stylesheet (`app/root.tsx`), but
  * the server build compiled it to get its URL, and then React Router removed
  * the file. Without that compile, the server build of the docs is shorter.
- * React Router builds the client first, so its manifest is on the
- * disk.
  */
 export function serverStylesheetUrl(stylesheet: string, clientDir: string): Plugin {
 	const id = `${stylesheet}?url`
@@ -79,15 +92,11 @@ export function serverStylesheetUrl(stylesheet: string, clientDir: string): Plug
 		load: {
 			filter: { id: exactRegex(id) },
 			handler() {
-				const manifest = path.join(clientDir, '.vite', 'manifest.json')
-
-				const entries: Record<string, { file: string }> = JSON.parse(readFileSync(manifest, 'utf8'))
-
-				const entry = Object.entries(entries).find(
+				const entry = Object.entries(readClientManifest(clientDir)).find(
 					([source]) => path.resolve(this.environment.config.root, source) === stylesheet,
 				)?.[1]
 
-				if (!entry) throw new Error(`docs: ${manifest} has no entry for ${stylesheet}`)
+				if (!entry) throw new Error(`docs: the client manifest has no entry for ${stylesheet}`)
 
 				return `export default ${JSON.stringify(`${this.environment.config.base}${entry.file}`)}`
 			},

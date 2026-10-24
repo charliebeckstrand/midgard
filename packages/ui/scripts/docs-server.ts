@@ -1,7 +1,7 @@
 /**
- * The server of the docs build: the `docs` service of `.do/app.yaml`, and the
- * server of `docs:preview` and `test:docs-build`. `docs:bench` serves the
- * build with the same paths, over HTTP/2.
+ * The server of the docs build: the `docs-server` service of `.do/app.yaml`,
+ * and the server of `docs:preview` and `test:docs-build`. `docs:bench` serves
+ * the build with the same paths, over HTTP/2.
  *
  * A path gets the file at that path, or `index.html` in the directory at that
  * path. Thus `/stepper` gets `stepper/index.html` with no redirect. Any other
@@ -17,7 +17,8 @@
  * pnpm --filter ui docs:preview   # http://localhost:3456
  * ```
  *
- * The service sets `HOST` and `PORT`.
+ * The service sets `HOST` and `PORT`. It runs the server as one JavaScript
+ * file, which `docs:build-server` writes (`vite.docs-server.config.ts`).
  */
 
 import { readFile, stat } from 'node:fs/promises'
@@ -151,7 +152,14 @@ export async function serveDocs(
 
 		const type = TYPES[path.extname(file)] ?? 'application/octet-stream'
 
-		const body = await readFile(file)
+		// A file that the server cannot read gives 500, and the server keeps running.
+		const body = await readFile(file).catch(() => undefined)
+
+		if (body === undefined) {
+			response.writeHead(500).end()
+
+			return
+		}
 
 		response.writeHead(200, {
 			'content-type': type,
