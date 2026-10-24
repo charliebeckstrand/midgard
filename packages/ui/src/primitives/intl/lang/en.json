@@ -379,6 +379,10 @@
 		"defaultMessage": "Clear the selection in {label}",
 		"description": "The name of the button that clears the selection that a dashboard tile holds."
 	},
+	"ui.dashboard.columns": {
+		"defaultMessage": "{count, plural, one {# column} other {# columns}}",
+		"description": "The width of a dashboard tile in columns, which its resize handle speaks."
+	},
 	"ui.dashboard.dragStart": {
 		"defaultMessage": "Picked up {item} at {cell}. Use the arrow keys to move it. Press Space to drop it, or Escape to cancel.",
 		"description": "Spoken when the reader picks up a dashboard tile. The cell is the place of the tile."
@@ -430,6 +434,10 @@
 	"ui.dashboard.retry": {
 		"defaultMessage": "Retry",
 		"description": "The label of the button that renders a failed dashboard tile again."
+	},
+	"ui.dashboard.rows": {
+		"defaultMessage": "{count, plural, one {# row} other {# rows}}",
+		"description": "The height of a dashboard tile in rows, which its resize handle speaks."
 	},
 	"ui.dashboard.shifts": {
 		"defaultMessage": "{item} moves before or after {partner}, to {cell}.",

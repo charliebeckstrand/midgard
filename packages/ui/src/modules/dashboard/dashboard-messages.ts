@@ -6,6 +6,8 @@ type DashboardValues = {
 	expand: { label: string }
 	clearSelection: { label: string }
 	resize: { label: string }
+	columns: { count: number }
+	rows: { count: number }
 	failed: { label: string }
 	retry: Record<never, never>
 	missing: { widget: string }
@@ -13,7 +15,8 @@ type DashboardValues = {
 
 /**
  * The messages of the chrome of a dashboard tile: the names of its controls,
- * its error state, and the line of a tile that no widget claims.
+ * the spans that its resize handles speak, its error state, and the line of a
+ * tile that no widget claims.
  *
  * @internal
  */
@@ -32,6 +35,16 @@ export const dashboardMessages: MessageSet<DashboardValues> = defineMessages<Das
 		id: 'ui.dashboard.resize',
 		defaultMessage: 'Resize {label}',
 		description: 'The name of the handle that changes the size of a dashboard tile.',
+	},
+	columns: {
+		id: 'ui.dashboard.columns',
+		defaultMessage: '{count, plural, one {# column} other {# columns}}',
+		description: 'The width of a dashboard tile in columns, which its resize handle speaks.',
+	},
+	rows: {
+		id: 'ui.dashboard.rows',
+		defaultMessage: '{count, plural, one {# row} other {# rows}}',
+		description: 'The height of a dashboard tile in rows, which its resize handle speaks.',
 	},
 	failed: {
 		id: 'ui.dashboard.failed',
