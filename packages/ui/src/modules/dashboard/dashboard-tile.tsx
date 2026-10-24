@@ -153,10 +153,10 @@ export type DashboardTileProps = {
 	/**
 	 * Shows an expand control at rest. It opens the content in a dialog, at a
 	 * larger size, in the scope of the same tile. The content box of the dialog
-	 * keeps the shape of the tile on the board, up to 70% of the viewport
-	 * height. When edit mode starts, an open dialog closes. The focus then moves
-	 * to the grip of the tile. A tile with no grip, such as a tile with a `static`
-	 * layout entry, gives the focus to the board.
+	 * keeps the shape of the tile on the board, up to 70% of the viewport height
+	 * or 40rem, whichever is less. When edit mode starts, an open dialog closes.
+	 * The focus then moves to the grip of the tile. A tile with no grip, such as a
+	 * tile with a `static` layout entry, gives the focus to the board.
 	 *
 	 * On a coarse pointer, a widget with a fullscreen view of its own, such as a
 	 * chart with its menu, hides the expand control, so the tile shows one way to
