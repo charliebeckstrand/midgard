@@ -1575,6 +1575,10 @@
 		"defaultMessage": "Check your connection and try again.",
 		"description": "Text of a demo in the docs as description, in components/toast/severity.tsx."
 	},
+	"docs.demo.482ff2821798": {
+		"defaultMessage": "Score routes",
+		"description": "Text of a demo in the docs as label, in modules/chat/steps/every-state.tsx."
+	},
 	"docs.demo.483ebdf2de9e": {
 		"defaultMessage": "Search 5,000 tasks",
 		"description": "Text of a demo in the docs as placeholder, in components/combobox/virtualized.tsx."
@@ -2423,6 +2427,10 @@
 		"defaultMessage": "Load board",
 		"description": "Text of a demo in the docs as aria-label, in modules/kanban/read-only.tsx."
 	},
+	"docs.demo.7cf746f86bb8": {
+		"defaultMessage": "Load atlas",
+		"description": "Text of a demo in the docs as label, in modules/chat/steps/every-state.tsx."
+	},
 	"docs.demo.7d1a6d3b35b4": {
 		"defaultMessage": "Billable %",
 		"description": "Text of a demo in the docs as title, in modules/grid/editing/bulk-edit.tsx."
@@ -2578,6 +2586,10 @@
 	"docs.demo.83c46be8fbce": {
 		"defaultMessage": "You own the files that you upload. You let the service store them, copy them for backups, and show them to the people that you share them with.",
 		"description": "Text of a demo in the docs, in components/confirm/with-body-content.tsx."
+	},
+	"docs.demo.848e460b03fe": {
+		"defaultMessage": "Fetch weather",
+		"description": "Text of a demo in the docs as label, in modules/chat/steps/every-state.tsx."
 	},
 	"docs.demo.84b216d9c7d9": {
 		"defaultMessage": "Hide it from the list",
@@ -3974,6 +3986,10 @@
 	"docs.demo.d71f2e312d16": {
 		"defaultMessage": "Mia Chen closed three tasks this week.",
 		"description": "Text of a demo in the docs as text, in components/tabs/preload.tsx."
+	},
+	"docs.demo.d7422d860536": {
+		"defaultMessage": "Filter shipments",
+		"description": "Text of a demo in the docs as label, in modules/chat/steps/a-step-behind-the-answer.tsx."
 	},
 	"docs.demo.d764d42592fc": {
 		"defaultMessage": "Organization",

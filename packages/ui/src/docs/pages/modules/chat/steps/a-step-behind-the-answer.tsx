@@ -9,7 +9,7 @@ const messages: ChatMessageData[] = [
 			{
 				kind: 'tool',
 				id: 's1',
-				name: 'Filter shipments',
+				label: 'Filter shipments',
 				status: 'done',
 				summary: 'Status is Late AND Lane is North',
 				detail: 'Matched **12** of 240 shipments.\n\n- Route 12: 5\n- Route 30: 4\n- Route 41: 3',

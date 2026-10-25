@@ -826,7 +826,7 @@ describe('useChatSend settling a running step', () => {
 	const running: ChatToolPart = {
 		kind: 'tool',
 		id: 't1',
-		name: 'Filter shipments',
+		label: 'Filter shipments',
 		status: 'running',
 	}
 

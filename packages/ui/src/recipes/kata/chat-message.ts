@@ -111,7 +111,7 @@ export const k = defineKata({
 				// goes back to inheriting the bubble: hover included, or the pointer would
 				// walk it into a fixed neutral on the user bubble's blue.
 				trigger: ['cursor-pointer rounded-lg', 'text-inherit hover:text-inherit', focus.inset],
-				name: [weight.semibold],
+				label: [weight.semibold],
 				summary: ['min-w-0 flex-1 truncate', weight.normal],
 				details: ['mt-2', size.sm],
 			},

@@ -128,7 +128,7 @@ So virtualization is earned rather than assumed, and it is the next item rather 
 
 A reply that ran a query can now show it, both because a reader trusts an answer more when the work behind it is visible and because a wrong filter is otherwise invisible. `tool` is the union's third kind, drawn as a collapsible step over the [`Collapse`](../../components/collapse) the package already ships. The leverage the entry predicted holds: `formatQuerySummary` renders a query tree to one plain line, so a step over a query writes no formatter of its own; the demo's summary is that line's shape.
 
-A step describes itself in text, where an embed names a renderer and hands it an opaque payload. That is the whole reason this kind needs no registry, and it decides the projection too: a step contributes `name: summary` to the plain text, so the clipboard, conversation search, and the announcement all get it, while an embed still contributes nothing. The detail stays out of the projection, because it is the body behind a disclosure the reader has not opened.
+A step describes itself in text, where an embed names a renderer and hands it an opaque payload. That is the whole reason this kind needs no registry, and it decides the projection too: a step contributes `label: summary` to the plain text, so the clipboard, conversation search, and the announcement all get it, while an embed still contributes nothing. The detail stays out of the projection, because it is the body behind a disclosure the reader has not opened.
 
 A step with no detail draws as a line rather than a disclosure, since a control that opens onto nothing lies about having something to show. One with a detail mounts its panel lazily and then holds it, so a reply of ten steps costs no Markdown lex for the nine nobody opened.
 
@@ -136,7 +136,7 @@ The status field is the part worth reading twice, because increment 5 refuted on
 
 The color lesson from the fallback repeated itself twice more, which is worth recording as a pattern rather than an incident. Nothing inside a bubble may set a fixed foreground: the fill differs by speaker, and `text.muted` is `onSurface.zinc`, calibrated against the page. The step sets none, and it also has to *undo* one, because [`collapse.ts`](../../recipes/kata/collapse.ts) paints its trigger `text.muted` with a `fg.hover`, which the Chromium gate caught at 3.8:1 inside the assistant bubble. The step's kata resets both to `inherit`.
 
-The kata for it is a fragment map, `k.tool.{base,head,trigger,name,summary,details}`, rather than six `tool*` slots. The pieces only ever appear together, and `name` is not expressible as a top-level slot at all: it collides with the recipe function's own `name`, which `defineRecipe` throws on.
+The kata for it is a fragment map, `k.tool.{base,head,trigger,label,summary,details}`, rather than six `tool*` slots, because the pieces only ever appear together.
 
 
 ### 9. Lazy-load the embeds: done

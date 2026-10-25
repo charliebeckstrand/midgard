@@ -115,7 +115,7 @@ const TRANSCRIPT: ChatMessageData[] = [
 			{
 				kind: 'tool',
 				id: 's1',
-				name: 'Filter shipments',
+				label: 'Filter shipments',
 				status: 'done',
 				summary: 'status is late AND lane is north',
 			},
@@ -131,11 +131,11 @@ const STEP_STATES: ChatMessageData[] = [
 		id: '1',
 		sender: 'assistant',
 		content: [
-			{ kind: 'tool', id: 's1', name: 'Load atlas', status: 'done', summary: '3,108 counties' },
+			{ kind: 'tool', id: 's1', label: 'Load atlas', status: 'done', summary: '3,108 counties' },
 			{
 				kind: 'tool',
 				id: 's2',
-				name: 'Fetch weather',
+				label: 'Fetch weather',
 				status: 'failed',
 				summary: 'the provider did not answer',
 			},

@@ -103,7 +103,7 @@ describe('failReplyTools', () => {
 	const step = (status: 'running' | 'done' | 'failed', id = 't1'): ChatPart => ({
 		kind: 'tool',
 		id,
-		name: 'Filter shipments',
+		label: 'Filter shipments',
 		status,
 	})
 
