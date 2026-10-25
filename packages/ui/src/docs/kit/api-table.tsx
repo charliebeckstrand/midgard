@@ -3,8 +3,9 @@ import { useLocation } from 'react-router'
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from 'ui/accordion'
 import { Heading } from 'ui/heading'
 import { Link } from 'ui/link'
-import { defineMessage, IntlMessage } from 'ui/primitives/intl'
+import { defineMessage, IntlMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
+import { Text } from 'ui/text'
 import type { BarrelApi } from '../plugin/api.ts'
 import { API, componentOfHash, toApiId } from './anchors.ts'
 import { useLoadThenOpen } from './load-then-open.ts'
@@ -16,6 +17,20 @@ const apiReferenceMessage = defineMessage({
 	description:
 		'The heading of the part of a page that lists each component with its props and its events.',
 })
+
+const englishNoteMessage = defineMessage({
+	id: 'docs.api.englishNote',
+	defaultMessage: 'This reference comes from the source code and is in English.',
+	description:
+		'The note under the heading of the API reference on a page in a language other than English. The descriptions of the components and of the props come from the comments of the source code, and they stay in English.',
+})
+
+/**
+ * The language of the TSDoc of ui, which stays English in each language of
+ * the docs (CONVENTIONS.md §13.10). The `lang` of the text tells a screen
+ * reader to read it with an English voice.
+ */
+export const TSDOC_LANG = 'en'
 
 // The entry renders TSDoc as Markdown, so it carries `marked`. It is a chunk
 // of its own, so it does not delay the first paint. It loads in idle time
@@ -82,6 +97,9 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 
 	const { hash } = useLocation()
 
+	// A page in another language tells the reader that the TSDoc is English.
+	const translated = new Intl.Locale(useIntl().locale).language !== TSDOC_LANG
+
 	const named = componentOfHash(hash)
 
 	const target = named !== undefined && named in api ? named : undefined
@@ -110,6 +128,11 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 					<IntlMessage message={apiReferenceMessage} />
 				</Link>
 			</Heading>
+			{translated && (
+				<Text tone="muted">
+					<IntlMessage message={englishNoteMessage} />
+				</Text>
+			)}
 			<PendingAnchorContext value={pending}>
 				<Accordion
 					type="multiple"
