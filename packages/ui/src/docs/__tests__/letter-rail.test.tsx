@@ -10,7 +10,7 @@ import type { PageLink } from '../plugin/pages.ts'
 // The letter rail of the docs sidebar. Each letter has an equal band of the
 // rail, so a press selects exactly one letter, and a slide moves from letter to
 // letter. A selection scrolls the body to the first page with the letter. The
-// rail shows the letter of the pages at the top of the body.
+// rail shows the letter of the last jump that the scroll of the body is at or past.
 
 const page = (category: string, name: string): PageLink => ({
 	category,
@@ -85,6 +85,10 @@ function layOut(body: HTMLElement) {
 	Object.defineProperty(body, 'getBoundingClientRect', {
 		value: () => DOMRect.fromRect({ width: 200, height: VIEW }),
 	})
+
+	Object.defineProperty(body, 'clientHeight', { value: VIEW })
+
+	Object.defineProperty(body, 'scrollHeight', { value: y })
 
 	Object.defineProperty(body, 'scrollTop', {
 		get: () => scroll,
@@ -185,6 +189,24 @@ describe('LetterRail', () => {
 		fireEvent.scroll(body)
 
 		expect(active()).toBe('B')
+	})
+
+	it('shows the last letter at the end of the body, where each section starts the alphabet again', () => {
+		const { body, active } = renderSidebar()
+
+		// Chart is at the top, but the first page with C is Calendar, and the jumps to E, L, and U stop at the end.
+		body.scrollTop = HEADING * 3 + ITEM * 10 - VIEW
+
+		fireEvent.scroll(body)
+
+		expect(active()).toBe('U')
+
+		// Above the end, the last jump that the body is past is the jump to Calendar.
+		body.scrollTop -= 10
+
+		fireEvent.scroll(body)
+
+		expect(active()).toBe('C')
 	})
 
 	it('selects the letter whose band holds the press, at each edge of the band', () => {
