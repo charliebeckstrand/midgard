@@ -8,8 +8,10 @@ import { Stack } from 'ui/stack'
 
 type Profile = { name: string; email: string }
 
+const empty: Profile = { name: '', email: '' }
+
 export default function ControlledValues() {
-	const [profile, setProfile] = useState<Profile>()
+	const [profile, setProfile] = useState(empty)
 
 	const [loading, setLoading] = useState(false)
 
@@ -25,7 +27,7 @@ export default function ControlledValues() {
 
 	return (
 		<Stack gap="lg">
-			<Form defaultValues={{ name: '', email: '' }} values={profile} disabled={loading}>
+			<Form defaultValues={empty} values={profile} disabled={loading}>
 				<Stack gap="lg">
 					<Field autoComplete="name">
 						<Label>Name</Label>
@@ -41,7 +43,8 @@ export default function ControlledValues() {
 				<Button loading={loading} onClick={load}>
 					Load profile
 				</Button>
-				<Button variant="plain" onClick={() => setProfile(undefined)}>
+				{/* A new reference on each press, because the form syncs only on a change of reference. */}
+				<Button variant="plain" onClick={() => setProfile({ ...empty })}>
 					Clear
 				</Button>
 			</Flex>
