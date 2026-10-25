@@ -97,8 +97,18 @@ export function CellListbox({
 
 const roleOptions = Object.entries(roles).map(([value, label]) => ({ label, value }))
 
+// The role of a pasted text. A copy of a Role cell gives the shown word, so a
+// paste of that word gives the key of its role. A key or other text gives
+// itself.
+function parseRole(text: string): string {
+	const word = text.trim()
+
+	return roleOptions.find((option) => option.label === word)?.value ?? word
+}
+
 // Name and Email get a text editor, and Active gets a yes or no listbox, from
-// the type of the value. Role gets a listbox of its own.
+// the type of the value. Role gets a listbox of its own, and sorts and copies
+// by the shown word.
 export const personColumns: GridColumn<Person>[] = [
 	{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
 	{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
@@ -107,6 +117,8 @@ export const personColumns: GridColumn<Person>[] = [
 		title: 'Role',
 		field: 'role',
 		cell: (row) => roles[row.role],
+		value: (row) => roles[row.role],
+		parse: parseRole,
 		editCell: (context) => (
 			<CellListbox
 				value={String(context.value ?? '')}
