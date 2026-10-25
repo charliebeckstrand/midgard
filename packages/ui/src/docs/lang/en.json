@@ -491,6 +491,230 @@
 		"defaultMessage": "Social",
 		"description": "A word of the demo data in the docs: the word for \"social\" in the domain \"traffic-source\", in modules/chart/data.ts."
 	},
+	"docs.data.us-state.01": {
+		"defaultMessage": "Alabama",
+		"description": "A word of the demo data in the docs: the word for \"01\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.02": {
+		"defaultMessage": "Alaska",
+		"description": "A word of the demo data in the docs: the word for \"02\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.04": {
+		"defaultMessage": "Arizona",
+		"description": "A word of the demo data in the docs: the word for \"04\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.05": {
+		"defaultMessage": "Arkansas",
+		"description": "A word of the demo data in the docs: the word for \"05\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.06": {
+		"defaultMessage": "California",
+		"description": "A word of the demo data in the docs: the word for \"06\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.08": {
+		"defaultMessage": "Colorado",
+		"description": "A word of the demo data in the docs: the word for \"08\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.09": {
+		"defaultMessage": "Connecticut",
+		"description": "A word of the demo data in the docs: the word for \"09\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.10": {
+		"defaultMessage": "Delaware",
+		"description": "A word of the demo data in the docs: the word for \"10\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.11": {
+		"defaultMessage": "District of Columbia",
+		"description": "A word of the demo data in the docs: the word for \"11\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.12": {
+		"defaultMessage": "Florida",
+		"description": "A word of the demo data in the docs: the word for \"12\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.13": {
+		"defaultMessage": "Georgia",
+		"description": "A word of the demo data in the docs: the word for \"13\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.15": {
+		"defaultMessage": "Hawaii",
+		"description": "A word of the demo data in the docs: the word for \"15\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.16": {
+		"defaultMessage": "Idaho",
+		"description": "A word of the demo data in the docs: the word for \"16\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.17": {
+		"defaultMessage": "Illinois",
+		"description": "A word of the demo data in the docs: the word for \"17\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.18": {
+		"defaultMessage": "Indiana",
+		"description": "A word of the demo data in the docs: the word for \"18\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.19": {
+		"defaultMessage": "Iowa",
+		"description": "A word of the demo data in the docs: the word for \"19\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.20": {
+		"defaultMessage": "Kansas",
+		"description": "A word of the demo data in the docs: the word for \"20\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.21": {
+		"defaultMessage": "Kentucky",
+		"description": "A word of the demo data in the docs: the word for \"21\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.22": {
+		"defaultMessage": "Louisiana",
+		"description": "A word of the demo data in the docs: the word for \"22\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.23": {
+		"defaultMessage": "Maine",
+		"description": "A word of the demo data in the docs: the word for \"23\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.24": {
+		"defaultMessage": "Maryland",
+		"description": "A word of the demo data in the docs: the word for \"24\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.25": {
+		"defaultMessage": "Massachusetts",
+		"description": "A word of the demo data in the docs: the word for \"25\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.26": {
+		"defaultMessage": "Michigan",
+		"description": "A word of the demo data in the docs: the word for \"26\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.27": {
+		"defaultMessage": "Minnesota",
+		"description": "A word of the demo data in the docs: the word for \"27\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.28": {
+		"defaultMessage": "Mississippi",
+		"description": "A word of the demo data in the docs: the word for \"28\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.29": {
+		"defaultMessage": "Missouri",
+		"description": "A word of the demo data in the docs: the word for \"29\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.30": {
+		"defaultMessage": "Montana",
+		"description": "A word of the demo data in the docs: the word for \"30\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.31": {
+		"defaultMessage": "Nebraska",
+		"description": "A word of the demo data in the docs: the word for \"31\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.32": {
+		"defaultMessage": "Nevada",
+		"description": "A word of the demo data in the docs: the word for \"32\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.33": {
+		"defaultMessage": "New Hampshire",
+		"description": "A word of the demo data in the docs: the word for \"33\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.34": {
+		"defaultMessage": "New Jersey",
+		"description": "A word of the demo data in the docs: the word for \"34\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.35": {
+		"defaultMessage": "New Mexico",
+		"description": "A word of the demo data in the docs: the word for \"35\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.36": {
+		"defaultMessage": "New York",
+		"description": "A word of the demo data in the docs: the word for \"36\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.37": {
+		"defaultMessage": "North Carolina",
+		"description": "A word of the demo data in the docs: the word for \"37\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.38": {
+		"defaultMessage": "North Dakota",
+		"description": "A word of the demo data in the docs: the word for \"38\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.39": {
+		"defaultMessage": "Ohio",
+		"description": "A word of the demo data in the docs: the word for \"39\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.40": {
+		"defaultMessage": "Oklahoma",
+		"description": "A word of the demo data in the docs: the word for \"40\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.41": {
+		"defaultMessage": "Oregon",
+		"description": "A word of the demo data in the docs: the word for \"41\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.42": {
+		"defaultMessage": "Pennsylvania",
+		"description": "A word of the demo data in the docs: the word for \"42\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.44": {
+		"defaultMessage": "Rhode Island",
+		"description": "A word of the demo data in the docs: the word for \"44\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.45": {
+		"defaultMessage": "South Carolina",
+		"description": "A word of the demo data in the docs: the word for \"45\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.46": {
+		"defaultMessage": "South Dakota",
+		"description": "A word of the demo data in the docs: the word for \"46\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.47": {
+		"defaultMessage": "Tennessee",
+		"description": "A word of the demo data in the docs: the word for \"47\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.48": {
+		"defaultMessage": "Texas",
+		"description": "A word of the demo data in the docs: the word for \"48\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.49": {
+		"defaultMessage": "Utah",
+		"description": "A word of the demo data in the docs: the word for \"49\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.50": {
+		"defaultMessage": "Vermont",
+		"description": "A word of the demo data in the docs: the word for \"50\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.51": {
+		"defaultMessage": "Virginia",
+		"description": "A word of the demo data in the docs: the word for \"51\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.53": {
+		"defaultMessage": "Washington",
+		"description": "A word of the demo data in the docs: the word for \"53\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.54": {
+		"defaultMessage": "West Virginia",
+		"description": "A word of the demo data in the docs: the word for \"54\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.55": {
+		"defaultMessage": "Wisconsin",
+		"description": "A word of the demo data in the docs: the word for \"55\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.56": {
+		"defaultMessage": "Wyoming",
+		"description": "A word of the demo data in the docs: the word for \"56\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.60": {
+		"defaultMessage": "American Samoa",
+		"description": "A word of the demo data in the docs: the word for \"60\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.66": {
+		"defaultMessage": "Guam",
+		"description": "A word of the demo data in the docs: the word for \"66\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.69": {
+		"defaultMessage": "Commonwealth of the Northern Mariana Islands",
+		"description": "A word of the demo data in the docs: the word for \"69\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.72": {
+		"defaultMessage": "Puerto Rico",
+		"description": "A word of the demo data in the docs: the word for \"72\" in the domain \"us-state\", in data/us-states.ts."
+	},
+	"docs.data.us-state.78": {
+		"defaultMessage": "United States Virgin Islands",
+		"description": "A word of the demo data in the docs: the word for \"78\" in the domain \"us-state\", in data/us-states.ts."
+	},
 	"docs.data.weekday.fri": {
 		"defaultMessage": "Fri",
 		"description": "A word of the demo data in the docs: the word for \"fri\" in the domain \"weekday\", in data/calendar.ts."
@@ -1002,6 +1226,10 @@
 	"docs.demo.1ff57a29d7c9": {
 		"defaultMessage": "Next",
 		"description": "Text of a demo in the docs, in components/group/item-count.tsx, components/stepper/with-content-panels.tsx, components/tabs/controlled.tsx and 1 more."
+	},
+	"docs.demo.2086c4ff0d7f": {
+		"defaultMessage": "Value: {labelOfState} ({zone} time)",
+		"description": "Text of a demo in the docs, in modules/map/select-a-state.tsx. The arguments {labelOfState} and {zone} are values from the code."
 	},
 	"docs.demo.215cf4cae2fc": {
 		"defaultMessage": "Revenue and margin by month",
@@ -1586,10 +1814,6 @@
 	"docs.demo.4852dd4b95ff": {
 		"defaultMessage": "Kansas City distribution network",
 		"description": "Text of a demo in the docs as aria-label, in modules/map/route/with-markers.tsx."
-	},
-	"docs.demo.485aaef91f4d": {
-		"defaultMessage": "Counties of {name}",
-		"description": "Text of a demo in the docs as aria-label, in modules/map/county/drill-into-counties.tsx. The argument {name} is a value from the code."
 	},
 	"docs.demo.486f6390960b": {
 		"defaultMessage": "Wade Cooper",
@@ -3339,6 +3563,10 @@
 		"defaultMessage": "Mammals",
 		"description": "Text of a demo in the docs as label, in components/tree/without-icons.tsx."
 	},
+	"docs.demo.ae4da1d2e1c4": {
+		"defaultMessage": "Counties of {label}",
+		"description": "Text of a demo in the docs as aria-label, in modules/map/county/drill-into-counties.tsx. The argument {label} is a value from the code."
+	},
 	"docs.demo.ae53cea8228b": {
 		"defaultMessage": "Postal code",
 		"description": "Text of a demo in the docs as aria-label, placeholder, in components/group/with-inputs.tsx, components/mask-input/postal-code.tsx."
@@ -4174,10 +4402,6 @@
 	"docs.demo.e26399294ed4": {
 		"defaultMessage": "Returns from Canada are free.",
 		"description": "Text of a demo in the docs, in components/select/validation.tsx."
-	},
-	"docs.demo.e27c6a5d3f93": {
-		"defaultMessage": "Value: {picked} ({zone} time)",
-		"description": "Text of a demo in the docs, in modules/map/select-a-state.tsx. The arguments {picked} and {zone} are values from the code."
 	},
 	"docs.demo.e2a57b4a96e0": {
 		"defaultMessage": "Bordered input",

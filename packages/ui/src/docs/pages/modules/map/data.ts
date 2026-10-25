@@ -2,6 +2,7 @@ import { feature } from 'topojson-client'
 import type { MapCategory, MapFeature, MapFeatureCollection } from 'ui/map'
 import type { IntlShape } from 'ui/primitives/intl'
 import statesAtlas from 'us-atlas/states-10m.json'
+import { stateLabel } from '../../../data/us-states.ts'
 import { words } from '../../../data/words.ts'
 
 type Topology = Parameters<typeof feature>[0]
@@ -27,6 +28,14 @@ export function miles(meters: number, intl: IntlShape): string {
 /** The name of a state. The timezone rows use it as the identity of a region. */
 export function stateName(state: MapFeature): string {
 	return String(state.properties?.name)
+}
+
+/** The name of each state in the language of the page, by the name of the atlas. */
+const labels = new Map(states.features.map((state) => [stateName(state), stateLabel(state)]))
+
+/** The name of a state in the language of the page, from the name of the atlas. */
+export function labelOfState(name: string): string {
+	return labels.get(name) ?? name
 }
 
 /**
