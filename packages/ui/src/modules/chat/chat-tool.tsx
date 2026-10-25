@@ -93,8 +93,8 @@ export function ChatTool({ part, className }: ChatToolProps) {
 	const head = (
 		<>
 			<StatusDot size="sm" status={status} pulse={pulse} label={intl.formatMessage(label)} />
-			<span data-slot="chat-tool-name" className={k().tool.name}>
-				{part.name}
+			<span data-slot="chat-tool-label" className={k().tool.label}>
+				{part.label}
 			</span>
 			{part.summary !== undefined && (
 				<span data-slot="chat-tool-summary" className={k().tool.summary}>

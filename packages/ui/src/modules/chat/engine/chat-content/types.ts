@@ -90,7 +90,7 @@ export type ChatToolPart = {
 	/** Names this block in its own message, as {@link ChatTextPart.id} does. */
 	id: string
 	/** What ran, in the reader's words rather than the wire's: `Filter shipments`. */
-	name: string
+	label: string
 	/**
 	 * How the call ended.
 	 *

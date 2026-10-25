@@ -28,7 +28,7 @@ function tool(overrides: Partial<ChatToolPart> = {}): ChatToolPart {
 	return {
 		kind: 'tool',
 		id: 't1',
-		name: 'Filter shipments',
+		label: 'Filter shipments',
 		status: 'done',
 		summary: 'status is late and lane is north',
 		detail: 'Matched **12** of 240 rows.',

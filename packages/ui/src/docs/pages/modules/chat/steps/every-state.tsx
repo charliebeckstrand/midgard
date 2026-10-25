@@ -5,12 +5,12 @@ const messages: ChatMessageData[] = [
 		id: '1',
 		sender: 'assistant',
 		content: [
-			{ kind: 'tool', id: 's1', name: 'Load atlas', status: 'done', summary: '3,108 counties' },
-			{ kind: 'tool', id: 's2', name: 'Score routes', status: 'running' },
+			{ kind: 'tool', id: 's1', label: 'Load atlas', status: 'done', summary: '3,108 counties' },
+			{ kind: 'tool', id: 's2', label: 'Score routes', status: 'running' },
 			{
 				kind: 'tool',
 				id: 's3',
-				name: 'Fetch weather',
+				label: 'Fetch weather',
 				status: 'failed',
 				summary: 'No answer from the provider',
 			},

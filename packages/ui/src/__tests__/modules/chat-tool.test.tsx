@@ -7,7 +7,7 @@ function tool(overrides: Partial<ChatToolPart> = {}): ChatToolPart {
 	return {
 		kind: 'tool',
 		id: 't1',
-		name: 'Filter shipments',
+		label: 'Filter shipments',
 		status: 'done',
 		summary: 'status is late and lane is north',
 		...overrides,
@@ -23,7 +23,7 @@ describe('ChatTool', () => {
 	it('names what ran and the line saying what it did', () => {
 		const { container } = renderTool(tool())
 
-		expect(bySlot(container, 'chat-tool-name')).toHaveTextContent('Filter shipments')
+		expect(bySlot(container, 'chat-tool-label')).toHaveTextContent('Filter shipments')
 
 		expect(bySlot(container, 'chat-tool-summary')).toHaveTextContent(
 			'status is late and lane is north',

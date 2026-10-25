@@ -25,7 +25,7 @@ function partText(part: ChatPart): string {
 		// announcement can all have it. The detail stays out: it is the body
 		// behind a disclosure the reader has not opened.
 		case 'tool':
-			return part.summary ? `${part.name}: ${part.summary}` : part.name
+			return part.summary ? `${part.label}: ${part.summary}` : part.label
 	}
 }
 
