@@ -15,6 +15,12 @@ import { LOCALES } from '../../docs/app/language'
 // removed its other chunks. Such a page must also reload one time, at the
 // start or when the reader comes back to the tab.
 //
+// WebKit keeps a module file that failed to load for the life of the tab, so
+// a reload uses the failed copy again. Thus a failed load fetches the module
+// files of the page again with `cache: 'reload'`, which replaces that copy.
+// Chromium does not keep the copy, so these cases check the new fetches, not
+// the recovery in WebKit.
+//
 // The server sends the HTML of each page in the language of the reader
 // (`scripts/docs-server.ts`), and the page hydrates in that language. So the
 // text of a page in each translated language stays after hydration.
@@ -253,5 +259,78 @@ describe('a page whose build a deploy replaced', () => {
 		await tab.waitForFunction(HYDRATED)
 
 		expect(loads()).toBe(2)
+	})
+})
+
+/**
+ * Opens `/button`, and fails the first load of each module file whose path
+ * matches `failed` with the fallback page, as the host does for a file that
+ * it does not have. Gives the tab, the number of loads of the document, and
+ * each module file that the page fetched again. A module load is a `script`
+ * request, and a new fetch is a `fetch` request. The request does not show
+ * its cache mode, as Chromium adds the headers of `cache: 'reload'` after the
+ * route.
+ */
+async function openFailed(
+	failed: RegExp,
+): Promise<{ tab: Page; loads: () => number; refetched: string[] }> {
+	const tab = await openTab()
+
+	const url = `${origin}/button`
+
+	let loads = 0
+
+	const seen = new Set<string>()
+
+	const refetched: string[] = []
+
+	await tab.route(url, (route) => {
+		loads++
+
+		return route.continue()
+	})
+
+	await tab.route(/\/assets\/[\w.-]+\.js$/, async (route) => {
+		const request = route.request()
+
+		const { pathname } = new URL(request.url())
+
+		if (request.resourceType() === 'fetch') refetched.push(pathname)
+
+		if (!failed.test(pathname) || seen.has(pathname)) return route.continue()
+
+		seen.add(pathname)
+
+		const fallback = await route.fetch({ url: `${origin}/no-such-file` })
+
+		return route.fulfill({ response: fallback })
+	})
+
+	await tab.goto(url)
+
+	return { tab, loads: () => loads, refetched }
+}
+
+describe('a page whose module file fails to load one time', () => {
+	it('fetches the module files again, then reloads one time and hydrates', async () => {
+		const { tab, loads, refetched } = await openFailed(/\/entry\.client-/)
+
+		await tab.waitForFunction(HYDRATED)
+
+		expect(loads()).toBe(2)
+
+		expect(refetched).toContainEqual(expect.stringMatching(/\/entry\.client-/))
+	})
+
+	it('fetches the module files again when a chunk fails after hydration', async () => {
+		const { tab, loads, refetched } = await openFailed(/\/reduced-motion-features-animation-/)
+
+		await tab.waitForFunction(HYDRATED)
+
+		await tab.waitForLoadState('networkidle')
+
+		expect(loads()).toBe(1)
+
+		expect(refetched).toContainEqual(expect.stringMatching(/\/reduced-motion-features-animation-/))
 	})
 })

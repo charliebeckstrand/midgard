@@ -6,7 +6,7 @@ import { startDebug } from '../debug/index.tsx'
 import { routerEvents } from '../debug/router.ts'
 import { DocumentLocale } from './document-locale.ts'
 import { readDocumentLocale } from './language.ts'
-import { endStaleBuildWatch, watchStaleBuild } from './stale-build.tsx'
+import { endStaleBuildWatch, watchFailedLoads, watchStaleBuild } from './stale-build.tsx'
 
 // A deploy replaces the hashed file names under an open tab, so the load of a
 // chunk can fail. React Router reloads the page when a navigation cannot load
@@ -15,10 +15,13 @@ import { endStaleBuildWatch, watchStaleBuild } from './stale-build.tsx'
 // page, as the reload closes what the reader has open. Before this module
 // runs, the head script of `stale-build.tsx` reloads the page when a file of
 // the page fails to load. After it, the page reloads when a deploy replaced
-// its build.
+// its build, and a chunk that fails to load is fetched again, so the next
+// reload in WebKit gets a good copy.
 endStaleBuildWatch()
 
 watchStaleBuild()
+
+watchFailedLoads()
 
 // While the events run, the store records from before hydration.
 await startDebug()
