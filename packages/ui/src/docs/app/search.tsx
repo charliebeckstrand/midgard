@@ -58,14 +58,12 @@ export function DocsSearch({ children }: { children: ReactNode }) {
 
 	const fail = useFail()
 
-	// `load` does not report a failed load, so a request before the palette
-	// loads also imports it here. A failure goes to the error boundary, which
-	// offers a reload, as for each load that the reader asks for.
+	// A failure goes to the error boundary, which offers a reload, as for each
+	// load that the reader asks for.
 	const request = useStableEvent((onPick?: () => void) => {
 		onPickRef.current = onPick
 
-		if (palette) setOpen(true)
-		else loadPalette().then(() => load(() => setOpen(true)), fail)
+		load(() => setOpen(true), fail)
 	})
 
 	const pick = useStableEvent(() => onPickRef.current?.())
