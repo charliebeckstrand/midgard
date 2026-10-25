@@ -29,7 +29,6 @@ import {
 	type FreeField,
 	type Value,
 } from './fields.ts'
-import { humanize } from './humanize.ts'
 import { isWord, propLabel, valueLabel } from './names.ts'
 
 type Values = { readonly [prop: string]: Value | undefined }
