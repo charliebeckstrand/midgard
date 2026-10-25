@@ -43,14 +43,24 @@ export type AppearanceSettingsProps = {
  * dialog then renders closed, so the first open is the same as a later open. A
  * pointer on the button or a focus on it starts the load sooner. A press before
  * the load opens the dialog when the module arrives. The button does not
- * change, so the dialog gives the focus back to it when it closes.
+ * change, so the dialog gives the focus back to it when it closes. When the
+ * load of a press fails, the error throws in the next render, so the nearest
+ * error boundary shows it.
  */
 export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 	const [open, setOpen] = useState(false)
 
+	const [failure, setFailure] = useState<{ error: unknown }>()
+
+	if (failure) throw failure.error
+
 	const { module: dialog, request, preload } = useIntentLoad(loadDialog)
 
 	const intl = useIntl()
+
+	const fail = (error: unknown) => setFailure({ error })
+
+	const show = () => request(() => setOpen(true), fail)
 
 	return (
 		<>
@@ -60,7 +70,7 @@ export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 				onPointerEnter={preload}
 				onPointerDown={preload}
 				onFocus={preload}
-				onClick={() => request(() => setOpen(true))}
+				onClick={show}
 			>
 				<Icon icon={<Settings2 />} />
 			</Button>

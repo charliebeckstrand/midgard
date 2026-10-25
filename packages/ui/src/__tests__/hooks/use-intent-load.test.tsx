@@ -154,4 +154,34 @@ describe('useIntentLoad', () => {
 
 		expect(load).toHaveBeenCalledTimes(1)
 	})
+
+	it('gives a failed load to the onError of the request, and does not run the callback', async () => {
+		holdIdle()
+
+		const error = new Error('the chunk did not load')
+
+		const load = vi.fn(() => Promise.reject(error))
+
+		const then = vi.fn()
+
+		const onError = vi.fn()
+
+		function Failing() {
+			const { request } = useIntentLoad(load)
+
+			return (
+				<button type="button" onClick={() => request(then, onError)}>
+					Press
+				</button>
+			)
+		}
+
+		renderUI(<Failing />)
+
+		await act(async () => fireEvent.click(screen.getByRole('button')))
+
+		expect(onError).toHaveBeenCalledWith(error)
+
+		expect(then).not.toHaveBeenCalled()
+	})
 })

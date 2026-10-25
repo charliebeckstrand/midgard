@@ -34,8 +34,8 @@ export function getLazyModule<T>(load: () => Promise<T>): LazyModule<T> {
  * Each loader loads one time. The mounts that share a loader share one idle
  * callback and one load. A mount after the load gets the value in its first
  * render, but the hydration render gets `undefined`. A failed load gives no
- * value and no error. The next mount tries again, and a load on intent, such as
- * a press, reports the error.
+ * value and no error. The next mount tries again. A request of
+ * {@link useIntentLoad} gives the error of its load to its `onError`.
  *
  * {@link useIntentLoad} shares the load of the same loader, so a preload on a
  * pointer or a focus gives the value to each mount.

@@ -12,9 +12,10 @@ export type IntentLoad<T> = {
 	 * same call, so a state change in it goes into the render of the press.
 	 * Before that, the call starts the load, and runs `then` when the value
 	 * arrives, in the render that gets the value. A failed load does not call
-	 * `then`, and the rejection is not caught.
+	 * `then`. It gives the error to `onError`. With no `onError`, the rejection
+	 * is not caught.
 	 */
-	request: (then: (module: T) => void) => void
+	request: (then: (module: T) => void, onError?: (error: unknown) => void) => void
 	/**
 	 * Starts the load and ignores the result. Give it to the pointer enter, the
 	 * pointer down, and the focus of the trigger. It has a stable identity.
@@ -32,7 +33,7 @@ export type IntentLoad<T> = {
  * `request` loads on a press. It keeps one order: the value arrives, and
  * then `then` runs, so the surface renders before it opens. The idle load, the
  * preload, and the request share one load of the loader, and each mount of the
- * loader gets the value.
+ * loader gets the value. To show a failed load, give `onError` to `request`.
  * @param load - The load, such as `() => import('./panel')`. It must keep its
  *   identity: declare it at module scope.
  * @returns The value, `request`, and `preload`.
@@ -61,14 +62,14 @@ export function useIntentLoad<T>(load: () => Promise<T>): IntentLoad<T> {
 
 	const module = useIdleLoad(load)
 
-	const request = (then: (module: T) => void) => {
+	const request = (then: (module: T) => void, onError?: (error: unknown) => void) => {
 		if (module !== undefined) {
 			then(module)
 
 			return
 		}
 
-		void lazy.load().then(then)
+		void lazy.load().then(then, onError)
 	}
 
 	const preload = useCallback(() => void lazy.load(), [lazy])
