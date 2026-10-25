@@ -1,30 +1,41 @@
 import type { ChartLegendPlacement } from 'ui/chart'
+import { dayNames, monthNames } from '../../../data/calendar.ts'
+import { words } from '../../../data/words.ts'
 
 export type Month = { month: string; revenue: number; costs: number; margin: number }
 
 export const months: Month[] = [
-	{ month: 'Jan', revenue: 42, costs: 28, margin: 14 },
-	{ month: 'Feb', revenue: 51, costs: 30, margin: 21 },
-	{ month: 'Mar', revenue: 47, costs: 33, margin: 14 },
-	{ month: 'Apr', revenue: 63, costs: 35, margin: 28 },
-	{ month: 'May', revenue: 58, costs: 34, margin: 24 },
-	{ month: 'Jun', revenue: 71, costs: 38, margin: 33 },
+	{ month: monthNames.jan, revenue: 42, costs: 28, margin: 14 },
+	{ month: monthNames.feb, revenue: 51, costs: 30, margin: 21 },
+	{ month: monthNames.mar, revenue: 47, costs: 33, margin: 14 },
+	{ month: monthNames.apr, revenue: 63, costs: 35, margin: 28 },
+	{ month: monthNames.may, revenue: 58, costs: 34, margin: 24 },
+	{ month: monthNames.jun, revenue: 71, costs: 38, margin: 33 },
 ]
 
 export const swings: { month: string; delta: number }[] = [
-	{ month: 'Jan', delta: 12 },
-	{ month: 'Feb', delta: -6 },
-	{ month: 'Mar', delta: 9 },
-	{ month: 'Apr', delta: -14 },
-	{ month: 'May', delta: 18 },
-	{ month: 'Jun', delta: 7 },
+	{ month: monthNames.jan, delta: 12 },
+	{ month: monthNames.feb, delta: -6 },
+	{ month: monthNames.mar, delta: 9 },
+	{ month: monthNames.apr, delta: -14 },
+	{ month: monthNames.may, delta: 18 },
+	{ month: monthNames.jun, delta: 7 },
 ]
 
+// The sources of the visits to a site. A row holds the word, because a pie
+// or a donut reads it as the name of a slice.
+const sourceNames = words('traffic-source', {
+	search: 'Search',
+	direct: 'Direct',
+	referral: 'Referral',
+	social: 'Social',
+})
+
 export const sources: { source: string; visits: number }[] = [
-	{ source: 'Search', visits: 4820 },
-	{ source: 'Direct', visits: 2210 },
-	{ source: 'Referral', visits: 1370 },
-	{ source: 'Social', visits: 940 },
+	{ source: sourceNames.search, visits: 4820 },
+	{ source: sourceNames.direct, visits: 2210 },
+	{ source: sourceNames.referral, visits: 1370 },
+	{ source: sourceNames.social, visits: 940 },
 ]
 
 export const legendPlacements: { value: ChartLegendPlacement; label: string }[] = [
@@ -60,15 +71,16 @@ export const stops: Stop[] = Array.from({ length: 16 }, (_, index) => {
 	}
 })
 
+/** The freight rate in dollars a pound, and the weight in pounds. */
 export type FreightMonth = { month: string; rate: number; weight: number }
 
 export const freight: FreightMonth[] = [
-	{ month: 'Jan', rate: 1.42, weight: 380 },
-	{ month: 'Feb', rate: 1.51, weight: 415 },
-	{ month: 'Mar', rate: 1.38, weight: 462 },
-	{ month: 'Apr', rate: 1.66, weight: 448 },
-	{ month: 'May', rate: 1.72, weight: 530 },
-	{ month: 'Jun', rate: 1.58, weight: 585 },
+	{ month: monthNames.jan, rate: 1.42, weight: 380_000 },
+	{ month: monthNames.feb, rate: 1.51, weight: 415_000 },
+	{ month: monthNames.mar, rate: 1.38, weight: 462_000 },
+	{ month: monthNames.apr, rate: 1.66, weight: 448_000 },
+	{ month: monthNames.may, rate: 1.72, weight: 530_000 },
+	{ month: monthNames.jun, rate: 1.58, weight: 585_000 },
 ]
 
 const signupCounts = [32, 41, 38, 55, 61, 48, 44, 67, 72, 65, 81]
@@ -92,7 +104,7 @@ export const dailyVisits: { date: Date; visits: number }[] = Array.from(
 	},
 )
 
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const
+const DAYS = Object.values(dayNames)
 
 const HOURS = ['00', '03', '06', '09', '12', '15', '18', '21'] as const
 
