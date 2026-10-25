@@ -46,6 +46,7 @@ export default function SelectAState() {
 				data={timezones}
 				regionKey="state"
 				categoryKey="zone"
+				colorName="Time zone"
 				categories={zoneCategories}
 				regionId={stateName}
 				onRegionClick={pick}

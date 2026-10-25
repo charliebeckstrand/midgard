@@ -11,6 +11,7 @@ export default function MapPlayground(props: MapPlatCategoricalProps<StateZone>)
 			data={timezones}
 			regionKey="state"
 			categoryKey="zone"
+			colorName="Time zone"
 			categories={zoneCategories}
 			regionId={stateName}
 			animate

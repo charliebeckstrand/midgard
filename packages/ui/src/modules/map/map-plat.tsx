@@ -559,16 +559,9 @@ function MapZoomLayer({ children }: { children: ReactNode }) {
 	)
 }
 
-/** The data table's value-column header: the value's name in numeric mode, else the category field. @internal */
-function valueColumnHeader(
-	intl: IntlShape,
-	categoryKey: string | undefined,
-	valueKey: string | undefined,
-	colorName: string | undefined,
-): string {
-	if (valueKey !== undefined) return colorName ?? valueKey
-
-	return categoryKey ?? intl.formatMessage(mapMessages.detail)
+/** The data table's value-column header: the name of the colored field, else the localized "Detail". A data key is never a header. @internal */
+function valueColumnHeader(intl: IntlShape, colorName: string | undefined): string {
+	return colorName ?? intl.formatMessage(mapMessages.detail)
 }
 
 /**
@@ -1360,7 +1353,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		() =>
 			hasReadout ? (
 				<MapTable
-					header={valueColumnHeader(intl, categoryKey, valueKey, colorName)}
+					header={valueColumnHeader(intl, colorName)}
 					regionNames={regionNames}
 					regionCategory={regionCategory}
 					regionValues={regionValues}
@@ -1375,8 +1368,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[
 			hasReadout,
 			intl,
-			categoryKey,
-			valueKey,
 			colorName,
 			regionNames,
 			regionCategory,

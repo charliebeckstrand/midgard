@@ -28,6 +28,7 @@ export const TEXT_ATTRIBUTES: ReadonlySet<string> = new Set([
 	'aria-placeholder',
 	'aria-roledescription',
 	'aria-valuetext',
+	'colorName',
 	'description',
 	'detail',
 	'label',
