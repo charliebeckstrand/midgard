@@ -5,6 +5,7 @@ import { Flex } from 'ui/flex'
 import { Grid, type GridCellRefusal, type GridEditableConfig } from 'ui/grid'
 import { Icon } from 'ui/icon'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
+import { isRole } from '../../../../data/people.ts'
 import { PointerHint } from '../../../../kit/pointer-hint.tsx'
 import { applyChanges, EditHelp, initialPeople, personColumns } from './people.tsx'
 
@@ -69,7 +70,7 @@ export default function NewRow() {
 				id: Math.max(0, ...prev.map((person) => person.id)) + 1,
 				name: String(values.name).trim(),
 				email: String(values.email ?? ''),
-				role: String(values.role ?? 'Developer'),
+				role: isRole(values.role) ? values.role : 'developer',
 				active: values.active === true,
 			},
 		])

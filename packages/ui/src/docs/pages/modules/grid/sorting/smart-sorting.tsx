@@ -1,6 +1,7 @@
 import { Grid, type GridColumn } from 'ui/grid'
+import { type InvoiceStatus, invoiceStatuses } from '../../../../data/commerce.ts'
 
-type Invoice = { id: number; ref: string; amount: string; status: 'paid' | 'due' }
+type Invoice = { id: number; ref: string; amount: string; status: InvoiceStatus }
 
 const invoices: Invoice[] = [
 	{ id: 1, ref: 'INV-2', amount: '$1,200.00', status: 'due' },
@@ -8,9 +9,7 @@ const invoices: Invoice[] = [
 	{ id: 3, ref: 'INV-1', amount: '$340.00', status: 'due' },
 ]
 
-const statusOrder: Record<Invoice['status'], number> = { paid: 0, due: 1 }
-
-const statusLabels: Record<Invoice['status'], string> = { paid: 'Paid', due: 'Due' }
+const statusOrder: Record<InvoiceStatus, number> = { paid: 0, due: 1 }
 
 const invoiceColumns: GridColumn<Invoice>[] = [
 	// The numbers in a reference sort as numbers: INV-1, INV-2, INV-10.
@@ -21,7 +20,7 @@ const invoiceColumns: GridColumn<Invoice>[] = [
 	{
 		id: 'status',
 		title: 'Status',
-		cell: (row) => statusLabels[row.status],
+		cell: (row) => invoiceStatuses[row.status],
 		value: (row) => row.status,
 		sortFn: (a, b) => statusOrder[a.status] - statusOrder[b.status],
 	},
