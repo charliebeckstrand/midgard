@@ -88,7 +88,7 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 			]
 		})
 
-	const { hash } = useLocation()
+	const location = useLocation()
 
 	const intl = useIntl()
 
@@ -96,7 +96,7 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 	// The default locale is English for an English locale only (`catalogIntl`).
 	const translated = intl.locale !== intl.defaultLocale
 
-	const named = componentOfHash(hash)
+	const named = componentOfHash(location.hash)
 
 	const target = named !== undefined && named in api ? named : undefined
 
@@ -111,9 +111,12 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 		change((prev) => (prev.includes(component) ? prev : [...prev, component]))
 	})
 
+	// Each navigation gives a new location, also a link to the hash that the
+	// location has already, such as a pick in the search. So the entry opens
+	// again after the reader closed it.
 	useEffect(() => {
-		if (target) reveal(target, hash.slice(1))
-	}, [target, hash])
+		if (target) reveal(target, location.hash.slice(1))
+	}, [target, location])
 
 	if (components.length === 0) return null
 

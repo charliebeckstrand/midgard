@@ -68,6 +68,33 @@ describe('matchEntries', () => {
 		])
 	})
 
+	it('matches the shown place of an entry, as well as its English context', () => {
+		const entries = [
+			{
+				kind: 'example',
+				label: 'Ordenación básica',
+				href: '/modules/grid/sorting#basic',
+				context: 'Grid › Sorting',
+				place: 'Grid › Ordenación',
+			},
+			{
+				kind: 'page',
+				label: 'Button',
+				href: '/button',
+				context: 'Components',
+				place: 'Componentes',
+			},
+		] as const
+
+		const hrefs = (query: string) => matchEntries(entries, query).map((entry) => entry.href)
+
+		expect(hrefs('componentes')).toEqual(['/button'])
+
+		expect(hrefs('grid ordenacion')).toEqual(['/modules/grid/sorting#basic'])
+
+		expect(hrefs('grid sorting')).toEqual(['/modules/grid/sorting#basic'])
+	})
+
 	it('gives no entry when a word matches nothing', () => {
 		expect(matchHrefs('button nothing')).toEqual([])
 	})

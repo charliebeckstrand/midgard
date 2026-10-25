@@ -9,11 +9,13 @@ import { defineMessages, IntlMessage } from 'ui/primitives/intl'
 import { OffcanvasContext } from 'ui/primitives/offcanvas'
 import { useStableEvent } from '../../hooks/use-stable-event.ts'
 import { noopSubscribe } from '../../utilities/noop.ts'
+import { useFail } from '../kit/fail.ts'
 
 // The part of the search that the shell loads with each page: the state, the
 // button in the sidebar, and the place of the palette. The palette and the
 // entries load in idle time after the hydration, or when the reader points at
-// the button. The palette binds its key when it loads.
+// the button. The palette binds its key when it loads. When the load that a
+// press asks for fails, the error boundary of the shell shows the failure.
 
 const loadPalette = () => import('./search-palette.tsx')
 
@@ -54,10 +56,16 @@ export function DocsSearch({ children }: { children: ReactNode }) {
 
 	const onPickRef = useRef<(() => void) | undefined>(undefined)
 
+	const fail = useFail()
+
+	// `load` does not report a failed load, so a request before the palette
+	// loads also imports it here. A failure goes to the error boundary, which
+	// offers a reload, as for each load that the reader asks for.
 	const request = useStableEvent((onPick?: () => void) => {
 		onPickRef.current = onPick
 
-		load(() => setOpen(true))
+		if (palette) setOpen(true)
+		else loadPalette().then(() => load(() => setOpen(true)), fail)
 	})
 
 	const pick = useStableEvent(() => onPickRef.current?.())
