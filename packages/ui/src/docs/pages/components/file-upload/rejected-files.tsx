@@ -2,26 +2,35 @@ import { useState } from 'react'
 import { Description, Field, Label, Message } from 'ui/fieldset'
 import { type FileRejection, FileUploadInput } from 'ui/file-upload'
 
-const errors: Record<FileRejection['reason'], string> = {
-	type: 'Select a PNG or JPEG image.',
-	size: 'Select an image that is 1 MB or smaller.',
-	count: 'Select one image.',
+function RejectionMessage({ reason }: { reason: FileRejection['reason'] }) {
+	switch (reason) {
+		case 'type':
+			return 'Select a PNG or JPEG image.'
+		case 'size':
+			return 'Select an image that is 1 MB or smaller.'
+		case 'count':
+			return 'Select one image.'
+	}
 }
 
 export default function RejectedFiles() {
-	const [error, setError] = useState<string>()
+	const [reason, setReason] = useState<FileRejection['reason']>()
 
 	return (
-		<Field severity={error ? 'error' : undefined}>
+		<Field severity={reason ? 'error' : undefined}>
 			<Label>Profile photo</Label>
 			<Description>A PNG or JPEG image, up to 1 MB.</Description>
 			<FileUploadInput
 				accept="image/png,image/jpeg"
 				maxSize={1_000_000}
-				onAccept={() => setError(undefined)}
-				onReject={([rejection]) => setError(rejection && errors[rejection.reason])}
+				onAccept={() => setReason(undefined)}
+				onReject={([rejection]) => setReason(rejection?.reason)}
 			/>
-			{error && <Message>{error}</Message>}
+			{reason && (
+				<Message>
+					<RejectionMessage reason={reason} />
+				</Message>
+			)}
 		</Field>
 	)
 }

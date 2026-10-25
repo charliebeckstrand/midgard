@@ -12,34 +12,35 @@ import {
 import type { ReactElement } from 'react'
 
 export type Command = {
+	id: string
 	label: string
 	icon: ReactElement
 	shortcut?: string
 }
 
-export const groups: { heading: string; commands: Command[] }[] = [
+export const groups: { title: string; commands: Command[] }[] = [
 	{
-		heading: 'Files',
+		title: 'Files',
 		commands: [
-			{ label: 'New file', icon: <FilePlus />, shortcut: '⌘N' },
-			{ label: 'New folder', icon: <FolderPlus />, shortcut: '⇧⌘N' },
-			{ label: 'Open file', icon: <File />, shortcut: '⌘O' },
+			{ id: 'newFile', label: 'New file', icon: <FilePlus />, shortcut: '⌘N' },
+			{ id: 'newFolder', label: 'New folder', icon: <FolderPlus />, shortcut: '⇧⌘N' },
+			{ id: 'openFile', label: 'Open file', icon: <File />, shortcut: '⌘O' },
 		],
 	},
 	{
-		heading: 'Edit',
+		title: 'Edit',
 		commands: [
-			{ label: 'Duplicate', icon: <Copy />, shortcut: '⌘D' },
-			{ label: 'Archive', icon: <Archive /> },
-			{ label: 'Delete', icon: <Trash2 />, shortcut: '⌘⌫' },
+			{ id: 'duplicate', label: 'Duplicate', icon: <Copy />, shortcut: '⌘D' },
+			{ id: 'archive', label: 'Archive', icon: <Archive /> },
+			{ id: 'delete', label: 'Delete', icon: <Trash2 />, shortcut: '⌘⌫' },
 		],
 	},
 	{
-		heading: 'Application',
+		title: 'Application',
 		commands: [
-			{ label: 'Profile', icon: <User /> },
-			{ label: 'Appearance', icon: <Palette /> },
-			{ label: 'Settings', icon: <Settings />, shortcut: '⌘,' },
+			{ id: 'profile', label: 'Profile', icon: <User /> },
+			{ id: 'appearance', label: 'Appearance', icon: <Palette /> },
+			{ id: 'settings', label: 'Settings', icon: <Settings />, shortcut: '⌘,' },
 		],
 	},
 ]

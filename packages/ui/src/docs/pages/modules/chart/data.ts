@@ -1,5 +1,5 @@
 import type { ChartLegendPlacement } from 'ui/chart'
-import { dayNames, monthNames } from '../../../data/calendar.ts'
+import { dayNames, monthNames, weekNames } from '../../../data/calendar.ts'
 import { words } from '../../../data/words.ts'
 
 export type Month = { month: string; revenue: number; costs: number; margin: number }
@@ -48,14 +48,14 @@ export const legendPlacements: { value: ChartLegendPlacement; label: string }[] 
 // Shipments are in the thousands and exceptions are in the tens, so each
 // measure has its own axis.
 export const operations: { week: string; shipments: number; exceptions: number }[] = [
-	{ week: 'W1', shipments: 1240, exceptions: 18 },
-	{ week: 'W2', shipments: 1385, exceptions: 9 },
-	{ week: 'W3', shipments: 1512, exceptions: 24 },
-	{ week: 'W4', shipments: 1467, exceptions: 12 },
-	{ week: 'W5', shipments: 1690, exceptions: 31 },
-	{ week: 'W6', shipments: 1755, exceptions: 15 },
-	{ week: 'W7', shipments: 1621, exceptions: 11 },
-	{ week: 'W8', shipments: 1834, exceptions: 22 },
+	{ week: weekNames.w1, shipments: 1240, exceptions: 18 },
+	{ week: weekNames.w2, shipments: 1385, exceptions: 9 },
+	{ week: weekNames.w3, shipments: 1512, exceptions: 24 },
+	{ week: weekNames.w4, shipments: 1467, exceptions: 12 },
+	{ week: weekNames.w5, shipments: 1690, exceptions: 31 },
+	{ week: weekNames.w6, shipments: 1755, exceptions: 15 },
+	{ week: weekNames.w7, shipments: 1621, exceptions: 11 },
+	{ week: weekNames.w8, shipments: 1834, exceptions: 22 },
 ]
 
 export type Stop = { distance: number; dwell: number; handling: number; weight: number }

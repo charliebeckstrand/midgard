@@ -37,7 +37,16 @@ export default function Range() {
 				onHoverDate={setHover}
 				onDayPress={pick}
 			/>
-			<Text>Value: {start && end ? `${format(start)} to ${format(end)}` : 'Empty'}</Text>
+			<Text>
+				Value:{' '}
+				{start && end ? (
+					<>
+						{format(start)} to {format(end)}
+					</>
+				) : (
+					'Empty'
+				)}
+			</Text>
 		</>
 	)
 }

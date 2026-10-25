@@ -16,35 +16,35 @@ import { Text } from 'ui/text'
 
 const sections = [
 	{
-		heading: 'Your account',
+		title: 'Your account',
 		text: 'You are responsible for the activity on your account. Keep your password private, and tell support at once if someone uses your account without your permission.',
 	},
 	{
-		heading: 'Your content',
+		title: 'Your content',
 		text: 'You own the files that you upload. You give the service permission to store them, copy them for backups, and show them to the people that you share them with.',
 	},
 	{
-		heading: 'Acceptable use',
+		title: 'Acceptable use',
 		text: 'Do not use the service to send spam, to break the law, or to attack other systems. The service can remove content that breaks these rules.',
 	},
 	{
-		heading: 'Payment',
+		title: 'Payment',
 		text: 'A paid plan renews each month until you cancel it. The service charges the card on your account on the first day of each period.',
 	},
 	{
-		heading: 'Cancellation',
+		title: 'Cancellation',
 		text: 'You can cancel your plan at any time from the billing page. Your files stay available until the end of the period that you paid for.',
 	},
 	{
-		heading: 'Privacy',
+		title: 'Privacy',
 		text: 'The privacy policy tells you what data the service collects and why. The service does not sell your data to other companies.',
 	},
 	{
-		heading: 'Changes to these terms',
+		title: 'Changes to these terms',
 		text: 'You get an email 30 days before a change to these terms. If you use the service after that date, you accept the new terms.',
 	},
 	{
-		heading: 'Contact',
+		title: 'Contact',
 		text: 'Send your questions about these terms to legal@example.com. You get an answer within five business days.',
 	},
 ]
@@ -63,8 +63,8 @@ export default function LongContent() {
 				<DialogBody>
 					<Stack gap="lg">
 						{sections.map((section) => (
-							<Stack key={section.heading} gap="xs">
-								<Heading level={3}>{section.heading}</Heading>
+							<Stack key={section.title} gap="xs">
+								<Heading level={3}>{section.title}</Heading>
 								<Text tone="muted">{section.text}</Text>
 							</Stack>
 						))}

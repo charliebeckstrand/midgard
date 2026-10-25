@@ -45,75 +45,75 @@ import { ToggleIconButtonSkeleton } from 'ui/toggle-icon-button'
 import { TreeSkeleton } from 'ui/tree'
 
 const variants = [
-	{ name: 'Accordion', skeleton: <AccordionSkeleton /> },
-	{ name: 'Avatar', skeleton: <AvatarSkeleton /> },
-	{ name: 'Badge', skeleton: <BadgeSkeleton /> },
-	{ name: 'Breadcrumb', skeleton: <BreadcrumbSkeleton /> },
-	{ name: 'Button', skeleton: <ButtonSkeleton /> },
-	{ name: 'Calendar', skeleton: <CalendarSkeleton /> },
-	{ name: 'Chart', skeleton: <ChartSkeleton /> },
-	{ name: 'Chart (pie)', skeleton: <ChartSkeleton sector /> },
-	{ name: 'Chat transcript', skeleton: <ChatTranscriptSkeleton /> },
-	{ name: 'Checkbox', skeleton: <CheckboxSkeleton /> },
-	{ name: 'Color panel', skeleton: <ColorPanelSkeleton /> },
-	{ name: 'Color picker', skeleton: <ColorPickerSkeleton /> },
-	{ name: 'Control', skeleton: <ControlSkeleton /> },
-	{ name: 'Date picker', skeleton: <DatePickerSkeleton /> },
-	{ name: 'Description list', skeleton: <DescriptionListSkeleton /> },
-	{ name: 'Filters', skeleton: <FormFiltersSkeleton /> },
-	{ name: 'Heading', skeleton: <HeadingSkeleton level={3} /> },
-	{ name: 'Kanban card', skeleton: <KanbanCardSkeleton /> },
-	{ name: 'List', skeleton: <ListSkeleton description /> },
-	{ name: 'Map', skeleton: <MapSkeleton /> },
-	{ name: 'Nav', skeleton: <NavSkeleton /> },
-	{ name: 'Pagination', skeleton: <PaginationSkeleton /> },
-	{ name: 'Progress bar', skeleton: <ProgressBarSkeleton /> },
-	{ name: 'Progress gauge', skeleton: <ProgressGaugeSkeleton /> },
-	{ name: 'Radio', skeleton: <RadioSkeleton /> },
-	{ name: 'Rating', skeleton: <RatingSkeleton /> },
-	{ name: 'Segment', skeleton: <SegmentSkeleton /> },
-	{ name: 'Shiny text', skeleton: <ShinyTextSkeleton /> },
-	{ name: 'Sidebar', skeleton: <SidebarSkeleton /> },
-	{ name: 'Slider', skeleton: <SliderSkeleton /> },
-	{ name: 'Sparkline', skeleton: <SparklineSkeleton /> },
-	{ name: 'Stat', skeleton: <StatSkeleton delta description /> },
-	{ name: 'Stat delta', skeleton: <StatDeltaSkeleton /> },
-	{ name: 'Stat description', skeleton: <StatDescriptionSkeleton /> },
-	{ name: 'Stat label', skeleton: <StatLabelSkeleton /> },
-	{ name: 'Stat value', skeleton: <StatValueSkeleton /> },
-	{ name: 'Stepper', skeleton: <StepperSkeleton /> },
-	{ name: 'Switch', skeleton: <SwitchSkeleton /> },
-	{ name: 'Tab list', skeleton: <TabListSkeleton /> },
-	{ name: 'Text', skeleton: <TextSkeleton /> },
-	{ name: 'Textarea', skeleton: <TextareaSkeleton /> },
-	{ name: 'Timeline', skeleton: <TimelineSkeleton /> },
-	{ name: 'Toggle icon button', skeleton: <ToggleIconButtonSkeleton /> },
-	{ name: 'Tree', skeleton: <TreeSkeleton /> },
+	{ id: 'accordion', label: 'Accordion', skeleton: <AccordionSkeleton /> },
+	{ id: 'avatar', label: 'Avatar', skeleton: <AvatarSkeleton /> },
+	{ id: 'badge', label: 'Badge', skeleton: <BadgeSkeleton /> },
+	{ id: 'breadcrumb', label: 'Breadcrumb', skeleton: <BreadcrumbSkeleton /> },
+	{ id: 'button', label: 'Button', skeleton: <ButtonSkeleton /> },
+	{ id: 'calendar', label: 'Calendar', skeleton: <CalendarSkeleton /> },
+	{ id: 'chart', label: 'Chart', skeleton: <ChartSkeleton /> },
+	{ id: 'chartPie', label: 'Chart (pie)', skeleton: <ChartSkeleton sector /> },
+	{ id: 'chatTranscript', label: 'Chat transcript', skeleton: <ChatTranscriptSkeleton /> },
+	{ id: 'checkbox', label: 'Checkbox', skeleton: <CheckboxSkeleton /> },
+	{ id: 'colorPanel', label: 'Color panel', skeleton: <ColorPanelSkeleton /> },
+	{ id: 'colorPicker', label: 'Color picker', skeleton: <ColorPickerSkeleton /> },
+	{ id: 'control', label: 'Control', skeleton: <ControlSkeleton /> },
+	{ id: 'datePicker', label: 'Date picker', skeleton: <DatePickerSkeleton /> },
+	{ id: 'descriptionList', label: 'Description list', skeleton: <DescriptionListSkeleton /> },
+	{ id: 'filters', label: 'Filters', skeleton: <FormFiltersSkeleton /> },
+	{ id: 'heading', label: 'Heading', skeleton: <HeadingSkeleton level={3} /> },
+	{ id: 'kanbanCard', label: 'Kanban card', skeleton: <KanbanCardSkeleton /> },
+	{ id: 'list', label: 'List', skeleton: <ListSkeleton description /> },
+	{ id: 'map', label: 'Map', skeleton: <MapSkeleton /> },
+	{ id: 'nav', label: 'Nav', skeleton: <NavSkeleton /> },
+	{ id: 'pagination', label: 'Pagination', skeleton: <PaginationSkeleton /> },
+	{ id: 'progressBar', label: 'Progress bar', skeleton: <ProgressBarSkeleton /> },
+	{ id: 'progressGauge', label: 'Progress gauge', skeleton: <ProgressGaugeSkeleton /> },
+	{ id: 'radio', label: 'Radio', skeleton: <RadioSkeleton /> },
+	{ id: 'rating', label: 'Rating', skeleton: <RatingSkeleton /> },
+	{ id: 'segment', label: 'Segment', skeleton: <SegmentSkeleton /> },
+	{ id: 'shinyText', label: 'Shiny text', skeleton: <ShinyTextSkeleton /> },
+	{ id: 'sidebar', label: 'Sidebar', skeleton: <SidebarSkeleton /> },
+	{ id: 'slider', label: 'Slider', skeleton: <SliderSkeleton /> },
+	{ id: 'sparkline', label: 'Sparkline', skeleton: <SparklineSkeleton /> },
+	{ id: 'stat', label: 'Stat', skeleton: <StatSkeleton delta description /> },
+	{ id: 'statDelta', label: 'Stat delta', skeleton: <StatDeltaSkeleton /> },
+	{ id: 'statDescription', label: 'Stat description', skeleton: <StatDescriptionSkeleton /> },
+	{ id: 'statLabel', label: 'Stat label', skeleton: <StatLabelSkeleton /> },
+	{ id: 'statValue', label: 'Stat value', skeleton: <StatValueSkeleton /> },
+	{ id: 'stepper', label: 'Stepper', skeleton: <StepperSkeleton /> },
+	{ id: 'switch', label: 'Switch', skeleton: <SwitchSkeleton /> },
+	{ id: 'tabList', label: 'Tab list', skeleton: <TabListSkeleton /> },
+	{ id: 'text', label: 'Text', skeleton: <TextSkeleton /> },
+	{ id: 'textarea', label: 'Textarea', skeleton: <TextareaSkeleton /> },
+	{ id: 'timeline', label: 'Timeline', skeleton: <TimelineSkeleton /> },
+	{ id: 'toggleIconButton', label: 'Toggle icon button', skeleton: <ToggleIconButtonSkeleton /> },
+	{ id: 'tree', label: 'Tree', skeleton: <TreeSkeleton /> },
 ]
 
 function MatchingVariants() {
 	const query = useComboboxDeferredQuery().toLowerCase()
 
 	return variants
-		.filter((variant) => variant.name.toLowerCase().includes(query))
+		.filter((variant) => variant.label.toLowerCase().includes(query))
 		.map((variant) => (
-			<ComboboxOption key={variant.name} value={variant.name}>
-				<ComboboxLabel>{variant.name}</ComboboxLabel>
+			<ComboboxOption key={variant.id} value={variant.id}>
+				<ComboboxLabel>{variant.label}</ComboboxLabel>
 			</ComboboxOption>
 		))
 }
 
 export default function SkeletonVariants() {
-	const [selected, setSelected] = useState('Button')
+	const [selected, setSelected] = useState('button')
 
-	const active = variants.find((variant) => variant.name === selected)
+	const active = variants.find((variant) => variant.id === selected)
 
 	return (
 		<>
 			<Combobox<string>
 				value={selected}
-				onValueChange={(value) => setSelected(value ?? 'Button')}
-				displayValue={(name) => name}
+				onValueChange={(value) => setSelected(value ?? 'button')}
+				displayValue={(id) => variants.find((variant) => variant.id === id)?.label ?? id}
 				placeholder="Search components"
 				aria-label="Skeleton variant"
 			>

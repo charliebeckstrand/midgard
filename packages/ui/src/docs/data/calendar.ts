@@ -30,3 +30,15 @@ export const dayNames = words('weekday', {
 	sat: 'Sat',
 	sun: 'Sun',
 })
+
+/** The short name of each week of a period, from the first. */
+export const weekNames = words('week', {
+	w1: 'W1',
+	w2: 'W2',
+	w3: 'W3',
+	w4: 'W4',
+	w5: 'W5',
+	w6: 'W6',
+	w7: 'W7',
+	w8: 'W8',
+})

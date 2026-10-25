@@ -1,7 +1,9 @@
 // @vitest-environment node
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { parseAst } from 'vite'
 import { describe, expect, it } from 'vitest'
+import es from '../lang/es.json' with { type: 'json' }
 import { findDemoText, toDemoId, translateDemo } from '../plugin/demo-text.ts'
 
 // The text of a demo is a literal of `pages/` that a reader sees. `pnpm intl`
@@ -147,6 +149,47 @@ describe('findDemoText', () => {
 		expect(texts(code)).toEqual([])
 	})
 
+	it('finds the message of a check, of a refused cell, and of a summary', () => {
+		const code = `
+			const refusal = { columnId: 'name', error: name === '' ? 'Enter a name.' : 'Enter a different name.' }
+			const result = { fieldErrors: { username: 'This one is taken.' } }
+			export default () => (
+				<Form
+					validate={{ email: (value) => (value.includes('@') ? undefined : 'Enter a valid email.') }}
+					summarize={(selected) => \`\${selected.length} reviewers\`}
+				/>
+			)
+		`
+
+		expect(texts(code)).toEqual([
+			'Enter a name.',
+			'Enter a different name.',
+			'This one is taken.',
+			'Enter a valid email.',
+			'{length} reviewers',
+		])
+	})
+
+	it('finds each string that a check with a block body returns or pushes, and no other', () => {
+		const code = `export default () => (
+			<Form
+				validate={{
+					password: (value) => {
+						const issues = []
+
+						if (value === 'admin') issues.push('Use another password.')
+
+						const hint = () => 'Not a message'
+
+						return issues.length > 0 ? issues : 'Fine'
+					},
+				}}
+			/>
+		)`
+
+		expect(texts(code)).toEqual(['Use another password.', 'Fine'])
+	})
+
 	it('fails on a character reference in JSX text', () => {
 		expect(() => texts('export default () => <p>Fish &amp; chips</p>')).toThrow(
 			/character reference/,
@@ -211,5 +254,45 @@ describe('translateDemo', () => {
 		const code = 'export default () => <p>Save</p>'
 
 		expect(translateDemo(parse(code), code, FILE, {})).toBe(code)
+	})
+})
+
+describe('the demos', () => {
+	/** The English message of each demo text of the module at `file` under `pages/`. */
+	function demoTexts(file: string): string[] {
+		const code = readFileSync(path.join(PAGES, file), 'utf8')
+
+		return findDemoText(parse(code), code, path.join(PAGES, file)).map(({ message }) => message)
+	}
+
+	// The page smoke test cannot see a text that shows only after an open, a
+	// submit, a blur, or a refusal, so each such text needs an entry here.
+	it.each([
+		['components/command-palette/commands.tsx', 'Files'],
+		['components/command-palette/virtualized.tsx', 'Command {id}'],
+		['components/dialog/long-content.tsx', 'Your account'],
+		['components/drawer/fit-content.tsx', 'How do I change my password?'],
+		['components/file-upload/rejected-files.tsx', 'Select one image.'],
+		['components/combobox/custom-summary.tsx', '{length} reviewers'],
+		['modules/grid/virtualization/server-infinite-scroll.tsx', 'No more results'],
+		['modules/grid/editing/async-commit.tsx', 'Enter a different name.'],
+		['modules/grid/editing/new-row.tsx', 'Enter a name.'],
+		['primitives/skeleton/skeleton-variants.tsx', 'Chart (pie)'],
+		['modules/form/server-errors.tsx', 'Enter a different username. This one is taken.'],
+		['modules/form/success-and-failure.tsx', 'The server is busy. Try again in a minute.'],
+		['modules/form/validation.tsx', 'Add a number.'],
+		['components/calendar/range.tsx', 'to'],
+	])('gives an entry for the text of %s', (file, message) => {
+		expect(demoTexts(file)).toContain(message)
+	})
+
+	it('keeps the key of a command in the Spanish copy', () => {
+		const file = path.join(PAGES, 'components', 'command-palette', 'commands.tsx')
+
+		const code = readFileSync(file, 'utf8')
+
+		expect(translateDemo(parse(code), code, file, es)).toContain(
+			"{ id: 'delete', label: 'Eliminar'",
+		)
 	})
 })

@@ -29,6 +29,12 @@ import type { Parser } from './examples.ts'
 // that an arrow function gives is text too, such as the value of a callback
 // prop `clusterDetail`.
 //
+// The message of a check and the summary of a selection are text too, though
+// their names are not text names: the value of `error` and of `summarize`, and
+// the message that each check of `validate` or each value of `fieldErrors`
+// gives. A check with a block body gives each string of a `return` and each
+// string that it pushes on a list.
+//
 // A template with values is text in the same places when each value is a
 // name, a property, or a call, such as `` `${count} stops` ``,
 // `` `Edit ${row.name}` ``, or `` `${miles(span)} across` ``. Its message holds
@@ -272,13 +278,89 @@ function findReturns(node: ESTree.Function, finder: Finder): void {
 	})
 }
 
+/**
+ * The names of the props and the properties of `ui` that take a message but
+ * are not text names: the message of a refused cell and the summary of a
+ * selection.
+ */
+const MESSAGE_NAMES: ReadonlySet<string> = new Set(['error', 'summarize'])
+
+/**
+ * The names of the props and the properties that give a check or a message for
+ * each field, such as `validate` of a Form.
+ */
+const MESSAGE_MAPS: ReadonlySet<string> = new Set(['fieldErrors', 'validate'])
+
+/** Tells if the value of an attribute or a property named `name` is demo text. */
+function carriesText(name: string): boolean {
+	return isTextName(name) || MESSAGE_NAMES.has(name)
+}
+
+/**
+ * The strings that a check gives: the value of an arrow function, or each
+ * string of a `return` and of a `push` in a block body. A nested function is
+ * not part of the check.
+ */
+function findCheckStrings(node: ESTree.Node): ESTree.Node[] {
+	if (
+		(node.type !== 'ArrowFunctionExpression' && node.type !== 'FunctionExpression') ||
+		node.body?.type !== 'BlockStatement'
+	) {
+		return findStrings(node)
+	}
+
+	const strings: ESTree.Node[] = []
+
+	walk(node.body, (child) => {
+		if (
+			child.type === 'FunctionDeclaration' ||
+			child.type === 'FunctionExpression' ||
+			child.type === 'ArrowFunctionExpression'
+		) {
+			return false
+		}
+
+		if (child.type === 'ReturnStatement') strings.push(...findStrings(child.argument))
+
+		if (
+			child.type === 'CallExpression' &&
+			child.callee.type === 'MemberExpression' &&
+			child.callee.property.type === 'Identifier' &&
+			child.callee.property.name === 'push'
+		) {
+			for (const argument of child.arguments) strings.push(...findStrings(argument))
+		}
+
+		return undefined
+	})
+
+	return strings
+}
+
+/** The strings of the value of each field of a check map, such as `validate`. */
+function findMapStrings(node: ESTree.Node): ESTree.Node[] {
+	if (node.type !== 'ObjectExpression') return []
+
+	return node.properties.flatMap((property) =>
+		property.type === 'Property' ? findCheckStrings(property.value) : [],
+	)
+}
+
 /** The demo text of a text attribute. */
 function findAttribute(attribute: ESTree.JSXAttribute, finder: Finder): void {
 	const name = attributeName(attribute)
 
 	const { value } = attribute
 
-	if (!isTextName(name)) return
+	if (
+		MESSAGE_MAPS.has(name) &&
+		value?.type === 'JSXExpressionContainer' &&
+		value.expression.type !== 'JSXEmptyExpression'
+	) {
+		for (const text of findMapStrings(value.expression)) finder.add(text, 'string', name)
+	}
+
+	if (!carriesText(name)) return
 
 	if (value?.type === 'Literal') finder.add(value, 'attribute', name)
 
@@ -291,7 +373,13 @@ function findAttribute(attribute: ESTree.JSXAttribute, finder: Finder): void {
 function findProperty(property: Extract<ESTree.Node, { type: 'Property' }>, finder: Finder): void {
 	const name = propertyName(property)
 
-	if (name === undefined || !isTextName(name)) return
+	if (name === undefined) return
+
+	if (MESSAGE_MAPS.has(name)) {
+		for (const text of findMapStrings(property.value)) finder.add(text, 'string', name)
+	}
+
+	if (!carriesText(name)) return
 
 	for (const text of findStrings(property.value)) finder.add(text, 'string', name)
 }

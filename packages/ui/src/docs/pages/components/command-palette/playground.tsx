@@ -16,16 +16,16 @@ import { groups } from './commands.tsx'
 function MatchingCommands() {
 	const query = useCommandPaletteDeferredQuery().toLowerCase()
 
-	return groups.map(({ heading, commands }) => {
+	return groups.map(({ title, commands }) => {
 		const matches = commands.filter((command) => command.label.toLowerCase().includes(query))
 
 		if (matches.length === 0) return null
 
 		return (
-			<CommandPaletteGroup key={heading}>
-				<CommandPaletteHeading>{heading}</CommandPaletteHeading>
+			<CommandPaletteGroup key={title}>
+				<CommandPaletteHeading>{title}</CommandPaletteHeading>
 				{matches.map((command) => (
-					<CommandPaletteItem key={command.label}>
+					<CommandPaletteItem key={command.id}>
 						<Icon icon={command.icon} />
 						<CommandPaletteLabel>{command.label}</CommandPaletteLabel>
 						{command.shortcut && (

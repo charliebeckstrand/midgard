@@ -8,10 +8,11 @@ import {
 } from 'ui/command-palette'
 import { VirtualOptions } from 'ui/primitives/virtual-options'
 
-const commands = Array.from({ length: 5000 }, (_, index) => ({
-	id: index + 1,
-	label: `Command ${index + 1}`,
-}))
+const commands = Array.from({ length: 5000 }, (_, index) => {
+	const id = index + 1
+
+	return { id, label: `Command ${id}` }
+})
 
 function MatchingCommands() {
 	const query = useCommandPaletteDeferredQuery().toLowerCase()

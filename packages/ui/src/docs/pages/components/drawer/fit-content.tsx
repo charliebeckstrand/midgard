@@ -12,38 +12,32 @@ import {
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 
-type Topic = { question: string; answer: string }
+type Topic = { title: string; text: string }
 
 const topics: Topic[] = [
 	{
-		question: 'How do I change my password?',
-		answer:
-			'Open Settings, then Security, and select Change password. You get a code by email before the change applies.',
+		title: 'How do I change my password?',
+		text: 'Open Settings, then Security, and select Change password. You get a code by email before the change applies.',
 	},
 	{
-		question: 'Can I share a folder with a guest?',
-		answer:
-			'Yes. Open the folder, select Share, and type the email address of the guest. A guest can see the files but cannot change them.',
+		title: 'Can I share a folder with a guest?',
+		text: 'Yes. Open the folder, select Share, and type the email address of the guest. A guest can see the files but cannot change them.',
 	},
 	{
-		question: 'Where do deleted files go?',
-		answer:
-			'Deleted files stay in the trash for 30 days. Open the trash to restore a file before that period ends.',
+		title: 'Where do deleted files go?',
+		text: 'Deleted files stay in the trash for 30 days. Open the trash to restore a file before that period ends.',
 	},
 	{
-		question: 'How do I export my data?',
-		answer:
-			'Open Settings, then Account, and select Export. You get an email with a link to a ZIP file when the export is ready.',
+		title: 'How do I export my data?',
+		text: 'Open Settings, then Account, and select Export. You get an email with a link to a ZIP file when the export is ready.',
 	},
 	{
-		question: 'Which file types can I preview?',
-		answer:
-			'You can preview images, PDF files, video, and most text files. Other files show their name and size.',
+		title: 'Which file types can I preview?',
+		text: 'You can preview images, PDF files, video, and most text files. Other files show their name and size.',
 	},
 	{
-		question: 'How do I close my account?',
-		answer:
-			'Open Settings, then Account, and select Close account. Your files stay for 30 days in case you change your mind.',
+		title: 'How do I close my account?',
+		text: 'Open Settings, then Account, and select Close account. Your files stay for 30 days in case you change your mind.',
 	},
 ]
 
@@ -59,15 +53,15 @@ export default function FitContent() {
 			</DrawerTrigger>
 			{/* Open a question and go back. The drawer moves between the two heights. */}
 			<DrawerPanel height="fit">
-				<DrawerTitle>{topic ? topic.question : 'Help'}</DrawerTitle>
+				<DrawerTitle>{topic ? topic.title : 'Help'}</DrawerTitle>
 				<DrawerBody>
 					{topic ? (
-						<Text tone="muted">{topic.answer}</Text>
+						<Text tone="muted">{topic.text}</Text>
 					) : (
 						<Stack gap="xs" align="start">
 							{topics.map((item) => (
-								<Button key={item.question} variant="plain" onClick={() => setTopic(item)}>
-									{item.question}
+								<Button key={item.title} variant="plain" onClick={() => setTopic(item)}>
+									{item.title}
 								</Button>
 							))}
 						</Stack>
