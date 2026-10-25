@@ -34,22 +34,18 @@ export type TooltipStateHostProps = TooltipStateOptions & {
  * @remarks The host is memoized. The root renders again for each state that
  * the host gives, with the same props, and the memo stops that render at the
  * host.
- *
- * The state comes one render after the props that it reads. Thus the root
- * gets the sources of the open state too, and finds the open state of its own
- * props with them.
  * @internal
  */
 export const TooltipStateHost = memo(function TooltipStateHost({
 	onState,
 	...options
 }: TooltipStateHostProps) {
-	const state = useTooltipState(options)
+	const { value, requested, heldDisabled } = useTooltipState(options)
 
 	// Before paint, so the root shares the value in the same commit.
 	useLayoutEffect(() => {
-		onState(state)
-	}, [onState, state])
+		onState({ value, requested, heldDisabled })
+	}, [onState, value, requested, heldDisabled])
 
 	return null
 })

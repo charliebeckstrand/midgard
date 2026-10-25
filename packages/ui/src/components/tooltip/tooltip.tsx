@@ -6,8 +6,7 @@ import { useLazyModule } from '../../hooks/use-lazy-module'
 import { noop, noopSubscribe } from '../../utilities/noop'
 import { TooltipContext, type TooltipContextValue } from './context'
 import { tooltipBody } from './tooltip-body-loader'
-import { useTooltipIntent } from './tooltip-intent'
-import { isTooltipOpen } from './tooltip-open'
+import { isTooltipOpen, useTooltipIntent } from './tooltip-intent'
 import type { TooltipState } from './use-tooltip-state'
 
 /** Props for {@link Tooltip}. */
@@ -167,8 +166,10 @@ function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
 	// this render. Thus a prop that closes the tooltip, such as the release of
 	// `open`, closes it in the render that changes the content, as in
 	// `TooltipStateRoot`, and the exit keeps the content of the last open render.
-	const open = state !== null && isTooltipOpen(enabled, held, state.sources)
+	const open = state !== null && isTooltipOpen(enabled, held, state.requested, state.heldDisabled)
 
+	// The value of the host when the open states agree, so a change that the
+	// screen does not show renders no consumer.
 	const value = useMemo(
 		() => state && (state.value.open === open ? state.value : { ...state.value, open }),
 		[state, open],

@@ -25,8 +25,7 @@ import { subscribeOverlaySignal } from '../../primitives/overlay'
 import { noop } from '../../utilities/noop'
 import type { TooltipContextValue } from './context'
 import type { TooltipProps } from './tooltip'
-import { reopensOnEnable, type TooltipIntent } from './tooltip-intent'
-import { isTooltipOpen, type TooltipOpenSources } from './tooltip-open'
+import { isTooltipOpen, reopensOnEnable, type TooltipIntent } from './tooltip-intent'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
 
 /** Options for {@link useTooltipState}. @internal */
@@ -106,11 +105,13 @@ function replayIntent(
 
 /**
  * The state that {@link useTooltipState} gives: the value shared through
- * context, and the sources of its open state. @internal
+ * context, and the parts of its open state that {@link isTooltipOpen} reads
+ * besides the props. @internal
  */
 export type TooltipState = {
 	value: TooltipContextValue
-	sources: TooltipOpenSources
+	requested: boolean
+	heldDisabled: boolean
 }
 
 /**
@@ -162,7 +163,7 @@ export function useTooltipState({
 		role: dialog ? 'dialog' : 'tooltip',
 		placement,
 		offset: 8,
-		open: isTooltipOpen(enabled, held, { requested, heldDisabled }),
+		open: isTooltipOpen(enabled, held, requested, heldDisabled),
 		onOpenChange: setRequested,
 		gate: (next, gateRefs) =>
 			!next || (enabled && !isReferenceDisabled(gateRefs.reference.current)),
@@ -372,8 +373,5 @@ export function useTooltipState({
 		],
 	)
 
-	return useMemo(
-		() => ({ value, sources: { requested, heldDisabled } }),
-		[value, requested, heldDisabled],
-	)
+	return { value, requested, heldDisabled }
 }

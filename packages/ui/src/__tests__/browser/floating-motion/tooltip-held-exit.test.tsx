@@ -57,18 +57,14 @@ afterAll(async () => {
 	await tooltipBody.load()
 })
 
-describe('the exit of a Tooltip that a prop closes (real engine, real Motion)', () => {
-	const cases = [
-		{ mount: 'before the load', close: 'Release' },
-		{ mount: 'before the load', close: 'Disable' },
-		{ mount: 'after the load', close: 'Release' },
-		{ mount: 'after the load', close: 'Disable' },
-	]
-
-	it.each(cases)(
-		'keeps the last open content for a tooltip that mounts $mount ($close)',
-		async ({ mount, close }) => {
-			if (mount === 'before the load') tooltipLoad.hold()
+describe.each([
+	{ mount: 'before the load', held: true },
+	{ mount: 'after the load', held: false },
+])(
+	'the exit of a Tooltip that mounts $mount and that a prop closes (real engine, real Motion)',
+	({ held }) => {
+		it.each(['Release', 'Disable'])('keeps the last open content (%s)', async (close) => {
+			if (held) tooltipLoad.hold()
 
 			renderUI(<CopyHint />)
 
@@ -92,6 +88,6 @@ describe('the exit of a Tooltip that a prop closes (real engine, real Motion)', 
 			expect(tooltip).toHaveTextContent('Copied')
 
 			await waitFor(() => expect(tooltip).not.toBeInTheDocument())
-		},
-	)
-})
+		})
+	},
+)
