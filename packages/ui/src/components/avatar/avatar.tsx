@@ -1,46 +1,12 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { IntlMessage } from '../../primitives/intl/intl-message'
-import { defineMessages } from '../../primitives/intl/intl-messages'
 import { type AvatarVariants, k } from '../../recipes/kata/avatar'
 import { StatusDot, type StatusDotProps } from '../status'
+import { statusMessages } from '../status/status-messages'
 
 // The StatusDot union is the single source of truth for status values.
 type Status = NonNullable<StatusDotProps['status']>
-
-// The name of each status, which the sr-only span reads.
-const statusMessages = defineMessages({
-	inactive: {
-		id: 'ui.avatar.statusInactive',
-		defaultMessage: 'Inactive',
-		description:
-			'The status of a person or an item, which a screen reader speaks after its avatar.',
-	},
-	active: {
-		id: 'ui.avatar.statusActive',
-		defaultMessage: 'Active',
-		description:
-			'The status of a person or an item, which a screen reader speaks after its avatar.',
-	},
-	info: {
-		id: 'ui.avatar.statusInfo',
-		defaultMessage: 'Info',
-		description:
-			'The status of a person or an item that has news, which a screen reader speaks after its avatar.',
-	},
-	warning: {
-		id: 'ui.avatar.statusWarning',
-		defaultMessage: 'Warning',
-		description:
-			'The status of a person or an item that needs attention, which a screen reader speaks after its avatar.',
-	},
-	error: {
-		id: 'ui.avatar.statusError',
-		defaultMessage: 'Error',
-		description:
-			'The status of a person or an item that has a problem, which a screen reader speaks after its avatar.',
-	},
-})
 
 /** A character that ends a CSS string: a quote, a backslash, or a line break. @internal */
 const CSS_STRING_END = /["\\\n\r\f]/g
