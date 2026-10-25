@@ -167,7 +167,7 @@ export default function ServerSideGrouping() {
 			setRows((prev) => {
 				const index = prev.findIndex((row) => row.group?.key === key) + 1
 
-				return index === 0 ? prev : [...prev.slice(0, index), ...children, ...prev.slice(index)]
+				return index === 0 ? prev : prev.toSpliced(index, 0, ...children)
 			})
 		})
 	}

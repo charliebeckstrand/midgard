@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export const SECOND = 1000
-export const MINUTE = 60 * SECOND
-export const HOUR = 60 * MINUTE
-export const DAY = 24 * HOUR
+export { DAY, HOUR, MINUTE, SECOND } from '../../../../utilities/time-units.ts'
 
 /**
  * The time when the example mounts, or `null` before the mount. The server

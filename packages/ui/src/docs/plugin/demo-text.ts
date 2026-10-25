@@ -136,10 +136,10 @@ function findStrings(node: ESTree.Node | null | undefined): ESTree.Node[] {
 		return [...findStrings(node.consequent), ...findStrings(node.alternate)]
 	}
 
-	if (node.type === 'LogicalExpression')
-		return [...findStrings(node.left), ...findStrings(node.right)]
-
-	if (node.type === 'BinaryExpression' && node.operator === '+') {
+	if (
+		node.type === 'LogicalExpression' ||
+		(node.type === 'BinaryExpression' && node.operator === '+')
+	) {
 		return [...findStrings(node.left), ...findStrings(node.right)]
 	}
 
@@ -261,20 +261,10 @@ function findChildren(node: ESTree.JSXElement | ESTree.JSXFragment, finder: Find
 function findReturns(node: ESTree.Function, finder: Finder): void {
 	if (!node.id || !/^[A-Z]/.test(node.id.name)) return
 
-	walk(node.body, (child) => {
-		if (
-			child.type === 'FunctionDeclaration' ||
-			child.type === 'FunctionExpression' ||
-			child.type === 'ArrowFunctionExpression'
-		) {
-			return false
-		}
-
+	walkOwn(node.body, (child) => {
 		if (child.type === 'ReturnStatement') {
 			for (const text of findStrings(child.argument)) finder.add(text, 'string')
 		}
-
-		return undefined
 	})
 }
 
@@ -311,15 +301,7 @@ function findCheckStrings(node: ESTree.Node): ESTree.Node[] {
 
 	const strings: ESTree.Node[] = []
 
-	walk(node.body, (child) => {
-		if (
-			child.type === 'FunctionDeclaration' ||
-			child.type === 'FunctionExpression' ||
-			child.type === 'ArrowFunctionExpression'
-		) {
-			return false
-		}
-
+	walkOwn(node.body, (child) => {
 		if (child.type === 'ReturnStatement') strings.push(...findStrings(child.argument))
 
 		if (
@@ -330,8 +312,6 @@ function findCheckStrings(node: ESTree.Node): ESTree.Node[] {
 		) {
 			for (const argument of child.arguments) strings.push(...findStrings(argument))
 		}
-
-		return undefined
 	})
 
 	return strings
@@ -461,6 +441,23 @@ function walk(node: unknown, visit: (node: ESTree.Node) => boolean | undefined):
 	for (const [key, value] of Object.entries(node)) {
 		if (key !== 'parent' && value && typeof value === 'object') walk(value, visit)
 	}
+}
+
+/** Calls `visit` on each node under `body` that is not in a nested function, in source order. */
+function walkOwn(body: unknown, visit: (node: ESTree.Node) => void): void {
+	walk(body, (node) => {
+		if (
+			node.type === 'FunctionDeclaration' ||
+			node.type === 'FunctionExpression' ||
+			node.type === 'ArrowFunctionExpression'
+		) {
+			return false
+		}
+
+		visit(node)
+
+		return undefined
+	})
 }
 
 /**

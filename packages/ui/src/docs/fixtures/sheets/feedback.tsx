@@ -9,6 +9,7 @@ import { StatusDot } from '../../../components/status'
 import { scale as badgeScale } from '../../../recipes/kata/badge'
 import { scale as loadingScale } from '../../../recipes/kata/loading'
 import { scale as progressScale } from '../../../recipes/kata/progress'
+import { scale as swatchScale } from '../../../recipes/kata/swatch'
 import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { FixtureCase, FixtureGroup, FixtureSheet } from '../fixture'
@@ -28,8 +29,6 @@ const STATUS_VARIANTS = ['solid', 'outline'] as const
 const LOADING_COLORS = ['current', 'zinc', 'red', 'amber', 'green', 'blue'] as const
 
 const PROGRESS_COLORS = ['zinc', 'red', 'amber', 'green', 'blue'] as const
-
-const SIZES = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 const VALUES = [0, 25, 60, 100] as const
 
@@ -123,7 +122,7 @@ export function Sheet() {
 					</FixtureCase>
 				))}
 				<FixtureCase label="size">
-					{SIZES.map((size) => (
+					{swatchScale.map((size) => (
 						<StatusDot key={size} size={size} status="active" label={size} />
 					))}
 				</FixtureCase>

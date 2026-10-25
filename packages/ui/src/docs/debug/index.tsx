@@ -1,4 +1,5 @@
 import { EventsScript, startEvents } from 'ui/events'
+import { InlineScript } from '../../primitives/inline-script/inline-script.tsx'
 import { DOCS_SOURCES } from './sources.ts'
 
 // The part of the events that the docs shell holds: the head scripts and the
@@ -18,7 +19,7 @@ export function DebugScript() {
 	return (
 		<>
 			<EventsScript />
-			<script>{SCRIPT}</script>
+			<InlineScript source={SCRIPT} />
 		</>
 	)
 }

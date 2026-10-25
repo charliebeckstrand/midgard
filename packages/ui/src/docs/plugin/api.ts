@@ -762,9 +762,14 @@ function literalOfCode(code: string): Literal | undefined {
 
 	if (code === 'true' || code === 'false') return code === 'true'
 
-	const value = Number(code)
+	return parseFinite(code)
+}
 
-	return code.trim() !== '' && Number.isFinite(value) ? value : undefined
+/** The number of `text`, such as `2000`, or `undefined` for blank text and for text that is not a finite number. */
+function parseFinite(text: string): number | undefined {
+	const value = Number(text)
+
+	return text.trim() !== '' && Number.isFinite(value) ? value : undefined
 }
 
 /** The `@minimum` and the `@maximum` tags of a prop, each when the prop has it. */
@@ -790,9 +795,9 @@ function readRange(
 function parseBound(prop: string, tag: string, text: string | undefined): number | undefined {
 	if (text === undefined) return undefined
 
-	const value = Number(text.trim())
+	const value = parseFinite(text)
 
-	if (text.trim() === '' || !Number.isFinite(value)) {
+	if (value === undefined) {
 		throw new Error(`docs: the @${tag} of the prop ${prop} is not a number`)
 	}
 

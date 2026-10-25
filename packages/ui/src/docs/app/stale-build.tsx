@@ -14,6 +14,7 @@
 // replaces the kept copy. Thus the recovery fetches the module files of the
 // page again with that mode before the page reloads.
 
+import { InlineScript } from '../../primitives/inline-script/inline-script.tsx'
 import { noop } from '../../utilities/noop.ts'
 
 declare global {
@@ -53,7 +54,7 @@ w.addEventListener('error',f,true);w.addEventListener('unhandledrejection',f);w.
 
 /** The head script that reloads a page whose scripts fail before the client entry runs. Render it in the `<head>`, before the scripts. */
 export function StaleBuildScript() {
-	return <script>{SCRIPT}</script>
+	return <InlineScript source={SCRIPT} />
 }
 
 /**

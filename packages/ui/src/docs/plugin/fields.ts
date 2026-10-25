@@ -4,11 +4,11 @@ import { type ESTree, Visitor } from 'vite'
 import type { CatalogEntry } from '../../../scripts/intl-catalog.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { buildComponentField, buildFields, type Field, type Free } from '../kit/fields.ts'
-import { humanize } from '../kit/humanize.ts'
-import { formatValue, isWord, toPropId } from '../kit/names.ts'
+import { humanize, isWord } from '../kit/humanize.ts'
+import { formatValue, toPropId } from '../kit/names.ts'
 import type { BarrelApi, Literal } from './api.ts'
 import { type Parser, readExample } from './examples.ts'
-import { findPages } from './pages.ts'
+import { findPages, routeFolders } from './pages.ts'
 
 /** Reads the API data of the barrel `src/<barrel>`, as an `ApiExtractor` does. */
 export type Extract = (barrel: string) => Promise<BarrelApi>
@@ -232,10 +232,9 @@ type Shown = { field: Field; component: string; picker?: boolean }
 async function findFields(docs: string, parse: Parser, extract: Extract): Promise<Shown[]> {
 	const pages = path.join(docs, 'pages')
 
-	const files = findPages(docs).flatMap((page) => [
-		path.join(pages, page.folder, 'index.tsx'),
-		...page.tabs.map((tab) => path.join(pages, page.folder, tab, 'index.tsx')),
-	])
+	const files = findPages(docs)
+		.flatMap(routeFolders)
+		.map((folder) => path.join(pages, folder, 'index.tsx'))
 
 	const uses = (await Promise.all(files.map((file) => readPlaygrounds(parse, file)))).flat()
 

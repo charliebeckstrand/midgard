@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react'
-import { type ReactNode, use, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { type ReactNode, use, useMemo, useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import { createContext } from 'ui/core'
 import { useIntentLoad } from 'ui/hooks'
@@ -8,8 +8,8 @@ import { Kbd } from 'ui/kbd'
 import { defineMessages, IntlMessage } from 'ui/primitives/intl'
 import { OffcanvasContext } from 'ui/primitives/offcanvas'
 import { useStableEvent } from '../../hooks/use-stable-event.ts'
-import { noopSubscribe } from '../../utilities/noop.ts'
 import { useFail } from '../kit/fail.ts'
+import { ShortcutHint } from '../kit/shortcut-hint.tsx'
 
 // The part of the search that the shell loads with each page: the state, the
 // button in the sidebar, and the place of the palette. The palette and the
@@ -76,16 +76,6 @@ export function DocsSearch({ children }: { children: ReactNode }) {
 	return <SearchContext value={state}>{children}</SearchContext>
 }
 
-// The key of the palette: ⌘K on Apple platforms, Ctrl+K elsewhere. It follows
-// the `$mod` rule of tinykeys, which binds the key.
-function shortcut() {
-	return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl+K'
-}
-
-// The build cannot know the platform of the reader, so each page holds ⌘K.
-// The client changes it to Ctrl+K after the hydration on other platforms.
-const serverShortcut = () => '⌘K'
-
 /**
  * The button that opens the search. The key is in the first paint: the build
  * writes ⌘K, and the client corrects it after the hydration. A pick closes the
@@ -95,8 +85,6 @@ export function SearchButton() {
 	const { request, preload } = useSearch()
 
 	const offcanvas = use(OffcanvasContext)
-
-	const key = useSyncExternalStore(noopSubscribe, shortcut, serverShortcut)
 
 	return (
 		<Button
@@ -110,7 +98,9 @@ export function SearchButton() {
 			<span className="flex-1 text-start">
 				<IntlMessage message={messages.button} />
 			</span>
-			<Kbd className="hidden lg:inline-flex">{key}</Kbd>
+			<Kbd className="hidden lg:inline-flex">
+				<ShortcutHint keyName="K" />
+			</Kbd>
 		</Button>
 	)
 }

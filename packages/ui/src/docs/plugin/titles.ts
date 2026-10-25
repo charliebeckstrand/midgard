@@ -2,10 +2,11 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { ESTree } from 'vite'
 import type { CatalogEntry } from '../../../scripts/intl-catalog.ts'
+import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { humanize } from '../kit/humanize.ts'
 import { PAGE_ID, PLAYGROUND, TAB_ID, TITLE_ID, toSlug } from '../kit/names.ts'
 import { exampleFiles, examplesIn, type Parser, toHeadingId } from './examples.ts'
-import { findPages } from './pages.ts'
+import { findPages, routeFolders } from './pages.ts'
 
 /**
  * The catalog entries of the titles of the examples: one for each file name
@@ -19,10 +20,7 @@ export async function titleEntries(
 ): Promise<Record<string, CatalogEntry>> {
 	const pages = path.join(docs, 'pages')
 
-	const folders = findPages(docs).flatMap((page) => [
-		page.folder,
-		...page.tabs.map((tab) => `${page.folder}/${tab}`),
-	])
+	const folders = findPages(docs).flatMap(routeFolders)
 
 	const examples = await Promise.all(
 		folders.map((folder) =>
@@ -31,9 +29,7 @@ export async function titleEntries(
 	)
 
 	// A playground shows a title of its own message, so it has no title entry.
-	const ids = [...new Set(examples.flat().map(toHeadingId))]
-		.filter((id) => id !== PLAYGROUND)
-		.toSorted()
+	const ids = [...new Set(examples.flat().map(toHeadingId))].filter((id) => id !== PLAYGROUND)
 
 	return Object.fromEntries(
 		ids.map((id) => [
@@ -71,7 +67,7 @@ export function pageEntries(docs: string): Record<string, CatalogEntry> {
 
 	if (twice) throw new Error(`docs: two pages have the id ${twice}`)
 
-	return Object.fromEntries(entries.toSorted(([a], [b]) => (a < b ? -1 : 1)))
+	return Object.fromEntries(entries)
 }
 
 /** The names in the `TABS` constant of a module, such as `['Variants', 'Sorting']`. */
@@ -121,25 +117,23 @@ export async function tabEntries(
 		for (const name of names) {
 			const slug = toSlug(name)
 
-			const known = tabs.get(slug)
+			const known = getOrCompute(tabs, slug, () => ({ name, pages: [] }))
 
-			if (known && known.name !== name) {
+			if (known.name !== name) {
 				throw new Error(`docs: the tab ${slug} has two names, ${known.name} and ${name}`)
 			}
 
-			tabs.set(slug, { name, pages: [...(known?.pages ?? []), page.name] })
+			known.pages.push(page.name)
 		}
 	}
 
 	return Object.fromEntries(
-		[...tabs]
-			.toSorted(([a], [b]) => (a < b ? -1 : 1))
-			.map(([slug, { name, pages: shown }]) => [
-				`${TAB_ID}${slug}`,
-				{
-					defaultMessage: name,
-					description: `The name of a tab on the ${shown.join(' and ')} ${shown.length > 1 ? 'pages' : 'page'} of the docs. The tab shows one part of the page.`,
-				},
-			]),
+		[...tabs].map(([slug, { name, pages: shown }]) => [
+			`${TAB_ID}${slug}`,
+			{
+				defaultMessage: name,
+				description: `The name of a tab on the ${shown.join(' and ')} ${shown.length > 1 ? 'pages' : 'page'} of the docs. The tab shows one part of the page.`,
+			},
+		]),
 	)
 }

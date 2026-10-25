@@ -1,5 +1,6 @@
 import { type PointerEvent, type RefObject, useEffect, useRef, useState } from 'react'
 import { dataAttr } from 'ui/core'
+import { useTimeout } from 'ui/hooks'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor.ts'
 import { clamp } from '../../utilities/clamp.ts'
 import { createPressOwner } from '../../utilities/primary-press.ts'
@@ -110,15 +111,11 @@ function letterAtTop(body: HTMLElement): string | undefined {
  */
 export const HOLD_DELAY = 250
 
-/**
- * One gesture on the rail: the measure of the rail, the letter that the
- * gesture selected last, and, for a touch, the timer that shows the bubble.
- */
+/** One gesture on the rail: the measure of the rail, and the letter that the gesture selected last. */
 type Gesture = {
 	top: number
 	height: number
 	letter?: string
-	hold?: ReturnType<typeof setTimeout>
 }
 
 /**
@@ -145,6 +142,10 @@ export function LetterRail({
 	// gets to a second letter, or when the touch stays for `HOLD_DELAY`.
 	const [bubble, setBubble] = useState(false)
 
+	// The timer of a touch that shows the bubble. It clears on the unmount, so a
+	// gesture that the unmount interrupts does not show the bubble later.
+	const hold = useTimeout()
+
 	const gesture = useRef<Gesture | undefined>(undefined)
 
 	// The scroll position that the last jump gave the body. The letter of the
@@ -157,21 +158,6 @@ export function LetterRail({
 	// The pointer of the gesture. While a pen drags, the touch of a palm is a primary
 	// press too, and it does not start, move, or end the gesture.
 	const [press] = useState(createPressOwner)
-
-	// A gesture that the unmount interrupts does not show the bubble later.
-	useEffect(() => () => clearTimeout(gesture.current?.hold), [])
-
-	const showBubble = () => {
-		const current = gesture.current
-
-		if (current?.hold === undefined) return
-
-		clearTimeout(current.hold)
-
-		current.hold = undefined
-
-		setBubble(true)
-	}
 
 	useEffect(() => {
 		const body = bodyRef.current
@@ -204,7 +190,12 @@ export function LetterRail({
 
 		if (letter === undefined || letter === current.letter) return
 
-		if (current.letter !== undefined) showBubble()
+		// A slide to a second letter shows the bubble before the timer does.
+		if (current.letter !== undefined && hold.pending()) {
+			hold.clear()
+
+			setBubble(true)
+		}
 
 		current.letter = letter
 
@@ -220,7 +211,7 @@ export function LetterRail({
 
 		press.release()
 
-		clearTimeout(gesture.current?.hold)
+		hold.clear()
 
 		gesture.current = undefined
 
@@ -237,11 +228,9 @@ export function LetterRail({
 
 		const { top, height } = event.currentTarget.getBoundingClientRect()
 
-		gesture.current = {
-			top,
-			height,
-			hold: event.pointerType === 'mouse' ? undefined : setTimeout(showBubble, HOLD_DELAY),
-		}
+		gesture.current = { top, height }
+
+		if (event.pointerType !== 'mouse') hold.set(() => setBubble(true), HOLD_DELAY)
 
 		// The capture keeps the moves of the gesture on the rail when the pointer
 		// leaves it, so the gesture ends on the rail too.

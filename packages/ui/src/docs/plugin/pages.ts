@@ -21,6 +21,15 @@ export type Page = PageLink & {
 	folder: string
 }
 
+/**
+ * The folder of a page and the folder of each of its tabs, relative to
+ * `pages/`, such as `modules/grid` and `modules/grid/sorting`. Each folder
+ * holds the `index.tsx` of one route.
+ */
+export function routeFolders(page: Page): string[] {
+	return [page.folder, ...page.tabs.map((tab) => `${page.folder}/${tab}`)]
+}
+
 // The folder of the components. Its pages have no folder in their path.
 const COMPONENTS = 'components'
 
