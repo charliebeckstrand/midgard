@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { catalogs } from '../app/catalogs.ts'
 import { ApiEntry } from '../kit/api-entry.tsx'
 import { ExampleFrame } from '../kit/example.tsx'
-import { exampleTitle, tabName } from '../kit/names.ts'
+import { exampleTitle, PLAYGROUND, tabName } from '../kit/names.ts'
 import { Playground } from '../kit/playground.tsx'
 import type { BarrelApi } from '../plugin/api.ts'
 import type { ExampleMeta } from '../plugin/examples.ts'
@@ -137,7 +137,7 @@ describe('the chrome of the docs in Spanish', () => {
 
 	it('gives each playground the title of the playground, which the search shows too', () => {
 		function Title() {
-			return exampleTitle(useIntl(), 'playground', 'Playground')
+			return exampleTitle(useIntl(), PLAYGROUND, 'Playground')
 		}
 
 		const { container } = render(

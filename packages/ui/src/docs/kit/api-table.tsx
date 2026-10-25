@@ -90,15 +90,13 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 
 	const location = useLocation()
 
-	const { hash } = location
-
 	const intl = useIntl()
 
 	// A page in another language tells the reader that the TSDoc is English.
 	// The default locale is English for an English locale only (`catalogIntl`).
 	const translated = intl.locale !== intl.defaultLocale
 
-	const named = componentOfHash(hash)
+	const named = componentOfHash(location.hash)
 
 	const target = named !== undefined && named in api ? named : undefined
 

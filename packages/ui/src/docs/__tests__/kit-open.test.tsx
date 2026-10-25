@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { Component, type ReactNode } from 'react'
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router'
 import { beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { FailBoundary } from '../../__tests__/helpers/fail-boundary.tsx'
 import { tick } from '../../__tests__/helpers/frames.ts'
 import { ApiTable } from '../kit/api-table.tsx'
 import { ExampleFrame } from '../kit/example.tsx'
@@ -11,18 +11,6 @@ import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
 // A panel that suspends opens empty, and React holds its content back for at
 // least 300 ms. So "Show code" and an entry of the API reference open only
 // when their content is loaded, and a panel never shows with no content.
-
-class Boundary extends Component<{ children: ReactNode }, { error?: unknown }> {
-	state: { error?: unknown } = {}
-
-	static getDerivedStateFromError(error: unknown) {
-		return { error }
-	}
-
-	render() {
-		return this.state.error ? <p>Failed</p> : this.props.children
-	}
-}
 
 describe('ExampleFrame', () => {
 	it('opens "Show code" with the code in it when the code module loads', async () => {
@@ -85,11 +73,11 @@ describe('ExampleFrame', () => {
 		}
 
 		render(
-			<Boundary>
+			<FailBoundary>
 				<ExampleFrame meta={meta}>
 					<span>Instance</span>
 				</ExampleFrame>
-			</Boundary>,
+			</FailBoundary>,
 		)
 
 		const trigger = screen.getByRole('button', { name: 'Show code' })

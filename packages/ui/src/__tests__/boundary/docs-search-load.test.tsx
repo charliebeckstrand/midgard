@@ -3,9 +3,9 @@
 /// <reference path="../../docs/virtual.d.ts" />
 
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { Component, type ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { DocsSearch, SearchButton } from '../../docs/app/search.tsx'
+import { FailBoundary } from '../helpers/fail-boundary.tsx'
 
 // The palette of the docs search is in a chunk of its own. When the load that
 // a press of the search button asks for fails, the press gives the failure to
@@ -20,29 +20,17 @@ vi.mock('../../docs/app/search-palette.tsx', () => {
 	throw new Error('the chunk of the palette did not load')
 })
 
-class Boundary extends Component<{ children: ReactNode }, { error?: unknown }> {
-	state: { error?: unknown } = {}
-
-	static getDerivedStateFromError(error: unknown) {
-		return { error }
-	}
-
-	render() {
-		return this.state.error ? <p>Failed</p> : this.props.children
-	}
-}
-
 describe('a failed load of the docs search', () => {
 	it('gives the failure to the error boundary when the reader presses the button', async () => {
 		// React writes the caught error to the console.
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		render(
-			<Boundary>
+			<FailBoundary>
 				<DocsSearch>
 					<SearchButton />
 				</DocsSearch>
-			</Boundary>,
+			</FailBoundary>,
 		)
 
 		await act(async () => {

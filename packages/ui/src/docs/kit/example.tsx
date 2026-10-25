@@ -147,8 +147,6 @@ export function ExampleFrame({
 
 	const intl = useIntl()
 
-	// The title of an example comes from its file name, and the docs catalog
-	// translates it.
 	const title = exampleTitle(intl, meta.id, meta.title)
 
 	const resize = usePanelResize({

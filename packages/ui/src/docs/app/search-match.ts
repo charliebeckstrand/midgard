@@ -42,10 +42,10 @@ function fit(label: string, text: string): number | undefined {
 /**
  * The entries that match `query`, best first. Each word of the query must be
  * in the label, the common name, the context, or the shown place of an entry,
- * so `grid sort` finds the Sorting tab of Grid. An entry whose label or common name holds
- * the whole query comes before one that only its context matches. Then the kinds go in the order
- * of {@link KINDS}, and a shorter label goes first. An empty query gives each
- * page.
+ * so `grid sort` finds the Sorting tab of Grid. An entry whose label or common
+ * name holds the whole query comes before one that only its context matches.
+ * Then the kinds go in the order of {@link KINDS}, and a shorter label goes
+ * first. An empty query gives each page.
  */
 export function matchEntries<T extends Matchable>(entries: readonly T[], query: string): T[] {
 	const text = normalize(query)

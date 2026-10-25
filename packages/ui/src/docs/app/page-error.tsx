@@ -1,6 +1,6 @@
 import { Button } from 'ui/button'
 import { Heading, type HeadingLevel } from 'ui/heading'
-import { defineMessages, IntlMessage } from 'ui/primitives/intl'
+import { defineMessages, IntlMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 
@@ -27,10 +27,14 @@ const messages = defineMessages({
  * that reloads the page. In the shell, the header holds the `h1` of the page,
  * so the error takes `level` 2. In place of the shell, it takes `level` 1.
  * There it is outside the locale provider of the shell, so its text is English.
+ * The error has the language of its text, so a screen reader reads the English
+ * error with an English voice in a page of another language.
  */
 export function PageError({ level }: { level: HeadingLevel }) {
+	const { locale } = useIntl()
+
 	return (
-		<Stack gap="md" className="p-6">
+		<Stack gap="md" className="p-6" lang={locale}>
 			<Heading level={level}>
 				<IntlMessage message={messages.heading} />
 			</Heading>
