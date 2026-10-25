@@ -227,8 +227,15 @@ function Shell() {
 
 /**
  * Shows in place of the shell when the shell fails to render. An error in a
- * page stays in the error boundary of the pages (`routes/page.tsx`).
+ * page stays in the error boundary of the pages (`routes/page.tsx`). The error
+ * is outside the locale provider of the shell, so its text is English, and the
+ * root element keeps the language of the page. Thus the error has `lang="en"`,
+ * and a screen reader reads it with an English voice.
  */
 export function ErrorBoundary() {
-	return <PageError level={1} />
+	return (
+		<div lang="en">
+			<PageError level={1} />
+		</div>
+	)
 }
