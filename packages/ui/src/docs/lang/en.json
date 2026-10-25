@@ -83,6 +83,138 @@
 		"defaultMessage": "SMS",
 		"description": "A word of the demo data in the docs: the word for \"sms\" in the domain \"channel\", in components/checkbox/channels.ts."
 	},
+	"docs.data.city.anaheim": {
+		"defaultMessage": "Anaheim",
+		"description": "A word of the demo data in the docs: the word for \"anaheim\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.arlington": {
+		"defaultMessage": "Arlington",
+		"description": "A word of the demo data in the docs: the word for \"arlington\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.atlanta": {
+		"defaultMessage": "Atlanta",
+		"description": "A word of the demo data in the docs: the word for \"atlanta\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.austin": {
+		"defaultMessage": "Austin",
+		"description": "A word of the demo data in the docs: the word for \"austin\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.boston": {
+		"defaultMessage": "Boston",
+		"description": "A word of the demo data in the docs: the word for \"boston\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.chicago": {
+		"defaultMessage": "Chicago",
+		"description": "A word of the demo data in the docs: the word for \"chicago\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.dallas": {
+		"defaultMessage": "Dallas",
+		"description": "A word of the demo data in the docs: the word for \"dallas\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.denton": {
+		"defaultMessage": "Denton",
+		"description": "A word of the demo data in the docs: the word for \"denton\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.denver": {
+		"defaultMessage": "Denver",
+		"description": "A word of the demo data in the docs: the word for \"denver\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.elPaso": {
+		"defaultMessage": "El Paso",
+		"description": "A word of the demo data in the docs: the word for \"elPaso\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.fortWorth": {
+		"defaultMessage": "Fort Worth",
+		"description": "A word of the demo data in the docs: the word for \"fortWorth\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.fresno": {
+		"defaultMessage": "Fresno",
+		"description": "A word of the demo data in the docs: the word for \"fresno\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.houston": {
+		"defaultMessage": "Houston",
+		"description": "A word of the demo data in the docs: the word for \"houston\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.joliet": {
+		"defaultMessage": "Joliet",
+		"description": "A word of the demo data in the docs: the word for \"joliet\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.longBeach": {
+		"defaultMessage": "Long Beach",
+		"description": "A word of the demo data in the docs: the word for \"longBeach\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.losAngeles": {
+		"defaultMessage": "Los Angeles",
+		"description": "A word of the demo data in the docs: the word for \"losAngeles\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.macon": {
+		"defaultMessage": "Macon",
+		"description": "A word of the demo data in the docs: the word for \"macon\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.marietta": {
+		"defaultMessage": "Marietta",
+		"description": "A word of the demo data in the docs: the word for \"marietta\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.naperville": {
+		"defaultMessage": "Naperville",
+		"description": "A word of the demo data in the docs: the word for \"naperville\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.newYork": {
+		"defaultMessage": "New York",
+		"description": "A word of the demo data in the docs: the word for \"newYork\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.plano": {
+		"defaultMessage": "Plano",
+		"description": "A word of the demo data in the docs: the word for \"plano\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.portland": {
+		"defaultMessage": "Portland",
+		"description": "A word of the demo data in the docs: the word for \"portland\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.riverside": {
+		"defaultMessage": "Riverside",
+		"description": "A word of the demo data in the docs: the word for \"riverside\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.rockford": {
+		"defaultMessage": "Rockford",
+		"description": "A word of the demo data in the docs: the word for \"rockford\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.sacramento": {
+		"defaultMessage": "Sacramento",
+		"description": "A word of the demo data in the docs: the word for \"sacramento\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.saltLakeCity": {
+		"defaultMessage": "Salt Lake City",
+		"description": "A word of the demo data in the docs: the word for \"saltLakeCity\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.sanAntonio": {
+		"defaultMessage": "San Antonio",
+		"description": "A word of the demo data in the docs: the word for \"sanAntonio\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.sanDiego": {
+		"defaultMessage": "San Diego",
+		"description": "A word of the demo data in the docs: the word for \"sanDiego\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.sanFrancisco": {
+		"defaultMessage": "San Francisco",
+		"description": "A word of the demo data in the docs: the word for \"sanFrancisco\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.savannah": {
+		"defaultMessage": "Savannah",
+		"description": "A word of the demo data in the docs: the word for \"savannah\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.seattle": {
+		"defaultMessage": "Seattle",
+		"description": "A word of the demo data in the docs: the word for \"seattle\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.springfield": {
+		"defaultMessage": "Springfield",
+		"description": "A word of the demo data in the docs: the word for \"springfield\" in the domain \"city\", in data/places.ts."
+	},
+	"docs.data.city.waco": {
+		"defaultMessage": "Waco",
+		"description": "A word of the demo data in the docs: the word for \"waco\" in the domain \"city\", in data/places.ts."
+	},
 	"docs.data.count.one": {
 		"defaultMessage": "One",
 		"description": "A word of the demo data in the docs: the word for \"one\" in the domain \"count\", in structure/items.ts."
@@ -394,6 +526,14 @@
 	"docs.data.signup-step.profile": {
 		"defaultMessage": "Profile",
 		"description": "A word of the demo data in the docs: the word for \"profile\" in the domain \"signup-step\", in components/stepper/steps.ts."
+	},
+	"docs.data.statement-page.first": {
+		"defaultMessage": "Page 1",
+		"description": "A word of the demo data in the docs: the word for \"first\" in the domain \"statement-page\", in components/pdf-viewer/statement.ts."
+	},
+	"docs.data.statement-page.second": {
+		"defaultMessage": "Page 2",
+		"description": "A word of the demo data in the docs: the word for \"second\" in the domain \"statement-page\", in components/pdf-viewer/statement.ts."
 	},
 	"docs.data.team.analytics": {
 		"defaultMessage": "Analytics",
@@ -4619,13 +4759,13 @@
 		"defaultMessage": "Acme Inc.",
 		"description": "Text of a demo in the docs as aria-label, in components/sidebar/playground.tsx, providers/density/playground.tsx."
 	},
-	"docs.demo.ef3c248be4b7": {
-		"defaultMessage": "Arlene McCoy",
-		"description": "Text of a demo in the docs, in primitives/skeleton/profile-card.tsx."
-	},
 	"docs.demo.ef4c05efaf50": {
 		"defaultMessage": "Product updates",
 		"description": "Text of a demo in the docs, in components/checkbox/group.tsx."
+	},
+	"docs.demo.ef4cde272f0b": {
+		"defaultMessage": "Saved spec",
+		"description": "Text of a demo in the docs as aria-label, in modules/dashboard/build-and-save.tsx."
 	},
 	"docs.demo.ef55b8a0d974": {
 		"defaultMessage": "US time zones",
@@ -5646,6 +5786,14 @@
 	"docs.prop.columns": {
 		"defaultMessage": "Columns",
 		"description": "The label of a field of a playground in the docs. The field sets the prop columns of Columns, Dashboard."
+	},
+	"docs.prop.component.dots": {
+		"defaultMessage": "Dots",
+		"description": "An option of the field of a playground in the docs that picks the component to show. It shows one of LoadingDots, LoadingSpinner."
+	},
+	"docs.prop.component.spinner": {
+		"defaultMessage": "Spinner",
+		"description": "An option of the field of a playground in the docs that picks the component to show. It shows one of LoadingDots, LoadingSpinner."
 	},
 	"docs.prop.condensed": {
 		"defaultMessage": "Condensed",

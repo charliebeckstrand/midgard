@@ -1,13 +1,6 @@
 import { Grid, type GridColumn } from 'ui/grid'
 import { type InvoiceStatus, invoiceStatuses } from '../../../../data/commerce.ts'
-
-type Invoice = { id: number; ref: string; amount: string; status: InvoiceStatus }
-
-const invoices: Invoice[] = [
-	{ id: 1, ref: 'INV-2', amount: '$1,200.00', status: 'due' },
-	{ id: 2, ref: 'INV-10', amount: '$90.50', status: 'paid' },
-	{ id: 3, ref: 'INV-1', amount: '$340.00', status: 'due' },
-]
+import { type Invoice, invoices } from './invoices.ts'
 
 const statusOrder: Record<InvoiceStatus, number> = { paid: 0, due: 1 }
 

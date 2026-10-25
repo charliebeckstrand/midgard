@@ -114,8 +114,11 @@ export function ColorPickerTrigger({
 					</span>
 					<span className={cn(k.value, 'min-w-0 flex-1 font-mono')}>
 						{/* A hex code reads left to right in each direction, so the '#' stays at the left. The
-							    outer span keeps the inherited direction, so the code stays next to the swatch. */}
-						<span dir="ltr">{label}</span>
+							    outer span keeps the inherited direction, so the code stays next to the swatch. A
+							    translation keeps the code as it is. */}
+						<span dir="ltr" translate="no">
+							{label}
+						</span>
 					</span>
 				</Button>
 			</HeadlessProvider>

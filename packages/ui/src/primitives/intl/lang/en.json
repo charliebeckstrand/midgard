@@ -1275,6 +1275,10 @@
 		"defaultMessage": "{count, plural, one {# item} other {# items}}",
 		"description": "The count of the items in an object or an array of a JSON tree, such as \"3 items\"."
 	},
+	"ui.jsonTree.label": {
+		"defaultMessage": "JSON",
+		"description": "The accessible name of a tree that shows a JSON value, when no key names its root."
+	},
 	"ui.kanban.drag": {
 		"defaultMessage": "Drag",
 		"description": "The first word of the name of the drag handle of a Kanban card. The name of the card follows it."

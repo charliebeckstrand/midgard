@@ -168,6 +168,7 @@ function PropRow({ component, prop }: { component: string; prop: PropApi }) {
 		<Stack id={id} gap="sm" className="py-5 first:pt-0 last:pb-0">
 			<Flex as="span" align="baseline" gap="sm" wrap>
 				<span
+					translate="no"
 					className={cn(
 						'font-mono font-medium text-zinc-900 dark:text-white',
 						prop.deprecated !== undefined && 'line-through decoration-zinc-400',

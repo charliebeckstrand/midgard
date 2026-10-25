@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { act, fireEvent, render } from '@testing-library/react'
+import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { configureAxe } from 'jest-axe'
 import { type ComponentType, useEffect } from 'react'
 import { Link, MemoryRouter, Route, Routes, useLocation } from 'react-router'
@@ -13,6 +13,7 @@ import { CI } from '../../../vitest.base.ts'
 import { catalogs } from '../app/catalogs.ts'
 import { findPages, type Page } from '../plugin/pages.ts'
 import { restoreRootAfterCase } from './restore-root.ts'
+import { findSameText, readTexts, recordIntl } from './same-text.ts'
 
 // The smoke test of each page of the docs. Several test files run it, and each
 // file gives it one part of the pages (`smokeParts`). A file runs on one
@@ -39,6 +40,12 @@ import { restoreRootAfterCase } from './restore-root.ts'
 // has no message for it (`kit/names.ts`). So a page fails when `pnpm intl`
 // misses a name that the page shows.
 //
+// The test then renders each page in English and opens each tab. A text that
+// the Spanish page shows as the English page does fails the test, unless it
+// comes from a recorded source, such as a name or the output of a formatter
+// (`same-text.ts`). So a page fails when a translation misses a text of a
+// demo, of its data, or of ui.
+//
 // The rules (`AXE_RULES`) are the structural ones that a page breaks most.
 // They find a button with no name, and a role that lacks its required
 // children. They also find two landmarks with the same name, a form control
@@ -54,6 +61,12 @@ import { restoreRootAfterCase } from './restore-root.ts'
 const modules = import.meta.glob<ComponentType>(
 	['../pages/*/*/index.tsx', '../pages/*/*/*/index.tsx'],
 	{ import: 'default', query: '?lang=es' },
+)
+
+/** The English module of each page and each tab, keyed by module path. */
+const englishModules = import.meta.glob<ComponentType>(
+	['../pages/*/*/index.tsx', '../pages/*/*/*/index.tsx'],
+	{ import: 'default' },
 )
 
 /** Each page module and each tab module, as its module path, in name order. */
@@ -220,46 +233,63 @@ type Walk = {
 	bare: number
 	/** Each path that the router showed. */
 	visited: ReadonlySet<string>
+	/** Each text that the Spanish page shows as the English page does (`same-text.ts`). */
+	same: readonly string[]
 }
 
 /** The locale of the smoke render. */
 const LOCALE = 'es-ES'
 
-/** Loads the Spanish copy of the page or the tab in `folder`. */
-async function load(folder: string): Promise<ComponentType> {
-	const loader = modules[toPath(folder)]
+/** The locale of the render that the Spanish text is compared with. */
+const ENGLISH = 'en-US'
+
+/** The modules of a language, keyed by module path. */
+type Modules = Readonly<Record<string, () => Promise<ComponentType>>>
+
+/** Loads the module of the page or the tab in `folder`, from `from`. */
+async function load(from: Modules, folder: string): Promise<ComponentType> {
+	const loader = from[toPath(folder)]
 
 	if (!loader) throw new Error(`docs: no module at ${toPath(folder)}`)
 
 	return loader()
 }
 
-/**
- * Renders a page at its path, with a child route for each tab, as the routes
- * of the docs app give it. The providers are the providers of the shell of the
- * docs app, in Spanish, and the `h1` of the page is the heading of the header
- * of the shell. It then opens each tab. In each state, it reads the ids, finds the
- * examples, and runs axe.
- */
-async function walk(page: Page): Promise<Walk> {
-	restoreRootAfterCase()
+/** The module of a page and the module of each of its tabs, by tab. */
+type Loaded = readonly [ComponentType, readonly (readonly [string, ComponentType])[]]
 
-	const logged = captureConsole()
-
-	const [Page, tabs] = await Promise.all([
-		load(page.folder),
-		Promise.all(page.tabs.map(async (tab) => [tab, await load(`${page.folder}/${tab}`)] as const)),
+/** Loads the module of a page and of each of its tabs, from `from`. */
+function loadPage(page: Page, from: Modules): Promise<Loaded> {
+	return Promise.all([
+		load(from, page.folder),
+		Promise.all(
+			page.tabs.map(async (tab) => [tab, await load(from, `${page.folder}/${tab}`)] as const),
+		),
 	])
+}
 
-	const visited = new Set<string>()
-
-	const { container } = render(
+/**
+ * Renders a page at its path in `locale`, with a child route for each tab, as
+ * the routes of the docs app give it. The providers are the providers of the
+ * shell of the docs app, and the `h1` of the page is the heading of the header
+ * of the shell. The heading shows the name of a component, which is code.
+ *
+ * The render is synchronous, so the first visit of the page goes into `act`
+ * before an update of the page that waits for a microtask.
+ */
+function renderPage(
+	page: Page,
+	locale: string,
+	[Page, tabs]: Loaded,
+	visited: Set<string>,
+): Element {
+	return render(
 		<MemoryRouter initialEntries={[page.path]}>
-			<LocaleProvider locale={LOCALE} catalogs={catalogs}>
+			<LocaleProvider locale={locale} catalogs={catalogs}>
 				<UIProvider link={RouterLink}>
 					<AppearanceProvider>
 						<VisitedPaths visited={visited} />
-						<Heading>{page.name}</Heading>
+						<Heading translate="no">{page.name}</Heading>
 						<Routes>
 							<Route path={page.path} element={<Page />}>
 								{tabs.map(([tab, Tab]) => (
@@ -271,7 +301,30 @@ async function walk(page: Page): Promise<Walk> {
 				</UIProvider>
 			</LocaleProvider>
 		</MemoryRouter>,
-	)
+	).container
+}
+
+/**
+ * Renders a page in Spanish and opens each tab. In each state, it reads the
+ * ids, finds the examples, runs axe, and reads the text. It then renders the
+ * page in English, opens each tab, and reads the text, so it finds the text
+ * that is the same in both languages.
+ */
+async function walk(page: Page): Promise<Walk> {
+	restoreRootAfterCase()
+
+	const logged = captureConsole()
+
+	const [spanishPage, englishPage] = await Promise.all([
+		loadPage(page, modules),
+		loadPage(page, englishModules),
+	])
+
+	const visited = new Set<string>()
+
+	const spanish = new Set<string>()
+
+	const formatted = new Set<string>()
 
 	const violations = new Set<string>()
 
@@ -279,20 +332,44 @@ async function walk(page: Page): Promise<Walk> {
 
 	let bare = 0
 
-	await visitTabs(container, async () => {
-		for (const id of duplicateIds()) duplicates.add(id)
+	const stopRecording = recordIntl(formatted)
 
-		// The frame of an example and of a playground (`kit/example.tsx`).
-		if (!document.body.querySelector('[data-slot="example"]')) bare++
+	try {
+		const container = renderPage(page, LOCALE, spanishPage, visited)
 
-		// A page is live. Its timers and effects update it while axe runs, so the
-		// run goes inside `act`.
-		const results = await act(() => axe(document.body))
+		await visitTabs(container, async () => {
+			for (const id of duplicateIds()) duplicates.add(id)
 
-		for (const { id, nodes } of results.violations) {
-			for (const node of nodes) violations.add(`${id}: ${node.target.join(' ')}`)
-		}
+			// The frame of an example and of a playground (`kit/example.tsx`).
+			if (!document.body.querySelector('[data-slot="example"]')) bare++
+
+			// A page is live. Its timers and effects update it while axe runs, so the
+			// run goes inside `act`.
+			const results = await act(() => axe(document.body))
+
+			for (const { id, nodes } of results.violations) {
+				for (const node of nodes) violations.add(`${id}: ${node.target.join(' ')}`)
+			}
+
+			readTexts(document.body, 'es', spanish)
+		})
+	} finally {
+		stopRecording()
+	}
+
+	cleanup()
+
+	const english = new Set<string>()
+
+	// As in the Spanish walk, the read goes inside `act`, so the updates of the
+	// live page land in it.
+	await visitTabs(renderPage(page, ENGLISH, englishPage, new Set()), async () => {
+		await act(async () => readTexts(document.body, 'en', english))
 	})
+
+	// The English read is quick, so a timer of the page can still be due. The
+	// unmount comes first, so the timer updates no page outside of `act`.
+	cleanup()
 
 	return {
 		logged: [...logged],
@@ -300,6 +377,7 @@ async function walk(page: Page): Promise<Walk> {
 		duplicates: [...duplicates],
 		bare,
 		visited,
+		same: findSameText(spanish, english, formatted),
 	}
 }
 
@@ -313,7 +391,7 @@ export function describePageSmoke(part: readonly Page[]): void {
 			// suite. The limit scales on CI by the factor of the suite `testTimeout`.
 			{ timeout: CI ? 180_000 : 60_000 },
 			async (_path, page) => {
-				const { logged, violations, duplicates, bare, visited } = await walk(page)
+				const { logged, violations, duplicates, bare, visited, same } = await walk(page)
 
 				expect(logged).toEqual([])
 
@@ -328,6 +406,8 @@ export function describePageSmoke(part: readonly Page[]): void {
 					.filter((path) => !visited.has(path))
 
 				expect(closed, 'the walk did not open these tabs of the page').toEqual([])
+
+				expect(same, 'text that the Spanish page shows in English').toEqual([])
 			},
 		)
 	})

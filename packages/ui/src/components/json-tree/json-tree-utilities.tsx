@@ -353,7 +353,9 @@ export function NodeKey({ keyName }: { keyName?: string | number }) {
 
 	return (
 		<>
-			<span className={k({ type: 'key' }).value}>{JSON.stringify(keyName)}</span>
+			<span className={k({ type: 'key' }).value} translate="no">
+				{JSON.stringify(keyName)}
+			</span>
 			<span className={k().punctuation}>:</span>
 		</>
 	)
@@ -370,5 +372,10 @@ export function PrimitiveValue({ value }: { value: JsonValue }) {
 
 	const display = type === 'string' ? JSON.stringify(value) : String(value)
 
-	return <span className={k({ type }).value}>{display}</span>
+	// A key and a value are JSON, which a translation keeps as it is.
+	return (
+		<span className={k({ type }).value} translate="no">
+			{display}
+		</span>
+	)
 }

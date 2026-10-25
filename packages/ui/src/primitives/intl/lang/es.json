@@ -318,6 +318,7 @@
 	"ui.grid.withSkipped": "{saved}, {count, plural, one {# omitida} other {# omitidas}}",
 	"ui.grid.yes": "Sí",
 	"ui.jsonTree.items": "{count, plural, one {# elemento} other {# elementos}}",
+	"ui.jsonTree.label": "JSON",
 	"ui.kanban.drag": "Arrastrar",
 	"ui.lightbox.next": "Foto siguiente",
 	"ui.lightbox.photos": "Fotos",

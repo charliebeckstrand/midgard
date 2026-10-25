@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { Field, Label } from 'ui/fieldset'
 import { SearchInput } from 'ui/search-input'
 import { Text } from 'ui/text'
-
-const projects = ['Atlas', 'Beacon', 'Comet', 'Horizon', 'Lighthouse']
+import { projects } from './projects.ts'
 
 export default function Controlled() {
 	const [query, setQuery] = useState('')

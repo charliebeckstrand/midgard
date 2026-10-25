@@ -379,7 +379,7 @@ export default function BuildAndSave() {
 				</Box>
 			)}
 			<Divider />
-			<JsonTree data={json} rootKey="spec" defaultExpandDepth={0} />
+			<JsonTree data={json} rootKey="spec" aria-label="Saved spec" defaultExpandDepth={0} />
 		</Stack>
 	)
 }

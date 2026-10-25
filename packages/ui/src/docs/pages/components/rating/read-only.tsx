@@ -4,20 +4,14 @@ import { Flex } from 'ui/flex'
 import { useIntl } from 'ui/primitives/intl'
 import { Rating } from 'ui/rating'
 import { Text } from 'ui/text'
-
-const places = [
-	{ name: 'Harbor Kitchen', score: 4.8 },
-	{ name: 'Blue Door Cafe', score: 4.2 },
-	{ name: 'Corner Burger', score: 3.5 },
-	{ name: 'Night Market Grill', score: 2.1 },
-]
+import { restaurants } from './restaurants.ts'
 
 export default function ReadOnly() {
 	const intl = useIntl()
 
 	return (
 		<DescriptionList>
-			{places.map((place) => (
+			{restaurants.map((place) => (
 				<Fragment key={place.name}>
 					<DescriptionTerm>{place.name}</DescriptionTerm>
 					<DescriptionDetails>

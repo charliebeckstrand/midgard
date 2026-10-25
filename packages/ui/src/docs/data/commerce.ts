@@ -1,3 +1,4 @@
+import { names } from '../kit/proper-names.ts'
 import { profiles } from './people.ts'
 import { words } from './words.ts'
 
@@ -67,3 +68,6 @@ export const orders: readonly Order[] = profiles.slice(0, 6).map((person, index)
 	status: ORDER_STATUSES[index] ?? 'pending',
 	amount: ORDER_AMOUNTS[index] ?? 0,
 }))
+
+// The reference of an order is a code, which is the same in each language.
+names(orders.map(({ id }) => id))

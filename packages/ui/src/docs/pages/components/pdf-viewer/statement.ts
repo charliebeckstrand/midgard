@@ -1,4 +1,5 @@
 import type { PdfViewerHighlight, PdfViewerHighlightRect, PdfViewerPage } from 'ui/pdf-viewer'
+import { words } from '../../../data/words.ts'
 
 /** The size of a stand-in page in pixels: US Letter at 96 dpi. */
 const PAGE = { width: 816, height: 1056 }
@@ -36,7 +37,10 @@ function paint({ x, y, width, height }: Ink, fill: string) {
 	return `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${fill}" />`
 }
 
-function page(label: string): PdfViewerPage {
+/** The name of each page, which a screen reader reads for the image of the page. */
+const sheets = words('statement-page', { first: 'Page 1', second: 'Page 2' })
+
+function page(id: string, label: string): PdfViewerPage {
 	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${PAGE.width}" height="${PAGE.height}">
 		<rect width="${PAGE.width}" height="${PAGE.height}" fill="#ffffff" />
 		${paint(TITLE, '#d4d4d8')}
@@ -46,7 +50,7 @@ function page(label: string): PdfViewerPage {
 	</svg>`
 
 	return {
-		id: label,
+		id,
 		src: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
 		label,
 		width: PAGE.width,
@@ -56,7 +60,7 @@ function page(label: string): PdfViewerPage {
 	}
 }
 
-export const pages = [page('Page 1'), page('Page 2')]
+export const pages = [page('page-1', sheets.first), page('page-2', sheets.second)]
 
 export const regions: PdfViewerHighlight[] = [
 	{ id: 'title', page: 1, rect: fraction(TITLE), label: 'Invoice number' },
