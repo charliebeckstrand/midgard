@@ -33,7 +33,9 @@ export const TEXT_ATTRIBUTES: ReadonlySet<string> = new Set([
 	'detail',
 	'label',
 	'placeholder',
+	'sizeName',
 	'title',
+	'yName',
 ])
 
 /** The name of a prop that takes text, such as `emptyLabel`. */

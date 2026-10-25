@@ -1,7 +1,10 @@
 import { BubbleChart } from 'ui/chart'
+import { useIntl } from 'ui/primitives/intl'
 import { stops } from '../data.ts'
 
 export default function Animated() {
+	const { formatNumber } = useIntl()
+
 	return (
 		<BubbleChart
 			aria-label="Dwell time by stop distance and weight"
@@ -15,7 +18,7 @@ export default function Animated() {
 					yName: 'Stops',
 				},
 			]}
-			axes={{ x: { format: (value) => `${value} mi` } }}
+			axes={{ x: { format: (value) => formatNumber(value, { style: 'unit', unit: 'mile' }) } }}
 			animate
 		/>
 	)

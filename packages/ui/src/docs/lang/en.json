@@ -111,6 +111,54 @@
 		"defaultMessage": "Paid",
 		"description": "A word of the demo data in the docs: the word for \"paid\" in the domain \"invoice-status\", in data/commerce.ts."
 	},
+	"docs.data.month.apr": {
+		"defaultMessage": "Apr",
+		"description": "A word of the demo data in the docs: the word for \"apr\" in the domain \"month\", in data/calendar.ts."
+	},
+	"docs.data.month.aug": {
+		"defaultMessage": "Aug",
+		"description": "A word of the demo data in the docs: the word for \"aug\" in the domain \"month\", in data/calendar.ts."
+	},
+	"docs.data.month.dec": {
+		"defaultMessage": "Dec",
+		"description": "A word of the demo data in the docs: the word for \"dec\" in the domain \"month\", in data/calendar.ts."
+	},
+	"docs.data.month.feb": {
+		"defaultMessage": "Feb",
+		"description": "A word of the demo data in the docs: the word for \"feb\" in the domain \"month\", in data/calendar.ts."
+	},
+	"docs.data.month.jan": {
+		"defaultMessage": "Jan",
+		"description": "A word of the demo data in the docs: the word for \"jan\" in the domain \"month\", in data/calendar.ts."
+	},
+	"docs.data.month.jul": {
+		"defaultMessage": "Jul",
+		"description": "A word of the demo data in the docs: the word for \"jul\" in the domain \"month\", in data/calendar.ts."
+	},
+	"docs.data.month.jun": {
+		"defaultMessage": "Jun",
+		"description": "A word of the demo data in the docs: the word for \"jun\" in the domain \"month\", in data/calendar.ts."
+	},
+	"docs.data.month.mar": {
+		"defaultMessage": "Mar",
+		"description": "A word of the demo data in the docs: the word for \"mar\" in the domain \"month\", in data/calendar.ts."
+	},
+	"docs.data.month.may": {
+		"defaultMessage": "May",
+		"description": "A word of the demo data in the docs: the word for \"may\" in the domain \"month\", in data/calendar.ts."
+	},
+	"docs.data.month.nov": {
+		"defaultMessage": "Nov",
+		"description": "A word of the demo data in the docs: the word for \"nov\" in the domain \"month\", in data/calendar.ts."
+	},
+	"docs.data.month.oct": {
+		"defaultMessage": "Oct",
+		"description": "A word of the demo data in the docs: the word for \"oct\" in the domain \"month\", in data/calendar.ts."
+	},
+	"docs.data.month.sep": {
+		"defaultMessage": "Sep",
+		"description": "A word of the demo data in the docs: the word for \"sep\" in the domain \"month\", in data/calendar.ts."
+	},
 	"docs.data.order-status.completed": {
 		"defaultMessage": "Completed",
 		"description": "A word of the demo data in the docs: the word for \"completed\" in the domain \"order-status\", in data/commerce.ts."
@@ -210,6 +258,50 @@
 	"docs.data.time-zone.pacific": {
 		"defaultMessage": "Pacific",
 		"description": "A word of the demo data in the docs: the word for \"pacific\" in the domain \"time-zone\", in modules/map/data.ts."
+	},
+	"docs.data.traffic-source.direct": {
+		"defaultMessage": "Direct",
+		"description": "A word of the demo data in the docs: the word for \"direct\" in the domain \"traffic-source\", in modules/chart/data.ts."
+	},
+	"docs.data.traffic-source.referral": {
+		"defaultMessage": "Referral",
+		"description": "A word of the demo data in the docs: the word for \"referral\" in the domain \"traffic-source\", in modules/chart/data.ts."
+	},
+	"docs.data.traffic-source.search": {
+		"defaultMessage": "Search",
+		"description": "A word of the demo data in the docs: the word for \"search\" in the domain \"traffic-source\", in modules/chart/data.ts."
+	},
+	"docs.data.traffic-source.social": {
+		"defaultMessage": "Social",
+		"description": "A word of the demo data in the docs: the word for \"social\" in the domain \"traffic-source\", in modules/chart/data.ts."
+	},
+	"docs.data.weekday.fri": {
+		"defaultMessage": "Fri",
+		"description": "A word of the demo data in the docs: the word for \"fri\" in the domain \"weekday\", in data/calendar.ts."
+	},
+	"docs.data.weekday.mon": {
+		"defaultMessage": "Mon",
+		"description": "A word of the demo data in the docs: the word for \"mon\" in the domain \"weekday\", in data/calendar.ts."
+	},
+	"docs.data.weekday.sat": {
+		"defaultMessage": "Sat",
+		"description": "A word of the demo data in the docs: the word for \"sat\" in the domain \"weekday\", in data/calendar.ts."
+	},
+	"docs.data.weekday.sun": {
+		"defaultMessage": "Sun",
+		"description": "A word of the demo data in the docs: the word for \"sun\" in the domain \"weekday\", in data/calendar.ts."
+	},
+	"docs.data.weekday.thu": {
+		"defaultMessage": "Thu",
+		"description": "A word of the demo data in the docs: the word for \"thu\" in the domain \"weekday\", in data/calendar.ts."
+	},
+	"docs.data.weekday.tue": {
+		"defaultMessage": "Tue",
+		"description": "A word of the demo data in the docs: the word for \"tue\" in the domain \"weekday\", in data/calendar.ts."
+	},
+	"docs.data.weekday.wed": {
+		"defaultMessage": "Wed",
+		"description": "A word of the demo data in the docs: the word for \"wed\" in the domain \"weekday\", in data/calendar.ts."
 	},
 	"docs.demo.005d0b7e5c26": {
 		"defaultMessage": "pnpm install",
@@ -519,6 +611,10 @@
 		"defaultMessage": "Level",
 		"description": "Text of a demo in the docs as title, in modules/grid/data.tsx."
 	},
+	"docs.demo.177cfe1a1e8c": {
+		"defaultMessage": "Dwell",
+		"description": "Text of a demo in the docs as yName, in modules/chart/scatter/animated.tsx, modules/chart/scatter/multi-series.tsx."
+	},
 	"docs.demo.186b373fff17": {
 		"defaultMessage": "Load profile",
 		"description": "Text of a demo in the docs, in modules/form/controlled-values.tsx."
@@ -813,7 +909,7 @@
 	},
 	"docs.demo.2bf63d817630": {
 		"defaultMessage": "Margin",
-		"description": "Text of a demo in the docs as label, in modules/chart/animated.tsx."
+		"description": "Text of a demo in the docs as label, yName, in modules/chart/animated.tsx, modules/chart/area/smooth-interpolation.tsx, modules/chart/combo/animated.tsx and 5 more."
 	},
 	"docs.demo.2c3d371cbfd3": {
 		"defaultMessage": "Blank",
@@ -1130,6 +1226,10 @@
 	"docs.demo.45b41c8d5ff4": {
 		"defaultMessage": "Shipping & delivery",
 		"description": "Text of a demo in the docs as title, in components/accordion/items.ts."
+	},
+	"docs.demo.45b63ffd01af": {
+		"defaultMessage": "Rate",
+		"description": "Text of a demo in the docs as yName, in modules/chart/line/dashed-line.tsx, modules/chart/line/dual-axis.tsx."
 	},
 	"docs.demo.45b86ccfc9ae": {
 		"defaultMessage": "No orders match your filters.",
@@ -1478,6 +1578,10 @@
 	"docs.demo.5bfc61509af1": {
 		"defaultMessage": "Long-haul corridors",
 		"description": "Text of a demo in the docs as aria-label, in modules/map/route/basic.tsx."
+	},
+	"docs.demo.5c2b06176d6c": {
+		"defaultMessage": "Signups",
+		"description": "Text of a demo in the docs as yName, in modules/chart/line/date-labels.tsx."
 	},
 	"docs.demo.5c58cd7963ca": {
 		"defaultMessage": "Copy invite link",
@@ -2017,7 +2121,7 @@
 	},
 	"docs.demo.81d27ef6d503": {
 		"defaultMessage": "Weight",
-		"description": "Text of a demo in the docs as title, in modules/chart/line/dashed-line.tsx, modules/chart/line/dual-axis.tsx."
+		"description": "Text of a demo in the docs as sizeName, title, yName, in modules/chart/bubble/animated.tsx, modules/chart/bubble/size-encoding.tsx, modules/chart/line/dashed-line.tsx and 1 more."
 	},
 	"docs.demo.82254025d1b9": {
 		"defaultMessage": "Anaheim",
@@ -2097,7 +2201,7 @@
 	},
 	"docs.demo.877a8887947e": {
 		"defaultMessage": "Stops",
-		"description": "Text of a demo in the docs as label, in modules/map/point/clustering.tsx, modules/map/point/shapes.tsx, modules/map/point/zoomable.tsx."
+		"description": "Text of a demo in the docs as label, yName, in modules/chart/bubble/animated.tsx, modules/chart/bubble/size-encoding.tsx, modules/map/point/clustering.tsx and 2 more."
 	},
 	"docs.demo.87b395ffbc2e": {
 		"defaultMessage": "Remit to",
@@ -2266,6 +2370,10 @@
 	"docs.demo.90db62ac3507": {
 		"defaultMessage": "Opens at once",
 		"description": "Text of a demo in the docs, in components/tooltip/delay.tsx."
+	},
+	"docs.demo.90e9482cff03": {
+		"defaultMessage": "Handling",
+		"description": "Text of a demo in the docs as yName, in modules/chart/scatter/animated.tsx, modules/chart/scatter/multi-series.tsx."
 	},
 	"docs.demo.9128ff7ee673": {
 		"defaultMessage": "Arrives on the next business day.",
@@ -2525,7 +2633,7 @@
 	},
 	"docs.demo.9fb6669a77ea": {
 		"defaultMessage": "Units",
-		"description": "Text of a demo in the docs as title, in modules/dashboard/widgets.tsx, modules/grid/groups/data.tsx."
+		"description": "Text of a demo in the docs as title, yName, in modules/dashboard/widgets.tsx, modules/grid/groups/data.tsx."
 	},
 	"docs.demo.9fd728c66c9a": {
 		"defaultMessage": "Add",
@@ -2537,7 +2645,7 @@
 	},
 	"docs.demo.a0c002f91bf9": {
 		"defaultMessage": "Exceptions",
-		"description": "Text of a demo in the docs as title, in modules/chart/combo/dual-axis.tsx."
+		"description": "Text of a demo in the docs as title, yName, in modules/chart/combo/dual-axis.tsx."
 	},
 	"docs.demo.a0d87c29baab": {
 		"defaultMessage": "Check the domain. Did you mean example.com?",
@@ -2895,6 +3003,10 @@
 		"defaultMessage": "Invoice",
 		"description": "Text of a demo in the docs, in components/radio/disabled-option.tsx."
 	},
+	"docs.demo.b88fc5fc4765": {
+		"defaultMessage": "Costs",
+		"description": "Text of a demo in the docs as yName, in modules/chart/animated.tsx, modules/chart/area/animated.tsx, modules/chart/combo/animated.tsx and 6 more."
+	},
 	"docs.demo.b948ac04b854": {
 		"defaultMessage": "Payment method",
 		"description": "Text of a demo in the docs as aria-label, in components/radio/disabled-option.tsx."
@@ -3027,6 +3139,10 @@
 		"defaultMessage": "Open command palette",
 		"description": "Text of a demo in the docs, in components/command-palette/custom-footer.tsx, components/command-palette/glass.tsx, components/command-palette/playground.tsx and 1 more."
 	},
+	"docs.demo.c0bf75bd78bf": {
+		"defaultMessage": "Change",
+		"description": "Text of a demo in the docs as yName, in modules/chart/line/value-labels.tsx, modules/chart/negative-values.tsx."
+	},
 	"docs.demo.c13f9a06d864": {
 		"defaultMessage": "Read the terms",
 		"description": "Text of a demo in the docs, in components/dialog/long-content.tsx."
@@ -3069,7 +3185,7 @@
 	},
 	"docs.demo.c4b7330bd91e": {
 		"defaultMessage": "Revenue",
-		"description": "Text of a demo in the docs as label, title, in components/stat/dashboard-grid.tsx, components/stat/playground.tsx, modules/dashboard/data.ts and 3 more."
+		"description": "Text of a demo in the docs as label, title, yName, in components/stat/dashboard-grid.tsx, components/stat/playground.tsx, modules/chart/animated.tsx and 21 more."
 	},
 	"docs.demo.c4d6bb200f4c": {
 		"defaultMessage": "Folders",
@@ -3777,11 +3893,15 @@
 	},
 	"docs.demo.f41deb2033e4": {
 		"defaultMessage": "Shipments",
-		"description": "Text of a demo in the docs as title, in modules/chart/combo/dual-axis.tsx."
+		"description": "Text of a demo in the docs as title, yName, in modules/chart/combo/dual-axis.tsx."
 	},
 	"docs.demo.f4db1e48476f": {
 		"defaultMessage": "End",
 		"description": "Text of a demo in the docs, in structure/flex/align-and-justify.tsx."
+	},
+	"docs.demo.f514c310bd9e": {
+		"defaultMessage": "Visits",
+		"description": "Text of a demo in the docs as yName, in modules/chart/line/time-axis.tsx."
 	},
 	"docs.demo.f5904cf7a123": {
 		"defaultMessage": "Marketing",

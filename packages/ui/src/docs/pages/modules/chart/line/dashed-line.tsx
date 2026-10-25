@@ -18,7 +18,11 @@ export default function DashedLine() {
 					title: 'Rate per lb',
 					format: (value: number) => formatNumber(value, { style: 'currency', currency: 'USD' }),
 				},
-				y2: { title: 'Weight', format: (value: number) => `${value}k lb` },
+				y2: {
+					title: 'Weight',
+					format: (value: number) =>
+						formatNumber(value * 1000, { style: 'unit', unit: 'pound', notation: 'compact' }),
+				},
 			}}
 			points
 		/>

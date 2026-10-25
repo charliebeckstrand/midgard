@@ -1,4 +1,5 @@
 import type { QueryField } from 'ui/query'
+import { monthNames } from '../../../data/calendar.ts'
 import { products as productWords, regions as regionWords } from '../../../data/commerce.ts'
 
 export type Sale = {
@@ -10,7 +11,14 @@ export type Sale = {
 	units: number
 }
 
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+const months = [
+	monthNames.jan,
+	monthNames.feb,
+	monthNames.mar,
+	monthNames.apr,
+	monthNames.may,
+	monthNames.jun,
+]
 
 const regions = Object.values(regionWords)
 
