@@ -45,6 +45,23 @@ export function reopensOnEnable(options: IntentOptions, pointer: string | null):
 	)
 }
 
+/**
+ * The open state on screen. `held` is the `open` prop, which shows the tooltip
+ * open over the state that hover, focus, and click ask for (`requested`). A
+ * trigger that matches `:disabled` releases the hold, and a disabled tooltip
+ * never opens. `useTooltipState` and the root of a tooltip that mounted before
+ * the load both use this rule.
+ * @internal
+ */
+export function isTooltipOpen(
+	enabled: boolean,
+	held: boolean,
+	requested: boolean,
+	heldDisabled: boolean,
+): boolean {
+	return enabled && ((held && !heldDisabled) || requested)
+}
+
 /** The nodes that take a typed key, as `isTypeableElement` of Floating UI reads them. */
 const TYPEABLE =
 	'input:not([type="hidden"]):not([disabled]),[contenteditable]:not([contenteditable="false"]),textarea:not([disabled])'

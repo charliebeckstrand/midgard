@@ -79,9 +79,8 @@ export function useControllable<T>({
 
 	const controlledRef = useRef(isControlled)
 
-	// A ref, not an effect event. A caller can set the value during render
-	// (`useTooltipState` closes a tooltip that turns off, as an adjustment during
-	// render), and an effect event throws when render calls it.
+	// A ref, not an effect event. A caller can set the value during render, as
+	// an adjustment, and an effect event throws when render calls it.
 	const onValueChangeRef = useRef(onValueChange)
 
 	// Synced before paint, not during render. Events run after the commit, and a

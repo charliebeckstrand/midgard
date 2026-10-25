@@ -6,7 +6,8 @@ import { useLazyModule } from '../../hooks/use-lazy-module'
 import { noop, noopSubscribe } from '../../utilities/noop'
 import { TooltipContext, type TooltipContextValue } from './context'
 import { tooltipBody } from './tooltip-body-loader'
-import { useTooltipIntent } from './tooltip-intent'
+import { isTooltipOpen, useTooltipIntent } from './tooltip-intent'
+import type { TooltipState } from './use-tooltip-state'
 
 /** Props for {@link Tooltip}. */
 export type TooltipProps = {
@@ -149,7 +150,7 @@ type LightTooltipProps = Omit<TooltipProps, 'disabled'> & { enabled: boolean }
  * server markup. It shares a
  * closed state and records the intent of the reader. When the module loads,
  * it renders `TooltipStateHost` beside its children and shares the value that
- * the host gives.
+ * the host gives, with the open state of its own props.
  */
 function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
 	const { trigger = 'hover', interactive = false, open: held = false } = props
@@ -157,8 +158,22 @@ function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
 	// A tooltip that `open` holds open needs its state now.
 	const module = useLazyModule(tooltipBody, enabled && held)
 
-	// The value of the loaded state, which `TooltipStateHost` gives back.
-	const [state, setState] = useState<TooltipContextValue | null>(null)
+	// The loaded state, which `TooltipStateHost` gives back.
+	const [state, setState] = useState<TooltipState | null>(null)
+
+	// The host gives the state after it renders, so a render with new props
+	// shares the state of the last props. The open state comes from the props of
+	// this render. Thus a prop that closes the tooltip, such as the release of
+	// `open`, closes it in the render that changes the content, as in
+	// `TooltipStateRoot`, and the exit keeps the content of the last open render.
+	const open = state !== null && isTooltipOpen(enabled, held, state.requested, state.heldDisabled)
+
+	// The value of the host when the open states agree, so a change that the
+	// screen does not show renders no consumer.
+	const value = useMemo(
+		() => state && (state.value.open === open ? state.value : { ...state.value, open }),
+		[state, open],
+	)
 
 	const { setReference, takeIntent } = useTooltipIntent({ enabled, trigger })
 
@@ -181,7 +196,7 @@ function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
 	// The host sits before the children, and both keep their places when the
 	// host mounts, so the trigger does not mount again and keeps its focus.
 	return (
-		<TooltipContext value={state ?? light}>
+		<TooltipContext value={value ?? light}>
 			{module && (
 				<module.TooltipStateHost
 					{...props}

@@ -359,7 +359,7 @@ describe('useTooltipState', () => {
 		let open = false
 
 		function Harness() {
-			const state = useTooltipState({ trigger: 'click', takeIntent })
+			const { value: state } = useTooltipState({ trigger: 'click', takeIntent })
 
 			open = state.open
 
@@ -411,7 +411,7 @@ describe('the reopen of a re-enabled trigger', () => {
 			let open = false
 
 			function Harness() {
-				const state = useTooltipState({
+				const { value: state } = useTooltipState({
 					trigger,
 					takeIntent: () => ({ hover: null, focus: null, click: null, reenabled: true, pointer }),
 				})

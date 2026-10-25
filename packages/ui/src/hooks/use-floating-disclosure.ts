@@ -121,9 +121,8 @@ export function useFloatingDisclosure({
 		onValueChange: onOpenChange,
 	})
 
-	// Refs, not effect events. `setOpen` runs during render: `useTooltipState`
-	// closes a tooltip that turns off as an adjustment in its render body, and an
-	// effect event throws when render calls it. `gate` is also optional, and
+	// Refs, not effect events. A caller can call `setOpen` during render, as an
+	// adjustment, and an effect event throws when render calls it. `gate` is also optional, and
 	// `setOpen` tests it for presence, which an effect event cannot express.
 	const gateRef = useRef(gate)
 
@@ -153,8 +152,7 @@ export function useFloatingDisclosure({
 	})
 
 	// Synced before paint, not during render. Events run after the commit. A set
-	// during render reads the gate and the refs of the last commit. The one such
-	// set, the tooltip's, only closes, and every gate lets a close through.
+	// during render reads the gate and the refs of the last commit.
 	useLayoutEffect(() => {
 		gateRef.current = gate
 
