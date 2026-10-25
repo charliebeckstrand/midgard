@@ -4,6 +4,7 @@ import type { ComponentType } from 'react'
 import type { GridColumn } from 'ui/grid'
 import { LocaleProvider } from 'ui/providers/locale'
 import { afterEach, describe, expect, it } from 'vitest'
+import { CI } from '../../../vitest.base.ts'
 import { columnAccessor } from '../../modules/grid/engine/grid-column/accessor.ts'
 import { catalogs } from '../app/catalogs.ts'
 
@@ -12,6 +13,10 @@ import { catalogs } from '../app/catalogs.ts'
 // that shows the word of a key, such as a role, must give that word as its
 // `value`. Else the column sorts by the English key, and the Spanish page
 // shows the rows out of order. The mock server of a demo sorts the same way.
+
+// The first import of a module in a language runs the docs plugin on it,
+// which is slow when the other test files run too.
+const TIMEOUT = CI ? 180_000 : 60_000
 
 type DataModule = typeof import('../pages/modules/grid/data.tsx')
 
@@ -79,7 +84,7 @@ function collated(texts: readonly string[], locale: string): string[] {
 
 afterEach(cleanup)
 
-describe.each(['en', 'es'])('the grid demo columns in %s', (locale) => {
+describe.each(['en', 'es'])('the grid demo columns in %s', { timeout: TIMEOUT }, (locale) => {
 	it('give each text cell its shown text as the sort value', async () => {
 		const [data, editing] = await loadGridData(locale)
 
@@ -109,7 +114,7 @@ describe.each(['en', 'es'])('the grid demo columns in %s', (locale) => {
 	})
 })
 
-describe('the sort of a grid demo on the Spanish page', () => {
+describe('the sort of a grid demo on the Spanish page', { timeout: TIMEOUT }, () => {
 	const locale = 'es'
 
 	it('sorts the in-cell sparklines by the shown metric', async () => {
@@ -151,7 +156,7 @@ describe('the sort of a grid demo on the Spanish page', () => {
 
 				expect(new Set(roles).size).toBeGreaterThan(2)
 			},
-			{ timeout: 2000 },
+			{ timeout: 5000 },
 		)
 
 		const names = columnText(container, 0)
