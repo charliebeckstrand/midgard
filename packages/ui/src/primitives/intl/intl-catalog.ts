@@ -1,20 +1,33 @@
 import { createIntl, type IntlConfig, IntlErrorCode, type IntlShape } from '@formatjs/intl'
 import { getOrCompute } from '../../utilities/get-or-compute'
 import { getLanguage } from './intl-language'
-import es from './lang/es.json'
+import { translations } from './lang'
 import type { IntlCatalogs } from './types'
 
 // The language of each default message in the source.
 const SOURCE_LANGUAGE = 'en'
 
 /**
- * The translated messages of ui, keyed by language subtag. English has no
- * entry, because the default message of each descriptor is English. The
- * catalogs that a `LocaleProvider` takes merge over it.
+ * The translated messages of ui, keyed by language subtag: each translation in
+ * `lang/`. English has no entry, because the default message of each
+ * descriptor is English. The catalogs that a `LocaleProvider` takes merge over
+ * it.
  *
  * @internal
  */
-export const uiCatalogs: IntlCatalogs = { es }
+export const uiCatalogs: IntlCatalogs = translations
+
+/**
+ * The locales that ui has the text of: English, then the language of each
+ * translation in `lang/`, in name order. Each locale is a language subtag with
+ * no region, such as `es`. An app gives this list to the `locales` of its
+ * `LocaleProvider`, so the reader can choose each language of ui. A new
+ * translation in `lang/` adds its locale to the list.
+ */
+export const CATALOG_LOCALES: readonly [string, ...string[]] = [
+	SOURCE_LANGUAGE,
+	...Object.keys(uiCatalogs),
+]
 
 // One intl for each catalog set and locale, so a nested provider in the same
 // locale and with the same catalogs gives the same object, and its subtree does
@@ -94,7 +107,8 @@ export function localeIntl(locale: string): IntlShape {
 export const intlEn = localeIntl(SOURCE_LANGUAGE)
 
 /**
- * The intl of Spanish, with the messages of the Spanish catalog.
+ * The intl of Spanish, with the messages of the Spanish catalog. The tests
+ * that check a Spanish text use it.
  *
  * @internal
  */

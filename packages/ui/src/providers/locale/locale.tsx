@@ -72,9 +72,9 @@ export type LocaleProviderProps = LocaleConfig & {
  * @remarks
  * The provider also gives the intl of its locale to the controls
  * of ui. A control shows its built-in text, such as the name of a Close button,
- * from the catalog of the language of the locale. ui has an English and a
- * Spanish catalog. A language with no catalog, and a message that a catalog
- * does not have, show the English default. A prop that sets the text of a
+ * from the catalog of the language of the locale. {@link CATALOG_LOCALES}
+ * lists the languages that ui has a catalog for. A language with no catalog,
+ * and a message that a catalog does not have, show the English default. A prop that sets the text of a
  * control still wins. An app or a package gives the translations of its own
  * messages through `catalogs`, and reads them through `useIntl` from
  * `ui/primitives/intl`.

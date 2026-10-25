@@ -1,6 +1,7 @@
 import { type Browser, chromium, type Page } from 'playwright'
 import { afterAll, beforeAll, describe, expect, inject, it, onTestFinished } from 'vitest'
 import { HYDRATED } from '../../../scripts/docs-server'
+import { LOCALES } from '../../docs/app/language'
 
 // The build renders each page to HTML on the server, and the browser hydrates
 // it. When the client renders different markup, React reports a recoverable
@@ -16,7 +17,7 @@ import { HYDRATED } from '../../../scripts/docs-server'
 //
 // The server sends the HTML of each page in the language of the reader
 // (`scripts/docs-server.ts`), and the page hydrates in that language. So the
-// text of a Spanish page stays after hydration.
+// text of a page in each translated language stays after hydration.
 
 /**
  * The home page, component pages, a module page, a page with a tab in its
@@ -138,9 +139,9 @@ describe('a prerendered page of the docs build', () => {
 	})
 })
 
-describe('a prerendered page of the docs build in Spanish', () => {
-	it.each(PAGES)('%s hydrates in Spanish, and keeps the text of its HTML', async (path) => {
-		const tab = await openTab('es-ES')
+describe.each(LOCALES.slice(1))('a prerendered page of the docs build in %s', (locale) => {
+	it.each(PAGES)('%s hydrates in its locale, and keeps the text of its HTML', async (path) => {
+		const tab = await openTab(locale)
 
 		const errors: string[] = []
 
@@ -164,7 +165,7 @@ describe('a prerendered page of the docs build in Spanish', () => {
 			after: document.body.innerText,
 		}))
 
-		expect(lang).toBe('es')
+		expect(lang).toBe(locale)
 
 		// Each line of the HTML stays after hydration. A page can add text, such
 		// as the row count of a grid, and the fallback document has no text.

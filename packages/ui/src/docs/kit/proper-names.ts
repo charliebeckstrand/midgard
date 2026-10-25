@@ -1,7 +1,7 @@
 // A proper noun or a code of the demo data, such as "Mia Chen", "Acme Freight",
 // or "ORD-7291", is the same in each language. `names` marks such a text, the
 // way `words` marks a word that a translation changes. The page smoke test
-// reads the names that it marked. A text that a Spanish page shows as the
+// reads the names that it marked. A text that a translated page shows as the
 // English page does fails the test, unless it is a name or comes from another
 // recorded source (`__tests__/same-text.ts`).
 

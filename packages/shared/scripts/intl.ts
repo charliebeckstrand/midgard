@@ -1,6 +1,7 @@
 /**
  * Writes the source catalog of shared, `src/locale/lang/en.json`, from the
- * message descriptors in the source.
+ * message descriptors in the source. It also writes the module that imports
+ * each translation in `src/locale/lang`, `index.ts`.
  *
  * Run `pnpm intl` after you add, change, or remove a message. The catalog holds
  * the id, the English default, and the description of each message, for the
@@ -14,7 +15,13 @@
 import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { type CatalogSource, catalogText, extractCatalog } from 'ui/scripts/intl-catalog'
+import {
+	type CatalogSource,
+	catalogText,
+	extractCatalog,
+	TRANSLATIONS_MODULE,
+	translationsText,
+} from 'ui/scripts/intl-catalog'
 
 const SRC_DIR = fileURLToPath(new URL('../src', import.meta.url))
 
@@ -29,4 +36,6 @@ export const CATALOG_SOURCE: CatalogSource = { srcDir: SRC_DIR, skipped: ['__tes
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	await writeFile(SOURCE_CATALOG, catalogText(await extractCatalog(CATALOG_SOURCE)))
+
+	await writeFile(join(LANG_DIR, TRANSLATIONS_MODULE), translationsText(LANG_DIR))
 }

@@ -1,10 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { vi } from 'vitest'
+import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { namedTexts } from '../kit/proper-names.ts'
 
-// The page smoke test renders each page in Spanish and in English. A text that
-// shows in both renders is the same in both languages. Such a text is English
+// The page smoke test renders each page in each translated language and in
+// English. A text that shows in a translated render and in the English render
+// is the same in both languages. Such a text is English
 // that a translation missed, unless the docs record where it comes from. A text
 // comes from a recorded source when one of these holds:
 //
@@ -12,8 +14,9 @@ import { namedTexts } from '../kit/proper-names.ts'
 // - The text is in an element with `translate="no"`, or in an element with a
 //   `lang` of another language.
 // - The text is a name that `names` gives (`kit/proper-names.ts`).
-// - The text is the output of an `Intl` formatter in the Spanish render.
-// - The text is a message that the Spanish catalog writes as the English does.
+// - The text is the output of an `Intl` formatter in the translated render.
+// - The text is a message that the catalog of the language writes as the
+//   English does.
 //
 // A text can join names and formatted values, such as "Mia Chen · 5 mi". It
 // comes from recorded sources when no word stays after each recorded text goes
@@ -78,16 +81,16 @@ export function readTexts(root: Element, language: string, texts: Set<string>): 
 type Descriptor = { defaultMessage: string }
 
 /**
- * Each message that the Spanish catalog writes as the English does, such as
- * "Total". A message with a value stays out, because its text in a page holds
- * the value.
+ * Each message that `translation` writes as the English does, such as "Total"
+ * in Spanish. A message with a value stays out, because its text in a page
+ * holds the value.
  */
 function sameMessages(
 	english: Readonly<Record<string, Descriptor>>,
-	spanish: Readonly<Record<string, string>>,
+	translation: Readonly<Record<string, string>>,
 ): string[] {
 	return Object.entries(english)
-		.map(([id, { defaultMessage }]) => [defaultMessage, spanish[id]])
+		.map(([id, { defaultMessage }]) => [defaultMessage, translation[id]])
 		.filter(([message, translation]) => message === translation && !message?.includes('{'))
 		.map(([message]) => message ?? '')
 }
@@ -101,10 +104,20 @@ function readCatalog<Catalog>(folder: string, language: string): Catalog {
 	return JSON.parse(readFileSync(join(import.meta.dirname, folder, `${language}.json`), 'utf8'))
 }
 
-/** The messages that are the same in both languages, in the catalogs of ui and of the docs. */
-const SAME_MESSAGES = ['../../primitives/intl/lang', '../lang'].flatMap((folder) =>
-	sameMessages(readCatalog(folder, 'en'), readCatalog(folder, 'es')),
-)
+/** The folders of the catalogs that a page of the docs shows: the catalog of ui and of the docs. */
+const CATALOG_FOLDERS = ['../../primitives/intl/lang', '../lang']
+
+/** The messages that are the same in `language` and in English, by language. */
+const sameByLanguage = new Map<string, readonly string[]>()
+
+/** The messages that are the same in `language` and in English, in the catalogs of ui and of the docs. */
+function readSameMessages(language: string): readonly string[] {
+	return getOrCompute(sameByLanguage, language, () =>
+		CATALOG_FOLDERS.flatMap((folder) =>
+			sameMessages(readCatalog(folder, 'en'), readCatalog(folder, language)),
+		),
+	)
+}
 
 /** The formatters whose methods give text. */
 const FORMATTERS = [
@@ -206,22 +219,24 @@ export function recordIntl(texts: Set<string>): () => void {
 }
 
 /**
- * Each text of `spanish` that `english` also shows, and that does not come from
- * recorded sources. `formatted` holds the output of the formatters in the
- * Spanish render.
+ * Each text of `translated` that `english` also shows, and that does not come
+ * from recorded sources. `translated` holds the text of a render in
+ * `language`, and `formatted` holds the output of the formatters in that
+ * render.
  */
 export function findSameText(
-	spanish: ReadonlySet<string>,
+	language: string,
+	translated: ReadonlySet<string>,
 	english: ReadonlySet<string>,
 	formatted: ReadonlySet<string>,
 ): string[] {
 	// The longest text goes out first, so a name such as "New York City" goes
 	// out before "New York".
-	const recorded = [...new Set([...namedTexts, ...formatted, ...SAME_MESSAGES])]
+	const recorded = [...new Set([...namedTexts, ...formatted, ...readSameMessages(language)])]
 		.filter((text) => WORD.test(text))
 		.toSorted((a, b) => b.length - a.length)
 
-	return [...spanish].filter((text) => {
+	return [...translated].filter((text) => {
 		if (!english.has(text)) return false
 
 		let rest = text

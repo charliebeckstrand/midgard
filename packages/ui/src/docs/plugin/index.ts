@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { prefixRegex } from '@rolldown/pluginutils'
+import { exactRegex, prefixRegex } from '@rolldown/pluginutils'
 import { Piscina } from 'piscina'
 import type {
 	DevEnvironment,
@@ -10,6 +10,7 @@ import type {
 	Plugin,
 	ViteDevServer,
 } from 'vite'
+import { TRANSLATIONS_MODULE } from '../../../scripts/intl-catalog.ts'
 import type { ShikiHighlight } from '../../components/code/code-shiki-highlighter.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { type BarrelApi, createApiWorker, TASKS_AHEAD } from './api.ts'
@@ -308,6 +309,8 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 						...demoFolders(docs).map((folder) => prefixRegex(`${folder}/`)),
 						prefixRegex(`${lang}/`),
 					],
+					// The folder of the catalogs also holds the module that imports them.
+					exclude: exactRegex(path.join(lang, TRANSLATIONS_MODULE)),
 				},
 			},
 			async handler(code, id) {

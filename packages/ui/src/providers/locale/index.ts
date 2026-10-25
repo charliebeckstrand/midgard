@@ -1,3 +1,4 @@
+export { CATALOG_LOCALES } from '../../primitives/intl/intl-catalog'
 export { type LocaleConfig, useLocale } from './context'
 export { LocaleProvider, type LocaleProviderProps } from './locale'
 export { LOCALE_COOKIE, type RequestLocaleInput, resolveRequestLocale } from './locale-choice'

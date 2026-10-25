@@ -1,7 +1,8 @@
-import { LOCALE_COOKIE, resolveRequestLocale } from 'ui/providers/locale'
+import { CATALOG_LOCALES, LOCALE_COOKIE, resolveRequestLocale } from 'ui/providers/locale'
 
 // The docs have one HTML file for each page in each language: `index.html`
-// in English and `index.es.html` in Spanish. The build renders each file with
+// in English, and `index.<locale>.html` in each other language, such as
+// `index.es.html`. The build renders each file with
 // the locale of its language, and the server of the docs sends the file of
 // the locale of the request (`scripts/docs-server.ts`). The browser hydrates
 // the page in the locale of the file, from the `lang` of the root element.
@@ -9,14 +10,16 @@ import { LOCALE_COOKIE, resolveRequestLocale } from 'ui/providers/locale'
 // reader, and no text changes its language after hydration.
 
 /**
- * The locales that a reader can choose in the settings. They are the locales
- * of the apps, so the docs show the same choice. The first is the default,
- * and the HTML file of a page in the default locale has no locale in its
- * name. A Spanish locale shows the controls of ui, the text of the shell and
- * the kit, and the text of the demos in Spanish. The names from the code and
- * the TSDoc stay English.
+ * The locales that a reader can choose in the settings: one locale for each
+ * language that ui has a catalog for ({@link CATALOG_LOCALES}), as in the
+ * apps. The docs have a catalog for each of the languages, and the catalog
+ * test holds the two lists in step. The first locale is the default, and the
+ * HTML file of a page in the default locale has no locale in its name. Another
+ * locale shows the controls of ui, the text of the shell and the kit, and the
+ * text of the demos in its language. The names from the code and the TSDoc
+ * stay English.
  */
-export const LOCALES = ['en', 'es'] as const
+export const LOCALES = CATALOG_LOCALES
 
 /** The value of the cookie `name` in the `Cookie` header `header`, or `undefined`. */
 function readCookieHeader(header: string, name: string): string | undefined {

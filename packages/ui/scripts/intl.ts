@@ -1,7 +1,8 @@
 /**
  * Writes the source catalog of ui, `src/primitives/intl/lang/en.json`, and the
  * source catalog of the docs app, `src/docs/lang/en.json`, from the message
- * descriptors in the source.
+ * descriptors in the source. It also writes the module that imports each
+ * translation in each folder, `index.ts`.
  *
  * Run `pnpm intl` after you add, change, or remove a message. A catalog holds
  * the id, the English default, and the description of each message, for the
@@ -22,7 +23,14 @@ import { demoEntries } from '../src/docs/plugin/demo-text.ts'
 import type { Parser } from '../src/docs/plugin/examples.ts'
 import { fieldEntries } from '../src/docs/plugin/fields.ts'
 import { pageEntries, tabEntries, titleEntries } from '../src/docs/plugin/titles.ts'
-import { type CatalogEntry, type CatalogSource, catalogText, extractCatalog } from './intl-catalog'
+import {
+	type CatalogEntry,
+	type CatalogSource,
+	catalogText,
+	extractCatalog,
+	TRANSLATIONS_MODULE,
+	translationsText,
+} from './intl-catalog'
 
 const SRC_DIR = fileURLToPath(new URL('../src', import.meta.url))
 
@@ -97,4 +105,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	await writeFile(SOURCE_CATALOG, catalogText(ui))
 
 	await writeFile(DOCS_SOURCE_CATALOG, catalogText(docs))
+
+	for (const langDir of [LANG_DIR, DOCS_LANG_DIR]) {
+		await writeFile(join(langDir, TRANSLATIONS_MODULE), translationsText(langDir))
+	}
 }

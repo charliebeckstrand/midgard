@@ -345,7 +345,7 @@ An `aria-label` names the content, not the demo: "Monthly revenue", not "Line ch
 | The opening of an event prop in TSDoc | Fires when | Called when, Runs when, Invoked when |
 | The opening of a boolean prop in TSDoc | A verb in the third person that says what `true` does, such as "Shows" | Whether, Show |
 
-The Spanish catalogs use the words of the next table for the same ideas. The catalog of `ui` (`src/primitives/intl/lang/es.json`) sets them, and the catalogs of the docs use the same words. The text addresses the reader as "tú". A button and a menu item take the infinitive, such as "Guardar". An instruction takes the imperative, such as "Selecciona un país". An adjective agrees with its noun in gender and number. The value of a prop in a playground agrees with the name of the prop, such as "Densidad: Compacta" and "Tamaño: Mediano":
+Each translated language has a word list in this section. Add a list when you add a language. The Spanish catalogs use the words of the next table for the same ideas. The catalog of `ui` (`src/primitives/intl/lang/es.json`) sets them, and the catalogs of the docs use the same words. The text addresses the reader as "tú". A button and a menu item take the infinitive, such as "Guardar". An instruction takes the imperative, such as "Selecciona un país". An adjective agrees with its noun in gender and number. The value of a prop in a playground agrees with the name of the prop, such as "Densidad: Compacta" and "Tamaño: Mediano":
 
 | Idea | Word | Not |
 |---|---|---|
