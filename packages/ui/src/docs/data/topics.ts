@@ -9,7 +9,10 @@ export const topics = words('topic', {
 	forms: 'Forms',
 	invoices: 'Invoices',
 	motion: 'Motion',
+	performance: 'Performance',
 	research: 'Research',
+	serverRendering: 'Server rendering and streaming',
+	testing: 'Testing',
 	typography: 'Typography',
 	writing: 'Writing',
 })

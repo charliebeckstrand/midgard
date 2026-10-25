@@ -1,5 +1,6 @@
 import { Component, type ReactNode, useState } from 'react'
 import { Button } from 'ui/button'
+import { Code } from 'ui/code'
 import { Flex } from 'ui/flex'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
@@ -20,7 +21,9 @@ class Boundary extends Component<{ children: ReactNode; onReset: () => void }, {
 
 		return (
 			<Flex align="center" gap="sm">
-				<Text tone="muted">Last error: {error.message}</Text>
+				<Text tone="muted">
+					Last error: <Code>{error.message}</Code>
+				</Text>
 				<ResetButton size="sm" onClick={this.props.onReset} />
 			</Flex>
 		)

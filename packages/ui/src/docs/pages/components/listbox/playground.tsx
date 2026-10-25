@@ -1,6 +1,7 @@
 import { Listbox, ListboxLabel, ListboxOption, type ListboxProps } from 'ui/listbox'
+import { tagWords } from './tags.ts'
 
-const tags = ['Bug', 'Documentation', 'Good first issue', 'Needs review from the security team']
+const tags = Object.values(tagWords)
 
 export default function ListboxPlayground(props: ListboxProps<string>) {
 	return (

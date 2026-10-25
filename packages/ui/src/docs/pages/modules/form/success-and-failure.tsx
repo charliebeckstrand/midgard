@@ -24,7 +24,7 @@ export default function SuccessAndFailure() {
 				onSubmit={async () => {
 					await new Promise((resolve) => setTimeout(resolve, 1000))
 
-					if (fail) throw new Error('The server is busy. Try again in a minute.')
+					if (fail) throw new Error('Service unavailable')
 				}}
 				onSettled={setOutcome}
 			>
@@ -40,7 +40,9 @@ export default function SuccessAndFailure() {
 				<Alert
 					severity={outcome.ok ? 'success' : 'error'}
 					description={
-						outcome.ok ? `${outcome.values.email} is on the list.` : outcome.error.message
+						outcome.ok
+							? `${outcome.values.email} is on the list.`
+							: 'The server is busy. Try again in a minute.'
 					}
 				/>
 			)}

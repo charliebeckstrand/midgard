@@ -17,8 +17,8 @@ function MatchingCommands({ onRun }: { onRun: (label: string) => void }) {
 		.filter((command) => command.label.toLowerCase().includes(query))
 		.map((command) => (
 			<CommandPaletteItem
-				key={command.label}
-				disabled={command.label === 'Delete'}
+				key={command.id}
+				disabled={command.id === 'delete'}
 				onAction={() => onRun(command.label)}
 			>
 				<Icon icon={command.icon} />

@@ -47,7 +47,7 @@ export default function ServerInfiniteScroll() {
 				loadingMore,
 				loadingIndicator: true,
 				stableColumnWidths: true,
-				endMessage: 'No more results',
+				endMessage: <>No more results</>,
 			}}
 		/>
 	)

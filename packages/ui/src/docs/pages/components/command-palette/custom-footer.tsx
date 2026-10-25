@@ -17,7 +17,7 @@ function MatchingCommands() {
 	return commands
 		.filter((command) => command.label.toLowerCase().includes(query))
 		.map((command) => (
-			<CommandPaletteItem key={command.label}>
+			<CommandPaletteItem key={command.id}>
 				<Icon icon={command.icon} />
 				<CommandPaletteLabel>{command.label}</CommandPaletteLabel>
 			</CommandPaletteItem>
