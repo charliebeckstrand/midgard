@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import {
 	Pagination,
 	PaginationGap,
@@ -26,21 +27,36 @@ export default function PaginationPlayground(props: PaginationProps) {
 
 	const visible = getVisiblePages(page, TOTAL_PAGES)
 
+	const currentRef = useRef<HTMLButtonElement>(null)
+
+	// A step onto the first or the last page disables the button that was pressed,
+	// so the focus moves to the current page.
+	const step = (next: number) => {
+		flushSync(() => setPage(next))
+
+		if (next === 1 || next === TOTAL_PAGES) currentRef.current?.focus()
+	}
+
 	return (
 		<Pagination {...props}>
-			<PaginationPrevious onClick={() => setPage(page - 1)} disabled={page === 1} />
+			<PaginationPrevious onClick={() => step(page - 1)} disabled={page === 1} />
 			<PaginationList>
 				{visible.map((item, index) =>
 					item === 'gap' ? (
 						<PaginationGap key={`gap-after-${visible[index - 1]}`} />
 					) : (
-						<PaginationPage key={item} current={item === page} onClick={() => setPage(item)}>
+						<PaginationPage
+							key={item}
+							ref={item === page ? currentRef : undefined}
+							current={item === page}
+							onClick={() => setPage(item)}
+						>
 							{item}
 						</PaginationPage>
 					),
 				)}
 			</PaginationList>
-			<PaginationNext onClick={() => setPage(page + 1)} disabled={page === TOTAL_PAGES} />
+			<PaginationNext onClick={() => step(page + 1)} disabled={page === TOTAL_PAGES} />
 		</Pagination>
 	)
 }
