@@ -8,6 +8,7 @@ import {
 } from 'ui/command-palette'
 import { Icon } from 'ui/icon'
 import { Kbd } from 'ui/kbd'
+import { ShortcutHint } from '../../../kit/shortcut-hint.tsx'
 import { commands } from './commands.tsx'
 
 function MatchingCommands() {
@@ -28,10 +29,17 @@ export default function KeyboardShortcut() {
 
 	return (
 		<>
-			<Button suffix={<Kbd>⌘K</Kbd>} onClick={() => setOpen(true)}>
+			<Button
+				suffix={
+					<Kbd>
+						<ShortcutHint keyName="J" />
+					</Kbd>
+				}
+				onClick={() => setOpen(true)}
+			>
 				Search commands
 			</Button>
-			<CommandPalette open={open} onOpenChange={setOpen} triggerShortcut="$mod+KeyK">
+			<CommandPalette open={open} onOpenChange={setOpen} triggerShortcut="$mod+KeyJ">
 				<MatchingCommands />
 			</CommandPalette>
 		</>
