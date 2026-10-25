@@ -7,6 +7,10 @@
 		"defaultMessage": "deprecated",
 		"description": "The badge next to the name of a prop in the API reference when the prop is old and a later version removes it. Write it in lowercase."
 	},
+	"docs.api.englishNote": {
+		"defaultMessage": "This reference comes from the source code and is in English.",
+		"description": "The note under the heading of the API reference on a page in a language other than English. The descriptions of the components and of the props come from the comments of the source code, and they stay in English."
+	},
 	"docs.api.events": {
 		"defaultMessage": "Events",
 		"description": "The heading of the list of the event props of a component in the API reference, such as onChange."

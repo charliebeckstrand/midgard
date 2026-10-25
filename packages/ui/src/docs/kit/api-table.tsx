@@ -3,8 +3,9 @@ import { useLocation } from 'react-router'
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from 'ui/accordion'
 import { Heading } from 'ui/heading'
 import { Link } from 'ui/link'
-import { defineMessage, IntlMessage } from 'ui/primitives/intl'
+import { defineMessage, IntlMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
+import { Text } from 'ui/text'
 import type { BarrelApi } from '../plugin/api.ts'
 import { API, componentOfHash, toApiId } from './anchors.ts'
 import { useLoadThenOpen } from './load-then-open.ts'
@@ -15,6 +16,13 @@ const apiReferenceMessage = defineMessage({
 	defaultMessage: 'API reference',
 	description:
 		'The heading of the part of a page that lists each component with its props and its events.',
+})
+
+const englishNoteMessage = defineMessage({
+	id: 'docs.api.englishNote',
+	defaultMessage: 'This reference comes from the source code and is in English.',
+	description:
+		'The note under the heading of the API reference on a page in a language other than English. The descriptions of the components and of the props come from the comments of the source code, and they stay in English.',
 })
 
 // The entry renders TSDoc as Markdown, so it carries `marked`. It is a chunk
@@ -82,6 +90,12 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 
 	const { hash } = useLocation()
 
+	const intl = useIntl()
+
+	// A page in another language tells the reader that the TSDoc is English.
+	// The default locale is English for an English locale only (`catalogIntl`).
+	const translated = intl.locale !== intl.defaultLocale
+
 	const named = componentOfHash(hash)
 
 	const target = named !== undefined && named in api ? named : undefined
@@ -110,6 +124,11 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 					<IntlMessage message={apiReferenceMessage} />
 				</Link>
 			</Heading>
+			{translated && (
+				<Text tone="muted">
+					<IntlMessage message={englishNoteMessage} />
+				</Text>
+			)}
 			<PendingAnchorContext value={pending}>
 				<Accordion
 					type="multiple"

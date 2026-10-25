@@ -1,6 +1,7 @@
 {
 	"docs.api.default": "por defecto {value}",
 	"docs.api.deprecated": "obsoleto",
+	"docs.api.englishNote": "Esta referencia viene del código fuente y está en inglés.",
 	"docs.api.events": "Eventos",
 	"docs.api.htmlAttributes": "También admite los atributos HTML.",
 	"docs.api.htmlAttributesOf": "También admite los atributos HTML de {tags}.",
