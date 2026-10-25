@@ -155,4 +155,41 @@ describe('CurrentContents switch (real Motion)', () => {
 		// At rest the panel takes no transform, so it is no containing block.
 		await waitFor(() => expect(getComputedStyle(getPanel('a') as Element).transform).toBe('none'))
 	})
+
+	it('settles the incoming panel without a jump to its rest and back', async () => {
+		renderTabs('slide')
+
+		await waitFor(() => expect(getPanel('a')).not.toBeNull())
+
+		const tab = document.querySelectorAll<HTMLElement>('[role="tab"]')[1]
+
+		if (!tab) throw new Error('tab 1 did not render')
+
+		const box = document.querySelector('[data-slot="tab-contents"]')
+
+		if (!box) throw new Error('the tab contents did not render')
+
+		const lefts: number[] = []
+
+		tab.click()
+
+		await frame()
+
+		while (getComputedStyle(getPanel('b') as Element).transform !== 'none') {
+			lefts.push((getPanel('b') as Element).getBoundingClientRect().left)
+
+			await frame()
+		}
+
+		const rest = box.getBoundingClientRect().left
+
+		const first = lefts.findIndex((left) => Math.abs(left - rest) < 0.01)
+
+		// The frames after the first frame at rest.
+		const landed = first === -1 ? [] : lefts.slice(first)
+
+		// Before the fix, the spring curve went to the rest at the top of its
+		// overshoot and then went back past it, about 0.4% of the slide.
+		expect(landed.filter((left) => Math.abs(left - rest) > 0.1)).toEqual([])
+	})
 })
