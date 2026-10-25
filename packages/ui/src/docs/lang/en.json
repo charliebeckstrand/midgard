@@ -4873,7 +4873,7 @@
 	},
 	"docs.demo.dfe870d90b82": {
 		"defaultMessage": "⌘K",
-		"description": "Text of a demo in the docs, in components/command-palette/keyboard-shortcut.tsx, components/kbd/modifier-glyphs.tsx, components/kbd/playground.tsx and 1 more."
+		"description": "Text of a demo in the docs, in components/kbd/modifier-glyphs.tsx, components/kbd/playground.tsx, components/sidebar/with-suffix-slot.tsx."
 	},
 	"docs.demo.e00d4ddfd2ae": {
 		"defaultMessage": "Show toast",
