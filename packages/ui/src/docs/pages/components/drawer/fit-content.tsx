@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { Button } from 'ui/button'
 import {
 	Drawer,
@@ -44,6 +45,31 @@ const topics: Topic[] = [
 export default function FitContent() {
 	const [topic, setTopic] = useState<Topic | null>(null)
 
+	// The question that the reader opened last. Back gives the focus to it.
+	const [opened, setOpened] = useState<Topic | null>(null)
+
+	const backRef = useRef<HTMLButtonElement>(null)
+
+	const openedRef = useRef<HTMLButtonElement>(null)
+
+	// Each change of topic removes the button that the reader pressed, so it gives
+	// the focus to the button that shows next.
+	const open = (item: Topic) => {
+		flushSync(() => {
+			setTopic(item)
+
+			setOpened(item)
+		})
+
+		backRef.current?.focus()
+	}
+
+	const back = () => {
+		flushSync(() => setTopic(null))
+
+		openedRef.current?.focus()
+	}
+
 	return (
 		<Drawer>
 			<DrawerTrigger>
@@ -60,7 +86,12 @@ export default function FitContent() {
 					) : (
 						<Stack gap="xs" align="start">
 							{topics.map((item) => (
-								<Button key={item.title} variant="plain" onClick={() => setTopic(item)}>
+								<Button
+									key={item.title}
+									ref={item === opened ? openedRef : undefined}
+									variant="plain"
+									onClick={() => open(item)}
+								>
 									{item.title}
 								</Button>
 							))}
@@ -69,7 +100,7 @@ export default function FitContent() {
 				</DrawerBody>
 				<DrawerFooter>
 					{topic && (
-						<Button variant="plain" onClick={() => setTopic(null)}>
+						<Button ref={backRef} variant="plain" onClick={back}>
 							Back
 						</Button>
 					)}
