@@ -21,7 +21,14 @@ import type { BarrelApi, Literal } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
 import { ExampleFrame, getMeta, loadCode } from './example.tsx'
 import { useFail } from './fail.ts'
-import { buildFields, type ChoiceField, type Field, type FreeField, type Value } from './fields.ts'
+import {
+	buildComponentField,
+	buildFields,
+	type ChoiceField,
+	type Field,
+	type FreeField,
+	type Value,
+} from './fields.ts'
 import { humanize } from './humanize.ts'
 import { isWord, propLabel, valueLabel } from './names.ts'
 
@@ -197,24 +204,6 @@ function isList<T>(value: T | readonly T[]): value is readonly T[] {
 	return Array.isArray(value)
 }
 
-/**
- * The field that picks the component of a playground with more than one: a
- * value for each component, without the words at the start that all of the
- * names share, so `LoadingSpinner` and `LoadingDots` give `spinner` and
- * `dots`. The first component is the default.
- */
-function buildComponentField(components: readonly string[]): ChoiceField {
-	const words = components.map((component) => humanize(component).toLowerCase().split(' '))
-
-	const [first = []] = words
-
-	const shared = first.findIndex((word, index) => words.some((other) => other[index] !== word))
-
-	const values = words.map((name) => name.slice(Math.max(shared, 0)).join('-'))
-
-	return { kind: 'choice', name: 'component', values, default: values[0], required: true }
-}
-
 /** A literal as code, with a string in single quotes. */
 function formatCode(value: Literal): string {
 	return typeof value === 'string' ? `'${value}'` : String(value)
@@ -353,19 +342,30 @@ function FieldPicker({
 	const unset = field.default === undefined && !field.required
 
 	const options = [
-		...(unset ? [{ key: UNSET, label: intl.formatMessage(messages.none), fallback: true }] : []),
+		...(unset
+			? [{ key: UNSET, label: intl.formatMessage(messages.none), fallback: true, code: false }]
+			: []),
 		...field.values.map((option) => ({
 			key: JSON.stringify(option),
 			label: formatOption(option),
 			fallback: option === field.default,
+			// A value with no word, such as `16/9`, shows as written, so it is code.
+			code: typeof option === 'string' && !isWord(option),
 		})),
 	]
+
+	const show = (option: (typeof options)[number]) =>
+		option.code ? <span translate="no">{option.label}</span> : option.label
 
 	return (
 		<Listbox<string>
 			aria-label={name}
 			value={value === undefined ? UNSET : JSON.stringify(value)}
-			displayValue={(key) => options.find((option) => option.key === key)?.label ?? key}
+			displayValue={(key) => {
+				const option = options.find((candidate) => candidate.key === key)
+
+				return option ? show(option) : key
+			}}
 			prefix={<FieldLabel label={name} />}
 			placement="bottom-auto"
 			onValueChange={(key) => {
@@ -375,7 +375,7 @@ function FieldPicker({
 			{options.map((option) => (
 				<ListboxOption key={option.key} value={option.key}>
 					<Flex gap="sm">
-						<ListboxLabel>{option.label}</ListboxLabel>
+						<ListboxLabel>{show(option)}</ListboxLabel>
 						{option.fallback && (
 							<Badge size={stepDown(step)} variant="soft" color="blue">
 								{intl.formatMessage(messages.default)}
@@ -510,7 +510,6 @@ export function Playground<P extends object>({
 						<FieldPicker
 							field={switcher}
 							label={intl.formatMessage(messages.component)}
-							format={(component) => humanize(String(component))}
 							step={step}
 							value={switcher.values[active]}
 							onValueChange={handleComponentChange}

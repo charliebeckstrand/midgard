@@ -3,7 +3,7 @@ import path from 'node:path'
 import { type ESTree, Visitor } from 'vite'
 import type { CatalogEntry } from '../../../scripts/intl-catalog.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
-import { buildFields, type Field, type Free } from '../kit/fields.ts'
+import { buildComponentField, buildFields, type Field, type Free } from '../kit/fields.ts'
 import { humanize } from '../kit/humanize.ts'
 import { formatValue, isWord, toPropId } from '../kit/names.ts'
 import type { BarrelApi, Literal } from './api.ts'
@@ -218,8 +218,12 @@ async function readPlaygrounds(parse: Parser, file: string): Promise<PlaygroundU
 	)
 }
 
-/** A field that a page shows, and the component that the field sets. */
-type Shown = { field: Field; component: string }
+/**
+ * A field that a page shows, and the component that the field sets. The field
+ * that picks the component of a playground (`picker`) sets each of its
+ * components.
+ */
+type Shown = { field: Field; component: string; picker?: boolean }
 
 /**
  * Each field that a `<Playground>` of a page or a tab shows, from the same
@@ -253,6 +257,12 @@ async function findFields(docs: string, parse: Parser, extract: Extract): Promis
 				shown.push({ field, component })
 			}
 		}
+
+		if (use.components.length > 1) {
+			const field = buildComponentField(use.components)
+
+			for (const component of use.components) shown.push({ field, component, picker: true })
+		}
 	}
 
 	return shown
@@ -270,7 +280,8 @@ function wordValues(field: Field): string[] {
 /**
  * The catalog entries of the fields of the playgrounds: the label of each
  * field, from the name of its prop, and each option of a field that is a
- * word, from its value. The entries come from the fields that each
+ * word, from its value. Each option of the field that picks the component of
+ * a playground gets an entry too, such as "Dots" for `LoadingDots`. The entries come from the fields that each
  * `<Playground>` renders, so a field has an entry only when a page shows it. A
  * label and an option have no descriptor in the source.
  */
@@ -287,8 +298,21 @@ export async function fieldEntries(
 			component,
 		)
 
-	for (const { field, component } of await findFields(docs, parse, extract)) {
+	for (const { field, component, picker } of await findFields(docs, parse, extract)) {
 		const { name } = field
+
+		if (picker) {
+			for (const value of wordValues(field)) {
+				add(
+					toPropId(name, value),
+					formatValue(value),
+					'An option of the field of a playground in the docs that picks the component to show. It shows one of',
+					component,
+				)
+			}
+
+			continue
+		}
 
 		add(
 			toPropId(name),

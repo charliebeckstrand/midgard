@@ -92,7 +92,9 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 						form=""
 						name={name}
 						value={swatch}
+						// The name is the hex code, which a translation keeps as it is.
 						aria-label={swatch}
+						translate="no"
 						checked={key === checkedKey}
 						disabled={disabled}
 						className="sr-only"

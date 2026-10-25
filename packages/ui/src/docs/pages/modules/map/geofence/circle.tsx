@@ -1,4 +1,5 @@
 import { type LngLat, MapGeofence, MapPlat, MapPoint, type MapSeriesColor } from 'ui/map'
+import { cities } from '../../../../data/places.ts'
 import { states } from '../data.ts'
 
 // The service radius around each depot, in meters across the ground.
@@ -9,10 +10,16 @@ const serviceAreas: {
 	color: MapSeriesColor
 	detail: string
 }[] = [
-	{ city: 'Dallas', at: [-96.8, 32.78], radius: 240_000, color: 'blue', detail: 'Next day' },
-	{ city: 'Chicago', at: [-87.63, 41.88], radius: 190_000, color: 'violet', detail: 'Next day' },
+	{ city: cities.dallas, at: [-96.8, 32.78], radius: 240_000, color: 'blue', detail: 'Next day' },
 	{
-		city: 'Los Angeles',
+		city: cities.chicago,
+		at: [-87.63, 41.88],
+		radius: 190_000,
+		color: 'violet',
+		detail: 'Next day',
+	},
+	{
+		city: cities.losAngeles,
 		at: [-118.24, 34.05],
 		radius: 150_000,
 		color: 'amber',

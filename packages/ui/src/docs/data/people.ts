@@ -1,4 +1,6 @@
 import type { AvatarProps } from 'ui/avatar'
+import { names } from '../kit/proper-names.ts'
+import { cities } from './places.ts'
 import { createRandom } from './random.ts'
 import { words } from './words.ts'
 
@@ -88,7 +90,7 @@ export const profiles: readonly Person[] = [
 		role: 'developer',
 		department: 'engineering',
 		team: 'platform',
-		location: 'San Francisco',
+		location: cities.sanFrancisco,
 		startDate: new Date(2021, 2, 14),
 		salary: 145_000,
 		manager: 'Devon Webb',
@@ -105,7 +107,7 @@ export const profiles: readonly Person[] = [
 		role: 'designer',
 		department: 'product',
 		team: 'designSystems',
-		location: 'New York',
+		location: cities.newYork,
 		startDate: new Date(2022, 6, 1),
 		salary: 132_000,
 		manager: 'Devon Webb',
@@ -122,7 +124,7 @@ export const profiles: readonly Person[] = [
 		role: 'manager',
 		department: 'operations',
 		team: 'leadership',
-		location: 'Austin',
+		location: cities.austin,
 		startDate: new Date(2019, 10, 23),
 		salary: 158_000,
 		manager: 'Tanya Fox',
@@ -139,7 +141,7 @@ export const profiles: readonly Person[] = [
 		role: 'developer',
 		department: 'engineering',
 		team: 'platform',
-		location: 'Seattle',
+		location: cities.seattle,
 		startDate: new Date(2023, 1, 12),
 		salary: 121_000,
 		manager: 'Wade Cooper',
@@ -156,7 +158,7 @@ export const profiles: readonly Person[] = [
 		role: 'designer',
 		department: 'product',
 		team: 'designSystems',
-		location: 'Denver',
+		location: cities.denver,
 		startDate: new Date(2020, 4, 30),
 		salary: 139_000,
 		manager: 'Arlene McCoy',
@@ -173,7 +175,7 @@ export const profiles: readonly Person[] = [
 		role: 'manager',
 		department: 'engineering',
 		team: 'leadership',
-		location: 'Chicago',
+		location: cities.chicago,
 		startDate: new Date(2018, 8, 4),
 		salary: 162_000,
 		manager: 'Devon Webb',
@@ -190,7 +192,7 @@ export const profiles: readonly Person[] = [
 		role: 'analyst',
 		department: 'finance',
 		team: 'analytics',
-		location: 'Boston',
+		location: cities.boston,
 		startDate: new Date(2022, 0, 10),
 		salary: 118_000,
 		manager: 'Hellen Schmidt',
@@ -207,7 +209,7 @@ export const profiles: readonly Person[] = [
 		role: 'developer',
 		department: 'engineering',
 		team: 'platform',
-		location: 'Portland',
+		location: cities.portland,
 		startDate: new Date(2024, 3, 22),
 		salary: 112_000,
 		manager: 'Hellen Schmidt',
@@ -217,8 +219,19 @@ export const profiles: readonly Person[] = [
 	},
 ]
 
+// The name, the initials, and the email of a person are the same in each language.
+names(profiles.flatMap(({ name, initials, email }) => [name, initials, email]))
+
 /** The cities of the generated people. */
-const CITIES = ['San Francisco', 'New York', 'Austin', 'Seattle', 'Denver', 'Chicago', 'Boston']
+const CITIES = [
+	cities.sanFrancisco,
+	cities.newYork,
+	cities.austin,
+	cities.seattle,
+	cities.denver,
+	cities.chicago,
+	cities.boston,
+]
 
 /** The levels of the generated people. */
 const LEVELS = ['L2', 'L3', 'L4', 'L5', 'L6']
@@ -235,12 +248,15 @@ export function person(id: number): Person {
 
 	const random = createRandom(id)
 
+	// The email of a person is the same in each language.
+	const [email = ''] = names([`person${id}@example.com`])
+
 	return {
 		id,
 		name: `${generated.name} ${id}`,
 		initials: `P${id}`,
 		color: random.pick(COLORS),
-		email: `person${id}@example.com`,
+		email,
 		role: random.pick(Object.keys(roles) as Role[]),
 		department: random.pick(Object.keys(departments) as Department[]),
 		team: random.pick(Object.keys(teams) as Team[]),

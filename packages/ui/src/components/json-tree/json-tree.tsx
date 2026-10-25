@@ -6,6 +6,8 @@ import { cn, composeEventHandlers } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useKeyedStore } from '../../hooks/use-keyed-store'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { defineMessage } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/json-tree'
 import { toggleItem } from '../../utilities'
 import { treeMoveTarget } from '../tree/tree-keyboard'
@@ -27,6 +29,13 @@ import { useJsonTreeSearchSeed } from './use-json-tree-search-seed'
 
 /** Row-virtualization options for {@link JsonTree}: the required scroll-container `maxHeight`, plus optional windowing tuning. */
 export type JsonTreeVirtualize = { maxHeight: string; estimateSize?: number; overscan?: number }
+
+/** The name of a tree with no `rootKey`. */
+const labelMessage = defineMessage({
+	id: 'ui.jsonTree.label',
+	defaultMessage: 'JSON',
+	description: 'The accessible name of a tree that shows a JSON value, when no key names its root.',
+})
 
 /**
  * Props for {@link JsonTree}: the `data` value, expansion controls, `search`, and optional `virtualize` windowing.
@@ -93,7 +102,7 @@ export type JsonTreeProps = Omit<ComponentProps<'div'>, 'children'> & {
 	/**
 	 * Accessible name for the tree.
 	 *
-	 * @defaultValue The `rootKey`, or `'JSON'` with no `rootKey`.
+	 * @defaultValue The `rootKey`, or `'JSON'` in the language of the reader with no `rootKey`.
 	 */
 	'aria-label'?: string
 	/** Id of a visible element that names the tree. It replaces the default `aria-label`. */
@@ -144,13 +153,18 @@ export function JsonTree({
 	onKeyDown,
 	...props
 }: JsonTreeProps) {
+	const intl = useIntl()
+
 	const ref = useRef<HTMLDivElement>(null)
 
 	// The roving model and the tree moves read `ref`, so a consumer `ref` joins it.
 	const setRoot = useComposedRefs(ref, consumerRef)
 
 	// A tree needs a name. A visible label replaces the default.
-	const label = ariaLabelledby === undefined ? (ariaLabel ?? rootKey ?? 'JSON') : ariaLabel
+	const label =
+		ariaLabelledby === undefined
+			? (ariaLabel ?? rootKey ?? intl.formatMessage(labelMessage))
+			: ariaLabel
 
 	// Outlives the nodes that write it, so a collapsed-then-reopened branch
 	// restores the expansions made inside it. See `JsonTreeContext.userOpen`.
