@@ -347,9 +347,7 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 	const downlink = createDownlink(DOWNLOAD_RATE)
 
 	const server = createSecureServer(tls, async (request, response) => {
-		const { pathname } = new URL(request.url, 'https://localhost')
-
-		const file = await resolveFile(CLIENT_DIR, pathname)
+		const file = await resolveFile(CLIENT_DIR, request.url)
 
 		if (file === undefined) {
 			response.writeHead(400).end()
@@ -370,7 +368,7 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 		response.writeHead(200, {
 			'content-type': TYPES[extension] ?? 'application/octet-stream',
 			// The name of each file in `assets/` holds the hash of its content.
-			'cache-control': pathname.startsWith('/assets/')
+			'cache-control': request.url.startsWith('/assets/')
 				? 'public, max-age=31536000, immutable'
 				: 'no-cache',
 			...(compress ? { 'content-encoding': 'br' } : {}),

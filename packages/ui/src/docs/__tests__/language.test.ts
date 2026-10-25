@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { resolveFile } from '../../../scripts/docs-server.ts'
+import { resolveFile, targetPathname } from '../../../scripts/docs-server.ts'
 import { localeFile, requestLocale } from '../app/language.ts'
 
 // The docs have the HTML of each page in each locale, and the server sends the
@@ -28,6 +28,24 @@ describe('localeFile', () => {
 		expect(localeFile('index.html', 'es')).toBe('index.es.html')
 
 		expect(localeFile('__spa-fallback.html', 'es')).toBe('__spa-fallback.es.html')
+	})
+})
+
+describe('targetPathname', () => {
+	it('gives the path of a target, with no parse of a host', () => {
+		expect(targetPathname('/button?tab=code')).toBe('/button')
+
+		expect(targetPathname('//button')).toBe('//button')
+
+		expect(targetPathname('//[')).toBe('//[')
+
+		expect(targetPathname('//:99999')).toBe('//:99999')
+	})
+
+	it('gives no path for a target that does not start with a slash', () => {
+		expect(targetPathname('http://a:99999/')).toBeUndefined()
+
+		expect(targetPathname('*')).toBeUndefined()
 	})
 })
 
@@ -60,6 +78,18 @@ describe('resolveFile', () => {
 		expect(await resolveFile(root, '/button', 'en')).toBe(path.join(root, 'button/index.html'))
 
 		expect(await resolveFile(root, '/nope', 'es')).toBe(path.join(root, '__spa-fallback.es.html'))
+	})
+
+	it('gives the page of a path with a double slash', async () => {
+		expect(await resolveFile(root, '//button', 'en')).toBe(path.join(root, 'button/index.html'))
+
+		expect(await resolveFile(root, '//[', 'en')).toBe(path.join(root, '__spa-fallback.html'))
+	})
+
+	it('gives no file for a target with no path or a path that does not decode', async () => {
+		expect(await resolveFile(root, 'http://a:99999/')).toBeUndefined()
+
+		expect(await resolveFile(root, '/%E0%A4%A')).toBeUndefined()
 	})
 
 	it('gives the HTML of the default locale when the page has no HTML in the locale', async () => {
