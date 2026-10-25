@@ -1,4 +1,5 @@
 import { clamp } from '../../../utilities/clamp'
+import { moveItem } from '../../../utilities/move-item'
 import type { QueryCombinator, QueryGroup, QueryNode } from './types'
 
 /**
@@ -113,9 +114,7 @@ export function moveChild(tree: QueryGroup, id: string, toIndex: number): QueryG
 
 		if (to === from) return tree
 
-		const node = children[from] as QueryNode
-
-		const moved = children.toSpliced(from, 1).toSpliced(to, 0, node)
+		const moved = moveItem(children, from, to)
 
 		// The combinators keep their positions, so each node takes the combinator
 		// of the position it now holds.

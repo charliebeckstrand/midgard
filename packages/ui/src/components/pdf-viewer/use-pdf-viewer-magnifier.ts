@@ -12,6 +12,7 @@ import {
 } from 'react'
 import { useFloatingPanel } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useTimeout } from '../../hooks/use-timeout'
 import { useTouchHold } from '../../hooks/use-touch-hold'
 import type { IntlShape } from '../../primitives/intl/types'
 import { pdfViewerMessages } from './pdf-viewer-messages'
@@ -618,7 +619,7 @@ export function usePdfViewerMagnifier(
 	)
 
 	/** Pending re-open. One at a time: each scroll event replaces the last. */
-	const settleRef = useRef<number | undefined>(undefined)
+	const settle = useTimeout()
 
 	/**
 	 * A pan withdraws the lens, and the page has to come to rest before it returns.
@@ -636,8 +637,6 @@ export function usePdfViewerMagnifier(
 	 * tuned this too.
 	 */
 	const handlePan = useStableEvent(() => {
-		window.clearTimeout(settleRef.current)
-
 		// Guarded because this is a scroll handler: with the lens closed both of these are
 		// already at their next value, and React would still re-render the whole viewer to find
 		// that out, once per frame of the pan.
@@ -647,7 +646,7 @@ export function usePdfViewerMagnifier(
 			setTracking(null)
 		}
 
-		settleRef.current = window.setTimeout(() => {
+		settle.set(() => {
 			const located = locate()
 
 			// Nothing to come back to. The pointer left the page during the pan (either off it,
@@ -704,9 +703,9 @@ export function usePdfViewerMagnifier(
 		return () => {
 			document.removeEventListener('scroll', handleScroll, true)
 
-			window.clearTimeout(settleRef.current)
+			settle.clear()
 		}
-	}, [enabled, handleScroll])
+	}, [enabled, handleScroll, settle])
 
 	/*
 	 * Memoized because this object is the value of `PdfViewerMagnifierContext`. A fresh literal

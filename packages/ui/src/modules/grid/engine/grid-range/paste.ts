@@ -49,17 +49,13 @@ export function pastePlacement(
 
 	const fits = area.rows.length % height === 0 && area.cols.length % width === 0
 
-	const targets: GridPasteTarget[] = []
-
 	if (fits) {
-		area.rows.forEach((row, i) => {
-			area.cols.forEach((col, j) => {
-				targets.push({ row, col, text: field(i, j) })
-			})
-		})
-
-		return targets
+		return area.rows.flatMap((row, i) =>
+			area.cols.map((col, j) => ({ row, col, text: field(i, j) })),
+		)
 	}
+
+	const targets: GridPasteTarget[] = []
 
 	for (let i = 0; i < height; i++) {
 		const row = step(top, i)

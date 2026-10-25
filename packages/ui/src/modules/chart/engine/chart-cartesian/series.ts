@@ -179,7 +179,7 @@ function orderLegend(
 
 	const place = (meta: SeriesMeta) => places.get(meta.index) ?? Number.NEGATIVE_INFINITY
 
-	return [...metas].sort((a, b) => place(b) - place(a) || a.index - b.index)
+	return metas.toSorted((a, b) => place(b) - place(a) || a.index - b.index)
 }
 
 /**

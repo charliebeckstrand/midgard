@@ -1,4 +1,4 @@
-import { getOrCompute } from '../../utilities'
+import { digitsOnly, getOrCompute } from '../../utilities'
 
 export function escapeRegExp(text: string) {
 	return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -66,7 +66,7 @@ function otherDecimalIndex(
 	const limit =
 		group === other ? Math.min(maxFractionDigits, GROUP_FRACTION_LIMIT) : maxFractionDigits
 
-	return tail.replace(/\D/g, '').length <= limit ? typedMark : -1
+	return digitsOnly(tail).length <= limit ? typedMark : -1
 }
 
 // Gives the index of the decimal in a text that the field wrote, else -1. In

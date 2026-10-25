@@ -39,8 +39,7 @@ export function markRowEdges(toolbar: HTMLElement | null, orientation: Orientati
 	const edges = orientation === 'horizontal' && wraps(toolbar) ? rowEdges(toolbar) : undefined
 
 	for (const separator of separators) {
-		if (edges?.has(separator)) separator.setAttribute(ROW_EDGE_ATTRIBUTE, '')
-		else separator.removeAttribute(ROW_EDGE_ATTRIBUTE)
+		separator.toggleAttribute(ROW_EDGE_ATTRIBUTE, edges?.has(separator) ?? false)
 	}
 }
 

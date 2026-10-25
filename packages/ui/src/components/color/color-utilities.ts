@@ -4,7 +4,7 @@
  * serialize / equality helpers the state hook leans on. Free of React.
  */
 
-import { clamp } from '../../utilities'
+import { clamp, wrap } from '../../utilities'
 import type { ColorFormat, Hsva, Rgba } from './types'
 
 /**
@@ -58,7 +58,7 @@ export function hsvaToRgba({ h, s, v, a }: Hsva): Rgba {
 	const S = clamp(s, 0, 100) / 100
 	const V = clamp(v, 0, 100) / 100
 
-	const sector = (((h % 360) + 360) % 360) / 60
+	const sector = wrap(h, 360) / 60
 
 	const c = V * S
 	const x = c * (1 - Math.abs((sector % 2) - 1))

@@ -79,7 +79,7 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 	// leads the visible bottom, giving the fetch a head start. The scroll ref
 	// supplies the bounded-window evidence (overflow) and the scroll events that
 	// arm each post-fill fire.
-	const lastItem = virtualItems[virtualItems.length - 1]
+	const lastItem = virtualItems.at(-1)
 
 	const { infiniteScroll } = props
 

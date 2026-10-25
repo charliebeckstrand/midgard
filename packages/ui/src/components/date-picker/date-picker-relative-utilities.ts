@@ -1,6 +1,7 @@
 import { defineMessages, selectedMessage } from '../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../primitives/intl/types'
 import { getOrCompute } from '../../utilities/get-or-compute'
+import { toggleItem } from '../../utilities/toggle-item'
 import { sameDay } from '../calendar/calendar-utilities'
 import { datePickerMessages } from './date-picker-messages'
 import {
@@ -364,10 +365,7 @@ export function togglePresetValue(
 
 	if (isCustomActive(value, presets, now, preferredIds)) return [preset.resolve(now)]
 
-	const selected = selectedPresetIds(value, presets, now, preferredIds)
-
-	if (selected.has(preset.id)) selected.delete(preset.id)
-	else selected.add(preset.id)
+	const selected = toggleItem(selectedPresetIds(value, presets, now, preferredIds), preset.id)
 
 	const next = uniqueSpans(
 		presets.filter((option) => selected.has(option.id)).map((option) => option.resolve(now)),

@@ -65,11 +65,9 @@ export function treeMoveTarget(
 		return next && Number(next.getAttribute('aria-level')) === level + 1 ? next : null
 	}
 
-	for (let i = index - 1; i >= 0; i--) {
-		const candidate = items[i]
-
-		if (candidate && Number(candidate.getAttribute('aria-level')) === level - 1) return candidate
-	}
-
-	return null
+	return (
+		items
+			.slice(0, index)
+			.findLast((candidate) => Number(candidate.getAttribute('aria-level')) === level - 1) ?? null
+	)
 }

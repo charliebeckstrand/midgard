@@ -222,7 +222,7 @@ export function moveBetweenZones(
 	return {
 		...map,
 		[from]: fromIds.filter((id) => id !== activeId),
-		[to]: [...toIds.slice(0, insertIndex), activeId, ...toIds.slice(insertIndex)],
+		[to]: toIds.toSpliced(insertIndex, 0, activeId),
 	}
 }
 

@@ -21,12 +21,10 @@ export function useMapLegendRegistry(): {
 
 	const orderRef = useRef(new Map<string, number>())
 
-	const nextOrderRef = useRef(0)
-
 	const register = useCallback((entry: MapOverlayEntry) => {
 		const order = orderRef.current
 
-		if (!order.has(entry.id)) order.set(entry.id, nextOrderRef.current++)
+		if (!order.has(entry.id)) order.set(entry.id, order.size)
 
 		setEntries((prev) => {
 			const next = [...prev.filter((existing) => existing.id !== entry.id), entry]
