@@ -1,4 +1,5 @@
 import type { QueryField } from 'ui/query'
+import { products as productWords, regions as regionWords } from '../../../data/commerce.ts'
 
 export type Sale = {
 	id: number
@@ -11,10 +12,9 @@ export type Sale = {
 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
 
-const regions = ['North', 'South', 'East', 'West']
+const regions = Object.values(regionWords)
 
-/** Each product, in palette order, so a filter never moves the color of a product. */
-export const products = ['Tea', 'Coffee', 'Cocoa']
+export const products = Object.values(productWords)
 
 export const sales: Sale[] = months.flatMap((month, monthIndex) =>
 	regions.flatMap((region, regionIndex) =>

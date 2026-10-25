@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { orders } from '../data/commerce.ts'
 import { people, person, profiles } from '../data/people.ts'
 import { createRandom } from '../data/random.ts'
 
@@ -41,5 +42,15 @@ describe('the people of the demos', () => {
 		expect(person(9)).toEqual(person(9))
 
 		expect(person(9)).toMatchObject({ id: 9, name: 'Person 9', email: 'person9@example.com' })
+	})
+})
+
+describe('the orders of the demos', () => {
+	it('gives each order to a named person, with a reference of its own', () => {
+		const names = new Set(profiles.map(({ name }) => name))
+
+		for (const { customer } of orders) expect(names).toContain(customer)
+
+		expect(new Set(orders.map(({ id }) => id)).size).toBe(orders.length)
 	})
 })

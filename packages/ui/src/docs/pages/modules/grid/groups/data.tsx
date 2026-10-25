@@ -1,4 +1,5 @@
 import type { GridColumn, GridColumnGroup } from 'ui/grid'
+import { regions } from '../../../../data/commerce.ts'
 import { MoneyText } from '../data.tsx'
 
 // Each group bands a run of columns under a colored header.
@@ -10,12 +11,12 @@ export const columnGroups: GridColumnGroup[] = [
 export type Sale = { id: number; region: string; rep: string; units: number; revenue: number }
 
 export const sales: Sale[] = [
-	{ id: 1, region: 'West', rep: 'Wade Cooper', units: 12, revenue: 1440 },
-	{ id: 2, region: 'West', rep: 'Tanya Fox', units: 30, revenue: 4200 },
-	{ id: 3, region: 'East', rep: 'Devon Webb', units: 22, revenue: 2860 },
-	{ id: 4, region: 'East', rep: 'Arlene McCoy', units: 41, revenue: 5330 },
-	{ id: 5, region: 'West', rep: 'Tom Cook', units: 18, revenue: 2160 },
-	{ id: 6, region: 'East', rep: 'Ravi Shah', units: 9, revenue: 1170 },
+	{ id: 1, region: regions.west, rep: 'Wade Cooper', units: 12, revenue: 1440 },
+	{ id: 2, region: regions.west, rep: 'Tanya Fox', units: 30, revenue: 4200 },
+	{ id: 3, region: regions.east, rep: 'Devon Webb', units: 22, revenue: 2860 },
+	{ id: 4, region: regions.east, rep: 'Arlene McCoy', units: 41, revenue: 5330 },
+	{ id: 5, region: regions.west, rep: 'Tom Cook', units: 18, revenue: 2160 },
+	{ id: 6, region: regions.east, rep: 'Ravi Shah', units: 9, revenue: 1170 },
 ]
 
 // An `aggFunc` gives the value of a column on a group header and on a total

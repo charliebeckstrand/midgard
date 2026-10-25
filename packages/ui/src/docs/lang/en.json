@@ -71,6 +71,22 @@
 		"defaultMessage": "Toggle sidebar",
 		"description": "The name of the button in the header that shows or hides the sidebar on a wide screen."
 	},
+	"docs.data.country.brazil": {
+		"defaultMessage": "Brazil",
+		"description": "A word of the demo data in the docs: the word for \"brazil\" in the domain \"country\", in data/commerce.ts."
+	},
+	"docs.data.country.canada": {
+		"defaultMessage": "Canada",
+		"description": "A word of the demo data in the docs: the word for \"canada\" in the domain \"country\", in data/commerce.ts."
+	},
+	"docs.data.country.japan": {
+		"defaultMessage": "Japan",
+		"description": "A word of the demo data in the docs: the word for \"japan\" in the domain \"country\", in data/commerce.ts."
+	},
+	"docs.data.country.norway": {
+		"defaultMessage": "Norway",
+		"description": "A word of the demo data in the docs: the word for \"norway\" in the domain \"country\", in data/commerce.ts."
+	},
 	"docs.data.department.engineering": {
 		"defaultMessage": "Engineering",
 		"description": "A word of the demo data in the docs: the word for \"engineering\" in the domain \"department\", in data/people.ts."
@@ -87,6 +103,26 @@
 		"defaultMessage": "Product",
 		"description": "A word of the demo data in the docs: the word for \"product\" in the domain \"department\", in data/people.ts."
 	},
+	"docs.data.invoice-status.due": {
+		"defaultMessage": "Due",
+		"description": "A word of the demo data in the docs: the word for \"due\" in the domain \"invoice-status\", in data/commerce.ts."
+	},
+	"docs.data.invoice-status.paid": {
+		"defaultMessage": "Paid",
+		"description": "A word of the demo data in the docs: the word for \"paid\" in the domain \"invoice-status\", in data/commerce.ts."
+	},
+	"docs.data.order-status.completed": {
+		"defaultMessage": "Completed",
+		"description": "A word of the demo data in the docs: the word for \"completed\" in the domain \"order-status\", in data/commerce.ts."
+	},
+	"docs.data.order-status.pending": {
+		"defaultMessage": "Pending",
+		"description": "A word of the demo data in the docs: the word for \"pending\" in the domain \"order-status\", in data/commerce.ts."
+	},
+	"docs.data.order-status.processing": {
+		"defaultMessage": "Processing",
+		"description": "A word of the demo data in the docs: the word for \"processing\" in the domain \"order-status\", in data/commerce.ts."
+	},
 	"docs.data.person-status.active": {
 		"defaultMessage": "Active",
 		"description": "A word of the demo data in the docs: the word for \"active\" in the domain \"person-status\", in data/people.ts."
@@ -98,6 +134,34 @@
 	"docs.data.person.name": {
 		"defaultMessage": "Person",
 		"description": "A word of the demo data in the docs: the word for \"name\" in the domain \"person\", in data/people.ts."
+	},
+	"docs.data.product.cocoa": {
+		"defaultMessage": "Cocoa",
+		"description": "A word of the demo data in the docs: the word for \"cocoa\" in the domain \"product\", in data/commerce.ts."
+	},
+	"docs.data.product.coffee": {
+		"defaultMessage": "Coffee",
+		"description": "A word of the demo data in the docs: the word for \"coffee\" in the domain \"product\", in data/commerce.ts."
+	},
+	"docs.data.product.tea": {
+		"defaultMessage": "Tea",
+		"description": "A word of the demo data in the docs: the word for \"tea\" in the domain \"product\", in data/commerce.ts."
+	},
+	"docs.data.region.east": {
+		"defaultMessage": "East",
+		"description": "A word of the demo data in the docs: the word for \"east\" in the domain \"region\", in data/commerce.ts."
+	},
+	"docs.data.region.north": {
+		"defaultMessage": "North",
+		"description": "A word of the demo data in the docs: the word for \"north\" in the domain \"region\", in data/commerce.ts."
+	},
+	"docs.data.region.south": {
+		"defaultMessage": "South",
+		"description": "A word of the demo data in the docs: the word for \"south\" in the domain \"region\", in data/commerce.ts."
+	},
+	"docs.data.region.west": {
+		"defaultMessage": "West",
+		"description": "A word of the demo data in the docs: the word for \"west\" in the domain \"region\", in data/commerce.ts."
 	},
 	"docs.data.role.analyst": {
 		"defaultMessage": "Analyst",
@@ -591,10 +655,6 @@
 		"defaultMessage": "Last event:",
 		"description": "Text of a demo in the docs, in components/hold-button/lifecycle-callbacks.tsx."
 	},
-	"docs.demo.22a970d2e5b1": {
-		"defaultMessage": "Completed",
-		"description": "Text of a demo in the docs, in providers/density/playground.tsx."
-	},
 	"docs.demo.2313fe21ea84": {
 		"defaultMessage": "Edit {name}",
 		"description": "Text of a demo in the docs as aria-label, in modules/grid/events/row-click.tsx. The argument {name} is a value from the code."
@@ -817,7 +877,7 @@
 	},
 	"docs.demo.331551b0de41": {
 		"defaultMessage": "Pending",
-		"description": "Text of a demo in the docs as label, in modules/form/filters/search-and-status.tsx, modules/query/data.ts, providers/density/playground.tsx."
+		"description": "Text of a demo in the docs as label, in modules/form/filters/search-and-status.tsx, modules/query/data.ts."
 	},
 	"docs.demo.339ed15a4092": {
 		"defaultMessage": "Rep",
@@ -3014,10 +3074,6 @@
 	"docs.demo.c8d42d35253b": {
 		"defaultMessage": "Bulk edit help",
 		"description": "Text of a demo in the docs as label, in modules/grid/editing/bulk-edit.tsx."
-	},
-	"docs.demo.c8e3e92a62ec": {
-		"defaultMessage": "Processing",
-		"description": "Text of a demo in the docs, in providers/density/playground.tsx."
 	},
 	"docs.demo.c8f12846c7b1": {
 		"defaultMessage": "Shared boards for up to ten people",

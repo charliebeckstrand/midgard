@@ -28,6 +28,7 @@ import {
 import { Stack } from 'ui/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
+import { type OrderStatus, orderStatuses, orders } from '../../../data/commerce.ts'
 import { ResetButton } from '../../../kit/reset-button.tsx'
 
 const navItems = [
@@ -37,18 +38,9 @@ const navItems = [
 	{ icon: <Settings />, label: 'Settings' },
 ]
 
-const orders = [
-	{ id: 'ORD-7291', customer: 'Wade Cooper', status: 'Completed', amount: 1999 },
-	{ id: 'ORD-7292', customer: 'Arlene McCoy', status: 'Processing', amount: 39 },
-	{ id: 'ORD-7293', customer: 'Devon Webb', status: 'Completed', amount: 299 },
-	{ id: 'ORD-7294', customer: 'Tom Cook', status: 'Pending', amount: 99 },
-	{ id: 'ORD-7295', customer: 'Tanya Fox', status: 'Completed', amount: 149 },
-	{ id: 'ORD-7296', customer: 'Hellen Schmidt', status: 'Processing', amount: 59 },
-]
-
 type OrderFilters = {
 	id: string | undefined
-	status: string | undefined
+	status: OrderStatus | undefined
 }
 
 function FiltersReset() {
@@ -85,17 +77,13 @@ function OrdersFilters({
 						<Select
 							aria-label="Status"
 							placeholder="All statuses"
-							displayValue={(value: string) => value}
+							displayValue={(value: OrderStatus) => orderStatuses[value]}
 						>
-							<SelectOption value="Completed">
-								<SelectLabel>Completed</SelectLabel>
-							</SelectOption>
-							<SelectOption value="Processing">
-								<SelectLabel>Processing</SelectLabel>
-							</SelectOption>
-							<SelectOption value="Pending">
-								<SelectLabel>Pending</SelectLabel>
-							</SelectOption>
+							{(['completed', 'processing', 'pending'] as const).map((status) => (
+								<SelectOption key={status} value={status}>
+									<SelectLabel>{orderStatuses[status]}</SelectLabel>
+								</SelectOption>
+							))}
 						</Select>
 					</FormFiltersField>
 				</FormFiltersRow>
@@ -162,7 +150,7 @@ export default function DensityPlayground(props: DensityProviderProps) {
 											<TableRow key={order.id}>
 												<TableCell className="font-medium">{order.id}</TableCell>
 												<TableCell>{order.customer}</TableCell>
-												<TableCell>{order.status}</TableCell>
+												<TableCell>{orderStatuses[order.status]}</TableCell>
 												<TableCell className="text-end">
 													{intl.formatNumber(order.amount, { style: 'currency', currency: 'USD' })}
 												</TableCell>

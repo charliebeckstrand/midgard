@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Grid, type GridColumn, type GridGroupHeaderRow } from 'ui/grid'
+import { countries as countryWords } from '../../../../data/commerce.ts'
+import { person } from '../../../../data/people.ts'
 import { MoneyText } from '../data.tsx'
 
 // One row shape for both kinds of row from the server. A group header has the
@@ -13,7 +15,7 @@ type Order = {
 	group?: { key: string; count: number }
 }
 
-const countries = ['Norway', 'Japan', 'Brazil', 'Canada']
+const countries = Object.values(countryWords)
 
 // The data of the mock server, by country.
 const customersByCountry: Record<string, Order[]> = Object.fromEntries(
@@ -22,7 +24,7 @@ const customersByCountry: Record<string, Order[]> = Object.fromEntries(
 		Array.from({ length: 4 + (countryIndex % 2) }, (_, i) => ({
 			id: `${country}:${i + 1}`,
 			country,
-			customer: `Customer ${countryIndex * 10 + i + 1}`,
+			customer: person(countryIndex * 10 + i + 1).name,
 			orders: ((countryIndex + 2) * (i + 3)) % 17,
 			revenue: 480 * (countryIndex + 1) + 315 * i,
 		})),

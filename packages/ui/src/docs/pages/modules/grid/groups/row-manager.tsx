@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Grid, type GridRowGroup } from 'ui/grid'
+import { regions } from '../../../../data/commerce.ts'
 import { sales, salesColumns } from './data.tsx'
 
 export default function RowManager() {
 	const [rowGroups, setRowGroups] = useState<GridRowGroup[]>([
-		{ key: 'West', color: 'blue' },
-		{ key: 'East', color: 'amber' },
+		{ key: regions.west, color: 'blue' },
+		{ key: regions.east, color: 'amber' },
 	])
 
 	// Right-click a group header and select "Manage rows" to color the groups,
