@@ -20,6 +20,16 @@ function Healthy() {
 }
 
 describe('docs page error boundary', () => {
+	// The error of the shell is outside the locale provider, so its text is
+	// English in a page of each language.
+	it('marks the English error of the shell with lang en', () => {
+		render(<RootErrorBoundary />)
+
+		const heading = screen.getByRole('heading', { name: 'Could not load this page', level: 1 })
+
+		expect(heading.closest('[lang]')?.getAttribute('lang')).toBe('en')
+	})
+
 	it('holds each route of the docs in the layout route of the pages', () => {
 		expect(routes).toHaveLength(1)
 
