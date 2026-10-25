@@ -18,7 +18,7 @@ import { extract } from '@formatjs/cli-lib'
 import { parse, TYPE } from '@formatjs/icu-messageformat-parser'
 import { isStructurallySame } from '@formatjs/icu-messageformat-parser/manipulator.js'
 
-/** The attributes and props that carry text for a person. */
+/** The attributes, props, and object properties that carry text for a person. */
 export const TEXT_ATTRIBUTES: ReadonlySet<string> = new Set([
 	'alt',
 	'aria-braillelabel',

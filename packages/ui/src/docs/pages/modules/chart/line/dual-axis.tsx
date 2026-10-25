@@ -21,7 +21,7 @@ export default function DualAxis() {
 				y2: {
 					title: 'Weight',
 					format: (value: number) =>
-						formatNumber(value * 1000, { style: 'unit', unit: 'pound', notation: 'compact' }),
+						formatNumber(value, { style: 'unit', unit: 'pound', notation: 'compact' }),
 				},
 			}}
 		/>

@@ -71,15 +71,16 @@ export const stops: Stop[] = Array.from({ length: 16 }, (_, index) => {
 	}
 })
 
+/** The freight rate in dollars a pound, and the weight in pounds. */
 export type FreightMonth = { month: string; rate: number; weight: number }
 
 export const freight: FreightMonth[] = [
-	{ month: monthNames.jan, rate: 1.42, weight: 380 },
-	{ month: monthNames.feb, rate: 1.51, weight: 415 },
-	{ month: monthNames.mar, rate: 1.38, weight: 462 },
-	{ month: monthNames.apr, rate: 1.66, weight: 448 },
-	{ month: monthNames.may, rate: 1.72, weight: 530 },
-	{ month: monthNames.jun, rate: 1.58, weight: 585 },
+	{ month: monthNames.jan, rate: 1.42, weight: 380_000 },
+	{ month: monthNames.feb, rate: 1.51, weight: 415_000 },
+	{ month: monthNames.mar, rate: 1.38, weight: 462_000 },
+	{ month: monthNames.apr, rate: 1.66, weight: 448_000 },
+	{ month: monthNames.may, rate: 1.72, weight: 530_000 },
+	{ month: monthNames.jun, rate: 1.58, weight: 585_000 },
 ]
 
 const signupCounts = [32, 41, 38, 55, 61, 48, 44, 67, 72, 65, 81]

@@ -11,14 +11,7 @@ export type Sale = {
 	units: number
 }
 
-const months = [
-	monthNames.jan,
-	monthNames.feb,
-	monthNames.mar,
-	monthNames.apr,
-	monthNames.may,
-	monthNames.jun,
-]
+const months = Object.values(monthNames).slice(0, 6)
 
 const regions = Object.values(regionWords)
 
