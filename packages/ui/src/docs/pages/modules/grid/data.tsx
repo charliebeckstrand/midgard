@@ -104,23 +104,30 @@ export type Employee = Profile
 export const employees: Employee[] = listPeople(5)
 
 // Name is pinned to the left edge and Status to the right edge. The other
-// columns scroll between them.
+// columns scroll between them. A column that shows the word of a key sorts by
+// that word, so the order follows the language of the page.
 export const employeeColumns: GridColumn<Employee>[] = [
 	{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
 	{ id: 'email', title: 'Email', cell: (row) => row.email },
-	{ id: 'role', title: 'Role', cell: (row) => roles[row.role] },
-	{ id: 'department', title: 'Department', cell: (row) => departments[row.department] },
+	{ id: 'role', title: 'Role', cell: (row) => roles[row.role], value: (row) => roles[row.role] },
+	{
+		id: 'department',
+		title: 'Department',
+		cell: (row) => departments[row.department],
+		value: (row) => departments[row.department],
+	},
 	{ id: 'location', title: 'Location', cell: (row) => row.location },
 	{ id: 'startDate', title: 'Start date', cell: (row) => <DayText date={row.startDate} /> },
 	{ id: 'salary', title: 'Salary', cell: (row) => <MoneyText amount={row.salary} /> },
 	{ id: 'manager', title: 'Manager', cell: (row) => row.manager },
-	{ id: 'team', title: 'Team', cell: (row) => teams[row.team] },
+	{ id: 'team', title: 'Team', cell: (row) => teams[row.team], value: (row) => teams[row.team] },
 	{ id: 'phone', title: 'Phone', cell: (row) => row.phone },
 	{ id: 'level', title: 'Level', cell: (row) => row.level },
 	{
 		id: 'status',
 		title: 'Status',
 		cell: (row) => <StatusBadge status={row.status} />,
+		value: (row) => personStatuses[row.status],
 		pinned: 'right',
 	},
 ]

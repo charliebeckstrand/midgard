@@ -44,7 +44,7 @@ const metrics: Metric[] = [
 // sparkline draws again in the new order.
 function sparklineColumns(sortKey: string, intl: IntlShape): GridColumn<Metric>[] {
 	return [
-		{ id: 'name', title: 'Metric', cell: (row) => row.label },
+		{ id: 'label', title: 'Metric', cell: (row) => row.label },
 		{
 			id: 'current',
 			title: 'Current',
