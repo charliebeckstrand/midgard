@@ -34,7 +34,7 @@ export default function Preload() {
 				</TabList>
 				<TabContents>
 					{sections.map((section) => (
-						<TabContent key={section.label} value={section.label}>
+						<TabContent key={section.id} value={section.id}>
 							<Text tone="muted">{section.text}</Text>
 						</TabContent>
 					))}
