@@ -17,7 +17,7 @@ export const mapMessages = defineMessages({
 		id: 'ui.map.detail',
 		defaultMessage: 'Detail',
 		description:
-			'The header of the value column of the data table of a map, when the map names no category field.',
+			'The header of the value column of the data table of a map, when the map gives no name for the colored field.',
 	},
 	zoomReset: {
 		id: 'ui.map.zoomReset',

@@ -54,7 +54,6 @@ type MapNumericAbsent = {
 	binning?: undefined
 	colorDomain?: undefined
 	formatValue?: undefined
-	colorName?: undefined
 }
 
 /** Regions colored by a categorical field, its slot colors resolved in a fixed order. @internal */
@@ -68,6 +67,13 @@ export type MapCategoricalData<T> = MapRegionRows<T> &
 		 * first-appearance order when omitted.
 		 */
 		categories?: MapCategory[]
+		/**
+		 * The display name of the category field; the table's value-column header.
+		 * The numeric branch spells it the same.
+		 *
+		 * @defaultValue The localized "Detail".
+		 */
+		colorName?: string
 	}
 
 /** Regions shaded along a sequential ramp by a numeric field: a choropleth. @internal */
@@ -104,7 +110,11 @@ export type MapNumericData<T> = MapRegionRows<T> & {
 	 * @defaultValue Locale digits with up to two fraction places.
 	 */
 	formatValue?: (value: number) => string
-	/** The value's display name; the table's value-column header. `ChoroplethChartSeries` spells it the same. */
+	/**
+	 * The value's display name; the table's value-column header. `ChoroplethChartSeries` spells it the same.
+	 *
+	 * @defaultValue The localized "Detail".
+	 */
 	colorName?: string
 	/**
 	 * Show the legend, in any form. This is the branch that carries a scale, so it
@@ -131,6 +141,7 @@ export type MapNoData = MapNumericAbsent &
 		regionKey?: undefined
 		categoryKey?: undefined
 		categories?: undefined
+		colorName?: undefined
 	}
 
 /**

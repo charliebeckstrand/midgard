@@ -724,7 +724,14 @@ describe('MapPlat', () => {
 			['Gamma', '—'],
 		])
 
-		expect(table?.querySelector('thead th')?.textContent).toBe('zone')
+		// A data key is never a header: with no `colorName`, the header is the localized "Detail".
+		expect(table?.querySelector('thead th')?.textContent).toBe('Detail')
+
+		const named = renderUI(categoricalPlat({ colorName: 'Time zone' }))
+
+		expect(bySlot(named.container, 'map-table')?.querySelector('thead th')?.textContent).toBe(
+			'Time zone',
+		)
 	})
 
 	// A user who moves from table to table knows which map a table is for.

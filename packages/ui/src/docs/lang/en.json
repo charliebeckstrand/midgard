@@ -2677,7 +2677,7 @@
 	},
 	"docs.demo.aabe76f1f4ec": {
 		"defaultMessage": "Customers",
-		"description": "Text of a demo in the docs as label, in providers/density/playground.tsx."
+		"description": "Text of a demo in the docs as colorName, label, in modules/chart/choropleth/heatmap.tsx, providers/density/playground.tsx."
 	},
 	"docs.demo.ab3e1b9d1993": {
 		"defaultMessage": "Your profile is up to date.",
@@ -2881,7 +2881,7 @@
 	},
 	"docs.demo.b7e8acdd522e": {
 		"defaultMessage": "Orders",
-		"description": "Text of a demo in the docs as title, in modules/dashboard/build-and-save.tsx, modules/dashboard/query.tsx, modules/grid/groups/server-side-grouping.tsx and 1 more."
+		"description": "Text of a demo in the docs as colorName, title, in modules/chart/heatmap/activity.tsx, modules/dashboard/build-and-save.tsx, modules/dashboard/query.tsx and 2 more."
 	},
 	"docs.demo.b8041bfd29e7": {
 		"defaultMessage": "Naperville",
@@ -2914,6 +2914,10 @@
 	"docs.demo.b9f22e2a07b4": {
 		"defaultMessage": "Archive project",
 		"description": "Text of a demo in the docs, in components/confirm/cancel-or-close.tsx."
+	},
+	"docs.demo.b9fe1464783e": {
+		"defaultMessage": "Time zone",
+		"description": "Text of a demo in the docs as colorName, in modules/map/playground.tsx, modules/map/select-a-state.tsx."
 	},
 	"docs.demo.ba1947aaebf7": {
 		"defaultMessage": "Notify teams",
