@@ -131,7 +131,10 @@ const LANGUAGE = /^[a-z]{2,3}$/
 
 /**
  * The text of the module that imports each translation in `langDir`. Its
- * `translations` holds the messages of each language, by language subtag. The
+ * `languages` holds the language subtag of each translation, and its
+ * `translations` holds the messages of each language, by language subtag. A
+ * module that needs the languages alone imports `languages`, so a bundle
+ * leaves the messages out. The
  * `intl` script of a package writes the module, so a new translation needs no
  * import by hand. It throws for a file name that is not a language subtag.
  */
@@ -150,6 +153,9 @@ export function translationsText(langDir: string): string {
 		'// `pnpm intl` writes this module from the translations in this folder.',
 		'',
 		...languages.map((language) => `import ${language} from './${language}.json'`),
+		'',
+		'/** The language subtag of each translation, in name order. */',
+		`export const languages = [${languages.map((language) => `'${language}'`).join(', ')}] as const`,
 		'',
 		'/** The messages of each translation, by language subtag. */',
 		'export const translations = {',
