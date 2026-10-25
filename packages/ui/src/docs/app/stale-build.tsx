@@ -1,10 +1,20 @@
-// The recovery of a page whose HTML names files that a deploy removed. Each
-// deploy replaces the hashed files under `/assets`. A browser can restore a
-// tab from cached HTML, such as when iOS discards a tab in the background and
-// the reader comes back to it. When that HTML names a removed file, the host
-// gives the fallback page for it, and the module script of the page fails.
-// The page then shows its prerendered markup, but it does not hydrate, so no
-// control works. A reload gets the new HTML.
+// The recovery of a page whose files do not load. Each deploy replaces the
+// hashed files under `/assets`. A browser can restore a tab from cached HTML,
+// such as when iOS discards a tab in the background and the reader comes back
+// to it. When that HTML names a removed file, the host gives the fallback page
+// for it, and the module script of the page fails. The page then shows its
+// prerendered markup, but it does not hydrate, so no control works. A reload
+// gets the new HTML.
+//
+// WebKit, and thus each browser on iOS, also keeps a module file that failed
+// to load, for the life of the tab. A reload, or a different page in the same
+// tab, uses the failed copy again and sends no request. This occurs for each
+// failure: the fallback page, a 404, or a connection that drops, such as a
+// request in a deploy or on a bad network. A request with `cache: 'reload'`
+// replaces the kept copy. Thus the recovery fetches the module files of the
+// page again with that mode before the page reloads.
+
+import { noop } from '../../utilities/noop.ts'
 
 declare global {
 	interface Window {
@@ -21,13 +31,23 @@ const RELOADED = 'docs:stale-reload'
 /** The time, in ms, in which a second failure does not reload, so a build that stays broken does not loop. */
 const GUARD = 10_000
 
+/** The elements of the module files of the page: the module scripts, and the module preloads that the HTML and the later loads add. */
+const MODULES = 'script[type=module][src],link[rel=modulepreload]'
+
+/** The longest time, in ms, that the head script waits for the new fetches before it reloads. */
+const REFETCH_LIMIT = 5000
+
 // The head script. Until the client entry runs, a script or a module preload
 // that fails, or a promise that rejects with no handler, reloads the page one
 // time. The import of the entry is a promise of the module script. A failed
 // load is an `error` event on its element, which does not bubble, so the
 // listener captures it on the window. The error of a script that runs has the
-// window as its target, so it does not match.
-const SCRIPT = `(function(){var w=window;function f(e){var t=e.target;if(e.type==='error'&&!(t&&(t.tagName==='SCRIPT'||t.tagName==='LINK'&&t.rel==='modulepreload')))return;try{if(Date.now()-Number(sessionStorage.getItem(${JSON.stringify(RELOADED)}))<${GUARD})return;sessionStorage.setItem(${JSON.stringify(RELOADED)},String(Date.now()))}catch(x){return}s();location.reload()}
+// window as its target, so it does not match. The first failure ends the
+// watch. The script fetches each module file of the page again (as
+// `refetchModules` does), and it reloads when the fetches end or after
+// `REFETCH_LIMIT` ms. The fetches also occur when the guard stops the reload,
+// so the next reload of the reader gets good copies.
+const SCRIPT = `(function(){var w=window;function f(e){var t=e.target;if(e.type==='error'&&!(t&&(t.tagName==='SCRIPT'||t.tagName==='LINK'&&t.rel==='modulepreload')))return;s();var g=false,n=0;try{g=Date.now()-Number(sessionStorage.getItem(${JSON.stringify(RELOADED)}))>=${GUARD};if(g)sessionStorage.setItem(${JSON.stringify(RELOADED)},String(Date.now()))}catch(x){g=false}function r(){if(g&&!n++)location.reload()}setTimeout(r,${REFETCH_LIMIT});Promise.all([].map.call(document.querySelectorAll(${JSON.stringify(MODULES)}),function(l){return fetch(l.src||l.href,{cache:'reload'}).catch(function(){})})).then(r)}
 function s(){w.removeEventListener('error',f,true);w.removeEventListener('unhandledrejection',f);delete w.__staleBuild}
 w.addEventListener('error',f,true);w.addEventListener('unhandledrejection',f);w.__staleBuild=s})()`
 
@@ -120,4 +140,39 @@ export function watchStaleBuild(): void {
 	window.addEventListener('pageshow', (event) => {
 		if (event.persisted) void check()
 	})
+}
+
+// After the client entry runs, a chunk that fails to load does not reload the
+// page (`entry.client.tsx`). But in WebKit, the reload that the reader does
+// next, or the reload of a page error, uses the failed copy again. Thus each
+// failure fetches the module files of the page again at once, so the next
+// load gets good copies. The helper of Vite that loads each chunk sends
+// `vite:preloadError` when the load fails.
+
+/** The module files that this page fetched again, so a second failure does not fetch them again. */
+const refetched = new Set<string>()
+
+/**
+ * Fetches each module file of the page again with `cache: 'reload'`, which
+ * replaces the copy that the browser keeps. It skips a file that this page
+ * fetched again before. A failed fetch gives no error.
+ */
+async function refetchModules(): Promise<void> {
+	const urls = Array.from(
+		document.querySelectorAll<HTMLScriptElement | HTMLLinkElement>(MODULES),
+		(element) => ('src' in element ? element.src : element.href),
+	).filter((url) => !refetched.has(url))
+
+	for (const url of urls) refetched.add(url)
+
+	await Promise.all(urls.map((url) => fetch(url, { cache: 'reload' }).catch(noop)))
+}
+
+/**
+ * Fetches the module files of the page again each time that the load of a
+ * chunk fails, so that a reload of the page in WebKit loads the chunk. The
+ * client entry calls it after {@link endStaleBuildWatch}.
+ */
+export function watchFailedLoads(): void {
+	window.addEventListener('vite:preloadError', () => void refetchModules())
 }
