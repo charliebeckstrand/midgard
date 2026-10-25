@@ -15,7 +15,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useDeferredToggle` | Listbox/Combobox toggle logic; freezes the rendered selection through the panel's close animation. |
 | `useSelectableValueChange` | Wraps `onValueChange` to drop the cleared (`null`) event in multi-select mode. |
 | `useIdleLoad` | Loads a value, such as the module of a menu, in idle time after the mount. The mounts of one loader share one load. |
-| `useIntentLoad` | `useIdleLoad` that also loads on a pointer, a focus, or a press, for a trigger that loads its code first. |
+| `useIntentLoad` | `useIdleLoad` that also loads on a pointer, a focus, or a press, for a trigger that loads its code first. A press gives a failed load to the `onError` of `request`. |
 | `useTimeout` | One restartable timer with stable `set`, `clear`, and `pending`, for a debounce or a dwell delay. It clears on unmount, and holds a delay past the platform limit at that limit. |
 | `useOffcanvas` | Open state of an offcanvas panel, which closes when its `layout` turns `inline` (by default from `lg`). It also gives the `layout`, with `drawer` as its `initial` value when the map names none. |
 
@@ -100,7 +100,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `A11yLiveRegionProps` / `A11yLiveRegionOptions` / `A11yLiveLevel` | Live-region props, options, and urgency (`'polite' \| 'assertive'`). |
 | `A11yAnnouncementsOptions` | Options for `useA11yAnnouncements` (`assertive`, `enabled`). |
 | `Timeout` | Return shape of `useTimeout`: `set`, `clear`, `pending`. |
-| `IntentLoad` | Return shape of `useIntentLoad`: `module`, `request`, `preload`. |
+| `IntentLoad` | Return shape of `useIntentLoad`: `module`, `request(then, onError?)`, `preload`. |
 | `SetValue` | Argument to `useControllable`'s setter: a next value, `null`/`undefined` to clear, or a functional updater. |
 | `Responsive` | A single value or a per-breakpoint map, the type that `useResponsiveValue` takes. |
 | `RovingOptions` | Options for `useA11yRoving`. |
