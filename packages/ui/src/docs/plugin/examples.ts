@@ -4,6 +4,7 @@ import { type ESTree, normalizePath, Visitor } from 'vite'
 import { DEFAULT_LANG, DEFAULT_THEME, trimBlankLines } from '../../components/code/code-shiki.ts'
 import type { ShikiHighlight } from '../../components/code/code-shiki-highlighter.ts'
 import { humanize } from '../kit/humanize.ts'
+import { PLAYGROUND } from '../kit/names.ts'
 
 /** The code of an example: the source of its file, and the markup that `CodeBlock` paints. */
 export type ExampleCode = {
@@ -63,10 +64,6 @@ export function toCodeKey(file: string): string {
 
 /** An example module in `pages/`: a TSX file that is not the index of a page or a tab. */
 export const EXAMPLE = /(?<!\/index)\.tsx$/
-
-// The file name of the playground of a page. A page with more than one
-// component has a playground for each, such as `playground-dots.tsx`.
-export const PLAYGROUND = 'playground'
 
 function isPlayground(file: string): boolean {
 	const key = toCodeKey(file)

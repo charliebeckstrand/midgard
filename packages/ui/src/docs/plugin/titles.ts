@@ -3,8 +3,8 @@ import path from 'node:path'
 import type { ESTree } from 'vite'
 import type { CatalogEntry } from '../../../scripts/intl-catalog.ts'
 import { humanize } from '../kit/humanize.ts'
-import { PAGE_ID, TAB_ID, TITLE_ID, toSlug } from '../kit/names.ts'
-import { exampleFiles, examplesIn, type Parser, PLAYGROUND, toHeadingId } from './examples.ts'
+import { PAGE_ID, PLAYGROUND, TAB_ID, TITLE_ID, toSlug } from '../kit/names.ts'
+import { exampleFiles, examplesIn, type Parser, toHeadingId } from './examples.ts'
 import { findPages } from './pages.ts'
 
 /**

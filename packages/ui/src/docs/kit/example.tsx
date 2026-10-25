@@ -26,12 +26,6 @@ const messages = defineMessages({
 		description:
 			'The label of the button under an example that hides the source code of the example.',
 	},
-	playground: {
-		id: 'docs.example.playground',
-		defaultMessage: 'Playground',
-		description:
-			'The heading of the first example of a page, where the reader changes the props of the component to see the result.',
-	},
 })
 
 function isExample(component: object): component is ExampleMeta {
@@ -154,11 +148,8 @@ export function ExampleFrame({
 	const intl = useIntl()
 
 	// The title of an example comes from its file name, and the docs catalog
-	// translates it. The title of a playground is the same on each page.
-	const title =
-		meta.component === undefined
-			? exampleTitle(intl, meta.id, meta.title)
-			: intl.formatMessage(messages.playground)
+	// translates it.
+	const title = exampleTitle(intl, meta.id, meta.title)
 
 	const resize = usePanelResize({
 		side: rtl ? 'right' : 'left',

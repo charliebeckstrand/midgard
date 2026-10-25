@@ -17,8 +17,12 @@ function normalize(text: string): string {
 		.trim()
 }
 
-/** An entry, with its common name when it has one, such as "Selector de fecha" for the DatePicker page. */
-type Matchable = SearchEntry & { alias?: string }
+/**
+ * An entry, with its common name when it has one, such as "Selector de fecha"
+ * for the DatePicker page, and the place of the entry as the reader sees it,
+ * such as "Grid › Ordenación".
+ */
+export type Matchable = SearchEntry & { alias?: string; place?: string }
 
 /**
  * How well `label` holds `text`: 0 when it is the same, 1 when it starts with
@@ -37,8 +41,8 @@ function fit(label: string, text: string): number | undefined {
 
 /**
  * The entries that match `query`, best first. Each word of the query must be
- * in the label, the common name, or the context of an entry, so `grid sort`
- * finds the Sorting tab of Grid. An entry whose label or common name holds
+ * in the label, the common name, the context, or the shown place of an entry,
+ * so `grid sort` finds the Sorting tab of Grid. An entry whose label or common name holds
  * the whole query comes before one that only its context matches. Then the kinds go in the order
  * of {@link KINDS}, and a shorter label goes first. An empty query gives each
  * page.
@@ -56,7 +60,7 @@ export function matchEntries<T extends Matchable>(entries: readonly T[], query: 
 
 			const alias = normalize(entry.alias ?? '')
 
-			const where = `${label} ${alias} ${normalize(entry.context)}`
+			const where = `${label} ${alias} ${normalize(entry.context)} ${normalize(entry.place ?? '')}`
 
 			if (!words.every((word) => where.includes(word))) return []
 

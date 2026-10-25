@@ -1,4 +1,5 @@
 import type { IntlShape } from 'ui/primitives/intl'
+import { defineMessages } from '../../primitives/intl/intl-messages.ts'
 import { humanize } from './humanize.ts'
 
 // The docs show some names from the source as text: the title of an example
@@ -8,6 +9,22 @@ import { humanize } from './humanize.ts'
 // writes one catalog entry for each name (`plugin/titles.ts` and
 // `plugin/fields.ts`), with the English text as the default. Each function
 // here gives the entry in the language of the reader.
+
+/**
+ * The file name of the playground of a page, and the id of its heading. A page
+ * with more than one component has a playground for each, such as
+ * `playground-dots.tsx`, and the playgrounds share the heading.
+ */
+export const PLAYGROUND = 'playground'
+
+const messages = defineMessages({
+	playground: {
+		id: 'docs.example.playground',
+		defaultMessage: 'Playground',
+		description:
+			'The heading of the first example of a page, where the reader changes the props of the component to see the result.',
+	},
+})
 
 /**
  * The start of the message id of the title of an example. The rest of the id
@@ -72,12 +89,15 @@ function formatName(intl: IntlShape, id: string, name: string): string {
 }
 
 /**
- * The title of the example `id` in the language of the reader.
+ * The title of the example `id` in the language of the reader. The title of a
+ * playground is the same on each page.
  *
- * @param id - The file name of the example, such as `with-icon`.
+ * @param id - The id of the heading of the example, such as `with-icon`.
  * @param title - The English title, such as "With icon".
  */
 export function exampleTitle(intl: IntlShape, id: string, title: string): string {
+	if (id === PLAYGROUND) return intl.formatMessage(messages.playground)
+
 	return formatName(intl, `${TITLE_ID}${id}`, title)
 }
 
