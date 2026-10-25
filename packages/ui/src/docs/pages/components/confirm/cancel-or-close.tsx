@@ -2,17 +2,10 @@ import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Text } from 'ui/text'
-import { words } from '../../../data/words.ts'
 import { PointerHint } from '../../../kit/pointer-hint.tsx'
+import { dialogResults } from './results.ts'
 
-const results = words('dialog-result', {
-	none: 'None',
-	confirmed: 'Confirmed',
-	canceled: 'Canceled',
-	closed: 'Closed',
-})
-
-type Result = keyof typeof results
+type Result = keyof typeof dialogResults
 
 export default function CancelOrClose() {
 	const [open, setOpen] = useState(false)
@@ -50,7 +43,7 @@ export default function CancelOrClose() {
 				}
 				confirm={{ label: 'Archive' }}
 			/>
-			<Text>Last result: {results[result]}</Text>
+			<Text>Last result: {dialogResults[result]}</Text>
 		</>
 	)
 }

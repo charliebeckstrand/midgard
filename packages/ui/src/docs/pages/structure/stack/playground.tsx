@@ -1,7 +1,5 @@
 import { Stack, type StackProps } from 'ui/stack'
-import { words } from '../../../data/words.ts'
-
-const items = Object.values(words('count', { one: 'One', two: 'Two', three: 'Three' }))
+import { items } from '../items.ts'
 
 export default function StackPlayground(props: StackProps) {
 	return (

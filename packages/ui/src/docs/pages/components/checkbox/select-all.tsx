@@ -2,9 +2,7 @@ import { useState } from 'react'
 import { Checkbox, CheckboxField, CheckboxGroup } from 'ui/checkbox'
 import { Label } from 'ui/fieldset'
 import { Text } from 'ui/text'
-import { words } from '../../../data/words.ts'
-
-const channelWords = words('channel', { email: 'Email', push: 'Push', sms: 'SMS' })
+import { channelWords } from './channels.ts'
 
 const channels = Object.values(channelWords)
 

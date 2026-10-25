@@ -2,13 +2,7 @@ import { useState } from 'react'
 import { HoldButton } from 'ui/hold-button'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
-import { words } from '../../../data/words.ts'
-
-const holdEvents = words('hold-event', {
-	start: 'Hold start',
-	cancel: 'Hold cancel',
-	complete: 'Hold complete',
-})
+import { holdEvents } from './hold-events.ts'
 
 export default function LifecycleCallbacks() {
 	const [event, setEvent] = useState<keyof typeof holdEvents>()

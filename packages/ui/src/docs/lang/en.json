@@ -73,27 +73,27 @@
 	},
 	"docs.data.channel.email": {
 		"defaultMessage": "Email",
-		"description": "A word of the demo data in the docs: the word for \"email\" in the domain \"channel\", in components/checkbox/select-all.tsx."
+		"description": "A word of the demo data in the docs: the word for \"email\" in the domain \"channel\", in components/checkbox/channels.ts."
 	},
 	"docs.data.channel.push": {
 		"defaultMessage": "Push",
-		"description": "A word of the demo data in the docs: the word for \"push\" in the domain \"channel\", in components/checkbox/select-all.tsx."
+		"description": "A word of the demo data in the docs: the word for \"push\" in the domain \"channel\", in components/checkbox/channels.ts."
 	},
 	"docs.data.channel.sms": {
 		"defaultMessage": "SMS",
-		"description": "A word of the demo data in the docs: the word for \"sms\" in the domain \"channel\", in components/checkbox/select-all.tsx."
+		"description": "A word of the demo data in the docs: the word for \"sms\" in the domain \"channel\", in components/checkbox/channels.ts."
 	},
 	"docs.data.count.one": {
 		"defaultMessage": "One",
-		"description": "A word of the demo data in the docs: the word for \"one\" in the domain \"count\", in structure/flex/playground.tsx, structure/stack/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"one\" in the domain \"count\", in structure/items.ts."
 	},
 	"docs.data.count.three": {
 		"defaultMessage": "Three",
-		"description": "A word of the demo data in the docs: the word for \"three\" in the domain \"count\", in structure/flex/playground.tsx, structure/stack/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"three\" in the domain \"count\", in structure/items.ts."
 	},
 	"docs.data.count.two": {
 		"defaultMessage": "Two",
-		"description": "A word of the demo data in the docs: the word for \"two\" in the domain \"count\", in structure/flex/playground.tsx, structure/stack/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"two\" in the domain \"count\", in structure/items.ts."
 	},
 	"docs.data.country.brazil": {
 		"defaultMessage": "Brazil",
@@ -113,15 +113,15 @@
 	},
 	"docs.data.delete-result.deleted": {
 		"defaultMessage": "Deleted",
-		"description": "A word of the demo data in the docs: the word for \"deleted\" in the domain \"delete-result\", in components/confirm/ask-with-a-hook.tsx."
+		"description": "A word of the demo data in the docs: the word for \"deleted\" in the domain \"delete-result\", in components/confirm/results.ts."
 	},
 	"docs.data.delete-result.kept": {
 		"defaultMessage": "Kept",
-		"description": "A word of the demo data in the docs: the word for \"kept\" in the domain \"delete-result\", in components/confirm/ask-with-a-hook.tsx."
+		"description": "A word of the demo data in the docs: the word for \"kept\" in the domain \"delete-result\", in components/confirm/results.ts."
 	},
 	"docs.data.delete-result.none": {
 		"defaultMessage": "None",
-		"description": "A word of the demo data in the docs: the word for \"none\" in the domain \"delete-result\", in components/confirm/ask-with-a-hook.tsx."
+		"description": "A word of the demo data in the docs: the word for \"none\" in the domain \"delete-result\", in components/confirm/results.ts."
 	},
 	"docs.data.department.engineering": {
 		"defaultMessage": "Engineering",
@@ -141,35 +141,35 @@
 	},
 	"docs.data.dialog-result.canceled": {
 		"defaultMessage": "Canceled",
-		"description": "A word of the demo data in the docs: the word for \"canceled\" in the domain \"dialog-result\", in components/confirm/cancel-or-close.tsx."
+		"description": "A word of the demo data in the docs: the word for \"canceled\" in the domain \"dialog-result\", in components/confirm/results.ts."
 	},
 	"docs.data.dialog-result.closed": {
 		"defaultMessage": "Closed",
-		"description": "A word of the demo data in the docs: the word for \"closed\" in the domain \"dialog-result\", in components/confirm/cancel-or-close.tsx."
+		"description": "A word of the demo data in the docs: the word for \"closed\" in the domain \"dialog-result\", in components/confirm/results.ts."
 	},
 	"docs.data.dialog-result.confirmed": {
 		"defaultMessage": "Confirmed",
-		"description": "A word of the demo data in the docs: the word for \"confirmed\" in the domain \"dialog-result\", in components/confirm/cancel-or-close.tsx."
+		"description": "A word of the demo data in the docs: the word for \"confirmed\" in the domain \"dialog-result\", in components/confirm/results.ts."
 	},
 	"docs.data.dialog-result.none": {
 		"defaultMessage": "None",
-		"description": "A word of the demo data in the docs: the word for \"none\" in the domain \"dialog-result\", in components/confirm/cancel-or-close.tsx."
+		"description": "A word of the demo data in the docs: the word for \"none\" in the domain \"dialog-result\", in components/confirm/results.ts."
 	},
 	"docs.data.file.report": {
 		"defaultMessage": "Quarterly report",
-		"description": "A word of the demo data in the docs: the word for \"report\" in the domain \"file\", in components/popover/with-form.tsx."
+		"description": "A word of the demo data in the docs: the word for \"report\" in the domain \"file\", in components/popover/files.ts."
 	},
 	"docs.data.hold-event.cancel": {
 		"defaultMessage": "Hold cancel",
-		"description": "A word of the demo data in the docs: the word for \"cancel\" in the domain \"hold-event\", in components/hold-button/lifecycle-callbacks.tsx."
+		"description": "A word of the demo data in the docs: the word for \"cancel\" in the domain \"hold-event\", in components/hold-button/hold-events.ts."
 	},
 	"docs.data.hold-event.complete": {
 		"defaultMessage": "Hold complete",
-		"description": "A word of the demo data in the docs: the word for \"complete\" in the domain \"hold-event\", in components/hold-button/lifecycle-callbacks.tsx."
+		"description": "A word of the demo data in the docs: the word for \"complete\" in the domain \"hold-event\", in components/hold-button/hold-events.ts."
 	},
 	"docs.data.hold-event.start": {
 		"defaultMessage": "Hold start",
-		"description": "A word of the demo data in the docs: the word for \"start\" in the domain \"hold-event\", in components/hold-button/lifecycle-callbacks.tsx."
+		"description": "A word of the demo data in the docs: the word for \"start\" in the domain \"hold-event\", in components/hold-button/hold-events.ts."
 	},
 	"docs.data.invoice-status.due": {
 		"defaultMessage": "Due",
@@ -253,15 +253,15 @@
 	},
 	"docs.data.plan.business": {
 		"defaultMessage": "Business",
-		"description": "A word of the demo data in the docs: the word for \"business\" in the domain \"plan\", in components/radio/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"business\" in the domain \"plan\", in components/radio/plans.ts."
 	},
 	"docs.data.plan.enterprise": {
 		"defaultMessage": "Enterprise",
-		"description": "A word of the demo data in the docs: the word for \"enterprise\" in the domain \"plan\", in components/radio/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"enterprise\" in the domain \"plan\", in components/radio/plans.ts."
 	},
 	"docs.data.plan.starter": {
 		"defaultMessage": "Starter",
-		"description": "A word of the demo data in the docs: the word for \"starter\" in the domain \"plan\", in components/radio/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"starter\" in the domain \"plan\", in components/radio/plans.ts."
 	},
 	"docs.data.product.cocoa": {
 		"defaultMessage": "Cocoa",
@@ -277,23 +277,23 @@
 	},
 	"docs.data.profile.bio": {
 		"defaultMessage": "Product designer on the checkout team.",
-		"description": "A word of the demo data in the docs: the word for \"bio\" in the domain \"profile\", in modules/form/unsaved-changes.tsx."
+		"description": "A word of the demo data in the docs: the word for \"bio\" in the domain \"profile\", in modules/form/profile.ts."
 	},
 	"docs.data.purchase-stage.approved": {
 		"defaultMessage": "Approved",
-		"description": "A word of the demo data in the docs: the word for \"approved\" in the domain \"purchase-stage\", in components/select/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"approved\" in the domain \"purchase-stage\", in components/select/stages.ts."
 	},
 	"docs.data.purchase-stage.awaiting": {
 		"defaultMessage": "Awaiting approval from finance",
-		"description": "A word of the demo data in the docs: the word for \"awaiting\" in the domain \"purchase-stage\", in components/select/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"awaiting\" in the domain \"purchase-stage\", in components/select/stages.ts."
 	},
 	"docs.data.purchase-stage.draft": {
 		"defaultMessage": "Draft",
-		"description": "A word of the demo data in the docs: the word for \"draft\" in the domain \"purchase-stage\", in components/select/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"draft\" in the domain \"purchase-stage\", in components/select/stages.ts."
 	},
 	"docs.data.purchase-stage.ordered": {
 		"defaultMessage": "Ordered",
-		"description": "A word of the demo data in the docs: the word for \"ordered\" in the domain \"purchase-stage\", in components/select/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"ordered\" in the domain \"purchase-stage\", in components/select/stages.ts."
 	},
 	"docs.data.region.east": {
 		"defaultMessage": "East",
@@ -329,59 +329,59 @@
 	},
 	"docs.data.server-status.active": {
 		"defaultMessage": "Server online",
-		"description": "A word of the demo data in the docs: the word for \"active\" in the domain \"server-status\", in components/status/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"active\" in the domain \"server-status\", in components/status/server-statuses.ts."
 	},
 	"docs.data.server-status.error": {
 		"defaultMessage": "Server down",
-		"description": "A word of the demo data in the docs: the word for \"error\" in the domain \"server-status\", in components/status/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"error\" in the domain \"server-status\", in components/status/server-statuses.ts."
 	},
 	"docs.data.server-status.inactive": {
 		"defaultMessage": "Server offline",
-		"description": "A word of the demo data in the docs: the word for \"inactive\" in the domain \"server-status\", in components/status/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"inactive\" in the domain \"server-status\", in components/status/server-statuses.ts."
 	},
 	"docs.data.server-status.info": {
 		"defaultMessage": "Server updating",
-		"description": "A word of the demo data in the docs: the word for \"info\" in the domain \"server-status\", in components/status/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"info\" in the domain \"server-status\", in components/status/server-statuses.ts."
 	},
 	"docs.data.server-status.warning": {
 		"defaultMessage": "Server degraded",
-		"description": "A word of the demo data in the docs: the word for \"warning\" in the domain \"server-status\", in components/status/playground.tsx."
+		"description": "A word of the demo data in the docs: the word for \"warning\" in the domain \"server-status\", in components/status/server-statuses.ts."
 	},
 	"docs.data.service-level.excellent": {
 		"defaultMessage": "Excellent",
-		"description": "A word of the demo data in the docs: the word for \"excellent\" in the domain \"service-level\", in components/rating/named-levels.tsx."
+		"description": "A word of the demo data in the docs: the word for \"excellent\" in the domain \"service-level\", in components/rating/levels.ts."
 	},
 	"docs.data.service-level.fair": {
 		"defaultMessage": "Fair",
-		"description": "A word of the demo data in the docs: the word for \"fair\" in the domain \"service-level\", in components/rating/named-levels.tsx."
+		"description": "A word of the demo data in the docs: the word for \"fair\" in the domain \"service-level\", in components/rating/levels.ts."
 	},
 	"docs.data.service-level.good": {
 		"defaultMessage": "Good",
-		"description": "A word of the demo data in the docs: the word for \"good\" in the domain \"service-level\", in components/rating/named-levels.tsx."
+		"description": "A word of the demo data in the docs: the word for \"good\" in the domain \"service-level\", in components/rating/levels.ts."
 	},
 	"docs.data.service-level.great": {
 		"defaultMessage": "Great",
-		"description": "A word of the demo data in the docs: the word for \"great\" in the domain \"service-level\", in components/rating/named-levels.tsx."
+		"description": "A word of the demo data in the docs: the word for \"great\" in the domain \"service-level\", in components/rating/levels.ts."
 	},
 	"docs.data.service-level.poor": {
 		"defaultMessage": "Poor",
-		"description": "A word of the demo data in the docs: the word for \"poor\" in the domain \"service-level\", in components/rating/named-levels.tsx."
+		"description": "A word of the demo data in the docs: the word for \"poor\" in the domain \"service-level\", in components/rating/levels.ts."
 	},
 	"docs.data.service-level.unrated": {
 		"defaultMessage": "Unrated",
-		"description": "A word of the demo data in the docs: the word for \"unrated\" in the domain \"service-level\", in components/rating/named-levels.tsx."
+		"description": "A word of the demo data in the docs: the word for \"unrated\" in the domain \"service-level\", in components/rating/levels.ts."
 	},
 	"docs.data.signup-instruction.account": {
 		"defaultMessage": "Enter your email and a password.",
-		"description": "A word of the demo data in the docs: the word for \"account\" in the domain \"signup-instruction\", in components/stepper/with-content-panels.tsx."
+		"description": "A word of the demo data in the docs: the word for \"account\" in the domain \"signup-instruction\", in components/stepper/steps.ts."
 	},
 	"docs.data.signup-instruction.confirm": {
 		"defaultMessage": "Check your details.",
-		"description": "A word of the demo data in the docs: the word for \"confirm\" in the domain \"signup-instruction\", in components/stepper/with-content-panels.tsx."
+		"description": "A word of the demo data in the docs: the word for \"confirm\" in the domain \"signup-instruction\", in components/stepper/steps.ts."
 	},
 	"docs.data.signup-instruction.profile": {
 		"defaultMessage": "Add your name and a photo.",
-		"description": "A word of the demo data in the docs: the word for \"profile\" in the domain \"signup-instruction\", in components/stepper/with-content-panels.tsx."
+		"description": "A word of the demo data in the docs: the word for \"profile\" in the domain \"signup-instruction\", in components/stepper/steps.ts."
 	},
 	"docs.data.signup-step.account": {
 		"defaultMessage": "Account",
@@ -413,11 +413,11 @@
 	},
 	"docs.data.textarea-draft.bio": {
 		"defaultMessage": "Product designer. I work on design systems and typography.",
-		"description": "A word of the demo data in the docs: the word for \"bio\" in the domain \"textarea-draft\", in components/textarea/validation.tsx."
+		"description": "A word of the demo data in the docs: the word for \"bio\" in the domain \"textarea-draft\", in components/textarea/drafts.ts."
 	},
 	"docs.data.textarea-draft.releaseNotes": {
 		"defaultMessage": "Fixes a crash on launch.",
-		"description": "A word of the demo data in the docs: the word for \"releaseNotes\" in the domain \"textarea-draft\", in components/textarea/validation.tsx."
+		"description": "A word of the demo data in the docs: the word for \"releaseNotes\" in the domain \"textarea-draft\", in components/textarea/drafts.ts."
 	},
 	"docs.data.time-zone.central": {
 		"defaultMessage": "Central",

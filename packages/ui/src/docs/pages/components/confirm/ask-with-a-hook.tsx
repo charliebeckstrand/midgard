@@ -2,9 +2,7 @@ import { useState } from 'react'
 import { Button } from 'ui/button'
 import { useConfirm } from 'ui/confirm'
 import { Text } from 'ui/text'
-import { words } from '../../../data/words.ts'
-
-const results = words('delete-result', { none: 'None', deleted: 'Deleted', kept: 'Kept' })
+import { deleteResults } from './results.ts'
 
 /** Waits for a time, in place of a request to a server. */
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -12,7 +10,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 export default function AskWithAHook() {
 	const confirm = useConfirm()
 
-	const [result, setResult] = useState<keyof typeof results>('none')
+	const [result, setResult] = useState<keyof typeof deleteResults>('none')
 
 	return (
 		<>
@@ -31,7 +29,7 @@ export default function AskWithAHook() {
 			>
 				Delete report
 			</Button>
-			<Text>Last result: {results[result]}</Text>
+			<Text>Last result: {deleteResults[result]}</Text>
 		</>
 	)
 }

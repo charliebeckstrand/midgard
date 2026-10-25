@@ -1,12 +1,5 @@
 import { Select, SelectLabel, SelectOption, type SelectProps } from 'ui/select'
-import { words } from '../../../data/words.ts'
-
-const stageWords = words('purchase-stage', {
-	draft: 'Draft',
-	awaiting: 'Awaiting approval from finance',
-	approved: 'Approved',
-	ordered: 'Ordered',
-})
+import { stageWords } from './stages.ts'
 
 const stages = Object.values(stageWords)
 

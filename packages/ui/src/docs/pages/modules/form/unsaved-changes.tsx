@@ -5,7 +5,7 @@ import { Form, FormReset, FormSubmit, useFormStatus } from 'ui/form'
 import { Input } from 'ui/input'
 import { Stack } from 'ui/stack'
 import { Textarea } from 'ui/textarea'
-import { words } from '../../../data/words.ts'
+import { profile } from './profile.ts'
 
 function Actions() {
 	const status = useFormStatus()
@@ -18,8 +18,6 @@ function Actions() {
 		</Flex>
 	)
 }
-
-const profile = words('profile', { bio: 'Product designer on the checkout team.' })
 
 export default function UnsavedChanges() {
 	return (

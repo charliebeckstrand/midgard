@@ -1,12 +1,6 @@
 import { Label } from 'ui/fieldset'
 import { Radio, RadioField, RadioGroup, type RadioProps } from 'ui/radio'
-import { words } from '../../../data/words.ts'
-
-const planWords = words('plan', {
-	starter: 'Starter',
-	business: 'Business',
-	enterprise: 'Enterprise',
-})
+import { planWords } from './plans.ts'
 
 const plans = Object.values(planWords)
 

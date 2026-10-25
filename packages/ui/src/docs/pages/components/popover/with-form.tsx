@@ -6,9 +6,7 @@ import { Input } from 'ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from 'ui/popover'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
-import { words } from '../../../data/words.ts'
-
-const files = words('file', { report: 'Quarterly report' })
+import { files } from './files.ts'
 
 export default function WithForm() {
 	const [open, setOpen] = useState(false)
