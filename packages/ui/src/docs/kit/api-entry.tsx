@@ -13,7 +13,6 @@ import { MARKDOWN_CACHE_SIZE } from '../../components/markdown/markdown.tsx'
 import { k } from '../../recipes/kata/json-tree.ts'
 import type { BarrelApi, ComponentApi, PropApi } from '../plugin/api.ts'
 import { toApiId } from './anchors.ts'
-import { TSDOC_LANG } from './api-table.tsx'
 import { runInSlices } from './idle.ts'
 import { scrollToPending, usePendingAnchor } from './pending-anchor.ts'
 
@@ -225,6 +224,13 @@ function PropSection({
 		</Stack>
 	)
 }
+
+/**
+ * The language of the TSDoc of ui, which stays English in each language of
+ * the docs (CONVENTIONS.md §13.10). The `lang` of the text tells a screen
+ * reader to read it with an English voice.
+ */
+const TSDOC_LANG = 'en'
 
 /** The tags whose HTML attributes the component also takes. */
 function ElementsNote({ elements }: { elements: readonly string[] }) {

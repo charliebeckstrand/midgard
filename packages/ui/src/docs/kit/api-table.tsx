@@ -25,13 +25,6 @@ const englishNoteMessage = defineMessage({
 		'The note under the heading of the API reference on a page in a language other than English. The descriptions of the components and of the props come from the comments of the source code, and they stay in English.',
 })
 
-/**
- * The language of the TSDoc of ui, which stays English in each language of
- * the docs (CONVENTIONS.md §13.10). The `lang` of the text tells a screen
- * reader to read it with an English voice.
- */
-export const TSDOC_LANG = 'en'
-
 // The entry renders TSDoc as Markdown, so it carries `marked`. It is a chunk
 // of its own, so it does not delay the first paint. It loads in idle time
 // after the mount, or before that when the reader points at the list. A load
@@ -97,8 +90,11 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 
 	const { hash } = useLocation()
 
+	const intl = useIntl()
+
 	// A page in another language tells the reader that the TSDoc is English.
-	const translated = new Intl.Locale(useIntl().locale).language !== TSDOC_LANG
+	// The default locale is English for an English locale only (`catalogIntl`).
+	const translated = intl.locale !== intl.defaultLocale
 
 	const named = componentOfHash(hash)
 
