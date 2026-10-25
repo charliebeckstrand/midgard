@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
 import { it } from '../../__tests__/helpers/fake-clock'
 import AlertClosable from '../pages/components/alert/closable.tsx'
 import BannerClosable from '../pages/components/banner/closable.tsx'
+import DrawerFitContent from '../pages/components/drawer/fit-content.tsx'
 import HoldButtonDestructive from '../pages/components/hold-button/destructive.tsx'
 import PaginationPlayground from '../pages/components/pagination/playground.tsx'
 import StepperWithContentPanels from '../pages/components/stepper/with-content-panels.tsx'
@@ -45,6 +46,22 @@ describe('demo focus', () => {
 		press(screen.getByRole('button', { name: 'Reset' }))
 
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Dismiss' }))
+	})
+
+	it('moves the focus between a question and Back in the Drawer example', async () => {
+		render(<DrawerFitContent />)
+
+		press(screen.getByRole('button', { name: 'Help' }))
+
+		const question = 'Where do deleted files go?'
+
+		press(await screen.findByRole('button', { name: question }))
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Back' }))
+
+		press(screen.getByRole('button', { name: 'Back' }))
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: question }))
 	})
 
 	it('moves the focus between the hold button and Reset', async ({ clock }) => {
