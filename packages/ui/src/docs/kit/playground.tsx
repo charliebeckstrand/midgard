@@ -260,7 +260,7 @@ function buildProps(fields: readonly Field[], values: Values): Values {
 
 /** The prefix of a field: the label of its prop. */
 function FieldLabel({ label }: { label: string }) {
-	return <span className="text-zinc-500 dark:text-zinc-400">{label}</span>
+	return <span className="text-zinc-500 select-none dark:text-zinc-400">{label}</span>
 }
 
 /**
