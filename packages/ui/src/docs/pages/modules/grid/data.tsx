@@ -1,32 +1,30 @@
 import { Badge } from 'ui/badge'
 import type { GridColumn } from 'ui/grid'
 import { useIntl } from 'ui/primitives/intl'
-import { words } from '../../../data/words.ts'
+import {
+	departments,
+	people as listPeople,
+	type Person as Profile,
+	person,
+	personStatuses,
+	roles,
+	teams,
+} from '../../../data/people.ts'
 
-export type Person = {
-	id: number
-	name: string
-	email: string
-	role: string
-	status: 'active' | 'inactive'
+// The fields of a person that most grids show.
+export type Person = Pick<Profile, 'id' | 'name' | 'email' | 'role' | 'status'>
+
+/** The fields of `profile` that most grids show. */
+function toPerson({ id, name, email, role, status }: Profile): Person {
+	return { id, name, email, role, status }
 }
 
-export const people: Person[] = [
-	{ id: 1, name: 'Wade Cooper', email: 'wade@example.com', role: 'Developer', status: 'active' },
-	{ id: 2, name: 'Arlene McCoy', email: 'arlene@example.com', role: 'Designer', status: 'active' },
-	{ id: 3, name: 'Devon Webb', email: 'devon@example.com', role: 'Manager', status: 'inactive' },
-	{ id: 4, name: 'Tom Cook', email: 'tom@example.com', role: 'Developer', status: 'active' },
-	{ id: 5, name: 'Tanya Fox', email: 'tanya@example.com', role: 'Designer', status: 'inactive' },
-]
+// The first five people, for a grid that shows each row.
+export const people: Person[] = listPeople(5).map(toPerson)
 
-export const roles = ['Developer', 'Designer', 'Manager', 'Analyst']
-
-// The label of each status. The data keeps the status in lowercase.
-export const statusLabels = words('person-status', { active: 'Active', inactive: 'Inactive' })
-
-// The badge of a status, with its label.
+// The status of a person as a badge, with its word.
 export function StatusBadge({ status }: { status: Person['status'] }) {
-	return <Badge color={status === 'active' ? 'green' : 'zinc'}>{statusLabels[status]}</Badge>
+	return <Badge color={status === 'active' ? 'green' : 'zinc'}>{personStatuses[status]}</Badge>
 }
 
 // A day in the numeric format of the locale of the reader. It is as wide as
@@ -44,30 +42,24 @@ export function MoneyText({ amount }: { amount: number }) {
 	return intl.formatNumber(amount, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
 }
 
-// The generated person of an id. Each example that needs many people reads it,
-// so a person is the same in each example.
+// The person of an id. Each example that needs many people reads it, so a
+// person is the same in each example.
 export function makePerson(id: number): Person {
-	return {
-		id,
-		name: `Person ${id}`,
-		email: `person${id}@example.com`,
-		role: roles[(id - 1) % roles.length] ?? 'Developer',
-		status: (id - 1) % 3 === 0 ? 'inactive' : 'active',
-	}
+	return toPerson(person(id))
 }
 
 // A larger set, so that the pagination and the window examples have pages to move through.
-export const manyPeople: Person[] = Array.from({ length: 47 }, (_, i) => makePerson(i + 1))
+export const manyPeople: Person[] = listPeople(47).map(toPerson)
 
 export const columns: GridColumn<Person>[] = [
 	{ id: 'name', title: 'Name', cell: (row) => row.name },
 	{ id: 'email', title: 'Email', cell: (row) => row.email },
-	{ id: 'role', title: 'Role', cell: (row) => row.role },
+	{ id: 'role', title: 'Role', cell: (row) => roles[row.role], value: (row) => roles[row.role] },
 	{
 		id: 'status',
 		title: 'Status',
 		cell: (row) => <StatusBadge status={row.status} />,
-		value: (row) => statusLabels[row.status],
+		value: (row) => personStatuses[row.status],
 	},
 ]
 
@@ -81,20 +73,22 @@ export const serverColumns: GridColumn<Person>[] = columns.map((column) => ({
 // Each column with a `value` that search, filters, and the client sort read.
 export const searchableColumns: GridColumn<Person>[] = columns.map((column) => ({
 	...column,
-	value: (row) => String(row[column.id as keyof Person]),
+	value: column.value ?? ((row) => String(row[column.id as keyof Person])),
 }))
 
-// Status filters by a select of fixed options. Role filters by a select of the
-// values in the rows, and each other column by text.
+// Status filters by a select of fixed options, which compare with the status
+// of the row. Role filters by a select of the values in the rows, and each
+// other column by text.
 export const filterableColumns: GridColumn<Person>[] = searchableColumns.map((column) => {
 	if (column.id === 'status') {
 		return {
 			...column,
+			value: (row) => row.status,
 			filterable: true,
 			filterType: 'select',
 			filterOptions: [
-				{ label: statusLabels.active, value: 'active' },
-				{ label: statusLabels.inactive, value: 'inactive' },
+				{ label: personStatuses.active, value: 'active' },
+				{ label: personStatuses.inactive, value: 'inactive' },
 			],
 		}
 	}
@@ -104,107 +98,23 @@ export const filterableColumns: GridColumn<Person>[] = searchableColumns.map((co
 	return { ...column, filterable: true }
 })
 
-export type Employee = Person & {
-	department: string
-	location: string
-	startDate: Date
-	salary: number
-	manager: string
-	team: string
-	phone: string
-	level: string
-}
+// Each field of a person, for a grid with many columns.
+export type Employee = Profile
 
-export const employees: Employee[] = [
-	{
-		id: 1,
-		name: 'Wade Cooper',
-		email: 'wade@example.com',
-		role: 'Developer',
-		department: 'Engineering',
-		location: 'San Francisco',
-		startDate: new Date(2021, 2, 14),
-		salary: 145_000,
-		manager: 'Devon Webb',
-		team: 'Platform',
-		phone: '+1 (415) 555-0142',
-		level: 'L5',
-		status: 'active',
-	},
-	{
-		id: 2,
-		name: 'Arlene McCoy',
-		email: 'arlene@example.com',
-		role: 'Designer',
-		department: 'Product',
-		location: 'New York',
-		startDate: new Date(2022, 6, 1),
-		salary: 132_000,
-		manager: 'Devon Webb',
-		team: 'Design systems',
-		phone: '+1 (212) 555-0188',
-		level: 'L4',
-		status: 'active',
-	},
-	{
-		id: 3,
-		name: 'Devon Webb',
-		email: 'devon@example.com',
-		role: 'Manager',
-		department: 'Operations',
-		location: 'Austin',
-		startDate: new Date(2019, 10, 23),
-		salary: 158_000,
-		manager: 'Tanya Fox',
-		team: 'Leadership',
-		phone: '+1 (512) 555-0119',
-		level: 'L6',
-		status: 'inactive',
-	},
-	{
-		id: 4,
-		name: 'Tom Cook',
-		email: 'tom@example.com',
-		role: 'Developer',
-		department: 'Engineering',
-		location: 'Seattle',
-		startDate: new Date(2023, 1, 12),
-		salary: 121_000,
-		manager: 'Wade Cooper',
-		team: 'Platform',
-		phone: '+1 (206) 555-0167',
-		level: 'L3',
-		status: 'active',
-	},
-	{
-		id: 5,
-		name: 'Tanya Fox',
-		email: 'tanya@example.com',
-		role: 'Designer',
-		department: 'Product',
-		location: 'Remote',
-		startDate: new Date(2020, 4, 30),
-		salary: 139_000,
-		manager: 'Arlene McCoy',
-		team: 'Design systems',
-		phone: '+1 (650) 555-0173',
-		level: 'L5',
-		status: 'inactive',
-	},
-]
+export const employees: Employee[] = listPeople(5)
 
 // Name is pinned to the left edge and Status to the right edge. The other
 // columns scroll between them.
 export const employeeColumns: GridColumn<Employee>[] = [
 	{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
 	{ id: 'email', title: 'Email', cell: (row) => row.email },
-	{ id: 'role', title: 'Role', cell: (row) => row.role },
-	{ id: 'department', title: 'Department', cell: (row) => row.department },
+	{ id: 'role', title: 'Role', cell: (row) => roles[row.role] },
+	{ id: 'department', title: 'Department', cell: (row) => departments[row.department] },
 	{ id: 'location', title: 'Location', cell: (row) => row.location },
 	{ id: 'startDate', title: 'Start date', cell: (row) => <DayText date={row.startDate} /> },
 	{ id: 'salary', title: 'Salary', cell: (row) => <MoneyText amount={row.salary} /> },
 	{ id: 'manager', title: 'Manager', cell: (row) => row.manager },
-	{ id: 'team', title: 'Team', cell: (row) => row.team },
+	{ id: 'team', title: 'Team', cell: (row) => teams[row.team] },
 	{ id: 'phone', title: 'Phone', cell: (row) => row.phone },
 	{ id: 'level', title: 'Level', cell: (row) => row.level },
 	{

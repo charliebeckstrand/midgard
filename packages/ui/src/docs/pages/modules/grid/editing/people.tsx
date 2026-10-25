@@ -6,15 +6,22 @@ import type { GridCellChange, GridColumn, GridEditCellContext } from 'ui/grid'
 import { Icon } from 'ui/icon'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
-import { people, roles, StatusBadge } from '../data.tsx'
+import { type Role, roles } from '../../../../data/people.ts'
+import { people, StatusBadge } from '../data.tsx'
 
-export type Person = { id: number; name: string; email: string; role: string; active: boolean }
+export type Person = { id: number; name: string; email: string; role: Role; active: boolean }
 
 // The first four people of the page. The status is a yes or no value, so the
 // grid gives the Active column a yes or no editor.
 export const initialPeople: Person[] = people
 	.slice(0, 4)
-	.map(({ status, ...person }) => ({ ...person, active: status === 'active' }))
+	.map(({ id, name, email, role, status }) => ({
+		id,
+		name,
+		email,
+		role,
+		active: status === 'active',
+	}))
 
 /**
  * Applies the saved changes to the rows. Each change sets the field of its
@@ -88,7 +95,7 @@ export function CellListbox({
 	)
 }
 
-const roleOptions = roles.map((role) => ({ label: role, value: role }))
+const roleOptions = Object.entries(roles).map(([value, label]) => ({ label, value }))
 
 // Name and Email get a text editor, and Active gets a yes or no listbox, from
 // the type of the value. Role gets a listbox of its own.
@@ -99,7 +106,7 @@ export const personColumns: GridColumn<Person>[] = [
 		id: 'role',
 		title: 'Role',
 		field: 'role',
-		cell: (row) => row.role,
+		cell: (row) => roles[row.role],
 		editCell: (context) => (
 			<CellListbox
 				value={String(context.value ?? '')}

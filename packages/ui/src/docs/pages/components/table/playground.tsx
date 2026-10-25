@@ -7,12 +7,9 @@ import {
 	type TableProps,
 	TableRow,
 } from 'ui/table'
+import { profiles, roles } from '../../../data/people.ts'
 
-const users = [
-	{ name: 'Wade Cooper', email: 'wade@example.com', role: 'Admin' },
-	{ name: 'Arlene McCoy', email: 'arlene@example.com', role: 'Editor' },
-	{ name: 'Devon Webb', email: 'devon@example.com', role: 'Viewer' },
-]
+const users = profiles.slice(0, 3)
 
 export default function TablePlayground(props: TableProps) {
 	return (
@@ -27,7 +24,7 @@ export default function TablePlayground(props: TableProps) {
 				{users.map((user) => (
 					<TableRow key={user.email}>
 						<TableCell>{user.name}</TableCell>
-						<TableCell>{user.role}</TableCell>
+						<TableCell>{roles[user.role]}</TableCell>
 					</TableRow>
 				))}
 			</TableBody>

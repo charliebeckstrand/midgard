@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Grid, type GridColumn } from 'ui/grid'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
+import { roles } from '../../../../data/people.ts'
 import { columns, type Person, people, StatusBadge } from '../data.tsx'
 
 const expandColumns: GridColumn<Person>[] = [{ id: 'expand', expander: true }, ...columns]
@@ -23,7 +24,7 @@ export default function ExpandableRows() {
 					<Stack gap="sm">
 						<Text className="font-medium">{row.name}</Text>
 						<Text size="sm" tone="muted">
-							{row.email} · {row.role}
+							{row.email} · {roles[row.role]}
 						</Text>
 						<StatusBadge status={row.status} />
 					</Stack>

@@ -71,13 +71,65 @@
 		"defaultMessage": "Toggle sidebar",
 		"description": "The name of the button in the header that shows or hides the sidebar on a wide screen."
 	},
+	"docs.data.department.engineering": {
+		"defaultMessage": "Engineering",
+		"description": "A word of the demo data in the docs: the word for \"engineering\" in the domain \"department\", in data/people.ts."
+	},
+	"docs.data.department.finance": {
+		"defaultMessage": "Finance",
+		"description": "A word of the demo data in the docs: the word for \"finance\" in the domain \"department\", in data/people.ts."
+	},
+	"docs.data.department.operations": {
+		"defaultMessage": "Operations",
+		"description": "A word of the demo data in the docs: the word for \"operations\" in the domain \"department\", in data/people.ts."
+	},
+	"docs.data.department.product": {
+		"defaultMessage": "Product",
+		"description": "A word of the demo data in the docs: the word for \"product\" in the domain \"department\", in data/people.ts."
+	},
 	"docs.data.person-status.active": {
 		"defaultMessage": "Active",
-		"description": "A word of the demo data in the docs: the word for \"active\" in the domain \"person-status\", in modules/grid/data.tsx."
+		"description": "A word of the demo data in the docs: the word for \"active\" in the domain \"person-status\", in data/people.ts."
 	},
 	"docs.data.person-status.inactive": {
 		"defaultMessage": "Inactive",
-		"description": "A word of the demo data in the docs: the word for \"inactive\" in the domain \"person-status\", in modules/grid/data.tsx."
+		"description": "A word of the demo data in the docs: the word for \"inactive\" in the domain \"person-status\", in data/people.ts."
+	},
+	"docs.data.person.name": {
+		"defaultMessage": "Person",
+		"description": "A word of the demo data in the docs: the word for \"name\" in the domain \"person\", in data/people.ts."
+	},
+	"docs.data.role.analyst": {
+		"defaultMessage": "Analyst",
+		"description": "A word of the demo data in the docs: the word for \"analyst\" in the domain \"role\", in data/people.ts."
+	},
+	"docs.data.role.designer": {
+		"defaultMessage": "Designer",
+		"description": "A word of the demo data in the docs: the word for \"designer\" in the domain \"role\", in data/people.ts."
+	},
+	"docs.data.role.developer": {
+		"defaultMessage": "Developer",
+		"description": "A word of the demo data in the docs: the word for \"developer\" in the domain \"role\", in data/people.ts."
+	},
+	"docs.data.role.manager": {
+		"defaultMessage": "Manager",
+		"description": "A word of the demo data in the docs: the word for \"manager\" in the domain \"role\", in data/people.ts."
+	},
+	"docs.data.team.analytics": {
+		"defaultMessage": "Analytics",
+		"description": "A word of the demo data in the docs: the word for \"analytics\" in the domain \"team\", in data/people.ts."
+	},
+	"docs.data.team.designSystems": {
+		"defaultMessage": "Design systems",
+		"description": "A word of the demo data in the docs: the word for \"designSystems\" in the domain \"team\", in data/people.ts."
+	},
+	"docs.data.team.leadership": {
+		"defaultMessage": "Leadership",
+		"description": "A word of the demo data in the docs: the word for \"leadership\" in the domain \"team\", in data/people.ts."
+	},
+	"docs.data.team.platform": {
+		"defaultMessage": "Platform",
+		"description": "A word of the demo data in the docs: the word for \"platform\" in the domain \"team\", in data/people.ts."
 	},
 	"docs.demo.005d0b7e5c26": {
 		"defaultMessage": "pnpm install",

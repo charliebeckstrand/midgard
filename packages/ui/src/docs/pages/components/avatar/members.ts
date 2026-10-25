@@ -1,7 +1,4 @@
-export const members = [
-	{ name: 'Wade Cooper', initials: 'WC', color: 'zinc' },
-	{ name: 'Ravi Shah', initials: 'RS', color: 'red' },
-	{ name: 'Mia Chen', initials: 'MC', color: 'amber' },
-	{ name: 'Arlene McCoy', initials: 'AM', color: 'green' },
-	{ name: 'Devon Webb', initials: 'DW', color: 'blue' },
-] as const
+import { person } from '../../../data/people.ts'
+
+// Five people, one in each color of the avatar palette.
+export const members = [1, 7, 8, 2, 3].map(person)
