@@ -1,6 +1,8 @@
 import { feature } from 'topojson-client'
 import type { MapCategory, MapFeature, MapFeatureCollection } from 'ui/map'
+import type { IntlShape } from 'ui/primitives/intl'
 import statesAtlas from 'us-atlas/states-10m.json'
+import { words } from '../../../data/words.ts'
 
 type Topology = Parameters<typeof feature>[0]
 
@@ -13,9 +15,13 @@ export const states = feature(
 	'states',
 ) as unknown as MapFeatureCollection
 
-/** A distance in whole miles, such as `1,642 mi`. */
-export function miles(meters: number): string {
-	return `${Math.round(meters / 1609.344).toLocaleString('en-US')} mi`
+/** A distance in whole miles in the number format of the locale, such as `1,642 mi`. */
+export function miles(meters: number, intl: IntlShape): string {
+	return intl.formatNumber(meters / 1609.344, {
+		style: 'unit',
+		unit: 'mile',
+		maximumFractionDigits: 0,
+	})
 }
 
 /** The name of a state. The timezone rows use it as the identity of a region. */
@@ -35,6 +41,17 @@ export function stateFrame(name: string | null): MapFeatureCollection {
 	return state === undefined ? states : { type: 'FeatureCollection', features: [state] }
 }
 
+/**
+ * The US time zones, from west to east. A row holds the word, because the map
+ * compares the zone of a row with the value of a category.
+ */
+const zones = words('time-zone', {
+	pacific: 'Pacific',
+	mountain: 'Mountain',
+	central: 'Central',
+	eastern: 'Eastern',
+})
+
 /** One row for each state, keyed by the name of the state. */
 export type StateZone = { state: string; zone: string }
 
@@ -43,60 +60,60 @@ export type StateZone = { state: string; zone: string }
  * Columbia have no row, so they show in the fill for no data.
  */
 export const timezones: StateZone[] = [
-	{ state: 'Washington', zone: 'Pacific' },
-	{ state: 'Oregon', zone: 'Pacific' },
-	{ state: 'California', zone: 'Pacific' },
-	{ state: 'Nevada', zone: 'Pacific' },
-	{ state: 'Montana', zone: 'Mountain' },
-	{ state: 'Idaho', zone: 'Mountain' },
-	{ state: 'Wyoming', zone: 'Mountain' },
-	{ state: 'Utah', zone: 'Mountain' },
-	{ state: 'Colorado', zone: 'Mountain' },
-	{ state: 'Arizona', zone: 'Mountain' },
-	{ state: 'New Mexico', zone: 'Mountain' },
-	{ state: 'North Dakota', zone: 'Central' },
-	{ state: 'South Dakota', zone: 'Central' },
-	{ state: 'Nebraska', zone: 'Central' },
-	{ state: 'Kansas', zone: 'Central' },
-	{ state: 'Oklahoma', zone: 'Central' },
-	{ state: 'Texas', zone: 'Central' },
-	{ state: 'Minnesota', zone: 'Central' },
-	{ state: 'Iowa', zone: 'Central' },
-	{ state: 'Missouri', zone: 'Central' },
-	{ state: 'Arkansas', zone: 'Central' },
-	{ state: 'Louisiana', zone: 'Central' },
-	{ state: 'Wisconsin', zone: 'Central' },
-	{ state: 'Illinois', zone: 'Central' },
-	{ state: 'Mississippi', zone: 'Central' },
-	{ state: 'Alabama', zone: 'Central' },
-	{ state: 'Tennessee', zone: 'Central' },
-	{ state: 'Michigan', zone: 'Eastern' },
-	{ state: 'Indiana', zone: 'Eastern' },
-	{ state: 'Ohio', zone: 'Eastern' },
-	{ state: 'Kentucky', zone: 'Eastern' },
-	{ state: 'Florida', zone: 'Eastern' },
-	{ state: 'Georgia', zone: 'Eastern' },
-	{ state: 'South Carolina', zone: 'Eastern' },
-	{ state: 'North Carolina', zone: 'Eastern' },
-	{ state: 'Virginia', zone: 'Eastern' },
-	{ state: 'West Virginia', zone: 'Eastern' },
-	{ state: 'Maryland', zone: 'Eastern' },
-	{ state: 'Delaware', zone: 'Eastern' },
-	{ state: 'New Jersey', zone: 'Eastern' },
-	{ state: 'Pennsylvania', zone: 'Eastern' },
-	{ state: 'New York', zone: 'Eastern' },
-	{ state: 'Connecticut', zone: 'Eastern' },
-	{ state: 'Rhode Island', zone: 'Eastern' },
-	{ state: 'Massachusetts', zone: 'Eastern' },
-	{ state: 'Vermont', zone: 'Eastern' },
-	{ state: 'New Hampshire', zone: 'Eastern' },
-	{ state: 'Maine', zone: 'Eastern' },
+	{ state: 'Washington', zone: zones.pacific },
+	{ state: 'Oregon', zone: zones.pacific },
+	{ state: 'California', zone: zones.pacific },
+	{ state: 'Nevada', zone: zones.pacific },
+	{ state: 'Montana', zone: zones.mountain },
+	{ state: 'Idaho', zone: zones.mountain },
+	{ state: 'Wyoming', zone: zones.mountain },
+	{ state: 'Utah', zone: zones.mountain },
+	{ state: 'Colorado', zone: zones.mountain },
+	{ state: 'Arizona', zone: zones.mountain },
+	{ state: 'New Mexico', zone: zones.mountain },
+	{ state: 'North Dakota', zone: zones.central },
+	{ state: 'South Dakota', zone: zones.central },
+	{ state: 'Nebraska', zone: zones.central },
+	{ state: 'Kansas', zone: zones.central },
+	{ state: 'Oklahoma', zone: zones.central },
+	{ state: 'Texas', zone: zones.central },
+	{ state: 'Minnesota', zone: zones.central },
+	{ state: 'Iowa', zone: zones.central },
+	{ state: 'Missouri', zone: zones.central },
+	{ state: 'Arkansas', zone: zones.central },
+	{ state: 'Louisiana', zone: zones.central },
+	{ state: 'Wisconsin', zone: zones.central },
+	{ state: 'Illinois', zone: zones.central },
+	{ state: 'Mississippi', zone: zones.central },
+	{ state: 'Alabama', zone: zones.central },
+	{ state: 'Tennessee', zone: zones.central },
+	{ state: 'Michigan', zone: zones.eastern },
+	{ state: 'Indiana', zone: zones.eastern },
+	{ state: 'Ohio', zone: zones.eastern },
+	{ state: 'Kentucky', zone: zones.eastern },
+	{ state: 'Florida', zone: zones.eastern },
+	{ state: 'Georgia', zone: zones.eastern },
+	{ state: 'South Carolina', zone: zones.eastern },
+	{ state: 'North Carolina', zone: zones.eastern },
+	{ state: 'Virginia', zone: zones.eastern },
+	{ state: 'West Virginia', zone: zones.eastern },
+	{ state: 'Maryland', zone: zones.eastern },
+	{ state: 'Delaware', zone: zones.eastern },
+	{ state: 'New Jersey', zone: zones.eastern },
+	{ state: 'Pennsylvania', zone: zones.eastern },
+	{ state: 'New York', zone: zones.eastern },
+	{ state: 'Connecticut', zone: zones.eastern },
+	{ state: 'Rhode Island', zone: zones.eastern },
+	{ state: 'Massachusetts', zone: zones.eastern },
+	{ state: 'Vermont', zone: zones.eastern },
+	{ state: 'New Hampshire', zone: zones.eastern },
+	{ state: 'Maine', zone: zones.eastern },
 ]
 
 /** The order and the colors of the zones, so that the legend reads from west to east. */
 export const zoneCategories: MapCategory[] = [
-	{ value: 'Pacific', color: 'blue' },
-	{ value: 'Mountain', color: 'orange' },
-	{ value: 'Central', color: 'green' },
-	{ value: 'Eastern', color: 'red' },
+	{ value: zones.pacific, color: 'blue' },
+	{ value: zones.mountain, color: 'orange' },
+	{ value: zones.central, color: 'green' },
+	{ value: zones.eastern, color: 'red' },
 ]

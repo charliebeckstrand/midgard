@@ -1,9 +1,12 @@
 import { type LngLat, MapMarker, MapPlat } from 'ui/map'
+import { useIntl } from 'ui/primitives/intl'
 import { miles, states } from '../data.ts'
 import { destinations, hub, useRoute } from '../routes.ts'
 
 // A marker whose line follows the roads. It mounts when the road is in.
 function RoutedMarker({ label, start, end }: { label: string; start: LngLat; end: LngLat }) {
+	const intl = useIntl()
+
 	const route = useRoute(start, end)
 
 	if (route === null) return null
@@ -14,7 +17,7 @@ function RoutedMarker({ label, start, end }: { label: string; start: LngLat; end
 			start={start}
 			end={end}
 			path={route.path}
-			detail={miles(route.distanceMeters)}
+			detail={miles(route.distanceMeters, intl)}
 		/>
 	)
 }

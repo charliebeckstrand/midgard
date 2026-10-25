@@ -195,6 +195,22 @@
 		"defaultMessage": "Platform",
 		"description": "A word of the demo data in the docs: the word for \"platform\" in the domain \"team\", in data/people.ts."
 	},
+	"docs.data.time-zone.central": {
+		"defaultMessage": "Central",
+		"description": "A word of the demo data in the docs: the word for \"central\" in the domain \"time-zone\", in modules/map/data.ts."
+	},
+	"docs.data.time-zone.eastern": {
+		"defaultMessage": "Eastern",
+		"description": "A word of the demo data in the docs: the word for \"eastern\" in the domain \"time-zone\", in modules/map/data.ts."
+	},
+	"docs.data.time-zone.mountain": {
+		"defaultMessage": "Mountain",
+		"description": "A word of the demo data in the docs: the word for \"mountain\" in the domain \"time-zone\", in modules/map/data.ts."
+	},
+	"docs.data.time-zone.pacific": {
+		"defaultMessage": "Pacific",
+		"description": "A word of the demo data in the docs: the word for \"pacific\" in the domain \"time-zone\", in modules/map/data.ts."
+	},
 	"docs.demo.005d0b7e5c26": {
 		"defaultMessage": "pnpm install",
 		"description": "Text of a demo in the docs, in components/code/inline-with-text.tsx, components/code/playground.tsx."
@@ -786,6 +802,10 @@
 	"docs.demo.2b5c3d26721a": {
 		"defaultMessage": "Contact",
 		"description": "Text of a demo in the docs as title, in components/nav/nav-bar.tsx, components/nav/playground.tsx, components/nav/with-icons.tsx and 2 more."
+	},
+	"docs.demo.2b6a38b89f9c": {
+		"defaultMessage": "Next day",
+		"description": "Text of a demo in the docs as detail, in modules/map/geofence/circle.tsx."
 	},
 	"docs.demo.2bd873d6c734": {
 		"defaultMessage": "Breadcrumb",
@@ -1571,6 +1591,10 @@
 		"defaultMessage": "Marks",
 		"description": "Text of a demo in the docs as aria-label, in components/toolbar/with-groups.tsx."
 	},
+	"docs.demo.6554ce92170a": {
+		"defaultMessage": "Matched **12** of 240 shipments.\n\n- Route 12: 5\n- Route 30: 4\n- Route 41: 3",
+		"description": "Text of a demo in the docs as detail, in modules/chat/steps/a-step-behind-the-answer.tsx."
+	},
 	"docs.demo.65b149d79b9c": {
 		"defaultMessage": "Monthly units",
 		"description": "Text of a demo in the docs as title, in modules/dashboard/build-and-save.tsx, modules/dashboard/playground.tsx, modules/dashboard/query.tsx."
@@ -2010,6 +2034,14 @@
 	"docs.demo.822bab8d41bc": {
 		"defaultMessage": "Quantity",
 		"description": "Text of a demo in the docs as aria-label, in components/number-input/controlled.tsx, components/number-input/disabled.tsx, components/number-input/playground.tsx."
+	},
+	"docs.demo.82d3378fb41c": {
+		"defaultMessage": "{loads} loads",
+		"description": "Text of a demo in the docs as detail, in modules/map/geofence/polygon.tsx, modules/map/point/basic.tsx. The argument {loads} is a value from the code."
+	},
+	"docs.demo.8318778a72ec": {
+		"defaultMessage": "{parcels} parcels",
+		"description": "Text of a demo in the docs as detail, in modules/map/point/data.ts. The argument {parcels} is a value from the code."
 	},
 	"docs.demo.83196172ab2e": {
 		"defaultMessage": "Image actions",
@@ -2603,6 +2635,10 @@
 		"defaultMessage": "Write a note, then open Help",
 		"description": "Text of a demo in the docs as placeholder, in components/tabs/keep-panel-state.tsx."
 	},
+	"docs.demo.a6fcbf2bb6ea": {
+		"defaultMessage": "{count} stops · {miles} across",
+		"description": "Text of a demo in the docs as clusterDetail, in modules/map/point/clustering.tsx, modules/map/point/zoomable.tsx. The arguments {count} and {miles} are values from the code."
+	},
 	"docs.demo.a710c2b90913": {
 		"defaultMessage": "Unsaved changes",
 		"description": "Text of a demo in the docs, in modules/form/unsaved-changes.tsx."
@@ -2758,6 +2794,10 @@
 	"docs.demo.b173c0060a58": {
 		"defaultMessage": "Sparrow",
 		"description": "Text of a demo in the docs as label, in components/tree/without-icons.tsx."
+	},
+	"docs.demo.b19aa6c0b42b": {
+		"defaultMessage": "4 metros",
+		"description": "Text of a demo in the docs as detail, in modules/map/geofence/polygon.tsx."
 	},
 	"docs.demo.b29460df18de": {
 		"defaultMessage": "London, UK",
@@ -3127,6 +3167,10 @@
 		"defaultMessage": "Macon",
 		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
+	"docs.demo.cb9a44ca81ec": {
+		"defaultMessage": "{value} times normal speed",
+		"description": "Text of a demo in the docs as getValueText, in components/slider/decimal-step.tsx. The argument {value} is a value from the code."
+	},
 	"docs.demo.cc0e38da9c41": {
 		"defaultMessage": "Subscribe",
 		"description": "Text of a demo in the docs, in modules/form/success-and-failure.tsx."
@@ -3175,6 +3219,10 @@
 		"defaultMessage": "Options",
 		"description": "Text of a demo in the docs, in components/menu/controlled.tsx, components/menu/glass.tsx, components/menu/icons-and-shortcuts.tsx and 2 more."
 	},
+	"docs.demo.d1170c4935b0": {
+		"defaultMessage": "{length} stops",
+		"description": "Text of a demo in the docs as detail, in modules/map/point/clustering.tsx, modules/map/point/zoomable.tsx. The argument {length} is a value from the code."
+	},
 	"docs.demo.d1180f8109bc": {
 		"defaultMessage": "Atlanta depot",
 		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
@@ -3210,6 +3258,10 @@
 	"docs.demo.d3a008ef1335": {
 		"defaultMessage": "Region",
 		"description": "Text of a demo in the docs as label, title, in modules/dashboard/data.ts, modules/dashboard/widgets.tsx, modules/grid/groups/data.tsx."
+	},
+	"docs.demo.d3e1c5f8a6e2": {
+		"defaultMessage": "Origin",
+		"description": "Text of a demo in the docs as detail, in modules/map/point/data.ts."
 	},
 	"docs.demo.d475066eed05": {
 		"defaultMessage": "Your draft is saved on this device.",
@@ -3607,6 +3659,10 @@
 		"defaultMessage": "Blue",
 		"description": "Text of a demo in the docs as label, in components/swatch/playground.tsx."
 	},
+	"docs.demo.eca62c82f829": {
+		"defaultMessage": "Same day",
+		"description": "Text of a demo in the docs as detail, in modules/map/geofence/circle.tsx."
+	},
 	"docs.demo.ed077f3d8125": {
 		"defaultMessage": "Open",
 		"description": "Text of a demo in the docs, in components/kbd/inside-a-button.tsx, components/menu/controlled.tsx."
@@ -3758,6 +3814,10 @@
 	"docs.demo.f7e0b8036cbe": {
 		"defaultMessage": "Revenue by product",
 		"description": "Text of a demo in the docs as aria-label, title, in modules/dashboard/build-and-save.tsx, modules/dashboard/widgets.tsx."
+	},
+	"docs.demo.f830ee28b781": {
+		"defaultMessage": "Depot",
+		"description": "Text of a demo in the docs as detail, in modules/map/geofence/circle.tsx."
 	},
 	"docs.demo.f8422d999911": {
 		"defaultMessage": "A PNG or JPEG image, up to 1 MB.",

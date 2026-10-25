@@ -1,12 +1,15 @@
 import { Kbd } from 'ui/kbd'
 import { MapPlat, MapPoints } from 'ui/map'
+import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { PointerHint } from '../../../../kit/pointer-hint.tsx'
-import { states } from '../data.ts'
-import { deliveryStops, roundSummary } from './data.ts'
+import { miles, states } from '../data.ts'
+import { deliveryStops } from './data.ts'
 
 export default function Zoomable() {
+	const intl = useIntl()
+
 	return (
 		<Stack gap="md">
 			<Text>
@@ -31,7 +34,7 @@ export default function Zoomable() {
 					label="Stops"
 					points={deliveryStops}
 					detail={`${deliveryStops.length} stops`}
-					clusterDetail={roundSummary}
+					clusterDetail={(count, span) => `${count} stops · ${miles(span, intl)} across`}
 				/>
 			</MapPlat>
 		</Stack>

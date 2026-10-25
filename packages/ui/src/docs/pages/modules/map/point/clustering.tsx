@@ -1,15 +1,18 @@
 import { useMemo, useState } from 'react'
 import { Flex } from 'ui/flex'
 import { MapPlat, MapPoints } from 'ui/map'
+import { useIntl } from 'ui/primitives/intl'
 import { Select, SelectLabel, SelectOption } from 'ui/select'
 import { Stack } from 'ui/stack'
-import { stateFrame } from '../data.ts'
-import { deliveryStops, roundSummary, stopStates } from './data.ts'
+import { miles, stateFrame } from '../data.ts'
+import { deliveryStops, stopStates } from './data.ts'
 
 // The select offers each state that holds a stop.
 const selectable = [...new Set(stopStates.filter((state) => state !== null))].sort()
 
 export default function Clustering() {
+	const intl = useIntl()
+
 	const [picked, setPicked] = useState<string | null>(null)
 
 	// The picked stop, by its index in the stops that the map shows.
@@ -63,7 +66,7 @@ export default function Clustering() {
 					label="Stops"
 					points={stops}
 					detail={`${stops.length} stops`}
-					clusterDetail={roundSummary}
+					clusterDetail={(count, span) => `${count} stops · ${miles(span, intl)} across`}
 					// On the full country, a click opens the state of the summary. In one
 					// state, a click picks the stop, and a second click clears it.
 					onClick={
