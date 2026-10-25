@@ -31,8 +31,8 @@ export default function UndoAndRedo() {
 				</Flex>
 				<EditHelp label="Undo help">
 					<PointerHint
-						mouse="Edit a cell, then press Ctrl+Z or Cmd+Z to undo the save."
-						touch="Edit a cell, then tap Undo."
+						mouseText="Edit a cell, then press Ctrl+Z or Cmd+Z to undo the save."
+						touchText="Edit a cell, then tap Undo."
 					/>
 				</EditHelp>
 			</Flex>

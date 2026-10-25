@@ -21,7 +21,7 @@ export default function ContextMenuPlayground(props: ContextMenuProps) {
 		<ContextMenu aria-label="Image actions" defaults={defaults} items={items} {...props}>
 			<div className="flex items-center justify-center rounded-lg border border-dashed border-zinc-300 px-10 py-8 dark:border-zinc-700">
 				<Text tone="muted" className="select-none">
-					<PointerHint mouse="Right-click here" touch="Press and hold here" />
+					<PointerHint mouseText="Right-click here" touchText="Press and hold here" />
 				</Text>
 			</div>
 		</ContextMenu>

@@ -25,14 +25,14 @@ export default function Filter() {
 					<SegmentItem value="archived">Archived</SegmentItem>
 				</SegmentControl>
 			</Segment>
-			<List items={matches} getKey={(campaign) => campaign.name} variant="solid" sortable={false}>
+			<List items={matches} getKey={(campaign) => campaign.label} variant="solid" sortable={false}>
 				{(campaign) => (
 					<ListItem
 						suffix={
 							<Badge color={badges[campaign.status].color}>{badges[campaign.status].label}</Badge>
 						}
 					>
-						<ListLabel>{campaign.name}</ListLabel>
+						<ListLabel>{campaign.label}</ListLabel>
 					</ListItem>
 				)}
 			</List>

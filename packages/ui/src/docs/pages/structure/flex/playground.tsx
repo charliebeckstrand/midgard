@@ -1,6 +1,5 @@
 import { Flex, type FlexProps } from 'ui/flex'
-
-const items = ['One', 'Two', 'Three']
+import { items } from '../items.ts'
 
 export default function FlexPlayground(props: FlexProps) {
 	return (

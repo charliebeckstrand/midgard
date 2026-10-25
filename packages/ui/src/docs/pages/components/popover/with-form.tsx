@@ -6,11 +6,12 @@ import { Input } from 'ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from 'ui/popover'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
+import { files } from './files.ts'
 
 export default function WithForm() {
 	const [open, setOpen] = useState(false)
 
-	const [name, setName] = useState('Quarterly report')
+	const [name, setName] = useState(files.report)
 
 	function save(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault()

@@ -14,12 +14,12 @@ export default function Zoomable() {
 		<Stack gap="md">
 			<Text>
 				<PointerHint
-					mouse={
+					mouseText={
 						<>
 							Hold <Kbd>Shift</Kbd> and scroll to zoom. Drag to pan.
 						</>
 					}
-					touch="Pinch to zoom. Drag with two fingers to pan."
+					touchText="Pinch to zoom. Drag with two fingers to pan."
 				/>
 			</Text>
 			<MapPlat

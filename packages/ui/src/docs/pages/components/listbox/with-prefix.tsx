@@ -3,9 +3,9 @@ import { Icon } from 'ui/icon'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 
 const orders = [
-	{ id: 'newest', name: 'Newest first' },
-	{ id: 'oldest', name: 'Oldest first' },
-	{ id: 'name', name: 'Name' },
+	{ id: 'newest', label: 'Newest first' },
+	{ id: 'oldest', label: 'Oldest first' },
+	{ id: 'name', label: 'Name' },
 ]
 
 export default function WithPrefix() {
@@ -14,11 +14,11 @@ export default function WithPrefix() {
 			aria-label="Sort by"
 			defaultValue="newest"
 			prefix={<Icon icon={<ArrowDownUp />} />}
-			displayValue={(id) => orders.find((order) => order.id === id)?.name ?? id}
+			displayValue={(id) => orders.find((order) => order.id === id)?.label ?? id}
 		>
 			{orders.map((order) => (
 				<ListboxOption key={order.id} value={order.id}>
-					<ListboxLabel>{order.name}</ListboxLabel>
+					<ListboxLabel>{order.label}</ListboxLabel>
 				</ListboxOption>
 			))}
 		</Listbox>

@@ -1,12 +1,13 @@
 import { Select, SelectLabel, SelectOption, type SelectProps } from 'ui/select'
+import { stageWords } from './stages.ts'
 
-const stages = ['Draft', 'Awaiting approval from finance', 'Approved', 'Ordered']
+const stages = Object.values(stageWords)
 
 export default function SelectPlayground(props: SelectProps<string>) {
 	return (
 		<Select
 			aria-label="Stage"
-			defaultValue="Awaiting approval from finance"
+			defaultValue={stageWords.awaiting}
 			displayValue={(stage) => stage}
 			{...props}
 		>

@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { Checkbox, CheckboxField, CheckboxGroup } from 'ui/checkbox'
 import { Label } from 'ui/fieldset'
 import { Text } from 'ui/text'
+import { channelWords } from './channels.ts'
 
-const channels = ['Email', 'Push', 'SMS']
+const channels = Object.values(channelWords)
 
 export default function SelectAll() {
-	const [selected, setSelected] = useState(['Email'])
+	const [selected, setSelected] = useState([channelWords.email])
 
 	return (
 		<>

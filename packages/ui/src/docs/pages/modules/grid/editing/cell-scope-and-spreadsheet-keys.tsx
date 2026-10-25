@@ -15,14 +15,15 @@ const commitOnOptions: { value: CommitOn; label: string }[] = [
 ]
 
 // The cell that the session edits, by its column and the place of its row.
-function describeCell(cell: GridCellRef | null, people: Person[]): string {
+function CellStatus({ cell, people }: { cell: GridCellRef | null; people: Person[] }) {
 	if (!cell) return 'Not editing'
 
-	const column = personColumns.find((candidate) => candidate.id === cell.columnId)
+	const column =
+		personColumns.find((candidate) => candidate.id === cell.columnId)?.title ?? cell.columnId
 
 	const row = people.findIndex((person) => person.id === cell.rowKey) + 1
 
-	return `Editing: ${column?.title ?? cell.columnId}, row ${row}`
+	return `Editing: ${column}, row ${row}`
 }
 
 export default function CellScopeAndSpreadsheetKeys() {
@@ -52,12 +53,12 @@ export default function CellScopeAndSpreadsheetKeys() {
 			</Segment>
 			<Flex justify="between" align="center">
 				<Text size="sm" tone="muted">
-					{describeCell(editingCell, people)}
+					<CellStatus cell={editingCell} people={people} />
 				</Text>
 				<EditHelp label="Editing help">
 					<PointerHint
-						mouse="Double-click a cell to edit it, then press Enter or Tab to save and move."
-						touch="Double-tap a cell to edit it. On a phone the cell opens in a drawer, so tap Save. On a tablet, press Return to save and move down."
+						mouseText="Double-click a cell to edit it, then press Enter or Tab to save and move."
+						touchText="Double-tap a cell to edit it. On a phone the cell opens in a drawer, so tap Save. On a tablet, press Return to save and move down."
 					/>
 				</EditHelp>
 			</Flex>

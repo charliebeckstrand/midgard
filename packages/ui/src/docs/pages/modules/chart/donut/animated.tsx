@@ -6,7 +6,7 @@ export default function Animated() {
 		<DonutChart
 			aria-label="Traffic by source"
 			data={sources}
-			series={[{ xKey: 'source', yKey: 'visits' }]}
+			series={[{ xKey: 'source', yKey: 'visits', yName: 'Visits' }]}
 			animate
 		/>
 	)

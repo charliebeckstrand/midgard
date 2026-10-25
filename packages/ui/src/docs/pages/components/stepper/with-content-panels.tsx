@@ -11,13 +11,7 @@ import {
 	StepperTitle,
 } from 'ui/stepper'
 import { Text } from 'ui/text'
-import { steps } from './steps.ts'
-
-const instructions = [
-	'Enter your email and a password.',
-	'Add your name and a photo.',
-	'Check your details.',
-]
+import { instructions, steps } from './steps.ts'
 
 export default function WithContentPanels() {
 	const [step, setStep] = useState(0)

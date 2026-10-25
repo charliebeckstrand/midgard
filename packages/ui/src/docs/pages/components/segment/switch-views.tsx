@@ -20,22 +20,22 @@ export default function SwitchViews() {
 			{view === 'list' ? (
 				<List
 					items={campaigns}
-					getKey={(campaign) => campaign.name}
+					getKey={(campaign) => campaign.label}
 					variant="solid"
 					sortable={false}
 				>
 					{(campaign) => (
 						<ListItem>
-							<ListLabel>{campaign.name}</ListLabel>
+							<ListLabel>{campaign.label}</ListLabel>
 						</ListItem>
 					)}
 				</List>
 			) : (
 				<Columns columns={2} gap="md">
 					{campaigns.map((campaign) => (
-						<Card key={campaign.name}>
+						<Card key={campaign.label}>
 							<CardBody>
-								<CardTitle>{campaign.name}</CardTitle>
+								<CardTitle>{campaign.label}</CardTitle>
 								<CardDescription>{campaign.description}</CardDescription>
 							</CardBody>
 						</Card>

@@ -4,32 +4,32 @@ import { Flex } from 'ui/flex'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
 import { Text } from 'ui/text'
 
-const steps = ['Shipping', 'Payment', 'Review']
+const steps = [
+	{ id: 'shipping', label: 'Shipping', description: 'Enter your shipping address.' },
+	{ id: 'payment', label: 'Payment', description: 'Enter your card details.' },
+	{ id: 'review', label: 'Review', description: 'Check your order before you pay.' },
+]
 
-const instructions: Record<string, string> = {
-	Shipping: 'Enter your shipping address.',
-	Payment: 'Enter your card details.',
-	Review: 'Check your order before you pay.',
-}
+const ids = steps.map((step) => step.id)
 
 export default function Controlled() {
-	const [step, setStep] = useState('Shipping')
+	const [step, setStep] = useState('shipping')
 
-	const index = steps.indexOf(step)
+	const index = ids.indexOf(step)
 
 	return (
-		<Tabs value={step} onValueChange={(value) => setStep(value ?? 'Shipping')}>
+		<Tabs value={step} onValueChange={(value) => setStep(value ?? 'shipping')}>
 			<TabList aria-label="Checkout">
-				{steps.map((name) => (
-					<Tab key={name} value={name}>
-						{name}
+				{steps.map(({ id, label }) => (
+					<Tab key={id} value={id}>
+						{label}
 					</Tab>
 				))}
 			</TabList>
 			<TabContents>
-				{steps.map((name) => (
-					<TabContent key={name} value={name}>
-						<Text tone="muted">{instructions[name]}</Text>
+				{steps.map(({ id, description }) => (
+					<TabContent key={id} value={id}>
+						<Text tone="muted">{description}</Text>
 					</TabContent>
 				))}
 			</TabContents>
@@ -37,13 +37,13 @@ export default function Controlled() {
 				<Button
 					variant="outline"
 					disabled={index === 0}
-					onClick={() => setStep(steps[index - 1] ?? step)}
+					onClick={() => setStep(ids[index - 1] ?? step)}
 				>
 					Back
 				</Button>
 				<Button
 					disabled={index === steps.length - 1}
-					onClick={() => setStep(steps[index + 1] ?? step)}
+					onClick={() => setStep(ids[index + 1] ?? step)}
 				>
 					Next
 				</Button>

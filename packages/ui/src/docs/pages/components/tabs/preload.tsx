@@ -5,40 +5,42 @@ import { Text } from 'ui/text'
 import { PointerHint } from '../../../kit/pointer-hint.tsx'
 
 const sections = [
-	{ name: 'Profile', text: 'Mia Chen joined the team in June.' },
-	{ name: 'Activity', text: 'Mia Chen closed three tasks this week.' },
-	{ name: 'Invoices', text: 'Mia Chen has no open invoices.' },
+	{ id: 'profile', label: 'Profile', text: 'Mia Chen joined the team in June.' },
+	{ id: 'activity', label: 'Activity', text: 'Mia Chen closed three tasks this week.' },
+	{ id: 'invoices', label: 'Invoices', text: 'Mia Chen has no open invoices.' },
 ]
 
 export default function Preload() {
 	const [warmed, setWarmed] = useState<string[]>([])
 
+	const labels = warmed.map((id) => sections.find((section) => section.id === id)?.label)
+
 	return (
 		<Stack gap="sm">
 			<Text tone="muted">
-				<PointerHint mouse="Point at a tab, or focus it." touch="Tap a tab." />
+				<PointerHint mouseText="Point at a tab, or focus it." touchText="Tap a tab." />
 			</Text>
-			<Tabs defaultValue="Profile">
+			<Tabs defaultValue="profile">
 				<TabList aria-label="Member">
 					{sections.map((section) => (
 						<Tab
-							key={section.name}
-							value={section.name}
+							key={section.id}
+							value={section.id}
 							onPreload={(value) => value && setWarmed((prev) => [...prev, value])}
 						>
-							{section.name}
+							{section.label}
 						</Tab>
 					))}
 				</TabList>
 				<TabContents>
 					{sections.map((section) => (
-						<TabContent key={section.name} value={section.name}>
+						<TabContent key={section.id} value={section.id}>
 							<Text tone="muted">{section.text}</Text>
 						</TabContent>
 					))}
 				</TabContents>
 			</Tabs>
-			<Text tone="muted">Preloaded: {warmed.length > 0 ? warmed.join(', ') : 'None'}</Text>
+			<Text tone="muted">Preloaded: {labels.length > 0 ? labels.join(', ') : 'None'}</Text>
 		</Stack>
 	)
 }

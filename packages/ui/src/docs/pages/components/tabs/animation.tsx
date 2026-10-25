@@ -24,17 +24,17 @@ export default function Animation() {
 					<SegmentItem value="off">Off</SegmentItem>
 				</SegmentControl>
 			</Segment>
-			<Tabs defaultValue="Account">
+			<Tabs defaultValue="account">
 				<TabList aria-label="Settings">
 					{settings.map((section) => (
-						<Tab key={section.name} value={section.name}>
-							{section.name}
+						<Tab key={section.id} value={section.id}>
+							{section.label}
 						</Tab>
 					))}
 				</TabList>
 				<TabContents animate={animations[animation]}>
 					{settings.map((section) => (
-						<TabContent key={section.name} value={section.name}>
+						<TabContent key={section.id} value={section.id}>
 							<Text tone="muted">{section.text}</Text>
 						</TabContent>
 					))}

@@ -1,6 +1,5 @@
 import { Stack, type StackProps } from 'ui/stack'
-
-const items = ['One', 'Two', 'Three']
+import { items } from '../items.ts'
 
 export default function StackPlayground(props: StackProps) {
 	return (

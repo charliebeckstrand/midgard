@@ -1,35 +1,27 @@
+import { useIntl } from 'ui/primitives/intl'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
 import { Text } from 'ui/text'
 
-const months = [
-	'January',
-	'February',
-	'March',
-	'April',
-	'May',
-	'June',
-	'July',
-	'August',
-	'September',
-	'October',
-	'November',
-	'December',
-]
-
 export default function Overflow() {
+	const { formatDate } = useIntl()
+
+	const months = Array.from({ length: 12 }, (_, month) =>
+		formatDate(new Date(2026, month, 1), { month: 'long' }),
+	)
+
 	return (
 		<div className="max-w-sm">
-			<Tabs defaultValue="September">
+			<Tabs defaultValue="8">
 				<TabList aria-label="Month">
-					{months.map((month) => (
-						<Tab key={month} value={month}>
+					{months.map((month, index) => (
+						<Tab key={month} value={String(index)}>
 							{month}
 						</Tab>
 					))}
 				</TabList>
 				<TabContents>
-					{months.map((month) => (
-						<TabContent key={month} value={month}>
+					{months.map((month, index) => (
+						<TabContent key={month} value={String(index)}>
 							<Text tone="muted">{month} has no invoices.</Text>
 						</TabContent>
 					))}

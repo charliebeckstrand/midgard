@@ -15,10 +15,15 @@ const dollars = { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }
 
 /** The hint names the gesture of the pointer that the device has. A tap on a touch screen selects. */
 export function FilterHint({ mark }: { mark: 'bar' | 'slice' }) {
-	return (
+	return mark === 'bar' ? (
 		<PointerHint
-			mouse={`Click a ${mark} to filter the other tiles`}
-			touch={`Tap a ${mark} to filter the other tiles`}
+			mouseText="Click a bar to filter the other tiles"
+			touchText="Tap a bar to filter the other tiles"
+		/>
+	) : (
+		<PointerHint
+			mouseText="Click a slice to filter the other tiles"
+			touchText="Tap a slice to filter the other tiles"
 		/>
 	)
 }
@@ -32,7 +37,7 @@ export function RevenueBars({ by }: RevenueBarsProps) {
 
 	return (
 		<BarChart
-			aria-label={`Revenue by ${by}`}
+			aria-label={by === 'region' ? 'Revenue by region' : 'Revenue by product'}
 			data={data}
 			series={[{ xKey: 'key', yKey: 'total', yName: 'Revenue' }]}
 			aspectRatio={false}
@@ -51,7 +56,7 @@ export function ProductMix() {
 		<DonutChart
 			aria-label="Revenue by product"
 			data={data}
-			series={[{ xKey: 'key', yKey: 'total' }]}
+			series={[{ xKey: 'key', yKey: 'total', yName: 'Revenue' }]}
 			aspectRatio={false}
 			categories={products}
 			selectedCategories={scope.selected('product')}
@@ -137,8 +142,6 @@ export function Kpi({ value }: KpiProps) {
 
 	const trend = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'
 
-	const name = value === 'units' ? 'Units' : 'Revenue'
-
 	const total = latest ? formatNumber(latest.total, value === 'revenue' ? dollars : undefined) : '–'
 
 	const percent = formatNumber(Math.abs(change), {
@@ -161,9 +164,9 @@ export function Kpi({ value }: KpiProps) {
 			</Stat>
 			<div className={flow.trend}>
 				<LineChart
-					aria-label={`${name} by month`}
+					aria-label={value === 'units' ? 'Units by month' : 'Revenue by month'}
 					data={data}
-					series={[{ xKey: 'key', yKey: 'total', yName: name }]}
+					series={[{ xKey: 'key', yKey: 'total', yName: value === 'units' ? 'Units' : 'Revenue' }]}
 					aspectRatio={false}
 				/>
 			</div>

@@ -6,9 +6,9 @@ import { Select, SelectLabel, SelectOption } from 'ui/select'
 import { Stack } from 'ui/stack'
 
 const plans = [
-	{ id: 'starter', name: 'Starter' },
-	{ id: 'team', name: 'Team' },
-	{ id: 'enterprise', name: 'Enterprise' },
+	{ id: 'starter', label: 'Starter' },
+	{ id: 'team', label: 'Team' },
+	{ id: 'enterprise', label: 'Enterprise' },
 ]
 
 type Signup = { name: string; email: string; plan: string | undefined; terms: boolean }
@@ -43,11 +43,11 @@ export default function ErrorSummary() {
 					<Select
 						name="plan"
 						placeholder="Select a plan"
-						displayValue={(id: string) => plans.find((plan) => plan.id === id)?.name ?? id}
+						displayValue={(id: string) => plans.find((plan) => plan.id === id)?.label ?? id}
 					>
 						{plans.map((plan) => (
 							<SelectOption key={plan.id} value={plan.id}>
-								<SelectLabel>{plan.name}</SelectLabel>
+								<SelectLabel>{plan.label}</SelectLabel>
 							</SelectOption>
 						))}
 					</Select>

@@ -1,7 +1,6 @@
 import { Field, Label } from 'ui/fieldset'
 import { Rating } from 'ui/rating'
-
-const levels = ['Unrated', 'Poor', 'Fair', 'Good', 'Great', 'Excellent']
+import { levels } from './levels.ts'
 
 export default function NamedLevels() {
 	return (

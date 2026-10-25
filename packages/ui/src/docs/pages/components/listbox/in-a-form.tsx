@@ -27,7 +27,7 @@ export default function InAForm() {
 					>
 						{teams.map((team) => (
 							<ListboxOption key={team.id} value={team.id}>
-								<ListboxLabel>{team.name}</ListboxLabel>
+								<ListboxLabel>{team.label}</ListboxLabel>
 							</ListboxOption>
 						))}
 					</Listbox>

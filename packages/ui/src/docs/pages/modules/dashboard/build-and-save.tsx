@@ -351,8 +351,8 @@ export default function BuildAndSave() {
 				className="w-full"
 				description={
 					<PointerHint
-						mouse="Select a template, add tiles, then drag and resize them."
-						touch="Select a template, add tiles, then drag them by their grips and resize them by their edges."
+						mouseText="Select a template, add tiles, then drag and resize them."
+						touchText="Select a template, add tiles, then drag them by their grips and resize them by their edges."
 					/>
 				}
 			/>

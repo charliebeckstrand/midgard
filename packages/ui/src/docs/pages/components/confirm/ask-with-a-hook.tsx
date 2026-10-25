@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button } from 'ui/button'
 import { useConfirm } from 'ui/confirm'
 import { Text } from 'ui/text'
+import { deleteResults } from './results.ts'
 
 /** Waits for a time, in place of a request to a server. */
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -9,7 +10,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 export default function AskWithAHook() {
 	const confirm = useConfirm()
 
-	const [result, setResult] = useState('None')
+	const [result, setResult] = useState<keyof typeof deleteResults>('none')
 
 	return (
 		<>
@@ -23,12 +24,12 @@ export default function AskWithAHook() {
 						action: () => wait(1000),
 					})
 
-					setResult(confirmed ? 'Deleted' : 'Kept')
+					setResult(confirmed ? 'deleted' : 'kept')
 				}}
 			>
 				Delete report
 			</Button>
-			<Text>Last result: {result}</Text>
+			<Text>Last result: {deleteResults[result]}</Text>
 		</>
 	)
 }
