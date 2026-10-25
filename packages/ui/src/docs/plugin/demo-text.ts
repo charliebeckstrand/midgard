@@ -115,7 +115,10 @@ function readJsxText(raw: string): string {
 		.trim()
 }
 
-/** Each string literal that `node` gives as its value, through a conditional or an operator. */
+/**
+ * Each string literal that `node` gives as its value, through a conditional,
+ * an operator, or a list.
+ */
 function findStrings(node: ESTree.Node | null | undefined): ESTree.Node[] {
 	if (!node) return []
 
@@ -136,6 +139,9 @@ function findStrings(node: ESTree.Node | null | undefined): ESTree.Node[] {
 
 	if (node.type === 'ArrowFunctionExpression' && node.expression) return findStrings(node.body)
 
+	if (node.type === 'ArrayExpression')
+		return node.elements.flatMap((element) => findStrings(element))
+
 	return []
 }
 
@@ -150,18 +156,21 @@ function readString(node: ESTree.Node): string {
 
 /**
  * The name of the argument of a value of a template: `count` for `count`, the
- * last property for a chain of properties, such as `name` for `row.name`, and
- * the name of the function for a call, such as `miles` for `miles(span)`.
- * Another value has no name.
+ * last property for a chain of properties, such as `name` for `row.name`, the
+ * name of the list for an item, such as `levels` for `levels[value]`, and the
+ * name of the function for a call, such as `miles` for `miles(span)`. Another
+ * value has no name.
  */
 function valueName(node: ESTree.Node): string | undefined {
 	if (node.type === 'Identifier') return node.name
 
 	if (node.type === 'CallExpression') return valueName(node.callee)
 
-	if (node.type !== 'MemberExpression' || node.computed || node.property.type !== 'Identifier') {
-		return undefined
-	}
+	if (node.type !== 'MemberExpression') return undefined
+
+	if (node.computed) return valueName(node.object)
+
+	if (node.property.type !== 'Identifier') return undefined
 
 	return valueName(node.object) && node.property.name
 }
@@ -234,6 +243,33 @@ function findChildren(node: ESTree.JSXElement | ESTree.JSXFragment, finder: Find
 			for (const text of findStrings(child.expression)) finder.add(text, 'string')
 		}
 	}
+}
+
+/**
+ * The demo texts that a component gives with `return`, such as the label of a
+ * trigger. React renders the value of a component, so its text is text for a
+ * person. A component is a function declaration whose name starts with a
+ * capital letter. The returns of a function in the component are not part of
+ * the component.
+ */
+function findReturns(node: ESTree.Function, finder: Finder): void {
+	if (!node.id || !/^[A-Z]/.test(node.id.name)) return
+
+	walk(node.body, (child) => {
+		if (
+			child.type === 'FunctionDeclaration' ||
+			child.type === 'FunctionExpression' ||
+			child.type === 'ArrowFunctionExpression'
+		) {
+			return false
+		}
+
+		if (child.type === 'ReturnStatement') {
+			for (const text of findStrings(child.argument)) finder.add(text, 'string')
+		}
+
+		return undefined
+	})
 }
 
 /** The demo text of a text attribute. */
@@ -323,7 +359,7 @@ function findWords(node: ESTree.CallExpression, file: string, finder: Finder): v
 }
 
 /** Calls `visit` on each node under `node`, in source order. */
-function walk(node: unknown, visit: (node: ESTree.Node) => void): void {
+function walk(node: unknown, visit: (node: ESTree.Node) => boolean | undefined): void {
 	if (!node || typeof node !== 'object') return
 
 	if (Array.isArray(node)) {
@@ -332,7 +368,7 @@ function walk(node: unknown, visit: (node: ESTree.Node) => void): void {
 		return
 	}
 
-	visit(node as ESTree.Node)
+	if (visit(node as ESTree.Node) === false) return
 
 	for (const [key, value] of Object.entries(node)) {
 		if (key !== 'parent' && value && typeof value === 'object') walk(value, visit)
@@ -446,6 +482,10 @@ export function findDemoText(program: ESTree.Program, code: string, file: string
 		if (node.type === 'JSXAttribute') findAttribute(node, finder)
 
 		if (node.type === 'Property') findProperty(node, finder)
+
+		if (node.type === 'FunctionDeclaration') findReturns(node, finder)
+
+		return undefined
 	})
 
 	return [...found.values()].toSorted((a, b) => a.start - b.start)

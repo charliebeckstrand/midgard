@@ -28,18 +28,25 @@ export const TEXT_ATTRIBUTES: ReadonlySet<string> = new Set([
 	'aria-placeholder',
 	'aria-roledescription',
 	'aria-valuetext',
+	'body',
+	'children',
 	'colorName',
+	'content',
 	'description',
 	'detail',
 	'label',
+	'labels',
 	'placeholder',
 	'sizeName',
+	'subtitle',
+	'summary',
+	'text',
 	'title',
 	'yName',
 ])
 
 /** The name of a prop that takes text, such as `emptyLabel`. */
-export const TEXT_PROP = /(?:Label|Title|Placeholder|Description|Detail|Text)$/
+export const TEXT_PROP = /(?:Label|Title|Header|Placeholder|Description|Detail|Text)$/
 
 /** Tells if an attribute, a prop, or a property named `name` carries text for a person. */
 export function isTextName(name: string): boolean {

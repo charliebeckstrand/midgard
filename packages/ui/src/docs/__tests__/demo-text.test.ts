@@ -77,6 +77,32 @@ describe('findDemoText', () => {
 		expect(texts(code)).toEqual(['{count} stops', '{count} stops, {miles} across'])
 	})
 
+	it('finds the text that a component gives, and leaves the text of another function', () => {
+		const code = `function TriggerLabel() {
+			const label = () => 'Code'
+
+			return open ? 'Hide details' : 'Show details'
+		}
+
+		function describe() {
+			return 'Code'
+		}`
+
+		expect(texts(code)).toEqual(['Hide details', 'Show details'])
+	})
+
+	it('finds each text of a list', () => {
+		const code = `export default () => <Slider labels={['Minimum', 'Maximum']} />`
+
+		expect(texts(code)).toEqual(['Minimum', 'Maximum'])
+	})
+
+	it('names the item of a list by the list', () => {
+		const code = `export default () => <Rating getValueText={(value) => \`\${value} of 5, \${levels[value]}\`} />`
+
+		expect(texts(code)).toEqual(['{value} of 5, {levels}'])
+	})
+
 	it('leaves a template whose values give one name twice', () => {
 		const code = `export default () => <p title={\`\${a.name} and \${b.name}\`} />`
 

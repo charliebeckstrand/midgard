@@ -19,7 +19,7 @@ export default function Controlled() {
 				>
 					{countries.map((country) => (
 						<SelectOption key={country.code} value={country.code}>
-							<SelectLabel>{country.name}</SelectLabel>
+							<SelectLabel>{country.label}</SelectLabel>
 						</SelectOption>
 					))}
 				</Select>

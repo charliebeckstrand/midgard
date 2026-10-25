@@ -6,33 +6,33 @@ import { Sparkline } from 'ui/sparkline'
 type NumberFormat = Parameters<IntlShape['formatNumber']>[1]
 
 // The current value of a metric is a number, with the format of its kind.
-type Metric = { id: number; name: string; current: number; format: NumberFormat; trend: number[] }
+type Metric = { id: number; label: string; current: number; format: NumberFormat; trend: number[] }
 
 const metrics: Metric[] = [
 	{
 		id: 1,
-		name: 'Revenue',
+		label: 'Revenue',
 		current: 48_200,
 		format: { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 },
 		trend: [12, 14, 13, 18, 22, 21, 27, 30, 28, 34, 39, 44],
 	},
 	{
 		id: 2,
-		name: 'Signups',
+		label: 'Signups',
 		current: 1204,
 		format: {},
 		trend: [40, 38, 42, 35, 33, 30, 34, 28, 25, 27, 22, 19],
 	},
 	{
 		id: 3,
-		name: 'Latency',
+		label: 'Latency',
 		current: 128,
 		format: { style: 'unit', unit: 'millisecond' },
 		trend: [8, 9, 7, 11, 6, 12, 5, 10, 7, 9, 6, 8],
 	},
 	{
 		id: 4,
-		name: 'Errors',
+		label: 'Errors',
 		current: 0.004,
 		format: { style: 'percent', maximumFractionDigits: 1 },
 		trend: [2, 1, 3, 1, 0, 2, 1, 4, 1, 0, 1, 0],
@@ -44,7 +44,7 @@ const metrics: Metric[] = [
 // sparkline draws again in the new order.
 function sparklineColumns(sortKey: string, intl: IntlShape): GridColumn<Metric>[] {
 	return [
-		{ id: 'name', title: 'Metric', cell: (row) => row.name },
+		{ id: 'name', title: 'Metric', cell: (row) => row.label },
 		{
 			id: 'current',
 			title: 'Current',
@@ -62,7 +62,7 @@ function sparklineColumns(sortKey: string, intl: IntlShape): GridColumn<Metric>[
 					fill
 					endPoint
 					animate
-					aria-label={`${row.name} trend, last 12 periods`}
+					aria-label={`${row.label} trend, last 12 periods`}
 				/>
 			),
 		},
@@ -77,7 +77,7 @@ function sparklineColumns(sortKey: string, intl: IntlShape): GridColumn<Metric>[
 					shape="bar"
 					color="green"
 					animate
-					aria-label={`${row.name} by period, last 12 periods`}
+					aria-label={`${row.label} by period, last 12 periods`}
 				/>
 			),
 		},

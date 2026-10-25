@@ -12,8 +12,8 @@ export default function PasteAndFill() {
 		<>
 			<EditHelp label="Paste and fill help">
 				<PointerHint
-					mouse="Select a range, then paste with Ctrl+V or Cmd+V, or fill down with Ctrl+D or Cmd+D."
-					touch="Use a keyboard or a mouse to select a range and paste into it."
+					mouseText="Select a range, then paste with Ctrl+V or Cmd+V, or fill down with Ctrl+D or Cmd+D."
+					touchText="Use a keyboard or a mouse to select a range and paste into it."
 				/>
 			</EditHelp>
 			<Grid

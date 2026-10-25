@@ -1,5 +1,6 @@
 import { Field, Label } from 'ui/fieldset'
 import { TagInput } from 'ui/tag-input'
+import { topics } from '../../../data/topics.ts'
 
 export default function Wrap() {
 	return (
@@ -7,7 +8,13 @@ export default function Wrap() {
 			<Label>Topics</Label>
 			<TagInput
 				wrap
-				defaultValue={['Design systems', 'Accessibility', 'Forms', 'Motion', 'Typography']}
+				defaultValue={[
+					topics.designSystems,
+					topics.accessibility,
+					topics.forms,
+					topics.motion,
+					topics.typography,
+				]}
 			/>
 		</Field>
 	)

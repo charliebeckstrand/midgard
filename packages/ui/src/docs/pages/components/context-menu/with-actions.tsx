@@ -8,17 +8,19 @@ export default function WithActions() {
 
 	const items = useMemo<ContextMenuItem[]>(
 		() => [
-			{ key: 'rename', label: 'Rename', icon: <Pencil />, onAction: () => setAction('Rename') },
+			{ key: 'rename', label: 'Rename', icon: <Pencil />, onAction: () => setAction('rename') },
 			{
 				key: 'duplicate',
 				label: 'Duplicate',
 				icon: <Copy />,
-				onAction: () => setAction('Duplicate'),
+				onAction: () => setAction('duplicate'),
 			},
 			{ key: 'delete', label: 'Delete', icon: <Trash />, disabled: true },
 		],
 		[],
 	)
+
+	const label = items.find((item) => item.key === action)?.label
 
 	return (
 		<>
@@ -27,7 +29,7 @@ export default function WithActions() {
 					<Text className="select-none">quarterly-report.pdf</Text>
 				</div>
 			</ContextMenu>
-			<Text>Last action: {action ?? 'None'}</Text>
+			<Text>Last action: {label ?? 'None'}</Text>
 		</>
 	)
 }

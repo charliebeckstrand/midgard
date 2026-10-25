@@ -6,7 +6,7 @@ export default function SegmentLabels() {
 		<PieChart
 			aria-label="Traffic by source"
 			data={sources}
-			series={[{ xKey: 'source', yKey: 'visits' }]}
+			series={[{ xKey: 'source', yKey: 'visits', yName: 'Visits' }]}
 			labels={{ segment: true }}
 		/>
 	)

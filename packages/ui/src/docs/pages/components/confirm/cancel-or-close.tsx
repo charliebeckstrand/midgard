@@ -2,20 +2,28 @@ import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Text } from 'ui/text'
+import { words } from '../../../data/words.ts'
 import { PointerHint } from '../../../kit/pointer-hint.tsx'
 
-type Result = 'None' | 'Confirmed' | 'Canceled' | 'Closed'
+const results = words('dialog-result', {
+	none: 'None',
+	confirmed: 'Confirmed',
+	canceled: 'Canceled',
+	closed: 'Closed',
+})
+
+type Result = keyof typeof results
 
 export default function CancelOrClose() {
 	const [open, setOpen] = useState(false)
 
-	const [result, setResult] = useState<Result>('None')
+	const [result, setResult] = useState<Result>('none')
 
 	return (
 		<>
 			<Button
 				onClick={() => {
-					setResult('None')
+					setResult('none')
 					setOpen(true)
 				}}
 			>
@@ -26,23 +34,23 @@ export default function CancelOrClose() {
 				onOpenChange={(next) => {
 					setOpen(next)
 					// The Cancel button also closes the dialog. Keep its result.
-					if (!next) setResult((prev) => (prev === 'Canceled' ? prev : 'Closed'))
+					if (!next) setResult((prev) => (prev === 'canceled' ? prev : 'closed'))
 				}}
-				onCancel={() => setResult('Canceled')}
+				onCancel={() => setResult('canceled')}
 				onConfirm={() => {
-					setResult('Confirmed')
+					setResult('confirmed')
 					setOpen(false)
 				}}
 				title="Archive the project?"
 				description={
 					<PointerHint
-						mouse="Press Escape or click the backdrop to close the dialog without an answer."
-						touch="Tap the backdrop to close the dialog without an answer."
+						mouseText="Press Escape or click the backdrop to close the dialog without an answer."
+						touchText="Tap the backdrop to close the dialog without an answer."
 					/>
 				}
 				confirm={{ label: 'Archive' }}
 			/>
-			<Text>Last result: {result}</Text>
+			<Text>Last result: {results[result]}</Text>
 		</>
 	)
 }

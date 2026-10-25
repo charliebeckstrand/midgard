@@ -1,6 +1,9 @@
 import { Markdown, type MarkdownProps } from 'ui/markdown'
 
-const PROSE = `
+export default function MarkdownPlayground(props: MarkdownProps) {
+	return (
+		<Markdown headingOffset={2} {...props}>
+			{`
 # Release notes
 
 Version 2.4 adds **search in attachments**. Run \`app update\` to get it, or
@@ -20,12 +23,7 @@ export function isLatest(version: string) {
 	return version === '2.4'
 }
 \`\`\`
-`
-
-export default function MarkdownPlayground(props: MarkdownProps) {
-	return (
-		<Markdown headingOffset={2} {...props}>
-			{PROSE}
+`}
 		</Markdown>
 	)
 }

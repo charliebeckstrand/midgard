@@ -113,8 +113,8 @@ export default function NewRow() {
 				</Flex>
 				<EditHelp label="New row help">
 					<PointerHint
-						mouse="Fill in the blank row, then press Enter to add the person."
-						touch="Fill in the blank row, then press Return to add the person."
+						mouseText="Fill in the blank row, then press Enter to add the person."
+						touchText="Fill in the blank row, then press Return to add the person."
 					/>
 				</EditHelp>
 			</Flex>

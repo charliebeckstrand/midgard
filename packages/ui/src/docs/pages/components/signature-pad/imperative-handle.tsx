@@ -4,21 +4,32 @@ import { Flex } from 'ui/flex'
 import { SignaturePad, type SignaturePadHandle } from 'ui/signature-pad'
 import { Text } from 'ui/text'
 
+/** The state of the last save, or the length of the data URL of the saved PNG. */
+type SaveStatus = 'unsaved' | 'empty' | { characters: number }
+
+function StatusText({ status }: { status: SaveStatus }) {
+	if (status === 'unsaved') return 'Not saved'
+
+	if (status === 'empty') return 'Sign before you save.'
+
+	return `Saved a PNG of ${status.characters} characters`
+}
+
 export default function ImperativeHandle() {
 	const pad = useRef<SignaturePadHandle>(null)
 
-	const [status, setStatus] = useState('Not saved')
+	const [status, setStatus] = useState<SaveStatus>('unsaved')
 
 	function save() {
 		const image = pad.current?.isEmpty() ? null : pad.current?.toDataURL()
 
-		setStatus(image ? `Saved a PNG of ${image.length} characters` : 'Sign before you save.')
+		setStatus(image ? { characters: image.length } : 'empty')
 	}
 
 	function clear() {
 		pad.current?.clear()
 
-		setStatus('Not saved')
+		setStatus('unsaved')
 	}
 
 	return (
@@ -30,7 +41,9 @@ export default function ImperativeHandle() {
 					Clear
 				</Button>
 			</Flex>
-			<Text>{status}</Text>
+			<Text>
+				<StatusText status={status} />
+			</Text>
 		</>
 	)
 }

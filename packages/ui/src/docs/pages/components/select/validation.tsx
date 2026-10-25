@@ -10,7 +10,7 @@ export default function Validation() {
 				<Select placeholder="Select a country" displayValue={countryName}>
 					{countries.map((country) => (
 						<SelectOption key={country.code} value={country.code}>
-							<SelectLabel>{country.name}</SelectLabel>
+							<SelectLabel>{country.label}</SelectLabel>
 						</SelectOption>
 					))}
 				</Select>
@@ -21,7 +21,7 @@ export default function Validation() {
 				<Select defaultValue="jp" displayValue={countryName}>
 					{countries.map((country) => (
 						<SelectOption key={country.code} value={country.code}>
-							<SelectLabel>{country.name}</SelectLabel>
+							<SelectLabel>{country.label}</SelectLabel>
 						</SelectOption>
 					))}
 				</Select>
@@ -32,7 +32,7 @@ export default function Validation() {
 				<Select defaultValue="ca" displayValue={countryName}>
 					{countries.map((country) => (
 						<SelectOption key={country.code} value={country.code}>
-							<SelectLabel>{country.name}</SelectLabel>
+							<SelectLabel>{country.label}</SelectLabel>
 						</SelectOption>
 					))}
 				</Select>

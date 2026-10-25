@@ -5,6 +5,7 @@ import { Form, FormReset, FormSubmit, useFormStatus } from 'ui/form'
 import { Input } from 'ui/input'
 import { Stack } from 'ui/stack'
 import { Textarea } from 'ui/textarea'
+import { words } from '../../../data/words.ts'
 
 function Actions() {
 	const status = useFormStatus()
@@ -18,10 +19,12 @@ function Actions() {
 	)
 }
 
+const profile = words('profile', { bio: 'Product designer on the checkout team.' })
+
 export default function UnsavedChanges() {
 	return (
 		<Form
-			defaultValues={{ username: 'wade', bio: 'Product designer on the checkout team.' }}
+			defaultValues={{ username: 'wade', bio: profile.bio }}
 			validate={{
 				username: (value) => (value.length < 3 ? 'Use at least 3 characters.' : undefined),
 			}}

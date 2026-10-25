@@ -30,7 +30,7 @@ export default function LegendPlacement() {
 			<PieChart
 				aria-label="Traffic by source"
 				data={sources}
-				series={[{ xKey: 'source', yKey: 'visits' }]}
+				series={[{ xKey: 'source', yKey: 'visits', yName: 'Visits' }]}
 				legend={placement}
 			/>
 		</>

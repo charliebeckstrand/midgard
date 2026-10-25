@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { Field, Label } from 'ui/fieldset'
 import { TagInput } from 'ui/tag-input'
 import { Text } from 'ui/text'
+import { topics } from '../../../data/topics.ts'
 
 export default function Controlled() {
-	const [tags, setTags] = useState(['Research', 'Writing'])
+	const [tags, setTags] = useState([topics.research, topics.writing])
 
 	return (
 		<>

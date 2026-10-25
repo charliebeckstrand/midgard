@@ -4,12 +4,16 @@ import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { pages } from './statement.ts'
 
+function MagnifierSummary({ state }: { state: PdfViewerMagnifierState | null }) {
+	if (!state) return 'None'
+
+	return state.enabled
+		? `On, zoom ${state.zoom}, size ${state.size}, delay ${state.delay}`
+		: `Off, zoom ${state.zoom}, size ${state.size}, delay ${state.delay}`
+}
+
 export default function MagnifierSettings() {
 	const [state, setState] = useState<PdfViewerMagnifierState | null>(null)
-
-	const summary = state
-		? `${state.enabled ? 'On' : 'Off'}, zoom ${state.zoom}, size ${state.size}, delay ${state.delay}`
-		: 'None'
 
 	return (
 		<Stack gap="md">
@@ -19,7 +23,9 @@ export default function MagnifierSettings() {
 				onMagnifierChange={setState}
 				aria-label="Invoice 1046"
 			/>
-			<Text tone="muted">Last change: {summary}</Text>
+			<Text tone="muted">
+				Last change: <MagnifierSummary state={state} />
+			</Text>
 		</Stack>
 	)
 }

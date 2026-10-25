@@ -1,6 +1,7 @@
 import { Flex, type FlexProps } from 'ui/flex'
+import { words } from '../../../data/words.ts'
 
-const items = ['One', 'Two', 'Three']
+const items = Object.values(words('count', { one: 'One', two: 'Two', three: 'Three' }))
 
 export default function FlexPlayground(props: FlexProps) {
 	return (
