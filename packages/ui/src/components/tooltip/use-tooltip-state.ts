@@ -23,8 +23,10 @@ import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
 import { noop } from '../../utilities/noop'
+import type { TooltipContextValue } from './context'
 import type { TooltipProps } from './tooltip'
 import { reopensOnEnable, type TooltipIntent } from './tooltip-intent'
+import { isTooltipOpen, type TooltipOpenSources } from './tooltip-open'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
 
 /** Options for {@link useTooltipState}. @internal */
@@ -103,8 +105,17 @@ function replayIntent(
 }
 
 /**
+ * The state that {@link useTooltipState} gives: the value shared through
+ * context, and the sources of its open state. @internal
+ */
+export type TooltipState = {
+	value: TooltipContextValue
+	sources: TooltipOpenSources
+}
+
+/**
  * Floating, hover/focus/click interaction, and disabled-suppression state for
- * {@link Tooltip}, returned as the value shared through context.
+ * {@link Tooltip}, with the value shared through context.
  *
  * @remarks `trigger` selects hover or click, and keyboard focus opens with either.
  * A hover trigger opens on a mouse or pen hover only, so a tap does not open it.
@@ -151,20 +162,21 @@ export function useTooltipState({
 		role: dialog ? 'dialog' : 'tooltip',
 		placement,
 		offset: 8,
-		open: (enabled && held && !heldDisabled) || requested,
+		open: isTooltipOpen(enabled, held, { requested, heldDisabled }),
 		onOpenChange: setRequested,
 		gate: (next, gateRefs) =>
 			!next || (enabled && !isReferenceDisabled(gateRefs.reference.current)),
 	})
 
-	// Adjusted during render: a tooltip that turns off while open closes in the
-	// same render.
+	// Adjusted during render: a tooltip that turns off drops the request, so it
+	// does not open again when it turns on. The open state is already closed in
+	// this render.
 	const [prevEnabled, setPrevEnabled] = useState(enabled)
 
 	if (prevEnabled !== enabled) {
 		setPrevEnabled(enabled)
 
-		if (!enabled && open) setOpen(false)
+		if (!enabled) setRequested(false)
 	}
 
 	// Whether the reference matches `:disabled`, read from the DOM as an external
@@ -331,7 +343,7 @@ export function useTooltipState({
 
 	useEffect(() => () => stopReplayRef.current?.(), [])
 
-	return useMemo(
+	const value = useMemo<TooltipContextValue>(
 		() => ({
 			open,
 			interactive,
@@ -358,5 +370,10 @@ export function useTooltipState({
 			getFloatingProps,
 			context,
 		],
+	)
+
+	return useMemo(
+		() => ({ value, sources: { requested, heldDisabled } }),
+		[value, requested, heldDisabled],
 	)
 }

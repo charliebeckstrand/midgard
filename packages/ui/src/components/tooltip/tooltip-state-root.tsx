@@ -1,8 +1,8 @@
 'use client'
 
 import { memo, type ReactNode, useLayoutEffect } from 'react'
-import { TooltipContext, type TooltipContextValue } from './context'
-import { type TooltipStateOptions, useTooltipState } from './use-tooltip-state'
+import { TooltipContext } from './context'
+import { type TooltipState, type TooltipStateOptions, useTooltipState } from './use-tooltip-state'
 
 /** Props for {@link TooltipStateRoot}. @internal */
 export type TooltipStateRootProps = TooltipStateOptions & { children: ReactNode }
@@ -14,38 +14,42 @@ export type TooltipStateRootProps = TooltipStateOptions & { children: ReactNode 
  * @internal
  */
 export function TooltipStateRoot({ children, ...options }: TooltipStateRootProps) {
-	const value = useTooltipState(options)
+	const { value } = useTooltipState(options)
 
 	return <TooltipContext value={value}>{children}</TooltipContext>
 }
 
 /** Props for {@link TooltipStateHost}. @internal */
 export type TooltipStateHostProps = TooltipStateOptions & {
-	/** Receives each new value of the tooltip state. */
-	onState: (value: TooltipContextValue) => void
+	/** Receives each new tooltip state. */
+	onState: (state: TooltipState) => void
 }
 
 /**
- * Runs {@link useTooltipState} for a `<Tooltip>` and gives each value to the
- * root, which shares it through context. It renders nothing. The root renders
- * it beside its children when the module loads, so the children keep their
- * place in the tree and do not mount again.
+ * Runs {@link useTooltipState} for a `<Tooltip>` and gives each state to the
+ * root, which shares its value through context. It renders nothing. The root
+ * renders it beside its children when the module loads, so the children keep
+ * their place in the tree and do not mount again.
  *
- * @remarks The host is memoized. The root renders again for each value that
+ * @remarks The host is memoized. The root renders again for each state that
  * the host gives, with the same props, and the memo stops that render at the
  * host.
+ *
+ * The state comes one render after the props that it reads. Thus the root
+ * gets the sources of the open state too, and finds the open state of its own
+ * props with them.
  * @internal
  */
 export const TooltipStateHost = memo(function TooltipStateHost({
 	onState,
 	...options
 }: TooltipStateHostProps) {
-	const value = useTooltipState(options)
+	const state = useTooltipState(options)
 
 	// Before paint, so the root shares the value in the same commit.
 	useLayoutEffect(() => {
-		onState(value)
-	}, [onState, value])
+		onState(state)
+	}, [onState, state])
 
 	return null
 })
