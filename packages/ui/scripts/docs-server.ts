@@ -22,7 +22,7 @@
  */
 
 import { readFile, stat } from 'node:fs/promises'
-import { createServer, type Server } from 'node:http'
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -68,15 +68,33 @@ async function inLocale(file: string, locale: string): Promise<string> {
 }
 
 /**
- * The file that a path of the site gets, or `undefined` for a path that does
- * not decode, such as `/%E0%A4%A`. The server answers such a path with 400. An
- * HTML page goes in `locale` when the build has the page in that locale.
+ * The path of a request-target, such as `/button` for `/button?tab=code`, or
+ * `undefined` for a target that does not start with `/`, such as `*` or
+ * `http://localhost/button`. The server answers such a target with 400.
+ *
+ * The function does not parse the target as a URL. A URL parse reads the
+ * `//button` path as the host `button`, and it throws on a bad host, such as
+ * the host of `//[`.
+ */
+export function targetPathname(target: string): string | undefined {
+	return target.startsWith('/') ? target.replace(/[?#].*/s, '') : undefined
+}
+
+/**
+ * The file that a request-target gets, or `undefined` for a target that has no
+ * path (`targetPathname`) or whose path does not decode, such as `/%E0%A4%A`.
+ * The server answers such a target with 400. An HTML page goes in `locale`
+ * when the build has the page in that locale.
  */
 export async function resolveFile(
 	root: string,
-	pathname: string,
+	target: string,
 	locale = 'en',
 ): Promise<string | undefined> {
+	const pathname = targetPathname(target)
+
+	if (pathname === undefined) return undefined
+
 	let decoded: string
 
 	try {
@@ -118,6 +136,47 @@ function cacheHeaders(file: string): Record<string, string> {
 	return { 'cache-control': 'public, max-age=3600' }
 }
 
+/** Answer a request with the file of its path. */
+async function respond(request: IncomingMessage, response: ServerResponse): Promise<void> {
+	if (request.method !== 'GET' && request.method !== 'HEAD') {
+		response.writeHead(405, { allow: 'GET, HEAD' }).end()
+
+		return
+	}
+
+	const locale = requestLocale({
+		cookie: request.headers.cookie,
+		acceptLanguage: request.headers['accept-language'],
+	})
+
+	const file = await resolveFile(CLIENT_DIR, request.url ?? '/', locale)
+
+	if (file === undefined) {
+		response.writeHead(400).end()
+
+		return
+	}
+
+	const type = TYPES[path.extname(file)] ?? 'application/octet-stream'
+
+	// A file that the server cannot read gives 500, and the server keeps running.
+	const body = await readFile(file).catch(() => undefined)
+
+	if (body === undefined) {
+		response.writeHead(500).end()
+
+		return
+	}
+
+	response.writeHead(200, {
+		'content-type': type,
+		'content-length': body.length,
+		...cacheHeaders(file),
+	})
+
+	response.end(request.method === 'HEAD' ? undefined : body)
+}
+
 /**
  * Start the server of the docs build on `host`, and give its origin, such as
  * `http://localhost:3456`.
@@ -126,48 +185,13 @@ export async function serveDocs(
 	port: number,
 	host = 'localhost',
 ): Promise<{ origin: string; server: Server }> {
-	const server = createServer(async (request, response) => {
-		if (request.method !== 'GET' && request.method !== 'HEAD') {
-			response.writeHead(405, { allow: 'GET, HEAD' }).end()
+	const server = createServer((request, response) => {
+		// A response that fails gives 500, and the server keeps running.
+		respond(request, response).catch(() => {
+			if (!response.headersSent) response.writeHead(500)
 
-			return
-		}
-
-		const locale = requestLocale({
-			cookie: request.headers.cookie,
-			acceptLanguage: request.headers['accept-language'],
+			response.end()
 		})
-
-		const file = await resolveFile(
-			CLIENT_DIR,
-			new URL(request.url ?? '/', 'http://localhost').pathname,
-			locale,
-		)
-
-		if (file === undefined) {
-			response.writeHead(400).end()
-
-			return
-		}
-
-		const type = TYPES[path.extname(file)] ?? 'application/octet-stream'
-
-		// A file that the server cannot read gives 500, and the server keeps running.
-		const body = await readFile(file).catch(() => undefined)
-
-		if (body === undefined) {
-			response.writeHead(500).end()
-
-			return
-		}
-
-		response.writeHead(200, {
-			'content-type': type,
-			'content-length': body.length,
-			...cacheHeaders(file),
-		})
-
-		response.end(request.method === 'HEAD' ? undefined : body)
 	})
 
 	await new Promise<void>((done) => server.listen(port, host, done))

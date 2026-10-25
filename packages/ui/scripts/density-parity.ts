@@ -225,7 +225,7 @@ function pagesIn(root: string, config: Config, listed: readonly string[] | undef
  */
 async function serve(root: string): Promise<{ origin: string; close: () => void }> {
 	const server = createServer(async (request, response) => {
-		const file = await resolveFile(root, new URL(request.url ?? '/', 'http://localhost').pathname)
+		const file = await resolveFile(root, request.url ?? '/')
 
 		if (file === undefined) {
 			response.writeHead(400).end()
