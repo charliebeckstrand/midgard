@@ -4,7 +4,8 @@ import { MapPlat } from 'ui/map'
 import { Select, SelectLabel, SelectOption } from 'ui/select'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
-import { stateName, states, timezones, zoneCategories } from './data.ts'
+import { stateLabel } from '../../../data/us-states.ts'
+import { labelOfState, stateName, states, timezones, zoneCategories } from './data.ts'
 
 export default function SelectAState() {
 	// One value drives the map and the select, so they always show the same state.
@@ -28,17 +29,19 @@ export default function SelectAState() {
 					placeholder="Select a state"
 					value={picked}
 					onValueChange={setPicked}
-					displayValue={(state: string) => state}
+					displayValue={labelOfState}
 					clearable
 				>
 					{timezones.map((row) => (
 						<SelectOption key={row.state} value={row.state}>
-							<SelectLabel>{row.state}</SelectLabel>
+							<SelectLabel>{labelOfState(row.state)}</SelectLabel>
 						</SelectOption>
 					))}
 				</Select>
 			</Flex>
-			<Text>{picked === null ? 'Value: Empty' : `Value: ${picked} (${zone} time)`}</Text>
+			<Text>
+				{picked === null ? 'Value: Empty' : `Value: ${labelOfState(picked)} (${zone} time)`}
+			</Text>
 			<MapPlat
 				aria-label="US time zones"
 				geography={states}
@@ -49,6 +52,7 @@ export default function SelectAState() {
 				colorName="Time zone"
 				categories={zoneCategories}
 				regionId={stateName}
+				regionLabel={stateLabel}
 				onRegionClick={pick}
 				selectedRegion={picked}
 				legend="right"

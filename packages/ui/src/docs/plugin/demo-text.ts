@@ -62,8 +62,8 @@ export function demoFolders(docs: string): readonly string[] {
 /** The module of `words`, which gives the words of the demo data. */
 const WORDS_MODULE = path.resolve(import.meta.dirname, '..', 'data', 'words.ts')
 
-/** The form of a domain and of a key of a word, such as `order-status` and `inProgress`. */
-const WORD_KEY = /^[A-Za-z][A-Za-z0-9-]*$/
+/** The form of a domain and of a key of a word, such as `order-status`, `inProgress`, and the code `37`. */
+const WORD_KEY = /^[A-Za-z0-9][A-Za-z0-9-]*$/
 
 /** How a demo text is written in the source, which sets how a translation replaces it. */
 type Form = 'jsx' | 'string' | 'attribute'

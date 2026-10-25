@@ -5,11 +5,12 @@ import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
 import { MapPlat } from 'ui/map'
 import { Stack } from 'ui/stack'
+import { stateLabel } from '../../../../data/us-states.ts'
 import { useFail } from '../../../../kit/fail.ts'
 import { stateFrame, stateName, states, timezones, zoneCategories } from '../data.ts'
 import { type CountiesByState, loadCounties } from './data.ts'
 
-type DrilledState = { name: string; fips: string }
+type DrilledState = { name: string; label: string; fips: string }
 
 export default function DrillIntoCounties() {
 	const [drilled, setDrilled] = useState<DrilledState | null>(null)
@@ -26,7 +27,13 @@ export default function DrillIntoCounties() {
 
 	// When the load fails, the error boundary shows the failure.
 	const drill = (name: string, index: number) => {
-		setDrilled({ name, fips: String(states.features[index]?.id ?? '') })
+		const state = states.features[index]
+
+		setDrilled({
+			name,
+			label: state === undefined ? name : stateLabel(state),
+			fips: String(state?.id ?? ''),
+		})
 
 		setCounty(null)
 
@@ -51,7 +58,7 @@ export default function DrillIntoCounties() {
 	// Each county gets a row, so the map names the county under the pointer. The
 	// atlas has no measure, so the category of each county is its state.
 	const rows = useMemo(() => {
-		const state = drilled?.name ?? ''
+		const state = drilled?.label ?? ''
 
 		return (counties?.features ?? []).map((feature) => ({ id: String(feature.id), state }))
 	}, [counties, drilled])
@@ -68,7 +75,7 @@ export default function DrillIntoCounties() {
 			{drilled !== null ? (
 				<MapPlat
 					ref={mapRef}
-					aria-label={`Counties of ${drilled.name}`}
+					aria-label={`Counties of ${drilled.label}`}
 					geography={counties ?? frame}
 					projection="albers-usa"
 					data={rows}
@@ -88,6 +95,7 @@ export default function DrillIntoCounties() {
 					categoryKey="zone"
 					categories={zoneCategories}
 					regionId={stateName}
+					regionLabel={stateLabel}
 					onRegionPreload={warmCounties}
 					onRegionClick={drill}
 					legend="right"

@@ -121,6 +121,17 @@ describe('findDemoText', () => {
 		])
 	})
 
+	it('takes a code as the key of a word', () => {
+		const code = `
+			import { words } from '../../../data/words.ts'
+			export const states = words('us-state', { '37': 'North Carolina' })
+		`
+
+		expect(findDemoText(parse(code), code, FILE).map(({ id }) => id)).toEqual([
+			'docs.data.us-state.37',
+		])
+	})
+
 	it('fails on a word that is not a literal', () => {
 		const code = `
 			import { words } from '../../../data/words.ts'

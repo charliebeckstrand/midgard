@@ -4,7 +4,7 @@ import { MapPlat, MapPoints } from 'ui/map'
 import { useIntl } from 'ui/primitives/intl'
 import { Select, SelectLabel, SelectOption } from 'ui/select'
 import { Stack } from 'ui/stack'
-import { miles, stateFrame } from '../data.ts'
+import { labelOfState, miles, stateFrame } from '../data.ts'
 import { deliveryStops, stopStates } from './data.ts'
 
 // The select offers each state that holds a stop.
@@ -43,12 +43,12 @@ export default function Clustering() {
 					placeholder="All states"
 					value={picked}
 					onValueChange={pickState}
-					displayValue={(state: string) => state}
+					displayValue={labelOfState}
 					clearable
 				>
 					{selectable.map((state) => (
 						<SelectOption key={state} value={state}>
-							<SelectLabel>{state}</SelectLabel>
+							<SelectLabel>{labelOfState(state)}</SelectLabel>
 						</SelectOption>
 					))}
 				</Select>
