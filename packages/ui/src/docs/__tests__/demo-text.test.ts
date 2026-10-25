@@ -55,8 +55,8 @@ describe('findDemoText', () => {
 		expect(texts(code)).toEqual(['For more information, see the guide.'])
 	})
 
-	it('leaves code as it is: a value, a class, and a template with a call', () => {
-		const code = `export default () => <Select value="draft" className="flex" aria-label={\`Row \${row(n)}\`} />`
+	it('leaves code as it is: a value, a class, and a template with a sum', () => {
+		const code = `export default () => <Select value="draft" className="flex" aria-label={\`Row \${n + 1}\`} />`
 
 		expect(texts(code)).toEqual([])
 	})
@@ -67,6 +67,14 @@ describe('findDemoText', () => {
 		)`
 
 		expect(texts(code)).toEqual(['Edit {name}, row {index}', '{count} stops'])
+	})
+
+	it('finds a template with a call, and the text that an arrow function gives', () => {
+		const code = `export default () => (
+			<MapPoints detail={\`\${count} stops\`} clusterDetail={(count, span) => \`\${count} stops, \${miles(span)} across\`} />
+		)`
+
+		expect(texts(code)).toEqual(['{count} stops', '{count} stops, {miles} across'])
 	})
 
 	it('leaves a template whose values give one name twice', () => {

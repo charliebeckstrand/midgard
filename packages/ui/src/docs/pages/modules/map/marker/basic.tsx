@@ -1,8 +1,11 @@
 import { MapMarker, MapPlat } from 'ui/map'
+import { useIntl } from 'ui/primitives/intl'
 import { miles, states } from '../data.ts'
 import { lineHaul, useRoute } from '../routes.ts'
 
 export default function Basic() {
+	const intl = useIntl()
+
 	const route = useRoute(lineHaul.start, lineHaul.end)
 
 	return (
@@ -19,7 +22,7 @@ export default function Basic() {
 					start={lineHaul.start}
 					end={lineHaul.end}
 					path={route.path}
-					detail={miles(route.distanceMeters)}
+					detail={miles(route.distanceMeters, intl)}
 				/>
 			)}
 		</MapPlat>

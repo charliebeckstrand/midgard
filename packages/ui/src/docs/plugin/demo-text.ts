@@ -25,13 +25,16 @@ import type { Parser } from './examples.ts'
 // a string as a JSX child, and the value of a text attribute or a text prop
 // (`isTextName`). The same names make a property of an object text, such as
 // the `label` of an option in a data module. A string that a conditional, a
-// `??`, a `||`, a `&&`, or a `+` gives is text in the same places.
+// `??`, a `||`, a `&&`, or a `+` gives is text in the same places. The string
+// that an arrow function gives is text too, such as the value of a callback
+// prop `clusterDetail`.
 //
-// A template with values is text in the same places when each value is a name
-// or a property, such as `` `${count} stops` `` or `` `Edit ${row.name}` ``. Its
-// message holds an argument for each value, such as `{count} stops`, and the
-// copy writes the template again from the translation. A template with
-// another value, such as a call, stays as written.
+// A template with values is text in the same places when each value is a
+// name, a property, or a call, such as `` `${count} stops` ``,
+// `` `Edit ${row.name}` ``, or `` `${miles(span)} across` ``. Its message holds
+// an argument for each value, such as `{count} stops` or `{miles} across`, and
+// the copy writes the template again from the translation. A template with
+// another value, such as a sum, stays as written.
 //
 // A word of the demo data, such as a status, is the value of a property in a
 // call of `words` (`data/words.ts`). Its message id holds the domain and the
@@ -131,6 +134,8 @@ function findStrings(node: ESTree.Node | null | undefined): ESTree.Node[] {
 		return [...findStrings(node.left), ...findStrings(node.right)]
 	}
 
+	if (node.type === 'ArrowFunctionExpression' && node.expression) return findStrings(node.body)
+
 	return []
 }
 
@@ -144,12 +149,15 @@ function readString(node: ESTree.Node): string {
 }
 
 /**
- * The name of the argument of a value of a template: `count` for `count`, and
- * the last property for a chain of properties, such as `name` for `row.name`.
+ * The name of the argument of a value of a template: `count` for `count`, the
+ * last property for a chain of properties, such as `name` for `row.name`, and
+ * the name of the function for a call, such as `miles` for `miles(span)`.
  * Another value has no name.
  */
 function valueName(node: ESTree.Node): string | undefined {
 	if (node.type === 'Identifier') return node.name
+
+	if (node.type === 'CallExpression') return valueName(node.callee)
 
 	if (node.type !== 'MemberExpression' || node.computed || node.property.type !== 'Identifier') {
 		return undefined
