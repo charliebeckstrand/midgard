@@ -8,7 +8,7 @@ import type { PageLink } from '../plugin/pages.ts'
 // The letter rail at the side of the sidebar body. A press on a letter scrolls
 // the body to the first page with that letter, and a slide along the rail
 // follows the finger from letter to letter. The rail shows the letter of the
-// pages at the top of the body, and mutes the other letters.
+// last jump that the scroll of the body is at or past, and mutes the other letters.
 
 /** The letter that a page files under: the first character of its name, in upper case. */
 export function getInitial(page: PageLink): string {
@@ -33,44 +33,75 @@ export function bandAt(y: number, top: number, height: number, count: number): n
 /** The page links in `body`, in the order of the sidebar, which is also the order of their position. */
 const getLinks = (body: HTMLElement) => body.querySelectorAll<HTMLElement>('[data-letter]')
 
+/** The first page link of each letter in `body`, in the order of the sidebar. A jump to a letter goes to its link. */
+function getTargets(body: HTMLElement): HTMLElement[] {
+	const seen = new Set<string | undefined>()
+
+	return Array.from(getLinks(body)).filter((link) => {
+		if (seen.has(link.dataset.letter)) return false
+
+		seen.add(link.dataset.letter)
+
+		return true
+	})
+}
+
 /**
- * Scrolls `body` so that the first page with `letter` is at its top. The
- * first page of a section brings the heading of the section with it.
+ * The element that a jump to `link` brings to the top of the body: the item
+ * of the link, or the section of the item when the item is the first in its
+ * section, so that the heading of the section comes with the first page.
  */
-function scrollToLetter(body: HTMLElement, letter: string) {
-	const link = Array.from(getLinks(body)).find((candidate) => candidate.dataset.letter === letter)
+function getAnchor(link: HTMLElement): Element | undefined {
+	const item = link.closest('[data-slot="sidebar-item"]')
 
-	const item = link?.closest('[data-slot="sidebar-item"]')
-
-	if (!item) return
+	if (!item) return undefined
 
 	const section = item.closest('[data-slot="sidebar-section"]')
 
-	const anchor = section?.querySelector('[data-slot="sidebar-item"]') === item ? section : item
+	return section?.querySelector('[data-slot="sidebar-item"]') === item ? section : item
+}
+
+/** Scrolls `body` so that the first page with `letter` is at its top. */
+function scrollToLetter(body: HTMLElement, letter: string) {
+	const link = getTargets(body).find((candidate) => candidate.dataset.letter === letter)
+
+	const anchor = link && getAnchor(link)
+
+	if (!anchor) return
 
 	body.scrollTop += anchor.getBoundingClientRect().top - body.getBoundingClientRect().top
 }
 
-/** The letter of the first page whose center is below the top of `body`, which a binary search finds. */
+/**
+ * The letter of the last jump that the scroll of `body` is at or past. The
+ * plugin sorts the pages by section and then by name, so each section starts
+ * the alphabet again, and the letter of the page at the top does not move in
+ * order along the rail. The targets of the jumps do.
+ *
+ * A target is at the top when its anchor is less than half the height of its
+ * row below the top of the body. At the end of the body, each target is at
+ * the top, because a jump to a target near the end stops there too.
+ */
 function letterAtTop(body: HTMLElement): string | undefined {
-	const links = getLinks(body)
+	const targets = getTargets(body)
+
+	const end = body.scrollHeight - body.clientHeight
+
+	if (body.scrollTop >= end - 1) return targets.at(-1)?.dataset.letter
 
 	const top = body.getBoundingClientRect().top
 
-	let low = 0
+	let letter = targets[0]?.dataset.letter
 
-	let high = links.length - 1
+	for (const link of targets) {
+		const anchor = getAnchor(link)?.getBoundingClientRect()
 
-	while (low < high) {
-		const middle = (low + high) >> 1
+		if (!anchor || anchor.top - top >= link.getBoundingClientRect().height / 2) break
 
-		const rect = links.item(middle).getBoundingClientRect()
-
-		if (rect.top + rect.height / 2 < top) low = middle + 1
-		else high = middle
+		letter = link.dataset.letter
 	}
 
-	return links[low]?.dataset.letter
+	return letter
 }
 
 /**
