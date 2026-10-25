@@ -1,10 +1,11 @@
 'use client'
 
 import { cn } from '../../core'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/timeline'
-import { capitalizeFirst } from '../../utilities'
 import { StatusDot, type StatusDotProps } from '../status'
+import { statusMessages } from '../status/status-messages'
 import { Swatch } from '../swatch'
 import { useTimeline } from './context'
 
@@ -62,6 +63,8 @@ export function TimelineMarker({
 }: TimelineMarkerConfig) {
 	const { orientation, variant } = useTimeline()
 
+	const intl = useIntl()
+
 	return (
 		<span
 			data-slot="timeline-marker"
@@ -85,7 +88,7 @@ export function TimelineMarker({
 					status={status}
 					pulse={pulse}
 					// Names the dot when it carries a semantic status; a color-only marker stays decorative.
-					label={status ? capitalizeFirst(status) : undefined}
+					label={status ? intl.formatMessage(statusMessages[status]) : undefined}
 					className={k().marker.dot}
 				/>
 			)}

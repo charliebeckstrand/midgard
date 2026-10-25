@@ -7,26 +7,6 @@
 		"defaultMessage": "Dismiss",
 		"description": "The name of the button that closes a message or a toast."
 	},
-	"ui.avatar.statusActive": {
-		"defaultMessage": "Active",
-		"description": "The status of a person or an item, which a screen reader speaks after its avatar."
-	},
-	"ui.avatar.statusError": {
-		"defaultMessage": "Error",
-		"description": "The status of a person or an item that has a problem, which a screen reader speaks after its avatar."
-	},
-	"ui.avatar.statusInactive": {
-		"defaultMessage": "Inactive",
-		"description": "The status of a person or an item, which a screen reader speaks after its avatar."
-	},
-	"ui.avatar.statusInfo": {
-		"defaultMessage": "Info",
-		"description": "The status of a person or an item that has news, which a screen reader speaks after its avatar."
-	},
-	"ui.avatar.statusWarning": {
-		"defaultMessage": "Warning",
-		"description": "The status of a person or an item that needs attention, which a screen reader speaks after its avatar."
-	},
 	"ui.badge.remove": {
 		"defaultMessage": "Remove {label}",
 		"description": "The name of the button that removes a chip, such as a tag. The label is the text of the chip."
@@ -1962,6 +1942,26 @@
 	"ui.signaturePad.placeholder": {
 		"defaultMessage": "Sign here",
 		"description": "The text over an empty signature pad that asks the reader to draw a signature."
+	},
+	"ui.status.active": {
+		"defaultMessage": "Active",
+		"description": "The status of a person or an item, which a screen reader speaks."
+	},
+	"ui.status.error": {
+		"defaultMessage": "Error",
+		"description": "The status of a person or an item that has a problem, which a screen reader speaks."
+	},
+	"ui.status.inactive": {
+		"defaultMessage": "Inactive",
+		"description": "The status of a person or an item, which a screen reader speaks."
+	},
+	"ui.status.info": {
+		"defaultMessage": "Info",
+		"description": "The status of a person or an item that has news, which a screen reader speaks."
+	},
+	"ui.status.warning": {
+		"defaultMessage": "Warning",
+		"description": "The status of a person or an item that needs attention, which a screen reader speaks."
 	},
 	"ui.stepper.completed": {
 		"defaultMessage": "completed",
