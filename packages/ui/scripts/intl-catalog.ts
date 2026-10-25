@@ -104,14 +104,65 @@ export function readCatalog(path: string): Record<string, CatalogEntry> {
 	return JSON.parse(readFileSync(path, 'utf8')) as Record<string, CatalogEntry>
 }
 
-/** Reads each translation in `langDir`: each JSON file but the source catalog, `en.json`. */
-export function readTranslations(langDir: string): Translation[] {
+/** The languages of the translations in `langDir`, in name order: the name of each JSON file but the source catalog, `en.json`. */
+export function readLanguages(langDir: string): string[] {
 	return readdirSync(langDir)
 		.filter((file) => file.endsWith('.json') && file !== 'en.json')
-		.map((file) => ({
-			language: file.replace(/\.json$/, ''),
-			messages: JSON.parse(readFileSync(join(langDir, file), 'utf8')) as Record<string, string>,
-		}))
+		.map((file) => file.replace(/\.json$/, ''))
+		.toSorted()
+}
+
+/** Reads each translation in `langDir`, in the order of {@link readLanguages}. */
+export function readTranslations(langDir: string): Translation[] {
+	return readLanguages(langDir).map((language) => ({
+		language,
+		messages: JSON.parse(readFileSync(join(langDir, `${language}.json`), 'utf8')) as Record<
+			string,
+			string
+		>,
+	}))
+}
+
+/** The name of the module that imports each translation of a catalog folder ({@link translationsText}). */
+export const TRANSLATIONS_MODULE = 'index.ts'
+
+/** A language subtag, the name of a translation. The catalogs of a locale go by its language subtag. */
+const LANGUAGE = /^[a-z]{2,3}$/
+
+/**
+ * The text of the module that imports each translation in `langDir`. Its
+ * `languages` holds the language subtag of each translation, and its
+ * `translations` holds the messages of each language, by language subtag. A
+ * module that needs the languages alone imports `languages`, so a bundle
+ * leaves the messages out. The
+ * `intl` script of a package writes the module, so a new translation needs no
+ * import by hand. It throws for a file name that is not a language subtag.
+ */
+export function translationsText(langDir: string): string {
+	const languages = readLanguages(langDir)
+
+	for (const language of languages) {
+		if (!LANGUAGE.test(language)) {
+			throw new Error(
+				`intl: name the translation ${language}.json by a language subtag, such as fr.json`,
+			)
+		}
+	}
+
+	return [
+		'// `pnpm intl` writes this module from the translations in this folder.',
+		'',
+		...languages.map((language) => `import ${language} from './${language}.json'`),
+		'',
+		'/** The language subtag of each translation, in name order. */',
+		`export const languages = [${languages.map((language) => `'${language}'`).join(', ')}] as const`,
+		'',
+		'/** The messages of each translation, by language subtag. */',
+		'export const translations = {',
+		...languages.map((language) => `\t${language},`),
+		'}',
+		'',
+	].join('\n')
 }
 
 /**

@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { CATALOG_SOURCE, LANG_DIR, SOURCE_CATALOG } from '../../../scripts/intl'
 import {
@@ -8,6 +9,8 @@ import {
 	extractCatalog,
 	readCatalog,
 	readTranslations,
+	TRANSLATIONS_MODULE,
+	translationsText,
 } from '../../../scripts/intl-catalog'
 import { localeIntl } from '../../primitives/intl/intl-catalog'
 
@@ -17,7 +20,8 @@ import { localeIntl } from '../../primitives/intl/intl-catalog'
 // shows its English default, so a gap does not break a page, but it does leave
 // English in a translated page. This test holds the files in step:
 //
-//   1. The source catalog equals the output of `pnpm intl` (`scripts/intl.ts`).
+//   1. The source catalog and the module that imports each translation equal
+//      the output of `pnpm intl` (`scripts/intl.ts`).
 //   2. Each translation has each id of the source catalog, and no other id, and
 //      the catalog of ui loads it.
 //   3. Each translated message parses, and it uses the same arguments as its
@@ -32,6 +36,13 @@ describe('intl catalog', () => {
 		const text = catalogText(await extractCatalog(CATALOG_SOURCE))
 
 		expect(readFileSync(SOURCE_CATALOG, 'utf8'), 'run `pnpm intl` to write the catalog').toBe(text)
+	})
+
+	it('imports each translation', () => {
+		expect(
+			readFileSync(join(LANG_DIR, TRANSLATIONS_MODULE), 'utf8'),
+			'run `pnpm intl` to write the module',
+		).toBe(translationsText(LANG_DIR))
 	})
 
 	it('has at least one translation', () => {

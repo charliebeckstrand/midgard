@@ -78,7 +78,9 @@ Escape hatch that strips chrome from headless-aware descendants so they render t
 
 ## `ui/providers/locale`
 
-The locale of the app sets the `Intl` formats and the language of the messages of ui. The catalogs of ui are in `src/primitives/intl/lang`, in English and in Spanish. Run `pnpm intl` to write the English catalog from the message descriptors in the source. An app or a package gives the translations of its own messages through `catalogs`, and reads them through `useIntl` from `ui/primitives/intl`.
+The locale of the app sets the `Intl` formats and the language of the messages of ui. The catalogs of ui are in `src/primitives/intl/lang`: the English catalog `en.json`, and one translation for each other language, such as `es.json`. Run `pnpm intl` to write the English catalog from the message descriptors in the source. The script also writes `index.ts` in each folder of catalogs, which imports each translation. `CATALOG_LOCALES` lists English and the language of each translation of ui. An app or a package gives the translations of its own messages through `catalogs`, and reads them through `useIntl` from `ui/primitives/intl`.
+
+To add a language, add its translation to each folder of catalogs, and name the file by the language subtag, such as `fr.json`. The folders are `src/primitives/intl/lang` of ui, `src/docs/lang` of the docs, and `src/locale/lang` of `shared`. Each translation holds each id of the English catalog of its folder. Then run `pnpm intl` in `ui` and in `shared`. The settings of the apps and of the docs then show the language. The docs build writes the pages in it, and the tests of the catalogs and of the pages check it. The catalog tests fail when a folder does not have a translation in each language of ui. Add a word list for the language to CONVENTIONS §13.9.
 
 | Export | Summary |
 |---|---|
@@ -86,6 +88,7 @@ The locale of the app sets the `Intl` formats and the language of the messages o
 | `LocaleProviderProps` *(type)* | Props for `LocaleProvider`: the `LocaleConfig` fields, the optional `locales` that the reader can choose from, an optional `dir`, and optional `catalogs`. |
 | `LocaleConfig` *(type)* | Ambient `Intl` defaults: `locale`, `currency`, `numberFormat`, `dateFormat`, and `timeZone`. |
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |
+| `CATALOG_LOCALES` | The locales that ui has the text of: English, then the language of each translation of ui. Give it to the `locales` of `LocaleProvider`. |
 | `LOCALE_COOKIE` | The name of the cookie that holds the locale choice of the reader. |
 | `resolveRequestLocale` | Resolves the locale of a request on the server from the locale cookie and the `Accept-Language` header, as the provider resolves it in the browser. |
 | `RequestLocaleInput` *(type)* | The request values that `resolveRequestLocale` reads: the cookie, the header, and the `locales`. |

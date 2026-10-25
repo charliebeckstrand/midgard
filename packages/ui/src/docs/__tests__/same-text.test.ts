@@ -3,9 +3,9 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { names } from '../kit/proper-names.ts'
 import { findSameText, readTexts, recordIntl } from './same-text.ts'
 
-// The page smoke test finds the text that a Spanish page shows as the English
-// page does (`same-text.ts`). These cases give each recorded source of such a
-// text.
+// The page smoke test finds the text that a translated page shows as the
+// English page does (`same-text.ts`). These cases give each recorded source of
+// such a text, in Spanish.
 
 afterEach(() => {
 	document.body.innerHTML = ''
@@ -49,7 +49,7 @@ describe('findSameText', () => {
 
 		const english = new Set(['Save', 'Pending'])
 
-		expect(findSameText(spanish, english, new Set())).toEqual(['Pending'])
+		expect(findSameText('es', spanish, english, new Set())).toEqual(['Pending'])
 	})
 
 	it('takes a name, a formatted value, and a text that the catalog keeps', () => {
@@ -58,7 +58,7 @@ describe('findSameText', () => {
 		// The Spanish catalog of ui writes "Total" as the English does.
 		const same = new Set(['Mia Chen · 5 mi', 'Total', 'Mia Chen, Pending'])
 
-		expect(findSameText(same, same, new Set(['5 mi']))).toEqual(['Mia Chen, Pending'])
+		expect(findSameText('es', same, same, new Set(['5 mi']))).toEqual(['Mia Chen, Pending'])
 	})
 
 	it('records the text that a formatter gives, until it stops', () => {

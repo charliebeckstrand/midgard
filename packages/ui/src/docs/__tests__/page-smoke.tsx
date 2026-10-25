@@ -11,6 +11,7 @@ import { UIProvider } from 'ui/providers/ui'
 import { describe, expect, it, vi } from 'vitest'
 import { CI } from '../../../vitest.base.ts'
 import { catalogs } from '../app/catalogs.ts'
+import { LOCALES } from '../app/language.ts'
 import { findPages, type Page } from '../plugin/pages.ts'
 import { restoreRootAfterCase } from './restore-root.ts'
 import { findSameText, readTexts, recordIntl } from './same-text.ts'
@@ -32,16 +33,16 @@ import { findSameText, readTexts, recordIntl } from './same-text.ts'
 // `page-coverage.test.ts` asks whether a page exists, and this test asks
 // whether the page works.
 //
-// The test renders each page in Spanish, with the catalogs of the docs. It
-// renders the Spanish copy of each page module and each tab module, with each
-// demo text in Spanish (`plugin/copies.ts`). A name
-// from the code that shows as text, such as the title of an example or the
-// label of a field of a playground, writes an error when the Spanish catalog
-// has no message for it (`kit/names.ts`). So a page fails when `pnpm intl`
-// misses a name that the page shows.
+// The test renders each page in each language that the docs translate, with
+// the catalogs of the docs. It renders the copy of each page module and each
+// tab module in the language, with each demo text in the language
+// (`plugin/copies.ts`). A name from the code that shows as text, such as the
+// title of an example or the label of a field of a playground, writes an error
+// when the catalog has no message for it (`kit/names.ts`). So a page fails
+// when `pnpm intl` misses a name that the page shows.
 //
 // The test then renders each page in English and opens each tab. A text that
-// the Spanish page shows as the English page does fails the test, unless it
+// a translated page shows as the English page does fails the test, unless it
 // comes from a recorded source, such as a name or the output of a formatter
 // (`same-text.ts`). So a page fails when a translation misses a text of a
 // demo, of its data, or of ui.
@@ -57,12 +58,6 @@ import { findSameText, readTexts, recordIntl } from './same-text.ts'
 // The pages import the virtual modules of the docs plugin, so the `unit`
 // project loads the plugin (`vitest.config.ts`).
 
-/** The Spanish copy of each page module and each tab module, keyed by module path. */
-const modules = import.meta.glob<ComponentType>(
-	['../pages/*/*/index.tsx', '../pages/*/*/*/index.tsx'],
-	{ import: 'default', query: '?lang=es' },
-)
-
 /** The English module of each page and each tab, keyed by module path. */
 const englishModules = import.meta.glob<ComponentType>(
 	['../pages/*/*/index.tsx', '../pages/*/*/*/index.tsx'],
@@ -70,7 +65,30 @@ const englishModules = import.meta.glob<ComponentType>(
 )
 
 /** Each page module and each tab module, as its module path, in name order. */
-export const pageModules: readonly string[] = Object.keys(modules).toSorted()
+export const pageModules: readonly string[] = Object.keys(englishModules).toSorted()
+
+/** The locale of each language that the docs translate: each locale but English. */
+const TRANSLATED = LOCALES.slice(1)
+
+/**
+ * The copy of each page module and each tab module in `locale`, keyed by
+ * module path. The query of the copy is not a literal, so the copy loads
+ * through `import`, not through `import.meta.glob`.
+ */
+function translatedModules(locale: string): Modules {
+	return Object.fromEntries(
+		pageModules.map((path) => [
+			path,
+			async () => {
+				const module: { default: ComponentType } = await import(
+					/* @vite-ignore */ `${path}?lang=${locale}`
+				)
+
+				return module.default
+			},
+		]),
+	)
+}
 
 /**
  * The module path of the page or the tab in `folder`. The folder is relative
@@ -233,14 +251,11 @@ type Walk = {
 	bare: number
 	/** Each path that the router showed. */
 	visited: ReadonlySet<string>
-	/** Each text that the Spanish page shows as the English page does (`same-text.ts`). */
+	/** Each text that a translated page shows as the English page does (`same-text.ts`), as `locale: text`. */
 	same: readonly string[]
 }
 
-/** The locale of the smoke render. */
-const LOCALE = 'es-ES'
-
-/** The locale of the render that the Spanish text is compared with. */
+/** The locale of the render that each translated text is compared with. */
 const ENGLISH = 'en-US'
 
 /** The modules of a language, keyed by module path. */
@@ -304,25 +319,26 @@ function renderPage(
 	).container
 }
 
+/** What the walk of a page in one translated locale found. */
+type TranslatedWalk = Pick<Walk, 'violations' | 'duplicates' | 'bare'> & {
+	/** Each text of the page in the locale. */
+	texts: ReadonlySet<string>
+	/** The output of the formatters in the render. */
+	formatted: ReadonlySet<string>
+}
+
 /**
- * Renders a page in Spanish and opens each tab. In each state, it reads the
- * ids, finds the examples, runs axe, and reads the text. It then renders the
- * page in English, opens each tab, and reads the text, so it finds the text
- * that is the same in both languages.
+ * Renders a page in the translated `locale` and opens each tab. In each state,
+ * it reads the ids, finds the examples, runs axe, and reads the text.
  */
-async function walk(page: Page): Promise<Walk> {
-	restoreRootAfterCase()
+async function walkTranslated(
+	page: Page,
+	locale: string,
+	visited: Set<string>,
+): Promise<TranslatedWalk> {
+	const loaded = await loadPage(page, translatedModules(locale))
 
-	const logged = captureConsole()
-
-	const [spanishPage, englishPage] = await Promise.all([
-		loadPage(page, modules),
-		loadPage(page, englishModules),
-	])
-
-	const visited = new Set<string>()
-
-	const spanish = new Set<string>()
+	const texts = new Set<string>()
 
 	const formatted = new Set<string>()
 
@@ -335,7 +351,7 @@ async function walk(page: Page): Promise<Walk> {
 	const stopRecording = recordIntl(formatted)
 
 	try {
-		const container = renderPage(page, LOCALE, spanishPage, visited)
+		const container = renderPage(page, locale, loaded, visited)
 
 		await visitTabs(container, async () => {
 			for (const id of duplicateIds()) duplicates.add(id)
@@ -348,10 +364,10 @@ async function walk(page: Page): Promise<Walk> {
 			const results = await act(() => axe(document.body))
 
 			for (const { id, nodes } of results.violations) {
-				for (const node of nodes) violations.add(`${id}: ${node.target.join(' ')}`)
+				for (const node of nodes) violations.add(`${locale}: ${id}: ${node.target.join(' ')}`)
 			}
 
-			readTexts(document.body, 'es', spanish)
+			readTexts(document.body, locale, texts)
 		})
 	} finally {
 		stopRecording()
@@ -359,25 +375,54 @@ async function walk(page: Page): Promise<Walk> {
 
 	cleanup()
 
+	return { texts, formatted, violations: [...violations], duplicates: [...duplicates], bare }
+}
+
+/**
+ * Renders a page in each translated locale and opens each tab
+ * ({@link walkTranslated}). It then renders the page in English, opens each
+ * tab, and reads the text, so it finds the text that is the same in a
+ * translation and in English.
+ */
+async function walk(page: Page): Promise<Walk> {
+	restoreRootAfterCase()
+
+	const logged = captureConsole()
+
+	const visited = new Set<string>()
+
+	const translated: (readonly [string, TranslatedWalk])[] = []
+
+	for (const locale of TRANSLATED) {
+		translated.push([locale, await walkTranslated(page, locale, visited)])
+	}
+
 	const english = new Set<string>()
 
-	// As in the Spanish walk, the read goes inside `act`, so the updates of the
-	// live page land in it.
-	await visitTabs(renderPage(page, ENGLISH, englishPage, new Set()), async () => {
-		await act(async () => readTexts(document.body, 'en', english))
-	})
+	// As in the translated walk, the read goes inside `act`, so the updates of
+	// the live page land in it.
+	await visitTabs(
+		renderPage(page, ENGLISH, await loadPage(page, englishModules), new Set()),
+		async () => {
+			await act(async () => readTexts(document.body, 'en', english))
+		},
+	)
 
 	// The English read is quick, so a timer of the page can still be due. The
 	// unmount comes first, so the timer updates no page outside of `act`.
 	cleanup()
 
+	const walks = translated.map(([, each]) => each)
+
 	return {
 		logged: [...logged],
-		violations: [...violations],
-		duplicates: [...duplicates],
-		bare,
+		violations: walks.flatMap(({ violations }) => violations),
+		duplicates: [...new Set(walks.flatMap(({ duplicates }) => duplicates))],
+		bare: walks.reduce((sum, { bare }) => sum + bare, 0),
 		visited,
-		same: findSameText(spanish, english, formatted),
+		same: translated.flatMap(([locale, { texts, formatted }]) =>
+			findSameText(locale, texts, english, formatted).map((text) => `${locale}: ${text}`),
+		),
 	}
 }
 
@@ -407,7 +452,7 @@ export function describePageSmoke(part: readonly Page[]): void {
 
 				expect(closed, 'the walk did not open these tabs of the page').toEqual([])
 
-				expect(same, 'text that the Spanish page shows in English').toEqual([])
+				expect(same, 'text that a translated page shows in English').toEqual([])
 			},
 		)
 	})

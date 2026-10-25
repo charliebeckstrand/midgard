@@ -3,6 +3,7 @@ import path from 'node:path'
 import { gzipSync } from 'node:zlib'
 import { describe, expect, it } from 'vitest'
 import { CLIENT_DIR } from '../../../scripts/docs-server'
+import { LOCALES } from '../../docs/app/language'
 
 // A size budget for the bundle of the docs app. No other gate sees a bundle
 // regression. A stray eager import can pull the dependency of a lazy page into
@@ -57,16 +58,21 @@ function readBundle(): BundleReport {
 /**
  * The total holds lazy chunks that no page loads before it hydrates: the
  * grammars and the themes of the `CodeBlock` worker, the code of each example,
- * the API data, the copy of each page in Spanish, and the files that pdf.js
- * loads at run time. Most of its
- * growth is such files, and it does not move the eager sum.
+ * the API data, the copy of each page in each translated language, and the
+ * files that pdf.js loads at run time. Most of its growth is such files, and
+ * it does not move the eager sum. The copies of one language add about
+ * 475 kB, so the ceiling of the total has a part for each translated language.
  *
  * The eager sum is the chunks that each page preloads: the router, React, the
  * vendors that the shell uses, and the shell. A stray eager import shows up
  * there first.
  */
 const BUDGETS = [
-	{ label: 'total gzip', budgetKb: 6000, of: (report: BundleReport) => report.totalGzip },
+	{
+		label: 'total gzip',
+		budgetKb: 5500 + 500 * (LOCALES.length - 1),
+		of: (report: BundleReport) => report.totalGzip,
+	},
 	{ label: 'eager gzip', budgetKb: 290, of: (report: BundleReport) => report.eagerGzip },
 ]
 
