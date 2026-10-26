@@ -10,8 +10,9 @@ import type { BarMark } from '../chart-geometry/bar'
 import { BAR_GROW, BAR_SHRINK, barGrow, barGrowDelay } from '../chart-motion'
 import type { ChartOrientation } from '../chart-orientation'
 import { textureClass, textureStyle } from '../chart-pattern-defs'
-import { seriesGroupClass } from '../chart-series'
+import { seriesGroupClass, spotClass } from '../chart-series'
 import { useChartMarkEmphasis } from '../context'
+import { useChartSpot } from '../use-chart-spot'
 
 /** Shared shape for the static and animated bar renderers. @internal */
 export type ChartBarMarksProps = {
@@ -52,10 +53,11 @@ function barClass(
  * Isolation stays per-datum without re-drawing the series. A pointed bar, a
  * legend hover, or a held category selection can leave some bars of a series
  * unlit. The whole series path then dims, and the lit bars re-draw over it as one
- * overlay path, not a rebuild. The series paths are
- * memoized on `marks`, so an emphasis change rebuilds only the overlay. Such a
- * change re-runs this component through the emphasis context, never the chart
- * body.
+ * overlay path, not a rebuild. When the dim lifts, the overlay stays until the
+ * series path has faded back up, so a lit bar never drops to the dim on its way.
+ * The series paths are memoized on `marks`, so an emphasis change rebuilds only
+ * the overlay. Such a change re-runs this component through the emphasis
+ * context, never the chart body.
  *
  * @internal
  */
@@ -93,27 +95,64 @@ export function ChartBarMarks({
 		const { dimmed, overlay } = litOverlay(row, (datum) => lit(series, datum), isolating)
 
 		return (
-			<g key={series} data-slot="chart-bar-series">
-				<path
-					data-slot="chart-bar"
-					d={paths[seriesIndex]}
-					fill={paint && rawColor(paint)}
-					style={textureStyle(fills?.[seriesIndex])}
-					className={barClass(paint, dimmed, textureActive, fills?.[seriesIndex])}
-				/>
-
-				{overlay && (
-					<path
-						data-slot="chart-bar-spot"
-						d={overlay}
-						fill={paint && rawColor(paint)}
-						style={textureStyle(fills?.[seriesIndex])}
-						className={barClass(paint, false, textureActive, fills?.[seriesIndex])}
-					/>
-				)}
-			</g>
+			<ChartBarSeries
+				key={series}
+				d={paths[seriesIndex] ?? ''}
+				overlay={overlay}
+				dimmed={dimmed}
+				paint={paint}
+				tile={fills?.[seriesIndex]}
+				textureActive={textureActive}
+			/>
 		)
 	})
+}
+
+/** Props for {@link ChartBarSeries}. @internal */
+type ChartBarSeriesProps = {
+	/** Every bar of the series, as one path. */
+	d: string
+	/** The lit bars that draw over the receded series, as one path, or `null`. */
+	overlay: string | null
+	/** Whether the series path recedes. */
+	dimmed: boolean
+	paint: ChartPaint | undefined
+	/** The texture tile fill URL, if any. */
+	tile: string | undefined
+	textureActive: boolean
+}
+
+/**
+ * One series of plain-SVG bars: the series path and the spot of its lit bars.
+ * The spot stays over the lit bars while a lift of the recede fades the series
+ * path back up ({@link useChartSpot}).
+ *
+ * @internal
+ */
+function ChartBarSeries({ d, overlay, dimmed, paint, tile, textureActive }: ChartBarSeriesProps) {
+	const spot = useChartSpot(overlay, dimmed)
+
+	return (
+		<g data-slot="chart-bar-series">
+			<path
+				data-slot="chart-bar"
+				d={d}
+				fill={paint && rawColor(paint)}
+				style={textureStyle(tile)}
+				className={barClass(paint, dimmed, textureActive, tile)}
+			/>
+
+			{spot.spot && (
+				<path
+					data-slot="chart-bar-spot"
+					d={spot.spot}
+					fill={paint && rawColor(paint)}
+					style={textureStyle(tile)}
+					className={cn(barClass(paint, false, textureActive, tile), spotClass(spot.shown))}
+				/>
+			)}
+		</g>
+	)
 }
 
 /**

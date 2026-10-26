@@ -299,6 +299,45 @@ describe('ScatterChart', () => {
 		expect(receded()).toEqual([false, false])
 	})
 
+	it('keeps the pointed disc lit while the cloud fades back up', () => {
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Stops"
+				data={STOPS}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
+			/>,
+		)
+
+		const hit = getSlot(container, 'chart-hit')
+
+		// The first disc opens at its inline-start edge, a radius left of its center.
+		const [left, y] = (discsPath(container).match(/M ([\d.]+) ([\d.]+)/) ?? []).slice(1).map(Number)
+
+		const at = {
+			clientX: (left ?? 0) + 3 - Number(hit.getAttribute('x')),
+			clientY: (y ?? 0) - Number(hit.getAttribute('y')),
+			pointerType: 'mouse',
+		}
+
+		fireEvent.pointerOver(hit, at)
+
+		const [spot] = points(container)
+
+		expect(spot?.getAttribute('class')).not.toContain('invisible')
+
+		fireEvent.pointerOut(hit, at)
+
+		expect(getSlot(container, 'chart-scatter-discs').getAttribute('class')).not.toContain(
+			'opacity-25',
+		)
+
+		// The disc stays drawn over the lift and hides when the fade ends.
+		expect(points(container)).toEqual([spot])
+
+		expect(spot?.getAttribute('class')).toContain('invisible')
+	})
+
 	it('pins the readout to a click under trigger click, ignoring hover', () => {
 		const { container } = renderUI(
 			<ScatterChart

@@ -10,8 +10,9 @@ import { type ChartPaint, fillClass, rawColor } from '../engine/chart-color/pain
 import { BUBBLE_FILL_OPACITY, MARKER_RING_WIDTH } from '../engine/chart-constants'
 import { type ScatterMark, scatterDiscLayers } from '../engine/chart-geometry/scatter'
 import { POINT_POP } from '../engine/chart-motion'
-import { seriesGroupClass } from '../engine/chart-series'
+import { seriesGroupClass, spotClass } from '../engine/chart-series'
 import { useChartMarkEmphasis } from '../engine/context'
+import { useChartSpot } from '../engine/use-chart-spot'
 
 /**
  * The opacity a receded disc fades to: the numeric twin of the `opacity-25`
@@ -69,7 +70,8 @@ function markProps(paint: ChartPaint, sized: boolean) {
  * Isolation stays per-datum without re-drawing a plain cloud. The pointed disc
  * recedes every other, so each layer of the series dims. The one lit disc
  * re-draws at full strength over it, as a single overlay circle rather than a
- * rebuild. That reads identically to dimming every sibling. The series layers
+ * rebuild. That reads identically to dimming every sibling. When the dim lifts,
+ * that disc stays until the layers have faded back up. The series layers
  * are memoized on `list`. A pointer crossing only re-runs this component through
  * the emphasis context, never the chart body, so it rebuilds nothing. It swaps a
  * dim class and one overlay disc, not the ten thousand marks under it.
@@ -116,31 +118,68 @@ export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
 		// its own included, and the lit disc re-draws over the dim below.
 		const seriesLit = mark !== null && mark.series === index && mark.datum === null
 
-		const dimmed = mark !== null && !seriesLit
-
-		const depth = layers[seriesIndex] ?? []
-
 		const spot =
 			mark !== null && mark.series === index && mark.datum !== null ? marks[mark.datum] : undefined
 
 		return (
-			<g key={index} data-slot="chart-scatter-series">
-				{rangeKeys(depth.length, 'layer').map((key, layer) => (
-					<path
-						key={key}
-						data-slot="chart-scatter-discs"
-						d={depth[layer]}
-						{...props}
-						className={cn(props.className, seriesGroupClass(dimmed))}
-					/>
-				))}
-
-				{spot && (
-					<circle data-slot="chart-scatter-point" cx={spot.x} cy={spot.y} r={spot.r} {...props} />
-				)}
-			</g>
+			<ScatterDiscSeries
+				key={index}
+				layers={layers[seriesIndex] ?? []}
+				spot={spot ?? null}
+				dimmed={mark !== null && !seriesLit}
+				paint={paint}
+			/>
 		)
 	})
+}
+
+/** Props for {@link ScatterDiscSeries}. @internal */
+type ScatterDiscSeriesProps = {
+	/** The disc layers of the series ({@link scatterDiscLayers}). */
+	layers: string[]
+	/** The pointed disc that draws over the receded series, or `null`. */
+	spot: ScatterMark | null
+	/** Whether the series layers recede. */
+	dimmed: boolean
+	paint: ChartPaint
+}
+
+/**
+ * One plain scatter series: its disc layers and the spot of its pointed disc.
+ * The spot stays over its disc while a lift of the recede fades the layers back
+ * up ({@link useChartSpot}).
+ *
+ * @internal
+ */
+function ScatterDiscSeries({ layers, spot, dimmed, paint }: ScatterDiscSeriesProps) {
+	const props = markProps(paint, false)
+
+	const held = useChartSpot(spot, dimmed)
+
+	return (
+		<g data-slot="chart-scatter-series">
+			{rangeKeys(layers.length, 'layer').map((key, layer) => (
+				<path
+					key={key}
+					data-slot="chart-scatter-discs"
+					d={layers[layer]}
+					{...props}
+					className={cn(props.className, seriesGroupClass(dimmed))}
+				/>
+			))}
+
+			{held.spot && (
+				<circle
+					data-slot="chart-scatter-point"
+					cx={held.spot.x}
+					cy={held.spot.y}
+					r={held.spot.r}
+					{...props}
+					className={cn(props.className, spotClass(held.shown))}
+				/>
+			)}
+		</g>
+	)
 }
 
 /** The pop of a disc from its center. @internal */
