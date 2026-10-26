@@ -3,12 +3,9 @@ import { Badge } from 'ui/badge'
 import { List, ListItem, ListLabel } from 'ui/list'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/stack'
-import { campaigns } from './campaigns.ts'
+import { campaignStatuses, campaigns } from './campaigns.ts'
 
-const badges = {
-	active: { color: 'green', label: 'Active' },
-	archived: { color: 'zinc', label: 'Archived' },
-} as const
+const colors = { active: 'green', archived: 'zinc' } as const
 
 export default function Filter() {
 	const [status, setStatus] = useState('all')
@@ -29,7 +26,7 @@ export default function Filter() {
 				{(campaign) => (
 					<ListItem
 						suffix={
-							<Badge color={badges[campaign.status].color}>{badges[campaign.status].label}</Badge>
+							<Badge color={colors[campaign.status]}>{campaignStatuses[campaign.status]}</Badge>
 						}
 					>
 						<ListLabel>{campaign.label}</ListLabel>

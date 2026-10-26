@@ -75,6 +75,14 @@
 		"defaultMessage": "Toggle sidebar",
 		"description": "The name of the button in the header that shows or hides the sidebar on a wide screen."
 	},
+	"docs.data.campaign-status.active": {
+		"defaultMessage": "Active",
+		"description": "A word of the demo data in the docs: the word for \"active\" in the domain \"campaign-status\", in components/segment/campaigns.ts."
+	},
+	"docs.data.campaign-status.archived": {
+		"defaultMessage": "Archived",
+		"description": "A word of the demo data in the docs: the word for \"archived\" in the domain \"campaign-status\", in components/segment/campaigns.ts."
+	},
 	"docs.data.channel.email": {
 		"defaultMessage": "Email",
 		"description": "A word of the demo data in the docs: the word for \"email\" in the domain \"channel\", in components/checkbox/channels.ts."
@@ -1586,10 +1594,6 @@
 	"docs.demo.262b4ff6afdd": {
 		"defaultMessage": "Starter",
 		"description": "Text of a demo in the docs as label, in components/select/with-descriptions.tsx, modules/form/error-summary.tsx."
-	},
-	"docs.demo.26380fc139c7": {
-		"defaultMessage": "has no invoices.",
-		"description": "Text of a demo in the docs, in components/tabs/overflow.tsx."
 	},
 	"docs.demo.26a62fff0e7a": {
 		"defaultMessage": "Twelve are late, and Route 12 carries most of them.",
@@ -5170,6 +5174,10 @@
 	"docs.demo.ee60673de787": {
 		"defaultMessage": "Acme Inc.",
 		"description": "Text of a demo in the docs as aria-label, in components/sidebar/playground.tsx, providers/density/playground.tsx."
+	},
+	"docs.demo.eee675902bc6": {
+		"defaultMessage": "No invoices in",
+		"description": "Text of a demo in the docs, in components/tabs/overflow.tsx."
 	},
 	"docs.demo.ef4c05efaf50": {
 		"defaultMessage": "Product updates",
