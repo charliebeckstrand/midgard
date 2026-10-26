@@ -11,14 +11,19 @@ import {
 	MenuShortcut,
 	MenuTrigger,
 } from 'ui/menu'
+import { useIntl } from 'ui/primitives/intl'
 
 export default function KeepOpen() {
+	const intl = useIntl()
+
 	const [zoom, setZoom] = useState(100)
 
 	return (
 		<Menu placement="bottom-start">
 			<MenuTrigger>
-				<Button variant="outline">Zoom: {zoom}%</Button>
+				<Button variant="outline">
+					Zoom: {intl.formatNumber(zoom / 100, { style: 'percent' })}
+				</Button>
 			</MenuTrigger>
 			<MenuContent>
 				<MenuItem closeOnAction={false} disabled={zoom >= 200} onAction={() => setZoom(zoom + 10)}>

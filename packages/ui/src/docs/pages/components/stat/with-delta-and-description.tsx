@@ -3,6 +3,9 @@ import { Icon } from 'ui/icon'
 import { useIntl } from 'ui/primitives/intl'
 import { Stat, StatDelta, StatDescription, StatLabel, StatValue } from 'ui/stat'
 
+// A change shows its sign, and no sign when it is zero.
+const delta = { style: 'percent', signDisplay: 'exceptZero', maximumFractionDigits: 1 } as const
+
 export default function WithDeltaAndDescription() {
 	const intl = useIntl()
 
@@ -14,7 +17,7 @@ export default function WithDeltaAndDescription() {
 			</StatValue>
 			<StatDelta trend="up">
 				<Icon icon={<ArrowUp />} size="xs" />
-				+12.5%
+				{intl.formatNumber(0.125, delta)}
 			</StatDelta>
 			<StatDescription>Since last month</StatDescription>
 		</Stat>

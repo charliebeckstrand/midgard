@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
+import { useIntl } from 'ui/primitives/intl'
 import { SignaturePad, type SignaturePadHandle } from 'ui/signature-pad'
 import { Text } from 'ui/text'
 
@@ -8,11 +9,15 @@ import { Text } from 'ui/text'
 type SaveStatus = 'unsaved' | 'empty' | { characters: number }
 
 function StatusText({ status }: { status: SaveStatus }) {
+	const intl = useIntl()
+
 	if (status === 'unsaved') return 'Not saved'
 
 	if (status === 'empty') return 'Sign before you save.'
 
-	return `Saved a PNG of ${status.characters} characters`
+	const characters = intl.formatNumber(status.characters)
+
+	return `Saved a PNG of ${characters} characters`
 }
 
 export default function ImperativeHandle() {
