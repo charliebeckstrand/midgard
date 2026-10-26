@@ -32,6 +32,7 @@ import {
 	MenuText,
 	MenuTrigger,
 } from 'ui/menu'
+import { useIntl } from 'ui/primitives/intl'
 import { Select, SelectDescription, SelectLabel, SelectOption, SelectText } from 'ui/select'
 import { Spacer } from 'ui/spacer'
 import { Stack } from 'ui/stack'
@@ -80,29 +81,41 @@ const widgets: Readonly<Record<string, DashboardWidget>> = {
 	},
 }
 
-type Addition = { tile: Omit<DashboardSpecTile, 'id'>; hint: string }
+type Addition = { tile: Omit<DashboardSpecTile, 'id'>; description: string }
 
 const additions: Addition[] = [
 	{
 		tile: { widget: 'kpi', title: 'Monthly revenue', options: { value: 'revenue' } },
-		hint: 'This month, with its change and trend',
+		description: 'This month, with its change and trend',
 	},
 	{
 		tile: { widget: 'kpi', title: 'Monthly units', options: { value: 'units' } },
-		hint: 'This month, with its change and trend',
+		description: 'This month, with its change and trend',
 	},
-	{ tile: { widget: 'units', title: 'Units sold' }, hint: 'The half-year total, month by month' },
+	{
+		tile: { widget: 'units', title: 'Units sold' },
+		description: 'The half-year total, month by month',
+	},
 	{
 		tile: { widget: 'bars', title: 'Revenue by region', options: { by: 'region' } },
-		hint: 'Select a region to filter the board',
+		description: 'Select a region to filter the board',
 	},
 	{
 		tile: { widget: 'bars', title: 'Revenue by product', options: { by: 'product' } },
-		hint: 'Select a product to filter the board',
+		description: 'Select a product to filter the board',
 	},
-	{ tile: { widget: 'mix', title: 'Product mix' }, hint: 'The share of revenue of each product' },
-	{ tile: { widget: 'trend', title: 'Revenue by month' }, hint: 'Six months of revenue as a line' },
-	{ tile: { widget: 'orders', title: 'Orders' }, hint: 'Each sale, ten rows to a page' },
+	{
+		tile: { widget: 'mix', title: 'Product mix' },
+		description: 'The share of revenue of each product',
+	},
+	{
+		tile: { widget: 'trend', title: 'Revenue by month' },
+		description: 'Six months of revenue as a line',
+	},
+	{
+		tile: { widget: 'orders', title: 'Orders' },
+		description: 'Each sale, with its region and product',
+	},
 ]
 
 const presets: DashboardPreset[] = [
@@ -154,7 +167,9 @@ const presets: DashboardPreset[] = [
 
 const [initial] = presets as [DashboardPreset]
 
-const STORAGE_KEY = 'midgard-docs:dashboard-board'
+// Each language has its own board, because a saved board holds the titles in
+// the language that saved it.
+const storageKey = (locale: string) => `midgard-docs:dashboard-board:${locale}`
 
 type Board = { template: string; spec: DashboardSpec }
 
@@ -165,9 +180,9 @@ const fresh = (preset: DashboardPreset): Board => ({
 
 // The parse repairs a saved spec that is old or damaged. A storage that
 // throws or holds no board gives the first template.
-function load(): Board {
+function load(key: string): Board {
 	try {
-		const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null') as Partial<Board> | null
+		const saved = JSON.parse(localStorage.getItem(key) ?? 'null') as Partial<Board> | null
 
 		if (saved?.spec === undefined) return fresh(initial)
 
@@ -181,10 +196,10 @@ function load(): Board {
 	}
 }
 
-function save(board: Board | null) {
+function save(key: string, board: Board | null) {
 	try {
-		if (board === null) localStorage.removeItem(STORAGE_KEY)
-		else localStorage.setItem(STORAGE_KEY, JSON.stringify(board))
+		if (board === null) localStorage.removeItem(key)
+		else localStorage.setItem(key, JSON.stringify(board))
 	} catch {
 		// A storage that refuses a write keeps the board on the screen only.
 	}
@@ -193,6 +208,8 @@ function save(board: Board | null) {
 const getLabel = (id: string) => presets.find((preset) => preset.id === id)?.label ?? id
 
 export default function BuildAndSave() {
+	const key = storageKey(useIntl().locale)
+
 	// The server has no storage, so the first render shows the first template.
 	// The saved board loads after hydration.
 	const [board, setBoard] = useState(() => fresh(initial))
@@ -230,7 +247,7 @@ export default function BuildAndSave() {
 	}
 
 	useEffect(() => {
-		const saved = load()
+		const saved = load(key)
 
 		setBoard(saved)
 
@@ -241,13 +258,13 @@ export default function BuildAndSave() {
 		}
 
 		setLoaded(true)
-	}, [])
+	}, [key])
 
 	// Each change saves, so the board comes back after a reload. The first
 	// template saves nothing, and a reset clears the saved board.
 	useEffect(() => {
-		if (loaded) save(pristine ? null : board)
-	}, [board, pristine, loaded])
+		if (loaded) save(key, pristine ? null : board)
+	}, [key, board, pristine, loaded])
 
 	const choose = (id: string | null) => {
 		const preset = presets.find((candidate) => candidate.id === id)
@@ -317,11 +334,11 @@ export default function BuildAndSave() {
 							</Button>
 						</MenuTrigger>
 						<MenuContent>
-							{additions.map(({ tile, hint }) => (
+							{additions.map(({ tile, description }) => (
 								<MenuItem key={tile.title} onAction={() => add(tile)}>
 									<MenuText>
 										<MenuLabel>{tile.title}</MenuLabel>
-										<MenuDescription>{hint}</MenuDescription>
+										<MenuDescription>{description}</MenuDescription>
 									</MenuText>
 								</MenuItem>
 							))}
@@ -351,8 +368,8 @@ export default function BuildAndSave() {
 				className="w-full"
 				description={
 					<PointerHint
-						mouseText="Select a template, add tiles, then drag and resize them."
-						touchText="Select a template, add tiles, then drag them by their grips and resize them by their edges."
+						mouseText="Select a template and add tiles. Then select Edit layout to drag and resize them."
+						touchText="Select a template and add tiles. Then select Edit layout to drag them by their grips and resize them by their edges."
 					/>
 				}
 			/>
