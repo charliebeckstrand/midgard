@@ -91,7 +91,7 @@ describe('cellRing', () => {
 	it('moves the ring out of the cell and the halo onto it, each by half the stroke', () => {
 		const half = CELL_RING_WIDTH / 2
 
-		expect(cellRing(cell, 'ring')).toEqual({
+		expect(cellRing(cell, 'outer')).toEqual({
 			x: 10 - half,
 			y: 20 - half,
 			width: 40 + CELL_RING_WIDTH,
@@ -99,7 +99,7 @@ describe('cellRing', () => {
 			radius: 2 + half,
 		})
 
-		expect(cellRing(cell, 'halo')).toEqual({
+		expect(cellRing(cell, 'inner')).toEqual({
 			x: 10 + half,
 			y: 20 + half,
 			width: 40 - CELL_RING_WIDTH,
@@ -113,7 +113,7 @@ describe('cellRing', () => {
 	})
 
 	it('takes a halo of zero size on a cell too small for it', () => {
-		const halo = cellRing({ ...cell, width: 1, height: 1, radius: 0.5 }, 'halo')
+		const halo = cellRing({ ...cell, width: 1, height: 1, radius: 0.5 }, 'inner')
 
 		expect([halo.width, halo.height, halo.radius]).toEqual([0, 0, 0])
 	})

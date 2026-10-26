@@ -122,14 +122,15 @@ export type CellRingRect = Pick<HeatmapCell, 'x' | 'y' | 'width' | 'height' | 'r
 
 /**
  * The rect of one stroke that marks a cell, moved off the cell edge by half the
- * stroke. The `'ring'` goes out, so it sits wholly in the cell's half of the
- * surface gap. The `'halo'` goes in, so it sits wholly on the cell. The two
- * therefore meet at the cell edge, and the mark takes no neighbor's ground.
+ * stroke. The `'outer'` stroke (the ring) goes out, so it sits wholly in the
+ * cell's half of the surface gap. The `'inner'` stroke (the halo) goes in, so
+ * it sits wholly on the cell. The two therefore meet at the cell edge, and the
+ * mark takes no neighbor's ground.
  *
  * @internal
  */
-export function cellRing(cell: HeatmapCell, stroke: 'ring' | 'halo'): CellRingRect {
-	const offset = stroke === 'ring' ? CELL_RING_WIDTH / 2 : -CELL_RING_WIDTH / 2
+export function cellRing(cell: HeatmapCell, side: 'outer' | 'inner'): CellRingRect {
+	const offset = side === 'outer' ? CELL_RING_WIDTH / 2 : -CELL_RING_WIDTH / 2
 
 	return {
 		x: cell.x - offset,

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { CELL_WASH_SETTLE } from '../../modules/chart/engine/chart-motion'
@@ -14,6 +14,7 @@ import {
 	renderUI,
 	stubMatchMedia,
 } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 type Row = { day: string; hour: string; commits: number }
 
@@ -706,10 +707,6 @@ describe('HeatmapChart cell rings', () => {
 })
 
 describe('HeatmapChart animate', () => {
-	afterEach(() => {
-		vi.useRealTimers()
-	})
-
 	/** The transition delay of each cell, in order, or `null` for a cell with no transition. */
 	const delays = (container: HTMLElement) =>
 		cellRects(container).map((rect) =>
@@ -726,9 +723,9 @@ describe('HeatmapChart animate', () => {
 		expect(delays(container)).toEqual([null, null, null, null])
 	})
 
-	it('washes the colors in column by column, then crossfades a data change at once', () => {
-		vi.useFakeTimers()
-
+	it('washes the colors in column by column, then crossfades a data change at once', async ({
+		clock,
+	}) => {
 		const chart = (rows: Row[]) => (
 			<HeatmapChart aria-label="Commits" data={rows} series={SERIES} width={400} animate />
 		)
@@ -749,9 +746,7 @@ describe('HeatmapChart animate', () => {
 		// The cells carry their colors, and the CSS transition washes them in.
 		expect(cellRects(container)[0]).toHaveAttribute('fill')
 
-		act(() => {
-			vi.advanceTimersByTime(CELL_WASH_SETTLE * 1000)
-		})
+		await clock.advance(CELL_WASH_SETTLE * 1000)
 
 		// The stagger retires with the reveal, so a data change waits for no column.
 		rerender(chart([{ day: 'Mon', hour: '9', commits: 9 }, ...ROWS.slice(1)]))

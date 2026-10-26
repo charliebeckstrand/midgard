@@ -172,8 +172,8 @@ export function HeatmapChartCells({
 }
 
 /** The rect of one stroke of a cell mark. @internal */
-function CellStroke({ cell, stroke }: { cell: HeatmapCell; stroke: 'ring' | 'halo' }) {
-	const rect = cellRing(cell, stroke)
+function CellStroke({ cell, side }: { cell: HeatmapCell; side: 'outer' | 'inner' }) {
+	const rect = cellRing(cell, side)
 
 	return (
 		<rect
@@ -184,7 +184,7 @@ function CellStroke({ cell, stroke }: { cell: HeatmapCell; stroke: 'ring' | 'hal
 			rx={rect.radius}
 			fill="none"
 			strokeWidth={CELL_RING_WIDTH}
-			className={cn(k.selected[stroke])}
+			className={cn(side === 'outer' ? k.selected.ring : k.selected.halo)}
 		/>
 	)
 }
@@ -197,9 +197,9 @@ function CellStroke({ cell, stroke }: { cell: HeatmapCell; stroke: 'ring' | 'hal
 export function CellRing({ cell, slot }: { cell: HeatmapCell; slot: string }) {
 	return (
 		<g data-slot={slot}>
-			<CellStroke cell={cell} stroke="halo" />
+			<CellStroke cell={cell} side="inner" />
 
-			<CellStroke cell={cell} stroke="ring" />
+			<CellStroke cell={cell} side="outer" />
 		</g>
 	)
 }
