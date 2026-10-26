@@ -115,6 +115,36 @@ export const SLICE_FADE = { duration: duration[300], ease: ease.out } as const
  */
 export const SLICE_MORPH = { duration: duration[500], ease: ease.inOut } as const
 
+/**
+ * The heatmap's reveal: the color washes into the cells, column by column from
+ * the left, the way the line draws along x. It is the tempo of the map's
+ * region wash, because the two sequential-color charts fill in the same way.
+ * Past the reveal, a data change crossfades each cell in this time.
+ *
+ * @internal
+ */
+export const CELL_WASH = { duration: duration[400], ease: ease.out } as const
+
+/** Delay step between adjacent columns of the heatmap wash. @internal */
+const CELL_WASH_STAGGER = 0.03
+
+/**
+ * The longest the heatmap wash staggers its columns, in seconds, as the map
+ * caps its region stagger. A wide grid shortens the step, so it still washes
+ * in from the left, but in one beat.
+ *
+ * @internal
+ */
+const CELL_WASH_SPAN = 0.3
+
+/** The wash delay of the cells in column `col` of `cols`, in seconds. @internal */
+export function cellWashDelay(col: number, cols: number): number {
+	return col * (cols > 1 ? Math.min(CELL_WASH_STAGGER, CELL_WASH_SPAN / (cols - 1)) : 0)
+}
+
+/** How long the heatmap wash takes end to end, in seconds: the last column's delay and the wash. @internal */
+export const CELL_WASH_SETTLE = CELL_WASH_SPAN + CELL_WASH.duration
+
 // Reverse timings for the data-change exit: the outgoing marks running their
 // reveal backwards. Each is quicker than its reveal and carries no delay, so an
 // outgoing generation clears fully before the incoming one begins (the

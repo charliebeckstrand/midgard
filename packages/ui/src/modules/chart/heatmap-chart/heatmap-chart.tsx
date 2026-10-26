@@ -55,8 +55,8 @@ function gridMarkAt(): ChartMarkRef {
  * @remarks Rows pivot to the grid by their distinct `xKey` (columns) and `yKey`
  * (rows) values in first-seen order. The frame defaults to square-ish cells by
  * fitting its aspect to the grid shape, held between 1/2 and 4. Pass
- * `aspectRatio` to override. The heatmap renders as a static SVG tree and takes
- * no `animate`. A function-form context menu `items` receives the row-major
+ * `aspectRatio` to override. Under `animate` the colors wash in from the left
+ * on mount, and a data change crossfades each cell. A function-form context menu `items` receives the row-major
  * index of the cell under the pointer or the keyboard cursor:
  * `row * columns + col`.
  * @example
@@ -78,6 +78,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		legend,
 		tooltip,
 		formatValue,
+		animate = false,
 		onCellClick,
 		selectedCell,
 		className,
@@ -237,7 +238,13 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 					</>
 				)}
 
-				<HeatmapChartCells cells={cells} fills={fills} cellBins={cellBins} />
+				<HeatmapChartCells
+					cells={cells}
+					cols={cols}
+					fills={fills}
+					cellBins={cellBins}
+					animate={animate}
+				/>
 
 				<HeatmapCellRings cells={cells} selected={selected} />
 

@@ -79,8 +79,9 @@ export type HeatmapChartSeries<T> = {
  * visually-hidden data table (categories × rows). The grid therefore carries
  * full value parity without the pointer, the way every chart in the module does.
  *
- * @remarks The grid wires neither `animate` nor `texture`, and the heatmap
- * draws no series header, so it takes neither those nor `subtitle`. `legend`
+ * @remarks The grid wires no `texture`, and the heatmap draws no series
+ * header, so it takes neither that nor `subtitle`. It takes its own `animate`,
+ * a color wash and not the reveal of the marks. `legend`
  * controls the continuous range scale bar, which is the only legend of the
  * heatmap. The object form holds only a `placement`. The name joins outside the
  * `Omit`: an `Omit` of the name union keeps only the keys common to its arms,
@@ -124,6 +125,18 @@ export type HeatmapChartProps<T = never> = AccessibleName &
 		 * page.
 		 */
 		onCellClick?: (cell: { x: string; y: string }, at: [row: number, col: number]) => void
+		/**
+		 * Washes the colors in on mount. The grid paints the neutral no-data fill at
+		 * once, and then the color of each cell washes in, column by column from the
+		 * left. It is the reveal of the choropleth, which washes its regions in the
+		 * same way. Past the reveal, a change to the data crossfades each cell to its
+		 * new color, so a re-query (say a dashboard filter change) transitions
+		 * rather than snapping. A resize plays nothing. A reduced-motion preference
+		 * shows each color at once. Off by default: a static heatmap stays a
+		 * plain-SVG tree with no transition.
+		 * @defaultValue false
+		 */
+		animate?: boolean
 		/**
 		 * The cell that reads as selected, by the two band labels that
 		 * `onCellClick` reports. Pair the two to hold a selection, for example the

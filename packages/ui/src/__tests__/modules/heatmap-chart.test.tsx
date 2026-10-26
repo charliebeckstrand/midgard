@@ -1,7 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
+import { CELL_WASH_SETTLE } from '../../modules/chart/engine/chart-motion'
 import { ChartFullscreenContext } from '../../modules/chart/engine/context'
+import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import {
 	act,
 	bySlot,
@@ -10,6 +12,7 @@ import {
 	getSlot,
 	liveRegion,
 	renderUI,
+	stubMatchMedia,
 } from '../helpers'
 
 type Row = { day: string; hour: string; commits: number }
@@ -699,6 +702,71 @@ describe('HeatmapChart cell rings', () => {
 		)
 
 		expect(bySlot(container, 'heatmap-rings')).toBeNull()
+	})
+})
+
+describe('HeatmapChart animate', () => {
+	afterEach(() => {
+		vi.useRealTimers()
+	})
+
+	/** The transition delay of each cell, in order, or `null` for a cell with no transition. */
+	const delays = (container: HTMLElement) =>
+		cellRects(container).map((rect) =>
+			rect.getAttribute('class')?.includes('transition-[fill,opacity]')
+				? (rect as SVGElement).style.transitionDelay
+				: null,
+		)
+
+	it('takes no transition on a static heatmap', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		expect(delays(container)).toEqual([null, null, null, null])
+	})
+
+	it('washes the colors in column by column, then crossfades a data change at once', () => {
+		vi.useFakeTimers()
+
+		const chart = (rows: Row[]) => (
+			<HeatmapChart aria-label="Commits" data={rows} series={SERIES} width={400} animate />
+		)
+
+		const { container, rerender } = renderUI(chart(ROWS))
+
+		// Row-major: Mon 9, Mon 10, Tue 9, Tue 10. The second column waits a step.
+		const reveal = delays(container)
+
+		expect(reveal[0]).toBe('0ms')
+
+		expect(reveal[1]).not.toBe('0ms')
+
+		expect(reveal[2]).toBe(reveal[0])
+
+		expect(reveal[3]).toBe(reveal[1])
+
+		// The cells carry their colors, and the CSS transition washes them in.
+		expect(cellRects(container)[0]).toHaveAttribute('fill')
+
+		act(() => {
+			vi.advanceTimersByTime(CELL_WASH_SETTLE * 1000)
+		})
+
+		// The stagger retires with the reveal, so a data change waits for no column.
+		rerender(chart([{ day: 'Mon', hour: '9', commits: 9 }, ...ROWS.slice(1)]))
+
+		expect(delays(container)).toEqual(['', '', '', ''])
+	})
+
+	it('plays no wash under reduced motion', () => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} animate />,
+		)
+
+		expect(delays(container)).toEqual(['', '', '', ''])
 	})
 })
 
