@@ -7,7 +7,9 @@ import {
 	formatAggregate,
 	hasAggregation,
 } from '../../modules/grid/engine/grid-aggregate'
+import { pinnedSpanProps } from '../../modules/grid/engine/grid-pin/styles'
 import type { GridColumn } from '../../modules/grid/types'
+import type { GridColumnPinning } from '../../modules/grid/use-grid-table'
 import { renderUI, screen, setupUser } from '../helpers'
 
 type Sale = { id: number; region: string; units: number; revenue: number; margin: number }
@@ -134,12 +136,88 @@ describe('grid aggregation core', () => {
 		expect(hasAggregation([{ id: 'region' }])).toBe(false)
 
 		// region (index 0) has no aggFunc, units (index 1) does → label spans the 1 leading column.
-		expect(aggregateLabelSpan(columns)).toBe(1)
+		expect(aggregateLabelSpan(columns, null)).toBe(1)
 
 		// A leading aggregated column still leaves one cell for the label.
-		expect(aggregateLabelSpan([{ id: 'a', aggFunc: 'sum' }, { id: 'b' }])).toBe(1)
+		expect(aggregateLabelSpan([{ id: 'a', aggFunc: 'sum' }, { id: 'b' }], null)).toBe(1)
+	})
+
+	it('ends the label span at a frozen boundary', () => {
+		const label: GridColumn<Sale>[] = [
+			{ id: 'a' },
+			{ id: 'b' },
+			{ id: 'c' },
+			{ id: 'd', aggFunc: 'sum' },
+		]
+
+		expect(aggregateLabelSpan(label, null)).toBe(3)
+
+		// Two frozen columns lead: the label covers them and stops before `c`.
+		expect(aggregateLabelSpan(label, stubPinning({ a: 'left', b: 'left' }))).toBe(2)
+
+		expect(aggregateLabelSpan(label, stubPinning({ a: 'left' }))).toBe(1)
+
+		// A frozen column that the label does not reach leaves the span as it was.
+		expect(aggregateLabelSpan(label, stubPinning({ d: 'right' }))).toBe(3)
 	})
 })
+
+describe('pinnedSpanProps', () => {
+	const pinning = stubPinning(
+		{ a: 'left', b: 'left', y: 'right', z: 'right' },
+		{ b: true, y: true },
+	)
+
+	it('sticks a left run at its first column and faces the scroll with its last', () => {
+		const chrome = pinnedSpanProps(pinning, [{ id: 'a' }, { id: 'b' }])
+
+		expect(chrome.pin).toBe('a')
+
+		expect(chrome.style).toEqual({ insetInlineStart: 0 })
+
+		expect(chrome.className).toContain('sticky')
+
+		// `b` is the boundary of the left group, so the run carries its edge rule.
+		expect(chrome.className).toContain('after:end-0')
+	})
+
+	it('sticks a right run at its last column and faces the scroll with its first', () => {
+		const chrome = pinnedSpanProps(pinning, [{ id: 'y' }, { id: 'z' }])
+
+		expect(chrome.pin).toBe('z')
+
+		expect(chrome.style).toEqual({ insetInlineEnd: 0 })
+
+		expect(chrome.className).toContain('after:start-0')
+	})
+
+	it('gives no chrome to a run that scrolls in part', () => {
+		expect(pinnedSpanProps(pinning, [{ id: 'b' }, { id: 'c' }])).toEqual({
+			className: '',
+			style: undefined,
+			pin: undefined,
+		})
+
+		expect(pinnedSpanProps(null, [{ id: 'a' }]).pin).toBeUndefined()
+	})
+})
+
+/**
+ * A {@link GridColumnPinning} over a fixed map of frozen sides. Each frozen
+ * column sits at offset 0, and `boundary` marks the boundary columns.
+ */
+function stubPinning(
+	sides: Record<string, 'left' | 'right'>,
+	boundary: Record<string, boolean> = {},
+): GridColumnPinning {
+	const column = (id: string | number) => {
+		const side = sides[String(id)]
+
+		return side ? { side, offset: 0, boundary: boundary[String(id)] ?? false } : undefined
+	}
+
+	return { column, offset: (id) => (column(id) ? 0 : undefined) }
+}
 
 describe('cachedAggregate', () => {
 	it('computes each aggregate one time for each row array and column', () => {
@@ -312,6 +390,66 @@ describe('Grid aggregation rendering', () => {
 		)
 
 		expect(container.querySelector('[data-total-row]')).toBeNull()
+	})
+
+	// A frozen column's figure sticks under its header, as its data cells do.
+	it('sticks the aggregate and total cells of a frozen column', () => {
+		const pinned: GridColumn<Sale>[] = [
+			{ id: 'id', title: 'ID', cell: (row) => String(row.id), pinned: 'left' },
+			{ id: 'region', title: 'Region', cell: (row) => row.region, value: (row) => row.region },
+			{ id: 'units', title: 'Units', value: (row) => row.units, aggFunc: 'sum' },
+			{
+				id: 'revenue',
+				title: 'Revenue',
+				value: (row) => row.revenue,
+				aggFunc: 'sum',
+				pinned: 'right',
+			},
+		]
+
+		const { container } = renderUI(
+			<Grid
+				columns={pinned}
+				rows={sales}
+				getKey={getKey}
+				groupBy={{ value: 'region' }}
+				groupTotalRow
+				grandTotalRow
+			/>,
+		)
+
+		const rows = [
+			rowByText('West (2)'),
+			container.querySelector<HTMLElement>('[data-total-row="group"]'),
+			container.querySelector<HTMLElement>('[data-total-row="grand"]'),
+		]
+
+		for (const row of rows) {
+			const label = row?.firstElementChild as HTMLElement | null
+
+			// The label span ends at the frozen boundary: it covers `id` alone and sticks with it.
+			expect(label).toHaveAttribute('data-grid-pin', 'id')
+
+			expect(label).not.toHaveAttribute('colspan', '2')
+
+			expect(label?.className).toContain('sticky')
+
+			expect(label?.style.insetInlineStart).toBe('0px')
+
+			const region = row?.querySelector<HTMLElement>('[data-grid-col="region"]')
+
+			expect(region).not.toHaveAttribute('data-grid-pin')
+
+			const revenue = row?.querySelector<HTMLElement>('[data-grid-col="revenue"]')
+
+			expect(revenue).toHaveAttribute('data-grid-pin', 'revenue')
+
+			expect(revenue?.className).toContain('sticky')
+
+			expect(revenue?.style.insetInlineEnd).toBe('0px')
+
+			expect(row?.querySelector('[data-grid-col="units"]')).not.toHaveAttribute('data-grid-pin')
+		}
 	})
 
 	it('collapses a group total with its group', async () => {

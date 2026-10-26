@@ -11,12 +11,14 @@ import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation, renderAggregate } from './engine/grid-aggregate'
 import { NO_PADDING, NO_ROWS } from './engine/grid-constants'
 import { gridMessages } from './engine/grid-messages'
+import { type PinnedCellChrome, pinnedCellProps, pinnedSpanProps } from './engine/grid-pin/styles'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import { GridNavCell, useGridNavStopProps } from './grid-nav-cell'
 import type { GridColumn } from './types'
 import { useGridNavContext } from './use-grid-navigation'
 import { useGridRevealHold } from './use-grid-reveal-hold'
+import type { GridColumnPinning } from './use-grid-table'
 
 /**
  * Resolves the grand-total row's state off the grid's: whether it renders, and
@@ -61,6 +63,8 @@ type GridGrandTotalBodyProps<T> = {
 	/** Resolved grand-total state from {@link resolveGrandTotal}. */
 	grandTotal: { active: boolean; rows: readonly T[] }
 	columns: GridColumn<T>[]
+	/** Frozen-column controls, so a pinned column's total sticks like its data cells. `null` when none. */
+	pinning: GridColumnPinning | null
 	/** Whether the grid runs `role="grid"` semantics, gating the global row index. */
 	gridSemantics: boolean
 	/** The grid's resolved aria row count: the grand total's own index when it shows. */
@@ -79,6 +83,7 @@ type GridGrandTotalBodyProps<T> = {
 export function GridGrandTotalBody<T>({
 	grandTotal,
 	columns,
+	pinning,
 	gridSemantics,
 	ariaRowCount,
 }: GridGrandTotalBodyProps<T>) {
@@ -90,6 +95,7 @@ export function GridGrandTotalBody<T>({
 				columns={columns}
 				rows={grandTotal.rows}
 				variant="grand"
+				pinning={pinning}
 				aria-rowindex={gridSemantics && ariaRowCount > 0 ? ariaRowCount : undefined}
 			/>
 		</TableBody>
@@ -102,6 +108,8 @@ type GridTotalRowProps<T> = {
 	columns: GridColumn<T>[]
 	/** The rows this total aggregates: a group's leaves, or the whole filtered set. */
 	rows: readonly T[]
+	/** Frozen-column controls, so the cells over a pinned column stick like its data cells. `null` when none. */
+	pinning: GridColumnPinning | null
 	/** A group total hides with its collapsed group; the grand total always shows. */
 	variant: 'group' | 'grand'
 	/**
@@ -132,7 +140,7 @@ function GroupRevealCell({
 	color,
 	colSpan,
 	colId,
-	className,
+	pinned,
 	cellProps,
 	children,
 }: {
@@ -146,7 +154,8 @@ function GroupRevealCell({
 	color?: PaletteColor
 	colSpan?: number
 	colId?: string | number
-	className?: string
+	/** The pinned chrome of the cell, which also carries the column's `className` (see {@link pinnedCellProps}). */
+	pinned: PinnedCellChrome
 	children: ReactNode
 }) {
 	return (
@@ -161,9 +170,11 @@ function GroupRevealCell({
 				rail && k.row.group.rail.padded,
 				rail && color && k.row.group.rail.color[color],
 				color && k.row.group.tint[color],
-				className,
+				// After the tint, so a frozen cell keeps its opaque surface.
+				pinned.className,
 			)}
-			style={NO_PADDING}
+			style={pinned.style ? { ...NO_PADDING, ...pinned.style } : NO_PADDING}
+			data-grid-pin={pinned.pin}
 		>
 			<div className={cn(k.row.group.reveal.track)} data-open={dataAttr(open)}>
 				<div className={cn(k.row.group.reveal.clip)}>
@@ -179,13 +190,16 @@ function GroupRevealCell({
  * aggregated one, then one aggregate cell per remaining column. The `'group'`
  * variant sits under its group's leaves and carries the group rail. It collapses
  * with the group through the same CSS reveal the leaves ride. The `'grand'`
- * variant closes the whole body over the full filtered set.
+ * variant closes the whole body over the full filtered set. The label span
+ * ends at a frozen boundary, so each cell over a frozen column sticks with that
+ * column (see `aggregateLabelSpan`).
  *
  * @internal
  */
 function GridTotalRowImpl<T>({
 	columns,
 	rows,
+	pinning,
 	variant,
 	expanded = true,
 	label: labelProp,
@@ -197,7 +211,9 @@ function GridTotalRowImpl<T>({
 
 	const label = labelProp ?? intl.formatMessage(gridMessages.total)
 
-	const span = aggregateLabelSpan(columns)
+	const span = aggregateLabelSpan(columns, pinning)
+
+	const labelPinned = pinnedSpanProps(pinning, columns.slice(0, span))
 
 	// The two variants share the label span and nothing else (different trees,
 	// and only the group one collapses), so the group row is its own component
@@ -207,7 +223,9 @@ function GridTotalRowImpl<T>({
 			<GridGroupTotalRow<T>
 				columns={columns}
 				rows={rows}
+				pinning={pinning}
 				span={span}
+				labelPinned={labelPinned}
 				expanded={expanded}
 				label={label}
 				color={color}
@@ -220,11 +238,17 @@ function GridTotalRowImpl<T>({
 	return (
 		<TableRow data-total-row="grand" {...windowRow}>
 			{/* The label is the row header of the totals, so each total reads with it. */}
-			<TableHeader scope="row" colSpan={span} className={cn(k.aggregate.label)}>
+			<TableHeader
+				scope="row"
+				colSpan={span}
+				className={cn(k.aggregate.label, labelPinned.className)}
+				style={labelPinned.style}
+				data-grid-pin={labelPinned.pin}
+			>
 				{label}
 			</TableHeader>
 
-			<GridAggregateCells columns={columns} rows={rows} from={span} />
+			<GridAggregateCells columns={columns} rows={rows} from={span} pinning={pinning} />
 		</TableRow>
 	)
 }
@@ -244,7 +268,9 @@ export const GridTotalRow = memo(GridTotalRowImpl) as typeof GridTotalRowImpl
 function GridGroupTotalRow<T>({
 	columns,
 	rows,
+	pinning,
 	span,
+	labelPinned,
 	expanded,
 	label,
 	color,
@@ -254,8 +280,11 @@ function GridGroupTotalRow<T>({
 	navKey: string | undefined
 	columns: GridColumn<T>[]
 	rows: readonly T[]
+	pinning: GridColumnPinning | null
 	/** Columns the leading label cell spans, resolved once by {@link GridTotalRow}. */
 	span: number
+	/** The pinned chrome of the label cell, resolved with the span. */
+	labelPinned: PinnedCellChrome
 	expanded: boolean
 	label: ReactNode
 	color?: PaletteColor
@@ -292,6 +321,7 @@ function GridGroupTotalRow<T>({
 					rail
 					color={color}
 					colSpan={span}
+					pinned={labelPinned}
 					cellProps={navKey === undefined ? undefined : stopProps}
 				>
 					{label}
@@ -305,7 +335,7 @@ function GridGroupTotalRow<T>({
 						pad={cn(pad, k.aggregate.cell)}
 						color={color}
 						colId={column.id}
-						className={column.className}
+						pinned={pinnedCellProps(pinning, column)}
 					>
 						{renderAggregate(column, rows, locale)}
 					</GroupRevealCell>
