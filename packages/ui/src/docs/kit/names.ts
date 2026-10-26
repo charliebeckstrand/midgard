@@ -128,15 +128,6 @@ export function tabName(intl: IntlShape, slug: string, name: string): string {
 }
 
 /**
- * Tells if a value of a prop is a word that gets a translated option, such as
- * `bottom-start`. A number and a value with no word, such as `16/9` or
- * `MM/DD/YYYY`, read as written in each language.
- */
-export function isWord(value: unknown): value is string {
-	return typeof value === 'string' && /[a-z]/.test(value) && /^[A-Za-z0-9_-]+$/.test(value)
-}
-
-/**
  * The message id of the label of the field of `prop`, or of the option
  * `value` of the field.
  */

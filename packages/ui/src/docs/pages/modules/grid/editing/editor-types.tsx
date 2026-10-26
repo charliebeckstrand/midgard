@@ -42,6 +42,12 @@ const tasks: Task[] = [
 	},
 ]
 
+// Each row stays in edit mode, so each editor shows at once, and no row saves.
+// Title gets a text editor and Done a yes or no listbox, from the type of the
+// value. Status, Due, and Budget get an editor through the `editCell` slot.
+// `overlay: false` keeps the editors in the cells on a phone too.
+const editing = new Set<string | number>(tasks.map((task) => task.id))
+
 const statusOptions = [
 	{ label: 'To do', value: 'todo' },
 	{ label: 'In progress', value: 'in-progress' },
@@ -74,12 +80,6 @@ function CellCurrency({ value, onValueUpdate, ariaLabel }: GridEditCellContext<u
 
 export default function EditorTypes() {
 	const intl = useIntl()
-
-	// Each row stays in edit mode, so each editor shows at once, and no row saves.
-	// Title gets a text editor and Done a yes or no listbox, from the type of the
-	// value. Status, Due, and Budget get an editor through the `editCell` slot.
-	// `sheet: false` keeps the editors in the cells on a phone too.
-	const editing = useMemo(() => new Set<string | number>(tasks.map((task) => task.id)), [])
 
 	const columns = useMemo(
 		(): GridColumn<Task>[] => [

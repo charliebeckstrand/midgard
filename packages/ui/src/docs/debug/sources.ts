@@ -1,5 +1,5 @@
 import type { EventSource } from 'ui/events'
-import { addListeners, bursts } from '../../modules/events/engine/events-sources/dom.ts'
+import { addListeners, all, bursts } from '../../modules/events/engine/events-sources/dom.ts'
 import { noop } from '../../utilities/noop.ts'
 import { listenComponentEvents } from './component-events.ts'
 
@@ -62,11 +62,7 @@ const components: EventSource = (note) => {
 		note({ kind: source, name, text, detail, batch: getBatch(`${name} ${path}`) }),
 	)
 
-	return () => {
-		unlisten()
-
-		stop()
-	}
+	return all([unlisten, stop])
 }
 
 /** Each hot update and each error of the dev server. The `import.meta.hot` of Vitest has no `off`. */

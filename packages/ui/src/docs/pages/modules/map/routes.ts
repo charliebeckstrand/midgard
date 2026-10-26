@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchOsrmRoute, type LngLat, type MapRouteAnswer, type MapRouteResult } from 'ui/map'
+import { getOrCompute } from '../../../../utilities/get-or-compute.ts'
 
 /** The hub of a distribution network in Kansas City. The network is not real. */
 export const hub: LngLat = [-94.58, 39.1]
@@ -32,19 +33,13 @@ const answers = new Map<string, Promise<MapRouteAnswer>>()
 function answerFor(start: LngLat, end: LngLat): Promise<MapRouteAnswer> {
 	const key = `${start};${end}`
 
-	let answer = answers.get(key)
-
-	if (answer === undefined) {
-		answer = fetchOsrmRoute([start, end]).then((result) => {
+	return getOrCompute(answers, key, () =>
+		fetchOsrmRoute([start, end]).then((result) => {
 			if (!result.ok) answers.delete(key)
 
 			return result
-		})
-
-		answers.set(key, answer)
-	}
-
-	return answer
+		}),
+	)
 }
 
 /**

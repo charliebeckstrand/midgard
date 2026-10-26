@@ -1,4 +1,6 @@
 import { EventsScript, startEvents } from 'ui/events'
+import { ON_ATTRIBUTE } from '../../modules/events/engine/events-setting.ts'
+import { InlineScript } from '../../primitives/inline-script/inline-script.tsx'
 import { DOCS_SOURCES } from './sources.ts'
 
 // The part of the events that the docs shell holds: the head scripts and the
@@ -7,7 +9,8 @@ import { DOCS_SOURCES } from './sources.ts'
 
 // The head script of the docs: while the events run, it keeps the scroll and
 // viewport readings before hydration until the store takes them (`sources.ts`).
-const SCRIPT = `(function(){try{if(localStorage.getItem('events:on')!=='1')return}catch(e){return}
+// It runs after the script of the events, which marks the root when they run.
+const SCRIPT = `(function(){if(!document.documentElement.hasAttribute(${JSON.stringify(ON_ATTRIBUTE)}))return
 var w=window,v=w.visualViewport,b=[],o={capture:true,passive:true};
 function f(e){if(b.length<50)b.push({time:Math.round(performance.now()),kind:e.type==='scroll'?'scroll':'viewport',text:e.type+' before hydration'+(v?' visual '+Math.round(v.height)+'@'+Math.round(v.offsetTop):'')+' window '+w.innerHeight,y:Math.round(w.scrollY)})}
 f({type:'head'});document.addEventListener('scroll',f,o);w.addEventListener('resize',f);if(v)v.addEventListener('resize',f);
@@ -18,7 +21,7 @@ export function DebugScript() {
 	return (
 		<>
 			<EventsScript />
-			<script>{SCRIPT}</script>
+			<InlineScript source={SCRIPT} />
 		</>
 	)
 }

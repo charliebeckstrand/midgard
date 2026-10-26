@@ -30,6 +30,7 @@ import {
 	TimelineTitle,
 } from '../../../components/timeline'
 import { Tree, TreeItem } from '../../../components/tree'
+import { scale as swatchScale } from '../../../recipes/kata/swatch'
 import { FixtureCase, FixtureGroup, FixtureSheet } from '../fixture'
 
 const USERS = [
@@ -68,8 +69,6 @@ const AVATAR_SIZES = ['sm', 'md', 'lg'] as const
 const SWATCH_SHAPES = ['square', 'circle', 'line'] as const
 
 const SWATCH_VARIANTS = ['solid', 'soft', 'outline', 'dashed'] as const
-
-const SWATCH_SIZES = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 const SWATCH_COLORS = ['blue', 'orange', 'violet', 'green', 'red', 'sky', 'amber', 'rose'] as const
 
@@ -463,7 +462,7 @@ export function Sheet() {
 					</FixtureCase>
 				))}
 				<FixtureCase label="size">
-					{SWATCH_SIZES.map((size) => (
+					{swatchScale.map((size) => (
 						<Swatch key={size} size={size} color="violet" />
 					))}
 				</FixtureCase>

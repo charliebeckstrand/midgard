@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Field, Label } from 'ui/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { defineMessages, type MessageDescriptor, useIntl } from 'ui/primitives/intl'
+import { InlineScript } from '../../primitives/inline-script/inline-script.tsx'
 import { intlMessages } from '../../primitives/intl/intl-messages.ts'
 
 // The direction of the docs: a setting that lays out the whole site left to
@@ -59,7 +60,7 @@ const SCRIPT = `(function(){var c=null,d='ltr';try{c=sessionStorage.getItem(${JS
 
 /** The head script of the direction. Render it in the `<head>`, before the first paint. */
 export function DirectionScript() {
-	return <script>{SCRIPT}</script>
+	return <InlineScript source={SCRIPT} />
 }
 
 /** Reads the stored choice. Any other value, or no value, is "System". */

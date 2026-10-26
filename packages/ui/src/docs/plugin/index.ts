@@ -44,9 +44,6 @@ const SEARCH = `${VIRTUAL}search`
 // The module of `localize`, which a page or a tab module imports (`copies.ts`).
 const LOCALIZE = path.resolve(import.meta.dirname, '..', 'kit', 'localize.tsx')
 
-// A source file of `ui`: TypeScript, outside the docs and the tests.
-const SOURCE = /^(?!.*\/__tests__\/).*\.tsx?$/
-
 /** The resolved id of a virtual module. */
 function virtualId(name: string): string {
 	return `\0${name}`
@@ -127,6 +124,12 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 	// The API data of each barrel. The client build and the server build read
 	// the same barrels, so the TypeScript server runs once for both.
 	const barrels = new Map<string, Promise<BarrelApi>>()
+
+	const readApi = (barrel: string) => getOrCompute(barrels, barrel, () => extractor.extract(barrel))
+
+	/** Whether `file` is a source file of `ui`: TypeScript, outside the docs and the tests. */
+	const isUiSource = (file: string) =>
+		/^(?!.*\/__tests__\/).*\.tsx?$/.test(file) && !file.startsWith(docs)
 
 	// The code of the examples of each folder. The client build and the server
 	// build import the same examples, so each highlight runs once for both.
@@ -213,7 +216,7 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 		const code = toCodeId(pages, file)
 
 		for (const name of codes.keys()) {
-			if (readLangId(name.slice(CODE.length)).file === code.slice(CODE.length)) codes.delete(name)
+			if (readLangId(name).file === code) codes.delete(name)
 		}
 	}
 
@@ -235,7 +238,7 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 	function staleSearch(graph: EnvironmentModuleGraph, file: string): EnvironmentModuleNode[] {
 		const isPage = file.startsWith(pages)
 
-		const isSource = SOURCE.test(file) && !file.startsWith(docs)
+		const isSource = isUiSource(file)
 
 		if (!isPage && !isSource) return []
 
@@ -268,9 +271,7 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 				}
 
 				if (name === SEARCH) {
-					search ??= searchEntries(docs, this.parse.bind(this), (barrel) =>
-						getOrCompute(barrels, barrel, () => extractor.extract(barrel)),
-					)
+					search ??= searchEntries(docs, this.parse.bind(this), readApi)
 
 					return data(await search)
 				}
@@ -278,7 +279,7 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 				if (name.startsWith(API)) {
 					const barrel = name.slice(API.length)
 
-					return data(await getOrCompute(barrels, barrel, () => extractor.extract(barrel)))
+					return data(await readApi(barrel))
 				}
 
 				if (name.startsWith(CODE)) {
@@ -356,7 +357,7 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 				if (next === null) return []
 
 				stale = next
-			} else if (SOURCE.test(file) && !file.startsWith(docs)) {
+			} else if (isUiSource(file)) {
 				barrels.clear()
 
 				extractor.refresh({ file, type })

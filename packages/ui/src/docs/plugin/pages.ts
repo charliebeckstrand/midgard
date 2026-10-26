@@ -21,6 +21,15 @@ export type Page = PageLink & {
 	folder: string
 }
 
+/**
+ * The folder of a page and the folder of each of its tabs, relative to
+ * `pages/`, such as `modules/grid` and `modules/grid/sorting`. Each folder
+ * holds the `index.tsx` of one route.
+ */
+export function routeFolders(page: Page): string[] {
+	return [page.folder, ...page.tabs.map((tab) => `${page.folder}/${tab}`)]
+}
+
 // The folder of the components. Its pages have no folder in their path.
 const COMPONENTS = 'components'
 
@@ -73,4 +82,13 @@ export function findPages(docs: string): Page[] {
 				a.category.localeCompare(b.category, LOCALE) ||
 				a.name.localeCompare(b.name, LOCALE),
 		)
+}
+
+/** The `index.tsx` of each page and of each tab in `docs/pages`, as absolute paths. */
+export function findRouteFiles(docs: string): string[] {
+	const pages = path.join(docs, 'pages')
+
+	return findPages(docs)
+		.flatMap(routeFolders)
+		.map((folder) => path.join(pages, folder, 'index.tsx'))
 }

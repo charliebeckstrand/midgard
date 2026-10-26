@@ -37,14 +37,24 @@ const WORDS: Readonly<Record<string, string>> = {
 }
 
 /**
+ * Tells if a value is a word that {@link humanize} reads, such as the value
+ * `bottom-start` of a prop, which gets a translated option. A number and a
+ * value with no word, such as `16/9` or `MM/DD/YYYY`, read as written in each
+ * language.
+ */
+export function isWord(value: unknown): value is string {
+	return typeof value === 'string' && /[a-z]/.test(value) && /^[A-Za-z0-9_-]+$/.test(value)
+}
+
+/**
  * An identifier or a file name as words in sentence case: `groupTotalRow`
  * gives `Group total row`, and `with-icon` gives `With icon`. A word of
  * {@link WORDS} keeps its own form, so `compound-api` gives `Compound API`.
- * A value with no lowercase letter, or with a character that an identifier
- * does not have, reads as written, such as `MM/DD/YYYY` or `16/9`.
+ * A value that is not a word ({@link isWord}) reads as written, such as
+ * `MM/DD/YYYY` or `16/9`.
  */
 export function humanize(identifier: string): string {
-	if (!/[a-z]/.test(identifier) || !/^[A-Za-z0-9_-]+$/.test(identifier)) return identifier
+	if (!isWord(identifier)) return identifier
 
 	const words = identifier
 		.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
