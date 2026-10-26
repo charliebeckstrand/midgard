@@ -326,18 +326,20 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * - View data, Download CSV, and Copy data, where a data readout exists. View
 	 *   data shows the values in a table in a dialog.
 	 *
-	 * A touch screen has no right-click, so where the primary pointer is coarse
-	 * a menu button opens the same menu. The button sits at the end of the chart
-	 * header, or in the header row of the box around the chart, such as a
-	 * dashboard tile (`primitives/header-actions`). A chart with no title outside
-	 * such a box shows no button. The heatmap draws no header, so outside such a
-	 * box its button sits in the top end corner of the chart, titled or not.
+	 * A touch screen has no right-click, so there a touch hold on the chart
+	 * opens the same menu. A finger that moves before the hold fires scrolls the
+	 * page as before. Set `button: true` to also show a menu button where the
+	 * primary pointer is coarse. The button sits at the end of the chart header,
+	 * or in the header row of the box around the chart, such as a dashboard tile
+	 * (`primitives/header-actions`). A chart that draws no header, such as the
+	 * heatmap or a chart with no title, puts it in the top end corner of the
+	 * chart.
 	 *
 	 * Pass a config to add custom `items` (each a `{ label, icon, onAction }`).
 	 * Place them `'before'` or `'after'` the defaults, or drop the defaults with
 	 * `defaultItems: false`. A separator divides the two groups when both show. Set
 	 * `downloadLegend: false` to export images without the legend. `false` disables
-	 * the menu, leaving the browser's native one.
+	 * the menu and the hold, leaving the browser's native menu.
 	 * @see {@link ChartContextMenuConfig}
 	 */
 	contextMenu?: ChartContextMenuConfig | false

@@ -21,8 +21,8 @@ const claimed = new WeakSet<Event>()
  * `contextmenu` event during the hold, as on Android, cancels the timer. When a handler takes the
  * event, the hook drops the click that ends the hold. A press inside an open panel of the menu
  * starts no hold, so a slow tap on a row still activates it. While the touch holds, the page
- * selects no text. A hold inside a `data-touch-readout` element opens no
- * menu. On a map the hold opens the readout, and on a chart it does nothing.
+ * selects no text. A hold inside a `data-touch-readout` element, such as a map, opens no
+ * menu. A chart opens its own menu on the hold, as a right-click does.
  *
  * @returns Handlers for the surface element.
  *
@@ -32,7 +32,7 @@ export function useMenuTouchHold() {
 	const dropClickUntil = useRef(0)
 
 	const hold = useTouchHold(({ target, x, y }) => {
-		// A chart or a map keeps the hold: a map opens its readout, and a chart does nothing.
+		// A map keeps the hold, and opens nothing.
 		if (!(target instanceof Element) || target.closest('[data-touch-readout]')) return
 
 		const menuEvent = new MouseEvent('contextmenu', {
@@ -66,7 +66,7 @@ export function useMenuTouchHold() {
 
 			claimed.add(event.nativeEvent)
 
-			// Each hold on the surface, a chart or a map included, selects no text on the page.
+			// Each hold on the surface, a map included, selects no text on the page.
 			hold.start(event, TOUCH_CONTEXT_MENU_DELAY)
 		},
 		onPointerMove: hold.move,

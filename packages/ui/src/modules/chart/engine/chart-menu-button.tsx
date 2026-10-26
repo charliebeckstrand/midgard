@@ -16,15 +16,18 @@ import { useIntl } from '../../../primitives/intl/use-intl'
 import { chartMenuName, chartMessages } from './chart-messages'
 
 /**
- * The entries of the chart menu, which {@link ChartContextMenu} publishes for
- * {@link ChartMenuButton}. It is `null` where the chart has no menu: under
- * `contextMenu={false}`, in the fullscreen copy, or outside a chart.
+ * The chart menu, which {@link ChartContextMenu} publishes: its `entries`, and
+ * whether {@link ChartMenuButton} shows (`button`). It is `null` where the
+ * chart has no menu: under `contextMenu={false}`, in the fullscreen copy, or
+ * outside a chart. The map of a choropleth lets a touch hold open the menu
+ * only where it is not `null`.
  *
  * @internal
  */
-export const [ChartMenuEntriesContext, useChartMenuEntries] = createContext<
-	ContextMenuEntry[] | null
->('ChartMenuEntries', { default: null })
+export const [ChartMenuContext, useChartMenu] = createContext<{
+	entries: ContextMenuEntry[]
+	button: boolean
+} | null>('ChartMenu', { default: null })
 
 /** Props for {@link ChartMenuButton}. @internal */
 export type ChartMenuButtonProps = {
@@ -37,7 +40,7 @@ export type ChartMenuButtonProps = {
 	 * inside such a box. `'corner'` puts it in the top end corner of the nearest
 	 * positioned ancestor, for a chart that draws no header, and renders nothing
 	 * inside such a box. A chart renders the host copy and one other copy, so
-	 * exactly one shows.
+	 * at most one shows.
 	 */
 	place: 'host' | 'header' | 'corner'
 }
@@ -49,10 +52,10 @@ function findItem(entries: ContextMenuEntry[], key: string): ContextMenuItem | u
 
 /**
  * A button that opens the chart menu, for a touch screen. The menu opens on a
- * right-click, and a touch screen has none. A touch on a chart opens no
- * readout and no menu. So the button is the one way to the menu there. It
- * shows only where the primary pointer is coarse, and it holds the same
- * entries as the right-click menu.
+ * right-click, and on a touch screen on a hold. The button is a second way to
+ * the menu there, which a reader can see. It shows only where the primary
+ * pointer is coarse, and only when the chart turns it on with
+ * `contextMenu.button`. It holds the same entries as the right-click menu.
  *
  * Inside a box that gives a header actions element ({@link useHeaderActions}),
  * such as a dashboard tile, the button goes into the header row of the box with a
@@ -65,24 +68,27 @@ function findItem(entries: ContextMenuEntry[], key: string): ContextMenuItem | u
  * height.
  *
  * In the header row of a box, a View data button comes before the menu
- * button on each pointer, when the menu has the View data entry. The menu has
- * the Fullscreen entry, so the row carries `data-own-fullscreen`, and the box
- * can hide its own expand control.
+ * button on each pointer, when the menu has the View data entry. It shows also
+ * when the menu button is off. When the menu button shows and the menu has the
+ * Fullscreen entry, the row carries `data-own-fullscreen`, and the box can hide
+ * its own expand control.
  *
  * @internal
  */
 export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
-	const entries = useChartMenuEntries()
+	const chartMenu = useChartMenu()
 
 	const host = useHeaderActions()
 
 	const intl = useIntl()
 
-	if (entries === null || entries.length === 0) return null
+	if (chartMenu === null || chartMenu.entries.length === 0) return null
 
 	if ((place === 'host') !== (host !== null)) return null
 
-	const menu = (
+	const { entries, button } = chartMenu
+
+	const menu = button ? (
 		<div
 			data-slot="chart-menu-button"
 			// In the chart header the box keeps the height of one header line, and the
@@ -105,16 +111,18 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 				</MenuContent>
 			</Menu>
 		</div>
-	)
+	) : null
 
 	if (host === null) return menu
 
 	const viewData = findItem(entries, 'view-data')
 
+	if (menu === null && !viewData?.onAction) return null
+
 	return createPortal(
 		<span
 			data-slot="chart-header-actions"
-			data-own-fullscreen={dataAttr(findItem(entries, 'fullscreen') !== undefined)}
+			data-own-fullscreen={dataAttr(button && findItem(entries, 'fullscreen') !== undefined)}
 			className="contents"
 		>
 			{viewData?.onAction && (
