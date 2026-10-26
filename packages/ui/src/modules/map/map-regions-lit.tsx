@@ -2,6 +2,7 @@
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
+import { spotClass } from '../chart/engine/chart-series'
 import { useMapZoomScale } from './context'
 import { REGION_EMPHASIZED_STROKE_WIDTH } from './engine/map-constants'
 import type { MapHoverTarget } from './engine/map-hover/target'
@@ -11,6 +12,8 @@ import { type MapRegionLayer, paintAt } from './engine/map-region/paint'
 type MapRegionsLitProps = MapRegionLayer & {
 	pointed: MapHoverTarget | null
 	emphasis: string | null
+	/** Whether the layer recedes. A lift keeps the copies until the layer has faded back up. */
+	receded: boolean
 }
 
 /**
@@ -25,11 +28,17 @@ type MapRegionsLitProps = MapRegionLayer & {
  * A legend emphasis also outlines its lit regions ({@link MapRegionsEmphasized}).
  * A pointed region does not, because the hover brightness already marks it.
  *
+ * The region layer passes the last emphasis while a lift fades the layer back
+ * up (`useChartSpot`). The copies then stay at full strength, and hide when the
+ * fade ends (`spotClass`). The pointed copy drops its hover brightness at once,
+ * as the base region under a leaving pointer does.
+ *
  * @internal
  */
 export function MapRegionsLit({
 	pointed,
 	emphasis,
+	receded,
 	paths,
 	regionCategory,
 	paints,
@@ -57,7 +66,7 @@ export function MapRegionsLit({
 
 	return (
 		<>
-			<g data-slot="map-regions-lit" className="pointer-events-none">
+			<g data-slot="map-regions-lit" className={cn('pointer-events-none', spotClass(receded))}>
 				{lit.map((index) => {
 					const paint = paintAt(paints, regionCategory[index] ?? null)
 
@@ -71,7 +80,7 @@ export function MapRegionsLit({
 							// The pointed copy carries the hover emphasis statically: it is
 							// the hovered region by definition, and `:hover` can't reach a
 							// pointer-events-none element.
-							className={cn(paint.className, pointed !== null && k.region.pointed)}
+							className={cn(paint.className, receded && pointed !== null && k.region.pointed)}
 						/>
 					)
 				})}
@@ -80,6 +89,7 @@ export function MapRegionsLit({
 			{pointed === null && (
 				<MapRegionsEmphasized
 					lit={lit}
+					receded={receded}
 					paths={paths}
 					regionCategory={regionCategory}
 					paints={paints}
@@ -103,10 +113,11 @@ export function MapRegionsLit({
  */
 function MapRegionsEmphasized({
 	lit,
+	receded,
 	paths,
 	regionCategory,
 	paints,
-}: MapRegionLayer & { lit: number[] }) {
+}: MapRegionLayer & { lit: number[]; receded: boolean }) {
 	const unitsPerPixel = useMapZoomScale()
 
 	return (
@@ -114,7 +125,7 @@ function MapRegionsEmphasized({
 			data-slot="map-regions-emphasized"
 			fill="none"
 			strokeWidth={REGION_EMPHASIZED_STROKE_WIDTH * unitsPerPixel}
-			className="pointer-events-none"
+			className={cn('pointer-events-none', spotClass(receded))}
 		>
 			{lit.map((index) => (
 				<path

@@ -10,6 +10,20 @@ export function allRegions(container: HTMLElement) {
 	return Array.from(container.querySelectorAll<SVGPathElement>('[data-region-index]'))
 }
 
+/**
+ * A lit layer of the region map while it shows, or `null`. A lift keeps the
+ * layer through the fade of the recede and then hides it with `invisible`, so a
+ * hidden layer counts as gone.
+ */
+export function shownLayer(
+	container: HTMLElement,
+	slot: 'map-regions-lit' | 'map-regions-emphasized',
+): Element | null {
+	const layer = container.querySelector(`[data-slot="${slot}"]`)
+
+	return layer?.classList.contains('invisible') ? null : layer
+}
+
 /** The first region path, or `null`, as `querySelector` gives it. */
 export function firstRegion(container: HTMLElement) {
 	return container.querySelector<SVGPathElement>('[data-region-index]')
