@@ -430,7 +430,9 @@ type MapPlatBaseProps = AccessibleName &
 		selectedOverlay?: MapOverlaySelection | null
 		/**
 		 * Controlled legend emphasis: the legend id whose marks hold while every
-		 * other group dims (what hovering a legend entry sets on its own).
+		 * other group dims (what hovering a legend entry sets on its own). Each
+		 * region it holds also takes an outline in the selection ink, so a region
+		 * at the surface end of a sequential ramp reads apart from the dimmed ones.
 		 *
 		 * Passing it hands that state to the caller, so ONE legend rendered outside
 		 * the plat can emphasize across SEVERAL of them at once. Give each plat
@@ -680,7 +682,8 @@ const NO_CENTROIDS: (LngLat | null)[] = []
 /**
  * An SVG geography map on the chart module's interaction grammar. Regions take
  * their color by category from typed rows. One merged legend dims everything
- * outside a pointed entry's group, and a click toggles that group off. Pointing
+ * outside a pointed entry's group and outlines the regions in it, and a click
+ * toggles that group off. Pointing
  * a region or overlay on the map isolates it behind the same recede. A
  * pointer-anchored Tooltip carries the readout. A ring marks the region the
  * consumer holds selected, and a halo marks the overlay mark. A visually-hidden

@@ -359,6 +359,49 @@ describe('the range legend under quantile binning', () => {
 	})
 })
 
+describe('the range legend probe', () => {
+	it('outlines the regions the probe holds lit, so the pale end of the ramp reads', () => {
+		// The dim fades the other regions toward the surface. A lit region at the
+		// light end of the ramp then has their color, so it needs the outline.
+		const { container } = renderUI(
+			<ChoroplethChart
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				legend="range"
+				data={[
+					{ region: 'A', pop: 1 },
+					{ region: 'B', pop: 2 },
+					{ region: 'C', pop: 100 },
+				]}
+				series={[{ idKey: 'region', colorKey: 'pop', colorRange: ['#fff', '#000'] }]}
+			/>,
+		)
+
+		const track = getSlot(container, 'map-range-track')
+
+		track.getBoundingClientRect = () =>
+			({ left: 0, top: 0, width: 20, height: 99, right: 20, bottom: 99, x: 0, y: 0 }) as DOMRect
+
+		// Value 1 sits at the bottom of the track, in the lowest class with 2.
+		fireEvent.pointerMove(track, { clientY: 99 })
+
+		const outlines = bySlot(container, 'map-regions-emphasized')
+
+		expect(outlines?.querySelectorAll('path')).toHaveLength(2)
+
+		expect(outlines?.getAttribute('fill')).toBe('none')
+
+		expect(outlines?.getAttribute('class')).toContain('stroke-zinc-900')
+
+		expect(outlines?.getAttribute('class')).toContain('dark:stroke-white')
+
+		fireEvent.pointerLeave(track)
+
+		expect(bySlot(container, 'map-regions-emphasized')).toBeNull()
+	})
+})
+
 describe('the range legend domain under quantile binning', () => {
 	it('spans the data extent, not an explicit colorDomain', () => {
 		const { container } = renderUI(

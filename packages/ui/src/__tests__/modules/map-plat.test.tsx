@@ -568,6 +568,9 @@ describe('MapPlat', () => {
 		expect(copy?.getAttribute('class')).toContain('dark:brightness-110')
 
 		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
+
+		// The hover brightness marks a pointed region, so it takes no legend outline.
+		expect(bySlot(container, 'map-regions-emphasized')).toBeNull()
 	})
 
 	it('keeps the map lit while the pointer sits on a no-data or toggled-off region', () => {
