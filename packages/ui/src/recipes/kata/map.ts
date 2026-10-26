@@ -130,6 +130,14 @@ export const k = {
 		 * kept here so the region layer reads its selection beside its other paint.
 		 */
 		selected: SELECTED,
+		/**
+		 * The outline on each region that a legend emphasis holds lit, in the
+		 * same ink as {@link k.region.selected}. The dim fades the other regions
+		 * toward the surface, which is one end of a sequential ramp. A lit region at
+		 * that end therefore has the color of the dimmed ones, and only the outline
+		 * tells it apart.
+		 */
+		emphasized: SELECTED,
 	},
 	/**
 	 * The frame chrome, on the chart's own chrome inks. The graticule takes the

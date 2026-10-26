@@ -17,6 +17,14 @@ export const REGION_STROKE_WIDTH = 1
 export const REGION_SELECTED_STROKE_WIDTH = 2.5
 
 /**
+ * The outline width of a region that a legend emphasis holds lit. It is a step
+ * under the selection ring, so a standing pick still reads apart from a passing
+ * emphasis that includes it.
+ * @internal
+ */
+export const REGION_EMPHASIZED_STROKE_WIDTH = 1.5
+
+/**
  * Decimal places kept in a region path's `d` string. Region geometry draws in
  * frame units (canonical 1000-wide or measured px), where one decimal is
  * sub-pixel: d3-geo's default of three serializes detail no display resolves.

@@ -120,7 +120,8 @@ type HeatmapChartCellsProps = {
 /**
  * The cell grid: one rect per matrix cell, painted from the sequential scale or
  * the neutral no-data fill. Cells outside the legend's probed bin dim, the
- * heatmap's counterpart to the choropleth's region emphasis.
+ * heatmap's counterpart to the choropleth's region emphasis, and
+ * {@link HeatmapProbedRings} rings the cells inside it.
  *
  * @remarks Under `animate` the grid paints the neutral at once, and the colors
  * wash in column by column, as the choropleth's color washes in region by
@@ -200,6 +201,38 @@ export function CellRing({ cell, slot }: { cell: HeatmapCell; slot: string }) {
 			<CellStroke cell={cell} side="inner" />
 
 			<CellStroke cell={cell} side="outer" />
+		</g>
+	)
+}
+
+/** Props for {@link HeatmapProbedRings}: the cells and their bins. @internal */
+type HeatmapProbedRingsProps = {
+	cells: HeatmapCell[]
+	/** The bin per cell, index-aligned; `null` for a no-data cell. */
+	cellBins: (number | null)[]
+}
+
+/**
+ * The rings on the cells that the legend probe holds lit. The probe dims the
+ * other cells toward the surface, and the surface matches one end of the scale:
+ * the light end in light mode, and the dark end in dark mode. A lit cell at that
+ * end then has the color of the dimmed cells. The {@link CellRing} on each lit
+ * cell tells it apart at every stop of the scale.
+ *
+ * @internal
+ */
+export function HeatmapProbedRings({ cells, cellBins }: HeatmapProbedRingsProps) {
+	const { bin: focus } = useHeatmapFocus()
+
+	if (focus === null) return null
+
+	return (
+		<g data-slot="heatmap-probed" pointerEvents="none">
+			{cells.map((cell, index) =>
+				cellBins[index] === focus ? (
+					<CellRing key={cell.key} cell={cell} slot="heatmap-probed-cell" />
+				) : null,
+			)}
 		</g>
 	)
 }
