@@ -9,8 +9,6 @@ const locales = ['fr-FR', 'it-IT', 'en-US']
 export default function CustomLocale() {
 	const now = useNow()
 
-	if (now === null) return null
-
 	return (
 		<Stack gap="xs">
 			{locales.map((locale) => (

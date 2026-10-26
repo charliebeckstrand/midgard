@@ -5,10 +5,8 @@ import { DAY, HOUR, MINUTE, useNow } from './now.ts'
 export default function Future() {
 	const now = useNow()
 
-	if (now === null) return null
-
 	return (
-		<Stack gap="xs">
+		<Stack gap="xs" className="*:min-h-lh">
 			<TimeAgo value={now + 10 * MINUTE} />
 			<TimeAgo value={now + 4 * HOUR} />
 			<TimeAgo value={now + 7 * DAY} />
