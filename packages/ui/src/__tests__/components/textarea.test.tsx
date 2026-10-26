@@ -4,7 +4,15 @@ import { Control } from '../../components/control'
 import { Textarea, TextareaSkeleton } from '../../components/textarea'
 import { Form } from '../../modules/form'
 import { HeadlessProvider } from '../../providers/headless'
-import { bySlot, getSlot, readDensityStep, renderUI, screen, setupUser } from '../helpers'
+import {
+	bySlot,
+	fireEvent,
+	getSlot,
+	readDensityStep,
+	renderUI,
+	screen,
+	setupUser,
+} from '../helpers'
 
 describe('Textarea', () => {
 	it('renders with data-slot="textarea"', () => {
@@ -239,6 +247,114 @@ describe('Textarea invalid', () => {
 		expect(getSlot(container, 'chat-prompt').tagName).toBe('TEXTAREA')
 
 		expect(bySlot(container, 'textarea')).toBeNull()
+	})
+})
+
+// Safari on iOS and iPadOS draws no native resize grip, so a touch device gets
+// the grip of the Textarea. jsdom has no layout, so each test gives the field
+// an offset size.
+describe('Textarea touch grip', () => {
+	function drag(grip: Element, from: { x: number; y: number }, to: { x: number; y: number }) {
+		const press = { isPrimary: true, button: 0, pointerId: 1, pointerType: 'touch' }
+
+		fireEvent.pointerDown(grip, { ...press, clientX: from.x, clientY: from.y })
+
+		fireEvent.pointerMove(grip, { ...press, clientX: to.x, clientY: to.y })
+
+		fireEvent.pointerUp(grip, { ...press, clientX: to.x, clientY: to.y })
+	}
+
+	function sized(container: HTMLElement, width: number, height: number) {
+		const field = getSlot<HTMLTextAreaElement>(container, 'textarea')
+
+		Object.defineProperty(field, 'offsetWidth', { configurable: true, value: width })
+
+		Object.defineProperty(field, 'offsetHeight', { configurable: true, value: height })
+
+		return field
+	}
+
+	it.each([
+		['vertical', 'h-4'],
+		['horizontal', 'w-4'],
+	] as const)('renders a grip on the edge that resize="%s" moves', (resize, edge) => {
+		const { container } = renderUI(<Textarea resize={resize} />)
+
+		const grip = getSlot(container, 'textarea-grip')
+
+		expect(grip).toHaveAttribute('aria-hidden', 'true')
+
+		expect(grip.className).toContain('pointer-coarse:block')
+
+		expect(grip.className).toContain(edge)
+
+		expect(getSlot(container, 'textarea').className).toContain('pointer-coarse:resize-none')
+	})
+
+	it('renders no grip for resize="none", with actions, or under headless context', () => {
+		const { container: fixed } = renderUI(<Textarea />)
+
+		const { container: actions } = renderUI(
+			<Textarea resize="vertical" actions={<span>send</span>} />,
+		)
+
+		const { container: headless } = renderUI(
+			<HeadlessProvider>
+				<Textarea resize="vertical" />
+			</HeadlessProvider>,
+		)
+
+		for (const container of [fixed, actions, headless]) {
+			expect(bySlot(container, 'textarea-grip')).not.toBeInTheDocument()
+		}
+	})
+
+	it('sets the height of the field from a vertical drag', () => {
+		const { container } = renderUI(<Textarea resize="vertical" />)
+
+		const field = sized(container, 300, 80)
+
+		drag(getSlot(container, 'textarea-grip'), { x: 10, y: 100 }, { x: 40, y: 160 })
+
+		expect(field.style.height).toBe('140px')
+
+		expect(field.style.width).toBe('')
+	})
+
+	it('widens a right-to-left field from a drag to the left', () => {
+		const { container } = renderUI(
+			<div dir="rtl" style={{ direction: 'rtl' }}>
+				<Textarea resize="horizontal" />
+			</div>,
+		)
+
+		const field = sized(container, 300, 80)
+
+		drag(getSlot(container, 'textarea-grip'), { x: 100, y: 10 }, { x: 40, y: 50 })
+
+		expect(field.style.width).toBe('360px')
+
+		expect(field.style.height).toBe('')
+	})
+
+	it('ignores a second pointer while one drags the grip', () => {
+		const { container } = renderUI(<Textarea resize="vertical" />)
+
+		const field = sized(container, 300, 80)
+
+		const grip = getSlot(container, 'textarea-grip')
+
+		const finger = { isPrimary: true, button: 0, pointerType: 'touch' }
+
+		fireEvent.pointerDown(grip, { ...finger, pointerId: 1, clientY: 100 })
+
+		fireEvent.pointerMove(grip, { ...finger, pointerId: 2, clientY: 400 })
+
+		expect(field.style.height).toBe('')
+
+		fireEvent.pointerMove(grip, { ...finger, pointerId: 1, clientY: 120 })
+
+		expect(field.style.height).toBe('100px')
 	})
 })
 

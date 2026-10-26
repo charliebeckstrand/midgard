@@ -1,8 +1,8 @@
 /**
  * Sen grip: the ink of a resize grip, the thin bar that a resize handle draws
- * as its `::after`. Resizable and the Grid column resize read it, so the two
- * resize handles look the same. The drag grip of a panel is a different bar
- * (`kumi/panel/grip.ts`).
+ * as its `::after`. Resizable, the Grid column resize, and the touch grip of
+ * Textarea read it, so the resize handles look the same. The drag grip of a
+ * panel is a different bar (`kumi/panel/grip.ts`).
  *
  * The bar is muted at rest, darker on hover, and blue on keyboard focus. The
  * reader sees the bar only by its background, which forced colors remove, so
