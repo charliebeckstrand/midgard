@@ -1,12 +1,14 @@
 'use client'
 
 import type { KeyboardEvent } from 'react'
+import { Control } from '../../components/control'
 import { Input } from '../../components/input'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { NumberInput } from '../../components/number-input'
 import { ariaAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
+import { claimedBySurface } from './engine/grid-edit-keys'
 import type { EditorKind } from './engine/grid-editing-utilities'
 import { gridMessages } from './engine/grid-messages'
 
@@ -52,14 +54,16 @@ export type GridEditInputProps = {
  * handles its keys once on the grid `<table>`'s key surface (see
  * `useGridEditing`'s `sessionKeys`). Every editor therefore inherits them: these
  * inferred inputs, the listbox, and an `editCell` slot. The keys bubble past the
- * editor here. Staging is live, so there is no per-cell commit key.
+ * editor here. Staging is live, so there is no per-cell commit key. An Escape
+ * from an open floating surface, such as the listbox panel, closes that
+ * surface and does not revert the cell (see `claimedBySurface`).
  *
  * @internal
  */
 const editorKeys =
 	({ cancel, managed }: Pick<GridEditInputProps, 'cancel' | 'managed'>) =>
 	(event: KeyboardEvent<HTMLElement>) => {
-		if (event.key !== 'Escape' || managed) return
+		if (event.key !== 'Escape' || managed || claimedBySurface(event)) return
 
 		event.preventDefault()
 
@@ -137,16 +141,22 @@ const BOOLEAN_OPTIONS = [
  * text/number editor, or the consumer's save affordance. Under `scope: 'cell'`
  * there is no sibling, because the session mounts this editor alone. Tab is
  * then the keyboard commit (WCAG 2.1.1). Tab past the last control of the
- * cell commits the cell and moves the session to the next cell. Escape reaches this editor the way it reaches every other,
- * through the grid table's key surface. That surface defers to the listbox's
- * own panel while it is open.
+ * cell commits the cell and moves the session to the next cell. Escape works
+ * as in the other editors. A grid-owned session takes it on the grid table's
+ * key surface. Under a consumer-owned session, Escape on the closed trigger
+ * reverts the cell. While the panel is open, its first Escape closes the
+ * panel.
  * @internal
  */
 function GridBooleanEditInput({
 	draft,
 	onValueUpdate,
+	cancel,
 	ariaLabel,
+	error,
+	errorId,
 	required,
+	managed,
 	unset,
 }: GridEditInputProps) {
 	const intl = useIntl()
@@ -159,26 +169,35 @@ function GridBooleanEditInput({
 
 	const value = blank ? null : picked
 
+	// The Listbox props take no key handler and no `invalid`, so the editor wraps
+	// it. The `contents` box hears Escape from the trigger, and the Control
+	// marks the trigger invalid.
 	return (
-		<Listbox<string>
-			data-slot="grid-edit-boolean-input"
-			aria-label={ariaLabel}
-			aria-required={ariaAttr(required)}
-			className={k.edit.input}
-			value={value}
-			onValueChange={(next) => onValueUpdate(next === null ? undefined : next === 'true')}
-			displayValue={(option) => {
-				const label = BOOLEAN_OPTIONS.find((candidate) => candidate.value === option)?.label
+		// biome-ignore lint/a11y/noStaticElementInteractions: a keydown delegation surface for the listbox trigger, not an interactive control. The trigger keeps the focus and the keyboard model.
+		<div className="contents" onKeyDown={editorKeys({ cancel, managed })}>
+			<Control severity={error != null ? 'error' : undefined}>
+				<Listbox<string>
+					data-slot="grid-edit-boolean-input"
+					aria-label={ariaLabel}
+					aria-required={ariaAttr(required)}
+					aria-describedby={error != null ? errorId : undefined}
+					className={k.edit.input}
+					value={value}
+					onValueChange={(next) => onValueUpdate(next === null ? undefined : next === 'true')}
+					displayValue={(option) => {
+						const label = BOOLEAN_OPTIONS.find((candidate) => candidate.value === option)?.label
 
-				return label ? intl.formatMessage(label) : ''
-			}}
-		>
-			{BOOLEAN_OPTIONS.map((option) => (
-				<ListboxOption key={option.value} value={option.value}>
-					<ListboxLabel>{intl.formatMessage(option.label)}</ListboxLabel>
-				</ListboxOption>
-			))}
-		</Listbox>
+						return label ? intl.formatMessage(label) : ''
+					}}
+				>
+					{BOOLEAN_OPTIONS.map((option) => (
+						<ListboxOption key={option.value} value={option.value}>
+							<ListboxLabel>{intl.formatMessage(option.label)}</ListboxLabel>
+						</ListboxOption>
+					))}
+				</Listbox>
+			</Control>
+		</div>
 	)
 }
 

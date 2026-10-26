@@ -240,6 +240,33 @@ describe('Grid per-row editing', () => {
 		expect(onCommit).not.toHaveBeenCalled()
 	})
 
+	it('reverts a yes/no cell on Escape from the closed listbox trigger', () => {
+		const view = renderGrid()
+
+		view.editRow1()
+
+		const trigger = () =>
+			getSlot<HTMLButtonElement>(
+				getSlot(view.container, 'grid-edit-boolean-input'),
+				'listbox-button',
+			)
+
+		fireEvent.click(trigger())
+
+		fireEvent.click(view.getByRole('option', { name: 'Yes' }))
+
+		expect(trigger()).toHaveTextContent('Yes')
+
+		fireEvent.keyDown(trigger(), { key: 'Escape' })
+
+		// The row is still editing, and the cell shows the row's value again.
+		expect(trigger()).toHaveTextContent('No')
+
+		view.save()
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+	})
+
 	it('uses a column editCell slot instead of the inferred editor', () => {
 		const slotColumns: GridColumn<SessionRow>[] = [
 			{
@@ -342,6 +369,39 @@ describe('Grid per-row editing', () => {
 		expect(alert.id).toBeTruthy()
 
 		expect(input).toHaveAttribute('aria-describedby', alert.id)
+	})
+
+	it('links the yes/no editor to its validation error for assistive tech', () => {
+		const view = renderGrid([
+			{
+				id: 'done',
+				title: 'Done',
+				field: 'done',
+				cell: (row) => (row.done ? 'Yes' : 'No'),
+				validate: (value) => (value === true ? 'Not yet' : null),
+			},
+		])
+
+		view.editRow1()
+
+		const trigger = getSlot<HTMLButtonElement>(
+			getSlot(view.container, 'grid-edit-boolean-input'),
+			'listbox-button',
+		)
+
+		expect(trigger).not.toHaveAttribute('aria-invalid')
+
+		fireEvent.click(trigger)
+
+		fireEvent.click(view.getByRole('option', { name: 'Yes' }))
+
+		const alert = present(view.container.querySelector('[role="alert"]'), '[role="alert"]')
+
+		expect(alert).toHaveTextContent('Not yet')
+
+		expect(trigger).toHaveAttribute('aria-invalid', 'true')
+
+		expect(trigger.getAttribute('aria-describedby')?.split(' ')).toContain(alert.id)
 	})
 
 	it('announces the commit politely when a row is saved', async () => {

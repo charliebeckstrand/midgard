@@ -25,9 +25,9 @@ export function ownNode(node: Element | null, table: HTMLTableElement | null): E
  * Whether `node` is in a floating surface that an editor opened. That is a
  * portaled panel, such as an open listbox's options or the date picker's
  * calendar. It is also an open disclosure's own trigger or input
- * (`aria-expanded="true"`), such as a combobox with its panel open. Only the
- * key surface reads this rule, because a key reaches the table only from its
- * own React tree. The commit on leave must not read it for the element that
+ * (`aria-expanded="true"`), such as a combobox with its panel open. Only a key
+ * handler reads this rule: the table's key surface or an editor's. A key
+ * reaches the handler only from its own React tree. The commit on leave must not read it for the element that
  * takes focus: an unrelated surface on the page matches it too. @internal
  */
 function inFloatingSurface(node: Element): boolean {
@@ -43,7 +43,7 @@ function inFloatingSurface(node: Element): boolean {
  *
  * @internal
  */
-export function claimedBySurface(event: ReactKeyboardEvent<HTMLTableElement>): boolean {
+export function claimedBySurface(event: ReactKeyboardEvent<Element>): boolean {
 	if (event.defaultPrevented || !(event.target instanceof Element)) return true
 
 	return inFloatingSurface(event.target)

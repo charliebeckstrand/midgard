@@ -161,6 +161,20 @@ describe('parseTsv', () => {
 		expect(parseTsv(toTsv(block)).map((row) => row.map(unguardField))).toEqual(block)
 	})
 
+	it('reads back an apostrophe that the user typed before a formula lead', () => {
+		const block = [
+			["'=1", "'@x", "''=1"],
+			["'-5", "'quoted", "'"],
+		]
+
+		expect(parseTsv(toTsv(block)).map((row) => row.map(unguardField))).toEqual(block)
+
+		// A spreadsheet takes the guard off on paste and shows the text as typed.
+		expect(tsvField("'=1")).toBe("''=1")
+
+		expect(tsvField("'quoted")).toBe("'quoted")
+	})
+
 	it('runs a quote with no end to the end of the text', () => {
 		expect(parseTsv('"open\tfield')).toEqual([['open\tfield']])
 	})
