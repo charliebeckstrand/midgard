@@ -436,6 +436,11 @@ export function MapPoints({
 	// it at all, and must not pay a lookup per dot to draw one.
 	const getStop = useMemo(() => (index: number) => stopIndex(groups, index), [groups])
 
+	// The inverse: the point a drawn dot reports, its first. The cursor and the
+	// readout hold this point, so a zoom that regroups the dots does not move them
+	// to the dot that takes the old index. Held on the grouping, as `getStop` is.
+	const getIndex = useMemo(() => (stop: number) => groups[stop]?.members[0], [groups])
+
 	// The caller counts in points; everything inside this mark counts in drawn
 	// groups. A summary hands back the first stop it holds, so a pick names a row
 	// the caller owns rather than a grouping it never asked for, and the whole
@@ -473,6 +478,7 @@ export function MapPoints({
 		// answer the grouping the frame currently draws, not the one the pick was
 		// made against.
 		getStop,
+		getIndex,
 		onClick: report(onClick),
 		onContextMenu: report(onContextMenu),
 	})

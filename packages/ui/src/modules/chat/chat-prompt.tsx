@@ -9,6 +9,7 @@ import { Control } from '../../components/control'
 import { useFileUploadHandlers } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
+import { ariaAttr, dataAttr } from '../../core'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { isComposing } from '../../utilities'
@@ -78,7 +79,8 @@ export type ChatPromptProps = {
 	 */
 	rows?: number
 	/**
-	 * Disables send without disabling the textarea (e.g. empty input).
+	 * Makes send inert without disabling the textarea. The send button is
+	 * `aria-disabled` and stays focusable, as it is for an empty draft.
 	 * @defaultValue false
 	 */
 	disabled?: boolean
@@ -124,6 +126,10 @@ export type ChatPromptProps = {
  * offers a paperclip file picker when `onAttach` is provided, and surfaces
  * `attachments` as removable chips below the field. The action row (extra `actions`, the
  * paperclip, and send/stop) sits beneath the textarea, right-justified.
+ *
+ * A send button that cannot send, such as for an empty draft, is
+ * `aria-disabled` and ignores the press. It is not natively disabled, so it
+ * keeps the focus when a send or a stop empties the draft.
  */
 export function ChatPrompt({
 	value,
@@ -227,11 +233,15 @@ export function ChatPrompt({
 								<Icon icon={<Square />} />
 							</Button>
 						) : (
+							// One node holds the stop and the send button, so the button that has the
+							// focus turns into send when the stream ends. A native `disabled` drops
+							// the focus to the body, so send is `aria-disabled` and ignores the press.
 							<Button
 								type="button"
 								color="blue"
 								aria-label={intl.formatMessage(messages.send)}
-								disabled={!canSubmit}
+								aria-disabled={ariaAttr(!canSubmit)}
+								data-disabled={dataAttr(!canSubmit)}
 								onClick={() => canSubmit && onSubmit()}
 							>
 								<Icon icon={<ArrowUp />} />

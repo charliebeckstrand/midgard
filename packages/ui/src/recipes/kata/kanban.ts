@@ -28,7 +28,8 @@ export const k = defineKata(
 		slots: {
 			// The column is a `Card` with the `tint` fill. A dragged card from another
 			// column (`data-over`) steps the fill and the outline up one rung, so the
-			// drop target shows.
+			// drop target shows. Forced colors remove the fill and give each outline one
+			// color, so there the drop target draws a heavier outline.
 			column: {
 				base: [
 					flex.col,
@@ -38,6 +39,7 @@ export const k = defineKata(
 						'data-over:bg-zinc-950/10 data-over:outline-zinc-950/20',
 						'dark:data-over:bg-white/15 dark:data-over:outline-white/20',
 					),
+					'forced-colors:data-over:outline-2 forced-colors:data-over:-outline-offset-2',
 				],
 				slots: {
 					header: [flex.row, dan.gap.scale.sm, size.md, text.default, weight.semibold],

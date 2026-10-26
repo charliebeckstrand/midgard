@@ -70,10 +70,13 @@ const draggingSurface = mode(
 /**
  * The 2px rule at the boundary of a frozen group: a full-height `::after` on
  * the boundary cell, which stays with the sticky cell (see `pinned.border`).
+ * Forced colors remove the fill, so the rule paints the `shape` of `sen.forced`
+ * on the `::after`.
  */
 const pinnedRule = [
 	"after:pointer-events-none after:absolute after:inset-y-0 after:w-0.5 after:content-['']",
 	...mode('after:bg-zinc-950/10', 'dark:after:bg-white/10'),
+	'forced-colors:after:bg-[CanvasText]',
 ]
 
 /**

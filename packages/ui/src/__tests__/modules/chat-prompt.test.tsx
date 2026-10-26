@@ -153,10 +153,51 @@ describe('ChatPrompt', () => {
 		expect(onSubmit).toHaveBeenCalledOnce()
 	})
 
-	it('disables send when value is blank', () => {
-		renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />)
+	it('makes send aria-disabled, not disabled, when value is blank', async () => {
+		const onSubmit = vi.fn()
 
-		expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled()
+		renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={onSubmit} />)
+
+		const send = screen.getByRole('button', { name: 'Send message' })
+
+		expect(send).toHaveAttribute('aria-disabled', 'true')
+
+		expect(send).toBeEnabled()
+
+		await setupUser().click(send)
+
+		expect(onSubmit).not.toHaveBeenCalled()
+	})
+
+	it('makes send aria-disabled while disabled', () => {
+		renderUI(<ChatPrompt value="hello" onValueChange={noop} onSubmit={noop} disabled />)
+
+		expect(screen.getByRole('button', { name: 'Send message' })).toHaveAttribute(
+			'aria-disabled',
+			'true',
+		)
+	})
+
+	// The stop and the send button are one node. When the stream ends with an
+	// empty draft, the focused node turns into send and must stay enabled.
+	it('keeps the focused stop button enabled when it turns into send', () => {
+		const props = { value: '', onValueChange: noop, onSubmit: noop, onStop: noop }
+
+		const { rerender } = renderUI(<ChatPrompt {...props} streaming />)
+
+		const stop = screen.getByRole('button', { name: 'Stop generating' })
+
+		stop.focus()
+
+		rerender(<ChatPrompt {...props} streaming={false} />)
+
+		const send = screen.getByRole('button', { name: 'Send message' })
+
+		expect(send).toBe(stop)
+
+		expect(send).toBeEnabled()
+
+		expect(send).toHaveFocus()
 	})
 
 	it('swaps send for stop when streaming', () => {

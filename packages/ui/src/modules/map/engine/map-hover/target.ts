@@ -24,15 +24,29 @@ export type MapHoverTarget =
 			 * always has a stop and no reader tests for its absence.
 			 */
 			stop: number
+			/**
+			 * The index that the mark reports for the stop, on a mark whose stops
+			 * regroup: the first point of a {@link MapPoints} dot. A zoom regroups
+			 * the dots, so the stop index can name another dot after it.
+			 * `targetStop` reads the stop that holds this index now.
+			 */
+			reported?: number
 	  }
 
-/** Whether two hover targets name the same mark, so a redundant write can bail. @internal */
+/**
+ * Whether two hover targets name the same stop and hold the same reported
+ * index, so a redundant write can bail. @internal
+ */
 export function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
 	if (a === b) return true
 
 	if (a === null || b === null || a.kind !== b.kind) return false
 
-	return sameMark(a, b) && (a.kind === 'region' || a.stop === (b as { stop: number }).stop)
+	if (a.kind === 'region') return sameMark(a, b)
+
+	const other = b as typeof a
+
+	return sameMark(a, b) && a.stop === other.stop && a.reported === other.reported
 }
 
 /**

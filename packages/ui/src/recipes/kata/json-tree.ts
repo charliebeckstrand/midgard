@@ -14,7 +14,7 @@ const { family, size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { collapse, css } = ugoki
-const { focus } = sen
+const { focus, forced } = sen
 
 /** The syntax-highlight classes a {@link JsonTree} node can take: one per primitive value kind plus `key` for object property names. */
 export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'key'
@@ -74,8 +74,10 @@ export const k = defineKata(
 			],
 			content: {
 				base: [flex.inline, 'min-w-0', dan.gap.scale.xs],
+				// Forced colors remove the wash, so a match paints the `mark`. The text
+				// keeps the backplate that forced colors draw behind it.
 				highlighted: {
-					true: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), rounded.lg],
+					true: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), rounded.lg, forced.mark],
 					false: '',
 				},
 			},

@@ -140,6 +140,111 @@ describe('MapPoints', () => {
 		expect(onClick).toHaveBeenLastCalledWith('fleet', 1, [1])
 	})
 
+	it('holds the point the cursor stands on when a zoom regroups the dots', () => {
+		// At the fit the first pair stands 12px apart and merges into one summary,
+		// so the far dot is the second stop. A zoom step parts the pair, and the
+		// split inserts a dot before the far one.
+		const points = [
+			{ at: DEPOT, label: 'Depot' },
+			{ at: [5.9, 5] as [number, number], label: 'Annex' },
+			{ at: SITE, label: 'Site' },
+		]
+
+		const onClick = vi.fn()
+
+		const { container, plot } = renderNavigable(
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} zoom>
+				<MapPoints id="fleet" label="Stops" points={points} onClick={onClick} />
+			</MapPlat>,
+		)
+
+		expect(allBySlot(container, 'map-points-cluster')).toHaveLength(1)
+
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Site')
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		expect(allBySlot(container, 'map-points-cluster')).toHaveLength(0)
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Site')
+
+		fireEvent.keyDown(plot, { key: 'Enter' })
+
+		expect(onClick).toHaveBeenLastCalledWith('fleet', 2, [2])
+
+		// Back at the fit the pair merges again, and the cursor stays on the far dot.
+		fireEvent.keyDown(plot, { key: '0' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Site')
+	})
+
+	it('holds the point a merged dot was on when a zoom parts the dots and merges them again', () => {
+		// The cursor stands on Annex, the zoom out merges it into the Depot summary,
+		// and the zoom in parts the pair again: the cursor comes back to Annex.
+		const points = [
+			{ at: DEPOT, label: 'Depot' },
+			{ at: [5.9, 5] as [number, number], label: 'Annex' },
+			{ at: SITE, label: 'Site' },
+		]
+
+		const onClick = vi.fn()
+
+		const { container, plot } = renderNavigable(
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} zoom>
+				<MapPoints id="fleet" label="Stops" points={points} onClick={onClick} />
+			</MapPlat>,
+		)
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowLeft' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Annex')
+
+		fireEvent.keyDown(plot, { key: '0' })
+
+		expect(allBySlot(container, 'map-points-cluster')).toHaveLength(1)
+
+		// The cursor stands on the summary that holds Annex, not on the far dot.
+		expect(bySlot(container, 'tooltip-content')?.textContent).not.toContain('Site')
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Annex')
+
+		fireEvent.keyDown(plot, { key: 'Enter' })
+
+		expect(onClick).toHaveBeenLastCalledWith('fleet', 1, [1])
+	})
+
+	it('reads the point under the pointer after a zoom regroups the dots', () => {
+		const points = [
+			{ at: DEPOT, label: 'Depot' },
+			{ at: [5.9, 5] as [number, number], label: 'Annex' },
+			{ at: SITE, label: 'Site' },
+		]
+
+		const { container, plot } = renderNavigable(
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} zoom>
+				<MapPoints id="fleet" label="Stops" points={points} />
+			</MapPlat>,
+		)
+
+		const hits = allBySlot(container, 'map-points-hit')
+
+		fireEvent.pointerEnter(hits[1] as Element, { clientX: 330, clientY: 100 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Site')
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Site')
+	})
+
 	it('lights the whole group when the pointer is on one dot', () => {
 		// The group is the mark: pointing one dot must not dim the rest of itself,
 		// which is what lets 200 dots draw under one wrapper and one dim class.
