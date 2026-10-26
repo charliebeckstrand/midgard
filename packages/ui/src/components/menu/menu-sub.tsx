@@ -24,6 +24,7 @@ import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { Icon } from '../icon'
 import { useMenuState } from './context'
 import { MenuViewport } from './menu-viewport'
@@ -179,7 +180,7 @@ function MenuSubSheet({
 	})
 
 	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
-		if (disabled) return
+		if (disabled || hasBrowserModifier(event)) return
 
 		const key = logicalArrowKey(event.key, event.currentTarget)
 
@@ -203,6 +204,8 @@ function MenuSubSheet({
 	})
 
 	const handleGroupKeyDown = useStableEvent((event: KeyboardEvent<HTMLFieldSetElement>) => {
+		if (hasBrowserModifier(event)) return
+
 		if (logicalArrowKey(event.key, event.currentTarget) !== 'ArrowLeft') return
 
 		event.preventDefault()
@@ -458,6 +461,9 @@ function MenuSubFloating({
 			// document-level dismiss layer never sees a press from in here. That is
 			// why `Escape` is closed out below rather than left to that layer.
 			event.stopPropagation()
+
+			// A chord such as Alt+ArrowLeft is the browser's Back, not a step out.
+			if (hasBrowserModifier(event)) return
 
 			// ArrowLeft steps back out of a submenu (WAI-ARIA APG menu pattern), and
 			// ArrowRight does in a right-to-left menu. A nested submenu consumes its

@@ -80,8 +80,9 @@ export type ToastProps = {
  * When a toast that has focus closes, focus goes to the next toast, else to the
  * previous toast. This applies to each route that closes a toast: the close
  * button, an action that calls `dismiss(id)`, and an eviction by `maxToasts`. When it was the last toast, focus goes back to the element
- * that had focus before focus went into the stack (WCAG 2.4.3). A close while
- * focus is not in the toast does not move focus.
+ * that had focus before focus went into the stack (WCAG 2.4.3). When focus went
+ * into the stack from the body, as with F8, focus does not go to an element. A
+ * close while focus is not in the toast does not move focus.
  *
  * While a toast shows, the viewport is a `section` with the name
  * "Notifications", so it is a `region` landmark, and a screen reader gets to
@@ -138,7 +139,9 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 
 	// The viewport mounts after hydration, so the effect keys on it. The
 	// `relatedTarget` of a focus that comes from outside the viewport is the
-	// element to return to.
+	// element to return to. A focus from the body, as from F8, has no
+	// `relatedTarget` and clears the target, so a close never goes to an element
+	// that did not have focus.
 	useEffect(() => {
 		const viewport = viewportRef.current
 
@@ -147,7 +150,9 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 		const onFocusIn = (event: FocusEvent) => {
 			const from = event.relatedTarget
 
-			if (from instanceof HTMLElement && !viewport.contains(from)) returnFocusRef.current = from
+			if (from instanceof Node && viewport.contains(from)) return
+
+			returnFocusRef.current = from instanceof HTMLElement ? from : null
 		}
 
 		viewport.addEventListener('focusin', onFocusIn)

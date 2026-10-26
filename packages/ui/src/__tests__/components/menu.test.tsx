@@ -1231,6 +1231,35 @@ describe('MenuSub', () => {
 		}
 	})
 
+	// Alt+ArrowLeft and Cmd+ArrowLeft are the browser's Back. The panel lets the
+	// chord through and keeps the submenu open.
+	it.each<[string, { altKey?: boolean; metaKey?: boolean }]>([
+		['Alt', { altKey: true }],
+		['Meta', { metaKey: true }],
+	])('keeps the submenu open on %s+ArrowLeft from the submenu', (_name, modifier) => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuSub label="More">
+						<MenuItem>Nested</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const row = screen.getByRole('menuitem', { name: /More/ })
+
+		fireEvent.keyDown(row, { key: 'Enter' })
+
+		const nested = screen.getByRole('menuitem', { name: 'Nested' })
+
+		const allowed = fireEvent.keyDown(nested, { key: 'ArrowLeft', ...modifier })
+
+		expect(allowed).toBe(true)
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+	})
+
 	// Focus that leaves the parent row for anywhere in the open panel is the open
 	// completing. The panel takes focus itself from a press on its padding, a
 	// heading, a separator, or the gap between two rows.
@@ -1773,6 +1802,32 @@ describe('Menu on a phone', () => {
 		expect(screen.queryByRole('group')).not.toBeInTheDocument()
 
 		expect(row).toHaveFocus()
+	})
+
+	// Alt+ArrowRight and Alt+ArrowLeft are the browser's history. The row and the
+	// group let the chord through and keep the rows as they are.
+	it('lets a browser chord through on a submenu row and its group', async () => {
+		const { user } = renderPhoneSubmenu()
+
+		await user.click(screen.getByRole('button', { name: 'Add tile' }))
+
+		const row = screen.getByRole('menuitem', { name: 'Charts' })
+
+		expect(fireEvent.keyDown(row, { key: 'ArrowRight', altKey: true })).toBe(true)
+
+		expect(row).toHaveAttribute('aria-expanded', 'false')
+
+		await user.click(row)
+
+		expect(fireEvent.keyDown(row, { key: 'ArrowLeft', altKey: true })).toBe(true)
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+
+		const line = screen.getByRole('menuitem', { name: 'Line' })
+
+		expect(fireEvent.keyDown(line, { key: 'ArrowLeft', metaKey: true })).toBe(true)
+
+		expect(screen.getByRole('group', { name: 'Charts' })).toBeInTheDocument()
 	})
 
 	it('keeps the popover when the sheet is turned off', async () => {
