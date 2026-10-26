@@ -2455,6 +2455,10 @@
 		"defaultMessage": "Confirm password",
 		"description": "Text of a demo in the docs as placeholder, in components/password-confirm/in-a-form.tsx, components/password-confirm/playground.tsx, components/password-confirm/with-strength-meter.tsx and 1 more."
 	},
+	"docs.demo.5b70db36c8ff": {
+		"defaultMessage": "{formatNumber} times normal speed",
+		"description": "Text of a demo in the docs as getValueText, in components/slider/decimal-step.tsx. The argument {formatNumber} is a value from the code."
+	},
 	"docs.demo.5b945079589d": {
 		"defaultMessage": "Amex",
 		"description": "Text of a demo in the docs, in components/credit-card-input/brand-detection.tsx."
@@ -4566,10 +4570,6 @@
 	"docs.demo.cb702378f315": {
 		"defaultMessage": "Errors",
 		"description": "Text of a demo in the docs as label, in modules/grid/sparkline/in-cell-sparklines.tsx."
-	},
-	"docs.demo.cb9a44ca81ec": {
-		"defaultMessage": "{value} times normal speed",
-		"description": "Text of a demo in the docs as getValueText, in components/slider/decimal-step.tsx. The argument {value} is a value from the code."
 	},
 	"docs.demo.cc0e38da9c41": {
 		"defaultMessage": "Subscribe",
