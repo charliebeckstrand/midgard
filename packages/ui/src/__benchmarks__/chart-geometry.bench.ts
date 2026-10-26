@@ -7,7 +7,7 @@ import { barMarks, stackedBarMarks } from '../modules/chart/engine/chart-geometr
 import { lineGeometry } from '../modules/chart/engine/chart-geometry/line'
 import {
 	scatterData,
-	scatterDiscsPath,
+	scatterDiscLayers,
 	scatterMarks,
 } from '../modules/chart/engine/chart-geometry/scatter'
 import { seriesDataKey } from '../modules/chart/engine/chart-motion'
@@ -141,8 +141,8 @@ describe('chart-geometry · scatter project + disc path', () => {
 			scatterMarks(points, xScale.map, yScale.map, radius)
 		})
 
-		bench(`${count.toLocaleString()} pts · disc path`, () => {
-			scatterDiscsPath(marks[0] as ReturnType<typeof scatterMarks>)
+		bench(`${count.toLocaleString()} pts · disc layers`, () => {
+			scatterDiscLayers(marks[0] as ReturnType<typeof scatterMarks>)
 		})
 	}
 })

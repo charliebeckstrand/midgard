@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	anchorEndTicks,
 	diameterRange,
+	scatterDiscLayers,
 	scatterMarkAt,
 	sizePeak,
 	sizeRadius,
@@ -166,5 +167,79 @@ describe('scatter geometry', () => {
 		)
 
 		expect(anchored.map((tick) => tick.anchor)).toEqual([undefined, 'end'])
+	})
+
+	describe('disc layers', () => {
+		/** The centers of each layer, read back from the `M cx-r cy a r …` subfigures. */
+		const centers = (layers: string[]) =>
+			layers.map((d) =>
+				[...d.matchAll(/M (-?[\d.]+) (-?[\d.]+) a (-?[\d.]+)/g)].map(
+					(match) => `${Number(match[1]) + Number(match[3])},${match[2]}`,
+				),
+			)
+
+		it('keeps discs that do not touch on one layer', () => {
+			const layers = scatterDiscLayers([
+				{ x: 10, y: 10, r: 4 },
+				{ x: 30, y: 10, r: 4 },
+				{ x: 50, y: 10, r: 4 },
+			])
+
+			expect(centers(layers)).toEqual([['10,10', '30,10', '50,10']])
+		})
+
+		it('puts a later overlapping disc on a higher layer, so its ring paints over the earlier disc', () => {
+			const layers = scatterDiscLayers([
+				{ x: 10, y: 10, r: 4 },
+				{ x: 14, y: 10, r: 4 },
+				{ x: 40, y: 10, r: 4 },
+			])
+
+			expect(centers(layers)).toEqual([['10,10', '40,10'], ['14,10']])
+		})
+
+		it('lifts a disc above every earlier disc it touches, not only the latest', () => {
+			const layers = scatterDiscLayers([
+				{ x: 10, y: 10, r: 4 },
+				{ x: 14, y: 10, r: 4 },
+				{ x: 30, y: 10, r: 4 },
+				{ x: 18, y: 10, r: 4 },
+			])
+
+			// The last disc touches the second one, which sits on layer 1.
+			expect(centers(layers)).toEqual([['10,10', '30,10'], ['14,10'], ['18,10']])
+		})
+
+		it('counts the ring reach, so a ring cannot cut a fill on the same layer', () => {
+			// The edges are 0.5 apart, inside the 1 unit a 2-unit ring reaches out.
+			const layers = scatterDiscLayers([
+				{ x: 10, y: 10, r: 4 },
+				{ x: 18.5, y: 10, r: 4 },
+			])
+
+			expect(layers).toHaveLength(2)
+		})
+
+		it('finds touching discs across a grid cell edge', () => {
+			const layers = scatterDiscLayers([
+				{ x: 8.9, y: 8.9, r: 4 },
+				{ x: 9.1, y: 9.1, r: 4 },
+			])
+
+			expect(layers).toHaveLength(2)
+		})
+
+		it('skips a disc with no radius and draws nothing for an empty series', () => {
+			expect(scatterDiscLayers([])).toEqual([])
+
+			expect(
+				centers(
+					scatterDiscLayers([
+						{ x: 10, y: 10, r: 0 },
+						{ x: 10, y: 10, r: 4 },
+					]),
+				),
+			).toEqual([['10,10']])
+		})
 	})
 })
