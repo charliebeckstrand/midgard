@@ -6,6 +6,7 @@ import { k } from '../../recipes/kata/grid'
 import { rangeKeys } from '../../utilities'
 import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
 import { MANUAL_GROUP_PLACEHOLDER_ROWS } from './engine/grid-constants'
+import { pinnedSpanProps } from './engine/grid-pin/styles'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { GridGroupDisclosure } from './grid-group-disclosure'
@@ -29,6 +30,8 @@ type GridManualGroupRowProps<T> = {
 	expanded: boolean
 	/** Toggles the group's expansion through the binding. */
 	toggle: (key: string | number) => void
+	/** Frozen-column controls, so the cells over a pinned column stick like its data cells. `null` when none. */
+	pinning: GridColumnPinning | null
 }
 
 /**
@@ -40,7 +43,8 @@ type GridManualGroupRowProps<T> = {
  * {@link GridGroupHeaderRow} descriptor (the backend's child count), and
  * expansion is the binding's controlled key set. Once any column aggregates,
  * each aggregated column's cell shows the backend value carried on the group row
- * itself.
+ * itself. The label span ends at a frozen boundary, so each cell over a frozen
+ * column sticks with that column (see `aggregateLabelSpan`).
  *
  * @internal
  */
@@ -52,14 +56,22 @@ function GridManualGroupRowImpl<T>({
 	renderHeader,
 	expanded,
 	toggle,
+	pinning,
 }: GridManualGroupRowProps<T>) {
 	const aggregated = hasAggregation(columns)
 
-	const span = aggregated ? aggregateLabelSpan(columns) : columns.length
+	const span = aggregated ? aggregateLabelSpan(columns, pinning) : columns.length
+
+	const pinned = pinnedSpanProps(pinning, columns.slice(0, span))
 
 	return (
 		<TableRow data-group-row data-expanded={dataAttr(expanded)}>
-			<TableCell colSpan={span} className={cn(k.row.group.rail.padded)}>
+			<TableCell
+				colSpan={span}
+				className={cn(k.row.group.rail.padded, pinned.className)}
+				style={pinned.style}
+				data-grid-pin={pinned.pin}
+			>
 				<GridGroupDisclosure
 					value={info.value}
 					count={info.count}
@@ -70,7 +82,9 @@ function GridManualGroupRowImpl<T>({
 				/>
 			</TableCell>
 
-			{aggregated && <GridAggregateCells columns={columns} headerRow={row} from={span} />}
+			{aggregated && (
+				<GridAggregateCells columns={columns} headerRow={row} from={span} pinning={pinning} />
+			)}
 		</TableRow>
 	)
 }

@@ -5,6 +5,7 @@ import {
 	ownStop,
 	pickedStop,
 	selectedMarkRow,
+	targetStop,
 } from '../../modules/map/engine/map-overlay/selection'
 
 /** A singular mark: one stop, its own. */
@@ -55,6 +56,19 @@ describe('pickedStop', () => {
 		// `selectedRegion` naming no region keeps, rather than a halo on that stop
 		// whatever index was asked for.
 		expect(pickedStop({ id: 'leg', index: 3 }, 'leg', ROUTE.getStop)).toBeNull()
+	})
+})
+
+describe('targetStop', () => {
+	it('names the stop that holds the reported index, not the stop the target held', () => {
+		// The target held stop 1 for point 1, and a regroup merged point 1 into stop 0.
+		expect(targetStop({ kind: 'entry', id: 'fleet', stop: 1, reported: 1 }, FLEET.getStop)).toBe(0)
+	})
+
+	it('names its own stop with no reported index, or one the mark no longer draws', () => {
+		expect(targetStop({ kind: 'entry', id: 'fleet', stop: 1 }, FLEET.getStop)).toBe(1)
+
+		expect(targetStop({ kind: 'entry', id: 'fleet', stop: 1, reported: 9 }, FLEET.getStop)).toBe(1)
 	})
 })
 

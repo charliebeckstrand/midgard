@@ -107,24 +107,34 @@ export function resolveCellAt<T>(
 /**
  * Builds the cell-roving activation. A focused cell's Enter/Space fires the cell
  * click then the row click. That is the order, and the pair, a pointer click on
- * the cell fires them in. `undefined` when the grid has neither handler. Kept
+ * the cell fires them in. A grid with no click handler fires the double-click
+ * pair in the same order, so a cell whose only action is a double-click has a
+ * keyboard route (WCAG 2.1.1). `undefined` when the grid has no handler. Kept
  * off {@link GridData}'s complexity budget.
  *
  * @internal
  */
-export function buildRovingCellActivate<T>(
-	handleCellClick: GridCellClick<T> | undefined,
-	handleRowClick: GridRowClick<T> | undefined,
-): GridCellRovingActivate<T> | undefined {
-	if (!handleCellClick && !handleRowClick) return undefined
+export function buildRovingCellActivate<T>(handlers: {
+	onCellClick: GridCellClick<T> | undefined
+	onRowClick: GridRowClick<T> | undefined
+	onCellDoubleClick: GridCellClick<T> | undefined
+	onRowDoubleClick: GridRowClick<T> | undefined
+}): GridCellRovingActivate<T> | undefined {
+	const click = Boolean(handlers.onCellClick || handlers.onRowClick)
+
+	const onCell = click ? handlers.onCellClick : handlers.onCellDoubleClick
+
+	const onRow = click ? handlers.onRowClick : handlers.onRowDoubleClick
+
+	if (!onCell && !onRow) return undefined
 
 	return (context, event) => {
-		handleCellClick?.(context, event)
+		onCell?.(context, event)
 
 		// The activation fires from the cell's `<td>`, so the event's element type
 		// is widened to the row-click's `<tr>` signature, as the cursor bridge
 		// does.
-		handleRowClick?.(context.row, event as unknown as Parameters<GridRowClick<T>>[1])
+		onRow?.(context.row, event as unknown as Parameters<GridRowClick<T>>[1])
 	}
 }
 

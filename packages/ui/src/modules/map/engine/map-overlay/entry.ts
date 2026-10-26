@@ -130,4 +130,12 @@ export type MapOverlayEntry = {
 	 * the mark itself resolves off the live grouping it holds.
 	 */
 	getStop: (index: number) => number | null
+	/**
+	 * The index that the mark reports for one of its drawn stops: the inverse of
+	 * {@link getStop}. Registered only by a mark whose stops regroup, a
+	 * {@link MapPoints}, which reports the first point of a dot. A target on such
+	 * a mark holds this index, so the cursor and the readout stay on the point
+	 * after a zoom regroups the dots. Stable like {@link stopsAt}.
+	 */
+	getIndex?: (stop: number) => number | undefined
 }

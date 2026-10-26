@@ -4,8 +4,13 @@ import { k as accordion } from '../../recipes/kata/accordion'
 import { k as alert } from '../../recipes/kata/alert'
 import { k as chart } from '../../recipes/kata/chart'
 import { k as dashboard } from '../../recipes/kata/dashboard'
+import { k as events } from '../../recipes/kata/events'
 import { k as grid } from '../../recipes/kata/grid'
+import { k as gridGroup } from '../../recipes/kata/grid-group'
+import { k as jsonTree } from '../../recipes/kata/json-tree'
+import { k as kanban } from '../../recipes/kata/kanban'
 import { k as menu } from '../../recipes/kata/menu'
+import { k as passwordStrength } from '../../recipes/kata/password-strength'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
 import { k as popover } from '../../recipes/kata/popover'
 import { k as resizable } from '../../recipes/kata/resizable'
@@ -45,6 +50,17 @@ describe('edges and state marks under forced colors', () => {
 		['the selected PDF region', region(true)],
 		['the landing placeholder of a dashboard drag', dashboard().placeholder],
 		['the range legend track', chart.track],
+		['the report dot of the events button', events().dot],
+		['the end rule of a frozen Grid group', grid.pinned.border.end],
+		['the start rule of a frozen Grid group', grid.pinned.border.start],
+		['the rule of a Grid column group', gridGroup().rule],
+		['the rule of a Grid column group with a color', gridGroup({ color: 'red' }).rule],
+		['a JsonTree search match', jsonTree({ highlighted: true }).content],
+		['the Kanban drop target column', kanban().column.base],
+		...(['weak', 'fair', 'good', 'strong'] as const).map((level): [string, unknown] => [
+			`the ${level} password-strength segment`,
+			passwordStrength({ level }).segment,
+		]),
 	]
 
 	it.each(parts)('keeps a paint on %s', (_name, part) => {
@@ -64,6 +80,12 @@ describe('edges and state marks under forced colors', () => {
 	// selection does not depend on the wash, which forced colors remove.
 	it('draws the selected PDF region heavier than a resting one', () => {
 		expect(classNames([region(true)])).toContain('forced-colors:outline-2')
+	})
+
+	// The fill and the outline color of the drop target go, so only its outline
+	// width tells it from the other columns.
+	it('draws the Kanban drop target heavier than another column', () => {
+		expect(classNames([kanban().column.base])).toContain('forced-colors:data-over:outline-2')
 	})
 })
 

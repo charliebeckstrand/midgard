@@ -258,6 +258,7 @@ export function GridVirtualizedGroupedBody<T>({
 							columnId={columnId}
 							renderHeader={renderHeader}
 							color={color}
+							pinning={pinning}
 							{...windowRow(item, virtualItem.index)}
 						/>
 					)
@@ -269,6 +270,7 @@ export function GridVirtualizedGroupedBody<T>({
 							key={item.reactKey}
 							columns={columns}
 							rows={item.rows}
+							pinning={pinning}
 							variant="group"
 							expanded={item.phase === 'open'}
 							color={color}

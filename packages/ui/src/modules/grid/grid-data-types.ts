@@ -862,7 +862,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * case. Pass a {@link GridColumnGroups} binding to control the group layout the
 	 * column manager produces. Each group names its member `columns`, a `title`,
 	 * and a `color` from the standard and extended {@link Badge} palette. Member
-	 * columns stay adjacent and move as a block. A `collapsible` group folds to its
+	 * columns stay adjacent and move as a block, also under a header drag
+	 * (see {@link GridDataProps.reorder}). A `collapsible` group folds to its
 	 * first column with an expand toggle. When the column manager is enabled, its dialog
 	 * gains a group editor: create a group, drag columns into it, and set its name
 	 * and color.
@@ -1063,6 +1064,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * non-pinned data column. The non-data, pinned, locked, and hidden columns hold
 	 * their position. Commits through `columnOrder`; nothing renders until at
 	 * least two columns are reorderable.
+	 *
+	 * With {@link GridDataProps.columnGroups}, a column dropped next to a member of
+	 * its own group reorders the members of the group. A column dropped outside
+	 * its group moves the whole group. The ungrouped columns stay after the
+	 * groups. The drag then commits through `columnGroups` too.
 	 *
 	 * `true` prefixes each reorderable header with a grip handle. Pass a
 	 * {@link GridReorder} object with `handle: false` to drop that grip, which
@@ -1279,6 +1285,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * {@link GridDataProps.onRowClick}. Per the DOM's event order a double-click
 	 * also fires the single-click handlers twice first; keep the two actions
 	 * compatible. The interactive-content guard of `onRowClick` applies.
+	 *
+	 * @remarks With no single-click handler, Enter or Space on the focused
+	 * roving row or cell fires this, so the action has a keyboard route.
 	 */
 	onRowDoubleClick?: GridRowClick<T>
 
@@ -1287,6 +1296,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * {@link GridCellClickContext} and the originating event. It is the cell-level
 	 * counterpart of {@link GridDataProps.onRowDoubleClick}, fired ahead of it on
 	 * the same double-click.
+	 *
+	 * @remarks With no single-click handler, Enter or Space on the focused
+	 * roving cell fires this, then {@link GridDataProps.onRowDoubleClick}, so
+	 * the action has a keyboard route.
 	 */
 	onCellDoubleClick?: GridCellClick<T>
 

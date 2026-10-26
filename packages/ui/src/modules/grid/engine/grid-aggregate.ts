@@ -14,6 +14,7 @@ import { formatFraction, getOrCompute, parseNumeric } from '../../../utilities'
 import { reduceNumbers } from '../../../utilities/aggregate'
 import type { GridColumn } from '../types'
 import { columnAccessor } from './grid-column/accessor'
+import type { GridColumnPinning } from './grid-table/pinning-view'
 
 /**
  * `rows` as the type that the public `aggFunc` and `aggCell` take. The array is
@@ -138,12 +139,31 @@ export function formatAggregate(value: unknown, locale?: string): string {
  * least one, so the label always has a cell, even when the first column
  * aggregates.
  *
+ * The span also ends at a frozen boundary. It covers only the columns on the
+ * frozen edge of the first column, or only columns that scroll. The label cell
+ * then sticks with the frozen columns that it covers (see `pinnedSpanProps`).
+ * Each column after the span takes its own cell, which sticks or scrolls with
+ * its column.
+ *
  * @internal
  */
-export function aggregateLabelSpan<T>(columns: GridColumn<T>[]): number {
+export function aggregateLabelSpan<T>(
+	columns: GridColumn<T>[],
+	pinning: GridColumnPinning | null,
+): number {
 	const first = columns.findIndex((column) => column.aggFunc !== undefined)
 
-	return first <= 0 ? 1 : first
+	const end = first <= 0 ? 1 : first
+
+	const side = (column: GridColumn<T> | undefined) => column && pinning?.column(column.id)?.side
+
+	const lead = side(columns[0])
+
+	let span = 1
+
+	while (span < end && side(columns[span]) === lead) span++
+
+	return span
 }
 
 /**

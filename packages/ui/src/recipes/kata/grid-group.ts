@@ -14,7 +14,7 @@ const { text } = iro
 const { rounded } = kasane
 const { flex } = narabi
 const { bg } = omote
-const { focus } = sen
+const { focus, forced } = sen
 
 /** The stack of the column-manager group editor, and the list of its zones in it. */
 const managerStack = [flex.col, dan.gap.scale.md]
@@ -70,7 +70,11 @@ export const k = defineKata({
 		// A group's 2px underline rule: a rounded bar spanning the band content width,
 		// under the Badge. Every group draws it, in the color of the group (see
 		// {@link bandColor}), or in the neutral fill when the group has no color.
-		rule: { base: ['h-0.5', rounded.full], color: { ...bandColor, neutral: bandNeutral } },
+		// Forced colors remove the fill, so the rule paints the `shape`.
+		rule: {
+			base: ['h-0.5', rounded.full, forced.shape],
+			color: { ...bandColor, neutral: bandNeutral },
+		},
 		band: {
 			slots: {
 				// A group band's row: the colored Badge, then the bare chevron toggle when

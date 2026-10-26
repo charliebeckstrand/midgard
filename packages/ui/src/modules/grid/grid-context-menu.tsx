@@ -170,7 +170,7 @@ export function GridContextMenu<T>({
 		setGeneration((prev) => prev + 1)
 	}, [])
 
-	// The grid to restore focus to when a keyboard-opened menu closes; set only on
+	// The grid or row to restore focus to when a keyboard-opened menu closes; set only on
 	// the keyboard path, so a pointer-opened menu leaves focus where the user left it.
 	const returnFocus = useRef<HTMLElement | null>(null)
 
@@ -334,8 +334,9 @@ export function GridContextMenu<T>({
 		[enabled, columnGroupMenu],
 	)
 
-	// Restore focus to the grid when a keyboard-opened menu closes, so the cursor
-	// (kept seated by the grid's blur guard) picks up where it left off.
+	// Restore focus to the grid or row when a keyboard-opened menu closes, so the
+	// cursor (kept seated by the grid's blur guard) or the roving row picks up
+	// where it left off.
 	const handleOpenChange = useCallback((next: boolean) => {
 		setOpen(next)
 
@@ -370,9 +371,10 @@ export function GridContextMenu<T>({
  * can open the menu through the menu's {@link useMenuActions} `openAt`. A
  * `contents` wrapper keeps it out of layout. A right-click resolves the cell or
  * header under the pointer and opens the menu there. The keyboard context-menu
- * (Shift+F10 / the ContextMenu key) fires on the focused grid rather than a
- * cell. It is retargeted to the active cursor cell (WCAG 2.1.1), recording the
- * grid to restore focus to on close. Stops propagation either way so the menu opens once.
+ * (Shift+F10 / the ContextMenu key) fires on the focused grid or row rather
+ * than a cell. It is retargeted to the active cursor cell, or to the first data
+ * cell of the row (WCAG 2.1.1), recording the grid or row to restore focus to on
+ * close. Stops propagation either way so the menu opens once.
  *
  * @internal
  */
@@ -433,7 +435,8 @@ function GridContextMenuSurface({
 			}
 
 			// Group-header row, then column-group band, then data cell, then (no cell)
-			// the keyboard menu on the focused grid; each consumes the event on a match.
+			// the keyboard menu on the focused grid or row; each consumes the event on
+			// a match.
 			if (tryGroupMenu(target, event, resolveGroupItems, commit)) return
 
 			if (tryColumnGroupMenu(target, event, resolveColumnGroupItems, commit)) return

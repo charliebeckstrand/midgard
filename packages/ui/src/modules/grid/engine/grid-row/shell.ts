@@ -1,6 +1,7 @@
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, Ref } from 'react'
 import { dataAttr } from '../../../../core'
 import { k } from '../../../../recipes/kata/grid'
+import { hasBrowserModifier } from '../../../../utilities/modifier-keys'
 import type { GridColumn } from '../../types'
 import { isNewRowAddColumn } from '../grid-new-row-column'
 import {
@@ -15,7 +16,8 @@ import {
 /**
  * Runs `activate` when Enter or Space lands on the element itself, and
  * suppresses the default (a Space scroll, an Enter click) first. A descendant is
- * exempt, so interactive inner content keeps its own key behavior. The one
+ * exempt, so interactive inner content keeps its own key behavior. A chord with
+ * Ctrl, Meta, or Alt is for the browser, so the gate lets it go. The one
  * keyboard-activation gate the row shell and the roving cells share.
  *
  * @internal
@@ -24,6 +26,8 @@ function activateOnEnterSpace<E extends Element>(
 	event: ReactKeyboardEvent<E>,
 	activate: (event: ReactKeyboardEvent<E>) => void,
 ): void {
+	if (hasBrowserModifier(event)) return
+
 	if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) {
 		event.preventDefault()
 
@@ -73,23 +77,31 @@ type GridRowShellHandlers<T> = {
 }
 
 /**
- * The clickable-affordance class a row carries when any row- or cell-level
- * click handler is attached: the pointer cursor and keyboard focus ring. One
- * definition of "this row is clickable", shared by every row renderer.
+ * Whether a row is clickable: any row- or cell-level click or double-click
+ * handler is attached. One definition of "this row is clickable", shared by the
+ * class and the `data-clickable` attribute of every row renderer.
+ *
+ * @internal
+ */
+function isRowClickable<T>(handlers: GridRowShellHandlers<T>): boolean {
+	return Boolean(
+		handlers.onRowClick ||
+			handlers.onCellClick ||
+			handlers.onRowDoubleClick ||
+			handlers.onCellDoubleClick,
+	)
+}
+
+/**
+ * The clickable-affordance class a row carries when {@link isRowClickable}: the
+ * pointer cursor and keyboard focus ring.
  *
  * @internal
  */
 export function rowClickableClass<T>(
 	handlers: GridRowShellHandlers<T>,
 ): typeof k.row.clickable | false {
-	return (
-		Boolean(
-			handlers.onRowClick ||
-				handlers.onCellClick ||
-				handlers.onRowDoubleClick ||
-				handlers.onCellDoubleClick,
-		) && k.row.clickable
-	)
+	return isRowClickable(handlers) && k.row.clickable
 }
 
 /** Inputs for {@link rowShellProps}. @internal */
@@ -110,7 +122,9 @@ type GridRowShellArgs<T> = GridRowShellHandlers<T> & {
  * - the identifying and state `data-*`/`aria-*` attributes;
  * - the pointer handlers, cell-level first and then row-level (see
  *   {@link rowPointerHandler});
- * - the Enter / Space keyboard activation, gated to the row itself.
+ * - the Enter / Space keyboard activation, gated to the row itself. It fires
+ *   the row click, else the row double-click, so a row with only a
+ *   double-click handler still has a keyboard route.
  *
  * Callers spread this and layer their own layout, focus, and animation props on
  * top.
@@ -130,13 +144,15 @@ export function rowShellProps<T>(args: GridRowShellArgs<T>): {
 	const { columns, row, rowKey, onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick } =
 		args
 
+	const rowActivate = onRowClick ?? onRowDoubleClick
+
 	return {
 		'data-grid-row': String(rowKey),
 		'data-selected': dataAttr(args.selected),
 		// Selectable rows expose their checkbox state to assistive tech; a grid
 		// with no selection column omits the attribute entirely.
 		'aria-selected': args.selectable ? args.selected : undefined,
-		'data-clickable': dataAttr(onRowClick != null),
+		'data-clickable': dataAttr(isRowClickable(args)),
 		// Roving marks the row an item the grid's roving hook owns the `tabIndex`
 		// of; the cell-mode/inert cases leave it off.
 		'data-roving': dataAttr(args.rowRoving),
@@ -149,9 +165,10 @@ export function rowShellProps<T>(args: GridRowShellArgs<T>): {
 			onCell: onCellDoubleClick,
 		}),
 		// A clickable row activates on Enter / Space, gated to the row itself so
-		// inner controls keep their own key behavior.
-		onKeyDown: onRowClick
-			? (event) => activateOnEnterSpace(event, () => onRowClick(row, event))
+		// inner controls keep their own key behavior. With no click handler, the
+		// keys fire the double-click handler, the only action of the row.
+		onKeyDown: rowActivate
+			? (event) => activateOnEnterSpace(event, () => rowActivate(row, event))
 			: undefined,
 	}
 }

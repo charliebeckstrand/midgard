@@ -80,7 +80,10 @@ export class EventStore {
 			if (this.preserve) this.entries = JSON.parse(readStorage(storage, key('entries')) ?? '[]')
 		} catch {}
 
-		this.lastId = this.entries.reduce((last, { id }) => Math.max(last, id), 0)
+		// The next id comes after the start of a capture that runs too, so the
+		// trail of the capture holds each event after the reload, also when a
+		// clear or a full storage removed the kept events.
+		this.lastId = this.entries.reduce((last, { id }) => Math.max(last, id), this.capture?.id ?? 0)
 	}
 
 	/** Whether the store keeps its events through a reload: "Preserve" is on, or a capture runs. */

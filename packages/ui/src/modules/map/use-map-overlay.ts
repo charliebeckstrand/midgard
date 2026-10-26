@@ -174,6 +174,12 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 * move the halo with it.
 		 */
 		getStop?: (index: number) => number | null
+		/**
+		 * The index that the mark reports for a drawn stop, where a zoom regroups
+		 * its stops (see {@link MapOverlayEntry.getIndex}). Passed live like
+		 * {@link getStop}.
+		 */
+		getIndex?: (stop: number) => number | undefined
 	}
 
 /**
@@ -307,6 +313,7 @@ export function useMapOverlay({
 	spare: ownSpare,
 	stopRows,
 	getStop,
+	getIndex,
 }: MapOverlayConfig): MapOverlay {
 	const generated = useId()
 
@@ -356,11 +363,11 @@ export function useMapOverlay({
 	// table resolves its picked row once per `entries` or pick. By the time any of
 	// those runs again, this effect has written the committed values. The restake
 	// below also reads `dotsAt`, so it must stay after this effect.
-	const live = useRef({ stops, dots, resolveStop, ownSpare })
+	const live = useRef({ stops, dots, resolveStop, getIndex, ownSpare })
 
 	useLayoutEffect(() => {
-		live.current = { stops, dots, resolveStop, ownSpare }
-	}, [stops, dots, resolveStop, ownSpare])
+		live.current = { stops, dots, resolveStop, getIndex, ownSpare }
+	}, [stops, dots, resolveStop, getIndex, ownSpare])
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
@@ -419,6 +426,11 @@ export function useMapOverlay({
 
 	const stopAt = useCallback((index: number) => live.current.resolveStop(index), [])
 
+	const indexAt = useCallback((stop: number) => live.current.getIndex?.(stop), [])
+
+	// Registered only by a mark whose stops regroup, a fact fixed per mark kind.
+	const ownIndex = getIndex === undefined ? undefined : indexAt
+
 	// The reporters run only in events, so they are stable events: a consumer's
 	// inline handler is a fresh identity every render, and it cannot churn the ledger.
 	const pick = useStableEvent((stop: number) => onClick?.(id, stop))
@@ -465,6 +477,7 @@ export function useMapOverlay({
 				activate,
 				spare: budget,
 				getStop: stopAt,
+				getIndex: ownIndex,
 			}),
 		[
 			register,
@@ -481,6 +494,7 @@ export function useMapOverlay({
 			activate,
 			budget,
 			stopAt,
+			ownIndex,
 		],
 	)
 
@@ -489,9 +503,18 @@ export function useMapOverlay({
 			// A touch reads nothing from the map. See `useMapTouchTap`.
 			if (event.pointerType === 'touch') return
 
-			set({ kind: 'entry', id, stop: stopFrom(event) }, { x: event.clientX, y: event.clientY })
+			const stop = stopFrom(event)
+
+			const reported = indexAt(stop)
+
+			set(
+				reported === undefined
+					? { kind: 'entry', id, stop }
+					: { kind: 'entry', id, stop, reported },
+				{ x: event.clientX, y: event.clientY },
+			)
 		},
-		[set, id],
+		[set, id, indexAt],
 	)
 
 	// The pointer's route to the reporter the keyboard already reaches through

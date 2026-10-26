@@ -3,7 +3,11 @@
 import { useCallback, useMemo } from 'react'
 import { isDataColumn } from '../../utilities'
 import { EMPTY_SET } from './engine/grid-constants'
-import { collapsedHiddenIds, groupedColumnOrder } from './engine/grid-group/compute'
+import {
+	collapsedHiddenIds,
+	groupedColumnOrder,
+	settleGroupedReorder,
+} from './engine/grid-group/compute'
 import { isFrozen, normalizeFreeze } from './engine/grid-pin/overrides'
 import { applyColumnReorder } from './engine/grid-reorder-compute'
 import type { GridColumnManagerConfig, GridColumnOrder } from './grid-data-types'
@@ -18,6 +22,8 @@ type GridColumnsOptions<T> = {
 	columnManagerConfig: GridColumnManagerConfig | undefined
 	/** Column groups, if any; keep their members contiguous in the effective order. */
 	groups?: GridColumnGroup[]
+	/** Commits the groups that a header drag writes (see {@link settleGroupedReorder}). */
+	setGroups?: (next: GridColumnGroup[]) => void
 	/** The ids of the collapsed groups, whose members beyond the anchor hide from the engine. */
 	collapsed?: ReadonlySet<string | number>
 }
@@ -35,7 +41,11 @@ type GridColumnsResult = {
 	 * pinned and non-data columns are never marked hidden, so they always show.
 	 */
 	columnVisibility: Record<string, boolean>
-	/** Commits a header drag: splices the reordered visible data-column ids back into the full order. */
+	/**
+	 * Commits a header drag: splices the reordered visible data-column ids back
+	 * into the full order. Under column groups, it writes the drag into the
+	 * groups too.
+	 */
 	reorderColumns: (reorderedIds: (string | number)[]) => void
 	managerItems: GridColumnManagerItem[]
 }
@@ -57,6 +67,7 @@ export function useGridColumns<T>({
 	columnOrderConfig,
 	columnManagerConfig,
 	groups,
+	setGroups,
 	collapsed,
 }: GridColumnsOptions<T>): GridColumnsResult {
 	const {
@@ -100,14 +111,28 @@ export function useGridColumns<T>({
 	// A header drag only permutes the columns shown with a handle, so the splice
 	// predicate is the set that the drag moved. Every other id holds its slot:
 	// the selection, actions, pinned, locked, and hidden columns, and the members
-	// that a collapsed group hides.
+	// that a collapsed group hides. The grouped order puts each group back in
+	// its block, so under groups the drag goes into the groups first. Otherwise
+	// the drop reverts on the next render.
 	const reorderColumns = useCallback(
 		(reorderedIds: (string | number)[]) => {
 			const moved = new Set(reorderedIds)
 
-			setColumnOrder(applyColumnReorder(columnOrder, reorderedIds, (id) => moved.has(id)))
+			if (!groups || groups.length === 0) {
+				setColumnOrder(applyColumnReorder(columnOrder, reorderedIds, (id) => moved.has(id)))
+
+				return
+			}
+
+			const prev = columnOrder.filter((id) => moved.has(id))
+
+			const settled = settleGroupedReorder(columnOrder, groups, prev, reorderedIds)
+
+			if (settled.groups !== groups) setGroups?.(settled.groups)
+
+			setColumnOrder(groupedColumnOrder(settled.order, settled.groups, isOrderable))
 		},
-		[setColumnOrder, columnOrder],
+		[setColumnOrder, columnOrder, groups, setGroups, isOrderable],
 	)
 
 	// The engine's `columnVisibility` state: only orderable ids are marked hidden,

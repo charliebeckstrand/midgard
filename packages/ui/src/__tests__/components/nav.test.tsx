@@ -227,6 +227,35 @@ describe('NavItem', () => {
 		expect(close).not.toHaveBeenCalled()
 	})
 
+	// A Ctrl or Meta click opens the link in a new tab, so this page keeps its
+	// selection and its drawer.
+	it.each([['Ctrl', { ctrlKey: true }] as const, ['Meta', { metaKey: true }] as const])(
+		'keeps the selection and the drawer on a %s click on a link',
+		(_name, modifier) => {
+			const close = vi.fn()
+
+			const onChange = vi.fn()
+
+			renderUI(
+				<OffcanvasContext value={{ close }}>
+					<Nav onValueChange={onChange}>
+						<NavList>
+							<NavItem value="home" href="#home">
+								Home
+							</NavItem>
+						</NavList>
+					</Nav>
+				</OffcanvasContext>,
+			)
+
+			fireEvent.click(screen.getByRole('link', { name: 'Home' }), modifier)
+
+			expect(onChange).not.toHaveBeenCalled()
+
+			expect(close).not.toHaveBeenCalled()
+		},
+	)
+
 	it('renders the icon prop through the NavItem icon slot', () => {
 		const { container } = renderUI(
 			<Nav>

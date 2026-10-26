@@ -8,8 +8,17 @@ import {
 import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/appearance-storage'
 import { LocaleProvider } from '../../providers/locale'
 import { dan } from '../../recipes/kiso/dan'
-import { adaptive } from '../../types/responsive'
-import { act, bySlot, fireEvent, present, readDensityStep, renderUI, screen } from '../helpers'
+import { adaptive, BREAKPOINT_WIDTHS } from '../../types/responsive'
+import {
+	act,
+	bySlot,
+	fireEvent,
+	noop,
+	present,
+	readDensityStep,
+	renderUI,
+	screen,
+} from '../helpers'
 
 /** The inline desktop panel (`data-slot="sidebar-panel"`), which takes the width of the sidebar. */
 const DESKTOP_PANEL = '[data-slot="sidebar-panel"]'
@@ -24,6 +33,42 @@ const inSheet = (text: string) =>
 afterEach(() => {
 	localStorage.clear()
 })
+
+/**
+ * Stubs `matchMedia` with a viewport `width` wide, and returns a function that
+ * sets a new width and tells each listener.
+ */
+function stubViewport(width: string): (next: string) => void {
+	let current = Number.parseFloat(width)
+
+	const listeners = new Set<() => void>()
+
+	vi.stubGlobal(
+		'matchMedia',
+		vi.fn((query: string) => {
+			const min = /min-width: ([\d.]+)rem/.exec(query)?.[1]
+
+			return {
+				get matches() {
+					return min !== undefined && Number(min) <= current
+				},
+				media: query,
+				onchange: null,
+				addEventListener: (_type: string, listener: () => void) => listeners.add(listener),
+				removeEventListener: (_type: string, listener: () => void) => listeners.delete(listener),
+				addListener: noop,
+				removeListener: noop,
+				dispatchEvent: () => false,
+			} as unknown as MediaQueryList
+		}),
+	)
+
+	return (next) => {
+		current = Number.parseFloat(next)
+
+		for (const listener of listeners) listener()
+	}
+}
 
 describe('SidebarLayout', () => {
 	it('renders the sidebar content', () => {
@@ -204,7 +249,9 @@ describe('SidebarLayoutBody', () => {
 describe('SidebarLayout offcanvas mode', () => {
 	it('opens the floating sheet on pointer enter of the hot zone', () => {
 		const { container } = renderUI(
-			<SidebarLayout sidebar={<div>floating-sidebar</div>}>body</SidebarLayout>,
+			<SidebarLayout layout="inline" sidebar={<div>floating-sidebar</div>}>
+				body
+			</SidebarLayout>,
 		)
 
 		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
@@ -216,7 +263,9 @@ describe('SidebarLayout offcanvas mode', () => {
 
 	it('keeps the sheet open while the pointer moves across the sheet and the start-edge buffer', () => {
 		const { container } = renderUI(
-			<SidebarLayout sidebar={<div>floating-sidebar</div>}>body</SidebarLayout>,
+			<SidebarLayout layout="inline" sidebar={<div>floating-sidebar</div>}>
+				body
+			</SidebarLayout>,
 		)
 
 		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
@@ -248,7 +297,9 @@ describe('SidebarLayout offcanvas mode', () => {
 		'keeps the peek open when a touch leaves the %s, and closes it on a tap outside',
 		(from) => {
 			const { container } = renderUI(
-				<SidebarLayout sidebar={<div>floating-sidebar</div>}>body</SidebarLayout>,
+				<SidebarLayout layout="inline" sidebar={<div>floating-sidebar</div>}>
+					body
+				</SidebarLayout>,
 			)
 
 			const hotZone = present(
@@ -279,7 +330,9 @@ describe('SidebarLayout offcanvas mode', () => {
 
 	it('closes when the pointer leaves the start-edge buffer', () => {
 		const { container } = renderUI(
-			<SidebarLayout sidebar={<div>floating-sidebar</div>}>body</SidebarLayout>,
+			<SidebarLayout layout="inline" sidebar={<div>floating-sidebar</div>}>
+				body
+			</SidebarLayout>,
 		)
 
 		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
@@ -297,7 +350,9 @@ describe('SidebarLayout offcanvas mode', () => {
 
 	it('blurs the page behind the floating peek once it opens', () => {
 		const { container } = renderUI(
-			<SidebarLayout sidebar={<div>floating-sidebar</div>}>body</SidebarLayout>,
+			<SidebarLayout layout="inline" sidebar={<div>floating-sidebar</div>}>
+				body
+			</SidebarLayout>,
 		)
 
 		// No backdrop until the peek opens.
@@ -331,7 +386,7 @@ describe('SidebarLayout offcanvas mode', () => {
 
 	it('does not trap focus or lock scroll when the hover-peek opens', () => {
 		const { container } = renderUI(
-			<SidebarLayout sidebar={<a href="/a">nav-link</a>}>
+			<SidebarLayout layout="inline" sidebar={<a href="/a">nav-link</a>}>
 				<button type="button">page button</button>
 			</SidebarLayout>,
 		)
@@ -359,7 +414,11 @@ describe('SidebarLayout offcanvas mode', () => {
 	it('resets the floating sheet to closed when the sidebar mode changes', () => {
 		writeChoice(SIDEBAR, 'offcanvas')
 
-		const { container } = renderUI(<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>)
+		const { container } = renderUI(
+			<SidebarLayout layout="inline" sidebar={<div>side</div>}>
+				body
+			</SidebarLayout>,
+		)
 
 		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
 
@@ -373,6 +432,28 @@ describe('SidebarLayout offcanvas mode', () => {
 		act(() => writeChoice(SIDEBAR, 'locked'))
 
 		act(() => writeChoice(SIDEBAR, 'offcanvas'))
+
+		expect(document.body.querySelector(BUFFER)).not.toBeInTheDocument()
+	})
+
+	// A touch peek stays open until a tap outside it. The sheet is a part of the
+	// inline layout, so it closes when the viewport narrows to the drawer layout.
+	it('closes a touch peek when the viewport narrows to the drawer layout', () => {
+		const narrow = stubViewport(BREAKPOINT_WIDTHS.lg)
+
+		const { container } = renderUI(
+			<SidebarLayout sidebar={<div>floating-sidebar</div>}>body</SidebarLayout>,
+		)
+
+		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
+
+		fireEvent.pointerEnter(hotZone, { pointerType: 'touch' })
+
+		expect(inSheet('floating-sidebar')).toBeInTheDocument()
+
+		act(() => narrow(BREAKPOINT_WIDTHS.md))
+
+		expect(inSheet('floating-sidebar')).toBeNull()
 
 		expect(document.body.querySelector(BUFFER)).not.toBeInTheDocument()
 	})

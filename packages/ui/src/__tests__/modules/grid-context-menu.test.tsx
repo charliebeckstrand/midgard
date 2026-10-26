@@ -396,6 +396,37 @@ describe('Grid context menus', () => {
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
 
+	// Row roving focuses the row, not a cell, so the event lands on the `<tr>`.
+	it('opens the cell menu of the first data cell from a keyboard context-menu event on a row', () => {
+		const opened: { column: string; row: Row }[] = []
+
+		renderUI(
+			<Grid
+				columns={[{ id: 'select', selectable: true }, ...columns]}
+				rows={rows}
+				getKey={getKey}
+				onRowClick={vi.fn()}
+				contextMenu={{
+					cell: (context, defaults) => {
+						opened.push({ column: String(context.column.id), row: context.row })
+
+						return defaults
+					},
+				}}
+			/>,
+		)
+
+		const row = present(screen.getByText('Bob').closest('tr'), 'tr')
+
+		row.focus()
+
+		expect(fireEvent.contextMenu(row)).toBe(false)
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
+
+		expect(opened).toEqual([{ column: 'name', row: rows[1] }])
+	})
+
 	// A detail panel can hold a nested grid that turns its menu off. Its header
 	// and its cells carry column ids too, and an id can be the same as an id of
 	// the outer grid. A right-click on them is not a right-click on the outer grid.

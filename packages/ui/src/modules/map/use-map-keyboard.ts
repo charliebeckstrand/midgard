@@ -108,6 +108,13 @@ export type MapKeyboardOptions = {
 	/** Picks the stop under the cursor: a region by index, an overlay through its own reporter. */
 	activate: (target: MapHoverTarget) => void
 	/**
+	 * The target of the stop that holds what `target` holds now. A zoom regroups
+	 * the dots of a `MapPoints`, so a target there holds the point it stands on
+	 * (`reported`), and this gives the dot that holds that point. Any other
+	 * target comes back as it is.
+	 */
+	relocate: (target: MapHoverTarget) => MapHoverTarget
+	/**
 	 * The readout of a stop as one line of text, or `null` for none. A key that
 	 * moves the cursor onto a stop speaks this text through the shared polite
 	 * live region, because the tooltip is `aria-hidden`. Absent, the cursor
@@ -171,6 +178,7 @@ export function useMapKeyboard({
 	svgRef,
 	subject,
 	activate,
+	relocate,
 	describe,
 	zoom,
 }: MapKeyboardOptions): PlotTabStopProps | null {
@@ -180,7 +188,8 @@ export function useMapKeyboard({
 
 	// The cursor holds the mark it sits on, not its position in the stop list: an
 	// overlay that registers or unmounts re-orders that list, and an index would
-	// silently re-point at a different mark.
+	// silently re-point at a different mark. On a mark that regroups its stops,
+	// it holds the point it sits on for the same reason (`relocate`).
 	const [cursor, setCursor] = useState<MapHoverTarget | null>(null)
 
 	// A new geography clears the cursor in the render that brings it, before an
@@ -207,9 +216,12 @@ export function useMapKeyboard({
 
 	const stops = (): MapStop[] => resolved(moved).value
 
+	// The cursor on the stop that holds its point now.
+	const held = cursor === null ? null : relocate(cursor)
+
 	/** Where `cursor` stands in the current stop list, or `null` once it has left it. */
 	const at = (): number | null =>
-		cursor === null ? null : (resolved(moved).where.get(stopKey(cursor)) ?? null)
+		held === null ? null : (resolved(moved).where.get(stopKey(held)) ?? null)
 
 	const transform = zoom?.transform ?? MAP_FIT_TRANSFORM
 
@@ -227,11 +239,20 @@ export function useMapKeyboard({
 	 * to re-place a readout the reader did not ask to move.
 	 */
 	const anchor = useStableEvent((stop: MapStop | null, through: MapTransform) => {
+		// A re-anchor of the stop the cursor holds keeps the point the cursor holds.
+		// The target of the stop holds only the first point of its dot.
+		const target =
+			stop === null
+				? null
+				: held !== null && stopKey(held) === stopKey(stop.target)
+					? held
+					: stop.target
+
 		// Every resolve mints fresh target objects, so hold the previous one where
 		// it names the same mark: the cursor is a dependency of the effects below,
 		// and a refit frame would otherwise re-run them all for a mark that has not
 		// moved.
-		setCursor((prev) => (sameTarget(prev, stop?.target ?? null) ? prev : (stop?.target ?? null)))
+		setCursor((prev) => (sameTarget(prev, target) ? prev : target))
 
 		const svg = svgRef.current
 
@@ -244,8 +265,8 @@ export function useMapKeyboard({
 
 		anchored.current = drawn
 
-		if (stop === null || point === null) set(null, null)
-		else set(stop.target, point)
+		if (target === null || point === null) set(null, null)
+		else set(target, point)
 	})
 
 	/**
@@ -361,11 +382,11 @@ export function useMapKeyboard({
 		// counterpart, and half the reason the map is navigable. Space would
 		// otherwise scroll the page out from under the reader.
 		if (isActivateKey(event.key)) {
-			if (cursor === null) return
+			if (held === null) return
 
 			event.preventDefault()
 
-			activate(cursor)
+			activate(held)
 
 			return
 		}

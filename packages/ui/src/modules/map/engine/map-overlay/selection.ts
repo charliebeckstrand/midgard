@@ -9,6 +9,7 @@
  * without mounting a map.
  */
 
+import type { MapHoverTarget } from '../map-hover/target'
 import type { MapOverlaySelection } from '../types'
 import type { MapOverlayEntry } from './entry'
 import { markRowKey } from './readout'
@@ -43,6 +44,21 @@ export function pickedStop(
 	if (selection === null || selection.id !== id) return null
 
 	return getStop(selection.index ?? 0)
+}
+
+/**
+ * The drawn stop that an overlay target names now. A target that holds a
+ * reported index names the stop that holds that index, because a regroup moves
+ * the index to another stop. A target with no reported index, or one whose
+ * index the mark no longer draws, names its own stop.
+ *
+ * @internal
+ */
+export function targetStop(
+	target: Extract<MapHoverTarget, { kind: 'entry' }>,
+	getStop: (index: number) => number | null,
+): number {
+	return target.reported === undefined ? target.stop : (getStop(target.reported) ?? target.stop)
 }
 
 /**

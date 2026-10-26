@@ -33,6 +33,8 @@ export type NavMenuItemProps = OmitEach<NavItemProps, 'value'> & { value?: strin
  * else from the `value` selection binding, else from an `href` that matches the
  * `pathname` of `UIProvider` (see `match`). Hosts `prefix`/`suffix` affix slots outside the
  * inner button and closes an enclosing offcanvas on click unless `preventClose`.
+ * A Ctrl, Meta, or Alt click on a link is for the browser, such as a new tab, so
+ * the item does not change the selection or close the offcanvas.
  *
  * The height, the text, and the icon take the step of the nearest density
  * scope. At `md` the item is `p-2` with `text-base` and a `size-5` icon. Each

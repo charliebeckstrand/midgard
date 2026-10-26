@@ -59,6 +59,113 @@ export function groupedColumnOrder(
 }
 
 /**
+ * The id that a header drag moved: the drag lifts one column and drops it in
+ * another slot, so the two orders differ in one run. The run starts at the
+ * column that left its slot (a drag forward) or ends at it (a drag back).
+ *
+ * @returns The moved id, or `undefined` when the orders are the same.
+ * @internal
+ */
+function movedColumnId(
+	prev: readonly (string | number)[],
+	next: readonly (string | number)[],
+): string | number | undefined {
+	let start = 0
+
+	while (start < prev.length && prev[start] === next[start]) start++
+
+	if (start === prev.length) return undefined
+
+	let end = prev.length - 1
+
+	while (end > start && prev[end] === next[end]) end--
+
+	return next[end] === prev[start] ? prev[start] : prev[end]
+}
+
+/**
+ * Writes a header drag under column groups into the groups, so that the drop
+ * holds in the grouped order (see {@link groupedColumnOrder}). A drag moves one
+ * column. When it lands next to a member of its own group, it reorders the
+ * members of that group. When it lands outside its group, the group moves as a
+ * block. The block goes before the group that the column lands in when the drag
+ * goes back, and after that group when the drag goes forward. The ungrouped
+ * columns always follow the groups. Thus a block that lands among them goes to
+ * the last place of the groups, and an ungrouped column reorders among the
+ * ungrouped columns only. A member that the drag cannot reach (hidden, frozen,
+ * or behind a collapse) holds its slot in its group.
+ *
+ * @param order - The full grouped column order.
+ * @param groups - The current groups.
+ * @param prev - The dragged ids in their order before the drag.
+ * @param next - The same ids in their order after the drag.
+ * @returns The next groups (the same array when no group changes), and the
+ * next order with the ungrouped columns reordered. Pass the two to
+ * {@link groupedColumnOrder} for the order that the grid shows.
+ * @internal
+ */
+export function settleGroupedReorder(
+	order: (string | number)[],
+	groups: GridColumnGroup[],
+	prev: readonly (string | number)[],
+	next: (string | number)[],
+): { groups: GridColumnGroup[]; order: (string | number)[] } {
+	const moved = movedColumnId(prev, next)
+
+	if (moved === undefined) return { groups, order }
+
+	const byColumn = groupByColumn(groups)
+
+	const group = byColumn.get(moved)
+
+	if (!group) {
+		const ungrouped = next.filter((id) => !byColumn.has(id))
+
+		const slots = new Set(ungrouped)
+
+		return { groups, order: applyColumnReorder(order, ungrouped, (id) => slots.has(id)) }
+	}
+
+	const to = next.indexOf(moved)
+
+	const before = next[to - 1]
+
+	const after = next[to + 1]
+
+	const member = (id: string | number | undefined) => id !== undefined && byColumn.get(id) === group
+
+	if (member(before) || member(after)) {
+		const members = next.filter(member)
+
+		const slots = new Set(members)
+
+		const columns = applyColumnReorder(group.columns, members, (id) => slots.has(id))
+
+		return {
+			groups: groups.map((candidate) => (candidate === group ? { ...group, columns } : candidate)),
+			order,
+		}
+	}
+
+	const forward = to > prev.indexOf(moved)
+
+	const neighbor = forward ? before : after
+
+	const target = neighbor === undefined ? undefined : byColumn.get(neighbor)
+
+	const rest = groups.filter((candidate) => candidate !== group)
+
+	const index = target ? rest.indexOf(target) + (forward ? 1 : 0) : rest.length
+
+	const reordered = [...rest.slice(0, index), group, ...rest.slice(index)]
+
+	return {
+		groups: reordered.every((candidate, i) => candidate === groups[i]) ? groups : reordered,
+		order,
+	}
+}
+
+/**
  * Column ids a collapsed group hides from the engine: every member that shows
  * but the first, which stays as the band's visible anchor and expand
  * affordance. A member that the reader hid, or that is pinned away from the

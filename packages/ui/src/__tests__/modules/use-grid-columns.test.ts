@@ -126,14 +126,15 @@ describe('useGridColumns', () => {
 		expect(onValueChange).toHaveBeenCalledWith(['select', 'status', 'age', 'name'])
 	})
 
-	it('reorderColumns holds a collapsed group member in its slot', () => {
+	it('reorderColumns writes a drag inside a group into the group', () => {
 		const onValueChange = vi.fn()
+
+		const setGroups = vi.fn()
 
 		const cols: GridColumn<Row>[] = [
 			{ id: 'a', title: 'A' },
 			{ id: 'b', title: 'B' },
 			{ id: 'c', title: 'C' },
-			{ id: 'd', title: 'D' },
 		]
 
 		const { result } = renderHook(() =>
@@ -142,19 +143,61 @@ describe('useGridColumns', () => {
 				columnOrderConfig: { onValueChange },
 				columnManagerConfig: undefined,
 				groups: [{ id: 'g', columns: ['b', 'c'] }],
+				setGroups,
+			}),
+		)
+
+		expect(result.current.columnOrder).toEqual(['b', 'c', 'a'])
+
+		act(() => {
+			result.current.reorderColumns(['c', 'b', 'a'])
+		})
+
+		// The group takes the new order, so the drop holds in the grouped order.
+		expect(setGroups).toHaveBeenCalledWith([{ id: 'g', columns: ['c', 'b'] }])
+
+		expect(onValueChange).toHaveBeenCalledWith(['c', 'b', 'a'])
+	})
+
+	it('reorderColumns moves a collapsed group as a block with its hidden member', () => {
+		const onValueChange = vi.fn()
+
+		const setGroups = vi.fn()
+
+		const cols: GridColumn<Row>[] = [
+			{ id: 'a', title: 'A' },
+			{ id: 'b', title: 'B' },
+			{ id: 'c', title: 'C' },
+			{ id: 'd', title: 'D' },
+		]
+
+		const groups = [
+			{ id: 'g', columns: ['b', 'c'] },
+			{ id: 'h', columns: ['d'] },
+		]
+
+		const { result } = renderHook(() =>
+			useGridColumns<Row>({
+				columns: cols,
+				columnOrderConfig: { onValueChange },
+				columnManagerConfig: undefined,
+				groups,
+				setGroups,
 				// The group is collapsed, so its second member is hidden and has no handle.
 				collapsed: new Set(['g']),
 			}),
 		)
 
-		expect(result.current.columnOrder).toEqual(['b', 'c', 'a', 'd'])
+		expect(result.current.columnOrder).toEqual(['b', 'c', 'd', 'a'])
 
-		// The drag permutes the visible columns only.
+		// The anchor of `g` lands after `d`: the drag permutes the visible columns only.
 		act(() => {
-			result.current.reorderColumns(['a', 'b', 'd'])
+			result.current.reorderColumns(['d', 'b', 'a'])
 		})
 
-		expect(onValueChange).toHaveBeenCalledWith(['a', 'c', 'b', 'd'])
+		expect(setGroups).toHaveBeenCalledWith([groups[1], groups[0]])
+
+		expect(onValueChange).toHaveBeenCalledWith(['d', 'b', 'c', 'a'])
 	})
 
 	it('keeps selectable, actions, and pinned columns out of the hidden map even when listed as hidden', () => {
