@@ -22,7 +22,7 @@ import {
 	sameGeometry,
 	usableDemands,
 } from './dashboard-layout'
-import { projectLayout } from './dashboard-responsive'
+import { PROJECTION_HOLD, projectLayout } from './dashboard-responsive'
 import { type DashboardSelection, liveSelections } from './dashboard-scope'
 
 /**
@@ -76,11 +76,6 @@ export type DashboardState = {
 	declared: ReadonlySet<string>
 	/** The container width in px, or `0` before the first measurement. */
 	width: number
-	/**
-	 * The content height in px of each tile that takes the height of its content
-	 * in the re-pack. See {@link DashboardStore.measure}.
-	 */
-	heights: ReadonlyMap<string, number>
 	/** The live gesture, or `null` at rest. */
 	gesture: DashboardGesture | null
 	/** The filter that the app owns. */
@@ -151,12 +146,6 @@ export type DashboardStore = {
 	/** Removes the demands of a tile. */
 	unregister: (id: string) => void
 	/**
-	 * Sets the content height in px of the tile `id`, which the re-pack then
-	 * gives to the tile. The value `undefined` removes it, and the tile takes its
-	 * shape again.
-	 */
-	measure: (id: string, height: number | undefined) => void
-	/**
 	 * Opens a closed store. It derives the view of the current state, and it
 	 * notifies the listeners. A new store is open.
 	 */
@@ -170,25 +159,6 @@ export type DashboardStore = {
 	/** Adds a listener, and returns the function that removes it. */
 	subscribe: (listener: () => void) => () => void
 }
-
-/**
- * The hold of the responsive projection, in px. A projection on screen reads the
- * container width less the hold, so the saved layout returns only past the
- * threshold plus the hold.
- *
- * @remarks
- * In a scroll box with a classic scrollbar, the width of the board can follow its
- * height. When the saved layout overflows the box and the projection fits it, the
- * scrollbar comes and goes with the projection. With no hold, the board then
- * switches between the two on each frame. A classic scrollbar is about 15 px
- * wide, and the hold covers a scrollbar up to 24 px wide. One of the two states
- * therefore holds.
- *
- * A wider scrollbar, such as a styled `::-webkit-scrollbar` of 30 px, still
- * switches the board on each frame. A scroll box with `scrollbar-gutter: stable`
- * always reserves the width of its scrollbar, so no scrollbar starts the loop.
- */
-const PROJECTION_HOLD = 24
 
 /** One memo slot: the result for the last inputs. */
 type Memo<A extends readonly unknown[], R> = (...args: A) => R
@@ -329,9 +299,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		gap: number,
 		columns: number,
 		demands: ReadonlyMap<string, DashboardTileDemands>,
-		heights: ReadonlyMap<string, number>,
-		painted: number,
-	) => projectLayout(cells, { width, gap, columns, demands, heights, painted })
+	) => projectLayout(cells, { width, gap, columns, demands })
 
 	// One slot for the full width and one for the held width, so that the two keep their results.
 	const getProjection = memo(project)
@@ -339,24 +307,13 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 	const getHeld = memo(project)
 
 	const derive = (prev: DashboardView | null, from: DashboardState | null): DashboardView => {
-		const {
-			columns,
-			gap,
-			editing,
-			layout,
-			demands,
-			declared,
-			width,
-			heights,
-			gesture,
-			selections,
-		} = state
+		const { columns, gap, editing, layout, demands, declared, width, gesture, selections } = state
 
 		const canonical = getCanonical(layout, demands, columns)
 
 		const measured = gesture?.width ?? width
 
-		const full = getProjection(canonical, measured, gap, columns, demands, heights, measured)
+		const full = getProjection(canonical, measured, gap, columns, demands)
 
 		// The hold keeps a projection on screen only while the resolved cells, the demands, and
 		// the grid stay the same. After a change of one of them, the view is that of a new store.
@@ -375,15 +332,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		const held = measured > 0 && ((sameBoard && prev?.projected === true) || !full.identity)
 
 		const projection = held
-			? getHeld(
-					canonical,
-					Math.max(1, measured - PROJECTION_HOLD),
-					gap,
-					columns,
-					demands,
-					heights,
-					measured,
-				)
+			? getHeld(canonical, Math.max(1, measured - PROJECTION_HOLD), gap, columns, demands)
 			: full
 
 		const placed = getPlaced(layout, columns)
@@ -457,16 +406,6 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 			rest.delete(id)
 
 			replace({ ...state, demands: rest })
-		},
-		measure: (id, height) => {
-			if (state.heights.get(id) === height) return
-
-			const heights = new Map(state.heights)
-
-			if (height === undefined) heights.delete(id)
-			else heights.set(id, height)
-
-			replace({ ...state, heights })
 		},
 		open: () => {
 			if (!closed) return

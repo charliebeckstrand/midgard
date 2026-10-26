@@ -17,13 +17,13 @@ const layout: DashboardLayoutItem[] = [
 export default function DashboardPlayground(props: DashboardProps) {
 	return (
 		<Dashboard {...props} aria-label="Sales dashboard" layout={{ defaultValue: layout }}>
-			<DashboardTile id="revenue" expandable title="Monthly revenue" minWidth={200}>
+			<DashboardTile id="revenue" expandable title="Monthly revenue" minWidth={200} fitContent>
 				<Kpi value="revenue" />
 			</DashboardTile>
-			<DashboardTile id="units" expandable title="Monthly units" minWidth={200}>
+			<DashboardTile id="units" expandable title="Monthly units" minWidth={200} fitContent>
 				<Kpi value="units" />
 			</DashboardTile>
-			<DashboardTile id="sold" title="Units sold" minWidth={160}>
+			<DashboardTile id="sold" title="Units sold" minWidth={160} fitContent>
 				<Units />
 			</DashboardTile>
 			<DashboardTile

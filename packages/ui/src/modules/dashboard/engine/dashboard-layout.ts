@@ -315,6 +315,29 @@ export function gridArea(cell: DashboardCell): string {
 	return `${cell.y + 1} / ${cell.x + 1} / span ${cell.h} / span ${cell.w}`
 }
 
+/** The paint of a tile in the re-pack, as CSS properties. */
+export type DashboardShelfPaint = {
+	gridArea: string
+	height: string
+	alignSelf: 'start' | 'stretch'
+}
+
+/**
+ * The paint of `cell` in the re-pack, where `y` is the index of the shelf. Each
+ * shelf is one grid row of auto height, so the tallest tile of a shelf sets its
+ * height. A tile with a fixed shape takes the height of its row span, from the
+ * row unit that the canvas publishes as `--dashboard-row`. A tile that fits its
+ * content (`fit`) takes the height of its content, and it stretches to the
+ * height of its shelf.
+ */
+export function shelfPaint(cell: DashboardCell, fit: boolean): DashboardShelfPaint {
+	return {
+		gridArea: `${cell.y + 1} / ${cell.x + 1} / auto / span ${cell.w}`,
+		height: fit ? 'auto' : `calc(var(--dashboard-row) * ${cell.h})`,
+		alignSelf: fit ? 'stretch' : 'start',
+	}
+}
+
 /** Whether the boxes of two different cells overlap. */
 export function collides(a: DashboardCell, b: DashboardCell): boolean {
 	if (a.id === b.id) return false

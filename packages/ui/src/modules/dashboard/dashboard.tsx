@@ -10,6 +10,7 @@ import {
 	type ReactNode,
 	type Ref,
 	useCallback,
+	useId,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -32,18 +33,22 @@ import {
 	DashboardStoreContext,
 	DashboardTileRankContext,
 	DashboardTitleLevelContext,
+	useDashboardWidgets,
 } from './context'
+import { firstPaintRules } from './dashboard-first-paint'
 import type { DashboardCommit } from './dashboard-gesture'
 import { DashboardPlaceholder } from './dashboard-placeholder'
-import { DashboardTile, type DashboardTileProps } from './dashboard-tile'
-import { DashboardTiles } from './dashboard-tiles'
+import { DashboardTile, type DashboardTileProps, DEFAULT_MIN_WIDTH } from './dashboard-tile'
+import { DashboardTiles, findWidget } from './dashboard-tiles'
 import {
 	type DashboardCell,
 	type DashboardLayoutItem,
+	type DashboardTileDemands,
 	DEFAULT_COLUMNS,
 	mergeLayout,
 	ROW_SUBDIVISION,
 	sortByOrder,
+	usableDemands,
 } from './engine/dashboard-layout'
 import type { DashboardSelection } from './engine/dashboard-scope'
 import { createDashboardStore } from './engine/dashboard-store'
@@ -54,6 +59,7 @@ import type {
 	DashboardHandle,
 	DashboardLayoutBinding,
 	DashboardSelectionBinding,
+	DashboardWidgetRegistry,
 } from './types'
 import { useDashboardDrag } from './use-dashboard-drag'
 import { useDashboardHandle } from './use-dashboard-handle'
@@ -73,12 +79,16 @@ const EMPTY_SELECTIONS: readonly DashboardSelection[] = []
  * so the canvas reaches half a gutter past the container on each side. The outer
  * cards then line up with the content around the dashboard. The row unit divides
  * that wider span, so a row stays a quarter of the column pitch.
+ *
+ * The re-pack (`projected`) paints each shelf as one row of auto height, and
+ * each tile takes its height from the row unit or from its content.
  */
-function canvasStyle(columns: number, gap: number): CSSProperties {
+function canvasStyle(columns: number, gap: number, projected: boolean): CSSProperties {
 	return {
 		margin: -gap / 2,
 		gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-		gridAutoRows: `calc((100cqi + ${gap}px) / ${columns * ROW_SUBDIVISION})`,
+		gridAutoRows: projected ? 'auto' : 'var(--dashboard-row)',
+		['--dashboard-row' as string]: `calc((100cqi + ${gap}px) / ${columns * ROW_SUBDIVISION})`,
 		['--dashboard-gap' as string]: `${gap}px`,
 		['--dashboard-columns' as string]: columns,
 	}
@@ -95,22 +105,53 @@ function flattenBoardChildren(children: ReactNode): ReactNode[] {
 	)
 }
 
+/** The tiles that the children of a board declare. */
+type DeclaredTiles = {
+	/** The demands of each tile, by id. */
+	demands: Map<string, DashboardTileDemands>
+	/** The ids of the tiles with `fitContent`. */
+	fits: Set<string>
+}
+
 /**
- * The ids of the tiles that the children declare: each `DashboardTile` child,
- * also inside a Fragment, and each spec tile of a `DashboardTiles` child. A
- * component that renders a tile hides its id from the board. The same limit
- * keeps that component in its own slot of the reading order.
+ * The tiles that the children declare: each `DashboardTile` child, also inside a
+ * Fragment, and each spec tile of a `DashboardTiles` child. A spec tile reads
+ * the widget of its kind in `widgets`. A component that renders a tile hides its
+ * id and its demands from the board. The same limit keeps that component in its
+ * own slot of the reading order.
  */
-function declaredTiles(children: ReactNode): Set<string> {
-	const ids = new Set<string>()
+function declaredTiles(
+	children: ReactNode,
+	widgets: DashboardWidgetRegistry['widgets'],
+): DeclaredTiles {
+	const declared: DeclaredTiles = { demands: new Map(), fits: new Set() }
 
-	for (const node of flattenBoardChildren(children)) {
-		if (isElementOfType(node, DashboardTile)) ids.add(node.props.id)
+	const add = (id: string, demands: DashboardTileDemands, fit: boolean | undefined) => {
+		declared.demands.set(id, usableDemands(demands))
 
-		if (isElementOfType(node, DashboardTiles)) for (const tile of node.props.tiles) ids.add(tile.id)
+		if (fit === true) declared.fits.add(id)
 	}
 
-	return ids
+	for (const node of flattenBoardChildren(children)) {
+		if (isElementOfType(node, DashboardTile)) {
+			const { id, ratio, minWidth = DEFAULT_MIN_WIDTH, fitContent } = node.props
+
+			add(id, { ratio, minWidth }, fitContent)
+		}
+
+		if (isElementOfType(node, DashboardTiles)) {
+			for (const tile of node.props.tiles) {
+				const widget = findWidget(widgets, tile.widget)
+
+				// The props that `DashboardTiles` gives the tile of this kind.
+				const minWidth = widget === undefined ? 0 : (widget.minWidth ?? DEFAULT_MIN_WIDTH)
+
+				add(tile.id, { ratio: widget?.ratio, minWidth }, widget?.fitContent)
+			}
+		}
+	}
+
+	return declared
 }
 
 /**
@@ -238,8 +279,9 @@ export type DashboardProps = AccessibleName &
 		 * Fires when the responsive projection changes: `true` when the board
 		 * paints the re-pack, and `false` when the saved layout returns. Edit mode
 		 * stands down while the re-pack is on screen, so use it to disable the
-		 * control that starts edit mode. The server and the first render paint the
-		 * saved layout, so the first call comes only after a measurement projects.
+		 * control that starts edit mode. The server and the first render cannot
+		 * measure, so they report the saved layout, also where a container query
+		 * paints the re-pack. The first call comes only after a measurement projects.
 		 */
 		onProjectedChange?: (projected: boolean) => void
 		/** Receives the commands of the board, such as {@link DashboardHandle.tidy}. */
@@ -282,10 +324,12 @@ export type DashboardProps = AccessibleName &
  * until the first one ends. Escape cancels a live gesture, and a dialog, sheet,
  * or drawer around the board stays open.
  *
- * The board is a CSS grid whose rows follow the container width. The server
- * therefore renders each tile at its saved cell, with no measurement. When the
+ * The board is a CSS grid whose rows follow the container width. When the
  * container renders a tile under its `minWidth`, the board paints a re-pack of
- * the same layout, and it never saves the re-pack.
+ * the same layout, and it never saves the re-pack. The server cannot measure,
+ * so the board writes each step of the re-pack as a container query. The first
+ * paint is therefore the re-pack that the first measurement keeps, on a phone
+ * and on a desktop alike.
  *
  * The re-pack holds for 24 px past the width at which each tile fits. A classic
  * scrollbar up to 24 px wide that comes and goes with the re-pack therefore
@@ -297,6 +341,14 @@ export type DashboardProps = AccessibleName &
  * its content gives it no width. Give it a parent with a definite width. In a
  * parent that sizes to its content, the board gets only the width that the
  * other content of that parent gives.
+ *
+ * The container queries read the demands of the tiles in the children of the
+ * board, and the widget kinds of a `DashboardWidgetProvider` around the board.
+ * A tile that a component renders and a tile with no saved entry take their
+ * place in the re-pack only when the board measures. A tile with `fitContent`
+ * takes the height of its content from the first paint. A tile whose widget
+ * claims the height of its content takes it only after hydration, because the
+ * widget claims in an effect.
  *
  * @example
  * ```tsx
@@ -346,6 +398,23 @@ export function Dashboard({
 		onValueChange: (next) => selection?.onValueChange?.(next ?? []),
 	})
 
+	const { widgets } = useDashboardWidgets()
+
+	// The children and the layout of the mount. Both serve only the paint before the first
+	// measurement, so a later change of either one needs no new read.
+	const [declared] = useState(() => declaredTiles(children, widgets))
+
+	const scope = useId()
+
+	const [firstPaint] = useState(() =>
+		firstPaintRules(scope, {
+			layout: layoutValue ?? EMPTY_LAYOUT,
+			...declared,
+			columns,
+			gap,
+		}),
+	)
+
 	const [store] = useState(() =>
 		createDashboardStore({
 			columns,
@@ -354,9 +423,8 @@ export function Dashboard({
 			layout: layoutValue ?? EMPTY_LAYOUT,
 			demands: new Map(),
 			// Until the first tile registers, as on the server, the store counts these tiles as on the board.
-			declared: declaredTiles(children),
+			declared: new Set(declared.demands.keys()),
 			width: 0,
-			heights: new Map(),
 			gesture: null,
 			filter: filterValue,
 			selections: selectionValue ?? EMPTY_SELECTIONS,
@@ -471,6 +539,11 @@ export function Dashboard({
 
 	const editable = useSyncExternalStore(store.subscribe, readEditable, readEditable)
 
+	// A width of 0 is the server, or a container that does not render.
+	const readMeasured = () => store.getState().width > 0
+
+	const measured = useSyncExternalStore(store.subscribe, readMeasured, readMeasured)
+
 	const readProjected = () => store.getView().projected
 
 	const projected = useSyncExternalStore(store.subscribe, readProjected, readProjected)
@@ -520,14 +593,18 @@ export function Dashboard({
 						{...props}
 						data-slot="dashboard"
 						data-editing={dataAttr(editable)}
+						data-dashboard={scope}
 						// The focus lands here when a remove takes away the last tile.
 						tabIndex={-1}
 						className={cn('@container w-full', className)}
 					>
+						{firstPaint !== '' && <style>{firstPaint}</style>}
+
 						<div
 							ref={canvasRef}
 							data-slot="dashboard-canvas"
-							style={canvasStyle(columns, gap)}
+							data-measured={dataAttr(measured)}
+							style={canvasStyle(columns, gap, projected)}
 							className={k({ editable }).base}
 						>
 							<DashboardTitleLevelContext value={titleLevel}>{tiles}</DashboardTitleLevelContext>

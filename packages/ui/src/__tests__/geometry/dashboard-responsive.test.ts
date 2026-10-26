@@ -1,6 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { projectLayout } from '../../modules/dashboard/engine/dashboard-responsive'
+import { resolveLayout } from '../../modules/dashboard/engine/dashboard-layout'
+import { projectionSteps, projectLayout } from '../../modules/dashboard/engine/dashboard-responsive'
+import { createDashboardStore } from '../../modules/dashboard/engine/dashboard-store'
 import { cell } from '../helpers/dashboard-cells'
 
 const board = [cell('a', 0, 0, 8, 18), cell('b', 8, 0, 8, 18), cell('c', 16, 0, 8, 18)]
@@ -37,7 +39,7 @@ describe('projectLayout', () => {
 
 		expect(byId.b).toMatchObject({ x: 12, y: 0, w: 12 })
 
-		expect(byId.c).toMatchObject({ x: 0, y: 27, w: 24 })
+		expect(byId.c).toMatchObject({ x: 0, y: 1, w: 24 })
 	})
 
 	it('converges on a stack in a narrow container', () => {
@@ -67,65 +69,77 @@ describe('projectLayout', () => {
 		expect(byId.stat?.w).toBeGreaterThan(6)
 	})
 
-	it('gives a tile the rows that hold the height of its content', () => {
-		const cells = [cell('list', 0, 0, 12, 44)]
+	it('numbers the shelves in place of rows', () => {
+		// Each shelf is one grid row of auto height, so the next shelf is the next index.
+		const projection = projectLayout(board, { width: 800, gap: 8, columns: 24, demands })
 
-		const starved = new Map([['list', { minWidth: 240 }]])
+		expect(projection.cells.map((item) => item.y)).toEqual([0, 0, 1])
+	})
+})
 
-		// 384 px over 24 columns and 4 rows a column is 4 px a row. The content and
-		// the 12 px gutter need 412 px, which is 103 rows.
-		const heights = new Map([['list', 400]])
+describe('projectionSteps', () => {
+	// The tiles of the docs playground: three stats on one row, two charts under them.
+	const layout = [
+		{ id: 'revenue', x: 0, y: 0, w: 8, h: 20 },
+		{ id: 'units', x: 8, y: 0, w: 8, h: 20 },
+		{ id: 'sold', x: 16, y: 0, w: 8, h: 20 },
+		{ id: 'regions', x: 0, y: 20, w: 12, h: 10 },
+		{ id: 'mix', x: 12, y: 20, w: 12, h: 10 },
+	]
 
-		const projection = projectLayout(cells, {
-			width: 384,
-			gap: 12,
+	const playground = new Map([
+		['revenue', { minWidth: 200 }],
+		['units', { minWidth: 200 }],
+		['sold', { minWidth: 160 }],
+		['regions', { ratio: 16 / 9, minWidth: 320 }],
+		['mix', { ratio: 16 / 9, minWidth: 320 }],
+	])
+
+	const cells = resolveLayout(layout, playground, 24)
+
+	/** The cells that a store paints after its first measurement at `width`. */
+	function measuredPaint(width: number) {
+		const store = createDashboardStore({
 			columns: 24,
-			demands: starved,
-			heights,
+			gap: 12,
+			editing: false,
+			layout,
+			demands: playground,
+			declared: new Set(),
+			width,
+			gesture: null,
+			filter: undefined,
+			selections: [],
 		})
 
-		expect(projection.cells[0]).toMatchObject({ w: 24, h: 103 })
+		return cells.map((item) => store.getView().cells.get(item.id))
+	}
 
-		// The saved layout ignores the height.
-		const saved = projectLayout(cells, {
-			width: 1200,
-			gap: 12,
-			columns: 24,
-			demands: starved,
-			heights,
-		})
+	/** The cells that the steps paint at `width`: the narrowest step that covers it. */
+	function stepPaint(width: number) {
+		const steps = projectionSteps(cells, { gap: 12, columns: 24, demands: playground })
 
-		expect(saved.cells[0]).toMatchObject({ w: 12, h: 44 })
+		return steps.findLast((step) => width < step.below)?.cells ?? cells
+	}
+
+	it('paints what the first measurement paints, at each width', () => {
+		for (let width = 120; width <= 1400; width += 1) {
+			expect(stepPaint(width), `${width} px`).toEqual(measuredPaint(width))
+		}
 	})
 
-	it('stretches a tile that takes the height of its content to the height of its shelf', () => {
-		// 384 px is 16 px a column, so tile a starves at 8 columns, and the two
-		// tiles still share one shelf.
-		const cells = [cell('a', 0, 0, 8, 20), cell('b', 8, 0, 8, 20)]
+	it('ends in a stack, and starts at the width where a tile starves', () => {
+		const steps = projectionSteps(cells, { gap: 12, columns: 24, demands: playground })
 
-		const starved = new Map([
-			['a', { minWidth: 150 }],
-			['b', { minWidth: 0 }],
-		])
+		// The charts need 320 px plus a gutter at 12 of 24 columns: 664 px.
+		expect(steps[0]?.below).toBe(664)
 
-		// A row is 4 px. Tile a needs 112 px, which is 28 rows, and tile b needs
-		// 212 px, which is 53 rows.
-		const heights = new Map([
-			['a', 100],
-			['b', 200],
-		])
+		expect(steps.at(-1)?.cells.map((item) => item.w)).toEqual([24, 24, 24, 24, 24])
+	})
 
-		const projection = projectLayout(cells, {
-			width: 384,
-			gap: 12,
-			columns: 24,
-			demands: starved,
-			heights,
-		})
+	it('returns no step when no tile can starve', () => {
+		const free = new Map(cells.map((item) => [item.id, {}]))
 
-		expect(projection.cells.map((item) => [item.y, item.h])).toEqual([
-			[0, 53],
-			[0, 53],
-		])
+		expect(projectionSteps(cells, { gap: 12, columns: 24, demands: free })).toEqual([])
 	})
 })

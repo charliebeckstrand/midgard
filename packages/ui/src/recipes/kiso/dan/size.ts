@@ -102,6 +102,8 @@ export const size = {
 		width: 'density-w-[16,20,24,28,32]',
 		/** A toggle icon button skeleton. */
 		icon: 'density-size-[5.5,6.5,7.5,8.5,9.5]',
+		/** The height of a bare icon button, as the floor of a row that can hold one. */
+		row: 'density-min-h-[5.5,6.5,7.5,8.5,9.5]',
 	},
 	/** A pagination page skeleton. */
 	pagination: square,

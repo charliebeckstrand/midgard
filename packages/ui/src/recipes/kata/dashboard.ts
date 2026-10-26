@@ -111,30 +111,28 @@ const heading = 'min-w-0 flex-1'
 
 /**
  * The action row at the far end of the header. Its gap is the gap of the header
- * row, so the controls of a widget after it keep the same gap.
+ * row, so the controls of a widget after it keep the same gap. It keeps the
+ * height of a bare icon button with no control in it. A widget puts its own
+ * controls in the row after hydration, so the row then keeps its height, and a
+ * tile that takes the height of its content keeps the height of its first paint.
  */
-const actions = 'flex shrink-0 items-center gap-2'
+const actions = ['flex shrink-0 items-center gap-2', dan.size.button.row]
 
 /**
  * The content box. It fills the height that the header leaves. A widget taller
  * than the box scrolls inside it, so the tile never clips content without a way
  * to reach it. A widget that fills the box, such as a chart, shows no scrollbar.
  *
- * In the re-pack of a narrow board, a widget can claim the height of its content
- * (`natural`). The box then takes that height, and the tile grows to hold it.
+ * The box starts at the height of its content and grows into the room that the
+ * header leaves. In a tile of fixed height, it fills that room, and it shrinks
+ * under its content to scroll. In a tile that takes the height of its content,
+ * the box takes that height. The same classes therefore serve both, and CSS
+ * alone sets the height of a tile in the re-pack.
  *
  * The content box is the inline-size container of the widget. A container query
  * or a `cqi` unit in the widget therefore reads the tile, and not the board.
  */
-const content = {
-	base: '@container relative',
-	natural: {
-		// The box fills the height that the header leaves, and a taller widget scrolls in it.
-		false: 'min-h-0 flex-1 overflow-auto',
-		// The box takes the height of the widget, and the board gives the tile the rows for it.
-		true: 'flex-none',
-	},
-}
+const content = '@container relative min-h-0 flex-auto overflow-auto'
 
 /**
  * The content box of an expanded tile, in its dialog. The tile sets the ratio
@@ -263,7 +261,7 @@ export const k = defineKata(
 				},
 			},
 		},
-		defaults: { editable: false, lifted: false, dragging: false, natural: false, floating: false },
+		defaults: { editable: false, lifted: false, dragging: false, floating: false },
 	},
 	// Motion transition configs, applied imperatively (`animate()` in
 	// `use-dashboard-flip.ts`), never passed to `cn`.

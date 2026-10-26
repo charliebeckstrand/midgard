@@ -1,12 +1,12 @@
 'use client'
 
 import { useInView } from 'motion/react'
-import { type ReactNode, type RefObject, Suspense, useLayoutEffect, useRef } from 'react'
+import { type ReactNode, Suspense, useRef } from 'react'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { ContentHeightContext, type ContentHeightHost } from '../../primitives/content-height'
 import { type Mount, MountHold, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
-import { DashboardTileContext, useDashboardStoreContext } from './context'
+import { DashboardTileContext } from './context'
 import { DashboardTileBoundary } from './dashboard-tile-boundary'
 
 /** Props for {@link DashboardTileContent}. @internal */
@@ -28,50 +28,8 @@ export type DashboardTileContentProps = {
 	 * `null` where the box keeps its size, as in the expand dialog.
 	 */
 	host: ContentHeightHost | null
-	/** Whether the box takes the height of its content, and reports it to the board. */
-	natural: boolean
 	/** The widget. */
 	children?: ReactNode
-}
-
-/**
- * Reports the content height of the card around `ref` to the board while
- * `natural` holds. The height is the header row, the content, and the insets
- * of the card. The board then gives the tile the rows that hold it.
- */
-function useNaturalHeight(id: string, ref: RefObject<HTMLDivElement | null>, natural: boolean) {
-	const store = useDashboardStoreContext()
-
-	useLayoutEffect(() => {
-		const box = ref.current
-
-		const card = box?.parentElement
-
-		if (!natural || !box || !card) return
-
-		const report = () => {
-			const style = getComputedStyle(card)
-
-			const top = box.getBoundingClientRect().top - card.getBoundingClientRect().top
-
-			const end =
-				Number.parseFloat(style.paddingBottom) + Number.parseFloat(style.borderBottomWidth)
-
-			store.measure(id, Math.ceil(top + box.offsetHeight + end))
-		}
-
-		report()
-
-		const observer = new ResizeObserver(report)
-
-		observer.observe(box)
-
-		return () => {
-			observer.disconnect()
-
-			store.measure(id, undefined)
-		}
-	}, [store, id, ref, natural])
 }
 
 /**
@@ -89,13 +47,8 @@ export function DashboardTileContent({
 	fallback,
 	onError,
 	host,
-	natural,
 	children,
 }: DashboardTileContentProps) {
-	const ref = useRef<HTMLDivElement>(null)
-
-	useNaturalHeight(id, ref, natural && mount === 'always')
-
 	const body = (
 		<DashboardTileContext value={id}>
 			<ContentHeightContext value={host}>
@@ -108,25 +61,14 @@ export function DashboardTileContent({
 
 	if (mount === 'always') {
 		return (
-			<div
-				ref={ref}
-				data-slot="dashboard-tile-content"
-				inert={inert}
-				className={k({ natural }).content}
-			>
+			<div data-slot="dashboard-tile-content" inert={inert} className={k().content}>
 				{body}
 			</div>
 		)
 	}
 
 	return (
-		<HeldDashboardTileContent
-			id={id}
-			mount={mount}
-			inert={inert}
-			natural={natural}
-			fallback={fallback}
-		>
+		<HeldDashboardTileContent mount={mount} inert={inert} fallback={fallback}>
 			{body}
 		</HeldDashboardTileContent>
 	)
@@ -134,14 +76,10 @@ export function DashboardTileContent({
 
 /** Props for {@link HeldDashboardTileContent}. @internal */
 type HeldDashboardTileContentProps = {
-	/** The id of the tile. */
-	id: string
 	/** The policy that holds the content: `lazy` or `active`. */
 	mount: Exclude<Mount, 'always'>
 	/** Whether the content is inert. */
 	inert: boolean
-	/** Whether the box takes the height of its content. */
-	natural: boolean
 	/** What the tile shows while the content is held back. */
 	fallback: ReactNode
 	/** The scoped, guarded content. */
@@ -161,10 +99,8 @@ type HeldDashboardTileContentProps = {
  * @internal
  */
 function HeldDashboardTileContent({
-	id,
 	mount,
 	inert,
-	natural,
 	fallback,
 	children,
 }: HeldDashboardTileContentProps) {
@@ -173,8 +109,6 @@ function HeldDashboardTileContent({
 	// `active` must see the tile leave the viewport, so its observer stays connected.
 	// The margin prepares a tile just before the reader reaches it.
 	const inView = useInView(ref, { margin: '200px', once: mount !== 'active' })
-
-	useNaturalHeight(id, ref, natural)
 
 	const hydrated = useHydrated()
 
@@ -186,7 +120,7 @@ function HeldDashboardTileContent({
 			data-slot="dashboard-tile-content"
 			data-deferred={hold.present ? undefined : ''}
 			inert={inert}
-			className={k({ natural }).content}
+			className={k().content}
 		>
 			{hold.present ? <MountHold hold={hold}>{children}</MountHold> : fallback}
 		</div>

@@ -37,7 +37,6 @@ function makeStore(patch: Partial<DashboardState> = {}): DashboardStore {
 		]),
 		declared: new Set(),
 		width: 1200,
-		heights: new Map(),
 		gesture: null,
 		filter: undefined,
 		selections: [],

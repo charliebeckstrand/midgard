@@ -57,12 +57,14 @@ const widgets: Readonly<Record<string, DashboardWidget>> = {
 	kpi: {
 		render: (tile) => <Kpi {...(tile.options as KpiProps)} />,
 		minWidth: 200,
+		fitContent: true,
 		defaultSize: { w: 8, h: 20 },
 		minSize: { h: 16 },
 	},
 	units: {
 		render: () => <Units />,
 		minWidth: 200,
+		fitContent: true,
 		defaultSize: { w: 8, h: 20 },
 		minSize: { h: 16 },
 	},

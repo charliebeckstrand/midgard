@@ -99,13 +99,19 @@ export default function Query() {
 				>
 					<ProductMix />
 				</DashboardTile>
-				<DashboardTile id="units" title="Units sold" minWidth={160}>
+				<DashboardTile id="units" title="Units sold" minWidth={160} fitContent>
 					<Units />
 				</DashboardTile>
-				<DashboardTile id="units-trend" expandable title="Monthly units" minWidth={200}>
+				<DashboardTile id="units-trend" expandable title="Monthly units" minWidth={200} fitContent>
 					<Kpi value="units" />
 				</DashboardTile>
-				<DashboardTile id="revenue-trend" expandable title="Monthly revenue" minWidth={200}>
+				<DashboardTile
+					id="revenue-trend"
+					expandable
+					title="Monthly revenue"
+					minWidth={200}
+					fitContent
+				>
 					<Kpi value="revenue" />
 				</DashboardTile>
 				<DashboardTile

@@ -149,7 +149,9 @@ describe('Dashboard', () => {
 		const canvas = bySlot(container, 'dashboard-canvas')
 
 		// The CSS engine folds the division, so read the unit, not the exact string.
-		expect(canvas?.style.gridAutoRows).toContain('cqi')
+		expect(canvas?.style.getPropertyValue('--dashboard-row')).toContain('cqi')
+
+		expect(canvas?.style.gridAutoRows).toBe('var(--dashboard-row)')
 
 		expect(bySlot(container, 'dashboard')?.tagName).toBe('SECTION')
 	})

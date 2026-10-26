@@ -13,6 +13,7 @@ import {
 	type DashboardTileSize,
 	gridArea,
 	ROW_SUBDIVISION,
+	shelfPaint,
 	usableRatio,
 } from './engine/dashboard-layout'
 import type { DashboardState, DashboardView } from './engine/dashboard-store'
@@ -21,8 +22,12 @@ import { useDashboardStore } from './use-dashboard-store'
 import { useDashboardTileCell } from './use-dashboard-tile-cell'
 import { useDashboardTileDrag } from './use-dashboard-tile-drag'
 
-/** The minimum content width of a tile, in px: about where a chart with a legend stays legible. */
-const DEFAULT_MIN_WIDTH = 320
+/**
+ * The minimum content width of a tile, in px: about where a chart with a legend stays legible.
+ *
+ * @internal
+ */
+export const DEFAULT_MIN_WIDTH = 320
 
 /** Whether the gestures of the board are live. */
 const selectEditable = (view: DashboardView) => view.editable
@@ -94,6 +99,21 @@ export type DashboardTileProps = {
 	 * @defaultValue 320
 	 */
 	minWidth?: number
+	/**
+	 * Gives the tile the height of its content in the re-pack of a narrow board.
+	 * The tile then grows to the height of its shelf, and the page has no scroll
+	 * region inside a scroll region. CSS sets the height, so the first paint on
+	 * the server is the final height. The saved layout ignores it.
+	 *
+	 * @remarks
+	 * Write the widget so that it fits a box of fixed height and a box of auto
+	 * height with the same markup. An example is a chart with
+	 * `flex-[1_1_5rem] min-h-0` in a column: it fills the box, and it takes
+	 * 5rem in the flow. A widget that claims the height of its content through
+	 * `ContentHeightContext` gets the same height, but only after hydration.
+	 * @defaultValue false
+	 */
+	fitContent?: boolean
 	/**
 	 * The span of the tile in grid units when the layout holds no entry for it.
 	 * The tile takes a new row under the lowest tile at this span, and the first
@@ -189,11 +209,11 @@ export type DashboardTileProps = {
  * The content box is an inline-size container. A container query or a `cqi`
  * unit in a widget therefore reads the tile, and not the board.
  *
- * In the re-pack of a narrow board, a widget can claim the height of its content
- * through `ContentHeightContext` (`ui/primitives/content-height`). The tile then
- * takes the rows that hold that height, and the page has no scroll region inside
- * a scroll region. A `Grid` with `maxHeight="fill"` claims it, and shows pages
- * of 10 rows.
+ * In the re-pack of a narrow board, a tile with `fitContent` takes the height of
+ * its content. A widget can also claim the height of its content through
+ * `ContentHeightContext` (`ui/primitives/content-height`). A `Grid` with
+ * `maxHeight="fill"` claims it, and shows pages of 10 rows. Either way, the
+ * page has no scroll region inside a scroll region.
  *
  * A widget can put its own controls in the header row of the tile, after the
  * actions, through `useHeaderActions` (`ui/primitives/header-actions`). A
@@ -234,6 +254,7 @@ export function DashboardTile(props: DashboardTileProps) {
 		actions,
 		ratio,
 		minWidth = DEFAULT_MIN_WIDTH,
+		fitContent = false,
 		defaultSize,
 		minSize,
 		maxSize,
@@ -266,7 +287,8 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	// The widgets that claim the height of their content. The re-pack gives the
 	// tile that height, so a list shows in the flow of the page and not in a
-	// scroll region of its own.
+	// scroll region of its own. A claim lands after hydration, and `fitContent` is
+	// known on the server.
 	const [claims, setClaims] = useState(0)
 
 	const claim = useCallback(() => {
@@ -307,12 +329,18 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	const carried = drag.carried
 
+	// The re-pack paints shelves, and the saved layout paints the grid area of the cell.
+	const paint = projected
+		? shelfPaint(cell, fitContent || claims > 0)
+		: { gridArea: gridArea(cell) }
+
 	return (
 		<div
 			ref={setNodeRef}
 			data-slot="dashboard-tile"
+			data-tile-id={id}
 			style={{
-				gridArea: gridArea(cell),
+				...paint,
 				// The canvas publishes the gutter, and the tile insets half of it on each side.
 				padding: 'calc(var(--dashboard-gap) / 2)',
 				transform: carried ? `translate3d(${carried.x}px, ${carried.y}px, 0)` : undefined,
@@ -341,7 +369,6 @@ export function DashboardTile(props: DashboardTileProps) {
 				shape={(cell.w * ROW_SUBDIVISION) / cell.h}
 				shell={node}
 				host={host}
-				natural={projected && claims > 0}
 			>
 				{children}
 			</DashboardTileCard>

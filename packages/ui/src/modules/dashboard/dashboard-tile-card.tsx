@@ -59,8 +59,6 @@ export type DashboardTileCardProps = {
 	shell: RefObject<HTMLElement | null>
 	/** The box that the widget can claim the height of its content from. */
 	host: ContentHeightHost
-	/** Whether the content box takes the height of its content. */
-	natural: boolean
 	/** The widget. */
 	children?: ReactNode
 }
@@ -96,7 +94,6 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 	shape,
 	shell,
 	host,
-	natural,
 	children,
 }: DashboardTileCardProps) {
 	const intl = useIntl()
@@ -179,7 +176,6 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 					fallback={fallback}
 					onError={onError}
 					host={host}
-					natural={natural}
 				>
 					{children}
 				</DashboardTileContent>

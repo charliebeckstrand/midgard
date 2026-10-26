@@ -44,9 +44,9 @@ function tileRows(container: HTMLElement, selector: string): [string, string][] 
 	])
 }
 
-/** The grid areas of the tiles in markup order. */
+/** The inline grid areas of the tiles in markup order, and not the rules of the first paint. */
 function gridAreas(html: string): string[] {
-	return [...html.matchAll(/grid-area:([^;"]+)/g)].map((match) => match[1] ?? '')
+	return [...html.matchAll(/style="[^"]*?grid-area:([^;"]+)/g)].map((match) => match[1] ?? '')
 }
 
 function JsxBoard({
