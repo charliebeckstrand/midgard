@@ -1,6 +1,7 @@
 'use client'
 
 import type { KeyboardEvent } from 'react'
+import { Control } from '../../components/control'
 import { Input } from '../../components/input'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { NumberInput } from '../../components/number-input'
@@ -137,16 +138,22 @@ const BOOLEAN_OPTIONS = [
  * text/number editor, or the consumer's save affordance. Under `scope: 'cell'`
  * there is no sibling, because the session mounts this editor alone. Tab is
  * then the keyboard commit (WCAG 2.1.1). Tab past the last control of the
- * cell commits the cell and moves the session to the next cell. Escape reaches this editor the way it reaches every other,
- * through the grid table's key surface. That surface defers to the listbox's
- * own panel while it is open.
+ * cell commits the cell and moves the session to the next cell. Escape works
+ * as in the other editors. A grid-owned session takes it on the grid table's
+ * key surface. Under a consumer-owned session, Escape on the closed trigger
+ * reverts the cell. While the panel is open, its first Escape closes the
+ * panel.
  * @internal
  */
 function GridBooleanEditInput({
 	draft,
 	onValueUpdate,
+	cancel,
 	ariaLabel,
+	error,
+	errorId,
 	required,
+	managed,
 	unset,
 }: GridEditInputProps) {
 	const intl = useIntl()
@@ -159,26 +166,31 @@ function GridBooleanEditInput({
 
 	const value = blank ? null : picked
 
+	// The Listbox props take no `invalid`, so a Control marks the trigger invalid.
 	return (
-		<Listbox<string>
-			data-slot="grid-edit-boolean-input"
-			aria-label={ariaLabel}
-			aria-required={ariaAttr(required)}
-			className={k.edit.input}
-			value={value}
-			onValueChange={(next) => onValueUpdate(next === null ? undefined : next === 'true')}
-			displayValue={(option) => {
-				const label = BOOLEAN_OPTIONS.find((candidate) => candidate.value === option)?.label
+		<Control severity={error != null ? 'error' : undefined}>
+			<Listbox<string>
+				data-slot="grid-edit-boolean-input"
+				aria-label={ariaLabel}
+				aria-required={ariaAttr(required)}
+				aria-describedby={error != null ? errorId : undefined}
+				className={k.edit.input}
+				value={value}
+				onValueChange={(next) => onValueUpdate(next === null ? undefined : next === 'true')}
+				onKeyDown={editorKeys({ cancel, managed })}
+				displayValue={(option) => {
+					const label = BOOLEAN_OPTIONS.find((candidate) => candidate.value === option)?.label
 
-				return label ? intl.formatMessage(label) : ''
-			}}
-		>
-			{BOOLEAN_OPTIONS.map((option) => (
-				<ListboxOption key={option.value} value={option.value}>
-					<ListboxLabel>{intl.formatMessage(option.label)}</ListboxLabel>
-				</ListboxOption>
-			))}
-		</Listbox>
+					return label ? intl.formatMessage(label) : ''
+				}}
+			>
+				{BOOLEAN_OPTIONS.map((option) => (
+					<ListboxOption key={option.value} value={option.value}>
+						<ListboxLabel>{intl.formatMessage(option.label)}</ListboxLabel>
+					</ListboxOption>
+				))}
+			</Listbox>
+		</Control>
 	)
 }
 

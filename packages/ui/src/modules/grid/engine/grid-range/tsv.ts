@@ -3,14 +3,31 @@ import { neutralizeFormula } from '../../../../utilities/export-output'
 /** A field that TSV must quote: it holds a tab, a line break, or a double quote. */
 const NEEDS_QUOTES = /[\t\r\n"]/
 
+/** The apostrophes at the start of a text. */
+const LEADING_APOSTROPHES = /^'+/
+
+/**
+ * Whether a copy puts a guard apostrophe on `value`. That is a text that a
+ * spreadsheet can run as a formula (see `neutralizeFormula`). It is also such
+ * a text after one or more apostrophes, such as `'=1`. A paste takes one
+ * apostrophe off a guarded text, so `'=1` gets a guard too, and the paste
+ * gives back the apostrophe that the user typed.
+ */
+function takesGuard(value: string): boolean {
+	const bare = value.replace(LEADING_APOSTROPHES, '')
+
+	return neutralizeFormula(bare) !== bare
+}
+
 /**
  * One cell as a TSV field. A field that holds a tab, a line break, or a double
  * quote goes in double quotes, with each quote doubled, as a spreadsheet
  * writes it. A field that a spreadsheet can run as a formula gets the export
- * guard first (see `neutralizeFormula`). @internal
+ * guard first (see `neutralizeFormula`), and so does such a field after an
+ * apostrophe, so that {@link unguardField} gives back the same text. @internal
  */
 export function tsvField(value: string): string {
-	const guarded = neutralizeFormula(value)
+	const guarded = takesGuard(value) ? `'${value}` : value
 
 	return NEEDS_QUOTES.test(guarded) ? `"${guarded.replaceAll('"', '""')}"` : guarded
 }
@@ -33,7 +50,7 @@ export function unguardField(text: string): string {
 
 	const rest = text.slice(1)
 
-	return neutralizeFormula(rest) === text ? rest : text
+	return takesGuard(rest) ? rest : text
 }
 
 /** One line break at the end of a text, which a spreadsheet adds to a copy. */

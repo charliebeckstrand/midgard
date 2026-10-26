@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
@@ -54,5 +55,59 @@ describe('grid edit session Escape vs an open listbox (real floating engine)', (
 		await waitFor(() => expect(screen.queryByRole('option', { name: 'Yes' })).toBeNull())
 
 		expect(bySlot(view.container, 'grid-edit-boolean-input')).not.toBeNull()
+	})
+
+	it('closes the open panel first under a consumer-owned session, then reverts the cell', async () => {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set([1]))
+
+			return (
+				<>
+					<button type="button" onClick={() => setEditing(new Set())}>
+						save
+					</button>
+					<Grid
+						columns={columns}
+						rows={rows}
+						getKey={(row) => row.id}
+						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const trigger = await screen.findByRole('combobox')
+
+		await userEvent.click(trigger)
+
+		await userEvent.click(await screen.findByRole('option', { name: 'Yes' }))
+
+		await waitFor(() => expect(trigger).toHaveTextContent('Yes'))
+
+		await userEvent.click(trigger)
+
+		await screen.findByRole('option', { name: 'Yes' })
+
+		await userEvent.keyboard('{Escape}')
+
+		// The first Escape belongs to the panel, so the staged value stays.
+		await waitFor(() => expect(screen.queryByRole('option', { name: 'Yes' })).toBeNull())
+
+		expect(trigger).toHaveTextContent('Yes')
+
+		trigger.focus()
+
+		await userEvent.keyboard('{Escape}')
+
+		// The next Escape, on the closed trigger, reverts the cell.
+		await waitFor(() => expect(trigger).toHaveTextContent('No'))
+
+		await userEvent.click(view.getByRole('button', { name: 'save' }))
+
+		expect(onCommit).not.toHaveBeenCalled()
 	})
 })

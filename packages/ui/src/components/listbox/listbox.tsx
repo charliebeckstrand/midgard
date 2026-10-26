@@ -140,6 +140,12 @@ type ListboxBaseProps = {
 	 * `onBlur` does not fire.
 	 */
 	onBlur?: (event: FocusEvent<HTMLButtonElement>) => void
+	/**
+	 * Fires on a key press on the trigger, before the trigger acts on the key.
+	 * Call `preventDefault` to keep the key from opening the panel. An open
+	 * panel holds the focus, so a key press in the panel does not fire it.
+	 */
+	onKeyDown?: (event: KeyboardEvent<HTMLButtonElement>) => void
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
 	'data-slot'?: string
 	children: ReactNode
@@ -217,6 +223,7 @@ export function Listbox<T>({
 	open: openProp,
 	onOpenChange,
 	onBlur,
+	onKeyDown,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	'aria-describedby': ariaDescribedBy,
@@ -391,8 +398,11 @@ export function Listbox<T>({
 	// printable key opens it too, and the panel then moves to the first option
 	// that matches. The guard keeps a read-only listbox closed. An open menu holds
 	// the focus, so the key reaches the trigger only while the menu is closed.
+	// A key that the consumer's `onKeyDown` takes does not open the menu.
 	const handleTriggerKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-		if (open || locked) return
+		onKeyDown?.(event)
+
+		if (open || locked || event.defaultPrevented) return
 
 		const typeahead = isTypeaheadKey(event)
 
