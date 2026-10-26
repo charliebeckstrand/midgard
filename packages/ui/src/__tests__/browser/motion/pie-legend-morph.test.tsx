@@ -94,6 +94,42 @@ describe('pie legend toggle (real Motion)', () => {
 		expect(slices(container)).toEqual(slices(still))
 	})
 
+	it('shrinks the last slice to nothing, and grows it back, as a wedge', async () => {
+		const { container } = renderUI(pie())
+
+		await waitFor(() => expect(slices(container)).toHaveLength(4))
+
+		for (const name of ['Search', 'Direct', 'Referral']) legendItem(container, name).click()
+
+		await waitFor(() => expect(slices(container)).toHaveLength(1), SETTLE)
+
+		// The lone slice at rest is the full disc.
+		const [disc] = slices(container)
+
+		const last = legendItem(container, 'Social')
+
+		// A frame of the morph draws a wedge, not the disc.
+		const leaving = await sampleMotionFrames(
+			() => slices(container),
+			(drawn) => drawn.length === 1 && drawn[0] !== disc,
+			{ during: async () => last.click() },
+		)
+
+		expect(leaving).toHaveLength(1)
+
+		await waitFor(() => expect(slices(container)).toHaveLength(0), SETTLE)
+
+		const coming = await sampleMotionFrames(
+			() => slices(container),
+			(drawn) => drawn.length === 1 && drawn[0] !== disc,
+			{ during: async () => last.click() },
+		)
+
+		expect(coming).toHaveLength(1)
+
+		await waitFor(() => expect(slices(container)).toEqual([disc]), SETTLE)
+	})
+
 	it('fades the segment labels in again at their new places', async () => {
 		const { container } = renderUI(pie(true))
 
