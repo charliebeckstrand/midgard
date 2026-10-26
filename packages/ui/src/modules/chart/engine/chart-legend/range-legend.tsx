@@ -28,6 +28,7 @@ import { holdTextSelection } from '../../../../utilities/hold-text-selection'
 import { hasBrowserModifier } from '../../../../utilities/modifier-keys'
 import { isPrimaryPress } from '../../../../utilities/primary-press'
 import { chartMessages } from '../chart-messages'
+import type { LegendBandBreakpoint } from './band'
 
 /**
  * Which way a range legend and its glyph lay out:
@@ -40,6 +41,60 @@ import { chartMessages } from '../chart-messages'
  */
 export type RangeOrientation = Orientation
 
+/**
+ * The classes of each part of the bar, for each layout. A `flat` bar lies
+ * horizontal at every width: a top or bottom placement. An `sm` or `lg` bar
+ * is a side placement. Below that container breakpoint, the frame stacks it
+ * under the plot and the bar lies horizontal. From the breakpoint, it stands
+ * vertical beside the plot. The layout is CSS, so the server and the first
+ * paint draw the bar the way the box lays it out, before a measurement lands.
+ * Tailwind finds a class only as a complete literal, so each entry is written
+ * out in full.
+ *
+ * The probe position comes in through `--range-probe`, the probed fraction of
+ * the domain from the min. The ramp comes in through `--range-ramp`, the color
+ * stops from low to high.
+ */
+const LAYOUT = {
+	flat: {
+		box: 'flex justify-center',
+		bar: 'w-40 flex-col',
+		track: 'h-5 w-full touch-pan-y',
+		ramp: 'bg-[linear-gradient(to_right,var(--range-ramp))]',
+		labels: 'flex-row',
+		value: 'top-0 start-[calc(var(--range-probe)*100%)] -translate-x-1/2',
+		marker: '-inset-y-0.5 start-[calc(var(--range-probe)*100%)] w-0.5 -translate-x-1/2',
+		flatArrow: '',
+		standingArrow: 'hidden',
+	},
+	sm: {
+		box: 'flex justify-center @sm:shrink-0',
+		bar: 'w-40 flex-col @sm:h-40 @sm:w-auto @sm:flex-row',
+		track: 'h-5 w-full touch-pan-y @sm:h-auto @sm:w-5 @sm:[touch-action:pan-x]',
+		ramp: 'bg-[linear-gradient(to_right,var(--range-ramp))] @sm:bg-[linear-gradient(to_top,var(--range-ramp))]',
+		labels: 'flex-row @sm:flex-col-reverse',
+		value:
+			'top-0 start-[calc(var(--range-probe)*100%)] -translate-x-1/2 @sm:top-[calc((1-var(--range-probe))*100%)] @sm:start-0 @sm:translate-x-0 @sm:-translate-y-1/2',
+		marker:
+			'-inset-y-0.5 start-[calc(var(--range-probe)*100%)] w-0.5 -translate-x-1/2 @sm:top-[calc((1-var(--range-probe))*100%)] @sm:-end-0.5 @sm:-start-0.5 @sm:h-0.5 @sm:w-auto @sm:translate-x-0 @sm:-translate-y-1/2',
+		flatArrow: '@sm:hidden',
+		standingArrow: 'hidden @sm:block',
+	},
+	lg: {
+		box: 'flex justify-center @lg:shrink-0',
+		bar: 'w-40 flex-col @lg:h-40 @lg:w-auto @lg:flex-row',
+		track: 'h-5 w-full touch-pan-y @lg:h-auto @lg:w-5 @lg:[touch-action:pan-x]',
+		ramp: 'bg-[linear-gradient(to_right,var(--range-ramp))] @lg:bg-[linear-gradient(to_top,var(--range-ramp))]',
+		labels: 'flex-row @lg:flex-col-reverse',
+		value:
+			'top-0 start-[calc(var(--range-probe)*100%)] -translate-x-1/2 @lg:top-[calc((1-var(--range-probe))*100%)] @lg:start-0 @lg:translate-x-0 @lg:-translate-y-1/2',
+		marker:
+			'-inset-y-0.5 start-[calc(var(--range-probe)*100%)] w-0.5 -translate-x-1/2 @lg:top-[calc((1-var(--range-probe))*100%)] @lg:-end-0.5 @lg:-start-0.5 @lg:h-0.5 @lg:w-auto @lg:translate-x-0 @lg:-translate-y-1/2',
+		flatArrow: '@lg:hidden',
+		standingArrow: 'hidden @lg:block',
+	},
+} as const
+
 /** Props for {@link RangeArrow}. @internal */
 type RangeArrowProps = {
 	/** The exact value the glyph marks along the bar. */
@@ -49,12 +104,12 @@ type RangeArrowProps = {
 	/** The `data-slot` prefix, matching the host legend's. @defaultValue 'range' */
 	slot?: string
 	/**
-	 * Which way the host bar runs, so the glyph pins to the matching edge. It
-	 * goes down the left of a vertical bar (apex right), and along the top of a
-	 * horizontal one (apex down).
-	 * @defaultValue 'vertical'
+	 * The host bar's side breakpoint, as for {@link RangeLegendProps.aside}, so
+	 * the glyph pins to the matching edge. It goes along the top of a horizontal
+	 * bar (apex down), and down the left of a vertical one (apex right). Unset,
+	 * the bar lies flat.
 	 */
-	orientation?: RangeOrientation
+	aside?: LegendBandBreakpoint
 }
 
 /**
@@ -68,51 +123,55 @@ type RangeArrowProps = {
  * The glyph is presentational. The host supplies the `value` from its own hover
  * state: a region on the choropleth, a cell on the heatmap. The same glyph
  * therefore ties either chart's marks to the scale. It rides the low→high axis
- * the bar paints: down the left of a vertical bar, along the top of a
- * horizontal one.
+ * the bar paints: along the top of a horizontal bar, down the left of a
+ * vertical one. A side bar changes its axis at a container breakpoint, so it
+ * draws both glyphs and CSS shows the one that matches the bar.
  *
  * @internal
  */
-export function RangeArrow({
-	value,
-	domain,
-	slot = 'range',
-	orientation = 'vertical',
-}: RangeArrowProps) {
-	if (orientation === 'horizontal') {
-		return (
+export function RangeArrow({ value, domain, slot = 'range', aside }: RangeArrowProps) {
+	const layout = LAYOUT[aside ?? 'flat']
+
+	const fraction = probeFraction(value, domain)
+
+	return (
+		<>
 			<svg
 				data-slot={`${slot}-arrow`}
+				data-orientation="horizontal"
 				aria-hidden="true"
 				viewBox="0 0 10 6"
 				className={cn(
 					'absolute bottom-full mb-1 h-1.5 w-2.5 -translate-x-1/2 motion-safe:transition-[left] duration-150 ease-out',
+					layout.flatArrow,
 					k.arrow,
 				)}
-				style={{ left: `${probePercent(value, domain, orientation)}%` }}
+				style={{ left: `${fraction * 100}%` }}
 				fill="currentColor"
 			>
 				<path d="M0 0 10 0 5 6Z" />
 			</svg>
-		)
-	}
 
-	return (
-		<svg
-			data-slot={`${slot}-arrow`}
-			aria-hidden="true"
-			viewBox="0 0 6 10"
-			className={cn(
-				// The arrow renders in the `dir="ltr"` block of the legend, so the start
-				// side is the left of the bar.
-				'absolute end-full me-1 h-2.5 w-1.5 -translate-y-1/2 motion-safe:transition-[top] duration-150 ease-out',
-				k.arrow,
+			{aside && (
+				<svg
+					data-slot={`${slot}-arrow`}
+					data-orientation="vertical"
+					aria-hidden="true"
+					viewBox="0 0 6 10"
+					className={cn(
+						// The arrow renders in the `dir="ltr"` block of the legend, so the start
+						// side is the left of the bar.
+						'absolute end-full me-1 h-2.5 w-1.5 -translate-y-1/2 motion-safe:transition-[top] duration-150 ease-out',
+						layout.standingArrow,
+						k.arrow,
+					)}
+					style={{ top: `${(1 - fraction) * 100}%` }}
+					fill="currentColor"
+				>
+					<path d="M0 0 0 10 6 5Z" />
+				</svg>
 			)}
-			style={{ top: `${probePercent(value, domain, orientation)}%` }}
-			fill="currentColor"
-		>
-			<path d="M0 0 0 10 6 5Z" />
-		</svg>
+		</>
 	)
 }
 
@@ -163,18 +222,23 @@ export type RangeLegendProps = RangeScale & {
 	 */
 	arrow?: ReactNode
 	/**
-	 * Which way the scale bar runs:
+	 * The container breakpoint from which the bar stands vertical beside the
+	 * plot (low at the bottom, high at the top): the breakpoint at which the
+	 * host frame puts a side legend beside the plot. Below it, the frame stacks
+	 * the legend under the plot, and the bar lies flat (low at the left, high at
+	 * the right). Unset, the bar lies flat at every width: a top or bottom
+	 * placement.
 	 *
-	 * - `'vertical'` stands it on end (low at the bottom, high at the top) beside
-	 *   the plot.
-	 * - `'horizontal'` lays it flat (low at the left, high at the right) above or
-	 *   below.
-	 *
-	 * It drives the gradient, the pointer axis, the endpoint order, the thumb,
-	 * and `aria-orientation`. A horizontal bar therefore reads and answers the
-	 * keyboard along its own axis.
-	 *
-	 * @defaultValue 'vertical'
+	 * CSS container queries draw the gradient, the endpoint order, the thumb,
+	 * and the size, so the first paint draws the final layout. The pointer reads
+	 * the axis off the drawn track.
+	 */
+	aside?: LegendBandBreakpoint
+	/**
+	 * The axis the bar announces through `aria-orientation`: the axis the host
+	 * resolves from its measured width. The keyboard answers both arrow pairs,
+	 * so it does not depend on it.
+	 * @defaultValue 'horizontal'
 	 */
 	orientation?: RangeOrientation
 	/**
@@ -253,19 +317,18 @@ type RangeScaleLabelsProps = {
 	format: (value: number) => string
 	/** The probed value, or `null` at rest: dims the endpoints and shows the readout. */
 	probe: number | null
-	/** The probe's distance along the bar as a percentage from the start. */
-	probeOffset: number
-	/** The bar runs horizontally, so the ends read left-to-right and the readout tracks `left`. */
-	horizontal: boolean
+	/** The classes of the bar's layout. */
+	layout: (typeof LAYOUT)[keyof typeof LAYOUT]
 	/** The host's `data-slot` prefix. */
 	slot: string
 }
 
 /**
  * The scale bar's endpoint labels and its live value readout, transposed with
- * the bar. The low value leads a horizontal bar (left) or trails a vertical one
- * (bottom). The readout tracks the probe along the matching axis. The endpoints
- * dim while a probe is live so the readout reads clear over them.
+ * the bar. The low value comes first in the DOM. It leads a horizontal bar
+ * (left) and trails a vertical one (bottom, through a reversed column). The
+ * readout tracks the probe along the matching axis. The endpoints dim while a
+ * probe is live so the readout reads clear over them.
  *
  * @internal
  */
@@ -273,8 +336,7 @@ function RangeScaleLabels({
 	domain: [min, max],
 	format,
 	probe,
-	probeOffset,
-	horizontal,
+	layout,
 	slot,
 }: RangeScaleLabelsProps) {
 	const endpoint = cn(
@@ -283,15 +345,13 @@ function RangeScaleLabels({
 	)
 
 	return (
-		<div className={cn('relative flex justify-between', horizontal ? 'flex-row' : 'flex-col')}>
-			{/* The endpoint that leads the reading order: the low value at a horizontal
-			    bar's left, the high value at a vertical bar's top. */}
+		<div className={cn('relative flex justify-between', layout.labels)}>
 			<Text as="span" tone="muted" size="sm" className={endpoint}>
-				{format(horizontal ? min : max)}
+				{format(min)}
 			</Text>
 
 			<Text as="span" tone="muted" size="sm" className={endpoint}>
-				{format(horizontal ? max : min)}
+				{format(max)}
 			</Text>
 
 			{probe !== null && (
@@ -300,11 +360,7 @@ function RangeScaleLabels({
 					size="sm"
 					aria-hidden="true"
 					data-slot={`${slot}-value`}
-					className={cn(
-						'absolute tabular-nums leading-none whitespace-nowrap',
-						horizontal ? 'top-0 -translate-x-1/2' : 'start-0 -translate-y-1/2',
-					)}
-					style={horizontal ? { left: `${probeOffset}%` } : { top: `${probeOffset}%` }}
+					className={cn('absolute tabular-nums leading-none whitespace-nowrap', layout.value)}
 				>
 					{format(probe)}
 				</Text>
@@ -314,28 +370,18 @@ function RangeScaleLabels({
 }
 
 /**
- * The probe's distance along the bar as a percentage from the reading start.
- * That start is the top (max) of a vertical bar, and the left (min) of a
- * horizontal one. `null` (at rest) and a degenerate zero-span domain both sit
- * at the start.
+ * The fraction of the domain from the min to `value`, from `0` to `1`. A value
+ * outside the domain pins to its end of the bar, not past it. A degenerate
+ * zero-span domain sits at the min.
  *
  * @internal
  */
-function probePercent(
-	probe: number | null,
-	domain: [number, number],
-	orientation: RangeOrientation,
-): number {
-	const [min, max] = domain
-
+function probeFraction(value: number, [min, max]: [number, number]): number {
 	const span = max - min
 
-	if (probe === null || span <= 0) return 0
+	if (span <= 0) return 0
 
-	// A value outside the domain pins to its end of the bar, not past it.
-	const fraction = clamp((probe - min) / span, 0, 1)
-
-	return (orientation === 'horizontal' ? fraction : 1 - fraction) * 100
+	return clamp((value - min) / span, 0, 1)
 }
 
 /** Props for {@link RangeTrack}. @internal */
@@ -344,16 +390,16 @@ type RangeTrackProps = {
 	slot: string
 	/** The accessible name and the `role="slider"` label. */
 	label?: string
-	/** The axis the bar runs along: it lays out along that axis, and announces it through `aria-orientation`. */
+	/** The axis the bar announces through `aria-orientation`. */
 	orientation: RangeOrientation
+	/** The classes of the bar's layout. */
+	layout: (typeof LAYOUT)[keyof typeof LAYOUT]
 	/** The ordered CSS color stops the gradient paints, low → high. */
 	colorRange: string[]
 	/** The `[low, high]` value extent: the slider's `aria-valuemin` / `aria-valuemax`. */
 	domain: [number, number]
 	/** The probed value, or `null` at rest: drives the thumb and `aria-valuenow`. */
 	probe: number | null
-	/** The probe's distance along the bar, from {@link probePercent}. */
-	probeOffset: number
 	/** The range of the probed class, or at rest of the class of the min, announced through `aria-valuetext`. */
 	valueText: string
 	/** The host's hover glyph pinned into the track. */
@@ -368,9 +414,9 @@ type RangeTrackProps = {
 
 /**
  * The scale bar itself: the gradient-painted `role="slider"` track, the thumb
- * marking the live probe, and the host's hover glyph. The `orientation` prop
- * transposes it. A vertical bar stands narrow and tall with a horizontal thumb,
- * and a horizontal bar lays short and wide with a vertical one. The same slider
+ * marking the live probe, and the host's hover glyph. The `layout` transposes
+ * it. A vertical bar stands narrow and tall with a horizontal thumb, and a
+ * horizontal bar lays short and wide with a vertical one. The same slider
  * therefore reads either way.
  *
  * A touch scrubs the bar. The press reads the value under the finger, and a
@@ -383,10 +429,10 @@ function RangeTrack({
 	slot,
 	label,
 	orientation,
+	layout,
 	colorRange,
 	domain: [min, max],
 	probe,
-	probeOffset,
 	valueText,
 	arrow,
 	onPointerDown,
@@ -398,17 +444,15 @@ function RangeTrack({
 }: RangeTrackProps) {
 	const intl = useIntl()
 
-	const horizontal = orientation === 'horizontal'
-
 	// Paint the bar with the raw stops (CSS interpolates a smooth ramp: low at
 	// the bottom of a vertical bar, at the left of a horizontal one; high at the
-	// far end either way). A single stop degrades to a flat fill.
-	const gradient: CSSProperties =
-		colorRange.length > 1
-			? {
-					backgroundImage: `linear-gradient(to ${horizontal ? 'right' : 'top'}, ${colorRange.join(', ')})`,
-				}
-			: { backgroundColor: colorRange[0] }
+	// far end either way). The layout's classes run the ramp along the drawn
+	// axis. A single stop degrades to a flat fill.
+	const ramp = colorRange.length > 1
+
+	const gradient = (
+		ramp ? { '--range-ramp': colorRange.join(', ') } : { backgroundColor: colorRange[0] }
+	) as CSSProperties
 
 	return (
 		<div
@@ -426,7 +470,8 @@ function RangeTrack({
 			className={cn(
 				'relative',
 				// A drag along the bar scrubs, and a drag across it scrolls the page.
-				horizontal ? 'h-5 w-full touch-pan-y' : 'w-5 touch-pan-x',
+				layout.track,
+				ramp && layout.ramp,
 				k.track,
 				k.focus,
 			)}
@@ -442,13 +487,7 @@ function RangeTrack({
 				<div
 					aria-hidden="true"
 					data-slot={`${slot}-marker`}
-					className={cn(
-						k.marker,
-						horizontal
-							? '-inset-y-0.5 w-0.5 -translate-x-1/2'
-							: '-inset-x-0.5 h-0.5 -translate-y-1/2',
-					)}
-					style={horizontal ? { left: `${probeOffset}%` } : { top: `${probeOffset}%` }}
+					className={cn(k.marker, layout.marker)}
 				/>
 			)}
 
@@ -474,10 +513,12 @@ function RangeTrack({
  * walk the classes once the bar has focus. Up / Right step toward the max,
  * Down / Left toward the min, and Home / End jump to the ends. The `aria-orientation` attribute announces the axis the
  * bar runs along. Screen readers get the class range through `aria-valuetext`
- * and full parity from the host's visually-hidden data table. The `orientation`
- * prop transposes the whole thing: the gradient, the pointer axis, the endpoint
+ * and full parity from the host's visually-hidden data table. The layout
+ * transposes the whole thing: the gradient, the pointer axis, the endpoint
  * order, and the thumb. A horizontal bar is therefore the same slider laid
- * flat, low at the left.
+ * flat, low at the left. A side bar takes its axis from a container query
+ * ({@link RangeLegendProps.aside}), so it never changes axis after the first
+ * paint.
  * @internal
  */
 export function RangeLegend({
@@ -490,12 +531,13 @@ export function RangeLegend({
 	slot = 'range',
 	onProbe,
 	arrow,
-	orientation = 'vertical',
+	aside,
+	orientation = 'horizontal',
 	box,
 }: RangeLegendProps) {
 	const [min, max] = domain
 
-	const horizontal = orientation === 'horizontal'
+	const layout = LAYOUT[aside ?? 'flat']
 
 	// The value under the cursor / caret, in domain units; null at rest. The
 	// pointer sets it continuously, the keyboard to a class center.
@@ -540,13 +582,15 @@ export function RangeLegend({
 	}
 
 	// Track the pointer to its exact value along the bar: min at the bottom of a
-	// vertical bar, at the left of a horizontal one.
+	// vertical bar, at the left of a horizontal one. CSS decides the axis, so the
+	// drawn track names it: a vertical bar is taller than it is wide.
 	const track = (event: PointerEvent<HTMLDivElement>) => {
 		const rect = event.currentTarget.getBoundingClientRect()
 
-		const fraction = horizontal
-			? (event.clientX - rect.left) / rect.width
-			: 1 - (event.clientY - rect.top) / rect.height
+		const fraction =
+			rect.width >= rect.height
+				? (event.clientX - rect.left) / rect.width
+				: 1 - (event.clientY - rect.top) / rect.height
 
 		readValue(min + fraction * span)
 	}
@@ -571,7 +615,12 @@ export function RangeLegend({
 		event.preventDefault()
 	}
 
-	const probeOffset = probePercent(probe, domain, orientation)
+	// The thumb and the readout place themselves from this fraction along the
+	// axis the layout draws.
+	const probeStyle =
+		probe === null
+			? undefined
+			: ({ '--range-probe': probeFraction(probe, domain) } as CSSProperties)
 
 	const legend = (
 		<div data-slot={`${slot}-legend`} className="flex flex-col gap-1.5">
@@ -585,18 +634,15 @@ export function RangeLegend({
 			    arrow run from the left or the bottom. The end labels must follow the
 			    bar, so the block is `ltr` in every page. The caption keeps the page
 			    direction. */}
-			<div
-				dir="ltr"
-				className={cn('flex gap-2', horizontal ? 'w-40 flex-col' : 'h-40 items-stretch')}
-			>
+			<div dir="ltr" className={cn('flex gap-2', layout.bar)} style={probeStyle}>
 				<RangeTrack
 					slot={slot}
 					label={label}
 					orientation={orientation}
+					layout={layout}
 					colorRange={colorRange}
 					domain={domain}
 					probe={probe}
-					probeOffset={probeOffset}
 					valueText={binLabel(getBin(probe ?? min))}
 					arrow={arrow}
 					// A touch has no hover, so the press reads the value under the finger.
@@ -628,8 +674,7 @@ export function RangeLegend({
 					domain={domain}
 					format={format}
 					probe={probe}
-					probeOffset={probeOffset}
-					horizontal={horizontal}
+					layout={layout}
 					slot={slot}
 				/>
 			</div>
@@ -639,7 +684,7 @@ export function RangeLegend({
 	if (box === undefined) return legend
 
 	return (
-		<div data-slot={box} className={horizontal ? 'flex justify-center' : 'shrink-0'}>
+		<div data-slot={box} className={layout.box}>
 			{legend}
 		</div>
 	)

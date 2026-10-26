@@ -5,6 +5,7 @@
  * every input arrives resolved, so the rules are testable without a frame.
  */
 
+import type { LegendBandBreakpoint } from '../../../chart/engine/chart-legend/band'
 import type { ChartRangeLegendConfig } from '../../../chart/engine/chart-legend/range'
 import { resolveRangeLegend } from '../../../chart/engine/chart-legend/range'
 import type { RangeOrientation, RangeScale } from '../../../chart/engine/chart-legend/range-legend'
@@ -120,11 +121,12 @@ export type MapLegendRange = RangeScale & {
 	/** Emphasizes a bin's regions (`null` clears); other regions dim while set: the filter. */
 	onFocus: (id: string | null) => void
 	/**
-	 * Which way the bar runs: vertical beside the plot, horizontal above or
-	 * below it. Follows the resolved placement.
-	 * @defaultValue 'vertical'
+	 * The breakpoint from which a side bar stands beside the map: the map
+	 * frame's `@lg`. `undefined` for a top or bottom bar, which lies flat.
 	 */
-	orientation?: RangeOrientation
+	aside: LegendBandBreakpoint | undefined
+	/** The measured axis the bar announces through `aria-orientation`. */
+	orientation: RangeOrientation
 }
 
 /** What the map draws for its legend: whether it shows, where it sits, and the range bar in range mode. @internal */
@@ -140,8 +142,11 @@ type MapLegendPlan = {
  * keeps its own can-show and placement rules. The range bar (numeric mode,
  * `'range'` or the object form) resolves placement, orientation, and visibility
  * through the shared {@link resolveRangeLegend}. That bar sheds at the spark
- * tier. It drops a side placement to a horizontal row in a box too narrow for a
- * rail. The choropleth's bar therefore behaves exactly as the heatmap's does.
+ * tier. A side bar stands beside the map from the map frame's `@lg`, and lies
+ * flat under the map below it, the way the frame stacks a side switchboard.
+ * CSS draws that change, so the server and the first paint draw the final
+ * layout. The choropleth's bar therefore behaves as the heatmap's does, at the
+ * breakpoint of its own frame.
  *
  * @internal
  */
@@ -169,6 +174,8 @@ export function planLegend(
 		typeof legend === 'object' ? legend : undefined,
 		box.width,
 		box.height,
+		'right',
+		'lg',
 	)
 
 	// The direct value checks (not a precomputed boolean) narrow `colorRange` and
@@ -187,6 +194,7 @@ export function planLegend(
 					thresholds: scale.valueThresholds,
 					regionNumbers: scale.regionNumbers,
 					onFocus: scale.onFocus,
+					aside: resolved.aside,
 					orientation: resolved.orientation,
 				}
 			: null

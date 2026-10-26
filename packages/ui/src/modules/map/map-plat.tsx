@@ -1270,10 +1270,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// would hand a backdrop map a stop that answers every key with nothing.
 	const navigable = (readable || pickable || zoomable) && shape.viewWidth > 0
 
-	// The range bar's placement follows the chart's tier, so it reads the
-	// container width, not the plot's, which a side bar shrinks, feeding the move
-	// back on itself. The heatmap places its own bar by the same reading, so the
-	// measure is one hook.
+	// The range bar's visibility follows the chart's tier, and its announced axis
+	// the frame's breakpoint, so it reads the container width, not the plot's,
+	// which a side bar shrinks, feeding the move back on itself. The heatmap
+	// reads its own bar the same way, so the measure is one hook.
 	const { ref: containerRef, width: containerWidth } = useMeasuredWidth(width)
 
 	const rootRef = useComposedRefs(containerRef, ref)

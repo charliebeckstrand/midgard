@@ -98,7 +98,7 @@ describe('ChoroplethChart', () => {
 
 		expect(allBySlot(container, 'map-legend-item')).toHaveLength(0)
 
-		expect(bySlot(container, 'map-range-track')?.getAttribute('style')).toContain('linear-gradient')
+		expect(bySlot(container, 'map-range-track')?.getAttribute('style')).toContain('--range-ramp')
 	})
 
 	it('reports a region click, with its id and feature index', () => {

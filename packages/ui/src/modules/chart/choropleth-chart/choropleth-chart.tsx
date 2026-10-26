@@ -135,8 +135,9 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * below (`'bottom'`), or beside the plot (`'left'` / `'right'`). The range bar
 	 * follows its placement's orientation: vertical beside the plot, horizontal
 	 * above or below. It also follows the chart's tier. It sheds at the spark
-	 * size. In a box too narrow for a side rail it drops to a horizontal row under
-	 * the plot. Defaults to the right for the choropleth.
+	 * size. A side bar goes beside the plot only at a frame width of 32rem
+	 * (`@lg`) or more, as a side switchboard does. Below that width, it lies flat
+	 * in a row under the plot. Defaults to the right for the choropleth.
 	 * @defaultValue 'right'
 	 */
 	legend?: MapLegendInput

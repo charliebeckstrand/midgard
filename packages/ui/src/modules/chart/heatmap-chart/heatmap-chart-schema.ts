@@ -156,8 +156,9 @@ export type HeatmapChartProps<T = never> = AccessibleName &
 		 * row above (`'top'`) or below (`'bottom'`) the plot, or a vertical rail
 		 * beside it (`'left'` / `'right'`). The object form `{ placement }` names the
 		 * same placement explicitly. Following the categorical legend, the bar sheds
-		 * at the spark tier. In a box too narrow for a side rail, it drops to a
-		 * horizontal row under the plot.
+		 * at the spark tier. A side bar goes beside the plot only at a frame width
+		 * of 24rem (`@sm`) or more. Below that width, it lies flat in a row under
+		 * the plot.
 		 * @defaultValue true
 		 */
 		legend?: boolean | ChartLegendPlacement | ChartRangeLegendConfig

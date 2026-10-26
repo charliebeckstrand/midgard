@@ -1,6 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { resolveRangeLegend } from '../../modules/chart/engine/chart-legend/range'
+import {
+	rangeLegendBeside,
+	resolveRangeLegend,
+} from '../../modules/chart/engine/chart-legend/range'
 import { COMPACT_WIDTH, SPARK_HEIGHT, SPARK_WIDTH } from '../../modules/chart/engine/chart-tier'
 
 // A roomy, non-spark, non-narrow box the placement passes through untouched.
@@ -10,28 +13,34 @@ const TALL = 400
 describe('resolveRangeLegend', () => {
 	// A side placement stands vertical, and a stacked one lies horizontal.
 	it.each([
-		['left', 'vertical'],
-		['right', 'vertical'],
-		['top', 'horizontal'],
-		['bottom', 'horizontal'],
-	] as const)('takes the bare placement %s and lays it out %s', (placement, orientation) => {
-		expect(resolveRangeLegend(placement, WIDE, TALL)).toEqual({
-			show: true,
-			placement,
-			orientation,
-		})
-	})
+		['left', 'sm', 'vertical'],
+		['right', 'sm', 'vertical'],
+		['top', undefined, 'horizontal'],
+		['bottom', undefined, 'horizontal'],
+	] as const)(
+		'takes the bare placement %s, aside %s, and lays it out %s',
+		(placement, aside, orientation) => {
+			expect(resolveRangeLegend(placement, WIDE, TALL)).toEqual({
+				show: true,
+				placement,
+				aside,
+				orientation,
+			})
+		},
+	)
 
 	it('defaults to a vertical bar on the right', () => {
 		expect(resolveRangeLegend(undefined, WIDE, TALL)).toEqual({
 			show: true,
 			placement: 'right',
+			aside: 'sm',
 			orientation: 'vertical',
 		})
 
 		expect(resolveRangeLegend(true, WIDE, TALL)).toEqual({
 			show: true,
 			placement: 'right',
+			aside: 'sm',
 			orientation: 'vertical',
 		})
 	})
@@ -65,12 +74,18 @@ describe('resolveRangeLegend', () => {
 		expect(resolveRangeLegend(true, WIDE, SPARK_HEIGHT - 1).show).toBe(false)
 	})
 
-	it('drops a side placement to a horizontal bottom row in a box too narrow for a rail', () => {
-		// Under the compact width but above the spark floor: a side rail can't fit, so
-		// the bar becomes a horizontal row under the plot.
+	it('keeps a side placement in a box too narrow for a rail, and announces it horizontal', () => {
+		// Under the compact width but above the spark floor: the frame's CSS stacks
+		// the bar as a horizontal row under the plot. The placement stays put, so
+		// the layout never waits on the measurement. Only the announced axis reads it.
 		const narrow = resolveRangeLegend('right', COMPACT_WIDTH - 1, TALL)
 
-		expect(narrow).toEqual({ show: true, placement: 'bottom', orientation: 'horizontal' })
+		expect(narrow).toEqual({
+			show: true,
+			placement: 'right',
+			aside: 'sm',
+			orientation: 'horizontal',
+		})
 
 		// A stacked placement is already horizontal and stays where it was asked.
 		expect(resolveRangeLegend('top', COMPACT_WIDTH - 1, TALL)).toMatchObject({
@@ -119,5 +134,31 @@ describe('resolveRangeLegend', () => {
 
 		// An explicit `false` still wins: unmeasured reserves, it doesn't force.
 		expect(resolveRangeLegend(false, 0, 0).show).toBe(false)
+	})
+
+	it('reads the breakpoint of the frame that hosts the bar', () => {
+		// The map frame puts a side legend beside the map from `@lg` (512px).
+		expect(resolveRangeLegend('right', WIDE, TALL, 'right', 'lg')).toEqual({
+			show: true,
+			placement: 'right',
+			aside: 'lg',
+			orientation: 'horizontal',
+		})
+
+		expect(resolveRangeLegend('right', 512, TALL, 'right', 'lg').orientation).toBe('vertical')
+	})
+})
+
+describe('rangeLegendBeside', () => {
+	it('sits a side bar beside the plot from the breakpoint, and while unmeasured', () => {
+		expect(rangeLegendBeside('right', COMPACT_WIDTH)).toBe(true)
+
+		expect(rangeLegendBeside('right', COMPACT_WIDTH - 1)).toBe(false)
+
+		expect(rangeLegendBeside('right', 0)).toBe(true)
+
+		expect(rangeLegendBeside('bottom', WIDE)).toBe(false)
+
+		expect(rangeLegendBeside(undefined, 500, 'right', 'lg')).toBe(false)
 	})
 })

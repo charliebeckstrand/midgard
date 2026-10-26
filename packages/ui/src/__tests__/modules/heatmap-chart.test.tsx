@@ -201,9 +201,9 @@ describe('HeatmapChart', () => {
 
 		expect(bySlot(container, 'chart-plot')?.getAttribute('aria-label')).toBe('Commits per day')
 
-		// The shared range legend paints the colorRange as an inline gradient bar.
+		// The shared range legend paints the colorRange stops as a gradient bar.
 		expect(bySlot(container, 'heatmap-range-track')?.getAttribute('style')).toContain(
-			'linear-gradient',
+			'--range-ramp: #f7fee7, #365314',
 		)
 	})
 
@@ -236,8 +236,11 @@ describe('HeatmapChart', () => {
 
 		expect(track?.getAttribute('aria-orientation')).toBe('vertical')
 
-		// Low at the bottom, high at the top: the gradient runs upward.
-		expect(track?.getAttribute('style')).toContain('linear-gradient(to top')
+		// Low at the bottom, high at the top: from the chart's `@sm`, the gradient
+		// runs upward. Below it, the bar lies flat under the plot.
+		expect(track?.getAttribute('class')).toContain(
+			'@sm:bg-[linear-gradient(to_top,var(--range-ramp))]',
+		)
 	})
 
 	it('lays the scale bar horizontal when placed on the bottom', () => {
@@ -249,8 +252,12 @@ describe('HeatmapChart', () => {
 
 		expect(track?.getAttribute('aria-orientation')).toBe('horizontal')
 
-		// Low at the left, high at the right: the gradient runs rightward.
-		expect(track?.getAttribute('style')).toContain('linear-gradient(to right')
+		// Low at the left, high at the right: the gradient runs rightward at every width.
+		expect(track?.getAttribute('class')).toContain(
+			'bg-[linear-gradient(to_right,var(--range-ramp))]',
+		)
+
+		expect(track?.getAttribute('class')).not.toContain('to_top')
 	})
 
 	it('accepts the { type, placement } object form', () => {
@@ -462,7 +469,10 @@ describe('HeatmapChart', () => {
 		// The arrow's `top` encodes the resolved cell's bin (high value → high on the
 		// bar → small top%), so it reads back which cell the pointer resolved to.
 		const arrowTop = () => {
-			const style = bySlot(container, 'heatmap-range-arrow')?.getAttribute('style') ?? ''
+			const style =
+				container
+					.querySelector('[data-slot="heatmap-range-arrow"][data-orientation="vertical"]')
+					?.getAttribute('style') ?? ''
 
 			return Number(style.match(/top:\s*([\d.]+)%/)?.[1] ?? Number.NaN)
 		}

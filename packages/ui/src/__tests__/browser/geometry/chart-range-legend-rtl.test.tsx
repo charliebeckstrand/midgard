@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { RangeArrow, RangeLegend } from '../../../modules/chart/engine/chart-legend/range-legend'
-import { bySlot, getSlot, present, renderUI } from '../../helpers'
+import { getSlot, present, renderUI } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -36,7 +36,7 @@ describe('range legend in a right-to-left page (real browser)', () => {
 	it('keeps the minimum label at the left end of a horizontal bar', () => {
 		const { container } = renderUI(
 			<div dir="rtl" style={{ width: 320 }}>
-				<RangeLegend {...scale} orientation="horizontal" />
+				<RangeLegend {...scale} />
 			</div>,
 		)
 
@@ -57,12 +57,14 @@ describe('range legend in a right-to-left page (real browser)', () => {
 	})
 
 	it('keeps the labels of a vertical bar clear of its arrow', () => {
+		// A side bar stands vertical once its query container reaches `@sm`.
 		const { container } = renderUI(
-			<div dir="rtl" style={{ width: 320 }}>
+			<div dir="rtl" className="@container" style={{ width: 480 }}>
 				<RangeLegend
 					{...scale}
+					aside="sm"
 					orientation="vertical"
-					arrow={<RangeArrow value={40} domain={scale.domain} orientation="vertical" />}
+					arrow={<RangeArrow value={40} domain={scale.domain} aside="sm" />}
 				/>
 			</div>,
 		)
@@ -71,7 +73,12 @@ describe('range legend in a right-to-left page (real browser)', () => {
 
 		const bar = track.getBoundingClientRect()
 
-		const arrow = present(bySlot(container, 'range-arrow'), 'range-arrow').getBoundingClientRect()
+		expect(bar.height).toBeGreaterThan(bar.width)
+
+		const arrow = present(
+			container.querySelector('[data-slot="range-arrow"][data-orientation="vertical"]'),
+			'range-arrow',
+		).getBoundingClientRect()
 
 		// The arrow hangs off the left edge of the bar, so the labels sit on the right.
 		expect(arrow.right).toBeLessThanOrEqual(bar.left)

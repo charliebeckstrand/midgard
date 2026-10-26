@@ -157,7 +157,9 @@ describe('a touch hold on a chart', () => {
 
 			// A drag along the bar scrubs, and a drag across it scrolls the page.
 			expect(track.className).toMatch(
-				track.getAttribute('aria-orientation') === 'horizontal' ? /touch-pan-y/ : /touch-pan-x/,
+				track.getAttribute('aria-orientation') === 'horizontal'
+					? /touch-pan-y/
+					: /@sm:\[touch-action:pan-x\]/,
 			)
 
 			fireEvent.pointerDown(track, { ...touch, clientX: 120, clientY: 40 })

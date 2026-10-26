@@ -105,8 +105,8 @@ export function MapFrame({
 			>
 				{/* One wrapper in both layouts, so the plot keeps its place in the tree
 				    when the legend moves between a side and a band. A drill-down that
-				    drops a side legend, or a range bar that a narrow box turns into a
-				    row, then keeps the plot mounted, and a plot that holds focus keeps it.
+				    drops a side legend then keeps the plot mounted, and a plot that holds
+				    focus keeps it.
 				    The panel and plot sit side by side once the map's own box reaches
 				    `@lg` (32rem). That leaves the plot at least 19rem beside the 12rem
 				    rail. Below it they stack with the panel always under the map, so a
