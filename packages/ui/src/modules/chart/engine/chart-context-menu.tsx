@@ -191,8 +191,9 @@ function exportCsv(source: ChartReadoutSource): string {
 /**
  * The chart family's right-click menu and fullscreen view. Wraps a chart in a
  * {@link ContextMenu} whose default actions merge with any caller
- * {@link ChartContextMenuConfig}. Those actions are Fullscreen, Download PNG /
- * JPG, and (with a readout) Download CSV / Copy data. Fullscreen opens a large
+ * {@link ChartContextMenuConfig}. Those actions are Fullscreen, then (with a
+ * readout) View data / Copy data, then Download PNG / JPG and (with a readout)
+ * Download CSV. Fullscreen opens a large
  * dialog holding a live, re-mounted copy of the chart, centered at its aspect
  * ratio. Image downloads rasterize the whole chart, legend included, unless
  * `downloadLegend` is off. A touch hold on the chart opens the same menu, as
@@ -328,6 +329,22 @@ export function ChartContextMenu({
 						},
 					]
 				: []),
+			...(readout
+				? [
+						{
+							key: 'view-data',
+							label: intl.formatMessage(chartMessages.viewData),
+							icon: <Table2 />,
+							onAction: () => setDataOpen(true),
+						},
+						{
+							key: 'copy-data',
+							label: intl.formatMessage(chartMessages.copyData),
+							icon: <Clipboard />,
+							onAction: () => copyText(exportCsv(readout)),
+						},
+					]
+				: []),
 			{
 				key: 'download-png',
 				label: intl.formatMessage(chartMessages.downloadPng),
@@ -343,22 +360,10 @@ export function ChartContextMenu({
 			...(readout
 				? [
 						{
-							key: 'view-data',
-							label: intl.formatMessage(chartMessages.viewData),
-							icon: <Table2 />,
-							onAction: () => setDataOpen(true),
-						},
-						{
 							key: 'download-csv',
 							label: intl.formatMessage(chartMessages.downloadCsv),
 							icon: <Download />,
 							onAction: () => downloadCsv(chartFileName(title, 'csv'), exportCsv(readout)),
-						},
-						{
-							key: 'copy-data',
-							label: intl.formatMessage(chartMessages.copyData),
-							icon: <Clipboard />,
-							onAction: () => copyText(exportCsv(readout)),
 						},
 					]
 				: []),
