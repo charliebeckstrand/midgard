@@ -79,6 +79,54 @@ describe('Grid row roving', () => {
 		expect(screen.getByText('Alice').closest('tr')?.className).toContain('ring-inset')
 	})
 
+	it('activates the focused row on Enter in a double-click-only grid', () => {
+		const onRowDoubleClick = vi.fn()
+
+		renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} onRowDoubleClick={onRowDoubleClick} />,
+		)
+
+		const rowEls = bodyRows(screen.getByRole('table'))
+
+		rowEls[1]?.focus()
+
+		fireEvent.keyDown(rowEls[1] as HTMLElement, { key: 'Enter' })
+
+		expect(onRowDoubleClick).toHaveBeenCalledOnce()
+
+		expect(onRowDoubleClick.mock.calls[0]?.[0]).toBe(rows[1])
+	})
+
+	it('leaves a Ctrl, Meta, or Alt chord on a roving row to the browser', () => {
+		const onRowClick = vi.fn()
+
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onRowClick={onRowClick} />)
+
+		const row = bodyRows(screen.getByRole('table'))[0] as HTMLElement
+
+		row.focus()
+
+		for (const modifier of ['ctrlKey', 'metaKey', 'altKey']) {
+			expect(fireEvent.keyDown(row, { key: ' ', [modifier]: true })).toBe(true)
+		}
+
+		expect(onRowClick).not.toHaveBeenCalled()
+	})
+
+	it('marks a row data-clickable for any click or double-click handler', () => {
+		for (const handler of ['onRowClick', 'onCellClick', 'onRowDoubleClick', 'onCellDoubleClick']) {
+			const { unmount } = renderUI(
+				<Grid columns={columns} rows={rows} getKey={getKey} {...{ [handler]: vi.fn() }} />,
+			)
+
+			const rowEls = bodyRows(screen.getByRole('table'))
+
+			expect(rowEls.every((row) => row.hasAttribute('data-clickable'))).toBe(true)
+
+			unmount()
+		}
+	})
+
 	it('does not rove a grid with no click handler', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
@@ -193,6 +241,80 @@ describe('Grid cell roving', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onCellDoubleClick={vi.fn()} />)
 
 		expect(rovingCells(screen.getByRole('table'))).toHaveLength(6)
+	})
+
+	it('fires the double-click pair on Enter in a double-click-only grid', () => {
+		const order: string[] = []
+
+		const onCellDoubleClick = vi.fn((_cell: GridCellClickContext<Row>) => {
+			order.push('cell')
+		})
+
+		const onRowDoubleClick = vi.fn((_row: Row) => {
+			order.push('row')
+		})
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				onCellDoubleClick={onCellDoubleClick}
+				onRowDoubleClick={onRowDoubleClick}
+			/>,
+		)
+
+		const cells = rovingCells(screen.getByRole('table'))
+
+		cells[1]?.focus()
+
+		fireEvent.keyDown(cells[1] as HTMLElement, { key: 'Enter' })
+
+		expect(onCellDoubleClick.mock.calls[0]?.[0]).toMatchObject({ columnId: 'role', rowKey: 1 })
+
+		expect(order).toEqual(['cell', 'row'])
+	})
+
+	it('keeps Enter on the click handler when the grid also has a double-click handler', () => {
+		const onCellClick = vi.fn()
+
+		const onCellDoubleClick = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				onCellClick={onCellClick}
+				onCellDoubleClick={onCellDoubleClick}
+			/>,
+		)
+
+		const cells = rovingCells(screen.getByRole('table'))
+
+		cells[0]?.focus()
+
+		fireEvent.keyDown(cells[0] as HTMLElement, { key: 'Enter' })
+
+		expect(onCellClick).toHaveBeenCalledOnce()
+
+		expect(onCellDoubleClick).not.toHaveBeenCalled()
+	})
+
+	it('leaves a Ctrl, Meta, or Alt chord on a roving cell to the browser', () => {
+		const onCellClick = vi.fn()
+
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onCellClick={onCellClick} />)
+
+		const cell = rovingCells(screen.getByRole('table'))[0] as HTMLElement
+
+		cell.focus()
+
+		for (const modifier of ['ctrlKey', 'metaKey', 'altKey']) {
+			expect(fireEvent.keyDown(cell, { key: 'Enter', [modifier]: true })).toBe(true)
+		}
+
+		expect(onCellClick).not.toHaveBeenCalled()
 	})
 
 	it('stands down under the navigable cursor (which owns the keyboard)', () => {

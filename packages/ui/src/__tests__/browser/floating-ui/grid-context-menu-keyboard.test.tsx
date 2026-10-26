@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { fireEvent, present, renderUI, screen } from '../../helpers'
+import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Keyboard access to the grid's context menu against the real floating engine
@@ -47,11 +48,51 @@ describe('grid context menu keyboard access (real browser)', () => {
 
 		expect(menuItem.closest('[data-floating-ui-portal]')).not.toBeNull()
 
+		// The anchor sits inside the first-column cell. On the cell edge, which is
+		// the edge of the scroll container, floating-ui hid the open menu.
+		await waitFor(() => expect(screen.getByRole('menu')).toBeVisible())
+
 		// Focus moving into the portaled menu must not drop the cursor: the blur guard
 		// keeps the active cell while a grid-opened overlay holds focus, so the menu
 		// closes back onto it.
 		fireEvent.blur(grid, { relatedTarget: menuItem })
 
 		expect(grid).toHaveAttribute('aria-activedescendant', active)
+	})
+
+	// Row roving focuses the row. The menu opens at its first data cell, and a
+	// close puts focus back on the row, so the arrow keys pick up from it.
+	it('opens from a focused roving row and returns focus to the row on close', async () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				onRowClick={() => {}}
+				contextMenu={{ cell: true }}
+			/>,
+		)
+
+		present(screen.getByText('Alice').closest('tr'), 'tr').focus()
+
+		await userEvent.keyboard('{ArrowDown}')
+
+		const row = present(screen.getByText('Bob').closest('tr'), 'tr')
+
+		expect(row).toHaveFocus()
+
+		fireEvent.contextMenu(row)
+
+		await screen.findByRole('menuitem', { name: 'Copy' })
+
+		await waitFor(() => expect(screen.getByRole('menu')).toBeVisible())
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => {
+			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+			expect(row).toHaveFocus()
+		})
 	})
 })

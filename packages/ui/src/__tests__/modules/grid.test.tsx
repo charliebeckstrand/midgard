@@ -531,6 +531,37 @@ describe('Grid', () => {
 			expect(screen.getByRole('button', { name: 'Delete 1' })).toBeInTheDocument()
 		})
 
+		// The batch row unmounts with an empty selection, and the focused action in it.
+		it('moves focus out of the batch row before an action clears the selection', () => {
+			const selectColumns = [{ id: 'select', selectable: true }, ...columns]
+
+			renderUI(
+				<Grid
+					columns={selectColumns}
+					rows={rows}
+					getKey={getKey}
+					selection={{
+						defaultValue: new Set(['Alice']),
+						batchActions: ({ setSelection }) => (
+							<button type="button" onClick={() => setSelection(new Set())}>
+								Clear
+							</button>
+						),
+					}}
+				/>,
+			)
+
+			const clear = screen.getByRole('button', { name: 'Clear' })
+
+			clear.focus()
+
+			fireEvent.click(clear)
+
+			expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument()
+
+			expect(document.activeElement).toBe(screen.getByRole('checkbox', { name: /select all/i }))
+		})
+
 		it('hides the batch action button when no rows are selected', () => {
 			const selectColumns = [{ id: 'select', selectable: true }, ...columns]
 
