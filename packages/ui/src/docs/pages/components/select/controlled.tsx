@@ -24,7 +24,7 @@ export default function Controlled() {
 					))}
 				</Select>
 			</Field>
-			<Text>Value: {code ?? 'Empty'}</Text>
+			<Text>Value: {code ? countryName(code) : 'Empty'}</Text>
 		</>
 	)
 }
