@@ -164,10 +164,16 @@ function readString(node: ESTree.Node): string {
  * The name of the argument of a value of a template: `count` for `count`, the
  * last property for a chain of properties, such as `name` for `row.name`, the
  * name of the list for an item, such as `levels` for `levels[value]`, and the
- * name of the function for a call, such as `miles` for `miles(span)`. Another
- * value has no name.
+ * name of the function for a call, such as `miles` for `miles(span)`. An
+ * optional chain and a non-null assertion give the name of their expression,
+ * such as `name` for `row?.name` and `id` for `order!.id`. Another value has no
+ * name.
  */
 function valueName(node: ESTree.Node): string | undefined {
+	if (node.type === 'ChainExpression' || node.type === 'TSNonNullExpression') {
+		return valueName(node.expression)
+	}
+
 	if (node.type === 'Identifier') return node.name
 
 	if (node.type === 'CallExpression') return valueName(node.callee)

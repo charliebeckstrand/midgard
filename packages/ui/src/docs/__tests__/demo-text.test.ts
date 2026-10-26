@@ -71,6 +71,12 @@ describe('findDemoText', () => {
 		expect(texts(code)).toEqual(['Edit {name}, row {index}', '{count} stops'])
 	})
 
+	it('names a value of an optional chain and of a non-null assertion by its property', () => {
+		const code = `export default () => <p title={\`Edit \${row?.name}\`}>{\`\${order!.id} shipped\`}</p>`
+
+		expect(texts(code)).toEqual(['Edit {name}', '{id} shipped'])
+	})
+
 	it('finds a template with a call, and the text that an arrow function gives', () => {
 		const code = `export default () => (
 			<MapPoints detail={\`\${count} stops\`} clusterDetail={(count, span) => \`\${count} stops, \${miles(span)} across\`} />
@@ -233,6 +239,18 @@ describe('translateDemo', () => {
 		const translated = translateDemo(parse(code), code, FILE, messages)
 
 		expect(translated).toContain(`title={\`Fila \${index}: editar a \${row.name} \\\`{\\\`\`}`)
+
+		expect(() => parse(translated)).not.toThrow()
+	})
+
+	it('writes a template with an optional chain again with the values of the source', () => {
+		const code = `export default () => <p title={\`Edit \${row?.name}\`} />`
+
+		const messages = { [toDemoId('Edit {name}')]: 'Editar a {name}' }
+
+		const translated = translateDemo(parse(code), code, FILE, messages)
+
+		expect(translated).toContain(`title={\`Editar a \${row?.name}\`}`)
 
 		expect(() => parse(translated)).not.toThrow()
 	})
