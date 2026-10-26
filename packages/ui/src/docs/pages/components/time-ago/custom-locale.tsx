@@ -9,14 +9,12 @@ const locales = ['fr-FR', 'it-IT', 'en-US']
 export default function CustomLocale() {
 	const now = useNow()
 
-	if (now === null) return null
-
 	return (
 		<Stack gap="xs">
 			{locales.map((locale) => (
 				<Flex key={locale} gap="sm" align="center">
 					<Code>{locale}</Code>
-					<TimeAgo value={now - 5 * MINUTE} locale={locale} lang={locale} />
+					<TimeAgo className="min-h-lh" value={now - 5 * MINUTE} locale={locale} lang={locale} />
 				</Flex>
 			))}
 		</Stack>
