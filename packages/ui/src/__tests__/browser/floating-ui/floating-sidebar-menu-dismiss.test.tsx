@@ -42,8 +42,10 @@ describe('floating sidebar menu dismissal (real browser)', () => {
 	}
 
 	async function openPeekMenu(sidebar: React.ReactNode) {
+		// The peek is a part of the inline layout, and the suite runs at a phone
+		// width, which gets the drawer layout.
 		const { container } = renderUI(
-			<SidebarLayout sidebar={sidebar}>
+			<SidebarLayout layout="inline" sidebar={sidebar}>
 				<p data-testid="page-body">page body</p>
 			</SidebarLayout>,
 		)
