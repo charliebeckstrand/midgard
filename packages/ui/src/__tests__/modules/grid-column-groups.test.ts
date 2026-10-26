@@ -6,6 +6,7 @@ import {
 	collapsedHiddenIds,
 	groupByColumn,
 	groupedColumnOrder,
+	settleGroupedReorder,
 } from '../../modules/grid/engine/grid-group/compute'
 import type { GridColumnGroup } from '../../modules/grid/grid-group-types'
 
@@ -61,6 +62,115 @@ describe('groupedColumnOrder', () => {
 		const order = ['a', 'b', 'c']
 
 		expect(groupedColumnOrder(order, [], () => true)).toBe(order)
+	})
+})
+
+describe('settleGroupedReorder', () => {
+	const groups: GridColumnGroup[] = [
+		{ id: 'g1', columns: ['a1', 'a2'] },
+		{ id: 'g2', columns: ['b1', 'b2'] },
+	]
+
+	const order = ['a1', 'a2', 'b1', 'b2', 'u1', 'u2']
+
+	/** The order that the grid shows after the drag from `order` to `next`. */
+	const shown = (next: string[], from = order, start = groups) => {
+		const settled = settleGroupedReorder(from, start, from, next)
+
+		return groupedColumnOrder(settled.order, settled.groups, () => true)
+	}
+
+	it('reorders the members of a group when a column lands beside its own group', () => {
+		const settled = settleGroupedReorder(order, groups, order, ['a2', 'a1', 'b1', 'b2', 'u1', 'u2'])
+
+		expect(settled.groups[0]?.columns).toEqual(['a2', 'a1'])
+
+		expect(settled.groups[1]).toBe(groups[1])
+
+		// The last member of a group lands at its front.
+		expect(shown(['a1', 'a2', 'b2', 'b1', 'u1', 'u2'])).toEqual([
+			'a1',
+			'a2',
+			'b2',
+			'b1',
+			'u1',
+			'u2',
+		])
+	})
+
+	it('moves the group block after the group that a forward drag lands in', () => {
+		const settled = settleGroupedReorder(order, groups, order, ['a2', 'b1', 'a1', 'b2', 'u1', 'u2'])
+
+		expect(settled.groups.map((group) => group.id)).toEqual(['g2', 'g1'])
+
+		expect(shown(['a2', 'b1', 'b2', 'a1', 'u1', 'u2'])).toEqual([
+			'b1',
+			'b2',
+			'a1',
+			'a2',
+			'u1',
+			'u2',
+		])
+	})
+
+	it('moves the group block before the group that a back drag lands in', () => {
+		expect(shown(['a1', 'b2', 'a2', 'b1', 'u1', 'u2'])).toEqual([
+			'b1',
+			'b2',
+			'a1',
+			'a2',
+			'u1',
+			'u2',
+		])
+	})
+
+	it('moves a block that lands among the ungrouped columns to the last place of the groups', () => {
+		expect(shown(['a2', 'b1', 'b2', 'u1', 'a1', 'u2'])).toEqual([
+			'b1',
+			'b2',
+			'a1',
+			'a2',
+			'u1',
+			'u2',
+		])
+	})
+
+	it('reorders an ungrouped column among the ungrouped columns only', () => {
+		const settled = settleGroupedReorder(order, groups, order, ['a1', 'a2', 'b1', 'b2', 'u2', 'u1'])
+
+		expect(settled.groups).toBe(groups)
+
+		expect(groupedColumnOrder(settled.order, groups, () => true)).toEqual([
+			'a1',
+			'a2',
+			'b1',
+			'b2',
+			'u2',
+			'u1',
+		])
+
+		// A drop in front of a group takes the first ungrouped slot.
+		expect(shown(['a1', 'u2', 'a2', 'b1', 'b2', 'u1'])).toEqual([
+			'a1',
+			'a2',
+			'b1',
+			'b2',
+			'u2',
+			'u1',
+		])
+	})
+
+	it('holds a member that the drag cannot reach in its slot', () => {
+		// `a2` is hidden, so the drag holds only `a1` and `a3`.
+		const hidden: GridColumnGroup[] = [{ id: 'g1', columns: ['a1', 'a2', 'a3'] }]
+
+		const settled = settleGroupedReorder(['a1', 'a2', 'a3'], hidden, ['a1', 'a3'], ['a3', 'a1'])
+
+		expect(settled.groups[0]?.columns).toEqual(['a3', 'a2', 'a1'])
+	})
+
+	it('changes nothing for an order that the drag left as it was', () => {
+		expect(settleGroupedReorder(order, groups, order, [...order])).toEqual({ groups, order })
 	})
 })
 

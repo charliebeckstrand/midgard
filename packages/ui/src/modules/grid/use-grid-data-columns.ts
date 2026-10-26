@@ -223,6 +223,7 @@ export function useGridDataColumns<T>({
 		columnOrderConfig,
 		columnManagerConfig,
 		groups: group.groups,
+		setGroups: group.setGroups,
 		collapsed: group.collapsed,
 	})
 
