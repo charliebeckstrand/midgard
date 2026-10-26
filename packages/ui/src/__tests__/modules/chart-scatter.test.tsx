@@ -24,9 +24,11 @@ function points(container: HTMLElement): SVGCircleElement[] {
 	return [...container.querySelectorAll<SVGCircleElement>('[data-slot="chart-scatter-point"]')]
 }
 
-/** The `d` of a plain series' single discs path, where every disc is one `M` subfigure. */
+/** The `d` of every disc layer of the plain series, where every disc is one `M` subfigure. */
 function discsPath(container: HTMLElement): string {
-	return bySlot(container, 'chart-scatter-discs')?.getAttribute('d') ?? ''
+	return allBySlot(container, 'chart-scatter-discs')
+		.map((layer) => layer.getAttribute('d') ?? '')
+		.join(' ')
 }
 
 /** How many discs a plain series drew: one `M` command opens each. */

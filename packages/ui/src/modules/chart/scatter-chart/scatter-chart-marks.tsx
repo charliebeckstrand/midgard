@@ -8,7 +8,7 @@ import { k } from '../../../recipes/kata/chart'
 import { rangeKeys } from '../../../utilities'
 import { type ChartPaint, fillClass, rawColor } from '../engine/chart-color/paint'
 import { BUBBLE_FILL_OPACITY, MARKER_RING_WIDTH } from '../engine/chart-constants'
-import { type ScatterMark, scatterDiscsPath } from '../engine/chart-geometry/scatter'
+import { type ScatterMark, scatterDiscLayers } from '../engine/chart-geometry/scatter'
 import { POINT_POP } from '../engine/chart-motion'
 import { seriesGroupClass } from '../engine/chart-series'
 import { useChartMarkEmphasis } from '../engine/context'
@@ -56,22 +56,23 @@ function markProps(paint: ChartPaint, sized: boolean) {
 }
 
 /**
- * The plain-SVG scatter discs. A plain (unsized) series draws as a single
- * `<path>` of every disc, one surface-ringed subfigure per point, instead of a
- * circle element apiece. A ten-thousand-point cloud is therefore one DOM node
- * per series and one paint. The ring still keeps overlapping points severally
- * readable, the way the line charts' dot markers stay legible over bars. A
- * sized (bubble) series keeps a circle per point. Its fill is translucent, so
- * overlaps must composite disc over disc, which one filled path can't do. A
- * bubble field is also the sparse, few-mark case the collapse doesn't pay off on.
+ * The plain-SVG scatter discs. A plain (unsized) series draws as a few
+ * `<path>` layers of surface-ringed subfigures, one per point, instead of a
+ * circle element apiece. A ten-thousand-point cloud is therefore a few DOM nodes
+ * per series, not ten thousand. The layers keep the paint order of separate
+ * circles ({@link scatterDiscLayers}). Where two discs overlap, the later disc
+ * and its ring thus cover the earlier disc, as the animated discs do. A sized
+ * (bubble) series keeps a circle per point. Its fill is translucent, so overlaps
+ * must composite disc over disc, which one filled path can't do. A bubble field
+ * is also the sparse, few-mark case the collapse doesn't pay off on.
  *
  * Isolation stays per-datum without re-drawing a plain cloud. The pointed disc
- * recedes every other, so the whole series path dims. The one lit disc re-draws
- * at full strength over it, as a single overlay circle rather than a rebuild.
- * That reads identically to dimming every sibling. The series paths are memoized
- * on `list`. A pointer crossing only re-runs this component through the emphasis
- * context, never the chart body, so it rebuilds nothing. It swaps a dim class
- * and one overlay disc, not the ten thousand marks under it.
+ * recedes every other, so each layer of the series dims. The one lit disc
+ * re-draws at full strength over it, as a single overlay circle rather than a
+ * rebuild. That reads identically to dimming every sibling. The series layers
+ * are memoized on `list`. A pointer crossing only re-runs this component through
+ * the emphasis context, never the chart body, so it rebuilds nothing. It swaps a
+ * dim class and one overlay disc, not the ten thousand marks under it.
  *
  * @internal
  */
@@ -79,10 +80,10 @@ export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
 	const { mark, lit } = useChartMarkEmphasis()
 
 	// Stable across emphasis changes: the chart body holds `list` steady while
-	// the pointer moves, so a plain series' disc string survives a crossing
+	// the pointer moves, so a plain series' disc layers survive a crossing
 	// untouched; a sized series builds none.
-	const paths = useMemo(
-		() => list.map((series) => (series.sized ? '' : scatterDiscsPath(series.marks))),
+	const layers = useMemo(
+		() => list.map((series) => (series.sized ? [] : scatterDiscLayers(series.marks))),
 		[list],
 	)
 
@@ -117,17 +118,22 @@ export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
 
 		const dimmed = mark !== null && !seriesLit
 
+		const depth = layers[seriesIndex] ?? []
+
 		const spot =
 			mark !== null && mark.series === index && mark.datum !== null ? marks[mark.datum] : undefined
 
 		return (
 			<g key={index} data-slot="chart-scatter-series">
-				<path
-					data-slot="chart-scatter-discs"
-					d={paths[seriesIndex]}
-					{...props}
-					className={cn(props.className, seriesGroupClass(dimmed))}
-				/>
+				{rangeKeys(depth.length, 'layer').map((key, layer) => (
+					<path
+						key={key}
+						data-slot="chart-scatter-discs"
+						d={depth[layer]}
+						{...props}
+						className={cn(props.className, seriesGroupClass(dimmed))}
+					/>
+				))}
 
 				{spot && (
 					<circle data-slot="chart-scatter-point" cx={spot.x} cy={spot.y} r={spot.r} {...props} />
