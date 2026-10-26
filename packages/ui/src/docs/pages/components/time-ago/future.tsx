@@ -6,10 +6,10 @@ export default function Future() {
 	const now = useNow()
 
 	return (
-		<Stack gap="xs">
-			<TimeAgo className="min-h-lh" value={now + 10 * MINUTE} />
-			<TimeAgo className="min-h-lh" value={now + 4 * HOUR} />
-			<TimeAgo className="min-h-lh" value={now + 7 * DAY} />
+		<Stack gap="xs" className="*:min-h-lh">
+			<TimeAgo value={now + 10 * MINUTE} />
+			<TimeAgo value={now + 4 * HOUR} />
+			<TimeAgo value={now + 7 * DAY} />
 		</Stack>
 	)
 }
