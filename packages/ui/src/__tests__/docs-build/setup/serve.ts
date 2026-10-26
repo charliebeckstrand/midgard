@@ -1,4 +1,4 @@
-import { stat } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import type { TestProject } from 'vitest/node'
 import { CLIENT_DIR, serveDocs } from '../../../../scripts/docs-server'
 
@@ -15,11 +15,11 @@ declare module 'vitest' {
  * Vitest calls the function that it returns after the run.
  */
 export async function setup(project: TestProject): Promise<() => Promise<void>> {
-	await stat(CLIENT_DIR).catch(() => {
+	if (!existsSync(CLIENT_DIR)) {
 		throw new Error(
 			`No docs build is at ${CLIENT_DIR}. Run \`pnpm turbo run test:docs-build --filter=ui\`, which builds it first.`,
 		)
-	})
+	}
 
 	const { origin, server } = await serveDocs(0)
 

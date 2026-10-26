@@ -20,7 +20,6 @@ import { fileURLToPath } from 'node:url'
 import { parseAst } from 'vite'
 import { createApiExtractor } from '../src/docs/plugin/api.ts'
 import { demoEntries } from '../src/docs/plugin/demo-text.ts'
-import type { Parser } from '../src/docs/plugin/examples.ts'
 import { fieldEntries } from '../src/docs/plugin/fields.ts'
 import { pageEntries, tabEntries, titleEntries } from '../src/docs/plugin/titles.ts'
 import {
@@ -71,17 +70,15 @@ export const DOCS_CATALOG_SOURCE: CatalogSource = { srcDir: DOCS_DIR, skipped: [
  * name, a title, a tab name, a field, and a demo text have no descriptor.
  */
 export async function extractDocsCatalog(): Promise<Record<string, CatalogEntry>> {
-	const parse: Parser = parseAst
-
 	const extractor = createApiExtractor(join(SRC_DIR, '..'))
 
 	try {
 		const [messages, titles, tabs, fields, demos] = await Promise.all([
 			extractCatalog(DOCS_CATALOG_SOURCE),
-			titleEntries(DOCS_DIR, parse),
-			tabEntries(DOCS_DIR, parse),
-			fieldEntries(DOCS_DIR, parse, (barrel) => extractor.extract(barrel)),
-			demoEntries(DOCS_DIR, parse),
+			titleEntries(DOCS_DIR, parseAst),
+			tabEntries(DOCS_DIR, parseAst),
+			fieldEntries(DOCS_DIR, parseAst, (barrel) => extractor.extract(barrel)),
+			demoEntries(DOCS_DIR, parseAst),
 		])
 
 		return Object.fromEntries(

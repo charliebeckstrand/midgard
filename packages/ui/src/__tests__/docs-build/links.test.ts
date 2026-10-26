@@ -12,11 +12,6 @@ import { CLIENT_DIR, prerenderedPages } from '../../../scripts/docs-server'
 // such as `api-Button` (`docs/kit/anchors.ts`).
 const PROP_ID = /^(api-[^-]+)-./
 
-/** The prerendered page of each path, as the server finds it. */
-const pages = new Map(
-	prerenderedPages().map((route) => [route, path.join(CLIENT_DIR, route, 'index.html')]),
-)
-
 // The `href` of a link, and the `id` of an element, in the markup of a page.
 const HREF = /<a\b[^>]*?\shref="([^"]*)"/g
 
@@ -27,7 +22,13 @@ function parseValues(html: string, pattern: RegExp): string[] {
 	return [...html.matchAll(pattern)].map(([, value = '']) => value.replaceAll('&amp;', '&'))
 }
 
-const markup = new Map([...pages].map(([route, file]) => [route, fs.readFileSync(file, 'utf8')]))
+/** The markup of the prerendered page at each path. */
+const markup = new Map(
+	prerenderedPages().map((route) => [
+		route,
+		fs.readFileSync(path.join(CLIENT_DIR, route, 'index.html'), 'utf8'),
+	]),
+)
 
 /** The ids of the page at each path. */
 const ids = new Map([...markup].map(([route, html]) => [route, new Set(parseValues(html, ID))]))
@@ -53,7 +54,7 @@ function brokenLink(from: string, href: string): string | undefined {
 
 describe('the links of the docs build', () => {
 	it('finds the prerendered pages', () => {
-		expect(pages.size).toBeGreaterThan(100)
+		expect(markup.size).toBeGreaterThan(100)
 	})
 
 	it('sends each link on the site to a page, and each hash to an element', () => {

@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { afterAll, describe, expect, it } from 'vitest'
+import { barrels } from '../../__tests__/helpers/public-barrels.ts'
 import { uiRoot } from '../../__tests__/helpers/walk-source.ts'
 import { isDensityStep } from '../../core/density/steps.ts'
 import { createApiExtractor, type PropApi } from '../plugin/api.ts'
-import { barrels } from './barrels.ts'
 
 // The playground shows what a component renders when a prop is omitted. It
 // reads the `@defaultValue` tag of each prop whose type is a union of

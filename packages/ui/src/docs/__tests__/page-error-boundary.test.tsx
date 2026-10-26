@@ -44,7 +44,6 @@ describe('docs page error boundary', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		const router = renderShell('/broken', {
-			ErrorBoundary: RootErrorBoundary,
 			children: [
 				{
 					Component: Page,
