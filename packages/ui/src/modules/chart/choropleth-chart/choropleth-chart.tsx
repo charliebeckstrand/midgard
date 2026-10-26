@@ -165,9 +165,9 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	title?: string
 	/**
 	 * The right-click context menu. By default the choropleth offers Fullscreen, a
-	 * live interactive copy in a large dialog. It also offers image downloads
-	 * (PNG / JPG, legend included), and View data, Download CSV, and Copy data
-	 * from the `data`. View data shows the values in a table in a dialog.
+	 * live interactive copy in a large dialog. Then it offers View data and Copy
+	 * data from the `data`, and last the downloads: PNG and JPG (legend
+	 * included), and CSV. View data shows the values in a table in a dialog.
 	 * Pass a config to add custom `items`, place them `'before'` or `'after'` the
 	 * defaults, or drop them with `defaultItems: false`. Set
 	 * `downloadLegend: false` to export the map without its legend. `false`

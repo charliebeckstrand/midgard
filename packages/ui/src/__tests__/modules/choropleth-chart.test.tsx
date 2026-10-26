@@ -179,15 +179,14 @@ describe('ChoroplethChart context menu', () => {
 		openMenu(container)
 
 		// Image actions, plus the data actions the input-row readout backs.
-		for (const name of [
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
 			'Fullscreen',
+			'View data',
+			'Copy data',
 			'Download PNG',
 			'Download JPG',
 			'Download CSV',
-			'Copy data',
-		]) {
-			expect(screen.getByRole('menuitem', { name })).toBeInTheDocument()
-		}
+		])
 	})
 
 	it('merges custom items and can hide the defaults', () => {

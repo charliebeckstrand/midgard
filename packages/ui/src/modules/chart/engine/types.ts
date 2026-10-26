@@ -324,9 +324,10 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * The right-click context menu. By default a chart offers three groups:
 	 *
 	 * - Fullscreen, a live interactive copy in a large dialog.
-	 * - Image downloads (PNG / JPG, legend included).
-	 * - View data, Download CSV, and Copy data, where a data readout exists. View
-	 *   data shows the values in a table in a dialog.
+	 * - View data and Copy data, where a data readout exists. View data shows the
+	 *   values in a table in a dialog.
+	 * - Downloads: PNG and JPG (legend included), and CSV where a data readout
+	 *   exists.
 	 *
 	 * A touch screen has no right-click, so there a touch hold on the chart
 	 * opens the same menu. A finger that moves before the hold fires scrolls the
