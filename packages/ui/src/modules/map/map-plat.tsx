@@ -431,8 +431,9 @@ type MapPlatBaseProps = AccessibleName &
 		/**
 		 * Controlled legend emphasis: the legend id whose marks hold while every
 		 * other group dims (what hovering a legend entry sets on its own). Each
-		 * region it holds also takes an outline in the selection ink, so a region
-		 * at the surface end of a sequential ramp reads apart from the dimmed ones.
+		 * region it holds also takes an outline, so a region at the surface end of
+		 * a sequential ramp reads apart from the dimmed ones. On a numeric bin the
+		 * outline is dark on a light fill and white on a dark fill.
 		 *
 		 * Passing it hands that state to the caller, so ONE legend rendered outside
 		 * the plat can emphasize across SEVERAL of them at once. Give each plat

@@ -433,9 +433,21 @@ describe('the range legend probe', () => {
 
 		expect(outlines?.getAttribute('fill')).toBe('none')
 
-		expect(outlines?.getAttribute('class')).toContain('stroke-zinc-900')
+		// The outline parts from the fill, not the surface: the white low stop takes
+		// the dark outline in both modes.
+		for (const path of outlines?.querySelectorAll('path') ?? []) {
+			expect(path.getAttribute('class')).toBe('stroke-zinc-900')
+		}
 
-		expect(outlines?.getAttribute('class')).toContain('dark:stroke-white')
+		// Value 100 sits at the top, in the class of the black high stop, which
+		// takes the white outline in both modes.
+		fireEvent.pointerMove(track, { clientY: 0 })
+
+		const high = bySlot(container, 'map-regions-emphasized')?.querySelectorAll('path')
+
+		expect(high).toHaveLength(1)
+
+		expect(high?.[0]?.getAttribute('class')).toBe('stroke-white')
 
 		fireEvent.pointerLeave(track)
 

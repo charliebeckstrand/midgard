@@ -13,6 +13,7 @@
 import type { CSSProperties } from 'react'
 import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/map'
+import { contrastRatio } from '../../../../utilities/contrast'
 import { REGION_FADE, REGION_STAGGER, REGION_STAGGER_MAX } from '../map-motion'
 import { categoryLegendId, type MapCategoryMeta, paintColor, paintFill } from './category'
 
@@ -78,6 +79,8 @@ type RegionPaint = {
 	fillColor: string | undefined
 	/** The path's classes. */
 	className: string
+	/** The classes of the outline a legend emphasis draws on the region ({@link emphasisOutline}). */
+	outline: string
 }
 
 /** Every category's paint plus the no-data neutral. @internal */
@@ -98,6 +101,27 @@ export type MapRegionLayer = {
 	regionCategory: (number | null)[]
 	/** The paint table {@link MapRegions} resolves once for both layers. */
 	paints: ResolvedRegionPaints
+}
+
+/**
+ * The outline classes for a lit region's fill. A numeric bin's fill is a CSS
+ * color, so the outline takes the pole of greater contrast with it: dark on a
+ * light fill, and light on a dark fill. A class fill (a categorical slot), or a
+ * stop that {@link contrastRatio} cannot parse, takes the selection ink.
+ *
+ * @internal
+ */
+export function emphasisOutline(fillColor: string | undefined): string {
+	const { dark, light, slot } = k.region.emphasized
+
+	if (fillColor === undefined) return cn(...slot)
+
+	try {
+		return contrastRatio(fillColor, 'black') >= contrastRatio(fillColor, 'white') ? dark : light
+	} catch {
+		// A stop passes through verbatim, so a CSS color name can reach here.
+		return cn(...slot)
+	}
 }
 
 /**
@@ -127,9 +151,12 @@ function categoryPaint(
 	// beside the projection rather than inside it.
 	const fillClass = applied === null ? k.region.empty : paintFill(applied)
 
+	const fillColor = applied === null ? undefined : paintColor(applied)
+
 	return {
 		groupId: active ? id : null,
-		fillColor: applied === null ? undefined : paintColor(applied),
+		fillColor,
+		outline: emphasisOutline(fillColor),
 		// The hover emphasis normally marks a region carrying data. On a clickable
 		// layer every region answers a click (a no-data one included), so it reads
 		// as the target it is.
