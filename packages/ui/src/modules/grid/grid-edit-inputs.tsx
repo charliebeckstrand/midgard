@@ -8,7 +8,6 @@ import { NumberInput } from '../../components/number-input'
 import { ariaAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
-import { claimedBySurface } from './engine/grid-edit-keys'
 import type { EditorKind } from './engine/grid-editing-utilities'
 import { gridMessages } from './engine/grid-messages'
 
@@ -54,16 +53,14 @@ export type GridEditInputProps = {
  * handles its keys once on the grid `<table>`'s key surface (see
  * `useGridEditing`'s `sessionKeys`). Every editor therefore inherits them: these
  * inferred inputs, the listbox, and an `editCell` slot. The keys bubble past the
- * editor here. Staging is live, so there is no per-cell commit key. An Escape
- * from an open floating surface, such as the listbox panel, closes that
- * surface and does not revert the cell (see `claimedBySurface`).
+ * editor here. Staging is live, so there is no per-cell commit key.
  *
  * @internal
  */
 const editorKeys =
 	({ cancel, managed }: Pick<GridEditInputProps, 'cancel' | 'managed'>) =>
 	(event: KeyboardEvent<HTMLElement>) => {
-		if (event.key !== 'Escape' || managed || claimedBySurface(event)) return
+		if (event.key !== 'Escape' || managed) return
 
 		event.preventDefault()
 
@@ -169,35 +166,31 @@ function GridBooleanEditInput({
 
 	const value = blank ? null : picked
 
-	// The Listbox props take no key handler and no `invalid`, so the editor wraps
-	// it. The `contents` box hears Escape from the trigger, and the Control
-	// marks the trigger invalid.
+	// The Listbox props take no `invalid`, so a Control marks the trigger invalid.
 	return (
-		// biome-ignore lint/a11y/noStaticElementInteractions: a keydown delegation surface for the listbox trigger, not an interactive control. The trigger keeps the focus and the keyboard model.
-		<div className="contents" onKeyDown={editorKeys({ cancel, managed })}>
-			<Control severity={error != null ? 'error' : undefined}>
-				<Listbox<string>
-					data-slot="grid-edit-boolean-input"
-					aria-label={ariaLabel}
-					aria-required={ariaAttr(required)}
-					aria-describedby={error != null ? errorId : undefined}
-					className={k.edit.input}
-					value={value}
-					onValueChange={(next) => onValueUpdate(next === null ? undefined : next === 'true')}
-					displayValue={(option) => {
-						const label = BOOLEAN_OPTIONS.find((candidate) => candidate.value === option)?.label
+		<Control severity={error != null ? 'error' : undefined}>
+			<Listbox<string>
+				data-slot="grid-edit-boolean-input"
+				aria-label={ariaLabel}
+				aria-required={ariaAttr(required)}
+				aria-describedby={error != null ? errorId : undefined}
+				className={k.edit.input}
+				value={value}
+				onValueChange={(next) => onValueUpdate(next === null ? undefined : next === 'true')}
+				onKeyDown={editorKeys({ cancel, managed })}
+				displayValue={(option) => {
+					const label = BOOLEAN_OPTIONS.find((candidate) => candidate.value === option)?.label
 
-						return label ? intl.formatMessage(label) : ''
-					}}
-				>
-					{BOOLEAN_OPTIONS.map((option) => (
-						<ListboxOption key={option.value} value={option.value}>
-							<ListboxLabel>{intl.formatMessage(option.label)}</ListboxLabel>
-						</ListboxOption>
-					))}
-				</Listbox>
-			</Control>
-		</div>
+					return label ? intl.formatMessage(label) : ''
+				}}
+			>
+				{BOOLEAN_OPTIONS.map((option) => (
+					<ListboxOption key={option.value} value={option.value}>
+						<ListboxLabel>{intl.formatMessage(option.label)}</ListboxLabel>
+					</ListboxOption>
+				))}
+			</Listbox>
+		</Control>
 	)
 }
 

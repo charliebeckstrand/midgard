@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import type { KeyboardEvent, ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Field, Label } from '../../components/fieldset'
@@ -690,6 +690,32 @@ describe('Listbox onBlur', () => {
 		fireEvent.blur(screen.getByRole('combobox'), { relatedTarget: panel })
 
 		expect(onBlur).not.toHaveBeenCalled()
+	})
+})
+
+describe('Listbox onKeyDown', () => {
+	it('fires for a key on the trigger, and a taken key does not open the panel', () => {
+		const onKeyDown = vi.fn((event: KeyboardEvent<HTMLButtonElement>) => {
+			if (event.key === 'ArrowDown') event.preventDefault()
+		})
+
+		renderUI(<Listbox onKeyDown={onKeyDown}>{option}</Listbox>)
+
+		const trigger = screen.getByRole('combobox')
+
+		fireEvent.keyDown(trigger, { key: 'Escape' })
+
+		expect(onKeyDown).toHaveBeenCalledOnce()
+
+		fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+
+		expect(onKeyDown).toHaveBeenCalledTimes(2)
+
+		expect(screen.queryByRole('listbox')).toBeNull()
+
+		fireEvent.keyDown(trigger, { key: 'ArrowUp' })
+
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
 	})
 })
 
