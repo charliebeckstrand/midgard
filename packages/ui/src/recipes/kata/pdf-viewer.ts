@@ -8,7 +8,7 @@
  * - The `viewport`, with its `page` frame, the magnifier `lens`, and the
  *   `highlights` layer with each `region`.
  */
-import { defineKata, mode } from '../../core/recipe'
+import { colors, defineKata, mode } from '../../core/recipe'
 import { dan, hannou, iro, ji, narabi, omote, sen, sou } from '../kiso'
 
 const { cursor } = hannou
@@ -27,9 +27,6 @@ const centered = 'absolute top-1/2 left-1/2 origin-center'
 // its content even as a flex container. A tile with no image yet would then shrink its frame
 // to the width of nothing, and grow when the image lands.
 const tile = [flex.col, 'items-center', 'w-full', dan.gap.scale.sm]
-
-/** The colors of a highlight region. */
-const COLORS = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 /** Translucent per-color wash: the soft fill of a Badge or a Button. */
 const fill = {
@@ -347,8 +344,8 @@ export const k = defineKata({
 									/** The neutral highlight of every other region while one is selected (see the last compound rule). */
 									dimmed: { true: '', false: '' },
 									compound: [
-										...COLORS.map((color) => ({ color, active: false, class: fill[color] })),
-										...COLORS.map((color) => ({ color, active: true, class: activeFill[color] })),
+										...colors.map((color) => ({ color, active: false, class: fill[color] })),
+										...colors.map((color) => ({ color, active: true, class: activeFill[color] })),
 										/**
 										 * Every *other* region, while one is selected: the same highlight in neutral.
 										 *

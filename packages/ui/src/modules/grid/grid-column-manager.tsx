@@ -26,16 +26,13 @@ import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
 import { effectivePinSide, physicalSide, pinMenuChoices } from './engine/grid-pin/overrides'
 import { applyColumnReorder } from './engine/grid-reorder-compute'
-import { pinChoiceIcon } from './grid-context-menu-utilities'
+import { type PinColumn, pinChoiceIcon } from './grid-context-menu-utilities'
 import type { GridPreferences } from './grid-data-types'
 import { GridGroupManager } from './grid-group-manager'
 import type { GridColumnGroup } from './grid-group-types'
 import { GridManagerCheckboxRow } from './grid-manager-checkbox-row'
 import type { GridColumnManagerItem } from './types'
 import { useGridColumnVisibility } from './use-grid-column-visibility'
-
-/** Pins a column to an edge, or unpins it with `false`. @internal */
-type PinChange = (id: string | number, side: 'left' | 'right' | false) => void
 
 /**
  * Whether the manager serves a right-to-left grid. The pin labels and the edge
@@ -158,7 +155,7 @@ export type GridColumnManagerProps = {
 	 * arrow on {@link GridColumnManagerItem.locked} ones. Omit it for a read-only
 	 * view where frozen columns still list in their groups but can't be moved.
 	 */
-	onPinChange?: PinChange
+	onPinChange?: PinColumn
 
 	/**
 	 * Column groups the manager can edit. When paired with `onGroupsChange`, the
@@ -191,7 +188,7 @@ type GridColumnPinControlProps = {
 	item: GridColumnManagerItem
 	/** The column's current frozen edge, or `undefined` when it scrolls. */
 	side: 'left' | 'right' | undefined
-	onPinChange: PinChange
+	onPinChange: PinColumn
 	className?: string
 	/** Dropdown placement: `bottom-start` for the leading (frozen) slot, `bottom-end` for the trailing (scrolling) one. */
 	placement: 'bottom-start' | 'bottom-end'
@@ -251,7 +248,7 @@ function GridColumnPinControl({
  *
  * @internal
  */
-function frozenLeading(item: GridColumnManagerItem, onPinChange: PinChange | undefined): ReactNode {
+function frozenLeading(item: GridColumnManagerItem, onPinChange: PinColumn | undefined): ReactNode {
 	if (item.locked) return <GridColumnLockedEdge side={item.locked} />
 
 	if (onPinChange) {
@@ -297,7 +294,7 @@ function GridColumnLockedEdge({ side }: { side: 'left' | 'right' }) {
 type GridColumnManagerFrozenGroupProps = {
 	items: GridColumnManagerItem[]
 	getKey: (item: GridColumnManagerItem) => string
-	onPinChange: PinChange | undefined
+	onPinChange: PinColumn | undefined
 }
 
 /**
@@ -339,7 +336,7 @@ type GridColumnManagerOrderableListProps = {
 	getKey: (item: GridColumnManagerItem) => string
 	hidden: Set<string | number>
 	onToggle: (id: string | number) => void
-	onPinChange: PinChange | undefined
+	onPinChange: PinColumn | undefined
 	/** Whether rows can be dragged to reorder; off renders a read-only list. */
 	reorderable: boolean
 	onReorder: (items: GridColumnManagerItem[]) => void

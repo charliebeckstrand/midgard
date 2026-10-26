@@ -11,7 +11,7 @@ import { resolveActionable } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
 import type { GridColumn } from './types'
 import { type GridIndexRefs, useGridIndexSync } from './use-grid-data-cursor'
-import type { GridReconcile } from './use-grid-navigation'
+import type { GridNewRowPosition, GridReconcile } from './use-grid-navigation'
 import { useGridRoving } from './use-grid-roving'
 import { useGridSelectionActions, type useGridSelectionState } from './use-grid-selection'
 import type { GridColumnFilter, GridGlobalFilterView } from './use-grid-table'
@@ -71,7 +71,7 @@ export function useGridDataView<T>({
 	paginated: boolean
 	cursorEnabled: boolean
 	/** Where the cursor's new-row slot is, which clamps the cursor when it moves. */
-	cursorNewRow: 'top' | 'bottom' | null
+	cursorNewRow: GridNewRowPosition
 	/** Follows the cursor into the rendered layout, clamps it, and ends a cell range that moved. */
 	reconcile: GridReconcile
 	virtualized: boolean

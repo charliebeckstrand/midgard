@@ -1,6 +1,6 @@
 'use client'
 
-import { useLayoutEffect, useRef, useState } from 'react'
+import { type Dispatch, type SetStateAction, useLayoutEffect, useRef, useState } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { DEFAULT_HSVA } from './color-constants'
 import { clampHsva, pinAlpha, sameColorValue, serializeColor, toHsva } from './color-utilities'
@@ -17,7 +17,7 @@ export type ColorStateOptions = {
 
 export type ColorState = {
 	hsva: Hsva
-	setHsva: (next: Hsva | ((prev: Hsva) => Hsva)) => void
+	setHsva: Dispatch<SetStateAction<Hsva>>
 }
 
 /** Whether two HSVA values are the same in each channel. @internal */
@@ -101,7 +101,7 @@ export function useColorState({
 		setInternal(next)
 	}, [value, hsva, alpha])
 
-	const setHsva = useStableEvent((next: Hsva | ((prev: Hsva) => Hsva)) => {
+	const setHsva = useStableEvent((next: SetStateAction<Hsva>) => {
 		const prev = hsvaRef.current
 		const resolved = typeof next === 'function' ? next(prev) : next
 		const normalized = clampHsva(pinAlpha(resolved, alpha))

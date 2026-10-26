@@ -28,7 +28,7 @@ import { GridScrollRegion } from './grid-region'
 import { GridGrandTotalBody } from './grid-total-row'
 import type { GridColumn } from './types'
 import type { useGridCursor } from './use-grid-cursor'
-import { GridNavContext } from './use-grid-navigation'
+import { GridNavContext, type GridNewRowPosition } from './use-grid-navigation'
 import type { useGridRoving } from './use-grid-roving'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -110,7 +110,7 @@ type GridDataTableProps<T> = {
 	>
 	/** The new-row slot: where it renders, its Add control, and the measure of that control. */
 	newRow: {
-		place: 'top' | 'bottom' | null
+		place: GridNewRowPosition
 		add: ComponentProps<typeof GridNewRow<T>>['add']
 		onMeasureAdd: (width: number) => void
 	}

@@ -26,6 +26,7 @@ import type { GridColumnResizeActions } from './engine/grid-table/resize-view'
 import { GridColumnFilterButton } from './grid-column-filter-button'
 import { GridColumnHeaderLabel, GridPinnedHeaderLabel } from './grid-column-header-label'
 import { GridColumnResizeHandle } from './grid-column-resize-handle'
+import type { PinColumn } from './grid-context-menu-utilities'
 import { GridGroupByButton } from './grid-group-by-button'
 import { GridReorderKitContext, useColumnReorderShift } from './grid-reorder'
 import type { GridColumn } from './types'
@@ -111,7 +112,7 @@ export type GridColumnHeaderProps = {
 	/** Frozen-column controls; a pinned header sticks to its edge. `null` when none. */
 	pinning: GridColumnPinning | null
 	/** Pins/unpins a column; a frozen header's pin button calls it with `false` to unpin. */
-	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
+	pinColumn: PinColumn
 	/** Whether this column is locked (frozen and immutable). Its header shows no unpin button, and the boundary border marks its edge. */
 	locked: boolean
 }

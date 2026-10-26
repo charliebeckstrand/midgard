@@ -26,7 +26,7 @@ import type {
 	GridVirtualize,
 } from './grid-data-types'
 import type { GridColumn, GridSearch } from './types'
-import type { GridNavTableProps } from './use-grid-navigation'
+import type { GridNavTableProps, GridNewRowPosition } from './use-grid-navigation'
 import type {
 	GridColumnFilter,
 	GridColumnResize,
@@ -471,16 +471,16 @@ export function resolveActionable(args: {
  * skeleton or an error. @internal
  */
 export function placeNewRow(
-	position: 'top' | 'bottom' | null,
+	position: GridNewRowPosition,
 	loading: boolean,
 	showingError: boolean,
-): 'top' | 'bottom' | null {
+): GridNewRowPosition {
 	return loading || showingError ? null : position
 }
 
 /** The new-row slot's node when it renders at `where`, else `null`. @internal */
 export function slotAt(
-	place: 'top' | 'bottom' | null,
+	place: GridNewRowPosition,
 	where: 'top' | 'bottom',
 	slot: ReactNode,
 ): ReactNode {
@@ -496,7 +496,7 @@ export function slotAt(
  * @internal
  */
 export function resolveNewRowIndex(args: {
-	position: 'top' | 'bottom' | null
+	position: GridNewRowPosition
 	gridSemantics: boolean
 	/** Whether the body shows data rows. Over the empty state the grid sets no row count. */
 	hasRows: boolean
