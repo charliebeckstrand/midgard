@@ -106,20 +106,20 @@ export const dailyVisits: { date: Date; visits: number }[] = Array.from(
 
 const DAYS = Object.values(dayNames)
 
-const HOURS = ['00', '03', '06', '09', '12', '15', '18', '21'] as const
+const HOURS = [0, 3, 6, 9, 12, 15, 18, 21] as const
 
 const WEIGHT_BY_HOUR: Record<(typeof HOURS)[number], number> = {
-	'00': 1,
-	'03': 0,
-	'06': 2,
-	'09': 9,
-	'12': 6,
-	'15': 8,
-	'18': 4,
-	'21': 2,
+	0: 1,
+	3: 0,
+	6: 2,
+	9: 9,
+	12: 6,
+	15: 8,
+	18: 4,
+	21: 2,
 }
 
-export const activity: { day: string; hour: string; orders: number }[] = DAYS.flatMap(
+export const activity: { day: string; hour: number; orders: number }[] = DAYS.flatMap(
 	(day, dayIndex) => {
 		const weekend = dayIndex >= 5 ? 0.25 : 1
 
