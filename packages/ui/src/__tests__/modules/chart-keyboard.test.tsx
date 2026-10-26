@@ -994,6 +994,32 @@ describe('PieChart and DonutChart keyboard navigation', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
+	// A slice is one stop and a pie has no value axis, so the vertical arrows
+	// walk the slices too: Down goes forward and Up goes back.
+	it('walks a pie chart through its slices with the vertical arrows', () => {
+		const { container } = renderUI(
+			<PieChart aria-label="Share" data={SLICES} series={[...SLICE_SERIES]} width={400} />,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('North')
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('South')
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('East')
+
+		fireEvent.keyDown(plot, { key: 'ArrowUp' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('South')
+	})
+
 	it('makes a donut chart focusable on the same slice anchors', () => {
 		const { container } = renderUI(
 			<DonutChart aria-label="Share" data={SLICES} series={[...SLICE_SERIES]} width={400} />,
