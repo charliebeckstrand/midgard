@@ -159,8 +159,8 @@ export type DashboardTileProps = {
 	 * tile with a `static` layout entry, gives the focus to the board.
 	 *
 	 * On a coarse pointer, a widget with a fullscreen view of its own, such as a
-	 * chart with its menu, hides the expand control, so the tile shows one way to
-	 * go large.
+	 * chart with its menu button, hides the expand control, so the tile shows one
+	 * way to go large.
 	 * @defaultValue false
 	 */
 	expandable?: boolean
@@ -197,8 +197,9 @@ export type DashboardTileProps = {
  *
  * A widget can put its own controls in the header row of the tile, after the
  * actions, through `useHeaderActions` (`ui/primitives/header-actions`). A
- * chart puts its touch menu button there. The slot exists only at rest, and only
- * on a tile with a header row.
+ * chart puts its View data button there, and its touch menu button when it
+ * shows one. The slot exists only at rest, and only on a tile with a header
+ * row.
  *
  * While the tile drags, the whole page shows the grabbing cursor. The hand thus
  * stays closed when the carried tile stops at an edge and the pointer goes on.

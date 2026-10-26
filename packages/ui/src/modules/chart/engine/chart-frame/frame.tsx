@@ -72,8 +72,8 @@ const NONE_HIDDEN: ReadonlySet<number> = new Set()
  *
  * A chart that draws no header puts the touch menu button in the top end
  * corner of the chart root, and the root then anchors it (`rootClass`). That is
- * a chart with `heading` off, or with no title or subtitle. A touch on a chart
- * opens no readout, so the button is the one way to the menu there.
+ * a chart with `heading` off, or with no title or subtitle. The button shows
+ * only with `contextMenu.button`. A touch hold opens the menu either way.
  *
  * @internal
  */
@@ -270,8 +270,8 @@ export type ChartFrameProps = AccessibleName & {
 	/**
 	 * Whether the title and the subtitle draw as a header. Off, the title names
 	 * the context menu alone: it heads the fullscreen view and the export files.
-	 * The touch menu button then sits in the top end corner of the chart. The
-	 * heatmap draws no heading.
+	 * The touch menu button, when it shows, then sits in the top end corner of
+	 * the chart. The heatmap draws no heading.
 	 * @defaultValue true
 	 */
 	heading?: boolean
@@ -679,12 +679,11 @@ export function ChartFrame({
 			ref={rootRefs}
 			data-slot="chart"
 			data-tier={tier}
-			// A touch hold here does not open the context menu.
-			data-touch-readout=""
 			// Capture phase, so the snapshot lands before the menu's own handler opens it: the menu then
 			// renders from a target that stays put however the pointer travels while it is open.
 			onContextMenuCapture={() => setMenuIndex(menuTarget(hoverStore.get(), snap != null))}
 			// A held touch selects no text on the page, a chart with no context menu included.
+			// The hold of the context menu itself starts on the menu surface around the root.
 			onPointerDown={holdTextSelection}
 			className={cn(
 				// A query container so the legend lays out against the chart's own width,

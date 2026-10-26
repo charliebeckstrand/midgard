@@ -27,7 +27,7 @@ import { useIntl } from '../../../primitives/intl/use-intl'
 import { copyText, downloadCsv } from '../../../utilities/export-output'
 import { ChartDataDialog } from './chart-data-dialog'
 import { type ChartImageType, chartFileName, rasterizeImage, readoutToCsv } from './chart-export'
-import { ChartMenuEntriesContext } from './chart-menu-button'
+import { ChartMenuContext } from './chart-menu-button'
 import { chartMenuName, chartMessages } from './chart-messages'
 import { ChartFullscreenContext, useChartFullscreen } from './context'
 import type { ChartReadoutSource } from './types'
@@ -79,6 +79,14 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	 * @defaultValue true
 	 */
 	downloadLegend?: boolean
+	/**
+	 * Shows a menu button where the primary pointer is coarse, such as a phone.
+	 * The button opens the same menu. Off, a touch hold on the chart is the one
+	 * way to the menu on a touch screen. A fine pointer never shows the button,
+	 * and opens the menu on a right-click or a key either way.
+	 * @defaultValue false
+	 */
+	button?: boolean
 	/**
 	 * Fires when the fullscreen dialog opens or closes, whatever drove it: the Fullscreen
 	 * item, the Close button, `Escape`, or an outside press.
@@ -187,7 +195,8 @@ function exportCsv(source: ChartReadoutSource): string {
  * JPG, and (with a readout) Download CSV / Copy data. Fullscreen opens a large
  * dialog holding a live, re-mounted copy of the chart, centered at its aspect
  * ratio. Image downloads rasterize the whole chart, legend included, unless
- * `downloadLegend` is off.
+ * `downloadLegend` is off. A touch hold on the chart opens the same menu, as
+ * {@link ContextMenu} does on any surface.
  *
  * @remarks Image export draws the chart through an SVG `foreignObject`, so its
  * HTML chrome and SVG marks capture together. It inlines computed styles, so
@@ -420,14 +429,19 @@ export function ChartContextMenu({
 	)
 
 	// The same entries the right-click menu shows, for the menu button that a
-	// touch screen shows in place of the right-click.
+	// touch screen can show beside the hold.
 	const defaultItems = config?.defaultItems
 
 	const insert = config?.insert
 
-	const entries = useMemo(
-		() => resolveContextMenuEntries({ items: customItems, defaultItems, insert }, defaults),
-		[customItems, defaultItems, insert, defaults],
+	const button = config?.button ?? false
+
+	const chartMenu = useMemo(
+		() => ({
+			entries: resolveContextMenuEntries({ items: customItems, defaultItems, insert }, defaults),
+			button,
+		}),
+		[customItems, defaultItems, insert, defaults, button],
 	)
 
 	if (contextMenu === false) return <>{children}</>
@@ -446,11 +460,11 @@ export function ChartContextMenu({
 				defaultItems={defaultItems}
 				insert={insert}
 				capped={config?.capped}
-				// The same name as the menu button that a touch screen shows, because
+				// The same name as the menu button that a touch screen can show, because
 				// the two hold the same entries.
 				aria-label={chartMenuName(intl, title ?? label)}
 			>
-				<ChartMenuEntriesContext value={entries}>{children}</ChartMenuEntriesContext>
+				<ChartMenuContext value={chartMenu}>{children}</ChartMenuContext>
 			</ContextMenu>
 
 			{dialog}

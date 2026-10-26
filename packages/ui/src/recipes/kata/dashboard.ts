@@ -78,11 +78,11 @@ const card = {
  * bottom edge as a card header does, so the content keeps a gap below the
  * title.
  *
- * A widget with a fullscreen view of its own, such as a chart with its menu,
- * marks its controls in the row `data-own-fullscreen`. On a coarse pointer, the
- * row then hides the expand control of the tile, so the tile shows one way to
- * go large. The menu button of a chart shows only on a coarse pointer, so on a
- * fine pointer the expand control stays.
+ * A widget with a fullscreen view of its own, such as a chart with its menu
+ * button, marks its controls in the row `data-own-fullscreen`. On a coarse
+ * pointer, the row then hides the expand control of the tile, so the tile shows
+ * one way to go large. The menu button of a chart shows only on a coarse
+ * pointer, so on a fine pointer the expand control stays.
  *
  * An icon-only bare button has a pad around its glyph. The pad adds to the gap
  * of the row, so the gap next to a button looks wider than the gap next to a

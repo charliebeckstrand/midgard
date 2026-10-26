@@ -174,10 +174,11 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * disables the menu, leaving the browser's
 	 * native one.
 	 *
-	 * Where the primary pointer is coarse, a menu button opens the same menu,
-	 * because a touch screen has no right-click. The choropleth draws no header,
-	 * so the button sits in the top end corner of the map. Inside a box that gives
-	 * a header row, such as a dashboard tile, it goes to that row.
+	 * A touch screen has no right-click, so there a touch hold on the map opens
+	 * the same menu. Set `button: true` to also show a menu button where the
+	 * primary pointer is coarse. The choropleth draws no header, so the button
+	 * sits in the top end corner of the map. Inside a box that gives a header
+	 * row, such as a dashboard tile, it goes to that row.
 	 * @see {@link ChartContextMenuConfig}
 	 */
 	contextMenu?: ChartContextMenuConfig | false
@@ -343,8 +344,6 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 		>
 			<div
 				data-slot="choropleth"
-				// A touch hold here reads the map. It does not open the context menu.
-				data-touch-readout=""
 				// No box of its own: the map frame sizes the chart. The element holds
 				// the chart's slot and its right-click capture.
 				className="contents"
@@ -355,7 +354,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 				<MapPlat<T>
 					{...mapProps}
 					ref={mapRefs}
-					// A long press opens the readout, so the whole chart, legend included,
+					// A long press opens the menu, so the whole chart, legend included,
 					// selects no text under a hold, as the chart frame does.
 					// The corner menu button anchors to the map root.
 					className={cn(k.touch.readout, 'relative', className)}

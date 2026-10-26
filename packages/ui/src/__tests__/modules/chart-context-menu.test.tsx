@@ -28,6 +28,9 @@ function openChartMenu(container: HTMLElement): void {
 	fireEvent.contextMenu(getSlot(container, 'chart'))
 }
 
+/** Turns on the touch menu button, which is off by default. */
+const BUTTON = { button: true } as const
+
 /** A box with a header row, as a dashboard tile gives. A widget in the box puts its controls in the slot of the row. */
 function Box({ children }: { children: ReactNode }) {
 	return (
@@ -489,6 +492,7 @@ describe('Chart menu button', () => {
 				title="Revenue"
 				aria-label="Revenue"
 				data={data}
+				contextMenu={BUTTON}
 				series={[...series]}
 				width={400}
 			/>,
@@ -506,7 +510,13 @@ describe('Chart menu button', () => {
 	it('goes to the header actions of the box around the chart', () => {
 		const { container } = renderUI(
 			<Box>
-				<BarChart title="Revenue" aria-label="Revenue" data={data} series={[...series]} />
+				<BarChart
+					title="Revenue"
+					aria-label="Revenue"
+					data={data}
+					contextMenu={BUTTON}
+					series={[...series]}
+				/>
 			</Box>,
 		)
 
@@ -520,7 +530,13 @@ describe('Chart menu button', () => {
 	it('puts a View data button in the header row of a box, and marks its own fullscreen', () => {
 		const { container } = renderUI(
 			<Box>
-				<BarChart title="Revenue" aria-label="Revenue" data={data} series={[...series]} />
+				<BarChart
+					title="Revenue"
+					aria-label="Revenue"
+					data={data}
+					contextMenu={BUTTON}
+					series={[...series]}
+				/>
 			</Box>,
 		)
 
@@ -534,17 +550,70 @@ describe('Chart menu button', () => {
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 	})
 
+	it('shows none by default, on a titled chart, an untitled chart, and in a box', () => {
+		const titled = renderUI(
+			<BarChart title="Revenue" aria-label="Revenue" data={data} series={[...series]} />,
+		)
+
+		expect(bySlot(titled.container, 'chart-menu-button')).toBeNull()
+
+		titled.unmount()
+
+		const untitled = renderUI(<BarChart aria-label="Revenue" data={data} series={[...series]} />)
+
+		expect(bySlot(untitled.container, 'chart-menu-button')).toBeNull()
+
+		untitled.unmount()
+
+		const boxed = renderUI(
+			<Box>
+				<BarChart title="Revenue" aria-label="Revenue" data={data} series={[...series]} />
+			</Box>,
+		)
+
+		expect(bySlot(boxed.container, 'chart-menu-button')).toBeNull()
+	})
+
+	it('keeps the View data button in a box with the menu button off, and leaves the expand control to the box', () => {
+		const { container } = renderUI(
+			<Box>
+				<BarChart title="Revenue" aria-label="Revenue" data={data} series={[...series]} />
+			</Box>,
+		)
+
+		const host = getSlot(container, 'header-actions')
+
+		// No button opens the chart's own Fullscreen in sight, so the box keeps its expand control.
+		expect(getSlot(host, 'chart-header-actions')).not.toHaveAttribute('data-own-fullscreen')
+
+		fireEvent.click(screen.getByRole('button', { name: 'View data for Revenue' }))
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+	})
+
 	it('shows no View data button outside a box', () => {
-		renderUI(<BarChart title="Revenue" aria-label="Revenue" data={data} series={[...series]} />)
+		renderUI(
+			<BarChart
+				title="Revenue"
+				aria-label="Revenue"
+				data={data}
+				contextMenu={BUTTON}
+				series={[...series]}
+			/>,
+		)
 
 		expect(screen.queryByRole('button', { name: 'View data for Revenue' })).toBeNull()
 	})
 
 	it('sits in the corner of an untitled chart, which draws no header', () => {
-		// A touch on a chart opens no readout, so the button is the one way to View
-		// data on a touch screen. A chart with no title still needs it.
 		const { container } = renderUI(
-			<BarChart aria-label="Revenue" data={data} series={[...series]} width={400} />,
+			<BarChart
+				aria-label="Revenue"
+				data={data}
+				contextMenu={BUTTON}
+				series={[...series]}
+				width={400}
+			/>,
 		)
 
 		const button = getSlot(container, 'chart-menu-button')
@@ -600,6 +669,7 @@ describe('Chart menu button on a chart with no header', () => {
 				title="Commits"
 				aria-label="Commits"
 				data={CELLS}
+				contextMenu={BUTTON}
 				series={CELL_SERIES}
 				width={400}
 			/>,
@@ -618,7 +688,13 @@ describe('Chart menu button on a chart with no header', () => {
 	it('goes to the header actions of a box around a heatmap, and not to the corner', () => {
 		const { container } = renderUI(
 			<Box>
-				<HeatmapChart title="Commits" aria-label="Commits" data={CELLS} series={CELL_SERIES} />
+				<HeatmapChart
+					title="Commits"
+					aria-label="Commits"
+					data={CELLS}
+					contextMenu={BUTTON}
+					series={CELL_SERIES}
+				/>
 			</Box>,
 		)
 
@@ -636,6 +712,7 @@ describe('Chart menu button on a chart with no header', () => {
 				aria-label="Population"
 				geography={FIXTURE_GEOJSON}
 				data={REGIONS}
+				contextMenu={BUTTON}
 				series={REGION_SERIES}
 				width={400}
 			/>,
@@ -658,6 +735,7 @@ describe('Chart menu button on a chart with no header', () => {
 					aria-label="Population"
 					geography={FIXTURE_GEOJSON}
 					data={REGIONS}
+					contextMenu={BUTTON}
 					series={REGION_SERIES}
 				/>
 			</Box>,
@@ -668,6 +746,30 @@ describe('Chart menu button on a chart with no header', () => {
 		expect(bySlot(getSlot(container, 'box-content'), 'chart-menu-button')).toBeNull()
 
 		expect(bySlot(host, 'chart-menu-button')).not.toBeNull()
+	})
+
+	it('shows none on a heatmap or a choropleth by default', () => {
+		const { container } = renderUI(
+			<>
+				<HeatmapChart
+					title="Commits"
+					aria-label="Commits"
+					data={CELLS}
+					series={CELL_SERIES}
+					width={400}
+				/>
+				<ChoroplethChart
+					title="Population"
+					aria-label="Population"
+					geography={FIXTURE_GEOJSON}
+					data={REGIONS}
+					series={REGION_SERIES}
+					width={400}
+				/>
+			</>,
+		)
+
+		expect(bySlot(container, 'chart-menu-button')).toBeNull()
 	})
 
 	it('shows none on a choropleth with the menu off', () => {

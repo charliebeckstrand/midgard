@@ -1,12 +1,13 @@
 'use client'
 
 import type { ComponentProps, MouseEvent, ReactNode, Ref, RefObject } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { k as chart } from '../../recipes/kata/chart'
 import { k } from '../../recipes/kata/map'
 import { noop } from '../../utilities'
 import { legendBandRow } from '../chart/engine/chart-legend/band'
 import { legendAside } from '../chart/engine/chart-legend/schema'
+import { useChartMenu } from '../chart/engine/chart-menu-button'
 import { ChartPlotBox } from '../chart/engine/chart-plot-box'
 import { useMapZoomView } from './context'
 import type { MapLegendPlacement } from './engine/types'
@@ -184,6 +185,9 @@ export function MapPlotRegion({
 
 	const surface = zoom?.surface
 
+	// The menu of the choropleth around this map, or `null` for any other map.
+	const chartMenu = useChartMenu()
+
 	// The tap runs first and the zoom surface after it, on the same events. A
 	// touch click never reaches a region or a mark: the double tap already picked.
 	const press = {
@@ -201,8 +205,9 @@ export function MapPlotRegion({
 		<div
 			ref={shapeRef}
 			data-slot="map-plot"
-			// A touch hold here does not open a context menu.
-			data-touch-readout=""
+			// A touch hold here does not open a context menu, except the menu of the
+			// choropleth that draws the map.
+			data-touch-readout={dataAttr(chartMenu === null)}
 			role="img"
 			aria-label={ariaLabel}
 			aria-labelledby={ariaLabelledBy}
