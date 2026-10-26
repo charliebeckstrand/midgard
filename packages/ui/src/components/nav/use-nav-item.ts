@@ -15,6 +15,7 @@ import { useCurrentItem } from '../../primitives/current/current'
 import { type PathMatch, usePathMatch } from '../../primitives/current/current-pathname'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 
 /**
  * Canonical props shared by nav-item-style components ({@link NavItem},
@@ -80,6 +81,8 @@ type NavItemOptions = {
  * scrolls the active item into view. It composes the click handler from the user `onClick`, the selection change, and
  * the offcanvas close. A `preventDefault()` in the user `onClick` cancels the
  * offcanvas close, and does not cancel the selection change (CONVENTIONS §3.9).
+ * A Ctrl, Meta, or Alt click on a link does neither, because the chord is for
+ * the browser.
  *
  * Only the wiring lives here; each consuming component owns its own markup,
  * slot names, classes, and icon sizing.
@@ -126,10 +129,14 @@ export function useNavItem({ current, value, href, match, preventClose, onClick 
 
 	// The selection is the activation of the item, so a consumer
 	// `preventDefault()` does not cancel it. The close is side behavior, so the
-	// cancel stops it (CONVENTIONS §3.9).
+	// cancel stops it (CONVENTIONS §3.9). A Ctrl, Meta, or Alt click on a link is
+	// for the browser, such as a new tab, so this page keeps its selection and its
+	// drawer.
 	const handleClick = composeEventHandlers<MouseEvent<HTMLElement>>(
 		onClick as ((event: MouseEvent<HTMLElement>) => void) | undefined,
 		(event) => {
+			if (href && hasBrowserModifier(event)) return
+
 			if (value !== undefined) item.onValueChange?.(value)
 
 			if (!preventClose && !event.defaultPrevented) offcanvas?.close()

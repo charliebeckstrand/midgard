@@ -1453,6 +1453,40 @@ describe('Toast: keyboard reach', () => {
 		expect(outside).toHaveFocus()
 	})
 
+	// The second F8 comes from the body, so no element had focus before it. The
+	// close does not go back to the control that the first F8 left.
+	it('does not return focus to a stale control after an F8 from the body', () => {
+		renderUI(
+			<ToastProvider>
+				<button type="button">Outside</button>
+				<Fire titles={['First']} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		const outside = screen.getByRole('button', { name: 'Outside' })
+
+		outside.focus()
+
+		fireEvent.keyDown(document.body, { key: 'F8' })
+
+		const undo = screen.getByRole('button', { name: 'Undo First' })
+
+		expect(undo).toHaveFocus()
+
+		undo.blur()
+
+		expect(document.body).toHaveFocus()
+
+		fireEvent.keyDown(document.body, { key: 'F8' })
+
+		expect(undo).toHaveFocus()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+
+		expect(outside).not.toHaveFocus()
+	})
+
 	it('does nothing on F8 when the stack is empty', () => {
 		renderUI(
 			<ToastProvider>

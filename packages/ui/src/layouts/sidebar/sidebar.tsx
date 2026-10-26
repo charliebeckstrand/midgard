@@ -24,6 +24,7 @@ import { useScrollWithin } from '../../hooks'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
+import { useResponsiveValue } from '../../hooks/use-responsive-value'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { OffcanvasContext } from '../../primitives/offcanvas'
@@ -165,7 +166,8 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
  * Its padding and the width of its inline panel follow the nearest density
  * scope. The floating sheet has the width of the panel at each step. The
  * floating sidebar is non-modal, so its peek never steals focus or locks body
- * scroll, but `backdrop` still dims the page behind it.
+ * scroll, but `backdrop` still dims the page behind it. The sheet closes when
+ * the layout at the viewport becomes the drawer.
  *
  * The sidebar sits on the start edge of the reading direction. In a
  * right-to-left page, the panel, the floating sheet, and its hover strip are
@@ -203,6 +205,13 @@ export function SidebarLayout({
 
 		setFloatingOpen(false)
 	}
+
+	// The floating sheet is a part of the inline layout. A touch peek stays open
+	// until a tap outside it, so the sheet also closes when the layout at the
+	// viewport becomes the drawer, as when a tablet turns.
+	const inline = useResponsiveValue(layout, 'drawer') === 'inline'
+
+	if (floatingOpen && !inline) setFloatingOpen(false)
 
 	useKeybindings({ '$mod+KeyB': toggleSidebar }, { ignore: IGNORE_TAKEN_OR_FIELD })
 

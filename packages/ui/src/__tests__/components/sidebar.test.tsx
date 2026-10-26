@@ -658,6 +658,28 @@ describe('SidebarItem', () => {
 		expect(close).toHaveBeenCalledOnce()
 	})
 
+	// A Ctrl or Meta click opens the link in a new tab, so the drawer stays open.
+	it.each([['Ctrl', { ctrlKey: true }] as const, ['Meta', { metaKey: true }] as const])(
+		'keeps an enclosing drawer open on a %s click on an href item',
+		(_name, modifier) => {
+			const close = vi.fn()
+
+			renderUI(
+				<OffcanvasContext value={{ close }}>
+					<Sidebar>
+						<SidebarItem href="#home">
+							<SidebarLabel>Home</SidebarLabel>
+						</SidebarItem>
+					</Sidebar>
+				</OffcanvasContext>,
+			)
+
+			fireEvent.click(screen.getByRole('link', { name: 'Home' }), modifier)
+
+			expect(close).not.toHaveBeenCalled()
+		},
+	)
+
 	it('renders a suffix control beside the button, not inside it', () => {
 		const { container } = renderUI(
 			<Sidebar>
