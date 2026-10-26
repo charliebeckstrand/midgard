@@ -9,6 +9,9 @@
  * - The reference rules rising to their value.
  * - The pie sweeping round.
  *
+ * It also holds the timing of the pie's legend toggle ({@link SLICE_MORPH}),
+ * which moves the slices to their new shares after the first draw.
+ *
  * Both the timing specs and the orientation-aware transform builders live here,
  * so an animated renderer reads a reveal rather than re-deriving one. The
  * shared draw / fade / pop / grow timings read from the ugoki `mark` family.
@@ -102,6 +105,15 @@ export const SLICE_SWEEP = { duration: duration[800], ease: ease.inOut } as cons
 
 /** Label fade-in as the sweep passes its slice. @internal */
 export const SLICE_FADE = { duration: duration[300], ease: ease.out } as const
+
+/**
+ * The pie's legend toggle: each slice turns from its old angles to its new
+ * ones. A hidden slice shrinks to nothing where it stands, and a shown slice
+ * grows from its own place. The labels fade in again when it ends.
+ *
+ * @internal
+ */
+export const SLICE_MORPH = { duration: duration[500], ease: ease.inOut } as const
 
 // Reverse timings for the data-change exit: the outgoing marks running their
 // reveal backwards. Each is quicker than its reveal and carries no delay, so an

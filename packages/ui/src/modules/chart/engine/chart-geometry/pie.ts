@@ -286,11 +286,19 @@ function sliceAngles(values: (number | null)[]): SliceAngle[] {
  * drops into the channel.
  * @internal
  */
-export function pieSlices(
-	values: (number | null)[],
+export function pieSlices(values: (number | null)[], options: PieSlicesOptions): PieSlice[] {
+	return slicesAt(sliceAngles(values), options)
+}
+
+/**
+ * Draws a slice for each angle that sweeps more than nothing: the half of
+ * {@link pieSlices} after the angles, which {@link pieSliceMorph} shares. @internal
+ */
+function slicesAt(
+	all: SliceAngle[],
 	{ cx, cy, radius, innerRadius = 0, pad = 0 }: PieSlicesOptions,
 ): PieSlice[] {
-	const angles = sliceAngles(values)
+	const angles = all.filter((angle) => angle.sweep > 0)
 
 	const positive = angles.length
 
@@ -339,6 +347,66 @@ export function pieSlices(
 			centroid: at(cx, cy, pieCentroidRadius(radius, innerRadius, share), mid),
 		}
 	})
+}
+
+/**
+ * The pie `t` of the way from the slices `from` to the slices `to`: the frames
+ * of the morph that a legend toggle plays. Both sets slice the same rows, and
+ * only the angles move. The geometry in `options` draws every frame.
+ *
+ * @remarks Each row takes its start and its sweep from each set. A row with no
+ * slice in a set takes a zero sweep at the end of the slice before it, which is
+ * where it would sit if it had one. Each set thus tiles the circle in row order,
+ * and the linear blend of two such tilings tiles it too. The slices therefore
+ * stay in contact through the whole morph. A row that leaves shrinks to nothing
+ * where it stands, and a row that comes back grows from its own place. At
+ * `t = 1` a row that left has a zero sweep and draws no slice.
+ * @internal
+ */
+export function pieSliceMorph(
+	from: PieSlice[],
+	to: PieSlice[],
+	t: number,
+	options: PieSlicesOptions,
+): PieSlice[] {
+	const spans = (slices: PieSlice[]) =>
+		new Map(
+			slices.map((slice) => {
+				const sweep = slice.share * 360
+
+				return [slice.index, { start: slice.mid - sweep / 2, sweep }]
+			}),
+		)
+
+	const before = spans(from)
+
+	const after = spans(to)
+
+	const rows = [...new Set([...before.keys(), ...after.keys()])].sort((a, b) => a - b)
+
+	// The end of the last slice so far in each set, where a row with no slice sits.
+	let edgeBefore = 0
+
+	let edgeAfter = 0
+
+	return slicesAt(
+		rows.map((index) => {
+			const a = before.get(index) ?? { start: edgeBefore, sweep: 0 }
+
+			const b = after.get(index) ?? { start: edgeAfter, sweep: 0 }
+
+			edgeBefore = a.start + a.sweep
+
+			edgeAfter = b.start + b.sweep
+
+			const start = a.start + (b.start - a.start) * t
+
+			const sweep = a.sweep + (b.sweep - a.sweep) * t
+
+			return { index, share: sweep / 360, mid: start + sweep / 2, start, sweep }
+		}),
+		options,
+	)
 }
 
 /**

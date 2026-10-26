@@ -1,15 +1,28 @@
 'use client'
 
-import { type MouseEvent, type PointerEvent, useId, useRef } from 'react'
+import { animate } from 'motion'
+import { type MouseEvent, type PointerEvent, useEffect, useId, useRef, useState } from 'react'
 import { cn } from '../../../core'
 import { useHoverAcrossScroll } from '../../../hooks'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { useTouchTap } from '../../../hooks/use-touch-tap'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import type { SlotPaint } from '../engine/chart-color/paint'
-import { TICK_CHAR_WIDTH } from '../engine/chart-constants'
-import { type PieSlice, pieCentroidRadius, segmentLabelFits } from '../engine/chart-geometry/pie'
-import { SLICE_FADE, SLICE_SWEEP, SLICE_UNFADE, SLICE_UNSWEEP } from '../engine/chart-motion'
+import { MARK_GAP, TICK_CHAR_WIDTH } from '../engine/chart-constants'
+import {
+	type PieSlice,
+	type PieSlicesOptions,
+	pieCentroidRadius,
+	pieSliceMorph,
+	segmentLabelFits,
+} from '../engine/chart-geometry/pie'
+import {
+	SLICE_FADE,
+	SLICE_MORPH,
+	SLICE_SWEEP,
+	SLICE_UNFADE,
+	SLICE_UNSWEEP,
+} from '../engine/chart-motion'
 import { textureClass, textureStyle } from '../engine/chart-pattern-defs'
 import { seriesGroupClass } from '../engine/chart-series'
 import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
@@ -51,6 +64,116 @@ export function sweepDelay(mid: number): number {
 	return (mid / 360) * SLICE_SWEEP.duration
 }
 
+/**
+ * The angular layout of a set of slices: the rows that draw a slice, and the
+ * share of each. A legend toggle changes it. A resize does not. @internal
+ */
+export function sliceLayout(slices: PieSlice[]): string {
+	return slices.map((slice) => `${slice.index}:${slice.share}`).join(' ')
+}
+
+/**
+ * Whether a legend toggle has changed the {@link sliceLayout} since mount.
+ * After that, a label fades in when the {@link SLICE_MORPH} ends, not when the
+ * sweep uncovers its slice. @internal
+ */
+export function useSliceReflowed(layout: string): boolean {
+	const [held, setHeld] = useState({ layout, reflowed: false })
+
+	// A set during render replaces this render at once.
+	if (held.layout !== layout) setHeld({ layout, reflowed: true })
+
+	return held.reflowed || held.layout !== layout
+}
+
+/**
+ * When a label fades in: as the sweep uncovers its slice at mount, and as the
+ * morph ends after a legend toggle. @internal
+ */
+export function labelDelay(reflowed: boolean, mid: number): number {
+	return reflowed ? SLICE_MORPH.duration : sweepDelay(mid)
+}
+
+/** One morph in flight: the drawn slices it leaves, its target, and its progress. @internal */
+type SliceMorph = {
+	layout: string
+	/** The slices at the last layout change. */
+	target: PieSlice[]
+	/** The slices on screen when the morph began, or `null` at rest. */
+	from: PieSlice[] | null
+	/** The eased progress, `0..1`. */
+	t: number
+}
+
+/**
+ * The slices to draw. At rest they are `slices`. After a legend toggle they
+ * turn from the slices on screen to `slices` over {@link SLICE_MORPH}. A toggle
+ * in the middle of a morph starts the next one from where the pie is. Each
+ * frame draws through `options`, so a resize during a morph draws at the new
+ * size. Under reduced motion, or with `enabled` off, a toggle snaps.
+ *
+ * @remarks Each frame renders the marks, not the chart. The pie draws few
+ * slices, and the hit wedges and the readout anchors must follow the drawn
+ * slices, so a frame re-renders them rather than writing the paths outside
+ * React.
+ * @internal
+ */
+function useSliceMorph(
+	slices: PieSlice[],
+	options: PieSlicesOptions,
+	enabled: boolean,
+): PieSlice[] {
+	const still = usePrefersReducedMotion()
+
+	const layout = sliceLayout(slices)
+
+	const [morph, setMorph] = useState<SliceMorph>(() => ({
+		layout,
+		target: slices,
+		from: null,
+		t: 1,
+	}))
+
+	const moving = enabled && !still
+
+	// The layout changed since the last render: start a morph from the slices on
+	// screen. A set during render replaces this render at once. A static pie
+	// tracks nothing: a change of `animate` mounts the marks again (see
+	// `ChartGeneration`), so the state starts from the layout of that mount.
+	if (enabled && morph.layout !== layout) {
+		const drawn =
+			morph.from === null ? morph.target : pieSliceMorph(morph.from, morph.target, morph.t, options)
+
+		setMorph({ layout, target: slices, from: moving ? drawn : null, t: moving ? 0 : 1 })
+	}
+
+	const from = morph.from
+
+	useEffect(() => {
+		if (from === null) return
+
+		const settle = (current: SliceMorph) =>
+			current.from === from ? { ...current, from: null, t: 1 } : current
+
+		// Reduced motion turned on during a morph: the pie stands at its target.
+		if (!moving) {
+			setMorph(settle)
+
+			return
+		}
+
+		const controls = animate(0, 1, {
+			...SLICE_MORPH,
+			onUpdate: (t) => setMorph((current) => (current.from === from ? { ...current, t } : current)),
+			onComplete: () => setMorph(settle),
+		})
+
+		return () => controls.stop()
+	}, [from, moving])
+
+	return from === null || !moving ? slices : pieSliceMorph(from, slices, morph.t, options)
+}
+
 /** Shared shape for the static and animated segment-label renderers. @internal */
 type SectorSegmentLabelsProps = {
 	items: SectorSegmentLabel[]
@@ -58,6 +181,8 @@ type SectorSegmentLabelsProps = {
 	animate: boolean
 	/** The held selection, or `null`; unselected labels dim with their slices. */
 	selected?: ReadonlySet<number> | null
+	/** The {@link sliceLayout} of the drawn slices: a change fades the labels in again. */
+	layout?: string
 }
 
 /**
@@ -65,8 +190,9 @@ type SectorSegmentLabelsProps = {
  * the one place ink follows the series color. Each hue's `label` pick is
  * white-first, dropping to near-black only where white can't clear the 3:1
  * graphical floor against that fill (see `kata/chart`). Under `animate` a label
- * fades in as the sweep uncovers its slice. A label dims with its slice under
- * the series emphasis of the frame.
+ * fades in as the sweep uncovers its slice. After a legend toggle the labels
+ * leave, and they fade in at their new places when the slices stop. A label dims
+ * with its slice under the series emphasis of the frame.
  *
  * @internal
  */
@@ -75,11 +201,14 @@ export function SectorSegmentLabels({
 	paints,
 	animate,
 	selected = null,
+	layout = '',
 }: SectorSegmentLabelsProps) {
 	const emphasis = useChartSeriesEmphasis()
 
 	// The server cannot read the preference, so it renders the labels at rest.
 	const still = usePrefersReducedMotion()
+
+	const reflowed = useSliceReflowed(layout)
 
 	return (
 		<g data-slot="chart-segment-labels" pointerEvents="none">
@@ -97,11 +226,13 @@ export function SectorSegmentLabels({
 					<g key={slice.index} className={sliceGroupClass(emphasis, slice.index, selected)}>
 						{animate ? (
 							<m.text
+								// A new layout mounts the label again, so it fades in at its new place.
+								key={layout}
 								{...shared}
 								initial={still ? false : { opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0, transition: SLICE_UNFADE }}
-								transition={{ ...SLICE_FADE, delay: sweepDelay(slice.mid) }}
+								transition={{ ...SLICE_FADE, delay: labelDelay(reflowed, slice.mid) }}
 							>
 								{text}
 							</m.text>
@@ -192,6 +323,8 @@ type SectorChartMarksProps = {
 	center: { x: number; y: number }
 	/** The outer radius the sweep mask must cover. */
 	radius: number
+	/** The hole radius, which the morph of a legend toggle draws each frame with. */
+	innerRadius: number
 	/** The held selection, or `null`; unselected slices dim until an emphasis wins. */
 	selected?: ReadonlySet<number> | null
 	/** Per-slice texture-tile fill URLs, indexed like `paints`; a flat mode leaves the slot empty. */
@@ -229,15 +362,17 @@ type SectorChartMarksProps = {
  * stroke thick enough to cover the whole disc draws itself (`pathLength`
  * 0 → 1). It is the same self-drawing reveal as the line chart. The pie sweeps
  * in along its angular axis the way a line draws along x. The slices themselves
- * stay static, so hover and dimming behave identically mid-reveal.
+ * stay static, so hover and dimming behave identically mid-reveal. A legend
+ * toggle turns the slices to their new angles ({@link useSliceMorph}).
  * @internal
  */
 export function SectorChartMarks({
-	slices,
+	slices: target,
 	paints,
 	animate,
 	center,
 	radius,
+	innerRadius,
 	selected = null,
 	fills,
 	textureActive = false,
@@ -257,6 +392,12 @@ export function SectorChartMarks({
 	const { focusSeries: setSeriesFocus } = useChartActions()
 
 	const sweepId = useId()
+
+	const slices = useSliceMorph(
+		target,
+		{ cx: center.x, cy: center.y, radius, innerRadius, pad: MARK_GAP },
+		animate,
+	)
 
 	// The sweep (`pathLength`) is no transform, so the reduced-motion config of
 	// motion does not skip it. Under reduced motion the mask mounts whole.

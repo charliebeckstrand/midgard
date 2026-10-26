@@ -22,7 +22,7 @@ import type { TextWidth } from '../engine/chart-text-width'
 import { isSparkBox } from '../engine/chart-tier'
 import { useChartSeriesEmphasis } from '../engine/context'
 import { sliceShares } from './sector-chart-frame'
-import { sliceGroupClass, sweepDelay } from './sector-chart-marks'
+import { labelDelay, sliceGroupClass, useSliceReflowed } from './sector-chart-marks'
 
 /** A placed callout with its resolved label text. @internal */
 type CalloutLabel = PieCallout & { text: string }
@@ -234,21 +234,32 @@ type SectorChartCalloutsProps = {
 	animate: boolean
 	/** The held selection, or `null`; unselected callouts dim with their slices. */
 	selected?: ReadonlySet<number> | null
+	/** The `sliceLayout` of the drawn slices: a change fades the callouts in again. */
+	layout?: string
 }
 
 /**
  * The callout labels: a muted leader from each slice out to its name and share,
  * set beside the slice. Plain SVG text on the surface (not on a fill), so it
  * takes the chrome ink and dims with its slice under legend emphasis. Under
- * `animate` each callout fades in as the sweep uncovers its slice.
+ * `animate` each callout fades in as the sweep uncovers its slice. After a
+ * legend toggle the callouts leave, and they fade in at their new places when
+ * the slices stop.
  *
  * @internal
  */
-export function SectorChartCallouts({ items, animate, selected = null }: SectorChartCalloutsProps) {
+export function SectorChartCallouts({
+	items,
+	animate,
+	selected = null,
+	layout = '',
+}: SectorChartCalloutsProps) {
 	const emphasis = useChartSeriesEmphasis()
 
 	// The server cannot read the preference, so it renders the callouts at rest.
 	const still = usePrefersReducedMotion()
+
+	const reflowed = useSliceReflowed(layout)
 
 	return (
 		<g data-slot="chart-callouts" pointerEvents="none">
@@ -280,10 +291,12 @@ export function SectorChartCallouts({ items, animate, selected = null }: SectorC
 					<g key={item.index} className={sliceGroupClass(emphasis, item.index, selected)}>
 						{animate ? (
 							<m.g
+								// A new layout mounts the callout again, so it fades in at its new place.
+								key={layout}
 								initial={still ? false : { opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0, transition: SLICE_UNFADE }}
-								transition={{ ...SLICE_FADE, delay: sweepDelay(item.mid) }}
+								transition={{ ...SLICE_FADE, delay: labelDelay(reflowed, item.mid) }}
 							>
 								{callout}
 							</m.g>
