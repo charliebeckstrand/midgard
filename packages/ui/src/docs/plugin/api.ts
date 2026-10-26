@@ -11,6 +11,7 @@ import type {
 } from 'typescript/unstable/sync'
 import { densitySteps, isDensityStep } from '../../core/density/steps.ts'
 import { BREAKPOINTS, type Breakpoint } from '../../types/responsive.ts'
+import { finiteOrUndefined } from '../../utilities/parse-numeric.ts'
 
 // The API data of the docs comes from the TypeScript 7 API, which is
 // `typescript/unstable/sync`. Its name says that a minor release can change
@@ -767,9 +768,7 @@ function literalOfCode(code: string): Literal | undefined {
 
 /** The number of `text`, such as `2000`, or `undefined` for blank text and for text that is not a finite number. */
 function parseFinite(text: string): number | undefined {
-	const value = Number(text)
-
-	return text.trim() !== '' && Number.isFinite(value) ? value : undefined
+	return text.trim() === '' ? undefined : finiteOrUndefined(Number(text))
 }
 
 /** The `@minimum` and the `@maximum` tags of a prop, each when the prop has it. */

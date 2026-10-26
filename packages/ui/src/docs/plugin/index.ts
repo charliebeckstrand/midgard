@@ -44,9 +44,6 @@ const SEARCH = `${VIRTUAL}search`
 // The module of `localize`, which a page or a tab module imports (`copies.ts`).
 const LOCALIZE = path.resolve(import.meta.dirname, '..', 'kit', 'localize.tsx')
 
-// A TypeScript file outside the tests. `isUiSource` also leaves out the docs.
-const SOURCE = /^(?!.*\/__tests__\/).*\.tsx?$/
-
 /** The resolved id of a virtual module. */
 function virtualId(name: string): string {
 	return `\0${name}`
@@ -131,7 +128,8 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 	const readApi = (barrel: string) => getOrCompute(barrels, barrel, () => extractor.extract(barrel))
 
 	/** Whether `file` is a source file of `ui`: TypeScript, outside the docs and the tests. */
-	const isUiSource = (file: string) => SOURCE.test(file) && !file.startsWith(docs)
+	const isUiSource = (file: string) =>
+		/^(?!.*\/__tests__\/).*\.tsx?$/.test(file) && !file.startsWith(docs)
 
 	// The code of the examples of each folder. The client build and the server
 	// build import the same examples, so each highlight runs once for both.

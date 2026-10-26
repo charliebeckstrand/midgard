@@ -83,3 +83,12 @@ export function findPages(docs: string): Page[] {
 				a.name.localeCompare(b.name, LOCALE),
 		)
 }
+
+/** The `index.tsx` of each page and of each tab in `docs/pages`, as absolute paths. */
+export function findRouteFiles(docs: string): string[] {
+	const pages = path.join(docs, 'pages')
+
+	return findPages(docs)
+		.flatMap(routeFolders)
+		.map((folder) => path.join(pages, folder, 'index.tsx'))
+}

@@ -4,7 +4,7 @@ import { readTranslations } from '../../../scripts/intl-catalog.ts'
 import type { Manifest } from './asset-urls.ts'
 import { DATA_ID, DEMO_ID, demoFolders, translateDemo } from './demo-text.ts'
 import type { Parser, Translate } from './examples.ts'
-import { findPages, routeFolders } from './pages.ts'
+import { findRouteFiles } from './pages.ts'
 
 // The copy of a module of `pages/` or of `data/` in a language, such as
 // `button/index.tsx?lang=es`, has each demo text in that language
@@ -217,8 +217,6 @@ export type Copies = {
  * `localize`.
  */
 export function createCopies(docs: string, kit: string): Copies {
-	const pages = path.join(docs, 'pages')
-
 	const roots = demoFolders(docs)
 
 	// The translated messages of each language, by language. An edit to a
@@ -246,11 +244,7 @@ export function createCopies(docs: string, kit: string): Copies {
 	}
 
 	function englishSource(parse: Parse, code: string, file: string, preloads?: Preloads): string {
-		routeFiles ??= new Set(
-			findPages(docs)
-				.flatMap(routeFolders)
-				.map((folder) => path.join(pages, folder, 'index.tsx')),
-		)
+		routeFiles ??= new Set(findRouteFiles(docs))
 
 		if (!routeFiles.has(file)) return code
 

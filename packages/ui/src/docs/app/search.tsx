@@ -77,9 +77,8 @@ export function DocsSearch({ children }: { children: ReactNode }) {
 }
 
 /**
- * The button that opens the search. The key is in the first paint: the build
- * writes ⌘K, and the client corrects it after the hydration. A pick closes the
- * mobile sidebar, as a pick of an item of the sidebar does.
+ * The button that opens the search, with its key ({@link ShortcutHint}). A pick
+ * closes the mobile sidebar, as a pick of an item of the sidebar does.
  */
 export function SearchButton() {
 	const { request, preload } = useSearch()
