@@ -187,6 +187,16 @@ describe('DatePicker', () => {
 		expect(container.textContent).not.toContain('1/15/2025')
 	})
 
+	it('writes the trigger label in a pinned format over the ambient locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="de-DE">
+				<DatePicker format="YYYY-MM-DD" value={new Date(2025, 0, 15)} />
+			</LocaleProvider>,
+		)
+
+		expect(getSlot(container, 'datepicker-button')).toHaveTextContent('2025-01-15')
+	})
+
 	it('pins the Gregorian calendar in the trigger label, as the grid does', () => {
 		const date = new Date(2025, 0, 15)
 

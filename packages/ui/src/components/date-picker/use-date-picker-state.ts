@@ -8,6 +8,7 @@ import { useLocale } from '../../providers/locale'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
+import { formatDateValue } from '../date-input/date-input-utilities'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
 import { clampDate, formatDate, startOfDay, stepDate } from './date-picker-utilities'
 import {
@@ -43,8 +44,10 @@ export function useDatePickerState({
 	defaultOpen,
 	onOpenChange: onOpenChangeProp,
 	input = false,
+	format,
 }: DatePickerBaseProps & DatePickerSingleProps) {
-	// The trigger label reads the same ambient locale the Calendar beside it does.
+	// Without a `format`, the trigger label reads the same ambient locale as the
+	// Calendar beside it.
 	const ambient = useLocale()
 
 	// `input` mode keeps DOM focus on the DateInput and drives the calendar via
@@ -207,7 +210,12 @@ export function useDatePickerState({
 		setValue,
 		hasValue: value != null,
 		onClear: handleClear,
-		displayValue: value ? formatDate(value, ambient.locale, ambient.dateFormat) : '',
+		// A pinned `format` writes the label as the typed field writes the date.
+		displayValue: !value
+			? ''
+			: format
+				? formatDateValue(value, format)
+				: formatDate(value, ambient.locale, ambient.dateFormat),
 		open,
 		onOpenChange,
 		onTriggerKeyDown,
