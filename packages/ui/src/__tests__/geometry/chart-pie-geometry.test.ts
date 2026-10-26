@@ -573,4 +573,20 @@ describe('pieSliceMorph', () => {
 
 		expect(end[0]?.d).toBe(lone[0]?.d)
 	})
+
+	it('shrinks the last slice to nothing, and grows the first one back, as a wedge', () => {
+		const lone = pieSlices([null, 30, null, null], OPTIONS)
+
+		const leaving = pieSliceMorph(lone, [], 0.5, OPTIONS)
+
+		expect(leaving.map(span)).toEqual([{ index: 1, start: expect.any(Number), sweep: 180 }])
+
+		expect(leaving[0]?.d).not.toBe(lone[0]?.d)
+
+		const coming = pieSliceMorph([], lone, 0.5, OPTIONS)
+
+		expect(coming.map(span)).toEqual([{ index: 1, start: expect.any(Number), sweep: 180 }])
+
+		expect(coming[0]?.d).not.toBe(lone[0]?.d)
+	})
 })

@@ -1,7 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
+import { CELL_WASH_SETTLE } from '../../modules/chart/engine/chart-motion'
 import { ChartFullscreenContext } from '../../modules/chart/engine/context'
+import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import {
 	act,
 	bySlot,
@@ -10,7 +12,9 @@ import {
 	getSlot,
 	liveRegion,
 	renderUI,
+	stubMatchMedia,
 } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 type Row = { day: string; hour: string; commits: number }
 
@@ -586,6 +590,178 @@ describe('HeatmapChart cell clicks', () => {
 		fireEvent.click(hit, { clientX: 130, clientY: 70 })
 
 		expect(onCellClick).toHaveBeenCalledWith({ x: '9', y: 'Mon' }, [0, 0])
+	})
+})
+
+describe('HeatmapChart cell rings', () => {
+	/** The ring of a mark, as the rect attributes it draws at. The halo draws first, under it. */
+	const ring = (container: HTMLElement, slot: string) => {
+		const rect = bySlot(container, slot)?.lastElementChild
+
+		return rect
+			? ['x', 'y', 'width', 'height'].map((name) => Number(rect.getAttribute(name)))
+			: null
+	}
+
+	/** Where a cell's ring draws: its rect, outset by half the stroke. */
+	const expectedRing = (container: HTMLElement, index: number) => {
+		const cell = cellRects(container)[index] as Element
+
+		const [x, y, width, height] = ['x', 'y', 'width', 'height'].map((name) =>
+			Number(cell.getAttribute(name)),
+		) as [number, number, number, number]
+
+		return [x - 1, y - 1, width + 2, height + 2]
+	}
+
+	it('rings the keyboard cell with the tooltip off, the cell that Enter fires', () => {
+		const onCellClick = vi.fn()
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				tooltip={false}
+				onCellClick={onCellClick}
+			/>,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		expect(ring(container, 'heatmap-pointed')).toBeNull()
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(ring(container, 'heatmap-pointed')).toEqual(expectedRing(container, 0))
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(ring(container, 'heatmap-pointed')).toEqual(expectedRing(container, 1))
+
+		fireEvent.keyDown(plot, { key: 'Enter' })
+
+		expect(onCellClick).toHaveBeenCalledWith({ x: '10', y: 'Mon' }, [0, 1])
+
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(ring(container, 'heatmap-pointed')).toBeNull()
+	})
+
+	it('rings the cell under the pointer and keeps every cell at full strength', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		hit.getBoundingClientRect = () => HIT_BOX
+
+		// The top-right cell: Mon at hour 10.
+		fireEvent.pointerMove(hit, { clientX: 330, clientY: 70 })
+
+		expect(ring(container, 'heatmap-pointed')).toEqual(expectedRing(container, 1))
+
+		expect(dimmedCount(container)).toBe(0)
+	})
+
+	it('rings the selected cell and dims no other', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				selectedCell={{ x: '9', y: 'Tue' }}
+			/>,
+		)
+
+		expect(ring(container, 'heatmap-selected')).toEqual(expectedRing(container, 2))
+
+		expect(dimmedCount(container)).toBe(0)
+
+		// The pointed cell that is also the selected cell takes the one ring.
+		fireEvent.keyDown(getSlot(container, 'chart-plot'), { key: 'ArrowDown' })
+
+		fireEvent.keyDown(getSlot(container, 'chart-plot'), { key: 'ArrowDown' })
+
+		expect(ring(container, 'heatmap-pointed')).toBeNull()
+
+		expect(ring(container, 'heatmap-selected')).toEqual(expectedRing(container, 2))
+	})
+
+	it('marks nothing for a pair that names no cell', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				selectedCell={{ x: '11', y: 'Mon' }}
+			/>,
+		)
+
+		expect(bySlot(container, 'heatmap-rings')).toBeNull()
+	})
+})
+
+describe('HeatmapChart animate', () => {
+	/** The transition delay of each cell, in order, or `null` for a cell with no transition. */
+	const delays = (container: HTMLElement) =>
+		cellRects(container).map((rect) =>
+			rect.getAttribute('class')?.includes('transition-[fill,opacity]')
+				? (rect as SVGElement).style.transitionDelay
+				: null,
+		)
+
+	it('takes no transition on a static heatmap', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		expect(delays(container)).toEqual([null, null, null, null])
+	})
+
+	it('washes the colors in column by column, then crossfades a data change at once', async ({
+		clock,
+	}) => {
+		const chart = (rows: Row[]) => (
+			<HeatmapChart aria-label="Commits" data={rows} series={SERIES} width={400} animate />
+		)
+
+		const { container, rerender } = renderUI(chart(ROWS))
+
+		// Row-major: Mon 9, Mon 10, Tue 9, Tue 10. The second column waits a step.
+		const reveal = delays(container)
+
+		expect(reveal[0]).toBe('0ms')
+
+		expect(reveal[1]).not.toBe('0ms')
+
+		expect(reveal[2]).toBe(reveal[0])
+
+		expect(reveal[3]).toBe(reveal[1])
+
+		// The cells carry their colors, and the CSS transition washes them in.
+		expect(cellRects(container)[0]).toHaveAttribute('fill')
+
+		await clock.advance(CELL_WASH_SETTLE * 1000)
+
+		// The stagger retires with the reveal, so a data change waits for no column.
+		rerender(chart([{ day: 'Mon', hour: '9', commits: 9 }, ...ROWS.slice(1)]))
+
+		expect(delays(container)).toEqual(['', '', '', ''])
+	})
+
+	it('plays no wash under reduced motion', () => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} animate />,
+		)
+
+		expect(delays(container)).toEqual(['', '', '', ''])
 	})
 })
 

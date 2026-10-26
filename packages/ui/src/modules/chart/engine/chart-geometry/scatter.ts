@@ -12,7 +12,7 @@
 
 import { parseNumeric } from '../../../../utilities'
 import type { ChartAxisTick } from '../chart-axes/axis'
-import { BUBBLE_MAX_DIAMETER, BUBBLE_MIN_DIAMETER } from '../chart-constants'
+import { BUBBLE_MAX_DIAMETER, BUBBLE_MIN_DIAMETER, MARKER_RING_WIDTH } from '../chart-constants'
 import { coord } from '../chart-coords'
 import { beatsHeldMark } from '../chart-hit-test'
 import { READOUT_GAP } from '../chart-series'
@@ -194,34 +194,222 @@ export function scatterMarks(
 }
 
 /**
- * Every disc of a series concatenated into one path `d`. Each disc is a closed
- * subfigure, two half-arcs around its center. The fill therefore fills every
- * disc and the stroke rings each one, exactly as separate circles did. Marks
- * with a non-positive radius are skipped: a degenerate arc would paint nothing
- * and only lengthen the string.
- *
- * A plain series shares one radius across every disc. The two arc commands read
- * only the radius, not the center, so they are identical for all of them. The
- * builder caches that suffix and rebuilds it only when a radius actually
- * changes. One move-to per disc is left as the sole per-mark formatting. At ten
- * thousand points that is the difference between fifty
- * thousand coordinate roundings and twenty thousand.
+ * The most grid cells {@link scatterDiscLayers} lays along one axis. A large
+ * frame with small discs therefore gets wider cells, not a larger grid.
  *
  * @internal
  */
-export function scatterDiscsPath(marks: ScatterMark[]): string {
-	// Accumulate into one buffer rather than a per-disc parts array joined at the
-	// end: the array is an N-string allocation the concatenation avoids, and the
-	// disc path is the scatter mount's largest string term at ten thousand
-	// points. Byte-identical to the prior `parts.join(' ')`.
-	let d = ''
+const GRID_SPAN = 256
+
+/**
+ * The distance a disc ring reaches out from the disc edge: half the ring width.
+ * The ring paints over any fill in that reach.
+ *
+ * @internal
+ */
+const RING_REACH = MARKER_RING_WIDTH / 2
+
+/**
+ * The uniform grid that {@link scatterDiscLayers} finds touching discs with.
+ * Each cell holds a linked list of its discs in typed arrays, so the grid
+ * allocates no list per cell.
+ *
+ * @internal
+ */
+type DiscGrid = {
+	/** The width and the height of one cell. */
+	cell: number
+	left: number
+	top: number
+	columns: number
+	rows: number
+	/** The first disc of each cell, or -1. */
+	head: Int32Array
+	/** The next disc after each disc in its cell, or -1. */
+	next: Int32Array
+	/** The highest layer in each cell, or -1. */
+	topLayerByCell: Int32Array
+	/** The layer of each disc that the grid holds. */
+	layerByDisc: Int32Array
+}
+
+/**
+ * Builds an empty grid over the discs that draw. Its cells are at least as wide
+ * as the largest reach between two discs. A disc can thus touch only discs in
+ * its own cell and in the eight cells around it. Returns `null` when no disc
+ * draws.
+ *
+ * @internal
+ */
+function buildDiscGrid(marks: ScatterMark[]): DiscGrid | null {
+	let largest = 0
+
+	let left = Number.POSITIVE_INFINITY
+
+	let top = Number.POSITIVE_INFINITY
+
+	let right = Number.NEGATIVE_INFINITY
+
+	let bottom = Number.NEGATIVE_INFINITY
+
+	for (const mark of marks) {
+		if (!drawsMark(mark)) continue
+
+		largest = Math.max(largest, mark.r)
+
+		left = Math.min(left, mark.x)
+
+		right = Math.max(right, mark.x)
+
+		top = Math.min(top, mark.y)
+
+		bottom = Math.max(bottom, mark.y)
+	}
+
+	if (largest <= 0) return null
+
+	// A wider cell only adds checks, so the cap on the cell count is safe.
+	const cell = Math.max(
+		2 * largest + RING_REACH,
+		(right - left) / GRID_SPAN,
+		(bottom - top) / GRID_SPAN,
+	)
+
+	const columns = Math.floor((right - left) / cell) + 1
+
+	const rows = Math.floor((bottom - top) / cell) + 1
+
+	return {
+		cell,
+		left,
+		top,
+		columns,
+		rows,
+		head: new Int32Array(columns * rows).fill(-1),
+		next: new Int32Array(marks.length).fill(-1),
+		topLayerByCell: new Int32Array(columns * rows).fill(-1),
+		layerByDisc: new Int32Array(marks.length),
+	}
+}
+
+/** Whether a mark draws a disc: a non-positive radius draws nothing. @internal */
+function drawsMark(mark: ScatterMark): boolean {
+	return mark.r > 0
+}
+
+/**
+ * Finds the layer for one disc in one cell. That layer is one above the highest
+ * disc in the cell that the disc touches. It is `floor` when no such disc is
+ * above `floor`.
+ *
+ * @internal
+ */
+function findCellLayer(
+	grid: DiscGrid,
+	marks: ScatterMark[],
+	mark: ScatterMark,
+	cell: number,
+	floor: number,
+): number {
+	let layer = floor
+
+	for (let other = grid.head[cell] as number; other !== -1; other = grid.next[other] as number) {
+		const above = (grid.layerByDisc[other] as number) + 1
+
+		const earlier = marks[other] as ScatterMark
+
+		const reach = mark.r + earlier.r + RING_REACH
+
+		const offsetX = mark.x - earlier.x
+
+		const offsetY = mark.y - earlier.y
+
+		if (above > layer && offsetX * offsetX + offsetY * offsetY < reach * reach) layer = above
+	}
+
+	return layer
+}
+
+/**
+ * Puts one disc in the grid on the lowest layer above every earlier disc that
+ * it touches, and returns that layer. A cell with no disc above the layer found
+ * so far cannot lift the disc, so the scan skips it.
+ *
+ * @internal
+ */
+function placeDisc(grid: DiscGrid, marks: ScatterMark[], index: number): number {
+	const mark = marks[index] as ScatterMark
+
+	const column = Math.floor((mark.x - grid.left) / grid.cell)
+
+	const row = Math.floor((mark.y - grid.top) / grid.cell)
+
+	let layer = 0
+
+	for (let near = Math.max(row - 1, 0); near <= Math.min(row + 1, grid.rows - 1); near++) {
+		const last = Math.min(column + 1, grid.columns - 1)
+
+		for (let across = Math.max(column - 1, 0); across <= last; across++) {
+			const cell = near * grid.columns + across
+
+			if ((grid.topLayerByCell[cell] as number) >= layer) {
+				layer = findCellLayer(grid, marks, mark, cell, layer)
+			}
+		}
+	}
+
+	const own = row * grid.columns + column
+
+	grid.layerByDisc[index] = layer
+
+	grid.next[index] = grid.head[own] as number
+
+	grid.head[own] = index
+
+	grid.topLayerByCell[own] = Math.max(grid.topLayerByCell[own] as number, layer)
+
+	return layer
+}
+
+/**
+ * A series' discs as paint layers, each layer one path `d`. Each disc is a
+ * closed subfigure, two half-arcs around its center, and the stroke rings each
+ * one, as separate circles do. Marks with a non-positive radius are skipped: a
+ * degenerate arc paints nothing and only makes the string longer.
+ *
+ * One path paints all of its fills before all of its rings. Thus, where two
+ * discs of one path overlap, the ring of each disc cuts through the other disc.
+ * A disc therefore goes on the layer above the highest layer that holds an
+ * earlier disc it touches. Discs in one layer never touch, so the fill-then-ring
+ * order of a path cannot show. Layer order keeps the data order of each touching
+ * pair. A later disc and its ring thus paint over an earlier disc, as separate
+ * circles do. A sparse series is one layer. A dense cloud is a small number of
+ * layers, not one node per disc.
+ *
+ * A plain series shares one radius across every disc. The two arc commands read
+ * only the radius, not the center, so they are identical for all of them. The
+ * builder caches that suffix and rebuilds it only when a radius changes. One
+ * move-to per disc is left as the sole per-mark formatting.
+ *
+ * @internal
+ */
+export function scatterDiscLayers(marks: ScatterMark[]): string[] {
+	const grid = buildDiscGrid(marks)
+
+	if (!grid) return []
+
+	const layers: string[] = []
 
 	let cachedR = Number.NaN
 
 	let arc = ''
 
-	for (const mark of marks) {
-		if (mark.r <= 0) continue
+	for (let index = 0; index < marks.length; index++) {
+		const mark = marks[index] as ScatterMark
+
+		if (!drawsMark(mark)) continue
+
+		const layer = placeDisc(grid, marks, index)
 
 		if (mark.r !== cachedR) {
 			cachedR = mark.r
@@ -231,12 +419,16 @@ export function scatterDiscsPath(marks: ScatterMark[]): string {
 			arc = `a ${r} ${r} 0 1 0 ${coord(mark.r * 2)} 0 a ${r} ${r} 0 1 0 ${coord(-mark.r * 2)} 0 Z`
 		}
 
-		if (d !== '') d += ' '
+		const disc = `M ${coord(mark.x - mark.r)} ${coord(mark.y)} ${arc}`
 
-		d += `M ${coord(mark.x - mark.r)} ${coord(mark.y)} ${arc}`
+		// Accumulate into one buffer per layer, not a per-disc parts array joined
+		// at the end: the array is an N-string allocation the concatenation avoids.
+		const d = layers[layer]
+
+		layers[layer] = d === undefined ? disc : `${d} ${disc}`
 	}
 
-	return d
+	return layers
 }
 
 /** One snapped column stop: its value-axis screen position and the point behind it. @internal */

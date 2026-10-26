@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ChoroplethChart } from '../../modules/chart'
+import { binEmphasisId } from '../../modules/map'
 import { LocaleProvider } from '../../providers/locale'
 import { formatFraction } from '../../utilities'
 import { allBySlot, allRegions, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
@@ -121,6 +122,47 @@ describe('ChoroplethChart', () => {
 		expect(onRegionClick).toHaveBeenCalledWith('B', 1)
 	})
 
+	it('rings the selected region, the pick that a click reports', () => {
+		const { container } = renderUI(
+			<ChoroplethChart
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				data={ROWS}
+				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
+				width={400}
+				selectedRegion="B"
+			/>,
+		)
+
+		const [, beta] = allRegions(container)
+
+		expect(getSlot(container, 'map-region-selected').getAttribute('d')).toBe(
+			beta?.getAttribute('d'),
+		)
+	})
+
+	it('reports the bins that its legend switches off', () => {
+		const onHiddenChange = vi.fn()
+
+		const { container } = renderUI(
+			<ChoroplethChart
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				data={ROWS}
+				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
+				width={400}
+				onHiddenChange={onHiddenChange}
+			/>,
+		)
+
+		// The legend lists the bins high to low, so its first entry is the top bin.
+		const [top] = allBySlot(container, 'map-legend-item')
+
+		fireEvent.click(top as Element)
+
+		expect(onHiddenChange).toHaveBeenLastCalledWith(new Set([binEmphasisId(RANGE.length - 1)]))
+	})
+
 	it('draws the data-less map with no series', () => {
 		const { container } = renderUI(
 			<ChoroplethChart
@@ -179,15 +221,14 @@ describe('ChoroplethChart context menu', () => {
 		openMenu(container)
 
 		// Image actions, plus the data actions the input-row readout backs.
-		for (const name of [
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
 			'Fullscreen',
+			'View data',
+			'Copy data',
 			'Download PNG',
 			'Download JPG',
 			'Download CSV',
-			'Copy data',
-		]) {
-			expect(screen.getByRole('menuitem', { name })).toBeInTheDocument()
-		}
+		])
 	})
 
 	it('merges custom items and can hide the defaults', () => {

@@ -148,10 +148,30 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	/**
 	 * Fires when a click lands on a region, with the region's id and its feature
 	 * index. The cross-filter hook the cartesian charts' `onCategoryClick` is,
-	 * and the same {@link ChartItemClick} shape. It also points the cursor over
-	 * the regions, so they read as clickable.
+	 * and the same {@link ChartItemClick} shape. Pair it with `selectedRegion` to
+	 * hold a selection. It also points the cursor over the regions, so they read
+	 * as clickable. On the keyboard, Enter and Space pick the region under the
+	 * arrow cursor. A touch picks with a double tap, because one tap on a map
+	 * picks nothing (see {@link MapPlatProps.onRegionClick}).
 	 */
 	onRegionClick?: ChartItemClick
+	/**
+	 * The selected region, by the id that `onRegionClick` reports. The region
+	 * takes a ring in the selection ink, and the rest of the map keeps its
+	 * colors. The chart holds no selection state of its own, so the click, a
+	 * control beside the map, or a route parameter can own the value. An id that
+	 * names no region draws no ring, and `null` (or no value) selects nothing.
+	 * See {@link MapPlatProps.selectedRegion}.
+	 */
+	selectedRegion?: string | null
+	/**
+	 * Fires when the legend switches a bin on or off, with the set of legend ids
+	 * that it has switched off: the id of each bin, as `binEmphasisId` names it.
+	 * Observation only, as the other charts' `onHiddenChange` is: the legend owns
+	 * the set. The range legend has no switches and never fires it. See
+	 * {@link MapPlatProps.onHiddenChange}.
+	 */
+	onHiddenChange?: (hidden: ReadonlySet<string>) => void
 	/**
 	 * Animates the scale in on mount: the neutral geography paints at once, then
 	 * the color washes in region by region.
@@ -165,9 +185,9 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	title?: string
 	/**
 	 * The right-click context menu. By default the choropleth offers Fullscreen, a
-	 * live interactive copy in a large dialog. It also offers image downloads
-	 * (PNG / JPG, legend included), and View data, Download CSV, and Copy data
-	 * from the `data`. View data shows the values in a table in a dialog.
+	 * live interactive copy in a large dialog. Then it offers View data and Copy
+	 * data from the `data`, and last the downloads: PNG and JPG (legend
+	 * included), and CSV. View data shows the values in a table in a dialog.
 	 * Pass a config to add custom `items`, place them `'before'` or `'after'` the
 	 * defaults, or drop them with `defaultItems: false`. Set
 	 * `downloadLegend: false` to export the map without its legend. `false`

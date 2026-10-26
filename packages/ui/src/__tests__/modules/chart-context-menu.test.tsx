@@ -43,7 +43,7 @@ function Box({ children }: { children: ReactNode }) {
 }
 
 describe('Chart context menu', () => {
-	it('offers the default actions on a right-click', () => {
+	it('offers the default actions on a right-click, grouped as view, data, then downloads', () => {
 		const { container } = renderUI(
 			<BarChart aria-label="Revenue by quarter" data={data} series={[...series]} />,
 		)
@@ -52,16 +52,14 @@ describe('Chart context menu', () => {
 
 		openChartMenu(container)
 
-		for (const name of [
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
 			'Fullscreen',
+			'View data',
+			'Copy data',
 			'Download PNG',
 			'Download JPG',
-			'View data',
 			'Download CSV',
-			'Copy data',
-		]) {
-			expect(screen.getByRole('menuitem', { name })).toBeInTheDocument()
-		}
+		])
 
 		// Copy image is not a default action.
 		expect(screen.queryByRole('menuitem', { name: 'Copy image' })).not.toBeInTheDocument()

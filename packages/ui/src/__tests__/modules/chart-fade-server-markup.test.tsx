@@ -2,6 +2,7 @@
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
+import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 
@@ -115,5 +116,30 @@ describe('animated chart server markup', () => {
 		expect(found.length).toBeGreaterThan(0)
 
 		expect(found.filter((markup) => AT_INITIAL.test(markup))).toEqual([])
+	})
+
+	it('renders the heatmap colors at rest, not the neutral that a wash starts from', () => {
+		const markup = renderToString(
+			<HeatmapChart
+				aria-label="Commits"
+				data={[
+					{ day: 'Mon', hour: '9', commits: 1 },
+					{ day: 'Mon', hour: '10', commits: 9 },
+				]}
+				series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#fff', '#000'] }]}
+				{...BOX}
+			/>,
+		)
+
+		const grid = markup.match(/data-slot="heatmap-cells">(.*?)<\/g>/)?.[1] ?? ''
+
+		const cells = tags(grid, /<rect[^>]*>/g)
+
+		// The count is live, so the check below can fail.
+		expect(cells).toHaveLength(2)
+
+		expect(cells.filter((rect) => !/ fill="/.test(rect) || rect.includes('fill-zinc-100'))).toEqual(
+			[],
+		)
 	})
 })
