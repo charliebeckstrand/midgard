@@ -1,6 +1,14 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { cellAt, heatmapCells } from '../../modules/chart/engine/chart-geometry/heatmap'
+import { MARK_GAP } from '../../modules/chart/engine/chart-constants'
+import {
+	CELL_RING_WIDTH,
+	cellAt,
+	cellIndex,
+	cellRing,
+	type HeatmapCell,
+	heatmapCells,
+} from '../../modules/chart/engine/chart-geometry/heatmap'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
 
 /**
@@ -64,5 +72,71 @@ describe('cellAt', () => {
 		expect(cellAt(150, 250, X, Y, 3, 2)).toBeNull()
 
 		expect(cellAt(150, 50, X, Y, 0, 2)).toBeNull()
+	})
+})
+
+describe('cellRing', () => {
+	const cell: HeatmapCell = {
+		x: 10,
+		y: 20,
+		width: 40,
+		height: 30,
+		radius: 2,
+		row: 0,
+		col: 0,
+		value: 1,
+		key: '0:0',
+	}
+
+	it('moves the ring out of the cell and the halo onto it, each by half the stroke', () => {
+		const half = CELL_RING_WIDTH / 2
+
+		expect(cellRing(cell, 'outer')).toEqual({
+			x: 10 - half,
+			y: 20 - half,
+			width: 40 + CELL_RING_WIDTH,
+			height: 30 + CELL_RING_WIDTH,
+			radius: 2 + half,
+		})
+
+		expect(cellRing(cell, 'inner')).toEqual({
+			x: 10 + half,
+			y: 20 + half,
+			width: 40 - CELL_RING_WIDTH,
+			height: 30 - CELL_RING_WIDTH,
+			radius: 2 - half,
+		})
+	})
+
+	it('keeps the ring inside the half of the gap that the cell owns', () => {
+		expect(CELL_RING_WIDTH).toBe(MARK_GAP / 2)
+	})
+
+	it('takes a halo of zero size on a cell too small for it', () => {
+		const halo = cellRing({ ...cell, width: 1, height: 1, radius: 0.5 }, 'inner')
+
+		expect([halo.width, halo.height, halo.radius]).toEqual([0, 0, 0])
+	})
+})
+
+describe('cellIndex', () => {
+	const columns = ['9', '10', '11']
+
+	const rows = ['Mon', 'Tue']
+
+	it('finds the row-major index of a pair of band labels', () => {
+		expect(cellIndex(columns, rows, { x: '9', y: 'Mon' })).toBe(0)
+
+		expect(cellIndex(columns, rows, { x: '11', y: 'Tue' })).toBe(5)
+	})
+
+	it('finds nothing for a label off the grid, or for no pair', () => {
+		expect(cellIndex(columns, rows, { x: '12', y: 'Mon' })).toBeNull()
+
+		expect(cellIndex(columns, rows, { x: '9', y: 'Sun' })).toBeNull()
+
+		expect(cellIndex(columns, rows, null)).toBeNull()
+
+		expect(cellIndex(columns, rows, undefined)).toBeNull()
 	})
 })

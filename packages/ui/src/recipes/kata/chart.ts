@@ -83,6 +83,15 @@ export const k = {
 	/** The keyboard focus ring on the plot region when arrow-key navigation is enabled, and on the range legend's scale-bar slider. */
 	focus: sen.focus.ring,
 	/**
+	 * The mark on a heatmap cell: the cell under the pointer or the keyboard
+	 * cursor, and the selected cell. The `ring` takes the `zu` selection ink, so
+	 * a dashboard marks a picked heatmap cell and a picked map region in one ink.
+	 * The `halo` in the surface fill parts the ring from the cell. One of the two
+	 * therefore stands apart from any fill: the ring from a pale cell, and the
+	 * halo from a dark one.
+	 */
+	selected: { ring: ink.selected, halo: surfaceStroke },
+	/**
 	 * The range legend's scale-bar slider track. It paints only with its gradient,
 	 * which forced colors remove, so it keeps an outline there.
 	 */

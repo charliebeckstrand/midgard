@@ -223,6 +223,13 @@ function slicePath(
 	return `${outer} ${back} Z`
 }
 
+/**
+ * The sweep, in degrees, from which a lone slice draws as the full circle. It
+ * sits a hair under 360, so a morph frame whose blend lands a rounding error
+ * short of the circle still draws the disc. @internal
+ */
+const FULL_TURN = 360 - 1e-9
+
 /** One value's angular place in the sweep, before any radius exists. @internal */
 type SliceAngle = {
 	index: number
@@ -300,12 +307,12 @@ function slicesAt(
 ): PieSlice[] {
 	const angles = all.filter((angle) => angle.sweep > 0)
 
-	const positive = angles.length
-
 	// A lone full circle has no neighbor to part from, so it takes no gap channel
 	// and one shared hit target. That skips the per-slice pinch math entirely
-	// rather than computing an offset it would discard.
-	if (positive === 1) {
+	// rather than computing an offset it would discard. A lone slice that sweeps
+	// less than the circle is a frame of a morph. It draws as a wedge, so the last
+	// slice shrinks to nothing and the first one grows back.
+	if (angles.length === 1 && (angles[0] as SliceAngle).sweep >= FULL_TURN) {
 		const { index, share, mid } = angles[0] as SliceAngle
 
 		const disc = fullCircle(cx, cy, radius, innerRadius)

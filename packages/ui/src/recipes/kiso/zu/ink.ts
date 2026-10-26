@@ -2,7 +2,8 @@
  * Zu ink: the chrome and readout inks the chart and map modules share. The
  * gridline and the axis baseline rule a chart's plot and a map's frame, so a
  * dashboard rules both in one ink. The label and value inks set the legend and
- * tooltip text beside the marks.
+ * tooltip text beside the marks. The selection ink rings a picked mark in both
+ * modules.
  *
  * Layer: kiso · Archetype: zu · Concern: ink
  */
@@ -19,6 +20,14 @@ export const ink = {
 		/** The axis baseline, a step firmer than the grid. A map's sphere outline takes it too. */
 		line: mode('stroke-zinc-300', 'dark:stroke-zinc-700'),
 	},
+	/**
+	 * The one selection ink of data-viz marks: a picked map region or overlay
+	 * mark, and a picked or pointed heatmap cell. Foreground ink, not a palette
+	 * slot. A mark in one of the eight categorical hues would read as a ninth
+	 * category. The neutral holds its contrast over every slot, over each stop of
+	 * a sequential scale, and over the no-data fill.
+	 */
+	selected: mode('stroke-zinc-900', 'dark:stroke-white'),
 	/** Legend / tooltip label ink (HTML text; marks carry the color, text never does). */
 	label: ['text-sm text-start', 'leading-tight', ...text.muted],
 	/** Tooltip value ink: the strong element, values lead. */

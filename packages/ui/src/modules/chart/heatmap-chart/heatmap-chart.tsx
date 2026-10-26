@@ -5,6 +5,7 @@ import { useMeasuredWidth } from '../../../hooks/use-measured-width'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import { ChartAxis } from '../engine/chart-axes/axis'
 import { ChartFrame } from '../engine/chart-frame/frame'
+import { cellIndex } from '../engine/chart-geometry/heatmap'
 import { ChartHitArea } from '../engine/chart-hit-area'
 import { rangeLegendPlacement, resolveRangeLegend } from '../engine/chart-legend/range'
 import { legendAside } from '../engine/chart-legend/schema'
@@ -12,7 +13,7 @@ import { readoutCell } from '../engine/chart-series'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartMarkRef } from '../engine/context'
 import { HeatmapFocusProvider } from './context'
-import { HeatmapChartCells } from './heatmap-chart-cells'
+import { HeatmapCellRings, HeatmapChartCells } from './heatmap-chart-cells'
 import { HeatmapChartLegend } from './heatmap-chart-legend'
 import type { HeatmapChartProps } from './heatmap-chart-schema'
 import { HeatmapChartTooltip } from './heatmap-chart-tooltip'
@@ -47,13 +48,15 @@ function gridMarkAt(): ChartMarkRef {
  * reads the cell under the cursor. Each step also speaks that cell through the
  * polite live region: its column, its row, and its value. Home and End jump to
  * the ends of the row, and Escape clears the cursor. Enter and Space fire
- * `onCellClick` for the cell under the cursor.
+ * `onCellClick` for the cell under the cursor. A ring marks the cell under the
+ * pointer or the cursor, also with the tooltip off, and `selectedCell` rings a
+ * held pick.
  *
  * @remarks Rows pivot to the grid by their distinct `xKey` (columns) and `yKey`
  * (rows) values in first-seen order. The frame defaults to square-ish cells by
  * fitting its aspect to the grid shape, held between 1/2 and 4. Pass
- * `aspectRatio` to override. The heatmap renders as a static SVG tree and takes
- * no `animate`. A function-form context menu `items` receives the row-major
+ * `aspectRatio` to override. Under `animate` the colors wash in from the left
+ * on mount, and a data change crossfades each cell. A function-form context menu `items` receives the row-major
  * index of the cell under the pointer or the keyboard cursor:
  * `row * columns + col`.
  * @example
@@ -75,7 +78,9 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		legend,
 		tooltip,
 		formatValue,
+		animate = false,
 		onCellClick,
+		selectedCell,
 		className,
 		// The heatmap draws no heading. The title still names the context menu's
 		// fullscreen view and export files.
@@ -141,6 +146,8 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 	const rangeLegend = resolveRangeLegend(legend, containerWidth, boxHeight)
 
 	const showLegend = rangeLegend.show && domain !== null && bins.length > 0
+
+	const selected = cellIndex(matrix.columns, matrix.rows, selectedCell)
 
 	// The pointer reports a cell by its row-major index. A click names the cell by
 	// its two band labels and its matrix position.
@@ -231,7 +238,15 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 					</>
 				)}
 
-				<HeatmapChartCells cells={cells} fills={fills} cellBins={cellBins} />
+				<HeatmapChartCells
+					cells={cells}
+					cols={cols}
+					fills={fills}
+					cellBins={cellBins}
+					animate={animate}
+				/>
+
+				<HeatmapCellRings cells={cells} selected={selected} />
 
 				{/* The layer mounts for a readout or for a consumer's click report: a
 				    heatmap that only reports clicks still needs the pointer. The

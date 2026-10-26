@@ -3545,7 +3545,7 @@
 	},
 	"docs.demo.95236e3abc9d": {
 		"defaultMessage": "Orders by weekday and hour",
-		"description": "Text of a demo in the docs as aria-label, in modules/chart/heatmap/activity.tsx."
+		"description": "Text of a demo in the docs as aria-label, in modules/chart/heatmap/activity.tsx, modules/chart/heatmap/animated.tsx."
 	},
 	"docs.demo.956a51f6b098": {
 		"defaultMessage": "Group by",
@@ -4209,7 +4209,7 @@
 	},
 	"docs.demo.b7e8acdd522e": {
 		"defaultMessage": "Orders",
-		"description": "Text of a demo in the docs as colorName, title, in modules/chart/heatmap/activity.tsx, modules/dashboard/build-and-save.tsx, modules/dashboard/query.tsx and 2 more."
+		"description": "Text of a demo in the docs as colorName, title, in modules/chart/heatmap/activity.tsx, modules/chart/heatmap/animated.tsx, modules/dashboard/build-and-save.tsx and 3 more."
 	},
 	"docs.demo.b80355750958": {
 		"defaultMessage": "Invoices",

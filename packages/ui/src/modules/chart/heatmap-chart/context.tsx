@@ -1,7 +1,8 @@
 'use client'
 
-import { type ReactNode, useMemo, useState } from 'react'
+import { type ReactNode, useMemo, useState, useSyncExternalStore } from 'react'
 import { createContext } from '../../../core'
+import { useChartHoverStore } from '../engine/context'
 
 /** The class the range legend is probing, or `null` at rest: the cells outside it dim. @internal */
 type HeatmapFocus = {
@@ -28,4 +29,19 @@ export function HeatmapFocusProvider({ children }: { children: ReactNode }) {
 	const value = useMemo<HeatmapFocus>(() => ({ bin, set: setBin }), [bin])
 
 	return <HeatmapFocusContext value={value}>{children}</HeatmapFocusContext>
+}
+
+/**
+ * The hovered cell as its row-major index (`row * cols + col`), or `null`. The
+ * pointer and the keyboard cursor both write it. It selects the index alone, so
+ * a move inside one cell renders nothing.
+ *
+ * @internal
+ */
+export function useHoveredCell(): number | null {
+	const store = useChartHoverStore()
+
+	const index = () => store.get().index
+
+	return useSyncExternalStore(store.subscribe, index, index)
 }
