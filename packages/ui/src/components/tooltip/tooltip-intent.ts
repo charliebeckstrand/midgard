@@ -258,26 +258,23 @@ function listenForIntent(
 
 	trackModality()
 
-	node.addEventListener('pointerenter', onPointerEnter)
-	node.addEventListener('pointerdown', onPointerDown)
-	node.addEventListener('pointerleave', onPointerLeave)
-	node.addEventListener('focusin', onFocusIn)
-	node.addEventListener('focusout', onFocusOut)
-	node.addEventListener('click', onClick)
-	node.addEventListener('keydown', onKeyDown)
-	win.addEventListener('blur', onWindowBlur)
+	const listening = new AbortController()
+
+	const { signal } = listening
+
+	node.addEventListener('pointerenter', onPointerEnter, { signal })
+	node.addEventListener('pointerdown', onPointerDown, { signal })
+	node.addEventListener('pointerleave', onPointerLeave, { signal })
+	node.addEventListener('focusin', onFocusIn, { signal })
+	node.addEventListener('focusout', onFocusOut, { signal })
+	node.addEventListener('click', onClick, { signal })
+	node.addEventListener('keydown', onKeyDown, { signal })
+	win.addEventListener('blur', onWindowBlur, { signal })
 
 	return () => {
 		stopObserver()
 
-		node.removeEventListener('pointerenter', onPointerEnter)
-		node.removeEventListener('pointerdown', onPointerDown)
-		node.removeEventListener('pointerleave', onPointerLeave)
-		node.removeEventListener('focusin', onFocusIn)
-		node.removeEventListener('focusout', onFocusOut)
-		node.removeEventListener('click', onClick)
-		node.removeEventListener('keydown', onKeyDown)
-		win.removeEventListener('blur', onWindowBlur)
+		listening.abort()
 	}
 }
 

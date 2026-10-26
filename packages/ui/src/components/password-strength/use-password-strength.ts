@@ -1,6 +1,8 @@
 'use client'
 
 import { type ReactNode, useEffect, useEffectEvent, useMemo } from 'react'
+import { useStableValue } from '../../hooks/use-stable-value'
+import { sameElements } from '../../utilities/same-elements'
 
 /** A single password requirement: a stable `id`, a display `label`, and a `test` predicate evaluated against the current value. */
 export type PasswordRule = {
@@ -76,17 +78,13 @@ export function usePasswordStrength({
 		[rules, value],
 	)
 
-	// Keyed on the serialized ids, not `results`: results change identity on every
+	// Held by content, not by `results`: results change identity on every
 	// keystroke, and a fresh `passed` array per keystroke re-fires
-	// onStrengthChange even when the strength is unchanged. JSON keeps each id
-	// whole, so no passing rule (`[]`) and one passing rule with the id `''`
-	// (`[""]`) give different keys.
-	const passedKey = useMemo(
-		() => JSON.stringify(results.filter((result) => result.passed).map((result) => result.rule.id)),
-		[results],
+	// onStrengthChange even when the strength is unchanged.
+	const passedIds = useStableValue(
+		results.filter((result) => result.passed).map((result) => result.rule.id),
+		sameElements,
 	)
-
-	const passedIds = useMemo((): string[] => JSON.parse(passedKey), [passedKey])
 
 	const passedCount = passedIds.length
 

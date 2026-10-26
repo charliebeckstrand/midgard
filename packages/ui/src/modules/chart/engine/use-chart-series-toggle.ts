@@ -2,7 +2,8 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useReportedChange } from '../../../hooks/use-reported-change'
-import { keyByOccurrence, toggleItem } from '../../../utilities'
+import { useStableValue } from '../../../hooks/use-stable-value'
+import { keyByOccurrence, sameElements, toggleItem } from '../../../utilities'
 
 /**
  * The state of a legend switchboard: the series or the reference rules toggled
@@ -33,11 +34,9 @@ function sameMembers(a: ReadonlySet<number>, b: ReadonlySet<number>): boolean {
 function useKeyedToggle(keys: readonly string[]): ChartToggleSet {
 	const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<string>>(() => new Set())
 
-	// One string for the key list, so the derived set keeps its identity across a
-	// render that hands new arrays with the same keys.
-	const signature = JSON.stringify(keys)
-
-	const occurrences = useMemo(() => JSON.parse(signature) as string[], [signature])
+	// Held by content, so the derived set keeps its identity across a render that
+	// hands new arrays with the same keys.
+	const occurrences = useStableValue(keys, sameElements)
 
 	const hidden = useMemo(
 		() =>

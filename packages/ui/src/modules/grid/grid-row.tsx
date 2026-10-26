@@ -408,7 +408,7 @@ export function GridRowImpl<T>({
 			ref={sortable?.setNodeRef ?? ref}
 			data-index={dataIndex}
 			style={sortable?.style}
-			data-dragging={sortable ? dataAttr(sortable.dragging) : undefined}
+			data-dragging={dataAttr(sortable?.dragging)}
 			// The shared row shell: identifying/state attributes, pointer handlers
 			// (cell-level first, then row-level), and Enter / Space activation gated
 			// to the row itself (see `rowShellProps`).
