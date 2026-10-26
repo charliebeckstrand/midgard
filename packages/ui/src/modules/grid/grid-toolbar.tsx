@@ -8,6 +8,7 @@ import { LoadingSpinner } from '../../components/loading'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { Toolbar } from '../../components/toolbar'
 import { ariaAttr, cn, dataAttr } from '../../core'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
@@ -178,8 +179,9 @@ export function GridToolbar({
 	const batchRef = useRef<HTMLDivElement>(null)
 
 	// An empty selection unmounts the batch row. Move focus out of it first, as
-	// "Clear filters" does.
-	const setBatchSelection = (next: Set<string | number>) => {
+	// "Clear filters" does. A stable event, because the batch actions get it in
+	// render and it reads refs.
+	const setBatchSelection = useStableEvent((next: Set<string | number>) => {
 		const toolbar = toolbarRef.current
 
 		if (next.size === 0 && toolbar && batchRef.current?.contains(document.activeElement)) {
@@ -187,7 +189,7 @@ export function GridToolbar({
 		}
 
 		setSelection(next)
-	}
+	})
 
 	const showExport = exportActions.length > 0
 
