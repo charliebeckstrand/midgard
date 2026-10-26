@@ -2,9 +2,9 @@ import { describe, expect } from 'vitest'
 import { ContextMenu } from '../../components/context-menu'
 import { TOUCH_CONTEXT_MENU_DELAY } from '../../components/menu/use-menu-touch-hold'
 import { TOUCH_TAP_WINDOW } from '../../hooks/use-touch-tap'
-import { BarChart, ChoroplethChart, DonutChart } from '../../modules/chart'
+import { BarChart, ChoroplethChart, DonutChart, HeatmapChart } from '../../modules/chart'
 import { MapPlat } from '../../modules/map'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 import { type FakeClock, it, onFakeClock } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
@@ -113,6 +113,68 @@ describe('a touch hold on a chart', () => {
 		await clock.advance(TOUCH_CONTEXT_MENU_DELAY)
 
 		expect(screen.getByRole('menu', { name: 'Population menu' })).toBeInTheDocument()
+	})
+
+	/** Gives a jsdom track a box, so the press reads a value along it. */
+	function measure(track: Element) {
+		track.getBoundingClientRect = () => new DOMRect(0, 0, 160, 160)
+	}
+
+	it('scrubs the range legend of a heatmap or a choropleth, and opens no context menu', async ({
+		clock,
+	}) => {
+		const { container } = renderUI(
+			<>
+				<HeatmapChart
+					aria-label="Commits"
+					width={400}
+					data={[
+						{ day: 'Mon', hour: '9', commits: 0 },
+						{ day: 'Tue', hour: '9', commits: 10 },
+					]}
+					series={[
+						{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#fff', '#000'] },
+					]}
+				/>
+				<ChoroplethChart
+					aria-label="Population"
+					geography={FIXTURE_GEOJSON}
+					data={[
+						{ region: 'A', pop: 0 },
+						{ region: 'B', pop: 10 },
+					]}
+					series={[{ idKey: 'region', colorKey: 'pop', colorRange: ['#fff', '#000'] }]}
+					width={400}
+					legend="range"
+				/>
+			</>,
+		)
+
+		for (const slot of ['heatmap-range-track', 'map-range-track']) {
+			const track = getSlot(container, slot)
+
+			measure(track)
+
+			// A drag along the bar scrubs, and a drag across it scrolls the page.
+			expect(track.className).toMatch(
+				track.getAttribute('aria-orientation') === 'horizontal' ? /touch-pan-y/ : /touch-pan-x/,
+			)
+
+			fireEvent.pointerDown(track, { ...touch, clientX: 120, clientY: 40 })
+
+			// The press reads the value under the finger at once: 3/4 of the way along the bar.
+			expect(track).toHaveAttribute('aria-valuenow', '7.5')
+
+			await clock.advance(TOUCH_CONTEXT_MENU_DELAY * 2)
+
+			expect(screen.queryByRole('menu')).toBeNull()
+
+			fireEvent.pointerUp(track, touch)
+
+			fireEvent.pointerLeave(track, touch)
+
+			expect(track).toHaveAttribute('aria-valuenow', '0')
+		}
 	})
 
 	/** Holds a touch still on the element past the tap window, then lifts it. */
