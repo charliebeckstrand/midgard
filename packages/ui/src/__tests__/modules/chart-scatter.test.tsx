@@ -37,16 +37,18 @@ function discCount(container: HTMLElement): number {
 }
 
 /**
- * Clicks the hit layer at a point of the drawing. jsdom lays out no box, so the
+ * The client point of a point of the drawing. jsdom lays out no box, so the
  * hit layer reads a client point as an offset from the plot origin.
  */
+function clientAt(hit: Element, x: number, y: number) {
+	return { clientX: x - Number(hit.getAttribute('x')), clientY: y - Number(hit.getAttribute('y')) }
+}
+
+/** Clicks the hit layer at a point of the drawing. */
 function clickAt(container: HTMLElement, x: number, y: number) {
 	const hit = getSlot(container, 'chart-hit')
 
-	fireEvent.click(hit, {
-		clientX: x - Number(hit.getAttribute('x')),
-		clientY: y - Number(hit.getAttribute('y')),
-	})
+	fireEvent.click(hit, clientAt(hit, x, y))
 }
 
 describe('ScatterChart', () => {
@@ -314,11 +316,7 @@ describe('ScatterChart', () => {
 		// The first disc opens at its inline-start edge, a radius left of its center.
 		const [left, y] = (discsPath(container).match(/M ([\d.]+) ([\d.]+)/) ?? []).slice(1).map(Number)
 
-		const at = {
-			clientX: (left ?? 0) + 3 - Number(hit.getAttribute('x')),
-			clientY: (y ?? 0) - Number(hit.getAttribute('y')),
-			pointerType: 'mouse',
-		}
+		const at = { ...clientAt(hit, (left ?? 0) + 3, y ?? 0), pointerType: 'mouse' }
 
 		fireEvent.pointerOver(hit, at)
 

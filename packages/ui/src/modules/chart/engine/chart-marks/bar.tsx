@@ -53,11 +53,10 @@ function barClass(
  * Isolation stays per-datum without re-drawing the series. A pointed bar, a
  * legend hover, or a held category selection can leave some bars of a series
  * unlit. The whole series path then dims, and the lit bars re-draw over it as one
- * overlay path, not a rebuild. When the dim lifts, the overlay stays until the
- * series path has faded back up, so a lit bar never drops to the dim on its way.
- * The series paths are memoized on `marks`, so an emphasis change rebuilds only
- * the overlay. Such a change re-runs this component through the emphasis
- * context, never the chart body.
+ * overlay path, not a rebuild. The series paths are
+ * memoized on `marks`, so an emphasis change rebuilds only the overlay. Such a
+ * change re-runs this component through the emphasis context, never the chart
+ * body.
  *
  * @internal
  */
@@ -122,13 +121,7 @@ type ChartBarSeriesProps = {
 	textureActive: boolean
 }
 
-/**
- * One series of plain-SVG bars: the series path and the spot of its lit bars.
- * The spot stays over the lit bars while a lift of the recede fades the series
- * path back up ({@link useChartSpot}).
- *
- * @internal
- */
+/** One series of plain-SVG bars: the series path and the spot of its lit bars ({@link useChartSpot}). @internal */
 function ChartBarSeries({ d, overlay, dimmed, paint, tile, textureActive }: ChartBarSeriesProps) {
 	const spot = useChartSpot(overlay, dimmed)
 
@@ -142,13 +135,13 @@ function ChartBarSeries({ d, overlay, dimmed, paint, tile, textureActive }: Char
 				className={barClass(paint, dimmed, textureActive, tile)}
 			/>
 
-			{spot.spot && (
+			{spot && (
 				<path
 					data-slot="chart-bar-spot"
-					d={spot.spot}
+					d={spot}
 					fill={paint && rawColor(paint)}
 					style={textureStyle(tile)}
-					className={cn(barClass(paint, false, textureActive, tile), spotClass(spot.shown))}
+					className={cn(barClass(paint, false, textureActive, tile), spotClass(dimmed))}
 				/>
 			)}
 		</g>
