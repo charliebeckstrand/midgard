@@ -1719,10 +1719,6 @@
 		"defaultMessage": "Shift",
 		"description": "Text of a demo in the docs, in modules/map/point/zoomable.tsx."
 	},
-	"docs.demo.2e95243ae565": {
-		"defaultMessage": "Select a template, add tiles, then drag them by their grips and resize them by their edges.",
-		"description": "Text of a demo in the docs as touchText, in modules/dashboard/build-and-save.tsx."
-	},
 	"docs.demo.2ec9f9d45546": {
 		"defaultMessage": "Files to commit",
 		"description": "Text of a demo in the docs as aria-label, in components/tree/checkboxes.tsx."
@@ -2383,6 +2379,10 @@
 		"defaultMessage": "Leave cell",
 		"description": "Text of a demo in the docs as label, in modules/grid/editing/cell-scope-and-spreadsheet-keys.tsx."
 	},
+	"docs.demo.55d9424b1ec7": {
+		"defaultMessage": "Six months of revenue as a line",
+		"description": "Text of a demo in the docs as description, in modules/dashboard/build-and-save.tsx."
+	},
 	"docs.demo.569e62f8203e": {
 		"defaultMessage": "Cost by lane",
 		"description": "Text of a demo in the docs as aria-label, in components/pivot-table/with-totals.tsx."
@@ -2398,6 +2398,10 @@
 	"docs.demo.572a14164bde": {
 		"defaultMessage": "Express",
 		"description": "Text of a demo in the docs as label, in components/radio/with-description.tsx, components/select/disabled-option.tsx."
+	},
+	"docs.demo.57e89ef2e025": {
+		"defaultMessage": "Select a region to filter the board",
+		"description": "Text of a demo in the docs as description, in modules/dashboard/build-and-save.tsx."
 	},
 	"docs.demo.582967534d0f": {
 		"defaultMessage": "in",
@@ -2671,6 +2675,10 @@
 		"defaultMessage": "Your rating",
 		"description": "Text of a demo in the docs as aria-label, in components/rating/playground.tsx."
 	},
+	"docs.demo.685ec87b2b91": {
+		"defaultMessage": "Select a template and add tiles. Then select Edit layout to drag them by their grips and resize them by their edges.",
+		"description": "Text of a demo in the docs as touchText, in modules/dashboard/build-and-save.tsx."
+	},
 	"docs.demo.68d3d1d02a00": {
 		"defaultMessage": "Fresno",
 		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
@@ -2942,6 +2950,10 @@
 	"docs.demo.78db4f777c25": {
 		"defaultMessage": "Enter a username.",
 		"description": "Text of a demo in the docs as validate, in modules/form/server-errors.tsx."
+	},
+	"docs.demo.7913dcafb16d": {
+		"defaultMessage": "Select a template and add tiles. Then select Edit layout to drag and resize them.",
+		"description": "Text of a demo in the docs as mouseText, in modules/dashboard/build-and-save.tsx."
 	},
 	"docs.demo.79479a6c76d8": {
 		"defaultMessage": "Descending",
@@ -3787,6 +3799,10 @@
 		"defaultMessage": "Austin",
 		"description": "Text of a demo in the docs as label, in modules/map/geofence/polygon.tsx, modules/map/point/data.ts."
 	},
+	"docs.demo.a192df697ecd": {
+		"defaultMessage": "Each sale, with its region and product",
+		"description": "Text of a demo in the docs as description, in modules/dashboard/build-and-save.tsx."
+	},
 	"docs.demo.a1d0f40d2f0e": {
 		"defaultMessage": "Enter email addresses, separated by commas.",
 		"description": "Text of a demo in the docs, in components/tag-input/validation.tsx."
@@ -3870,6 +3886,10 @@
 	"docs.demo.a5e217109797": {
 		"defaultMessage": "Visits by day",
 		"description": "Text of a demo in the docs as aria-label, in modules/chart/line/time-axis.tsx."
+	},
+	"docs.demo.a6395ce14076": {
+		"defaultMessage": "The share of revenue of each product",
+		"description": "Text of a demo in the docs as description, in modules/dashboard/build-and-save.tsx."
 	},
 	"docs.demo.a653e68e4e7d": {
 		"defaultMessage": "Save row",
@@ -4035,6 +4055,10 @@
 		"defaultMessage": "Last error:",
 		"description": "Text of a demo in the docs, in modules/events/report-a-bug.tsx."
 	},
+	"docs.demo.af9c248fa8d8": {
+		"defaultMessage": "Select a product to filter the board",
+		"description": "Text of a demo in the docs as description, in modules/dashboard/build-and-save.tsx."
+	},
 	"docs.demo.afaf1f88cbae": {
 		"defaultMessage": "TraceMonkey paper",
 		"description": "Text of a demo in the docs as aria-label, in components/pdf-viewer/playground.tsx."
@@ -4046,6 +4070,10 @@
 	"docs.demo.aff0766a5290": {
 		"defaultMessage": "Review",
 		"description": "Text of a demo in the docs as label, in components/list/horizontal.tsx, components/tabs/controlled.tsx."
+	},
+	"docs.demo.b004eea6c901": {
+		"defaultMessage": "The half-year total, month by month",
+		"description": "Text of a demo in the docs as description, in modules/dashboard/build-and-save.tsx."
 	},
 	"docs.demo.b058fc7c5e0b": {
 		"defaultMessage": "Select a state",
@@ -4110,10 +4138,6 @@
 	"docs.demo.b44adaaa290a": {
 		"defaultMessage": "Ravi Shah replied to your comment.",
 		"description": "Text of a demo in the docs as description, in components/toast/max-toasts.tsx."
-	},
-	"docs.demo.b476a85785a2": {
-		"defaultMessage": "Select a template, add tiles, then drag and resize them.",
-		"description": "Text of a demo in the docs as mouseText, in modules/dashboard/build-and-save.tsx."
 	},
 	"docs.demo.b48ca1a31a0f": {
 		"defaultMessage": "Weight (kg)",
@@ -5002,6 +5026,10 @@
 	"docs.demo.e6a894540c4d": {
 		"defaultMessage": "Enter a full email address, such as wade@example.com.",
 		"description": "Text of a demo in the docs, in components/input/validation.tsx."
+	},
+	"docs.demo.e6c47770037b": {
+		"defaultMessage": "This month, with its change and trend",
+		"description": "Text of a demo in the docs as description, in modules/dashboard/build-and-save.tsx."
 	},
 	"docs.demo.e733f2f96ef3": {
 		"defaultMessage": "Friday, March 6 at 9:00 AM",
