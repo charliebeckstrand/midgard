@@ -11,6 +11,7 @@ import type { scale } from '../../recipes/kata/textarea'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import type { ControlVariant } from '../control/context'
 import { useInputControl } from '../input/use-input-control'
+import { TextareaGrip } from './textarea-grip'
 import { useTextareaAutoResize } from './use-textarea-auto-resize'
 
 /** Props for {@link Textarea}: density `size`, `variant`, `autoResize`, an `actions` slot, an `invalid` override, and the remaining `<textarea>` surface. */
@@ -61,6 +62,8 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * because that property ignores `rows` and is not in each browser at the
  * floor. With `actions`, the frame stacks the field above a right-justified
  * actions row.
+ * With `resize`, a touch device gets a grip of its own on the edge that the
+ * drag moves, because Safari on iOS and iPadOS draws no native grip.
  * A set `size` opens a density scope. The actions row gets the affix size, one
  * step below the textarea, as the Input affixes do.
  * `invalid` forces the validation state on or off. When omitted, the state
@@ -114,9 +117,11 @@ export function Textarea({
 	// An absent slot (`undefined`, `null`, or `false`) renders no row.
 	const hasActions = actions != null && actions !== false
 
+	const axis = hasActions ? 'none' : (resize ?? 'none')
+
 	const slots = useSlots(k, {
 		variant: field.variant,
-		resize: hasActions ? 'none' : resize,
+		resize: axis,
 		actions: hasActions,
 	})
 
@@ -136,6 +141,7 @@ export function Textarea({
 	return (
 		<ControlFrame density={size} className={cn(slots.base)}>
 			{textarea}
+			{axis !== 'none' && <TextareaGrip field={fieldRef} axis={axis} className={cn(slots.grip)} />}
 			{/* The ControlFrame is a `<span>`, so the actions row is a `<span>` too. */}
 			{hasActions && (
 				<Shell data-slot="textarea-actions" data-density="slot" className={cn(slots.actions)}>
