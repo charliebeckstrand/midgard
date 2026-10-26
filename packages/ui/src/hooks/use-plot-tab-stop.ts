@@ -28,6 +28,10 @@ export type PlotTabStop = {
 	 * while the pointer holds one. With nothing to clear, the press reaches an
 	 * overlay around the plot, and that overlay closes on the first Escape.
 	 *
+	 * In a modal (`aria-modal`), the body is outside the focus trap. The focus
+	 * therefore stays on the region, and the next Escape reaches the modal. The
+	 * modal then closes and gives the focus back to its trigger.
+	 *
 	 * @param event - The Escape press on the region.
 	 * @param pointed - Whether the pointer holds a readout. A live cursor counts without it.
 	 */
@@ -68,6 +72,8 @@ export function usePlotTabStop(navigated: boolean, clear: () => void): PlotTabSt
 		clear()
 
 		const region = event.currentTarget
+
+		if (region.closest('[aria-modal="true"]')) return
 
 		const doc = region.ownerDocument
 

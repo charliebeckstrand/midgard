@@ -8,7 +8,8 @@ import { bySlot, getSlot, renderUI, screen } from '../helpers'
  * A dialog around a chart closes on Escape. The dialog focuses the chart's plot
  * when it opens, and the plot handles Escape itself. The plot therefore claims the
  * press only when it clears a live readout; else the press reaches the dialog.
- * The readout can come from the keyboard or from a click that pinned it.
+ * The readout can come from the keyboard or from a click that pinned it. The
+ * first Escape keeps the focus on the plot, because the body is outside the trap.
  * Real focus management and real key presses need the browser, so this runs in
  * the browser suite, through the expand dialog of a dashboard tile.
  */
@@ -89,6 +90,8 @@ describe('chart Escape inside an overlay (real browser)', () => {
 
 		expect(dialog.isConnected).toBe(true)
 
+		expect(document.activeElement).toBe(getSlot(dialog, 'chart-plot'))
+
 		await userEvent.keyboard('{Escape}')
 
 		await expect.poll(() => screen.queryByRole('dialog', { name: 'Trend' })).toBeNull()
@@ -111,6 +114,8 @@ describe('chart Escape inside an overlay (real browser)', () => {
 		await expect.poll(() => bySlot(document.body, 'tooltip-content')).toBeNull()
 
 		expect(dialog.isConnected).toBe(true)
+
+		expect(document.activeElement).toBe(getSlot(dialog, 'chart-plot'))
 
 		await userEvent.keyboard('{Escape}')
 
