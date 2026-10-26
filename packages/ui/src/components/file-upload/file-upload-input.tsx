@@ -8,6 +8,7 @@ import { useGlass } from '../../providers/glass/context'
 import { useSlots } from '../../providers/headless/use-slots'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
+import { lockedProps } from '../button/button-constants'
 import { Icon } from '../icon'
 import { InputClearButton } from '../input/input-clear-button'
 import { InputFrame } from '../input/input-frame'
@@ -52,7 +53,21 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 	const state = useFileUploadState(shared)
 
 	const { multiple } = shared
-	const { control, disabled, invalid, files, hasFiles, showTooltip, openPicker, clearFiles } = state
+	const {
+		control,
+		disabled,
+		readOnly,
+		invalid,
+		files,
+		hasFiles,
+		showTooltip,
+		openPicker,
+		clearFiles,
+	} = state
+
+	// A read-only field keeps the focus on each of its buttons, and they open
+	// no picker and clear nothing.
+	const inert = readOnly && lockedProps
 
 	const glass = useGlass()
 
@@ -96,6 +111,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 					{...invalidAttrs(invalid)}
 					className={cn(slots.field, k.cursor)}
 					onClick={openPicker}
+					{...inert}
 				>
 					<span id={valueId} className={cn(k.value, !label && k.placeholder)}>
 						{label ?? placeholder}
@@ -117,6 +133,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 						<InputClearButton
 							label={intl.formatMessage(fileUploadMessages.clear, { count: files.length })}
 							disabled={disabled}
+							locked={readOnly}
 							onClick={handleClear}
 						/>
 					) : (
@@ -127,6 +144,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 							aria-label={intl.formatMessage(fileUploadMessages.browse)}
 							disabled={disabled}
 							onClick={handleBrowse}
+							{...inert}
 						>
 							<Icon icon={<Upload />} />
 						</Button>

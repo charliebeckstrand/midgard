@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
+import { lockedProps } from '../button/button-constants'
 import { Icon } from '../icon'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
 import { fileUploadMessages } from './file-upload-messages'
@@ -32,7 +33,11 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 
 	const state = useFileUploadState(shared)
 
-	const { disabled, hasFiles, openPicker, clearFiles } = state
+	const { disabled, readOnly, hasFiles, openPicker, clearFiles } = state
+
+	// A read-only field keeps the focus on each of its buttons, and they open
+	// no picker and clear nothing.
+	const inert = readOnly && lockedProps
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
@@ -61,6 +66,7 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 				disabled={disabled}
 				className={cn(k.cursor)}
 				onClick={openPicker}
+				{...inert}
 			>
 				<Icon icon={<Upload />} />
 				{children ?? intl.formatMessage(fileUploadMessages.upload)}
@@ -74,6 +80,7 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 					disabled={disabled}
 					className={cn(k.cursor)}
 					onClick={handleReset}
+					{...inert}
 				>
 					{intl.formatMessage(fileUploadMessages.reset)}
 				</Button>

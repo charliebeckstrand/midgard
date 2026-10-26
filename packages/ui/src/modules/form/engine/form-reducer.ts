@@ -101,6 +101,13 @@ function setFieldValue<T extends Record<string, unknown>>(
 	// field replaces it.
 	for (const key in external) delete errors[key]
 
+	// The changed field left `external`, so its issue goes. A validator result
+	// replaces it, and with no result (no validator for the field) the field has
+	// no issue.
+	if (external !== state.external && !Object.hasOwn(errors, action.name)) {
+		errors[action.name] = undefined
+	}
+
 	return {
 		...state,
 		values: nextValues,

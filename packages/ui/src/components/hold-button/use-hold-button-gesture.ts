@@ -31,7 +31,9 @@ export type HoldGestureOptions = {
  * under prefers-reduced-motion. Window-blur and visibility-change listeners
  * cancel a keyboard hold when focus leaves, since the keyup would otherwise route
  * elsewhere. Toggling `disabled` mid-hold cancels. Timers and listeners are torn
- * down on unmount.
+ * down when the effects clean up: at unmount, or when an `<Activity>` hides the
+ * component. The hold then goes back to rest with no callback, so a component
+ * that shows again starts a hold on the next press.
  * @internal
  */
 export function useHoldButtonGesture({
@@ -129,7 +131,23 @@ export function useHoldButtonGesture({
 		onHoldCancel?.()
 	}
 
-	useEffect(() => () => guardsRef.current?.abort(), [])
+	// The cleanup clears the completion timer, so it ends the hold too. An
+	// `<Activity>` that hides the component keeps the refs and the fill, and
+	// without this the next press after the show starts no hold. The effect
+	// reads the fill, because React can detach the ref before the cleanup runs.
+	useEffect(() => {
+		const fill = fillRef.current
+
+		return () => {
+			holdingRef.current = false
+
+			guardsRef.current?.abort()
+
+			guardsRef.current = null
+
+			if (fill) animate(fill, { scaleX: 0 }, k.motion.instant)
+		}
+	}, [])
 
 	// The latest `cancel` closure, as an effect event. The window guards above
 	// name it before this declaration and call it at event time. The disabled

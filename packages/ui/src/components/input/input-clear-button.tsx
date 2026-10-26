@@ -5,6 +5,7 @@ import type { MouseEventHandler, Ref } from 'react'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
+import { lockedProps } from '../button/button-constants'
 import { Icon } from '../icon'
 
 type InputClearButtonProps = {
@@ -18,6 +19,8 @@ type InputClearButtonProps = {
 	 */
 	onMouseDown?: MouseEventHandler<HTMLButtonElement>
 	disabled?: boolean
+	/** Makes the button inert and keeps its focus, as {@link lockedProps} do. */
+	locked?: boolean
 	ref?: Ref<HTMLButtonElement>
 }
 
@@ -33,6 +36,7 @@ export function InputClearButton({
 	onClick,
 	onMouseDown,
 	disabled,
+	locked,
 	ref,
 }: InputClearButtonProps) {
 	return (
@@ -45,6 +49,7 @@ export function InputClearButton({
 			disabled={disabled}
 			onMouseDown={onMouseDown}
 			onClick={onClick}
+			{...(locked && lockedProps)}
 		>
 			<Icon icon={<X />} />
 		</Button>

@@ -2,7 +2,7 @@
 
 import { Star } from 'lucide-react'
 import { type MouseEvent, type PointerEvent, type ReactNode, useRef, useState } from 'react'
-import { cn, dataAttr } from '../../core'
+import { ariaAttr, cn, dataAttr } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
@@ -10,7 +10,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale } from '../../recipes/kata/rating'
 import { k, type RatingVariants } from '../../recipes/kata/rating'
 import { clamp, rangeKeys } from '../../utilities'
-import { useControl } from '../control/context'
+import { useControl, useControlLock } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
 
@@ -101,6 +101,10 @@ export type RatingProps = RatingVariants & {
 	 *
 	 * It also renders a fraction: a whole star for each point, a part star for the
 	 * remainder. A reader sets only the scores that {@link step} allows.
+	 *
+	 * A locked scope, such as a `Form` while a submit runs, makes the row
+	 * read-only but keeps the form that it had. An interactive row keeps its
+	 * radios, and the group sets `aria-readonly`, so the focus stays on its star.
 	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	readOnly?: boolean
@@ -163,9 +167,10 @@ export type RatingProps = RatingVariants & {
  * per star. Arrow keys, focus, and the announced position therefore come from
  * the platform, rather than from key handlers of its own. It is `Slider`'s
  * bargain, for the same reason. `readOnly` and `disabled` drop the radios and
- * render one `role="img"`. Its name is the consumer's name, then the readout.
- * The readout is necessary, because color and shape alone do not carry a score
- * (WCAG 1.4.1).
+ * render one `role="img"`. A locked scope keeps them (see
+ * {@link RatingProps.readOnly}). Its name is the consumer's name, then the
+ * readout. The readout is necessary, because color and shape alone do not
+ * carry a score (WCAG 1.4.1).
  *
  * Binds to an enclosing Form field by `name`. An uncontrolled rating goes back
  * to `defaultValue` on a native form reset, also while it is `readOnly` or
@@ -234,6 +239,8 @@ export function Rating({
 
 	const control = useControl()
 
+	const locked = useControlLock()
+
 	const {
 		id: resolvedId,
 		disabled: resolvedDisabled,
@@ -258,6 +265,17 @@ export function Rating({
 	// A disabled row still shows its score and takes no pointer, so the preview
 	// is gated on the input being live rather than dropped at the handler.
 	const live = !resolvedReadOnly && !resolvedDisabled
+
+	// Whether the row is live outside a lock. A locked scope makes the row
+	// read-only for the length of a submit, and a swap to the display form would
+	// unmount the focused radio. So a lock keeps the form that the row had, and
+	// the radios refuse each commit (control/context.ts: "while each part keeps
+	// the focus").
+	const [unlockedLive, setUnlockedLive] = useState(live)
+
+	if (!locked && unlockedLive !== live) setUnlockedLive(live)
+
+	const radios = locked ? unlockedLive : live
 
 	// The preview the pointer is asking for, or none. A dead row shows its score
 	// and nothing else, so the gate sits here rather than on each reader below.
@@ -294,6 +312,9 @@ export function Rating({
 
 		pressed.current = false
 
+		// The radios of a locked row keep the score.
+		if (!live) return
+
 		setValue(next)
 
 		setTouched()
@@ -326,7 +347,7 @@ export function Rating({
 	// attributes. The display form sets both only to join the readout.
 	const labelledBy = ariaLabelledBy ?? control?.labelledBy
 
-	if (!live) {
+	if (!radios) {
 		const valueText = getValueText(current, count)
 
 		const naming = displayNaming(
@@ -457,6 +478,7 @@ export function Rating({
 			aria-label={labelledBy ? undefined : (ariaLabel ?? intl.formatMessage(messages.label))}
 			aria-labelledby={labelledBy}
 			aria-describedby={describedBy}
+			aria-readonly={ariaAttr(!live)}
 			{...validation}
 			className={rowClass}
 			onPointerDown={() => {

@@ -6,7 +6,7 @@ import type { scale as buttonScale } from '../../recipes/kata/button'
 import type { scale as controlScale } from '../../recipes/kata/control'
 import type { Button } from '../button'
 import { useControl } from '../control/context'
-import { useControlTarget } from '../control/use-control-target'
+import { useControlProps } from '../control/use-control-props'
 import type { FileUploadHiddenInputProps } from './file-upload-hidden-input'
 import type { FileRejection } from './file-upload-utilities'
 import { useFileUploadHandlers } from './use-file-upload-handlers'
@@ -140,6 +140,12 @@ export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
 	control: ReturnType<typeof useControl>
 	/** The `disabled` prop, else the disabled state of the enclosing Control. */
 	disabled: boolean | undefined
+	/**
+	 * The read-only state of the enclosing Control, or of a locked scope, such as
+	 * a `Form` while a submit runs. Each trigger of the component spreads
+	 * `lockedProps` while it holds, so it keeps the focus and opens no picker.
+	 */
+	readOnly: boolean | undefined
 	/** The error state of the enclosing Control, or an error on the bound Form field. */
 	invalid: true | undefined
 	hasFiles: boolean
@@ -214,16 +220,17 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 	// visible `<Input>` of FileUploadInput opts out of this context.
 	const control = useControl()
 
-	// The hidden input takes the id of the Control, so a FormErrorSummary links
-	// the field to it.
-	useControlTarget(props.name, control?.id)
-
-	// The same cascade as `useControlProps`: an explicit prop wins over the Control.
-	const disabled = props.disabled ?? control?.disabled
+	// An explicit `disabled` wins over the Control. The family takes no
+	// `readOnly` prop: it takes the read-only state of the Control, and a locked
+	// scope makes it read-only too. The hidden input takes the id of the
+	// Control, so the name registers that id, and a FormErrorSummary links the
+	// field to it.
+	const { disabled, readOnly } = useControlProps({ disabled: props.disabled, name: props.name })
 
 	const handlers = useFileUploadHandlers({
 		...options,
 		disabled,
+		readOnly,
 		// A single-file component takes one file at most. The picker holds to
 		// that, but a drop can carry many.
 		maxCount: multiple ? maxCount : Math.min(maxCount ?? 1, 1),
@@ -237,6 +244,7 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 		...handlers,
 		control,
 		disabled,
+		readOnly,
 		invalid,
 		hasFiles,
 		showTooltip: Boolean(multiple && handlers.files.length > 1),
@@ -246,6 +254,7 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 			accept: props.accept,
 			multiple,
 			disabled,
+			readOnly,
 			invalid,
 			filesEmpty: !hasFiles,
 			onChange: handlers.handleChange,

@@ -187,6 +187,41 @@ describe('useDatePickerRelativeState', () => {
 			expect(result.current.selectedIds.has(today.id)).toBe(true)
 		})
 
+		// K2-C07: a closed picker left open past midnight still names the span
+		// of the day before as "Today".
+		it('moves the relative anchor at local midnight while closed', async ({ clock }) => {
+			clock.set(new Date(2025, 0, 1, 23, 0))
+
+			const value = [today.resolve(new Date(2025, 0, 1))]
+
+			const { result } = renderHook(() => useDatePickerRelativeState({ relative: true, value }))
+
+			expect(result.current.selectedIds).toEqual(new Set([today.id]))
+
+			await clock.advance(2 * 60 * 60 * 1000)
+
+			expect(result.current.selectedIds).toEqual(new Set([yesterday.id]))
+		})
+
+		it('keeps the relative anchor across midnight while open', async ({ clock }) => {
+			clock.set(new Date(2025, 0, 1, 23, 0))
+
+			const value = [today.resolve(new Date(2025, 0, 1))]
+
+			const { result, rerender } = renderHook(
+				({ open }) => useDatePickerRelativeState({ relative: true, open, value }),
+				{ initialProps: { open: true } },
+			)
+
+			await clock.advance(2 * 60 * 60 * 1000)
+
+			expect(result.current.selectedIds).toEqual(new Set([today.id]))
+
+			rerender({ open: false })
+
+			expect(result.current.selectedIds).toEqual(new Set([yesterday.id]))
+		})
+
 		it('closes on onOpenChange(false)', () => {
 			const { result } = renderHook(() => useDatePickerRelativeState({ relative: true }))
 

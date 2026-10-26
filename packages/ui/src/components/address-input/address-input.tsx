@@ -14,8 +14,8 @@ import {
 	ComboboxOption,
 	type ComboboxProps,
 } from '../combobox'
-import { useControl } from '../control/context'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
+import { useControlProps } from '../control/use-control-props'
 import { Icon } from '../icon'
 import { LoadingSpinner } from '../loading'
 import { photonProvider } from './address-input-photon'
@@ -181,17 +181,17 @@ export function AddressInput({
 				? (bound.value as AddressSuggestion | undefined)
 				: picked
 
-	const control = useControl()
-
 	const fallbackLabel = useControlFallbackLabel(placeholder)
 
 	// Disabled and read-only suppress the clear button; keep the pin rather
-	// than letting the slot fall back to the Combobox chevron. The explicit prop
-	// wins, as it does everywhere in the cascade. With `clearable` off there is
-	// no clear button, so the pin stays too.
-	const disabled = props.disabled ?? control?.disabled
-
-	const readOnly = props.readOnly ?? control?.readOnly
+	// than letting the slot fall back to the Combobox chevron. The state resolves
+	// as the Combobox resolves it, so a locked scope, such as a Form while a
+	// submit runs, keeps the pin too. With `clearable` off there is no clear
+	// button, so the pin stays too.
+	const { disabled, readOnly } = useControlProps({
+		disabled: props.disabled,
+		readOnly: props.readOnly,
+	})
 
 	const showPin = selected === undefined || disabled || readOnly || !clearable
 

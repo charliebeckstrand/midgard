@@ -1,5 +1,7 @@
+import type { ReactElement, ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
+import { ControlLockContext } from '../../components/control/context'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { FileUploadButton, FileUploadDrop, FileUploadInput } from '../../components/file-upload'
 import { Form } from '../../modules/form'
@@ -543,6 +545,133 @@ describe('FileUpload disabled dropzone', () => {
 		fireEvent.drop(zone, { dataTransfer: { files: makeFileList([new File(['x'], 'resume.pdf')]) } })
 
 		expect(onAccept).toHaveBeenCalledTimes(1)
+	})
+})
+
+// K4-C01: a read-only Control and a locked scope (a Form while a submit runs)
+// make the family read-only. It takes no `readOnly` prop of its own.
+describe('FileUpload read-only', () => {
+	const scopes: [string, (node: ReactNode) => ReactElement][] = [
+		['a read-only Control', (node) => <Control readOnly>{node}</Control>],
+		['a locked scope', (node) => <ControlLockContext value>{node}</ControlLockContext>],
+	]
+
+	const files = [new File(['x'], 'resume.pdf')]
+
+	describe.each(scopes)('in %s', (_, scope) => {
+		it.each([
+			['drop', <FileUploadDrop key="drop">Upload</FileUploadDrop>],
+			['input', <FileUploadInput key="input" />],
+			['button', <FileUploadButton key="button">Upload</FileUploadButton>],
+		])('keeps the %s triggers enabled and inert, and opens no picker', (_, node) => {
+			const { container } = renderUI(scope(node))
+
+			const hidden = fileInput(container)
+
+			const click = vi.spyOn(hidden, 'click')
+
+			expect(hidden).not.toBeDisabled()
+
+			expect(hidden).toHaveAttribute('aria-disabled', 'true')
+
+			// A click on the hidden input, as a screen reader can send, opens no picker.
+			expect(fireEvent.click(hidden)).toBe(false)
+
+			click.mockClear()
+
+			for (const trigger of screen.getAllByRole('button')) {
+				expect(trigger).not.toBeDisabled()
+
+				expect(trigger).toHaveAttribute('aria-disabled', 'true')
+
+				fireEvent.click(trigger)
+			}
+
+			expect(click).not.toHaveBeenCalled()
+		})
+
+		it.each([
+			['drop', (onAccept: () => void) => <FileUploadDrop onAccept={onAccept} />],
+			['input', (onAccept: () => void) => <FileUploadInput onAccept={onAccept} />],
+			['button', (onAccept: () => void) => <FileUploadButton onAccept={onAccept} />],
+		])('takes no pick in the %s variant', (_, make) => {
+			const onAccept = vi.fn()
+
+			const { container } = renderUI(scope(make(onAccept)))
+
+			const triggers = screen.getAllByRole('button')
+
+			selectFiles(container, files)
+
+			expect(onAccept).not.toHaveBeenCalled()
+
+			// A pick swaps in the clear or Reset button.
+			expect(screen.getAllByRole('button')).toEqual(triggers)
+		})
+
+		it('takes no drop, and does not light up data-drag-over', () => {
+			const onAccept = vi.fn()
+
+			const { container } = renderUI(scope(<FileUploadDrop onAccept={onAccept} />))
+
+			const zone = dropzone(container)
+
+			const list = makeFileList(files)
+
+			fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files: list } })
+
+			expect(zone).not.toHaveAttribute('data-drag-over')
+
+			fireEvent.drop(zone, { dataTransfer: { types: ['Files'], files: list } })
+
+			expect(onAccept).not.toHaveBeenCalled()
+		})
+
+		it.each([
+			[
+				'drop',
+				(onAccept: () => void) => <FileUploadDrop defaultValue={files} onAccept={onAccept} />,
+			],
+			[
+				'input',
+				(onAccept: () => void) => <FileUploadInput defaultValue={files} onAccept={onAccept} />,
+			],
+			[
+				'button',
+				(onAccept: () => void) => <FileUploadButton defaultValue={files} onAccept={onAccept} />,
+			],
+		])('keeps the selection of the %s variant on a clear', (_, make) => {
+			const onAccept = vi.fn()
+
+			renderUI(scope(make(onAccept)))
+
+			const triggers = screen.getAllByRole('button')
+
+			for (const trigger of triggers) fireEvent.click(trigger)
+
+			expect(onAccept).not.toHaveBeenCalled()
+
+			// A clear swaps the clear or Reset button out.
+			expect(screen.getAllByRole('button')).toEqual(triggers)
+		})
+	})
+
+	it('keeps the focus on the display button when the scope locks', () => {
+		const { container, rerender } = renderUI(
+			<ControlLockContext value={false}>
+				<FileUploadInput />
+			</ControlLockContext>,
+		)
+
+		act(() => display(container).focus())
+
+		rerender(
+			<ControlLockContext value>
+				<FileUploadInput />
+			</ControlLockContext>,
+		)
+
+		expect(document.activeElement).toBe(display(container))
 	})
 })
 
