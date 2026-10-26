@@ -50,6 +50,7 @@ A group holds slots, axes, and defaults in the shape of a unit. A unit kata that
 | `slider` | `slider`, `slider-range` |
 | `panel` | `dialog`, `drawer`, `sheet`, `panel` |
 | `item` | `option`, the `item` units of `menu` and `command-palette` |
+| `nav` | The `item` units of `nav` and `sidebar` |
 
 ## Kata: shape
 
@@ -68,8 +69,8 @@ The substrate that kumi and kata call, in [`src/core/recipe/`](../src/core/recip
 | `mode` / `defineColors` | Fuse colocated light (`hiru`) and dark (`yoru`) values into the flat `string[]` the engine consumes. |
 | `RecipeConfig` *(type)* | The shape a kata declares: the reserved fields plus any number of variant axes. |
 | `VariantProps` *(type)* | Extracts the prop shape from a recipe or config; used to type the consumer-facing `<Name>Variants` export. |
-| `Color` *(type)* | The standard palette color set: `zinc` · `red` · `amber` · `green` · `blue`. |
-| `ExtendedColor` / `PaletteColor` *(types)* | The opt-in extended set (`rose` · `violet` · `sky`), and the union of standard plus extended. |
+| `colors` / `Color` *(type)* | The standard palette color set: `zinc` · `red` · `amber` · `green` · `blue`. |
+| `extendedColors` / `ExtendedColor` / `PaletteColor` *(types)* | The opt-in extended set (`rose` · `violet` · `sky`), and the union of standard plus extended. |
 
 ## Barrel surface
 

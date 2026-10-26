@@ -44,7 +44,7 @@ Filenames are `<name>.ts`, matching the component folder.
 
 ## 3. Families
 
-A family of units that share a structure extends one group. The framed controls extend `control`, `input`, `list`, or `picker` from [`kumi/control`](../kumi/README.md). The check controls, the sliders, the modal panels, and the rows of a list each have a group too. The [kumi groups table](../kumi/README.md#3-groups) lists each group and its units.
+A family of units that share a structure extends one group. The framed controls extend `control`, `input`, `list`, or `picker` from [`kumi/control`](../kumi/README.md). The check controls, the sliders, the modal panels, the rows of a list, and the items of a nav or a sidebar each have a group too. The [kumi groups table](../kumi/README.md#3-groups) lists each group and its units.
 
 ## 4. Rules
 

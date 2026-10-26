@@ -49,6 +49,7 @@ The keys of `kokkaku` name units, but a form is a set of measures, not a part of
 - **Seal with `as const`.** Kata derive their prop types from kiso shapes, so widening here propagates everywhere.
 - **Keys by part.** Name each key by the rules in [`../README.md`](../README.md#4-key-names). A ramp in `dan` nests under the unit that reads it, then the part or the side (`space.box.bottom`).
 - **Compose, don't fork.** A kata or a group that re-derives a token already in kiso is a defect. Fold it back into the source family.
+- **Literal palette classes.** Each chromatic class is a stock Tailwind palette class, written whole in `iro/palette.ts`, because the Tailwind scanner finds only whole class literals. Do not build a class name from parts. Do not add a layer of color roles in CSS variables, such as a `@theme` token or a `data-color` scope, and do not add a tone as an `@utility` (#2917).
 
 ## 6. Utility-array style
 
