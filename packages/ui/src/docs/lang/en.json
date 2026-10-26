@@ -1337,7 +1337,7 @@
 	},
 	"docs.demo.177cfe1a1e8c": {
 		"defaultMessage": "Dwell",
-		"description": "Text of a demo in the docs as yName, in modules/chart/scatter/animated.tsx, modules/chart/scatter/multi-series.tsx."
+		"description": "Text of a demo in the docs as yName, in modules/chart/bubble/animated.tsx, modules/chart/bubble/size-encoding.tsx, modules/chart/scatter/animated.tsx and 1 more."
 	},
 	"docs.demo.186b373fff17": {
 		"defaultMessage": "Load profile",
@@ -3225,7 +3225,7 @@
 	},
 	"docs.demo.877a8887947e": {
 		"defaultMessage": "Stops",
-		"description": "Text of a demo in the docs as label, yName, in modules/chart/bubble/animated.tsx, modules/chart/bubble/size-encoding.tsx, modules/map/point/clustering.tsx and 2 more."
+		"description": "Text of a demo in the docs as label, in modules/map/point/clustering.tsx, modules/map/point/shapes.tsx, modules/map/point/zoomable.tsx."
 	},
 	"docs.demo.87b395ffbc2e": {
 		"defaultMessage": "Remit to",

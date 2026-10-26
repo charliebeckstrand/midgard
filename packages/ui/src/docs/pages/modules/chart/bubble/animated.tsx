@@ -15,7 +15,7 @@ export default function Animated() {
 					yKey: 'dwell',
 					sizeKey: 'weight',
 					sizeName: 'Weight',
-					yName: 'Stops',
+					yName: 'Dwell',
 				},
 			]}
 			axes={{ x: { format: (value) => formatNumber(value, { style: 'unit', unit: 'mile' }) } }}
