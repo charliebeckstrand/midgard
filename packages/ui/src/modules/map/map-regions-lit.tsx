@@ -77,7 +77,14 @@ export function MapRegionsLit({
 				})}
 			</g>
 
-			{pointed === null && <MapRegionsEmphasized lit={lit} paths={paths} />}
+			{pointed === null && (
+				<MapRegionsEmphasized
+					lit={lit}
+					paths={paths}
+					regionCategory={regionCategory}
+					paints={paints}
+				/>
+			)}
 		</>
 	)
 }
@@ -85,7 +92,8 @@ export function MapRegionsLit({
 /**
  * The outlines on the regions a legend emphasis holds lit. They draw in one
  * pass after every lit fill, so a lit neighbor cannot cover half of an outline
- * on a shared border.
+ * on a shared border. Each outline takes the ink that parts from its own
+ * region's fill (the paint's `outline`).
  *
  * Its own component for the reason {@link MapRegionSelected} gives: the width is
  * not the inherited hairline, so it reads the zoom scale, and only this group
@@ -93,7 +101,12 @@ export function MapRegionsLit({
  *
  * @internal
  */
-function MapRegionsEmphasized({ lit, paths }: { lit: number[]; paths: (string | null)[] }) {
+function MapRegionsEmphasized({
+	lit,
+	paths,
+	regionCategory,
+	paints,
+}: MapRegionLayer & { lit: number[] }) {
 	const unitsPerPixel = useMapZoomScale()
 
 	return (
@@ -101,10 +114,14 @@ function MapRegionsEmphasized({ lit, paths }: { lit: number[]; paths: (string | 
 			data-slot="map-regions-emphasized"
 			fill="none"
 			strokeWidth={REGION_EMPHASIZED_STROKE_WIDTH * unitsPerPixel}
-			className={cn('pointer-events-none', ...k.region.emphasized)}
+			className="pointer-events-none"
 		>
 			{lit.map((index) => (
-				<path key={index} d={paths[index] as string} />
+				<path
+					key={index}
+					d={paths[index] as string}
+					className={paintAt(paints, regionCategory[index] ?? null).outline}
+				/>
 			))}
 		</g>
 	)

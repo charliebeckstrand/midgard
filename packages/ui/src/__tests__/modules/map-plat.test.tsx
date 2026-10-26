@@ -553,6 +553,13 @@ describe('MapPlat', () => {
 			bySlot(container, 'map-regions-lit')?.querySelector('path')?.getAttribute('class'),
 		).toContain('fill-blue-600')
 
+		// ...and a categorical slot's outline takes the selection ink of the mode.
+		const outline = bySlot(container, 'map-regions-emphasized')?.querySelector('path')
+
+		expect(outline?.getAttribute('class')).toContain('stroke-zinc-900')
+
+		expect(outline?.getAttribute('class')).toContain('dark:stroke-white')
+
 		const [, beta] = allRegions(container)
 
 		fireEvent.pointerEnter(beta as Element, { clientX: 150, clientY: 20 })
