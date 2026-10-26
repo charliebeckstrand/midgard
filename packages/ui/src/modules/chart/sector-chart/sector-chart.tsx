@@ -50,7 +50,12 @@ import {
 	sliceActivation,
 	sliceShares,
 } from './sector-chart-frame'
-import { SectorChartMarks, SectorSegmentLabels, segmentLabelItems } from './sector-chart-marks'
+import {
+	SectorChartMarks,
+	SectorSegmentLabels,
+	segmentLabelItems,
+	sliceLayout,
+} from './sector-chart-marks'
 
 /** The label switches {@link SectorBaseProps.labels} accepts. */
 export type SectorLabels = {
@@ -393,6 +398,9 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// A click on a slice and Enter or Space on its keyboard stop fire the same callback.
 	const activateSlice = sliceActivation(onCategoryClick, sliceLabels)
 
+	// A legend toggle changes it, and the labels and callouts fade in again.
+	const layout = sliceLayout(slices)
+
 	const marks = (
 		<>
 			<SectorChartMarks
@@ -401,6 +409,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 				animate={animate}
 				center={center}
 				radius={radius}
+				innerRadius={innerRadius}
 				selected={selectedSlices}
 				fills={sliceFills}
 				textureActive={tex.active}
@@ -414,11 +423,17 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 					paints={paints}
 					animate={animate}
 					selected={selectedSlices}
+					layout={layout}
 				/>
 			)}
 
 			{calloutItems.length > 0 && (
-				<SectorChartCallouts items={calloutItems} animate={animate} selected={selectedSlices} />
+				<SectorChartCallouts
+					items={calloutItems}
+					animate={animate}
+					selected={selectedSlices}
+					layout={layout}
+				/>
 			)}
 		</>
 	)

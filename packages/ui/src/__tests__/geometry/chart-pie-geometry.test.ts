@@ -10,6 +10,7 @@ import {
 	pieCalloutFit,
 	pieCallouts,
 	pieCentroidRadius,
+	pieSliceMorph,
 	pieSlices,
 	segmentLabelFits,
 } from '../../modules/chart/engine/chart-geometry/pie'
@@ -500,5 +501,76 @@ describe('segmentLabelFits', () => {
 		expect(segmentLabelFits(8, 1, 60, 96, 7.2)).toBe(true)
 
 		expect(segmentLabelFits(2, 0.5, 60, 12, 7.2)).toBe(false)
+	})
+})
+
+describe('pieSliceMorph', () => {
+	const OPTIONS = { cx: 100, cy: 100, radius: 80, pad: 2 }
+
+	const VALUES = [40, 30, 20, 10]
+
+	/** The start and the sweep of a slice, in degrees. */
+	const span = (slice: PieSlice) => ({
+		index: slice.index,
+		start: slice.mid - slice.share * 180,
+		sweep: slice.share * 360,
+	})
+
+	const all = pieSlices(VALUES, OPTIONS)
+
+	// The second row toggled off.
+	const without = pieSlices([40, null, 20, 10], OPTIONS)
+
+	it('draws each end of the morph as the slices of that end', () => {
+		expect(pieSliceMorph(all, without, 0, OPTIONS).map((slice) => slice.d)).toEqual(
+			all.map((slice) => slice.d),
+		)
+
+		expect(pieSliceMorph(all, without, 1, OPTIONS).map((slice) => slice.d)).toEqual(
+			without.map((slice) => slice.d),
+		)
+	})
+
+	it('keeps the slices in contact around the whole circle in the middle', () => {
+		for (const t of [0.25, 0.5, 0.75]) {
+			const spans = pieSliceMorph(all, without, t, OPTIONS).map(span)
+
+			expect(spans[0]?.start).toBeNear(0, EXACT_FRAME_TOLERANCE)
+
+			spans.slice(1).forEach((next, i) => {
+				const previous = spans[i] as ReturnType<typeof span>
+
+				expect(next.start).toBeNear(previous.start + previous.sweep, EXACT_FRAME_TOLERANCE)
+			})
+
+			const last = spans.at(-1) as ReturnType<typeof span>
+
+			expect(last.start + last.sweep).toBeNear(360, EXACT_FRAME_TOLERANCE)
+		}
+	})
+
+	it('shrinks a row that leaves, and grows a row that comes back, at its own place', () => {
+		const leaving = pieSliceMorph(all, without, 0.5, OPTIONS).map(span)[1]
+
+		// Halfway from its 108° sweep (30 of 100) to nothing.
+		expect(leaving?.index).toBe(1)
+
+		expect(leaving?.sweep).toBeNear(54, EXACT_FRAME_TOLERANCE)
+
+		const coming = pieSliceMorph(without, all, 0.5, OPTIONS).map(span)[1]
+
+		expect(coming?.index).toBe(1)
+
+		expect(coming?.sweep).toBeNear(54, EXACT_FRAME_TOLERANCE)
+	})
+
+	it('draws the lone slice that a morph ends at as the full disc', () => {
+		const lone = pieSlices([null, 30, null, null], OPTIONS)
+
+		const end = pieSliceMorph(all, lone, 1, OPTIONS)
+
+		expect(end).toHaveLength(1)
+
+		expect(end[0]?.d).toBe(lone[0]?.d)
 	})
 })

@@ -300,7 +300,9 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * normally, so a re-query (say a dashboard filter change) transitions rather
 	 * than snapping. A resize or a legend toggle is not a data
 	 * change and updates in place; a reduced-motion preference skips straight to
-	 * the new data. Scatter and bubble charts do not replay on a data change.
+	 * the new data. Scatter and bubble charts do not replay on a data change. On a
+	 * pie or a donut, a legend toggle turns the slices to their new shares: a
+	 * hidden slice shrinks to nothing, and a shown slice grows from its place.
 	 * @defaultValue false
 	 */
 	animate?: boolean
