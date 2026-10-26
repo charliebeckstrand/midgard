@@ -3,7 +3,16 @@ import { ChoroplethChart } from '../../modules/chart'
 import { binEmphasisId } from '../../modules/map'
 import { LocaleProvider } from '../../providers/locale'
 import { formatFraction } from '../../utilities'
-import { allBySlot, allRegions, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import {
+	allBySlot,
+	allRegions,
+	bySlot,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	shownLayer,
+} from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 const ROWS = [
@@ -451,7 +460,7 @@ describe('the range legend probe', () => {
 
 		fireEvent.pointerLeave(track)
 
-		expect(bySlot(container, 'map-regions-emphasized')).toBeNull()
+		expect(shownLayer(container, 'map-regions-emphasized')).toBeNull()
 	})
 })
 

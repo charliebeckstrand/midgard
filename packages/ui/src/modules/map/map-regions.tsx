@@ -13,6 +13,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
+import { useChartSpot } from '../chart/engine/use-chart-spot'
 import {
 	MapZoomScaleContext,
 	useMapHoverActions,
@@ -289,7 +290,8 @@ const MapRegionsBase = memo(function MapRegionsBase({
  *
  * The shared emphasis recedes the layer as one group. The pointed mark isolates
  * itself, else the legend's focused group holds. The emphasized marks redraw lit
- * above it ({@link MapRegionsLit}). One element fades where thousands of
+ * above it ({@link MapRegionsLit}), and stay lit while a lift fades the layer
+ * back up. One element fades where thousands of
  * per-path transitions once ran, and the base tree holds its render through the
  * whole interaction. The selected region rings above both and outside the
  * recede, so the standing pick outlasts every passing emphasis. A selection made
@@ -392,6 +394,12 @@ export const MapRegions = memo(function MapRegions({
 
 	const receded = pointed !== null || emphasis !== null
 
+	// The lit copies keep their emphasis while a lift fades the layer back up, so
+	// a lit region never drops to the dim on its way ({@link useChartSpot}).
+	const litPointed = useChartSpot(pointed, receded)
+
+	const litEmphasis = useChartSpot(emphasis, receded)
+
 	// A selection naming no drawn region rings nothing: the id can match no
 	// feature, and a region the geometry dropped has a `null` path.
 	const selectedPath = selected === null ? null : (paths[selected] ?? null)
@@ -422,15 +430,14 @@ export const MapRegions = memo(function MapRegions({
 				/>
 			</g>
 
-			{receded && (
-				<MapRegionsLit
-					pointed={pointed}
-					emphasis={emphasis}
-					paths={paths}
-					regionCategory={regionCategory}
-					paints={paints}
-				/>
-			)}
+			<MapRegionsLit
+				pointed={litPointed}
+				emphasis={litEmphasis}
+				receded={receded}
+				paths={paths}
+				regionCategory={regionCategory}
+				paints={paints}
+			/>
 
 			{selectedPath !== null && <MapRegionSelected d={selectedPath} />}
 		</MapRegionsGroup>

@@ -16,6 +16,7 @@ import {
 	firstRegion,
 	layerScale,
 	renderUI,
+	shownLayer,
 	stubMatchMedia,
 	tableRows,
 	within,
@@ -368,7 +369,10 @@ describe('MapPlat', () => {
 			'opacity-25',
 		)
 
-		expect(bySlot(container, 'map-regions-lit')).toBeNull()
+		// The lit copy stays over the lift and hides when the fade ends.
+		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
+
+		expect(shownLayer(container, 'map-regions-lit')).toBeNull()
 	})
 
 	it('emphasizes a legend entry on a visible keyboard focus only', () => {
@@ -468,7 +472,7 @@ describe('MapPlat', () => {
 		// very wash bringing it there, and the reader would never see it move.
 		expect(allRegions(container)[0]?.getAttribute('class')).toContain('fill-blue-600')
 
-		expect(lit()).toBeNull()
+		expect(shownLayer(container, 'map-regions-lit')).toBeNull()
 
 		expect(recede()).not.toContain('opacity-25')
 
@@ -538,7 +542,7 @@ describe('MapPlat', () => {
 			'opacity-25',
 		)
 
-		expect(bySlot(container, 'map-regions-lit')).toBeNull()
+		expect(shownLayer(container, 'map-regions-lit')).toBeNull()
 	})
 
 	it('lets the pointed region win over a still-held legend emphasis', () => {
@@ -966,7 +970,7 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(receded()).toBe(false)
 
-		expect(bySlot(container, 'map-regions-lit')).toBeNull()
+		expect(shownLayer(container, 'map-regions-lit')).toBeNull()
 	})
 
 	it('keeps the hover arrow on the bar for a value outside a narrower colorDomain', () => {
