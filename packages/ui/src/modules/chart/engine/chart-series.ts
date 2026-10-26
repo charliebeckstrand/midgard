@@ -33,6 +33,27 @@ export function seriesGroupClass(dimmed: boolean | undefined): string {
 	return dimmed ? RECEDED_CLASS : LIT_CLASS
 }
 
+/** The classes of a spot that draws over its receded series. @internal */
+const SPOT_CLASS = cn('transition-[visibility]')
+
+/** The classes of a spot that the lift of its series leaves behind. @internal */
+const SPOT_LEFT_CLASS = cn('transition-[visibility]', 'invisible')
+
+/**
+ * The classes of a spot: the lit marks that a static renderer draws again over
+ * its receded series (`useChartSpot`). When the recede lifts, the spot
+ * stays visible for the duration of the opacity transition of
+ * {@link seriesGroupClass}, and then hides.
+ *
+ * @remarks A transition from `visible` to `hidden` holds `visible` until it
+ * ends. The two transitions use the same duration and the same easing.
+ * @param dimmed - Whether the series under the spot recedes.
+ * @internal
+ */
+export function spotClass(dimmed: boolean): string {
+	return dimmed ? SPOT_CLASS : SPOT_LEFT_CLASS
+}
+
 /**
  * The readout text of one value: the value in `format`, or {@link READOUT_GAP}
  * where the datum is a gap.

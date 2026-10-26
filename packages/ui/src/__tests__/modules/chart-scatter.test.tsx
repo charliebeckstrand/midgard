@@ -37,16 +37,18 @@ function discCount(container: HTMLElement): number {
 }
 
 /**
- * Clicks the hit layer at a point of the drawing. jsdom lays out no box, so the
+ * The client point of a point of the drawing. jsdom lays out no box, so the
  * hit layer reads a client point as an offset from the plot origin.
  */
+function clientAt(hit: Element, x: number, y: number) {
+	return { clientX: x - Number(hit.getAttribute('x')), clientY: y - Number(hit.getAttribute('y')) }
+}
+
+/** Clicks the hit layer at a point of the drawing. */
 function clickAt(container: HTMLElement, x: number, y: number) {
 	const hit = getSlot(container, 'chart-hit')
 
-	fireEvent.click(hit, {
-		clientX: x - Number(hit.getAttribute('x')),
-		clientY: y - Number(hit.getAttribute('y')),
-	})
+	fireEvent.click(hit, clientAt(hit, x, y))
 }
 
 describe('ScatterChart', () => {
@@ -297,6 +299,41 @@ describe('ScatterChart', () => {
 		fireEvent.keyDown(plot, { key: 'Escape' })
 
 		expect(receded()).toEqual([false, false])
+	})
+
+	it('keeps the pointed disc lit while the cloud fades back up', () => {
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Stops"
+				data={STOPS}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
+			/>,
+		)
+
+		const hit = getSlot(container, 'chart-hit')
+
+		// The first disc opens at its inline-start edge, a radius left of its center.
+		const [left, y] = (discsPath(container).match(/M ([\d.]+) ([\d.]+)/) ?? []).slice(1).map(Number)
+
+		const at = { ...clientAt(hit, (left ?? 0) + 3, y ?? 0), pointerType: 'mouse' }
+
+		fireEvent.pointerOver(hit, at)
+
+		const [spot] = points(container)
+
+		expect(spot?.getAttribute('class')).not.toContain('invisible')
+
+		fireEvent.pointerOut(hit, at)
+
+		expect(getSlot(container, 'chart-scatter-discs').getAttribute('class')).not.toContain(
+			'opacity-25',
+		)
+
+		// The disc stays drawn over the lift and hides when the fade ends.
+		expect(points(container)).toEqual([spot])
+
+		expect(spot?.getAttribute('class')).toContain('invisible')
 	})
 
 	it('pins the readout to a click under trigger click, ignoring hover', () => {

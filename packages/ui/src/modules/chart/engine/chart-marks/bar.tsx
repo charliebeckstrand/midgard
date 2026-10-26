@@ -10,8 +10,9 @@ import type { BarMark } from '../chart-geometry/bar'
 import { BAR_GROW, BAR_SHRINK, barGrow, barGrowDelay } from '../chart-motion'
 import type { ChartOrientation } from '../chart-orientation'
 import { textureClass, textureStyle } from '../chart-pattern-defs'
-import { seriesGroupClass } from '../chart-series'
+import { seriesGroupClass, spotClass } from '../chart-series'
 import { useChartMarkEmphasis } from '../context'
+import { useChartSpot } from '../use-chart-spot'
 
 /** Shared shape for the static and animated bar renderers. @internal */
 export type ChartBarMarksProps = {
@@ -93,27 +94,58 @@ export function ChartBarMarks({
 		const { dimmed, overlay } = litOverlay(row, (datum) => lit(series, datum), isolating)
 
 		return (
-			<g key={series} data-slot="chart-bar-series">
-				<path
-					data-slot="chart-bar"
-					d={paths[seriesIndex]}
-					fill={paint && rawColor(paint)}
-					style={textureStyle(fills?.[seriesIndex])}
-					className={barClass(paint, dimmed, textureActive, fills?.[seriesIndex])}
-				/>
-
-				{overlay && (
-					<path
-						data-slot="chart-bar-spot"
-						d={overlay}
-						fill={paint && rawColor(paint)}
-						style={textureStyle(fills?.[seriesIndex])}
-						className={barClass(paint, false, textureActive, fills?.[seriesIndex])}
-					/>
-				)}
-			</g>
+			<ChartBarSeries
+				key={series}
+				d={paths[seriesIndex] ?? ''}
+				overlay={overlay}
+				dimmed={dimmed}
+				paint={paint}
+				tile={fills?.[seriesIndex]}
+				textureActive={textureActive}
+			/>
 		)
 	})
+}
+
+/** Props for {@link ChartBarSeries}. @internal */
+type ChartBarSeriesProps = {
+	/** Every bar of the series, as one path. */
+	d: string
+	/** The lit bars that draw over the receded series, as one path, or `null`. */
+	overlay: string | null
+	/** Whether the series path recedes. */
+	dimmed: boolean
+	paint: ChartPaint | undefined
+	/** The texture tile fill URL, if any. */
+	tile: string | undefined
+	textureActive: boolean
+}
+
+/** One series of plain-SVG bars: the series path and the spot of its lit bars ({@link useChartSpot}). @internal */
+function ChartBarSeries({ d, overlay, dimmed, paint, tile, textureActive }: ChartBarSeriesProps) {
+	const spot = useChartSpot(overlay, dimmed)
+
+	return (
+		<g data-slot="chart-bar-series">
+			<path
+				data-slot="chart-bar"
+				d={d}
+				fill={paint && rawColor(paint)}
+				style={textureStyle(tile)}
+				className={barClass(paint, dimmed, textureActive, tile)}
+			/>
+
+			{spot && (
+				<path
+					data-slot="chart-bar-spot"
+					d={spot}
+					fill={paint && rawColor(paint)}
+					style={textureStyle(tile)}
+					className={cn(barClass(paint, false, textureActive, tile), spotClass(dimmed))}
+				/>
+			)}
+		</g>
+	)
 }
 
 /**

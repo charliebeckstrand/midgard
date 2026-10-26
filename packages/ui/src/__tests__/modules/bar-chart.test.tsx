@@ -899,6 +899,41 @@ describe('BarChart', () => {
 		expect(spots(container).map((spot) => subpathCount(spot.getAttribute('d')))).toEqual([1, 1])
 	})
 
+	it('keeps a cleared selection lit while the rest fade back up', () => {
+		const { container, rerender } = renderUI(chart({ selectedCategories: ['Q2'] }))
+
+		const before = spots(container).map((spot) => spot.getAttribute('d'))
+
+		rerender(chart({ selectedCategories: [] }))
+
+		for (const series of allBySlot(container, 'chart-bar')) {
+			expect(series.getAttribute('class')).not.toContain('opacity-25')
+		}
+
+		// The Q2 bars stay drawn over the lift and hide when the fade ends.
+		expect(spots(container).map((spot) => spot.getAttribute('d'))).toEqual(before)
+
+		for (const spot of spots(container)) {
+			expect(spot.getAttribute('class')).toContain('invisible')
+		}
+	})
+
+	it('moves a held selection at once, with no trail of the old bar', () => {
+		const { container, rerender } = renderUI(chart({ selectedCategories: ['Q2'] }))
+
+		const q2 = spots(container).map((spot) => spot.getAttribute('d'))
+
+		rerender(chart({ selectedCategories: ['Q3'] }))
+
+		const q3 = spots(container)
+
+		expect(q3.map((spot) => spot.getAttribute('d'))).not.toEqual(q2)
+
+		for (const spot of q3) {
+			expect(spot.getAttribute('class')).not.toContain('invisible')
+		}
+	})
+
 	it('selects nothing for an empty list', () => {
 		const { container } = renderUI(chart({ selectedCategories: [] }))
 
