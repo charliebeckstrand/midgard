@@ -529,7 +529,7 @@ function movedLeader(
 function largest<E extends { slice: PieSlice }>(entries: E[], count: number): E[] {
 	if (entries.length <= count) return entries
 
-	const kept = new Set([...entries].sort((a, b) => b.slice.share - a.slice.share).slice(0, count))
+	const kept = new Set(entries.toSorted((a, b) => b.slice.share - a.slice.share).slice(0, count))
 
 	return entries.filter((entry) => kept.has(entry))
 }

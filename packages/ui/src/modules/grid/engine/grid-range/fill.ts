@@ -43,7 +43,7 @@ export function fillLine(line: readonly unknown[], count: number): unknown[] {
 
 	const step = seriesStep(line)
 
-	const last = line[line.length - 1] as number
+	const last = line.at(-1) as number
 
 	return Array.from({ length: count }, (_, index) =>
 		step === null
@@ -82,11 +82,11 @@ export function fillPlan(
 
 	const first = along[0]
 
-	const last = along[along.length - 1]
+	const last = along.at(-1)
 
 	if (first === undefined || last === undefined) return []
 
-	const order = back ? [...along].reverse() : along
+	const order = back ? along.toReversed() : along
 
 	const edge = back ? first : last
 

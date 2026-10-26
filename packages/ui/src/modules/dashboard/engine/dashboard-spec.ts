@@ -169,9 +169,7 @@ export function duplicateSpecTile(
 	// With no entry, the span is the source's own `defaultSize`, which the spread carries.
 	const copy: DashboardSpecTile = { ...source, id: copyId, ...(span && { defaultSize: span }) }
 
-	const tiles = [...spec.tiles]
-
-	tiles.splice(index + 1, 0, copy)
+	const tiles = spec.tiles.toSpliced(index + 1, 0, copy)
 
 	return { ...spec, tiles, layout: withoutEntry(spec.layout, copyId) }
 }

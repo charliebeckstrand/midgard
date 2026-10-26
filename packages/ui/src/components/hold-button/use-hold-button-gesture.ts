@@ -3,6 +3,7 @@
 import { animate, type ValueAnimationTransition } from 'motion'
 import { useEffect, useEffectEvent, useRef } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useTimeout } from '../../hooks/use-timeout'
 import { k } from '../../recipes/kata/hold-button'
 
 /**
@@ -44,7 +45,7 @@ export function useHoldButtonGesture({
 
 	const holdingRef = useRef(false)
 
-	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const timer = useTimeout()
 
 	// The fill animates unconditionally: it gates an irreversible action in
 	// real time (WCAG 2.3.3 essential exception). The snap-back reset is
@@ -62,14 +63,6 @@ export function useHoldButtonGesture({
 		if (!fill) return
 
 		animate(fill, { scaleX: target }, transition)
-	}
-
-	const clearTimer = () => {
-		if (timerRef.current !== null) {
-			clearTimeout(timerRef.current)
-
-			timerRef.current = null
-		}
 	}
 
 	// Window-level guards for a keyboard hold: Alt-Tab or tab-away routes the
@@ -107,13 +100,9 @@ export function useHoldButtonGesture({
 
 		setFill(1, { ...k.motion.hold, duration: duration / 1000 })
 
-		clearTimer()
-
 		attachGuards()
 
-		timerRef.current = setTimeout(() => {
-			timerRef.current = null
-
+		timer.set(() => {
 			holdingRef.current = false
 
 			detachGuards()
@@ -131,7 +120,7 @@ export function useHoldButtonGesture({
 
 		holdingRef.current = false
 
-		clearTimer()
+		timer.clear()
 
 		detachGuards()
 
@@ -140,14 +129,7 @@ export function useHoldButtonGesture({
 		onHoldCancel?.()
 	}
 
-	useEffect(
-		() => () => {
-			if (timerRef.current !== null) clearTimeout(timerRef.current)
-
-			guardsRef.current?.abort()
-		},
-		[],
-	)
+	useEffect(() => () => guardsRef.current?.abort(), [])
 
 	// The latest `cancel` closure, as an effect event. The window guards above
 	// name it before this declaration and call it at event time. The disabled

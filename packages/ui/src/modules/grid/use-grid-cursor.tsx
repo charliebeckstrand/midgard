@@ -675,9 +675,9 @@ export function useGridCursor<T>({
 
 		if (!cells || top === undefined || left === undefined) return null
 
-		const bottom = cells.rows[cells.rows.length - 1] ?? top
+		const bottom = cells.rows.at(-1) ?? top
 
-		const right = cells.cols[cells.cols.length - 1] ?? left
+		const right = cells.cols.at(-1) ?? left
 
 		return { top, bottom, left, right }
 	})

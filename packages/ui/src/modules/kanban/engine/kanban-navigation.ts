@@ -107,7 +107,7 @@ function neighborItem<T, C extends KanbanColumnBase<T>>(
 		case 'Home':
 			return items[0]
 		case 'End':
-			return items[items.length - 1]
+			return items.at(-1)
 		case 'ArrowLeft':
 			return crossColumnTarget(columns, columnIndex, itemIndex, -1)
 		case 'ArrowRight':

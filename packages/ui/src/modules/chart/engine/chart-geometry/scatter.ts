@@ -89,7 +89,7 @@ export function uniqueXValues(seriesData: ScatterDatum[][]): number[] {
 
 	for (const x of xs) {
 		// Adds zero so -0 and 0 share one column, as a `Set` keys them.
-		if (unique.length === 0 || x !== unique[unique.length - 1]) unique.push(x + 0)
+		if (x !== unique.at(-1)) unique.push(x + 0)
 	}
 
 	return unique

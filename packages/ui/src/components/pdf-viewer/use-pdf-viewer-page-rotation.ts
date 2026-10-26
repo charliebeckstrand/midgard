@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useState } from 'react'
+import { wrap } from '../../utilities'
 
 /**
  * Whether a rotation swaps the page's width and height in layout: true at 90° and 270°.
@@ -10,7 +11,7 @@ import { useCallback, useState } from 'react'
  * @internal
  */
 export function isRotationTransposed(rotation: number): boolean {
-	const normalized = ((rotation % 360) + 360) % 360
+	const normalized = wrap(rotation, 360)
 
 	return normalized === 90 || normalized === 270
 }

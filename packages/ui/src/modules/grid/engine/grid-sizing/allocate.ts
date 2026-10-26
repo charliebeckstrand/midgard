@@ -54,7 +54,7 @@ function roundToTarget(
 	// Give the leftover (or take back, when negative) one pixel at a time, largest
 	// fractional part first, so the rounding lands on the columns that were closest
 	// to rounding up anyway.
-	const order = [...floored].sort((a, b) => b.frac - a.frac)
+	const order = floored.toSorted((a, b) => b.frac - a.frac)
 
 	for (let i = 0; leftover > 0 && i < order.length; i++, leftover--) {
 		const entry = order[i]

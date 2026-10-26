@@ -3,7 +3,7 @@
 import { type KeyboardEvent, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { type PlotTabStopProps, usePlotTabStop } from '../../../hooks/use-plot-tab-stop'
 import { useStableValue } from '../../../hooks/use-stable-value'
-import { clamp } from '../../../utilities'
+import { clamp, wrap } from '../../../utilities'
 import { isArrowKey } from '../../../utilities/keyboard-navigation'
 import { hasBrowserModifier } from '../../../utilities/modifier-keys'
 import { type ChartOrientation, project, type Vec, valueCoord } from './chart-orientation'
@@ -356,7 +356,7 @@ function stepStop(
 			: stop.kind === 'data' && stop.index === cursor.value,
 	)
 
-	const next = stops[(Math.max(rank, 0) + dir + stops.length) % stops.length]
+	const next = stops[wrap(Math.max(rank, 0) + dir, stops.length)]
 
 	if (!next) return cursor
 

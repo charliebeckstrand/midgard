@@ -175,7 +175,7 @@ export function projectLayout(
 		gap,
 	}
 
-	const order = [...cells].sort((a, b) => a.y - b.y || a.x - b.x)
+	const order = cells.toSorted((a, b) => a.y - b.y || a.x - b.x)
 
 	const placed = new Map<string, DashboardCell>()
 
