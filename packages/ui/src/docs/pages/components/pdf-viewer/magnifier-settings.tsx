@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Code } from 'ui/code'
 import { PdfViewer, type PdfViewerMagnifierState } from 'ui/pdf-viewer'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
@@ -7,9 +8,13 @@ import { pages } from './statement.ts'
 function MagnifierSummary({ state }: { state: PdfViewerMagnifierState | null }) {
 	if (!state) return 'None'
 
-	return state.enabled
-		? `On, zoom ${state.zoom}, size ${state.size}, delay ${state.delay}`
-		: `Off, zoom ${state.zoom}, size ${state.size}, delay ${state.delay}`
+	// The settings are tokens of the API, so they show as code in each language.
+	return (
+		<>
+			{state.enabled ? 'On' : 'Off'}, zoom <Code>{state.zoom}</Code>, size <Code>{state.size}</Code>
+			, delay <Code>{state.delay}</Code>
+		</>
+	)
 }
 
 export default function MagnifierSettings() {

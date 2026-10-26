@@ -1043,6 +1043,10 @@
 		"defaultMessage": "Projects",
 		"description": "Text of a demo in the docs as aria-label, in components/sidebar/sections-divider-and-spacer.tsx."
 	},
+	"docs.demo.0571b253afb9": {
+		"defaultMessage": ", size",
+		"description": "Text of a demo in the docs, in components/pdf-viewer/magnifier-settings.tsx."
+	},
 	"docs.demo.0575f29df888": {
 		"defaultMessage": "Template",
 		"description": "Text of a demo in the docs as aria-label, in modules/dashboard/build-and-save.tsx."
@@ -1225,7 +1229,7 @@
 	},
 	"docs.demo.130011756125": {
 		"defaultMessage": "On",
-		"description": "Text of a demo in the docs, in components/switch/controlled.tsx."
+		"description": "Text of a demo in the docs, in components/pdf-viewer/magnifier-settings.tsx, components/switch/controlled.tsx."
 	},
 	"docs.demo.132fe0304136": {
 		"defaultMessage": "Add a skill",
@@ -1258,6 +1262,10 @@
 	"docs.demo.14b6fc7de913": {
 		"defaultMessage": "1 reviewer",
 		"description": "Text of a demo in the docs as summarize, in components/combobox/custom-summary.tsx."
+	},
+	"docs.demo.14ec2a11b1f7": {
+		"defaultMessage": "Editing: {column}, {name}",
+		"description": "Text of a demo in the docs, in modules/grid/editing/cell-scope-and-spreadsheet-keys.tsx. The arguments {column} and {name} are values from the code."
 	},
 	"docs.demo.14f34284b054": {
 		"defaultMessage": "Slider",
@@ -1513,7 +1521,7 @@
 	},
 	"docs.demo.224a3369a5c9": {
 		"defaultMessage": "Value:",
-		"description": "Text of a demo in the docs, in components/calendar/controlled.tsx, components/calendar/range.tsx, components/checkbox/select-all.tsx and 22 more."
+		"description": "Text of a demo in the docs, in components/address-input/business-search.tsx, components/address-input/coordinates.tsx, components/calendar/controlled.tsx and 24 more."
 	},
 	"docs.demo.2269fcf7ca5e": {
 		"defaultMessage": "Last event:",
@@ -2103,10 +2111,6 @@
 		"defaultMessage": "Content",
 		"description": "Text of a demo in the docs, in structure/container/playground.tsx."
 	},
-	"docs.demo.47fcdcfa4823": {
-		"defaultMessage": "On, zoom {zoom}, size {size}, delay {delay}",
-		"description": "Text of a demo in the docs, in components/pdf-viewer/magnifier-settings.tsx. The arguments {zoom}, {size} and {delay} are values from the code."
-	},
 	"docs.demo.4816cbfd74aa": {
 		"defaultMessage": "Board",
 		"description": "Text of a demo in the docs, in components/segment/disabled-item.tsx, components/segment/playground.tsx."
@@ -2286,10 +2290,6 @@
 	"docs.demo.5013616d3cb5": {
 		"defaultMessage": "Hold to send",
 		"description": "Text of a demo in the docs, in components/hold-button/lifecycle-callbacks.tsx."
-	},
-	"docs.demo.50bffd3035f7": {
-		"defaultMessage": "Editing: {column}, row {row}",
-		"description": "Text of a demo in the docs, in modules/grid/editing/cell-scope-and-spreadsheet-keys.tsx. The arguments {column} and {row} are values from the code."
 	},
 	"docs.demo.50c8b81faf51": {
 		"defaultMessage": "Mark as read",
@@ -3103,10 +3103,6 @@
 		"defaultMessage": "Warehouse network",
 		"description": "Text of a demo in the docs as aria-label, in modules/map/point/basic.tsx."
 	},
-	"docs.demo.810d45a24ae9": {
-		"defaultMessage": "Off, zoom {zoom}, size {size}, delay {delay}",
-		"description": "Text of a demo in the docs, in components/pdf-viewer/magnifier-settings.tsx. The arguments {zoom}, {size} and {delay} are values from the code."
-	},
 	"docs.demo.812e148f9b1f": {
 		"defaultMessage": "Add control",
 		"description": "Text of a demo in the docs as aria-label, in modules/grid/editing/new-row.tsx."
@@ -3763,6 +3759,10 @@
 		"defaultMessage": "Add",
 		"description": "Text of a demo in the docs as aria-label, in components/button/icon-only.tsx, components/button/with-icon.tsx, modules/grid/editing/new-row.tsx."
 	},
+	"docs.demo.9fdf6285f841": {
+		"defaultMessage": ", zoom",
+		"description": "Text of a demo in the docs, in components/pdf-viewer/magnifier-settings.tsx."
+	},
 	"docs.demo.a08f38514fad": {
 		"defaultMessage": "useAuth.ts",
 		"description": "Text of a demo in the docs as label, in components/tree/nested.tsx."
@@ -3778,6 +3778,10 @@
 	"docs.demo.a12b589e54f3": {
 		"defaultMessage": "Start trial",
 		"description": "Text of a demo in the docs, in modules/form/error-summary.tsx."
+	},
+	"docs.demo.a14905055feb": {
+		"defaultMessage": ", delay",
+		"description": "Text of a demo in the docs, in components/pdf-viewer/magnifier-settings.tsx."
 	},
 	"docs.demo.a150ce221602": {
 		"defaultMessage": "Components",
@@ -4441,7 +4445,7 @@
 	},
 	"docs.demo.c6c094bc0054": {
 		"defaultMessage": "Empty",
-		"description": "Text of a demo in the docs, in components/calendar/controlled.tsx, components/calendar/range.tsx, components/checkbox/select-all.tsx and 13 more."
+		"description": "Text of a demo in the docs, in components/address-input/business-search.tsx, components/address-input/coordinates.tsx, components/calendar/controlled.tsx and 16 more."
 	},
 	"docs.demo.c71eb1e3f64d": {
 		"defaultMessage": "\n# Release notes\n\nVersion 2.4 adds **search in attachments**. Run `app update` to get it, or\nread the _full list_ of [changes](https://example.com).\n\n## Changes\n\n- Search finds the text in attachments\n- Shared folders show who changed each file\n  - The list shows the last ten changes\n- The dark theme follows the setting of your system\n\n'>' Back up your files before you update.\n\n```ts\nexport function isLatest(version: string) '{'\n\treturn version === ''2.4''\n'}'\n```\n",
@@ -4521,7 +4525,7 @@
 	},
 	"docs.demo.ca7981b46ecf": {
 		"defaultMessage": "Off",
-		"description": "Text of a demo in the docs, in components/switch/controlled.tsx, components/switch/three-positions.tsx, components/tabs/animation.tsx."
+		"description": "Text of a demo in the docs, in components/pdf-viewer/magnifier-settings.tsx, components/switch/controlled.tsx, components/tabs/animation.tsx."
 	},
 	"docs.demo.ca8e826d9c2e": {
 		"defaultMessage": "Avatar",

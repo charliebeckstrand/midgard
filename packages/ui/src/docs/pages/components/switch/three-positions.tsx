@@ -17,7 +17,7 @@ export default function ThreePositions() {
 				<Label as="span">Freight</Label>
 				<SwitchChoice options={MODES} value={mode} onValueChange={setMode} />
 			</Field>
-			<Text>Value: {mode ?? 'Off'}</Text>
+			<Text>Value: {MODES.find((option) => option.value === mode)?.label ?? 'Empty'}</Text>
 		</>
 	)
 }

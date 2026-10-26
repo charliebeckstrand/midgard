@@ -13,11 +13,12 @@ export default function Coordinates() {
 				<Label>Address</Label>
 				<AddressInput value={address} onValueChange={setAddress} provider={searchPlaces} />
 			</Field>
-			{address?.latitude != null && address.longitude != null ? (
-				<Text>
-					{address.latitude.toFixed(4)}, {address.longitude.toFixed(4)}
-				</Text>
-			) : null}
+			<Text>
+				Value:{' '}
+				{address?.latitude != null && address.longitude != null
+					? `${address.latitude.toFixed(4)}, ${address.longitude.toFixed(4)}`
+					: 'Empty'}
+			</Text>
 		</>
 	)
 }

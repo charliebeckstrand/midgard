@@ -22,11 +22,12 @@ export default function BusinessSearch() {
 					placeholder="Try 'aquarium' or 'lighthouse'"
 				/>
 			</Field>
-			{place ? (
-				<Text>
-					{[place.name, place.address?.city, place.address?.state].filter(Boolean).join(' · ')}
-				</Text>
-			) : null}
+			<Text>
+				Value:{' '}
+				{place
+					? [place.name, place.address?.city, place.address?.state].filter(Boolean).join(' · ')
+					: 'Empty'}
+			</Text>
 		</>
 	)
 }
