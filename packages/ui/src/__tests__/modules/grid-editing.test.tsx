@@ -23,6 +23,7 @@ import {
 	allBySlot,
 	attach,
 	bySlot,
+	deferred,
 	expectAnnouncement,
 	fireEvent,
 	flushAnnouncer,
@@ -3818,15 +3819,7 @@ describe('Grid async commit', () => {
 		const commit = (changes: GridCellChange[]) => {
 			onCommit(changes)
 
-			let resolve: (value?: GridCellRefusal[]) => void = () => {}
-
-			let fail: (reason: unknown) => void = () => {}
-
-			const promise = new Promise<GridCellRefusal[] | undefined>((fulfill, reject) => {
-				resolve = fulfill
-
-				fail = reject
-			})
+			const pending = deferred<GridCellRefusal[] | undefined>()
 
 			const refuse = async (refusals: GridCellRefusal[]) => {
 				const refused = (change: GridCellChange) =>
@@ -3842,7 +3835,7 @@ describe('Grid async commit', () => {
 						),
 					)
 
-					resolve(refusals)
+					pending.resolve(refusals)
 				})
 			}
 
@@ -3852,18 +3845,18 @@ describe('Grid async commit', () => {
 					await act(async () => {
 						setRows((rows) => applyChanges(rows, changes))
 
-						resolve(value)
+						pending.resolve(value)
 					})
 				},
 				refuse,
 				reject: async (reason) => {
 					await act(async () => {
-						fail(reason)
+						pending.reject(reason)
 					})
 				},
 			})
 
-			return promise
+			return pending.promise
 		}
 
 		function Harness() {
@@ -4928,14 +4921,9 @@ describe('Grid new row', () => {
 		})
 
 		it('renders a newRowAdd render slot with the add and the pending state', async () => {
-			let resolve: () => void = () => {}
+			const flight = deferred()
 
-			const onRowAdd = vi.fn(
-				() =>
-					new Promise<void>((fulfill) => {
-						resolve = fulfill
-					}),
-			)
+			const onRowAdd = vi.fn(() => flight.promise)
 
 			const render = vi.fn(({ add, pending }: GridNewRowAddContext) => (
 				<button type="button" onClick={add}>
@@ -4962,7 +4950,7 @@ describe('Grid new row', () => {
 
 			expect(save.closest('[inert]')).not.toBeNull()
 
-			await act(async () => resolve())
+			await act(async () => flight.resolve())
 
 			expect(view.getByRole('button', { name: 'Save person' }).closest('[inert]')).toBeNull()
 		})

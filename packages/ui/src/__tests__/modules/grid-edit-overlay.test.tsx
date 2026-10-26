@@ -10,6 +10,7 @@ import {
 } from '../../modules/grid'
 import {
 	bySlot,
+	deferred,
 	present,
 	renderUI,
 	screen,
@@ -151,14 +152,9 @@ describe('Grid editing on a phone', () => {
 	})
 
 	it('holds the drawer open while an async commit settles, and shows a refusal', async () => {
-		let settle: (refused: GridCellRefusal[]) => void = () => {}
+		const commit = deferred<GridCellRefusal[]>()
 
-		const onCommit = vi.fn(
-			() =>
-				new Promise<GridCellRefusal[]>((resolve) => {
-					settle = resolve
-				}),
-		)
+		const onCommit = vi.fn(() => commit.promise)
 
 		const { user, editRow1 } = renderPhoneGrid({ onCommit })
 
@@ -176,7 +172,7 @@ describe('Grid editing on a phone', () => {
 			within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel' }),
 		).toBeDisabled()
 
-		settle([{ rowKey: 1, columnId: 'name', error: 'Enter a different name.' }])
+		commit.resolve([{ rowKey: 1, columnId: 'name', error: 'Enter a different name.' }])
 
 		await waitFor(() =>
 			expect(
@@ -230,8 +226,6 @@ describe('Grid editing on a phone', () => {
 		expect(focus).toHaveBeenCalledWith({ preventScroll: true })
 
 		expect(screen.getByRole('grid')).toHaveFocus()
-
-		focus.mockRestore()
 	})
 
 	it('keeps the editors in the table with overlay false', async () => {

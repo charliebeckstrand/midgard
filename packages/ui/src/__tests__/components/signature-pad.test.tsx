@@ -39,13 +39,11 @@ describe('SignaturePad', () => {
 	])('holds strokeWidth=%s between 1 and 6', (strokeWidth, drawn) => {
 		const context = makeCanvasContext()
 
-		const getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context)
+		vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context)
 
 		renderUI(<SignaturePad strokeWidth={strokeWidth} />)
 
 		expect(context.lineWidth).toBe(drawn)
-
-		getContext.mockRestore()
 	})
 
 	it('renders the placeholder when empty', () => {

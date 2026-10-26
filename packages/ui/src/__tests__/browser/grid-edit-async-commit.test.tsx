@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, present, renderUI } from '../helpers'
+import { bySlot, deferred, present, renderUI } from '../helpers'
 
 /**
  * The pending state of an async commit, as the user sees it. jsdom reads the
@@ -21,14 +21,9 @@ describe('grid async commit (real browser)', () => {
 	]
 
 	it('pulses a pending cell and shows the committed value until the promise settles', async () => {
-		let settle: () => void = () => {}
+		const commit = deferred()
 
-		const onCommit = vi.fn(
-			() =>
-				new Promise<void>((resolve) => {
-					settle = resolve
-				}),
-		)
+		const onCommit = vi.fn(() => commit.promise)
 
 		const view = renderUI(
 			<Grid
@@ -62,7 +57,7 @@ describe('grid async commit (real browser)', () => {
 		// The pulse is the kata's `animate-pulse`, behind `motion-safe`.
 		expect(getComputedStyle(pending).animationName).toBe('pulse')
 
-		settle()
+		commit.resolve()
 
 		await expect.poll(() => cell.getAttribute('aria-busy')).toBeNull()
 

@@ -6,6 +6,7 @@ import {
 	createEvent,
 	fireEvent,
 	getSlot,
+	mockDomGeometry,
 	present,
 	renderUI,
 	screen,
@@ -42,9 +43,7 @@ function centerPhoto() {
 function layOut(stage: HTMLElement) {
 	const track = stage.firstElementChild as HTMLElement
 
-	Object.defineProperty(stage, 'clientWidth', { value: 400, configurable: true })
-
-	Object.defineProperty(stage, 'clientHeight', { value: 800, configurable: true })
+	mockDomGeometry(stage, { clientWidth: 400, clientHeight: 800 })
 
 	track.getBoundingClientRect = () => DOMRect.fromRect({ x: 0, y: 0, width: 400, height: 800 })
 
