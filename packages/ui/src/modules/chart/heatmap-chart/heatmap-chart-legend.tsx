@@ -1,24 +1,8 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
 import { RangeArrow, RangeLegend, type RangeScale } from '../engine/chart-legend/range-legend'
 import type { ChartOrientation } from '../engine/chart-orientation'
-import { useChartHoverStore } from '../engine/context'
-import { useHeatmapFocus } from './context'
-
-/**
- * The hovered cell as its row-major index (`row * cols + col`), or `null`. It
- * selects the index alone, so a move inside one cell renders nothing.
- *
- * @internal
- */
-function useHoveredCell(): number | null {
-	const store = useChartHoverStore()
-
-	const index = () => store.get().index
-
-	return useSyncExternalStore(store.subscribe, index, index)
-}
+import { useHeatmapFocus, useHoveredCell } from './context'
 
 /**
  * The legend's hover arrow: it marks the exact value of the cell that the

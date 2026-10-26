@@ -110,3 +110,50 @@ export function cellAt(
 
 	return { row, col }
 }
+
+/**
+ * The stroke width of each of the two strokes that mark a cell: the ring and
+ * its halo. It is half the surface gap ({@link MARK_GAP}). @internal
+ */
+export const CELL_RING_WIDTH = MARK_GAP / 2
+
+/** The rect of a {@link cellRing}: a cell's box and corner radius. @internal */
+export type CellRingRect = Pick<HeatmapCell, 'x' | 'y' | 'width' | 'height' | 'radius'>
+
+/**
+ * The rect of one stroke that marks a cell, moved off the cell edge by half the
+ * stroke. The `'ring'` goes out, so it sits wholly in the cell's half of the
+ * surface gap. The `'halo'` goes in, so it sits wholly on the cell. The two
+ * therefore meet at the cell edge, and the mark takes no neighbor's ground.
+ *
+ * @internal
+ */
+export function cellRing(cell: HeatmapCell, stroke: 'ring' | 'halo'): CellRingRect {
+	const offset = stroke === 'ring' ? CELL_RING_WIDTH / 2 : -CELL_RING_WIDTH / 2
+
+	return {
+		x: cell.x - offset,
+		y: cell.y - offset,
+		width: Math.max(0, cell.width + 2 * offset),
+		height: Math.max(0, cell.height + 2 * offset),
+		radius: Math.max(0, cell.radius + offset),
+	}
+}
+
+/**
+ * The row-major index of the cell at a pair of band labels, or `null` when a
+ * label names no column or no row of the grid. @internal
+ */
+export function cellIndex(
+	columns: readonly string[],
+	rows: readonly string[],
+	cell: { x: string; y: string } | null | undefined,
+): number | null {
+	if (!cell) return null
+
+	const col = columns.indexOf(cell.x)
+
+	const row = rows.indexOf(cell.y)
+
+	return col < 0 || row < 0 ? null : row * columns.length + col
+}

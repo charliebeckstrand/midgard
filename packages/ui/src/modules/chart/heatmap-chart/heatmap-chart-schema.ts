@@ -125,6 +125,19 @@ export type HeatmapChartProps<T = never> = AccessibleName &
 		 */
 		onCellClick?: (cell: { x: string; y: string }, at: [row: number, col: number]) => void
 		/**
+		 * The cell that reads as selected, by the two band labels that
+		 * `onCellClick` reports. Pair the two to hold a selection, for example the
+		 * source of a dashboard cross-filter: the cell that a click hands back
+		 * comes straight back as the cell to mark. The chart holds no selection
+		 * state of its own.
+		 *
+		 * The selected cell takes a ring in the selection ink, the ink that marks a
+		 * picked map region. It never dims the rest of the grid, so each cell keeps
+		 * its color for comparison. A pair that names no cell of the grid marks
+		 * nothing, and `null` (or no value) selects nothing.
+		 */
+		selectedCell?: { x: string; y: string } | null
+		/**
 		 * Show the range scale bar, and where it sits. `true` (the default) stands it
 		 * vertical on the right; `false` drops it. A placement moves it: a horizontal
 		 * row above (`'top'`) or below (`'bottom'`) the plot, or a vertical rail

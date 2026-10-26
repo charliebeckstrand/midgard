@@ -23,12 +23,11 @@ export type MapSeriesColor = SeriesSlot
 const CLICKABLE = 'cursor-pointer'
 
 /**
- * The map's one selection ink. Foreground ink, not a palette slot. A mark in one
- * of the eight categorical hues would read as a ninth category. The neutral
- * holds its contrast over every slot, over the no-data fill, and over the
- * geography an overlay draws across alike.
+ * The map's one selection ink, the `zu` selection ink that the heatmap cell
+ * ring takes too. It holds its contrast over the geography an overlay draws
+ * across as well.
  */
-const SELECTED = mode('stroke-zinc-900', 'dark:stroke-white')
+const SELECTED = ink.selected
 
 export const k = {
 	/** The gap of the map frame, and of the map and its legend panel. */

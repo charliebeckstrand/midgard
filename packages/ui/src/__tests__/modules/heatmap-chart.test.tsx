@@ -589,6 +589,119 @@ describe('HeatmapChart cell clicks', () => {
 	})
 })
 
+describe('HeatmapChart cell rings', () => {
+	/** The ring of a mark, as the rect attributes it draws at. The halo draws first, under it. */
+	const ring = (container: HTMLElement, slot: string) => {
+		const rect = bySlot(container, slot)?.lastElementChild
+
+		return rect
+			? ['x', 'y', 'width', 'height'].map((name) => Number(rect.getAttribute(name)))
+			: null
+	}
+
+	/** Where a cell's ring draws: its rect, outset by half the stroke. */
+	const expectedRing = (container: HTMLElement, index: number) => {
+		const cell = cellRects(container)[index] as Element
+
+		const [x, y, width, height] = ['x', 'y', 'width', 'height'].map((name) =>
+			Number(cell.getAttribute(name)),
+		) as [number, number, number, number]
+
+		return [x - 1, y - 1, width + 2, height + 2]
+	}
+
+	it('rings the keyboard cell with the tooltip off, the cell that Enter fires', () => {
+		const onCellClick = vi.fn()
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				tooltip={false}
+				onCellClick={onCellClick}
+			/>,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		expect(ring(container, 'heatmap-pointed')).toBeNull()
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(ring(container, 'heatmap-pointed')).toEqual(expectedRing(container, 0))
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(ring(container, 'heatmap-pointed')).toEqual(expectedRing(container, 1))
+
+		fireEvent.keyDown(plot, { key: 'Enter' })
+
+		expect(onCellClick).toHaveBeenCalledWith({ x: '10', y: 'Mon' }, [0, 1])
+
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(ring(container, 'heatmap-pointed')).toBeNull()
+	})
+
+	it('rings the cell under the pointer and keeps every cell at full strength', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		hit.getBoundingClientRect = () => HIT_BOX
+
+		// The top-right cell: Mon at hour 10.
+		fireEvent.pointerMove(hit, { clientX: 330, clientY: 70 })
+
+		expect(ring(container, 'heatmap-pointed')).toEqual(expectedRing(container, 1))
+
+		expect(dimmedCount(container)).toBe(0)
+	})
+
+	it('rings the selected cell and dims no other', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				selectedCell={{ x: '9', y: 'Tue' }}
+			/>,
+		)
+
+		expect(ring(container, 'heatmap-selected')).toEqual(expectedRing(container, 2))
+
+		expect(dimmedCount(container)).toBe(0)
+
+		// The pointed cell that is also the selected cell takes the one ring.
+		fireEvent.keyDown(getSlot(container, 'chart-plot'), { key: 'ArrowDown' })
+
+		fireEvent.keyDown(getSlot(container, 'chart-plot'), { key: 'ArrowDown' })
+
+		expect(ring(container, 'heatmap-pointed')).toBeNull()
+
+		expect(ring(container, 'heatmap-selected')).toEqual(expectedRing(container, 2))
+	})
+
+	it('marks nothing for a pair that names no cell', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				selectedCell={{ x: '11', y: 'Mon' }}
+			/>,
+		)
+
+		expect(bySlot(container, 'heatmap-rings')).toBeNull()
+	})
+})
+
 describe('HeatmapChart context menu', () => {
 	it('names the right-clicked cell to a function-form menu by its row-major index', () => {
 		const items = vi.fn(() => [])
