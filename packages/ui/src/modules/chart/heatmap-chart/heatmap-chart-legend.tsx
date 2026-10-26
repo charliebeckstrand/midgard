@@ -1,5 +1,6 @@
 'use client'
 
+import type { LegendBandBreakpoint } from '../engine/chart-legend/band'
 import { RangeArrow, RangeLegend, type RangeScale } from '../engine/chart-legend/range-legend'
 import type { ChartOrientation } from '../engine/chart-orientation'
 import { useHeatmapFocus, useHoveredCell } from './context'
@@ -16,13 +17,13 @@ function HeatmapRangeArrow({
 	values,
 	cols,
 	domain,
-	orientation,
+	aside,
 }: {
 	values: (number | null)[][]
 	cols: number
 	domain: [number, number]
-	/** Which way the host bar runs, so the glyph pins to its matching edge. */
-	orientation: ChartOrientation
+	/** The host bar's side breakpoint, so the glyph pins to its matching edge. */
+	aside: LegendBandBreakpoint | undefined
 }) {
 	const cell = useHoveredCell()
 
@@ -32,14 +33,16 @@ function HeatmapRangeArrow({
 
 	if (value == null) return null
 
-	return <RangeArrow value={value} domain={domain} slot="heatmap-range" orientation={orientation} />
+	return <RangeArrow value={value} domain={domain} slot="heatmap-range" aside={aside} />
 }
 
 /** Props for {@link HeatmapChartLegend}: the scale the shared bar paints and the values its arrow reads. @internal */
 type HeatmapChartLegendProps = RangeScale & {
 	values: (number | null)[][]
 	cols: number
-	/** Which way the bar runs: vertical beside the plot, horizontal above or below it. */
+	/** The breakpoint from which a side bar stands beside the plot; `undefined` for a top or bottom bar. */
+	aside: LegendBandBreakpoint | undefined
+	/** The measured axis the bar announces through `aria-orientation`. */
 	orientation: ChartOrientation
 }
 
@@ -48,9 +51,10 @@ type HeatmapChartLegendProps = RangeScale & {
  * wired to the grid. Its arrow marks the exact value of the pointed cell. A probe
  * of the bar emphasizes the cells of that class through the focus context, and
  * dims the rest.
- * The `heatmap-range` slot keeps the heatmap's part names. `orientation` follows
- * the bar's resolved placement (vertical beside the plot, horizontal above or
- * below), so the arrow and slider transpose together.
+ * The `heatmap-range` slot keeps the heatmap's part names. `aside` follows the
+ * bar's placement. A side bar stands vertical beside the plot from the chart's
+ * `@sm` and lies flat under it below that. The arrow and the slider transpose
+ * together.
  *
  * @internal
  */
@@ -63,6 +67,7 @@ export function HeatmapChartLegend({
 	thresholds,
 	values,
 	cols,
+	aside,
 	orientation,
 }: HeatmapChartLegendProps) {
 	const { set } = useHeatmapFocus()
@@ -77,11 +82,10 @@ export function HeatmapChartLegend({
 			label={label}
 			bins={bins}
 			thresholds={thresholds}
+			aside={aside}
 			orientation={orientation}
 			onProbe={set}
-			arrow={
-				<HeatmapRangeArrow values={values} cols={cols} domain={domain} orientation={orientation} />
-			}
+			arrow={<HeatmapRangeArrow values={values} cols={cols} domain={domain} aside={aside} />}
 		/>
 	)
 }

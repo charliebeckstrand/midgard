@@ -99,7 +99,8 @@ describe('ChartFrame', () => {
 
 		const rail = renderUI(frame(400, { legendPlacement: 'right', rail: true }))
 
-		expect(bySlot(rail.container, 'chart-body')).toHaveClass('gap-4')
+		// Beside the plot from `@sm`. Stacked under it, the rail takes the figure's own gap.
+		expect(bySlot(rail.container, 'chart-body')).toHaveClass('gap-3', '@sm:gap-4')
 	})
 
 	it('keeps the plot mounted when the legend moves between a side and a band', () => {

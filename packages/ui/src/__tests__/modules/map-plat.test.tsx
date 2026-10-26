@@ -929,8 +929,8 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(bar).not.toBeNull()
 
-		// The gradient bar paints the colorRange stops as an inline linear-gradient.
-		expect(bySlot(container, 'map-range-track')?.getAttribute('style')).toContain('linear-gradient')
+		// The gradient bar paints the colorRange stops.
+		expect(bySlot(container, 'map-range-track')?.getAttribute('style')).toContain('--range-ramp')
 
 		// No discrete switchboard items in range mode.
 		expect(allBySlot(container, 'map-legend-item')).toHaveLength(0)
@@ -973,7 +973,10 @@ describe('MapPlat choropleth mode', () => {
 		const { container } = renderUI(choropleth({ legend: 'range', colorDomain: [25, 75] }))
 
 		const arrowTop = () => {
-			const style = bySlot(container, 'map-range-arrow')?.getAttribute('style') ?? ''
+			const style =
+				container
+					.querySelector('[data-slot="map-range-arrow"][data-orientation="vertical"]')
+					?.getAttribute('style') ?? ''
 
 			return Number(style.match(/top:\s*(-?[\d.]+)%/)?.[1] ?? Number.NaN)
 		}
@@ -995,7 +998,10 @@ describe('MapPlat choropleth mode', () => {
 		const { container } = renderUI(choropleth({ legend: 'range' }))
 
 		const arrowTop = () => {
-			const style = bySlot(container, 'map-range-arrow')?.getAttribute('style') ?? ''
+			const style =
+				container
+					.querySelector('[data-slot="map-range-arrow"][data-orientation="vertical"]')
+					?.getAttribute('style') ?? ''
 
 			return Number(style.match(/top:\s*([\d.]+)%/)?.[1] ?? Number.NaN)
 		}
@@ -1019,14 +1025,17 @@ describe('MapPlat choropleth mode', () => {
 	})
 
 	it('stands the range bar vertical on the right by default', () => {
-		const { container } = renderUI(choropleth({ legend: 'range' }))
+		const { container } = renderUI(choropleth({ legend: 'range', width: 600 }))
 
 		const track = bySlot(container, 'map-range-track')
 
 		expect(track?.getAttribute('aria-orientation')).toBe('vertical')
 
-		// Low at the bottom, high at the top: the gradient runs upward.
-		expect(track?.getAttribute('style')).toContain('linear-gradient(to top')
+		// Low at the bottom, high at the top: from the map frame's `@lg`, where the
+		// frame puts the bar beside the map, the gradient runs upward.
+		expect(track?.getAttribute('class')).toContain(
+			'@lg:bg-[linear-gradient(to_top,var(--range-ramp))]',
+		)
 	})
 
 	it('lays the range bar horizontal under the { type, placement } object form', () => {
@@ -1036,16 +1045,26 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(track?.getAttribute('aria-orientation')).toBe('horizontal')
 
-		// Low at the left, high at the right: the gradient runs rightward.
-		expect(track?.getAttribute('style')).toContain('linear-gradient(to right')
+		// Low at the left, high at the right: the gradient runs rightward at every width.
+		expect(track?.getAttribute('class')).toContain(
+			'bg-[linear-gradient(to_right,var(--range-ramp))]',
+		)
+
+		expect(track?.getAttribute('class')).not.toContain('to_top')
 	})
 
-	it('drops a side range placement to a horizontal row in a box too narrow for a rail', () => {
-		const { container } = renderUI(choropleth({ legend: 'range', width: 300 }))
+	it('lays a side range bar flat under the map below the frame @lg', () => {
+		// Under 32rem the frame stacks the bar under the map, so it lies flat, as
+		// it announces. The placement stays a side placement: CSS draws the change.
+		for (const width of [300, 450]) {
+			const { container } = renderUI(choropleth({ legend: 'range', width }))
 
-		expect(bySlot(container, 'map-range-track')?.getAttribute('aria-orientation')).toBe(
-			'horizontal',
-		)
+			const track = bySlot(container, 'map-range-track')
+
+			expect(track?.getAttribute('aria-orientation')).toBe('horizontal')
+
+			expect(track?.getAttribute('class')).toContain('@lg:w-5')
+		}
 	})
 
 	it('sheds the range bar at the spark size', () => {

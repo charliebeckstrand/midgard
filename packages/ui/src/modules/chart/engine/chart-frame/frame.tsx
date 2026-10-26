@@ -835,7 +835,9 @@ function ChartFigure({
 				aside
 					? cn(
 							'flex min-h-0 flex-1 flex-col',
-							rail ? 'gap-4' : 'gap-2',
+							// A rail keeps the wider gap beside the plot. Stacked under it, the rail
+							// takes the figure's own gap, as a bottom bar does.
+							rail ? 'gap-3 @sm:gap-4' : 'gap-2',
 							stretch ? '@sm:items-stretch' : '@sm:items-center',
 							legendBandRow(legendPlacement, 'sm'),
 						)

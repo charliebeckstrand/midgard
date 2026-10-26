@@ -1,10 +1,7 @@
 'use client'
 
-import {
-	RangeArrow,
-	RangeLegend,
-	type RangeOrientation,
-} from '../chart/engine/chart-legend/range-legend'
+import type { LegendBandBreakpoint } from '../chart/engine/chart-legend/band'
+import { RangeArrow, RangeLegend } from '../chart/engine/chart-legend/range-legend'
 import { useMapPointed } from './context'
 import type { MapLegendRange } from './engine/map-legend/plan'
 import { binEmphasisId } from './engine/map-region/category'
@@ -24,18 +21,18 @@ export type MapRangeLegendProps = MapLegendRange
  * consumer: the crossing-stable context, not the per-pixel hover state. Pointer
  * travel within a region therefore re-renders nothing, and only a crossing
  * moves this glyph. The gradient bar, the thumb, and the endpoint labels never
- * re-render either way. Its edge follows the bar's `orientation`.
+ * re-render either way. Its edge follows the bar's layout (`aside`).
  *
  * @internal
  */
 function RangeHoverArrow({
 	regionNumbers,
 	domain,
-	orientation,
+	aside,
 }: {
 	regionNumbers: (number | null)[]
 	domain: [number, number]
-	orientation: RangeOrientation
+	aside: LegendBandBreakpoint | undefined
 }) {
 	const value = useMapPointed((pointed) =>
 		pointed !== null && pointed.kind === 'region' ? regionNumbers[pointed.index] : null,
@@ -43,7 +40,7 @@ function RangeHoverArrow({
 
 	if (value == null) return null
 
-	return <RangeArrow value={value} domain={domain} slot="map-range" orientation={orientation} />
+	return <RangeArrow value={value} domain={domain} slot="map-range" aside={aside} />
 }
 
 /**
@@ -51,9 +48,9 @@ function RangeHoverArrow({
  * slider, wired to the map. Its hover arrow tracks the pointed region's value,
  * and probing the bar emphasizes that class's regions through `onFocus`,
  * dimming the rest. The `map-range` slot keeps the map's part names.
- * `orientation` follows the resolved placement (vertical beside the plot,
- * horizontal above or below), and the legend box centers a horizontal bar in
- * its stacked row.
+ * `aside` follows the placement. A side bar stands vertical beside the map from
+ * the map frame's `@lg` and lies flat under it below that. The legend box
+ * centers a horizontal bar in its stacked row.
  *
  * @internal
  */
@@ -66,7 +63,8 @@ export function MapRangeLegend({
 	thresholds,
 	regionNumbers,
 	onFocus,
-	orientation = 'vertical',
+	aside,
+	orientation,
 }: MapRangeLegendProps) {
 	return (
 		<RangeLegend
@@ -78,11 +76,10 @@ export function MapRangeLegend({
 			label={label}
 			bins={bins}
 			thresholds={thresholds}
+			aside={aside}
 			orientation={orientation}
 			onProbe={(bin) => onFocus(bin === null ? null : binEmphasisId(bin))}
-			arrow={
-				<RangeHoverArrow regionNumbers={regionNumbers} domain={domain} orientation={orientation} />
-			}
+			arrow={<RangeHoverArrow regionNumbers={regionNumbers} domain={domain} aside={aside} />}
 		/>
 	)
 }

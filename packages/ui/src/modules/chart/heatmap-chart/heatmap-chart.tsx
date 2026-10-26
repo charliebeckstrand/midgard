@@ -7,8 +7,7 @@ import { ChartAxis } from '../engine/chart-axes/axis'
 import { ChartFrame } from '../engine/chart-frame/frame'
 import { cellIndex } from '../engine/chart-geometry/heatmap'
 import { ChartHitArea } from '../engine/chart-hit-area'
-import { rangeLegendPlacement, resolveRangeLegend } from '../engine/chart-legend/range'
-import { legendAside } from '../engine/chart-legend/schema'
+import { rangeLegendBeside, resolveRangeLegend } from '../engine/chart-legend/range'
 import { readoutCell } from '../engine/chart-series'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartMarkRef } from '../engine/context'
@@ -91,16 +90,17 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 
 	const primary = series[0]
 
-	// The bar's placement, orientation, and visibility follow the caller's
-	// `legend` prop and the chart's own tier. Both read the container, not the
-	// plot, because a side bar shrinks the plot. A fixed `width` reads
-	// deterministically (SSR, tests); otherwise the observer tracks the container.
+	// The bar's visibility and its announced axis follow the caller's `legend`
+	// prop and the chart's own tier. Both read the container, not the plot,
+	// because a side bar shrinks the plot. CSS draws the layout of a side bar, so
+	// the first paint needs no width. A fixed `width` reads deterministically
+	// (SSR, tests); otherwise the observer tracks the container.
 	const { ref: containerRef, width: containerWidth } = useMeasuredWidth(width)
 
 	// A side rail takes a share of a fixed width, so the plot measures the width
-	// that remains. The placement reads the width alone, so it resolves before
-	// the frame sizes the plot.
-	const sharedWidth = legend !== false && legendAside(rangeLegendPlacement(legend, containerWidth))
+	// that remains. The answer reads the width alone, so it resolves before the
+	// frame sizes the plot.
+	const sharedWidth = legend !== false && rangeLegendBeside(legend, containerWidth)
 
 	const {
 		ref,
@@ -205,6 +205,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 							thresholds={thresholds}
 							values={matrix.values}
 							cols={cols}
+							aside={rangeLegend.aside}
 							orientation={rangeLegend.orientation}
 						/>
 					)
