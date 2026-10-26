@@ -10,7 +10,7 @@
 | [Kumi 組: Groups](./kumi/README.md) | Structure | The shared structure of a family of units: slots, axes, and defaults in the shape of a unit. A unit extends its group. Reads kiso and the recipe engine. |
 | [Kata 型: Form](./kata/README.md) | Application | Per-unit recipes: the funnel for components and primitives. |
 
-The recipe engine (`defineRecipe`, `defineKata`, `defineGroup`, `definePalette`), the color axis (`colors`, `Color`), and the `mode` / `shades` authoring helpers live in [`core/recipe/`](../core/recipe). Files in `kumi` and `kata` import them directly.
+The recipe engine (`defineRecipe`, `defineKata`, `defineGroup`, `definePalette`), the color axis (`colors`, `Color`), and the `mode` / `defineColors` authoring helpers live in [`core/recipe/`](../core/recipe). Files in `kumi` and `kata` import them directly.
 
 ## 2. Direction
 
