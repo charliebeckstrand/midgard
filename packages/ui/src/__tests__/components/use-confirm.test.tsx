@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { type ConfirmFunction, useConfirm } from '../../components/confirm'
 import { UIProvider } from '../../providers/ui'
-import { act, attach, fireEvent, renderUI, screen, waitFor } from '../helpers'
+import { act, attach, deferred, fireEvent, renderUI, screen, waitFor } from '../helpers'
 
 /** Renders a probe under a `UIProvider`, and returns the function it got. */
 function setup(provider: { portalContainer?: HTMLElement } = {}) {
@@ -159,13 +159,9 @@ describe('useConfirm', () => {
 	it('holds the dialog open, pending, while the action runs, then resolves true', async () => {
 		const { ask } = setup()
 
-		let finish = () => {}
+		const work = deferred()
 
-		const work = new Promise<void>((resolve) => {
-			finish = resolve
-		})
-
-		const { answer } = await ask({ confirm: { label: 'Delete' }, action: () => work })
+		const { answer } = await ask({ confirm: { label: 'Delete' }, action: () => work.promise })
 
 		const button = screen.getByRole('button', { name: 'Delete' })
 
@@ -181,9 +177,9 @@ describe('useConfirm', () => {
 		expect(screen.getByRole('alertdialog')).toBeInTheDocument()
 
 		await act(async () => {
-			finish()
+			work.resolve()
 
-			await work
+			await work.promise
 		})
 
 		await expect(answer).resolves.toBe(true)

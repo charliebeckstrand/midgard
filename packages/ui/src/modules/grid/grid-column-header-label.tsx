@@ -12,6 +12,7 @@ import { k } from '../../recipes/kata/grid'
 import { useGridResizing } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
+import type { PinColumn } from './grid-context-menu-utilities'
 import type { GridColumn } from './types'
 import { useGridTruncation } from './use-grid-truncation'
 
@@ -167,7 +168,7 @@ export function GridPinnedHeaderLabel({
 	label,
 }: {
 	column: Pick<GridColumn<unknown>, 'id' | 'title'>
-	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
+	pinColumn: PinColumn
 	label: ReactNode
 }) {
 	const intl = useIntl()

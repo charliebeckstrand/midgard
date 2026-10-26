@@ -5,6 +5,7 @@ import { createContext } from '../../core'
 import { noopSubscribe } from '../../utilities'
 import type { GridSettleStore } from './engine/grid-sizing/settle'
 import type { GridSortState } from './engine/grid-sort/state'
+import type { PinColumn } from './grid-context-menu-utilities'
 
 export type { GridSortState }
 
@@ -27,7 +28,7 @@ export type GridContextValue = {
 	 * Pins a column to an edge, or unpins it with `false`. Backs the header's pin
 	 * button (which unpins) and shares the mutation with the column context menu.
 	 */
-	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
+	pinColumn: PinColumn
 	stickyHeader: boolean
 }
 

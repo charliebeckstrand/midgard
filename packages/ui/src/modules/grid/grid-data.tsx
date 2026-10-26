@@ -6,6 +6,7 @@ import { dataAttr } from '../../core'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useDensityStep } from '../../primitives/density'
+import type { TextDirection } from '../../primitives/direction'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { GridContext, GridSettleContext } from './context'
 import { gridWrapperClass, resolveStep } from './engine/grid-data/classes'
@@ -876,8 +877,8 @@ export function GridData<T>({
 function useGridDialogDirection(
 	wrapperRef: RefObject<HTMLElement | null>,
 	open: boolean,
-): 'ltr' | 'rtl' {
-	const [direction, setDirection] = useState<'ltr' | 'rtl'>('ltr')
+): TextDirection {
+	const [direction, setDirection] = useState<TextDirection>('ltr')
 
 	useLayoutEffect(() => {
 		const wrapper = wrapperRef.current

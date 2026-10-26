@@ -6,7 +6,7 @@ import {
 	type GridColumnGroup,
 	type GridEditableConfig,
 } from '../../../modules/grid'
-import { fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
+import { deferred, fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
 import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -356,14 +356,9 @@ describe('grid new row (real browser)', () => {
 		})
 
 		it('holds the width while an add is in flight', async () => {
-			let resolve: () => void = () => {}
+			const flight = deferred()
 
-			const onRowAdd = vi.fn(
-				() =>
-					new Promise<void>((done) => {
-						resolve = done
-					}),
-			)
+			const onRowAdd = vi.fn(() => flight.promise)
 
 			const { slot } = renderGrid({
 				newRow: 'bottom',
@@ -403,7 +398,7 @@ describe('grid new row (real browser)', () => {
 
 			expect(getAddCell(slot).getBoundingClientRect().width).toBe(width)
 
-			resolve()
+			flight.resolve()
 
 			await waitFor(() => expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument())
 		})
@@ -437,14 +432,9 @@ describe('grid new row (real browser)', () => {
 	})
 
 	it('keeps the editors in place, and out of reach, while an async add is in flight', async () => {
-		let resolve: () => void = () => {}
+		const flight = deferred()
 
-		const onRowAdd = vi.fn(
-			() =>
-				new Promise<void>((done) => {
-					resolve = done
-				}),
-		)
+		const onRowAdd = vi.fn(() => flight.promise)
 
 		const { slot } = renderGrid({ newRow: 'bottom', onRowAdd })
 
@@ -476,7 +466,7 @@ describe('grid new row (real browser)', () => {
 
 		expect(name).not.toHaveFocus()
 
-		resolve()
+		flight.resolve()
 
 		// The accepted add clears the row and puts focus on its first editable cell.
 		await waitFor(() =>

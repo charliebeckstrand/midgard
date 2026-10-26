@@ -12,13 +12,9 @@ function buildScrollable() {
 
 	attach(scroller)
 
-	Object.defineProperty(scroller, 'clientHeight', { configurable: true, value: 100 })
-
 	// Genuinely overflows: scrollWithin only treats an ancestor as the scroller
 	// when its content exceeds its client box.
-	Object.defineProperty(scroller, 'scrollHeight', { configurable: true, value: 1000 })
-
-	Object.defineProperty(scroller, 'scrollTop', { configurable: true, value: 0, writable: true })
+	mockDomGeometry(scroller, { clientHeight: 100, scrollHeight: 1000, scrollTop: 0 })
 
 	scroller.scrollTo = vi.fn()
 
@@ -195,7 +191,7 @@ describe('useScrollWithin', () => {
 			const { scroller, node } = buildScrollable()
 
 			// Content fits the client box: not a real scroller, so scrollTo no-ops.
-			Object.defineProperty(scroller, 'scrollHeight', { configurable: true, value: 100 })
+			mockDomGeometry(scroller, { scrollHeight: 100 })
 
 			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
 
