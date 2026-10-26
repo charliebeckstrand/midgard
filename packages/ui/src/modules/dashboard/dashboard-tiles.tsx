@@ -10,7 +10,7 @@ import { dashboardMessages } from './dashboard-messages'
 import { DashboardTile } from './dashboard-tile'
 import { sortByOrder } from './engine/dashboard-layout'
 import type { DashboardSpecTile } from './engine/dashboard-spec'
-import type { DashboardWidget, DashboardWidgetRenderer } from './types'
+import type { DashboardWidget, DashboardWidgetRegistry, DashboardWidgetRenderer } from './types'
 import { useDashboardStore } from './use-dashboard-store'
 
 /**
@@ -31,6 +31,20 @@ function DashboardTileMissing({ widget }: { widget: string }) {
 			<Text tone="muted">{intl.formatMessage(dashboardMessages.missing, { widget })}</Text>
 		</div>
 	)
+}
+
+/**
+ * The widget of the kind `name` in `widgets`, or `undefined` when no widget
+ * claims it. It reads an own key only. A name from storage such as
+ * "constructor" is then no widget, and not a member of the object prototype.
+ *
+ * @internal
+ */
+export function findWidget(
+	widgets: DashboardWidgetRegistry['widgets'],
+	name: string,
+): DashboardWidget | undefined {
+	return Object.hasOwn(widgets, name) ? widgets[name] : undefined
 }
 
 /** Props for {@link DashboardTiles}. */
@@ -140,9 +154,7 @@ export function DashboardTiles({
 					slot={slot}
 					group={group}
 					index={index}
-					// An own key only. A name from storage such as "constructor" is then no
-					// widget, and not a member of the object prototype.
-					widget={Object.hasOwn(widgets, tile.widget) ? widgets[tile.widget] : undefined}
+					widget={findWidget(widgets, tile.widget)}
 					fallback={fallback}
 					mount={mount}
 					actions={actions}

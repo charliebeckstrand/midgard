@@ -9,7 +9,7 @@
  * The projection is a view. It never writes to the saved layout, and the saved
  * layout returns when the container is wide enough again. There is no
  * breakpoint: the demands of the tiles decide. The projection holds no state,
- * and the store adds a hold of 24 px to the return (`PROJECTION_HOLD`).
+ * and the store adds a hold of 24 px to the return ({@link PROJECTION_HOLD}).
  */
 
 import {
@@ -18,7 +18,27 @@ import {
 	heightAt,
 	minColumns,
 	ROW_SUBDIVISION,
+	sameGeometry,
 } from './dashboard-layout'
+
+/**
+ * The hold of the responsive projection, in px. A projection on screen reads the
+ * container width less the hold, so the saved layout returns only past the
+ * threshold plus the hold.
+ *
+ * @remarks
+ * In a scroll box with a classic scrollbar, the width of the board can follow its
+ * height. When the saved layout overflows the box and the projection fits it, the
+ * scrollbar comes and goes with the projection. With no hold, the board then
+ * switches between the two on each frame. A classic scrollbar is about 15 px
+ * wide, and the hold covers a scrollbar up to 24 px wide. One of the two states
+ * therefore holds.
+ *
+ * A wider scrollbar, such as a styled `::-webkit-scrollbar` of 30 px, still
+ * switches the board on each frame. A scroll box with `scrollbar-gutter: stable`
+ * always reserves the width of its scrollbar, so no scrollbar starts the loop.
+ */
+export const PROJECTION_HOLD = 24
 
 /**
  * The row span of a free-form tile at `w` columns. It keeps the shape of the
@@ -202,4 +222,70 @@ export function projectLayout(
 	if (shelf.used > 0) placeShelf(shelf, y, grid, placed)
 
 	return { cells: cells.map((cell) => placed.get(cell.id) ?? cell), identity: false }
+}
+
+/** One step of the projection at rest: the cells for each width under `below`. */
+export type DashboardProjectionStep = {
+	/** The width in px under which the step applies, until the next step. */
+	below: number
+	/** The cells to paint. */
+	cells: readonly DashboardCell[]
+}
+
+/**
+ * Each projection that the store paints at rest from its first measurement, from
+ * the widest step to the narrowest. A width at or past the first `below` paints
+ * `cells`. The server cannot measure, so the board writes these steps as
+ * container queries. The first paint is then the paint that the measurement keeps.
+ *
+ * @remarks
+ * The first projected frame reads the width less {@link PROJECTION_HOLD}, as the
+ * store does. A span changes only where `minWidth` plus the gutter fills a whole
+ * column count, so each step holds between two such widths. A step that paints
+ * the same cells as the step before it joins that step. A content height is not
+ * known before a measurement, so the steps do not read one.
+ */
+export function projectionSteps(
+	cells: readonly DashboardCell[],
+	{ gap, columns, demands }: Omit<DashboardProjectionOptions, 'width' | 'heights' | 'painted'>,
+): DashboardProjectionStep[] {
+	// The widest width at which a tile starves, and the widths past the hold where a span changes.
+	let start = 0
+
+	const edges: number[] = []
+
+	for (const cell of cells) {
+		const minWidth = demands.get(cell.id)?.minWidth
+
+		if (minWidth === undefined || cell.w >= columns) continue
+
+		const need = (minWidth + gap) * columns
+
+		start = Math.max(start, need / cell.w)
+
+		for (let span = cell.w; span < columns; span++) edges.push(need / span + PROJECTION_HOLD)
+	}
+
+	if (start === 0) return []
+
+	const bounds = [start, ...new Set(edges.filter((edge) => edge < start))].sort((a, b) => b - a)
+
+	const steps: DashboardProjectionStep[] = []
+
+	bounds.forEach((below, index) => {
+		const floor = bounds[index + 1] ?? 0
+
+		// Each width in the step paints the same spans, so its middle stands for the step.
+		const width = Math.max(1, (below + floor) / 2 - PROJECTION_HOLD)
+
+		const projected = projectLayout(cells, { width, gap, columns, demands }).cells
+
+		const last = steps.at(-1)
+
+		if (last !== undefined && sameGeometry(last.cells, projected)) return
+
+		steps.push({ below, cells: projected })
+	})
+
+	return steps
 }

@@ -22,7 +22,7 @@ import {
 	sameGeometry,
 	usableDemands,
 } from './dashboard-layout'
-import { projectLayout } from './dashboard-responsive'
+import { PROJECTION_HOLD, projectLayout } from './dashboard-responsive'
 import { type DashboardSelection, liveSelections } from './dashboard-scope'
 
 /**
@@ -170,25 +170,6 @@ export type DashboardStore = {
 	/** Adds a listener, and returns the function that removes it. */
 	subscribe: (listener: () => void) => () => void
 }
-
-/**
- * The hold of the responsive projection, in px. A projection on screen reads the
- * container width less the hold, so the saved layout returns only past the
- * threshold plus the hold.
- *
- * @remarks
- * In a scroll box with a classic scrollbar, the width of the board can follow its
- * height. When the saved layout overflows the box and the projection fits it, the
- * scrollbar comes and goes with the projection. With no hold, the board then
- * switches between the two on each frame. A classic scrollbar is about 15 px
- * wide, and the hold covers a scrollbar up to 24 px wide. One of the two states
- * therefore holds.
- *
- * A wider scrollbar, such as a styled `::-webkit-scrollbar` of 30 px, still
- * switches the board on each frame. A scroll box with `scrollbar-gutter: stable`
- * always reserves the width of its scrollbar, so no scrollbar starts the loop.
- */
-const PROJECTION_HOLD = 24
 
 /** One memo slot: the result for the last inputs. */
 type Memo<A extends readonly unknown[], R> = (...args: A) => R

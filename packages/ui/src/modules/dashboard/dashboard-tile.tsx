@@ -21,8 +21,12 @@ import { useDashboardStore } from './use-dashboard-store'
 import { useDashboardTileCell } from './use-dashboard-tile-cell'
 import { useDashboardTileDrag } from './use-dashboard-tile-drag'
 
-/** The minimum content width of a tile, in px: about where a chart with a legend stays legible. */
-const DEFAULT_MIN_WIDTH = 320
+/**
+ * The minimum content width of a tile, in px: about where a chart with a legend stays legible.
+ *
+ * @internal
+ */
+export const DEFAULT_MIN_WIDTH = 320
 
 /** Whether the gestures of the board are live. */
 const selectEditable = (view: DashboardView) => view.editable
@@ -311,6 +315,7 @@ export function DashboardTile(props: DashboardTileProps) {
 		<div
 			ref={setNodeRef}
 			data-slot="dashboard-tile"
+			data-tile-id={id}
 			style={{
 				gridArea: gridArea(cell),
 				// The canvas publishes the gutter, and the tile insets half of it on each side.
