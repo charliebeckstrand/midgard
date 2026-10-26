@@ -131,13 +131,27 @@ export const k = {
 		 */
 		selected: SELECTED,
 		/**
-		 * The outline on each region that a legend emphasis holds lit, in the
-		 * same ink as {@link k.region.selected}. The dim fades the other regions
-		 * toward the surface, which is one end of a sequential ramp. A lit region at
-		 * that end therefore has the color of the dimmed ones, and only the outline
-		 * tells it apart.
+		 * The outline on each region that a legend emphasis holds lit. The dim
+		 * fades the other regions toward the surface, which is one end of a
+		 * sequential ramp. A lit region at that end therefore has the color of the
+		 * dimmed ones, and only the outline tells it apart.
 		 */
-		emphasized: SELECTED,
+		emphasized: {
+			/**
+			 * On a numeric bin's fill, the outline takes the pole that contrasts
+			 * with that fill, in both modes: `dark` on a light fill, `light` on a
+			 * dark fill. The fill, not the surface, is what the outline must part
+			 * from.
+			 */
+			dark: 'stroke-zinc-900',
+			light: 'stroke-white',
+			/**
+			 * On a categorical slot's class fill, the {@link k.region.selected}
+			 * ink. A slot is a mid tone in both modes, so the surface ink parts
+			 * from it.
+			 */
+			slot: SELECTED,
+		},
 	},
 	/**
 	 * The frame chrome, on the chart's own chrome inks. The graticule takes the
