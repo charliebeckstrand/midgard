@@ -93,8 +93,8 @@ export type DashboardTilesProps = {
  * widget kinds of the nearest `DashboardWidgetProvider`. Place it inside a
  * `Dashboard`, beside any JSX tiles.
  *
- * The kind gives the tile its `ratio`, its `minWidth`, its `defaultSize`, and its
- * `minSize` and `maxSize`. The spec tile gives the title and the description,
+ * The kind gives the tile its `ratio`, its `minWidth`, its `fitContent`, its
+ * `defaultSize`, and its `minSize` and `maxSize`. The spec tile gives the title and the description,
  * and its own `defaultSize` replaces the one of the kind. The provider `mount`
  * applies to each tile. A kind that no widget claims keeps its tile, and the
  * content box states the gap.
@@ -267,6 +267,7 @@ const DashboardSpecTileView = memo(function DashboardSpecTileView({
 				// A tile with no widget shows a line of text. It demands no width, so a
 				// narrow saved span never re-packs the board or stops edit mode.
 				minWidth={widget === undefined ? 0 : widget.minWidth}
+				fitContent={widget?.fitContent}
 				defaultSize={tile.defaultSize ?? widget?.defaultSize}
 				minSize={widget?.minSize}
 				maxSize={widget?.maxSize}

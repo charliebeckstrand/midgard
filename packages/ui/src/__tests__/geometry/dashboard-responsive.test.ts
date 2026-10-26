@@ -39,7 +39,7 @@ describe('projectLayout', () => {
 
 		expect(byId.b).toMatchObject({ x: 12, y: 0, w: 12 })
 
-		expect(byId.c).toMatchObject({ x: 0, y: 27, w: 24 })
+		expect(byId.c).toMatchObject({ x: 0, y: 1, w: 24 })
 	})
 
 	it('converges on a stack in a narrow container', () => {
@@ -69,66 +69,11 @@ describe('projectLayout', () => {
 		expect(byId.stat?.w).toBeGreaterThan(6)
 	})
 
-	it('gives a tile the rows that hold the height of its content', () => {
-		const cells = [cell('list', 0, 0, 12, 44)]
+	it('numbers the shelves in place of rows', () => {
+		// Each shelf is one grid row of auto height, so the next shelf is the next index.
+		const projection = projectLayout(board, { width: 800, gap: 8, columns: 24, demands })
 
-		const starved = new Map([['list', { minWidth: 240 }]])
-
-		// 384 px over 24 columns and 4 rows a column is 4 px a row. The content and
-		// the 12 px gutter need 412 px, which is 103 rows.
-		const heights = new Map([['list', 400]])
-
-		const projection = projectLayout(cells, {
-			width: 384,
-			gap: 12,
-			columns: 24,
-			demands: starved,
-			heights,
-		})
-
-		expect(projection.cells[0]).toMatchObject({ w: 24, h: 103 })
-
-		// The saved layout ignores the height.
-		const saved = projectLayout(cells, {
-			width: 1200,
-			gap: 12,
-			columns: 24,
-			demands: starved,
-			heights,
-		})
-
-		expect(saved.cells[0]).toMatchObject({ w: 12, h: 44 })
-	})
-
-	it('stretches a tile that takes the height of its content to the height of its shelf', () => {
-		// 384 px is 16 px a column, so tile a starves at 8 columns, and the two
-		// tiles still share one shelf.
-		const cells = [cell('a', 0, 0, 8, 20), cell('b', 8, 0, 8, 20)]
-
-		const starved = new Map([
-			['a', { minWidth: 150 }],
-			['b', { minWidth: 0 }],
-		])
-
-		// A row is 4 px. Tile a needs 112 px, which is 28 rows, and tile b needs
-		// 212 px, which is 53 rows.
-		const heights = new Map([
-			['a', 100],
-			['b', 200],
-		])
-
-		const projection = projectLayout(cells, {
-			width: 384,
-			gap: 12,
-			columns: 24,
-			demands: starved,
-			heights,
-		})
-
-		expect(projection.cells.map((item) => [item.y, item.h])).toEqual([
-			[0, 53],
-			[0, 53],
-		])
+		expect(projection.cells.map((item) => item.y)).toEqual([0, 0, 1])
 	})
 })
 
@@ -162,7 +107,6 @@ describe('projectionSteps', () => {
 			demands: playground,
 			declared: new Set(),
 			width,
-			heights: new Map(),
 			gesture: null,
 			filter: undefined,
 			selections: [],

@@ -79,12 +79,16 @@ const EMPTY_SELECTIONS: readonly DashboardSelection[] = []
  * so the canvas reaches half a gutter past the container on each side. The outer
  * cards then line up with the content around the dashboard. The row unit divides
  * that wider span, so a row stays a quarter of the column pitch.
+ *
+ * The re-pack (`projected`) paints each shelf as one row of auto height, and
+ * each tile takes its height from the row unit or from its content.
  */
-function canvasStyle(columns: number, gap: number): CSSProperties {
+function canvasStyle(columns: number, gap: number, projected: boolean): CSSProperties {
 	return {
 		margin: -gap / 2,
 		gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-		gridAutoRows: `calc((100cqi + ${gap}px) / ${columns * ROW_SUBDIVISION})`,
+		gridAutoRows: projected ? 'auto' : 'var(--dashboard-row)',
+		['--dashboard-row' as string]: `calc((100cqi + ${gap}px) / ${columns * ROW_SUBDIVISION})`,
 		['--dashboard-gap' as string]: `${gap}px`,
 		['--dashboard-columns' as string]: columns,
 	}
@@ -101,24 +105,38 @@ function flattenBoardChildren(children: ReactNode): ReactNode[] {
 	)
 }
 
+/** The tiles that the children of a board declare. */
+type DeclaredTiles = {
+	/** The demands of each tile, by id. */
+	demands: Map<string, DashboardTileDemands>
+	/** The ids of the tiles with `fitContent`. */
+	fits: Set<string>
+}
+
 /**
- * The demands of the tiles that the children declare, by id: each `DashboardTile`
- * child, also inside a Fragment, and each spec tile of a `DashboardTiles` child.
- * A spec tile reads the widget of its kind in `widgets`. A component that renders
- * a tile hides its id and its demands from the board. The same limit keeps that
- * component in its own slot of the reading order.
+ * The tiles that the children declare: each `DashboardTile` child, also inside a
+ * Fragment, and each spec tile of a `DashboardTiles` child. A spec tile reads
+ * the widget of its kind in `widgets`. A component that renders a tile hides its
+ * id and its demands from the board. The same limit keeps that component in its
+ * own slot of the reading order.
  */
-function declaredDemands(
+function declaredTiles(
 	children: ReactNode,
 	widgets: DashboardWidgetRegistry['widgets'],
-): Map<string, DashboardTileDemands> {
-	const demands = new Map<string, DashboardTileDemands>()
+): DeclaredTiles {
+	const declared: DeclaredTiles = { demands: new Map(), fits: new Set() }
+
+	const add = (id: string, demands: DashboardTileDemands, fit: boolean | undefined) => {
+		declared.demands.set(id, usableDemands(demands))
+
+		if (fit === true) declared.fits.add(id)
+	}
 
 	for (const node of flattenBoardChildren(children)) {
 		if (isElementOfType(node, DashboardTile)) {
-			const { id, ratio, minWidth = DEFAULT_MIN_WIDTH } = node.props
+			const { id, ratio, minWidth = DEFAULT_MIN_WIDTH, fitContent } = node.props
 
-			demands.set(id, usableDemands({ ratio, minWidth }))
+			add(id, { ratio, minWidth }, fitContent)
 		}
 
 		if (isElementOfType(node, DashboardTiles)) {
@@ -128,12 +146,12 @@ function declaredDemands(
 				// The props that `DashboardTiles` gives the tile of this kind.
 				const minWidth = widget === undefined ? 0 : (widget.minWidth ?? DEFAULT_MIN_WIDTH)
 
-				demands.set(tile.id, usableDemands({ ratio: widget?.ratio, minWidth }))
+				add(tile.id, { ratio: widget?.ratio, minWidth }, widget?.fitContent)
 			}
 		}
 	}
 
-	return demands
+	return declared
 }
 
 /**
@@ -326,9 +344,11 @@ export type DashboardProps = AccessibleName &
  *
  * The container queries read the demands of the tiles in the children of the
  * board, and the widget kinds of a `DashboardWidgetProvider` around the board.
- * A tile that a component renders, a tile with no saved entry, and a tile whose
- * widget claims the height of its content take their place in the re-pack only
- * when the board measures.
+ * A tile that a component renders and a tile with no saved entry take their
+ * place in the re-pack only when the board measures. A tile with `fitContent`
+ * takes the height of its content from the first paint. A tile whose widget
+ * claims the height of its content takes it only after hydration, because the
+ * widget claims in an effect.
  *
  * @example
  * ```tsx
@@ -382,14 +402,14 @@ export function Dashboard({
 
 	// The children and the layout of the mount. Both serve only the paint before the first
 	// measurement, so a later change of either one needs no new read.
-	const [declared] = useState(() => declaredDemands(children, widgets))
+	const [declared] = useState(() => declaredTiles(children, widgets))
 
 	const scope = useId()
 
 	const [firstPaint] = useState(() =>
 		firstPaintRules(scope, {
 			layout: layoutValue ?? EMPTY_LAYOUT,
-			demands: declared,
+			...declared,
 			columns,
 			gap,
 		}),
@@ -403,9 +423,8 @@ export function Dashboard({
 			layout: layoutValue ?? EMPTY_LAYOUT,
 			demands: new Map(),
 			// Until the first tile registers, as on the server, the store counts these tiles as on the board.
-			declared: new Set(declared.keys()),
+			declared: new Set(declared.demands.keys()),
 			width: 0,
-			heights: new Map(),
 			gesture: null,
 			filter: filterValue,
 			selections: selectionValue ?? EMPTY_SELECTIONS,
@@ -585,7 +604,7 @@ export function Dashboard({
 							ref={canvasRef}
 							data-slot="dashboard-canvas"
 							data-measured={dataAttr(measured)}
-							style={canvasStyle(columns, gap)}
+							style={canvasStyle(columns, gap, projected)}
 							className={k({ editable }).base}
 						>
 							<DashboardTitleLevelContext value={titleLevel}>{tiles}</DashboardTitleLevelContext>

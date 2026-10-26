@@ -1,9 +1,8 @@
-import { useLayoutEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { BarChart, DonutChart, LineChart } from 'ui/chart'
 import { useDashboardRows, useDashboardScope } from 'ui/dashboard'
 import { Flex } from 'ui/flex'
 import { Grid, type GridColumn } from 'ui/grid'
-import { useContentHeightHost } from 'ui/primitives/content-height'
 import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Stat, StatDelta, StatDescription, StatValue } from 'ui/stat'
@@ -65,21 +64,10 @@ export function ProductMix() {
 	)
 }
 
-// On a narrow board, a stat tile claims the height of its content, so that only
-// the page scrolls. The trend then gets a fixed height, because a chart that
-// fills its box has no height of its own.
-function useStatFlow() {
-	const host = useContentHeightHost()
-
-	const flow = host?.available === true
-
-	useLayoutEffect(() => (flow ? host?.claim() : undefined), [flow, host])
-
-	return {
-		root: flow ? undefined : 'size-full',
-		trend: flow ? 'h-20' : 'min-h-0 flex-1',
-	}
-}
+// A stat tile takes the height of its content on a narrow board (`fitContent`).
+// The trend starts at 5rem and grows into the room of a fixed tile, so the same
+// markup fills a tile of fixed height and sets the height of a tile in the flow.
+const stat = { root: 'size-full', trend: 'min-h-0 flex-[1_1_5rem]' }
 
 export function Units() {
 	const { formatNumber } = useIntl()
@@ -90,17 +78,15 @@ export function Units() {
 
 	const data = sumBy(rows, 'month', 'units')
 
-	const flow = useStatFlow()
-
 	return (
-		<Stack gap="sm" className={flow.root}>
+		<Stack gap="sm" className={stat.root}>
 			<Stat className="h-auto">
 				<Flex align="baseline" gap="sm" wrap>
 					<StatValue size="sm">{formatNumber(units)}</StatValue>
 					<StatDescription>in {data.length} months</StatDescription>
 				</Flex>
 			</Stat>
-			<div className={flow.trend}>
+			<div className={stat.trend}>
 				<BarChart
 					aria-label="Units sold by month"
 					data={data}
@@ -150,10 +136,8 @@ export function Kpi({ value }: KpiProps) {
 		maximumFractionDigits: 1,
 	})
 
-	const flow = useStatFlow()
-
 	return (
-		<Stack gap="sm" className={flow.root}>
+		<Stack gap="sm" className={stat.root}>
 			<Stat className="h-auto">
 				<Flex align="baseline" gap="sm" wrap>
 					<StatValue size="sm">{total}</StatValue>
@@ -162,7 +146,7 @@ export function Kpi({ value }: KpiProps) {
 					</StatDelta>
 				</Flex>
 			</Stat>
-			<div className={flow.trend}>
+			<div className={stat.trend}>
 				<LineChart
 					aria-label={value === 'units' ? 'Units by month' : 'Revenue by month'}
 					data={data}

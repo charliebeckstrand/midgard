@@ -138,7 +138,7 @@ export type DashboardWidgetRenderer = (
  */
 export type DashboardWidget = Pick<
 	DashboardTileProps,
-	'ratio' | 'minWidth' | 'defaultSize' | 'minSize' | 'maxSize'
+	'ratio' | 'minWidth' | 'fitContent' | 'defaultSize' | 'minSize' | 'maxSize'
 > & {
 	/** Draws the content of each tile of this kind. */
 	render: DashboardWidgetRenderer

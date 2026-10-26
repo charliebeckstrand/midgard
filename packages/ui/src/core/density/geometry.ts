@@ -141,6 +141,7 @@ export const geometry = {
 	'size.pagination': boxHeight,
 	'size.control.base': boxHeight,
 	'size.button.icon': bareBox,
+	'size.button.row': bareBox,
 	'size.badge.base': badgeHeight,
 	'space.button.base': padIcon,
 	'space.button.label': padY,

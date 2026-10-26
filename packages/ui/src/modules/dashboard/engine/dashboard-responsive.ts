@@ -4,7 +4,8 @@
  * layout. The starved tiles widen, and the tiles fill shelves in reading order.
  * Each shelf stretches to the full span, and a narrow board becomes a stack.
  * Each tile keeps its shape: a free-form tile scales its row span with its
- * column span, and a tile with a fixed ratio derives its height.
+ * column span, and a tile with a fixed ratio derives its height. A tile that
+ * takes the height of its content gets that height from CSS, with no measurement.
  *
  * The projection is a view. It never writes to the saved layout, and the saved
  * layout returns when the container is wide enough again. There is no
@@ -17,7 +18,6 @@ import {
 	type DashboardTileDemands,
 	heightAt,
 	minColumns,
-	ROW_SUBDIVISION,
 	sameGeometry,
 } from './dashboard-layout'
 
@@ -59,17 +59,6 @@ export type DashboardProjectionOptions = {
 	columns: number
 	/** The registered demands of the tiles. */
 	demands: ReadonlyMap<string, DashboardTileDemands>
-	/**
-	 * The content height in px of each tile that takes the height of its content
-	 * in the re-pack. The re-pack gives such a tile the rows that hold this height.
-	 * The saved layout ignores it.
-	 */
-	heights?: ReadonlyMap<string, number>
-	/**
-	 * The painted width in px, which sets the height of a row. It differs from
-	 * `width` while the store holds a projection. It defaults to `width`.
-	 */
-	painted?: number
 }
 
 /** The result of one projection. */
@@ -83,43 +72,18 @@ export type DashboardProjection = {
 /** One shelf of tiles in the re-pack. */
 type Shelf = { cells: DashboardCell[]; spans: number[]; used: number }
 
-/** The inputs of one shelf that are the same for each shelf. */
-type ShelfGrid = {
-	columns: number
-	demands: ReadonlyMap<string, DashboardTileDemands>
-	heights: ReadonlyMap<string, number> | undefined
-	/** The height of one row in px. */
-	row: number
-	/** The gutter in px. */
-	gap: number
-}
-
 /**
- * The row span of the tile `cell` at `w` columns. A tile that takes the height
- * of its content gets the rows that hold that height and the gutter.
- */
-function resolveSpan(cell: DashboardCell, w: number, grid: ShelfGrid): number {
-	const content = grid.heights?.get(cell.id)
-
-	if (content !== undefined && grid.row > 0) {
-		return Math.max(1, Math.ceil((content + grid.gap) / grid.row))
-	}
-
-	return heightAt(w, scaledHeight(cell, w), grid.demands.get(cell.id)?.ratio)
-}
-
-/**
- * Places one shelf at row `y`, and returns its height. The spare columns spread
- * across the tiles in proportion to their spans, so the shelf fills the width.
- * A tile that takes the height of its content takes the height of the shelf.
+ * Places one shelf as shelf `y`. The spare columns spread across the tiles in
+ * proportion to their spans, so the shelf fills the width.
  */
 function placeShelf(
 	shelf: Shelf,
 	y: number,
-	grid: ShelfGrid,
+	columns: number,
+	demands: ReadonlyMap<string, DashboardTileDemands>,
 	into: Map<string, DashboardCell>,
-): number {
-	const spare = grid.columns - shelf.used
+): void {
+	const spare = columns - shelf.used
 
 	const extras = shelf.spans.map((span) => Math.floor((spare * span) / shelf.used))
 
@@ -127,42 +91,34 @@ function placeShelf(
 
 	let x = 0
 
-	let height = 0
-
 	shelf.cells.forEach((cell, index) => {
 		const w = (shelf.spans[index] ?? cell.w) + (extras[index] ?? 0) + (remainder > 0 ? 1 : 0)
 
 		if (remainder > 0) remainder -= 1
 
-		const h = resolveSpan(cell, w, grid)
+		const h = heightAt(w, scaledHeight(cell, w), demands.get(cell.id)?.ratio)
 
 		into.set(cell.id, { ...cell, x, y, w, h })
 
 		x += w
-
-		height = Math.max(height, h)
 	})
-
-	// A tile that takes the height of its content grows to the height of its
-	// shelf, so the cards on one shelf end on one line.
-	for (const cell of shelf.cells) {
-		const placed = into.get(cell.id)
-
-		if (placed !== undefined && grid.heights?.has(cell.id) === true) {
-			into.set(cell.id, { ...placed, h: height })
-		}
-	}
-
-	return height
 }
 
 /**
  * Projects `cells` for a container `width` px wide. It returns the input when
  * each tile has the width that it demands.
+ *
+ * @remarks
+ * In the re-pack, `y` is the index of the shelf, and not a row. The board paints
+ * each shelf as one grid row of auto height. CSS then gives the shelf the height
+ * of its tallest tile, also of a tile that takes the height of its content, and
+ * the next shelf starts under it. `h` is the row span of a tile with a fixed
+ * shape. A tile that takes the height of its content ignores `h`, and it
+ * stretches to the height of its shelf.
  */
 export function projectLayout(
 	cells: readonly DashboardCell[],
-	{ width, gap, columns, demands, heights, painted = width }: DashboardProjectionOptions,
+	{ width, gap, columns, demands }: DashboardProjectionOptions,
 ): DashboardProjection {
 	if (width <= 0) return { cells, identity: true }
 
@@ -185,16 +141,6 @@ export function projectLayout(
 
 	if (!starved) return { cells, identity: true }
 
-	// The rows follow the column pitch. The painted width spans the two outer
-	// half-gutters, so a row is that width over the row count of the board.
-	const grid: ShelfGrid = {
-		columns,
-		demands,
-		heights,
-		row: painted / (columns * ROW_SUBDIVISION),
-		gap,
-	}
-
 	const order = cells.toSorted((a, b) => a.y - b.y || a.x - b.x)
 
 	const placed = new Map<string, DashboardCell>()
@@ -207,7 +153,9 @@ export function projectLayout(
 		const span = spans.get(cell.id) ?? cell.w
 
 		if (shelf.used > 0 && shelf.used + span > columns) {
-			y += placeShelf(shelf, y, grid, placed)
+			placeShelf(shelf, y, columns, demands, placed)
+
+			y += 1
 
 			shelf = { cells: [], spans: [], used: 0 }
 		}
@@ -219,7 +167,7 @@ export function projectLayout(
 		shelf.used += span
 	}
 
-	if (shelf.used > 0) placeShelf(shelf, y, grid, placed)
+	if (shelf.used > 0) placeShelf(shelf, y, columns, demands, placed)
 
 	return { cells: cells.map((cell) => placed.get(cell.id) ?? cell), identity: false }
 }
@@ -242,12 +190,11 @@ export type DashboardProjectionStep = {
  * The first projected frame reads the width less {@link PROJECTION_HOLD}, as the
  * store does. A span changes only where `minWidth` plus the gutter fills a whole
  * column count, so each step holds between two such widths. A step that paints
- * the same cells as the step before it joins that step. A content height is not
- * known before a measurement, so the steps do not read one.
+ * the same cells as the step before it joins that step.
  */
 export function projectionSteps(
 	cells: readonly DashboardCell[],
-	{ gap, columns, demands }: Omit<DashboardProjectionOptions, 'width' | 'heights' | 'painted'>,
+	{ gap, columns, demands }: Omit<DashboardProjectionOptions, 'width'>,
 ): DashboardProjectionStep[] {
 	// The widest width at which a tile starves, and the widths past the hold where a span changes.
 	let start = 0
