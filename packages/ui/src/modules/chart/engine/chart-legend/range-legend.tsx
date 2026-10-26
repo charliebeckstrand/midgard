@@ -24,7 +24,9 @@ import { k } from '../../../../recipes/kata/chart'
 import type { Orientation } from '../../../../types'
 import { binIndex, quantileBinIndex } from '../../../../utilities'
 import { clamp } from '../../../../utilities/clamp'
+import { holdTextSelection } from '../../../../utilities/hold-text-selection'
 import { hasBrowserModifier } from '../../../../utilities/modifier-keys'
+import { isPrimaryPress } from '../../../../utilities/primary-press'
 import { chartMessages } from '../chart-messages'
 
 /**
@@ -356,6 +358,7 @@ type RangeTrackProps = {
 	valueText: string
 	/** The host's hover glyph pinned into the track. */
 	arrow?: ReactNode
+	onPointerDown: (event: PointerEvent<HTMLDivElement>) => void
 	onPointerMove: (event: PointerEvent<HTMLDivElement>) => void
 	onPointerLeave: (event: PointerEvent<HTMLDivElement>) => void
 	onFocus: (event: FocusEvent<HTMLDivElement>) => void
@@ -370,6 +373,10 @@ type RangeTrackProps = {
  * and a horizontal bar lays short and wide with a vertical one. The same slider
  * therefore reads either way.
  *
+ * A touch scrubs the bar. The press reads the value under the finger, and a
+ * drag along the bar reads on. A drag across the bar scrolls the page. A hold
+ * on the bar opens no context menu, because the finger reads the scale there.
+ *
  * @internal
  */
 function RangeTrack({
@@ -382,6 +389,7 @@ function RangeTrack({
 	probeOffset,
 	valueText,
 	arrow,
+	onPointerDown,
 	onPointerMove,
 	onPointerLeave,
 	onFocus,
@@ -413,8 +421,17 @@ function RangeTrack({
 			aria-valuemax={max}
 			aria-valuenow={probe ?? min}
 			aria-valuetext={valueText}
-			className={cn('relative', horizontal ? 'h-5 w-full' : 'w-5', k.track, k.focus)}
+			// A touch hold here scrubs the scale. It does not open the context menu.
+			data-touch-readout=""
+			className={cn(
+				'relative',
+				// A drag along the bar scrubs, and a drag across it scrolls the page.
+				horizontal ? 'h-5 w-full touch-pan-y' : 'w-5 touch-pan-x',
+				k.track,
+				k.focus,
+			)}
 			style={gradient}
+			onPointerDown={onPointerDown}
 			onPointerMove={onPointerMove}
 			onPointerLeave={onPointerLeave}
 			onFocus={onFocus}
@@ -452,9 +469,10 @@ function RangeTrack({
  * under the cursor, with a thumb that follows it and a live value readout. The
  * host, quantized into classes, emphasizes whichever class that value falls in
  * through {@link RangeLegendProps.onProbe}. Its response steps at the class
- * edges, while the thumb does not. Arrow keys walk the classes once the bar has
- * focus. Up / Right step toward the max, Down / Left toward the min, and Home /
- * End jump to the ends. The `aria-orientation` attribute announces the axis the
+ * edges, while the thumb does not. A touch scrubs the bar the same way, from
+ * the press to the lift, and a hold there opens no context menu. Arrow keys
+ * walk the classes once the bar has focus. Up / Right step toward the max,
+ * Down / Left toward the min, and Home / End jump to the ends. The `aria-orientation` attribute announces the axis the
  * bar runs along. Screen readers get the class range through `aria-valuetext`
  * and full parity from the host's visually-hidden data table. The `orientation`
  * prop transposes the whole thing: the gradient, the pointer axis, the endpoint
@@ -581,6 +599,14 @@ export function RangeLegend({
 					probeOffset={probeOffset}
 					valueText={binLabel(getBin(probe ?? min))}
 					arrow={arrow}
+					// A touch has no hover, so the press reads the value under the finger.
+					onPointerDown={(event) => {
+						if (!isPrimaryPress(event)) return
+
+						holdTextSelection(event)
+
+						track(event)
+					}}
 					onPointerMove={track}
 					// The keyboard side rides `:focus-visible`, the same gate as the ring. A
 					// click, or a tab that comes back, focuses the track with no ring, so
