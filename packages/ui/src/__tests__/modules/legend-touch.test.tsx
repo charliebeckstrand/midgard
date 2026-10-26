@@ -25,9 +25,10 @@ function map() {
 	)
 }
 
-function bar() {
+function bar(axes?: { y: { max: number } }) {
 	return renderUI(
 		<BarChart
+			axes={axes}
 			aria-label="Revenue by month"
 			data={DATA}
 			series={[
@@ -87,6 +88,68 @@ describe('a legend entry', () => {
 		fireEvent.pointerLeave(reference)
 
 		fireEvent.pointerEnter(reference, { pointerType: 'touch' })
+
+		expect(receded(container)).toBe(false)
+	})
+})
+
+/**
+ * A rule that comes back through its chip recedes the marks to it only while a
+ * pointer or a visible focus holds the chip, and only when the plot draws it. A
+ * tap leaves neither, so a tap that brings the rule back dims nothing.
+ */
+describe('a chart reference chip that brings its rule back', () => {
+	it('recedes nothing after a tap', () => {
+		const { container } = bar()
+
+		const reference = bySlot(container, 'chart-legend-reference') as Element
+
+		// A tap: the touch `pointerenter` is not a point, and `pointerleave` comes before the click.
+		for (let tap = 0; tap < 2; tap++) {
+			fireEvent.pointerEnter(reference, { pointerType: 'touch' })
+
+			fireEvent.pointerLeave(reference, { pointerType: 'touch' })
+
+			fireEvent.click(reference)
+		}
+
+		expect(reference).toHaveAttribute('aria-pressed', 'true')
+
+		expect(receded(container)).toBe(false)
+	})
+
+	it('recedes the marks while the mouse rests on the chip', () => {
+		const { container } = bar()
+
+		const reference = bySlot(container, 'chart-legend-reference') as Element
+
+		fireEvent.pointerEnter(reference, { pointerType: 'mouse' })
+
+		fireEvent.click(reference)
+
+		expect(receded(container)).toBe(false)
+
+		fireEvent.click(reference)
+
+		expect(reference).toHaveAttribute('aria-pressed', 'true')
+
+		expect(receded(container)).toBe(true)
+	})
+
+	it('recedes nothing for a rule outside a pinned domain', () => {
+		const { container } = bar({ y: { max: 50 } })
+
+		const reference = bySlot(container, 'chart-legend-reference') as Element
+
+		fireEvent.pointerEnter(reference, { pointerType: 'mouse' })
+
+		expect(receded(container)).toBe(false)
+
+		fireEvent.click(reference)
+
+		fireEvent.click(reference)
+
+		expect(reference).toHaveAttribute('aria-pressed', 'true')
 
 		expect(receded(container)).toBe(false)
 	})

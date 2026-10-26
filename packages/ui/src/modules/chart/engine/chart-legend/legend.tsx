@@ -10,6 +10,7 @@ import { Text } from '../../../../components/text'
 import { ariaAttr, cn, dataAttr } from '../../../../core'
 import { useA11yRoving } from '../../../../hooks'
 import { isRtl } from '../../../../hooks/a11y/logical-arrow'
+import { useReportedChange } from '../../../../hooks/use-reported-change'
 import { useIntl } from '../../../../primitives/intl/use-intl'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import { chartMessages } from '../chart-messages'
@@ -522,8 +523,9 @@ function splitLegend(
  * by design, with the forced-on legend holding the switch that brings it back.
  * Emphasis is a no-op with no sibling marks to dim.
  *
- * @remarks The row is one Tab stop. The arrow keys rove between the switches
- * (Home / End jump to the ends), and Escape drops focus, clearing the emphasis.
+ * @remarks The row is one Tab stop. The arrow keys rove between its controls:
+ * the switches, the page buttons, and the `+N` chip (Home / End jump to the
+ * ends). Escape drops focus, clearing the emphasis.
  * Pointer and keyboard share the one emphasis slot: the pointed-at entry wins,
  * and leaving it reverts to a still-held keyboard focus rather than clearing.
  * That focus side rides `:focus-visible`, the same gate as the ring. A pointer
@@ -637,17 +639,20 @@ export function ChartLegend({
 			references.find((reference) => reference.index === index)?.drawn !== false,
 	)
 
-	// A toggle sets the recede to the state it leaves. The hidden set of this
-	// render is the state before the toggle, so the emphasis cannot read it. A rule
-	// that comes back recedes the marks to it, because the pointer or the keyboard
-	// focus is still on its chip. A rule that goes recedes nothing.
+	// A rule that goes recedes nothing, so its toggle clears the recede at once.
 	const toggleReference = (index: number) => {
 		const off = referenceHidden.has(index)
 
 		onToggleReference?.(index)
 
-		setReferenceActive(off ? index : null)
+		if (!off) setReferenceActive(null)
 	}
+
+	// A rule that comes back recedes the marks only when the plot draws it and a
+	// pointer or a visible focus still holds its chip. A tap leaves neither. The
+	// hidden set of the click is the state before the toggle, and a hidden rule
+	// reads as not drawn, so the emphasis reads again from each committed set.
+	useReportedChange(referenceHidden, referenceEmphasis.sync)
 
 	// Escape closes the overflow popover and unmounts the switch under a resting
 	// pointer, or the switch that holds the focus, so no `pointerleave` or `blur`
@@ -676,11 +681,16 @@ export function ChartLegend({
 	// follow the layout: Up/Down down the panel, Left/Right across the wrap row.
 	const orientation = panel ? 'vertical' : 'horizontal'
 
-	// Rove across the focusable controls (series switches and reference chips
-	// alike), sharing the one Tab stop the toolbar exposes.
+	// Rove across the focusable controls (series switches, page buttons,
+	// reference chips, and the `+N` chip), sharing the one Tab stop the toolbar
+	// exposes.
 	const onKeyDown = useA11yRoving(ref, {
-		itemSelector:
-			'button[data-slot="chart-legend-item"], button[data-slot="chart-legend-reference"]',
+		itemSelector: [
+			'button[data-slot="chart-legend-item"]',
+			'button[data-slot="chart-legend-page"]',
+			'button[data-slot="chart-legend-reference"]',
+			'button[data-slot="chart-legend-more"]',
+		].join(', '),
 		orientation,
 		manageTabIndex: true,
 		escapeBlurs: true,
@@ -733,6 +743,7 @@ export function ChartLegend({
 						type="button"
 						size="sm"
 						variant="plain"
+						data-slot="chart-legend-page"
 						aria-label={intl.formatMessage(chartMessages.previousEntries)}
 						aria-disabled={ariaAttr(firstPage)}
 						data-disabled={dataAttr(firstPage)}
@@ -760,6 +771,7 @@ export function ChartLegend({
 						type="button"
 						size="sm"
 						variant="plain"
+						data-slot="chart-legend-page"
 						aria-label={intl.formatMessage(chartMessages.nextEntries)}
 						aria-disabled={ariaAttr(lastPage)}
 						data-disabled={dataAttr(lastPage)}
@@ -794,6 +806,7 @@ export function ChartLegend({
 							type="button"
 							size="sm"
 							variant="plain"
+							data-slot="chart-legend-more"
 							aria-label={intl.formatMessage(chartMessages.showMore, { count: overflowCount })}
 						>
 							<Text as="span" tone="muted" size="sm" className="tabular-nums">

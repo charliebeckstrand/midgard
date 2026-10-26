@@ -82,6 +82,11 @@ export const k = {
 	hit: ['data-hit:cursor-pointer'],
 	/** The keyboard focus ring on the plot region when arrow-key navigation is enabled, and on the range legend's scale-bar slider. */
 	focus: sen.focus.ring,
+	/**
+	 * The range legend's scale-bar slider track. It paints only with its gradient,
+	 * which forced colors remove, so it keeps an outline there.
+	 */
+	track: sen.forced.outline,
 	/** The range legend's hover arrow: foreground ink (via `currentColor`), so the class glyph reads over the panel. */
 	arrow: text.default,
 	/** The range legend's probe marker: a white tick with a 1 px edge, so it reads over any stop of the scale. */

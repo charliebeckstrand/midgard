@@ -106,6 +106,36 @@ describe('chart stacked legend row cap (real browser)', () => {
 		expect(await count('rtl')).toBe(await count('ltr'))
 	})
 
+	// The chip sits inside the toolbar, so it shares the one Tab stop, and the
+	// arrows reach it from the switches.
+	it('roves to the chip with the arrows, and keeps it off the Tab order at rest', async () => {
+		const { container } = renderUI(
+			<BarChart aria-label="Ten series" data={data} series={series} width={360} legend="top" />,
+		)
+
+		await waitFor(() => expect(overflowChip(container)).not.toBeNull())
+
+		const chip = overflowChip(container) as HTMLButtonElement
+
+		const row = getSlot(container, 'chart-legend')
+
+		const switches = allBySlot(row, 'chart-legend-item') as HTMLButtonElement[]
+
+		await waitFor(() => expect(chip.tabIndex).toBe(-1))
+
+		expect(switches.filter((element) => element.tabIndex === 0)).toHaveLength(1)
+
+		;(switches[0] as HTMLButtonElement).focus()
+
+		await userEvent.keyboard('{End}')
+
+		expect(document.activeElement).toBe(chip)
+
+		await userEvent.keyboard('{ArrowLeft}')
+
+		expect(document.activeElement).toBe(switches.at(-1))
+	})
+
 	it('opens the overflow as a switchboard whose switches toggle the same series', async () => {
 		const { container } = renderUI(
 			<BarChart aria-label="Ten series" data={data} series={series} width={360} legend="top" />,

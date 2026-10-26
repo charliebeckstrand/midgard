@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { k as accordion } from '../../recipes/kata/accordion'
 import { k as alert } from '../../recipes/kata/alert'
+import { k as chart } from '../../recipes/kata/chart'
 import { k as dashboard } from '../../recipes/kata/dashboard'
 import { k as grid } from '../../recipes/kata/grid'
 import { k as menu } from '../../recipes/kata/menu'
@@ -43,6 +44,7 @@ describe('edges and state marks under forced colors', () => {
 		['the PDF region', region(false)],
 		['the selected PDF region', region(true)],
 		['the landing placeholder of a dashboard drag', dashboard().placeholder],
+		['the range legend track', chart.track],
 	]
 
 	it.each(parts)('keeps a paint on %s', (_name, part) => {

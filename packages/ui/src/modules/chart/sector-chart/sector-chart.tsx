@@ -375,8 +375,9 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 
 	// Each drawn slice is one keyboard stop at its centroid: the same anchor the
 	// pointer hover uses; a row with no slice (non-positive or toggled off) offers
-	// none, so the arrow keys step over it. Indexed once so the per-row lookup is
-	// O(1) rather than a scan of the slices.
+	// none, so the arrow keys step over it. The pie has no value axis, so both
+	// arrow pairs walk the slices (`categoryArrows`). Indexed once so the per-row
+	// lookup is O(1) rather than a scan of the slices.
 	const sliceByIndex = new Map(slices.map((slice) => [slice.index, slice]))
 
 	const focusPoints = data.map((_, index) => {
@@ -453,7 +454,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			hidden={sliceless}
 			seriesCount={values.length}
 			tooltip={showTooltip}
-			focus={{ points: focusPoints, series: focusSeries }}
+			focus={{ points: focusPoints, series: focusSeries, categoryArrows: true }}
 			keyboardEmphasis
 			onActivate={activateSlice}
 			className={className}

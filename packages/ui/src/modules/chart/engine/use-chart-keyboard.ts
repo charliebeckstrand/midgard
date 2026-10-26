@@ -39,6 +39,10 @@ import { type ChartHoverStore, samePoint } from './context'
  * band arrows then walk the columns, the value arrows walk the rows, and the
  * tooltip reads one cell.
  *
+ * `categoryArrows` makes both arrow pairs step the categories. A pie sets it:
+ * each slice is one stop and the pie has no value axis, so the value arrows
+ * would land on the same slice again. Omitted, the orientation maps the arrows.
+ *
  * @internal
  */
 export type ChartFocusTargets = {
@@ -46,6 +50,7 @@ export type ChartFocusTargets = {
 	references?: (number | null)[]
 	series?: number[][]
 	indices?: number[][]
+	categoryArrows?: boolean
 }
 
 /**
@@ -249,20 +254,37 @@ export function cartesianFocus(
 /** What a key does under an orientation: step the category, cycle the value points, jump, or clear. @internal */
 type CursorAction = 'category+' | 'category-' | 'value+' | 'value-' | 'first' | 'last' | 'clear'
 
+/** An arrow when both pairs step categories: Right and Down go forward, Left and Up go back. @internal */
+function categoryArrowAction(key: string): CursorAction | null {
+	if (key === 'ArrowRight' || key === 'ArrowDown') return 'category+'
+
+	if (key === 'ArrowLeft' || key === 'ArrowUp') return 'category-'
+
+	return null
+}
+
 /**
  * Reads a key against the orientation. The band axis arrows step categories, and
  * the value axis arrows cycle the series' value points. A horizontal chart
- * (categories down the side) therefore transposes which pair does which. Home /
- * End jump to the ends, Escape clears; anything else is `null` and left to the browser.
+ * (categories down the side) therefore transposes which pair does which. With
+ * `categoryArrows`, both pairs step categories ({@link categoryArrowAction}).
+ * Home / End jump to the ends, Escape clears; anything else is `null` and left
+ * to the browser.
  *
  * @internal
  */
-function keyAction(key: string, orientation: ChartOrientation): CursorAction | null {
+function keyAction(
+	key: string,
+	orientation: ChartOrientation,
+	categoryArrows = false,
+): CursorAction | null {
 	if (key === 'Escape') return 'clear'
 
 	if (key === 'Home') return 'first'
 
 	if (key === 'End') return 'last'
+
+	if (categoryArrows) return categoryArrowAction(key)
 
 	const vertical = orientation === 'vertical'
 
@@ -383,7 +405,7 @@ export function moveCursor(
 	targets: ChartFocusTargets,
 	orientation: ChartOrientation,
 ): CursorMove {
-	const action = keyAction(key, orientation)
+	const action = keyAction(key, orientation, targets.categoryArrows)
 
 	if (action === null) return { handled: false, cursor }
 

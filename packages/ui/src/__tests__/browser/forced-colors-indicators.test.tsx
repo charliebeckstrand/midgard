@@ -30,6 +30,7 @@ import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { Timeline, TimelineItem, TimelineTitle } from '../../components/timeline'
 import { Tree, TreeItem } from '../../components/tree'
+import { HeatmapChart } from '../../modules/chart'
 import { ChatList, ChatListItem } from '../../modules/chat'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { bySlot, frames, present, renderUI, waitFor } from '../helpers'
@@ -405,6 +406,35 @@ describe('controls show their state under forced colors (real browser)', () => {
 		)
 		const indicator = present(container.querySelector('[data-slot=active-indicator]'), 'indicator')
 		expect(getComputedStyle(indicator).outlineStyle).not.toBe('none')
+	})
+
+	// The range legend track paints only with a gradient, which forced colors
+	// remove, so the slider keeps an outline.
+	it('range legend: the track draws an edge', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={[
+					{ day: 'Mon', hour: '9', commits: 1 },
+					{ day: 'Tue', hour: '9', commits: 5 },
+				]}
+				series={[
+					{
+						xKey: 'hour',
+						yKey: 'day',
+						colorKey: 'commits',
+						colorRange: ['#f7fee7', '#365314'],
+						colorName: 'Commits',
+					},
+				]}
+				width={400}
+			/>,
+		)
+		const track = present(container.querySelector('[data-slot=heatmap-range-track]'), 'track')
+		const style = getComputedStyle(track)
+		expect(style.backgroundImage).toBe('none')
+		expect(style.outlineStyle).not.toBe('none')
+		expect(Number.parseFloat(style.outlineWidth)).toBeGreaterThan(0)
 	})
 
 	// The rails are pseudo-element backgrounds, and a solid dot is a background.
