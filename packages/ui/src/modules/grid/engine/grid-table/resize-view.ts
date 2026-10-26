@@ -4,6 +4,7 @@ import type {
 	columnResizingState,
 } from '@tanstack/react-table'
 import { getDefaultColumnSizingColumnDef } from '@tanstack/react-table/static-functions'
+import { isRtl } from '../../../../hooks/a11y/logical-arrow'
 import { clamp } from '../../../../utilities'
 import { finiteOrUndefined } from '../../../../utilities/parse-numeric'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
@@ -217,10 +218,9 @@ function withDirection<T>(
 	handler: (event: unknown) => void,
 ): (event: unknown) => void {
 	return (event) => {
-		const target = (event as { currentTarget?: unknown }).currentTarget
+		const target = (event as { currentTarget?: EventTarget | null }).currentTarget ?? null
 
-		const direction =
-			target instanceof Element && getComputedStyle(target).direction === 'rtl' ? 'rtl' : 'ltr'
+		const direction = isRtl(target) ? 'rtl' : 'ltr'
 
 		// The updater reads the current options of the engine. The table object of
 		// a past render holds the options of that render.

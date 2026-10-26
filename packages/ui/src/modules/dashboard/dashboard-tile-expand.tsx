@@ -1,7 +1,7 @@
 'use client'
 
 import { Maximize2 } from 'lucide-react'
-import { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react'
+import { type ReactNode, type RefObject, useEffect, useEffectEvent, useState } from 'react'
 import { Button } from '../../components/button'
 import {
 	Dialog,
@@ -93,17 +93,11 @@ export function DashboardTileExpand({
 	const [seen, setSeen] = useState(false)
 
 	// The cleanup of an unmount reads the open state that the last render committed.
-	const openRef = useRef(false)
+	const handBack = useEffectEvent(() => {
+		if (open) handBackFocus(shell.current)
+	})
 
-	useEffect(() => {
-		openRef.current = open
-	}, [open])
-
-	useEffect(() => {
-		return () => {
-			if (openRef.current) handBackFocus(shell.current)
-		}
-	}, [shell])
+	useEffect(() => () => handBack(), [])
 
 	const handleOpenChange = (next: boolean) => {
 		if (next) setSeen(true)

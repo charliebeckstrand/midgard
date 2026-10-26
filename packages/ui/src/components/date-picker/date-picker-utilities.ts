@@ -1,5 +1,8 @@
 import {
 	endOfMonth as calendarEndOfMonth,
+	endOfYear as calendarEndOfYear,
+	startOfMonth as calendarStartOfMonth,
+	startOfYear as calendarStartOfYear,
 	type DateDuration,
 	DateFormatter,
 } from '@internationalized/date'
@@ -81,7 +84,7 @@ export function clampDate(date: Date, min?: Date, max?: Date): Date {
 
 /** Local-midnight first day of `date`'s month. @internal */
 export function startOfMonth(date: Date): Date {
-	return fromCalendarDate(toCalendarDate(date).set({ day: 1 }))
+	return fromCalendarDate(calendarStartOfMonth(toCalendarDate(date)))
 }
 
 /** Local-midnight last day of `date`'s month (28–31). @internal */
@@ -91,10 +94,10 @@ export function endOfMonth(date: Date): Date {
 
 /** Local-midnight January 1st of `date`'s year. @internal */
 export function startOfYear(date: Date): Date {
-	return fromCalendarDate(toCalendarDate(date).set({ month: 1, day: 1 }))
+	return fromCalendarDate(calendarStartOfYear(toCalendarDate(date)))
 }
 
 /** Local-midnight December 31st of `date`'s year. @internal */
 export function endOfYear(date: Date): Date {
-	return fromCalendarDate(toCalendarDate(date).set({ month: 12, day: 31 }))
+	return fromCalendarDate(calendarEndOfYear(toCalendarDate(date)))
 }

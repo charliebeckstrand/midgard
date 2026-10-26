@@ -1,6 +1,7 @@
 'use client'
 
 import type { DateDuration } from '@internationalized/date'
+import { useComposedRefs } from 'motion/react'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 
 import { useLocale } from '../../providers/locale'
@@ -177,13 +178,9 @@ export function useDatePickerState({
 	// Captures the dialog for `useDatePickerInputTab`'s reference-side handler.
 	const floatingRef = useRef<HTMLElement | null>(null)
 
-	const setFloating = useCallback(
-		(node: HTMLElement | null) => {
-			floatingRef.current = node
-
-			refs.setFloating(node)
-		},
-		[refs],
+	const setFloating: (node: HTMLElement | null) => void = useComposedRefs(
+		floatingRef,
+		refs.setFloating,
 	)
 
 	const onTriggerKeyDown = useDatePickerKeyboard({

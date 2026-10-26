@@ -3,6 +3,7 @@
 import { useComposedRefs } from 'motion/react'
 import { type RefCallback, useEffect, useRef } from 'react'
 import { useScrollRegion } from '../../hooks'
+import { isRtl } from '../../hooks/a11y/logical-arrow'
 
 /**
  * The scroll of the tag row of a TagInput while the row stays on one line.
@@ -41,9 +42,7 @@ export function useTagInputRowScroll(
 
 		if (!grew || wrap || !list) return
 
-		const rtl = getComputedStyle(list).direction === 'rtl'
-
-		list.scrollLeft = rtl ? -list.scrollWidth : list.scrollWidth
+		list.scrollLeft = isRtl(list) ? -list.scrollWidth : list.scrollWidth
 	}, [count, wrap])
 
 	return wrap ? undefined : setRef
