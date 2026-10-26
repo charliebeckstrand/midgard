@@ -62,9 +62,11 @@ export function EventsButton() {
 		)
 	}
 
+	const slots = k({ layout })
+
 	// The attribute marks the button as a part of the tools (`TOOL_ATTRIBUTE`).
 	return (
-		<span data-events-tool="" className={k({ layout }).button}>
+		<span data-events-tool="" className={slots.button}>
 			<Button
 				variant="bare"
 				aria-label={intl.formatMessage(eventsMessages.events)}
@@ -74,7 +76,7 @@ export function EventsButton() {
 				onFocus={preload}
 			>
 				<Icon icon={<Activity />} className="[:root[data-events-capture]_&]:text-red-600" />
-				<span className="absolute end-1 top-1 hidden size-1.5 rounded-full bg-red-500 [:root[data-events-reports]_&]:block" />
+				<span className={slots.dot} />
 			</Button>
 			{open !== undefined && Sheet && <Sheet open={open} onOpenChange={setOpen} />}
 		</span>

@@ -30,7 +30,7 @@ export type MapStop = {
 }
 
 /** As much of a registered mark as its stops need. @internal */
-type MapAnchoredEntry = Pick<MapOverlayEntry, 'id' | 'stopsAt'>
+type MapAnchoredEntry = Pick<MapOverlayEntry, 'id' | 'stopsAt' | 'getIndex'>
 
 /**
  * The cursor's stop list: every region at its centroid, then every registered
@@ -75,11 +75,26 @@ export function mapStops(
 		for (const [stop, at] of entry.stopsAt().entries()) {
 			const point = project(at)
 
-			if (point !== null) stops.push({ target: { kind: 'entry', id: entry.id, stop }, at: point })
+			if (point !== null) stops.push({ target: entryTarget(entry, stop), at: point })
 		}
 	}
 
 	return stops
+}
+
+/**
+ * The target of one stop of a mark. A mark whose stops regroup gives the index
+ * that it reports for the stop, so the target holds the point and not only the
+ * position of its stop.
+ *
+ * @internal
+ */
+function entryTarget(entry: MapAnchoredEntry, stop: number): MapHoverTarget {
+	const reported = entry.getIndex?.(stop)
+
+	return reported === undefined
+		? { kind: 'entry', id: entry.id, stop }
+		: { kind: 'entry', id: entry.id, stop, reported }
 }
 
 /**

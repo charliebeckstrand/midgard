@@ -7,13 +7,14 @@
  * its color, as a progress bar does.
  */
 import { defineKata } from '../../core/recipe'
-import { dan, iro, ji, kasane, narabi, omote } from '../kiso'
+import { dan, iro, ji, kasane, narabi, omote, sen } from '../kiso'
 
 const { meter, palette, text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { bg } = omote
+const { forced } = sen
 
 export const k = defineKata({
 	base: [flex.col, dan.gap.scale.sm],
@@ -21,11 +22,12 @@ export const k = defineKata({
 		meter: [flex.row, dan.gap.scale.xs],
 		segment: {
 			base: [flex.fill, 'h-1', rounded.full, ...bg.skeleton.base],
+			// Forced colors remove the fill, so a filled segment paints the `mark`.
 			level: {
-				weak: meter.red.bg,
-				fair: meter.amber.bg,
-				good: meter.blue.bg,
-				strong: meter.green.bg,
+				weak: [meter.red.bg, forced.mark],
+				fair: [meter.amber.bg, forced.mark],
+				good: [meter.blue.bg, forced.mark],
+				strong: [meter.green.bg, forced.mark],
 				empty: '',
 			},
 		},

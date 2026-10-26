@@ -12,6 +12,7 @@ import { DatePicker } from '../../components/date-picker'
 import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { NavItem, NavList } from '../../components/nav'
+import { PasswordStrength } from '../../components/password-strength'
 import { ProgressBar } from '../../components/progress'
 import { Rating } from '../../components/rating'
 import { Segment, SegmentItem } from '../../components/segment'
@@ -639,5 +640,56 @@ describe('Swatch under forced colors (real browser)', () => {
 		expect(style.backgroundImage).toContain('repeating-linear-gradient')
 
 		expect(style.color).not.toBe(canvasColor())
+	})
+})
+
+/** The color that forced colors give a selection, which a `mark` paints. */
+function highlightColor(): string {
+	const probe = document.createElement('div')
+	probe.style.cssText = 'forced-color-adjust: none; background-color: Highlight'
+	document.body.append(probe)
+	const highlight = getComputedStyle(probe).backgroundColor
+	probe.remove()
+	return highlight
+}
+
+/** Whether an element in `container` paints the `Highlight` of a `mark`. */
+function paintsMark(container: Element): boolean {
+	const highlight = highlightColor()
+	return [...container.querySelectorAll('*')].some(
+		(el) => getComputedStyle(el).backgroundColor === highlight,
+	)
+}
+
+/**
+ * A search match of a JsonTree and the filled segments of a password-strength
+ * meter show their state only with a background. Forced colors remove it, so
+ * each paints the `Highlight` of a `mark`.
+ */
+describe('state marks under forced colors (real browser)', () => {
+	beforeAll(() =>
+		cdp().send('Emulation.setEmulatedMedia', {
+			features: [{ name: 'forced-colors', value: 'active' }],
+		}),
+	)
+	afterAll(() =>
+		cdp().send('Emulation.setEmulatedMedia', { features: [{ name: 'forced-colors', value: '' }] }),
+	)
+
+	it('JsonTree: a search match paints the mark, and no match paints none', () => {
+		const data = { alpha: 1, beta: 2 }
+		const match = renderUI(<JsonTree data={data} search="alpha" />)
+		expect(paintsMark(match.container)).toBe(true)
+		match.unmount()
+		const none = renderUI(<JsonTree data={data} />)
+		expect(paintsMark(none.container)).toBe(false)
+	})
+
+	it('password strength: a filled segment paints the mark, and an empty meter paints none', () => {
+		const weak = renderUI(<PasswordStrength value="a" showRules={false} />)
+		expect(paintsMark(weak.container)).toBe(true)
+		weak.unmount()
+		const empty = renderUI(<PasswordStrength value="" showRules={false} />)
+		expect(paintsMark(empty.container)).toBe(false)
 	})
 })

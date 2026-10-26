@@ -422,6 +422,39 @@ describe('EventStore capture', () => {
 		expect(new EventStore(storage).entries).toEqual([])
 	})
 
+	it('gives each event after a reload an id after the start, when a clear removed the kept events', () => {
+		const storage = createStorage()
+
+		const store = new EventStore(storage)
+
+		for (let time = 1; time <= 5; time++) store.add(entry(time))
+
+		now(10)
+
+		store.startCapture()
+
+		store.clear()
+
+		const reloaded = new EventStore(storage)
+
+		expect(reloaded.entries).toEqual([])
+
+		reloaded.add(entry(20))
+
+		reloaded.addBug(entry(25, 'error'), { origin: 'window', error: errorWith('boom') })
+
+		expect(reloaded.entries.at(-1)?.report?.trail).toEqual([expect.stringContaining('input at 20')])
+
+		now(30)
+
+		reloaded.stopCapture()
+
+		expect(reloaded.entries.at(-1)?.report?.trail).toEqual([
+			expect.stringContaining('input at 20'),
+			expect.stringContaining('error at 25'),
+		])
+	})
+
 	it(`keeps up to ${CAPTURE_CAPACITY} events while it runs, and gives each bug the trail from its start`, () => {
 		const store = new EventStore(createStorage())
 

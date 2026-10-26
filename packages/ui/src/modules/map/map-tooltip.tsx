@@ -9,8 +9,9 @@ import {
 import { useMapHoverState } from './context'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import { seriesSwatchClass } from './engine/map-legend/items'
-import type { MapStopRow } from './engine/map-overlay/entry'
+import type { MapOverlayEntry, MapStopRow } from './engine/map-overlay/entry'
 import { type MapNumberFormat, markReadout } from './engine/map-overlay/readout'
+import { targetStop } from './engine/map-overlay/selection'
 import {
 	categoryLegendId,
 	type MapCategoryMeta,
@@ -28,6 +29,8 @@ export type MapTooltipEntry = {
 	detail?: string
 	/** Per-dot readouts for a plural mark; absent on a singular one. */
 	stopRows?: MapStopRow[]
+	/** Which drawn stop holds a reported index (see {@link MapOverlayEntry.getStop}). */
+	getStop: (index: number) => number | null
 }
 
 /** Props for {@link MapTooltip}. @internal */
@@ -108,11 +111,13 @@ function resolve(
 
 		// The one readout rule, shared with the table: the pointer and a screen
 		// reader must never disagree about the same dot.
-		const readout = markReadout(entry, target.stop, formatNumber)
+		const stop = targetStop(target, entry.getStop)
+
+		const readout = markReadout(entry, stop, formatNumber)
 
 		return {
 			title: readout.name,
-			row: readout.detail ? { ...stopSwatch(entry, target.stop), text: readout.detail } : undefined,
+			row: readout.detail ? { ...stopSwatch(entry, stop), text: readout.detail } : undefined,
 		}
 	}
 
@@ -182,7 +187,9 @@ export function nameMapTarget(
 
 	const entry = hidden.has(target.id) ? undefined : entries.get(target.id)
 
-	return entry === undefined ? null : markReadout(entry, target.stop, formatNumber).name || null
+	return entry === undefined
+		? null
+		: markReadout(entry, targetStop(target, entry.getStop), formatNumber).name || null
 }
 
 /**

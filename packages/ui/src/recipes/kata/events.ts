@@ -2,18 +2,20 @@
  * Events kata: the unit of the views of `ui/events`. The root slot `base` is
  * the card of the pinned panel, and `body` and `footer` are its other parts.
  * The sheet and the pinned panel share the title `row`. `button` is the header
- * button, `pin` is the Pin button of the sheet, `text` is the text of an entry, and `hash` colors the hash of a
+ * button, `dot` is its report dot, `pin` is the Pin button of the sheet, `text` is the text of an entry, and `hash` colors the hash of a
  * report. The `kind` extra colors the kinds that stand apart from the DOM
  * events: the callbacks of the components and of the modules, the captures,
  * and the bugs. The colors are the bare entries of the extended palette, which
  * clear AA on the surface.
  */
 import { defineKata } from '../../core/recipe'
-import { dan, iro, narabi, omote } from '../kiso'
+import { dan, iro, narabi, omote, sen } from '../kiso'
 
 const { x, top, bottom } = dan.space.panel
 
 const { bare } = iro.extended
+
+const { forced } = sen
 
 export const k = defineKata(
 	{
@@ -39,6 +41,15 @@ export const k = defineKata(
 					},
 				},
 			},
+			/**
+			 * The dot of the header button, which shows while the store holds a report.
+			 * Forced colors remove its fill, so it paints the `mark`.
+			 */
+			dot: [
+				'absolute end-1 top-1 hidden size-1.5 rounded-full bg-red-500',
+				'[:root[data-events-reports]_&]:block',
+				forced.mark,
+			],
 			/** The Pin button of the sheet, which shows in the inline layout only. */
 			pin: { responsive: { layout: narabi.offcanvas.inline.inlineFlex } },
 			text: [...iro.text.default],
