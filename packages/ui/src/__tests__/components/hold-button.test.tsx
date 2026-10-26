@@ -1,5 +1,5 @@
 import { animate } from 'motion'
-import type { FormEvent } from 'react'
+import { Activity, type FormEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
 import { ControlLockContext } from '../../components/control/context'
 import { HoldButton } from '../../components/hold-button'
@@ -532,6 +532,55 @@ describe('HoldButton', () => {
 			await clock.advance(1000)
 
 			expect(onHoldComplete).not.toHaveBeenCalled()
+		})
+
+		// K4-C04: a hidden Activity cleans up the effects, which clears the
+		// completion timer. The hold goes back to rest, so the next press holds.
+		it('holds again on the first press after a hide mid-hold', async ({ clock }) => {
+			const onHoldStart = vi.fn()
+
+			const onHoldCancel = vi.fn()
+
+			const onHoldComplete = vi.fn()
+
+			const tree = (mode: 'visible' | 'hidden') => (
+				<Activity mode={mode}>
+					<HoldButton
+						duration={1000}
+						onHoldStart={onHoldStart}
+						onHoldCancel={onHoldCancel}
+						onHoldComplete={onHoldComplete}
+					>
+						Hold
+					</HoldButton>
+				</Activity>
+			)
+
+			const { container, rerender } = renderUI(tree('visible'))
+
+			const el = getSlot(container, 'hold-button')
+
+			fireEvent.pointerDown(el, PRESS)
+
+			await clock.advance(500)
+
+			rerender(tree('hidden'))
+
+			rerender(tree('visible'))
+
+			// The cleanup puts the fill back to rest.
+			expect(vi.mocked(animate).mock.lastCall?.[1]).toEqual({ scaleX: 0 })
+
+			fireEvent.pointerDown(el, PRESS)
+
+			expect(onHoldStart).toHaveBeenCalledTimes(2)
+
+			await clock.advance(1000)
+
+			expect(onHoldComplete).toHaveBeenCalledOnce()
+
+			// No callback runs at the cleanup.
+			expect(onHoldCancel).not.toHaveBeenCalled()
 		})
 	})
 

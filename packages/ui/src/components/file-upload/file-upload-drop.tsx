@@ -18,6 +18,7 @@ import { IntlMessage } from '../../primitives/intl/intl-message'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
+import { lockedProps } from '../button/button-constants'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
@@ -53,6 +54,8 @@ type DropSelectionProps = {
 	files: File[]
 	multiple?: boolean
 	disabled?: boolean
+	/** Makes the overlay and `Reset` inert, as {@link lockedProps} do. */
+	readOnly?: boolean
 	/** The id of the enclosing Field Label. With it, the overlay takes the Label and the selection text as its name. */
 	labelledBy?: string
 	/** Marks the overlay invalid, from the error state of the enclosing Field or the bound Form field. */
@@ -81,6 +84,7 @@ function DropSelection({
 	files,
 	multiple,
 	disabled,
+	readOnly,
 	labelledBy,
 	invalid,
 	alwaysTooltip,
@@ -112,6 +116,7 @@ function DropSelection({
 						{...invalidAttrs(invalid)}
 						onClick={onPick}
 						className={cn(k.overlay)}
+						{...(readOnly && lockedProps)}
 					/>
 				</TooltipTrigger>
 				<TooltipContent>{formatFileNames(files)}</TooltipContent>
@@ -132,6 +137,7 @@ function DropSelection({
 				disabled={disabled}
 				onClick={onClear}
 				className="relative z-10"
+				{...(readOnly && lockedProps)}
 			>
 				{intl.formatMessage(fileUploadMessages.reset)}
 			</Button>
@@ -199,6 +205,7 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 	const {
 		control,
 		disabled,
+		readOnly,
 		invalid,
 		files,
 		hasFiles,
@@ -310,6 +317,7 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 						files={files}
 						multiple={multiple}
 						disabled={disabled}
+						readOnly={readOnly}
 						labelledBy={control?.labelledBy}
 						invalid={invalid}
 						alwaysTooltip={showTooltip}
@@ -336,6 +344,7 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 					onClick={composeEventHandlers(props.onClick, openPicker)}
 					className={cn(k.dropzone, 'h-40 w-full', className)}
 					{...dragProps}
+					{...(readOnly && lockedProps)}
 				>
 					{dropPrompt(children)}
 				</button>

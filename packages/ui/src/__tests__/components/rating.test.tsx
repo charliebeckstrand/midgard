@@ -1,5 +1,6 @@
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
+import { ControlLockContext } from '../../components/control/context'
 import { Description, Field, Label } from '../../components/fieldset'
 import { Rating, RatingSkeleton } from '../../components/rating'
 import { Form } from '../../modules/form'
@@ -517,6 +518,84 @@ describe('Rating', () => {
 			expect(tags).toEqual(['svg', 'svg', 'svg', 'svg', 'svg'])
 
 			expect(allBySlot(container, 'rating-fill')).toHaveLength(0)
+		})
+	})
+
+	// K3-C02: a swap to the display form under the lock would unmount the
+	// focused radio, and focus would fall to the body.
+	describe('in a locked scope', () => {
+		function Locked({ locked, readOnly }: { locked: boolean; readOnly?: boolean }) {
+			return (
+				<ControlLockContext value={locked}>
+					<Rating aria-label="Score" readOnly={readOnly} defaultValue={3} />
+				</ControlLockContext>
+			)
+		}
+
+		it('keeps its radios and the focus, read-only, and takes no input', () => {
+			const onValueChange = vi.fn()
+
+			const { container, rerender } = renderUI(
+				<ControlLockContext value={false}>
+					<Rating aria-label="Score" defaultValue={3} onValueChange={onValueChange} />
+				</ControlLockContext>,
+			)
+
+			const radio = stars(container)[2]
+
+			act(() => radio?.focus())
+
+			rerender(
+				<ControlLockContext value={true}>
+					<Rating aria-label="Score" defaultValue={3} onValueChange={onValueChange} />
+				</ControlLockContext>,
+			)
+
+			expect(document.activeElement).toBe(radio)
+
+			expect(screen.getByRole('radiogroup')).toHaveAttribute('aria-readonly', 'true')
+
+			fireEvent.click(stars(container)[4] as HTMLInputElement)
+
+			fireEvent.click(stars(container)[2] as HTMLInputElement)
+
+			expect(onValueChange).not.toHaveBeenCalled()
+
+			expect(stars(container).map((star) => star.checked)).toEqual([
+				false,
+				false,
+				true,
+				false,
+				false,
+			])
+
+			rerender(
+				<ControlLockContext value={false}>
+					<Rating aria-label="Score" defaultValue={3} onValueChange={onValueChange} />
+				</ControlLockContext>,
+			)
+
+			expect(document.activeElement).toBe(radio)
+
+			expect(screen.getByRole('radiogroup')).not.toHaveAttribute('aria-readonly')
+		})
+
+		it('keeps the display form of a read-only row', () => {
+			const { rerender } = renderUI(<Locked locked={false} readOnly />)
+
+			rerender(<Locked locked readOnly />)
+
+			expect(screen.getByRole('img')).toHaveAccessibleName('Score 3 out of 5 stars')
+		})
+
+		it('shows the display form when it mounts in the lock', () => {
+			const { container, rerender } = renderUI(<Locked locked />)
+
+			expect(stars(container)).toHaveLength(0)
+
+			rerender(<Locked locked={false} />)
+
+			expect(stars(container)).toHaveLength(5)
 		})
 	})
 

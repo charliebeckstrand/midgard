@@ -35,6 +35,8 @@ type FileHandlersOptions = {
 	/** Fires with the next selection. A clear reports `[]`. */
 	onValueChange?: (files: File[]) => void
 	disabled?: boolean
+	/** Keeps the selection: the picker does not open, and a pick, a drop, or a clear changes nothing. */
+	readOnly?: boolean
 	/** Accepted file types. The picker filters by them too, but a drop does not. */
 	accept?: string
 	maxSize?: number
@@ -55,13 +57,13 @@ type FileHandlersOptions = {
  * `maxCount`. Accepted files fire `onAccept`, rejected ones fire `onReject`,
  * and the accepted set is announced to a live region. A batch with no
  * accepted file keeps the current selection. Drag highlight uses a depth counter so nested
- * children don't flicker `dragOver`; `disabled` short-circuits the picker and
- * drop handling. Only a drag that carries files counts: a text, link, or
+ * children don't flicker `dragOver`; `disabled` and `readOnly` short-circuit the
+ * picker and drop handling, and `readOnly` also refuses a clear. Only a drag that carries files counts: a text, link, or
  * element drag does not set `dragOver`, and the zone does not claim it.
  *
  * @param options - The value binding (`name`, `value`, `defaultValue`,
  * `onValueChange`), constraints (`accept`, `maxSize`, `maxCount`), the
- * `disabled` flag, and the `onAccept`/`onReject`/`onDragOverChange` callbacks.
+ * `disabled` and `readOnly` flags, and the `onAccept`/`onReject`/`onDragOverChange` callbacks.
  * @returns The hidden input `ref`, the current `dragOver` flag, the selected
  * `files`, and the `invalid` flag of a bound field. It also returns `openPicker`, `handleChange`, `clearFiles`, and the
  * drag/drop event handlers to spread onto the trigger and dropzone.
@@ -72,6 +74,7 @@ export function useFileUploadHandlers({
 	defaultValue,
 	onValueChange,
 	disabled,
+	readOnly,
 	accept,
 	maxSize,
 	maxCount,
@@ -102,6 +105,10 @@ export function useFileUploadHandlers({
 
 	const files = current ?? []
 
+	// A read-only field takes no files, the same as a disabled one. Each route
+	// that writes the selection reads this flag.
+	const inert = disabled || readOnly
+
 	// The hidden input holds no file between picks, so a native form reset has
 	// nothing to revert there. The reset ref sets the selection back to its seed.
 	const setInputRef: RefCallback<HTMLInputElement> = useComposedRefs(inputRef, resetRef)
@@ -114,12 +121,12 @@ export function useFileUploadHandlers({
 	useReportedChange(dragOver, onDragOverChange)
 
 	const openPicker = useCallback(() => {
-		if (!disabled) inputRef.current?.click()
-	}, [disabled])
+		if (!inert) inputRef.current?.click()
+	}, [inert])
 
 	const handleFiles = useCallback(
 		(fileList: FileList | null) => {
-			if (!fileList) return
+			if (!fileList || inert) return
 
 			const { accepted, rejected } = partitionFiles(Array.from(fileList), {
 				accept,
@@ -150,7 +157,7 @@ export function useFileUploadHandlers({
 				}),
 			)
 		},
-		[accept, maxSize, maxCount, onAccept, onReject, setFiles, setTouched, intl],
+		[inert, accept, maxSize, maxCount, onAccept, onReject, setFiles, setTouched, intl],
 	)
 
 	const handleChange = useCallback(
@@ -165,6 +172,8 @@ export function useFileUploadHandlers({
 	)
 
 	const clearFiles = useCallback(() => {
+		if (inert) return
+
 		setFiles([])
 
 		setTouched()
@@ -174,14 +183,14 @@ export function useFileUploadHandlers({
 		// Mirrors handleChange's reset: an empty value lets the same file be
 		// picked again immediately after clearing.
 		if (inputRef.current) inputRef.current.value = ''
-	}, [onAccept, setFiles, setTouched])
+	}, [inert, onAccept, setFiles, setTouched])
 
-	// Disabled dropzones skip `preventDefault`: the element never becomes a
-	// valid drop target, `data-drag-over` is never set, and the browser
+	// Disabled and read-only dropzones skip `preventDefault`: the element never
+	// becomes a valid drop target, `data-drag-over` is never set, and the browser
 	// handles the drop natively. A drag with no file gets the same treatment.
 	const handleDragEnter = useCallback(
 		(event: DragEvent) => {
-			if (disabled || !carriesFiles(event)) return
+			if (inert || !carriesFiles(event)) return
 
 			event.preventDefault()
 
@@ -189,20 +198,20 @@ export function useFileUploadHandlers({
 
 			setDragDepth((prev) => prev + 1)
 		},
-		[disabled],
+		[inert],
 	)
 
 	// `preventDefault` on `dragover` marks the element a valid drop target;
 	// `dragenter`/`dragleave` own the depth counter.
 	const handleDragOver = useCallback(
 		(event: DragEvent) => {
-			if (disabled || !carriesFiles(event)) return
+			if (inert || !carriesFiles(event)) return
 
 			event.preventDefault()
 
 			event.stopPropagation()
 		},
-		[disabled],
+		[inert],
 	)
 
 	// Symmetric with `handleDragEnter`: a drag with no file was never counted,
@@ -220,9 +229,9 @@ export function useFileUploadHandlers({
 	const handleDrop = useCallback(
 		(event: DragEvent) => {
 			// Defensive: with `dragover` unprevented the browser shouldn't target
-			// a disabled dropzone, but after a mid-drag `disabled` flip a drop
-			// event can still fire here; clear the highlight, ignore the files.
-			if (disabled) {
+			// an inert dropzone, but after a mid-drag `disabled` or `readOnly` flip
+			// a drop event can still fire here; clear the highlight, ignore the files.
+			if (inert) {
 				setDragDepth(0)
 
 				return
@@ -236,7 +245,7 @@ export function useFileUploadHandlers({
 
 			handleFiles(event.dataTransfer.files)
 		},
-		[disabled, handleFiles],
+		[inert, handleFiles],
 	)
 
 	return {

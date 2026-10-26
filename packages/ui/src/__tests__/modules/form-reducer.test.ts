@@ -275,6 +275,27 @@ describe('formReducer', () => {
 				},
 			)
 
+			// Q2-C07: no validator result replaces the issue, so the change itself
+			// clears it.
+			it.each<ValidateOn>(['touched', 'change'])(
+				'clears the issue of name when name has no validator and validateOn is "%s"',
+				(validateOn) => {
+					for (const validate of [undefined, { age: validators.age }]) {
+						const next = formReducer(serverState(), {
+							type: 'set-value',
+							name: 'name',
+							value: 'Grace',
+							validate,
+							validateOn,
+						})
+
+						expect(next.errors.name).toBeUndefined()
+
+						expect(next.external).toEqual({})
+					}
+				},
+			)
+
 			it('drops name from external but keeps the issue when validateOn is "submit"', () => {
 				const prior = serverState()
 

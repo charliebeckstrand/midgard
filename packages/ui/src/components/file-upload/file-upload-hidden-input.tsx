@@ -2,6 +2,7 @@
 
 import type { ChangeEventHandler, Ref } from 'react'
 import { invalidAttrs } from '../../core'
+import { lockedProps } from '../button/button-constants'
 import type { ControlContextValue } from '../control/context'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 
@@ -17,6 +18,8 @@ export type FileUploadHiddenInputProps = {
 	accept?: string
 	multiple?: boolean
 	disabled?: boolean
+	/** Cancels the click that opens the picker, as {@link lockedProps} do. A screen reader can click the input. */
+	readOnly?: boolean
 	invalid?: boolean
 	filesEmpty: boolean
 	onChange: ChangeEventHandler<HTMLInputElement>
@@ -39,6 +42,7 @@ export function FileUploadHiddenInput({
 	accept,
 	multiple,
 	disabled,
+	readOnly,
 	invalid,
 	filesEmpty,
 	onChange,
@@ -66,6 +70,7 @@ export function FileUploadHiddenInput({
 			className="sr-only"
 			tabIndex={-1}
 			{...invalidAttrs(invalid)}
+			{...(readOnly && lockedProps)}
 		/>
 	)
 }

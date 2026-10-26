@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
+import { Activity } from 'react'
 import { describe, expect, vi } from 'vitest'
 import { CopyButton, useCopyButtonState } from '../../components/copy-button'
 import {
@@ -407,6 +408,97 @@ describe('useCopyButtonState', () => {
 		expect(writeText).toHaveBeenCalledTimes(2)
 
 		expect(onCopiedChange.mock.calls).toEqual([[true], [false], [true]])
+	})
+
+	// K4-C03: a hidden Activity cleans up the effects, which clears the revert
+	// timer. The state goes back to rest, so the button copies again.
+	describe('in a hidden Activity', () => {
+		function Hidable({
+			mode,
+			onCopiedChange,
+		}: {
+			mode: 'visible' | 'hidden'
+			onCopiedChange?: (copied: boolean) => void
+		}) {
+			return (
+				<Activity mode={mode}>
+					<CopyButton text="hello" timeout={2000} onCopiedChange={onCopiedChange} />
+				</Activity>
+			)
+		}
+
+		it('goes back to rest when it hides in the copied window', async ({ clock }) => {
+			const writeText = vi.fn().mockResolvedValue(undefined)
+
+			const onCopiedChange = vi.fn()
+
+			stubClipboard({ writeText })
+
+			const { container, rerender } = renderUI(
+				<Hidable mode="visible" onCopiedChange={onCopiedChange} />,
+			)
+
+			const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
+
+			await act(async () => {
+				fireEvent.click(button)
+			})
+
+			expect(button).toHaveAttribute('data-copied')
+
+			rerender(<Hidable mode="hidden" onCopiedChange={onCopiedChange} />)
+
+			await clock.advance(2000)
+
+			rerender(<Hidable mode="visible" onCopiedChange={onCopiedChange} />)
+
+			expect(button).not.toHaveAttribute('data-copied')
+
+			await act(async () => {
+				fireEvent.click(button)
+			})
+
+			expect(writeText).toHaveBeenCalledTimes(2)
+
+			expect(button).toHaveAttribute('data-copied')
+
+			// No callback runs at the cleanup.
+			expect(onCopiedChange.mock.calls).toEqual([[true], [true]])
+		})
+
+		it('copies again after a write that settles while it is hidden', async () => {
+			const write = deferred()
+
+			const writeText = vi.fn(() => write.promise)
+
+			stubClipboard({ writeText })
+
+			const { container, rerender } = renderUI(<Hidable mode="visible" />)
+
+			const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
+
+			fireEvent.click(button)
+
+			rerender(<Hidable mode="hidden" />)
+
+			await act(async () => {
+				write.resolve()
+			})
+
+			rerender(<Hidable mode="visible" />)
+
+			expect(button).not.toHaveAttribute('data-copied')
+
+			writeText.mockResolvedValue(undefined)
+
+			await act(async () => {
+				fireEvent.click(button)
+			})
+
+			expect(writeText).toHaveBeenCalledTimes(2)
+
+			expect(button).toHaveAttribute('data-copied')
+		})
 	})
 
 	// The copy starts the revert window. A later `timeout` applies to the next copy.

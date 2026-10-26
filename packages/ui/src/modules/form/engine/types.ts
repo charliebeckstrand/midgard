@@ -18,7 +18,7 @@ export type Validator<T, K extends keyof T> = (
 /** Optional {@link Validator} per field of `T`; the map `Form` consumes via its `validate` prop. Build one from a schema with `zodResolver`. */
 export type Validators<T> = { [K in keyof T]?: Validator<T, K> }
 
-/** When the reducer runs validators: on a field's first blur (`'touched'`), on each change of a field (`'change'`), or only on submit (`'submit'`). A change validates that field and the fields that are touched or have a result already, so that a cross-field rule (a confirmation) stays current. It does not validate a field that the user has not used. A change of one field does not replace an issue of another field that came from `setErrors` or a `{ fieldErrors }` return. */
+/** When the reducer runs validators: on a field's first blur (`'touched'`), on each change of a field (`'change'`), or only on submit (`'submit'`). A change validates that field and the fields that are touched or have a result already, so that a cross-field rule (a confirmation) stays current. It does not validate a field that the user has not used. A change of one field does not replace an issue of another field that came from `setErrors` or a `{ fieldErrors }` return. A change of the field itself replaces its issue with the result of its validator, or clears the issue when the field has no validator. Under `'submit'`, the issue stays until the next submit. */
 export type ValidateOn = 'touched' | 'change' | 'submit'
 
 /**

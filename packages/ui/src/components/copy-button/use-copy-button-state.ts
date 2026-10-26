@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { announce } from '../../core'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'
@@ -55,9 +55,11 @@ type CopyStateResult = {
  * A call to `copy` while a write is in flight, or while the copied state
  * holds, does nothing. Thus the window announces and reports `true` one time,
  * and a control with a text label acts as `CopyButton` does. The transitions end
- * at unmount. A write that resolves after the unmount does not raise the flag,
- * announce, or call `onCopiedChange`. No callback runs at unmount, so a `true`
- * that the consumer saw gets no `false`.
+ * when the effects clean up: at unmount, or when an `<Activity>` hides the
+ * component. The state then goes back to rest, so a component that shows again
+ * starts from rest and copies again. A write that resolves after the cleanup
+ * does not raise the flag, announce, or call `onCopiedChange`. No callback runs
+ * at the cleanup, so a `true` that the consumer saw gets no `false`.
  * @example
  * ```tsx
  * const { copied, copy } = useCopyButtonState({ text })
@@ -96,8 +98,21 @@ export function useCopyButtonState({
 	// success. The React Compiler does not compile a `finally` clause.
 	const busyRef = useRef(false)
 
-	// The revert timer. The unmount clears it.
+	// The revert timer. The cleanup of the effects clears it.
 	const revert = useTimeout()
+
+	// The cleanup clears the timer that would revert the copied state, so it
+	// reverts the state itself. An `<Activity>` that hides the component keeps
+	// the state and the refs, and without this the button stays "Copied" and
+	// takes no click when it shows again.
+	useEffect(
+		() => () => {
+			busyRef.current = false
+
+			setCopied(false)
+		},
+		[],
+	)
 
 	const copy = useCallback(async () => {
 		if (busyRef.current) return

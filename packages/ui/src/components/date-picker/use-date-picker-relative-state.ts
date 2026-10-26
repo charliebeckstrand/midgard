@@ -7,8 +7,9 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale'
 import { wrap } from '../../utilities'
-import { orderDates } from '../calendar/calendar-utilities'
+import { orderDates, sameDay } from '../calendar/calendar-utilities'
 import { NAVIGATION_KEYS } from '../calendar/use-calendar-focus'
+import { useCalendarToday } from '../calendar/use-calendar-today'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerRelativeProps } from './date-picker'
@@ -44,7 +45,9 @@ export type DatePickerRelativeMode = 'list' | 'custom'
  * commits once both Start and End hold a valid date (order normalized), and
  * replaces the whole selection with that single span. Custom mode stays open for
  * further edits. The reference `now` is stamped on open so preset math and the
- * active-preset match stay stable through an interaction.
+ * active-preset match stay stable through an interaction. While the popover is
+ * closed, `now` moves at local midnight, so the label of the trigger names the
+ * span on the current day.
  *
  * @returns Trigger props, popover plumbing, the `chips`/`summary`/`showChips`/
  * `selectedIds`/`customActive` derivations for display,
@@ -127,6 +130,9 @@ export function useDatePickerRelativeState({
 	// so a long-lived page can't drift across midnight mid-edit.
 	const [now, setNow] = useState(() => new Date())
 
+	// The current day, which moves at local midnight.
+	const today = useCalendarToday()
+
 	// In-progress custom-range entry (the Start/End inputs); the committed span
 	// lives in the Form field, not here. A span only commits once both endpoints
 	// hold a valid date, so a half-typed range never overwrites the value.
@@ -148,6 +154,11 @@ export function useDatePickerRelativeState({
 			setMode('list')
 		}
 	}
+
+	// A closed picker has no interaction to keep stable, so `now` follows the
+	// day. Otherwise the trigger still names a span as "Today" after midnight.
+	// The first render after a close also passes here.
+	if (!open && today && !sameDay(today, now)) setNow(today)
 
 	const presets = resolveRelativePresets(intl, relative)
 
