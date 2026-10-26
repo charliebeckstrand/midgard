@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // The idle work reads `window.requestIdleCallback`.
 import { Marked } from 'marked'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MARKDOWN_CACHE_SIZE } from '../../components/markdown/markdown.tsx'
 import { primeApi } from '../kit/api-entry.tsx'
 import { runInSlices } from '../kit/idle.ts'
@@ -27,7 +27,7 @@ function stubIdle(): void {
 	})
 }
 
-afterEach(() => {})
+beforeEach(stubIdle)
 
 /** The sources that `marked` lexes from now on. A source in the token cache does not lex again. */
 function spyLex(): () => string[] {
@@ -38,8 +38,6 @@ function spyLex(): () => string[] {
 
 describe('runInSlices', () => {
 	it('runs one step in a period with 2 ms or less in it, and more steps in a longer period', () => {
-		stubIdle()
-
 		let steps = 0
 
 		let left = 0
@@ -67,8 +65,6 @@ describe('runInSlices', () => {
 	})
 
 	it('stops when the step returns false', () => {
-		stubIdle()
-
 		let steps = 0
 
 		runInSlices(() => {
@@ -85,8 +81,6 @@ describe('runInSlices', () => {
 	})
 
 	it('stops when the signal aborts', () => {
-		stubIdle()
-
 		const controller = new AbortController()
 
 		const step = vi.fn(() => true)
@@ -107,8 +101,6 @@ describe('runInSlices', () => {
 
 describe('primeApi', () => {
 	it('lexes each description once, in the order of the accordion', () => {
-		stubIdle()
-
 		const api: BarrelApi = {
 			A: {
 				name: 'A',
@@ -137,8 +129,6 @@ describe('primeApi', () => {
 	})
 
 	it('stops when the token cache is full, so it does not drop a source that it stored', () => {
-		stubIdle()
-
 		const props = Array.from({ length: MARKDOWN_CACHE_SIZE + 50 }, (_, index) => ({
 			name: `prop${index}`,
 			description: `The prop ${index} of a big barrel.`,

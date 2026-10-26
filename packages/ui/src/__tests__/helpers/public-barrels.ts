@@ -2,7 +2,22 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Project } from 'typescript/unstable/sync'
 import type { TypeScriptServer } from './ts-server'
-import { uiRoot } from './walk-source'
+import { srcDir, uiRoot } from './walk-source'
+
+/** The folders of `src/<layer>` that hold a barrel (`index.ts`), by name, in order. */
+export function units(layer: string): string[] {
+	return readdirSync(join(srcDir, layer), { withFileTypes: true })
+		.filter(
+			(entry) => entry.isDirectory() && existsSync(join(srcDir, layer, entry.name, 'index.ts')),
+		)
+		.map((entry) => entry.name)
+		.sort()
+}
+
+/** Each barrel of the layers `layers`, such as `components/button`. */
+export function barrels(layers: readonly string[]): string[] {
+	return layers.flatMap((layer) => units(layer).map((name) => `${layer}/${name}`))
+}
 
 /**
  * The barrels of the public surface: each `index.ts` that the `exports` map of

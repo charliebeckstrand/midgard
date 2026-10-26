@@ -1,11 +1,9 @@
 import type { RouteConfigEntry } from '@react-router/dev/routes'
-import { act, render, screen } from '@testing-library/react'
-import { createMemoryRouter, Outlet, type RouteObject, RouterProvider } from 'react-router'
-import { AppearanceProvider } from 'ui/providers/appearance'
-import { describe, expect, it, onTestFinished } from 'vitest'
-import App from '../app/root.tsx'
+import { act, screen } from '@testing-library/react'
+import { Outlet, type RouteObject } from 'react-router'
+import { describe, expect, it } from 'vitest'
 import routes from '../app/routes.ts'
-import { restoreRootAfterCase } from './restore-root.ts'
+import { renderShell } from './render-shell.tsx'
 
 // The shell takes the page from the matched route, not from the start of the
 // path. A path in a different case, or a path under a page with no route,
@@ -23,22 +21,7 @@ function makeStubs(entries: readonly RouteConfigEntry[]): RouteObject[] {
 }
 
 function renderAt(path: string) {
-	restoreRootAfterCase()
-
-	const router = createMemoryRouter([{ path: '/', Component: App, children: makeStubs(routes) }], {
-		initialEntries: [path],
-	})
-
-	// The router adds a window "pagehide" listener, and its disposal removes it.
-	onTestFinished(() => router.dispose())
-
-	render(
-		<AppearanceProvider>
-			<RouterProvider router={router} />
-		</AppearanceProvider>,
-	)
-
-	return router
+	return renderShell(path, { children: makeStubs(routes) })
 }
 
 /** The name of the current item of the sidebar, or `undefined` when no item is current. */

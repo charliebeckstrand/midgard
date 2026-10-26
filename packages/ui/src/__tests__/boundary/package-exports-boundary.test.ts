@@ -1,7 +1,8 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, uiRoot } from '../helpers/walk-source'
+import { units } from '../helpers/public-barrels'
+import { uiRoot } from '../helpers/walk-source'
 
 // A module and a structure unit each have a bare `ui/<name>` path beside the
 // nested one. Next.js resolves only the first target of an `exports` fallback
@@ -13,16 +14,6 @@ type Target = { types: string; default: string }
 
 const pkg = JSON.parse(readFileSync(join(uiRoot, 'package.json'), 'utf8')) as {
 	exports: Record<string, Target | Target[] | string>
-}
-
-/** The directories of a layer that hold a barrel. */
-function units(layer: string): string[] {
-	return readdirSync(join(srcDir, layer), { withFileTypes: true })
-		.filter(
-			(entry) => entry.isDirectory() && existsSync(join(srcDir, layer, entry.name, 'index.ts')),
-		)
-		.map((entry) => entry.name)
-		.sort()
 }
 
 describe('package exports', () => {

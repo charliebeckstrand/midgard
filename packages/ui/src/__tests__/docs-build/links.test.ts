@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { CLIENT_DIR } from '../../../scripts/docs-server'
+import { CLIENT_DIR, prerenderedPages } from '../../../scripts/docs-server'
 
 // Each link of the prerendered pages that stays on the site goes to a page of
 // the build. A link with a hash goes to an element with that id. A prop of
@@ -11,13 +11,6 @@ import { CLIENT_DIR } from '../../../scripts/docs-server'
 // The id of a prop, such as `api-Button-variant`, and the id of its entry,
 // such as `api-Button` (`docs/kit/anchors.ts`).
 const PROP_ID = /^(api-[^-]+)-./
-
-/** The prerendered page of each path, as the server finds it. */
-const files = fs
-	.globSync('**/index.html', { cwd: CLIENT_DIR })
-	.map((file) => [`/${path.dirname(file)}`.replace(/^\/\.$/, '/'), file] as const)
-
-const pages = new Map(files.map(([route, file]) => [route, path.join(CLIENT_DIR, file)]))
 
 // The `href` of a link, and the `id` of an element, in the markup of a page.
 const HREF = /<a\b[^>]*?\shref="([^"]*)"/g
@@ -29,7 +22,13 @@ function parseValues(html: string, pattern: RegExp): string[] {
 	return [...html.matchAll(pattern)].map(([, value = '']) => value.replaceAll('&amp;', '&'))
 }
 
-const markup = new Map([...pages].map(([route, file]) => [route, fs.readFileSync(file, 'utf8')]))
+/** The markup of the prerendered page at each path. */
+const markup = new Map(
+	prerenderedPages().map((route) => [
+		route,
+		fs.readFileSync(path.join(CLIENT_DIR, route, 'index.html'), 'utf8'),
+	]),
+)
 
 /** The ids of the page at each path. */
 const ids = new Map([...markup].map(([route, html]) => [route, new Set(parseValues(html, ID))]))
@@ -55,7 +54,7 @@ function brokenLink(from: string, href: string): string | undefined {
 
 describe('the links of the docs build', () => {
 	it('finds the prerendered pages', () => {
-		expect(pages.size).toBeGreaterThan(100)
+		expect(markup.size).toBeGreaterThan(100)
 	})
 
 	it('sends each link on the site to a page, and each hash to an element', () => {

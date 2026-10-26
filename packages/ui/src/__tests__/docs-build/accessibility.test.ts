@@ -1,10 +1,8 @@
-import fs from 'node:fs'
 import { createRequire } from 'node:module'
-import path from 'node:path'
 import type { AxeResults } from 'axe-core'
 import { type Browser, chromium, type Page } from 'playwright'
 import { afterAll, beforeAll, describe, inject, it, type TestContext } from 'vitest'
-import { CLIENT_DIR, HYDRATED } from '../../../scripts/docs-server'
+import { HYDRATED, prerenderedPages } from '../../../scripts/docs-server'
 
 // The page smoke test runs a few structural rules of axe in jsdom, which has
 // no layout and no styles. This file runs each WCAG 2.2 A and AA rule of axe
@@ -94,11 +92,7 @@ const shard = inject('shard')
  * page and tab of the docs. The shards take the pages in turn, so the pages
  * of a section, such as the charts, go to each shard.
  */
-const PATHS = fs
-	.globSync('**/index.html', { cwd: CLIENT_DIR })
-	.map((file) => `/${path.dirname(file)}`.replace(/^\/\.$/, '/'))
-	.toSorted()
-	.filter((_, index) => index % shard.count === shard.index - 1)
+const PATHS = prerenderedPages().filter((_, index) => index % shard.count === shard.index - 1)
 
 const origin = inject('docsOrigin')
 

@@ -1,7 +1,7 @@
 import { act, screen } from '@testing-library/react'
-import { hydrateRoot } from 'react-dom/client'
-import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { attach } from '../../__tests__/helpers/attach.ts'
+import { hydrate, serverMarkup } from '../../__tests__/helpers/hydrate.tsx'
 import { renderUI } from '../../__tests__/helpers/render-ui.tsx'
 import { ShortcutHint } from '../kit/shortcut-hint.tsx'
 import KeyboardShortcut from '../pages/components/command-palette/keyboard-shortcut.tsx'
@@ -17,26 +17,14 @@ const hint = (
 )
 
 /** Hydrates the HTML of the build on a platform, and gives the key after the hydration. */
-async function hydrateOn(platform: string): Promise<{ before: string; after: string }> {
+function hydrateOn(platform: string): { before: string; after: string } {
 	vi.spyOn(navigator, 'platform', 'get').mockReturnValue(platform)
 
-	const container = document.createElement('div')
-
-	container.innerHTML = renderToString(hint)
-
-	document.body.append(container)
+	const container = attach(serverMarkup(hint))
 
 	const before = container.textContent ?? ''
 
-	const onRecoverableError = vi.fn()
-
-	const root = await act(async () => hydrateRoot(container, hint, { onRecoverableError }))
-
-	onTestFinished(() => {
-		act(() => root.unmount())
-
-		container.remove()
-	})
+	const { onRecoverableError } = hydrate(container, hint)
 
 	expect(onRecoverableError).not.toHaveBeenCalled()
 
@@ -44,12 +32,12 @@ async function hydrateOn(platform: string): Promise<{ before: string; after: str
 }
 
 describe('ShortcutHint', () => {
-	it('is in the HTML of the build, and stays on Apple platforms', async () => {
-		expect(await hydrateOn('MacIntel')).toEqual({ before: '⌘J', after: '⌘J' })
+	it('is in the HTML of the build, and stays on Apple platforms', () => {
+		expect(hydrateOn('MacIntel')).toEqual({ before: '⌘J', after: '⌘J' })
 	})
 
-	it('changes to Ctrl+ after the hydration on other platforms', async () => {
-		expect(await hydrateOn('Win32')).toEqual({ before: '⌘J', after: 'Ctrl+J' })
+	it('changes to Ctrl+ after the hydration on other platforms', () => {
+		expect(hydrateOn('Win32')).toEqual({ before: '⌘J', after: 'Ctrl+J' })
 	})
 })
 

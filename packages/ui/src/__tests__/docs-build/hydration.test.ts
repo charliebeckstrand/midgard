@@ -70,6 +70,38 @@ async function openTab(locale = 'en-US'): Promise<Page> {
 }
 
 /**
+ * Gives a list that collects each error of `tab` from now on: each uncaught
+ * error and each error that the console logs.
+ */
+function collectErrors(tab: Page): string[] {
+	const errors: string[] = []
+
+	tab.on('pageerror', (error) => errors.push(error.message))
+
+	tab.on('console', (message) => {
+		if (message.type() === 'error') errors.push(message.text())
+	})
+
+	return errors
+}
+
+/**
+ * Counts each load of the document at `url` in `tab`, from now on. Gives a
+ * function that reads the count.
+ */
+async function countLoads(tab: Page, url: string): Promise<() => number> {
+	let loads = 0
+
+	await tab.route(url, (route) => {
+		loads++
+
+		return route.continue()
+	})
+
+	return () => loads
+}
+
+/**
  * A script that keeps the text of the page as its HTML gives it, before the
  * page scripts run, in `data-text` of the root element. It is the source of an
  * init script, which runs in the page, not in the case.
@@ -126,13 +158,7 @@ describe('a prerendered page of the docs build', () => {
 	it.each(PAGES)('%s hydrates with no error', async (path) => {
 		const tab = await openTab()
 
-		const errors: string[] = []
-
-		tab.on('pageerror', (error) => errors.push(error.message))
-
-		tab.on('console', (message) => {
-			if (message.type() === 'error') errors.push(message.text())
-		})
+		const errors = collectErrors(tab)
 
 		await tab.goto(`${origin}${path}`)
 
@@ -149,13 +175,7 @@ describe.each(LOCALES.slice(1))('a prerendered page of the docs build in %s', (l
 	it.each(PAGES)('%s hydrates in its locale, and keeps the text of its HTML', async (path) => {
 		const tab = await openTab(locale)
 
-		const errors: string[] = []
-
-		tab.on('pageerror', (error) => errors.push(error.message))
-
-		tab.on('console', (message) => {
-			if (message.type() === 'error') errors.push(message.text())
-		})
+		const errors = collectErrors(tab)
 
 		await tab.addInitScript({ content: KEEP_HTML_TEXT })
 
@@ -209,13 +229,7 @@ async function openReplaced(stale: () => boolean): Promise<{ tab: Page; loads: (
 
 	const url = `${origin}/button`
 
-	let loads = 0
-
-	await tab.route(url, (route) => {
-		loads++
-
-		return route.continue()
-	})
+	const loads = await countLoads(tab, url)
 
 	await tab.route(/\/assets\/manifest-[\w-]+\.js$/, async (route) => {
 		if (route.request().method() !== 'HEAD' || !stale()) return route.continue()
@@ -231,7 +245,7 @@ async function openReplaced(stale: () => boolean): Promise<{ tab: Page; loads: (
 
 	await tab.waitForLoadState('networkidle')
 
-	return { tab, loads: () => loads }
+	return { tab, loads }
 }
 
 describe('a page whose build a deploy replaced', () => {
@@ -278,17 +292,11 @@ async function openFailed(
 
 	const url = `${origin}/button`
 
-	let loads = 0
+	const loads = await countLoads(tab, url)
 
 	const seen = new Set<string>()
 
 	const refetched: string[] = []
-
-	await tab.route(url, (route) => {
-		loads++
-
-		return route.continue()
-	})
 
 	await tab.route(/\/assets\/[\w.-]+\.js$/, async (route) => {
 		const request = route.request()
@@ -308,7 +316,7 @@ async function openFailed(
 
 	await tab.goto(url)
 
-	return { tab, loads: () => loads, refetched }
+	return { tab, loads, refetched }
 }
 
 describe('a page whose module file fails to load one time', () => {

@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import { getSlot } from '../../__tests__/helpers/slot-queries.ts'
 import { Playground } from '../kit/playground.tsx'
 import type { BarrelApi } from '../plugin/api.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
@@ -180,16 +181,10 @@ describe('Playground', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Show code' }))
 
-		const panel = await waitFor(() => {
-			const el = container.querySelector('[data-slot="collapse-panel"]')
-
-			expect(el).not.toBeNull()
-
-			return el
-		})
+		const panel = await waitFor(() => getSlot(container, 'collapse-panel'))
 
 		await waitFor(() =>
-			expect(panel?.textContent).toContain('return <Thing label={"Say \\"hi\\""} max={50} />'),
+			expect(panel.textContent).toContain('return <Thing label={"Say \\"hi\\""} max={50} />'),
 		)
 	})
 

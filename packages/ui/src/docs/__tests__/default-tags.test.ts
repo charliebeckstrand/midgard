@@ -1,7 +1,7 @@
 // @vitest-environment node
-import { existsSync, readdirSync } from 'node:fs'
-import path from 'node:path'
 import { afterAll, describe, expect, it } from 'vitest'
+import { barrels } from '../../__tests__/helpers/public-barrels.ts'
+import { uiRoot } from '../../__tests__/helpers/walk-source.ts'
 import { isDensityStep } from '../../core/density/steps.ts'
 import { createApiExtractor, type PropApi } from '../plugin/api.ts'
 
@@ -14,27 +14,12 @@ import { createApiExtractor, type PropApi } from '../plugin/api.ts'
 // in error, so this test finds it. A density step needs no tag, because the
 // playground takes the step of the scope.
 
-const UI_ROOT = path.resolve(import.meta.dirname, '..', '..', '..')
-
 // The folders whose units have API data, as `src/<root>/<name>/index.ts`.
 const ROOTS = ['components', 'modules', 'primitives', 'providers', 'structure']
 
-const extractor = createApiExtractor(UI_ROOT)
+const extractor = createApiExtractor(uiRoot)
 
 afterAll(() => extractor.close())
-
-/** Each barrel of `ROOTS`, such as `components/button`. */
-function barrels(): string[] {
-	return ROOTS.flatMap((root) =>
-		readdirSync(path.join(UI_ROOT, 'src', root), { withFileTypes: true })
-			.filter(
-				(entry) =>
-					entry.isDirectory() &&
-					existsSync(path.join(UI_ROOT, 'src', root, entry.name, 'index.ts')),
-			)
-			.map((entry) => `${root}/${entry.name}`),
-	)
-}
 
 /** Whether the prop has a `@defaultValue` tag: code in `default`, or a sentence at the end of `description`. */
 function isTagged(prop: PropApi): boolean {
@@ -52,7 +37,7 @@ function isDensityAxis(prop: PropApi): boolean {
 async function untagged(): Promise<string[]> {
 	const found: string[] = []
 
-	for (const barrel of barrels()) {
+	for (const barrel of barrels(ROOTS)) {
 		for (const component of Object.values(await extractor.extract(barrel))) {
 			for (const prop of component.props) {
 				if (!prop.values || prop.required || prop.deprecated !== undefined) continue

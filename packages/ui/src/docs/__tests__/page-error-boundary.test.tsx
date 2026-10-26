@@ -1,11 +1,10 @@
 import { act, render, screen } from '@testing-library/react'
-import { createMemoryRouter, Link, RouterProvider } from 'react-router'
-import { AppearanceProvider } from 'ui/providers/appearance'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
-import App, { ErrorBoundary as RootErrorBoundary } from '../app/root.tsx'
+import { Link } from 'react-router'
+import { describe, expect, it, vi } from 'vitest'
+import { ErrorBoundary as RootErrorBoundary } from '../app/root.tsx'
 import Page, { ErrorBoundary as PageErrorBoundary } from '../app/routes/page.tsx'
 import routes from '../app/routes.ts'
-import { restoreRootAfterCase } from './restore-root.ts'
+import { renderShell } from './render-shell.tsx'
 
 // A page that fails to render shows the error in place of the page only. The
 // shell, with the sidebar and the header, stays, so the reader can open
@@ -41,40 +40,21 @@ describe('docs page error boundary', () => {
 	})
 
 	it('keeps the shell when a page throws, and a link clears the error', async () => {
-		restoreRootAfterCase()
-
 		// React and the router write the caught error to the console.
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
-		const router = createMemoryRouter(
-			[
+		const router = renderShell('/broken', {
+			children: [
 				{
-					path: '/',
-					Component: App,
-					ErrorBoundary: RootErrorBoundary,
+					Component: Page,
+					ErrorBoundary: PageErrorBoundary,
 					children: [
-						{
-							Component: Page,
-							ErrorBoundary: PageErrorBoundary,
-							children: [
-								{ path: 'broken', Component: Broken },
-								{ path: 'healthy', Component: Healthy },
-							],
-						},
+						{ path: 'broken', Component: Broken },
+						{ path: 'healthy', Component: Healthy },
 					],
 				},
 			],
-			{ initialEntries: ['/broken'] },
-		)
-
-		// The router adds a window "pagehide" listener, and its disposal removes it.
-		onTestFinished(() => router.dispose())
-
-		render(
-			<AppearanceProvider>
-				<RouterProvider router={router} />
-			</AppearanceProvider>,
-		)
+		})
 
 		expect(screen.getByRole('heading', { name: 'Could not load this page', level: 2 })).toBeTruthy()
 

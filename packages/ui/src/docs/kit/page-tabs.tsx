@@ -49,6 +49,8 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 
 	const [first = '', ...others] = tabs
 
+	const home = toSlug(first)
+
 	// Each tab but the first is a folder. The prerender renders each page, so a
 	// tab with no folder, or a folder with no tab, fails the build.
 	const slugs = others.map(toSlug).toSorted()
@@ -61,7 +63,7 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 		)
 	}
 
-	const current = trimSlash(pathname).slice(page.length + 1) || toSlug(first)
+	const current = trimSlash(pathname).slice(page.length + 1) || home
 
 	const [intent, setIntent] = useState<string>()
 
@@ -74,7 +76,7 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 				if (tab === null) return
 
 				// The page keeps its scroll position when the tab changes.
-				navigate(tab === toSlug(first) ? '.' : tab, { preventScrollReset: true })
+				navigate(tab === home ? '.' : tab, { preventScrollReset: true })
 			}}
 		>
 			<TabList aria-label={intl.formatMessage(sectionsMessage)}>
@@ -84,7 +86,7 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 					</Tab>
 				))}
 			</TabList>
-			{intent && intent !== toSlug(first) && <PrefetchPageLinks page={`${page}/${intent}`} />}
+			{intent && intent !== home && <PrefetchPageLinks page={`${page}/${intent}`} />}
 			<TabContents animate={false}>
 				<TabContent value={current}>
 					<Stack gap="xl">{outlet ?? children}</Stack>
