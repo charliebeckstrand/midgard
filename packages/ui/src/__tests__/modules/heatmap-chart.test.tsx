@@ -6,6 +6,7 @@ import { ChartFullscreenContext } from '../../modules/chart/engine/context'
 import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import {
 	act,
+	allBySlot,
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
@@ -331,6 +332,36 @@ describe('HeatmapChart', () => {
 		fireEvent.pointerLeave(track as Element)
 
 		expect(dimmedCount(container)).toBe(0)
+	})
+
+	it('rings each cell the probe holds lit, so the end of the scale at the surface reads', () => {
+		// The dim fades the other cells toward the surface. A lit cell at the end
+		// of the scale that matches the surface then has their color, so it needs
+		// the ring.
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		const track = bySlot(container, 'heatmap-range-track') as Element
+
+		expect(bySlot(container, 'heatmap-probed')).toBeNull()
+
+		fireEvent.pointerMove(track, { clientY: 10 })
+
+		const lit = cellRects(container).length - dimmedCount(container)
+
+		const rings = allBySlot(container, 'heatmap-probed-cell')
+
+		expect(rings).toHaveLength(lit)
+
+		// Each is the cell mark: the halo, then the ring in the selection ink.
+		expect(rings[0]?.querySelectorAll('rect')[1]?.getAttribute('class')).toContain(
+			'stroke-zinc-900',
+		)
+
+		fireEvent.pointerLeave(track)
+
+		expect(bySlot(container, 'heatmap-probed')).toBeNull()
 	})
 
 	it('keeps a keyboard-owned probe when the pointer leaves a focused range track', () => {

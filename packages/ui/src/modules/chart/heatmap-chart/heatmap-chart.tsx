@@ -13,7 +13,7 @@ import { readoutCell } from '../engine/chart-series'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartMarkRef } from '../engine/context'
 import { HeatmapFocusProvider } from './context'
-import { HeatmapCellRings, HeatmapChartCells } from './heatmap-chart-cells'
+import { HeatmapCellRings, HeatmapChartCells, HeatmapProbedRings } from './heatmap-chart-cells'
 import { HeatmapChartLegend } from './heatmap-chart-legend'
 import type { HeatmapChartProps } from './heatmap-chart-schema'
 import { HeatmapChartTooltip } from './heatmap-chart-tooltip'
@@ -245,6 +245,8 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 					cellBins={cellBins}
 					animate={animate}
 				/>
+
+				<HeatmapProbedRings cells={cells} cellBins={cellBins} />
 
 				<HeatmapCellRings cells={cells} selected={selected} />
 
