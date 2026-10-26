@@ -236,6 +236,7 @@ export function GridDataTable<T>({
 				<GridGrandTotalBody<T>
 					grandTotal={grandTotal}
 					columns={columns}
+					pinning={pinning}
 					gridSemantics={semantics.enabled}
 					ariaRowCount={semantics.ariaRowCount}
 				/>

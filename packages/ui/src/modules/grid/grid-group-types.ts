@@ -45,10 +45,10 @@ export type GridColumnGroup = {
 
 /**
  * Controlled/uncontrolled binding for {@link GridDataProps.columnGroups}. The plain
- * array shorthand seeds the groups uncontrolled, and the column manager mutates
- * them from there. The object form threads a controlled `value` with an
- * `onValueChange` sink, so a consumer can persist the group layout the manager
- * produces.
+ * array shorthand seeds the groups uncontrolled, and the column manager and a
+ * header drag change them from there. The object form threads a controlled
+ * `value` with an `onValueChange` sink, so a consumer can persist the group
+ * layout that the manager and a header drag produce.
  */
 export type GridColumnGroups =
 	| GridColumnGroup[]

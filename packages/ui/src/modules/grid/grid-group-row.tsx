@@ -7,6 +7,7 @@ import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
 import type { GridGroup } from './engine/grid-group/tree'
 import { groupItemKey } from './engine/grid-items/items'
+import { pinnedSpanProps } from './engine/grid-pin/styles'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy } from './grid-data-types'
@@ -14,6 +15,7 @@ import { GridGroupDisclosure } from './grid-group-disclosure'
 import { GridNavCell, useGridNavStopProps } from './grid-nav-cell'
 import type { GridColumn } from './types'
 import { useGridNavContext } from './use-grid-navigation'
+import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridGroupRow}. @internal */
 type GridGroupRowProps<T> = {
@@ -29,6 +31,8 @@ type GridGroupRowProps<T> = {
 	renderHeader: GridGroupBy['renderHeader']
 	/** The group's overlay color: colors the leading rail and washes the header's aggregate cells; `undefined` leaves them neutral. */
 	color?: PaletteColor
+	/** Frozen-column controls, so the cells over a pinned column stick like its data cells. `null` when none. */
+	pinning: GridColumnPinning | null
 } & GridWindowRowProps
 
 /**
@@ -40,7 +44,9 @@ type GridGroupRowProps<T> = {
  * toggle and chevron stay. Without aggregation the row is one full-width cell.
  * Once any column aggregates, the label spans only the columns before the first
  * aggregated one, and each aggregated column carries the group's figure. A
- * collapsed group therefore still reads its totals off its header.
+ * collapsed group therefore still reads its totals off its header. The label
+ * span ends at a frozen boundary, so each cell over a frozen column sticks with
+ * that column (see `aggregateLabelSpan`).
  *
  * @internal
  */
@@ -51,6 +57,7 @@ function GridGroupRowImpl<T>({
 	columnId,
 	renderHeader,
 	color,
+	pinning,
 	...windowRow
 }: GridGroupRowProps<T>) {
 	const { expanded, value } = group
@@ -60,7 +67,9 @@ function GridGroupRowImpl<T>({
 
 	const aggregated = hasAggregation(columns)
 
-	const span = aggregated ? aggregateLabelSpan(columns) : columns.length
+	const span = aggregated ? aggregateLabelSpan(columns, pinning) : columns.length
+
+	const pinned = pinnedSpanProps(pinning, columns.slice(0, span))
 
 	const navKey = groupItemKey(group.id)
 
@@ -84,7 +93,13 @@ function GridGroupRowImpl<T>({
 			<TableCell
 				{...stopProps}
 				colSpan={span}
-				className={cn(k.row.group.rail.padded, color && k.row.group.rail.color[color])}
+				className={cn(
+					k.row.group.rail.padded,
+					color && k.row.group.rail.color[color],
+					pinned.className,
+				)}
+				style={pinned.style}
+				data-grid-pin={pinned.pin}
 			>
 				<GridGroupDisclosure
 					value={value}
@@ -98,7 +113,13 @@ function GridGroupRowImpl<T>({
 			</TableCell>
 
 			{aggregated && (
-				<GridAggregateCells columns={columns} rows={group.rows} from={span} color={color} />
+				<GridAggregateCells
+					columns={columns}
+					rows={group.rows}
+					from={span}
+					color={color}
+					pinning={pinning}
+				/>
 			)}
 		</TableRow>
 	)

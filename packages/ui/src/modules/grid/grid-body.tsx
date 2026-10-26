@@ -237,6 +237,7 @@ function renderGroup<T>(
 				columnId={columnId}
 				renderHeader={renderHeader}
 				color={color}
+				pinning={props.pinning}
 				aria-rowindex={rowIndex(0)}
 			/>
 			{group.leaves.map((leaf, index) => (
@@ -250,6 +251,7 @@ function renderGroup<T>(
 				<GridTotalRow<T>
 					columns={props.visibleColumns}
 					rows={group.rows}
+					pinning={props.pinning}
 					variant="group"
 					expanded={expanded}
 					color={color}
@@ -296,6 +298,7 @@ function renderManualSegment<T>(
 					renderHeader={renderHeader}
 					expanded={open}
 					toggle={args.toggle}
+					pinning={props.pinning}
 				/>
 			)}
 			{segment.leaves.map((leaf) => (
