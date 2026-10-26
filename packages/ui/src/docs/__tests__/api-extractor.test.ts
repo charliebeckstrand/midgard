@@ -1,13 +1,11 @@
 // @vitest-environment node
-import path from 'node:path'
 import { afterAll, describe, expect, it } from 'vitest'
+import { uiRoot } from '../../__tests__/helpers/walk-source.ts'
 import { type BarrelApi, createApiExtractor } from '../plugin/api.ts'
 
 // The API data that the docs plugin makes for some components whose props
 // have a union, an inherited tag, a default that is a sentence, an
 // `@internal` tag, a `Responsive<T>` type, or a range.
-
-const UI_ROOT = path.resolve(import.meta.dirname, '..', '..', '..')
 
 const BARRELS = [
 	'components/card',
@@ -25,7 +23,7 @@ const BARRELS = [
 	'structure/flex',
 ]
 
-const extractor = createApiExtractor(UI_ROOT)
+const extractor = createApiExtractor(uiRoot)
 
 afterAll(() => extractor.close())
 

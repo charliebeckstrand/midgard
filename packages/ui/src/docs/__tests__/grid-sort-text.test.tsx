@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
+import { fireEvent, render, waitFor } from '@testing-library/react'
 import type { ComponentType } from 'react'
 import type { GridColumn } from 'ui/grid'
 import { LocaleProvider } from 'ui/providers/locale'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { CI } from '../../../vitest.base.ts'
 import { columnAccessor } from '../../modules/grid/engine/grid-column/accessor.ts'
 import { catalogs } from '../app/catalogs.ts'
@@ -81,8 +81,6 @@ function pressHeader(container: HTMLElement, index: number) {
 function collated(texts: readonly string[], locale: string): string[] {
 	return texts.toSorted(new Intl.Collator(locale, { numeric: true }).compare)
 }
-
-afterEach(cleanup)
 
 describe.each(['en', 'es'])('the grid demo columns in %s', { timeout: TIMEOUT }, (locale) => {
 	it('give each text cell its shown text as the sort value', async () => {

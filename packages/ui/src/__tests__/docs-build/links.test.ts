@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { CLIENT_DIR } from '../../../scripts/docs-server'
+import { CLIENT_DIR, prerenderedPages } from '../../../scripts/docs-server'
 
 // Each link of the prerendered pages that stays on the site goes to a page of
 // the build. A link with a hash goes to an element with that id. A prop of
@@ -13,11 +13,9 @@ import { CLIENT_DIR } from '../../../scripts/docs-server'
 const PROP_ID = /^(api-[^-]+)-./
 
 /** The prerendered page of each path, as the server finds it. */
-const files = fs
-	.globSync('**/index.html', { cwd: CLIENT_DIR })
-	.map((file) => [`/${path.dirname(file)}`.replace(/^\/\.$/, '/'), file] as const)
-
-const pages = new Map(files.map(([route, file]) => [route, path.join(CLIENT_DIR, file)]))
+const pages = new Map(
+	prerenderedPages().map((route) => [route, path.join(CLIENT_DIR, route, 'index.html')]),
+)
 
 // The `href` of a link, and the `id` of an element, in the markup of a page.
 const HREF = /<a\b[^>]*?\shref="([^"]*)"/g

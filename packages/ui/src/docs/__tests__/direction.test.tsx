@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { DirectionListbox, DirectionScript } from '../app/direction.tsx'
 
 // The direction setting of the docs writes `dir` on the root element, and the
@@ -43,9 +43,9 @@ function pick(option: string): void {
 }
 
 describe('the direction setting of the docs', () => {
-	it('lays out the site in the chosen direction, and keeps an override for the tab', () => {
-		resetAfterCase()
+	beforeEach(resetAfterCase)
 
+	it('lays out the site in the chosen direction, and keeps an override for the tab', () => {
 		setLanguage('en-US')
 
 		render(<DirectionListbox />)
@@ -70,8 +70,6 @@ describe('the direction setting of the docs', () => {
 	})
 
 	it('follows a right-to-left language of the browser on "System", and an override wins', () => {
-		resetAfterCase()
-
 		setLanguage('ar-EG')
 
 		render(<DirectionListbox />)
@@ -96,8 +94,6 @@ describe('the direction setting of the docs', () => {
 	])(
 		'sets the direction before the first paint (language %s, override %s)',
 		(language, override, rtl) => {
-			resetAfterCase()
-
 			setLanguage(language)
 
 			if (override) sessionStorage.setItem('docs:direction', override)
@@ -109,8 +105,6 @@ describe('the direction setting of the docs', () => {
 	)
 
 	it('shows the stored override when the settings open', () => {
-		resetAfterCase()
-
 		sessionStorage.setItem('docs:direction', 'rtl')
 
 		render(<DirectionListbox />)

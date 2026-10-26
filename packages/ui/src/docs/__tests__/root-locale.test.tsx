@@ -1,11 +1,8 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { createMemoryRouter, RouterProvider } from 'react-router'
-import { AppearanceProvider } from 'ui/providers/appearance'
 import { useLocale } from 'ui/providers/locale'
 import { describe, expect, it, onTestFinished } from 'vitest'
-import App from '../app/root.tsx'
-import { restoreRootAfterCase } from './restore-root.ts'
+import { renderShell } from './render-shell.tsx'
 
 // The build renders each page in Node, and the browser hydrates it. A page with
 // no locale reads the runtime default of each side, and the two can differ. So
@@ -18,28 +15,13 @@ function LocaleProbe() {
 }
 
 /** Renders the shell at a routed page that writes its locale. */
-function renderShell() {
-	restoreRootAfterCase()
-
-	// The shell reads the matched routes, so it needs a data router, as the app has.
-	const router = createMemoryRouter(
-		[{ path: '/', Component: App, children: [{ path: 'probe', Component: LocaleProbe }] }],
-		{ initialEntries: ['/probe'] },
-	)
-
-	// The router adds a window "pagehide" listener, and its disposal removes it.
-	onTestFinished(() => router.dispose())
-
-	render(
-		<AppearanceProvider>
-			<RouterProvider router={router} />
-		</AppearanceProvider>,
-	)
+function renderProbe() {
+	renderShell('/probe', { children: [{ path: 'probe', Component: LocaleProbe }] })
 }
 
 describe('docs app shell', () => {
 	it('gives each page the en locale', () => {
-		renderShell()
+		renderProbe()
 
 		expect(screen.getByTestId('locale').textContent).toBe('en')
 	})
@@ -49,7 +31,7 @@ describe('docs app shell', () => {
 
 		onTestFinished(() => localStorage.removeItem('locale'))
 
-		renderShell()
+		renderProbe()
 
 		expect(screen.getByTestId('locale').textContent).toBe('es')
 
@@ -58,7 +40,7 @@ describe('docs app shell', () => {
 	})
 
 	it('puts the language picker in the settings of the header', async () => {
-		renderShell()
+		renderProbe()
 
 		// The navbar and the header both hold the actions. The first button opens the dialog.
 		await userEvent.click(screen.getAllByRole('button', { name: 'Settings' })[0] as HTMLElement)

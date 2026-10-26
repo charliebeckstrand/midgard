@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
-import type { ESTree } from 'vite'
+import { type ESTree, Visitor } from 'vite'
 import {
 	type CatalogEntry,
 	formatPlainMessage,
@@ -426,38 +426,31 @@ function findWords(node: ESTree.CallExpression, file: string, finder: Finder): v
 	}
 }
 
-/** Calls `visit` on each node under `node`, in source order. */
-function walk(node: unknown, visit: (node: ESTree.Node) => boolean | undefined): void {
+/** Calls `visit` on each node under `node` that is not in a nested function, in source order. */
+function walkOwn(node: unknown, visit: (node: ESTree.Node) => void): void {
 	if (!node || typeof node !== 'object') return
 
 	if (Array.isArray(node)) {
-		for (const item of node) walk(item, visit)
+		for (const item of node) walkOwn(item, visit)
 
 		return
 	}
 
-	if (visit(node as ESTree.Node) === false) return
+	const { type } = node as ESTree.Node
+
+	if (
+		type === 'FunctionDeclaration' ||
+		type === 'FunctionExpression' ||
+		type === 'ArrowFunctionExpression'
+	) {
+		return
+	}
+
+	visit(node as ESTree.Node)
 
 	for (const [key, value] of Object.entries(node)) {
-		if (key !== 'parent' && value && typeof value === 'object') walk(value, visit)
+		if (key !== 'parent') walkOwn(value, visit)
 	}
-}
-
-/** Calls `visit` on each node under `body` that is not in a nested function, in source order. */
-function walkOwn(body: unknown, visit: (node: ESTree.Node) => void): void {
-	walk(body, (node) => {
-		if (
-			node.type === 'FunctionDeclaration' ||
-			node.type === 'FunctionExpression' ||
-			node.type === 'ArrowFunctionExpression'
-		) {
-			return false
-		}
-
-		visit(node)
-
-		return undefined
-	})
 }
 
 /**
@@ -553,25 +546,18 @@ export function findDemoText(program: ESTree.Program, code: string, file: string
 		},
 	}
 
-	walk(program, (node) => {
-		if (
-			node.type === 'CallExpression' &&
-			node.callee.type === 'Identifier' &&
-			node.callee.name === wordsName
-		) {
-			findWords(node, file, finder)
-		}
-
-		if (node.type === 'JSXElement' || node.type === 'JSXFragment') findChildren(node, finder)
-
-		if (node.type === 'JSXAttribute') findAttribute(node, finder)
-
-		if (node.type === 'Property') findProperty(node, finder)
-
-		if (node.type === 'FunctionDeclaration') findReturns(node, finder)
-
-		return undefined
-	})
+	new Visitor({
+		CallExpression(node) {
+			if (node.callee.type === 'Identifier' && node.callee.name === wordsName) {
+				findWords(node, file, finder)
+			}
+		},
+		JSXElement: (node) => findChildren(node, finder),
+		JSXFragment: (node) => findChildren(node, finder),
+		JSXAttribute: (node) => findAttribute(node, finder),
+		Property: (node) => findProperty(node, finder),
+		FunctionDeclaration: (node) => findReturns(node, finder),
+	}).visit(program)
 
 	return [...found.values()].toSorted((a, b) => a.start - b.start)
 }

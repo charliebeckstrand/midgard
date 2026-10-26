@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
+import { attach } from '../../__tests__/helpers/attach.ts'
 import { names } from '../kit/proper-names.ts'
 import { findSameText, readTexts, recordIntl } from './same-text.ts'
 
@@ -7,17 +8,15 @@ import { findSameText, readTexts, recordIntl } from './same-text.ts'
 // English page does (`same-text.ts`). These cases give each recorded source of
 // such a text, in Spanish.
 
-afterEach(() => {
-	document.body.innerHTML = ''
-})
-
 /** Each text that `html` shows in `language`, as the page smoke test reads it. */
 function readHtmlTexts(html: string, language: string): Set<string> {
-	document.body.innerHTML = html
+	const container = attach(document.createElement('div'))
+
+	container.innerHTML = html
 
 	const texts = new Set<string>()
 
-	readTexts(document.body, language, texts)
+	readTexts(container, language, texts)
 
 	return texts
 }

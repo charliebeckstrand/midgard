@@ -21,15 +21,26 @@
  * file, which `docs:build-server` writes (`vite.docs-server.config.ts`).
  */
 
+import { globSync } from 'node:fs'
 import { readFile, stat } from 'node:fs/promises'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
-import type { AddressInfo } from 'node:net'
+import type { AddressInfo, Server as NetServer } from 'node:net'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { localeFile, requestLocale } from '../src/docs/app/language.ts'
 
 /** The client directory of the docs build. */
 export const CLIENT_DIR = path.resolve(import.meta.dirname, '..', 'src', 'docs', 'dist', 'client')
+
+/**
+ * The path of each prerendered page in the client directory `root`, in order,
+ * such as `/` and `/button`.
+ */
+export function prerenderedPages(root = CLIENT_DIR): string[] {
+	return globSync('**/index.html', { cwd: root })
+		.map((file) => `/${file.replace(/\/?index\.html$/, '')}`)
+		.sort()
+}
 
 /**
  * A browser expression that is `true` when the hydration render gets to the
@@ -194,9 +205,14 @@ export async function serveDocs(
 		})
 	})
 
+	return { origin: `http://localhost:${await listen(server, port, host)}`, server }
+}
+
+/** Starts `server` on `port` of `host`, and gives its port. Port 0 gives a free port. */
+export async function listen(server: NetServer, port: number, host: string): Promise<number> {
 	await new Promise<void>((done) => server.listen(port, host, done))
 
-	return { origin: `http://localhost:${(server.address() as AddressInfo).port}`, server }
+	return (server.address() as AddressInfo).port
 }
 
 // Run as a script, not as an import of `test:docs-build`.

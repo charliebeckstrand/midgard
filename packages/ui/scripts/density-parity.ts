@@ -39,17 +39,16 @@
  * other side.
  */
 
-import { existsSync, globSync } from 'node:fs'
-import { readFile, stat, writeFile } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
+import { readFile, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
-import type { AddressInfo } from 'node:net'
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { type Browser, chromium, type Page } from 'playwright'
 import { rootDensityClasses } from '../src/core/density/steps'
 import { DENSITY, THEME } from '../src/providers/appearance/appearance-storage'
 import { type DensityLevel, levelToStep } from '../src/providers/density/context'
-import { HYDRATED, resolveFile, TYPES } from './docs-server'
+import { HYDRATED, listen, prerenderedPages, resolveFile, TYPES } from './docs-server'
 
 /** One run of the docs app: a theme, a stored density level, and a viewport width. */
 type Config = {
@@ -198,13 +197,6 @@ function readExpression(full: boolean): string {
 })()`
 }
 
-/** The path of each prerendered page of a build. */
-function findPages(root: string): string[] {
-	return globSync('**/index.html', { cwd: root })
-		.map((file) => `/${file.replace(/\/?index\.html$/, '')}`)
-		.sort()
-}
-
 /** The pages of a build that the script opens in `config`. */
 function pagesIn(root: string, config: Config, listed: readonly string[] | undefined): string[] {
 	// The server gives `__spa-fallback.html` for a missing page, so only a prerendered page counts.
@@ -216,7 +208,7 @@ function pagesIn(root: string, config: Config, listed: readonly string[] | undef
 		),
 	)
 
-	return findPages(root).filter((page) => !excluded.has(page))
+	return prerenderedPages(root).filter((page) => !excluded.has(page))
 }
 
 /**
@@ -238,10 +230,8 @@ async function serve(root: string): Promise<{ origin: string; close: () => void 
 		response.writeHead(200, { 'content-type': type }).end(await readFile(file))
 	})
 
-	await new Promise<void>((done) => server.listen(0, 'localhost', done))
-
 	return {
-		origin: `http://localhost:${(server.address() as AddressInfo).port}`,
+		origin: `http://localhost:${await listen(server, 0, 'localhost')}`,
 		close: () => server.close(),
 	}
 }
@@ -338,9 +328,9 @@ async function dumpConfig(
 async function dumpBuild(root: string, options: DumpOptions): Promise<Dump> {
 	const directory = path.resolve(root)
 
-	await stat(path.join(directory, '__spa-fallback.html')).catch(() => {
+	if (!existsSync(path.join(directory, '__spa-fallback.html'))) {
 		throw new Error(`density-parity: no docs build is at ${directory}.`)
-	})
+	}
 
 	const { origin, close } = await serve(directory)
 
@@ -715,17 +705,14 @@ async function compare(
 		false,
 	)
 
-	const flaggedPages = Object.values(first.flagged).reduce(
-		(sum, pages) => sum + new Set(pages).size,
-		0,
-	)
+	const flaggedPages = Object.values(first.flagged).flat().length
 
 	console.error(
 		`density-parity: the first pass read ${first.totals.states} element states, flagged ${flaggedPages} pages for a second pass, and found ${first.settled.length} pages that are in one build only or did not load.`,
 	)
 
 	for (const [config, pages] of Object.entries(first.flagged)) {
-		console.error(`  ${config}: ${[...new Set(pages)].join(' ')}`)
+		console.error(`  ${config}: ${pages.join(' ')}`)
 	}
 
 	const second: Report = {
@@ -736,7 +723,7 @@ async function compare(
 	}
 
 	for (const config of options.configs) {
-		const pages = [...new Set(first.flagged[config.name] ?? [])]
+		const pages = first.flagged[config.name] ?? []
 
 		if (pages.length === 0) continue
 

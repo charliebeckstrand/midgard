@@ -32,17 +32,16 @@
  * the script before the first run.
  */
 
-import { generateKeyPairSync, sign } from 'node:crypto'
-import { writeFileSync } from 'node:fs'
-import { readFile, stat } from 'node:fs/promises'
+import { generateKeyPairSync, sign, X509Certificate } from 'node:crypto'
+import { existsSync, writeFileSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import { createSecureServer, type Http2ServerResponse, type SecureServerOptions } from 'node:http2'
-import type { AddressInfo } from 'node:net'
 import path from 'node:path'
 import { parseArgs, promisify } from 'node:util'
 import { brotliCompress, constants } from 'node:zlib'
 import { type Browser, type CDPSession, chromium, type Locator, type Page } from 'playwright'
 import { getOrCompute } from '../src/utilities/get-or-compute'
-import { CLIENT_DIR, HYDRATED, resolveFile, TYPES } from './docs-server'
+import { CLIENT_DIR, HYDRATED, listen, resolveFile, TYPES } from './docs-server'
 
 const brotli = promisify(brotliCompress)
 
@@ -317,19 +316,17 @@ function createCertificate(): SecureServerOptions {
 
 	const body = der(0x30, certificate, algorithm, der(0x03, Buffer.of(0), signature))
 
-	const lines = body.toString('base64').match(/.{1,64}/g) ?? []
-
 	return {
 		key: privateKey.export({ type: 'pkcs8', format: 'pem' }),
-		cert: ['-----BEGIN CERTIFICATE-----', ...lines, '-----END CERTIFICATE-----', ''].join('\n'),
+		cert: new X509Certificate(body).toString(),
 	}
 }
 
 /** Serves the docs build over HTTP/2 through a downlink of "Slow 4G", and gives its origin. */
 async function serve(tls: SecureServerOptions): Promise<{ origin: string; close: () => void }> {
-	await stat(CLIENT_DIR).catch(() => {
+	if (!existsSync(CLIENT_DIR)) {
 		throw new Error(`Build the docs app first: no build is at ${CLIENT_DIR}.`)
-	})
+	}
 
 	// The server compresses each file once, as a CDN keeps the compressed file.
 	const bodies = new Map<string, Promise<Buffer>>()
@@ -381,10 +378,8 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 		})
 	})
 
-	await new Promise<void>((done) => server.listen(0, 'localhost', done))
-
 	return {
-		origin: `https://localhost:${(server.address() as AddressInfo).port}`,
+		origin: `https://localhost:${await listen(server, 0, 'localhost')}`,
 		close: () => {
 			downlink.close()
 
@@ -536,7 +531,9 @@ async function run(browser: Browser, origin: string): Promise<Sample> {
 
 		const load = await page.evaluate(readLoad)
 
-		await page.getByRole('button', { name: 'Open navigation' }).click()
+		const openNavigation = page.getByRole('button', { name: 'Open navigation' })
+
+		await openNavigation.click()
 
 		const link = page.getByRole('link', { name: 'Accordion', exact: true })
 
@@ -548,7 +545,7 @@ async function run(browser: Browser, origin: string): Promise<Sample> {
 
 		const click = await switchTime(page)
 
-		await tap(page, cdp, page.getByRole('button', { name: 'Open navigation' }))
+		await tap(page, cdp, openNavigation)
 
 		const alert = page.getByRole('link', { name: 'Alert', exact: true })
 
@@ -560,7 +557,7 @@ async function run(browser: Browser, origin: string): Promise<Sample> {
 
 		const touch = await switchTime(page)
 
-		await tap(page, cdp, page.getByRole('button', { name: 'Open navigation' }))
+		await tap(page, cdp, openNavigation)
 
 		await tap(page, cdp, page.getByRole('button', { name: 'Search docs' }))
 

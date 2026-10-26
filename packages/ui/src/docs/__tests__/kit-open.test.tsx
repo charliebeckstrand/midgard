@@ -1,8 +1,10 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router'
 import { beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { deferred } from '../../__tests__/helpers/deferred.ts'
 import { FailBoundary } from '../../__tests__/helpers/fail-boundary.tsx'
 import { tick } from '../../__tests__/helpers/frames.ts'
+import { getSlot } from '../../__tests__/helpers/slot-queries.ts'
 import { ApiTable } from '../kit/api-table.tsx'
 import { ExampleFrame } from '../kit/example.tsx'
 import type { BarrelApi } from '../plugin/api.ts'
@@ -14,16 +16,9 @@ import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
 
 describe('ExampleFrame', () => {
 	it('opens "Show code" with the code in it when the code module loads', async () => {
-		let load: (code: ExampleCode) => void = () => {}
+		const code = deferred<ExampleCode>()
 
-		const meta: ExampleMeta = {
-			title: 'Basic',
-			id: 'basic',
-			code: () =>
-				new Promise((resolve) => {
-					load = resolve
-				}),
-		}
+		const meta: ExampleMeta = { title: 'Basic', id: 'basic', code: () => code.promise }
 
 		const { container } = render(
 			<ExampleFrame meta={meta}>
@@ -39,7 +34,7 @@ describe('ExampleFrame', () => {
 
 		expect(trigger.getAttribute('aria-expanded')).toBe('false')
 
-		load({
+		code.resolve({
 			code: 'const answer = 42',
 			highlight: {
 				html: '<pre class="shiki"><code>const answer = 42</code></pre>',
@@ -48,29 +43,16 @@ describe('ExampleFrame', () => {
 			},
 		})
 
-		const panel = await waitFor(() => {
-			const el = container.querySelector('[data-slot="collapse-panel"]')
+		const panel = await waitFor(() => getSlot(container, 'collapse-panel'))
 
-			expect(el).not.toBeNull()
-
-			return el
-		})
-
-		expect(panel?.textContent).toContain('const answer = 42')
+		expect(panel.textContent).toContain('const answer = 42')
 	})
 
 	// A stale tab after a deploy: the chunk is gone, and only a reload gets it.
 	it('gives a failed code load to the error boundary when the reader opens "Show code"', async () => {
-		let reject: (error: Error) => void = () => {}
+		const code = deferred<ExampleCode>()
 
-		const meta: ExampleMeta = {
-			title: 'Basic',
-			id: 'basic',
-			code: () =>
-				new Promise((_, fail) => {
-					reject = fail
-				}),
-		}
+		const meta: ExampleMeta = { title: 'Basic', id: 'basic', code: () => code.promise }
 
 		render(
 			<FailBoundary>
@@ -91,7 +73,7 @@ describe('ExampleFrame', () => {
 		// The load fails inside `act`, so React renders each update of the failure
 		// before the check.
 		await act(async () => {
-			reject(new Error('Failed to fetch dynamically imported module'))
+			code.reject(new Error('Failed to fetch dynamically imported module'))
 		})
 
 		expect(screen.queryByText('Failed')).toBeNull()

@@ -71,7 +71,7 @@ export const DOCS_CATALOG_SOURCE: CatalogSource = { srcDir: DOCS_DIR, skipped: [
  * name, a title, a tab name, a field, and a demo text have no descriptor.
  */
 export async function extractDocsCatalog(): Promise<Record<string, CatalogEntry>> {
-	const parse: Parser = (code, options) => parseAst(code, options)
+	const parse: Parser = parseAst
 
 	const extractor = createApiExtractor(join(SRC_DIR, '..'))
 

@@ -25,16 +25,15 @@ function Spanish({ children }: { children: ReactNode }) {
 describe('the chrome of the docs in Spanish', () => {
 	it('shows the text of an API entry in Spanish, and keeps the names from the code', () => {
 		const { container } = render(
-			<Spanish>
-				<ApiEntry
-					component={{
-						name: 'Box',
-						props: [{ name: 'size', type: 'string', default: "'md'", required: true }],
-						events: [{ name: 'onSizeChange', type: '(size: string) => void' }],
-						elements: ['div'],
-					}}
-				/>
-			</Spanish>,
+			<ApiEntry
+				component={{
+					name: 'Box',
+					props: [{ name: 'size', type: 'string', default: "'md'", required: true }],
+					events: [{ name: 'onSizeChange', type: '(size: string) => void' }],
+					elements: ['div'],
+				}}
+			/>,
+			{ wrapper: Spanish },
 		)
 
 		expect(screen.getByRole('heading', { name: 'Eventos' })).toBeDefined()
@@ -49,11 +48,7 @@ describe('the chrome of the docs in Spanish', () => {
 	})
 
 	it('says in Spanish when the component takes no props of its own', () => {
-		render(
-			<Spanish>
-				<ApiEntry component={{ name: 'Spacer', props: [], events: [] }} />
-			</Spanish>,
-		)
+		render(<ApiEntry component={{ name: 'Spacer', props: [], events: [] }} />, { wrapper: Spanish })
 
 		expect(screen.getByText('Este componente no tiene props propias.')).toBeDefined()
 	})
@@ -67,11 +62,10 @@ describe('the chrome of the docs in Spanish', () => {
 		}
 
 		render(
-			<Spanish>
-				<ExampleFrame meta={meta}>
-					<span>Instance</span>
-				</ExampleFrame>
-			</Spanish>,
+			<ExampleFrame meta={meta}>
+				<span>Instance</span>
+			</ExampleFrame>,
+			{ wrapper: Spanish },
 		)
 
 		expect(screen.getByRole('heading', { name: 'Área de pruebas' })).toBeDefined()
@@ -87,11 +81,10 @@ describe('the chrome of the docs in Spanish', () => {
 		}
 
 		render(
-			<Spanish>
-				<ExampleFrame meta={meta}>
-					<span>Instance</span>
-				</ExampleFrame>
-			</Spanish>,
+			<ExampleFrame meta={meta}>
+				<span>Instance</span>
+			</ExampleFrame>,
+			{ wrapper: Spanish },
 		)
 
 		expect(screen.getByRole('heading', { name: 'Con icono' })).toBeDefined()
@@ -107,11 +100,10 @@ describe('the chrome of the docs in Spanish', () => {
 		}
 
 		render(
-			<Spanish>
-				<ExampleFrame meta={meta}>
-					<span>Instance</span>
-				</ExampleFrame>
-			</Spanish>,
+			<ExampleFrame meta={meta}>
+				<span>Instance</span>
+			</ExampleFrame>,
+			{ wrapper: Spanish },
 		)
 
 		expect(screen.getByRole('heading', { name: 'Not in the catalog' })).toBeDefined()
@@ -126,11 +118,7 @@ describe('the chrome of the docs in Spanish', () => {
 			return tabName(useIntl(), 'sorting', 'Sorting')
 		}
 
-		const { container } = render(
-			<Spanish>
-				<Name />
-			</Spanish>,
-		)
+		const { container } = render(<Name />, { wrapper: Spanish })
 
 		expect(container.textContent).toBe('Ordenación')
 	})
@@ -140,11 +128,7 @@ describe('the chrome of the docs in Spanish', () => {
 			return exampleTitle(useIntl(), PLAYGROUND, 'Playground')
 		}
 
-		const { container } = render(
-			<Spanish>
-				<Title />
-			</Spanish>,
-		)
+		const { container } = render(<Title />, { wrapper: Spanish })
 
 		expect(container.textContent).toBe('Área de pruebas')
 	})
@@ -186,11 +170,7 @@ describe('the chrome of the docs in Spanish', () => {
 			code: () => new Promise(() => {}),
 		})
 
-		render(
-			<Spanish>
-				<Playground of={ThingPlayground} api={api} />
-			</Spanish>,
-		)
+		render(<Playground of={ThingPlayground} api={api} />, { wrapper: Spanish })
 
 		expect(screen.getByRole('combobox', { name: 'Ubicación' }).textContent).toContain(
 			'Abajo al inicio',

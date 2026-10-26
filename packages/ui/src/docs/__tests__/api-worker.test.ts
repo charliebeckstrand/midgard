@@ -1,18 +1,16 @@
 // @vitest-environment node
-import path from 'node:path'
 import { afterAll, describe, expect, it } from 'vitest'
+import { uiRoot } from '../../__tests__/helpers/walk-source.ts'
 import { createApiExtractor, createApiWorker } from '../plugin/api.ts'
 
 // The docs plugin reads the API data in a worker thread (`createApiWorker`).
 // The thread must give the same data as the extractor on the main thread.
 
-const UI_ROOT = path.resolve(import.meta.dirname, '..', '..', '..')
-
 const BARRELS = ['components/button', 'components/select', 'components/tabs']
 
-const extractor = createApiExtractor(UI_ROOT)
+const extractor = createApiExtractor(uiRoot)
 
-const worker = createApiWorker(UI_ROOT)
+const worker = createApiWorker(uiRoot)
 
 afterAll(() => {
 	extractor.close()
