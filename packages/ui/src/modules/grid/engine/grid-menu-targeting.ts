@@ -109,14 +109,22 @@ export function tryCellMenu(
 
 /**
  * Handles a keyboard context menu (Shift+F10 / the ContextMenu key), which fires
- * on the focused grid rather than a cell. It retargets to the active cursor
- * cell, records the grid to restore focus to on close, and opens below the cell
- * (WCAG 2.1.1). The cursor on a group-header row opens the menu of the group, as
- * a right-click on the row does. No-ops when no cell is active.
+ * on the focused grid or row rather than a cell (WCAG 2.1.1).
  *
- * @remarks Only an event on the grid element itself retargets. A right-click
- * in a cell with no menu of its own, such as a selection or actions cell,
- * keeps the native menu. It does not open the menu of the cursor's cell.
+ * - On the grid, it retargets to the active cursor cell. The cursor on a
+ *   group-header row opens the menu of the group, as a right-click on the row
+ *   does. No-ops when no cell is active.
+ * - On a focused data row (row roving, or the Tab stop of a windowed body), it
+ *   opens the menu of the row's first data cell, the menu that a right-click
+ *   there opens.
+ *
+ * Either way, it records the element to restore focus to on close and opens
+ * below the cell.
+ *
+ * @remarks Only an event on the grid element or the row itself retargets. A
+ * right-click in a cell with no menu of its own, such as a selection or
+ * actions cell, keeps the native menu. It does not open the menu of the
+ * cursor's cell.
  *
  * @internal
  */
@@ -127,6 +135,14 @@ export function openKeyboardMenu(
 	commit: CommitMenu,
 	returnFocus: RefObject<HTMLElement | null>,
 ): void {
+	if (target.matches('tr[data-grid-row]')) {
+		const cell = target.querySelector<HTMLElement>(':scope > td[data-grid-col]')
+
+		if (cell) openBelow(resolveItems(cell), cell, target, commit, returnFocus)
+
+		return
+	}
+
 	const grid = target.closest<HTMLElement>(GRID_ROLE)
 
 	if (grid !== target) return
@@ -145,15 +161,38 @@ export function openKeyboardMenu(
 			? resolveItems(active)
 			: resolveGroupItems(groupRow.dataset.groupKey, groupRow)
 
+	openBelow(menu, active, grid, commit, returnFocus)
+}
+
+/** How far inside the cell edges, in pixels, the anchor of a keyboard-opened menu sits. @internal */
+const EDGE_INSET = 1
+
+/**
+ * Opens a keyboard-opened menu below `cell`, and records `focused` to restore
+ * focus to on close. An empty or absent menu no-ops.
+ *
+ * @internal
+ */
+function openBelow(
+	menu: GridMenuResolution | null,
+	cell: HTMLElement,
+	focused: HTMLElement,
+	commit: CommitMenu,
+	returnFocus: RefObject<HTMLElement | null>,
+): void {
 	if (!menu || menu.items.length === 0) return
 
-	returnFocus.current = grid
+	returnFocus.current = focused
 
-	const rect = active.getBoundingClientRect()
+	const rect = cell.getBoundingClientRect()
 
 	// The menu opens at the inline start of the cell, which is its right edge in
-	// RTL.
-	commit(menu, active, isRtl(active) ? rect.right : rect.left, rect.bottom)
+	// RTL. The point sits one pixel inside the cell: a first-column cell starts
+	// on the edge of the scroll container, and floating-ui hides a menu whose
+	// zero-size anchor lies on the clip edge.
+	const x = isRtl(cell) ? rect.right - EDGE_INSET : rect.left + EDGE_INSET
+
+	commit(menu, cell, x, rect.bottom - EDGE_INSET)
 }
 
 /**

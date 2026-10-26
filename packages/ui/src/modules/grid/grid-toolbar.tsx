@@ -116,14 +116,16 @@ function GridExportMenu({ exportActions, exporting }: GridExportMenuProps) {
 }
 
 /**
- * The element that takes focus from "Clear filters": the search field of the
+ * The element that takes focus from a control that unmounts: "Clear filters",
+ * or a batch action that empties the selection. It is the search field of the
  * toolbar when it has one, else the first Tab stop of the table that follows
- * the toolbar. The button unmounts in the commit that clears the filters, so
- * the browser drops focus to `body` unless it moves first (WCAG 2.4.3).
+ * the toolbar. The control unmounts in the commit that clears the filters or
+ * the selection, so the browser drops focus to `body` unless it moves first
+ * (WCAG 2.4.3).
  *
  * @internal
  */
-function clearFiltersFocusTarget(toolbar: HTMLElement): HTMLElement | undefined {
+function toolbarFocusFallback(toolbar: HTMLElement): HTMLElement | undefined {
 	const search = toolbar.querySelector<HTMLElement>('[data-slot="grid-filter"] input')
 
 	if (search) return search
@@ -173,6 +175,20 @@ export function GridToolbar({
 
 	const toolbarRef = useRef<HTMLDivElement>(null)
 
+	const batchRef = useRef<HTMLDivElement>(null)
+
+	// An empty selection unmounts the batch row. Move focus out of it first, as
+	// "Clear filters" does.
+	const setBatchSelection = (next: Set<string | number>) => {
+		const toolbar = toolbarRef.current
+
+		if (next.size === 0 && toolbar && batchRef.current?.contains(document.activeElement)) {
+			toolbarFocusFallback(toolbar)?.focus()
+		}
+
+		setSelection(next)
+	}
+
 	const showExport = exportActions.length > 0
 
 	const showTools = showColumnManager || showExport
@@ -200,7 +216,7 @@ export function GridToolbar({
 							color="amber"
 							onClick={() => {
 								// Move focus before the clear unmounts this button.
-								if (toolbarRef.current) clearFiltersFocusTarget(toolbarRef.current)?.focus()
+								if (toolbarRef.current) toolbarFocusFallback(toolbarRef.current)?.focus()
 
 								columnFilters?.clear()
 							}}
@@ -242,8 +258,8 @@ export function GridToolbar({
 			)}
 
 			{showBatch && (
-				<Toolbar aria-label={intl.formatMessage(gridMessages.batchActions)}>
-					{batchActions?.({ selection, setSelection })}
+				<Toolbar ref={batchRef} aria-label={intl.formatMessage(gridMessages.batchActions)}>
+					{batchActions?.({ selection, setSelection: setBatchSelection })}
 				</Toolbar>
 			)}
 		</div>

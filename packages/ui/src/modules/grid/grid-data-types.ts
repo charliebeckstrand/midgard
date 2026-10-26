@@ -1279,6 +1279,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * {@link GridDataProps.onRowClick}. Per the DOM's event order a double-click
 	 * also fires the single-click handlers twice first; keep the two actions
 	 * compatible. The interactive-content guard of `onRowClick` applies.
+	 *
+	 * @remarks With no single-click handler, Enter or Space on the focused
+	 * roving row or cell fires this, so the action has a keyboard route.
 	 */
 	onRowDoubleClick?: GridRowClick<T>
 
@@ -1287,6 +1290,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * {@link GridCellClickContext} and the originating event. It is the cell-level
 	 * counterpart of {@link GridDataProps.onRowDoubleClick}, fired ahead of it on
 	 * the same double-click.
+	 *
+	 * @remarks With no single-click handler, Enter or Space on the focused
+	 * roving cell fires this, then {@link GridDataProps.onRowDoubleClick}, so
+	 * the action has a keyboard route.
 	 */
 	onCellDoubleClick?: GridCellClick<T>
 
