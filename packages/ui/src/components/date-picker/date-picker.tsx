@@ -50,11 +50,12 @@ export type DatePickerSingleProps = {
 	 */
 	input?: boolean
 	/**
-	 * Pattern for the typed date while `input` is set.
+	 * Pattern for the date: the typed date while `input` is set, and the
+	 * trigger label without `input`.
 	 *
-	 * @defaultValue `'MM/DD/YYYY'` in an `en-US` locale. The locale sets the
-	 * layout, as on {@link DateInput}. The typed field then agrees with the
-	 * Calendar and the trigger label.
+	 * @defaultValue Unset. The typed field takes the layout of the locale, as on
+	 * {@link DateInput}, which is `'MM/DD/YYYY'` in an `en-US` locale. The
+	 * trigger label takes the date format of the locale, as the Calendar does.
 	 */
 	format?: DateInputFormat
 }
