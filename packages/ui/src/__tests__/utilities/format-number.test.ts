@@ -178,18 +178,31 @@ describe('percentFormat · properties', () => {
 	// domain and the over-100% readings a computed share reaches.
 	const share = () => fc.double({ min: -10, max: 10, noNaN: true })
 
-	test.prop([share()])('ends in a percent sign over a grouped integer', (value) => {
+	test.prop([share()])('ends in a percent sign over a grouped number', (value) => {
 		const text = percentFormat(undefined)(value)
 
 		expect(text.endsWith('%')).toBe(true)
 
-		expect(text.slice(0, -1)).toMatch(GROUPED)
+		expect(integerPart(text.slice(0, -1))).toMatch(GROUPED)
 	})
 
 	test.prop([share()])('states the share times a hundred, rounded whole', (value) => {
 		expect(
 			Math.abs(parseFormatted(percentFormat(undefined)(value)) - value * 100),
 		).toBeLessThanOrEqual(0.5000001)
+	})
+
+	test.prop([fc.double({ min: 1e-9, max: 0.01, noNaN: true })])(
+		'never reads a share that is not zero as 0%',
+		(value) => {
+			expect(parseFormatted(percentFormat(undefined)(value))).toBeGreaterThan(0)
+		},
+	)
+
+	it('keeps one significant digit under one percent and whole percents above', () => {
+		const percent = percentFormat(undefined)
+
+		expect([0.0001, 0.004, 0.0291, 0.9707].map(percent)).toEqual(['0.01%', '0.4%', '3%', '97%'])
 	})
 })
 

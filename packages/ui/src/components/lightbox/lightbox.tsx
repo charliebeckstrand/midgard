@@ -131,13 +131,15 @@ export type LightboxProps = {
  * </Lightbox>
  * ```
  *
- * @remarks The raise and the return move only `transform` through Motion, so
- * the browser does not paint the photo again in each frame. The corners of the
- * photo are square in the flight. Under reduced motion, or when the
- * thumbnail is not on the screen, the photo fades in and out on the stage. The
- * viewer renders in the `Overlay` primitive, which traps the focus and locks
- * the scroll of the page. The viewer covers the `Chrome` regions of the app
- * too, and the focus does not go to them while it is open.
+ * @remarks The raise and the return move the photo only with `transform`
+ * through Motion, so the browser does not paint the photo again in each frame.
+ * The photo leaves its thumbnail with the radius of the thumbnail, and its
+ * corners become square as it rises. The return rounds them again. Under
+ * reduced motion, or when the thumbnail is not on the screen, the photo fades
+ * in and out on the stage. The viewer renders in the `Overlay` primitive,
+ * which traps the focus and locks the scroll of the page. The viewer covers the
+ * `Chrome` regions of the app too, and the focus does not go to them while it
+ * is open.
  */
 export function Lightbox({
 	photos,

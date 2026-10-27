@@ -312,9 +312,7 @@ export type CartesianLayoutInput = {
 	value?: ChartValueAxisInput
 	/**
 	 * The secondary value axis. It is only passed once something binds to the
-	 * axis: a visible `y2`-bound series, a `y2` reference, or a domain pin. A
-	 * zero-baseline chart would otherwise resolve an empty `[0, 1]` scale and
-	 * reserve a gutter for nothing.
+	 * axis: a visible `y2`-bound series, a `y2` reference, or a domain pin.
 	 */
 	value2?: ChartValueAxisInput
 	/** The category label per row: the band axis, and the gutter estimate when horizontal. */

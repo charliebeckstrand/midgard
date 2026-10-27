@@ -158,8 +158,8 @@ export function resolveValueAxes<T>(
 		axes.y2?.max !== undefined
 
 	// The y axis stands down the same way once everything binds y2; with no y2
-	// axis it stays on as the default home, so an empty chart still frames its
-	// value axis.
+	// axis it stays on as the default home, so a domain pin on an empty chart
+	// still frames its value axis.
 	const hasYAxis =
 		!hasY2Axis ||
 		yDomainValues.length > 0 ||

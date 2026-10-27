@@ -24,8 +24,16 @@ export const integerFormat = perLocale({ type: 'integer' })
 /** The formatter behind {@link formatFraction} for `locale`, as for {@link integerFormat}. */
 export const fractionFormat = perLocale({ type: 'number', maximumFractionDigits: 2 })
 
-/** A `0..1` share as a whole percent for `locale`, as for {@link integerFormat}. */
-export const percentFormat = perLocale({ type: 'percent', maximumFractionDigits: 0 })
+/**
+ * A `0..1` share as a whole percent for `locale`, as for {@link integerFormat}. A
+ * share under one percent keeps one significant digit (`0.4%`, `0.01%`), so a
+ * share that is not zero never reads `0%`.
+ */
+export const percentFormat = perLocale({
+	type: 'percent',
+	maximumFractionDigits: 0,
+	maximumSignificantDigits: 1,
+})
 
 /**
  * A chart value in a tooltip or a data table for `locale`, as for

@@ -291,13 +291,16 @@ export function linearScale({
 
 	const zeroCeiling = zeroBaseline && any && dataHigh < 0
 
-	if (zeroBaseline) fold(0)
-
 	if (min !== undefined) fold(min)
 
 	if (max !== undefined) fold(max)
 
+	// For the same reason, zero joins a domain that a value or a pin yields but
+	// yields none alone. An empty zero-baseline chart then draws the same empty
+	// frame as any other chart, not a `[0, 1]` grid.
 	if (!any) return null
+
+	if (zeroBaseline) fold(0)
 
 	const [rawLow, rawHigh] = widen(dataLow, dataHigh, zeroBaseline)
 

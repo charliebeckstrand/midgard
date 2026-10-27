@@ -20,7 +20,7 @@
 | `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
 | `formatFraction` | Locale-formats `value` with up to two fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
 | `integerFormat` / `fractionFormat` | The cached formatter behind each helper above for a `locale`. Use it where a memo needs a stable input. |
-| `percentFormat` | A `0..1` share as a whole percent for a `locale`, as a stable formatter. |
+| `percentFormat` | A `0..1` share as a whole percent for a `locale`, as a stable formatter. A share under one percent keeps one significant digit, so it never reads `0%`. |
 | `readoutFormat` | A chart value in a tooltip or a data table for a `locale`. It writes two fraction digits, or six significant digits where they show more (`1.0842`). |
 | `tickFormat` | An axis tick for a `locale`, with every fraction digit that the tick holds, so ticks on a fine step never read the same. |
 | `compactTickFormat` | An axis tick in compact notation (`48.2K`, `1.25M`) for a `locale`, with every fraction digit that the tick holds. Chart ticks in a narrow frame take it. |
