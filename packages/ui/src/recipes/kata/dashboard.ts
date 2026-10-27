@@ -74,9 +74,9 @@ const card = {
 }
 
 /**
- * The header row: the grip, the title block, and the actions. It pads its
- * bottom edge as a card header does, so the content keeps a gap below the
- * title.
+ * The header row: the grip, the title block, the actions, the controls of the
+ * widget, and the standard controls of the tile. It pads its bottom edge as a
+ * card header does, so the content keeps a gap below the title.
  *
  * A widget with a fullscreen view of its own, such as a chart with its menu
  * button, marks its controls in the row `data-own-fullscreen`. On a coarse
@@ -110,9 +110,9 @@ const header = [
 const heading = 'min-w-0 flex-1'
 
 /**
- * The action row at the far end of the header. Its gap is the gap of the header
- * row, so the controls of a widget after it keep the same gap. It keeps the
- * height of a bare icon button with no control in it. A widget puts its own
+ * The action row after the title block. Its gap is the gap of the header row,
+ * so the controls of a widget and of the tile after it keep the same gap. It
+ * keeps the height of a bare icon button with no control in it. A widget puts its own
  * controls in the row after hydration, so the row then keeps its height, and a
  * tile that takes the height of its content keeps the height of its first paint.
  */

@@ -29,7 +29,7 @@ export type DashboardTileCardProps = {
 	title?: string
 	/** The muted line under the title. */
 	description?: ReactNode
-	/** The app controls at the far end of the header row. */
+	/** The app controls in the header row, after the title. */
 	actions?: ReactNode
 	/** Whether the tile draws a header row. */
 	hasHeader: boolean

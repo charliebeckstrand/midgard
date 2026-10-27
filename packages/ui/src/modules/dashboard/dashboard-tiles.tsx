@@ -55,7 +55,7 @@ export type DashboardTilesProps = {
 	 */
 	tiles: readonly DashboardSpecTile[]
 	/**
-	 * The controls at the far end of the header row of each tile, for example a
+	 * The controls in the header row of each tile after the title, for example a
 	 * menu or a badge. Hoist it or wrap it in `useCallback`: a fresh function
 	 * renders each spec tile again. To remove a tile, use `onRemove`, which moves
 	 * the focus and announces the change.
