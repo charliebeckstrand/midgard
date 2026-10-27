@@ -1,6 +1,6 @@
 'use client'
 
-import { type AnimationPlaybackControls, animate, easeOut, frame } from 'motion'
+import { type AnimationPlaybackControls, animate, cancelFrame, easeOut, frame } from 'motion'
 import { type RefObject, useRef } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/lightbox'
@@ -13,6 +13,7 @@ import {
 	paintedFrame,
 	raisedFrame,
 	restingFrame,
+	slotRadius,
 } from './lightbox-utilities'
 
 /** The raise and the return of the photo that a {@link useLightboxFlight} gives. @internal */
@@ -68,11 +69,64 @@ function measureBoxes(slot: HTMLElement, photo: HTMLElement) {
 	return { slot: box, rest }
 }
 
-/** Writes the transforms of a frame on the slot and on the photo. */
-function paint(slot: HTMLElement, photo: HTMLElement, transforms: { slot: string; photo: string }) {
+/** Writes the styles of `frame` on the slot and on the photo. */
+function paint(
+	slot: HTMLElement,
+	photo: HTMLElement,
+	frame: LightboxFrame,
+	boxes: ReturnType<typeof measureBoxes>,
+) {
+	const transforms = frameTransforms(frame, boxes.slot, boxes.rest)
+
 	slot.style.transform = transforms.slot
 
+	slot.style.borderRadius = slotRadius(frame, boxes.slot)
+
 	photo.style.transform = transforms.photo
+}
+
+/** The frame that the slot and the photo paint now (see `paintedFrame`). */
+function readFrame(slot: HTMLElement, photo: HTMLElement, boxes: ReturnType<typeof measureBoxes>) {
+	const style = getComputedStyle(slot)
+
+	return paintedFrame(
+		style.transform,
+		getComputedStyle(photo).transform,
+		boxes.slot,
+		boxes.rest,
+		style.borderTopLeftRadius,
+	)
+}
+
+/**
+ * Writes the radius of `slot` in each frame of `tween`, the tween of its
+ * transform. The browser does not tween a radius off the main thread. Thus the
+ * radius reads the time of the tween, and each frame paints the radius of its
+ * transform, also while a tween is held. The frame in which the tween lands
+ * writes the last radius, before a landing in a later step of that frame. A
+ * tween that stops before its end writes no radius, so the code that stops it
+ * owns the radius.
+ *
+ * @param radiusAt - The `border-radius` of the slot at a progress from 0 to 1.
+ */
+function followRadius(
+	slot: HTMLElement,
+	tween: AnimationPlaybackControls,
+	radiusAt: (progress: number) => string,
+) {
+	const write = () => {
+		const { state } = tween
+
+		if (state !== 'idle') {
+			slot.style.borderRadius = radiusAt(
+				state === 'finished' ? 1 : Math.min(tween.time / tween.duration, 1),
+			)
+		}
+
+		if (state === 'idle' || state === 'finished') cancelFrame(write)
+	}
+
+	frame.render(write, true)
 }
 
 /** A return that runs: the tweens that it plays, and the slot and the photo that they move. */
@@ -82,9 +136,13 @@ type LightboxReturn = {
 	tweens: readonly AnimationPlaybackControls[]
 }
 
-/** Puts a slot and its photo at rest: no transform and no fade. */
+/** Puts a slot and its photo at rest: no transform, no radius, and no fade. */
 function putAtRest(slot: HTMLElement, photo: HTMLElement) {
-	paint(slot, photo, { slot: 'none', photo: 'none' })
+	slot.style.transform = 'none'
+
+	slot.style.borderRadius = ''
+
+	photo.style.transform = 'none'
 
 	photo.style.opacity = ''
 }
@@ -191,20 +249,23 @@ function shownPart(thumbnail: HTMLElement, box: LightboxBox): LightboxBox | unde
  * Moves the photo of a lightbox between its thumbnail and the stage.
  *
  * The raise paints the photo over its thumbnail in the first frame, with the
- * crop of the thumbnail. It cuts the photo to the part of the thumbnail that
- * the reader sees (see `raisedFrame`). The corners of the photo are square in the flight. So a thumbnail that a sticky bar or a
- * scroll container hides in part does not paint its hidden part over the bar.
- * It then moves the photo and its clip to the photo at rest. The return plays
+ * crop and the radius of the thumbnail. It cuts the photo to the part of the
+ * thumbnail that the reader sees (see `raisedFrame`). So a thumbnail that a
+ * sticky bar or a scroll container hides in part does not paint its hidden part
+ * over the bar. It then moves the photo and its clip to the photo at rest, and
+ * the corners of the clip become square on the way. The return plays
  * the same flight backward, from the frame that the photo paints at that time.
  * So a close during the raise, or while a finger holds the photo, turns the
  * photo around where it is. A raise during the return stops the return and
  * puts its slot at rest. The same photo then rises from where it is, and
  * another photo rises from its thumbnail.
  *
- * The slot of the photo is the clip (see `frameTransforms`), so a flight writes
- * only `transform`. The browser moves the painted photo
- * off the main thread, and it does not paint the photo again in each frame.
- * At rest, the slot and the photo have no transform.
+ * The slot of the photo is the clip (see `frameTransforms`), so a flight moves
+ * the photo only with `transform`. The browser moves the painted photo off the
+ * main thread, and it does not paint the photo again in each frame. The radius
+ * of the clip is the `border-radius` of the slot (see `slotRadius`). It follows
+ * the time of the tween of the slot (see `followRadius`), so the two do not
+ * drift apart. At rest, the slot and the photo have no transform and no radius.
  *
  * Under reduced motion, or when the reader sees no part of the thumbnail, the
  * photo fades in and out at its place on the stage. A page names the edges
@@ -226,7 +287,9 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		const shown = shownPart(thumbnail, box)
 
-		return shown && raisedFrame(box, rest, shown)
+		const radius = Number.parseFloat(getComputedStyle(thumbnail).borderTopLeftRadius) || 0
+
+		return shown && raisedFrame(box, rest, shown, radius)
 	}
 
 	// The last return, which the next raise stops. It can have landed.
@@ -240,17 +303,20 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 		from: LightboxFrame,
 		to: LightboxFrame,
 	) => {
+		const at = (progress: number) => mixFrames(from, to, easeOut(progress))
+
 		const steps = Array.from({ length: FLIGHT_STEPS + 1 }, (_, step) =>
-			frameTransforms(mixFrames(from, to, easeOut(step / FLIGHT_STEPS)), boxes.slot, boxes.rest),
+			frameTransforms(at(step / FLIGHT_STEPS), boxes.slot, boxes.rest),
 		)
 
 		// The steps carry the curve of `motion.raise`, so the tween between them is straight.
 		const options = { duration: k.motion.raise.duration, ease: 'linear' } as const
 
-		return [
-			animate(slot, { transform: steps.map((step) => step.slot) }, options),
-			animate(photo, { transform: steps.map((step) => step.photo) }, options),
-		]
+		const slotTween = animate(slot, { transform: steps.map((step) => step.slot) }, options)
+
+		followRadius(slot, slotTween, (progress) => slotRadius(at(progress), boxes.slot))
+
+		return [slotTween, animate(photo, { transform: steps.map((step) => step.photo) }, options)]
 	}
 
 	const raise = (thumbnail: HTMLElement | undefined) => {
@@ -264,20 +330,19 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		returning.current = null
 
-		// The frame that the same photo paints on its way back, read before the
-		// stop puts it at rest.
+		const boxes = measureBoxes(slot, photo)
+
+		// The frame and the opacity that the same photo paints on its way back,
+		// read before the stop puts it at rest.
 		const painted =
 			back?.photo === photo
 				? {
-						slot: getComputedStyle(slot).transform,
-						photo: getComputedStyle(photo).transform,
+						frame: readFrame(slot, photo, boxes),
 						opacity: Number(getComputedStyle(photo).opacity),
 					}
 				: undefined
 
 		if (back) stopReturn(back, photo)
-
-		const boxes = measureBoxes(slot, photo)
 
 		const raised = frameAt(boxes.rest, thumbnail)
 
@@ -291,12 +356,10 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 			return
 		}
 
-		const start = painted
-			? paintedFrame(painted.slot, painted.photo, boxes.slot, boxes.rest)
-			: raised
+		const start = painted?.frame ?? raised
 
 		// The first paint shows the photo at the start, before Motion starts.
-		paint(slot, photo, frameTransforms(start, boxes.slot, boxes.rest))
+		paint(slot, photo, start, boxes)
 
 		const tweens = fly(slot, photo, boxes, start, restingFrame(boxes.rest))
 
@@ -337,14 +400,7 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		// Motion stops the tween that runs on a value when a new tween starts on
 		// it, so the return reads the painted frame first and needs no stop.
-		const start = paintedFrame(
-			getComputedStyle(slot).transform,
-			getComputedStyle(photo).transform,
-			boxes.slot,
-			boxes.rest,
-		)
-
-		return land(slot, photo, fly(slot, photo, boxes, start, frame))
+		return land(slot, photo, fly(slot, photo, boxes, readFrame(slot, photo, boxes), frame))
 	}
 
 	return { raise, lower }
