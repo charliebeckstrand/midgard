@@ -1,14 +1,14 @@
 import api from 'virtual:docs/api/components/lightbox'
-import { ApiTable, Example } from '../../../kit/index.ts'
-import Gallery from './gallery.tsx'
+import { ApiTable, Example, Playground } from '../../../kit/index.ts'
+import LightboxPlayground from './playground.tsx'
 import SinglePhoto from './single-photo.tsx'
 import Thumbnails from './thumbnails.tsx'
 
 export default function LightboxPage() {
 	return (
 		<>
+			<Playground of={LightboxPlayground} api={api} />
 			<Example of={SinglePhoto} />
-			<Example of={Gallery} />
 			<Example of={Thumbnails} />
 			<ApiTable api={api} />
 		</>
