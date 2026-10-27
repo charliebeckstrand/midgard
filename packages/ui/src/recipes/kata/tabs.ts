@@ -178,18 +178,11 @@ export const k = defineKata(
 				stretch: { true: 'w-full justify-center', false: '' },
 			},
 			/**
-			 * The panel container. The panels add nothing to the intrinsic width of the
-			 * group, as the panels of an accordion do. A host that fits its content
-			 * thus keeps one width across a switch, and the text of a panel wraps at
-			 * that width. Otherwise an animated switch, which takes the outgoing panel
-			 * out of the flow, sets the container to the width of the incoming panel,
-			 * and the outgoing text wraps at that width while it exits. A block host
-			 * sets the width itself, so there nothing changes. A horizontal group
-			 * stretches the container across the column. A vertical group gives it the
-			 * width beside the list.
+			 * The panel container. Its panels add nothing to its intrinsic width (see
+			 * `CurrentContents`), so a horizontal group stretches it across the column,
+			 * and a vertical group gives it the width beside the list.
 			 */
 			contents: {
-				base: 'contain-inline-size',
 				orientation: { horizontal: '', vertical: 'flex-1' },
 			},
 			/**

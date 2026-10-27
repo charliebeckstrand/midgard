@@ -158,6 +158,12 @@ export const k = defineKata(
 				},
 			},
 			description: [size.sm, ...text.muted],
+			/**
+			 * The group of the step panels. The panels add nothing to the intrinsic
+			 * width of the stepper. A host that fits its content thus keeps one width
+			 * from step to step, and the text of a panel wraps at that width.
+			 */
+			panels: 'contain-inline-size',
 		},
 		defaults: { interactive: false },
 	},

@@ -12,6 +12,11 @@ export const k = defineKata(
 	{
 		base: 'group/collapse',
 		slots: {
+			// The panel adds nothing to the intrinsic width of the collapse, as the
+			// accordion panel does. A host that fits its content thus keeps one width
+			// while the panel opens and closes, and the text of the panel wraps at that
+			// width. A block host sets the width itself, so there nothing changes.
+			panel: 'contain-inline-size',
 			trigger: [
 				flex.inline,
 				dan.gap.scale.sm,
