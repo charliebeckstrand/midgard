@@ -148,10 +148,8 @@ export type ChartMarkEmphasis = {
 	lit: (series: number, datum?: number | null) => boolean
 }
 
-export const [ChartMarkEmphasisContext, useChartMarkEmphasis] = createContext<ChartMarkEmphasis>(
-	'ChartMarkEmphasis',
-	{ default: { mark: null, lit: () => true } },
-)
+export const [ChartMarkEmphasisContext, useChartMarkEmphasis] =
+	createContext<ChartMarkEmphasis>('ChartMarkEmphasis')
 
 /**
  * Whether a datum sits in the held category selection. A group-level query
@@ -235,7 +233,7 @@ export const [ChartEmphasisContext, useChartEmphasis] =
 /**
  * The stable setters of the frame. Each keeps its identity, so a writer does
  * not render again when the state it writes changes. A reader of the state
- * renders, not the writer. Each is a no-op outside a frame.
+ * renders, not the writer.
  *
  * @internal
  */
@@ -260,23 +258,18 @@ export type ChartActions = {
 	focusSeries: (index: number | null) => void
 }
 
-function ignore(): void {}
-
-export const [ChartActionsContext, useChartActions] = createContext<ChartActions>('ChartActions', {
-	default: { pointMark: ignore, pointReference: ignore, focusSeries: ignore },
-})
+export const [ChartActionsContext, useChartActions] = createContext<ChartActions>('ChartActions')
 
 /**
  * The series emphasis that the frame resolves: the pointed series while the
  * chart can emphasize it, else `null`. A hidden series cannot hold the
  * emphasis. The marks of a chart that does not read {@link ChartMarkEmphasis},
- * such as the pie, read it here. `null` outside a frame.
+ * such as the pie, read it here.
  *
  * @internal
  */
 export const [ChartSeriesEmphasisContext, useChartSeriesEmphasis] = createContext<number | null>(
 	'ChartSeriesEmphasis',
-	{ default: null },
 )
 
 /**
@@ -303,11 +296,8 @@ export const [ChartFullscreenContext, useChartFullscreen] = createContext<boolea
  * value labels drop, and the reference rules shed their hover rendering. No
  * chart gates each of them at its call site. One half of the
  * frame's spark posture; the other is the pointer veto `k.drawing` lays over
- * the drawing itself. Defaults to `'standard'`, so a layer rendered outside a
- * frame keeps its interactive behavior.
+ * the drawing itself.
  *
  * @internal
  */
-export const [ChartTierContext, useChartTier] = createContext<ChartTier>('ChartTier', {
-	default: 'standard',
-})
+export const [ChartTierContext, useChartTier] = createContext<ChartTier>('ChartTier')
