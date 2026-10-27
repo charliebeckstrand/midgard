@@ -2,9 +2,20 @@
 
 import type { ClassValue } from 'clsx'
 import { memo, type ReactElement } from 'react'
-import { TableBody, TableCell, TableRow } from '../../components/table'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '../../components/table'
+import { TableScrollsContext } from '../../components/table/context'
 import { TextSkeleton } from '../../components/text'
 import { cn } from '../../core'
+import type { ScaleStep } from '../../core/density'
+import { k } from '../../recipes/kata/grid'
+import type { scale } from '../../recipes/kata/table'
 import { rangeKeys } from '../../utilities'
 import { GRID_LOADING_ROWS } from './engine/grid-constants'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
@@ -121,5 +132,61 @@ export function GridLoadingBody<T>({ columns, pinning }: GridSkeletonRowsProps<T
 		<TableBody>
 			<GridSkeletonRows columns={columns} pinning={pinning} />
 		</TableBody>
+	)
+}
+
+/** Props for {@link GridGateSkeleton}. @internal */
+type GridGateSkeletonProps<T> = {
+	/** The visible columns, in render order. */
+	columns: GridColumn<T>[]
+	/** The explicit density of the table, or `undefined` to follow the nearest scope. */
+	density: ScaleStep<typeof scale> | undefined
+	bleed: boolean | undefined
+	/** The look classes of the `<table>`: the condensed font and the outline rules. */
+	className: string
+}
+
+/**
+ * The grid loading skeleton over a table that the width gate holds (see
+ * `widthGateClass`). After a reload, the server's table is in its box at zero
+ * opacity until the fit at hydration. This skeleton shows in that box.
+ *
+ * A header row of placeholder bars and a {@link GridLoadingBody} make the
+ * skeleton. A header label would move when the
+ * columns fit, so the header is a placeholder too. The skeleton has its own
+ * table, so the gated table keeps its cells for the fit to measure. The two
+ * tables do not share a column layout, and this table spreads its columns over
+ * the full width.
+ *
+ * The skeleton is `inert`: it takes no focus and no pointer, and assistive tech
+ * does not read it. The gated table under it stays in the accessibility tree.
+ * The frame clips the skeleton, so the skeleton has no scroll of its own.
+ *
+ * @internal
+ */
+export function GridGateSkeleton<T>({
+	columns,
+	density,
+	bleed,
+	className,
+}: GridGateSkeletonProps<T>) {
+	return (
+		<div data-slot="grid-gate-skeleton" inert className={cn(k.gate.skeleton)}>
+			<TableScrollsContext value={false}>
+				<Table size={density} bleed={bleed} className={className}>
+					<TableHead>
+						<TableRow>
+							{columns.map((col) => (
+								<TableHeader key={col.id}>
+									{!isNewRowAddColumn(col.id) && <TextSkeleton />}
+								</TableHeader>
+							))}
+						</TableRow>
+					</TableHead>
+
+					<GridLoadingBody columns={columns} pinning={null} />
+				</Table>
+			</TableScrollsContext>
+		</div>
 	)
 }

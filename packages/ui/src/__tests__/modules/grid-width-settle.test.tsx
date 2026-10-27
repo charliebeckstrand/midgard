@@ -39,6 +39,34 @@ describe('grid width settling', () => {
 		expect(tableTag).toContain('opacity-0')
 	})
 
+	it('shows the loading skeleton over the gated table on the server', () => {
+		const html = renderToString(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		const skeleton = new DOMParser()
+			.parseFromString(html, 'text/html')
+			.querySelector('[data-slot="grid-gate-skeleton"]')
+
+		// Inert, so the placeholder takes no focus and assistive tech reads the gated
+		// table alone. A header row and the one loading row, with a bar in each cell.
+		expect(skeleton?.hasAttribute('inert')).toBe(true)
+		expect(skeleton?.querySelectorAll('tr')).toHaveLength(2)
+		expect(skeleton?.querySelectorAll('th, td')).toHaveLength(columns.length * 2)
+	})
+
+	it('reserves the maxHeight of a windowed grid on the server', () => {
+		const html = renderToString(
+			<Grid columns={columns} rows={rows} getKey={getKey} virtualize maxHeight="320px" />,
+		)
+
+		const region = new DOMParser()
+			.parseFromString(html, 'text/html')
+			.querySelector<HTMLElement>('[data-slot="grid-scroll"]')
+
+		// The window has no rows before hydration, so the region holds the height they fill.
+		expect(region?.style.height).toBe('320px')
+		expect(region?.style.maxHeight).toBe('320px')
+	})
+
 	it('leaves a grid it never sizes visible on the server', () => {
 		// Not resizable, so no fit will ever run and there is nothing to wait for.
 		const html = renderToString(
@@ -49,6 +77,7 @@ describe('grid width settling', () => {
 
 		expect(tableTag).not.toBe('')
 		expect(tableTag).not.toContain('opacity-0')
+		expect(html).not.toContain('grid-gate-skeleton')
 	})
 
 	// jsdom has no `ResizeObserver`, so this is the "nothing will ever fit these columns"
@@ -63,6 +92,7 @@ describe('grid width settling', () => {
 
 		expect(table).not.toBeNull()
 		expect(table?.className ?? '').not.toContain('opacity-0')
+		expect(document.querySelector('[data-slot="grid-gate-skeleton"]')).toBeNull()
 		expect(screen.getByRole('columnheader', { name: /Name/ })).toBeVisible()
 	})
 })

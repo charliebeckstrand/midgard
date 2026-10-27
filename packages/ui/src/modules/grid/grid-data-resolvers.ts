@@ -584,6 +584,10 @@ export function resolveHighlightQuery(
  * mount that is the same task, and after a reload it is the time until hydration, when
  * the server's rows are already the true content.
  *
+ * The box of the table does not show blank while the gate is on: the grid loading
+ * skeleton shows in it (see `GridGateSkeleton`). A windowed body has no rows before
+ * hydration, so its scroll region reserves the `maxHeight` that the rows will fill.
+ *
  * Carried by the `<table>` itself rather than a wrapper: a wrapping node (even
  * `display: contents`) would sit in the middle of the grid's own child selectors. Kept
  * out of {@link GridDataTable}, its caller, for its cognitive-complexity budget.

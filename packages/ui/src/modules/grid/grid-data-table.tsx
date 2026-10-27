@@ -5,6 +5,7 @@ import { Table, type TableElementProps } from '../../components/table'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { k } from '../../recipes/kata/grid'
 import type { scale } from '../../recipes/kata/table'
 import { GridHighlightContext } from './context'
 import {
@@ -25,6 +26,7 @@ import { GridFillHandle } from './grid-fill-handle'
 import { GridHead } from './grid-head'
 import { GridNewRow } from './grid-new-row'
 import { GridScrollRegion } from './grid-region'
+import { GridGateSkeleton } from './grid-skeleton-cells'
 import { GridGrandTotalBody } from './grid-total-row'
 import type { GridColumn } from './types'
 import type { useGridCursor } from './use-grid-cursor'
@@ -116,7 +118,7 @@ type GridDataTableProps<T> = {
 	}
 	grandTotal: { active: boolean; rows: readonly T[] }
 	/** The scroll container for a sticky header or a window. */
-	scroll: Omit<ComponentProps<typeof GridScrollRegion>, 'children'>
+	scroll: Omit<ComponentProps<typeof GridScrollRegion>, 'reserve' | 'children'>
 	/** The query that highlight-mode search marks, or `null`. */
 	highlightQuery: string | null
 }
@@ -169,78 +171,91 @@ export function GridDataTable<T>({
 		/>
 	)
 
+	// The condensed font and the outline rules, which the skeleton of the width
+	// gate takes too.
+	const lookClass = condensedTableClass(table.condensed, outlineTableClass(table.outline))
+
 	// The cursor store is always provided (inert when not navigable/editable); only
 	// a cursor grid's cells subscribe, so the wrapper costs nothing otherwise.
 	const tableContent = (
 		<GridNavContext value={cursor.navStore}>
-			<Table
-				size={density}
-				bleed={table.bleed}
-				striped={stripedForOutline(table.striped, table.outline)}
-				hover={table.hover}
-				className={condensedTableClass(
-					table.condensed,
-					cn(
+			<div className={cn(k.gate.frame)}>
+				<Table
+					size={density}
+					bleed={table.bleed}
+					striped={stripedForOutline(table.striped, table.outline)}
+					hover={table.hover}
+					className={cn(
 						table.className,
 						settleBodyClass(table.settling),
-						outlineTableClass(table.outline),
+						lookClass,
 						widthGateClass(table.revealed),
-					),
+					)}
+					tableProps={resolveTableProps({
+						intl,
+						tableProps: table.props,
+						// The cursor's tab stop, active-cell pointer, and key/focus handlers.
+						navTableProps: cursor.navTableProps,
+						// Row/cell roving: the table ref and the arrow-key handler (exclusive
+						// with the cursor, which stands roving down).
+						rovingTableProps: roving.tableProps,
+						loading,
+						gridSemantics: semantics.enabled,
+						navigable: cursor.cursorEnabled,
+						tree: table.tree,
+						ariaRowCount: semantics.ariaRowCount,
+						colCount: columns.length,
+						multiSelectable: table.multiSelectable,
+						bodyHasRows: hasRows && !loading && !showingError,
+						tableWidth: table.width,
+					})}
+				>
+					{table.colGroup}
+
+					<GridHead
+						columns={columns}
+						hasRows={hasRows}
+						selectAllLabel={semantics.selectAllLabel}
+						gridSemantics={semantics.enabled}
+						pinning={pinning}
+						{...head}
+					/>
+
+					{slotAt(newRow.place, 'top', newRowSlot)}
+
+					<GridBody<T>
+						{...body}
+						loading={loading}
+						visibleColumns={columns}
+						pinning={pinning}
+						gridSemantics={semantics.enabled}
+						rowIndexOffset={semantics.rowIndexOffset}
+						rowRoving={roving.rovingRows}
+						rowStaticStop={roving.rowStaticStop}
+						cellRoving={roving.rovingCells}
+					/>
+
+					{slotAt(newRow.place, 'bottom', newRowSlot)}
+
+					<GridGrandTotalBody<T>
+						grandTotal={grandTotal}
+						columns={columns}
+						pinning={pinning}
+						gridSemantics={semantics.enabled}
+						ariaRowCount={semantics.ariaRowCount}
+					/>
+				</Table>
+
+				{/* Over the gated table until its columns fit. */}
+				{!table.revealed && (
+					<GridGateSkeleton
+						columns={columns}
+						density={density}
+						bleed={table.bleed}
+						className={lookClass}
+					/>
 				)}
-				tableProps={resolveTableProps({
-					intl,
-					tableProps: table.props,
-					// The cursor's tab stop, active-cell pointer, and key/focus handlers.
-					navTableProps: cursor.navTableProps,
-					// Row/cell roving: the table ref and the arrow-key handler (exclusive
-					// with the cursor, which stands roving down).
-					rovingTableProps: roving.tableProps,
-					loading,
-					gridSemantics: semantics.enabled,
-					navigable: cursor.cursorEnabled,
-					tree: table.tree,
-					ariaRowCount: semantics.ariaRowCount,
-					colCount: columns.length,
-					multiSelectable: table.multiSelectable,
-					bodyHasRows: hasRows && !loading && !showingError,
-					tableWidth: table.width,
-				})}
-			>
-				{table.colGroup}
-
-				<GridHead
-					columns={columns}
-					hasRows={hasRows}
-					selectAllLabel={semantics.selectAllLabel}
-					gridSemantics={semantics.enabled}
-					pinning={pinning}
-					{...head}
-				/>
-
-				{slotAt(newRow.place, 'top', newRowSlot)}
-
-				<GridBody<T>
-					{...body}
-					loading={loading}
-					visibleColumns={columns}
-					pinning={pinning}
-					gridSemantics={semantics.enabled}
-					rowIndexOffset={semantics.rowIndexOffset}
-					rowRoving={roving.rovingRows}
-					rowStaticStop={roving.rowStaticStop}
-					cellRoving={roving.rovingCells}
-				/>
-
-				{slotAt(newRow.place, 'bottom', newRowSlot)}
-
-				<GridGrandTotalBody<T>
-					grandTotal={grandTotal}
-					columns={columns}
-					pinning={pinning}
-					gridSemantics={semantics.enabled}
-					ariaRowCount={semantics.ariaRowCount}
-				/>
-			</Table>
+			</div>
 
 			<GridFillHandle />
 		</GridNavContext>
@@ -248,7 +263,7 @@ export function GridDataTable<T>({
 
 	return (
 		<GridHighlightContext value={highlightQuery}>
-			<GridScrollRegion {...scroll}>
+			<GridScrollRegion {...scroll} reserve={!table.revealed && scroll.virtualized}>
 				{/* An editable grid mounts the editing contexts around the table.
 				    A read-only grid returns the table as it is. */}
 				{cursor.wrap(tableContent)}

@@ -776,6 +776,16 @@ export const k = {
 			'[&>tbody:first-of-type]:motion-reduce:opacity-50',
 		],
 	},
+	// The width gate: the grid loading skeleton over a table whose columns are not
+	// fitted yet (see `widthGateClass`).
+	gate: {
+		// The box of the table, which positions the skeleton. It holds the table
+		// for all of the life of the grid, so the reveal mounts no node again.
+		frame: 'relative',
+		// The skeleton starts at the top edge of the table and clips at its bottom
+		// edge. The inline axis stays visible, so a `bleed` table reaches its gutter.
+		skeleton: 'absolute inset-0 overflow-y-clip',
+	},
 	// The "Exporting" overlay: a scrim over the whole grid while an async export
 	// resolves its rows, with a centered label.
 	//
