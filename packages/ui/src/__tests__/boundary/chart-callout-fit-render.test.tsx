@@ -3,10 +3,9 @@ import { PieChart } from '../../modules/chart/pie-chart'
 import { act, allBySlot, fireEvent, renderUI } from '../helpers'
 
 /**
- * A callout pie fits its disc to the frame once in a render. The frame sizing,
- * the callout gate, and the drawing read that one fit, and each callout text
- * formats once. The readout formats each share once, however many renders
- * read it. A hidden slice gives the visible slices a fit of their own.
+ * A callout pie fits its disc to the frame once in a render, and each callout
+ * text formats once. The readout formats each share once, however many renders
+ * read it. A hidden slice changes the fit, and does not add one.
  *
  * The fit count reads `pieCalloutFit`, the format count reads the percent
  * formatter, and the render count reads the slice layer, which the chart body
@@ -76,8 +75,7 @@ beforeEach(() => {
 
 describe('pie callout fit', () => {
 	it('fits the pie once and formats each callout text once in a render', () => {
-		// No legend, so each percent format is a callout text or a readout cell. No
-		// height, so the frame sizes from the callout fit too.
+		// No legend, so each percent format is a callout text or a readout cell.
 		renderUI(
 			<PieChart
 				aria-label="Traffic by source"
@@ -97,7 +95,7 @@ describe('pie callout fit', () => {
 		expect(counts.formats).toBe((counts.renders + 1) * DATA.length)
 	})
 
-	it('fits the visible slices once more while a slice is hidden', () => {
+	it('fits only the visible slices while a slice is hidden', () => {
 		const { container } = renderUI(
 			<PieChart
 				aria-label="Traffic by source"
@@ -118,7 +116,7 @@ describe('pie callout fit', () => {
 
 		expect(counts.renders).toBeGreaterThan(0)
 
-		// The frame sizes from the whole dataset, and the pie fits the visible slices.
-		expect(counts.fits).toBe(counts.renders * 2)
+		// The frame sizes from the width alone, so only the visible slices take a fit.
+		expect(counts.fits).toBe(counts.renders)
 	})
 })

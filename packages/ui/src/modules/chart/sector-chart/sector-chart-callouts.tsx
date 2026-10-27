@@ -11,9 +11,11 @@ import {
 	CALLOUT_LEADER,
 	CALLOUT_LINE,
 	CALLOUT_NUB,
+	calloutColumn,
 	type PieCallout,
 	type PieCalloutFit,
 	type PieSlice,
+	pieCalloutCenter,
 	pieCalloutFit,
 	pieCallouts,
 } from '../engine/chart-geometry/pie'
@@ -21,14 +23,21 @@ import { SLICE_FADE, SLICE_UNFADE } from '../engine/chart-motion'
 import type { TextWidth } from '../engine/chart-text-width'
 import { isSparkBox } from '../engine/chart-tier'
 import { useChartSeriesEmphasis } from '../engine/context'
+import type { ChartTextWidth } from '../engine/use-chart-text-width'
 import { sliceShares } from './sector-chart-frame'
 import { labelDelay, sliceGroupClass, useSliceReflowed } from './sector-chart-marks'
 
 /** A placed callout with its resolved label text. @internal */
 type CalloutLabel = PieCallout & { text: string }
 
-/** The classes of a callout label. The measurement of its width sets the same classes. @internal */
-export const CALLOUT_TEXT_CLASS = cn('font-medium', k.tick)
+/**
+ * The classes of a callout label. The measurement of its width sets the same
+ * classes. `whitespace-pre` keeps the space before a share, so that the share
+ * measures with it.
+ *
+ * @internal
+ */
+export const CALLOUT_TEXT_CLASS = cn('font-medium whitespace-pre', k.tick)
 
 /** What a callout's text reads: the slice name plus its percent share. @internal */
 export type CalloutText = {
@@ -38,177 +47,195 @@ export type CalloutText = {
 }
 
 /**
- * The callout texts of one render, indexed like the values. Each set formats
- * once, and the room, the fits, and the labels read it. Both sets are empty
- * when the callouts are off.
+ * One callout's text in two parts: the slice name, which a narrow column cuts,
+ * and the share after it, which stays whole. `null` for a row with no slice.
  *
  * @internal
  */
-export type CalloutTexts = {
-	/** The texts over the whole dataset, which size the frame. */
-	full: string[]
-	/** The texts over the visible slices, which the pie draws. It is `full` when no slice is hidden. */
-	shown: string[]
+export type CalloutPart = { name: string; share: string } | null
+
+/**
+ * The callout text parts of one render, indexed like the values. Each set
+ * formats once. Both sets are empty when the callouts are off.
+ *
+ * @internal
+ */
+export type CalloutParts = {
+	/** The parts over the whole dataset. */
+	full: CalloutPart[]
+	/** The parts over the visible slices, which the pie draws. It is `full` when no slice is hidden. */
+	shown: CalloutPart[]
 }
 
 /** A callout pie fitted to a frame width. @internal */
 type CalloutFitAt = (frameWidth: number) => PieCalloutFit
 
 /**
- * The callout texts, their width, and the fits of one render. A fit runs once
- * for each frame width, so the frame sizing, the callout gate, and the drawing
- * share it.
+ * The callouts of the visible slices in one render: the texts as they draw,
+ * their width, and the fit. A fit runs once for each frame width.
  *
  * @internal
  */
-export type CalloutSpec = CalloutTexts & {
+export type CalloutSpec = {
+	/** The texts as they draw, indexed like the values. A row with no slice reads `''`. */
+	shown: string[]
 	/** The rendered width of a callout text. */
 	textWidth: TextWidth
-	/** The fit of the whole dataset. */
+	/** The fit of the visible slices. */
 	fit: CalloutFitAt
-	/** The fit of the visible slices. It is `fit` when no slice is hidden. */
-	shownFit: CalloutFitAt
+	/** The center x of the visible slices at a radius below their fit. */
+	center: (frameWidth: number, radius: number) => number
 }
 
-/** One callout's text: the slice name trailed by its percent share. @internal */
-function calloutLabelText({ labels, percent }: CalloutText, index: number, share: number): string {
-	return `${labels[index] ?? ''} ${percent(share)}`.trim()
+/** One callout's parts: the slice name, and its percent share after a space. @internal */
+function calloutPart({ labels, percent }: CalloutText, index: number, share: number): CalloutPart {
+	const name = labels[index] ?? ''
+
+	return { name, share: name === '' ? percent(share) : ` ${percent(share)}` }
 }
 
-/** Every row's callout text, indexed like `values`; a row with no slice reads `''`. @internal */
-function formatTexts(spec: CalloutText, values: (number | null)[]): string[] {
+/** Every row's callout parts, indexed like `values`. @internal */
+function formatParts(spec: CalloutText, values: (number | null)[]): CalloutPart[] {
 	return sliceShares(values).map((share, index) =>
-		share == null ? '' : calloutLabelText(spec, index, share),
+		share == null ? null : calloutPart(spec, index, share),
 	)
 }
 
 /**
- * The callout texts of one render: the whole dataset, and the visible slices.
- * The visible set reuses the whole set when no slice is hidden, so each text
- * formats once.
+ * The callout text parts of one render: the whole dataset, and the visible
+ * slices. The visible set reuses the whole set when no slice is hidden, so each
+ * text formats once.
  *
  * @internal
  */
-export function calloutTexts(
+export function calloutParts(
 	show: boolean,
 	spec: CalloutText,
 	values: (number | null)[],
 	sliceValues: (number | null)[],
-): CalloutTexts {
+): CalloutParts {
 	if (!show) return { full: [], shown: [] }
 
-	const full = formatTexts(spec, values)
+	const full = formatParts(spec, values)
 
-	return { full, shown: sameElements(values, sliceValues) ? full : formatTexts(spec, sliceValues) }
+	return { full, shown: sameElements(values, sliceValues) ? full : formatParts(spec, sliceValues) }
 }
 
-/** Fits the pie of one value set, once for each frame width that a render asks for. @internal */
-function fitOnce(values: (number | null)[], texts: string[], textWidth: TextWidth): CalloutFitAt {
-	const fits = new Map<number, PieCalloutFit>()
-
-	return (frameWidth) =>
-		getOrCompute(fits, frameWidth, () => pieCalloutFit({ values, texts, textWidth, frameWidth }))
+/** Every share text of `parts`, each once. @internal */
+export function calloutShares(parts: CalloutParts): string[] {
+	return [...new Set([...parts.full, ...parts.shown].flatMap((part) => (part ? [part.share] : [])))]
 }
 
 /**
- * The callout spec of one render: the texts, their width, and one fit for each
- * value set. The visible slices share the fit of the whole dataset when no
- * slice is hidden.
+ * The room of a callout name: the {@link calloutColumn column} at
+ * `frameWidth`, less the widest share. Every share then stays whole beside its
+ * name. Unbounded before the width is measured, because nothing draws then.
+ *
+ * @internal
+ */
+export function calloutNameRoom(
+	frameWidth: number,
+	shares: readonly string[],
+	shareWidth: TextWidth,
+): number {
+	if (frameWidth <= 0) return Number.POSITIVE_INFINITY
+
+	const widest = shares.reduce((max, share) => Math.max(max, shareWidth(share)), 0)
+
+	return Math.max(0, calloutColumn(frameWidth) - widest)
+}
+
+/**
+ * The callout spec of one render. Each visible callout draws its name as
+ * `names` cuts it to its room, then its share. The width of a text is the sum
+ * of the two measured parts.
  *
  * @internal
  */
 export function resolveCallouts(
-	texts: CalloutTexts,
-	values: (number | null)[],
+	parts: CalloutParts,
 	sliceValues: (number | null)[],
-	textWidth: TextWidth,
+	names: Pick<ChartTextWidth, 'fit' | 'width'>,
+	shareWidth: TextWidth,
 ): CalloutSpec {
-	const fit = fitOnce(values, texts.full, textWidth)
+	const widths = new Map<string, number>()
+
+	const shown = parts.shown.map((part) => {
+		if (!part) return ''
+
+		const text = `${names.fit(part.name)}${part.share}`
+
+		widths.set(text, names.width(part.name) + shareWidth(part.share))
+
+		return text
+	})
+
+	const textWidth: TextWidth = (text) => widths.get(text) ?? 0
+
+	const fits = new Map<number, PieCalloutFit>()
 
 	return {
-		...texts,
+		shown,
 		textWidth,
-		fit,
-		shownFit: texts.shown === texts.full ? fit : fitOnce(sliceValues, texts.shown, textWidth),
-	}
-}
-
-/** The horizontal room the widest callout needs beside the pie; the plain gap when off. @internal */
-export function calloutRoom(show: boolean, spec: CalloutSpec): number {
-	if (!show) return MARK_GAP * 2
-
-	const widest = spec.full.reduce<number>(
-		(max, text) => (text === '' ? max : Math.max(max, spec.textWidth(text))),
-		0,
-	)
-
-	return CALLOUT_LEADER + CALLOUT_NUB + CALLOUT_GAP + widest
-}
-
-/**
- * Whether a callout pie sized to `width` would collapse to the spark floor. The
- * two label columns starve the pie to a sliver. The content frame shrinks with
- * it (`2·radius + 2·vMargin` its height) until the box reads spark. There the
- * callouts drop for a bare pie: the frame squares to receive it, and the drawing
- * sheds the labels to match. Above the floor they fit, and the tight, asymmetric
- * callout frame holds. Read off the callout {@link pieCalloutFit fit radius} at
- * `width`, so the sizing resolver and the drawing decide it the same way.
- *
- * @internal
- */
-function calloutsSpark(fitRadius: number, vMargin: number, width: number): boolean {
-	return isSparkBox(width, 2 * fitRadius + 2 * vMargin)
-}
-
-/** The frame-sizing radius resolver callouts refine the content-fit height with; `undefined` when they're off. @internal */
-export function calloutFitRadius(
-	show: boolean,
-	spec: CalloutSpec,
-	vMargin: number,
-): ((width: number) => number) | undefined {
-	if (!show) return undefined
-
-	return (frameWidth) => {
-		const { radius } = spec.fit(frameWidth)
-
-		// Below the spark floor the labels starve the pie, so size a bare square
-		// (`height = width`, the resolver value net of the `2·vMargin` the frame
-		// adds) for the dropped-callout pie to fill rather than a collapsing sliver.
-		return calloutsSpark(radius, vMargin, frameWidth) ? frameWidth / 2 - vMargin : radius
+		fit: (frameWidth) =>
+			getOrCompute(fits, frameWidth, () =>
+				pieCalloutFit({ values: sliceValues, texts: shown, textWidth, frameWidth }),
+			),
+		center: (frameWidth, radius) =>
+			pieCalloutCenter({ values: sliceValues, texts: shown, textWidth, frameWidth }, radius),
 	}
 }
 
 /**
- * Whether the callouts draw at the measured `frameWidth`. They are on where they
- * fit, and off where they would starve the pie to the spark floor (see
- * {@link calloutsSpark}). The chart then falls back to bare marks. Weighed on the full dataset like the frame
- * sizing, so a toggled slice never flips the labels on or off under a steady
- * frame.
+ * The fixed horizontal room beside the pie: the leader, the nub, and the gap
+ * before a label when the callouts are on, and the plain gap when they are off.
+ * `CALLOUT_COLUMN` adds the room of the label. No text width enters
+ * it, so the box is the same on the server and in the browser.
  *
  * @internal
  */
-export function calloutsShown(
-	show: boolean,
-	spec: CalloutSpec,
-	vMargin: number,
-	frameWidth: number,
-): boolean {
-	if (!show) return false
-
-	return !calloutsSpark(spec.fit(frameWidth).radius, vMargin, frameWidth)
+export function calloutRoom(show: boolean): number {
+	return show ? CALLOUT_LEADER + CALLOUT_NUB + CALLOUT_GAP : MARK_GAP * 2
 }
 
 /**
- * The pie's resolved radius and center: the tight, asymmetric callout fit.
- * Without callouts, it is centered at the plain gap, the way every chart frame
+ * Whether the callouts draw in the measured box. They are off where the box
+ * reads spark: there the label columns starve the pie, and the chart falls back
+ * to a bare pie that fills the box with the plain gap. The box does not depend
+ * on the slices, so a toggled slice never flips the labels on or off.
+ *
+ * @internal
+ */
+export function calloutsShown(show: boolean, frameWidth: number, frameHeight: number): boolean {
+	return show && !isSparkBox(frameWidth, frameHeight)
+}
+
+/**
+ * The pie's resolved radius and center: the tight, asymmetric callout fit, at
+ * most `maxRadius`. The frame height sets that cap. Under the cap, the pie
+ * centers between the room that its callouts leave on each side. Without
+ * callouts, it is centered at the plain gap, the way every chart frame
  * defaults to.
  *
  * @internal
  */
-export function resolveFit(show: boolean, spec: CalloutSpec, frameWidth: number): PieCalloutFit {
-	if (!show) return { radius: frameWidth / 2 - MARK_GAP * 2, cx: frameWidth / 2 }
+export function resolveFit(
+	show: boolean,
+	spec: CalloutSpec,
+	frameWidth: number,
+	maxRadius: number,
+): PieCalloutFit {
+	if (!show) {
+		return { radius: Math.min(frameWidth / 2 - MARK_GAP * 2, maxRadius), cx: frameWidth / 2 }
+	}
 
-	return spec.shownFit(frameWidth)
+	const fit = spec.fit(frameWidth)
+
+	if (fit.radius <= maxRadius) return fit
+
+	const radius = Math.max(0, maxRadius)
+
+	return { radius, cx: spec.center(frameWidth, radius) }
 }
 
 /** Places the callouts around the pie, each with the text of its visible slice. @internal */

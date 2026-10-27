@@ -467,6 +467,21 @@ export const CALLOUT_LINE = 15
 export const CALLOUT_CHAR_WIDTH = 8
 
 /**
+ * The room of a callout label on each side of the pie: a share of the frame
+ * width, at most `max` px. The frame reserves it in CSS, so the box size is a
+ * function of the width alone and never of a label. A label wider than the
+ * column cuts its name and keeps its share.
+ *
+ * @internal
+ */
+export const CALLOUT_COLUMN = { share: 0.25, max: 120 } as const
+
+/** The px width of the {@link CALLOUT_COLUMN} at `frameWidth`. @internal */
+export function calloutColumn(frameWidth: number): number {
+	return Math.min(CALLOUT_COLUMN.share * frameWidth, CALLOUT_COLUMN.max)
+}
+
+/**
  * The most degrees of the leader circle that one straight step of a moved
  * leader spans. The chord of a step that short stays outside the pie body for
  * any radius up to about 3,600 px.
@@ -812,6 +827,34 @@ function sideReach(side: FitCallout[], radius: number, pushed: Float64Array): nu
 	}
 
 	return reach
+}
+
+/**
+ * The center x of a callout pie drawn at `radius`, below its
+ * {@link pieCalloutFit fit radius}. A frame height can cap the radius, and the
+ * two sides then leave room. The center splits that room equally, so the pie
+ * and its callouts sit centered in the frame. With fewer than two slices it is
+ * `frameWidth / 2`.
+ *
+ * @internal
+ */
+export function pieCalloutCenter(
+	{ values, texts, textWidth, frameWidth }: PieCalloutFitOptions,
+	radius: number,
+): number {
+	const angles = sliceAngles(values)
+
+	if (angles.length < 2) return frameWidth / 2
+
+	const right = fitSide(angles, texts, textWidth, 1)
+
+	const left = fitSide(angles, texts, textWidth, -1)
+
+	const pushed = new Float64Array(Math.max(right.length, left.length))
+
+	const leftReach = sideReach(left, radius, pushed)
+
+	return leftReach + (frameWidth - leftReach - sideReach(right, radius, pushed)) / 2
 }
 
 /**
