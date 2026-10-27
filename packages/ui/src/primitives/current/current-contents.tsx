@@ -72,6 +72,13 @@ export type CurrentContentsProps = ComponentProps<'div'> & {
  * padded wrapper between the two thus moves the outgoing panel out of the
  * padding. The container also finds the panels of a slide among its own
  * children. To frame the panels, frame the content of each panel.
+ *
+ * The panels add nothing to the intrinsic width of the container. In a host
+ * that fits its content, the container thus keeps one width across a switch,
+ * and the panel text wraps at that width. Otherwise the outgoing panel, which
+ * leaves the flow while it exits, wraps at the width of the incoming panel.
+ * Content that cannot wrap, such as a wide table, needs a width on the host. In
+ * a flex row, give the container its width, for example with `flex-1`.
  */
 export function CurrentContents({
 	slotPrefix,
@@ -148,7 +155,12 @@ export function CurrentContents({
 			// Re-scope the state to a still one, so panels of a still container
 			// nested inside an animating one render the plain branch.
 			<CurrentContentsContext value={state}>
-				<div ref={ref} data-slot={`${slotPrefix}-contents`} className={className} {...props}>
+				<div
+					ref={ref}
+					data-slot={`${slotPrefix}-contents`}
+					className={cn('contain-inline-size', className)}
+					{...props}
+				>
 					{children}
 				</div>
 			</CurrentContentsContext>
@@ -164,7 +176,7 @@ export function CurrentContents({
 				<div
 					ref={setContainer}
 					data-slot={`${slotPrefix}-contents`}
-					className={cn('relative overflow-hidden', className)}
+					className={cn('relative overflow-hidden contain-inline-size', className)}
 					{...props}
 				>
 					{children}

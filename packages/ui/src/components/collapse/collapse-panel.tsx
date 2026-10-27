@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { dataAttr } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { MountHold, useMountHold } from '../../primitives/mount'
@@ -30,6 +30,11 @@ export type CollapsePanelProps = Omit<
  * content only while its height moves, so at rest an outline, a ring, or a
  * shadow at the edge of the content shows in full. The panel stamps `data-open`
  * while it is open.
+ *
+ * The panel adds nothing to the intrinsic width of the collapse. In a host that
+ * fits its content, the collapse thus keeps one width while the panel opens.
+ * The panel text wraps at that width. Content that cannot wrap, such as a wide
+ * table, needs a width on the collapse.
  *
  * @remarks
  * Under the default `mount="active"` the panel unmounts while closed, so
@@ -75,7 +80,7 @@ export function CollapsePanel({ children, className, ...props }: CollapsePanelPr
 			id={id}
 			{...motionProps}
 			data-open={dataAttr(open)}
-			className={className}
+			className={cn(k().panel, className)}
 		>
 			{contentProps ? <m.div {...contentProps}>{children}</m.div> : children}
 		</m.div>
@@ -95,7 +100,7 @@ export function CollapsePanel({ children, className, ...props }: CollapsePanelPr
 					{...props}
 					id={id}
 					data-open={dataAttr(open)}
-					className={className}
+					className={cn(k().panel, className)}
 				>
 					{children}
 				</div>
