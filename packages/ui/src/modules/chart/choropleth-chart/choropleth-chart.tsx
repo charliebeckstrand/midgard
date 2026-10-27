@@ -211,18 +211,15 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
  * column of formatted values, built from the input `data`. It is a faithful
  * export of the rows the caller passed, keyed by the `idKey` they join on. Distinct from
  * the map's own feature-joined table, which names regions from the geography and
- * carries the no-data ones; this mirrors the data instead. `null` with no series
- * or no rows, which drops the data actions from the menu.
+ * carries the no-data ones; this mirrors the data instead.
  *
  * @internal
  */
 function choroplethReadout<T>(
-	data: T[] | undefined,
-	primary: ChoroplethChartSeries<T> | undefined,
+	data: T[],
+	primary: ChoroplethChartSeries<T>,
 	format: (value: number) => string,
-): ChartReadout | null {
-	if (!primary || !data || data.length === 0) return null
-
+): ChartReadout {
 	const { idKey, colorKey, colorName } = primary
 
 	return {
