@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { List, ListItem, ListLabel } from '../../components/list'
-import { frames, getSlot, renderUI } from '../helpers'
+import { frames, getSlot, renderUI, screen } from '../helpers'
 
 /**
  * The hover treatment of an interactive List row, in a real browser.
@@ -90,7 +90,7 @@ describe('an interactive List row on hover', () => {
 
 		expect(hovered).not.toBe(rest)
 
-		await userEvent.hover(row.querySelector('[data-testid="suffix"]') as HTMLElement)
+		await userEvent.hover(screen.getByTestId('suffix'))
 
 		await frames()
 
