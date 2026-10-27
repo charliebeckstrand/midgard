@@ -20,7 +20,7 @@
 | `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
 | `formatFraction` | Locale-formats `value` with up to two fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
 | `integerFormat` / `fractionFormat` | The cached formatter behind each helper above for a `locale`. Use it where a memo needs a stable input. |
-| `percentFormat` | A `0..1` share as a whole percent for a `locale`, as a stable formatter. |
+| `percentFormat` | A `0..1` share as a whole percent for a `locale`, as a stable formatter. A share under one percent keeps one significant digit, so it never reads `0%`. |
 | `compactFormat` | Compact notation to one fraction digit (`48.2K`) for a `locale`, as a stable formatter. Chart ticks in a narrow frame take it. |
 | `resolveFormat` | Resolves a `FormatSpec` to a cached `(value) => string` formatter: number, integer, currency, percent, compact, or prefixed id. |
 | `FormatSpec` *(type)* | What to format a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id`. |

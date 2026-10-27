@@ -322,6 +322,25 @@ describe('PieChart', () => {
 		expect(cells()).toEqual(['60 (80%)', '25', '15 (20%)'])
 	})
 
+	it('never reads a positive slice as 0%', () => {
+		const { container } = renderUI(
+			chart({
+				data: [
+					{ source: 'Search', visits: 9000 },
+					{ source: 'Direct', visits: 1 },
+					{ source: 'Referral', visits: 999 },
+				],
+			}),
+		)
+
+		const cells = [...getSlot(container, 'chart-table').querySelectorAll('tbody td')].map(
+			(cell) => cell.textContent,
+		)
+
+		// A share under one percent keeps one significant digit; the rest stay whole.
+		expect(cells).toEqual(['9,000 (90%)', '1 (0.01%)', '999 (10%)'])
+	})
+
 	it('reads a null value as missing (an em-dash) in the data table, not as 0', () => {
 		const { container } = renderUI(
 			<PieChart
