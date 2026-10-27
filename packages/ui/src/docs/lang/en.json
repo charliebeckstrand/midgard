@@ -6131,6 +6131,10 @@
 		"defaultMessage": "Bleed",
 		"description": "The label of a field of a playground in the docs. The field sets the prop bleed of Grid."
 	},
+	"docs.prop.blur": {
+		"defaultMessage": "Blur",
+		"description": "The label of a field of a playground in the docs. The field sets the prop blur of Lightbox."
+	},
 	"docs.prop.breaks": {
 		"defaultMessage": "Breaks",
 		"description": "The label of a field of a playground in the docs. The field sets the prop breaks of Markdown."
@@ -6146,6 +6150,10 @@
 	"docs.prop.clearable": {
 		"defaultMessage": "Clearable",
 		"description": "The label of a field of a playground in the docs. The field sets the prop clearable of AddressInput, Combobox, CreditCardInput, CurrencyInput, DateInput, DatePicker, Input, Listbox, MaskInput, NumberInput, PasswordInput, Rating, SearchInput, Select, SignaturePad, TagInput."
+	},
+	"docs.prop.closable": {
+		"defaultMessage": "Closable",
+		"description": "The label of a field of a playground in the docs. The field sets the prop closable of Lightbox."
 	},
 	"docs.prop.closeOnSelect": {
 		"defaultMessage": "Close on select",
@@ -6218,6 +6226,10 @@
 	"docs.prop.condensed": {
 		"defaultMessage": "Condensed",
 		"description": "The label of a field of a playground in the docs. The field sets the prop condensed of Grid."
+	},
+	"docs.prop.controls": {
+		"defaultMessage": "Controls",
+		"description": "The label of a field of a playground in the docs. The field sets the prop controls of Lightbox."
 	},
 	"docs.prop.count": {
 		"defaultMessage": "Count",
@@ -6313,7 +6325,7 @@
 	},
 	"docs.prop.dismissOnBackdrop": {
 		"defaultMessage": "Dismiss on backdrop",
-		"description": "The label of a field of a playground in the docs. The field sets the prop dismissOnBackdrop of CommandPalette, Confirm, DialogPanel, DrawerPanel, SheetPanel."
+		"description": "The label of a field of a playground in the docs. The field sets the prop dismissOnBackdrop of CommandPalette, Confirm, DialogPanel, DrawerPanel, Lightbox, SheetPanel."
 	},
 	"docs.prop.duration": {
 		"defaultMessage": "Duration",
@@ -7101,7 +7113,7 @@
 	},
 	"docs.prop.thumbnails": {
 		"defaultMessage": "Thumbnails",
-		"description": "The label of a field of a playground in the docs. The field sets the prop thumbnails of PdfViewer."
+		"description": "The label of a field of a playground in the docs. The field sets the prop thumbnails of Lightbox, PdfViewer."
 	},
 	"docs.prop.thumbnails.rail": {
 		"defaultMessage": "Rail",
@@ -8030,10 +8042,6 @@
 	"docs.title.future": {
 		"defaultMessage": "Future",
 		"description": "The title of an example on a page of the docs. It comes from the file name future.tsx."
-	},
-	"docs.title.gallery": {
-		"defaultMessage": "Gallery",
-		"description": "The title of an example on a page of the docs. It comes from the file name gallery.tsx."
 	},
 	"docs.title.glass": {
 		"defaultMessage": "Glass",

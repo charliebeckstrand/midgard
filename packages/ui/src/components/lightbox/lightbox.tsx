@@ -48,10 +48,18 @@ export type LightboxProps = {
 	/**
 	 * Shows a close button, one gap above the photo. Without it, Escape, a press
 	 * outside the photo, and a swipe up or down (in any direction for one photo) close the viewer, and the close
-	 * button shows only when it has the keyboard focus.
+	 * button shows only when it has the keyboard focus. With `dismissOnBackdrop`
+	 * set to `false`, the close button always shows.
 	 * @defaultValue false
 	 */
 	closable?: boolean
+	/**
+	 * Lets a press on the stage outside the photo close the viewer. Set it to
+	 * `false` to keep the viewer open on such a press. The close button then
+	 * always shows, as with `closable`. Escape and a swipe still close the viewer.
+	 * @defaultValue true
+	 */
+	dismissOnBackdrop?: boolean
 	/**
 	 * Shows the previous button, the count, and the next button in one pill,
 	 * one gap below the photo, when there is more than one photo. With
@@ -97,7 +105,8 @@ export type LightboxProps = {
  * the reading order. With `thumbnails`, a row of thumbnails takes the place of
  * the step buttons, and a press on a thumbnail shows its photo. Escape, the close button, and a press on the stage
  * outside the photo close the viewer, and the focus goes back to the
- * thumbnail.
+ * thumbnail. With `dismissOnBackdrop` set to `false`, a press outside the
+ * photo does not close the viewer, and the close button always shows.
  *
  * A pinch zooms the photo, up to four times its size, and a double tap or a
  * double click zooms into the point that it taps. A double tap on a zoomed
@@ -136,6 +145,7 @@ export function Lightbox({
 	defaultIndex,
 	onIndexChange,
 	closable = false,
+	dismissOnBackdrop = true,
 	controls = true,
 	thumbnails = false,
 	blur = true,
@@ -236,7 +246,10 @@ export function Lightbox({
 
 							setShown(null)
 						}}
-						closable={closable}
+						// With no press outside the photo to close the viewer, the close
+						// button always shows.
+						closable={closable || !dismissOnBackdrop}
+						dismissOnBackdrop={dismissOnBackdrop}
 						controls={controls}
 						thumbnails={thumbnails}
 						blur={blur}
