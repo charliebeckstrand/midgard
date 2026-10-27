@@ -14,7 +14,7 @@ import {
 	pieSlices,
 	segmentLabelFits,
 } from '../../modules/chart/engine/chart-geometry/pie'
-import { estimateTextWidth } from '../../modules/chart/engine/chart-text-width'
+import type { TextWidth } from '../../modules/chart/engine/chart-text-width'
 
 /**
  * A sliver only nears two thirds of the radius, and 33.95 is a rounded value,
@@ -33,6 +33,9 @@ const COORDINATE_TOLERANCE = 5e-4
  * noise below this bound in frame units.
  */
 const EXACT_FRAME_TOLERANCE = 5e-6
+
+/** The width of a callout text at the estimated advance of each character. */
+const calloutWidth: TextWidth = (text) => text.length * CALLOUT_CHAR_WIDTH
 
 /** The distance from a point to the nearest point of a line segment. */
 function segmentDistance(
@@ -330,7 +333,7 @@ describe('pieCalloutFit', () => {
 		const fit = pieCalloutFit({
 			values,
 			texts,
-			textWidth: estimateTextWidth(CALLOUT_CHAR_WIDTH),
+			textWidth: calloutWidth,
 			frameWidth,
 		})
 
@@ -371,7 +374,7 @@ describe('pieCalloutFit', () => {
 
 		const texts = values.map((_, index) => `Source ${index + 1}`)
 
-		const textWidth = estimateTextWidth(CALLOUT_CHAR_WIDTH)
+		const textWidth = calloutWidth
 
 		const frameWidth = 480
 
@@ -414,7 +417,7 @@ describe('pieCalloutFit', () => {
 			return seed / 2147483648
 		}
 
-		const textWidth = estimateTextWidth(CALLOUT_CHAR_WIDTH)
+		const textWidth = calloutWidth
 
 		const band = CALLOUT_LEADER + CALLOUT_LINE
 
@@ -471,7 +474,7 @@ describe('pieCalloutFit', () => {
 		const fit = pieCalloutFit({
 			values: [42],
 			texts,
-			textWidth: estimateTextWidth(CALLOUT_CHAR_WIDTH),
+			textWidth: calloutWidth,
 			frameWidth,
 		})
 

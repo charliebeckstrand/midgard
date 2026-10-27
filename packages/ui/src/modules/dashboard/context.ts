@@ -40,15 +40,12 @@ export const [DashboardActionsContext, useDashboardActions] =
 	createContext<DashboardActions>('Dashboard')
 
 /**
- * The heading level of each tile title in the nearest `Dashboard`. With no
- * provider above it, a tile title is a level 3 heading.
+ * The heading level of each tile title in the nearest `Dashboard`.
  *
  * @internal
  */
-export const [DashboardTitleLevelContext, useDashboardTitleLevel] = createContext<HeadingLevel>(
-	'Dashboard',
-	{ default: 3 },
-)
+export const [DashboardTitleLevelContext, useDashboardTitleLevel] =
+	createContext<HeadingLevel>('Dashboard')
 
 /**
  * The id of the tile that encloses the reader, or `null` outside any tile. The
@@ -83,16 +80,10 @@ export type DashboardTileRankScope = {
  * of its children a slot, and a `DashboardTiles` adds the index of each spec
  * tile. Read it through {@link useDashboardTileRank}.
  *
- * @remarks
- * With no provider above it, as in a portal child of the board, a tile takes the
- * rank `[0, 0, 0]`.
- *
  * @internal
  */
 export const [DashboardTileRankContext, useDashboardTileRankScope] =
-	createContext<DashboardTileRankScope>('DashboardTileRank', {
-		default: { rank: [0, 0, 0], grouped: false },
-	})
+	createContext<DashboardTileRankScope>('DashboardTileRank')
 
 /**
  * The last group that a reader of a grouped scope took. All boards share the

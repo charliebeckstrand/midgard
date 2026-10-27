@@ -10,7 +10,7 @@ import {
 	pieCentroidRadius,
 	pieSlices,
 } from '../../modules/chart/engine/chart-geometry/pie'
-import { estimateTextWidth } from '../../modules/chart/engine/chart-text-width'
+import type { TextWidth } from '../../modules/chart/engine/chart-text-width'
 import { FLOAT } from '../helpers/geometry/tolerance'
 
 // The tables of `chart-pie-geometry.test.ts` hold the documented examples. The
@@ -22,6 +22,9 @@ import { FLOAT } from '../helpers/geometry/tolerance'
  * fit stops within this bound of the exact edge.
  */
 const FIT_TOLERANCE = 1e-6
+
+/** The width of a callout text at the estimated advance of each character. */
+const calloutWidth: TextWidth = (text) => text.length * CALLOUT_CHAR_WIDTH
 
 /** A datum of a pie: a positive value, or one that takes no slice. */
 const datum = () =>
@@ -223,7 +226,7 @@ describe('pieCallouts · properties', () => {
 })
 
 describe('pieCalloutFit · properties', () => {
-	const textWidth = estimateTextWidth(CALLOUT_CHAR_WIDTH)
+	const textWidth = calloutWidth
 
 	/** The band that the chart reserves above and below the leader circle. */
 	const BAND = CALLOUT_LEADER + CALLOUT_LINE
