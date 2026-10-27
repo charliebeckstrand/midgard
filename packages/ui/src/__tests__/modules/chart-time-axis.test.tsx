@@ -47,7 +47,32 @@ function localized(locale: string) {
 	)
 }
 
+/** A time axis over one row, keyed by `day`. */
+function single(day: string | number) {
+	return renderUI(
+		<LocaleProvider locale="en-US">
+			<LineChart
+				aria-label="Visits by day"
+				data={[{ day, visits: 100 }]}
+				series={[{ xKey: 'day', yKey: 'visits', yName: 'Visits' }]}
+				width={600}
+				axes={{ x: { type: 'time' } }}
+			/>
+		</LocaleProvider>,
+	)
+}
+
 describe('chart time axis', () => {
+	it('writes the label of a single row as a date, never as the raw key', () => {
+		const iso = bySlot(single('2026-01-05').container, 'chart-axis-x')?.textContent
+
+		expect(iso).toBe('Jan 5, 2026')
+
+		const epoch = new Date(2026, 0, 5).getTime()
+
+		expect(bySlot(single(epoch).container, 'chart-axis-x')?.textContent).toBe('Jan 5, 2026')
+	})
+
 	it('replaces the raw category labels with calendar ticks', () => {
 		const time = bySlot(line('time').container, 'chart-axis-x')?.textContent ?? ''
 

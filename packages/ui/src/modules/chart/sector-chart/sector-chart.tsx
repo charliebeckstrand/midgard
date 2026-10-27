@@ -4,7 +4,7 @@ import { type ReactNode, useMemo } from 'react'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
-import { fractionFormat, once, percentFormat } from '../../../utilities'
+import { once, percentFormat, readoutFormat } from '../../../utilities'
 import { categorySlots } from '../engine/chart-color/palette'
 import { MARK_GAP, TICK_TARGET } from '../engine/chart-constants'
 import { ChartFrame } from '../engine/chart-frame/frame'
@@ -184,7 +184,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// The defaults write numbers in the ambient locale, as a cartesian chart does.
 	const { locale } = useLocale()
 
-	const format = formatValue ?? fractionFormat(locale)
+	const format = formatValue ?? readoutFormat(locale)
 
 	const percent = percentFormat(locale)
 

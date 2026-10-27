@@ -21,8 +21,11 @@ type ResolvedCategories = {
  * `xKey` values. An explicit `formatCategory` wins for both the labels and the
  * readout. With none set, a plain axis whose every value parses as a date
  * normalizes itself to the locale's numeric month/day order (see
- * {@link dateCategoryFormat}). A time axis leaves its labels to its own calendar
- * ticks, and formats only its readout. The formatter resolves once over every
+ * {@link dateCategoryFormat}). A time axis writes its labels and its readout as
+ * locale dates ({@link timeCategory}). It draws its own calendar ticks where
+ * they fall inside the span, and the labels where they do not, as with a single
+ * row. The labels then read as the readout does, never as the raw key (an ISO
+ * string or an epoch number). The formatter resolves once over every
  * value, so a whole-dataset decision (the date normalization's year elision)
  * reads the same for every label.
  *
@@ -44,7 +47,9 @@ export function resolveCategories<T>(
 
 	const categoryFormat =
 		formatCategory ??
-		(timeAxis ? undefined : (dateCategoryFormat(rawValues, undefined, locale) ?? undefined))
+		(timeAxis
+			? timeCategory(locale, times)
+			: (dateCategoryFormat(rawValues, undefined, locale) ?? undefined))
 
 	const rawCategories = rawValues.map(String)
 
@@ -52,6 +57,6 @@ export function resolveCategories<T>(
 		// Without a formatter the labels *are* the raw categories; one pass, one array.
 		categories: categoryFormat ? rawValues.map(categoryFormat) : rawCategories,
 		rawCategories,
-		readoutCategory: categoryFormat ?? (timeAxis ? timeCategory(locale, times) : undefined),
+		readoutCategory: categoryFormat,
 	}
 }
