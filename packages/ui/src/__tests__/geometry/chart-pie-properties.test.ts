@@ -223,6 +223,51 @@ describe('pieCallouts · properties', () => {
 			expect(Math.hypot(callout.x - cx, callout.y - cy)).toBeGreaterThan(radius)
 		}
 	})
+
+	// A label spans half a line above and below its y, and runs outward from its
+	// anchor. Each part of another leader inside that band stays on the pie side
+	// of the anchor, so no label sits on a line to another label.
+	test.prop([scene()])('keeps each label off the leaders of the other callouts', (input) => {
+		const callouts = place(input).callouts
+
+		const half = CALLOUT_LINE / 2
+
+		for (const label of callouts) {
+			const dir = label.anchor === 'start' ? 1 : -1
+
+			for (const other of callouts) {
+				if (other === label) continue
+
+				const points = other.leader.split(' ').map((point) => point.split(',').map(Number))
+
+				for (let at = 1; at < points.length; at++) {
+					const [x0, y0] = points[at - 1] as [number, number]
+
+					const [x1, y1] = points[at] as [number, number]
+
+					// The part of the segment inside the band, as a span of its parameter.
+					const enter = (y: number) => (y1 === y0 ? Number.NaN : (y - y0) / (y1 - y0))
+
+					const [from, to] =
+						y1 === y0
+							? Math.abs(y0 - label.y) <= half
+								? [0, 1]
+								: [1, 0]
+							: [enter(label.y - half), enter(label.y + half)].sort((a, b) => a - b)
+
+					const lo = Math.max(0, from as number)
+
+					const hi = Math.min(1, to as number)
+
+					if (lo > hi) continue
+
+					for (const t of [lo, hi]) {
+						expect(dir * (x0 + (x1 - x0) * t - label.x)).toBeLessThan(FLOAT)
+					}
+				}
+			}
+		}
+	})
 })
 
 describe('pieCalloutFit · properties', () => {

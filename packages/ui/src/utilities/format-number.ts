@@ -9,10 +9,14 @@ import { getOrCompute } from './get-or-compute'
  * read, and gives the same function for the same locale, so a memo that reads
  * it stays valid.
  */
-function perLocale(spec: FormatSpec): (locale: string | undefined) => (value: number) => string {
+function perLocale(
+	spec: FormatSpec,
+	numberFormat?: Intl.NumberFormatOptions,
+): (locale: string | undefined) => (value: number) => string {
 	const formatters = new Map<string | undefined, (value: number) => string>()
 
-	return (locale) => getOrCompute(formatters, locale, () => resolveFormat(spec, { locale }))
+	return (locale) =>
+		getOrCompute(formatters, locale, () => resolveFormat(spec, { locale, numberFormat }))
 }
 
 /**
@@ -24,8 +28,15 @@ export const integerFormat = perLocale({ type: 'integer' })
 /** The formatter behind {@link formatFraction} for `locale`, as for {@link integerFormat}. */
 export const fractionFormat = perLocale({ type: 'number', maximumFractionDigits: 2 })
 
-/** A `0..1` share as a whole percent for `locale`, as for {@link integerFormat}. */
-export const percentFormat = perLocale({ type: 'percent', maximumFractionDigits: 0 })
+/**
+ * A `0..1` share as a whole percent for `locale`, as for {@link integerFormat}. A
+ * share under one percent keeps one significant digit (`0.4%`, `0.01%`), so a
+ * share that is not zero never reads `0%`.
+ */
+export const percentFormat = perLocale(
+	{ type: 'percent', maximumFractionDigits: 0 },
+	{ maximumSignificantDigits: 1, roundingPriority: 'morePrecision' },
+)
 
 /** Compact notation to one fraction digit (`48.2K`, `1.3M`) for `locale`, as for {@link integerFormat}. */
 export const compactFormat = perLocale({ type: 'compact', maximumFractionDigits: 1 })

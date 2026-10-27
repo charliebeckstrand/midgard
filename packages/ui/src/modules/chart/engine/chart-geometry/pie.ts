@@ -614,7 +614,8 @@ function largest<E extends { slice: PieSlice }>(entries: E[], count: number): E[
  *
  * - A short radial leader out from the edge along the slice's bisector, to an
  *   elbow on the leader circle.
- * - A nub.
+ * - A nub. It reaches past the leader circle over the whole height of the
+ *   label, so no label sits on the leader of another.
  * - A label a constant gap past it.
  *
  * Slices are split left / right of the center, and their labels declumped per
@@ -666,7 +667,13 @@ export function pieCallouts(
 					? { points: [], knee: entry.elbow }
 					: movedLeader({ cx, cy, circle }, entry.slice.mid, y, entry.dir)
 
-			const nubX = moved.knee.x + CALLOUT_NUB * dir
+			// The label spans half a line above and below `y`. Near the top or the foot
+			// the leader circle widens fast across that band, and the leaders of other
+			// labels follow it there. So the nub reaches past the circle over the
+			// whole band, and no label sits on a line to another label.
+			const clear = circleHalfWidth(circle, Math.max(0, Math.abs(y - cy) - CALLOUT_LINE / 2))
+
+			const nubX = cx + dir * Math.max(Math.abs(moved.knee.x - cx) + CALLOUT_NUB, clear)
 
 			return {
 				index: entry.slice.index,
@@ -790,9 +797,18 @@ function sideReach(side: FitCallout[], radius: number, pushed: Float64Array): nu
 	for (let order = 0; order < side.length; order++) {
 		const { lift, width } = side[order] as FitCallout
 
-		const half = spanHalfWidth(circle, lift * circle - overflow, pushed[order] as number)
+		const from = lift * circle - overflow
 
-		reach = Math.max(reach, half + CALLOUT_NUB + CALLOUT_GAP + width)
+		const to = pushed[order] as number
+
+		// The nub reaches past the knee, and past the circle over the band of the
+		// label, as in pieCallouts.
+		const nub = Math.max(
+			spanHalfWidth(circle, from, to) + CALLOUT_NUB,
+			spanHalfWidth(circle, from - CALLOUT_LINE / 2, to + CALLOUT_LINE / 2),
+		)
+
+		reach = Math.max(reach, nub + CALLOUT_GAP + width)
 	}
 
 	return reach
@@ -807,7 +823,8 @@ function sideReach(side: FitCallout[], radius: number, pushed: Float64Array): nu
  * reserves more.
  *
  * @remarks A callout that does not move reaches its slice's horizontal pull
- * times `radius + leader`, plus its fixed nub, gap, and text. A callout that
+ * times `radius + leader`, plus its nub, gap, and text. Near the top or the
+ * foot, the nub reaches past the circle over the height of the label instead. A callout that
  * the declump moves reaches the half-width of the leader circle at its height
  * instead ({@link sideReach}). The pair of side reaches crossing `frameWidth`
  * narrows to one radius by bisection. Each step keeps a radius that fits. Below
