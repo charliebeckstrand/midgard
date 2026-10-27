@@ -65,6 +65,9 @@ describe('pie callout labels at the spark floor (real browser)', () => {
 
 		expect(boxH).toBe(width)
 
+		// The plot box holds the whole square, and does not cut its foot.
+		expect(svg.parentElement?.clientHeight).toBe(width)
+
 		expect(bySlot(container, 'chart')).toHaveAttribute('data-tier', 'spark')
 	})
 })

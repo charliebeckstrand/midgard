@@ -85,6 +85,20 @@ describe('resolveFrameSizing', () => {
 		})
 	})
 
+	it('gives the refined content height in px once the width is measured', () => {
+		// The radius override is no `width + offset`, so the reserve would cut the
+		// drawing: radius = 130; height = 2*130 + 2*20.
+		const sizing = { mode: 'content', hMargin: 100, vMargin: 20, radius: () => 130 } as const
+
+		expect(resolveFrameSizing(sizing, 400, 0)).toEqual({ height: 300, reserve: null })
+
+		// Before the measurement, the flat margin reserves the box.
+		expect(resolveFrameSizing(sizing, 0, 0)).toEqual({
+			height: 0,
+			reserve: { mode: 'content', offset: -160, min: 40 },
+		})
+	})
+
 	it('reserves the content offset and floor before the width is measured, so the box holds', () => {
 		// height stays 0 until the width lands, but the reserve is already known:
 		// the box holds its height from the first paint instead of collapsing.

@@ -58,8 +58,8 @@ export type FrameSizing =
 			 * Tight radius override once the real `width` is known. It replaces the
 			 * flat `width / 2 - hMargin` subtraction for a pie's asymmetric callout
 			 * fit, whose margin is not the same constant on both sides. `hMargin`
-			 * still sizes the CSS pre-measurement reserve, an approximation this
-			 * refines only after the first real measurement.
+			 * still sizes the CSS reserve before the measurement. After it, the box
+			 * takes the refined height in px, because no CSS length holds the fit.
 			 */
 			radius?: (width: number) => number
 	  }
@@ -75,7 +75,8 @@ export type FrameSizing =
  * where the width-bound radius would otherwise go negative. A narrow box then
  * holds that floor and does not collapse. A `fixed` or `fill` frame
  * reserves nothing, because its height is a pixel value the box takes
- * directly.
+ * directly. A measured `content` frame with a `radius` override also reserves
+ * nothing, because no CSS length holds its height.
  */
 export type FrameReserve =
 	| { mode: 'aspect'; ratio: number }
@@ -87,7 +88,8 @@ export type ResolvedFrameSizing = {
 	height: number
 	/**
 	 * How the plot box reserves its height from its own width through CSS. It is
-	 * `null` when the height is a fixed pixel value or fills the container.
+	 * `null` when the height is a fixed pixel value or fills the container, and
+	 * when a `content` radius override refines a measured width.
 	 */
 	reserve: FrameReserve | null
 }
@@ -102,9 +104,9 @@ export type ResolvedFrameSizing = {
  * `width → height` is affine (a pair of margins), not a pure ratio. It reserves
  * an `aspect-ratio` of 1 shifted by a constant pixel `offset`. Its box
  * therefore holds as steady as `aspect`, rather than collapsing to a pixel
- * `0`. `fill` takes the
- * container's measured height and `fixed` is its own pixel value: neither
- * reserves anything.
+ * `0`. A `content` radius override is not affine, so after the measurement that
+ * box takes its pixel height. `fill` takes the container's measured height and
+ * `fixed` is its own pixel value: neither reserves anything.
  *
  * @internal
  */
@@ -129,10 +131,10 @@ export function resolveFrameSizing(
 	}
 
 	if (sizing.mode === 'content') {
-		// The CSS reserve always sizes off the flat hMargin (an approximation of
-		// the true radius, refined below once a real width lands), since a
-		// per-slice margin isn't expressible as the single `width + offset` a CSS
-		// padding box can hold before that measurement.
+		// Before the measurement, the CSS reserve sizes off the flat hMargin (an
+		// approximation of the true radius, refined below once a real width
+		// lands), since a per-slice margin isn't expressible as the single
+		// `width + offset` a CSS padding box can hold.
 		const reserve: FrameReserve = {
 			mode: 'content',
 			offset: 2 * (sizing.vMargin - sizing.hMargin),
@@ -148,7 +150,13 @@ export function resolveFrameSizing(
 		// never collapses. `radius` refines that once the real width is known.
 		const radius = Math.max(0, sizing.radius ? sizing.radius(width) : width / 2 - sizing.hMargin)
 
-		return { height: Math.round(2 * radius + 2 * sizing.vMargin), reserve }
+		// The refined height is not the reserved `width + offset`. The box clips the
+		// drawing, so the box takes the drawn height in px. Else the box cuts the
+		// foot of a taller drawing, or leaves a band below a shorter one.
+		return {
+			height: Math.round(2 * radius + 2 * sizing.vMargin),
+			reserve: sizing.radius ? null : reserve,
+		}
 	}
 
 	return {
