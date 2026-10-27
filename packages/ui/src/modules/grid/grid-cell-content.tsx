@@ -45,13 +45,13 @@ export function GridCellContent({ content, tooltip, columnId }: GridCellContentP
 	const settle = useGridSettle()
 
 	const onSettle = useMemo(
-		() => (settle ? (listener: () => void) => settle.subscribe(columnId, listener) : undefined),
+		() => (listener: () => void) => settle.subscribe(columnId, listener),
 		[settle, columnId],
 	)
 
 	// The drag state is read when the cell measures, not rendered, so the start
 	// and the end of a drag do not render each cell again.
-	const [ref, truncated, contacted] = useGridTruncation<HTMLSpanElement>(onSettle, settle?.resizing)
+	const [ref, truncated, contacted] = useGridTruncation<HTMLSpanElement>(onSettle, settle.resizing)
 
 	// Whether the content holds an open editor (see `GridCellEditingContext`).
 	const [editing, setEditing] = useState(false)

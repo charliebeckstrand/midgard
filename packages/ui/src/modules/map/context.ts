@@ -1,9 +1,8 @@
 'use client'
 
-import { use, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
 import type { MapSeriesColor } from '../../recipes/kata/map'
-import { noop } from '../../utilities'
 import type { MapDotPool } from './engine/map-cluster/pool'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import type { MapStopMoves } from './engine/map-keyboard/stops'
@@ -87,12 +86,8 @@ export type MapPointedStore = {
 	subscribe: (listener: () => void) => () => void
 }
 
-/** The store outside a provider: no mark is pointed, so a mark reads lit. */
-const NO_POINTED: MapPointedStore = { get: () => null, emphasis: () => null, subscribe: () => noop }
-
-export const [MapPointedMarkContext] = createContext<MapPointedStore>('MapPointedMark', {
-	default: NO_POINTED,
-})
+export const [MapPointedMarkContext, useMapPointedStore] =
+	createContext<MapPointedStore>('MapPointedMark')
 
 /**
  * Reads one answer from the pointed mark and the legend emphasis. The reader
@@ -104,7 +99,7 @@ export const [MapPointedMarkContext] = createContext<MapPointedStore>('MapPointe
 export function useMapPointed<T>(
 	select: (pointed: MapHoverTarget | null, emphasis: string | null) => T,
 ): T {
-	const store = use(MapPointedMarkContext)
+	const store = useMapPointedStore()
 
 	const read = () => select(store.get(), store.emphasis())
 
@@ -128,9 +123,7 @@ function identity<T>(value: T): T {
  *
  * @internal
  */
-export const [MapZoomContext, useMapZoomView] = createContext<MapZoom | null>('MapZoom', {
-	default: null,
-})
+export const [MapZoomContext, useMapZoomView] = createContext<MapZoom | null>('MapZoom')
 
 /**
  * What one device pixel spans in frame units under the plat's zoom: `1` at the

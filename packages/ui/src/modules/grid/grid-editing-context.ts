@@ -221,5 +221,4 @@ export type GridNewRowSession = {
 /** The new-row slot, or `null` when the grid shows none. @internal */
 export const [GridNewRowContext, useGridNewRowSession] = createContext<GridNewRowSession | null>(
 	'GridNewRow',
-	{ default: null },
 )

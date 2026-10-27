@@ -36,10 +36,8 @@ export const [FormFiltersContext, useFormFilters] =
  *
  * @internal
  */
-export const [FormFiltersNameContext, useFormFiltersName] = createContext<ScrollRegionOptions>(
-	'FormFiltersName',
-	{ default: {} },
-)
+export const [FormFiltersNameContext, useFormFiltersName] =
+	createContext<ScrollRegionOptions>('FormFiltersName')
 
 /**
  * The flex axis the bar's regions share, read from the layout.

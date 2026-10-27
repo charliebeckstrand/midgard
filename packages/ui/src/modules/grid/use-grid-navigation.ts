@@ -161,11 +161,9 @@ const INERT_STORE: GridNavStore = {
 
 /**
  * Provides the read-only cursor store to the cell markers under a `navigable`
- * grid. A row outside a grid reads the inert store. @internal
+ * grid. @internal
  */
-export const [GridNavContext, useGridNavContext] = createContext<GridNavStore>('GridNav', {
-	default: INERT_STORE,
-})
+export const [GridNavContext, useGridNavContext] = createContext<GridNavStore>('GridNav')
 
 /**
  * The cursor props merged onto a `navigable` grid's `<table>`: the single tab

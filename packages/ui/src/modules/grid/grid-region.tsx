@@ -124,15 +124,13 @@ function GridReorderHost<T>({ configured, children, ...props }: GridReorderHostP
 /**
  * The step of the nearest density scope around the grid, read above the scope
  * of its table. An overlay that the grid spawns renders at it, rather than at
- * the tightened step of its cells. It is `md` outside a grid. The one reader is
+ * the tightened step of its cells. The one reader is
  * {@link GridOverlayDensity}, so no other file reads the step in JS through it.
  *
  * @internal
  */
-const [GridOverlayDensityContext, useGridOverlayDensity] = createContext<DensityStep>(
-	'GridOverlayDensity',
-	{ default: 'md' },
-)
+const [GridOverlayDensityContext, useGridOverlayDensity] =
+	createContext<DensityStep>('GridOverlayDensity')
 
 export { GridOverlayDensityContext }
 
