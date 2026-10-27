@@ -83,8 +83,8 @@ async function grown(container: HTMLElement, count: number) {
 }
 
 /**
- * Real-Motion check of the exit of a hidden series. The other suites mock
- * `motion/react`, and the mock removes a hidden series at once.
+ * Real-Motion check of the exit of a hidden series or reference rule. The other
+ * suites mock `motion/react`, and the mock removes them at once.
  *
  * Before the fix, a legend toggle removed the marks of a series in one frame.
  * Now they run their reveal in reverse, and the rest of the chart keeps its
@@ -191,6 +191,52 @@ describe('chart series exit (real Motion)', () => {
 		expect(radius(leaving[0])).toBe(rest)
 
 		await waitFor(() => expect(discs()).toHaveLength(3), SETTLE)
+	})
+
+	it('drops a hidden reference rule to the baseline, then rescales', async () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Sales by quarter"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				reference={[{ value: 80, label: 'Margin' }]}
+				animate
+			/>,
+		)
+
+		const wrapper = () =>
+			container.querySelector<SVGGElement>('[data-slot="chart-reference-line"] > g')
+
+		const opacity = (node: SVGGElement | null) =>
+			node ? Number.parseFloat(getComputedStyle(node).opacity) : 1
+
+		await grown(container, 9)
+
+		// The rule rests at its value once its rise ends.
+		await waitFor(() => expect(wrapper()?.style.transform ?? 'none').toMatch(/^(none|)$/), SETTLE)
+
+		const before = barPaths(container)
+
+		const chip = container.querySelector<HTMLButtonElement>(
+			'button[data-slot="chart-legend-reference"]',
+		)
+
+		// A frame of the exit: the rule falls and fades, and the bars hold their scale.
+		const falling = await sampleMotionFrames(
+			() => ({ rule: wrapper(), bars: barPaths(container) }),
+			({ rule }) => rule !== null && opacity(rule) < 1 && opacity(rule) > 0,
+			{ during: async () => chip?.click() },
+		)
+
+		expect(falling.rule?.style.transform).toMatch(/translateY/)
+
+		expect(falling.bars).toEqual(before)
+
+		await waitFor(() => expect(wrapper()).toBeNull(), SETTLE)
+
+		// The bars grow into the axis that the rule no longer stretches.
+		await waitFor(() => expect(barPaths(container)).not.toEqual(before), SETTLE)
 	})
 
 	it('still shrinks every bar on a data change', async () => {

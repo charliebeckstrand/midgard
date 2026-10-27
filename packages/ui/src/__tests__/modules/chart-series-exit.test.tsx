@@ -1,17 +1,22 @@
 import { fireEvent } from '@testing-library/react'
 import { describe, expect, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { BAR_SHRINK, LINE_UNDRAW, POINT_UNPOP } from '../../modules/chart/engine/chart-motion'
+import {
+	BAR_SHRINK,
+	LINE_UNDRAW,
+	POINT_UNPOP,
+	REFERENCE_FALL,
+} from '../../modules/chart/engine/chart-motion'
 import { LineChart } from '../../modules/chart/line-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { allBySlot, renderUI, stubMatchMedia } from '../helpers'
 import { it } from '../helpers/fake-clock'
 
 /**
- * The layout hold of a legend toggle. A hidden series plays its exit, and the
- * rest of the chart keeps its place until the exit ends. Then the layout closes
- * the gap. `motion/react` is mocked here, so a hidden series leaves the DOM at
- * once, and no exit frame plays. The real exit runs in the `motion` browser
+ * The layout hold of a legend toggle. A hidden series or reference rule plays
+ * its exit, and the rest of the chart keeps its place until the exit ends. Then
+ * the layout closes the gap. `motion/react` is mocked here, so a hidden series
+ * or rule leaves the DOM at once, and no exit frame plays. The real exit runs in the `motion` browser
  * project (`chart-series-exit.test.tsx`).
  */
 
@@ -239,5 +244,61 @@ describe('legend toggle layout hold', () => {
 		await clock.advance(POINT_UNPOP.duration * 1000)
 
 		expect(discs()).not.toEqual(before.slice(0, 3))
+	})
+})
+
+describe('reference toggle layout hold', () => {
+	/** A chart whose `Margin` rule sets the top of the value axis. */
+	function margin(animate = true) {
+		return renderUI(
+			<BarChart
+				aria-label="Sales by quarter"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				reference={[{ value: 80, label: 'Margin' }]}
+				animate={animate}
+			/>,
+		)
+	}
+
+	function chip(container: HTMLElement): HTMLElement {
+		const item = allBySlot(container, 'chart-legend-reference')[0]
+
+		if (!item) throw new Error('expected the Margin chip')
+
+		return item
+	}
+
+	it('holds the scale of a hidden rule until it falls', async ({ clock }) => {
+		const { container } = margin()
+
+		const before = barPaths(container)
+
+		fireEvent.click(chip(container))
+
+		// The rule leaves, and the bars keep the scale that the rule set.
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(0)
+
+		expect(barPaths(container)).toEqual(before)
+
+		await clock.advance(REFERENCE_FALL.duration * 1000 - 1)
+
+		expect(barPaths(container)).toEqual(before)
+
+		await clock.advance(1)
+
+		// The bars grow into the axis that the rule no longer stretches.
+		expect(barPaths(container)).not.toEqual(before)
+	})
+
+	it('lays out at once on a static chart', () => {
+		const { container } = margin(false)
+
+		const before = barPaths(container)
+
+		fireEvent.click(chip(container))
+
+		expect(barPaths(container)).not.toEqual(before)
 	})
 })

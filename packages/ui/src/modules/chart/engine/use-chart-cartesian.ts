@@ -43,7 +43,7 @@ import {
 } from './chart-layout'
 import type { ChartLegendItem, ChartLegendReference } from './chart-legend/legend'
 import { legendAside, legendBands, type ResolvedLegend, resolveLegend } from './chart-legend/schema'
-import { seriesDataKey } from './chart-motion'
+import { REFERENCE_FALL, seriesDataKey } from './chart-motion'
 import type { ChartOrientation, PlotRect } from './chart-orientation'
 import { type ChartTexture, useChartTexture } from './chart-pattern-defs'
 import { referenceLegendItems, ruleKeys } from './chart-reference'
@@ -509,6 +509,10 @@ export function useChartCartesian<T>(
 	// legend and the emphasis read `hidden` at once.
 	const laid = useLaidOutHidden(hidden, props.animate, config.seriesExit)
 
+	// A hidden rule keeps its value in the domain while it falls, so the axis
+	// holds its scale until the rule has gone.
+	const laidReferences = useLaidOutHidden(referenceHidden, props.animate, REFERENCE_FALL.duration)
+
 	// Toggled-off series leave the scales and readout; slot colors stay put
 	// because each meta's paint keyed off its original index.
 	const visible = metas.filter((meta) => !laid.has(meta.index))
@@ -526,7 +530,7 @@ export function useChartCartesian<T>(
 		visible,
 		resolveStackMode(config),
 		data,
-		referenceHidden,
+		laidReferences,
 		policy.compactFormat,
 		policy.axisTitles,
 		locale,
