@@ -174,6 +174,10 @@ export function ChartCartesianFrame({
 		labels?.references && chart.tier !== 'spark',
 	)
 
+	// A hidden series drops its labels at once, though the layout holds its
+	// place while its marks play their exit.
+	const labelled = valueLabels?.list.filter((entry) => !chart.hidden.has(entry.index))
+
 	const marksLayer = (
 		<ChartMarksLayer animate={animate} dataKey={chart.dataKey}>
 			{marks}
@@ -309,13 +313,13 @@ export function ChartCartesianFrame({
 
 			{/* Last, over the rules, so no rule paints over a label's halo. The labels
 			    take no pointer, so the rules keep it. */}
-			{valueLabels && (
+			{labelled && (
 				<ChartValueLabels
 					labels={cartesianValueLabels(
 						chart,
 						labels,
-						valueLabels.list,
-						valueLabels.list.map((entry) => chart.metas[entry.index] ?? NO_VALUES),
+						labelled,
+						labelled.map((entry) => chart.metas[entry.index] ?? NO_VALUES),
 						referenceLabels?.flatMap((placed) => (placed ? [placed.box] : [])),
 					)}
 					animate={animate}

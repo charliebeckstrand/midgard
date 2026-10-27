@@ -5,6 +5,7 @@ import { valueLabelHeadroom } from '../engine/chart-geometry/label'
 import { buildLineSeries, type LineInterpolation } from '../engine/chart-geometry/line'
 import { nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
+import { LINE_UNDRAW } from '../engine/chart-motion'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
 import type { CartesianChartProps } from '../engine/types'
 import { useChartCartesian } from '../engine/use-chart-cartesian'
@@ -78,6 +79,8 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		// Reserve the room the point labels need past the data extremes, so a
 		// label at an edge sits clear of the line rather than flip onto it.
 		valueHeadroom: (visible) => valueLabelHeadroom(labels, visible.length),
+		// The stroke un-draws last: the wash and the dots leave sooner.
+		seriesExit: LINE_UNDRAW.duration,
 	})
 
 	// Spark needs no gate here: the frame renders the drawing pointer-inert, and
@@ -99,6 +102,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			fills={fills}
 			textureActive={chart.tex.active}
 			plot={chart.plot}
+			hidden={chart.hidden}
 		/>
 	) : (
 		<ChartLineMarks list={list} fill={fill} fills={fills} textureActive={chart.tex.active} />

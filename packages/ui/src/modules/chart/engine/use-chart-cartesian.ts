@@ -53,7 +53,11 @@ import { type ChartChrome, type ChartTier, headerLineCount } from './chart-tier'
 import { parseInstant } from './chart-time'
 import type { CartesianChartProps, ChartReadoutSource, ChartSeries } from './types'
 import { useChartFrameSizing } from './use-chart-frame-sizing'
-import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
+import {
+	useChartReferenceToggle,
+	useChartSeriesToggle,
+	useLaidOutHidden,
+} from './use-chart-series-toggle'
 import { useChartTextWidth } from './use-chart-text-width'
 
 /**
@@ -80,6 +84,7 @@ export type CartesianData<T> = Pick<
 	| 'formatValue'
 	| 'title'
 	| 'subtitle'
+	| 'animate'
 >
 
 /** Per-chart configuration for {@link useChartCartesian}. @internal */
@@ -145,6 +150,13 @@ export type CartesianConfig<T> = {
 	 * @defaultValue 'edge'
 	 */
 	categoryRule?: 'zero' | 'edge'
+	/**
+	 * How long the exit of a toggled-off series takes under `animate`, in
+	 * seconds: the longest exit of the marks that the chart draws. The layout
+	 * holds the place of the series for that time ({@link useLaidOutHidden}).
+	 * Absent, a toggle lays out at once.
+	 */
+	seriesExit?: number
 }
 
 /** The classes of a category label on the horizontal band axis, as the y axis draws it. @internal */
@@ -231,7 +243,11 @@ export type CartesianChart = {
 	 * geometry, so a resize does too. The static path ignores it.
 	 */
 	dataKey: string
-	/** The series still toggled on: scales, marks, and readout draw these. */
+	/**
+	 * The series that the layout holds: scales, marks, and readout draw these.
+	 * They are the series still toggled on, and also a toggled-off series while
+	 * it plays its exit ({@link CartesianConfig.seriesExit}).
+	 */
 	visible: SeriesMeta[]
 	/**
 	 * The visible series that take marks, each with the scale and the baseline it
@@ -239,7 +255,10 @@ export type CartesianChart = {
 	 * labels of a chart read this one list, so their indices stay aligned.
 	 */
 	drawn: DrawnSeries[]
-	/** Legend indexes toggled off. */
+	/**
+	 * Legend indexes toggled off, at once. An animated renderer draws no marks for
+	 * these, so a series that the layout still holds plays its exit.
+	 */
 	hidden: ReadonlySet<number>
 	/** Toggles a series on or off by its index. */
 	toggleSeries: (index: number) => void
@@ -486,9 +505,13 @@ export function useChartCartesian<T>(
 
 	const metas = seriesMetas(data, series, config.swatch, stack)
 
+	// A hidden series keeps its place in the layout while it plays its exit. The
+	// legend and the emphasis read `hidden` at once.
+	const laid = useLaidOutHidden(hidden, props.animate, config.seriesExit)
+
 	// Toggled-off series leave the scales and readout; slot colors stay put
 	// because each meta's paint keyed off its original index.
-	const visible = metas.filter((meta) => !hidden.has(meta.index))
+	const visible = metas.filter((meta) => !laid.has(meta.index))
 
 	// One tile set over every visible slot, so that each filled mark of a chart
 	// resolves its fill: the bars and the area washes of a combo alike.

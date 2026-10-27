@@ -24,6 +24,7 @@ import { ChartHitArea } from '../engine/chart-hit-area'
 import { ChartLegend } from '../engine/chart-legend/legend'
 import { legendAside, legendBands, resolveLegend } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
+import { POINT_UNPOP } from '../engine/chart-motion'
 import type { PlotRect } from '../engine/chart-orientation'
 import { snapTargets } from '../engine/chart-snap'
 import { headerLineCount } from '../engine/chart-tier'
@@ -32,7 +33,7 @@ import type { ChartMarkRef } from '../engine/context'
 import type { ChartBaseProps, ScatterChartSeries } from '../engine/types'
 import { useChartFrameSizing } from '../engine/use-chart-frame-sizing'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
-import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
+import { useChartSeriesToggle, useLaidOutHidden } from '../engine/use-chart-series-toggle'
 import { ScatterChartChrome } from './scatter-chart-chrome'
 import {
 	scatterFormats,
@@ -302,7 +303,11 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const metas = scatterMetas(data, series)
 
-	const visible = metas.filter((meta) => !hidden.has(meta.index))
+	// A hidden series keeps its place in the scales while its discs pop out. The
+	// legend and the emphasis read `hidden` at once.
+	const laid = useLaidOutHidden(hidden, animate, POINT_UNPOP.duration)
+
+	const visible = metas.filter((meta) => !laid.has(meta.index))
 
 	const { plot, xScale, yScale, xTicks, yTicks, titles } = scatterScales({
 		visible,
@@ -419,7 +424,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	const legendItems = scatterLegendItems(metas, resolvedLegend.value)
 
 	const marksNode = animate ? (
-		<AnimatedScatterChartMarks list={list} />
+		<AnimatedScatterChartMarks list={list} hidden={hidden} />
 	) : (
 		<ScatterChartMarks list={list} />
 	)
