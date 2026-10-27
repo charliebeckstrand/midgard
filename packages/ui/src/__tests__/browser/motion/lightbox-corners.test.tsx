@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../components/lightbox'
 import { parseMatrix } from '../../../components/lightbox/lightbox-utilities'
-import { renderUI, screen } from '../../helpers'
+import { present, renderUI, screen } from '../../helpers'
 import { sampleMotionFrames } from '../helpers/motion-frame'
 
 /**
@@ -54,9 +54,9 @@ function readCorner(): Corner | undefined {
 
 	const style = getComputedStyle(element)
 
-	const [scaleX = 1, , , scaleY = 1] = parseMatrix(style.transform)
-
 	if (style.transform === 'none') return undefined
+
+	const [scaleX = 1, , , scaleY = 1] = parseMatrix(style.transform)
 
 	const [x = 0, y = x] = style.borderTopLeftRadius.split(' ').map(Number.parseFloat)
 
@@ -113,19 +113,19 @@ describe('Lightbox corners in the flight (real browser)', () => {
 
 		const raise = await sampleFlight(() => userEvent.click(trigger))
 
-		const element = slot()
+		// The photo at rest has square corners, and the slot keeps no radius.
+		expect(present(slot(), 'the slot').style.borderRadius).toBe('')
 
-		expect(element && getComputedStyle(element).borderTopLeftRadius).toBe('0px')
-
-		const stage = document
-			.querySelector('[data-slot="lightbox-photo"]')
-			?.getBoundingClientRect().width
+		const stage = present(
+			document.querySelector('[data-slot="lightbox-photo"]'),
+			'the photo',
+		).getBoundingClientRect().width
 
 		expect(raise.length).toBeGreaterThan(2)
 
 		expect(raise[0]?.radius).toBeNear(RADIUS, SAMPLED_CURVE)
 
-		expectRadiusOfEachFrame(raise, thumbnail, stage ?? 0)
+		expectRadiusOfEachFrame(raise, thumbnail, stage)
 
 		const lower = await sampleFlight(() => userEvent.keyboard('{Escape}'))
 
@@ -133,6 +133,6 @@ describe('Lightbox corners in the flight (real browser)', () => {
 
 		expect(lower.at(-1)?.radius).toBeNear(RADIUS, SAMPLED_CURVE)
 
-		expectRadiusOfEachFrame(lower, thumbnail, stage ?? 0)
+		expectRadiusOfEachFrame(lower, thumbnail, stage)
 	})
 })

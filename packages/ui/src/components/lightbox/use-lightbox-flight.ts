@@ -55,8 +55,11 @@ function slotBox(slot: HTMLElement): LightboxBox {
 	}
 }
 
+/** The boxes of the slot and of the photo at rest, with no transform. */
+type FlightBoxes = { slot: LightboxBox; rest: LightboxBox }
+
 /** The boxes of the slot and of the photo at rest, with no transform. The slot is the offset parent of the photo. */
-function measureBoxes(slot: HTMLElement, photo: HTMLElement) {
+function measureBoxes(slot: HTMLElement, photo: HTMLElement): FlightBoxes {
 	const box = slotBox(slot)
 
 	const rest = {
@@ -70,12 +73,7 @@ function measureBoxes(slot: HTMLElement, photo: HTMLElement) {
 }
 
 /** Writes the styles of `frame` on the slot and on the photo. */
-function paint(
-	slot: HTMLElement,
-	photo: HTMLElement,
-	frame: LightboxFrame,
-	boxes: ReturnType<typeof measureBoxes>,
-) {
+function paint(slot: HTMLElement, photo: HTMLElement, frame: LightboxFrame, boxes: FlightBoxes) {
 	const transforms = frameTransforms(frame, boxes.slot, boxes.rest)
 
 	slot.style.transform = transforms.slot
@@ -86,7 +84,7 @@ function paint(
 }
 
 /** The frame that the slot and the photo paint now (see `paintedFrame`). */
-function readFrame(slot: HTMLElement, photo: HTMLElement, boxes: ReturnType<typeof measureBoxes>) {
+function readFrame(slot: HTMLElement, photo: HTMLElement, boxes: FlightBoxes) {
 	const style = getComputedStyle(slot)
 
 	return paintedFrame(
@@ -98,35 +96,57 @@ function readFrame(slot: HTMLElement, photo: HTMLElement, boxes: ReturnType<type
 	)
 }
 
+/** The radius follower of each slot that a flight moves (see `followRadius`). */
+const radiusFollowers = new WeakMap<HTMLElement, () => void>()
+
+/** Stops the radius follower of `slot`, so that no frame writes its radius again. */
+function stopRadius(slot: HTMLElement) {
+	radiusFollowers.get(slot)?.()
+}
+
 /**
  * Writes the radius of `slot` in each frame of `tween`, the tween of its
  * transform. The browser does not tween a radius off the main thread. Thus the
  * radius reads the time of the tween, and each frame paints the radius of its
- * transform, also while a tween is held. The frame in which the tween lands
- * writes the last radius, before a landing in a later step of that frame. A
- * tween that stops before its end writes no radius, so the code that stops it
- * owns the radius.
+ * transform, also while a tween is held. The landing of the tween writes the
+ * last radius. A new flight of the slot, or `stopRadius`, stops the follower,
+ * so a tween that stops before its end writes no radius after the stop. When
+ * the radius does not change, nothing follows the tween.
  *
+ * @param duration - The length of the tween, in seconds.
  * @param radiusAt - The `border-radius` of the slot at a progress from 0 to 1.
  */
 function followRadius(
 	slot: HTMLElement,
 	tween: AnimationPlaybackControls,
+	duration: number,
 	radiusAt: (progress: number) => string,
 ) {
+	stopRadius(slot)
+
+	if (radiusAt(0) === radiusAt(1)) return
+
 	const write = () => {
-		const { state } = tween
-
-		if (state !== 'idle') {
-			slot.style.borderRadius = radiusAt(
-				state === 'finished' ? 1 : Math.min(tween.time / tween.duration, 1),
-			)
-		}
-
-		if (state === 'idle' || state === 'finished') cancelFrame(write)
+		slot.style.borderRadius = radiusAt(Math.min(tween.time / duration, 1))
 	}
 
+	const stop = () => {
+		cancelFrame(write)
+
+		if (radiusFollowers.get(slot) === stop) radiusFollowers.delete(slot)
+	}
+
+	radiusFollowers.set(slot, stop)
+
 	frame.render(write, true)
+
+	tween.finished.then(() => {
+		if (radiusFollowers.get(slot) !== stop) return
+
+		stop()
+
+		slot.style.borderRadius = radiusAt(1)
+	})
 }
 
 /** A return that runs: the tweens that it plays, and the slot and the photo that they move. */
@@ -136,11 +156,14 @@ type LightboxReturn = {
 	tweens: readonly AnimationPlaybackControls[]
 }
 
-/** Puts a slot and its photo at rest: no transform, no radius, and no fade. */
+/**
+ * Puts a slot and its photo at rest: no transform, no radius, and no fade. A
+ * radius that a flight follows stays with that flight.
+ */
 function putAtRest(slot: HTMLElement, photo: HTMLElement) {
 	slot.style.transform = 'none'
 
-	slot.style.borderRadius = ''
+	if (!radiusFollowers.has(slot)) slot.style.borderRadius = ''
 
 	photo.style.transform = 'none'
 
@@ -160,6 +183,8 @@ function putAtRest(slot: HTMLElement, photo: HTMLElement) {
  */
 function stopReturn({ slot, photo, tweens }: LightboxReturn, keep: HTMLElement) {
 	for (const tween of tweens) tween.cancel()
+
+	stopRadius(slot)
 
 	putAtRest(slot, photo)
 
@@ -287,9 +312,11 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		const shown = shownPart(thumbnail, box)
 
+		if (!shown) return undefined
+
 		const radius = Number.parseFloat(getComputedStyle(thumbnail).borderTopLeftRadius) || 0
 
-		return shown && raisedFrame(box, rest, shown, radius)
+		return raisedFrame(box, rest, shown, radius)
 	}
 
 	// The last return, which the next raise stops. It can have landed.
@@ -299,7 +326,7 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 	const fly = (
 		slot: HTMLElement,
 		photo: HTMLElement,
-		boxes: ReturnType<typeof measureBoxes>,
+		boxes: FlightBoxes,
 		from: LightboxFrame,
 		to: LightboxFrame,
 	) => {
@@ -314,7 +341,9 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		const slotTween = animate(slot, { transform: steps.map((step) => step.slot) }, options)
 
-		followRadius(slot, slotTween, (progress) => slotRadius(at(progress), boxes.slot))
+		followRadius(slot, slotTween, options.duration, (progress) =>
+			slotRadius(at(progress), boxes.slot),
+		)
 
 		return [slotTween, animate(photo, { transform: steps.map((step) => step.photo) }, options)]
 	}

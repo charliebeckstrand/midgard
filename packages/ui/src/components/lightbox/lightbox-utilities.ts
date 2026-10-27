@@ -27,7 +27,7 @@ export const RESTING_TRANSFORM = 'translate(0px, 0px) scale(1)'
  * center of the photo and crops the rest. The frame scales the photo until it
  * covers the thumbnail, and moves its center onto the center of the thumbnail.
  * The clip is `shown`, with the corners of the thumbnail. A radius larger than
- * half of a side of the clip is cut to that half, as CSS cuts it. A tween from
+ * half of a side of the thumbnail is cut to that half, as CSS cuts it. A tween from
  * this frame to {@link restingFrame} raises the photo, and the reverse tween
  * puts it back.
  *
@@ -35,7 +35,7 @@ export const RESTING_TRANSFORM = 'translate(0px, 0px) scale(1)'
  * @param rest - The box of the photo at rest, with no transform.
  * @param shown - The part of the thumbnail that the reader sees. It is the
  * full thumbnail when the page hides none of it.
- * @param radius - The radius of the corners of the thumbnail.
+ * @param radius - The radius of the corners of the thumbnail, in px.
  * @internal
  */
 export function raisedFrame(
@@ -48,7 +48,7 @@ export function raisedFrame(
 
 	return {
 		clip: shown,
-		radius: Math.min(radius, shown.width / 2, shown.height / 2),
+		radius: Math.min(radius, thumbnail.width / 2, thumbnail.height / 2),
 		photo: {
 			x: thumbnail.x + thumbnail.width / 2 - (rest.width * scale) / 2,
 			y: thumbnail.y + thumbnail.height / 2 - (rest.height * scale) / 2,
@@ -150,7 +150,7 @@ export function paintedFrame(
 	photoTransform: string,
 	slot: LightboxBox,
 	rest: LightboxBox,
-	slotCorner = '0px',
+	slotCorner: string,
 ): LightboxFrame {
 	const [photoScaleX = 1, , , photoScaleY = 1, photoLeft = 0, photoTop = 0] =
 		parseMatrix(photoTransform)

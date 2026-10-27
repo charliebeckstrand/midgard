@@ -127,13 +127,19 @@ describe('raisedFrame', () => {
 		expect(photo.width).toBeNear(144, FLOAT)
 	})
 
-	it('gives the clip the radius of the thumbnail, cut to half of its short side', () => {
+	it('gives the clip the radius of the thumbnail, cut to half of the short side of the thumbnail', () => {
 		const thumbnail = { x: 120, y: 500, width: 144, height: 96 }
 
 		expect(raisedFrame(thumbnail, rest, thumbnail, 8).radius).toBe(8)
 
 		// The radius of `rounded-full`.
 		expect(raisedFrame(thumbnail, rest, thumbnail, 3.4e7).radius).toBe(48)
+
+		// A sticky bar hides all but 10px of the thumbnail. CSS cuts the radius by
+		// the box of the thumbnail, not by the part that shows.
+		const shown = { ...thumbnail, height: 10 }
+
+		expect(raisedFrame(thumbnail, rest, shown, 8).radius).toBe(8)
 	})
 })
 
@@ -199,7 +205,13 @@ describe('flight frames', () => {
 
 	it('reads the box that the photo paints as the clip when the slot has no transform', () => {
 		// A swipe to close moves the photo 40px down and shrinks it to 0.8.
-		const frame = paintedFrame('none', computed('translate(45px, 107.5px) scale(0.8)'), slot, rest)
+		const frame = paintedFrame(
+			'none',
+			computed('translate(45px, 107.5px) scale(0.8)'),
+			slot,
+			rest,
+			'0px',
+		)
 
 		expectBox(frame.clip, { x: 320, y: 167.5, width: 360, height: 540 })
 
