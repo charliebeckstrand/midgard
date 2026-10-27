@@ -309,6 +309,10 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * the new data. Scatter and bubble charts do not replay on a data change. On a
 	 * pie or a donut, a legend toggle turns the slices to their new shares: a
 	 * hidden slice shrinks to nothing, and a shown slice grows from its place.
+	 * On the other charts, a series that a legend toggle hides runs its reveal in
+	 * reverse, and the rest of the chart holds its place until the series leaves.
+	 * Then the layout closes the gap. A series that a toggle shows reveals in the
+	 * room that the layout makes for it.
 	 * @defaultValue false
 	 */
 	animate?: boolean

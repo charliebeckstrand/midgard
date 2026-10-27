@@ -11,6 +11,7 @@ import {
 } from '../engine/chart-geometry/bar'
 import { barMarkAt } from '../engine/chart-hit-test'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
+import { BAR_SHRINK } from '../engine/chart-motion'
 import type { ChartOrientation } from '../engine/chart-orientation'
 import type { BandScale } from '../engine/chart-scale'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
@@ -117,6 +118,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		orientation,
 		stack: stacked,
 		stackPositive: true,
+		seriesExit: BAR_SHRINK.duration,
 	})
 
 	// Each visible series draws through its own axis's scale and grows from its
@@ -154,6 +156,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 			fills={fills}
 			textureActive={tex.active}
 			orientation={chart.orientation}
+			hidden={chart.hidden}
 		/>
 	) : (
 		<ChartBarMarks

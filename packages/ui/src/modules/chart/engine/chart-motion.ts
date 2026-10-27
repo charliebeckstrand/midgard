@@ -35,6 +35,10 @@
  * geometry. It adds only the reverse *timings* below, quicker and delay-free, so
  * the outgoing marks clear before the incoming reveal begins. It also adds the
  * {@link seriesDataKey} signature an animated renderer swaps its generation on.
+ *
+ * A legend toggle that hides a series plays the same exit for that series
+ * alone. The layout holds the place of the series for the longest exit of its
+ * marks, so the rest of the chart moves only after the series leaves.
  */
 
 import { k } from '../../../recipes/kata/chart'

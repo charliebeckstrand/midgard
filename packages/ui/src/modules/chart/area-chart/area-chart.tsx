@@ -13,6 +13,7 @@ import {
 } from '../engine/chart-geometry/line'
 import { nearestSeriesArea } from '../engine/chart-hit-test'
 import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
+import { LINE_UNDRAW } from '../engine/chart-motion'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
 import type { CartesianChartProps } from '../engine/types'
 import { useChartCartesian } from '../engine/use-chart-cartesian'
@@ -245,6 +246,8 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		// Reserve the room the point labels need past the data extremes, so a
 		// label at an edge sits clear of the band edge rather than flip onto it.
 		valueHeadroom: (visible) => valueLabelHeadroom(labels, visible.length),
+		// The edge un-draws last: the ribbon or the wash fades sooner.
+		seriesExit: LINE_UNDRAW.duration,
 	})
 
 	// Spark needs no gate here: the frame renders the drawing pointer-inert, and
@@ -286,6 +289,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 			fills={fills}
 			textureActive={tex.active}
 			plot={chart.plot}
+			hidden={chart.hidden}
 		/>
 	) : (
 		<ChartLineMarks list={list} fill={true} fills={fills} textureActive={tex.active} />

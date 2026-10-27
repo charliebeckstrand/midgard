@@ -1,5 +1,6 @@
 'use client'
 
+import { AnimatePresence } from 'motion/react'
 import { memo, useMemo } from 'react'
 import { cn } from '../../../core'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
@@ -9,7 +10,7 @@ import { rangeKeys } from '../../../utilities'
 import { type ChartPaint, fillClass, rawColor } from '../engine/chart-color/paint'
 import { BUBBLE_FILL_OPACITY, MARKER_RING_WIDTH } from '../engine/chart-constants'
 import { type ScatterMark, scatterDiscLayers } from '../engine/chart-geometry/scatter'
-import { POINT_POP } from '../engine/chart-motion'
+import { POINT_POP, POINT_UNPOP } from '../engine/chart-motion'
 import { seriesGroupClass, spotClass } from '../engine/chart-series'
 import { useChartMarkEmphasis } from '../engine/context'
 import { useChartSpot } from '../engine/use-chart-spot'
@@ -38,6 +39,11 @@ export type ChartScatterSeries = {
 /** Shared shape for the static and animated scatter renderers. @internal */
 export type ScatterChartMarksProps = {
 	list: ChartScatterSeries[]
+	/**
+	 * The series toggled off. The animated discs draw none of them, so a series
+	 * that the layout still holds plays its exit. The plain discs ignore it.
+	 */
+	hidden?: ReadonlySet<number>
 }
 
 /**
@@ -183,38 +189,50 @@ const DISC_HIDDEN = { r: 0, opacity: 0 }
 /** @internal */
 const DISC_POP = { ...POINT_POP, delay: 0 }
 
+/** The pop-out of a disc to its center: the pop in reverse. @internal */
+const DISC_EXIT = { r: 0, opacity: 0, transition: POINT_UNPOP }
+
 /** The disc under reduced motion: a new radius applies at once. @internal */
 const DISC_STILL = { ...DISC_POP, r: k.motion.instant }
 
 /**
  * The Framer Motion scatter discs: each pops from its center on mount, on the
- * point-marker beat but with no line draw to wait behind. Under reduced motion
- * the discs mount at rest and change size at once. The radius is no transform,
- * so the reduced-motion config of motion does not skip it.
+ * point-marker beat but with no line draw to wait behind. The discs of a series
+ * pop out to their centers when a toggle hides it. Under reduced motion the
+ * discs mount at rest, change size at once, and leave at once. The radius is no
+ * transform, so the reduced-motion config of motion does not skip it.
  *
  * @internal
  */
-export function AnimatedScatterChartMarks({ list }: ScatterChartMarksProps) {
+export function AnimatedScatterChartMarks({ list, hidden }: ScatterChartMarksProps) {
 	const { lit } = useChartMarkEmphasis()
 
 	const still = usePrefersReducedMotion()
 
-	return list.map(({ index, label, paint, marks, sized }) => (
-		<g key={index} data-slot="chart-scatter-series">
-			{rangeKeys(marks.length, label).map((key, datum) => (
-				<AnimatedDisc
-					key={key}
-					cx={marks[datum]?.x}
-					cy={marks[datum]?.y}
-					r={marks[datum]?.r ?? 0}
-					paint={paint}
-					sized={sized}
-					lit={lit(index, datum)}
-					still={still}
-				/>
-			))}
-		</g>
-	))
+	// Each series is its own presence, so a hidden one plays its exit while the
+	// rest stay. `propagate` passes the exit of the marks generation through.
+	return (
+		<AnimatePresence propagate>
+			{list.map(({ index, label, paint, marks, sized }) =>
+				hidden?.has(index) ? null : (
+					<g key={index} data-slot="chart-scatter-series">
+						{rangeKeys(marks.length, label).map((key, datum) => (
+							<AnimatedDisc
+								key={key}
+								cx={marks[datum]?.x}
+								cy={marks[datum]?.y}
+								r={marks[datum]?.r ?? 0}
+								paint={paint}
+								sized={sized}
+								lit={lit(index, datum)}
+								still={still}
+							/>
+						))}
+					</g>
+				),
+			)}
+		</AnimatePresence>
+	)
 }
 
 /** Props for {@link AnimatedDisc}: one disc, in plain values so the memo holds. @internal */
@@ -250,6 +268,7 @@ const AnimatedDisc = memo(function AnimatedDisc({
 			cy={cy}
 			{...markProps(paint, sized)}
 			initial={still ? false : DISC_HIDDEN}
+			exit={still ? undefined : DISC_EXIT}
 			// Motion owns the disc's opacity through the pop-in, so the dim rides the
 			// same channel (receding to the class dim's depth) rather than a class
 			// the inline value would override.
