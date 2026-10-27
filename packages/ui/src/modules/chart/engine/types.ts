@@ -232,6 +232,12 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * It then clips at the edges of that box. A touch target that reaches past a
 	 * legend control thus adds no scroll range to a box that scrolls, such as the
 	 * content box of a dashboard tile.
+	 *
+	 * The container must have a definite height, such as a fixed height or a grid
+	 * area. The chart has no height of its own, so it draws nothing in a box of
+	 * auto height. A flex item that grows in a column of auto height is not a
+	 * definite height either. WebKit can give the chart a height of 0 there after
+	 * a resize, so put the chart in a box with `grid`.
 	 */
 	aspectRatio?: ChartAspectRatio
 	/**

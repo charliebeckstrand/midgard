@@ -67,7 +67,10 @@ export function ProductMix() {
 // A stat tile takes the height of its content on a narrow board (`fitContent`).
 // The trend starts at 5rem and grows into the room of a fixed tile, so the same
 // markup fills a tile of fixed height and sets the height of a tile in the flow.
-const stat = { root: 'size-full', trend: 'min-h-0 flex-[1_1_5rem]' }
+// The trend is a grid, so the chart fills the grid area. In a tile of auto
+// height, the flexed 5rem is not a definite height, and WebKit then can resolve
+// the height of a block child as 0 after a resize.
+const stat = { root: 'size-full', trend: 'grid min-h-0 flex-[1_1_5rem]' }
 
 export function Units() {
 	const { formatNumber } = useIntl()

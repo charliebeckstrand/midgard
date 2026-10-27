@@ -107,10 +107,14 @@ export type DashboardTileProps = {
 	 *
 	 * @remarks
 	 * Write the widget so that it fits a box of fixed height and a box of auto
-	 * height with the same markup. An example is a chart with
-	 * `flex-[1_1_5rem] min-h-0` in a column: it fills the box, and it takes
-	 * 5rem in the flow. A widget that claims the height of its content through
-	 * `ContentHeightContext` gets the same height, but only after hydration.
+	 * height with the same markup. An example is a chart in a box with
+	 * `grid flex-[1_1_5rem] min-h-0` in a column: it fills the box, and it takes
+	 * 5rem in the flow. The box must be a grid. In a tile of auto height, the
+	 * flexed size of the box is not a definite height. WebKit can then give a
+	 * block child that fills the box a height of 0 after a resize, and the chart
+	 * draws nothing. A grid area is always a definite height. A widget that
+	 * claims the height of its content through `ContentHeightContext` gets the
+	 * same height, but only after hydration.
 	 * @defaultValue false
 	 */
 	fitContent?: boolean
