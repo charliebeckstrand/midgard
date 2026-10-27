@@ -122,9 +122,9 @@ export function TriggerChild({ child, props, ref, slot, className }: TriggerChil
 }
 
 /**
- * Clones a single child, so that a click on it also runs `action`. The
- * `onClick` of the child runs first, and `action` runs also when the child
- * calls `preventDefault()`. `props` go on the clone after the merged `onClick`.
+ * Clones a single child, so that a click on it also runs `action` with the
+ * click event. The `onClick` of the child runs first, and `action` runs also
+ * when the child calls `preventDefault()`. `props` go on the clone after the merged `onClick`.
  *
  * A close or clear part, such as `PopoverClose`, lends its action to the child
  * with this. The rest of the child stays as it is.
@@ -133,7 +133,7 @@ export function TriggerChild({ child, props, ref, slot, className }: TriggerChil
  */
 export function cloneWithAction(
 	child: ReactElement<{ onClick?: MouseEventHandler }>,
-	action: () => void,
+	action: MouseEventHandler,
 	props?: Record<string, unknown>,
 ): ReactElement {
 	return cloneElement(child, {

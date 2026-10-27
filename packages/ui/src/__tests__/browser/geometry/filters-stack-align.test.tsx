@@ -45,6 +45,30 @@ describe('FormFilters stack alignment (real browser)', () => {
 			PIXEL,
 		)
 	})
+
+	it('keeps the width of the fields when Clear appears', async () => {
+		const { container } = renderUI(
+			<FormFilters aria-label="Filters">
+				<FormFiltersBar>
+					<FormFiltersRow>
+						<FormFiltersField name="search">
+							<Label>Search</Label>
+							<Input placeholder="Search" />
+						</FormFiltersField>
+					</FormFiltersRow>
+					<FormFiltersClear>Clear</FormFiltersClear>
+				</FormFiltersBar>
+			</FormFilters>,
+		)
+
+		const input = present(container.querySelector('[data-slot="control-frame"]'), 'input frame')
+
+		const before = input.getBoundingClientRect().width
+
+		await page.getByRole('textbox').fill('a')
+
+		expect(input.getBoundingClientRect().width).toBeNear(before, PIXEL)
+	})
 })
 
 /**
@@ -58,7 +82,8 @@ describe('FormFilters rail alignment (real browser)', () => {
 
 	it('puts the middle of a label-less Clear on the middle of the controls', () => {
 		const { container } = renderUI(
-			<FormFilters aria-label="Filters" layout="rail">
+			// A Clear shows only while a field holds a value.
+			<FormFilters aria-label="Filters" layout="rail" value={{ search: 'a' }}>
 				<FormFiltersBar>
 					<FormFiltersRow>
 						<FormFiltersField name="search" className="w-48">

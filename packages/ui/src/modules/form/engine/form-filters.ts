@@ -62,6 +62,30 @@ export function countActiveFilters(record: Record<string, unknown>): number {
 }
 
 /**
+ * True when the clear action of a bar would change its record: a slot holds a
+ * set value that `target`, the record a clear restores, does not hold.
+ *
+ * @remarks
+ * A slot that is not set in both records is the same slot. A set value matches
+ * by identity, so an array or a `Date` that holds the same items as the default
+ * but is a different object counts as a change.
+ *
+ * @internal
+ */
+export function hasFiltersToClear(
+	record: Record<string, unknown>,
+	target: Record<string, unknown> = {},
+): boolean {
+	const set = (value: unknown) => (isFilterActive(value) ? value : undefined)
+
+	for (const name of new Set([...Object.keys(record), ...Object.keys(target)])) {
+		if (!Object.is(set(record[name]), set(target[name]))) return true
+	}
+
+	return false
+}
+
+/**
  * The text that announces the active count of a filter bar.
  *
  * @internal

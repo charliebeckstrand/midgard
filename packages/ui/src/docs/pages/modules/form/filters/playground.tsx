@@ -2,13 +2,13 @@ import { Label } from 'ui/fieldset'
 import {
 	FormFilters,
 	FormFiltersBar,
-	FormFiltersClear,
 	FormFiltersField,
 	type FormFiltersProps,
 	FormFiltersRow,
 } from 'ui/form'
 import { Input } from 'ui/input'
 import { Select, SelectLabel, SelectOption } from 'ui/select'
+import { FiltersReset } from './parts.tsx'
 
 const statuses = [
 	{ value: 'active', label: 'Active' },
@@ -38,7 +38,7 @@ export default function FiltersPlayground(props: FormFiltersProps) {
 						</Select>
 					</FormFiltersField>
 				</FormFiltersRow>
-				<FormFiltersClear>Clear</FormFiltersClear>
+				<FiltersReset />
 			</FormFiltersBar>
 		</FormFilters>
 	)

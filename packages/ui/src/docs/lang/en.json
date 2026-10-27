@@ -3181,7 +3181,7 @@
 	},
 	"docs.demo.83b12c2216ef": {
 		"defaultMessage": "Clear",
-		"description": "Text of a demo in the docs, in components/signature-pad/imperative-handle.tsx, modules/form/controlled-values.tsx, modules/form/filters/playground.tsx."
+		"description": "Text of a demo in the docs, in components/signature-pad/imperative-handle.tsx, modules/form/controlled-values.tsx."
 	},
 	"docs.demo.83c46be8fbce": {
 		"defaultMessage": "You own the files that you upload. You let the service store them, copy them for backups, and show them to the people that you share them with.",
