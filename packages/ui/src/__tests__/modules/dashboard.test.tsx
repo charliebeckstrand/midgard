@@ -156,6 +156,20 @@ describe('Dashboard', () => {
 		expect(bySlot(container, 'dashboard')?.tagName).toBe('SECTION')
 	})
 
+	it('clamps a negative gap to 0', () => {
+		const { container } = renderUI(
+			<Dashboard aria-label="Sales" gap={-8} layout={{ defaultValue: LAYOUT }}>
+				<DashboardTile id="a" title="Revenue">
+					<div />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		const canvas = bySlot(container, 'dashboard-canvas')
+
+		expect(canvas?.style.getPropertyValue('--dashboard-gap')).toBe('0px')
+	})
+
 	it('renders each tile title as a level 3 heading, or at the titleLevel of the board', () => {
 		const { unmount } = renderUI(<Board />)
 
