@@ -187,6 +187,20 @@ export function isSparkBox(width: number, height: number): boolean {
 }
 
 /**
+ * Whether a frame strips to a bare sparkline. A fill frame reads the width
+ * alone, and every other frame reads {@link isSparkBox}. A box with no width
+ * yet reads only a height that it knows before the measure, which only a fixed
+ * `height` gives.
+ *
+ * @internal
+ */
+function sparkFrame(width: number, height: number, fill: boolean): boolean {
+	if (width <= 0) return !fill && height > 0 && height < SPARK_HEIGHT
+
+	return fill ? width < SPARK_WIDTH : isSparkBox(width, height)
+}
+
+/**
  * Resolves the anatomy {@link ChartPolicy} for a plot box of `width` × `height`,
  * capping the height-driven tick target at the ceiling `tickCap`. Pure
  * and space-only. It reads the box the frame measured and never the viewport,
@@ -215,6 +229,12 @@ export function isSparkBox(width: number, height: number): boolean {
  * or ratio instead.
  * @param orientation - The direction of the bars, which decides the dimension
  * that pays for the band axis.
+ * @remarks A `width` of `0` is a box that has no measurement yet: the server
+ * render, and the client render before the first measure. It is spark only
+ * when a height known before the measure (a fixed `height`) is under the spark
+ * height. Else it resolves the full anatomy at the narrowest framed tier. The
+ * header, the legend, and the menu are therefore in the server markup, and the
+ * plot box holds a placeholder until it has a width.
  * @internal
  */
 export function chartPolicy(
@@ -224,9 +244,7 @@ export function chartPolicy(
 	fill = false,
 	orientation: ChartOrientation = 'vertical',
 ): ChartPolicy {
-	const spark = fill ? width < SPARK_WIDTH : isSparkBox(width, height)
-
-	if (spark) {
+	if (sparkFrame(width, height, fill)) {
 		return {
 			tier: 'spark',
 			bandAxis: 'off',

@@ -61,3 +61,23 @@ export function ChartSkeleton({
 
 	return <Placeholder className={cn(k.skeleton.aspect, className)} style={{ aspectRatio: ratio }} />
 }
+
+/**
+ * The placeholder that a chart frame draws in its plot box until the box has a
+ * width: the server render, and the client render before the first measure. The
+ * header, the legend, and the menu are already in place around it. `sector`
+ * gives the disc of a pie or a donut. Else it fills the plot box.
+ *
+ * @internal
+ */
+export function ChartPlotPlaceholder({ sector }: { sector: boolean }) {
+	if (sector) {
+		return (
+			<div aria-hidden="true" className={cn(k.skeleton.discBox)}>
+				<Placeholder className={cn(k.skeleton.disc)} />
+			</div>
+		)
+	}
+
+	return <Placeholder className={cn(k.skeleton.box)} />
+}

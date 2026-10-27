@@ -26,6 +26,7 @@ import { type ChartLegendPlacement, legendAside } from '../chart-legend/schema'
 import { ChartMenuButton } from '../chart-menu-button'
 import type { ChartOrientation } from '../chart-orientation'
 import { ChartPlotBox } from '../chart-plot-box'
+import { ChartPlotPlaceholder } from '../chart-skeleton'
 import type { ChartSnap } from '../chart-snap'
 import { ChartTable } from '../chart-table'
 import type { ChartTier } from '../chart-tier'
@@ -218,7 +219,10 @@ export type ChartFrameProps = AccessibleName & {
 	 * does.
 	 */
 	textHostRef?: Ref<HTMLDivElement>
-	/** Resolved drawing width; `0` renders the frame shell without the SVG. */
+	/**
+	 * Resolved drawing width. `0` renders the frame shell with a placeholder in
+	 * the plot box in place of the SVG.
+	 */
 	width: number
 	/** Explicit width prop, fixing the wrapper instead of filling the container. */
 	fixedWidth?: number
@@ -292,6 +296,12 @@ export type ChartFrameProps = AccessibleName & {
 	 * @defaultValue false
 	 */
 	rail?: boolean
+	/**
+	 * The plot is a pie or a donut, so the placeholder in the plot box before the
+	 * measure is a disc.
+	 * @defaultValue false
+	 */
+	sector?: boolean
 	/**
 	 * The values behind the marks as a cached thunk, or `null` when there is
 	 * nothing to read. A thunk so the mount-critical render never formats the
@@ -440,6 +450,7 @@ export function ChartFrame({
 	legend,
 	legendPlacement = 'bottom',
 	rail = false,
+	sector = false,
 	readout,
 	readoutOrder,
 	hidden = NONE_HIDDEN,
@@ -590,26 +601,31 @@ export function ChartFrame({
 	// instead. Absolute, so it stays out of flow and the box owns its own size.
 	// At spark `k.drawing` renders the whole drawing pointer-inert: the veto half
 	// of the spark posture, killing mark hover styling and any hit target inside.
-	const svg = width > 0 && (
-		<svg
-			aria-hidden="true"
-			// The drawing is physical: its geometry runs left to right, so its text
-			// anchors must too. In a right-to-left page an end anchor would otherwise
-			// run each label from its anchor into the plot. The bidi of the text
-			// itself still reads a right-to-left label in its own order.
-			direction="ltr"
-			className={cn(
-				// biome-ignore lint/plugin/no-physical-side: the drawing keeps its physical axis, so it sits at the left edge of the plot
-				'absolute left-0 top-0 block',
-				k.drawing(spark),
-			)}
-			width={width}
-			height={height}
-			viewBox={`0 0 ${width} ${height}`}
-		>
-			{children}
-		</svg>
-	)
+	// Until the box has a width, a placeholder holds the plot box. The chrome
+	// around it is already in place, as the tier reads an unmeasured box as framed.
+	const drawing =
+		width > 0 ? (
+			<svg
+				aria-hidden="true"
+				// The drawing is physical: its geometry runs left to right, so its text
+				// anchors must too. In a right-to-left page an end anchor would otherwise
+				// run each label from its anchor into the plot. The bidi of the text
+				// itself still reads a right-to-left label in its own order.
+				direction="ltr"
+				className={cn(
+					// biome-ignore lint/plugin/no-physical-side: the drawing keeps its physical axis, so it sits at the left edge of the plot
+					'absolute left-0 top-0 block',
+					k.drawing(spark),
+				)}
+				width={width}
+				height={height}
+				viewBox={`0 0 ${width} ${height}`}
+			>
+				{children}
+			</svg>
+		) : (
+			<ChartPlotPlaceholder sector={sector} />
+		)
 
 	const aside = legendAside(legendPlacement)
 
@@ -649,7 +665,7 @@ export function ChartFrame({
 			    pixel height instead, or (under `fill`) fills the height its region
 			    already holds. The tooltip sits outside so its clip never touches it. */}
 			<ChartPlotBox reserve={reserve} height={height} fill={fill}>
-				{svg}
+				{drawing}
 			</ChartPlotBox>
 
 			{plotOverlay.node}
