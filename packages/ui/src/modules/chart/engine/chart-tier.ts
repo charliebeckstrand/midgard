@@ -233,8 +233,9 @@ function sparkFrame(width: number, height: number, fill: boolean): boolean {
  * render, and the client render before the first measure. It is spark only
  * when a height known before the measure (a fixed `height`) is under the spark
  * height. Else it resolves the full anatomy at the narrowest framed tier. The
- * header, the legend, and the menu are therefore in the server markup, and the
- * plot box holds a placeholder until it has a width.
+ * header, the legend, and the menu are therefore in the server markup. The plot
+ * box keeps its reserved size and stays empty until it has a width. Then the
+ * axes and the marks draw, and the marks of an `animate` chart play their reveal.
  * @internal
  */
 export function chartPolicy(

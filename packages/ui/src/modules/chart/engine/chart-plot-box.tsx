@@ -17,7 +17,7 @@ type ChartPlotBoxProps = {
 	 * @defaultValue false
 	 */
 	fill?: boolean
-	/** The SVG that fills the box. Before the width is measured, a placeholder or nothing. */
+	/** The SVG that fills the box; can be `false` before the width is measured. */
 	children: ReactNode
 }
 

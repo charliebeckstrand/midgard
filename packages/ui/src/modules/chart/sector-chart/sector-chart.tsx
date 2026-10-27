@@ -451,7 +451,6 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			fill={fillFrame}
 			aspect={frameAspect}
 			tier={policy.tier}
-			sector
 			legend={
 				legendItems && (
 					<ChartLegend
