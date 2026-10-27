@@ -186,8 +186,6 @@ type GridTableResult<T> = {
 	 * while the raw `string | number` value still backs selection identity.
 	 */
 	rowKeys: (string | number)[]
-	/** Whether row grouping is active (a valid `grouping` column is set). */
-	grouped: boolean
 	/**
 	 * The groups in display order, each with all of its leaves, for the grouped
 	 * body to render. `null` when grouping is off. The body keeps the leaves
@@ -962,7 +960,6 @@ export function useGridTable<T>({
 		visibleColumns,
 		renderRows,
 		rowKeys,
-		grouped: grouping != null,
 		groups,
 		toggleGroup,
 		manualRows,

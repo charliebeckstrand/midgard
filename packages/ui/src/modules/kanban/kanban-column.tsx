@@ -90,8 +90,8 @@ export function KanbanColumn({
 	const knownIds = process.env.NODE_ENV === 'production' ? NO_ITEMS : itemIds
 
 	const value = useMemo(
-		() => ({ columnId, registerTitle, titleId, itemIds: knownIds }),
-		[columnId, registerTitle, titleId, knownIds],
+		() => ({ registerTitle, titleId, itemIds: knownIds }),
+		[registerTitle, titleId, knownIds],
 	)
 
 	return (

@@ -681,8 +681,6 @@ export function useGridNavigation({
 	 * while it holds a drag does not seat the cursor or start a drag.
 	 */
 	press: PressOwner
-	/** Moves the cursor to a data cell, and keeps the range anchor where it is. */
-	extendTo: (coord: Coord) => void
 	/** The data cell that an element id names, or `null` for another id. */
 	parseCellCoord: (id: string) => Coord | null
 	/** The anchor of the range, reactive, so a reader can follow a change of the range. */
@@ -1391,7 +1389,6 @@ export function useGridNavigation({
 		reconcile,
 		seat,
 		press,
-		extendTo,
 		parseCellCoord,
 		rangeAnchor: enabled ? anchor : null,
 		readRange,

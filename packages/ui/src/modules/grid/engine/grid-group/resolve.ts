@@ -45,8 +45,6 @@ export type GridGroupHeader = {
 
 /** The grid's group slice returned by {@link useGridGroup}. @internal */
 export type GridGroupResult = {
-	/** Whether the `groups` prop was supplied at all (even empty); gates the manager's group editor. */
-	enabled: boolean
 	/** Whether at least one group is configured; gates the header band row. */
 	hasGroups: boolean
 	/** Resolved groups (controllable), the source of truth the manager mutates. */
@@ -57,7 +55,6 @@ export type GridGroupResult = {
 	/** Commit sink for the manager's editor, paired with {@link GridGroupResult.editorGroups}. */
 	editorSetGroups: ((next: GridColumnGroup[]) => void) | undefined
 	collapsed: ReadonlySet<string | number>
-	toggleCollapse: (id: string | number) => void
 	/** Resolves the band row for the current visible columns and their pin sides. */
 	resolveHeader: (
 		visibleColumnIds: (string | number)[],
