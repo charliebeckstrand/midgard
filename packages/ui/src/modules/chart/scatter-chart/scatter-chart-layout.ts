@@ -5,7 +5,7 @@
  * unit-testable in isolation.
  */
 
-import { compactFormat, fractionFormat } from '../../../utilities'
+import { compactTickFormat, readoutFormat, tickFormat } from '../../../utilities'
 import type { ChartAxisTick } from '../engine/chart-axes/axis'
 import type { ScatterAxes } from '../engine/chart-axes/schema'
 import { toLegendItem } from '../engine/chart-cartesian/series'
@@ -110,7 +110,7 @@ export function scatterLegendItems(
 
 /** The number formats of the scatter: the readout's, and the tick labels' of each axis. @internal */
 type ScatterFormats = {
-	/** The y values in the readout, the tooltip and the data table, at full precision. */
+	/** The y values in the readout, the tooltip and the data table, never compact. */
 	format: (value: number) => string
 	/** The x values in the readout. */
 	formatX: (value: number) => string
@@ -125,8 +125,8 @@ type ScatterFormats = {
 /**
  * The number formats of the scatter. The defaults write numbers in the ambient
  * `locale`. The tick labels take the compact default in a narrow frame
- * (`compact`), as a cartesian value axis does. The readout keeps full
- * precision. An explicit format wins for both: the axis `format`, then
+ * (`compact`), as a cartesian value axis does, and keep the digits of the tick
+ * step. The readout is never compact. An explicit format wins for both: the axis `format`, then
  * `formatValue` for the y axis.
  *
  * @internal
@@ -137,9 +137,9 @@ export function scatterFormats(
 	locale: string | undefined,
 	compact: boolean,
 ): ScatterFormats {
-	const formatSize = fractionFormat(locale)
+	const formatSize = readoutFormat(locale)
 
-	const tickDefault = compact ? compactFormat(locale) : formatSize
+	const tickDefault = compact ? compactTickFormat(locale) : tickFormat(locale)
 
 	const y = axes.y?.format ?? formatValue
 

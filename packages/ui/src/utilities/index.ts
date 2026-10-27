@@ -17,12 +17,14 @@ export { FOCUSABLE_SELECTOR } from './focusable-selector'
 export { forceStyleFlush } from './force-style-flush'
 export { type FormatSpec, resolveFormat } from './format'
 export {
-	compactFormat,
+	compactTickFormat,
 	formatFraction,
 	formatInteger,
 	fractionFormat,
 	integerFormat,
 	percentFormat,
+	readoutFormat,
+	tickFormat,
 } from './format-number'
 export { getOrCompute } from './get-or-compute'
 export { isComposing } from './is-composing'

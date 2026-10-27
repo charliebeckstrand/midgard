@@ -15,8 +15,8 @@ import {
 	type BinScale,
 	type ColorBin,
 	clamp,
-	fractionFormat,
 	once,
+	readoutFormat,
 	resolveBinScale,
 	valueExtent,
 } from '../../../utilities'
@@ -364,7 +364,7 @@ export function useHeatmapChart<T>(
 	// The default writes numbers in the ambient locale, as a cartesian chart does.
 	const { locale } = useLocale()
 
-	const format = formatValue ?? fractionFormat(locale)
+	const format = formatValue ?? readoutFormat(locale)
 
 	// A cached thunk ({@link ChartReadoutSource}). The data table and the context
 	// menu's CSV actions call it. It holds while the matrix, the format, and the
