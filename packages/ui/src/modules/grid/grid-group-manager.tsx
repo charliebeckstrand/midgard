@@ -22,7 +22,6 @@ import {
 	memo,
 	type ReactNode,
 	type RefObject,
-	use,
 	useId,
 	useLayoutEffect,
 	useMemo,
@@ -142,9 +141,8 @@ export const groupAwareKeyboardCoordinates: KeyboardCoordinateGetter = (event, a
  *
  * @internal
  */
-const [GroupManagerGroupsContext] = createContext<GridColumnGroup[]>('GridGroupManagerGroups', {
-	default: [],
-})
+const [GroupManagerGroupsContext, useGroupManagerGroups] =
+	createContext<GridColumnGroup[]>('GridGroupManagerGroups')
 
 /**
  * Whether the editor renders the drag grips of its groups and column rows (see
@@ -152,9 +150,9 @@ const [GroupManagerGroupsContext] = createContext<GridColumnGroup[]>('GridGroupM
  *
  * @internal
  */
-const [GroupManagerReorderableContext] = createContext<boolean>('GridGroupManagerReorderable', {
-	default: true,
-})
+const [GroupManagerReorderableContext, useGroupManagerReorderable] = createContext<boolean>(
+	'GridGroupManagerReorderable',
+)
 
 /** Props for {@link GridGroupManager}. @internal */
 export type GridGroupManagerProps = {
@@ -498,7 +496,7 @@ function GridGroupManagerGroupZone(props: GridGroupManagerZoneViewProps) {
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
 		useGridZoneSortable(`${GROUP_PREFIX}${props.zone.id}`)
 
-	const handle = use(GroupManagerReorderableContext) && (
+	const handle = useGroupManagerReorderable() && (
 		<GridManagerGrip
 			sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
 			label={intl.formatMessage(gridMessages.groupHandle, {
@@ -711,7 +709,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
 		useSortableItem({ id: String(item.id) })
 
-	const reorderable = use(GroupManagerReorderableContext)
+	const reorderable = useGroupManagerReorderable()
 
 	const intl = useIntl()
 
@@ -803,7 +801,7 @@ type GridGroupManagerMoveItemsProps = {
 function GridGroupManagerMoveItems({ columnId, zoneId, assign }: GridGroupManagerMoveItemsProps) {
 	const intl = useIntl()
 
-	const groups = use(GroupManagerGroupsContext)
+	const groups = useGroupManagerGroups()
 
 	return (
 		<>

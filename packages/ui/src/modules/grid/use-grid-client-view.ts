@@ -205,9 +205,10 @@ export function useGridClientView<T>(args: {
  * closes one.
  *
  * @remarks
- * The grid collects the groups from its client view (see {@link groupRows}),
- * and opens them. The groups build once for each new view. A toggle then only
- * swaps the value of the group it toggles (see {@link expandGroups}).
+ * The grid collects the groups from its client view (see {@link groupMembers}
+ * and {@link orderGroups}), and opens them. The groups build once for each new
+ * view. A toggle then only swaps the value of the group it toggles (see
+ * {@link expandGroups}).
  *
  * @internal
  */

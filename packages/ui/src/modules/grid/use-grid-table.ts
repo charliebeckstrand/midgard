@@ -186,8 +186,6 @@ type GridTableResult<T> = {
 	 * while the raw `string | number` value still backs selection identity.
 	 */
 	rowKeys: (string | number)[]
-	/** Whether row grouping is active (a valid `grouping` column is set). */
-	grouped: boolean
 	/**
 	 * The groups in display order, each with all of its leaves, for the grouped
 	 * body to render. `null` when grouping is off. The body keeps the leaves
@@ -463,7 +461,7 @@ function useFilterView<T>(args: {
  * @remarks The engine holds the column state (order, visibility, sizing,
  * pinning) and the state of the row transforms, and the actions that write
  * them. It builds no row model. The grid filters, sorts, groups, and pages its
- * rows itself (see {@link useGridClientView} and `groupRows`). Each transform is
+ * rows itself (see {@link useGridClientView} and `orderGroups`). Each transform is
  * opt-in, and pagination and filtering each run server-side (`manual`, the
  * consumer transforms `rows`) or client-side. A plain grid renders straight
  * from `rows`. `autoResetPageIndex` is off: the page is consumer-controlled.
@@ -962,7 +960,6 @@ export function useGridTable<T>({
 		visibleColumns,
 		renderRows,
 		rowKeys,
-		grouped: grouping != null,
 		groups,
 		toggleGroup,
 		manualRows,

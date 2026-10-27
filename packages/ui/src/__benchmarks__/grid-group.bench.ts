@@ -8,7 +8,7 @@ import {
 	hasAggregation,
 } from '../modules/grid/engine/grid-aggregate'
 import { columnAccessor } from '../modules/grid/engine/grid-column/accessor'
-import { groupMembers, groupRows, orderGroups } from '../modules/grid/engine/grid-group/client'
+import { groupMembers, orderGroups } from '../modules/grid/engine/grid-group/client'
 import {
 	buildGroupSpans,
 	collapsedHiddenIds,
@@ -223,8 +223,8 @@ describe('grid-group · client grouping (a view change of a grouped grid)', () =
 
 		const args = { rows, order: null, sort: null, columnId, read, getKey }
 
-		bench(`100,000 rows · ${label} · groupRows (members and order)`, () => {
-			groupRows({ ...args, kept: null })
+		bench(`100,000 rows · ${label} · groupMembers and orderGroups`, () => {
+			orderGroups({ ...args, members: groupMembers(rows, null, read) })
 		})
 
 		bench(`100,000 rows · ${label} · orderGroups (kept members, a sort change)`, () => {

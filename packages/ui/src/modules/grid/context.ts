@@ -2,7 +2,6 @@
 
 import { useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
-import { noopSubscribe } from '../../utilities'
 import type { GridSettleStore } from './engine/grid-sizing/settle'
 import type { GridSortState } from './engine/grid-sort/state'
 import type { PinColumn } from './grid-context-menu-utilities'
@@ -46,16 +45,9 @@ export const [GridContext, useGrid] = createContext<GridContextValue>('Grid')
  * overflow again when that width settles.
  *
  * @remarks A store and not a value, so a resize does not render the rows. The
- * store keeps one identity for the life of the grid. Returns `null` outside a
- * `<Grid>`.
+ * store keeps one identity for the life of the grid.
  */
-export const [GridSettleContext, useGridSettle] = createContext<GridSettleStore | null>(
-	'GridSettle',
-	{ default: null },
-)
-
-/** Reads no drag, for a read outside a `<Grid>` and on the server. @internal */
-const notResizing = () => false
+export const [GridSettleContext, useGridSettle] = createContext<GridSettleStore>('GridSettle')
 
 /**
  * Reads whether a column drag-resize is in flight. The grid's truncation
@@ -66,16 +58,12 @@ const notResizing = () => false
  * @remarks It subscribes to the drag state of the {@link GridSettleStore}, not
  * to the table-wide {@link GridContextValue}. Only a surface that calls it
  * renders again when a drag starts or ends. A body cell calls it only while it
- * shows a reveal. Returns `false` outside a `<Grid>`.
+ * shows a reveal.
  */
 export function useGridResizing(): boolean {
 	const settle = useGridSettle()
 
-	return useSyncExternalStore(
-		settle?.subscribeResizing ?? noopSubscribe,
-		settle?.resizing ?? notResizing,
-		notResizing,
-	)
+	return useSyncExternalStore(settle.subscribeResizing, settle.resizing, settle.resizing)
 }
 
 /**
@@ -87,11 +75,9 @@ export function useGridResizing(): boolean {
  *
  * @remarks A dedicated context, like {@link GridSettleContext}, so the marking
  * subscribes to the query alone rather than the table-wide {@link GridContextValue}.
- * Returns `null` outside a `<Grid>`.
  */
 export const [GridHighlightContext, useGridHighlight] = createContext<string | null>(
 	'GridHighlight',
-	{ default: null },
 )
 
 /**

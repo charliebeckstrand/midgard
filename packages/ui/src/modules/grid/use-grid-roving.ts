@@ -84,7 +84,6 @@ export function useGridRoving({
 	/** Count of roving-visitable data columns; the `cols` grid width for two-dimensional cell roving. */
 	dataColCount: number
 }): {
-	mode: GridRovingMode
 	/** Whether the rows are roving items (row mode). */
 	rovingRows: boolean
 	/** Whether the data cells are roving items (cell mode). */
@@ -120,7 +119,6 @@ export function useGridRoving({
 	})
 
 	return {
-		mode,
 		rovingRows: mode === 'row',
 		rovingCells: cellMode,
 		// The legacy per-row Tab stop the virtualized body keeps, where roving

@@ -14,7 +14,7 @@ import type { GridColumn } from './types'
 
 /** Carries the group-by wiring from `GridData` to the header buttons. @internal */
 export const [GridGroupByContext, useGridGroupByButton] =
-	createContext<GridGroupByContextValue | null>('GridGroupByButton', { default: null })
+	createContext<GridGroupByContextValue | null>('GridGroupByButton')
 
 /**
  * A groupable column's header button: press it to group the rows by the column,

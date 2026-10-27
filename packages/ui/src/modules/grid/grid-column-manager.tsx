@@ -38,9 +38,7 @@ import { useGridColumnVisibility } from './use-grid-column-visibility'
  * Whether the manager serves a right-to-left grid. The pin labels and the edge
  * arrows read it, so they name the physical edge. @internal
  */
-const [ManagerRtlContext, useManagerRtl] = createContext<boolean>('GridColumnManagerRtl', {
-	default: false,
-})
+const [ManagerRtlContext, useManagerRtl] = createContext<boolean>('GridColumnManagerRtl')
 
 /**
  * The direction of the manager: its own computed direction, read from its root

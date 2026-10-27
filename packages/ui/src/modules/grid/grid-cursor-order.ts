@@ -17,7 +17,7 @@ import { useGridNavContext } from './use-grid-navigation'
  */
 export type GridCursorRow =
 	| { key: string; kind: 'data'; row: unknown; parent?: string }
-	| { key: string; kind: 'group'; expanded: boolean; toggle: () => void; level: 1 }
+	| { key: string; kind: 'group'; expanded: boolean; toggle: () => void }
 	| { key: string; kind: 'total'; parent: string }
 	| { key: string; kind: 'detail'; parent: string }
 
@@ -41,7 +41,7 @@ export function groupedCursorRows<T>(
 
 		const { expanded } = group
 
-		rows.push({ key, kind: 'group', expanded, toggle: () => toggle(group.id), level: 1 })
+		rows.push({ key, kind: 'group', expanded, toggle: () => toggle(group.id) })
 
 		if (!expanded) continue
 

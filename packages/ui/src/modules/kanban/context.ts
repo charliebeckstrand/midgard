@@ -48,10 +48,8 @@ export type KanbanContextValue = {
  */
 export const [KanbanContext, useKanbanContext] = createContext<KanbanContextValue>('Kanban')
 
-/** Column-facing pointer-drag state: the active card and per-column ordering, both of which change every drag-over move. */
+/** Column-facing pointer-drag state: the drop column and the per-column ordering, both of which change every drag-over move. */
 export type KanbanDragStateValue = {
-	/** Card id currently being dragged, if any. */
-	activeId: string | null
 	/**
 	 * The column that the dragged card moved into from another column, if any.
 	 * `null` while the card is in the column that the drag started in.
@@ -72,9 +70,8 @@ export type KanbanDragStateValue = {
 export const [KanbanDragStateContext, useKanbanDragState] =
 	createContext<KanbanDragStateValue>('Kanban')
 
-/** Per-column state shared with its cards and title: the column `id` and the title-slot registrar driving `aria-labelledby`. */
+/** Per-column state shared with its cards and title: the title-slot registrar driving `aria-labelledby`, and the card keys of the column. */
 export type KanbanColumnContextValue = {
-	columnId: string
 	/** Title-slot registrar; the column emits `aria-labelledby` only while a title is mounted. */
 	registerTitle: () => () => void
 	/**

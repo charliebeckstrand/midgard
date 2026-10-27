@@ -151,8 +151,8 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 
 	// Column-facing drag state: churns every drag-over move; confined to columns.
 	const dragStateValue = useMemo(
-		() => ({ activeId, dropColumnId, columnItemIds }),
-		[activeId, dropColumnId, columnItemIds],
+		() => ({ dropColumnId, columnItemIds }),
+		[dropColumnId, columnItemIds],
 	)
 
 	return (

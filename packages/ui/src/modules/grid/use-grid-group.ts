@@ -90,14 +90,12 @@ export function useGridGroup(
 	const enabled = groups !== undefined
 
 	return {
-		enabled,
 		hasGroups: resolvedGroups.length > 0,
 		groups: resolvedGroups,
 		setGroups,
 		editorGroups: enabled ? resolvedGroups : undefined,
 		editorSetGroups: enabled ? setGroups : undefined,
 		collapsed,
-		toggleCollapse,
 		resolveHeader,
 	}
 }
