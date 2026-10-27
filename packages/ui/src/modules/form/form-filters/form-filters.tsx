@@ -14,6 +14,7 @@ import {
 	countActiveFilters,
 	filtersFormState,
 	formatActiveFilters,
+	hasFiltersToClear,
 	writeFilter,
 } from '../engine/form-filters'
 import type { FormFiltersLayout } from '../engine/types'
@@ -155,6 +156,12 @@ export function FormFilters<T extends FilterValue = FilterValue>({
 
 	const activeCount = useMemo(() => countActiveFilters(filterValue), [filterValue])
 
+	// A clear restores the default, so a bar that holds its default has nothing to clear.
+	const clearable = useMemo(
+		() => hasFiltersToClear(filterValue, defaultValue),
+		[filterValue, defaultValue],
+	)
+
 	// Changing a filter re-renders results silently; narrate the active count
 	// (WCAG 4.1.3). The hook skips the initial value.
 	useA11yAnnouncements(formatActiveFilters(intl, activeCount))
@@ -166,16 +173,17 @@ export function FormFilters<T extends FilterValue = FilterValue>({
 	const name = useMemo(() => ({ label, labelledBy }), [label, labelledBy])
 
 	const context: FormFiltersContextValue = useMemo(
-		() => ({ value: filterValue, setValue, clear: handleClear, activeCount, layout }),
-		[filterValue, setValue, handleClear, activeCount, layout],
+		() => ({ value: filterValue, setValue, clear: handleClear, activeCount, clearable, layout }),
+		[filterValue, setValue, handleClear, activeCount, clearable, layout],
 	)
 
 	return (
 		<FormFiltersContext value={context}>
 			<FormFiltersNameContext value={name}>
 				{/* `min-w-auto` replaces the min-content floor of a `<fieldset>`, so the
-			    bar sizes as a `<div>` does. */}
-				<fieldset data-slot="form-filters" {...props} className={cn(k().base, className)}>
+			    bar sizes as a `<div>` does. The anchor comes after the spread, because
+			    `FormFiltersClear` finds the bar by it. */}
+				<fieldset {...props} data-slot="form-filters" className={cn(k().base, className)}>
 					<FormProvider store={store} actions={formActions} resets={resets}>
 						{/* A bar inside a Form holds its own fields. It unlocks them while the
 						Form submits, and keeps them out of the targets of its summary. */}

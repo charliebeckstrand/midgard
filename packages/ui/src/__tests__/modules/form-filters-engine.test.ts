@@ -4,6 +4,7 @@ import {
 	countActiveFilters,
 	filtersFormState,
 	formatActiveFilters,
+	hasFiltersToClear,
 	isFilterActive,
 	writeFilter,
 } from '../../modules/form/engine/form-filters'
@@ -97,6 +98,33 @@ describe('filtersFormState', () => {
 		expect(second.errors).toBe(first.errors)
 
 		expect(second.touchedFields).toBe(first.touchedFields)
+	})
+})
+
+describe('hasFiltersToClear', () => {
+	it('reads an empty record as nothing to clear', () => {
+		expect(hasFiltersToClear({})).toBe(false)
+
+		expect(hasFiltersToClear({ q: '', tags: [] })).toBe(false)
+	})
+
+	it('reads a set slot as something to clear', () => {
+		expect(hasFiltersToClear({ q: 'a' })).toBe(true)
+
+		expect(hasFiltersToClear({ done: false })).toBe(true)
+	})
+
+	it('reads a record that holds its default as nothing to clear', () => {
+		const tags = ['a']
+
+		expect(hasFiltersToClear({ status: 'all', tags }, { status: 'all', tags, q: '' })).toBe(false)
+	})
+
+	it('reads a change from the default as something to clear', () => {
+		expect(hasFiltersToClear({ status: 'active' }, { status: 'all' })).toBe(true)
+
+		// An emptied default slot is a change too: a clear puts it back.
+		expect(hasFiltersToClear({}, { status: 'all' })).toBe(true)
 	})
 })
 

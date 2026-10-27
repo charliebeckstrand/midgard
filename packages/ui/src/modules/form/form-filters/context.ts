@@ -6,12 +6,14 @@ import type { ResponsiveAlign, ResponsiveDirection } from '../../../structure/fl
 import { formFiltersAxis } from '../engine/form-filters-axis'
 import type { FormFiltersLayout } from '../engine/types'
 
-/** Shared state a `FormFilters` bar exposes to its fields. It holds the current value record, a per-field setter, a clear action, the count of active (non-empty) fields, and the bar's layout. */
+/** Shared state a `FormFilters` bar exposes to its fields. It holds the current value record, a per-field setter, a clear action, the count of active (non-empty) fields, whether a clear would change the value, and the bar's layout. */
 export type FormFiltersContextValue = {
 	value: Record<string, unknown>
 	setValue: (name: string, fieldValue: unknown) => void
 	clear: () => void
 	activeCount: number
+	/** True when the clear action would change the value: a field holds a value that the reset target does not. */
+	clearable: boolean
 	/** How the bar lays out, which decides whether a field can be squeezed. */
 	layout: FormFiltersLayout
 }

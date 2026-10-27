@@ -8,7 +8,6 @@ import {
 	FormFiltersClear,
 	FormFiltersField,
 	FormFiltersRow,
-	useFormFilters,
 } from 'ui/form'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
@@ -44,10 +43,6 @@ type OrderFilters = {
 }
 
 function FiltersReset() {
-	const { activeCount } = useFormFilters()
-
-	if (activeCount === 0) return null
-
 	return (
 		<FormFiltersClear>
 			<ResetButton type="button" />
