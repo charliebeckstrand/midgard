@@ -57,15 +57,15 @@ export type DashboardTileHeaderProps = {
 	title?: string
 	/** The muted line under the title. */
 	description?: ReactNode
-	/** The controls at the far end of the row. */
+	/** The app controls, after the title block. */
 	actions?: ReactNode
 	/** The control that clears the selection of the tile, before the actions. */
 	clear?: ReactNode
-	/** The element where the widget puts its own controls, at the end of the row. */
+	/** The element where the widget puts its own controls, after the actions. */
 	widget?: ReactNode
 	/** The drag grip in edit mode, or `null`. */
 	handle: ReactNode
-	/** The standard controls of the tile, after the actions. */
+	/** The standard controls of the tile, at the far end of the row. */
 	controls?: ReactNode
 	/** Edit mode is on, so the title shows no tooltip. */
 	editing: boolean
@@ -74,8 +74,9 @@ export type DashboardTileHeaderProps = {
 }
 
 /**
- * The header row of a tile: the drag grip, the title block, the actions, and
- * the standard controls.
+ * The header row of a tile: the drag grip, the title block, the actions, the
+ * controls of the widget, and the standard controls. The standard controls
+ * come last, so the expand control is at the far end of the row.
  * The grip enters and leaves with edit mode on the same row. The content box
  * therefore keeps its height, and a widget never re-lays out on the switch.
  *
@@ -121,11 +122,11 @@ export function DashboardTileHeader({
 						{actions}
 					</DashboardTileGuard>
 				)}
-
-				{controls}
 			</div>
 
 			{widget}
+
+			{controls}
 		</div>
 	)
 }

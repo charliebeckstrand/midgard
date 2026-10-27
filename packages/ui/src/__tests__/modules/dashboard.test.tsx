@@ -275,6 +275,36 @@ describe('Dashboard', () => {
 		expect(within(screen.getByRole('dialog')).getByText('Inline')).toBeInTheDocument()
 	})
 
+	it('puts the expand control after the controls of the widget, at the far end of the row', () => {
+		function Widget() {
+			const host = useHeaderActions()
+
+			return host && createPortal(<button type="button">Menu</button>, host)
+		}
+
+		const { container } = renderUI(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+				<DashboardTile
+					id="a"
+					title="Revenue"
+					expandable
+					actions={<button type="button">Filter</button>}
+				>
+					<Widget />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		const [header] = allBySlot(container, 'card-header')
+
+		// The DOM order is the visual order and the tab order.
+		const names = within(header as HTMLElement)
+			.getAllByRole('button')
+			.map((button) => button.getAttribute('aria-label') ?? button.textContent)
+
+		expect(names).toEqual(['Filter', 'Menu', 'Expand Revenue'])
+	})
+
 	it('keeps the hit area of each header button to its own width', () => {
 		const { container } = renderUI(<Board editing />)
 
