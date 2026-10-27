@@ -1,5 +1,6 @@
 'use client'
 
+import { AnimatePresence } from 'motion/react'
 import { type ReactNode, useEffect, useRef } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn, dataAttr } from '../../../core'
@@ -17,7 +18,7 @@ import {
 } from './chart-color/paint'
 import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import { type PlacedReferenceLabel, referenceLabels } from './chart-geometry/label'
-import { REFERENCE_RISE, referenceRise } from './chart-motion'
+import { REFERENCE_FALL, REFERENCE_RISE, referenceRise } from './chart-motion'
 import { type ChartOrientation, type PlotRect, valueRule } from './chart-orientation'
 import {
 	type ChartReferenceLine,
@@ -189,14 +190,22 @@ function ReferenceRuleStroke({
 /**
  * The mount slide-in of a rule: its content in a `m.g` that rises from the
  * baseline, or the content as is on a static chart. The rule, its hit line, and
- * its label ride it as one. @internal
+ * its label ride it as one. A rule toggled off through its legend chip runs the
+ * rise in reverse and fades as it falls ({@link REFERENCE_FALL}). @internal
  */
 function RuleRise({ rise, children }: { rise: ReferenceRuleProps['rise']; children: ReactNode }) {
 	// The server cannot read the preference, so it renders the rule at its value.
 	const still = usePrefersReducedMotion()
 
 	return rise ? (
-		<m.g {...rise} initial={still ? false : rise.initial} transition={REFERENCE_RISE}>
+		<m.g
+			{...rise}
+			initial={still ? false : rise.initial}
+			// `MotionConfig reducedMotion` does not skip opacity, so a reduced-motion
+			// preference drops the exit, and the rule leaves at once.
+			exit={still ? undefined : { ...rise.initial, opacity: 0, transition: REFERENCE_FALL }}
+			transition={REFERENCE_RISE}
+		>
 			{children}
 		</m.g>
 	) : (
@@ -415,6 +424,14 @@ function ReferenceRule(props: ReferenceRuleProps) {
 }
 
 /**
+ * The presence of the rules on an animated chart, so a rule toggled off plays
+ * its exit. A static chart removes the rule at once. @internal
+ */
+function RulePresence({ animate, children }: { animate: boolean; children: ReactNode }) {
+	return animate ? <AnimatePresence>{children}</AnimatePresence> : children
+}
+
+/**
  * Reference lines at fixed values, drawn across the band axis. Each rule sits at
  * the value-axis position that the chart projected for it, as a grid line of
  * {@link ChartGridLines} does, but over the marks instead of under them. A
@@ -487,16 +504,21 @@ export function ChartReferenceLines({
 		},
 	)
 
-	// The labels draw after every rule, so no rule paints over a label's halo.
+	// The labels draw after every rule, so no rule paints over a label's halo. A
+	// rule toggled off leaves its presence as it last drew, and plays its exit there.
 	const group = (
 		<g data-slot="chart-reference-lines">
-			{rules.map(({ key, ...rule }) => (
-				<ReferenceRule key={key} {...rule} />
-			))}
+			<RulePresence animate={animate}>
+				{rules.map(({ key, ...rule }) => (
+					<ReferenceRule key={key} {...rule} />
+				))}
+			</RulePresence>
 
-			{rules.map(({ key, ...rule }) =>
-				rule.label ? <ReferenceLabel key={key} {...rule} label={rule.label} /> : null,
-			)}
+			<RulePresence animate={animate}>
+				{rules.map(({ key, ...rule }) =>
+					rule.label ? <ReferenceLabel key={key} {...rule} label={rule.label} /> : null,
+				)}
+			</RulePresence>
 		</g>
 	)
 

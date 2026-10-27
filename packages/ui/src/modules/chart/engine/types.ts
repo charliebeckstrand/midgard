@@ -312,7 +312,9 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * On the other charts, a series that a legend toggle hides runs its reveal in
 	 * reverse, and the rest of the chart holds its place until the series leaves.
 	 * Then the layout closes the gap. A series that a toggle shows reveals in the
-	 * room that the layout makes for it.
+	 * room that the layout makes for it. A reference rule that its legend chip
+	 * hides falls back to the baseline and fades, and the value axis keeps its
+	 * scale until the rule leaves.
 	 * @defaultValue false
 	 */
 	animate?: boolean
