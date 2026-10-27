@@ -461,7 +461,7 @@ function useFilterView<T>(args: {
  * @remarks The engine holds the column state (order, visibility, sizing,
  * pinning) and the state of the row transforms, and the actions that write
  * them. It builds no row model. The grid filters, sorts, groups, and pages its
- * rows itself (see {@link useGridClientView} and `groupRows`). Each transform is
+ * rows itself (see {@link useGridClientView} and `orderGroups`). Each transform is
  * opt-in, and pagination and filtering each run server-side (`manual`, the
  * consumer transforms `rows`) or client-side. A plain grid renders straight
  * from `rows`. `autoResetPageIndex` is off: the page is consumer-controlled.

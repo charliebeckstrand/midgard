@@ -22,7 +22,7 @@ import {
  * The engine holds the state of the columns and of the row transforms, and
  * the actions that write that state. It builds no row model. The grid filters,
  * sorts, groups, and pages its rows itself (see `useGridClientView` and
- * `groupRows`). The engine therefore gets no row-model factory, and makes no
+ * `orderGroups`). The engine therefore gets no row-model factory, and makes no
  * row object for each datum.
  *
  * The grid sorts and groups with its own state (see `useGridSort` and

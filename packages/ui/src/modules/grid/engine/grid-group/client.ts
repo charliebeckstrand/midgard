@@ -11,52 +11,6 @@ import { type GridGroup, toRowLeaf } from './tree'
 export type GroupSort<T> = { fields: SmartSortField<T>[]; grouped: boolean[] }
 
 /**
- * Builds the closed {@link GridGroup}s of a client-grouped grid from its rows,
- * off the engine. {@link expandGroups} then opens them.
- *
- * @remarks
- * The groups match those of the grouped and sorted row models of the engine,
- * which the grid read before:
- *
- * - The groups hold the rows that the filters keep. The key of a group is the
- *   text of the grouped value (`` `${value}` ``), so `null` and `'null'` share
- *   a group.
- * - The groups come in the order of their first rows in the data. The id of a
- *   group is `` `${columnId}:${key}` ``, which the expansion state reads.
- * - The value of a group is the grouped value of its first row in the data,
- *   with `null` read as `undefined`.
- * - A sort orders the rows of each group, and orders the groups by their
- *   first rows. A smart field on the grouped column reads the value of that
- *   row. A smart field on another column reads no value, so the groups keep
- *   the order of the data. A custom `sortFn` compares the first rows.
- *
- * `grid-client-grouping.test.ts` holds the parity with the engine.
- *
- * @param args.kept - The indices of the rows that the filters keep, in data
- *   order, or `null` for every row.
- * @param args.order - The indices that the sort keeps, in sorted order, when
- *   the sort has only smart fields. A custom `sortFn` need not be a consistent
- *   order, so its groups sort their own rows, as the engine does.
- * @param args.locale - The locale that collates the text values, as the flat
- *   sort does. `undefined` uses the locale of the runtime.
- * @internal
- */
-export function groupRows<T>(args: {
-	rows: readonly T[]
-	kept: readonly number[] | null
-	order: readonly number[] | null
-	sort: GroupSort<T> | null
-	columnId: string
-	read: (row: T) => unknown
-	getKey: (row: T, index: number) => string | number
-	locale?: string
-}): GridGroup<T>[] {
-	const members = groupMembers(args.rows, args.kept, args.read)
-
-	return orderGroups({ ...args, members })
-}
-
-/**
  * The members of the groups: the text key of each group, and its row indices
  * in data order, with the groups in the order of their first rows. They depend
  * on the rows, the kept rows, and the grouped column, and not on the sort, so
@@ -94,9 +48,34 @@ export function groupMembers<T>(
 }
 
 /**
- * Orders the {@link GroupMembers} by the sort, and builds the closed groups.
- * This is the part of {@link groupRows} that a sort change runs again.
+ * Orders the {@link GroupMembers} by the sort, and builds the closed
+ * {@link GridGroup}s of a client-grouped grid, off the engine.
+ * {@link expandGroups} then opens them. A sort change runs only this half,
+ * because the members do not depend on the sort (see {@link groupMembers}).
  *
+ * @remarks
+ * The groups match those of the grouped and sorted row models of the engine,
+ * which the grid read before:
+ *
+ * - The groups hold the rows that the filters keep. The key of a group is the
+ *   text of the grouped value (`` `${value}` ``), so `null` and `'null'` share
+ *   a group.
+ * - The groups come in the order of their first rows in the data. The id of a
+ *   group is `` `${columnId}:${key}` ``, which the expansion state reads.
+ * - The value of a group is the grouped value of its first row in the data,
+ *   with `null` read as `undefined`.
+ * - A sort orders the rows of each group, and orders the groups by their
+ *   first rows. A smart field on the grouped column reads the value of that
+ *   row. A smart field on another column reads no value, so the groups keep
+ *   the order of the data. A custom `sortFn` compares the first rows.
+ *
+ * `grid-client-grouping.test.ts` holds the parity with the engine.
+ *
+ * @param args.order - The indices that the sort keeps, in sorted order, when
+ *   the sort has only smart fields. A custom `sortFn` need not be a consistent
+ *   order, so its groups sort their own rows, as the engine does.
+ * @param args.locale - The locale that collates the text values, as the flat
+ *   sort does. `undefined` uses the locale of the runtime.
  * @internal
  */
 export function orderGroups<T>(args: {

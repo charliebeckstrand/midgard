@@ -96,7 +96,7 @@ function openGroup<T>(group: GridGroup<T>): GridGroup<T> {
 }
 
 /**
- * Opens the closed groups of `groupRows` from the expansion state.
+ * Opens the closed groups of `orderGroups` from the expansion state.
  *
  * @remarks Each group has exactly two values, closed and open. A toggle
  * therefore gives a new value to the group it toggles, and every other group
