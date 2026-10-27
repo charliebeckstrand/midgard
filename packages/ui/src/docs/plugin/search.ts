@@ -3,7 +3,7 @@ import path from 'node:path'
 import { toApiId } from '../kit/anchors.ts'
 import { humanize } from '../kit/humanize.ts'
 import type { BarrelApi } from './api.ts'
-import { exampleFiles, examplesIn, type Parser, toHeadingId } from './examples.ts'
+import { exampleFiles, examplesIn, type Parser, toCodeKey } from './examples.ts'
 import { findPages } from './pages.ts'
 
 /** What an entry of the search is. */
@@ -66,8 +66,7 @@ export async function searchEntries(
 					const apis = await Promise.all(barrels.map(readApi))
 
 					return [
-						// The playgrounds of a page share one heading, so one entry.
-						...[...new Set(examples.map(toHeadingId))].map(
+						...examples.map(toCodeKey).map(
 							(id): SearchEntry => ({
 								kind: 'example',
 								label: humanize(id),

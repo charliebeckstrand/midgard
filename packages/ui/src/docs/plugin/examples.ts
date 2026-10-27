@@ -28,7 +28,7 @@ export type Highlight = (code: string, lang: string, theme: string) => Promise<S
 export type ExampleMeta = {
 	/** The title of the example, from the file name: `with-icon.tsx` gives `With icon`. Each playground has the title `Playground`. */
 	title: string
-	/** The id of the heading of the example, from {@link toHeadingId}: `with-icon.tsx` gives `with-icon`. */
+	/** The id of the heading of the example, from {@link toCodeKey}: `with-icon.tsx` gives `with-icon`. */
 	id: string
 	/** For a playground, the name of the component that takes the props. */
 	component?: string
@@ -55,8 +55,8 @@ export function toCodeId(pages: string, file: string): string {
 }
 
 /**
- * The key of the example at `file` in the code module of its folder: the name
- * of the file.
+ * The key of the example at `file` in the code module of its folder, and the
+ * id of its heading: the name of the file.
  */
 export function toCodeKey(file: string): string {
 	return path.basename(file, '.tsx')
@@ -66,17 +66,7 @@ export function toCodeKey(file: string): string {
 export const EXAMPLE = /(?<!\/index)\.tsx$/
 
 function isPlayground(file: string): boolean {
-	const key = toCodeKey(file)
-
-	return key === PLAYGROUND || key.startsWith(`${PLAYGROUND}-`)
-}
-
-/**
- * The id of the heading of the example at `file`: the name of the file. Each
- * playground of a page shares one heading, `playground`.
- */
-export function toHeadingId(file: string): string {
-	return isPlayground(file) ? PLAYGROUND : toCodeKey(file)
+	return toCodeKey(file) === PLAYGROUND
 }
 
 type Example = {
@@ -171,8 +161,8 @@ export function attachMeta(
 	const { name, spread } = example
 
 	const meta = [
-		`title: ${JSON.stringify(humanize(toHeadingId(file)))}`,
-		`id: ${JSON.stringify(toHeadingId(file))}`,
+		`title: ${JSON.stringify(humanize(toCodeKey(file)))}`,
+		`id: ${JSON.stringify(toCodeKey(file))}`,
 		...(spread ? [`component: ${JSON.stringify(spread.component)}`] : []),
 		`code: () => import(${JSON.stringify(toCodeId(pages, file) + query)}).then((module) => module.default[${JSON.stringify(toCodeKey(file))}])`,
 	]

@@ -66,31 +66,6 @@ const meta: ExampleMeta = {
 
 Object.assign(ThingPlayground, meta)
 
-type OtherThingProps = { tone?: 'red' | 'blue'; max?: number }
-
-const OTHER_API: BarrelApi = {
-	...API,
-	ThingDots: {
-		name: 'ThingDots',
-		props: [
-			{ name: 'max', type: 'number', default: '100', defaultValue: 100 },
-			{ name: 'tone', type: "'red' | 'blue'", values: ['red', 'blue'] },
-		],
-		events: [],
-	},
-}
-
-/** A second playground module of the page, for the component `ThingDots`. */
-function ThingDotsPlayground(props: OtherThingProps) {
-	return (
-		<output data-testid="instance" data-component="dots">
-			{JSON.stringify(props)}
-		</output>
-	)
-}
-
-Object.assign(ThingDotsPlayground, { ...meta, component: 'ThingDots' })
-
 /** The props that the instance renders with. */
 function instanceProps(): ThingProps {
 	return JSON.parse(screen.getByTestId('instance').textContent ?? '{}')
@@ -186,35 +161,5 @@ describe('Playground', () => {
 		await waitFor(() =>
 			expect(panel.textContent).toContain('return <Thing label={"Say \\"hi\\""} max={50} />'),
 		)
-	})
-
-	it('gives a Component field to a list of playground modules, and keeps each value that the next component takes', async () => {
-		render(<Playground of={[ThingPlayground, ThingDotsPlayground]} api={OTHER_API} />)
-
-		const picker = screen.getByRole('combobox', { name: 'Component' })
-
-		expect(picker.textContent).toContain('Thing')
-
-		fireEvent.change(screen.getByRole('spinbutton', { name: 'Max' }), {
-			target: { value: '50' },
-		})
-
-		fireEvent.click(picker)
-
-		const options = screen.getAllByRole('option')
-
-		expect(options.map((option) => option.textContent)).toEqual(['ThingDefault', 'Thing dots'])
-
-		fireEvent.click(options[1] as HTMLElement)
-
-		await waitFor(() =>
-			expect(screen.getByTestId('instance').getAttribute('data-component')).toBe('dots'),
-		)
-
-		expect(instanceProps()).toEqual({ max: 50 })
-
-		expect(screen.getByRole('combobox', { name: 'Tone' })).not.toBeNull()
-
-		expect(screen.queryByRole('combobox', { name: 'Orientation' })).toBeNull()
 	})
 })
