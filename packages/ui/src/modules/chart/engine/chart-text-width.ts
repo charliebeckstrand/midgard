@@ -1,17 +1,6 @@
 /** The rendered width, in px, of one label string. @internal */
 export type TextWidth = (text: string) => number
 
-/**
- * A {@link TextWidth} that multiplies the character count by a per-glyph
- * advance. It is the fallback before a measurement: on the server, in the
- * first client render, and where the DOM has no SVG text layout (jsdom).
- *
- * @internal
- */
-export function estimateTextWidth(charWidth: number): TextWidth {
-	return (text) => text.length * charWidth
-}
-
 /** The mark that ends a label cut to fit its room. @internal */
 export const ELLIPSIS = '…'
 
@@ -48,8 +37,8 @@ function cutText(text: string, length: number): string {
 /**
  * The estimated {@link TextFit} of `text` in `maxWidth`, at `charWidth` for each
  * code unit. It keeps as many whole characters as fit with the
- * {@link ELLIPSIS}. It is the fallback before a measurement, as
- * {@link estimateTextWidth} is.
+ * {@link ELLIPSIS}. It is the fallback before a measurement: on the server, in
+ * the first client render, and where the DOM has no SVG text layout (jsdom).
  *
  * @internal
  */
