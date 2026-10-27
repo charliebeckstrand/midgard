@@ -29,7 +29,9 @@ import {
  * height: the free-form case, and the only one where the container height is
  * worth a measurement. `content` derives the height from the width and a pair
  * of margins, for content whose natural shape is not a fixed ratio. A circle
- * boxed by an asymmetric horizontal and vertical margin is one.
+ * boxed by an asymmetric horizontal and vertical margin is one. Its optional
+ * `column` widens the horizontal margin on each side by `min(share · width,
+ * max)` px, for example a column of labels beside the circle.
  */
 export type FrameSizing =
 	| { mode: 'fixed'; height: number }
@@ -50,7 +52,13 @@ export type FrameSizing =
 			ratio: number
 	  }
 	| { mode: 'fill' }
-	| { mode: 'content'; hMargin: number; vMargin: number }
+	| { mode: 'content'; hMargin: number; vMargin: number; column?: FrameColumn }
+
+/**
+ * A band of a `content` frame on each side of its content: `share` of the width,
+ * at most `max` px.
+ */
+export type FrameColumn = { share: number; max: number }
 
 /**
  * How a width-derived frame reserves its drawing height from its own width
@@ -61,13 +69,14 @@ export type FrameSizing =
  * reserves the affine `max(min, width + offset)` that a bare ratio cannot
  * express. `offset` shifts an `aspect-ratio` of 1, and `min` floors the height
  * where the width-bound radius would otherwise go negative. A narrow box then
- * holds that floor and does not collapse. A `fixed` or `fill` frame
+ * holds that floor and does not collapse. A `column` takes
+ * `2 · min(share · width, max)` more off the height. A `fixed` or `fill` frame
  * reserves nothing, because its height is a pixel value the box takes
  * directly.
  */
 export type FrameReserve =
 	| { mode: 'aspect'; ratio: number }
-	| { mode: 'content'; offset: number; min: number }
+	| { mode: 'content'; offset: number; min: number; column?: FrameColumn }
 
 /** A resolved frame box: the drawing height, and how the box reserves it. @internal */
 export type ResolvedFrameSizing = {
@@ -117,21 +126,26 @@ export function resolveFrameSizing(
 	}
 
 	if (sizing.mode === 'content') {
+		const { column } = sizing
+
 		const reserve: FrameReserve = {
 			mode: 'content',
 			offset: 2 * (sizing.vMargin - sizing.hMargin),
 			min: 2 * sizing.vMargin,
+			...(column && { column }),
 		}
 
 		if (width <= 0) return { height: 0, reserve }
 
-		// height = 2·radius + 2·vMargin and radius = max(0, width/2 − hMargin), so
-		// the box is aspect-ratio 1 shifted by `offset` and floored at `min`, as
-		// max(min, width + offset). It is reserved from the width the same way an
-		// aspect ratio is, so it holds before the width is measured and never
+		// height = 2·radius + 2·vMargin and radius = max(0, width/2 − hMargin −
+		// column), so the box is aspect-ratio 1 shifted by `offset`, less the two
+		// columns, and floored at `min`. It is reserved from the width the same way
+		// an aspect ratio is, so it holds before the width is measured and never
 		// collapses. The drawing takes the same height, so the box does not clip
 		// it.
-		const radius = Math.max(0, width / 2 - sizing.hMargin)
+		const band = column ? Math.min(column.share * width, column.max) : 0
+
+		const radius = Math.max(0, width / 2 - sizing.hMargin - band)
 
 		return { height: Math.round(2 * radius + 2 * sizing.vMargin), reserve }
 	}

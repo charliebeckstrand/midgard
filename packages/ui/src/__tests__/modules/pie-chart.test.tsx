@@ -403,7 +403,8 @@ describe('PieChart', () => {
 	})
 
 	it('names slices from the outside with leadered callouts', () => {
-		const { container } = renderUI(chart({ labels: { callouts: true } }))
+		// A 600 px frame gives each label column 120 px, room for every name whole.
+		const { container } = renderUI(chart({ labels: { callouts: true }, width: 600 }))
 
 		const texts = allBySlot(container, 'chart-callout-label').map((el) => el.textContent)
 
@@ -418,13 +419,13 @@ describe('PieChart', () => {
 	})
 
 	it('fits the frame height to the callout band instead of leaving the default square empty', () => {
-		// height/aspectRatio both unset: the frame takes the CSS reserve of the flat
-		// callout margin, and the drawing takes the same height. vMargin = 14 + 15 =
-		// 29, and hMargin = 14 + 10 + 6 + 96 = 126 for the widest text (12 characters
-		// at the 8 px estimate), so height = 300 + 2*(29 - 126) = 106.
+		// height/aspectRatio both unset: the frame takes the CSS reserve of the
+		// callout band, and the drawing takes the same height. No text width enters
+		// it. vMargin = 14 + 15 = 29, and each side takes 14 + 10 + 6 = 30 plus a
+		// column of min(25% of 300, 120) = 75, so height = 300 + 2*(29 - 105) = 148.
 		const { container } = renderUI(chart({ height: undefined, labels: { callouts: true } }))
 
-		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 106')
+		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 148')
 	})
 
 	it('keeps crowded callouts inside the SVG height', () => {

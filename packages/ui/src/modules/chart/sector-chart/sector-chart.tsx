@@ -1,5 +1,6 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ReactNode, useMemo } from 'react'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { useLocale } from '../../../providers/locale'
@@ -11,6 +12,7 @@ import { ChartFrame } from '../engine/chart-frame/frame'
 import { chartAspectRatio } from '../engine/chart-frame/sizing'
 import {
 	CALLOUT_CHAR_WIDTH,
+	CALLOUT_COLUMN,
 	CALLOUT_LEADER,
 	CALLOUT_LINE,
 	pieSlices,
@@ -31,9 +33,11 @@ import { useChartTextWidth } from '../engine/use-chart-text-width'
 import {
 	buildCallouts,
 	CALLOUT_TEXT_CLASS,
+	calloutNameRoom,
+	calloutParts,
 	calloutRoom,
+	calloutShares,
 	calloutsShown,
-	calloutTexts,
 	resolveCallouts,
 	resolveFit,
 	SectorChartCallouts,
@@ -202,36 +206,18 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 
 	const shares = sliceShares(sliceValues)
 
-	// Callouts sit outside the pie, so reserve room for the widest one and shrink
-	// the pie to fit: its label never spills past the frame's clip. The frame
-	// sizes from the full dataset and the pie fits the visible slices, whose
-	// shares read different percents, so both sets of texts are measured. Each
-	// set formats once, and each fit runs once, for the whole render.
-	const calloutText = calloutTexts(
-		showCallouts,
-		{ labels: sliceLabels, percent },
-		values,
-		sliceValues,
-	)
-
-	const calloutWidth = useChartTextWidth(
-		[...calloutText.full, ...calloutText.shown],
-		CALLOUT_TEXT_CLASS,
-		CALLOUT_CHAR_WIDTH,
-	)
-
-	const calloutSpec = resolveCallouts(calloutText, values, sliceValues, calloutWidth.width)
-
 	const vMargin = showCallouts ? CALLOUT_LEADER + CALLOUT_LINE : MARK_GAP * 2
 
-	// Sized from the full dataset rather than the toggled-visible one, so the
-	// frame holds still as a legend entry hides or reveals a slice: only the
-	// pie's own radius reacts to that, below.
+	// Callouts sit outside the pie, in a label column on each side. The column is
+	// a function of the width alone, so the box is the same on the server and in
+	// the browser, and the frame holds still as a legend entry hides or reveals a
+	// slice: only the pie's own radius reacts to that, below.
 	const sizing = sectorFrameSizing(
 		height,
 		frameAspectRatio,
-		calloutRoom(showCallouts, calloutSpec),
+		calloutRoom(showCallouts),
 		vMargin,
+		showCallouts ? CALLOUT_COLUMN : undefined,
 	)
 
 	// A live ratio with a legend describes the whole chart: the figure carries the
@@ -267,6 +253,28 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		tickTarget: TICK_TARGET,
 	})
 
+	// The labels fit the column. Each share stays whole, and a name too long for
+	// the room the widest share leaves is cut with an ellipsis. The pie fits the
+	// visible slices, whose shares read different percents, so both sets of
+	// texts are measured. Each set formats once, and each fit runs once, for the
+	// whole render.
+	const parts = calloutParts(showCallouts, { labels: sliceLabels, percent }, values, sliceValues)
+
+	const shareTexts = calloutShares(parts)
+
+	const shareWidth = useChartTextWidth(shareTexts, CALLOUT_TEXT_CLASS, CALLOUT_CHAR_WIDTH)
+
+	const nameWidth = useChartTextWidth(
+		showCallouts ? sliceLabels : [],
+		CALLOUT_TEXT_CLASS,
+		CALLOUT_CHAR_WIDTH,
+		calloutNameRoom(frameWidth, shareTexts, shareWidth.width),
+	)
+
+	const textHostRef = useComposedRefs(shareWidth.hostRef, nameWidth.hostRef)
+
+	const calloutSpec = resolveCallouts(parts, sliceValues, nameWidth, shareWidth.width)
+
 	const colors = categorySlots(sliceLabels, categories)
 
 	const paints = colors.map((color) => k.series[color])
@@ -277,7 +285,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 
 	// Callouts need a wide horizontal band; where that band would starve the pie to
 	// the spark floor, drop them and draw a bare pie.
-	const drawCallouts = calloutsShown(showCallouts, calloutSpec, vMargin, frameWidth)
+	const drawCallouts = calloutsShown(showCallouts, frameWidth, frameHeight)
 
 	// A dropped callout returns the pie to the plain gap all round, so it fills the
 	// box rather than holding the taller callout band's margin.
@@ -440,7 +448,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			{...name}
 			fullscreen={<SectorChart {...props} />}
 			ref={ref}
-			textHostRef={calloutWidth.hostRef}
+			textHostRef={textHostRef}
 			width={frameWidth}
 			fixedWidth={width}
 			height={frameHeight}

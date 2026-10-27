@@ -3,14 +3,15 @@ import { page } from 'vitest/browser'
 import { PieChart } from '../../../modules/chart/pie-chart'
 import { allBySlot, getSlot, renderUI, waitFor } from '../../helpers'
 import { measureBox } from '../../helpers/geometry/box'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { installDocsFont } from '../helpers/docs-font'
 
 /**
- * A callout label stays inside the frame. The pie reserves the room of each
- * callout from the rendered width of its text, and not from a per-glyph
- * estimate. The docs font is Google Sans Flex, in which these names measure
- * about 7.8 px for each character. The old 6 px estimate clipped the widest
- * label on each side by up to 32 px.
+ * A callout label stays inside the frame. The frame reserves a label column on
+ * each side from its width alone, and the pie places each callout from the
+ * rendered width of its text, not from a per-glyph estimate. A name too long
+ * for the column is cut, and its share stays whole. The docs font is Google
+ * Sans Flex.
  *
  * Rides the real browser because the claim is a computed one: jsdom has no
  * text layout.
@@ -78,9 +79,8 @@ describe('pie callout fit (real browser)', () => {
 		})
 	}
 
-	// The plot box clips its drawing. The tight callout fit draws a pie taller
-	// than the flat margin that the box reserves from its width, so the box takes
-	// the drawn height once the width is known.
+	// The plot box clips its drawing, so the drawing takes the height that the box
+	// reserves.
 	for (const [name, data] of [
 		['six slices', DATA],
 		['one dominant slice', TINY],
@@ -95,4 +95,42 @@ describe('pie callout fit (real browser)', () => {
 			})
 		}
 	}
+
+	// No text width enters the box: labels of any length give the same height,
+	// the CSS reserve of the leader band and a min(25%, 120 px) column per side.
+	for (const width of [390, 800]) {
+		it(`sizes the box from the width alone at ${width}px`, async () => {
+			const long = DATA.map((row) => ({ ...row, source: `${row.source} across every region` }))
+
+			const short = await callouts(width)
+
+			const expected = Math.max(58, width + 58 - 60 - 2 * Math.min(0.25 * width, 120))
+
+			expect(short.box.getBoundingClientRect().height).toBeNear(expected, HALF_PIXEL)
+
+			const cut = await callouts(width, long)
+
+			expect(cut.box.getBoundingClientRect().height).toBeNear(expected, HALF_PIXEL)
+		})
+	}
+
+	it('cuts a long name to the column and keeps its share whole', async () => {
+		const width = 480
+
+		const { labels } = await callouts(width, [
+			{ source: 'Organic search across every partner network', visits: 4200 },
+			{ source: 'Direct', visits: 2600 },
+		])
+
+		const [long, direct] = labels
+
+		expect(long?.textContent).toMatch(/^Organic.*… 62%$/)
+
+		expect(direct?.textContent).toBe('Direct 38%')
+
+		// The column is min(25% of 480, 120) = 120 px. The box can paint about 1 px
+		// past the advance.
+		for (const label of labels)
+			expect(measureBox(label).right - measureBox(label).left).toBeLessThanOrEqual(121)
+	})
 })
