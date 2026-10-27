@@ -253,6 +253,8 @@ export type DashboardProps = AccessibleName &
 		columns?: number
 		/**
 		 * The gutter between tiles, in px. Each tile insets half of it on each side.
+		 * A negative value clamps to 0.
+		 * @minimum 0
 		 * @defaultValue 12
 		 */
 		gap?: number
@@ -365,7 +367,7 @@ export function Dashboard({
 	selection,
 	editing = false,
 	columns = DEFAULT_COLUMNS,
-	gap = DEFAULT_GAP,
+	gap: rawGap = DEFAULT_GAP,
 	titleLevel = 3,
 	onDragStart,
 	onDragEnd,
@@ -378,6 +380,8 @@ export function Dashboard({
 	children,
 	...props
 }: DashboardProps) {
+	const gap = Math.max(0, rawGap)
+
 	const [layoutValue, setLayoutValue] = useControllable<DashboardLayoutItem[]>({
 		value: layout?.value,
 		defaultValue: layout?.defaultValue,
