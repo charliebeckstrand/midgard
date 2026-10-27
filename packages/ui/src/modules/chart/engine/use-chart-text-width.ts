@@ -40,6 +40,14 @@ function fitNode(node: SVGTextElement, text: string, ellipsis: number, maxWidth:
 	}
 }
 
+/** The widths that a measure gives. @internal */
+type Measure = {
+	/** The whole width of each text. */
+	widths: Map<string, number>
+	/** Each text wider than the room, cut to fit it. */
+	cuts: Map<string, TextFit>
+}
+
 /**
  * Measures each text as an SVG `text` with `className`, inside `host`. The
  * probe inherits the font of the host, so the widths come from the font that
@@ -55,7 +63,7 @@ function measureTexts(
 	className: string,
 	texts: readonly string[],
 	maxWidth: number,
-): Map<string, TextFit> | null {
+): Measure | null {
 	const svg = document.createElementNS(SVG_NS, 'svg')
 
 	svg.setAttribute('aria-hidden', 'true')
@@ -89,23 +97,36 @@ function measureTexts(
 
 	const ellipsis = ellipsisNode.getComputedTextLength()
 
+	const widths = new Map(boxes.map(([text, , width]) => [text, width]))
+
 	// Only a label past the room writes to the probe, after every read above.
-	const fits = new Map(
-		boxes.map(([text, node, width]) => [
-			text,
-			width <= maxWidth ? { text, width } : fitNode(node, text, ellipsis, maxWidth),
-		]),
+	const cuts = new Map(
+		boxes
+			.filter(([, , width]) => width > maxWidth)
+			.map(([text, node]) => [text, fitNode(node, text, ellipsis, maxWidth)]),
 	)
 
 	svg.remove()
 
-	return fits
+	return { widths, cuts }
 }
 
-/** The fits an instance holds, for the classes and the room they were measured in. @internal */
-type Measured = { className: string; maxWidth: number; fits: ReadonlyMap<string, TextFit> }
+/**
+ * The measures that an instance holds, for the classes they were measured in.
+ * The whole widths hold for any room. The cuts hold only for `maxWidth`.
+ *
+ * @internal
+ */
+type Measured = {
+	className: string
+	widths: ReadonlyMap<string, number>
+	maxWidth: number
+	cuts: ReadonlyMap<string, TextFit>
+}
 
-const NONE: ReadonlyMap<string, TextFit> = new Map()
+const NO_WIDTHS: ReadonlyMap<string, number> = new Map()
+
+const NO_CUTS: ReadonlyMap<string, TextFit> = new Map()
 
 /** What {@link useChartTextWidth} returns. @internal */
 export type ChartTextWidth = {
@@ -128,10 +149,13 @@ export type ChartTextWidth = {
  * then measures the texts and renders again before the first paint. The
  * instance keeps each width it measures. A change to `texts` measures only the
  * texts that it does not hold yet, and renders again only for them, so a chart
- * that alternates between known labels does no DOM work. When a web font
- * finishes loading, the instance lets go of its widths and measures again,
- * because the widths change with the font. A label width does not depend on
- * the layout, so a measurement cannot feed back into the layout that reads it.
+ * that alternates between known labels does no DOM work. A change to
+ * `maxWidth` keeps the whole widths, and measures again only the texts wider
+ * than the new room, so a resize that every label fits does no DOM work. When a
+ * web font finishes loading, the instance lets go of its widths and measures
+ * again, because the widths change with the font. A label width does not
+ * depend on the layout, so a measurement cannot feed back into the layout that
+ * reads it.
  * @param texts - Every label that the chart can draw. Order and duplicates do
  * not matter.
  * @param className - The classes of the drawn label, so that the probe sets the
@@ -150,11 +174,17 @@ export function useChartTextWidth(
 ): ChartTextWidth {
 	const hostRef = useRef<HTMLDivElement>(null)
 
-	const [measured, setMeasured] = useState<Measured>({ className, maxWidth, fits: NONE })
+	const [measured, setMeasured] = useState<Measured>({
+		className,
+		widths: NO_WIDTHS,
+		maxWidth,
+		cuts: NO_CUTS,
+	})
 
-	// Fits from other classes or another room do not apply.
-	const fits =
-		measured.className === className && measured.maxWidth === maxWidth ? measured.fits : NONE
+	// Widths from other classes do not apply, and cuts for another room do not either.
+	const widths = measured.className === className ? measured.widths : NO_WIDTHS
+
+	const cuts = widths !== NO_WIDTHS && measured.maxWidth === maxWidth ? measured.cuts : NO_CUTS
 
 	// A key, so that an equal list in a new array does not measure again.
 	const key = [...new Set(texts)].filter(Boolean).join('\u0000')
@@ -164,14 +194,28 @@ export function useChartTextWidth(
 
 		if (!host || key === '') return
 
-		const missing = key.split('\u0000').filter((text) => !fits.has(text))
+		// A text needs the DOM when its whole width is unknown, or when it is wider
+		// than the room and has no cut for it yet.
+		const missing = key.split('\u0000').filter((text) => {
+			const width = widths.get(text)
 
+			return width === undefined || (width > maxWidth && !cuts.has(text))
+		})
+
+		// A new room that every text fits needs no cut, so it renders nothing again.
 		if (missing.length === 0) return
 
 		const next = measureTexts(host, className, missing, maxWidth)
 
-		if (next) setMeasured({ className, maxWidth, fits: new Map([...fits, ...next]) })
-	}, [key, className, maxWidth, fits])
+		if (next) {
+			setMeasured({
+				className,
+				widths: new Map([...widths, ...next.widths]),
+				maxWidth,
+				cuts: new Map([...cuts, ...next.cuts]),
+			})
+		}
+	}, [key, className, maxWidth, widths, cuts])
 
 	// A web font that loads later changes the widths, so the instance measures again.
 	useLayoutEffect(() => {
@@ -179,7 +223,7 @@ export function useChartTextWidth(
 
 		if (!fonts) return
 
-		const forget = () => setMeasured((prev) => ({ ...prev, fits: NONE }))
+		const forget = () => setMeasured((prev) => ({ ...prev, widths: NO_WIDTHS, cuts: NO_CUTS }))
 
 		fonts.addEventListener('loadingdone', forget)
 
@@ -189,12 +233,18 @@ export function useChartTextWidth(
 	// One identity for each set of fits, so that a memo that reads the widths
 	// computes again only when a width changes.
 	return useMemo(() => {
-		const getFit = (text: string) => fits.get(text) ?? estimateTextFit(text, charWidth, maxWidth)
+		const getFit = (text: string): TextFit => {
+			const width = widths.get(text)
+
+			if (width !== undefined && width <= maxWidth) return { text, width }
+
+			return cuts.get(text) ?? estimateTextFit(text, charWidth, maxWidth)
+		}
 
 		return {
 			width: (text) => getFit(text).width,
 			fit: (text) => getFit(text).text,
 			hostRef,
 		}
-	}, [fits, charWidth, maxWidth])
+	}, [widths, cuts, charWidth, maxWidth])
 }

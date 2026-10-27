@@ -18,6 +18,7 @@ import {
 } from '../../modules/chart/engine/chart-constants'
 import {
 	axisTitleAt,
+	bandLabelRoom,
 	buildBandTicks,
 	buildValueTicks,
 	type CartesianLayoutInput,
@@ -239,6 +240,40 @@ describe('verticalLayout tilt', () => {
 		const layout = verticalLayout(tilted(names))
 
 		expect(layout.bandTicks.every((tick) => tick.rotate !== undefined)).toBe(true)
+	})
+})
+
+describe('bandLabelRoom', () => {
+	it('gives two centered neighbors their spacing, less the gap', () => {
+		const ticks = [
+			{ at: 100, label: 'A', key: 0 },
+			{ at: 180, label: 'B', key: 1 },
+		]
+
+		expect(bandLabelRoom(ticks, 400)).toBe(80 - GUTTER_GAP)
+	})
+
+	it('gives two end labels half of their spacing, less the gap', () => {
+		const ticks = [
+			{ at: 40, label: 'North America', key: 0, anchor: 'start' as const },
+			{ at: 240, label: 'Latin America', key: 3, anchor: 'end' as const },
+		]
+
+		expect(bandLabelRoom(ticks, 300)).toBe((200 - GUTTER_GAP) / 2)
+	})
+
+	it('keeps a centered label inside the frame', () => {
+		expect(bandLabelRoom([{ at: 60, label: 'A', key: 0 }], 400)).toBe(120)
+
+		expect(bandLabelRoom([{ at: 380, label: 'A', key: 0 }], 400)).toBe(40)
+	})
+
+	it('leaves tilted labels and an empty axis uncut', () => {
+		expect(bandLabelRoom([], 400)).toBe(Number.POSITIVE_INFINITY)
+
+		expect(bandLabelRoom([{ at: 60, label: 'A', key: 0, rotate: -45 }], 400)).toBe(
+			Number.POSITIVE_INFINITY,
+		)
 	})
 })
 

@@ -619,6 +619,51 @@ function endBandTicks(categories: string[], band: BandScale): ChartAxisTick[] {
 	]
 }
 
+/** How much of a flat label's width lies before and after its tick, by its anchor. @internal */
+const ANCHOR_SPREAD = {
+	start: [0, 1],
+	middle: [0.5, 0.5],
+	end: [1, 0],
+} as const
+
+/**
+ * The room of one flat category label along a vertical chart's x axis: the
+ * widest label that stays clear of its neighbors and inside the frame. A
+ * centered label spreads half its width to each side of its tick. An end label
+ * (the compact `'ends'` band) spreads its whole width inward. Two neighbors
+ * keep {@link GUTTER_GAP} between them. A label wider than the room draws cut
+ * with an ellipsis, and the tooltip and the data table show it whole.
+ *
+ * @param ticks - The band ticks in axis order, at their frame positions.
+ * @param frameWidth - The width of the frame, which the labels stay inside.
+ * @returns The room in px, or `Infinity` when no tick constrains it: no flat
+ * ticks, or tilted ones, which slant into a band of their own.
+ * @internal
+ */
+export function bandLabelRoom(ticks: readonly ChartAxisTick[], frameWidth: number): number {
+	let room = Number.POSITIVE_INFINITY
+
+	for (const [index, tick] of ticks.entries()) {
+		if (tick.rotate) return Number.POSITIVE_INFINITY
+
+		const [before, after] = ANCHOR_SPREAD[tick.anchor ?? 'middle']
+
+		if (before > 0) room = Math.min(room, tick.at / before)
+
+		if (after > 0) room = Math.min(room, (frameWidth - tick.at) / after)
+
+		const next = ticks[index + 1]
+
+		if (!next) continue
+
+		const share = after + ANCHOR_SPREAD[next.anchor ?? 'middle'][0]
+
+		room = Math.min(room, (next.at - tick.at - GUTTER_GAP) / share)
+	}
+
+	return Math.max(0, room)
+}
+
 /**
  * The band axis's ticks at its resolved `mode`:
  *

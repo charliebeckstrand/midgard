@@ -25,11 +25,17 @@ import {
 	seriesMetas,
 } from './chart-cartesian/series'
 import { resolveStackMode } from './chart-cartesian/stack'
-import { GUTTER_LABEL_ROOM, LABEL_CHAR_WIDTH, TICK_TARGET } from './chart-constants'
+import {
+	GUTTER_LABEL_ROOM,
+	LABEL_CHAR_WIDTH,
+	TICK_CHAR_WIDTH,
+	TICK_TARGET,
+} from './chart-constants'
 import { chartFrameLayout, frameFills } from './chart-frame/sizing'
 import {
-	type BandLabel,
+	bandLabelRoom,
 	type CartesianLayout,
+	type CartesianLayoutInput,
 	type ChartAxisTitlePlacement,
 	horizontalLayout,
 	markReach,
@@ -332,27 +338,45 @@ function cartesianChrome<T>(props: CartesianData<T>, legend: ResolvedLegend['val
 }
 
 /**
- * The drawn category labels of a horizontal chart, which line its left gutter.
- * They are proportional text, so the gutter holds the width that each label
- * draws at, and a label wider than the room is cut with an ellipsis. The tooltip
- * and the data table show the full label. A vertical chart, or a band that
- * draws no labels, measures nothing.
+ * The layout of a cartesian chart, with its drawn category labels. The labels
+ * are proportional text, so each takes the width that it draws at, cut with an
+ * ellipsis to the room of one label. A horizontal chart lines its left gutter
+ * with them: the gutter holds their widths, and the room is the gutter's. A
+ * vertical layout reads no label widths, so it resolves first, and the labels
+ * then draw along the x axis in the room between its ticks
+ * ({@link bandLabelRoom}). The tooltip and the data table show the full label.
+ * A band that draws no labels (`drawn` off) measures nothing.
  *
  * @internal
  */
-function useHorizontalBandLabel(
+function useCartesianLayout(
+	input: CartesianLayoutInput,
 	horizontal: boolean,
 	drawn: boolean,
-	categories: string[],
-): { bandLabel: BandLabel | undefined; hostRef: RefObject<HTMLDivElement | null> } {
+): { layout: CartesianLayout; hostRef: RefObject<HTMLDivElement | null> } {
+	const vertical = horizontal ? null : verticalLayout(input)
+
+	const labels = vertical ? vertical.bandTicks.map((tick) => tick.label) : input.categories
+
 	const text = useChartTextWidth(
-		horizontal && drawn ? categories : NO_LABELS,
+		drawn ? labels : NO_LABELS,
 		BAND_LABEL_CLASS,
-		LABEL_CHAR_WIDTH,
-		GUTTER_LABEL_ROOM,
+		// Before the measure, a vertical label takes the estimate that thinned it,
+		// so a label that the thinning kept whole draws whole.
+		vertical ? TICK_CHAR_WIDTH : LABEL_CHAR_WIDTH,
+		vertical ? bandLabelRoom(vertical.bandTicks, input.frameWidth) : GUTTER_LABEL_ROOM,
 	)
 
-	return { bandLabel: horizontal ? text : undefined, hostRef: text.hostRef }
+	if (!vertical)
+		return { layout: horizontalLayout({ ...input, bandLabel: text }), hostRef: text.hostRef }
+
+	return {
+		layout: {
+			...vertical,
+			bandTicks: vertical.bandTicks.map((tick) => ({ ...tick, label: text.fit(tick.label) })),
+		},
+		hostRef: text.hostRef,
+	}
 }
 
 /**
@@ -509,15 +533,9 @@ export function useChartCartesian<T>(
 		[rawCategories, props.selectedCategories],
 	)
 
-	const bandText = useHorizontalBandLabel(
-		orientation === 'horizontal',
-		drawAxes && policy.bandAxis !== 'off',
-		categories,
-	)
+	const horizontal = orientation === 'horizontal'
 
-	const buildLayout = orientation === 'horizontal' ? horizontalLayout : verticalLayout
-
-	const layout: CartesianLayout = buildLayout({
+	const layoutInput: CartesianLayoutInput = {
 		frameWidth,
 		frameHeight,
 		axes: drawAxes,
@@ -526,7 +544,6 @@ export function useChartCartesian<T>(
 		value,
 		value2,
 		categories,
-		bandLabel: bandText.bandLabel,
 		bandTitle,
 		bandAxis: policy.bandAxis,
 		tickRotation: axes.x?.tickRotation ?? false,
@@ -540,7 +557,13 @@ export function useChartCartesian<T>(
 			axis: meta.axis,
 			index: meta.index,
 		})),
-	})
+	}
+
+	const { layout, hostRef: textHostRef } = useCartesianLayout(
+		layoutInput,
+		horizontal,
+		drawAxes && policy.bandAxis !== 'off',
+	)
 
 	// A cached thunk, never a value: building the readout formats every category
 	// × series cell, which at dense sizes outweighs drawing the marks. So the
@@ -618,7 +641,7 @@ export function useChartCartesian<T>(
 
 	return {
 		ref,
-		textHostRef: bandText.hostRef,
+		textHostRef,
 		width: frameWidth,
 		fixedWidth: width,
 		height: frameHeight,

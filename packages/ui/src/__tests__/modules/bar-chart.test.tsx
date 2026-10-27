@@ -1334,7 +1334,7 @@ describe('BarChart tickRotation', () => {
 		// Below the compact width the band drops to its ends: a more aggressive
 		// reduction than thinning that tickRotation does not override, since the
 		// tier already spent the room a tilted run would need.
-		const { container } = longChart({ width: 300, axes: { x: { tickRotation: true } } })
+		const { container } = longChart({ width: 360, axes: { x: { tickRotation: true } } })
 
 		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
 
