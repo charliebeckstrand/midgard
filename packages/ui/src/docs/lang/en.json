@@ -7131,10 +7131,6 @@
 		"defaultMessage": "Title",
 		"description": "The label of a field of a playground in the docs. The field sets the prop title of Alert, Banner."
 	},
-	"docs.prop.titleLevel": {
-		"defaultMessage": "Title level",
-		"description": "The label of a field of a playground in the docs. The field sets the prop titleLevel of Dashboard."
-	},
 	"docs.prop.tone": {
 		"defaultMessage": "Tone",
 		"description": "The label of a field of a playground in the docs. The field sets the prop tone of Text."

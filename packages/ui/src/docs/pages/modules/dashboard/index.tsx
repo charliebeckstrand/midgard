@@ -7,7 +7,7 @@ import Query from './query.tsx'
 export default function DashboardPage() {
 	return (
 		<>
-			<Playground of={DashboardPlayground} api={api} surface />
+			<Playground of={DashboardPlayground} api={api} omit={['titleLevel']} surface />
 			<Example of={Query} surface />
 			<Example of={BuildAndSave} surface />
 			<ApiTable api={api} />
