@@ -7,6 +7,7 @@ import {
 	CALLOUT_LINE,
 	CALLOUT_NUB,
 	type PieSlice,
+	pieCalloutCenter,
 	pieCalloutFit,
 	pieCallouts,
 	pieCentroidRadius,
@@ -444,8 +445,10 @@ describe('pieCalloutFit', () => {
 
 			const cy = height / 2
 
-			const callouts = pieCallouts(pieSlices(values, { cx: fit.cx, cy, radius }), {
-				cx: fit.cx,
+			const cx = pieCalloutCenter({ values, texts, textWidth, frameWidth }, radius)
+
+			const callouts = pieCallouts(pieSlices(values, { cx, cy, radius }), {
+				cx,
 				cy,
 				radius,
 				top: CALLOUT_LINE,
@@ -461,9 +464,48 @@ describe('pieCalloutFit', () => {
 
 				expect(far).toBeLessThanOrEqual(frameWidth + 1e-6)
 
-				expect(Math.hypot(callout.x - fit.cx, callout.y - cy)).toBeGreaterThan(radius)
+				expect(Math.hypot(callout.x - cx, callout.y - cy)).toBeGreaterThan(radius)
 			}
 		}
+	})
+
+	it('centers a pie that the frame height caps between the room its callouts leave', () => {
+		const values = [4820, 2210, 1370, 940]
+
+		const texts = ['Search 52%', 'Direct 24%', 'Referral 15%', 'Social 10%']
+
+		const frameWidth = 480
+
+		const fit = pieCalloutFit({ values, texts, textWidth: calloutWidth, frameWidth })
+
+		const radius = fit.radius * 0.6
+
+		const cx = pieCalloutCenter({ values, texts, textWidth: calloutWidth, frameWidth }, radius)
+
+		const cy = 200
+
+		const callouts = pieCallouts(pieSlices(values, { cx, cy, radius }), {
+			cx,
+			cy,
+			radius,
+			top: 0,
+			bottom: 400,
+		})
+
+		// The far edge of each side: the widest label, or the disc itself.
+		const edges = callouts.map((callout) => {
+			const extent = calloutWidth(texts[callout.index] ?? '')
+
+			return callout.anchor === 'start' ? callout.x + extent : callout.x - extent
+		})
+
+		const left = Math.min(cx - radius, ...edges)
+
+		const right = Math.max(cx + radius, ...edges)
+
+		expect(left).toBeGreaterThan(0)
+
+		expect(left).toBeNear(frameWidth - right, COORDINATE_TOLERANCE)
 	})
 
 	it('falls back to a centered, flat-margin radius with fewer than two slices', () => {

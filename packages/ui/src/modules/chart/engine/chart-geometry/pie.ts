@@ -815,6 +815,34 @@ function sideReach(side: FitCallout[], radius: number, pushed: Float64Array): nu
 }
 
 /**
+ * The center x of a callout pie drawn at `radius`, below its
+ * {@link pieCalloutFit fit radius}. A frame height can cap the radius, and the
+ * two sides then leave room. The center splits that room equally, so the pie
+ * and its callouts sit centered in the frame. With fewer than two slices it is
+ * `frameWidth / 2`.
+ *
+ * @internal
+ */
+export function pieCalloutCenter(
+	{ values, texts, textWidth, frameWidth }: PieCalloutFitOptions,
+	radius: number,
+): number {
+	const angles = sliceAngles(values)
+
+	if (angles.length < 2) return frameWidth / 2
+
+	const right = fitSide(angles, texts, textWidth, 1)
+
+	const left = fitSide(angles, texts, textWidth, -1)
+
+	const pushed = new Float64Array(Math.max(right.length, left.length))
+
+	const leftReach = sideReach(left, radius, pushed)
+
+	return leftReach + (frameWidth - leftReach - sideReach(right, radius, pushed)) / 2
+}
+
+/**
  * The largest radius and the center-x under which every callout lands exactly
  * inside `frameWidth`. Each callout hugs its own slice's angle, the way
  * {@link pieCallouts} places it. This is the tight inverse of that placement.

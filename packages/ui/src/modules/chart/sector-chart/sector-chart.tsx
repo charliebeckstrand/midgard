@@ -31,7 +31,6 @@ import { useChartTextWidth } from '../engine/use-chart-text-width'
 import {
 	buildCallouts,
 	CALLOUT_TEXT_CLASS,
-	calloutFitRadius,
 	calloutRoom,
 	calloutsShown,
 	calloutTexts,
@@ -233,7 +232,6 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		frameAspectRatio,
 		calloutRoom(showCallouts, calloutSpec),
 		vMargin,
-		calloutFitRadius(showCallouts, calloutSpec, vMargin),
 	)
 
 	// A live ratio with a legend describes the whole chart: the figure carries the
@@ -278,17 +276,16 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	const sliceFills = colors.map((color) => tex.fillFor(color))
 
 	// Callouts need a wide horizontal band; where that band would starve the pie to
-	// the spark floor, drop them and draw a bare pie: the sizing already squared
-	// the frame to receive it.
+	// the spark floor, drop them and draw a bare pie.
 	const drawCallouts = calloutsShown(showCallouts, calloutSpec, vMargin, frameWidth)
 
 	// A dropped callout returns the pie to the plain gap all round, so it fills the
-	// square rather than holding the taller callout band's margin.
+	// box rather than holding the taller callout band's margin.
 	const drawVMargin = drawCallouts ? vMargin : MARK_GAP * 2
 
-	const pieFit = resolveFit(drawCallouts, calloutSpec, frameWidth)
+	const pieFit = resolveFit(drawCallouts, calloutSpec, frameWidth, frameHeight / 2 - drawVMargin)
 
-	const radius = Math.max(0, Math.min(pieFit.radius, frameHeight / 2 - drawVMargin))
+	const radius = Math.max(0, pieFit.radius)
 
 	const innerRadius = radius * innerRatio
 

@@ -14,6 +14,7 @@ import {
 	type PieCallout,
 	type PieCalloutFit,
 	type PieSlice,
+	pieCalloutCenter,
 	pieCalloutFit,
 	pieCallouts,
 } from '../engine/chart-geometry/pie'
@@ -68,6 +69,8 @@ export type CalloutSpec = CalloutTexts & {
 	fit: CalloutFitAt
 	/** The fit of the visible slices. It is `fit` when no slice is hidden. */
 	shownFit: CalloutFitAt
+	/** The center x of the visible slices at a radius below their fit. */
+	shownCenter: (frameWidth: number, radius: number) => number
 }
 
 /** One callout's text: the slice name trailed by its percent share. @internal */
@@ -130,6 +133,8 @@ export function resolveCallouts(
 		textWidth,
 		fit,
 		shownFit: texts.shown === texts.full ? fit : fitOnce(sliceValues, texts.shown, textWidth),
+		shownCenter: (frameWidth, radius) =>
+			pieCalloutCenter({ values: sliceValues, texts: texts.shown, textWidth, frameWidth }, radius),
 	}
 }
 
@@ -147,35 +152,15 @@ export function calloutRoom(show: boolean, spec: CalloutSpec): number {
 
 /**
  * Whether a callout pie sized to `width` would collapse to the spark floor. The
- * two label columns starve the pie to a sliver. The content frame shrinks with
- * it (`2·radius + 2·vMargin` its height) until the box reads spark. There the
- * callouts drop for a bare pie: the frame squares to receive it, and the drawing
- * sheds the labels to match. Above the floor they fit, and the tight, asymmetric
- * callout frame holds. Read off the callout {@link pieCalloutFit fit radius} at
- * `width`, so the sizing resolver and the drawing decide it the same way.
+ * two label columns starve the pie to a sliver, and a pie of that
+ * {@link pieCalloutFit fit radius} (`2·radius + 2·vMargin` tall) reads spark.
+ * There the callouts drop for a bare pie, which fills the box with the plain
+ * gap. Above the floor they fit.
  *
  * @internal
  */
 function calloutsSpark(fitRadius: number, vMargin: number, width: number): boolean {
 	return isSparkBox(width, 2 * fitRadius + 2 * vMargin)
-}
-
-/** The frame-sizing radius resolver callouts refine the content-fit height with; `undefined` when they're off. @internal */
-export function calloutFitRadius(
-	show: boolean,
-	spec: CalloutSpec,
-	vMargin: number,
-): ((width: number) => number) | undefined {
-	if (!show) return undefined
-
-	return (frameWidth) => {
-		const { radius } = spec.fit(frameWidth)
-
-		// Below the spark floor the labels starve the pie, so size a bare square
-		// (`height = width`, the resolver value net of the `2·vMargin` the frame
-		// adds) for the dropped-callout pie to fill rather than a collapsing sliver.
-		return calloutsSpark(radius, vMargin, frameWidth) ? frameWidth / 2 - vMargin : radius
-	}
 }
 
 /**
@@ -199,16 +184,31 @@ export function calloutsShown(
 }
 
 /**
- * The pie's resolved radius and center: the tight, asymmetric callout fit.
- * Without callouts, it is centered at the plain gap, the way every chart frame
+ * The pie's resolved radius and center: the tight, asymmetric callout fit, at
+ * most `maxRadius`. The frame height sets that cap. Under the cap, the pie
+ * centers between the room that its callouts leave on each side. Without
+ * callouts, it is centered at the plain gap, the way every chart frame
  * defaults to.
  *
  * @internal
  */
-export function resolveFit(show: boolean, spec: CalloutSpec, frameWidth: number): PieCalloutFit {
-	if (!show) return { radius: frameWidth / 2 - MARK_GAP * 2, cx: frameWidth / 2 }
+export function resolveFit(
+	show: boolean,
+	spec: CalloutSpec,
+	frameWidth: number,
+	maxRadius: number,
+): PieCalloutFit {
+	if (!show) {
+		return { radius: Math.min(frameWidth / 2 - MARK_GAP * 2, maxRadius), cx: frameWidth / 2 }
+	}
 
-	return spec.shownFit(frameWidth)
+	const fit = spec.shownFit(frameWidth)
+
+	if (fit.radius <= maxRadius) return fit
+
+	const radius = Math.max(0, maxRadius)
+
+	return { radius, cx: spec.shownCenter(frameWidth, radius) }
 }
 
 /** Places the callouts around the pie, each with the text of its visible slice. @internal */
