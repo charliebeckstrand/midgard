@@ -9,7 +9,7 @@
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, kokkaku, narabi, omote, sen, ugoki } from '../kiso'
 
-const { cursor, disabled, fg, grab, tint } = hannou
+const { cursor, disabled, grab, tint } = hannou
 const { on, text } = iro
 const { size } = ji
 const { rounded } = kasane
@@ -22,6 +22,13 @@ const { border, divider, focus } = sen
 // ratio (`dan.space.list.plain.x` and `dan.space.row.y`). A `bare` row has no
 // padding, because its content is a control with a frame of its own.
 const pad = dan.space.box.base
+
+// `hannou.fg.hover` on the hover of the row (`group/list-item`), for the content
+// column. Tailwind finds only whole class literals, so the group form is written out.
+const rowHoverFg = mode(
+	'group-hover/list-item:not-disabled:text-zinc-950',
+	'dark:group-hover/list-item:not-disabled:text-white',
+)
 
 // The rounded wash layer of a divided row. The layer takes no pointer, so a
 // press still reaches the row and its slots.
@@ -78,11 +85,12 @@ export const k = defineKata(
 					true: [...focus.lifted.raise, focus.lifted.ring],
 					false: '',
 				},
-				// Whether the row acts on activation. It carries no classes of its own: the
-				// wash a row takes depends on the fill it already has, so it rides the
-				// variant compounds below and this axis only gates them.
+				// Whether the row acts on activation. The wash a row takes depends on the fill
+				// it already has, so it rides the variant compounds below. This axis names the
+				// row as the hover group, so the text step of the content column follows the
+				// same hover as the wash (see `content.interactive`).
 				interactive: {
-					true: '',
+					true: 'group/list-item',
 					false: '',
 				},
 				// Whether the content column's hit area covers the whole row. The row turns
@@ -185,8 +193,13 @@ export const k = defineKata(
 				base: [flex.col, 'flex-1 min-w-0 text-start', focus.ring],
 				// One rung across the whole axis, not a `variant` × `interactive` compound:
 				// `on.wash.muted` is legal on the page surface and on `solid`'s wash alike.
+				//
+				// The text step reads the hover of the row, not of this column. The wash
+				// paints the whole row, the padding and the slots included, and this column
+				// covers only part of it. A step on the column's own hover lit the wash at the
+				// edge of the row while the label stayed muted.
 				interactive: {
-					true: [on.wash.muted, fg.hover, ...cursor],
+					true: [on.wash.muted, rowHoverFg, ...cursor],
 					false: '',
 				},
 				// Picked up for a keyboard move. The row's own `lifted` raises and shadows it;
