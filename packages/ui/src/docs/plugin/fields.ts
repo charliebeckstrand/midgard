@@ -3,7 +3,7 @@ import path from 'node:path'
 import { type ESTree, Visitor } from 'vite'
 import type { CatalogEntry } from '../../../scripts/intl-catalog.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
-import { buildComponentField, buildFields, type Field, type Free } from '../kit/fields.ts'
+import { buildFields, type Field, type Free } from '../kit/fields.ts'
 import { humanize, isWord } from '../kit/humanize.ts'
 import { formatValue, toPropId } from '../kit/names.ts'
 import type { BarrelApi, Literal } from './api.ts'
@@ -23,8 +23,8 @@ type Data = Literal | readonly Data[] | { readonly [key: string]: Data }
 type PlaygroundUse = {
 	/** The barrel of the API data, such as `components/button`. */
 	barrel: string
-	/** The component of each playground module. */
-	components: string[]
+	/** The component of the playground module. */
+	component: string
 	omit: string[]
 	values: { [prop: string]: Literal[] }
 	free: Free
@@ -121,22 +121,15 @@ async function readData(
 	)
 }
 
-/** The playground modules that the `of` of a `<Playground>` names. */
-function readModules(file: string, program: ESTree.Program, node: ESTree.Node): string[] {
-	const names =
-		node.type === 'ArrayExpression'
-			? node.elements.map((element) => (element?.type === 'Identifier' ? element.name : ''))
-			: [node.type === 'Identifier' ? node.name : '']
+/** The playground module that the `of` of a `<Playground>` names. */
+function readModule(file: string, program: ESTree.Program, node: ESTree.Node): string {
+	const source = node.type === 'Identifier' ? findImport(program, node.name) : undefined
 
-	return names.map((name) => {
-		const source = name ? findImport(program, name) : undefined
+	if (!source?.startsWith('.')) {
+		throw new Error(`${file}: the of of a <Playground> names an imported playground module`)
+	}
 
-		if (!source?.startsWith('.')) {
-			throw new Error(`${file}: the of of a <Playground> names imported playground modules`)
-		}
-
-		return path.resolve(path.dirname(file), source)
-	})
+	return path.resolve(path.dirname(file), source)
 }
 
 /** The component that the playground module `file` spreads its props onto. */
@@ -203,13 +196,9 @@ async function readPlaygrounds(parse: Parser, file: string): Promise<PlaygroundU
 				read('free'),
 			])
 
-			const components = await Promise.all(
-				readModules(file, program, of).map((module) => readComponent(parse, module)),
-			)
-
 			return {
 				barrel: barrel.slice(API_MODULE.length),
-				components,
+				component: await readComponent(parse, readModule(file, program, of)),
 				omit: omit as string[],
 				values: values as PlaygroundUse['values'],
 				free: free as Free,
@@ -218,12 +207,8 @@ async function readPlaygrounds(parse: Parser, file: string): Promise<PlaygroundU
 	)
 }
 
-/**
- * A field that a page shows, and the component that the field sets. The field
- * that picks the component of a playground (`picker`) sets each of its
- * components.
- */
-type Shown = { field: Field; component: string; picker?: boolean }
+/** A field that a page shows, and the component that the field sets. */
+type Shown = { field: Field; component: string }
 
 /**
  * Each field that a `<Playground>` of a page or a tab shows, from the same
@@ -242,21 +227,15 @@ async function findFields(docs: string, parse: Parser, extract: Extract): Promis
 	for (const use of uses) {
 		const api = await getOrCompute(apis, use.barrel, extract)
 
-		for (const component of use.components) {
-			const props = api[component]?.props
+		const { component } = use
 
-			if (!props) throw new Error(`docs: ${use.barrel} exports no component ${component}`)
+		const props = api[component]?.props
 
-			// The step only sets the default of a density field, which is no label.
-			for (const field of buildFields(props, use.omit, use.values, use.free, 'md')) {
-				shown.push({ field, component })
-			}
-		}
+		if (!props) throw new Error(`docs: ${use.barrel} exports no component ${component}`)
 
-		if (use.components.length > 1) {
-			const field = buildComponentField(use.components)
-
-			for (const component of use.components) shown.push({ field, component, picker: true })
+		// The step only sets the default of a density field, which is no label.
+		for (const field of buildFields(props, use.omit, use.values, use.free, 'md')) {
+			shown.push({ field, component })
 		}
 	}
 
@@ -275,8 +254,7 @@ function wordValues(field: Field): string[] {
 /**
  * The catalog entries of the fields of the playgrounds: the label of each
  * field, from the name of its prop, and each option of a field that is a
- * word, from its value. Each option of the field that picks the component of
- * a playground gets an entry too, such as "Dots" for `LoadingDots`. The entries come from the fields that each
+ * word, from its value. The entries come from the fields that each
  * `<Playground>` renders, so a field has an entry only when a page shows it. A
  * label and an option have no descriptor in the source.
  */
@@ -293,21 +271,8 @@ export async function fieldEntries(
 			component,
 		)
 
-	for (const { field, component, picker } of await findFields(docs, parse, extract)) {
+	for (const { field, component } of await findFields(docs, parse, extract)) {
 		const { name } = field
-
-		if (picker) {
-			for (const value of wordValues(field)) {
-				add(
-					toPropId(name, value),
-					formatValue(value),
-					'An option of the field of a playground in the docs that picks the component to show. It shows one of',
-					component,
-				)
-			}
-
-			continue
-		}
 
 		add(
 			toPropId(name),

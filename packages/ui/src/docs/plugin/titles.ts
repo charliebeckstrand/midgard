@@ -5,7 +5,7 @@ import type { CatalogEntry } from '../../../scripts/intl-catalog.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { humanize } from '../kit/humanize.ts'
 import { PAGE_ID, PLAYGROUND, TAB_ID, TITLE_ID, toSlug } from '../kit/names.ts'
-import { exampleFiles, examplesIn, type Parser, toHeadingId } from './examples.ts'
+import { exampleFiles, examplesIn, type Parser, toCodeKey } from './examples.ts'
 import { findPages, routeFolders } from './pages.ts'
 
 /**
@@ -29,7 +29,7 @@ export async function titleEntries(
 	)
 
 	// A playground shows a title of its own message, so it has no title entry.
-	const ids = [...new Set(examples.flat().map(toHeadingId))].filter((id) => id !== PLAYGROUND)
+	const ids = [...new Set(examples.flat().map(toCodeKey))].filter((id) => id !== PLAYGROUND)
 
 	return Object.fromEntries(
 		ids.map((id) => [

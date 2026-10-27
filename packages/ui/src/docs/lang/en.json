@@ -1109,7 +1109,7 @@
 	},
 	"docs.demo.096b73624b09": {
 		"defaultMessage": "Saving",
-		"description": "Text of a demo in the docs, in components/loading/inside-a-button.tsx."
+		"description": "Text of a demo in the docs, in components/loading/dots/inside-a-button.tsx."
 	},
 	"docs.demo.099f9079ba79": {
 		"defaultMessage": "Enter a name.",
@@ -5991,10 +5991,6 @@
 		"defaultMessage": "Reload",
 		"description": "The label of the button that loads the page again after an error."
 	},
-	"docs.playground.component": {
-		"defaultMessage": "Component",
-		"description": "The label of the field of a playground that selects the component to show, on a page with more than one component."
-	},
 	"docs.playground.default": {
 		"defaultMessage": "Default",
 		"description": "The badge next to the option of a field of a playground that the component uses when the prop is unset."
@@ -6218,14 +6214,6 @@
 	"docs.prop.columns": {
 		"defaultMessage": "Columns",
 		"description": "The label of a field of a playground in the docs. The field sets the prop columns of Columns, Dashboard."
-	},
-	"docs.prop.component.dots": {
-		"defaultMessage": "Dots",
-		"description": "An option of the field of a playground in the docs that picks the component to show. It shows one of LoadingDots, LoadingSpinner."
-	},
-	"docs.prop.component.spinner": {
-		"defaultMessage": "Spinner",
-		"description": "An option of the field of a playground in the docs that picks the component to show. It shows one of LoadingDots, LoadingSpinner."
 	},
 	"docs.prop.condensed": {
 		"defaultMessage": "Condensed",
@@ -7411,6 +7399,10 @@
 		"defaultMessage": "Donut",
 		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
 	},
+	"docs.tab.dots": {
+		"defaultMessage": "Dots",
+		"description": "The name of a tab on the Loading page of the docs. The tab shows one part of the page."
+	},
 	"docs.tab.editing": {
 		"defaultMessage": "Editing",
 		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
@@ -7534,6 +7526,10 @@
 	"docs.tab.sparkline": {
 		"defaultMessage": "Sparkline",
 		"description": "The name of a tab on the Grid page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.spinner": {
+		"defaultMessage": "Spinner",
+		"description": "The name of a tab on the Loading page of the docs. The tab shows one part of the page."
 	},
 	"docs.tab.state": {
 		"defaultMessage": "State",

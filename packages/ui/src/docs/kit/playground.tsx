@@ -19,16 +19,8 @@ import { omote } from '../../recipes/kiso/index.ts'
 import { SIZE_CLASSES } from '../../types/responsive.ts'
 import type { BarrelApi, Literal } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
-import { ExampleFrame, getMeta, loadCode } from './example.tsx'
-import { useFail } from './fail.ts'
-import {
-	buildComponentField,
-	buildFields,
-	type ChoiceField,
-	type Field,
-	type FreeField,
-	type Value,
-} from './fields.ts'
+import { ExampleFrame, getMeta } from './example.tsx'
+import { buildFields, type ChoiceField, type Field, type FreeField, type Value } from './fields.ts'
 import { isWord } from './humanize.ts'
 import { propLabel, valueLabel } from './names.ts'
 
@@ -44,12 +36,6 @@ const messages = defineMessages({
 		defaultMessage: 'Props',
 		description:
 			'The name of the row of fields above a playground. Each field sets one prop of the component: one of its inputs.',
-	},
-	component: {
-		id: 'docs.playground.component',
-		defaultMessage: 'Component',
-		description:
-			'The label of the field of a playground that selects the component to show, on a page with more than one component.',
 	},
 	on: {
 		id: 'docs.playground.on',
@@ -185,9 +171,7 @@ function accepts(field: Field, value: Value | undefined): boolean {
 
 /**
  * The value of each field: the value that the reader picked, when it is a
- * value of the field, else the start of the field. A value that the reader
- * picked for one component stays when the reader picks another component that
- * takes it, such as a color.
+ * value of the field, else the start of the field.
  */
 function resolveValues(fields: readonly Field[], picked: Values): Values {
 	return Object.fromEntries(
@@ -198,10 +182,6 @@ function resolveValues(fields: readonly Field[], picked: Values): Values {
 				: getStart(field),
 		]),
 	)
-}
-
-function isList<T>(value: T | readonly T[]): value is readonly T[] {
-	return Array.isArray(value)
 }
 
 /** A literal as code, with a string in single quotes. */
@@ -314,17 +294,11 @@ function FreePicker({
 
 function FieldPicker({
 	field,
-	label,
-	format,
 	step,
 	value,
 	onValueChange,
 }: {
 	field: ChoiceField
-	/** The label of the field. It is the label of the prop when it is not given. */
-	label?: string
-	/** The label of an option. It is the label of the value of the prop when it is not given. */
-	format?: (value: Value) => string
 	/** The step of the page. The badge is one step below it. */
 	step: DensityStep
 	value: Value | undefined
@@ -332,9 +306,7 @@ function FieldPicker({
 }) {
 	const intl = useIntl()
 
-	const name = label ?? propLabel(intl, field.name)
-
-	const formatOption = format ?? ((option: Value) => formatLabel(intl, field.name, option))
+	const name = propLabel(intl, field.name)
 
 	// The option of the omitted prop has a "Default" badge. When the omitted
 	// prop is no value, such as an Alert with no severity, that option is
@@ -347,7 +319,7 @@ function FieldPicker({
 			: []),
 		...field.values.map((option) => ({
 			key: JSON.stringify(option),
-			label: formatOption(option),
+			label: formatLabel(intl, field.name, option),
 			fallback: option === field.default,
 			// A value with no word, such as `16/9`, shows as written, so it is code.
 			code: typeof option === 'string' && !isWord(option),
@@ -399,10 +371,6 @@ function FieldPicker({
  * fields drive this one instance. "Show code" shows the file with the values
  * that are not the defaults as attributes.
  *
- * A page with more than one component, such as a spinner and dots, gives a
- * playground module for each, in `playground.tsx` and `playground-<name>.tsx`.
- * A "Component" field then picks the module, and the first is the default.
- *
  * `pnpm intl` reads the fields of each `<Playground>` from the source, for the
  * catalog entries of their labels and their options (`plugin/fields.ts`). So
  * `omit`, `values`, and `free` each take a literal, or an exported constant of
@@ -413,9 +381,6 @@ function FieldPicker({
  * import ButtonPlayground from './playground.tsx'
  *
  * <Playground of={ButtonPlayground} api={api} />
- *
- * @example
- * <Playground of={[LoadingPlayground, LoadingDotsPlayground]} api={api} />
  */
 export function Playground<P extends object>({
 	of,
@@ -427,10 +392,9 @@ export function Playground<P extends object>({
 }: {
 	/**
 	 * The default export of the playground module. It types its props as the
-	 * props of its component, and the fields give them from the API data. A
-	 * list gives a playground module for each component of the page.
+	 * props of its component, and the fields give them from the API data.
 	 */
-	of: ComponentType<P> | readonly ComponentType<P>[]
+	of: ComponentType<P>
 	/** The API data of the barrel of the component. */
 	api: BarrelApi
 	/** The props that get no field. */
@@ -452,19 +416,11 @@ export function Playground<P extends object>({
 	/** Makes the instance box fill the frame, for a surface of a page. */
 	surface?: boolean
 }) {
-	const modules: readonly ComponentType<P>[] = isList(of) ? of : [of]
-
-	const [active, setActive] = useState(0)
-
-	const current = modules[active]
-
-	if (!current) throw new Error('docs: a playground takes one playground module or more')
-
-	const meta = getMeta(current)
+	const meta = getMeta(of)
 
 	// The fields give each prop from the API data of the component, so the
 	// values are props of it.
-	const Instance = current as ComponentType<Values>
+	const Instance = of as ComponentType<Values>
 
 	const component = meta.component === undefined ? undefined : api[meta.component]
 
@@ -476,28 +432,11 @@ export function Playground<P extends object>({
 
 	const fields = buildFields(component.props, omit, given, free, step)
 
-	const switcher =
-		modules.length > 1
-			? buildComponentField(modules.map((playground) => getMeta(playground).component ?? ''))
-			: undefined
-
 	const [picked, setPicked] = useState<Values>({})
 
 	const values = resolveValues(fields, picked)
 
-	const fail = useFail()
-
 	const intl = useIntl()
-
-	// The code of the next component loads before the switch, so an open
-	// "Show code" shows it at once.
-	const handleComponentChange = (value: Value | undefined) => {
-		const index = value === undefined ? -1 : (switcher?.values.indexOf(value) ?? -1)
-
-		const next = modules[index]
-
-		if (next) loadCode(getMeta(next)).then(() => setActive(index), fail)
-	}
 
 	return (
 		<ExampleFrame
@@ -506,15 +445,6 @@ export function Playground<P extends object>({
 			surface={surface}
 			actions={
 				<Rail label={intl.formatMessage(messages.props)}>
-					{switcher && (
-						<FieldPicker
-							field={switcher}
-							label={intl.formatMessage(messages.component)}
-							step={step}
-							value={switcher.values[active]}
-							onValueChange={handleComponentChange}
-						/>
-					)}
 					{fields.map((field) => {
 						const handleValueChange = (value: Value | undefined) =>
 							setPicked({ ...picked, [field.name]: value })

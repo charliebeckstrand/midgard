@@ -10,11 +10,7 @@ import { humanize } from './humanize.ts'
 // `plugin/fields.ts`), with the English text as the default. Each function
 // here gives the entry in the language of the reader.
 
-/**
- * The file name of the playground of a page, and the id of its heading. A page
- * with more than one component has a playground for each, such as
- * `playground-dots.tsx`, and the playgrounds share the heading.
- */
+/** The file name of the playground of a page or a tab, and the id of its heading. */
 export const PLAYGROUND = 'playground'
 
 const messages = defineMessages({

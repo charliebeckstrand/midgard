@@ -1,6 +1,5 @@
 import { type DensityStep, isDensityStep } from '../../core/density/steps.ts'
 import type { DefaultValue, Literal, PropApi } from '../plugin/api.ts'
-import { humanize } from './humanize.ts'
 
 // The fields of a playground, from the API data of its component. The
 // playground renders them (`playground.tsx`), and `pnpm intl` reads them for
@@ -159,22 +158,4 @@ function buildChoiceField(
 		...(fallback !== undefined && { default: fallback }),
 		...(required && { required }),
 	}
-}
-
-/**
- * The field that picks the component of a playground with more than one: a
- * value for each component, without the words at the start that all of the
- * names share, so `LoadingSpinner` and `LoadingDots` give `spinner` and
- * `dots`. The first component is the default.
- */
-export function buildComponentField(components: readonly string[]): ChoiceField {
-	const words = components.map((component) => humanize(component).toLowerCase().split(' '))
-
-	const [first = []] = words
-
-	const shared = first.findIndex((word, index) => words.some((other) => other[index] !== word))
-
-	const values = words.map((name) => name.slice(Math.max(shared, 0)).join('-'))
-
-	return { kind: 'choice', name: 'component', values, default: values[0], required: true }
 }
