@@ -5,7 +5,7 @@
  * math is unit-testable in isolation.
  */
 
-import { compactFormat, fractionFormat } from '../../../../utilities'
+import { compactTickFormat, readoutFormat, tickFormat } from '../../../../utilities'
 import type { CartesianAxes, ChartValueAxisId } from '../chart-axes/schema'
 import type { CartesianLayout, ChartValueAxisInput } from '../chart-layout'
 import type { ChartReferenceLine } from '../chart-reference'
@@ -67,14 +67,14 @@ type ResolvedValueAxes = {
 type AxisFormatters = {
 	/** The value gutter's labels: the compact default in a narrow frame. */
 	tick: (value: number) => string
-	/** The tooltip, hidden table, and reference rules: always full precision. */
+	/** The tooltip, hidden table, and reference rules: never compact. */
 	readout: (value: number) => string
 }
 
 /**
  * One axis's tick and readout formatters. An explicit per-axis or chart `format`
  * wins for both. Absent, the tick labels take `tickDefault` (compact in a narrow
- * frame), while the readout keeps `readoutDefault`, the full precision.
+ * frame), while the readout keeps `readoutDefault`, which is never compact.
  *
  * @internal
  */
@@ -95,10 +95,13 @@ function axisFormatters(
  * - Its title.
  *
  * Two formatters per axis, not one. The tick labels take the compact default in
- * a narrow frame (`compact`): locale compact notation to one fraction digit
- * (`48.2K`, `1.3M`), where a full-format label would crowd the plot. The readout always reads full precision, so
- * a gutter stays cheap without coarsening the numbers a reader opens the tooltip
- * for. That readout is the tooltip, the hidden table, and the reference rules.
+ * a narrow frame (`compact`): locale compact notation (`48.2K`, `1.25M`), where
+ * a full-format label would crowd the plot. Each tick label keeps the digits of
+ * the tick step, so two ticks never read the same. The readout is never compact,
+ * so a gutter stays cheap without coarsening the numbers a reader opens the
+ * tooltip for. It writes two fraction digits, or six significant digits where
+ * they show more. That readout is the tooltip, the hidden table, and the
+ * reference rules.
  * An explicit `format` / `formatValue` overrides both. Titles resolve only
  * when the tier affords them (`axisTitles`), so a narrow frame reserves no title
  * band.
@@ -116,12 +119,12 @@ export function resolveValueAxes<T>(
 	axisTitles: boolean,
 	locale: string | undefined,
 ): ResolvedValueAxes {
-	// The tick labels take the compact default in a narrow frame; the readout keeps
-	// full precision. An explicit per-axis or chart formatter wins for both. The
+	// The tick labels take the compact default in a narrow frame; the readout is
+	// never compact. An explicit per-axis or chart formatter wins for both. The
 	// defaults write numbers in the ambient locale, as the band axis writes dates.
-	const readoutDefault = fractionFormat(locale)
+	const readoutDefault = readoutFormat(locale)
 
-	const tickDefault = compact ? compactFormat(locale) : readoutDefault
+	const tickDefault = compact ? compactTickFormat(locale) : tickFormat(locale)
 
 	const y = axisFormatters(axes.y?.format ?? props.formatValue, tickDefault, readoutDefault)
 
@@ -155,8 +158,8 @@ export function resolveValueAxes<T>(
 		axes.y2?.max !== undefined
 
 	// The y axis stands down the same way once everything binds y2; with no y2
-	// axis it stays on as the default home, so an empty chart still frames its
-	// value axis.
+	// axis it stays on as the default home, so a domain pin on an empty chart
+	// still frames its value axis.
 	const hasYAxis =
 		!hasY2Axis ||
 		yDomainValues.length > 0 ||

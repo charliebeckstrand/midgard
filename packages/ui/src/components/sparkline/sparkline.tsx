@@ -191,8 +191,9 @@ function SparklineMarks({
  * The Framer Motion marks: the same shapes, revealed on mount. Rendered only
  * under `animate` and always wrapped in {@link ReducedMotion}. The grow
  * (`height`), the draw (`pathLength`), and the pop (`r`) are no transform, so
- * the reduced-motion config of that root does not skip them. Under reduced
- * motion the bars, the line, and the end point therefore mount at rest.
+ * the reduced-motion config of that root does not skip them. The area fade is
+ * opacity, which that root plays. Under reduced motion the bars, the line, the
+ * area, and the end point therefore mount at rest, as they do on the server.
  * @internal
  */
 function AnimatedSparklineMarks({
@@ -234,7 +235,7 @@ function AnimatedSparklineMarks({
 					stroke="none"
 					fillOpacity={AREA_FILL_OPACITY}
 					className={fillClass}
-					initial={{ opacity: 0 }}
+					initial={still ? false : { opacity: 0 }}
 					animate={{ opacity: 1 }}
 					transition={k.motion.fade}
 				/>

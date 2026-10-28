@@ -48,10 +48,18 @@ export type LightboxProps = {
 	/**
 	 * Shows a close button, one gap above the photo. Without it, Escape, a press
 	 * outside the photo, and a swipe up or down (in any direction for one photo) close the viewer, and the close
-	 * button shows only when it has the keyboard focus.
+	 * button shows only when it has the keyboard focus. With `dismissOnBackdrop`
+	 * set to `false`, the close button always shows.
 	 * @defaultValue false
 	 */
 	closable?: boolean
+	/**
+	 * Lets a press on the stage outside the photo close the viewer. Set it to
+	 * `false` to keep the viewer open on such a press. The close button then
+	 * always shows, as with `closable`. Escape and a swipe still close the viewer.
+	 * @defaultValue true
+	 */
+	dismissOnBackdrop?: boolean
 	/**
 	 * Shows the previous button, the count, and the next button in one pill,
 	 * one gap below the photo, when there is more than one photo. With
@@ -97,7 +105,8 @@ export type LightboxProps = {
  * the reading order. With `thumbnails`, a row of thumbnails takes the place of
  * the step buttons, and a press on a thumbnail shows its photo. Escape, the close button, and a press on the stage
  * outside the photo close the viewer, and the focus goes back to the
- * thumbnail.
+ * thumbnail. With `dismissOnBackdrop` set to `false`, a press outside the
+ * photo does not close the viewer, and the close button always shows.
  *
  * A pinch zooms the photo, up to four times its size, and a double tap or a
  * double click zooms into the point that it taps. A double tap on a zoomed
@@ -122,13 +131,15 @@ export type LightboxProps = {
  * </Lightbox>
  * ```
  *
- * @remarks The raise and the return move only `transform` through Motion, so
- * the browser does not paint the photo again in each frame. The corners of the
- * photo are square in the flight. Under reduced motion, or when the
- * thumbnail is not on the screen, the photo fades in and out on the stage. The
- * viewer renders in the `Overlay` primitive, which traps the focus and locks
- * the scroll of the page. The viewer covers the `Chrome` regions of the app
- * too, and the focus does not go to them while it is open.
+ * @remarks The raise and the return move the photo only with `transform`
+ * through Motion, so the browser does not paint the photo again in each frame.
+ * The photo leaves its thumbnail with the radius of the thumbnail, and its
+ * corners become square as it rises. The return rounds them again. Under
+ * reduced motion, or when the thumbnail is not on the screen, the photo fades
+ * in and out on the stage. The viewer renders in the `Overlay` primitive,
+ * which traps the focus and locks the scroll of the page. The viewer covers the
+ * `Chrome` regions of the app too, and the focus does not go to them while it
+ * is open.
  */
 export function Lightbox({
 	photos,
@@ -136,6 +147,7 @@ export function Lightbox({
 	defaultIndex,
 	onIndexChange,
 	closable = false,
+	dismissOnBackdrop = true,
 	controls = true,
 	thumbnails = false,
 	blur = true,
@@ -236,7 +248,10 @@ export function Lightbox({
 
 							setShown(null)
 						}}
-						closable={closable}
+						// With no press outside the photo to close the viewer, the close
+						// button always shows.
+						closable={closable || !dismissOnBackdrop}
+						dismissOnBackdrop={dismissOnBackdrop}
 						controls={controls}
 						thumbnails={thumbnails}
 						blur={blur}

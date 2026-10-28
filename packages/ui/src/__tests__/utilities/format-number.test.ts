@@ -2,10 +2,13 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
 import {
+	compactTickFormat,
 	formatFraction,
 	formatInteger,
 	fractionFormat,
 	percentFormat,
+	readoutFormat,
+	tickFormat,
 } from '../../utilities/format-number'
 
 // Assertions assume the en-US default locale, matching the existing Odometer
@@ -43,6 +46,50 @@ describe('formatFraction', () => {
 
 	it('omits trailing fraction digits for whole numbers', () => {
 		expect(formatFraction(2)).toBe('2')
+	})
+})
+
+describe('readoutFormat', () => {
+	it('keeps the cents of a large value', () => {
+		expect(readoutFormat(undefined)(48213.456)).toBe('48,213.46')
+
+		expect(readoutFormat(undefined)(123456789012)).toBe('123,456,789,012')
+	})
+
+	it('keeps the digits of a small or fine value', () => {
+		expect(readoutFormat(undefined)(0.0001)).toBe('0.0001')
+
+		expect(readoutFormat(undefined)(1.0842)).toBe('1.0842')
+	})
+
+	it('stops at six significant digits past the cents', () => {
+		expect(readoutFormat(undefined)(1 / 3)).toBe('0.333333')
+	})
+})
+
+describe('tickFormat', () => {
+	it('writes the digits of a fine step', () => {
+		expect([1.0845, 1.085, 1.0855].map(tickFormat(undefined))).toEqual([
+			'1.0845',
+			'1.085',
+			'1.0855',
+		])
+	})
+
+	it('writes a whole tick with no fraction', () => {
+		expect(tickFormat(undefined)(40000)).toBe('40,000')
+	})
+})
+
+describe('compactTickFormat', () => {
+	it('keeps the digits of the step in the unit of the notation', () => {
+		expect([1200000, 1250000, 1300000].map(compactTickFormat(undefined))).toEqual([
+			'1.2M',
+			'1.25M',
+			'1.3M',
+		])
+
+		expect(compactTickFormat(undefined)(1.0845)).toBe('1.0845')
 	})
 })
 
@@ -131,18 +178,31 @@ describe('percentFormat · properties', () => {
 	// domain and the over-100% readings a computed share reaches.
 	const share = () => fc.double({ min: -10, max: 10, noNaN: true })
 
-	test.prop([share()])('ends in a percent sign over a grouped integer', (value) => {
+	test.prop([share()])('ends in a percent sign over a grouped number', (value) => {
 		const text = percentFormat(undefined)(value)
 
 		expect(text.endsWith('%')).toBe(true)
 
-		expect(text.slice(0, -1)).toMatch(GROUPED)
+		expect(integerPart(text.slice(0, -1))).toMatch(GROUPED)
 	})
 
 	test.prop([share()])('states the share times a hundred, rounded whole', (value) => {
 		expect(
 			Math.abs(parseFormatted(percentFormat(undefined)(value)) - value * 100),
 		).toBeLessThanOrEqual(0.5000001)
+	})
+
+	test.prop([fc.double({ min: 1e-9, max: 0.01, noNaN: true })])(
+		'never reads a share that is not zero as 0%',
+		(value) => {
+			expect(parseFormatted(percentFormat(undefined)(value))).toBeGreaterThan(0)
+		},
+	)
+
+	it('keeps one significant digit under one percent and whole percents above', () => {
+		const percent = percentFormat(undefined)
+
+		expect([0.0001, 0.004, 0.0291, 0.9707].map(percent)).toEqual(['0.01%', '0.4%', '3%', '97%'])
 	})
 })
 

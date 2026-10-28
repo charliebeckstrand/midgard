@@ -6,11 +6,13 @@ export type LightboxBox = { x: number; y: number; width: number; height: number 
 
 /**
  * The photo and its clip on the screen at one point of the flight. The photo
- * shows only inside `clip`, and `photo` is the top left corner and the scale of
- * the photo. All values are in CSS px on the screen. @internal
+ * shows only inside `clip`, `radius` is the radius of the corners of the clip,
+ * and `photo` is the top left corner and the scale of the photo. All values are
+ * in CSS px on the screen. @internal
  */
 export type LightboxFrame = {
 	clip: LightboxBox
+	radius: number
 	photo: { x: number; y: number; scale: number }
 }
 
@@ -24,25 +26,29 @@ export const RESTING_TRANSFORM = 'translate(0px, 0px) scale(1)'
  * The thumbnail shows the photo with `object-fit: cover`, so it shows the
  * center of the photo and crops the rest. The frame scales the photo until it
  * covers the thumbnail, and moves its center onto the center of the thumbnail.
- * The clip is `shown`. The corners of the clip are square, because a change
- * of radius paints the clip again in each frame. A tween from this frame to
- * {@link restingFrame} raises the photo, and the reverse tween puts it back.
+ * The clip is `shown`, with the corners of the thumbnail. A radius larger than
+ * half of a side of the thumbnail is cut to that half, as CSS cuts it. A tween from
+ * this frame to {@link restingFrame} raises the photo, and the reverse tween
+ * puts it back.
  *
  * @param thumbnail - The box of the thumbnail.
  * @param rest - The box of the photo at rest, with no transform.
  * @param shown - The part of the thumbnail that the reader sees. It is the
  * full thumbnail when the page hides none of it.
+ * @param radius - The radius of the corners of the thumbnail, in px.
  * @internal
  */
 export function raisedFrame(
 	thumbnail: LightboxBox,
 	rest: LightboxBox,
 	shown: LightboxBox = thumbnail,
+	radius = 0,
 ): LightboxFrame {
 	const scale = Math.max(thumbnail.width / rest.width, thumbnail.height / rest.height)
 
 	return {
 		clip: shown,
+		radius: Math.min(radius, thumbnail.width / 2, thumbnail.height / 2),
 		photo: {
 			x: thumbnail.x + thumbnail.width / 2 - (rest.width * scale) / 2,
 			y: thumbnail.y + thumbnail.height / 2 - (rest.height * scale) / 2,
@@ -51,9 +57,9 @@ export function raisedFrame(
 	}
 }
 
-/** The frame of the photo at rest in `rest`, where the clip is the photo. @internal */
+/** The frame of the photo at rest in `rest`, where the clip is the photo, with square corners. @internal */
 export function restingFrame(rest: LightboxBox): LightboxFrame {
-	return { clip: rest, photo: { x: rest.x, y: rest.y, scale: 1 } }
+	return { clip: rest, radius: 0, photo: { x: rest.x, y: rest.y, scale: 1 } }
 }
 
 /** The frame at `progress` from `from` to `to`, with each value on a straight line. @internal */
@@ -67,6 +73,7 @@ export function mixFrames(from: LightboxFrame, to: LightboxFrame, progress: numb
 			width: mix(from.clip.width, to.clip.width),
 			height: mix(from.clip.height, to.clip.height),
 		},
+		radius: mix(from.radius, to.radius),
 		photo: {
 			x: mix(from.photo.x, to.photo.x),
 			y: mix(from.photo.y, to.photo.y),
@@ -109,14 +116,33 @@ export function frameTransforms(
 }
 
 /**
- * The frame that the transforms from {@link frameTransforms} paint. A slot with no
- * transform clips nothing that shows, so the clip is then the box that the
- * photo paints.
+ * The `border-radius` of the slot that gives the clip of `frame` its corners.
+ * The slot scales by a different amount on each axis. Thus the radius on each
+ * axis cancels the scale on that axis, and the corners are round on the screen.
+ *
+ * @param frame - The frame to paint.
+ * @param slot - The box of the slot, with no transform.
+ * @internal
+ */
+export function slotRadius(frame: LightboxFrame, slot: LightboxBox): string {
+	const x = (frame.radius * slot.width) / frame.clip.width
+
+	const y = (frame.radius * slot.height) / frame.clip.height
+
+	return `${x}px / ${y}px`
+}
+
+/**
+ * The frame that {@link frameTransforms} and {@link slotRadius} paint. A slot
+ * with no transform clips nothing that shows, so the clip is then the box that
+ * the photo paints, with square corners.
  *
  * @param slotTransform - The computed transform of the slot.
  * @param photoTransform - The computed transform of the photo.
  * @param slot - The box of the slot, with no transform.
  * @param rest - The box of the photo at rest, with no transform.
+ * @param slotCorner - The computed `border-top-left-radius` of the slot. Its
+ * first value is the radius on the horizontal axis, before the scale of the slot.
  * @internal
  */
 export function paintedFrame(
@@ -124,6 +150,7 @@ export function paintedFrame(
 	photoTransform: string,
 	slot: LightboxBox,
 	rest: LightboxBox,
+	slotCorner: string,
 ): LightboxFrame {
 	const [photoScaleX = 1, , , photoScaleY = 1, photoLeft = 0, photoTop = 0] =
 		parseMatrix(photoTransform)
@@ -137,6 +164,7 @@ export function paintedFrame(
 
 		return {
 			clip: { x, y, width: rest.width * photoScaleX, height: rest.height * photoScaleY },
+			radius: 0,
 			photo: { x, y, scale: photoScaleX },
 		}
 	}
@@ -150,6 +178,7 @@ export function paintedFrame(
 
 	return {
 		clip,
+		radius: (Number.parseFloat(slotCorner) || 0) * scaleX,
 		photo: {
 			x: clip.x + scaleX * (rest.x - slot.x + photoLeft),
 			y: clip.y + scaleY * (rest.y - slot.y + photoTop),

@@ -322,6 +322,25 @@ describe('PieChart', () => {
 		expect(cells()).toEqual(['60 (80%)', '25', '15 (20%)'])
 	})
 
+	it('never reads a positive slice as 0%', () => {
+		const { container } = renderUI(
+			chart({
+				data: [
+					{ source: 'Search', visits: 9000 },
+					{ source: 'Direct', visits: 1 },
+					{ source: 'Referral', visits: 999 },
+				],
+			}),
+		)
+
+		const cells = [...getSlot(container, 'chart-table').querySelectorAll('tbody td')].map(
+			(cell) => cell.textContent,
+		)
+
+		// A share under one percent keeps one significant digit; the rest stay whole.
+		expect(cells).toEqual(['9,000 (90%)', '1 (0.01%)', '999 (10%)'])
+	})
+
 	it('reads a null value as missing (an em-dash) in the data table, not as 0', () => {
 		const { container } = renderUI(
 			<PieChart
@@ -384,7 +403,8 @@ describe('PieChart', () => {
 	})
 
 	it('names slices from the outside with leadered callouts', () => {
-		const { container } = renderUI(chart({ labels: { callouts: true } }))
+		// A 600 px frame gives each label column 120 px, room for every name whole.
+		const { container } = renderUI(chart({ labels: { callouts: true }, width: 600 }))
 
 		const texts = allBySlot(container, 'chart-callout-label').map((el) => el.textContent)
 
@@ -398,14 +418,14 @@ describe('PieChart', () => {
 		expect(allBySlot(container, 'chart-callout-leader')).toHaveLength(3)
 	})
 
-	it('fits the frame height to the callouts instead of leaving the default square empty', () => {
-		// height/aspectRatio both unset: the frame fits the pie's own tight,
-		// per-slice callout fit (see the `pieCalloutFit` block in `geometry/chart-pie-geometry.test.ts`)
-		// rather than a flat margin sized as if every label sat at 3 o'clock;
-		// vMargin = 14 + 15 = 29, radius ≈ 41.5 at the 8 px callout estimate, height = round(2*41.5+2*29) = 141.
+	it('fits the frame height to the callout band instead of leaving the default square empty', () => {
+		// height/aspectRatio both unset: the frame takes the CSS reserve of the
+		// callout band, and the drawing takes the same height. No text width enters
+		// it. vMargin = 14 + 15 = 29, and each side takes 14 + 10 + 6 = 30 plus a
+		// column of min(25% of 300, 120) = 75, so height = 300 + 2*(29 - 105) = 148.
 		const { container } = renderUI(chart({ height: undefined, labels: { callouts: true } }))
 
-		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 141')
+		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 148')
 	})
 
 	it('keeps crowded callouts inside the SVG height', () => {

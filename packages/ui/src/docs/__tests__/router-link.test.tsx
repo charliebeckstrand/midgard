@@ -144,12 +144,18 @@ describe('RouterLink prefetch', () => {
 	it('loads the code of a page 100 ms after a hover', async ({ clock }) => {
 		renderStub()
 
+		// The count starts from the preloads already in the head. A test file that
+		// runs before this one in the same worker can leave one there: a server
+		// render under the client React DOM writes its module preloads to the
+		// document.
+		const before = preloads()
+
 		fireEvent.mouseEnter(screen.getByRole('link', { name: 'Menu' }))
 
-		expect(preloads()).toBe(0)
+		expect(preloads()).toBe(before)
 
 		await clock.advance(100)
 
-		expect(preloads()).toBe(1)
+		expect(preloads()).toBe(before + 1)
 	})
 })

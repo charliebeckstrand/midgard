@@ -23,16 +23,23 @@ type ChartPlotBoxProps = {
 
 /**
  * The `content` reserve as a `padding-bottom` length: `max(min, width ±
- * offset)`. It is a share of the width shifted by the pixel offset, floored at
- * the minimum. A box narrower than the offset therefore holds `min`, instead of
+ * offset − 2 · column)`. It is a share of the width shifted by the pixel
+ * offset, less a `min(share · width, max)` column on each side, floored at the
+ * minimum. A box narrower than the offset therefore holds `min`, instead of
  * clamping to nothing.
  *
  * @internal
  */
-function contentPadding(offset: number, min: number): string {
-	const shifted = offset < 0 ? `calc(100% - ${-offset}px)` : `calc(100% + ${offset}px)`
+function contentPadding({
+	offset,
+	min,
+	column,
+}: Extract<FrameReserve, { mode: 'content' }>): string {
+	const shift = offset < 0 ? ` - ${-offset}px` : ` + ${offset}px`
 
-	return `max(${min}px, ${shifted})`
+	const band = column ? ` - 2 * min(${column.share * 100}%, ${column.max}px)` : ''
+
+	return `max(${min}px, calc(100%${shift}${band}))`
 }
 
 /**
@@ -77,10 +84,7 @@ export function ChartPlotBox({ reserve, height, fill = false, children }: ChartP
 	// classic padding box: the empty box's own height stays the percentage padding,
 	// and the anchored SVG fills the height it opens.
 	return (
-		<div
-			className="relative overflow-hidden"
-			style={{ paddingBottom: contentPadding(reserve.offset, reserve.min) }}
-		>
+		<div className="relative overflow-hidden" style={{ paddingBottom: contentPadding(reserve) }}>
 			{children}
 		</div>
 	)

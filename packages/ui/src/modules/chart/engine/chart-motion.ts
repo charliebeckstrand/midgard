@@ -35,6 +35,10 @@
  * geometry. It adds only the reverse *timings* below, quicker and delay-free, so
  * the outgoing marks clear before the incoming reveal begins. It also adds the
  * {@link seriesDataKey} signature an animated renderer swaps its generation on.
+ *
+ * A legend toggle that hides a series plays the same exit for that series
+ * alone. The layout holds the place of the series for the longest exit of its
+ * marks, so the rest of the chart moves only after the series leaves.
  */
 
 import { k } from '../../../recipes/kata/chart'
@@ -162,6 +166,13 @@ export const AREA_UNFADE = { duration: duration[300], ease: ease.in } as const
 
 /** Point-marker pop-out: the reverse of {@link POINT_POP}. @internal */
 export const POINT_UNPOP = { duration: duration[200], ease: ease.in } as const
+
+/**
+ * Reference-rule fall: the reverse of {@link REFERENCE_RISE}. A rule toggled off
+ * through its legend chip slides back to the baseline and fades as it goes.
+ * @internal
+ */
+export const REFERENCE_FALL = { duration: duration[300], ease: ease.in } as const
 
 /** Pie un-sweep (`pathLength` 1 → 0): the reverse of {@link SLICE_SWEEP}. @internal */
 export const SLICE_UNSWEEP = { duration: duration[500], ease: ease.inOut } as const

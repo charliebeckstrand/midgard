@@ -13,6 +13,7 @@ import {
 	REST_VIEW,
 	raisedFrame,
 	restingFrame,
+	slotRadius,
 	ZOOM_MAX,
 	zoomView,
 } from '../../components/lightbox/lightbox-utilities'
@@ -125,6 +126,21 @@ describe('raisedFrame', () => {
 
 		expect(photo.width).toBeNear(144, FLOAT)
 	})
+
+	it('gives the clip the radius of the thumbnail, cut to half of the short side of the thumbnail', () => {
+		const thumbnail = { x: 120, y: 500, width: 144, height: 96 }
+
+		expect(raisedFrame(thumbnail, rest, thumbnail, 8).radius).toBe(8)
+
+		// The radius of `rounded-full`.
+		expect(raisedFrame(thumbnail, rest, thumbnail, 3.4e7).radius).toBe(48)
+
+		// A sticky bar hides all but 10px of the thumbnail. CSS cuts the radius by
+		// the box of the thumbnail, not by the part that shows.
+		const shown = { ...thumbnail, height: 10 }
+
+		expect(raisedFrame(thumbnail, rest, shown, 8).radius).toBe(8)
+	})
 })
 
 describe('flight frames', () => {
@@ -148,14 +164,37 @@ describe('flight frames', () => {
 		expect(half.photo.scale).toBeNear((raised.photo.scale + 1) / 2, FLOAT)
 	})
 
-	it('reads back the frame that its transforms paint', () => {
-		const frame = mixFrames(raised, restingFrame(rest), 0.3)
+	it('rounds the corners of the clip on the screen as the slot scales on each axis', () => {
+		const frame = { ...raised, radius: 8 }
+
+		const { scaleX, scaleY } = parseTransform(frameTransforms(frame, slot, rest).slot)
+
+		const [radiusX = 0, radiusY = 0] = (slotRadius(frame, slot).match(NUMBER) ?? []).map(Number)
+
+		expect(radiusX * scaleX).toBeNear(8, FLOAT)
+
+		expect(radiusY * scaleY).toBeNear(8, FLOAT)
+	})
+
+	it('reads back the frame that its transforms and its radius paint', () => {
+		const frame = mixFrames({ ...raised, radius: 8 }, restingFrame(rest), 0.3)
 
 		const transforms = frameTransforms(frame, slot, rest)
 
-		const back = paintedFrame(computed(transforms.slot), computed(transforms.photo), slot, rest)
+		// The computed `border-top-left-radius` holds the radius on each axis.
+		const corner = slotRadius(frame, slot).replace(' / ', ' ')
+
+		const back = paintedFrame(
+			computed(transforms.slot),
+			computed(transforms.photo),
+			slot,
+			rest,
+			corner,
+		)
 
 		expectBox(back.clip, frame.clip)
+
+		expect(back.radius).toBeNear(8 * 0.7, FLOAT)
 
 		expect(back.photo.x).toBeNear(frame.photo.x, FLOAT)
 
@@ -166,11 +205,19 @@ describe('flight frames', () => {
 
 	it('reads the box that the photo paints as the clip when the slot has no transform', () => {
 		// A swipe to close moves the photo 40px down and shrinks it to 0.8.
-		const frame = paintedFrame('none', computed('translate(45px, 107.5px) scale(0.8)'), slot, rest)
+		const frame = paintedFrame(
+			'none',
+			computed('translate(45px, 107.5px) scale(0.8)'),
+			slot,
+			rest,
+			'0px',
+		)
 
 		expectBox(frame.clip, { x: 320, y: 167.5, width: 360, height: 540 })
 
 		expect(frame.photo).toEqual({ x: 320, y: 167.5, scale: 0.8 })
+
+		expect(frame.radius).toBe(0)
 	})
 })
 

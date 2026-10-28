@@ -7,7 +7,7 @@ import { cn } from '../../../core'
 import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types'
-import { fractionFormat, once, parseNumeric } from '../../../utilities'
+import { once, parseNumeric, readoutFormat } from '../../../utilities'
 import {
 	type MapAspectRatio,
 	type MapFeature,
@@ -301,7 +301,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// The default writes numbers in the ambient locale, as a cartesian chart does.
 	const { locale } = useLocale()
 
-	const format = formatValue ?? fractionFormat(locale)
+	const format = formatValue ?? readoutFormat(locale)
 
 	// Built from the input rows for the menu's CSV / copy actions; with no rows
 	// or no series there is nothing to export, so the actions drop. A cached

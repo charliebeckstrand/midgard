@@ -250,6 +250,29 @@ describe('Lightbox', () => {
 		expect(screen.queryByRole('dialog')).toBeNull()
 	})
 
+	it('stays open on a press outside the photo with `dismissOnBackdrop={false}`, and always shows the close button', async () => {
+		const user = setupUser()
+
+		renderUI(<Gallery defaultIndex={0} dismissOnBackdrop={false} />)
+
+		const photo = centerPhoto()
+
+		if (!photo) throw new Error('no photo')
+
+		await user.click(photo.parentElement as HTMLElement)
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		// The close button shows as with `closable`, not only for the keyboard focus.
+		const close = screen.getByRole('button', { name: 'Close' })
+
+		expect(close).not.toHaveClass('not-focus-visible:opacity-0')
+
+		await user.click(close)
+
+		expect(screen.queryByRole('dialog')).toBeNull()
+	})
+
 	it('closes on Escape', async () => {
 		const user = setupUser()
 

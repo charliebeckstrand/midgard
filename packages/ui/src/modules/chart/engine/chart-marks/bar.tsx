@@ -1,5 +1,6 @@
 'use client'
 
+import { AnimatePresence } from 'motion/react'
 import { memo, useMemo } from 'react'
 import { cn } from '../../../../core'
 import { usePrefersReducedMotion } from '../../../../hooks/use-prefers-reduced-motion'
@@ -31,6 +32,12 @@ export type ChartBarMarksProps = {
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: ChartOrientation
+	/**
+	 * The series toggled off, by their own index. The animated bars draw none of
+	 * them, so a series that the layout still holds plays its exit. The plain
+	 * bars ignore it.
+	 */
+	hidden?: ReadonlySet<number>
 }
 
 /** One bar's classes: series fill, its texture tile, and the emphasis dim. @internal */
@@ -191,8 +198,8 @@ type AnimatedBarProps = {
 	tile: string | undefined
 	className: string
 	/**
-	 * Mount the bar at rest: the reader asks for reduced motion, or the render
-	 * is on the server or is the hydration render.
+	 * Mount the bar at rest, and remove it with no exit: the reader asks for
+	 * reduced motion, or the render is on the server or is the hydration render.
 	 */
 	still: boolean
 }
@@ -226,15 +233,22 @@ const AnimatedBar = memo(function AnimatedBar({
 			initial={still ? false : grow.initial}
 			animate={grow.animate}
 			// The bar shrinks back to the same baseline end it grew from (the
-			// reveal in reverse) when a data change swaps the marks generation.
-			exit={{ ...grow.initial, transition: BAR_SHRINK }}
+			// reveal in reverse) when a data change swaps the marks generation, or a
+			// toggle hides its series.
+			exit={still ? undefined : { ...grow.initial, transition: BAR_SHRINK }}
 			style={{ ...grow.style, ...textureStyle(tile) }}
 			transition={{ ...BAR_GROW, delay }}
 		/>
 	)
 })
 
-/** The Framer Motion bars, growing from the baseline along the value axis in sequence, and shrinking back to it on a data change. @internal */
+/**
+ * The Framer Motion bars, growing from the baseline along the value axis in
+ * sequence. They shrink back to it on a data change, and the bars of a series
+ * shrink back when a toggle hides it.
+ *
+ * @internal
+ */
 export function AnimatedChartBarMarks({
 	marks,
 	paints,
@@ -242,36 +256,45 @@ export function AnimatedChartBarMarks({
 	fills,
 	textureActive = false,
 	orientation = 'vertical',
+	hidden,
 }: ChartBarMarksProps) {
 	const { lit } = useChartMarkEmphasis()
 
 	const still = usePrefersReducedMotion()
 
-	return marks.flatMap((row, seriesIndex) => {
-		const paint = paints[seriesIndex]
+	// Each bar is its own presence, so a hidden series plays its exit while the
+	// rest stay. `propagate` passes the exit of a data change through.
+	return (
+		<AnimatePresence propagate>
+			{marks.flatMap((row, seriesIndex) => {
+				const paint = paints[seriesIndex]
 
-		const series = indices[seriesIndex] ?? seriesIndex
+				const series = indices[seriesIndex] ?? seriesIndex
 
-		// Keyed on the series, not the draw slot: a legend toggle then leaves each
-		// shown series on its own nodes, so no other series replays the grow.
-		return rangeKeys(row.length, `bar-${series}`).map((key, index) => {
-			const mark = row[index]
+				if (hidden?.has(series)) return []
 
-			if (!mark) return null
+				// Keyed on the series, not the draw slot: a legend toggle then leaves each
+				// shown series on its own nodes, so no other series replays the grow.
+				return rangeKeys(row.length, `bar-${series}`).map((key, index) => {
+					const mark = row[index]
 
-			return (
-				<AnimatedBar
-					key={key}
-					d={mark.d}
-					positive={mark.positive}
-					orientation={orientation}
-					delay={barGrowDelay(index, row.length)}
-					fill={paint && rawColor(paint)}
-					tile={fills?.[seriesIndex]}
-					className={barClass(paint, !lit(series, index), textureActive, fills?.[seriesIndex])}
-					still={still}
-				/>
-			)
-		})
-	})
+					if (!mark) return null
+
+					return (
+						<AnimatedBar
+							key={key}
+							d={mark.d}
+							positive={mark.positive}
+							orientation={orientation}
+							delay={barGrowDelay(index, row.length)}
+							fill={paint && rawColor(paint)}
+							tile={fills?.[seriesIndex]}
+							className={barClass(paint, !lit(series, index), textureActive, fills?.[seriesIndex])}
+							still={still}
+						/>
+					)
+				})
+			})}
+		</AnimatePresence>
+	)
 }

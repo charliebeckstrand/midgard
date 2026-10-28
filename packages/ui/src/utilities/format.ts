@@ -35,6 +35,13 @@ type NumberFormatSpec = {
 	minimumFractionDigits?: number
 	/** Fraction-digit ceiling. */
 	maximumFractionDigits?: number
+	/**
+	 * Significant-digit ceiling. With `maximumFractionDigits` too, a value takes
+	 * the ceiling that shows more of its digits: two fraction digits and six
+	 * significant digits write `1.0842` and `0.0001` whole, and `48,213.46` to
+	 * the cent.
+	 */
+	maximumSignificantDigits?: number
 }
 
 /** A prefixed identifier: `prefix` + `separator` + a zero-padded whole number, e.g. `INV-0042`. */
@@ -111,6 +118,13 @@ function numericOptions(
 			options.minimumFractionDigits > spec.maximumFractionDigits
 		)
 			options.minimumFractionDigits = spec.maximumFractionDigits
+	}
+
+	if (spec.maximumSignificantDigits !== undefined) {
+		options.maximumSignificantDigits = spec.maximumSignificantDigits
+
+		// Without a priority, the significant ceiling alone would round the value.
+		if (options.maximumFractionDigits !== undefined) options.roundingPriority = 'morePrecision'
 	}
 
 	return options

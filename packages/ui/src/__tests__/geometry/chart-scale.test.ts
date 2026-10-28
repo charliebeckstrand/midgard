@@ -251,6 +251,19 @@ describe('linearScale', () => {
 		expect(linearScale({ values: [Number.NaN], range: [100, 0], tickTarget: 4 })).toBeNull()
 	})
 
+	it('yields no domain from the zero baseline alone', () => {
+		// Zero is an anchor, not a value. With nothing to plot, an empty bar chart
+		// drew a 0 to 1 grid while an empty line chart drew none.
+		const empty = { range: [100, 0] as [number, number], tickTarget: 4, zeroBaseline: true }
+
+		expect(linearScale({ ...empty, values: [] })).toBeNull()
+
+		expect(linearScale({ ...empty, values: [Number.NaN] })).toBeNull()
+
+		// A pin yields a domain, and the baseline joins it.
+		expect(linearScale({ ...empty, values: [], max: 50 })?.domain).toEqual([0, 50])
+	})
+
 	it('widens a flat series so the value still renders mid-domain', () => {
 		const scale = linearScale({ values: [7, 7, 7], range: [100, 0], tickTarget: 4 })
 

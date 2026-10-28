@@ -52,8 +52,11 @@ export type TabContentProps = Omit<
  *
  * Put each `<TabContent>` directly in the container, with no element between
  * them. The outgoing panel takes the position of the container while it exits.
+ *
+ * In a vertical group the container fills the width beside the list. The width
+ * then stays the same across a switch.
  */
-export function TabContents({ mount, ...props }: TabContentsProps) {
+export function TabContents({ mount, className, ...props }: TabContentsProps) {
 	const tabsContext = useTabsContext()
 
 	const registerMountedPanels = tabsContext?.registerMountedPanels
@@ -75,7 +78,14 @@ export function TabContents({ mount, ...props }: TabContentsProps) {
 	// A segment tab references its panel only while the group has panels.
 	useEffect(() => registerPanels?.(), [registerPanels])
 
-	return <CurrentContents slotPrefix="tab" mount={mount} {...props} />
+	return (
+		<CurrentContents
+			slotPrefix="tab"
+			mount={mount}
+			className={cn(k({ orientation: tabsContext?.orientation }).contents, className)}
+			{...props}
+		/>
+	)
 }
 
 /**

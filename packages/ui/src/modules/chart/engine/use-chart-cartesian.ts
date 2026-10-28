@@ -25,11 +25,17 @@ import {
 	seriesMetas,
 } from './chart-cartesian/series'
 import { resolveStackMode } from './chart-cartesian/stack'
-import { GUTTER_LABEL_ROOM, LABEL_CHAR_WIDTH, TICK_TARGET } from './chart-constants'
+import {
+	GUTTER_LABEL_ROOM,
+	LABEL_CHAR_WIDTH,
+	TICK_CHAR_WIDTH,
+	TICK_TARGET,
+} from './chart-constants'
 import { chartFrameLayout, frameFills } from './chart-frame/sizing'
 import {
-	type BandLabel,
+	bandLabelRoom,
 	type CartesianLayout,
+	type CartesianLayoutInput,
 	type ChartAxisTitlePlacement,
 	horizontalLayout,
 	markReach,
@@ -37,7 +43,7 @@ import {
 } from './chart-layout'
 import type { ChartLegendItem, ChartLegendReference } from './chart-legend/legend'
 import { legendAside, legendBands, type ResolvedLegend, resolveLegend } from './chart-legend/schema'
-import { seriesDataKey } from './chart-motion'
+import { REFERENCE_FALL, seriesDataKey } from './chart-motion'
 import type { ChartOrientation, PlotRect } from './chart-orientation'
 import { type ChartTexture, useChartTexture } from './chart-pattern-defs'
 import { referenceLegendItems, ruleKeys } from './chart-reference'
@@ -47,7 +53,11 @@ import { type ChartChrome, type ChartTier, headerLineCount } from './chart-tier'
 import { parseInstant } from './chart-time'
 import type { CartesianChartProps, ChartReadoutSource, ChartSeries } from './types'
 import { useChartFrameSizing } from './use-chart-frame-sizing'
-import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
+import {
+	useChartReferenceToggle,
+	useChartSeriesToggle,
+	useLaidOutHidden,
+} from './use-chart-series-toggle'
 import { useChartTextWidth } from './use-chart-text-width'
 
 /**
@@ -74,6 +84,7 @@ export type CartesianData<T> = Pick<
 	| 'formatValue'
 	| 'title'
 	| 'subtitle'
+	| 'animate'
 >
 
 /** Per-chart configuration for {@link useChartCartesian}. @internal */
@@ -139,6 +150,13 @@ export type CartesianConfig<T> = {
 	 * @defaultValue 'edge'
 	 */
 	categoryRule?: 'zero' | 'edge'
+	/**
+	 * How long the exit of a toggled-off series takes under `animate`, in
+	 * seconds: the longest exit of the marks that the chart draws. The layout
+	 * holds the place of the series for that time ({@link useLaidOutHidden}).
+	 * Absent, a toggle lays out at once.
+	 */
+	seriesExit?: number
 }
 
 /** The classes of a category label on the horizontal band axis, as the y axis draws it. @internal */
@@ -225,7 +243,11 @@ export type CartesianChart = {
 	 * geometry, so a resize does too. The static path ignores it.
 	 */
 	dataKey: string
-	/** The series still toggled on: scales, marks, and readout draw these. */
+	/**
+	 * The series that the layout holds: scales, marks, and readout draw these.
+	 * They are the series still toggled on, and also a toggled-off series while
+	 * it plays its exit ({@link CartesianConfig.seriesExit}).
+	 */
 	visible: SeriesMeta[]
 	/**
 	 * The visible series that take marks, each with the scale and the baseline it
@@ -233,7 +255,10 @@ export type CartesianChart = {
 	 * labels of a chart read this one list, so their indices stay aligned.
 	 */
 	drawn: DrawnSeries[]
-	/** Legend indexes toggled off. */
+	/**
+	 * Legend indexes toggled off, at once. An animated renderer draws no marks for
+	 * these, so a series that the layout still holds plays its exit.
+	 */
 	hidden: ReadonlySet<number>
 	/** Toggles a series on or off by its index. */
 	toggleSeries: (index: number) => void
@@ -332,27 +357,45 @@ function cartesianChrome<T>(props: CartesianData<T>, legend: ResolvedLegend['val
 }
 
 /**
- * The drawn category labels of a horizontal chart, which line its left gutter.
- * They are proportional text, so the gutter holds the width that each label
- * draws at, and a label wider than the room is cut with an ellipsis. The tooltip
- * and the data table show the full label. A vertical chart, or a band that
- * draws no labels, measures nothing.
+ * The layout of a cartesian chart, with its drawn category labels. The labels
+ * are proportional text, so each takes the width that it draws at, cut with an
+ * ellipsis to the room of one label. A horizontal chart lines its left gutter
+ * with them: the gutter holds their widths, and the room is the gutter's. A
+ * vertical layout reads no label widths, so it resolves first, and the labels
+ * then draw along the x axis in the room between its ticks
+ * ({@link bandLabelRoom}). The tooltip and the data table show the full label.
+ * A band that draws no labels (`drawn` off) measures nothing.
  *
  * @internal
  */
-function useHorizontalBandLabel(
+function useCartesianLayout(
+	input: CartesianLayoutInput,
 	horizontal: boolean,
 	drawn: boolean,
-	categories: string[],
-): { bandLabel: BandLabel | undefined; hostRef: RefObject<HTMLDivElement | null> } {
+): { layout: CartesianLayout; hostRef: RefObject<HTMLDivElement | null> } {
+	const vertical = horizontal ? null : verticalLayout(input)
+
+	const labels = vertical ? vertical.bandTicks.map((tick) => tick.label) : input.categories
+
 	const text = useChartTextWidth(
-		horizontal && drawn ? categories : NO_LABELS,
+		drawn ? labels : NO_LABELS,
 		BAND_LABEL_CLASS,
-		LABEL_CHAR_WIDTH,
-		GUTTER_LABEL_ROOM,
+		// Before the measure, a vertical label takes the estimate that thinned it,
+		// so a label that the thinning kept whole draws whole.
+		vertical ? TICK_CHAR_WIDTH : LABEL_CHAR_WIDTH,
+		vertical ? bandLabelRoom(vertical.bandTicks, input.frameWidth) : GUTTER_LABEL_ROOM,
 	)
 
-	return { bandLabel: horizontal ? text : undefined, hostRef: text.hostRef }
+	if (!vertical)
+		return { layout: horizontalLayout({ ...input, bandLabel: text }), hostRef: text.hostRef }
+
+	return {
+		layout: {
+			...vertical,
+			bandTicks: vertical.bandTicks.map((tick) => ({ ...tick, label: text.fit(tick.label) })),
+		},
+		hostRef: text.hostRef,
+	}
 }
 
 /**
@@ -462,9 +505,17 @@ export function useChartCartesian<T>(
 
 	const metas = seriesMetas(data, series, config.swatch, stack)
 
+	// A hidden series keeps its place in the layout while it plays its exit. The
+	// legend and the emphasis read `hidden` at once.
+	const laid = useLaidOutHidden(hidden, props.animate, config.seriesExit)
+
+	// A hidden rule keeps its value in the domain while it falls, so the axis
+	// holds its scale until the rule has gone.
+	const laidReferences = useLaidOutHidden(referenceHidden, props.animate, REFERENCE_FALL.duration)
+
 	// Toggled-off series leave the scales and readout; slot colors stay put
 	// because each meta's paint keyed off its original index.
-	const visible = metas.filter((meta) => !hidden.has(meta.index))
+	const visible = metas.filter((meta) => !laid.has(meta.index))
 
 	// One tile set over every visible slot, so that each filled mark of a chart
 	// resolves its fill: the bars and the area washes of a combo alike.
@@ -479,7 +530,7 @@ export function useChartCartesian<T>(
 		visible,
 		resolveStackMode(config),
 		data,
-		referenceHidden,
+		laidReferences,
 		policy.compactFormat,
 		policy.axisTitles,
 		locale,
@@ -509,15 +560,9 @@ export function useChartCartesian<T>(
 		[rawCategories, props.selectedCategories],
 	)
 
-	const bandText = useHorizontalBandLabel(
-		orientation === 'horizontal',
-		drawAxes && policy.bandAxis !== 'off',
-		categories,
-	)
+	const horizontal = orientation === 'horizontal'
 
-	const buildLayout = orientation === 'horizontal' ? horizontalLayout : verticalLayout
-
-	const layout: CartesianLayout = buildLayout({
+	const layoutInput: CartesianLayoutInput = {
 		frameWidth,
 		frameHeight,
 		axes: drawAxes,
@@ -526,7 +571,6 @@ export function useChartCartesian<T>(
 		value,
 		value2,
 		categories,
-		bandLabel: bandText.bandLabel,
 		bandTitle,
 		bandAxis: policy.bandAxis,
 		tickRotation: axes.x?.tickRotation ?? false,
@@ -540,7 +584,13 @@ export function useChartCartesian<T>(
 			axis: meta.axis,
 			index: meta.index,
 		})),
-	})
+	}
+
+	const { layout, hostRef: textHostRef } = useCartesianLayout(
+		layoutInput,
+		horizontal,
+		drawAxes && policy.bandAxis !== 'off',
+	)
 
 	// A cached thunk, never a value: building the readout formats every category
 	// × series cell, which at dense sizes outweighs drawing the marks. So the
@@ -618,7 +668,7 @@ export function useChartCartesian<T>(
 
 	return {
 		ref,
-		textHostRef: bandText.hostRef,
+		textHostRef,
 		width: frameWidth,
 		fixedWidth: width,
 		height: frameHeight,

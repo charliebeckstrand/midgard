@@ -54,6 +54,29 @@ describe('chartPolicy tier', () => {
 
 		expect(chartPolicy(1200, 700, CAP).tier).toBe('expanded')
 	})
+
+	it('reads an unmeasured box as framed, not spark', () => {
+		// Width 0 is the server render and the client render before the first
+		// measure. The chrome must be in that markup, so the box keeps it.
+		for (const fill of [false, true]) {
+			const unmeasured = chartPolicy(0, 0, CAP, fill)
+
+			expect(unmeasured.tier).toBe('compact')
+
+			expect(unmeasured.legendRows).toBe(1)
+		}
+	})
+
+	it('reads an unmeasured box as spark when its known height is under the spark height', () => {
+		// A fixed `height` is known before the measure, so a short fixed chart is a
+		// sparkline from the first paint.
+		expect(chartPolicy(0, SPARK_HEIGHT - 1, CAP).tier).toBe('spark')
+
+		expect(chartPolicy(0, SPARK_HEIGHT, CAP).tier).toBe('compact')
+
+		// A fill frame never sparks by height.
+		expect(chartPolicy(0, SPARK_HEIGHT - 1, CAP, true).tier).toBe('compact')
+	})
 })
 
 describe('chartPolicy band axis', () => {

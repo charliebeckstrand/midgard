@@ -14,6 +14,22 @@ describe('resolveFormat', () => {
 		it('honors an explicit fraction ceiling', () => {
 			expect(resolveFormat({ type: 'number', maximumFractionDigits: 2 })(1.2345)).toBe('1.23')
 		})
+
+		it('takes the ceiling that shows more digits when both ceilings are set', () => {
+			const format = resolveFormat({
+				type: 'number',
+				maximumFractionDigits: 2,
+				maximumSignificantDigits: 3,
+			})
+
+			expect(format(0.0001234)).toBe('0.000123')
+
+			expect(format(1234.567)).toBe('1,234.57')
+		})
+
+		it('honors a significant ceiling alone', () => {
+			expect(resolveFormat({ type: 'number', maximumSignificantDigits: 2 })(1234)).toBe('1,200')
+		})
 	})
 
 	describe('integer', () => {

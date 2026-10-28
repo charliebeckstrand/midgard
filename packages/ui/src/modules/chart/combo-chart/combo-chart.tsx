@@ -14,6 +14,7 @@ import {
 import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
 import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
+import { BAR_SHRINK, LINE_UNDRAW } from '../engine/chart-motion'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
 import type { ChartMarkRef } from '../engine/context'
 import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../engine/types'
@@ -167,6 +168,10 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 				labels,
 				visible.filter((meta) => series[meta.index]?.type !== 'bar').length,
 			),
+		// A line or an area edge un-draws for longer than a bar shrinks.
+		seriesExit: series.some((entry) => entry.type !== 'bar')
+			? LINE_UNDRAW.duration
+			: BAR_SHRINK.duration,
 	})
 
 	// Spark needs no gate here: the frame renders the drawing pointer-inert, and
@@ -238,6 +243,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 				indices={barIndices}
 				fills={barFills}
 				textureActive={tex.active}
+				hidden={chart.hidden}
 			/>
 
 			<AnimatedChartLineMarks
@@ -247,9 +253,16 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 				fills={areaFills}
 				textureActive={tex.active}
 				plot={chart.plot}
+				hidden={chart.hidden}
 			/>
 
-			<AnimatedChartLineMarks list={lines} fill={false} stroke={stroke} plot={chart.plot} />
+			<AnimatedChartLineMarks
+				list={lines}
+				fill={false}
+				stroke={stroke}
+				plot={chart.plot}
+				hidden={chart.hidden}
+			/>
 		</>
 	) : (
 		<>

@@ -1106,6 +1106,12 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'chart-table')).toBeNull()
 
 		expect(bySlot(container, 'chart-plot')).not.toBeNull()
+
+		// No value yields a domain, so no axis or grid invents one: the zero
+		// baseline alone drew 0 to 1 ticks that an empty line chart never drew.
+		expect(bySlot(container, 'chart-axis-y')).toBeNull()
+
+		expect(bySlot(container, 'chart-grid-lines')).toBeNull()
 	})
 
 	it('scales stacked bars to the per-category sum, one segment per series', () => {
@@ -1334,7 +1340,7 @@ describe('BarChart tickRotation', () => {
 		// Below the compact width the band drops to its ends: a more aggressive
 		// reduction than thinning that tickRotation does not override, since the
 		// tier already spent the room a tilted run would need.
-		const { container } = longChart({ width: 300, axes: { x: { tickRotation: true } } })
+		const { container } = longChart({ width: 360, axes: { x: { tickRotation: true } } })
 
 		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
 

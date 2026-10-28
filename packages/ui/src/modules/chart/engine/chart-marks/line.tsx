@@ -1,5 +1,6 @@
 'use client'
 
+import { AnimatePresence } from 'motion/react'
 import { memo, useId } from 'react'
 import { cn } from '../../../../core'
 import { usePrefersReducedMotion } from '../../../../hooks/use-prefers-reduced-motion'
@@ -41,6 +42,11 @@ export type ChartLineMarksProps = {
 	textureActive?: boolean
 	/** The plot rect, sizing the wipe clip an animated dashed line reveals under. */
 	plot?: PlotRect
+	/**
+	 * The series toggled off. The animated lines draw none of them, so a series
+	 * that the layout still holds plays its exit. The plain lines ignore it.
+	 */
+	hidden?: ReadonlySet<number>
 }
 
 /** The marker dot's classes: series fill, gaining a stroke in the surface color only where a dot crosses opaque marks. @internal */
@@ -88,6 +94,14 @@ const LINE_SHOWN = { pathLength: 1 }
  */
 const LINE_EXIT = { pathLength: 0, transition: LINE_UNDRAW }
 
+/**
+ * A dashed stroke fades out as a solid one un-draws. One wipe clip reveals each
+ * dashed series, so the clip cannot take one series out alone.
+ *
+ * @internal
+ */
+const DASH_EXIT = { opacity: 0, transition: LINE_UNDRAW }
+
 /** The pop of a point marker. @internal */
 const POINT_HIDDEN = { r: 0, opacity: 0 }
 
@@ -108,12 +122,58 @@ type LineBodyOptions = {
 	/** Reveal the marks through motion; off, they are plain SVG. */
 	animated: boolean
 	/**
-	 * Mount the marks at rest: the reader asks for reduced motion, or the render
-	 * is on the server or is the hydration render. The draw (`pathLength`), the
-	 * pop (`r`), and the wash fade are no transform, so the reduced-motion config
-	 * of motion does not skip them.
+	 * Mount the marks at rest, and remove them with no exit: the reader asks for
+	 * reduced motion, or the render is on the server or is the hydration render.
+	 * The draw (`pathLength`), the pop (`r`), and the wash fade are no transform,
+	 * so the reduced-motion config of motion does not skip them.
 	 */
 	still: boolean
+}
+
+/** Props for {@link LineSegment}. @internal */
+type LineSegmentProps = Pick<LineBodyOptions, 'animated' | 'still'> & {
+	d: string | undefined
+	paint: ChartPaint
+	dashed: boolean | undefined
+	/** The wipe clip that an animated dashed line reveals under. */
+	clip: string | undefined
+}
+
+/**
+ * One run of a series' stroke. An animated solid stroke draws itself along its
+ * own length. An animated dashed stroke holds its pattern and reveals under the
+ * wipe clip.
+ *
+ * @internal
+ */
+function LineSegment({ d, paint, dashed, clip, animated, still }: LineSegmentProps) {
+	if (animated && !dashed) {
+		return (
+			<m.path
+				data-slot="chart-line"
+				d={d}
+				{...segmentProps(paint, false)}
+				initial={still ? false : LINE_HIDDEN}
+				animate={LINE_SHOWN}
+				exit={still ? undefined : LINE_EXIT}
+				transition={LINE_DRAW}
+			/>
+		)
+	}
+
+	if (animated) {
+		return (
+			<m.path
+				data-slot="chart-line"
+				d={d}
+				clipPath={clip}
+				{...segmentProps(paint, true)}
+				exit={still ? undefined : DASH_EXIT}
+			/>
+		)
+	}
+
+	return <path data-slot="chart-line" d={d} clipPath={clip} {...segmentProps(paint, dashed)} />
 }
 
 /** Props for {@link LineSeriesBody}: one series, in plain values so the memo holds. @internal */
@@ -173,7 +233,7 @@ const LineSeriesBody = memo(function LineSeriesBody({
 							className={areaClass}
 							initial={still ? false : AREA_HIDDEN}
 							animate={AREA_SHOWN}
-							exit={AREA_EXIT}
+							exit={still ? undefined : AREA_EXIT}
 							transition={AREA_FADE}
 						/>
 					) : (
@@ -190,28 +250,17 @@ const LineSeriesBody = memo(function LineSeriesBody({
 					),
 				)}
 
-			{rangeKeys(geometry.segments.length, `${label}-seg`).map((key, index) =>
-				animated && !dashed ? (
-					<m.path
-						key={key}
-						data-slot="chart-line"
-						d={geometry.segments[index]}
-						{...segmentProps(paint, false)}
-						initial={still ? false : LINE_HIDDEN}
-						animate={LINE_SHOWN}
-						exit={LINE_EXIT}
-						transition={LINE_DRAW}
-					/>
-				) : (
-					<path
-						key={key}
-						data-slot="chart-line"
-						d={geometry.segments[index]}
-						clipPath={clip}
-						{...segmentProps(paint, dashed)}
-					/>
-				),
-			)}
+			{rangeKeys(geometry.segments.length, `${label}-seg`).map((key, index) => (
+				<LineSegment
+					key={key}
+					d={geometry.segments[index]}
+					paint={paint}
+					dashed={dashed}
+					clip={clip}
+					animated={animated}
+					still={still}
+				/>
+			))}
 
 			{rangeKeys(points.length, `${label}-pt`).map((key, index) =>
 				animated ? (
@@ -225,7 +274,7 @@ const LineSeriesBody = memo(function LineSeriesBody({
 						className={dotClass}
 						initial={still ? false : POINT_HIDDEN}
 						animate={POINT_SHOWN}
-						exit={POINT_EXIT}
+						exit={still ? undefined : POINT_EXIT}
 						transition={POINT_POP}
 					/>
 				) : (
@@ -247,7 +296,8 @@ const LineSeriesBody = memo(function LineSeriesBody({
 
 /**
  * One group for each series: the emphasis class on the group, and the memoized
- * body inside it. Only the group reads the emphasis. @internal
+ * body inside it. Only the group reads the emphasis. A series in `hidden` takes
+ * no group. @internal
  */
 function lineSeriesGroups(
 	list: ChartLineSeries[],
@@ -255,21 +305,24 @@ function lineSeriesGroups(
 	fills: (string | undefined)[] | undefined,
 	options: LineBodyOptions,
 	clip?: string,
+	hidden?: ReadonlySet<number>,
 ) {
-	return list.map(({ index, label, paint, geometry, markers, dashed }, seriesIndex) => (
-		<g key={index} data-slot="chart-line-series" className={seriesGroupClass(!lit(index))}>
-			<LineSeriesBody
-				label={label}
-				paint={paint}
-				geometry={geometry}
-				markers={markers}
-				dashed={dashed}
-				patternFill={fills?.[seriesIndex]}
-				clip={dashed ? clip : undefined}
-				{...options}
-			/>
-		</g>
-	))
+	return list.map(({ index, label, paint, geometry, markers, dashed }, seriesIndex) =>
+		hidden?.has(index) ? null : (
+			<g key={index} data-slot="chart-line-series" className={seriesGroupClass(!lit(index))}>
+				<LineSeriesBody
+					label={label}
+					paint={paint}
+					geometry={geometry}
+					markers={markers}
+					dashed={dashed}
+					patternFill={fills?.[seriesIndex]}
+					clip={dashed ? clip : undefined}
+					{...options}
+				/>
+			</g>
+		),
+	)
 }
 
 /** The plain-SVG lines: the cheap default with no motion runtime work. @internal */
@@ -291,7 +344,14 @@ export function ChartLineMarks({
 	})
 }
 
-/** The Framer Motion lines: each segment draws itself, washes and dots follow. @internal */
+/**
+ * The Framer Motion lines: each segment draws itself, washes and dots follow.
+ * A toggle that hides a series runs that series' reveal in reverse: the stroke
+ * un-draws, a dashed stroke fades, and the wash and the dots fade out. A data
+ * change does the same for each series, through the marks generation.
+ *
+ * @internal
+ */
 export function AnimatedChartLineMarks({
 	list,
 	fill,
@@ -299,6 +359,7 @@ export function AnimatedChartLineMarks({
 	fills,
 	textureActive = false,
 	plot,
+	hidden,
 }: ChartLineMarksProps) {
 	// A dashed line can't ride the `pathLength` draw: motion reveals a stroke by
 	// driving its `strokeDasharray`, which would overwrite the dash and settle
@@ -338,13 +399,18 @@ export function AnimatedChartLineMarks({
 				</defs>
 			)}
 
-			{lineSeriesGroups(
-				list,
-				lit,
-				fills,
-				{ fill, stroke, textureActive, animated: true, still },
-				wipe ? `url(#${wipeId})` : undefined,
-			)}
+			{/* Each series is its own presence, so a hidden one plays its exit while the
+			    rest stay. `propagate` passes the exit of a data change through. */}
+			<AnimatePresence propagate>
+				{lineSeriesGroups(
+					list,
+					lit,
+					fills,
+					{ fill, stroke, textureActive, animated: true, still },
+					wipe ? `url(#${wipeId})` : undefined,
+					hidden,
+				)}
+			</AnimatePresence>
 		</>
 	)
 }

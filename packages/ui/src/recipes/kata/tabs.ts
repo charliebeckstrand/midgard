@@ -178,6 +178,14 @@ export const k = defineKata(
 				stretch: { true: 'w-full justify-center', false: '' },
 			},
 			/**
+			 * The panel container. Its panels add nothing to its intrinsic width (see
+			 * `CurrentContents`), so a horizontal group stretches it across the column,
+			 * and a vertical group gives it the width beside the list.
+			 */
+			contents: {
+				orientation: { horizontal: '', vertical: 'flex-1' },
+			},
+			/**
 			 * The tab panel surface. A panel with no focusable content joins the tab
 			 * order (`tabIndex=0`, per the APG tabs pattern). Keyboard users can then
 			 * reach and scroll it. The design-system blue focus ring replaces the

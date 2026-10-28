@@ -467,6 +467,21 @@ export const CALLOUT_LINE = 15
 export const CALLOUT_CHAR_WIDTH = 8
 
 /**
+ * The room of a callout label on each side of the pie: a share of the frame
+ * width, at most `max` px. The frame reserves it in CSS, so the box size is a
+ * function of the width alone and never of a label. A label wider than the
+ * column cuts its name and keeps its share.
+ *
+ * @internal
+ */
+export const CALLOUT_COLUMN = { share: 0.25, max: 120 } as const
+
+/** The px width of the {@link CALLOUT_COLUMN} at `frameWidth`. @internal */
+export function calloutColumn(frameWidth: number): number {
+	return Math.min(CALLOUT_COLUMN.share * frameWidth, CALLOUT_COLUMN.max)
+}
+
+/**
  * The most degrees of the leader circle that one straight step of a moved
  * leader spans. The chord of a step that short stays outside the pie body for
  * any radius up to about 3,600 px.
@@ -614,7 +629,8 @@ function largest<E extends { slice: PieSlice }>(entries: E[], count: number): E[
  *
  * - A short radial leader out from the edge along the slice's bisector, to an
  *   elbow on the leader circle.
- * - A nub.
+ * - A nub. It reaches past the leader circle over the whole height of the
+ *   label, so no label sits on the leader of another.
  * - A label a constant gap past it.
  *
  * Slices are split left / right of the center, and their labels declumped per
@@ -666,7 +682,13 @@ export function pieCallouts(
 					? { points: [], knee: entry.elbow }
 					: movedLeader({ cx, cy, circle }, entry.slice.mid, y, entry.dir)
 
-			const nubX = moved.knee.x + CALLOUT_NUB * dir
+			// The label spans half a line above and below `y`. Near the top or the foot
+			// the leader circle widens fast across that band, and the leaders of other
+			// labels follow it there. So the nub reaches past the circle over the
+			// whole band, and no label sits on a line to another label.
+			const clear = circleHalfWidth(circle, Math.max(0, Math.abs(y - cy) - CALLOUT_LINE / 2))
+
+			const nubX = cx + dir * Math.max(Math.abs(moved.knee.x - cx) + CALLOUT_NUB, clear)
 
 			return {
 				index: entry.slice.index,
@@ -790,12 +812,49 @@ function sideReach(side: FitCallout[], radius: number, pushed: Float64Array): nu
 	for (let order = 0; order < side.length; order++) {
 		const { lift, width } = side[order] as FitCallout
 
-		const half = spanHalfWidth(circle, lift * circle - overflow, pushed[order] as number)
+		const from = lift * circle - overflow
 
-		reach = Math.max(reach, half + CALLOUT_NUB + CALLOUT_GAP + width)
+		const to = pushed[order] as number
+
+		// The nub reaches past the knee, and past the circle over the band of the
+		// label, as in pieCallouts.
+		const nub = Math.max(
+			spanHalfWidth(circle, from, to) + CALLOUT_NUB,
+			spanHalfWidth(circle, from - CALLOUT_LINE / 2, to + CALLOUT_LINE / 2),
+		)
+
+		reach = Math.max(reach, nub + CALLOUT_GAP + width)
 	}
 
 	return reach
+}
+
+/**
+ * The center x of a callout pie drawn at `radius`, below its
+ * {@link pieCalloutFit fit radius}. A frame height can cap the radius, and the
+ * two sides then leave room. The center splits that room equally, so the pie
+ * and its callouts sit centered in the frame. With fewer than two slices it is
+ * `frameWidth / 2`.
+ *
+ * @internal
+ */
+export function pieCalloutCenter(
+	{ values, texts, textWidth, frameWidth }: PieCalloutFitOptions,
+	radius: number,
+): number {
+	const angles = sliceAngles(values)
+
+	if (angles.length < 2) return frameWidth / 2
+
+	const right = fitSide(angles, texts, textWidth, 1)
+
+	const left = fitSide(angles, texts, textWidth, -1)
+
+	const pushed = new Float64Array(Math.max(right.length, left.length))
+
+	const leftReach = sideReach(left, radius, pushed)
+
+	return leftReach + (frameWidth - leftReach - sideReach(right, radius, pushed)) / 2
 }
 
 /**
@@ -807,7 +866,8 @@ function sideReach(side: FitCallout[], radius: number, pushed: Float64Array): nu
  * reserves more.
  *
  * @remarks A callout that does not move reaches its slice's horizontal pull
- * times `radius + leader`, plus its fixed nub, gap, and text. A callout that
+ * times `radius + leader`, plus its nub, gap, and text. Near the top or the
+ * foot, the nub reaches past the circle over the height of the label instead. A callout that
  * the declump moves reaches the half-width of the leader circle at its height
  * instead ({@link sideReach}). The pair of side reaches crossing `frameWidth`
  * narrows to one radius by bisection. Each step keeps a radius that fits. Below

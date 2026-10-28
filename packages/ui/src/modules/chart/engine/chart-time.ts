@@ -435,7 +435,8 @@ export type TimeTicksOptions = {
  * when no tick falls inside the span. That is the result when fewer than two
  * rows carry a parseable, spanning date. It is also the result when the span
  * crosses no boundary of the chosen interval, as a span inside one second
- * does. The caller then falls back to plain category labels.
+ * does. The caller then falls back to the category labels, which a time axis
+ * writes as its readout does ({@link timeCategory}).
  * @internal
  */
 export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
