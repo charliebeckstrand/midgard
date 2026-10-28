@@ -195,7 +195,7 @@ function Shell() {
 				<SidebarLayout
 					stickyHeader
 					actions={ACTIONS}
-					sidebar={<DocsSidebar pages={pages} current={page?.path} />}
+					sidebar={<DocsSidebar pages={pages} />}
 					aside={ASIDE}
 				>
 					<SidebarLayoutHeader>

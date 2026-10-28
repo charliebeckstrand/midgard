@@ -1,15 +1,9 @@
 import type { ReactElement } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 
-import {
-	Sidebar,
-	SidebarBody,
-	SidebarItem,
-	SidebarList,
-	SidebarSection,
-} from '../../components/sidebar'
+import { Sidebar, SidebarBody, SidebarItem, SidebarList } from '../../components/sidebar'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { CurrentScrollScript } from '../../primitives/current'
 import { act, attach, present } from '../helpers'
@@ -30,32 +24,6 @@ const sidebar = (
 						</SidebarItem>
 					))}
 				</SidebarList>
-			</SidebarBody>
-		</Sidebar>
-	</div>
-)
-
-/** A sidebar of two sections in a short box. The current item is the first of the second section. */
-const sections = (
-	<div style={{ height: 160, display: 'flex', flexDirection: 'column' }}>
-		<Sidebar>
-			<SidebarBody>
-				{['one', 'two'].map((section) => (
-					<SidebarSection key={section} data-section={section}>
-						<span>{section}</span>
-						<SidebarList>
-							{PAGES.slice(0, 10).map((page) => (
-								<SidebarItem
-									key={page}
-									href={`/${section}/${page}`}
-									current={section === 'two' && page === 'page-0'}
-								>
-									{page}
-								</SidebarItem>
-							))}
-						</SidebarList>
-					</SidebarSection>
-				))}
 			</SidebarBody>
 		</Sidebar>
 	</div>
@@ -144,8 +112,6 @@ function inView(node: Element, scroller: Element) {
 }
 
 describe('CurrentScrollScript (real browser)', () => {
-	// Chromium has `scroll-initial-target`, so there the CSS of the sidebar item
-	// puts it in view, and the script skips it. The result is the same.
 	it('scrolls the current sidebar item into view in its scroller', () => {
 		const container = paintServerMarkup(sidebar)
 
@@ -197,59 +163,6 @@ describe('CurrentScrollScript (real browser)', () => {
 		hydrate(container, tabs)
 
 		expect(scroller.scrollLeft).toBe(before)
-	})
-
-	describe('in a browser without scroll-initial-target', () => {
-		/** Turns off the CSS of the current item, and makes the script see no support for it. */
-		function dropInitialTarget() {
-			const supports = CSS.supports.bind(CSS)
-
-			vi.spyOn(CSS, 'supports').mockImplementation((property: string, value?: string) => {
-				if (property.includes('scroll-initial-target')) return false
-
-				return value === undefined ? supports(property) : supports(property, value)
-			})
-
-			const style = attach(document.createElement('style'))
-
-			style.textContent = '* { scroll-initial-target: none !important; }'
-		}
-
-		it('scrolls the current sidebar item to the top of its scroller', () => {
-			dropInitialTarget()
-
-			const container = paintServerMarkup(sidebar)
-
-			const item = present(
-				container.querySelector('[data-slot="sidebar-item-inner"][data-current]'),
-				'current item',
-			)
-
-			const scroller = findScroller(item, 'y')
-
-			const row = present(item.closest('[data-slot="sidebar-item"]'), 'current row')
-
-			expect(row.getBoundingClientRect().top - scroller.getBoundingClientRect().top).toBeCloseTo(
-				0,
-				0,
-			)
-		})
-
-		it('scrolls the section of a current first item to the top, so its label shows', () => {
-			dropInitialTarget()
-
-			const container = paintServerMarkup(sections)
-
-			const section = present(container.querySelector('[data-section="two"]'), 'second section')
-
-			const scroller = findScroller(section, 'y')
-
-			expect(scroller.scrollTop).toBeGreaterThan(0)
-
-			expect(
-				section.getBoundingClientRect().top - scroller.getBoundingClientRect().top,
-			).toBeCloseTo(0, 0)
-		})
 	})
 
 	it('does not scroll the page', () => {

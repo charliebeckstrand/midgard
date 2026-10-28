@@ -1,12 +1,4 @@
-import {
-	type CSSProperties,
-	type PointerEvent,
-	type RefObject,
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from 'react'
+import { type PointerEvent, type RefObject, useEffect, useRef, useState } from 'react'
 import { dataAttr } from 'ui/core'
 import { useTimeout } from 'ui/hooks'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor.ts'
@@ -17,18 +9,7 @@ import type { PageLink } from '../plugin/pages.ts'
 // The letter rail at the side of the sidebar body. A press on a letter scrolls
 // the body to the first page with that letter, and a slide along the rail
 // follows the finger from letter to letter. The rail shows the letter of the
-// last jump that the scroll of the body is at or past, and mutes the other letters.
-// On a load and after a navigation, the rail pins the letter of the current page
-// until the body scrolls.
-//
-// Scroll-driven animations show that letter, and no script runs. Thus the first
-// paint, also the paint of the server markup, shows the final letter. The anchor
-// of each jump has a view timeline, and the sidebar lifts the names of the
-// timelines to the box that holds the body and the rail. A letter turns on when
-// the anchor of its jump gets to the top of the body, and it turns off when the
-// anchor of the next jump does. A third animation on the scroll timeline of the
-// body turns on only the last letter at the end of the body. A browser without
-// scroll-driven animations runs `letterAtTop` on each scroll instead.
+// page at the top of the body, and mutes the other letters.
 
 /** The letter that a page files under: the first character of its name, in upper case. */
 export function getInitial(page: PageLink): string {
@@ -49,70 +30,6 @@ export function getLetters(pages: readonly PageLink[]): string[] {
 export function bandAt(y: number, top: number, height: number, count: number): number {
 	return clamp(Math.floor(((y - top) / height) * count), 0, count - 1)
 }
-
-/**
- * The first page of each letter, in the order of `pages`, which is the order of
- * the sidebar. A jump to a letter goes to its page.
- */
-export function getTargetPages(pages: readonly PageLink[]): PageLink[] {
-	const seen = new Set<string>()
-
-	return pages.filter((page) => {
-		const letter = getInitial(page)
-
-		if (seen.has(letter)) return false
-
-		seen.add(letter)
-
-		return true
-	})
-}
-
-/** The name of the view timeline of the anchor of the jump to `letter`. */
-export function getTimelineName(letter: string): string {
-	return `--letter-${letter.codePointAt(0)}`
-}
-
-/** The name of the scroll timeline of the body, which the end rule reads. */
-export const BODY_TIMELINE = '--letter-body'
-
-/**
- * The scroll-driven animations of a letter, in this order: on at its own jump,
- * off at the next jump, and the end rule. The custom properties of the letter
- * give the timelines of the first two, and `none` leaves one out. A step at
- * the start of each range flips the state, and the state before the range is
- * the state that the animations before it give. The anchor of a jump is at the
- * top from 1px below the top of the body, so that a jump that lands on a
- * fraction of a pixel counts. The end rule starts 1px before the end, for the
- * same reason. Longhands, because Lightning CSS expands the `animation`
- * shorthand with a duration of `0s`.
- */
-const follow = [
-	'[animation-name:letter-on,letter-off,letter-end]',
-	'[animation-duration:auto]',
-	'[animation-timing-function:step-start]',
-	'[animation-fill-mode:both]',
-	// The third timeline is `BODY_TIMELINE`. Tailwind finds only literal classes.
-	'[animation-timeline:var(--letter-on-timeline),var(--letter-off-timeline),--letter-body]',
-	'[animation-range:exit_-1px_exit_0%,exit_-1px_exit_0%,calc(100%_-_1px)_100%]',
-].join(' ')
-
-/**
- * The state of a letter is the number `--letter-on`, 1 when on and 0 when off.
- * The color and the weight mix the two looks by it, so one number from the
- * animations or from a press sets both. A press pins the letter of the jump:
- * `data-active` turns it on, and the pinned track turns the other letters off.
- * The two rules are important, so they win over the animations.
- */
-const look = [
-	'[color:color-mix(in_oklab,var(--letter-lit)_calc(var(--letter-on)*100%),var(--letter-idle))]',
-	'[font-weight:calc(500_+_var(--letter-on)_*_100)]',
-	'[--letter-idle:var(--color-zinc-400)] [--letter-lit:var(--color-zinc-950)]',
-	'hover:[--letter-idle:var(--color-zinc-600)]',
-	'dark:[--letter-idle:var(--color-zinc-500)] dark:[--letter-lit:var(--color-white)]',
-	'dark:hover:[--letter-idle:var(--color-zinc-300)]',
-	'data-active:[--letter-on:1]! in-data-pinned:not-data-active:[--letter-on:0]!',
-].join(' ')
 
 /** The page links in `body`, in the order of the sidebar, which is also the order of their position. */
 const getLinks = (body: HTMLElement) => body.querySelectorAll<HTMLElement>('[data-letter]')
@@ -156,36 +73,17 @@ function scrollToLetter(body: HTMLElement, letter: string) {
 	body.scrollTop += anchor.getBoundingClientRect().top - body.getBoundingClientRect().top
 }
 
-/**
- * The letter of the last jump that the scroll of `body` is at or past. The
- * plugin sorts the pages by section and then by name, so each section starts
- * the alphabet again, and the letter of the page at the top does not move in
- * order along the rail. The targets of the jumps do.
- *
- * A target is at the top when its anchor is less than 1px below the top of the
- * body, as in the animations of the rail. At the end of the body, each target
- * is at the top, because a jump to a target near the end stops there too.
- */
+/** The letter of the page at the top of `body`: the first page whose row is at least half in view. */
 function letterAtTop(body: HTMLElement): string | undefined {
-	const targets = getTargets(body)
-
-	const end = body.scrollHeight - body.clientHeight
-
-	if (body.scrollTop >= end - 1) return targets.at(-1)?.dataset.letter
-
 	const top = body.getBoundingClientRect().top
 
-	let letter = targets[0]?.dataset.letter
+	const link = Array.from(getLinks(body)).find((candidate) => {
+		const row = candidate.getBoundingClientRect()
 
-	for (const link of targets) {
-		const anchor = getAnchor(link)?.getBoundingClientRect()
+		return row.bottom - top > row.height / 2
+	})
 
-		if (!anchor || anchor.top - top >= 1) break
-
-		letter = link.dataset.letter
-	}
-
-	return letter
+	return link?.dataset.letter
 }
 
 /**
@@ -212,31 +110,13 @@ type Gesture = {
 export function LetterRail({
 	pages,
 	bodyRef,
-	current,
 }: {
 	pages: readonly PageLink[]
 	bodyRef: RefObject<HTMLDivElement | null>
-	/** The letter of the current page. The rail pins it until the body scrolls. */
-	current?: string
 }) {
 	const letters = getLetters(pages)
 
-	const targets = getTargetPages(pages).map(getInitial)
-
-	// The pinned letter: the letter of the current page, or of the last jump,
-	// while the body stays where it was. In a browser without scroll-driven
-	// animations, a scroll pins the letter at the top. The server knows the
-	// current page, so its markup holds the pin of the current page.
-	const [active, setActive] = useState(current)
-
-	// A navigation pins the letter of the new page.
-	const [pinnedPage, setPinnedPage] = useState(current)
-
-	if (pinnedPage !== current) {
-		setPinnedPage(current)
-
-		setActive(current)
-	}
+	const [active, setActive] = useState<string | undefined>(undefined)
 
 	// A touch covers the letter under the finger, so a slide by touch shows the
 	// letter in a bubble at the side of the rail. The bubble shows when the slide
@@ -260,34 +140,24 @@ export function LetterRail({
 	// press too, and it does not start, move, or end the gesture.
 	const [press] = useState(createPressOwner)
 
-	// The pin of the current page holds at the scroll that the page gets. The
-	// current item scrolls into view in a layout effect of the body, which runs
-	// before this one.
-	useLayoutEffect(() => {
-		if (current !== undefined) rest.current = bodyRef.current?.scrollTop
-	}, [current, bodyRef])
-
 	useEffect(() => {
 		const body = bodyRef.current
 
 		if (!body) return
 
-		// jsdom has `CSS` with no `supports`.
-		const animated = globalThis.CSS?.supports?.('animation-timeline', 'scroll()') ?? false
-
-		const onScroll = () => {
+		const follow = () => {
 			if (rest.current === body.scrollTop) return
 
 			rest.current = undefined
 
-			setActive(animated ? undefined : letterAtTop(body))
+			setActive(letterAtTop(body))
 		}
 
-		onScroll()
+		follow()
 
-		body.addEventListener('scroll', onScroll, { passive: true })
+		body.addEventListener('scroll', follow, { passive: true })
 
-		return () => body.removeEventListener('scroll', onScroll)
+		return () => body.removeEventListener('scroll', follow)
 	}, [bodyRef])
 
 	const select = (y: number) => {
@@ -358,7 +228,6 @@ export function LetterRail({
 		<div aria-hidden data-slot="letter-rail" className="flex flex-col justify-center">
 			<div
 				data-slot="letter-rail-track"
-				data-pinned={dataAttr(active !== undefined)}
 				className="relative flex min-h-0 cursor-pointer touch-none select-none flex-col [-webkit-touch-callout:none]"
 				onPointerDown={onPointerDown}
 				onPointerMove={(event) => {
@@ -368,30 +237,15 @@ export function LetterRail({
 				onPointerCancel={end}
 				onLostPointerCapture={end}
 			>
-				{letters.map((letter) => {
-					const index = targets.indexOf(letter)
-
-					const next = targets[index + 1]
-
-					const style = {
-						// The first jump is at the top before any anchor gets there.
-						'--letter-on': index === 0 ? 1 : 0,
-						'--letter-on-timeline': index === 0 ? 'none' : getTimelineName(letter),
-						'--letter-off-timeline': next === undefined ? 'none' : getTimelineName(next),
-						'--letter-end': next === undefined ? 1 : 0,
-					} as CSSProperties
-
-					return (
-						<span
-							key={letter}
-							data-active={dataAttr(letter === active)}
-							style={style}
-							className={`flex h-6 min-h-0 w-7 shrink items-center justify-center text-xs/none transition-colors motion-reduce:transition-none ${look} ${follow}`}
-						>
-							{letter}
-						</span>
-					)
-				})}
+				{letters.map((letter) => (
+					<span
+						key={letter}
+						data-active={dataAttr(letter === active)}
+						className="flex h-6 min-h-0 w-7 shrink items-center justify-center font-medium text-xs/none text-zinc-400 transition-colors not-data-active:hover:text-zinc-600 data-active:font-semibold data-active:text-zinc-950 motion-reduce:transition-none dark:text-zinc-500 dark:data-active:text-white dark:not-data-active:hover:text-zinc-300"
+					>
+						{letter}
+					</span>
+				))}
 				<span
 					data-slot="letter-rail-bubble"
 					data-visible={dataAttr(bubble && index !== -1)}

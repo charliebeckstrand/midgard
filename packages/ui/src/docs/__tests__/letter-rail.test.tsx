@@ -98,20 +98,12 @@ function layOut(body: HTMLElement) {
 	})
 }
 
-function renderSidebar(current?: string) {
-	const { container, rerender } = render(
+function renderSidebar() {
+	const { container } = render(
 		<DocsSearch>
-			<DocsSidebar pages={PAGES} current={current} />
+			<DocsSidebar pages={PAGES} />
 		</DocsSearch>,
 	)
-
-	// Renders the sidebar again on the page at `path`, as a navigation does.
-	const navigate = (path: string) =>
-		rerender(
-			<DocsSearch>
-				<DocsSidebar pages={PAGES} current={path} />
-			</DocsSearch>,
-		)
 
 	const body = container.querySelector<HTMLElement>('[data-slot="sidebar-body"]')
 
@@ -138,7 +130,7 @@ function renderSidebar(current?: string) {
 	const bubble = () =>
 		rail.querySelector('[data-slot="letter-rail-bubble"]')?.hasAttribute('data-visible')
 
-	return { body, track, active, bubble, navigate }
+	return { body, track, active, bubble }
 }
 
 /** The y of a point in the band at `index`: `offset` from the top of the band. */
@@ -191,54 +183,30 @@ describe('LetterRail', () => {
 
 		expect(active()).toBe('A')
 
-		// Accordion and Alert are above the top, and Badge is at the top.
-		body.scrollTop = HEADING + 2 * ITEM
-
-		fireEvent.scroll(body)
-
-		expect(active()).toBe('B')
-
-		// An anchor 1px or more below the top is not at the top.
-		body.scrollTop -= 1
-
-		fireEvent.scroll(body)
-
-		expect(active()).toBe('A')
-	})
-
-	it('pins the letter of the current page until the body scrolls', () => {
-		const { body, active, navigate } = renderSidebar('/locale')
-
-		expect(active()).toBe('L')
-
-		// A navigation pins the letter of the new page.
-		navigate('/editor')
-
-		expect(active()).toBe('E')
-
-		body.scrollTop = HEADING + 2 * ITEM
+		// Accordion and Alert are above the top, so Badge is the first page there.
+		body.scrollTop = 100
 
 		fireEvent.scroll(body)
 
 		expect(active()).toBe('B')
 	})
 
-	it('shows the last letter at the end of the body, where each section starts the alphabet again', () => {
+	it('shows the letter of the page at the top at the end of the body too', () => {
 		const { body, active } = renderSidebar()
 
-		// Chart is at the top, but the first page with C is Calendar, and the jumps to E, L, and U stop at the end.
+		// At the end, Chart is the first page at the top, though Locale and UI are in view under it.
 		body.scrollTop = HEADING * 3 + ITEM * 10 - VIEW
 
 		fireEvent.scroll(body)
 
-		expect(active()).toBe('U')
+		expect(active()).toBe('C')
 
-		// Above the end, the last jump that the body is past is the jump to Calendar.
-		body.scrollTop -= 10
+		// Button is half in view at the top.
+		body.scrollTop = HEADING + ITEM * 3 + ITEM / 2 - 1
 
 		fireEvent.scroll(body)
 
-		expect(active()).toBe('C')
+		expect(active()).toBe('B')
 	})
 
 	it('selects the letter whose band holds the press, at each edge of the band', () => {
@@ -288,7 +256,7 @@ describe('LetterRail', () => {
 
 		expect(active()).toBe('E')
 
-		body.scrollTop = HEADING + 2 * ITEM
+		body.scrollTop = 100
 
 		fireEvent.scroll(body)
 
