@@ -22,10 +22,11 @@ import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
  * @remarks Renders nothing when there are no pages and the document isn't
  * loading. The sidebar is always rendered, and the `offcanvas` axis of the kata
  * shows it only where `thumbnails` is `rail`. The server cannot read the
- * viewport, so CSS picks the layout of the first paint. The contents of the
- * sidebar are live only where `railed` is true. The desktop sidebar collapses via the toolbar toggle (`sidebarOpen`),
- * sliding off-canvas while staying mounted for the transition. When collapsed it
- * is `inert` and `aria-hidden`, off the tab order and a11y tree. Once the slide
+ * viewport, so CSS picks the layout of the first paint. Where `railed` is
+ * false, the sidebar is `inert` and `aria-hidden`, and its contents are held.
+ * The desktop sidebar collapses via the toolbar toggle (`sidebarOpen`), sliding
+ * off-canvas while staying mounted for the transition. When collapsed it is
+ * `inert` and `aria-hidden`, off the tab order and a11y tree. Once the slide
  * lands, its contents drop into `<Activity mode="hidden">`, so a long document's
  * thumbnail rail stops laying out and re-rendering behind a closed sidebar. The
  * attributes cover the collapsed sidebar's semantics from the first frame, and
@@ -55,7 +56,9 @@ export function PdfViewerThumbnails() {
 	// Deferred only where there is a slide to wait on: a rail that opens without
 	// traveling fires no `transitionend`, so a deferred hold would wait forever.
 	// Where the layout is the Sheet, CSS hides the sidebar, and nothing slides.
-	const sidebarHold = useMountHold(sidebarOpen && railed, 'always', {
+	const sidebarLive = sidebarOpen && railed
+
+	const sidebarHold = useMountHold(sidebarLive, 'always', {
 		defer: sidebarAnimates && railed,
 	})
 
@@ -95,8 +98,10 @@ export function PdfViewerThumbnails() {
 				ref={sidebarRef}
 				data-slot="pdf-viewer-sidebar"
 				aria-labelledby={sidebarTitleId}
-				aria-hidden={!sidebarOpen}
-				inert={!sidebarOpen}
+				// Out of the accessibility tree and the tab order while it is closed, or
+				// while the layout is the Sheet, where CSS hides it.
+				aria-hidden={!sidebarLive}
+				inert={!sidebarLive}
 				className={
 					k({ animates: sidebarAnimates, open: sidebarOpen, offcanvas: layout }).sidebar.base
 				}
