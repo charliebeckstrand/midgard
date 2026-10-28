@@ -74,6 +74,7 @@ export function PdfViewerThumbnails() {
 					pageNumber,
 					label: pageLabel(intl, page, pageNumber),
 					thumbnail: page.thumbnail ?? page.src,
+					ratio: page.width && page.height ? page.width / page.height : undefined,
 				}
 			}),
 		[pages, intl],

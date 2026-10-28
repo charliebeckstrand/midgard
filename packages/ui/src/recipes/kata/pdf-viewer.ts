@@ -16,7 +16,7 @@ const { text } = iro
 const { size, weight } = ji
 const { flex, offcanvas } = narabi
 const { bg, rail, skeleton } = omote
-const { border, focus, ring } = sen
+const { border, focus, forced, ring } = sen
 
 // The page image and every layer drawn over it must sit in the same place, so the centering
 // has one home: the rotation half of the same invariant is the `transform` string
@@ -177,9 +177,22 @@ export const k = defineKata({
 			slots: {
 				/** The box of a tile while the document loads: a tile with no button. */
 				placeholder: tile,
+				/**
+				 * The box of the page. A white page on the white rail of light mode has no edge, so the
+				 * shadow draws one. The tile sets the ratio of the page on the frame where the page
+				 * gives its size, so the shadow follows the page. A page with no size takes `3/4`.
+				 *
+				 * The shadow is a box shadow, not a `drop-shadow` filter on the image. WebKit gives each
+				 * element with a filter a compositing layer of its own, and a dimmed frame with such a
+				 * child gets one too. With no filter, a tile paints in the layer of the Sheet that
+				 * slides it in, as its label does. Forced colors remove a box shadow, so an outline
+				 * keeps the edge there.
+				 */
 				frame: [
 					'relative block w-full aspect-3/4',
 					'overflow-hidden',
+					'shadow-sm',
+					forced.outline,
 					'opacity-50',
 					'after:pointer-events-none after:absolute after:inset-0 after:ring-inset',
 					'group-focus-visible/thumb:after:ring-4',
@@ -193,12 +206,8 @@ export const k = defineKata({
 					'group-hover/thumb:opacity-75',
 					'group-data-current/thumb:hover:opacity-100',
 				],
-				/**
-				 * The page image. A white page on the white rail of light mode has no edge, so the
-				 * shadow draws one. It is a filter, not a box shadow, so it follows the page and not
-				 * the letterbox of `object-contain`.
-				 */
-				image: ['block w-full h-full object-contain', 'drop-shadow-sm'],
+				/** The page image. It fills the frame, and keeps its own ratio where the page gives no size. */
+				image: ['block w-full h-full object-contain'],
 				/** Fills the frame until the image of the page lands, so the tile has its final box. */
 				skeleton: ['block w-full h-full', skeleton.base],
 				label: [
