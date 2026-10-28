@@ -81,7 +81,7 @@ export type GridContextMenuProps<T> = {
 	autoSizeColumns: (() => void) | null
 	/** Sizes a single column to its content ("Auto-size this column"), or `null` when the grid is not resizable. */
 	autoSizeColumn: ((column: string | number) => void) | null
-	/** Gives the widths back to the automatic fit ("Reset column widths"), or `null` when the grid is not resizable. */
+	/** Gives the widths back to the automatic fit ("Reset column widths"), or `null` when the grid is not resizable or no column holds a width of its own. */
 	resetColumnWidths: (() => void) | null
 	/** Opens the column-manager dialog ("Manage columns"), or `null` when none is reachable. */
 	chooseColumns: (() => void) | null

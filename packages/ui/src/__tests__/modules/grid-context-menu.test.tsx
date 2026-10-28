@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
 import { createGroup, createRule, type QueryField } from '../../modules/query'
-import { act, fireEvent, present, renderUI, screen } from '../helpers'
+import { act, fireEvent, present, renderUI, screen, setupUser } from '../helpers'
 
 describe('Grid context menus', () => {
 	type Row = { id: number; name: string; role: string }
@@ -728,7 +728,16 @@ describe('Grid context menus', () => {
 	})
 
 	it('gathers the width actions under one Auto-size menu when resizable', () => {
-		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+		// A saved width, so the reset has a width to reset.
+		renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ defaultValue: { name: 160 } }}
+			/>,
+		)
 
 		rightClick('columnheader', 'Name')
 
@@ -801,7 +810,12 @@ describe('Grid context menus', () => {
 
 	it.each([
 		['a bound "Auto-size this column" when resizable', 'autoSizeColumn', true, 'function'],
-		['a bound "Reset column widths" when resizable', 'resetColumnWidths', true, 'function'],
+		[
+			'no "Reset column widths" while the widths are automatic',
+			'resetColumnWidths',
+			true,
+			'undefined',
+		],
 		['no "Auto-size this column" when resizable is off', 'autoSizeColumn', false, 'undefined'],
 	] as const)('hands a builder %s', (_, action, resizable, type) => {
 		const seen: Array<(() => void) | undefined> = []
@@ -825,6 +839,62 @@ describe('Grid context menus', () => {
 		rightClick('columnheader', 'Name')
 
 		expect(seen.at(-1)).toBeTypeOf(type)
+	})
+
+	it('hands a builder a bound "Reset column widths" while a column holds a saved width', () => {
+		const seen: Array<(() => void) | undefined> = []
+
+		renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ defaultValue: { name: 160 } }}
+				contextMenu={{
+					column: (context, defaults) => {
+						seen.push(context.resetColumnWidths)
+
+						return defaults
+					},
+				}}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		expect(seen.at(-1)).toBeTypeOf('function')
+	})
+
+	it('shows "Reset column widths" only while a column holds a width of its own', async () => {
+		const user = setupUser()
+
+		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+
+		const resetItem = () => {
+			rightClick('columnheader', 'Name')
+
+			openSubmenu('Auto-size')
+
+			return screen.queryByRole('menuitem', { name: 'Reset column widths' })
+		}
+
+		expect(resetItem()).toBeNull()
+
+		await user.keyboard('{Escape}{Escape}')
+
+		// A keyboard nudge holds the widths.
+		screen.getByRole('separator', { name: 'Resize Name' }).focus()
+
+		await user.keyboard('{ArrowRight}')
+
+		const reset = resetItem()
+
+		expect(reset).not.toBeNull()
+
+		fireEvent.click(reset as HTMLElement)
+
+		expect(resetItem()).toBeNull()
 	})
 
 	const headerCell = (container: HTMLElement, id: string) =>

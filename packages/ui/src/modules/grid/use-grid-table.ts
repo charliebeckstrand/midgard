@@ -347,6 +347,10 @@ function useResizeView<T>(args: {
 	fit: GridFitMode | null
 	/** The least widths of the automatic layout (see `useGridColumnSizing`). */
 	least: ReadonlyMap<string, number>
+	/** Whether the sizer is in `manual` mode (see `useGridColumnSizing`). */
+	manual: boolean
+	/** The widths of a controlled binding, or `undefined`. */
+	bound: ColumnSizingState | undefined
 	sizer: Pick<GridColumnResizeActions, 'autoSizeColumn' | 'autoSizeAll' | 'resetWidths'> & {
 		takeControl: () => void
 		syncWidths: () => void
@@ -355,6 +359,10 @@ function useResizeView<T>(args: {
 	const { resizable, table, leaves, visibleColumns, widths, floors, columnFloors, resizing } = args
 
 	const { fit, least } = args
+
+	// Whether a column holds a width other than its automatic one: a user width
+	// change, or a controlled binding that names a width.
+	const customized = args.manual || Object.keys(args.bound ?? {}).length > 0
 
 	const { autoSizeColumn, autoSizeAll, resetWidths, takeControl, syncWidths } = args.sizer
 
@@ -387,9 +395,18 @@ function useResizeView<T>(args: {
 	const resize = useMemo(
 		() =>
 			resizable
-				? buildColumnResize({ columns: leaves, widths, floors, resizing, fit, least, actions })
+				? buildColumnResize({
+						columns: leaves,
+						widths,
+						floors,
+						resizing,
+						fit,
+						least,
+						customized,
+						actions,
+					})
 				: null,
-		[resizable, leaves, widths, floors, resizing, fit, least, actions],
+		[resizable, leaves, widths, floors, resizing, fit, least, customized, actions],
 	)
 
 	// The widths as text, so a render that resolves the same widths keeps the
@@ -886,6 +903,7 @@ export function useGridTable<T>({
 		syncWidths,
 		endDrag,
 		fitRenderedRows,
+		manual: manualWidths,
 		fit,
 		least,
 		floors,
@@ -928,6 +946,8 @@ export function useGridTable<T>({
 		resizing,
 		fit,
 		least,
+		manual: manualWidths,
+		bound: columnSizingConfig?.value,
 		sizer: { autoSizeColumn, autoSizeAll, resetWidths, takeControl, syncWidths },
 	})
 
