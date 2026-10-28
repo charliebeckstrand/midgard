@@ -178,7 +178,8 @@ function headerSizing<T>(resize: GridColumnResize | null, column: GridColumn<T>)
 	const bounds = sizing?.bounds(column.id)
 
 	return {
-		width: sizing ? sizing.getSize(column.id) : column.width,
+		// The fit layout sizes no header from the engine (see `GridColumnResize.fit`).
+		width: sizing ? (sizing.fit ? undefined : sizing.getSize(column.id)) : column.width,
 		resizing: sizing ? sizing.resizing === String(column.id) : false,
 		resizeActions: sizing?.canResize(column.id) ? sizing.actions : null,
 		minWidth: bounds?.min ?? 0,

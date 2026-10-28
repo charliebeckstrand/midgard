@@ -12,9 +12,9 @@ import { cellChrome } from './grid-sizing/measure'
 export const NEW_ROW_ADD_COLUMN_ID = '__grid-new-row-add'
 
 /**
- * The width (px) of the Add column before its first measure, and in an
- * environment with no layout. It holds the built-in icon button and the cell
- * padding, like the other affordance columns.
+ * The seed width (px) of the Add column in an environment with no layout. It
+ * holds the built-in icon button and the cell padding, like the other
+ * affordance columns (see `affordanceColumnSize`).
  *
  * @internal
  */
@@ -32,7 +32,8 @@ function noActions(): null {
 
 /**
  * The columns that the engine receives, with the Add column after them at
- * `width` px. A `null` width adds no column. The Add column is an `actions`
+ * `width` px. An `undefined` width sizes the column to its content, and a
+ * `null` width adds no column. The Add column is an `actions`
  * column, so it is not a data column: no sort, filter, resize, reorder, or
  * column manager reaches it. It is locked to the inline end, and it is the
  * last column of that edge.
@@ -46,7 +47,7 @@ function noActions(): null {
  */
 export function withNewRowAddColumn<T>(
 	columns: GridColumn<T>[],
-	width: number | null,
+	width: number | undefined | null,
 ): GridColumn<T>[] {
 	if (width === null) return columns
 
@@ -64,8 +65,9 @@ export function withNewRowAddColumn<T>(
 /**
  * The width (px) of the Add column, or `null` when the grid adds none: with no
  * new-row slot, or with `newRowAdd: false`. A fixed `width` wins. Else the
- * column takes the width that its cell last measured, or
- * {@link NEW_ROW_ADD_COLUMN_SIZE} before the first measure.
+ * column takes the width that its cell last measured. Before the first measure
+ * it is `undefined`, and the column takes the width of its content. The
+ * browser then sizes it in the first paint, as it sizes the other columns.
  *
  * @param shown - Whether the grid shows a new-row slot.
  * @param add - The consumer's `newRowAdd`.
@@ -76,16 +78,17 @@ export function resolveNewRowAddWidth(
 	shown: boolean,
 	add: false | GridNewRowAdd | undefined,
 	measured: number | null,
-): number | null {
+): number | undefined | null {
 	if (!shown || add === false) return null
 
-	return add?.width ?? measured ?? NEW_ROW_ADD_COLUMN_SIZE
+	return add?.width ?? measured ?? undefined
 }
 
 /**
  * The width (px) that the Add cell needs: the width of its control and the
- * horizontal padding and border of the cell, rounded up. It is `null` with no
- * layout (jsdom, `display: none`), where the control measures nothing.
+ * horizontal padding and border of the cell. It is fractional, as the widths
+ * that the browser lays out are. It is `null` with no layout (jsdom,
+ * `display: none`), where the control measures nothing.
  *
  * @param cell - The Add cell of the new-row slot.
  * @param control - The inline box around the control, which is as wide as the
@@ -97,5 +100,5 @@ export function measureNewRowAddCell(cell: HTMLElement, control: HTMLElement): n
 
 	if (content === 0) return null
 
-	return Math.ceil(content + cellChrome(cell))
+	return content + cellChrome(cell)
 }

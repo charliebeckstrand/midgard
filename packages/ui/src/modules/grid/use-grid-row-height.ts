@@ -21,9 +21,10 @@ const ROW_SELECTOR =
  * @returns `rowHeight`, the height in pixels, or `null` until a row measures.
  * `measureRef` goes on the grid's `<table>`.
  * @remarks The stepped classes of the table set the row height, so no number in
- * code copies them. While `rowHeight` is `null`, the body holds the loading
- * skeleton. The ref reads a placeholder row when the table attaches, which is in
- * the commit, before the first client paint.
+ * code copies them. While `rowHeight` is `null`, the window assumes
+ * `FIRST_ROW_ESTIMATE`, which sets only the count of rows in the first window.
+ * The ref reads a row when the table attaches, which is in the commit, before
+ * the first client paint.
  *
  * A row that measures zero, such as in a `display: none` panel, sets nothing. A
  * `ResizeObserver` on the table then waits for the first row that has a height,
@@ -33,9 +34,8 @@ const ROW_SELECTOR =
  * A new `density` keeps the last height as the estimate, and the new ref reads a
  * row of the window in the same commit. The height of the new density follows
  * one commit later. The window stays mounted, so the reader keeps the scroll
- * position and each row keeps its node. Only the first measure holds the
- * skeleton. The measured bodies measure each row themselves, so for them the
- * estimate is only a first guess.
+ * position and each row keeps its node. The measured bodies measure each row
+ * themselves, so for them the estimate is only a first guess.
  * @internal
  */
 export function useGridRowHeight(

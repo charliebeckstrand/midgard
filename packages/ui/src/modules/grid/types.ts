@@ -242,8 +242,9 @@ export type GridColumn<T> = {
 	 * resize overrides the seed, and, like any manual resize, holds every column
 	 * where it sits. A drag can't cross the {@link GridColumn.minWidth} floor, so a
 	 * single-word header stays whole. Omit it to size to content from the first
-	 * render. Columns share the width evenly when there is room to spare, and any
-	 * column whose content would truncate takes more.
+	 * render, which includes a server render. The browser lays the columns out from
+	 * their content, and gives the spare width to them in proportion to their
+	 * content.
 	 *
 	 * A number is px, matching {@link GridColumn.minWidth} and
 	 * {@link GridColumn.maxWidth}, which are numbers already. A string is a CSS
@@ -263,8 +264,8 @@ export type GridColumn<T> = {
 	/**
 	 * Maximum width (px); the ceiling a drag-resize and the automatic sizing never
 	 * exceed. Also lifts the cap the autosizer otherwise places on measured content
-	 * width, so a column with wide content can opt into showing more of it.
-	 * Unbounded when omitted.
+	 * width, so a column with wide content can opt into showing more of it. A column
+	 * with a `maxWidth` takes none of the spare width. Unbounded when omitted.
 	 */
 	maxWidth?: number
 	/**

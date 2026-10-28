@@ -2,7 +2,6 @@
 
 import type { ReactNode, RefObject, TransitionEventHandler } from 'react'
 import { TableBody } from '../../components/table'
-import { dataAttr } from '../../core'
 import { GridSkeletonRows } from './grid-skeleton-cells'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
@@ -48,19 +47,14 @@ function GridWindowSpacer({ height, colSpan }: { height: number; colSpan: number
  * The `<tbody>` of each windowed grid body. It puts a spacer above and below
  * the rendered rows, and an optional trailer row after them.
  *
- * @remarks The body can hold items while its window holds none. The window is
- * empty until the virtualizer has resolved and measured its scroll element. That
- * happens a commit or two after the rows arrive, because the virtualizer
- * re-attaches only once the refs are in place (see `useVirtualWindow`). The
- * window also stays empty while the element measures zero, such as in a
- * `display: none` panel or a server render. The body then holds the loading
- * skeleton, not an empty body. The grid's own skeleton leaves in those frames,
- * because `loading` goes false with the rows. The skeleton therefore keeps the
- * swap to rows in one commit, with the fit that sizes their columns. The
- * skeleton also gives the scroller its height, so the bottom spacer stays out
- * until rows render.
- * While it holds the skeleton, the body carries `data-grid-placeholder`, so the
- * width gate does not hide it (see `widthGateClass`).
+ * @remarks Until the scroll element measures, the window assumes
+ * `FIRST_WINDOW_RECT` for it. A server render and the first client render thus
+ * paint the same first rows, and the browser sizes the columns from them (see
+ * `readFitLayout`). The body can still hold items while its window holds none:
+ * the window is empty while the element measures zero, such as in a
+ * `display: none` panel. The body then holds the loading skeleton, not an empty
+ * body. The skeleton also gives the scroller its height, so the bottom spacer
+ * stays out until rows render.
  *
  * @internal
  */
@@ -79,11 +73,7 @@ export function GridWindowBody<T>({
 	const warming = itemCount > 0 && windowCount === 0
 
 	return (
-		<TableBody
-			ref={bodyRef}
-			onTransitionEnd={onTransitionEnd}
-			data-grid-placeholder={dataAttr(warming)}
-		>
+		<TableBody ref={bodyRef} onTransitionEnd={onTransitionEnd}>
 			<GridWindowSpacer height={topSpacer} colSpan={columns.length} />
 			{warming ? <GridSkeletonRows columns={columns} pinning={pinning} /> : children}
 			{!warming && <GridWindowSpacer height={bottomSpacer} colSpan={columns.length} />}

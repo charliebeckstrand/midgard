@@ -100,8 +100,11 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	rowGroupPresentation: GridRowGroupPresentation | null
 	virtualize: {
 		scrollRef: RefObject<HTMLDivElement | null>
-		/** The row height, or `null` until a row measures (see `useGridRowHeight`). */
-		estimateSize: number | null
+		/**
+		 * The row height: the consumer's `estimateSize`, else the measured row (see
+		 * `useGridRowHeight`), else a first guess until a row measures.
+		 */
+		estimateSize: number
 		overscan: number
 		scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
 		/** Infinite-scroll gates, or `null` when the windowed grid isn't infinite-scrolling. */
@@ -113,8 +116,8 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	} | null
 }
 
-/** The window wiring of {@link GridBodyProps.virtualize}, once a row has measured. @internal */
-type GridRowWindow = NonNullable<GridBodyProps<unknown>['virtualize']> & { estimateSize: number }
+/** The window wiring of {@link GridBodyProps.virtualize}. @internal */
+type GridRowWindow = NonNullable<GridBodyProps<unknown>['virtualize']>
 
 /**
  * Gives the cursor the order of an unwindowed client-grouped body. The order
@@ -165,25 +168,6 @@ function GridDetailCursorOrderImpl<T>({
 }
 
 const GridDetailCursorOrder = memo(GridDetailCursorOrderImpl) as typeof GridDetailCursorOrderImpl
-
-/**
- * The window of a windowed body, `'measuring'` until a row has measured, or
- * `null` for a grid that renders every row.
- *
- * @remarks A window needs a row height. Until a row measures, the body holds
- * the loading skeleton, and the table measures a row of it (see
- * `useGridRowHeight`).
- * @internal
- */
-function resolveRowWindow(
-	virtualize: GridBodyProps<unknown>['virtualize'],
-): GridRowWindow | 'measuring' | null {
-	if (!virtualize) return null
-
-	const { estimateSize } = virtualize
-
-	return estimateSize === null ? 'measuring' : { ...virtualize, estimateSize }
-}
 
 /**
  * Renders one group as a header row ({@link GridGroupRow}) followed by every one
@@ -514,24 +498,17 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 
 	if (rows.length === 0) return <TableEmpty columns={visibleColumns.length}>{empty}</TableEmpty>
 
-	const rowWindow = resolveRowWindow(virtualize)
-
-	if (rowWindow === 'measuring') {
-		return <GridLoadingBody columns={visibleColumns} pinning={pinning} />
-	}
-
 	// Grouping renders its own body (see `renderGrouped`). It stands down
 	// pagination (see `GridData`), so this precedes the flat virtualized branch.
 	if (groups && groupColumnId != null) {
-		return renderGrouped(props, groups, groupColumnId, rowWindow)
+		return renderGrouped(props, groups, groupColumnId, virtualize)
 	}
 
-	// The windowed body carries the loading skeleton on from the branch above while
-	// its window resolves, so `loading` clearing as the rows land doesn't flash a
-	// headers-only, rowless table (see `GridVirtualizedBody`). Master-detail under
-	// a window renders each data row and each open panel as an item of one
-	// measured window (see `GridVirtualizedDetailBody`).
-	if (rowWindow) return renderWindowed(props, rowWindow)
+	// The windowed body paints a first window before its scroller measures, which
+	// includes a server render (see `GridWindowBody`). Master-detail under a window
+	// renders each data row and each open panel as an item of one measured window
+	// (see `GridVirtualizedDetailBody`).
+	if (virtualize) return renderWindowed(props, virtualize)
 
 	const { expansion } = props
 

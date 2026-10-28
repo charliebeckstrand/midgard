@@ -42,6 +42,7 @@ import type { GridSortState } from './context'
 import { compileColumnFilters } from './engine/grid-filter/filter'
 import type { GridGroup, GridLeaf, GroupExpansion } from './engine/grid-group/tree'
 import { isManualPagination } from './engine/grid-pagination-utilities'
+import type { GridFitMode } from './engine/grid-sizing/fit-layout'
 import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
 import { buildGrandTotals, hiddenSelectionCount, viewLeaves } from './engine/grid-table/client-view'
 import {
@@ -226,14 +227,6 @@ type GridTableResult<T> = {
 	 * and when the autosizer stands down.
 	 */
 	fitRenderedRows: () => void
-	/**
-	 * Whether the first column-width pass has happened.
-	 *
-	 * `false` only between hydration and that pass, and only for a grid whose widths this
-	 * hook sizes. The table holds its paint until it flips, so a reload never shows the
-	 * declared widths and then replaces them with fitted ones (see `useGridColumnSizing`).
-	 */
-	widthsSettled: boolean
 	/** Global-filter view, or `null` when filtering is not configured. */
 	globalFilter: GridGlobalFilterView | null
 	/** Per-column filter controls, or `null` when no column is filterable. */
@@ -339,11 +332,15 @@ function useResizeView<T>(args: {
 	/** The live floors, for a nudge. */
 	columnFloors: ReadonlyMap<string, number>
 	resizing: string | null
+	/** The mode of the fit layout while the grid renders it (see `useGridColumnSizing`). */
+	fit: GridFitMode | null
 	sizer: Pick<GridColumnResizeActions, 'autoSizeColumn' | 'autoSizeAll' | 'resetWidths'> & {
 		takeControl: () => void
 	}
 }): { resize: GridColumnResize | null; settle: GridSettleStore } {
 	const { resizable, table, leaves, visibleColumns, widths, floors, columnFloors, resizing } = args
+
+	const { fit } = args
 
 	const { autoSizeColumn, autoSizeAll, resetWidths, takeControl } = args.sizer
 
@@ -368,8 +365,10 @@ function useResizeView<T>(args: {
 
 	const resize = useMemo(
 		() =>
-			resizable ? buildColumnResize({ columns: leaves, widths, floors, resizing, actions }) : null,
-		[resizable, leaves, widths, floors, resizing, actions],
+			resizable
+				? buildColumnResize({ columns: leaves, widths, floors, resizing, fit, actions })
+				: null,
+		[resizable, leaves, widths, floors, resizing, fit, actions],
 	)
 
 	// The widths as text, so a render that resolves the same widths keeps the
@@ -850,37 +849,30 @@ export function useGridTable<T>({
 
 	// Size resizable columns to their content and fill the container, unless widths
 	// are controlled. The hook also backs the header menu's width actions.
-	const {
-		autoSizeColumn,
-		autoSizeAll,
-		resetWidths,
-		takeControl,
-		fitRenderedRows,
-		settled: widthsSettled,
-		floors,
-	} = useGridColumnSizing<T>({
-		resizable,
-		controlled: columnSizingConfig?.value != null,
-		table: engine,
-		// Fit distributes width across the *visible* data columns, not the hidden ones.
-		columns: visibleColumns,
-		containerRef,
-		// Fingerprint from the keys the grid already derived, so the autosizer
-		// never walks the rows just to notice a row change.
-		rowsSignature,
-		density,
-		fitContent,
-		resizing,
-		columnFloors,
-		// Infinite scroll's stable widths hold the fit against each appended batch.
-		freezeOnRowChange: stableColumnWidths,
-		// Restored/persisted widths start held, and the autosizer flags its own
-		// writes so they stay off the consumer's `onValueChange`.
-		initialSizing,
-		autoSizingRef,
-		clearPreference: clearSizingPreference,
-		setContentSizing,
-	})
+	const { autoSizeColumn, autoSizeAll, resetWidths, takeControl, fitRenderedRows, fit, floors } =
+		useGridColumnSizing<T>({
+			resizable,
+			controlled: columnSizingConfig?.value != null,
+			table: engine,
+			// Fit distributes width across the *visible* data columns, not the hidden ones.
+			columns: visibleColumns,
+			containerRef,
+			// Fingerprint from the keys the grid already derived, so the autosizer
+			// never walks the rows just to notice a row change.
+			rowsSignature,
+			density,
+			fitContent,
+			resizing,
+			columnFloors,
+			// Infinite scroll's stable widths hold the fit against each appended batch.
+			freezeOnRowChange: stableColumnWidths,
+			// Restored/persisted widths start held, and the autosizer flags its own
+			// writes so they stay off the consumer's `onValueChange`.
+			initialSizing,
+			autoSizingRef,
+			clearPreference: clearSizingPreference,
+			setContentSizing,
+		})
 
 	const { resize, settle } = useResizeView({
 		resizable,
@@ -891,6 +883,7 @@ export function useGridTable<T>({
 		floors,
 		columnFloors,
 		resizing,
+		fit,
 		sizer: { autoSizeColumn, autoSizeAll, resetWidths, takeControl },
 	})
 
@@ -928,6 +921,7 @@ export function useGridTable<T>({
 	const pinning = useGridPinningView({
 		hasPinned,
 		resizable,
+		fitting: fit != null,
 		columnPinning,
 		visibleColumns,
 		containerRef,
@@ -967,7 +961,6 @@ export function useGridTable<T>({
 		resize,
 		settle,
 		fitRenderedRows,
-		widthsSettled,
 		globalFilter,
 		filters,
 		pinning,

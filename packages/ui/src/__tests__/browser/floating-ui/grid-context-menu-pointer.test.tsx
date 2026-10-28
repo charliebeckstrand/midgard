@@ -19,9 +19,11 @@ import { getCenter } from '../../helpers/geometry/box'
 describe('grid context menu pointer travel (real browser)', () => {
 	type Row = { id: number; name: string; role: string }
 
+	// Declared widths, so the press point and the panels land at the same place
+	// whatever widths the browser fit gives the content.
 	const columns: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', cell: (row) => row.name },
-		{ id: 'role', title: 'Role', cell: (row) => row.role },
+		{ id: 'name', title: 'Name', cell: (row) => row.name, width: 350 },
+		{ id: 'role', title: 'Role', cell: (row) => row.role, width: 350 },
 	]
 
 	const rows: Row[] = [{ id: 1, name: 'Alice', role: 'Developer' }]

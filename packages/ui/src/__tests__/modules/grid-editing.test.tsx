@@ -4954,7 +4954,7 @@ describe('Grid new row', () => {
 			expect(addColWidth(view.container)).toBe(`${NEW_ROW_ADD_COLUMN_SIZE}px`)
 		})
 
-		it('resolves the width: none, fixed, measured, then the fallback', () => {
+		it('resolves the width: none, fixed, measured, then the content', () => {
 			expect(resolveNewRowAddWidth(false, undefined, 70)).toBeNull()
 
 			expect(resolveNewRowAddWidth(true, false, 70)).toBeNull()
@@ -4963,7 +4963,8 @@ describe('Grid new row', () => {
 
 			expect(resolveNewRowAddWidth(true, {}, 70)).toBe(70)
 
-			expect(resolveNewRowAddWidth(true, undefined, null)).toBe(NEW_ROW_ADD_COLUMN_SIZE)
+			// Before its first measure, the column takes the width of its content.
+			expect(resolveNewRowAddWidth(true, undefined, null)).toBeUndefined()
 		})
 
 		it('adds no column with newRowAdd false, and Enter still adds', () => {

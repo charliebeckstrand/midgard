@@ -59,6 +59,15 @@ export type VirtualWindowOptions = {
 	 * @defaultValue 0
 	 */
 	scrollPaddingEnd?: number
+	/**
+	 * The size in pixels that the window assumes for the scroller until the
+	 * scroller measures. Without it, the window is empty until then, which
+	 * includes a server render. With it, a server render paints the first rows,
+	 * and the first client render matches them.
+	 *
+	 * @defaultValue `{ width: 0, height: 0 }`
+	 */
+	initialRect?: { width: number; height: number }
 }
 
 /**
@@ -699,6 +708,7 @@ export function useVirtualWindow({
 	gap,
 	scrollPaddingStart,
 	scrollPaddingEnd,
+	initialRect,
 	getItemKey,
 	anchorTo,
 	followOnAppend,
@@ -732,6 +742,7 @@ export function useVirtualWindow({
 			gap,
 			scrollPaddingStart,
 			scrollPaddingEnd,
+			initialRect,
 			getItemKey,
 			anchorTo,
 			followOnAppend,

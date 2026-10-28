@@ -112,8 +112,34 @@ function isSingleWordTitle(title: GridColumn<unknown>['title']): boolean {
 const OWN_CELL = ':not(:scope [data-detail-row] *)'
 
 /**
+ * The rendered header cell of each column, by its id. A data header carries
+ * `data-grid-col`. The header of a non-data column carries `data-grid-fit` in
+ * its place. A band cell of a column group carries neither.
+ *
+ * @internal
+ */
+export function collectHeaders(container: HTMLElement): Map<string, HTMLElement> {
+	const headers = new Map<string, HTMLElement>()
+
+	for (const th of container.querySelectorAll<HTMLElement>(`th[data-grid-col]${OWN_CELL}`)) {
+		const id = th.getAttribute('data-grid-col')
+
+		if (id != null) headers.set(id, th)
+	}
+
+	for (const th of container.querySelectorAll<HTMLElement>(`th[data-grid-fit]${OWN_CELL}`)) {
+		const id = th.getAttribute('data-grid-fit')
+
+		if (id != null) headers.set(id, th)
+	}
+
+	return headers
+}
+
+/**
  * The rendered `<th>`/`<td>` cells grouped by their `data-grid-col` id, read once per
- * measurement pass. The headers also hold the `data-grid-fit` header of each non-data column.
+ * measurement pass. The headers also hold the `data-grid-fit` header of each non-data
+ * column (see {@link collectHeaders}).
  *
  * @internal
  */
@@ -123,20 +149,7 @@ function collectCells(container: HTMLElement): {
 	/** Body cells found across every column: zero when the body rendered none. */
 	cells: number
 } {
-	const headers = new Map<string, HTMLElement>()
-
-	for (const th of container.querySelectorAll<HTMLElement>(`th[data-grid-col]${OWN_CELL}`)) {
-		const id = th.getAttribute('data-grid-col')
-
-		if (id != null) headers.set(id, th)
-	}
-
-	// The header of a non-data column carries `data-grid-fit` in place of `data-grid-col`.
-	for (const th of container.querySelectorAll<HTMLElement>(`th[data-grid-fit]${OWN_CELL}`)) {
-		const id = th.getAttribute('data-grid-fit')
-
-		if (id != null) headers.set(id, th)
-	}
+	const headers = collectHeaders(container)
 
 	const bodies = new Map<string, HTMLElement[]>()
 
@@ -271,7 +284,7 @@ function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
 
 /**
  * A data column's hard floor (px): the narrowest it can be sized (by the
- * allocator or a drag-resize) before its header can't show. A single-word title
+ * automatic fit or a drag-resize) before its header can't show. A single-word title
  * reserves its full width, so the column is at least that wide and the header
  * never truncates. A multi-word or non-string title reserves only its affordance
  * icons plus a small text allowance. A narrow-data column then stays narrow, and

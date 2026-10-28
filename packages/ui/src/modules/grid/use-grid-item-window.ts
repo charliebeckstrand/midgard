@@ -10,6 +10,7 @@ import {
 	useRef,
 } from 'react'
 import { useVirtualWindow } from '../../hooks'
+import { FIRST_WINDOW_RECT } from './engine/grid-constants'
 import { windowItemEstimate } from './engine/grid-items/items'
 import { useGridFitRenderedRows } from './use-grid-fit-rendered-rows'
 import type { GridScrollRowIntoView } from './use-grid-navigation'
@@ -178,6 +179,7 @@ export function useGridItemWindow<I extends WindowItem>(
 		overscan,
 		...offsets,
 		getItemKey,
+		initialRect: FIRST_WINDOW_RECT,
 	})
 
 	// The autosizer fits the columns again once the window's rows render.

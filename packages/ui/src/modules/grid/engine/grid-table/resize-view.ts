@@ -8,6 +8,7 @@ import { isRtl } from '../../../../hooks/a11y/logical-arrow'
 import { clamp } from '../../../../utilities'
 import { finiteOrUndefined } from '../../../../utilities/parse-numeric'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
+import type { GridFitMode } from '../grid-sizing/fit-layout'
 import type { EngineColumn, EngineTable } from './features'
 
 /**
@@ -25,6 +26,12 @@ export type GridColumnResize = {
 	getSize: (id: string | number) => number
 	/** The summed width (px) of the visible columns: the width of the fixed-layout table. */
 	totalSize: number
+	/**
+	 * The mode of the fit layout while the grid renders it, else `null`. In the fit
+	 * layout the browser sizes the columns, and the engine widths do not apply yet
+	 * (see `readFitLayout`).
+	 */
+	fit: GridFitMode | null
 	/** Whether the column can be resized (data columns only). */
 	canResize: (id: string | number) => boolean
 	/** The column mid drag-resize, or `null` when no pointer drag is in flight. */
@@ -131,6 +138,7 @@ export function buildColumnResize<T>(args: {
 	widths: ReadonlyMap<string, number>
 	floors: ReadonlyMap<string, number>
 	resizing: string | null
+	fit: GridFitMode | null
 	actions: GridColumnResizeActions
 }): GridColumnResize {
 	const { widths, floors } = args
@@ -144,6 +152,7 @@ export function buildColumnResize<T>(args: {
 	return {
 		getSize: (id) => widths.get(String(id)) ?? DEFAULT_COLUMN_SIZE,
 		totalSize,
+		fit: args.fit,
 		// The engine's `getCanResize`: a column resizes unless its definition opts out.
 		canResize: (id) => {
 			const def = defs.get(String(id))

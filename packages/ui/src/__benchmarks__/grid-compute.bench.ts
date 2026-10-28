@@ -5,45 +5,12 @@ import type { GridColumn } from '../modules/grid'
 import { rowsToCsv } from '../modules/grid/engine/grid-export/csv'
 import { rowsToHtmlTable } from '../modules/grid/engine/grid-export/html-table'
 import { applyPinOverrides, type PinOverrides } from '../modules/grid/engine/grid-pin/overrides'
-import { allocateColumnWidths } from '../modules/grid/engine/grid-sizing/allocate'
-import {
-	makeColumnSizeProfiles,
-	makeEscapeHeavyRows,
-	type Shipment,
-	shipmentColumns,
-	shipments,
-} from './fixtures'
+import { makeEscapeHeavyRows, type Shipment, shipmentColumns, shipments } from './fixtures'
 
-// Pure grid compute that runs on the render hot path (column allocation, pin
-// overlay) or on an export, benched in a node env with no DOM. The DOM-bound
-// measurer (measureColumns) is excluded: its pure downstream
-// allocateColumnWidths is benched with synthetic profiles instead. Import each
+// Pure grid compute that runs on the render hot path (pin overlay) or on an
+// export, benched in a node env with no DOM. The column widths come from the
+// browser (`readFitLayout`), so they have no pure compute to bench. Import each
 // utility by path; the grid barrel does not re-export them.
-
-describe('grid-layout · allocateColumnWidths', () => {
-	// The one non-trivial numeric algorithm outside sort: a 50-iteration bisection
-	// (surplus regime) or a largest-remainder rounding sort (deficit regime), run
-	// once per measurement pass. Cost scales with columns, not rows.
-	for (const columnCount of [4, 8, 20, 50, 200]) {
-		const profiles = makeColumnSizeProfiles(columnCount)
-
-		const totalContent = profiles.reduce((sum, profile) => sum + profile.content, 0)
-
-		// Surplus: available exceeds desired → the bisection level-up path.
-		const surplus = Math.round(totalContent * 2)
-
-		// Deficit: available below desired → hold at content, sort-only rounding.
-		const deficit = Math.round(totalContent * 0.5)
-
-		bench(`${columnCount} cols · surplus (level-up)`, () => {
-			allocateColumnWidths(profiles, surplus)
-		})
-
-		bench(`${columnCount} cols · deficit (hold + round)`, () => {
-			allocateColumnWidths(profiles, deficit)
-		})
-	}
-})
 
 const CSV_COLUMNS = shipmentColumns()
 

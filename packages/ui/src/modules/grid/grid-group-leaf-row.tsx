@@ -23,6 +23,7 @@ import {
 	rowClickableClass,
 	rowShellProps,
 } from './engine/grid-row/shell'
+import { fitCellProps } from './engine/grid-sizing/fit-styles'
 import { cellBody } from './grid-cell-content'
 import type { GridRowsProps } from './grid-row'
 import { GridRowSpecialCell } from './grid-row-special-cell'
@@ -184,6 +185,9 @@ function GridGroupLeafCell<T>({
 
 	const pinned = pinnedCellProps(pinning, col)
 
+	// The width rules of the fit layout, as on a flat row (see `fitCellProps`).
+	const fit = fitCellProps(col)
+
 	// The column's own cell props, such as the cursor's id and role, as on a flat row.
 	const cellProps = cellPropsAt(col, row, rowIndex)
 
@@ -212,10 +216,11 @@ function GridGroupLeafCell<T>({
 				leading && k.row.group.rail.padded,
 				leading && color && k.row.group.rail.color[color],
 				leafCellClass(col),
+				fit.className,
 				pinned.className,
 				cellProps?.className,
 			)}
-			style={{ ...cellProps?.style, ...NO_PADDING, ...pinned.style }}
+			style={{ ...fit.style, ...cellProps?.style, ...NO_PADDING, ...pinned.style }}
 			data-grid-pin={pinned.pin}
 		>
 			<div className={cn(k.row.group.reveal.track)} data-open={dataAttr(open)}>

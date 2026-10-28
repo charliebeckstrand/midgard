@@ -689,6 +689,37 @@ export const k = {
 			'forced-colors:data-resizing:after:bg-[CanvasText]',
 		],
 	},
+	// The fit layout: the browser's automatic table layout, while the `<table>`
+	// carries `data-grid-fit-layout`. The browser sizes each column from its content.
+	// The server renders this layout, and each fit lays it out again to read the
+	// widths (`readFitLayout`). The cell rules act only in this layout, so the
+	// fixed layout of a sized grid keeps its widths.
+	fit: {
+		// On the `<table>`. `fill` keeps the `w-full` of the table, so the browser
+		// gives the spare width to the columns. `content` takes the width of the
+		// content.
+		table: ['data-grid-fit-layout:table-auto', 'data-[grid-fit-layout=content]:w-max'],
+		// On a data header: the floor of the column. That is its `minWidth`
+		// (`--grid-min`), else 40px. Keep the 40px in step with
+		// `DEFAULT_MIN_COLUMN_SIZE`.
+		floor: 'in-data-grid-fit-layout:min-w-[var(--grid-min,40px)]',
+		// On a data header: a column that takes no spare width. That is a frozen
+		// column, or a column with a `maxWidth`.
+		tight: 'in-data-grid-fit-layout:w-px',
+		// A column that keeps its width (a `width` seed): its `<col>` holds the
+		// width, and its content does not widen it.
+		kept: {
+			head: 'in-data-grid-fit-layout:**:data-grid-header:contain-inline-size',
+			cell: 'in-data-grid-fit-layout:**:data-grid-content:contain-inline-size',
+		},
+		// On the content span of a body cell: the content asks for 480px at most,
+		// or for the `maxWidth` of its column (`--grid-cap`). The span still fills
+		// a wider column. Keep the 480px in step with `DEFAULT_CONTENT_MAX`.
+		cap: [
+			'in-data-grid-fit-layout:max-w-[var(--grid-cap,480px)]',
+			'in-data-grid-fit-layout:min-w-full',
+		],
+	},
 	filter: {
 		// Header row: title on the left, filter button across from it on the right.
 		// In a narrow column the group-by and filter buttons close to the gap, so
@@ -775,19 +806,6 @@ export const k = {
 			'[&>tbody:first-of-type]:motion-safe:animate-pulse',
 			'[&>tbody:first-of-type]:motion-reduce:opacity-50',
 		],
-	},
-	// The width gate: the server's table waits for the fit at hydration (see
-	// `widthGateClass`).
-	gate: {
-		// On the `<table>`: each body that holds data waits at zero opacity. The
-		// head and the column frame show, and so does a body of placeholders.
-		body: '[&>tbody:not([data-grid-placeholder])]:opacity-0',
-		// The cell of the anchor row of the placeholder: it positions the
-		// placeholder table and takes no height.
-		anchor: 'relative h-0',
-		// The placeholder table hangs from the top of the body, out of flow.
-		skeleton: 'absolute inset-x-0 top-0',
-		table: 'w-full table-fixed',
 	},
 	// The "Exporting" overlay: a scrim over the whole grid while an async export
 	// resolves its rows, with a centered label.

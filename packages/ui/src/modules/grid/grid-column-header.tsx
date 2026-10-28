@@ -20,6 +20,7 @@ import type { QueryGroup } from '../query'
 import { columnLabel } from './engine/grid-column/label'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
 import { columnShiftStyle } from './engine/grid-reorder-compute'
+import { fitHeaderProps } from './engine/grid-sizing/fit-styles'
 import { ariaSortValue } from './engine/grid-sort/state'
 import { showsFilterButton } from './engine/grid-table/filter-view'
 import type { GridColumnResizeActions } from './engine/grid-table/resize-view'
@@ -219,6 +220,9 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 
 	const pinned = pinnedHeaderProps(pinning, column, width ?? undefined)
 
+	// The width rules of the fit layout (see `fitHeaderProps`).
+	const fit = fitHeaderProps(column)
+
 	return (
 		<TableHeader
 			aria-colindex={ariaColIndex}
@@ -229,9 +233,10 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 			className={cn(
 				stickyHeader && k.sticky.head,
 				canResize && !stickyHeader && k.resize.cell,
+				fit.className,
 				pinned.className,
 			)}
-			style={pinned.style}
+			style={{ ...fit.style, ...pinned.style }}
 			data-grid-pin={pinned.pin}
 		>
 			{/* `data-grid-header` marks the header's flex row so the autosizer can
@@ -386,6 +391,9 @@ export function GridReorderableColumnHeaderView({
 
 	const cellActivators = useSurfaceSafeActivators(listeners)
 
+	// The width rules of the fit layout (see `fitHeaderProps`).
+	const fit = fitHeaderProps(column)
+
 	return (
 		<TableHeader
 			ref={setHeaderNodeRef}
@@ -403,13 +411,18 @@ export function GridReorderableColumnHeaderView({
 				// header already positions itself; this header's shift transform also
 				// forms a containing block, so `relative` just keeps the anchor explicit).
 				canResize && !stickyHeader && k.resize.cell,
+				fit.className,
 				column.headerClassName,
 			)}
 			// Read the shift from the same CSS variable the body cells use (written
 			// just below), not dnd-kit's transform inline: one variable resolving in
 			// one style recalc keeps the header and its column's cells exactly in
 			// phase through the transition, instead of two mechanisms drifting apart.
-			style={{ ...columnShiftStyle(columnIndex), ...(width != null ? { width } : null) }}
+			style={{
+				...fit.style,
+				...columnShiftStyle(columnIndex),
+				...(width != null ? { width } : null),
+			}}
 			// The handle-less cell carries the drag activator; the gripped cell leaves
 			// it to the button below.
 			{...(handle ? undefined : { ...cellActivatorAttributes, ...cellActivators })}

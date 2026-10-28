@@ -2,6 +2,19 @@
 export const DEFAULT_OVERSCAN = 10
 
 /**
+ * The size (px) that a windowed body assumes for its scroller until the scroller
+ * measures. A server render thus paints a first window of rows, and the browser
+ * sizes the columns of the first paint from them (see `readFitLayout`). @internal
+ */
+export const FIRST_WINDOW_RECT = { width: 0, height: 480 }
+
+/**
+ * The row height (px) that a windowed body assumes until a row measures (see
+ * `useGridRowHeight`). It sets only the count of rows in the first window. @internal
+ */
+export const FIRST_ROW_ESTIMATE = 40
+
+/**
  * The selector for the grid's cursor tab stop. A client-grouped grid is a
  * `treegrid`, and every other grid with a cursor is a `grid`. @internal
  */
@@ -55,14 +68,19 @@ export const DRAG_HANDLE_COLUMN_SIZE = 44
  */
 export const EXPANDER_COLUMN_SIZE = 44
 
-/** Floor (px) a resizable column can shrink to when it sets no `minWidth`. @internal */
+/**
+ * Floor (px) a resizable column can shrink to when it sets no `minWidth`. The fit
+ * layout states the same floor in CSS (`k.fit.floor`), so keep the two in step.
+ * @internal
+ */
 export const DEFAULT_MIN_COLUMN_SIZE = 40
 
 /**
  * Cap (px) on a column's auto-measured content width, so one runaway cell can't
  * starve its siblings. The autosizer holds others at their floor and overflows,
  * rather than squishing. A column's own `maxWidth` overrides this: an explicit
- * ceiling is a deliberate choice.
+ * ceiling is a deliberate choice. The fit layout states the same cap in CSS
+ * (`k.fit.cap`), so keep the two in step.
  *
  * @internal
  */

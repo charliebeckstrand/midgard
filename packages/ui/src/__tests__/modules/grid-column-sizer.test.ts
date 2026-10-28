@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
 import { DEFAULT_CONTENT_MAX } from '../../modules/grid/engine/grid-constants'
+import type { GridFitPlan } from '../../modules/grid/engine/grid-sizing/fit-layout'
 import type { ColumnMeasurement } from '../../modules/grid/engine/grid-sizing/measure'
 import {
 	type ColumnSizerEnv,
@@ -22,15 +23,24 @@ const column = (id: string, over: Partial<GridColumn<Row>> = {}): GridColumn<Row
 
 /**
  * A fake grid: the facts its DOM would report, and an engine sizing state that
- * each write updates as the table hook does. `reads` counts the measurements.
+ * each write updates as the table hook does. `reads` counts the measurements,
+ * and `plans` holds each fit layout that the sizer asked for.
+ *
+ * The fake browser lays a fit out as a plain proportional fill: a kept column
+ * keeps its width, and a content-sized column takes its content. Each other
+ * column takes its content (its floor, its body up to the cap, and its grown
+ * width), and the spare width of `space` scales those columns up.
  */
 function fakeGrid(args: {
 	columns: GridColumn<Row>[]
+	/** The width of the container that the fake browser fills. */
 	space: number
 	/** The widest body cell of each column. */
 	bodies: Record<string, number>
 	/** The header floor of each column; 40 when absent. */
 	floors?: Record<string, number>
+	/** The width that the fake browser gives a header, when it is not the measured floor. */
+	headers?: Record<string, number>
 	/** Body cells the DOM holds; zero is a loading skeleton. */
 	cells?: number
 	seeded?: Record<string, number>
@@ -46,7 +56,46 @@ function fakeGrid(args: {
 		cells: args.cells ?? 3,
 		reads: 0,
 		scans: [] as string[][],
+		plans: [] as Omit<GridFitPlan, 'mode'>[],
 		state,
+	}
+
+	const fit = (plan: Omit<GridFitPlan, 'mode'>): ReadonlyMap<string, number> => {
+		grid.plans.push(plan)
+
+		const widths = new Map<string, number>()
+
+		let free = grid.space
+
+		const fill: [string, number][] = []
+
+		for (const col of grid.columns) {
+			const id = String(col.id)
+
+			const fixed = plan.kept.get(id) ?? args.fits?.[id]
+
+			if (fixed != null) {
+				widths.set(id, fixed)
+
+				free -= fixed
+
+				continue
+			}
+
+			const body = Math.min(grid.bodies[id] ?? 0, DEFAULT_CONTENT_MAX)
+
+			const header = args.headers?.[id] ?? args.floors?.[id] ?? 40
+
+			fill.push([id, Math.max(header, body, plan.grow.get(id) ?? 0)])
+		}
+
+		const content = fill.reduce((sum, [, width]) => sum + width, 0)
+
+		const scale = Math.max(1, free / content)
+
+		for (const [id, width] of fill) widths.set(id, width * scale)
+
+		return widths
 	}
 
 	const measure = (scan: ReadonlySet<string>): ColumnMeasurement => {
@@ -77,9 +126,9 @@ function fakeGrid(args: {
 
 	const env = (): ColumnSizerEnv<Row> => ({
 		columns: grid.columns,
-		space: grid.space,
 		getSize: (id) => grid.state[id] ?? 150,
 		measure,
+		fit,
 	})
 
 	const apply = (write: ColumnSizingWrite | null) => {
@@ -92,12 +141,11 @@ function fakeGrid(args: {
 		Object.assign(grid.state, write.sizing)
 	}
 
-	const sizer = createColumnSizer({
-		floors: new Map(),
-		seeded: Object.keys(args.seeded ?? {}),
-	})
+	const floors = new Map<string, number>()
 
-	return { grid, env, apply, sizer }
+	const sizer = createColumnSizer({ floors, seeded: Object.keys(args.seeded ?? {}) })
+
+	return { grid, env, apply, sizer, floors }
 }
 
 /** Sum of a sizing's widths. */
@@ -174,18 +222,77 @@ describe('createColumnSizer', () => {
 			expect(sizer.measured()).toBe(true)
 		})
 
-		it('caps a runaway column', () => {
-			const { env, sizer } = fakeGrid({ columns, space: 300, bodies: { ...bodies, c: 2000 } })
+		it('keeps the widths that the browser lays out', () => {
+			const { env, sizer } = fakeGrid({ columns, space: 540, bodies })
 
-			expect(sizer.refit(env(), true).sizing.c).toBe(DEFAULT_CONTENT_MAX)
+			// The fake browser scales the content (60, 90, 120) by 2.
+			expect(sizer.refit(env(), true).sizing).toEqual({ a: 120, b: 180, c: 240 })
+		})
+
+		it('lays the first pass out as the render painted it', () => {
+			const { grid, env, sizer } = fakeGrid({ columns, space: 600, bodies })
+
+			sizer.refit(env(), true)
+
+			expect(grid.plans[0]?.grow.size).toBe(0)
+
+			expect(grid.plans[0]?.kept.size).toBe(0)
+		})
+
+		it('takes a fitted width under the measured floor as the floor', () => {
+			// The measured floor rounds up, so it can be more than the width that the
+			// browser gives the whole header.
+			const { env, sizer, floors } = fakeGrid({
+				columns,
+				space: 0,
+				bodies: { a: 20, b: 20, c: 20 },
+				floors: { a: 95 },
+				headers: { a: 93.4 },
+			})
+
+			expect(sizer.refit(env(), true).sizing.a).toBe(93.4)
+
+			expect(floors.get('a')).toBe(93.4)
+
+			expect(floors.get('b')).toBe(40)
+		})
+
+		it('holds the width of a wider row that left the view', () => {
+			const { grid, env, apply, sizer } = fakeGrid({ columns, space: 300, bodies })
+
+			grid.bodies.a = 200
+
+			apply(sizer.refit(env(), true))
+
+			grid.bodies.a = 60
+
+			sizer.refit(env(), true)
+
+			expect(grid.plans[1]?.grow).toEqual(new Map([['a', 200]]))
+		})
+
+		it('holds a grown width under the content cap', () => {
+			const { grid, env, apply, sizer } = fakeGrid({ columns, space: 300, bodies })
+
+			grid.bodies.c = 2000
+
+			apply(sizer.refit(env(), true))
+
+			grid.bodies.c = 120
+
+			sizer.refit(env(), true)
+
+			expect(grid.plans[1]?.grow.get('c')).toBe(DEFAULT_CONTENT_MAX)
 		})
 
 		it('holds a width-seeded column at its seed', () => {
 			const seeded = [column('a', { width: '250px' }), column('b')]
 
-			const { env, sizer } = fakeGrid({ columns: seeded, space: 600, bodies })
+			const { grid, env, sizer } = fakeGrid({ columns: seeded, space: 600, bodies })
 
 			const write = sizer.refit(env(), true)
+
+			expect(grid.plans[0]?.kept).toEqual(new Map([['a', 250]]))
 
 			expect(write.sizing).toEqual({ b: 350 })
 		})

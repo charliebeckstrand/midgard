@@ -8,6 +8,7 @@ import {
 } from '../../../modules/grid'
 import { fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
+import { PIXEL } from '../../helpers/geometry/tolerance'
 import { settledValue } from '../helpers/sample'
 
 /**
@@ -99,9 +100,11 @@ describe('grid column sizing rules (real browser)', () => {
 	it('holds a dragged width through a container resize', async () => {
 		const { container, resizeFrame } = await mount()
 
+		const fitted = width(container, 'a')
+
 		drag(container, 'A', 80)
 
-		await waitFor(() => expect(width(container, 'a')).toBeGreaterThan(200))
+		await waitFor(() => expect(width(container, 'a')).toBeGreaterThan(fitted + 60))
 
 		const held = widths(container)
 
@@ -297,7 +300,12 @@ describe('grid column sizing rules (real browser)', () => {
 
 		menuAction(container, 'a', 'Reset column widths')
 
-		await waitFor(() => expect(widths(container)).toEqual(fill))
+		// The fit lays out fractional widths, and a rounded width can differ by a pixel.
+		await waitFor(() => {
+			for (const [index, value] of widths(container).entries()) {
+				expect(value).toBeNear(fill[index] ?? 0, PIXEL)
+			}
+		})
 
 		expect(onValueChange).toHaveBeenLastCalledWith({})
 

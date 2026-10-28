@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, memo, type ReactNode, use } from 'react'
+import { type ComponentProps, type CSSProperties, memo, type ReactNode, use } from 'react'
 import { TableCell } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
@@ -13,6 +13,7 @@ import {
 	type GridIndexedColumn,
 } from './engine/grid-row/cell'
 import { cellRovingAttrs } from './engine/grid-row/shell'
+import { fitCellProps } from './engine/grid-sizing/fit-styles'
 import { cellBody } from './grid-cell-content'
 import { GridReorderContext } from './grid-reorder'
 import type { GridColumnPinning } from './use-grid-table'
@@ -79,13 +80,17 @@ function GridDataCellImpl<T>({
 
 	const content = cellBody(col, row, rowIndex, truncate)
 
+	// The width rules of the fit layout (see `fitCellProps`).
+	const fit = fitCellProps(col)
+
 	if (reorderable && !isFrozen(col)) {
 		return (
 			<GridReorderableCell
 				id={col.id}
 				columnIndex={columnIndex}
 				ariaColIndex={ariaColIndex}
-				className={cn(rovingClass, col.className)}
+				className={cn(rovingClass, fit.className, col.className)}
+				fitStyle={fit.style}
 				cellProps={roving ? { ...cellProps, ...roving } : cellProps}
 			>
 				{content}
@@ -103,8 +108,8 @@ function GridDataCellImpl<T>({
 			{...cellProps}
 			{...roving}
 			data-grid-col={col.id}
-			className={cn(rovingClass, pinned.className, cellProps?.className)}
-			style={{ ...cellProps?.style, ...pinned.style }}
+			className={cn(rovingClass, fit.className, pinned.className, cellProps?.className)}
+			style={{ ...fit.style, ...cellProps?.style, ...pinned.style }}
 			data-grid-pin={pinned.pin}
 		>
 			{content}
@@ -127,6 +132,8 @@ type GridReorderableCellProps = {
 	columnIndex: number
 	ariaColIndex: number | undefined
 	className: string | undefined
+	/** The custom properties of the fit layout (see `fitCellProps`). */
+	fitStyle: CSSProperties | undefined
 	cellProps: Omit<ComponentProps<'td'>, 'children'> | undefined
 	children: ReactNode
 }
@@ -149,6 +156,7 @@ function GridReorderableCell({
 	columnIndex,
 	ariaColIndex,
 	className,
+	fitStyle,
 	cellProps,
 	children,
 }: GridReorderableCellProps) {
@@ -161,7 +169,7 @@ function GridReorderableCell({
 			data-dragging={dataAttr(dragging)}
 			data-grid-col={id}
 			className={cn(k.reorder.cell.base, k.reorder.cell.shift, className, cellProps?.className)}
-			style={{ ...cellProps?.style, ...columnShiftStyle(columnIndex) }}
+			style={{ ...fitStyle, ...cellProps?.style, ...columnShiftStyle(columnIndex) }}
 		>
 			{children}
 		</TableCell>
