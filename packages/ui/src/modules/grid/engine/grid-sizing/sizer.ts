@@ -1,19 +1,19 @@
 import { clamp, isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
 import { DEFAULT_CONTENT_MAX, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
-import { isFrozen } from '../grid-pin/overrides'
+import { sameNumberMap } from '../grid-table/equality'
 import { parsePxWidth } from '../grid-table/resize-view'
-import { allocateColumnWidths, type ColumnSizeProfile } from './allocate'
 import { type ColumnMeasurement, isContentSized } from './measure'
 
 /**
  * Who owns the column widths.
  *
- * - `auto`: the grid owns them. The columns fit their content, and the spare
- *   width lifts the narrow ones, so the table fills its container. Every
- *   trigger fits again.
- * - `manual`: the user owns them. Every held column keeps its width through
- *   every trigger, and the grid spends no container width.
+ * - `auto`: the browser owns them. The table keeps the automatic table layout,
+ *   which lays the columns out to their content and spreads the spare width, so
+ *   the table fills its container. The grid reads the widths and sets none.
+ * - `manual`: the user owns them. The table takes the fixed layout. Every held
+ *   column keeps its width through every trigger, and the grid spends no
+ *   container width.
  *
  * @internal
  */
@@ -28,12 +28,6 @@ type GridSizingMode = 'auto' | 'manual'
 export type ColumnSizerEnv<T> = {
 	/** Visible columns in render order. */
 	columns: readonly GridColumn<T>[]
-	/**
-	 * The width (px) that the auto fill can spend. That is the container, less the
-	 * border chrome of the table. Zero spends nothing, which sizes each column to
-	 * its content.
-	 */
-	space: number
 	/** The engine's current width (px) of a column. */
 	getSize: (id: string) => number
 	/** Reads the DOM facts for the columns in `scan` (see {@link measureColumns}). */
@@ -77,17 +71,32 @@ export type GridColumnSizer = {
 	 */
 	measured: () => boolean
 	/**
-	 * The automatic fit. `fresh` reads the DOM again. Without it, the fit reads
-	 * again only when a column lacks a cached fact.
+	 * The least width (px) of each column that the browser sizes in `auto` mode,
+	 * by column id. The map keeps its identity until a pass changes it. See
+	 * {@link createColumnSizer}, rule 1.
+	 */
+	least: () => ReadonlyMap<string, number>
+	/**
+	 * The pass of `auto` mode: reads the header floors and the content of the
+	 * rendered rows into the least widths. `replace` reads the least widths
+	 * again, and drops the widths of rows that left. Without it, a least width
+	 * only grows.
+	 */
+	observe: <T>(env: ColumnSizerEnv<T>, replace: boolean) => void
+	/**
+	 * The pass of the fixed layout (`manual` mode, or controlled widths): sizes
+	 * each content-sized column, and each data column without a hold. `fresh`
+	 * reads the DOM again. Without it, the pass reads again only when a column
+	 * lacks a cached fact.
 	 */
 	refit: <T>(env: ColumnSizerEnv<T>, fresh: boolean) => ColumnSizingWrite
 	/** "Auto-size this column": one column to its content width. `null` for a non-data column. */
 	sizeColumn: <T>(env: ColumnSizerEnv<T>, id: string) => ColumnSizingWrite | null
 	/** "Auto-size all columns": every data column to its content width. */
 	sizeAll: <T>(env: ColumnSizerEnv<T>) => ColumnSizingWrite
-	/** "Reset column widths": give the widths back to the grid, as on a fresh mount. */
-	reset: <T>(env: ColumnSizerEnv<T>) => ColumnSizingWrite
-	/** The user resized a column. Hold every visible data column where it sits. */
+	/** "Reset column widths": give the widths back to the browser, as on a fresh mount. */
+	reset: () => ColumnSizingWrite
+	/** The user resized a column. Hold every visible data column where it sits, in `manual` mode. */
 	takeControl: <T>(columns: readonly GridColumn<T>[]) => void
 	/** Drop the cached content widths, after a density, column, or font change. */
 	forget: () => void
@@ -139,25 +148,18 @@ export function contentWidth<T>(
 }
 
 /**
- * The width (px) that a column keeps while it sits out the fit. A seeded column
- * that nobody held or released keeps its seed. Every other column keeps its
- * engine width.
+ * The width (px) that a column keeps in the automatic table layout, or
+ * `undefined` when the browser sizes it from its content: the `width` seed of a
+ * data column, inside its bounds, or the `width` of a non-data column. A
+ * content-sized column takes the width of its content (see
+ * {@link isContentSized}).
  *
  * @internal
  */
-function keptWidth<T>(
-	col: GridColumn<T>,
-	env: ColumnSizerEnv<T>,
-	holds: ReadonlySet<string>,
-	released: ReadonlySet<string>,
-): number {
-	const id = String(col.id)
-
+export function fitKeptWidth<T>(col: GridColumn<T>): number | undefined {
 	const seed = parsePxWidth(col.width)
 
-	if (seed == null || !isDataColumn(col) || holds.has(id) || released.has(id)) {
-		return env.getSize(id)
-	}
+	if (seed == null || !isDataColumn(col)) return seed
 
 	return clamp(seed, col.minWidth ?? 0, col.maxWidth ?? Number.MAX_SAFE_INTEGER)
 }
@@ -165,23 +167,33 @@ function keptWidth<T>(
 /**
  * Builds a {@link GridColumnSizer}. These are its rules:
  *
- * 1. One content width. {@link contentWidth} sizes a column for every path: the
- *    automatic fit, each auto-size action, and a column that appears later.
+ * 1. The browser sizes `auto` mode. The table keeps the automatic table layout,
+ *    on the server and in each render, so hydration and a container resize move
+ *    no column that the browser did not move. Each pass reads the content of
+ *    the rendered rows into a least width for each column. A header cell takes
+ *    its least width as its `min-width`, and the body content then sizes no
+ *    column (see `k.fit.held`). A wider row that pages in grows its column, and
+ *    a row that leaves does not shrink it. A windowed body scrolls without a
+ *    pass, so its columns hold. The first pass reads the uncontained layout, so
+ *    a least width is never more than the width that the browser gave its
+ *    column. Each least width is then the width that the browser laid out, and
+ *    the held layout paints the same pixels.
  * 2. Two modes (see {@link GridSizingMode}). A grid mounts in `auto`, or in
  *    `manual` when it mounts with saved widths.
  * 3. A user width change takes control. A drag, a keyboard nudge, and both
- *    auto-size actions hold every visible data column and set `manual`.
+ *    auto-size actions hold every visible data column at the width that it
+ *    shows, and set `manual`.
  * 4. The auto-size actions agree. "Auto-size all columns" gives each column the
  *    width that "Auto-size this column" gives it. Neither action spends spare
- *    width, and neither caps the content.
- * 5. A reset gives the widths back to the grid. It clears every hold and every
- *    released seed, and it is equal to a fresh mount with no saved widths.
+ *    width, and neither caps the content. {@link contentWidth} sizes each one.
+ * 5. A reset gives the widths back to the grid. It clears every hold, every
+ *    released seed, and every least width, and it is equal to a fresh mount
+ *    with no saved widths.
  * 6. The cache holds facts, not decisions. Each pass decides again from the
- *    current holds which columns join the fit. A cached fact therefore stays
- *    true after a hold changes.
- *
+ *    current holds which columns it sizes. A cached fact therefore stays true
+ *    after a hold changes.
  * 7. A content-sized column (see {@link isContentSized}) takes its content width
- *    in every mode. It never joins the fill, and no hold or action reaches it.
+ *    in every mode. It never takes spare width, and no hold or action reaches it.
  *
  * In `manual` mode, a data column without a hold sizes to its content. That is
  * a column that the user shows after the hold, or one that the saved widths do
@@ -212,6 +224,10 @@ export function createColumnSizer({
 	// row that pages or scrolls in only grows a column, so the widths do not jitter.
 	const widest = new Map<string, number>()
 
+	// The least width (px) of each column that the browser sizes (see rule 1). A new
+	// map for each change, so the hook can render from it.
+	let least: ReadonlyMap<string, number> = new Map()
+
 	// The running maximum of each content-sized column's width (px), with the same
 	// grow-only rule as `widest`.
 	const fits = new Map<string, number>()
@@ -219,7 +235,7 @@ export function createColumnSizer({
 	// Whether the last measurement read body cells (see `ColumnMeasurement.cells`).
 	let seen = false
 
-	function read<T>(env: ColumnSizerEnv<T>, scan: ReadonlySet<string>): void {
+	function read<T>(env: ColumnSizerEnv<T>, scan: ReadonlySet<string>): ColumnMeasurement {
 		const measurement = env.measure(scan)
 
 		for (const [id, floor] of measurement.floors) floors.set(id, floor)
@@ -231,24 +247,33 @@ export function createColumnSizer({
 		for (const [id, width] of measurement.fits) fits.set(id, Math.max(fits.get(id) ?? 0, width))
 
 		seen = measurement.cells > 0
+
+		return measurement
 	}
 
 	function getFloor<T>(col: GridColumn<T>): number {
 		return floors.get(String(col.id)) ?? col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE
 	}
 
-	function buildProfile<T>(col: GridColumn<T>): ColumnSizeProfile {
-		const id = String(col.id)
+	// The width (px) of a data column that sizes to its content without the fill:
+	// the content width of its widest row so far, inside its floor and its cap.
+	function desiredWidth<T>(col: GridColumn<T>): number {
+		return contentWidth(col, getFloor(col), widest.get(String(col.id)) ?? 0, true)
+	}
 
-		const floor = getFloor(col)
+	// The least widths of a pass (see rule 1). A column that the browser sized from
+	// its content (`bound`) takes no more than the width that it shows. Without
+	// `replace`, a least width only grows.
+	function holdContent(measurement: ColumnMeasurement, bound: boolean, replace: boolean): void {
+		const next = new Map(replace ? [] : least)
 
-		return {
-			id,
-			min: floor,
-			content: contentWidth(col, floor, widest.get(id) ?? 0, true),
-			max: col.maxWidth ?? Number.MAX_SAFE_INTEGER,
-			frozen: isFrozen(col),
+		for (const [id, need] of measurement.leaves) {
+			const shown = bound ? (measurement.rendered.get(id) ?? need) : need
+
+			next.set(id, Math.max(next.get(id) ?? 0, Math.min(need, shown)))
 		}
+
+		if (!sameNumberMap(least, next)) least = next
 	}
 
 	function takeControl<T>(columns: readonly GridColumn<T>[]): void {
@@ -315,32 +340,37 @@ export function createColumnSizer({
 		// is never held.
 		const stale = (fresh && (joined.length > 0 || fitted.length > 0)) || !seen || unfloored
 
-		const ids = new Set(joined.map((col) => String(col.id)))
+		if (stale) read(env, new Set(joined.map((col) => String(col.id))))
 
-		if (stale) read(env, ids)
+		// The fixed layout spends no spare width: each column without a hold takes the
+		// width of its content, as it does after a drag.
+		const sizing = contentWidths(fitted)
 
-		const content = contentWidths(fitted)
+		for (const col of joined) sizing[String(col.id)] = desiredWidth(col)
 
-		let kept = 0
+		return { sizing, replace: false, persist: 'none' }
+	}
 
-		for (const col of env.columns) {
-			const id = String(col.id)
+	function observe<T>(env: ColumnSizerEnv<T>, replace: boolean): void {
+		const ids = env.columns
+			.filter((col) => isAutoSized(col, holds, released))
+			.map((col) => String(col.id))
 
-			if (!ids.has(id)) kept += content[id] ?? keptWidth(col, env, holds, released)
-		}
+		const measurement = read(env, new Set(ids))
 
-		const space = mode === 'auto' ? Math.max(0, env.space - kept) : 0
+		// A pass that read no row (a skeleton, an empty result) keeps the least widths.
+		if (measurement.cells === 0) return
 
-		return {
-			sizing: { ...content, ...allocateColumnWidths(joined.map(buildProfile), space) },
-			replace: false,
-			persist: 'none',
-		}
+		// With no least width, the body content sizes the columns, so the widths on the
+		// screen bound the content.
+		holdContent(measurement, least.size === 0, replace)
 	}
 
 	return {
 		mode: () => mode,
 		measured: () => seen,
+		least: () => least,
+		observe,
 		refit,
 		sizeColumn: (env, id) => {
 			const col = env.columns.find((candidate) => String(candidate.id) === id)
@@ -362,7 +392,7 @@ export function createColumnSizer({
 
 			return { sizing: freshContent(env, cols), replace: false, persist: 'widths' }
 		},
-		reset: (env) => {
+		reset: () => {
 			mode = 'auto'
 
 			holds.clear()
@@ -373,7 +403,12 @@ export function createColumnSizer({
 
 			fits.clear()
 
-			return { sizing: refit(env, true).sizing, replace: true, persist: 'clear' }
+			least = new Map()
+
+			seen = false
+
+			// The browser sizes the columns again, so the sizing state holds no width.
+			return { sizing: {}, replace: true, persist: 'clear' }
 		},
 		takeControl,
 		forget: () => {

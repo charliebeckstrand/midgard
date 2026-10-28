@@ -152,7 +152,7 @@ export function GridColumnResizeHandle({
 			orientation="vertical"
 			value={Math.round(size)}
 			valueText={intl.formatMessage(gridMessages.pixels, { width: Math.round(size) })}
-			min={min}
+			min={Math.floor(min)}
 			max={max < Number.MAX_SAFE_INTEGER ? max : undefined}
 			data-resizing={dataAttr(resizing)}
 			className={cn(k.resize.handle, k.resize.grip)}

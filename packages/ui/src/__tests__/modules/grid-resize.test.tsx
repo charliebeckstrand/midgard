@@ -34,12 +34,37 @@ describe('Grid resizable columns', () => {
 		expect(screen.queryByRole('separator')).not.toBeInTheDocument()
 	})
 
-	it('lays resizable columns out with a fixed-width colgroup', () => {
+	it('keeps the automatic layout while the browser sizes the columns', () => {
 		const { container } = renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
 
 		const table = container.querySelector('table')
 
+		expect(table).toHaveAttribute('data-grid-fit-layout', 'fill')
+
+		// A `width` seed is a width that the layout keeps. The table has no width.
+		const cols = container.querySelectorAll('colgroup col')
+
+		expect((cols[0] as HTMLElement).style.width).toBe('200px')
+
+		expect((table as HTMLElement).style.width).toBe('')
+	})
+
+	it('lays saved widths out with a fixed-width colgroup', () => {
+		const { container } = renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ defaultValue: { name: 200, age: 120 } }}
+			/>,
+		)
+
+		const table = container.querySelector('table')
+
 		expect(table).toHaveClass('table-fixed')
+
+		expect(table).not.toHaveAttribute('data-grid-fit-layout')
 
 		const cols = container.querySelectorAll('colgroup col')
 
@@ -85,6 +110,7 @@ describe('Grid resizable columns', () => {
 				columns={[{ id: 'select', selectable: true }, ...columns]}
 				rows={rows}
 				getKey={getKey}
+				columnSizing={{ defaultValue: { name: 200, age: 120 } }}
 			/>,
 		)
 
@@ -110,8 +136,16 @@ describe('Grid resizable columns', () => {
 		expect((cols[0] as HTMLElement).style.width).toBe('64px')
 	})
 
-	it('sizes data-column headers from the engine', () => {
-		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+	it('sizes data-column headers from the engine in the fixed layout', () => {
+		renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ defaultValue: { name: 200, age: 120 } }}
+			/>,
+		)
 
 		const [nameHeader, ageHeader] = screen.getAllByRole('columnheader')
 

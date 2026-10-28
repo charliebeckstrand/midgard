@@ -558,9 +558,9 @@ describe('grid infinite scroll — stable column widths (real browser)', () => {
 		)
 	}
 
-	// The label column's frozen width, read off the fixed-layout `<colgroup>`.
+	// The label column's width on the screen, read off its header.
 	const labelWidth = (container: HTMLElement) =>
-		(container.querySelector('colgroup col') as HTMLElement | null)?.style.width ?? ''
+		container.querySelector('th[data-grid-col="label"]')?.getBoundingClientRect().width ?? 0
 
 	/** Scroll to the wide tail, appending batches until the last (wide) row renders. */
 	async function loadWideTail(container: HTMLElement) {
@@ -593,7 +593,7 @@ describe('grid infinite scroll — stable column widths (real browser)', () => {
 
 		const initial = labelWidth(container)
 
-		expect(initial).not.toBe('')
+		expect(initial).toBeGreaterThan(0)
 
 		await loadWideTail(container)
 
@@ -609,12 +609,12 @@ describe('grid infinite scroll — stable column widths (real browser)', () => {
 
 		await document.fonts.ready
 
-		const initial = Number.parseFloat(labelWidth(container))
+		const initial = labelWidth(container)
 
 		await loadWideTail(container)
 
-		// Without the freeze the appended wide rows re-fit the label column wider than
-		// its initial short-content fit: the shift `stableColumnWidths` suppresses.
-		await waitFor(() => expect(Number.parseFloat(labelWidth(container))).toBeGreaterThan(initial))
+		// Without the freeze the appended wide rows widen the label column past its
+		// initial short-content width: the shift `stableColumnWidths` suppresses.
+		await waitFor(() => expect(labelWidth(container)).toBeGreaterThan(initial))
 	})
 })

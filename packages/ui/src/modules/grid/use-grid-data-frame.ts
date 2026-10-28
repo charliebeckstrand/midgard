@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { GridSortState } from './context'
 import type { GridGroupResult } from './engine/grid-group/resolve'
@@ -65,54 +65,9 @@ function useBodyRowCount<T>(args: {
 }
 
 /**
- * Whether the table can paint: latched on, once.
- *
- * A reload paints the server's HTML first, and the server cannot have measured anything.
- * Its colgroup therefore carries the declared widths, and the fit that runs at hydration
- * replaces them. That repaint is the column jump. Nothing can compute a content fit
- * before the DOM exists, so rather than paint a width that is about to change, paint none (see
- * {@link widthGateClass}).
- *
- * `settled` waits for a width pass that read real body cells. Some bodies have no data
- * cells to read, so the gate also opens for them:
- *
- * - `loading`: the skeleton is the state to show. A hidden skeleton shows nothing for all
- *   of the fetch. The columns can fit again when the rows land.
- * - `failed`: the error slot replaces the rows, so no pass reads a body cell.
- * - no rows: the header and the empty state are all there is to show.
- *
- * `settled` is true from the first frame for any grid the autosizer does not size. Such a
- * grid is not resizable, has its sizing controlled by the consumer, or has no
- * `ResizeObserver` (SSR and jsdom). Those paint immediately and nothing regresses.
- *
- * Latched because the reveal is a one-way door. `loading` goes true again on page two, a
- * filter, and a re-sort. Blanking a table the user is already reading would be far worse
- * than the first-paint jump this exists to prevent. The latch is state that render adjusts,
- * and it only goes from false to true.
- *
- * @internal
- */
-function useTableRevealed(
-	settled: boolean,
-	loading: boolean,
-	failed: boolean,
-	rowCount: number,
-): boolean {
-	const reveal = settled || loading || failed || rowCount === 0
-
-	// Adjusted during render, so the first render that reveals returns it.
-	const [revealed, setRevealed] = useState(reveal)
-
-	if (reveal && !revealed) setRevealed(true)
-
-	return revealed || reveal
-}
-
-/**
- * The frame phase of {@link GridData}. It resolves the width gate, the resize
- * layout, the group band, and the grand total. It counts the rows for ARIA and
- * for the footer, and places the new-row slot. It also resolves the grid
- * semantics, the hover wash, the reorder and animation gates, and the wiring of
+ * The frame phase of {@link GridData}. It resolves the resize layout, the group
+ * band, and the grand total. It counts the rows for ARIA and for the footer, and
+ * places the new-row slot. It also resolves the grid semantics, the hover wash, the reorder and animation gates, and the wiring of
  * the grouped bodies.
  *
  * @internal
@@ -126,7 +81,6 @@ export function useGridDataFrame<T>({
 	showingError,
 	hasRows,
 	hasData,
-	widthsSettled,
 	resizable,
 	resize,
 	className,
@@ -187,8 +141,6 @@ export function useGridDataFrame<T>({
 	hasRows: boolean
 	/** Whether the header is live: there is data, or a filter emptied the view. */
 	hasData: boolean
-	/** Whether a width pass read real body cells. */
-	widthsSettled: boolean
 	resizable: boolean
 	resize: GridColumnResize | null
 	/** The column groups, for the band row. */
@@ -233,15 +185,11 @@ export function useGridDataFrame<T>({
 }) {
 	const intl = useIntl()
 
-	// Whether the table can paint yet; holds its first frame until the widths are
-	// settled (see `useTableRevealed`, and the width gate on the `<table>`).
-	const revealed = useTableRevealed(widthsSettled, loading, showingError, renderRows.length)
-
 	// Fixed-layout column widths so a resize touches only its own column;
 	// `resizing` flags an in-flight drag so head/cells suppress their hover wash
 	// and truncation tooltips (shared via context) and the active column's grip
 	// reads accent.
-	const { colGroup, tableClassName, tableWidth, resizing } = resolveResizeLayout({
+	const { colGroup, tableClassName, tableWidth, fit, held, resizing } = resolveResizeLayout({
 		resizable,
 		resize,
 		columns: visibleColumns,
@@ -397,10 +345,11 @@ export function useGridDataFrame<T>({
 	)
 
 	return {
-		revealed,
 		colGroup,
 		tableClassName,
 		tableWidth,
+		fit,
+		held,
 		resizing,
 		groupHeader,
 		groupRowOffset,

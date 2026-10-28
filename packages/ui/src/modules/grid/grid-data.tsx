@@ -9,6 +9,7 @@ import { useDensityStep } from '../../primitives/density'
 import type { TextDirection } from '../../primitives/direction'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { GridContext, GridSettleContext } from './context'
+import { FIRST_ROW_ESTIMATE } from './engine/grid-constants'
 import { gridWrapperClass, resolveStep } from './engine/grid-data/classes'
 import { assertProps, hasErrorSlot } from './engine/grid-data/guards'
 import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
@@ -337,7 +338,6 @@ export function GridData<T>({
 		resize,
 		settle,
 		fitRenderedRows,
-		widthsSettled,
 		globalFilter,
 		filters,
 		pinning,
@@ -542,10 +542,11 @@ export function GridData<T>({
 
 	// Phase 5: the layout, the row counts, and the render gates.
 	const {
-		revealed: showTable,
 		colGroup,
 		tableClassName,
 		tableWidth,
+		fit,
+		held,
 		resizing,
 		groupHeader,
 		groupRowOffset,
@@ -571,7 +572,6 @@ export function GridData<T>({
 		showingError,
 		hasRows,
 		hasData,
-		widthsSettled,
 		resizable,
 		resize,
 		className,
@@ -659,8 +659,9 @@ export function GridData<T>({
 				// `serverSortSettling` is only ever set under a manual sort, so a
 				// client-sorted grid's table class is untouched.
 				settling: serverSortSettling,
-				revealed: showTable,
 				width: tableWidth,
+				fit,
+				held,
 				colGroup,
 				props: { ...tableProps, ref: tableElementRef },
 				tree: groupingActive,
@@ -716,7 +717,7 @@ export function GridData<T>({
 				virtualize: gated.virtualize
 					? {
 							scrollRef,
-							estimateSize: estimateSize ?? rowHeight,
+							estimateSize: estimateSize ?? rowHeight ?? FIRST_ROW_ESTIMATE,
 							overscan,
 							scrollIntoViewRef: scrollRowIntoViewRef,
 							infiniteScroll,

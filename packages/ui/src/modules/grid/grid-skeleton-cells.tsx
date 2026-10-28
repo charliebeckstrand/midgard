@@ -1,11 +1,10 @@
 'use client'
 
 import type { ClassValue } from 'clsx'
-import { memo, type ReactElement, type ReactNode } from 'react'
+import { memo, type ReactElement } from 'react'
 import { TableBody, TableCell, TableRow } from '../../components/table'
 import { TextSkeleton } from '../../components/text'
 import { cn } from '../../core'
-import { k } from '../../recipes/kata/grid'
 import { rangeKeys } from '../../utilities'
 import { GRID_LOADING_ROWS } from './engine/grid-constants'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
@@ -115,70 +114,12 @@ export function GridSkeletonRows<T>({ columns, pinning }: GridSkeletonRowsProps<
  * Column-aware where the generic `TableLoading` is not, so the placeholders hold
  * the layout the arriving rows land in.
  *
- * The body carries `data-grid-placeholder`, so the width gate does not hide it
- * (see `widthGateClass`).
- *
  * @internal
  */
 export function GridLoadingBody<T>({ columns, pinning }: GridSkeletonRowsProps<T>) {
 	return (
-		<TableBody data-grid-placeholder="">
+		<TableBody>
 			<GridSkeletonRows columns={columns} pinning={pinning} />
-		</TableBody>
-	)
-}
-
-/**
- * The inline style of the anchor cell of {@link GridGateSkeleton}. It clears the
- * density padding and the outline rules that the table projects onto each cell,
- * so the anchor row has no height. Hoisted so every render shares one object.
- */
-const ANCHOR_CELL_STYLE = { padding: 0, border: 0 } as const
-
-/** Props for {@link GridGateSkeleton}. @internal */
-type GridGateSkeletonProps<T> = {
-	/** The visible columns, in render order. */
-	columns: GridColumn<T>[]
-	/** The `<colgroup>` of the table, so that the placeholder bars line up under the headers. */
-	colGroup: ReactNode
-}
-
-/**
- * The loading row over the body of a table that the width gate holds (see
- * `widthGateClass`). After a reload, the server's header and column frame show,
- * and the body rows wait at zero opacity for the fit at hydration. This row of
- * placeholder bars shows at the top of that body.
- *
- * The body keeps its rows, so the fit can measure them and the table keeps its
- * height. The placeholder must therefore add no height. It is a body of its own
- * after the head: one row of no height, whose cell spans the table and holds the
- * placeholder table out of flow. That table takes the same `<colgroup>`, so
- * each bar sits under its header. It shows one row, as {@link GridLoadingBody}
- * does.
- *
- * The anchor row is `aria-hidden` and the placeholder is `inert`, so assistive
- * tech and focus skip both. The body carries `data-grid-placeholder`, so the
- * gate does not hide it.
- *
- * @internal
- */
-export function GridGateSkeleton<T>({ columns, colGroup }: GridGateSkeletonProps<T>) {
-	return (
-		<TableBody data-slot="grid-gate-skeleton" data-grid-placeholder="">
-			{/* biome-ignore lint/a11y/noAriaHiddenOnFocusable: the anchor row holds an inert placeholder and no control, so it must not be exposed as a table row */}
-			<tr aria-hidden="true">
-				<td colSpan={columns.length} style={ANCHOR_CELL_STYLE} className={cn(k.gate.anchor)}>
-					<div inert className={cn(k.gate.skeleton)}>
-						<table className={cn(k.gate.table)}>
-							{colGroup}
-
-							<tbody>
-								<GridSkeletonRows columns={columns} pinning={null} />
-							</tbody>
-						</table>
-					</div>
-				</td>
-			</tr>
 		</TableBody>
 	)
 }

@@ -12,10 +12,11 @@ let sharedRange: Range | null = null
 
 /**
  * The intrinsic content width of an element's text: the width it wants before
- * any truncation clip. It is read sub-pixel from a `Range` over its contents.
- * `scrollWidth` is the integer fallback where `Range` geometry is unavailable
- * (jsdom). The marked leaves (`data-grid-content`) carry no padding or border, so
- * this is their content-box width. Rounded up so a fractional pixel never clips.
+ * any truncation clip. It is read sub-pixel from a `Range` over its contents, so
+ * it is the width that the browser lays out. `scrollWidth` is the integer
+ * fallback where `Range` geometry is unavailable (jsdom). The marked leaves
+ * (`data-grid-content`) carry no padding or border, so this is their content-box
+ * width.
  *
  * @internal
  */
@@ -29,7 +30,7 @@ function intrinsicWidth(el: HTMLElement): number {
 	if (typeof range.getBoundingClientRect === 'function') {
 		const width = range.getBoundingClientRect().width
 
-		if (width > 0) return Math.ceil(width)
+		if (width > 0) return width
 	}
 
 	return el.scrollWidth
@@ -65,15 +66,18 @@ function headerWidth(
 
 	const children = [...slot.children] as HTMLElement[]
 
-	const childrenWidth = children.reduce((sum, child) => sum + child.offsetWidth, 0)
+	const childrenWidth = children.reduce(
+		(sum, child) => sum + child.getBoundingClientRect().width,
+		0,
+	)
 
 	const minGaps = Math.max(0, children.length - 1) * slotGap
 
 	// The free space the flex row spreads between its items beyond their natural
 	// widths and the fixed gaps; subtract it to reach the tight row.
-	const free = Math.max(0, slot.clientWidth - childrenWidth - minGaps)
+	const free = Math.max(0, slot.getBoundingClientRect().width - childrenWidth - minGaps)
 
-	const titleGrowth = Math.max(0, titleIntrinsic - titleLeaf.offsetWidth)
+	const titleGrowth = Math.max(0, titleIntrinsic - titleLeaf.getBoundingClientRect().width)
 
 	return th.getBoundingClientRect().width - free + titleGrowth
 }
@@ -112,8 +116,34 @@ function isSingleWordTitle(title: GridColumn<unknown>['title']): boolean {
 const OWN_CELL = ':not(:scope [data-detail-row] *)'
 
 /**
+ * The rendered header cell of each column, by its id. A data header carries
+ * `data-grid-col`. The header of a non-data column carries `data-grid-fit` in
+ * its place. A band cell of a column group carries neither.
+ *
+ * @internal
+ */
+export function collectHeaders(container: HTMLElement): Map<string, HTMLElement> {
+	const headers = new Map<string, HTMLElement>()
+
+	for (const th of container.querySelectorAll<HTMLElement>(`th[data-grid-col]${OWN_CELL}`)) {
+		const id = th.getAttribute('data-grid-col')
+
+		if (id != null) headers.set(id, th)
+	}
+
+	for (const th of container.querySelectorAll<HTMLElement>(`th[data-grid-fit]${OWN_CELL}`)) {
+		const id = th.getAttribute('data-grid-fit')
+
+		if (id != null) headers.set(id, th)
+	}
+
+	return headers
+}
+
+/**
  * The rendered `<th>`/`<td>` cells grouped by their `data-grid-col` id, read once per
- * measurement pass. The headers also hold the `data-grid-fit` header of each non-data column.
+ * measurement pass. The headers also hold the `data-grid-fit` header of each non-data
+ * column (see {@link collectHeaders}).
  *
  * @internal
  */
@@ -123,20 +153,7 @@ function collectCells(container: HTMLElement): {
 	/** Body cells found across every column: zero when the body rendered none. */
 	cells: number
 } {
-	const headers = new Map<string, HTMLElement>()
-
-	for (const th of container.querySelectorAll<HTMLElement>(`th[data-grid-col]${OWN_CELL}`)) {
-		const id = th.getAttribute('data-grid-col')
-
-		if (id != null) headers.set(id, th)
-	}
-
-	// The header of a non-data column carries `data-grid-fit` in place of `data-grid-col`.
-	for (const th of container.querySelectorAll<HTMLElement>(`th[data-grid-fit]${OWN_CELL}`)) {
-		const id = th.getAttribute('data-grid-fit')
-
-		if (id != null) headers.set(id, th)
-	}
+	const headers = collectHeaders(container)
 
 	const bodies = new Map<string, HTMLElement[]>()
 
@@ -171,9 +188,13 @@ type PendingLeaf = { leaf: HTMLElement; chrome: number }
  * layout (text-only and leafless cells). It also holds the element-bearing
  * leaves awaiting the batched `max-content` read, which folds into `widest`.
  *
+ * `least` is the widest need of the leaves alone, as the automatic table layout
+ * reads it: not rounded, and with each leaf inside its `max-width` (`cap`). It
+ * is `0` when the column rendered no leaf.
+ *
  * @internal
  */
-type ColumnScan = { widest: number; pending: PendingLeaf[] }
+type ColumnScan = { widest: number; least: number; cap: number; pending: PendingLeaf[] }
 
 /**
  * Whether a leaf holds an element child that lays out a box. A `hidden` child (the
@@ -211,6 +232,10 @@ function laysOutElements(leaf: HTMLElement): boolean {
 function scanBodyCells(cells: HTMLElement[]): ColumnScan {
 	let widest = 0
 
+	let least = 0
+
+	let cap: number | undefined
+
 	const pending: PendingLeaf[] = []
 
 	for (const td of cells) {
@@ -222,18 +247,35 @@ function scanBodyCells(cells: HTMLElement[]): ColumnScan {
 			continue
 		}
 
-		const chrome = td.getBoundingClientRect().width - leaf.offsetWidth
+		// One recipe class caps each leaf of a column, so the first leaf gives the cap.
+		cap ??= leafCap(leaf)
+
+		const chrome = td.getBoundingClientRect().width - leaf.getBoundingClientRect().width
 
 		if (laysOutElements(leaf)) {
 			pending.push({ leaf, chrome })
 		} else {
-			const need = chrome + intrinsicWidth(leaf)
+			const width = intrinsicWidth(leaf)
 
-			if (need > widest) widest = need
+			widest = Math.max(widest, chrome + width)
+
+			least = Math.max(least, chrome + Math.min(width, cap))
 		}
 	}
 
-	return { widest, pending }
+	return { widest, least, cap: cap ?? Number.POSITIVE_INFINITY, pending }
+}
+
+/**
+ * The `max-width` (px) of a body leaf, or infinity when it has none. The fit
+ * classes cap a leaf in the automatic table layout (see `k.fit.cap`).
+ *
+ * @internal
+ */
+function leafCap(leaf: HTMLElement): number {
+	const cap = Number.parseFloat(getComputedStyle(leaf).maxWidth)
+
+	return Number.isFinite(cap) ? cap : Number.POSITIVE_INFINITY
 }
 
 /**
@@ -254,36 +296,56 @@ function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
 
 	if (pending.length === 0) return
 
-	const prior = pending.map(({ leaf }) => leaf.style.width)
+	const prior = pending.map(({ leaf }) => [leaf.style.width, leaf.style.contain] as const)
 
-	for (const { leaf } of pending) leaf.style.width = 'max-content'
+	// A held leaf contains its inline size (see `k.fit.held`), and a contained box has
+	// no `max-content` width of its own.
+	for (const { leaf } of pending) {
+		leaf.style.width = 'max-content'
+
+		leaf.style.contain = 'none'
+	}
 
 	for (const scan of scans) {
 		for (const { leaf, chrome } of scan.pending) {
-			const need = chrome + (Math.ceil(leaf.getBoundingClientRect().width) || leaf.scrollWidth)
+			const width = leaf.getBoundingClientRect().width || leaf.scrollWidth
 
-			if (need > scan.widest) scan.widest = need
+			scan.widest = Math.max(scan.widest, chrome + width)
+
+			scan.least = Math.max(scan.least, chrome + Math.min(width, scan.cap))
 		}
 	}
 
-	for (const [index, { leaf }] of pending.entries()) leaf.style.width = prior[index] ?? ''
+	for (const [index, { leaf }] of pending.entries()) {
+		leaf.style.width = prior[index]?.[0] ?? ''
+
+		leaf.style.contain = prior[index]?.[1] ?? ''
+	}
 }
 
 /**
  * A data column's hard floor (px): the narrowest it can be sized (by the
- * allocator or a drag-resize) before its header can't show. A single-word title
+ * automatic fit or a drag-resize) before its header can't show. A single-word title
  * reserves its full width, so the column is at least that wide and the header
  * never truncates. A multi-word or non-string title reserves only its affordance
- * icons plus a small text allowance. A narrow-data column then stays narrow, and
+ * icons plus a small text allowance. A drag can then narrow a narrow-data column, and
  * that header truncates. Clamped up to the column's declared `minWidth` and down
  * to its `maxWidth`. It is read from the header DOM unclipped by the column's
  * current width (see {@link headerWidth}). A wide column therefore reports the
  * tight floor, not its current size. It is the same floor whatever width it
  * holds.
  *
+ * `header` is the width (px) that the header needs to show its title in full. The
+ * automatic table layout gives a column at least this width, so the content width
+ * of a column includes it (see `contentWidth`).
+ *
  * @internal
  */
-function columnFloor<T>(col: GridColumn<T>, th: HTMLElement | undefined, slotGap: number): number {
+function columnFloor<T>(
+	col: GridColumn<T>,
+	th: HTMLElement | undefined,
+	slotGap: number,
+): { floor: number; header: number } {
 	const titleLeaf = th?.querySelector<HTMLElement>('[data-grid-content]') ?? null
 
 	const titleIntrinsic = titleLeaf ? intrinsicWidth(titleLeaf) : 0
@@ -299,7 +361,7 @@ function columnFloor<T>(col: GridColumn<T>, th: HTMLElement | undefined, slotGap
 		? header
 		: Math.max(0, header - titleIntrinsic) + HEADER_TRUNCATE_ALLOWANCE
 
-	return clamp(headerFloor, col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE, max)
+	return { floor: clamp(headerFloor, col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE, max), header }
 }
 
 /**
@@ -352,7 +414,7 @@ function fitWidths<T>(
 	if (ids.size === 0) return widths
 
 	const fold = (id: string, width: number) => {
-		widths.set(id, Math.max(widths.get(id) ?? 0, Math.ceil(width)))
+		widths.set(id, Math.max(widths.get(id) ?? 0, width))
 	}
 
 	// The chrome of the first cell of each column. One recipe class pads every cell
@@ -394,7 +456,8 @@ export type ColumnMeasurement = {
 	/** The hard floor (px) of every data column the pass saw (see {@link columnFloor}). */
 	floors: Map<string, number>
 	/**
-	 * The widest body cell (px, border box, rounded up) of each scanned column.
+	 * The widest cell (px, border box) of each scanned column: a body cell, or the
+	 * header with its title in full (see {@link columnFloor}).
 	 * A scanned column that rendered no body cell has no entry.
 	 */
 	bodies: Map<string, number>
@@ -412,6 +475,15 @@ export type ColumnMeasurement = {
 	cells: number
 	/** The content width (px) of each {@link isContentSized} column (see {@link fitWidths}). */
 	fits: Map<string, number>
+	/**
+	 * The widest body leaf (px, border box of its cell) of each scanned column, as
+	 * the automatic table layout reads it: not rounded, and inside the `max-width`
+	 * of the leaf. A scanned column that rendered no leaf has no entry. These are
+	 * the least widths of the automatic layout (see `createColumnSizer`).
+	 */
+	leaves: Map<string, number>
+	/** The rendered width (px, border box) of the header cell of each scanned column. */
+	rendered: Map<string, number>
 }
 
 /**
@@ -448,6 +520,9 @@ export function measureColumns<T>({
 
 	const floors = new Map<string, number>()
 
+	// The width that each data header needs to show its title in full.
+	const titles = new Map<string, number>()
+
 	const scans = new Map<string, ColumnScan>()
 
 	// Pass one: every read against the current layout (header floors and body
@@ -457,7 +532,11 @@ export function measureColumns<T>({
 
 		const id = String(col.id)
 
-		floors.set(id, Math.ceil(columnFloor(col, headers.get(id), slotGap)))
+		const { floor, header } = columnFloor(col, headers.get(id), slotGap)
+
+		floors.set(id, floor)
+
+		titles.set(id, header)
 
 		const cellsOfColumn = bodies.get(id)
 
@@ -472,12 +551,26 @@ export function measureColumns<T>({
 
 	const widest = new Map<string, number>()
 
-	// Every width rounds up, so that a fractional pixel never clips the content.
-	for (const [id, { widest: width }] of scans) widest.set(id, Math.ceil(width))
+	const leaves = new Map<string, number>()
+
+	const rendered = new Map<string, number>()
+
+	// No width rounds. Each one is the width that the browser lays out, so an
+	// auto-size action gives a column the width of the automatic layout. That
+	// layout also shows each title in full.
+	for (const [id, { widest: width, least }] of scans) {
+		widest.set(id, Math.max(width, titles.get(id) ?? 0))
+
+		if (least > 0) leaves.set(id, least)
+
+		const th = headers.get(id)
+
+		if (th) rendered.set(id, th.getBoundingClientRect().width)
+	}
 
 	// A collapse alone keeps a boundary in the last leaf. A boundary at the
 	// document start collapses the range there and releases that leaf.
 	sharedRange?.setEnd(document, 0)
 
-	return { floors, bodies: widest, cells, fits }
+	return { floors, bodies: widest, cells, fits, leaves, rendered }
 }

@@ -7,7 +7,6 @@
 
 import type { ChatMessageData } from '../modules/chat'
 import type { GridColumn } from '../modules/grid'
-import type { ColumnSizeProfile } from '../modules/grid/engine/grid-sizing/allocate'
 import type { QueryField, QueryGroup, QueryNode } from '../modules/query/engine/types'
 
 /** The shared LCG behind every generator here and in `browser/fixtures.ts`. */
@@ -340,32 +339,6 @@ export function makeInlineColumns(): GridColumn<Shipment>[] {
 		{ id: 'loads', title: 'Loads', sortable: true },
 		{ id: 'createdAt', title: 'Created' },
 	]
-}
-
-/**
- * Synthetic {@link ColumnSizeProfile}s for the `allocateColumnWidths` micro-bench,
- * standing in for the DOM measurement pass (which is jsdom-bound). Content widths
- * vary column to column so both the largest-remainder rounding and the surplus
- * level-up do real work; every fifth column is `width`-pinned (`min === content
- * === max`) so the allocator's hold path is exercised too. Deterministic via the
- * shared LCG.
- */
-export function makeColumnSizeProfiles(count: number, seed = 1): ColumnSizeProfile[] {
-	const rand = rng(seed)
-
-	const profiles: ColumnSizeProfile[] = new Array(count)
-
-	for (let i = 0; i < count; i++) {
-		const content = 80 + Math.floor(rand() * 220)
-
-		const pinned = i % 5 === 4
-
-		profiles[i] = pinned
-			? { id: `col-${i}`, min: content, content, max: content }
-			: { id: `col-${i}`, min: 48, content, max: Number.MAX_SAFE_INTEGER }
-	}
-
-	return profiles
 }
 
 /**

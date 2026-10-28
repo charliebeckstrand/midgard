@@ -22,6 +22,7 @@ import {
 	EXPANDER_COLUMN_SIZE,
 	SELECT_COLUMN_SIZE,
 } from '../grid-constants'
+import { isNewRowAddColumn, NEW_ROW_ADD_COLUMN_SIZE } from '../grid-new-row-column'
 import { manualTotals } from '../grid-pagination-utilities'
 import type {
 	EngineColumn,
@@ -81,7 +82,8 @@ function deriveColumnBehavior<T>(col: GridColumn<T>) {
  *
  * An `actions` column gets no seed. Its content is the consumer's: one text button, a
  * save/discard pair, a lone icon. Any number here would be a guess that is wrong for most of
- * them, and the autosizer measures it like the others.
+ * them, and the autosizer measures it like the others. The Add column of the new-row slot
+ * is the exception, because the grid supplies its icon button (see `withNewRowAddColumn`).
  *
  * @internal
  */
@@ -91,6 +93,8 @@ function affordanceColumnSize<T>(col: GridColumn<T>): number | undefined {
 	if (col.dragHandle) return DRAG_HANDLE_COLUMN_SIZE
 
 	if (col.expander) return EXPANDER_COLUMN_SIZE
+
+	if (isNewRowAddColumn(col.id)) return NEW_ROW_ADD_COLUMN_SIZE
 
 	return undefined
 }

@@ -18,6 +18,7 @@ import {
 } from './engine/grid-pin/layout'
 import type { FrozenOffsets } from './engine/grid-pin/measure'
 import { createFrozenOffsetStore, writeFrozenOffsets } from './engine/grid-pin/offsets'
+import { fitKeptWidth } from './engine/grid-sizing/sizer'
 import type { EngineColumn } from './engine/grid-table/features'
 import { buildColumnPinning, type GridColumnPinning } from './engine/grid-table/pinning-view'
 import type { GridColumn } from './types'
@@ -46,6 +47,11 @@ import { useGridPinnedOffsets } from './use-grid-pinned-offsets'
 export function useGridPinningView<T>(args: {
 	hasPinned: boolean
 	resizable: boolean
+	/**
+	 * Whether the grid renders the fit layout, where the browser sizes the columns
+	 * (see `useGridColumnSizing`). The engine widths then do not apply.
+	 */
+	fitting: boolean
 	columnPinning: ColumnPinningState
 	visibleColumns: GridColumn<T>[]
 	containerRef: RefObject<HTMLElement | null> | undefined
@@ -53,7 +59,19 @@ export function useGridPinningView<T>(args: {
 	right: readonly EngineColumn<T>[]
 	widths: ReadonlyMap<string, number>
 }): GridColumnPinning | null {
-	const { hasPinned, left, right, widths, containerRef } = args
+	const { hasPinned, left, right, containerRef } = args
+
+	// The fit layout knows only the widths that it keeps. Its offsets count no
+	// other width, so a frozen column sits at its place in the flow before the
+	// measurement below reads the real offsets. An offset past that place moves a
+	// column over its neighbor.
+	const widths = useMemo(
+		() =>
+			args.fitting
+				? new Map(args.visibleColumns.map((col) => [String(col.id), fitKeptWidth(col) ?? 0]))
+				: args.widths,
+		[args.fitting, args.visibleColumns, args.widths],
+	)
 
 	const sections = {
 		left: left.map((column) => column.id),
@@ -80,7 +98,7 @@ export function useGridPinningView<T>(args: {
 
 	const measured = useGridPinnedOffsets({
 		frozen: hasPinned,
-		engineSized: args.resizable,
+		engineSized: args.resizable && !args.fitting,
 		pinning: args.columnPinning,
 		columns: args.visibleColumns,
 		containerRef,

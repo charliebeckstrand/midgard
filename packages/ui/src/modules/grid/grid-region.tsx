@@ -152,14 +152,13 @@ export function GridOverlayDensity({ children }: { children: ReactNode }) {
 }
 
 /**
- * The inline size of a {@link GridScrollRegion}: its `maxHeight` cap, and its
- * height too while it reserves. A `fill` region flexes into its parent's box,
- * so it takes no inline size. @internal
+ * The inline size of a {@link GridScrollRegion}: its `maxHeight` cap. A `fill`
+ * region flexes into its parent's box, so it takes no inline size. @internal
  */
-function capStyle(maxHeight: string | undefined, reserve: boolean): CSSProperties | undefined {
+function capStyle(maxHeight: string | undefined): CSSProperties | undefined {
 	if (!maxHeight || maxHeight === 'fill') return undefined
 
-	return reserve ? { maxHeight, height: maxHeight } : { maxHeight }
+	return { maxHeight }
 }
 
 /** Props for {@link GridScrollRegion}. @internal */
@@ -174,12 +173,6 @@ type GridScrollRegionProps = {
 	grouped: boolean
 	/** Whether the body is a window. A flat master-detail or grouped body clears the native scroll anchor after a clamp (see {@link useGridClampAnchor}). A windowed one turns the native scroll anchor off (see `k.sticky.wrapper.windowed`). */
 	virtualized: boolean
-	/**
-	 * Whether the region takes the full `maxHeight` before it has rows to hold. A
-	 * window renders no row before hydration, so the region holds the height that
-	 * its rows will take.
-	 */
-	reserve: boolean
 	children: ReactNode
 }
 
@@ -190,10 +183,6 @@ type GridScrollRegionProps = {
  * inline cap; any other value caps the wrapper directly. Split out of {@link GridData} so the
  * branching stays off its complexity budget.
  *
- * @remarks A `reserve` region takes `maxHeight` as its height too. A window
- * has rows enough to fill its region in the usual case, so the region keeps its
- * height when the rows arrive. A window with fewer rows than that becomes
- * shorter at that time.
  * @internal
  */
 export function GridScrollRegion({
@@ -203,7 +192,6 @@ export function GridScrollRegion({
 	expandable,
 	grouped,
 	virtualized,
-	reserve,
 	children,
 }: GridScrollRegionProps) {
 	// A master-detail or grouped body anchors its rows with the native scroll
@@ -225,7 +213,7 @@ export function GridScrollRegion({
 				itemBody && virtualized && k.sticky.wrapper.windowed,
 				fillHeight && k.sticky.wrapper.fill,
 			)}
-			style={capStyle(maxHeight, reserve)}
+			style={capStyle(maxHeight)}
 		>
 			{/* The wrapper scrolls the table, so the table does not scroll itself. */}
 			<TableScrollsContext value={false}>{children}</TableScrollsContext>

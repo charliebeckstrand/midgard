@@ -26,11 +26,12 @@ const column = (id: string, over: Partial<GridColumn<Row>> = {}): GridColumn<Row
  */
 function fakeGrid(args: {
 	columns: GridColumn<Row>[]
-	space: number
-	/** The widest body cell of each column. */
+	/** The widest body cell of each column, and its widest leaf. */
 	bodies: Record<string, number>
 	/** The header floor of each column; 40 when absent. */
 	floors?: Record<string, number>
+	/** The width that the browser gives a header; wider than each body when absent. */
+	rendered?: Record<string, number>
 	/** Body cells the DOM holds; zero is a loading skeleton. */
 	cells?: number
 	seeded?: Record<string, number>
@@ -41,18 +42,15 @@ function fakeGrid(args: {
 
 	const grid = {
 		columns: args.columns,
-		space: args.space,
 		bodies: { ...args.bodies },
+		rendered: { ...args.rendered },
 		cells: args.cells ?? 3,
 		reads: 0,
-		scans: [] as string[][],
 		state,
 	}
 
 	const measure = (scan: ReadonlySet<string>): ColumnMeasurement => {
 		grid.reads++
-
-		grid.scans.push([...scan])
 
 		const floors = new Map(
 			grid.columns
@@ -70,14 +68,17 @@ function fakeGrid(args: {
 				: [],
 		)
 
+		const rendered = new Map(
+			[...scan].map((id) => [id, grid.rendered[id] ?? Number.MAX_SAFE_INTEGER] as const),
+		)
+
 		const fits = new Map(Object.entries(args.fits ?? {}))
 
-		return { floors, bodies, cells: grid.cells, fits }
+		return { floors, bodies, cells: grid.cells, fits, leaves: new Map(bodies), rendered }
 	}
 
 	const env = (): ColumnSizerEnv<Row> => ({
 		columns: grid.columns,
-		space: grid.space,
 		getSize: (id) => grid.state[id] ?? 150,
 		measure,
 	})
@@ -92,17 +93,12 @@ function fakeGrid(args: {
 		Object.assign(grid.state, write.sizing)
 	}
 
-	const sizer = createColumnSizer({
-		floors: new Map(),
-		seeded: Object.keys(args.seeded ?? {}),
-	})
+	const floors = new Map<string, number>()
 
-	return { grid, env, apply, sizer }
+	const sizer = createColumnSizer({ floors, seeded: Object.keys(args.seeded ?? {}) })
+
+	return { grid, env, apply, sizer, floors }
 }
-
-/** Sum of a sizing's widths. */
-const total = (sizing: Record<string, number>) =>
-	Object.values(sizing).reduce((sum, width) => sum + width, 0)
 
 describe('contentWidth', () => {
 	it('is the wider of the header floor and the widest body cell', () => {
@@ -131,78 +127,120 @@ describe('createColumnSizer', () => {
 
 	const bodies = { a: 60, b: 90, c: 120 }
 
-	describe('the automatic fit', () => {
-		it('fills the space in auto mode', () => {
-			const { env, sizer } = fakeGrid({ columns, space: 600, bodies })
+	describe('the automatic layout', () => {
+		it('reads the content of the rendered rows into the least widths', () => {
+			const { env, sizer } = fakeGrid({ columns, bodies })
 
-			const write = sizer.refit(env(), true)
+			sizer.observe(env(), true)
 
 			expect(sizer.mode()).toBe('auto')
 
-			expect(write.persist).toBe('none')
-
-			expect(total(write.sizing)).toBe(600)
+			expect(sizer.least()).toEqual(new Map(Object.entries(bodies)))
 		})
 
-		it('reuses the cached facts on a width-only pass', () => {
-			const { grid, env, sizer } = fakeGrid({ columns, space: 600, bodies })
+		it('holds no column wider than the browser laid it out on the first pass', () => {
+			const { env, sizer } = fakeGrid({ columns, bodies, rendered: { a: 55.5 } })
 
-			sizer.refit(env(), true)
+			sizer.observe(env(), true)
 
-			grid.space = 900
-
-			const write = sizer.refit(env(), false)
-
-			expect(grid.reads).toBe(1)
-
-			expect(total(write.sizing)).toBe(900)
+			expect(sizer.least().get('a')).toBe(55.5)
 		})
 
-		it('measures again after a provisional pass', () => {
-			const { grid, env, sizer } = fakeGrid({ columns, space: 600, bodies, cells: 0 })
+		it('reads a later row past the width on the screen', () => {
+			// The held layout lays a later row out at the least width, so the screen
+			// does not bound it.
+			const { grid, env, sizer } = fakeGrid({ columns, bodies })
 
-			sizer.refit(env(), true)
+			sizer.observe(env(), true)
+
+			grid.bodies.a = 200
+
+			grid.rendered.a = 60
+
+			sizer.observe(env(), false)
+
+			expect(sizer.least().get('a')).toBe(200)
+		})
+
+		it('holds the width of a wider row that left the view', () => {
+			const { grid, env, sizer } = fakeGrid({ columns, bodies })
+
+			sizer.observe(env(), true)
+
+			grid.bodies.a = 200
+
+			sizer.observe(env(), false)
+
+			grid.bodies.a = 60
+
+			sizer.observe(env(), false)
+
+			expect(sizer.least().get('a')).toBe(200)
+		})
+
+		it('reads the least widths again on a replace', () => {
+			const { grid, env, sizer } = fakeGrid({ columns, bodies: { ...bodies, a: 200 } })
+
+			sizer.observe(env(), true)
+
+			grid.bodies.a = 60
+
+			sizer.observe(env(), true)
+
+			expect(sizer.least().get('a')).toBe(60)
+		})
+
+		it('keeps the least widths through a provisional pass', () => {
+			const { grid, env, sizer } = fakeGrid({ columns, bodies, cells: 0 })
+
+			sizer.observe(env(), true)
 
 			expect(sizer.measured()).toBe(false)
 
+			expect(sizer.least().size).toBe(0)
+
 			grid.cells = 3
 
-			sizer.refit(env(), false)
-
-			expect(grid.reads).toBe(2)
+			sizer.observe(env(), false)
 
 			expect(sizer.measured()).toBe(true)
+
+			expect(sizer.least().size).toBe(3)
 		})
 
-		it('caps a runaway column', () => {
-			const { env, sizer } = fakeGrid({ columns, space: 300, bodies: { ...bodies, c: 2000 } })
+		it('keeps the identity of the least widths when a pass moves none', () => {
+			const { env, sizer } = fakeGrid({ columns, bodies })
 
-			expect(sizer.refit(env(), true).sizing.c).toBe(DEFAULT_CONTENT_MAX)
+			sizer.observe(env(), true)
+
+			const least = sizer.least()
+
+			sizer.observe(env(), false)
+
+			expect(sizer.least()).toBe(least)
 		})
 
-		it('holds a width-seeded column at its seed', () => {
+		it('holds no least width for a width-seeded column', () => {
 			const seeded = [column('a', { width: '250px' }), column('b')]
 
-			const { env, sizer } = fakeGrid({ columns: seeded, space: 600, bodies })
+			const { env, sizer } = fakeGrid({ columns: seeded, bodies })
 
-			const write = sizer.refit(env(), true)
+			sizer.observe(env(), true)
 
-			expect(write.sizing).toEqual({ b: 350 })
+			expect([...sizer.least().keys()]).toEqual(['b'])
 		})
 	})
 
 	describe('manual control', () => {
-		it('holds every column through a later width-only pass', () => {
-			const { grid, env, apply, sizer } = fakeGrid({ columns, space: 600, bodies })
+		it('holds every column through a later pass', () => {
+			const { grid, env, sizer } = fakeGrid({ columns, bodies })
 
-			apply(sizer.refit(env(), true))
+			sizer.observe(env(), true)
 
 			// A drag: the user widens `a`, and the grid hands control over.
 			grid.state.a = 280
 
 			sizer.takeControl(columns)
-
-			grid.space = 800
 
 			expect(sizer.refit(env(), false).sizing).toEqual({})
 
@@ -210,9 +248,9 @@ describe('createColumnSizer', () => {
 		})
 
 		it('sizes a later column to its content without a fill', () => {
-			const { grid, env, apply, sizer } = fakeGrid({ columns, space: 600, bodies })
+			const { grid, env, sizer } = fakeGrid({ columns, bodies })
 
-			apply(sizer.refit(env(), true))
+			sizer.observe(env(), true)
 
 			sizer.takeControl(columns)
 
@@ -226,7 +264,6 @@ describe('createColumnSizer', () => {
 		it('mounts in manual mode with saved widths', () => {
 			const { env, sizer } = fakeGrid({
 				columns,
-				space: 600,
 				bodies,
 				seeded: { a: 200, b: 200, c: 200 },
 			})
@@ -239,11 +276,9 @@ describe('createColumnSizer', () => {
 
 	describe('the auto-size actions', () => {
 		it('sizes one column to its content and holds the others', () => {
-			const { grid, env, apply, sizer } = fakeGrid({ columns, space: 600, bodies })
+			const { env, apply, sizer } = fakeGrid({ columns, bodies })
 
-			apply(sizer.refit(env(), true))
-
-			const before = { ...grid.state }
+			sizer.observe(env(), true)
 
 			const write = sizer.sizeColumn(env(), 'a')
 
@@ -251,12 +286,10 @@ describe('createColumnSizer', () => {
 
 			apply(write)
 
-			// A container resize moves no column: every column is held.
-			grid.space = 900
+			// Every column is held, so a later pass sizes none.
+			expect(sizer.mode()).toBe('manual')
 
 			expect(sizer.refit(env(), false).sizing).toEqual({})
-
-			expect(grid.state.b).toBe(before.b)
 		})
 
 		it('gives each column the width "Auto-size this column" gives it', () => {
@@ -264,26 +297,26 @@ describe('createColumnSizer', () => {
 
 			const each = Object.fromEntries(
 				columns.map((col) => {
-					const { env, sizer } = fakeGrid({ columns, space: 600, bodies: wide })
+					const { env, sizer } = fakeGrid({ columns, bodies: wide })
 
 					return [col.id, sizer.sizeColumn(env(), String(col.id))?.sizing[col.id]]
 				}),
 			)
 
-			const { env, sizer } = fakeGrid({ columns, space: 600, bodies: wide })
+			const { env, sizer } = fakeGrid({ columns, bodies: wide })
 
 			expect(sizer.sizeAll(env()).sizing).toEqual(each)
 		})
 
 		it('measures each column afresh, not from its running maximum', () => {
-			const { grid, env, apply, sizer } = fakeGrid({ columns, space: 600, bodies })
+			const { grid, env, sizer } = fakeGrid({ columns, bodies })
 
-			apply(sizer.refit(env(), true))
+			sizer.observe(env(), true)
 
 			// A wider row that has since left the view.
 			grid.bodies.a = 200
 
-			apply(sizer.refit(env(), true))
+			sizer.observe(env(), false)
 
 			grid.bodies.a = 60
 
@@ -293,7 +326,7 @@ describe('createColumnSizer', () => {
 		it('releases a width seed', () => {
 			const seeded = [column('a', { width: '250px' }), column('b')]
 
-			const { env, sizer } = fakeGrid({ columns: seeded, space: 600, bodies })
+			const { env, sizer } = fakeGrid({ columns: seeded, bodies })
 
 			expect(sizer.sizeColumn(env(), 'a')?.sizing).toEqual({ a: 60 })
 		})
@@ -301,7 +334,7 @@ describe('createColumnSizer', () => {
 		it('ignores a non-data column', () => {
 			const withSelect = [{ id: 'select', selectable: true } as GridColumn<Row>, ...columns]
 
-			const { env, sizer } = fakeGrid({ columns: withSelect, space: 600, bodies })
+			const { env, sizer } = fakeGrid({ columns: withSelect, bodies })
 
 			expect(sizer.sizeColumn(env(), 'select')).toBeNull()
 
@@ -311,7 +344,6 @@ describe('createColumnSizer', () => {
 		it('keeps its content width through a structural change', () => {
 			const { grid, env, apply, sizer } = fakeGrid({
 				columns,
-				space: 600,
 				bodies: { ...bodies, c: 2000 },
 			})
 
@@ -331,46 +363,41 @@ describe('createColumnSizer', () => {
 	})
 
 	describe('reset', () => {
-		it('gives the widths back to the grid and clears the saved widths', () => {
+		it('gives the widths back to the browser and clears the saved widths', () => {
 			const { grid, env, apply, sizer } = fakeGrid({
 				columns,
-				space: 600,
 				bodies,
 				seeded: { a: 300, b: 100, c: 100 },
 			})
 
-			const write = sizer.reset(env())
+			sizer.observe(env(), true)
 
-			expect(write.replace).toBe(true)
+			const write = sizer.reset()
 
-			expect(write.persist).toBe('clear')
+			expect(write).toEqual({ sizing: {}, replace: true, persist: 'clear' })
 
 			expect(sizer.mode()).toBe('auto')
 
+			expect(sizer.least().size).toBe(0)
+
 			apply(write)
 
-			expect(total(grid.state)).toBe(600)
-
-			// Auto mode again: a container resize fits the columns.
-			grid.space = 900
-
-			expect(total(sizer.refit(env(), false).sizing)).toBe(900)
+			expect(grid.state).toEqual({})
 		})
 
 		it('restores a released width seed', () => {
 			const seeded = [column('a', { width: '250px' }), column('b')]
 
-			const { grid, env, apply, sizer } = fakeGrid({ columns: seeded, space: 600, bodies })
+			const { env, sizer } = fakeGrid({ columns: seeded, bodies })
 
-			apply(sizer.sizeAll(env()))
+			sizer.sizeAll(env())
 
-			const write = sizer.reset(env())
+			sizer.reset()
 
-			apply(write)
+			sizer.observe(env(), true)
 
-			// The seed drops out of the state, so the engine shows `width` again, and the
-			// fill spends the rest around it.
-			expect(grid.state).toEqual({ b: 350 })
+			// The seed sits out the least widths again, so the column keeps `width`.
+			expect([...sizer.least().keys()]).toEqual(['b'])
 		})
 	})
 })
@@ -382,20 +409,16 @@ describe('a content-sized column', () => {
 
 	const bodies = { a: 60, b: 90 }
 
-	it('takes its content width and none of the spare width', () => {
-		const { env, sizer } = fakeGrid({ columns, space: 600, bodies, fits: { actions: 84 } })
+	it('takes its content width in the fixed layout', () => {
+		const { env, sizer } = fakeGrid({ columns, bodies, fits: { actions: 84 } })
 
-		const write = sizer.refit(env(), true)
-
-		expect(write.sizing.actions).toBe(84)
-
-		expect(total(write.sizing)).toBe(600)
+		expect(sizer.refit(env(), true).sizing.actions).toBe(84)
 	})
 
 	it('keeps its content width after the user takes control', () => {
-		const { env, apply, sizer } = fakeGrid({ columns, space: 600, bodies, fits: { actions: 84 } })
+		const { env, sizer } = fakeGrid({ columns, bodies, fits: { actions: 84 } })
 
-		apply(sizer.refit(env(), true))
+		sizer.observe(env(), true)
 
 		sizer.takeControl(columns)
 
@@ -407,7 +430,6 @@ describe('a content-sized column', () => {
 
 		const { env, sizer } = fakeGrid({
 			columns: [column('a'), fixed],
-			space: 600,
 			bodies,
 			fits: { actions: 84 },
 		})

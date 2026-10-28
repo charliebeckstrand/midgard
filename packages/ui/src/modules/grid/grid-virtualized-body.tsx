@@ -2,6 +2,7 @@
 
 import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import { useVirtualWindow } from '../../hooks'
+import { FIRST_WINDOW_RECT } from './engine/grid-constants'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import { GridInfiniteScrollTrailer } from './grid-infinite-scroll-trailer'
@@ -71,6 +72,7 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 		scrollMargin,
 		scrollPaddingStart,
 		scrollPaddingEnd,
+		initialRect: FIRST_WINDOW_RECT,
 	})
 
 	// Fire the infinite-scroll load-more as the last rendered row nears the loaded

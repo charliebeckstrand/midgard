@@ -350,7 +350,16 @@ describe('Grid column pinning', () => {
 			{ id: 'email', title: 'Email', cell: (row) => row.email },
 		]
 
-		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+		// Saved widths take the fixed layout, whose offsets sum the engine widths. jsdom
+		// lays out nothing, so the measured offsets of the automatic layout are zero.
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ defaultValue: { name: 150, email: 150 } }}
+			/>,
+		)
 
 		// The checkbox column is the first cell and sticks at the very left edge.
 		const selectHead = container.querySelector<HTMLElement>('thead th')

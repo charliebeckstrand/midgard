@@ -13,19 +13,14 @@ import {
 	settleBodyClass,
 	stripedForOutline,
 } from './engine/grid-data/classes'
+import type { GridFitMode } from './engine/grid-sizing/fit-layout'
 import { GridBody } from './grid-body'
-import {
-	resolveNewRowIndex,
-	resolveTableProps,
-	slotAt,
-	widthGateClass,
-} from './grid-data-resolvers'
+import { resolveNewRowIndex, resolveTableProps, slotAt } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
 import { GridFillHandle } from './grid-fill-handle'
 import { GridHead } from './grid-head'
 import { GridNewRow } from './grid-new-row'
 import { GridScrollRegion } from './grid-region'
-import { GridGateSkeleton } from './grid-skeleton-cells'
 import { GridGrandTotalBody } from './grid-total-row'
 import type { GridColumn } from './types'
 import type { useGridCursor } from './use-grid-cursor'
@@ -70,10 +65,12 @@ type GridDataTableProps<T> = {
 		className: string | undefined
 		/** Whether a server sort is in flight, which dims the data body. */
 		settling: boolean
-		/** Whether the columns are fitted, so the table can paint. */
-		revealed: boolean
 		/** The fixed-layout width, when the columns resize. */
 		width: number | undefined
+		/** The mode of the automatic layout while the grid renders it (see `resolveResizeLayout`). */
+		fit: GridFitMode | undefined
+		/** Whether the automatic layout holds least widths (see `resolveResizeLayout`). */
+		held: boolean
 		colGroup: ReactNode
 		/** The consumer's `tableProps`, with the grid's ref joined to theirs. */
 		props: TableElementProps
@@ -117,7 +114,7 @@ type GridDataTableProps<T> = {
 	}
 	grandTotal: { active: boolean; rows: readonly T[] }
 	/** The scroll container for a sticky header or a window. */
-	scroll: Omit<ComponentProps<typeof GridScrollRegion>, 'reserve' | 'children'>
+	scroll: Omit<ComponentProps<typeof GridScrollRegion>, 'children'>
 	/** The query that highlight-mode search marks, or `null`. */
 	highlightQuery: string | null
 }
@@ -181,12 +178,7 @@ export function GridDataTable<T>({
 				hover={table.hover}
 				className={condensedTableClass(
 					table.condensed,
-					cn(
-						table.className,
-						settleBodyClass(table.settling),
-						outlineTableClass(table.outline),
-						widthGateClass(table.revealed),
-					),
+					cn(table.className, settleBodyClass(table.settling), outlineTableClass(table.outline)),
 				)}
 				tableProps={resolveTableProps({
 					intl,
@@ -205,6 +197,8 @@ export function GridDataTable<T>({
 					multiSelectable: table.multiSelectable,
 					bodyHasRows: hasRows && !loading && !showingError,
 					tableWidth: table.width,
+					fit: table.fit,
+					held: table.held,
 				})}
 			>
 				{table.colGroup}
@@ -217,12 +211,6 @@ export function GridDataTable<T>({
 					pinning={pinning}
 					{...head}
 				/>
-
-				{/* The loading row at the top of a gated body. A window that has not
-				    resolved shows its own skeleton. */}
-				{!table.revealed && !scroll.virtualized && (
-					<GridGateSkeleton columns={columns} colGroup={table.colGroup} />
-				)}
 
 				{slotAt(newRow.place, 'top', newRowSlot)}
 
@@ -255,7 +243,7 @@ export function GridDataTable<T>({
 
 	return (
 		<GridHighlightContext value={highlightQuery}>
-			<GridScrollRegion {...scroll} reserve={!table.revealed && scroll.virtualized}>
+			<GridScrollRegion {...scroll}>
 				{/* An editable grid mounts the editing contexts around the table.
 				    A read-only grid returns the table as it is. */}
 				{cursor.wrap(tableContent)}

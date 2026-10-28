@@ -19,6 +19,8 @@ import { DEFAULT_OVERSCAN } from './engine/grid-constants'
 import { gridMessages } from './engine/grid-messages'
 import { pageOffset } from './engine/grid-pagination-utilities'
 import type { GridCellClick, GridRowClick } from './engine/grid-row/cell'
+import type { GridFitMode } from './engine/grid-sizing/fit-layout'
+import { fitKeptWidth } from './engine/grid-sizing/sizer'
 import type {
 	GridFooter,
 	GridFooterStats,
@@ -218,6 +220,10 @@ export function resolveTableProps(args: {
 	bodyHasRows: boolean
 	/** Fixed-layout table width (px) when resizable, sized to the `<colgroup>`. */
 	tableWidth: number | undefined
+	/** The mode of the automatic layout while the grid renders it (see `resolveResizeLayout`). */
+	fit?: GridFitMode | undefined
+	/** Whether the automatic layout holds least widths (see `resolveResizeLayout`). */
+	held?: boolean
 }): TableElementProps {
 	const role = args.tableProps?.role ?? tableRole(args)
 
@@ -242,6 +248,8 @@ export function resolveTableProps(args: {
 		...(args.tableWidth != null
 			? { style: { ...args.tableProps?.style, width: args.tableWidth } }
 			: {}),
+		...(args.fit ? { 'data-grid-fit-layout': args.fit } : {}),
+		...(args.fit && args.held ? { 'data-grid-fit-held': '' } : {}),
 		...(role ? { role } : {}),
 		// A `role="grid"` needs an accessible name (WCAG 1.3.1 / 4.1.2); default one
 		// when the caller named the grid through neither `tableProps` escape hatch.
@@ -395,6 +403,13 @@ export function resolveHover<T>(
  * resizing) when the grid is not resizable. Split out of
  * {@link useGridDataFrame}, its caller, for its cognitive-complexity budget.
  *
+ * While the grid renders the automatic table layout (see `GridColumnResize.fit`),
+ * `fit` is the value of the `data-grid-fit-layout` attribute of the `<table>`.
+ * The table then has no width, and each `<col>` holds only a width that the
+ * layout keeps (see `fitKeptWidth`). The browser sizes the other columns. `held`
+ * says whether the layout holds least widths, so that the body content sizes no
+ * column (see `k.fit.held`).
+ *
  * @internal
  */
 export function resolveResizeLayout<T>(args: {
@@ -406,6 +421,8 @@ export function resolveResizeLayout<T>(args: {
 	colGroup: ReactNode
 	tableClassName: string
 	tableWidth: number | undefined
+	fit: GridFitMode | undefined
+	held: boolean
 	resizing: boolean
 } {
 	const { resize } = args
@@ -415,9 +432,13 @@ export function resolveResizeLayout<T>(args: {
 			colGroup: null,
 			tableClassName: cn(args.className),
 			tableWidth: undefined,
+			fit: undefined,
+			held: false,
 			resizing: false,
 		}
 	}
+
+	const width = (col: GridColumn<T>) => (resize.fit ? fitKeptWidth(col) : resize.getSize(col.id))
 
 	return {
 		// Built with `createElement` (not JSX) so this resolver collection stays a
@@ -426,11 +447,13 @@ export function resolveResizeLayout<T>(args: {
 			'colgroup',
 			{ className: cn(k.resize.colgroup) },
 			args.columns.map((col) =>
-				createElement('col', { key: col.id, style: { width: resize.getSize(col.id) } }),
+				createElement('col', { key: col.id, style: { width: width(col) } }),
 			),
 		),
-		tableClassName: cn(k.resize.fixed, k.resize.metrics, args.className),
-		tableWidth: resize.totalSize,
+		tableClassName: cn(k.resize.fixed, k.fit.table, k.resize.metrics, args.className),
+		tableWidth: resize.fit ? undefined : resize.totalSize,
+		fit: resize.fit ?? undefined,
+		held: resize.held,
 		resizing: resize.resizing != null,
 	}
 }
@@ -565,40 +588,4 @@ export function resolveHighlightQuery(
 
 	// `|| null` (not `??`) so an empty query collapses to null: no marking.
 	return globalFilter?.value || null
-}
-
-/**
- * The width gate: withholds the paint of the table body until its columns are fitted,
- * while leaving it measurable.
- *
- * A reload paints the server's HTML first, at the declared column widths, and the fit
- * at hydration replaces them. The head and the column frame paint from the server, and
- * they move to the fitted widths at hydration. Each body that holds data waits at zero
- * opacity, so no row paints at a width that is about to change. A body of placeholders
- * carries `data-grid-placeholder` and shows: the loading row at the top of the body (see
- * `GridGateSkeleton`) and the skeleton of a window that has not resolved. A windowed
- * body has no rows before hydration, so its scroll region also reserves the `maxHeight`
- * that the rows will fill.
- *
- * `opacity-0` rather than `hidden` or an unmount, because the autosizer has to *measure*
- * this subtree in order to size it. Zero opacity keeps layout and geometry intact, so
- * the cells lay out and report their widths exactly as they would if shown. It also
- * keeps the box in flow, so the surrounding page doesn't reflow on reveal.
- *
- * Opacity rather than `invisible`, because visibility is inherited. Every cell computes
- * its own visibility from the table, so the reveal would restyle each element of the
- * table a second time: about 9,000 elements at 1,000 rows. Opacity is not inherited,
- * so the reveal restyles each body alone. The cost is that a body under the gate stays
- * in the accessibility tree. The gate is on only until the first fit: on a client
- * mount that is the same task, and after a reload it is the time until hydration, when
- * the server's rows are already the true content.
- *
- * Carried by the `<table>` itself rather than a wrapper: a wrapping node (even
- * `display: contents`) would sit in the middle of the grid's own child selectors. Kept
- * out of {@link GridDataTable}, its caller, for its cognitive-complexity budget.
- *
- * @internal
- */
-export function widthGateClass(revealed: boolean): string | undefined {
-	return revealed ? undefined : cn(k.gate.body)
 }

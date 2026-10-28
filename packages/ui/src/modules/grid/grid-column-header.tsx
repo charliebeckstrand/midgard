@@ -20,6 +20,7 @@ import type { QueryGroup } from '../query'
 import { columnLabel } from './engine/grid-column/label'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
 import { columnShiftStyle } from './engine/grid-reorder-compute'
+import { fitHeaderProps } from './engine/grid-sizing/fit-styles'
 import { ariaSortValue } from './engine/grid-sort/state'
 import { showsFilterButton } from './engine/grid-table/filter-view'
 import type { GridColumnResizeActions } from './engine/grid-table/resize-view'
@@ -86,8 +87,15 @@ export type GridColumnHeaderProps = {
 	sortPriority: number | undefined
 	stickyHeader: boolean
 	toggleSort: (column: string | number, additive: boolean) => void
-	/** Resolved width: engine size (px) when resizable, else the column's CSS `width`. */
+	/**
+	 * Resolved width: engine size (px) when the fixed layout sizes the column, else
+	 * the column's CSS `width`. `undefined` in the automatic layout.
+	 */
 	width: number | string | undefined
+	/** The width of a resizable column (px), for the separator, in each layout. */
+	size: number | undefined
+	/** The least width (px) of the column in the automatic layout (see `fitHeaderProps`). */
+	least: number | undefined
 	/**
 	 * The resize actions, or `null` when this column is not resizable. The
 	 * object keeps its identity across the frames of a drag, so a drag renders
@@ -150,24 +158,24 @@ function headerAffordances({
 function headerResizeHandle(
 	{
 		column,
-		width,
+		size,
 		resizeActions,
 		minWidth,
 		maxWidth,
 		resizing,
 	}: Pick<
 		GridColumnHeaderProps,
-		'column' | 'width' | 'resizeActions' | 'minWidth' | 'maxWidth' | 'resizing'
+		'column' | 'size' | 'resizeActions' | 'minWidth' | 'maxWidth' | 'resizing'
 	>,
 	canResize: boolean,
 ): ReactNode {
-	if (!canResize || !resizeActions || typeof width !== 'number') return null
+	if (!canResize || !resizeActions || size == null) return null
 
 	return (
 		<GridColumnResizeHandle
 			id={column.id}
 			label={columnLabel(column)}
-			size={width}
+			size={size}
 			min={minWidth}
 			max={maxWidth}
 			actions={resizeActions}
@@ -186,6 +194,8 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 	stickyHeader,
 	toggleSort,
 	width,
+	size,
+	least,
 	resizeActions,
 	minWidth,
 	maxWidth,
@@ -219,6 +229,9 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 
 	const pinned = pinnedHeaderProps(pinning, column, width ?? undefined)
 
+	// The width rules of the automatic layout (see `fitHeaderProps`).
+	const fit = fitHeaderProps(column, least)
+
 	return (
 		<TableHeader
 			aria-colindex={ariaColIndex}
@@ -229,9 +242,10 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 			className={cn(
 				stickyHeader && k.sticky.head,
 				canResize && !stickyHeader && k.resize.cell,
+				fit.className,
 				pinned.className,
 			)}
-			style={pinned.style}
+			style={{ ...fit.style, ...pinned.style }}
 			data-grid-pin={pinned.pin}
 		>
 			{/* `data-grid-header` marks the header's flex row so the autosizer can
@@ -244,10 +258,7 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 				)}
 				{headerAffordances({ column, interactive, filter, filterQuery })}
 			</span>
-			{headerResizeHandle(
-				{ column, width, resizeActions, minWidth, maxWidth, resizing },
-				canResize,
-			)}
+			{headerResizeHandle({ column, size, resizeActions, minWidth, maxWidth, resizing }, canResize)}
 		</TableHeader>
 	)
 })
@@ -329,6 +340,8 @@ export function GridReorderableColumnHeaderView({
 	stickyHeader,
 	toggleSort,
 	width,
+	size,
+	least,
 	resizeActions,
 	minWidth,
 	maxWidth,
@@ -386,6 +399,9 @@ export function GridReorderableColumnHeaderView({
 
 	const cellActivators = useSurfaceSafeActivators(listeners)
 
+	// The width rules of the automatic layout (see `fitHeaderProps`).
+	const fit = fitHeaderProps(column, least)
+
 	return (
 		<TableHeader
 			ref={setHeaderNodeRef}
@@ -403,13 +419,18 @@ export function GridReorderableColumnHeaderView({
 				// header already positions itself; this header's shift transform also
 				// forms a containing block, so `relative` just keeps the anchor explicit).
 				canResize && !stickyHeader && k.resize.cell,
+				fit.className,
 				column.headerClassName,
 			)}
 			// Read the shift from the same CSS variable the body cells use (written
 			// just below), not dnd-kit's transform inline: one variable resolving in
 			// one style recalc keeps the header and its column's cells exactly in
 			// phase through the transition, instead of two mechanisms drifting apart.
-			style={{ ...columnShiftStyle(columnIndex), ...(width != null ? { width } : null) }}
+			style={{
+				...fit.style,
+				...columnShiftStyle(columnIndex),
+				...(width != null ? { width } : null),
+			}}
 			// The handle-less cell carries the drag activator; the gripped cell leaves
 			// it to the button below.
 			{...(handle ? undefined : { ...cellActivatorAttributes, ...cellActivators })}
@@ -434,10 +455,7 @@ export function GridReorderableColumnHeaderView({
 				/>
 				{headerAffordances({ column, interactive, filter, filterQuery })}
 			</span>
-			{headerResizeHandle(
-				{ column, width, resizeActions, minWidth, maxWidth, resizing },
-				canResize,
-			)}
+			{headerResizeHandle({ column, size, resizeActions, minWidth, maxWidth, resizing }, canResize)}
 		</TableHeader>
 	)
 }

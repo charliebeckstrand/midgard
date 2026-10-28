@@ -84,19 +84,32 @@ describe('grid column auto-sizing (real browser)', () => {
 		expect(table.getBoundingClientRect().width).toBeLessThanOrEqual(scroll.clientWidth + 1)
 	})
 
-	it('gives columns that fit with room to spare an equal width', async () => {
+	it('gives columns of equal content an equal share of the spare width', async () => {
 		const { header } = render(600, [
-			{ id: 'name', title: 'Name', cell: (row) => row.tiny },
-			{ id: 'role', title: 'Role', cell: (row) => row.tiny },
+			{ id: 'first', title: 'Item', cell: (row) => row.tiny },
+			{ id: 'second', title: 'Item', cell: (row) => row.tiny },
 		])
 
-		// Two equally undemanding columns settle at the same width.
-		await waitFor(() => expect(header('name').getBoundingClientRect().width).toBeGreaterThan(250))
+		// The browser spreads the spare width in proportion to the content, so two
+		// columns of the same content settle at the same width.
+		await waitFor(() => expect(header('first').getBoundingClientRect().width).toBeGreaterThan(250))
 
-		// Equal up to the single leftover pixel the exact-sum rounding hands one column.
-		expect(header('name').getBoundingClientRect().width).toBeNear(
-			header('role').getBoundingClientRect().width,
+		expect(header('first').getBoundingClientRect().width).toBeNear(
+			header('second').getBoundingClientRect().width,
 			PIXEL,
+		)
+	})
+
+	it('gives the wider content the larger share of the spare width', async () => {
+		const { header } = render(600, [
+			{ id: 'short', title: 'A', cell: (row) => row.tiny },
+			{ id: 'long', title: 'A longer title', cell: (row) => row.tiny },
+		])
+
+		await waitFor(() => expect(header('long').getBoundingClientRect().width).toBeGreaterThan(0))
+
+		expect(header('long').getBoundingClientRect().width).toBeGreaterThan(
+			header('short').getBoundingClientRect().width,
 		)
 	})
 
@@ -145,18 +158,21 @@ describe('grid column auto-sizing (real browser)', () => {
 		})
 	})
 
-	it('lets a multi-word header truncate when its column is tight', async () => {
+	it('shows a multi-word header in full in the automatic fit', async () => {
 		const { title } = render(320, [
 			{ id: 'tscol', title: 'Created at timestamp', cell: (row) => row.tiny },
 			{ id: 'big', title: 'Name', cell: (row) => row.big },
 		])
 
-		// `Created at timestamp` is multi-word with tiny data, so under the same deficit
-		// its column floors at just its affordances and the header clips to an ellipsis.
+		// The automatic table layout never makes a column narrower than its header, so
+		// under the same deficit the title shows in full. Only a drag can truncate it,
+		// down to its affordances (see the resize floor).
 		await waitFor(() => {
 			const leaf = title('tscol')
 
-			expect(leaf.scrollWidth).toBeGreaterThan(leaf.clientWidth + 1)
+			expect(leaf.clientWidth).toBeGreaterThan(0)
+
+			expect(leaf.scrollWidth).toBeLessThanOrEqual(leaf.clientWidth + 1)
 		})
 	})
 
@@ -401,11 +417,11 @@ describe('grid column auto-sizing (real browser)', () => {
 			</div>,
 		)
 
-		const table = present(container.querySelector('table'), 'table')
+		const _table = present(container.querySelector('table'), 'table')
 
 		const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
 
-		await waitFor(() => expect(table.style.width).not.toBe(''))
+		await frames()
 
 		// The bordered table lands on the container exactly: no horizontal scrollbar.
 		expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth)
@@ -435,14 +451,14 @@ describe('grid column auto-sizing (real browser)', () => {
 				</div>,
 			)
 
-			const table = present(container.querySelector('table'), 'table')
+			const _table = present(container.querySelector('table'), 'table')
 
 			const scroll = present(
 				container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
 				'[data-slot="grid-scroll"]',
 			)
 
-			await waitFor(() => expect(table.style.width).not.toBe(''))
+			await frames()
 
 			// The gutter takes width from the scroll region, so the fit must use its content box.
 			expect(scroll.offsetWidth - scroll.clientWidth).toBeGreaterThan(0)
@@ -778,9 +794,9 @@ describe('grid column auto-sizing at device pixel ratio 2 (real browser)', () =>
 				</div>,
 			)
 
-			const table = present(container.querySelector('table'), 'table')
+			const _table = present(container.querySelector('table'), 'table')
 
-			await waitFor(() => expect(table.style.width).not.toBe(''))
+			await frames()
 
 			await frames()
 
@@ -799,56 +815,4 @@ describe('grid column auto-sizing at device pixel ratio 2 (real browser)', () =>
 			expect(clipped(container)).toEqual([])
 		})
 	}
-})
-
-describe('grid column fit while a width write waits for its commit (real browser)', () => {
-	type Person = { id: number; name: string; role: string }
-
-	const columns: GridColumn<Person>[] = [
-		{ id: 'name', title: 'Name', cell: (row) => row.name },
-		{ id: 'role', title: 'Role', cell: (row) => row.role },
-	]
-
-	/*
-	 * A fit writes the engine widths at once, but the DOM shows them only when
-	 * React commits. On a reload, a `ResizeObserver` tick can fit in that gap,
-	 * while the table still has the declared width of the server markup. The
-	 * case makes that gap: it puts the table back at the declared width, then
-	 * resizes the frame. The fit must not read the difference as border chrome,
-	 * or the columns lose the spare width and hug their headers.
-	 */
-	it.each([
-		['loading', { loading: true, rows: [] }],
-		['empty', { rows: [] }],
-		['filled', { rows: [{ id: 1, name: 'Ada', role: 'Admin' }] }],
-	] as const)(
-		'fills the frame when a %s grid fits against a stale table width',
-		async (_, props) => {
-			const { container } = renderUI(
-				<div style={{ width: '320px' }}>
-					<Grid columns={columns} getKey={(row) => row.id} {...props} />
-				</div>,
-			)
-
-			const frameBox = present(container.firstElementChild as HTMLElement | null, 'frame')
-
-			const table = present(container.querySelector('table'), 'table')
-
-			const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
-
-			await waitFor(() =>
-				expect(table.getBoundingClientRect().width).toBeNear(scroll.clientWidth, PIXEL),
-			)
-
-			table.style.width = '600px'
-
-			frameBox.style.width = '330px'
-
-			await waitFor(() => expect(table.style.width).not.toBe('600px'))
-
-			await frames()
-
-			expect(table.getBoundingClientRect().width).toBeNear(scroll.clientWidth, PIXEL)
-		},
-	)
 })

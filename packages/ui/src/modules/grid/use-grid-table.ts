@@ -42,6 +42,7 @@ import type { GridSortState } from './context'
 import { compileColumnFilters } from './engine/grid-filter/filter'
 import type { GridGroup, GridLeaf, GroupExpansion } from './engine/grid-group/tree'
 import { isManualPagination } from './engine/grid-pagination-utilities'
+import type { GridFitMode } from './engine/grid-sizing/fit-layout'
 import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
 import { buildGrandTotals, hiddenSelectionCount, viewLeaves } from './engine/grid-table/client-view'
 import {
@@ -226,14 +227,6 @@ type GridTableResult<T> = {
 	 * and when the autosizer stands down.
 	 */
 	fitRenderedRows: () => void
-	/**
-	 * Whether the first column-width pass has happened.
-	 *
-	 * `false` only between hydration and that pass, and only for a grid whose widths this
-	 * hook sizes. The table holds its paint until it flips, so a reload never shows the
-	 * declared widths and then replaces them with fitted ones (see `useGridColumnSizing`).
-	 */
-	widthsSettled: boolean
 	/** Global-filter view, or `null` when filtering is not configured. */
 	globalFilter: GridGlobalFilterView | null
 	/** Per-column filter controls, or `null` when no column is filterable. */
@@ -269,21 +262,32 @@ type GridTableResult<T> = {
  * width write reads it. The React Compiler changes which renders React defers,
  * which is how the fault showed.
  *
+ * @param onEnd - Called with the last drag state when a drag ends, in the
+ * event that ends it.
  * @returns The drag state and the handler that the engine writes it through.
  * @internal
  */
-function useEagerSizingInfo(): [columnResizingState, OnChangeFn<columnResizingState>] {
+function useEagerSizingInfo(
+	onEnd: (last: columnResizingState) => void,
+): [columnResizingState, OnChangeFn<columnResizingState>] {
 	const [drag, setDrag] = useState(IDLE_SIZING_INFO)
 
 	const dragRef = useRef(drag)
 
-	const onChange = useCallback<OnChangeFn<columnResizingState>>((updater) => {
-		const next = functionalUpdate(updater, dragRef.current)
+	const onChange = useCallback<OnChangeFn<columnResizingState>>(
+		(updater) => {
+			const prev = dragRef.current
 
-		dragRef.current = next
+			const next = functionalUpdate(updater, prev)
 
-		setDrag(next)
-	}, [])
+			dragRef.current = next
+
+			setDrag(next)
+
+			if (prev.isResizingColumn && !next.isResizingColumn) onEnd(prev)
+		},
+		[onEnd],
+	)
 
 	return [drag, onChange]
 }
@@ -339,23 +343,37 @@ function useResizeView<T>(args: {
 	/** The live floors, for a nudge. */
 	columnFloors: ReadonlyMap<string, number>
 	resizing: string | null
+	/** The mode of the automatic layout while the grid renders it (see `useGridColumnSizing`). */
+	fit: GridFitMode | null
+	/** The least widths of the automatic layout (see `useGridColumnSizing`). */
+	least: ReadonlyMap<string, number>
 	sizer: Pick<GridColumnResizeActions, 'autoSizeColumn' | 'autoSizeAll' | 'resetWidths'> & {
 		takeControl: () => void
+		syncWidths: () => void
 	}
 }): { resize: GridColumnResize | null; settle: GridSettleStore } {
 	const { resizable, table, leaves, visibleColumns, widths, floors, columnFloors, resizing } = args
 
-	const { autoSizeColumn, autoSizeAll, resetWidths, takeControl } = args.sizer
+	const { fit, least } = args
+
+	const { autoSizeColumn, autoSizeAll, resetWidths, takeControl, syncWidths } = args.sizer
 
 	const actions = useMemo<GridColumnResizeActions>(() => {
 		const engine = columnResizeActions(table, columnFloors)
 
 		return {
-			startResize: engine.startResize,
+			// A drag starts from the widths on the screen, so the engine reads them first.
+			startResize: (id, event) => {
+				syncWidths()
+
+				engine.startResize(id, event)
+			},
 			// A keyboard nudge takes manual control just like a drag: hold every column
 			// so the nudge stays confined to its own column and survives the autosizer's
-			// later triggers (container resize, page turn) instead of being re-fit away.
+			// later triggers (a page turn, a container resize) instead of being lost.
 			nudge: (id, delta) => {
+				syncWidths()
+
 				engine.nudge(id, delta)
 
 				takeControl()
@@ -364,12 +382,14 @@ function useResizeView<T>(args: {
 			autoSizeAll,
 			resetWidths,
 		}
-	}, [table, columnFloors, takeControl, autoSizeColumn, autoSizeAll, resetWidths])
+	}, [table, columnFloors, takeControl, syncWidths, autoSizeColumn, autoSizeAll, resetWidths])
 
 	const resize = useMemo(
 		() =>
-			resizable ? buildColumnResize({ columns: leaves, widths, floors, resizing, actions }) : null,
-		[resizable, leaves, widths, floors, resizing, actions],
+			resizable
+				? buildColumnResize({ columns: leaves, widths, floors, resizing, fit, least, actions })
+				: null,
+		[resizable, leaves, widths, floors, resizing, fit, least, actions],
 	)
 
 	// The widths as text, so a render that resolves the same widths keeps the
@@ -593,7 +613,15 @@ export function useGridTable<T>({
 	// the autosizer publishes.
 	const [columnFloors] = useState(() => new Map<string, number>())
 
-	const [columnSizingInfo, onColumnSizingInfoChange] = useEagerSizingInfo()
+	// The end of a drag reaches the autosizer in the event that ends it (see
+	// `useGridColumnSizing`). The autosizer takes the engine, and the engine takes this
+	// handler, so a ref gives the handler the `endDrag` of the autosizer. A drag ends in
+	// an event, after the commit that writes the ref.
+	const endDragRef = useRef<(last: columnResizingState) => void>(() => {})
+
+	const onDragEnd = useCallback((last: columnResizingState) => endDragRef.current(last), [])
+
+	const [columnSizingInfo, onColumnSizingInfoChange] = useEagerSizingInfo(onDragEnd)
 
 	const onColumnSizingChange = useCallback<OnChangeFn<ColumnSizingState>>(
 		(updater) =>
@@ -855,8 +883,11 @@ export function useGridTable<T>({
 		autoSizeAll,
 		resetWidths,
 		takeControl,
+		syncWidths,
+		endDrag,
 		fitRenderedRows,
-		settled: widthsSettled,
+		fit,
+		least,
 		floors,
 	} = useGridColumnSizing<T>({
 		resizable,
@@ -882,6 +913,10 @@ export function useGridTable<T>({
 		setContentSizing,
 	})
 
+	useLayoutEffect(() => {
+		endDragRef.current = endDrag
+	}, [endDrag])
+
 	const { resize, settle } = useResizeView({
 		resizable,
 		table: engine,
@@ -891,7 +926,9 @@ export function useGridTable<T>({
 		floors,
 		columnFloors,
 		resizing,
-		sizer: { autoSizeColumn, autoSizeAll, resetWidths, takeControl },
+		fit,
+		least,
+		sizer: { autoSizeColumn, autoSizeAll, resetWidths, takeControl, syncWidths },
 	})
 
 	useColumnResizeLifecycle(
@@ -928,6 +965,7 @@ export function useGridTable<T>({
 	const pinning = useGridPinningView({
 		hasPinned,
 		resizable,
+		fitting: fit != null,
 		columnPinning,
 		visibleColumns,
 		containerRef,
@@ -967,7 +1005,6 @@ export function useGridTable<T>({
 		resize,
 		settle,
 		fitRenderedRows,
-		widthsSettled,
 		globalFilter,
 		filters,
 		pinning,
