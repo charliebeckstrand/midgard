@@ -422,10 +422,26 @@ describe('PieChart', () => {
 		// height/aspectRatio both unset: the frame takes the CSS reserve of the
 		// callout band, and the drawing takes the same height. No text width enters
 		// it. vMargin = 14 + 15 = 29, and each side takes 14 + 10 + 6 = 30 plus a
-		// column of min(25% of 300, 120) = 75, so height = 300 + 2*(29 - 105) = 148.
+		// 120 px column, so height = 600 + 2*(29 - 150) = 358.
+		const { container } = renderUI(
+			chart({ height: undefined, width: 600, labels: { callouts: true } }),
+		)
+
+		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 600 358')
+	})
+
+	it('draws a square pie with no callouts below 480 px, and the legend names the slices', () => {
 		const { container } = renderUI(chart({ height: undefined, labels: { callouts: true } }))
 
-		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 148')
+		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 300')
+
+		expect(allBySlot(container, 'chart-callout-label')).toHaveLength(0)
+
+		expect(allBySlot(container, 'chart-legend-item').map((item) => item.textContent)).toEqual([
+			'Search',
+			'Direct',
+			'Referral',
+		])
 	})
 
 	it('keeps crowded callouts inside the SVG height', () => {

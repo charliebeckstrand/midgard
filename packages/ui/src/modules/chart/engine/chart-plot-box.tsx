@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { AspectRatio } from '../../../components/aspect-ratio'
 import type { FrameReserve } from '../../../hooks'
 
@@ -21,25 +21,66 @@ type ChartPlotBoxProps = {
 	children: ReactNode
 }
 
+/** A `content` reserve. @internal */
+type ContentReserve = Extract<FrameReserve, { mode: 'content' }>
+
 /**
- * The `content` reserve as a `padding-bottom` length: `max(min, width ±
- * offset − 2 · column)`. It is a share of the width shifted by the pixel
- * offset, less a `min(share · width, max)` column on each side, floored at the
- * minimum. A box narrower than the offset therefore holds `min`, instead of
- * clamping to nothing.
+ * A `content` fit as a `padding-bottom` length: `max(min, width ± offset)`. It
+ * is a share of the width shifted by the pixel offset, floored at the minimum.
+ * A box narrower than the offset therefore holds `min`, instead of clamping to
+ * nothing.
  *
  * @internal
  */
-function contentPadding({
-	offset,
-	min,
-	column,
-}: Extract<FrameReserve, { mode: 'content' }>): string {
+function contentPadding({ offset, min }: { offset: number; min: number }): string {
 	const shift = offset < 0 ? ` - ${-offset}px` : ` + ${offset}px`
 
-	const band = column ? ` - 2 * min(${column.share * 100}%, ${column.max}px)` : ''
+	return `max(${min}px, calc(100%${shift}))`
+}
 
-	return `max(${min}px, calc(100%${shift}${band}))`
+/**
+ * The rule that gives a box its `wide` padding from `from` px wide and up. The
+ * measured width is rounded to whole px, so the query starts half a pixel
+ * early: the box and the drawing then take the same step. The rule renders in
+ * place with its box, so it leaves nothing in the head when the box unmounts.
+ *
+ * @internal
+ */
+function wideRule(from: number): string {
+	return `@container plot (width >= ${from - 0.5}px){[data-plot-step="${from}"]{--plot-pad:var(--plot-pad-wide)}}`
+}
+
+/**
+ * The padding box of a `content` reserve. A `wide` step takes over from its
+ * width and up through a container query on a wrapper, so the server paints
+ * the same box as the browser before any measurement.
+ *
+ * @internal
+ */
+function ContentBox({ reserve, children }: { reserve: ContentReserve; children: ReactNode }) {
+	const { wide } = reserve
+
+	if (!wide)
+		return (
+			<div className="relative overflow-hidden" style={{ paddingBottom: contentPadding(reserve) }}>
+				{children}
+			</div>
+		)
+
+	const style = {
+		'--plot-pad-wide': contentPadding(wide),
+		paddingBottom: `var(--plot-pad, ${contentPadding(reserve)})`,
+	} as CSSProperties
+
+	return (
+		<div className="@container/plot">
+			<style>{wideRule(wide.from)}</style>
+
+			<div data-plot-step={wide.from} className="relative overflow-hidden" style={style}>
+				{children}
+			</div>
+		</div>
+	)
 }
 
 /**
@@ -49,7 +90,7 @@ function contentPadding({
  * `width / height` ratio through CSS `aspect-ratio`. A `content` reserve holds
  * the `max(min, width + offset)` through a padding box, whose percentage padding
  * is likewise a share of the box's own width. That is the affine height a ratio
- * cannot express. With nothing reserved (`fixed`) the
+ * cannot express. Its `wide` step swaps the padding at a container width. With nothing reserved (`fixed`) the
  * box takes the pixel `height` directly; under `fill` it takes the whole height
  * its `flex-1` region already holds.
  *
@@ -83,9 +124,5 @@ export function ChartPlotBox({ reserve, height, fill = false, children }: ChartP
 	// `aspect-ratio` can't add a pixel offset, so reserve `width + offset` with the
 	// classic padding box: the empty box's own height stays the percentage padding,
 	// and the anchored SVG fills the height it opens.
-	return (
-		<div className="relative overflow-hidden" style={{ paddingBottom: contentPadding(reserve) }}>
-			{children}
-		</div>
-	)
+	return <ContentBox reserve={reserve}>{children}</ContentBox>
 }

@@ -467,19 +467,22 @@ export const CALLOUT_LINE = 15
 export const CALLOUT_CHAR_WIDTH = 8
 
 /**
- * The room of a callout label on each side of the pie: a share of the frame
- * width, at most `max` px. The frame reserves it in CSS, so the box size is a
- * function of the width alone and never of a label. A label wider than the
- * column cuts its name and keeps its share.
+ * The px room of a callout label on each side of the pie. The frame reserves it
+ * in CSS, so the box size is a function of the width alone and never of a
+ * label. A label wider than the column cuts its name and keeps its share.
  *
  * @internal
  */
-export const CALLOUT_COLUMN = { share: 0.25, max: 120 } as const
+export const CALLOUT_COLUMN = 120
 
-/** The px width of the {@link CALLOUT_COLUMN} at `frameWidth`. @internal */
-export function calloutColumn(frameWidth: number): number {
-	return Math.min(CALLOUT_COLUMN.share * frameWidth, CALLOUT_COLUMN.max)
-}
+/**
+ * The narrowest frame in px that draws callouts: the two columns then take at
+ * most half of the width. A narrower pie draws no callouts, and the legend
+ * names its slices.
+ *
+ * @internal
+ */
+export const CALLOUT_MIN_WIDTH = 4 * CALLOUT_COLUMN
 
 /**
  * The most degrees of the leader circle that one straight step of a moved

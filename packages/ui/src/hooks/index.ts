@@ -76,9 +76,9 @@ export {
 } from './use-offcanvas'
 export { usePendingCaret } from './use-pending-caret'
 export {
-	type FrameColumn,
 	type FrameReserve,
 	type FrameSizing,
+	type FrameStep,
 	type PlotFrameRef,
 	usePlotFrame,
 } from './use-plot-frame'
