@@ -14,11 +14,7 @@ import { dan, hannou, iro, ji, narabi, omote, sen, sou } from '../kiso'
 const { cursor } = hannou
 const { text } = iro
 const { size, weight } = ji
-const { flex } = narabi
-// The parts that show in one thumbnails layout only. The `offcanvas` axis holds that
-// layout, so the CSS shows each part from the first paint. It is not the `layout` axis
-// of the thumbnails, which is the list of the rail or the grid of the Sheet.
-const shows = narabi.offcanvas
+const { flex, offcanvas } = narabi
 const { bg, rail, skeleton } = omote
 const { border, focus, ring } = sen
 
@@ -88,8 +84,8 @@ export const k = defineKata({
 				// glyph where the rail is pinned, and the Sheet glyph elsewhere.
 				glyph: {
 					slots: {
-						rail: { responsive: { offcanvas: shows.inline.block } },
-						sheet: { responsive: { offcanvas: shows.drawer.block } },
+						rail: { responsive: { offcanvas: offcanvas.inline.block } },
+						sheet: { responsive: { offcanvas: offcanvas.drawer.block } },
 					},
 				},
 			},
@@ -148,8 +144,10 @@ export const k = defineKata({
 			// The margin on the start side, so the rail leaves toward its own edge in
 			// either direction.
 			open: { true: '', false: '-ms-56' },
-			// The rail shows only where it is pinned.
-			responsive: { offcanvas: shows.inline.flex },
+			// The rail shows only where it is pinned. The `offcanvas` axis holds the
+			// thumbnails layout, so the CSS shows the rail from the first paint. It is
+			// not the `layout` axis of the thumbnails, the list or the grid.
+			responsive: { offcanvas: offcanvas.inline.flex },
 			slots: {
 				header: [
 					flex.row,
