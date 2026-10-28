@@ -90,6 +90,7 @@ export default function EditorTypes() {
 				field: 'status',
 				cell: (row) =>
 					statusOptions.find((option) => option.value === row.status)?.label ?? row.status,
+				minWidth: 150,
 				editCell: (context) => (
 					<CellListbox
 						value={String(context.value ?? '')}
@@ -104,6 +105,7 @@ export default function EditorTypes() {
 				title: 'Due',
 				field: 'due',
 				cell: (row) => intl.formatDate(row.due, { dateStyle: 'medium' }),
+				minWidth: 150,
 				editCell: CellDate,
 			},
 			{
@@ -111,6 +113,7 @@ export default function EditorTypes() {
 				title: 'Budget',
 				field: 'budget',
 				cell: (row) => intl.formatNumber(row.budget, { style: 'currency', currency: 'USD' }),
+				minWidth: 150,
 				editCell: CellCurrency,
 			},
 			{
@@ -118,6 +121,7 @@ export default function EditorTypes() {
 				title: 'Done',
 				field: 'done',
 				cell: (row) => <Badge color={row.done ? 'green' : 'zinc'}>{row.done ? 'Yes' : 'No'}</Badge>,
+				minWidth: 150,
 			},
 		],
 		[intl],

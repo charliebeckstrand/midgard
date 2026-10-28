@@ -62,13 +62,14 @@ export default function BulkEdit() {
 
 		return [
 			{ id: 'select', selectable: true },
-			{ id: 'name', title: 'Name', cell: (row) => row.name },
-			{ id: 'hourly', title: 'Hourly rate', cell: (row) => money(row.hourly) },
-			{ id: 'daily', title: 'Day rate', cell: (row) => money(row.daily) },
+			{ id: 'name', title: 'Name', cell: (row) => row.name, minWidth: 150 },
+			{ id: 'hourly', title: 'Hourly rate', cell: (row) => money(row.hourly), minWidth: 150 },
+			{ id: 'daily', title: 'Day rate', cell: (row) => money(row.daily), minWidth: 150 },
 			{
 				id: 'billable',
 				title: 'Billable %',
 				cell: (row) => intl.formatNumber(row.billable / 100, { style: 'percent' }),
+				minWidth: 150,
 			},
 		]
 	}, [intl])
