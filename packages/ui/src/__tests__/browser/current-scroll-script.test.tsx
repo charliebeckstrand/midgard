@@ -3,13 +3,7 @@ import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished } from 'vitest'
 
-import {
-	Sidebar,
-	SidebarBody,
-	SidebarItem,
-	SidebarList,
-	SidebarSection,
-} from '../../components/sidebar'
+import { Sidebar, SidebarBody, SidebarItem, SidebarList } from '../../components/sidebar'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { CurrentScrollScript } from '../../primitives/current'
 import { act, attach, present } from '../helpers'
@@ -30,33 +24,6 @@ const sidebar = (
 						</SidebarItem>
 					))}
 				</SidebarList>
-			</SidebarBody>
-		</Sidebar>
-	</div>
-)
-
-/** A sidebar in a short box, with a labeled section of five pages after the first section. */
-const sections = (current: string) => (
-	<div style={{ height: 160, display: 'flex', flexDirection: 'column' }}>
-		<Sidebar>
-			<SidebarBody>
-				{['first', 'second'].map((section) => (
-					<SidebarSection key={section}>
-						<span data-testid={section}>{section}</span>
-						<SidebarList>
-							{PAGES.slice(0, 5).map((page) => (
-								<SidebarItem
-									key={page}
-									href={`/${section}/${page}`}
-									current={`${section}/${page}` === current}
-								>
-									{page}
-								</SidebarItem>
-							))}
-						</SidebarList>
-					</SidebarSection>
-				))}
-				<div style={{ height: 400, flex: 'none' }} />
 			</SidebarBody>
 		</Sidebar>
 	</div>
@@ -112,20 +79,6 @@ function hydrate(container: HTMLElement, element: ReactElement) {
 	onTestFinished(() => act(() => root?.unmount()))
 }
 
-/**
- * Turns off the CSS initial scroll target for the case, so the script places
- * the item as it does in a browser without `scroll-initial-target`.
- */
-function withoutInitialTarget() {
-	const style = attach(document.createElement('style'))
-
-	style.textContent = '* { scroll-initial-target: none !important; }'
-}
-
-/** The distance from the top of `scroller` to the top of `node`. */
-const offsetTop = (node: Element, scroller: Element) =>
-	node.getBoundingClientRect().top - scroller.getBoundingClientRect().top
-
 /** The nearest ancestor that scrolls on `axis` and overflows. */
 function findScroller(node: Element, axis: 'x' | 'y') {
 	for (let element = node.parentElement; element; element = element.parentElement) {
@@ -172,33 +125,6 @@ describe('CurrentScrollScript (real browser)', () => {
 		expect(scroller.scrollTop).toBeGreaterThan(0)
 
 		expect(inView(item, scroller)).toBe(true)
-	})
-
-	it('puts the current sidebar item at the top of its scroller', () => {
-		withoutInitialTarget()
-
-		const container = paintServerMarkup(sections('second/page-2'))
-
-		const item = present(
-			container.querySelector('[data-slot="sidebar-item"]:has([data-current])'),
-			'current item',
-		)
-
-		expect(offsetTop(item, findScroller(item, 'y'))).toBeCloseTo(0, 0)
-	})
-
-	it('puts the section of a first item at the top, so the label shows', () => {
-		withoutInitialTarget()
-
-		const container = paintServerMarkup(sections('second/page-0'))
-
-		const label = present(container.querySelector('[data-testid="second"]'), 'label')
-
-		const scroller = findScroller(label, 'y')
-
-		expect(scroller.scrollTop).toBeGreaterThan(0)
-
-		expect(offsetTop(label, scroller)).toBeCloseTo(0, 0)
 	})
 
 	it('leaves the scroll of the sidebar as it is at hydration', () => {

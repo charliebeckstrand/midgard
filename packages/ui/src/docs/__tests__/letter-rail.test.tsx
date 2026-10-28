@@ -48,9 +48,8 @@ const TRACK_TOP = 100
 
 /**
  * Gives the body a layout that jsdom does not compute: a heading, then one
- * row for each item, in each section, then the space that lets the last row
- * come to the top. The body scrolls between 0 and the end of its content, as
- * a browser clamps it.
+ * row for each item, in each section. The body scrolls between 0 and the end
+ * of its content, as a browser clamps it.
  */
 function layOut(body: HTMLElement) {
 	let scroll = 0
@@ -80,8 +79,6 @@ function layOut(body: HTMLElement) {
 			y += ITEM
 		}
 	}
-
-	y += VIEW - ITEM
 
 	const end = y - VIEW
 
@@ -194,22 +191,22 @@ describe('LetterRail', () => {
 		expect(active()).toBe('B')
 	})
 
-	it('shows the letter of the page at the top, where each section starts the alphabet again', () => {
+	it('shows the letter of the page at the top at the end of the body too', () => {
 		const { body, active } = renderSidebar()
 
-		// Chart is the first page at the top, though Calendar and Card come before it on the rail.
-		body.scrollTop = HEADING * 2 + ITEM * 6
+		// At the end, Chart is the first page at the top, though Locale and UI are in view under it.
+		body.scrollTop = HEADING * 3 + ITEM * 10 - VIEW
 
 		fireEvent.scroll(body)
 
 		expect(active()).toBe('C')
 
-		// At the end, the last page is at the top.
-		body.scrollTop = HEADING * 3 + ITEM * 9
+		// Button is half in view at the top.
+		body.scrollTop = HEADING + ITEM * 3 + ITEM / 2 - 1
 
 		fireEvent.scroll(body)
 
-		expect(active()).toBe('U')
+		expect(active()).toBe('B')
 	})
 
 	it('selects the letter whose band holds the press, at each edge of the band', () => {
@@ -247,25 +244,23 @@ describe('LetterRail', () => {
 		expect(body.scrollTop).toBe(0)
 	})
 
-	it('brings a page near the end to the top, and keeps its letter', () => {
+	it('keeps the letter of a jump that the body cannot bring to the top', () => {
 		const { body, track, active } = renderSidebar()
 
 		tap(track, inBand(3))
 
-		// Editor is the second page of its section, so its row comes to the top.
-		expect(body.scrollTop).toBe(HEADING * 2 + ITEM * 7)
+		// Editor is near the end, so the body stops at the end of its content.
+		expect(body.scrollTop).toBe(HEADING * 3 + ITEM * 10 - VIEW)
 
 		fireEvent.scroll(body)
 
 		expect(active()).toBe('E')
 
-		tap(track, inBand(5))
-
-		expect(body.scrollTop).toBe(HEADING * 3 + ITEM * 9)
+		body.scrollTop = 100
 
 		fireEvent.scroll(body)
 
-		expect(active()).toBe('U')
+		expect(active()).toBe('B')
 	})
 
 	it('follows a slide from letter to letter, and past an end of the rail', () => {

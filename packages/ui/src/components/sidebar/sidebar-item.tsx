@@ -41,10 +41,8 @@ export type SidebarItemProps = NavItemProps & {
  * tooltip holds only the `SidebarLabel` children, or all the children when the
  * row has no label. The tooltip repeats the name, so it does not describe the
  * button. An `aria-describedby` that you give stays. The current row is the
- * initial scroll target of its scroller (`scroll-initial-target`): the first
- * layout puts the row at the top of the view. When the row is the first of its
- * `SidebarSection`, the section goes to the top. `CurrentScrollScript` does the
- * same in a browser without `scroll-initial-target`.
+ * initial scroll target of its scroller (`scroll-initial-target`): where the
+ * browser supports it, the first layout puts the row at the top of the view.
  */
 export function SidebarItem({
 	icon,
