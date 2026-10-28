@@ -614,8 +614,12 @@ export function useGridTable<T>({
 	const [columnFloors] = useState(() => new Map<string, number>())
 
 	// The end of a drag reaches the autosizer in the event that ends it (see
-	// `useGridColumnSizing`), which this hook calls below.
-	const onDragEnd = useStableEvent((last: columnResizingState) => endDrag(last))
+	// `useGridColumnSizing`). The autosizer takes the engine, and the engine takes this
+	// handler, so a ref gives the handler the `endDrag` of the autosizer. A drag ends in
+	// an event, after the commit that writes the ref.
+	const endDragRef = useRef<(last: columnResizingState) => void>(() => {})
+
+	const onDragEnd = useCallback((last: columnResizingState) => endDragRef.current(last), [])
 
 	const [columnSizingInfo, onColumnSizingInfoChange] = useEagerSizingInfo(onDragEnd)
 
@@ -908,6 +912,10 @@ export function useGridTable<T>({
 		clearPreference: clearSizingPreference,
 		setContentSizing,
 	})
+
+	useLayoutEffect(() => {
+		endDragRef.current = endDrag
+	}, [endDrag])
 
 	const { resize, settle } = useResizeView({
 		resizable,
