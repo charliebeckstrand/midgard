@@ -189,7 +189,7 @@ export function useGridDataFrame<T>({
 	// `resizing` flags an in-flight drag so head/cells suppress their hover wash
 	// and truncation tooltips (shared via context) and the active column's grip
 	// reads accent.
-	const { colGroup, tableClassName, tableWidth, fit, resizing } = resolveResizeLayout({
+	const { colGroup, tableClassName, tableWidth, fit, held, resizing } = resolveResizeLayout({
 		resizable,
 		resize,
 		columns: visibleColumns,
@@ -349,6 +349,7 @@ export function useGridDataFrame<T>({
 		tableClassName,
 		tableWidth,
 		fit,
+		held,
 		resizing,
 		groupHeader,
 		groupRowOffset,

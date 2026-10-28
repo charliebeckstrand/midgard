@@ -3,13 +3,15 @@ import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/grid'
 import { isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
+import { DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import { isFrozen } from '../grid-pin/overrides'
 import { fitKeptWidth } from './sizer'
 
 /**
- * The fit-layout chrome of a cell: the classes of `k.fit`, and the custom
+ * The automatic-layout chrome of a cell: the classes of `k.fit`, and the custom
  * properties that they read. The classes act only while the `<table>` carries
- * `data-grid-fit-layout` (see `readFitLayout`), so a cell carries them in each layout.
+ * `data-grid-fit-layout` (see `useGridColumnSizing`), so a cell carries them in
+ * each layout.
  *
  * @internal
  */
@@ -22,12 +24,13 @@ export type FitCellChrome = {
 const NO_FIT: FitCellChrome = { className: undefined, style: undefined }
 
 /**
- * The fit-layout chrome of the header cell of a column. These are the rules for
- * the width of a data column in the fit layout:
+ * The automatic-layout chrome of the header cell of a column. These are the
+ * rules for the width of a data column in that layout:
  *
  * - A column that keeps a `width` seed holds it. It is at least that wide, also
  *   in a table that overflows, and its content does not widen it.
- * - Each other column is at least its `minWidth`, else 40px.
+ * - Each other column is at least its `minWidth`, else 40px, and at least its
+ *   `least` width, the content that the grid holds (see `createColumnSizer`).
  * - A frozen column, and a column with a `maxWidth`, take no spare width.
  *
  * A non-data column holds its declared width, or takes the width of its content
@@ -35,7 +38,7 @@ const NO_FIT: FitCellChrome = { className: undefined, style: undefined }
  *
  * @internal
  */
-export function fitHeaderProps<T>(col: GridColumn<T>): FitCellChrome {
+export function fitHeaderProps<T>(col: GridColumn<T>, least: number | undefined): FitCellChrome {
 	if (!isDataColumn(col)) return NO_FIT
 
 	const kept = fitKeptWidth(col)
@@ -44,9 +47,12 @@ export function fitHeaderProps<T>(col: GridColumn<T>): FitCellChrome {
 		return { className: cn(k.fit.kept.head, k.fit.floor), style: floorStyle(kept) }
 	}
 
+	const floor =
+		least == null ? col.minWidth : Math.max(col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE, least)
+
 	return {
 		className: cn(k.fit.floor, (isFrozen(col) || col.maxWidth != null) && k.fit.tight),
-		style: col.minWidth == null ? undefined : floorStyle(col.minWidth),
+		style: floor == null ? undefined : floorStyle(floor),
 	}
 }
 
@@ -56,7 +62,7 @@ function floorStyle(width: number): CSSProperties {
 }
 
 /**
- * The fit-layout chrome of a body cell of a column. The content of a column that
+ * The automatic-layout chrome of a body cell of a column. The content of a column that
  * keeps a `width` seed does not widen it. The content span of each other column
  * asks for its `maxWidth` at most, else 480px (see `k.fit.cap`).
  *

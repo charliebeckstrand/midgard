@@ -8,7 +8,7 @@ import {
 } from '../../../modules/grid'
 import { fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
-import { PIXEL } from '../../helpers/geometry/tolerance'
+import { LAYOUT_UNIT, PIXEL } from '../../helpers/geometry/tolerance'
 import { settledValue } from '../helpers/sample'
 
 /**
@@ -330,5 +330,90 @@ describe('grid column sizing rules (real browser)', () => {
 		await waitFor(() =>
 			expect(widths(container).reduce((sum, value) => sum + value, 0)).toBeGreaterThan(780),
 		)
+	})
+
+	/** Each header width (px), unrounded. */
+	const exact = (root: HTMLElement) =>
+		['a', 'b', 'c'].map((id) => header(root, id).getBoundingClientRect().width)
+
+	it('moves no column when a press takes the fixed layout, and none when it ends', async () => {
+		const { container } = await mount()
+
+		const table = present(container.querySelector('table'), 'table')
+
+		const before = exact(container)
+
+		const handle = present(
+			container.querySelector<HTMLElement>('hr[aria-label="Resize A"]'),
+			'Resize A',
+		)
+
+		const { x, y } = getCenter(handle)
+
+		fireEvent.mouseDown(handle, { clientX: x, clientY: y })
+
+		// The drag lays the columns out from the widths that the press copied.
+		await waitFor(() => expect(table).not.toHaveAttribute('data-grid-fit-layout'))
+
+		for (const [index, value] of exact(container).entries()) {
+			expect(value).toBeNear(before[index] ?? 0, LAYOUT_UNIT)
+		}
+
+		fireEvent.mouseUp(document, { clientX: x, clientY: y })
+
+		// A press without motion gives the widths back to the browser.
+		await waitFor(() => expect(table).toHaveAttribute('data-grid-fit-layout', 'fill'))
+
+		for (const [index, value] of exact(container).entries()) {
+			expect(value).toBeNear(before[index] ?? 0, LAYOUT_UNIT)
+		}
+	})
+
+	it('follows a container resize, and the separator reads the new width', async () => {
+		const { container, resizeFrame } = await mount()
+
+		resizeFrame(800)
+
+		await waitFor(() =>
+			expect(widths(container).reduce((sum, value) => sum + value, 0)).toBeGreaterThan(780),
+		)
+
+		const handle = screen.getByRole('separator', { name: 'Resize A' })
+
+		await waitFor(() =>
+			expect(Number(handle.getAttribute('aria-valuenow'))).toBe(width(container, 'a')),
+		)
+	})
+
+	it('holds the width of a wider page after the page turns', async () => {
+		type Page = { id: number; a: string; b: string; c: string }
+
+		const page = (start: number, a: string): Page[] =>
+			Array.from({ length: 3 }, (_, index) => ({ id: start + index, a, b: 'b', c: 'c' }))
+
+		const view = (pageRows: Page[]) =>
+			frame(
+				300,
+				<Grid resizable columns={columns} rows={pageRows} getKey={(row) => row.id} width="fit" />,
+			)
+
+		const { container, rerender } = renderUI(view(page(0, 'a')))
+
+		await frames()
+
+		const narrow = width(container, 'a')
+
+		rerender(view(page(10, 'A much wider value of column a')))
+
+		await waitFor(() => expect(width(container, 'a')).toBeGreaterThan(narrow + 100))
+
+		const wide = width(container, 'a')
+
+		rerender(view(page(20, 'a')))
+
+		await frames()
+
+		// The wider page left, and its column does not shrink.
+		expect(width(container, 'a')).toBe(wide)
 	})
 })

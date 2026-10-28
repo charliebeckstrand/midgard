@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Badge } from '../../../components/badge'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { frame, present, renderUI, waitFor } from '../../helpers'
+import { frame, frames, present, renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { afterBox } from '../helpers/after-box'
 
@@ -59,9 +59,9 @@ describe('grid resize handle geometry (real browser)', () => {
 	}
 
 	it('keeps the grip within its own column (clear of the next sticky header)', async () => {
-		const { container, table } = setup()
+		const { container } = setup()
 
-		await waitFor(() => expect(table.style.width).not.toBe(''))
+		await frames()
 
 		const roleHeader = present(
 			container.querySelector('th[data-grid-col="role"]'),
@@ -93,9 +93,9 @@ describe('grid resize handle geometry (real browser)', () => {
 			</div>,
 		)
 
-		const table = present(container.querySelector('table'), 'table')
+		const _table = present(container.querySelector('table'), 'table')
 
-		await waitFor(() => expect(table.style.width).not.toBe(''))
+		await frames()
 
 		const nameHandle = present(
 			container.querySelector('hr[aria-label="Resize Name"]'),
@@ -122,7 +122,7 @@ describe('grid resize handle geometry (real browser)', () => {
 	it('does not overhang the table edge, so a right-pinned column holds at the scroll end', async () => {
 		const { container, table } = setup()
 
-		await waitFor(() => expect(table.style.width).not.toBe(''))
+		await frames()
 
 		// The scroll container that the wide table overflows.
 		let scroll = table.parentElement as HTMLElement
@@ -219,9 +219,9 @@ describe('grid resize grip alignment (real browser)', () => {
 				</div>,
 			)
 
-			const table = present(container.querySelector('table'), 'table')
+			const _table = present(container.querySelector('table'), 'table')
 
-			await waitFor(() => expect(table.style.width).not.toBe(''))
+			await frames()
 
 			expect(gripInset(container)).toBeGreaterThan(3)
 

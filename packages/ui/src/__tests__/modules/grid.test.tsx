@@ -424,7 +424,10 @@ describe('Grid', () => {
 
 			expect((headers[1] as HTMLElement).className).toContain('name-head')
 
-			expect((headers[1] as HTMLElement).style.width).toBe('200px')
+			// The automatic layout keeps a data column's `width` on its `<col>`.
+			const cols = container.querySelectorAll<HTMLElement>('colgroup col')
+
+			expect(cols[1]?.style.width).toBe('200px')
 		})
 
 		it('adds sticky-header chrome when header position is sticky', () => {

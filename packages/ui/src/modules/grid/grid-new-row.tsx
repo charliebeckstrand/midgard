@@ -247,7 +247,7 @@ function GridNewRowAddCell({
 			<span
 				ref={controlRef}
 				inert={pending}
-				className={cn(k.row.new.control, pending && k.edit.pending)}
+				className={cn(k.row.new.control, pending && [k.edit.pending, k.fit.pending])}
 			>
 				{render ? (
 					render({ add: session.addRow, pending })

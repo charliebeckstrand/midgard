@@ -123,10 +123,10 @@ function GridCellReveal({
 }
 
 /** The static truncating-span class, composed once, not per rendered cell. @internal */
-const TRUNCATE_CLASS = cn(k.cell.truncate, k.fit.cap)
+const TRUNCATE_CLASS = cn(k.cell.truncate, k.fit.cap, k.fit.held)
 
 /** The span class while it holds an open editor, which lets the content overflow. @internal */
-const EDITING_CLASS = cn(k.cell.editing)
+const EDITING_CLASS = cn(k.cell.editing, k.fit.held)
 
 /** The static tooltip-content class, composed once. @internal */
 const TOOLTIP_CLASS = cn(k.cell.tooltip)

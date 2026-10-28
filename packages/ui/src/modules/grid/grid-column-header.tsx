@@ -87,8 +87,15 @@ export type GridColumnHeaderProps = {
 	sortPriority: number | undefined
 	stickyHeader: boolean
 	toggleSort: (column: string | number, additive: boolean) => void
-	/** Resolved width: engine size (px) when resizable, else the column's CSS `width`. */
+	/**
+	 * Resolved width: engine size (px) when the fixed layout sizes the column, else
+	 * the column's CSS `width`. `undefined` in the automatic layout.
+	 */
 	width: number | string | undefined
+	/** The width of a resizable column (px), for the separator, in each layout. */
+	size: number | undefined
+	/** The least width (px) of the column in the automatic layout (see `fitHeaderProps`). */
+	least: number | undefined
 	/**
 	 * The resize actions, or `null` when this column is not resizable. The
 	 * object keeps its identity across the frames of a drag, so a drag renders
@@ -151,24 +158,24 @@ function headerAffordances({
 function headerResizeHandle(
 	{
 		column,
-		width,
+		size,
 		resizeActions,
 		minWidth,
 		maxWidth,
 		resizing,
 	}: Pick<
 		GridColumnHeaderProps,
-		'column' | 'width' | 'resizeActions' | 'minWidth' | 'maxWidth' | 'resizing'
+		'column' | 'size' | 'resizeActions' | 'minWidth' | 'maxWidth' | 'resizing'
 	>,
 	canResize: boolean,
 ): ReactNode {
-	if (!canResize || !resizeActions || typeof width !== 'number') return null
+	if (!canResize || !resizeActions || size == null) return null
 
 	return (
 		<GridColumnResizeHandle
 			id={column.id}
 			label={columnLabel(column)}
-			size={width}
+			size={size}
 			min={minWidth}
 			max={maxWidth}
 			actions={resizeActions}
@@ -187,6 +194,8 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 	stickyHeader,
 	toggleSort,
 	width,
+	size,
+	least,
 	resizeActions,
 	minWidth,
 	maxWidth,
@@ -220,8 +229,8 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 
 	const pinned = pinnedHeaderProps(pinning, column, width ?? undefined)
 
-	// The width rules of the fit layout (see `fitHeaderProps`).
-	const fit = fitHeaderProps(column)
+	// The width rules of the automatic layout (see `fitHeaderProps`).
+	const fit = fitHeaderProps(column, least)
 
 	return (
 		<TableHeader
@@ -249,10 +258,7 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 				)}
 				{headerAffordances({ column, interactive, filter, filterQuery })}
 			</span>
-			{headerResizeHandle(
-				{ column, width, resizeActions, minWidth, maxWidth, resizing },
-				canResize,
-			)}
+			{headerResizeHandle({ column, size, resizeActions, minWidth, maxWidth, resizing }, canResize)}
 		</TableHeader>
 	)
 })
@@ -334,6 +340,8 @@ export function GridReorderableColumnHeaderView({
 	stickyHeader,
 	toggleSort,
 	width,
+	size,
+	least,
 	resizeActions,
 	minWidth,
 	maxWidth,
@@ -391,8 +399,8 @@ export function GridReorderableColumnHeaderView({
 
 	const cellActivators = useSurfaceSafeActivators(listeners)
 
-	// The width rules of the fit layout (see `fitHeaderProps`).
-	const fit = fitHeaderProps(column)
+	// The width rules of the automatic layout (see `fitHeaderProps`).
+	const fit = fitHeaderProps(column, least)
 
 	return (
 		<TableHeader
@@ -447,10 +455,7 @@ export function GridReorderableColumnHeaderView({
 				/>
 				{headerAffordances({ column, interactive, filter, filterQuery })}
 			</span>
-			{headerResizeHandle(
-				{ column, width, resizeActions, minWidth, maxWidth, resizing },
-				canResize,
-			)}
+			{headerResizeHandle({ column, size, resizeActions, minWidth, maxWidth, resizing }, canResize)}
 		</TableHeader>
 	)
 }

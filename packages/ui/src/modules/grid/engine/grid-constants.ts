@@ -4,7 +4,7 @@ export const DEFAULT_OVERSCAN = 10
 /**
  * The size (px) that a windowed body assumes for its scroller until the scroller
  * measures. A server render thus paints a first window of rows, and the browser
- * sizes the columns of the first paint from them (see `readFitLayout`). @internal
+ * sizes the columns of the first paint from them (see `createColumnSizer`). @internal
  */
 export const FIRST_WINDOW_RECT = { width: 0, height: 480 }
 

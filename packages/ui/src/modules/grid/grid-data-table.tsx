@@ -67,8 +67,10 @@ type GridDataTableProps<T> = {
 		settling: boolean
 		/** The fixed-layout width, when the columns resize. */
 		width: number | undefined
-		/** The mode of the fit layout while the grid renders it (see `resolveResizeLayout`). */
+		/** The mode of the automatic layout while the grid renders it (see `resolveResizeLayout`). */
 		fit: GridFitMode | undefined
+		/** Whether the automatic layout holds least widths (see `resolveResizeLayout`). */
+		held: boolean
 		colGroup: ReactNode
 		/** The consumer's `tableProps`, with the grid's ref joined to theirs. */
 		props: TableElementProps
@@ -196,6 +198,7 @@ export function GridDataTable<T>({
 					bodyHasRows: hasRows && !loading && !showingError,
 					tableWidth: table.width,
 					fit: table.fit,
+					held: table.held,
 				})}
 			>
 				{table.colGroup}

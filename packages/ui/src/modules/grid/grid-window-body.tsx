@@ -50,7 +50,7 @@ function GridWindowSpacer({ height, colSpan }: { height: number; colSpan: number
  * @remarks Until the scroll element measures, the window assumes
  * `FIRST_WINDOW_RECT` for it. A server render and the first client render thus
  * paint the same first rows, and the browser sizes the columns from them (see
- * `readFitLayout`). The body can still hold items while its window holds none:
+ * `createColumnSizer`). The body can still hold items while its window holds none:
  * the window is empty while the element measures zero, such as in a
  * `display: none` panel. The body then holds the loading skeleton, not an empty
  * body. The skeleton also gives the scroller its height, so the bottom spacer

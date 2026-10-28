@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, present, renderUI, waitFor } from '../helpers'
+import { fireEvent, frames, present, renderUI, waitFor } from '../helpers'
 
 /**
  * A right-click on the column resize handle must not begin a drag-resize. The
@@ -45,9 +45,9 @@ describe('grid resize handle: right-click (real browser)', () => {
 	// Auto-fit sizes the columns on mount; wait for the engine width so the drag
 	// starts on a settled target.
 	async function settled(container: HTMLElement) {
-		const table = present(container.querySelector('table'), 'table')
+		const _table = present(container.querySelector('table'), 'table')
 
-		await waitFor(() => expect(table.style.width).not.toBe(''))
+		await frames()
 	}
 
 	// Both context-menu gestures: a plain right-click, and the macOS Ctrl+click

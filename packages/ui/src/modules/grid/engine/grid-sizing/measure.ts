@@ -20,6 +20,16 @@ let sharedRange: Range | null = null
  * @internal
  */
 function intrinsicWidth(el: HTMLElement): number {
+	return Math.ceil(exactWidth(el))
+}
+
+/**
+ * The intrinsic content width of an element's text as {@link intrinsicWidth}
+ * reads it, but not rounded: the width that the browser lays out.
+ *
+ * @internal
+ */
+function exactWidth(el: HTMLElement): number {
 	sharedRange ??= document.createRange()
 
 	const range = sharedRange
@@ -29,7 +39,7 @@ function intrinsicWidth(el: HTMLElement): number {
 	if (typeof range.getBoundingClientRect === 'function') {
 		const width = range.getBoundingClientRect().width
 
-		if (width > 0) return Math.ceil(width)
+		if (width > 0) return width
 	}
 
 	return el.scrollWidth
@@ -177,16 +187,20 @@ function collectCells(container: HTMLElement): {
  *
  * @internal
  */
-type PendingLeaf = { leaf: HTMLElement; chrome: number }
+type PendingLeaf = { leaf: HTMLElement; chrome: number; exact: number }
 
 /**
  * One column's body scan: the widest content need resolved against the current
  * layout (text-only and leafless cells). It also holds the element-bearing
  * leaves awaiting the batched `max-content` read, which folds into `widest`.
  *
+ * `least` is the widest need of the leaves alone, as the automatic table layout
+ * reads it: not rounded, and with each leaf inside its `max-width` (`cap`). It
+ * is `0` when the column rendered no leaf.
+ *
  * @internal
  */
-type ColumnScan = { widest: number; pending: PendingLeaf[] }
+type ColumnScan = { widest: number; least: number; cap: number; pending: PendingLeaf[] }
 
 /**
  * Whether a leaf holds an element child that lays out a box. A `hidden` child (the
@@ -224,6 +238,10 @@ function laysOutElements(leaf: HTMLElement): boolean {
 function scanBodyCells(cells: HTMLElement[]): ColumnScan {
 	let widest = 0
 
+	let least = 0
+
+	let cap: number | undefined
+
 	const pending: PendingLeaf[] = []
 
 	for (const td of cells) {
@@ -235,18 +253,39 @@ function scanBodyCells(cells: HTMLElement[]): ColumnScan {
 			continue
 		}
 
-		const chrome = td.getBoundingClientRect().width - leaf.offsetWidth
+		// One recipe class caps each leaf of a column, so the first leaf gives the cap.
+		cap ??= leafCap(leaf)
+
+		const box = td.getBoundingClientRect().width
+
+		const chrome = box - leaf.offsetWidth
+
+		const exact = box - leaf.getBoundingClientRect().width
 
 		if (laysOutElements(leaf)) {
-			pending.push({ leaf, chrome })
+			pending.push({ leaf, chrome, exact })
 		} else {
 			const need = chrome + intrinsicWidth(leaf)
 
 			if (need > widest) widest = need
+
+			least = Math.max(least, exact + Math.min(exactWidth(leaf), cap))
 		}
 	}
 
-	return { widest, pending }
+	return { widest, least, cap: cap ?? Number.POSITIVE_INFINITY, pending }
+}
+
+/**
+ * The `max-width` (px) of a body leaf, or infinity when it has none. The fit
+ * classes cap a leaf in the automatic table layout (see `k.fit.cap`).
+ *
+ * @internal
+ */
+function leafCap(leaf: HTMLElement): number {
+	const cap = Number.parseFloat(getComputedStyle(leaf).maxWidth)
+
+	return Number.isFinite(cap) ? cap : Number.POSITIVE_INFINITY
 }
 
 /**
@@ -267,19 +306,33 @@ function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
 
 	if (pending.length === 0) return
 
-	const prior = pending.map(({ leaf }) => leaf.style.width)
+	const prior = pending.map(({ leaf }) => [leaf.style.width, leaf.style.contain] as const)
 
-	for (const { leaf } of pending) leaf.style.width = 'max-content'
+	// A held leaf contains its inline size (see `k.fit.held`), and a contained box has
+	// no `max-content` width of its own.
+	for (const { leaf } of pending) {
+		leaf.style.width = 'max-content'
+
+		leaf.style.contain = 'none'
+	}
 
 	for (const scan of scans) {
-		for (const { leaf, chrome } of scan.pending) {
-			const need = chrome + (Math.ceil(leaf.getBoundingClientRect().width) || leaf.scrollWidth)
+		for (const { leaf, chrome, exact } of scan.pending) {
+			const width = leaf.getBoundingClientRect().width
+
+			const need = chrome + (Math.ceil(width) || leaf.scrollWidth)
 
 			if (need > scan.widest) scan.widest = need
+
+			scan.least = Math.max(scan.least, exact + Math.min(width || leaf.scrollWidth, scan.cap))
 		}
 	}
 
-	for (const [index, { leaf }] of pending.entries()) leaf.style.width = prior[index] ?? ''
+	for (const [index, { leaf }] of pending.entries()) {
+		leaf.style.width = prior[index]?.[0] ?? ''
+
+		leaf.style.contain = prior[index]?.[1] ?? ''
+	}
 }
 
 /**
@@ -425,6 +478,15 @@ export type ColumnMeasurement = {
 	cells: number
 	/** The content width (px) of each {@link isContentSized} column (see {@link fitWidths}). */
 	fits: Map<string, number>
+	/**
+	 * The widest body leaf (px, border box of its cell) of each scanned column, as
+	 * the automatic table layout reads it: not rounded, and inside the `max-width`
+	 * of the leaf. A scanned column that rendered no leaf has no entry. These are
+	 * the least widths of the automatic layout (see `createColumnSizer`).
+	 */
+	leaves: Map<string, number>
+	/** The rendered width (px, border box) of the header cell of each scanned column. */
+	rendered: Map<string, number>
 }
 
 /**
@@ -485,12 +547,25 @@ export function measureColumns<T>({
 
 	const widest = new Map<string, number>()
 
-	// Every width rounds up, so that a fractional pixel never clips the content.
-	for (const [id, { widest: width }] of scans) widest.set(id, Math.ceil(width))
+	const leaves = new Map<string, number>()
+
+	const rendered = new Map<string, number>()
+
+	// Every width rounds up, so that a fractional pixel never clips the content. The
+	// least widths do not, because the browser lays them out as they are.
+	for (const [id, { widest: width, least }] of scans) {
+		widest.set(id, Math.ceil(width))
+
+		if (least > 0) leaves.set(id, least)
+
+		const th = headers.get(id)
+
+		if (th) rendered.set(id, th.getBoundingClientRect().width)
+	}
 
 	// A collapse alone keeps a boundary in the last leaf. A boundary at the
 	// document start collapses the range there and releases that leaf.
 	sharedRange?.setEnd(document, 0)
 
-	return { floors, bodies: widest, cells, fits }
+	return { floors, bodies: widest, cells, fits, leaves, rendered }
 }

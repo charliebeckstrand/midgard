@@ -4948,10 +4948,17 @@ describe('Grid new row', () => {
 		})
 
 		it('keeps the fallback width where the control measures nothing', () => {
-			// jsdom has no layout, so the Add cell reports no width.
-			const view = renderNewRow()
+			// jsdom has no layout, so the Add cell reports no width. Saved widths take the
+			// fixed layout, which gives the column a width.
+			const view = renderNewRow({}, { columnSizing: { defaultValue: { name: 150, count: 150 } } })
 
 			expect(addColWidth(view.container)).toBe(`${NEW_ROW_ADD_COLUMN_SIZE}px`)
+		})
+
+		it('gives the column no width in the automatic layout until the control measures', () => {
+			const view = renderNewRow()
+
+			expect(addColWidth(view.container)).toBe('')
 		})
 
 		it('resolves the width: none, fixed, measured, then the content', () => {

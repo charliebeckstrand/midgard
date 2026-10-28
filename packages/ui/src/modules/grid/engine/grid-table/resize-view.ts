@@ -27,11 +27,18 @@ export type GridColumnResize = {
 	/** The summed width (px) of the visible columns: the width of the fixed-layout table. */
 	totalSize: number
 	/**
-	 * The mode of the fit layout while the grid renders it, else `null`. In the fit
-	 * layout the browser sizes the columns, and the engine widths do not apply yet
-	 * (see `readFitLayout`).
+	 * The mode of the automatic table layout while the grid renders it, else
+	 * `null`. In that layout the browser sizes the columns, and the widths above
+	 * are copies of the widths that it lays out (see `useGridColumnSizing`).
 	 */
 	fit: GridFitMode | null
+	/**
+	 * The least width (px) of a column in the automatic table layout, or
+	 * `undefined` (see `createColumnSizer`, rule 1).
+	 */
+	least: (id: string | number) => number | undefined
+	/** Whether the automatic table layout holds a least width, so the body content sizes no column. */
+	held: boolean
 	/** Whether the column can be resized (data columns only). */
 	canResize: (id: string | number) => boolean
 	/** The column mid drag-resize, or `null` when no pointer drag is in flight. */
@@ -139,6 +146,7 @@ export function buildColumnResize<T>(args: {
 	floors: ReadonlyMap<string, number>
 	resizing: string | null
 	fit: GridFitMode | null
+	least: ReadonlyMap<string, number>
 	actions: GridColumnResizeActions
 }): GridColumnResize {
 	const { widths, floors } = args
@@ -153,6 +161,8 @@ export function buildColumnResize<T>(args: {
 		getSize: (id) => widths.get(String(id)) ?? DEFAULT_COLUMN_SIZE,
 		totalSize,
 		fit: args.fit,
+		least: (id) => args.least.get(String(id)),
+		held: args.fit != null && args.least.size > 0,
 		// The engine's `getCanResize`: a column resizes unless its definition opts out.
 		canResize: (id) => {
 			const def = defs.get(String(id))

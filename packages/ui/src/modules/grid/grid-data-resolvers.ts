@@ -220,8 +220,10 @@ export function resolveTableProps(args: {
 	bodyHasRows: boolean
 	/** Fixed-layout table width (px) when resizable, sized to the `<colgroup>`. */
 	tableWidth: number | undefined
-	/** The mode of the fit layout while the grid renders it (see `resolveResizeLayout`). */
+	/** The mode of the automatic layout while the grid renders it (see `resolveResizeLayout`). */
 	fit?: GridFitMode | undefined
+	/** Whether the automatic layout holds least widths (see `resolveResizeLayout`). */
+	held?: boolean
 }): TableElementProps {
 	const role = args.tableProps?.role ?? tableRole(args)
 
@@ -247,6 +249,7 @@ export function resolveTableProps(args: {
 			? { style: { ...args.tableProps?.style, width: args.tableWidth } }
 			: {}),
 		...(args.fit ? { 'data-grid-fit-layout': args.fit } : {}),
+		...(args.fit && args.held ? { 'data-grid-fit-held': '' } : {}),
 		...(role ? { role } : {}),
 		// A `role="grid"` needs an accessible name (WCAG 1.3.1 / 4.1.2); default one
 		// when the caller named the grid through neither `tableProps` escape hatch.
@@ -400,11 +403,12 @@ export function resolveHover<T>(
  * resizing) when the grid is not resizable. Split out of
  * {@link useGridDataFrame}, its caller, for its cognitive-complexity budget.
  *
- * While the grid renders the fit layout (see `GridColumnResize.fit`), `fit` is
- * the value of the `data-grid-fit-layout` attribute of the `<table>`. The table then has
- * no width, and each `<col>` holds only a width that the fit keeps (see
- * `fitKeptWidth`). The browser sizes the other columns, and the first fit reads
- * them (see `readFitLayout`).
+ * While the grid renders the automatic table layout (see `GridColumnResize.fit`),
+ * `fit` is the value of the `data-grid-fit-layout` attribute of the `<table>`.
+ * The table then has no width, and each `<col>` holds only a width that the
+ * layout keeps (see `fitKeptWidth`). The browser sizes the other columns. `held`
+ * says whether the layout holds least widths, so that the body content sizes no
+ * column (see `k.fit.held`).
  *
  * @internal
  */
@@ -418,6 +422,7 @@ export function resolveResizeLayout<T>(args: {
 	tableClassName: string
 	tableWidth: number | undefined
 	fit: GridFitMode | undefined
+	held: boolean
 	resizing: boolean
 } {
 	const { resize } = args
@@ -428,6 +433,7 @@ export function resolveResizeLayout<T>(args: {
 			tableClassName: cn(args.className),
 			tableWidth: undefined,
 			fit: undefined,
+			held: false,
 			resizing: false,
 		}
 	}
@@ -447,6 +453,7 @@ export function resolveResizeLayout<T>(args: {
 		tableClassName: cn(k.resize.fixed, k.fit.table, k.resize.metrics, args.className),
 		tableWidth: resize.fit ? undefined : resize.totalSize,
 		fit: resize.fit ?? undefined,
+		held: resize.held,
 		resizing: resize.resizing != null,
 	}
 }
