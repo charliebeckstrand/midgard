@@ -238,7 +238,7 @@
 	"ui.grid.loadFailed": "No se pudieron cargar los datos",
 	"ui.grid.manageColumns": "Gestionar columnas",
 	"ui.grid.manageRows": "Gestionar filas",
-	"ui.grid.moveTo": "Mover a {group}",
+	"ui.grid.moveTo": "Mover a “{group}”",
 	"ui.grid.newGroup": "Grupo nuevo",
 	"ui.grid.newRow": "Fila nueva",
 	"ui.grid.nextPage": "Página siguiente",

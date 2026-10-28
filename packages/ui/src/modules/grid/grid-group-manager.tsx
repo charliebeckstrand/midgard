@@ -435,7 +435,7 @@ export function GridGroupManager({
 						<Button
 							ref={newGroupRef}
 							type="button"
-							variant="soft"
+							variant="plain"
 							onClick={manager.addGroup}
 							className="self-start"
 						>
