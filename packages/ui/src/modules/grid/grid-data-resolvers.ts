@@ -568,8 +568,17 @@ export function resolveHighlightQuery(
 }
 
 /**
- * The width gate: withholds the table's paint until its columns are fitted, while
- * leaving it measurable.
+ * The width gate: withholds the paint of the table body until its columns are fitted,
+ * while leaving it measurable.
+ *
+ * A reload paints the server's HTML first, at the declared column widths, and the fit
+ * at hydration replaces them. The head and the column frame paint from the server, and
+ * they move to the fitted widths at hydration. Each body that holds data waits at zero
+ * opacity, so no row paints at a width that is about to change. A body of placeholders
+ * carries `data-grid-placeholder` and shows: the loading row at the top of the body (see
+ * `GridGateSkeleton`) and the skeleton of a window that has not resolved. A windowed
+ * body has no rows before hydration, so its scroll region also reserves the `maxHeight`
+ * that the rows will fill.
  *
  * `opacity-0` rather than `hidden` or an unmount, because the autosizer has to *measure*
  * this subtree in order to size it. Zero opacity keeps layout and geometry intact, so
@@ -579,14 +588,10 @@ export function resolveHighlightQuery(
  * Opacity rather than `invisible`, because visibility is inherited. Every cell computes
  * its own visibility from the table, so the reveal would restyle each element of the
  * table a second time: about 9,000 elements at 1,000 rows. Opacity is not inherited,
- * so the reveal restyles the table alone. The cost is that a table under the gate stays
+ * so the reveal restyles each body alone. The cost is that a body under the gate stays
  * in the accessibility tree. The gate is on only until the first fit: on a client
  * mount that is the same task, and after a reload it is the time until hydration, when
  * the server's rows are already the true content.
- *
- * The box of the table does not show blank while the gate is on: the grid loading
- * skeleton shows in it (see `GridGateSkeleton`). A windowed body has no rows before
- * hydration, so its scroll region reserves the `maxHeight` that the rows will fill.
  *
  * Carried by the `<table>` itself rather than a wrapper: a wrapping node (even
  * `display: contents`) would sit in the middle of the grid's own child selectors. Kept
@@ -595,5 +600,5 @@ export function resolveHighlightQuery(
  * @internal
  */
 export function widthGateClass(revealed: boolean): string | undefined {
-	return revealed ? undefined : 'opacity-0'
+	return revealed ? undefined : cn(k.gate.body)
 }

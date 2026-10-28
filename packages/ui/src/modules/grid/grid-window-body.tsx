@@ -2,6 +2,7 @@
 
 import type { ReactNode, RefObject, TransitionEventHandler } from 'react'
 import { TableBody } from '../../components/table'
+import { dataAttr } from '../../core'
 import { GridSkeletonRows } from './grid-skeleton-cells'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
@@ -58,6 +59,8 @@ function GridWindowSpacer({ height, colSpan }: { height: number; colSpan: number
  * swap to rows in one commit, with the fit that sizes their columns. The
  * skeleton also gives the scroller its height, so the bottom spacer stays out
  * until rows render.
+ * While it holds the skeleton, the body carries `data-grid-placeholder`, so the
+ * width gate does not hide it (see `widthGateClass`).
  *
  * @internal
  */
@@ -76,7 +79,11 @@ export function GridWindowBody<T>({
 	const warming = itemCount > 0 && windowCount === 0
 
 	return (
-		<TableBody ref={bodyRef} onTransitionEnd={onTransitionEnd}>
+		<TableBody
+			ref={bodyRef}
+			onTransitionEnd={onTransitionEnd}
+			data-grid-placeholder={dataAttr(warming)}
+		>
 			<GridWindowSpacer height={topSpacer} colSpan={columns.length} />
 			{warming ? <GridSkeletonRows columns={columns} pinning={pinning} /> : children}
 			{!warming && <GridWindowSpacer height={bottomSpacer} colSpan={columns.length} />}

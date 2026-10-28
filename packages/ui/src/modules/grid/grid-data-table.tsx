@@ -5,7 +5,6 @@ import { Table, type TableElementProps } from '../../components/table'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { k } from '../../recipes/kata/grid'
 import type { scale } from '../../recipes/kata/table'
 import { GridHighlightContext } from './context'
 import {
@@ -171,91 +170,84 @@ export function GridDataTable<T>({
 		/>
 	)
 
-	// The condensed font and the outline rules, which the skeleton of the width
-	// gate takes too.
-	const lookClass = condensedTableClass(table.condensed, outlineTableClass(table.outline))
-
 	// The cursor store is always provided (inert when not navigable/editable); only
 	// a cursor grid's cells subscribe, so the wrapper costs nothing otherwise.
 	const tableContent = (
 		<GridNavContext value={cursor.navStore}>
-			<div className={cn(k.gate.frame)}>
-				<Table
-					size={density}
-					bleed={table.bleed}
-					striped={stripedForOutline(table.striped, table.outline)}
-					hover={table.hover}
-					className={cn(
+			<Table
+				size={density}
+				bleed={table.bleed}
+				striped={stripedForOutline(table.striped, table.outline)}
+				hover={table.hover}
+				className={condensedTableClass(
+					table.condensed,
+					cn(
 						table.className,
 						settleBodyClass(table.settling),
-						lookClass,
+						outlineTableClass(table.outline),
 						widthGateClass(table.revealed),
-					)}
-					tableProps={resolveTableProps({
-						intl,
-						tableProps: table.props,
-						// The cursor's tab stop, active-cell pointer, and key/focus handlers.
-						navTableProps: cursor.navTableProps,
-						// Row/cell roving: the table ref and the arrow-key handler (exclusive
-						// with the cursor, which stands roving down).
-						rovingTableProps: roving.tableProps,
-						loading,
-						gridSemantics: semantics.enabled,
-						navigable: cursor.cursorEnabled,
-						tree: table.tree,
-						ariaRowCount: semantics.ariaRowCount,
-						colCount: columns.length,
-						multiSelectable: table.multiSelectable,
-						bodyHasRows: hasRows && !loading && !showingError,
-						tableWidth: table.width,
-					})}
-				>
-					{table.colGroup}
-
-					<GridHead
-						columns={columns}
-						hasRows={hasRows}
-						selectAllLabel={semantics.selectAllLabel}
-						gridSemantics={semantics.enabled}
-						pinning={pinning}
-						{...head}
-					/>
-
-					{slotAt(newRow.place, 'top', newRowSlot)}
-
-					<GridBody<T>
-						{...body}
-						loading={loading}
-						visibleColumns={columns}
-						pinning={pinning}
-						gridSemantics={semantics.enabled}
-						rowIndexOffset={semantics.rowIndexOffset}
-						rowRoving={roving.rovingRows}
-						rowStaticStop={roving.rowStaticStop}
-						cellRoving={roving.rovingCells}
-					/>
-
-					{slotAt(newRow.place, 'bottom', newRowSlot)}
-
-					<GridGrandTotalBody<T>
-						grandTotal={grandTotal}
-						columns={columns}
-						pinning={pinning}
-						gridSemantics={semantics.enabled}
-						ariaRowCount={semantics.ariaRowCount}
-					/>
-				</Table>
-
-				{/* Over the gated table until its columns fit. */}
-				{!table.revealed && (
-					<GridGateSkeleton
-						columns={columns}
-						density={density}
-						bleed={table.bleed}
-						className={lookClass}
-					/>
+					),
 				)}
-			</div>
+				tableProps={resolveTableProps({
+					intl,
+					tableProps: table.props,
+					// The cursor's tab stop, active-cell pointer, and key/focus handlers.
+					navTableProps: cursor.navTableProps,
+					// Row/cell roving: the table ref and the arrow-key handler (exclusive
+					// with the cursor, which stands roving down).
+					rovingTableProps: roving.tableProps,
+					loading,
+					gridSemantics: semantics.enabled,
+					navigable: cursor.cursorEnabled,
+					tree: table.tree,
+					ariaRowCount: semantics.ariaRowCount,
+					colCount: columns.length,
+					multiSelectable: table.multiSelectable,
+					bodyHasRows: hasRows && !loading && !showingError,
+					tableWidth: table.width,
+				})}
+			>
+				{table.colGroup}
+
+				<GridHead
+					columns={columns}
+					hasRows={hasRows}
+					selectAllLabel={semantics.selectAllLabel}
+					gridSemantics={semantics.enabled}
+					pinning={pinning}
+					{...head}
+				/>
+
+				{/* The loading row at the top of a gated body. A window that has not
+				    resolved shows its own skeleton. */}
+				{!table.revealed && !scroll.virtualized && (
+					<GridGateSkeleton columns={columns} colGroup={table.colGroup} />
+				)}
+
+				{slotAt(newRow.place, 'top', newRowSlot)}
+
+				<GridBody<T>
+					{...body}
+					loading={loading}
+					visibleColumns={columns}
+					pinning={pinning}
+					gridSemantics={semantics.enabled}
+					rowIndexOffset={semantics.rowIndexOffset}
+					rowRoving={roving.rovingRows}
+					rowStaticStop={roving.rowStaticStop}
+					cellRoving={roving.rovingCells}
+				/>
+
+				{slotAt(newRow.place, 'bottom', newRowSlot)}
+
+				<GridGrandTotalBody<T>
+					grandTotal={grandTotal}
+					columns={columns}
+					pinning={pinning}
+					gridSemantics={semantics.enabled}
+					ariaRowCount={semantics.ariaRowCount}
+				/>
+			</Table>
 
 			<GridFillHandle />
 		</GridNavContext>
