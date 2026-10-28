@@ -117,6 +117,8 @@ type GridColumnSizingResult = {
 	/** Ends a drag-resize, from the last drag state of the engine. A drag that moved takes control. */
 	endDrag: (drag: { deltaOffset: number | null }) => void
 	fitRenderedRows: () => void
+	/** Whether the sizer is in `manual` mode: a user width change holds the columns. */
+	manual: boolean
 	/**
 	 * The mode of the automatic table layout while the grid renders it, else
 	 * `null`. The grid renders it in `auto` mode, on the server too, while no drag
@@ -636,6 +638,7 @@ export function useGridColumnSizing<T>({
 		syncWidths,
 		endDrag,
 		fitRenderedRows,
+		manual,
 		fit: layoutAuto ? fitMode : null,
 		least: layoutAuto ? least : NO_LEAST,
 		floors,

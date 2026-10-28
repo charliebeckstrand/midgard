@@ -136,9 +136,20 @@ export function useGridMenuActions<T>({
 		[autoSizeAll, hasSizingPreference],
 	)
 
+	// A reset of the automatic widths changes nothing, so the item shows only while a
+	// column holds a width of its own.
+	const customized = resize?.customized ?? false
+
 	const resetColumnWidths = useMemo(
-		() => confirmed('reset', resetWidths, hasSizingPreference, setWidthAction, setWidthConfirmOpen),
-		[resetWidths, hasSizingPreference],
+		() =>
+			confirmed(
+				'reset',
+				customized ? resetWidths : null,
+				hasSizingPreference,
+				setWidthAction,
+				setWidthConfirmOpen,
+			),
+		[customized, resetWidths, hasSizingPreference],
 	)
 
 	const confirmWidthAction = useMemo(() => {
@@ -169,8 +180,8 @@ export function useGridMenuActions<T>({
 		sortColumn,
 		clearSort,
 		// Header "Auto-size all columns" and "Reset column widths": only when
-		// resizing is on; each detours through the confirm dialog while a sizing
-		// preference is in play.
+		// resizing is on, and the reset only while a column holds its own width. Each
+		// detours through the confirm dialog while a sizing preference is in play.
 		autoSizeColumns,
 		resetColumnWidths,
 		// The confirm dialog's wiring: open state, the pending action, and its run.

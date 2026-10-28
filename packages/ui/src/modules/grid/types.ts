@@ -630,7 +630,7 @@ export type GridColumnMenuContext<T> = {
 	/**
 	 * Gives the widths back to the grid's automatic fit ("Reset column widths"),
 	 * as on a fresh mount with no saved widths. It is `undefined` when the grid is
-	 * not resizable.
+	 * not resizable, or when no column holds a width other than its automatic one.
 	 */
 	resetColumnWidths: (() => void) | undefined
 	/** Opens the column-manager dialog ("Manage columns"). */

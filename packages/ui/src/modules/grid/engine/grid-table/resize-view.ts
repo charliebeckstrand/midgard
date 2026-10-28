@@ -39,6 +39,12 @@ export type GridColumnResize = {
 	least: (id: string | number) => number | undefined
 	/** Whether the automatic table layout holds a least width, so the body content sizes no column. */
 	held: boolean
+	/**
+	 * Whether a column holds a width other than its automatic one: a user width
+	 * change, or a controlled binding that names a width. "Reset column widths"
+	 * shows only then.
+	 */
+	customized: boolean
 	/** Whether the column can be resized (data columns only). */
 	canResize: (id: string | number) => boolean
 	/** The column mid drag-resize, or `null` when no pointer drag is in flight. */
@@ -147,6 +153,7 @@ export function buildColumnResize<T>(args: {
 	resizing: string | null
 	fit: GridFitMode | null
 	least: ReadonlyMap<string, number>
+	customized: boolean
 	actions: GridColumnResizeActions
 }): GridColumnResize {
 	const { widths, floors } = args
@@ -163,6 +170,7 @@ export function buildColumnResize<T>(args: {
 		fit: args.fit,
 		least: (id) => args.least.get(String(id)),
 		held: args.fit != null && args.least.size > 0,
+		customized: args.customized,
 		// The engine's `getCanResize`: a column resizes unless its definition opts out.
 		canResize: (id) => {
 			const def = defs.get(String(id))
