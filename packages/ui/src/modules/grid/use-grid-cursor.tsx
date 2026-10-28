@@ -2,6 +2,7 @@
 
 import {
 	type KeyboardEvent,
+	type MouseEvent,
 	type ReactNode,
 	type RefObject,
 	useCallback,
@@ -349,7 +350,7 @@ export function useGridCursor<T>({
 		range: cursorEnabled && range,
 	})
 
-	const { readRange, toCursorRow, rangeAnchor } = nav
+	const { readRange, toCursorRow, rangeAnchor, seat: navSeat, unveil } = nav
 
 	// A copy while the tab stop has focus writes the range as TSV, or the active
 	// cell with no range. The native event needs no clipboard permission. The
@@ -510,9 +511,12 @@ export function useGridCursor<T>({
 
 			if (!col || !isColumnEditable(col)) return
 
+			// The editor shows the ring that a press holds back.
+			unveil()
+
 			enterEdit(rowKey, columnId, seed)
 		},
-		[enterEdit, dataColumnsRef],
+		[enterEdit, dataColumnsRef, unveil],
 	)
 
 	// The keyboard entry starts from cursor indices, so it resolves them to the
@@ -577,6 +581,19 @@ export function useGridCursor<T>({
 		return (cell) => enterEditAtCell(cell.rowKey, cell.columnId)
 	}, [managed, enterEditAtCell])
 
+	// A press on a cell that a double click opens holds back the ring of the
+	// cell, so the first click of a double click shows no ring. A single click
+	// shows the ring when the double-click window ends. The first tap of a
+	// double tap is such a press too, through the mouse events of the tap.
+	const seat = useCallback(
+		(coord: Coord, event: MouseEvent<HTMLElement>) => {
+			const col = dataColumnsRef.current[coord.col]
+
+			navSeat(coord, event, managed && col !== undefined && isColumnEditable(col))
+		},
+		[navSeat, managed, dataColumnsRef],
+	)
+
 	// The touch entry. A touch screen sends no double-click, so the grid finds
 	// a double tap on a cell itself (see `useGridTouchEntry`). It opens through
 	// `enterEditAt`, as Enter does, so the same gates apply.
@@ -592,7 +609,7 @@ export function useGridCursor<T>({
 		colIndexMapRef,
 		rowKeysRef,
 		cellId: nav.cellId,
-		seat: nav.seat,
+		seat,
 		touch: managed ? touchEntry : undefined,
 	})
 

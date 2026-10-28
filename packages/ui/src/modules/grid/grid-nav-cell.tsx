@@ -16,7 +16,7 @@ import { GRID_ROLE } from './engine/grid-constants'
 import { fromInteractiveContent } from './engine/grid-row/cell'
 import { clearStickyChrome, obscuringInsets, setScrollMargin } from './engine/grid-sticky-insets'
 import type { GridColumn } from './types'
-import { type Coord, useGridNavContext } from './use-grid-navigation'
+import { type Coord, type GridNavStore, useGridNavContext } from './use-grid-navigation'
 import type { GridTouchEntry } from './use-grid-touch-entry'
 
 /**
@@ -25,7 +25,9 @@ import type { GridTouchEntry } from './use-grid-touch-entry'
  * becomes (or stops being) the active one. The `<td>`'s `cellProps` are
  * non-reactive, so the memoized row holds across cursor moves. The styling
  * therefore rides this imperative attribute instead. A cell in the range of
- * the cursor carries `data-in-range` in the same way. The active cell also
+ * the cursor carries `data-in-range` in the same way. An active cell whose ring
+ * waits out a double click carries `data-veiled`, and shows no ring and no
+ * fill handle (see {@link GridNavStore.isVeiled}). The active cell also
  * scrolls into view, clear of the grid's sticky header and pinned columns.
  * Renders a hidden locator span, not a wrapper,
  * so cell layout is untouched. While the grid can fill, the active cell also
@@ -65,7 +67,14 @@ export function GridNavCell({
 		() => false,
 	)
 
-	const fillHandle = stop === undefined && active ? store.fillHandle : null
+	// A one-stop row opens no editor, so it holds back no ring.
+	const veiled = useSyncExternalStore(
+		store.subscribe,
+		useCallback(() => stop === undefined && store.isVeiled(row, col), [store, row, col, stop]),
+		() => false,
+	)
+
+	const fillHandle = stop === undefined && active && !veiled ? store.fillHandle : null
 
 	// The active cell holds the fill handle, which one overlay shows on it.
 	useLayoutEffect(() => {
@@ -93,6 +102,18 @@ export function GridNavCell({
 			cell.removeAttribute('data-in-range')
 		}
 	}, [inRange])
+
+	useLayoutEffect(() => {
+		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')
+
+		if (!cell) return
+
+		cell.toggleAttribute('data-veiled', veiled)
+
+		return () => {
+			cell.removeAttribute('data-veiled')
+		}
+	}, [veiled])
 
 	useLayoutEffect(() => {
 		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')

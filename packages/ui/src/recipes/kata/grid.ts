@@ -839,14 +839,15 @@ export const k = {
 		// Active-cell cursor ring for a `navigable` read-only grid, driven by the
 		// `data-active` the cell marker toggles onto the owning `role="gridcell"`
 		// <td>. Inset so the scroll container can't clip it; accent blue, matching
-		// the editable grid's active cell.
+		// the editable grid's active cell. A cell that waits out a double click
+		// (`data-veiled`) shows no ring until the wait ends.
 		cell: [
-			'data-active:ring-2',
+			'data-active:not-data-veiled:ring-2',
 			'data-active:ring-inset',
 			...mode('data-active:ring-blue-600', 'dark:data-active:ring-blue-500'),
 			// Forced colors remove the ring, which is a box-shadow. This inset outline
 			// replaces it there, as in `focus.inset`.
-			'forced-colors:data-active:outline-solid forced-colors:data-active:outline-2',
+			'forced-colors:data-active:not-data-veiled:outline-solid forced-colors:data-active:outline-2',
 			'forced-colors:data-active:-outline-offset-2 forced-colors:data-active:outline-[Highlight]',
 			// A cell of the cursor's range (`range`) takes a tint and a hairline
 			// outline. The outline, not the tint, holds the 3:1 contrast of the state

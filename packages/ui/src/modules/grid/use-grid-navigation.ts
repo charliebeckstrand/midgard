@@ -6,6 +6,7 @@ import {
 	type MouseEvent,
 	type RefObject,
 	useCallback,
+	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -37,6 +38,7 @@ import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridge
 import type { GridCursorRow } from './grid-cursor-order'
 import type { GridFillHandle } from './use-grid-fill-handle'
 import { useGridRangeDrag } from './use-grid-range-drag'
+import { GRID_DOUBLE_TAP_WINDOW } from './use-grid-touch-entry'
 
 /**
  * Scrolls a row into the rendered window. A flat body reads `rowIndex`, the
@@ -120,6 +122,13 @@ export type GridNavStore = {
 	subscribe: (listener: () => void) => () => void
 	/** Whether the cell at `(row, col)` is currently the active cursor cell. */
 	isActive: (row: number, col: number) => boolean
+	/**
+	 * Whether the cell at `(row, col)` is the active cell, and holds back its
+	 * ring until a double click on it is not possible. A press that seats the
+	 * cursor on a cell that a double click opens holds back the ring (see the
+	 * `veil` of `seat`), so the first click of a double click shows no ring.
+	 */
+	isVeiled: (row: number, col: number) => boolean
 	/** Whether the cell at `(row, col)` is in the cell range (see {@link GridDataProps.range}). */
 	isInRange: (row: number, col: number) => boolean
 	/** The fill handle that the active cell holds, or `null` when the grid shows no handle. */
@@ -150,6 +159,7 @@ const INERT_STORE: GridNavStore = {
 	enabled: false,
 	subscribe: noopSubscribe,
 	isActive: () => false,
+	isVeiled: () => false,
 	isInRange: () => false,
 	fillHandle: null,
 	isStopActive: () => false,
@@ -554,13 +564,37 @@ function createActiveCursor() {
 
 	let revealed = 0
 
+	// The cell whose ring waits out a double click, and the timer that ends the
+	// wait (see `GridNavStore.isVeiled`).
+	let veiled: Coord | null = null
+
+	let veilTimer: ReturnType<typeof setTimeout> | undefined
+
 	const changes = createEmitter()
+
+	const unveil = () => {
+		clearTimeout(veilTimer)
+
+		if (veiled === null) return
+
+		veiled = null
+
+		changes.emit()
+	}
 
 	return {
 		get: (): Coord | null => active,
 		getAnchor: (): Coord | null => anchor,
+		getVeiled: (): Coord | null => veiled,
 		set: (next: Coord | null, nextAnchor: Coord | null) => {
 			if (next?.row !== active?.row || next?.col !== active?.col) changed++
+
+			// The cursor leaves the veiled cell, so the wait ends.
+			if (veiled !== null && (next?.row !== veiled.row || next?.col !== veiled.col)) {
+				clearTimeout(veilTimer)
+
+				veiled = null
+			}
 
 			active = next
 
@@ -575,6 +609,18 @@ function createActiveCursor() {
 
 			return true
 		},
+		/** Holds back the ring of the cell at `coord`, a place in the cursor's order, for the double-click window. */
+		veil: (coord: Coord) => {
+			clearTimeout(veilTimer)
+
+			veiled = coord
+
+			veilTimer = setTimeout(unveil, GRID_DOUBLE_TAP_WINDOW)
+
+			changes.emit()
+		},
+		/** Shows the ring that a press holds back, at once. */
+		unveil,
 		subscribe: changes.subscribe,
 	}
 }
@@ -672,9 +718,13 @@ export function useGridNavigation({
 	reconcile: GridReconcile
 	/**
 	 * Seats the cursor on a pressed data cell. With the range on, Shift extends
-	 * the range to the cell, and a press without it can start a drag.
+	 * the range to the cell, and a press without it can start a drag. With
+	 * `veil`, a primary press that moves the cursor to the cell holds back the
+	 * ring of the cell for the double-click window (see {@link GridNavStore.isVeiled}).
 	 */
-	seat: (coord: Coord, event: MouseEvent<HTMLElement>) => void
+	seat: (coord: Coord, event: MouseEvent<HTMLElement>, veil?: boolean) => void
+	/** Shows the ring that a press holds back, at once, as an editor that opens on the cell does. */
+	unveil: () => void
 	/**
 	 * The pointer that drives a drag of the range or of the fill handle. While a
 	 * pen or a mouse drags, the press of a palm is also a primary press. A press
@@ -726,6 +776,9 @@ export function useGridNavigation({
 	// own active flag: moving the cursor re-renders only the two cells whose flag
 	// flipped, not every rendered cell.
 	const [activeCursor] = useState(createActiveCursor)
+
+	// The wait of a veiled ring ends with the grid.
+	useEffect(() => activeCursor.unveil, [activeCursor])
 
 	const { get: readActive } = activeCursor
 
@@ -955,12 +1008,30 @@ export function useGridNavigation({
 		[readCorners],
 	)
 
+	// Moves the cursor to a pressed data cell. With `veil`, a primary press that
+	// moves the cursor to another cell holds back the ring of that cell. A press
+	// on the active cell keeps its ring.
+	const pressTo = useCallback(
+		(coord: Coord, event: MouseEvent<HTMLElement>, veil: boolean) => {
+			const row = toCursorRow(coord.row)
+
+			const from = readActive()
+
+			moveTo(coord)
+
+			if (!veil || row === -1 || !isPrimaryPress(event)) return
+
+			if (from?.row !== row || from.col !== coord.col) activeCursor.veil({ row, col: coord.col })
+		},
+		[toCursorRow, readActive, moveTo, activeCursor],
+	)
+
 	const seat = useCallback(
-		(coord: Coord, event: MouseEvent<HTMLElement>) => {
+		(coord: Coord, event: MouseEvent<HTMLElement>, veil = false) => {
 			if (press.held()) return
 
 			if (!range) {
-				moveTo(coord)
+				pressTo(coord, event, veil)
 
 				return
 			}
@@ -977,11 +1048,11 @@ export function useGridNavigation({
 				return
 			}
 
-			moveTo(coord)
+			pressTo(coord, event, veil)
 
 			startDrag(event)
 		},
-		[range, press, moveTo, extendTo, startDrag, inRangeAt],
+		[range, press, pressTo, extendTo, startDrag, inRangeAt],
 	)
 
 	const readRange = useCallback((): GridRangeCells | null => {
@@ -1039,6 +1110,15 @@ export function useGridNavigation({
 			if (current === null || current.col !== col) return false
 
 			const data = toDataRow(current.row)
+
+			return data !== -1 && data === row
+		},
+		isVeiled: (row, col) => {
+			const veiled = activeCursor.getVeiled()
+
+			if (veiled === null || veiled.col !== col) return false
+
+			const data = toDataRow(veiled.row)
 
 			return data !== -1 && data === row
 		},
@@ -1388,6 +1468,7 @@ export function useGridNavigation({
 		rowDistance,
 		reconcile,
 		seat,
+		unveil: activeCursor.unveil,
 		press,
 		parseCellCoord,
 		rangeAnchor: enabled ? anchor : null,

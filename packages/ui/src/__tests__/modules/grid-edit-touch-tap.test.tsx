@@ -112,6 +112,21 @@ describe('Grid touch entry to edit', () => {
 		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
 	})
 
+	it('holds back the ring of the first tap, and shows it as a double tap opens the cell', () => {
+		const { cell } = renderGrid()
+
+		tap(cell('name'))
+
+		// As with the first click of a double click, the ring waits.
+		expect(cell('name')).toHaveAttribute('data-veiled')
+
+		tap(cell('name'))
+
+		expect(cell('name')).toHaveAttribute('data-active')
+
+		expect(cell('name')).not.toHaveAttribute('data-veiled')
+	})
+
 	it('only selects a cell on a second tap after the double-tap window', () => {
 		const { cell, editors } = renderGrid()
 

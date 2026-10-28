@@ -18,6 +18,7 @@ import {
 	NEW_ROW_ADD_COLUMN_SIZE,
 	resolveNewRowAddWidth,
 } from '../../modules/grid/engine/grid-new-row-column'
+import { GRID_DOUBLE_TAP_WINDOW } from '../../modules/grid/use-grid-touch-entry'
 import {
 	act,
 	allBySlot,
@@ -33,6 +34,7 @@ import {
 	renderUI,
 	setupUser,
 } from '../helpers'
+import { it as clockIt } from '../helpers/fake-clock'
 
 type SessionRow = { id: number; name: string; count: number; done: boolean }
 
@@ -924,6 +926,67 @@ describe("Grid double-click-to-edit (session: 'managed')", () => {
 		fireEvent.doubleClick(cell('count'))
 
 		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+	})
+
+	clockIt(
+		'holds back the ring of a pressed editable cell for the double-click window',
+		async ({ clock }) => {
+			const { cell } = renderSessionGrid()
+
+			fireEvent.mouseDown(cell('name'))
+
+			// The cursor moves at once, but the ring waits, so the first click of a
+			// double click shows no ring.
+			expect(cell('name')).toHaveAttribute('data-active')
+
+			expect(cell('name')).toHaveAttribute('data-veiled')
+
+			await clock.advance(GRID_DOUBLE_TAP_WINDOW)
+
+			expect(cell('name')).toHaveAttribute('data-active')
+
+			expect(cell('name')).not.toHaveAttribute('data-veiled')
+
+			// A press on the active cell keeps its ring.
+			fireEvent.mouseDown(cell('name'))
+
+			expect(cell('name')).not.toHaveAttribute('data-veiled')
+		},
+	)
+
+	it('shows the ring when a double-click opens the cell', () => {
+		const { container, cell } = renderSessionGrid()
+
+		fireEvent.mouseDown(cell('name'))
+
+		fireEvent.doubleClick(cell('name'))
+
+		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
+
+		expect(cell('name')).toHaveAttribute('data-active')
+
+		expect(cell('name')).not.toHaveAttribute('data-veiled')
+	})
+
+	it('shows the ring of a pressed readOnly cell at once', () => {
+		const { cell } = renderSessionGrid({
+			cols: [
+				{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+				{
+					id: 'count',
+					title: 'Count',
+					field: 'count',
+					cell: (row) => String(row.count),
+					readOnly: true,
+				},
+			],
+		})
+
+		fireEvent.mouseDown(cell('count'))
+
+		expect(cell('count')).toHaveAttribute('data-active')
+
+		expect(cell('count')).not.toHaveAttribute('data-veiled')
 	})
 
 	it('saves the row as one batch on Enter and returns focus to the grid', () => {

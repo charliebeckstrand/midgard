@@ -6,7 +6,9 @@ import {
 	type GridColumn,
 	type GridEditableConfig,
 } from '../../modules/grid'
+import { GRID_DOUBLE_TAP_WINDOW } from '../../modules/grid/use-grid-touch-entry'
 import { act, expectAnnouncement, fireEvent, gridCells, renderUI, screen } from '../helpers'
+import { it as clockIt } from '../helpers/fake-clock'
 
 type Row = { id: number; name: string; count: number; code: string }
 
@@ -235,7 +237,7 @@ describe('Grid range fill', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Fill down' })).not.toBeInTheDocument()
 	})
 
-	it('shows the fill handle on the active cell only', () => {
+	clockIt('shows the fill handle on the active cell only', async ({ clock }) => {
 		const view = renderFillGrid()
 
 		const handles = () => view.container.querySelectorAll('[data-slot="grid-fill-handle"]')
@@ -254,6 +256,12 @@ describe('Grid range fill', () => {
 		expect(table.parentElement).toContainElement(handles()[0] as HTMLElement)
 
 		fireEvent.mouseDown(view.cell(0, 0))
+
+		// A press holds back the ring and the handle of an editable cell until a
+		// double click on it is not possible.
+		expect(handles()).toHaveLength(0)
+
+		await clock.advance(GRID_DOUBLE_TAP_WINDOW)
 
 		expect(handles()).toHaveLength(1)
 	})
