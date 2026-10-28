@@ -531,6 +531,29 @@ export type GridColumnFilters = {
 export type GridMenuItem = ContextMenuEntry
 
 /**
+ * The look of a tool's button in the toolbar: the object form of
+ * {@link GridToolSurfaces.toolbar}. `{ iconOnly: true, tooltip: true }` gives
+ * a compact cluster of icons, each with its label on hover.
+ */
+export type GridToolbarButton = {
+	/**
+	 * Shows the icon alone. The label stays the accessible name of the button,
+	 * so assistive tech still reads it.
+	 * @defaultValue false
+	 */
+	iconOnly?: boolean
+	/**
+	 * Shows the label in a {@link Tooltip} on hover and on keyboard focus. Only
+	 * an `iconOnly` button takes it, because a visible label needs no tooltip.
+	 *
+	 * @remarks A touch screen shows no tooltip. A tap on the button opens its
+	 * tool, so the tooltip cannot open on a click.
+	 * @defaultValue false
+	 */
+	tooltip?: boolean
+}
+
+/**
  * The surfaces a grid tool offers itself on: a button in the toolbar's "Table
  * tools" cluster, an item in the right-click menus, or both. Export
  * ({@link GridExportConfig}) and the column manager
@@ -545,10 +568,11 @@ export type GridMenuItem = ContextMenuEntry
  */
 export type GridToolSurfaces = {
 	/**
-	 * Render the tool's button in the toolbar's "Table tools" cluster.
+	 * Renders the tool's button in the toolbar's "Table tools" cluster. The
+	 * object form renders the button too, and sets its look.
 	 * @defaultValue false
 	 */
-	toolbar?: boolean
+	toolbar?: boolean | GridToolbarButton
 	/**
 	 * Offer the tool in the grid's right-click menus. Silent while the menu that
 	 * would carry it is off (see {@link GridProps.contextMenu}).

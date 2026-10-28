@@ -9,7 +9,7 @@ import {
 	trackPending,
 } from './engine/grid-export/resolve'
 import type { GridExportAction, GridExportable, GridExportRows } from './engine/grid-export/types'
-import type { GridColumn } from './types'
+import type { GridColumn, GridToolbarButton } from './types'
 
 /** A surface offering no export actions. A fixed identity, so an off surface never re-renders its menu. @internal */
 const NO_ACTIONS: GridExportAction[] = []
@@ -22,6 +22,8 @@ const NO_ACTIONS: GridExportAction[] = []
 export type GridExportSurfaceActions = {
 	/** The toolbar's "Export" dropdown. */
 	toolbar: GridExportAction[]
+	/** The look of the dropdown's trigger. */
+	button: Required<GridToolbarButton>
 	/** The header and cell right-click menus, and the builder contexts they hand out. */
 	contextMenu: GridExportAction[]
 	/**
@@ -83,6 +85,7 @@ export function useGridExport<T>(args: {
 	// dependencies.
 	return {
 		toolbar: surfaces.toolbar ? actions : NO_ACTIONS,
+		button: surfaces.button,
 		contextMenu: surfaces.contextMenu ? actions : NO_ACTIONS,
 		pending: pendingCount > 0,
 	}
