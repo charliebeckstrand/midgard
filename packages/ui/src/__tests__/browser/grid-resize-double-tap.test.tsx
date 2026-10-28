@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { GRID_DOUBLE_TAP_WINDOW } from '../../modules/grid/use-grid-touch-entry'
 import { fireEvent, frames, present, renderUI, waitFor } from '../helpers'
@@ -28,10 +28,6 @@ describe('grid resize handle: double tap (real browser)', () => {
 		// A script-made pointer is not an active pointer, so the browser refuses to
 		// capture it. A real press takes the capture.
 		vi.spyOn(Element.prototype, 'setPointerCapture').mockImplementation(() => {})
-	})
-
-	afterEach(() => {
-		vi.restoreAllMocks()
 	})
 
 	async function setup() {
@@ -146,8 +142,10 @@ describe('grid resize handle: double tap (real browser)', () => {
 		expect(width()).toBe(tapped)
 	})
 
-	it('does not auto-size on two taps farther apart than the window', async () => {
+	it('does not auto-size on two taps farther apart than the window', async ({ signal }) => {
 		const { separator, width } = await setup()
+
+		signal.throwIfAborted()
 
 		let now = 1000
 
