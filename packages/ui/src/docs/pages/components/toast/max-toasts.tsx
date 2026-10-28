@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Button } from 'ui/button'
-import { Toast, ToastProvider, useToast } from 'ui/toast'
+import { useToast } from 'ui/toast'
 
-function ShowToast() {
+export default function MaxToasts() {
 	const { toast } = useToast()
 
 	const [count, setCount] = useState(0)
@@ -16,13 +16,4 @@ function ShowToast() {
 	}
 
 	return <Button onClick={show}>Show toast</Button>
-}
-
-export default function MaxToasts() {
-	return (
-		<ToastProvider maxToasts={3}>
-			<ShowToast />
-			<Toast />
-		</ToastProvider>
-	)
 }
