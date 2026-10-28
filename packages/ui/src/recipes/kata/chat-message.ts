@@ -1,5 +1,5 @@
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, narabi, sen } from '../kiso'
+import { dan, iro, ji, kokkaku, narabi, sen } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
@@ -83,6 +83,10 @@ export const k = defineKata({
 				// bubble's blue. This inherits the bubble's foreground instead, the same
 				// bargain the markdown kata takes, so the line reads on all four bubbles.
 				fallback: [size.md, 'italic'],
+				// The shape that holds the space of a held-back embed, as wide as the bubble.
+				// The skeleton tone of a placeholder is the assistant fill, so the shape rides
+				// `currentColor` at a low alpha, as the `tool` box does, and shows on each bubble.
+				placeholder: [kokkaku.chat.embed, 'bg-current/15 dark:bg-current/15'],
 			},
 		},
 		/**
