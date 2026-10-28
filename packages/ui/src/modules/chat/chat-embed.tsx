@@ -2,6 +2,7 @@
 
 import { useInView } from 'motion/react'
 import { useEffect, useRef } from 'react'
+import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { defineMessages } from '../../primitives/intl/intl-messages'
@@ -130,9 +131,9 @@ type HeldChatEmbedProps = ChatEmbedProps & {
  * viewport and keeps it. `active` also unmounts it when it scrolls away.
  *
  * @remarks
- * The server and the hydration render show the reserved space. An observer
- * cannot run on the server, and the client must hydrate the same markup. The
- * gate therefore opens only after hydration.
+ * The server and the hydration render show a placeholder in the reserved
+ * space. An observer cannot run on the server, and the client must hydrate
+ * the same markup. The gate therefore opens only after hydration.
  *
  * @internal
  */
@@ -162,14 +163,21 @@ function HeldChatEmbed({ part, className, mount, render, address, reached }: Hel
 			ref={ref}
 			data-slot="chat-embed"
 			data-embed={part.name}
-			// Reserved while the renderer is held back, so the transcript's height
-			// does not jump as a reader scrolls into one. A caller that knows the
-			// view's height says so on the part; this default is what a chart runs to.
-			style={hold.present ? undefined : { minHeight: part.height ?? DEFERRED_HEIGHT }}
 			data-deferred={hold.present ? undefined : ''}
 			className={cn(k().embed.base, className)}
 		>
-			{hold.present && <MountHold hold={hold}>{render(part)}</MountHold>}
+			{hold.present ? (
+				<MountHold hold={hold}>{render(part)}</MountHold>
+			) : (
+				// The placeholder holds the space while the renderer is held back, so the
+				// transcript's height does not jump as a reader scrolls into one. A caller
+				// that knows the view's height says so on the part; this default is what
+				// a chart runs to.
+				<Placeholder
+					className={k().embed.placeholder}
+					style={{ height: part.height ?? DEFERRED_HEIGHT }}
+				/>
+			)}
 		</div>
 	)
 }

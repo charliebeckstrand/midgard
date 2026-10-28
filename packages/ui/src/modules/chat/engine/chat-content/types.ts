@@ -54,8 +54,8 @@ export type ChatEmbedPart = {
 	 */
 	data: unknown
 	/**
-	 * How tall the view will be, in pixels, for the space to hold open while its
-	 * renderer is held back under the `lazy` mount policy.
+	 * How tall the view will be, in pixels, for the placeholder that holds its
+	 * space while its renderer is held back under the `lazy` mount policy.
 	 *
 	 * Only the caller knows this: the module has not drawn the view yet, and
 	 * asking the renderer would mean mounting the thing being deferred. Absent

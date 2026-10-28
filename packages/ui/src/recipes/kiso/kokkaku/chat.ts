@@ -9,7 +9,9 @@
  * bubble: a 4-unit bar with a 1-unit margin above and below. The bubble is a
  * flex column, so the margins of two lines do not collapse. `lines` holds the
  * line widths of each side. The widths are defaults, and the lines do not go
- * wider than the bubble.
+ * wider than the bubble. `embed` is the shape in place of an embed that waits
+ * for the reader to reach it. It is as wide as the bubble, and the caller of
+ * the shape sets its height.
  *
  * Layer: kiso · Concern: skeleton form · Unit: chat
  */
@@ -31,4 +33,5 @@ export const chat = {
 		user: ['w-40'],
 		assistant: ['w-72', 'w-48'],
 	},
+	embed: 'w-full',
 } as const

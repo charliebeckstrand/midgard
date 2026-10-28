@@ -57,14 +57,14 @@ describe('a held-back embed', () => {
 		expect(screen.getByTestId('chart')).toBeInTheDocument()
 	})
 
-	it('holds its space open, so the transcript does not lurch as one lands', () => {
+	it('holds its space with a placeholder, so the transcript does not lurch as one lands', () => {
 		const { container } = renderUI(<Message />)
 
 		const block = getSlot(container, 'chat-embed')
 
 		expect(block).toHaveAttribute('data-deferred')
 
-		expect(block.style.minHeight).toBe('160px')
+		expect(getSlot(block, 'placeholder').style.height).toBe('160px')
 	})
 
 	it('holds the space the part asks for', () => {
@@ -74,7 +74,7 @@ describe('a held-back embed', () => {
 			</ChatEmbedProvider>,
 		)
 
-		expect(getSlot(container, 'chat-embed').style.minHeight).toBe('320px')
+		expect(getSlot(container, 'placeholder').style.height).toBe('320px')
 	})
 
 	it('stops reserving space once it has drawn', () => {
@@ -86,7 +86,7 @@ describe('a held-back embed', () => {
 
 		expect(block).not.toHaveAttribute('data-deferred')
 
-		expect(block.style.minHeight).toBe('')
+		expect(bySlot(block, 'placeholder')).toBeNull()
 	})
 
 	it('keeps drawing once reached, so scrolling past does not tear it down', () => {
@@ -177,12 +177,14 @@ describe('the mount policy', () => {
 })
 
 describe.each(['lazy', 'active'] as const)('a held-back embed on the server, under %s', (mount) => {
-	it('reserves its space in the server markup, and draws no view', () => {
+	it('holds its space with a placeholder in the server markup, and draws no view', () => {
 		const html = serverHtml(<Message mount={mount} />)
 
 		expect(html).toContain('data-deferred')
 
-		expect(html).toContain('min-height:160px')
+		expect(html).toContain('data-slot="placeholder"')
+
+		expect(html).toContain('height:160px')
 
 		expect(html).not.toContain('drawn')
 	})
