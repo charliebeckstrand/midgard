@@ -167,7 +167,7 @@ function GroupRevealCell({
 				// The leading cell carries the group rail: in the group's color when set
 				// (layered over the neutral tint), else neutral; a colored group also
 				// washes each cell's fill.
-				rail && k.row.group.rail.padded,
+				rail && k.row.group.rail.border,
 				rail && color && k.row.group.rail.color[color],
 				color && k.row.group.tint[color],
 				// After the tint, so a frozen cell keeps its opaque surface.

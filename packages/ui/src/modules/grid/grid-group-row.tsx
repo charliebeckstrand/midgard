@@ -94,7 +94,7 @@ function GridGroupRowImpl<T>({
 				{...stopProps}
 				colSpan={span}
 				className={cn(
-					k.row.group.rail.padded,
+					k.row.group.rail.border,
 					color && k.row.group.rail.color[color],
 					pinned.className,
 				)}
