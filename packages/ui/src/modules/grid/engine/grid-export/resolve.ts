@@ -1,8 +1,13 @@
 import type { IntlShape } from '../../../../primitives/intl/types'
 import { isDataColumn } from '../../../../utilities'
-import type { GridColumn, GridToolSurfaces } from '../../types'
+import type { GridColumn } from '../../types'
 import { gridMessages } from '../grid-messages'
-import { DEFAULT_SURFACES, resolveToolSurfaces, SURFACES_OFF } from '../grid-tools'
+import {
+	DEFAULT_SURFACES,
+	type ResolvedToolSurfaces,
+	resolveToolSurfaces,
+	SURFACES_OFF,
+} from '../grid-tools'
 import {
 	BUILTIN_EXPORT_LABEL,
 	BUILTIN_EXPORTERS,
@@ -52,7 +57,7 @@ function resolveEntries<T>(exportable: GridExportable<T> | undefined): GridExpor
  */
 export function resolveExportSurfaces<T>(
 	exportable: GridExportable<T> | undefined,
-): Required<GridToolSurfaces> {
+): ResolvedToolSurfaces {
 	if (!exportable) return SURFACES_OFF
 
 	if (exportable === true || Array.isArray(exportable)) return DEFAULT_SURFACES

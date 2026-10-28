@@ -173,6 +173,7 @@ export function useGridMenuActions<T>({
 		contextMenuEnabled: hasData,
 		renderDialog,
 		showButton,
+		managerButton: surfaces.button,
 		managerLabel,
 		columnManagerOpen: open ?? false,
 		setColumnManagerOpen: setOpen,

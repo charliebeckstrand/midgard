@@ -68,6 +68,7 @@ export type {
 	GridPagination,
 	GridPaginationState,
 	GridSearch,
+	GridToolbarButton,
 	GridToolSurfaces,
 } from './types'
 export { useGridExportActions } from './use-grid-export-actions'

@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import {
 	type FocusEvent,
 	type KeyboardEvent,
+	type MouseEvent,
 	type ReactElement,
 	type ReactNode,
 	useCallback,
@@ -101,18 +102,17 @@ export type MenuSubProps = {
  * floating panel its rows render in. Opens on hover, on click, and (while the
  * row is the roved one) on Enter / Space. Closes on `Escape` or ArrowLeft (ArrowRight in a
  * right-to-left menu), an outside press, or the cursor settling on another row. Selecting a row inside closes the whole menu,
- * as any {@link MenuItem} does. A click on the row closes a submenu that a click or a key
- * opened. After a hover open, the first click puts focus in the submenu, and the second
- * click closes it.
+ * as any {@link MenuItem} does. A click only opens the submenu, as in a native menu, so a
+ * click on the row of an open submenu changes nothing.
  *
  * @remarks **An open submenu owns the arrows.** However it was opened, the
  * navigation keys work its rows and wrap inside them, rather than roving on
  * through the menu the row sits in. That would leave the panel hanging open
  * behind the cursor. `Escape` or ArrowLeft closes it and hands them back, cursor
  * on the parent row. In a right-to-left menu, ArrowRight does the same (WAI-ARIA
- * APG menu pattern). A hover open leaves focus on that row until the first such key,
- * because hover is not a commitment (APG). Enter, Space, and click seat it on
- * the panel's first row outright.
+ * APG menu pattern). A hover or a click leaves focus on the row, and the press
+ * keeps it there, until the first such key. Enter and Space move focus to the
+ * first row of the panel (APG).
  *
  * The panel takes whichever side of the row has room
  * ({@link SUBMENU_MIDDLEWARE}), so it opens leftward near the viewport's right
@@ -303,17 +303,8 @@ function MenuSubFloating({
 	useReportedChange(open, onOpenChange)
 
 	// Whether the pending open must pull focus into the panel: set by the
-	// keyboard and click paths, left clear by hover so a pointer sweep across the
-	// menu doesn't yank focus off whatever the user is on.
+	// keyboard path only. The pointer leaves focus on the row.
 	const seatFocus = useRef(false)
-
-	// Whether a click or a key opened the submenu, and not only hover. A click
-	// then closes it. Cleared when the submenu closes, whatever closed it.
-	const committed = useRef(false)
-
-	useEffect(() => {
-		if (!open) committed.current = false
-	}, [open])
 
 	// The panel's row container once it mounts. State, not a ref: the portal
 	// renders its children a commit *after* `open` flips, so the focus-seating
@@ -345,7 +336,7 @@ function MenuSubFloating({
 		// return (`collapse`) seat it on the trigger themselves.
 	})
 
-	// Seat focus on the first row of a keyboard- or click-opened submenu, once the
+	// Seat focus on the first row of a keyboard-opened submenu, once the
 	// panel's rows are in the DOM. Keyed on `open` as well as the container: a
 	// reopen inside the exit animation reuses the node it was already holding, so
 	// the container alone would not change and the seating would never run.
@@ -360,8 +351,6 @@ function MenuSubFloating({
 	}, [open, rows])
 
 	const openWithFocus = useCallback(() => {
-		committed.current = true
-
 		// Already open, from a hover the pointer left standing: there is no mount
 		// coming to seat focus on, so take it now. Arming the flag instead would
 		// leave it set for whatever opens next.
@@ -503,15 +492,29 @@ function MenuSubFloating({
 	// one panel rather than a flash per row.
 	const handlePointerMove = useMenuRowPointer(disabled, subKey)
 
-	// Toggles only a submenu that a click or a key opened. A click on a row that
-	// hover opened puts focus in the submenu and does not close it, because the
-	// user reaches for that submenu.
-	const handleClick = useStableEvent(() => {
+	// A click with no pointer behind it (`detail` 0) is a key: a dropdown clicks
+	// its active row on Enter / Space. It goes into the panel as the keys do here.
+	// A pointer click opens the submenu and keeps the cursor on this row.
+	const handleClick = useStableEvent((event: MouseEvent<HTMLButtonElement>) => {
 		if (disabled) return
 
-		if (open && committed.current) collapse()
-		else openWithFocus()
+		if (event.detail === 0) {
+			openWithFocus()
+
+			return
+		}
+
+		moveCursor(event.currentTarget)
+
+		openSubmenu(subKey)
 	})
+
+	// Keeps focus where it is through the press. Safari and Firefox on macOS do
+	// not focus a button on a press, so focus falls to the panel, and the blur
+	// closes the submenu before the click opens it again.
+	const handleMouseDown = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+		event.preventDefault()
+	}, [])
 
 	return (
 		<>
@@ -537,6 +540,7 @@ function MenuSubFloating({
 					onPointerMove: handlePointerMove,
 					onBlur: handleBlur,
 					onKeyDown: handleTriggerKeyDown,
+					onMouseDown: handleMouseDown,
 					onClick: handleClick,
 				})}
 			>
@@ -564,8 +568,8 @@ function MenuSubFloating({
 						role="menu"
 						aria-labelledby={triggerId}
 						itemSelector={MENUITEM_SELECTOR}
-						// Hover opens the panel without moving focus; the keyboard and click
-						// paths seat it on the first row themselves (see `seatFocus`).
+						// Hover and click open the panel without moving focus; the keyboard
+						// path seats it on the first row itself (see `seatFocus`).
 						autoFocus={false}
 						// Tab cycles the submenu's own rows; the parent menu is reached back
 						// through ArrowLeft or `Escape`, not by tabbing past the last row.
