@@ -28,6 +28,8 @@ import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
  * attributes cover the collapsed sidebar's semantics from the first frame, and
  * the hold covers its cost from the last one. The mobile Sheet is
  * portaled into the viewer root so it overlays the viewer rather than the page.
+ * The server renders the sidebar at each width. Its `offcanvas` classes hide it
+ * where `thumbnails` is a Sheet, until hydration removes it there.
  * @internal
  */
 export function PdfViewerThumbnails() {
@@ -37,6 +39,7 @@ export function PdfViewerThumbnails() {
 		goToPage,
 		loading,
 		railed,
+		offcanvas,
 		sidebarOpen,
 		sidebarAnimates,
 		setThumbsOpen,
@@ -91,7 +94,7 @@ export function PdfViewerThumbnails() {
 					aria-labelledby={sidebarTitleId}
 					aria-hidden={!sidebarOpen}
 					inert={!sidebarOpen}
-					className={k({ animates: sidebarAnimates, open: sidebarOpen }).sidebar.base}
+					className={k({ animates: sidebarAnimates, open: sidebarOpen, offcanvas }).sidebar.base}
 					onKeyDown={handleSidebarKeyDown}
 					// The slide is a CSS margin transition, so its landing is the
 					// element's own `transitionend` rather than an animation callback.

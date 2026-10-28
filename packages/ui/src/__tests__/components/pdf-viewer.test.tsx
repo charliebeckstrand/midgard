@@ -36,6 +36,7 @@ import {
 	userEvent,
 } from '../helpers'
 import { captureAppended } from '../helpers/capture-appended'
+import { serverMarkup } from '../helpers/hydrate'
 
 beforeEach(() => {
 	// Defaults to an expanded viewport so the thumbnail rail renders, and drives
@@ -252,6 +253,23 @@ describe('PdfViewer', () => {
 		expect(html).toContain('aria-label="Loading PDF"')
 
 		expect(html).not.toContain('No pages to display')
+	})
+
+	/*
+	 * The server reads `thumbnails` at the widest breakpoint, so it renders the rail at each
+	 * width. The classes of the default layout show the rail and its glyph from `lg` only, and
+	 * the Sheet glyph below it, so a phone paints no rail before the hydration.
+	 */
+	it('paints the rail and the toggle glyphs for the layout at each width before hydration', () => {
+		const markup = serverMarkup(<PdfViewer pages={pages} />)
+
+		expect(getSlot(markup, 'pdf-viewer-sidebar')).toHaveClass('hidden', 'lg:flex')
+
+		const [rail, sheet] = markup.querySelectorAll('button[aria-label="Hide thumbnails"] svg')
+
+		expect(rail).toHaveClass('hidden', 'lg:block')
+
+		expect(sheet).toHaveClass('block', 'lg:hidden')
 	})
 
 	/*

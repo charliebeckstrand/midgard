@@ -14,7 +14,7 @@ import { dan, hannou, iro, ji, narabi, omote, sen, sou } from '../kiso'
 const { cursor } = hannou
 const { text } = iro
 const { size, weight } = ji
-const { flex } = narabi
+const { flex, offcanvas } = narabi
 const { bg, rail, skeleton } = omote
 const { border, focus, ring } = sen
 
@@ -80,6 +80,14 @@ export const k = defineKata({
 				frame: ['border-b', border.color.default, 'shrink-0'],
 				section: [flex.row, 'shrink-0', dan.gap.scale.xs],
 				total: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
+				// The glyph of the thumbnail control while the rail is open: the rail
+				// glyph where the rail is pinned, and the Sheet glyph elsewhere.
+				glyph: {
+					slots: {
+						rail: { responsive: { offcanvas: offcanvas.inline.block } },
+						sheet: { responsive: { offcanvas: offcanvas.drawer.block } },
+					},
+				},
 			},
 		},
 		settings: {
@@ -117,7 +125,7 @@ export const k = defineKata({
 		},
 		sidebar: {
 			base: [
-				flex.col,
+				flex.direction.col,
 				'shrink-0 w-56 min-h-0',
 				'overflow-hidden',
 				'border-e',
@@ -136,6 +144,10 @@ export const k = defineKata({
 			// The margin on the start side, so the rail leaves toward its own edge in
 			// either direction.
 			open: { true: '', false: '-ms-56' },
+			// The rail shows only where it is pinned. The `offcanvas` axis holds the
+			// thumbnails layout, so the CSS shows the rail from the first paint. It is
+			// not the `layout` axis of the thumbnails, the list or the grid.
+			responsive: { offcanvas: offcanvas.inline.flex },
 			slots: {
 				header: [
 					flex.row,
