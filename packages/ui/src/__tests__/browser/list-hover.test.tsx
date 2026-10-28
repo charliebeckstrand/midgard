@@ -123,7 +123,7 @@ describe('an interactive List row on hover', () => {
 		const { container } = renderUI(
 			<List variant="plain" sortable={false} items={items} aria-label="Stages">
 				{(item) => (
-					<ListItem onClick={() => {}} disabled>
+					<ListItem as="button" onClick={() => {}} disabled>
 						<ListLabel>{item.label}</ListLabel>
 					</ListItem>
 				)}
