@@ -99,7 +99,7 @@ type GridColumnSizingOptions<T> = {
 
 /** The widths and actions {@link useGridColumnSizing} returns. @internal */
 type GridColumnSizingResult = {
-	/** "Auto-size this column" (also the handle's double-click and Enter). */
+	/** "Auto-size this column" (also the handle's double-click, double tap, and Enter). */
 	autoSizeColumn: (id: string | number) => void
 	/** "Auto-size all columns". */
 	autoSizeAll: () => void
