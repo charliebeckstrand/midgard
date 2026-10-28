@@ -24,7 +24,6 @@ import { useScrollWithin } from '../../hooks'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
-import { useResponsiveValue } from '../../hooks/use-responsive-value'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { OffcanvasContext } from '../../primitives/offcanvas'
@@ -186,7 +185,10 @@ export function SidebarLayout({
 	ref,
 	...props
 }: SidebarLayoutProps) {
-	const { open, setOpen, close, layout } = useOffcanvas({ layout: layoutProp, onOpenChange })
+	const { open, setOpen, close, layout, inline } = useOffcanvas({
+		layout: layoutProp,
+		onOpenChange,
+	})
 
 	const slots = k({ layout })
 
@@ -209,8 +211,6 @@ export function SidebarLayout({
 	// The floating sheet is a part of the inline layout. A touch peek stays open
 	// until a tap outside it, so the sheet also closes when the layout at the
 	// viewport becomes the drawer, as when a tablet turns.
-	const inline = useResponsiveValue(layout, 'drawer') === 'inline'
-
 	if (floatingOpen && !inline) setFloatingOpen(false)
 
 	useKeybindings({ '$mod+KeyB': toggleSidebar }, { ignore: IGNORE_TAKEN_OR_FIELD })
