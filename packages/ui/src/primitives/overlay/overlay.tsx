@@ -20,6 +20,7 @@ import { cn } from '../../core'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
+import { registerOverlayLayer } from '../../utilities/overlay-layers'
 import { chromeRegions } from '../chrome'
 import { Portal } from '../portal'
 import * as m from '../reduced-motion/reduced-motion-elements'
@@ -128,7 +129,10 @@ export type OverlayProps = {
  * `modal={false}` drops focus management, scroll lock, and the backdrop (unless
  * `backdrop` is set). Any `Chrome` region stays reachable through the
  * trap without modality being given up, unless `coverChrome` is set. Fires the overlay signal on open so
- * non-modal floats (tooltips) dismiss. A click on the backdrop stops at the
+ * non-modal floats (tooltips) dismiss. A modal overlay, or one with a backdrop,
+ * also hides each float that is anchored under it until its exit completes,
+ * such as a tooltip that a caller holds open. A float anchored in the overlay
+ * stays on top of it. A click on the backdrop stops at the
  * backdrop, so the React ancestors of the overlay do not receive it.
  *
  * A closed overlay is `inert` for its exit animation, so it takes no press and
@@ -206,6 +210,20 @@ export function Overlay({
 		if (open) notifyOverlaySignal()
 	}, [open])
 
+	const regions = coverChrome ? noRegions : chromeRegions
+
+	// An overlay that dims or seals its box covers the floats anchored in that
+	// box. They hide until the exit completes and the node unmounts, so a float
+	// does not paint over the panel while the panel leaves. A non-modal overlay
+	// with no backdrop covers only the box of its panel, so it covers no float.
+	const covering = modal || backdrop
+
+	useLayoutEffect(() => {
+		if (!floating || !covering) return
+
+		return registerOverlayLayer({ node: floating, scope: container ?? null, exempt: regions })
+	}, [floating, covering, container, regions])
+
 	const inert = props.inert === true
 
 	// A closed overlay stays on screen for its exit animation, and its subtree
@@ -282,7 +300,7 @@ export function Overlay({
 		<Portal open={open} container={container} ssr onExitComplete={() => setPresent(false)}>
 			<OverlayFocus
 				modal={modal}
-				regions={coverChrome ? noRegions : chromeRegions}
+				regions={regions}
 				context={context}
 				initialFocus={initialFocus}
 				returnFocusTo={returnFocusTo}

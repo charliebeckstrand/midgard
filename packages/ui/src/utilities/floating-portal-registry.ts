@@ -72,6 +72,16 @@ export function publishPortalReference(
 	}
 }
 
+/**
+ * The reference element that the surface in `portal` opened from, or `null` when
+ * the surface published none.
+ *
+ * @internal
+ */
+export function portalReference(portal: Element): Element | null {
+	return portalReferences.get(portal)?.() ?? null
+}
+
 /** Whether the surface in `portal` published a reference at all. @internal */
 export function hasPortalReference(portal: Element): boolean {
 	return portalReferences.has(portal)
@@ -100,7 +110,7 @@ export function foreignFloatingPortal(container: Element, target: Node): Element
  * @internal
  */
 export function referenceOpenedWithin(container: Element, portal: Element): boolean {
-	const reference = portalReferences.get(portal)?.()
+	const reference = portalReference(portal)
 
 	return reference != null && container.contains(reference)
 }
