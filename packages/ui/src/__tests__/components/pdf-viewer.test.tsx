@@ -49,7 +49,10 @@ beforeEach(() => {
  * rail toggle and the Sheet trigger, CSS shows the one of the layout, and the other is `inert`.
  */
 function reachable(label: string) {
-	return present(screen.getAllByLabelText(label).find((control) => !control.closest('[inert]')))
+	return present(
+		screen.getAllByLabelText(label).find((control) => !control.closest('[inert]')),
+		`a reachable "${label}" control`,
+	)
 }
 
 const pages: PdfViewerPage[] = [
@@ -645,6 +648,7 @@ describe('PdfViewer', () => {
 
 		const [railToggle, sheetTrigger] = present(
 			markup.querySelector('[role="toolbar"]'),
+			'the toolbar',
 		).querySelectorAll('button')
 
 		expect(railToggle).toHaveAttribute('aria-expanded', 'true')
