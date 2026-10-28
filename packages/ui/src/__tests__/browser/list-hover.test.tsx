@@ -98,4 +98,40 @@ describe('an interactive List row on hover', () => {
 
 		expect(color(content)).toBe(hovered)
 	})
+
+	it('shows the pointer on the row padding, where the wash shows', () => {
+		const { container } = renderUI(
+			<List variant="plain" sortable={false} items={items} aria-label="Stages">
+				{(item) => (
+					<ListItem
+						interactive
+						rounded
+						suffix={<input type="checkbox" disabled aria-label="Done" />}
+					>
+						<ListLabel>{item.label}</ListLabel>
+					</ListItem>
+				)}
+			</List>,
+		)
+
+		// The padding is the `<li>` itself, so its cursor is the one the pointer shows
+		// there. A disabled control in a slot does not refuse the whole row.
+		expect(getComputedStyle(getSlot(container, 'list-item')).cursor).toBe('pointer')
+	})
+
+	it('refuses the pointer on the whole row while its content is disabled', () => {
+		const { container } = renderUI(
+			<List variant="plain" sortable={false} items={items} aria-label="Stages">
+				{(item) => (
+					<ListItem onClick={() => {}} disabled>
+						<ListLabel>{item.label}</ListLabel>
+					</ListItem>
+				)}
+			</List>,
+		)
+
+		expect(getComputedStyle(getSlot(container, 'list-item')).cursor).toBe('not-allowed')
+
+		expect(getComputedStyle(getSlot(container, 'list-item-content')).cursor).toBe('not-allowed')
+	})
 })
