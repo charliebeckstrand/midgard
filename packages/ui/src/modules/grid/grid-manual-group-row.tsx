@@ -68,7 +68,7 @@ function GridManualGroupRowImpl<T>({
 		<TableRow data-group-row data-expanded={dataAttr(expanded)}>
 			<TableCell
 				colSpan={span}
-				className={cn(k.row.group.rail.padded, pinned.className)}
+				className={cn(k.row.group.rail.border, pinned.className)}
 				style={pinned.style}
 				data-grid-pin={pinned.pin}
 			>
