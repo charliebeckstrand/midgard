@@ -445,6 +445,7 @@ export function GridData<T>({
 		contextMenuEnabled,
 		renderDialog,
 		showButton,
+		managerButton,
 		managerLabel,
 		columnManagerOpen,
 		setColumnManagerOpen,
@@ -810,8 +811,10 @@ export function GridData<T>({
 							content={toolbar}
 							showColumnManager={showButton}
 							columnManagerLabel={managerLabel}
+							columnManagerButton={managerButton}
 							onManageColumns={() => setColumnManagerOpen(true)}
 							exportActions={exportActions.toolbar}
+							exportButton={exportActions.button}
 							exporting={exportActions.pending}
 							columnFilters={filters}
 							batchActions={batchActions}

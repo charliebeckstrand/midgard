@@ -1,12 +1,13 @@
 'use client'
 
 import { Download, SlidersHorizontal } from 'lucide-react'
-import { type ReactNode, useRef, useState } from 'react'
+import { type ReactElement, type ReactNode, useRef, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { LoadingSpinner } from '../../components/loading'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { Toolbar } from '../../components/toolbar'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { intlMessages } from '../../primitives/intl/intl-messages'
@@ -18,6 +19,7 @@ import { gridMessages } from './engine/grid-messages'
 import { preloadDataDialogs } from './grid-data-dialogs'
 import type { GridSelection } from './grid-data-types'
 import { GridFilter } from './grid-filter'
+import type { GridToolbarButton } from './types'
 import type { GridColumnFilter, GridGlobalFilterView } from './use-grid-table'
 
 /** Props for {@link GridToolbar}. @internal */
@@ -33,6 +35,8 @@ type GridToolbarProps = {
 	showColumnManager: boolean
 	/** Label on the column-manager trigger (matches the dialog title). */
 	columnManagerLabel: ReactNode
+	/** The look of the column-manager trigger. */
+	columnManagerButton: Required<GridToolbarButton>
 	/** Opens the column-manager dialog. */
 	onManageColumns: () => void
 	/**
@@ -40,6 +44,8 @@ type GridToolbarProps = {
 	 * tools cluster listing one menu item per action; empty hides it entirely.
 	 */
 	exportActions: GridExportAction[]
+	/** The look of the "Export" trigger. */
+	exportButton: Required<GridToolbarButton>
 	/**
 	 * Whether an async export is in flight: from this dropdown or from a right-click
 	 * menu, since the grid counts them in one place (see {@link useGridExport}). Swaps
@@ -62,8 +68,50 @@ type GridToolbarProps = {
 	setSelection: (next: Set<string | number>) => void
 }
 
+/** Props for {@link GridToolTooltip}. @internal */
+type GridToolTooltipProps = {
+	/** The label of the button, which the tooltip shows. */
+	label: ReactNode
+	button: Required<GridToolbarButton>
+	/** The button, or the menu trigger that holds it. */
+	children: ReactElement
+}
+
+/**
+ * Puts the label of an icon-only tool button in a {@link Tooltip}, when the
+ * look of the button asks for one. Any other button renders as is, so a
+ * labeled button carries no tooltip that repeats its label.
+ *
+ * The tooltip opens on hover and on keyboard focus. A tap opens the tool of
+ * the button, so a touch screen shows no tooltip.
+ *
+ * @internal
+ */
+function GridToolTooltip({ label, button, children }: GridToolTooltipProps) {
+	if (!button.iconOnly || !button.tooltip) return children
+
+	return (
+		<Tooltip>
+			<TooltipTrigger>{children}</TooltipTrigger>
+			<TooltipContent>{label}</TooltipContent>
+		</Tooltip>
+	)
+}
+
+/**
+ * The visible label of a tool button, or an `sr-only` copy of it for an
+ * icon-only button. The copy keeps the label as the accessible name, and the
+ * Button reads a visually hidden child as no label, so it stays square. A
+ * `ReactNode` label works too, where an `aria-label` takes only a string.
+ *
+ * @internal
+ */
+function toolLabel(label: ReactNode, button: Required<GridToolbarButton>): ReactNode {
+	return button.iconOnly ? <span className="sr-only">{label}</span> : label
+}
+
 /** Props for {@link GridExportMenu}. @internal */
-type GridExportMenuProps = Pick<GridToolbarProps, 'exportActions' | 'exporting'>
+type GridExportMenuProps = Pick<GridToolbarProps, 'exportActions' | 'exportButton' | 'exporting'>
 
 /**
  * The "Export" dropdown of the tools cluster: one menu item for each action.
@@ -76,32 +124,39 @@ type GridExportMenuProps = Pick<GridToolbarProps, 'exportActions' | 'exporting'>
  *
  * @internal
  */
-function GridExportMenu({ exportActions, exporting }: GridExportMenuProps) {
+function GridExportMenu({ exportActions, exportButton, exporting }: GridExportMenuProps) {
 	const intl = useIntl()
 
 	const [open, setOpen] = useState(false)
 
+	const label = intl.formatMessage(gridMessages.export)
+
 	return (
 		<Menu placement="bottom-start" open={open} onOpenChange={(next) => setOpen(next && !exporting)}>
-			<MenuTrigger>
-				{/* The spinner takes the prefix slot of the download icon, so the two
-				    never show together. */}
-				<Button
-					type="button"
-					variant="plain"
-					prefix={
-						exporting ? (
-							<LoadingSpinner label={intl.formatMessage(intlMessages.loading)} />
-						) : (
-							<Icon icon={<Download />} />
-						)
-					}
-					aria-disabled={ariaAttr(exporting)}
-					data-disabled={dataAttr(exporting)}
-				>
-					{intl.formatMessage(gridMessages.export)}
-				</Button>
-			</MenuTrigger>
+			<GridToolTooltip label={label} button={exportButton}>
+				{/* The tooltip echoes the accessible name, so its description would
+				    repeat the name. The explicit key wins over the description of the
+				    tooltip trigger, as on the mini rail of the Sidebar. */}
+				<MenuTrigger aria-describedby={undefined}>
+					{/* The spinner takes the prefix slot of the download icon, so the two
+					    never show together. */}
+					<Button
+						type="button"
+						variant="plain"
+						prefix={
+							exporting ? (
+								<LoadingSpinner label={intl.formatMessage(intlMessages.loading)} />
+							) : (
+								<Icon icon={<Download />} />
+							)
+						}
+						aria-disabled={ariaAttr(exporting)}
+						data-disabled={dataAttr(exporting)}
+					>
+						{toolLabel(label, exportButton)}
+					</Button>
+				</MenuTrigger>
+			</GridToolTooltip>
 			<MenuContent>
 				{exportActions.map((action) => (
 					// The action carries its own pending tracking, so firing it is all
@@ -146,9 +201,11 @@ function toolbarFocusFallback(toolbar: HTMLElement): HTMLElement | undefined {
  * cluster holds the column-manager trigger and, when any export type is active,
  * an "Export" dropdown listing one item per action. That dropdown's trigger
  * swaps the download icon for a spinner while an async export is in flight. The
- * export can start from this dropdown or from a right-click menu. A second row
- * hosts the batch actions while a row is selected, so the search stays reachable
- * beside them. The tools and batch actions are each their own labeled
+ * export can start from this dropdown or from a right-click menu. Each tool
+ * sets the look of its own button through {@link GridToolbarButton}: the icon
+ * and the label, or the icon alone, with the label in an optional tooltip. A
+ * second row hosts the batch actions while a row is selected, so the search
+ * stays reachable beside them. The tools and batch actions are each their own labeled
  * {@link Toolbar}: "Table tools" and "Batch actions". The search stays a plain
  * field, so the toolbars' roving-tabindex arrow navigation never swallows the
  * text cursor.
@@ -163,8 +220,10 @@ export function GridToolbar({
 	content,
 	showColumnManager,
 	columnManagerLabel,
+	columnManagerButton,
 	onManageColumns,
 	exportActions,
+	exportButton,
 	exporting,
 	columnFilters,
 	batchActions,
@@ -240,20 +299,30 @@ export function GridToolbar({
 							className={cn(!content && k.toolbar.actions)}
 						>
 							{showColumnManager && (
-								<Button
-									type="button"
-									variant="plain"
-									aria-haspopup="dialog"
-									onClick={onManageColumns}
-									onPointerEnter={preloadDataDialogs}
-									onFocus={preloadDataDialogs}
-								>
-									<Icon icon={<SlidersHorizontal />} />
-									{columnManagerLabel}
-								</Button>
+								<GridToolTooltip label={columnManagerLabel} button={columnManagerButton}>
+									<Button
+										type="button"
+										variant="plain"
+										aria-haspopup="dialog"
+										// The tooltip echoes the name. See the Export trigger.
+										aria-describedby={undefined}
+										onClick={onManageColumns}
+										onPointerEnter={preloadDataDialogs}
+										onFocus={preloadDataDialogs}
+									>
+										<Icon icon={<SlidersHorizontal />} />
+										{toolLabel(columnManagerLabel, columnManagerButton)}
+									</Button>
+								</GridToolTooltip>
 							)}
 
-							{showExport && <GridExportMenu exportActions={exportActions} exporting={exporting} />}
+							{showExport && (
+								<GridExportMenu
+									exportActions={exportActions}
+									exportButton={exportButton}
+									exporting={exporting}
+								/>
+							)}
 						</Toolbar>
 					)}
 				</div>
