@@ -956,7 +956,7 @@
 		"description": "The menu item that opens the dialog that orders and colors the row groups of a grid."
 	},
 	"ui.grid.moveTo": {
-		"defaultMessage": "Move to {group}",
+		"defaultMessage": "Move to “{group}”",
 		"description": "The menu item that moves a column into a column group of a grid."
 	},
 	"ui.grid.newGroup": {

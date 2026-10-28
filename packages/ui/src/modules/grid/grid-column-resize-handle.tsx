@@ -1,11 +1,12 @@
 'use client'
 
-import type { KeyboardEvent } from 'react'
+import { type KeyboardEvent, useRef } from 'react'
 import { announce, cn, dataAttr } from '../../core'
 import { useDragCursor } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
+import { useTouchTap } from '../../hooks/use-touch-tap'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Splitter } from '../../primitives/splitter/splitter'
 import { k } from '../../recipes/kata/grid'
@@ -19,6 +20,7 @@ import {
 } from './engine/grid-constants'
 import { gridMessages } from './engine/grid-messages'
 import type { GridColumnResizeActions } from './engine/grid-table/resize-view'
+import { GRID_DOUBLE_TAP_WINDOW } from './use-grid-touch-entry'
 
 /** Props for {@link GridColumnResizeHandle}. @internal */
 type GridColumnResizeHandleProps = {
@@ -36,8 +38,16 @@ type GridColumnResizeHandleProps = {
 /**
  * Resize separator on a resizable column header's trailing edge: a focusable
  * window-splitter sized to the header. It starts a pointer drag-resize and
- * accepts Arrow keys to nudge the width. A double-click auto-sizes the column
- * to its content. Its always-visible grip is the `aria-hidden` child.
+ * accepts Arrow keys to nudge the width. A double-click or a double tap
+ * auto-sizes the column to its content. Its always-visible grip is the
+ * `aria-hidden` child.
+ *
+ * A touch screen sends no double-click: the root `touch-action: manipulation`
+ * of `ui` stops it on iOS, and the touch end of the drag-resize of the engine
+ * cancels the mouse events of the tap. Thus the handle finds the double tap
+ * itself. Two taps that lift in {@link GRID_DOUBLE_TAP_WINDOW} of each other
+ * are a double tap, and a third tap starts a new pair. A press that travels or
+ * holds is not a tap (see {@link useTouchTap}).
  *
  * @internal
  */
@@ -67,6 +77,32 @@ export function GridColumnResizeHandle({
 	function announceSettledWidth() {
 		announceTimer.set(announceWidth, GRID_STATUS_DEBOUNCE_MS)
 	}
+
+	function autoSize() {
+		resize.autoSizeColumn(id)
+
+		announceSettledWidth()
+	}
+
+	// The lift time of the last touch tap, which a second tap makes a double tap.
+	const prevTap = useRef<number | null>(null)
+
+	// Whether the last tap was the second tap of a double tap.
+	const doubleTapped = useRef(false)
+
+	const autoSizeTimer = useTimeout()
+
+	const touch = useTouchTap(() => {
+		const at = performance.now()
+
+		const prev = prevTap.current
+
+		const double = prev !== null && at - prev <= GRID_DOUBLE_TAP_WINDOW
+
+		prevTap.current = double ? null : at
+
+		doubleTapped.current = double
+	})
 
 	function handleKeyDown(event: KeyboardEvent<HTMLSpanElement>) {
 		// Arrow nudges, PageUp/Down coarse steps, Home/End to the bounds, and Enter to
@@ -154,6 +190,10 @@ export function GridColumnResizeHandle({
 				// example a second finger.
 				if (!isPrimaryPress(event)) return
 
+				doubleTapped.current = false
+
+				touch.onPointerDown(event)
+
 				holdTextSelection(event)
 
 				// Capture holds the handle as the pointer target for the whole drag, so
@@ -161,6 +201,22 @@ export function GridColumnResizeHandle({
 				// mouse listeners still receive the moves and the release. The browser
 				// releases the capture on pointerup and pointercancel.
 				event.currentTarget.setPointerCapture(event.pointerId)
+			}}
+			onPointerMove={touch.onPointerMove}
+			onPointerUp={touch.onPointerUp}
+			onPointerCancel={touch.onPointerCancel}
+			onTouchEnd={() => {
+				if (!doubleTapped.current) return
+
+				doubleTapped.current = false
+
+				// The engine ends the drag-resize of the tap from its own touch end
+				// listener on the document. That end writes the width of the drag, which
+				// can move a few px with the finger, so the auto-size must come after it.
+				// A listener cannot follow it: when React listens on the document, its
+				// listeners run first, and the engine stops the event there. A timer
+				// fires in a later task, after the whole dispatch of this touch end.
+				autoSizeTimer.set(autoSize, 0)
 			}}
 			onClick={(event) => event.stopPropagation()}
 			onDoubleClick={(event) => {
@@ -170,9 +226,7 @@ export function GridColumnResizeHandle({
 				// motion. They move no width, so they take no width control.
 				event.stopPropagation()
 
-				resize.autoSizeColumn(id)
-
-				announceSettledWidth()
+				autoSize()
 			}}
 			onKeyDown={handleKeyDown}
 		/>

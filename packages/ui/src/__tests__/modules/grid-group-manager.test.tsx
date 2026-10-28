@@ -347,7 +347,7 @@ describe('Grid column-group editor', () => {
 		// Move the "First" column into the new group via its accessible move menu.
 		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
 
-		fireEvent.click(screen.getByText('Move to New group'))
+		fireEvent.click(screen.getByText('Move to “New group”'))
 
 		// The band now spans the grouped column.
 		expect(band(container)?.textContent).toContain('New group')
@@ -367,7 +367,7 @@ describe('Grid column-group editor', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
 
-		fireEvent.click(screen.getByText('Move to New group'))
+		fireEvent.click(screen.getByText('Move to “New group”'))
 
 		const zone = screen.getByLabelText('Group name for New group').closest('li')
 
@@ -389,11 +389,11 @@ describe('Grid column-group editor', () => {
 		// First and Last into the group; Email stays in the ungrouped pool.
 		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
 
-		fireEvent.click(screen.getByText('Move to New group'))
+		fireEvent.click(screen.getByText('Move to “New group”'))
 
 		fireEvent.click(screen.getByRole('button', { name: 'Move Last' }))
 
-		fireEvent.click(screen.getByText('Move to New group'))
+		fireEvent.click(screen.getByText('Move to “New group”'))
 
 		fireEvent.change(screen.getByRole('searchbox', { name: 'Filter columns' }), {
 			target: { value: 'la' },
@@ -454,14 +454,14 @@ describe('Grid column-group editor', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
 
-		fireEvent.click(screen.getByText('Move to New group'))
+		fireEvent.click(screen.getByText('Move to “New group”'))
 
 		expect(band(container)).not.toBeNull()
 
 		// The menu of a grouped column offers no move to its own group.
 		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
 
-		expect(screen.queryByText('Move to New group')).toBeNull()
+		expect(screen.queryByText('Move to “New group”')).toBeNull()
 
 		fireEvent.click(screen.getByText('Remove from group'))
 
@@ -588,7 +588,7 @@ describe('Grid column-group editor', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Move Email' }))
 
-		expect(screen.getByText('Move to New group')).toBeInTheDocument()
+		expect(screen.getByText('Move to “New group”')).toBeInTheDocument()
 
 		expect(screen.queryByText('Remove from group')).toBeNull()
 	})

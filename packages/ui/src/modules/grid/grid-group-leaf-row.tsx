@@ -213,7 +213,7 @@ function GridGroupLeafCell<T>({
 			// color when the row manager assigns one, else the neutral tint.
 			className={cn(
 				cellRoving && dataCell && k.cell.rovable,
-				leading && k.row.group.rail.padded,
+				leading && k.row.group.rail.border,
 				leading && color && k.row.group.rail.color[color],
 				leafCellClass(col),
 				fit.className,

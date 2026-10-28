@@ -1,16 +1,21 @@
 'use client'
 
 import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
-import { measureContentBox } from '../../utilities'
+import { measureContentBox, observeResizeBeforePaint } from '../../utilities'
 
 type ViewportSize = { width: number; height: number }
+
+/** Whether two readings lay the page out alike. */
+const sameSize = (a: ViewportSize, b: ViewportSize) => a.width === b.width && a.height === b.height
 
 /**
  * Tracks the content-box size of `ref.current` (`clientWidth`/`Height` minus padding).
  *
  * @returns The current `{ width, height }`, or `null` before the first measure.
- * @remarks Re-measures synchronously when `invalidationKey` changes, before
- * paint; e.g. a rotation flip changes the viewport's aspect ratio.
+ * @remarks Each reading commits before the paint: a resize through
+ * `observeResizeBeforePaint`, and a change of `invalidationKey` (for example a
+ * rotation flip, which changes the aspect ratio of the viewport) in a layout
+ * effect.
  * @internal
  */
 export function usePdfViewerViewportSize(
@@ -21,23 +26,29 @@ export function usePdfViewerViewportSize(
 
 	const prevInvalidationKeyRef = useRef(invalidationKey)
 
-	// `measure` is the same operation whether triggered by ResizeObserver or by
-	// an invalidation-key change.
+	// The size that the viewer shows, so the observer compares a reading with it.
+	const shown = useRef<ViewportSize | null>(null)
+
+	// Keeps the prior object when the content box is unchanged: a ResizeObserver
+	// callback on an unrelated reflow would otherwise re-render the viewer and
+	// recompute scale and the shared context off an identical measurement.
+	const commit = useCallback((next: ViewportSize) => {
+		if (shown.current && sameSize(shown.current, next)) return
+
+		shown.current = next
+
+		setSize(next)
+	}, [])
+
 	const measure = useCallback(() => {
 		const el = ref.current
 
-		if (!el) return
+		if (el) commit(measureContentBox(el))
+	}, [ref, commit])
 
-		const { width, height } = measureContentBox(el)
-
-		// Keep the prior object when the content box is unchanged: a ResizeObserver
-		// callback on an unrelated reflow would otherwise re-render the viewer and
-		// recompute scale and the shared context off an identical measurement.
-		setSize((prev) =>
-			prev && prev.width === width && prev.height === height ? prev : { width, height },
-		)
-	}, [ref])
-
+	// The fitted page takes its size from this reading. Thus a resize commits before the
+	// paint, and the frame that narrows the viewport shows the page at the new width. A
+	// rail that slides open beside the viewport resizes it on each frame of the slide.
 	useLayoutEffect(() => {
 		const el = ref.current
 
@@ -45,12 +56,12 @@ export function usePdfViewerViewportSize(
 
 		measure()
 
-		const observer = new ResizeObserver(measure)
+		return observeResizeBeforePaint(el, () => {
+			const next = measureContentBox(el)
 
-		observer.observe(el)
-
-		return () => observer.disconnect()
-	}, [ref, measure])
+			return shown.current && sameSize(shown.current, next) ? undefined : () => commit(next)
+		})
+	}, [ref, measure, commit])
 
 	// Caller-driven invalidation: re-measure after commit, before paint, since
 	// `measure` reads layout via getComputedStyle / clientWidth. The

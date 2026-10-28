@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import type { GridCellChange, GridColumn, GridEditCellContext } from 'ui/grid'
+import { useHasHover } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
@@ -46,13 +47,15 @@ export function applyChanges(rows: Person[], changes: GridCellChange[]): Person[
 }
 
 /**
- * A button with a tooltip that tells how to edit the grid. A press opens the
- * tooltip, so that a reader on a touch screen can open it too.
+ * A button with a tooltip that tells how to edit the grid. A hover opens the
+ * tooltip on a device with a mouse. A press opens it on a touch screen.
  */
 export function EditHelp({ label, children }: { label: string; children: ReactNode }) {
+	const trigger = useHasHover() ? 'hover' : 'click'
+
 	return (
 		<Flex justify="end">
-			<Tooltip placement="left" trigger="click">
+			<Tooltip placement="left" trigger={trigger}>
 				<TooltipTrigger>
 					<Button variant="bare" aria-label={label}>
 						<Icon icon={<Info />} />
@@ -108,15 +111,17 @@ function parseRole(text: string): string {
 
 // Name and Email get a text editor, and Active gets a yes or no listbox, from
 // the type of the value. Role gets a listbox of its own, and sorts and copies
-// by the shown word.
+// by the shown word. Each column is at least 150px wide, the default width of a
+// column, and a column with wider content widens to fit it.
 export const personColumns: GridColumn<Person>[] = [
-	{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
-	{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
+	{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name, minWidth: 150 },
+	{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email, minWidth: 150 },
 	{
 		id: 'role',
 		title: 'Role',
 		field: 'role',
 		cell: (row) => roles[row.role],
+		minWidth: 150,
 		value: (row) => roles[row.role],
 		parse: parseRole,
 		editCell: (context) => (
@@ -133,6 +138,7 @@ export const personColumns: GridColumn<Person>[] = [
 		title: 'Active',
 		field: 'active',
 		cell: (row) => <StatusBadge status={row.active ? 'active' : 'inactive'} />,
+		minWidth: 150,
 	},
 ]
 

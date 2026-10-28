@@ -82,10 +82,10 @@ const pinnedRule = [
 /**
  * The group rail's 2px neutral inline-start border: a continuous bar down the
  * group's leading edge. The side is logical, so a right-to-left grid draws it on
- * the right. Shared by the padded group cells and the loading placeholder
- * rows. The cells add `py-0` and manage their own padding through the reveal
- * wrapper, while the rows keep ordinary cell padding. The rail therefore runs
- * unbroken while a group's children load.
+ * the right. The group header cells, the leaf and total cells, and the
+ * loading placeholder rows all carry it, so the rail runs unbroken while a
+ * group's children load. It sets no padding: a header cell keeps the ordinary
+ * cell padding, so a header row has the height of a data row.
  *
  * The neutral is an *inline-start* border color (`border-s-<neutral>`), not the
  * all-sides `border-color`. When {@link railColor} layers a palette color on
@@ -524,9 +524,7 @@ export const k = {
 			// takes a neutral tint by default; the row manager swaps in a per-group
 			// palette color (`rail.color[group.color]`).
 			rail: {
-				// The padded group cells' variant (the leaf/header cells manage their own padding).
-				padded: ['py-0', ...railBorder],
-				// The border alone, for the loading placeholder rows that keep ordinary cell padding.
+				// The neutral rail (see {@link railBorder}), on the leading cell of every group row.
 				border: railBorder,
 				// Per-group rail color (see {@link railColor}): the manager's palette hue,
 				// replacing the neutral `border` tint on the leading cell of every group row.

@@ -13,6 +13,7 @@ import { isRtl } from '../../../../hooks/a11y/logical-arrow'
 import { useReportedChange } from '../../../../hooks/use-reported-change'
 import { useIntl } from '../../../../primitives/intl/use-intl'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
+import { observeResizeBeforePaint } from '../../../../utilities'
 import { chartMessages } from '../chart-messages'
 import { ChartSwatch } from '../chart-pattern-defs'
 import { useChartActions } from '../context'
@@ -58,7 +59,7 @@ function useLegendFit(
 		// No labels means no controls, so there is nothing to measure.
 		if (!ghost || maxRows === undefined || labels === '') return
 
-		const measure = () => {
+		const fit = () => {
 			const controls = [...ghost.querySelectorAll<HTMLElement>('button')]
 
 			// A wrapped control drops about a full control-height; a swatch-vs-chip
@@ -86,16 +87,24 @@ function useLegendFit(
 					: control.offsetLeft + control.offsetWidth,
 			}))
 
-			setVisible(visibleLegendCount(rects, maxRows, ghost.clientWidth, OVERFLOW_CHIP_RESERVE))
+			return visibleLegendCount(rects, maxRows, ghost.clientWidth, OVERFLOW_CHIP_RESERVE)
 		}
 
-		measure()
+		let shown = fit()
 
-		const observer = new ResizeObserver(measure)
+		setVisible(shown)
 
-		observer.observe(ghost)
+		// A resize commits the cut before the paint, so the frame that narrows the box does
+		// not wrap the row past `maxRows`.
+		return observeResizeBeforePaint(ghost, () => {
+			const next = fit()
 
-		return () => observer.disconnect()
+			if (next === shown) return
+
+			shown = next
+
+			return () => setVisible(next)
+		})
 	}, [labels, maxRows])
 
 	// Never exceed the real count: a stale larger measurement (a control removed
