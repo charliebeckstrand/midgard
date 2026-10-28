@@ -1,17 +1,19 @@
 'use client'
 
 import { cn } from '../../../core'
+import type { FrameStep } from '../../../hooks'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
 import { getOrCompute, sameElements } from '../../../utilities'
 import { MARK_GAP } from '../engine/chart-constants'
 import {
+	CALLOUT_COLUMN,
 	CALLOUT_GAP,
 	CALLOUT_LEADER,
 	CALLOUT_LINE,
+	CALLOUT_MIN_WIDTH,
 	CALLOUT_NUB,
-	calloutColumn,
 	type PieCallout,
 	type PieCalloutFit,
 	type PieSlice,
@@ -127,22 +129,15 @@ export function calloutShares(parts: CalloutParts): string[] {
 }
 
 /**
- * The room of a callout name: the {@link calloutColumn column} at
- * `frameWidth`, less the widest share. Every share then stays whole beside its
- * name. Unbounded before the width is measured, because nothing draws then.
+ * The room of a callout name: the {@link CALLOUT_COLUMN column}, less the
+ * widest share. Every share then stays whole beside its name.
  *
  * @internal
  */
-export function calloutNameRoom(
-	frameWidth: number,
-	shares: readonly string[],
-	shareWidth: TextWidth,
-): number {
-	if (frameWidth <= 0) return Number.POSITIVE_INFINITY
-
+export function calloutNameRoom(shares: readonly string[], shareWidth: TextWidth): number {
 	const widest = shares.reduce((max, share) => Math.max(max, shareWidth(share)), 0)
 
-	return Math.max(0, calloutColumn(frameWidth) - widest)
+	return Math.max(0, CALLOUT_COLUMN - widest)
 }
 
 /**
@@ -187,27 +182,31 @@ export function resolveCallouts(
 }
 
 /**
- * The fixed horizontal room beside the pie: the leader, the nub, and the gap
- * before a label when the callouts are on, and the plain gap when they are off.
- * `CALLOUT_COLUMN` adds the room of the label. No text width enters
- * it, so the box is the same on the server and in the browser.
+ * The margins of a callout pie from {@link CALLOUT_MIN_WIDTH} px wide and up:
+ * the leader, the nub, the gap before a label, and the
+ * {@link CALLOUT_COLUMN column} on each side, and the leader band above and
+ * below. No text width enters them, so the box is the same on the server and in
+ * the browser. A narrower pie keeps the plain gap.
  *
  * @internal
  */
-export function calloutRoom(show: boolean): number {
-	return show ? CALLOUT_LEADER + CALLOUT_NUB + CALLOUT_GAP : MARK_GAP * 2
+export const CALLOUT_FRAME: FrameStep = {
+	from: CALLOUT_MIN_WIDTH,
+	hMargin: CALLOUT_LEADER + CALLOUT_NUB + CALLOUT_GAP + CALLOUT_COLUMN,
+	vMargin: CALLOUT_LEADER + CALLOUT_LINE,
 }
 
 /**
- * Whether the callouts draw in the measured box. They are off where the box
- * reads spark: there the label columns starve the pie, and the chart falls back
- * to a bare pie that fills the box with the plain gap. The box does not depend
- * on the slices, so a toggled slice never flips the labels on or off.
+ * Whether the callouts draw in the measured box. They are off below
+ * {@link CALLOUT_MIN_WIDTH}, where the columns would cut most names, and where
+ * the box reads spark. The chart then draws a bare pie that fills the box with
+ * the plain gap, and the legend names the slices. The box does not depend on
+ * the slices, so a toggled slice never flips the labels on or off.
  *
  * @internal
  */
 export function calloutsShown(show: boolean, frameWidth: number, frameHeight: number): boolean {
-	return show && !isSparkBox(frameWidth, frameHeight)
+	return show && frameWidth >= CALLOUT_MIN_WIDTH && !isSparkBox(frameWidth, frameHeight)
 }
 
 /**

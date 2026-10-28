@@ -89,8 +89,17 @@ export const k = defineKata(
 				// it already has, so it rides the variant compounds below. This axis names the
 				// row as the hover group, so the text step of the content column follows the
 				// same hover as the wash (see `content.interactive`).
+				//
+				// The pointer covers the same area as the wash. The content column keeps
+				// `hannou.cursor` for its own disabled forms, and the row reads only the
+				// disabled state of that column: a disabled control in a slot does not refuse
+				// the whole row.
 				interactive: {
-					true: 'group/list-item',
+					true: [
+						'group/list-item',
+						'cursor-pointer',
+						'has-[>[data-slot=list-item-content]:is(:disabled,[data-disabled])]:cursor-not-allowed',
+					],
 					false: '',
 				},
 				// Whether the content column's hit area covers the whole row. The row turns

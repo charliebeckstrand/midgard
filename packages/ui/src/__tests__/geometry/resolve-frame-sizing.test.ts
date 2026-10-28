@@ -85,6 +85,28 @@ describe('resolveFrameSizing', () => {
 		})
 	})
 
+	it('takes the wide margins from the step width and up, and reserves both fits', () => {
+		const sizing = {
+			mode: 'content',
+			hMargin: 8,
+			vMargin: 8,
+			wide: { from: 480, hMargin: 150, vMargin: 29 },
+		} as const
+
+		const reserve = {
+			mode: 'content',
+			offset: 0,
+			min: 16,
+			wide: { from: 480, offset: -242, min: 58 },
+		}
+
+		// Below the step: radius = 479/2 - 8; height = 2*radius + 2*8 = 479.
+		expect(resolveFrameSizing(sizing, 479, 0)).toEqual({ height: 479, reserve })
+
+		// At the step: radius = 480/2 - 150 = 90; height = 2*90 + 2*29 = 238.
+		expect(resolveFrameSizing(sizing, 480, 0)).toEqual({ height: 238, reserve })
+	})
+
 	it('reserves the content offset and floor before the width is measured, so the box holds', () => {
 		// height stays 0 until the width lands, but the reserve is already known:
 		// the box holds its height from the first paint instead of collapsing.
