@@ -2,6 +2,7 @@
 
 import { Highlighter, PanelLeft, PanelLeftDashed, RotateCw, ScanSearch } from 'lucide-react'
 
+import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
@@ -42,7 +43,7 @@ export function PdfViewerToolbar() {
 		documentSrc,
 		filename,
 		railed,
-		layout,
+		offcanvas,
 		sidebarOpen,
 		setSidebarOpen,
 		hasHighlights,
@@ -55,19 +56,38 @@ export function PdfViewerToolbar() {
 
 	const intl = useIntl()
 
-	const toggle = k({ offcanvas: layout }).toolbar.toggle
-
 	const empty = total === 0
 
 	// The page count is whole when the document opens, so every control works while the
 	// pages render.
 	const controlsDisabled = empty
 
-	const showThumbnails = intl.formatMessage(pdfViewerMessages.showThumbnails)
+	const glyph = k({ offcanvas }).toolbar.glyph
 
-	const sidebarToggleLabel = sidebarOpen
-		? intl.formatMessage(pdfViewerMessages.hideThumbnails)
-		: showThumbnails
+	// One control at each width. Where the rail is pinned, it toggles the rail. Elsewhere,
+	// `SheetTrigger` makes it the opener of the modal Sheet, which has its own close. The
+	// server renders the pinned layout at each width, so the CSS picks the glyph of the open
+	// rail. The rail sits at the inline start, so the glyph mirrors in RTL.
+	const thumbnailsToggle = (
+		<PdfViewerToolbarButton
+			label={intl.formatMessage(
+				railed && sidebarOpen ? pdfViewerMessages.hideThumbnails : pdfViewerMessages.showThumbnails,
+			)}
+			icon={
+				sidebarOpen ? (
+					[
+						<PanelLeftDashed key="rail" className={cn('rtl:-scale-x-100', glyph.rail)} />,
+						<PanelLeft key="sheet" className={cn('rtl:-scale-x-100', glyph.sheet)} />,
+					]
+				) : (
+					<PanelLeft className="rtl:-scale-x-100" />
+				)
+			}
+			aria-expanded={railed ? sidebarOpen : undefined}
+			disabled={controlsDisabled}
+			onClick={railed ? () => setSidebarOpen(!sidebarOpen) : undefined}
+		/>
+	)
 
 	const highlightsToggleLabel = intl.formatMessage(
 		highlightsVisible ? pdfViewerMessages.hideHighlights : pdfViewerMessages.showHighlights,
@@ -87,39 +107,7 @@ export function PdfViewerToolbar() {
 				<div className={k().toolbar.section}>
 					{total > 0 && (
 						<>
-							{/* The rail toggle and the Sheet trigger both render, and the `offcanvas` axis shows
-							    the one of the layout at each width, so the first paint has the right one. The
-							    one that does not apply is `inert`, so the roving of the toolbar skips it. */}
-							<PdfViewerToolbarButton
-								label={sidebarToggleLabel}
-								icon={
-									// The rail sits at the inline start, so the glyph mirrors in RTL.
-									sidebarOpen ? (
-										<PanelLeftDashed className="rtl:-scale-x-100" />
-									) : (
-										<PanelLeft className="rtl:-scale-x-100" />
-									)
-								}
-								aria-expanded={sidebarOpen}
-								disabled={controlsDisabled}
-								inert={!railed}
-								className={toggle.rail}
-								onClick={() => setSidebarOpen(!sidebarOpen)}
-							/>
-
-							{/* A dialog opener, unlike the desktop toggle above it. The modal Sheet covers this
-						    button while open and carries its own close, so the button has one action and
-						    one name. `SheetTrigger` stamps `aria-haspopup` and the `aria-expanded` that
-						    reports the Sheet. The `Sheet` root in `PdfViewer` holds the state. */}
-							<SheetTrigger>
-								<PdfViewerToolbarButton
-									label={showThumbnails}
-									icon={<PanelLeft className="rtl:-scale-x-100" />}
-									disabled={controlsDisabled}
-									inert={railed}
-									className={toggle.sheet}
-								/>
-							</SheetTrigger>
+							{railed ? thumbnailsToggle : <SheetTrigger>{thumbnailsToggle}</SheetTrigger>}
 
 							<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.pageNavigation)}>
 								<Listbox<number>

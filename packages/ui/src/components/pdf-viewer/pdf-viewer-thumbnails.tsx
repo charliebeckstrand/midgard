@@ -20,18 +20,16 @@ import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
  * arrow-key focus across tiles.
  *
  * @remarks Renders nothing when there are no pages and the document isn't
- * loading. The sidebar is always rendered, and the `offcanvas` axis of the kata
- * shows it only where `thumbnails` is `rail`. The server cannot read the
- * viewport, so CSS picks the layout of the first paint. Where `railed` is
- * false, the sidebar is `inert` and `aria-hidden`, and its contents are held.
- * The desktop sidebar collapses via the toolbar toggle (`sidebarOpen`), sliding
- * off-canvas while staying mounted for the transition. When collapsed it is
- * `inert` and `aria-hidden`, off the tab order and a11y tree. Once the slide
+ * loading. The desktop sidebar collapses via the toolbar toggle (`sidebarOpen`),
+ * sliding off-canvas while staying mounted for the transition. When collapsed it
+ * is `inert` and `aria-hidden`, off the tab order and a11y tree. Once the slide
  * lands, its contents drop into `<Activity mode="hidden">`, so a long document's
  * thumbnail rail stops laying out and re-rendering behind a closed sidebar. The
  * attributes cover the collapsed sidebar's semantics from the first frame, and
  * the hold covers its cost from the last one. The mobile Sheet is
  * portaled into the viewer root so it overlays the viewer rather than the page.
+ * The server renders the sidebar at each width. Its `offcanvas` classes hide it
+ * where `thumbnails` is a Sheet, until hydration removes it there.
  * @internal
  */
 export function PdfViewerThumbnails() {
@@ -41,7 +39,7 @@ export function PdfViewerThumbnails() {
 		goToPage,
 		loading,
 		railed,
-		layout,
+		offcanvas,
 		sidebarOpen,
 		sidebarAnimates,
 		setThumbsOpen,
@@ -55,12 +53,7 @@ export function PdfViewerThumbnails() {
 	// are live, and defers to the slide so the rail doesn't blank mid-transition.
 	// Deferred only where there is a slide to wait on: a rail that opens without
 	// traveling fires no `transitionend`, so a deferred hold would wait forever.
-	// Where the layout is the Sheet, CSS hides the sidebar, and nothing slides.
-	const sidebarLive = sidebarOpen && railed
-
-	const sidebarHold = useMountHold(sidebarLive, 'always', {
-		defer: sidebarAnimates && railed,
-	})
+	const sidebarHold = useMountHold(sidebarOpen, 'always', { defer: sidebarAnimates })
 
 	const sidebarRef = useRef<HTMLElement>(null)
 
@@ -94,43 +87,41 @@ export function PdfViewerThumbnails() {
 
 	return (
 		<>
-			<aside
-				ref={sidebarRef}
-				data-slot="pdf-viewer-sidebar"
-				aria-labelledby={sidebarTitleId}
-				// Out of the accessibility tree and the tab order while it is closed, or
-				// while the layout is the Sheet, where CSS hides it.
-				aria-hidden={!sidebarLive}
-				inert={!sidebarLive}
-				className={
-					k({ animates: sidebarAnimates, open: sidebarOpen, offcanvas: layout }).sidebar.base
-				}
-				onKeyDown={handleSidebarKeyDown}
-				// The slide is a CSS margin transition, so its landing is the
-				// element's own `transitionend` rather than an animation callback.
-				// Hiding on the toggle instead would blank the rail before it left,
-				// since `display: none` can't slide. The event names the physical
-				// margin, which is the right one in a right-to-left layout.
-				onTransitionEnd={(event) => {
-					if (event.propertyName === 'margin-left' || event.propertyName === 'margin-right') {
-						sidebarHold.rest()
-					}
-				}}
-			>
-				<MountHold hold={sidebarHold} name="pdf-viewer-sidebar">
-					<div id={sidebarTitleId} className={k().sidebar.header}>
-						{intl.formatMessage(pdfViewerMessages.pages)}
-					</div>
-					<PdfViewerThumbnailList
-						items={thumbnails}
-						loading={loading}
-						safePage={safePage}
-						goToPage={goToPage}
-						scrollCurrentIntoView={scrollCurrentIntoView}
-						onVisibleChange={showThumbnails}
-					/>
-				</MountHold>
-			</aside>
+			{railed && (
+				<aside
+					ref={sidebarRef}
+					data-slot="pdf-viewer-sidebar"
+					aria-labelledby={sidebarTitleId}
+					aria-hidden={!sidebarOpen}
+					inert={!sidebarOpen}
+					className={k({ animates: sidebarAnimates, open: sidebarOpen, offcanvas }).sidebar.base}
+					onKeyDown={handleSidebarKeyDown}
+					// The slide is a CSS margin transition, so its landing is the
+					// element's own `transitionend` rather than an animation callback.
+					// Hiding on the toggle instead would blank the rail before it left,
+					// since `display: none` can't slide. The event names the physical
+					// margin, which is the right one in a right-to-left layout.
+					onTransitionEnd={(event) => {
+						if (event.propertyName === 'margin-left' || event.propertyName === 'margin-right') {
+							sidebarHold.rest()
+						}
+					}}
+				>
+					<MountHold hold={sidebarHold} name="pdf-viewer-sidebar">
+						<div id={sidebarTitleId} className={k().sidebar.header}>
+							{intl.formatMessage(pdfViewerMessages.pages)}
+						</div>
+						<PdfViewerThumbnailList
+							items={thumbnails}
+							loading={loading}
+							safePage={safePage}
+							goToPage={goToPage}
+							scrollCurrentIntoView={scrollCurrentIntoView}
+							onVisibleChange={showThumbnails}
+						/>
+					</MountHold>
+				</aside>
+			)}
 
 			{!railed && (
 				<SheetPanel

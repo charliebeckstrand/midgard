@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentProps, ReactElement } from 'react'
+import { Children, type ComponentProps, type ReactElement } from 'react'
 import { ariaAttr, dataAttr } from '../../core'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -10,8 +10,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 type PdfViewerToolbarButtonProps = {
 	/** Names the control for assistive tech. Also the tooltip, unless `tooltip` says more. */
 	label: string
-	/** The glyph, wrapped in {@link Icon} here so a caller passes the bare element. */
-	icon: ReactElement
+	/**
+	 * The glyph, wrapped in {@link Icon} here so a caller passes the bare element. A
+	 * list gives glyphs that the CSS shows one at a time, such as one for each layout.
+	 */
+	icon: ReactElement | readonly ReactElement[]
 	/**
 	 * Disables the control but keeps it focusable. It is `aria-disabled`, stays in the
 	 * toolbar's arrow order, and drops each press.
@@ -96,7 +99,9 @@ export function PdfViewerToolbarButton({
 					data-disabled={dataAttr(disabled)}
 					onClick={disabled ? undefined : onClick}
 				>
-					<Icon icon={icon} />
+					{Children.map(icon, (glyph) => (
+						<Icon icon={glyph} />
+					))}
 				</Button>
 			</TooltipTrigger>
 			<TooltipContent>{tooltip ?? label}</TooltipContent>

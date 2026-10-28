@@ -15,12 +15,9 @@ const { cursor } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { flex } = narabi
-
-// The parts that show in one layout of the thumbnails only: the rail and its toggle where
-// `thumbnails` is `rail`, and the Sheet trigger where it is `sheet`. `offcanvas` is a
-// responsive axis that holds the offcanvas layout of `thumbnails`, so CSS shows each part
-// at its breakpoints from the first paint. The `layout` axis of the thumbnails is another
-// axis: the list of the rail or the grid of the Sheet.
+// The parts that show in one thumbnails layout only. The `offcanvas` axis holds that
+// layout, so the CSS shows each part from the first paint. It is not the `layout` axis
+// of the thumbnails, which is the list of the rail or the grid of the Sheet.
 const shows = narabi.offcanvas
 const { bg, rail, skeleton } = omote
 const { border, focus, ring } = sen
@@ -86,13 +83,15 @@ export const k = defineKata({
 				// on the rail fades at each edge.
 				frame: ['border-b', border.color.default, 'shrink-0'],
 				section: [flex.row, 'shrink-0', dan.gap.scale.xs],
-				toggle: {
+				total: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
+				// The glyph of the thumbnail control while the rail is open: the rail
+				// glyph where the rail is pinned, and the Sheet glyph elsewhere.
+				glyph: {
 					slots: {
-						rail: { responsive: { offcanvas: shows.inline.inlineFlex } },
-						sheet: { responsive: { offcanvas: shows.drawer.inlineFlex } },
+						rail: { responsive: { offcanvas: shows.inline.block } },
+						sheet: { responsive: { offcanvas: shows.drawer.block } },
 					},
 				},
-				total: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
 			},
 		},
 		settings: {
@@ -129,9 +128,8 @@ export const k = defineKata({
 			},
 		},
 		sidebar: {
-			// The display comes from `offcanvas`, so the rail shows only where it is pinned.
 			base: [
-				'flex-col',
+				flex.direction.col,
 				'shrink-0 w-56 min-h-0',
 				'overflow-hidden',
 				'border-e',
@@ -150,6 +148,7 @@ export const k = defineKata({
 			// The margin on the start side, so the rail leaves toward its own edge in
 			// either direction.
 			open: { true: '', false: '-ms-56' },
+			// The rail shows only where it is pinned.
 			responsive: { offcanvas: shows.inline.flex },
 			slots: {
 				header: [
