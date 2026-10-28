@@ -92,7 +92,19 @@ Import these from `utilities/floating-portal-registry`. They tell whether a pres
 | `hasPortalReference` | Whether the surface in a portal node recorded a reference. |
 | `foreignFloatingPortal` | The floating portal that a press landed in, when it is not the portal of the container. |
 | `referenceOpenedWithin` | Whether the surface in a portal node was opened from inside a container. |
+| `portalReference` | The reference element of the surface in a portal node, or `null`. |
 | `pressLandsInSurfaceOpenedWithin` | Whether a press landed in a floating surface opened from inside a container. `useDismissable` asks it for a boundary that is not a floating panel. |
+
+## Overlay layers
+
+Import these from `utilities/overlay-layers`. They tell whether an open overlay covers the anchor of a float. The DOM order of the portals cannot tell.
+
+| Export | Summary |
+|---|---|
+| `registerOverlayLayer` | Puts an open overlay on the top of the layer stack; returns its unregister fn. `Overlay` calls it while it is modal or paints a backdrop. |
+| `subscribeOverlayLayers` | Subscribes to the changes of the layer stack. |
+| `isCoveredByOverlay` | Whether an open overlay is above the anchor of a float. `useFloatingPanel` hides the panel then. |
+| `OverlayLayer` *(type)* | One layer: the node of the overlay, the container that it covers, and the regions that it leaves uncovered. |
 
 ## Events
 

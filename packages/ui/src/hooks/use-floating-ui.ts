@@ -27,6 +27,7 @@ import {
 	useEffect,
 	useMemo,
 	useRef,
+	useSyncExternalStore,
 } from 'react'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
 import {
@@ -36,6 +37,7 @@ import {
 	publishPortalReference,
 	referenceOpenedWithin,
 } from '../utilities/floating-portal-registry'
+import { isCoveredByOverlay, subscribeOverlayLayers } from '../utilities/overlay-layers'
 import { isScrollbarPress } from '../utilities/scrollbar-press'
 import { useEscapeLayer } from './use-escape-layer'
 
@@ -296,6 +298,9 @@ export type FloatingPanelOptions = {
  * the top side. A panel that is wider than the viewport caps its width 8px
  * inside each edge. A panel whose reference is out of view, for example
  * scrolled out of a scroll container, is hidden until the reference comes back.
+ * A panel whose reference is under an open overlay, for example a page under a
+ * Sheet, is hidden until the overlay is gone. A panel whose reference is in
+ * the overlay, or in a surface opened from it, stays on top of it.
  *
  * Use this when you need to compose your own interaction hooks (hover, click,
  * clientPoint, etc.) against the returned `context`. For the common
@@ -389,11 +394,32 @@ export function useFloatingPanel({
 
 	const referenceHidden = middlewareData.hide?.referenceHidden ?? false
 
+	// The panel paints on the `float` rung, above each overlay. An open overlay
+	// above the reference, such as a Sheet opened over the page that holds it,
+	// therefore hides the panel, as a scroll hides it. A panel at a point, such
+	// as a context menu or a pinned chart readout, is anchored in the element
+	// that holds the point.
+	const { domReference, reference: positionReference } = context.elements
+
+	const anchor =
+		domReference ??
+		(positionReference && 'contextElement' in positionReference
+			? (positionReference.contextElement ?? null)
+			: null)
+
+	const covered = useSyncExternalStore(
+		subscribeOverlayLayers,
+		() => open && anchor != null && isCoveredByOverlay(anchor),
+		() => false,
+	)
+
+	const hidden = referenceHidden || covered
+
 	// A new object only when the hidden state is on, so the styles keep the
 	// identity of floating-ui while the reference is in view.
 	const floatingStyles = useMemo<CSSProperties>(
-		() => (referenceHidden ? { ...positionStyles, visibility: 'hidden' } : positionStyles),
-		[positionStyles, referenceHidden],
+		() => (hidden ? { ...positionStyles, visibility: 'hidden' } : positionStyles),
+		[positionStyles, hidden],
 	)
 
 	const prevOpenRef = useRef(open)

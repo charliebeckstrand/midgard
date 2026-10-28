@@ -28,7 +28,9 @@
  * select, combobox, listbox, date and color picker. It clears the overlay
  * and chrome rungs alike, because a float is routinely raised *from inside* a
  * panel or a chrome region. A tooltip that renders under the panel it describes
- * is worse than no tooltip.
+ * is worse than no tooltip. A float whose anchor is under an open overlay
+ * would then paint over that overlay, so `useFloatingPanel` hides it while the
+ * overlay is open (`utilities/overlay-layers`).
  *
  * `lens` is a surface that magnifies the content beneath it: the PDF viewer's
  * hover loupe. It clears `float` because everything on that rung *describes*

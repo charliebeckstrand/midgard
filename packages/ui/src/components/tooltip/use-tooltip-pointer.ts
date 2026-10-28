@@ -157,6 +157,9 @@ export function useTooltipPointer({
 		if (originRef === undefined || x === null || y === null) return
 
 		setPositionReference({
+			// The plot that holds the point. An overlay over the plot then covers
+			// the readout too (`useFloatingPanel`).
+			contextElement: originRef.current ?? undefined,
 			getBoundingClientRect() {
 				const { left, top } = toClientPoint(originRef.current, x, y)
 
