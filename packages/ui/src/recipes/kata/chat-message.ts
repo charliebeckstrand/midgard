@@ -84,7 +84,9 @@ export const k = defineKata({
 				// bargain the markdown kata takes, so the line reads on all four bubbles.
 				fallback: [size.md, 'italic'],
 				// The shape that holds the space of a held-back embed, as wide as the bubble.
-				placeholder: kokkaku.chat.embed,
+				// The skeleton tone of a placeholder is the assistant fill, so the shape rides
+				// `currentColor` at a low alpha, as the `tool` box does, and shows on each bubble.
+				placeholder: [kokkaku.chat.embed, 'bg-current/15 dark:bg-current/15'],
 			},
 		},
 		/**
