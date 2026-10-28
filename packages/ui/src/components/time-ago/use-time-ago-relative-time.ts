@@ -111,6 +111,12 @@ type RelativeTimeResult = {
 	then: Date
 	/** Whether `value` parsed to a real timestamp. */
 	valid: boolean
+	/**
+	 * Whether the text of a valid date waits for the clock of the reader. It is
+	 * `true` on the server and in the hydration render, and `false` after the
+	 * mount and for an invalid date.
+	 */
+	pending: boolean
 	/** Formatted relative string; empty before mount or for an invalid date. */
 	text: string
 }
@@ -120,7 +126,7 @@ type RelativeTimeResult = {
  * refresh cadence that steps coarser as the timestamp ages, or on a fixed
  * `interval`.
  *
- * @returns The parsed date, a validity flag, and the formatted relative text.
+ * @returns The parsed date, a validity flag, a pending flag, and the formatted relative text.
  * @remarks
  * Client-only clock. `now` is `null` until a post-mount effect establishes it.
  * The first render on both server and client therefore emits empty `text`, and
@@ -160,9 +166,11 @@ export function useTimeAgoRelativeTime({
 		return subscribeTick(intervalMs, () => setNow(new Date()))
 	}, [intervalMs, valid])
 
-	if (!valid || now === null) return { then, valid, text: '' }
+	if (!valid) return { then, valid, pending: false, text: '' }
+
+	if (now === null) return { then, valid, pending: true, text: '' }
 
 	const text = format ? format(diffMs, now, then) : formatDefault(locale, diffMs)
 
-	return { then, valid, text }
+	return { then, valid, pending: false, text }
 }

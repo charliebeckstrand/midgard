@@ -83,7 +83,7 @@ describe('pie callout fit', () => {
 				series={[{ xKey: 'source', yKey: 'visits' }]}
 				labels={{ callouts: true }}
 				legend={false}
-				width={300}
+				width={600}
 			/>,
 		)
 
@@ -102,7 +102,7 @@ describe('pie callout fit', () => {
 				data={DATA}
 				series={[{ xKey: 'source', yKey: 'visits' }]}
 				labels={{ callouts: true }}
-				width={300}
+				width={600}
 			/>,
 		)
 

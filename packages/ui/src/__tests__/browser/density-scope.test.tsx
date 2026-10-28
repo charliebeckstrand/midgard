@@ -631,7 +631,9 @@ describe('the grid at the first paint (real browser)', () => {
 
 		const container = mountMarkup(element)
 
-		const cell = present(container.querySelector('tbody td'), 'cell')
+		// The data cell: the loading row under the head is a body of its own, whose
+		// anchor cell takes no padding.
+		const cell = present(container.querySelector('tbody td[data-grid-col]'), 'cell')
 
 		expect(Number.parseFloat(getComputedStyle(cell).paddingInlineStart)).toBe(padding)
 	})

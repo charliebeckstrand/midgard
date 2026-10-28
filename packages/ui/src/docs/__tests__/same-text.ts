@@ -37,8 +37,8 @@ const TEXT_ATTRIBUTES = [
 	'title',
 ]
 
-/** The elements whose text is code. */
-const CODE = 'code, pre, kbd, samp, [translate="no"]'
+/** The elements whose text is code. The text of a style or a script never shows. */
+const CODE = 'code, pre, kbd, samp, style, script, [translate="no"]'
 
 /** Whether `element` is in a part of the page that is code, or that has another language. */
 function isExempt(element: Element, language: string): boolean {

@@ -104,6 +104,8 @@ describe('animated chart server markup', () => {
 					series={[{ xKey: 'q', yKey: 'v' }]}
 					labels={{ callouts: true }}
 					{...BOX}
+					// The callouts draw from 480 px wide and up.
+					width={480}
 				/>
 			),
 			// The fade wraps the leader and the label of each callout.

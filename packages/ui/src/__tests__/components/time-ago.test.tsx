@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { LocaleProvider } from '../../providers/locale'
 import { act, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { it, onFakeClock } from '../helpers/fake-clock'
+import { hydrateServerRender, serverMarkup } from '../helpers/hydrate'
 
 const SECOND = 1000
 
@@ -157,6 +158,32 @@ describe('TimeAgo', () => {
 		expect(el).toHaveAttribute('id', 'ts')
 
 		expect(el?.className).toContain('custom')
+	})
+
+	it('puts a skeleton line in the <time> on the server', () => {
+		const time = getSlot(serverMarkup(<TimeAgo value={new Date()} />), 'time-ago')
+
+		expect(time.tagName).toBe('TIME')
+
+		expect(bySlot(time, 'placeholder')).toHaveAttribute('aria-hidden', 'true')
+	})
+
+	it('replaces the skeleton line with the text after the hydration', () => {
+		const past = new Date(Date.now() - 5 * MINUTE)
+
+		const { container, onRecoverableError, consoleError } = hydrateServerRender(
+			<TimeAgo value={past} locale="en-US" />,
+		)
+
+		const time = getSlot(container, 'time-ago')
+
+		expect(bySlot(time, 'placeholder')).toBeNull()
+
+		expect(time).toHaveTextContent('5 minutes ago')
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(consoleError).not.toHaveBeenCalled()
 	})
 
 	it('renders a plain <span> (not an empty <time>) when the date is invalid', () => {

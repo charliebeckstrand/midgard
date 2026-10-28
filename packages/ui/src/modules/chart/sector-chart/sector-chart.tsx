@@ -10,13 +10,7 @@ import { categorySlots } from '../engine/chart-color/palette'
 import { MARK_GAP, TICK_TARGET } from '../engine/chart-constants'
 import { ChartFrame } from '../engine/chart-frame/frame'
 import { chartAspectRatio } from '../engine/chart-frame/sizing'
-import {
-	CALLOUT_CHAR_WIDTH,
-	CALLOUT_COLUMN,
-	CALLOUT_LEADER,
-	CALLOUT_LINE,
-	pieSlices,
-} from '../engine/chart-geometry/pie'
+import { CALLOUT_CHAR_WIDTH, pieSlices } from '../engine/chart-geometry/pie'
 import { ChartLegend } from '../engine/chart-legend/legend'
 import { resolveLegend } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
@@ -32,10 +26,10 @@ import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
 import { useChartTextWidth } from '../engine/use-chart-text-width'
 import {
 	buildCallouts,
+	CALLOUT_FRAME,
 	CALLOUT_TEXT_CLASS,
 	calloutNameRoom,
 	calloutParts,
-	calloutRoom,
 	calloutShares,
 	calloutsShown,
 	resolveCallouts,
@@ -94,9 +88,12 @@ export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	 * so it never sits on the pie. See `aspectRatio`. The default frame shrinks
 	 * with it too, rather than leaving the labels' margin empty on every side.
 	 * Unlike segment labels these name the slice, so they read without the
-	 * legend. In a box too narrow for their columns they drop, and the pie draws
-	 * as bare marks. Such a box is one where they would starve the pie to the
-	 * spark floor. The share is read from the tooltip and table instead.
+	 * legend. A label column on each side is 120 px wide, and a longer name is
+	 * cut with an ellipsis. On a plot narrower than 480 px the callouts drop,
+	 * because the columns would cut most names: the pie then fills its box, and
+	 * the legend names the slices. They also drop where they would starve the
+	 * pie to the spark floor. The share is read from the tooltip and table
+	 * instead.
 	 */
 	labels?: SectorLabels
 	/**
@@ -206,18 +203,17 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 
 	const shares = sliceShares(sliceValues)
 
-	const vMargin = showCallouts ? CALLOUT_LEADER + CALLOUT_LINE : MARK_GAP * 2
-
-	// Callouts sit outside the pie, in a label column on each side. The column is
-	// a function of the width alone, so the box is the same on the server and in
-	// the browser, and the frame holds still as a legend entry hides or reveals a
-	// slice: only the pie's own radius reacts to that, below.
+	// Callouts sit outside the pie, in a label column on each side, from
+	// CALLOUT_MIN_WIDTH and up. The column and that step are a function of the
+	// width alone, so the box is the same on the server and in the browser, and
+	// the frame holds still as a legend entry hides or reveals a slice: only the
+	// pie's own radius reacts to that, below.
 	const sizing = sectorFrameSizing(
 		height,
 		frameAspectRatio,
-		calloutRoom(showCallouts),
-		vMargin,
-		showCallouts ? CALLOUT_COLUMN : undefined,
+		MARK_GAP * 2,
+		MARK_GAP * 2,
+		showCallouts ? CALLOUT_FRAME : undefined,
 	)
 
 	// A live ratio with a legend describes the whole chart: the figure carries the
@@ -268,7 +264,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		showCallouts ? sliceLabels : [],
 		CALLOUT_TEXT_CLASS,
 		CALLOUT_CHAR_WIDTH,
-		calloutNameRoom(frameWidth, shareTexts, shareWidth.width),
+		calloutNameRoom(shareTexts, shareWidth.width),
 	)
 
 	const textHostRef = useComposedRefs(shareWidth.hostRef, nameWidth.hostRef)
@@ -283,13 +279,13 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 
 	const sliceFills = colors.map((color) => tex.fillFor(color))
 
-	// Callouts need a wide horizontal band; where that band would starve the pie to
-	// the spark floor, drop them and draw a bare pie.
+	// Callouts need a wide horizontal band; below CALLOUT_MIN_WIDTH, or where that
+	// band would starve the pie to the spark floor, drop them and draw a bare pie.
 	const drawCallouts = calloutsShown(showCallouts, frameWidth, frameHeight)
 
 	// A dropped callout returns the pie to the plain gap all round, so it fills the
 	// box rather than holding the taller callout band's margin.
-	const drawVMargin = drawCallouts ? vMargin : MARK_GAP * 2
+	const drawVMargin = drawCallouts ? CALLOUT_FRAME.vMargin : MARK_GAP * 2
 
 	const pieFit = resolveFit(drawCallouts, calloutSpec, frameWidth, frameHeight / 2 - drawVMargin)
 

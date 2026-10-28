@@ -9,7 +9,6 @@ export default function CustomFormat() {
 
 	return (
 		<TimeAgo
-			className="min-h-lh"
 			value={now - 90 * SECOND}
 			format={(diffMs) =>
 				intl.formatRelativeTime(-Math.round(Math.abs(diffMs) / SECOND), 'second', {

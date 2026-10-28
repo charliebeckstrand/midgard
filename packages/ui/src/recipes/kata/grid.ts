@@ -776,6 +776,19 @@ export const k = {
 			'[&>tbody:first-of-type]:motion-reduce:opacity-50',
 		],
 	},
+	// The width gate: the server's table waits for the fit at hydration (see
+	// `widthGateClass`).
+	gate: {
+		// On the `<table>`: each body that holds data waits at zero opacity. The
+		// head and the column frame show, and so does a body of placeholders.
+		body: '[&>tbody:not([data-grid-placeholder])]:opacity-0',
+		// The cell of the anchor row of the placeholder: it positions the
+		// placeholder table and takes no height.
+		anchor: 'relative h-0',
+		// The placeholder table hangs from the top of the body, out of flow.
+		skeleton: 'absolute inset-x-0 top-0',
+		table: 'w-full table-fixed',
+	},
 	// The "Exporting" overlay: a scrim over the whole grid while an async export
 	// resolves its rows, with a centered label.
 	//

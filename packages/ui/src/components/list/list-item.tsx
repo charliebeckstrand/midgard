@@ -23,8 +23,9 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	/** Content rendered after the main content. */
 	suffix?: ReactNode
 	/**
-	 * Makes the row act on activation, which decides both the content column's
-	 * muted-to-full text and the row's hover wash.
+	 * Makes the row act on activation, which decides the content column's
+	 * muted-to-full text and the row's hover wash and pointer. All three follow
+	 * the hover of the whole row.
 	 *
 	 * Derived from `href` and `onClick` when omitted, which is right for a row that
 	 * carries its own handler. Set it where the derivation cannot see the truth.
