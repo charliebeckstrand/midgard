@@ -5,7 +5,7 @@ import { getCenter } from '../../helpers/geometry/box'
 
 /**
  * Keyboard control of the grid context menu's submenus against the real
- * floating engine: Enter opens the roved parent onto its first row, `Escape`
+ * floating engine: Enter and ArrowRight open the roved parent onto its first row, `Escape`
  * closes the submenu alone, roving on collapses what was left open, and Tab is
  * held inside the menu. Each hangs on real focus crossing a portal boundary,
  * which the jsdom suite can't reproduce: it mocks `@floating-ui/react`, so the
@@ -30,7 +30,7 @@ describe('grid context menu submenus (real browser)', () => {
 	const gone = (name: string) =>
 		waitFor(() => expect(screen.queryByRole('menuitem', { name })).toBeNull())
 
-	it('opens on Enter, collapses on Escape and rove-away, and holds Tab', async () => {
+	it('opens on Enter and ArrowRight, collapses on Escape and rove-away, and holds Tab', async () => {
 		const { container } = renderUI(
 			<>
 				<button type="button">before</button>
@@ -69,12 +69,7 @@ describe('grid context menu submenus (real browser)', () => {
 
 		expect(item('Sort')).toHaveFocus()
 
-		// Enter opens the roved parent onto its first row. No direction key does:
-		// the panel takes whichever side of the row has room.
-		fireEvent.keyDown(item('Sort'), { key: 'ArrowRight' })
-
-		expect(screen.queryByRole('menuitem', { name: 'Sort ascending' })).toBeNull()
-
+		// Enter opens the roved parent onto its first row.
 		fireEvent.keyDown(item('Sort'), { key: 'Enter' })
 
 		await waitFor(() => expect(item('Sort ascending')).toHaveFocus())
@@ -89,8 +84,9 @@ describe('grid context menu submenus (real browser)', () => {
 
 		expect(item('Sort')).toHaveFocus()
 
-		// Re-opened, then roved away from: the submenu closes behind the cursor.
-		fireEvent.keyDown(item('Sort'), { key: 'Enter' })
+		// Re-opened by the forward arrow, whatever side the panel takes, then roved
+		// away from: the submenu closes behind the cursor.
+		fireEvent.keyDown(item('Sort'), { key: 'ArrowRight' })
 
 		await waitFor(() => expect(item('Sort ascending')).toHaveFocus())
 

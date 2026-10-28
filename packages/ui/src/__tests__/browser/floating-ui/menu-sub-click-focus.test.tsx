@@ -8,7 +8,7 @@ import { getCenter } from '../../helpers/geometry/box'
 /**
  * A click on the parent row of a submenu opens the submenu and leaves the cursor
  * on that row, through the press and after it. The click never moves focus into
- * the submenu. Only a key does (WAI-ARIA APG).
+ * the submenu. Only a key does (WAI-ARIA APG), also in a dropdown.
  *
  * Safari and Firefox on macOS do not focus a button on a press. Focus falls to
  * the nearest focusable ancestor, here the panel of the menu, and the blur of the
@@ -149,5 +149,45 @@ describe('a click on a submenu row (real browser)', () => {
 		expect(trigger).toHaveFocus()
 
 		expect(row()).toHaveAttribute('data-active')
+	})
+
+	// The key arrives on the trigger, which keeps focus and roves by
+	// `aria-activedescendant`. It opens the submenu of the active row.
+	it('opens the submenu of the active row of a dropdown on ArrowRight', async () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<Button>Open</Button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+					<MenuSub label="More">
+						<MenuItem>Nested</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		trigger.focus()
+
+		await userEvent.click(trigger)
+
+		await waitFor(() => expect(row()).toBeVisible())
+
+		await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+
+		await waitFor(() => expect(row()).toHaveAttribute('data-active'))
+
+		await userEvent.keyboard('{ArrowRight}')
+
+		await waitFor(() => expect(nested()).toHaveFocus())
+
+		await userEvent.keyboard('{ArrowLeft}')
+
+		await waitFor(() => expect(row()).toHaveAttribute('aria-expanded', 'false'))
+
+		expect(trigger).toHaveFocus()
 	})
 })

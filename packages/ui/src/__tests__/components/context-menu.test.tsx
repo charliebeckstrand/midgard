@@ -545,16 +545,16 @@ describe('ContextMenuList submenus', () => {
 		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toHaveFocus()
 	})
 
-	it('opens on no direction key (the panel picks its own side), and closes on the back arrow', () => {
+	// The arrows follow the reading direction, not the side the panel takes
+	// (WAI-ARIA APG, Radix, React Aria).
+	it('opens on ArrowRight onto the first row, and closes on the back arrow', () => {
 		open(pinEntries())
 
 		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
 
 		fireEvent.keyDown(trigger, { key: 'ArrowRight' })
 
-		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
-
-		fireEvent.keyDown(trigger, { key: ' ' })
+		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toHaveFocus()
 
 		// ArrowLeft steps back out whatever side the panel took (WAI-ARIA APG).
 		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin left' }), { key: 'ArrowLeft' })

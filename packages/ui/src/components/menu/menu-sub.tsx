@@ -43,15 +43,28 @@ import { MENUITEM_SELECTOR } from './use-menu-root'
 const panel = k()
 
 /**
- * Keys that open a submenu from its roved parent row. Direction keys are
- * deliberately absent. The panel takes whichever side has room
- * ({@link SUBMENU_MIDDLEWARE}), so ArrowRight would open a panel that lands on
- * the left as often as not. The way back is different: ArrowLeft closes the
- * submenu whatever side it opened on (see `handlePanelKeyDown`).
+ * Keys that open a submenu from its roved parent row, in addition to the
+ * forward arrow (see {@link opensSubmenu}).
  *
  * @internal
  */
 const OPEN_KEYS = ['Enter', ' ']
+
+/**
+ * Whether `event` opens the submenu of the parent row `row`: Enter, Space, or
+ * ArrowRight (ArrowLeft in a right-to-left menu), as in the WAI-ARIA APG menu
+ * pattern. The arrow follows the reading direction, not the side that the
+ * panel takes ({@link SUBMENU_MIDDLEWARE}), as in Radix and React Aria. A screen
+ * reader user cannot see the side. A browser chord such as Alt+ArrowRight
+ * (Forward) opens nothing.
+ *
+ * @internal
+ */
+export function opensSubmenu(event: KeyboardEvent, row: Element): boolean {
+	if (OPEN_KEYS.includes(event.key)) return true
+
+	return !hasBrowserModifier(event) && logicalArrowKey(event.key, row) === 'ArrowRight'
+}
 
 /**
  * Positions the panel beside its parent row on whichever side has the most
@@ -83,7 +96,7 @@ export type MenuSubProps = {
 	disabled?: boolean
 	/**
 	 * Fires when this submenu opens or closes, whatever drove it. That covers hover
-	 * intent, a click, Enter / Space, `Escape`, a blur off the row, an outside press,
+	 * intent, a click, Enter / Space / ArrowRight, `Escape`, a blur off the row, an outside press,
 	 * or a sibling row taking the level's cursor.
 	 *
 	 * Observation only. The enclosing level owns which submenu is open (one at a time),
@@ -100,7 +113,8 @@ export type MenuSubProps = {
  * A menu row that opens a nested menu beside itself. It is a `role="menuitem"`
  * parent carrying `aria-haspopup="menu"` and a trailing chevron, plus the
  * floating panel its rows render in. Opens on hover, on click, and (while the
- * row is the roved one) on Enter / Space. Closes on `Escape` or ArrowLeft (ArrowRight in a
+ * row is the roved one) on Enter / Space / ArrowRight (ArrowLeft in a right-to-left
+ * menu). Closes on `Escape` or ArrowLeft (ArrowRight in a
  * right-to-left menu), an outside press, or the cursor settling on another row. Selecting a row inside closes the whole menu,
  * as any {@link MenuItem} does. A click only opens the submenu, as in a native menu, so a
  * click on the row of an open submenu changes nothing.
@@ -111,14 +125,16 @@ export type MenuSubProps = {
  * behind the cursor. `Escape` or ArrowLeft closes it and hands them back, cursor
  * on the parent row. In a right-to-left menu, ArrowRight does the same (WAI-ARIA
  * APG menu pattern). A hover or a click leaves focus on the row, and the press
- * keeps it there, until the first such key. Enter and Space move focus to the
- * first row of the panel (APG).
+ * keeps it there, until the first such key. Enter, Space, and ArrowRight
+ * (ArrowLeft in a right-to-left menu) move focus to the first row of the panel
+ * (APG).
  *
  * The panel takes whichever side of the row has room
  * ({@link SUBMENU_MIDDLEWARE}), so it opens leftward near the viewport's right
- * edge rather than being clipped. That is why no direction key opens it. The
- * back arrow closes it whatever side it opened on. The APG pattern names that
- * key, and a screen reader user cannot see the side. Open state is the enclosing level's, not this row's
+ * edge rather than being clipped. The arrows follow the reading direction and
+ * not that side: the forward arrow opens the panel, and the back arrow closes
+ * it, whatever side it opened on. The APG pattern names those keys, and a
+ * screen reader user cannot see the side. Open state is the enclosing level's, not this row's
  * ({@link MenuPointerLevel}), so one submenu hangs off a menu at a time. The
  * pointer reads its course against that one panel, and the row's own panel
  * provides the next level down. Tab is held inside the open panel, cycling its
@@ -405,7 +421,7 @@ function MenuSubFloating({
 	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
 		if (disabled) return
 
-		if (OPEN_KEYS.includes(event.key)) {
+		if (opensSubmenu(event, event.currentTarget)) {
 			event.preventDefault()
 
 			openWithFocus()
@@ -493,7 +509,8 @@ function MenuSubFloating({
 	const handlePointerMove = useMenuRowPointer(disabled, subKey)
 
 	// A click with no pointer behind it (`detail` 0) is a key: a dropdown clicks
-	// its active row on Enter / Space. It goes into the panel as the keys do here.
+	// its active row on Enter / Space, and on ArrowRight when the row
+	// carries a submenu. It goes into the panel as the keys do here.
 	// A pointer click opens the submenu and keeps the cursor on this row.
 	const handleClick = useStableEvent((event: MouseEvent<HTMLButtonElement>) => {
 		if (disabled) return

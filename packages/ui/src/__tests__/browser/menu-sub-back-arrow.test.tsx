@@ -4,14 +4,16 @@ import { Menu, MenuContent, MenuItem, MenuSub } from '../../components/menu'
 import { renderUI, screen, waitFor } from '../helpers'
 
 /**
- * The back arrow closes a submenu and returns focus to its parent row.
+ * The forward arrow opens a submenu onto its first row, and the back arrow
+ * closes it and returns focus to its parent row.
  *
  * A panel comment said ArrowLeft led back to the parent menu, but only `Escape` did. The WAI-ARIA
- * APG menu pattern closes a submenu on ArrowLeft, and on ArrowRight in a right-to-left menu. The
- * key reads the direction through `logicalArrowKey`. The real browser resolves the `dir`
+ * APG menu pattern opens a submenu on ArrowRight and closes it on ArrowLeft, and swaps the two in a
+ * right-to-left menu. The keys follow the reading direction, not the side that the panel takes.
+ * The key reads the direction through `logicalArrowKey`. The real browser resolves the `dir`
  * attribute into the computed `direction`, which jsdom does not.
  */
-describe('submenu back arrow (real browser)', () => {
+describe('submenu arrows (real browser)', () => {
 	afterEach(() => {
 		document.documentElement.removeAttribute('dir')
 	})
@@ -21,7 +23,7 @@ describe('submenu back arrow (real browser)', () => {
 
 		const away = dir === 'ltr' ? '{ArrowRight}' : '{ArrowLeft}'
 
-		it(`closes the submenu on ${back} in ${dir}, and not on ${away}`, async () => {
+		it(`opens the submenu on ${away} and closes it on ${back} in ${dir}`, async () => {
 			document.documentElement.dir = dir
 
 			renderUI(
@@ -39,13 +41,13 @@ describe('submenu back arrow (real browser)', () => {
 
 			trigger.focus()
 
-			await userEvent.keyboard('{Enter}')
+			await userEvent.keyboard(away)
 
 			const nested = await screen.findByRole('menuitem', { name: 'Nested' })
 
 			await waitFor(() => expect(document.activeElement).toBe(nested))
 
-			// The other arrow leaves the submenu open.
+			// The forward arrow on a row with no submenu leaves the submenu open.
 			await userEvent.keyboard(away)
 
 			expect(trigger).toHaveAttribute('aria-expanded', 'true')
