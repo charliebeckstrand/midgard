@@ -68,7 +68,9 @@ const item = defineKata(
 				dan.size.icon.spinner,
 				// The current row is the initial scroll target of the sidebar: the first
 				// layout puts it at the top of the view, so the server markup paints with
-				// the row in view, and no script scrolls.
+				// the row in view, and no script scrolls. The section is the target in
+				// place of its first row (`section`). `CurrentScrollScript` does the same
+				// in a browser without `scroll-initial-target`.
 				'data-current:[scroll-initial-target:nearest]',
 			],
 			prefix: affix,
@@ -100,7 +102,13 @@ export const k = defineKata(
 	{
 		base: ['group/sidebar', mini.rail, scroll, flex.col, dan.gap.y.lg, 'h-full', 'p-6'],
 		slots: {
-			section: stack,
+			// When the current row is the first of the section, the section is the
+			// initial scroll target, so the label of the section shows above the row.
+			// A target earlier in the tree wins, so the row is not the target.
+			section: [
+				...stack,
+				'has-[>[data-slot=sidebar-list]>li:first-child_[data-current]]:[scroll-initial-target:nearest]',
+			],
 			list: stack,
 			label: ['truncate', mini.srOnly],
 			header: [flex.row, dan.gap.scale.md],

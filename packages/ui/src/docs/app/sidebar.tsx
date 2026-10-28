@@ -60,7 +60,14 @@ export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonl
 			</SidebarHeader>
 			<SearchButton />
 			<Flex align="stretch" gap="sm" className="-me-4 min-h-0 flex-1">
-				<SidebarBody ref={bodyRef} className="min-w-0">
+				{/*
+					The space after the last section lets each page scroll to the top of the
+					body: the height of the body less a row (2.5rem) and the gap before the
+					space (1rem). So the current page loads at the top, a jump of the rail
+					brings its page to the top, and the letter of the page at the top is
+					always the right letter.
+				*/}
+				<SidebarBody ref={bodyRef} className="min-w-0 after:h-[calc(100%-3.5rem)] after:flex-none">
 					{sections.map(({ section, links }) => {
 						const label = sectionLabel(intl, section)
 

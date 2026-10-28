@@ -73,7 +73,11 @@ function scrollToLetter(body: HTMLElement, letter: string) {
 	body.scrollTop += anchor.getBoundingClientRect().top - body.getBoundingClientRect().top
 }
 
-/** The letter of the page at the top of `body`: the first page whose row is at least half in view. */
+/**
+ * The letter of the page at the top of `body`: the first page whose row is at
+ * least half in view. The sidebar leaves space after its last section, so each
+ * page can come to the top, and the letter of a jump stays after the jump.
+ */
 function letterAtTop(body: HTMLElement): string | undefined {
 	const top = body.getBoundingClientRect().top
 
@@ -129,11 +133,6 @@ export function LetterRail({
 
 	const gesture = useRef<Gesture | undefined>(undefined)
 
-	// The scroll position that the last jump gave the body. The letter of the
-	// jump stays active while the body stays there, because the body cannot
-	// bring a page near its end to the top. A scroll to another position clears it.
-	const rest = useRef<number | undefined>(undefined)
-
 	const cursor = useDragCursorHold('pointer')
 
 	// The pointer of the gesture. While a pen drags, the touch of a palm is a primary
@@ -145,13 +144,7 @@ export function LetterRail({
 
 		if (!body) return
 
-		const follow = () => {
-			if (rest.current === body.scrollTop) return
-
-			rest.current = undefined
-
-			setActive(letterAtTop(body))
-		}
+		const follow = () => setActive(letterAtTop(body))
 
 		follow()
 
@@ -181,8 +174,6 @@ export function LetterRail({
 		current.letter = letter
 
 		scrollToLetter(body, letter)
-
-		rest.current = body.scrollTop
 
 		setActive(letter)
 	}
