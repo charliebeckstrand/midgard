@@ -1,6 +1,6 @@
 'use client'
 
-import { type Ref, type RefObject, useEffect, useRef } from 'react'
+import { type Ref, type RefObject, useEffect, useRef, useState } from 'react'
 import { ariaAttr, dataAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
@@ -14,6 +14,8 @@ type PdfViewerThumbnailItem = {
 	pageNumber: number
 	label: string
 	thumbnail: string
+	/** The width of the page over its height, where the page gives its size. */
+	ratio?: number
 }
 
 // Stable keys for the skeleton tiles shown before the pages are known;
@@ -43,14 +45,16 @@ type PdfViewerThumbnailListProps = {
 }
 
 /**
- * Reports the tiles of `list` that are in view, or within 200px of it, through one observer.
+ * Finds the tiles of `list` that are in view, or within 200px of it, through one observer.
  *
  * @remarks One observer for the whole rail, not one for each tile. The root of the observer is
  * the scroll container of the rail, so a tile scrolled out of the rail is out of view, and the
- * 200px margin grows the rail.
+ * 200px margin grows the rail. The root is inside the Sheet, so the slide of the Sheet does not
+ * change what the observer sees.
  * Where nothing can observe (the server, and jsdom without a stub), every tile counts as in
- * view. The cleanup reports none, because a rail that unmounts or hides
+ * view. The cleanup reports none to `onVisibleChange`, because a rail that unmounts or hides
  * shows nothing.
+ * @returns The 0-based indices of the tiles in view, in order.
  * @internal
  */
 function useVisibleTiles(
@@ -58,18 +62,26 @@ function useVisibleTiles(
 	count: number,
 	onVisibleChange: ((indices: number[]) => void) | null | undefined,
 ) {
+	const [visible, setVisible] = useState<readonly number[]>([])
+
 	useEffect(() => {
 		const element = list.current
 
-		if (!element || !onVisibleChange || count === 0) return
+		if (!element || count === 0) return
 
-		if (typeof IntersectionObserver === 'undefined') {
-			onVisibleChange(Array.from({ length: count }, (_, index) => index))
+		const report = (indices: number[]) => {
+			setVisible(indices)
 
-			return () => onVisibleChange([])
+			onVisibleChange?.(indices)
 		}
 
-		const visible = new Set<number>()
+		if (typeof IntersectionObserver === 'undefined') {
+			report(Array.from({ length: count }, (_, index) => index))
+
+			return () => onVisibleChange?.([])
+		}
+
+		const seen = new Set<number>()
 
 		// The root is the node that scrolls the tiles: the rail itself in the list
 		// layout, and the body of the Sheet in the grid layout. A margin grows the
@@ -80,11 +92,11 @@ function useVisibleTiles(
 				for (const entry of entries) {
 					const index = Number((entry.target as HTMLElement).dataset.index)
 
-					if (entry.isIntersecting) visible.add(index)
-					else visible.delete(index)
+					if (entry.isIntersecting) seen.add(index)
+					else seen.delete(index)
 				}
 
-				onVisibleChange([...visible].sort((a, b) => a - b))
+				report([...seen].sort((a, b) => a - b))
 			},
 			{ root: getScroller(element), rootMargin: '200px' },
 		)
@@ -94,9 +106,11 @@ function useVisibleTiles(
 		return () => {
 			observer.disconnect()
 
-			onVisibleChange([])
+			onVisibleChange?.([])
 		}
 	}, [list, count, onVisibleChange])
+
+	return visible
 }
 
 /**
@@ -123,7 +137,7 @@ export function PdfViewerThumbnailList({
 
 	const intl = useIntl()
 
-	useVisibleTiles(listRef, items.length, onVisibleChange)
+	const visible = useVisibleTiles(listRef, items.length, onVisibleChange)
 
 	// While the list holds only the loading placeholders, it hides from
 	// assistive tech as a whole. Empty items would read as a list of blank
@@ -174,9 +188,21 @@ export function PdfViewerThumbnailList({
 								onSelect?.()
 							}}
 						>
-							<span className={k().thumbnail.frame}>
+							<span
+								className={k().thumbnail.frame}
+								style={item.ratio ? { aspectRatio: item.ratio } : undefined}
+							>
 								{item.thumbnail ? (
-									<img src={item.thumbnail} alt="" loading="lazy" className={k().thumbnail.image} />
+									<img
+										src={item.thumbnail}
+										alt=""
+										// A tile in the view of the rail loads now. The browser decides a lazy load
+										// from the place of the image in the viewport, and the Sheet moves that
+										// place while it slides in. The observer of the rail is inside the Sheet,
+										// so the slide does not change what it sees.
+										loading={visible.includes(item.pageNumber - 1) ? 'eager' : 'lazy'}
+										className={k().thumbnail.image}
+									/>
 								) : (
 									<span
 										data-slot="pdf-viewer-thumbnail-skeleton"
