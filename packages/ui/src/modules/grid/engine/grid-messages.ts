@@ -480,7 +480,7 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 	},
 	moveTo: {
 		id: 'ui.grid.moveTo',
-		defaultMessage: 'Move to {group}',
+		defaultMessage: 'Move to “{group}”',
 		description: 'The menu item that moves a column into a column group of a grid.',
 	},
 	removeFromGroup: {
