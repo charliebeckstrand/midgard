@@ -137,7 +137,8 @@ describe('grid fill handle place (real browser)', () => {
 
 		await waitFor(() => expect(scroller.scrollLeft).toBe(120))
 
-		expectOnCorner(cell(2, 'b'))
+		// The handle shows once the double-click window of the press ends.
+		await waitFor(() => expectOnCorner(cell(2, 'b')))
 
 		await userEvent.click(cell(4, 'name'))
 
