@@ -98,12 +98,20 @@ function layOut(body: HTMLElement) {
 	})
 }
 
-function renderSidebar() {
-	const { container } = render(
+function renderSidebar(current?: string) {
+	const { container, rerender } = render(
 		<DocsSearch>
-			<DocsSidebar pages={PAGES} />
+			<DocsSidebar pages={PAGES} current={current} />
 		</DocsSearch>,
 	)
+
+	// Renders the sidebar again on the page at `path`, as a navigation does.
+	const navigate = (path: string) =>
+		rerender(
+			<DocsSearch>
+				<DocsSidebar pages={PAGES} current={path} />
+			</DocsSearch>,
+		)
 
 	const body = container.querySelector<HTMLElement>('[data-slot="sidebar-body"]')
 
@@ -130,7 +138,7 @@ function renderSidebar() {
 	const bubble = () =>
 		rail.querySelector('[data-slot="letter-rail-bubble"]')?.hasAttribute('data-visible')
 
-	return { body, track, active, bubble }
+	return { body, track, active, bubble, navigate }
 }
 
 /** The y of a point in the band at `index`: `offset` from the top of the band. */
@@ -196,6 +204,23 @@ describe('LetterRail', () => {
 		fireEvent.scroll(body)
 
 		expect(active()).toBe('A')
+	})
+
+	it('pins the letter of the current page until the body scrolls', () => {
+		const { body, active, navigate } = renderSidebar('/locale')
+
+		expect(active()).toBe('L')
+
+		// A navigation pins the letter of the new page.
+		navigate('/editor')
+
+		expect(active()).toBe('E')
+
+		body.scrollTop = HEADING + 2 * ITEM
+
+		fireEvent.scroll(body)
+
+		expect(active()).toBe('B')
 	})
 
 	it('shows the last letter at the end of the body, where each section starts the alphabet again', () => {

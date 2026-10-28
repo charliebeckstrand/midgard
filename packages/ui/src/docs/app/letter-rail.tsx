@@ -3,6 +3,7 @@ import {
 	type PointerEvent,
 	type RefObject,
 	useEffect,
+	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react'
@@ -17,6 +18,8 @@ import type { PageLink } from '../plugin/pages.ts'
 // the body to the first page with that letter, and a slide along the rail
 // follows the finger from letter to letter. The rail shows the letter of the
 // last jump that the scroll of the body is at or past, and mutes the other letters.
+// On a load and after a navigation, the rail pins the letter of the current page
+// until the body scrolls.
 //
 // Scroll-driven animations show that letter, and no script runs. Thus the first
 // paint, also the paint of the server markup, shows the final letter. The anchor
@@ -209,17 +212,31 @@ type Gesture = {
 export function LetterRail({
 	pages,
 	bodyRef,
+	current,
 }: {
 	pages: readonly PageLink[]
 	bodyRef: RefObject<HTMLDivElement | null>
+	/** The letter of the current page. The rail pins it until the body scrolls. */
+	current?: string
 }) {
 	const letters = getLetters(pages)
 
 	const targets = getTargetPages(pages).map(getInitial)
 
-	// The letter of the last jump while the body stays where the jump put it, or,
-	// in a browser without scroll-driven animations, the letter at the top.
-	const [active, setActive] = useState<string | undefined>(undefined)
+	// The pinned letter: the letter of the current page, or of the last jump,
+	// while the body stays where it was. In a browser without scroll-driven
+	// animations, a scroll pins the letter at the top. The server knows the
+	// current page, so its markup holds the pin of the current page.
+	const [active, setActive] = useState(current)
+
+	// A navigation pins the letter of the new page.
+	const [pinnedPage, setPinnedPage] = useState(current)
+
+	if (pinnedPage !== current) {
+		setPinnedPage(current)
+
+		setActive(current)
+	}
 
 	// A touch covers the letter under the finger, so a slide by touch shows the
 	// letter in a bubble at the side of the rail. The bubble shows when the slide
@@ -242,6 +259,13 @@ export function LetterRail({
 	// The pointer of the gesture. While a pen drags, the touch of a palm is a primary
 	// press too, and it does not start, move, or end the gesture.
 	const [press] = useState(createPressOwner)
+
+	// The pin of the current page holds at the scroll that the page gets. The
+	// current item scrolls into view in a layout effect of the body, which runs
+	// before this one.
+	useLayoutEffect(() => {
+		if (current !== undefined) rest.current = bodyRef.current?.scrollTop
+	}, [current, bodyRef])
 
 	useEffect(() => {
 		const body = bodyRef.current

@@ -57,9 +57,17 @@ const PageItem = memo(function PageItem({
 /**
  * The sidebar of the docs: the button of the search, the pages of each
  * section, and the letter rail. The shell renders again on each change of the
- * router state, and the props do not change, so the sidebar memoizes.
+ * router state, and the props change only when the page changes, so the
+ * sidebar memoizes.
  */
-export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonly PageLink[] }) {
+export const DocsSidebar = memo(function DocsSidebar({
+	pages,
+	current,
+}: {
+	pages: readonly PageLink[]
+	/** The path of the current page, whose letter the rail pins until the body scrolls. */
+	current?: string
+}) {
 	const bodyRef = useRef<HTMLDivElement>(null)
 
 	const intl = useIntl()
@@ -67,6 +75,10 @@ export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonl
 	const sections = groupSections(pages)
 
 	const targets = getTargetPages(pages)
+
+	const currentPage = pages.find((page) => page.path === current)
+
+	const currentLetter = currentPage && getInitial(currentPage)
 
 	// The view timeline of the anchor of the jump to `page`, or none when no jump goes to it.
 	const getTimelineStyle = (page: PageLink): CSSProperties | undefined =>
@@ -123,7 +135,7 @@ export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonl
 						)
 					})}
 				</SidebarBody>
-				<LetterRail pages={pages} bodyRef={bodyRef} />
+				<LetterRail pages={pages} bodyRef={bodyRef} current={currentLetter} />
 			</Flex>
 		</Sidebar>
 	)
