@@ -57,10 +57,10 @@ const item = defineKata(
 	{
 		extends: nav,
 		// The current row is the initial scroll target of the sidebar. The first
-		// layout of the sidebar aligns the end of the row with the end of the view,
-		// which is the 'nearest' position from the top. Thus the server markup
-		// paints with the row in view, and no script scrolls.
-		base: 'has-data-current:snap-end has-data-current:[scroll-initial-target:nearest]',
+		// layout of the sidebar puts the row at the top of the view. Thus the server
+		// markup paints with the row in view, and no script scrolls. A section whose
+		// first row is current is the target instead (`section`).
+		base: 'has-data-current:snap-start has-data-current:[scroll-initial-target:nearest]',
 		slots: {
 			button: [
 				...padding,
@@ -89,6 +89,17 @@ const item = defineKata(
 const stack = [flex.col, 'gap-0.5', '[--touch-target-gap-y:--spacing(0.5)]']
 
 /**
+ * A section whose first row is current is the initial scroll target of the
+ * sidebar, so the label of the section shows above the row. The section comes
+ * before the row in tree order, so the browser takes the section and not the
+ * row.
+ */
+const sectionTarget = [
+	'has-[>[data-slot=sidebar-list]:first-of-type>:first-child>[data-current]]:snap-start',
+	'has-[>[data-slot=sidebar-list]:first-of-type>:first-child>[data-current]]:[scroll-initial-target:nearest]',
+]
+
+/**
  * The scroll of the nav and of its body: on the vertical axis only. A sidebar
  * never scrolls on the horizontal axis. A vertical scroller also scrolls its
  * horizontal overflow, and on a coarse pointer the hit area of a small control
@@ -101,7 +112,7 @@ export const k = defineKata(
 	{
 		base: ['group/sidebar', mini.rail, scroll, flex.col, dan.gap.y.lg, 'h-full', 'p-6'],
 		slots: {
-			section: stack,
+			section: [...stack, ...sectionTarget],
 			list: stack,
 			label: ['truncate', mini.srOnly],
 			header: [flex.row, dan.gap.scale.md],

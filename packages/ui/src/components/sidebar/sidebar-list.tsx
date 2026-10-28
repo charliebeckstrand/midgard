@@ -17,7 +17,12 @@ export type SidebarListProps = ComponentProps<'ul'>
 export function SidebarList({ className, children, ...props }: SidebarListProps) {
 	return (
 		<SidebarListContext value={true}>
-			<ul data-slot="sidebar-list" className={cn(k().list, className)} {...props}>
+			<ul
+				className={cn(k().list, className)}
+				{...props}
+				// The section recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
+				data-slot="sidebar-list"
+			>
 				{children}
 			</ul>
 		</SidebarListContext>
