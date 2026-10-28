@@ -1291,7 +1291,10 @@ describe('MenuSub', () => {
 		expect(row).toHaveAttribute('aria-expanded', 'true')
 	})
 
-	it('closes a submenu that a click opened on a second click', () => {
+	// A click only opens, as in a native menu, and the cursor stays on the row.
+	// The press keeps focus where it is: Safari and Firefox on macOS move focus off
+	// a pressed button, and the blur would close the submenu.
+	it('opens a submenu on a click and keeps focus on the row', () => {
 		renderUI(
 			<Menu defaultOpen>
 				<MenuContent>
@@ -1304,24 +1307,22 @@ describe('MenuSub', () => {
 
 		const row = screen.getByRole('menuitem', { name: /More/ })
 
-		fireEvent.click(row)
+		expect(fireEvent.mouseDown(row)).toBe(false)
+
+		fireEvent.click(row, { detail: 1 })
 
 		expect(row).toHaveAttribute('aria-expanded', 'true')
-
-		fireEvent.click(row)
-
-		expect(row).toHaveAttribute('aria-expanded', 'false')
 
 		expect(row).toHaveFocus()
 
-		fireEvent.click(row)
+		fireEvent.click(row, { detail: 1 })
 
 		expect(row).toHaveAttribute('aria-expanded', 'true')
+
+		expect(row).toHaveFocus()
 	})
 
-	// Hover is not a commitment. The first click on a row that hover opened puts
-	// focus in the submenu, and only the second click closes it.
-	it('keeps a submenu that hover opened open on the first click', () => {
+	it('keeps a submenu that hover opened open on a click, with focus on the row', () => {
 		renderUI(
 			<Menu defaultOpen>
 				<MenuContent>
@@ -1338,15 +1339,29 @@ describe('MenuSub', () => {
 
 		expect(row).toHaveAttribute('aria-expanded', 'true')
 
-		fireEvent.click(row)
+		fireEvent.click(row, { detail: 1 })
 
 		expect(row).toHaveAttribute('aria-expanded', 'true')
 
+		expect(row).toHaveFocus()
+	})
+
+	// A dropdown clicks its active row on Enter / Space, with no pointer behind the
+	// click (`detail` 0). That is a key, so focus goes into the panel (APG).
+	it('moves focus into the submenu on a click with no pointer', () => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuSub label="More">
+						<MenuItem>Nested</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
+
 		expect(screen.getByRole('menuitem', { name: 'Nested' })).toHaveFocus()
-
-		fireEvent.click(row)
-
-		expect(row).toHaveAttribute('aria-expanded', 'false')
 	})
 })
 
