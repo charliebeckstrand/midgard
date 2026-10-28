@@ -3,6 +3,8 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { useLocale } from '../../providers/locale'
+import { k } from '../../recipes/kata/time-ago'
+import { Placeholder } from '../placeholder'
 import { useTimeAgoRelativeTime } from './use-time-ago-relative-time'
 
 /** Props for {@link TimeAgo}: the `value` to age plus `format`/`locale`/`interval` overrides over the `<time>` surface. */
@@ -38,10 +40,12 @@ export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' 
  * without `tabIndex` the tooltip opens on pointer hover only.
  *
  * @remarks
- * Client-only clock. The first render on both server and client emits an empty
- * `<time>`, with no relative text. The text then appears after mount, and
- * refreshes on the resolved interval. Lay out for the eventual text to avoid a
- * shift on hydrate.
+ * Client-only clock. The first render on both server and client puts a
+ * skeleton line in the `<time>`, because only the browser of the reader knows
+ * the current time. The line has the line height of the inherited text, so the
+ * row keeps its height. Its width is an estimate, so the text after the mount
+ * can be a little wider or narrower. The text then refreshes on the resolved
+ * interval.
  *
  * Hydration is deterministic only when `value` is the same value on the server
  * and on the client, because `dateTime` comes from `value`. A `value` that render
@@ -58,7 +62,7 @@ export function TimeAgo({
 }: TimeAgoProps) {
 	const ambient = useLocale()
 
-	const { then, valid, text } = useTimeAgoRelativeTime({
+	const { then, valid, pending, text } = useTimeAgoRelativeTime({
 		value,
 		format,
 		locale: locale ?? ambient.locale,
@@ -73,10 +77,10 @@ export function TimeAgo({
 		<time
 			data-slot="time-ago"
 			dateTime={then.toISOString()}
-			className={cn('inline-flex w-fit shrink-0', className)}
+			className={cn(k.base, className)}
 			{...props}
 		>
-			{text}
+			{pending ? <Placeholder as="span" className={k.skeleton.line} /> : text}
 		</time>
 	)
 }

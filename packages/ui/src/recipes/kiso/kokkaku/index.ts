@@ -42,6 +42,7 @@ import { switchSkeleton } from './switch'
 import { tabs } from './tabs'
 import { text } from './text'
 import { textarea } from './textarea'
+import { timeAgo } from './time-ago'
 import { timeline } from './timeline'
 import { toggleIconButton } from './toggle-icon-button'
 import { tree } from './tree'
@@ -79,6 +80,7 @@ export const kokkaku = {
 	tabs,
 	text,
 	textarea,
+	timeAgo,
 	timeline,
 	toggleIconButton,
 	tree,

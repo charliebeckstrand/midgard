@@ -11,7 +11,7 @@ export default function WithAbsoluteTime() {
 	return (
 		<Tooltip>
 			<TooltipTrigger>
-				<TimeAgo className="min-h-lh" value={date} tabIndex={0} />
+				<TimeAgo value={date} tabIndex={0} />
 			</TooltipTrigger>
 			<TooltipContent>
 				<DateTime value={date} format={{ dateStyle: 'medium', timeStyle: 'short' }} />

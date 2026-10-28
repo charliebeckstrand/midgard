@@ -6,7 +6,7 @@ export default function Past() {
 	const now = useNow()
 
 	return (
-		<Stack gap="xs" className="*:min-h-lh">
+		<Stack gap="xs">
 			<TimeAgo value={now - 5 * MINUTE} />
 			<TimeAgo value={now - 2 * HOUR} />
 			<TimeAgo value={now - 3 * DAY} />
