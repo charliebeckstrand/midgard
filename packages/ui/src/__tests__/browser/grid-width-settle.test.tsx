@@ -50,6 +50,20 @@ describe('grid width settling (real browser)', () => {
 		expect(hidden()).toBe(false)
 	})
 
+	it('drops the skeleton and the reserved height of a window once the columns fit', async () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} virtualize maxHeight="320px" />)
+
+		await waitFor(() => expect(hidden()).toBe(false))
+
+		expect(document.querySelector('[data-slot="grid-gate-skeleton"]')).toBeNull()
+
+		// Two rows fill less than the cap, so the region takes the height of its rows.
+		const region = document.querySelector<HTMLElement>('[data-slot="grid-scroll"]')
+
+		expect(region?.style.height).toBe('')
+		expect(region?.getBoundingClientRect().height).toBeLessThan(320)
+	})
+
 	it('stays revealed when a later fetch starts', async () => {
 		const view = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 

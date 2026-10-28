@@ -279,20 +279,29 @@ describe('grid virtualized grouped body (real browser)', () => {
 		// The column header row is row 1.
 		expect(table).toHaveAttribute('aria-rowcount', String(ITEMS + 1))
 
-		scroll.scrollTop = 5000
+		// The rows wrap, so a scroll offset does not tell which rows the window
+		// holds. Scroll one viewport at a time until the window holds a group
+		// boundary, and with it each kind of row: a header, a leaf, and a total.
+		let rows = itemRows(body)
 
-		await settle(4)
+		for (let top = 5000; rowKinds(rows).size < 3 && top < 10_000; top += 400) {
+			scroll.scrollTop = top
 
-		const rows = itemRows(body)
+			await settle(4)
 
-		expect(rows.length).toBeGreaterThan(0)
+			rows = itemRows(body)
+		}
 
 		for (const row of rows) {
 			expect(row).toHaveAttribute('aria-rowindex', String(Number(row.dataset.index) + 2))
 		}
 
-		// Each kind of row is in the window: a header, a leaf, and a total.
-		const kinds = new Set(
+		expect(rowKinds(rows)).toEqual(new Set(['group', 'leaf', 'total']))
+	})
+
+	/** The kinds of item row in `rows`: a group header, a leaf, or a group total. */
+	function rowKinds(rows: HTMLElement[]) {
+		return new Set(
 			rows.map((row) =>
 				row.hasAttribute('data-group-row')
 					? 'group'
@@ -301,9 +310,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 						: 'leaf',
 			),
 		)
-
-		expect(kinds).toEqual(new Set(['group', 'leaf', 'total']))
-	})
+	}
 
 	/** Opens the group menu on `header` and picks the item with `name`. */
 	async function groupMenu(header: HTMLElement, name: string) {

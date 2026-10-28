@@ -25,6 +25,7 @@ import { GridFillHandle } from './grid-fill-handle'
 import { GridHead } from './grid-head'
 import { GridNewRow } from './grid-new-row'
 import { GridScrollRegion } from './grid-region'
+import { GridGateSkeleton } from './grid-skeleton-cells'
 import { GridGrandTotalBody } from './grid-total-row'
 import type { GridColumn } from './types'
 import type { useGridCursor } from './use-grid-cursor'
@@ -116,7 +117,7 @@ type GridDataTableProps<T> = {
 	}
 	grandTotal: { active: boolean; rows: readonly T[] }
 	/** The scroll container for a sticky header or a window. */
-	scroll: Omit<ComponentProps<typeof GridScrollRegion>, 'children'>
+	scroll: Omit<ComponentProps<typeof GridScrollRegion>, 'reserve' | 'children'>
 	/** The query that highlight-mode search marks, or `null`. */
 	highlightQuery: string | null
 }
@@ -217,6 +218,12 @@ export function GridDataTable<T>({
 					{...head}
 				/>
 
+				{/* The loading row at the top of a gated body. A window that has not
+				    resolved shows its own skeleton. */}
+				{!table.revealed && !scroll.virtualized && (
+					<GridGateSkeleton columns={columns} colGroup={table.colGroup} />
+				)}
+
 				{slotAt(newRow.place, 'top', newRowSlot)}
 
 				<GridBody<T>
@@ -248,7 +255,7 @@ export function GridDataTable<T>({
 
 	return (
 		<GridHighlightContext value={highlightQuery}>
-			<GridScrollRegion {...scroll}>
+			<GridScrollRegion {...scroll} reserve={!table.revealed && scroll.virtualized}>
 				{/* An editable grid mounts the editing contexts around the table.
 				    A read-only grid returns the table as it is. */}
 				{cursor.wrap(tableContent)}
