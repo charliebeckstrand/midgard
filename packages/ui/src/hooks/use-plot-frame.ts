@@ -8,8 +8,10 @@ import {
 	useEffect,
 	useLayoutEffect,
 	useMemo,
+	useRef,
 	useState,
 } from 'react'
+import { observeResizeBeforePaint } from '../utilities'
 
 /**
  * Frame sizing and measurement for the plot-bearing modules (chart, map). A
@@ -203,11 +205,15 @@ function sameSize(a: FrameSize, b: FrameSize): boolean {
  * width, and the explicit `width` stands only until that measurement lands.
  * A server render and a test frame therefore still draw from the width alone.
  *
- * Resize notifications commit as transitions. The frame tracks its container
- * live, with no settle window and no timers. React coalesces a burst by
- * abandoning renders whose size is already stale. A window drag on a slow
- * frame therefore refits at the pace the machine can afford, and always lands
- * on the final size. A measurement of a node a commit has already detached (a
+ * The frame tracks its container live, with no settle window and no timers.
+ * A drawing at the pixel size of the frame (a chart) commits each resize
+ * before the paint, through `observeResizeBeforePaint`. A later commit paints
+ * the box at the new size around the old drawing, which clips it on each frame
+ * that narrows the box. A drawing that scales with its box through its
+ * `viewBox` (a map) commits each resize as a transition instead. React
+ * coalesces a burst by abandoning renders whose size is already stale, so a
+ * window drag on a slow frame refits at the pace the machine can afford, and
+ * always lands on the final size. A measurement of a node a commit has already detached (a
  * layout branch re-arranged around the plot mid-notification) is skipped rather
  * than committed as zero. The frame therefore holds its last real size until
  * the live node reports one. The mount measurement instead settles in a layout
@@ -223,6 +229,8 @@ function sameSize(a: FrameSize, b: FrameSize): boolean {
  * @param sharedWidth - A side legend shares the explicit `width` with the
  * plot, so the plot measures the width that remains. It has no effect without
  * an explicit `width`, because the plot then measures its width anyway.
+ * @param scaled - The drawing scales with its box through its `viewBox`, so a
+ * resize commits as a transition rather than before the paint.
  * @returns The wrapper `ref` to attach, and the resolved drawing box. The ref
  * is a callback ref that re-targets the observer if React swaps the node, still
  * readable through `.current`. An unmeasured `width` stays `0`, which renders
@@ -233,6 +241,7 @@ export function usePlotFrame(
 	width: number | undefined,
 	sizing: FrameSizing,
 	sharedWidth = false,
+	scaled = false,
 ): {
 	ref: PlotFrameRef
 	width: number
@@ -349,30 +358,48 @@ export function usePlotFrame(
 		if (next !== null && !sameSize(next, size)) setSize(next)
 	}, [node, readSize, measures, size])
 
+	// The size that the drawing shows, so the observer compares a reading with it.
+	const shown = useRef(size)
+
+	useLayoutEffect(() => {
+		shown.current = size
+	}, [size])
+
 	// Observe only while a measured axis feeds the sizing: a fully fixed
 	// frame constructs no observer, so a resize never re-renders it. Keyed on
 	// `node`, so a swapped plot element re-targets the observer: the detached
 	// node is let go and the live one watched. The effect no-ops instead of
 	// delegating to `useResizeObserver` because the conditionality is this
 	// hook's policy, not the shared hook's contract.
+	//
+	// A drawing at the pixel size of the frame commits a resize before the paint, so
+	// the frame that narrows the box does not clip it, as when a rail slides open
+	// beside a chart. The commit costs the same geometry rebuild, in the frame of the
+	// resize. A scaled drawing already follows its box in that frame, so its refit
+	// rides a transition, and a burst coalesces.
 	useEffect(() => {
 		if (!node || !measures) return
 
-		const observer = new ResizeObserver(() => {
-			// Transition priority: a burst of notifications coalesces (React
-			// abandons a render for a size a newer notification has already
-			// outdated) and the geometry rebuild never blocks urgent work.
-			startTransition(() => {
-				const next = readSize(node)
+		if (scaled) {
+			const observer = new ResizeObserver(() => {
+				startTransition(() => {
+					const next = readSize(node)
 
-				if (next !== null) setSize((prev) => (sameSize(prev, next) ? prev : next))
+					if (next !== null) setSize((prev) => (sameSize(prev, next) ? prev : next))
+				})
 			})
+
+			observer.observe(node)
+
+			return () => observer.disconnect()
+		}
+
+		return observeResizeBeforePaint(node, () => {
+			const next = readSize(node)
+
+			return next === null || sameSize(next, shown.current) ? undefined : () => setSize(next)
 		})
-
-		observer.observe(node)
-
-		return () => observer.disconnect()
-	}, [node, readSize, measures])
+	}, [node, readSize, measures, scaled])
 
 	// The explicit width stands until a shared plot has a measurement.
 	const resolvedWidth = width === undefined || (sharedWidth && size.width > 0) ? size.width : width

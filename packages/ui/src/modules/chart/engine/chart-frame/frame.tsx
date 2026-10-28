@@ -582,12 +582,10 @@ export function ChartFrame({
 
 	// The SVG renders at its committed pixel size and anchors to the box's
 	// top-left, its `viewBox` matching so user units map 1:1 to pixels, never
-	// `size-full`, which would scale the drawing to whatever CSS size the box
-	// currently holds. A resize moves the box at once but the geometry only on the
-	// next commit, so a size-full SVG scales (axis labels and all) against a
-	// stale viewBox every frame of a drag until it lands; pinned, the drawing holds
-	// steady and the box (overflow-hidden) clips or reveals a one-frame edge sliver
-	// instead. Absolute, so it stays out of flow and the box owns its own size.
+	// `size-full`, which would scale the drawing (axis labels and all) to whatever
+	// CSS size the box holds. `usePlotFrame` commits each resize before the paint,
+	// so the pixel size of the drawing matches the box in the frame that resizes
+	// it. Absolute, so it stays out of flow and the box owns its own size.
 	// At spark `k.drawing` renders the whole drawing pointer-inert: the veto half
 	// of the spark posture, killing mark hover styling and any hit target inside.
 	const svg = width > 0 && (
