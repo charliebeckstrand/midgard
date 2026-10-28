@@ -329,6 +329,43 @@ describe('Lightbox', () => {
 		expect(stage).toHaveAttribute('data-raised')
 	})
 
+	it.each([
+		['a set of photos', photos],
+		['one photo', photos.slice(0, 1)],
+	])('stays open on a long swipe down with `dismissOnBackdrop={false}`, for %s', (_, shown) => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+		const onIndexChange = vi.fn()
+
+		renderUI(
+			<Gallery
+				photos={shown}
+				defaultIndex={0}
+				dismissOnBackdrop={false}
+				onIndexChange={onIndexChange}
+			/>,
+		)
+
+		const stage = getSlot(document.body, 'lightbox-stage')
+
+		Object.defineProperty(stage.firstElementChild, 'clientHeight', { value: 800 })
+
+		press(stage, 'pointerDown', 100, 100, 0)
+
+		press(stage, 'pointerMove', 100, 500, 50)
+
+		// The photo does not follow the finger up or down.
+		expect(stage).not.toHaveAttribute('data-raised')
+
+		expect(centerPhoto()?.style.transform).toBe('')
+
+		press(stage, 'pointerUp', 100, 500, 100)
+
+		expect(onIndexChange).not.toHaveBeenCalled()
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+	})
+
 	it('moves the focus to the other step button when a step disables the pressed one', async () => {
 		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 

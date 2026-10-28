@@ -54,9 +54,10 @@ export type LightboxProps = {
 	 */
 	closable?: boolean
 	/**
-	 * Lets a press on the stage outside the photo close the viewer. Set it to
-	 * `false` to keep the viewer open on such a press. The close button then
-	 * always shows, as with `closable`. Escape and a swipe still close the viewer.
+	 * Lets a press on the stage outside the photo, and a swipe up or down, close
+	 * the viewer. Set it to `false` to keep the viewer open on both. The close
+	 * button then always shows, as with `closable`, and Escape still closes the
+	 * viewer.
 	 * @defaultValue true
 	 */
 	dismissOnBackdrop?: boolean
@@ -106,7 +107,8 @@ export type LightboxProps = {
  * the step buttons, and a press on a thumbnail shows its photo. Escape, the close button, and a press on the stage
  * outside the photo close the viewer, and the focus goes back to the
  * thumbnail. With `dismissOnBackdrop` set to `false`, a press outside the
- * photo does not close the viewer, and the close button always shows.
+ * photo and a swipe up or down do not close the viewer, and the close button
+ * always shows.
  *
  * A pinch zooms the photo, up to four times its size, and a double tap or a
  * double click zooms into the point that it taps. A double tap on a zoomed
@@ -248,8 +250,8 @@ export function Lightbox({
 
 							setShown(null)
 						}}
-						// With no press outside the photo to close the viewer, the close
-						// button always shows.
+						// With no press outside the photo or swipe to close the viewer, the
+						// close button always shows.
 						closable={closable || !dismissOnBackdrop}
 						dismissOnBackdrop={dismissOnBackdrop}
 						controls={controls}

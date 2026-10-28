@@ -43,8 +43,11 @@ export type LightboxTrackOptions = {
 	onAim: (index: number) => void
 	/** A tap on the stage: a click that does not end a swipe. */
 	onTap: (event: MouseEvent<HTMLElement>) => void
-	/** A swipe that closes the viewer. */
-	onDismiss: () => void
+	/**
+	 * A swipe that closes the viewer. Omit it to keep the viewer open: a press
+	 * up or down is then a swipe along the line.
+	 */
+	onDismiss?: () => void
 	/** The scrim and the controls, which fade as a swipe to close travels. */
 	dimmed: () => readonly (HTMLElement | null)[]
 }
@@ -142,13 +145,15 @@ function travelTo(track: HTMLElement, offset: number): number {
  * or down, or `'wait'` while it stays inside the slop. A press on a zoomed
  * photo is a `'pan'` in any direction. With one photo, there
  * is no photo to swipe to, so a press in any direction is `'dismiss'`. A press
- * that catches the track between two photos is a `'swipe'`.
+ * that catches the track between two photos is a `'swipe'`. With no
+ * `dismissable`, each press that is not a `'pan'` is a `'swipe'`.
  */
 function resolveIntent(
 	press: Press,
 	event: PointerEvent,
 	count: number,
 	zoomed: boolean,
+	dismissable: boolean,
 ): Press['mode'] {
 	const dx = Math.abs(event.clientX - press.x)
 
@@ -157,6 +162,8 @@ function resolveIntent(
 	if (Math.max(dx, dy) < SWIPE_SLOP) return 'wait'
 
 	if (zoomed) return 'pan'
+
+	if (!dismissable) return 'swipe'
 
 	if (count < 2) return 'dismiss'
 
@@ -197,7 +204,8 @@ function paint(track: HTMLElement, travel: number) {
  * finger instead, and the
  * scrim and the controls fade as it travels. At the lift, it closes the viewer
  * when it traveled far enough or fast enough (see `dismisses`), and the photo
- * goes back to rest otherwise. A click that ends a swipe is not a tap.
+ * goes back to rest otherwise. With no `onDismiss`, such a press is a swipe
+ * along the line. A click that ends a swipe is not a tap.
  *
  * A press on a zoomed photo pans it, and a second finger makes a pinch (see
  * `useLightboxZoom`). Two taps on the photo zoom it in or out. A step takes a
@@ -502,7 +510,7 @@ export function useLightboxTrack(
 	// A press that travels past the slop starts a swipe along the line or up and
 	// down. It reads the layout once, here, and never during the moves.
 	const begin = (current: Press, track: HTMLElement, event: PointerEvent<HTMLElement>) => {
-		current.mode = resolveIntent(current, event, count, zoom.zoomed())
+		current.mode = resolveIntent(current, event, count, zoom.zoomed(), onDismiss !== undefined)
 
 		if (current.mode === 'wait') return false
 
@@ -657,7 +665,7 @@ export function useLightboxTrack(
 			const speed = releaseSpeed(current.samples, event.timeStamp)
 
 			if (dismisses(traveled, speed, track.clientHeight)) {
-				onDismiss()
+				onDismiss?.()
 			} else {
 				restore(current)
 			}

@@ -57,7 +57,7 @@ export type LightboxStageProps = {
 	labels: LightboxLabels
 	/** Whether the viewer shows its close button. */
 	closable: boolean
-	/** Whether a press on the stage outside the photo closes the viewer. */
+	/** Whether a press on the stage outside the photo, or a swipe up or down, closes the viewer. */
 	dismissOnBackdrop: boolean
 	/** Whether the viewer shows the previous button, the count, and the next button. */
 	controls: boolean
@@ -160,10 +160,11 @@ function slotsAround(index: number, photos: readonly LightboxViewPhoto[]) {
  * `AnimatePresence` holds the viewer while it puts the photo back, and the root
  * shows the thumbnail again in the frame that removes the viewer.
  *
- * A press on the stage outside the photo closes the viewer, unless
- * `dismissOnBackdrop` is `false`. `ArrowLeft` and `ArrowRight` step through
- * the photos in the reading order, and so does a swipe. The keys also zoom the photo (see `zoomByKey`), and while the photo
- * is zoomed, the arrow keys pan it and do not step.
+ * A press on the stage outside the photo, and a swipe up or down, close the
+ * viewer, unless `dismissOnBackdrop` is `false`. `ArrowLeft` and `ArrowRight`
+ * step through the photos in the reading order, and so does a swipe. The keys
+ * also zoom the photo (see `zoomByKey`), and while the photo is zoomed, the
+ * arrow keys pan it and do not step.
  *
  * @internal
  */
@@ -234,7 +235,8 @@ export function LightboxStage({
 		onTap: (event) => {
 			if (dismissOnBackdrop && !(event.target instanceof HTMLImageElement)) handleClose()
 		},
-		onDismiss: handleClose,
+		// A swipe up or down closes the viewer, unless `dismissOnBackdrop` is off.
+		onDismiss: dismissOnBackdrop ? handleClose : undefined,
 		dimmed: () => [backdropRef.current, controlsRef.current],
 	})
 
