@@ -12,6 +12,7 @@ import {
 	triggerChild,
 } from '../../primitives/trigger-child/trigger-child'
 import { useMenuActions, useMenuState } from './context'
+import { opensSubmenu } from './menu-sub'
 import { useMenuPointer } from './use-menu-pointer'
 
 /**
@@ -122,6 +123,21 @@ export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerP
 		// here, so the press arrives on the trigger rather than on the parent row.
 		if (enterSubmenu(event.key)) {
 			event.preventDefault()
+
+			return
+		}
+
+		// The keys that open a submenu from a focused row open the submenu of the
+		// active row here. The row takes the key as a click with no pointer behind
+		// it, which seats focus on the first row of the panel ({@link MenuSub}).
+		const activeId = event.currentTarget.getAttribute('aria-activedescendant')
+
+		const row = activeId ? document.getElementById(activeId) : null
+
+		if (row?.dataset.slot === 'menu-sub-trigger' && opensSubmenu(event, row)) {
+			event.preventDefault()
+
+			row.click()
 
 			return
 		}
