@@ -131,8 +131,8 @@ Hooks export the option and return shapes consumers thread through their own pro
 | Type | Summary |
 |---|---|
 | `FrameSizing` | The frame's height policy: `fixed` (pixel height), `aspect` (ratio of width), `fill` (container height), or `content` (width minus a pair of margins). |
-| `FrameReserve` | How a width-derived frame reserves its height through CSS: an `aspect` ratio, or a `content` ratio with a pixel offset. A `content` reserve can also take a column on each side. |
-| `FrameColumn` | A band on each side of a `content` frame: a share of the width, at most a pixel maximum. |
+| `FrameReserve` | How a width-derived frame reserves its height through CSS: an `aspect` ratio, or a `content` ratio with a pixel offset. A `content` reserve can also take a `wide` step through a container query. |
+| `FrameStep` | The margins of a `content` frame from a pixel width and up. |
 | `PlotFrameRef` | The measuring handle of the hook: a callback ref that is also readable through `.current`. |
 
 ---

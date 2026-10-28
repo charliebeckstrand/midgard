@@ -1,5 +1,5 @@
 import { cn } from '../../../core'
-import type { FrameColumn, FrameSizing } from '../../../hooks'
+import type { FrameSizing, FrameStep } from '../../../hooks'
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { type ChartAspectRatio, chartFrameSizing, frameFills } from '../engine/chart-frame/sizing'
@@ -51,10 +51,10 @@ export function donutCenterStyle(
  * wins, resolved the same way every cartesian chart does. Left at both
  * defaults, the frame instead fits its height to the pie's own footprint:
  * twice the width-bound radius plus the vertical margin. The callout labels
- * take a `column` on each side, so they never leave an empty band the aspect
- * ratio didn't need. The box holds that height through CSS from the width
- * alone, so the pie draws inside it: the tight callout fit can widen the pie
- * only as far as the box allows.
+ * take their margins in a `wide` step, so they never leave an empty band the
+ * aspect ratio didn't need, and a narrow pie fills its box. The box holds that
+ * height through CSS from the width alone, so the pie draws inside it: the
+ * tight callout fit can widen the pie only as far as the box allows.
  *
  * @internal
  */
@@ -63,13 +63,13 @@ export function sectorFrameSizing(
 	aspectRatio: ChartAspectRatio | undefined,
 	hMargin: number,
 	vMargin: number,
-	column?: FrameColumn,
+	wide?: FrameStep,
 ): FrameSizing {
 	if (height !== undefined || aspectRatio !== undefined) {
 		return chartFrameSizing(height, aspectRatio ?? 1)
 	}
 
-	return { mode: 'content', hMargin, vMargin, ...(column && { column }) }
+	return { mode: 'content', hMargin, vMargin, ...(wide && { wide }) }
 }
 
 /** The resolved pie frame: the plot's sizing plus the figure and legend layout. @internal */
