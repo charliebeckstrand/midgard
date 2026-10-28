@@ -369,6 +369,40 @@ describe('grid column sizing rules (real browser)', () => {
 		}
 	})
 
+	it('moves no column on "Auto-size all columns" where the frame takes the content width', async () => {
+		// A multi-word title wider than its body, which the automatic layout shows in full.
+		const titled: GridColumn<Row>[] = [
+			...columns,
+			{ id: 'd', title: 'Date of start', cell: () => '1' },
+		]
+
+		const { container } = renderUI(
+			<div style={{ width: 'max-content' }}>
+				<Grid resizable columns={titled} rows={rows} getKey={getKey} />
+			</div>,
+		)
+
+		const table = present(container.querySelector('table'), 'table')
+
+		await waitFor(() => expect(table).toHaveAttribute('data-grid-fit-held'))
+
+		const ids = ['a', 'b', 'c', 'd']
+
+		const read = () => ids.map((id) => header(container, id).getBoundingClientRect().width)
+
+		const before = read()
+
+		menuAction(container, 'a', 'Auto-size all columns')
+
+		await waitFor(() => expect(table).not.toHaveAttribute('data-grid-fit-layout'))
+
+		await frames()
+
+		for (const [index, value] of read().entries()) {
+			expect(value).toBeNear(before[index] ?? 0, LAYOUT_UNIT)
+		}
+	})
+
 	it('follows a container resize, and the separator reads the new width', async () => {
 		const { container, resizeFrame } = await mount()
 
