@@ -14,6 +14,7 @@ export const offcanvas = {
 	/** A part that shows in the drawer layout only, such as a trigger of the drawer. */
 	drawer: {
 		block: { drawer: 'block', inline: 'hidden' },
+		inlineFlex: { drawer: 'inline-flex', inline: 'hidden' },
 	},
 	/** A part that shows in the inline layout only, such as the inline panel. */
 	inline: {

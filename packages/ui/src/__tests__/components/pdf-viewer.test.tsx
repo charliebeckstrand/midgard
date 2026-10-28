@@ -44,6 +44,14 @@ beforeEach(() => {
 	stubMatchMedia((query) => query === `(min-width: ${BREAKPOINT_WIDTHS.lg})`)
 })
 
+/**
+ * The toolbar control named `label` that the reader can reach. The toolbar renders both the
+ * rail toggle and the Sheet trigger, CSS shows the one of the layout, and the other is `inert`.
+ */
+function reachable(label: string) {
+	return present(screen.getAllByLabelText(label).find((control) => !control.closest('[inert]')))
+}
+
 const pages: PdfViewerPage[] = [
 	{ id: 'a', src: 'page-1.png', label: 'Page 1' },
 	{ id: 'b', src: 'page-2.png', label: 'Page 2' },
@@ -544,7 +552,7 @@ describe('PdfViewer', () => {
 
 		await user.click(toggle)
 
-		const collapsedToggle = screen.getByLabelText('Show thumbnails')
+		const collapsedToggle = reachable('Show thumbnails')
 
 		expect(collapsedToggle).toHaveAttribute('aria-expanded', 'false')
 
@@ -562,7 +570,7 @@ describe('PdfViewer', () => {
 	it('opens with the thumbnail sidebar closed on a single-page document', () => {
 		renderUI(<PdfViewer pages={pages.slice(0, 1)} />)
 
-		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'false')
+		expect(reachable('Show thumbnails')).toHaveAttribute('aria-expanded', 'false')
 	})
 
 	// The reader's own press outranks that default, and nothing re-derives it out from under
@@ -570,7 +578,7 @@ describe('PdfViewer', () => {
 	it('keeps the sidebar the reader opened on a single-page document', async () => {
 		renderUI(<PdfViewer pages={pages.slice(0, 1)} />)
 
-		await setupUser().click(screen.getByLabelText('Show thumbnails'))
+		await setupUser().click(reachable('Show thumbnails'))
 
 		expect(screen.getByLabelText('Hide thumbnails')).toHaveAttribute('aria-expanded', 'true')
 	})
@@ -619,9 +627,53 @@ describe('PdfViewer', () => {
 	it('opens the thumbnails in a sheet at a wide viewport when `thumbnails` is a sheet', () => {
 		const { container } = renderUI(<PdfViewer pages={pages} thumbnails="sheet" />)
 
-		expect(bySlot(container, 'pdf-viewer-sidebar')).toBeNull()
+		expect(getSlot(container, 'pdf-viewer-sidebar')).toHaveClass('hidden')
 
-		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-haspopup', 'dialog')
+		expect(reachable('Show thumbnails')).toHaveAttribute('aria-haspopup', 'dialog')
+	})
+
+	/*
+	 * The server cannot read the viewport, so CSS picks the layout of the first paint: the rail
+	 * and its toggle show from the expanded breakpoint, and the Sheet trigger below it.
+	 */
+	it('lays out the rail and the Sheet trigger with CSS in the server markup', () => {
+		const markup = document.createElement('div')
+
+		markup.innerHTML = renderToString(<PdfViewer pages={pages} />)
+
+		expect(getSlot(markup, 'pdf-viewer-sidebar')).toHaveClass('hidden', 'lg:flex')
+
+		const [railToggle, sheetTrigger] = present(
+			markup.querySelector('[role="toolbar"]'),
+		).querySelectorAll('button')
+
+		expect(railToggle).toHaveAttribute('aria-expanded', 'true')
+
+		expect(railToggle).toHaveClass('hidden', 'lg:inline-flex')
+
+		expect(sheetTrigger).toHaveAttribute('aria-haspopup', 'dialog')
+
+		expect(sheetTrigger).toHaveClass('inline-flex', 'lg:hidden')
+	})
+
+	// The CSS hides the rail toggle on a compact viewport, and `inert` keeps the roving of
+	// the toolbar off it, so the Tab stop of the toolbar is a control the reader can see.
+	it('takes the rail toggle out of the toolbar on a compact viewport', () => {
+		stubMatchMedia(() => false)
+
+		renderUI(<PdfViewer pages={pages} />)
+
+		const railToggle = screen.getByLabelText('Hide thumbnails')
+
+		const sheetTrigger = screen.getByLabelText('Show thumbnails')
+
+		expect(railToggle).toHaveAttribute('inert')
+
+		expect(railToggle.tabIndex).toBe(-1)
+
+		expect(sheetTrigger).not.toHaveAttribute('inert')
+
+		expect(sheetTrigger.tabIndex).toBe(0)
 	})
 
 	it('keeps the close button out of the heading of the mobile thumbnails sheet', async () => {

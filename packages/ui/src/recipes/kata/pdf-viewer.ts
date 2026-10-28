@@ -15,6 +15,13 @@ const { cursor } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { flex } = narabi
+
+// The parts that show in one layout of the thumbnails only: the rail and its toggle where
+// `thumbnails` is `rail`, and the Sheet trigger where it is `sheet`. `offcanvas` is a
+// responsive axis that holds the offcanvas layout of `thumbnails`, so CSS shows each part
+// at its breakpoints from the first paint. The `layout` axis of the thumbnails is another
+// axis: the list of the rail or the grid of the Sheet.
+const shows = narabi.offcanvas
 const { bg, rail, skeleton } = omote
 const { border, focus, ring } = sen
 
@@ -79,6 +86,12 @@ export const k = defineKata({
 				// on the rail fades at each edge.
 				frame: ['border-b', border.color.default, 'shrink-0'],
 				section: [flex.row, 'shrink-0', dan.gap.scale.xs],
+				toggle: {
+					slots: {
+						rail: { responsive: { offcanvas: shows.inline.inlineFlex } },
+						sheet: { responsive: { offcanvas: shows.drawer.inlineFlex } },
+					},
+				},
 				total: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
 			},
 		},
@@ -116,8 +129,9 @@ export const k = defineKata({
 			},
 		},
 		sidebar: {
+			// The display comes from `offcanvas`, so the rail shows only where it is pinned.
 			base: [
-				flex.col,
+				'flex-col',
 				'shrink-0 w-56 min-h-0',
 				'overflow-hidden',
 				'border-e',
@@ -136,6 +150,7 @@ export const k = defineKata({
 			// The margin on the start side, so the rail leaves toward its own edge in
 			// either direction.
 			open: { true: '', false: '-ms-56' },
+			responsive: { offcanvas: shows.inline.flex },
 			slots: {
 				header: [
 					flex.row,

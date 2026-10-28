@@ -84,6 +84,18 @@ function reachableItems(container: HTMLElement | null, selector: string): HTMLEl
 }
 
 /**
+ * Whether an inert node inside `container`, such as an item that its layout
+ * hides, holds `item`. An inert layer above `container` does not count: a
+ * widget can mount under an inert layer, and its Tab stop must be in place when
+ * the layer goes live.
+ */
+function inertInSubtree(container: HTMLElement, item: HTMLElement): boolean {
+	const host = item.closest('[inert]')
+
+	return host !== null && host !== container && container.contains(host)
+}
+
+/**
  * Move the virtual-mode active marker to `items[index]`: shifts `data-active`
  * and, when `activeDescendantRef` is given, points `aria-activedescendant` on
  * the owner at the active item. By default it also mirrors `aria-selected`
@@ -1354,7 +1366,7 @@ export function useA11yRoving(
 
 	// Focus-mode single-tab-stop ownership. Seats exactly one matched item at
 	// `tabIndex=0` and demotes the rest to `-1`, re-running as the subtree mutates
-	// (items added/removed, disabled toggled, current item moved) and carrying the
+	// (items added/removed, disabled or inert toggled, current item moved) and carrying the
 	// stop to whatever item takes focus. Writes only on divergence; the observer
 	// fires on its own tabindex edits.
 	useEffect(() => {
@@ -1375,6 +1387,8 @@ export function useA11yRoving(
 
 		// When `aria-current` changes while focus is outside the container, the
 		// stop moves to the new match, also from a stop where the user roved.
+		// An inert item cannot take focus, so the stop resolves among the items that
+		// no inert node of the subtree holds, and each other item is demoted.
 		const normalize = (records?: MutationRecord[]) => {
 			const items = queryItems(container, itemSelector)
 
@@ -1386,7 +1400,9 @@ export function useA11yRoving(
 				!!records?.some((record) => record.attributeName === 'aria-current') &&
 				!container.contains(container.ownerDocument.activeElement)
 
-			seat(items, resolveRestingStop(items, activeSelector, followCurrent, seated))
+			const live = items.filter((item) => !inertInSubtree(container, item))
+
+			seat(items, resolveRestingStop(live, activeSelector, followCurrent, seated))
 		}
 
 		normalize()
@@ -1425,7 +1441,7 @@ export function useA11yRoving(
 			childList: true,
 			subtree: true,
 			attributes: true,
-			attributeFilter: ['tabindex', 'disabled', 'aria-current'],
+			attributeFilter: ['tabindex', 'disabled', 'aria-current', 'inert'],
 		})
 
 		return () => {

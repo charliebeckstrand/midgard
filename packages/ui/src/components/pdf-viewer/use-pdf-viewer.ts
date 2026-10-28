@@ -2,9 +2,14 @@
 
 import type { RefObject, SyntheticEvent } from 'react'
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
-import { useOffcanvas, usePrefersReducedMotion, useResponsiveValue } from '../../hooks'
+import {
+	type OffcanvasLayout,
+	useOffcanvas,
+	usePrefersReducedMotion,
+	useResponsiveValue,
+} from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { adaptive, type Responsive } from '../../types'
+import { adaptive, mapResponsive, type Responsive } from '../../types'
 import { resolveDownloadName } from './pdf-viewer-utilities'
 import type {
 	PdfViewerFit,
@@ -173,6 +178,14 @@ export type PdfViewerResult = {
 	error: Error | null
 	/** True where `thumbnails` is `'rail'`: pins the thumbnail sidebar instead of the Sheet. */
 	railed: boolean
+	/**
+	 * `thumbnails` as an offcanvas layout at each breakpoint: the rail is `inline`, and the
+	 * Sheet is the `drawer`. The rail, its toggle, and the Sheet trigger give it to the
+	 * `offcanvas` axis of the kata, so CSS shows the parts of the layout at each width from
+	 * the first paint. `railed` is the same value in JavaScript, which the server reads at
+	 * the widest breakpoint.
+	 */
+	layout: Responsive<OffcanvasLayout>
 	/**
 	 * Thumbnail rail open state; toggled from the toolbar.
 	 *
@@ -470,8 +483,6 @@ export function usePdfViewer({
 
 	const total = pages.length
 
-	const railed = useResponsiveValue(thumbnails, 'sheet') === 'rail'
-
 	const { safePage, goToPage } = usePdfViewerPagination({
 		total,
 		page,
@@ -525,9 +536,22 @@ export function usePdfViewer({
 	// The thumbnail Sheet is an offcanvas drawer of the rail. Where the layout is `rail`, the
 	// hook keeps the Sheet closed, so it does not open again without a press when the viewport
 	// narrows (a tablet rotation).
-	const { open: thumbsOpen, setOpen: setThumbsOpen } = useOffcanvas({
-		layout: railed ? 'inline' : 'drawer',
-	})
+	const offcanvasLayout = useMemo(
+		() =>
+			mapResponsive(
+				thumbnails,
+				(value): OffcanvasLayout => (value === 'rail' ? 'inline' : 'drawer'),
+			),
+		[thumbnails],
+	)
+
+	const {
+		open: thumbsOpen,
+		setOpen: setThumbsOpen,
+		layout,
+	} = useOffcanvas({ layout: offcanvasLayout })
+
+	const railed = useResponsiveValue(layout, 'drawer') === 'inline'
 
 	// Chrome, like the two above: nothing outside drives it, so it is state rather than a
 	// prop. Lives here (not with the overlay's own state) because the toolbar reads it, and
@@ -618,6 +642,7 @@ export function usePdfViewer({
 			pending,
 			error,
 			railed,
+			layout,
 			sidebarOpen,
 			setSidebarOpen,
 			sidebarAnimates,
@@ -658,6 +683,7 @@ export function usePdfViewer({
 			pending,
 			error,
 			railed,
+			layout,
 			sidebarOpen,
 			sidebarAnimates,
 			thumbsOpen,

@@ -42,6 +42,7 @@ export function PdfViewerToolbar() {
 		documentSrc,
 		filename,
 		railed,
+		layout,
 		sidebarOpen,
 		setSidebarOpen,
 		hasHighlights,
@@ -53,6 +54,8 @@ export function PdfViewerToolbar() {
 	} = usePdfViewerContext()
 
 	const intl = useIntl()
+
+	const toggle = k({ offcanvas: layout }).toolbar.toggle
 
 	const empty = total === 0
 
@@ -84,36 +87,39 @@ export function PdfViewerToolbar() {
 				<div className={k().toolbar.section}>
 					{total > 0 && (
 						<>
-							{railed && (
-								<PdfViewerToolbarButton
-									label={sidebarToggleLabel}
-									icon={
-										// The rail sits at the inline start, so the glyph mirrors in RTL.
-										sidebarOpen ? (
-											<PanelLeftDashed className="rtl:-scale-x-100" />
-										) : (
-											<PanelLeft className="rtl:-scale-x-100" />
-										)
-									}
-									aria-expanded={sidebarOpen}
-									disabled={controlsDisabled}
-									onClick={() => setSidebarOpen(!sidebarOpen)}
-								/>
-							)}
+							{/* The rail toggle and the Sheet trigger both render, and the `offcanvas` axis shows
+							    the one of the layout at each width, so the first paint has the right one. The
+							    one that does not apply is `inert`, so the roving of the toolbar skips it. */}
+							<PdfViewerToolbarButton
+								label={sidebarToggleLabel}
+								icon={
+									// The rail sits at the inline start, so the glyph mirrors in RTL.
+									sidebarOpen ? (
+										<PanelLeftDashed className="rtl:-scale-x-100" />
+									) : (
+										<PanelLeft className="rtl:-scale-x-100" />
+									)
+								}
+								aria-expanded={sidebarOpen}
+								disabled={controlsDisabled}
+								inert={!railed}
+								className={toggle.rail}
+								onClick={() => setSidebarOpen(!sidebarOpen)}
+							/>
 
 							{/* A dialog opener, unlike the desktop toggle above it. The modal Sheet covers this
 						    button while open and carries its own close, so the button has one action and
 						    one name. `SheetTrigger` stamps `aria-haspopup` and the `aria-expanded` that
 						    reports the Sheet. The `Sheet` root in `PdfViewer` holds the state. */}
-							{!railed && (
-								<SheetTrigger>
-									<PdfViewerToolbarButton
-										label={showThumbnails}
-										icon={<PanelLeft className="rtl:-scale-x-100" />}
-										disabled={controlsDisabled}
-									/>
-								</SheetTrigger>
-							)}
+							<SheetTrigger>
+								<PdfViewerToolbarButton
+									label={showThumbnails}
+									icon={<PanelLeft className="rtl:-scale-x-100" />}
+									disabled={controlsDisabled}
+									inert={railed}
+									className={toggle.sheet}
+								/>
+							</SheetTrigger>
 
 							<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.pageNavigation)}>
 								<Listbox<number>

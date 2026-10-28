@@ -20,7 +20,10 @@ import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
  * arrow-key focus across tiles.
  *
  * @remarks Renders nothing when there are no pages and the document isn't
- * loading. The desktop sidebar collapses via the toolbar toggle (`sidebarOpen`),
+ * loading. The sidebar is always rendered, and the `offcanvas` axis of the kata
+ * shows it only where `thumbnails` is `rail`. The server cannot read the
+ * viewport, so CSS picks the layout of the first paint. The contents of the
+ * sidebar are live only where `railed` is true. The desktop sidebar collapses via the toolbar toggle (`sidebarOpen`),
  * sliding off-canvas while staying mounted for the transition. When collapsed it
  * is `inert` and `aria-hidden`, off the tab order and a11y tree. Once the slide
  * lands, its contents drop into `<Activity mode="hidden">`, so a long document's
@@ -37,6 +40,7 @@ export function PdfViewerThumbnails() {
 		goToPage,
 		loading,
 		railed,
+		layout,
 		sidebarOpen,
 		sidebarAnimates,
 		setThumbsOpen,
@@ -50,7 +54,10 @@ export function PdfViewerThumbnails() {
 	// are live, and defers to the slide so the rail doesn't blank mid-transition.
 	// Deferred only where there is a slide to wait on: a rail that opens without
 	// traveling fires no `transitionend`, so a deferred hold would wait forever.
-	const sidebarHold = useMountHold(sidebarOpen, 'always', { defer: sidebarAnimates })
+	// Where the layout is the Sheet, CSS hides the sidebar, and nothing slides.
+	const sidebarHold = useMountHold(sidebarOpen && railed, 'always', {
+		defer: sidebarAnimates && railed,
+	})
 
 	const sidebarRef = useRef<HTMLElement>(null)
 
@@ -84,41 +91,41 @@ export function PdfViewerThumbnails() {
 
 	return (
 		<>
-			{railed && (
-				<aside
-					ref={sidebarRef}
-					data-slot="pdf-viewer-sidebar"
-					aria-labelledby={sidebarTitleId}
-					aria-hidden={!sidebarOpen}
-					inert={!sidebarOpen}
-					className={k({ animates: sidebarAnimates, open: sidebarOpen }).sidebar.base}
-					onKeyDown={handleSidebarKeyDown}
-					// The slide is a CSS margin transition, so its landing is the
-					// element's own `transitionend` rather than an animation callback.
-					// Hiding on the toggle instead would blank the rail before it left,
-					// since `display: none` can't slide. The event names the physical
-					// margin, which is the right one in a right-to-left layout.
-					onTransitionEnd={(event) => {
-						if (event.propertyName === 'margin-left' || event.propertyName === 'margin-right') {
-							sidebarHold.rest()
-						}
-					}}
-				>
-					<MountHold hold={sidebarHold} name="pdf-viewer-sidebar">
-						<div id={sidebarTitleId} className={k().sidebar.header}>
-							{intl.formatMessage(pdfViewerMessages.pages)}
-						</div>
-						<PdfViewerThumbnailList
-							items={thumbnails}
-							loading={loading}
-							safePage={safePage}
-							goToPage={goToPage}
-							scrollCurrentIntoView={scrollCurrentIntoView}
-							onVisibleChange={showThumbnails}
-						/>
-					</MountHold>
-				</aside>
-			)}
+			<aside
+				ref={sidebarRef}
+				data-slot="pdf-viewer-sidebar"
+				aria-labelledby={sidebarTitleId}
+				aria-hidden={!sidebarOpen}
+				inert={!sidebarOpen}
+				className={
+					k({ animates: sidebarAnimates, open: sidebarOpen, offcanvas: layout }).sidebar.base
+				}
+				onKeyDown={handleSidebarKeyDown}
+				// The slide is a CSS margin transition, so its landing is the
+				// element's own `transitionend` rather than an animation callback.
+				// Hiding on the toggle instead would blank the rail before it left,
+				// since `display: none` can't slide. The event names the physical
+				// margin, which is the right one in a right-to-left layout.
+				onTransitionEnd={(event) => {
+					if (event.propertyName === 'margin-left' || event.propertyName === 'margin-right') {
+						sidebarHold.rest()
+					}
+				}}
+			>
+				<MountHold hold={sidebarHold} name="pdf-viewer-sidebar">
+					<div id={sidebarTitleId} className={k().sidebar.header}>
+						{intl.formatMessage(pdfViewerMessages.pages)}
+					</div>
+					<PdfViewerThumbnailList
+						items={thumbnails}
+						loading={loading}
+						safePage={safePage}
+						goToPage={goToPage}
+						scrollCurrentIntoView={scrollCurrentIntoView}
+						onVisibleChange={showThumbnails}
+					/>
+				</MountHold>
+			</aside>
 
 			{!railed && (
 				<SheetPanel

@@ -880,6 +880,30 @@ describe('useA11yRoving: inert items', () => {
 
 		expect(options.map((option) => option.tabIndex)).toEqual([0, -1, -1])
 	})
+
+	it('seats the resting stop past an inert item, which cannot take focus', () => {
+		// A toolbar can render a control for each layout, and CSS shows one. The
+		// control of the other layout is inert, so it must not hold the one Tab stop.
+		const { container, options } = makeOptions(['0', '1', '2'])
+
+		options[0]?.setAttribute('inert', '')
+
+		renderRoving(container, { manageTabIndex: true })
+
+		expect(options.map((option) => option.tabIndex)).toEqual([-1, 0, -1])
+	})
+
+	it('moves the resting stop when its item turns inert', async () => {
+		const { container, options } = makeOptions(['0', '1', '2'])
+
+		renderRoving(container, { manageTabIndex: true })
+
+		expect(options[0]?.tabIndex).toBe(0)
+
+		options[0]?.setAttribute('inert', '')
+
+		await waitFor(() => expect(options.map((option) => option.tabIndex)).toEqual([-1, 0, -1]))
+	})
 })
 
 describe('useA11yRoving: row actions', () => {
