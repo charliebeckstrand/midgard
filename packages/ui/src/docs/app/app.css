@@ -65,3 +65,24 @@
 		)
 	)
 );
+
+/* The scroll-driven animations of the letter rail (`letter-rail.tsx`). Each one
+   sets the state of a letter at the start of its range. A keyframe that is not
+   there takes the state that the animations before it give. */
+@keyframes letter-on {
+	to {
+		--letter-on: 1;
+	}
+}
+
+@keyframes letter-off {
+	to {
+		--letter-on: 0;
+	}
+}
+
+@keyframes letter-end {
+	to {
+		--letter-on: var(--letter-end);
+	}
+}

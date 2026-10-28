@@ -56,6 +56,11 @@ const affix = ['[--touch-target-gap-x:0px]', mini.hidden]
 const item = defineKata(
 	{
 		extends: nav,
+		// The current row is the initial scroll target of the sidebar. The first
+		// layout of the sidebar aligns the end of the row with the end of the view,
+		// which is the 'nearest' position from the top. Thus the server markup
+		// paints with the row in view, and no script scrolls.
+		base: 'has-data-current:snap-end has-data-current:[scroll-initial-target:nearest]',
 		slots: {
 			button: [
 				...padding,

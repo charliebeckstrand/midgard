@@ -112,6 +112,8 @@ function inView(node: Element, scroller: Element) {
 }
 
 describe('CurrentScrollScript (real browser)', () => {
+	// Chromium has `scroll-initial-target`, so there the CSS of the sidebar item
+	// puts it in view, and the script skips it. The result is the same.
 	it('scrolls the current sidebar item into view in its scroller', () => {
 		const container = paintServerMarkup(sidebar)
 

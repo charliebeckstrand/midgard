@@ -6,9 +6,11 @@ import { InlineScript } from '../inline-script/inline-script'
 // in its nearest ancestor that scrolls and overflows on the vertical axis, and
 // the walk stops at an ancestor that clips that axis, as `useScrollWithin` does.
 // The walk also stops at the body, so the page itself never scrolls.
+// A browser with `scroll-initial-target` puts a current sidebar item in view
+// with the CSS of the item, so the script skips the sidebar items there.
 // A current tab scrolls in its `tab-list-scroll` viewport, on the axis of the
 // list. The hooks then find each item in view, and they do not scroll again.
-const SCRIPT = `(function(){function a(s,n,x){var r=n.getBoundingClientRect(),q=s.getBoundingClientRect(),l=x?r.left-q.left-s.clientLeft:r.top-q.top-s.clientTop,e=x?r.width:r.height,v=x?s.clientWidth:s.clientHeight,d=l<0?l:l+e>v?l-(v-e):0;if(!d)return;if(x)s.scrollLeft+=d;else s.scrollTop+=d}var c=document.querySelectorAll('[data-slot="sidebar-item-inner"][data-current],[data-slot="nav-item-inner"][data-current]'),i,n,s,y,t;for(i=0;i<c.length;i++){n=c[i].closest('[data-slot="sidebar-item"],[data-slot="nav-item"]');for(s=n&&n.parentElement;s&&s!==document.body;s=s.parentElement){y=getComputedStyle(s).overflowY;if((y==='auto'||y==='scroll'||y==='overlay')&&s.scrollHeight>s.clientHeight){a(s,n,0);break}if(y==='hidden'||y==='clip')break}}c=document.querySelectorAll('[data-slot="tab-list-scroll"]');for(i=0;i<c.length;i++){t=c[i].querySelector('[data-slot="tab"][data-current]');if(t)a(c[i],t,!c[i].querySelector(':scope>[aria-orientation="vertical"]'))}})()`
+const SCRIPT = `(function(){function a(s,n,x){var r=n.getBoundingClientRect(),q=s.getBoundingClientRect(),l=x?r.left-q.left-s.clientLeft:r.top-q.top-s.clientTop,e=x?r.width:r.height,v=x?s.clientWidth:s.clientHeight,d=l<0?l:l+e>v?l-(v-e):0;if(!d)return;if(x)s.scrollLeft+=d;else s.scrollTop+=d}var c=document.querySelectorAll((CSS.supports('scroll-initial-target','nearest')?'':'[data-slot="sidebar-item-inner"][data-current],')+'[data-slot="nav-item-inner"][data-current]'),i,n,s,y,t;for(i=0;i<c.length;i++){n=c[i].closest('[data-slot="sidebar-item"],[data-slot="nav-item"]');for(s=n&&n.parentElement;s&&s!==document.body;s=s.parentElement){y=getComputedStyle(s).overflowY;if((y==='auto'||y==='scroll'||y==='overlay')&&s.scrollHeight>s.clientHeight){a(s,n,0);break}if(y==='hidden'||y==='clip')break}}c=document.querySelectorAll('[data-slot="tab-list-scroll"]');for(i=0;i<c.length;i++){t=c[i].querySelector('[data-slot="tab"][data-current]');if(t)a(c[i],t,!c[i].querySelector(':scope>[aria-orientation="vertical"]'))}})()`
 
 /** Props of {@link CurrentScrollScript}. */
 export type CurrentScrollScriptProps = {
@@ -26,7 +28,9 @@ export type CurrentScrollScriptProps = {
  * server-rendered list paints at the start of its scroller, and the item
  * scrolls into view after hydration. Render it in the body of a
  * server-rendered app, after the lists. The script changes only scroll
- * positions, so hydration finds the same markup.
+ * positions, so hydration finds the same markup. A browser with
+ * `scroll-initial-target` puts a current sidebar item in view with the CSS of
+ * `SidebarItem`, so there the script skips the sidebar items.
  *
  * It has no `'use client'` and reads no context, so a server layout can render
  * it.

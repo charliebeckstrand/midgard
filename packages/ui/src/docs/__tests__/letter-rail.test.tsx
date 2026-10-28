@@ -183,12 +183,19 @@ describe('LetterRail', () => {
 
 		expect(active()).toBe('A')
 
-		// Accordion and Alert are above the top, so Badge is the first page there.
-		body.scrollTop = 100
+		// Accordion and Alert are above the top, and Badge is at the top.
+		body.scrollTop = HEADING + 2 * ITEM
 
 		fireEvent.scroll(body)
 
 		expect(active()).toBe('B')
+
+		// An anchor 1px or more below the top is not at the top.
+		body.scrollTop -= 1
+
+		fireEvent.scroll(body)
+
+		expect(active()).toBe('A')
 	})
 
 	it('shows the last letter at the end of the body, where each section starts the alphabet again', () => {
@@ -256,7 +263,7 @@ describe('LetterRail', () => {
 
 		expect(active()).toBe('E')
 
-		body.scrollTop = 100
+		body.scrollTop = HEADING + 2 * ITEM
 
 		fireEvent.scroll(body)
 
