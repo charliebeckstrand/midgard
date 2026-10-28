@@ -3,6 +3,7 @@
 import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
+	useCallback,
 	useEffect,
 	useEffectEvent,
 	useId,
@@ -12,9 +13,9 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useHydrated } from '../../hooks/use-hydrated'
-import { useResizeObserver } from '../../hooks/use-resize-observer'
 import { InlineScript } from '../../primitives/inline-script/inline-script'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { observeResizeBeforePaint } from '../../utilities'
 import { breadcrumbFit, breadcrumbFitRule } from './breadcrumb-fit-rule'
 import { breadcrumbMessages } from './breadcrumb-messages'
 
@@ -75,11 +76,32 @@ export function BreadcrumbFit({ ref, className, children, ...props }: ComponentP
 
 	const hydrated = useHydrated()
 
+	// The answer that the rule shows, so the observer compares a reading with it.
+	const shown = useRef<number | null>(null)
+
+	const commit = useCallback((next: number) => {
+		shown.current = next
+
+		setCollapsed(next)
+	}, [])
+
 	const measure = useEffectEvent(() => {
-		if (nav.current) setCollapsed(breadcrumbFit(nav.current))
+		if (nav.current) commit(breadcrumbFit(nav.current))
 	})
 
-	useResizeObserver(nav, measure)
+	// A resize commits its answer before the paint, so the frame that narrows the row
+	// does not clip the current page.
+	useLayoutEffect(() => {
+		const el = nav.current
+
+		if (!el) return
+
+		return observeResizeBeforePaint(el, () => {
+			const next = breadcrumbFit(el)
+
+			return next === shown.current ? undefined : () => commit(next)
+		})
+	}, [commit])
 
 	useLayoutEffect(() => {
 		measure()

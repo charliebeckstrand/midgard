@@ -154,9 +154,10 @@ export function useMapShape({
 		[geography, geographyObject, projection],
 	)
 
-	// A refit reprojects every region path, so resize commits ride the plot
-	// frame's transition priority: a burst coalesces to the sizes the machine
-	// can afford, and a stale refit is abandoned rather than blocking.
+	// A refit reprojects every region path, and the drawing scales with its box
+	// through its `viewBox`. So resize commits ride a transition (`scaled`): a burst
+	// coalesces to the sizes the machine can afford, and a stale refit is abandoned
+	// rather than blocking.
 	// Before the geography loads there is no measured aspect; a fixed-subject
 	// projection (albers-usa is the US) still knows the ratio it will take, so
 	// the frame reserves it and a lazily fetched atlas swaps in without a height
@@ -165,7 +166,12 @@ export function useMapShape({
 
 	const sizing = mapFrameSizing(height, aspectRatio, reserveAspect)
 
-	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
+	const {
+		ref,
+		width: frameWidth,
+		height: frameHeight,
+		reserve,
+	} = usePlotFrame(width, sizing, false, true)
 
 	// The measured refit, its region paths, and the projector, resolved as one
 	// unit so a resize reprojects all three together. Deriving them inside one

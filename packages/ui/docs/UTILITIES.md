@@ -141,6 +141,7 @@ Import these from `utilities/floating-portal-registry`. They tell whether a pres
 | `measureContentBox` | The content box of an element. Use it to size a drawing surface, such as a canvas, inside a border or padding. |
 | `BorderBox` *(type)* | An element's border box, on the two axes a resize is read along: `inline` and `block`. |
 | `ContentBox` *(type)* | An element's content box in CSS px: `width` and `height`. The return type of `measureContentBox`. |
+| `observeResizeBeforePaint` | Observes a box, and commits each new reading before the paint. The frame that resizes the box then shows the content at the matching size. Use it where a measurement of a box sets the size of the content in it. |
 | `getScroller` | The nearest element from a start node up that scrolls, or `null`. The walk stops below `<body>`. Import it from `utilities/get-scroller`. |
 | `ScrollerOptions` *(type)* | Options for `getScroller`: `inline`, `overflowing`, and `stopAtClip`. |
 | `forceStyleFlush` | Makes the browser compute styles and layout now, so a CSS transition has a style to start from. It is a call, not a bare `offsetHeight` read, which the React Compiler removes. |

@@ -9,10 +9,9 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { flushSync } from 'react-dom'
 import type { DensityStep } from '../../core/density'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { isDataColumn } from '../../utilities'
+import { isDataColumn, observeResizeBeforePaint } from '../../utilities'
 import { DEFAULT_COLUMN_SIZE } from './engine/grid-constants'
 import { isContentSized, measureColumns } from './engine/grid-sizing/measure'
 import {
@@ -596,20 +595,16 @@ export function useGridColumnSizing<T>({
 		}
 
 		/*
-		 * Flushed, so the refitted columns land in the frame that resized the container.
+		 * Committed before the paint, so the refitted columns land in the frame that resized
+		 * the container.
 		 *
 		 * The table is `table-fixed` at a pixel width this hook computes. `tableWidth` and
-		 * every `<col>` come out of `setColumnSizing`. Between the container changing and
-		 * that state committing, the table is laid out for a width the page no longer has. An
-		 * ordinary `setState` here commits on a later frame, and something has to paint in
-		 * between. That is the table sitting narrow inside its box, or overflowing it.
-		 * Anything that resizes the container discretely shows that as a flash: a sidebar
-		 * switching to its floating variant, a docked panel opening beside the grid.
-		 *
-		 * A `ResizeObserver` callback runs after layout and before paint, and mutating the DOM
-		 * inside one re-runs layout in the same frame. So flushing here is the whole fix. The
-		 * frame that moves the container is the frame that carries the matching widths. That
-		 * is the same before-paint guarantee the mount-time fit above already had.
+		 * every `<col>` come out of `setColumnSizing`. An ordinary `setState` here commits on
+		 * a later frame. The frame between paints the table narrow inside its box, or
+		 * overflowing it. Anything that resizes the container discretely shows that as a
+		 * flash: a sidebar switching to its floating variant, a docked panel opening beside
+		 * the grid. `observeResizeBeforePaint` gives the reasons for the flush and for the
+		 * pause in the observation after it.
 		 *
 		 * The cost is that a refit is now on the critical path of the frame rather than the
 		 * next one. That is the intended trade. The work is the same work, and a resize the
@@ -618,43 +613,23 @@ export function useGridColumnSizing<T>({
 		 * Only a new fit width refits. A height-only tick (rows appended, the window growing
 		 * vertically) and the first tick of the observation keep the width that the
 		 * observer last fit, so they flush nothing.
-		 *
-		 * A flush that renders also renders each update that waits, because React renders
-		 * the sync and default lanes together. Rows that land in the frame of the tick are
-		 * such an update, and they resize the container again in the same delivery. The
-		 * browser then holds that notification for the next frame, and fires
-		 * "ResizeObserver loop completed with undelivered notifications" on `window`. Thus
-		 * a refit stops the observation for the rest of the delivery, and observes again in
-		 * the next frame, before the delivery of that frame. The new observation reports
-		 * the width that it finds, so no resize is lost.
 		 */
 		let width = fitWidth(container)
 
-		let frame = 0
-
-		const observer = new ResizeObserver(() => {
+		const stop = observeResizeBeforePaint(container, () => {
 			const next = fitWidth(container)
 
 			if (next === width) return
 
 			width = next
 
-			observer.disconnect()
-
-			flushSync(() => refitLatest(false))
-
-			// The flush can unmount the grid, and the cleanup below then runs inside it.
-			if (!canceled) frame = requestAnimationFrame(() => observer.observe(container))
+			return () => refitLatest(false)
 		})
-
-		observer.observe(container)
 
 		return () => {
 			canceled = true
 
-			cancelAnimationFrame(frame)
-
-			observer.disconnect()
+			stop()
 		}
 	}, [automatic, containerRef, refitLatest, sizer])
 
