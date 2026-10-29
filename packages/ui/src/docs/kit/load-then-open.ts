@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react'
+import { useFail } from '../../hooks/use-fail.ts'
 import { useLazyModule } from '../../hooks/use-lazy-module.ts'
 import type { LazyModule } from '../../utilities/lazy-module.ts'
 import { noop } from '../../utilities/noop.ts'
-import { useFail } from './fail.ts'
 import { useIdle } from './idle.ts'
 
 /**
@@ -18,7 +18,10 @@ import { useIdle } from './idle.ts'
  * A change applies when the chunk is loaded, so the panel opens at its full
  * height with its content in it. A panel that suspends opens empty, and React
  * then holds the content back for at least 300 ms. When the load fails, the
- * error boundary shows the failure.
+ * error boundary shows the failure, and offers a reload. A load that fails in a
+ * tab that stayed open across a deploy does not succeed again in that page,
+ * because the deploy removes the old chunk and the browser keeps the failure of
+ * a module for the life of the document. Only a reload gets the new chunks.
  *
  * A change is a function of the current state. Two changes before the load
  * each apply to the state that the one before them made.
