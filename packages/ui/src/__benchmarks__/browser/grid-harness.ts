@@ -9,7 +9,7 @@
  * first paint, then a drive for each iteration that the scenario supplies.
  */
 
-import { type BenchOptions, bench } from 'vitest'
+import type { Bench } from 'vitest'
 import type { Shipment } from '../fixtures'
 import {
 	GRID_HEIGHT,
@@ -33,23 +33,19 @@ export function viewportMarkers(rows: Shipment[]): string[] {
  * Registers one full mount-to-painted-rows-plus-teardown bench for each grid.
  * `mount` sets how each grid mounts.
  */
-export function mountGridBenches(rows: Shipment[], options?: BenchOptions, mount?: MountOptions) {
+export function mountGridBenches(bench: Bench, rows: Shipment[], mount?: MountOptions) {
 	const markers = viewportMarkers(rows)
 
 	const mountHost = host(BOX)
 
 	for (const subject of grids()) {
-		bench(
-			subject.name,
-			async () => {
-				const grid = subject.mount(mountHost, rows, mount)
+		bench(subject.name, async () => {
+			const grid = subject.mount(mountHost, rows, mount)
 
-				await painted(mountHost, markers)
+			await painted(mountHost, markers)
 
-				grid.destroy()
-			},
-			options,
-		)
+			grid.destroy()
+		})
 	}
 }
 

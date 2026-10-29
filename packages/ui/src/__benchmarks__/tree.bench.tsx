@@ -6,8 +6,8 @@
  */
 
 import type { ReactNode } from 'react'
-import { describe } from 'vitest'
 import { Tree, TreeItem } from '../components/tree'
+import { compareBenches } from './compare'
 import { mountBench, mountBenches } from './harness'
 
 /** A balanced tree of `branching^depth` items, every branch open or every branch closed. */
@@ -40,16 +40,17 @@ const OPEN = [
 
 const collapsed = buildTreeNodes(5, 5, false)
 
-describe('Tree · render (all open)', () => {
+compareBenches('Tree · render (all open)', (bench) => {
 	mountBenches(
+		bench,
 		OPEN,
 		({ depth, nodes }) => `${nodes} nodes (d${depth}×b5, open)`,
 		({ tree }) => <Tree aria-label="Files">{tree}</Tree>,
 	)
 })
 
-describe('Tree · render (all collapsed)', () => {
-	mountBench('~5k nodes (d5×b5, collapsed) — only top level rendered', () => (
+compareBenches('Tree · render (all collapsed)', (bench) => {
+	mountBench(bench, '~5k nodes (d5×b5, collapsed) — only top level rendered', () => (
 		<Tree aria-label="Files">{collapsed}</Tree>
 	))
 })

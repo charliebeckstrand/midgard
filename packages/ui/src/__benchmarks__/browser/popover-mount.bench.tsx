@@ -15,8 +15,8 @@
  */
 
 import type { ReactNode } from 'react'
-import { bench, describe } from 'vitest'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
+import { compareBenches } from '../compare'
 import { comboboxOptions } from '../fixtures'
 import { reactHost, WINDOW } from './harness'
 
@@ -55,18 +55,18 @@ const RUNGS: [string, (key: string) => ReactNode][] = [
 	],
 ]
 
-describe(`popover · ${FAN_OUT} per mount, closed`, () => {
-	for (const [name, render] of RUNGS) {
-		bench(
-			name,
-			() => {
+compareBenches(
+	`popover · ${FAN_OUT} per mount, closed`,
+	(bench) => {
+		for (const [name, render] of RUNGS) {
+			bench(name, () => {
 				const mounted = reactHost()
 
 				mounted.render(<div>{keys.map(render)}</div>)
 
 				mounted.destroy()
-			},
-			WINDOW.slow,
-		)
-	}
-})
+			})
+		}
+	},
+	WINDOW.slow,
+)

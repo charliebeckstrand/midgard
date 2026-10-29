@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { bench, describe } from 'vitest'
 import { describeTranscript } from '../modules/chat/engine/chat-announcements'
 import type { ChatPart } from '../modules/chat/engine/chat-content/types'
 import {
@@ -14,6 +13,7 @@ import {
 	truncateToLastUserMessage,
 } from '../modules/chat/engine/chat-transcript'
 import { intlEn } from '../primitives/intl/intl-catalog'
+import { compareBenches } from './compare'
 import { makeTranscript } from './fixtures'
 
 /**
@@ -48,7 +48,7 @@ const SNAPSHOT = 'Late stops rose from **4** to **14** across the week, and most
 
 const CHART: ChatPart[] = [{ kind: 'embed', id: 'e1', name: 'stops-trend', data: [4, 14] }]
 
-describe('chat-transcript · applyReplyChunk (per streamed chunk)', () => {
+compareBenches('chat-transcript · applyReplyChunk (per streamed chunk)', (bench) => {
 	// The one transform on the streaming hot path. It maps the whole list to
 	// reach one reply, so its cost is the transcript's length rather than the
 	// reply's: the number that decides whether a long conversation streams as
@@ -66,7 +66,7 @@ describe('chat-transcript · applyReplyChunk (per streamed chunk)', () => {
 	}
 })
 
-describe('chat-transcript · the send path (once per send)', () => {
+compareBenches('chat-transcript · the send path (once per send)', (bench) => {
 	for (const { label, messages } of TRANSCRIPTS) {
 		bench(`${label} · appendUserMessage`, () => {
 			appendUserMessage(messages, 'u-new', 'Re-sequence them.')
@@ -95,7 +95,7 @@ describe('chat-transcript · the send path (once per send)', () => {
 	}
 })
 
-describe('chat-transcript · the seed path (once per mount)', () => {
+compareBenches('chat-transcript · the seed path (once per mount)', (bench) => {
 	// A reload hands the hook a whole persisted conversation. Both rules walk it
 	// before the first paint, so they sit on the mount critical path.
 	for (const { label, messages } of TRANSCRIPTS) {
@@ -113,7 +113,7 @@ describe('chat-transcript · the seed path (once per mount)', () => {
 	}
 })
 
-describe('chat-announcements · describeTranscript (per render)', () => {
+compareBenches('chat-announcements · describeTranscript (per render)', (bench) => {
 	// Derived on every render of the transcript, streaming or settled. The
 	// streaming arm returns before it reads the list at all, which is what keeps
 	// a hundred chunks one announcement; the settled arm projects the last reply

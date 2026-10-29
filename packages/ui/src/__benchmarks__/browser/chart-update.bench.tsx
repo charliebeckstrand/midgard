@@ -6,7 +6,7 @@
  * module re-renders through its React root.
  */
 
-import { describe } from 'vitest'
+import { compareBenches } from '../compare'
 import {
 	barCharts,
 	heatmapCharts,
@@ -38,38 +38,54 @@ const heatmap = await prepare(heatmapCharts(), makeTrend(24, 8, 1), makeTrend(24
 
 const points10k = await prepare(scatterCharts(), makePoints(10_000, 1), makePoints(10_000, 2))
 
-describe('update · line · 1,000 × 1 series', () => {
-	benches(line1k)
+compareBenches('update · line · 1,000 × 1 series', (bench) => {
+	benches(bench, line1k)
 })
 
-describe('update · line · 10,000 × 1 series', () => {
-	benches(line10k, WINDOW.slow)
-})
+compareBenches(
+	'update · line · 10,000 × 1 series',
+	(bench) => {
+		benches(bench, line10k)
+	},
+	WINDOW.slow,
+)
 
-describe('update · line · 1,000 × 5 series', () => {
-	benches(line1k5, WINDOW.slow)
-})
+compareBenches(
+	'update · line · 1,000 × 5 series',
+	(bench) => {
+		benches(bench, line1k5)
+	},
+	WINDOW.slow,
+)
 
-describe('update · bar · 500 × 2 series', () => {
-	benches(bar500, WINDOW.slow)
-})
+compareBenches(
+	'update · bar · 500 × 2 series',
+	(bench) => {
+		benches(bench, bar500)
+	},
+	WINDOW.slow,
+)
 
 // New values keep the category labels, so a redraw measures no label again.
-describe('update · bar · horizontal · 50 × 2 series', () => {
-	benches(barHorizontal50)
+compareBenches('update · bar · horizontal · 50 × 2 series', (bench) => {
+	benches(bench, barHorizontal50)
 })
 
-describe('update · scatter · 10,000 points', () => {
-	benches(points10k, WINDOW.slow)
-})
+compareBenches(
+	'update · scatter · 10,000 points',
+	(bench) => {
+		benches(bench, points10k)
+	},
+	WINDOW.slow,
+)
 
 // New values change the percent in each callout, so each redraw measures the
 // callout texts again.
-describe('update · pie · callouts · 8 slices', () => {
-	benches(pie8)
+compareBenches('update · pie · callouts · 8 slices', (bench) => {
+	benches(bench, pie8)
 })
 
 // New values keep the row names, so a redraw measures no label again.
-describe('update · heatmap · 24 × 8 cells', () => {
-	benches(heatmap)
+compareBenches('update · heatmap · 24 × 8 cells', (bench) => {
+	benches(bench, heatmap)
 })

@@ -6,8 +6,8 @@
  * one costs over the same grouping.
  */
 
-import { describe } from 'vitest'
 import { PivotTable } from '../components/pivot-table'
+import { compareBenches } from './compare'
 import { shipments } from './fixtures'
 import { mountBenches } from './harness'
 
@@ -18,16 +18,18 @@ const CARRIER_BY_DESTINATION = { row: 'carrier', column: 'destination', value: '
 // Built at collection time: only the render belongs inside the timed region.
 const SIZES = [1_000, 10_000, 50_000].map((count) => shipments(count))
 
-describe('PivotTable · lane × period (10 × 12 cells)', () => {
+compareBenches('PivotTable · lane × period (10 × 12 cells)', (bench) => {
 	mountBenches(
+		bench,
 		SIZES,
 		(rows) => `${rows.length.toLocaleString()} source rows`,
 		(rows) => <PivotTable rows={rows} keys={LANE_BY_PERIOD} aggregation="sum" />,
 	)
 })
 
-describe('PivotTable · carrier × destination × totals', () => {
+compareBenches('PivotTable · carrier × destination × totals', (bench) => {
 	mountBenches(
+		bench,
 		['both', 'none'] as const,
 		(totals) => `10,000 rows · totals="${totals}"`,
 		(totals) => (
@@ -41,8 +43,9 @@ describe('PivotTable · carrier × destination × totals', () => {
 	)
 })
 
-describe('PivotTable · aggregation comparison (10k rows)', () => {
+compareBenches('PivotTable · aggregation comparison (10k rows)', (bench) => {
 	mountBenches(
+		bench,
 		['sum', 'count', 'avg', 'min', 'max'] as const,
 		(aggregation) => `aggregation="${aggregation}"`,
 		(aggregation) => (

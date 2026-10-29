@@ -1,8 +1,8 @@
 // @vitest-environment node
 
-import { bench, describe } from 'vitest'
 import { bandScale, linearScale } from '../modules/chart/engine/chart-scale'
 import { makeTrend } from './browser/fixtures'
+import { compareBenches } from './compare'
 
 // `linearScale` resolves a series' value domain on every mount and every update
 // frame: filter the pool to finite, take its min and max, nice-step the unpinned
@@ -23,7 +23,7 @@ function withHoles(values: number[]): number[] {
 	return values.map((value, index) => (index % 8 === 0 ? Number.NaN : value))
 }
 
-describe('chart-scale · linearScale', () => {
+compareBenches('chart-scale · linearScale', (bench) => {
 	for (const count of [1_000, 10_000]) {
 		const values = pool(count, 1)
 
@@ -47,7 +47,7 @@ describe('chart-scale · linearScale', () => {
 	})
 })
 
-describe('chart-scale · bandScale', () => {
+compareBenches('chart-scale · bandScale', (bench) => {
 	// The band scale is closures over a step; construction is O(1), but the x
 	// positions the cartesian charts read from it are one `center` call per
 	// category, so bench the pass the mark builders actually drive.

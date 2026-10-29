@@ -5,7 +5,7 @@
  * chip of the ui switchboard.
  */
 
-import { describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { benches, host, type Prepared, settle, WINDOW } from './harness'
 import { countiesAtlas, makeZones } from './map-fixtures'
 import { zoneMaps } from './maps'
@@ -77,6 +77,10 @@ const prepared: Prepared[] = [{ name: 'ui MapPlat', run: cycle((over) => pointer
 	console.log(`emphasis sanity: ui receded = ${receded}`)
 }
 
-describe('emphasis · map · counties · isolate zone + release', () => {
-	benches(prepared, WINDOW.settled)
-})
+compareBenches(
+	'emphasis · map · counties · isolate zone + release',
+	(bench) => {
+		benches(bench, prepared)
+	},
+	WINDOW.settled,
+)

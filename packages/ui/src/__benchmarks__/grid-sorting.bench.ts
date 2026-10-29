@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { bench, describe } from 'vitest'
 import {
 	cachedSortOrder,
 	compareSmart,
@@ -14,6 +13,7 @@ import {
 	toSortKey,
 } from '../modules/grid/engine/grid-sort/utilities'
 import { parseNumeric } from '../utilities'
+import { compareBenches } from './compare'
 import { type Shipment, shipmentKey, shipments } from './fixtures'
 
 const collator = naturalCollator('en-US')
@@ -41,7 +41,7 @@ const numbers = (count: number) => pool10k.slice(0, count).map((row) => row.weig
 
 const dates = (count: number) => pool10k.slice(0, count).map((row) => row.createdAt)
 
-describe('grid-sort · compareSmart (raw, un-decorated)', () => {
+compareBenches('grid-sort · compareSmart (raw, un-decorated)', (bench) => {
 	// The full decorate-and-compare cost per pair: compareSmart re-decorates both
 	// arguments on every call (the render path caches keys, see compareSortKeys
 	// below, so this is the uncached ceiling).
@@ -60,7 +60,7 @@ describe('grid-sort · compareSmart (raw, un-decorated)', () => {
 	}
 })
 
-describe('grid-sort · compareSortKeys (pre-decorated, render path)', () => {
+compareBenches('grid-sort · compareSortKeys (pre-decorated, render path)', (bench) => {
 	// What the engine actually runs: values are decorated once (toSortKey), then
 	// the keys sort with no reparsing. Split by leaf: all-string keys are
 	// localeCompare-bound, all-numeric keys are a plain subtract.
@@ -79,7 +79,7 @@ describe('grid-sort · compareSortKeys (pre-decorated, render path)', () => {
 	}
 })
 
-describe('grid-sort · toSortKey (decorate step)', () => {
+compareBenches('grid-sort · toSortKey (decorate step)', (bench) => {
 	// The O(rows) decorate pass run once per sort per column; allocation- and
 	// regex-heavy (parseNumeric strips currency/grouping/percent, then a decimal
 	// test). Date-shaped strings are the worst case: the regex runs to a failed
@@ -105,7 +105,7 @@ describe('grid-sort · toSortKey (decorate step)', () => {
 	}
 })
 
-describe('grid-sort · parseNumeric (per-value)', () => {
+compareBenches('grid-sort · parseNumeric (per-value)', (bench) => {
 	// The regex core of the decorate step, over the value shapes it must
 	// disambiguate. `(1,234)` and `$1,234.50` take the full strip-and-parse path;
 	// `Item 10` and the ISO date take the strip path only to fail the decimal test.
@@ -135,7 +135,7 @@ const numberField: SmartSortField<Shipment> = {
 	sortFn: null,
 }
 
-describe('grid-sort · sortRowsSmart split (compute vs materialize)', () => {
+compareBenches('grid-sort · sortRowsSmart split (compute vs materialize)', (bench) => {
 	for (const count of [10_000, 100_000]) {
 		const rows = shipments(count)
 
@@ -164,7 +164,7 @@ describe('grid-sort · sortRowsSmart split (compute vs materialize)', () => {
 	}
 })
 
-describe('grid-sort · first flip (the other direction of a cached order)', () => {
+compareBenches('grid-sort · first flip (the other direction of a cached order)', (bench) => {
 	for (const count of [10_000, 100_000]) {
 		const rows = shipments(count)
 

@@ -7,7 +7,7 @@
  * root. Geometry never changes: an update moves data, not the atlas.
  */
 
-import { describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { benches, prepare, WINDOW } from './harness'
 import { countiesAtlas, makeValues, makeZones, statesAtlas } from './map-fixtures'
 import { choroplethMaps, zoneMaps } from './maps'
@@ -30,14 +30,22 @@ const choropleth = await prepare(
 	makeValues(countiesAtlas, 2),
 )
 
-describe('update · map · states · re-zone 49 regions', () => {
-	benches(states)
+compareBenches('update · map · states · re-zone 49 regions', (bench) => {
+	benches(bench, states)
 })
 
-describe('update · map · counties · re-zone 3,108 regions', () => {
-	benches(counties, WINDOW.slow)
-})
+compareBenches(
+	'update · map · counties · re-zone 3,108 regions',
+	(bench) => {
+		benches(bench, counties)
+	},
+	WINDOW.slow,
+)
 
-describe('update · map · counties choropleth · re-value 3,108 regions', () => {
-	benches(choropleth, WINDOW.slow)
-})
+compareBenches(
+	'update · map · counties choropleth · re-value 3,108 regions',
+	(bench) => {
+		benches(bench, choropleth)
+	},
+	WINDOW.slow,
+)

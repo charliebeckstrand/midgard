@@ -1,10 +1,10 @@
 // @vitest-environment node
 
-import { bench, describe } from 'vitest'
 import type { GridColumn } from '../modules/grid'
 import { rowsToCsv } from '../modules/grid/engine/grid-export/csv'
 import { rowsToHtmlTable } from '../modules/grid/engine/grid-export/html-table'
 import { applyPinOverrides, type PinOverrides } from '../modules/grid/engine/grid-pin/overrides'
+import { compareBenches } from './compare'
 import { makeEscapeHeavyRows, type Shipment, shipmentColumns, shipments } from './fixtures'
 
 // Pure grid compute that runs on the render hot path (pin overlay) or on an
@@ -18,7 +18,7 @@ const NOISY_COLUMNS: GridColumn<Record<string, string>>[] = (
 	['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const
 ).map((id) => ({ id, title: id.toUpperCase() }))
 
-describe('grid-export · rowsToCsv', () => {
+compareBenches('grid-export · rowsToCsv', (bench) => {
 	// The heaviest O(rows × cols) pure string builder. `plain` never trips the
 	// RFC-4180 escape branch; `escape-heavy` forces it on every cell (a comma,
 	// quote, and newline in each), the worst case.
@@ -37,7 +37,7 @@ describe('grid-export · rowsToCsv', () => {
 	}
 })
 
-describe('grid-export · rowsToHtmlTable', () => {
+compareBenches('grid-export · rowsToHtmlTable', (bench) => {
 	// Same shape as rowsToCsv (backs the Excel and print exporters); `escape-heavy`
 	// forces `&<>` entity encoding on every cell.
 	for (const count of [10, 50, 1_000]) {
@@ -55,7 +55,7 @@ describe('grid-export · rowsToHtmlTable', () => {
 	}
 })
 
-describe('grid-columns · applyPinOverrides', () => {
+compareBenches('grid-columns · applyPinOverrides', (bench) => {
 	// Overlays runtime pin changes onto static column flags each render. The
 	// empty-overrides path returns the input by reference (the common case); a
 	// full-override map clones every touched column (the worst case).

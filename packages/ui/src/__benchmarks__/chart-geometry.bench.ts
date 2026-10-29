@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { bench, describe } from 'vitest'
 import { MARKER_RADIUS } from '../modules/chart/engine/chart-constants'
 import { stackedAreas } from '../modules/chart/engine/chart-geometry/area'
 import { barMarks, stackedBarMarks } from '../modules/chart/engine/chart-geometry/bar'
@@ -13,6 +12,7 @@ import {
 import { seriesDataKey } from '../modules/chart/engine/chart-motion'
 import { bandScale, linearScale } from '../modules/chart/engine/chart-scale'
 import { makePoints, makeTrend } from './browser/fixtures'
+import { compareBenches } from './compare'
 
 // The chart mark builders project a series' numbers into SVG path `d` strings
 // and hit-test geometry: the work every mount and every update frame pays,
@@ -47,7 +47,7 @@ function cartesian(values: number[][]) {
 	return { scale, band, xs, baseline: HEIGHT }
 }
 
-describe('chart-geometry · lineGeometry', () => {
+compareBenches('chart-geometry · lineGeometry', (bench) => {
 	for (const count of [1_000, 10_000]) {
 		const { values } = makeTrend(count, 1)
 
@@ -73,7 +73,7 @@ describe('chart-geometry · lineGeometry', () => {
 	}
 })
 
-describe('chart-geometry · stackedAreas', () => {
+compareBenches('chart-geometry · stackedAreas', (bench) => {
 	for (const count of [1_000, 10_000]) {
 		const { values } = makeTrend(count, 3)
 
@@ -87,7 +87,7 @@ describe('chart-geometry · stackedAreas', () => {
 	}
 })
 
-describe('chart-motion · seriesDataKey', () => {
+compareBenches('chart-motion · seriesDataKey', (bench) => {
 	for (const count of [1_000, 10_000]) {
 		const { values } = makeTrend(count, 3)
 
@@ -97,7 +97,7 @@ describe('chart-motion · seriesDataKey', () => {
 	}
 })
 
-describe('chart-geometry · barMarks', () => {
+compareBenches('chart-geometry · barMarks', (bench) => {
 	for (const count of [500, 1_000]) {
 		const { values } = makeTrend(count, 2)
 
@@ -113,7 +113,7 @@ describe('chart-geometry · barMarks', () => {
 	}
 })
 
-describe('chart-geometry · scatter project + disc path', () => {
+compareBenches('chart-geometry · scatter project + disc path', (bench) => {
 	for (const count of [1_000, 10_000]) {
 		const { rows } = makePoints(count)
 

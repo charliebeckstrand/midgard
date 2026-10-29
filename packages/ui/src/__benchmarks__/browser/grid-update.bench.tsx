@@ -8,7 +8,7 @@
  * paint.
  */
 
-import { describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { type Shipment, shipments } from '../fixtures'
 import { prepareGrids } from './grid-harness'
 import { painted } from './grids'
@@ -43,10 +43,18 @@ const rows10k = await refresh(shipments(10_000, 1), shipments(10_000, 2))
 
 const rows100k = await refresh(shipments(100_000, 1), shipments(100_000, 2))
 
-describe('grid update · 10,000 rows × 8 cols', () => {
-	benches(rows10k, WINDOW.slow)
-})
+compareBenches(
+	'grid update · 10,000 rows × 8 cols',
+	(bench) => {
+		benches(bench, rows10k)
+	},
+	WINDOW.slow,
+)
 
-describe('grid update · 100,000 rows × 8 cols', () => {
-	benches(rows100k, WINDOW.slow)
-})
+compareBenches(
+	'grid update · 100,000 rows × 8 cols',
+	(bench) => {
+		benches(bench, rows100k)
+	},
+	WINDOW.slow,
+)

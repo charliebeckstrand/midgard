@@ -1,4 +1,3 @@
-import { bench, describe } from 'vitest'
 import {
 	CAPTURE_CAPACITY,
 	EVENT_CAPACITY,
@@ -7,6 +6,7 @@ import {
 } from '../modules/events/engine/events-store'
 import { formatRow, getKindWidth, groupRows } from '../modules/events/engine/events-text'
 import type { EventStorage } from '../modules/events/engine/types'
+import { compareBenches } from './compare'
 
 /**
  * What the store of the events costs an app while the events run. Each
@@ -118,7 +118,7 @@ function fullStore(count: number, { capture = false, preserve = false } = {}) {
 	return { store, next: count }
 }
 
-describe('events-store · add (one line of a full store)', () => {
+compareBenches('events-store · add (one line of a full store)', (bench) => {
 	const full = fullStore(EVENT_CAPACITY)
 
 	bench(`${EVENT_CAPACITY} events`, () => {
@@ -132,7 +132,7 @@ describe('events-store · add (one line of a full store)', () => {
 	})
 })
 
-describe('events-store · save (the kept copy)', () => {
+compareBenches('events-store · save (the kept copy)', (bench) => {
 	const full = fullStore(EVENT_CAPACITY, { preserve: true })
 
 	bench(`${EVENT_CAPACITY} events`, () => {
@@ -146,7 +146,7 @@ describe('events-store · save (the kept copy)', () => {
 	})
 })
 
-describe('events-text · the rows and the Copy text of the list', () => {
+compareBenches('events-text · the rows and the Copy text of the list', (bench) => {
 	for (const count of [EVENT_CAPACITY, CAPTURE_CAPACITY]) {
 		const { entries } = fullStore(count, { capture: count > EVENT_CAPACITY }).store
 

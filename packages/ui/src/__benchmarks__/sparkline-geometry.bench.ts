@@ -1,8 +1,8 @@
 // @vitest-environment node
 
-import { bench, describe } from 'vitest'
 import { sparklineGeometry } from '../components/sparkline/sparkline-geometry'
 import { makeTrend } from './browser/fixtures'
+import { compareBenches } from './compare'
 
 // The sparkline projects a series onto its drawing box: the points, the line
 // and area `d` strings, and the bar rects. A Grid cell holds one sparkline per
@@ -23,7 +23,7 @@ const SIXTY = series(60)
 
 const YEAR = series(365)
 
-describe('sparklineGeometry', () => {
+compareBenches('sparklineGeometry', (bench) => {
 	// The documented shape: a twelve-period trend in a Grid cell.
 	bench('12 points', () => {
 		sparklineGeometry(TWELVE, { ...BOX })

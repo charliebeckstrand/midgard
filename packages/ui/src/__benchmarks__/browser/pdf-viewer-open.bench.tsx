@@ -11,7 +11,7 @@
  * - `stage · …` splits one page into the steps that the rasterizer takes: the pdf.js render
  *   onto a canvas, then the encode that turns the canvas into the image the viewer shows.
  *   The encoders beside PNG are the alternatives, so each one's cost is on record. The
- *   describe also prints the size of the page in each format. The `bitmap` row is the path that
+ *   group also prints the size of the page in each format. The `bitmap` row is the path that
  *   the viewer takes now: it keeps the canvas as an `ImageBitmap`, with no encode.
  *   The `work only` rows answer each animation frame that pdf.js waits for in a microtask, so
  *   they give the work of a render without its frame pacing.
@@ -35,7 +35,6 @@
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { bench, describe } from 'vitest'
 import { page } from 'vitest/browser'
 import { PdfViewer } from '../../components/pdf-viewer'
 import {
@@ -45,6 +44,7 @@ import {
 	resetDocumentCache,
 	subscribeDocument,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
+import { compareBenches } from '../compare'
 import { host } from './harness'
 import { makeInvoicePdf, servePdf } from './pdf-fixtures'
 
@@ -233,17 +233,17 @@ async function countFrames(body: () => Promise<void>): Promise<number> {
 	return frames
 }
 
-describe('pdf viewer · cold open', () => {
-	for (const count of PAGE_COUNTS) {
-		const bytes = makeInvoicePdf(count)
+compareBenches(
+	'pdf viewer · cold open',
+	(bench) => {
+		for (const count of PAGE_COUNTS) {
+			const bytes = makeInvoicePdf(count)
 
-		firstPage.set(count, [])
+			firstPage.set(count, [])
 
-		fullRasters.set(count, [])
+			fullRasters.set(count, [])
 
-		bench(
-			`cold open · ${count} pages · settled`,
-			async () => {
+			bench(`cold open · ${count} pages · settled`, async () => {
 				const samples = firstPage.get(count) ?? []
 
 				const { painted, rasters, thumbnails } = await openCold(bytes)
@@ -265,25 +265,25 @@ describe('pdf viewer · cold open', () => {
 						`cold open · ${count} pages · first page painted · mean ${mean.toFixed(1)} ms · full rasters ${fullRasters.get(count)?.at(-1) ?? 0} · thumbnails ${thumbnailRasters.get(count) ?? 0}`,
 					)
 				}
-			},
-			OPEN_OPTIONS,
-		)
-	}
-})
+			})
+		}
+	},
+	OPEN_OPTIONS,
+)
 
-describe('pdf viewer · cold open · desktop rail', () => {
-	const bytes = makeInvoicePdf(50)
+compareBenches(
+	'pdf viewer · cold open · desktop rail',
+	(bench) => {
+		const bytes = makeInvoicePdf(50)
 
-	let last: Awaited<ReturnType<typeof openCold>> | undefined
+		let last: Awaited<ReturnType<typeof openCold>> | undefined
 
-	let samples = 0
+		let samples = 0
 
-	// The default window of the suite is a phone, where the rail is a closed sheet and renders
-	// no thumbnail. At a desktop width the rail is open beside the page, and the queue renders
-	// the thumbnails in or near its view.
-	bench(
-		'cold open · 50 pages · desktop rail · settled',
-		async () => {
+		// The default window of the suite is a phone, where the rail is a closed sheet and renders
+		// no thumbnail. At a desktop width the rail is open beside the page, and the queue renders
+		// the thumbnails in or near its view.
+		bench('cold open · 50 pages · desktop rail · settled', async () => {
 			await page.viewport(1280, 900)
 
 			try {
@@ -299,21 +299,21 @@ describe('pdf viewer · cold open · desktop rail', () => {
 					`cold open · 50 pages · desktop rail · first page painted ${last.painted.toFixed(1)} ms · full rasters ${last.rasters} · thumbnails ${last.thumbnails}`,
 				)
 			}
-		},
-		OPEN_OPTIONS,
-	)
-})
+		})
+	},
+	OPEN_OPTIONS,
+)
 
-describe('pdf viewer · cold open · zoom 2', () => {
-	const bytes = makeInvoicePdf(1)
+compareBenches(
+	'pdf viewer · cold open · zoom 2',
+	(bench) => {
+		const bytes = makeInvoicePdf(1)
 
-	const painted: number[] = []
+		const painted: number[] = []
 
-	// The page shows at twice the size that fits the box, so it shows wider than its slot. The
-	// queue paints the slot first, then renders the page again at the width that it shows.
-	bench(
-		'cold open · 1 page · zoom 2 · settled',
-		async () => {
+		// The page shows at twice the size that fits the box, so it shows wider than its slot. The
+		// queue paints the slot first, then renders the page again at the width that it shows.
+		bench('cold open · 1 page · zoom 2 · settled', async () => {
 			const last = await openCold(bytes, 2)
 
 			painted.push(last.painted)
@@ -327,103 +327,99 @@ describe('pdf viewer · cold open · zoom 2', () => {
 					`cold open · 1 page · zoom 2 · first page painted · mean ${mean.toFixed(1)} ms · full rasters ${last.rasters} · page raster ${last.width} px wide`,
 				)
 			}
-		},
-		OPEN_OPTIONS,
-	)
-})
+		})
+	},
+	OPEN_OPTIONS,
+)
 
-describe('pdf viewer · stage · one invoice page at 2x', async () => {
-	const pdf = await pdfjs.getDocument({ data: makeInvoicePdf(1) }).promise
+compareBenches(
+	'pdf viewer · stage · one invoice page at 2x',
+	async (bench) => {
+		const pdf = await pdfjs.getDocument({ data: makeInvoicePdf(1) }).promise
 
-	const page = await pdf.getPage(1)
+		const page = await pdf.getPage(1)
 
-	const viewport = page.getViewport({ scale: 2 })
+		const viewport = page.getViewport({ scale: 2 })
 
-	const canvas = document.createElement('canvas')
+		const canvas = document.createElement('canvas')
 
-	canvas.width = viewport.width
-	canvas.height = viewport.height
+		canvas.width = viewport.width
+		canvas.height = viewport.height
 
-	const context = canvas.getContext('2d')
+		const context = canvas.getContext('2d')
 
-	if (!context) throw new Error('No 2D context')
+		if (!context) throw new Error('No 2D context')
 
-	const render = () => page.render({ canvas, canvasContext: context, viewport }).promise
+		const render = () => page.render({ canvas, canvasContext: context, viewport }).promise
 
-	const thumbnailViewport = page.getViewport({ scale: 0.2 })
+		const thumbnailViewport = page.getViewport({ scale: 0.2 })
 
-	const thumbnailCanvas = document.createElement('canvas')
+		const thumbnailCanvas = document.createElement('canvas')
 
-	thumbnailCanvas.width = thumbnailViewport.width
-	thumbnailCanvas.height = thumbnailViewport.height
+		thumbnailCanvas.width = thumbnailViewport.width
+		thumbnailCanvas.height = thumbnailViewport.height
 
-	const thumbnailContext = thumbnailCanvas.getContext('2d')
+		const thumbnailContext = thumbnailCanvas.getContext('2d')
 
-	if (!thumbnailContext) throw new Error('No 2D context')
+		if (!thumbnailContext) throw new Error('No 2D context')
 
-	const renderThumbnail = () =>
-		page.render({
-			canvas: thumbnailCanvas,
-			canvasContext: thumbnailContext,
-			viewport: thumbnailViewport,
-		}).promise
+		const renderThumbnail = () =>
+			page.render({
+				canvas: thumbnailCanvas,
+				canvasContext: thumbnailContext,
+				viewport: thumbnailViewport,
+			}).promise
 
-	console.log(
-		`render at 2x waits for ${(await countFrames(render)).toString()} frames, at 0.2x for ${(await countFrames(renderThumbnail)).toString()}`,
-	)
+		console.log(
+			`render at 2x waits for ${(await countFrames(render)).toString()} frames, at 0.2x for ${(await countFrames(renderThumbnail)).toString()}`,
+		)
 
-	await render()
+		await render()
 
-	const encode = (type: string, quality?: number) =>
-		new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality))
+		const encode = (type: string, quality?: number) =>
+			new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality))
 
-	const sizes: string[] = []
+		const sizes: string[] = []
 
-	for (const [type, quality] of [
-		['image/png', undefined],
-		['image/webp', 0.92],
-		['image/jpeg', 0.92],
-	] as const) {
-		const blob = await encode(type, quality)
+		for (const [type, quality] of [
+			['image/png', undefined],
+			['image/webp', 0.92],
+			['image/jpeg', 0.92],
+		] as const) {
+			const blob = await encode(type, quality)
 
-		sizes.push(`${type} ${((blob?.size ?? 0) / 1024).toFixed(0)} KiB`)
-	}
+			sizes.push(`${type} ${((blob?.size ?? 0) / 1024).toFixed(0)} KiB`)
+		}
 
-	console.log(
-		`encoded page (${canvas.width}x${canvas.height}, raw ${((canvas.width * canvas.height * 4) / 1024 / 1024).toFixed(1)} MiB): ${sizes.join(', ')}`,
-	)
+		console.log(
+			`encoded page (${canvas.width}x${canvas.height}, raw ${((canvas.width * canvas.height * 4) / 1024 / 1024).toFixed(1)} MiB): ${sizes.join(', ')}`,
+		)
 
-	bench('stage · render to canvas', render, { time: 2_000 })
+		bench('stage · render to canvas', render)
 
-	bench('stage · render to canvas · work only', () => withoutFrames(render), { time: 2_000 })
+		bench('stage · render to canvas · work only', () => withoutFrames(render))
 
-	bench('stage · render at 0.2x · work only', () => withoutFrames(renderThumbnail), {
-		time: 2_000,
-	})
+		bench('stage · render at 0.2x · work only', () => withoutFrames(renderThumbnail))
 
-	bench('stage · encode · png', () => encode('image/png').then(() => {}), { time: 2_000 })
+		bench('stage · encode · png', () => encode('image/png').then(() => {}))
 
-	bench(
-		'stage · bitmap · createImageBitmap',
-		() => createImageBitmap(canvas).then((bitmap) => bitmap.close()),
-		{ time: 2_000 },
-	)
+		bench('stage · bitmap · createImageBitmap', () =>
+			createImageBitmap(canvas).then((bitmap) => bitmap.close()),
+		)
 
-	bench('stage · encode · webp 0.92', () => encode('image/webp', 0.92).then(() => {}), {
-		time: 2_000,
-	})
+		bench('stage · encode · webp 0.92', () => encode('image/webp', 0.92).then(() => {}))
 
-	bench('stage · encode · jpeg 0.92', () => encode('image/jpeg', 0.92).then(() => {}), {
-		time: 2_000,
-	})
-})
+		bench('stage · encode · jpeg 0.92', () => encode('image/jpeg', 0.92).then(() => {}))
+	},
+	{ time: 2_000 },
+)
 
 /**
  * Mounts a viewer on a document of `count` pages, and resolves when its queue is idle.
  *
- * @remarks Called from the first sample of a flip bench, not from the body of its describe.
- * A describe body runs when the file loads, before the cold open resets the cache for each of
- * its samples. The document would therefore be gone by the time the flips run.
+ * @remarks Called from the first sample of a flip bench, not from the body of its group.
+ * The body of a group runs before the benches of the group. A bench that resets the cache in
+ * its samples would then take the document away before the flips run.
  */
 async function mountResident(count: number) {
 	resetDocumentCache()
@@ -458,17 +454,17 @@ async function mountResident(count: number) {
 	return { src, show }
 }
 
-describe('pdf viewer · page flip', () => {
-	let resident: ReturnType<typeof mountResident> | undefined
+compareBenches(
+	'pdf viewer · page flip',
+	(bench) => {
+		let resident: ReturnType<typeof mountResident> | undefined
 
-	let current = 1
+		let current = 1
 
-	// One flip, from the commit to the decoded image of the next page. The pages alternate, so
-	// no sample reads an image that it already shows. Both are resident: the queue renders the
-	// shown page and its neighbors.
-	bench(
-		'flip · resident page',
-		async () => {
+		// One flip, from the commit to the decoded image of the next page. The pages alternate, so
+		// no sample reads an image that it already shows. Both are resident: the queue renders the
+		// shown page and its neighbors.
+		bench('flip · resident page', async () => {
 			if (!resident) {
 				resident = mountResident(14)
 
@@ -480,22 +476,18 @@ describe('pdf viewer · page flip', () => {
 			current = current === 1 ? 2 : 1
 
 			await show(current)
-		},
-		{ time: 2_000 },
-	)
+		})
 
-	let packet: ReturnType<typeof mountResident> | undefined
+		let packet: ReturnType<typeof mountResident> | undefined
 
-	let step = 0
+		let step = 0
 
-	/*
-	 * A flip to a page that holds no raster: one render, from the commit to the decoded image.
-	 * The cycle moves 5 pages at a time over 50 pages, so each page comes back after 10 moves.
-	 * Each move leaves at least one raster, so the bound of 8 has dropped the page by then.
-	 */
-	bench(
-		'flip · far page',
-		async () => {
+		/*
+		 * A flip to a page that holds no raster: one render, from the commit to the decoded image.
+		 * The cycle moves 5 pages at a time over 50 pages, so each page comes back after 10 moves.
+		 * Each move leaves at least one raster, so the bound of 8 has dropped the page by then.
+		 */
+		bench('flip · far page', async () => {
 			packet ??= mountResident(50)
 
 			const { show } = await packet
@@ -503,10 +495,10 @@ describe('pdf viewer · page flip', () => {
 			step = (step + 1) % 10
 
 			await show(step * 5 + 1)
-		},
-		{ time: 2_000 },
-	)
-})
+		})
+	},
+	{ time: 2_000 },
+)
 
 /** Prints the rasters that a resident document holds. */
 async function printResident(src: string) {

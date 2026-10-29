@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { bench, describe } from 'vitest'
 import type { GridColumn } from '../modules/grid'
 import {
 	aggregateColumn,
@@ -17,6 +16,7 @@ import {
 } from '../modules/grid/engine/grid-group/compute'
 import { cellValue } from '../modules/grid/engine/grid-row/cell'
 import type { GridColumnGroup } from '../modules/grid/grid-group-types'
+import { compareBenches } from './compare'
 import { SHIPMENT_FIELDS, type Shipment, shipments } from './fixtures'
 
 /**
@@ -51,7 +51,7 @@ const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({ 
 const aggregating = (aggFunc: (typeof AGG_FUNCS)[number]): GridColumn<Shipment>[] =>
 	COLUMNS.map((column) => ({ ...column, aggFunc }))
 
-describe('grid-aggregate · aggregateColumn (per group, per column, per render)', () => {
+compareBenches('grid-aggregate · aggregateColumn (per group, per column, per render)', (bench) => {
 	// The decode-and-reduce pass. `count` short-circuits to `rows.length` and is
 	// the floor; every numeric reducer walks the rows through `parseNumeric`
 	// first, so they should all land together and well above it. The gap between
@@ -70,7 +70,7 @@ describe('grid-aggregate · aggregateColumn (per group, per column, per render)'
 	}
 })
 
-describe('grid-aggregate · a grouped body (20 groups × 8 columns)', () => {
+compareBenches('grid-aggregate · a grouped body (20 groups × 8 columns)', (bench) => {
 	// What a grouped render actually costs: every aggregated column reduced over
 	// every group's rows. Against one `sum` over the same total rows, the gap is
 	// the per-group, per-column repetition: the shape a shared decode pass would
@@ -102,7 +102,7 @@ describe('grid-aggregate · a grouped body (20 groups × 8 columns)', () => {
 	})
 })
 
-describe('grid-aggregate · gates and formatting', () => {
+compareBenches('grid-aggregate · gates and formatting', (bench) => {
 	const aggregated: GridColumn<Shipment>[] = COLUMNS.map((column, index) =>
 		index === COLUMNS.length - 1 ? { ...column, aggFunc: 'sum' } : column,
 	)
@@ -127,7 +127,7 @@ describe('grid-aggregate · gates and formatting', () => {
 	})
 })
 
-describe('grid-row · cellValue (per cell, per render)', () => {
+compareBenches('grid-row · cellValue (per cell, per render)', (bench) => {
 	// The value resolution behind every sorted, filtered, exported, and
 	// aggregated cell. `cellValue` re-derives the accessor closure on every call;
 	// hoisting it out (as the aggregate reducers do through `columnAccessor`)
@@ -165,7 +165,7 @@ describe('grid-row · cellValue (per cell, per render)', () => {
 	})
 })
 
-describe('grid-group · column-group compute (every render of a grouped grid)', () => {
+compareBenches('grid-group · column-group compute (every render of a grouped grid)', (bench) => {
 	// Small passes, but unconditional: a grouped grid runs all four on every
 	// render regardless of row count, so they are pure per-render overhead the
 	// row-count benches above can never surface.
@@ -205,7 +205,7 @@ describe('grid-group · column-group compute (every render of a grouped grid)', 
 	}
 })
 
-describe('grid-group · client grouping (a view change of a grouped grid)', () => {
+compareBenches('grid-group · client grouping (a view change of a grouped grid)', (bench) => {
 	// A column of few values (status, four groups) and a near-unique one
 	// (reference, a group for each row). A sort change keeps the members and
 	// orders the groups again; a filter or a data change collects them anew.

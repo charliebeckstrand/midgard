@@ -17,6 +17,13 @@ declare module 'vitest' {
 	interface ProvidedContext {
 		asyncUtilTimeout: number
 	}
+
+	// The DOM matchers of Vitest 5 browser mode type `toHaveTextContent` with a
+	// string only. Both setups register the matchers of jest-dom, which also
+	// take a RegExp, and these replace the built-in ones at run time.
+	interface Matchers<R, T> {
+		toHaveTextContent(text: string | number | RegExp, options?: { normalizeWhitespace: boolean }): R
+	}
 }
 
 // The waitFor/findBy budget is provided by vitest.config.ts, which owns the

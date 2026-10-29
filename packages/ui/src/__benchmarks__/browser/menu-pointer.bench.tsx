@@ -18,7 +18,7 @@
  * carries the layout read that resolving them needs.
  */
 
-import { bench, describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { WINDOW } from './harness'
 import {
 	CORRIDOR_ROWS,
@@ -37,26 +37,26 @@ for (const count of MENU_ROWS) {
 
 const corridor = await openCorridor('menu-corridor')
 
-describe('menu · pointer sweep · no submenu open', () => {
-	for (const { count, probe } of plain) {
-		bench(
-			`${count} rows · one pass`,
-			() => {
+compareBenches(
+	'menu · pointer sweep · no submenu open',
+	(bench) => {
+		for (const { count, probe } of plain) {
+			bench(`${count} rows · one pass`, () => {
 				for (const { row, x, y } of probe.points) pointerMove(row, x, y)
-			},
-			WINDOW.settled,
-		)
-	}
-})
+			})
+		}
+	},
+	WINDOW.settled,
+)
 
-describe('menu · pointer sweep · submenu open (travel test runs)', () => {
-	// Every arrival here measures the open submenu panel, which the rungs above
-	// never touch. Held beside the plain rung of the same size it prices that read.
-	bench(
-		`${CORRIDOR_ROWS} rows · one pass`,
-		() => {
+compareBenches(
+	'menu · pointer sweep · submenu open (travel test runs)',
+	(bench) => {
+		// Every arrival here measures the open submenu panel, which the rungs above
+		// never touch. Held beside the plain rung of the same size it prices that read.
+		bench(`${CORRIDOR_ROWS} rows · one pass`, () => {
 			for (const { row, x, y } of corridor.points) pointerMove(row, x, y)
-		},
-		WINDOW.settled,
-	)
-})
+		})
+	},
+	WINDOW.settled,
+)

@@ -24,7 +24,6 @@
  * The findings are in the Events section of [`README.md`](README.md).
  */
 
-import { bench, describe } from 'vitest'
 import { halt, start } from '../../modules/events/engine/events-recorder'
 import {
 	CAPTURE_CAPACITY,
@@ -32,6 +31,7 @@ import {
 	type EventStore,
 } from '../../modules/events/engine/events-store'
 import { EventsPanel } from '../../modules/events/events-panel'
+import { compareBenches } from '../compare'
 import { host, reactHost, WINDOW, withFrameClock } from './harness'
 
 /** The button that each tap presses: outside the tools, with a slot, as the buttons of `ui` have. */
@@ -64,116 +64,122 @@ function fill(count: number, capture: boolean): EventStore {
 	return store
 }
 
-/** The bench options that start the recorder before each cycle and halt it after. */
+/** The bench options that start the recorder before each phase and halt it after. */
 function running(count: number, capture = false) {
 	return {
-		...WINDOW.slow,
-		setup: () => {
+		beforeAll: () => {
 			fill(count, capture)
 		},
-		teardown: () => {
+		afterAll: () => {
 			halt()
 		},
 	}
 }
 
-describe('events · one tap', () => {
-	bench('events off', tap, WINDOW.slow)
+compareBenches(
+	'events · one tap',
+	(bench) => {
+		bench('events off', tap)
 
-	bench(`events on · ${EVENT_CAPACITY} events`, tap, running(EVENT_CAPACITY))
+		bench(`events on · ${EVENT_CAPACITY} events`, running(EVENT_CAPACITY), tap)
 
-	bench(`events on · ${CAPTURE_CAPACITY} events · capture`, tap, running(CAPTURE_CAPACITY, true))
-})
+		bench(`events on · ${CAPTURE_CAPACITY} events · capture`, running(CAPTURE_CAPACITY, true), tap)
+	},
+	WINDOW.slow,
+)
 
-describe('events · one tap and the frame of the pinned panel', () => {
-	bench(
-		`no panel · ${EVENT_CAPACITY} events`,
-		() =>
+compareBenches(
+	'events · one tap and the frame of the pinned panel',
+	(bench) => {
+		bench(`no panel · ${EVENT_CAPACITY} events`, running(EVENT_CAPACITY), () =>
 			withFrameClock((tick) => {
 				tap()
 
 				tick()
 			}),
-		running(EVENT_CAPACITY),
-	)
+		)
 
-	for (const [count, capture] of [
-		[EVENT_CAPACITY, false],
-		[CAPTURE_CAPACITY, true],
-	] as const) {
-		let panel: ReturnType<typeof reactHost> | undefined
+		for (const [count, capture] of [
+			[EVENT_CAPACITY, false],
+			[CAPTURE_CAPACITY, true],
+		] as const) {
+			let panel: ReturnType<typeof reactHost> | undefined
+
+			bench(
+				`pinned panel · ${count} events${capture ? ' · capture' : ''}`,
+				{
+					beforeAll: () => {
+						fill(count, capture)
+
+						panel = reactHost()
+
+						panel.render(
+							<div data-events-tool="" style={{ height: 800, width: 384, display: 'flex' }}>
+								<EventsPanel />
+							</div>,
+						)
+					},
+					afterAll: () => {
+						panel?.destroy()
+
+						halt()
+					},
+				},
+				() =>
+					withFrameClock((tick) => {
+						tap()
+
+						tick()
+					}),
+			)
+		}
+	},
+	WINDOW.slow,
+)
+
+compareBenches(
+	'events · one window resize on a page of 5,000 boxes',
+	(bench) => {
+		let page: HTMLElement | undefined
+
+		// The page holds enough boxes that a layout costs what it costs on a real
+		// page. It mounts only while this scenario runs.
+		const mountPage = () => {
+			page = host({ width: 960 })
+
+			for (let index = 0; index < 5_000; index++)
+				page.appendChild(document.createElement('div')).textContent = `Row ${index}`
+		}
+
+		/** A resize of the window, then a read of the height of the page, as the next frame lays it out. */
+		const resize = () => {
+			window.dispatchEvent(new Event('resize'))
+
+			if (!page) return
+
+			page.style.width = page.style.width === '960px' ? '961px' : '960px'
+
+			void page.offsetHeight
+		}
+
+		bench('events off', { beforeAll: mountPage, afterAll: () => page?.remove() }, resize)
 
 		bench(
-			`pinned panel · ${count} events${capture ? ' · capture' : ''}`,
-			() =>
-				withFrameClock((tick) => {
-					tap()
-
-					tick()
-				}),
+			`events on · ${EVENT_CAPACITY} events`,
 			{
-				...WINDOW.slow,
-				setup: () => {
-					fill(count, capture)
+				beforeAll: () => {
+					mountPage()
 
-					panel = reactHost()
-
-					panel.render(
-						<div data-events-tool="" style={{ height: 800, width: 384, display: 'flex' }}>
-							<EventsPanel />
-						</div>,
-					)
+					fill(EVENT_CAPACITY, false)
 				},
-				teardown: () => {
-					panel?.destroy()
-
+				afterAll: () => {
 					halt()
+
+					page?.remove()
 				},
 			},
+			resize,
 		)
-	}
-})
-
-describe('events · one window resize on a page of 5,000 boxes', () => {
-	let page: HTMLElement | undefined
-
-	// The page holds enough boxes that a layout costs what it costs on a real
-	// page. It mounts only while this scenario runs.
-	const mountPage = () => {
-		page = host({ width: 960 })
-
-		for (let index = 0; index < 5_000; index++)
-			page.appendChild(document.createElement('div')).textContent = `Row ${index}`
-	}
-
-	/** A resize of the window, then a read of the height of the page, as the next frame lays it out. */
-	const resize = () => {
-		window.dispatchEvent(new Event('resize'))
-
-		if (!page) return
-
-		page.style.width = page.style.width === '960px' ? '961px' : '960px'
-
-		void page.offsetHeight
-	}
-
-	bench('events off', resize, {
-		...WINDOW.slow,
-		setup: mountPage,
-		teardown: () => page?.remove(),
-	})
-
-	bench(`events on · ${EVENT_CAPACITY} events`, resize, {
-		...WINDOW.slow,
-		setup: () => {
-			mountPage()
-
-			fill(EVENT_CAPACITY, false)
-		},
-		teardown: () => {
-			halt()
-
-			page?.remove()
-		},
-	})
-})
+	},
+	WINDOW.slow,
+)

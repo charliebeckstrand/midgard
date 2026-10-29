@@ -5,7 +5,6 @@
  * scrolls.
  */
 
-import { describe } from 'vitest'
 import {
 	Kanban,
 	KanbanCard,
@@ -15,6 +14,7 @@ import {
 	KanbanColumnTitle,
 } from '../modules/kanban'
 import { noop } from '../utilities/noop'
+import { compareBenches } from './compare'
 import { type KanbanItem, makeKanbanColumns } from './fixtures'
 import { mountBenches } from './harness'
 
@@ -50,8 +50,9 @@ const BOARDS = [
 	{ size: 'large', columns: 8, perColumn: 250 },
 ].map((shape) => ({ ...shape, board: makeKanbanColumns(shape.columns, shape.perColumn) }))
 
-describe('Kanban · initial render', () => {
+compareBenches('Kanban · initial render', (bench) => {
 	mountBenches(
+		bench,
 		BOARDS,
 		({ size, columns, perColumn }) =>
 			`${size} (${columns} × ${perColumn} = ${(columns * perColumn).toLocaleString()} cards)`,

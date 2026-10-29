@@ -5,8 +5,8 @@
  * `mapNode`, the shape a controlled consumer's change handler produces.
  */
 
-import { describe } from 'vitest'
 import { mapNode, QueryBuilder, type QueryGroup } from '../modules/query'
+import { compareBenches } from './compare'
 import { collectRuleIds, makeQueryTree, QUERY_FIELDS } from './fixtures'
 import { mountBenches, rerenderBench } from './harness'
 
@@ -19,8 +19,9 @@ const deepWide = makeQueryTree(3, 4)
 /** Edits per re-render iteration: enough that per-edit work outruns the harness. */
 const EDITS = 5
 
-describe('QueryBuilder · initial render', () => {
+compareBenches('QueryBuilder · initial render', (bench) => {
 	mountBenches(
+		bench,
 		[
 			{ label: 'shallow-wide (10 rules)', tree: shallowWide },
 			{ label: 'balanced (~16 rules)', tree: balanced },
@@ -31,7 +32,7 @@ describe('QueryBuilder · initial render', () => {
 	)
 })
 
-describe(`QueryBuilder · rerender after single-rule edit (${EDITS} edits/iter)`, () => {
+compareBenches(`QueryBuilder · rerender after single-rule edit (${EDITS} edits/iter)`, (bench) => {
 	const built = (tree: QueryGroup) => <QueryBuilder fields={QUERY_FIELDS} value={tree} />
 
 	for (const { label, root } of [
@@ -41,6 +42,7 @@ describe(`QueryBuilder · rerender after single-rule edit (${EDITS} edits/iter)`
 		const ids = collectRuleIds(root).slice(0, EDITS)
 
 		rerenderBench(
+			bench,
 			label,
 			() => built(root),
 			(rerender, iteration) => {

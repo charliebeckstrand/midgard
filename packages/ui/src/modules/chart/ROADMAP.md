@@ -14,13 +14,15 @@ The foundation this optimizes is the engine described in [`CONVENTIONS.md`](../.
 
 Three rungs, coarsest to finest. The **browser suite** (`pnpm bench:browser`, real Chromium, production React) times the module end to end: mount, update, and hover across line/bar/scatter at 50 to 10,000 points. The **jsdom benches** (`pnpm bench`) localize a regression to the module without a browser. `chart-resize` proves the ResizeObserver path stays one bounded rebuild per notification with no host cascade. The **pure cores** are the finest rung, and now instrumented: `chart-geometry.bench.ts` and `chart-scale.bench.ts` (node env, no React, no DOM) exercise `lineGeometry`, `barMarks`, `stackedBarMarks`, `scatterMarks`/`scatterDiscLayers`, and `linearScale` directly at 1k/10k over the same LCG fixture the browser suite draws, so a change to one core reads as a delta at the layer it changed rather than diluted through React reconciliation and the DOM commit. The captured before-line on this container: the 10k line path builder runs ~4.6 ms linear / ~11 ms smooth, the 10k scatter disc path ~5 ms, and `linearScale` ~0.19 ms over a 10k pool: the numbers avenues 2–4 must move.
 
-To hold a before/after line through a change, snapshot then compare:
+To hold a before/after line through a change, write the results to a file before it, then run again after it:
 
 ```sh
-pnpm bench:browser -- --outputJson bench-baseline.json
+pnpm bench:browser --reporter=default --reporter=json --outputFile.json=bench-baseline.json
 # …optimize…
-pnpm bench:browser -- --compare bench-baseline.json
+pnpm bench:browser
 ```
+
+Vitest has no `--compare` flag since version 5, so compare the two runs row by row. The JSON report gives the rows of each scenario in the `benchmarks` field of its test.
 
 Absolute numbers move with hardware; the ratios and the deltas are the signal.
 

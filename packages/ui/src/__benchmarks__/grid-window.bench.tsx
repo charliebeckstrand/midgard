@@ -12,8 +12,8 @@
  */
 
 import { act } from '@testing-library/react'
-import { describe } from 'vitest'
 import { Grid, type GridColumn } from '../modules/grid'
+import { compareBenches } from './compare'
 import { type Shipment, shipmentColumns, shipmentKey, shipments } from './fixtures'
 import { modelLayout, mountBenches, persistentTree } from './harness'
 
@@ -87,8 +87,9 @@ function toggleIn(container: HTMLElement, selector: string): HTMLElement {
 	return toggle
 }
 
-describe('Grid · grouped · virtualize (modeled 600px viewport)', () => {
+compareBenches('Grid · grouped · virtualize (modeled 600px viewport)', (bench) => {
 	mountBenches(
+		bench,
 		CASES,
 		({ label }) => `mount ${label}`,
 		({ rows }) => grouped(rows),
@@ -97,14 +98,15 @@ describe('Grid · grouped · virtualize (modeled 600px viewport)', () => {
 	for (const { label, rows } of CASES) {
 		// Each iteration toggles the first group, so the runs alternate a collapse
 		// and an expand.
-		persistentTree(grouped(rows), (container) =>
+		persistentTree(bench, grouped(rows), (container) =>
 			toggleIn(container, '[data-group-row] button'),
 		).bench(`toggle ${label}`, (toggle) => act(() => toggle.click()))
 	}
 })
 
-describe('Grid · master-detail · virtualize (modeled 600px viewport)', () => {
+compareBenches('Grid · master-detail · virtualize (modeled 600px viewport)', (bench) => {
 	mountBenches(
+		bench,
 		CASES,
 		({ label }) => `mount ${label}`,
 		({ rows }) => masterDetail(rows),
@@ -113,7 +115,7 @@ describe('Grid · master-detail · virtualize (modeled 600px viewport)', () => {
 	for (const { label, rows } of CASES) {
 		// Each iteration toggles the first panel, so the runs alternate an open and
 		// a close.
-		persistentTree(masterDetail(rows), (container) =>
+		persistentTree(bench, masterDetail(rows), (container) =>
 			toggleIn(container, 'button[aria-controls^="grid-detail-"]'),
 		).bench(`toggle ${label}`, (toggle) => act(() => toggle.click()))
 	}

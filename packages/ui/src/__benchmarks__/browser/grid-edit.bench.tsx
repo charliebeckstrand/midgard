@@ -21,8 +21,8 @@
 import type { ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { describe } from 'vitest'
 import { Grid, type GridCellRef, type GridColumn } from '../../modules/grid'
+import { compareBenches } from '../compare'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtures'
 import { GRID_HEIGHT, GRID_WIDTH, painted } from './grids'
 import { benches, host, type Prepared, WINDOW } from './harness'
@@ -167,10 +167,18 @@ const rows = [
 
 const cells = [await prepareCell('1,000 rows · un-windowed', shipments(1_000), UNWINDOWED)]
 
-describe('grid edit · row open + close', () => {
-	benches(rows, WINDOW.slow)
-})
+compareBenches(
+	'grid edit · row open + close',
+	(bench) => {
+		benches(bench, rows)
+	},
+	WINDOW.slow,
+)
 
-describe('grid edit · cell move · scope cell', () => {
-	benches(cells, WINDOW.slow)
-})
+compareBenches(
+	'grid edit · cell move · scope cell',
+	(bench) => {
+		benches(bench, cells)
+	},
+	WINDOW.slow,
+)

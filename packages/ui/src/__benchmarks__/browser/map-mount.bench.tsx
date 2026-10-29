@@ -6,19 +6,27 @@
  * dashboard actually pays (projection fit, path building, and the painted DOM).
  */
 
-import { describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { mountBenches, WINDOW } from './harness'
 import { countiesAtlas, makeValues, makeZones, statesAtlas } from './map-fixtures'
 import { choroplethMaps, zoneMaps } from './maps'
 
-describe('mount · map · states · 49 regions × 4 zones', () => {
-	mountBenches(zoneMaps(statesAtlas), makeZones(statesAtlas))
+compareBenches('mount · map · states · 49 regions × 4 zones', (bench) => {
+	mountBenches(bench, zoneMaps(statesAtlas), makeZones(statesAtlas))
 })
 
-describe('mount · map · counties · 3,108 regions × 4 zones', () => {
-	mountBenches(zoneMaps(countiesAtlas), makeZones(countiesAtlas), WINDOW.slow)
-})
+compareBenches(
+	'mount · map · counties · 3,108 regions × 4 zones',
+	(bench) => {
+		mountBenches(bench, zoneMaps(countiesAtlas), makeZones(countiesAtlas))
+	},
+	WINDOW.slow,
+)
 
-describe('mount · map · counties choropleth · 3,108 regions', () => {
-	mountBenches(choroplethMaps(countiesAtlas), makeValues(countiesAtlas), WINDOW.slow)
-})
+compareBenches(
+	'mount · map · counties choropleth · 3,108 regions',
+	(bench) => {
+		mountBenches(bench, choroplethMaps(countiesAtlas), makeValues(countiesAtlas))
+	},
+	WINDOW.slow,
+)

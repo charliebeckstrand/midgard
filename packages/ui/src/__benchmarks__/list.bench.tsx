@@ -5,10 +5,10 @@
  * sensors sit above.
  */
 
-import { describe } from 'vitest'
 import { List } from '../components/list'
 import { ListItem } from '../components/list/list-item'
 import { noop } from '../utilities/noop'
+import { compareBenches } from './compare'
 import { makeListItems } from './fixtures'
 import { mountBench, mountBenches } from './harness'
 
@@ -23,8 +23,9 @@ const SIZES = [100, 500, 1_000].map((count) => makeListItems(count))
 
 const items1k = SIZES[2] as { id: string; title: string }[]
 
-describe('List · reorderable (onReorder provided)', () => {
+compareBenches('List · reorderable (onReorder provided)', (bench) => {
 	mountBenches(
+		bench,
 		SIZES,
 		(items) => `${items.length.toLocaleString()} items`,
 		(items) => (
@@ -35,8 +36,8 @@ describe('List · reorderable (onReorder provided)', () => {
 	)
 })
 
-describe('List · read-only (no onReorder)', () => {
-	mountBench('1,000 items', () => (
+compareBenches('List · read-only (no onReorder)', (bench) => {
+	mountBench(bench, '1,000 items', () => (
 		<List items={items1k} getKey={getKey}>
 			{renderItem}
 		</List>

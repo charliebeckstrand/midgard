@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { bench, describe } from 'vitest'
 import { chromePaths } from '../modules/map/engine/map-geometry/chrome'
 import {
 	emitRegionPaths,
@@ -20,6 +19,7 @@ import {
 	statesAtlas,
 	VALUE_RAMP,
 } from './browser/map-fixtures'
+import { compareBenches } from './compare'
 
 /**
  * The map's pure compute: the projection fit, and the joins that decide every
@@ -55,7 +55,7 @@ const ATLASES = [
 	},
 ] as const
 
-describe('map-geometry · decode + winding (before any fit)', () => {
+compareBenches('map-geometry · decode + winding (before any fit)', (bench) => {
 	// What an atlas costs before the projection sees it, and the two passes the
 	// static-geometry cache holds behind `cachedGeographyFeatures`. Both walk the
 	// whole geography, and neither had a bar: the decode re-walks every arc of the
@@ -74,7 +74,7 @@ describe('map-geometry · decode + winding (before any fit)', () => {
 	}
 })
 
-describe('map-geometry · regionCentroids (the first arrow key)', () => {
+compareBenches('map-geometry · regionCentroids (the first arrow key)', (bench) => {
 	// Deferred off the mount by design, only a keyboard cursor reads it, and the
 	// pass measures every ring in the atlas, so a county map pays it on the first
 	// arrow key rather than on every mount. `boundary/map-centroid-deferral` gates
@@ -87,7 +87,7 @@ describe('map-geometry · regionCentroids (the first arrow key)', () => {
 	}
 })
 
-describe('map-geometry · chromePaths (opt-in graticule + sphere)', () => {
+compareBenches('map-geometry · chromePaths (opt-in graticule + sphere)', (bench) => {
 	// Both parts are off by default, and the graticule's lines cover the globe
 	// whatever the geography frames, so a one-state map pays a world map's pass
 	// and the viewBox clips the rest. That is the trim the ROADMAP's backlog
@@ -107,7 +107,7 @@ describe('map-geometry · chromePaths (opt-in graticule + sphere)', () => {
 	}
 })
 
-describe('map-projection · canonicalFit (the uncached fit)', () => {
+compareBenches('map-projection · canonicalFit (the uncached fit)', (bench) => {
 	// Re-projects every coordinate of every geography to measure the fitted
 	// bounds. Paid once per atlas per projection and then held by the
 	// static-geometry cache, but a cache miss pays it on the mount critical
@@ -141,7 +141,7 @@ const FITTED = ATLASES.map(({ label, atlas }) => {
 	return { label, features: atlas.geoJson.features, canonical }
 })
 
-describe('map-projection · scaleCanonicalFit (every resize frame)', () => {
+compareBenches('map-projection · scaleCanonicalFit (every resize frame)', (bench) => {
 	// The refit a resize runs: pure arithmetic over the cached canonical
 	// parameters, deliberately avoiding the bounds pass `canonicalFit` above
 	// takes. Against that bar it is the whole point of the canonical cache, and
@@ -153,7 +153,7 @@ describe('map-projection · scaleCanonicalFit (every resize frame)', () => {
 	}
 })
 
-describe('map-geometry · region paths (the mount’s largest pass)', () => {
+compareBenches('map-geometry · region paths (the mount’s largest pass)', (bench) => {
 	// A map draws the atlas under two fits in one mount (canonical on the first
 	// commit, measured a beat later) and under another on every resize. The
 	// direct walk streams every coordinate through d3-geo each time; the buffer
@@ -180,7 +180,7 @@ describe('map-geometry · region paths (the mount’s largest pass)', () => {
 	}
 })
 
-describe('map-region/category · resolveCategories (derive + paint)', () => {
+compareBenches('map-region/category · resolveCategories (derive + paint)', (bench) => {
 	// One pass to dedupe the dataset's categories in first-appearance order, then
 	// one paint lookup per category. Linear in the rows; the category count stays
 	// small, so this is the rows' term of a categorical mount.
@@ -204,7 +204,7 @@ describe('map-region/category · resolveCategories (derive + paint)', () => {
 	})
 })
 
-describe('map-region/category · regionCategoryIndexes (the categorical join)', () => {
+compareBenches('map-region/category · regionCategoryIndexes (the categorical join)', (bench) => {
 	// Builds a region → row Map and a category → index Map, then walks the
 	// regions. Two allocations plus a lookup per region, on every mount and
 	// every data update: the pass that turns rows into fills.
@@ -223,7 +223,7 @@ const SCALE = {
 	format: (value: number) => value.toFixed(0),
 }
 
-describe('map-region/value · resolveValueBins (linear vs quantile)', () => {
+compareBenches('map-region/value · resolveValueBins (linear vs quantile)', (bench) => {
 	// Equal-interval binning reads the extent in one pass; quantile binning sorts
 	// the values to cut by rank, so it carries an O(n log n) term the linear mode
 	// does not. The gap is what a consumer pays for the reading that suits
@@ -237,7 +237,7 @@ describe('map-region/value · resolveValueBins (linear vs quantile)', () => {
 	}
 })
 
-describe('map-region/value · regionValueJoin (the numeric join)', () => {
+compareBenches('map-region/value · regionValueJoin (the numeric join)', (bench) => {
 	// The choropleth's per-region pass: bin assignment, a formatted readout
 	// string, and the raw number, for every region. The format call allocates a
 	// string per region whether or not a tooltip ever shows it: 3,108 of them on

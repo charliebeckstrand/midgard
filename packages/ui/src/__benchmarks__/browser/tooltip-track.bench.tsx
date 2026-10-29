@@ -14,7 +14,7 @@
  * observer setup/teardown alone.
  */
 
-import { bench, describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { reactHost, WINDOW } from './harness'
 import { type Move, Probe, type Track } from './tooltip-probe'
 
@@ -45,8 +45,12 @@ function cycle(track: Track) {
 
 // A cycle runs sub-millisecond, so the default 500ms window already takes
 // thousands of samples; a wider one tightens the mean the small delta needs.
-describe(`tooltip · point-anchored · open + ${MOVES} moves + teardown`, () => {
-	bench('track: auto (autoUpdate)', () => cycle('auto'), WINDOW.settled)
+compareBenches(
+	`tooltip · point-anchored · open + ${MOVES} moves + teardown`,
+	(bench) => {
+		bench('track: auto (autoUpdate)', () => cycle('auto'))
 
-	bench('track: point', () => cycle('point'), WINDOW.settled)
-})
+		bench('track: point', () => cycle('point'))
+	},
+	WINDOW.settled,
+)

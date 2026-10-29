@@ -46,12 +46,12 @@
 import type { ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { describe } from 'vitest'
 import { cdp } from 'vitest/browser'
 import { Badge } from '../../components/badge'
 import { type DensityStep, writeRootDensity } from '../../core/density'
 import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
 import { Density } from '../../primitives/density'
+import { compareBenches } from '../compare'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtures'
 import { GRID_HEIGHT, GRID_WIDTH, painted } from './grids'
 import { benches, host, type Prepared, WINDOW } from './harness'
@@ -439,18 +439,34 @@ await cdp().send('Performance.disable')
 // The mounts and the sorts run at the `md` root, as the traced runs did.
 writeRootDensity(document.documentElement, 'md')
 
-describe('grid density · mount · 1,000 rows', () => {
-	benches(mounted, WINDOW.slow)
-})
+compareBenches(
+	'grid density · mount · 1,000 rows',
+	(bench) => {
+		benches(bench, mounted)
+	},
+	WINDOW.slow,
+)
 
-describe('grid density · sort · 1,000 rows · asc/desc flip', () => {
-	benches(sorted, WINDOW.slow)
-})
+compareBenches(
+	'grid density · sort · 1,000 rows · asc/desc flip',
+	(bench) => {
+		benches(bench, sorted)
+	},
+	WINDOW.slow,
+)
 
-describe('grid density · root switch sm/lg · 1,000 rows', () => {
-	benches(switched, WINDOW.slow)
-})
+compareBenches(
+	'grid density · root switch sm/lg · 1,000 rows',
+	(bench) => {
+		benches(bench, switched)
+	},
+	WINDOW.slow,
+)
 
-describe('grid density · matched-properties cache · show · 1,000 rows', () => {
-	benches(reshown, WINDOW.slow)
-})
+compareBenches(
+	'grid density · matched-properties cache · show · 1,000 rows',
+	(bench) => {
+		benches(bench, reshown)
+	},
+	WINDOW.slow,
+)
