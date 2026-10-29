@@ -206,11 +206,11 @@ export async function inlinePage(
  * The `@source inline(...)` rules of `ui` add the breakpoint classes that a
  * structure unit makes at run time. The full stylesheet needs each of them,
  * but the CSS of a page needs only those in its HTML. With the others, the
- * CSS of the Button page was 497 KB, and without them it is 176 KB.
+ * CSS of the Button page was 497 KB, and without them it was 176 KB.
  *
- * The docs have about 150 pages, and a pool with one thread for each core
- * writes them (`styles-worker.ts`). On the main thread, the step was the
- * longest part of the build.
+ * A pool with one thread for each core writes the pages
+ * (`styles-worker.ts`). On the main thread, the step was the longest part of
+ * the build.
  */
 export async function inlineCriticalCss(clientDir: string, stylesheet: string): Promise<void> {
 	const fontFaces = builtStylesheet(clientDir, stylesheet).match(FONT_FACE)?.join('') ?? ''

@@ -89,6 +89,13 @@ function withNode(text: string, node: ReactNode): ReactNode {
 	)
 }
 
+/**
+ * The language of the TSDoc of ui, which stays English in each language of
+ * the docs (CONVENTIONS.md §13.10). The `lang` of the text tells a screen
+ * reader to read it with an English voice.
+ */
+const TSDOC_LANG = 'en'
+
 const CHIP = 'rounded px-1.5 py-0.5 font-mono text-[0.8125rem]/5'
 
 const OPTION = cn(
@@ -225,13 +232,6 @@ function PropSection({
 		</Stack>
 	)
 }
-
-/**
- * The language of the TSDoc of ui, which stays English in each language of
- * the docs (CONVENTIONS.md §13.10). The `lang` of the text tells a screen
- * reader to read it with an English voice.
- */
-const TSDOC_LANG = 'en'
 
 /** The tags whose HTML attributes the component also takes. */
 function ElementsNote({ elements }: { elements: readonly string[] }) {

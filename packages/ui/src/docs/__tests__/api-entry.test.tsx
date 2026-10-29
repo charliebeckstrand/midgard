@@ -13,6 +13,37 @@ describe('ApiEntry', () => {
 		expect(container.textContent).toContain('Also takes the HTML attributes of <div>.')
 	})
 
+	it('lists each tag as code', () => {
+		const { container } = render(
+			<ApiEntry component={{ name: 'Box', props: [], events: [], elements: ['div', 'span'] }} />,
+		)
+
+		expect(container.textContent).toContain('Also takes the HTML attributes of <div>, <span>.')
+
+		expect([...container.querySelectorAll('code')].map((code) => code.textContent)).toEqual([
+			'<div>',
+			'<span>',
+		])
+	})
+
+	it('shows the default of a prop as code in its sentence', () => {
+		const { container } = render(
+			<ApiEntry
+				component={{
+					name: 'Box',
+					props: [{ name: 'size', type: 'string', default: "'md'" }],
+					events: [],
+				}}
+			/>,
+		)
+
+		const fallback = [...container.querySelectorAll('code')].find(
+			(code) => code.textContent === "'md'",
+		)
+
+		expect(fallback?.parentElement?.textContent).toBe("default 'md'")
+	})
+
 	it('says when the component takes no props of its own', () => {
 		render(<ApiEntry component={{ name: 'Spacer', props: [], events: [] }} />)
 
