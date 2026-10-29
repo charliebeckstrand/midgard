@@ -1,4 +1,4 @@
-import { type ComponentType, type ReactNode, useCallback } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import { CodeBlock, primeCodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { Flex } from 'ui/flex'
@@ -9,6 +9,7 @@ import { Stack } from 'ui/stack'
 import { useIsRtl } from '../../hooks/use-is-rtl.ts'
 import { usePanelResize } from '../../hooks/use-panel-resize.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
+import { createLazyModule, type LazyModule } from '../../utilities/lazy-module.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
 import { useLoadThenOpen } from './load-then-open.ts'
 import { exampleTitle } from './names.ts'
@@ -44,30 +45,31 @@ export function getMeta(component: { readonly name: string }): ExampleMeta {
 	return component
 }
 
-// Each example loads its code once, and each frame of it shares the load. The
-// examples of a folder share one code module. A load that fails keeps its
-// failure, as the browser does.
-const loads = new WeakMap<ExampleMeta, Promise<void>>()
+// The code of each example, as a chunk. Each frame of an example shares the
+// load, and the examples of a folder share one code module.
+const codeModules = new WeakMap<ExampleMeta, LazyModule<ExampleCode>>()
 
-// The code of each example whose load succeeded. A frame reads it in the
-// render, so an open block paints its code in the frame that opens it.
-const codes = new WeakMap<ExampleMeta, ExampleCode>()
+/** The code of the example of `meta`, as a chunk that loads once. */
+function getCodeModule(meta: ExampleMeta): LazyModule<ExampleCode> {
+	return getOrCompute(codeModules, meta, () =>
+		createLazyModule(() =>
+			meta.code().then((code) => {
+				// The markup from the build paints in the first frame of the block.
+				primeCodeBlock({ code: code.code, ...code.highlight })
 
-/** Loads the code of the example of `meta`, once. */
-export function loadCode(meta: ExampleMeta): Promise<void> {
-	return getOrCompute(loads, meta, () =>
-		meta.code().then((code) => {
-			// The markup from the build paints in the first frame of the block.
-			primeCodeBlock({ code: code.code, ...code.highlight })
-
-			codes.set(meta, code)
-		}),
+				return code
+			}),
+		),
 	)
 }
 
-function Code({ meta, print }: { meta: ExampleMeta; print?: (code: ExampleCode) => string }) {
-	const code = codes.get(meta)
-
+function Code({
+	code,
+	print,
+}: {
+	code: ExampleCode | null
+	print?: (code: ExampleCode) => string
+}) {
 	if (!code) return null
 
 	return (
@@ -134,12 +136,14 @@ export function ExampleFrame({
 }) {
 	// The code module loads in idle time, so "Show code" opens at once. It loads
 	// before that when the reader points at "Show code" or focuses it.
-	const load = useCallback(() => loadCode(meta), [meta])
-
-	const { open, change, warm } = useLoadThenOpen({
+	const {
+		module: code,
+		open,
+		change,
+		warm,
+	} = useLoadThenOpen({
 		initial: false,
-		load,
-		loaded: () => codes.has(meta),
+		lazy: getCodeModule(meta),
 	})
 
 	// The frame stays at its start edge, and the drag moves its end edge.
@@ -210,7 +214,7 @@ export function ExampleFrame({
 							</CollapseTrigger>
 						</div>
 						<CollapsePanel>
-							<Code meta={meta} print={print} />
+							<Code code={code} print={print} />
 						</CollapsePanel>
 					</Collapse>
 				</div>
