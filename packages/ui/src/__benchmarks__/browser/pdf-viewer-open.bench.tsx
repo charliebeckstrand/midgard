@@ -420,6 +420,10 @@ compareBenches(
  * @remarks Called from the first sample of a flip bench, not from the body of its group.
  * The body of a group runs before the benches of the group. A bench that resets the cache in
  * its samples would then take the document away before the flips run.
+ *
+ * Each flip bench has a group of its own for the same reason. Tinybench warms up each bench
+ * of a group before it runs one. The mount of the second bench would then reset the cache
+ * under the first, and the flips of the first would wait for a raster that never comes.
  */
 async function mountResident(count: number) {
 	resetDocumentCache()
@@ -455,7 +459,7 @@ async function mountResident(count: number) {
 }
 
 compareBenches(
-	'pdf viewer · page flip',
+	'pdf viewer · page flip · resident',
 	(bench) => {
 		let resident: ReturnType<typeof mountResident> | undefined
 
@@ -477,7 +481,13 @@ compareBenches(
 
 			await show(current)
 		})
+	},
+	{ time: 2_000 },
+)
 
+compareBenches(
+	'pdf viewer · page flip · far',
+	(bench) => {
 		let packet: ReturnType<typeof mountResident> | undefined
 
 		let step = 0
