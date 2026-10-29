@@ -68,7 +68,8 @@ export type ChatEmbedProps = {
  * all. A provider's own `fallback` replaces the module's line.
  *
  * Under `lazy`, the block defers once. When it first comes into view, the
- * provider records its address. A windowed transcript unmounts the row when it
+ * provider records its address. The module's stated fallback does not defer
+ * under any policy, because it is one line of text. A windowed transcript unmounts the row when it
  * leaves the window. When the row returns, the block draws at once rather than
  * through its reserved height again.
  *
@@ -93,8 +94,10 @@ export function ChatEmbed({ part, className }: ChatEmbedProps) {
 
 	// `always` pays the mount up front, so the view is live from the first render.
 	// It takes no observer and no hold: a held view would sit hidden, with its
-	// effects paused and no space reserved, until the reader reached it.
-	if (mount === 'always') {
+	// effects paused and no space reserved, until the reader reached it. The
+	// stated fallback is one line of text with nothing to hold back. Its
+	// placeholder would only collapse to the line and move the transcript.
+	if (mount === 'always' || render === statedFallback) {
 		return (
 			<div data-slot="chat-embed" data-embed={part.name} className={cn(k().embed.base, className)}>
 				{render(part)}
