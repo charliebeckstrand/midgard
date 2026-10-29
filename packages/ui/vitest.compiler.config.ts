@@ -35,7 +35,6 @@ export default mergeConfig(base, {
 		// Added to the projects of the base config.
 		projects: [
 			{
-				extends: true as const,
 				test: {
 					name: 'skips',
 					environment: 'node',

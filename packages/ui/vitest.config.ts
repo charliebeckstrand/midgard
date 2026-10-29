@@ -214,7 +214,6 @@ export default defineConfig({
 		coverage: { ...coverageScope, reporter: ['text', 'cobertura'] },
 		projects: [
 			{
-				extends: true as const,
 				// The suite of the docs app, under src/docs/__tests__, runs here too.
 				// The pages import the virtual modules of the docs plugin, so the
 				// smoke test of the pages (`page-smoke.test.tsx`) needs the real
@@ -265,7 +264,6 @@ export default defineConfig({
 				},
 			},
 			{
-				extends: true as const,
 				// Pure-function suites, selected by their `// @vitest-environment
 				// node` docblock (see `nodeEnvironmentFiles` above): a plain node
 				// environment on one shared worker, with no jsdom, no module
@@ -290,7 +288,6 @@ export default defineConfig({
 				},
 			},
 			{
-				extends: true as const,
 				// Architectural boundary suites (*-boundary.test.ts): node:fs walks
 				// over source text, no DOM, no React, no mocks. A plain node
 				// environment on one shared worker strips the per-file fork + jsdom
@@ -305,7 +302,6 @@ export default defineConfig({
 				},
 			},
 			{
-				extends: true as const,
 				// The boundary suites in `workspaceScans`, with the settings of `boundary`.
 				test: {
 					name: 'workspace',
@@ -315,7 +311,6 @@ export default defineConfig({
 				},
 			},
 			{
-				extends: true as const,
 				// Integration suites: the ones that vi.mock a shared source module
 				// (map-points-render) and need forks' per-file module graph for
 				// the mock to stay authoritative. A suite that needs a cold
@@ -343,7 +338,6 @@ export default defineConfig({
 				},
 			},
 			{
-				extends: true as const,
 				// Computational geometry (src/__tests__/geometry/): the pure
 				// functions that turn coordinates, boxes, and shapes into other
 				// coordinates, boxes, and shapes. Map projection, winding, and

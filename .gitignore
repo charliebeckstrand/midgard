@@ -23,6 +23,9 @@ test-results/
 packages/ui/coverage/
 packages/ui/test-results/
 
+# Vitest reports, attachments, and traces
+.vitest/
+
 # env
 .env*
 !.env.example
