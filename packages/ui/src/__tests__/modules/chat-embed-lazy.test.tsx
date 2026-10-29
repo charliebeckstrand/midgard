@@ -38,6 +38,15 @@ function Message({ mount }: { mount?: Mount }) {
 	)
 }
 
+/** A bubble that holds one embed whose name no renderer claims. */
+function Unclaimed() {
+	return (
+		<ChatEmbedProvider renderers={renderers}>
+			<ChatMessage>{[embed({ name: 'unclaimed' })]}</ChatMessage>
+		</ChatEmbedProvider>
+	)
+}
+
 describe('a held-back embed', () => {
 	it('does not call its renderer until the reader reaches it', () => {
 		// The whole point: a transcript of fifty views mounts the ones a reader
@@ -161,18 +170,49 @@ describe('the mount policy', () => {
 		expect(screen.getByTestId('chart')).toBeInTheDocument()
 	})
 
-	it('defers the module’s stated fallback too, since it is a block like any other', () => {
-		const { container } = renderUI(
-			<ChatEmbedProvider renderers={renderers}>
+	// The stated fallback is one line of text, so nothing is gained by holding
+	// it back. A placeholder of the reserved height would only collapse to the
+	// line when the reader reached it, and move the transcript under it.
+	it('draws the module’s stated fallback at once, with no placeholder', () => {
+		const { container } = renderUI(<Unclaimed />)
+
+		expect(bySlot(container, 'chat-embed-fallback')).toBeInTheDocument()
+
+		expect(bySlot(container, 'placeholder')).not.toBeInTheDocument()
+	})
+
+	it('defers the fallback of the provider, because it can draw a view', () => {
+		const fallback = vi.fn(() => <div data-testid="fallback">drawn</div>)
+
+		renderUI(
+			<ChatEmbedProvider renderers={renderers} fallback={fallback}>
 				<ChatMessage>{[embed({ name: 'unclaimed' })]}</ChatMessage>
 			</ChatEmbedProvider>,
 		)
 
-		expect(bySlot(container, 'chat-embed-fallback')).not.toBeInTheDocument()
+		expect(fallback).not.toHaveBeenCalled()
 
 		observer.reveal()
 
-		expect(bySlot(container, 'chat-embed-fallback')).toBeInTheDocument()
+		expect(screen.getByTestId('fallback')).toBeInTheDocument()
+	})
+})
+
+describe('the stated fallback on the server', () => {
+	it('draws in the server markup, and hydrates with no mismatch', () => {
+		const container = attach(document.createElement('div'))
+
+		const html = serverHtml(<Unclaimed />)
+
+		expect(html).toContain('data-slot="chat-embed-fallback"')
+
+		expect(html).not.toContain('data-slot="placeholder"')
+
+		container.innerHTML = html
+
+		const { onRecoverableError } = hydrate(container, <Unclaimed />)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
 	})
 })
 

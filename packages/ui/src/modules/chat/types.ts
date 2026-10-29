@@ -34,6 +34,10 @@ export type ChatEmbedRegistry = {
 	 * carry. A bar chart on every reply of a 500-message transcript costs about
 	 * seven times as much to mount as the same transcript carrying none.
 	 *
+	 * The module's own stated fallback is one line of text, so each policy
+	 * draws it at once. A `fallback` of the registry is a renderer, and the
+	 * policy holds it back as it holds any other.
+	 *
 	 * `always` mounts every renderer up front and live, for a caller who would
 	 * rather pay that than reserve space for one. It takes no viewport observer. `active` unmounts a renderer that scrolls
 	 * away, trading a remount (and whatever state the view held) for the
