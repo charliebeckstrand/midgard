@@ -12,6 +12,13 @@ import { isPrimaryPress } from '../../utilities/primary-press.ts'
  */
 export const [NavigateContext, useShellNavigate] = createContext<NavigateFunction>('Navigate')
 
+/**
+ * The time in ms that the reader points at a link or focuses it before the
+ * link loads the code of its page. It is the delay of the `prefetch="intent"`
+ * of the `Link` of React Router.
+ */
+const PREFETCH_DELAY = 100
+
 /** A click that the browser handles itself: a click with a modifier key, another button, or another target. */
 function isNativeClick(event: MouseEvent<HTMLAnchorElement>, target: string | undefined) {
 	return (
@@ -25,15 +32,15 @@ function isNativeClick(event: MouseEvent<HTMLAnchorElement>, target: string | un
 /**
  * The link of ui in the docs. A click on a path of the site goes through the
  * router, so a page switch keeps the shell. The link loads the code of its
- * page when the reader points at it or focuses it for 100 ms, as the
- * `prefetch="intent"` of `Link` does.
+ * page when the reader points at it or focuses it for {@link PREFETCH_DELAY},
+ * as the `prefetch="intent"` of `Link` does.
  *
  * A hash alone, such as `#disabled`, also goes through the router, to an
  * element of the current page.
  *
- * The `Link` of React Router reads the location and the route, so each of the
- * about 100 items of the sidebar renders again on each change of the router
- * state, and a navigation then spends a long time on those renders at 4x CPU.
+ * The `Link` of React Router reads the location and the route, so each item
+ * of the sidebar renders again on each change of the router state, and a
+ * navigation then spends a long time on those renders at 4x CPU.
  * This link reads only the `navigate` of the shell, and it reads the location
  * at the click.
  */
@@ -63,9 +70,9 @@ export function RouterLink({
 	// router, the entry is new, and the router scrolls to the element.
 	const internal = isPage || href.startsWith('#')
 
-	// A second hover or focus does not start the 100 ms again.
+	// A second hover or focus does not start the delay again.
 	const start = () => {
-		if (!timeout.pending()) timeout.set(() => setPrefetch(true), 100)
+		if (!timeout.pending()) timeout.set(() => setPrefetch(true), PREFETCH_DELAY)
 	}
 
 	const cancel = () => {

@@ -45,11 +45,13 @@ import { StaleBuildScript } from './stale-build.tsx'
 // main column, and the current item is in view at the first paint.
 const FIRST_PAINT = 'first-paint'
 
-// The document of each page. `UIDocument` holds `AppearanceProvider`, so each
-// prerendered file has the script of the latin face before its content. The
-// fallback for a path with no page renders no route, so a provider in a route
-// would leave that file with no latin face. The root element has the
-// language of the locale that the page renders in.
+/**
+ * The document of each page. `UIDocument` holds `AppearanceProvider`, so each
+ * prerendered file has the script of the latin face before its content. The
+ * fallback for a path with no page renders no route, so a provider in a route
+ * would leave that file with no latin face. The root element has the
+ * language of the locale that the page renders in.
+ */
 export function Layout({ children }: { children: ReactNode }) {
 	return (
 		<UIDocument

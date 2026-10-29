@@ -137,7 +137,7 @@ function getRank(value: Literal): number {
 	return typeof value === 'number' ? 2 : 3
 }
 
-// One locale for each sort, so that the order does not change with the locale of the build machine.
+/** The locale of each sort, so that the order does not change with the locale of the build machine. */
 export const LOCALE = 'en'
 
 const EVENT = /^on[A-Z]/
@@ -238,9 +238,9 @@ export const TASKS_AHEAD = 64
 /**
  * Creates an extractor that runs {@link createApiExtractor} in a worker thread
  * (`api-worker.ts`). The API of TypeScript is synchronous, and each call
- * waits for a reply of the TypeScript server. The docs need about 80,000
- * replies. In the thread, these waits do not stop the main thread, so Vite
- * transforms the other modules in that time. On the main thread, the waits
+ * waits for a reply of the TypeScript server. The docs make many calls. In
+ * the thread, these waits do not stop the main thread, so Vite transforms
+ * the other modules in that time. On the main thread, the waits
  * held the client build of the docs.
  *
  * The pool has one thread, and it sends up to {@link TASKS_AHEAD} tasks to
@@ -444,7 +444,7 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 
 	/**
 	 * The members of a union of literals, in order. A union that a package
-	 * names, such as the 300 languages of Shiki, keeps its name. A generic
+	 * names, such as the languages of Shiki, keeps its name. A generic
 	 * alias, such as `NonNullable<…>`, makes a union but gives it no name.
 	 */
 	function readValues(type: Type): Literal[] | undefined {
@@ -525,9 +525,9 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 		)
 
 		// The elements of the inherited events, such as `HTMLButtonElement`. A
-		// component inherits about 80 events, and most of them share a few
-		// handler types. One request gets the types of all of them, and each
-		// distinct type prints one time. A request for each event was most of the
+		// component inherits many events, and most of them share a few handler
+		// types. One request gets the types of all of them, and each distinct
+		// type prints one time. A request for each event was most of the
 		// requests of the extraction.
 		const types = new Set(checker.getTypeOfSymbol(inherited))
 
