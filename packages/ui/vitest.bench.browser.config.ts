@@ -43,6 +43,10 @@ export default defineConfig({
 			'react',
 			'react-dom',
 			'react-dom/client',
+			// The JSX of the benches compiles for the production runtime (`oxc`
+			// above). The scan starts from no test file here, so without this entry a
+			// cold cache finds the runtime at the first import and reloads the page.
+			'react/jsx-runtime',
 			'tinykeys',
 			'topojson-client',
 		],
