@@ -35,15 +35,17 @@ export type GlobalListener = {
  * page. Only that node passes `attachResizeListener`.
  *
  * jsdom makes one selector engine (`DOMSelector`) for each document on the
- * first query, and the engine puts its focus, key, and mouse listeners on the
- * window, with no removal. A test that parses HTML into a new document thus
+ * first query, and the `Finder` of the engine puts its focus, key, and mouse
+ * listeners on the window, with no removal. The stack names the constructor
+ * differently from run to run, so the record matches the method that adds the
+ * listeners. A test that parses HTML into a new document thus
  * adds them. The record sees them since Vitest 5.
  */
 const ONCE_PER_PAGE = [
 	'listenToAllSupportedEvents',
 	'prepareDocument',
 	'attachResizeListener',
-	'new DOMSelector',
+	'Finder._registerEventListeners',
 ]
 
 /** How many frames of the adding stack a report carries. */
