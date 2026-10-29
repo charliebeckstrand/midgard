@@ -959,7 +959,19 @@ describe('the range legend under quantile binning, continued', () => {
 		expect(track).toHaveAttribute('aria-valuetext', '0–30')
 
 		// A click focuses the track with no probe. The first arrow wakes the probe
-		// where the slider sits, so it cannot skip the lowest class.
+		// where the slider sits, so it cannot skip the lowest class. A click shows
+		// no ring, so the test sets `:focus-visible` to no match itself. jsdom
+		// matches it after a Tab press that an earlier test in the worker leaves as
+		// the last key, and the focus then wakes the probe.
+		const matches = Element.prototype.matches
+
+		vi.spyOn(Element.prototype, 'matches').mockImplementation(function (
+			this: Element,
+			selector: string,
+		) {
+			return selector === ':focus-visible' ? false : matches.call(this, selector)
+		})
+
 		act(() => track.focus())
 
 		fireEvent.keyDown(track, { key: 'ArrowUp' })
