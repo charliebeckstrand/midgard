@@ -19,18 +19,26 @@ const page = (category: string, name: string): PageLink => ({
 	tabs: [],
 })
 
-/** The pages in the order of the plugin: by section, then by name. The letters are A, B, C, E, L, and U. */
-const PAGES = [
+/** The components, the pages of the rail. The letters are A, B, C, E, L, and U. */
+const COMPONENTS = [
 	page('components', 'Accordion'),
 	page('components', 'Alert'),
 	page('components', 'Badge'),
 	page('components', 'Button'),
 	page('components', 'Calendar'),
 	page('components', 'Card'),
+	page('components', 'Editor'),
+	page('components', 'Locale'),
+	page('components', 'UI'),
+]
+
+/** The pages in the order of the plugin: the components first, then each other section, by name. */
+const PAGES = [
+	...COMPONENTS,
 	page('modules', 'Chart'),
 	page('modules', 'Editor'),
-	page('providers', 'Locale'),
-	page('providers', 'UI'),
+	page('modules', 'Form'),
+	page('modules', 'Grid'),
 ]
 
 const HEADING = 30
@@ -98,10 +106,10 @@ function layOut(body: HTMLElement) {
 	})
 }
 
-function renderSidebar() {
+function renderSidebar(pages = PAGES) {
 	const { container } = render(
 		<DocsSearch>
-			<DocsSidebar pages={PAGES} />
+			<DocsSidebar pages={pages} />
 		</DocsSearch>,
 	)
 
@@ -117,7 +125,7 @@ function renderSidebar() {
 
 	Object.defineProperty(track, 'getBoundingClientRect', {
 		value: () =>
-			DOMRect.fromRect({ y: TRACK_TOP, width: 28, height: BAND * getLetters(PAGES).length }),
+			DOMRect.fromRect({ y: TRACK_TOP, width: 28, height: BAND * getLetters(COMPONENTS).length }),
 	})
 
 	track.setPointerCapture = vi.fn()
@@ -173,7 +181,7 @@ describe('bandAt', () => {
 
 describe('getLetters', () => {
 	it('gives each letter that starts a page once, in alphabetical order', () => {
-		expect(getLetters(PAGES)).toEqual(['A', 'B', 'C', 'E', 'L', 'U'])
+		expect(getLetters(COMPONENTS)).toEqual(['A', 'B', 'C', 'E', 'L', 'U'])
 	})
 })
 
@@ -191,22 +199,22 @@ describe('LetterRail', () => {
 		expect(active()).toBe('B')
 	})
 
-	it('shows the letter of the page at the top at the end of the body too', () => {
+	it('shows no letter when the components are above the top', () => {
 		const { body, active } = renderSidebar()
 
-		// At the end, Chart is the first page at the top, though Locale and UI are in view under it.
-		body.scrollTop = HEADING * 3 + ITEM * 10 - VIEW
+		// UI, the last component, is half in view at the top.
+		body.scrollTop = HEADING + ITEM * 8 + ITEM / 2 - 1
 
 		fireEvent.scroll(body)
 
-		expect(active()).toBe('C')
+		expect(active()).toBe('U')
 
-		// Button is half in view at the top.
-		body.scrollTop = HEADING + ITEM * 3 + ITEM / 2 - 1
+		// The modules are at the top. Their pages have no letter, though Chart and Editor start with C and E.
+		body.scrollTop = HEADING * 2 + ITEM * 9
 
 		fireEvent.scroll(body)
 
-		expect(active()).toBe('B')
+		expect(active()).toBeUndefined()
 	})
 
 	it('selects the letter whose band holds the press, at each edge of the band', () => {
@@ -245,12 +253,12 @@ describe('LetterRail', () => {
 	})
 
 	it('keeps the letter of a jump that the body cannot bring to the top', () => {
-		const { body, track, active } = renderSidebar()
+		const { body, track, active } = renderSidebar(COMPONENTS)
 
 		tap(track, inBand(3))
 
-		// Editor is near the end, so the body stops at the end of its content.
-		expect(body.scrollTop).toBe(HEADING * 3 + ITEM * 10 - VIEW)
+		// With no section after the components, Editor is near the end, so the body stops at the end of its content.
+		expect(body.scrollTop).toBe(HEADING + ITEM * 9 - VIEW)
 
 		fireEvent.scroll(body)
 
