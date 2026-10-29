@@ -34,25 +34,12 @@ export function bandAt(y: number, top: number, height: number, count: number): n
 /** The page links in `body`, in the order of the sidebar, which is also the order of their position. */
 const getLinks = (body: HTMLElement) => body.querySelectorAll<HTMLElement>('[data-letter]')
 
-/** The first page link of each letter in `body`, in the order of the sidebar. A jump to a letter goes to its link. */
-function getTargets(body: HTMLElement): HTMLElement[] {
-	const seen = new Set<string | undefined>()
-
-	return Array.from(getLinks(body)).filter((link) => {
-		if (seen.has(link.dataset.letter)) return false
-
-		seen.add(link.dataset.letter)
-
-		return true
-	})
-}
-
 /**
  * The element that a jump to `link` brings to the top of the body: the item
  * of the link, or the section of the item when the item is the first in its
  * section, so that the heading of the section comes with the first page.
  */
-function getAnchor(link: HTMLElement): Element | undefined {
+function getAnchor(link: Element): Element | undefined {
 	const item = link.closest('[data-slot="sidebar-item"]')
 
 	if (!item) return undefined
@@ -62,9 +49,14 @@ function getAnchor(link: HTMLElement): Element | undefined {
 	return section?.querySelector('[data-slot="sidebar-item"]') === item ? section : item
 }
 
-/** Scrolls `body` so that the first page with `letter` is at its top. */
+/**
+ * Scrolls `body` so that the first page with `letter` is at its top. The first
+ * match in the order of the document is the first link of the letter in the
+ * sidebar. A page name is a word of the code (`plugin/pages.ts`), so the letter
+ * needs no escape in the selector.
+ */
 function scrollToLetter(body: HTMLElement, letter: string) {
-	const link = getTargets(body).find((candidate) => candidate.dataset.letter === letter)
+	const link = body.querySelector(`[data-letter="${letter}"]`)
 
 	const anchor = link && getAnchor(link)
 

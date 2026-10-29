@@ -1,8 +1,9 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router'
-import { beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeAll, describe, expect, onTestFinished, vi } from 'vitest'
 import { deferred } from '../../__tests__/helpers/deferred.ts'
 import { FailBoundary } from '../../__tests__/helpers/fail-boundary.tsx'
+import { it } from '../../__tests__/helpers/fake-clock.ts'
 import { tick } from '../../__tests__/helpers/frames.ts'
 import { getSlot } from '../../__tests__/helpers/slot-queries.ts'
 import { ApiTable } from '../kit/api-table.tsx'
@@ -81,6 +82,67 @@ describe('ExampleFrame', () => {
 		fireEvent.click(trigger)
 
 		expect(await screen.findByText('Failed')).not.toBeNull()
+	})
+
+	// The chunk forgets a failed load, so a load that failed in the background,
+	// such as on a bad network, does not stop a later open.
+	it('loads the code again when the reader opens "Show code" after a failed background load', async () => {
+		const code = deferred<ExampleCode>()
+
+		const load = vi
+			.fn<() => Promise<ExampleCode>>()
+			.mockRejectedValueOnce(new Error('Failed to fetch dynamically imported module'))
+			.mockReturnValue(code.promise)
+
+		const meta: ExampleMeta = { title: 'Basic', id: 'basic', code: load }
+
+		const { container } = render(
+			<ExampleFrame meta={meta}>
+				<span>Instance</span>
+			</ExampleFrame>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Show code' })
+
+		await act(async () => {
+			fireEvent.pointerEnter(trigger)
+		})
+
+		fireEvent.click(trigger)
+
+		code.resolve({
+			code: 'const answer = 42',
+			highlight: {
+				html: '<pre class="shiki"><code>const answer = 42</code></pre>',
+				bg: '#0d1117',
+				type: 'dark',
+			},
+		})
+
+		const panel = await waitFor(() => getSlot(container, 'collapse-panel'))
+
+		expect(panel.textContent).toContain('const answer = 42')
+	})
+
+	// Safari has no `requestIdleCallback`. The kit starts its idle work at once
+	// there, and not after the delay of the idle loads of `ui`.
+	it('starts the code load at once in a browser with no requestIdleCallback', async ({ clock }) => {
+		// The setup restores the stub after the test.
+		vi.stubGlobal('requestIdleCallback', undefined)
+
+		const load = vi.fn(() => new Promise<ExampleCode>(() => {}))
+
+		render(
+			<ExampleFrame meta={{ title: 'Basic', id: 'basic', code: load }}>
+				<span>Instance</span>
+			</ExampleFrame>,
+		)
+
+		expect(load).not.toHaveBeenCalled()
+
+		await clock.advance(1)
+
+		expect(load).toHaveBeenCalledOnce()
 	})
 })
 

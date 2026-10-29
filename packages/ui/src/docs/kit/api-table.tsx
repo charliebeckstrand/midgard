@@ -6,6 +6,7 @@ import { Link } from 'ui/link'
 import { defineMessage, IntlMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
+import { createLazyModule } from '../../utilities/lazy-module.ts'
 import type { BarrelApi } from '../plugin/api.ts'
 import { API, componentOfHash, toApiId } from './anchors.ts'
 import { useLoadThenOpen } from './load-then-open.ts'
@@ -27,24 +28,11 @@ const englishNoteMessage = defineMessage({
 
 // The entry renders TSDoc as Markdown, so it carries `marked`. It is a chunk
 // of its own, so it does not delay the first paint. It loads in idle time
-// after the mount, or before that when the reader points at the list. A load
-// that fails keeps its failure, as the browser does.
+// after the mount, or before that when the reader points at the list. Each
+// table shares the load.
 type EntryModule = typeof import('./api-entry.tsx')
 
-let entry: Promise<EntryModule> | undefined
-
-// The entry component, when its chunk is loaded.
-let ApiEntry: EntryModule['ApiEntry'] | undefined
-
-function loadEntry(): Promise<EntryModule> {
-	entry ??= import('./api-entry.tsx').then((module) => {
-		ApiEntry = module.ApiEntry
-
-		return module
-	})
-
-	return entry
-}
+const entryModule = createLazyModule(() => import('./api-entry.tsx'))
 
 /**
  * The API reference of a barrel: one entry for each component, in the name
@@ -66,10 +54,14 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 		[api],
 	)
 
-	const { open, change, warm } = useLoadThenOpen<string[], EntryModule>({
+	const {
+		module: entry,
+		open,
+		change,
+		warm,
+	} = useLoadThenOpen<string[], EntryModule>({
 		initial: [],
-		load: loadEntry,
-		loaded: () => ApiEntry !== undefined,
+		lazy: entryModule,
 		prime: primeEntry,
 	})
 
@@ -153,7 +145,7 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 							<AccordionTrigger className="font-mono">
 								<span id={toApiId(component.name)} translate="no">{`<${component.name} />`}</span>
 							</AccordionTrigger>
-							<AccordionPanel>{ApiEntry && <ApiEntry component={component} />}</AccordionPanel>
+							<AccordionPanel>{entry && <entry.ApiEntry component={component} />}</AccordionPanel>
 						</AccordionItem>
 					))}
 				</Accordion>
