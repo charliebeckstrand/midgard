@@ -30,10 +30,10 @@ export function groupSections(
 // An item is current on its page. The shell gives `UIProvider` the path of the
 // matched page, which is the same on each tab of the page. The item reads the
 // path from `UIProvider`, so a navigation renders only the two items whose
-// match changes.
-const PageItem = memo(function PageItem({ page }: { page: PageLink }) {
+// match changes. Only a page of the letter rail has a letter.
+const PageItem = memo(function PageItem({ page, lettered }: { page: PageLink; lettered: boolean }) {
 	return (
-		<SidebarItem href={page.path} data-letter={getInitial(page)}>
+		<SidebarItem href={page.path} data-letter={lettered ? getInitial(page) : undefined}>
 			<SidebarLabel>{page.name}</SidebarLabel>
 		</SidebarItem>
 	)
@@ -50,6 +50,10 @@ export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonl
 	const intl = useIntl()
 
 	const sections = groupSections(pages)
+
+	// The letter rail covers the components, the first section. Past them, the
+	// rail shows no letter.
+	const components = sections[0]?.links ?? []
 
 	return (
 		<Sidebar>
@@ -72,14 +76,14 @@ export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonl
 								</Text>
 								<SidebarList aria-label={label}>
 									{links.map((page) => (
-										<PageItem key={page.path} page={page} />
+										<PageItem key={page.path} page={page} lettered={links === components} />
 									))}
 								</SidebarList>
 							</SidebarSection>
 						)
 					})}
 				</SidebarBody>
-				<LetterRail pages={pages} bodyRef={bodyRef} />
+				<LetterRail pages={components} bodyRef={bodyRef} />
 			</Flex>
 		</Sidebar>
 	)

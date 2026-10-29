@@ -9,7 +9,9 @@ import type { PageLink } from '../plugin/pages.ts'
 // The letter rail at the side of the sidebar body. A press on a letter scrolls
 // the body to the first page with that letter, and a slide along the rail
 // follows the finger from letter to letter. The rail shows the letter of the
-// page at the top of the body, and mutes the other letters.
+// page at the top of the body, and mutes the other letters. A page of the
+// rail has a letter, and a page after the pages of the rail has none, so when
+// the pages of the rail are above the top, the rail shows no letter.
 
 /** The letter that a page files under: the first character of its name, in upper case. */
 export function getInitial(page: PageLink): string {
@@ -65,7 +67,11 @@ function scrollToLetter(body: HTMLElement, letter: string) {
 	body.scrollTop += anchor.getBoundingClientRect().top - body.getBoundingClientRect().top
 }
 
-/** The letter of the page at the top of `body`: the first page whose row is at least half in view. */
+/**
+ * The letter of the page at the top of `body`: the first page with a letter
+ * whose row is at least half in view. When each page with a letter is above
+ * the top, there is no letter.
+ */
 function letterAtTop(body: HTMLElement): string | undefined {
 	const top = body.getBoundingClientRect().top
 
