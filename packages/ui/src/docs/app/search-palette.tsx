@@ -189,6 +189,10 @@ function Results({ onPick }: { onPick: () => void }) {
 	// name, such as "Botón" for Button. The query also matches the English
 	// place, so an English word, such as "sorting", finds the same entries in
 	// each language.
+	//
+	// The memo stays under the React Compiler. The compiler puts this value in
+	// the scope of the matches, so each change of the query would localize each
+	// entry again.
 	const localized = useMemo(
 		() =>
 			options.map((option) => {
@@ -199,7 +203,7 @@ function Results({ onPick }: { onPick: () => void }) {
 		[intl],
 	)
 
-	const matches = useMemo(() => matchEntries(localized, query), [localized, query])
+	const matches = matchEntries(localized, query)
 
 	return (
 		<>

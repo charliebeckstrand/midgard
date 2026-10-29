@@ -1,4 +1,4 @@
-import { type ComponentType, type ReactNode, useCallback } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import { CodeBlock, primeCodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { Flex } from 'ui/flex'
@@ -134,7 +134,7 @@ export function ExampleFrame({
 }) {
 	// The code module loads in idle time, so "Show code" opens at once. It loads
 	// before that when the reader points at "Show code" or focuses it.
-	const load = useCallback(() => loadCode(meta), [meta])
+	const load = () => loadCode(meta)
 
 	const { open, change, warm } = useLoadThenOpen({
 		initial: false,
@@ -149,7 +149,14 @@ export function ExampleFrame({
 
 	const title = exampleTitle(intl, meta.id, meta.title)
 
-	const resize = usePanelResize({
+	// The hook gives the ref of the frame in an object. When JSX reads the ref
+	// from that object, the React Compiler takes the whole object for a ref and
+	// skips the component, so the frame takes each part on its own.
+	const {
+		ref: frameRef,
+		size,
+		handleProps,
+	} = usePanelResize({
 		side: rtl ? 'right' : 'left',
 		open: true,
 		getFloor: frameFloor,
@@ -166,16 +173,16 @@ export function ExampleFrame({
 				{actions}
 			</Flex>
 			<div
-				ref={resize.ref}
-				style={resize.size === null ? undefined : { width: resize.size }}
+				ref={frameRef}
+				style={size === null ? undefined : { width: size }}
 				className="relative min-w-40 max-w-full"
 			>
 				{/* The drag area comes before the box, so the box can show the border as active. */}
 				<div
 					aria-hidden
 					data-slot="example-resize"
-					onPointerDown={resize.handleProps.onPointerDown}
-					data-dragging={resize.handleProps['data-dragging']}
+					onPointerDown={handleProps.onPointerDown}
+					data-dragging={handleProps['data-dragging']}
 					className="peer absolute inset-y-0 -end-3 z-10 w-6 cursor-ew-resize touch-pan-y select-none pointer-coarse:pointer-events-none"
 				>
 					{/* The bar has an odd width, so it centers on the 1px border at whole pixels. */}

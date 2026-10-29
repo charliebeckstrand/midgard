@@ -46,6 +46,7 @@
 				"!src/__benchmarks__/**",
 				"tailwind.css",
 				"tsconfig.json",
+				"vitest.compiler.preset.ts",
 				"$TURBO_ROOT$/tsconfig.base.json"
 			],
 			"outputs": ["src/docs/dist/**"]

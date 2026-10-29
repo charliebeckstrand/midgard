@@ -31,6 +31,10 @@ export function groupSections(
 // matched page, which is the same on each tab of the page. The item reads the
 // path from `UIProvider`, so a navigation renders only the two items whose
 // match changes.
+//
+// The item keeps its `memo`. A change of the locale renders the sidebar again,
+// and the React Compiler does not memoize the JSX that a `map` callback makes.
+// Without the `memo`, each item would render again for that change.
 const PageItem = memo(function PageItem({ page }: { page: PageLink }) {
 	return (
 		<SidebarItem href={page.path} data-letter={getInitial(page)}>
@@ -42,9 +46,10 @@ const PageItem = memo(function PageItem({ page }: { page: PageLink }) {
 /**
  * The sidebar of the docs: the button of the search, the pages of each
  * section, and the letter rail. The shell renders again on each change of the
- * router state, and the props do not change, so the sidebar memoizes.
+ * router state. The props do not change, so the React Compiler keeps the
+ * element of the sidebar in the shell, and the sidebar does not render again.
  */
-export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonly PageLink[] }) {
+export function DocsSidebar({ pages }: { pages: readonly PageLink[] }) {
 	const bodyRef = useRef<HTMLDivElement>(null)
 
 	const intl = useIntl()
@@ -83,4 +88,4 @@ export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonl
 			</Flex>
 		</Sidebar>
 	)
-})
+}

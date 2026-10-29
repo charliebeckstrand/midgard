@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
+import { useEffect, useEffectEvent, useRef } from 'react'
 import { useLocation } from 'react-router'
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from 'ui/accordion'
 import { Heading } from 'ui/heading'
@@ -61,10 +61,7 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 
 	// In idle time, the entry also lexes the Markdown of the API data in short
 	// slices, so the first entry that opens does not lex.
-	const primeEntry = useCallback(
-		(module: EntryModule, signal: AbortSignal) => module.primeApi(api, signal),
-		[api],
-	)
+	const primeEntry = (module: EntryModule, signal: AbortSignal) => module.primeApi(api, signal)
 
 	const { open, change, warm } = useLoadThenOpen<string[], EntryModule>({
 		initial: [],

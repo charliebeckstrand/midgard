@@ -2,6 +2,7 @@ import path from 'node:path'
 import { reactRouter } from '@react-router/dev/vite'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
+import { compileDocs } from '../../vitest.compiler.preset.ts'
 import { serverAssetUrls, serverStylesheetUrl } from './plugin/asset-urls.ts'
 import { reactDocs } from './plugin/index.ts'
 
@@ -15,6 +16,9 @@ export default defineConfig({
 	root: import.meta.dirname,
 	plugins: [
 		reactDocs({ clientDir }),
+		// The React Compiler, as in the apps. It reads each module after the docs
+		// plugin (`compileDocs`).
+		compileDocs(),
 		serverAssetUrls(),
 		serverStylesheetUrl(path.join(import.meta.dirname, 'app', 'app.css'), clientDir),
 		tailwindcss(),

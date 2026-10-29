@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react'
-import { type ReactNode, use, useMemo, useRef, useState } from 'react'
+import { type ReactNode, use, useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import { createContext } from 'ui/core'
 import { useIntentLoad } from 'ui/hooks'
@@ -68,10 +68,7 @@ export function DocsSearch({ children }: { children: ReactNode }) {
 
 	const pick = useStableEvent(() => onPickRef.current?.())
 
-	const state = useMemo(
-		() => ({ open, setOpen, palette, request, preload, pick }),
-		[open, palette, request, preload, pick],
-	)
+	const state = { open, setOpen, palette, request, preload, pick }
 
 	return <SearchContext value={state}>{children}</SearchContext>
 }
