@@ -1,5 +1,6 @@
 import type { IntlShape } from 'ui/primitives/intl'
 import { defineMessages } from '../../primitives/intl/intl-messages.ts'
+import type { Literal } from '../plugin/api.ts'
 import { humanize } from './humanize.ts'
 
 // The docs show some names from the source as text: the title of an example
@@ -129,6 +130,11 @@ export function tabName(intl: IntlShape, slug: string, name: string): string {
  */
 export function toPropId(prop: string, value?: string): string {
 	return value === undefined ? `${PROP_ID}${prop}` : `${PROP_ID}${prop}.${value}`
+}
+
+/** A literal as code, with a string in single quotes: `md` gives `'md'`, and `2` gives `2`. */
+export function formatLiteral(value: Literal): string {
+	return typeof value === 'string' ? `'${value}'` : String(value)
 }
 
 /** The English text of the option `value`: `bottom-start` gives "Bottom start", and `xs` gives "Extra small". */

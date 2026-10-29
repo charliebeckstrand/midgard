@@ -14,6 +14,7 @@ import { k } from '../../recipes/kata/json-tree.ts'
 import type { BarrelApi, ComponentApi, PropApi } from '../plugin/api.ts'
 import { toApiId } from './anchors.ts'
 import { runInSlices } from './idle.ts'
+import { formatLiteral } from './names.ts'
 import { scrollToPending, usePendingAnchor } from './pending-anchor.ts'
 
 const messages = defineMessages({
@@ -132,7 +133,7 @@ function PropFacts({ prop }: { prop: PropApi }) {
 			<Flex as="span" align="baseline" gap="sm" wrap>
 				{options?.map((option) => (
 					<code key={String(option)} className={OPTION}>
-						{typeof option === 'string' ? `'${option}'` : String(option)}
+						{formatLiteral(option)}
 					</code>
 				))}
 				{type && <code className={TYPE}>{type}</code>}

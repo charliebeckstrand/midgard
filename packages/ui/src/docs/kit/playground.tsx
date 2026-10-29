@@ -22,7 +22,7 @@ import type { ExampleCode } from '../plugin/examples.ts'
 import { ExampleFrame, getMeta } from './example.tsx'
 import { buildFields, type ChoiceField, type Field, type FreeField, type Value } from './fields.ts'
 import { isWord } from './humanize.ts'
-import { propLabel, valueLabel } from './names.ts'
+import { formatLiteral, propLabel, valueLabel } from './names.ts'
 
 type Values = { readonly [prop: string]: Value | undefined }
 
@@ -184,11 +184,6 @@ function resolveValues(fields: readonly Field[], picked: Values): Values {
 	)
 }
 
-/** A literal as code, with a string in single quotes. */
-function formatCode(value: Literal): string {
-	return typeof value === 'string' ? `'${value}'` : String(value)
-}
-
 /**
  * A prop as a JSX attribute. A string with a quote in it goes in braces, and
  * so does a value for each breakpoint.
@@ -196,7 +191,7 @@ function formatCode(value: Literal): string {
 function attribute(name: string, value: Value): string {
 	if (typeof value === 'object') {
 		const entries = Object.entries(value).map(
-			([bp, entry]) => `${/^\d/.test(bp) ? `'${bp}'` : bp}: ${formatCode(entry)}`,
+			([bp, entry]) => `${/^\d/.test(bp) ? `'${bp}'` : bp}: ${formatLiteral(entry)}`,
 		)
 
 		return `${name}={{ ${entries.join(', ')} }}`
@@ -447,7 +442,7 @@ export function Playground<P extends object>({
 				<Rail label={intl.formatMessage(messages.props)}>
 					{fields.map((field) => {
 						const handleValueChange = (value: Value | undefined) =>
-							setPicked({ ...picked, [field.name]: value })
+							setPicked((prev) => ({ ...prev, [field.name]: value }))
 
 						return field.kind === 'choice' ? (
 							<FieldPicker

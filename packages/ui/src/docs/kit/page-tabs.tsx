@@ -80,11 +80,15 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 			}}
 		>
 			<TabList aria-label={intl.formatMessage(sectionsMessage)}>
-				{tabs.map((tab) => (
-					<Tab key={tab} value={toSlug(tab)} onPreload={setIntent}>
-						{tabName(intl, toSlug(tab), tab)}
-					</Tab>
-				))}
+				{tabs.map((tab) => {
+					const slug = toSlug(tab)
+
+					return (
+						<Tab key={tab} value={slug} onPreload={setIntent}>
+							{tabName(intl, slug, tab)}
+						</Tab>
+					)
+				})}
 			</TabList>
 			{intent && intent !== home && <PrefetchPageLinks page={`${page}/${intent}`} />}
 			<TabContents animate={false}>
