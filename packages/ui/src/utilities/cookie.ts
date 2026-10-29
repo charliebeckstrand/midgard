@@ -1,15 +1,26 @@
 /**
- * The value of the cookie `name` in this page, or `undefined` with no such
- * cookie. Call it in the browser only.
+ * The value of the cookie `name` in `cookies`, or `undefined` with no such
+ * cookie or with a value that does not decode. With no `cookies`, it reads the
+ * cookies of this page, so the call is in the browser only. A server gives the
+ * `Cookie` header of the request.
  *
  * @internal
  */
-export function readCookie(name: string): string | undefined {
+export function readCookie(name: string, cookies: string = document.cookie): string | undefined {
 	const prefix = `${name}=`
 
-	const entry = document.cookie.split('; ').find((part) => part.startsWith(prefix))
+	const entry = cookies
+		.split(';')
+		.map((part) => part.trim())
+		.find((part) => part.startsWith(prefix))
 
-	return entry === undefined ? undefined : decodeURIComponent(entry.slice(prefix.length))
+	if (entry === undefined) return undefined
+
+	try {
+		return decodeURIComponent(entry.slice(prefix.length))
+	} catch {
+		return undefined
+	}
 }
 
 /**

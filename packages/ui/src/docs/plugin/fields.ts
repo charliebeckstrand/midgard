@@ -43,12 +43,14 @@ function findImport(program: ESTree.Program, name: string): string | undefined {
 	return undefined
 }
 
-/** The initial value of the exported `const` named `name` in `program`, or `undefined`. */
-function findConst(program: ESTree.Program, name: string): ESTree.Expression | undefined {
+/**
+ * The initial value of the top-level `const` named `name` in `program`, with
+ * or without `export`, or `undefined`.
+ */
+export function findConst(program: ESTree.Program, name: string): ESTree.Expression | undefined {
 	for (const statement of program.body) {
-		if (statement.type !== 'ExportNamedDeclaration') continue
-
-		const { declaration } = statement
+		const declaration =
+			statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement
 
 		if (declaration?.type !== 'VariableDeclaration') continue
 

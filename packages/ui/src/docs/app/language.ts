@@ -1,4 +1,5 @@
 import { CATALOG_LOCALES, LOCALE_COOKIE, resolveRequestLocale } from 'ui/providers/locale'
+import { readCookie } from '../../utilities/cookie.ts'
 
 // The docs have one HTML file for each page in each language: `index.html`
 // in English, and `index.<locale>.html` in each other language, such as
@@ -21,24 +22,6 @@ import { CATALOG_LOCALES, LOCALE_COOKIE, resolveRequestLocale } from 'ui/provide
  */
 export const LOCALES = CATALOG_LOCALES
 
-/** The value of the cookie `name` in the `Cookie` header `header`, or `undefined`. */
-function readCookieHeader(header: string, name: string): string | undefined {
-	const prefix = `${name}=`
-
-	const entry = header
-		.split(';')
-		.map((part) => part.trim())
-		.find((part) => part.startsWith(prefix))
-
-	if (entry === undefined) return undefined
-
-	try {
-		return decodeURIComponent(entry.slice(prefix.length))
-	} catch {
-		return undefined
-	}
-}
-
 /**
  * The locale of a request: the locale that the reader chose in the settings,
  * from its cookie, else the match of the `Accept-Language` header, else the
@@ -50,7 +33,7 @@ export function requestLocale(headers: {
 	acceptLanguage?: string | null
 }): string {
 	return resolveRequestLocale({
-		cookie: headers.cookie ? readCookieHeader(headers.cookie, LOCALE_COOKIE) : undefined,
+		cookie: headers.cookie ? readCookie(LOCALE_COOKIE, headers.cookie) : undefined,
 		acceptLanguage: headers.acceptLanguage,
 		locales: LOCALES,
 	})
