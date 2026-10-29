@@ -14,7 +14,10 @@
 import { act } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { createRoot } from 'react-dom/client'
-import { bench } from 'vitest'
+import type { Bench } from 'vitest'
+
+/** The constructor of each `async` function. */
+const AsyncFunction = (async () => {}).constructor
 
 /** A tree this harness owns: its own container, its own teardown. */
 type Mounted = {
@@ -69,9 +72,9 @@ function mount(element: ReactElement): Mounted {
 /**
  * A tree that one or more benches drive across every iteration (a hover
  * cascade, a resize burst), rather than remounting per sample. Each bench
- * registered through `bench` mounts its own copy of the tree in its cycle
- * setup, runs `prepare` on the container, and tears the tree down in its cycle
- * teardown. The timed body gets the prepared state.
+ * registered through `bench` mounts its own copy of the tree before each phase
+ * (warmup and run), runs `prepare` on the container, and tears the tree down
+ * after the phase. The timed body gets the prepared state.
  *
  * @remarks The tree mounts only while its own bench runs. A tree that mounted
  * at collection time stayed in the one document for the whole file, so each
@@ -83,29 +86,45 @@ function mount(element: ReactElement): Mounted {
  * move between or an open session.
  */
 export function persistentTree<S>(
+	bench: Bench,
 	element: ReactElement,
 	prepare: (container: HTMLElement) => S,
-): { bench: (name: string, fn: (state: S) => void) => void } {
+): { bench: (name: string, fn: (state: S) => void | Promise<void>) => void } {
 	return {
 		bench(name, fn) {
 			let mounted: Mounted | null = null
 
 			let state: S | undefined
 
-			bench(name, () => fn(state as S), {
-				setup() {
-					mounted = mount(element)
+			bench(
+				name,
+				{
+					beforeAll() {
+						mounted = mount(element)
 
-					state = prepare(mounted.container)
+						state = prepare(mounted.container)
+					},
+					afterAll() {
+						mounted?.unmount()
+
+						mounted = null
+
+						state = undefined
+					},
 				},
-				teardown() {
-					mounted?.unmount()
-
-					mounted = null
-
-					state = undefined
-				},
-			})
+				// tinybench calls a function that is not `async` one time when it
+				// registers it, to find whether it gives a promise. Here that call has no
+				// state, so it throws, and tinybench takes the bench as sync. A sync body
+				// thus drops what `fn` gives, such as the thenable of `act`, and an
+				// `async` body awaits it.
+				fn instanceof AsyncFunction
+					? async () => {
+							await fn(state as S)
+						}
+					: () => {
+							fn(state as S)
+						},
+			)
 		},
 	}
 }
@@ -123,7 +142,7 @@ export function sharedTree(element: ReactElement): HTMLElement {
 }
 
 /** Registers one full mount-plus-teardown bench: the jsdom initial-render cost. */
-export function mountBench(name: string, element: () => ReactElement) {
+export function mountBench(bench: Bench, name: string, element: () => ReactElement) {
 	bench(name, () => {
 		mount(element()).unmount()
 	})
@@ -135,25 +154,27 @@ export function mountBench(name: string, element: () => ReactElement) {
  * the render body per rung.
  */
 export function mountBenches<C>(
+	bench: Bench,
 	cases: readonly C[],
 	name: (subject: C) => string,
 	element: (subject: C) => ReactElement,
 ) {
 	for (const subject of cases) {
-		mountBench(name(subject), () => element(subject))
+		mountBench(bench, name(subject), () => element(subject))
 	}
 }
 
 /**
- * Registers a bench that times re-render alone: `initial` mounts in the cycle
- * setup, the timed body drives `step` with the rerender handle and a
- * monotonic iteration counter, and the tree tears down in the cycle teardown.
+ * Registers a bench that times re-render alone: `initial` mounts before each
+ * phase, the timed body drives `step` with the rerender handle and a monotonic
+ * iteration counter, and the tree tears down after the phase.
  *
  * @remarks The mount lands outside the timed region, so a regression here is a
  * reconciliation regression: the one place a dropped memo surfaces unmixed
  * with mount cost.
  */
 export function rerenderBench(
+	bench: Bench,
 	name: string,
 	initial: () => ReactElement,
 	step: (rerender: Mounted['rerender'], iteration: number) => void,
@@ -162,18 +183,22 @@ export function rerenderBench(
 
 	let iteration = 0
 
-	bench(name, () => step((ui) => mounted?.rerender(ui), iteration++), {
-		setup() {
-			iteration = 0
+	bench(
+		name,
+		{
+			beforeAll() {
+				iteration = 0
 
-			mounted = mount(initial())
-		},
-		teardown() {
-			mounted?.unmount()
+				mounted = mount(initial())
+			},
+			afterAll() {
+				mounted?.unmount()
 
-			mounted = null
+				mounted = null
+			},
 		},
-	})
+		() => step((ui) => mounted?.rerender(ui), iteration++),
+	)
 }
 
 /**

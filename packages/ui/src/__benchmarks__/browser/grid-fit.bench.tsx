@@ -16,9 +16,9 @@
 
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { describe } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
+import { compareBenches } from '../compare'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtures'
 import { GRID_HEIGHT, GRID_WIDTH, painted } from './grids'
 import { benches, frame, host, type Prepared, WINDOW } from './harness'
@@ -158,10 +158,18 @@ const rows = shipments(1_000)
 
 const sorted = await sorts(rows)
 
-describe('grid fit · mount · 1,000 rows', () => {
-	benches(mounts(rows), WINDOW.slow)
-})
+compareBenches(
+	'grid fit · mount · 1,000 rows',
+	(bench) => {
+		benches(bench, mounts(rows))
+	},
+	WINDOW.slow,
+)
 
-describe('grid fit · sort · 1,000 rows · asc/desc flip', () => {
-	benches(sorted, WINDOW.slow)
-})
+compareBenches(
+	'grid fit · sort · 1,000 rows · asc/desc flip',
+	(bench) => {
+		benches(bench, sorted)
+	},
+	WINDOW.slow,
+)

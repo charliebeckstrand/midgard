@@ -11,7 +11,7 @@ import { fireEvent } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import counties from 'us-atlas/counties-10m.json'
 import states from 'us-atlas/states-10m.json'
-import { bench, describe } from 'vitest'
+import type { Bench } from 'vitest'
 import { type MapGeography, MapPlat, type MapTopology } from '../modules/map'
 import {
 	cachedCanonicalPaths,
@@ -20,6 +20,7 @@ import {
 } from '../modules/map/engine/map-geometry/cache'
 import { geographyFeatures } from '../modules/map/engine/map-geometry/topology'
 import { defaultRegionId } from '../modules/map/engine/map-region/identity'
+import { compareBenches } from './compare'
 import { mountBench, persistentTree } from './harness'
 
 const statesTopology = states as unknown as MapTopology
@@ -62,17 +63,17 @@ function countiesPlat() {
 	return <MapPlat aria-label="Counties" geography={countiesGeoJson} width={800} />
 }
 
-describe('MapPlat · mount', () => {
-	mountBench('states-10m topology (52 regions, 4 categories)', statesPlat)
+compareBenches('MapPlat · mount', (bench) => {
+	mountBench(bench, 'states-10m topology (52 regions, 4 categories)', statesPlat)
 
-	mountBench('counties-10m pre-decoded GeoJSON (3143 regions)', countiesPlat)
+	mountBench(bench, 'counties-10m pre-decoded GeoJSON (3143 regions)', countiesPlat)
 
-	mountBench('counties-10m topology (3143 regions, incl. decode)', () => (
+	mountBench(bench, 'counties-10m topology (3143 regions, incl. decode)', () => (
 		<MapPlat aria-label="Counties" geography={countiesTopology} width={800} />
 	))
 })
 
-describe('static geometry · cold vs warm (states-10m)', () => {
+compareBenches('static geometry · cold vs warm (states-10m)', (bench) => {
 	// Warm the shared cache once, so the warm case measures a pure cache hit.
 	staticMapGeometry(statesTopology, undefined, 'albers-usa')
 
@@ -100,8 +101,8 @@ const MOVES = 10
  * Registers a plat through the harness. Each bench mounts its own plat while it
  * runs, and gets the elements the cascade scenarios drive.
  */
-function cascade(node: ReactElement) {
-	return persistentTree(node, (container) => ({
+function cascade(bench: Bench, node: ReactElement) {
+	return persistentTree(bench, node, (container) => ({
 		region: container.querySelector('[data-region-index]') as Element,
 		legendItem: container.querySelector('[data-slot="map-legend-item"]') as Element,
 	}))
@@ -121,25 +122,26 @@ function emphasize(legendItem: Element) {
 	fireEvent.pointerLeave(legendItem)
 }
 
-describe('MapPlat · hover cascade (states, 52 regions)', () => {
-	const plat = cascade(statesPlat())
+compareBenches('MapPlat · hover cascade (states, 52 regions)', (bench) => {
+	const plat = cascade(bench, statesPlat())
 
 	plat.bench(`${MOVES} pointermoves over one region`, ({ region }) => sweep(region))
 
 	plat.bench('legend emphasis enter + leave', ({ legendItem }) => emphasize(legendItem))
 })
 
-describe('MapPlat · hover cascade (counties, 3143 regions)', () => {
-	cascade(countiesPlat()).bench(`${MOVES} pointermoves over one region`, ({ region }) =>
+compareBenches('MapPlat · hover cascade (counties, 3143 regions)', (bench) => {
+	cascade(bench, countiesPlat()).bench(`${MOVES} pointermoves over one region`, ({ region }) =>
 		sweep(region),
 	)
 })
 
-describe('MapPlat · legend cascade (counties, 3143 regions + legend)', () => {
+compareBenches('MapPlat · legend cascade (counties, 3143 regions + legend)', (bench) => {
 	// A legend emphasis re-renders the plat: the region layer must repaint (its
 	// fills dim) but the visually-hidden table reads neither hidden nor
 	// emphasis, so its memo holds a 3143-row re-map on every enter and leave.
 	const plat = cascade(
+		bench,
 		<MapPlat
 			aria-label="Counties"
 			geography={countiesGeoJson}

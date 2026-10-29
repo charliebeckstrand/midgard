@@ -22,6 +22,10 @@ export default defineConfig({
 	// `process.env.NODE_ENV` require that both the app transform and the
 	// dependency pre-bundle must fold to `'production'`.
 	define: { 'process.env.NODE_ENV': '"production"' },
+	// The production build of React has no `jsxDEV`, and the define does not
+	// change the mode of Vite. So the JSX of the app compiles for the production
+	// runtime too.
+	oxc: { jsx: { development: false } },
 	// Pre-bundle the bench dependency set so the optimizer doesn't discover it
 	// lazily and reload the page mid-run (see vitest.browser.config.ts).
 	optimizeDeps: {

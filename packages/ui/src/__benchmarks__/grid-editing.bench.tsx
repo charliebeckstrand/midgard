@@ -12,9 +12,9 @@
 
 import { act, fireEvent } from '@testing-library/react'
 import { useState } from 'react'
-import { describe } from 'vitest'
 import { Grid, type GridCellRef, type GridColumn, type GridEditableConfig } from '../modules/grid'
 import { noop } from '../utilities/noop'
+import { compareBenches } from './compare'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from './fixtures'
 import { mountBench, mountBenches, persistentTree } from './harness'
 
@@ -38,22 +38,23 @@ const EDITABLE = { rows: new Set<string | number>(), onCommit: noop }
 // Built at collection time: only the render belongs inside the timed region.
 const SIZES = [100, 500, 1_000].map((count) => shipments(count))
 
-describe('Grid · editable initial render', () => {
+compareBenches('Grid · editable initial render', (bench) => {
 	mountBenches(
+		bench,
 		SIZES,
 		(rows) => `${rows.length.toLocaleString()} rows × 8 cols`,
 		(rows) => <Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} editable={EDITABLE} />,
 	)
 })
 
-describe('Grid · editable with selection', () => {
+compareBenches('Grid · editable with selection', (bench) => {
 	const selection = new Set(
 		shipments(1_000)
 			.filter((_, index) => index % 10 === 0)
 			.map(shipmentKey),
 	)
 
-	mountBench('1,000 rows · 10% selected', () => (
+	mountBench(bench, '1,000 rows · 10% selected', () => (
 		<Grid
 			columns={SELECTABLE}
 			rows={shipments(1_000)}
@@ -64,8 +65,9 @@ describe('Grid · editable with selection', () => {
 	))
 })
 
-describe('Grid · editable virtualized initial render', () => {
+compareBenches('Grid · editable virtualized initial render', (bench) => {
 	mountBenches(
+		bench,
 		[shipments(1_000), shipments(10_000)],
 		(rows) => `${rows.length.toLocaleString()} rows × 8 cols · virtualize`,
 		(rows) => (
@@ -93,8 +95,9 @@ const NEW_ROW = {
 	onRowAdd: noop,
 } satisfies GridEditableConfig
 
-describe('Grid · editable new row', () => {
+compareBenches('Grid · editable new row', (bench) => {
 	mountBenches(
+		bench,
 		SIZES,
 		(rows) => `${rows.length.toLocaleString()} rows × 8 cols · new row`,
 		(rows) => <Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} editable={NEW_ROW} />,
@@ -122,11 +125,12 @@ function openSession(container: HTMLElement): HTMLElement[] {
  * cell. That is the cost the commit-and-move keys pay on each keystroke. The
  * cells to move between are found once, outside the timed region.
  */
-describe('Grid · cell-scoped session move', () => {
+compareBenches('Grid · cell-scoped session move', (bench) => {
 	for (const rows of SIZES) {
 		let move = 0
 
 		persistentTree(
+			bench,
 			<Grid
 				columns={COLUMNS}
 				rows={rows}
@@ -167,11 +171,11 @@ function ControlledSession({ rows }: { rows: Shipment[] }) {
 	)
 }
 
-describe('Grid · cell-scoped session move · controlled', () => {
+compareBenches('Grid · cell-scoped session move · controlled', (bench) => {
 	for (const rows of SIZES) {
 		let move = 0
 
-		persistentTree(<ControlledSession rows={rows} />, openSession).bench(
+		persistentTree(bench, <ControlledSession rows={rows} />, openSession).bench(
 			`${rows.length.toLocaleString()} rows × 8 cols · one move`,
 			(cells) => {
 				move++
@@ -188,9 +192,10 @@ describe('Grid · cell-scoped session move · controlled', () => {
  * next editor. The last column wraps to the first, so every press moves the
  * session.
  */
-describe('Grid · cell-scoped session Tab move', () => {
+compareBenches('Grid · cell-scoped session Tab move', (bench) => {
 	for (const rows of SIZES) {
 		persistentTree(
+			bench,
 			<Grid
 				columns={COLUMNS}
 				rows={rows}
@@ -213,7 +218,7 @@ const acceptAsync = () => Promise.resolve()
  * async variant holds the cell pending, and the timed body waits for the
  * settle, so it also times the pending and settled renders of that cell.
  */
-describe('Grid · cell-scoped Tab commit', () => {
+compareBenches('Grid · cell-scoped Tab commit', (bench) => {
 	for (const [label, onCommit] of [
 		['sync', noop],
 		['async', acceptAsync],
@@ -222,6 +227,7 @@ describe('Grid · cell-scoped Tab commit', () => {
 			let key = 0
 
 			persistentTree(
+				bench,
 				<Grid
 					columns={COLUMNS}
 					rows={rows}
@@ -250,11 +256,12 @@ describe('Grid · cell-scoped Tab commit', () => {
  * value in the session's draft store, which no cell subscribes to. So only the
  * editor that takes the keystroke renders again, at every size.
  */
-describe('Grid · row session keystroke', () => {
+compareBenches('Grid · row session keystroke', (bench) => {
 	for (const rows of SIZES) {
 		let key = 0
 
 		persistentTree(
+			bench,
 			<Grid
 				columns={COLUMNS}
 				rows={rows}

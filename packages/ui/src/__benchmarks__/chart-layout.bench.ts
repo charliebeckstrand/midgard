@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { bench, describe } from 'vitest'
 import { lineGeometry } from '../modules/chart/engine/chart-geometry/line'
 import { nearestSeriesLine } from '../modules/chart/engine/chart-hit-test'
 import {
@@ -14,6 +13,7 @@ import {
 import { bandScale, linearScale } from '../modules/chart/engine/chart-scale'
 import { dateCategoryFormat, parseInstant, timeTicks } from '../modules/chart/engine/chart-time'
 import { makeDatedTrend, makeTrend } from './browser/fixtures'
+import { compareBenches } from './compare'
 
 /**
  * The chart layer between the scales and the marks: axis layout, tick
@@ -55,7 +55,7 @@ function layoutInput(count: number, seriesCount: number): CartesianLayoutInput {
 	}
 }
 
-describe('chart-layout · cartesian layout (every mount, every resize frame)', () => {
+compareBenches('chart-layout · cartesian layout (every mount, every resize frame)', (bench) => {
 	// The whole pre-mark pass: resolve the value scales against the frame height,
 	// size the gutters from the tick labels, decide whether the band labels thin
 	// or tilt, then place the plot rect and the snap points. It runs before any
@@ -82,7 +82,7 @@ describe('chart-layout · cartesian layout (every mount, every resize frame)', (
 	})
 })
 
-describe('chart-layout · thinned (band label fit)', () => {
+compareBenches('chart-layout · thinned (band label fit)', (bench) => {
 	// The category-label decimation the band axis runs whenever labels would
 	// collide. It allocates an index array the length of the dataset before
 	// filtering it, so it is O(categories) on a chart whose axis can only ever
@@ -94,7 +94,7 @@ describe('chart-layout · thinned (band label fit)', () => {
 	}
 })
 
-describe('chart-layout · buildValueTicks (Intl format per tick)', () => {
+compareBenches('chart-layout · buildValueTicks (Intl format per tick)', (bench) => {
 	// Cheap by tick count (five or six) but each label runs the caller's
 	// formatter, and a chart resolves ticks for both value axes on every layout.
 	const scale = linearScale({
@@ -123,7 +123,7 @@ describe('chart-layout · buildValueTicks (Intl format per tick)', () => {
 	})
 })
 
-describe('chart-time · dateCategoryFormat (the are-these-dates probe)', () => {
+compareBenches('chart-time · dateCategoryFormat (the are-these-dates probe)', (bench) => {
 	// Runs once per mount over every category. The non-date axis is the common
 	// case and exits on its first value; the all-dates axis parses every one.
 	// The gap between them is what the early exit saves, and the all-dates bar
@@ -162,7 +162,7 @@ describe('chart-time · dateCategoryFormat (the are-these-dates probe)', () => {
 	}
 })
 
-describe('chart-time · parseInstant (per value)', () => {
+compareBenches('chart-time · parseInstant (per value)', (bench) => {
 	// The single-value parse behind the probe and the time axis, over the shapes
 	// it must tell apart: an epoch number, an ISO string, a Date, and a label
 	// that is not a date at all.
@@ -179,7 +179,7 @@ describe('chart-time · parseInstant (per value)', () => {
 	})
 })
 
-describe('chart-time · timeTicks (calendar boundaries on a band axis)', () => {
+compareBenches('chart-time · timeTicks (calendar boundaries on a band axis)', (bench) => {
 	// Walks the chosen calendar interval from the first instant to the last,
 	// formatting each boundary through `Intl.DateTimeFormat` and interpolating
 	// its position between band centers. Resolved once per layout on a
@@ -211,7 +211,7 @@ describe('chart-time · timeTicks (calendar boundaries on a band axis)', () => {
 	})
 })
 
-describe('chart-hit-test · nearestSeriesLine (every pointer move)', () => {
+compareBenches('chart-hit-test · nearestSeriesLine (every pointer move)', (bench) => {
 	// The scan a line chart runs per `pointermove`: squared point-to-segment
 	// distance over every series' every run. The browser hover sweep times it
 	// end to end through React; this is the scan alone, where an algorithmic

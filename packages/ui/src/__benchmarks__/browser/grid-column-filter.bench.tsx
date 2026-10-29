@@ -10,7 +10,7 @@
  * rows.
  */
 
-import { describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { type Shipment, shipments } from '../fixtures'
 import { prepareGrids, viewportMarkers } from './grid-harness'
 import { painted } from './grids'
@@ -58,10 +58,18 @@ const rows10k = await filterCycle(shipments(10_000))
 
 const rows100k = await filterCycle(shipments(100_000))
 
-describe('grid column filter · 10,000 rows · carrier filter + clear', () => {
-	benches(rows10k, WINDOW.slow)
-})
+compareBenches(
+	'grid column filter · 10,000 rows · carrier filter + clear',
+	(bench) => {
+		benches(bench, rows10k)
+	},
+	WINDOW.slow,
+)
 
-describe('grid column filter · 100,000 rows · carrier filter + clear', () => {
-	benches(rows100k, WINDOW.slow)
-})
+compareBenches(
+	'grid column filter · 100,000 rows · carrier filter + clear',
+	(bench) => {
+		benches(bench, rows100k)
+	},
+	WINDOW.slow,
+)

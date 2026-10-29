@@ -16,7 +16,7 @@
 import './render-count'
 
 import { flushSync } from 'react-dom'
-import { bench, describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { shipments } from '../fixtures'
 import { GRID_HEIGHT, GRID_WIDTH, grids, painted } from './grids'
 import { host, settle, WINDOW } from './harness'
@@ -95,10 +95,10 @@ toggle()
 
 await task()
 
-describe('grid group · 10,000 rows · expand + collapse', () => {
-	bench(
-		subject.name,
-		async () => {
+compareBenches(
+	'grid group · 10,000 rows · expand + collapse',
+	(bench) => {
+		bench(subject.name, async () => {
 			toggle()
 
 			await painted(box, [leaf])
@@ -108,7 +108,7 @@ describe('grid group · 10,000 rows · expand + collapse', () => {
 			toggle()
 
 			await task()
-		},
-		WINDOW.slow,
-	)
-})
+		})
+	},
+	WINDOW.slow,
+)

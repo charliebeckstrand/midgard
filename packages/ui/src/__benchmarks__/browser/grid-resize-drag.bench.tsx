@@ -18,8 +18,8 @@
  */
 
 import { createRoot } from 'react-dom/client'
-import { describe } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
+import { compareBenches } from '../compare'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtures'
 import { GRID_HEIGHT, GRID_WIDTH, painted } from './grids'
 import { benches, host, mouse, type Prepared, WINDOW, withFrameClock } from './harness'
@@ -131,6 +131,10 @@ async function prepare(rows: Shipment[]): Promise<Prepared[]> {
 
 const rows10k = await prepare(shipments(10_000))
 
-describe('grid resize · 10,000 rows · windowed · drag of 10 moves', () => {
-	benches(rows10k, WINDOW.slow)
-})
+compareBenches(
+	'grid resize · 10,000 rows · windowed · drag of 10 moves',
+	(bench) => {
+		benches(bench, rows10k)
+	},
+	WINDOW.slow,
+)

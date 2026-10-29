@@ -36,7 +36,7 @@
 
 import { SquarePen } from 'lucide-react'
 import type { ReactElement, ReactNode } from 'react'
-import { bench, describe, vi } from 'vitest'
+import { vi } from 'vitest'
 import { Icon } from '../components/icon'
 import {
 	Menu,
@@ -51,6 +51,7 @@ import {
 	MenuSub,
 	MenuTrigger,
 } from '../components/menu'
+import { compareBenches } from './compare'
 import { comboboxOptions, MENU_ROWS } from './fixtures'
 import { mountBench, mountBenches, rerenderBench, sharedTree } from './harness'
 
@@ -98,8 +99,9 @@ function Dropdown({
 	)
 }
 
-describe('Menu · closed dropdown (panel not rendered)', () => {
+compareBenches('Menu · closed dropdown (panel not rendered)', (bench) => {
 	mountBenches(
+		bench,
 		MENU_ROWS,
 		(count) => `${count} rows`,
 		(count) => (
@@ -110,8 +112,9 @@ describe('Menu · closed dropdown (panel not rendered)', () => {
 	)
 })
 
-describe('Menu · open dropdown (panel portaled)', () => {
+compareBenches('Menu · open dropdown (panel portaled)', (bench) => {
 	mountBenches(
+		bench,
 		MENU_ROWS,
 		(count) => `${count} rows · open`,
 		(count) => (
@@ -122,10 +125,11 @@ describe('Menu · open dropdown (panel portaled)', () => {
 	)
 })
 
-describe('Menu · static inline (no portal, no positioning)', () => {
+compareBenches('Menu · static inline (no portal, no positioning)', (bench) => {
 	// `defaultOpen` with no `placement`: the panel renders in place. Held beside
 	// the open dropdown of the same size, the pair prices the floating layer.
 	mountBenches(
+		bench,
 		MENU_ROWS,
 		(count) => `${count} rows · static`,
 		(count) => (
@@ -173,8 +177,9 @@ const COMPOSITIONS: { name: string; row: (label: string) => ReactNode }[] = [
 	},
 ]
 
-describe('Menu · row composition (24 rows, open)', () => {
+compareBenches('Menu · row composition (24 rows, open)', (bench) => {
 	mountBenches(
+		bench,
 		COMPOSITIONS,
 		(composition) => composition.name,
 		(composition) => (
@@ -187,9 +192,10 @@ describe('Menu · row composition (24 rows, open)', () => {
 	)
 })
 
-describe('Menu · row kind (24 rows, open)', () => {
+compareBenches('Menu · row kind (24 rows, open)', (bench) => {
 	// The three branches `MenuItem` renders through.
 	mountBenches(
+		bench,
 		['button', 'link', 'disabled'] as const,
 		(kind) => `${kind} rows`,
 		(kind) => (
@@ -209,7 +215,7 @@ describe('Menu · row kind (24 rows, open)', () => {
 
 	// The sectioned layout renders a different tree, not a fourth row branch: a
 	// `<fieldset>` and `<legend>` per group, with a separator between.
-	mountBench('sectioned rows', () => (
+	mountBench(bench, 'sectioned rows', () => (
 		<Dropdown open>
 			<Sections count={24} />
 		</Dropdown>
@@ -243,10 +249,11 @@ function Sections({ count }: { count: number }) {
 	)
 }
 
-describe('Menu · fan-out (one menu per row of a page)', () => {
+compareBenches('Menu · fan-out (one menu per row of a page)', (bench) => {
 	// What a toolbar or an action column multiplies. The bare buttons are the
 	// floor: the same trigger count with no menu behind any of them.
 	mountBenches(
+		bench,
 		['closed menus', 'bare buttons'] as const,
 		(kind) => `${FAN_OUT} ${kind}`,
 		(kind) => (
@@ -267,10 +274,11 @@ describe('Menu · fan-out (one menu per row of a page)', () => {
 	)
 })
 
-describe('Menu · submenus (24 rows, open)', () => {
+compareBenches('Menu · submenus (24 rows, open)', (bench) => {
 	// The last six rows open a submenu of their own, each one a `MenuPointerLevel`
 	// plus a second floating surface the closed panel still builds the shell for.
 	mountBenches(
+		bench,
 		[0, 6] as const,
 		(subs) => `${subs} submenu rows`,
 		(subs) => (
@@ -295,11 +303,12 @@ describe('Menu · submenus (24 rows, open)', () => {
 	)
 })
 
-describe('Menu · open ⇄ closed (mounted, 24 rows)', () => {
+compareBenches('Menu · open ⇄ closed (mounted, 24 rows)', (bench) => {
 	// Re-render alone: the tree mounts in the cycle setup, so a regression here
 	// is the toggle's reconciliation (the panel subtree arriving and leaving)
 	// rather than the mount.
 	rerenderBench(
+		bench,
 		'toggle open',
 		() => <Toggle open={false} />,
 		(rerender, iteration) => rerender(<Toggle open={iteration % 2 === 1} />),
@@ -378,7 +387,7 @@ function probeAt(probes: Map<number, Probe>, count: number): Probe {
 	return probes.get(count) as Probe
 }
 
-describe('Menu · pointer sweep · virtual cursor (dropdown)', () => {
+compareBenches('Menu · pointer sweep · virtual cursor (dropdown)', (bench) => {
 	// A dropdown keeps focus on its trigger, so an arrival stamps the
 	// `data-active` cursor rather than moving focus.
 	for (const count of MENU_ROWS) {
@@ -390,7 +399,7 @@ describe('Menu · pointer sweep · virtual cursor (dropdown)', () => {
 	}
 })
 
-describe('Menu · pointer sweep · real focus (static)', () => {
+compareBenches('Menu · pointer sweep · real focus (static)', (bench) => {
 	// Every other mode roves by real focus, so an arrival moves focus instead.
 	for (const count of MENU_ROWS) {
 		const { rows } = probeAt(focusProbes, count)
@@ -401,7 +410,7 @@ describe('Menu · pointer sweep · real focus (static)', () => {
 	}
 })
 
-describe('Menu · keyboard rove (dropdown, focus on trigger)', () => {
+compareBenches('Menu · keyboard rove (dropdown, focus on trigger)', (bench) => {
 	// Arrow presses arrive on the trigger and move the `aria-activedescendant`
 	// cursor. One pass walks the cursor down the whole panel. This is the one
 	// scenario that still re-reads the panel's item list per event.
@@ -414,7 +423,7 @@ describe('Menu · keyboard rove (dropdown, focus on trigger)', () => {
 	}
 })
 
-describe('Menu · typeahead (dropdown, focus on trigger)', () => {
+compareBenches('Menu · typeahead (dropdown, focus on trigger)', (bench) => {
 	// A printable key extends the type-ahead buffer and scans the rows for a
 	// match. It reads the same mounted menus the rove scenario drives. Every label
 	// starts with the letter, so the scan stops at its first candidate wherever
@@ -423,14 +432,13 @@ describe('Menu · typeahead (dropdown, focus on trigger)', () => {
 	// The buffer clears after an idle window, and each press restarts that timer.
 	// A bench presses far faster than the window, so on a real clock the query
 	// gains one letter on each iteration, and the match walks the whole of it. A
-	// fake clock for that timer alone fires the reset after each press. Vitest
-	// hands a bench no hook between iterations, so the reset runs inside the
-	// timed region, and the last rung prices it.
+	// fake clock for that timer alone fires the reset after each press. The
+	// reset runs inside the timed region, and the last rung prices it.
 	const fakeClock = {
-		setup: () => {
+		beforeAll: () => {
 			vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
 		},
-		teardown: () => {
+		afterAll: () => {
 			vi.useRealTimers()
 		},
 	}
@@ -438,24 +446,16 @@ describe('Menu · typeahead (dropdown, focus on trigger)', () => {
 	for (const count of MENU_ROWS) {
 		const { trigger } = probeAt(virtualProbes, count)
 
-		bench(
-			`${count} rows · one letter`,
-			() => {
-				pressKey(trigger, 'o')
-
-				vi.runOnlyPendingTimers()
-			},
-			fakeClock,
-		)
-	}
-
-	bench(
-		'fake clock · one timer, scheduled and fired',
-		() => {
-			setTimeout(() => {}, 500)
+		bench(`${count} rows · one letter`, fakeClock, () => {
+			pressKey(trigger, 'o')
 
 			vi.runOnlyPendingTimers()
-		},
-		fakeClock,
-	)
+		})
+	}
+
+	bench('fake clock · one timer, scheduled and fired', fakeClock, () => {
+		setTimeout(() => {}, 500)
+
+		vi.runOnlyPendingTimers()
+	})
 })

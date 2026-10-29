@@ -45,7 +45,7 @@ type GeometryMatchers<R = unknown> = {
 }
 
 declare module 'vitest' {
-	interface Matchers<T> extends GeometryMatchers<T> {}
+	interface Matchers<R, T> extends GeometryMatchers<R> {}
 }
 
 function toSource(value: unknown, role: string): BoxSource {

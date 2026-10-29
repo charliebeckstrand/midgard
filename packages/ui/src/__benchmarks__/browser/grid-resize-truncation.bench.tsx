@@ -20,8 +20,8 @@
  */
 
 import { createRoot } from 'react-dom/client'
-import { describe } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
+import { compareBenches } from '../compare'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtures'
 import { painted } from './grids'
 import { benches, host, type Prepared, settle, WINDOW } from './harness'
@@ -109,10 +109,18 @@ const rows1k = await prepare(shipments(1_000))
 
 const rows3k = await prepare(shipments(3_000))
 
-describe('grid resize · 1,000 rows · un-windowed · mass truncation', () => {
-	benches(rows1k, WINDOW.slow)
-})
+compareBenches(
+	'grid resize · 1,000 rows · un-windowed · mass truncation',
+	(bench) => {
+		benches(bench, rows1k)
+	},
+	WINDOW.slow,
+)
 
-describe('grid resize · 3,000 rows · un-windowed · mass truncation', () => {
-	benches(rows3k, WINDOW.slow)
-})
+compareBenches(
+	'grid resize · 3,000 rows · un-windowed · mass truncation',
+	(bench) => {
+		benches(bench, rows3k)
+	},
+	WINDOW.slow,
+)

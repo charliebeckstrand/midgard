@@ -12,16 +12,17 @@
 import type { ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { type BenchOptions, bench } from 'vitest'
+import type { Bench } from 'vitest'
 import type { Subject } from './charts'
 
 /**
- * Sample windows for scenarios whose iterations outrun Vitest's 500ms default.
+ * Sample windows for scenarios whose iterations outrun the 500ms default of
+ * `compareBenches`.
  * A window that takes only ten-odd samples swings run to run (enough to read a
  * noise swing as a regression) so the heavy scenarios widen it to buy the
  * sample count their iteration cost denies them. The jsdom suite needs none of
  * this: its benches take the default window, so the two windows live here
- * rather than at the shared root.
+ * rather than at the shared root. A group passes one to `compareBenches`.
  */
 export const WINDOW = {
 	/** Heavy single-shot iterations: mounts, updates, sorts, resizes. */
@@ -169,17 +170,13 @@ export function reactHost() {
 const mountHost = host()
 
 /** Registers one full mount-to-painted-DOM-plus-teardown bench per entry. */
-export function mountBenches<D>(subjects: Subject<D>[], data: D, options?: BenchOptions) {
+export function mountBenches<D>(bench: Bench, subjects: Subject<D>[], data: D) {
 	for (const subject of subjects) {
-		bench(
-			subject.name,
-			async () => {
-				const mounted = await subject.mount(mountHost, data)
+		bench(subject.name, async () => {
+			const mounted = await subject.mount(mountHost, data)
 
-				mounted.destroy()
-			},
-			options,
-		)
+			mounted.destroy()
+		})
 	}
 }
 
@@ -206,9 +203,9 @@ export async function prepare<D>(subjects: Subject<D>[], a: D, b: D): Promise<Pr
 }
 
 /** Registers one bench per prepared entry, in the report's fixed order. */
-export function benches(prepared: Prepared[], options?: BenchOptions) {
+export function benches(bench: Bench, prepared: Prepared[]) {
 	for (const { name, run } of prepared) {
-		bench(name, run, options)
+		bench(name, run)
 	}
 }
 

@@ -76,7 +76,7 @@ export function servedTailwind(): Plugin[] {
 }
 
 /**
- * Moves the real mouse off the tester iframe, onto the runner's own page.
+ * Moves the real mouse off the tester iframe, past the edge of the page.
  *
  * The CDP cursor is page state, and one page serves every file an instance
  * runs. A `userEvent.hover` leaves it where it pointed. The next case that
@@ -86,29 +86,18 @@ export function servedTailwind(): Plugin[] {
  * its 250ms delay and before the case's own hover.
  *
  * A point inside the iframe can end up under whatever a later case renders.
- * A point outside it cannot, so the cursor parks in the strip that the scaled
- * iframe leaves free on the right, or below it.
+ * A point outside it cannot. Since Vitest 5, a headless run sizes the page to
+ * the iframe, so no point of the page lies outside the iframe. The cursor thus
+ * parks on the corner just past the bottom-right edge of the page. The browser
+ * finds no element there, so the element under the old point gets its leave
+ * events.
  */
 const parkPointer: BrowserCommand<[]> = async (context) => {
-	const box = await (await context.frame()).frameElement().then((frame) => frame.boundingBox())
-
 	const viewport = context.page.viewportSize()
 
-	if (!box || !viewport) throw new Error('parkPointer: the tester iframe has no box on the page')
+	if (!viewport) throw new Error('parkPointer: the page has no viewport')
 
-	const right = box.x + box.width + 1 < viewport.width ? { x: viewport.width - 1, y: 1 } : null
-
-	const below = box.y + box.height + 1 < viewport.height ? { x: 1, y: viewport.height - 1 } : null
-
-	const spot = right ?? below
-
-	if (!spot) {
-		throw new Error(
-			`parkPointer: the tester iframe fills the ${viewport.width}x${viewport.height} page, so no point lies outside it`,
-		)
-	}
-
-	await context.page.mouse.move(spot.x, spot.y)
+	await context.page.mouse.move(viewport.width, viewport.height)
 }
 
 /**
@@ -117,7 +106,7 @@ const parkPointer: BrowserCommand<[]> = async (context) => {
  * the box of the element instead, from its top-left corner: `{ x: 0.95, y: 0.5 }` is near the
  * right edge, half way down.
  *
- * `at` is a fraction because the page scales the tester iframe. The box of the element is in page
+ * `at` is a fraction because a run with the UI scales the tester iframe. The box of the element is in page
  * pixels, and a CSS length of the element is not.
  *
  * `userEvent.click` sends `mousedown` and `mouseup` as one step. A case that reads the page

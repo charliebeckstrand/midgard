@@ -39,7 +39,7 @@
  * add if a change reached them.
  */
 
-import { bench, describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { reactHost, settle, WINDOW } from './harness'
 import { Dropdown } from './menu-probe'
 
@@ -66,27 +66,23 @@ function cycle(panel: string, count: number, click: boolean) {
 	mounted.destroy()
 }
 
-describe('menu · one click, closed to panel', () => {
-	// A closed dropdown renders none of its rows, so the floor takes no row
-	// count, and one floor serves every rung below.
-	bench(
-		'never opened (the floor)',
-		() => {
+compareBenches(
+	'menu · one click, closed to panel',
+	(bench) => {
+		// A closed dropdown renders none of its rows, so the floor takes no row
+		// count, and one floor serves every rung below.
+		bench('never opened (the floor)', () => {
 			cycle('menu-open-floor', 0, false)
-		},
-		WINDOW.slow,
-	)
+		})
 
-	for (const count of OPEN_ROWS) {
-		bench(
-			count === 0 ? 'open · empty panel' : `open · ${count} rows`,
-			() => {
+		for (const count of OPEN_ROWS) {
+			bench(count === 0 ? 'open · empty panel' : `open · ${count} rows`, () => {
 				cycle(`menu-open-${count}`, count, true)
-			},
-			WINDOW.slow,
-		)
-	}
-})
+			})
+		}
+	},
+	WINDOW.slow,
+)
 
 /** Rows the re-render scenario holds open: the shell alone, and a real panel. */
 const HELD_ROWS = [0, 24] as const
@@ -121,12 +117,12 @@ for (const count of HELD_ROWS) {
 	held.push({ count, rerender: await holdOpen(count) })
 }
 
-describe('menu · open panel, one re-render', () => {
-	for (const { count, rerender } of held) {
-		bench(
-			count === 0 ? 'no rows (what a reposition rebuilds)' : `${count} rows`,
-			rerender,
-			WINDOW.slow,
-		)
-	}
-})
+compareBenches(
+	'menu · open panel, one re-render',
+	(bench) => {
+		for (const { count, rerender } of held) {
+			bench(count === 0 ? 'no rows (what a reposition rebuilds)' : `${count} rows`, rerender)
+		}
+	},
+	WINDOW.slow,
+)

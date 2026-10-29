@@ -21,8 +21,8 @@
 
 import { SquarePen } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { bench, describe } from 'vitest'
 import { Icon } from '../../components/icon'
+import { compareBenches } from '../compare'
 import { reactHost, WINDOW } from './harness'
 
 /** Icons per mount: a menu of that many rows, or a dense toolbar. */
@@ -61,18 +61,18 @@ const RUNGS: [string, (key: string) => ReactNode][] = [
 	['Icon + lucide · numeric size', (key) => <Icon key={key} icon={<SquarePen />} size={16} />],
 ]
 
-describe(`icon · ${COUNT} per mount`, () => {
-	for (const [name, render] of RUNGS) {
-		bench(
-			name,
-			() => {
+compareBenches(
+	`icon · ${COUNT} per mount`,
+	(bench) => {
+		for (const [name, render] of RUNGS) {
+			bench(name, () => {
 				const mounted = reactHost()
 
 				mounted.render(<div>{keys.map(render)}</div>)
 
 				mounted.destroy()
-			},
-			WINDOW.slow,
-		)
-	}
-})
+			})
+		}
+	},
+	WINDOW.slow,
+)

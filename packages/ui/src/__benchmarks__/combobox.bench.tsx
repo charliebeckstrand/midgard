@@ -7,11 +7,11 @@
  * alone, which is the path that re-renders each option row.
  */
 
-import { describe } from 'vitest'
 import { Combobox } from '../components/combobox/combobox'
 import { ComboboxLabel, ComboboxOption } from '../components/combobox/combobox-option'
 import { useComboboxDeferredQuery } from '../components/combobox/use-combobox-query'
 import { VirtualOptions } from '../primitives/virtual-options'
+import { compareBenches } from './compare'
 import { comboboxOptions, type Option } from './fixtures'
 import { mountBenches, rerenderBench } from './harness'
 
@@ -52,8 +52,9 @@ function VirtualOptionsFor({ options: all }: { options: Option[] }) {
 	)
 }
 
-describe('Combobox · closed (options not rendered)', () => {
+compareBenches('Combobox · closed (options not rendered)', (bench) => {
 	mountBenches(
+		bench,
 		[100, 2_000],
 		(count) => `${count.toLocaleString()} options`,
 		(count) => (
@@ -64,8 +65,9 @@ describe('Combobox · closed (options not rendered)', () => {
 	)
 })
 
-describe('Combobox · open (options rendered)', () => {
+compareBenches('Combobox · open (options rendered)', (bench) => {
 	mountBenches(
+		bench,
 		[100, 500, 2_000],
 		(count) => `${count.toLocaleString()} options · open · empty query`,
 		(count) => (
@@ -76,8 +78,9 @@ describe('Combobox · open (options rendered)', () => {
 	)
 })
 
-describe('Combobox · open · virtualized', () => {
+compareBenches('Combobox · open · virtualized', (bench) => {
 	mountBenches(
+		bench,
 		[500, 2_000],
 		(count) => `${count.toLocaleString()} options · virtualized`,
 		(count) => (
@@ -88,7 +91,7 @@ describe('Combobox · open · virtualized', () => {
 	)
 })
 
-describe('Combobox · open · selection change', () => {
+compareBenches('Combobox · open · selection change', (bench) => {
 	const options = comboboxOptions(500)
 
 	// Built once, so a rerender reaches the options only through the context.
@@ -97,6 +100,7 @@ describe('Combobox · open · selection change', () => {
 	const valueAt = (iteration: number) => options[iteration % options.length]?.value
 
 	rerenderBench(
+		bench,
 		'500 options · controlled value moves one row',
 		() => (
 			<Combobox<string> open value={valueAt(0)}>

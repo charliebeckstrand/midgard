@@ -21,7 +21,7 @@
  * the surface-lifecycle cost reference and a regression guard on the mount path.
  */
 
-import { bench, describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { reactHost, WINDOW } from './harness'
 import { type Move, Probe } from './tooltip-probe'
 
@@ -41,44 +41,36 @@ mounted.render(
 
 let tick = 0
 
-describe('tooltip · point-anchored · lifecycle', () => {
-	// React root create + render + unmount with a trivial child: the overhead to
-	// subtract from the surface bar so its number is the surface subtree alone.
-	bench(
-		'react root baseline (no surface)',
-		() => {
+compareBenches(
+	'tooltip · point-anchored · lifecycle',
+	(bench) => {
+		// React root create + render + unmount with a trivial child: the overhead to
+		// subtract from the surface bar so its number is the surface subtree alone.
+		bench('react root baseline (no surface)', () => {
 			const bare = reactHost()
 
 			bare.render(<div />)
 
 			bare.destroy()
-		},
-		WINDOW.settled,
-	)
+		})
 
-	// Full build + teardown of the tooltip surface (portal + motion + content):
-	// the per-full-cycle work `keepMounted` would avoid on a reopen.
-	bench(
-		'mount + unmount surface',
-		() => {
+		// Full build + teardown of the tooltip surface (portal + motion + content):
+		// the per-full-cycle work `keepMounted` would avoid on a reopen.
+		bench('mount + unmount surface', () => {
 			const surface = reactHost()
 
 			surface.render(<Probe register={() => {}} />)
 
 			surface.destroy()
-		},
-		WINDOW.settled,
-	)
+		})
 
-	// Steady-state: repositioning an already-mounted tooltip, the cost that stays
-	// whether the surface is unmounted between opens or held by `keepMounted`.
-	bench(
-		'reposition (stays mounted)',
-		() => {
+		// Steady-state: repositioning an already-mounted tooltip, the cost that stays
+		// whether the surface is unmounted between opens or held by `keepMounted`.
+		bench('reposition (stays mounted)', () => {
 			tick += 1
 
 			mounted.flush(() => move(100 + (tick % 40), 100 + (tick % 24)))
-		},
-		WINDOW.settled,
-	)
-})
+		})
+	},
+	WINDOW.settled,
+)

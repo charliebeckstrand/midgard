@@ -1,7 +1,7 @@
-import { describe } from 'vitest'
 import { BarChart } from '../modules/chart/bar-chart'
 import type { ChatEmbedRenderer, ChatMessageData } from '../modules/chat'
 import { ChatEmbedProvider, ChatTranscript } from '../modules/chat'
+import { compareBenches } from './compare'
 import { makeTranscript } from './fixtures'
 import { modelLayout, mountBenches, rerenderBench } from './harness'
 
@@ -74,15 +74,16 @@ const CHUNKS = [
 	'Late stops rose from **4** to **14** across the week.',
 ] as const
 
-describe('ChatTranscript · initial render', () => {
+compareBenches('ChatTranscript · initial render', (bench) => {
 	mountBenches(
+		bench,
 		TRANSCRIPTS,
 		({ label }) => label,
 		({ messages }) => <ChatTranscript messages={messages} />,
 	)
 })
 
-describe(`ChatTranscript · streaming reply (${CHUNKS.length} chunks/iter)`, () => {
+compareBenches(`ChatTranscript · streaming reply (${CHUNKS.length} chunks/iter)`, (bench) => {
 	for (const { label, messages } of TRANSCRIPTS) {
 		// The reply the chunks land in, appended once so each iteration re-renders
 		// the same transcript length the mount scenario measured.
@@ -92,6 +93,7 @@ describe(`ChatTranscript · streaming reply (${CHUNKS.length} chunks/iter)`, () 
 		]
 
 		rerenderBench(
+			bench,
 			label,
 			() => <ChatTranscript messages={withReply('')} streaming />,
 			(rerender) => {
@@ -180,13 +182,14 @@ const EMBED_TRANSCRIPTS = EMBED_SIZES.map((size) => ({
 	messages: withEmbeds(makeTranscript(size)),
 }))
 
-describe('ChatTranscript · initial render, every reply carrying a view', () => {
+compareBenches('ChatTranscript · initial render, every reply carrying a view', (bench) => {
 	// `always` against `lazy` is the saving deferring a renderer buys. Nothing
 	// intersects here (`NeverInView` above), so `lazy` measures the floor: a
 	// reader at the newest reply, with every view scrolled away. `always` mounts
 	// every view live, so it measures the full cost. A real viewport shows a
 	// handful, far nearer the floor.
 	mountBenches(
+		bench,
 		EMBED_TRANSCRIPTS,
 		({ label }) => `${label} · always`,
 		({ messages }) => (
@@ -197,6 +200,7 @@ describe('ChatTranscript · initial render, every reply carrying a view', () => 
 	)
 
 	mountBenches(
+		bench,
 		EMBED_TRANSCRIPTS,
 		({ label }) => `${label} · lazy, none in view`,
 		({ messages }) => (

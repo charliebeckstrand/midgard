@@ -34,10 +34,10 @@
 
 import { autoUpdate, FloatingPortal, flip, offset, shift, useFloating } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { bench, describe } from 'vitest'
 import { Menu, MenuContent, MenuTrigger } from '../../components/menu'
 import { PopoverPanel } from '../../primitives/popover'
 import { k } from '../../recipes/kata/popover'
+import { compareBenches } from '../compare'
 import { reactHost, WINDOW } from './harness'
 
 /** The classes `PopoverPanel` resolves for its default surface. */
@@ -100,17 +100,17 @@ const RUNGS: [string, () => React.ReactNode][] = [
 	],
 ]
 
-describe('menu · one empty open panel, layer by layer', () => {
-	for (const [name, render] of RUNGS) {
-		bench(
-			name,
-			() => {
+compareBenches(
+	'menu · one empty open panel, layer by layer',
+	(bench) => {
+		for (const [name, render] of RUNGS) {
+			bench(name, () => {
 				mount(render)
-			},
-			WINDOW.slow,
-		)
-	}
-})
+			})
+		}
+	},
+	WINDOW.slow,
+)
 
 /** The middleware chain `useFloatingPanel` builds, so the split reads the real pass. */
 const MIDDLEWARE = [offset(4), flip(), shift({ padding: 8 })]
@@ -158,17 +158,17 @@ const FLOATING_RUNGS: [string, () => React.ReactNode][] = [
 	['4 · + FloatingPortal', () => <Floating auto portal />],
 ]
 
-describe('floating-ui · the layer split, vendor only', () => {
-	for (const [name, render] of FLOATING_RUNGS) {
-		bench(
-			name,
-			() => {
+compareBenches(
+	'floating-ui · the layer split, vendor only',
+	(bench) => {
+		for (const [name, render] of FLOATING_RUNGS) {
+			bench(name, () => {
 				mount(render)
-			},
-			WINDOW.slow,
-		)
-	}
-})
+			})
+		}
+	},
+	WINDOW.slow,
+)
 
 /**
  * The static panel, split at the `Menu` root.
@@ -193,14 +193,14 @@ const STATIC_RUNGS: [string, () => React.ReactNode][] = [
 	],
 ]
 
-describe('menu · the static panel, split', () => {
-	for (const [name, render] of STATIC_RUNGS) {
-		bench(
-			name,
-			() => {
+compareBenches(
+	'menu · the static panel, split',
+	(bench) => {
+		for (const [name, render] of STATIC_RUNGS) {
+			bench(name, () => {
 				mount(render)
-			},
-			WINDOW.slow,
-		)
-	}
-})
+			})
+		}
+	},
+	WINDOW.slow,
+)

@@ -7,7 +7,7 @@
  * coordinates, so the sweep dispatches at the plot itself throughout.
  */
 
-import { describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { lineCharts, scatterCharts } from './charts'
 import { makePoints, makeTrend } from './fixtures'
 import { benches, prepareSweep, SWEEP, WINDOW } from './harness'
@@ -21,10 +21,18 @@ const line1k = await prepareSweep(lineCharts(1), makeTrend(1_000, 1), hoverTarge
 
 const points10k = await prepareSweep(scatterCharts(), makePoints(10_000), hoverTarget)
 
-describe(`hover · line · 1,000 × 1 series · ${SWEEP}-step sweep`, () => {
-	benches(line1k, WINDOW.settled)
-})
+compareBenches(
+	`hover · line · 1,000 × 1 series · ${SWEEP}-step sweep`,
+	(bench) => {
+		benches(bench, line1k)
+	},
+	WINDOW.settled,
+)
 
-describe(`hover · scatter · 10,000 points · ${SWEEP}-step sweep`, () => {
-	benches(points10k, WINDOW.settled)
-})
+compareBenches(
+	`hover · scatter · 10,000 points · ${SWEEP}-step sweep`,
+	(bench) => {
+		benches(bench, points10k)
+	},
+	WINDOW.settled,
+)

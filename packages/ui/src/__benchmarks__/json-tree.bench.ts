@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { bench, describe } from 'vitest'
 import type { JsonValue } from '../components/json-tree'
 import {
 	buildSearchIndex,
@@ -8,6 +7,7 @@ import {
 	filterEntries,
 	getEntries,
 } from '../components/json-tree/json-tree-utilities'
+import { compareBenches } from './compare'
 import { JSON_HIT, JSON_MISS, JSON_TREES, makeJsonTree } from './fixtures'
 
 // Tree sizes (branch count grows exponentially):
@@ -21,7 +21,7 @@ const { small, medium, large } = JSON_TREES
 /** This file's own rung: wider still, and only the pure utilities can afford it. */
 const huge = makeJsonTree(6, 4)
 
-describe('json-tree · buildSearchIndex', () => {
+compareBenches('json-tree · buildSearchIndex', (bench) => {
 	for (const [label, tree] of [
 		['small (d3×b5)', small],
 		['medium (d4×b5)', medium],
@@ -38,7 +38,7 @@ describe('json-tree · buildSearchIndex', () => {
 	})
 })
 
-describe('json-tree · filterEntries', () => {
+compareBenches('json-tree · filterEntries', (bench) => {
 	const index = buildSearchIndex(large, JSON_HIT)
 
 	const rootEntries = getEntries(large)
@@ -48,7 +48,7 @@ describe('json-tree · filterEntries', () => {
 	})
 })
 
-describe('json-tree · collectPaths', () => {
+compareBenches('json-tree · collectPaths', (bench) => {
 	bench('large (d5×b5) · no maxDepth', () => {
 		collectPaths(large, '$')
 	})
@@ -62,7 +62,7 @@ describe('json-tree · collectPaths', () => {
 	})
 })
 
-describe('json-tree · getEntries', () => {
+compareBenches('json-tree · getEntries', (bench) => {
 	const object = large as { [key: string]: JsonValue }
 
 	const array: JsonValue[] = Object.values(object)

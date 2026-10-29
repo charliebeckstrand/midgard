@@ -30,7 +30,7 @@ catalog:
   tsx: ^4.19.0
   typescript: ^7.0.2
   us-atlas: ^3.0.1
-  vitest: 4.1.11
+  vitest: 5.0.5
   world-atlas: ^2.0.2
 
 # `auth` and `shared` generate their API types with `openapi-typescript`, which

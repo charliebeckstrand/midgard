@@ -13,8 +13,8 @@
  * does again when the group renders.
  */
 
-import { describe } from 'vitest'
 import { QueryBuilder, type QueryField, type QueryGroup, type QueryRule } from '../../modules/query'
+import { compareBenches } from '../compare'
 import { benches, type Prepared, reactHost, WINDOW } from './harness'
 
 const FIELDS: QueryField[] = [{ name: 'age', label: 'Age', type: 'number' }]
@@ -79,7 +79,11 @@ function scenario(count: number, reorder: boolean): Prepared {
 }
 
 for (const count of [32, 128]) {
-	describe(`query · edit one rule of ${count}`, () => {
-		benches([scenario(count, false), scenario(count, true)], WINDOW.slow)
-	})
+	compareBenches(
+		`query · edit one rule of ${count}`,
+		(bench) => {
+			benches(bench, [scenario(count, false), scenario(count, true)])
+		},
+		WINDOW.slow,
+	)
 }

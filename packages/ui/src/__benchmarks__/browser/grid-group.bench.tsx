@@ -9,7 +9,8 @@
  * - A quick filter applied and cleared, which changes the rows of each group.
  */
 
-import { bench, describe } from 'vitest'
+import type { Bench } from 'vitest'
+import { compareBenches } from '../compare'
 import { type Shipment, shipments } from '../fixtures'
 import { prepareGrids } from './grid-harness'
 import { GRID_HEIGHT, GRID_WIDTH, grids, painted } from './grids'
@@ -31,23 +32,19 @@ function firstOfGroup(rows: Shipment[]): { asc: string; desc: string } {
  * the first row of the first group, since the rows of the data fall in many
  * groups.
  */
-function mountBenches(rows: Shipment[]) {
+function mountBenches(bench: Bench, rows: Shipment[]) {
 	const marker = firstOfGroup(rows).asc
 
 	const box = host({ width: GRID_WIDTH, height: GRID_HEIGHT })
 
 	for (const subject of grids()) {
-		bench(
-			subject.name,
-			async () => {
-				const grid = subject.mount(box, rows, GROUPED)
+		bench(subject.name, async () => {
+			const grid = subject.mount(box, rows, GROUPED)
 
-				await painted(box, [marker])
+			await painted(box, [marker])
 
-				grid.destroy()
-			},
-			WINDOW.slow,
-		)
+			grid.destroy()
+		})
 	}
 }
 
@@ -108,18 +105,30 @@ const sort100k = await sortFlip(rows100k)
 
 const filter100k = await filterCycle(rows100k)
 
-describe('grid group · 10,000 rows · mount', () => {
-	mountBenches(rows10k)
-})
+compareBenches(
+	'grid group · 10,000 rows · mount',
+	(bench) => mountBenches(bench, rows10k),
+	WINDOW.slow,
+)
 
-describe('grid group · 100,000 rows · mount', () => {
-	mountBenches(rows100k)
-})
+compareBenches(
+	'grid group · 100,000 rows · mount',
+	(bench) => mountBenches(bench, rows100k),
+	WINDOW.slow,
+)
 
-describe('grid group · 100,000 rows · sort flip', () => {
-	benches(sort100k, WINDOW.slow)
-})
+compareBenches(
+	'grid group · 100,000 rows · sort flip',
+	(bench) => {
+		benches(bench, sort100k)
+	},
+	WINDOW.slow,
+)
 
-describe('grid group · 100,000 rows · quick filter + clear', () => {
-	benches(filter100k, WINDOW.slow)
-})
+compareBenches(
+	'grid group · 100,000 rows · quick filter + clear',
+	(bench) => {
+		benches(bench, filter100k)
+	},
+	WINDOW.slow,
+)

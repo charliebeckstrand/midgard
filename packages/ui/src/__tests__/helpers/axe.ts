@@ -7,6 +7,14 @@ import { expect } from 'vitest'
 // and not for each file of the jsdom setup.
 expect.extend(toHaveNoViolations)
 
+// The types of jest-axe add the matcher to `jest.Matchers`, which Vitest 5 does
+// not read.
+declare module 'vitest' {
+	interface Matchers<R, T> {
+		toHaveNoViolations(): R
+	}
+}
+
 /**
  * The two rules that need a real layout engine, off for both jsdom runners.
  * The browser suite asserts them instead, through its own runner.

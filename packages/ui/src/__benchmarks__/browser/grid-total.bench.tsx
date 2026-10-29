@@ -9,7 +9,7 @@
  * - A quick filter applied and cleared. The rows of the total change.
  */
 
-import { describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { type Shipment, shipments } from '../fixtures'
 import { mountGridBenches, prepareGrids, viewportMarkers } from './grid-harness'
 import { painted } from './grids'
@@ -71,18 +71,34 @@ const sort100k = await sortFlip(rows100k)
 
 const filter100k = await filterCycle(rows100k)
 
-describe('grid total · 10,000 rows · mount', () => {
-	mountGridBenches(rows10k, WINDOW.slow, TOTALED)
-})
+compareBenches(
+	'grid total · 10,000 rows · mount',
+	(bench) => {
+		mountGridBenches(bench, rows10k, TOTALED)
+	},
+	WINDOW.slow,
+)
 
-describe('grid total · 100,000 rows · mount', () => {
-	mountGridBenches(rows100k, WINDOW.slow, TOTALED)
-})
+compareBenches(
+	'grid total · 100,000 rows · mount',
+	(bench) => {
+		mountGridBenches(bench, rows100k, TOTALED)
+	},
+	WINDOW.slow,
+)
 
-describe('grid total · 100,000 rows · sort flip', () => {
-	benches(sort100k, WINDOW.slow)
-})
+compareBenches(
+	'grid total · 100,000 rows · sort flip',
+	(bench) => {
+		benches(bench, sort100k)
+	},
+	WINDOW.slow,
+)
 
-describe('grid total · 100,000 rows · quick filter + clear', () => {
-	benches(filter100k, WINDOW.slow)
-})
+compareBenches(
+	'grid total · 100,000 rows · quick filter + clear',
+	(bench) => {
+		benches(bench, filter100k)
+	},
+	WINDOW.slow,
+)

@@ -8,7 +8,7 @@
  * mid-flight, but the sweep is not over until the far end is drawn.
  */
 
-import { describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { type Shipment, shipments } from '../fixtures'
 import { prepareGrids } from './grid-harness'
 import { painted } from './grids'
@@ -48,10 +48,18 @@ const rows10k = await roundTrip(shipments(10_000))
 
 const rows100k = await roundTrip(shipments(100_000))
 
-describe('grid scroll · 10,000 rows · full round trip', () => {
-	benches(rows10k, WINDOW.settled)
-})
+compareBenches(
+	'grid scroll · 10,000 rows · full round trip',
+	(bench) => {
+		benches(bench, rows10k)
+	},
+	WINDOW.settled,
+)
 
-describe('grid scroll · 100,000 rows · full round trip', () => {
-	benches(rows100k, WINDOW.settled)
-})
+compareBenches(
+	'grid scroll · 100,000 rows · full round trip',
+	(bench) => {
+		benches(bench, rows100k)
+	},
+	WINDOW.settled,
+)

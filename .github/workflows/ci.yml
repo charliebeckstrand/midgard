@@ -109,7 +109,7 @@ jobs:
       - uses: ./.github/actions/turbo-cache
         with:
           name: test-${{ matrix.shard }}
-      # Vitest's disk module cache (vitest.config.ts, `experimental.fsModuleCache`).
+      # Vitest's disk module cache (vitest.config.ts, `fsModuleCache`).
       # Vitest writes it under the workspace root's node_modules, not the
       # package's. Restored after install so the directory lands inside a
       # populated node_modules.
@@ -145,7 +145,7 @@ jobs:
           echo "hash=$hash" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v6
         with:
-          path: node_modules/.experimental-vitest-cache
+          path: node_modules/.vitest-cache
           key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-
@@ -320,7 +320,7 @@ jobs:
           echo "hash=$hash" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v6
         with:
-          path: node_modules/.experimental-vitest-cache-compiler-*
+          path: node_modules/.vitest-cache-compiler-*
           key: ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-

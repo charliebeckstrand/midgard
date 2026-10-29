@@ -1,11 +1,11 @@
 // @vitest-environment node
 
 import clsx from 'clsx'
-import { bench, describe } from 'vitest'
 import { cn } from '../core/cn'
 import { defineRecipe } from '../core/recipe'
 import { twMerge } from '../core/tw-merge'
 import { k as button } from '../recipes/kata/button'
+import { compareBenches } from './compare'
 
 /**
  * The style resolution every component render pays, benched with no DOM and no
@@ -37,7 +37,7 @@ const STATE = 'data-[pending]:opacity-50'
 
 const OVERRIDE = 'px-6 text-sm'
 
-describe('recipe · call (memo hit — the render path)', () => {
+compareBenches('recipe · call (memo hit — the render path)', (bench) => {
 	// What a mounted component actually runs per element. No props is the
 	// commonest call and resolves to a precomputed key, so it skips the join
 	// entirely; the explicit calls pay it.
@@ -54,7 +54,7 @@ describe('recipe · call (memo hit — the render path)', () => {
 	})
 })
 
-describe('recipe · memo hit vs miss (same recipe, same payload)', () => {
+compareBenches('recipe · memo hit vs miss (same recipe, same payload)', (bench) => {
 	// One recipe whose single axis carries more values than the memo's 1,024-entry
 	// cap, called two ways: a fixed value that always hits, and a cycling value
 	// that never does (and pays the cap's clear every 1,024th call). Same recipe
@@ -92,7 +92,7 @@ describe('recipe · memo hit vs miss (same recipe, same payload)', () => {
 	})
 })
 
-describe('recipe · compose (twMerge ∘ clsx, what a miss runs)', () => {
+compareBenches('recipe · compose (twMerge ∘ clsx, what a miss runs)', (bench) => {
 	// The merge itself, without the key join or the Map write, over two payload
 	// sizes: a leaf's handful of classes against the fifty-odd a real kata's
 	// base + variant resolves to. `tailwind-merge` scans every class for
@@ -113,7 +113,7 @@ describe('recipe · compose (twMerge ∘ clsx, what a miss runs)', () => {
 	})
 })
 
-describe('recipe · cn (once per element per render)', () => {
+compareBenches('recipe · cn (once per element per render)', (bench) => {
 	// Every rung is a real call shape at its memo hit: the steady state of a
 	// mounted tree, where the arguments are the same objects render after render:
 	// a leaf with nothing but the recipe, a leaf with a caller override, a
@@ -139,7 +139,7 @@ describe('recipe · cn (once per element per render)', () => {
 	})
 })
 
-describe('recipe · key join (scales with axis count, not payload)', () => {
+compareBenches('recipe · key join (scales with axis count, not payload)', (bench) => {
 	// A memo hit costs one `resolveValue` and one string append per relevant key,
 	// so a recipe's axis count (plus every key its compound rules condition on)
 	// sets the floor for every render that touches it. These three hold the class
@@ -164,7 +164,7 @@ describe('recipe · key join (scales with axis count, not payload)', () => {
 	}
 })
 
-describe('recipe · defineRecipe (creation, once per module load)', () => {
+compareBenches('recipe · defineRecipe (creation, once per module load)', (bench) => {
 	// Every kata builds its recipe at import time: expand the config, splice the
 	// palette into the `variant` × `color` axes, compile the plan, then merge each
 	// slot's classes eagerly. A page that imports a hundred components pays this a

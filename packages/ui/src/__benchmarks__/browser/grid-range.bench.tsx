@@ -15,8 +15,8 @@
 import type { ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { bench, describe } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
+import { compareBenches } from '../compare'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtures'
 import { GRID_HEIGHT, GRID_WIDTH, painted } from './grids'
 import { frame, host, WINDOW } from './harness'
@@ -133,8 +133,12 @@ const extendsByKey = [
 	)),
 ]
 
-describe('grid range · extend to a corner by key · 1,000 rows · un-windowed', () => {
-	for (const { name, seat, run } of extendsByKey) {
-		bench(name, run, { ...WINDOW.slow, setup: seat })
-	}
-})
+compareBenches(
+	'grid range · extend to a corner by key · 1,000 rows · un-windowed',
+	(bench) => {
+		for (const { name, seat, run } of extendsByKey) {
+			bench(name, { beforeAll: seat }, run)
+		}
+	},
+	WINDOW.slow,
+)

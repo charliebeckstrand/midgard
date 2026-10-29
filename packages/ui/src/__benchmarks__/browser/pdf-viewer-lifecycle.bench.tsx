@@ -36,13 +36,13 @@
  * `keepMounted`-style change to the parking panel would be trying to reclaim.
  */
 
-import { bench, describe } from 'vitest'
 import { PdfViewer } from '../../components/pdf-viewer'
 import {
 	ensureDocumentLoad,
 	resetDocumentCache,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import type { PdfViewerPage } from '../../components/pdf-viewer/types'
+import { compareBenches } from '../compare'
 import { reactHost, WINDOW } from './harness'
 
 /** How many pages the document carries: the scale the highlights plan measured against. */
@@ -87,40 +87,32 @@ ensureDocumentLoad(RESIDENT_SRC, (report) => {
 	return Promise.resolve()
 })
 
-describe('pdf viewer · park and unpark', () => {
-	// React root create + render + unmount with a trivial child: the overhead to subtract from
-	// the mount bars so their numbers are the viewer subtree alone.
-	bench(
-		'react root baseline (no viewer)',
-		() => {
+compareBenches(
+	'pdf viewer · park and unpark',
+	(bench) => {
+		// React root create + render + unmount with a trivial child: the overhead to subtract from
+		// the mount bars so their numbers are the viewer subtree alone.
+		bench('react root baseline (no viewer)', () => {
 			const bare = reactHost()
 
 			bare.render(<div />)
 
 			bare.destroy()
-		},
-		WINDOW.settled,
-	)
+		})
 
-	// The unpark, as it costs now.
-	bench(
-		'mount + unmount · resident document',
-		() => {
+		// The unpark, as it costs now.
+		bench('mount + unmount · resident document', () => {
 			const viewer = reactHost()
 
 			viewer.render(<PdfViewer src={RESIDENT_SRC} fit="page" aria-label="Invoice scan" />)
 
 			viewer.destroy()
-		},
-		WINDOW.settled,
-	)
+		})
 
-	// The same subtree and the same chrome, with `pages` supplied so the cache is never
-	// consulted. `src` rides along unused for the document actions: `shouldLoadFromSrc` is
-	// false whenever `pages` is set, so nothing here loads.
-	bench(
-		'mount + unmount · pre-rendered pages',
-		() => {
+		// The same subtree and the same chrome, with `pages` supplied so the cache is never
+		// consulted. `src` rides along unused for the document actions: `shouldLoadFromSrc` is
+		// false whenever `pages` is set, so nothing here loads.
+		bench('mount + unmount · pre-rendered pages', () => {
 			const viewer = reactHost()
 
 			viewer.render(
@@ -128,7 +120,7 @@ describe('pdf viewer · park and unpark', () => {
 			)
 
 			viewer.destroy()
-		},
-		WINDOW.settled,
-	)
-})
+		})
+	},
+	WINDOW.settled,
+)

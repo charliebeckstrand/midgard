@@ -23,9 +23,9 @@
  */
 
 import type { ReactNode } from 'react'
-import { bench, describe } from 'vitest'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSub, MenuTrigger } from '../../components/menu'
 import { useMenuRoot } from '../../components/menu/use-menu-root'
+import { compareBenches } from '../compare'
 import { comboboxOptions } from '../fixtures'
 import { reactHost, WINDOW } from './harness'
 
@@ -124,34 +124,34 @@ function OpenPanel({ subs }: { subs: number }) {
 	)
 }
 
-describe(`menu · ${PANEL_ROWS} rows, open`, () => {
-	for (const subs of [0, SUBMENUS]) {
-		bench(
-			subs === 0 ? 'plain rows' : `${subs} of them submenus`,
-			() => {
+compareBenches(
+	`menu · ${PANEL_ROWS} rows, open`,
+	(bench) => {
+		for (const subs of [0, SUBMENUS]) {
+			bench(subs === 0 ? 'plain rows' : `${subs} of them submenus`, () => {
 				const mounted = reactHost()
 
 				mounted.render(<OpenPanel subs={subs} />)
 
 				mounted.destroy()
-			},
-			WINDOW.slow,
-		)
-	}
-})
+			})
+		}
+	},
+	WINDOW.slow,
+)
 
-describe(`menu · ${FAN_OUT} per mount, closed`, () => {
-	for (const [name, render] of RUNGS) {
-		bench(
-			name,
-			() => {
+compareBenches(
+	`menu · ${FAN_OUT} per mount, closed`,
+	(bench) => {
+		for (const [name, render] of RUNGS) {
+			bench(name, () => {
 				const mounted = reactHost()
 
 				mounted.render(<div>{keys.map(render)}</div>)
 
 				mounted.destroy()
-			},
-			WINDOW.slow,
-		)
-	}
-})
+			})
+		}
+	},
+	WINDOW.slow,
+)

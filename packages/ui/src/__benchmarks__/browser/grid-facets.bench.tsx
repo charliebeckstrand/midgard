@@ -7,7 +7,8 @@
  * times the first open.
  */
 
-import { bench, describe } from 'vitest'
+import type { Bench } from 'vitest'
+import { compareBenches } from '../compare'
 import { type Shipment, shipments } from '../fixtures'
 import { viewportMarkers } from './grid-harness'
 import { GRID_HEIGHT, GRID_WIDTH, grids, painted } from './grids'
@@ -27,34 +28,34 @@ async function sheetPainted(): Promise<void> {
 }
 
 /** Registers one mount, open, and unmount bench for each grid. */
-function openBenches(rows: Shipment[]) {
+function openBenches(bench: Bench, rows: Shipment[]) {
 	const markers = viewportMarkers(rows)
 
 	const box = host({ width: GRID_WIDTH, height: GRID_HEIGHT })
 
 	for (const subject of grids()) {
-		bench(
-			subject.name,
-			async () => {
-				const grid = subject.mount(box, rows, FACETS)
+		bench(subject.name, async () => {
+			const grid = subject.mount(box, rows, FACETS)
 
-				await painted(box, markers)
+			await painted(box, markers)
 
-				grid.openFacets()
+			grid.openFacets()
 
-				await sheetPainted()
+			await sheetPainted()
 
-				grid.destroy()
-			},
-			WINDOW.slow,
-		)
+			grid.destroy()
+		})
 	}
 }
 
-describe('grid facets · 10,000 rows · mount + first filter open', () => {
-	openBenches(shipments(10_000))
-})
+compareBenches(
+	'grid facets · 10,000 rows · mount + first filter open',
+	(bench) => openBenches(bench, shipments(10_000)),
+	WINDOW.slow,
+)
 
-describe('grid facets · 100,000 rows · mount + first filter open', () => {
-	openBenches(shipments(100_000))
-})
+compareBenches(
+	'grid facets · 100,000 rows · mount + first filter open',
+	(bench) => openBenches(bench, shipments(100_000)),
+	WINDOW.slow,
+)

@@ -40,7 +40,7 @@ The shipped avenues (2, 4, 7) are recorded with their numbers; the open ones (1,
 
 ## Method
 
-The loop is the one the benchmark README documents: snapshot, optimize, compare. `pnpm bench:browser -- --outputJson baseline.json` before an avenue, `--compare baseline.json` after, so every change carries its own before/after and no regression drifts in silently. When a browser scenario moves, the node benches (`pnpm bench`) and the pure cores (`grid-sort/utilities`, `grid-sizing/sizer`) are the ladder down to the responsible function: the same descend-to-localize the chart and map suites use. An avenue ships only when its browser number improves and no other regresses; the browser suite is the scoreboard, re-run per change.
+The loop is the one the benchmark README documents: snapshot, optimize, compare. `pnpm bench:browser --reporter=default --reporter=json --outputFile.json=baseline.json` before an avenue, and the same run after it, compared row by row, so every change carries its own before/after and no regression drifts in silently. When a browser scenario moves, the node benches (`pnpm bench`) and the pure cores (`grid-sort/utilities`, `grid-sizing/sizer`) are the ladder down to the responsible function: the same descend-to-localize the chart and map suites use. An avenue ships only when its browser number improves and no other regresses; the browser suite is the scoreboard, re-run per change.
 
 ## Engine: the substrate the optimization rides
 

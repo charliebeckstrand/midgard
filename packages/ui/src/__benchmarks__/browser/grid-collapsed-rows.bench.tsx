@@ -28,7 +28,7 @@
  */
 
 import { Activity, Fragment, useState } from 'react'
-import { bench, describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { reactHost, WINDOW } from './harness'
 
 const GROUPS = 20
@@ -173,23 +173,27 @@ const allExpandedLive = mount(RowInside, false, GROUPS)
 
 const allExpandedRested = mount(RowInside, true, GROUPS)
 
-describe('grid · grouped body · collapsed-row update', () => {
-	// One group open, the other 19 collapsed but live: all 500 rows re-render on
-	// the synchronous commit, which is what the module did before the hold.
-	bench('collapsed rows live', () => live(), WINDOW.settled)
+compareBenches(
+	'grid · grouped body · collapsed-row update',
+	(bench) => {
+		// One group open, the other 19 collapsed but live: all 500 rows re-render on
+		// the synchronous commit, which is what the module did before the hold.
+		bench('collapsed rows live', () => live())
 
-	// Held, but from inside the row: the 475 collapsed row bodies still run.
-	bench('rested · boundary inside the row', () => restedInside(), WINDOW.settled)
+		// Held, but from inside the row: the 475 collapsed row bodies still run.
+		bench('rested · boundary inside the row', () => restedInside())
 
-	// Held from above the row body, which is what actually defers it.
-	bench('rested · boundary above the row', () => restedAbove(), WINDOW.settled)
+		// Held from above the row body, which is what actually defers it.
+		bench('rested · boundary above the row', () => restedAbove())
 
-	// The ceiling: every group open, so nothing can be deferred. Against
-	// `collapsed rows live` it shows what collapsing bought before the hold:
-	// nothing, since a zero-height row still renders.
-	bench('all expanded · live', () => allExpandedLive(), WINDOW.settled)
+		// The ceiling: every group open, so nothing can be deferred. Against
+		// `collapsed rows live` it shows what collapsing bought before the hold:
+		// nothing, since a zero-height row still renders.
+		bench('all expanded · live', () => allExpandedLive())
 
-	// The same fully-expanded body with every row carrying the wrapper it can
-	// never use: the price the hold charges a grid that collapses nothing.
-	bench('all expanded · rested', () => allExpandedRested(), WINDOW.settled)
-})
+		// The same fully-expanded body with every row carrying the wrapper it can
+		// never use: the price the hold charges a grid that collapses nothing.
+		bench('all expanded · rested', () => allExpandedRested())
+	},
+	WINDOW.settled,
+)

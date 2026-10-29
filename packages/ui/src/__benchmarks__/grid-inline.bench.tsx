@@ -7,8 +7,8 @@
  * virtualizes (that needs `maxHeight`), so every row mounts.
  */
 
-import { describe } from 'vitest'
 import { Grid, type GridColumn } from '../modules/grid'
+import { compareBenches } from './compare'
 import { makeInlineColumns, type Shipment, shipmentKey, shipments } from './fixtures'
 import { mountBench, mountBenches, rerenderBench } from './harness'
 
@@ -37,33 +37,36 @@ const rows20 = shipments(20)
 
 const streamed = shipments(STREAM_ROWS)
 
-describe('Grid · inline mount (small)', () => {
+compareBenches('Grid · inline mount (small)', (bench) => {
 	// Fixed per-mount overhead (context providers, the TanStack engine, per-cell
 	// truncation + tooltip fan-out) dominates at chat sizes and is invisible in
 	// the 100→10k sweep. This is the headline inline number.
 	mountBenches(
+		bench,
 		SIZES,
 		(rows) => `${rows.length} rows × 4 cols`,
 		(rows) => <Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} />,
 	)
 })
 
-describe('Grid · inline mount — truncate on/off', () => {
+compareBenches('Grid · inline mount — truncate on/off', (bench) => {
 	// `truncate` defaults true, so each data cell mounts a floating-ui Tooltip
 	// stack (closed, but the hooks/effects allocate). Toggling it off isolates
 	// that per-cell cost.
 	mountBenches(
+		bench,
 		[true, false],
 		(truncate) => `20 × 4 · ${truncate ? 'truncate (default)' : 'truncate=false'}`,
 		(truncate) => <Grid columns={COLUMNS} rows={rows20} getKey={shipmentKey} truncate={truncate} />,
 	)
 })
 
-describe('Grid · inline mount — resizable on/off', () => {
+compareBenches('Grid · inline mount — resizable on/off', (bench) => {
 	// `resizable` defaults true, arming the auto-size pass that measures every
 	// body cell synchronously before paint (O(rows × cols)). `resizable={false}`
 	// stands the autosizer down; the gap is its pre-paint cost.
 	mountBenches(
+		bench,
 		[50, 200].flatMap((count) =>
 			[true, false].map((resizable) => ({ resizable, rows: shipments(count) })),
 		),
@@ -75,17 +78,17 @@ describe('Grid · inline mount — resizable on/off', () => {
 	)
 })
 
-describe('Grid · mount→unmount churn', () => {
+compareBenches('Grid · mount→unmount churn', (bench) => {
 	// A chat transcript scrolls rendered grids in and out of view: teardown cost
 	// (portal removal, listener/observer detach) repeats as often as mount and is
 	// never isolated by the cleanup()-per-bench pattern. A leaked listener or
 	// observer shows here as iterations that drift slower.
-	mountBench('10 × 4 · mount + unmount', () => (
+	mountBench(bench, '10 × 4 · mount + unmount', () => (
 		<Grid columns={COLUMNS} rows={rows10} getKey={shipmentKey} />
 	))
 })
 
-describe('Grid · stable-prop rerender (unchanged data)', () => {
+compareBenches('Grid · stable-prop rerender (unchanged data)', (bench) => {
 	// A grid embedded in a streaming assistant turn re-renders on every token
 	// while its rows/columns are unchanged. Mounted once; the body measures a
 	// no-op re-render with identical references: near-zero for a well-memoized
@@ -93,13 +96,14 @@ describe('Grid · stable-prop rerender (unchanged data)', () => {
 	const identical = <Grid columns={COLUMNS} rows={rows20} getKey={shipmentKey} />
 
 	rerenderBench(
+		bench,
 		'20 × 4 · identical props',
 		() => identical,
 		(rerender) => rerender(identical),
 	)
 })
 
-describe('Grid · streaming append', () => {
+compareBenches('Grid · streaming append', (bench) => {
 	// Rows arrive as the model streams a Markdown table: each token appends a row
 	// and the message re-renders. Mounted at one row; the body grows the row slice
 	// one at a time against a stable getKey, measuring the reconciliation of an
@@ -109,17 +113,19 @@ describe('Grid · streaming append', () => {
 	)
 
 	rerenderBench(
+		bench,
 		`grow 1→${STREAM_ROWS} rows · 1 row/iter`,
 		() => upTo(1),
 		(rerender, iteration) => rerender(upTo((iteration % STREAM_ROWS) + 1)),
 	)
 })
 
-describe('Grid · many grids in one document', () => {
+compareBenches('Grid · many grids in one document', (bench) => {
 	// A long conversation holds many independent small grids (one per assistant
 	// turn). Cross-grid overhead (duplicated providers, aggregate mount, any
 	// global-listener contention) only appears when several co-exist.
 	mountBenches(
+		bench,
 		[3, 10, 25],
 		(count) => `${count} grids · 10 × 4 each`,
 		(count) => (

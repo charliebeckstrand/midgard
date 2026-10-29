@@ -100,8 +100,8 @@ function skipGlobCache({ sourceCode }: { sourceCode: string }): false | undefine
 
 const globCache: Plugin = {
 	name: 'midgard:glob-cache',
-	configureVitest({ experimental_defineCacheKeyGenerator }) {
-		experimental_defineCacheKeyGenerator(skipGlobCache)
+	configureVitest({ defineCacheKeyGenerator }) {
+		defineCacheKeyGenerator(skipGlobCache)
 	},
 }
 
@@ -128,8 +128,8 @@ function keyOnExports({ sourceCode }: { sourceCode: string }): string | undefine
 
 const exportsCache: Plugin = {
 	name: 'midgard:exports-cache',
-	configureVitest({ experimental_defineCacheKeyGenerator }) {
-		experimental_defineCacheKeyGenerator(keyOnExports)
+	configureVitest({ defineCacheKeyGenerator }) {
+		defineCacheKeyGenerator(keyOnExports)
 	},
 }
 
@@ -161,10 +161,9 @@ export default defineConfig({
 		// most of the transform time of the `unit` project, and much of its import
 		// time. The cache lives under the workspace root's node_modules. CI keys it
 		// on the turbo hash of the packages that ui resolves (ci.yml), so a change
-		// to those packages starts a cold cache. The option is experimental:
-		// re-read its release note on each Vitest bump, and drop it if the
-		// invalidation contract changes.
-		experimental: { fsModuleCache: true },
+		// to those packages starts a cold cache. Vitest 5 turns the cache on by
+		// default. The option stays here because the cache of CI depends on it.
+		fsModuleCache: true,
 		// Machine speed must change when a test passes, never whether it passes:
 		// CI agents are slower and noisier than dev machines, so wall-clock
 		// budgets scale up there. asyncUtilTimeout is RTL's waitFor/findBy budget,

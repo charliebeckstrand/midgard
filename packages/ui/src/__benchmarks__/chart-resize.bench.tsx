@@ -1,9 +1,10 @@
 import { act } from '@testing-library/react'
 import type { ReactElement } from 'react'
-import { describe } from 'vitest'
+import type { Bench } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../components/tabs'
 import { BarChart } from '../modules/chart/bar-chart'
 import { PieChart } from '../modules/chart/pie-chart'
+import { compareBenches } from './compare'
 import { persistentTree } from './harness'
 
 /**
@@ -97,8 +98,8 @@ function driveScenario(container: HTMLElement) {
  * own copy of the tree only while it runs, so the figures of one scenario do
  * not depend on the trees of the others.
  */
-function mountScenario(node: ReactElement) {
-	return persistentTree(node, driveScenario)
+function mountScenario(bench: Bench, node: ReactElement) {
+	return persistentTree(bench, node, driveScenario)
 }
 
 /**
@@ -146,8 +147,8 @@ function bar(label: string) {
 	)
 }
 
-describe('BarChart · resize', () => {
-	const scenario = mountScenario(bar('Revenue and costs by month'))
+compareBenches('BarChart · resize', (bench) => {
+	const scenario = mountScenario(bench, bar('Revenue and costs by month'))
 
 	const nextSpan = spanner()
 
@@ -164,8 +165,9 @@ describe('BarChart · resize', () => {
 	})
 })
 
-describe('PieChart · resize', () => {
+compareBenches('PieChart · resize', (bench) => {
 	const scenario = mountScenario(
+		bench,
 		<PieChart
 			aria-label="Traffic by source"
 			data={sources}
@@ -188,8 +190,9 @@ describe('PieChart · resize', () => {
 	})
 })
 
-describe('three charts in fading tab host · resize', () => {
+compareBenches('three charts in fading tab host · resize', (bench) => {
 	const scenario = mountScenario(
+		bench,
 		<Tabs defaultValue="bar">
 			<TabList aria-label="Chart kind">
 				<Tab value="bar">Bar</Tab>

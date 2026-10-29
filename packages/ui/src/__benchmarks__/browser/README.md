@@ -14,15 +14,17 @@ The utility CSS is **flat**, as a build ships it (`servedTailwind` in [`vitest.b
 
 ## Reading and driving improvements
 
-Each `describe` groups one scenario. Where a scenario holds more than one row, such as the `truncate` variants of the resize benches, the `BENCH Summary` prints their ratios directly. To hold a before/after line through an optimization, snapshot then compare:
+Each `compareBenches` group ([`compare.ts`](../compare.ts)) is one scenario, and Vitest prints its rows in one table, with the fastest and the slowest row marked. Where a scenario holds more than one row, such as the `truncate` variants of the resize benches, read their ratios in that table. To hold a before/after line through an optimization, write the results to a file before the change, then run again after it:
 
 ```sh
-pnpm bench:browser -- --outputJson bench-baseline.json
+pnpm bench:browser --reporter=default --reporter=json --outputFile.json=bench-baseline.json
 # …optimize…
-pnpm bench:browser -- --compare bench-baseline.json
+pnpm bench:browser
 ```
 
-`pnpm bench:browser:compiler` runs the same suite with the React Compiler on the `ui` source ([`vitest.bench.browser.compiler.config.ts`](../../../vitest.bench.browser.compiler.config.ts)). An app with `reactCompiler: true` ships the modules in this form. The harness stays plain, so the two runs differ only in the `ui` modules. To see what the compiler gains or costs, write a plain run with `--outputJson`, and then give that file to the compiled run with `--compare`. The run stops at setup if the compiler did not compile the `ui` source.
+Vitest has no `--compare` flag since version 5, so compare the two runs row by row. The JSON report gives the rows of each scenario in the `benchmarks` field of its test.
+
+`pnpm bench:browser:compiler` runs the same suite with the React Compiler on the `ui` source ([`vitest.bench.browser.compiler.config.ts`](../../../vitest.bench.browser.compiler.config.ts)). An app with `reactCompiler: true` ships the modules in this form. The harness stays plain, so the two runs differ only in the `ui` modules. To see what the compiler gains or costs, write the JSON report of a plain run and of a compiled run, and compare the rows. The run stops at setup if the compiler did not compile the `ui` source.
 
 When a scenario regresses, the jsdom benches (`pnpm bench`) are the ladder down to the responsible layer. Their pure cores sit directly under these scenarios, drawing the same fixtures with no React and no DOM: `chart-scale` and per-chart `*-geometry` for the numbers going in and the paths coming out, `chart-layout` for the axis/tick/date/hit-test pass between them, `map-compute` for the projection fit, the region paths, and the region joins (with `map-render`'s cold/warm split for the geometry cache), `grid-compute` and `grid-sorting` for column allocation, export, and sort, `grid-group` for grouping and aggregation, `query-evaluate` for the filter walk, and `recipe` for the style resolution every one of them pays per element.
 
@@ -420,7 +422,7 @@ The geometry is the conterminous US: `states-10m` (49 regions) and `counties-10m
 
 - [`map-emphasis.bench.tsx`](map-emphasis.bench.tsx): a legend-emphasis flip on the live county atlas: emphasize the first category (every region outside it recedes), settle two frames, release, settle again. The ui module takes real pointer events on the switchboard chip of its legend.
 
-- [`map-overlay.bench.tsx`](map-overlay.bench.tsx): the overlay marks, which every scenario above draws none of. Three describes run. Two hundred dots mount as one `MapPoints` against one `MapPoint` each: the plural form registers one legend entry where the singular pays two hundred state commits. The same dots then mount over a coverage territory (`COVERAGE_AREA`: every conterminous state's rings, 140 of them, ~9,900 vertices), and a third describes notches that scene's zoom in and back out from the plot's own keyboard. The zone scenarios exist because a dot on a zone sizes its pointer target against the room that zone can spare, so every dot reads every visible zone once per rebuild: a coupling no bench on bare geography can see, and one that shipped a regression before these existed. Reintroducing it scores the mount at 23.7ms against 12.9 and the zoom cycle at 60.2 against 48.0, both far outside their ~5% run-to-run spread.
+- [`map-overlay.bench.tsx`](map-overlay.bench.tsx): the overlay marks, which every scenario above draws none of. Three groups run. Two hundred dots mount as one `MapPoints` against one `MapPoint` each: the plural form registers one legend entry where the singular pays two hundred state commits. The same dots then mount over a coverage territory (`COVERAGE_AREA`: every conterminous state's rings, 140 of them, ~9,900 vertices), and a third group notches that scene's zoom in and back out from the plot's own keyboard. The zone scenarios exist because a dot on a zone sizes its pointer target against the room that zone can spare, so every dot reads every visible zone once per rebuild: a coupling no bench on bare geography can see, and one that shipped a regression before these existed. Reintroducing it scores the mount at 23.7ms against 12.9 and the zoom cycle at 60.2 against 48.0, both far outside their ~5% run-to-run spread.
 
 The ui module keeps its built-in accessible output in each scenario: the visually-hidden region table, deferred one low-priority commit behind the geography. Its default legend, the switchboard, stays on. The choropleth samples one five-stop ramp. One county (Falls Church, VA) projects below sub-pixel size and draws no path, so the county map renders 3,107 paths for 3,108 regions.
 

@@ -17,10 +17,10 @@ import './render-count'
 
 import { useState } from 'react'
 import { flushSync } from 'react-dom'
-import { bench, describe } from 'vitest'
 import { GridGroupManager } from '../../modules/grid/grid-group-manager'
 import type { GridColumnGroup } from '../../modules/grid/grid-group-types'
 import type { GridColumnManagerItem } from '../../modules/grid/types'
+import { compareBenches } from '../compare'
 import { reactHost, settle, WINDOW } from './harness'
 import { readRenders, resetRenders } from './render-count'
 
@@ -119,16 +119,16 @@ keystroke()
 
 console.log(`group editor · one keystroke renders ${JSON.stringify(readRenders(COUNTED))}`)
 
-describe('grid group editor · 8 × 40 columns · rename keystroke', () => {
-	bench('commit', keystroke, WINDOW.slow)
+compareBenches(
+	'grid group editor · 8 × 40 columns · rename keystroke',
+	(bench) => {
+		bench('commit', keystroke)
 
-	bench(
-		'layout',
-		() => {
+		bench('layout', () => {
 			keystroke()
 
 			editor.getBoundingClientRect()
-		},
-		WINDOW.slow,
-	)
-})
+		})
+	},
+	WINDOW.slow,
+)

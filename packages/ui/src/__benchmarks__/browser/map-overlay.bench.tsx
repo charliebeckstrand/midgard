@@ -25,11 +25,11 @@
  * started churning where the mount could not.
  */
 
-import { describe } from 'vitest'
 import { MapGeofence } from '../../modules/map/map-geofence'
 import { MapPlat } from '../../modules/map/map-plat'
 import { MapPoint } from '../../modules/map/map-point'
 import { MapPoints } from '../../modules/map/map-points'
+import { compareBenches } from '../compare'
 import { HEIGHT, reactSubject, type Subject, WIDTH } from './charts'
 import { benches, host, mountBenches, type Prepared, settle, WINDOW } from './harness'
 import { COVERAGE_AREA, LATTICE_DOTS, statesAtlas } from './map-fixtures'
@@ -159,14 +159,26 @@ const zoomed: Prepared[] = [
 	await settle()
 }
 
-describe('mount · map overlays · 200 dots', () => {
-	mountBenches(overlayMaps(), LATTICE_DOTS, WINDOW.slow)
-})
+compareBenches(
+	'mount · map overlays · 200 dots',
+	(bench) => {
+		mountBenches(bench, overlayMaps(), LATTICE_DOTS)
+	},
+	WINDOW.slow,
+)
 
-describe('mount · map overlays · 200 dots over a coverage zone', () => {
-	mountBenches(zonedMaps(), LATTICE_DOTS, WINDOW.slow)
-})
+compareBenches(
+	'mount · map overlays · 200 dots over a coverage zone',
+	(bench) => {
+		mountBenches(bench, zonedMaps(), LATTICE_DOTS)
+	},
+	WINDOW.slow,
+)
 
-describe('zoom · map overlays · 200 dots over a coverage zone · notch in and out', () => {
-	benches(zoomed, WINDOW.settled)
-})
+compareBenches(
+	'zoom · map overlays · 200 dots over a coverage zone · notch in and out',
+	(bench) => {
+		benches(bench, zoomed)
+	},
+	WINDOW.settled,
+)

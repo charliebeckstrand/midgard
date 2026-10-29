@@ -1,9 +1,9 @@
 // @vitest-environment node
 
-import { bench, describe } from 'vitest'
 import { createRule } from '../modules/query/engine/query-node'
 import { addChild, mapNode, removeChild } from '../modules/query/engine/query-tree'
 import type { QueryGroup } from '../modules/query/engine/types'
+import { compareBenches } from './compare'
 import { collectRuleIds, QUERY_FIELDS, QUERY_TREES } from './fixtures'
 
 // The three trees `query-evaluate.bench.ts` reads against, declared once in
@@ -20,7 +20,7 @@ const deepWideIds = collectRuleIds(deepWide)
 
 const shallowWideFirstId = shallowWide.children[0]?.id ?? ''
 
-describe('query-builder · mapNode (update root-level rule)', () => {
+compareBenches('query-builder · mapNode (update root-level rule)', (bench) => {
 	bench('shallow-wide · first child', () => {
 		mapNode(shallowWide, shallowWideFirstId, (node) => ({ ...node }))
 	})
@@ -42,7 +42,7 @@ describe('query-builder · mapNode (update root-level rule)', () => {
 	})
 })
 
-describe('query-builder · mapNode (miss — walks entire tree)', () => {
+compareBenches('query-builder · mapNode (miss — walks entire tree)', (bench) => {
 	bench('balanced · miss', () => {
 		mapNode(balanced, '__absent__', (node) => ({ ...node }))
 	})
@@ -52,7 +52,7 @@ describe('query-builder · mapNode (miss — walks entire tree)', () => {
 	})
 })
 
-describe('query-builder · addChild', () => {
+compareBenches('query-builder · addChild', (bench) => {
 	const rule = createRule(QUERY_FIELDS[0])
 
 	bench('balanced · at root', () => {
@@ -66,7 +66,7 @@ describe('query-builder · addChild', () => {
 	})
 })
 
-describe('query-builder · removeChild', () => {
+compareBenches('query-builder · removeChild', (bench) => {
 	bench('balanced · first leaf', () => {
 		removeChild(balanced, balancedIds[0] as string)
 	})
@@ -76,7 +76,7 @@ describe('query-builder · removeChild', () => {
 	})
 })
 
-describe('query-builder · mapNode · 100 sequential updates (realistic flow)', () => {
+compareBenches('query-builder · mapNode · 100 sequential updates (realistic flow)', (bench) => {
 	const ids = balancedIds.slice(0, 100)
 
 	bench('balanced', () => {

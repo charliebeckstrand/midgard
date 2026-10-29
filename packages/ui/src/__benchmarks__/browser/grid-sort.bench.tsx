@@ -7,7 +7,7 @@
  * top.
  */
 
-import { describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { type Shipment, shipments } from '../fixtures'
 import { prepareGrids, viewportMarkers } from './grid-harness'
 import { painted } from './grids'
@@ -36,10 +36,18 @@ const rows10k = await sortFlip(shipments(10_000))
 
 const rows100k = await sortFlip(shipments(100_000))
 
-describe('grid sort · 10,000 rows · asc/desc flip', () => {
-	benches(rows10k, WINDOW.slow)
-})
+compareBenches(
+	'grid sort · 10,000 rows · asc/desc flip',
+	(bench) => {
+		benches(bench, rows10k)
+	},
+	WINDOW.slow,
+)
 
-describe('grid sort · 100,000 rows · asc/desc flip', () => {
-	benches(rows100k, WINDOW.slow)
-})
+compareBenches(
+	'grid sort · 100,000 rows · asc/desc flip',
+	(bench) => {
+		benches(bench, rows100k)
+	},
+	WINDOW.slow,
+)

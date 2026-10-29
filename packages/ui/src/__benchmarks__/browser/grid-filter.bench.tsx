@@ -17,7 +17,7 @@
  * keystroke.
  */
 
-import { describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { type Shipment, shipments } from '../fixtures'
 import { prepareGrids, viewportMarkers } from './grid-harness'
 import { painted } from './grids'
@@ -75,18 +75,34 @@ const sorted10k = await filterCycle(shipments(10_000), true)
 
 const sorted100k = await filterCycle(shipments(100_000), true)
 
-describe('grid filter · 10,000 rows · quick filter + clear', () => {
-	benches(rows10k, WINDOW.slow)
-})
+compareBenches(
+	'grid filter · 10,000 rows · quick filter + clear',
+	(bench) => {
+		benches(bench, rows10k)
+	},
+	WINDOW.slow,
+)
 
-describe('grid filter · 100,000 rows · quick filter + clear', () => {
-	benches(rows100k, WINDOW.slow)
-})
+compareBenches(
+	'grid filter · 100,000 rows · quick filter + clear',
+	(bench) => {
+		benches(bench, rows100k)
+	},
+	WINDOW.slow,
+)
 
-describe('grid filter · 10,000 rows · quick filter + clear · sorted', () => {
-	benches(sorted10k, WINDOW.slow)
-})
+compareBenches(
+	'grid filter · 10,000 rows · quick filter + clear · sorted',
+	(bench) => {
+		benches(bench, sorted10k)
+	},
+	WINDOW.slow,
+)
 
-describe('grid filter · 100,000 rows · quick filter + clear · sorted', () => {
-	benches(sorted100k, WINDOW.slow)
-})
+compareBenches(
+	'grid filter · 100,000 rows · quick filter + clear · sorted',
+	(bench) => {
+		benches(bench, sorted100k)
+	},
+	WINDOW.slow,
+)

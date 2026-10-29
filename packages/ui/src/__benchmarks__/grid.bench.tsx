@@ -6,8 +6,8 @@
  * there is reconciliation, not mount.
  */
 
-import { describe } from 'vitest'
 import { Grid, type GridColumn, type GridSortState } from '../modules/grid'
+import { compareBenches } from './compare'
 import { type Shipment, shipmentColumns, shipmentKey, shipments } from './fixtures'
 import { mountBench, mountBenches, rerenderBench } from './harness'
 
@@ -27,7 +27,7 @@ const TOGGLES = 5
 // `shipments` is memoized per (count, seed), so every call below hands back the
 // same array: no aliasing needed to keep the fixture out of the timed region.
 
-describe('Grid · initial render (un-windowed)', () => {
+compareBenches('Grid · initial render (un-windowed)', (bench) => {
 	// Stops at a thousand rows on purpose. An un-windowed grid mounts every row,
 	// so the 5,000- and 10,000-row rungs this describe used to carry held most of
 	// the time of the suite to measure a configuration nothing ships: past a
@@ -35,19 +35,21 @@ describe('Grid · initial render (un-windowed)', () => {
 	// exactly those two sizes in a fraction of that time. What is left here is
 	// the range a grid genuinely renders un-windowed.
 	mountBenches(
+		bench,
 		[shipments(100), shipments(1_000)],
 		(rows) => `${rows.length.toLocaleString()} rows × 8 cols`,
 		(rows) => <Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} />,
 	)
 })
 
-describe('Grid · with selection column', () => {
+compareBenches('Grid · with selection column', (bench) => {
 	const rows = shipments(1_000)
 
 	// The selection sets are built here, not in the element factory: the factory
 	// runs inside the timed region, so an `all selected` rung would rebuild a
 	// thousand-entry Set on every sample and charge the grid for it.
 	mountBenches(
+		bench,
 		[
 			{
 				label: '10% pre-selected',
@@ -67,7 +69,7 @@ describe('Grid · with selection column', () => {
 	)
 })
 
-describe('Grid · column-order logic (visibleColumns memo)', () => {
+compareBenches('Grid · column-order logic (visibleColumns memo)', (bench) => {
 	// The row-mapping and visibleColumns computation happen on every render.
 	// Isolate by rendering a minimal row set but varying column config.
 	const manyColumns: GridColumn<Shipment>[] = Array.from({ length: 40 }, (_, index) => ({
@@ -82,7 +84,7 @@ describe('Grid · column-order logic (visibleColumns memo)', () => {
 
 	const rows = shipments(100)
 
-	mountBench('40 columns · half hidden · reversed order · 100 rows', () => (
+	mountBench(bench, '40 columns · half hidden · reversed order · 100 rows', () => (
 		<Grid
 			columns={manyColumns}
 			rows={rows}
@@ -93,11 +95,12 @@ describe('Grid · column-order logic (visibleColumns memo)', () => {
 	))
 })
 
-describe('Grid · virtualized initial render', () => {
+compareBenches('Grid · virtualized initial render', (bench) => {
 	// Where the large row counts live: a windowed grid mounts a screenful
 	// whatever the dataset, so these two rungs cover 1k and 10k for a fraction
 	// of what the un-windowed mounts above would charge for the same sizes.
 	mountBenches(
+		bench,
 		[shipments(1_000), shipments(10_000)],
 		(rows) => `${rows.length.toLocaleString()} rows × 8 cols · virtualize`,
 		(rows) => (
@@ -106,7 +109,7 @@ describe('Grid · virtualized initial render', () => {
 	)
 })
 
-describe('Grid · rerender after sort toggle (1,000 rows · truncating)', () => {
+compareBenches('Grid · rerender after sort toggle (1,000 rows · truncating)', (bench) => {
 	// A resizable grid is fixed-layout and truncating, so every visible cell
 	// mounts a `GridCellContent`. This exercises the path the performance audit
 	// flagged: a sort change must not re-render every truncating cell (each reads
@@ -124,6 +127,7 @@ describe('Grid · rerender after sort toggle (1,000 rows · truncating)', () => 
 	)
 
 	rerenderBench(
+		bench,
 		`${TOGGLES} toggles/iter`,
 		() => sorted('asc'),
 		(rerender, iteration) => {
@@ -134,7 +138,7 @@ describe('Grid · rerender after sort toggle (1,000 rows · truncating)', () => 
 	)
 })
 
-describe('Grid · rerender after selection toggle (1,000 rows)', () => {
+compareBenches('Grid · rerender after selection toggle (1,000 rows)', (bench) => {
 	const rows = shipments(1_000)
 
 	const selected = (selection: Set<string | number>) => (
@@ -149,6 +153,7 @@ describe('Grid · rerender after selection toggle (1,000 rows)', () => {
 	let selection = new Set<string | number>()
 
 	rerenderBench(
+		bench,
 		`${TOGGLES} toggles/iter`,
 		() => {
 			selection = new Set()

@@ -9,7 +9,7 @@
  *   sorted first page paint.
  */
 
-import { describe } from 'vitest'
+import { compareBenches } from '../compare'
 import { type Shipment, shipments } from '../fixtures'
 import { mountGridBenches, prepareGrids, viewportMarkers } from './grid-harness'
 import { PAGE_SIZE, painted } from './grids'
@@ -73,26 +73,50 @@ const sort10k = await sortFlip(rows10k)
 
 const sort100k = await sortFlip(rows100k)
 
-describe('grid paginate · 10,000 rows · mount', () => {
-	mountGridBenches(rows10k, WINDOW.slow, PAGINATED)
-})
+compareBenches(
+	'grid paginate · 10,000 rows · mount',
+	(bench) => {
+		mountGridBenches(bench, rows10k, PAGINATED)
+	},
+	WINDOW.slow,
+)
 
-describe('grid paginate · 100,000 rows · mount', () => {
-	mountGridBenches(rows100k, WINDOW.slow, PAGINATED)
-})
+compareBenches(
+	'grid paginate · 100,000 rows · mount',
+	(bench) => {
+		mountGridBenches(bench, rows100k, PAGINATED)
+	},
+	WINDOW.slow,
+)
 
-describe('grid paginate · 10,000 rows · page flip', () => {
-	benches(flip10k, WINDOW.slow)
-})
+compareBenches(
+	'grid paginate · 10,000 rows · page flip',
+	(bench) => {
+		benches(bench, flip10k)
+	},
+	WINDOW.slow,
+)
 
-describe('grid paginate · 100,000 rows · page flip', () => {
-	benches(flip100k, WINDOW.slow)
-})
+compareBenches(
+	'grid paginate · 100,000 rows · page flip',
+	(bench) => {
+		benches(bench, flip100k)
+	},
+	WINDOW.slow,
+)
 
-describe('grid paginate · 10,000 rows · sort flip', () => {
-	benches(sort10k, WINDOW.slow)
-})
+compareBenches(
+	'grid paginate · 10,000 rows · sort flip',
+	(bench) => {
+		benches(bench, sort10k)
+	},
+	WINDOW.slow,
+)
 
-describe('grid paginate · 100,000 rows · sort flip', () => {
-	benches(sort100k, WINDOW.slow)
-})
+compareBenches(
+	'grid paginate · 100,000 rows · sort flip',
+	(bench) => {
+		benches(bench, sort100k)
+	},
+	WINDOW.slow,
+)

@@ -8,9 +8,9 @@
  */
 
 import type { ReactNode } from 'react'
-import { describe } from 'vitest'
 import { Listbox, ListboxLabel, ListboxOption } from '../components/listbox'
 import { VirtualOptions } from '../primitives/virtual-options'
+import { compareBenches } from './compare'
 import { comboboxOptions } from './fixtures'
 import { mountBenches } from './harness'
 
@@ -45,18 +45,20 @@ const options = new Map(
 
 const at = (count: number) => options.get(count) as { listbox: ReactNode[]; plain: ReactNode[] }
 
-describe('Listbox · closed (options provided as children)', () => {
+compareBenches('Listbox · closed (options provided as children)', (bench) => {
 	mountBenches(
+		bench,
 		[100, 2_000],
 		(count) => `${count.toLocaleString()} options`,
 		(count) => <Listbox<string>>{at(count).listbox}</Listbox>,
 	)
 })
 
-describe('Listbox · options inside a stand-in listbox panel', () => {
+compareBenches('Listbox · options inside a stand-in listbox panel', (bench) => {
 	// Bypass the real Listbox open/close state by rendering options inside a
 	// matching role="listbox" container; isolates per-option rendering cost.
 	mountBenches(
+		bench,
 		[500, 2_000],
 		(count) => `${count.toLocaleString()} options`,
 		(count) => (
@@ -67,10 +69,11 @@ describe('Listbox · options inside a stand-in listbox panel', () => {
 	)
 })
 
-describe('Listbox · virtualized', () => {
+compareBenches('Listbox · virtualized', (bench) => {
 	// The virtualizer takes the raw options and renders the window itself, so
 	// there is no element list to hoist, only the window's own children build.
 	mountBenches(
+		bench,
 		[500, 2_000],
 		(count) => `${count.toLocaleString()} options · virtualized`,
 		(count) => (

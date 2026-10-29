@@ -4,7 +4,7 @@
  * chart draws each dataset into a fixed box with the animations off.
  */
 
-import { describe } from 'vitest'
+import { compareBenches } from '../compare'
 import {
 	barCharts,
 	heatmapCharts,
@@ -16,54 +16,70 @@ import {
 import { makeDatedTrend, makePoints, makeTrend } from './fixtures'
 import { mountBenches, WINDOW } from './harness'
 
-describe('mount · line · 100 × 1 series', () => {
-	mountBenches(lineCharts(1), makeTrend(100, 1))
+compareBenches('mount · line · 100 × 1 series', (bench) => {
+	mountBenches(bench, lineCharts(1), makeTrend(100, 1))
 })
 
-describe('mount · line · 1,000 × 1 series', () => {
-	mountBenches(lineCharts(1), makeTrend(1_000, 1))
+compareBenches('mount · line · 1,000 × 1 series', (bench) => {
+	mountBenches(bench, lineCharts(1), makeTrend(1_000, 1))
 })
 
-describe('mount · line · 10,000 × 1 series', () => {
-	mountBenches(lineCharts(1), makeTrend(10_000, 1), WINDOW.slow)
+compareBenches(
+	'mount · line · 10,000 × 1 series',
+	(bench) => {
+		mountBenches(bench, lineCharts(1), makeTrend(10_000, 1))
+	},
+	WINDOW.slow,
+)
+
+compareBenches(
+	'mount · line · 1,000 × 5 series',
+	(bench) => {
+		mountBenches(bench, lineCharts(5), makeTrend(1_000, 5))
+	},
+	WINDOW.slow,
+)
+
+compareBenches('mount · bar · 50 × 2 series', (bench) => {
+	mountBenches(bench, barCharts(2), makeTrend(50, 2))
 })
 
-describe('mount · line · 1,000 × 5 series', () => {
-	mountBenches(lineCharts(5), makeTrend(1_000, 5), WINDOW.slow)
-})
-
-describe('mount · bar · 50 × 2 series', () => {
-	mountBenches(barCharts(2), makeTrend(50, 2))
-})
-
-describe('mount · bar · 500 × 2 series', () => {
-	mountBenches(barCharts(2), makeTrend(500, 2), WINDOW.slow)
-})
+compareBenches(
+	'mount · bar · 500 × 2 series',
+	(bench) => {
+		mountBenches(bench, barCharts(2), makeTrend(500, 2))
+	},
+	WINDOW.slow,
+)
 
 // The horizontal bar measures the rendered width of each category label before
 // the first paint, and cuts a label past the gutter with an ellipsis.
-describe('mount · bar · horizontal · 50 × 2 series', () => {
-	mountBenches(horizontalBarCharts(2), makeTrend(50, 2))
+compareBenches('mount · bar · horizontal · 50 × 2 series', (bench) => {
+	mountBenches(bench, horizontalBarCharts(2), makeTrend(50, 2))
 })
 
-describe('mount · scatter · 1,000 points', () => {
-	mountBenches(scatterCharts(), makePoints(1_000))
+compareBenches('mount · scatter · 1,000 points', (bench) => {
+	mountBenches(bench, scatterCharts(), makePoints(1_000))
 })
 
-describe('mount · scatter · 10,000 points', () => {
-	mountBenches(scatterCharts(), makePoints(10_000), WINDOW.slow)
-})
+compareBenches(
+	'mount · scatter · 10,000 points',
+	(bench) => {
+		mountBenches(bench, scatterCharts(), makePoints(10_000))
+	},
+	WINDOW.slow,
+)
 
 // The callout pie measures the rendered width of each label before the first
 // paint, so its mount pays one text layout and one more render.
-describe('mount · pie · callouts · 8 slices', () => {
-	mountBenches(pieCalloutCharts(), makeTrend(8, 1))
+compareBenches('mount · pie · callouts · 8 slices', (bench) => {
+	mountBenches(bench, pieCalloutCharts(), makeTrend(8, 1))
 })
 
 // The heatmap measures the rendered width of each row label before the first
 // paint, and cuts a label past the gutter with an ellipsis.
-describe('mount · heatmap · 24 × 8 cells', () => {
-	mountBenches(heatmapCharts(), makeTrend(24, 8))
+compareBenches('mount · heatmap · 24 × 8 cells', (bench) => {
+	mountBenches(bench, heatmapCharts(), makeTrend(24, 8))
 })
 
 // The same line scenarios over ISO-date categories: the time-series dashboard
@@ -72,10 +88,18 @@ describe('mount · heatmap · 24 × 8 cells', () => {
 // when they do, where a non-date axis exits on its first value. Held beside the
 // plain scenarios of the same size, the pair prices that probe end to end.
 
-describe('mount · line · dated · 1,000 × 1 series', () => {
-	mountBenches(lineCharts(1), makeDatedTrend(1_000, 1), WINDOW.slow)
-})
+compareBenches(
+	'mount · line · dated · 1,000 × 1 series',
+	(bench) => {
+		mountBenches(bench, lineCharts(1), makeDatedTrend(1_000, 1))
+	},
+	WINDOW.slow,
+)
 
-describe('mount · line · dated · 10,000 × 1 series', () => {
-	mountBenches(lineCharts(1), makeDatedTrend(10_000, 1), WINDOW.slow)
-})
+compareBenches(
+	'mount · line · dated · 10,000 × 1 series',
+	(bench) => {
+		mountBenches(bench, lineCharts(1), makeDatedTrend(10_000, 1))
+	},
+	WINDOW.slow,
+)

@@ -33,8 +33,20 @@ export type GlobalListener = {
  * one root projection node for the page when the first layout element mounts.
  * That node puts a `resize` listener on `window` and stays for the life of the
  * page. Only that node passes `attachResizeListener`.
+ *
+ * jsdom makes one selector engine (`DOMSelector`) for each document on the
+ * first query, and the `Finder` of the engine puts its focus, key, and mouse
+ * listeners on the window, with no removal. The stack names the constructor
+ * differently from run to run, so the record matches the method that adds the
+ * listeners. A test that parses HTML into a new document thus
+ * adds them. The record sees them since Vitest 5.
  */
-const ONCE_PER_PAGE = ['listenToAllSupportedEvents', 'prepareDocument', 'attachResizeListener']
+const ONCE_PER_PAGE = [
+	'listenToAllSupportedEvents',
+	'prepareDocument',
+	'attachResizeListener',
+	'Finder._registerEventListeners',
+]
 
 /** How many frames of the adding stack a report carries. */
 const ORIGIN_FRAMES = 3

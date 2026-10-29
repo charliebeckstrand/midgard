@@ -6,10 +6,10 @@
  * mounted tree, where a memo regression on a single branch flip surfaces.
  */
 
-import { describe } from 'vitest'
 import { JsonTree } from '../components/json-tree'
 import { collectPaths } from '../components/json-tree/json-tree-utilities'
 import { noop } from '../utilities/noop'
+import { compareBenches } from './compare'
 import { JSON_TREES } from './fixtures'
 import { mountBenches, rerenderBench } from './harness'
 
@@ -17,8 +17,9 @@ const { small, medium, large } = JSON_TREES
 
 const DEEP = Number.POSITIVE_INFINITY
 
-describe('JsonTree · render', () => {
+compareBenches('JsonTree · render', (bench) => {
 	mountBenches(
+		bench,
 		[
 			{ label: 'small (d3×b5) · depth=1', data: small, depth: 1 },
 			{ label: 'small (d3×b5) · fully expanded', data: small, depth: DEEP },
@@ -31,8 +32,9 @@ describe('JsonTree · render', () => {
 	)
 })
 
-describe('JsonTree · render with active search', () => {
+compareBenches('JsonTree · render with active search', (bench) => {
 	mountBenches(
+		bench,
 		[
 			{ label: 'search hits (filter=false)', search: 'value-root' },
 			{ label: 'search hits (filter=true)', search: { value: 'value-root', filter: true } },
@@ -43,8 +45,9 @@ describe('JsonTree · render with active search', () => {
 	)
 })
 
-describe('JsonTree · virtualized render', () => {
+compareBenches('JsonTree · virtualized render', (bench) => {
 	mountBenches(
+		bench,
 		[
 			{ label: 'medium (d4×b5)', data: medium },
 			{ label: 'large (d5×b5)', data: large },
@@ -56,7 +59,7 @@ describe('JsonTree · virtualized render', () => {
 	)
 })
 
-describe('JsonTree · virtualized · re-render on toggle', () => {
+compareBenches('JsonTree · virtualized · re-render on toggle', (bench) => {
 	// Controlled `expanded` flips one mid-tree branch per iteration, so the timed
 	// region is the re-render alone, not the mount.
 	const paths = [...collectPaths(medium, undefined, DEEP)]
@@ -79,6 +82,7 @@ describe('JsonTree · virtualized · re-render on toggle', () => {
 	)
 
 	rerenderBench(
+		bench,
 		'medium (d4×b5) · toggle one branch',
 		() => toggled(oneCollapsed),
 		(rerender, iteration) => rerender(toggled(iteration % 2 === 0 ? allExpanded : oneCollapsed)),

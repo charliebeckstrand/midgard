@@ -58,14 +58,8 @@ export default mergeConfig(base, {
 		// cache keys a file on its source, the plugin names, and the config, not
 		// on the compiler's version, so the path carries that version. A
 		// compiler upgrade then starts a cold cache, not a stale one.
-		experimental: {
-			fsModuleCache: true,
-			fsModuleCachePath: fileURLToPath(
-				new URL(
-					`../../node_modules/.experimental-vitest-cache-compiler-${version}`,
-					import.meta.url,
-				),
-			),
-		},
+		fsModuleCachePath: fileURLToPath(
+			new URL(`../../node_modules/.vitest-cache-compiler-${version}`, import.meta.url),
+		),
 	},
 })

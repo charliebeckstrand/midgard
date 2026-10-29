@@ -1,10 +1,10 @@
 // @vitest-environment node
 
-import { bench, describe } from 'vitest'
 import { isQueryActive } from '../modules/query/engine/query-active'
 import { evaluateQuery, matchQueryRule } from '../modules/query/engine/query-evaluate'
 import { formatQuerySummary, summarizeQuery } from '../modules/query/engine/query-summary'
 import type { QueryGroup, QueryNode } from '../modules/query/engine/types'
+import { compareBenches } from './compare'
 import { QUERY_FIELDS, QUERY_TREES, type Shipment, shipments } from './fixtures'
 
 /**
@@ -50,7 +50,7 @@ const row = rows[0] as Shipment
 
 const getValue = (field: string) => (row as unknown as Record<string, unknown>)[field]
 
-describe('query-evaluate · evaluateQuery (once per row)', () => {
+compareBenches('query-evaluate · evaluateQuery (once per row)', (bench) => {
 	// The per-row walk, folded both ways over the same tree.
 	//
 	// The fold evaluates each child into a local before combining it, so neither
@@ -74,7 +74,7 @@ describe('query-evaluate · evaluateQuery (once per row)', () => {
 	}
 })
 
-describe('query-evaluate · a client-side filter pass (1,000 rows)', () => {
+compareBenches('query-evaluate · a client-side filter pass (1,000 rows)', (bench) => {
 	// What the per-row number above multiplies out to. A grid filtering its own
 	// rows runs this on every keystroke that edits the query, and again on every
 	// dataset refresh, so the per-row walk is charged a thousand times here, and
@@ -93,7 +93,7 @@ describe('query-evaluate · a client-side filter pass (1,000 rows)', () => {
 	}
 })
 
-describe('query-evaluate · matchQueryRule (per rule, per row)', () => {
+compareBenches('query-evaluate · matchQueryRule (per rule, per row)', (bench) => {
 	// The leaf the walk repeats: a Map-free object lookup, an empty-value gate,
 	// then the matcher. The three bars are its distinct exits: an unknown
 	// operator answers immediately, an empty rule value answers after the gate,
@@ -115,7 +115,7 @@ describe('query-evaluate · matchQueryRule (per rule, per row)', () => {
 	})
 })
 
-describe('query-active · isQueryActive (per render of the affordance)', () => {
+compareBenches('query-active · isQueryActive (per render of the affordance)', (bench) => {
 	// Gates every filter chip, badge, and summary line. It walks until it finds
 	// one constraining rule, so an active query exits on its first rule and stays
 	// flat in the tree size, while an inactive one (every rule blank, what a
@@ -134,7 +134,7 @@ describe('query-active · isQueryActive (per render of the affordance)', () => {
 	}
 })
 
-describe('query-summary · summarize and render', () => {
+compareBenches('query-summary · summarize and render', (bench) => {
 	// The read view over a query. `summarizeQuery` builds one token per rule plus
 	// the combinators and brackets; `formatQuerySummary` joins them into a line.
 	// Both run per render, and both are linear in the rule count: a thousand-rule

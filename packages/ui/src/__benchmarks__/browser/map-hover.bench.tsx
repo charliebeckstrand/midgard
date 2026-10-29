@@ -10,9 +10,9 @@
  * timed region.
  */
 
-import { describe } from 'vitest'
 import { MapPlat } from '../../modules/map/map-plat'
 import { MapPoints } from '../../modules/map/map-points'
+import { compareBenches } from '../compare'
 import { HEIGHT, reactSubject, type Subject, WIDTH } from './charts'
 import { benches, prepareSweep, SWEEP, WINDOW } from './harness'
 import { countiesAtlas, LATTICE_DOTS, makeZones, statesAtlas, type ZoneData } from './map-fixtures'
@@ -104,14 +104,26 @@ const overlays = await prepareSweep(
 	regionTargets,
 )
 
-describe(`hover · map · states · ${SWEEP}-step sweep`, () => {
-	benches(states, WINDOW.settled)
-})
+compareBenches(
+	`hover · map · states · ${SWEEP}-step sweep`,
+	(bench) => {
+		benches(bench, states)
+	},
+	WINDOW.settled,
+)
 
-describe(`hover · map · counties · ${SWEEP}-step sweep`, () => {
-	benches(counties, WINDOW.settled)
-})
+compareBenches(
+	`hover · map · counties · ${SWEEP}-step sweep`,
+	(bench) => {
+		benches(bench, counties)
+	},
+	WINDOW.settled,
+)
 
-describe(`hover · map · states + overlay · ${SWEEP}-step sweep`, () => {
-	benches(overlays, WINDOW.settled)
-})
+compareBenches(
+	`hover · map · states + overlay · ${SWEEP}-step sweep`,
+	(bench) => {
+		benches(bench, overlays)
+	},
+	WINDOW.settled,
+)
