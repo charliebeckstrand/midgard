@@ -146,7 +146,7 @@ describe('Grid row manager', () => {
 		expect(screen.getByText('Wade').closest('tr')).toHaveAttribute('aria-hidden', 'true')
 	})
 
-	it('colors a group from the manager, committing the overlay and tinting its header', async () => {
+	it('colors a group from the manager, committing the overlay and coloring its rail', async () => {
 		const user = setupUser()
 
 		const onValueChange = vi.fn<(groups: GridRowGroup[]) => void>()
@@ -180,12 +180,12 @@ describe('Grid row manager', () => {
 		expect(document.querySelector('[class*="outline-red-600"]')).not.toBeNull()
 
 		// The same commit reaches the grid: the Developer header row carries the
-		// solid rail and the aggregate wash.
+		// solid rail. The color stays on the rail and washes no cell.
 		const headerRow = screen.getByText('Developer (2)').closest('tr')
 
 		expect(headerRow?.querySelector('[class*="border-s-red-600"]')).not.toBeNull()
 
-		expect(headerRow?.querySelector('[class*="bg-red-500"]')).not.toBeNull()
+		expect(headerRow?.querySelector('[class*="bg-red-"]')).toBeNull()
 	})
 
 	it('offers the color menu None only once a group is colored', async () => {

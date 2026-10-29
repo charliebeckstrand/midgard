@@ -123,7 +123,7 @@ type GridTotalRowProps<T> = {
 	 * @defaultValue `'Total'`, in the language of the reader.
 	 */
 	label?: ReactNode
-	/** The group's overlay color, washing the group total's cells at low opacity; ignored on the grand variant. */
+	/** The group's overlay color, coloring the group total's leading rail; ignored on the grand variant. */
 	color?: PaletteColor
 	/**
 	 * The item key of a group total in the keyboard cursor's order. Its label cell
@@ -150,7 +150,7 @@ function GroupRevealCell({
 	open: boolean
 	pad: string
 	rail?: boolean
-	/** The group's overlay color: tints the cell fill, and colors the leading rail when `rail` is set. */
+	/** The group's overlay color: colors the leading rail when `rail` is set. */
 	color?: PaletteColor
 	colSpan?: number
 	colId?: string | number
@@ -165,12 +165,9 @@ function GroupRevealCell({
 			data-grid-col={colId}
 			className={cn(
 				// The leading cell carries the group rail: in the group's color when set
-				// (layered over the neutral tint), else neutral; a colored group also
-				// washes each cell's fill.
+				// (layered over the neutral tint), else neutral.
 				rail && k.row.group.rail.border,
 				rail && color && k.row.group.rail.color[color],
-				color && k.row.group.tint[color],
-				// After the tint, so a frozen cell keeps its opaque surface.
 				pinned.className,
 			)}
 			style={pinned.style ? { ...NO_PADDING, ...pinned.style } : NO_PADDING}

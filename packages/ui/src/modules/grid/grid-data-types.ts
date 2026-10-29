@@ -794,8 +794,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * Appends a total row under each group's leaves while {@link GridDataProps.groupBy}
 	 * is active, carrying every aggregating column's figure over that group's
 	 * rows (see {@link GridColumn.aggFunc}). The row collapses with its group
-	 * (whose header reads the same figures) and renders only once a visible
-	 * column aggregates. Stands down under {@link GridGroupBy.manual} grouping,
+	 * and renders only once a visible column aggregates. Each figure shows in
+	 * one place: on the group header while the group is collapsed, and on the
+	 * total row while it is expanded. Stands down under {@link GridGroupBy.manual} grouping,
 	 * where the backend owns the figures.
 	 * @defaultValue false
 	 */

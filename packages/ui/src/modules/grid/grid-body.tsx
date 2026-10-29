@@ -93,9 +93,8 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	groupTotalRow: boolean | undefined
 	/**
 	 * The row manager's overlay presentation, or `null` when the grid isn't
-	 * client-grouped. It holds the per-group color, which tints the header
-	 * aggregates, total footer, and rail. It also holds the manual group order the
-	 * grouped body applies.
+	 * client-grouped. It holds the per-group color, which tints the rail. It
+	 * also holds the manual group order the grouped body applies.
 	 */
 	rowGroupPresentation: GridRowGroupPresentation | null
 	virtualize: {
@@ -208,8 +207,8 @@ function renderGroup<T>(
 			offset === 0 || expanded ? position + offset : -1,
 		)
 
-	// The group's row-manager color tints its header aggregates, total footer, and
-	// rail; the leaves render in the engine's natural order (row order isn't managed).
+	// The group's row-manager color tints its rail; the leaves render in the
+	// engine's natural order (row order isn't managed).
 	const color = presentation?.color(getGroupKey(group))
 
 	return (
@@ -221,6 +220,7 @@ function renderGroup<T>(
 				columnId={columnId}
 				renderHeader={renderHeader}
 				color={color}
+				totaled={totaled}
 				pinning={props.pinning}
 				aria-rowindex={rowIndex(0)}
 			/>

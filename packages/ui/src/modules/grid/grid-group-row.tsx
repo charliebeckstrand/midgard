@@ -29,8 +29,10 @@ type GridGroupRowProps<T> = {
 	columnId: string | number
 	/** Header-label override; falls back to `value (count)`. */
 	renderHeader: GridGroupBy['renderHeader']
-	/** The group's overlay color: colors the leading rail and washes the header's aggregate cells; `undefined` leaves them neutral. */
+	/** The group's overlay color: colors the leading rail; `undefined` leaves it neutral. */
 	color?: PaletteColor
+	/** Whether the group has a total row. Its expanded header then leaves the figures to that row. */
+	totaled: boolean
 	/** Frozen-column controls, so the cells over a pinned column stick like its data cells. `null` when none. */
 	pinning: GridColumnPinning | null
 } & GridWindowRowProps
@@ -44,9 +46,11 @@ type GridGroupRowProps<T> = {
  * toggle and chevron stay. Without aggregation the row is one full-width cell.
  * Once any column aggregates, the label spans only the columns before the first
  * aggregated one, and each aggregated column carries the group's figure. A
- * collapsed group therefore still reads its totals off its header. The label
- * span ends at a frozen boundary, so each cell over a frozen column sticks with
- * that column (see `aggregateLabelSpan`).
+ * collapsed group therefore still reads its totals off its header. When the
+ * group has a total row, the figures show in one place only: on the header
+ * while the group is collapsed, and on the total row while it is expanded. The
+ * label span ends at a frozen boundary, so each cell over a frozen column
+ * sticks with that column (see `aggregateLabelSpan`).
  *
  * @internal
  */
@@ -57,6 +61,7 @@ function GridGroupRowImpl<T>({
 	columnId,
 	renderHeader,
 	color,
+	totaled,
 	pinning,
 	...windowRow
 }: GridGroupRowProps<T>) {
@@ -117,7 +122,7 @@ function GridGroupRowImpl<T>({
 					columns={columns}
 					rows={group.rows}
 					from={span}
-					color={color}
+					blank={totaled && expanded}
 					pinning={pinning}
 				/>
 			)}
