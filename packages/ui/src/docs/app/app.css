@@ -1,6 +1,7 @@
 /* The one stylesheet of the docs: Tailwind, the font and the tokens of ui,
-   and the classes of the source of ui and of the docs. The tests and the
-   benchmarks are not sources. */
+   and the classes of the source of ui and of the docs. The tests, the
+   benchmarks, and the fixture sheets are not sources. The fixture sheets have
+   a stylesheet of their own (`../fixtures/app.css`). */
 @import 'tailwindcss' source(none);
 @import '../../../tailwind.css';
 
@@ -8,6 +9,7 @@
 @source not '../../__tests__';
 @source not '../../__benchmarks__';
 @source not '../__tests__';
+@source not '../fixtures';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
