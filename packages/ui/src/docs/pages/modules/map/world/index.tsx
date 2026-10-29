@@ -5,8 +5,8 @@ import Mercator from './mercator.tsx'
 export default function WorldTab() {
 	return (
 		<>
-			<Example of={EqualEarth} surface />
-			<Example of={Mercator} surface />
+			<Example of={EqualEarth} ratio />
+			<Example of={Mercator} ratio />
 		</>
 	)
 }

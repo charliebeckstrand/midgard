@@ -25,13 +25,13 @@ export default function ChartPage() {
 	return (
 		<>
 			<PageTabs tabs={TABS}>
-				<Playground of={ChartPlayground} api={api} omit={['animate']} surface />
-				<Example of={NegativeValues} surface />
-				<Example of={ReferenceLines} surface />
-				<Example of={LegendPlacement} surface />
-				<Example of={Animated} surface />
-				<Example of={TooltipTrigger} surface />
-				<Example of={TitleAndSubtitle} surface />
+				<Playground of={ChartPlayground} api={api} omit={['animate']} ratio />
+				<Example of={NegativeValues} ratio />
+				<Example of={ReferenceLines} ratio />
+				<Example of={LegendPlacement} ratio />
+				<Example of={Animated} ratio />
+				<Example of={TooltipTrigger} ratio />
+				<Example of={TitleAndSubtitle} ratio />
 			</PageTabs>
 			<ApiTable api={api} />
 		</>

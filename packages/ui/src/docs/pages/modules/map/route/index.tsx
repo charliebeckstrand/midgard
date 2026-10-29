@@ -5,8 +5,8 @@ import WithMarkers from './with-markers.tsx'
 export default function RouteTab() {
 	return (
 		<>
-			<Example of={Basic} surface />
-			<Example of={WithMarkers} surface />
+			<Example of={Basic} ratio />
+			<Example of={WithMarkers} ratio />
 		</>
 	)
 }

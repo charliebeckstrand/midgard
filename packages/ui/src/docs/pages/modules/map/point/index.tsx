@@ -7,10 +7,10 @@ import Zoomable from './zoomable.tsx'
 export default function PointTab() {
 	return (
 		<>
-			<Example of={Basic} surface />
-			<Example of={Clustering} surface />
-			<Example of={Shapes} surface />
-			<Example of={Zoomable} surface />
+			<Example of={Basic} ratio />
+			<Example of={Clustering} ratio />
+			<Example of={Shapes} ratio />
+			<Example of={Zoomable} ratio />
 		</>
 	)
 }

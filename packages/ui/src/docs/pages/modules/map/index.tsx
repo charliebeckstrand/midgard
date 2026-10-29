@@ -9,8 +9,8 @@ export default function MapPage() {
 	return (
 		<>
 			<PageTabs tabs={TABS}>
-				<Playground of={MapPlayground} api={api} omit={['animate', 'binning']} surface />
-				<Example of={SelectAState} surface />
+				<Playground of={MapPlayground} api={api} omit={['animate', 'binning']} ratio />
+				<Example of={SelectAState} ratio />
 			</PageTabs>
 			<ApiTable api={api} />
 		</>

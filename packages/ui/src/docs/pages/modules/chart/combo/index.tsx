@@ -7,10 +7,10 @@ import DualAxis from './dual-axis.tsx'
 export default function ComboTab() {
 	return (
 		<>
-			<Example of={BarAndLine} surface />
-			<Example of={BarAreaAndLine} surface />
-			<Example of={DualAxis} surface />
-			<Example of={Animated} surface />
+			<Example of={BarAndLine} ratio />
+			<Example of={BarAreaAndLine} ratio />
+			<Example of={DualAxis} ratio />
+			<Example of={Animated} ratio />
 		</>
 	)
 }

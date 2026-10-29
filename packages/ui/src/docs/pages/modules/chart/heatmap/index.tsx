@@ -5,8 +5,8 @@ import Animated from './animated.tsx'
 export default function HeatmapTab() {
 	return (
 		<>
-			<Example of={Activity} surface />
-			<Example of={Animated} surface />
+			<Example of={Activity} ratio />
+			<Example of={Animated} ratio />
 		</>
 	)
 }
