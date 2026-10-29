@@ -7,8 +7,8 @@ import { Icon } from 'ui/icon'
 import { Kbd } from 'ui/kbd'
 import { defineMessages, IntlMessage } from 'ui/primitives/intl'
 import { OffcanvasContext } from 'ui/primitives/offcanvas'
+import { useFail } from '../../hooks/use-fail.ts'
 import { useStableEvent } from '../../hooks/use-stable-event.ts'
-import { useFail } from '../kit/fail.ts'
 import { ShortcutHint } from '../kit/shortcut-hint.tsx'
 
 // The part of the search that the shell loads with each page: the state, the

@@ -4,6 +4,7 @@ import { Settings2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import { useFail } from '../../hooks/use-fail'
 import { useIntentLoad } from '../../hooks/use-intent-load'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { appearanceMessages } from './appearance-messages'
@@ -50,15 +51,11 @@ export type AppearanceSettingsProps = {
 export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 	const [open, setOpen] = useState(false)
 
-	const [failure, setFailure] = useState<{ error: unknown }>()
-
-	if (failure) throw failure.error
+	const fail = useFail()
 
 	const { module: dialog, request, preload } = useIntentLoad(loadDialog)
 
 	const intl = useIntl()
-
-	const fail = (error: unknown) => setFailure({ error })
 
 	const show = () => request(() => setOpen(true), fail)
 

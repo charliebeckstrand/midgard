@@ -4,6 +4,7 @@ import { Activity } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import { useFail } from '../../hooks/use-fail'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -35,9 +36,7 @@ export function EventsButton() {
 	// No sheet renders before the first open.
 	const [open, setOpen] = useState<boolean>()
 
-	const [failure, setFailure] = useState<{ error: unknown }>()
-
-	if (failure) throw failure.error
+	const fail = useFail()
 
 	const Sheet = useLazyModule(sheet, false)?.EventsSheet
 
@@ -56,10 +55,7 @@ export function EventsButton() {
 			return
 		}
 
-		loadTools(sheet, true).then(
-			() => setOpen(true),
-			(error: unknown) => setFailure({ error }),
-		)
+		loadTools(sheet, true).then(() => setOpen(true), fail)
 	}
 
 	const slots = k({ layout })
