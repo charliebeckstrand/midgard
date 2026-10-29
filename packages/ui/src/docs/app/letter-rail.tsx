@@ -9,7 +9,7 @@ import type { PageLink } from '../plugin/pages.ts'
 // The letter rail at the side of the sidebar body. A press on a letter scrolls
 // the body to the first page with that letter, and a slide along the rail
 // follows the finger from letter to letter. The rail shows the letter of the
-// last jump that the scroll of the body is at or past, and mutes the other letters.
+// page at the top of the body, and mutes the other letters.
 
 /** The letter that a page files under: the first character of its name, in upper case. */
 export function getInitial(page: PageLink): string {
@@ -73,36 +73,17 @@ function scrollToLetter(body: HTMLElement, letter: string) {
 	body.scrollTop += anchor.getBoundingClientRect().top - body.getBoundingClientRect().top
 }
 
-/**
- * The letter of the last jump that the scroll of `body` is at or past. The
- * plugin sorts the pages by section and then by name, so each section starts
- * the alphabet again, and the letter of the page at the top does not move in
- * order along the rail. The targets of the jumps do.
- *
- * A target is at the top when its anchor is less than half the height of its
- * row below the top of the body. At the end of the body, each target is at
- * the top, because a jump to a target near the end stops there too.
- */
+/** The letter of the page at the top of `body`: the first page whose row is at least half in view. */
 function letterAtTop(body: HTMLElement): string | undefined {
-	const targets = getTargets(body)
-
-	const end = body.scrollHeight - body.clientHeight
-
-	if (body.scrollTop >= end - 1) return targets.at(-1)?.dataset.letter
-
 	const top = body.getBoundingClientRect().top
 
-	let letter = targets[0]?.dataset.letter
+	const link = Array.from(getLinks(body)).find((candidate) => {
+		const row = candidate.getBoundingClientRect()
 
-	for (const link of targets) {
-		const anchor = getAnchor(link)?.getBoundingClientRect()
+		return row.bottom - top > row.height / 2
+	})
 
-		if (!anchor || anchor.top - top >= link.getBoundingClientRect().height / 2) break
-
-		letter = link.dataset.letter
-	}
-
-	return letter
+	return link?.dataset.letter
 }
 
 /**

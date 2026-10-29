@@ -40,7 +40,9 @@ export type SidebarItemProps = NavItemProps & {
  * place (preserving the accessible name) and echoed into a hover tooltip. The
  * tooltip holds only the `SidebarLabel` children, or all the children when the
  * row has no label. The tooltip repeats the name, so it does not describe the
- * button. An `aria-describedby` that you give stays.
+ * button. An `aria-describedby` that you give stays. The current row is the
+ * initial scroll target of its scroller (`scroll-initial-target`): where the
+ * browser supports it, the first layout puts the row at the top of the view.
  */
 export function SidebarItem({
 	icon,

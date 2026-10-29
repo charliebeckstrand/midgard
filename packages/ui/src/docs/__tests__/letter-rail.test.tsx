@@ -191,22 +191,22 @@ describe('LetterRail', () => {
 		expect(active()).toBe('B')
 	})
 
-	it('shows the last letter at the end of the body, where each section starts the alphabet again', () => {
+	it('shows the letter of the page at the top at the end of the body too', () => {
 		const { body, active } = renderSidebar()
 
-		// Chart is at the top, but the first page with C is Calendar, and the jumps to E, L, and U stop at the end.
+		// At the end, Chart is the first page at the top, though Locale and UI are in view under it.
 		body.scrollTop = HEADING * 3 + ITEM * 10 - VIEW
 
 		fireEvent.scroll(body)
 
-		expect(active()).toBe('U')
+		expect(active()).toBe('C')
 
-		// Above the end, the last jump that the body is past is the jump to Calendar.
-		body.scrollTop -= 10
+		// Button is half in view at the top.
+		body.scrollTop = HEADING + ITEM * 3 + ITEM / 2 - 1
 
 		fireEvent.scroll(body)
 
-		expect(active()).toBe('C')
+		expect(active()).toBe('B')
 	})
 
 	it('selects the letter whose band holds the press, at each edge of the band', () => {

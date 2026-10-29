@@ -66,6 +66,10 @@ const item = defineKata(
 				// LoadingSpinner child at the glyph size of its step. An Avatar child sizes itself in a row: its own
 				// recipe selects the inner button of the row. See `kata/avatar.ts`.
 				dan.size.icon.spinner,
+				// The current row is the initial scroll target of the sidebar: the first
+				// layout puts it at the top of the view, so the server markup paints with
+				// the row in view, and no script scrolls.
+				'data-current:[scroll-initial-target:nearest]',
 			],
 			prefix: affix,
 			suffix: affix,
