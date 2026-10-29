@@ -335,10 +335,15 @@ describe('a page whose module file fails to load one time', () => {
 
 		await tab.waitForFunction(HYDRATED)
 
+		// The chunk loads in idle time after the hydration. When the hydration is
+		// slow, the page has no request for 500 ms before it, so `networkidle`
+		// occurs before the chunk loads, and does not wait for the new fetches.
+		await expect
+			.poll(() => refetched, { timeout: 30_000 })
+			.toContainEqual(expect.stringMatching(/\/reduced-motion-features-animation-/))
+
 		await tab.waitForLoadState('networkidle')
 
 		expect(loads()).toBe(1)
-
-		expect(refetched).toContainEqual(expect.stringMatching(/\/reduced-motion-features-animation-/))
 	})
 })
