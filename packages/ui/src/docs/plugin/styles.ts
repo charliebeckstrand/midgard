@@ -156,6 +156,8 @@ export async function compilePage(
 export type CriticalCssData = {
 	clientDir: string
 	stylesheet: string
+	/** The text of `stylesheet`. The build reads it one time, and not one time for each page. */
+	source: string
 	/** The `@font-face` rules of the built stylesheet. */
 	fontFaces: string
 	/** The classes of the `@source inline(...)` rules of `stylesheet` ({@link inlineClasses}). */
@@ -168,14 +170,12 @@ export type CriticalCssData = {
  * {@link inlineCriticalCss} runs this function (`styles-worker.ts`).
  */
 export async function inlinePage(
-	{ clientDir, stylesheet, fontFaces, inline }: CriticalCssData,
+	{ clientDir, stylesheet, source, fontFaces, inline }: CriticalCssData,
 	page: string,
 ): Promise<void> {
 	const file = path.join(clientDir, page)
 
 	const html = readFileSync(file, 'utf8')
-
-	const source = readFileSync(stylesheet, 'utf8')
 
 	const compiled = await compilePage(source, path.dirname(stylesheet), inline, scanClasses(html))
 
@@ -223,6 +223,7 @@ export async function inlineCriticalCss(clientDir: string, stylesheet: string): 
 		workerData: {
 			clientDir,
 			stylesheet,
+			source: readFileSync(stylesheet, 'utf8'),
 			fontFaces,
 			inline: inlineClasses(stylesheet),
 		} satisfies CriticalCssData,

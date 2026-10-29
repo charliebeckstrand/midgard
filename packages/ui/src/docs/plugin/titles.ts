@@ -6,6 +6,7 @@ import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { humanize } from '../kit/humanize.ts'
 import { PAGE_ID, PLAYGROUND, TAB_ID, TITLE_ID, toSlug } from '../kit/names.ts'
 import { exampleFiles, examplesIn, type Parser, toCodeKey } from './examples.ts'
+import { findConst } from './fields.ts'
 import { findPages, routeFolders } from './pages.ts'
 
 /**
@@ -72,24 +73,13 @@ export function pageEntries(docs: string): Record<string, CatalogEntry> {
 
 /** The names in the `TABS` constant of a module, such as `['Variants', 'Sorting']`. */
 function readTabs(program: ESTree.Program): string[] | undefined {
-	for (const statement of program.body) {
-		const declaration =
-			statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement
+	const init = findConst(program, 'TABS')
 
-		if (declaration?.type !== 'VariableDeclaration') continue
+	if (init?.type !== 'ArrayExpression') return undefined
 
-		for (const { id, init } of declaration.declarations) {
-			if (id.type !== 'Identifier' || id.name !== 'TABS' || init?.type !== 'ArrayExpression') {
-				continue
-			}
-
-			return init.elements.flatMap((element) =>
-				element?.type === 'Literal' && typeof element.value === 'string' ? [element.value] : [],
-			)
-		}
-	}
-
-	return undefined
+	return init.elements.flatMap((element) =>
+		element?.type === 'Literal' && typeof element.value === 'string' ? [element.value] : [],
+	)
 }
 
 /**
