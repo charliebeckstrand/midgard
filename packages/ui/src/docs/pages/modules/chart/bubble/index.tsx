@@ -5,8 +5,8 @@ import SizeEncoding from './size-encoding.tsx'
 export default function BubbleTab() {
 	return (
 		<>
-			<Example of={SizeEncoding} surface />
-			<Example of={Animated} surface />
+			<Example of={SizeEncoding} ratio />
+			<Example of={Animated} ratio />
 		</>
 	)
 }

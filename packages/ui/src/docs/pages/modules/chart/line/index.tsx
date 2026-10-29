@@ -14,17 +14,17 @@ import ValueLabels from './value-labels.tsx'
 export default function LineTab() {
 	return (
 		<>
-			<Example of={SingleSeries} surface />
-			<Example of={MultiSeries} surface />
-			<Example of={CustomColors} surface />
-			<Example of={DualAxis} surface />
-			<Example of={DashedLine} surface />
-			<Example of={TimeAxis} surface />
-			<Example of={DateLabels} surface />
-			<Example of={CategoryDividers} surface />
-			<Example of={ValueLabels} surface />
-			<Example of={ReferenceLabels} surface />
-			<Example of={Animated} surface />
+			<Example of={SingleSeries} ratio />
+			<Example of={MultiSeries} ratio />
+			<Example of={CustomColors} ratio />
+			<Example of={DualAxis} ratio />
+			<Example of={DashedLine} ratio />
+			<Example of={TimeAxis} ratio />
+			<Example of={DateLabels} ratio />
+			<Example of={CategoryDividers} ratio />
+			<Example of={ValueLabels} ratio />
+			<Example of={ReferenceLabels} ratio />
+			<Example of={Animated} ratio />
 		</>
 	)
 }

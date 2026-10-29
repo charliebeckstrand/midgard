@@ -384,6 +384,7 @@ export function Playground<P extends object>({
 	values: given = {},
 	free = {},
 	surface,
+	ratio,
 }: {
 	/**
 	 * The default export of the playground module. It types its props as the
@@ -410,6 +411,11 @@ export function Playground<P extends object>({
 	free?: { readonly [K in keyof P & string]?: string | number }
 	/** Makes the instance box fill the frame, for a surface of a page. */
 	surface?: boolean
+	/**
+	 * Makes the instance box fill the frame, and starts the frame at half the
+	 * column, for a surface that keeps an aspect ratio.
+	 */
+	ratio?: boolean
 }) {
 	const meta = getMeta(of)
 
@@ -438,6 +444,7 @@ export function Playground<P extends object>({
 			meta={meta}
 			print={(code) => printCode(code, fields, values)}
 			surface={surface}
+			ratio={ratio}
 			actions={
 				<Rail label={intl.formatMessage(messages.props)}>
 					{fields.map((field) => {

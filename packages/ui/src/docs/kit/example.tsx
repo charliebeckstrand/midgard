@@ -117,12 +117,20 @@ function frameCeiling(frame: HTMLElement): number {
  * width of its container and has no width of its own. In a box that is as
  * wide as its content, it gets only the 24rem minimum. With `surface`, the
  * box fills the frame.
+ *
+ * A surface that keeps an aspect ratio, such as a chart, a map, a document
+ * viewer, or a grid of photos, gets taller as it gets wider. In the full column,
+ * it can be taller than the screen. With `ratio`, the box fills the frame, and
+ * the frame starts at half the column but not narrower than 32rem. The frame
+ * does not become wider than the column. A drag sets the width as for each
+ * other frame.
  */
 export function ExampleFrame({
 	meta,
 	actions,
 	print,
 	surface = false,
+	ratio = false,
 	children,
 }: {
 	meta: ExampleMeta
@@ -132,6 +140,11 @@ export function ExampleFrame({
 	print?: (code: ExampleCode) => string
 	/** Makes the instance box fill the frame, for a surface of a page. */
 	surface?: boolean
+	/**
+	 * Makes the instance box fill the frame, and starts the frame at half the
+	 * column, for a surface that keeps an aspect ratio.
+	 */
+	ratio?: boolean
 	children: ReactNode
 }) {
 	// The code module loads in idle time, so "Show code" opens at once. It loads
@@ -172,7 +185,9 @@ export function ExampleFrame({
 			<div
 				ref={resize.ref}
 				style={resize.size === null ? undefined : { width: resize.size }}
-				className="relative min-w-40 max-w-full"
+				className={
+					ratio ? 'relative w-[max(50%,32rem)] min-w-40 max-w-full' : 'relative min-w-40 max-w-full'
+				}
 			>
 				{/* The drag area comes before the box, so the box can show the border as active. */}
 				<div
@@ -194,7 +209,7 @@ export function ExampleFrame({
 							data-slot="example-instance"
 							gap="lg"
 							className={
-								surface
+								surface || ratio
 									? 'w-full'
 									: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center'
 							}
@@ -235,13 +250,19 @@ export function ExampleFrame({
 export function Example({
 	of: Of,
 	surface,
+	ratio,
 }: {
 	of: ComponentType
 	/** Makes the instance box fill the frame, for a surface of a page. */
 	surface?: boolean
+	/**
+	 * Makes the instance box fill the frame, and starts the frame at half the
+	 * column, for a surface that keeps an aspect ratio.
+	 */
+	ratio?: boolean
 }) {
 	return (
-		<ExampleFrame meta={getMeta(Of)} surface={surface}>
+		<ExampleFrame meta={getMeta(Of)} surface={surface} ratio={ratio}>
 			<Of />
 		</ExampleFrame>
 	)

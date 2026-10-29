@@ -5,8 +5,8 @@ import MultiSeries from './multi-series.tsx'
 export default function ScatterTab() {
 	return (
 		<>
-			<Example of={MultiSeries} surface />
-			<Example of={Animated} surface />
+			<Example of={MultiSeries} ratio />
+			<Example of={Animated} ratio />
 		</>
 	)
 }

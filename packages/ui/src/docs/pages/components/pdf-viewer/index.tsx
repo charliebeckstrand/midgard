@@ -11,12 +11,12 @@ import PdfViewerPlayground from './playground.tsx'
 export default function PdfViewerPage() {
 	return (
 		<>
-			<Playground of={PdfViewerPlayground} api={api} omit={['highlightUnit']} surface />
-			<Example of={Highlights} surface />
-			<Example of={DrivenFromAList} surface />
+			<Playground of={PdfViewerPlayground} api={api} omit={['highlightUnit']} ratio />
+			<Example of={Highlights} ratio />
+			<Example of={DrivenFromAList} ratio />
 			<Example of={FitToWidth} surface />
-			<Example of={Magnifier} surface />
-			<Example of={MagnifierSettings} surface />
+			<Example of={Magnifier} ratio />
+			<Example of={MagnifierSettings} ratio />
 			<Example of={Empty} surface />
 			<ApiTable api={api} />
 		</>
