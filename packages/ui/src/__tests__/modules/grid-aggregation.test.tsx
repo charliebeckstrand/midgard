@@ -305,6 +305,36 @@ describe('Grid aggregation rendering', () => {
 		expect([...totals].some((row) => row.textContent?.includes('40'))).toBe(true)
 	})
 
+	it('shows the figures of a totaled group on the header only while it is collapsed', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={sales}
+				getKey={getKey}
+				groupBy={{ value: 'region' }}
+				groupTotalRow
+			/>,
+		)
+
+		const header = () => rowByText('West (2)')
+
+		const total = () => container.querySelector<HTMLElement>('[data-total-row="group"]')
+
+		// Expanded: the total row carries the figures, and the header keeps empty cells.
+		expect(total()?.textContent).toContain('$400')
+
+		expect(header()?.textContent).not.toContain('$400')
+
+		expect(header()?.querySelector('[data-grid-col="revenue"]')).not.toBeNull()
+
+		await user.click(screen.getByRole('button', { name: 'Collapse group West' }))
+
+		// Collapsed: the figures move up to the header.
+		expect(header()?.textContent).toContain('$400')
+	})
+
 	it('appends one grand-total row over the whole set, grouped or flat', () => {
 		const grouped = renderUI(
 			<Grid

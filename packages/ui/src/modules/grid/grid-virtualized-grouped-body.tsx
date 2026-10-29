@@ -258,6 +258,7 @@ export function GridVirtualizedGroupedBody<T>({
 							columnId={columnId}
 							renderHeader={renderHeader}
 							color={color}
+							totaled={totaled}
 							pinning={pinning}
 							{...windowRow(item, virtualItem.index)}
 						/>

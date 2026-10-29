@@ -120,24 +120,6 @@ const railColor: Record<PaletteColor, string> = {
 }
 
 /**
- * A group's aggregation / total-footer tint, keyed by {@link PaletteColor} so a
- * cell reads `row.group.tint[group.color]`. A low-opacity fill of the group's hue
- * (`/10`). The summarizing figures therefore sit on a faint wash of the group
- * color while staying legible over both surfaces. Full literals for Tailwind's
- * scanner.
- */
-const rowGroupTint: Record<PaletteColor, string> = {
-	zinc: 'bg-zinc-500/10',
-	red: 'bg-red-500/10',
-	amber: 'bg-amber-500/10',
-	green: 'bg-green-500/10',
-	blue: 'bg-blue-500/10',
-	rose: 'bg-rose-500/10',
-	violet: 'bg-violet-500/10',
-	sky: 'bg-sky-500/10',
-}
-
-/**
  * A utility column that takes the width of its content, with the content in
  * the center: the selection checkbox, the detail expander, and the row grip.
  * `w-px` shrinks the column against the auto-width data columns.
@@ -530,8 +512,6 @@ export const k = {
 				// replacing the neutral `border` tint on the leading cell of every group row.
 				color: railColor,
 			},
-			// The group's aggregation / total-footer color wash (see {@link rowGroupTint}).
-			tint: rowGroupTint,
 			// Chevron at the row's trailing edge: the group row renders a right chevron
 			// when collapsed and a down chevron when expanded; `shrink-0` holds its size
 			// beside the label. A right-to-left grid mirrors it, so a collapsed chevron
