@@ -119,6 +119,14 @@ type GridTotalRowProps<T> = {
 	 */
 	expanded?: boolean
 	/**
+	 * Whether an open group total mounts at the closed track and then opens over
+	 * the transition, with the leaves above it. A windowed body sets it on the
+	 * rows that fit in one viewport when their group expands. A total that is
+	 * already mounted ignores it, and the grand variant ignores it.
+	 * @defaultValue false
+	 */
+	enter?: boolean
+	/**
 	 * The label in the leading cell.
 	 * @defaultValue `'Total'`, in the language of the reader.
 	 */
@@ -199,6 +207,7 @@ function GridTotalRowImpl<T>({
 	pinning,
 	variant,
 	expanded = true,
+	enter = false,
 	label: labelProp,
 	color,
 	navKey,
@@ -224,6 +233,7 @@ function GridTotalRowImpl<T>({
 				span={span}
 				labelPinned={labelPinned}
 				expanded={expanded}
+				enter={enter}
 				label={label}
 				color={color}
 				navKey={navKey}
@@ -269,6 +279,7 @@ function GridGroupTotalRow<T>({
 	span,
 	labelPinned,
 	expanded,
+	enter,
 	label,
 	color,
 	navKey,
@@ -283,12 +294,14 @@ function GridGroupTotalRow<T>({
 	/** The pinned chrome of the label cell, resolved with the span. */
 	labelPinned: PinnedCellChrome
 	expanded: boolean
+	/** Whether an open row mounts closed and opens over the transition (see {@link useGridRevealHold}). */
+	enter: boolean
 	label: ReactNode
 	color?: PaletteColor
 	/** The props that a windowed body gives the row. */
 	windowRow: GridWindowRowProps
 }) {
-	const reveal = useGridRevealHold(expanded)
+	const reveal = useGridRevealHold(expanded, enter)
 
 	const { locale } = useLocale()
 
