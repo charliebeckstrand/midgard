@@ -32,7 +32,7 @@ import { GridGroupManager } from './grid-group-manager'
 import type { GridColumnGroup } from './grid-group-types'
 import { GridManagerCheckboxRow } from './grid-manager-checkbox-row'
 import type { GridColumnManagerItem } from './types'
-import { useGridColumnVisibility } from './use-grid-column-visibility'
+import { isColumnShown, useGridColumnVisibility } from './use-grid-column-visibility'
 
 /**
  * Whether the manager serves a right-to-left grid. The pin labels and the edge
@@ -375,8 +375,7 @@ function GridColumnManagerOrderableList({
 		>
 			<GridManagerCheckboxRow
 				columnTitle={col.title}
-				// A `hideable: false` column shows even when the hidden set names it.
-				checked={col.hideable === false || !hidden.has(col.id)}
+				checked={isColumnShown(col, hidden)}
 				disabled={col.hideable === false}
 				onChange={() => onToggle(col.id)}
 				aria-label={intl.formatMessage(gridMessages.showColumn, { column: columnLabel(col) })}

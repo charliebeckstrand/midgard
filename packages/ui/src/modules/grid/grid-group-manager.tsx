@@ -62,6 +62,7 @@ import { GridManagerCheckboxRow } from './grid-manager-checkbox-row'
 import { GridManagerColorMenu } from './grid-manager-color-menu'
 import { GridManagerGrip } from './grid-manager-grip'
 import type { GridColumnManagerItem } from './types'
+import { isColumnShown } from './use-grid-column-visibility'
 import { useGridGroupManager } from './use-grid-group-manager'
 import { useGridZoneSortable } from './use-grid-zone-sortable'
 
@@ -451,7 +452,7 @@ export function GridGroupManager({
 						{activeItem ? (
 							<GridGroupManagerColumnRowOverlay
 								item={activeItem}
-								checked={activeItem.hideable === false || !hidden.has(activeItem.id)}
+								checked={isColumnShown(activeItem, hidden)}
 							/>
 						) : null}
 					</PortalDragOverlay>
@@ -753,8 +754,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 			<GridManagerCheckboxRow
 				className={k().manager.row.control}
 				columnTitle={item.title}
-				// A `hideable: false` column shows even when the hidden set names it.
-				checked={item.hideable === false || !hidden.has(item.id)}
+				checked={isColumnShown(item, hidden)}
 				// Held disabled through a drag so it stays put (visible, not toggled)
 				// rather than hiding the row and snapping on drop.
 				disabled={dragging || item.hideable === false}

@@ -3,8 +3,8 @@ import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/grid'
 import { isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
-import { DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import { isFrozen } from '../grid-pin/overrides'
+import { columnMinWidth } from './measure'
 import { fitKeptWidth } from './sizer'
 
 /**
@@ -49,8 +49,7 @@ export function fitHeaderProps<T>(col: GridColumn<T>, least: number | undefined)
 		return { className: cn(k.fit.kept.head, k.fit.floor), style: floorStyle(kept) }
 	}
 
-	const wanted =
-		least == null ? col.minWidth : Math.max(col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE, least)
+	const wanted = least == null ? col.minWidth : Math.max(columnMinWidth(col), least)
 
 	const floor = wanted == null || col.maxWidth == null ? wanted : Math.min(wanted, col.maxWidth)
 

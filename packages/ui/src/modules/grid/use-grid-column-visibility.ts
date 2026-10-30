@@ -23,6 +23,19 @@ type GridColumnVisibilityOptions<T extends ColumnLike> = {
 }
 
 /**
+ * Whether the reader's hidden set lets a column show. A `hideable: false`
+ * column shows even when the hidden set names it.
+ *
+ * @internal
+ */
+export function isColumnShown(
+	column: { id: string | number; hideable?: boolean },
+	hidden: ReadonlySet<string | number>,
+): boolean {
+	return column.hideable === false || !hidden.has(column.id)
+}
+
+/**
  * Controllable column order + hidden-set state shared by the data table and
  * the standalone column manager. Owns the default-order derivation (the
  * columns' own order), the two `useControllable` bindings with their

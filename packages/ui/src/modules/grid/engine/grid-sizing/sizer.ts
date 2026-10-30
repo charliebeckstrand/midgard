@@ -1,9 +1,9 @@
 import { clamp, isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
-import { DEFAULT_CONTENT_MAX, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
+import { DEFAULT_CONTENT_MAX } from '../grid-constants'
 import { sameNumberMap } from '../grid-table/equality'
 import { parsePxWidth } from '../grid-table/resize-view'
-import { type ColumnMeasurement, isContentSized } from './measure'
+import { type ColumnMeasurement, columnMinWidth, isContentSized } from './measure'
 
 /**
  * Who owns the column widths.
@@ -259,7 +259,7 @@ export function createColumnSizer({
 	}
 
 	function getFloor<T>(col: GridColumn<T>): number {
-		return floors.get(String(col.id)) ?? col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE
+		return floors.get(String(col.id)) ?? columnMinWidth(col)
 	}
 
 	// The widest content (px) of a data column: its widest body cell so far, or its

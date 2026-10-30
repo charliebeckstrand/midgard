@@ -13,7 +13,7 @@ import { applyColumnReorder } from './engine/grid-reorder-compute'
 import type { GridColumnManagerConfig, GridColumnOrder } from './grid-data-types'
 import type { GridColumnGroup } from './grid-group-types'
 import type { GridColumn, GridColumnManagerItem } from './types'
-import { useGridColumnVisibility } from './use-grid-column-visibility'
+import { isColumnShown, useGridColumnVisibility } from './use-grid-column-visibility'
 
 /** Options for {@link useGridColumns}. @internal */
 type GridColumnsOptions<T> = {
@@ -157,7 +157,11 @@ export function useGridColumns<T>({
 		const visibility: Record<string, boolean> = {}
 
 		for (const id of hiddenColumns) {
-			if (isOrderable(id) && columnById.get(id)?.hideable !== false) visibility[String(id)] = false
+			const column = columnById.get(id)
+
+			if (column && isOrderable(id) && !isColumnShown(column, hiddenColumns)) {
+				visibility[String(id)] = false
+			}
 		}
 
 		for (const id of collapsedHidden) visibility[String(id)] = false
