@@ -10,10 +10,8 @@ import { AppProviders } from 'shared/providers'
  */
 export function Providers({ children }: { children: ReactNode }) {
 	return (
-		// The atlas is the reason for both: it never changes, and it costs a
-		// megabyte to fetch. A window focus must not go and get it again.
-		<AppProviders queries={{ staleTime: 30_000, refetchOnWindowFocus: false }}>
-			{children}
-		</AppProviders>
+		// A server page seeds each list into its query (see `seededQuery`). With
+		// no stale time, the client fetches the same list again at hydration.
+		<AppProviders queries={{ staleTime: 30_000 }}>{children}</AppProviders>
 	)
 }
