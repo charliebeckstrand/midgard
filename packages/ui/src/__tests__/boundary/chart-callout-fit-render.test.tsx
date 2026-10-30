@@ -1,5 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { pieCalloutFit } from '../../modules/chart/engine/chart-geometry/pie'
 import { PieChart } from '../../modules/chart/pie-chart'
+import { SectorChartMarks } from '../../modules/chart/sector-chart/sector-chart-marks'
 import { act, allBySlot, fireEvent, renderUI } from '../helpers'
 
 /**
@@ -12,7 +14,8 @@ import { act, allBySlot, fireEvent, renderUI } from '../helpers'
  * draws on each of its renders. The counts need module mocks, so this suite
  * sits in `boundary/`.
  */
-const counts = vi.hoisted(() => ({ fits: 0, formats: 0, renders: 0 }))
+/** Takes each share that a percent formatter formats. */
+const shareFormats = vi.hoisted(() => vi.fn<(share: number) => void>())
 
 vi.mock('../../utilities', async (importActual) => {
 	const actual = await importActual<typeof import('../../utilities')>()
@@ -23,7 +26,7 @@ vi.mock('../../utilities', async (importActual) => {
 			const format = actual.percentFormat(locale)
 
 			return (share: number) => {
-				counts.formats += 1
+				shareFormats(share)
 
 				return format(share)
 			}
@@ -35,43 +38,27 @@ vi.mock('../../modules/chart/engine/chart-geometry/pie', async (importOriginal) 
 	const actual =
 		await importOriginal<typeof import('../../modules/chart/engine/chart-geometry/pie')>()
 
-	return {
-		...actual,
-		pieCalloutFit: (...args: Parameters<typeof actual.pieCalloutFit>) => {
-			counts.fits += 1
-
-			return actual.pieCalloutFit(...args)
-		},
-	}
+	return { ...actual, pieCalloutFit: vi.fn(actual.pieCalloutFit) }
 })
 
 vi.mock('../../modules/chart/sector-chart/sector-chart-marks', async (importOriginal) => {
 	const actual =
 		await importOriginal<typeof import('../../modules/chart/sector-chart/sector-chart-marks')>()
 
-	return {
-		...actual,
-		SectorChartMarks: (props: Parameters<typeof actual.SectorChartMarks>[0]) => {
-			counts.renders += 1
-
-			return actual.SectorChartMarks(props)
-		},
-	}
+	return { ...actual, SectorChartMarks: vi.fn(actual.SectorChartMarks) }
 })
+
+const fits = () => vi.mocked(pieCalloutFit).mock.calls.length
+
+const formats = () => shareFormats.mock.calls.length
+
+const renders = () => vi.mocked(SectorChartMarks).mock.calls.length
 
 const DATA = [
 	{ source: 'Search', visits: 60 },
 	{ source: 'Direct', visits: 25 },
 	{ source: 'Referral', visits: 15 },
 ]
-
-beforeEach(() => {
-	counts.fits = 0
-
-	counts.formats = 0
-
-	counts.renders = 0
-})
 
 describe('pie callout fit', () => {
 	it('fits the pie once and formats each callout text once in a render', () => {
@@ -87,12 +74,12 @@ describe('pie callout fit', () => {
 			/>,
 		)
 
-		expect(counts.renders).toBeGreaterThan(0)
+		expect(renders()).toBeGreaterThan(0)
 
-		expect(counts.fits).toBe(counts.renders)
+		expect(fits()).toBe(renders())
 
 		// The readout formats each share once more, the first time the table reads it.
-		expect(counts.formats).toBe((counts.renders + 1) * DATA.length)
+		expect(formats()).toBe((renders() + 1) * DATA.length)
 	})
 
 	it('fits only the visible slices while a slice is hidden', () => {
@@ -108,15 +95,15 @@ describe('pie callout fit', () => {
 
 		const [first] = allBySlot(container, 'chart-legend-item')
 
-		counts.fits = 0
+		vi.mocked(pieCalloutFit).mockClear()
 
-		counts.renders = 0
+		vi.mocked(SectorChartMarks).mockClear()
 
 		act(() => fireEvent.click(first as Element))
 
-		expect(counts.renders).toBeGreaterThan(0)
+		expect(renders()).toBeGreaterThan(0)
 
 		// The frame sizes from the width alone, so only the visible slices take a fit.
-		expect(counts.fits).toBe(counts.renders)
+		expect(fits()).toBe(renders())
 	})
 })

@@ -3,19 +3,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useIntentLoad } from '../../hooks/use-intent-load'
 import { renderUI, screen } from '../helpers'
-
-/**
- * Stubs `requestIdleCallback` so that no idle callback runs. Each test then
- * controls when the load resolves.
- */
-function holdIdle() {
-	vi.stubGlobal(
-		'requestIdleCallback',
-		vi.fn(() => 1),
-	)
-
-	vi.stubGlobal('cancelIdleCallback', vi.fn())
-}
+import { stubIdle } from '../helpers/stub-idle'
 
 /**
  * A trigger that shows the loaded value when it is open. `seen` records the
@@ -46,7 +34,7 @@ function Probe({
 
 describe('useIntentLoad', () => {
 	it('loads on a request, and puts the value into state before the callback', async () => {
-		holdIdle()
+		stubIdle()
 
 		const load = vi.fn(() => Promise.resolve('loaded'))
 
@@ -68,7 +56,7 @@ describe('useIntentLoad', () => {
 	})
 
 	it('runs the callback in the same call when the value is there', async () => {
-		holdIdle()
+		stubIdle()
 
 		const load = vi.fn(() => Promise.resolve('loaded'))
 
@@ -106,18 +94,7 @@ describe('useIntentLoad', () => {
 	})
 
 	it('starts the load on a preload, and gives the value through the idle load', async () => {
-		let run = () => {}
-
-		vi.stubGlobal(
-			'requestIdleCallback',
-			vi.fn((callback: () => void) => {
-				run = callback
-
-				return 1
-			}),
-		)
-
-		vi.stubGlobal('cancelIdleCallback', vi.fn())
+		const idle = stubIdle()
 
 		const load = vi.fn(() => Promise.resolve('loaded'))
 
@@ -127,13 +104,13 @@ describe('useIntentLoad', () => {
 
 		expect(load).toHaveBeenCalledTimes(1)
 
-		await act(async () => run())
+		await act(async () => idle.run())
 
 		expect(screen.getByText('loaded')).toBeInTheDocument()
 	})
 
 	it('gives a value that one mount requested to each mount of the loader', async () => {
-		holdIdle()
+		stubIdle()
 
 		const load = vi.fn(() => Promise.resolve('loaded'))
 
@@ -156,7 +133,7 @@ describe('useIntentLoad', () => {
 	})
 
 	it('gives a failed load to the onError of the request, and does not run the callback', async () => {
-		holdIdle()
+		stubIdle()
 
 		const error = new Error('the chunk did not load')
 

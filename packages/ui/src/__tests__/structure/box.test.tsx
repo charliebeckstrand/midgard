@@ -81,7 +81,7 @@ describe('Box', () => {
 
 		// The padding is explicit. A density scope sets the step of a padding, but
 		// it does not add a padding.
-		expect(bySlot(container, 'box')?.className).not.toMatch(/(^|\s)p-\d/)
+		expect(getSlot(container, 'box').className).not.toMatch(/(^|\s)(density-)?p[xy]?-/)
 	})
 
 	it('explicit p prop applies inside a Density provider', () => {
@@ -96,14 +96,6 @@ describe('Box', () => {
 		expect(box.className).toContain('density-p-[2,3,4,5,6]')
 
 		expect(box.className).not.toContain('density-p-[0.5,1,2,3,4.5]')
-	})
-
-	it('does not apply any padding class when no p and no ambient Density are present', () => {
-		const { container } = renderUI(<Box>content</Box>)
-
-		const box = getSlot(container, 'box')
-
-		expect(box.className).not.toMatch(/(^|\s)p-\d/)
 	})
 })
 

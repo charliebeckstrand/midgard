@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Accordion, AccordionItem, AccordionPanel } from '../../components/accordion'
 import { AccordionTrigger } from '../../components/accordion/accordion-trigger'
 import { act, fireEvent, renderUI, screen } from '../helpers'
@@ -43,10 +43,6 @@ function click(value: string) {
 }
 
 describe('accordion item renders', () => {
-	beforeEach(() => {
-		vi.mocked(AccordionTrigger).mockClear()
-	})
-
 	it('renders only the opened item, then the closed and the opened one', () => {
 		renderUI(<Accordion>{items()}</Accordion>)
 

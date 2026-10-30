@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { emitRegionPaths, probeCanonicalFit } from '../../modules/map/engine/map-geometry/projected'
 import { regionPaths } from '../../modules/map/engine/map-geometry/region'
 import { renderUI } from '../helpers'
@@ -58,40 +58,25 @@ function plat(extra?: Parameters<typeof categoricalPlat>[0]) {
 }
 
 describe('map canonical paths', () => {
-	beforeEach(() => {
-		vi.mocked(probeCanonicalFit).mockClear()
-
-		vi.mocked(emitRegionPaths).mockClear()
-
-		vi.mocked(regionPaths).mockClear()
-	})
-
 	it.each([
 		['the auto aspect', undefined],
 		['a fixed aspect', '16/9'],
 		['the fill frame', false],
-	] as const)('builds the canonical paths one time under %s', (_, aspectRatio) => {
-		renderUI(plat(aspectRatio === undefined ? undefined : { aspectRatio }))
+	] as const)(
+		'walks the geography and builds the canonical paths one time under %s',
+		(_, aspectRatio) => {
+			renderUI(plat(aspectRatio === undefined ? undefined : { aspectRatio }))
 
-		expect(emitRegionPaths).toHaveBeenCalledTimes(1)
+			// The fold's own invariant: the fit is measured from the buffer, so the
+			// walk that fills it is the only one each sizing runs. A second would mean
+			// the fit had gone back to measuring its own bounds.
+			expect(probeCanonicalFit).toHaveBeenCalledTimes(1)
 
-		// The fallback walk stands for geography the buffer declines, which the
-		// default projection and a polygon atlas never are.
-		expect(regionPaths).not.toHaveBeenCalled()
-	})
+			expect(emitRegionPaths).toHaveBeenCalledTimes(1)
 
-	it('walks the geography once whatever the sizing', () => {
-		// The fold's own invariant: the fit is measured from the buffer, so the
-		// walk that fills it is the only one either mode runs. A second would mean
-		// the fit had gone back to measuring its own bounds.
-		renderUI(plat({ aspectRatio: '16/9' }))
-
-		expect(probeCanonicalFit).toHaveBeenCalledTimes(1)
-
-		vi.mocked(probeCanonicalFit).mockClear()
-
-		renderUI(plat())
-
-		expect(probeCanonicalFit).toHaveBeenCalledTimes(1)
-	})
+			// The fallback walk stands for geography the buffer declines, which the
+			// default projection and a polygon atlas never are.
+			expect(regionPaths).not.toHaveBeenCalled()
+		},
+	)
 })

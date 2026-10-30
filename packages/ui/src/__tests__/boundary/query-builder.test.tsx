@@ -9,7 +9,7 @@ import {
 	type QueryGroup,
 } from '../../modules/query'
 import { QueryBuilderRuleValue } from '../../modules/query/query-builder'
-import { bySlot, fireEvent, present, renderUI, screen, within } from '../helpers'
+import { allBySlot, bySlot, fireEvent, present, renderUI, screen, within } from '../helpers'
 
 // Overrides the shared `motion/react` mock: the pass-through `AnimatePresence`
 // never fires `onExitComplete`, blocking the Listbox's deferred-select flush.
@@ -367,7 +367,11 @@ describe('QueryBuilderGroup', () => {
 	it('shows "Add group" but no "Remove group" at the root', () => {
 		renderUI(<QueryBuilder fields={fields} />)
 
+		openAddMenu()
+
 		// Root renders "Add group" but never "Remove group".
+		expect(addGroupItem()).toBeInTheDocument()
+
 		expect(screen.queryByRole('button', { name: 'Remove group' })).not.toBeInTheDocument()
 	})
 
@@ -412,9 +416,7 @@ describe('QueryBuilderGroup', () => {
 		// Root plus the one nested group; each group renders its own "Add" menu.
 		expect(groups).toHaveLength(2)
 
-		const nested = groups[1]
-
-		if (!nested) throw new Error('expected a nested query-group')
+		const nested = present(groups[1], 'a nested query-group')
 
 		// Open only the nested group's menu, so its "Add group" item is the sole
 		// one mounted and the body-portaled lookup is unambiguous.
@@ -430,6 +432,12 @@ describe('QueryBuilderGroup', () => {
 })
 
 describe('QueryBuilderRuleValue', () => {
+	const AGE: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
+	const AGE_SPAN: QueryField = { ...AGE, span: [18, 65] }
+
+	const START: QueryField = { name: 'start', label: 'Start', type: 'date' }
+
 	it('renders a text Input for text fields and emits string changes', () => {
 		const field: QueryField = { name: 'name', label: 'Name', type: 'text' }
 
@@ -453,12 +461,10 @@ describe('QueryBuilderRuleValue', () => {
 	})
 
 	it('renders a number Input and emits numeric changes', () => {
-		const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
-
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
-			<QueryBuilderRuleValue field={field} value={10} onValueChange={onChange} />,
+			<QueryBuilderRuleValue field={AGE} value={10} onValueChange={onChange} />,
 		)
 
 		const input = present<HTMLInputElement>(container.querySelector('input'), 'input')
@@ -472,27 +478,9 @@ describe('QueryBuilderRuleValue', () => {
 		expect(onChange).toHaveBeenCalledWith(42)
 	})
 
-	it('emits empty string for empty numeric input', () => {
-		const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
-
-		const onChange = vi.fn()
-
-		const { container } = renderUI(
-			<QueryBuilderRuleValue field={field} value={3} onValueChange={onChange} />,
-		)
-
-		const input = present<HTMLInputElement>(container.querySelector('input'), 'input')
-
-		fireEvent.change(input, { target: { value: '' } })
-
-		expect(onChange).toHaveBeenCalledWith('')
-	})
-
 	it('renders empty number input when value is null', () => {
-		const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
-
 		const { container } = renderUI(
-			<QueryBuilderRuleValue field={field} value={null} onValueChange={() => {}} />,
+			<QueryBuilderRuleValue field={AGE} value={null} onValueChange={() => {}} />,
 		)
 
 		const input = present<HTMLInputElement>(container.querySelector('input'), 'input')
@@ -501,11 +489,9 @@ describe('QueryBuilderRuleValue', () => {
 	})
 
 	it('renders a NumberInput pair for a range and emits an updated bound tuple', () => {
-		const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
-
 		const onChange = vi.fn()
 
-		renderUI(<QueryBuilderRuleValue field={field} value={[5, '']} range onValueChange={onChange} />)
+		renderUI(<QueryBuilderRuleValue field={AGE} value={[5, '']} range onValueChange={onChange} />)
 
 		const min = screen.getByRole('spinbutton', { name: 'Age minimum' }) as HTMLInputElement
 
@@ -521,11 +507,9 @@ describe('QueryBuilderRuleValue', () => {
 	})
 
 	it('clears a range bound back to an empty string', () => {
-		const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
-
 		const onChange = vi.fn()
 
-		renderUI(<QueryBuilderRuleValue field={field} value={[5, 10]} range onValueChange={onChange} />)
+		renderUI(<QueryBuilderRuleValue field={AGE} value={[5, 10]} range onValueChange={onChange} />)
 
 		const min = screen.getByRole('spinbutton', { name: 'Age minimum' }) as HTMLInputElement
 
@@ -535,9 +519,9 @@ describe('QueryBuilderRuleValue', () => {
 	})
 
 	it('shows the field span as the range placeholders, and clamps each bound to it', () => {
-		const field: QueryField = { name: 'age', label: 'Age', type: 'number', span: [18, 65] }
-
-		renderUI(<QueryBuilderRuleValue field={field} value={['', '']} range onValueChange={vi.fn()} />)
+		renderUI(
+			<QueryBuilderRuleValue field={AGE_SPAN} value={['', '']} range onValueChange={vi.fn()} />,
+		)
 
 		const min = screen.getByRole('spinbutton', { name: 'Age minimum' })
 
@@ -557,8 +541,6 @@ describe('QueryBuilderRuleValue', () => {
 	})
 
 	it('clamps each range bound to the other, so the pair cannot invert', () => {
-		const field: QueryField = { name: 'age', label: 'Age', type: 'number', span: [18, 65] }
-
 		const onChange = vi.fn()
 
 		// NumberInput clamps its controlled value on blur, so the harness holds the
@@ -568,7 +550,7 @@ describe('QueryBuilderRuleValue', () => {
 
 			return (
 				<QueryBuilderRuleValue
-					field={field}
+					field={AGE_SPAN}
 					value={value}
 					range
 					onValueChange={(next) => {
@@ -599,9 +581,9 @@ describe('QueryBuilderRuleValue', () => {
 	})
 
 	it('keeps each input’s min at or below its max when a saved bound sits past the span', () => {
-		const field: QueryField = { name: 'age', label: 'Age', type: 'number', span: [18, 65] }
-
-		renderUI(<QueryBuilderRuleValue field={field} value={[80, '']} range onValueChange={vi.fn()} />)
+		renderUI(
+			<QueryBuilderRuleValue field={AGE_SPAN} value={[80, '']} range onValueChange={vi.fn()} />,
+		)
 
 		const min = screen.getByRole('spinbutton', { name: 'Age minimum' }) as HTMLInputElement
 
@@ -616,9 +598,7 @@ describe('QueryBuilderRuleValue', () => {
 	})
 
 	it('keeps the plain placeholders and clamps only bound to bound with no span', () => {
-		const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
-
-		renderUI(<QueryBuilderRuleValue field={field} value={[5, '']} range onValueChange={vi.fn()} />)
+		renderUI(<QueryBuilderRuleValue field={AGE} value={[5, '']} range onValueChange={vi.fn()} />)
 
 		const min = screen.getByRole('spinbutton', { name: 'Age minimum' })
 
@@ -633,42 +613,8 @@ describe('QueryBuilderRuleValue', () => {
 		expect(max).toHaveAttribute('min', '5')
 	})
 
-	it('renders a Select for select fields', () => {
-		const field: QueryField = {
-			name: 'status',
-			label: 'Status',
-			type: 'select',
-			options: [
-				{ value: 'open', label: 'Open' },
-				{ value: 'closed', label: 'Closed' },
-			],
-		}
-
-		const { container } = renderUI(
-			<QueryBuilderRuleValue field={field} value="open" onValueChange={() => {}} />,
-		)
-
-		const button = container.querySelector('button[aria-haspopup="listbox"]')
-
-		expect(button).toBeInTheDocument()
-	})
-
-	it('does not render a text input for date fields', () => {
-		const field: QueryField = { name: 'start', label: 'Start', type: 'date' }
-
-		const { container } = renderUI(
-			<QueryBuilderRuleValue field={field} value="2024-03-05" onValueChange={() => {}} />,
-		)
-
-		const textInput = container.querySelector('input[type="text"]')
-
-		expect(textInput).not.toBeInTheDocument()
-	})
-
 	it('names the date picker by the rule field label', () => {
-		const field: QueryField = { name: 'start', label: 'Start', type: 'date' }
-
-		renderUI(<QueryBuilderRuleValue field={field} value="2024-03-05" onValueChange={() => {}} />)
+		renderUI(<QueryBuilderRuleValue field={START} value="2024-03-05" onValueChange={() => {}} />)
 
 		// The select/number/text branches name their controls "<label> value";
 		// the date branch threads the same name through DatePicker's aria-label.
@@ -678,9 +624,7 @@ describe('QueryBuilderRuleValue', () => {
 	// Regression: the bare `Date(year, month, day)` constructor maps years 0–99
 	// to 1900–1999. A stored `0001-01-01` reached the DatePicker as 1901.
 	it('parses an ISO date below year 100 without mapping it to 19xx', () => {
-		const field: QueryField = { name: 'start', label: 'Start', type: 'date' }
-
-		renderUI(<QueryBuilderRuleValue field={field} value="0001-01-01" onValueChange={() => {}} />)
+		renderUI(<QueryBuilderRuleValue field={START} value="0001-01-01" onValueChange={() => {}} />)
 
 		const yearOne = new Date(2000, 0, 1)
 
@@ -805,9 +749,11 @@ describe('QueryBuilder reorder grips', () => {
 			/>,
 		)
 
-		for (const node of container.querySelectorAll('[data-slot="query-sortable"]')) {
-			expect(within(node as HTMLElement).queryByRole('tablist')).toBeNull()
-		}
+		const nodes = allBySlot(container, 'query-sortable')
+
+		expect(nodes).toHaveLength(2)
+
+		for (const node of nodes) expect(within(node).queryByRole('tablist')).toBeNull()
 
 		expect(screen.getByRole('tablist', { name: 'Combinator' })).toBeInTheDocument()
 	})

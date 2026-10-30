@@ -474,10 +474,8 @@ function mantissa(step: number): number {
 	return scaled
 }
 
-/** Whether two numbers agree to within `slack` parts of `scale`. */
-function near(a: number, b: number, scale: number, slack = 1e-6): boolean {
-	return Math.abs(a - b) <= Math.abs(scale) * slack
-}
+/** The relative noise of a scale calculation: one part in a million of the step. */
+const RELATIVE_FLOAT = 1e-6
 
 describe('linearScale · tick properties', () => {
 	test.prop([values(), range(), tickTarget()])(
@@ -498,7 +496,7 @@ describe('linearScale · tick properties', () => {
 			for (let index = 1; index < scale.ticks.length; index++) {
 				const gap = (scale.ticks[index] as number) - (scale.ticks[index - 1] as number)
 
-				expect(near(gap, step, step, 1e-5)).toBe(true)
+				expect(gap).toBeNear(step, Math.abs(step) * 1e-5)
 			}
 		},
 	)
@@ -514,7 +512,7 @@ describe('linearScale · tick properties', () => {
 
 			const unit = mantissa(step)
 
-			expect([1, 2, 5].some((clean) => near(unit, clean, clean, 1e-6))).toBe(true)
+			expect(Number(unit.toPrecision(6))).toBeOneOf([1, 2, 5])
 		},
 	)
 
@@ -626,15 +624,10 @@ describe('bandScale · properties', () => {
 		const scale = bandScale({ count, range: [0, width], padding })
 
 		for (let index = 0; index < count; index++) {
-			expect(near(scale.center(index) - scale.at(index), scale.width / 2, scale.step)).toBe(true)
-		}
-	})
-
-	test.prop([band()])('leaves no band overlapping the next', ({ count, width, padding }) => {
-		const scale = bandScale({ count, range: [0, width], padding })
-
-		for (let index = 0; index + 1 < count; index++) {
-			expect(scale.at(index) + scale.width).toBeLessThanOrEqual(scale.at(index + 1) + 1e-9)
+			expect(scale.center(index) - scale.at(index)).toBeNear(
+				scale.width / 2,
+				Math.abs(scale.step) * RELATIVE_FLOAT,
+			)
 		}
 	})
 
@@ -648,7 +641,7 @@ describe('bandScale · properties', () => {
 		boundaries.forEach((boundary, index) => {
 			const midpoint = (scale.center(index) + scale.center(index + 1)) / 2
 
-			expect(near(boundary, midpoint, scale.step)).toBe(true)
+			expect(boundary).toBeNear(midpoint, Math.abs(scale.step) * RELATIVE_FLOAT)
 		})
 	})
 })

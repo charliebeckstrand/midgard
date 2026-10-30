@@ -1,8 +1,9 @@
 import { createRequire } from 'node:module'
 import type { AxeResults } from 'axe-core'
-import { type Browser, chromium, type Page } from 'playwright'
-import { afterAll, beforeAll, describe, inject, it, type TestContext } from 'vitest'
+import type { Page } from 'playwright'
+import { describe, inject, it, type TestContext } from 'vitest'
 import { HYDRATED, prerenderedPages } from '../../../scripts/docs-server'
+import { launchChromium } from './helpers/chromium'
 
 // The page smoke test runs a few structural rules of axe in jsdom, which has
 // no layout and no styles. This file runs each WCAG 2.2 A and AA rule of axe
@@ -96,30 +97,19 @@ const PATHS = prerenderedPages().filter((_, index) => index % shard.count === sh
 
 const origin = inject('docsOrigin')
 
-let browser: Browser
-
-beforeAll(async () => {
-	browser = await chromium.launch()
-})
-
-afterAll(async () => {
-	await browser?.close()
-})
+const launch = launchChromium()
 
 /**
  * Opens a tab at the width of a desktop, in the light theme, that loads only
  * from the server of the build. The tab closes after the case. The cases run
  * side by side, so the hook comes from the context of the case.
  */
-async function openTab({ onTestFinished }: TestContext): Promise<Page> {
+async function openTab(context: TestContext): Promise<Page> {
 	// With reduced motion, no surface is in a transition when axe reads it.
-	const tab = await browser.newPage({
-		viewport: { width: 1280, height: 900 },
-		reducedMotion: 'reduce',
-		colorScheme: 'light',
-	})
-
-	onTestFinished(() => tab.close())
+	const tab = await launch(
+		{ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce', colorScheme: 'light' },
+		context,
+	)
 
 	await tab.route(
 		(url) => url.origin !== origin,

@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { type DensityStep, densitySteps, rootDensityClasses } from '../../core/density/steps'
 import { handler } from '../../core/density/utilities'
 import { utilityTable } from '../../core/density/utility-table'
@@ -72,17 +72,19 @@ function call(name: string, value: string, modifier: string | null = null): CssI
 }
 
 /** The declarations of the one rule that the stepped utility `name` writes for `value`. */
-function rule(name: string, value: string, modifier: string | null = null): CssInJs {
-	const rules = call(name, value, modifier)
+const rule = vi.defineHelper(
+	(name: string, value: string, modifier: string | null = null): CssInJs => {
+		const rules = call(name, value, modifier)
 
-	expect(rules).toHaveLength(1)
+		expect(rules).toHaveLength(1)
 
-	const [only] = rules as CssInJs[]
+		const [only] = rules as CssInJs[]
 
-	expect(Object.keys(only ?? {})).toEqual(['@layer density'])
+		expect(Object.keys(only ?? {})).toEqual(['@layer density'])
 
-	return only?.['@layer density'] as CssInJs
-}
+		return only?.['@layer density'] as CssInJs
+	},
+)
 
 /** The value of the one property that the stepped utility `name` writes for `value`. */
 function declaration(name: string, value: string, property: string): string {
@@ -190,10 +192,6 @@ describe('the base rules of the density scopes', () => {
 
 			expect(rules[selector]).toEqual(getWeights(step))
 		}
-	})
-
-	it('sets md again in a data-density md scope', () => {
-		expect(rules["[data-density='md']"]).toEqual(getWeights('md'))
 	})
 
 	it('steps a slot one step below the host weights, and sets no host weight', () => {

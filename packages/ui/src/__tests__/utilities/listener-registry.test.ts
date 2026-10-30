@@ -43,23 +43,17 @@ describe('createListenerRegistry', () => {
 
 		const calls: string[] = []
 
-		const offA = registry.subscribe('k', (event) => calls.push(`a:${event}`))
+		registry.subscribe('k', (event) => calls.push(`a:${event}`))
 
-		const offB = registry.subscribe('k', (event) => calls.push(`b:${event}`))
+		registry.subscribe('k', (event) => calls.push(`b:${event}`))
 
-		const offOther = registry.subscribe('other', (event) => calls.push(`other:${event}`))
+		registry.subscribe('other', (event) => calls.push(`other:${event}`))
 
 		expect(attach.mock.calls).toEqual([['k'], ['other']])
 
 		fire('k', 'x')
 
 		expect(calls).toEqual(['a:x', 'b:x'])
-
-		offA()
-
-		offB()
-
-		offOther()
 	})
 
 	it('detaches only when the last subscriber leaves, in any order', () => {
@@ -141,7 +135,7 @@ describe('createListenerRegistry', () => {
 
 		const handler = vi.fn()
 
-		const offNew = registry.subscribe('k', handler)
+		registry.subscribe('k', handler)
 
 		offOld()
 
@@ -150,8 +144,6 @@ describe('createListenerRegistry', () => {
 		fire('k', 'x')
 
 		expect(handler).toHaveBeenCalledTimes(1)
-
-		offNew()
 	})
 
 	it('dispatches over a copy, so an unsubscribe during a dispatch skips no handler', () => {
@@ -185,20 +177,16 @@ describe('createListenerRegistry', () => {
 
 		const b = vi.fn()
 
-		const offA = registry.subscribe('k', () => {
+		registry.subscribe('k', () => {
 			throw new Error('boom')
 		})
 
-		const offB = registry.subscribe('k', b)
+		registry.subscribe('k', b)
 
 		fire('k', 'x')
 
 		expect(b).toHaveBeenCalledTimes(1)
 
 		expect(microtask).toHaveBeenCalledTimes(1)
-
-		offA()
-
-		offB()
 	})
 })

@@ -1,12 +1,6 @@
 // @vitest-environment node
-import { describe, expect, expectTypeOf, it } from 'vitest'
-import {
-	defineGroup,
-	defineKata,
-	definePalette,
-	defineRecipe,
-	type VariantProps,
-} from '../../core/recipe'
+import { describe, expect, it } from 'vitest'
+import { defineGroup, defineKata, definePalette, defineRecipe } from '../../core/recipe'
 import { k as button } from '../../recipes/kata/button'
 
 describe('defineRecipe', () => {
@@ -166,16 +160,11 @@ describe('defineRecipe', () => {
 		expect(recipe.body).toBe('text-sm')
 	})
 
-	it('types `skeleton` only on a recipe whose config declares one', () => {
-		// The engine attaches no `skeleton` to a recipe without one, so the type
-		// must not offer `k.skeleton` there.
+	// `define-recipe.test-d.ts` holds the type of `skeleton`.
+	it('attaches `skeleton` only to a recipe whose config declares one', () => {
 		const plain = defineRecipe({ base: 'block' })
 
 		const withSkeleton = defineRecipe({ base: 'block', skeleton: { base: 'h-4' } as const })
-
-		expectTypeOf(plain).not.toHaveProperty('skeleton')
-
-		expectTypeOf(withSkeleton.skeleton).toEqualTypeOf<{ readonly base: 'h-4' }>()
 
 		expect('skeleton' in plain).toBe(false)
 
@@ -209,10 +198,6 @@ describe('defineRecipe', () => {
 		expect(recipe.close).toEqual({ base: 'p-2', line: 'h-lh' })
 
 		expect(recipe.title).toBe('font-semibold')
-
-		expectTypeOf(recipe.close).toEqualTypeOf<{ readonly base: string; readonly line: string }>()
-
-		expectTypeOf(recipe.title).toEqualTypeOf<string>()
 	})
 
 	it('keeps the default color active when only variant is overridden', () => {
@@ -313,6 +298,8 @@ describe('defineKata', () => {
 	it('resolves each slot from one set of props', () => {
 		expect(kata()).toEqual({ base: 'root col', list: 'list border-b', tab: 'tab' })
 
+		expect(Object.keys(kata())).toEqual(['base', 'list', 'tab'])
+
 		expect(kata({ orientation: 'vertical', stretch: true })).toEqual({
 			base: 'root row',
 			list: 'list border-s',
@@ -330,20 +317,6 @@ describe('defineKata', () => {
 		expect(Object.keys(kata.config.variants)).toEqual(['orientation', 'stretch'])
 
 		expect(kata.config.variants.orientation?.vertical).toEqual({ base: 'row', list: 'border-s' })
-	})
-
-	it('types the output by the slots and merges the props of each slot', () => {
-		expectTypeOf(kata()).toEqualTypeOf<{
-			readonly base: string
-			readonly list: string
-			readonly tab: string
-		}>()
-
-		expectTypeOf<VariantProps<typeof kata>>().toEqualTypeOf<
-			{ orientation?: 'horizontal' | 'vertical' } & { stretch?: boolean }
-		>()
-
-		expect(Object.keys(kata())).toEqual(['base', 'list', 'tab'])
 	})
 
 	it('rejects a child slot named base, a slot with its own defaults, and an extra that collides', () => {
@@ -398,6 +371,8 @@ describe('defineKata slots under a slot', () => {
 			tool: { head: 'head', name: 'name text-sm' },
 		})
 
+		expect(Object.keys(tree().tool)).toEqual(['head', 'name'])
+
 		expect(tree({ open: true }).chevron).toEqual({
 			base: 'chevron rotate-90',
 			spacer: 'w-4',
@@ -426,23 +401,6 @@ describe('defineKata slots under a slot', () => {
 		])
 
 		expect(tree.config.variants.open?.true).toEqual({ chevron: 'rotate-90', 'chevron.mark': 'on' })
-	})
-
-	it('types the nested output and the props of each slot under a slot', () => {
-		expectTypeOf(tree().chevron).toEqualTypeOf<
-			{ readonly base: string } & {
-				readonly spacer: string
-				readonly mark: string
-			}
-		>()
-
-		expectTypeOf(tree().tool).toEqualTypeOf<{ readonly head: string; readonly name: string }>()
-
-		expectTypeOf<VariantProps<typeof tree>>().toHaveProperty('open')
-
-		expectTypeOf<VariantProps<typeof tree>>().toHaveProperty('size')
-
-		expect(Object.keys(tree().tool)).toEqual(['head', 'name'])
 	})
 
 	it('merges a slot under a slot of a group with the same slot of the unit', () => {
@@ -504,6 +462,8 @@ describe('defineGroup', () => {
 	it('merges a unit over its group: group classes first, then the unit', () => {
 		expect(unit()).toEqual({ base: 'frame row fill', field: 'reset', number: 'spin' })
 
+		expect(Object.keys(unit())).toEqual(['base', 'field', 'number'])
+
 		expect(unit({ variant: 'glass', affixed: true })).toEqual({
 			base: 'frame row blur grid',
 			field: 'reset',
@@ -517,22 +477,6 @@ describe('defineGroup', () => {
 		expect(unit.marker).toBe('group')
 
 		expect(unit.own).toBe('unit')
-	})
-
-	it('types the props and the output from the group and the unit', () => {
-		expectTypeOf(unit()).toEqualTypeOf<{
-			readonly base: string
-			readonly field: string
-			readonly number: string
-		}>()
-
-		expectTypeOf<VariantProps<typeof unit>['variant']>().toEqualTypeOf<
-			'default' | 'glass' | undefined
-		>()
-
-		expectTypeOf<VariantProps<typeof unit>['affixed']>().toEqualTypeOf<boolean | undefined>()
-
-		expect(Object.keys(unit())).toEqual(['base', 'field', 'number'])
 	})
 
 	it('extends a group with a group, with the merge of a unit', () => {
@@ -556,8 +500,6 @@ describe('defineGroup', () => {
 		expect(leaf()).toEqual({ base: 'frame', field: 'reset press' })
 
 		expect(leaf({ variant: 'default' }).base).toBe('frame fill')
-
-		expectTypeOf(leaf()).toEqualTypeOf<{ readonly base: string; readonly field: string }>()
 	})
 
 	it('rejects a palette in the group and in the unit', () => {
@@ -596,6 +538,7 @@ describe('defineKata responsive axes', () => {
 
 	it('holds the default below the first breakpoint of a map with no initial value', () => {
 		expect(unit({ align: { lg: 'end' } }).base).toBe('flex items-start lg:items-end')
+		expect(unit({ align: { xl: 'end' } }).base).toBe('flex items-start xl:items-end')
 	})
 
 	it('memoizes each map by its values', () => {
@@ -607,25 +550,12 @@ describe('defineKata responsive axes', () => {
 		expect(unit.config.responsive).toEqual(['align'])
 	})
 
-	it('types a responsive prop as a value or a map', () => {
-		expectTypeOf<VariantProps<typeof unit>['align']>().toEqualTypeOf<
-			| 'start'
-			| 'end'
-			| Partial<Record<'initial' | 'sm' | 'md' | 'lg' | 'xl' | '2xl', 'start' | 'end'>>
-			| undefined
-		>()
-
-		expect(unit({ align: { xl: 'end' } }).base).toBe('flex items-start xl:items-end')
-	})
-
 	it('keeps the other props plain', () => {
 		const plain = defineKata({
 			base: 'a',
 			size: { sm: 'b', lg: 'c' },
 			responsive: { align: { start: 'd' } },
 		})
-
-		expectTypeOf<VariantProps<typeof plain>['size']>().toEqualTypeOf<'sm' | 'lg' | undefined>()
 
 		expect(plain({ size: 'lg', align: 'start' }).base).toBe('a c d')
 	})

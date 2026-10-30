@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
 import { k as popover } from '../../recipes/kata/popover'
 import { sou } from '../../recipes/kiso/sou'
@@ -18,7 +18,7 @@ describe('sou', () => {
 	/** In ladder order, bottom to top. The names are the contract; the numbers are an artifact. */
 	const LADDER = ['overlay', 'chrome', 'cover', 'float', 'lens', 'toast'] as const
 
-	function rung(name: (typeof LADDER)[number]): number {
+	const rung = vi.defineHelper((name: (typeof LADDER)[number]): number => {
 		const value = sou[name]
 
 		const parsed = Number(value.replace(/^z-/, ''))
@@ -26,7 +26,7 @@ describe('sou', () => {
 		expect(Number.isInteger(parsed)).toBe(true)
 
 		return parsed
-	}
+	})
 
 	it('covers every rung and nothing else', () => {
 		expect(Object.keys(sou).sort()).toEqual([...LADDER].sort())
@@ -40,19 +40,6 @@ describe('sou', () => {
 
 			expect(value).toBeGreaterThan(values[index - 1] as number)
 		}
-	})
-
-	/*
-	 * The two that actually collided, named directly: a loupe magnifies content, a tooltip
-	 * describes it, and a description that lands inside the magnifier hides its subject.
-	 */
-	it('puts the lens above every anchored float', () => {
-		expect(rung('lens')).toBeGreaterThan(rung('float'))
-	})
-
-	/* Unconditional means unconditional: a lens does not get to cover a toast either. */
-	it('keeps the toast on top', () => {
-		expect(rung('toast')).toBe(Math.max(...LADDER.map(rung)))
 	})
 
 	/*

@@ -14,6 +14,7 @@ import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
 import { k as tabs } from '../../recipes/kata/tabs'
 import { hannou, iro, omote } from '../../recipes/kiso'
 import { marker, onSurface, strong } from '../../recipes/kiso/iro/ramp'
+import { classNames } from '../helpers/class-stops'
 import { getContrast, SURFACE, tinted } from '../helpers/contrast'
 import { collectPatternViolations, srcDir } from '../helpers/walk-source'
 
@@ -190,13 +191,9 @@ const FOREGROUND = new RegExp(
  */
 type ClassTree = string | readonly ClassTree[]
 
-/** A recipe surface flattened to the individual classes it paints. */
-const getClasses = (surface: ClassTree): string[] =>
-	typeof surface === 'string' ? surface.split(/\s+/).filter(Boolean) : surface.flatMap(getClasses)
-
 /** The foreground classes of a set of recipe surfaces, split by the mode each paints in. */
 function inksByMode(surfaces: readonly ClassTree[]): Record<Mode, string[]> {
-	const inks = surfaces.flatMap(getClasses).filter((className) => FOREGROUND.test(className))
+	const inks = classNames(surfaces).filter((className) => FOREGROUND.test(className))
 
 	return {
 		light: inks.filter((className) => !className.startsWith('dark:')),
@@ -375,14 +372,11 @@ describe('segment archetype contrast', () => {
  * the ink come off the recipe, so a change to either is measured here.
  */
 describe('PdfViewer viewport message', () => {
-	const getClasses = (fragment: unknown): string[] =>
-		[fragment].flat(Number.POSITIVE_INFINITY).join(' ').split(' ').filter(Boolean)
-
-	const ground = getClasses(pdfViewer().viewport.base).filter((className) =>
+	const ground = classNames([pdfViewer().viewport.base]).filter((className) =>
 		/^(?:dark:)?bg-zinc-\d+$/.test(className),
 	)
 
-	const ink = getClasses(pdfViewer().viewport.page.empty).filter((className) =>
+	const ink = classNames([pdfViewer().viewport.page.empty]).filter((className) =>
 		FOREGROUND.test(className),
 	)
 

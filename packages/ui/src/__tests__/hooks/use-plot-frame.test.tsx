@@ -90,6 +90,16 @@ describe('usePlotFrame observer lifecycle', () => {
 		return instance
 	}
 
+	/** The size that the memoized marks drew with. */
+	function drawn(): { width: number; height: number } {
+		const marks = screen.getByTestId('marks')
+
+		return {
+			width: Number(marks.getAttribute('data-width')),
+			height: Number(marks.getAttribute('data-height')),
+		}
+	}
+
 	/** Reports a new container size to the hook through its captured observer. */
 	function resizeTo(el: Element, box: { width: number; height: number }) {
 		mockDomGeometry(el, { clientWidth: box.width, clientHeight: box.height })
@@ -110,9 +120,7 @@ describe('usePlotFrame observer lifecycle', () => {
 		expect(observers).toHaveLength(0)
 
 		// Width from the prop, height derived: both ready on the first paint.
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('600')
-
-		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('300')
+		expect(drawn()).toEqual({ width: 600, height: 300 })
 	})
 
 	it('draws a shared fixed width until the plot measures the width that remains', () => {
@@ -122,18 +130,16 @@ describe('usePlotFrame observer lifecycle', () => {
 		expect(observers).toHaveLength(1)
 
 		// With no measurement yet, the explicit width draws, as a server render does.
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('600')
+		expect(drawn().width).toBe(600)
 
 		resizeTo(screen.getByTestId('plot'), { width: 400, height: 0 })
 
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('400')
-
-		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('200')
+		expect(drawn()).toEqual({ width: 400, height: 200 })
 	})
 
 	it('measures a shared plot as it attaches, in the render that the attach costs', () => {
 		// The plot box is narrower than the explicit width before React attaches it.
-		const clientWidth = vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(400)
+		vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(400)
 
 		const onFrame = vi.fn()
 
@@ -147,9 +153,7 @@ describe('usePlotFrame observer lifecycle', () => {
 			/>,
 		)
 
-		clientWidth.mockRestore()
-
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('400')
+		expect(drawn().width).toBe(400)
 
 		// The mount, then one render for the attach and its measurement together.
 		expect(onFrame).toHaveBeenCalledTimes(2)
@@ -157,7 +161,7 @@ describe('usePlotFrame observer lifecycle', () => {
 
 	it('renders no more for a shared plot as wide as its explicit width', () => {
 		// A legend stacked below the plot leaves it the whole width.
-		const clientWidth = vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(600)
+		vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(600)
 
 		const onFrame = vi.fn()
 
@@ -170,8 +174,6 @@ describe('usePlotFrame observer lifecycle', () => {
 				onFrame={onFrame}
 			/>,
 		)
-
-		clientWidth.mockRestore()
 
 		const plot = screen.getByTestId('plot')
 
@@ -185,11 +187,11 @@ describe('usePlotFrame observer lifecycle', () => {
 		// A legend beside the plot narrows it, and the width comes back after.
 		resizeTo(plot, { width: 400, height: 0 })
 
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('400')
+		expect(drawn().width).toBe(400)
 
 		resizeTo(plot, { width: 600, height: 0 })
 
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('600')
+		expect(drawn().width).toBe(600)
 	})
 
 	it('tracks resize notifications live and swallows the ones that change nothing', () => {
@@ -201,17 +203,17 @@ describe('usePlotFrame observer lifecycle', () => {
 
 		resizeTo(plot, { width: 300, height: 0 })
 
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
+		expect(drawn().width).toBe(300)
 
 		// Each changed size commits as it arrives (no settle window, no timers)
 		// so the final notification's size is already the drawn one.
 		resizeTo(plot, { width: 320, height: 0 })
 
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('320')
+		expect(drawn().width).toBe(320)
 
 		resizeTo(plot, { width: 360, height: 0 })
 
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('360')
+		expect(drawn().width).toBe(360)
 
 		const drawsAfterBurst = onMarks.mock.calls.length
 
@@ -247,7 +249,7 @@ describe('usePlotFrame observer lifecycle', () => {
 
 		resizeTo(first, { width: 300, height: 0 })
 
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
+		expect(drawn().width).toBe(300)
 
 		rerender(<SwapProbe swap />)
 
@@ -271,7 +273,7 @@ describe('usePlotFrame observer lifecycle', () => {
 			live.callback([], live as unknown as ResizeObserver)
 		})
 
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('340')
+		expect(drawn().width).toBe(340)
 	})
 
 	it('ignores a measurement from a detached node instead of committing its zero size', () => {
@@ -283,7 +285,7 @@ describe('usePlotFrame observer lifecycle', () => {
 
 		resizeTo(plot, { width: 300, height: 0 })
 
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
+		expect(drawn().width).toBe(300)
 
 		// A commit that re-arranges the layout around the plot detaches its node
 		// before the swap's ref updates land; a notification (or the settle
@@ -293,15 +295,9 @@ describe('usePlotFrame observer lifecycle', () => {
 		// property, so React's own unmount cleanup still finds the node in place.
 		Object.defineProperty(plot, 'isConnected', { value: false, configurable: true })
 
-		mockDomGeometry(plot, { clientWidth: 0, clientHeight: 0 })
-
-		act(() => {
-			const observer = firstObserver()
-
-			observer.callback([], observer as unknown as ResizeObserver)
-		})
+		resizeTo(plot, { width: 0, height: 0 })
 
 		// The garbage measurement is skipped: the frame holds its last real size.
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
+		expect(drawn().width).toBe(300)
 	})
 })

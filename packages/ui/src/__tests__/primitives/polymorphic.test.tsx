@@ -5,20 +5,6 @@ import { UIProvider } from '../../providers/ui'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Polymorphic', () => {
-	it('renders the fallback element when no href is given', () => {
-		const { container } = renderUI(
-			<Polymorphic as="span" href={undefined} data-slot="tag" className="cls">
-				Text
-			</Polymorphic>,
-		)
-
-		const el = bySlot(container, 'tag')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('SPAN')
-	})
-
 	it('renders a link when href is provided', () => {
 		const { container } = renderUI(
 			<Polymorphic as="span" href="/path" data-slot="tag" className="cls">

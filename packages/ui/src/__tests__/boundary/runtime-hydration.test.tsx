@@ -87,15 +87,9 @@ function toClientLocale(): void {
 	expect(resolveLocale(), 'the runtime locale did not change').toBe(CLIENT_LOCALE)
 }
 
-/** Moves the process from UTC to Los Angeles until the case ends. */
+/** Moves the process from UTC to Los Angeles. The setup restores the zone after the case. */
 function toLosAngeles(): void {
-	const zone = process.env.TZ
-
-	process.env.TZ = 'America/Los_Angeles'
-
-	onTestFinished(() => {
-		process.env.TZ = zone
-	})
+	vi.stubEnv('TZ', 'America/Los_Angeles')
 
 	// A case that stays in UTC passes on any seed, so it must fail here.
 	expect(new Date(2026, 0, 1).getTimezoneOffset(), 'the zone change took no effect').toBe(480)

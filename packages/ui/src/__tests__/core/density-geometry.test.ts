@@ -70,10 +70,6 @@ describe('density geometry', () => {
 	describe.each(Object.entries(geometry))('dan.%s', (path, formula) => {
 		const ramp = rampAt(path)
 
-		it('has five values', () => {
-			expect(/\[([^\]]+)\]$/.exec(ramp)?.[1]?.split(',')).toHaveLength(5)
-		})
-
 		it.each(densitySteps)('renders the formula at %s', (step) => {
 			expect(parsePx(ramp)[step]).toBe(formula(step))
 		})

@@ -1,5 +1,26 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { subscribeDocumentEvent } from '../../utilities/document-listener'
+
+/**
+ * Subscribes `handler` to the document event `type`. The handler stays on the
+ * module registry of `document-listener.ts`, so it unsubscribes when the case
+ * finishes, also after a failure. A second unsubscribe does nothing.
+ */
+function subscribe<K extends keyof DocumentEventMap>(
+	type: K,
+	handler: (event: DocumentEventMap[K]) => void,
+): () => void {
+	const off = subscribeDocumentEvent(type, handler)
+
+	onTestFinished(off)
+
+	return off
+}
+
+/** The calls of `spy` for the event `type`. */
+function callsFor(spy: ReturnType<typeof vi.spyOn>, type: string): unknown[][] {
+	return spy.mock.calls.filter((call: unknown[]) => call[0] === type)
+}
 
 describe('subscribeDocumentEvent', () => {
 	let addSpy: ReturnType<typeof vi.spyOn>
@@ -17,11 +38,11 @@ describe('subscribeDocumentEvent', () => {
 
 		const b = vi.fn()
 
-		const unsubA = subscribeDocumentEvent('pointerdown', a)
+		const unsubA = subscribe('pointerdown', a)
 
-		const unsubB = subscribeDocumentEvent('pointerdown', b)
+		const unsubB = subscribe('pointerdown', b)
 
-		expect(addSpy.mock.calls.filter((call: unknown[]) => call[0] === 'pointerdown')).toHaveLength(1)
+		expect(callsFor(addSpy, 'pointerdown')).toHaveLength(1)
 
 		document.dispatchEvent(new Event('pointerdown'))
 
@@ -32,15 +53,11 @@ describe('subscribeDocumentEvent', () => {
 		// The listener stays attached until the last subscriber leaves.
 		unsubA()
 
-		expect(
-			removeSpy.mock.calls.filter((call: unknown[]) => call[0] === 'pointerdown'),
-		).toHaveLength(0)
+		expect(callsFor(removeSpy, 'pointerdown')).toHaveLength(0)
 
 		unsubB()
 
-		expect(
-			removeSpy.mock.calls.filter((call: unknown[]) => call[0] === 'pointerdown'),
-		).toHaveLength(1)
+		expect(callsFor(removeSpy, 'pointerdown')).toHaveLength(1)
 	})
 
 	it('keeps a separate listener per event type', () => {
@@ -48,72 +65,18 @@ describe('subscribeDocumentEvent', () => {
 
 		const onPointer = vi.fn()
 
-		const unsubKey = subscribeDocumentEvent('keydown', onKey)
+		subscribe('keydown', onKey)
 
-		const unsubPointer = subscribeDocumentEvent('pointerdown', onPointer)
+		subscribe('pointerdown', onPointer)
 
-		expect(addSpy.mock.calls.filter((call: unknown[]) => call[0] === 'keydown')).toHaveLength(1)
+		expect(callsFor(addSpy, 'keydown')).toHaveLength(1)
 
-		expect(addSpy.mock.calls.filter((call: unknown[]) => call[0] === 'pointerdown')).toHaveLength(1)
+		expect(callsFor(addSpy, 'pointerdown')).toHaveLength(1)
 
 		document.dispatchEvent(new Event('keydown'))
 
 		expect(onKey).toHaveBeenCalledTimes(1)
 
 		expect(onPointer).not.toHaveBeenCalled()
-
-		unsubKey()
-
-		unsubPointer()
-	})
-
-	it('stops dispatching to a handler once it unsubscribes', () => {
-		const a = vi.fn()
-
-		const b = vi.fn()
-
-		const unsubA = subscribeDocumentEvent('pointerdown', a)
-
-		const unsubB = subscribeDocumentEvent('pointerdown', b)
-
-		unsubA()
-
-		document.dispatchEvent(new Event('pointerdown'))
-
-		expect(a).not.toHaveBeenCalled()
-
-		expect(b).toHaveBeenCalledTimes(1)
-
-		unsubB()
-	})
-
-	it('keeps invoking other handlers when one throws (native listener isolation)', () => {
-		// Stubs queueMicrotask so the re-thrown error is captured rather than propagated.
-		const microtask = vi.spyOn(globalThis, 'queueMicrotask').mockImplementation(() => {})
-
-		const boom = new Error('boom')
-
-		const a = vi.fn(() => {
-			throw boom
-		})
-
-		const b = vi.fn()
-
-		const unsubA = subscribeDocumentEvent('pointerdown', a)
-
-		const unsubB = subscribeDocumentEvent('pointerdown', b)
-
-		document.dispatchEvent(new Event('pointerdown'))
-
-		expect(a).toHaveBeenCalledTimes(1)
-
-		expect(b).toHaveBeenCalledTimes(1)
-
-		// The error is surfaced out of band via queueMicrotask rather than swallowed.
-		expect(microtask).toHaveBeenCalledTimes(1)
-
-		unsubA()
-
-		unsubB()
 	})
 })

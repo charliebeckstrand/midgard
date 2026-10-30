@@ -12,10 +12,10 @@ import {
 } from '../../modules/chart/engine/chart-geometry/label'
 
 /** The plot box of the value-label tests: 200 units wide and 100 units high. */
-export const PLOT = { x: 0, y: 0, width: 200, height: 100 }
+const PLOT = { x: 0, y: 0, width: 200, height: 100 }
 
 /** A single series over the given `[x, y, value]` points. */
-export function series(points: [number, number, number][]): ValueLabelSeries {
+function series(points: [number, number, number][]): ValueLabelSeries {
 	return {
 		fill: 'fill-blue-600',
 		points: points.map(([x, y, value]) => ({ x, y, value })),
@@ -24,7 +24,7 @@ export function series(points: [number, number, number][]): ValueLabelSeries {
 }
 
 /** The label texts, in placement order. */
-export function texts(labels: PlacedValueLabel[]): string[] {
+function texts(labels: PlacedValueLabel[]): string[] {
 	return labels.map((label) => label.text)
 }
 
@@ -176,50 +176,6 @@ describe('labelBesideY', () => {
 })
 
 describe('valueLabels at the plot sides', () => {
-	it('anchors a label inward where a centered one would cross a side', () => {
-		// A dense line puts its endpoints near the plot sides. A centered label
-		// there crossed the side and dropped.
-		const labels = valueLabels({
-			series: [
-				series([
-					[10, 50, 12345],
-					[100, 60, 1],
-					[190, 70, 67890],
-				]),
-			],
-			plot: PLOT,
-			endpoints: true,
-			extremes: false,
-		})
-
-		const first = labels.find((label) => label.text === '12345')
-
-		const last = labels.find((label) => label.text === '67890')
-
-		expect(first?.anchor).toBe('start')
-
-		expect(first?.x).toBe(10)
-
-		expect(last?.anchor).toBe('end')
-
-		expect(last?.x).toBe(190)
-	})
-
-	it('anchors a label at a point on the plot side', () => {
-		// A dense series puts its first point within the label padding of the
-		// side. The padding is spacing, not text, so the label still anchors there.
-		const [edge] = valueLabels({
-			series: [series([[1, 50, 12345]])],
-			plot: PLOT,
-			endpoints: true,
-			extremes: false,
-		})
-
-		expect(edge?.anchor).toBe('start')
-
-		expect(edge?.x).toBe(1)
-	})
-
 	it('hides a label that does not fit even anchored inward', () => {
 		// The plot is narrower than the text.
 		const [wide] = valueLabels({

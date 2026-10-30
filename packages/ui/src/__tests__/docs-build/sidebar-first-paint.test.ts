@@ -1,6 +1,7 @@
-import { type Browser, chromium, type Page } from 'playwright'
-import { afterAll, beforeAll, describe, expect, inject, it, onTestFinished } from 'vitest'
+import type { Page } from 'playwright'
+import { describe, expect, inject, it } from 'vitest'
 import { HYDRATED } from '../../../scripts/docs-server'
+import { launchChromium } from './helpers/chromium'
 
 // The first paint of the docs sidebar has its final scroll. The CSS of the
 // current item scrolls the body to the item (`scroll-initial-target`), so the
@@ -12,15 +13,7 @@ const PAGES = ['/badge', '/modules/grid', '/structure/stack']
 
 const origin = inject('docsOrigin')
 
-let browser: Browser
-
-beforeAll(async () => {
-	browser = await chromium.launch()
-})
-
-afterAll(async () => {
-	await browser?.close()
-})
+const launch = launchChromium()
 
 /**
  * Opens a tab at the width of a desktop, where the sidebar is in the page. The
@@ -28,9 +21,7 @@ afterAll(async () => {
  * script does not reload. The tab closes after the case.
  */
 async function openTab(): Promise<Page> {
-	const tab = await browser.newPage({ viewport: { width: 1280, height: 720 } })
-
-	onTestFinished(() => tab.close())
+	const tab = await launch({ viewport: { width: 1280, height: 720 } })
 
 	await tab.addInitScript(() => sessionStorage.setItem('docs:stale-reload', String(Date.now())))
 

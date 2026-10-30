@@ -59,6 +59,9 @@ describe('Grid cursor order builds', () => {
 
 		const { rerender } = renderUI(view(false))
 
+		// The mount built the order, so the later `toBe(0)` can fail.
+		expect(builds.grouped).toBeGreaterThan(0)
+
 		builds.grouped = 0
 
 		rerender(view(true))
@@ -81,6 +84,9 @@ describe('Grid cursor order builds', () => {
 		)
 
 		const { rerender } = renderUI(view(false))
+
+		// The mount built the order, so the later `toBe(0)` can fail.
+		expect(builds.detail).toBeGreaterThan(0)
 
 		builds.detail = 0
 

@@ -1,9 +1,10 @@
 import type { ReactElement } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useChartSeriesToggle } from '../../modules/chart/engine/use-chart-series-toggle'
 import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
+import { rangeKeys } from '../../utilities'
 import { act, allBySlot, fireEvent, renderUI } from '../helpers'
 
 /**
@@ -19,19 +20,10 @@ import { act, allBySlot, fireEvent, renderUI } from '../helpers'
  * `chart-table-render.test.tsx` does. The counts need module mocks, so this
  * suite sits in `boundary/`.
  */
-const tableRenders = vi.hoisted(() => ({ count: 0 }))
-
 vi.mock('../../utilities', async (importActual) => {
 	const actual = await importActual<typeof import('../../utilities')>()
 
-	return {
-		...actual,
-		rangeKeys: (count: number, prefix: string) => {
-			if (prefix === 'category') tableRenders.count++
-
-			return actual.rangeKeys(count, prefix)
-		},
-	}
+	return { ...actual, rangeKeys: vi.fn(actual.rangeKeys) }
 })
 
 vi.mock('../../modules/chart/engine/use-chart-series-toggle', async (importActual) => {
@@ -40,6 +32,10 @@ vi.mock('../../modules/chart/engine/use-chart-series-toggle', async (importActua
 
 	return { ...actual, useChartSeriesToggle: vi.fn(actual.useChartSeriesToggle) }
 })
+
+/** The table renders since the last clear: the `rangeKeys` calls for the `category` prefix. */
+const tableRenders = () =>
+	vi.mocked(rangeKeys).mock.calls.filter(([, prefix]) => prefix === 'category').length
 
 type Row = { week: string; signups: number; churn: number }
 
@@ -50,7 +46,7 @@ const rows: Row[] = Array.from({ length: 50 }, (_, index) => ({
 }))
 
 /** Mounts the chart, settles the deferred table, and checks that both counts are live. */
-async function mount(ui: Parameters<typeof renderUI>[0]) {
+const mount = vi.defineHelper(async (ui: Parameters<typeof renderUI>[0]) => {
 	const result = renderUI(ui)
 
 	await act(async () => {})
@@ -58,10 +54,10 @@ async function mount(ui: Parameters<typeof renderUI>[0]) {
 	// Each count fired on mount, so a later `toBe(0)` can fail.
 	expect(vi.mocked(useChartSeriesToggle).mock.calls.length).toBeGreaterThan(0)
 
-	expect(tableRenders.count).toBeGreaterThan(0)
+	expect(tableRenders()).toBeGreaterThan(0)
 
 	return result
-}
+})
 
 /** Moves the pointer onto the legend entry at `position` and off it again, and returns the body runs and the table renders. */
 async function hoverLegend(container: HTMLElement, position: number) {
@@ -69,7 +65,7 @@ async function hoverLegend(container: HTMLElement, position: number) {
 
 	vi.mocked(useChartSeriesToggle).mockClear()
 
-	tableRenders.count = 0
+	vi.mocked(rangeKeys).mockClear()
 
 	act(() => {
 		fireEvent.pointerEnter(entry)
@@ -85,18 +81,12 @@ async function hoverLegend(container: HTMLElement, position: number) {
 
 	return {
 		body: vi.mocked(useChartSeriesToggle).mock.calls.length,
-		table: tableRenders.count,
+		table: tableRenders(),
 		emphasized,
 	}
 }
 
 describe('chart legend focus renders', () => {
-	beforeEach(() => {
-		tableRenders.count = 0
-
-		vi.mocked(useChartSeriesToggle).mockClear()
-	})
-
 	it.each<[string, () => ReactElement, number]>([
 		[
 			'cartesian',

@@ -89,22 +89,6 @@ const LOAD_BEARING =
 // the enclosing form.
 const BUTTON_HOST = /^(?:button|Button|ToggleIconButton|Element|Polymorphic\w*)$/
 
-/** A rule this file does not hold yet, and how many violations it still has. */
-type Waiver = { order?: number; anchor?: number; ref?: number; note: string }
-
-/**
- * Files a rule does not hold yet, pinned to the violation count each one
- * covers.
- *
- * @remarks
- * Every entry is backlog, not exemption: `note` names the audit row or lead
- * that owns it, and the step that closes the row deletes the entry. The count
- * is what makes the waiver narrow: a file-wide waiver would absorb a new
- * violation in an already-waived file, and the pin test fails the moment a
- * count moves in either direction.
- */
-const WAIVERS = new Map<string, Waiver>([])
-
 /** One JSX attribute written before the consumer spread. */
 type Attribute = { name: string; value?: string }
 
@@ -121,12 +105,6 @@ type Site = {
 	after: Attribute[]
 	refTaken: boolean
 }
-
-/** The rules this suite holds, and the keys a waiver pins a count against. */
-const RULES = ['order', 'anchor', 'ref'] as const
-
-/** One rule's complaint about one attribute. */
-type Violation = { file: string; rule: (typeof RULES)[number]; text: string }
 
 /**
  * The attributes written before the consumer spread, for every JSX element in
@@ -350,29 +328,25 @@ function scan(server: TypeScriptServer): { sites: Site[]; anchors: Set<string> }
 	return { sites, anchors }
 }
 
-/** Every complaint `flag` makes, waived or not. Each test filters its own. */
+/** Every complaint that `flag` makes, as `<file>:<line> <detail>`. */
 function collect(
 	sites: Site[],
-	rule: (typeof RULES)[number],
 	flag: (site: Site, attribute: Attribute) => string | undefined,
-): Violation[] {
-	const found: Violation[] = []
+): string[] {
+	const found: string[] = []
 
 	for (const site of sites) {
 		for (const attribute of site.before) {
 			const detail = flag(site, attribute)
 
-			if (detail) found.push({ file: site.file, rule, text: `${site.file}:${site.line} ${detail}` })
+			if (detail) found.push(`${site.file}:${site.line} ${detail}`)
 		}
 	}
 
 	return found
 }
 
-const waived = (violation: Violation) => Boolean(WAIVERS.get(violation.file)?.[violation.rule])
-
-const lines = (violations: Violation[]) =>
-	violations.map((violation) => violation.text).join('\n  ')
+const lines = (violations: string[]) => violations.join('\n  ')
 
 describe('spread order boundary', () => {
 	// The TypeScript server parses each source that this file reads, and stops
@@ -386,13 +360,13 @@ describe('spread order boundary', () => {
 	/** The sites of a fixture `source` under the file name `file`. */
 	const fixture = (file: string, source: string) => sitesIn(file, server.parseText(file, source))
 
-	const ordered = collect(sites, 'order', (site, attribute) =>
+	const ordered = collect(sites, (site, attribute) =>
 		LOAD_BEARING.test(attribute.name) || (attribute.name === 'type' && BUTTON_HOST.test(site.tag))
 			? `<${site.tag}> ${attribute.name}`
 			: undefined,
 	)
 
-	const anchored = collect(sites, 'anchor', (site, attribute) =>
+	const anchored = collect(sites, (site, attribute) =>
 		attribute.name === 'data-slot' && attribute.value && anchors.has(attribute.value)
 			? `<${site.tag}> data-slot="${attribute.value}"`
 			: undefined,
@@ -403,35 +377,28 @@ describe('spread order boundary', () => {
 	// spread it replaces the consumer ref.
 	const refs = collect(
 		sites.map((site) => ({ ...site, before: [...site.before, ...site.after] })),
-		'ref',
 		(site, attribute) =>
 			attribute.name === 'ref' && !site.refTaken ? `<${site.tag}> ref` : undefined,
 	)
 
-	it('no element outside the waivers writes a load-bearing attribute before its spread', () => {
-		const violations = ordered.filter((violation) => !waived(violation))
-
+	it('no element writes a load-bearing attribute before its spread', () => {
 		expect(
-			violations,
-			`load-bearing attributes a stray consumer prop replaces (move them below the spread, CONVENTIONS.md §3.9):\n  ${lines(violations)}`,
+			ordered,
+			`load-bearing attributes a stray consumer prop replaces (move them below the spread, CONVENTIONS.md §3.9):\n  ${lines(ordered)}`,
 		).toEqual([])
 	})
 
-	it('no element outside the waivers writes a library-read data-slot before its spread', () => {
-		const violations = anchored.filter((violation) => !waived(violation))
-
+	it('no element writes a library-read data-slot before its spread', () => {
 		expect(
-			violations,
-			`anchors the library selects on that a consumer rename takes away (move them below the spread, CONVENTIONS.md §3.9):\n  ${lines(violations)}`,
+			anchored,
+			`anchors the library selects on that a consumer rename takes away (move them below the spread, CONVENTIONS.md §3.9):\n  ${lines(anchored)}`,
 		).toEqual([])
 	})
 
-	it('no element outside the waivers writes a ref that a consumer ref replaces', () => {
-		const violations = refs.filter((violation) => !waived(violation))
-
+	it('no element writes a ref that a consumer ref replaces', () => {
 		expect(
-			violations,
-			`internal refs a consumer ref replaces (destructure \`ref\` and join it through useComposedRefs, CONVENTIONS.md §3.9):\n  ${lines(violations)}`,
+			refs,
+			`internal refs a consumer ref replaces (destructure \`ref\` and join it through useComposedRefs, CONVENTIONS.md §3.9):\n  ${lines(refs)}`,
 		).toEqual([])
 	})
 
@@ -495,34 +462,5 @@ describe('spread order boundary', () => {
 		expect(body?.refTaken).toBe(true)
 
 		expect(omitted?.refTaken).toBe(true)
-	})
-
-	it('pins every waiver to the violation count it still covers', () => {
-		const live = new Map<string, number>()
-
-		for (const violation of [...ordered, ...anchored, ...refs]) {
-			const key = `${violation.file} ${violation.rule}`
-
-			live.set(key, (live.get(key) ?? 0) + 1)
-		}
-
-		const drift: string[] = []
-
-		for (const [file, waiver] of WAIVERS) {
-			for (const rule of RULES) {
-				const pinned = waiver[rule] ?? 0
-
-				const found = live.get(`${file} ${rule}`) ?? 0
-
-				if (pinned !== found) {
-					drift.push(`${file} → ${rule}: waives ${pinned}, found ${found} (${waiver.note})`)
-				}
-			}
-		}
-
-		expect(
-			drift,
-			`waivers that no longer match what the rules find (a count that fell means the fix landed, so delete or lower the waiver; a count that rose means a new violation hid behind it):\n  ${drift.join('\n  ')}`,
-		).toEqual([])
 	})
 })

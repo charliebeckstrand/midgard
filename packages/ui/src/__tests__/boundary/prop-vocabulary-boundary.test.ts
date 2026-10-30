@@ -1,13 +1,13 @@
 // @vitest-environment node
 import { isPropertySignatureDeclaration, type Node } from 'typescript/unstable/ast'
-import {
-	type Checker,
-	type Project,
-	SymbolFlags,
-	type Symbol as TsSymbol,
-} from 'typescript/unstable/sync'
+import { type Project, SymbolFlags, type Symbol as TsSymbol } from 'typescript/unstable/sync'
 import { afterAll, describe, expect, it } from 'vitest'
-import { openPublicProject, publicBarrels } from '../helpers/public-barrels'
+import {
+	barrelExports,
+	openPublicProject,
+	publicBarrels,
+	resolvedSymbol,
+} from '../helpers/public-barrels'
 import { startTypeScript } from '../helpers/ts-server'
 import { srcRelative } from '../helpers/walk-source'
 
@@ -33,28 +33,15 @@ const ALIASES = new Map([
 /** A union of heading levels written by hand, such as `1 | 2 | 3`. */
 const HAND_LEVELS = /^\(?\s*[1-6](?:\s*\|\s*[1-6])+\s*\)?$/
 
-/** The symbol that an import alias names, or the symbol itself. */
-function resolved(checker: Checker, symbol: TsSymbol): TsSymbol {
-	return symbol.flags & SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
-}
-
 /** Each exported `<Name>Props` type of the public barrels, once. */
 function publicProps(project: Project): TsSymbol[] {
-	const { program, checker } = project
-
 	const found = new Map<number, TsSymbol>()
 
 	for (const barrel of publicBarrels()) {
-		const source = program.getSourceFile(barrel)
-
-		const module = source && checker.getSymbolAtLocation(source)
-
-		if (!module) continue
-
-		for (const symbol of checker.getExportsOfModule(module)) {
+		for (const symbol of barrelExports(project, barrel)) {
 			if (!symbol.name.endsWith('Props')) continue
 
-			const props = resolved(checker, symbol)
+			const props = resolvedSymbol(project.checker, symbol)
 
 			if (props.flags & SymbolFlags.TypeAlias) found.set(props.id, props)
 		}
@@ -65,17 +52,12 @@ function publicProps(project: Project): TsSymbol[] {
 
 /** The type of the exported `AlertSeverity`. */
 function alertSeverity(project: Project) {
-	const { program, checker } = project
+	const { checker } = project
 
 	for (const barrel of publicBarrels()) {
-		const source = program.getSourceFile(barrel)
+		const symbol = barrelExports(project, barrel).find((s) => s.name === 'AlertSeverity')
 
-		const module = source && checker.getSymbolAtLocation(source)
-
-		const symbol =
-			module && checker.getExportsOfModule(module).find((s) => s.name === 'AlertSeverity')
-
-		if (symbol) return checker.getDeclaredTypeOfSymbol(resolved(checker, symbol))
+		if (symbol) return checker.getDeclaredTypeOfSymbol(resolvedSymbol(checker, symbol))
 	}
 
 	throw new Error('no public barrel exports AlertSeverity')

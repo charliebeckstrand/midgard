@@ -1,39 +1,33 @@
 // @vitest-environment node
 import { fc, test } from '@fast-check/vitest'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	CALLOUT_LEADER,
-	CALLOUT_LINE,
 	pieCallouts,
 	pieSlices,
 } from '../../modules/chart/engine/chart-geometry/pie'
 import { FLOAT } from '../helpers/geometry/tolerance'
+import { expectLineApart, sideYs } from '../helpers/pie-callouts'
 
 // `pieCallouts` keeps each label inside the band `[top, bottom]` that it gets,
 // and keeps the labels of one side at least `CALLOUT_LINE` apart. The chart
 // gives a band that holds the leader circle, so the cases here do the same.
 
-/** The callout ys of one side, `direction`, from the top down. */
-function sideYs(values: number[], options: Parameters<typeof pieCallouts>[1], direction: 1 | -1) {
-	const slices = pieSlices(values, options)
-
-	return pieCallouts(slices, options)
-		.filter((callout) => (callout.anchor === 'start' ? 1 : -1) === direction)
-		.map((callout) => callout.y)
-		.sort((a, b) => a - b)
+/** The callouts of a pie over `values`. */
+function place(values: number[], options: Parameters<typeof pieCallouts>[1]) {
+	return pieCallouts(pieSlices(values, options), options)
 }
 
-function expectInBand(ys: number[], top: number, bottom: number) {
+/** Asserts that the ys of one side stay inside `[top, bottom]` and one line apart. */
+const expectInBand = vi.defineHelper((ys: number[], top: number, bottom: number) => {
 	for (const y of ys) {
 		expect(y).toBeGreaterThanOrEqual(top - FLOAT)
 
 		expect(y).toBeLessThanOrEqual(bottom + FLOAT)
 	}
 
-	for (let k = 1; k < ys.length; k++) {
-		expect((ys[k] as number) - (ys[k - 1] as number)).toBeGreaterThanOrEqual(CALLOUT_LINE - FLOAT)
-	}
-}
+	expectLineApart(ys, FLOAT)
+})
 
 describe('pieCallouts · the frame band', () => {
 	// One label near the top and several near the foot of one side. A slide of
@@ -42,7 +36,7 @@ describe('pieCallouts · the frame band', () => {
 	it('keeps a full side inside the band when its labels crowd the foot', () => {
 		const options = { cx: 0, cy: 0, radius: 4, top: -21, bottom: 24 }
 
-		const ys = sideYs([2, 1, 1, 0.001, 4, 0.001], options, 1)
+		const ys = sideYs(place([2, 1, 1, 0.001, 4, 0.001], options), 'start')
 
 		expect(ys).toHaveLength(4)
 
@@ -60,8 +54,12 @@ describe('pieCallouts · the frame band', () => {
 			bottom: 100 + radius + CALLOUT_LEADER,
 		}
 
-		for (const direction of [1, -1] as const) {
-			expectInBand(sideYs([1, 196, 1, 1, 1, 200], options, direction), options.top, options.bottom)
+		for (const anchor of ['start', 'end'] as const) {
+			expectInBand(
+				sideYs(place([1, 196, 1, 1, 1, 200], options), anchor),
+				options.top,
+				options.bottom,
+			)
 		}
 	})
 
@@ -92,8 +90,8 @@ describe('pieCallouts · the frame band', () => {
 
 			const options = { cx: 300, cy, radius, top: cy - circle - above, bottom: cy + circle + below }
 
-			for (const direction of [1, -1] as const) {
-				expectInBand(sideYs(values, options, direction), options.top, options.bottom)
+			for (const anchor of ['start', 'end'] as const) {
+				expectInBand(sideYs(place(values, options), anchor), options.top, options.bottom)
 			}
 		},
 	)

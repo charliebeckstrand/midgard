@@ -27,6 +27,7 @@ import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import type { MapFeature } from '../../modules/map/engine/types'
 import { subpathCount } from '../helpers/geometry/svg-path'
 import { FLOAT } from '../helpers/geometry/tolerance'
+import { flatProjector, squareRing } from '../helpers/map-flat'
 import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 
 /** The spherical area of the lune carries float noise below this bound, in steradians. */
@@ -68,9 +69,23 @@ const CW_EXTERIOR = [
 	[0, 0],
 ]
 
+/**
+ * A mercator fit to the fixture squares. Held once: no case mutates a
+ * projection, and a named spec gives a fresh fit on each call.
+ */
+const FITTED = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
+
+/** Projects a position through {@link FITTED}. */
+const project = (position: [number, number]) => projectPoint(FITTED, position)
+
+/** The rings of a Polygon feature, or none for another kind. */
+function getRings(feature: MapFeature | undefined): number[][][] {
+	return feature ? (getPolygons(feature)[0] ?? []) : []
+}
+
 /** The spherical area of a feature's first Polygon ring, read as its own polygon. */
 function firstRingArea(feature: MapFeature): number {
-	const ring = (feature.geometry as { coordinates: number[][][] }).coordinates[0]
+	const ring = getRings(feature)[0]
 
 	return geoArea({ type: 'Polygon', coordinates: [ring] } as never)
 }
@@ -102,11 +117,9 @@ describe('geographyFeatures', () => {
 	})
 
 	it('decodes the topology to the same shapes as the GeoJSON twin', () => {
-		const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
+		const fromTopology = regionPaths(geographyFeatures(FIXTURE_TOPOLOGY), FITTED)
 
-		const fromTopology = regionPaths(geographyFeatures(FIXTURE_TOPOLOGY), projection)
-
-		const fromGeoJson = regionPaths(FIXTURE_GEOJSON.features, projection)
+		const fromGeoJson = regionPaths(FIXTURE_GEOJSON.features, FITTED)
 
 		expect(fromTopology).toEqual(fromGeoJson)
 	})
@@ -135,9 +148,7 @@ describe('rewindFeatures', () => {
 		// ring was cloned rather than reversed in place.
 		expect(firstRingArea(fixed as MapFeature)).toBeLessThan(HALF_SPHERE)
 
-		expect((misWound.geometry as { coordinates: number[][][] }).coordinates[0]).toEqual(
-			[...CW_EXTERIOR].reverse(),
-		)
+		expect(getRings(misWound)[0]).toEqual([...CW_EXTERIOR].reverse())
 	})
 
 	it('gives an interior ring the opposite winding of its exterior', () => {
@@ -155,7 +166,7 @@ describe('rewindFeatures', () => {
 
 		const [fixed] = rewindFeatures([feature])
 
-		const rings = ((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates
+		const rings = getRings(fixed)
 
 		// Exterior unchanged, hole reversed relative to the input.
 		expect(rings[0]).toEqual(CW_EXTERIOR)
@@ -178,7 +189,7 @@ describe('rewindFeatures', () => {
 
 		const [fixed] = rewindFeatures([feature])
 
-		const rings = ((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates
+		const rings = getRings(fixed)
 
 		expect(rings).toHaveLength(1)
 
@@ -195,9 +206,7 @@ describe('rewindFeatures', () => {
 
 		const [fixed] = rewindFeatures([polygonFeature('E', [collinear])])
 
-		expect(((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates).toEqual(
-			[],
-		)
+		expect(getRings(fixed)).toEqual([])
 	})
 
 	it('rewinds each polygon of a MultiPolygon', () => {
@@ -214,7 +223,7 @@ describe('rewindFeatures', () => {
 
 		const [fixed] = rewindFeatures([feature])
 
-		const polygons = ((fixed as MapFeature).geometry as { coordinates: number[][][][] }).coordinates
+		const polygons = getPolygons(fixed as MapFeature)
 
 		// The first polygon's mis-wound exterior is flipped; the second, already
 		// correct, is left as it stands.
@@ -254,9 +263,7 @@ describe('rewindFeatures', () => {
 
 		const [fixed] = rewindFeatures([feature])
 
-		expect(
-			((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates[0],
-		).toEqual(lune)
+		expect(getRings(fixed)[0]).toEqual(lune)
 	})
 
 	it('keeps a sliver whose planar area is zero but whose spherical area is not', () => {
@@ -275,7 +282,7 @@ describe('rewindFeatures', () => {
 
 		const [fixed] = rewindFeatures([feature])
 
-		const rings = ((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates
+		const rings = getRings(fixed)
 
 		expect(rings).toHaveLength(2)
 
@@ -305,9 +312,7 @@ describe('rewindFeatures', () => {
 		expect(after).toBeLessThan(HALF_SPHERE)
 
 		// Reversed exactly when the exact measure said it enclosed the far side.
-		expect(
-			((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates[0],
-		).toEqual(before > HALF_SPHERE ? [...wide].reverse() : wide)
+		expect(getRings(fixed)[0]).toEqual(before > HALF_SPHERE ? [...wide].reverse() : wide)
 	})
 
 	it('leaves a ring carrying a non-finite coordinate as it arrived', () => {
@@ -325,9 +330,7 @@ describe('rewindFeatures', () => {
 
 		const [fixed] = rewindFeatures([polygonFeature('N', [ring])])
 
-		expect(
-			((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates[0],
-		).toEqual(ring)
+		expect(getRings(fixed)[0]).toEqual(ring)
 	})
 
 	it('leaves a pre-projected atlas to the spherical measure', () => {
@@ -349,9 +352,7 @@ describe('rewindFeatures', () => {
 
 		const expected = firstRingArea(feature) > HALF_SPHERE ? [...framed].reverse() : framed
 
-		expect(
-			((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates[0],
-		).toEqual(expected)
+		expect(getRings(fixed)[0]).toEqual(expected)
 	})
 
 	it('rewinds a ring that encloses a pole', () => {
@@ -377,9 +378,7 @@ describe('rewindFeatures', () => {
 
 describe('regionPaths', () => {
 	it('draws one path per feature', () => {
-		const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
-
-		const paths = regionPaths(FIXTURE_GEOJSON.features, projection)
+		const paths = regionPaths(FIXTURE_GEOJSON.features, FITTED)
 
 		expect(paths).toHaveLength(3)
 
@@ -389,19 +388,15 @@ describe('regionPaths', () => {
 	})
 
 	it('yields null for a feature with no geometry', () => {
-		const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
-
 		const bare = { type: 'Feature', id: 'X', geometry: null } as const
 
-		expect(regionPaths([bare], projection)).toEqual([null])
+		expect(regionPaths([bare], FITTED)).toEqual([null])
 	})
 })
 
 describe('projectPoint', () => {
 	it('projects a position inside the fitted frame', () => {
-		const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
-
-		const point = projectPoint(projection, [5, 5])
+		const point = projectPoint(FITTED, [5, 5])
 
 		expect(point).not.toBeNull()
 
@@ -420,13 +415,11 @@ describe('projectPoint', () => {
 
 describe('unprojectPoint', () => {
 	it('carries a frame position back to the lon/lat it draws from', () => {
-		const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
-
-		const at = projectPoint(projection, [5, 5])
+		const at = projectPoint(FITTED, [5, 5])
 
 		if (at === null) throw new Error('fixture position has no image')
 
-		const back = unprojectPoint(projection, at)
+		const back = unprojectPoint(FITTED, at)
 
 		expect(back?.[0]).toBeNear(5, FLOAT)
 
@@ -535,10 +528,6 @@ describe('squareDotStroke', () => {
 })
 
 describe('linePath', () => {
-	const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
-
-	const project = (position: [number, number]) => projectPoint(projection, position)
-
 	it('draws a move-then-line path through the points', () => {
 		const d = linePath(
 			[
@@ -587,10 +576,6 @@ describe('linePath', () => {
 })
 
 describe('ringsPath · one ring', () => {
-	const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
-
-	const project = (position: [number, number]) => projectPoint(projection, position)
-
 	const SQUARE: [number, number][] = [
 		[2, 2],
 		[2, 8],
@@ -603,14 +588,6 @@ describe('ringsPath · one ring', () => {
 		points: [number, number][],
 		projector: (position: [number, number]) => { x: number; y: number } | null = project,
 	) => ringsPath(projectArea([[points]], projector))
-
-	it('closes the path it draws through the points', () => {
-		const d = ring(SQUARE)
-
-		expect(d).toMatch(/^M[-\d.]+,[-\d.]+L/)
-
-		expect(d.endsWith('Z')).toBe(true)
-	})
 
 	it('is linePath plus the closing command, so the two can never diverge', () => {
 		expect(ring(SQUARE)).toBe(`${linePath(SQUARE, project)}Z`)
@@ -707,10 +684,6 @@ describe('ringAnchor', () => {
  * from one pass.
  */
 describe('projectArea and ringsPath', () => {
-	const projection = fitProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
-
-	const project = (position: [number, number]) => projectPoint(projection, position)
-
 	/** The path an area draws, in the one call the cases below read it through. */
 	const areaPath = (polygons: [number, number][][][]) => ringsPath(projectArea(polygons, project))
 
@@ -795,19 +768,8 @@ describe('projectArea and ringsPath', () => {
  * per ring rather than a pass over its vertices.
  */
 describe('ringsNear', () => {
-	/** One frame unit per degree, so a position reads straight off the coordinates. */
-	const flat = (position: [number, number]) => ({ x: position[0], y: position[1] })
-
-	/** A square of `side` units with its lower corner at `shift`. */
-	const square = (side: number, shift = 0): [number, number][] => [
-		[shift, 0],
-		[shift, side],
-		[shift + side, side],
-		[shift + side, 0],
-	]
-
 	it('parts the two readings on the margin alone', () => {
-		const rings = projectArea([[square(10)]], flat)
+		const rings = projectArea([[squareRing(10)]], flatProjector)
 
 		// With none, the box is the whole question; with a reach, a position that far
 		// out still counts as competing for the ring's ground.
@@ -817,7 +779,7 @@ describe('ringsNear', () => {
 	})
 
 	it('reads every ring, so either part of a split territory answers', () => {
-		const parts = projectArea([[square(10)], [square(10, 40)]], flat)
+		const parts = projectArea([[squareRing(10)], [squareRing(10, 40)]], flatProjector)
 
 		expect(ringsNear(parts, { x: 5, y: 5 }, 0)).toBe(true)
 
@@ -830,7 +792,7 @@ describe('ringsNear', () => {
 	it('finds nothing near a territory the projection dropped', () => {
 		expect(
 			ringsNear(
-				projectArea([[square(10)]], () => null),
+				projectArea([[squareRing(10)]], () => null),
 				{ x: 5, y: 5 },
 				1000,
 			),
@@ -844,18 +806,8 @@ describe('ringsNear', () => {
  * reader can point at rather than the coordinates behind it.
  */
 describe('areaReach', () => {
-	/** One frame unit per degree, so a reach reads straight off the coordinates. */
-	const flat = (position: [number, number]) => ({ x: position[0], y: position[1] })
-
-	/** A square of `side` units with its lower corner at the origin plus `shift`. */
-	const square = (side: number, shift = 0): [number, number][] => [
-		[shift, 0],
-		[shift, side],
-		[shift + side, side],
-		[shift + side, 0],
-	]
-
-	const getReach = (polygons: [number, number][][][]) => areaReach(projectArea(polygons, flat))
+	const getReach = (polygons: [number, number][][][]) =>
+		areaReach(projectArea(polygons, flatProjector))
 
 	it('reads a circle as its own radius', () => {
 		// `circleRing`'s form, which most zones on a map are, and the measure is exact
@@ -870,7 +822,7 @@ describe('areaReach', () => {
 	})
 
 	it('reads a square as half its side', () => {
-		expect(getReach([[square(10)]])).toBe(5)
+		expect(getReach([[squareRing(10)]])).toBe(5)
 	})
 
 	it('reads a diagonal corridor as its width, not its diagonal', () => {
@@ -890,13 +842,13 @@ describe('areaReach', () => {
 	it('lets the widest part answer for a territory in several parts', () => {
 		// Two clusters standing clear of one another, the way a dissolved coverage
 		// area falls: the one a reader is looking at is the one with room in it.
-		expect(getReach([[square(10)], [square(30, 40)]])).toBe(15)
+		expect(getReach([[squareRing(10)], [squareRing(30, 40)]])).toBe(15)
 	})
 
 	it('measures the same whichever way a ring winds', () => {
 		// A dissolved territory arrives in the winding its arcs held, and no pass
 		// rewinds it, so the measure may not depend on the direction.
-		expect(getReach([[square(10).reverse()]])).toBe(5)
+		expect(getReach([[squareRing(10).reverse()]])).toBe(5)
 	})
 
 	it('measures nothing for a ring collapsed to one position', () => {
@@ -915,7 +867,7 @@ describe('areaReach', () => {
 	})
 
 	it('measures nothing where the projection dropped every ring', () => {
-		expect(areaReach(projectArea([[square(10)]], () => null))).toBe(0)
+		expect(areaReach(projectArea([[squareRing(10)]], () => null))).toBe(0)
 	})
 })
 

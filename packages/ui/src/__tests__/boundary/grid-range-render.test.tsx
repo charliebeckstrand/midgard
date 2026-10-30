@@ -57,8 +57,11 @@ describe('Grid range renders', () => {
 		)
 	}
 
-	/** Runs `change`, and returns the cells whose flags flipped and the cells that rendered. */
-	function measure(change: () => void): { flipped: string[]; rendered: string[] } {
+	/**
+	 * Runs `change`, and checks that only the cells whose flags flipped render,
+	 * and that no cell content renders. Returns the cells whose flags flipped.
+	 */
+	const expectOnlyFlipsRender = vi.defineHelper((change: () => void): string[] => {
 		const before = flags()
 
 		flagRenders.length = 0
@@ -71,11 +74,16 @@ describe('Grid range renders', () => {
 
 		expect(contentRenders.count).toBe(0)
 
-		return {
-			flipped: [...after].filter(([key, value]) => before.get(key) !== value).map(([key]) => key),
-			rendered: [...flagRenders],
-		}
-	}
+		const flipped = [...after]
+			.filter(([key, value]) => before.get(key) !== value)
+			.map(([key]) => key)
+
+		expect(flipped.length).toBeGreaterThan(0)
+
+		expect(flagRenders.toSorted()).toEqual(flipped.toSorted())
+
+		return flipped
+	})
 
 	function renderRangeGrid() {
 		renderUI(<Grid columns={columns} rows={rows} getKey={(row) => row.id} navigable range />)
@@ -94,11 +102,7 @@ describe('Grid range renders', () => {
 		const grid = renderRangeGrid()
 
 		for (const key of ['ArrowDown', 'ArrowDown', 'ArrowRight', 'ArrowDown']) {
-			const { flipped, rendered } = measure(() => shift(grid, key))
-
-			expect(flipped.length).toBeGreaterThan(0)
-
-			expect(rendered.toSorted()).toEqual(flipped.toSorted())
+			expectOnlyFlipsRender(() => shift(grid, key))
 		}
 	})
 
@@ -112,11 +116,7 @@ describe('Grid range renders', () => {
 		shift(grid, 'ArrowRight')
 
 		for (const key of ['ArrowUp', 'ArrowLeft']) {
-			const { flipped, rendered } = measure(() => shift(grid, key))
-
-			expect(flipped.length).toBeGreaterThan(0)
-
-			expect(rendered.toSorted()).toEqual(flipped.toSorted())
+			expectOnlyFlipsRender(() => shift(grid, key))
 		}
 	})
 
@@ -125,13 +125,11 @@ describe('Grid range renders', () => {
 
 		shift(grid, 'ArrowDown')
 
-		const { flipped, rendered } = measure(() => shift(grid, 'End', { ctrlKey: true }))
+		const flipped = expectOnlyFlipsRender(() => shift(grid, 'End', { ctrlKey: true }))
 
 		// Each cell outside the range joins it, and the cursor leaves the second
 		// row. Only the anchor holds its flags.
 		expect(flipped).toHaveLength(rows.length * columns.length - 1)
-
-		expect(rendered.toSorted()).toEqual(flipped.toSorted())
 	})
 
 	it('renders only the cells of the range that a move without Shift clears', () => {
@@ -141,10 +139,6 @@ describe('Grid range renders', () => {
 
 		shift(grid, 'ArrowRight')
 
-		const { flipped, rendered } = measure(() => fireEvent.keyDown(grid, { key: 'ArrowDown' }))
-
-		expect(flipped.length).toBeGreaterThan(0)
-
-		expect(rendered.toSorted()).toEqual(flipped.toSorted())
+		expectOnlyFlipsRender(() => fireEvent.keyDown(grid, { key: 'ArrowDown' }))
 	})
 })

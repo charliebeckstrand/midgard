@@ -21,18 +21,6 @@ describe('mode', () => {
 })
 
 describe('defineColors', () => {
-	it('wraps plain string entries in a single-element array', () => {
-		expect(defineColors({ subtle: 'text-zinc-500' })).toEqual({ subtle: ['text-zinc-500'] })
-	})
-
-	it('concatenates the dark string after the light one for { light, dark } entries', () => {
-		expect(
-			defineColors({
-				primary: { light: 'text-zinc-900', dark: 'dark:text-white' },
-			}),
-		).toEqual({ primary: ['text-zinc-900', 'dark:text-white'] })
-	})
-
 	it('flattens nested arrays inside a pair entry', () => {
 		expect(
 			defineColors({

@@ -15,7 +15,6 @@ vi.mock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
 
 import {
 	ensureDocumentLoad,
-	type PdfLoadReport,
 	resetDocumentCache,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { pageLabel } from '../../components/pdf-viewer/pdf-viewer-messages'
@@ -25,8 +24,7 @@ import {
 } from '../../components/pdf-viewer/use-pdf-viewer-document'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 import { tick } from '../helpers/frames'
-
-const originalFetch = globalThis.fetch
+import { seedDocument } from '../helpers/pdf-document'
 
 beforeEach(() => {
 	getDocumentMock.mockReset()
@@ -45,8 +43,6 @@ afterEach(() => {
 	// Module state outlives a `renderHook`, so without this one case's resident document is
 	// the next one's surprise cache hit.
 	resetDocumentCache()
-
-	globalThis.fetch = originalFetch
 
 	for (const link of document.head.querySelectorAll('link[rel="preload"]')) link.remove()
 })
@@ -75,7 +71,10 @@ describe('usePdfViewerDocument', () => {
 	 */
 	it('reports a cold src as pending on its first render', () => {
 		// Never settles, so the effect's load stays in flight and drives no pdf.js work.
-		globalThis.fetch = vi.fn(() => new Promise<Response>(() => {}))
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(() => new Promise<Response>(() => {})),
+		)
 
 		const renders: ReturnType<typeof usePdfViewerDocument>[] = []
 
@@ -93,7 +92,7 @@ describe('usePdfViewerDocument', () => {
 	})
 
 	it('resets to the empty state when src is removed after a value', () => {
-		globalThis.fetch = vi.fn().mockResolvedValue(new Response(null, { status: 500 }))
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 500 })))
 
 		const { result, rerender } = renderHook(
 			({ src }: { src: string | undefined }) => usePdfViewerDocument(src),
@@ -123,43 +122,12 @@ describe('usePdfViewerDocument', () => {
  * is reachable without it, which is the whole property being asserted.
  */
 describe('usePdfViewerDocument · parked and restored', () => {
-	/**
-	 * Leaves `src` resident with one finished page, the way a completed load does.
-	 *
-	 * Awaited to completion before anything mounts: the cache clears its loading flag in a
-	 * `then`, so a seed that did not settle would leave the document mid-load and every case
-	 * below would be asserting against the wrong state.
-	 */
-	async function seed(src: string) {
-		let report: PdfLoadReport | undefined
-
-		ensureDocumentLoad(src, (next) => {
-			report = next
-
-			return Promise.resolve()
-		})
-
-		report?.documentUrl('blob:doc')
-
-		report?.page({
-			id: 1,
-			src: 'blob:page-1',
-			label: 'Page 1',
-			width: 800,
-			height: 1000,
-			pointWidth: 612,
-			pointHeight: 792,
-		})
-
-		await tick()
-	}
-
 	it('paints a resident document on its first render, fetching nothing', async () => {
 		const fetchMock = vi.fn()
 
-		globalThis.fetch = fetchMock
+		vi.stubGlobal('fetch', fetchMock)
 
-		await seed('/invoice.pdf')
+		await seedDocument('/invoice.pdf')
 
 		const { result } = renderHook(() => usePdfViewerDocument('/invoice.pdf'))
 
@@ -188,7 +156,10 @@ describe('usePdfViewerDocument · parked and restored', () => {
 		signal.throwIfAborted()
 
 		// The mount retries a zero-page document. A fetch that never settles holds that retry.
-		globalThis.fetch = vi.fn(() => new Promise<Response>(() => {}))
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(() => new Promise<Response>(() => {})),
+		)
 
 		const renders: ReturnType<typeof usePdfViewerDocument>[] = []
 
@@ -208,9 +179,9 @@ describe('usePdfViewerDocument · parked and restored', () => {
 	it('survives an unmount and remount without re-fetching or re-rasterizing', async () => {
 		const fetchMock = vi.fn()
 
-		globalThis.fetch = fetchMock
+		vi.stubGlobal('fetch', fetchMock)
 
-		await seed('/invoice.pdf')
+		await seedDocument('/invoice.pdf')
 
 		const first = renderHook(() => usePdfViewerDocument('/invoice.pdf'))
 
@@ -234,9 +205,9 @@ describe('usePdfViewerDocument · parked and restored', () => {
 	})
 
 	it('does not revoke the page images an unmount leaves behind', async () => {
-		globalThis.fetch = vi.fn()
+		vi.stubGlobal('fetch', vi.fn())
 
-		await seed('/invoice.pdf')
+		await seedDocument('/invoice.pdf')
 
 		const { unmount } = renderHook(() => usePdfViewerDocument('/invoice.pdf'))
 
@@ -275,7 +246,7 @@ function fakeDocument(numPages: number, labels: string[] | null) {
  * a fetch and the pdf.js promises before it publishes the slots.
  */
 async function openLabels(src: string, count: number) {
-	globalThis.fetch = vi.fn().mockResolvedValue(new Response(new Uint8Array([37, 80, 68, 70])))
+	vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(new Uint8Array([37, 80, 68, 70]))))
 
 	const { result } = renderHook(() => usePdfViewerDocument(src))
 
@@ -332,7 +303,10 @@ describe('usePdfViewerDocument · preload', () => {
 
 	// React preloads an href once for each document, so this src is used by no other case.
 	it('preloads a cold src on its first client render', () => {
-		globalThis.fetch = vi.fn(() => new Promise<Response>(() => {}))
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(() => new Promise<Response>(() => {})),
+		)
 
 		renderHook(() => usePdfViewerDocument('/first-render.pdf'))
 
@@ -350,7 +324,10 @@ describe('usePdfViewerDocument · preload', () => {
 
 		signal.throwIfAborted()
 
-		globalThis.fetch = vi.fn(() => new Promise<Response>(() => {}))
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(() => new Promise<Response>(() => {})),
+		)
 
 		renderHook(() => usePdfViewerDocument('/resident.pdf'))
 
@@ -388,7 +365,10 @@ describe('usePdfViewerDocument · base raster', () => {
 
 		vi.spyOn(window, 'devicePixelRatio', 'get').mockReturnValue(2)
 
-		globalThis.fetch = vi.fn(async () => new Response(new ArrayBuffer(8)))
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => new Response(new ArrayBuffer(8))),
+		)
 
 		const canvases: HTMLCanvasElement[] = []
 

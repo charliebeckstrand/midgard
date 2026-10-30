@@ -1,30 +1,24 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import {
 	isTopDismissLayer,
 	nextDismissOrder,
 	registerDismissLayer,
 } from '../../utilities/dismiss-layers'
 
-// The stack is module-level state. Track every registration and drain it in
-// afterEach so a leaked layer can't corrupt a later shuffled test: the unit
+// The stack is module-level state. Each registration unregisters when its case
+// finishes, so a leaked layer can't corrupt a later shuffled test: the unit
 // project runs `isolate: false`, so nothing resets this module, not per test,
 // and not per file either.
-const registered: Array<() => void> = []
-
 function open(order?: number) {
 	const layer = {}
 
 	const unregister = registerDismissLayer(layer, order)
 
-	registered.push(unregister)
+	onTestFinished(unregister)
 
 	return { layer, unregister }
 }
-
-afterEach(() => {
-	for (const unregister of registered.splice(0)) unregister()
-})
 
 describe('dismiss layers', () => {
 	it('reports false when the stack is empty', () => {

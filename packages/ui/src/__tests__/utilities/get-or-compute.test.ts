@@ -14,9 +14,7 @@ describe('getOrCompute', () => {
 
 		expect(getOrCompute(cache, key, compute)).toBe(first)
 
-		expect(compute).toHaveBeenCalledTimes(1)
-
-		expect(compute).toHaveBeenCalledWith(key)
+		expect(compute).toHaveBeenCalledExactlyOnceWith(key)
 	})
 
 	it('keeps a separate value for each key', () => {

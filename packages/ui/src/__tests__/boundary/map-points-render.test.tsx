@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { MapPlat, MapPoints } from '../../modules/map'
 import { MapDot } from '../../modules/map/map-dot'
 import { allRegions, fireEvent, renderUI } from '../helpers'
@@ -58,10 +58,6 @@ function fleet() {
 }
 
 describe('map plural mark renders', () => {
-	beforeEach(() => {
-		vi.mocked(MapDot).mockClear()
-	})
-
 	it('holds its dots through a crossing between two regions', () => {
 		const { container } = renderUI(fleet())
 

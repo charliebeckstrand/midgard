@@ -19,14 +19,14 @@ import {
 	type TypeNode,
 	type TypeReferenceNode,
 } from 'typescript/unstable/ast'
-import {
-	type Checker,
-	type Project,
-	SymbolFlags,
-	type Symbol as TsSymbol,
-} from 'typescript/unstable/sync'
+import { type Project, SymbolFlags } from 'typescript/unstable/sync'
 import { afterAll, describe, expect, it } from 'vitest'
-import { openPublicProject, publicBarrels } from '../helpers/public-barrels'
+import {
+	barrelExports,
+	openPublicProject,
+	publicBarrels,
+	resolvedSymbol,
+} from '../helpers/public-barrels'
 import { startTypeScript } from '../helpers/ts-server'
 import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
@@ -190,11 +190,6 @@ const NO_BASE_EXEMPT = new Map<string, string>([
 	],
 ])
 
-/** The symbol that an import alias names, or the symbol itself. */
-function resolved(checker: Checker, symbol: TsSymbol): TsSymbol {
-	return symbol.flags & SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
-}
-
 /**
  * The function of a component: its declaration, the function of a `const`, or
  * the function argument of a wrapper call such as `memo(…)`. A `const` that
@@ -223,7 +218,7 @@ function componentFunction(project: Project, node: Node | undefined, depth = 0):
 		const symbol = project.checker.getSymbolAtLocation(node)
 
 		const declaration =
-			symbol && resolved(project.checker, symbol).valueDeclaration?.resolve(project)
+			symbol && resolvedSymbol(project.checker, symbol).valueDeclaration?.resolve(project)
 
 		return declaration === node ? undefined : componentFunction(project, declaration, depth + 1)
 	}
@@ -269,18 +264,12 @@ function rendersElement(fn: Node): boolean {
  * props of its real component (CONVENTIONS §3.7).
  */
 function propsWithNoBase(project: Project): string[] {
-	const { program, checker } = project
+	const { checker } = project
 
 	const found = new Set<string>()
 
 	for (const barrel of publicBarrels()) {
-		const source = program.getSourceFile(barrel)
-
-		const module = source && checker.getSymbolAtLocation(source)
-
-		if (!module) continue
-
-		const exported = checker.getExportsOfModule(module)
+		const exported = barrelExports(project, barrel)
 
 		const byName = new Map(exported.map((symbol) => [symbol.name, symbol]))
 
@@ -293,12 +282,12 @@ function propsWithNoBase(project: Project): string[] {
 
 			const fn = componentFunction(
 				project,
-				resolved(checker, component).valueDeclaration?.resolve(project),
+				resolvedSymbol(checker, component).valueDeclaration?.resolve(project),
 			)
 
 			if (!fn || !rendersElement(fn)) continue
 
-			const props = resolved(checker, symbol)
+			const props = resolvedSymbol(checker, symbol)
 
 			if (checker.getPropertyOfType(checker.getDeclaredTypeOfSymbol(props), 'id')) continue
 

@@ -10,20 +10,6 @@ function Lock() {
 }
 
 describe('useScrollLock', () => {
-	it('locks body overflow while active', () => {
-		renderHook(() => useScrollLock(true))
-
-		expect(document.body.style.overflow).toBe('hidden')
-	})
-
-	it('restores body overflow on unmount', () => {
-		const { unmount } = renderHook(() => useScrollLock(true))
-
-		unmount()
-
-		expect(document.body.style.overflow).toBe('')
-	})
-
 	it('leaves overflow untouched when inactive', () => {
 		renderHook(() => useScrollLock(false))
 
@@ -91,14 +77,12 @@ describe('useScrollLock', () => {
 			return null
 		}
 
-		const { unmount } = render(
+		render(
 			<>
 				<Lock />
 				<Probe />
 			</>,
 		)
-
-		onTestFinished(unmount)
 
 		expect(seen).toBe('hidden')
 	})

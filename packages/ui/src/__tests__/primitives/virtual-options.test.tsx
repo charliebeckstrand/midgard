@@ -6,8 +6,8 @@ import { VirtualItemSourceContext } from '../../primitives/virtual-options/conte
 import { bySlot, renderUI } from '../helpers'
 
 // jsdom has no layout; react-virtual sees a 0-height scroll container and
-// renders zero items. These tests assert boundedness and the outer container
-// slot. Correct windowing behavior is covered by the benchmarks.
+// renders zero items. These tests assert the outer container slot. The browser
+// suite (`browser/virtualization.test.tsx`) tests the window of rendered items.
 
 describe('VirtualOptions', () => {
 	const items = Array.from({ length: 1_000 }, (_, index) => ({ id: index, label: `Item ${index}` }))
@@ -25,14 +25,6 @@ describe('VirtualOptions', () => {
 			</div>
 		)
 	}
-
-	it('never renders more options than the items array', () => {
-		const { container } = renderUI(<TestPanel items={items} />)
-
-		const rendered = container.querySelectorAll('[role="option"]')
-
-		expect(rendered.length).toBeLessThanOrEqual(items.length)
-	})
 
 	// The wrapper mounts even at zero items (the scroll-ancestor walk needs its
 	// ref) so the listbox is never CSS `:empty` under virtualization. Combobox

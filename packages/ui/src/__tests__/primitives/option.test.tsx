@@ -1,7 +1,7 @@
 import { createContext, createRef, type FC, Profiler, type ReactNode, use } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createSelectOption, Option } from '../../primitives/option/option'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, noop, renderUI, screen } from '../helpers'
 
 describe('Option', () => {
 	it('sets aria-selected when selected', () => {
@@ -28,7 +28,17 @@ describe('Option', () => {
 		expect(option).toHaveAttribute('aria-disabled', 'true')
 	})
 
-	it('calls onSelect on click', () => {
+	it.for([
+		{ name: 'calls onSelect on click', press: (option: HTMLElement) => fireEvent.click(option) },
+		{
+			name: 'selects on Enter key',
+			press: (option: HTMLElement) => fireEvent.keyDown(option, { key: 'Enter' }),
+		},
+		{
+			name: 'selects on Space key',
+			press: (option: HTMLElement) => fireEvent.keyDown(option, { key: ' ' }),
+		},
+	])('$name', ({ press }) => {
 		const onSelect = vi.fn()
 
 		renderUI(
@@ -37,12 +47,21 @@ describe('Option', () => {
 			</Option>,
 		)
 
-		fireEvent.click(screen.getByRole('option'))
+		press(screen.getByRole('option'))
 
 		expect(onSelect).toHaveBeenCalledOnce()
 	})
 
-	it('does not call onSelect when disabled', () => {
+	it.for([
+		{
+			name: 'does not call onSelect when disabled',
+			press: (option: HTMLElement) => fireEvent.click(option),
+		},
+		{
+			name: 'does not select when Enter is pressed and disabled',
+			press: (option: HTMLElement) => fireEvent.keyDown(option, { key: 'Enter' }),
+		},
+	])('$name', ({ press }) => {
 		const onSelect = vi.fn()
 
 		renderUI(
@@ -51,49 +70,7 @@ describe('Option', () => {
 			</Option>,
 		)
 
-		fireEvent.click(screen.getByRole('option'))
-
-		expect(onSelect).not.toHaveBeenCalled()
-	})
-
-	it('selects on Enter key', () => {
-		const onSelect = vi.fn()
-
-		renderUI(
-			<Option selected={false} onSelect={onSelect}>
-				Option
-			</Option>,
-		)
-
-		fireEvent.keyDown(screen.getByRole('option'), { key: 'Enter' })
-
-		expect(onSelect).toHaveBeenCalledOnce()
-	})
-
-	it('selects on Space key', () => {
-		const onSelect = vi.fn()
-
-		renderUI(
-			<Option selected={false} onSelect={onSelect}>
-				Option
-			</Option>,
-		)
-
-		fireEvent.keyDown(screen.getByRole('option'), { key: ' ' })
-
-		expect(onSelect).toHaveBeenCalledOnce()
-	})
-
-	it('does not select when Enter is pressed and disabled', () => {
-		const onSelect = vi.fn()
-
-		renderUI(
-			<Option selected={false} disabled onSelect={onSelect}>
-				Option
-			</Option>,
-		)
-
-		fireEvent.keyDown(screen.getByRole('option'), { key: 'Enter' })
+		press(screen.getByRole('option'))
 
 		expect(onSelect).not.toHaveBeenCalled()
 	})
@@ -195,8 +172,6 @@ describe('Option', () => {
 	})
 })
 
-const mockSelect = vi.fn()
-
 type TestSelection = {
 	value: unknown
 	multiple: boolean
@@ -207,7 +182,7 @@ type TestSelection = {
 const SelectionContext = createContext<TestSelection>({
 	value: undefined,
 	multiple: false,
-	onSelect: mockSelect,
+	onSelect: noop,
 })
 
 const TestContext: FC<{
@@ -216,9 +191,7 @@ const TestContext: FC<{
 	multiple?: boolean
 	capitalize?: boolean
 }> = ({ children, value, multiple, capitalize }) => (
-	<SelectionContext
-		value={{ value, multiple: multiple ?? false, onSelect: mockSelect, capitalize }}
-	>
+	<SelectionContext value={{ value, multiple: multiple ?? false, onSelect: noop, capitalize }}>
 		{children}
 	</SelectionContext>
 )
@@ -234,10 +207,6 @@ const {
 })
 
 describe('createSelectOption', () => {
-	beforeEach(() => {
-		mockSelect.mockClear()
-	})
-
 	it('Option renders with its data-slot', () => {
 		const { container } = renderUI(
 			<TestContext>
@@ -293,20 +262,6 @@ describe('createSelectOption', () => {
 		)
 
 		expect(screen.getByRole('option')).toHaveAttribute('aria-selected', 'true')
-	})
-
-	it('Label renders with its data-slot', () => {
-		const { container } = renderUI(
-			<TestContext>
-				<Label>My Label</Label>
-			</TestContext>,
-		)
-
-		const label = bySlot(container, 'test-label')
-
-		expect(label).toBeInTheDocument()
-
-		expect(screen.getByText('My Label')).toBeInTheDocument()
 	})
 
 	it('Description renders with its data-slot', () => {

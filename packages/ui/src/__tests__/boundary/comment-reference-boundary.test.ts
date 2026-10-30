@@ -511,7 +511,7 @@ describe('comment reference boundary', () => {
 	it('every {@link} target names a symbol the package or the platform declares', () => {
 		expect(
 			links,
-			`@linktargets naming a symbol no file here and no TypeScript library declares — repoint or drop each one (CONVENTIONS.md §12.1):\n$links.join('\n')`,
+			`\`{@link}\` targets naming a symbol no file here and no TypeScript library declares — repoint or drop each one (CONVENTIONS.md §12.1):\n${links.join('\n')}`,
 		).toEqual([])
 	})
 })

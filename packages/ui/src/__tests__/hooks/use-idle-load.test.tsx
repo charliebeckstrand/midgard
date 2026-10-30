@@ -2,44 +2,11 @@ import { act } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useIdleLoad } from '../../hooks/use-idle-load'
 import { renderUI, screen } from '../helpers'
+import { stubIdle } from '../helpers/stub-idle'
 
 /** Renders the loaded value as text, or `idle` before it resolves. */
 function Probe({ load }: { load: (() => Promise<string>) | null }) {
 	return <p>{useIdleLoad(load) ?? 'idle'}</p>
-}
-
-/**
- * Stubs `requestIdleCallback` and `cancelIdleCallback` on the window. The
- * returned `run` calls the idle callbacks that are scheduled.
- */
-function stubIdle() {
-	const callbacks = new Map<number, () => void>()
-
-	let next = 1
-
-	const request = vi.fn((callback: () => void) => {
-		callbacks.set(next, callback)
-
-		return next++
-	})
-
-	const cancel = vi.fn((handle: number) => {
-		callbacks.delete(handle)
-	})
-
-	vi.stubGlobal('requestIdleCallback', request)
-
-	vi.stubGlobal('cancelIdleCallback', cancel)
-
-	const run = () => {
-		const due = [...callbacks.values()]
-
-		callbacks.clear()
-
-		for (const callback of due) callback()
-	}
-
-	return { request, cancel, run }
 }
 
 /**

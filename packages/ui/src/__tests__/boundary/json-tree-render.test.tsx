@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { JsonTree } from '../../components/json-tree'
 import { JsonTreeBranchHeader } from '../../components/json-tree/json-tree-branch-header'
 import { JsonTreeLeafRow } from '../../components/json-tree/json-tree-leaf-row'
@@ -69,8 +69,6 @@ function Controlled() {
 }
 
 describe('JsonTree row renders', () => {
-	beforeEach(clearRenders)
-
 	it('renders only the toggled branch and its new rows under control', () => {
 		renderUI(<Controlled />)
 

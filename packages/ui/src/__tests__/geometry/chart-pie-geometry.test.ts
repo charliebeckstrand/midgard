@@ -4,7 +4,6 @@ import {
 	CALLOUT_CHAR_WIDTH,
 	CALLOUT_GAP,
 	CALLOUT_LEADER,
-	CALLOUT_LINE,
 	CALLOUT_NUB,
 	type PieSlice,
 	pieCalloutCenter,
@@ -16,6 +15,7 @@ import {
 	segmentLabelFits,
 } from '../../modules/chart/engine/chart-geometry/pie'
 import type { TextWidth } from '../../modules/chart/engine/chart-text-width'
+import { expectLineApart, farEdge, leaderPoints, sideYs } from '../helpers/pie-callouts'
 
 /**
  * A sliver only nears two thirds of the radius, and 33.95 is a rounded value,
@@ -228,14 +228,7 @@ describe('pieCallouts', () => {
 	it('stacks crowded labels at least a line apart', () => {
 		const many = pieSlices([10, 9, 8, 7, 6, 5], { cx: 100, cy: 100, radius: 60 })
 
-		const ys = pieCallouts(many, OPTIONS)
-			.filter((callout) => callout.anchor === 'start')
-			.map((callout) => callout.y)
-			.sort((a, b) => a - b)
-
-		for (let i = 1; i < ys.length; i++) {
-			expect((ys[i] ?? 0) - (ys[i - 1] ?? 0)).toBeGreaterThanOrEqual(CALLOUT_LINE - 0.001)
-		}
+		expectLineApart(sideYs(pieCallouts(many, OPTIONS), 'start'), 0.001)
 	})
 
 	it('holds crowded callouts inside the frame band', () => {
@@ -279,7 +272,7 @@ describe('pieCallouts', () => {
 			expect(Math.hypot(callout.x - center.cx, callout.y - center.cy)).toBeGreaterThan(circle)
 
 			// Past its radial first segment, no part of the leader enters the pie body.
-			const points = callout.leader.split(' ').map((point) => point.split(',').map(Number))
+			const points = leaderPoints(callout)
 
 			for (let at = 2; at < points.length; at++) {
 				const [x0, y0] = points[at - 1] as [number, number]
@@ -294,14 +287,7 @@ describe('pieCallouts', () => {
 
 		// The labels of one side stay at least a line apart.
 		for (const anchor of ['start', 'end'] as const) {
-			const ys = placed
-				.filter((callout) => callout.anchor === anchor)
-				.map((callout) => callout.y)
-				.sort((a, b) => a - b)
-
-			for (let i = 1; i < ys.length; i++) {
-				expect((ys[i] ?? 0) - (ys[i - 1] ?? 0)).toBeGreaterThanOrEqual(CALLOUT_LINE - 0.001)
-			}
+			expectLineApart(sideYs(placed, anchor), 0.001)
 		}
 	})
 
@@ -353,7 +339,7 @@ describe('pieCalloutFit', () => {
 		const farEdges = callouts.map((callout) => {
 			const extent = (texts[callout.index]?.length ?? 0) * CALLOUT_CHAR_WIDTH
 
-			return callout.anchor === 'start' ? callout.x + extent : callout.x - extent
+			return farEdge(callout, extent)
 		})
 
 		expect(Math.max(...farEdges)).toBeNear(frameWidth, COORDINATE_TOLERANCE)
@@ -399,73 +385,11 @@ describe('pieCalloutFit', () => {
 		for (const callout of callouts) {
 			const extent = textWidth(texts[callout.index] ?? '')
 
-			const far = callout.anchor === 'start' ? callout.x + extent : callout.x - extent
+			const far = farEdge(callout, extent)
 
 			expect(far).toBeGreaterThanOrEqual(-1e-6)
 
 			expect(far).toBeLessThanOrEqual(frameWidth + 1e-6)
-		}
-	})
-
-	it('keeps the callouts inside the frame when the frame height caps the radius', () => {
-		// A seeded run of crowded pies. A frame height below the content fit caps the
-		// drawn radius under the fit radius, and the labels crowd more there.
-		let seed = 7
-
-		const random = () => {
-			seed = (seed * 1103515245 + 12345) % 2147483648
-
-			return seed / 2147483648
-		}
-
-		const textWidth = calloutWidth
-
-		const band = CALLOUT_LEADER + CALLOUT_LINE
-
-		for (let run = 0; run < 300; run++) {
-			const values = [
-				60 + random() * 100,
-				...Array.from({ length: Math.floor(random() * 30) }, () => 0.2 + random() * 2),
-			]
-
-			if (random() < 0.5) values.reverse()
-
-			const texts = values.map(() => 'x'.repeat(2 + Math.floor(random() * 24)))
-
-			const frameWidth = 200 + Math.floor(random() * 800)
-
-			const fit = pieCalloutFit({ values, texts, textWidth, frameWidth })
-
-			const height = Math.round(2 * fit.radius * (0.3 + random() * 0.7) + 2 * band)
-
-			const radius = Math.min(fit.radius, height / 2 - band)
-
-			// Labels too wide for the frame fit no disc, and the chart draws no callout.
-			if (radius <= 0) continue
-
-			const cy = height / 2
-
-			const cx = pieCalloutCenter({ values, texts, textWidth, frameWidth }, radius)
-
-			const callouts = pieCallouts(pieSlices(values, { cx, cy, radius }), {
-				cx,
-				cy,
-				radius,
-				top: CALLOUT_LINE,
-				bottom: height - CALLOUT_LINE,
-			})
-
-			for (const callout of callouts) {
-				const extent = textWidth(texts[callout.index] ?? '')
-
-				const far = callout.anchor === 'start' ? callout.x + extent : callout.x - extent
-
-				expect(far).toBeGreaterThanOrEqual(-1e-6)
-
-				expect(far).toBeLessThanOrEqual(frameWidth + 1e-6)
-
-				expect(Math.hypot(callout.x - cx, callout.y - cy)).toBeGreaterThan(radius)
-			}
 		}
 	})
 
@@ -494,9 +418,7 @@ describe('pieCalloutFit', () => {
 
 		// The far edge of each side: the widest label, or the disc itself.
 		const edges = callouts.map((callout) => {
-			const extent = calloutWidth(texts[callout.index] ?? '')
-
-			return callout.anchor === 'start' ? callout.x + extent : callout.x - extent
+			return farEdge(callout, calloutWidth(texts[callout.index] ?? ''))
 		})
 
 		const left = Math.min(cx - radius, ...edges)

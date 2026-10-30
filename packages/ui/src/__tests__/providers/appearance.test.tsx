@@ -1,6 +1,6 @@
 import { cleanup } from '@testing-library/react'
 import { MotionConfigContext } from 'motion/react'
-import { use } from 'react'
+import { type ReactElement, use } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { readRootDensity, writeRootDensity } from '../../core/density'
@@ -61,8 +61,6 @@ function MotionProbe() {
 // `act()`. Unmount it before the step is removed.
 afterEach(() => {
 	cleanup()
-
-	localStorage.clear()
 
 	document.documentElement.classList.remove('dark', 'reduced-motion', 'sidebar-offcanvas')
 
@@ -282,58 +280,37 @@ describe('AppearanceProvider', () => {
 })
 
 describe('AppearanceSettings', () => {
-	it('opens the settings dialog from its icon button', async () => {
-		renderUI(
+	/** Renders `ui`, presses its settings button, and gives the dialog that opens. */
+	async function openSettings(
+		ui: ReactElement = (
 			<AppearanceProvider>
 				<AppearanceSettings />
-			</AppearanceProvider>,
-		)
+			</AppearanceProvider>
+		),
+	): Promise<HTMLElement> {
+		renderUI(ui)
 
 		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
 
-		expect(await screen.findByRole('dialog', { name: 'Settings' })).toBeInTheDocument()
-	})
+		return screen.findByRole('dialog', { name: 'Settings' })
+	}
 
 	it('shows the density level name without its step', async () => {
-		renderUI(
-			<AppearanceProvider>
-				<AppearanceSettings />
-			</AppearanceProvider>,
-		)
-
-		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
-
-		const dialog = await screen.findByRole('dialog', { name: 'Settings' })
+		const dialog = await openSettings()
 
 		expect(dialog).toHaveTextContent('Snug')
 		expect(dialog).not.toHaveTextContent('(md)')
 	})
 
 	it('shows the motion picker at the system motion', async () => {
-		renderUI(
-			<AppearanceProvider>
-				<AppearanceSettings />
-			</AppearanceProvider>,
-		)
-
-		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
-
-		const dialog = await screen.findByRole('dialog', { name: 'Settings' })
+		const dialog = await openSettings()
 
 		expect(dialog).toHaveTextContent('Motion')
 		expect(dialog).toHaveTextContent('System')
 	})
 
 	it('shows no sidebar picker outside a sidebar layout', async () => {
-		renderUI(
-			<AppearanceProvider>
-				<AppearanceSettings />
-			</AppearanceProvider>,
-		)
-
-		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
-
-		expect(await screen.findByRole('dialog', { name: 'Settings' })).not.toHaveTextContent('Sidebar')
+		expect(await openSettings()).not.toHaveTextContent('Sidebar')
 	})
 
 	it('picks the sidebar mode inside a sidebar layout, and shows its key', async () => {
@@ -373,7 +350,7 @@ describe('AppearanceSettings', () => {
 	})
 
 	it('shows no language picker under a locale provider with no locales', async () => {
-		renderUI(
+		const dialog = await openSettings(
 			<AppearanceProvider>
 				<LocaleProvider locale="en-US">
 					<AppearanceSettings />
@@ -381,15 +358,11 @@ describe('AppearanceSettings', () => {
 			</AppearanceProvider>,
 		)
 
-		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
-
-		expect(await screen.findByRole('dialog', { name: 'Settings' })).not.toHaveTextContent(
-			'Language',
-		)
+		expect(dialog).not.toHaveTextContent('Language')
 	})
 
 	it('picks the language under a locale provider with locales', async () => {
-		renderUI(
+		await openSettings(
 			<AppearanceProvider>
 				<LocaleProvider locale="en-US" locales={['en-US', 'en-GB']}>
 					<LocaleOutput />
@@ -397,10 +370,6 @@ describe('AppearanceSettings', () => {
 				</LocaleProvider>
 			</AppearanceProvider>,
 		)
-
-		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
-
-		await screen.findByRole('dialog', { name: 'Settings' })
 
 		const picker = screen.getByRole('combobox', { name: 'Language' })
 

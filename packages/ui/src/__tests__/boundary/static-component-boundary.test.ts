@@ -111,6 +111,13 @@ const structureDir = join(srcDir, 'structure')
 
 const modulesDir = join(srcDir, 'modules')
 
+/** Each curated static file, with the directory that holds it. */
+const STATIC_FILES = [
+	...STATIC_COMPONENT_FILES.map((file) => [file, componentsDir] as const),
+	...STATIC_STRUCTURE_FILES.map((file) => [file, structureDir] as const),
+	...STATIC_PRIMITIVE_FILES.map((file) => [file, primitivesDir] as const),
+]
+
 // Ambient-context sources a static leaf must not import. `primitives/link`
 // and `primitives/polymorphic`'s client export read LinkContext;
 // `primitives/density` holds the density context; `providers/*` are ambient by
@@ -177,20 +184,8 @@ function collectSkeletonFiles(): string[] {
 }
 
 describe('static component boundary', () => {
-	it.each(STATIC_COMPONENT_FILES)('%s stays server-renderable', (file) => {
-		const breaches = staticBreaches(readFileSync(join(componentsDir, file), 'utf8'))
-
-		expect(breaches, `${file}: ${breaches.join(', ')}`).toEqual([])
-	})
-
-	it.each(STATIC_STRUCTURE_FILES)('%s stays server-renderable', (file) => {
-		const breaches = staticBreaches(readFileSync(join(structureDir, file), 'utf8'))
-
-		expect(breaches, `${file}: ${breaches.join(', ')}`).toEqual([])
-	})
-
-	it.each(STATIC_PRIMITIVE_FILES)('%s stays server-renderable', (file) => {
-		const breaches = staticBreaches(readFileSync(join(primitivesDir, file), 'utf8'))
+	it.for(STATIC_FILES)('%s stays server-renderable', ([file, dir]) => {
+		const breaches = staticBreaches(readFileSync(join(dir, file), 'utf8'))
 
 		expect(breaches, `${file}: ${breaches.join(', ')}`).toEqual([])
 	})

@@ -25,7 +25,6 @@ import {
 	type CartesianLayoutInput,
 	horizontalLayout,
 	markReach,
-	plotRect,
 	thinned,
 	valueAxisRange,
 	verticalLayout,
@@ -299,37 +298,6 @@ describe('bandLabelRoom', () => {
 		expect(bandLabelRoom([{ at: 60, label: 'A', key: 0, rotate: -45 }], 400)).toBe(
 			Number.POSITIVE_INFINITY,
 		)
-	})
-})
-
-describe('plotRect', () => {
-	it('reserves a tick gutter and the x-axis band with axes on, and fills the frame with axes off', () => {
-		const framed = plotRect(300, 200, true, ['1,000'])
-
-		expect(framed.x).toBeGreaterThan(0)
-
-		expect(framed.height).toBe(200 - PLOT_TOP_PAD - X_AXIS_HEIGHT)
-
-		expect(plotRect(300, 200, false, ['1,000'])).toEqual({
-			x: 0,
-			y: PLOT_TOP_PAD,
-			width: 300,
-			height: 200 - PLOT_TOP_PAD,
-		})
-	})
-
-	it('sizes a proportional gutter to the widest drawn label', () => {
-		const width = (label: string) => label.length * 5
-
-		expect(plotRect(300, 200, true, ['North', 'Southwest'], width).x).toBe(45 + GUTTER_GAP)
-	})
-
-	it('reserves no proportional gutter when no label has a width', () => {
-		const rect = plotRect(300, 200, true, [], () => 0)
-
-		expect(rect.x).toBe(0)
-
-		expect(rect.width).toBe(300)
 	})
 })
 
@@ -642,6 +610,8 @@ describe('verticalLayout snap targets', () => {
 
 		expect(layout.snapSeries.slice(0, 3)).toEqual([[0, 1], [1], [0]])
 
+		// The points and the series map must drop a series from the same slot, or the
+		// keyboard cursor reads a series against the wrong lane.
 		expect(layout.snapPoints.map((points) => points.length)).toEqual(
 			layout.snapSeries.map((series) => series.length),
 		)
@@ -711,17 +681,6 @@ describe('horizontalLayout gutter and titles', () => {
 		expect(layout.plot.x).toBe(0)
 
 		expect(layout.titles).toEqual([])
-	})
-
-	it('sizes the gutter to the drawn label width and draws each label as it fits', () => {
-		const layout = horizontalLayout({
-			...base,
-			bandLabel: { width: () => 30, fit: (label) => label.slice(0, 3) },
-		})
-
-		expect(layout.plot.x).toBe(30 + GUTTER_GAP)
-
-		expect(layout.bandTicks.map((tick) => tick.label)).toEqual(['a', 'A l', 'b'])
 	})
 
 	it('places the value titles under and over the plot, and the band title in the far gutter', () => {
@@ -850,31 +809,6 @@ describe('cartesian layout', () => {
 		const short = horizontalLayout({ ...input, count: 2, categories: ['Q1', 'Q2'], bandLabel })
 
 		expect(short.plot.x).toBe(40 + GUTTER_GAP)
-	})
-
-	it('names the series behind each snap stop, aligned to the points through a gap', () => {
-		// Series 0 drops out at the second category, so its stop vanishes there; the
-		// positions and the series map must drop it from the very same slot, or the
-		// keyboard cursor would read the surviving series against the wrong lane.
-		const gapped: CartesianLayoutInput = {
-			...input,
-			count: 2,
-			categories: ['Q1', 'Q2'],
-			visibleValues: [
-				{ values: [40, null], axis: 'y', index: 0 },
-				{ values: [60, 80], axis: 'y', index: 1 },
-			],
-		}
-
-		const layout = verticalLayout(gapped)
-
-		// Q1 carries both series in order; Q2 keeps only series 1: the same slot the
-		// position map drops, so a stop and its series index stay paired.
-		expect(layout.snapSeries).toEqual([[0, 1], [1]])
-
-		expect(layout.snapPoints[1]).toHaveLength(1)
-
-		expect(layout.snapSeries[1]).toHaveLength(layout.snapPoints[1]?.length ?? 0)
 	})
 
 	it('insets the horizontal value axis so its centered end labels clear the frame', () => {

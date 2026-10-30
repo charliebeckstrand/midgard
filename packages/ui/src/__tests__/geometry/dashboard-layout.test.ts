@@ -21,15 +21,7 @@ import {
 	toLayoutItem,
 } from '../../modules/dashboard/engine/dashboard-layout'
 import { cell } from '../helpers/dashboard-cells'
-
-/** The ids of each pair of cells that overlap. */
-const overlaps = (cells: readonly DashboardCell[]) =>
-	cells.flatMap((a, index) =>
-		cells
-			.slice(index + 1)
-			.filter((b) => collides(a, b))
-			.map((b) => [a.id, b.id]),
-	)
+import { overlaps } from '../helpers/dashboard-overlaps'
 
 describe('deriveHeight', () => {
 	it('derives the rows of a ratio tile from its columns', () => {

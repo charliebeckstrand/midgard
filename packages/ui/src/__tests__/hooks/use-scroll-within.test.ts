@@ -27,16 +27,6 @@ function buildScrollable() {
  * the wrapper and scroll the outer container to reveal the node.
  */
 function buildClippedTree(clip: { overflowX: string; overflowY: string }) {
-	const overflow = new Map<Element, { overflowX: string; overflowY: string }>()
-
-	vi.spyOn(window, 'getComputedStyle').mockImplementation(
-		(element: Element) =>
-			(overflow.get(element) ?? {
-				overflowX: 'visible',
-				overflowY: 'visible',
-			}) as CSSStyleDeclaration,
-	)
-
 	const outer = document.createElement('div')
 
 	const wrapper = document.createElement('div')
@@ -49,9 +39,14 @@ function buildClippedTree(clip: { overflowX: string; overflowY: string }) {
 
 	attach(outer)
 
-	overflow.set(outer, { overflowX: 'auto', overflowY: 'auto' })
+	// Each other node reads the real style of jsdom, which does not clip.
+	const { getComputedStyle } = window
 
-	overflow.set(wrapper, clip)
+	vi.when(vi.spyOn(window, 'getComputedStyle').mockImplementation(getComputedStyle))
+		.calledWith(outer)
+		.thenReturn({ overflowX: 'auto', overflowY: 'auto' } as CSSStyleDeclaration)
+		.calledWith(wrapper)
+		.thenReturn(clip as CSSStyleDeclaration)
 
 	mockDomGeometry(outer, {
 		clientWidth: 100,
@@ -251,74 +246,55 @@ describe('useScrollWithin inline axis', () => {
 		return { scroller, node }
 	}
 
-	it('leaves the horizontal position alone when inline is omitted', () => {
+	it.for<{
+		name: string
+		at: { x: number; y: number }
+		options: Parameters<ReturnType<typeof useScrollWithin>>[1]
+		expected: ScrollToOptions | null
+	}>([
+		{
+			// Off-screen on both axes; only the block axis was asked for.
+			name: 'leaves the horizontal position alone when inline is omitted',
+			at: { x: 200, y: 200 },
+			options: { block: 'start' },
+			expected: { top: 200, left: undefined, behavior: 'auto' },
+		},
+		{
+			name: 'scrolls the inline axis to the start',
+			at: { x: 200, y: 10 },
+			options: { block: 'start', inline: 'start' },
+			expected: { top: 10, left: 200, behavior: 'auto' },
+		},
+		{
+			name: 'centers on the inline axis',
+			at: { x: 10, y: 10 },
+			options: { block: 'center', inline: 'center' },
+			expected: { top: -30, left: -30, behavior: 'auto' },
+		},
+		{
+			// Horizontally off to the right, vertically already in view: only left moves.
+			name: 'resolves each axis independently under nearest',
+			at: { x: 150, y: 20 },
+			options: { inline: 'nearest' },
+			expected: { top: undefined, left: 70, behavior: 'auto' },
+		},
+		{
+			name: 'does not scroll at all when nearest finds the node visible on both axes',
+			at: { x: 20, y: 20 },
+			options: { inline: 'nearest' },
+			expected: null,
+		},
+	])('$name', ({ at, options, expected }) => {
 		const { scroller, node } = buildBothAxes()
 
-		// Off-screen on both axes; only the block axis was asked for.
-		node.getBoundingClientRect = () => DOMRect.fromRect({ x: 200, y: 200, width: 20, height: 20 })
+		node.getBoundingClientRect = () => DOMRect.fromRect({ ...at, width: 20, height: 20 })
 
 		const { result } = renderHook(() => useScrollWithin())
 
-		result.current(node, { block: 'start' })
+		result.current(node, options)
 
-		expect(scroller.scrollTo).toHaveBeenCalledWith({
-			top: 200,
-			left: undefined,
-			behavior: 'auto',
-		})
-	})
-
-	it('scrolls the inline axis to the start', () => {
-		const { scroller, node } = buildBothAxes()
-
-		node.getBoundingClientRect = () => DOMRect.fromRect({ x: 200, y: 10, width: 20, height: 20 })
-
-		const { result } = renderHook(() => useScrollWithin())
-
-		result.current(node, { block: 'start', inline: 'start' })
-
-		expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 10, left: 200, behavior: 'auto' })
-	})
-
-	it('centers on the inline axis', () => {
-		const { scroller, node } = buildBothAxes()
-
-		node.getBoundingClientRect = () => DOMRect.fromRect({ x: 10, y: 10, width: 20, height: 20 })
-
-		const { result } = renderHook(() => useScrollWithin())
-
-		result.current(node, { block: 'center', inline: 'center' })
-
-		expect(scroller.scrollTo).toHaveBeenCalledWith({ top: -30, left: -30, behavior: 'auto' })
-	})
-
-	it('resolves each axis independently under nearest', () => {
-		const { scroller, node } = buildBothAxes()
-
-		// Horizontally off to the right, vertically already in view: only left moves.
-		node.getBoundingClientRect = () => DOMRect.fromRect({ x: 150, y: 20, width: 20, height: 20 })
-
-		const { result } = renderHook(() => useScrollWithin())
-
-		result.current(node, { inline: 'nearest' })
-
-		expect(scroller.scrollTo).toHaveBeenCalledWith({
-			top: undefined,
-			left: 70,
-			behavior: 'auto',
-		})
-	})
-
-	it('does not scroll at all when nearest finds the node visible on both axes', () => {
-		const { scroller, node } = buildBothAxes()
-
-		node.getBoundingClientRect = () => DOMRect.fromRect({ x: 20, y: 20, width: 20, height: 20 })
-
-		const { result } = renderHook(() => useScrollWithin())
-
-		result.current(node, { inline: 'nearest' })
-
-		expect(scroller.scrollTo).not.toHaveBeenCalled()
+		// A null expectation is a node in view on both axes, which asks for no scroll.
+		expect(vi.mocked(scroller.scrollTo).mock.calls).toEqual(expected ? [[expected]] : [])
 	})
 
 	it('subtracts the scroller left border from the inline offset', () => {

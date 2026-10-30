@@ -19,6 +19,7 @@ import {
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { usePdfViewer } from '../../components/pdf-viewer/use-pdf-viewer'
 import { tick } from '../helpers/frames'
+import { seedDocument } from '../helpers/pdf-document'
 
 beforeEach(() => {
 	getDocumentMock.mockReset()
@@ -32,44 +33,7 @@ beforeEach(() => {
 
 afterEach(() => {
 	resetDocumentCache()
-
-	globalThis.fetch = originalFetch
 })
-
-/**
- * Leaves `src` resident with `pageCount` finished pages, the way a completed load does.
- *
- * Seeded through the cache's own loader seam rather than by driving pdf.js, which
- * CONVENTIONS §10.3 rules out, and which the report does not need: the hook reads the
- * committed snapshot either way.
- */
-async function seed(src: string, pageCount = 1) {
-	let report: PdfLoadReport | undefined
-
-	ensureDocumentLoad(src, (next) => {
-		report = next
-
-		return Promise.resolve()
-	})
-
-	report?.documentUrl('blob:doc')
-
-	for (let i = 1; i <= pageCount; i++) {
-		report?.page({
-			id: i,
-			src: `blob:page-${i}`,
-			label: `Page ${i}`,
-			width: 800,
-			height: 1000,
-			pointWidth: 612,
-			pointHeight: 792,
-		})
-	}
-
-	await tick()
-}
-
-const originalFetch = globalThis.fetch
 
 describe('usePdfViewer · load reporting', () => {
 	it('reports the page count once the document settles', async () => {
@@ -77,7 +41,7 @@ describe('usePdfViewer · load reporting', () => {
 
 		const onError = vi.fn()
 
-		await seed('/invoice.pdf', 3)
+		await seedDocument('/invoice.pdf', 3)
 
 		renderHook(() => usePdfViewer({ src: '/invoice.pdf', onLoad, onError }))
 
@@ -91,7 +55,7 @@ describe('usePdfViewer · load reporting', () => {
 	// mount, by design, so seeding one and mounting asserts against a load already
 	// on its way out.
 	it('reports the reason when the document fails', async () => {
-		globalThis.fetch = vi.fn().mockResolvedValue(new Response(null, { status: 404 }))
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 404 })))
 
 		const onLoad = vi.fn()
 
@@ -117,7 +81,7 @@ describe('usePdfViewer · load reporting', () => {
 	it('reports once across re-renders of the same document', async () => {
 		const onLoad = vi.fn()
 
-		await seed('/invoice.pdf')
+		await seedDocument('/invoice.pdf')
 
 		const { rerender } = renderHook(() => usePdfViewer({ src: '/invoice.pdf', onLoad }))
 
@@ -131,9 +95,9 @@ describe('usePdfViewer · load reporting', () => {
 	it('reports again when src moves to another document', async () => {
 		const onLoad = vi.fn()
 
-		await seed('/first.pdf', 2)
+		await seedDocument('/first.pdf', 2)
 
-		await seed('/second.pdf', 5)
+		await seedDocument('/second.pdf', 5)
 
 		const { rerender } = renderHook(({ src }: { src: string }) => usePdfViewer({ src, onLoad }), {
 			initialProps: { src: '/first.pdf' },
@@ -154,7 +118,7 @@ describe('usePdfViewer · load reporting', () => {
 
 		const onError = vi.fn()
 
-		await seed('/invoice.pdf')
+		await seedDocument('/invoice.pdf')
 
 		renderHook(() =>
 			usePdfViewer({
@@ -211,10 +175,13 @@ describe('usePdfViewer · load reporting', () => {
 	it('does not report a failure again to a remount', async () => {
 		// The first load fails. The retry stays in flight, so the only report it could
 		// make is a stale one.
-		globalThis.fetch = vi
-			.fn()
-			.mockResolvedValueOnce(new Response(null, { status: 404 }))
-			.mockReturnValue(new Promise<Response>(() => {}))
+		vi.stubGlobal(
+			'fetch',
+			vi
+				.fn()
+				.mockResolvedValueOnce(new Response(null, { status: 404 }))
+				.mockReturnValue(new Promise<Response>(() => {})),
+		)
 
 		const first = { onLoad: vi.fn(), onError: vi.fn() }
 
@@ -299,7 +266,7 @@ describe('usePdfViewer · load reporting', () => {
 describe('usePdfViewer · download name', () => {
 	/** The download goes through the blob URL, so the name must come from `src`. */
 	it('names the download after the last segment of src when no filename is given', async () => {
-		await seed('/files/invoice-42.pdf?v=3')
+		await seedDocument('/files/invoice-42.pdf?v=3')
 
 		const { result } = renderHook(() => usePdfViewer({ src: '/files/invoice-42.pdf?v=3' }))
 
@@ -309,7 +276,7 @@ describe('usePdfViewer · download name', () => {
 	})
 
 	it('keeps the filename of the consumer', async () => {
-		await seed('/files/invoice-42.pdf')
+		await seedDocument('/files/invoice-42.pdf')
 
 		const { result } = renderHook(() =>
 			usePdfViewer({ src: '/files/invoice-42.pdf', filename: 'March invoice.pdf' }),

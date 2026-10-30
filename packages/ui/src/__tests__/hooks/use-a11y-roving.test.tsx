@@ -263,6 +263,43 @@ function renderRoving(container: HTMLElement, options: Partial<RovingOptions> = 
 	}).result
 }
 
+/**
+ * A `VirtualItemSource` of `count` items with a spy `scrollToIndex`. The key
+ * of index `i` is `${prefix}-${i}`, and `overrides` spread last.
+ */
+function makeSource(
+	count: number,
+	overrides: Partial<VirtualItemSource> = {},
+	prefix = 'opt',
+): VirtualItemSource {
+	return {
+		count,
+		getKey: (index) => `${prefix}-${index}`,
+		scrollToIndex: vi.fn(),
+		...overrides,
+	}
+}
+
+/**
+ * Appends a `role="option"` row to `container`, with `id` as its id and its
+ * text. A `focusable` row gets `tabIndex` -1, so that it can take focus.
+ */
+function mountOption(container: HTMLElement, id: string, { focusable = false } = {}) {
+	const row = document.createElement('div')
+
+	row.id = id
+
+	if (focusable) row.tabIndex = -1
+
+	row.setAttribute('role', 'option')
+
+	row.textContent = id
+
+	container.appendChild(row)
+
+	return row
+}
+
 describe('useA11yRoving', () => {
 	it('returned handler is referentially stable across renders', () => {
 		const { result, rerender } = renderHook(() => {
@@ -549,12 +586,6 @@ describe('useA11yRoving: manageTabIndex', () => {
 
 	it.each<[string, number | undefined, Parameters<typeof useA11yRoving>[1], number[]]>([
 		[
-			'collapses a row of tabbable items to a single resting stop on the first item',
-			undefined,
-			{ itemSelector: '[data-slot="item"]', manageTabIndex: true },
-			[0, -1, -1],
-		],
-		[
 			'seats the resting stop on the activeSelector match',
 			2,
 			{
@@ -573,11 +604,7 @@ describe('useA11yRoving: manageTabIndex', () => {
 	])('%s', (_name, current, options, expected) => {
 		const container = makeButtons(3, current)
 
-		renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, options)
-		})
+		renderRoving(container, options)
 
 		expect(tabIndices(container)).toEqual(expected)
 	})
@@ -585,10 +612,9 @@ describe('useA11yRoving: manageTabIndex', () => {
 	it('carries the resting stop to the focused item on arrow', () => {
 		const container = makeButtons(3)
 
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[data-slot="item"]', manageTabIndex: true })
+		const result = renderRoving(container, {
+			itemSelector: '[data-slot="item"]',
+			manageTabIndex: true,
 		})
 
 		const items = Array.from(container.querySelectorAll('button'))
@@ -605,11 +631,7 @@ describe('useA11yRoving: manageTabIndex', () => {
 	it('carries the resting stop to a focused item without an arrow key (click / programmatic)', () => {
 		const container = makeButtons(3)
 
-		renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[data-slot="item"]', manageTabIndex: true })
-		})
+		renderRoving(container, { itemSelector: '[data-slot="item"]', manageTabIndex: true })
 
 		const items = Array.from(container.querySelectorAll('button'))
 
@@ -627,11 +649,7 @@ describe('useA11yRoving: manageTabIndex', () => {
 
 		const outside = attach(document.createElement('button'))
 
-		renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[data-slot="item"]', manageTabIndex: true })
-		})
+		renderRoving(container, { itemSelector: '[data-slot="item"]', manageTabIndex: true })
 
 		container.querySelectorAll('button')[1]?.focus()
 
@@ -669,11 +687,7 @@ describe('useA11yRoving: manageTabIndex', () => {
 
 			const outside = attach(document.createElement('button'))
 
-			renderHook(() => {
-				const ref = useRef<HTMLElement>(container)
-
-				return useA11yRoving(ref, options)
-			})
+			renderRoving(container, options)
 
 			const items = Array.from(container.querySelectorAll('button'))
 
@@ -755,44 +769,52 @@ describe('useA11yRoving: inert items', () => {
 		layer.append(container)
 	}
 
-	it('moves ArrowDown past the items under an inert ancestor', () => {
-		const { container, options } = makeOptions(['0', '1', '2', '3'], [1, 2])
+	it.for<{
+		name: string
+		labels: string[]
+		inert: number[]
+		options?: Partial<RovingOptions>
+		key: string
+		expected: number
+	}>([
+		{
+			name: 'moves ArrowDown past the items under an inert ancestor',
+			labels: ['0', '1', '2', '3'],
+			inert: [1, 2],
+			key: 'ArrowDown',
+			expected: 3,
+		},
+		{
+			name: 'moves End to the last item that is not under an inert ancestor',
+			labels: ['0', '1', '2', '3'],
+			inert: [2, 3],
+			key: 'End',
+			expected: 1,
+		},
+		{
+			name: 'matches type-ahead past the items under an inert ancestor',
+			labels: ['Apple', 'Banana', 'Blueberry'],
+			inert: [1],
+			options: { typeahead: true },
+			key: 'b',
+			expected: 2,
+		},
+		{
+			name: 'steps Tab past the items under an inert ancestor',
+			labels: ['0', '1', '2'],
+			inert: [1],
+			options: { trapTab: true },
+			key: 'Tab',
+			expected: 2,
+		},
+	])('$name', ({ labels, inert, options: rovingOptions, key, expected }) => {
+		const { container, options } = makeOptions(labels, inert)
 
 		options[0]?.focus()
 
-		renderRoving(container).current(makeKeyEvent('ArrowDown'))
+		renderRoving(container, rovingOptions).current(makeKeyEvent(key))
 
-		expect(document.activeElement).toBe(options[3])
-	})
-
-	it('moves End to the last item that is not under an inert ancestor', () => {
-		const { container, options } = makeOptions(['0', '1', '2', '3'], [2, 3])
-
-		options[0]?.focus()
-
-		renderRoving(container).current(makeKeyEvent('End'))
-
-		expect(document.activeElement).toBe(options[1])
-	})
-
-	it('matches type-ahead past the items under an inert ancestor', () => {
-		const { container, options } = makeOptions(['Apple', 'Banana', 'Blueberry'], [1])
-
-		options[0]?.focus()
-
-		renderRoving(container, { typeahead: true }).current(makeKeyEvent('b'))
-
-		expect(document.activeElement).toBe(options[2])
-	})
-
-	it('steps Tab past the items under an inert ancestor', () => {
-		const { container, options } = makeOptions(['0', '1', '2'], [1])
-
-		options[0]?.focus()
-
-		renderRoving(container, { trapTab: true }).current(makeKeyEvent('Tab'))
-
-		expect(document.activeElement).toBe(options[2])
+		expect(document.activeElement).toBe(options[expected])
 	})
 
 	it('does not click an active item under an inert ancestor in virtual mode', () => {
@@ -854,15 +876,9 @@ describe('useA11yRoving: inert items', () => {
 
 		options[1]?.addEventListener('click', clickSpy)
 
-		const source: VirtualItemSource = {
-			count: 2,
-			getKey: (index) => `inert-opt-${index}`,
-			scrollToIndex: vi.fn(),
-		}
-
 		renderRoving(container, {
 			mode: 'virtual',
-			itemSource: { current: source },
+			itemSource: { current: makeSource(2, {}, 'inert-opt') },
 			activeIndexRef: { current: 1 },
 		}).current(makeKeyEvent('Enter'))
 
@@ -925,13 +941,7 @@ describe('useA11yRoving: row actions', () => {
 	}
 
 	function setup(container: HTMLElement, manageTabIndex = false) {
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[data-slot="item"]', row: ROW, manageTabIndex })
-		})
-
-		return result
+		return renderRoving(container, { itemSelector: '[data-slot="item"]', row: ROW, manageTabIndex })
 	}
 
 	const byText = (container: HTMLElement, label: string) =>
@@ -1056,38 +1066,12 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 	// Simulates a virtualizer that has only `mountedIds` in the DOM out of a
 	// much larger logical `count`: the scenario a10k-item VirtualOptions
 	// window presents.
-	function mountRow(container: HTMLElement, id: string) {
-		const row = document.createElement('div')
-
-		row.id = id
-
-		row.setAttribute('role', 'option')
-
-		row.textContent = id
-
-		container.appendChild(row)
-
-		return row
-	}
-
 	function makeIndexedContainer(mountedIds: string[]) {
 		const container = attach(document.createElement('div'))
 
-		for (const id of mountedIds) mountRow(container, id)
+		for (const id of mountedIds) mountOption(container, id)
 
 		return container
-	}
-
-	function makeSource(
-		count: number,
-		overrides: Partial<VirtualItemSource> = {},
-	): VirtualItemSource {
-		return {
-			count,
-			getKey: (index) => `opt-${index}`,
-			scrollToIndex: vi.fn(),
-			...overrides,
-		}
 	}
 
 	function setup(
@@ -1101,21 +1085,12 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 	) {
 		const activeIndexRef = { current: options.activeIndex ?? -1 }
 
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			const sourceRef = useRef(source)
-
-			sourceRef.current = source
-
-			return useA11yRoving(ref, {
-				itemSelector: '[role="option"]',
-				mode: 'virtual',
-				itemSource: sourceRef,
-				activeIndexRef,
-				activeDescendantRef: options.activeDescendantRef,
-				typeahead: options.typeahead,
-			})
+		const result = renderRoving(container, {
+			mode: 'virtual',
+			itemSource: { current: source },
+			activeIndexRef,
+			activeDescendantRef: options.activeDescendantRef,
+			typeahead: options.typeahead,
 		})
 
 		return { result, activeIndexRef }
@@ -1156,7 +1131,7 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 		expect(container.querySelector('[data-active]')).toBeNull()
 
 		// The virtualizer "renders" the target row once it scrolls into view.
-		mountRow(container, 'opt-3')
+		mountOption(container, 'opt-3')
 
 		await waitFor(() => {
 			expect(container.querySelector('#opt-3')?.hasAttribute('data-active')).toBe(true)
@@ -1310,47 +1285,19 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 
 describe('useA11yRoving: itemSource in focus mode', () => {
 	// A focus-roving panel (Listbox) over a window of a much larger list.
-	function mountRow(container: HTMLElement, id: string) {
-		const row = document.createElement('div')
-
-		row.id = id
-
-		row.tabIndex = -1
-
-		row.setAttribute('role', 'option')
-
-		row.textContent = id
-
-		container.appendChild(row)
-
-		return row
-	}
+	const mountRow = (container: HTMLElement, id: string) =>
+		mountOption(container, id, { focusable: true })
 
 	function setup(container: HTMLElement, source: VirtualItemSource, typeahead = false) {
-		const { result } = renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			const sourceRef = useRef(source)
-
-			return useA11yRoving(ref, {
-				itemSelector: '[role="option"]',
-				focusOnEmpty: true,
-				itemSource: sourceRef,
-				typeahead,
-			})
+		return renderRoving(container, {
+			focusOnEmpty: true,
+			itemSource: { current: source },
+			typeahead,
 		})
-
-		return result
 	}
 
-	function makeSource(count: number): VirtualItemSource {
-		return {
-			count,
-			getKey: (index) => `opt-${index}`,
-			getTextValue: (index) => `item-${index}`,
-			scrollToIndex: vi.fn(),
-		}
-	}
+	const textSource = (count: number) =>
+		makeSource(count, { getTextValue: (index) => `item-${index}` })
 
 	it('End focuses the last row once it mounts', async () => {
 		const container = attach(document.createElement('div'))
@@ -1359,7 +1306,7 @@ describe('useA11yRoving: itemSource in focus mode', () => {
 
 		mountRow(container, 'opt-1')
 
-		const source = makeSource(5_000)
+		const source = textSource(5_000)
 
 		setup(container, source).current(makeKeyEvent('End'))
 
@@ -1377,7 +1324,7 @@ describe('useA11yRoving: itemSource in focus mode', () => {
 
 		const next = mountRow(container, 'opt-42')
 
-		const source = makeSource(5_000)
+		const source = textSource(5_000)
 
 		setup(container, source).current(makeKeyEvent('ArrowDown'))
 
@@ -1391,7 +1338,7 @@ describe('useA11yRoving: itemSource in focus mode', () => {
 
 		mountRow(container, 'opt-0').focus()
 
-		const source = makeSource(5_000)
+		const source = textSource(5_000)
 
 		const handler = setup(container, source, true).current
 
@@ -1405,7 +1352,7 @@ describe('useA11yRoving: itemSource in focus mode', () => {
 
 		mountRow(container, 'opt-0').focus()
 
-		const handler = setup(container, makeSource(5_000)).current
+		const handler = setup(container, textSource(5_000)).current
 
 		handler(makeKeyEvent('End'))
 
@@ -1421,27 +1368,15 @@ describe('useA11yRoving: itemSource in focus mode', () => {
 
 describe('setVirtualActiveIndexed', () => {
 	it('records the index, scrolls it into view, and applies the highlight when the row is mounted', () => {
-		const container = document.createElement('div')
+		const container = attach(document.createElement('div'))
 
-		const row = document.createElement('div')
-
-		row.id = 'opt-2'
-
-		row.setAttribute('role', 'option')
-
-		container.appendChild(row)
-
-		attach(container)
+		const row = mountOption(container, 'opt-2')
 
 		const owner = document.createElement('input')
 
 		attach(owner)
 
-		const source: VirtualItemSource = {
-			count: 5,
-			getKey: (index) => `opt-${index}`,
-			scrollToIndex: vi.fn(),
-		}
+		const source = makeSource(5)
 
 		const activeIndexRef = { current: -1 }
 
@@ -1465,11 +1400,7 @@ describe('setVirtualActiveIndexed', () => {
 
 		attach(owner)
 
-		const source: VirtualItemSource = {
-			count: 5,
-			getKey: (index) => `opt-${index}`,
-			scrollToIndex: vi.fn(),
-		}
+		const source = makeSource(5)
 
 		const activeIndexRef = { current: -1 }
 
@@ -1483,17 +1414,11 @@ describe('setVirtualActiveIndexed', () => {
 
 describe('clearVirtualActiveIndexed', () => {
 	it('resets the active index and drops aria-activedescendant', () => {
-		const container = document.createElement('div')
+		const container = attach(document.createElement('div'))
 
-		const row = document.createElement('div')
-
-		row.id = 'opt-0'
+		const row = mountOption(container, 'opt-0')
 
 		row.setAttribute('data-active', '')
-
-		container.appendChild(row)
-
-		attach(container)
 
 		const owner = document.createElement('input')
 
@@ -1516,19 +1441,9 @@ describe('clearVirtualActiveIndexed', () => {
 describe('seedVirtualTopMatch', () => {
 	/** Two mounted options in a container, and an owner input. */
 	function mountOptions() {
-		const container = document.createElement('div')
+		const container = attach(document.createElement('div'))
 
-		for (const id of ['opt-0', 'opt-1']) {
-			const row = document.createElement('div')
-
-			row.id = id
-
-			row.setAttribute('role', 'option')
-
-			container.appendChild(row)
-		}
-
-		attach(container)
+		for (const id of ['opt-0', 'opt-1']) mountOption(container, id)
 
 		const owner = document.createElement('input')
 
@@ -1537,11 +1452,7 @@ describe('seedVirtualTopMatch', () => {
 		return { container, owner }
 	}
 
-	const source: VirtualItemSource = {
-		count: 2,
-		getKey: (index) => `opt-${index}`,
-		scrollToIndex: vi.fn(),
-	}
+	const source = makeSource(2)
 
 	it.each([
 		{ branch: 'DOM', source: null },
@@ -1659,34 +1570,21 @@ describe('seedVirtualTopMatch', () => {
 
 describe('isVirtualTopMatchSeated', () => {
 	function mountOptions(ids: string[]) {
-		const container = document.createElement('div')
+		const container = attach(document.createElement('div'))
 
-		for (const id of ids) {
-			const row = document.createElement('div')
-
-			row.id = id
-
-			row.setAttribute('role', 'option')
-
-			container.appendChild(row)
-		}
-
-		attach(container)
+		for (const id of ids) mountOption(container, id)
 
 		const owner = attach(document.createElement('input'))
 
 		return { container, owner }
 	}
 
-	const makeSource = (keys: string[]): VirtualItemSource => ({
-		count: keys.length,
-		getKey: (index) => keys[index] ?? '',
-		scrollToIndex: vi.fn(),
-	})
+	const makeKeyedSource = (keys: string[]) =>
+		makeSource(keys.length, { getKey: (index) => keys[index] ?? '' })
 
 	it.each([
 		{ branch: 'DOM', source: null },
-		{ branch: 'indexed source', source: makeSource(['opt-0', 'opt-1']) },
+		{ branch: 'indexed source', source: makeKeyedSource(['opt-0', 'opt-1']) },
 	])('holds after a seed through the $branch branch', ({ source }) => {
 		const { container, owner } = mountOptions(['opt-0', 'opt-1'])
 
@@ -1708,9 +1606,9 @@ describe('isVirtualTopMatchSeated', () => {
 
 		const ownerRef = { current: owner }
 
-		seedVirtualTopMatch(container, '', makeSource(['old', 'next']), activeIndexRef, ownerRef)
+		seedVirtualTopMatch(container, '', makeKeyedSource(['old', 'next']), activeIndexRef, ownerRef)
 
-		const next = makeSource(['new', 'old', 'next'])
+		const next = makeKeyedSource(['new', 'old', 'next'])
 
 		expect(isVirtualTopMatchSeated(container, '', next, activeIndexRef, ownerRef)).toBe(false)
 	})
@@ -1766,11 +1664,7 @@ describe('setVirtualActiveIndexed: mount-catch-up watcher', () => {
 
 		attach(owner)
 
-		const source: VirtualItemSource = {
-			count: 5,
-			getKey: (index) => `watch-opt-${index}`,
-			scrollToIndex: vi.fn(),
-		}
+		const source = makeSource(5, {}, 'watch-opt')
 
 		const activeIndexRef = { current: -1 }
 
@@ -1779,13 +1673,7 @@ describe('setVirtualActiveIndexed: mount-catch-up watcher', () => {
 		// Not mounted yet: the highlight only points aria-activedescendant.
 		expect(container.querySelector('[data-active]')).toBeNull()
 
-		const row = document.createElement('div')
-
-		row.id = 'watch-opt-3'
-
-		row.setAttribute('role', 'option')
-
-		container.appendChild(row)
+		const row = mountOption(container, 'watch-opt-3')
 
 		await waitFor(() => expect(row.hasAttribute('data-active')).toBe(true))
 	})
@@ -1795,11 +1683,7 @@ describe('setVirtualActiveIndexed: mount-catch-up watcher', () => {
 
 		attach(container)
 
-		const source: VirtualItemSource = {
-			count: 5,
-			getKey: (index) => `stale-opt-${index}`,
-			scrollToIndex: vi.fn(),
-		}
+		const source = makeSource(5, {}, 'stale-opt')
 
 		const activeIndexRef = { current: -1 }
 
@@ -1811,21 +1695,9 @@ describe('setVirtualActiveIndexed: mount-catch-up watcher', () => {
 
 		// The stale index-3 row now appears (e.g. a wide overscan window); its
 		// watcher must not mark it active: activeIndexRef has moved on.
-		const staleRow = document.createElement('div')
+		const staleRow = mountOption(container, 'stale-opt-3')
 
-		staleRow.id = 'stale-opt-3'
-
-		staleRow.setAttribute('role', 'option')
-
-		container.appendChild(staleRow)
-
-		const freshRow = document.createElement('div')
-
-		freshRow.id = 'stale-opt-1'
-
-		freshRow.setAttribute('role', 'option')
-
-		container.appendChild(freshRow)
+		const freshRow = mountOption(container, 'stale-opt-1')
 
 		await waitFor(() => expect(freshRow.hasAttribute('data-active')).toBe(true))
 

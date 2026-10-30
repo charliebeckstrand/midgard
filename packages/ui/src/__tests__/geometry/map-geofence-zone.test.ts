@@ -10,6 +10,7 @@ import {
 } from '../../modules/map/engine/map-constants'
 import { circleRing, zoneBudget, zoneSpare } from '../../modules/map/engine/map-geofence'
 import { projectArea } from '../../modules/map/engine/map-geometry/mark'
+import { flatProjector, squareRing } from '../helpers/map-flat'
 
 /** The trace can leave the closing repeat this far from the first position, in degrees. */
 const CLOSURE_TOLERANCE_DEGREES = 5e-13
@@ -83,19 +84,8 @@ describe('circleRing', () => {
  * dissolved territory from being re-measured once per dot.
  */
 describe('zoneBudget and zoneSpare', () => {
-	/** One frame unit per degree, so a reach reads straight off the coordinates. */
-	const flat = (position: LngLat) => ({ x: position[0], y: position[1] })
-
-	/** A square of `side` units with its lower corner at the origin. */
-	const square = (side: number): LngLat[] => [
-		[0, 0],
-		[0, side],
-		[side, side],
-		[side, 0],
-	]
-
 	const getBudget = (side: number, unitsPerPixel = 1) =>
-		zoneBudget(projectArea([[square(side)]], flat), unitsPerPixel)
+		zoneBudget(projectArea([[squareRing(side)]], flatProjector), unitsPerPixel)
 
 	it('spares a share of the zone’s own room, not the whole of it', () => {
 		// A 60-unit square holds 30 units of inscribed room, so the zone keeps half
@@ -132,7 +122,7 @@ describe('zoneBudget and zoneSpare', () => {
 
 	it('spares nothing from a zone the projection dropped', () => {
 		const zone = zoneBudget(
-			projectArea([[square(60)]], () => null),
+			projectArea([[squareRing(60)]], () => null),
 			1,
 		)
 

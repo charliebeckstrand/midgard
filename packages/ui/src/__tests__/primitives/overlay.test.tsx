@@ -4,6 +4,12 @@ import { Card } from '../../components/card'
 import { Overlay } from '../../primitives/overlay'
 import { attach, fireEvent, present, renderUI, screen } from '../helpers'
 
+/** The backdrop of the open overlay. */
+const backdrop = () => present(document.querySelector('[data-slot="overlay-backdrop"]'), 'backdrop')
+
+/** The root of the open overlay. */
+const overlayRoot = () => present(document.querySelector('[data-slot="overlay"]'), 'overlay root')
+
 describe('Overlay', () => {
 	it('renders children when open', () => {
 		renderUI(
@@ -61,25 +67,6 @@ describe('Overlay', () => {
 		expect(document.body.style.overflow).toBe('')
 	})
 
-	it('closes when the backdrop is clicked by default', () => {
-		const onOpenChange = vi.fn()
-
-		const { container } = renderUI(
-			<Overlay open onOpenChange={onOpenChange}>
-				<span>content</span>
-			</Overlay>,
-		)
-
-		const backdrop = present(
-			container.ownerDocument.querySelector('[data-slot="overlay-backdrop"]'),
-			'[data-slot="overlay-backdrop"]',
-		)
-
-		fireEvent.click(backdrop)
-
-		expect(onOpenChange).toHaveBeenCalledWith(false)
-	})
-
 	it('closes for a press that starts on the backdrop', () => {
 		const onOpenChange = vi.fn()
 
@@ -89,14 +76,9 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		const backdrop = present(
-			document.querySelector('[data-slot="overlay-backdrop"]'),
-			'[data-slot="overlay-backdrop"]',
-		)
+		fireEvent.pointerDown(backdrop())
 
-		fireEvent.pointerDown(backdrop)
-
-		fireEvent.click(backdrop, { detail: 1 })
+		fireEvent.click(backdrop(), { detail: 1 })
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
@@ -112,12 +94,7 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		const backdrop = present(
-			document.querySelector('[data-slot="overlay-backdrop"]'),
-			'[data-slot="overlay-backdrop"]',
-		)
-
-		fireEvent.click(backdrop, { detail: 1 })
+		fireEvent.click(backdrop(), { detail: 1 })
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 	})
@@ -132,12 +109,6 @@ describe('Overlay', () => {
 		)
 
 		const { rerender } = renderUI(overlay(true))
-
-		const backdrop = () =>
-			present(
-				document.querySelector('[data-slot="overlay-backdrop"]'),
-				'[data-slot="overlay-backdrop"]',
-			)
 
 		// A press that starts on the backdrop and ends in the panel clicks no backdrop.
 		fireEvent.pointerDown(backdrop())
@@ -180,12 +151,7 @@ describe('Overlay', () => {
 			</Card>,
 		)
 
-		fireEvent.click(
-			present(
-				document.querySelector('[data-slot="overlay-backdrop"]'),
-				'[data-slot="overlay-backdrop"]',
-			),
-		)
+		fireEvent.click(backdrop())
 
 		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false)
 
@@ -201,12 +167,7 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		fireEvent.click(
-			present(
-				document.querySelector('[data-slot="overlay-backdrop"]'),
-				'[data-slot="overlay-backdrop"]',
-			),
-		)
+		fireEvent.click(backdrop())
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 	})
@@ -222,18 +183,13 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		const backdrop = present(
-			document.querySelector<HTMLElement>('[data-slot="overlay-backdrop"]'),
-			'[data-slot="overlay-backdrop"]',
-		)
-
-		expect(backdrop.className).toBe('absolute inset-0')
+		expect(backdrop().className).toBe('absolute inset-0')
 
 		fireEvent.click(screen.getByText('content'))
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 
-		fireEvent.click(backdrop)
+		fireEvent.click(backdrop())
 
 		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false)
 	})
@@ -255,35 +211,12 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		fireEvent.click(present(document.querySelector('[data-slot="overlay"]'), 'overlay root'))
+		fireEvent.click(overlayRoot())
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 
 		// The caller's own handler on the root still runs.
 		expect(onClick).toHaveBeenCalledOnce()
-	})
-
-	it('takes the backdrop class the panel hands it, in place of the base scrim', () => {
-		// One styling channel: every panel drives its own surface through
-		// `backdropClassName`, so nothing can be set and then silently outranked.
-		// The glass fill this asserts is what `Dialog` passes from its own recipe.
-		renderUI(
-			<Overlay open backdropClassName="absolute inset-0 bg-white/75" onOpenChange={() => {}}>
-				<span>content</span>
-			</Overlay>,
-		)
-
-		const backdrop = present(
-			document.querySelector('[data-slot="overlay-backdrop"]'),
-			'[data-slot="overlay-backdrop"]',
-		)
-
-		expect(backdrop.className).toContain('bg-white/75')
-
-		// The base scrim's own fill and blur are replaced, not merged.
-		expect(backdrop.className).not.toContain('bg-white/50')
-
-		expect(backdrop.className).not.toContain('backdrop-blur')
 	})
 
 	it('applies a custom backdropClassName override on the backdrop', () => {
@@ -293,13 +226,8 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		const backdrop = present(
-			document.querySelector('[data-slot="overlay-backdrop"]'),
-			'[data-slot="overlay-backdrop"]',
-		)
-
 		// The override takes the place of the default.
-		expect(backdrop.className).toBe('custom-backdrop')
+		expect(backdrop().className).toBe('custom-backdrop')
 	})
 
 	// The mock focus manager moves the focus only to `initialFocus`, so each
@@ -359,10 +287,7 @@ describe('Overlay', () => {
 
 		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
 
-		const overlay = present(
-			document.querySelector('[data-slot="overlay"]'),
-			'[data-slot="overlay"]',
-		)
+		const overlay = overlayRoot()
 
 		expect(overlay.className).toContain('pointer-events-none')
 	})
@@ -378,29 +303,12 @@ describe('Overlay', () => {
 
 		// The wrapper stays pointer-events-none, so the backdrop never intercepts
 		// a press and the page behind remains interactive.
-		const overlay = present(
-			document.querySelector('[data-slot="overlay"]'),
-			'[data-slot="overlay"]',
-		)
+		const overlay = overlayRoot()
 
 		expect(overlay.className).toContain('pointer-events-none')
 
 		// Backdrop is decoupled from modality: no focus trap, no scroll lock.
 		expect(document.body.style.overflow).toBe('')
-	})
-
-	it('dismisses on a pointer press outside the panel when modal=false', () => {
-		const onOpenChange = vi.fn()
-
-		renderUI(
-			<Overlay open modal={false} onOpenChange={onOpenChange}>
-				<span>content</span>
-			</Overlay>,
-		)
-
-		fireEvent.pointerDown(document.body)
-
-		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
 	it('does not dismiss on a pointer press inside the panel when modal=false', () => {
@@ -481,9 +389,7 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		expect(
-			present(document.querySelector('[data-slot="overlay"]'), 'overlay root'),
-		).not.toHaveAttribute('inert')
+		expect(overlayRoot()).not.toHaveAttribute('inert')
 	})
 
 	it('keeps the inert prop of the caller on an open overlay', () => {
@@ -495,7 +401,7 @@ describe('Overlay', () => {
 
 		const { rerender } = renderUI(overlay(true))
 
-		const root = present(document.querySelector('[data-slot="overlay"]'), 'overlay root')
+		const root = overlayRoot()
 
 		expect(root).toHaveAttribute('inert')
 

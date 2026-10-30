@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { List } from '../../components/list'
 import { ListItem } from '../../components/list/list-item'
 import { useSortableItem } from '../../hooks'
@@ -10,7 +10,7 @@ import {
 	KanbanColumn,
 	KanbanColumnBody,
 } from '../../modules/kanban'
-import { act, fireEvent, renderUI } from '../helpers'
+import { act, fireEvent, present, renderUI } from '../helpers'
 
 /**
  * A keyboard lift renders only the item that lifts and the item that drops. A
@@ -127,42 +127,31 @@ function renderedCards() {
 }
 
 function card(container: HTMLElement, id: string): HTMLElement {
-	const element = container.querySelector<HTMLElement>(
-		`[data-slot="kanban-card"][data-card-id="${id}"]`,
+	return present(
+		container.querySelector(`[data-slot="kanban-card"][data-card-id="${id}"]`),
+		`card ${id}`,
 	)
-
-	if (!element) throw new Error(`no card ${id}`)
-
-	return element
 }
 
 /** The handle of a card: the element that takes the keys. */
 function handle(container: HTMLElement, id: string): HTMLElement {
-	const element = container.querySelector<HTMLElement>(
-		`[data-slot="kanban-card-handle"][data-card-id="${id}"]`,
+	return present(
+		container.querySelector(`[data-slot="kanban-card-handle"][data-card-id="${id}"]`),
+		`handle ${id}`,
 	)
-
-	if (!element) throw new Error(`no handle ${id}`)
-
-	return element
 }
 
 describe('keyboard lift renders', () => {
-	beforeEach(() => {
-		vi.mocked(ListItem).mockClear()
-
-		vi.mocked(useSortableItem).mockClear()
-	})
-
 	it('renders only the lifted list item for a lift', () => {
 		const { container } = renderUI(<ReorderList />)
 
 		// The count is live, so the bounds below can fail.
 		expect(vi.mocked(ListItem)).toHaveBeenCalled()
 
-		const row = container.querySelector('[data-slot="list-item"][data-item-id="item-5"]')
-
-		if (!row) throw new Error('no row')
+		const row = present(
+			container.querySelector('[data-slot="list-item"][data-item-id="item-5"]'),
+			'row item-5',
+		)
 
 		vi.mocked(ListItem).mockClear()
 

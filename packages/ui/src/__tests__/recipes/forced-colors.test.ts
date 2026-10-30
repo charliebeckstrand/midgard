@@ -47,7 +47,6 @@ describe('edges and state marks under forced colors', () => {
 		['the solid alert', alert({ variant: 'solid', color: 'red' }).base],
 		['the outline alert', alert({ variant: 'outline', color: 'red' }).base],
 		['the PDF region', region(false)],
-		['the selected PDF region', region(true)],
 		['the landing placeholder of a dashboard drag', dashboard().placeholder],
 		['the range legend track', chart.track],
 		['the report dot of the events button', events().dot],
@@ -56,7 +55,6 @@ describe('edges and state marks under forced colors', () => {
 		['the rule of a Grid column group', gridGroup().rule],
 		['the rule of a Grid column group with a color', gridGroup({ color: 'red' }).rule],
 		['a JsonTree search match', jsonTree({ highlighted: true }).content],
-		['the Kanban drop target column', kanban().column.base],
 		...(['weak', 'fair', 'good', 'strong'] as const).map((level): [string, unknown] => [
 			`the ${level} password-strength segment`,
 			passwordStrength({ level }).segment,

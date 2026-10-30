@@ -369,7 +369,7 @@ describe('CurrentContent mount policy', () => {
 
 			const frames: FrameRequestCallback[] = []
 
-			const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+			vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
 				frames.push(callback)
 
 				return frames.length
@@ -384,8 +384,6 @@ describe('CurrentContent mount policy', () => {
 
 				screen.getByText('go-a').click()
 			})
-
-			raf.mockRestore()
 
 			expect(screen.getByText('Content B')).not.toBeVisible()
 		})

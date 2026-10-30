@@ -143,44 +143,77 @@ describe('parseZipSelection', () => {
 })
 
 describe('zipMatcher', () => {
-	it('holds a whole code and nothing beside it', () => {
-		expect(held('60601', ['60600', '60601', '60602'])).toEqual(['60601'])
-	})
-
-	it('holds every code under a prefix — the ZIP3 a broker states a region by', () => {
-		expect(held('606', ['60599', '60600', '60650', '60699', '60700'])).toEqual([
-			'60600',
-			'60650',
-			'60699',
-		])
-	})
-
-	it('holds a range at both of its ends', () => {
-		expect(held('60610-60620', ['60609', '60610', '60615', '60620', '60621'])).toEqual([
-			'60610',
-			'60615',
-			'60620',
-		])
-	})
-
-	it('subtracts an exception from the prefix that holds it', () => {
-		expect(held('606, !60605', ['60604', '60605', '60606'])).toEqual(['60604', '60606'])
-	})
-
-	it('subtracts a whole range from a prefix', () => {
-		expect(held('606, !60610-60620', ['60609', '60615', '60621'])).toEqual(['60609', '60621'])
-	})
-
-	it('holds nothing where the territory states only exceptions', () => {
-		expect(held('!606', ['60601', '60700'])).toEqual([])
-	})
-
-	it('holds nothing where the territory is empty, rather than everything', () => {
-		expect(held('', ['60601', '90210'])).toEqual([])
-	})
-
-	it('keeps a leading zero, so an Agawam code is not a four-digit number', () => {
-		expect(held('010', ['01001', '01002', '10010'])).toEqual(['01001', '01002'])
+	it.for<{ name: string; selection: string; codes: string[]; expected: string[] }>([
+		{
+			name: 'holds a whole code and nothing beside it',
+			selection: '60601',
+			codes: ['60600', '60601', '60602'],
+			expected: ['60601'],
+		},
+		{
+			name: 'holds every code under a prefix — the ZIP3 a broker states a region by',
+			selection: '606',
+			codes: ['60599', '60600', '60650', '60699', '60700'],
+			expected: ['60600', '60650', '60699'],
+		},
+		{
+			name: 'holds a range at both of its ends',
+			selection: '60610-60620',
+			codes: ['60609', '60610', '60615', '60620', '60621'],
+			expected: ['60610', '60615', '60620'],
+		},
+		{
+			name: 'subtracts an exception from the prefix that holds it',
+			selection: '606, !60605',
+			codes: ['60604', '60605', '60606'],
+			expected: ['60604', '60606'],
+		},
+		{
+			name: 'subtracts a whole range from a prefix',
+			selection: '606, !60610-60620',
+			codes: ['60609', '60615', '60621'],
+			expected: ['60609', '60621'],
+		},
+		{
+			name: 'holds nothing where the territory states only exceptions',
+			selection: '!606',
+			codes: ['60601', '60700'],
+			expected: [],
+		},
+		{
+			name: 'holds nothing where the territory is empty, rather than everything',
+			selection: '',
+			codes: ['60601', '90210'],
+			expected: [],
+		},
+		{
+			name: 'keeps a leading zero, so an Agawam code is not a four-digit number',
+			selection: '010',
+			codes: ['01001', '01002', '10010'],
+			expected: ['01001', '01002'],
+		},
+		{
+			name: 'reads a range between two prefixes, the ZIP3 span a whole region is stated by',
+			selection: '600-609',
+			codes: ['59999', '60000', '60555', '60999', '61000'],
+			expected: ['60000', '60555', '60999'],
+		},
+		{
+			// `606` opens at 60600 and `61` closes at 61999, so the span runs between
+			// the low end of the first and the high end of the second.
+			name: 'reads a range between two widths, widening each end the way it means',
+			selection: '606-61',
+			codes: ['60599', '60600', '61999', '62000'],
+			expected: ['60600', '61999'],
+		},
+		{
+			name: 'still holds every code where two stated ranges overlap',
+			selection: '60601-60610, 60605-60620',
+			codes: ['60600', '60603', '60612', '60621'],
+			expected: ['60603', '60612'],
+		},
+	])('$name', ({ selection, codes, expected }) => {
+		expect(held(selection, codes)).toEqual(expected)
 	})
 
 	it('reads a code out of a ZIP+4 or a stated address line', () => {
@@ -191,27 +224,6 @@ describe('zipMatcher', () => {
 		expect(matches('IL 60601')).toBe(true)
 
 		expect(matches('6060')).toBe(false)
-	})
-
-	it('reads a range between two prefixes, the ZIP3 span a whole region is stated by', () => {
-		expect(held('600-609', ['59999', '60000', '60555', '60999', '61000'])).toEqual([
-			'60000',
-			'60555',
-			'60999',
-		])
-	})
-
-	it('reads a range between two widths, widening each end the way it means', () => {
-		// `606` opens at 60600 and `61` closes at 61999, so the span runs between
-		// the low end of the first and the high end of the second.
-		expect(held('606-61', ['60599', '60600', '61999', '62000'])).toEqual(['60600', '61999'])
-	})
-
-	it('still holds every code where two stated ranges overlap', () => {
-		expect(held('60601-60610, 60605-60620', ['60600', '60603', '60612', '60621'])).toEqual([
-			'60603',
-			'60612',
-		])
 	})
 })
 

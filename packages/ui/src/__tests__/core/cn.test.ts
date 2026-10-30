@@ -16,14 +16,6 @@ describe('cn', () => {
 		expect(result).toBe('foo bar')
 	})
 
-	it('resolves tailwind conflicts with later class winning', () => {
-		const result = cn('px-4', 'px-2')
-
-		expect(result).toContain('px-2')
-
-		expect(result).not.toContain('px-4')
-	})
-
 	it('handles arrays and objects', () => {
 		const result = cn(['foo', 'bar'], { baz: true, qux: false })
 

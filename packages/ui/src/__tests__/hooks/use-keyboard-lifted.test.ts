@@ -1,36 +1,12 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as core from '../../core'
 import { useKeyboardLifted } from '../../hooks/use-keyboard-lifted'
 
 describe('useKeyboardLifted', () => {
-	let frames: Map<number, FrameRequestCallback>
-
 	beforeEach(() => {
-		frames = new Map()
-
-		let next = 0
-
-		vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
-			next += 1
-
-			frames.set(next, callback)
-
-			return next
-		})
-
-		vi.stubGlobal('cancelAnimationFrame', (id: number) => frames.delete(id))
+		vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] })
 	})
-
-	afterEach(() => {})
-
-	function runFrames() {
-		for (const [id, callback] of [...frames]) {
-			frames.delete(id)
-
-			callback(0)
-		}
-	}
 
 	it('refocuses the item on the next frame', () => {
 		const focus = vi.fn()
@@ -39,7 +15,7 @@ describe('useKeyboardLifted', () => {
 
 		act(() => result.current.refocus('a'))
 
-		runFrames()
+		vi.advanceTimersToNextFrame()
 
 		expect(focus).toHaveBeenCalledWith('a')
 	})
@@ -55,7 +31,7 @@ describe('useKeyboardLifted', () => {
 			result.current.refocus('b')
 		})
 
-		runFrames()
+		vi.advanceTimersToNextFrame()
 
 		expect(focus.mock.calls).toEqual([['b']])
 	})
@@ -69,7 +45,7 @@ describe('useKeyboardLifted', () => {
 
 		unmount()
 
-		runFrames()
+		vi.advanceTimersToNextFrame()
 
 		expect(focus).not.toHaveBeenCalled()
 	})

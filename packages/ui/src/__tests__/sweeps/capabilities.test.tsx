@@ -94,14 +94,14 @@ const textInputs = corpus.flatMap((entry) =>
 )
 
 /** The pass-through sweep: the id it spreads reaches the subject's slot. */
-function passesThrough({ render, slot }: PassthroughSubject) {
+const passesThrough = vi.defineHelper(({ render, slot }: PassthroughSubject) => {
 	const { container } = renderUI(render({ id: PASS_THROUGH_ID }))
 
 	expect(getSlot(container, slot)).toHaveAttribute('id', PASS_THROUGH_ID)
-}
+})
 
 /** The skeleton sweep: the silhouette draws placeholders, and never the real component. */
-function drawsSkeleton({ element, absentSlot, placeholders }: SkeletonSubject) {
+const drawsSkeleton = vi.defineHelper(({ element, absentSlot, placeholders }: SkeletonSubject) => {
 	const { container } = renderUI(element)
 
 	expect(bySlot(container, absentSlot)).not.toBeInTheDocument()
@@ -113,13 +113,13 @@ function drawsSkeleton({ element, absentSlot, placeholders }: SkeletonSubject) {
 	// A silhouette whose count is part of its contract states it; the rest claim
 	// only that they draw something.
 	if (placeholders !== undefined) expect(drawn).toHaveLength(placeholders)
-}
+})
 
 /**
  * The touch-on-blur sweep: the caller's `onBlur` runs, and its
  * `preventDefault()` does not skip the touched mark (CONVENTIONS.md §3.9).
  */
-function touchesOnBlur({ render, defaultValue, slot }: TouchOnBlurSubject) {
+const touchesOnBlur = vi.defineHelper(({ render, defaultValue, slot }: TouchOnBlurSubject) => {
 	const onBlur = vi.fn((event: FocusEvent<HTMLElement>) => event.preventDefault())
 
 	const { container } = renderUI(
@@ -134,68 +134,72 @@ function touchesOnBlur({ render, defaultValue, slot }: TouchOnBlurSubject) {
 	expect(onBlur).toHaveBeenCalledOnce()
 
 	expect(getFieldProbe(FIELD)).toHaveAttribute('data-touched', 'true')
-}
+})
 
 /**
  * The write-on-change sweep: the caller's `onChange` runs, and its
  * `preventDefault()` does not skip the field write (CONVENTIONS.md §3.9).
  */
-function writesOnChange({ render, defaultValue, slot, kind }: WriteOnChangeSubject) {
-	const onChange = vi.fn((event: ChangeEvent<HTMLElement>) => event.preventDefault())
+const writesOnChange = vi.defineHelper(
+	({ render, defaultValue, slot, kind }: WriteOnChangeSubject) => {
+		const onChange = vi.fn((event: ChangeEvent<HTMLElement>) => event.preventDefault())
 
-	const { container } = renderUI(
-		<Form defaultValues={{ [FIELD]: defaultValue }}>
-			{render({ name: FIELD, onChange })}
-			<FieldProbe name={FIELD} />
-		</Form>,
-	)
+		const { container } = renderUI(
+			<Form defaultValues={{ [FIELD]: defaultValue }}>
+				{render({ name: FIELD, onChange })}
+				<FieldProbe name={FIELD} />
+			</Form>,
+		)
 
-	const element = getSlot(container, slot)
+		const element = getSlot(container, slot)
 
-	if (kind === 'text') fireEvent.change(element, { target: { value: 'swept' } })
-	else fireEvent.click(element)
+		if (kind === 'text') fireEvent.change(element, { target: { value: 'swept' } })
+		else fireEvent.click(element)
 
-	expect(onChange).toHaveBeenCalledOnce()
+		expect(onChange).toHaveBeenCalledOnce()
 
-	expect(getFieldProbe(FIELD).textContent).toBe(kind === 'text' ? 'swept' : 'true')
-}
+		expect(getFieldProbe(FIELD).textContent).toBe(kind === 'text' ? 'swept' : 'true')
+	},
+)
 
 /**
  * The lock sweep: while a submit of its form runs, a bound control stays
  * enabled, and its change does not write its field.
  */
-async function holdsWhileLocked({ render, defaultValue, slot, kind }: WriteOnChangeSubject) {
-	const pending = deferred()
+const holdsWhileLocked = vi.defineHelper(
+	async ({ render, defaultValue, slot, kind }: WriteOnChangeSubject) => {
+		const pending = deferred()
 
-	const { container } = renderUI(
-		<Form defaultValues={{ [FIELD]: defaultValue }} onSubmit={() => pending.promise}>
-			{render({ name: FIELD, onChange: vi.fn() })}
-			<FieldProbe name={FIELD} />
-		</Form>,
-	)
+		const { container } = renderUI(
+			<Form defaultValues={{ [FIELD]: defaultValue }} onSubmit={() => pending.promise}>
+				{render({ name: FIELD, onChange: vi.fn() })}
+				<FieldProbe name={FIELD} />
+			</Form>,
+		)
 
-	const before = getFieldProbe(FIELD).textContent
+		const before = getFieldProbe(FIELD).textContent
 
-	await act(async () => {
-		fireEvent.submit(getSlot(container, 'form'))
-	})
+		await act(async () => {
+			fireEvent.submit(getSlot(container, 'form'))
+		})
 
-	const element = getSlot(container, slot)
+		const element = getSlot(container, slot)
 
-	expect(element).toBeEnabled()
+		expect(element).toBeEnabled()
 
-	if (kind === 'text') fireEvent.change(element, { target: { value: 'swept' } })
-	else fireEvent.click(element)
+		if (kind === 'text') fireEvent.change(element, { target: { value: 'swept' } })
+		else fireEvent.click(element)
 
-	expect(getFieldProbe(FIELD).textContent).toBe(before)
+		expect(getFieldProbe(FIELD).textContent).toBe(before)
 
-	await act(async () => {
-		pending.resolve()
-	})
-}
+		await act(async () => {
+			pending.resolve()
+		})
+	},
+)
 
 /** The link sweep: the subject's slot becomes an anchor to the href it sets. */
-function becomesLink({ render, slot }: LinkSubject) {
+const becomesLink = vi.defineHelper(({ render, slot }: LinkSubject) => {
 	// `baseElement` is the document body, which holds the render container and
 	// anything portaled out of it alike.
 	const { baseElement } = renderUI(render(LINK_HREF))
@@ -205,7 +209,7 @@ function becomesLink({ render, slot }: LinkSubject) {
 	expect(anchor.tagName).toBe('A')
 
 	expect(anchor).toHaveAttribute('href', LINK_HREF)
-}
+})
 
 /**
  * Renders `element` and reads the step of its slot. The stepped classes of a
@@ -228,25 +232,25 @@ function Ambient({ children }: { children: ReactElement }) {
 }
 
 /** The density sweep, ambient leg: with no size, the subject takes the enclosing scope. */
-function inheritsDensity({ render, slot }: DensitySubject) {
+const inheritsDensity = vi.defineHelper(({ render, slot }: DensitySubject) => {
 	expect(readStep(<Ambient>{render()}</Ambient>, slot)).toBe(AMBIENT)
-}
+})
 
 /** The density sweep, explicit leg: a size prop wins over the enclosing scope. */
-function explicitSizeWins({ render, slot }: DensitySubject) {
+const explicitSizeWins = vi.defineHelper(({ render, slot }: DensitySubject) => {
 	expect(readStep(<Ambient>{render(EXPLICIT)}</Ambient>, slot)).toBe(EXPLICIT)
-}
+})
 
 /** The density sweep, fallback leg: with no scope and no size, the subject is `md`. */
-function fallsBackToMd({ render, slot }: DensitySubject) {
+const fallsBackToMd = vi.defineHelper(({ render, slot }: DensitySubject) => {
 	expect(readStep(render(), slot)).toBe(FALLBACK)
-}
+})
 
 /**
  * The disclosure sweep, open leg: no part stamps `data-open` while closed, and
  * each part stamps it while open (CONVENTIONS.md §3.11).
  */
-function stampsOpen({ render, parts }: DisclosureSubject) {
+const stampsOpen = vi.defineHelper(({ render, parts }: DisclosureSubject) => {
 	// `baseElement` is the document body, so a portaled part is in reach.
 	const closed = renderUI(render({ open: false }))
 
@@ -263,10 +267,10 @@ function stampsOpen({ render, parts }: DisclosureSubject) {
 	for (const slot of parts) {
 		expect(getSlot(baseElement, slot), `${slot} while open`).toHaveAttribute('data-open')
 	}
-}
+})
 
 /** The disclosure sweep, disabled leg: each part that can be disabled stamps `data-disabled`. */
-function stampsDisabled({ render, disabledParts = [] }: DisclosureSubject) {
+const stampsDisabled = vi.defineHelper(({ render, disabledParts = [] }: DisclosureSubject) => {
 	const enabled = renderUI(render({ open: false }))
 
 	for (const slot of disabledParts) {
@@ -282,10 +286,10 @@ function stampsDisabled({ render, disabledParts = [] }: DisclosureSubject) {
 	for (const slot of disabledParts) {
 		expect(getSlot(baseElement, slot), `${slot} while disabled`).toHaveAttribute('data-disabled')
 	}
-}
+})
 
 /** The text-input sweep, ref leg: the ref reaches the editable element. */
-function forwardsRef({ render, slot }: TextInputSubject) {
+const forwardsRef = vi.defineHelper(({ render, slot }: TextInputSubject) => {
 	let received: HTMLElement | null = null
 
 	const { container } = renderUI(
@@ -297,21 +301,21 @@ function forwardsRef({ render, slot }: TextInputSubject) {
 	)
 
 	expect(received).toBe(getSlot(container, slot))
-}
+})
 
 /** The text-input sweep, placeholder leg: the placeholder reaches the editable element. */
-function passesPlaceholder({ render, slot }: TextInputSubject) {
+const passesPlaceholder = vi.defineHelper(({ render, slot }: TextInputSubject) => {
 	const { container } = renderUI(render({ placeholder: PLACEHOLDER }))
 
 	expect(getSlot(container, slot)).toHaveAttribute('placeholder', PLACEHOLDER)
-}
+})
 
 /** The text-input sweep, disabled leg: `disabled` disables the editable element. */
-function disablesInput({ render, slot }: TextInputSubject) {
+const disablesInput = vi.defineHelper(({ render, slot }: TextInputSubject) => {
 	const { container } = renderUI(render({ disabled: true }))
 
 	expect(getSlot(container, slot)).toBeDisabled()
-}
+})
 
 describe('component pass-through', () => {
 	for (const subject of passThrough) {
@@ -401,10 +405,6 @@ describe('component lock during a submit', () => {
 		it(`${subject.title} stays enabled and does not write its field while the form submits`, () =>
 			holdsWhileLocked(subject))
 	}
-
-	it('has subjects to sweep', () => {
-		expect(writes).not.toHaveLength(0)
-	})
 })
 
 describe('component disclosure state', () => {

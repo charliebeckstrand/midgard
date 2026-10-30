@@ -1,7 +1,17 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ChoroplethChart, HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { BarChart } from '../../modules/chart/bar-chart'
+import { ChartAxis } from '../../modules/chart/engine/chart-axes/axis'
+import { ChartContextMenu } from '../../modules/chart/engine/chart-context-menu'
+import { ChartHeader } from '../../modules/chart/engine/chart-header'
+import { ChartLegend } from '../../modules/chart/engine/chart-legend/legend'
+import { RangeArrow } from '../../modules/chart/engine/chart-legend/range-legend'
+import { useChartPointer } from '../../modules/chart/engine/use-chart-pointer'
 import { PieChart } from '../../modules/chart/pie-chart'
+import {
+	SectorChartMarks,
+	SectorSegmentLabels,
+} from '../../modules/chart/sector-chart/sector-chart-marks'
 import { act, allBySlot, allRegions, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
@@ -14,51 +24,17 @@ import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 //
 // The suite holds per-file module mocks, so it lives here and runs on a fork
 // (`test-isolation-boundary.test.ts`).
-const renders = vi.hoisted(() => ({
-	header: 0,
-	pointer: 0,
-	slices: 0,
-	segmentLabels: 0,
-	axis: 0,
-	legend: 0,
-	menu: 0,
-	arrow: 0,
-}))
-
-function resetRenders() {
-	for (const key of Object.keys(renders) as (keyof typeof renders)[]) renders[key] = 0
-}
-
-/** Checks that each count fired on mount, so a later `toBe(0)` can fail. */
-function expectLive(...keys: (keyof typeof renders)[]) {
-	for (const key of keys) expect(renders[key], key).toBeGreaterThan(0)
-}
-
 vi.mock('../../modules/chart/engine/chart-header', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('../../modules/chart/engine/chart-header')>()
 
-	return {
-		...actual,
-		ChartHeader: (props: Parameters<typeof actual.ChartHeader>[0]) => {
-			renders.header += 1
-
-			return actual.ChartHeader(props)
-		},
-	}
+	return { ...actual, ChartHeader: vi.fn(actual.ChartHeader) }
 })
 
 vi.mock('../../modules/chart/engine/use-chart-pointer', async (importOriginal) => {
 	const actual =
 		await importOriginal<typeof import('../../modules/chart/engine/use-chart-pointer')>()
 
-	return {
-		...actual,
-		useChartPointer: (...args: Parameters<typeof actual.useChartPointer>) => {
-			renders.pointer += 1
-
-			return actual.useChartPointer(...args)
-		},
-	}
+	return { ...actual, useChartPointer: vi.fn(actual.useChartPointer) }
 })
 
 vi.mock('../../modules/chart/sector-chart/sector-chart-marks', async (importOriginal) => {
@@ -67,72 +43,65 @@ vi.mock('../../modules/chart/sector-chart/sector-chart-marks', async (importOrig
 
 	return {
 		...actual,
-		SectorChartMarks: (props: Parameters<typeof actual.SectorChartMarks>[0]) => {
-			renders.slices += 1
-
-			return actual.SectorChartMarks(props)
-		},
-		SectorSegmentLabels: (props: Parameters<typeof actual.SectorSegmentLabels>[0]) => {
-			renders.segmentLabels += 1
-
-			return actual.SectorSegmentLabels(props)
-		},
+		SectorChartMarks: vi.fn(actual.SectorChartMarks),
+		SectorSegmentLabels: vi.fn(actual.SectorSegmentLabels),
 	}
 })
 
 vi.mock('../../modules/chart/engine/chart-axes/axis', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('../../modules/chart/engine/chart-axes/axis')>()
 
-	return {
-		...actual,
-		ChartAxis: (props: Parameters<typeof actual.ChartAxis>[0]) => {
-			renders.axis += 1
-
-			return actual.ChartAxis(props)
-		},
-	}
+	return { ...actual, ChartAxis: vi.fn(actual.ChartAxis) }
 })
 
 vi.mock('../../modules/chart/engine/chart-legend/legend', async (importOriginal) => {
 	const actual =
 		await importOriginal<typeof import('../../modules/chart/engine/chart-legend/legend')>()
 
-	return {
-		...actual,
-		ChartLegend: (props: Parameters<typeof actual.ChartLegend>[0]) => {
-			renders.legend += 1
-
-			return actual.ChartLegend(props)
-		},
-	}
+	return { ...actual, ChartLegend: vi.fn(actual.ChartLegend) }
 })
 
 vi.mock('../../modules/chart/engine/chart-legend/range-legend', async (importOriginal) => {
 	const actual =
 		await importOriginal<typeof import('../../modules/chart/engine/chart-legend/range-legend')>()
 
-	return {
-		...actual,
-		RangeArrow: (props: Parameters<typeof actual.RangeArrow>[0]) => {
-			renders.arrow += 1
-
-			return actual.RangeArrow(props)
-		},
-	}
+	return { ...actual, RangeArrow: vi.fn(actual.RangeArrow) }
 })
 
 vi.mock('../../modules/chart/engine/chart-context-menu', async (importOriginal) => {
 	const actual =
 		await importOriginal<typeof import('../../modules/chart/engine/chart-context-menu')>()
 
-	return {
-		...actual,
-		ChartContextMenu: (props: Parameters<typeof actual.ChartContextMenu>[0]) => {
-			renders.menu += 1
+	return { ...actual, ChartContextMenu: vi.fn(actual.ChartContextMenu) }
+})
 
-			return actual.ChartContextMenu(props)
-		},
-	}
+/** The mock that counts the renders of each part. */
+const parts = {
+	header: ChartHeader,
+	pointer: useChartPointer,
+	slices: SectorChartMarks,
+	segmentLabels: SectorSegmentLabels,
+	axis: ChartAxis,
+	legend: ChartLegend,
+	menu: ChartContextMenu,
+	arrow: RangeArrow,
+}
+
+type Part = keyof typeof parts
+
+/** The renders of `part` since the last {@link resetRenders}. */
+function renders(part: Part): number {
+	return vi.mocked(parts[part]).mock.calls.length
+}
+
+/** Starts a new count for each part. */
+function resetRenders() {
+	for (const part of Object.values(parts)) vi.mocked(part).mockClear()
+}
+
+/** Checks that each count fired on mount, so a later `toBe(0)` can fail. */
+const expectLive = vi.defineHelper((...keys: Part[]) => {
+	for (const key of keys) expect(renders(key), key).toBeGreaterThan(0)
 })
 
 const DATA = [
@@ -201,8 +170,6 @@ function heatmap() {
 }
 
 describe('Chart hover renders', () => {
-	beforeEach(resetRenders)
-
 	it('tracks the pointer inside a bar without a render of the frame or the hit rect', () => {
 		const { container } = renderUI(bars())
 
@@ -223,10 +190,10 @@ describe('Chart hover renders', () => {
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
 
-		expect(renders.header).toBe(0)
+		expect(renders('header')).toBe(0)
 
 		// The hit rect reads nothing from the hover state.
-		expect(renders.pointer).toBe(0)
+		expect(renders('pointer')).toBe(0)
 	})
 
 	it('holds the legend and the axes through a sweep over the bars', async () => {
@@ -248,13 +215,13 @@ describe('Chart hover renders', () => {
 
 		await act(async () => {})
 
-		expect(renders.legend).toBe(0)
+		expect(renders('legend')).toBe(0)
 
-		expect(renders.axis).toBe(0)
+		expect(renders('axis')).toBe(0)
 
 		// The hit rect writes the pointed mark through a setter that keeps its
 		// identity, so a crossing from bar to bar does not render it.
-		expect(renders.pointer).toBe(0)
+		expect(renders('pointer')).toBe(0)
 	})
 
 	it('holds the legend while the pointer rests on a reference rule', async () => {
@@ -284,7 +251,7 @@ describe('Chart hover renders', () => {
 
 		await act(async () => {})
 
-		expect(renders.legend).toBe(0)
+		expect(renders('legend')).toBe(0)
 	})
 
 	it('holds the axes through a legend hover', async () => {
@@ -308,7 +275,7 @@ describe('Chart hover renders', () => {
 
 		await act(async () => {})
 
-		expect(renders.axis).toBe(0)
+		expect(renders('axis')).toBe(0)
 	})
 
 	it('tracks the pointer inside a slice without a render of the frame or the slices', () => {
@@ -345,11 +312,11 @@ describe('Chart hover renders', () => {
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Search')
 
-		expect(renders.header).toBe(0)
+		expect(renders('header')).toBe(0)
 
-		expect(renders.slices).toBe(0)
+		expect(renders('slices')).toBe(0)
 
-		expect(renders.segmentLabels).toBe(0)
+		expect(renders('segmentLabels')).toBe(0)
 	})
 
 	it('tracks the pointer across a heatmap without a render of the chart body', () => {
@@ -366,10 +333,10 @@ describe('Chart hover renders', () => {
 
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 
-		expect(renders.axis).toBe(0)
+		expect(renders('axis')).toBe(0)
 
 		// The hit layer writes the hover and reads nothing from it.
-		expect(renders.pointer).toBe(0)
+		expect(renders('pointer')).toBe(0)
 	})
 
 	it('holds the range arrow while the pointer moves inside one heatmap cell', () => {
@@ -386,9 +353,9 @@ describe('Chart hover renders', () => {
 
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 
-		expect(renders.arrow).toBe(0)
+		expect(renders('arrow')).toBe(0)
 
-		expect(renders.pointer).toBe(0)
+		expect(renders('pointer')).toBe(0)
 	})
 
 	it('tracks the pointer across choropleth regions without a render of the chart body', () => {
@@ -420,6 +387,6 @@ describe('Chart hover renders', () => {
 
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 
-		expect(renders.menu).toBe(0)
+		expect(renders('menu')).toBe(0)
 	})
 })

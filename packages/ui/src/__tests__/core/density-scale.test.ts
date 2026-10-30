@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { describe, expect, expectTypeOf, it } from 'vitest'
-import { defineScale, rampValue, type ScaleStep, stepsOfRamp } from '../../core/density/scale'
+import { describe, expect, it } from 'vitest'
+import { defineScale, rampValue, stepsOfRamp } from '../../core/density/scale'
 
 // A scale holds the steps at which a ramp renders a value of its own. A type
 // reads them from the literal class, so a `size` prop offers only those steps.
@@ -36,8 +36,6 @@ describe('defineScale', () => {
 		const scale = defineScale('density-p-[2,3,4]', 'density-size-[3,4,5,6,6]')
 
 		expect([...scale]).toEqual(['xs', 'sm', 'md', 'lg'])
-
-		expectTypeOf<ScaleStep<typeof scale>>().toEqualTypeOf<'xs' | 'sm' | 'md' | 'lg'>()
 	})
 })
 

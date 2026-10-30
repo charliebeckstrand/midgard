@@ -18,44 +18,29 @@ vi.mock('../../components/sparkline/sparkline-geometry', async () => {
 	return { ...actual, sparklineGeometry: vi.fn(actual.sparklineGeometry) }
 })
 
-/** The spy wrapping the real projection, cleared for each case. */
-function projection() {
-	const spy = vi.mocked(sparklineGeometry)
-
-	spy.mockClear()
-
-	return spy
-}
-
 describe('Sparkline geometry memo', () => {
 	it('reuses the projection when the series and the box hold', () => {
-		const spy = projection()
-
 		const data = [1, 4, 2, 8]
 
 		const { rerender } = renderUI(<Sparkline data={data} aria-label="Trend" />)
 
-		expect(spy).toHaveBeenCalledTimes(1)
+		expect(vi.mocked(sparklineGeometry)).toHaveBeenCalledTimes(1)
 
 		// The same array reference and the same box, so the memo holds.
 		rerender(<Sparkline data={data} aria-label="Trend" />)
 
-		expect(spy).toHaveBeenCalledTimes(1)
+		expect(vi.mocked(sparklineGeometry)).toHaveBeenCalledTimes(1)
 	})
 
 	it('re-projects when the series changes', () => {
-		const spy = projection()
-
 		const { rerender } = renderUI(<Sparkline data={[1, 4, 2, 8]} aria-label="Trend" />)
 
 		rerender(<Sparkline data={[1, 4, 2, 8, 5]} aria-label="Trend" />)
 
-		expect(spy).toHaveBeenCalledTimes(2)
+		expect(vi.mocked(sparklineGeometry)).toHaveBeenCalledTimes(2)
 	})
 
 	it('re-projects when the drawing box changes', () => {
-		const spy = projection()
-
 		const data = [1, 4, 2, 8]
 
 		const { rerender } = renderUI(<Sparkline data={data} width={96} aria-label="Trend" />)
@@ -63,6 +48,6 @@ describe('Sparkline geometry memo', () => {
 		// The series holds, so a stale memo would keep the old width's geometry.
 		rerender(<Sparkline data={data} width={120} aria-label="Trend" />)
 
-		expect(spy).toHaveBeenCalledTimes(2)
+		expect(vi.mocked(sparklineGeometry)).toHaveBeenCalledTimes(2)
 	})
 })

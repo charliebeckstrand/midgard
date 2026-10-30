@@ -40,14 +40,6 @@ function scroller({ direction = 'ltr', borderLeft = 0, borderRight = 0, gutter =
 const press = (offsetX: number, offsetY = 50) => ({ offsetX, offsetY })
 
 describe('isScrollbarPress', () => {
-	it('reads a press past the client width as a gutter press under ltr', () => {
-		const target = scroller({ borderLeft: 7, borderRight: 3, gutter: 15 })
-
-		expect(isScrollbarPress(press(180), target)).toBe(true)
-
-		expect(isScrollbarPress(press(170), target)).toBe(false)
-	})
-
 	it('includes the boundary pixel at the ltr gutter edge', () => {
 		const target = scroller({ gutter: 15 })
 

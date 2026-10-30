@@ -3,26 +3,28 @@ import { describe, expect, it, vi } from 'vitest'
 import { useSelectableValueChange } from '../../hooks/use-selectable-value-change'
 
 describe('useSelectableValueChange', () => {
-	it('forwards single-select value changes through to the wrapped callback', () => {
+	it.for<{ name: string; multiple: boolean; value: string | string[] | null }>([
+		{
+			name: 'forwards single-select value changes through to the wrapped callback',
+			multiple: false,
+			value: 'a',
+		},
+		{
+			// The value cascade already emits `null` on clear; single-select passes it
+			// straight to the consumer rather than converting here.
+			name: 'forwards a cleared single selection through as null (§7.3)',
+			multiple: false,
+			value: null,
+		},
+		{ name: 'forwards array values in multi-select mode', multiple: true, value: ['a', 'b'] },
+	])('$name', ({ multiple, value }) => {
 		const onValueChange = vi.fn()
 
-		const { result } = renderHook(() => useSelectableValueChange(onValueChange, false))
+		const { result } = renderHook(() => useSelectableValueChange(onValueChange, multiple))
 
-		result.current('a')
+		result.current(value)
 
-		expect(onValueChange).toHaveBeenCalledWith('a')
-	})
-
-	it('forwards a cleared single selection through as null (§7.3)', () => {
-		// The value cascade already emits `null` on clear; single-select passes it
-		// straight to the consumer rather than converting here.
-		const onValueChange = vi.fn()
-
-		const { result } = renderHook(() => useSelectableValueChange(onValueChange, false))
-
-		result.current(null)
-
-		expect(onValueChange).toHaveBeenCalledWith(null)
+		expect(onValueChange).toHaveBeenCalledExactlyOnceWith(value)
 	})
 
 	it('suppresses the "cleared" event in multi-select mode', () => {
@@ -35,16 +37,6 @@ describe('useSelectableValueChange', () => {
 		result.current(null)
 
 		expect(onValueChange).not.toHaveBeenCalled()
-	})
-
-	it('forwards array values in multi-select mode', () => {
-		const onValueChange = vi.fn()
-
-		const { result } = renderHook(() => useSelectableValueChange(onValueChange, true))
-
-		result.current(['a', 'b'])
-
-		expect(onValueChange).toHaveBeenCalledWith(['a', 'b'])
 	})
 
 	it('is a no-op when the upstream callback is undefined', () => {
