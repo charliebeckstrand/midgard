@@ -4,6 +4,7 @@ import { Check, X } from 'lucide-react'
 import {
 	type MouseEvent,
 	type ReactNode,
+	type RefObject,
 	useEffect,
 	useEffectEvent,
 	useId,
@@ -12,8 +13,9 @@ import {
 	useState,
 } from 'react'
 import { Button } from '../../components/button'
+import { Control } from '../../components/control'
 import { Icon } from '../../components/icon'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { useGridCellEditing } from './context'
@@ -49,6 +51,12 @@ type GridCellEditorProps<T> = {
 	kind?: EditorKind
 	/** Whether the editor of this column of the new-row slot takes focus now. */
 	claimSlot?: (columnId: string | number) => boolean
+	/**
+	 * The display content of the cell. It holds the height that the cell has at
+	 * rest under the editor of a data cell, so the row keeps its height as it
+	 * opens. The new-row slot has none.
+	 */
+	rest?: ReactNode
 	/**
 	 * Reads the row that `validate` checks, at each render. The new-row slot
 	 * passes it, because its row is in the draft store, and a keystroke in one
@@ -223,6 +231,7 @@ export function GridCellEditor<T>({
 	held,
 	kind,
 	claimSlot,
+	rest,
 	readRow,
 }: GridCellEditorProps<T>) {
 	const intl = useIntl()
@@ -451,18 +460,86 @@ export function GridCellEditor<T>({
 	)
 
 	return (
-		<span ref={hostRef} className={cn(k.edit.host, error && k.edit.error.ring)}>
-			<span data-slot="grid-edit-slot" className={cn(k.edit.slot)}>
-				{body}
+		<GridEditHost
+			hostRef={hostRef}
+			newRow={newRow}
+			rest={rest}
+			error={error}
+			errorId={errorId}
+			label={label}
+			settle={settle}
+			onSettle={(outcome) => dataKey !== null && endSession(dataKey, outcome)}
+		>
+			{body}
+		</GridEditHost>
+	)
+}
+
+/**
+ * The host of {@link GridCellEditor}: the editor, and below the cell its settle
+ * controls and its error message. A data cell draws the frame and the focus
+ * ring of its editor (`k.edit.cell`), so the editor takes the `bare` surface and
+ * the full width of the cell. The display content stays under the editor, out
+ * of sight, and holds the height of the cell. The new-row slot has no cursor
+ * ring, so its editors keep their frame. @internal
+ */
+function GridEditHost({
+	hostRef,
+	newRow,
+	rest,
+	error,
+	errorId,
+	label,
+	settle,
+	onSettle,
+	children,
+}: {
+	hostRef: RefObject<HTMLSpanElement | null>
+	newRow: boolean
+	rest: ReactNode
+	error: string | null
+	errorId: string
+	label: string
+	settle: SettleControls
+	onSettle: (outcome: 'save' | 'discard') => void
+	children: ReactNode
+}) {
+	const message = error && <GridEditMessage id={errorId}>{error}</GridEditMessage>
+
+	if (newRow) {
+		return (
+			<span ref={hostRef} className={cn(k.edit.host, error && k.edit.error.ring)}>
+				<span data-slot="grid-edit-slot" className={cn(k.edit.slot)}>
+					{children}
+				</span>
+
+				{message && <span className={cn(k.edit.below)}>{message}</span>}
+			</span>
+		)
+	}
+
+	return (
+		<span
+			ref={hostRef}
+			data-slot="grid-edit-host"
+			data-invalid={dataAttr(error !== null)}
+			className={cn(k.edit.host)}
+		>
+			<span aria-hidden inert className={cn(k.edit.rest)}>
+				{rest}
 			</span>
 
-			<GridSettleControls
-				label={label}
-				controls={settle}
-				settle={(outcome) => dataKey !== null && endSession(dataKey, outcome)}
-			/>
+			<span data-slot="grid-edit-slot" className={cn(k.edit.slot)}>
+				<Control variant="bare">{children}</Control>
+			</span>
 
-			{error && <GridEditMessage id={errorId}>{error}</GridEditMessage>}
+			{(settle !== 'none' || message) && (
+				<span className={cn(k.edit.below)}>
+					<GridSettleControls label={label} controls={settle} settle={onSettle} />
+
+					{message}
+				</span>
+			)}
 		</span>
 	)
 }

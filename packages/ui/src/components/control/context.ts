@@ -2,8 +2,14 @@
 
 import { createContext, type Severity } from '../../core'
 
-/** Visual treatment shared across a Control's fields: `default` (filled) or `outline`. */
-export type ControlVariant = 'default' | 'outline'
+/**
+ * The surface that a Control's fields share: `default` (filled), `outline` (a
+ * border with no fill), or `bare`. A `bare` field draws no border, no fill,
+ * and no focus ring, and it takes no padding, so its text sits at the edge of
+ * its box. Put it only in a host that draws the frame and the focus ring
+ * around it, as a Grid cell does around its editor.
+ */
+export type ControlVariant = 'default' | 'outline' | 'bare'
 
 /** Control-level validation / status severity broadcast by `<Control severity>` / `<Field severity>`: an `error`, `warning`, or `success`. */
 export type ControlSeverity = Severity

@@ -69,6 +69,19 @@ function editorsIn(container: HTMLElement) {
 }
 
 /**
+ * Checks the display calls of a session move from the name cell to the count
+ * cell of the first row: at most one from each of the two cells, and none from
+ * another cell.
+ */
+function expectTwoCellRenders(calls: [SessionRow, 'name' | 'count'][]) {
+	for (const call of calls) expect(call[0]).toBe(sessionRows[0])
+
+	expect(calls.filter(([, col]) => col === 'name').length).toBeLessThanOrEqual(1)
+
+	expect(calls.filter(([, col]) => col === 'count').length).toBeLessThanOrEqual(1)
+}
+
+/**
  * Renders a grid over the spies the grid-owned suites assert on. `editable`
  * takes the scope under test and any per-case binding, and spreads last, so a
  * case can hand back the session by passing `session: 'manual'`. `cols` takes
@@ -1273,15 +1286,14 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		fireEvent.doubleClick(cell('count'))
 
-		// The cell the session left reads again, and the one it entered mounts an
-		// editor, which calls no display renderer. Every other cell keeps its
-		// render: the session's cell rides a store each cell subscribes to, not
-		// the context the whole window reads. Under the React Compiler, the cell
-		// that the session left can reuse the display it rendered before the edit.
-		// So the check allows at most one call, and only from that cell.
-		for (const call of display.mock.calls) expect(call).toEqual([sessionRows[0], 'name'])
-
-		expect(display.mock.calls.length).toBeLessThanOrEqual(1)
+		// The cell the session left reads again, and the one it entered renders
+		// its display once, under its editor, to hold the height of the cell.
+		// Every other cell keeps its render: the session's cell rides a store each
+		// cell subscribes to, not the context the whole window reads. Under the
+		// React Compiler, the cell that the session left can reuse the display it
+		// rendered before the edit. So the check allows at most one call from
+		// each of the two cells, and none from another.
+		expectTwoCellRenders(display.mock.calls)
 
 		expect(cell('name')).toHaveTextContent('Alice')
 
@@ -2792,11 +2804,11 @@ describe('Grid active-cell binding', () => {
 		fireEvent.doubleClick(present(cells[1], 'the count cell'))
 
 		// The consumer's render reaches the grid, but the cells read the session's
-		// cell from the store, so only the cell the move left reads again. Under the
-		// React Compiler, that cell can reuse the display it rendered before the edit.
-		for (const call of display.mock.calls) expect(call).toEqual([sessionRows[0], 'name'])
-
-		expect(display.mock.calls.length).toBeLessThanOrEqual(1)
+		// cell from the store, so only the two cells of the move render: the cell
+		// the move left, and the display under the editor of the cell it entered.
+		// Under the React Compiler, the cell the move left can reuse the display it
+		// rendered before the edit.
+		expectTwoCellRenders(display.mock.calls)
 
 		const left = present(cells[0], 'the name cell')
 

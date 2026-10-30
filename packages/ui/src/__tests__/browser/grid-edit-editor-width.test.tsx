@@ -9,8 +9,8 @@ import { getSlot, present, renderUI, screen, waitFor } from '../helpers'
 /**
  * The editor slot stretches the editor to the width of its cell. An `editCell`
  * control that sets no width fills the cell, as an inferred editor does. The
- * settle pair and the validation message keep their own widths. Real browser,
- * because the widths need a layout engine.
+ * settle pair and the validation message keep their own widths, below the
+ * cell. Real browser, because the widths need a layout engine.
  */
 describe('grid editor width (real browser)', () => {
 	type Row = { id: number; name: string; role: string; due: string; budget: number }
@@ -114,7 +114,7 @@ describe('grid editor width (real browser)', () => {
 		}
 	})
 
-	it('keeps the settle pair and the validation message at their own widths', async () => {
+	it('puts the settle pair below the cell, out of the width of the editor', async () => {
 		const { container } = renderUI(
 			<Grid
 				columns={columns}
@@ -126,7 +126,9 @@ describe('grid editor width (real browser)', () => {
 
 		await userEvent.dblClick(getCell(container, 'name'))
 
-		const slot = await waitFor(() => getSlot(getCell(container, 'name'), 'grid-edit-slot'))
+		const cell = getCell(container, 'name')
+
+		const slot = await waitFor(() => getSlot(cell, 'grid-edit-slot'))
 
 		const host = present<HTMLElement>(slot.parentElement, 'the editor host')
 
@@ -136,16 +138,22 @@ describe('grid editor width (real browser)', () => {
 
 		const pairBox = pair.getBoundingClientRect()
 
-		const slotBox = slot.getBoundingClientRect()
+		const cellBox = cell.getBoundingClientRect()
 
-		// The pair keeps the width of its two buttons, and the editor stops at it.
+		// The pair keeps the width of its two buttons. It hangs below the cell at
+		// its end edge, so the editor keeps the full width of the host.
 		expect(pairBox.width).toBeLessThan(100)
 
-		expect(slotBox.right).toBeLessThanOrEqual(pairBox.left + 1)
+		expect(pairBox.top).toBeCloseTo(cellBox.bottom, 0)
 
-		expect(pairBox.right).toBeLessThanOrEqual(host.getBoundingClientRect().right + 1)
+		expect(pairBox.right).toBeCloseTo(cellBox.right, 0)
 
-		expect(editorBox(slot).getBoundingClientRect().width).toBeCloseTo(slotBox.width, 0)
+		expect(slot.getBoundingClientRect().width).toBeCloseTo(host.getBoundingClientRect().width, 0)
+
+		expect(editorBox(slot).getBoundingClientRect().width).toBeCloseTo(
+			slot.getBoundingClientRect().width,
+			0,
+		)
 
 		await userEvent.keyboard('{ControlOrMeta>}a{/ControlOrMeta}bad')
 
@@ -154,6 +162,14 @@ describe('grid editor width (real browser)', () => {
 		// The message keeps the width of its text, and does not take the width of the cell.
 		expect(message.getBoundingClientRect().width).toBeLessThan(
 			host.getBoundingClientRect().width / 2,
+		)
+
+		// The message starts at the start edge of the cell, below the pair. The
+		// message scrolls into view as it mounts, so the boxes are read again.
+		expect(message.getBoundingClientRect().left).toBeCloseTo(cell.getBoundingClientRect().left, 0)
+
+		expect(message.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+			pair.getBoundingClientRect().bottom,
 		)
 	})
 })

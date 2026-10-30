@@ -4,7 +4,7 @@ import { type DensityStep, stepDown } from '../../core/density'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as button } from '../../recipes/kata/button'
 import { affix } from '../../recipes/kumi/control/affix'
-import { density } from '../../recipes/kumi/control/density'
+import { density, inset } from '../../recipes/kumi/control/density'
 import { findBarePad, findSteps, findStop } from '../helpers/class-stops'
 
 // Affix `data-slot` compensation invariant.
@@ -35,14 +35,14 @@ import { findBarePad, findSteps, findStop } from '../helpers/class-stops'
 // host is `xs` too (no step is below `xs`), so it takes the values of the
 // slot of an `sm` host.
 /** The fragments of the control group that the invariant reads. */
-const control = { affix, density }
+const control = { affix, density, inset }
 
 const STEPS = ['sm', 'md', 'lg', 'xl'] as const satisfies readonly DensityStep[]
 
 const CHIP_INSET = 0.5
 
-/** The `px` of a control at `step`, from the stepped density axis. */
-const hostPxAt = (step: DensityStep) => Number(findSteps(control.density, 'density-px-ring-')[step])
+/** The `px` of a control at `step`, from the inset of the field. */
+const hostPxAt = (step: DensityStep) => Number(findSteps(control.inset, 'density-px-ring-')[step])
 
 /** The value of a stepped affix class for a control at `step`, read at the slot step. */
 const affixAt = (classes: readonly unknown[], prefix: string, step: DensityStep) =>

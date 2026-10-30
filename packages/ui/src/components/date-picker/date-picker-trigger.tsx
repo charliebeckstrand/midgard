@@ -6,11 +6,11 @@ import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useTruncation } from '../../hooks'
 import { SelectTrigger } from '../../primitives/select-trigger'
-import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Button } from '../button'
+import { useControlTriggerSurface } from '../control/use-control-trigger-surface'
 import { Icon } from '../icon'
 import { SelectionClearButton } from '../input/input-clear-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -115,10 +115,7 @@ export function DatePickerTrigger({
 		onClear,
 	} = state
 
-	const glass = useGlass()
-
-	// A trigger in a glass overlay paints no fill, so it takes the `outline` surface.
-	const slots = k({ variant: glass ? 'outline' : 'default' })
+	const slots = k({ variant: useControlTriggerSurface() })
 
 	const [valueRef, truncated] = useTruncation<HTMLSpanElement>()
 

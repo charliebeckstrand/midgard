@@ -27,9 +27,10 @@ import { useInputControl } from './use-input-control'
 export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	size?: ScaleStep<typeof scale>
 	/**
-	 * The surface of the control: `default` fills it, and `outline` draws a border
-	 * with no fill. When the prop is unset, the input takes the variant of the
-	 * enclosing Control. Without one, it takes the glass surface in a GlassProvider.
+	 * The surface of the control: `default` fills it, `outline` draws a border
+	 * with no fill, and `bare` draws neither ({@link ControlVariant}). When the
+	 * prop is unset, the input takes the variant of the enclosing Control.
+	 * Without one, it takes the glass surface in a GlassProvider.
 	 * @defaultValue 'default'
 	 */
 	variant?: ControlVariant

@@ -180,32 +180,35 @@ describe('grid cell editor in a right-to-left grid (real browser)', () => {
 			present(container.querySelector<HTMLElement>('[role="alert"]'), 'the error message'),
 		)
 
-		const host = present(message.parentElement, 'the editor host')
-
-		return { input, message, host }
-	}
-
-	it('spaces the settle pair from the editor at its inline start', async () => {
-		const { input, message, host } = await openInvalidEditor()
-
-		// The settle pair follows the editor, so it sits to its left.
-		const settle = present(
-			Array.from(host.children).find(
-				(child) => child !== message && child.querySelector('button') !== null,
-			) as HTMLElement | undefined,
-			'the settle pair',
+		const cell = present(
+			container.querySelector<HTMLElement>('td[data-grid-col="name"]'),
+			'the name cell',
 		)
 
-		const gap = input.getBoundingClientRect().left - settle.getBoundingClientRect().right
+		return { message, cell }
+	}
 
-		expect(gap).toBeGreaterThanOrEqual(3)
+	it('hangs the settle pair below the cell at its inline end', async () => {
+		const { cell } = await openInvalidEditor()
+
+		const save = present(
+			cell.querySelector<HTMLElement>('button[aria-label^="Save"]'),
+			'the save button',
+		)
+
+		const settle = present(save.parentElement, 'the settle pair')
+
+		// The inline end of a right-to-left cell is its left edge.
+		expect(settle.getBoundingClientRect().left).toBeNear(cell.getBoundingClientRect().left, PIXEL)
+
+		expect(settle.getBoundingClientRect().top).toBeNear(cell.getBoundingClientRect().bottom, PIXEL)
 	})
 
-	it('hangs the error message from the inline start of the editor', async () => {
-		const { message, host } = await openInvalidEditor()
+	it('hangs the error message from the inline start of the cell', async () => {
+		const { message, cell } = await openInvalidEditor()
 
 		expect(message.getBoundingClientRect().right).toBeNear(
-			host.getBoundingClientRect().right,
+			cell.getBoundingClientRect().right,
 			PIXEL,
 		)
 	})
