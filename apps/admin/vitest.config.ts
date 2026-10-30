@@ -6,7 +6,8 @@ import { sharedTest } from '../../vitest.shared.mts'
  *
  * A test renders the chrome of the app, so the environment is jsdom. The
  * tsconfig of Next.js keeps JSX as it is, for Next.js to compile, so the
- * transform compiles JSX here.
+ * transform compiles JSX here. The setup file stubs the browser APIs that
+ * jsdom does not have.
  */
 export default defineConfig({
 	oxc: { jsx: { runtime: 'automatic' } },
@@ -14,5 +15,6 @@ export default defineConfig({
 		...sharedTest,
 		include: ['src/__tests__/**/*.test.{ts,tsx}'],
 		environment: 'jsdom',
+		setupFiles: ['./src/__tests__/setup.ts'],
 	},
 })
