@@ -278,6 +278,32 @@ describe('Resizable: keyboard', () => {
 
 		expect(onSizesChange).not.toHaveBeenCalled()
 	})
+
+	// A chord such as Alt+ArrowLeft (history back) is for the browser.
+	it.each([
+		['Alt+ArrowLeft', 'ArrowLeft', { altKey: true }],
+		['Ctrl+Home', 'Home', { ctrlKey: true }],
+		['Cmd+ArrowRight', 'ArrowRight', { metaKey: true }],
+	])('ignores %s and keeps its default', (_name, key, modifier) => {
+		const onSizesChange = vi.fn()
+
+		const { container } = renderUI(
+			<ResizableGroup onSizesChange={onSizesChange}>
+				<ResizablePanel defaultSize={50}>A</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel defaultSize={50}>B</ResizablePanel>
+			</ResizableGroup>,
+		)
+
+		const proceeded = fireEvent.keyDown(getSlot(container, 'resizable-handle'), {
+			key,
+			...modifier,
+		})
+
+		expect(proceeded).toBe(true)
+
+		expect(onSizesChange).not.toHaveBeenCalled()
+	})
 })
 
 describe('Resizable: drag', () => {

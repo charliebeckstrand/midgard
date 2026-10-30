@@ -7,6 +7,7 @@ import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Splitter } from '../../primitives/splitter/splitter'
 import { k } from '../../recipes/kata/resizable'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { useResizable, useResizableIndex } from './context'
 import { pairRange } from './use-resizable-panel'
 
@@ -61,7 +62,8 @@ function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): nu
  * Draggable divider between two {@link ResizablePanel}s. Renders a focusable
  * `<hr>`, a separator whose `aria-orientation` is perpendicular to the group
  * axis. A drag or the arrow keys adjust the adjacent panel within its min and
- * max bounds. Shift takes a larger step, and Home/End reach the extremes. In a
+ * max bounds. Shift takes a larger step, and Home/End reach the extremes. A key
+ * with Ctrl, Meta, or Alt is for the browser, so it keeps its default. In a
  * right-to-left group the panels start on the right, so the horizontal arrows
  * and the drag mirror: ArrowLeft and a move to the left grow the panel before
  * the handle. `aria-valuemin` and `aria-valuemax` give the range that this
@@ -95,6 +97,8 @@ export function ResizableHandle({
 
 	const onKeyDown = useCallback(
 		(event: KeyboardEvent) => {
+			if (hasBrowserModifier(event)) return
+
 			const step = event.shiftKey ? 10 : 5
 
 			// In a right-to-left group the first panel is on the right, so the

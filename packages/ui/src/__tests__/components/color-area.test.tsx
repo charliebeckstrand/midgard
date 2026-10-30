@@ -57,6 +57,23 @@ describe('ColorArea', () => {
 		expect(brightness()).toBe(50)
 	})
 
+	// A chord such as Alt+ArrowLeft (history back) is for the browser.
+	it.each([
+		['Alt+ArrowLeft', 'ArrowLeft', { altKey: true }],
+		['Ctrl+Home', 'Home', { ctrlKey: true }],
+		['Cmd+ArrowUp', 'ArrowUp', { metaKey: true }],
+	])('ignores %s and keeps its default', (_name, key, modifier) => {
+		const { area, onValueChange } = setup()
+
+		const proceeded = fireEvent.keyDown(area, { key, ...modifier })
+
+		expect(proceeded).toBe(true)
+
+		expect(area).toHaveAttribute('aria-valuenow', '50')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
 	it('takes a step of 10 with Shift', () => {
 		const { area, brightness } = setup()
 

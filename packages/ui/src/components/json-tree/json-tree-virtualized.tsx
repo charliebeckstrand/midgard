@@ -16,6 +16,7 @@ import { cn } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
 import { nextIndexForKey } from '../../utilities'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT, TREE_ITEM_SELECTOR } from './json-tree-constants'
 import {
 	flatTreeMoveTarget,
@@ -389,12 +390,15 @@ export function JsonTreeVirtualized({
 			// A branch row that opened or closed itself has handled the key.
 			if (event.defaultPrevented) return
 
-			// Focus parked on the container moves from the stored row.
-			const target = container
-				? (parkedKeyTarget(container, event.key, focusedIndexRef.current, focusable) ??
-					treeMoveIndex(container, event, flatNodes) ??
-					offWindowTarget(container, event.key, focusable))
-				: null
+			// Focus parked on the container moves from the stored row. A key with Ctrl,
+			// Meta, or Alt is for the browser, so it goes to the roving handler, which
+			// leaves it alone.
+			const target =
+				container && !hasBrowserModifier(event)
+					? (parkedKeyTarget(container, event.key, focusedIndexRef.current, focusable) ??
+						treeMoveIndex(container, event, flatNodes) ??
+						offWindowTarget(container, event.key, focusable))
+					: null
 
 			if (container === null || target === null) {
 				onKeyDown(event)

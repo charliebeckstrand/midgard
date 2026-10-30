@@ -237,6 +237,33 @@ describe('Grid resizable columns', () => {
 		expect(onValueChange).toHaveBeenLastCalledWith({ name: 200 })
 	})
 
+	// A chord such as Alt+ArrowLeft (history back) is for the browser.
+	it.each([
+		['Alt+ArrowLeft', 'ArrowLeft', { altKey: true }],
+		['Ctrl+End', 'End', { ctrlKey: true }],
+		['Cmd+ArrowRight', 'ArrowRight', { metaKey: true }],
+	])('ignores %s and keeps its default', (_name, key, modifier) => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ onValueChange }}
+			/>,
+		)
+
+		const handle = screen.getByRole('separator', { name: 'Resize Name' })
+
+		const proceeded = fireEvent.keyDown(handle, { key, ...modifier })
+
+		expect(proceeded).toBe(true)
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
 	it('reflects controlled column widths on the header', () => {
 		renderUI(
 			<Grid

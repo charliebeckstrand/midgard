@@ -99,8 +99,8 @@ function getCoordinateGetter(context: ReturnType<typeof renderDrag>['context']) 
 }
 
 /** Calls the getter for the key `code` from the origin. */
-function step(getter: KeyboardCoordinateGetter, code: string) {
-	return getter(new KeyboardEvent('keydown', { code }), {
+function step(getter: KeyboardCoordinateGetter, code: string, init: KeyboardEventInit = {}) {
+	return getter(new KeyboardEvent('keydown', { code, ...init }), {
 		currentCoordinates: { x: 0, y: 0 },
 	} as unknown as Parameters<KeyboardCoordinateGetter>[1])
 }
@@ -171,6 +171,19 @@ describe('useDashboardDrag', () => {
 			expect(step(getter, 'ArrowRight')).toEqual({ x: 50, y: 0 })
 
 			expect(step(getter, 'ArrowUp')).toEqual({ x: 0, y: -50 / ROW_SUBDIVISION })
+		})
+
+		// A chord such as Alt+ArrowLeft (history back) is for the browser.
+		it.each([
+			['Alt', { altKey: true }],
+			['Ctrl', { ctrlKey: true }],
+			['Cmd', { metaKey: true }],
+		])('gives no step for %s with an arrow', (_name, modifier) => {
+			const { context } = renderDrag(makeStore())
+
+			context.onDragStart?.(start('alpha'))
+
+			expect(step(getCoordinateGetter(context), 'ArrowLeft', modifier)).toBeUndefined()
 		})
 
 		it('steps back from the edge of the travel range after an overshoot', () => {

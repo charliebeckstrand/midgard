@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp, pct } from '../../utilities'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { colorMessages } from './color-messages'
 import { hsvaToHex } from './color-utilities'
 import { useColorPanelContext } from './context'
@@ -49,9 +50,10 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 	const drag = useColorDrag(ref, onPosition, disabled, 'pointer')
 
 	// The native keys step by `step` only, and the Page keys of a range input
-	// differ by browser. This handler keeps the Shift step and the Page step.
+	// differ by browser. This handler keeps the Shift step and the Page step. A key
+	// with Ctrl, Meta, or Alt goes to the browser, and the input keeps its native default.
 	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-		if (disabled) return
+		if (disabled || hasBrowserModifier(event)) return
 
 		// APG slider pattern: Page keys take the large step regardless of Shift.
 		const pageStep = isHue ? 10 : 0.1

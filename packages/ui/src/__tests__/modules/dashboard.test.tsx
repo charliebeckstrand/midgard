@@ -35,6 +35,7 @@ import {
 	deferred,
 	fireEvent,
 	nonEmpty,
+	present,
 	renderUI,
 	screen,
 	tick,
@@ -395,6 +396,29 @@ describe('Dashboard', () => {
 		expect(next.find((item) => item.id === 'c')).toEqual({ id: 'c', x: 0, y: 27, w: 9, h: 20 })
 
 		expect(next.find((item) => item.id === 'a')).toEqual({ id: 'a', x: 0, y: 0, w: 12 })
+	})
+
+	// A chord such as Alt+ArrowLeft (history back) is for the browser.
+	it.each([
+		['Alt+ArrowLeft', 'ArrowLeft', { altKey: true }],
+		['Ctrl+ArrowRight', 'ArrowRight', { ctrlKey: true }],
+		['Cmd+ArrowRight', 'ArrowRight', { metaKey: true }],
+	])('ignores %s on a splitter and keeps its default', (_name, key, modifier) => {
+		const onValueChange = vi.fn()
+
+		function Controlled() {
+			return <Board editing layout={useControlledLayout(LAYOUT, onValueChange)} />
+		}
+
+		renderUI(<Controlled />)
+
+		const [east] = screen.getAllByRole('separator', { name: 'Resize c' })
+
+		const proceeded = fireEvent.keyDown(present(east, 'east splitter of c'), { key, ...modifier })
+
+		expect(proceeded).toBe(true)
+
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('marks the grip and the card as held while a tile drags, so the grab hand closes', async () => {

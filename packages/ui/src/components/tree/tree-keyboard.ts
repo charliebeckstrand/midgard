@@ -1,5 +1,6 @@
 import type { KeyboardEvent } from 'react'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { ITEM_SELECTOR } from './tree-constants'
 
 /**
@@ -8,7 +9,8 @@ import { ITEM_SELECTOR } from './tree-constants'
  * branch or a leaf moves to its parent. The open and the close of a branch are the
  * job of the branch row, see {@link branchToggleKey}.
  *
- * The arrows follow the reading order, so they swap in a right-to-left layout.
+ * The arrows follow the reading order, so they swap in a right-to-left layout. A key
+ * with Ctrl, Meta, or Alt is for the browser, such as its history, so it makes no move.
  *
  * @internal
  */
@@ -16,6 +18,8 @@ export function treeMoveForKey(
 	event: KeyboardEvent<HTMLElement>,
 	expanded: boolean,
 ): 'child' | 'parent' | null {
+	if (hasBrowserModifier(event)) return null
+
 	const key = logicalArrowKey(event.key, event.target)
 
 	if (key === 'ArrowRight' && expanded) return 'child'
@@ -28,11 +32,14 @@ export function treeMoveForKey(
 /**
  * Whether a key press on a branch row opens or closes it: `ArrowRight` opens a
  * closed branch and `ArrowLeft` closes an open one. The arrows follow the
- * reading order, so they swap in a right-to-left layout.
+ * reading order, so they swap in a right-to-left layout. A key with Ctrl, Meta,
+ * or Alt is for the browser, so it opens and closes nothing.
  *
  * @internal
  */
 export function branchToggleKey(event: KeyboardEvent<HTMLElement>, open: boolean): boolean {
+	if (hasBrowserModifier(event)) return false
+
 	const key = logicalArrowKey(event.key, event.currentTarget)
 
 	return open ? key === 'ArrowLeft' : key === 'ArrowRight'
