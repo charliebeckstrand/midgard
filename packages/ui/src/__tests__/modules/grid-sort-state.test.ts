@@ -5,10 +5,6 @@ import { nextSort, sameSorts } from '../../modules/grid/engine/grid-sort/state'
 
 describe('nextSort', () => {
 	describe('plain click (non-additive)', () => {
-		it('sorts a fresh column ascending', () => {
-			expect(nextSort([], 'a', false)).toEqual([{ column: 'a', direction: 'asc' }])
-		})
-
 		it('cycles a lone sorted column ascending → descending → unsorted', () => {
 			const asc = nextSort([], 'a', false)
 

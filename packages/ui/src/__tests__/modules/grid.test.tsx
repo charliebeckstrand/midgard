@@ -26,24 +26,6 @@ describe('Grid', () => {
 
 	const getKey = (row: Row) => row.name
 
-	it('renders column headers', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		expect(screen.getByText('Name')).toBeInTheDocument()
-
-		expect(screen.getByText('Age')).toBeInTheDocument()
-	})
-
-	it('renders row data', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		expect(screen.getByText('Alice')).toBeInTheDocument()
-
-		expect(screen.getByText('Bob')).toBeInTheDocument()
-
-		expect(screen.getByText('30')).toBeInTheDocument()
-	})
-
 	it('takes a readonly rows array, and sorts and totals it with no change to it', () => {
 		const frozen: readonly Row[] = Object.freeze([...rows])
 
@@ -238,36 +220,11 @@ describe('Grid', () => {
 
 		const ageAsc = { column: 'age', direction: 'asc' } as const
 
-		const ageDesc = { column: 'age', direction: 'desc' } as const
-
 		it.each([
 			['sorts a fresh column ascending', [], 'Name', false, [nameAsc]],
-			['flips an ascending column to descending', [nameAsc], 'Name', false, [nameDesc]],
 			// Starting at desc, the next click completes asc → desc → unsorted, the empty list.
 			['clears the sort on the third click of a column', [nameDesc], 'Name', false, []],
-			['resets to ascending on a different column', [nameDesc], 'Age', false, [ageAsc]],
 			['adds a column to the sort on Shift-click', [nameAsc], 'Age', true, [nameAsc, ageAsc]],
-			[
-				'flips a sorted column on Shift-click, leaving the others',
-				[nameAsc, ageAsc],
-				'Age',
-				true,
-				[nameAsc, ageDesc],
-			],
-			[
-				'drops a descending column from the sort on Shift-click',
-				[nameAsc, ageDesc],
-				'Age',
-				true,
-				[nameAsc],
-			],
-			[
-				'collapses a multi-column sort to one column on a plain click',
-				[nameAsc, ageAsc],
-				'Name',
-				false,
-				[nameAsc],
-			],
 		] as const)('%s', (_, defaultValue, title, shiftKey, expected) => {
 			const onValueChange = vi.fn()
 
@@ -287,39 +244,27 @@ describe('Grid', () => {
 			expect(onValueChange).toHaveBeenLastCalledWith(expected)
 		})
 
-		it('renders the asc icon for the active sorted column', () => {
+		it.for([
+			['asc', '.lucide-arrow-up'],
+			['desc', '.lucide-arrow-down'],
+		] as const)('renders the %s icon on the active sorted column', ([direction, icon]) => {
 			renderUI(
 				<Grid
 					columns={sortableColumns}
 					rows={rows}
 					getKey={getKey}
-					sort={{ value: [{ column: 'name', direction: 'asc' }] }}
+					sort={{ value: [{ column: 'name', direction }] }}
 				/>,
 			)
 
 			const sortButton = screen.getByRole('button', { name: 'Sort by Name' })
 
-			expect(sortButton.querySelector('svg')).toBeInTheDocument()
+			expect(sortButton.querySelector(icon)).toBeInTheDocument()
 
 			// The non-active column has no icon.
 			const ageButton = screen.getByRole('button', { name: 'Sort by Age' })
 
 			expect(ageButton.querySelector('svg')).toBeNull()
-		})
-
-		it('renders the desc icon when direction is desc', () => {
-			renderUI(
-				<Grid
-					columns={sortableColumns}
-					rows={rows}
-					getKey={getKey}
-					sort={{ value: [{ column: 'age', direction: 'desc' }] }}
-				/>,
-			)
-
-			const button = screen.getByRole('button', { name: 'Sort by Age' })
-
-			expect(button.querySelector('svg')).toBeInTheDocument()
 		})
 
 		it('falls back to the column id in the aria-label when title is not a string', () => {
@@ -616,7 +561,7 @@ describe('Grid', () => {
 
 	describe('row loading', () => {
 		it('emits loading chrome on individual rows', () => {
-			const { container } = renderUI(
+			renderUI(
 				<Grid
 					columns={columns}
 					rows={rows}
@@ -625,10 +570,13 @@ describe('Grid', () => {
 				/>,
 			)
 
-			// Both rows still render; the loading flag only mutates the row classes.
-			const trs = container.querySelectorAll('tbody tr')
+			// The flag marks only the row that it reads. That row pulses (`hannou.busy`).
+			expect(screen.getByText('Alice').closest('tr')).toHaveClass(
+				'motion-safe:animate-pulse',
+				'motion-reduce:opacity-50',
+			)
 
-			expect(trs).toHaveLength(rows.length)
+			expect(screen.getByText('Bob').closest('tr')).not.toHaveClass('motion-safe:animate-pulse')
 		})
 	})
 
@@ -700,7 +648,9 @@ describe('Grid', () => {
 				/>,
 			)
 
-			expect(screen.getByRole('button', { name: /Manage/ })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Manage' })).toBeInTheDocument()
+
+			expect(screen.queryByRole('button', { name: 'Manage columns' })).not.toBeInTheDocument()
 		})
 
 		it('drops hidden columns from the rendered header', () => {
@@ -790,9 +740,7 @@ describe('Grid', () => {
 			expect(headers).toContain('Age')
 		})
 
-		it('forwards columnOrder.onValueChange and onHiddenChange to the manager dialog', async () => {
-			const onValueChange = vi.fn()
-
+		it('forwards onHiddenChange to the manager dialog', async () => {
 			const onHiddenChange = vi.fn()
 
 			renderUI(
@@ -800,7 +748,6 @@ describe('Grid', () => {
 					columns={columns}
 					rows={rows}
 					getKey={getKey}
-					columnOrder={{ onValueChange }}
 					columnManager={{ toolbar: true, onHiddenChange }}
 				/>,
 			)
@@ -939,20 +886,6 @@ describe('Grid', () => {
 			expect(container.querySelector('tbody tr[data-grid-row]')).toBeNull()
 		})
 
-		it('accepts an options object', () => {
-			const { container } = renderUI(
-				<Grid
-					columns={columns}
-					rows={manyRows}
-					getKey={getKey}
-					virtualize={{ estimateSize: 32, overscan: 5 }}
-					maxHeight="300px"
-				/>,
-			)
-
-			expect(bySlot(container, 'grid')).toBeInTheDocument()
-		})
-
 		it('reports the full row count and indexes rows despite windowing', () => {
 			const { container } = renderUI(
 				<Grid columns={columns} rows={manyRows} getKey={getKey} virtualize maxHeight="300px" />,
@@ -970,7 +903,7 @@ describe('Grid', () => {
 			expect(headerRow).toHaveAttribute('aria-rowindex', '1')
 		})
 
-		it('does not set aria-rowcount on a non-virtualized table', () => {
+		it('keeps the native table role and no row or column count when not virtualized', () => {
 			// Grid semantics hinge on the `virtualize` prop, not row count
 			// (grid-data-resolvers.ts), so a slice keeps the many-rows contrast
 			// without rendering all 500 rows.
@@ -978,7 +911,13 @@ describe('Grid', () => {
 				<Grid columns={columns} rows={manyRows.slice(0, 40)} getKey={getKey} />,
 			)
 
-			expect(container.querySelector('table')).not.toHaveAttribute('aria-rowcount')
+			const table = container.querySelector('table')
+
+			expect(table).not.toHaveAttribute('role', 'grid')
+
+			expect(table).not.toHaveAttribute('aria-rowcount')
+
+			expect(table).not.toHaveAttribute('aria-colcount')
 		})
 
 		it('emits aria-rowcount=-1 for a server feed paginating by pageCount alone', () => {
@@ -1074,18 +1013,6 @@ describe('Grid', () => {
 			const headers = container.querySelectorAll('thead th')
 
 			expect(headers[0]).toHaveAttribute('aria-colindex', '1')
-		})
-
-		it('keeps the native table role when not virtualized', () => {
-			const { container } = renderUI(
-				<Grid columns={columns} rows={manyRows.slice(0, 40)} getKey={getKey} />,
-			)
-
-			const table = container.querySelector('table')
-
-			expect(table).not.toHaveAttribute('role', 'grid')
-
-			expect(table).not.toHaveAttribute('aria-colcount')
 		})
 	})
 

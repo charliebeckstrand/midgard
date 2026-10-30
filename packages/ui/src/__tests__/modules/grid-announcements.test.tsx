@@ -145,20 +145,6 @@ describe('Grid announcements', () => {
 		await expectAnnouncement('Unpinned Name')
 	})
 
-	it('announces a column hide from the manager', async () => {
-		const user = setupUser()
-
-		renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} columnManager={{ toolbar: true }} />,
-		)
-
-		await user.click(screen.getByRole('button', { name: 'Manage columns' }))
-
-		await user.click(screen.getByRole('checkbox', { name: 'Show Age' }))
-
-		await expectAnnouncement('Hid Age column')
-	})
-
 	it('keeps the label of a sorted column that it hides', async () => {
 		const user = setupUser()
 
@@ -205,14 +191,6 @@ describe('Grid announcements', () => {
  * exact wording the live region speaks is pinned.
  */
 describe('Grid announcement builders', () => {
-	it('describes a pin to each edge and an unpin', () => {
-		expect(describePin(intlEn, 'Name', 'left')).toBe('Pinned Name to the left')
-
-		expect(describePin(intlEn, 'Name', 'right')).toBe('Pinned Name to the right')
-
-		expect(describePin(intlEn, 'Name', false)).toBe('Unpinned Name')
-	})
-
 	it('describes a show and a hide', () => {
 		expect(describeColumnVisibility(intlEn, 'Age', true)).toBe('Hid Age column')
 

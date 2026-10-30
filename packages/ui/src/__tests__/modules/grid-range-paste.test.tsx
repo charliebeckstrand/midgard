@@ -1,13 +1,9 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import {
-	Grid,
-	type GridCellChange,
-	type GridColumn,
-	type GridEditableConfig,
-} from '../../modules/grid'
+import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
 import {
 	act,
+	applyChanges,
 	expectAnnouncement,
 	fireEvent,
 	getSlot,
@@ -30,20 +26,6 @@ const columns: GridColumn<Row>[] = [
 	{ id: 'active', title: 'Active', field: 'active', cell: (row) => (row.active ? 'Yes' : 'No') },
 	{ id: 'code', title: 'Code', field: 'code', readOnly: true, cell: (row) => row.code },
 ]
-
-/** Writes each change into a copy of its row. */
-function applyChanges(current: Row[], changes: GridCellChange[]): Row[] {
-	return current.map((row) => {
-		const mine = changes.filter((change) => change.rowKey === row.id)
-
-		if (mine.length === 0) return row
-
-		return Object.assign(
-			{ ...row },
-			Object.fromEntries(mine.map((change) => [change.columnId, change.value])),
-		)
-	})
-}
 
 function renderPasteGrid(
 	props: {

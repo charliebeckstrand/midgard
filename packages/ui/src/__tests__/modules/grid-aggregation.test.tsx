@@ -60,6 +60,31 @@ function rowByText(text: string): HTMLElement | null {
 	return screen.getByText(text).closest('tr')
 }
 
+/**
+ * Renders the sales grouped by region, with a total row under each group. It
+ * gives the first group total and a step that collapses the West group.
+ */
+function renderTotaled() {
+	const user = setupUser()
+
+	const { container } = renderUI(
+		<Grid
+			columns={columns}
+			rows={sales}
+			getKey={getKey}
+			groupBy={{ value: 'region' }}
+			groupTotalRow
+		/>,
+	)
+
+	return {
+		container,
+		groupTotal: () => container.querySelector<HTMLElement>('[data-total-row="group"]'),
+		collapseWest: () =>
+			user.click(screen.getByRole('button', { name: /^West \(/, expanded: true })),
+	}
+}
+
 describe('grid aggregation core', () => {
 	it('reduces the built-in functions over a column, skipping non-numeric entries', () => {
 		const rows = [{ n: 10 }, { n: 20 }, { n: 'x' }, { n: 30 }]
@@ -285,15 +310,7 @@ describe('Grid aggregation rendering', () => {
 	})
 
 	it('appends a per-group total row under each group when groupTotalRow is set', () => {
-		const { container } = renderUI(
-			<Grid
-				columns={columns}
-				rows={sales}
-				getKey={getKey}
-				groupBy={{ value: 'region' }}
-				groupTotalRow
-			/>,
-		)
+		const { container } = renderTotaled()
 
 		const totals = container.querySelectorAll('[data-total-row="group"]')
 
@@ -306,30 +323,18 @@ describe('Grid aggregation rendering', () => {
 	})
 
 	it('shows the figures of a totaled group on the header only while it is collapsed', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(
-			<Grid
-				columns={columns}
-				rows={sales}
-				getKey={getKey}
-				groupBy={{ value: 'region' }}
-				groupTotalRow
-			/>,
-		)
+		const { groupTotal, collapseWest } = renderTotaled()
 
 		const header = () => rowByText('West (2)')
 
-		const total = () => container.querySelector<HTMLElement>('[data-total-row="group"]')
-
 		// Expanded: the total row carries the figures, and the header keeps empty cells.
-		expect(total()?.textContent).toContain('$400')
+		expect(groupTotal()?.textContent).toContain('$400')
 
 		expect(header()?.textContent).not.toContain('$400')
 
 		expect(header()?.querySelector('[data-grid-col="revenue"]')).not.toBeNull()
 
-		await user.click(screen.getByRole('button', { name: /^West \(/, expanded: true }))
+		await collapseWest()
 
 		// Collapsed: the figures move up to the header.
 		expect(header()?.textContent).toContain('$400')
@@ -483,24 +488,11 @@ describe('Grid aggregation rendering', () => {
 	})
 
 	it('collapses a group total with its group', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(
-			<Grid
-				columns={columns}
-				rows={sales}
-				getKey={getKey}
-				groupBy={{ value: 'region' }}
-				groupTotalRow
-			/>,
-		)
-
-		const groupTotal = () =>
-			container.querySelector('[data-total-row="group"]') as HTMLElement | null
+		const { groupTotal, collapseWest } = renderTotaled()
 
 		expect(groupTotal()).not.toHaveAttribute('aria-hidden')
 
-		await user.click(screen.getByRole('button', { name: /^West \(/, expanded: true }))
+		await collapseWest()
 
 		// The West total collapses out of the accessibility tree with its leaves.
 		expect(groupTotal()).toHaveAttribute('aria-hidden', 'true')

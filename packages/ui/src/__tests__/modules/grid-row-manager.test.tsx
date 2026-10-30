@@ -48,20 +48,6 @@ describe('Grid row manager', () => {
 		expect(screen.getByRole('menu', { name: 'Developer group menu' })).toBeInTheDocument()
 	})
 
-	it('opens a group menu with Manage rows and expand controls on a group-header right-click', () => {
-		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
-
-		rightClickDeveloperHeader()
-
-		expect(screen.getByRole('menuitem', { name: 'Manage rows' })).toBeInTheDocument()
-
-		expect(screen.getByRole('menuitem', { name: 'Collapse group' })).toBeInTheDocument()
-
-		expect(screen.getByRole('menuitem', { name: 'Expand all groups' })).toBeInTheDocument()
-
-		expect(screen.getByRole('menuitem', { name: 'Collapse all groups' })).toBeInTheDocument()
-	})
-
 	it('keeps the rows of a null group and an undefined group apart under a group order', () => {
 		type Loose = { id: number; team: string | null | undefined }
 

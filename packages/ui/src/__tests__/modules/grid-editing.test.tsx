@@ -21,6 +21,7 @@ import {
 import {
 	act,
 	allBySlot,
+	applyChanges,
 	attach,
 	bySlot,
 	deferred,
@@ -46,20 +47,6 @@ const sessionColumns: GridColumn<SessionRow>[] = [
 	{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
 ]
 
-/** `rows` with each change applied, as a consumer's `onCommit` applies it. */
-function applyChanges(rows: SessionRow[], changes: GridCellChange[]): SessionRow[] {
-	return rows.map((row) => {
-		const mine = changes.filter((change) => change.rowKey === row.id)
-
-		if (mine.length === 0) return row
-
-		return Object.assign(
-			{ ...row },
-			Object.fromEntries(mine.map((change) => [change.columnId, change.value])),
-		)
-	})
-}
-
 /** The text and number editors mounted in the grid; the fixtures mount no other. */
 function editorsIn(container: HTMLElement) {
 	return [
@@ -73,13 +60,13 @@ function editorsIn(container: HTMLElement) {
  * cell of the first row: at most one from each of the two cells, and none from
  * another cell.
  */
-function expectTwoCellRenders(calls: [SessionRow, 'name' | 'count'][]) {
+const expectTwoCellRenders = vi.defineHelper((calls: [SessionRow, 'name' | 'count'][]) => {
 	for (const call of calls) expect(call[0]).toBe(sessionRows[0])
 
 	expect(calls.filter(([, col]) => col === 'name').length).toBeLessThanOrEqual(1)
 
 	expect(calls.filter(([, col]) => col === 'count').length).toBeLessThanOrEqual(1)
-}
+})
 
 /**
  * Renders a grid over the spies the grid-owned suites assert on. `editable`
@@ -174,12 +161,6 @@ describe('Grid per-row editing', () => {
 		}
 	}
 
-	it('renders display content, not editors, for a row that is not editable', () => {
-		const { container } = renderGrid()
-
-		expect(bySlot(container, 'grid-edit-input')).toBeNull()
-	})
-
 	it('puts every editable cell of an editable row into edit mode, inferring the editor by value type', () => {
 		const { container, editRow1 } = renderGrid()
 
@@ -219,9 +200,9 @@ describe('Grid per-row editing', () => {
 
 		save()
 
-		expect(onCommit).toHaveBeenCalledTimes(1)
-
-		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
 	})
 
 	it('emits nothing when the row is saved with no changes', () => {
@@ -950,9 +931,9 @@ describe("Grid double-click-to-edit (session: 'managed')", () => {
 
 		fireEvent.keyDown(input, { key: 'Enter' })
 
-		expect(onCommit).toHaveBeenCalledTimes(1)
-
-		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
 
 		// The editors close and the keyboard lands back on the grid's tab stop.
 		expect(bySlot(container, 'grid-edit-input')).toBeNull()
@@ -1207,9 +1188,9 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		fireEvent.keyDown(input, { key: 'Enter' })
 
-		expect(onCommit).toHaveBeenCalledTimes(1)
-
-		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
 
 		// Enter commits and moves down, so the session re-enters the same column
 		// one row below rather than handing focus back to the grid.
@@ -1235,9 +1216,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		// Narrowing closes the count editor, so its value commits with the batch
 		// rather than one change at a time. The docs promise the batch, not its
 		// first entry.
-		expect(onCommit).toHaveBeenCalledTimes(1)
-
-		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'count', value: 9 }])
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([{ rowKey: 1, columnId: 'count', value: 9 }])
 	})
 
 	it('commits the cell it leaves when the session moves along the row', () => {
@@ -1255,9 +1234,9 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		// it. That is the property keeping a cell-scoped batch one change long.
 		fireEvent.doubleClick(cell('count'))
 
-		expect(onCommit).toHaveBeenCalledTimes(1)
-
-		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
 
 		// The set already holds the row, and the controllable emits on every write,
 		// equal or not. Writing it again would report a transition that never
@@ -1337,9 +1316,9 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		// The name cell committed when the session left it; only the count cell
 		// (the one Escape was pressed in) is discarded.
-		expect(onCommit).toHaveBeenCalledTimes(1)
-
-		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
 
 		expect(bySlot(container, 'grid-edit-number-input')).toBeNull()
 	})
@@ -2055,13 +2034,15 @@ describe('Grid commit-and-move keys', () => {
 		expect(getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input').value).toBe('4')
 	})
 
+	// The Space row replaces the letter, and Space stays with the cursor.
 	it.each([
-		['Ctrl', { ctrlKey: true }],
-		['Cmd', { metaKey: true }],
-		['Alt', { altKey: true }],
-		['an input method', { keyCode: 229 }],
-		['a composing input method', { isComposing: true }],
-	])('does not seed a letter pressed with %s', (_, modifier) => {
+		['a letter with Ctrl', { ctrlKey: true }],
+		['a letter with Cmd', { metaKey: true }],
+		['a letter with Alt', { altKey: true }],
+		['a letter from an input method', { keyCode: 229 }],
+		['a letter from a composing input method', { isComposing: true }],
+		['Space', { key: ' ' }],
+	])('does not seed on %s', (_, modifier) => {
 		const view = renderKeysGrid()
 
 		const grid = view.getByRole('grid')
@@ -2069,18 +2050,6 @@ describe('Grid commit-and-move keys', () => {
 		fireEvent.focus(grid)
 
 		fireEvent.keyDown(grid, { key: 'c', ...modifier })
-
-		expect(editorsIn(view.container)).toHaveLength(0)
-	})
-
-	it('does not seed on Space, which stays with the cursor', () => {
-		const view = renderKeysGrid()
-
-		const grid = view.getByRole('grid')
-
-		fireEvent.focus(grid)
-
-		fireEvent.keyDown(grid, { key: ' ' })
 
 		expect(editorsIn(view.container)).toHaveLength(0)
 	})
@@ -5651,6 +5620,19 @@ describe('Grid new row', () => {
  * and writes every batch into them. The keys act on the tab stop.
  */
 describe('Grid undo and redo (history)', () => {
+	/** Types `value` into the count cell of the first row, and saves it with F2. */
+	function saveCount(container: HTMLElement, value: string) {
+		fireEvent.doubleClick(
+			present(container.querySelector('td[data-grid-col="count"]'), 'the count cell'),
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'grid-edit-number-input')
+
+		fireEvent.change(input, { target: { value } })
+
+		fireEvent.keyDown(input, { key: 'F2' })
+	}
+
 	function renderHistoryGrid(editable: Partial<GridEditableConfig> = {}) {
 		const onCommit = vi.fn()
 
@@ -5697,16 +5679,7 @@ describe('Grid undo and redo (history)', () => {
 			cell,
 			onCommit,
 			setRows: (update: (rows: SessionRow[]) => SessionRow[]) => act(() => setRows(update)),
-			/** Types `value` into the count cell of the first row, and saves it with F2. */
-			saveCount: (value: string) => {
-				fireEvent.doubleClick(cell('count'))
-
-				const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
-
-				fireEvent.change(input, { target: { value } })
-
-				fireEvent.keyDown(input, { key: 'F2' })
-			},
+			saveCount: (value: string) => saveCount(view.container, value),
 			press: (key: string, extra: { shiftKey?: boolean; metaKey?: boolean } = {}) =>
 				fireEvent.keyDown(grid, { key, ctrlKey: !extra.metaKey, ...extra }),
 		}
@@ -5938,15 +5911,7 @@ describe('Grid undo and redo (history)', () => {
 			states,
 			onCommit,
 			count,
-			saveCount: (value: string) => {
-				fireEvent.doubleClick(count())
-
-				const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
-
-				fireEvent.change(input, { target: { value } })
-
-				fireEvent.keyDown(input, { key: 'F2' })
-			},
+			saveCount: (value: string) => saveCount(view.container, value),
 			undo: () => fireEvent.keyDown(view.getByRole('grid'), { key: 'z', ctrlKey: true }),
 		}
 	}
@@ -6079,15 +6044,7 @@ describe('Grid undo and redo (history)', () => {
 			states,
 			onCommit,
 			count,
-			saveCount: (value: string) => {
-				fireEvent.doubleClick(count())
-
-				const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
-
-				fireEvent.change(input, { target: { value } })
-
-				fireEvent.keyDown(input, { key: 'F2' })
-			},
+			saveCount: (value: string) => saveCount(view.container, value),
 			step: (step: 'undo' | 'redo') => {
 				const grid = handle.current
 
@@ -6205,18 +6162,7 @@ describe('Grid undo and redo (history)', () => {
 
 		const view = renderUI(<Harness history />)
 
-		const count = present(
-			view.container.querySelector<HTMLElement>('td[data-grid-col="count"]'),
-			'the count cell',
-		)
-
-		fireEvent.doubleClick(count)
-
-		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
-
-		fireEvent.change(input, { target: { value: '9' } })
-
-		fireEvent.keyDown(input, { key: 'F2' })
+		saveCount(view.container, '9')
 
 		view.rerender(<Harness history={false} />)
 

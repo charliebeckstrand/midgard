@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
 import {
-	Grid,
-	type GridCellChange,
-	type GridColumn,
-	type GridEditableConfig,
-} from '../../modules/grid'
-import { act, expectAnnouncement, fireEvent, gridCells, renderUI, screen } from '../helpers'
+	act,
+	applyChanges,
+	expectAnnouncement,
+	fireEvent,
+	gridCells,
+	renderUI,
+	screen,
+} from '../helpers'
 
 type Row = { id: number; name: string; count: number; code: string }
 
@@ -21,20 +24,6 @@ const columns: GridColumn<Row>[] = [
 	{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
 	{ id: 'code', title: 'Code', field: 'code', readOnly: true, cell: (row) => row.code },
 ]
-
-/** Writes each change into a copy of its row. */
-function applyChanges(current: Row[], changes: GridCellChange[]): Row[] {
-	return current.map((row) => {
-		const mine = changes.filter((change) => change.rowKey === row.id)
-
-		if (mine.length === 0) return row
-
-		return Object.assign(
-			{ ...row },
-			Object.fromEntries(mine.map((change) => [change.columnId, change.value])),
-		)
-	})
-}
 
 /**
  * Renders a fill grid with the history on. `async` makes the sink answer with
