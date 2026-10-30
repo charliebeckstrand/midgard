@@ -84,3 +84,24 @@ describe('the other auth pages', () => {
 		for (const text of texts) expect(html).toContain(text)
 	})
 })
+
+describe('RegisterPage', () => {
+	// WCAG 1.3.5: each field that collects data about the user names its purpose.
+	it('gives each field its autocomplete token', () => {
+		const html = render('en', createElement(RegisterPage, {}))
+
+		const tokens = Object.fromEntries(
+			[...html.matchAll(/<input[^>]*>/g)].map(([input]) => [
+				input.match(/ name="([^"]*)"/)?.[1],
+				input.match(/ autoComplete="([^"]*)"/)?.[1],
+			]),
+		)
+
+		expect(tokens).toEqual({
+			email: 'email',
+			name: 'name',
+			password: 'new-password',
+			confirmPassword: 'new-password',
+		})
+	})
+})
