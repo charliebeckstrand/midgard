@@ -5,7 +5,7 @@ import { Accordion, AccordionItem, AccordionTrigger } from '../../components/acc
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
-import { ColorPicker } from '../../components/color'
+import { ColorPanel, ColorPicker } from '../../components/color'
 import { Combobox, ComboboxOption } from '../../components/combobox'
 import { Control } from '../../components/control'
 import { DatePicker } from '../../components/date-picker'
@@ -670,6 +670,53 @@ describe('Swatch under forced colors (real browser)', () => {
 		expect(style.backgroundImage).toContain('repeating-linear-gradient')
 
 		expect(style.color).not.toBe(canvasColor())
+	})
+})
+
+/**
+ * The parts of a color panel and the swatch of a color picker show a color, so
+ * they keep their real color under forced colors. A system color in its place
+ * would make every preset chip alike and remove the hue track.
+ */
+describe('color parts under forced colors (real browser)', () => {
+	beforeAll(() =>
+		cdp().send('Emulation.setEmulatedMedia', {
+			features: [{ name: 'forced-colors', value: 'active' }],
+		}),
+	)
+	afterAll(() =>
+		cdp().send('Emulation.setEmulatedMedia', { features: [{ name: 'forced-colors', value: '' }] }),
+	)
+
+	it('the preset chips keep their colors', () => {
+		const { container } = renderUI(
+			<ColorPanel defaultValue="#00ff00" swatches={['#ff0000', '#0000ff']} />,
+		)
+		const [red, blue] = [...container.querySelectorAll('[data-slot="color-swatch"]')].map(
+			(chip) => getComputedStyle(chip).backgroundColor,
+		)
+
+		expect(red).toBe('rgb(255, 0, 0)')
+
+		expect(blue).toBe('rgb(0, 0, 255)')
+	})
+
+	it('the hue track keeps its gradient, and the area keeps its hue', () => {
+		const { container } = renderUI(<ColorPanel defaultValue="#ff0000" swatches={false} />)
+		const hue = present(container.querySelector('[data-channel="hue"]'), 'hue track')
+		const area = present(bySlot(container, 'color-area'), 'area')
+
+		expect(getComputedStyle(hue).backgroundImage).toContain('linear-gradient')
+
+		expect(getComputedStyle(area).backgroundColor).toBe('rgb(255, 0, 0)')
+	})
+
+	it('the swatch of the picker keeps its color', () => {
+		const { container } = renderUI(<ColorPicker aria-label="Color" defaultValue="#0000ff" />)
+		const swatch = present(bySlot(container, 'color-picker-swatch'), 'swatch')
+		const fill = present(swatch.firstElementChild, 'fill')
+
+		expect(getComputedStyle(fill).backgroundColor).toBe('rgb(0, 0, 255)')
 	})
 })
 

@@ -12,6 +12,11 @@ export type LightboxContextValue = {
 	 * thumbnail, so that thumbnail stays empty until the photo lands in it.
 	 */
 	shown: number | null
+	/**
+	 * The index of the photo that the viewer shows, or `undefined` while the
+	 * viewer is closed or closing. The trigger of that photo stamps `data-open`.
+	 */
+	current: number | undefined
 	/** Opens the viewer at a photo. */
 	show: (index: number) => void
 	/** Records the image of the thumbnail of a photo. It returns the cleanup that removes it. */

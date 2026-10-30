@@ -34,7 +34,7 @@ function renderGrouped() {
 		/>,
 	)
 
-	fireEvent.click(screen.getByRole('button', { name: 'Collapse group B' }))
+	fireEvent.click(screen.getByRole('button', { name: /^B \(/, expanded: true }))
 
 	const grid = present(view.container.querySelector('table'), 'the grid table')
 

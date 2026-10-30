@@ -331,6 +331,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 					aria-label={intl.formatMessage(gridMessages.filterNamed, { column: label })}
 					aria-haspopup="dialog"
 					aria-expanded={open}
+					data-open={dataAttr(open)}
 					// The resting muted tint, dropped once a filter accents the button.
 					className={cn(k.filter.button.base, k.filter.button.idle)}
 					onClick={() => handleOpenChange(true)}

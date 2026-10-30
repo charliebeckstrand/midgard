@@ -140,6 +140,32 @@ describe('Lightbox', () => {
 		expect(previous).not.toHaveClass('invisible')
 	})
 
+	it('stamps data-open on the viewer and on the trigger of the shown photo', async () => {
+		const user = setupUser()
+
+		renderUI(<Gallery />)
+
+		const first = screen.getByRole('button', { name: 'Harbor at dawn' })
+
+		const second = screen.getByRole('button', { name: 'Snow on a ridge' })
+
+		expect(first).not.toHaveAttribute('data-open')
+
+		await user.click(first)
+
+		expect(screen.getByRole('dialog', { name: 'Photos' })).toHaveAttribute('data-open')
+
+		expect(first).toHaveAttribute('data-open')
+
+		expect(second).not.toHaveAttribute('data-open')
+
+		await user.click(screen.getByRole('button', { name: 'Next photo' }))
+
+		expect(first).not.toHaveAttribute('data-open')
+
+		expect(second).toHaveAttribute('data-open')
+	})
+
 	it('empties the thumbnail of the photo that is up', async () => {
 		const user = setupUser()
 
@@ -369,6 +395,8 @@ describe('Lightbox', () => {
 
 		expect(trigger).toBeDisabled()
 
+		expect(trigger).toHaveAttribute('data-disabled')
+
 		expect(getSlot(trigger, 'placeholder')).toBeInTheDocument()
 
 		const image = present(trigger.querySelector('img'), 'thumbnail')
@@ -381,6 +409,8 @@ describe('Lightbox', () => {
 		fireEvent.load(image)
 
 		expect(trigger).toBeEnabled()
+
+		expect(trigger).not.toHaveAttribute('data-disabled')
 
 		expect(trigger.querySelector('[data-slot="placeholder"]')).toBeNull()
 

@@ -78,7 +78,11 @@ export type QueryChipsProps = Omit<HTMLAttributes<HTMLElement>, 'defaultValue'> 
 	 * @defaultValue false
 	 */
 	readOnly?: boolean
-	/** Disables each remove button and each combinator switch. @defaultValue false */
+	/**
+	 * Disables each remove button and each combinator switch. The interactive row
+	 * stamps `data-disabled`.
+	 * @defaultValue false
+	 */
 	disabled?: boolean
 	/** The accessible name of the row. @defaultValue `'Filters'`, in the language of the reader. */
 	'aria-label'?: string
@@ -307,6 +311,7 @@ export function QueryChips({
 			{...props}
 			data-density="slot"
 			data-empty={dataAttr(empty)}
+			data-disabled={dataAttr(disabled)}
 			role="toolbar"
 			aria-orientation="horizontal"
 			aria-label={ariaLabel}

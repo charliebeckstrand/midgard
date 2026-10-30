@@ -141,13 +141,13 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 		await rest()
 
 		for (let run = 0; run < 2; run++) {
-			expect(toggle()).toHaveAccessibleName(/^Collapse group/)
+			expect(toggle()).toHaveAttribute('aria-expanded', 'true')
 
 			expectCommits(await click(), false)
 
 			await rest()
 
-			expect(toggle()).toHaveAccessibleName(/^Expand group/)
+			expect(toggle()).toHaveAttribute('aria-expanded', 'false')
 
 			expectCommits(await click(), true)
 

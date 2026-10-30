@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps, Ref } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/lightbox'
 import { Placeholder } from '../placeholder'
 import { useLightboxContext } from './context'
@@ -35,6 +35,9 @@ export type LightboxTriggerProps = {
  * placeholder in the box of the button, and no button. The alternative text
  * of the photo names the placeholder.
  *
+ * The button stamps `data-open` while the viewer shows its photo, and
+ * `data-disabled` while it is disabled.
+ *
  * @remarks A click opens the viewer, as a press on a `DialogTrigger` does. A
  * thumbnail is often in a page that scrolls, so a touch that starts a scroll
  * must not open it.
@@ -46,7 +49,7 @@ export function LightboxTrigger({
 	ref,
 	...props
 }: LightboxTriggerProps) {
-	const { photos, shown, show, register, getLoad, record } = useLightboxContext()
+	const { photos, shown, current, show, register, getLoad, record } = useLightboxContext()
 
 	const photo = photos[index]
 
@@ -79,6 +82,8 @@ export function LightboxTrigger({
 			{...props}
 			type="button"
 			disabled={!ready || props.disabled}
+			data-open={dataAttr(current === index)}
+			data-disabled={dataAttr(!ready || props.disabled === true)}
 			onClick={composeEventHandlers(onClick, () => show(index))}
 			aria-haspopup="dialog"
 			className={cn(k({ interactive: true }).trigger.base, className)}

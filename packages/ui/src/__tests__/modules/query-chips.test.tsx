@@ -199,6 +199,14 @@ describe('QueryChips', () => {
 		renderUI(<QueryChips fields={fields} defaultValue={tree(statusRule(), ageRule(30))} disabled />)
 
 		for (const button of screen.getAllByRole('button')) expect(button).toBeDisabled()
+
+		expect(screen.getByRole('toolbar')).toHaveAttribute('data-disabled')
+	})
+
+	it('stamps no data-disabled on an enabled row', () => {
+		renderUI(<QueryChips fields={fields} defaultValue={tree(statusRule())} />)
+
+		expect(screen.getByRole('toolbar')).not.toHaveAttribute('data-disabled')
 	})
 
 	it('renders the chips as text when read-only', () => {
