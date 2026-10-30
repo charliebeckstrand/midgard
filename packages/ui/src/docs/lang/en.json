@@ -7249,7 +7249,7 @@
 	},
 	"docs.prop.variant.bare": {
 		"defaultMessage": "Bare",
-		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'bare' on Button, HoldButton, List."
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'bare' on Button, Control, CreditCardInput, CurrencyInput, DateInput, HoldButton, Input, List, MaskInput, NumberInput, PasswordInput, SearchInput, TagInput, Textarea."
 	},
 	"docs.prop.variant.dashed": {
 		"defaultMessage": "Dashed",

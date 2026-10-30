@@ -50,6 +50,7 @@ import { k, type scale } from '../../recipes/kata/combobox'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
+import { useControlSurface } from '../control/use-control-surface'
 import { Icon } from '../icon'
 import { SelectionClearButton } from '../input/input-clear-button'
 import { OPTION_SELECTOR } from './combobox-constants'
@@ -488,6 +489,8 @@ export function Combobox<T>({
 
 	const control = useControl()
 
+	const surface = useControlSurface()
+
 	// Derived per render: while no value is held on either channel, clicking the
 	// selected option clears it. Resolved here and not as a parameter default,
 	// which the React Compiler cannot reorder.
@@ -884,8 +887,7 @@ export function Combobox<T>({
 						open={open}
 						setReference={refs.setReference}
 						getReferenceProps={getReferenceProps}
-						// A trigger in a glass overlay paints no fill, so it takes the `outline` surface.
-						slots={k({ variant: glass ? 'outline' : 'default' })}
+						slots={k({ variant: surface })}
 						size={size}
 						className={className}
 						data-slot={slot}

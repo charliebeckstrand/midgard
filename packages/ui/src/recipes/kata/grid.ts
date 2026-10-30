@@ -14,7 +14,7 @@ const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { backdrop } = omote
+const { backdrop, popover } = omote
 const { focus, ring } = sen
 const { instant, spring } = ugoki
 
@@ -886,36 +886,97 @@ export const k = {
 			],
 		},
 	},
-	// Inline per-row editing: an editable row's cells render their editors (the
-	// grid's own Input / NumberInput / Listbox, or a column `editCell` slot) with
-	// their normal styling, sitting inside the cell padding (the editing row just
-	// grows to fit the controls).
+	// Inline editing: an open cell renders its editor (the grid's own Input /
+	// NumberInput / Listbox, or a column `editCell` slot) on the `bare` surface
+	// of a Control, so the editor draws no chrome and takes the full content
+	// width of the cell. The cell draws the frame and the focus ring instead.
 	edit: {
-		// Host for a cell's editor; anchors the absolute validation message.
-		host: ['relative', flex.row, 'w-full'],
-		// The slot that holds the editor, beside the settle pair. A column flex
-		// stretches the editor to the width of the slot, also through the
-		// `display: contents` wrapper of a listbox or a date picker. Thus a
-		// consumer's `editCell` control fills the cell with no width of its own.
-		// `min-w-0` lets the slot shrink, so the settle pair stays in the cell.
-		slot: [flex.col, 'min-w-0', flex.fill],
+		// The rings of an editable data cell while it holds an open editor
+		// (`host`). The cursor's ring (`k.nav.cell`) marks the active cell. An open
+		// cell that has neither the cursor nor focus takes a hairline, so the
+		// cells of an open row read as fields. The cell with focus takes the ring
+		// of the cursor. A refused value rings the cell red, focused or not. The
+		// selectors exclude each other, so no ring stacks on another.
+		cell: [
+			'has-[[data-slot=grid-edit-host]]:ring-inset',
+			'has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-1',
+			...mode(
+				'has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-zinc-300',
+				'dark:has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-zinc-700',
+			),
+			'has-[[data-slot=grid-edit-host]:not([data-invalid])]:focus-within:ring-2',
+			...mode(
+				'has-[[data-slot=grid-edit-host]:not([data-invalid])]:focus-within:ring-blue-600',
+				'dark:has-[[data-slot=grid-edit-host]:not([data-invalid])]:focus-within:ring-blue-500',
+			),
+			'has-[[data-slot=grid-edit-host][data-invalid]]:ring-2',
+			...mode(
+				'has-[[data-slot=grid-edit-host][data-invalid]]:ring-red-600',
+				'dark:has-[[data-slot=grid-edit-host][data-invalid]]:ring-red-500',
+			),
+			// Forced colors remove the rings, which are box-shadows. An inset
+			// outline replaces each: 1px for an open cell, 2px in `Highlight` for
+			// the cell with focus, and 2px for a refused value.
+			'forced-colors:has-[[data-slot=grid-edit-host]]:outline-solid',
+			'forced-colors:has-[[data-slot=grid-edit-host]]:outline-1',
+			'forced-colors:has-[[data-slot=grid-edit-host]]:-outline-offset-1',
+			'forced-colors:has-[[data-slot=grid-edit-host]]:focus-within:outline-2',
+			'forced-colors:has-[[data-slot=grid-edit-host]]:focus-within:-outline-offset-2',
+			'forced-colors:has-[[data-slot=grid-edit-host]]:focus-within:outline-[Highlight]',
+			'forced-colors:has-[[data-slot=grid-edit-host][data-invalid]]:outline-2',
+			'forced-colors:has-[[data-slot=grid-edit-host][data-invalid]]:-outline-offset-2',
+		],
+		// Host for a cell's editor. Its one grid area stacks the editor over the
+		// display content (`rest`), so the cell keeps the height that it has at
+		// rest. The track has no least width, so neither layer widens the column.
+		host: ['grid grid-cols-[minmax(0,1fr)]', 'w-full'],
+		// The display content of the cell, under the editor. It holds the height
+		// of the cell and shows nothing.
+		rest: ['col-start-1 row-start-1', 'invisible truncate'],
+		// The slot that holds the editor, over `rest`. A column flex stretches the
+		// editor to the width of the slot, also through the `display: contents`
+		// wrapper of a listbox or a date picker. Thus a consumer's `editCell`
+		// control fills the cell with no width of its own. The slot centers the
+		// editor in the height of the cell.
+		slot: ['col-start-1 row-start-1', flex.col, 'justify-center', 'min-w-0'],
 		// The in-cell control fills the cell width.
 		input: 'w-full',
-		// The settle pair a cell-scoped session shows beside its editor. No padding
-		// of its own: `Button`'s bare icon-only floor is sized per density, and
-		// overriding it here would drop the pair under the 24x24 target minimum
-		// (WCAG 2.5.8) at every density, worst in a condensed grid. The gap also
-		// caps the hit areas (`TouchTarget`): the two buttons split it and do not
-		// overlap, and Save does not reach back over the editor.
-		settle: [flex.row, 'ms-1 shrink-0 gap-0.5 [--touch-target-gap-x:--spacing(0.5)]'],
+		// The floating column below the cell: the settle controls at the end edge,
+		// then the message of a failed validation. Floating UI anchors it to the
+		// cell and sets its least width to the width of the cell. When it flips
+		// above the cell, the order turns, so the controls stay next to the cell.
+		// It lets the pointer through outside its children.
+		below: [
+			flex.col,
+			'items-end',
+			'data-[side=top]:flex-col-reverse',
+			dan.gap.scale.xs,
+			'pointer-events-none',
+			'*:pointer-events-auto',
+		],
+		// The settle pair of a cell-scoped session: a tab of the popover surface
+		// at the end corner of the cell. No padding on the buttons: `Button`'s
+		// bare icon-only floor is sized per density, and overriding it here would
+		// drop the pair under the 24x24 target minimum (WCAG 2.5.8) at every
+		// density, worst in a condensed grid. The gap also caps the hit areas
+		// (`TouchTarget`): the two buttons split it and do not overlap.
+		settle: [
+			flex.row,
+			'gap-0.5 [--touch-target-gap-x:--spacing(0.5)]',
+			'p-0.5',
+			rounded.md,
+			...popover,
+			'shadow-sm',
+		],
 		// A cell whose async commit is in flight. It signals busy the way
 		// `body.settling` does for a server sort (`hannou.busy`).
 		pending: busy,
 		// The state of a failed validation: `base` is the message below the
-		// editor, and `ring` rings the editor host.
+		// editor, and `ring` rings the editor host of the new-row slot, whose
+		// editors keep their frame. A data cell rings itself (`cell`).
 		error: {
 			base: [
-				'absolute top-full start-0 z-20 mt-0.5 max-w-xs',
+				'self-start max-w-xs',
 				'rounded px-1.5 py-0.5 whitespace-normal',
 				size.xs,
 				'text-white shadow',

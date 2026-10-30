@@ -9,8 +9,8 @@ import { getSlot, present, renderUI, screen, waitFor } from '../helpers'
 /**
  * The editor slot stretches the editor to the width of its cell. An `editCell`
  * control that sets no width fills the cell, as an inferred editor does. The
- * settle pair and the validation message keep their own widths. Real browser,
- * because the widths need a layout engine.
+ * settle pair floats below the cell and takes no width from the editor. Real
+ * browser, because the widths need a layout engine.
  */
 describe('grid editor width (real browser)', () => {
 	type Row = { id: number; name: string; role: string; due: string; budget: number }
@@ -24,7 +24,6 @@ describe('grid editor width (real browser)', () => {
 			field: 'name',
 			width: '320px',
 			cell: (row) => row.name,
-			validate: (value) => (value === 'bad' ? 'Bad' : null),
 		},
 		{
 			id: 'role',
@@ -114,7 +113,7 @@ describe('grid editor width (real browser)', () => {
 		}
 	})
 
-	it('keeps the settle pair and the validation message at their own widths', async () => {
+	it('keeps the settle pair out of the width of the editor', async () => {
 		const { container } = renderUI(
 			<Grid
 				columns={columns}
@@ -130,30 +129,15 @@ describe('grid editor width (real browser)', () => {
 
 		const host = present<HTMLElement>(slot.parentElement, 'the editor host')
 
-		const save = screen.getByRole('button', { name: 'Save Name, row 2' })
+		// The pair floats below the cell (see `floating-ui/grid-edit-settle-float`),
+		// so the editor keeps the full width of the host.
+		expect(screen.getByRole('button', { name: 'Save Name, row 2' })).toBeVisible()
 
-		const pair = present<HTMLElement>(save.parentElement, 'the settle pair')
+		expect(slot.getBoundingClientRect().width).toBeCloseTo(host.getBoundingClientRect().width, 0)
 
-		const pairBox = pair.getBoundingClientRect()
-
-		const slotBox = slot.getBoundingClientRect()
-
-		// The pair keeps the width of its two buttons, and the editor stops at it.
-		expect(pairBox.width).toBeLessThan(100)
-
-		expect(slotBox.right).toBeLessThanOrEqual(pairBox.left + 1)
-
-		expect(pairBox.right).toBeLessThanOrEqual(host.getBoundingClientRect().right + 1)
-
-		expect(editorBox(slot).getBoundingClientRect().width).toBeCloseTo(slotBox.width, 0)
-
-		await userEvent.keyboard('{ControlOrMeta>}a{/ControlOrMeta}bad')
-
-		const message = await waitFor(() => screen.getByRole('alert'))
-
-		// The message keeps the width of its text, and does not take the width of the cell.
-		expect(message.getBoundingClientRect().width).toBeLessThan(
-			host.getBoundingClientRect().width / 2,
+		expect(editorBox(slot).getBoundingClientRect().width).toBeCloseTo(
+			slot.getBoundingClientRect().width,
+			0,
 		)
 	})
 })

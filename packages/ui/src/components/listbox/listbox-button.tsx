@@ -6,6 +6,7 @@ import { useTruncation } from '../../hooks'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/listbox'
 import { Button } from '../button'
+import { useControlSurface } from '../control/use-control-surface'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 type ListboxButtonProps = {
@@ -89,6 +90,8 @@ export function ListboxButton({
 	truncateTooltip,
 	truncateTooltipSuppressed,
 }: ListboxButtonProps) {
+	const surface = useControlSurface()
+
 	return (
 		<HeadlessProvider>
 			<Button
@@ -112,7 +115,7 @@ export function ListboxButton({
 				onBlur={onBlur}
 				onKeyDown={onKeyDown}
 				{...validation}
-				className={cn(k().field)}
+				className={cn(k({ variant: surface }).field)}
 			>
 				{/* The truncation measure reads a string, so a node label skips the tooltip. */}
 				{truncateTooltip && typeof label === 'string' && label ? (

@@ -1,7 +1,8 @@
 /**
  * Control group: frame. The outer flex wrapper that hosts the
  * user-input element. Group-join behavior comes from the `tsunagi` classes
- * on the enclosing `<Group>` container; the frame carries kasane chrome.
+ * on the enclosing `<Group>` container. `chrome` is the kasane chrome that the
+ * framed surfaces add.
  *
  * Layer: kumi · Group: control · Concern: frame
  */
@@ -22,4 +23,10 @@ const { flex } = narabi
  */
 const frameRadius = [radius, dan.radius.fill, 'after:rounded-[inherit]'] as const
 
-export const frame = ['relative', 'group/control', flex.row, 'w-full', ...layers, ...frameRadius]
+export const frame = ['relative', 'group/control', flex.row, 'w-full']
+
+/**
+ * The chrome of the frame: the kasane layers and the radius. Each surface but
+ * `bare` draws it (`./index.ts`).
+ */
+export const chrome = [...layers, ...frameRadius]

@@ -35,10 +35,13 @@ export const radius = dan.radius.control
 /** The vertical padding at each step. */
 const py = dan.space.control.y
 
+/**
+ * The inset of the field: its padding and its radius. A `bare` control has no
+ * frame to keep the field from, so it takes none (`./index.ts`).
+ */
+export const inset = [dan.space.control.x, py, radius] as const
+
 export const density = [
-	dan.space.control.x,
-	py,
-	radius,
 	dan.gap.control,
 	affix.autofill.prefix,
 	affix.autofill.suffix,

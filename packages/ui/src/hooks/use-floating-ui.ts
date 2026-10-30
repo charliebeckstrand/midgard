@@ -52,6 +52,8 @@ export type FloatingPanelResult = {
 	refs: ExtendedRefs<ReferenceType>
 	floatingStyles: CSSProperties
 	context: FloatingRootContext
+	/** The placement after the middleware ran: the side that `flip` selected, and the alignment. */
+	placement: Placement
 }
 
 /** Return shape of {@link useFloatingUI}: the refs, the positioned styles, the floating context, and the prop getters. */
@@ -306,9 +308,10 @@ export type FloatingPanelOptions = {
  * clientPoint, etc.) against the returned `context`. For the common
  * dismiss+role pattern, prefer `useFloatingUI`.
  *
- * @returns `{ refs, floatingStyles, context }`: floating-ui's reference /
- * floating refs, the positioning styles for the floating element, and the
- * shared `FloatingRootContext` interaction hooks attach to.
+ * @returns `{ refs, floatingStyles, context, placement }`: floating-ui's
+ * reference / floating refs, the positioning styles for the floating element,
+ * the shared `FloatingRootContext` interaction hooks attach to, and the
+ * placement after `flip`.
  */
 export function useFloatingPanel({
 	placement,
@@ -377,6 +380,7 @@ export function useFloatingPanel({
 		floatingStyles: positionStyles,
 		context,
 		middlewareData,
+		placement: resolvedPlacement,
 	} = useFloating({
 		placement: side ? `${side}-start` : (placement as Placement),
 		open,
@@ -446,7 +450,7 @@ export function useFloatingPanel({
 		prevOpenRef.current = open
 	}, [open, returnFocusTo])
 
-	return { refs, floatingStyles, context }
+	return { refs, floatingStyles, context, placement: resolvedPlacement }
 }
 
 /** Ref shape {@link isOutsidePress} needs from a floating panel's `refs`. @internal */
@@ -698,7 +702,7 @@ export type FloatingUIOptions = FloatingPanelOptions & {
  * inside a nested floating-ui portal counts as inside, mirroring
  * floating-ui's own node-tree handling.
  *
- * @returns `useFloatingPanel`'s `{ refs, floatingStyles, context }` plus
+ * @returns `useFloatingPanel`'s `{ refs, floatingStyles, context, placement }` plus
  * `getReferenceProps` / `getFloatingProps` prop-getters that fold in the
  * dismiss + role interactions; spread them on the reference and floating
  * elements respectively.
@@ -707,7 +711,7 @@ export function useFloatingUI({
 	role: roleProp = 'listbox',
 	...rest
 }: FloatingUIOptions): FloatingUIResult {
-	const { refs, floatingStyles, context } = useFloatingPanel(rest)
+	const { refs, floatingStyles, context, placement } = useFloatingPanel(rest)
 
 	const { dismiss, role } = useFloatingDismissal(context, refs, {
 		open: rest.open,
@@ -717,5 +721,5 @@ export function useFloatingUI({
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
-	return { refs, floatingStyles, context, getReferenceProps, getFloatingProps }
+	return { refs, floatingStyles, context, placement, getReferenceProps, getFloatingProps }
 }

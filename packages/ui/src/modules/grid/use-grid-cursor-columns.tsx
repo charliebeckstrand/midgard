@@ -124,7 +124,7 @@ export function useGridCursorColumns<T>({
 
 			return {
 				...col,
-				className: cn(k.nav.cell, col.className),
+				className: cn(k.nav.cell, editable && k.edit.cell, col.className),
 				cellAt,
 				cellPropsAt,
 				cellProps: (row: T) => cellPropsAt(row, getRowIndex(row)),
