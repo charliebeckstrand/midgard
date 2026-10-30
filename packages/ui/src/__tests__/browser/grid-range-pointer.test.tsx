@@ -436,7 +436,7 @@ describe('grid fill handle over a closed group (real browser)', () => {
 
 		onTestFinished(() => commands.releasePointer())
 
-		await userEvent.click(screen.getByRole('button', { name: 'Collapse group B' }))
+		await userEvent.click(screen.getByRole('button', { name: /^B \(/, expanded: true }))
 
 		await userEvent.click(cell(1, 'name'))
 

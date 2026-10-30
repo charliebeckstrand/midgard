@@ -162,6 +162,9 @@ describe('Grid resizable columns', () => {
 		expect(handle).toHaveAttribute('aria-valuenow', '200')
 
 		expect(handle).toHaveAttribute('aria-valuemin', '80')
+
+		// A column with no maximum width keeps its width inside the range.
+		expect(Number(handle.getAttribute('aria-valuemax'))).toBeGreaterThanOrEqual(200)
 	})
 
 	const keyboardCases: [string, string, GridColumn<Row>[], number][] = [

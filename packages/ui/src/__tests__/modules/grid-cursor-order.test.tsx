@@ -185,7 +185,9 @@ describe('Grid cursor over grouped rows', () => {
 
 		expect(activeCell(grid)).toHaveTextContent(/^West$/)
 
-		fireEvent.click(screen.getAllByRole('button', { name: /^Collapse group/ })[0] as HTMLElement)
+		fireEvent.click(
+			screen.getAllByRole('button', { name: /\(\d+\)$/, expanded: true })[0] as HTMLElement,
+		)
 
 		expect(activeCell(grid)).toBe(header)
 	})
@@ -259,7 +261,7 @@ describe('Grid cursor over grouped rows', () => {
 
 		const grid = screen.getByRole('treegrid')
 
-		fireEvent.click(screen.getByRole('button', { name: 'Collapse group West' }))
+		fireEvent.click(screen.getByRole('button', { name: /^West \(/, expanded: true }))
 
 		// The closed group gains a row. The order the cursor walks stays equal, but
 		// every later data index moves.

@@ -84,6 +84,12 @@ describe('List', () => {
 
 		for (const handle of handles) expect(handle).toHaveAttribute('data-disabled')
 
+		expect(getSlot(disabled.container, 'list')).toHaveAttribute('data-disabled')
+
+		for (const row of allBySlot(disabled.container, 'list-item')) {
+			expect(row).toHaveAttribute('data-disabled')
+		}
+
 		const readOnly = renderUI(
 			<List items={items} getKey={(i) => i.id} disabled>
 				{(item) => <ListItem>{item.label}</ListItem>}
@@ -91,6 +97,12 @@ describe('List', () => {
 		)
 
 		expect(allBySlot(readOnly.container, 'list-handle')).toHaveLength(0)
+
+		expect(getSlot(readOnly.container, 'list')).not.toHaveAttribute('data-disabled')
+
+		for (const row of allBySlot(readOnly.container, 'list-item')) {
+			expect(row).not.toHaveAttribute('data-disabled')
+		}
 	})
 
 	it('reflects orientation on data attribute', () => {

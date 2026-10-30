@@ -224,11 +224,13 @@ describe('grid disclosure chevrons in a right-to-left grid (real browser)', () =
 			</div>,
 		)
 
-		const toggle = getByRole('button', { name: 'Collapse group West' })
+		const toggle = getByRole('button', { name: /^West \(/, expanded: true })
 
 		toggle.click()
 
-		const collapsed = await waitFor(() => getByRole('button', { name: 'Expand group West' }))
+		const collapsed = await waitFor(() =>
+			getByRole('button', { name: /^West \(/, expanded: false }),
+		)
 
 		const chevron = present(collapsed.querySelector('svg'), 'the group chevron')
 

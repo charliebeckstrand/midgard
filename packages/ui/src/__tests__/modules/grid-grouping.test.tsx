@@ -29,7 +29,7 @@ describe('Grid row grouping', () => {
 	const getKey = (row: Person) => row.id
 
 	function groupToggles() {
-		return screen.getAllByRole('button', { name: /group/ })
+		return screen.getAllByRole('button', { name: /\(\d+\)$/, expanded: false })
 	}
 
 	// A leaf row's `<tr>`, found by its cell text: collapsed groups keep their
@@ -54,6 +54,35 @@ describe('Grid row grouping', () => {
 		}
 	})
 
+	// The visible label is in the name, with the count (WCAG 2.5.3), and
+	// `aria-expanded` gives the state.
+	it('names the group toggle by its visible label, count included', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={getKey}
+				groupBy={{ value: 'role', renderHeader: ({ value, count }) => `${value}: ${count} people` }}
+			/>,
+		)
+
+		const developer = people.filter((person) => person.role === 'Developer').length
+
+		expect(
+			screen.getByRole('button', { name: `Developer: ${developer} people`, expanded: true }),
+		).toBeInTheDocument()
+	})
+
+	it('names the default group toggle by its value and its count', () => {
+		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
+
+		const developer = people.filter((person) => person.role === 'Developer').length
+
+		expect(
+			screen.getByRole('button', { name: `Developer (${developer})`, expanded: true }),
+		).toBeInTheDocument()
+	})
+
 	it('collapses a group to hide its leaf rows, and re-expands it', async () => {
 		const user = setupUser()
 
@@ -62,7 +91,7 @@ describe('Grid row grouping', () => {
 		// Expanded by default: the Developer rows show and aren't hidden.
 		expect(leafRow('Wade')).not.toHaveAttribute('aria-hidden')
 
-		await user.click(screen.getByRole('button', { name: 'Collapse group Developer' }))
+		await user.click(screen.getByRole('button', { name: /^Developer \(/, expanded: true }))
 
 		// The Developer leaves stay mounted but hide (collapsed height + `aria-hidden`);
 		// other groups are untouched.
@@ -73,7 +102,7 @@ describe('Grid row grouping', () => {
 		expect(leafRow('Arlene')).not.toHaveAttribute('aria-hidden')
 
 		// The header stays (now an expand affordance) and re-opens the group.
-		await user.click(screen.getByRole('button', { name: 'Expand group Developer' }))
+		await user.click(screen.getByRole('button', { name: /^Developer \(/, expanded: false }))
 
 		expect(leafRow('Wade')).not.toHaveAttribute('aria-hidden')
 	})
@@ -83,7 +112,7 @@ describe('Grid row grouping', () => {
 
 		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
 
-		await user.click(screen.getByRole('button', { name: 'Collapse group Developer' }))
+		await user.click(screen.getByRole('button', { name: /^Developer \(/, expanded: true }))
 
 		// Still live through the reveal: `display: none` can't tween the collapse,
 		// so hiding on the toggle would snap the rows away instead of shrinking them.
@@ -105,7 +134,7 @@ describe('Grid row grouping', () => {
 		expect(leafRow('Wade')).toBeInTheDocument()
 
 		// Re-expanding wakes it in the same pass, with no second landing needed.
-		await user.click(screen.getByRole('button', { name: 'Expand group Developer' }))
+		await user.click(screen.getByRole('button', { name: /^Developer \(/, expanded: false }))
 
 		expect(leafRow('Wade')).toBeVisible()
 	})
@@ -165,7 +194,7 @@ describe('Grid row grouping', () => {
 		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'nope' }} />)
 
 		// No group headers; the rows render flat.
-		expect(screen.queryByRole('button', { name: /group/ })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /\(\d+\)$/ })).not.toBeInTheDocument()
 
 		expect(screen.getByText('Wade')).toBeInTheDocument()
 	})
@@ -188,7 +217,7 @@ describe('Grid row grouping', () => {
 		expect(bySlot(container, 'grid-footer')).toHaveTextContent('5 rows')
 
 		// A collapse changes which rows show, not how many rows the grid holds.
-		await user.click(screen.getByRole('button', { name: 'Collapse group Developer' }))
+		await user.click(screen.getByRole('button', { name: /^Developer \(/, expanded: true }))
 
 		expect(bySlot(container, 'grid-footer')).toHaveTextContent('5 rows')
 	})
@@ -199,13 +228,13 @@ describe('Grid row grouping', () => {
 			<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />,
 		)
 
-		await user.click(screen.getByRole('button', { name: 'Collapse group Developer' }))
+		await user.click(screen.getByRole('button', { name: /^Developer \(/, expanded: true }))
 
 		rerender(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'name' }} />)
 
 		// The grid keeps the change from the default, not the open state of each
 		// group, so the groups of the new column open as the default says.
-		expect(screen.queryAllByRole('button', { name: /^Expand group/ })).toHaveLength(0)
+		expect(screen.queryAllByRole('button', { name: /\(\d+\)$/, expanded: false })).toHaveLength(0)
 
 		expect(leafRow('Wade')).not.toHaveAttribute('aria-hidden')
 	})
@@ -217,7 +246,7 @@ describe('Grid row grouping', () => {
 			<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />,
 		)
 
-		await user.click(screen.getByRole('button', { name: 'Collapse group Developer' }))
+		await user.click(screen.getByRole('button', { name: /^Developer \(/, expanded: true }))
 
 		const more = [...people, { id: 6, name: 'Jane', role: 'Analyst' }]
 
@@ -240,7 +269,7 @@ describe('Grid row grouping', () => {
 			/>,
 		)
 
-		await user.click(screen.getByRole('button', { name: 'Expand group Developer' }))
+		await user.click(screen.getByRole('button', { name: /^Developer \(/, expanded: false }))
 
 		rerender(
 			<Grid
@@ -251,7 +280,7 @@ describe('Grid row grouping', () => {
 			/>,
 		)
 
-		expect(screen.queryAllByRole('button', { name: /^Collapse group/ })).toHaveLength(0)
+		expect(screen.queryAllByRole('button', { name: /\(\d+\)$/, expanded: true })).toHaveLength(0)
 	})
 
 	it('counts and indexes the exposed rows of a plain grouped body under the cursor', async () => {
@@ -278,7 +307,7 @@ describe('Grid row grouping', () => {
 		// Each header, then its leaves, in order after the column header.
 		expect(indices()).toEqual(['2', '3', '4', '5', '6', '7', '8', '9'])
 
-		await user.click(screen.getByRole('button', { name: 'Collapse group Developer' }))
+		await user.click(screen.getByRole('button', { name: /^Developer \(/, expanded: true }))
 
 		// The hidden leaves take no place, and the rows below them move up.
 		expect(table).toHaveAttribute('aria-rowcount', '7')

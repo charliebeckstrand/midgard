@@ -131,8 +131,6 @@ type GridValues = {
 	search: Record<never, never>
 	newRow: Record<never, never>
 	addRow: Record<never, never>
-	expandGroupNamed: { group: string }
-	collapseGroupNamed: { group: string }
 	expandNamed: { group: string }
 	collapseNamed: { group: string }
 	expandDetails: { row: string }
@@ -793,17 +791,6 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		id: 'ui.grid.addRow',
 		defaultMessage: 'Add row',
 		description: 'The name of the button that adds the new row to a grid.',
-	},
-	expandGroupNamed: {
-		id: 'ui.grid.expandGroupNamed',
-		defaultMessage: 'Expand group {group}',
-		description: 'The name of the button that opens a row group of a grid. The group is its value.',
-	},
-	collapseGroupNamed: {
-		id: 'ui.grid.collapseGroupNamed',
-		defaultMessage: 'Collapse group {group}',
-		description:
-			'The name of the button that closes a row group of a grid. The group is its value.',
 	},
 	expandNamed: {
 		id: 'ui.grid.expandNamed',

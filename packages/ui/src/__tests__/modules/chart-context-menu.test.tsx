@@ -481,6 +481,37 @@ describe('ChartContextMenu target', () => {
 
 		expect([...rows].map((row) => row.textContent)).toEqual(['Q110', 'Q220'])
 	})
+
+	it('writes the corner text of the readout in the corner header of View data', () => {
+		const rows = [
+			{ day: 'Mon', hour: '9', commits: 1 },
+			{ day: 'Tue', hour: '9', commits: 5 },
+		]
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits by hour"
+				data={rows}
+				series={[
+					{
+						xKey: 'hour',
+						yKey: 'day',
+						colorKey: 'commits',
+						colorRange: ['#f7fee7', '#365314'],
+						colorName: 'Commits',
+					},
+				]}
+			/>,
+		)
+
+		openChartMenu(container)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'View data' }))
+
+		const corner = screen.getByRole('dialog').querySelector('thead th')
+
+		expect(corner).toHaveTextContent('Commits')
+	})
 })
 
 describe('Chart menu button', () => {
