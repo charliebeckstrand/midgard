@@ -455,7 +455,9 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 
 	const locale = resolveLocale(options.locale)
 
-	const maxFit = Math.max(1, Math.floor(axisLength / (LABEL_CHARS * TICK_CHAR_WIDTH + GUTTER_GAP)))
+	const slot = LABEL_CHARS * TICK_CHAR_WIDTH + GUTTER_GAP
+
+	const maxFit = Math.max(1, Math.floor(axisLength / slot))
 
 	const target = Math.max(1, Math.min(tickTarget, maxFit))
 
@@ -497,14 +499,31 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	if (ticks.length === 0) return null
 
 	// The interval targets the fit, but uneven calendar steps can overshoot it;
-	// thin to every nth so labels never collide.
-	if (ticks.length > maxFit) {
-		const nth = Math.ceil(ticks.length / maxFit)
+	// thin to every nth, then by the placed spacing.
+	const nth = Math.ceil(ticks.length / maxFit)
 
-		return ticks.filter((_, index) => index % nth === 0)
+	return spaced(
+		ticks.filter((_, index) => index % nth === 0),
+		slot,
+	)
+}
+
+/**
+ * Drops each tick that sits closer than `slot` to a tick that it keeps, so
+ * that no two labels collide. A count alone does not separate them: the
+ * boundaries in a long time gap between two rows all interpolate into the one
+ * band step between those rows.
+ *
+ * @internal
+ */
+function spaced(ticks: ChartAxisTick[], slot: number): ChartAxisTick[] {
+	const kept: ChartAxisTick[] = []
+
+	for (const tick of ticks) {
+		if (kept.every((other) => Math.abs(other.at - tick.at) >= slot)) kept.push(tick)
 	}
 
-	return ticks
+	return kept
 }
 
 /**

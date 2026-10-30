@@ -462,6 +462,40 @@ describe('the range legend probe', () => {
 
 		expect(shownLayer(container, 'map-regions-emphasized')).toBeNull()
 	})
+	it('clears the emphasis when the legend unmounts mid-probe', () => {
+		// A removed bar gets no pointerleave, so only its unmount can clear the probe.
+		const chart = (legend: 'range' | false) => (
+			<ChoroplethChart
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				legend={legend}
+				data={[
+					{ region: 'A', pop: 1 },
+					{ region: 'B', pop: 2 },
+					{ region: 'C', pop: 100 },
+				]}
+				series={[{ idKey: 'region', colorKey: 'pop', colorRange: ['#fff', '#000'] }]}
+			/>
+		)
+
+		const { container, rerender } = renderUI(chart('range'))
+
+		const track = getSlot(container, 'map-range-track')
+
+		track.getBoundingClientRect = () =>
+			({ left: 0, top: 0, width: 20, height: 99, right: 20, bottom: 99, x: 0, y: 0 }) as DOMRect
+
+		fireEvent.pointerMove(track, { clientY: 99 })
+
+		expect(shownLayer(container, 'map-regions-emphasized')).not.toBeNull()
+
+		rerender(chart(false))
+
+		expect(bySlot(container, 'map-range-track')).toBeNull()
+
+		expect(shownLayer(container, 'map-regions-emphasized')).toBeNull()
+	})
 })
 
 describe('the range legend domain under quantile binning', () => {

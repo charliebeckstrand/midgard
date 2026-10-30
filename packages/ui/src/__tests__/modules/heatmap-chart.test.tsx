@@ -341,6 +341,25 @@ describe('HeatmapChart', () => {
 		expect(dimmedCount(container)).toBe(0)
 	})
 
+	it('clears the dim when the legend unmounts mid-probe', () => {
+		// A removed bar gets no pointerleave, so only its unmount can clear the probe.
+		const chart = (legend: boolean) => (
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} legend={legend} />
+		)
+
+		const { container, rerender } = renderUI(chart(true))
+
+		fireEvent.pointerMove(getSlot(container, 'heatmap-range-track'), { clientY: 10 })
+
+		expect(dimmedCount(container)).toBeGreaterThan(0)
+
+		rerender(chart(false))
+
+		expect(bySlot(container, 'heatmap-range-track')).toBeNull()
+
+		expect(dimmedCount(container)).toBe(0)
+	})
+
 	it('rings each cell the probe holds lit, so the end of the scale at the surface reads', () => {
 		// The dim fades the other cells toward the surface. A lit cell at the end
 		// of the scale that matches the surface then has their color, so it needs
