@@ -302,6 +302,11 @@ export function useMapZoom({
 		(push: number, coasting: boolean) => {
 			setGesturing(true)
 
+			// The map scales away under a still pointer, so the readout of the shape
+			// it sat on goes, as it does for a pinch. A browser can fire a leave when
+			// the layer stops taking the pointer, but this does not wait on one.
+			holdReadout(true)
+
 			wheelStream.current = { push, coasting }
 
 			wheelSettle.set(() => {
@@ -310,7 +315,7 @@ export function useMapZoom({
 				settleGesture()
 			}, MAP_WHEEL_SETTLE_MS)
 		},
-		[settleGesture, wheelSettle],
+		[settleGesture, wheelSettle, holdReadout],
 	)
 
 	// The SVG's box, read once when the gesture starts and held until a scroll

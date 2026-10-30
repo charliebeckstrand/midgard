@@ -86,6 +86,61 @@ describe('MapPoint', () => {
 		expect(remaining[0]?.getAttribute('class')).toContain('stroke-amber-600')
 	})
 
+	it('lets the map go when the pointed mark unmounts under the pointer', () => {
+		const plat = (depot: boolean) => (
+			<MapPlat
+				aria-label="Test map"
+				geography={FIXTURE_GEOJSON}
+				data={FIXTURE_ROWS}
+				regionKey="state"
+				categoryKey="zone"
+				width={400}
+			>
+				{depot && <MapPoint id="depot" label="Depot" at={[15, 5]} />}
+
+				<MapPoint id="yard" label="Yard" at={[25, 5]} />
+			</MapPlat>
+		)
+
+		const { container, rerender } = renderUI(plat(true))
+
+		const receded = () =>
+			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes('opacity-25')
+
+		fireEvent.pointerEnter(allBySlot(container, 'map-point-hit')[0] as Element, {
+			clientX: 200,
+			clientY: 30,
+		})
+
+		expect(receded()).toBe(true)
+
+		// The removed hit shape fires no leave, so the mark clears its own target.
+		rerender(plat(false))
+
+		expect(receded()).toBe(false)
+
+		expect(bySlot(container, 'map-point')?.parentElement?.getAttribute('class')).not.toContain(
+			'opacity-25',
+		)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	it('keeps the hover when a pointed mark registers again under a new label', () => {
+		const plat = (label: string) => overlayPlat(<MapPoint id="depot" label={label} at={[15, 5]} />)
+
+		const { container, rerender } = renderUI(plat('Depot'))
+
+		fireEvent.pointerEnter(bySlot(container, 'map-point-hit') as Element, {
+			clientX: 200,
+			clientY: 30,
+		})
+
+		rerender(plat('Main depot'))
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Main depot')
+	})
+
 	it('trades the pointed-mark recede with the regions', () => {
 		const { container } = renderUI(
 			<MapPlat
