@@ -73,7 +73,11 @@ export function useGridRoving({
 	virtualized: boolean
 	/** Whether `onRowClick` is set; single-click activation and the virtualized body's legacy static Tab stop. */
 	onRowClick: boolean
-	/** Whether `onRowDoubleClick` is set. */
+	/**
+	 * Whether `onRowDoubleClick` is set. It also earns the virtualized body's
+	 * legacy static Tab stop, because Enter or Space on the row fires it when no
+	 * `onRowClick` is set.
+	 */
 	onRowDoubleClick: boolean
 	/** Whether `onCellClick` is set; cell handlers take precedence over row handlers. */
 	onCellClick: boolean
@@ -122,8 +126,9 @@ export function useGridRoving({
 		rovingRows: mode === 'row',
 		rovingCells: cellMode,
 		// The legacy per-row Tab stop the virtualized body keeps, where roving
-		// stands down but a clickable row must stay reachable by Tab.
-		rowStaticStop: onRowClick && virtualized && !navigable,
+		// stands down but a clickable row must stay reachable by Tab. A row handler
+		// earns it, because the row fires its click, else its double-click, on Enter.
+		rowStaticStop: hasRowClick && virtualized && !navigable,
 		tableProps: mode === 'none' ? undefined : { onKeyDown: rovingKeyDown },
 	}
 }
