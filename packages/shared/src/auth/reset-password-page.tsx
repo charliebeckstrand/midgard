@@ -15,6 +15,7 @@ import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
 import { chain, matches, minLength, required, validationMessages } from './form-validators'
 import { linkToken } from './link-token'
+import { useLeaving } from './use-leaving'
 import { useServerError } from './use-server-error'
 
 type ResetPasswordValues = { password: string; confirmPassword: string }
@@ -38,14 +39,17 @@ export function ResetPasswordPage() {
 
 	const [errorAlert, setServerError] = useServerError()
 
+	const [leaving, leave] = useLeaving()
+
 	const handleSubmit: FormSubmitHandler<ResetPasswordValues> = async (values) => {
 		try {
 			const { response, error } = await bifrost.POST('/auth/reset-password/confirm', {
 				body: { token: linkToken(), password: values.password },
 			})
 
+			// The form stays disabled until the login page replaces it.
 			if (response.ok) {
-				router.push('/login?reset=true')
+				leave(() => router.push('/login?reset=true'))
 
 				return
 			}
@@ -68,6 +72,7 @@ export function ResetPasswordPage() {
 					),
 				}}
 				onSubmit={handleSubmit}
+				disabled={leaving}
 			>
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
 					<Heading className="text-center">{intl.formatMessage(authMessages.resetTitle)}</Heading>
