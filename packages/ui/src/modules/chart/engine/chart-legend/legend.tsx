@@ -638,6 +638,40 @@ export function ChartLegend({
 	// spark frame passes zero) lets the row grow freely.
 	const capped = !panel && maxRows !== undefined && maxRows > 0
 
+	// The frame owns the series emphasis, so a hover renders the frame and not the
+	// chart body. The reference chips share the recede with the reference rules: a
+	// chip's hover or keyboard focus recedes the data marks and the rule's siblings
+	// to it, the same emphasis as pointing the rule. The setters keep their identity.
+	const { focusSeries: setSeriesFocus, pointReference: setReferenceActive } = useChartActions()
+
+	// The pointed entry wins, else the keyboard-focused one. Buttons render in
+	// `pageItems` order, and the overflow popover holds the entries past the row,
+	// so a focused button's position names its entry there. The entry carries the
+	// series index that the emphasis keys off, which the display order of the
+	// legend need not match.
+	const emphasis = useLegendEmphasis(
+		[ref, overflowRef],
+		'button[data-slot="chart-legend-item"]',
+		(position) => pageItems[position]?.index ?? null,
+		setSeriesFocus,
+	)
+
+	// The chips take the same pointer and focus rule as the series switches. Chips
+	// render in `references` order, so a focused chip's position names its entry.
+	// The entry carries the index of the rule in the chart's `reference` array. The
+	// emphasis therefore lands on the rule the plot draws, even past a non-finite
+	// rule that the chips skip. A chip that is off names a pulled rule, so it is not
+	// live and recedes nothing.
+	const referenceEmphasis = useLegendEmphasis(
+		[ref, overflowRef],
+		'button[data-slot="chart-legend-reference"]',
+		(position) => references[position]?.index ?? null,
+		setReferenceActive,
+		(index) =>
+			!referenceHidden.has(index) &&
+			references.find((reference) => reference.index === index)?.drawn !== false,
+	)
+
 	// A refit that folds the focused control into the `+N` chip moves the focus
 	// to the chip, which now holds it. A refit that removes the chip moves the
 	// focus to the last control. The gone control held the emphasis, so the
@@ -679,40 +713,6 @@ export function ChartLegend({
 	)
 
 	const overflowCount = overflowItems.length + overflowReferences.length
-
-	// The frame owns the series emphasis, so a hover renders the frame and not the
-	// chart body. The reference chips share the recede with the reference rules: a
-	// chip's hover or keyboard focus recedes the data marks and the rule's siblings
-	// to it, the same emphasis as pointing the rule. The setters keep their identity.
-	const { focusSeries: setSeriesFocus, pointReference: setReferenceActive } = useChartActions()
-
-	// The pointed entry wins, else the keyboard-focused one. Buttons render in
-	// `pageItems` order, and the overflow popover holds the entries past the row,
-	// so a focused button's position names its entry there. The entry carries the
-	// series index that the emphasis keys off, which the display order of the
-	// legend need not match.
-	const emphasis = useLegendEmphasis(
-		[ref, overflowRef],
-		'button[data-slot="chart-legend-item"]',
-		(position) => pageItems[position]?.index ?? null,
-		setSeriesFocus,
-	)
-
-	// The chips take the same pointer and focus rule as the series switches. Chips
-	// render in `references` order, so a focused chip's position names its entry.
-	// The entry carries the index of the rule in the chart's `reference` array. The
-	// emphasis therefore lands on the rule the plot draws, even past a non-finite
-	// rule that the chips skip. A chip that is off names a pulled rule, so it is not
-	// live and recedes nothing.
-	const referenceEmphasis = useLegendEmphasis(
-		[ref, overflowRef],
-		'button[data-slot="chart-legend-reference"]',
-		(position) => references[position]?.index ?? null,
-		setReferenceActive,
-		(index) =>
-			!referenceHidden.has(index) &&
-			references.find((reference) => reference.index === index)?.drawn !== false,
-	)
 
 	// A rule that goes recedes nothing, so its toggle clears the recede at once.
 	const toggleReference = (index: number) => {
