@@ -34,6 +34,7 @@ describe('resolveGroupingGates', () => {
 		manualGroupingActive: false,
 		expandableActive: false,
 		navigable: true,
+		editable: {},
 		virtualize: true,
 		virtualizeProp: true,
 		pagination: undefined,
@@ -47,14 +48,18 @@ describe('resolveGroupingGates', () => {
 
 			expect(gates.navigable).toBe(true)
 
+			expect(gates.editable).toBe(base.editable)
+
 			expect(gates.infiniteScroll).toBe(false)
 		}
 	})
 
-	it('stands virtualize down under manual grouping', () => {
+	it('stands virtualize, the cursor, and editing down under manual grouping', () => {
 		const gates = resolveGroupingGates({ ...base, manualGroupingActive: true })
 
 		expect(gates).toMatchObject({ virtualize: false, navigable: false, infiniteScroll: false })
+
+		expect(gates.editable).toBeUndefined()
 	})
 
 	it('keeps virtualize off for a self-rendering body that infinite scroll alone implies', () => {
@@ -71,6 +76,7 @@ describe('resolveGroupingGates', () => {
 		expect(resolveGroupingGates(base)).toMatchObject({
 			virtualize: true,
 			navigable: true,
+			editable: base.editable,
 			infiniteScroll: true,
 		})
 

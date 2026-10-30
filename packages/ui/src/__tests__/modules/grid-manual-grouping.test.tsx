@@ -423,4 +423,45 @@ describe('Grid manual (server-side) row grouping', () => {
 
 		expect(footer).not.toContain('of')
 	})
+
+	// The editors mount through the keyboard cursor, and its order of rows is
+	// positional. Manual grouping stands the cursor down, so editing stands down
+	// with it.
+	it('stands an editable config down: no cursor, no editor, one dev warning', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		const onCommit = vi.fn()
+
+		const editableColumns: GridColumn<Sale>[] = columns.map((col) =>
+			col.id === 'rep' ? { ...col, field: 'rep' } : col,
+		)
+
+		renderUI(
+			<Grid
+				columns={editableColumns}
+				rows={[westHeader, ...westChildren]}
+				getKey={getKey}
+				groupBy={{ manual: true, value: 'region', groupRow, expanded: new Set(['west']) }}
+				editable={{ session: 'managed', onCommit }}
+			/>,
+		)
+
+		expect(screen.queryByRole('grid')).toBeNull()
+
+		const table = screen.getByRole('table')
+
+		expect(table).not.toHaveAttribute('tabindex')
+
+		expect(table).not.toHaveAttribute('aria-activedescendant')
+
+		await setupUser().dblClick(screen.getByRole('cell', { name: 'Wade' }))
+
+		expect(screen.queryByRole('textbox')).toBeNull()
+
+		expect(warn).toHaveBeenCalledOnce()
+
+		expect(warn.mock.calls[0]?.[0]).toContain('manual')
+
+		warn.mockRestore()
+	})
 })
