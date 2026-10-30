@@ -103,4 +103,24 @@ describe('useTagInputKeyboard', () => {
 
 		expect(removeTag).not.toHaveBeenCalled()
 	})
+
+	// A chord such as Cmd+, (the browser settings on macOS) is for the browser.
+	it.each([
+		['Ctrl+Enter', 'Enter', 'draft', { ctrlKey: true }],
+		['Cmd+comma', ',', 'draft', { metaKey: true }],
+		['Alt+Backspace', 'Backspace', '', { altKey: true }],
+		['Cmd+Backspace', 'Backspace', '', { metaKey: true }],
+	])('ignores %s and keeps its default', (_name, key, inputValue, modifier) => {
+		const { press, commit, removeTag } = setup(inputValue, 2)
+
+		const event = makeKeyEvent<HTMLInputElement>(key, modifier)
+
+		press(event)
+
+		expect(event.defaultPrevented).toBe(false)
+
+		expect(commit).not.toHaveBeenCalled()
+
+		expect(removeTag).not.toHaveBeenCalled()
+	})
 })

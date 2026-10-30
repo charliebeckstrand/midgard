@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, useCallback } from 'react'
 import { logicalArrowKey } from '../../../hooks/a11y/logical-arrow'
+import { hasBrowserModifier } from '../../../utilities/modifier-keys'
 import { crossesOtherThumb, snapValue } from './range-utilities'
 import type { OverlapMode, ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeUpdate } from './use-range-update'
@@ -50,6 +51,9 @@ function rangeKeyValue(
  * too, as on a native range input. There, `ArrowLeft` steps up and `ArrowRight`
  * steps down. `ArrowUp` and `ArrowDown` do not change.
  *
+ * A key with Ctrl, Meta, or Alt is for the browser, such as its history, so it
+ * moves no thumb and keeps its default.
+ *
  * @returns A factory `(index) => onKeyDown` for the thumb at `index`.
  */
 export function useRangeKeyboard(options: {
@@ -67,6 +71,8 @@ export function useRangeKeyboard(options: {
 
 	return useCallback(
 		(index: ThumbIndex) => (event: KeyboardEvent) => {
+			if (hasBrowserModifier(event)) return
+
 			const key = logicalArrowKey(event.key, event.currentTarget)
 
 			const raw = rangeKeyValue(key, index, current, step, min, max)
