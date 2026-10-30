@@ -39,9 +39,11 @@ describe('AspectRatio', () => {
 			</AspectRatio>,
 		)
 
-		const el = bySlot(container, 'aspect-ratio')
+		const el = getSlot(container, 'aspect-ratio')
 
-		expect(el).toHaveStyle({ aspectRatio: `${4 / 3}`, maxWidth: '20rem' })
+		expect(el).toHaveStyle({ aspectRatio: `${4 / 3}` })
+
+		expect(el.style.maxWidth).toBe('20rem')
 	})
 
 	it('keeps a preset ratio against a consumer style ratio, and keeps the rest of that style', () => {
@@ -57,7 +59,7 @@ describe('AspectRatio', () => {
 
 		expect(el.style.aspectRatio).toBe('')
 
-		expect(el).toHaveStyle({ maxWidth: '20rem' })
+		expect(el.style.maxWidth).toBe('20rem')
 	})
 
 	it('keeps the default ratio against a consumer style ratio', () => {
