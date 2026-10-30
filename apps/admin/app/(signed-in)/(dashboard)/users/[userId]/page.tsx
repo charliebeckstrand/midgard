@@ -84,7 +84,6 @@ async function UserDetails({ params }: { params: Params }) {
 			/>
 
 			<Section title="Details">
-				{' '}
 				<DescriptionList>
 					<DescriptionTerm>ID</DescriptionTerm>
 					<DescriptionDetails className="font-mono break-all">{user.id}</DescriptionDetails>
@@ -114,7 +113,6 @@ async function UserDetails({ params }: { params: Params }) {
 			</Section>
 
 			<Section title="Recent activity">
-				{' '}
 				<ActivityTable activity={activity?.data ?? []} />
 			</Section>
 		</Stack>

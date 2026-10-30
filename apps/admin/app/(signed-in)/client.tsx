@@ -1,7 +1,6 @@
 'use client'
 
 import {
-	ArrowRightStartOnRectangleIcon,
 	ChevronUpDownIcon,
 	Cog8ToothIcon,
 	KeyIcon,
@@ -12,7 +11,7 @@ import type { User } from 'auth'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { signOut } from 'shared/auth'
+import { SignOutMenuItem } from 'shared/auth'
 import { Avatar } from 'ui/avatar'
 import { Button } from 'ui/button'
 import { EventsAside, EventsButton, EventsSwitch } from 'ui/events'
@@ -205,8 +204,7 @@ type UserMenuProps = {
  * Account menu: the account and settings links, and sign-out.
  *
  * @internal
- * @remarks Sign-out is `signOut` from `shared/auth`: it ends the session, then
- * loads `/login` as a full page, so the query cache of the user does not stay.
+ * @remarks Sign-out is `SignOutMenuItem` from `shared/auth`.
  */
 function UserMenu({ admin, placement, children }: UserMenuProps) {
 	return (
@@ -224,10 +222,7 @@ function UserMenu({ admin, placement, children }: UserMenuProps) {
 					</MenuItem>
 				)}
 				<MenuSeparator />
-				<MenuItem onClick={signOut}>
-					<ArrowRightStartOnRectangleIcon />
-					<MenuLabel>Sign out</MenuLabel>
-				</MenuItem>
+				<SignOutMenuItem />
 			</MenuContent>
 		</Menu>
 	)
