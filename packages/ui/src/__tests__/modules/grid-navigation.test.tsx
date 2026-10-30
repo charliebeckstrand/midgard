@@ -59,6 +59,32 @@ describe('Grid navigable cursor', () => {
 		expect(screen.getByRole('grid')).toHaveAccessibleName('Orders')
 	})
 
+	// The caller's pointer handler runs first, and the cursor's own handler
+	// still runs: the focus of a press on the header seeds no cursor.
+	it('composes a tableProps pointer handler with the cursor, the caller first', () => {
+		const onPointerDown = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				tableProps={{ onPointerDown }}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.pointerDown(screen.getAllByRole('columnheader')[0] as HTMLElement)
+
+		expect(onPointerDown).toHaveBeenCalledOnce()
+
+		fireEvent.focus(grid)
+
+		expect(grid).not.toHaveAttribute('aria-activedescendant')
+	})
+
 	it('marks the data cells as gridcells', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
 

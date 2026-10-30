@@ -13,11 +13,13 @@ import {
 import { TableHeader } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
+import type { MessageDescriptor } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/grid'
 import type { QueryGroup } from '../query'
 import { columnLabel } from './engine/grid-column/label'
+import { gridMessages } from './engine/grid-messages'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
 import { columnShiftStyle } from './engine/grid-reorder-compute'
 import { fitHeaderProps } from './engine/grid-sizing/fit-styles'
@@ -51,6 +53,11 @@ import type { GridColumnFilter, GridColumnPinning } from './use-grid-table'
  * The sort control and the header's bare padding carry no popup and stay fully
  * draggable, so the whole-header grab affordance is untouched.
  *
+ * A surface that the header opens portals out of the `<th>`, but React sends
+ * its events up through the header all the same. A press in the open sheet has
+ * no `aria-haspopup` ancestor in the DOM. Thus a target outside the
+ * `currentTarget` of the event also does not arm the drag.
+ *
  * @internal
  */
 function useSurfaceSafeActivators(
@@ -63,6 +70,8 @@ function useSurfaceSafeActivators(
 			Object.entries(listeners).map(([name, handler]) => [
 				name,
 				(event: ReactPointerEvent<HTMLElement>) => {
+					if (!event.currentTarget.contains(event.target as Node)) return
+
 					if ((event.target as HTMLElement).closest?.('[aria-haspopup]')) return
 
 					;(handler as (event: ReactPointerEvent<HTMLElement>) => void)(event)
@@ -72,12 +81,34 @@ function useSurfaceSafeActivators(
 	}, [listeners])
 }
 
+/**
+ * The hidden name of the header of a column that shows no title: "Details" for
+ * an expander column, and "Actions" for an actions column. The selection, the
+ * drag-handle, and the Add columns name themselves the same way, so a screen
+ * reader announces no empty column header. A column with a title gets none.
+ *
+ * @internal
+ */
+export function untitledHeaderName<T>(column: GridColumn<T>): MessageDescriptor | undefined {
+	if (column.title != null && column.title !== '') return undefined
+
+	if (column.expander) return gridMessages.detailsColumn
+
+	return column.actions ? gridMessages.actionsColumn : undefined
+}
+
 /** Props for the column header cells. @internal */
 export type GridColumnHeaderProps = {
 	column: Pick<
 		GridColumn<unknown>,
 		'id' | 'title' | 'sortable' | 'headerClassName' | 'filterType' | 'filterOptions' | 'groupable'
 	>
+	/**
+	 * The hidden name of a column whose header shows no title, such as an
+	 * expander column ({@link untitledHeaderName}). The header then shows nothing
+	 * and names the column for a screen reader.
+	 */
+	hiddenName: MessageDescriptor | undefined
 	ariaColIndex: number | undefined
 	/** 0-based visible column index; a reorderable header writes its drag shift to the CSS variable keyed by it. */
 	columnIndex: number
@@ -187,6 +218,7 @@ function headerResizeHandle(
 /** Single column header cell; renders a sort-toggle button and, when resizable, a resize separator. @internal */
 export const GridColumnHeader = memo(function GridColumnHeader({
 	column,
+	hiddenName,
 	ariaColIndex,
 	sorted,
 	direction,
@@ -216,7 +248,11 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 	// frozen edge reads from the boundary border).
 	const pinnedSide = pinning?.column(column.id)?.side
 
-	const label = (
+	const intl = useIntl()
+
+	const label = hiddenName ? (
+		<span className="sr-only">{intl.formatMessage(hiddenName)}</span>
+	) : (
 		<GridColumnHeaderLabel
 			column={column}
 			sorted={sorted}

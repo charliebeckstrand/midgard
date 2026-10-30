@@ -95,6 +95,8 @@ type GridValues = {
 	editFilters: Record<never, never>
 	clearFilters: Record<never, never>
 	reorderRows: Record<never, never>
+	actionsColumn: Record<never, never>
+	detailsColumn: Record<never, never>
 	selectAll: Record<never, never>
 	selectAllOnPage: Record<never, never>
 	dataGrid: Record<never, never>
@@ -602,6 +604,18 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		id: 'ui.grid.reorderRows',
 		defaultMessage: 'Reorder rows',
 		description: 'The hidden name of the header of the column of row drag handles.',
+	},
+	actionsColumn: {
+		id: 'ui.grid.actionsColumn',
+		defaultMessage: 'Actions',
+		description:
+			'The hidden name of the header of a column of row actions, such as edit and delete buttons, when the column has no title.',
+	},
+	detailsColumn: {
+		id: 'ui.grid.detailsColumn',
+		defaultMessage: 'Details',
+		description:
+			'The hidden name of the header of the column of the buttons that open the detail panel of each row, when the column has no title.',
 	},
 	selectAll: {
 		id: 'ui.grid.selectAll',

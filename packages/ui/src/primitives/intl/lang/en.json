@@ -659,6 +659,10 @@
 		"defaultMessage": "{count, plural, one {# filter active} other {# filters active}}",
 		"description": "Spoken when a filter changes, with the count of the filters that hold a value, such as \"2 filters active\"."
 	},
+	"ui.grid.actionsColumn": {
+		"defaultMessage": "Actions",
+		"description": "The hidden name of the header of a column of row actions, such as edit and delete buttons, when the column has no title."
+	},
 	"ui.grid.addRow": {
 		"defaultMessage": "Add row",
 		"description": "The name of the button that adds the new row to a grid."
@@ -802,6 +806,10 @@
 	"ui.grid.dataGrid": {
 		"defaultMessage": "Data grid",
 		"description": "The name of a grid that the app gives no name."
+	},
+	"ui.grid.detailsColumn": {
+		"defaultMessage": "Details",
+		"description": "The hidden name of the header of the column of the buttons that open the detail panel of each row, when the column has no title."
 	},
 	"ui.grid.discardCell": {
 		"defaultMessage": "Discard {cell}",

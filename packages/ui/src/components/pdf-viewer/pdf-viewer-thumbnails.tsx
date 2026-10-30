@@ -80,8 +80,10 @@ export function PdfViewerThumbnails() {
 		[pages, intl],
 	)
 
-	// The "Pages" header names the sidebar, so the sidebar is a named
-	// complementary landmark.
+	// The sidebar moves the view from page to page of the document, and it marks
+	// the current page with `aria-current`. So it is a navigation landmark, which
+	// the "Pages" header names. A complementary landmark is for content that
+	// stays meaningful apart from the document, and the strip of pages does not.
 	const sidebarTitleId = useId()
 
 	if (pages.length === 0 && !loading) return null
@@ -89,7 +91,7 @@ export function PdfViewerThumbnails() {
 	return (
 		<>
 			{railed && (
-				<aside
+				<nav
 					ref={sidebarRef}
 					data-slot="pdf-viewer-sidebar"
 					aria-labelledby={sidebarTitleId}
@@ -121,7 +123,7 @@ export function PdfViewerThumbnails() {
 							onVisibleChange={showThumbnails}
 						/>
 					</MountHold>
-				</aside>
+				</nav>
 			)}
 
 			{!railed && (
