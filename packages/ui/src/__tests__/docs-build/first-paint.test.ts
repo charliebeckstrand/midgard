@@ -1,11 +1,12 @@
 import { type Browser, chromium, type Page } from 'playwright'
-import { afterAll, beforeAll, describe, expect, inject, it, onTestFinished } from 'vitest'
-import { HYDRATED } from '../../../scripts/docs-server'
+import { afterAll, beforeAll, describe, inject, it, type TestContext } from 'vitest'
+import { STYLED } from '../../../scripts/docs-server'
 
 // The first paint of the docs has the current items in view. The inline script
 // of the docs (`scroll-restoration.tsx`) scrolls the sidebar and the tab row to
 // the current item before the first paint, so the paint of the server markup,
-// with no module script, shows the same scroll as the page after hydration.
+// with the bundled module scripts blocked, shows the same scroll as the page
+// after hydration.
 
 /** A page near the top of the sidebar, one in the middle, and one at the end. */
 const PAGES = ['/badge', '/modules/grid', '/structure/stack']
@@ -36,9 +37,10 @@ afterAll(async () => {
 /**
  * Opens a tab that is `width` wide. The stale-chunk guard of the docs sees a
  * recent reload, so a page with no module script does not reload. The tab
- * closes after the case.
+ * closes after the case. The cases run side by side, so the hook comes from
+ * the context of the case.
  */
-async function openTab(width: number): Promise<Page> {
+async function openTab({ onTestFinished }: TestContext, width: number): Promise<Page> {
 	const tab = await browser.newPage({ viewport: { width, height: 720 } })
 
 	onTestFinished(() => tab.close())
@@ -52,8 +54,8 @@ async function openTab(width: number): Promise<Page> {
  * Reads the state of `path` in the server markup alone, and then after
  * hydration. `read` is the source of a function that runs in the page.
  */
-async function readBoth<T>(path: string, width: number, read: string, signal: AbortSignal) {
-	const server = await openTab(width)
+async function readBoth<T>(context: TestContext, path: string, width: number, read: string) {
+	const server = await openTab(context, width)
 
 	await server.route(MODULE_SCRIPT, (route) => route.abort())
 
@@ -61,15 +63,13 @@ async function readBoth<T>(path: string, width: number, read: string, signal: Ab
 
 	const painted = await server.evaluate<T>(read)
 
-	signal.throwIfAborted()
+	context.signal.throwIfAborted()
 
-	const hydrated = await openTab(width)
+	const hydrated = await openTab(context, width)
 
 	await hydrated.goto(`${origin}${path}`)
 
-	await hydrated.waitForFunction(HYDRATED)
-
-	await hydrated.waitForLoadState('networkidle')
+	await hydrated.waitForFunction(STYLED)
 
 	return { painted, hydrated: await hydrated.evaluate<T>(read) }
 }
@@ -90,10 +90,13 @@ const READ_SIDEBAR = `(() => {
 	}
 })()`
 
-describe('the sidebar of the docs build', () => {
-	it.for(PAGES)('%s paints its final scroll before hydration', async (path, { signal }) => {
+// Each case opens its own tabs, so the pages load side by side.
+describe.concurrent('the sidebar of the docs build', () => {
+	it.for(PAGES)('%s paints its final scroll before hydration', async (path, context) => {
+		const { expect } = context
+
 		// The width of a desktop, where the sidebar is in the page.
-		const { painted, hydrated } = await readBoth<SidebarState>(path, 1280, READ_SIDEBAR, signal)
+		const { painted, hydrated } = await readBoth<SidebarState>(context, path, 1280, READ_SIDEBAR)
 
 		expect(painted.inView).toBe(true)
 
@@ -118,10 +121,12 @@ const READ_TAB_ROW = `(() => {
 	}
 })()`
 
-describe('the tab row of the docs build', () => {
-	it.for(TABS)('%s paints its final scroll before hydration', async (path, { signal }) => {
+describe.concurrent('the tab row of the docs build', () => {
+	it.for(TABS)('%s paints its final scroll before hydration', async (path, context) => {
+		const { expect } = context
+
 		// The width of a phone, where the row overflows.
-		const { painted, hydrated } = await readBoth<TabRowState>(path, 390, READ_TAB_ROW, signal)
+		const { painted, hydrated } = await readBoth<TabRowState>(context, path, 390, READ_TAB_ROW)
 
 		// The tab is in view in the row, and the page does not scroll to it.
 		expect(painted).toMatchObject({ overflows: true, inView: true, pageY: 0 })

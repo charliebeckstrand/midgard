@@ -65,8 +65,9 @@ export function RouterLink({
 	const isPage = href.startsWith('/') && !href.startsWith('//')
 
 	// A hash alone names an element of this page. It goes through the router, so
-	// each click gives a new location, and the shell scrolls to the element.
-	// The browser fires no event for a click on the hash that the page has already.
+	// each click gives a new location, also a click on the hash that the page
+	// has already, for which the browser fires no event. The shell then scrolls
+	// to the element, and the API table opens a closed entry again.
 	const internal = isPage || href.startsWith('#')
 
 	// A second hover or focus does not start the delay again.

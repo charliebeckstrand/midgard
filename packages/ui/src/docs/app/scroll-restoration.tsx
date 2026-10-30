@@ -1,70 +1,76 @@
 import { useLayoutEffect, useRef } from 'react'
 import { useLocation } from 'react-router'
+import { resolveOffset } from '../../hooks/use-scroll-within.ts'
 import { InlineScript } from '../../primitives/inline-script/inline-script.tsx'
 
-// The scroll of the docs. A load of a page, also a reload, starts at the top,
-// with the current item of each list in view at the first paint
-// (`ScrollRestorationScript`). A navigation in the app then scrolls the window
+// The scroll of the docs. A load of a page, also a reload, starts at the top or
+// at the element of its hash, with the current item of each list in view at
+// the first paint (`ScrollRestorationScript`). A navigation in the app then scrolls the window
 // (`useNavigationScroll`).
 
 /**
- * Turns off the scroll restoration of the browser, and scrolls each list that
- * scrolls on its own to its current item. The item moves by the least distance
- * that shows all of it, as the 'nearest' rule of `scrollNodeWithin` does. The
- * hooks that keep the item in view after hydration (`useNavItem`,
- * `useTabListScroll`) then find it in view, and do not scroll again.
+ * Turns off the scroll restoration of the browser, scrolls the window to the
+ * element of the hash, and scrolls each list that scrolls on its own to its
+ * current item. `resolve` is the rule of the hooks that keep the item in view
+ * after hydration (`useNavItem`, `useTabListScroll`), so the item moves by the
+ * least distance that shows all of it, and the hooks then find it in view.
  *
  * The page runs the source of this function, so it uses nothing from outside
  * its body.
  */
-function restoreScroll() {
+function restoreScroll(resolve: typeof resolveOffset) {
 	history.scrollRestoration = 'manual'
 
-	// The names of the measures of each axis.
-	const y = { start: 'top', size: 'height', view: 'clientHeight', border: 'clientTop' } as const
+	// With the restoration off, the browser does not scroll a reload to its hash.
+	document.getElementById(location.hash.slice(1))?.scrollIntoView()
 
-	const x = { start: 'left', size: 'width', view: 'clientWidth', border: 'clientLeft' } as const
-
-	// The marker of the current item, the node that the hook keeps in view, the
-	// scroller of the list, and its axis.
+	// The current item of each list, the scroller of the list, and the names of
+	// the measures of its axis.
 	const lists = [
 		{
-			current: '[data-slot="sidebar-item-inner"][data-current]',
-			node: '[data-slot="sidebar-item"]',
+			item: '[data-slot="sidebar-item"]:has(> [data-slot="sidebar-item-inner"][data-current])',
 			scroller: '[data-slot="sidebar-body"]',
-			axis: y,
+			axis: {
+				start: 'top',
+				size: 'height',
+				view: 'clientHeight',
+				border: 'clientTop',
+				scroll: 'scrollTop',
+			},
 		},
 		{
-			current: '[data-slot="tab"][data-current]',
-			node: '[data-slot="tab"]',
+			item: '[data-slot="tab"][data-current]',
 			scroller: '[data-slot="tab-list-scroll"]',
-			axis: x,
+			axis: {
+				start: 'left',
+				size: 'width',
+				view: 'clientWidth',
+				border: 'clientLeft',
+				scroll: 'scrollLeft',
+			},
 		},
-	]
+	] as const
 
-	for (const { current, node, scroller, axis } of lists) {
-		for (const marker of document.querySelectorAll(current)) {
-			const item = marker.closest(node)
+	for (const { item, scroller, axis } of lists) {
+		for (const node of document.querySelectorAll(item)) {
+			const box = node.closest(scroller)
 
-			const box = item?.closest(scroller)
+			if (!box) continue
 
-			if (!item || !box) continue
+			const rect = node.getBoundingClientRect()
 
-			const itemRect = item.getBoundingClientRect()
+			// The offset of the item from the padding box of the scroller.
+			const offset = rect[axis.start] - box.getBoundingClientRect()[axis.start] - box[axis.border]
 
-			// The offset of the item from the padding box of the scroller, and the
-			// room that the scroller has around the item.
-			const offset =
-				itemRect[axis.start] - box.getBoundingClientRect()[axis.start] - box[axis.border]
+			const position = resolve('nearest', offset, rect[axis.size], box[axis.view], box[axis.scroll])
 
-			const slack = box[axis.view] - itemRect[axis.size]
-
-			const delta = offset < 0 ? offset : Math.max(offset - slack, 0)
-
-			box.scrollBy({ [axis.start]: delta, behavior: 'instant' })
+			if (position !== undefined) box.scrollTo({ [axis.start]: position, behavior: 'instant' })
 		}
 	}
 }
+
+/** The source of the script. */
+const SCRIPT = `(${restoreScroll})(${resolveOffset})`
 
 /**
  * The inline script of {@link restoreScroll}. Render it in the `<head>`. It is
@@ -73,7 +79,7 @@ function restoreScroll() {
  * whole, with the current item of each list in view.
  */
 export function ScrollRestorationScript() {
-	return <InlineScript type="module" blocking="render" source={`(${restoreScroll})()`} />
+	return <InlineScript type="module" blocking="render" source={SCRIPT} />
 }
 
 /**
@@ -82,20 +88,28 @@ export function ScrollRestorationScript() {
  * element, also on a second link to the same hash, because each navigation
  * gives a new location. The ids of the docs are ASCII, so the hash is the id.
  *
+ * The load is not a navigation: the browser and `ScrollRestorationScript`
+ * scroll it, so the hook does not scroll again at hydration.
+ *
  * @param page - The path of the page, the same for each of its tabs.
  */
 export function useNavigationScroll(page: string) {
 	const location = useLocation()
 
-	// The page that the window scrolled for last.
-	const scrolled = useRef<string>(undefined)
+	// The location and the page that the window scrolled for last. They start
+	// as the location and the page of the load.
+	const last = useRef({ location, page })
 
 	useLayoutEffect(() => {
+		if (last.current.location === location) return
+
+		const newPage = last.current.page !== page
+
+		last.current = { location, page }
+
 		const target = location.hash && document.getElementById(location.hash.slice(1))
 
 		if (target) target.scrollIntoView()
-		else if (scrolled.current !== page) window.scrollTo(0, 0)
-
-		scrolled.current = page
+		else if (newPage) window.scrollTo(0, 0)
 	}, [location, page])
 }

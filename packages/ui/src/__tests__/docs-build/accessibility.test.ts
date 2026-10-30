@@ -2,7 +2,7 @@ import { createRequire } from 'node:module'
 import type { AxeResults } from 'axe-core'
 import { type Browser, chromium, type Page } from 'playwright'
 import { afterAll, beforeAll, describe, inject, it, type TestContext } from 'vitest'
-import { HYDRATED, prerenderedPages } from '../../../scripts/docs-server'
+import { HYDRATED, prerenderedPages, STYLED } from '../../../scripts/docs-server'
 
 // The page smoke test runs a few structural rules of axe in jsdom, which has
 // no layout and no styles. This file runs each WCAG 2.2 A and AA rule of axe
@@ -70,17 +70,6 @@ const KNOWN: readonly { path: string; rule: string; reason: string; theme?: Them
 		theme: 'dark',
 	},
 ]
-
-/**
- * A browser expression that is `true` when the full stylesheet of the page
- * loaded. The app renders the link of the sheet after the hydration commits
- * (`docs/app/root.tsx`). `HYDRATED` is `true` earlier: the hydration is a
- * transition, so React renders it in slices, and the heading gets its fiber
- * before the content does. On a loaded machine, the content stayed as the
- * prerendered markup for seconds after that. Its effects did not run, so a
- * tab panel still had the `tabindex` of the server, and `target-size` failed.
- */
-const STYLED = `document.querySelector('link[rel="stylesheet"][data-precedence]')?.sheet != null`
 
 /** The script of axe, which each page loads. */
 const AXE = createRequire(import.meta.url).resolve('axe-core/axe.min.js')

@@ -52,10 +52,19 @@ export function prerenderedPages(root = CLIENT_DIR): string[] {
  * the shell gets its fiber before the content does. Effects run only after the
  * commit. On the bench page, the commit came well after the heading, and no
  * request or long task started between the two. A check that needs the effects
- * of the page must wait for a later signal, such as the full stylesheet that
- * the app links after the commit (`accessibility.test.ts`).
+ * of the page must wait for a later signal, such as {@link STYLED}.
  */
 export const HYDRATED = `Object.keys(document.querySelector('h1') ?? {}).some((key) => key.startsWith('__reactFiber'))`
+
+/**
+ * A browser expression that is `true` when the full stylesheet of the page
+ * loaded. The app renders the link of the sheet after the hydration commits
+ * (`docs/app/root.tsx`), so the effects of the page have run. {@link HYDRATED}
+ * is `true` earlier: on a loaded machine, the content stayed as the
+ * prerendered markup for seconds after it, and a tab panel still had the
+ * `tabindex` of the server.
+ */
+export const STYLED = `document.querySelector('link[rel="stylesheet"][data-precedence]')?.sheet != null`
 
 /** The content type of each kind of file in a build. */
 export const TYPES: Record<string, string> = {
