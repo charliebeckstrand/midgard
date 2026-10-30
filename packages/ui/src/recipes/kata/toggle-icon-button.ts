@@ -8,7 +8,7 @@ export const k = defineKata(
 		slots: {
 			// The two icons cross-fade. The icon of the state of the button is `active`.
 			icon: {
-				base: 'transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale] motion-reduce:transition-none',
+				base: 'transition-[opacity,filter,scale] duration-300 ease-in-out motion-reduce:transition-none',
 				active: {
 					true: 'scale-100 opacity-100 blur-none',
 					false: 'blur-xs scale-[0.25] opacity-0',
