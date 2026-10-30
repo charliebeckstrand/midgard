@@ -155,10 +155,17 @@ function tableRole(args: {
 	return args.gridSemantics ? 'table' : undefined
 }
 
+/** The `<table>` handlers that the grid composes with the caller's. */
+type GridTableHandlers = Pick<
+	TableElementProps,
+	'onKeyDown' | 'onFocus' | 'onBlur' | 'onPointerDown'
+>
+
 /**
- * The key and focus handlers of the `<table>`: the caller's handler composed
- * with the grid's, the caller's first. A caller's handler that prevents the
- * default keeps the event. A handler that only one side sets passes as it is.
+ * The key, focus, and pointer-press handlers of the `<table>`: the caller's
+ * handler composed with the grid's, the caller's first. A caller's handler
+ * that prevents the default keeps the event. A handler that only one side
+ * sets passes as it is.
  *
  * @internal
  */
@@ -166,11 +173,10 @@ function gridHandlers(
 	own: TableElementProps | undefined,
 	nav: GridNavTableProps | undefined,
 	roving: Pick<TableElementProps, 'onKeyDown'> | undefined,
-): Pick<TableElementProps, 'onKeyDown' | 'onFocus' | 'onBlur'> {
-	const grid: Partial<Pick<TableElementProps, 'onKeyDown' | 'onFocus' | 'onBlur'>> | undefined =
-		nav ?? roving
+): GridTableHandlers {
+	const grid: Partial<GridTableHandlers> | undefined = nav ?? roving
 
-	const handlers: Pick<TableElementProps, 'onKeyDown' | 'onFocus' | 'onBlur'> = {}
+	const handlers: GridTableHandlers = {}
 
 	if (grid?.onKeyDown) handlers.onKeyDown = composeEventHandlers(own?.onKeyDown, grid.onKeyDown)
 
@@ -178,20 +184,24 @@ function gridHandlers(
 
 	if (grid?.onBlur) handlers.onBlur = composeEventHandlers(own?.onBlur, grid.onBlur)
 
+	if (grid?.onPointerDown) {
+		handlers.onPointerDown = composeEventHandlers(own?.onPointerDown, grid.onPointerDown)
+	}
+
 	return handlers
 }
 
 /**
  * Assembles the `<table>` element props: the caller's `tableProps`, with its
- * key and focus handlers composed ahead of the grid's, `aria-busy` while
- * loading, and the role/index scheme. The role is `grid` when the table
- * carries a keyboard cursor. `navigable` and an editable grid both turn the
- * cursor on. A cursor over a client-grouped body makes it `treegrid`. It is
- * `table` when the body is only a window onto a larger set (`gridSemantics`:
- * virtualization or pagination) with no cursor, and native otherwise. A
- * caller's `tableProps.role` wins over each of them. A windowed body also
- * carries the full row/column counts (valid on both roles); per-cell indices
- * come from head/row.
+ * key, focus, and pointer-press handlers composed ahead of the grid's,
+ * `aria-busy` while loading, and the role/index scheme. The role is `grid` when
+ * the table carries a keyboard cursor. `navigable` and an editable grid both
+ * turn the cursor on. A cursor over a client-grouped body makes it `treegrid`.
+ * It is `table` when the body is only a window onto a larger set
+ * (`gridSemantics`: virtualization or pagination) with no cursor, and native
+ * otherwise. A caller's `tableProps.role` wins over each of them. A windowed
+ * body also carries the full row/column counts (valid on both roles); per-cell
+ * indices come from head/row.
  *
  * @remarks `role="grid"` is withheld until a keyboard model backs it. A windowed
  * but non-navigable table stays `role="table"`, which still honors
