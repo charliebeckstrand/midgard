@@ -1898,6 +1898,14 @@ describe('Grid commit-and-move keys', () => {
 				'the listbox trigger',
 			)
 
+			// The entry opens the panel. A press on the trigger closes it, so the Tab
+			// comes from the closed trigger.
+			expect(trigger).toHaveAttribute('aria-expanded', 'true')
+
+			fireEvent.click(trigger)
+
+			expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
 			expect(fireEvent.keyDown(trigger, { key: 'Tab' })).toBe(false)
 
 			expect(bySlot(view.container, 'grid-edit-input')).toHaveFocus()

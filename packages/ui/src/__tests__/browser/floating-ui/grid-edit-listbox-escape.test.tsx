@@ -38,10 +38,7 @@ describe('grid edit session Escape vs an open listbox (real floating engine)', (
 			present(view.container.querySelector('td[data-grid-col="done"]'), 'td[data-grid-col="done"]'),
 		)
 
-		const trigger = await screen.findByRole('combobox')
-
-		await userEvent.click(trigger)
-
+		// The entry opens the panel.
 		await screen.findByRole('option', { name: 'Yes' })
 
 		// The guard the session's Escape defers by. The jsdom suite mocks

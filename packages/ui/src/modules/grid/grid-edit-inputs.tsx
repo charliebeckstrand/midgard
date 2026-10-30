@@ -46,6 +46,11 @@ export type GridEditInputProps = {
 	 * Elsewhere a cell with no `true` value shows No.
 	 */
 	unset?: boolean
+	/**
+	 * Whether an entry on the cell mounted the editor. The yes/no editor then
+	 * opens its panel, which takes the focus that the entry gives the editor.
+	 */
+	entered?: boolean
 }
 
 /**
@@ -138,7 +143,9 @@ const BOOLEAN_OPTIONS = [
  * text/number editor, or the consumer's save affordance. Under `scope: 'cell'`
  * there is no sibling, because the session mounts this editor alone. Tab is
  * then the keyboard commit (WCAG 2.1.1). Tab past the last control of the
- * cell commits the cell and moves the session to the next cell. Escape works
+ * cell commits the cell and moves the session to the next cell. An entry on
+ * the cell opens the panel, which saves the user a press. Tab in the open
+ * panel closes it, and then acts as Tab on the trigger. Escape works
  * as in the other editors. A grid-owned session takes it on the grid table's
  * key surface. Under a consumer-owned session, Escape on the closed trigger
  * reverts the cell. While the panel is open, its first Escape closes the
@@ -155,6 +162,7 @@ function GridBooleanEditInput({
 	required,
 	managed,
 	unset,
+	entered,
 }: GridEditInputProps) {
 	const intl = useIntl()
 
@@ -176,6 +184,7 @@ function GridBooleanEditInput({
 				aria-describedby={error != null ? errorId : undefined}
 				className={k.edit.input}
 				value={value}
+				defaultOpen={entered}
 				onValueChange={(next) => onValueUpdate(next === null ? undefined : next === 'true')}
 				onKeyDown={editorKeys({ cancel, managed })}
 				displayValue={(option) => {

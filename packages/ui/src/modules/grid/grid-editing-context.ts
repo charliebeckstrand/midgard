@@ -106,6 +106,14 @@ export type GridEditingSession = {
 	 */
 	entrySeed: (rowKey: string | number, columnId: string | number) => string | number | undefined
 	/**
+	 * Whether an entry named this cell, as Enter, F2, a double-click, a typed
+	 * character, or Tab from the cell before do. The editor reads it once, as it
+	 * mounts, and a choice editor then opens its panel. The other editors of a
+	 * row that row scope opens read `false`, as does an editor that mounts again
+	 * after a scroll.
+	 */
+	hasEntry: (rowKey: string | number, columnId: string | number) => boolean
+	/**
 	 * Whether this cell's editor takes focus now. An editor asks as it mounts,
 	 * and as the session comes to hold it. It is `true` once, for the cell an
 	 * entry named, while the session holds that cell open.

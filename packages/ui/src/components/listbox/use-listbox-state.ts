@@ -9,6 +9,7 @@ type ListboxStateParams<T> = {
 	nullable: boolean
 	value: T | T[] | undefined
 	open?: boolean
+	defaultOpen?: boolean
 	onOpenChange?: (open: boolean) => void
 	setValue: (
 		value: T | T[] | undefined | ((prev: T | T[] | undefined) => T | T[] | undefined),
@@ -20,11 +21,13 @@ export function useListboxState<T>({
 	nullable,
 	value,
 	open: openProp,
+	defaultOpen,
 	onOpenChange,
 	setValue,
 }: ListboxStateParams<T>) {
 	const [open, setOpen] = useControllableFlag({
 		value: openProp,
+		defaultValue: defaultOpen,
 		onValueChange: onOpenChange,
 	})
 

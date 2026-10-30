@@ -121,9 +121,15 @@ type ListboxBaseProps = {
 	capitalize?: boolean
 	/**
 	 * Controlled open state of the menu. Pair it with `onOpenChange`.
-	 * @defaultValue Uncontrolled, with the menu closed at first.
+	 * @defaultValue Uncontrolled, with `defaultOpen` as the first state.
 	 */
 	open?: boolean
+	/**
+	 * Initial open state of the menu when uncontrolled. A menu that opens as
+	 * the listbox mounts takes the focus, as a menu that the trigger opens does.
+	 * @defaultValue false
+	 */
+	defaultOpen?: boolean
 	/** Fires when the menu open state changes. */
 	onOpenChange?: (open: boolean) => void
 	/**
@@ -223,6 +229,7 @@ export function Listbox<T>({
 	clearable = false,
 	capitalize = true,
 	open: openProp,
+	defaultOpen,
 	onOpenChange,
 	onBlur,
 	onKeyDown,
@@ -294,6 +301,7 @@ export function Listbox<T>({
 		nullable,
 		value,
 		open: openProp,
+		defaultOpen,
 		onOpenChange,
 		setValue,
 	})

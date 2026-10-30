@@ -35,18 +35,50 @@ function inFloatingSurface(node: Element): boolean {
 }
 
 /**
+ * The element that a key press acts from: its target, or `null` for a target
+ * that is not an element. A Tab in the open panel of a listbox closes the panel
+ * and puts focus back on the trigger before the press reaches the table (see
+ * `Listbox`). That press acts from the trigger. A Tab in the panel that a
+ * choice editor opens on entry thus commits and moves, as a Tab on the closed
+ * trigger does. The trigger can still read as expanded here, because the close
+ * has not rendered yet, so only a portal counts against the focus.
+ *
+ * @internal
+ */
+export function pressOrigin(event: ReactKeyboardEvent<HTMLTableElement>): Element | null {
+	const { target } = event
+
+	if (!(target instanceof Element)) return null
+
+	if (event.key !== 'Tab' || closestFloatingPortal(target) === null) return target
+
+	const focused = target.ownerDocument.activeElement
+
+	const back =
+		focused !== null &&
+		event.currentTarget.contains(focused) &&
+		closestFloatingPortal(focused) === null
+
+	return back ? focused : target
+}
+
+/**
  * Whether a key press belongs to a floating surface inside the grid rather than
  * to the session. A press already consumed (`defaultPrevented`) qualifies, and
  * so does a press from focus in a surface (see {@link inFloatingSurface}). The
  * surface's own document-level key layer runs after the table's handler, so the
- * session stands down and lets that layer take the press.
+ * session stands down and lets that layer take the press. A press that the
+ * surface gave back to the editor acts from the editor (see
+ * {@link pressOrigin}).
  *
  * @internal
  */
 export function claimedBySurface(event: ReactKeyboardEvent<HTMLTableElement>): boolean {
-	if (event.defaultPrevented || !(event.target instanceof Element)) return true
+	const origin = pressOrigin(event)
 
-	return inFloatingSurface(event.target)
+	if (event.defaultPrevented || origin === null) return true
+
+	return origin === event.target && inFloatingSurface(origin)
 }
 
 /** Where a move key takes the session from an open editor. @internal */
@@ -63,7 +95,7 @@ export type SessionMove = 'down' | 'next' | 'previous' | 'here'
  * @internal
  */
 export function editorMove(event: ReactKeyboardEvent<HTMLTableElement>): SessionMove | null {
-	const target = event.target as Element
+	const target = pressOrigin(event) ?? (event.target as Element)
 
 	if (target === event.currentTarget || hasBrowserModifier(event)) return null
 

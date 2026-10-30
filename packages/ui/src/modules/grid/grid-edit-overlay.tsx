@@ -382,6 +382,7 @@ function GridEditOverlayField<T>({ session, rowKey, row, column }: GridEditOverl
 			cancel,
 			ariaLabel: label,
 			required: column.required ?? false,
+			entered: false,
 		})
 	) : (
 		<GridEditInputs

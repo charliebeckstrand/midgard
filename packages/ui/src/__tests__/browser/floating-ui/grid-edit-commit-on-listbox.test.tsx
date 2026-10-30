@@ -41,8 +41,7 @@ describe('grid commit on leave vs the listbox editor (real floating engine)', ()
 			present(view.container.querySelector<HTMLElement>('td[data-grid-col="done"]'), 'done'),
 		)
 
-		await userEvent.click(await screen.findByRole('combobox'))
-
+		// The entry opens the panel.
 		await userEvent.click(await screen.findByRole('option', { name: 'Yes' }))
 
 		await waitFor(() => expect(screen.queryByRole('option', { name: 'Yes' })).toBeNull())
