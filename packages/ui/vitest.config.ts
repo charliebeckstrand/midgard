@@ -41,8 +41,8 @@ export const nodeFiles = nodeEnvironmentFiles()
 
 // The boundary suites that read files outside this package: the rule documents,
 // the agent definitions, the Dockerfiles, `package.json`, and the lockfile at the
-// repository root, the Biome plugins, and the sources of the apps and of the
-// other packages. They run as the `workspace` project, which the
+// repository root, the CI workflow, the Biome plugins, and the sources of the
+// apps and of the other packages. They run as the `workspace` project, which the
 // `test:workspace` task of turbo runs with those files as its inputs. Thus an
 // edit outside ui does not clear the cache of the whole ui suite.
 const workspaceScans = [
@@ -54,6 +54,7 @@ const workspaceScans = [
 	'src/__tests__/boundary/drag-cursor-boundary.test.ts',
 	'src/__tests__/boundary/inline-scroll-boundary.test.ts',
 	'src/__tests__/boundary/recipe-boundary.test.ts',
+	'src/__tests__/boundary/vitest-config-boundary.test.ts',
 ]
 
 // The settings of the two projects that scan source text: `boundary` and
