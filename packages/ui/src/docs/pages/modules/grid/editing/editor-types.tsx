@@ -96,6 +96,7 @@ export default function EditorTypes() {
 						options={statusOptions}
 						onValueUpdate={context.onValueUpdate}
 						ariaLabel={context.ariaLabel}
+						entered={context.entered}
 					/>
 				),
 			},

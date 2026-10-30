@@ -1,7 +1,13 @@
 'use client'
 
 import { type KeyboardEvent as ReactKeyboardEvent, type RefObject, useCallback } from 'react'
-import { claimedBySurface, editorMove, ownNode, type SessionMove } from './engine/grid-edit-keys'
+import {
+	claimedBySurface,
+	editorMove,
+	ownNode,
+	pressOrigin,
+	type SessionMove,
+} from './engine/grid-edit-keys'
 import type { CellRequest, SessionRow } from './engine/grid-edit-transition'
 import {
 	EDITOR_FOCUSABLE,
@@ -244,7 +250,7 @@ export function useGridEditKeys<T>({
 			// The new-row slot keeps its own keys, and no data session reads them.
 			if (claimedBySurface(event) || readKeyPress(event).composing || newRowKeys(event)) return
 
-			const target = event.target as Element
+			const target = pressOrigin(event) ?? (event.target as Element)
 
 			const move = event.key === 'Escape' ? 'abandon' : editorMove(event)
 

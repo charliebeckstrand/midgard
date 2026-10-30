@@ -139,6 +139,7 @@ function GridNewRowCell<T>({
 				readDraft={session.readDraft}
 				endSession={inert}
 				entrySeed={inert}
+				hasEntry={noClaim}
 				claimFocus={noClaim}
 				resumeCell={inert}
 				managed

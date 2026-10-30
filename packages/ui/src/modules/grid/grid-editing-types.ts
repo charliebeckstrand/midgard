@@ -88,6 +88,17 @@ export type GridEditCellContext<T> = {
 	ariaLabel: string
 	/** Whether the column is {@link GridColumn.required | required}; set `aria-required` on the control. */
 	required: boolean
+	/**
+	 * Whether an entry on this cell mounted the editor, as Enter, F2, a
+	 * double-click, a typed character, or Tab from the cell before do. A choice
+	 * control then opens its panel, which saves the user a press: pass it to the
+	 * `defaultOpen` of a `Listbox` or a `DatePicker`.
+	 *
+	 * @remarks It is `false` for the other editors of a row that row scope
+	 * opens, for an editor that mounts again after a scroll, and in the overlay
+	 * of a phone, where the editors are fields of a form.
+	 */
+	entered: boolean
 }
 
 /**

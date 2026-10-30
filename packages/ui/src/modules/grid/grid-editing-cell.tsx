@@ -123,6 +123,7 @@ export function GridEditingCell<T>({
 		readDraft,
 		endSession,
 		entrySeed,
+		hasEntry,
 		claimFocus,
 		settleControls,
 		resumeCell,
@@ -185,6 +186,7 @@ export function GridEditingCell<T>({
 					readDraft={readDraft}
 					endSession={endSession}
 					entrySeed={entrySeed}
+					hasEntry={hasEntry}
 					claimFocus={claimFocus}
 					resumeCell={resumeCell}
 					managed={managed}

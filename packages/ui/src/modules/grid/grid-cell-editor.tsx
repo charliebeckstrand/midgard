@@ -14,6 +14,7 @@ import {
 	useLayoutEffect,
 	useRef,
 	useState,
+	useSyncExternalStore,
 } from 'react'
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
@@ -76,6 +77,7 @@ type GridCellEditorProps<T> = {
 	| 'readDraft'
 	| 'endSession'
 	| 'entrySeed'
+	| 'hasEntry'
 	| 'claimFocus'
 	| 'resumeCell'
 	| 'managed'
@@ -231,6 +233,7 @@ export function GridCellEditor<T>({
 	readDraft,
 	endSession,
 	entrySeed,
+	hasEntry,
 	claimFocus,
 	resumeCell,
 	managed,
@@ -254,6 +257,10 @@ export function GridCellEditor<T>({
 	// Read once, as the editor mounts. The entry that typed it clears it after
 	// the focus hand-off, so a later render must not read it again.
 	const [entry] = useState(() => (dataKey === null ? undefined : entrySeed(dataKey, column.id)))
+
+	// Whether an entry on this cell mounted the editor, read once as it mounts.
+	// A choice editor then opens its panel.
+	const [entered] = useState(() => dataKey !== null && hasEntry(dataKey, column.id))
 
 	// A typed entry replaces the cell's value. Otherwise the editor shows the
 	// cell's staged draft when it has one. The draft belongs to the session, so
@@ -450,6 +457,7 @@ export function GridCellEditor<T>({
 			cancel,
 			ariaLabel,
 			required: column.required ?? false,
+			entered,
 		})
 	) : (
 		<GridEditInputs
@@ -463,6 +471,7 @@ export function GridCellEditor<T>({
 			required={column.required}
 			managed={managed}
 			unset={newRow}
+			entered={entered}
 		/>
 	)
 
@@ -485,7 +494,7 @@ export function GridCellEditor<T>({
 /**
  * The floating column below the cell of an editor: the settle controls, then
  * the error message. Floating UI anchors it to `anchor`: the cell, or the
- * editor while it grows past the cell. The scroll area of the grid does not
+ * editor while it grows past the cell. A `null` anchor hides it. The scroll area of the grid does not
  * clip it. Below the last row, it shows past the bottom of the grid. At the
  * bottom of the viewport, it flips above the cell. It hides while the cell is
  * out of view. The settle controls take no focus, so the column keeps the
@@ -520,8 +529,37 @@ function GridEditBelow({ anchor, children }: { anchor: HTMLElement | null; child
 }
 
 /**
+ * Whether a control in `slot` is expanded, such as a listbox trigger or a
+ * date input with its panel open. A control stamps `aria-expanded` as its
+ * panel opens and closes, so a mutation observer follows it.
+ * @internal
+ */
+function useExpanded(slot: HTMLElement | null): boolean {
+	const subscribe = useCallback(
+		(notify: () => void) => {
+			if (!slot) return () => {}
+
+			const observer = new MutationObserver(notify)
+
+			observer.observe(slot, { subtree: true, attributeFilter: ['aria-expanded'] })
+
+			return () => observer.disconnect()
+		},
+		[slot],
+	)
+
+	return useSyncExternalStore(
+		subscribe,
+		() => slot?.querySelector('[aria-expanded="true"]') != null,
+		() => false,
+	)
+}
+
+/**
  * The host of {@link GridCellEditor}: the editor, and the settle controls and
- * the error message that float below the cell ({@link GridEditBelow}). A data
+ * the error message that float below the cell ({@link GridEditBelow}). They
+ * hide while a control of the editor is expanded, because its panel opens
+ * below the cell too. A data
  * cell draws the frame and the focus ring of its editor (`k.edit.cell`), so the
  * editor takes the `bare` surface and the full width of the cell. The display
  * content stays under the editor, out of sight, and holds the height of the
@@ -560,6 +598,11 @@ function GridEditHost({
 
 	const { ref: slotRef, style: growStyle, grown, slot } = useGridEditGrow(newRow ? null : cell)
 
+	// The panel of an expanded control opens below the cell too, so the column
+	// below the cell hides while the panel is open. The panel holds the focus,
+	// and its keys settle the choice.
+	const expanded = useExpanded(slot)
+
 	const message = error && <GridEditMessage id={errorId}>{error}</GridEditMessage>
 
 	if (newRow) {
@@ -596,7 +639,7 @@ function GridEditHost({
 			</span>
 
 			{(settle !== 'none' || message) && (
-				<GridEditBelow anchor={grown ? slot : cell}>
+				<GridEditBelow anchor={expanded ? null : grown ? slot : cell}>
 					<GridSettleControls label={label} controls={settle} settle={onSettle} />
 
 					{message}

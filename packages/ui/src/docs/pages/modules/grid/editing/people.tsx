@@ -69,22 +69,26 @@ export function EditHelp({ label, children }: { label: string; children: ReactNo
 
 /**
  * An editor for the `editCell` slot of a column: a listbox of options. It
- * stages the selected option, and the save of the row commits it.
+ * stages the selected option, and the save of the row commits it. An entry on
+ * the cell opens the options.
  */
 export function CellListbox({
 	value,
 	options,
 	onValueUpdate,
 	ariaLabel,
+	entered,
 }: {
 	value: string
 	options: { label: string; value: string }[]
 	onValueUpdate: GridEditCellContext<unknown>['onValueUpdate']
 	ariaLabel: string
+	entered: boolean
 }) {
 	return (
 		<Listbox<string>
 			aria-label={ariaLabel}
+			defaultOpen={entered}
 			value={value || null}
 			onValueChange={(next) => onValueUpdate(next ?? '')}
 			displayValue={(key) => options.find((option) => option.value === key)?.label ?? key}
@@ -128,6 +132,7 @@ export const personColumns: GridColumn<Person>[] = [
 				options={roleOptions}
 				onValueUpdate={context.onValueUpdate}
 				ariaLabel={context.ariaLabel}
+				entered={context.entered}
 			/>
 		),
 	},

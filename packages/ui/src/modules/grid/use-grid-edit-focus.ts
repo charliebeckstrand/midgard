@@ -75,6 +75,14 @@ export function useGridEditFocus<T>({
 		return pending && pointsAt(pending, { rowKey, columnId }) ? pending.value : undefined
 	}, [])
 
+	// Whether an entry named this cell. Each entry sets the seed, with a typed
+	// value or with none, so the seed marks the entry too.
+	const hasEntry = useCallback((rowKey: string | number, columnId: string | number) => {
+		const pending = pendingSeedRef.current
+
+		return pending !== null && pointsAt(pending, { rowKey, columnId })
+	}, [])
+
 	const dropIntents = useCallback(() => {
 		pendingFocusRef.current = null
 
@@ -293,6 +301,7 @@ export function useGridEditFocus<T>({
 		originsRef,
 		placeOrigin,
 		entrySeed,
+		hasEntry,
 		dropIntents,
 		claimFocus,
 		reseat,

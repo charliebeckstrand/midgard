@@ -495,14 +495,22 @@ export function inGrid(node: Element | null, grid: HTMLElement | null): boolean 
  * the cell has a tabbable element after the one that holds `target`, or one
  * before it for Shift+Tab. The browser then moves focus there. Only Tab from
  * the last element, or Shift+Tab from the first, leaves the cell. A single
- * control therefore always leaves it (WCAG 2.1.1). @internal
+ * control therefore always leaves it (WCAG 2.1.1).
+ *
+ * @remarks The open panel of a listbox puts focus guards in the cell, beside
+ * its portal. They are not controls of the editor. A Tab in the panel closes
+ * it and acts from the trigger (see `pressOrigin`), so the guards must not
+ * keep that Tab in the cell.
+ * @internal
  */
 export function tabStaysInCell(target: Element, backward: boolean): boolean {
 	const cell = target.closest('td[data-grid-col]')
 
 	if (!cell) return false
 
-	const tabbables = getTabbableElements(cell)
+	const tabbables = getTabbableElements(cell).filter(
+		(element) => !element.hasAttribute('data-floating-ui-focus-guard'),
+	)
 
 	const index = tabbables.findIndex((el) => el.contains(target))
 

@@ -36,9 +36,15 @@ describe('listbox editor and Enter (real floating engine)', () => {
 			present(view.container.querySelector('td[data-grid-col="done"]'), 'td[data-grid-col="done"]'),
 		)
 
-		const trigger = await screen.findByRole('combobox')
+		// The entry opens the panel. Escape closes it, and leaves focus on the
+		// trigger.
+		await screen.findByRole('option', { name: 'Yes' })
 
-		trigger.focus()
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(screen.queryByRole('option', { name: 'Yes' })).toBeNull())
+
+		expect(await screen.findByRole('combobox')).toHaveFocus()
 
 		// Enter on the closed trigger: does the listbox take it?
 		await userEvent.keyboard('{Enter}')
@@ -69,10 +75,7 @@ describe('listbox editor and Enter (real floating engine)', () => {
 
 		const trigger = await screen.findByRole('combobox')
 
-		trigger.focus()
-
-		await userEvent.keyboard('{Enter}')
-
+		// The entry opens the panel.
 		await userEvent.click(await screen.findByRole('option', { name: 'Yes' }))
 
 		await waitFor(() => expect(screen.queryByRole('option', { name: 'Yes' })).toBeNull())
