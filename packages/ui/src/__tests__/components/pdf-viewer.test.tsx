@@ -100,7 +100,7 @@ describe('PdfViewer', () => {
 	it('names the thumbnail sidebar by its "Pages" header', () => {
 		renderUI(<PdfViewer pages={pages} />)
 
-		expect(screen.getByRole('complementary', { name: 'Pages' })).toHaveAttribute(
+		expect(screen.getByRole('navigation', { name: 'Pages' })).toHaveAttribute(
 			'data-slot',
 			'pdf-viewer-sidebar',
 		)
@@ -1881,7 +1881,7 @@ describe('PdfViewer in a locale', () => {
 
 		expect(screen.getByLabelText('Acercar')).toBeInTheDocument()
 
-		expect(screen.getByRole('complementary', { name: 'Páginas' })).toBeInTheDocument()
+		expect(screen.getByRole('navigation', { name: 'Páginas' })).toBeInTheDocument()
 
 		expect(screen.getByRole('button', { name: 'Ir a Página 1' })).toBeInTheDocument()
 
