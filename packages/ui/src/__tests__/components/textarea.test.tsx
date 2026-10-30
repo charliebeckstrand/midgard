@@ -372,6 +372,8 @@ describe('TextareaSkeleton', () => {
 	it('reserves one line for each row', () => {
 		const { container } = renderUI(<TextareaSkeleton rows={5} />)
 
-		expect(getSlot(container, 'placeholder').firstElementChild).toHaveStyle({ height: '5lh' })
+		const strut = getSlot(container, 'placeholder').firstElementChild as HTMLElement
+
+		expect(strut.style.height).toBe('5lh')
 	})
 })
