@@ -327,6 +327,22 @@ function useColumnLayout<T>(
 }
 
 /**
+ * Whether a binding on `useControllable` is controlled. It follows that hook:
+ * the first value that is not `undefined` takes control for the mount, and a
+ * later `undefined` reads as an empty value, not as an uncontrolled binding.
+ * Adjusted during render, as that hook does.
+ *
+ * @internal
+ */
+function useControlledLatch(value: unknown): boolean {
+	const [latched, setLatched] = useState(value !== undefined)
+
+	if (value !== undefined && !latched) setLatched(true)
+
+	return latched || value !== undefined
+}
+
+/**
  * The {@link GridColumnResize} value and the store of settled widths that the
  * body cells subscribe to (see {@link GridTableResult.settle}).
  *
@@ -598,6 +614,8 @@ export function useGridTable<T>({
 			columnSizingConfig?.onValueChange?.(next ?? {})
 		},
 	})
+
+	const sizingControlled = useControlledLatch(columnSizingConfig?.value)
 
 	// The widths of the content-sized columns, which the autosizer writes here and not
 	// to `columnSizing`: they are no preference. Laid over the sizing state, so the
@@ -909,7 +927,7 @@ export function useGridTable<T>({
 		floors,
 	} = useGridColumnSizing<T>({
 		resizable,
-		controlled: columnSizingConfig?.value != null,
+		controlled: sizingControlled,
 		table: engine,
 		// Fit distributes width across the *visible* data columns, not the hidden ones.
 		columns: visibleColumns,
