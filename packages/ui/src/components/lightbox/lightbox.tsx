@@ -71,7 +71,8 @@ export type LightboxProps = {
 	/**
 	 * Shows a row of thumbnails of the photos in place of the pill of `controls`.
 	 * The thumbnail of the photo that the viewer shows is solid, and the others
-	 * are dim. A press on a thumbnail shows its photo. The row scrolls when the
+	 * are dim. A press on a thumbnail slides its photo in from its side, as a
+	 * step does, and passes no photo between. The row scrolls when the
 	 * thumbnails do not fit, and it keeps the current thumbnail in its center.
 	 * @defaultValue false
 	 */

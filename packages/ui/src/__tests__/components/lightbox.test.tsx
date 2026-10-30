@@ -630,6 +630,56 @@ describe('Lightbox', () => {
 		expect(controls.querySelector('[aria-current]')).toHaveAccessibleName('Field of poppies')
 	})
 
+	it('slides the photo of a thumbnail that is not next to the current photo in from its side', async () => {
+		renderUI(<Gallery defaultIndex={0} thumbnails />)
+
+		const controls = getSlot(document.body, 'lightbox-controls')
+
+		const slot = (offset: number) => document.querySelector(`[data-offset="${offset}"] img`)
+
+		fireEvent.click(present(controls.querySelectorAll('button')[3], 'thumbnail'))
+
+		// The slide runs, so the first photo is still in the center slot. The
+		// photo of the thumbnail takes the slot after it, so the slide passes no
+		// photo between them.
+		expect(centerPhoto()).toHaveAttribute('alt', 'Harbor at dawn')
+
+		const field = slot(1)
+
+		expect(field).toHaveAttribute('alt', 'Field of poppies')
+
+		expect(controls.querySelector('[aria-current]')).toHaveAccessibleName('Field of poppies')
+
+		await waitFor(() => expect(centerPhoto()).toBe(field))
+
+		// At rest, the photo before it is its neighbor again.
+		expect(slot(-1)).toHaveAttribute('alt', 'Snow on a ridge')
+	})
+
+	it('keeps the photo that a slide to a far thumbnail left next to it when another thumbnail stops the slide', async () => {
+		renderUI(<Gallery defaultIndex={0} thumbnails />)
+
+		const controls = getSlot(document.body, 'lightbox-controls')
+
+		const slot = (offset: number) => document.querySelector(`[data-offset="${offset}"] img`)
+
+		fireEvent.click(present(controls.querySelectorAll('button')[3], 'thumbnail'))
+
+		const harbor = slot(0)
+
+		fireEvent.click(present(controls.querySelectorAll('button')[1], 'thumbnail'))
+
+		// The press lands the far photo where the slide stopped. The first photo
+		// stays next to it, and the slide back goes to it.
+		expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
+
+		expect(slot(-1)).toBe(harbor)
+
+		await waitFor(() => expect(centerPhoto()).toBe(harbor))
+
+		expect(slot(1)).toHaveAttribute('alt', 'Snow on a ridge')
+	})
+
 	it('moves the focus along the row of thumbnails with the arrow keys', () => {
 		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 

@@ -36,6 +36,19 @@ export type LightboxTrackOptions = {
 	/** Shows another photo. The track calls it when a step lands. */
 	onIndexChange: (index: number) => void
 	/**
+	 * The place of the photo in the slot on the side `step` of the center. It
+	 * is the photo next to the center, or the photo that a link puts there (see
+	 * `onLink`). A place outside the photos tells that the slot is empty.
+	 */
+	beside: (step: -1 | 1) => number
+	/**
+	 * Links the photo in the center to the photo at the place `to`, or ends the
+	 * link with `null`. While the link stays, each of the two photos holds the
+	 * slot next to the other, on its side of the line, in place of its
+	 * neighbor. The track ends the link when it comes to rest.
+	 */
+	onLink: (to: number | null) => void
+	/**
 	 * Called when a slide starts, with the index of the photo that it ends on.
 	 * That is the photo that it steps to, or the photo in the center when it
 	 * slides back. The controls can thus move with the slide.
@@ -57,9 +70,10 @@ export type LightboxTrack = {
 	 */
 	step: (step: -1 | 1) => void
 	/**
-	 * Shows the photo at a place in the photos. A photo next to the one in the
-	 * center slides in as a step does, and a photo farther away takes the
-	 * center at once. It first ends a live press.
+	 * Shows the photo at a place in the photos. The photo slides in as a step
+	 * does, from the side of its place. A photo farther away than the next one
+	 * first takes the slot on that side, so the slide passes no photo between
+	 * them. It first ends a live press.
 	 */
 	go: (index: number) => void
 	/**
@@ -189,6 +203,12 @@ function paint(track: HTMLElement, travel: number) {
  * photo. That commit puts the new photo in the center slot, so the track
  * goes back to rest in the same frame and nothing moves on the screen.
  *
+ * A slide to a photo farther away links it to the photo in the center (see
+ * `onLink`) first. The photo thus takes the slot next to the center, and the
+ * slide is one step long. The link stays until the track comes to rest, so a
+ * slide that a press stops keeps the photo that it left next to the one it
+ * lands, and a swipe back goes to that photo.
+ *
  * A swipe on the stage moves the track with the finger. At the lift, it steps
  * when it traveled far enough or fast enough (see `swipeStep`), and it
  * slides back otherwise. Past the first or the last photo, the track follows
@@ -222,7 +242,17 @@ function paint(track: HTMLElement, travel: number) {
  */
 export function useLightboxTrack(
 	trackRef: RefObject<HTMLElement | null>,
-	{ index, count, onIndexChange, onAim, onTap, onDismiss, dimmed }: LightboxTrackOptions,
+	{
+		index,
+		count,
+		onIndexChange,
+		beside,
+		onLink,
+		onAim,
+		onTap,
+		onDismiss,
+		dimmed,
+	}: LightboxTrackOptions,
 ): LightboxTrack {
 	const reduceMotion = usePrefersReducedMotion()
 
@@ -241,6 +271,9 @@ export function useLightboxTrack(
 	// Puts the photo of a swipe to close at rest at once, while its restore runs.
 	const restoring = useRef<(() => void) | null>(null)
 
+	// Whether a link puts a photo farther away in a slot next to the center.
+	const linked = useRef(false)
+
 	const press = useRef<Press | null>(null)
 
 	const swipedRef = useRef(false)
@@ -253,18 +286,32 @@ export function useLightboxTrack(
 	// The track follows a swipe of a mouse too, so the page holds the closed hand.
 	const cursor = useDragCursorHold()
 
-	const canStep = (step: number) => index + step >= 0 && index + step < count
+	// The place of the photo in the slot at `offset` from the center.
+	const placeAt = (offset: -1 | 0 | 1) => (offset === 0 ? index : beside(offset))
+
+	const canStep = (step: -1 | 1) => {
+		const to = beside(step)
+
+		return to >= 0 && to < count
+	}
 
 	// The commit and the reset happen in one task, so the browser paints the new
-	// center slot at rest and never the old slot at rest.
+	// center slot at rest and never the old slot at rest. At rest, no photo
+	// beside the center is in view, so the link ends.
 	const rest = (track: HTMLElement | null) => {
 		travel.current = 0
 
 		if (track) paint(track, 0)
+
+		if (linked.current) {
+			linked.current = false
+
+			flushSync(() => onLink(null))
+		}
 	}
 
 	const land = useStableEvent((step: -1 | 1) => {
-		flushSync(() => onIndexChange(index + step))
+		flushSync(() => onIndexChange(placeAt(step)))
 
 		rest(trackRef.current)
 	})
@@ -286,7 +333,7 @@ export function useLightboxTrack(
 
 		sliding.current = step
 
-		onAim(index + step)
+		onAim(placeAt(step))
 
 		controls.finished.then(() => {
 			if (running.current !== controls) return
@@ -346,7 +393,9 @@ export function useLightboxTrack(
 		// travel that the track paints below, so the slide is canceled instead.
 		controls.cancel()
 
-		if (step !== 0) flushSync(() => onIndexChange(index + step))
+		// A link stays, so the photo that the slide left keeps its slot next to
+		// the photo that it lands.
+		if (step !== 0) flushSync(() => onIndexChange(placeAt(step)))
 
 		travel.current = painted - offset
 
@@ -396,23 +445,23 @@ export function useLightboxTrack(
 
 	// Reads `index` after `interrupt`, which can land a slide and move it.
 	const goFromRest = useStableEvent((to: number) => {
-		const distance = to - index
-
-		if (distance === 1 || distance === -1) {
-			advance(distance)
-
-			return
-		}
-
-		if (distance === 0 || !canStep(distance)) {
+		if (to === index || to < 0 || to >= count) {
 			settle()
 
 			return
 		}
 
-		flushSync(() => onIndexChange(to))
+		const direction = to > index ? 1 : -1
 
-		rest(trackRef.current)
+		// The photo takes the slot on its side before the slide starts, so the
+		// slide reads the new slot.
+		if (beside(direction) !== to) {
+			linked.current = true
+
+			flushSync(() => onLink(to))
+		}
+
+		advance(direction)
 	})
 
 	const go = (to: number) => {

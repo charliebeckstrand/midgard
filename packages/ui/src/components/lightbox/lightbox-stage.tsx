@@ -22,7 +22,13 @@ import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { useLightboxContext } from './context'
-import { getThumbnail, PAN_KEY_STEP, ZOOM_KEY_STEP } from './lightbox-utilities'
+import {
+	getThumbnail,
+	type LightboxLink,
+	PAN_KEY_STEP,
+	placeBeside,
+	ZOOM_KEY_STEP,
+} from './lightbox-utilities'
 import type { LightboxViewPhoto } from './types'
 import { useLightboxFlight } from './use-lightbox-flight'
 
@@ -143,10 +149,14 @@ function centerCurrentThumbnail(row: HTMLDivElement | null) {
 	if (row && current) scrollNodeWithin(row, current, { inline: 'center', behavior: 'instant' })
 }
 
-/** The slots of the track: the photo in the center and each photo next to it. */
-function slotsAround(index: number, photos: readonly LightboxViewPhoto[]) {
-	return [-1, 0, 1].flatMap((offset) => {
-		const photo = photos[index + offset]
+/** The slots of the track: the photo in the center and the photo on each side of it. */
+function slotsAround(
+	index: number,
+	photos: readonly LightboxViewPhoto[],
+	link: LightboxLink | null,
+) {
+	return ([-1, 0, 1] as const).flatMap((offset) => {
+		const photo = photos[offset === 0 ? index : placeBeside(photos, index, link, offset)]
 
 		return photo ? [{ offset, photo }] : []
 	})
@@ -216,6 +226,9 @@ export function LightboxStage({
 	// does not show the photo `to` again.
 	const [aim, setAim] = useState<{ from: number; to: number } | null>(null)
 
+	// The photo that a slide to a photo farther away puts next to the center.
+	const [link, setLink] = useState<LightboxLink | null>(null)
+
 	const track = useLightboxTrack(trackRef, {
 		index,
 		count: photos.length,
@@ -223,6 +236,14 @@ export function LightboxStage({
 			setAim(null)
 
 			onIndexChange(to)
+		},
+		beside: (step) => placeBeside(photos, index, link, step),
+		onLink: (to) => {
+			const from = photos[index]?.index
+
+			const target = to === null ? undefined : photos[to]?.index
+
+			setLink(from === undefined || target === undefined ? null : { from, to: target })
 		},
 		onAim: (to) => {
 			const from = photos[index]?.index
@@ -422,7 +443,7 @@ export function LightboxStage({
 			    arrow keys give each of its actions to the keyboard. */}
 			<div ref={stageRef} data-slot="lightbox-stage" {...track.handlers} className={slots.stage}>
 				<div ref={trackRef} className={slots.track}>
-					{slotsAround(index, photos).map(({ offset, photo }) => {
+					{slotsAround(index, photos, link).map(({ offset, photo }) => {
 						const placeholder = photo.thumbnail && photo.thumbnail !== photo.src
 
 						return (

@@ -4,6 +4,7 @@ import {
 	dismisses,
 	dismissFrame,
 	parseMatrix,
+	placeBeside,
 	swipeStep,
 } from '../../components/lightbox/lightbox-utilities'
 
@@ -89,5 +90,42 @@ describe('parseMatrix', () => {
 		expect(parseMatrix('none')).toEqual([])
 
 		expect(parseMatrix('matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)')).toEqual([])
+	})
+})
+
+describe('placeBeside', () => {
+	// The third photo of `photos` failed, so the places skip it.
+	const photos = [0, 1, 3, 4, 5].map((index) => ({
+		src: `/${index}.jpg`,
+		alt: '',
+		width: 1,
+		height: 1,
+		index,
+	}))
+
+	it('gives the neighbor on each side with no link', () => {
+		expect(placeBeside(photos, 2, null, -1)).toBe(1)
+
+		expect(placeBeside(photos, 2, null, 1)).toBe(3)
+
+		expect(placeBeside(photos, 0, null, -1)).toBe(-1)
+	})
+
+	it('gives the linked photo on its own side, from either end of the link', () => {
+		const link = { from: 0, to: 4 }
+
+		expect(placeBeside(photos, 0, link, 1)).toBe(3)
+
+		expect(placeBeside(photos, 0, link, -1)).toBe(-1)
+
+		expect(placeBeside(photos, 3, link, -1)).toBe(0)
+
+		expect(placeBeside(photos, 3, link, 1)).toBe(4)
+	})
+
+	it('ignores a link that does not hold the photo in the center, or a photo that left', () => {
+		expect(placeBeside(photos, 2, { from: 0, to: 4 }, 1)).toBe(3)
+
+		expect(placeBeside(photos, 0, { from: 0, to: 2 }, 1)).toBe(1)
 	})
 })
