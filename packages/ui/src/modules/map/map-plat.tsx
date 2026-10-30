@@ -174,10 +174,10 @@ type MapPlatBaseProps = AccessibleName &
 		 * @defaultValue true
 		 * @remarks It asks for a readout rather than asserting one. A map no row
 		 * matches and no mark draws on has nothing to name, so it takes no tab stop
-		 * whatever this prop says. An unmatched region raises no tooltip, takes no
-		 * emphasis, and fills no table row. A pick or a zoom still earns
-		 * one, because each is an output of its own. On that stop, with the readout
-		 * off, each arrow key speaks the name of the stop alone.
+		 * whatever this prop says. A pick or a zoom still earns one, because each is
+		 * an output of its own. On that stop, with the readout off, each arrow key
+		 * speaks the name of the stop alone. An unmatched region raises no tooltip
+		 * and takes no emphasis. Its table row shows the gap mark as its value.
 		 */
 		tooltip?: boolean
 		/**
@@ -1072,7 +1072,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// separate marks each kept a full target and the overlap went to whichever
 	// drew last.
 	//
-	// Gathered on the first read and held from there: the gather invokes every entry's `stopsAt`, which
+	// Gathered on the first read and held from there: the gather invokes every entry's `dotsAt`, which
 	// `MapPoints` registers as a thunk precisely so that pass lands on the readers that want it, and a
 	// plat with no dot-shaped mark on it must never run the pass at all. A mark that moves changes none
 	// of these deps, so it restakes its own dots in the pool (see `createDotPool`).

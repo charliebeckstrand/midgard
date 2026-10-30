@@ -4,12 +4,11 @@
  *
  * `width` is the width of the real calendar. The Calendar kata reads it.
  * `row` is the height of the header row and of each day row: the height of a
- * button, because each of those rows holds buttons. The calendar has no `xs`
- * step, so in an `xs` scope it uses `sm`. The `row` ramp has three values, so
- * it also gives the `sm` height at `xs`. The square weekday row comes from the
- * `weekday` slot of the kata. Each measure is a stepped `density-*` class, so
- * the silhouette takes the step of its nearest density scope, as the calendar
- * does.
+ * button, because each of those rows holds buttons. The `width` and `row`
+ * ramps each have a value for each of the five steps, from `xs` to `xl`. The
+ * square weekday row comes from the `weekday` slot of the kata. Each measure is
+ * a stepped `density-*` class, so the silhouette takes the step of its nearest
+ * density scope, as the calendar does.
  *
  * Layer: kiso · Concern: skeleton form · Unit: calendar
  */
