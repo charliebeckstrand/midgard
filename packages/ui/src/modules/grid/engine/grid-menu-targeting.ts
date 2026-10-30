@@ -149,8 +149,12 @@ export function openKeyboardMenu(
 
 	// The cursor marks its gridcell alone. An applied filter and an active group
 	// mark their header buttons with the same attribute, and the header comes
-	// first in the grid.
-	const active = grid.querySelector<HTMLElement>('[role="gridcell"][data-active]')
+	// first in the grid. A grid in a detail panel keeps the mark of its own
+	// cursor, and its cell ids name nothing in this grid, so only a cell that
+	// this grid owns counts.
+	const active = Array.from(
+		grid.querySelectorAll<HTMLElement>('[role="gridcell"][data-active]'),
+	).find((cell) => cell.closest(GRID_ROLE) === grid)
 
 	if (!active) return
 
