@@ -41,8 +41,11 @@ export type KeyboardReorderOptions<T> = {
 /** The item a key acts on: its key, its index in `items`, the last index, and its description. */
 type ReorderTarget = { id: string; index: number; last: number; describe: () => string }
 
-/** The index a key moves focus to when nothing is lifted, or `null` for a key that does not. */
-function focusTarget(key: string, step: number | null, { index, last }: ReorderTarget) {
+/**
+ * The index that a key goes to: focus when nothing is lifted, and the item when it is lifted. It is
+ * `null` for a key that does not move.
+ */
+function keyTarget(key: string, step: number | null, { index, last }: ReorderTarget) {
 	if (step !== null) return clamp(index + step, 0, last)
 
 	if (key === 'Home') return 0
@@ -84,7 +87,7 @@ export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
 
 		/** Not lifted: a step or Home or End moves focus. */
 		const navigate = (step: number | null, at: ReorderTarget) => {
-			const target = focusTarget(event.key, step, at)
+			const target = keyTarget(event.key, step, at)
 
 			const item = target === null || target === at.index ? undefined : items[target]
 
@@ -95,9 +98,11 @@ export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
 			focusItem(getKey(item))
 		}
 
-		/** Lifted: a step moves the item, and Escape or Enter drops it. */
+		/** Lifted: a step or Home or End moves the item, and Escape or Enter drops it. */
 		const carry = (step: number | null, at: ReorderTarget) => {
-			if (step === null) {
+			const target = keyTarget(event.key, step, at)
+
+			if (target === null) {
 				if (event.key !== 'Escape' && event.key !== 'Enter') return
 
 				event.preventDefault()
@@ -108,8 +113,6 @@ export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
 			}
 
 			event.preventDefault()
-
-			const target = clamp(at.index + step, 0, at.last)
 
 			if (!onReorder || at.index === -1 || target === at.index) return
 
