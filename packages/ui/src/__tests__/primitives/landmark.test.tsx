@@ -1,3 +1,4 @@
+import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import {
 	AuthLayout,
@@ -7,14 +8,15 @@ import {
 	StackedLayout,
 	StackedLayoutBody,
 } from '../../layouts'
-import { allBySlot, renderUI } from '../helpers'
+import { Landmark, useLandmark } from '../../primitives/landmark'
+import { allBySlot, renderUI, screen } from '../helpers'
 
 /** The tag names of the elements with `slot`, in document order. */
 function readTagNames(container: HTMLElement, slot: string): string[] {
 	return allBySlot(container, slot).map((element) => element.tagName.toLowerCase())
 }
 
-describe('the main slot of a layout', () => {
+describe('Landmark', () => {
 	it('is a main element at the top level, and a div in another layout', () => {
 		const { container } = renderUI(
 			<SidebarLayout sidebar={null}>
@@ -69,5 +71,44 @@ describe('the main slot of a layout', () => {
 		)
 
 		expect(element).toBeInstanceOf(HTMLDivElement)
+	})
+
+	it('tells a descendant which landmark holds it', () => {
+		expect(renderHook(useLandmark).result.current).toBeNull()
+
+		const { result } = renderHook(useLandmark, {
+			wrapper: ({ children }) => <Landmark as="main">{children}</Landmark>,
+		})
+
+		expect(result.current).toBe('main')
+	})
+
+	it('is a region at the top level, and a section with no name in a main', () => {
+		renderUI(
+			<>
+				<Landmark as="section" aria-label="Outer" />
+				<Landmark as="main">
+					<Landmark as="section" aria-label="Inner" />
+				</Landmark>
+			</>,
+		)
+
+		expect(
+			screen.getAllByRole('region').map((region) => region.getAttribute('aria-label')),
+		).toEqual(['Outer'])
+	})
+
+	it('drops the navbar region of a layout in another layout', () => {
+		renderUI(
+			<SidebarLayout sidebar={null}>
+				<SidebarLayoutBody>
+					<SidebarLayout sidebar={null}>
+						<SidebarLayoutBody>Preview</SidebarLayoutBody>
+					</SidebarLayout>
+				</SidebarLayoutBody>
+			</SidebarLayout>,
+		)
+
+		expect(screen.getAllByRole('region', { name: 'Navigation bar' })).toHaveLength(1)
 	})
 })

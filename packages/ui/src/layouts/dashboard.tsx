@@ -8,12 +8,12 @@ import { Icon } from '../components/icon'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../hooks/use-offcanvas'
 import { intlMessages } from '../primitives/intl/intl-messages'
 import { useIntl } from '../primitives/intl/use-intl'
+import { Landmark } from '../primitives/landmark'
 import { k } from '../recipes/kata/offcanvas'
 import { Box } from '../structure/box'
 import { Flex } from '../structure/flex'
 import { Stack } from '../structure/stack'
 import { mapResponsive, type Responsive } from '../types'
-import { MainLandmark } from './main-landmark'
 import { StackedLayout } from './stacked'
 
 /** The filters and the content stack in the drawer layout, and sit side by side inline. */
@@ -125,9 +125,9 @@ export function DashboardLayout({
 					</Drawer>
 				)}
 
-				<MainLandmark data-slot="main" className="min-w-0 flex-1">
+				<Landmark as="main" data-slot="main" className="min-w-0 flex-1">
 					{children}
-				</MainLandmark>
+				</Landmark>
 			</Flex>
 		</StackedLayout>
 	)

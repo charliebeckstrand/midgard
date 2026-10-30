@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../core'
-import { MainLandmark } from './main-landmark'
+import { Landmark } from '../primitives/landmark'
 
 /** Props for {@link AuthLayout}: the card or cards to center. The `<main>` takes the rest. */
 export type AuthLayoutProps = ComponentProps<'main'>
@@ -14,7 +14,8 @@ export type AuthLayoutProps = ComponentProps<'main'>
  */
 export function AuthLayout({ className, ...props }: AuthLayoutProps) {
 	return (
-		<MainLandmark
+		<Landmark
+			as="main"
 			data-slot="auth-layout"
 			{...props}
 			className={cn(
