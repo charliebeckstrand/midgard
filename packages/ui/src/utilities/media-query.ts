@@ -30,8 +30,26 @@ export const PHONE_QUERY = `${NO_HOVER_QUERY} and (width < ${BREAKPOINT_WIDTHS.s
  */
 export const NO_CURSOR_QUERY = '(any-hover: none)'
 
-const registry = createListenerRegistry<MediaQueryList, MediaQueryListEvent>({
-	source: (query) => window.matchMedia(query),
+/** The parts of a `MediaQueryList` that the registry reads. @internal */
+type MediaQuery = Pick<MediaQueryList, 'matches' | 'addEventListener' | 'removeEventListener'>
+
+/** A query that matches nothing and never changes. @internal */
+const UNMATCHED: MediaQuery = {
+	matches: false,
+	addEventListener: () => {},
+	removeEventListener: () => {},
+}
+
+/**
+ * The `MediaQueryList` of `query`. A platform with no `matchMedia`, such as
+ * jsdom, gets {@link UNMATCHED}, so it takes the path that the queries above
+ * give to an environment that matches nothing.
+ */
+const mediaQuery = (query: string): MediaQuery =>
+	typeof window.matchMedia === 'function' ? window.matchMedia(query) : UNMATCHED
+
+const registry = createListenerRegistry<MediaQuery, MediaQueryListEvent>({
+	source: mediaQuery,
 	attach: (mql, _query, listener) => {
 		mql.addEventListener('change', listener)
 
@@ -49,7 +67,7 @@ const registry = createListenerRegistry<MediaQueryList, MediaQueryListEvent>({
  * Handlers fire in subscription order and every subscriber is notified. Returns
  * an unsubscribe fn. `handler` must be a distinct function reference per
  * subscription (callers pass a fresh closure per effect run). Call only on the
- * client: `window.matchMedia` is absent during SSR.
+ * client: `window` is absent during SSR.
  *
  * @internal
  */
@@ -60,10 +78,10 @@ export function subscribeMediaQuery(query: string, handler: () => void): () => v
 /**
  * Whether `query` currently matches, read from the shared `MediaQueryList` while
  * a subscription is live and a transient match otherwise. Call only on the
- * client: `window.matchMedia` is absent during SSR.
+ * client: `window` is absent during SSR.
  *
  * @internal
  */
 export function matchesMediaQuery(query: string): boolean {
-	return (registry.source(query) ?? window.matchMedia(query)).matches
+	return (registry.source(query) ?? mediaQuery(query)).matches
 }
