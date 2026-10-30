@@ -274,6 +274,7 @@ export function GridVirtualizedGroupedBody<T>({
 							pinning={pinning}
 							variant="group"
 							expanded={item.phase === 'open'}
+							enter={motions.get(item.reactKey)?.phase === 'entering'}
 							color={color}
 							navKey={item.reactKey}
 							{...windowRow(item, virtualItem.index)}

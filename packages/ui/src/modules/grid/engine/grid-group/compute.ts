@@ -172,6 +172,12 @@ export function settleGroupedReorder(
  * band, does not show, so it is neither the anchor nor counted as hidden by the
  * collapse. Absent groups and expanded groups contribute nothing.
  *
+ * Only a {@link GridColumnGroup.collapsible} group collapses, because only its
+ * band has the expand toggle. A group uses only the members that it owns under
+ * {@link groupByColumn}. A shared column that an earlier group owns shows in
+ * the band of that group, so it is not the anchor and the collapse does not
+ * hide it.
+ *
  * @param shows - Whether a column shows in the band when no group is collapsed.
  * @internal
  */
@@ -182,10 +188,14 @@ export function collapsedHiddenIds(
 ): Set<string | number> {
 	const hidden = new Set<string | number>()
 
-	for (const group of groups) {
-		if (!collapsed.has(group.id)) continue
+	const owner = groupByColumn(groups)
 
-		for (const id of group.columns.filter(shows).slice(1)) hidden.add(id)
+	for (const group of groups) {
+		if (!group.collapsible || !collapsed.has(group.id)) continue
+
+		const members = group.columns.filter((id) => owner.get(id) === group && shows(id))
+
+		for (const id of members.slice(1)) hidden.add(id)
 	}
 
 	return hidden

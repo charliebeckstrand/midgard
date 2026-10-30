@@ -1,7 +1,11 @@
+import { createElement } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
 import { measureColumns } from '../../modules/grid/engine/grid-sizing/measure'
-import { present } from '../helpers'
+import { GridAggregateCells } from '../../modules/grid/grid-aggregate-cells'
+import { GridTotalRow } from '../../modules/grid/grid-total-row'
+import { GridNavContext, type GridNavStore } from '../../modules/grid/use-grid-navigation'
+import { present, renderUI } from '../helpers'
 
 type Row = { id: number }
 
@@ -89,5 +93,105 @@ describe('measureColumns', () => {
 		expect(reads.mock.contexts).toContain(container.querySelector('th:not([data-nested])'))
 
 		expect(reads.mock.contexts).not.toContain(container.querySelector('th[data-nested]'))
+	})
+
+	// The engine `minSize` takes a declared width below the default as the floor,
+	// so the measured floor must take the same bound. Otherwise a manual pass
+	// raises the held width of a narrow column. The header has no content leaf,
+	// so the pass makes no `Range`, as in the case above.
+	it('takes a declared width below the default as the floor of a column with no minWidth', () => {
+		const narrow: GridColumn<Row>[] = [{ id: 'a', title: 'Two words', width: 28, cell: () => 'a' }]
+
+		const container = document.createElement('div')
+
+		container.innerHTML = '<table><thead><tr><th data-grid-col="a"></th></tr></thead></table>'
+
+		document.body.append(container)
+
+		const measurement = measureColumns({ columns: narrow, container, scan: new Set() })
+
+		expect(measurement.floors.get('a')).toBe(28)
+	})
+
+	// The grand total, the figures of a group header, and a group total each carry
+	// a column id, but none of them is a data row. A pass that saw only these cells
+	// saw no row, so it must stay provisional. The cells still feed the widest body
+	// of their column. The cells have no content leaf, so the pass makes no `Range`.
+	it('counts no aggregate cell as a body cell, and still reads its width', () => {
+		type Sale = { id: number; amount: number }
+
+		const sales: GridColumn<Sale>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.id },
+			{ id: 'amount', title: 'Amount', cell: (row) => row.amount, aggFunc: 'sum' },
+		]
+
+		const rows = [{ id: 1, amount: 2 }]
+
+		const nav: GridNavStore = {
+			enabled: false,
+			subscribe: () => () => {},
+			isActive: () => false,
+			isInRange: () => false,
+			fillHandle: null,
+			isStopActive: () => false,
+			stopId: (key) => key,
+			seatStop: () => {},
+			claimReveal: () => false,
+			publish: () => {},
+		}
+
+		const { container } = renderUI(
+			createElement(
+				GridNavContext,
+				{ value: nav },
+				createElement(
+					'table',
+					null,
+					createElement(
+						'thead',
+						null,
+						createElement(
+							'tr',
+							null,
+							createElement('th', { 'data-grid-col': 'name' }),
+							createElement('th', { 'data-grid-col': 'amount' }),
+						),
+					),
+					createElement(
+						'tbody',
+						null,
+						createElement(
+							'tr',
+							{ 'data-total-row': 'grand' },
+							createElement('th', null, 'Total'),
+							createElement(GridAggregateCells<Sale>, {
+								columns: sales,
+								rows,
+								from: 1,
+								pinning: null,
+							}),
+						),
+						createElement(GridTotalRow<Sale>, {
+							columns: sales,
+							rows,
+							pinning: null,
+							variant: 'group',
+						}),
+					),
+				),
+			),
+		)
+
+		const aggregates = container.querySelectorAll('td[data-grid-col="amount"]')
+
+		expect(aggregates).toHaveLength(2)
+
+		Object.defineProperty(aggregates[0], 'scrollWidth', { value: 90 })
+
+		const measurement = measureColumns({ columns: sales, container, scan: new Set(['amount']) })
+
+		expect(measurement.cells).toBe(0)
+
+		expect(measurement.bodies.get('amount')).toBe(90)
 	})
 })

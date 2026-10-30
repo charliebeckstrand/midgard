@@ -53,6 +53,11 @@ import type { GridColumnFilter, GridColumnPinning } from './use-grid-table'
  * The sort control and the header's bare padding carry no popup and stay fully
  * draggable, so the whole-header grab affordance is untouched.
  *
+ * A surface that the header opens portals out of the `<th>`, but React sends
+ * its events up through the header all the same. A press in the open sheet has
+ * no `aria-haspopup` ancestor in the DOM. Thus a target outside the
+ * `currentTarget` of the event also does not arm the drag.
+ *
  * @internal
  */
 function useSurfaceSafeActivators(
@@ -65,6 +70,8 @@ function useSurfaceSafeActivators(
 			Object.entries(listeners).map(([name, handler]) => [
 				name,
 				(event: ReactPointerEvent<HTMLElement>) => {
+					if (!event.currentTarget.contains(event.target as Node)) return
+
 					if ((event.target as HTMLElement).closest?.('[aria-haspopup]')) return
 
 					;(handler as (event: ReactPointerEvent<HTMLElement>) => void)(event)

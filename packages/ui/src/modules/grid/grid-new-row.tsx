@@ -13,7 +13,6 @@ import { ariaAttr, cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
-import { GRID_ROLE } from './engine/grid-constants'
 import { isColumnEditable, NEW_ROW_KEY } from './engine/grid-editing-utilities'
 import { gridMessages } from './engine/grid-messages'
 import {
@@ -119,9 +118,7 @@ function GridNewRowCell<T>({
 
 		if (!inCell || fromInteractiveContent(event.target)) return
 
-		event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
-
-		session.moveTo({ row: NEW_ROW_INDEX, col })
+		session.seat(col)
 	}
 
 	const pending = editable && session.inFlight

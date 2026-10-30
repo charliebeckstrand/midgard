@@ -1,6 +1,7 @@
 import { clamp, getOrCompute, isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
 import { DEFAULT_MIN_COLUMN_SIZE, HEADER_TRUNCATE_ALLOWANCE } from '../grid-constants'
+import { parsePxWidth } from '../grid-table/resize-view'
 
 /**
  * The one `Range` that each intrinsic-width read selects into. A new `Range`
@@ -143,14 +144,16 @@ export function collectHeaders(container: HTMLElement): Map<string, HTMLElement>
 /**
  * The rendered `<th>`/`<td>` cells grouped by their `data-grid-col` id, read once per
  * measurement pass. The headers also hold the `data-grid-fit` header of each non-data
- * column (see {@link collectHeaders}).
+ * column (see {@link collectHeaders}). An aggregate cell (`data-grid-aggregate`) joins
+ * the cells of its column, but it is not a cell of a data row, so `cells` does not
+ * count it.
  *
  * @internal
  */
 function collectCells(container: HTMLElement): {
 	headers: Map<string, HTMLElement>
 	bodies: Map<string, HTMLElement[]>
-	/** Body cells found across every column: zero when the body rendered none. */
+	/** Cells of data rows found across every column: zero when the body rendered no row. */
 	cells: number
 } {
 	const headers = collectHeaders(container)
@@ -164,7 +167,7 @@ function collectCells(container: HTMLElement): {
 
 		if (id == null) continue
 
-		cells++
+		if (!td.hasAttribute('data-grid-aggregate')) cells++
 
 		getOrCompute(bodies, id, () => []).push(td)
 	}
@@ -324,14 +327,28 @@ function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
 }
 
 /**
+ * The lower bound (px) of the width of a data column: its `minWidth`, else
+ * {@link DEFAULT_MIN_COLUMN_SIZE} or a declared px `width` below it. The engine
+ * `minSize` and the measured floor (see {@link columnFloor}) both read it, so a
+ * narrow column keeps its declared width.
+ *
+ * @internal
+ */
+export function columnMinWidth<T>(col: GridColumn<T>): number {
+	if (col.minWidth != null) return col.minWidth
+
+	return Math.min(DEFAULT_MIN_COLUMN_SIZE, parsePxWidth(col.width) ?? DEFAULT_MIN_COLUMN_SIZE)
+}
+
+/**
  * A data column's hard floor (px): the narrowest it can be sized (by the
  * automatic fit or a drag-resize) before its header can't show. A single-word title
  * reserves its full width, so the column is at least that wide and the header
  * never truncates. A multi-word or non-string title reserves only its affordance
  * icons plus a small text allowance. A drag can then narrow a narrow-data column, and
- * that header truncates. Clamped up to the column's declared `minWidth` and down
- * to its `maxWidth`. It is read from the header DOM unclipped by the column's
- * current width (see {@link headerWidth}). A wide column therefore reports the
+ * that header truncates. Clamped up to the lower bound of the column (see
+ * {@link columnMinWidth}) and down to its `maxWidth`. It is read from the header
+ * DOM unclipped by the column's current width (see {@link headerWidth}). A wide column therefore reports the
  * tight floor, not its current size. It is the same floor whatever width it
  * holds.
  *
@@ -361,7 +378,7 @@ function columnFloor<T>(
 		? header
 		: Math.max(0, header - titleIntrinsic) + HEADER_TRUNCATE_ALLOWANCE
 
-	return { floor: clamp(headerFloor, col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE, max), header }
+	return { floor: clamp(headerFloor, columnMinWidth(col), max), header }
 }
 
 /**
@@ -456,14 +473,22 @@ export type ColumnMeasurement = {
 	/** The hard floor (px) of every data column the pass saw (see {@link columnFloor}). */
 	floors: Map<string, number>
 	/**
+	 * The width (px) that the header of every data column the pass saw needs to
+	 * show its title in full (see {@link columnFloor}). A column that rendered no
+	 * body cell also has an entry, so the content width of that column still
+	 * includes its header (see `contentWidth`).
+	 */
+	titles: Map<string, number>
+	/**
 	 * The widest cell (px, border box) of each scanned column: a body cell, or the
 	 * header with its title in full (see {@link columnFloor}).
 	 * A scanned column that rendered no body cell has no entry.
 	 */
 	bodies: Map<string, number>
 	/**
-	 * The body cells the pass found, across every column. Zero means that the
-	 * body rendered none:
+	 * The cells of data rows the pass found, across every column. An aggregate
+	 * cell (a grand total, the figures of a group header, a group total) does not
+	 * count. Zero means that the body rendered no data row:
 	 *
 	 * - A loading skeleton, whose placeholder cells carry no column id.
 	 * - An empty result.
@@ -572,5 +597,5 @@ export function measureColumns<T>({
 	// document start collapses the range there and releases that leaf.
 	sharedRange?.setEnd(document, 0)
 
-	return { floors, bodies: widest, cells, fits, leaves, rendered }
+	return { floors, titles, bodies: widest, cells, fits, leaves, rendered }
 }

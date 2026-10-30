@@ -214,8 +214,13 @@ export type GridNewRowSession = {
 	editorKind: (column: { id: string | number; field?: PropertyKey }) => EditorKind
 	/** The cursor's per-cell id deriver, for the `aria-activedescendant` of a slot cell. */
 	cellId: (row: number, col: number) => string
-	/** Moves the keyboard cursor, for a press on a cell of the slot. */
-	moveTo: (coord: { row: number; col: number }) => void
+	/**
+	 * Seats the keyboard cursor on a column of the slot, for a press on a cell
+	 * of the slot. It has the guards of a press on a data cell: the focus does
+	 * not scroll, and a press while a drag holds the pointer does not seat the
+	 * cursor.
+	 */
+	seat: (col: number) => void
 }
 
 /** The new-row slot, or `null` when the grid shows none. @internal */

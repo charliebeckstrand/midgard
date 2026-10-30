@@ -30,6 +30,8 @@ function fakeGrid(args: {
 	bodies: Record<string, number>
 	/** The header floor of each column; 40 when absent. */
 	floors?: Record<string, number>
+	/** The width that the header of each column needs to show its title in full; 0 when absent. */
+	titles?: Record<string, number>
 	/** The width that the browser gives a header; wider than each body when absent. */
 	rendered?: Record<string, number>
 	/** Body cells the DOM holds; zero is a loading skeleton. */
@@ -72,9 +74,15 @@ function fakeGrid(args: {
 			[...scan].map((id) => [id, grid.rendered[id] ?? Number.MAX_SAFE_INTEGER] as const),
 		)
 
+		const titles = new Map(
+			grid.columns
+				.filter((col) => !col.actions)
+				.map((col) => [String(col.id), args.titles?.[col.id] ?? 0]),
+		)
+
 		const fits = new Map(Object.entries(args.fits ?? {}))
 
-		return { floors, bodies, cells: grid.cells, fits, leaves: new Map(bodies), rendered }
+		return { floors, titles, bodies, cells: grid.cells, fits, leaves: new Map(bodies), rendered }
 	}
 
 	const env = (): ColumnSizerEnv<Row> => ({
@@ -321,6 +329,30 @@ describe('createColumnSizer', () => {
 			grid.bodies.a = 60
 
 			expect(sizer.sizeColumn(env(), 'a')?.sizing.a).toBe(60)
+		})
+
+		// An empty result or a loading skeleton renders no body cell. The header
+		// still shows its title in full, so both actions must keep that width and
+		// not only the floor, which lets a multi-word title truncate.
+		it('keeps the full header title of a column that rendered no body cell', () => {
+			const titled = [column('estimate', { title: 'Estimate (hours)' }), column('b')]
+
+			const grid = () =>
+				fakeGrid({
+					columns: titled,
+					bodies: {},
+					floors: { estimate: 64, b: 40 },
+					titles: { estimate: 140, b: 30 },
+					cells: 0,
+				})
+
+			const one = grid()
+
+			expect(one.sizer.sizeColumn(one.env(), 'estimate')?.sizing).toEqual({ estimate: 140 })
+
+			const all = grid()
+
+			expect(all.sizer.sizeAll(all.env()).sizing).toEqual({ estimate: 140, b: 40 })
 		})
 
 		it('releases a width seed', () => {
