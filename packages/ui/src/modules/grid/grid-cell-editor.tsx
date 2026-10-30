@@ -558,7 +558,7 @@ function GridEditHost({
 
 	const ref = useComposedRefs(hostRef, anchorCell)
 
-	const grow = useGridEditGrow(newRow ? null : cell)
+	const { ref: slotRef, style: growStyle, grown, slot } = useGridEditGrow(newRow ? null : cell)
 
 	const message = error && <GridEditMessage id={errorId}>{error}</GridEditMessage>
 
@@ -586,17 +586,17 @@ function GridEditHost({
 			</span>
 
 			<span
-				ref={grow.ref}
+				ref={slotRef}
 				data-slot="grid-edit-slot"
-				data-grown={dataAttr(grow.grown)}
-				style={grow.style}
-				className={cn(k.edit.slot, grow.grown && k.edit.grown)}
+				data-grown={dataAttr(grown)}
+				style={growStyle}
+				className={cn(k.edit.slot, grown && k.edit.grown)}
 			>
 				<Control variant="bare">{children}</Control>
 			</span>
 
 			{(settle !== 'none' || message) && (
-				<GridEditBelow anchor={grow.grown ? grow.slot : cell}>
+				<GridEditBelow anchor={grown ? slot : cell}>
 					<GridSettleControls label={label} controls={settle} settle={onSettle} />
 
 					{message}

@@ -217,17 +217,23 @@ export function useGridEditGrow(cell: HTMLElement | null): {
 		middleware,
 	})
 
-	const ref = useComposedRefs<HTMLElement>(setSlot, refs.setFloating)
+	// The slot node, for the clear below. `slot` is state, which the effect
+	// must not change.
+	const slotRef = useRef<HTMLElement | null>(null)
+
+	const ref = useComposedRefs<HTMLElement>(setSlot, refs.setFloating, slotRef)
 
 	// `size` writes the width and the least height on the node. The slot goes
 	// back to the flow of the cell as the growth ends, so they go too.
 	useLayoutEffect(() => {
-		if (grown || !slot) return
+		const node = slotRef.current
 
-		slot.style.width = ''
+		if (grown || !node) return
 
-		slot.style.minHeight = ''
-	}, [grown, slot])
+		node.style.width = ''
+
+		node.style.minHeight = ''
+	}, [grown])
 
 	return { ref, style: grown ? floatingStyles : undefined, grown, slot }
 }
