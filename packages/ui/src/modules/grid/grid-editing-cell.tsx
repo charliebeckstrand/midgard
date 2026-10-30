@@ -190,6 +190,7 @@ export function GridEditingCell<T>({
 					managed={managed}
 					settle={flag === CELL_HELD ? 'none' : flag}
 					held={flag === CELL_HELD}
+					rest={render?.(row)}
 				/>
 			</GridNavCell>
 		)

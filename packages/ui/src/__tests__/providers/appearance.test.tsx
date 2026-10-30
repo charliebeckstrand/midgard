@@ -2,7 +2,7 @@ import { cleanup } from '@testing-library/react'
 import { MotionConfigContext } from 'motion/react'
 import { use } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { readRootDensity, writeRootDensity } from '../../core/density'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { SidebarLayout } from '../../layouts/sidebar/sidebar'
@@ -120,6 +120,36 @@ describe('AppearanceProvider', () => {
 		expect(localStorage.getItem('motion')).toBe('reduced')
 
 		expect(readRootDensity(document.documentElement)).toBe('sm')
+	})
+
+	it('applies a choice whose write to storage throws, until another tab writes the key', async ({
+		signal,
+	}) => {
+		const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+			throw new DOMException('Quota exceeded', 'QuotaExceededError')
+		})
+
+		renderUI(
+			<AppearanceProvider>
+				<Probe />
+			</AppearanceProvider>,
+		)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Dark' }))
+
+		expect(screen.getByTestId('state')).toHaveTextContent('dark snug system')
+
+		setItem.mockRestore()
+
+		signal.throwIfAborted()
+
+		localStorage.setItem('theme', 'light')
+
+		act(() => {
+			window.dispatchEvent(new StorageEvent('storage', { key: 'theme' }))
+		})
+
+		expect(screen.getByTestId('state')).toHaveTextContent('light snug system')
 	})
 
 	it('writes the stored density on the root element and opens no scope of its own', () => {

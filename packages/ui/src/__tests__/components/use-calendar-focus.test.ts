@@ -280,6 +280,66 @@ describe('useCalendarFocus: stopPropagation paths', () => {
 	})
 })
 
+// A chord such as Alt+ArrowLeft (history back) is for the browser.
+describe('useCalendarFocus: browser chords', () => {
+	it.each([
+		['Alt', { altKey: true }],
+		['Ctrl', { ctrlKey: true }],
+		['Cmd', { metaKey: true }],
+	])('leaves %s with an arrow in each zone to the browser', (_name, modifier) => {
+		const { header, grid, footer, handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown } =
+			setup({ footer: true })
+
+		const cases = [
+			[header, handleHeaderKeyDown, 'ArrowDown'],
+			[grid, handleGridKeyDown, 'ArrowUp'],
+			[present(footer, 'footer'), handleFooterKeyDown, 'ArrowRight'],
+		] as const
+
+		for (const [zone, handle, key] of cases) {
+			const button = present<HTMLButtonElement>(zone.querySelector('button'), 'button')
+
+			button.focus()
+
+			const event = makeKeyEvent(key, modifier)
+
+			handle(event)
+
+			expect(event.preventDefault).not.toHaveBeenCalled()
+
+			expect(button).toHaveFocus()
+		}
+	})
+
+	it('steps no month on a chord at the edge of a day grid', () => {
+		const { navigateTo, focusDay, handleGridKeyDown } = setupJune()
+
+		focusDay(30)
+
+		const event = makeKeyEvent('ArrowRight', { altKey: true })
+
+		handleGridKeyDown(event)
+
+		expect(navigateTo).not.toHaveBeenCalled()
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+	})
+
+	it('keeps the default on a sealed surface, and still stops the chord', () => {
+		const { grid, handleGridKeyDown } = setup({ stopPropagation: true })
+
+		present<HTMLButtonElement>(grid.querySelector('button'), 'button').focus()
+
+		const event = makeKeyEvent('ArrowLeft', { altKey: true })
+
+		handleGridKeyDown(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(event.stopPropagation).toHaveBeenCalled()
+	})
+})
+
 /**
  * The days of June 2025, one button for each day, and the hook with the date
  * model of a day grid. The buttons of the days outside `min` and `max` are

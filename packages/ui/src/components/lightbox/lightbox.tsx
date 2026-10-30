@@ -46,10 +46,11 @@ export type LightboxProps = {
 	 */
 	onIndexChange?: (index: number | null) => void
 	/**
-	 * Shows a close button, one gap above the photo. Without it, Escape, a press
-	 * outside the photo, and a swipe up or down (in any direction for one photo) close the viewer, and the close
-	 * button shows only when it has the keyboard focus. With `dismissOnBackdrop`
-	 * set to `false`, the close button always shows.
+	 * Shows a close button, one gap above the photo. Without it, the close button
+	 * shows only when it has the keyboard focus. With `dismissOnBackdrop` set to
+	 * `false`, the close button always shows. With or without it, Escape, a press
+	 * outside the photo, and a swipe up or down (in any direction for one photo)
+	 * close the viewer.
 	 * @defaultValue false
 	 */
 	closable?: boolean
@@ -71,7 +72,8 @@ export type LightboxProps = {
 	/**
 	 * Shows a row of thumbnails of the photos in place of the pill of `controls`.
 	 * The thumbnail of the photo that the viewer shows is solid, and the others
-	 * are dim. A press on a thumbnail shows its photo. The row scrolls when the
+	 * are dim. A press on a thumbnail slides its photo in from its side, as a
+	 * step does, and passes no photo between. The row scrolls when the
 	 * thumbnails do not fit, and it keeps the current thumbnail in its center.
 	 * @defaultValue false
 	 */
@@ -103,10 +105,11 @@ export type LightboxProps = {
  * With more than one photo, the viewer steps through them. The previous and
  * next buttons, `ArrowLeft` and `ArrowRight`, and a swipe on the stage step in
  * the reading order. With `thumbnails`, a row of thumbnails takes the place of
- * the step buttons, and a press on a thumbnail shows its photo. Escape, the close button, and a press on the stage
- * outside the photo close the viewer, and the focus goes back to the
- * thumbnail. With `dismissOnBackdrop` set to `false`, a press outside the
- * photo does not close the viewer, and the close button always shows.
+ * the step buttons, and a press on a thumbnail shows its photo. Escape, the
+ * close button, and a press on the stage outside the photo close the viewer,
+ * and the focus goes back to the thumbnail. With `dismissOnBackdrop` set to
+ * `false`, a press outside the photo does not close the viewer, and the close
+ * button always shows.
  *
  * A pinch zooms the photo, up to four times its size, and a double tap or a
  * double click zooms into the point that it taps. A double tap on a zoomed
@@ -172,7 +175,10 @@ export function Lightbox({
 
 	const viewable = viewablePhotos(photos, getLoad)
 
-	const open = index !== undefined && viewable.some((photo) => photo.index === index)
+	// The photo that the viewer shows, or `undefined` while the viewer is closed.
+	const current = viewable.find((photo) => photo.index === index)?.index
+
+	const open = current !== undefined
 
 	// The photo of `index` left `photos`, or its thumbnail loaded and gave it no
 	// box, so the viewer cannot show it. The viewer closes and reports it, so
@@ -189,15 +195,16 @@ export function Lightbox({
 
 	// The photo on the stage. It holds the last photo through the return, and the
 	// thumbnail of that photo stays empty until the photo lands in it.
-	const [shown, setShown] = useState<number | null>(open ? index : null)
+	const [shown, setShown] = useState<number | null>(open ? current : null)
 
-	if (open && shown !== index) setShown(index)
+	if (open && shown !== current) setShown(current)
 
 	const images = useRef(new Map<number, HTMLImageElement>())
 
 	const context: LightboxContextValue = {
 		photos,
 		shown,
+		current,
 		show: setIndex,
 		register: (slot, image) => {
 			images.current.set(slot, image)

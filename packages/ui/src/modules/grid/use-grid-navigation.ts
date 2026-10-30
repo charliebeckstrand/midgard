@@ -1145,8 +1145,15 @@ export function useGridNavigation({
 
 	// The keys of a one-stop row at `base` (see `stopAction`). The cursor's arrows
 	// and page keys still move off each kind. Returns whether it took the key.
+	// With no cursor drawn (`unseated`), the key first seats the cursor on `base`,
+	// so the reader sees the row that the key changes.
 	const onStopKey = useCallback(
-		(event: KeyboardEvent<HTMLTableElement>, key: string, base: Coord): boolean => {
+		(
+			event: KeyboardEvent<HTMLTableElement>,
+			key: string,
+			base: Coord,
+			unseated: boolean,
+		): boolean => {
 			const entry = stopAt(base.row)
 
 			const action = entry ? stopAction(key, entry) : null
@@ -1154,6 +1161,8 @@ export function useGridNavigation({
 			if (!entry || action === null) return false
 
 			event.preventDefault()
+
+			if (unseated) moveToCursor(base)
 
 			if (action === 'toggle' && entry.kind === 'group') entry.toggle()
 			else if (action === 'descend') moveToCursor({ row: base.row + 1, col: base.col })
@@ -1225,7 +1234,7 @@ export function useGridNavigation({
 			// keys mirror in the same way.
 			const key = logicalArrowKey(event.key, event.currentTarget)
 
-			if (onStopKey(event, key, base)) return
+			if (onStopKey(event, key, base, !active)) return
 
 			// `event.currentTarget` is the `<table>`; the page step is viewport-relative
 			// (a no-op layout read for non-page keys, see `resolvePageStep`).

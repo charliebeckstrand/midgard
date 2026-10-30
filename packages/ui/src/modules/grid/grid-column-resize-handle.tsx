@@ -11,6 +11,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { Splitter } from '../../primitives/splitter/splitter'
 import { k } from '../../recipes/kata/grid'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { describeResize } from './engine/grid-announcements'
 import {
@@ -108,7 +109,10 @@ export function GridColumnResizeHandle({
 		// Arrow nudges, PageUp/Down coarse steps, Home/End to the bounds, and Enter to
 		// auto-size the column to its content: the window-splitter key set (WCAG 4.1.2).
 		// The arrows move the trailing edge on screen. That edge is on the left of a
-		// right-to-left header, so ArrowLeft widens the column there.
+		// right-to-left header, so ArrowLeft widens the column there. A key with Ctrl,
+		// Meta, or Alt is for the browser, such as its history.
+		if (hasBrowserModifier(event)) return
+
 		const key = logicalArrowKey(event.key, event.currentTarget)
 
 		switch (key) {

@@ -140,6 +140,67 @@ describe('Lightbox', () => {
 		expect(previous).not.toHaveClass('invisible')
 	})
 
+	it('takes the thumbnail off the photo when the photo loads', async () => {
+		const user = setupUser()
+
+		const { rerender } = renderUI(<Gallery />)
+
+		await user.click(screen.getByRole('button', { name: 'Snow on a ridge' }))
+
+		const photo = centerPhoto()
+
+		if (!photo) throw new Error('no photo')
+
+		fireEvent.load(photo)
+
+		expect(photo.style.backgroundImage).toBe('')
+
+		// A render of the viewer does not paint the thumbnail again.
+		rerender(<Gallery closable />)
+
+		expect(centerPhoto()).toBe(photo)
+
+		expect(photo.style.backgroundImage).toBe('')
+	})
+
+	it('stamps data-open on the viewer and on the trigger of the shown photo', async () => {
+		const user = setupUser()
+
+		renderUI(<Gallery />)
+
+		const first = screen.getByRole('button', { name: 'Harbor at dawn' })
+
+		expect(first).not.toHaveAttribute('data-open')
+
+		await user.click(first)
+
+		expect(screen.getByRole('dialog', { name: 'Photos' })).toHaveAttribute('data-open')
+
+		expect(first).toHaveAttribute('data-open')
+
+		expect(screen.getByRole('button', { name: 'Snow on a ridge' })).not.toHaveAttribute('data-open')
+	})
+
+	it('moves data-open to the trigger of the photo that the viewer shows next', () => {
+		const { rerender } = renderUI(<Gallery index={0} />)
+
+		const first = screen.getByRole('button', { name: 'Harbor at dawn' })
+
+		const third = screen.getByRole('button', { name: 'Field of poppies' })
+
+		expect(first).toHaveAttribute('data-open')
+
+		rerender(<Gallery index={2} />)
+
+		expect(first).not.toHaveAttribute('data-open')
+
+		expect(third).toHaveAttribute('data-open')
+
+		rerender(<Gallery index={null} />)
+
+		expect(third).not.toHaveAttribute('data-open')
+	})
+
 	it('empties the thumbnail of the photo that is up', async () => {
 		const user = setupUser()
 
@@ -369,6 +430,8 @@ describe('Lightbox', () => {
 
 		expect(trigger).toBeDisabled()
 
+		expect(trigger).toHaveAttribute('data-disabled')
+
 		expect(getSlot(trigger, 'placeholder')).toBeInTheDocument()
 
 		const image = present(trigger.querySelector('img'), 'thumbnail')
@@ -381,6 +444,8 @@ describe('Lightbox', () => {
 		fireEvent.load(image)
 
 		expect(trigger).toBeEnabled()
+
+		expect(trigger).not.toHaveAttribute('data-disabled')
 
 		expect(trigger.querySelector('[data-slot="placeholder"]')).toBeNull()
 
@@ -586,6 +651,56 @@ describe('Lightbox', () => {
 		expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
 
 		expect(controls.querySelector('[aria-current]')).toHaveAccessibleName('Field of poppies')
+	})
+
+	it('slides the photo of a thumbnail that is not next to the current photo in from its side', async () => {
+		renderUI(<Gallery defaultIndex={0} thumbnails />)
+
+		const controls = getSlot(document.body, 'lightbox-controls')
+
+		const slot = (offset: number) => document.querySelector(`[data-offset="${offset}"] img`)
+
+		fireEvent.click(present(controls.querySelectorAll('button')[3], 'thumbnail'))
+
+		// The slide runs, so the first photo is still in the center slot. The
+		// photo of the thumbnail takes the slot after it, so the slide passes no
+		// photo between them.
+		expect(centerPhoto()).toHaveAttribute('alt', 'Harbor at dawn')
+
+		const field = slot(1)
+
+		expect(field).toHaveAttribute('alt', 'Field of poppies')
+
+		expect(controls.querySelector('[aria-current]')).toHaveAccessibleName('Field of poppies')
+
+		await waitFor(() => expect(centerPhoto()).toBe(field))
+
+		// At rest, the photo before it is its neighbor again.
+		expect(slot(-1)).toHaveAttribute('alt', 'Snow on a ridge')
+	})
+
+	it('keeps the photo that a slide to a far thumbnail left next to it when another thumbnail stops the slide', async () => {
+		renderUI(<Gallery defaultIndex={0} thumbnails />)
+
+		const controls = getSlot(document.body, 'lightbox-controls')
+
+		const slot = (offset: number) => document.querySelector(`[data-offset="${offset}"] img`)
+
+		fireEvent.click(present(controls.querySelectorAll('button')[3], 'thumbnail'))
+
+		const harbor = slot(0)
+
+		fireEvent.click(present(controls.querySelectorAll('button')[1], 'thumbnail'))
+
+		// The press lands the far photo where the slide stopped. The first photo
+		// stays next to it, and the slide back goes to it.
+		expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
+
+		expect(slot(-1)).toBe(harbor)
+
+		await waitFor(() => expect(centerPhoto()).toBe(harbor))
+
+		expect(slot(1)).toHaveAttribute('alt', 'Snow on a ridge')
 	})
 
 	it('moves the focus along the row of thumbnails with the arrow keys', () => {

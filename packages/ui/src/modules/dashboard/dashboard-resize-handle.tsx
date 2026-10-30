@@ -1,11 +1,14 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type KeyboardEvent, type PointerEvent, useLayoutEffect, useRef } from 'react'
 import { dataAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Splitter } from '../../primitives/splitter/splitter'
 import { k } from '../../recipes/kata/dashboard'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { useDashboardActions } from './context'
+import { keepFocusOnBoard } from './dashboard-focus'
 import { dashboardMessages } from './dashboard-messages'
 import type { DashboardCell } from './engine/dashboard-layout'
 import type { DashboardResizeEdge, DashboardResizeRange } from './engine/dashboard-resize'
@@ -37,7 +40,8 @@ const STEPS: Record<string, readonly [number, number]> = {
 /**
  * One resize splitter of a tile in edit mode. A pointer drag resizes the tile
  * live; the arrow keys on a focused splitter step it by one grid unit and commit
- * at once. After each step, the focused splitter scrolls into view, so its focus
+ * at once. A key with Ctrl, Meta, or Alt is for the browser, so it keeps its
+ * default. After each step, the focused splitter scrolls into view, so its focus
  * ring stays on screen. The corner takes the pointer only, because the two edges
  * already serve the keyboard. Each edge reports the span on its axis in columns
  * or rows, and the range that the limits of the tile allow.
@@ -75,6 +79,8 @@ export function DashboardResizeHandle({
 
 	const ref = useRef<HTMLHRElement>(null)
 
+	const setRef = useComposedRefs(ref, keepFocusOnBoard)
+
 	// The span of the last check, so the scroll below runs on a new span only.
 	const checkedSpan = useRef(span)
 
@@ -94,6 +100,8 @@ export function DashboardResizeHandle({
 	}, [span, resizing])
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+		if (hasBrowserModifier(event)) return
+
 		const step = STEPS[event.key]
 
 		if (step === undefined) return
@@ -120,7 +128,7 @@ export function DashboardResizeHandle({
 	return (
 		<Splitter
 			{...shared}
-			ref={ref}
+			ref={setRef}
 			label={intl.formatMessage(dashboardMessages.resize, { label })}
 			orientation={horizontal ? 'horizontal' : 'vertical'}
 			value={span}

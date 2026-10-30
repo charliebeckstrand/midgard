@@ -16,6 +16,8 @@ import { cn } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
 import { nextIndexForKey } from '../../utilities'
+import { focusDropped } from '../../utilities/focus-dropped'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT, TREE_ITEM_SELECTOR } from './json-tree-constants'
 import {
 	flatTreeMoveTarget,
@@ -157,7 +159,7 @@ function settleFocus(
 
 	if (row) {
 		if (active === container) row.focus({ preventScroll: true })
-	} else if (!active || active === document.body) {
+	} else if (focusDropped()) {
 		container.focus({ preventScroll: true })
 	}
 
@@ -175,9 +177,7 @@ function focusRowOnMount(container: HTMLElement, index: number): MutationObserve
 		const row = rowAt(container, index)
 
 		// Focus that went outside the tree in the meantime stays there.
-		const active = document.activeElement
-
-		const idle = !active || active === document.body || container.contains(active)
+		const idle = focusDropped() || container.contains(document.activeElement)
 
 		if (row && idle) row.focus()
 
@@ -389,12 +389,15 @@ export function JsonTreeVirtualized({
 			// A branch row that opened or closed itself has handled the key.
 			if (event.defaultPrevented) return
 
-			// Focus parked on the container moves from the stored row.
-			const target = container
-				? (parkedKeyTarget(container, event.key, focusedIndexRef.current, focusable) ??
-					treeMoveIndex(container, event, flatNodes) ??
-					offWindowTarget(container, event.key, focusable))
-				: null
+			// Focus parked on the container moves from the stored row. A key with Ctrl,
+			// Meta, or Alt is for the browser, so it goes to the roving handler, which
+			// leaves it alone.
+			const target =
+				container && !hasBrowserModifier(event)
+					? (parkedKeyTarget(container, event.key, focusedIndexRef.current, focusable) ??
+						treeMoveIndex(container, event, flatNodes) ??
+						offWindowTarget(container, event.key, focusable))
+					: null
 
 			if (container === null || target === null) {
 				onKeyDown(event)

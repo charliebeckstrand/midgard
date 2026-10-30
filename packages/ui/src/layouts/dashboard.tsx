@@ -8,6 +8,7 @@ import { Icon } from '../components/icon'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../hooks/use-offcanvas'
 import { intlMessages } from '../primitives/intl/intl-messages'
 import { useIntl } from '../primitives/intl/use-intl'
+import { Landmark } from '../primitives/landmark'
 import { k } from '../recipes/kata/offcanvas'
 import { Box } from '../structure/box'
 import { Flex } from '../structure/flex'
@@ -70,6 +71,9 @@ export type DashboardLayoutProps = ComponentProps<'div'> & {
  * The rail and the main column sit in a row in the inline layout, where the
  * rail shows. In the drawer layout the rail is hidden and the column is the
  * only child, so the axis does not show.
+ *
+ * The main column is a `<main>`. Inside the main slot of another layout, it is
+ * a `<div>`, so the page keeps one main landmark.
  */
 export function DashboardLayout({
 	filters,
@@ -121,9 +125,9 @@ export function DashboardLayout({
 					</Drawer>
 				)}
 
-				<main data-slot="main" className="min-w-0 flex-1">
+				<Landmark as="main" data-slot="main" className="min-w-0 flex-1">
 					{children}
-				</main>
+				</Landmark>
 			</Flex>
 		</StackedLayout>
 	)

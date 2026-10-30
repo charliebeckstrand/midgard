@@ -86,7 +86,7 @@ const testsDir = join(srcDir, '__tests__')
 const SHARED_REGISTRY_SKIP = new Set(['boundary', 'browser', 'setup'])
 
 // The `unit` project's whole test tree (not only `*.test.*`, since a mock in a
-// helper reaches the same registry) the docs suites it also runs, the
+// helper reaches the same registry), the suites of the `docs` project, the
 // `boundary` project's own files, and the browser suite, whose instances
 // share one page each (`isolate: false` in vitest.browser.config.ts). Its
 // per-instance doubles live in a `setup/` directory at either depth, which
@@ -892,12 +892,15 @@ describe('test isolation boundary', () => {
 	})
 
 	// The scans above enumerate the projects that share a registry. That set
-	// lives in vitest.config.ts and can change with no signal here, which would
+	// lives in vitest.config.ts and vitest.docs.config.ts, the config of the
+	// `docs` project, and can change with no signal here, which would
 	// leave this gate guarding a registry it no longer covers. Read the config as
 	// text rather than import it: an import runs the config, and its walk of the
 	// test tree, in a test worker.
 	it('covers every project that shares a module registry', () => {
-		const config = readFileSync(join(uiRoot, 'vitest.config.ts'), 'utf8')
+		const config = ['vitest.config.ts', 'vitest.docs.config.ts']
+			.map((file) => readFileSync(join(uiRoot, file), 'utf8'))
+			.join('\n')
 
 		const shared = config
 			.split(/name: '/)
@@ -910,8 +913,8 @@ describe('test isolation boundary', () => {
 
 		expect(
 			shared.sort(),
-			'a project changed its isolation, or vitest.config.ts no longer matches the text shape this gate parses — extend the scans above to cover its files, or drop it from them',
-		).toEqual(['boundary', 'geometry', 'pure', 'unit', 'workspace'])
+			'a project changed its isolation, or vitest.config.ts or vitest.docs.config.ts no longer matches the text shape this gate parses — extend the scans above to cover its files, or drop it from them',
+		).toEqual(['boundary', 'docs', 'geometry', 'pure', 'unit', 'workspace'])
 
 		// The browser config is the fourth scan above, and it is a separate file
 		// the parse over vitest.config.ts cannot reach. Its instances share one

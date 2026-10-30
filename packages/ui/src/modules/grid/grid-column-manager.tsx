@@ -32,7 +32,7 @@ import { GridGroupManager } from './grid-group-manager'
 import type { GridColumnGroup } from './grid-group-types'
 import { GridManagerCheckboxRow } from './grid-manager-checkbox-row'
 import type { GridColumnManagerItem } from './types'
-import { useGridColumnVisibility } from './use-grid-column-visibility'
+import { isColumnShown, useGridColumnVisibility } from './use-grid-column-visibility'
 
 /**
  * Whether the manager serves a right-to-left grid. The pin labels and the edge
@@ -345,7 +345,7 @@ type GridColumnManagerOrderableListProps = {
  * drag-sortable when `reorderable` and read-only otherwise (no drag handles).
  * Each row toggles its column's hidden state and, with `onPinChange`, carries a
  * trailing pin control. Columns with `hideable: false` show but can't be
- * unchecked.
+ * unchecked, also when the hidden set names them.
  *
  * @internal
  */
@@ -375,7 +375,7 @@ function GridColumnManagerOrderableList({
 		>
 			<GridManagerCheckboxRow
 				columnTitle={col.title}
-				checked={!hidden.has(col.id)}
+				checked={isColumnShown(col, hidden)}
 				disabled={col.hideable === false}
 				onChange={() => onToggle(col.id)}
 				aria-label={intl.formatMessage(gridMessages.showColumn, { column: columnLabel(col) })}
@@ -417,9 +417,10 @@ function GridColumnManagerOrderableList({
  * column's pin indicator becomes an interactive control. It offers Pin left /
  * Pin right / Unpin on the scrolling and pinned columns, and a static edge
  * arrow on {@link GridColumnManagerItem.locked} ones. Columns with
- * `hideable: false` show but cannot be unchecked. With `onSavePreset`, a footer
- * button captures the current order and hidden ids as a {@link GridPreferences}
- * snapshot. Order and hidden set are each controllable.
+ * `hideable: false` show but cannot be unchecked, also when the hidden set
+ * names them. With `onSavePreset`, a footer button captures the current order
+ * and hidden ids as a {@link GridPreferences} snapshot. Order and hidden set are
+ * each controllable.
  *
  * The pin labels and the edge arrows name the physical edge. Inside a
  * {@link Grid}, the manager takes the direction of the grid. Standalone, it

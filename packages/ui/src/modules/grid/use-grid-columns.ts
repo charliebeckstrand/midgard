@@ -13,7 +13,7 @@ import { applyColumnReorder } from './engine/grid-reorder-compute'
 import type { GridColumnManagerConfig, GridColumnOrder } from './grid-data-types'
 import type { GridColumnGroup } from './grid-group-types'
 import type { GridColumn, GridColumnManagerItem } from './types'
-import { useGridColumnVisibility } from './use-grid-column-visibility'
+import { isColumnShown, useGridColumnVisibility } from './use-grid-column-visibility'
 
 /** Options for {@link useGridColumns}. @internal */
 type GridColumnsOptions<T> = {
@@ -38,7 +38,8 @@ type GridColumnsResult = {
 	collapsedHidden: ReadonlySet<string | number>
 	/**
 	 * Hidden-column map for the engine's `columnVisibility` state (`{ id: false }`);
-	 * pinned and non-data columns are never marked hidden, so they always show.
+	 * pinned, non-data, and `hideable: false` columns are never marked hidden, so
+	 * they always show.
 	 */
 	columnVisibility: Record<string, boolean>
 	/**
@@ -150,15 +151,23 @@ export function useGridColumns<T>({
 		[groups, collapsed, hiddenColumns, isOrderable],
 	)
 
+	// A `hideable: false` column always shows, so the hidden set cannot hide it.
+	// The check stays out of `isOrderable`, so the collapse of a group does not change.
 	const columnVisibility = useMemo(() => {
 		const visibility: Record<string, boolean> = {}
 
-		for (const id of hiddenColumns) if (isOrderable(id)) visibility[String(id)] = false
+		for (const id of hiddenColumns) {
+			const column = columnById.get(id)
+
+			if (column && isOrderable(id) && !isColumnShown(column, hiddenColumns)) {
+				visibility[String(id)] = false
+			}
+		}
 
 		for (const id of collapsedHidden) visibility[String(id)] = false
 
 		return visibility
-	}, [hiddenColumns, collapsedHidden, isOrderable])
+	}, [hiddenColumns, collapsedHidden, isOrderable, columnById])
 
 	const managerItems = useMemo<GridColumnManagerItem[]>(
 		() =>

@@ -12,7 +12,13 @@ const { fit, flex } = narabi
 const value = ['block', 'truncate']
 
 const swatch = {
-	base: ['relative shrink-0 overflow-hidden', rounded.sm, dan.size.check.box],
+	/** The color keeps its real color under forced colors, as the parts of the color panel do. */
+	base: [
+		'relative shrink-0 overflow-hidden',
+		'forced-color-adjust-none',
+		rounded.sm,
+		dan.size.check.box,
+	],
 	/**
 	 * The color of the trigger swatch, with the inset ring. An inset shadow paints above the
 	 * background of its own element, but below the children of that element. The ring is on the

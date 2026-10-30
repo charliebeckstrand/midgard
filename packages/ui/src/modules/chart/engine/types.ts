@@ -346,9 +346,9 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * page as before. Set `button: true` to also show a menu button where the
 	 * primary pointer is coarse. The button sits at the end of the chart header,
 	 * or in the header row of the box around the chart, such as a dashboard tile
-	 * (`primitives/header-actions`). A chart that draws no header, such as the
-	 * heatmap or a chart with no title, puts it in the top end corner of the
-	 * chart.
+	 * (`primitives/header-actions`). A chart that draws no inline header, such as
+	 * the heatmap, a chart with no title, or a spark chart, puts it in the top end
+	 * corner of the chart.
 	 *
 	 * Pass a config to add custom `items` (each a `{ label, icon, onAction }`).
 	 * Place them `'before'` or `'after'` the defaults, or drop the defaults with

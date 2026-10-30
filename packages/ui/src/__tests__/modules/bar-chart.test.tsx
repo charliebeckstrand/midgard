@@ -75,7 +75,7 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
 
 		// A touch reads nothing from the chart. The data stays in the menu.
 		fireEvent.pointerOver(hit, at)
@@ -122,7 +122,7 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
 
 		fireEvent.pointerOver(hit, at)
 
@@ -152,7 +152,7 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
 
 		fireEvent.pointerDown(hit, at)
 
@@ -171,7 +171,7 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
 
 		// iOS Safari holds back the click of a tap that changes the page.
 		fireEvent.pointerOver(hit, at)
@@ -192,7 +192,7 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
 
 		fireEvent.pointerOver(hit, at)
 
@@ -233,7 +233,7 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
 
 		fireEvent.pointerOver(hit, at)
 
@@ -276,7 +276,7 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch' }
+		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
 
 		fireEvent.pointerDown(hit, at)
 

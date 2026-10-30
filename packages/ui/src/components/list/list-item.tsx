@@ -121,6 +121,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 		variant,
 		sortable,
 		interactive: reorderable,
+		disabled,
 		liftedStore,
 		onItemKeyDown,
 		onItemBlur,
@@ -222,6 +223,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 		'data-dragging': dataAttr(dragging),
 		'data-lifted': dataAttr(lifted),
 		'data-interactive': dataAttr(interactive),
+		'data-disabled': dataAttr(disabled),
 		className: cn(slots.item, className),
 	}
 

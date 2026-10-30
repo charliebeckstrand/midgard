@@ -119,6 +119,14 @@ type GridTotalRowProps<T> = {
 	 */
 	expanded?: boolean
 	/**
+	 * Whether an open group total mounts at the closed track and then opens over
+	 * the transition, with the leaves above it. A windowed body sets it on the
+	 * rows that fit in one viewport when their group expands. A total that is
+	 * already mounted ignores it, and the grand variant ignores it.
+	 * @defaultValue false
+	 */
+	enter?: boolean
+	/**
 	 * The label in the leading cell.
 	 * @defaultValue `'Total'`, in the language of the reader.
 	 */
@@ -132,7 +140,13 @@ type GridTotalRowProps<T> = {
 	navKey?: string
 } & GridWindowRowProps
 
-/** A group total cell's collapsible body: the same CSS-grid reveal the group's leaf cells ride. @internal */
+/**
+ * A group total cell's collapsible body: the same CSS-grid reveal the group's
+ * leaf cells ride. The cell carries `data-grid-aggregate`, so a measurement pass
+ * does not count it as a cell of a data row (see `measureColumns`).
+ *
+ * @internal
+ */
 function GroupRevealCell({
 	open,
 	pad,
@@ -163,6 +177,7 @@ function GroupRevealCell({
 			{...cellProps}
 			colSpan={colSpan}
 			data-grid-col={colId}
+			data-grid-aggregate=""
 			className={cn(
 				// The leading cell carries the group rail: in the group's color when set
 				// (layered over the neutral tint), else neutral.
@@ -199,6 +214,7 @@ function GridTotalRowImpl<T>({
 	pinning,
 	variant,
 	expanded = true,
+	enter = false,
 	label: labelProp,
 	color,
 	navKey,
@@ -224,6 +240,7 @@ function GridTotalRowImpl<T>({
 				span={span}
 				labelPinned={labelPinned}
 				expanded={expanded}
+				enter={enter}
 				label={label}
 				color={color}
 				navKey={navKey}
@@ -269,6 +286,7 @@ function GridGroupTotalRow<T>({
 	span,
 	labelPinned,
 	expanded,
+	enter,
 	label,
 	color,
 	navKey,
@@ -283,12 +301,14 @@ function GridGroupTotalRow<T>({
 	/** The pinned chrome of the label cell, resolved with the span. */
 	labelPinned: PinnedCellChrome
 	expanded: boolean
+	/** Whether an open row mounts closed and opens over the transition (see {@link useGridRevealHold}). */
+	enter: boolean
 	label: ReactNode
 	color?: PaletteColor
 	/** The props that a windowed body gives the row. */
 	windowRow: GridWindowRowProps
 }) {
-	const reveal = useGridRevealHold(expanded)
+	const reveal = useGridRevealHold(expanded, enter)
 
 	const { locale } = useLocale()
 

@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactElement } from 'react'
+import type { FocusEvent, ReactElement } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import type { FloatingPlacement } from '../../hooks'
@@ -329,6 +329,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		getReferenceProps,
 		value,
 		setValue,
+		setTouched,
 		disabled,
 		readOnly,
 		invalid,
@@ -358,6 +359,16 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		input && !sheet ? composeEventHandlers(onDialogKeyDown, onTriggerKeyDown) : onTriggerKeyDown
 
 	const getTriggerElements = () => (triggerRef.current ? [triggerRef.current] : [])
+
+	// The DateInput gets no `name`, so its own touched mark reaches no field. A
+	// blur that takes the focus out of the reference group is the blur of the
+	// field. While the calendar is open, the focus can go into the dialog, and the
+	// close marks the field touched.
+	const handleGroupBlur = (event: FocusEvent<HTMLDivElement>) => {
+		if (open || event.currentTarget.contains(event.relatedTarget as Node | null)) return
+
+		setTouched()
+	}
 
 	const content = (
 		<DatePickerContent
@@ -398,7 +409,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 					data-slot="control"
 					ref={setReference}
 					className={cn(k.control, className)}
-					{...getReferenceProps({ onKeyDown: onReferenceKeyDown })}
+					{...getReferenceProps({ onKeyDown: onReferenceKeyDown, onBlur: handleGroupBlur })}
 				>
 					<DateInput
 						ref={inputRef}

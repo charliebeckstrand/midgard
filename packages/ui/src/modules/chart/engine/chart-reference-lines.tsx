@@ -2,6 +2,7 @@
 
 import { AnimatePresence } from 'motion/react'
 import { type ReactNode, useEffect, useRef } from 'react'
+import { Swatch } from '../../../components/swatch'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn, dataAttr } from '../../../core'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
@@ -366,13 +367,14 @@ function HoverReferenceRule({
 
 			<TooltipContent size="sm">
 				<div aria-hidden="true" className="flex items-center gap-1.5 whitespace-nowrap">
-					<span
+					{/* The same key as the legend chip of the rule, which keeps a paint
+					    under forced colors. */}
+					<Swatch
 						data-slot="chart-reference-swatch"
-						className={cn(
-							'inline-block h-[2px] w-3 rounded-full',
-							textClass(paint) && cn(textClass(paint), 'bg-current'),
-						)}
-						style={color ? { backgroundColor: color } : undefined}
+						shape="line"
+						variant={line.dashed === false ? 'solid' : 'dashed'}
+						color={textClass(paint) || undefined}
+						style={color ? { color } : undefined}
 					/>
 
 					<span className={cn(k.value)}>{format(line.value)}</span>

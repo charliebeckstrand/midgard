@@ -17,7 +17,7 @@ import { manualGroupPredicate } from './engine/grid-group/resolve'
 import { resolveReorder } from './engine/grid-reorder-compute'
 import { GridBusyStatus } from './grid-busy-status'
 import { GridDataDialogs } from './grid-data-dialogs'
-import { resolveHighlightQuery, rowReorderPermitted } from './grid-data-resolvers'
+import { manualNarrowed, resolveHighlightQuery, rowReorderPermitted } from './grid-data-resolvers'
 import { GridDataTable } from './grid-data-table'
 import type { GridDataProps, GridEditSource } from './grid-data-types'
 import { GridExportOverlay } from './grid-export-overlay'
@@ -218,6 +218,7 @@ export function GridData<T>({
 		groupBy: groupByConfig,
 		expandable: expandableConfig,
 		navigable,
+		editable,
 		virtualize,
 		infiniteScroll: infiniteScrollConfig,
 		pagination: paginationConfig,
@@ -278,10 +279,10 @@ export function GridData<T>({
 		setMeasuredAddWidth,
 	} = useGridDataCursor<T>({
 		refs: indexRefs,
-		// Manual grouping stands the navigable cursor down (see `gated`).
+		// Manual grouping stands the cursor and editing down (see `gated`).
 		navigable: gated.navigable,
 		range,
-		editable,
+		editable: gated.editable,
 		columns: pinnedColumns,
 		source: editSource,
 		onActiveCellChange,
@@ -531,6 +532,12 @@ export function GridData<T>({
 			grouped: groupingMode.active,
 			expanded: detail.active,
 			sorted: sort.length > 0,
+			narrowed: manualNarrowed({
+				search: searchConfig,
+				columnFilters: columnFiltersConfig,
+				globalFilter,
+				filters,
+			}),
 			renderedCount: renderRows.length,
 			sourceCount: rows.length,
 		}),
@@ -556,6 +563,7 @@ export function GridData<T>({
 		ariaRowCount,
 		dataRowCount,
 		footerStats,
+		footerPageScoped,
 		semantics: { enabled: gridSemantics, selectAllLabel },
 		rowIndexOffset,
 		rowHover,
@@ -729,7 +737,7 @@ export function GridData<T>({
 			}}
 			newRow={{
 				place: newRowPlace,
-				add: editable?.newRowAdd || undefined,
+				add: gated.editable?.newRowAdd || undefined,
 				onMeasureAdd: setMeasuredAddWidth,
 			}}
 			grandTotal={grandTotal}
@@ -854,7 +862,7 @@ export function GridData<T>({
 							</GridRegion>
 						</GridGroupByContext>
 
-						<GridFooterBar config={footer} stats={footerStats} />
+						<GridFooterBar config={footer} stats={footerStats} pageScoped={footerPageScoped} />
 
 						{pagination && (
 							<GridPaginationFooter

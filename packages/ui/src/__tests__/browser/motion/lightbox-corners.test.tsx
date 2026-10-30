@@ -67,6 +67,32 @@ function readCorner(): Corner | undefined {
 	}
 }
 
+/**
+ * Reads the corner that the raise paints at its start, before Motion starts the
+ * tween.
+ *
+ * The raise can paint its start after the step where {@link sampleFlight} reads
+ * in a frame. The browser then paints the start in that frame, and the sampler
+ * does not read it. Motion starts the tween at the time of the raise, so the
+ * first frame that the sampler reads is already a part of a frame into the
+ * flight. Thus a style observer reads the start, in the task of the raise.
+ */
+function readStart(): Promise<Corner> {
+	return new Promise((resolve) => {
+		const observer = new MutationObserver(() => {
+			const corner = readCorner()
+
+			if (!corner) return
+
+			observer.disconnect()
+
+			resolve(corner)
+		})
+
+		observer.observe(document.body, { subtree: true, attributeFilter: ['style'] })
+	})
+}
+
 /** Reads the corner in each frame of a flight that `during` starts, until it lands. */
 async function sampleFlight(during: () => Promise<unknown>) {
 	const corners: Corner[] = []
@@ -111,6 +137,8 @@ describe('Lightbox corners in the flight (real browser)', () => {
 
 		const thumbnail = trigger.getBoundingClientRect().width
 
+		const start = readStart()
+
 		const raise = await sampleFlight(() => userEvent.click(trigger))
 
 		// The photo at rest has square corners, and the slot keeps no radius.
@@ -123,9 +151,11 @@ describe('Lightbox corners in the flight (real browser)', () => {
 
 		expect(raise.length).toBeGreaterThan(2)
 
-		expect(raise[0]?.radius).toBeNear(RADIUS, SAMPLED_CURVE)
+		const first = await start
 
-		expectRadiusOfEachFrame(raise, thumbnail, stage)
+		expect(first.radius).toBeNear(RADIUS, SAMPLED_CURVE)
+
+		expectRadiusOfEachFrame([first, ...raise], thumbnail, stage)
 
 		const lower = await sampleFlight(() => userEvent.keyboard('{Escape}'))
 

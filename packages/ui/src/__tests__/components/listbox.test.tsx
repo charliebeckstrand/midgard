@@ -1,7 +1,7 @@
 import type { KeyboardEvent, ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
-import { Field, Label } from '../../components/fieldset'
+import { Field, Fieldset, Label } from '../../components/fieldset'
 import { Listbox, ListboxOption } from '../../components/listbox'
 import { Form } from '../../modules/form'
 import { VirtualOptions } from '../../primitives/virtual-options'
@@ -606,6 +606,42 @@ describe('Listbox disabled', () => {
 			<Listbox disabled multiple open aria-label="Fruit" onValueChange={onValueChange}>
 				<ListboxOption value="apple">Apple</ListboxOption>
 			</Listbox>,
+		)
+
+		fireEvent.click(screen.getByRole('option', { name: 'Apple' }))
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+})
+
+// K2-C04: a disabled `<fieldset>` disables the trigger button natively and sets
+// no prop.
+describe('Listbox in a disabled fieldset', () => {
+	it('does not open the menu on a frame click', () => {
+		const { container } = renderUI(
+			<Fieldset disabled>
+				<Listbox aria-label="Fruit">{option}</Listbox>
+			</Fieldset>,
+		)
+
+		fireEvent.click(getSlot(container, 'control-frame'))
+
+		expect(getSlot(container, 'listbox-button')).toHaveAttribute('aria-expanded', 'false')
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+
+	// The panel is in a portal outside the fieldset, so the option click
+	// reaches its handler.
+	it('does not commit an option under a controlled open', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Fieldset disabled>
+				<Listbox multiple open aria-label="Fruit" onValueChange={onValueChange}>
+					<ListboxOption value="apple">Apple</ListboxOption>
+				</Listbox>
+			</Fieldset>,
 		)
 
 		fireEvent.click(screen.getByRole('option', { name: 'Apple' }))

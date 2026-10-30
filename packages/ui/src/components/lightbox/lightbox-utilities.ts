@@ -27,9 +27,9 @@ export const RESTING_TRANSFORM = 'translate(0px, 0px) scale(1)'
  * center of the photo and crops the rest. The frame scales the photo until it
  * covers the thumbnail, and moves its center onto the center of the thumbnail.
  * The clip is `shown`, with the corners of the thumbnail. A radius larger than
- * half of a side of the thumbnail is cut to that half, as CSS cuts it. A tween from
- * this frame to {@link restingFrame} raises the photo, and the reverse tween
- * puts it back.
+ * half of a side of the thumbnail is cut to that half, as CSS cuts it. A tween
+ * from this frame to {@link restingFrame} raises the photo, and the reverse
+ * tween puts it back.
  *
  * @param thumbnail - The box of the thumbnail.
  * @param rest - The box of the photo at rest, with no transform.
@@ -86,8 +86,8 @@ export function mixFrames(from: LightboxFrame, to: LightboxFrame, progress: numb
  * The transforms that paint `frame`. The slot of the photo clips its content,
  * so the slot is the clip: its transform moves and scales the slot onto the
  * clip. The transform of the photo then cancels the scale of the slot, and puts
- * the photo at its place. Thus a frame does not paint the photo again, and the browser moves
- * the painted photo.
+ * the photo at its place. Thus a frame does not paint the photo again, and the
+ * browser moves the painted photo.
  *
  * The transform origin of the slot and of the photo must be the top left corner.
  *
@@ -429,6 +429,37 @@ export function viewablePhotos(
 
 		return size ? [{ ...photo, ...size, index }] : []
 	})
+}
+
+/**
+ * Two photos that sit next to each other on the track, by `photo.index`. A
+ * slide to a photo farther away than the next one links the photo that it
+ * leaves to the photo that it goes to, so it passes no photo between them.
+ * @internal
+ */
+export type LightboxLink = { from: number; to: number }
+
+/**
+ * The place in `photos` of the photo in the slot on the side `step` of the
+ * photo at `index`. It is the photo next to it, unless `link` links that
+ * photo to a photo on the same side. The place can be outside `photos`, which
+ * tells that the slot is empty.
+ * @internal
+ */
+export function placeBeside(
+	photos: readonly LightboxViewPhoto[],
+	index: number,
+	link: LightboxLink | null,
+	step: -1 | 1,
+): number {
+	const center = photos[index]?.index
+
+	const other =
+		link && center === link.from ? link.to : link && center === link.to ? link.from : null
+
+	const place = other === null ? -1 : photos.findIndex((photo) => photo.index === other)
+
+	return place !== -1 && Math.sign(place - index) === step ? place : index + step
 }
 
 /**

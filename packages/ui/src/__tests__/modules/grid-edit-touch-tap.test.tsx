@@ -67,7 +67,7 @@ function compatMouse(target: Element) {
 
 /** Taps one finger on `target`, as a browser sends it. */
 function tap(target: Element) {
-	const at = { pointerId: 1, pointerType: 'touch', clientX: 20, clientY: 10 }
+	const at = { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 20, clientY: 10 }
 
 	fireEvent.pointerDown(target, at)
 
@@ -180,7 +180,7 @@ describe('Grid touch entry to edit', () => {
 
 		tap(cell('name'))
 
-		const at = { pointerId: 1, pointerType: 'touch', clientX: 20, clientY: 10 }
+		const at = { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 20, clientY: 10 }
 
 		// A pan travels past the slop, and the browser then takes the gesture.
 		fireEvent.pointerDown(cell('name'), at)

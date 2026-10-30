@@ -88,8 +88,10 @@ function OrdersFilters({
 	)
 }
 
+// The sidebar of the preview is a second navigation landmark on the page, so
+// it takes a name of its own.
 const sidebar = (
-	<Sidebar>
+	<Sidebar aria-label="Acme Inc.">
 		<SidebarHeader>
 			<Heading level={3}>Acme Inc.</Heading>
 		</SidebarHeader>

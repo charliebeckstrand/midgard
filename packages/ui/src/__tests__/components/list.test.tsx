@@ -84,6 +84,12 @@ describe('List', () => {
 
 		for (const handle of handles) expect(handle).toHaveAttribute('data-disabled')
 
+		expect(getSlot(disabled.container, 'list')).toHaveAttribute('data-disabled')
+
+		for (const row of allBySlot(disabled.container, 'list-item')) {
+			expect(row).toHaveAttribute('data-disabled')
+		}
+
 		const readOnly = renderUI(
 			<List items={items} getKey={(i) => i.id} disabled>
 				{(item) => <ListItem>{item.label}</ListItem>}
@@ -91,6 +97,12 @@ describe('List', () => {
 		)
 
 		expect(allBySlot(readOnly.container, 'list-handle')).toHaveLength(0)
+
+		expect(getSlot(readOnly.container, 'list')).not.toHaveAttribute('data-disabled')
+
+		for (const row of allBySlot(readOnly.container, 'list-item')) {
+			expect(row).not.toHaveAttribute('data-disabled')
+		}
 	})
 
 	it('reflects orientation on data attribute', () => {
@@ -778,6 +790,8 @@ describe('List keyboard reordering', () => {
 			['b', 'a', 'c'],
 		],
 		['moves a lifted item up with ArrowUp and calls onReorder', 2, 'ArrowUp', ['a', 'c', 'b']],
+		['moves a lifted item to the start with Home', 2, 'Home', ['c', 'a', 'b']],
+		['moves a lifted item to the end with End', 0, 'End', ['b', 'c', 'a']],
 	])('%s', (_name, from, key, expected) => {
 		const onReorder = vi.fn()
 
@@ -789,7 +803,8 @@ describe('List keyboard reordering', () => {
 
 		fireEvent.keyDown(item, { key: ' ' })
 
-		fireEvent.keyDown(item, { key })
+		// Not prevented, the key would also scroll the page.
+		expect(fireEvent.keyDown(item, { key })).toBe(false)
 
 		expect(onReorder).toHaveBeenCalledOnce()
 

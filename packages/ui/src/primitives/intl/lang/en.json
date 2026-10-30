@@ -659,6 +659,10 @@
 		"defaultMessage": "{count, plural, one {# filter active} other {# filters active}}",
 		"description": "Spoken when a filter changes, with the count of the filters that hold a value, such as \"2 filters active\"."
 	},
+	"ui.grid.actionsColumn": {
+		"defaultMessage": "Actions",
+		"description": "The hidden name of the header of a column of row actions, such as edit and delete buttons, when the column has no title."
+	},
 	"ui.grid.addRow": {
 		"defaultMessage": "Add row",
 		"description": "The name of the button that adds the new row to a grid."
@@ -751,10 +755,6 @@
 		"defaultMessage": "Collapse group",
 		"description": "The menu item that closes a row group of a grid."
 	},
-	"ui.grid.collapseGroupNamed": {
-		"defaultMessage": "Collapse group {group}",
-		"description": "The name of the button that closes a row group of a grid. The group is its value."
-	},
 	"ui.grid.collapseNamed": {
 		"defaultMessage": "Collapse {group}",
 		"description": "The name of the button that hides the columns of a column group."
@@ -803,6 +803,10 @@
 		"defaultMessage": "Data grid",
 		"description": "The name of a grid that the app gives no name."
 	},
+	"ui.grid.detailsColumn": {
+		"defaultMessage": "Details",
+		"description": "The hidden name of the header of the column of the buttons that open the detail panel of each row, when the column has no title."
+	},
 	"ui.grid.discardCell": {
 		"defaultMessage": "Discard {cell}",
 		"description": "The name of the button that drops the edit of a cell. The cell names its column and row."
@@ -842,10 +846,6 @@
 	"ui.grid.expandGroup": {
 		"defaultMessage": "Expand group",
 		"description": "The menu item that opens a row group of a grid."
-	},
-	"ui.grid.expandGroupNamed": {
-		"defaultMessage": "Expand group {group}",
-		"description": "The name of the button that opens a row group of a grid. The group is its value."
 	},
 	"ui.grid.expandNamed": {
 		"defaultMessage": "Expand {group}",
@@ -1130,6 +1130,10 @@
 	"ui.grid.rowRefused": {
 		"defaultMessage": "{count, plural, one {Row not added, # cell refused} other {Row not added, # cells refused}}",
 		"description": "Spoken when the grid does not add a new row. The count is the number of refused cells."
+	},
+	"ui.grid.rowsOnPage": {
+		"defaultMessage": "{rows, plural, one {# row} other {# rows}} on this page",
+		"description": "The row count in the footer of a grid that shows one page of a server set whose total it does not know."
 	},
 	"ui.grid.rowsPerPage": {
 		"defaultMessage": "Rows per page",

@@ -206,8 +206,15 @@ export function Overlay({
 	// Whether the current press started on the backdrop.
 	const pressedRef = useRef(false)
 
+	const backdropRef = useRef<HTMLDivElement>(null)
+
 	useEffect(() => {
-		if (open) notifyOverlaySignal()
+		if (!open) return
+
+		// A press of an earlier open does not count for this one.
+		pressedRef.current = false
+
+		notifyOverlaySignal()
 	}, [open])
 
 	const regions = coverChrome ? noRegions : chromeRegions
@@ -262,11 +269,19 @@ export function Overlay({
 			ref={setPanel}
 			data-slot="overlay"
 			{...props}
+			// A press that ends off the backdrop sends the backdrop no click, so its flag must
+			// not stay for a later click.
+			onPointerUpCapture={(event) => {
+				props.onPointerUpCapture?.(event)
+
+				if (event.target !== backdropRef.current) pressedRef.current = false
+			}}
 			className={cn(slots.base, !modal && 'pointer-events-none', className)}
 		>
 			{(backdrop || catchesPress) && (
 				<m.div
 					{...k.motion}
+					ref={backdropRef}
 					data-slot="overlay-backdrop"
 					className={backdrop ? (backdropClassName ?? slots.backdrop) : 'absolute inset-0'}
 					// React carries a click in the portal up the component tree, and each
@@ -275,6 +290,9 @@ export function Overlay({
 					// grid row that holds the menu.
 					onPointerDown={() => {
 						pressedRef.current = true
+					}}
+					onPointerCancel={() => {
+						pressedRef.current = false
 					}}
 					onClick={(event) => {
 						event.stopPropagation()

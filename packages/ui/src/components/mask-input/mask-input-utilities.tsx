@@ -124,6 +124,14 @@ function formatZipInternational(raw: string) {
 	return raw.slice(0, 12)
 }
 
+/**
+ * @internal Counts the characters that the CA and GB formats keep: an ASCII
+ * letter of either case, because the format uppercases it, and an ASCII digit.
+ */
+function isAsciiAlphanumeric(char: string) {
+	return /^[A-Za-z0-9]$/.test(char)
+}
+
 // The international format keeps every character, so every character counts.
 const keepsAll = () => true
 
@@ -133,6 +141,13 @@ const zipcodeFormats = {
 	GB: formatZipGB,
 	international: formatZipInternational,
 } satisfies Record<ZipcodeMaskCountry, MaskInputFormat>
+
+const zipcodeMeaningful = {
+	US: isAsciiDigit,
+	CA: isAsciiAlphanumeric,
+	GB: isAsciiAlphanumeric,
+	international: keepsAll,
+} satisfies Record<ZipcodeMaskCountry, MaskInputPreset['meaningful']>
 
 const zipcodeInputModes = {
 	US: 'numeric',
@@ -172,15 +187,17 @@ export function phoneMask(country: PhoneMaskCountry = 'US'): MaskInputPreset {
  * Canadian FSA and LDU, UK outward and inward, and a loose international
  * fallback. It matches the keyboard (`inputMode`) and the placeholder to
  * `country`, sets `autoComplete="postal-code"`, and adds a leading map-pin
- * icon. The US, CA, and GB masks place their own separator. The international
- * mask keeps the text as typed, and its caret counts every character.
+ * icon. The US, CA, and GB masks place their own separator. The caret counts
+ * only the characters that the format keeps, so a character that the format
+ * removes does not move the caret. The international mask keeps the text as
+ * typed, and its caret counts every character.
  *
  * @param country - The postal-code locale. The default is `'US'`.
  */
 export function zipcodeMask(country: ZipcodeMaskCountry = 'US'): MaskInputPreset {
 	return {
 		format: zipcodeFormats[country],
-		meaningful: country === 'international' ? keepsAll : undefined,
+		meaningful: zipcodeMeaningful[country],
 		type: 'text',
 		inputMode: zipcodeInputModes[country],
 		autoComplete: 'postal-code',

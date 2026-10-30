@@ -3,8 +3,8 @@ import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/grid'
 import { isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
-import { DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import { isFrozen } from '../grid-pin/overrides'
+import { columnMinWidth } from './measure'
 import { fitKeptWidth } from './sizer'
 
 /**
@@ -32,6 +32,8 @@ const NO_FIT: FitCellChrome = { className: undefined, style: undefined }
  * - Each other column is at least its `minWidth`, else 40px, and at least its
  *   `least` width, the content that the grid holds (see `createColumnSizer`).
  * - A frozen column, and a column with a `maxWidth`, take no spare width.
+ * - A column with a `maxWidth` is at most that wide. Its floor stops there, so
+ *   the border box of the column, cell chrome included, is in the `maxWidth`.
  *
  * A non-data column holds its declared width, or takes the width of its content
  * through its own `w-px` class.
@@ -47,8 +49,9 @@ export function fitHeaderProps<T>(col: GridColumn<T>, least: number | undefined)
 		return { className: cn(k.fit.kept.head, k.fit.floor), style: floorStyle(kept) }
 	}
 
-	const floor =
-		least == null ? col.minWidth : Math.max(col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE, least)
+	const wanted = least == null ? col.minWidth : Math.max(columnMinWidth(col), least)
+
+	const floor = wanted == null || col.maxWidth == null ? wanted : Math.min(wanted, col.maxWidth)
 
 	return {
 		className: cn(k.fit.floor, (isFrozen(col) || col.maxWidth != null) && k.fit.tight),

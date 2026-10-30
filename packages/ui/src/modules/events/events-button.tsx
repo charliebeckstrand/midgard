@@ -4,6 +4,7 @@ import { Activity } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import { dataAttr } from '../../core'
 import { useFail } from '../../hooks/use-fail'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
@@ -23,7 +24,8 @@ const sheet = createLazyModule(() => import('./events-sheet'))
  * while the panel is pinned, as the panel shows there. A dot
  * shows while the store holds a report, and the icon is red while a capture
  * runs. A hover or a focus loads the sheet before the press, and a press
- * before the sheet loads opens it when it arrives.
+ * before the sheet loads opens it when it arrives. While the sheet is open,
+ * the button stamps `aria-expanded` and `data-open`.
  *
  * @remarks The store pauses while the sheet loads, so it does not record the
  * load of its own sheet. After a press, the pause stays until the sheet
@@ -66,6 +68,9 @@ export function EventsButton() {
 			<Button
 				variant="bare"
 				aria-label={intl.formatMessage(eventsMessages.events)}
+				aria-haspopup="dialog"
+				aria-expanded={open === true}
+				data-open={dataAttr(open === true)}
 				className="relative"
 				onClick={show}
 				onPointerEnter={preload}

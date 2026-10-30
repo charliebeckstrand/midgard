@@ -80,7 +80,7 @@ function ChartDataTable({ readout: source }: { readout: ChartReadoutSource }) {
 		<Table size="sm" striped>
 			<TableHead>
 				<TableRow>
-					<TableHeader />
+					<TableHeader>{readout.corner}</TableHeader>
 
 					{readout.rows.map((row, index) => (
 						<TableHeader key={row.index ?? index} className="text-end">

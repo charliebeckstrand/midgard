@@ -47,8 +47,9 @@ export function isSourceFile(file: string): boolean {
 export const docsSites: ReadonlySet<string> = new Set(['docs'])
 
 /**
- * The test folder of the docs site. The `unit` and `pure` projects run it with
- * `src/__tests__`, so each scan of those projects reads it too.
+ * The test folder of the docs site. The `docs` project runs its jsdom files and
+ * the `pure` project runs its node files, so each scan of the test trees reads
+ * it too.
  */
 export const docsTestDir: string = join(srcDir, 'docs', '__tests__')
 

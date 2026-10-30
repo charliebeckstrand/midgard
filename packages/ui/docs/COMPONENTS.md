@@ -41,7 +41,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `fieldset` · `control`
 
-> `Control` broadcasts the state of a `Field` to one control-aware descendant. `Form` and its filter bar are parts of the `form` module ([`MODULES.md`](MODULES.md)).
+> `Control` broadcasts the state of a `Field` to one control-aware descendant. Its `variant` sets the surface of that control, also of a `Listbox`, `Combobox`, `DatePicker`, or `ColorPicker` trigger. A `bare` control draws no frame and no focus ring, for a host that draws them, such as a `Grid` cell around its editor. `Form` and its filter bar are parts of the `form` module ([`MODULES.md`](MODULES.md)).
 
 ## Buttons & actions
 

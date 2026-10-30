@@ -82,8 +82,9 @@ export const SIDEBAR: AppearanceChoice<SidebarMode> = {
  */
 export const DARK_SCHEME = '(prefers-color-scheme: dark)'
 
-// Holds the choices when storage access throws (cookies off, some embedded
-// contexts), so a choice still applies for the life of the page.
+// Holds each choice whose write to storage throws (cookies off, a full quota,
+// some embedded contexts). A read prefers it, so the choice still applies for
+// the life of the page when `getItem` works and `setItem` throws.
 const memory = new Map<string, string>()
 
 const choiceChange = createEmitter()
@@ -95,12 +96,12 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 // The value of `choice` in `localStorage`, or `undefined` when the value is
 // absent or is not one of the values of the choice.
 function readStored<T extends string>({ key, values }: AppearanceChoice<T>): T | undefined {
-	let stored: string | null = null
+	let stored = memory.get(key) ?? null
 
-	try {
-		stored = localStorage.getItem(key)
-	} catch {
-		stored = memory.get(key) ?? null
+	if (stored === null) {
+		try {
+			stored = localStorage.getItem(key)
+		} catch {}
 	}
 
 	return values.find((value) => value === stored)
@@ -149,6 +150,8 @@ export function parseChoice<T extends string>(
 export function writeChoice<T extends string>({ key, cookie }: AppearanceChoice<T>, value: T) {
 	try {
 		localStorage.setItem(key, value)
+
+		memory.delete(key)
 	} catch {
 		memory.set(key, value)
 	}
@@ -183,11 +186,19 @@ export function restoreChoiceCookie<T extends string>(choice: AppearanceChoice<T
 export function subscribeChoices(listener: () => void) {
 	const unsubscribe = choiceChange.subscribe(listener)
 
-	window.addEventListener('storage', listener)
+	// A write in another tab replaces the value in memory, so that write applies.
+	const onStorage = (event: StorageEvent) => {
+		if (event.key === null) memory.clear()
+		else memory.delete(event.key)
+
+		listener()
+	}
+
+	window.addEventListener('storage', onStorage)
 
 	return () => {
 		unsubscribe()
 
-		window.removeEventListener('storage', listener)
+		window.removeEventListener('storage', onStorage)
 	}
 }

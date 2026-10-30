@@ -2907,6 +2907,10 @@
 		"defaultMessage": "Settings",
 		"description": "Text of a demo in the docs as aria-label, label, in components/command-palette/commands.tsx, components/menu/title-and-description.tsx, components/nav/with-content.tsx and 4 more."
 	},
+	"docs.demo.751ac08e0f00": {
+		"defaultMessage": "Quarterly sales report",
+		"description": "Text of a demo in the docs as aria-label, in components/pdf-viewer/playground.tsx."
+	},
 	"docs.demo.756e66241ed5": {
 		"defaultMessage": "By period",
 		"description": "Text of a demo in the docs as title, in modules/grid/sparkline/in-cell-sparklines.tsx."
@@ -4070,10 +4074,6 @@
 	"docs.demo.af9c248fa8d8": {
 		"defaultMessage": "Select a product to filter the board",
 		"description": "Text of a demo in the docs as description, in modules/dashboard/build-and-save.tsx."
-	},
-	"docs.demo.afaf1f88cbae": {
-		"defaultMessage": "TraceMonkey paper",
-		"description": "Text of a demo in the docs as aria-label, in components/pdf-viewer/playground.tsx."
 	},
 	"docs.demo.afec2b22114c": {
 		"defaultMessage": "Playback speed",
@@ -7249,7 +7249,7 @@
 	},
 	"docs.prop.variant.bare": {
 		"defaultMessage": "Bare",
-		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'bare' on Button, HoldButton, List."
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'bare' on Button, Control, CreditCardInput, CurrencyInput, DateInput, HoldButton, Input, List, MaskInput, NumberInput, PasswordInput, SearchInput, TagInput, Textarea."
 	},
 	"docs.prop.variant.dashed": {
 		"defaultMessage": "Dashed",

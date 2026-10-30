@@ -27,9 +27,10 @@ import { useInputControl } from './use-input-control'
 export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	size?: ScaleStep<typeof scale>
 	/**
-	 * The surface of the control: `default` fills it, and `outline` draws a border
-	 * with no fill. When the prop is unset, the input takes the variant of the
-	 * enclosing Control. Without one, it takes the glass surface in a GlassProvider.
+	 * The surface of the control: `default` fills it, `outline` draws a border
+	 * with no fill, and `bare` draws neither ({@link ControlVariant}). When the
+	 * prop is unset, the input takes the variant of the enclosing Control.
+	 * Without one, it takes the glass surface in a GlassProvider.
 	 * @defaultValue 'default'
 	 */
 	variant?: ControlVariant
@@ -49,7 +50,8 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	 */
 	clearLabel?: string
 	/**
-	 * Forces the invalid state. When omitted, inherits from Control / Form context.
+	 * Sets the invalid state on or off, over the bound field and the Control.
+	 * When omitted, inherits from Control / Form context.
 	 * @defaultValue `false`, or `true` when the bound form field has an error or the enclosing Control has the `error` severity.
 	 */
 	invalid?: boolean
@@ -71,7 +73,8 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
  * (explicit prop > bound field > internal state) owned by {@link useInputValue}.
  * `defaultValue` reaches the element only while the input is uncontrolled, so
  * a bound input ignores it (§7.2).
- * `invalid` OR's the prop, the bound field, and any ambient Control error.
+ * An explicit `invalid` sets the invalid state on or off. When `invalid` is
+ * omitted, the state comes from the bound field and any ambient Control error.
  * The clear button of `clearable` comes before the `suffix`. It keeps the focus
  * in the input. When the button goes away while it has the focus, the focus
  * goes to the input. On an

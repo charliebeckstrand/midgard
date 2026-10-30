@@ -211,6 +211,35 @@ describe('MapPlat gesture suspends the readout', () => {
 		expect(answersPointer(container)).toBe(true)
 	})
 
+	it('clears the readout when a wheel zoom starts, and lets the pointer read once it settles', async ({
+		clock,
+	}) => {
+		const { container, svg } = renderZoomable()
+
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		fireEvent.pointerEnter(region, { clientX: 40, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+
+		// The map scales away under the still pointer, so the shape it named is no
+		// longer under it. The readout goes on the first notch, as for a pinch.
+		zoomWheel(svg, -200)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		// A write in the gesture raises nothing while the wheel holds the readout.
+		fireEvent.pointerMove(region, { clientX: 40, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		await clock.advance(300)
+
+		fireEvent.pointerMove(region, { clientX: 40, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+	})
+
 	it('stops it while a pan runs, and gives it back on release', () => {
 		const { container, plot } = renderZoomable()
 

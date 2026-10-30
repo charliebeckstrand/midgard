@@ -5,6 +5,7 @@ import { ariaAttr, cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp } from '../../utilities'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { colorMessages } from './color-messages'
 import { useColorPanelContext } from './context'
 import { type DragPosition, inDisabledFieldset, useColorDrag } from './use-color-drag'
@@ -18,8 +19,10 @@ import { type DragPosition, inDisabledFieldset, useColorDrag } from './use-color
  * Exposed as a single `role="slider"`: `aria-valuenow` carries saturation while
  * `aria-valuetext` announces both axes, since ARIA has no two-axis slider.
  * Arrows nudge by `1` (`10` with `Shift`); Home/End pin saturation; Page keys
- * step brightness. Reads color from the panel context, so it tracks
- * pointer-, keyboard-, and externally-driven changes alike.
+ * step brightness. A key with Ctrl, Meta, or Alt is for the browser, such as
+ * its history, so it moves nothing and keeps its default. Reads color from the
+ * panel context, so it tracks pointer-, keyboard-, and externally-driven
+ * changes alike.
  *
  * @internal
  */
@@ -36,7 +39,7 @@ export function ColorArea() {
 	const drag = useColorDrag(ref, onPosition, disabled, 'crosshair')
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-		if (disabled) return
+		if (disabled || hasBrowserModifier(event)) return
 
 		const step = event.shiftKey ? 10 : 1
 

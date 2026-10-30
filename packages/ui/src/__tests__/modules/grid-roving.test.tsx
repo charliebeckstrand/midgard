@@ -1,7 +1,9 @@
+import { renderHook } from '@testing-library/react'
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
+import { useGridRoving } from '../../modules/grid/use-grid-roving'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 type Row = { id: number; name: string; role: string }
@@ -137,6 +139,34 @@ describe('Grid row roving', () => {
 		expect(rowEls.every((row) => !row.hasAttribute('data-roving'))).toBe(true)
 
 		expect(rowEls.every((row) => row.tabIndex === -1)).toBe(true)
+	})
+})
+
+describe('Grid static row stop under virtualization', () => {
+	const roving = (handlers: { onRowClick: boolean; onRowDoubleClick: boolean }) =>
+		renderHook(() =>
+			useGridRoving({
+				navigable: false,
+				virtualized: true,
+				onCellClick: false,
+				onCellDoubleClick: false,
+				tableRef: createRef<HTMLTableElement>(),
+				dataColCount: 2,
+				...handlers,
+			}),
+		).result.current
+
+	it('gives a row with only a double-click handler a Tab stop', () => {
+		// Enter or Space on the row fires the double-click, so Tab must reach the row.
+		expect(roving({ onRowClick: false, onRowDoubleClick: true }).rowStaticStop).toBe(true)
+	})
+
+	it('gives a row with a click handler a Tab stop', () => {
+		expect(roving({ onRowClick: true, onRowDoubleClick: false }).rowStaticStop).toBe(true)
+	})
+
+	it('gives a row with no row handler no Tab stop', () => {
+		expect(roving({ onRowClick: false, onRowDoubleClick: false }).rowStaticStop).toBe(false)
 	})
 })
 

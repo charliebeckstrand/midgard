@@ -162,6 +162,9 @@ describe('Grid resizable columns', () => {
 		expect(handle).toHaveAttribute('aria-valuenow', '200')
 
 		expect(handle).toHaveAttribute('aria-valuemin', '80')
+
+		// A column with no maximum width keeps its width inside the range.
+		expect(Number(handle.getAttribute('aria-valuemax'))).toBeGreaterThanOrEqual(200)
 	})
 
 	const keyboardCases: [string, string, GridColumn<Row>[], number][] = [
@@ -232,6 +235,33 @@ describe('Grid resizable columns', () => {
 		await user.keyboard('{PageDown}')
 
 		expect(onValueChange).toHaveBeenLastCalledWith({ name: 200 })
+	})
+
+	// A chord such as Alt+ArrowLeft (history back) is for the browser.
+	it.each([
+		['Alt+ArrowLeft', 'ArrowLeft', { altKey: true }],
+		['Ctrl+End', 'End', { ctrlKey: true }],
+		['Cmd+ArrowRight', 'ArrowRight', { metaKey: true }],
+	])('ignores %s and keeps its default', (_name, key, modifier) => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ onValueChange }}
+			/>,
+		)
+
+		const handle = screen.getByRole('separator', { name: 'Resize Name' })
+
+		const proceeded = fireEvent.keyDown(handle, { key, ...modifier })
+
+		expect(proceeded).toBe(true)
+
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('reflects controlled column widths on the header', () => {

@@ -92,6 +92,35 @@ const pages: readonly [name: string, page: ReactElement][] = [
 			</SidebarLayoutBody>
 		</SidebarLayout>,
 	],
+	[
+		// A page of docs that shows a whole app. The inner layout is content of the
+		// main landmark of the page.
+		'layout in the main slot of another layout',
+		<SidebarLayout key="n" sidebar={sidebar}>
+			<SidebarLayoutHeader>
+				<Heading level={1}>Density</Heading>
+			</SidebarLayoutHeader>
+			<SidebarLayoutBody>
+				<SidebarLayout
+					sidebar={
+						<Sidebar aria-label="Preview">
+							<SidebarBody>
+								<SidebarSection>
+									<SidebarItem href="#inbox" current>
+										<SidebarLabel>Inbox</SidebarLabel>
+									</SidebarItem>
+								</SidebarSection>
+							</SidebarBody>
+						</Sidebar>
+					}
+				>
+					<SidebarLayoutBody>
+						<Text>Preview content.</Text>
+					</SidebarLayoutBody>
+				</SidebarLayout>
+			</SidebarLayoutBody>
+		</SidebarLayout>,
+	],
 ]
 
 /**

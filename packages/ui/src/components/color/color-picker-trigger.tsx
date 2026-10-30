@@ -4,11 +4,11 @@ import type { RefCallback } from 'react'
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
-import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/color-picker'
 import { k } from '../../recipes/kata/color-picker'
 import { Button } from '../button'
+import { useControlSurface } from '../control/use-control-surface'
 import { hsvaToCss, hsvaToHex } from './color-utilities'
 import type { Hsva } from './types'
 
@@ -68,10 +68,7 @@ export function ColorPickerTrigger({
 	validation,
 	className,
 }: ColorPickerTriggerProps) {
-	const glass = useGlass()
-
-	// A trigger in a glass overlay paints no fill, so it takes the `outline` surface.
-	const slots = k({ variant: glass ? 'outline' : 'default' })
+	const slots = k({ variant: useControlSurface() })
 
 	const swatchColor = hsvaToCss(hsva, alpha)
 

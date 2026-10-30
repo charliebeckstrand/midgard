@@ -10,6 +10,7 @@
 				"docs/*.md",
 				"REFERENCE.md",
 				"vitest.config.ts",
+				"vitest.docs.config.ts",
 				"vitest.base.ts",
 				"vitest.browser.config.ts",
 				"tsconfig.json",
@@ -21,7 +22,12 @@
 			"inputs": ["$TURBO_EXTENDS$", "vitest.base.ts"]
 		},
 		"test:compiler": {
-			"inputs": ["$TURBO_EXTENDS$", "vitest.base.ts"]
+			"inputs": [
+				"$TURBO_EXTENDS$",
+				"vitest.base.ts",
+				"vitest.docs.config.ts",
+				"vitest.docs-compiler.config.ts"
+			]
 		},
 		"test:workspace": {
 			"dependsOn": ["^build"],
@@ -31,8 +37,11 @@
 				"REFERENCE.md",
 				"vitest.config.ts",
 				"vitest.base.ts",
+				"vitest.compiler.config.ts",
+				"vitest.compiler.preset.ts",
 				"package.json",
 				"$TURBO_ROOT$/{CLAUDE,CONVENTIONS,STE}.md",
+				"$TURBO_ROOT$/.github/workflows/ci.yml",
 				"$TURBO_ROOT$/.claude/agents/*.md",
 				"$TURBO_ROOT$/{Dockerfile,Dockerfile.*,package.json,pnpm-lock.yaml}",
 				"$TURBO_ROOT$/biome.json",

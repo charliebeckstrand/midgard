@@ -8,7 +8,6 @@ import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { groupValueLabel } from './engine/grid-column/label'
-import { gridMessages } from './engine/grid-messages'
 import type { GridGroupBy } from './grid-data-types'
 
 /**
@@ -16,7 +15,8 @@ import type { GridGroupBy } from './grid-data-types'
  * (`Developer (3)`) sit at the start, or the label of a
  * {@link GridGroupBy.renderHeader} override. A chevron at the trailing edge
  * points right while collapsed and down while expanded. The client and the
- * manual group rows share it.
+ * manual group rows share it. The visible label is the accessible name, and
+ * `aria-expanded` gives the state.
  *
  * @internal
  */
@@ -47,11 +47,9 @@ export function GridGroupDisclosure({
 			type="button"
 			variant="bare"
 			onClick={onToggle}
+			// The visible label names the button, and `aria-expanded` gives its state,
+			// so the count and a `renderHeader` label stay in the name (WCAG 2.5.3).
 			aria-expanded={expanded}
-			aria-label={intl.formatMessage(
-				expanded ? gridMessages.collapseGroupNamed : gridMessages.expandGroupNamed,
-				{ group: groupValueLabel(value) },
-			)}
 			className="p-0"
 			suffix={
 				<Icon

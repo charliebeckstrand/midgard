@@ -34,6 +34,7 @@ import {
 } from 'react'
 import type { DensityStep } from '../../core/density'
 import { useControllable } from '../../hooks'
+import { useControlledLatch } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { useLocale } from '../../providers/locale'
@@ -575,7 +576,7 @@ export function useGridTable<T>({
 	// starts again at the first page. The reset runs in the event that changes
 	// the filter, so it costs no render of its own. A controlled page stays with
 	// the consumer.
-	const pageControlled = paginationConfig?.value !== undefined
+	const pageControlled = useControlledLatch(paginationConfig?.value)
 
 	const resetPage = useCallback(() => {
 		if (!paginated || pageControlled) return
@@ -598,6 +599,8 @@ export function useGridTable<T>({
 			columnSizingConfig?.onValueChange?.(next ?? {})
 		},
 	})
+
+	const sizingControlled = useControlledLatch(columnSizingConfig?.value)
 
 	// The widths of the content-sized columns, which the autosizer writes here and not
 	// to `columnSizing`: they are no preference. Laid over the sizing state, so the
@@ -909,7 +912,7 @@ export function useGridTable<T>({
 		floors,
 	} = useGridColumnSizing<T>({
 		resizable,
-		controlled: columnSizingConfig?.value != null,
+		controlled: sizingControlled,
 		table: engine,
 		// Fit distributes width across the *visible* data columns, not the hidden ones.
 		columns: visibleColumns,

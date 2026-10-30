@@ -111,17 +111,15 @@ function parseRole(text: string): string {
 
 // Name and Email get a text editor, and Active gets a yes or no listbox, from
 // the type of the value. Role gets a listbox of its own, and sorts and copies
-// by the shown word. Each column is at least 150px wide, the default width of a
-// column, and a column with wider content widens to fit it.
+// by the shown word.
 export const personColumns: GridColumn<Person>[] = [
-	{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name, minWidth: 150 },
-	{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email, minWidth: 150 },
+	{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+	{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
 	{
 		id: 'role',
 		title: 'Role',
 		field: 'role',
 		cell: (row) => roles[row.role],
-		minWidth: 150,
 		value: (row) => roles[row.role],
 		parse: parseRole,
 		editCell: (context) => (
@@ -138,7 +136,6 @@ export const personColumns: GridColumn<Person>[] = [
 		title: 'Active',
 		field: 'active',
 		cell: (row) => <StatusBadge status={row.active ? 'active' : 'inactive'} />,
-		minWidth: 150,
 	},
 ]
 

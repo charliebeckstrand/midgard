@@ -209,6 +209,22 @@ describe('reference lines', () => {
 		expect(content?.textContent).toContain('Target')
 	})
 
+	// The legend chip of the rule is a line Swatch, which keeps a paint under
+	// forced colors. The swatch of the readout is the same key.
+	it('keys the readout with a dashed line Swatch, as the legend chip does', async () => {
+		const { container } = bar([{ value: 55, label: 'Target' }])
+
+		fireEvent.focus(bySlot(container, 'chart-reference-line') as Element)
+
+		const swatch = await waitFor(() =>
+			present(document.querySelector('[data-slot="chart-reference-swatch"]'), 'swatch'),
+		)
+
+		expect(swatch).toHaveAttribute('data-shape', 'line')
+
+		expect(swatch).toHaveAttribute('data-variant', 'dashed')
+	})
+
 	it('recedes the marks while a rule is hovered, like a legend emphasis', () => {
 		const { container } = bar([{ value: 50 }])
 

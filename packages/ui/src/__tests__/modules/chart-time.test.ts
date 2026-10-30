@@ -164,6 +164,26 @@ describe('timeTicks', () => {
 		expect(mar).toBeLessThan(scale.center(2))
 	})
 
+	it('drops the boundaries that a long gap between two rows crowds into one step', () => {
+		// Nine daily rows in January, then 31 December. Apr, Jul, and Oct all fall in
+		// the gap, so they interpolate into the one 60px step between rows 8 and 9.
+		const times = [
+			...Array.from({ length: 9 }, (_, index) => new Date(2026, 0, 1 + index).getTime()),
+			new Date(2026, 11, 31).getTime(),
+		]
+
+		const ticks =
+			timeTicks({ times, band: band(10), tickTarget: 8, axisLength: 600, locale: 'en-US' }) ?? []
+
+		expect(ticks.map((tick) => tick.label)).toEqual(['2026', 'Apr'])
+
+		const slot = 7 * TICK_CHAR_WIDTH + GUTTER_GAP
+
+		for (const [index, tick] of ticks.slice(1).entries()) {
+			expect(tick.at - (ticks[index]?.at ?? 0)).toBeGreaterThanOrEqual(slot)
+		}
+	})
+
 	it('labels multi-year spans with the year and steps to a coarser interval', () => {
 		// Four years of month-start rows: the axis reads years, not months.
 		const times = Array.from({ length: 48 }, (_, index) =>

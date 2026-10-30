@@ -37,6 +37,7 @@ describe('the copy of a module in a language', () => {
 			"import { orderStatuses } from '../../../data/commerce.ts'",
 			"import { Button } from 'ui/button'",
 			"import { Playground } from '../../../kit/index.ts'",
+			"import report from './report.pdf?url'",
 		].join('\n')
 
 		const pointed = pointImports(parse(code), code, FILE, [PAGES, DATA], 'es')
@@ -50,6 +51,8 @@ describe('the copy of a module in a language', () => {
 		expect(pointed).toContain(`from 'ui/button'`)
 
 		expect(pointed).toContain(`from '../../../kit/index.ts'`)
+
+		expect(pointed).toContain(`from './report.pdf?url'`)
 	})
 
 	it('wraps the default export of a page with the loader of each copy', () => {
