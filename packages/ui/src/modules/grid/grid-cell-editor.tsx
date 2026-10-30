@@ -42,6 +42,7 @@ import type {
 	GridSettleControls as SettleControls,
 } from './grid-editing-context'
 import type { GridColumn } from './types'
+import { useGridEditGrow } from './use-grid-edit-grow'
 
 /**
  * Props for the mounted editor: the cell plus the session's staging and exit
@@ -483,20 +484,21 @@ export function GridCellEditor<T>({
 
 /**
  * The floating column below the cell of an editor: the settle controls, then
- * the error message. Floating UI anchors it to the cell, so the scroll area of
- * the grid does not clip it. Below the last row, it shows past the bottom of
- * the grid. At the bottom of the viewport, it flips above the cell. It hides
- * while the cell is out of view. The settle controls take no focus, so the
- * column keeps the focus in the editor, and a press on a control is not a
- * leave of the session. @internal
+ * the error message. Floating UI anchors it to `anchor`: the cell, or the
+ * editor while it grows past the cell. The scroll area of the grid does not
+ * clip it. Below the last row, it shows past the bottom of the grid. At the
+ * bottom of the viewport, it flips above the cell. It hides while the cell is
+ * out of view. The settle controls take no focus, so the column keeps the
+ * focus in the editor, and a press on a control is not a leave of the session.
+ * @internal
  */
-function GridEditBelow({ cell, children }: { cell: HTMLElement | null; children: ReactNode }) {
-	const open = cell !== null
+function GridEditBelow({ anchor, children }: { anchor: HTMLElement | null; children: ReactNode }) {
+	const open = anchor !== null
 
 	const { refs, floatingStyles, placement } = useFloatingPanel({
 		placement: 'bottom-end',
 		open,
-		reference: cell,
+		reference: anchor,
 		offset: 0,
 		matchReferenceWidth: true,
 	})
@@ -556,6 +558,8 @@ function GridEditHost({
 
 	const ref = useComposedRefs(hostRef, anchorCell)
 
+	const grow = useGridEditGrow(newRow ? null : cell)
+
 	const message = error && <GridEditMessage id={errorId}>{error}</GridEditMessage>
 
 	if (newRow) {
@@ -565,7 +569,7 @@ function GridEditHost({
 					{children}
 				</span>
 
-				{message && <GridEditBelow cell={cell}>{message}</GridEditBelow>}
+				{message && <GridEditBelow anchor={cell}>{message}</GridEditBelow>}
 			</span>
 		)
 	}
@@ -581,12 +585,18 @@ function GridEditHost({
 				{rest}
 			</span>
 
-			<span data-slot="grid-edit-slot" className={cn(k.edit.slot)}>
+			<span
+				ref={grow.ref}
+				data-slot="grid-edit-slot"
+				data-grown={dataAttr(grow.grown)}
+				style={grow.style}
+				className={cn(k.edit.slot, grow.grown && k.edit.grown)}
+			>
 				<Control variant="bare">{children}</Control>
 			</span>
 
 			{(settle !== 'none' || message) && (
-				<GridEditBelow cell={cell}>
+				<GridEditBelow anchor={grow.grown ? grow.slot : cell}>
 					<GridSettleControls label={label} controls={settle} settle={onSettle} />
 
 					{message}

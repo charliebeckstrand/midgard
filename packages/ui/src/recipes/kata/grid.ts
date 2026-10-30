@@ -929,7 +929,9 @@ export const k = {
 		// Host for a cell's editor. Its one grid area stacks the editor over the
 		// display content (`rest`), so the cell keeps the height that it has at
 		// rest. The track has no least width, so neither layer widens the column.
-		host: ['grid grid-cols-[minmax(0,1fr)]', 'w-full'],
+		// It is the containing block of a grown editor (`grown`), so the scroll
+		// area of the grid clips the editor and scrolls it with the cell.
+		host: ['relative', 'grid grid-cols-[minmax(0,1fr)]', 'w-full'],
 		// The display content of the cell, under the editor. It holds the height
 		// of the cell and shows nothing.
 		rest: ['col-start-1 row-start-1', 'invisible truncate'],
@@ -939,6 +941,22 @@ export const k = {
 		// control fills the cell with no width of its own. The slot centers the
 		// editor in the height of the cell.
 		slot: ['col-start-1 row-start-1', flex.col, 'justify-center', 'min-w-0'],
+		// The slot while its focused text editor grows past the cell
+		// (`useGridEditGrow`). It floats over the cell from its start edge, above
+		// the body cells, the pinned cells (`z-[1]`), and the sticky new-row slot
+		// (`z-[3]`), and under the sticky head (`z-10`). It takes the padding of
+		// the cell, so the text stays where it was, and the opaque fill of the
+		// grid, so the cells under it do not show. It draws the ring of the cell
+		// with focus, or the red ring of a refused value, which the host carries.
+		grown: [
+			'z-[4]',
+			dan.space.cell.base,
+			hostSurface,
+			...ring.line[2].inset,
+			...mode('ring-blue-600', 'dark:ring-blue-500'),
+			...mode('in-data-invalid:ring-red-600', 'dark:in-data-invalid:ring-red-500'),
+			'forced-colors:outline-[Highlight]',
+		],
 		// The in-cell control fills the cell width.
 		input: 'w-full',
 		// The floating column below the cell: the settle controls at the end edge,
