@@ -132,7 +132,7 @@ describe('DonutChart', () => {
 
 		const first = slices[0] as Element
 
-		const touch = { pointerType: 'touch' }
+		const touch = { pointerType: 'touch', isPrimary: true }
 
 		// A touch reads nothing from the chart. The data stays in the menu.
 		fireEvent.pointerOver(first, touch)
@@ -169,7 +169,7 @@ describe('DonutChart', () => {
 
 		const slice = allBySlot(container, 'chart-slice')[1] as Element
 
-		const touch = { pointerType: 'touch' }
+		const touch = { pointerType: 'touch', isPrimary: true }
 
 		const tap = () => {
 			fireEvent.pointerOver(slice, touch)
@@ -212,7 +212,7 @@ describe('DonutChart', () => {
 
 		const slice = slices[1] as Element
 
-		const touch = { pointerType: 'touch' }
+		const touch = { pointerType: 'touch', isPrimary: true }
 
 		fireEvent.pointerOver(slice, touch)
 
@@ -251,7 +251,7 @@ describe('DonutChart', () => {
 
 		const slice = allBySlot(container, 'chart-slice')[1] as Element
 
-		const touch = { pointerType: 'touch' }
+		const touch = { pointerType: 'touch', isPrimary: true }
 
 		fireEvent.pointerDown(slice, touch)
 
