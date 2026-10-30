@@ -98,7 +98,7 @@ export function useMapTouchTap(activate: (target: MapHoverTarget) => void): Touc
 			plot.current = event.currentTarget
 
 			if (event.pointerType === 'touch') {
-				// A long press opens the readout, so a held touch selects no text on the page.
+				// A held touch starts a text selection on iOS, so hold it off the page.
 				holdTextSelection(event)
 
 				contacts.current.add(event.pointerId)
