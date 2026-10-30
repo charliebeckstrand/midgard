@@ -21,6 +21,13 @@ type Messages = Readonly<Record<string, string>>
 /** The query of the copy of a module of `pages/` in a language, such as `?lang=es`. */
 const LANG_QUERY = /\?lang=([a-z]{2,3})$/
 
+/**
+ * The import of a script module, which has a copy. The import of another
+ * file, such as `./report.pdf?url`, has no text to translate. A query on it
+ * would go into the URL of the file.
+ */
+const SCRIPT = /\.[cm]?[jt]sx?$/
+
 /** The query that names the copy of a module in `language`. */
 export function toLangQuery(language: string): string {
 	return `?lang=${language}`
@@ -36,8 +43,8 @@ export function readLangId(id: string): { file: string; language?: string } {
 /**
  * `code` with each relative import of a module in one of `roots` pointed at
  * the copy of that module in `language`, so a copy imports the copies of the
- * examples and of the data that it uses. An import of the kit or of `ui` stays
- * as it is.
+ * examples and of the data that it uses. An import of the kit, of `ui`, or of
+ * a file that is not a script stays as it is.
  */
 export function pointImports(
 	program: ESTree.Program,
@@ -60,7 +67,7 @@ export function pointImports(
 	for (const source of sources.toReversed()) {
 		const value = String(source.value)
 
-		if (!value.startsWith('.')) continue
+		if (!value.startsWith('.') || !SCRIPT.test(value)) continue
 
 		const target = path.resolve(path.dirname(file), value)
 
