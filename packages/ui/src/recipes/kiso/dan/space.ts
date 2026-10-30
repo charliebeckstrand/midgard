@@ -84,15 +84,6 @@ export const space = {
 		x: scale.px.sm,
 		/** The block padding of a table cell. */
 		y: scale.py.sm,
-		/**
-		 * The margins that take a box in the content of a cell out to the edges of
-		 * the cell: past the bottom padding, and across the inline padding. They
-		 * equal `cell.y` and `cell.x`.
-		 */
-		edge: {
-			below: 'density-mt-[0.5,1,2,3,4.5]',
-			x: 'density-mx-[-0.5,-1,-2,-3,-4.5]',
-		},
 	},
 	nav: {
 		/** The padding of a nav item. */

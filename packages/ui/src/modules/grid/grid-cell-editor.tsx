@@ -1,10 +1,13 @@
 'use client'
 
+import { useInteractions } from '@floating-ui/react'
 import { Check, X } from 'lucide-react'
+import { useComposedRefs } from 'motion/react'
 import {
 	type MouseEvent,
 	type ReactNode,
 	type RefObject,
+	useCallback,
 	useEffect,
 	useEffectEvent,
 	useId,
@@ -16,6 +19,8 @@ import { Button } from '../../components/button'
 import { Control } from '../../components/control'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
+import { useFloatingPanel } from '../../hooks/use-floating-ui'
+import { FloatingSurface } from '../../primitives/floating-surface'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { useGridCellEditing } from './context'
@@ -104,11 +109,12 @@ export function keepFocus(event: MouseEvent<HTMLButtonElement>) {
  * for the message of {@link GridCellEditor}, so the scroll runs in the commit,
  * before the browser paints.
  *
- * @remarks The message renders below the cell (`top-full`). A cell at the bottom
- * or right edge of the scroll container can therefore clip it. The message
- * mounts when an error shows and the cell no longer clips its content. It stays
- * while the error stays, so the scroll runs once for each error. `nearest` does
- * nothing when the message fits, so the view does not move (WCAG 1.4.10).
+ * @remarks The message floats below the cell, or above it when the viewport has
+ * no space below. A message that is taller than either space can still go past
+ * the edge of the viewport. The message mounts when an error shows and the cell
+ * no longer clips its content. It stays while the error stays, so the scroll
+ * runs once for each error. `nearest` does nothing when the message fits, so
+ * the view does not move (WCAG 1.4.10).
  * @internal
  */
 function revealMessage(node: HTMLSpanElement | null) {
@@ -476,12 +482,49 @@ export function GridCellEditor<T>({
 }
 
 /**
- * The host of {@link GridCellEditor}: the editor, and below the cell its settle
- * controls and its error message. A data cell draws the frame and the focus
- * ring of its editor (`k.edit.cell`), so the editor takes the `bare` surface and
- * the full width of the cell. The display content stays under the editor, out
- * of sight, and holds the height of the cell. The new-row slot has no cursor
- * ring, so its editors keep their frame. @internal
+ * The floating column below the cell of an editor: the settle controls, then
+ * the error message. Floating UI anchors it to the cell, so the scroll area of
+ * the grid does not clip it. Below the last row, it shows past the bottom of
+ * the grid. At the bottom of the viewport, it flips above the cell. It hides
+ * while the cell is out of view. The settle controls take no focus, so the
+ * column keeps the focus in the editor, and a press on a control is not a
+ * leave of the session. @internal
+ */
+function GridEditBelow({ cell, children }: { cell: HTMLElement | null; children: ReactNode }) {
+	const open = cell !== null
+
+	const { refs, floatingStyles, placement } = useFloatingPanel({
+		placement: 'bottom-end',
+		open,
+		reference: cell,
+		offset: 0,
+		matchReferenceWidth: true,
+	})
+
+	const { getFloatingProps } = useInteractions([])
+
+	return (
+		<FloatingSurface
+			open={open}
+			setFloating={refs.setFloating}
+			floatingStyles={floatingStyles}
+			getFloatingProps={getFloatingProps}
+			data-side={placement.split('-')[0]}
+			className={cn(k.edit.below)}
+		>
+			{children}
+		</FloatingSurface>
+	)
+}
+
+/**
+ * The host of {@link GridCellEditor}: the editor, and the settle controls and
+ * the error message that float below the cell ({@link GridEditBelow}). A data
+ * cell draws the frame and the focus ring of its editor (`k.edit.cell`), so the
+ * editor takes the `bare` surface and the full width of the cell. The display
+ * content stays under the editor, out of sight, and holds the height of the
+ * cell. The new-row slot has no cursor ring, so its editors keep their frame.
+ * @internal
  */
 function GridEditHost({
 	hostRef,
@@ -504,23 +547,32 @@ function GridEditHost({
 	onSettle: (outcome: 'save' | 'discard') => void
 	children: ReactNode
 }) {
+	// The cell that the floating column anchors to.
+	const [cell, setCell] = useState<HTMLElement | null>(null)
+
+	const anchorCell = useCallback((node: HTMLSpanElement | null) => {
+		setCell(node?.closest<HTMLElement>('td') ?? null)
+	}, [])
+
+	const ref = useComposedRefs(hostRef, anchorCell)
+
 	const message = error && <GridEditMessage id={errorId}>{error}</GridEditMessage>
 
 	if (newRow) {
 		return (
-			<span ref={hostRef} className={cn(k.edit.host, error && k.edit.error.ring)}>
+			<span ref={ref} className={cn(k.edit.host, error && k.edit.error.ring)}>
 				<span data-slot="grid-edit-slot" className={cn(k.edit.slot)}>
 					{children}
 				</span>
 
-				{message && <span className={cn(k.edit.below)}>{message}</span>}
+				{message && <GridEditBelow cell={cell}>{message}</GridEditBelow>}
 			</span>
 		)
 	}
 
 	return (
 		<span
-			ref={hostRef}
+			ref={ref}
 			data-slot="grid-edit-host"
 			data-invalid={dataAttr(error !== null)}
 			className={cn(k.edit.host)}
@@ -534,11 +586,11 @@ function GridEditHost({
 			</span>
 
 			{(settle !== 'none' || message) && (
-				<span className={cn(k.edit.below)}>
+				<GridEditBelow cell={cell}>
 					<GridSettleControls label={label} controls={settle} settle={onSettle} />
 
 					{message}
-				</span>
+				</GridEditBelow>
 			)}
 		</span>
 	)

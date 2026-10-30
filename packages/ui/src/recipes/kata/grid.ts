@@ -929,8 +929,7 @@ export const k = {
 		// Host for a cell's editor. Its one grid area stacks the editor over the
 		// display content (`rest`), so the cell keeps the height that it has at
 		// rest. The track has no least width, so neither layer widens the column.
-		// The host anchors the controls and the message below the cell (`below`).
-		host: ['relative', 'grid grid-cols-[minmax(0,1fr)]', 'w-full'],
+		host: ['grid grid-cols-[minmax(0,1fr)]', 'w-full'],
 		// The display content of the cell, under the editor. It holds the height
 		// of the cell and shows nothing.
 		rest: ['col-start-1 row-start-1', 'invisible truncate'],
@@ -942,23 +941,21 @@ export const k = {
 		slot: ['col-start-1 row-start-1', flex.col, 'justify-center', 'min-w-0'],
 		// The in-cell control fills the cell width.
 		input: 'w-full',
-		// The column below the cell, out of the flow, so it takes no width from
-		// the editor: the settle controls at the end edge, then the message of a
-		// failed validation. The margins (`dan.space.cell.edge`) put the column
-		// at the bottom edge of the cell, across its width. It lets the pointer
-		// through outside its children.
+		// The floating column below the cell: the settle controls at the end edge,
+		// then the message of a failed validation. Floating UI anchors it to the
+		// cell and sets its least width to the width of the cell. When it flips
+		// above the cell, the order turns, so the controls stay next to the cell.
+		// It lets the pointer through outside its children.
 		below: [
-			'absolute top-full inset-x-0 z-20',
-			dan.space.cell.edge.below,
-			dan.space.cell.edge.x,
 			flex.col,
 			'items-end',
+			'data-[side=top]:flex-col-reverse',
 			dan.gap.scale.xs,
 			'pointer-events-none',
 			'*:pointer-events-auto',
 		],
 		// The settle pair of a cell-scoped session: a tab of the popover surface
-		// below the end corner of the cell. No padding on the buttons: `Button`'s
+		// at the end corner of the cell. No padding on the buttons: `Button`'s
 		// bare icon-only floor is sized per density, and overriding it here would
 		// drop the pair under the 24x24 target minimum (WCAG 2.5.8) at every
 		// density, worst in a condensed grid. The gap also caps the hit areas
