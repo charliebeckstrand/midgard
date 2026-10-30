@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Slow paint · Reload test</title>
+		<style>
+			body { margin: 0; background: #09090b; color: #fff; font: 16px/1.5 system-ui, sans-serif; }
+			nav { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; padding: 16px; background: #09090b; }
+			main { padding: 0 16px 16px; }
+			h1 { margin: 0 0 16px; font-size: 32px; }
+			section { margin-bottom: 12px; padding: 12px; border: 1px solid #3f3f46; border-radius: 8px; }
+			h2 { margin: 0; font-size: 18px; }
+			p { margin: 4px 0 0; color: #a1a1aa; }
+		</style>
+		<!-- The first paint waits 150 ms, as a page that parses a long document does. -->
+		<script>
+			for (var end = Date.now() + 150; Date.now() < end; );
+		</script>
+	</head>
+	<body>
+		<nav><span>☰ Menu</span><span>Settings</span></nav>
+		<main>
+			<h1>Slow paint</h1>
+			<section><h2>Section 1</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 2</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 3</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 4</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 5</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 6</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 7</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 8</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 9</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 10</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 11</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 12</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 13</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 14</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 15</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 16</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 17</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 18</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 19</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 20</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 21</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 22</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 23</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+			<section><h2>Section 24</h2><p>Text that fills the page, so the page scrolls as a docs page does.</p></section>
+		</main>
+	</body>
+</html>
