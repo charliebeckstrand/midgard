@@ -9,7 +9,6 @@ import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from 'ui/layouts'
-import { CurrentScrollScript } from 'ui/primitives/current'
 import { defineMessage, defineMessages, useIntl } from 'ui/primitives/intl'
 import { AppearanceSettings, useAppearance } from 'ui/providers/appearance'
 import { LocaleProvider } from 'ui/providers/locale'
@@ -30,9 +29,10 @@ import { DocsSearch, SearchPaletteHost } from './search.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 import { StaleBuildScript } from './stale-build.tsx'
 
-// The id of the last script that runs before the first paint. The page paints
-// only when the parser reaches it, so the sidebar does not paint before the
-// main column, and the current item is in view at the first paint.
+// The id of the marker at the end of the body. The page paints only when the
+// parser reaches it, so it paints whole: the sidebar does not paint before the
+// main column. The first layout then has the current sidebar item and the
+// current tab, and scrolls each into view (`scroll-initial-target`).
 const FIRST_PAINT = 'first-paint'
 
 /**
@@ -62,7 +62,7 @@ export function Layout({ children }: { children: ReactNode }) {
 			}
 		>
 			{children}
-			<CurrentScrollScript id={FIRST_PAINT} />
+			<span id={FIRST_PAINT} hidden />
 			<Scripts />
 		</UIDocument>
 	)

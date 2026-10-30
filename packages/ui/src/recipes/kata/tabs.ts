@@ -138,6 +138,11 @@ export const k = defineKata(
 					// Safari can select the text in a child of a `select-none` tab.
 					'select-none *:select-none',
 					...cursor,
+					// The current tab is the initial scroll target of the list viewport: the
+					// first layout scrolls it into view, so the server markup paints with the
+					// tab in view, and no script scrolls. Only an underline tab takes this
+					// slot, and it is always in the viewport, so the page never scrolls to it.
+					'data-current:[scroll-initial-target:nearest]',
 					'after:absolute after:rounded-full',
 					'after:bg-transparent',
 					// Inset, because the scroll viewport clips the cross axis.
