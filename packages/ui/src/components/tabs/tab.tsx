@@ -94,9 +94,7 @@ function resolveState(options: {
  * auto-wires `aria-controls` to its `<TabContent>` via the Tabs base id +
  * `value`. A `segment` tab does the same while the group renders a
  * `<TabContents>`, because a segmented control often has no panels. Clicking
- * sets the enclosing selection state. A current underline tab is the initial
- * scroll target of the list viewport (`scroll-initial-target`): where the
- * browser supports it, the first layout scrolls the tab into view.
+ * sets the enclosing selection state.
  */
 export function Tab({
 	value,

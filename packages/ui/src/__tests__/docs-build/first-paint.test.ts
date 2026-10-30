@@ -2,10 +2,10 @@ import { type Browser, chromium, type Page } from 'playwright'
 import { afterAll, beforeAll, describe, expect, inject, it, onTestFinished } from 'vitest'
 import { HYDRATED } from '../../../scripts/docs-server'
 
-// The first paint of the docs has the current items in view. The CSS of the
-// current sidebar item and of the current tab scrolls each scroller to its item
-// (`scroll-initial-target`), so the paint of the server markup, with no module
-// script, shows the same scroll as the page after hydration.
+// The first paint of the docs has the current items in view. The inline script
+// of the docs (`scroll-restoration.tsx`) scrolls the sidebar and the tab row to
+// the current item before the first paint, so the paint of the server markup,
+// with no module script, shows the same scroll as the page after hydration.
 
 /** A page near the top of the sidebar, one in the middle, and one at the end. */
 const PAGES = ['/badge', '/modules/grid', '/structure/stack']

@@ -39,14 +39,12 @@ const REVEAL_CURRENT_TAB: Record<TabsOrientation, RefCallback<HTMLDivElement>> =
  * Keeps the active tab visible inside the scroll viewport. When the viewport
  * attaches, it brings the current tab into view before the first paint, so a
  * deep-linked or overflowed selection survives page load and a client
- * navigation. A server-rendered list gets the same scroll from the CSS of the
- * current tab (`scroll-initial-target`), where the browser supports it. The
- * returned `onFocus` handler goes
- * on the tab list in the viewport. It does the same for whichever tab takes
- * focus, so roving never strands focus off-screen. A tab that becomes current
- * without focus, as on the Back button of the browser, scrolls through
- * {@link useTabSelectScroll}. Each scopes the scroll to the viewport, never an
- * outer container or the page.
+ * navigation. The returned `onFocus` handler goes on the tab list in the
+ * viewport. It does the same for whichever tab takes focus, so roving never
+ * strands focus off-screen. A tab that becomes current without focus, as on
+ * the Back button of the browser, scrolls through {@link useTabSelectScroll}.
+ * Each scopes the scroll to the viewport, never an outer container or the
+ * page.
  *
  * @param orientation - List flow axis; selects the scroll axis.
  * @param enabled - Off for the segment variant, which renders no viewport.

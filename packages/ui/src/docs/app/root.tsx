@@ -1,6 +1,6 @@
 import pages from 'virtual:docs/pages'
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { type ReactNode, useEffect, useLayoutEffect, useRef } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import { Links, Meta, Outlet, Scripts, useLocation, useMatches, useNavigate } from 'react-router'
 import { Button } from 'ui/button'
 import { loadShiki } from 'ui/code'
@@ -25,14 +25,14 @@ import { useDocumentLocale } from './document-locale.ts'
 import { LOCALES } from './language.ts'
 import { PageError } from './page-error.tsx'
 import { NavigateContext, RouterLink } from './router-link.tsx'
+import { ScrollRestorationScript, useNavigationScroll } from './scroll-restoration.tsx'
 import { DocsSearch, SearchPaletteHost } from './search.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 import { StaleBuildScript } from './stale-build.tsx'
 
-// The id of the marker at the end of the body. The page paints only when the
-// parser reaches it, so it paints whole: the sidebar does not paint before the
-// main column. The first layout then has the current sidebar item and the
-// current tab, and scrolls each into view (`scroll-initial-target`).
+// The id of the element that ends the first paint block. It comes after the
+// scroll restoration script, at the end of the body, so the page paints whole,
+// with the current items in view.
 const FIRST_PAINT = 'first-paint'
 
 /**
@@ -62,7 +62,7 @@ export function Layout({ children }: { children: ReactNode }) {
 			}
 		>
 			{children}
-			<span id={FIRST_PAINT} hidden />
+			<ScrollRestorationScript id={FIRST_PAINT} />
 			<Scripts />
 		</UIDocument>
 	)
@@ -150,9 +150,7 @@ export default function App() {
 // The content of the shell. It reads the intl of the locale provider of the
 // shell, so it is a component under that provider.
 function Shell() {
-	const location = useLocation()
-
-	const { pathname } = location
+	const { pathname } = useLocation()
 
 	const { sidebar, setSidebar } = useAppearance()
 
@@ -174,24 +172,7 @@ function Shell() {
 	// The path of the page, the same for each of its tabs.
 	const path = page?.path ?? pathname
 
-	// The path of the page that the window scrolled for last.
-	const scrolled = useRef<string>(undefined)
-
-	// A navigation to a hash scrolls to its element, also a second link to the
-	// same hash, because each navigation gives a new location. A new page
-	// starts at the top, and a tab of the same page keeps the scroll. A reload
-	// also starts at the top, because the client entry turns off the scroll
-	// restoration of the browser.
-	useLayoutEffect(() => {
-		const { hash } = location
-
-		const target = hash && document.getElementById(decodeURIComponent(hash.slice(1)))
-
-		if (target) target.scrollIntoView()
-		else if (scrolled.current !== path) window.scrollTo(0, 0)
-
-		scrolled.current = path
-	}, [location, path])
+	useNavigationScroll(path)
 
 	// The root element has the language of the HTML at the first paint
 	// (`Layout`). When the reader changes the language, it takes the new one,
