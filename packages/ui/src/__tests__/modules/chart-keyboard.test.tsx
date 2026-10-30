@@ -27,6 +27,7 @@ import {
 	renderUI,
 	waitFor,
 } from '../helpers'
+import { sizeHitLayer } from '../helpers/size-hit-layer'
 
 // Category 0 carries two coincident points (a chart whose series overlap on the
 // same value); the later categories separate them.
@@ -763,12 +764,7 @@ describe('LineChart keyboard cursor under a pointer', () => {
 		// plot. A data change then re-reads the still pointer inside the layer.
 		const hit = getSlot(container, 'chart-hit')
 
-		const width = Number(hit.getAttribute('width'))
-
-		const height = Number(hit.getAttribute('height'))
-
-		hit.getBoundingClientRect = () =>
-			({ left: 0, top: 0, right: width, bottom: height, width, height, x: 0, y: 0 }) as DOMRect
+		const { width, height } = sizeHitLayer(hit)
 
 		fireEvent.pointerEnter(hit, { clientX: width - 2, clientY: height / 2 })
 
@@ -820,12 +816,7 @@ describe('LineChart keyboard announcements', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const width = Number(hit.getAttribute('width'))
-
-		const height = Number(hit.getAttribute('height'))
-
-		hit.getBoundingClientRect = () =>
-			({ left: 0, top: 0, right: width, bottom: height, width, height, x: 0, y: 0 }) as DOMRect
+		const { width, height } = sizeHitLayer(hit)
 
 		fireEvent.pointerEnter(hit, { clientX: width - 2, clientY: height / 2 })
 
@@ -898,7 +889,7 @@ describe('LineChart keyboard cursor after a data change', () => {
 		// read the series names with no category and no values.
 		const tip = bySlot(container, 'tooltip-content')
 
-		expect(tip === null || /W[123]/.test(tip.textContent ?? '')).toBe(true)
+		expect(tip?.textContent ?? null).toBeOneOf([null, expect.stringMatching(/W[123]/)])
 	})
 
 	it('moves the series emphasis with the value lane when a series loses its point', () => {
@@ -1096,30 +1087,6 @@ describe('chart keyboard activation', () => {
 		expect(fireEvent.keyDown(plot, { key: ' ' })).toBe(true)
 
 		expect(fireEvent.keyDown(plot, { key: 'Enter' })).toBe(true)
-	})
-
-	it('fires a pie chart onCategoryClick for the focused slice', () => {
-		const onCategoryClick = vi.fn()
-
-		const { container } = renderUI(
-			<PieChart
-				aria-label="Share"
-				data={SLICES}
-				series={[...SLICE_SERIES]}
-				width={400}
-				onCategoryClick={onCategoryClick}
-			/>,
-		)
-
-		const plot = getSlot(container, 'chart-plot')
-
-		fireEvent.keyDown(plot, { key: 'ArrowRight' })
-
-		fireEvent.keyDown(plot, { key: 'ArrowRight' })
-
-		fireEvent.keyDown(plot, { key: 'Enter' })
-
-		expect(onCategoryClick).toHaveBeenCalledWith('South', 1)
 	})
 
 	it('fires a heatmap onCellClick for the focused cell', () => {

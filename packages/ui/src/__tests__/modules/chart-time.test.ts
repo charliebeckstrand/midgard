@@ -446,22 +446,39 @@ describe('dateCategoryFormat', () => {
 		expect(format?.(new Date(2026, 5, 10))).toBe('06/10')
 	})
 
-	it('returns null when any value is not a date, so a plain axis keeps its labels', () => {
-		expect(dateCategoryFormat(['2026-06-10', 'Q3'], 2026)).toBeNull()
-
-		expect(dateCategoryFormat([], 2026)).toBeNull()
-	})
-
-	it('never treats bare numeric strings as dates — Date.parse reads "95190" as year 95190', () => {
-		// An axis of NMFC codes rendered as 01-01-95190 ticks (live 2026-07-17)
-		expect(dateCategoryFormat(['95190', '133300', '156600'], 2026)).toBeNull()
-
-		expect(dateCategoryFormat(['2026-06-10', '95190'], 2026)).toBeNull()
-	})
-
-	it('returns null for numeric categories, so a year axis keeps its labels', () => {
+	it.for<[string, (string | number)[], string?]>([
+		[
+			'returns null when any value is not a date, so a plain axis keeps its labels',
+			['2026-06-10', 'Q3'],
+		],
+		['returns null when any value is not a date, so a plain axis keeps its labels', []],
+		// An axis of NMFC codes rendered as 01-01-95190 ticks (live 2026-07-17).
+		[
+			'never treats bare numeric strings as dates — Date.parse reads "95190" as year 95190',
+			['95190', '133300', '156600'],
+		],
+		[
+			'never treats bare numeric strings as dates — Date.parse reads "95190" as year 95190',
+			['2026-06-10', '95190'],
+		],
 		// A bar chart with a numeric `year` key.
-		expect(dateCategoryFormat([2021, 2022, 2023], 2026, 'en-US')).toBeNull()
+		[
+			'returns null for numeric categories, so a year axis keeps its labels',
+			[2021, 2022, 2023],
+			'en-US',
+		],
+		[
+			'returns null for bare years, so a year axis keeps its labels',
+			['2019', '2020', '2021'],
+			'en-US',
+		],
+		[
+			'returns null for "<word> <n>" labels, so a plain axis keeps its labels',
+			['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+			'en-US',
+		],
+	])('%s: %j', ([, values, locale]) => {
+		expect(dateCategoryFormat(values, 2026, locale)).toBeNull()
 	})
 
 	it('reads a de-DE dotted axis day-first', () => {
@@ -478,13 +495,5 @@ describe('dateCategoryFormat', () => {
 		expect(format?.(' 10.06.2026')).toBe('06/10')
 
 		expect(format?.('11.06.2026 ')).toBe('06/11')
-	})
-
-	it('returns null for bare years, so a year axis keeps its labels', () => {
-		expect(dateCategoryFormat(['2019', '2020', '2021'], 2026, 'en-US')).toBeNull()
-	})
-
-	it('returns null for "<word> <n>" labels, so a plain axis keeps its labels', () => {
-		expect(dateCategoryFormat(['Week 1', 'Week 2', 'Week 3', 'Week 4'], 2026, 'en-US')).toBeNull()
 	})
 })

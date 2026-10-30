@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { LINE_STROKE_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { seriesValues } from '../../modules/chart/engine/chart-series'
 import { LineChart } from '../../modules/chart/line-chart'
@@ -18,6 +18,30 @@ function chart(extra?: Partial<Parameters<typeof LineChart<(typeof DATA)[number]
 			series={[
 				{ xKey: 'week', yKey: 'signups', yName: 'Signups' },
 				{ xKey: 'week', yKey: 'churn', yName: 'Churn' },
+			]}
+			width={400}
+			{...extra}
+		/>
+	)
+}
+
+const LOW_HIGH = [
+	{ month: 'Jan', low: 10, high: 20 },
+	{ month: 'Feb', low: 12, high: 40 },
+]
+
+/**
+ * Two series where the second, 'High', ends above the first, 'Low'. The order
+ * of the values is then the reverse of the order of the series.
+ */
+function lowHigh(extra?: Partial<Parameters<typeof LineChart<(typeof LOW_HIGH)[number]>>[0]>) {
+	return (
+		<LineChart
+			aria-label="Two metrics by month"
+			data={LOW_HIGH}
+			series={[
+				{ xKey: 'month', yKey: 'low', yName: 'Low' },
+				{ xKey: 'month', yKey: 'high', yName: 'High' },
 			]}
 			width={400}
 			{...extra}
@@ -47,8 +71,6 @@ describe('LineChart', () => {
 	})
 
 	it('keeps a tooltip row for each series when two share a name', () => {
-		const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
-
 		const { container } = renderUI(
 			<LineChart
 				aria-label="Twins"
@@ -68,10 +90,6 @@ describe('LineChart', () => {
 		fireEvent.pointerMove(getSlot(container, 'chart-hit'), { clientX: 100, clientY: 100 })
 
 		expect(allBySlot(container, 'chart-tooltip-row')).toHaveLength(2)
-
-		const duplicate = errors.mock.calls.some((call) => String(call[0]).includes('same key'))
-
-		expect(duplicate).toBe(false)
 	})
 
 	it('draws one line per series with line-swatched legend keys', () => {
@@ -83,12 +101,6 @@ describe('LineChart', () => {
 	})
 
 	it('keys the legend and data table by index, not the label', () => {
-		const errors: string[] = []
-
-		vi.spyOn(console, 'error').mockImplementation((message) => {
-			errors.push(String(message))
-		})
-
 		const { container } = renderUI(
 			chart({
 				series: [
@@ -98,14 +110,12 @@ describe('LineChart', () => {
 			}),
 		)
 
-		// Both series keep their own data-table column despite sharing a name.
+		// Both series keep their own data-table column despite sharing a name. A key
+		// from the shared label also writes the duplicate-key warning of React, and
+		// the console guard fails the case on it.
 		expect(
 			container.querySelectorAll('[data-slot="chart-table"] thead th[scope="col"]'),
 		).toHaveLength(2)
-
-		// Keying by the shared label would trip React's duplicate-key reconciliation
-		// warning (and merge the columns on update); keying by index does not.
-		expect(errors.some((message) => /same key/i.test(message))).toBe(false)
 	})
 
 	it('keeps areas and markers opt-in', () => {
@@ -205,7 +215,7 @@ describe('LineChart', () => {
 		// read the series names with no category and no values.
 		const tip = bySlot(container, 'tooltip-content')
 
-		expect(tip === null || /W[123]/.test(tip.textContent ?? '')).toBe(true)
+		expect(tip?.textContent ?? null).toBeOneOf([null, expect.stringMatching(/W[123]/)])
 	})
 
 	it('isolates the nearest line anywhere in the plot when the readout snaps', () => {
@@ -417,20 +427,7 @@ describe('LineChart', () => {
 	})
 
 	it('orders the legend by each series’ latest value, largest first', () => {
-		const { container } = renderUI(
-			<LineChart
-				aria-label="Two metrics by month"
-				data={[
-					{ month: 'Jan', low: 10, high: 20 },
-					{ month: 'Feb', low: 12, high: 40 },
-				]}
-				series={[
-					{ xKey: 'month', yKey: 'low', yName: 'Low' },
-					{ xKey: 'month', yKey: 'high', yName: 'High' },
-				]}
-				width={400}
-			/>,
-		)
+		const { container } = renderUI(lowHigh())
 
 		// 'High' ends at 40 over 'Low' at 12, so it leads the legend though it is
 		// the second series: the switches read in the lines' visible top-down order.
@@ -472,21 +469,7 @@ describe('LineChart', () => {
 	})
 
 	it('orders the tooltip rows to match the legend, not the series order', () => {
-		const { container } = renderUI(
-			<LineChart
-				aria-label="Two metrics by month"
-				data={[
-					{ month: 'Jan', low: 10, high: 20 },
-					{ month: 'Feb', low: 12, high: 40 },
-				]}
-				series={[
-					{ xKey: 'month', yKey: 'low', yName: 'Low' },
-					{ xKey: 'month', yKey: 'high', yName: 'High' },
-				]}
-				width={400}
-				crosshair={{ x: true, y: true, snap: true }}
-			/>,
-		)
+		const { container } = renderUI(lowHigh({ crosshair: { x: true, y: true, snap: true } }))
 
 		// A snapping crosshair carries the readout to the nearest column wherever the
 		// probe lands.
@@ -509,20 +492,7 @@ describe('LineChart', () => {
 	})
 
 	it('toggles the series a reordered entry names, not its display slot', () => {
-		const { container } = renderUI(
-			<LineChart
-				aria-label="Two metrics by month"
-				data={[
-					{ month: 'Jan', low: 10, high: 20 },
-					{ month: 'Feb', low: 12, high: 40 },
-				]}
-				series={[
-					{ xKey: 'month', yKey: 'low', yName: 'Low' },
-					{ xKey: 'month', yKey: 'high', yName: 'High' },
-				]}
-				width={400}
-			/>,
-		)
+		const { container } = renderUI(lowHigh())
 
 		const [high, low] = allBySlot(container, 'chart-legend-item') as HTMLButtonElement[]
 

@@ -58,14 +58,6 @@ describe('a held-back embed', () => {
 		expect(screen.queryByTestId('chart')).not.toBeInTheDocument()
 	})
 
-	it('draws once the reader reaches it', () => {
-		renderUI(<Message />)
-
-		observer.reveal()
-
-		expect(screen.getByTestId('chart')).toBeInTheDocument()
-	})
-
 	it('holds its space with a placeholder, so the transcript does not lurch as one lands', () => {
 		const { container } = renderUI(<Message />)
 

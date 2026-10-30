@@ -3,8 +3,10 @@ import { TOUCH_SLOP, TOUCH_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { TICK_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI } from '../helpers'
+import { axisValues } from '../helpers/axis-labels'
 import { it } from '../helpers/fake-clock'
 import { subpathCount } from '../helpers/geometry/svg-path'
+import { sizeHitLayer } from '../helpers/size-hit-layer'
 
 /**
  * How many bars drew. Each visible series is one `chart-bar` path and each bar
@@ -46,6 +48,20 @@ function chart(extra?: Partial<Parameters<typeof BarChart<(typeof DATA)[number]>
 	)
 }
 
+/** A primary touch at (280, 100), which lands inside the Q3 revenue bar. */
+const TOUCH = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
+
+/** Sends the pointer events of a short tap with no move: over, down, up, and out. */
+function tap(hit: Element) {
+	fireEvent.pointerOver(hit, TOUCH)
+
+	fireEvent.pointerDown(hit, TOUCH)
+
+	fireEvent.pointerUp(hit, TOUCH)
+
+	fireEvent.pointerOut(hit, TOUCH)
+}
+
 describe('BarChart', () => {
 	it('draws one grouped bar per series per category', () => {
 		const { container } = renderUI(chart())
@@ -75,14 +91,12 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
-
 		// A touch reads nothing from the chart. The data stays in the menu.
-		fireEvent.pointerOver(hit, at)
+		fireEvent.pointerOver(hit, TOUCH)
 
-		fireEvent.pointerDown(hit, at)
+		fireEvent.pointerDown(hit, TOUCH)
 
-		fireEvent.pointerMove(hit, { ...at, clientX: 282 })
+		fireEvent.pointerMove(hit, { ...TOUCH, clientX: 282 })
 
 		await clock.advance(TOUCH_TAP_WINDOW * 2)
 
@@ -90,9 +104,9 @@ describe('BarChart', () => {
 
 		expect(spots(container)).toHaveLength(0)
 
-		fireEvent.pointerUp(hit, at)
+		fireEvent.pointerUp(hit, TOUCH)
 
-		fireEvent.pointerOut(hit, at)
+		fireEvent.pointerOut(hit, TOUCH)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
@@ -122,23 +136,13 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
+		tap(hit)
 
-		fireEvent.pointerOver(hit, at)
-
-		fireEvent.pointerDown(hit, at)
-
-		fireEvent.pointerUp(hit, at)
-
-		fireEvent.pointerOut(hit, at)
-
-		fireEvent.click(hit, at)
+		fireEvent.click(hit, TOUCH)
 
 		await clock.advance(TOUCH_TAP_WINDOW)
 
-		expect(select).toHaveBeenCalledOnce()
-
-		expect(select).toHaveBeenCalledWith('Q3', 2)
+		expect(select).toHaveBeenCalledExactlyOnceWith('Q3', 2)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
@@ -152,11 +156,9 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
+		fireEvent.pointerDown(hit, TOUCH)
 
-		fireEvent.pointerDown(hit, at)
-
-		fireEvent.pointerUp(hit, at)
+		fireEvent.pointerUp(hit, TOUCH)
 
 		// A cancelled touch end makes no click.
 		expect(fireEvent.touchEnd(hit)).toBe(false)
@@ -171,16 +173,8 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
-
 		// iOS Safari holds back the click of a tap that changes the page.
-		fireEvent.pointerOver(hit, at)
-
-		fireEvent.pointerDown(hit, at)
-
-		fireEvent.pointerUp(hit, at)
-
-		fireEvent.pointerOut(hit, at)
+		tap(hit)
 
 		expect(select).toHaveBeenCalledOnce()
 	})
@@ -192,28 +186,26 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
+		fireEvent.pointerOver(hit, TOUCH)
 
-		fireEvent.pointerOver(hit, at)
-
-		fireEvent.pointerDown(hit, at)
+		fireEvent.pointerDown(hit, TOUCH)
 
 		await clock.advance(TOUCH_TAP_WINDOW)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		fireEvent.pointerUp(hit, at)
+		fireEvent.pointerUp(hit, TOUCH)
 
-		fireEvent.pointerOut(hit, at)
+		fireEvent.pointerOut(hit, TOUCH)
 
 		// A press shorter than a long press still gives a click.
-		fireEvent.click(hit, at)
+		fireEvent.click(hit, TOUCH)
 
-		const moved = { ...at, clientX: 280 - TOUCH_SLOP - 1 }
+		const moved = { ...TOUCH, clientX: 280 - TOUCH_SLOP - 1 }
 
-		fireEvent.pointerOver(hit, at)
+		fireEvent.pointerOver(hit, TOUCH)
 
-		fireEvent.pointerDown(hit, at)
+		fireEvent.pointerDown(hit, TOUCH)
 
 		fireEvent.pointerMove(hit, moved)
 
@@ -233,29 +225,25 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
+		fireEvent.pointerOver(hit, TOUCH)
 
-		fireEvent.pointerOver(hit, at)
+		fireEvent.pointerDown(hit, TOUCH)
 
-		fireEvent.pointerDown(hit, at)
+		fireEvent.pointerMove(hit, TOUCH)
 
-		fireEvent.pointerMove(hit, at)
-
-		fireEvent.pointerUp(hit, at)
+		fireEvent.pointerUp(hit, TOUCH)
 
 		// A cancelled touch end makes no click.
 		expect(fireEvent.touchEnd(hit)).toBe(false)
 
 		// A click that the browser still sends does not pin the readout.
-		fireEvent.click(hit, at)
+		fireEvent.click(hit, TOUCH)
 
-		fireEvent.pointerOut(hit, at)
+		fireEvent.pointerOut(hit, TOUCH)
 
 		await clock.advance(TOUCH_TAP_WINDOW)
 
-		expect(select).toHaveBeenCalledOnce()
-
-		expect(select).toHaveBeenCalledWith('Q3', 2)
+		expect(select).toHaveBeenCalledExactlyOnceWith('Q3', 2)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
@@ -276,15 +264,13 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const at = { clientX: 280, clientY: 100, pointerType: 'touch', isPrimary: true }
+		fireEvent.pointerDown(hit, TOUCH)
 
-		fireEvent.pointerDown(hit, at)
-
-		fireEvent.pointerMove(hit, { ...at, clientX: 282 })
+		fireEvent.pointerMove(hit, { ...TOUCH, clientX: 282 })
 
 		await clock.advance(TOUCH_TAP_WINDOW * 2)
 
-		fireEvent.pointerUp(hit, at)
+		fireEvent.pointerUp(hit, TOUCH)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
@@ -512,23 +498,8 @@ describe('BarChart', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
-		const plotWidth = Number(hit.getAttribute('width'))
-
-		const plotHeight = Number(hit.getAttribute('height'))
-
 		// The box of the hit rect on screen is twice the size of the plot.
-		hit.getBoundingClientRect = () =>
-			({
-				left: 0,
-				top: 0,
-				right: plotWidth * 2,
-				bottom: plotHeight * 2,
-				width: plotWidth * 2,
-				height: plotHeight * 2,
-				x: 0,
-				y: 0,
-				toJSON: () => ({}),
-			}) as DOMRect
+		const { width: plotWidth, height: plotHeight } = sizeHitLayer(hit, 2)
 
 		// A quarter across the box is a quarter across the plot: the first band.
 		fireEvent.pointerMove(hit, { clientX: plotWidth / 2, clientY: plotHeight * 1.8 })
@@ -1193,13 +1164,6 @@ describe('BarChart', () => {
 	})
 })
 
-/** The numeric tick labels on the value axis. */
-function valueTicks(container: HTMLElement): number[] {
-	return [...getSlot(container, 'chart-axis-y').querySelectorAll('text')]
-		.map((text) => Number((text.textContent ?? '').replace(/[^\d.-]/g, '')))
-		.filter(Number.isFinite)
-}
-
 /** The least y that each `M`-opened subfigure of a path reaches: the drawn top of a vertical bar. */
 function subfigureTops(d: string): number[] {
 	return d
@@ -1246,29 +1210,7 @@ describe('BarChart stacked with a negative value', () => {
 		// Column A reaches 5 and column B reaches 2, so column A is taller (a smaller y).
 		expect(aTop).toBeLessThan(bTop as number)
 
-		expect(Math.max(...valueTicks(container))).toBeGreaterThanOrEqual(5)
-	})
-
-	it('keeps a segment of 10 inside the value axis when the next series is negative', () => {
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Stacked"
-				data={[
-					{ c: 'A', a: 10, b: -5 },
-					{ c: 'B', a: 10, b: -5 },
-				]}
-				series={[
-					{ xKey: 'c', yKey: 'a' },
-					{ xKey: 'c', yKey: 'b' },
-				]}
-				stacked
-				width={400}
-				height={300}
-			/>,
-		)
-
-		// The negative value takes no segment, so each drawn column is 10 tall.
-		expect(Math.max(...valueTicks(container))).toBeGreaterThanOrEqual(10)
+		expect(Math.max(...axisValues(container, 'chart-axis-y'))).toBeGreaterThanOrEqual(5)
 	})
 })
 

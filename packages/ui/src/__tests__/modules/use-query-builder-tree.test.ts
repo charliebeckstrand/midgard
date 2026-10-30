@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { QueryField } from '../../modules/query'
 import { focusKeys } from '../../modules/query/query-builder/query-builder-focus'
 import { useQueryBuilderTree } from '../../modules/query/query-builder/use-query-builder-tree'
+import { attach } from '../helpers'
 
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },
@@ -59,9 +60,7 @@ describe('useQueryBuilderTree', () => {
 
 			el.disabled = disabled
 
-			document.body.append(el)
-
-			return el
+			return attach(el)
 		}
 
 		const previous = button(true)
@@ -79,9 +78,5 @@ describe('useQueryBuilderTree', () => {
 		})
 
 		expect(document.activeElement).toBe(next)
-
-		previous.remove()
-
-		next.remove()
 	})
 })

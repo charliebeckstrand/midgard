@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import {
 	CAPTURE_CAPACITY,
 	EVENT_CAPACITY,
@@ -41,8 +41,6 @@ function errorWith(message: string, frame = 'at rows (grid.js:1:2)'): Error {
 function texts(store: EventStore): string[] {
 	return store.entries.map(({ text }) => text)
 }
-
-afterEach(() => {})
 
 /** Sets the time of the page, which a capture gives to its start and its end. */
 function now(time: number) {

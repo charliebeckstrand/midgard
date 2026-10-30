@@ -1370,11 +1370,7 @@ describe('MapPlat legend reporting', () => {
 
 		fireEvent.click(first as HTMLButtonElement)
 
-		expect(onHiddenChange).toHaveBeenCalledOnce()
-
-		const hidden = onHiddenChange.mock.calls[0]?.[0] as ReadonlySet<string>
-
-		expect(hidden.size).toBe(1)
+		expect(onHiddenChange).toHaveBeenCalledExactlyOnceWith(new Set(['category:East']))
 
 		fireEvent.click(first as HTMLButtonElement)
 
@@ -1408,9 +1404,7 @@ describe('MapPlat legend reporting', () => {
 
 		fireEvent.pointerEnter(first as HTMLButtonElement)
 
-		expect(onEmphasisChange).toHaveBeenCalledOnce()
-
-		expect(onEmphasisChange.mock.calls[0]?.[0]).toBeTypeOf('string')
+		expect(onEmphasisChange).toHaveBeenCalledExactlyOnceWith('category:East')
 
 		fireEvent.pointerLeave(first as HTMLButtonElement)
 
@@ -1428,9 +1422,7 @@ describe('MapPlat legend reporting', () => {
 
 		fireEvent.pointerEnter(first as HTMLButtonElement)
 
-		expect(onEmphasisChange).toHaveBeenCalledOnce()
-
-		expect(onEmphasisChange.mock.calls[0]?.[0]).toBeTypeOf('string')
+		expect(onEmphasisChange).toHaveBeenCalledExactlyOnceWith('category:East')
 	})
 
 	// A hidden entry cannot hold the emphasis, so switching one off while it is

@@ -11,6 +11,7 @@ import {
 	renderUI,
 	setupUser,
 } from '../helpers'
+import { axisLabels } from '../helpers/axis-labels'
 
 type Stop = { distance: unknown; dwell: unknown; weight?: unknown }
 
@@ -19,6 +20,25 @@ const STOPS: Stop[] = [
 	{ distance: 48, dwell: 18, weight: 16 },
 	{ distance: 30, dwell: 25, weight: 9 },
 ]
+
+/** The one Dwell series over `STOPS`. */
+const DWELL = [{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }] as const
+
+/** The Dwell series and a Weight series over `STOPS`. */
+const DWELL_WEIGHT = [...DWELL, { xKey: 'distance', yKey: 'weight', yName: 'Weight' }] as const
+
+/** A ScatterChart of the Dwell series over `STOPS`, 480 px wide. A case gives only the props that it changes. */
+function scatter(props?: Partial<Parameters<typeof ScatterChart<Stop>>[0]>) {
+	return (
+		<ScatterChart
+			aria-label="Dwell against distance"
+			data={STOPS}
+			width={480}
+			series={[...DWELL]}
+			{...props}
+		/>
+	)
+}
 
 function points(container: HTMLElement): SVGCircleElement[] {
 	return [...container.querySelectorAll<SVGCircleElement>('[data-slot="chart-scatter-point"]')]
@@ -60,14 +80,7 @@ describe('ScatterChart', () => {
 			{ distance: Number.NaN, dwell: 5 },
 		]
 
-		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Dwell against distance"
-				data={ragged}
-				width={480}
-				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-			/>,
-		)
+		const { container } = renderUI(scatter({ data: ragged }))
 
 		expect(discCount(container)).toBe(3)
 
@@ -102,14 +115,7 @@ describe('ScatterChart', () => {
 			{ distance: 10, dwell: 9 },
 		]
 
-		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Duplicates"
-				data={doubled}
-				width={480}
-				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-			/>,
-		)
+		const { container } = renderUI(scatter({ 'aria-label': 'Duplicates', data: doubled }))
 
 		expect(discCount(container)).toBe(3)
 
@@ -123,14 +129,7 @@ describe('ScatterChart', () => {
 			{ distance: 480000, dwell: 900000 },
 		]
 
-		const spread = renderUI(
-			<ScatterChart
-				aria-label="Wide"
-				data={wide}
-				width={480}
-				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-			/>,
-		)
+		const spread = renderUI(scatter({ 'aria-label': 'Wide', data: wide }))
 
 		// Both discs plot on finite coordinates: a wide magnitude range never
 		// leaks a `NaN` into the path that would blank the whole series.
@@ -138,14 +137,7 @@ describe('ScatterChart', () => {
 
 		expect(discsPath(spread.container)).not.toContain('NaN')
 
-		const lone = renderUI(
-			<ScatterChart
-				aria-label="Lone"
-				data={[{ distance: 5, dwell: 5 }]}
-				width={480}
-				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-			/>,
-		)
+		const lone = renderUI(scatter({ 'aria-label': 'Lone', data: [{ distance: 5, dwell: 5 }] }))
 
 		expect(discCount(lone.container)).toBe(1)
 
@@ -156,15 +148,7 @@ describe('ScatterChart', () => {
 		const user = setupUser()
 
 		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Two series"
-				data={STOPS}
-				width={480}
-				series={[
-					{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
-					{ xKey: 'distance', yKey: 'weight', yName: 'Weight' },
-				]}
-			/>,
+			scatter({ 'aria-label': 'Two series', series: [...DWELL_WEIGHT] }),
 		)
 
 		expect(allBySlot(container, 'chart-scatter-series')).toHaveLength(2)
@@ -214,13 +198,7 @@ describe('ScatterChart', () => {
 
 	it('anchors the first and last x-axis labels inward so the corner labels stay clear', () => {
 		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Dwell against distance"
-				data={STOPS}
-				width={480}
-				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-				axes={{ x: { format: (value: number) => `${value} mi` } }}
-			/>,
+			scatter({ axes: { x: { format: (value: number) => `${value} mi` } } }),
 		)
 
 		const labels = [...(bySlot(container, 'chart-axis-x') as Element).querySelectorAll('text')]
@@ -240,13 +218,7 @@ describe('ScatterChart', () => {
 
 	it('walks the unique x columns from the keyboard, formatted per axis', () => {
 		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Dwell against distance"
-				data={STOPS}
-				width={480}
-				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-				axes={{ x: { format: (value: number) => `${value} mi` } }}
-			/>,
+			scatter({ axes: { x: { format: (value: number) => `${value} mi` } } }),
 		)
 
 		const plot = getSlot(container, 'chart-plot')
@@ -265,15 +237,7 @@ describe('ScatterChart', () => {
 
 	it('recedes the other series while the keyboard cursor reads a point', () => {
 		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Two series"
-				data={STOPS}
-				width={480}
-				series={[
-					{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
-					{ xKey: 'distance', yKey: 'weight', yName: 'Weight' },
-				]}
-			/>,
+			scatter({ 'aria-label': 'Two series', series: [...DWELL_WEIGHT] }),
 		)
 
 		const plot = getSlot(container, 'chart-plot')
@@ -302,14 +266,7 @@ describe('ScatterChart', () => {
 	})
 
 	it('keeps the pointed disc lit while the cloud fades back up', () => {
-		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Stops"
-				data={STOPS}
-				width={480}
-				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-			/>,
-		)
+		const { container } = renderUI(scatter({ 'aria-label': 'Stops' }))
 
 		const hit = getSlot(container, 'chart-hit')
 
@@ -338,14 +295,7 @@ describe('ScatterChart', () => {
 
 	it('pins the readout to a click under trigger click, ignoring hover', () => {
 		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Dwell against distance"
-				data={STOPS}
-				width={480}
-				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-				crosshair={{ snap: true }}
-				tooltip={{ trigger: 'click' }}
-			/>,
+			scatter({ crosshair: { snap: true }, tooltip: { trigger: 'click' } }),
 		)
 
 		const hit = bySlot(container, 'chart-hit') as Element
@@ -374,16 +324,7 @@ describe('ScatterChart', () => {
 	it('mounts the hit layer for a point-click report alone', () => {
 		const onPointClick = vi.fn()
 
-		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Dwell against distance"
-				data={STOPS}
-				width={480}
-				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-				tooltip={false}
-				onPointClick={onPointClick}
-			/>,
-		)
+		const { container } = renderUI(scatter({ tooltip: false, onPointClick }))
 
 		const hit = bySlot(container, 'chart-hit')
 
@@ -396,7 +337,7 @@ describe('ScatterChart', () => {
 
 	it('reports the data row index of the clicked point, also after a row that does not parse', () => {
 		/** The row that a click at the right edge of the plot reports. */
-		function clickedRow(data: { x: number | string; y: number }[]) {
+		const clickedRow = vi.defineHelper((data: { x: number | string; y: number }[]) => {
 			const onPointClick = vi.fn()
 
 			const { container, unmount } = renderUI(
@@ -421,7 +362,7 @@ describe('ScatterChart', () => {
 			unmount()
 
 			return data[datum]
-		}
+		})
 
 		const clean = [
 			{ x: 10, y: 20 },
@@ -436,17 +377,12 @@ describe('ScatterChart', () => {
 
 	it('dims the non-emphasized tooltip row when a legend entry is focused', () => {
 		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Two series"
-				data={STOPS}
-				width={480}
-				series={[
-					{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
-					{ xKey: 'distance', yKey: 'weight', yName: 'Weight' },
-				]}
-				crosshair={{ snap: true }}
-				tooltip={{ trigger: 'click' }}
-			/>,
+			scatter({
+				'aria-label': 'Two series',
+				series: [...DWELL_WEIGHT],
+				crosshair: { snap: true },
+				tooltip: { trigger: 'click' },
+			}),
 		)
 
 		// Pin the readout, then emphasize the first series by pointing its legend
@@ -717,13 +653,6 @@ describe('the scatter tier budget', () => {
 		{ spend: 3100, revenue: 30_500 },
 	]
 
-	/** The tick labels of one axis, in order. */
-	function tickLabels(container: HTMLElement, axis: 'x' | 'y'): string[] {
-		const node = bySlot(container, `chart-axis-${axis}`) as Element
-
-		return [...node.querySelectorAll('text')].map((label) => label.textContent ?? '')
-	}
-
 	it('writes the tick labels of both axes compactly in a narrow frame', () => {
 		const chart = (width: number) =>
 			renderUI(
@@ -739,7 +668,7 @@ describe('the scatter tier budget', () => {
 		const narrow = chart(300)
 
 		for (const axis of ['x', 'y'] as const) {
-			const labels = tickLabels(narrow.container, axis)
+			const labels = axisLabels(narrow.container, `chart-axis-${axis}`)
 
 			expect(labels.some((label) => label.endsWith('K'))).toBe(true)
 
@@ -754,7 +683,9 @@ describe('the scatter tier budget', () => {
 		// A wide frame keeps the full format.
 		const wide = chart(480)
 
-		expect(tickLabels(wide.container, 'y').some((label) => label.includes(','))).toBe(true)
+		expect(axisLabels(wide.container, 'chart-axis-y').some((label) => label.includes(','))).toBe(
+			true,
+		)
 	})
 
 	it('draws fewer ticks in a short frame', () => {
@@ -769,7 +700,10 @@ describe('the scatter tier budget', () => {
 				/>,
 			)
 
-			const count = { x: tickLabels(container, 'x').length, y: tickLabels(container, 'y').length }
+			const count = {
+				x: axisLabels(container, 'chart-axis-x').length,
+				y: axisLabels(container, 'chart-axis-y').length,
+			}
 
 			unmount()
 
@@ -789,14 +723,11 @@ describe('the scatter tier budget', () => {
 describe('scatter axis titles', () => {
 	it('draws the x and y axis titles from their axes entries', () => {
 		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Dwell against distance"
-				data={STOPS}
-				width={560}
-				height={360}
-				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-				axes={{ x: { title: 'Distance' }, y: { title: 'Dwell' } }}
-			/>,
+			scatter({
+				width: 560,
+				height: 360,
+				axes: { x: { title: 'Distance' }, y: { title: 'Dwell' } },
+			}),
 		)
 
 		const titles = bySlot(container, 'chart-axis-titles')
@@ -820,14 +751,7 @@ describe('scatter axis titles', () => {
 
 	it('sheds the titles at the spark tier', () => {
 		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Dwell against distance"
-				data={STOPS}
-				width={120}
-				height={40}
-				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-				axes={{ x: { title: 'Distance' } }}
-			/>,
+			scatter({ width: 120, height: 40, axes: { x: { title: 'Distance' } } }),
 		)
 
 		expect(bySlot(container, 'chart-axis-titles')).toBeNull()
@@ -838,16 +762,7 @@ describe('the header reserve', () => {
 	it('counts the title and subtitle against the plot, so a short titled frame reads spark', () => {
 		// 200px at 16/9 is about 112px tall. The two header lines take 62px of it,
 		// which leaves the plot under the 96px spark floor.
-		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Dwell against distance"
-				title="Dwell"
-				subtitle="By distance"
-				data={STOPS}
-				width={200}
-				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-			/>,
-		)
+		const { container } = renderUI(scatter({ title: 'Dwell', subtitle: 'By distance', width: 200 }))
 
 		expect(bySlot(container, 'chart')).toHaveAttribute('data-tier', 'spark')
 	})

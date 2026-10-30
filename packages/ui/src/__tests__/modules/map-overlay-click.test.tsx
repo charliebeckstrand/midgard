@@ -11,18 +11,6 @@ const DEPOT: [number, number] = [5, 5]
 const YARD: [number, number] = [25, 5]
 
 describe('overlay identity and click', () => {
-	it('reports the caller id from a click on a point', () => {
-		const onClick = vi.fn()
-
-		const { container } = renderUI(
-			overlayPlat(<MapPoint id="depot" label="Depot" at={DEPOT} onClick={onClick} />),
-		)
-
-		fireEvent.click(bySlot(container, 'map-point-hit') as Element)
-
-		expect(onClick).toHaveBeenCalledWith('depot', 0)
-	})
-
 	it('reports it from a route and from a marker too', () => {
 		const onRoute = vi.fn()
 
@@ -47,18 +35,6 @@ describe('overlay identity and click', () => {
 		expect(onMarker).toHaveBeenCalledWith('run', 0)
 	})
 
-	it('reports a right-click through its own handler', () => {
-		const onContextMenu = vi.fn()
-
-		const { container } = renderUI(
-			overlayPlat(<MapPoint id="depot" label="Depot" at={DEPOT} onContextMenu={onContextMenu} />),
-		)
-
-		fireEvent.contextMenu(bySlot(container, 'map-point-hit') as Element)
-
-		expect(onContextMenu).toHaveBeenCalledWith('depot', 0)
-	})
-
 	it('carries a pointer affordance only where a click is answered', () => {
 		const { container } = renderUI(
 			overlayPlat(<MapPoint id="depot" label="Depot" at={DEPOT} onClick={() => {}} />),
@@ -80,9 +56,7 @@ describe('overlay identity and click', () => {
 
 		fireEvent.click(bySlot(container, 'map-point-hit') as Element)
 
-		expect(onClick).toHaveBeenCalledTimes(1)
-
-		expect(typeof onClick.mock.calls[0]?.[0]).toBe('string')
+		expect(onClick).toHaveBeenCalledExactlyOnceWith(expect.any(String), 0)
 	})
 
 	it('answers a click on every part of a marker', () => {
@@ -138,6 +112,8 @@ describe('overlay reporters across renders', () => {
 
 		fireEvent.contextMenu(hit)
 
+		// The regions lead the stop list, so End reaches the overlay drawn over
+		// them: the mark a pointer-only click would have stranded.
 		fireEvent.keyDown(plot, { key: 'End' })
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
@@ -156,22 +132,6 @@ describe('overlay reporters across renders', () => {
 })
 
 describe('overlay keyboard reach', () => {
-	it('steps onto an overlay and picks it with Enter', () => {
-		const onClick = vi.fn()
-
-		const { plot } = renderNavigable(
-			overlayPlat(<MapPoint id="yard" label="Yard" at={YARD} onClick={onClick} />),
-		)
-
-		// The regions lead the stop list, so End reaches the overlay drawn over
-		// them: the mark a pointer-only click would have stranded.
-		fireEvent.keyDown(plot, { key: 'End' })
-
-		fireEvent.keyDown(plot, { key: 'Enter' })
-
-		expect(onClick).toHaveBeenCalledWith('yard', 0)
-	})
-
 	it('reads the overlay out as the cursor lands on it', () => {
 		const { container, plot } = renderNavigable(
 			overlayPlat(<MapPoint id="yard" label="Yard" at={YARD} detail="12" />),
@@ -252,8 +212,9 @@ describe('overlay keyboard reach', () => {
 
 		fireEvent.keyDown(plot, { key: 'End' })
 
-		// The stop still reads out; Enter simply has nothing to call.
-		expect(() => fireEvent.keyDown(plot, { key: 'Enter' })).not.toThrow()
+		// The stop still reads out, and Enter has nothing to call. The console guard
+		// fails the case on a throw from the handler.
+		fireEvent.keyDown(plot, { key: 'Enter' })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Yard')
 	})

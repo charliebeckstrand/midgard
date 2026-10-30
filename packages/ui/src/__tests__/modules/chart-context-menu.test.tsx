@@ -11,7 +11,7 @@ import {
 import { readoutToCsv } from '../../modules/chart/engine/chart-export'
 import { HeaderActions, HeaderActionsSlot } from '../../primitives/header-actions'
 import { LocaleProvider } from '../../providers/locale'
-import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, getSlot, noop, present, renderUI, screen } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 type Row = { quarter: string; revenue: number }
@@ -30,6 +30,34 @@ function openChartMenu(container: HTMLElement): void {
 
 /** Turns on the touch menu button, which is off by default. */
 const BUTTON = { button: true } as const
+
+/**
+ * A function-form `items` spy. It gives a `Drill n` item for the mark at index
+ * `n`, and no item when no mark is the target.
+ */
+function drillItems() {
+	const items = vi.fn(({ index }: { index: number | null }) => [
+		{ key: 'drill', label: `Drill ${index}`, onAction: noop },
+	])
+
+	vi.when(items).calledWith({ index: null }).thenReturn([])
+
+	return items
+}
+
+/** Opens the context menu of a chart, then opens its fullscreen dialog. */
+function openFullscreen(container: HTMLElement): void {
+	openChartMenu(container)
+
+	fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
+}
+
+/** Clicks the touch menu button of a chart to open its menu. */
+function clickMenuButton(container: HTMLElement): void {
+	fireEvent.click(
+		present(getSlot(container, 'chart-menu-button').querySelector('button'), 'menu button'),
+	)
+}
 
 /** A box with a header row, as a dashboard tile gives. A widget in the box puts its controls in the slot of the row. */
 function Box({ children }: { children: ReactNode }) {
@@ -173,9 +201,7 @@ describe('Chart context menu', () => {
 			/>,
 		)
 
-		openChartMenu(container)
-
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
+		openFullscreen(container)
 
 		// The button dismisses through the panel's own `close()` rather than its own
 		// handler, so it shares the route Escape takes.
@@ -198,9 +224,7 @@ describe('Chart context menu', () => {
 			/>,
 		)
 
-		openChartMenu(container)
-
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
+		openFullscreen(container)
 
 		expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
 	})
@@ -215,9 +239,7 @@ describe('Chart context menu', () => {
 			/>,
 		)
 
-		openChartMenu(container)
-
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
+		openFullscreen(container)
 
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 
@@ -240,9 +262,7 @@ describe('Chart context menu', () => {
 			/>,
 		)
 
-		openChartMenu(container)
-
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
+		openFullscreen(container)
 
 		const dialog = screen.getByRole('dialog')
 		const figure = dialog.querySelector<HTMLElement>('[data-slot="chart-figure"]')
@@ -293,15 +313,14 @@ describe('Chart context menu', () => {
 
 	describe('function-form items (the right-clicked mark)', () => {
 		it('builds the items from the mark under the pointer', () => {
-			const items = vi.fn(({ index }: { index: number | null }) =>
-				index === null ? [] : [{ key: 'drill', label: `Drill ${index}`, onAction: () => {} }],
-			)
+			const items = drillItems()
 
 			const { container } = renderUI(
 				<BarChart
 					aria-label="Revenue by quarter"
 					data={data}
 					series={[...series]}
+					width={400}
 					contextMenu={{ items }}
 				/>,
 			)
@@ -315,6 +334,21 @@ describe('Chart context menu', () => {
 			expect(items).toHaveBeenCalledWith({ index: null })
 
 			expect(screen.queryByRole('menuitem', { name: /^Drill/ })).not.toBeInTheDocument()
+
+			fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
+
+			const hit = getSlot(container, 'chart-hit')
+
+			// jsdom boxes sit at 0, so (280, 100) lands inside the Q2 bar.
+			fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 })
+
+			expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q2')
+
+			fireEvent.contextMenu(hit)
+
+			expect(items).toHaveBeenLastCalledWith({ index: 1 })
+
+			expect(screen.getByRole('menuitem', { name: 'Drill 1' })).toBeInTheDocument()
 		})
 
 		it('still merges an array-form items block with the defaults', () => {
@@ -344,9 +378,7 @@ describe('Chart context menu', () => {
 			<BarChart aria-label="Revenue by quarter" title="Revenue" data={data} series={[...series]} />,
 		)
 
-		openChartMenu(container)
-
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
+		openFullscreen(container)
 
 		const dialog = screen.getByRole('dialog')
 
@@ -392,36 +424,36 @@ describe('Chart context menu in a locale', () => {
 })
 
 describe('readoutToCsv', () => {
-	it('prefixes a quote to a formula-led category or series label', () => {
-		const csv = readoutToCsv({
-			categories: ['=HYPERLINK("http://evil.example","x")', '@SUM(A1)'],
-			rows: [{ label: '+cmd', swatchClass: '', swatch: 'rect', values: ['1', '2'] }],
-		})
-
+	it.for<[string, string[], string, string[], string[]]>([
 		// A quoted cell whose first inner character is a formula lead is still a formula to a spreadsheet.
-		expect(csv.split('\r\n')).toEqual([
-			",'+cmd",
-			'"\'=HYPERLINK(""http://evil.example"",""x"")",1',
-			"'@SUM(A1),2",
-		])
-	})
-
-	it('keeps a formatted negative number without a prefix, so the column still parses', () => {
+		[
+			'prefixes a quote to a formula-led category or series label',
+			['=HYPERLINK("http://evil.example","x")', '@SUM(A1)'],
+			'+cmd',
+			['1', '2'],
+			[",'+cmd", '"\'=HYPERLINK(""http://evil.example"",""x"")",1', "'@SUM(A1),2"],
+		],
+		[
+			'keeps a formatted negative number without a prefix, so the column still parses',
+			['Q1', 'Q2'],
+			'Margin',
+			['-1,234.5', '-5'],
+			[',Margin', 'Q1,"-1,234.5"', 'Q2,-5'],
+		],
+		[
+			'prefixes a quote to a number led by a tab or a carriage return',
+			['Q1', 'Q2'],
+			'Margin',
+			['\t12', '+\r7'],
+			[',Margin', "Q1,'\t12", 'Q2,"\'+\r7"'],
+		],
+	])('%s', ([, categories, label, values, lines]) => {
 		const csv = readoutToCsv({
-			categories: ['Q1', 'Q2'],
-			rows: [{ label: 'Margin', swatchClass: '', swatch: 'rect', values: ['-1,234.5', '-5'] }],
+			categories,
+			rows: [{ label, swatchClass: '', swatch: 'rect', values }],
 		})
 
-		expect(csv.split('\r\n')).toEqual([',Margin', 'Q1,"-1,234.5"', 'Q2,-5'])
-	})
-
-	it('prefixes a quote to a number led by a tab or a carriage return', () => {
-		const csv = readoutToCsv({
-			categories: ['Q1', 'Q2'],
-			rows: [{ label: 'Margin', swatchClass: '', swatch: 'rect', values: ['\t12', '+\r7'] }],
-		})
-
-		expect(csv.split('\r\n')).toEqual([',Margin', "Q1,'\t12", 'Q2,"\'+\r7"'])
+		expect(csv.split('\r\n')).toEqual(lines)
 	})
 })
 
@@ -433,9 +465,7 @@ describe('ChartContextMenu target', () => {
 	]
 
 	it('reports no index for a right-click on bare plot above a bar', () => {
-		const items = vi.fn(({ index }: { index: number | null }) =>
-			index === null ? [] : [{ key: 'drill', label: `Drill ${index}`, onAction: () => {} }],
-		)
+		const items = drillItems()
 
 		const { container } = renderUI(
 			<BarChart
@@ -531,7 +561,7 @@ describe('Chart menu button', () => {
 
 		expect(bySlot(container, 'chart-header')?.contains(button)).toBe(true)
 
-		fireEvent.click(button.querySelector('button') as Element)
+		clickMenuButton(container)
 
 		expect(screen.getByRole('menuitem', { name: 'View data' })).toBeInTheDocument()
 	})
@@ -653,7 +683,7 @@ describe('Chart menu button', () => {
 
 		expect(getSlot(container, 'chart-plot').contains(button)).toBe(false)
 
-		fireEvent.click(button.querySelector('button') as Element)
+		clickMenuButton(container)
 
 		expect(screen.getByRole('menuitem', { name: 'View data' })).toBeInTheDocument()
 	})
@@ -691,7 +721,7 @@ describe('Chart menu button', () => {
 			/>,
 		)
 
-		fireEvent.click(getSlot(container, 'chart-menu-button').querySelector('button') as Element)
+		clickMenuButton(container)
 
 		expect(document.querySelector('[data-slot="menu-viewport"]')).toHaveClass(
 			'density-max-h-[44,48,52,56,60]',
@@ -699,9 +729,7 @@ describe('Chart menu button', () => {
 	})
 
 	it('builds function-form items with no mark, even after a right-click on one', () => {
-		const items = vi.fn(({ index }: { index: number | null }) =>
-			index === null ? [] : [{ key: 'drill', label: `Drill ${index}`, onAction: () => {} }],
-		)
+		const items = drillItems()
 
 		const { container } = renderUI(
 			<BarChart
@@ -727,7 +755,7 @@ describe('Chart menu button', () => {
 
 		fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
 
-		fireEvent.click(getSlot(container, 'chart-menu-button').querySelector('button') as Element)
+		clickMenuButton(container)
 
 		expect(screen.queryByRole('menuitem', { name: /^Drill/ })).not.toBeInTheDocument()
 	})
@@ -783,7 +811,7 @@ describe('Chart menu button on a chart with no header', () => {
 		// The plot is `role="img"`, which hides its children, so the button sits outside it.
 		expect(getSlot(container, 'chart-plot').contains(button)).toBe(false)
 
-		fireEvent.click(button.querySelector('button') as Element)
+		clickMenuButton(container)
 
 		expect(screen.getByRole('menuitem', { name: 'View data' })).toBeInTheDocument()
 	})
@@ -825,7 +853,7 @@ describe('Chart menu button on a chart with no header', () => {
 
 		expect(getSlot(container, 'map').contains(button)).toBe(true)
 
-		fireEvent.click(button.querySelector('button') as Element)
+		clickMenuButton(container)
 
 		expect(screen.getByRole('menuitem', { name: 'View data' })).toBeInTheDocument()
 	})

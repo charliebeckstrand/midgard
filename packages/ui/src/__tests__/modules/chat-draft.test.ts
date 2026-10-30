@@ -3,22 +3,14 @@ import { describe, expect, it } from 'vitest'
 import { canSubmitDraft, draftContent } from '../../modules/chat/engine/chat-draft'
 
 describe('draftContent', () => {
-	it('drops the whitespace around the value', () => {
-		expect(draftContent('  hello  ')).toBe('hello')
-	})
-
-	it('keeps the whitespace inside the value', () => {
-		expect(draftContent(' two words\nand a line ')).toBe('two words\nand a line')
-	})
-
-	it('is empty for an empty draft', () => {
-		expect(draftContent('')).toBe('')
-	})
-
-	it('is empty for whitespace alone, including tabs and newlines', () => {
-		expect(draftContent('   ')).toBe('')
-
-		expect(draftContent('\t\n ')).toBe('')
+	it.for<[string, string, string]>([
+		['drops the whitespace around the value', '  hello  ', 'hello'],
+		['keeps the whitespace inside the value', ' two words\nand a line ', 'two words\nand a line'],
+		['is empty for an empty draft', '', ''],
+		['is empty for whitespace alone, including tabs and newlines', '   ', ''],
+		['is empty for whitespace alone, including tabs and newlines', '\t\n ', ''],
+	])('%s (%j)', ([, draft, content]) => {
+		expect(draftContent(draft)).toBe(content)
 	})
 })
 

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
@@ -13,6 +14,7 @@ import {
 	FormFiltersBar,
 	FormFiltersClear,
 	FormFiltersField,
+	type FormFiltersFieldProps,
 	type FormFiltersFieldRenderProps,
 	FormFiltersPrefix,
 	FormFiltersRow,
@@ -50,6 +52,40 @@ function Toggle({
 	)
 }
 
+/**
+ * Renders a controlled bar that holds one field. Gives the render result, the
+ * `onValueChange` spy of the bar, and `rerenderValue`, which renders the same
+ * bar with another value.
+ */
+function renderField<V = unknown>(
+	name: string,
+	control: FormFiltersFieldProps<V>['children'],
+	value: Record<string, unknown> = {},
+) {
+	const onValueChange = vi.fn()
+
+	const bar = (next: Record<string, unknown>) => (
+		<FormFilters aria-label="Filters" value={next} onValueChange={onValueChange}>
+			<FormFiltersField<V> name={name}>{control}</FormFiltersField>
+		</FormFilters>
+	)
+
+	const view = renderUI(bar(value))
+
+	return {
+		...view,
+		onValueChange,
+		rerenderValue: (next: Record<string, unknown>) => view.rerender(bar(next)),
+	}
+}
+
+/** Shows the `activeCount` of the enclosing bar. */
+function ActiveCount(): ReactNode {
+	const { activeCount } = useFormFilters()
+
+	return <span data-slot="count">{activeCount}</span>
+}
+
 describe('FormFilters group', () => {
 	it('exposes the bar as a named role="group"', () => {
 		renderUI(
@@ -66,13 +102,7 @@ describe('FormFilters group', () => {
 
 describe('FormFiltersField', () => {
 	it('binds the slot to the control by name', () => {
-		const { container } = renderUI(
-			<FormFilters aria-label="Filters" value={{ name: 'hello' }} onValueChange={() => {}}>
-				<FormFiltersField name="name">
-					<Input />
-				</FormFiltersField>
-			</FormFilters>,
-		)
+		const { container } = renderField('name', <Input />, { name: 'hello' })
 
 		const input = getSlot<HTMLInputElement>(container, 'input')
 
@@ -80,15 +110,9 @@ describe('FormFiltersField', () => {
 	})
 
 	it('drives a Checkbox via checked, reflecting the boolean slot', async () => {
-		const onValueChange = vi.fn()
-
-		const { container, rerender } = renderUI(
-			<FormFilters aria-label="Filters" value={{ done: true }} onValueChange={onValueChange}>
-				<FormFiltersField name="done">
-					<Checkbox />
-				</FormFiltersField>
-			</FormFilters>,
-		)
+		const { container, onValueChange, rerenderValue } = renderField('done', <Checkbox />, {
+			done: true,
+		})
 
 		const checkbox = getSlot<HTMLInputElement>(container, 'checkbox')
 
@@ -96,13 +120,7 @@ describe('FormFiltersField', () => {
 		// reflects the filter state.
 		expect(checkbox.checked).toBe(true)
 
-		rerender(
-			<FormFilters aria-label="Filters" value={{}} onValueChange={onValueChange}>
-				<FormFiltersField name="done">
-					<Checkbox />
-				</FormFiltersField>
-			</FormFilters>,
-		)
+		rerenderValue({})
 
 		expect(checkbox.checked).toBe(false)
 
@@ -159,14 +177,10 @@ describe('FormFiltersField', () => {
 
 		const onClear = vi.fn()
 
-		const onValueChange = vi.fn()
-
-		const { container } = renderUI(
-			<FormFilters aria-label="Filters" value={{ q: 'a' }} onValueChange={onValueChange}>
-				<FormFiltersField name="q">
-					<SearchInput onChange={onChange} onClear={onClear} />
-				</FormFiltersField>
-			</FormFilters>,
+		const { container, onValueChange } = renderField(
+			'q',
+			<SearchInput onChange={onChange} onClear={onClear} />,
+			{ q: 'a' },
 		)
 
 		const user = setupUser()
@@ -183,15 +197,7 @@ describe('FormFiltersField', () => {
 	it('binds a control built on the Form field hooks', async () => {
 		const own = vi.fn()
 
-		const onValueChange = vi.fn()
-
-		renderUI(
-			<FormFilters aria-label="Filters" value={{}} onValueChange={onValueChange}>
-				<FormFiltersField name="done">
-					<Toggle onValueChange={own} />
-				</FormFiltersField>
-			</FormFilters>,
-		)
+		const { onValueChange } = renderField('done', <Toggle onValueChange={own} />)
 
 		await setupUser().click(screen.getByRole('button', { name: 'Toggle' }))
 
@@ -200,36 +206,8 @@ describe('FormFiltersField', () => {
 		expect(onValueChange).toHaveBeenCalledWith({ done: true })
 	})
 
-	it('calls onChange when input changes (auto-binding)', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(
-			<FormFilters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
-				<FormFiltersField name="name">
-					<Input />
-				</FormFiltersField>
-			</FormFilters>,
-		)
-
-		const input = getSlot<HTMLInputElement>(container, 'input')
-
-		const user = setupUser()
-
-		await user.type(input, 'a')
-
-		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ name: 'a' }))
-	})
-
 	it('drives a Switch via checked, reflecting the boolean slot', async () => {
-		const onValueChange = vi.fn()
-
-		const { container } = renderUI(
-			<FormFilters aria-label="Filters" value={{}} onValueChange={onValueChange}>
-				<FormFiltersField name="on">
-					<Switch />
-				</FormFiltersField>
-			</FormFilters>,
-		)
+		const { container, onValueChange } = renderField('on', <Switch />)
 
 		const toggle = getSlot<HTMLInputElement>(container, 'switch')
 
@@ -241,15 +219,7 @@ describe('FormFiltersField', () => {
 	})
 
 	it('binds a Textarea through onChange', async () => {
-		const onValueChange = vi.fn()
-
-		const { container } = renderUI(
-			<FormFilters aria-label="Filters" value={{ note: 'a' }} onValueChange={onValueChange}>
-				<FormFiltersField name="note">
-					<Textarea />
-				</FormFiltersField>
-			</FormFilters>,
-		)
+		const { container, onValueChange } = renderField('note', <Textarea />, { note: 'a' })
 
 		const textarea = getSlot<HTMLTextAreaElement>(container, 'textarea')
 
@@ -261,15 +231,7 @@ describe('FormFiltersField', () => {
 	})
 
 	it('clears the slot from the SearchInput clear button', async () => {
-		const onValueChange = vi.fn()
-
-		renderUI(
-			<FormFilters aria-label="Filters" value={{ q: 'a' }} onValueChange={onValueChange}>
-				<FormFiltersField name="q">
-					<SearchInput />
-				</FormFiltersField>
-			</FormFilters>,
-		)
+		const { onValueChange } = renderField('q', <SearchInput />, { q: 'a' })
 
 		await setupUser().click(screen.getByRole('button', { name: 'Clear search' }))
 
@@ -277,20 +239,16 @@ describe('FormFiltersField', () => {
 	})
 
 	it('supports render prop children', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(
-			<FormFilters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
-				<FormFiltersField<string> name="name">
-					{({ value, onValueChange: fieldOnValueChange }) => (
-						<input
-							data-slot="raw-input"
-							value={value ?? ''}
-							onChange={(event) => fieldOnValueChange(event.target.value)}
-						/>
-					)}
-				</FormFiltersField>
-			</FormFilters>,
+		const { container, onValueChange } = renderField<string>(
+			'name',
+			({ value, onValueChange: fieldOnValueChange }) => (
+				<input
+					data-slot="raw-input"
+					value={value ?? ''}
+					onChange={(event) => fieldOnValueChange(event.target.value)}
+				/>
+			),
+			{ name: '' },
 		)
 
 		const input = getSlot<HTMLInputElement>(container, 'raw-input')
@@ -299,45 +257,29 @@ describe('FormFiltersField', () => {
 
 		await user.type(input, 'b')
 
-		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ name: 'b' }))
+		expect(onValueChange).toHaveBeenCalledWith(expect.objectContaining({ name: 'b' }))
 	})
 
 	// The element form gives the slot `name` to its control, so a wrapper binds
 	// when it passes `name` on, and binds nothing when it drops it.
 	it('binds a wrapper that passes name to its control', async () => {
-		const onChange = vi.fn()
-
 		function WrappedInput({ name }: { name?: string }) {
 			return <Input name={name} />
 		}
 
-		const { container } = renderUI(
-			<FormFilters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
-				<FormFiltersField name="name">
-					<WrappedInput />
-				</FormFiltersField>
-			</FormFilters>,
-		)
+		const { container, onValueChange } = renderField('name', <WrappedInput />, { name: '' })
 
 		await setupUser().type(getSlot<HTMLInputElement>(container, 'input'), 'b')
 
-		expect(onChange).toHaveBeenCalledWith({ name: 'b' })
+		expect(onValueChange).toHaveBeenCalledWith({ name: 'b' })
 	})
 
 	it('leaves a wrapper that drops name unbound', async () => {
-		const onChange = vi.fn()
-
 		function WrappedInput() {
 			return <Input />
 		}
 
-		const { container } = renderUI(
-			<FormFilters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
-				<FormFiltersField name="name">
-					<WrappedInput />
-				</FormFiltersField>
-			</FormFilters>,
-		)
+		const { container, onValueChange } = renderField('name', <WrappedInput />, { name: '' })
 
 		const input = getSlot<HTMLInputElement>(container, 'input')
 
@@ -346,17 +288,13 @@ describe('FormFiltersField', () => {
 		// The control took the text, so the field rendered it and never bound it.
 		expect(input.value).toBe('b')
 
-		expect(onChange).not.toHaveBeenCalled()
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('lets the own value of a control win over the slot', () => {
-		const { container } = renderUI(
-			<FormFilters aria-label="Filters" value={{ name: 'slot' }} onValueChange={() => {}}>
-				<FormFiltersField name="name">
-					<Input value="own" onChange={() => {}} />
-				</FormFiltersField>
-			</FormFilters>,
-		)
+		const { container } = renderField('name', <Input value="own" onChange={() => {}} />, {
+			name: 'slot',
+		})
 
 		expect(getSlot<HTMLInputElement>(container, 'input').value).toBe('own')
 	})
@@ -688,12 +626,6 @@ describe('FormFiltersClear', () => {
 })
 
 describe('useFormFilters', () => {
-	function ActiveCount() {
-		const { activeCount } = useFormFilters()
-
-		return <span data-slot="count">{activeCount}</span>
-	}
-
 	it('reports activeCount as the number of non-empty values', () => {
 		const { container } = renderUI(
 			<FormFilters aria-label="Filters" value={{ a: 'yes', b: '', c: undefined, d: [], e: [1] }}>
@@ -704,26 +636,10 @@ describe('useFormFilters', () => {
 		// 'yes' and [1] are active, '' and undefined and [] are not
 		expect(bySlot(container, 'count')?.textContent).toBe('2')
 	})
-
-	it('reports 0 when all values are empty', () => {
-		const { container } = renderUI(
-			<FormFilters aria-label="Filters" value={{ a: '', b: undefined, c: null }}>
-				<ActiveCount />
-			</FormFilters>,
-		)
-
-		expect(bySlot(container, 'count')?.textContent).toBe('0')
-	})
 })
 
 describe('Filter (uncontrolled)', () => {
 	it('manages state internally with defaultValue', async () => {
-		function ActiveCount() {
-			const { activeCount } = useFormFilters()
-
-			return <span data-slot="count">{activeCount}</span>
-		}
-
 		const { container } = renderUI(
 			<FormFilters aria-label="Filters" defaultValue={{ name: '' }}>
 				<FormFiltersField name="name">

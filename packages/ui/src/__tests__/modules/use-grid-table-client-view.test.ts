@@ -273,35 +273,22 @@ describe('useGridTable search and custom sort', () => {
 		{ id: 'amount', title: 'Amount', value: (row) => row.amount, sortable: true },
 	]
 
-	test.prop([rowsArb, fc.string({ maxLength: 2 }), fc.constantFrom<'asc' | 'desc'>('asc', 'desc')])(
-		'gives the rows of the engine',
-		(rows, query, direction) => {
-			const sort: GridSortState[] = [{ column: 'name', direction }]
+	const cases: [name: string, columns: GridColumn<Row>[], sortColumn: string][] = [
+		['gives the rows of the engine', byLength, 'name'],
+		[
+			'gives the rows of the engine for a comparator that is no consistent order',
+			[byLength[0] as GridColumn<Row>, skewed],
+			'amount',
+		],
+	]
 
-			const { result } = renderHook(() =>
-				useGridTable<Row>({
-					rows,
-					columns: byLength,
-					getKey,
-					globalFilter: { value: query },
-					sort,
-				}),
-			)
-
-			const shown = engineTable(rows, byLength, getKey, { query, sort }).getRowModel().rows
-
-			expect(result.current.renderRows.map((row) => row.id)).toEqual(
-				shown.map((row) => row.original.id),
-			)
-		},
-	)
-
-	test.prop([rowsArb, fc.string({ maxLength: 2 }), fc.constantFrom<'asc' | 'desc'>('asc', 'desc')])(
-		'gives the rows of the engine for a comparator that is no consistent order',
-		(rows, query, direction) => {
-			const cols = [byLength[0] as GridColumn<Row>, skewed]
-
-			const sort: GridSortState[] = [{ column: 'amount', direction }]
+	for (const [name, cols, sortColumn] of cases) {
+		test.prop([
+			rowsArb,
+			fc.string({ maxLength: 2 }),
+			fc.constantFrom<'asc' | 'desc'>('asc', 'desc'),
+		])(name, (rows, query, direction) => {
+			const sort: GridSortState[] = [{ column: sortColumn, direction }]
 
 			const { result } = renderHook(() =>
 				useGridTable<Row>({
@@ -318,6 +305,6 @@ describe('useGridTable search and custom sort', () => {
 			expect(result.current.renderRows.map((row) => row.id)).toEqual(
 				shown.map((row) => row.original.id),
 			)
-		},
-	)
+		})
+	}
 })

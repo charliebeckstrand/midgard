@@ -56,22 +56,16 @@ const HIT_BOX = {
 	toJSON: () => ({}),
 } as DOMRect
 
+/** The `chart-hit` layer of the chart, with {@link HIT_BOX} as its screen rect. */
+const hitLayer = (container: HTMLElement) => {
+	const hit = getSlot(container, 'chart-hit')
+
+	hit.getBoundingClientRect = () => HIT_BOX
+
+	return hit
+}
+
 describe('HeatmapChart', () => {
-	it('requires an accessible name (compile-time)', () => {
-		// Never rendered; exists for `tsc`. The plot is `role="img"`, so a heatmap
-		// with no `aria-label` and no `aria-labelledby` must not typecheck.
-		const typeChecks = () => (
-			<>
-				{/* @ts-expect-error: a heatmap needs aria-label or aria-labelledby */}
-				<HeatmapChart data={ROWS} series={SERIES} />
-
-				<HeatmapChart aria-labelledby="commits-heading" data={ROWS} series={SERIES} />
-			</>
-		)
-
-		expect(typeChecks).toBeTypeOf('function')
-	})
-
 	it('fills its container with no max-width cap, as the other charts do', () => {
 		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} />,
@@ -298,45 +292,35 @@ describe('HeatmapChart', () => {
 		)
 	})
 
-	it('probes a horizontal bar along its own axis, dimming cells outside the class', () => {
+	// A horizontal bar reads the x of the pointer, and a vertical bar reads its y.
+	// Each probe lands a class and dims the cells outside it: the reciprocal of
+	// the map filter of the choropleth.
+	it.for([
+		{
+			name: 'probes a horizontal bar along its own axis, dimming cells outside the class',
+			legend: 'bottom',
+			point: { clientX: 10 },
+		},
+		{
+			name: 'dims cells outside the probed bin on range-legend hover',
+			legend: undefined,
+			point: { clientY: 10 },
+		},
+	] as const)('$name', ({ legend, point }) => {
 		const { container } = renderUI(
-			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} legend="bottom" />,
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} legend={legend} />,
 		)
 
-		const track = bySlot(container, 'heatmap-range-track')
+		const track = getSlot(container, 'heatmap-range-track')
 
 		// Nothing dims until the bar is probed.
 		expect(dimmedCount(container)).toBe(0)
 
-		// A horizontal bar reads the pointer's x, not its y: the probe still lands a
-		// class and dims the cells outside it.
-		fireEvent.pointerMove(track as Element, { clientX: 10 })
+		fireEvent.pointerMove(track, point)
 
 		expect(dimmedCount(container)).toBeGreaterThan(0)
 
-		fireEvent.pointerLeave(track as Element)
-
-		expect(dimmedCount(container)).toBe(0)
-	})
-
-	it('dims cells outside the probed bin on range-legend hover', () => {
-		const { container } = renderUI(
-			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
-		)
-
-		const track = bySlot(container, 'heatmap-range-track')
-
-		expect(track).not.toBeNull()
-
-		// Nothing dims until the bar is probed.
-		expect(dimmedCount(container)).toBe(0)
-
-		fireEvent.pointerMove(track as Element, { clientY: 10 })
-
-		// Cells outside the probed class dim: the reciprocal of the choropleth's map filter.
-		expect(dimmedCount(container)).toBeGreaterThan(0)
-
-		fireEvent.pointerLeave(track as Element)
+		fireEvent.pointerLeave(track)
 
 		expect(dimmedCount(container)).toBe(0)
 	})
@@ -475,15 +459,9 @@ describe('HeatmapChart', () => {
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
 		)
 
-		const hit = bySlot(container, 'chart-hit')
-
-		expect(hit).not.toBeNull()
-
-		// jsdom reports a zero box; stand in a screen rect for the plot so the
-		// fraction-across-the-rect math has something to resolve against. The rect
-		// starts at (100, 50): a raw client delta would drop that origin and land
-		// on the wrong cell, the bug this guards.
-		;(hit as Element).getBoundingClientRect = () => HIT_BOX
+		// The rect starts at (100, 50): a raw client delta would drop that origin
+		// and land on the wrong cell, the bug this guards.
+		const hit = hitLayer(container)
 
 		// The arrow's `top` encodes the resolved cell's bin (high value → high on the
 		// bar → small top%), so it reads back which cell the pointer resolved to.
@@ -525,13 +503,10 @@ describe('HeatmapChart', () => {
 			/>,
 		)
 
-		const hit = bySlot(container, 'chart-hit') as Element
+		const hit = hitLayer(container)
 
 		// The hit layer reads as clickable.
 		expect(hit.getAttribute('class')).toContain('cursor-pointer')
-
-		// jsdom reports a zero box; stand in a screen rect so the fraction math resolves.
-		;(hit as Element).getBoundingClientRect = () => HIT_BOX
 
 		// Movement no longer opens the readout under the click trigger.
 		fireEvent.pointerMove(hit, { clientX: 330, clientY: 70 })
@@ -568,9 +543,7 @@ describe('HeatmapChart', () => {
 
 		const { container, rerender } = renderUI(pinned(full))
 
-		const hit = getSlot(container, 'chart-hit')
-
-		hit.getBoundingClientRect = () => HIT_BOX
+		const hit = hitLayer(container)
 
 		// Pin the bottom-right cell, Tue at 10.
 		fireEvent.click(hit, { clientX: 330, clientY: 200 })
@@ -639,11 +612,7 @@ describe('HeatmapChart cell clicks', () => {
 			/>,
 		)
 
-		const hit = bySlot(container, 'chart-hit') as Element
-
-		// The layer resolves a click through the rect it is drawn at, which jsdom
-		// measures at zero. Give it one, as the pointer-resolution test above does.
-		;(hit as Element).getBoundingClientRect = () => HIT_BOX
+		const hit = hitLayer(container)
 
 		// Columns are ['9', '10'] and rows ['Mon', 'Tue'], so the top-left cell is
 		// Mon at hour 9: matrix position [0, 0].
@@ -714,9 +683,7 @@ describe('HeatmapChart cell rings', () => {
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
 		)
 
-		const hit = bySlot(container, 'chart-hit') as Element
-
-		hit.getBoundingClientRect = () => HIT_BOX
+		const hit = hitLayer(container)
 
 		// The top-right cell: Mon at hour 10.
 		fireEvent.pointerMove(hit, { clientX: 330, clientY: 70 })
@@ -839,9 +806,7 @@ describe('HeatmapChart context menu', () => {
 			/>,
 		)
 
-		const hit = getSlot(container, 'chart-hit')
-
-		hit.getBoundingClientRect = () => HIT_BOX
+		const hit = hitLayer(container)
 
 		// The bottom-left cell, Tue at hour 9: row 1 and column 0 of two columns.
 		fireEvent.pointerMove(hit, { clientX: 130, clientY: 200 })

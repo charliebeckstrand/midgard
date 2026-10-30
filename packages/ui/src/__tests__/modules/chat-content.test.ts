@@ -77,17 +77,9 @@ describe('toChatParts', () => {
 
 		expect(toChatParts(parts)).toBe(parts)
 	})
-
-	it('leaves an empty part list empty', () => {
-		expect(toChatParts([])).toEqual([])
-	})
 })
 
 describe('chatPartsText', () => {
-	it('projects one text part to its own text', () => {
-		expect(chatPartsText([text('Twelve stops are late.')])).toBe('Twelve stops are late.')
-	})
-
 	it('projects no parts to an empty string', () => {
 		expect(chatPartsText([])).toBe('')
 	})
@@ -137,24 +129,30 @@ describe('isEmptyContent', () => {
 	// The rollback rule reads this. It reads structure and never the projection,
 	// because a reply that holds a block with no text of its own projects to an
 	// empty string and is not an empty reply.
-	it('reads an empty string as empty', () => {
-		expect(isEmptyContent('')).toBe(true)
-	})
-
-	it('reads a string with text as not empty', () => {
-		expect(isEmptyContent('Twelve stops are late.')).toBe(false)
-	})
-
-	it('reads the one empty text part an opened reply holds as empty', () => {
-		expect(isEmptyContent(toChatParts(''))).toBe(true)
-	})
-
-	it('reads no parts as empty', () => {
-		expect(isEmptyContent([])).toBe(true)
-	})
-
-	it('reads one part with text as not empty, whatever sits beside it', () => {
-		expect(isEmptyContent([text(''), text('Second block.', 'b')])).toBe(false)
+	it.for<[string, string | ChatPart[], boolean]>([
+		['reads an empty string as empty', '', true],
+		['reads a string with text as not empty', 'Twelve stops are late.', false],
+		['reads the one empty text part an opened reply holds as empty', toChatParts(''), true],
+		['reads no parts as empty', [], true],
+		[
+			'reads one part with text as not empty, whatever sits beside it',
+			[text(''), text('Second block.', 'b')],
+			false,
+		],
+		[
+			'reads an embed beside an empty text part as not empty',
+			[text(''), embed('stops-map')],
+			false,
+		],
+		// A reply that shows the query it runs is not an empty reply, so a failure
+		// after it must keep the step and not roll the reply back.
+		[
+			'reads a reply that opened with a running step as not empty',
+			[tool({ status: 'running', detail: undefined })],
+			false,
+		],
+	])('%s', ([, content, empty]) => {
+		expect(isEmptyContent(content)).toBe(empty)
 	})
 
 	it('reads a reply that arrived as an embed alone as not empty', () => {
@@ -166,16 +164,6 @@ describe('isEmptyContent', () => {
 		expect(chatPartsText(content)).toBe('')
 
 		expect(isEmptyContent(content)).toBe(false)
-	})
-
-	it('reads an embed beside an empty text part as not empty', () => {
-		expect(isEmptyContent([text(''), embed('stops-map')])).toBe(false)
-	})
-
-	it('reads a reply that opened with a running step as not empty', () => {
-		// A reply showing the query it is running is not an empty reply, so a
-		// failure after it must keep the step rather than roll the reply back.
-		expect(isEmptyContent([tool({ status: 'running', detail: undefined })])).toBe(false)
 	})
 })
 

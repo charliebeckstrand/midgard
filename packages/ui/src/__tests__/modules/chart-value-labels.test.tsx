@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import type { ReactElement } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
 import { ComboChart } from '../../modules/chart/combo-chart'
 import { LineChart } from '../../modules/chart/line-chart'
@@ -220,7 +221,7 @@ describe('value-label headroom with a series hidden from the legend', () => {
 		{ m: 'Mar', r: 65, s: 3 },
 	]
 
-	const peakLabelAbovePeak = (container: HTMLElement) => {
+	const peakLabelAbovePeak = vi.defineHelper((container: HTMLElement) => {
 		fireEvent.click(allBySlot(container, 'chart-legend-item')[1] as HTMLElement)
 
 		const label = allBySlot(container, 'chart-value-label').find((n) => n.textContent === '100')
@@ -228,58 +229,35 @@ describe('value-label headroom with a series hidden from the legend', () => {
 		const peak = allBySlot(container, 'chart-point')[1]
 
 		expect(Number(label?.getAttribute('y'))).toBeLessThan(Number(peak?.getAttribute('cy')))
+	})
+
+	const props = {
+		'aria-label': 'Revenue',
+		width: 400,
+		points: true,
+		labels: { extremes: true },
+		data,
 	}
 
-	it('reserves the room on a LineChart', () => {
-		const { container } = renderUI(
-			<LineChart
-				aria-label="Revenue"
-				width={400}
-				points
-				labels={{ extremes: true }}
-				data={data}
-				series={[
-					{ xKey: 'm', yKey: 'r', yName: 'Revenue' },
-					{ xKey: 'm', yKey: 's', yName: 'Spend' },
-				]}
-			/>,
-		)
+	const series = [
+		{ xKey: 'm', yKey: 'r', yName: 'Revenue' },
+		{ xKey: 'm', yKey: 's', yName: 'Spend' },
+	] as const
 
-		peakLabelAbovePeak(container)
-	})
-
-	it('reserves the room on an AreaChart', () => {
-		const { container } = renderUI(
-			<AreaChart
-				aria-label="Revenue"
-				width={400}
-				points
-				labels={{ extremes: true }}
-				data={data}
-				series={[
-					{ xKey: 'm', yKey: 'r', yName: 'Revenue' },
-					{ xKey: 'm', yKey: 's', yName: 'Spend' },
-				]}
-			/>,
-		)
-
-		peakLabelAbovePeak(container)
-	})
-
-	it('reserves the room on a ComboChart, counting only its line and area series', () => {
-		const { container } = renderUI(
-			<ComboChart
-				aria-label="Revenue"
-				width={400}
-				points
-				labels={{ extremes: true }}
-				data={data}
-				series={[
-					{ type: 'line', xKey: 'm', yKey: 'r', yName: 'Revenue' },
-					{ type: 'line', xKey: 'm', yKey: 's', yName: 'Spend' },
-				]}
-			/>,
-		)
+	it.for<[string, () => ReactElement]>([
+		['reserves the room on a LineChart', () => <LineChart {...props} series={[...series]} />],
+		['reserves the room on an AreaChart', () => <AreaChart {...props} series={[...series]} />],
+		[
+			'reserves the room on a ComboChart, counting only its line and area series',
+			() => (
+				<ComboChart
+					{...props}
+					series={series.map((line) => ({ type: 'line' as const, ...line }))}
+				/>
+			),
+		],
+	])('%s', ([, chart]) => {
+		const { container } = renderUI(chart())
 
 		peakLabelAbovePeak(container)
 	})

@@ -24,6 +24,19 @@ function renderZoomable(extra?: Parameters<typeof categoricalPlat>[0]) {
 	return renderNavigable(categoricalPlat({ zoom: true, ...extra }))
 }
 
+/**
+ * Renders a zoomable plat, and zooms it in with one armed wheel. Most of the
+ * gestures below need a zoomed map to move. `before` is the transform after
+ * the zoom.
+ */
+function renderZoomed(extra?: Parameters<typeof categoricalPlat>[0]) {
+	const rendered = renderZoomable(extra)
+
+	zoomWheel(rendered.svg, -400)
+
+	return { ...rendered, before: readTransform(rendered.container) }
+}
+
 /** The zoom layer's transform, or `null` where the plat drew no layer. */
 function readTransform(container: HTMLElement): string | null {
 	return bySlot(container, 'map-zoom')?.getAttribute('transform') ?? null
@@ -138,6 +151,19 @@ function drag(plot: HTMLElement, from: { x: number; y: number }, to: { x: number
 	fireEvent.pointerMove(plot, { pointerId: 1, clientX: to.x, clientY: to.y })
 
 	fireEvent.pointerUp(plot, { pointerId: 1 })
+}
+
+/** Presses two touch pointers on the plot region, at x 190 and x 210. */
+function pressTwo(plot: HTMLElement) {
+	for (const [index, x] of [190, 210].entries()) {
+		fireEvent.pointerDown(plot, {
+			isPrimary: index === 0,
+			pointerId: index + 1,
+			pointerType: 'touch',
+			clientX: x,
+			clientY: 100,
+		})
+	}
 }
 
 describe('MapPlat zoom layer', () => {
@@ -290,9 +316,7 @@ describe('MapPlat gesture suspends the readout', () => {
 	})
 
 	it('holds the drawing inert while a wheel settles under a live pan', async ({ clock }) => {
-		const { container, plot, svg } = renderZoomable()
-
-		zoomWheel(svg, -400)
+		const { container, plot } = renderZoomed()
 
 		fireEvent.pointerDown(plot, {
 			isPrimary: true,
@@ -472,11 +496,7 @@ describe('MapPlat wheel, armed outright', () => {
 
 describe('MapPlat two-finger gestures', () => {
 	it("pans by the pair's travel, so a two-finger drag moves the map", () => {
-		const { container, svg } = renderZoomable()
-
-		zoomWheel(svg, -400)
-
-		const before = readTransform(container)
+		const { container, svg, before } = renderZoomed()
 
 		const scale = readScale(container)
 
@@ -539,11 +559,7 @@ describe('MapPlat two-finger gestures', () => {
 	})
 
 	it('leaves a lone finger to the page by default', () => {
-		const { container, plot, svg } = renderZoomable()
-
-		zoomWheel(svg, -400)
-
-		const before = readTransform(container)
+		const { container, plot, before } = renderZoomed()
 
 		fireEvent.pointerDown(plot, {
 			isPrimary: true,
@@ -561,11 +577,7 @@ describe('MapPlat two-finger gestures', () => {
 	})
 
 	it('still pans a lone mouse, which has no scroll to give up', () => {
-		const { container, plot, svg } = renderZoomable()
-
-		zoomWheel(svg, -400)
-
-		const before = readTransform(container)
+		const { container, plot, before } = renderZoomed()
 
 		drag(plot, { x: 200, y: 100 }, { x: 140, y: 60 })
 
@@ -640,15 +652,7 @@ describe('MapPlat two-finger gestures', () => {
 	it('leaves the touch pointers alone on a default map, so a pinch applies once', () => {
 		const { container, plot } = renderZoomable()
 
-		for (const [index, x] of [190, 210].entries()) {
-			fireEvent.pointerDown(plot, {
-				isPrimary: index === 0,
-				pointerId: index + 1,
-				pointerType: 'touch',
-				clientX: x,
-				clientY: 100,
-			})
-		}
+		pressTwo(plot)
 
 		fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 100 })
 
@@ -660,15 +664,7 @@ describe('MapPlat two-finger gestures', () => {
 	it('leaves a two-finger move alone on a map that does not zoom', () => {
 		const { plot, svg } = renderZoomable({ zoom: undefined })
 
-		for (const [index, x] of [190, 210].entries()) {
-			fireEvent.pointerDown(plot, {
-				isPrimary: index === 0,
-				pointerId: index + 1,
-				pointerType: 'touch',
-				clientX: x,
-				clientY: 100,
-			})
-		}
+		pressTwo(plot)
 
 		expect(fireEvent.touchMove(svg)).toBe(true)
 	})
@@ -679,15 +675,7 @@ describe('MapPlat two-finger gestures', () => {
 		// claims touch outright reads its fingers off the pointer events.
 		const { container, plot } = renderZoomable(DIRECT)
 
-		for (const [index, x] of [190, 210].entries()) {
-			fireEvent.pointerDown(plot, {
-				isPrimary: index === 0,
-				pointerId: index + 1,
-				pointerType: 'touch',
-				clientX: x,
-				clientY: 100,
-			})
-		}
+		pressTwo(plot)
 
 		act(() => {
 			fireEvent.pointerMove(plot, { pointerId: 1, clientX: 170, clientY: 100 })
@@ -726,11 +714,7 @@ describe('MapPlat two-finger gestures', () => {
 	})
 
 	it('keeps a pen pan from the touch events of a palm', () => {
-		const { container, plot, svg } = renderZoomable()
-
-		zoomWheel(svg, -400)
-
-		const before = readTransform(container)
+		const { container, plot, svg, before } = renderZoomed()
 
 		fireEvent.pointerDown(plot, {
 			pointerId: 1,
@@ -971,11 +955,7 @@ describe('MapPlat touch over the marks', () => {
 
 describe('MapPlat pinch under the page', () => {
 	it('holds the ground under the fingers while the page scrolls under the pinch', () => {
-		const { container, svg } = renderZoomable()
-
-		zoomWheel(svg, -400)
-
-		const before = readTransform(container)
+		const { container, svg, before } = renderZoomed()
 
 		touch(svg, 'touchStart', [
 			{ id: 1, x: 180, y: 100 },
@@ -1001,24 +981,17 @@ describe('MapPlat pinch under the page', () => {
 		expect(readTransform(container)).toBe(before)
 	})
 
-	it("cancels Safari's own pinch over a zooming map", () => {
-		const { svg } = renderZoomable()
+	it.for([
+		["cancels Safari's own pinch over a zooming map", {}, true],
+		["leaves Safari's pinch alone over a map that does not zoom", { zoom: undefined }, false],
+	] as const)('%s', ([, extra, prevented]) => {
+		const { svg } = renderZoomable(extra)
 
 		const gesture = new Event('gesturestart', { bubbles: true, cancelable: true })
 
 		svg.dispatchEvent(gesture)
 
-		expect(gesture.defaultPrevented).toBe(true)
-	})
-
-	it("leaves Safari's pinch alone over a map that does not zoom", () => {
-		const { svg } = renderZoomable({ zoom: undefined })
-
-		const gesture = new Event('gesturestart', { bubbles: true, cancelable: true })
-
-		svg.dispatchEvent(gesture)
-
-		expect(gesture.defaultPrevented).toBe(false)
+		expect(gesture.defaultPrevented).toBe(prevented)
 	})
 })
 
@@ -1096,9 +1069,7 @@ describe('MapPlat pan', () => {
 	it('takes two moves that land before a render, so the pan keeps up with the pointer', () => {
 		/** Drags from one point to another, through a halfway point when `split` asks. */
 		function pan(split: boolean) {
-			const { container, plot, svg } = renderZoomable()
-
-			zoomWheel(svg, -400)
+			const { container, plot } = renderZoomed()
 
 			fireEvent.pointerDown(plot, {
 				isPrimary: true,
@@ -1123,11 +1094,7 @@ describe('MapPlat pan', () => {
 	})
 
 	it('moves the view on a drag once it passes the threshold', () => {
-		const { container, plot, svg } = renderZoomable()
-
-		zoomWheel(svg, -400)
-
-		const before = readTransform(container)
+		const { container, plot, before } = renderZoomed()
 
 		drag(plot, { x: 200, y: 100 }, { x: 160, y: 80 })
 
@@ -1159,11 +1126,7 @@ describe('MapPlat pan', () => {
 	})
 
 	it('holds the view for a press that never travels', () => {
-		const { container, plot, svg } = renderZoomable()
-
-		zoomWheel(svg, -400)
-
-		const before = readTransform(container)
+		const { container, plot, before } = renderZoomed()
 
 		drag(plot, { x: 200, y: 100 }, { x: 202, y: 101 })
 

@@ -30,6 +30,18 @@ afterEach(() => {
 	})
 })
 
+/**
+ * Removes the stored events setting and the root attribute when the test
+ * finishes, so a test that turns the events on leaves them off.
+ */
+function restoreEventsOn() {
+	onTestFinished(() => {
+		localStorage.removeItem('events:on')
+
+		document.documentElement.removeAttribute('data-events')
+	})
+}
+
 /** Replaces the clipboard for the test, and returns its `writeText`. */
 function mockClipboard() {
 	const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue()
@@ -455,11 +467,7 @@ describe('pin', () => {
 		// The attribute of the pin follows the pin only while the events run.
 		localStorage.setItem('events:on', '1')
 
-		onTestFinished(() => {
-			localStorage.removeItem('events:on')
-
-			document.documentElement.removeAttribute('data-events')
-		})
+		restoreEventsOn()
 
 		const onOpenChange = vi.fn()
 
@@ -515,11 +523,7 @@ describe('pin', () => {
 	})
 
 	it('mounts the pinned panel when the events turn on, and unmounts it when they turn off', async () => {
-		onTestFinished(() => {
-			localStorage.removeItem('events:on')
-
-			document.documentElement.removeAttribute('data-events')
-		})
+		restoreEventsOn()
 
 		setEventsPinned(true)
 
@@ -565,11 +569,7 @@ describe('pin', () => {
 
 describe('EventsSwitch', () => {
 	it('turns the events on and off, and the root attribute follows it', () => {
-		onTestFinished(() => {
-			localStorage.removeItem('events:on')
-
-			document.documentElement.removeAttribute('data-events')
-		})
+		restoreEventsOn()
 
 		render(<EventsSwitch />)
 

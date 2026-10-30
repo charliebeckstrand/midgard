@@ -4,6 +4,7 @@ import { ComboChart } from '../../modules/chart/combo-chart'
 import type { ChartValueAxis } from '../../modules/chart/engine/chart-axes/schema'
 import { LineChart } from '../../modules/chart/line-chart'
 import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI, setupUser } from '../helpers'
+import { axisLabels } from '../helpers/axis-labels'
 
 type Week = { week: string; shipments: number; rate: number }
 
@@ -43,13 +44,6 @@ function line(overrides?: {
 	)
 }
 
-/** The tick labels inside an axis group, in draw order. */
-function tickLabels(container: HTMLElement, slot: string): string[] {
-	return [...(bySlot(container, slot)?.querySelectorAll('text') ?? [])].map(
-		(tick) => tick.textContent ?? '',
-	)
-}
-
 describe('secondary y-axis', () => {
 	it('draws a right axis once a series binds to it, and none without', () => {
 		const dual = line()
@@ -64,9 +58,9 @@ describe('secondary y-axis', () => {
 	it('scales each side to its own domain with its own formatter', () => {
 		const { container } = line()
 
-		const left = tickLabels(container, 'chart-axis-y')
+		const left = axisLabels(container, 'chart-axis-y')
 
-		const right = tickLabels(container, 'chart-axis-y-right')
+		const right = axisLabels(container, 'chart-axis-y-right')
 
 		// Left ticks read the shipments domain in dollars; right ticks read the
 		// far smaller rate domain in percent: neither domain swallows the other.
@@ -78,7 +72,7 @@ describe('secondary y-axis', () => {
 
 		expect(right.every((label) => label.endsWith('%'))).toBe(true)
 
-		expect(left.some((label) => label === '$80' || label === '$100')).toBe(true)
+		expect(left).toContainEqual(expect.toBeOneOf(['$80', '$100']))
 	})
 
 	it('formats the data table per series axis', () => {
@@ -94,7 +88,7 @@ describe('secondary y-axis', () => {
 	it('pins the y2 domain through axes.y2 min / max', () => {
 		const { container } = line({ y2Axis: { min: 0, max: 50 } })
 
-		const right = tickLabels(container, 'chart-axis-y-right')
+		const right = axisLabels(container, 'chart-axis-y-right')
 
 		expect(right.at(0)).toBe('0%')
 
@@ -108,7 +102,7 @@ describe('secondary y-axis', () => {
 	it('draws gridlines from the left axis only, until the right opts in', () => {
 		const defaulted = line()
 
-		const leftTickCount = tickLabels(defaulted.container, 'chart-axis-y').length
+		const leftTickCount = axisLabels(defaulted.container, 'chart-axis-y').length
 
 		expect(
 			defaulted.container.querySelectorAll('[data-slot="chart-grid-lines"] line'),
@@ -119,12 +113,12 @@ describe('secondary y-axis', () => {
 		const opted = optedIn.container.querySelectorAll('[data-slot="chart-grid-lines"] line').length
 
 		const bothCount =
-			tickLabels(optedIn.container, 'chart-axis-y').length +
-			tickLabels(optedIn.container, 'chart-axis-y-right').length
+			axisLabels(optedIn.container, 'chart-axis-y').length +
+			axisLabels(optedIn.container, 'chart-axis-y-right').length
 
 		// The right ticks join the layer; coinciding positions (both floors on a
 		// zero baseline) collapse to one hairline.
-		expect(opted).toBeGreaterThan(tickLabels(optedIn.container, 'chart-axis-y').length)
+		expect(opted).toBeGreaterThan(axisLabels(optedIn.container, 'chart-axis-y').length)
 
 		expect(opted).toBeLessThanOrEqual(bothCount)
 	})
@@ -252,7 +246,7 @@ describe('secondary y-axis', () => {
 
 		// The rule folds into the right domain (rate tops out at 25, the ceiling
 		// pushes it to 40) and its parity entry reads the right formatter.
-		const right = tickLabels(container, 'chart-axis-y-right')
+		const right = axisLabels(container, 'chart-axis-y-right')
 
 		expect(right.at(-1)).toBe('40%')
 

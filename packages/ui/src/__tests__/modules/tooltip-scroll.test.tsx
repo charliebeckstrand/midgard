@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
@@ -7,6 +7,7 @@ import { MapPlat, MapPoint } from '../../modules/map'
 import { act, allBySlot, allRegions, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { it, onFakeClock } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
+import { stubElementFromPoint } from '../helpers/stub-element-from-point'
 
 const DATA = [
 	{ quarter: 'Q1', revenue: 40, costs: 24 },
@@ -46,10 +47,6 @@ function stubBox(el: Element): void {
 function movePointer(x: number, y: number): void {
 	window.dispatchEvent(new PointerEvent('pointermove', { clientX: x, clientY: y }))
 }
-
-afterEach(() => {
-	document.elementFromPoint = undefined as never
-})
 
 describe('tooltip across a scroll', () => {
 	onFakeClock()
@@ -139,7 +136,7 @@ describe('tooltip across a scroll', () => {
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Direct')
 
 		// jsdom has no layout, so name the slice the settled pointer lands on.
-		document.elementFromPoint = vi.fn().mockReturnValue(direct ?? null)
+		stubElementFromPoint(direct ?? null)
 
 		movePointer(150, 100)
 
@@ -173,7 +170,7 @@ describe('tooltip across a scroll', () => {
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 
 		// The scroll carried the pie out from under the pointer, onto the page.
-		document.elementFromPoint = vi.fn().mockReturnValue(document.body)
+		stubElementFromPoint(document.body)
 
 		movePointer(150, 60)
 
@@ -273,7 +270,7 @@ describe('tooltip across a scroll', () => {
 		const [alpha] = allRegions(container)
 
 		// jsdom has no layout, so name the region the settled pointer lands on.
-		document.elementFromPoint = vi.fn().mockReturnValue(alpha ?? null)
+		stubElementFromPoint(alpha ?? null)
 
 		act(() => fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 }))
 
@@ -320,7 +317,7 @@ describe('tooltip across a scroll', () => {
 		// a hit test, but the layer takes no pointer, so it reads as the ocean.
 		const [alpha] = allRegions(container)
 
-		document.elementFromPoint = vi.fn().mockReturnValue(alpha ?? null)
+		stubElementFromPoint(alpha ?? null)
 
 		movePointer(200, 30)
 
@@ -355,7 +352,7 @@ describe('tooltip across a scroll', () => {
 		expect(lit()).toBe(alpha?.getAttribute('d'))
 
 		// The scroll slides the next region under the still pointer.
-		document.elementFromPoint = vi.fn().mockReturnValue(beta ?? null)
+		stubElementFromPoint(beta ?? null)
 
 		movePointer(40, 20)
 
@@ -385,7 +382,7 @@ describe('tooltip across a scroll', () => {
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 
 		// Settle over the ocean: nothing resolves under the pointer.
-		document.elementFromPoint = vi.fn().mockReturnValue(null)
+		stubElementFromPoint(null)
 
 		movePointer(40, 20)
 

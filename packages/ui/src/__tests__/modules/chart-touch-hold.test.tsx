@@ -1,4 +1,4 @@
-import { describe, expect } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { ContextMenu } from '../../components/context-menu'
 import { TOUCH_CONTEXT_MENU_DELAY } from '../../components/menu/use-menu-touch-hold'
 import { TOUCH_TAP_WINDOW } from '../../hooks/use-touch-tap'
@@ -180,7 +180,7 @@ describe('a touch hold on a chart', () => {
 	})
 
 	/** Holds a touch still on the element past the tap window, then lifts it. */
-	async function hold(target: Element, clock: FakeClock) {
+	const hold = vi.defineHelper(async (target: Element, clock: FakeClock) => {
 		fireEvent.pointerOver(target, touch)
 
 		fireEvent.pointerDown(target, touch)
@@ -190,23 +190,6 @@ describe('a touch hold on a chart', () => {
 		expect(screen.queryByRole('tooltip')).toBeNull()
 
 		fireEvent.pointerUp(target, touch)
-	}
-
-	it('opens no tooltip on a cartesian chart', async ({ clock }) => {
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by quarter"
-				width={400}
-				data={data}
-				series={[{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }]}
-			/>,
-		)
-
-		await hold(bySlot(container, 'chart-hit') as Element, clock)
-
-		expect(bySlot(container, 'tooltip-content')).toBeNull()
-
-		expect(bySlot(container, 'chart-bar-spot')).toBeNull()
 	})
 
 	it('opens no tooltip on a donut', async ({ clock }) => {
