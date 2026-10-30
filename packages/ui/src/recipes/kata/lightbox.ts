@@ -168,7 +168,7 @@ export const k = defineKata(
 				 * thumbnail of a photo that the viewer does not show is dim.
 				 */
 				base: [
-					'shrink-0 opacity-30 transition-opacity hover:opacity-60',
+					'shrink-0 cursor-pointer opacity-30 transition-opacity hover:opacity-60',
 					dan.size.lightbox,
 					rounded.md,
 					focus.ring,
