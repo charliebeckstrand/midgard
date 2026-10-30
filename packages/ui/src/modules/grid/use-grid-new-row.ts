@@ -75,6 +75,7 @@ export function useGridNewRow<T>({
 	reseat,
 	cellId,
 	moveTo,
+	seatNewRow,
 }: {
 	config: GridEditableConfig | undefined
 	managed: boolean
@@ -96,6 +97,8 @@ export function useGridNewRow<T>({
 	reseat: () => void
 	cellId: (row: number, col: number) => string
 	moveTo: (coord: Coord) => void
+	/** The cursor's guarded seat on a column of the slot, for a press on a cell of the slot. */
+	seatNewRow: (col: number) => void
 }): {
 	/** The slot as its cells read it, or `null` when the grid shows none. */
 	session: GridNewRowSession | null
@@ -407,7 +410,7 @@ export function useGridNewRow<T>({
 						addRow,
 						editorKind,
 						cellId,
-						moveTo,
+						seat: seatNewRow,
 					},
 		[
 			position,
@@ -419,7 +422,7 @@ export function useGridNewRow<T>({
 			addRow,
 			editorKind,
 			cellId,
-			moveTo,
+			seatNewRow,
 		],
 	)
 

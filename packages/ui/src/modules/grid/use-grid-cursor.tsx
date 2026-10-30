@@ -483,6 +483,18 @@ export function useGridCursor<T>({
 		onActiveCellChange(cell)
 	})
 
+	// A press on a cell of the new-row slot seats the cursor there, with the
+	// guards of a press on a data cell. The pressed cell is in view, so the
+	// focus does not scroll. While a drag holds the press owner, a press, such
+	// as the tap of a palm, does not seat the cursor.
+	const seatNewRow = useStableEvent((col: number) => {
+		if (nav.press.held()) return
+
+		tableRef.current?.focus({ preventScroll: true })
+
+		nav.moveTo({ row: NEW_ROW_INDEX, col })
+	})
+
 	const editing = useGridEditing<T>({
 		enabled: editingEnabled,
 		config: editable,
@@ -493,6 +505,7 @@ export function useGridCursor<T>({
 		tableRef,
 		cellId: nav.cellId,
 		moveTo: nav.moveTo,
+		seatNewRow,
 		rowStep: nav.rowStep,
 	})
 
