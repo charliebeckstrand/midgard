@@ -102,7 +102,7 @@ describe('Grid row manager', () => {
 
 		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
 
-		const toggle = screen.getByRole('button', { name: 'Collapse group Developer' })
+		const toggle = screen.getByRole('button', { name: /^Developer \(/, expanded: true })
 
 		rightClickDeveloperHeader()
 

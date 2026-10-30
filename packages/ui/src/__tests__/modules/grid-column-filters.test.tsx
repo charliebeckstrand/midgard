@@ -436,6 +436,20 @@ describe('Grid per-column filters', () => {
 		expect(screen.getByText('Alice')).toBeInTheDocument()
 	})
 
+	it('stamps data-open on the resting funnel while its sheet is open', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		const funnel = screen.getByRole('button', { name: 'Filter Name' })
+
+		expect(funnel).not.toHaveAttribute('data-open')
+
+		fireEvent.click(funnel)
+
+		expect(funnel).toHaveAttribute('aria-expanded', 'true')
+
+		expect(funnel).toHaveAttribute('data-open')
+	})
+
 	it('keeps focus on the filter trigger across Apply and Clear', async () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 

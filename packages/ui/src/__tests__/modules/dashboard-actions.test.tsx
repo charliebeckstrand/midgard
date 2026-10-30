@@ -146,6 +146,24 @@ describe('DashboardTile actions', () => {
 		expect(document.activeElement).toBe(screen.getByRole('region', { name: 'Sales' }))
 	})
 
+	it.each([
+		['grip', () => screen.getByRole('button', { name: 'Move Tile b' })],
+		['splitter', () => screen.getAllByRole('separator', { name: 'Resize Tile b' })[0]],
+		['duplicate control', () => screen.getByRole('button', { name: 'Duplicate Tile b' })],
+		['remove control', () => screen.getByRole('button', { name: 'Remove Tile b' })],
+	])('hands the focus to the board when edit mode ends on the %s', async (_, control) => {
+		const { rerender } = renderUI(<Board editing onRemove={vi.fn()} onDuplicate={vi.fn()} />)
+
+		control()?.focus()
+
+		rerender(<Board onRemove={vi.fn()} onDuplicate={vi.fn()} />)
+
+		// The hand-off runs in a microtask.
+		await act(async () => {})
+
+		expect(document.activeElement).toBe(screen.getByRole('region', { name: 'Sales' }))
+	})
+
 	it('duplicates a tile, keeps the focus, and announces it', async () => {
 		const onDuplicate = vi.fn()
 

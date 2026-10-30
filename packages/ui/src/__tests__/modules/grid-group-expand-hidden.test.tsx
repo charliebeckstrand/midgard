@@ -36,10 +36,10 @@ describe('Grid group expansion under a search', () => {
 		const { rerender } = renderUI(view('Alice'))
 
 		// The search keeps Developer alone. Close it.
-		fireEvent.click(screen.getByRole('button', { name: 'Collapse group Developer' }))
+		fireEvent.click(screen.getByRole('button', { name: /^Developer \(/, expanded: true }))
 
 		rerender(view(''))
 
-		expect(screen.getByRole('button', { name: 'Collapse group Designer' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /^Designer \(/, expanded: true })).toBeInTheDocument()
 	})
 })

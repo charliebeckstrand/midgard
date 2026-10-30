@@ -4,6 +4,7 @@ import {
 	AXIS_TITLE_BAND,
 	AXIS_TITLE_GAP,
 	BAND_EDGE_PAD,
+	BAND_LABEL_HEIGHT,
 	FLOOR_LABEL_PAD,
 	GUTTER_GAP,
 	GUTTER_LABEL_ROOM,
@@ -182,6 +183,30 @@ describe('horizontalLayout value bands', () => {
 		expect(layout.plot.y + layout.plot.height).toBe(300)
 
 		expect(layout.plot.y).toBe(PLOT_TOP_PAD + X_AXIS_HEIGHT)
+	})
+})
+
+describe('band label fit', () => {
+	// Twelve categories down a 200px plot fit twelve 16px slots, but the band
+	// centers spread over the plot less the two edge pads.
+	const categories = Array.from({ length: 12 }, (_, index) => `c${index}`)
+
+	it('thins by the span of the band centers, not the plot length', () => {
+		const layout = horizontalLayout({
+			...input(200 + PLOT_TOP_PAD + X_AXIS_HEIGHT, 0),
+			categories,
+			count: categories.length,
+		})
+
+		expect(layout.plot.height).toBe(200)
+
+		const ticks = layout.bandTicks
+
+		expect(ticks.length).toBeLessThan(categories.length)
+
+		for (const [index, tick] of ticks.slice(1).entries()) {
+			expect(tick.at - (ticks[index]?.at ?? 0)).toBeGreaterThanOrEqual(BAND_LABEL_HEIGHT)
+		}
 	})
 })
 

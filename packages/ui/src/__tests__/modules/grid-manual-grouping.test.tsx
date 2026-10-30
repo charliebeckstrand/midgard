@@ -234,17 +234,17 @@ describe('Grid manual (server-side) row grouping', () => {
 
 		// Collapsing an open group reports the shrunk set; the lazy-load hook
 		// stays silent (its children are already there).
-		await user.click(screen.getByRole('button', { name: 'Collapse group West' }))
+		await user.click(screen.getByRole('button', { name: /^West \(/, expanded: true }))
 
 		expect(onExpandedChange).toHaveBeenCalledWith(new Set())
 
 		expect(onGroupExpand).not.toHaveBeenCalled()
 
 		// The set is controlled: with no write-back the group stays open.
-		expect(screen.getByRole('button', { name: 'Collapse group West' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /^West \(/, expanded: true })).toBeInTheDocument()
 
 		// Expanding a closed group reports the grown set and fires the lazy-load hook.
-		await user.click(screen.getByRole('button', { name: 'Expand group East' }))
+		await user.click(screen.getByRole('button', { name: /^East \(/, expanded: false }))
 
 		expect(onExpandedChange).toHaveBeenCalledWith(new Set(['west', 'east']))
 
@@ -289,7 +289,7 @@ describe('Grid manual (server-side) row grouping', () => {
 
 		expect(screen.queryByText('Wade')).not.toBeInTheDocument()
 
-		await user.click(screen.getByRole('button', { name: 'Expand group West' }))
+		await user.click(screen.getByRole('button', { name: /^West \(/, expanded: false }))
 
 		// The fetched children landed under their header, visible.
 		expect(leafRow('Wade')).not.toHaveAttribute('aria-hidden')
@@ -330,14 +330,16 @@ describe('Grid manual (server-side) row grouping', () => {
 		// Collapsed: nothing loading.
 		expect(placeholderRows()).toHaveLength(0)
 
-		await user.click(screen.getByRole('button', { name: 'Expand group West' }))
+		await user.click(screen.getByRole('button', { name: /^West \(/, expanded: false }))
 
 		// The group opened the same tick: its unfetched children are stood in for by
 		// skeleton placeholder rows (West's count is 3, within the cap).
 		expect(placeholderRows()).toHaveLength(Math.min(3, MANUAL_GROUP_PLACEHOLDER_ROWS))
 
 		// East stays collapsed, so it contributes none.
-		expect(screen.queryByRole('button', { name: 'Collapse group East' })).not.toBeInTheDocument()
+		expect(
+			screen.queryByRole('button', { name: /^East \(/, expanded: true }),
+		).not.toBeInTheDocument()
 	})
 
 	it('caps placeholders for a large group and drops them once children arrive', () => {

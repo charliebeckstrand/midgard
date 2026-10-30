@@ -282,7 +282,8 @@ function evict() {
  * @remarks A failure is not remembered. While a viewer holds the record, the error stays for
  * that viewer to show. When the last holder leaves, the record goes, so a new mount reads the
  * document as not loaded: it paints no stale error on its first frame, and its hook reports
- * only what its own retry settles. A record with pages stays, because the cache keeps an open
+ * only what its own retry settles. A load that still runs when the last holder leaves keeps
+ * its record, and the record goes when that load fails. A record with pages stays, because the cache keeps an open
  * document.
  * @internal
  */
@@ -503,6 +504,9 @@ export function ensureDocumentLoad(src: string | undefined, run: PdfLoadRun) {
 		if (current) current.loading = false
 
 		publish(src, { loading: false, ...next })
+
+		// A failure that settles after its last viewer left goes now, as the leave could not drop it.
+		forgetFailure(src, held)
 
 		evict()
 	}

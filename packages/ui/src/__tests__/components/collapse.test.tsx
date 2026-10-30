@@ -88,6 +88,18 @@ describe('Collapse', () => {
 		expect(screen.getByText('Toggle')).toHaveAttribute('type', 'button')
 	})
 
+	it('stamps data-disabled on a disabled trigger', () => {
+		const { unmount } = renderUI(triggered({ disabled: true }))
+
+		expect(screen.getByText('Toggle')).toHaveAttribute('data-disabled')
+
+		unmount()
+
+		renderUI(triggered({}))
+
+		expect(screen.getByText('Toggle')).not.toHaveAttribute('data-disabled')
+	})
+
 	it('renders with a custom data-slot', () => {
 		// The anchor is renameable per §3.9.
 		const { container } = renderUI(triggered({ 'data-slot': 'chat-tool-head' }))

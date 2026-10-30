@@ -228,7 +228,8 @@ describe('DashboardTile limits', () => {
 
 		expect(south).toHaveAttribute('aria-valuemin', '1')
 
-		expect(south).not.toHaveAttribute('aria-valuemax')
+		// No maximum: the splitter reports the largest safe integer, so its value stays in range.
+		expect(south).toHaveAttribute('aria-valuemax', String(Number.MAX_SAFE_INTEGER))
 	})
 
 	it('places a new tile within its limits', () => {

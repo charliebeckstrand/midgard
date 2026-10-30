@@ -16,8 +16,9 @@ import { useIntl } from '../../../primitives/intl/use-intl'
 import { chartMenuName, chartMessages } from './chart-messages'
 
 /**
- * The chart menu, which {@link ChartContextMenu} publishes: its `entries`, and
- * whether {@link ChartMenuButton} shows (`button`). It is `null` where the
+ * The chart menu, which {@link ChartContextMenu} publishes: its `entries`,
+ * whether {@link ChartMenuButton} shows (`button`), and whether its menu caps
+ * its height as the right-click menu does (`capped`). It is `null` where the
  * chart has no menu: under `contextMenu={false}`, in the fullscreen copy, or
  * outside a chart. The map of a choropleth lets a touch hold open the menu
  * only where it is not `null`.
@@ -27,6 +28,7 @@ import { chartMenuName, chartMessages } from './chart-messages'
 export const [ChartMenuContext, useChartMenu] = createContext<{
 	entries: ContextMenuEntry[]
 	button: boolean
+	capped?: boolean
 } | null>('ChartMenu', { default: null })
 
 /** Props for {@link ChartMenuButton}. @internal */
@@ -38,9 +40,9 @@ export type ChartMenuButtonProps = {
 	 * of the box around the chart, and renders nothing outside such a box.
 	 * `'header'` puts it at the end of the chart header, and renders nothing
 	 * inside such a box. `'corner'` puts it in the top end corner of the nearest
-	 * positioned ancestor, for a chart that draws no header, and renders nothing
-	 * inside such a box. A chart renders the host copy and one other copy, so
-	 * at most one shows.
+	 * positioned ancestor, for a chart that draws no inline header, and renders
+	 * nothing inside such a box. A chart renders the host copy and one other
+	 * copy, so at most one shows.
 	 */
 	place: 'host' | 'header' | 'corner'
 }
@@ -62,10 +64,10 @@ function findItem(entries: ContextMenuEntry[], key: string): ContextMenuItem | u
  * portal. Otherwise it sits at the end of the chart header. The button covers no
  * mark in either place.
  *
- * A chart that draws no header puts the button in the top end corner of the
- * chart instead: the heatmap, the choropleth, a chart with `heading` off, and a
- * chart with no title or subtitle. There it can cover a mark, but it reserves no
- * height.
+ * A chart that draws no inline header puts the button in the top end corner of
+ * the chart instead: the heatmap, the choropleth, a chart with `heading` off, a
+ * chart with no title or subtitle, and a spark chart, whose header is a veil
+ * that shows no button. There it can cover a mark, but it reserves no height.
  *
  * In the header row of a box, a View data button comes before the menu
  * button on each pointer, when the menu has the View data entry. It shows also
@@ -86,7 +88,7 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 
 	if ((place === 'host') !== (host !== null)) return null
 
-	const { entries, button } = chartMenu
+	const { entries, button, capped } = chartMenu
 
 	const menu = button ? (
 		<div
@@ -99,7 +101,7 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 				place === 'corner' && 'absolute end-0 top-0 z-10',
 			)}
 		>
-			<Menu placement="bottom-end">
+			<Menu placement="bottom-end" capped={capped}>
 				<MenuTrigger>
 					<Button type="button" variant="bare" aria-label={chartMenuName(intl, title)}>
 						<Icon icon={<EllipsisVertical />} />

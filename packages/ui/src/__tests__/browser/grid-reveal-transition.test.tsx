@@ -80,7 +80,7 @@ describe('grid reveal transition (real browser)', () => {
 			<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />,
 		)
 
-		const toggle = screen.getAllByRole('button', { name: /group/ })[0]
+		const toggle = screen.getAllByRole('button', { name: /\(\d+\)$/, expanded: true })[0]
 
 		if (!toggle) throw new Error('group toggle did not render')
 

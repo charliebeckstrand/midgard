@@ -74,6 +74,34 @@ describe('EventsButton', () => {
 		expect(screen.getByRole('tab', { name: 'Events', selected: true })).toBeDefined()
 	})
 
+	it('stamps aria-expanded and data-open on the trigger while the sheet is open', async () => {
+		render(<EventsButton />)
+
+		const trigger = screen.getByRole('button', { name: 'Events' })
+
+		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+		expect(trigger).not.toHaveAttribute('data-open')
+
+		fireEvent.click(trigger)
+
+		const close = await screen.findByRole('button', { name: 'Close' })
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+
+		expect(trigger).toHaveAttribute('data-open')
+
+		act(() => {
+			fireEvent.click(close)
+		})
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+		expect(trigger).not.toHaveAttribute('data-open')
+	})
+
 	it('pauses the store from the press, so the store does not record the load of its own sheet', async () => {
 		const store = start()
 

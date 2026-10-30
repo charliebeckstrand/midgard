@@ -1,11 +1,13 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type KeyboardEvent, type PointerEvent, useLayoutEffect, useRef } from 'react'
 import { dataAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Splitter } from '../../primitives/splitter/splitter'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
+import { keepFocusOnBoard } from './dashboard-focus'
 import { dashboardMessages } from './dashboard-messages'
 import type { DashboardCell } from './engine/dashboard-layout'
 import type { DashboardResizeEdge, DashboardResizeRange } from './engine/dashboard-resize'
@@ -75,6 +77,8 @@ export function DashboardResizeHandle({
 
 	const ref = useRef<HTMLHRElement>(null)
 
+	const setRef = useComposedRefs(ref, keepFocusOnBoard)
+
 	// The span of the last check, so the scroll below runs on a new span only.
 	const checkedSpan = useRef(span)
 
@@ -120,7 +124,7 @@ export function DashboardResizeHandle({
 	return (
 		<Splitter
 			{...shared}
-			ref={ref}
+			ref={setRef}
 			label={intl.formatMessage(dashboardMessages.resize, { label })}
 			orientation={horizontal ? 'horizontal' : 'vertical'}
 			value={span}
