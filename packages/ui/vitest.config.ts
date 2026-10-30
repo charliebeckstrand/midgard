@@ -5,14 +5,12 @@ import { configDefaults, defineConfig } from 'vitest/config'
 import {
 	docblockEnvironment,
 	docsTestDir,
-	srcRelative,
 	walkSource,
 } from './src/__tests__/helpers/walk-source.ts'
-import { reactDocs } from './src/docs/plugin/index.ts'
 import { assertions, CI, cleanup, coverageScope, sequence } from './vitest.base.ts'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
-// project runs exactly these, and `unit` excludes them. The scan skips
+// project runs exactly these, and `unit` and `docs` exclude them. The scan skips
 // `geometry/`, which the `geometry` project runs by path. The docblock is the
 // one declaration (Vitest reads it too) and this scan turns it into a
 // project so the runner groups the files by `groupOrder`. Under
@@ -38,12 +36,13 @@ function nodeEnvironmentFiles(): string[] {
 	return files.sort()
 }
 
-const nodeFiles = nodeEnvironmentFiles()
+/** The test files with the node docblock (see `nodeEnvironmentFiles`). */
+export const nodeFiles = nodeEnvironmentFiles()
 
 // The boundary suites that read files outside this package: the rule documents,
 // the agent definitions, the Dockerfiles, `package.json`, and the lockfile at the
-// repository root, the Biome plugins, and the sources of the apps and of the
-// other packages. They run as the `workspace` project, which the
+// repository root, the CI workflow, the Biome plugins, and the sources of the
+// apps and of the other packages. They run as the `workspace` project, which the
 // `test:workspace` task of turbo runs with those files as its inputs. Thus an
 // edit outside ui does not clear the cache of the whole ui suite.
 const workspaceScans = [
@@ -55,6 +54,7 @@ const workspaceScans = [
 	'src/__tests__/boundary/drag-cursor-boundary.test.ts',
 	'src/__tests__/boundary/inline-scroll-boundary.test.ts',
 	'src/__tests__/boundary/recipe-boundary.test.ts',
+	'src/__tests__/boundary/vitest-config-boundary.test.ts',
 ]
 
 // The settings of the two projects that scan source text: `boundary` and
@@ -133,8 +133,11 @@ const exportsCache: Plugin = {
 	},
 }
 
-// Setup files for both jsdom projects (unit, integration). The first one also
-// gives `expect` the geometry matchers (`setup/geometry.ts`).
+/** The plugins of each project: the two cache key generators above. */
+export const cachePlugins = [globCache, exportsCache]
+
+// Setup files for the jsdom projects (unit, docs, integration). The first one
+// also gives `expect` the geometry matchers (`setup/geometry.ts`).
 const setupFiles = [
 	'./src/__tests__/setup/index.ts',
 	'./src/__tests__/setup/console-guard.ts',
@@ -142,57 +145,232 @@ const setupFiles = [
 	'./src/__tests__/setup/restore-prototype-focus.ts',
 ]
 
-export default defineConfig({
-	plugins: [globCache, exportsCache],
-	test: {
-		environment: 'jsdom',
-		// Vitest caps a pool at one fewer worker than the machine has cores. Local
-		// runs lift the cap to one per core; CI keeps the default, because its
-		// agents are shared and the scaled timeouts below assume that slack.
+/**
+ * The setup files of the `unit` and `docs` projects. The grid modules load
+ * before each file of these projects only (see `setup/grid-modules.ts`).
+ */
+export const unitSetupFiles = [...setupFiles, './src/__tests__/setup/grid-modules.ts']
+
+/**
+ * The test options of each project. The inline projects below inherit them
+ * from the root `test` block, and each project of the array can change one.
+ * The `docs` project is in a file of its own (`vitest.docs.config.ts`), and
+ * such a project inherits no option of the root config. Thus that file spreads
+ * this object.
+ */
+export const projectDefaults = {
+	environment: 'jsdom',
+	// Vitest caps a pool at one fewer worker than the machine has cores. Local
+	// runs lift the cap to one per core; CI keeps the default, because its
+	// agents are shared and the scaled timeouts below assume that slack.
+	//
+	// Measured at 4 cores, where the extra worker is clearly worth it. It buys
+	// less as the count rises: under `isolate: false` each worker pays for its
+	// own module graph, so the gain from one more shrinks while that cost stays
+	// flat. Re-measure before you trust this on a much larger machine.
+	...(CI ? {} : { maxWorkers: '100%' }),
+	globals: true,
+	expect: assertions,
+	// Keep the transformed module graph on disk between runs. A warm cache cuts
+	// most of the transform time of the `unit` project, and much of its import
+	// time. The cache lives under the workspace root's node_modules. CI keys it
+	// on the turbo hash of the packages that ui resolves (ci.yml), so a change
+	// to those packages starts a cold cache. Vitest 5 turns the cache on by
+	// default. The option stays here because the cache of CI depends on it.
+	fsModuleCache: true,
+	// Machine speed must change when a test passes, never whether it passes:
+	// CI agents are slower and noisier than dev machines, so wall-clock
+	// budgets scale up there. asyncUtilTimeout is RTL's waitFor/findBy budget,
+	// injected by src/__tests__/setup/index.ts; it stays well below
+	// testTimeout so a stuck wait fails as an RTL timeout carrying the
+	// callback's last error, not an opaque test timeout.
+	testTimeout: CI ? 15_000 : 5_000,
+	hookTimeout: CI ? 15_000 : 10_000,
+	provide: { asyncUtilTimeout: CI ? 4_000 : 1_000 },
+	// Date/calendar tests construct local-time dates (`new Date(y, m, d)`);
+	// pin the zone so every machine renders the same wall-clock day. The
+	// runtime *locale* cannot be pinned here: Node resolves ICU's default at
+	// process start and `test.env` lands inside the worker afterwards, so it
+	// would read as set and change nothing. The `test` scripts export `LANG`
+	// ahead of Node instead.
+	env: { TZ: 'UTC' },
+	// Vitest processes no CSS, and it gives each CSS import an empty module.
+	// An import with `?url` does not want the CSS but its URL, so it goes to
+	// Vite, which gives the path of the file, as the dev server does. Without
+	// it, the docs shell (`app/root.tsx`) renders its stylesheet link with an
+	// empty `href`, and React warns.
+	css: { include: [/\.css\?url$/] },
+	// See `vitest.base.ts`. `resetModules` is barred too; see the unit project
+	// below.
+	...cleanup,
+}
+
+// The inline projects of this config, in the order of their groups.
+const projects = [
+	{
+		// The jsdom suites of `src/__tests__`. The jsdom suites of the docs app
+		// run in the `docs` project (`vitest.docs.config.ts`) with these settings.
+		test: {
+			name: 'unit',
+			setupFiles: unitSetupFiles,
+			pool: 'threads',
+			// `isolate: false` keeps the evaluated module graph across a
+			// worker's files, and does not rebuild it for each one. That
+			// rebuild is where this suite spent most of its time.
+			//
+			// The price is a shared module registry and a shared jsdom window
+			// across the files a worker runs. No file here can declare a
+			// per-file `vi.mock` or call `vi.resetModules()`: see
+			// `src/__tests__/setup/module-mocks.ts` for the global doubles it
+			// replaces, and `test-isolation-boundary.test.ts`, which enforces
+			// the rule. The suites that need their own mock live in
+			// `integration` below, which keeps process isolation on forks.
+			isolate: false,
+			include: ['src/__tests__/**/*.test.{ts,tsx}'],
+			// The browser suite (vitest.browser.config.ts) verifies behavior
+			// jsdom can't (layout/color geometry and, in its floating-ui
+			// project, real-floating-engine focus trapping) so it may not
+			// run under this jsdom config. The compiler/ suite runs only in
+			// the compiled run (vitest.compiler.config.ts), and the
+			// docs-build/ suite only after the docs build
+			// (vitest.docs-build.config.ts). The boundary/
+			// suites run in the two projects below, the node-docblock
+			// files in `pure`, and the geometry/ suites in `geometry`.
+			exclude: [
+				...configDefaults.exclude,
+				'src/__tests__/browser/**',
+				'src/__tests__/compiler/**',
+				'src/__tests__/docs-build/**',
+				'src/__tests__/boundary/**',
+				'src/__tests__/geometry/**',
+				...nodeFiles,
+			],
+		},
+	},
+	{
+		// Pure-function suites, selected by their `// @vitest-environment
+		// node` docblock (see `nodeEnvironmentFiles` above): a plain node
+		// environment on one shared worker, with no jsdom, no module
+		// doubles, and no RTL setup. The setup is the locale guard, because
+		// the format tests live here, the geometry matchers, which each
+		// project gives to `expect`, and the restore after each test. A file here cannot reach the
+		// shared jsdom window by accident, and
+		// `node-environment-boundary.test.ts` keeps the docblock and the
+		// file's DOM use in step both ways.
+		test: {
+			name: 'pure',
+			environment: 'node',
+			pool: 'threads',
+			isolate: false,
+			setupFiles: [
+				'./src/__tests__/setup/locale-guard.ts',
+				'./src/__tests__/setup/geometry.ts',
+				'./src/__tests__/setup/restore.ts',
+				'./src/__tests__/setup/console-guard.ts',
+			],
+			include: nodeFiles,
+		},
+	},
+	{
+		// Architectural boundary suites (*-boundary.test.ts): node:fs walks
+		// over source text, no DOM, no React, no mocks. A plain node
+		// environment on one shared worker strips the per-file fork + jsdom
+		// + setup cost they'd pay in the integration project below, which
+		// serializes into real wall clock on few-core CI agents.
+		test: {
+			name: 'boundary',
+			...nodeScan,
+			isolate: false,
+			include: ['src/__tests__/boundary/*-boundary.test.ts'],
+			exclude: [...configDefaults.exclude, ...workspaceScans],
+		},
+	},
+	{
+		// The boundary suites in `workspaceScans`, with the settings of `boundary`.
+		test: {
+			name: 'workspace',
+			...nodeScan,
+			isolate: false,
+			include: workspaceScans,
+		},
+	},
+	{
+		// Integration suites: the ones that vi.mock a shared source module
+		// (map-points-render) and need forks' per-file module graph for
+		// the mock to stay authoritative. A suite that needs a cold
+		// module registry belongs here too: `vi.resetModules()` is barred
+		// in the shared-registry projects, so a case that must re-evaluate
+		// a module to empty its module-scope state
+		// (code-block-load-shiki, for the worker and the memo cells of
+		// `code-shiki`) cannot run above. A
+		// suite that sets `process.env.TZ` belongs here too: a worker thread
+		// keeps the zone it started with, and a fork reads the change
+		// (chart-time-zone).
 		//
-		// Measured at 4 cores, where the extra worker is clearly worth it. It buys
-		// less as the count rises: under `isolate: false` each worker pays for its
-		// own module graph, so the gain from one more shrinks while that cost stays
-		// flat. Re-measure before you trust this on a much larger machine.
-		...(CI ? {} : { maxWorkers: '100%' }),
-		globals: true,
-		expect: assertions,
-		// Keep the transformed module graph on disk between runs. A warm cache cuts
-		// most of the transform time of the `unit` project, and much of its import
-		// time. The cache lives under the workspace root's node_modules. CI keys it
-		// on the turbo hash of the packages that ui resolves (ci.yml), so a change
-		// to those packages starts a cold cache. Vitest 5 turns the cache on by
-		// default. The option stays here because the cache of CI depends on it.
-		fsModuleCache: true,
-		// Machine speed must change when a test passes, never whether it passes:
-		// CI agents are slower and noisier than dev machines, so wall-clock
-		// budgets scale up there. asyncUtilTimeout is RTL's waitFor/findBy budget,
-		// injected by src/__tests__/setup/index.ts; it stays well below
-		// testTimeout so a stuck wait fails as an RTL timeout carrying the
-		// callback's last error, not an opaque test timeout.
-		testTimeout: CI ? 15_000 : 5_000,
-		hookTimeout: CI ? 15_000 : 10_000,
-		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000 },
-		// Date/calendar tests construct local-time dates (`new Date(y, m, d)`);
-		// pin the zone so every machine renders the same wall-clock day. The
-		// runtime *locale* cannot be pinned here: Node resolves ICU's default at
-		// process start and `test.env` lands inside the worker afterwards, so it
-		// would read as set and change nothing. The `test` scripts export `LANG`
-		// ahead of Node instead.
-		env: { TZ: 'UTC' },
-		// Vitest processes no CSS, and it gives each CSS import an empty module.
-		// An import with `?url` does not want the CSS but its URL, so it goes to
-		// Vite, which gives the path of the file, as the dev server does. Without
-		// it, the docs shell (`app/root.tsx`) renders its stylesheet link with an
-		// empty `href`, and React warns.
-		css: { include: [/\.css\?url$/] },
+		// Nothing else belongs here. Each file here pays a fork and a
+		// fresh jsdom, which the pool above pays once per worker. The
+		// virtualizer, canvas, and PDF suites that declare no mock ran
+		// here once, and they pass on the shared window: the residue
+		// guard holds them to its terms. Moving those files shortened the
+		// jsdom run.
+		test: {
+			name: 'integration',
+			setupFiles,
+			pool: 'forks',
+			include: ['src/__tests__/boundary/**/*.test.{ts,tsx}'],
+			exclude: [...configDefaults.exclude, '**/*-boundary.test.ts'],
+		},
+	},
+	{
+		// Computational geometry (src/__tests__/geometry/): the pure
+		// functions that turn coordinates, boxes, and shapes into other
+		// coordinates, boxes, and shapes. Map projection, winding, and
+		// topology, the chart scales and marks, and the dashboard layout
+		// are examples. It has the settings of `pure`: a plain node
+		// environment on one shared worker. The layout geometry that needs
+		// a real engine runs in the `geometry` instance of
+		// vitest.browser.config.ts. `pnpm test:geometry` runs the two.
+		//
+		// Each file still opens with `// @vitest-environment node`, so
+		// `node-environment-boundary.test.ts` keeps the file clear of the
+		// DOM. The project is last in the array, so the `groupOrder` of
+		// each project above stays the same.
+		test: {
+			name: 'geometry',
+			environment: 'node',
+			pool: 'threads',
+			isolate: false,
+			setupFiles: [
+				'./src/__tests__/setup/locale-guard.ts',
+				'./src/__tests__/setup/geometry.ts',
+				'./src/__tests__/setup/restore.ts',
+				'./src/__tests__/setup/console-guard.ts',
+			],
+			include: ['src/__tests__/geometry/**/*.test.ts'],
+		},
+	},
+]
+
+/** The `groupOrder` of the `docs` project: the group after the inline projects. */
+export const docsGroupOrder = projects.length
+
+/** The config file of the `docs` project. The compiled run replaces it. */
+export const docsProject = './vitest.docs.config.ts'
+
+export default defineConfig({
+	plugins: cachePlugins,
+	test: {
+		...projectDefaults,
 		// `shuffle` selects RandomSequencer, which drops the project grouping
 		// BaseSequencer applies. Every project's files then land in one queue, and
 		// a worker is terminated at each crossing: along with the module graph
-		// `isolate: false` exists to keep. Each project below takes its
-		// `groupOrder` from its position in the array (unit, pure, boundary,
+		// `isolate: false` exists to keep. Each inline project takes its
+		// `groupOrder` from its position in `projects` (unit, pure, boundary,
 		// workspace, integration, then geometry) which restores the grouping; the shuffle still applies
-		// inside each group. Deriving it means a new project can neither omit the
+		// inside each group. The `docs` project runs in the group after them
+		// (`docsGroupOrder`), not in the group of `unit`: a worker of one
+		// project cannot run a file of the other, so a shared group ends a
+		// worker at each crossing. Deriving it means a new project can neither omit the
 		// field nor collide with a sibling, and a project that set it alone would
 		// replace the resolved sequence rather than extend it, losing `shuffle`
 		// and `seed`.
@@ -203,9 +381,6 @@ export default defineConfig({
 		// `groupOrder` with it, which reorders the very queue the failure came
 		// from.
 		sequence,
-		// See `vitest.base.ts`. `resetModules` is barred too; see the unit project
-		// below.
-		...cleanup,
 		reporters: CI ? ['default', 'junit'] : ['default'],
 		outputFile: {
 			junit: 'test-results/junit.xml',
@@ -213,161 +388,11 @@ export default defineConfig({
 		// `test:coverage` merges this report with the report of the browser run.
 		coverage: { ...coverageScope, reporter: ['text', 'cobertura'] },
 		projects: [
-			{
-				// The suite of the docs app, under src/docs/__tests__, runs here too.
-				// The pages import the virtual modules of the docs plugin, so the
-				// smoke test of the pages (`page-smoke.test.tsx`) needs the real
-				// plugin. The plugin transforms only the files of `pages/`, and it
-				// loads a virtual module only when a test imports one. Thus it costs
-				// the other suites almost nothing.
-				plugins: [reactDocs()],
-				test: {
-					name: 'unit',
-					// The grid modules load before each file of this project only (see
-					// `setup/grid-modules.ts`).
-					setupFiles: [...setupFiles, './src/__tests__/setup/grid-modules.ts'],
-					pool: 'threads',
-					// `isolate: false` keeps the evaluated module graph across a
-					// worker's files, and does not rebuild it for each one. That
-					// rebuild is where this suite spent most of its time.
-					//
-					// The price is a shared module registry and a shared jsdom window
-					// across the files a worker runs. No file here can declare a
-					// per-file `vi.mock` or call `vi.resetModules()`: see
-					// `src/__tests__/setup/module-mocks.ts` for the global doubles it
-					// replaces, and `test-isolation-boundary.test.ts`, which enforces
-					// the rule. The suites that need their own mock live in
-					// `integration` below, which keeps process isolation on forks.
-					isolate: false,
-					include: [
-						'src/__tests__/**/*.test.{ts,tsx}',
-						`src/${srcRelative(docsTestDir)}/**/*.test.{ts,tsx}`,
-					],
-					// The browser suite (vitest.browser.config.ts) verifies behavior
-					// jsdom can't (layout/color geometry and, in its floating-ui
-					// project, real-floating-engine focus trapping) so it may not
-					// run under this jsdom config. The compiler/ suite runs only in
-					// the compiled run (vitest.compiler.config.ts), and the
-					// docs-build/ suite only after the docs build
-					// (vitest.docs-build.config.ts). The boundary/
-					// suites run in the two projects below, the node-docblock
-					// files in `pure`, and the geometry/ suites in `geometry`.
-					exclude: [
-						...configDefaults.exclude,
-						'src/__tests__/browser/**',
-						'src/__tests__/compiler/**',
-						'src/__tests__/docs-build/**',
-						'src/__tests__/boundary/**',
-						'src/__tests__/geometry/**',
-						...nodeFiles,
-					],
-				},
-			},
-			{
-				// Pure-function suites, selected by their `// @vitest-environment
-				// node` docblock (see `nodeEnvironmentFiles` above): a plain node
-				// environment on one shared worker, with no jsdom, no module
-				// doubles, and no RTL setup. The setup is the locale guard, because
-				// the format tests live here, the geometry matchers, which each
-				// project gives to `expect`, and the restore after each test. A file here cannot reach the
-				// shared jsdom window by accident, and
-				// `node-environment-boundary.test.ts` keeps the docblock and the
-				// file's DOM use in step both ways.
-				test: {
-					name: 'pure',
-					environment: 'node',
-					pool: 'threads',
-					isolate: false,
-					setupFiles: [
-						'./src/__tests__/setup/locale-guard.ts',
-						'./src/__tests__/setup/geometry.ts',
-						'./src/__tests__/setup/restore.ts',
-						'./src/__tests__/setup/console-guard.ts',
-					],
-					include: nodeFiles,
-				},
-			},
-			{
-				// Architectural boundary suites (*-boundary.test.ts): node:fs walks
-				// over source text, no DOM, no React, no mocks. A plain node
-				// environment on one shared worker strips the per-file fork + jsdom
-				// + setup cost they'd pay in the integration project below, which
-				// serializes into real wall clock on few-core CI agents.
-				test: {
-					name: 'boundary',
-					...nodeScan,
-					isolate: false,
-					include: ['src/__tests__/boundary/*-boundary.test.ts'],
-					exclude: [...configDefaults.exclude, ...workspaceScans],
-				},
-			},
-			{
-				// The boundary suites in `workspaceScans`, with the settings of `boundary`.
-				test: {
-					name: 'workspace',
-					...nodeScan,
-					isolate: false,
-					include: workspaceScans,
-				},
-			},
-			{
-				// Integration suites: the ones that vi.mock a shared source module
-				// (map-points-render) and need forks' per-file module graph for
-				// the mock to stay authoritative. A suite that needs a cold
-				// module registry belongs here too: `vi.resetModules()` is barred
-				// in the shared-registry projects, so a case that must re-evaluate
-				// a module to empty its module-scope state
-				// (code-block-load-shiki, for the worker and the memo cells of
-				// `code-shiki`) cannot run above. A
-				// suite that sets `process.env.TZ` belongs here too: a worker thread
-				// keeps the zone it started with, and a fork reads the change
-				// (chart-time-zone).
-				//
-				// Nothing else belongs here. Each file here pays a fork and a
-				// fresh jsdom, which the pool above pays once per worker. The
-				// virtualizer, canvas, and PDF suites that declare no mock ran
-				// here once, and they pass on the shared window: the residue
-				// guard holds them to its terms. Moving those files shortened the
-				// jsdom run.
-				test: {
-					name: 'integration',
-					setupFiles,
-					pool: 'forks',
-					include: ['src/__tests__/boundary/**/*.test.{ts,tsx}'],
-					exclude: [...configDefaults.exclude, '**/*-boundary.test.ts'],
-				},
-			},
-			{
-				// Computational geometry (src/__tests__/geometry/): the pure
-				// functions that turn coordinates, boxes, and shapes into other
-				// coordinates, boxes, and shapes. Map projection, winding, and
-				// topology, the chart scales and marks, and the dashboard layout
-				// are examples. It has the settings of `pure`: a plain node
-				// environment on one shared worker. The layout geometry that needs
-				// a real engine runs in the `geometry` instance of
-				// vitest.browser.config.ts. `pnpm test:geometry` runs the two.
-				//
-				// Each file still opens with `// @vitest-environment node`, so
-				// `node-environment-boundary.test.ts` keeps the file clear of the
-				// DOM. The project is last in the array, so the `groupOrder` of
-				// each project above stays the same.
-				test: {
-					name: 'geometry',
-					environment: 'node',
-					pool: 'threads',
-					isolate: false,
-					setupFiles: [
-						'./src/__tests__/setup/locale-guard.ts',
-						'./src/__tests__/setup/geometry.ts',
-						'./src/__tests__/setup/restore.ts',
-						'./src/__tests__/setup/console-guard.ts',
-					],
-					include: ['src/__tests__/geometry/**/*.test.ts'],
-				},
-			},
-		].map((project, groupOrder) => ({
-			...project,
-			test: { ...project.test, sequence: { ...sequence, groupOrder } },
-		})),
+			...projects.map((project, groupOrder) => ({
+				...project,
+				test: { ...project.test, sequence: { ...sequence, groupOrder } },
+			})),
+			docsProject,
+		],
 	},
 })

@@ -5,7 +5,7 @@ import { __resetTextSelectionHold } from '../../utilities/hold-text-selection'
 /**
  * Returns the package's module-scope state to its unused shape between tests.
  *
- * The `unit`, `pure`, `boundary`, and `geometry` projects and each browser
+ * The `unit`, `docs`, `pure`, `boundary`, and `geometry` projects and each browser
  * instance run `isolate: false`, so one module registry serves every file a worker or a page
  * runs. A module that holds state outside a component therefore carries it
  * across files, and the file that suffers is not the file that set it.

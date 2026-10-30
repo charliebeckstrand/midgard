@@ -44,7 +44,7 @@ Cross-layer value imports are forbidden. The barrel `index.ts` re-exports founda
 These pin the contract:
 
 - `__tests__/boundary/recipe-boundary.test.ts`: the barrel is types-only, and `package.json` `exports` never lists `./recipes`.
-- `__tests__/boundary/kiso-families.test.ts`: the kiso barrel exports each family and no other value, and a kata or a group reads kiso through the barrel only.
+- `__tests__/boundary/kiso-families-boundary.test.ts`: the kiso barrel exports each family and no other value, and a kata or a group reads kiso through the barrel only.
 - `biome.json`, the `recipes/kiso/**` override: kiso never reaches upward into kumi, kata, components, primitives, layouts, hooks, or providers.
 - `biome.json`, the `recipes/kumi/**` override: kumi reads kiso and the recipe engine, and never reaches upward into kata, components, primitives, layouts, hooks, or providers.
 - `.biome/plugins/no-unsanctioned-define-recipe.grit`: no module of the package calls `defineRecipe`, so a kata builds each recipe as a unit with `defineKata`.

@@ -14,7 +14,7 @@ Dependencies point one way: `kata → kumi → kiso`, and `kata → kiso`. See [
 
 ## Kiso: families
 
-One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `tsunagi.ts`; `index.ts` assembles the named bundle. The barrel exports each family and no other value, and `kiso-families.test.ts` holds the list. Full tables in [`src/recipes/kiso/README.md`](../src/recipes/kiso/README.md).
+One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `tsunagi.ts`; `index.ts` assembles the named bundle. The barrel exports each family and no other value, and `kiso-families-boundary.test.ts` holds the list. Full tables in [`src/recipes/kiso/README.md`](../src/recipes/kiso/README.md).
 
 | Family | Concern |
 |---|---|

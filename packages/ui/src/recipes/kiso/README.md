@@ -12,7 +12,7 @@ Composition flows downward only. A family can compose its siblings. `narabi` rea
 
 Each family is a sub-folder, with one file per concern, and `index.ts` assembles the named bundle. The bundle name matches the folder, so a consumer reaches a finished surface by name. The three exceptions are `kara.ts`, `sou.ts`, and `tsunagi.ts`. Each is one small concern, and more files would add no clarity.
 
-The barrel `index.ts` exports each family and no other value. `__tests__/boundary/kiso-families.test.ts` holds the list of families with the kanji of each name. To add a family, add it to that list and to the table below.
+The barrel `index.ts` exports each family and no other value. `__tests__/boundary/kiso-families-boundary.test.ts` holds the list of families with the kanji of each name. To add a family, add it to that list and to the table below.
 
 Each concern file opens with a `Layer: kiso · Concern: <concern>` docblock that pins the axis of the file. The `index.ts` of a family opens with a prose summary of the bundle. Bodies emit Tailwind utility strings and class fragments. Kiso calls no recipe engine: the axes of a recipe are in a group or in a kata.
 

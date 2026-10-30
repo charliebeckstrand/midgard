@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { mergeConfig } from 'vitest/config'
 import { splitSequencer } from './src/__tests__/setup/split-sequencer.ts'
 import { compileUiSource } from './vitest.compiler.preset.ts'
-import base from './vitest.config.ts'
+import base, { docsProject } from './vitest.config.ts'
 
 const { version } = createRequire(import.meta.url)('babel-plugin-react-compiler/package.json') as {
 	version: string
@@ -15,7 +15,7 @@ const { version } = createRequire(import.meta.url)('babel-plugin-react-compiler/
 // The compiler caches a value on the identity of its inputs. A component that
 // reads a mutable object during render, or a bare layout read that the compiler
 // removes, passes the plain suite and fails here. `test:compiler` runs this
-// config over the `unit`, `pure`, `integration`, and `geometry` projects, and CI runs it in
+// config over the `unit`, `docs`, `pure`, `integration`, and `geometry` projects, and CI runs it in
 // a job of its own. The `boundary` project reads source, not rendered output,
 // so it stays out.
 //
@@ -23,7 +23,19 @@ const { version } = createRequire(import.meta.url)('babel-plugin-react-compiler/
 // this run needs.
 //
 // The compiler reads the `ui` source, not the tests (`vitest.compiler.preset.ts`).
-export default mergeConfig(base, {
+//
+// The `docs` project is in a file of its own, so it inherits no plugin of this
+// run. Thus this run replaces it with its compiled twin
+// (`vitest.docs-compiler.config.ts`). `mergeConfig` joins the two `projects`
+// arrays, so the base config goes in with no `docs` entry.
+const { projects = [], ...baseTest } = base.test ?? {}
+
+const plain = {
+	...base,
+	test: { ...baseTest, projects: projects.filter((project) => project !== docsProject) },
+}
+
+export default mergeConfig(plain, {
 	plugins: [compileUiSource('__tests__')],
 	test: {
 		// `grid-compiler.test.ts` reads this to tell the two runs apart.
@@ -34,6 +46,7 @@ export default mergeConfig(base, {
 		sequence: { sequencer: splitSequencer(['react-compiler-skips.test.ts']) },
 		// Added to the projects of the base config.
 		projects: [
+			'./vitest.docs-compiler.config.ts',
 			{
 				test: {
 					name: 'skips',
