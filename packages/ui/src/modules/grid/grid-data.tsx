@@ -17,7 +17,7 @@ import { manualGroupPredicate } from './engine/grid-group/resolve'
 import { resolveReorder } from './engine/grid-reorder-compute'
 import { GridBusyStatus } from './grid-busy-status'
 import { GridDataDialogs } from './grid-data-dialogs'
-import { resolveHighlightQuery, rowReorderPermitted } from './grid-data-resolvers'
+import { manualNarrowed, resolveHighlightQuery, rowReorderPermitted } from './grid-data-resolvers'
 import { GridDataTable } from './grid-data-table'
 import type { GridDataProps, GridEditSource } from './grid-data-types'
 import { GridExportOverlay } from './grid-export-overlay'
@@ -531,6 +531,12 @@ export function GridData<T>({
 			grouped: groupingMode.active,
 			expanded: detail.active,
 			sorted: sort.length > 0,
+			narrowed: manualNarrowed({
+				search: searchConfig,
+				columnFilters: columnFiltersConfig,
+				globalFilter,
+				filters,
+			}),
 			renderedCount: renderRows.length,
 			sourceCount: rows.length,
 		}),

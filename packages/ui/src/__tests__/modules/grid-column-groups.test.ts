@@ -191,8 +191,8 @@ describe('groupByColumn', () => {
 
 describe('collapsedHiddenIds', () => {
 	const groups: GridColumnGroup[] = [
-		{ id: 'g', columns: ['a', 'b', 'c'] },
-		{ id: 'h', columns: ['d', 'e'] },
+		{ id: 'g', columns: ['a', 'b', 'c'], collapsible: true },
+		{ id: 'h', columns: ['d', 'e'], collapsible: true },
 	]
 
 	it('hides every member but the first anchor of a collapsed group', () => {
@@ -217,6 +217,34 @@ describe('collapsedHiddenIds', () => {
 		const shows = (id: string | number) => id !== 'b'
 
 		expect(collapsedHiddenIds(groups, new Set(['g']), shows)).toEqual(new Set(['c']))
+	})
+
+	// A band that is not collapsible has no expand toggle, so a collapse would
+	// hide its members with no way back.
+	it('hides nothing for a group that is not collapsible', () => {
+		const fixed: GridColumnGroup[] = [{ id: 'g', columns: ['a', 'b', 'c'], defaultCollapsed: true }]
+
+		expect(collapsedHiddenIds(fixed, new Set(['g']))).toEqual(new Set())
+	})
+
+	// The earlier group owns a shared column, so the later group anchors on its
+	// first own member and leaves the shared column in the earlier band.
+	it('anchors on the first member that the group owns', () => {
+		const shared: GridColumnGroup[] = [
+			{ id: 'a', columns: ['x', 'y'] },
+			{ id: 'b', columns: ['x', 'z', 'w'], collapsible: true },
+		]
+
+		expect(collapsedHiddenIds(shared, new Set(['b']))).toEqual(new Set(['w']))
+	})
+
+	it('does not hide a shared column that an earlier group owns', () => {
+		const shared: GridColumnGroup[] = [
+			{ id: 'a', columns: ['x', 'y'] },
+			{ id: 'b', columns: ['z', 'x', 'w'], collapsible: true },
+		]
+
+		expect(collapsedHiddenIds(shared, new Set(['b']))).toEqual(new Set(['w']))
 	})
 })
 
@@ -438,41 +466,51 @@ describe('groupByColumn · properties', () => {
 describe('collapsedHiddenIds · properties', () => {
 	const collapsedIds = () => fc.shuffledSubarray(['g0', 'g1', 'g2'], { minLength: 0 })
 
-	test.prop([groupList(), collapsedIds()])(
-		'hides every member but the anchor of a collapsed group',
+	/** Groups over the pool, each with or without the collapse affordance. */
+	const foldableGroupList = () =>
+		fc
+			.tuple(groupList(), fc.array(fc.boolean(), { minLength: 3, maxLength: 3 }))
+			.map(([groups, flags]) =>
+				groups.map((group, index) => ({ ...group, collapsible: flags[index] })),
+			)
+
+	// Each column has one owner. A collapse hides each owned member but the
+	// first, and does not touch a column that another group owns.
+	test.prop([foldableGroupList(), collapsedIds()])(
+		'hides every owned member but the anchor of a collapsed group',
 		(groups, ids) => {
 			const collapsed = new Set<string | number>(ids)
 
 			const hidden = collapsedHiddenIds(groups, collapsed)
 
-			const shut = groups.filter((group) => collapsed.has(group.id))
+			const owner = groupByColumn(groups)
 
-			for (const group of shut) {
-				for (const [index, id] of group.columns.entries()) {
-					// Groups can share a column, so an anchor stays visible unless
-					// another collapsed group holds it past its own anchor.
-					const hides = index > 0 || shut.some((other) => other.columns.indexOf(id) > 0)
+			for (const [id, group] of owner) {
+				const owned = group.columns.filter((member) => owner.get(member) === group)
 
-					expect(hidden.has(id)).toBe(hides)
-				}
+				const hides = !!group.collapsible && collapsed.has(group.id) && owned.indexOf(id) > 0
+
+				expect(hidden.has(id)).toBe(hides)
 			}
 		},
 	)
 
-	test.prop([groupList(), collapsedIds()])(
-		'hides only the members of a collapsed group',
+	test.prop([foldableGroupList(), collapsedIds()])(
+		'hides only the members of a collapsed collapsible group',
 		(groups, ids) => {
 			const collapsed = new Set<string | number>(ids)
 
 			const members = new Set(
-				groups.filter((group) => collapsed.has(group.id)).flatMap((group) => group.columns),
+				groups
+					.filter((group) => group.collapsible && collapsed.has(group.id))
+					.flatMap((group) => group.columns),
 			)
 
 			for (const id of collapsedHiddenIds(groups, collapsed)) expect(members.has(id)).toBe(true)
 		},
 	)
 
-	test.prop([groupList()])('hides nothing while every group is expanded', (groups) => {
+	test.prop([foldableGroupList()])('hides nothing while every group is expanded', (groups) => {
 		expect(collapsedHiddenIds(groups, new Set())).toEqual(new Set())
 	})
 })

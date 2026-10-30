@@ -27,7 +27,7 @@ import type {
 	GridInfiniteScroll,
 	GridVirtualize,
 } from './grid-data-types'
-import type { GridColumn, GridSearch } from './types'
+import type { GridColumn, GridColumnFilters, GridSearch } from './types'
 import type { GridNavTableProps, GridNewRowPosition } from './use-grid-navigation'
 import type {
 	GridColumnFilter,
@@ -155,10 +155,17 @@ function tableRole(args: {
 	return args.gridSemantics ? 'table' : undefined
 }
 
+/** The `<table>` handlers that the grid composes with the caller's. */
+type GridTableHandlers = Pick<
+	TableElementProps,
+	'onKeyDown' | 'onFocus' | 'onBlur' | 'onPointerDown'
+>
+
 /**
- * The key and focus handlers of the `<table>`: the caller's handler composed
- * with the grid's, the caller's first. A caller's handler that prevents the
- * default keeps the event. A handler that only one side sets passes as it is.
+ * The key, focus, and pointer-press handlers of the `<table>`: the caller's
+ * handler composed with the grid's, the caller's first. A caller's handler
+ * that prevents the default keeps the event. A handler that only one side
+ * sets passes as it is.
  *
  * @internal
  */
@@ -166,11 +173,10 @@ function gridHandlers(
 	own: TableElementProps | undefined,
 	nav: GridNavTableProps | undefined,
 	roving: Pick<TableElementProps, 'onKeyDown'> | undefined,
-): Pick<TableElementProps, 'onKeyDown' | 'onFocus' | 'onBlur'> {
-	const grid: Partial<Pick<TableElementProps, 'onKeyDown' | 'onFocus' | 'onBlur'>> | undefined =
-		nav ?? roving
+): GridTableHandlers {
+	const grid: Partial<GridTableHandlers> | undefined = nav ?? roving
 
-	const handlers: Pick<TableElementProps, 'onKeyDown' | 'onFocus' | 'onBlur'> = {}
+	const handlers: GridTableHandlers = {}
 
 	if (grid?.onKeyDown) handlers.onKeyDown = composeEventHandlers(own?.onKeyDown, grid.onKeyDown)
 
@@ -178,20 +184,24 @@ function gridHandlers(
 
 	if (grid?.onBlur) handlers.onBlur = composeEventHandlers(own?.onBlur, grid.onBlur)
 
+	if (grid?.onPointerDown) {
+		handlers.onPointerDown = composeEventHandlers(own?.onPointerDown, grid.onPointerDown)
+	}
+
 	return handlers
 }
 
 /**
  * Assembles the `<table>` element props: the caller's `tableProps`, with its
- * key and focus handlers composed ahead of the grid's, `aria-busy` while
- * loading, and the role/index scheme. The role is `grid` when the table
- * carries a keyboard cursor. `navigable` and an editable grid both turn the
- * cursor on. A cursor over a client-grouped body makes it `treegrid`. It is
- * `table` when the body is only a window onto a larger set (`gridSemantics`:
- * virtualization or pagination) with no cursor, and native otherwise. A
- * caller's `tableProps.role` wins over each of them. A windowed body also
- * carries the full row/column counts (valid on both roles); per-cell indices
- * come from head/row.
+ * key, focus, and pointer-press handlers composed ahead of the grid's,
+ * `aria-busy` while loading, and the role/index scheme. The role is `grid` when
+ * the table carries a keyboard cursor. `navigable` and an editable grid both
+ * turn the cursor on. A cursor over a client-grouped body makes it `treegrid`.
+ * It is `table` when the body is only a window onto a larger set
+ * (`gridSemantics`: virtualization or pagination) with no cursor, and native
+ * otherwise. A caller's `tableProps.role` wins over each of them. A windowed
+ * body also carries the full row/column counts (valid on both roles); per-cell
+ * indices come from head/row.
  *
  * @remarks `role="grid"` is withheld until a keyboard model backs it. A windowed
  * but non-navigable table stays `role="table"`, which still honors
@@ -535,6 +545,26 @@ export function resolveNewRowIndex(args: {
 }
 
 /**
+ * Whether a server-side (`manual`) search query or column filter narrows the
+ * rows. The filter mode is table-wide, so either `manual` flag makes both
+ * surfaces server-side. The consumer then feeds back only the matched rows,
+ * and the row count does not show the narrowed view. The query and the filter
+ * state show it.
+ *
+ * @internal
+ */
+export function manualNarrowed(args: {
+	search: GridSearch | undefined
+	columnFilters: GridColumnFilters | undefined
+	globalFilter: GridGlobalFilterView | null
+	filters: GridColumnFilter | null
+}): boolean {
+	const manual = args.search?.manual === true || args.columnFilters?.manual === true
+
+	return manual && ((args.globalFilter?.value ?? '') !== '' || (args.filters?.active ?? false))
+}
+
+/**
  * Whether the grid's current state permits a manual row drag-reorder. A manual
  * order only holds against the natural row order, so reordering stands down
  * whenever the rendered rows diverge from the source set. That covers an active
@@ -543,7 +573,9 @@ export function resolveNewRowIndex(args: {
  * master-detail, and an empty or loading grid. A detail row is not a sortable
  * item, so a drag would move its row away from it. The rendered-length check
  * catches client filtering, search, and client pagination in one; the pagination
- * and virtualization flags catch the server-page and windowed cases.
+ * and virtualization flags catch the server-page and windowed cases. The
+ * `narrowed` flag catches a server-side search or column filter, where the
+ * consumer feeds back only the matched rows and the two counts agree.
  *
  * @internal
  */
@@ -556,6 +588,8 @@ export function rowReorderPermitted(args: {
 	grouped: boolean
 	expanded: boolean
 	sorted: boolean
+	/** Whether a server-side search query or column filter narrows the rows (see {@link manualNarrowed}). */
+	narrowed: boolean
 	renderedCount: number
 	sourceCount: number
 }): boolean {
@@ -567,6 +601,7 @@ export function rowReorderPermitted(args: {
 		!args.grouped &&
 		!args.expanded &&
 		!args.sorted &&
+		!args.narrowed &&
 		args.renderedCount === args.sourceCount
 	)
 }

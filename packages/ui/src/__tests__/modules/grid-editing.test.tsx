@@ -5458,6 +5458,42 @@ describe('Grid new row', () => {
 
 			expect(view.slotEditor('count').value).toBe('7')
 		})
+
+		// The pressed cell is in view, as on a data cell. A focus that scrolls
+		// would reveal the whole table and move the content under the pointer.
+		it('focuses the table without a scroll on a press of a slot cell', () => {
+			const view = renderNewRow({ newRow: 'bottom' })
+
+			const grid = view.grid()
+
+			const focus = vi.spyOn(HTMLElement.prototype, 'focus')
+
+			fireEvent.mouseDown(view.slotCell('name'))
+
+			const onGrid = focus.mock.calls.filter((_, index) => focus.mock.contexts[index] === grid)
+
+			expect(onGrid).toEqual([[{ preventScroll: true }]])
+
+			expect(active(view)).toBe(view.slotCell('name').id)
+		})
+
+		// While a pen drags the range, the tap of a palm sends a primary press
+		// too. A press on the slot during the drag does not seat the cursor.
+		it('keeps the cursor on the cell of a range drag when a palm presses a slot cell', () => {
+			const view = renderNewRow({ newRow: 'bottom' }, { range: true })
+
+			fireEvent.mouseDown(dataCell(view, 'name', 0))
+
+			fireEvent.mouseDown(view.slotCell('count'))
+
+			expect(active(view)).toBe(dataCell(view, 'name', 0).id)
+
+			fireEvent.mouseUp(dataCell(view, 'name', 0))
+
+			fireEvent.mouseDown(view.slotCell('count'))
+
+			expect(active(view)).toBe(view.slotCell('count').id)
+		})
 	})
 
 	/**

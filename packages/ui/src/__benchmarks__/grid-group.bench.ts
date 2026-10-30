@@ -177,6 +177,7 @@ compareBenches('grid-group · column-group compute (every render of a grouped gr
 			id: `g${index}`,
 			title: `Group ${index}`,
 			columns: ids.slice(index * 4, index * 4 + 4),
+			collapsible: true,
 		}))
 
 		const collapsed = new Set(groups.filter((_, index) => index % 2 === 0).map((group) => group.id))

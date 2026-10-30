@@ -17,13 +17,13 @@ import { isQueryGroup } from '../../../query/engine/query-node'
 import type { GridColumn, GridPagination } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
 import {
-	DEFAULT_MIN_COLUMN_SIZE,
 	DRAG_HANDLE_COLUMN_SIZE,
 	EXPANDER_COLUMN_SIZE,
 	SELECT_COLUMN_SIZE,
 } from '../grid-constants'
 import { isNewRowAddColumn, NEW_ROW_ADD_COLUMN_SIZE } from '../grid-new-row-column'
 import { manualTotals } from '../grid-pagination-utilities'
+import { columnMinWidth } from '../grid-sizing/measure'
 import type {
 	EngineColumn,
 	EngineColumnDef,
@@ -101,18 +101,17 @@ function affordanceColumnSize<T>(col: GridColumn<T>): number | undefined {
 
 /**
  * The engine `minSize` of a column: its `minWidth`, else, for a data column,
- * {@link DEFAULT_MIN_COLUMN_SIZE} or a declared width below it. A pointer drag,
- * the keyboard, and the separator's `aria-valuemin` then share one floor. A
- * non-data column does not resize, so it keeps the engine default.
+ * `DEFAULT_MIN_COLUMN_SIZE` or a declared width below it (see
+ * {@link columnMinWidth}). A pointer drag, the keyboard, the separator's
+ * `aria-valuemin`, and the measured floor then share one floor. A non-data
+ * column does not resize, so it keeps the engine default.
  *
  * @internal
  */
-function resolveMinSize<T>(col: GridColumn<T>, size: number | undefined): { minSize?: number } {
-	if (col.minWidth != null) return { minSize: col.minWidth }
+function resolveMinSize<T>(col: GridColumn<T>): { minSize?: number } {
+	if (col.minWidth == null && !isDataColumn(col)) return {}
 
-	if (!isDataColumn(col)) return {}
-
-	return { minSize: Math.min(DEFAULT_MIN_COLUMN_SIZE, size ?? DEFAULT_MIN_COLUMN_SIZE) }
+	return { minSize: columnMinWidth(col) }
 }
 
 /**
@@ -141,7 +140,7 @@ export function toColumnDef<T>(col: GridColumn<T>): EngineColumnDef<T> {
 		...(accessorFn ? { accessorFn } : {}),
 		...(filterFn ? { filterFn } : {}),
 		...(size != null ? { size } : {}),
-		...resolveMinSize(col, size),
+		...resolveMinSize(col),
 		...(col.maxWidth != null ? { maxSize: col.maxWidth } : {}),
 	}
 }

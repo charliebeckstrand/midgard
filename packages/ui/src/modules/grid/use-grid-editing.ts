@@ -196,6 +196,7 @@ export function useGridEditing<T>({
 	tableRef,
 	cellId,
 	moveTo,
+	seatNewRow,
 	rowStep,
 }: {
 	enabled: boolean
@@ -216,6 +217,8 @@ export function useGridEditing<T>({
 	cellId: (row: number, col: number) => string
 	/** The cursor's clamped move, which the commit-and-move keys ride. */
 	moveTo: (coord: Coord) => void
+	/** The cursor's guarded seat on a column of the new-row slot, for a press on a cell of the slot. */
+	seatNewRow: (col: number) => void
 	/** The data row a number of rows away, over the rows that the cursor shows. */
 	rowStep: GridRowStep
 }): GridEditingApi {
@@ -443,6 +446,7 @@ export function useGridEditing<T>({
 		reseat,
 		cellId,
 		moveTo,
+		seatNewRow,
 	})
 
 	// The row the grid-owned session holds, with how it came by it. Row scope
