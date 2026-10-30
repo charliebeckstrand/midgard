@@ -92,6 +92,35 @@ const pages: readonly [name: string, page: ReactElement][] = [
 			</SidebarLayoutBody>
 		</SidebarLayout>,
 	],
+	[
+		// A page of docs that shows a whole app. The inner layout is content of the
+		// main landmark of the page.
+		'layout in the main slot of another layout',
+		<SidebarLayout key="n" sidebar={sidebar}>
+			<SidebarLayoutHeader>
+				<Heading level={1}>Density</Heading>
+			</SidebarLayoutHeader>
+			<SidebarLayoutBody>
+				<SidebarLayout
+					sidebar={
+						<Sidebar aria-label="Preview">
+							<SidebarBody>
+								<SidebarSection>
+									<SidebarItem href="#inbox" current>
+										<SidebarLabel>Inbox</SidebarLabel>
+									</SidebarItem>
+								</SidebarSection>
+							</SidebarBody>
+						</Sidebar>
+					}
+				>
+					<SidebarLayoutBody>
+						<Text>Preview content.</Text>
+					</SidebarLayoutBody>
+				</SidebarLayout>
+			</SidebarLayoutBody>
+		</SidebarLayout>,
+	],
 ]
 
 /**
@@ -132,50 +161,5 @@ describe('a11y landmarks (axe, page scope)', () => {
 			.map((control) => control.getAttribute('aria-label') ?? control.textContent)
 
 		expect(stray).toEqual([])
-	})
-})
-
-// A layout can preview an app in its body, such as a page of docs that shows a
-// whole layout. The page keeps one main landmark, at the top level. The inner
-// layout renders its main slot as a `div` (`MainLandmark`). The case runs only
-// the rules of the main landmark, because the inner layout also renders its own
-// navbar region.
-describe('a layout in the main slot of another layout', () => {
-	it('keeps one main landmark, at the top level', async () => {
-		renderUI(
-			<SidebarLayout sidebar={sidebar}>
-				<SidebarLayoutHeader>
-					<Heading level={1}>Density</Heading>
-				</SidebarLayoutHeader>
-				<SidebarLayoutBody>
-					<SidebarLayout
-						sidebar={
-							<Sidebar aria-label="Preview">
-								<SidebarBody>
-									<SidebarSection>
-										<SidebarItem href="#inbox" current>
-											<SidebarLabel>Inbox</SidebarLabel>
-										</SidebarItem>
-									</SidebarSection>
-								</SidebarBody>
-							</Sidebar>
-						}
-					>
-						<SidebarLayoutBody>
-							<Text>Preview content.</Text>
-						</SidebarLayoutBody>
-					</SidebarLayout>
-				</SidebarLayoutBody>
-			</SidebarLayout>,
-		)
-
-		expect(
-			await axePage(document.body, {
-				runOnly: {
-					type: 'rule',
-					values: ['landmark-one-main', 'landmark-no-duplicate-main', 'landmark-main-is-top-level'],
-				},
-			}),
-		).toHaveNoViolations()
 	})
 })

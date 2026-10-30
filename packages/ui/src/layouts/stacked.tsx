@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
 import { cn, createSlot } from '../core'
+import { Landmark } from '../primitives/landmark'
 import { Stack } from '../structure/stack'
-import { MainLandmark } from './main-landmark'
 
 /** Props for {@link StackedLayout}: the header, body, and footer slots to stack. The `<div>` takes the rest. */
 export type StackedLayoutProps = ComponentProps<'div'>
@@ -20,7 +20,7 @@ export function StackedLayout({ className, ...props }: StackedLayoutProps) {
 
 // The header and the footer are element + `data-slot` + class composition,
 // which is what `createSlot` is for. `ref` and each native attribute reach the
-// element. The body picks its element through `MainLandmark`, so it is a
+// element. The body picks its element through `Landmark`, so it is a
 // function.
 
 /** Props for {@link StackedLayoutHeader} (`<header>` attributes). */
@@ -40,7 +40,8 @@ export type StackedLayoutBodyProps = ComponentProps<'main'>
  */
 export function StackedLayoutBody({ className, ...props }: StackedLayoutBodyProps) {
 	return (
-		<MainLandmark
+		<Landmark
+			as="main"
 			data-slot="body"
 			className={cn('flex-1 min-h-0 overflow-y-auto', className)}
 			{...props}
