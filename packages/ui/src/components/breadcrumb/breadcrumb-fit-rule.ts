@@ -65,8 +65,9 @@ export function breadcrumbFit(nav: HTMLElement): number {
 
 	let collapsed = 0
 
-	// Leftmost first, and never the last crumb. The mark is drawn from CSS, so a
-	// range cannot read it; its `scrollWidth` reads its full width when closed.
+	// The first crumb first, and never the last crumb. The mark is drawn from
+	// CSS, so a range cannot read it; its `scrollWidth` reads its full width
+	// when closed.
 	while (collapsed < last && need - room >= unit) {
 		need -= Math.max(0, text(labels.item(collapsed)) - marks.item(collapsed).scrollWidth)
 		collapsed++

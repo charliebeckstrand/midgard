@@ -303,11 +303,12 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  * widens on them (see {@link MapPointsProps.cluster}).
  *
  * Each dot keeps its own readout and its own pick. Hovering one raises the
- * tooltip with that dot's name and detail, falling back to the group's. The
- * keyboard cursor walks the dots one at a time, and `onClick` reports which was
- * picked. An invisible hit circle per dot keeps each aimable. The plat's
- * `selectedOverlay` haloes the dot holding the picked point: the summary it
- * merged into where the frame draws one.
+ * tooltip with that dot's name and detail. The detail never falls back to the
+ * group's (see {@link MapPointDatum.detail}). The keyboard cursor walks the dots
+ * one at a time, and `onClick` reports which was picked. An invisible hit
+ * circle per dot keeps each aimable. The plat's `selectedOverlay` haloes the
+ * dot holding the picked point: the summary it merged into where the frame
+ * draws one.
  *
  * Those circles are finger-sized targets. For a mouse a dot narrows to what the
  * ground around it can spare:

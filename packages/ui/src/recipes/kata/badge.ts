@@ -42,11 +42,10 @@ export const k = defineKata(
 			// The ring shows only on keyboard focus, so a label badge, which takes no
 			// focus, never shows it.
 			focus.ring,
-			// A uniform 4px height scale: the type ramp (text-xs → text-lg) sets the
-			// step while vertical padding holds constant (`py-ring-1`), landing
-			// xs/sm/md/lg on 22/26/30/34px. `md` matches a `sm` Button's 30px box.
-			// Badges step 4px, not Button's 8px: a text line-height floors a badge
-			// near 22px, so an 8px scale anchored at md=30 leaves no room for xs.
+			// A uniform 2px height scale: the type ramp sets the step while
+			// vertical padding holds constant (`py-ring-1`), landing xs to xl on
+			// 26, 28, 30, 32, and 34px. Badges step 2px with the line height, not
+			// Button's 6px, because a Button also steps its vertical padding.
 			// Horizontal padding still grows 0.5/step to hold the affix
 			// chip-alignment lockstep (`kumi/control/affix.ts`).
 			//

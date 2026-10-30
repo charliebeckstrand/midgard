@@ -19,8 +19,9 @@ type MapCursorAction = MapCompassAction | 'first' | 'last' | 'clear'
 /**
  * The key table. The arrows step by compass direction, the map's own pair of
  * axes, where a chart's arrows step its category and value axes. Home and End
- * jump to the first and last drawn region in the atlas's own order. Escape
- * clears.
+ * jump to the first and last stop of the list, which the plat orders
+ * geography-first, so End lands on the last overlay stop when a mark draws.
+ * Escape clears.
  */
 const KEY_ACTIONS: Record<string, MapCursorAction> = {
 	ArrowUp: 'north',
