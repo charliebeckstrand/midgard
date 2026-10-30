@@ -250,6 +250,7 @@ overrides:
 patchedDependencies:
   '@floating-ui/react@0.27.20': 7bd33aaf7f770afcaadb2f5e7a7d6986aa6a648cb5f32b43f540e4c9762c6443
   react-router@8.4.0: c0567c84fc3ea7f5d88633fceb8a6774caa93c814ad973f42f9d909f3ae1cfc1
+  vitest@5.0.5: 83c19df1caf4ca5f080b46106564c232f0fa37d0d97d84a91e06531b082433bc
 
 importers:
 
@@ -343,7 +344,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 5.0.5(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
+        version: 5.0.5(patch_hash=83c19df1caf4ca5f080b46106564c232f0fa37d0d97d84a91e06531b082433bc)(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
 
   apps/picks:
     dependencies:
@@ -398,7 +399,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 5.0.5(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
+        version: 5.0.5(patch_hash=83c19df1caf4ca5f080b46106564c232f0fa37d0d97d84a91e06531b082433bc)(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
 
   apps/places:
     dependencies:
@@ -471,7 +472,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 5.0.5(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
+        version: 5.0.5(patch_hash=83c19df1caf4ca5f080b46106564c232f0fa37d0d97d84a91e06531b082433bc)(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
 
   packages/auth:
     dependencies:
@@ -505,7 +506,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: 'catalog:'
-        version: 5.0.5(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
+        version: 5.0.5(patch_hash=83c19df1caf4ca5f080b46106564c232f0fa37d0d97d84a91e06531b082433bc)(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
 
   packages/shared:
     dependencies:
@@ -560,7 +561,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: 'catalog:'
-        version: 5.0.5(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
+        version: 5.0.5(patch_hash=83c19df1caf4ca5f080b46106564c232f0fa37d0d97d84a91e06531b082433bc)(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
 
   packages/ui:
     dependencies:
@@ -792,7 +793,7 @@ importers:
         version: 8.3.2(@types/node@25.9.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)
       vitest:
         specifier: 'catalog:'
-        version: 5.0.5(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
+        version: 5.0.5(patch_hash=83c19df1caf4ca5f080b46106564c232f0fa37d0d97d84a91e06531b082433bc)(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
       world-atlas:
         specifier: 'catalog:'
         version: 2.0.2
@@ -6108,7 +6109,7 @@ snapshots:
   '@fast-check/vitest@0.5.0(vitest@5.0.5)':
     dependencies:
       fast-check: 4.10.1
-      vitest: 5.0.5(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
+      vitest: 5.0.5(patch_hash=83c19df1caf4ca5f080b46106564c232f0fa37d0d97d84a91e06531b082433bc)(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
 
   '@floating-ui/core@1.8.0':
     dependencies:
@@ -7605,7 +7606,7 @@ snapshots:
       '@vitest/mocker': 5.0.5(vite@8.3.2)
       playwright: 1.64.1
       tinyrainbow: 3.2.0
-      vitest: 5.0.5(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
+      vitest: 5.0.5(patch_hash=83c19df1caf4ca5f080b46106564c232f0fa37d0d97d84a91e06531b082433bc)(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
     transitivePeerDependencies:
       - bufferutil
       - msw
@@ -7622,7 +7623,7 @@ snapshots:
       pngjs: 7.0.0
       sirv: 3.0.2
       tinyrainbow: 3.2.0
-      vitest: 5.0.5(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
+      vitest: 5.0.5(patch_hash=83c19df1caf4ca5f080b46106564c232f0fa37d0d97d84a91e06531b082433bc)(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
       ws: 8.22.0
     transitivePeerDependencies:
       - bufferutil
@@ -7640,7 +7641,7 @@ snapshots:
       obug: 3.0.0
       std-env: 4.3.0
       tinyrainbow: 3.2.0
-      vitest: 5.0.5(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
+      vitest: 5.0.5(patch_hash=83c19df1caf4ca5f080b46106564c232f0fa37d0d97d84a91e06531b082433bc)(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
     optionalDependencies:
       '@vitest/browser': 5.0.5(vite@8.3.2)(vitest@5.0.5)
 
@@ -7673,7 +7674,7 @@ snapshots:
       pathe: 2.0.3
       sirv: 3.0.2
       tinyrainbow: 3.2.0
-      vitest: 5.0.5(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
+      vitest: 5.0.5(patch_hash=83c19df1caf4ca5f080b46106564c232f0fa37d0d97d84a91e06531b082433bc)(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2)
 
   '@vitest/utils@5.0.5':
     dependencies:
@@ -10024,7 +10025,7 @@ snapshots:
       tsx: 4.22.3
       yaml: 2.9.0
 
-  vitest@5.0.5(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2):
+  vitest@5.0.5(patch_hash=83c19df1caf4ca5f080b46106564c232f0fa37d0d97d84a91e06531b082433bc)(@types/node@25.9.1)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(jsdom@29.1.1)(vite@8.3.2):
     dependencies:
       '@types/chai': 5.2.3
       '@vitest/mocker': 5.0.5(vite@8.3.2)

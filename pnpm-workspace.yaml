@@ -94,6 +94,15 @@ minimumReleaseAgeExclude:
 # one microtask later. A render that the click queued first, such as the close of the mobile
 # sidebar, then ran before the request started.
 # Remove once upstream stops reloading on a prefetch and preloads the chunks of a navigation.
+#
+# Under `isolate: false`, Vitest runs each setup file again for each test file. It finds the
+# module to run again by its URL, but the module keeps the URL of the first request for it.
+# A `--changed` run (`test:changed`) first reads each setup file by its absolute path, and the
+# fs module cache keeps that URL for later runs. The worker then asks for `/src/...`, finds no
+# module, and does not run the setup again. Thus the `afterEach` cleanup runs for the first file
+# of a worker only, and each later file finds the DOM and the stubs of the files before it. The
+# patch also finds the module by its id. Remove once upstream finds the module by its id.
 patchedDependencies:
   '@floating-ui/react@0.27.20': patches/@floating-ui__react@0.27.20.patch
   react-router@8.4.0: patches/react-router@8.4.0.patch
+  vitest@5.0.5: patches/vitest@5.0.5.patch
