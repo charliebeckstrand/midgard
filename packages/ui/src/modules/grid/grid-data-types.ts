@@ -238,8 +238,9 @@ export type GridGroupHeaderRow = {
  * {@link GridProps.infiniteScroll} down. Client grouping keeps the
  * {@link GridProps.navigable} cursor. It also windows its rows when the
  * consumer sets {@link GridProps.virtualize}. A window that infinite scroll
- * implies does not apply. Manual grouping stands both the cursor and
- * `virtualize` down, because its segment keys are positional. Sorting,
+ * implies does not apply. Manual grouping stands the cursor, editing
+ * ({@link GridProps.editable}), and `virtualize` down, because its segment
+ * keys are positional. Sorting,
  * filtering, search, selection, resizing, and pinning still apply.
  *
  * Client grouping also stands {@link GridProps.pagination} down. Manual
@@ -289,7 +290,8 @@ export type GridGroupBy<T = unknown> = {
 	 * leaf alike) still needs a stable, unique {@link GridDataProps.getKey}.
 	 * Single-level, like client grouping; the aggregate total rows
 	 * ({@link GridDataProps.groupTotalRow} / {@link GridDataProps.grandTotalRow})
-	 * stand down, since the backend owns the figures. Sorting the grouped column
+	 * stand down, since the backend owns the figures. The keyboard cursor and
+	 * {@link GridDataProps.editable} stand down too. Sorting the grouped column
 	 * reorders the group blocks client-side, by group value, and each header's
 	 * children move with it. Sorting any other column stays manual, emitted
 	 * through the `sort` binding for the backend to honor.
@@ -787,7 +789,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 *
 	 * Grouping renders its own body. Under client grouping, the
 	 * {@link GridDataProps.navigable} cursor stops once on each group header and
-	 * each group total. Manual grouping stands the cursor down. Client grouping
+	 * each group total. Manual grouping stands the cursor and
+	 * {@link GridDataProps.editable} down. Client grouping
 	 * windows its rows under an explicit {@link GridDataProps.virtualize}, and
 	 * manual grouping stands the window down. Sorting, filtering, search, selection,
 	 * resizing, and pinning still apply. Client grouping also stands
@@ -1460,6 +1463,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * and Escape abandons it. Such a session can narrow to the entered cell
 	 * rather than its whole row through {@link GridEditableConfig.scope}. Omit for
 	 * a read-only grid.
+	 *
+	 * Manual grouping ({@link GridGroupBy.manual}) turns editing off, and a dev
+	 * build warns. The editors mount through the keyboard cursor, and manual
+	 * grouping turns the cursor off.
 	 */
 	editable?: GridEditableConfig
 

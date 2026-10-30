@@ -218,6 +218,7 @@ export function GridData<T>({
 		groupBy: groupByConfig,
 		expandable: expandableConfig,
 		navigable,
+		editable,
 		virtualize,
 		infiniteScroll: infiniteScrollConfig,
 		pagination: paginationConfig,
@@ -278,10 +279,10 @@ export function GridData<T>({
 		setMeasuredAddWidth,
 	} = useGridDataCursor<T>({
 		refs: indexRefs,
-		// Manual grouping stands the navigable cursor down (see `gated`).
+		// Manual grouping stands the cursor and editing down (see `gated`).
 		navigable: gated.navigable,
 		range,
-		editable,
+		editable: gated.editable,
 		columns: pinnedColumns,
 		source: editSource,
 		onActiveCellChange,
@@ -736,7 +737,7 @@ export function GridData<T>({
 			}}
 			newRow={{
 				place: newRowPlace,
-				add: editable?.newRowAdd || undefined,
+				add: gated.editable?.newRowAdd || undefined,
 				onMeasureAdd: setMeasuredAddWidth,
 			}}
 			grandTotal={grandTotal}

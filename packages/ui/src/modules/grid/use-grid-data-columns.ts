@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useCallback, useId, useMemo } from 'react'
+import { type RefObject, useCallback, useEffect, useId, useMemo } from 'react'
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
@@ -34,6 +34,21 @@ import { useGridGroup } from './use-grid-group'
 import { useGridRowGrouping } from './use-grid-row-grouping'
 
 /**
+ * Dev-only notice that manual grouping stands an `editable` config down. The
+ * editors mount through the keyboard cursor, and manual grouping turns the
+ * cursor off (see `resolveGroupingGates`). Warns each time the two meet.
+ */
+function useManualGroupingEditGuard(standsDown: boolean): void {
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'production' || !standsDown) return
+
+		console.warn(
+			'<Grid editable>: manual grouping (`groupBy.manual`) turns editing off. The editors mount through the keyboard cursor, and manual grouping turns the cursor off because its segment keys are positional.',
+		)
+	}, [standsDown])
+}
+
+/**
  * The column phase of {@link GridData}. It folds the preferences into the column
  * bindings and applies the menu pin state. It resolves row grouping and
  * master-detail, and the gates that grouping sets on the cursor, the window, and
@@ -55,6 +70,7 @@ export function useGridDataColumns<T>({
 	groupBy: groupByConfig,
 	expandable: expandableConfig,
 	navigable,
+	editable,
 	virtualize,
 	infiniteScroll: infiniteScrollConfig,
 	pagination: paginationConfig,
@@ -71,6 +87,7 @@ export function useGridDataColumns<T>({
 	| 'onCollapsedChange'
 	| 'groupBy'
 	| 'expandable'
+	| 'editable'
 	| 'virtualize'
 	| 'infiniteScroll'
 	| 'pagination'
@@ -160,8 +177,9 @@ export function useGridDataColumns<T>({
 		detailIdScope,
 	)
 
-	// Manual grouping stands the cursor down. Client grouping and master-detail
-	// give the cursor an order of rows. Manual grouping also stands virtualization
+	// Manual grouping stands the cursor down, and editing with it, because the
+	// editors mount through the cursor. Client grouping and master-detail give
+	// the cursor an order of rows. Manual grouping also stands virtualization
 	// down, and the other two keep an explicit `virtualize`. Client grouping stands
 	// pagination down, manual grouping keeps a manual one, and master-detail keeps
 	// any (see `resolveGroupingGates`).
@@ -170,10 +188,13 @@ export function useGridDataColumns<T>({
 		manualGroupingActive: groupingMode.manualGroupingActive,
 		expandableActive: detail.active,
 		navigable,
+		editable,
 		virtualize: virtualizeEnabled,
 		virtualizeProp: virtualize,
 		pagination: paginationConfig,
 	})
+
+	useManualGroupingEditGuard(groupingMode.manualGroupingActive && editable != null)
 
 	// Infinite scroll layers on the flat virtualized window, so it stands down
 	// under a self-rendering body (`gated.infiniteScroll`). Its `threshold`

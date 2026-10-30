@@ -203,7 +203,8 @@ export function resolveGroupByContext(args: {
  * client or manual, renders its own body, and so does master-detail. Client
  * grouping and master-detail keep the navigable cursor. Their bodies give the
  * cursor an order of rows (see `useGridCursorOrder`). Manual grouping stands
- * the cursor down, because its segment keys are positional.
+ * the cursor down, because its segment keys are positional. It also stands
+ * editing down, because the editors mount through the cursor.
  *
  * Client grouping and master-detail keep `virtualize` when the consumer sets
  * it. Their bodies then window a list of items through the measured path of
@@ -227,11 +228,12 @@ export function resolveGroupByContext(args: {
  *
  * @internal
  */
-export function resolveGroupingGates(args: {
+export function resolveGroupingGates<E>(args: {
 	groupingActive: boolean
 	manualGroupingActive: boolean
 	expandableActive: boolean
 	navigable: boolean
+	editable: E | undefined
 	/** The resolved window flag, which infinite scroll can imply. */
 	virtualize: boolean
 	/** The consumer's own `virtualize` prop, before infinite scroll implies it. */
@@ -239,6 +241,7 @@ export function resolveGroupingGates(args: {
 	pagination: GridPagination | undefined
 }): {
 	navigable: boolean
+	editable: E | undefined
 	virtualize: boolean
 	infiniteScroll: boolean
 	pagination: GridPagination | undefined
@@ -261,6 +264,7 @@ export function resolveGroupingGates(args: {
 
 	return {
 		navigable: args.manualGroupingActive ? false : args.navigable,
+		editable: args.manualGroupingActive ? undefined : args.editable,
 		virtualize,
 		infiniteScroll: virtualize && !ownBody,
 		pagination,
