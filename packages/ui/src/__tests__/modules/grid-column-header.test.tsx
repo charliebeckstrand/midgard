@@ -42,6 +42,7 @@ function renderHeader(listeners: NonNullable<DraggableSyntheticListeners>) {
 							<GridReorderableColumnHeaderView
 								column={{ id: 'name', title: <PortaledTitle /> }}
 								ariaColIndex={1}
+								hiddenName={undefined}
 								columnIndex={0}
 								sorted={false}
 								direction={undefined}
