@@ -451,7 +451,7 @@ export function GridGroupManager({
 						{activeItem ? (
 							<GridGroupManagerColumnRowOverlay
 								item={activeItem}
-								checked={!hidden.has(activeItem.id)}
+								checked={activeItem.hideable === false || !hidden.has(activeItem.id)}
 							/>
 						) : null}
 					</PortalDragOverlay>
@@ -753,7 +753,8 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 			<GridManagerCheckboxRow
 				className={k().manager.row.control}
 				columnTitle={item.title}
-				checked={!hidden.has(item.id)}
+				// A `hideable: false` column shows even when the hidden set names it.
+				checked={item.hideable === false || !hidden.has(item.id)}
 				// Held disabled through a drag so it stays put (visible, not toggled)
 				// rather than hiding the row and snapping on drop.
 				disabled={dragging || item.hideable === false}

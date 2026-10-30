@@ -225,6 +225,23 @@ describe('useGridColumns', () => {
 		expect(result.current.columnVisibility).toEqual({ name: false })
 	})
 
+	it('keeps a hideable=false column out of the hidden map when the hidden set names it', () => {
+		const cols: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, hideable: false },
+			{ id: 'age', title: 'Age', cell: (row) => row.age },
+		]
+
+		const { result } = renderHook(() =>
+			useGridColumns<Row>({
+				columns: cols,
+				columnManagerConfig: { defaultHidden: new Set(['name', 'age']) },
+			}),
+		)
+
+		// The flag wins over the hidden set, so the column always shows.
+		expect(result.current.columnVisibility).toEqual({ age: false })
+	})
+
 	it('excludes selectable and actions columns from managerItems', () => {
 		const cols: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },

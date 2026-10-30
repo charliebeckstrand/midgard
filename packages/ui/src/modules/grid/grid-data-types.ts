@@ -560,7 +560,11 @@ export type GridColumnManagerConfig = GridToolSurfaces & {
 	 */
 	filterable?: boolean
 
-	/** Controlled set of hidden column ids; pair with {@link GridColumnManagerConfig.onHiddenChange}. */
+	/**
+	 * Controlled set of hidden column ids; pair with {@link GridColumnManagerConfig.onHiddenChange}.
+	 * The grid shows a frozen, non-data, or `hideable: false` column, also when
+	 * the set names it.
+	 */
 	hidden?: Set<string | number>
 
 	/** Initial hidden column ids when uncontrolled. */

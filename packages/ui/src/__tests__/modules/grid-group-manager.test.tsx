@@ -381,6 +381,41 @@ describe('Grid column-group editor', () => {
 		expect(row?.parentElement?.closest('li')).toBe(zone)
 	})
 
+	it('checks a hideable=false row when the hidden set names its column', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={[
+					...columns.slice(0, 2),
+					{ id: 'email', title: 'Email', cell: (row) => row.email, hideable: false },
+				]}
+				rows={rows}
+				getKey={(row) => row.id}
+				columnGroups={{ defaultValue: [] }}
+				columnManager={{
+					toolbar: true,
+					defaultOpen: true,
+					defaultHidden: new Set(['last', 'email']),
+				}}
+			/>,
+		)
+
+		// The flag wins over the hidden set: the grid shows the column, and its row is
+		// checked and disabled.
+		const checkbox = screen.getByRole('checkbox', { name: 'Show Email' })
+
+		expect(checkbox).toBeChecked()
+
+		expect(checkbox).toBeDisabled()
+
+		expect(screen.getByRole('checkbox', { name: 'Show Last' })).not.toBeChecked()
+
+		const heads = Array.from(container.querySelectorAll('thead th')).map((th) => th.textContent)
+
+		expect(heads.some((text) => text?.includes('Email'))).toBe(true)
+
+		expect(heads.some((text) => text?.includes('Last'))).toBe(false)
+	})
+
 	it('narrows a zone to its matching members without touching membership', () => {
 		const { container } = renderUI(<Harness />)
 
