@@ -1,0 +1,13 @@
+diff --git a/dist/chunks/index.CK-t0WMg.js b/dist/chunks/index.CK-t0WMg.js
+index bf563f92484d59695a49772f94a6ea68e10bcee2..8b492292ee3d85faebedaadf0c2e91cb7e3fce44 100644
+--- a/dist/chunks/index.CK-t0WMg.js
++++ b/dist/chunks/index.CK-t0WMg.js
+@@ -555,7 +555,7 @@ class VitestModuleRunner extends viteModuleRunner.ModuleRunner {
+ 		});
+ 		const url = resolved ? resolved.url : rawId;
+ 		if (options?.invalidate) {
+-			const module = this.evaluatedModules.getModuleByUrl(url);
++			const module = this.evaluatedModules.getModuleByUrl(url) ?? (resolved ? this.evaluatedModules.getModuleById(resolved.id) : void 0);
+ 			if (module?.evaluated) this.evaluatedModules.invalidateModule(module);
+ 		}
+ 		return super.import(url);
