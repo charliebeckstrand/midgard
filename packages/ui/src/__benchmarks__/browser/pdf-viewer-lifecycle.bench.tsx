@@ -17,8 +17,8 @@
  *   difference between the two, so the gap between them is what consulting the cache costs.
  *
  * **Two things a park used to redo are deliberately not benchmarked here, for different
- * reasons.** The `fetch(src)` half would be measuring someone's network: the only document this
- * repo points at is remote (the demo's `compressed.tracemonkey-pldi-09.pdf`). The rasterization
+ * reasons.** The `fetch(src)` half would be measuring the network or the disk, not the viewer.
+ * The rasterization
  * half *was* written against a PDF this file assembles (551 bytes, correct xref, one US-Letter
  * page, so no fixture and no network) and pdf.js parses it here, but `page.render` threw
  * `getOrInsertComputed is not a function`: the modern build of pdf.js 6 calls

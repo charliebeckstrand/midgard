@@ -63,6 +63,7 @@ export const TYPES: Record<string, string> = {
 	'.html': 'text/html; charset=utf-8',
 	'.js': 'text/javascript',
 	'.json': 'application/json',
+	'.pdf': 'application/pdf',
 	'.svg': 'image/svg+xml',
 	'.woff2': 'font/woff2',
 }
