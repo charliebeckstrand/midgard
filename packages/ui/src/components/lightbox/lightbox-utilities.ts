@@ -432,6 +432,37 @@ export function viewablePhotos(
 }
 
 /**
+ * Two photos that sit next to each other on the track, by `photo.index`. A
+ * slide to a photo farther away than the next one links the photo that it
+ * leaves to the photo that it goes to, so it passes no photo between them.
+ * @internal
+ */
+export type LightboxLink = { from: number; to: number }
+
+/**
+ * The place in `photos` of the photo in the slot on the side `step` of the
+ * photo at `index`. It is the photo next to it, unless `link` links that
+ * photo to a photo on the same side. The place can be outside `photos`, which
+ * tells that the slot is empty.
+ * @internal
+ */
+export function placeBeside(
+	photos: readonly LightboxViewPhoto[],
+	index: number,
+	link: LightboxLink | null,
+	step: -1 | 1,
+): number {
+	const center = photos[index]?.index
+
+	const other =
+		link && center === link.from ? link.to : link && center === link.to ? link.from : null
+
+	const place = other === null ? -1 : photos.findIndex((photo) => photo.index === other)
+
+	return place !== -1 && Math.sign(place - index) === step ? place : index + step
+}
+
+/**
  * The zoom of the photo: a translation in px, then a scale about the top left
  * corner of the photo at rest. It is the transform that the photo paints.
  *
