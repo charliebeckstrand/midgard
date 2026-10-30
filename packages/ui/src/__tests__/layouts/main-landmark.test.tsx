@@ -7,31 +7,15 @@ import {
 	StackedLayout,
 	StackedLayoutBody,
 } from '../../layouts'
-import { renderUI } from '../helpers'
-
-// A page has one main landmark. A layout in the main slot of another layout,
-// such as the preview of an app on a page of docs, renders its main slot as a
-// `div`.
+import { allBySlot, renderUI } from '../helpers'
 
 /** The tag names of the elements with `slot`, in document order. */
 function readTagNames(container: HTMLElement, slot: string): string[] {
-	return [...container.querySelectorAll(`[data-slot="${slot}"]`)].map((element) =>
-		element.tagName.toLowerCase(),
-	)
+	return allBySlot(container, slot).map((element) => element.tagName.toLowerCase())
 }
 
 describe('the main slot of a layout', () => {
-	it('is a main element at the top level', () => {
-		const { container } = renderUI(
-			<SidebarLayout sidebar={null}>
-				<SidebarLayoutBody>Content</SidebarLayoutBody>
-			</SidebarLayout>,
-		)
-
-		expect(readTagNames(container, 'body')).toEqual(['main'])
-	})
-
-	it('is a div in the main slot of another layout', () => {
+	it('is a main element at the top level, and a div in another layout', () => {
 		const { container } = renderUI(
 			<SidebarLayout sidebar={null}>
 				<SidebarLayoutBody>
@@ -46,8 +30,6 @@ describe('the main slot of a layout', () => {
 		)
 
 		expect(readTagNames(container, 'body')).toEqual(['main', 'div', 'div'])
-
-		expect(container.querySelectorAll('main')).toHaveLength(1)
 	})
 
 	it('is a div for the auth and the dashboard layouts in another layout', () => {

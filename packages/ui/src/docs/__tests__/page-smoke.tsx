@@ -9,7 +9,7 @@ import type { LinkProps } from 'ui/primitives/link'
 import { AppearanceProvider } from 'ui/providers/appearance'
 import { LocaleProvider } from 'ui/providers/locale'
 import { UIProvider } from 'ui/providers/ui'
-import { Sidebar, SidebarBody } from 'ui/sidebar'
+import { Sidebar } from 'ui/sidebar'
 import { describe, expect, it, vi } from 'vitest'
 import { CI } from '../../../vitest.base.ts'
 import { catalogs } from '../app/catalogs.ts'
@@ -294,8 +294,7 @@ function loadPage(page: Page, from: Modules): Promise<Loaded> {
  * Renders a page at its path in `locale`, with a child route for each tab, as
  * the routes of the docs app give it. The providers are the providers of the
  * shell of the docs app, and the `h1` of the page is the heading of the header
- * of the shell. The heading shows the name of a component, which is code. The
- * page is in a main landmark, next to a navigation landmark, as in the shell.
+ * of the shell. The heading shows the name of a component, which is code.
  *
  * The render is synchronous, so the first visit of the page goes into `act`
  * before an update of the page that waits for a microtask.
@@ -313,9 +312,7 @@ function renderPage(
 					<AppearanceProvider>
 						<VisitedPaths visited={visited} />
 						<Heading translate="no">{page.name}</Heading>
-						<Sidebar>
-							<SidebarBody />
-						</Sidebar>
+						<Sidebar />
 						<SidebarLayoutBody>
 							<Routes>
 								<Route path={page.path} element={<Page />}>

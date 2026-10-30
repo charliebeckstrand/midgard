@@ -137,7 +137,9 @@ describe('a11y landmarks (axe, page scope)', () => {
 
 // A layout can preview an app in its body, such as a page of docs that shows a
 // whole layout. The page keeps one main landmark, at the top level. The inner
-// layout renders its main slot as a `div` (`MainLandmark`).
+// layout renders its main slot as a `div` (`MainLandmark`). The case runs only
+// the rules of the main landmark, because the inner layout also renders its own
+// navbar region.
 describe('a layout in the main slot of another layout', () => {
 	it('keeps one main landmark, at the top level', async () => {
 		renderUI(

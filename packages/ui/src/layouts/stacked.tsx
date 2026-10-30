@@ -18,11 +18,10 @@ export function StackedLayout({ className, ...props }: StackedLayoutProps) {
 	)
 }
 
-// Each slot is element + `data-slot` + class composition, which is what
-// `createSlot` is for. It also carries `ref` and every native attribute of the
-// element, so these three take the same surface the structure roots took. The
-// body renders through `MainLandmark`, which picks its element, so it is a
-// function and not a slot.
+// The header and the footer are element + `data-slot` + class composition,
+// which is what `createSlot` is for. `ref` and each native attribute reach the
+// element. The body picks its element through `MainLandmark`, so it is a
+// function.
 
 /** Props for {@link StackedLayoutHeader} (`<header>` attributes). */
 export type StackedLayoutHeaderProps = ComponentProps<'header'>

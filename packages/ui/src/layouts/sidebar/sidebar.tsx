@@ -423,6 +423,8 @@ export function SidebarLayoutHeader({
 /** Props for {@link SidebarLayoutBody} (`<main>` attributes); `ref` reaches the element that it renders. */
 export type SidebarLayoutBodyProps = ComponentProps<'main'>
 
+const bodyClass = k().body
+
 /**
  * Main content slot for {@link SidebarLayout} (`data-slot="body"`). It scrolls
  * with the page at each width. It grows into the free height of the content
@@ -431,7 +433,7 @@ export type SidebarLayoutBodyProps = ComponentProps<'main'>
  * landmark.
  */
 export function SidebarLayoutBody({ className, ...props }: SidebarLayoutBodyProps) {
-	return <MainLandmark data-slot="body" className={cn(k().body, className)} {...props} />
+	return <MainLandmark data-slot="body" className={cn(bodyClass, className)} {...props} />
 }
 
 /** Props for {@link SidebarLayoutFooter} (`<footer>` attributes). */

@@ -1,3 +1,5 @@
+'use client'
+
 import { type ComponentProps, createElement } from 'react'
 import { createContext } from '../core'
 
@@ -20,5 +22,7 @@ const [InMainContext, useInMain] = createContext<boolean>('InMain', { default: f
 export function MainLandmark(props: ComponentProps<'main'>) {
 	const nested = useInMain()
 
+	// JSX checks the `ref` of `<main>` against the `ref` of a `<div>`, so the
+	// element comes from `createElement`.
 	return <InMainContext value>{createElement(nested ? 'div' : 'main', props)}</InMainContext>
 }
