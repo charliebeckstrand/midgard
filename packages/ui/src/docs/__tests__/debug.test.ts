@@ -1,4 +1,7 @@
-import { afterEach, describe, expect, onTestFinished, vi } from 'vitest'
+// @vitest-environment jsdom
+// The recorder of the events reads the scroll functions of `window` when it loads.
+
+import { describe, expect, onTestFinished, vi } from 'vitest'
 import { noStorage } from '../../__tests__/helpers/event-storage.ts'
 import { it } from '../../__tests__/helpers/fake-clock'
 import { listen } from '../../modules/events/engine/events-recorder.ts'
@@ -16,47 +19,12 @@ function listenTo(): EventStore {
 	return store
 }
 
-/** Each event of a store as its kind and its text, with the scroll reading of the start out. */
+/** Each event of a store as its kind and its text. */
 function lines(store: EventStore): string[] {
-	return store.entries
-		.map(({ kind, text }) => `${kind} ${text}`)
-		.filter((line) => !line.startsWith('load restore '))
+	return store.entries.map(({ kind, text }) => `${kind} ${text}`)
 }
 
 describe('the sources of the docs', () => {
-	afterEach(() => {
-		delete window.__eventReadings
-	})
-
-	it('writes the scroll reading of the start, and takes the readings of the head script', () => {
-		const stop = vi.fn()
-
-		const early = { time: 1, kind: 'scroll', text: 'scroll before hydration', y: 30 }
-
-		window.__eventReadings = { entries: [early], stop }
-
-		const store = listenTo()
-
-		expect(store.entries.map(({ text }) => text)).toEqual(
-			expect.arrayContaining([expect.stringMatching(/^restore \w+ kept y \S+$/)]),
-		)
-
-		// A reading keeps its time, so it goes before the events of the start.
-		expect(store.entries[0]).toMatchObject(early)
-
-		expect(stop).toHaveBeenCalledOnce()
-
-		expect(window.__eventReadings).toBeUndefined()
-	})
-
-	it('writes the scroll reading of a restore from the back-forward cache', () => {
-		const store = listenTo()
-
-		window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))
-
-		expect(store.entries.filter(({ text }) => text.startsWith('restore '))).toHaveLength(2)
-	})
-
 	it('records the callbacks that a page gives to a component or a module, and stops with the store', () => {
 		const store = new EventStore(noStorage)
 
