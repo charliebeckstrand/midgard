@@ -1,7 +1,6 @@
 import { act, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
-import { attach } from '../../__tests__/helpers/attach.ts'
-import { hydrate, serverMarkup } from '../../__tests__/helpers/hydrate.tsx'
+import { describe, expect, it } from 'vitest'
+import { hydrateOnPlatform } from '../../__tests__/helpers/hydrate.tsx'
 import { renderUI } from '../../__tests__/helpers/render-ui.tsx'
 import { ShortcutHint } from '../kit/shortcut-hint.tsx'
 import KeyboardShortcut from '../pages/components/command-palette/keyboard-shortcut.tsx'
@@ -16,28 +15,13 @@ const hint = (
 	</kbd>
 )
 
-/** Hydrates the HTML of the build on a platform, and gives the key after the hydration. */
-function hydrateOn(platform: string): { before: string; after: string } {
-	vi.spyOn(navigator, 'platform', 'get').mockReturnValue(platform)
-
-	const container = attach(serverMarkup(hint))
-
-	const before = container.textContent ?? ''
-
-	const { onRecoverableError } = hydrate(container, hint)
-
-	expect(onRecoverableError).not.toHaveBeenCalled()
-
-	return { before, after: container.textContent ?? '' }
-}
-
 describe('ShortcutHint', () => {
 	it('is in the HTML of the build, and stays on Apple platforms', () => {
-		expect(hydrateOn('MacIntel')).toEqual({ before: '⌘J', after: '⌘J' })
+		expect(hydrateOnPlatform(hint, 'MacIntel')).toEqual({ before: '⌘J', after: '⌘J' })
 	})
 
 	it('changes to Ctrl+ after the hydration on other platforms', () => {
-		expect(hydrateOn('Win32')).toEqual({ before: '⌘J', after: 'Ctrl+J' })
+		expect(hydrateOnPlatform(hint, 'Win32')).toEqual({ before: '⌘J', after: 'Ctrl+J' })
 	})
 })
 

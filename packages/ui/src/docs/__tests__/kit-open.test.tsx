@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import type { ComponentType, ReactNode } from 'react'
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router'
 import { beforeAll, describe, expect, onTestFinished, vi } from 'vitest'
 import { deferred } from '../../__tests__/helpers/deferred.ts'
@@ -15,17 +16,23 @@ import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
 // least 300 ms. So "Show code" and an entry of the API reference open only
 // when their content is loaded, and a panel never shows with no content.
 
+/** Renders an example frame of `meta`, in `wrapper` when a case gives one. */
+function renderFrame(meta: ExampleMeta, wrapper?: ComponentType<{ children: ReactNode }>) {
+	return render(
+		<ExampleFrame meta={meta}>
+			<span>Instance</span>
+		</ExampleFrame>,
+		{ wrapper },
+	)
+}
+
 describe('ExampleFrame', () => {
 	it('opens "Show code" with the code in it when the code module loads', async () => {
 		const code = deferred<ExampleCode>()
 
 		const meta: ExampleMeta = { title: 'Basic', id: 'basic', code: () => code.promise }
 
-		const { container } = render(
-			<ExampleFrame meta={meta}>
-				<span>Instance</span>
-			</ExampleFrame>,
-		)
+		const { container } = renderFrame(meta)
 
 		const trigger = screen.getByRole('button', { name: 'Show code' })
 
@@ -55,13 +62,7 @@ describe('ExampleFrame', () => {
 
 		const meta: ExampleMeta = { title: 'Basic', id: 'basic', code: () => code.promise }
 
-		render(
-			<FailBoundary>
-				<ExampleFrame meta={meta}>
-					<span>Instance</span>
-				</ExampleFrame>
-			</FailBoundary>,
-		)
+		renderFrame(meta, FailBoundary)
 
 		const trigger = screen.getByRole('button', { name: 'Show code' })
 
@@ -96,11 +97,7 @@ describe('ExampleFrame', () => {
 
 		const meta: ExampleMeta = { title: 'Basic', id: 'basic', code: load }
 
-		const { container } = render(
-			<ExampleFrame meta={meta}>
-				<span>Instance</span>
-			</ExampleFrame>,
-		)
+		const { container } = renderFrame(meta)
 
 		const trigger = screen.getByRole('button', { name: 'Show code' })
 
@@ -132,11 +129,7 @@ describe('ExampleFrame', () => {
 
 		const load = vi.fn(() => new Promise<ExampleCode>(() => {}))
 
-		render(
-			<ExampleFrame meta={{ title: 'Basic', id: 'basic', code: load }}>
-				<span>Instance</span>
-			</ExampleFrame>,
-		)
+		renderFrame({ title: 'Basic', id: 'basic', code: load })
 
 		expect(load).not.toHaveBeenCalled()
 

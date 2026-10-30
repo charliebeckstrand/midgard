@@ -1,12 +1,9 @@
 // @vitest-environment jsdom
-import { fireEvent, render, waitFor } from '@testing-library/react'
-import type { ComponentType } from 'react'
+import { fireEvent, waitFor } from '@testing-library/react'
 import type { GridColumn } from 'ui/grid'
-import { LocaleProvider } from 'ui/providers/locale'
 import { describe, expect, it } from 'vitest'
-import { CI } from '../../../vitest.base.ts'
 import { columnAccessor } from '../../modules/grid/engine/grid-column/accessor.ts'
-import { catalogs } from '../app/catalogs.ts'
+import { COPY_TIMEOUT, loadCopy, renderInLocale } from './copy.tsx'
 
 // A column of a grid demo sorts by the text that its cell shows. The client
 // sort reads the `value` of a column, or else the row field of its id. A cell
@@ -14,36 +11,23 @@ import { catalogs } from '../app/catalogs.ts'
 // `value`. Else the column sorts by the English key, and the Spanish page
 // shows the rows out of order. The mock server of a demo sorts the same way.
 
-// The first import of a module in a language runs the docs plugin on it,
-// which is slow when the other test files run too.
-const TIMEOUT = CI ? 180_000 : 60_000
-
 type DataModule = typeof import('../pages/modules/grid/data.tsx')
 
 type PeopleModule = typeof import('../pages/modules/grid/editing/people.tsx')
 
 /** The grid data of the demos and the editing columns, in `locale`. */
-async function loadGridData(locale: string): Promise<[DataModule, PeopleModule]> {
-	if (locale === 'en') {
-		return Promise.all([
-			import('../pages/modules/grid/data.tsx'),
-			import('../pages/modules/grid/editing/people.tsx'),
-		])
-	}
-
+function loadGridData(locale: string): Promise<[DataModule, PeopleModule]> {
 	return Promise.all([
-		import(/* @vite-ignore */ `../pages/modules/grid/data.tsx?lang=${locale}`),
-		import(/* @vite-ignore */ `../pages/modules/grid/editing/people.tsx?lang=${locale}`),
+		loadCopy<DataModule>('../pages/modules/grid/data.tsx', locale),
+		loadCopy<PeopleModule>('../pages/modules/grid/editing/people.tsx', locale),
 	])
 }
 
-/** The default export of a demo module in `locale`. */
-async function loadDemo(path: string, locale: string): Promise<ComponentType> {
-	const module: { default: ComponentType } = await import(
-		/* @vite-ignore */ `../pages/modules/grid/${path}?lang=${locale}`
-	)
+/** Renders the demo at `path` under `pages/modules/grid/` in `locale`. */
+async function renderDemo(path: string, locale: string) {
+	const { default: Demo } = await loadCopy(`../pages/modules/grid/${path}`, locale)
 
-	return module.default
+	return renderInLocale(<Demo />, locale)
 }
 
 /** Each column whose cell shows a string, and its rows. */
@@ -82,7 +66,7 @@ function collated(texts: readonly string[], locale: string): string[] {
 	return texts.toSorted(new Intl.Collator(locale, { numeric: true }).compare)
 }
 
-describe.each(['en', 'es'])('the grid demo columns in %s', { timeout: TIMEOUT }, (locale) => {
+describe.each(['en', 'es'])('the grid demo columns in %s', { timeout: COPY_TIMEOUT }, (locale) => {
 	it('give each text cell its shown text as the sort value', async () => {
 		const [data, editing] = await loadGridData(locale)
 
@@ -112,17 +96,11 @@ describe.each(['en', 'es'])('the grid demo columns in %s', { timeout: TIMEOUT },
 	})
 })
 
-describe('the sort of a grid demo on the Spanish page', { timeout: TIMEOUT }, () => {
+describe('the sort of a grid demo on the Spanish page', { timeout: COPY_TIMEOUT }, () => {
 	const locale = 'es'
 
 	it('sorts the in-cell sparklines by the shown metric', async () => {
-		const Demo = await loadDemo('sparkline/in-cell-sparklines.tsx', locale)
-
-		const { container } = render(
-			<LocaleProvider locale={locale} catalogs={catalogs}>
-				<Demo />
-			</LocaleProvider>,
-		)
+		const { container } = await renderDemo('sparkline/in-cell-sparklines.tsx', locale)
 
 		const before = columnText(container, 0)
 
@@ -134,13 +112,7 @@ describe('the sort of a grid demo on the Spanish page', { timeout: TIMEOUT }, ()
 	})
 
 	it('sorts the server rows by the shown role', async () => {
-		const Demo = await loadDemo('sorting/server-side-sorting.tsx', locale)
-
-		const { container } = render(
-			<LocaleProvider locale={locale} catalogs={catalogs}>
-				<Demo />
-			</LocaleProvider>,
-		)
+		const { container } = await renderDemo('sorting/server-side-sorting.tsx', locale)
 
 		const role = 2
 
