@@ -19,7 +19,7 @@ import { findSameText, readTexts, recordIntl } from './same-text.ts'
 // The smoke test of each page of the docs. Several test files run it, and each
 // file gives it one part of the pages (`smokeParts`). A file runs on one
 // worker, so a part that holds most of the pages sets the wall clock of the
-// whole `unit` project. Small parts spread the pages over the workers and over
+// whole `docs` project. Small parts spread the pages over the workers and over
 // the test shards of CI.
 //
 // The test renders each page module at its path, as the routes of the docs app
@@ -55,8 +55,8 @@ import { findSameText, readTexts, recordIntl } from './same-text.ts'
 // start under it. jsdom has no layout, so the rules of geometry stay
 // with the browser suite.
 //
-// The pages import the virtual modules of the docs plugin, so the `unit`
-// project loads the plugin (`vitest.config.ts`).
+// The pages import the virtual modules of the docs plugin, so the `docs`
+// project loads the plugin (`vitest.docs.config.ts`).
 
 /** The English module of each page and each tab, keyed by module path. */
 const englishModules = import.meta.glob<ComponentType>(

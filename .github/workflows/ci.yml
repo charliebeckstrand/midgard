@@ -128,14 +128,19 @@ jobs:
       # suite on main, so main saved nothing under the new key, and each pull
       # request ran the suite cold.
       #
-      # Vitest hashes the text of every file `vitest.config.ts` imports into
-      # each entry's key, and the config imports the docs plugin. An edit to
-      # any of them makes every entry miss. The key was the lockfile alone,
-      # and actions/cache does not save on an exact hit, so the cache froze at
-      # the first run after a lockfile change. The next edit to an imported
-      # file made it useless, and each run transformed the suite cold.
-      # The second hash starts a new cache when those files change, and the
-      # SHA makes each run save what it wrote for the next run to restore.
+      # Vitest hashes the text of every file that a config imports into the
+      # key of each entry of that config. An edit to any of them makes every
+      # entry miss. The key was the lockfile alone, and actions/cache does not
+      # save on an exact hit, so the cache froze at the first run after a
+      # lockfile change. The next edit to an imported file made it useless,
+      # and each run transformed the suite cold.
+      #
+      # The second hash starts a new cache when a file that `vitest.config.ts`
+      # imports changes. The list must hold exactly those files. The docs
+      # plugin and the `ui` modules that it imports are not in it, because
+      # `vitest.docs.config.ts` imports them. An edit to them makes only the
+      # entries of the `docs` project miss, and the other entries stay good.
+      # The SHA makes each run save what it wrote for the next run to restore.
       # Each shard transforms a different half of the suite, so each shard
       # keeps its own cache.
       - id: ui-deps
@@ -146,9 +151,9 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: node_modules/.vitest-cache
-          key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-${{ github.sha }}
+          key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-
+            ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts') }}-
       - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
       # The other packages have few test files, and a shard of them can be
       # empty. The second shard runs them whole, with `test:workspace` below,
@@ -310,7 +315,8 @@ jobs:
           name: compiler-${{ matrix.shard }}
       # The compiled run's own module cache (vitest.compiler.config.ts), apart
       # from the plain run's cache in `test`. The keys follow the cache of
-      # `test`, for the reasons given there, and add the compiler config. Each
+      # `test`, for the reasons given there, and add the compiler config and
+      # the files that it imports. Each
       # shard transforms a different half of the suite, so each shard keeps its
       # own cache.
       - id: ui-deps
@@ -321,9 +327,9 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: node_modules/.vitest-cache-compiler-*
-          key: ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-${{ github.sha }}
+          key: ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/vitest.compiler.preset.ts', 'packages/ui/src/__tests__/setup/split-sequencer.ts') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/plugin/**/*.ts') }}-
+            ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/vitest.compiler.preset.ts', 'packages/ui/src/__tests__/setup/split-sequencer.ts') }}-
       # Filtered to `ui`, the one package with the task. Unfiltered, turbo runs
       # the `^build` of each package without it, and builds for nothing.
       - run: pnpm turbo run test:compiler --filter=ui --summarize -- --shard=${{ matrix.shard }}/2

@@ -10,6 +10,7 @@
 				"docs/*.md",
 				"REFERENCE.md",
 				"vitest.config.ts",
+				"vitest.docs.config.ts",
 				"vitest.base.ts",
 				"vitest.browser.config.ts",
 				"tsconfig.json",
@@ -21,7 +22,12 @@
 			"inputs": ["$TURBO_EXTENDS$", "vitest.base.ts"]
 		},
 		"test:compiler": {
-			"inputs": ["$TURBO_EXTENDS$", "vitest.base.ts"]
+			"inputs": [
+				"$TURBO_EXTENDS$",
+				"vitest.base.ts",
+				"vitest.docs.config.ts",
+				"vitest.docs-compiler.config.ts"
+			]
 		},
 		"test:workspace": {
 			"dependsOn": ["^build"],

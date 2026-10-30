@@ -20,7 +20,7 @@ import {
 
 const testsDir = join(srcDir, '__tests__')
 
-// The trees the `unit` and `pure` projects share. `browser/`, `compiler/`, and
+// The trees that the jsdom projects (`unit`, `docs`) and the `pure` project share. `browser/`, `compiler/`, and
 // `docs-build/` have their own configs, and the `boundary/` files run in the
 // node and forks projects.
 const SCAN_SKIP = new Set(['browser', 'boundary', 'compiler', 'docs-build'])
