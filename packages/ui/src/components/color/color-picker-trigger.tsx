@@ -8,7 +8,7 @@ import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/color-picker'
 import { k } from '../../recipes/kata/color-picker'
 import { Button } from '../button'
-import { useControlTriggerSurface } from '../control/use-control-trigger-surface'
+import { useControlSurface } from '../control/use-control-surface'
 import { hsvaToCss, hsvaToHex } from './color-utilities'
 import type { Hsva } from './types'
 
@@ -68,7 +68,7 @@ export function ColorPickerTrigger({
 	validation,
 	className,
 }: ColorPickerTriggerProps) {
-	const slots = k({ variant: useControlTriggerSurface() })
+	const slots = k({ variant: useControlSurface() })
 
 	const swatchColor = hsvaToCss(hsva, alpha)
 

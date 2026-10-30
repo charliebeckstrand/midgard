@@ -6,7 +6,7 @@ import { useTruncation } from '../../hooks'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/listbox'
 import { Button } from '../button'
-import { useControlTriggerSurface } from '../control/use-control-trigger-surface'
+import { useControlSurface } from '../control/use-control-surface'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 type ListboxButtonProps = {
@@ -90,7 +90,7 @@ export function ListboxButton({
 	truncateTooltip,
 	truncateTooltipSuppressed,
 }: ListboxButtonProps) {
-	const surface = useControlTriggerSurface()
+	const surface = useControlSurface()
 
 	return (
 		<HeadlessProvider>

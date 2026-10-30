@@ -21,7 +21,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/combobox'
 import { capitalizeFirst } from '../../utilities'
-import { useControlTriggerSurface } from '../control/use-control-trigger-surface'
+import { useControlSurface } from '../control/use-control-surface'
 import { Input } from '../input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
@@ -148,7 +148,7 @@ export function ComboboxInput({
 }: ComboboxInputProps) {
 	const intl = useIntl()
 
-	const surface = useControlTriggerSurface()
+	const surface = useControlSurface()
 
 	// Transform only the resolved value; the live query renders as typed.
 	const display = capitalize && !editing ? capitalizeFirst(value) : value

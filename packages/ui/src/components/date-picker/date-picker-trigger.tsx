@@ -10,7 +10,7 @@ import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Button } from '../button'
-import { useControlTriggerSurface } from '../control/use-control-trigger-surface'
+import { useControlSurface } from '../control/use-control-surface'
 import { Icon } from '../icon'
 import { SelectionClearButton } from '../input/input-clear-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -115,7 +115,7 @@ export function DatePickerTrigger({
 		onClear,
 	} = state
 
-	const slots = k({ variant: useControlTriggerSurface() })
+	const slots = k({ variant: useControlSurface() })
 
 	const [valueRef, truncated] = useTruncation<HTMLSpanElement>()
 

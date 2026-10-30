@@ -50,7 +50,7 @@ import { k, type scale } from '../../recipes/kata/combobox'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
-import { useControlTriggerSurface } from '../control/use-control-trigger-surface'
+import { useControlSurface } from '../control/use-control-surface'
 import { Icon } from '../icon'
 import { SelectionClearButton } from '../input/input-clear-button'
 import { OPTION_SELECTOR } from './combobox-constants'
@@ -489,7 +489,7 @@ export function Combobox<T>({
 
 	const control = useControl()
 
-	const surface = useControlTriggerSurface()
+	const surface = useControlSurface()
 
 	// Derived per render: while no value is held on either channel, clicking the
 	// selected option clears it. Resolved here and not as a parameter default,
