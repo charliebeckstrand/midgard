@@ -159,7 +159,7 @@ export function TwoStep({ factors, admin, children }: TwoStepProps) {
 									<Button type="submit" color="blue" disabled={confirmTotp.isPending}>
 										Turn on
 									</Button>
-									<Button variant="plain" onClick={() => setSetup(null)}>
+									<Button type="button" variant="plain" onClick={() => setSetup(null)}>
 										Cancel
 									</Button>
 								</Flex>
@@ -247,7 +247,7 @@ function RecoveryCodes({ codes, count, pending, onMake }: RecoveryCodesProps) {
 			description={
 				count === 0
 					? 'You have no recovery codes. Make some, so that you can sign in if you lose your passkey or app.'
-					: `You have ${count} unused recovery codes.`
+					: `You have ${count} unused recovery ${count === 1 ? 'code' : 'codes'}.`
 			}
 			action={
 				<Button
