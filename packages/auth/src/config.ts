@@ -4,9 +4,11 @@ import { BIFROST_URL } from './env'
 /** Options for {@link withAuth}. */
 export type WithAuthOptions = {
 	/**
-	 * Also rewrite `/api/*` to the gateway, for an app that manages users through
-	 * its API (admin). Off by default, so an app that only signs users in never
-	 * serves the gateway's admin API on its origin.
+	 * Also rewrite `/api/*` to the gateway, for an app that reads or writes its
+	 * data through the gateway API. Each app of the repository turns it on. Then
+	 * the app serves each path of the gateway API on its origin, the admin routes
+	 * included. Off by default, so an app that only signs users in serves no
+	 * gateway API.
 	 */
 	gatewayApi?: boolean
 }
@@ -34,9 +36,10 @@ export const securityHeaders = [
  * them; session gating is the proxy's job (CONVENTIONS.md §6.3). The gateway
  * rewrites go in the `fallback` phase, which Next checks after every page and
  * route handler of the app, dynamic routes included. Thus a route handler of
- * the app, such as `app/api/places/[id]/route.ts`, answers its own path, and
- * the gateway gets each path that the app does not serve. In `afterFiles`, the
- * `/api/:path*` rewrite would take the dynamic routes before Next matched them.
+ * the app, such as `app/api/scoreboard/[season]/[week]/route.ts` in picks,
+ * answers its own path, and the gateway gets each path that the app does not
+ * serve. In `afterFiles`, the `/api/:path*` rewrite would take the dynamic
+ * routes before Next matched them.
  *
  * An existing `rewrites` is preserved. The array form stays in `afterFiles`,
  * and the gateway rewrites follow the `fallback` of the object form. An
