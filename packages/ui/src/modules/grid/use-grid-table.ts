@@ -34,6 +34,7 @@ import {
 } from 'react'
 import type { DensityStep } from '../../core/density'
 import { useControllable } from '../../hooks'
+import { useControlledLatch } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { useLocale } from '../../providers/locale'
@@ -327,22 +328,6 @@ function useColumnLayout<T>(
 }
 
 /**
- * Whether a binding on `useControllable` is controlled. It follows that hook:
- * the first value that is not `undefined` takes control for the mount, and a
- * later `undefined` reads as an empty value, not as an uncontrolled binding.
- * Adjusted during render, as that hook does.
- *
- * @internal
- */
-function useControlledLatch(value: unknown): boolean {
-	const [latched, setLatched] = useState(value !== undefined)
-
-	if (value !== undefined && !latched) setLatched(true)
-
-	return latched || value !== undefined
-}
-
-/**
  * The {@link GridColumnResize} value and the store of settled widths that the
  * body cells subscribe to (see {@link GridTableResult.settle}).
  *
@@ -591,7 +576,7 @@ export function useGridTable<T>({
 	// starts again at the first page. The reset runs in the event that changes
 	// the filter, so it costs no render of its own. A controlled page stays with
 	// the consumer.
-	const pageControlled = paginationConfig?.value !== undefined
+	const pageControlled = useControlledLatch(paginationConfig?.value)
 
 	const resetPage = useCallback(() => {
 		if (!paginated || pageControlled) return

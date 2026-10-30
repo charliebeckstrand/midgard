@@ -1,6 +1,10 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useControllable, useControllableFlag } from '../../hooks/use-controllable'
+import {
+	useControllable,
+	useControllableFlag,
+	useControlledLatch,
+} from '../../hooks/use-controllable'
 
 describe('useControllable', () => {
 	it('uses defaultValue for initial uncontrolled state', () => {
@@ -280,6 +284,27 @@ describe('useControllable controlled to uncontrolled', () => {
 		act(() => result.current[1]('c'))
 
 		expect(result.current[0]).toBeUndefined()
+	})
+})
+
+describe('useControlledLatch', () => {
+	it('is uncontrolled until the first value, then stays controlled', () => {
+		const { result, rerender } = renderHook(
+			({ value }: { value?: string }) => useControlledLatch(value),
+			{
+				initialProps: {} as { value?: string },
+			},
+		)
+
+		expect(result.current).toBe(false)
+
+		rerender({ value: 'a' })
+
+		expect(result.current).toBe(true)
+
+		rerender({ value: undefined })
+
+		expect(result.current).toBe(true)
 	})
 })
 
