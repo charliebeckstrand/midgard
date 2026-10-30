@@ -111,7 +111,7 @@ function PredictionForm({
 				<Stack gap="lg" className="pb-6">
 					<Text tone="muted" size="sm">
 						Pick the winner of each game. A favorite is worth 1 point. An underdog is worth 1 more
-						for each 3 points it gets.
+						for each 3 points, or part of 3, that it gets.
 					</Text>
 
 					{failure === null ? null : (
