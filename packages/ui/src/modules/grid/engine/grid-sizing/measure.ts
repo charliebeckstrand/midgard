@@ -144,14 +144,16 @@ export function collectHeaders(container: HTMLElement): Map<string, HTMLElement>
 /**
  * The rendered `<th>`/`<td>` cells grouped by their `data-grid-col` id, read once per
  * measurement pass. The headers also hold the `data-grid-fit` header of each non-data
- * column (see {@link collectHeaders}).
+ * column (see {@link collectHeaders}). An aggregate cell (`data-grid-aggregate`) joins
+ * the cells of its column, but it is not a cell of a data row, so `cells` does not
+ * count it.
  *
  * @internal
  */
 function collectCells(container: HTMLElement): {
 	headers: Map<string, HTMLElement>
 	bodies: Map<string, HTMLElement[]>
-	/** Body cells found across every column: zero when the body rendered none. */
+	/** Cells of data rows found across every column: zero when the body rendered no row. */
 	cells: number
 } {
 	const headers = collectHeaders(container)
@@ -165,7 +167,7 @@ function collectCells(container: HTMLElement): {
 
 		if (id == null) continue
 
-		cells++
+		if (!td.hasAttribute('data-grid-aggregate')) cells++
 
 		getOrCompute(bodies, id, () => []).push(td)
 	}
@@ -484,8 +486,9 @@ export type ColumnMeasurement = {
 	 */
 	bodies: Map<string, number>
 	/**
-	 * The body cells the pass found, across every column. Zero means that the
-	 * body rendered none:
+	 * The cells of data rows the pass found, across every column. An aggregate
+	 * cell (a grand total, the figures of a group header, a group total) does not
+	 * count. Zero means that the body rendered no data row:
 	 *
 	 * - A loading skeleton, whose placeholder cells carry no column id.
 	 * - An empty result.

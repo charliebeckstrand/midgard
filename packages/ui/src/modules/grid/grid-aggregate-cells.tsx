@@ -36,7 +36,8 @@ type GridAggregateCellsProps<T> = {
  * column. A `blank` row keeps its cells, so the columns stay aligned, but
  * shows no figures. A frozen column's cell carries the sticky chrome of its
  * data cells (see {@link pinnedCellProps}), so its figure stays under its
- * header.
+ * header. Each cell carries `data-grid-aggregate`, so a measurement pass does
+ * not count it as a cell of a data row (see `measureColumns`).
  * Shared by the client group header, the manual group header (which reads its
  * backend figures off `headerRow`), and the grand-total row.
  *
@@ -59,6 +60,7 @@ export function GridAggregateCells<T>({
 			<TableCell
 				key={column.id}
 				data-grid-col={column.id}
+				data-grid-aggregate=""
 				className={cn(k.aggregate.cell, pinned.className)}
 				style={pinned.style}
 				data-grid-pin={pinned.pin}

@@ -140,7 +140,13 @@ type GridTotalRowProps<T> = {
 	navKey?: string
 } & GridWindowRowProps
 
-/** A group total cell's collapsible body: the same CSS-grid reveal the group's leaf cells ride. @internal */
+/**
+ * A group total cell's collapsible body: the same CSS-grid reveal the group's
+ * leaf cells ride. The cell carries `data-grid-aggregate`, so a measurement pass
+ * does not count it as a cell of a data row (see `measureColumns`).
+ *
+ * @internal
+ */
 function GroupRevealCell({
 	open,
 	pad,
@@ -171,6 +177,7 @@ function GroupRevealCell({
 			{...cellProps}
 			colSpan={colSpan}
 			data-grid-col={colId}
+			data-grid-aggregate=""
 			className={cn(
 				// The leading cell carries the group rail: in the group's color when set
 				// (layered over the neutral tint), else neutral.
