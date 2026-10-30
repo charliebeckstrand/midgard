@@ -3,7 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type Seed, seededQuery } from 'shared/queries'
 import { deletePicks, listPicks, savePicks } from '../api/predictions-api'
-import type { Game, SeasonPicks, TeamPicks } from '../types'
+import { fetchWeekGames } from '../api/scoreboard-api'
+import type { SeasonPicks, TeamPicks } from '../types'
 
 /** The query keys, in one place, so a reader and a writer name the same entry. */
 export const picksKeys = {
@@ -31,13 +32,7 @@ export function usePicks(season: number, initial: Seed<SeasonPicks>) {
 export function useWeekGames(season: number, week: number | null, active: boolean) {
 	return useQuery({
 		queryKey: picksKeys.games(season, week ?? 0),
-		queryFn: async ({ signal }): Promise<Game[]> => {
-			const response = await fetch(`/api/scoreboard/${season}/${week}`, { signal })
-
-			if (!response.ok) throw new Error('The games did not load. Try again.')
-
-			return response.json()
-		},
+		queryFn: ({ signal }) => fetchWeekGames(season, week ?? 0, signal),
 		enabled: active && week !== null,
 	})
 }
