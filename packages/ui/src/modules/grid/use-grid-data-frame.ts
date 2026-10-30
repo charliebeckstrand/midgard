@@ -270,6 +270,10 @@ export function useGridDataFrame<T>({
 		infiniteScroll,
 	})
 
+	// Server pagination with a page count but no row count gives no total, so
+	// `dataRowCount` is only the page. The footer then counts the page and says so.
+	const footerPageScoped = pagination != null && pagination.rowCount == null
+
 	// Grid semantics (role="grid" + global indices) and the select-all label,
 	// derived together from the rendered-window mode; see `resolveSemantics`.
 	// The manual grouped body interleaves header and leaf rows without index
@@ -358,6 +362,7 @@ export function useGridDataFrame<T>({
 		ariaRowCount,
 		dataRowCount,
 		footerStats,
+		footerPageScoped,
 		semantics,
 		rowIndexOffset,
 		rowHover,

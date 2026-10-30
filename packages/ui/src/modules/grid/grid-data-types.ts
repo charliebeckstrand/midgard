@@ -613,6 +613,8 @@ export type GridFooterStats = {
 	/**
 	 * Rows after search/filter: the full filtered extent across every page, not
 	 * just the rendered window. The server total under server-side pagination.
+	 * When server-side pagination gives a `pageCount` but no `rowCount`, the grid
+	 * does not know the total, so this counts the rows of the current page.
 	 */
 	rows: number
 	/**
@@ -641,7 +643,9 @@ export type GridFooter = {
 	/**
 	 * Shows the total row count: `'47 rows'`, or `'12 of 47 rows visible'` while a
 	 * client-side search or filter narrows the set. Counts the full filtered extent
-	 * across all pages, not just the rendered window. An active
+	 * across all pages, not just the rendered window. When server-side pagination
+	 * gives a `pageCount` but no `rowCount`, the total is not known, so the count
+	 * names the current page: `'25 rows on this page'`. An active
 	 * {@link GridFooter.selectedTotal} replaces this count in place rather than
 	 * sitting beside it.
 	 *

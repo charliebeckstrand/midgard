@@ -148,6 +148,40 @@ describe('Grid footer', () => {
 		expect(text).not.toContain('3 rows visible')
 	})
 
+	it('scopes the row total to the page when server pagination gives no row count', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				pagination={{ manual: true, pageCount: 40, value: { pageIndex: 0, pageSize: 3 } }}
+				footer={{ rowTotal: true }}
+			/>,
+		)
+
+		// The server gives only a page count, so the total is not known. The label
+		// counts the page and says so, and does not state one page as the whole set.
+		const bar = present(bySlot(container, 'grid-footer'), 'the footer bar')
+
+		expect(bar).toHaveTextContent('3 rows on this page')
+
+		expect(bySlot(container, 'grid-footer-status')).toHaveTextContent('3 rows on this page')
+	})
+
+	it('keeps the bare row total when server pagination gives a row count', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				pagination={{ manual: true, rowCount: 120, value: { pageIndex: 0, pageSize: 3 } }}
+				footer={{ rowTotal: true }}
+			/>,
+		)
+
+		expect(bySlot(container, 'grid-footer')).toHaveTextContent(/^120 rows$/)
+	})
+
 	it('renders the custom content slot with live counts', () => {
 		const { container } = renderUI(
 			<Grid

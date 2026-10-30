@@ -1139,6 +1139,10 @@
 		"defaultMessage": "{count, plural, one {Row not added, # cell refused} other {Row not added, # cells refused}}",
 		"description": "Spoken when the grid does not add a new row. The count is the number of refused cells."
 	},
+	"ui.grid.rowsOnPage": {
+		"defaultMessage": "{rows, plural, one {# row} other {# rows}} on this page",
+		"description": "The row count in the footer of a grid that shows one page of a server set whose total it does not know."
+	},
 	"ui.grid.rowsPerPage": {
 		"defaultMessage": "Rows per page",
 		"description": "The name of the control that picks the number of rows on a page of a grid."
