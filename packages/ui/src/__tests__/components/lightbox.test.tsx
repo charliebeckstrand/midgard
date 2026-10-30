@@ -147,8 +147,6 @@ describe('Lightbox', () => {
 
 		const first = screen.getByRole('button', { name: 'Harbor at dawn' })
 
-		const second = screen.getByRole('button', { name: 'Snow on a ridge' })
-
 		expect(first).not.toHaveAttribute('data-open')
 
 		await user.click(first)
@@ -157,13 +155,27 @@ describe('Lightbox', () => {
 
 		expect(first).toHaveAttribute('data-open')
 
-		expect(second).not.toHaveAttribute('data-open')
+		expect(screen.getByRole('button', { name: 'Snow on a ridge' })).not.toHaveAttribute('data-open')
+	})
 
-		await user.click(screen.getByRole('button', { name: 'Next photo' }))
+	it('moves data-open to the trigger of the photo that the viewer shows next', () => {
+		const { rerender } = renderUI(<Gallery index={0} />)
+
+		const first = screen.getByRole('button', { name: 'Harbor at dawn' })
+
+		const third = screen.getByRole('button', { name: 'Field of poppies' })
+
+		expect(first).toHaveAttribute('data-open')
+
+		rerender(<Gallery index={2} />)
 
 		expect(first).not.toHaveAttribute('data-open')
 
-		expect(second).toHaveAttribute('data-open')
+		expect(third).toHaveAttribute('data-open')
+
+		rerender(<Gallery index={null} />)
+
+		expect(third).not.toHaveAttribute('data-open')
 	})
 
 	it('empties the thumbnail of the photo that is up', async () => {
