@@ -134,3 +134,46 @@ describe('a11y landmarks (axe, page scope)', () => {
 		expect(stray).toEqual([])
 	})
 })
+
+// A layout can preview an app in its body, such as a page of docs that shows a
+// whole layout. The page keeps one main landmark, at the top level. The inner
+// layout renders its main slot as a `div` (`MainLandmark`).
+describe('a layout in the main slot of another layout', () => {
+	it('keeps one main landmark, at the top level', async () => {
+		renderUI(
+			<SidebarLayout sidebar={sidebar}>
+				<SidebarLayoutHeader>
+					<Heading level={1}>Density</Heading>
+				</SidebarLayoutHeader>
+				<SidebarLayoutBody>
+					<SidebarLayout
+						sidebar={
+							<Sidebar aria-label="Preview">
+								<SidebarBody>
+									<SidebarSection>
+										<SidebarItem href="#inbox" current>
+											<SidebarLabel>Inbox</SidebarLabel>
+										</SidebarItem>
+									</SidebarSection>
+								</SidebarBody>
+							</Sidebar>
+						}
+					>
+						<SidebarLayoutBody>
+							<Text>Preview content.</Text>
+						</SidebarLayoutBody>
+					</SidebarLayout>
+				</SidebarLayoutBody>
+			</SidebarLayout>,
+		)
+
+		expect(
+			await axePage(document.body, {
+				runOnly: {
+					type: 'rule',
+					values: ['landmark-one-main', 'landmark-no-duplicate-main', 'landmark-main-is-top-level'],
+				},
+			}),
+		).toHaveNoViolations()
+	})
+})

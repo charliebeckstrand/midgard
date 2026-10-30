@@ -13,6 +13,7 @@ import { Box } from '../structure/box'
 import { Flex } from '../structure/flex'
 import { Stack } from '../structure/stack'
 import { mapResponsive, type Responsive } from '../types'
+import { MainLandmark } from './main-landmark'
 import { StackedLayout } from './stacked'
 
 /** The filters and the content stack in the drawer layout, and sit side by side inline. */
@@ -70,6 +71,9 @@ export type DashboardLayoutProps = ComponentProps<'div'> & {
  * The rail and the main column sit in a row in the inline layout, where the
  * rail shows. In the drawer layout the rail is hidden and the column is the
  * only child, so the axis does not show.
+ *
+ * The main column is a `<main>`. Inside the main slot of another layout, it is
+ * a `<div>`, so the page keeps one main landmark.
  */
 export function DashboardLayout({
 	filters,
@@ -121,9 +125,9 @@ export function DashboardLayout({
 					</Drawer>
 				)}
 
-				<main data-slot="main" className="min-w-0 flex-1">
+				<MainLandmark data-slot="main" className="min-w-0 flex-1">
 					{children}
-				</main>
+				</MainLandmark>
 			</Flex>
 		</StackedLayout>
 	)

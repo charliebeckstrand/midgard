@@ -8,6 +8,8 @@ import { AuthLayout, SidebarLayout, StackedLayout } from 'ui/layouts'
 
 Each export ships its `<Name>Props` type beside it. Per-layout behavior, props, and defaults live in the TSDoc.
 
+Each layout renders its main slot as a `<main>`. A layout can sit inside the main slot of another layout, such as the preview of an app. Its main slot is then a `<div>`, so the page keeps one main landmark.
+
 ## `AuthLayout`: unauthenticated pages
 
 Static frame for sign-in, registration, and other single-card pages.

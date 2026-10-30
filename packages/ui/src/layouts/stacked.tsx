@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react'
 import { cn, createSlot } from '../core'
 import { Stack } from '../structure/stack'
+import { MainLandmark } from './main-landmark'
 
 /** Props for {@link StackedLayout}: the header, body, and footer slots to stack. The `<div>` takes the rest. */
 export type StackedLayoutProps = ComponentProps<'div'>
@@ -19,7 +20,9 @@ export function StackedLayout({ className, ...props }: StackedLayoutProps) {
 
 // Each slot is element + `data-slot` + class composition, which is what
 // `createSlot` is for. It also carries `ref` and every native attribute of the
-// element, so these three take the same surface the structure roots took.
+// element, so these three take the same surface the structure roots took. The
+// body renders through `MainLandmark`, which picks its element, so it is a
+// function and not a slot.
 
 /** Props for {@link StackedLayoutHeader} (`<header>` attributes). */
 export type StackedLayoutHeaderProps = ComponentProps<'header'>
@@ -27,14 +30,24 @@ export type StackedLayoutHeaderProps = ComponentProps<'header'>
 /** Fixed-height header slot for {@link StackedLayout} (`data-slot="header"`). */
 export const StackedLayoutHeader = createSlot('header', 'header', 'shrink-0')
 
-/** Props for {@link StackedLayoutBody} (`<main>` attributes); `ref` reaches the scrolling `<main>`. */
+/** Props for {@link StackedLayoutBody} (`<main>` attributes); `ref` reaches the scrolling element. */
 export type StackedLayoutBodyProps = ComponentProps<'main'>
 
 /**
  * Flexible, vertically scrolling main slot for {@link StackedLayout}
  * (`data-slot="body"`). Takes the remaining height between header and footer.
+ * Inside the main slot of another layout, it renders a `<div>`, so the page
+ * keeps one main landmark.
  */
-export const StackedLayoutBody = createSlot('main', 'body', 'flex-1 min-h-0 overflow-y-auto')
+export function StackedLayoutBody({ className, ...props }: StackedLayoutBodyProps) {
+	return (
+		<MainLandmark
+			data-slot="body"
+			className={cn('flex-1 min-h-0 overflow-y-auto', className)}
+			{...props}
+		/>
+	)
+}
 
 /** Props for {@link StackedLayoutFooter} (`<footer>` attributes). */
 export type StackedLayoutFooterProps = ComponentProps<'footer'>

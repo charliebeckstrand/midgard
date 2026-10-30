@@ -33,6 +33,7 @@ import { useAppearanceChoice } from '../../providers/appearance/use-appearance-c
 import { k } from '../../recipes/kata/sidebar-layout'
 import { Flex } from '../../structure/flex'
 import type { Responsive } from '../../types'
+import { MainLandmark } from '../main-landmark'
 import { type StickyBars, useStickyBars } from './use-sticky-bars'
 
 const [SidebarLayoutContext] = createContext<{
@@ -419,15 +420,19 @@ export function SidebarLayoutHeader({
 	)
 }
 
-/** Props for {@link SidebarLayoutBody} (`<main>` attributes); `ref` reaches the `<main>`. */
+/** Props for {@link SidebarLayoutBody} (`<main>` attributes); `ref` reaches the element that it renders. */
 export type SidebarLayoutBodyProps = ComponentProps<'main'>
 
 /**
  * Main content slot for {@link SidebarLayout} (`data-slot="body"`). It scrolls
  * with the page at each width. It grows into the free height of the content
- * region, so the footer sits at the bottom of a short page.
+ * region, so the footer sits at the bottom of a short page. Inside the main
+ * slot of another layout, it renders a `<div>`, so the page keeps one main
+ * landmark.
  */
-export const SidebarLayoutBody = createSlot('main', 'body', k().body)
+export function SidebarLayoutBody({ className, ...props }: SidebarLayoutBodyProps) {
+	return <MainLandmark data-slot="body" className={cn(k().body, className)} {...props} />
+}
 
 /** Props for {@link SidebarLayoutFooter} (`<footer>` attributes). */
 export type SidebarLayoutFooterProps = ComponentProps<'footer'>
