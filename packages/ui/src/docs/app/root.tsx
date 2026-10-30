@@ -30,11 +30,6 @@ import { DocsSearch, SearchPaletteHost } from './search.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 import { StaleBuildScript } from './stale-build.tsx'
 
-// The id of the element that ends the first paint block. It comes after the
-// scroll restoration script, at the end of the body, so the page paints whole,
-// with the current items in view.
-const FIRST_PAINT = 'first-paint'
-
 /**
  * The document of each page. `UIDocument` holds `AppearanceProvider`, so each
  * prerendered file has the script of the latin face before its content. The
@@ -53,7 +48,7 @@ export function Layout({ children }: { children: ReactNode }) {
 					<meta charSet="UTF-8" />
 					<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 					<StaleBuildScript />
-					<link rel="expect" href={`#${FIRST_PAINT}`} blocking="render" />
+					<ScrollRestorationScript />
 					<DirectionScript />
 					<EventsScript />
 					<Meta />
@@ -62,7 +57,6 @@ export function Layout({ children }: { children: ReactNode }) {
 			}
 		>
 			{children}
-			<ScrollRestorationScript id={FIRST_PAINT} />
 			<Scripts />
 		</UIDocument>
 	)

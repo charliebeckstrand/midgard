@@ -67,22 +67,13 @@ function restoreScroll() {
 }
 
 /**
- * The inline script of {@link restoreScroll}. Render it at the end of the
- * body, after the lists.
- *
- * The element with `id` comes after the script, so the parser reaches it only
- * when the script has run. A render-blocking `<link rel="expect">` that names
- * `id` thus holds the first paint until the scroll is restored. The browser
- * ends the block when it inserts the element, so the link cannot name the
- * script itself: the first paint could then come before the script runs.
+ * The inline script of {@link restoreScroll}. Render it in the `<head>`. It is
+ * a module, so it runs when the parser has read the whole document, and it
+ * blocks the render, so the first paint waits for it. The page thus paints
+ * whole, with the current item of each list in view.
  */
-export function ScrollRestorationScript({ id }: { id: string }) {
-	return (
-		<>
-			<InlineScript source={`(${restoreScroll})()`} />
-			<template id={id} />
-		</>
-	)
+export function ScrollRestorationScript() {
+	return <InlineScript type="module" blocking="render" source={`(${restoreScroll})()`} />
 }
 
 /**
