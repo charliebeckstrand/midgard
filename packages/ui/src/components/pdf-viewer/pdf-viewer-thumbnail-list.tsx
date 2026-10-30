@@ -161,7 +161,7 @@ export function PdfViewerThumbnailList({
 								className={k().thumbnail.placeholder}
 							>
 								<span className={k().thumbnail.frame}>
-									<span className={k().thumbnail.skeleton} />
+									<span className={k({ pulse: true }).thumbnail.skeleton} />
 								</span>
 								<span className={k().thumbnail.label}>{'\u00a0'}</span>
 							</span>
@@ -206,7 +206,9 @@ export function PdfViewerThumbnailList({
 								) : (
 									<span
 										data-slot="pdf-viewer-thumbnail-skeleton"
-										className={k().thumbnail.skeleton}
+										className={
+											k({ pulse: visible.includes(item.pageNumber - 1) }).thumbnail.skeleton
+										}
 									/>
 								)}
 							</span>

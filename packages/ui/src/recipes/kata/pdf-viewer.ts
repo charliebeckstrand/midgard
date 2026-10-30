@@ -9,7 +9,7 @@
  *   `highlights` layer with each `region`.
  */
 import { colors, defineKata, mode } from '../../core/recipe'
-import { dan, hannou, iro, ji, narabi, omote, sen, sou } from '../kiso'
+import { dan, hannou, iro, ji, narabi, omote, sen, sou, ugoki } from '../kiso'
 
 const { cursor } = hannou
 const { text } = iro
@@ -17,6 +17,7 @@ const { size, weight } = ji
 const { flex, offcanvas } = narabi
 const { bg, rail, skeleton } = omote
 const { border, focus, forced, ring } = sen
+const { css } = ugoki
 
 // The page image and every layer drawn over it must sit in the same place, so the centering
 // has one home: the rotation half of the same invariant is the `transform` string
@@ -208,8 +209,15 @@ export const k = defineKata({
 				],
 				/** The page image. It fills the frame, and keeps its own ratio where the page gives no size. */
 				image: ['block w-full h-full object-contain'],
-				/** Fills the frame until the image of the page lands, so the tile has its final box. */
-				skeleton: ['block w-full h-full', skeleton.base],
+				/**
+				 * Fills the frame until the image of the page lands, so the tile has its final box. Only
+				 * a tile in view of the rail pulses. A long document has a tile for each page, and a pulse
+				 * restyles its tile in each frame, also where the rail clips the tile.
+				 */
+				skeleton: {
+					base: ['block w-full h-full', bg.skeleton.base],
+					pulse: { true: css.pulse, false: '' },
+				},
 				label: [
 					size.sm,
 					text.muted,

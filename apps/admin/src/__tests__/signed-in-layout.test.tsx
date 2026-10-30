@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { requireSession, type Session } from 'auth'
 import { type ReactNode, useState } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import SignedInLayout from '../../app/(signed-in)/layout'
 
 vi.mock('auth', () => ({ requireSession: vi.fn() }))
@@ -13,16 +13,6 @@ vi.mock('next/navigation', () => ({ usePathname: () => '/account' }))
 vi.mock('shared/locale', () => ({
 	RequestLocale: ({ children }: { children: ReactNode }) => children,
 }))
-
-// jsdom has no `matchMedia`, and the chrome reads the width of the viewport.
-beforeEach(() => {
-	vi.stubGlobal('matchMedia', (query: string) => ({
-		matches: false,
-		media: query,
-		addEventListener: vi.fn(),
-		removeEventListener: vi.fn(),
-	}))
-})
 
 afterEach(cleanup)
 
