@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Alert } from '../../components/alert'
+import { Alert, type AlertProps } from '../../components/alert'
 import { Button } from '../../components/button'
 import { Dialog, DialogPanel } from '../../components/dialog'
 import {
@@ -144,14 +144,6 @@ describe('Alert', () => {
 		)
 	})
 
-	it('renders title and description props', () => {
-		renderUI(<Alert title="Title" description="Description" />)
-
-		expect(screen.getByText('Title')).toBeInTheDocument()
-
-		expect(screen.getByText('Description')).toBeInTheDocument()
-	})
-
 	it('wraps children in the body slot', () => {
 		const { container } = renderUI(<Alert>plain text</Alert>)
 
@@ -273,23 +265,24 @@ describe('Alert', () => {
 		expect(screen.getByText('content')).toBeInTheDocument()
 	})
 
+	/** A `Trigger` button, and a closable alert that returns the focus to it. */
+	function Harness(props: AlertProps) {
+		const triggerRef = useRef<HTMLButtonElement>(null)
+
+		return (
+			<>
+				<button ref={triggerRef} type="button">
+					Trigger
+				</button>
+
+				<Alert closable returnFocusTo={triggerRef} {...props}>
+					content
+				</Alert>
+			</>
+		)
+	}
+
 	it('moves focus to returnFocusTo when dismissed', () => {
-		function Harness() {
-			const triggerRef = useRef<HTMLButtonElement>(null)
-
-			return (
-				<>
-					<button ref={triggerRef} type="button">
-						Trigger
-					</button>
-
-					<Alert closable returnFocusTo={triggerRef}>
-						content
-					</Alert>
-				</>
-			)
-		}
-
 		renderUI(<Harness />)
 
 		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
@@ -302,23 +295,7 @@ describe('Alert', () => {
 	})
 
 	it('keeps focus on the dismiss button when a controlled alert stays open', () => {
-		function Harness() {
-			const triggerRef = useRef<HTMLButtonElement>(null)
-
-			return (
-				<>
-					<button ref={triggerRef} type="button">
-						Trigger
-					</button>
-
-					<Alert open closable returnFocusTo={triggerRef}>
-						content
-					</Alert>
-				</>
-			)
-		}
-
-		renderUI(<Harness />)
+		renderUI(<Harness open />)
 
 		const dismiss = screen.getByRole('button', { name: 'Dismiss' })
 
@@ -333,24 +310,13 @@ describe('Alert', () => {
 	})
 
 	it('moves focus to returnFocusTo when a controlled parent closes the alert', () => {
-		function Harness() {
-			const triggerRef = useRef<HTMLButtonElement>(null)
+		function Controlled() {
 			const [open, setOpen] = useState(true)
 
-			return (
-				<>
-					<button ref={triggerRef} type="button">
-						Trigger
-					</button>
-
-					<Alert open={open} onOpenChange={setOpen} closable returnFocusTo={triggerRef}>
-						content
-					</Alert>
-				</>
-			)
+			return <Harness open={open} onOpenChange={setOpen} />
 		}
 
-		renderUI(<Harness />)
+		renderUI(<Controlled />)
 
 		const dismiss = screen.getByRole('button', { name: 'Dismiss' })
 

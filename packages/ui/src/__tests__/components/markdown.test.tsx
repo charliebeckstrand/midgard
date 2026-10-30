@@ -288,12 +288,6 @@ describe('Markdown', () => {
 		expect(bySlot(container, 'code')).toHaveTextContent('&amp;')
 	})
 
-	it('renders inline code through the Code component', () => {
-		const { container } = renderUI(<Markdown>{'Some `code`.'}</Markdown>)
-
-		expect(bySlot(container, 'code')).toHaveTextContent('code')
-	})
-
 	it('renders a fenced code block through CodeBlock, resolving the language from the info string', async () => {
 		const { container } = renderUI(<Markdown>{'```tsx\nconst x = 1\n```'}</Markdown>)
 

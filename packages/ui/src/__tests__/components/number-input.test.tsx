@@ -5,7 +5,7 @@ import { Field } from '../../components/fieldset'
 import { NumberInput } from '../../components/number-input'
 import { Form } from '../../modules/form'
 import { LocaleProvider } from '../../providers/locale'
-import { act, expectAnnouncement, fireEvent, renderUI, screen, setupUser } from '../helpers'
+import { act, expectAnnouncement, fireEvent, frame, renderUI, screen, setupUser } from '../helpers'
 
 describe('NumberInput', () => {
 	it('renders an input with type number alongside decrease and increase buttons', () => {
@@ -360,7 +360,7 @@ describe('NumberInput', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Reset form' }))
 
-		await act(() => new Promise(requestAnimationFrame))
+		await act(frame)
 
 		expect(input.value).toBe('5')
 

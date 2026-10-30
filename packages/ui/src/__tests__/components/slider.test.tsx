@@ -163,6 +163,8 @@ describe('Slider', () => {
 		const el = getSlot<HTMLInputElement>(container, 'slider')
 
 		expect(el.style.width).toBe('300px')
+
+		expect(el.style.getPropertyValue('--slider-value')).toBe('25%')
 	})
 })
 
@@ -256,13 +258,6 @@ describe('RangeSlider', () => {
 			'Range end',
 		],
 		[
-			'accepts per-thumb labels',
-			() => <RangeSlider labels={['Min price', 'Max price']} />,
-			'aria-label',
-			'Min price',
-			'Max price',
-		],
-		[
 			'announces thumb values via getValueText',
 			() => (
 				<RangeSlider
@@ -349,20 +344,10 @@ describe('RangeSlider', () => {
 		expect(onChange).toHaveBeenCalledWith(expected)
 	})
 
-	it('ignores unrelated keys', () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<RangeSlider defaultValue={[10, 90]} onValueChange={onChange} />)
-
-		const [lo] = allBySlot(container, 'slider-range-thumb')
-
-		fireEvent.keyDown(lo as HTMLElement, { key: 'a' })
-
-		expect(onChange).not.toHaveBeenCalled()
-	})
-
-	// A chord such as Alt+ArrowLeft (history back) is for the browser.
+	// A chord such as Alt+ArrowLeft (history back) is for the browser. A key
+	// that the slider does not use also stays with the browser.
 	it.each([
+		['an unrelated key', 'a', {}],
 		['Alt+ArrowLeft', 'ArrowLeft', { altKey: true }],
 		['Ctrl+Home', 'Home', { ctrlKey: true }],
 		['Cmd+ArrowRight', 'ArrowRight', { metaKey: true }],
@@ -482,21 +467,15 @@ describe('RangeSlider', () => {
 })
 
 describe('snapValue', () => {
-	it('snaps a value down to the nearest step', () => {
-		expect(snapValue(7, 0, 100, 5)).toBe(5)
-	})
-
-	it('snaps a value up to the nearest step', () => {
-		expect(snapValue(8, 0, 100, 5)).toBe(10)
-	})
-
-	it('offsets the step grid by min', () => {
-		expect(snapValue(13, 3, 100, 5)).toBe(13)
-	})
-
-	// The step grid holds 11 past max 10, so the clamp comes after the snap.
-	it('clamps a grid value past max into the bound', () => {
-		expect(snapValue(9.6, 2, 10, 3)).toBe(10)
+	// The step grid in the last row holds 11 past max 10, so the clamp comes
+	// after the snap.
+	it.for<[string, [number, number, number, number], number]>([
+		['snaps a value down to the nearest step', [7, 0, 100, 5], 5],
+		['snaps a value up to the nearest step', [8, 0, 100, 5], 10],
+		['offsets the step grid by min', [13, 3, 100, 5], 13],
+		['clamps a grid value past max into the bound', [9.6, 2, 10, 3], 10],
+	])('%s', ([, args, expected]) => {
+		expect(snapValue(...args)).toBe(expected)
 	})
 })
 

@@ -57,16 +57,19 @@ describe('ColorArea', () => {
 		expect(brightness()).toBe(50)
 	})
 
-	// A chord such as Alt+ArrowLeft (history back) is for the browser.
-	it.each([
-		['Alt+ArrowLeft', 'ArrowLeft', { altKey: true }],
-		['Ctrl+Home', 'Home', { ctrlKey: true }],
-		['Cmd+ArrowUp', 'ArrowUp', { metaKey: true }],
-	])('ignores %s and keeps its default', (_name, key, modifier) => {
+	// A chord such as Alt+ArrowLeft (history back) is for the browser, and so is
+	// a key that the area does not bind.
+	it.for([
+		['leaves an unbound key to the page', 'a', {}],
+		['ignores Alt+ArrowLeft and keeps its default', 'ArrowLeft', { altKey: true }],
+		['ignores Ctrl+Home and keeps its default', 'Home', { ctrlKey: true }],
+		['ignores Cmd+ArrowUp and keeps its default', 'ArrowUp', { metaKey: true }],
+	] as const)('%s', ([, key, modifier]) => {
 		const { area, onValueChange } = setup()
 
 		const proceeded = fireEvent.keyDown(area, { key, ...modifier })
 
+		// `fireEvent` returns false only when a handler prevents the default.
 		expect(proceeded).toBe(true)
 
 		expect(area).toHaveAttribute('aria-valuenow', '50')
@@ -114,15 +117,6 @@ describe('ColorArea', () => {
 		fireEvent.keyDown(area, { key: 'End' })
 
 		expect(onValueChange).toHaveBeenLastCalledWith({ h: 120, s: 100, v: 50, a: 1 })
-	})
-
-	it('leaves an unbound key to the page', () => {
-		const { area, onValueChange } = setup()
-
-		// `fireEvent` returns false only when a handler prevents the default.
-		expect(fireEvent.keyDown(area, { key: 'a' })).toBe(true)
-
-		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('sets saturation from x and brightness from the inverted y of the press', () => {

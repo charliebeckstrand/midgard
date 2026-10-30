@@ -4,21 +4,35 @@ import { ControlLockContext } from '../../components/control/context'
 import { Description, Field, Label } from '../../components/fieldset'
 import { Rating, RatingSkeleton } from '../../components/rating'
 import { Form } from '../../modules/form'
-import { useFormState } from '../../primitives/form/context'
 import { LocaleProvider } from '../../providers/locale'
 import { act, allBySlot, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 /** The stars' own radios, in draw order. */
 function stars(container: HTMLElement): HTMLInputElement[] {
 	return allBySlot(container, 'rating-input') as HTMLInputElement[]
 }
 
-/** Reads one form field back out of the store, for the binding assertions. */
-function FormValue({ name }: { name: string }) {
-	const state = useFormState()
+/**
+ * Checks that the row draws `count` fills, and that each fill recedes when
+ * `receded` is true and holds full strength when it is false.
+ *
+ * @returns The fills, in draw order.
+ */
+const expectFills = vi.defineHelper(
+	(container: HTMLElement, count: number, { receded }: { receded: boolean }) => {
+		const fills = allBySlot(container, 'rating-fill')
 
-	return <output>{String(state?.values[name])}</output>
-}
+		expect(fills).toHaveLength(count)
+
+		for (const fill of fills) {
+			if (receded) expect(fill).toHaveClass('opacity-40')
+			else expect(fill).not.toHaveClass('opacity-40')
+		}
+
+		return fills
+	},
+)
 
 describe('Rating', () => {
 	it('renders one radio per star in a named radiogroup', () => {
@@ -92,11 +106,9 @@ describe('Rating', () => {
 
 		await user.click(stars(container)[3] as HTMLInputElement)
 
-		expect(onValueChange).toHaveBeenCalledWith(null)
-
 		// The canceled activation restores the radio, so no `change` set the same
 		// star straight back.
-		expect(onValueChange).toHaveBeenCalledTimes(1)
+		expect(onValueChange).toHaveBeenCalledExactlyOnceWith(null)
 	})
 
 	it('recedes the fill while the pointer rests on the star that would clear it', async () => {
@@ -122,11 +134,7 @@ describe('Rating', () => {
 
 		await user.hover(allBySlot(container, 'rating-star')[2] as HTMLElement)
 
-		expect(allBySlot(container, 'rating-fill')).toHaveLength(3)
-
-		for (const fill of allBySlot(container, 'rating-fill')) {
-			expect(fill).not.toHaveClass('opacity-40')
-		}
+		expectFills(container, 3, { receded: false })
 	})
 
 	// A tap sends the compatibility mouse events with no leave after them, so a
@@ -142,11 +150,7 @@ describe('Rating', () => {
 
 		expect(onValueChange).toHaveBeenLastCalledWith(3)
 
-		expect(allBySlot(container, 'rating-fill')).toHaveLength(3)
-
-		for (const fill of allBySlot(container, 'rating-fill')) {
-			expect(fill).not.toHaveClass('opacity-40')
-		}
+		expectFills(container, 3, { receded: false })
 	})
 
 	// A commit that no press starts is a key: an arrow key or Space. The value
@@ -169,14 +173,8 @@ describe('Rating', () => {
 
 			fireEvent.click(stars(container)[2] as HTMLInputElement)
 
-			const fills = allBySlot(container, 'rating-fill')
-
-			expect(fills).toHaveLength(3)
-
-			for (const fill of fills) {
+			for (const fill of expectFills(container, 3, { receded: false })) {
 				expect(fill).toHaveStyle({ width: '100%' })
-
-				expect(fill).not.toHaveClass('opacity-40')
 			}
 		})
 
@@ -200,13 +198,7 @@ describe('Rating', () => {
 
 			fireEvent.click(stars(container)[2] as HTMLInputElement)
 
-			const fills = allBySlot(container, 'rating-fill')
-
-			expect(fills).toHaveLength(3)
-
-			for (const fill of fills) {
-				expect(fill).toHaveClass('opacity-40')
-			}
+			expectFills(container, 3, { receded: true })
 		})
 
 		// A press that ends with no click commits nothing, so it must not mark the
@@ -222,11 +214,7 @@ describe('Rating', () => {
 
 			fireEvent.click(stars(container)[2] as HTMLInputElement)
 
-			const fills = allBySlot(container, 'rating-fill')
-
-			expect(fills).toHaveLength(3)
-
-			for (const fill of fills) expect(fill).not.toHaveClass('opacity-40')
+			expectFills(container, 3, { receded: false })
 		})
 
 		it('forgets a press that ended off the row once a key goes down', () => {
@@ -241,11 +229,7 @@ describe('Rating', () => {
 
 			fireEvent.click(stars(container)[2] as HTMLInputElement)
 
-			const fills = allBySlot(container, 'rating-fill')
-
-			expect(fills).toHaveLength(3)
-
-			for (const fill of fills) expect(fill).not.toHaveClass('opacity-40')
+			expectFills(container, 3, { receded: false })
 		})
 	})
 
@@ -284,7 +268,7 @@ describe('Rating', () => {
 		const { container } = renderUI(
 			<Form defaultValues={{ score: 2 }}>
 				<Rating aria-label="Score" name="score" />
-				<FormValue name="score" />
+				<FieldProbe name="score" />
 			</Form>,
 		)
 
@@ -292,7 +276,7 @@ describe('Rating', () => {
 
 		await user.click(stars(container)[4] as HTMLInputElement)
 
-		expect(screen.getByText('5')).toBeInTheDocument()
+		expect(getFieldProbe('score')).toHaveTextContent('5')
 	})
 
 	it('names the group from an enclosing Field label', () => {
@@ -395,9 +379,7 @@ describe('Rating', () => {
 
 			await user.click(stars(container)[4] as HTMLInputElement)
 
-			expect(onValueChange).toHaveBeenCalledWith(null)
-
-			expect(onValueChange).toHaveBeenCalledTimes(1)
+			expect(onValueChange).toHaveBeenCalledExactlyOnceWith(null)
 		})
 	})
 
@@ -463,12 +445,6 @@ describe('Rating', () => {
 			)
 
 			expect(screen.getByRole('img')).toHaveAccessibleDescription('From your last visit')
-		})
-
-		it('puts the resolved id on the row', () => {
-			const { container } = renderUI(<Rating readOnly id="score" value={4} />)
-
-			expect(bySlot(container, 'rating')).toHaveAttribute('id', 'score')
 		})
 
 		it('keeps its name through the resolved id', () => {

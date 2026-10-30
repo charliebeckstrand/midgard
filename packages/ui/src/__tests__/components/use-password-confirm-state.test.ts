@@ -64,9 +64,7 @@ describe('usePasswordConfirmState', () => {
 			result.current.setConfirm('hunter2')
 		})
 
-		expect(onMatchChange).toHaveBeenCalledOnce()
-
-		expect(onMatchChange).toHaveBeenCalledWith(true)
+		expect(onMatchChange).toHaveBeenCalledExactlyOnceWith(true)
 	})
 
 	it('fires onMatchChange(false) once when the fields diverge', () => {
@@ -82,9 +80,7 @@ describe('usePasswordConfirmState', () => {
 			result.current.setConfirm('hunter3')
 		})
 
-		expect(onMatchChange).toHaveBeenCalledOnce()
-
-		expect(onMatchChange).toHaveBeenCalledWith(false)
+		expect(onMatchChange).toHaveBeenCalledExactlyOnceWith(false)
 	})
 
 	it('does not refire the callback on rerenders that hold the same matchState', () => {

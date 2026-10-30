@@ -44,6 +44,11 @@ function track(input: HTMLElement) {
 	return el
 }
 
+// A primary press on the track of `input`, at `clientX`.
+function press(input: HTMLElement, clientX: number) {
+	fireEvent.pointerDown(track(input), { isPrimary: true, button: 0, pointerId: 1, clientX })
+}
+
 describe('ColorSlider (semantics)', () => {
 	it('renders each channel as a native range input', () => {
 		setup()
@@ -70,7 +75,7 @@ describe('ColorSlider (semantics)', () => {
 
 		giveRect(hue)
 
-		fireEvent.pointerDown(track(hue), { isPrimary: true, button: 0, pointerId: 1, clientX: 0 })
+		press(hue, 0)
 
 		expect(document.activeElement).toBe(hue)
 	})
@@ -129,27 +134,19 @@ describe('ColorSlider (hue)', () => {
 		expect(hue).toHaveValue('0')
 	})
 
-	it('leaves an unbound key to the page', () => {
-		const { hue, onValueChange } = setup()
-
-		const handled = fireEvent.keyDown(hue, { key: 'a' })
-
-		// `fireEvent` returns false only when a handler prevents the default.
-		expect(handled).toBe(true)
-
-		expect(onValueChange).not.toHaveBeenCalled()
-	})
-
-	// A chord such as Alt+ArrowLeft (history back) is for the browser.
-	it.each([
-		['Alt+ArrowLeft', 'ArrowLeft', { altKey: true }],
-		['Ctrl+End', 'End', { ctrlKey: true }],
-		['Cmd+ArrowRight', 'ArrowRight', { metaKey: true }],
-	])('ignores %s and keeps its default', (_name, key, modifier) => {
+	// A chord such as Alt+ArrowLeft (history back) is for the browser, and so is
+	// a key that the slider does not bind.
+	it.for([
+		['leaves an unbound key to the page', 'a', {}],
+		['ignores Alt+ArrowLeft and keeps its default', 'ArrowLeft', { altKey: true }],
+		['ignores Ctrl+End and keeps its default', 'End', { ctrlKey: true }],
+		['ignores Cmd+ArrowRight and keeps its default', 'ArrowRight', { metaKey: true }],
+	] as const)('%s', ([, key, modifier]) => {
 		const { hue, onValueChange } = setup()
 
 		const proceeded = fireEvent.keyDown(hue, { key, ...modifier })
 
+		// `fireEvent` returns false only when a handler prevents the default.
 		expect(proceeded).toBe(true)
 
 		expect(onValueChange).not.toHaveBeenCalled()
@@ -160,12 +157,7 @@ describe('ColorSlider (hue)', () => {
 
 		giveRect(hue)
 
-		fireEvent.pointerDown(track(hue), {
-			isPrimary: true,
-			button: 0,
-			pointerId: 1,
-			clientX: WIDTH / 4,
-		})
+		press(hue, WIDTH / 4)
 
 		expect(hue).toHaveValue('90')
 
@@ -231,12 +223,7 @@ describe('ColorSlider (alpha)', () => {
 
 		giveRect(alpha)
 
-		fireEvent.pointerDown(track(alpha), {
-			isPrimary: true,
-			button: 0,
-			pointerId: 1,
-			clientX: (WIDTH * 3) / 4,
-		})
+		press(alpha, (WIDTH * 3) / 4)
 
 		expect(alpha).toHaveValue('0.75')
 	})
@@ -280,12 +267,7 @@ describe('ColorSlider (disabled fieldset)', () => {
 
 		giveRect(alpha)
 
-		fireEvent.pointerDown(track(alpha), {
-			isPrimary: true,
-			button: 0,
-			pointerId: 1,
-			clientX: (WIDTH * 3) / 4,
-		})
+		press(alpha, (WIDTH * 3) / 4)
 
 		expect(alpha).toHaveValue('0.5')
 

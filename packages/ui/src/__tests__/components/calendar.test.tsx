@@ -20,6 +20,17 @@ import { it } from '../helpers/fake-clock'
 const selectedDay = () =>
 	screen.getAllByRole('option').find((o) => o.getAttribute('aria-selected') === 'true')
 
+/** The day option whose text is `n`. */
+const day = (n: string) =>
+	screen.getAllByRole('option').find((option) => option.textContent === n) as HTMLElement
+
+/** The text of each enabled day that is a Tab stop. */
+const dayStops = () =>
+	screen
+		.getAllByRole('option')
+		.filter((option) => option.tabIndex === 0 && !option.hasAttribute('disabled'))
+		.map((option) => option.textContent)
+
 describe('Calendar', () => {
 	it('renders navigation buttons, weekday labels, and day buttons in a listbox', () => {
 		const { container } = renderUI(<Calendar />)
@@ -35,24 +46,6 @@ describe('Calendar', () => {
 		expect(el?.textContent).toContain('Mo')
 
 		expect(screen.getByRole('listbox')).toBeInTheDocument()
-	})
-
-	it('calls onValueChange when a day is clicked', async () => {
-		const onChange = vi.fn()
-
-		renderUI(<Calendar onValueChange={onChange} />)
-
-		const user = setupUser()
-
-		const days = screen.getAllByRole('option')
-
-		const dayButton = days.find((b) => b.textContent === '15')
-
-		expect(dayButton).toBeDefined()
-
-		await user.click(dayButton as HTMLElement)
-
-		expect(onChange).toHaveBeenCalled()
 	})
 
 	it('exposes imperative handle via ref', () => {
@@ -99,11 +92,11 @@ describe('Calendar', () => {
 		// `ar-EG` writes Arabic-Indic digits, as its month and day names do.
 		renderUI(<Calendar locale="ar-EG" defaultValue={new Date(2025, 5, 15)} />)
 
-		const day = screen.getAllByRole('option')[14]
+		const fifteenth = screen.getAllByRole('option')[14]
 
-		expect(day).toHaveTextContent('١٥')
+		expect(fifteenth).toHaveTextContent('١٥')
 
-		expect(day).toHaveAccessibleName(expect.stringContaining('١٥'))
+		expect(fifteenth).toHaveAccessibleName(expect.stringContaining('١٥'))
 	})
 
 	it('keeps a single-select day listbox', () => {
@@ -185,19 +178,11 @@ describe('Calendar', () => {
 
 		renderUI(<Calendar defaultValue={defaultValue} min={min} max={max} />)
 
-		const days = screen.getAllByRole('option')
+		expect(day('5')).toBeDisabled()
 
-		const before = days.find((b) => b.textContent === '5')
+		expect(day('25')).toBeDisabled()
 
-		const after = days.find((b) => b.textContent === '25')
-
-		const inside = days.find((b) => b.textContent === '15')
-
-		expect(before).toBeDisabled()
-
-		expect(after).toBeDisabled()
-
-		expect(inside).not.toBeDisabled()
+		expect(day('15')).not.toBeDisabled()
 	})
 
 	it('does not call onValueChange when a disabled day is clicked', async () => {
@@ -209,13 +194,11 @@ describe('Calendar', () => {
 
 		const user = setupUser()
 
-		const days = screen.getAllByRole('option')
-
-		const disabledDay = days.find((b) => b.textContent === '5')
+		const disabledDay = day('5')
 
 		expect(disabledDay, 'a day labeled 5 to be present').toBeDefined()
 
-		await user.click(disabledDay as HTMLElement)
+		await user.click(disabledDay)
 
 		expect(onChange).not.toHaveBeenCalled()
 	})
@@ -234,11 +217,11 @@ describe('Calendar', () => {
 
 		const user = setupUser()
 
-		const dayButton = screen.getAllByRole('option').find((b) => b.textContent === '20')
+		const dayButton = day('20')
 
 		expect(dayButton).toBeDefined()
 
-		await user.click(dayButton as HTMLElement)
+		await user.click(dayButton)
 
 		const selected = onChange.mock.calls[0]?.[0] as Date
 
@@ -272,12 +255,12 @@ describe('Calendar', () => {
 	})
 
 	it('keeps the fill that getDayProps gives a selected day while the day is active', () => {
-		const day = new Date(2025, 5, 15)
+		const selected = new Date(2025, 5, 15)
 
 		renderUI(
 			<Calendar
-				defaultValue={day}
-				active={{ zone: 'grid', date: day }}
+				defaultValue={selected}
+				active={{ zone: 'grid', date: selected }}
 				getDayProps={({ selected }) => (selected ? { color: 'red' } : {})}
 			/>,
 		)
@@ -329,9 +312,9 @@ describe('Calendar day press', () => {
 
 		const onValueChange = vi.fn()
 
-		const day = new Date(2025, 5, 12)
+		const date = new Date(2025, 5, 12)
 
-		renderUI(<Calendar value={day} onValueChange={onValueChange} onDayPress={onDayPress} />)
+		renderUI(<Calendar value={date} onValueChange={onValueChange} onDayPress={onDayPress} />)
 
 		await user.click(screen.getByRole('option', { name: /\b12\b/ }))
 
@@ -537,41 +520,25 @@ describe('Calendar month/year picker', () => {
 // grid<->header transitions, and Enter/Space activation. June 2025 starts on a
 // Sunday; its days fill a clean 7-column grid and option[i] is day i+1.
 describe('Calendar keyboard navigation', () => {
-	const day = (n: string) =>
-		screen.getAllByRole('option').find((option) => option.textContent === n) as HTMLElement
-
 	function renderJune() {
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
 	}
 
-	it('moves day focus by one column with ArrowRight / ArrowLeft', async () => {
+	it.for([
+		['moves day focus by one column with ArrowRight / ArrowLeft', 'ArrowRight', '11', 'ArrowLeft'],
+		['moves day focus by one week with ArrowDown / ArrowUp', 'ArrowDown', '17', 'ArrowUp'],
+	] as const)('%s', async ([, forward, to, back]) => {
 		const user = setupUser()
 
 		renderJune()
 
 		act(() => day('10').focus())
 
-		await user.keyboard('{ArrowRight}')
+		await user.keyboard(`{${forward}}`)
 
-		expect(document.activeElement).toBe(day('11'))
+		expect(document.activeElement).toBe(day(to))
 
-		await user.keyboard('{ArrowLeft}')
-
-		expect(document.activeElement).toBe(day('10'))
-	})
-
-	it('moves day focus by one week with ArrowDown / ArrowUp', async () => {
-		const user = setupUser()
-
-		renderJune()
-
-		act(() => day('10').focus())
-
-		await user.keyboard('{ArrowDown}')
-
-		expect(document.activeElement).toBe(day('17'))
-
-		await user.keyboard('{ArrowUp}')
+		await user.keyboard(`{${back}}`)
 
 		expect(document.activeElement).toBe(day('10'))
 	})
@@ -759,18 +726,8 @@ describe('Calendar keyboard navigation', () => {
 // month, and Shift with a Page key steps a year. June 2025 starts on a Sunday
 // and has 30 days.
 describe('Calendar keyboard month steps', () => {
-	const day = (n: string) =>
-		screen.getAllByRole('option').find((option) => option.textContent === n) as HTMLElement
-
 	/** The header control that shows the month and opens the picker. */
 	const monthLabel = () => screen.getByRole('button', { name: /^\w+ \d{4}$/ })
-
-	/** The text of each enabled day that is a Tab stop. */
-	const dayStops = () =>
-		screen
-			.getAllByRole('option')
-			.filter((option) => option.tabIndex === 0 && !option.hasAttribute('disabled'))
-			.map((option) => option.textContent)
 
 	it('steps to the next month when ArrowRight leaves the last day', async () => {
 		const onMonthChange = vi.fn()
@@ -790,46 +747,40 @@ describe('Calendar keyboard month steps', () => {
 		expect(onMonthChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 6, 1))
 	})
 
-	it('steps to the previous month when ArrowLeft leaves the first day', async () => {
+	it.for([
+		[
+			'steps to the previous month when ArrowLeft leaves the first day',
+			'1',
+			'ArrowLeft',
+			'May 2025',
+			'Saturday, May 31, 2025',
+		],
+		[
+			'steps to the next month when ArrowDown leaves the last row',
+			'28',
+			'ArrowDown',
+			'July 2025',
+			'Saturday, July 5, 2025',
+		],
+		[
+			'steps to the previous month when ArrowUp leaves the top row',
+			'3',
+			'ArrowUp',
+			'May 2025',
+			'Tuesday, May 27, 2025',
+		],
+	] as const)('%s', async ([, from, key, month, focused]) => {
 		const user = setupUser()
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
 
-		act(() => day('1').focus())
+		act(() => day(from).focus())
 
-		await user.keyboard('{ArrowLeft}')
+		await user.keyboard(`{${key}}`)
 
-		expect(monthLabel()).toHaveAccessibleName('May 2025')
+		expect(monthLabel()).toHaveAccessibleName(month)
 
-		expect(document.activeElement).toHaveAccessibleName('Saturday, May 31, 2025')
-	})
-
-	it('steps to the next month when ArrowDown leaves the last row', async () => {
-		const user = setupUser()
-
-		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
-
-		act(() => day('28').focus())
-
-		await user.keyboard('{ArrowDown}')
-
-		expect(monthLabel()).toHaveAccessibleName('July 2025')
-
-		expect(document.activeElement).toHaveAccessibleName('Saturday, July 5, 2025')
-	})
-
-	it('steps to the previous month when ArrowUp leaves the top row', async () => {
-		const user = setupUser()
-
-		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
-
-		act(() => day('3').focus())
-
-		await user.keyboard('{ArrowUp}')
-
-		expect(monthLabel()).toHaveAccessibleName('May 2025')
-
-		expect(document.activeElement).toHaveAccessibleName('Tuesday, May 27, 2025')
+		expect(document.activeElement).toHaveAccessibleName(focused)
 	})
 
 	it('steps to the next month when ArrowDown leaves the bottom row above a footer', async () => {
@@ -953,13 +904,6 @@ describe('Calendar keyboard month steps', () => {
 // The day listbox is one Tab stop. The month header holds plain buttons, and
 // each one is a Tab stop.
 describe('Calendar Tab stops', () => {
-	/** The text of each enabled day that is a Tab stop. */
-	const dayStops = () =>
-		screen
-			.getAllByRole('option')
-			.filter((option) => option.tabIndex === 0 && !option.hasAttribute('disabled'))
-			.map((option) => option.textContent)
-
 	it('holds one Tab stop in the day listbox, on the selected day before an earlier today', ({
 		clock,
 	}) => {
@@ -1031,38 +975,22 @@ describe('Calendar Tab stops', () => {
 
 		expect(document.activeElement).toBe(roved)
 	})
-
-	it('reaches the month header with Shift+Tab from the day listbox', async () => {
-		const user = setupUser()
-
-		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
-
-		act(() => screen.getByRole('option', { name: 'Sunday, June 15, 2025' }).focus())
-
-		await user.tab({ shift: true })
-
-		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Next month' }))
-	})
 })
 
 describe('Calendar entry date', () => {
 	// The clock of each case: midday on 15 June 2025.
 	const now = new Date(2025, 5, 15, 12)
 
-	const dayStops = () =>
-		screen
-			.getAllByRole('option')
-			.filter((option) => option.tabIndex === 0 && !option.hasAttribute('disabled'))
-			.map((option) => option.textContent)
-
 	// The handle gives the entry day, and the grid holds its Tab stop on the same day.
 	// After a month step, the roving hook moves the Tab stop in a microtask, so a
 	// case that steps the month awaits its `act`.
-	function expectEntry(ref: { current: CalendarHandle | null }, expected: Date | null) {
-		expect(ref.current?.getEntryDate()).toEqual(expected)
+	const expectEntry = vi.defineHelper(
+		(ref: { current: CalendarHandle | null }, expected: Date | null) => {
+			expect(ref.current?.getEntryDate()).toEqual(expected)
 
-		expect(dayStops()).toEqual(expected ? [String(expected.getDate())] : [])
-	}
+			expect(dayStops()).toEqual(expected ? [String(expected.getDate())] : [])
+		},
+	)
 
 	it('enters on the selected day of the shown month', ({ clock }) => {
 		clock.set(now)
@@ -1193,9 +1121,7 @@ describe('Calendar + Form', () => {
 
 		const user = setupUser()
 
-		const day20 = screen.getAllByRole('option').find((o) => o.textContent === '20')
-
-		await user.click(day20 as HTMLElement)
+		await user.click(day('20'))
 
 		await user.click(screen.getByRole('button', { name: 'Submit' }))
 

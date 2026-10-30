@@ -1,32 +1,7 @@
 // @vitest-environment node
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { createPhotonProvider } from '../../components/address-input'
-
-/** A US state with a box, so that the search inside the state runs. */
-const OREGON = {
-	geometry: { coordinates: [-120.5, 44] },
-	properties: { name: 'Oregon', extent: [-124.6, 46.3, -116.5, 41.9] },
-}
-
-/** Answers the state request with `OREGON`, and each other request with no matches. */
-function stubEmptyFetch() {
-	const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
-		const layer = new URL(String(input), 'https://relative.test').searchParams.get('layer')
-
-		const features = layer === 'state' ? [OREGON] : []
-
-		return { ok: true, json: async () => ({ features }) } as Response
-	})
-
-	vi.stubGlobal('fetch', fetchMock)
-
-	return fetchMock
-}
-
-/** Each URL that the stubbed fetch got, as it got it. */
-function requested(fetchMock: ReturnType<typeof stubEmptyFetch>): string[] {
-	return fetchMock.mock.calls.map((call) => String(call[0]))
-}
+import { requested, requestedUrls, stubEmptyFetch } from '../helpers/photon'
 
 describe('createPhotonProvider endpoint with a query string', () => {
 	it('keeps the endpoint params and adds the search params', async () => {
@@ -59,7 +34,7 @@ describe('createPhotonProvider endpoint with a query string', () => {
 
 		await provider('diner portland oregon', { signal: new AbortController().signal })
 
-		const urls = requested(fetchMock).map((href) => new URL(href))
+		const urls = requestedUrls(fetchMock)
 
 		expect(urls.some((url) => url.searchParams.get('osm_tag') === 'place:postcode')).toBe(true)
 

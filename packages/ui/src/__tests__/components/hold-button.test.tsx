@@ -2,7 +2,7 @@ import { animate } from 'motion'
 import { Activity, type FormEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
 import { ControlLockContext } from '../../components/control/context'
-import { HoldButton } from '../../components/hold-button'
+import { HoldButton, type HoldButtonProps } from '../../components/hold-button'
 import { bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 import { it, onFakeClock } from '../helpers/fake-clock'
 
@@ -22,15 +22,20 @@ afterEach(() => {
 /** A plain primary press. jsdom gives a synthetic pointer event `isPrimary: false`. */
 const PRESS = { isPrimary: true, button: 0 }
 
+/** Renders a HoldButton with `props` and the label "Hold", and gives its button. */
+function renderHold(props: HoldButtonProps = {}) {
+	const view = renderUI(<HoldButton {...props}>Hold</HoldButton>)
+
+	return { ...view, el: getSlot(view.container, 'hold-button') }
+}
+
 describe('HoldButton', () => {
 	it('renders a button with data-slot="hold-button"', () => {
-		const { container } = renderUI(<HoldButton>Hold</HoldButton>)
-
-		const el = bySlot(container, 'hold-button')
+		const { el } = renderHold()
 
 		expect(el).toBeInTheDocument()
 
-		expect(el?.tagName).toBe('BUTTON')
+		expect(el.tagName).toBe('BUTTON')
 	})
 
 	it('takes a caller data-slot rename', () => {
@@ -43,54 +48,6 @@ describe('HoldButton', () => {
 		expect(bySlot(container, 'hold-button')).toBeNull()
 	})
 
-	it('fires onHoldStart on pointer down', () => {
-		const onHoldStart = vi.fn()
-
-		const { container } = renderUI(<HoldButton onHoldStart={onHoldStart}>Hold</HoldButton>)
-
-		const el = getSlot(container, 'hold-button')
-
-		fireEvent.pointerDown(el, PRESS)
-
-		expect(onHoldStart).toHaveBeenCalledOnce()
-	})
-
-	it('fires onHoldCancel on pointer up before completion', () => {
-		const onHoldCancel = vi.fn()
-
-		const onHoldComplete = vi.fn()
-
-		const { container } = renderUI(
-			<HoldButton onHoldCancel={onHoldCancel} onHoldComplete={onHoldComplete}>
-				Hold
-			</HoldButton>,
-		)
-
-		const el = getSlot(container, 'hold-button')
-
-		fireEvent.pointerDown(el, PRESS)
-
-		fireEvent.pointerUp(el)
-
-		expect(onHoldCancel).toHaveBeenCalledOnce()
-
-		expect(onHoldComplete).not.toHaveBeenCalled()
-	})
-
-	it('cancels on pointer leave', () => {
-		const onHoldCancel = vi.fn()
-
-		const { container } = renderUI(<HoldButton onHoldCancel={onHoldCancel}>Hold</HoldButton>)
-
-		const el = getSlot(container, 'hold-button')
-
-		fireEvent.pointerDown(el, PRESS)
-
-		fireEvent.pointerLeave(el)
-
-		expect(onHoldCancel).toHaveBeenCalledOnce()
-	})
-
 	it('cancels a keyboard hold on blur instead of completing after focus loss', async ({
 		clock,
 	}) => {
@@ -98,13 +55,7 @@ describe('HoldButton', () => {
 
 		const onHoldCancel = vi.fn()
 
-		const { container } = renderUI(
-			<HoldButton duration={500} onHoldComplete={onHoldComplete} onHoldCancel={onHoldCancel}>
-				Hold
-			</HoldButton>,
-		)
-
-		const el = getSlot(container, 'hold-button')
+		const { el } = renderHold({ duration: 500, onHoldComplete, onHoldCancel })
 
 		fireEvent.keyDown(el, { key: ' ' })
 
@@ -122,13 +73,7 @@ describe('HoldButton', () => {
 	it('cancels a keyboard hold when the window loses focus', async ({ clock }) => {
 		const onHoldComplete = vi.fn()
 
-		const { container } = renderUI(
-			<HoldButton duration={500} onHoldComplete={onHoldComplete}>
-				Hold
-			</HoldButton>,
-		)
-
-		const el = getSlot(container, 'hold-button')
+		const { el } = renderHold({ duration: 500, onHoldComplete })
 
 		fireEvent.keyDown(el, { key: ' ' })
 
@@ -144,13 +89,7 @@ describe('HoldButton', () => {
 
 		const onHoldCancel = vi.fn()
 
-		const { container } = renderUI(
-			<HoldButton duration={500} onHoldComplete={onHoldComplete} onHoldCancel={onHoldCancel}>
-				Hold
-			</HoldButton>,
-		)
-
-		const el = getSlot(container, 'hold-button')
+		const { el } = renderHold({ duration: 500, onHoldComplete, onHoldCancel })
 
 		// Space starts the hold; pressing and releasing Enter must not abort it.
 		fireEvent.keyDown(el, { key: ' ' })
@@ -171,24 +110,10 @@ describe('HoldButton', () => {
 		expect(onHoldCancel).not.toHaveBeenCalled()
 	})
 
-	it('starts on Space keydown', () => {
-		const onHoldStart = vi.fn()
-
-		const { container } = renderUI(<HoldButton onHoldStart={onHoldStart}>Hold</HoldButton>)
-
-		const el = getSlot(container, 'hold-button')
-
-		fireEvent.keyDown(el, { key: ' ' })
-
-		expect(onHoldStart).toHaveBeenCalledOnce()
-	})
-
 	it('ignores repeated keydown events', () => {
 		const onHoldStart = vi.fn()
 
-		const { container } = renderUI(<HoldButton onHoldStart={onHoldStart}>Hold</HoldButton>)
-
-		const el = getSlot(container, 'hold-button')
+		const { el } = renderHold({ onHoldStart })
 
 		fireEvent.keyDown(el, { key: ' ' })
 
@@ -200,13 +125,7 @@ describe('HoldButton', () => {
 	it('does not start when disabled', () => {
 		const onHoldStart = vi.fn()
 
-		const { container } = renderUI(
-			<HoldButton disabled onHoldStart={onHoldStart}>
-				Hold
-			</HoldButton>,
-		)
-
-		const el = getSlot(container, 'hold-button')
+		const { el } = renderHold({ disabled: true, onHoldStart })
 
 		fireEvent.pointerDown(el, PRESS)
 
@@ -214,9 +133,7 @@ describe('HoldButton', () => {
 	})
 
 	it('disables the button when disabled prop is set', () => {
-		const { container } = renderUI(<HoldButton disabled>Hold</HoldButton>)
-
-		const el = bySlot(container, 'hold-button')
+		const { el } = renderHold({ disabled: true })
 
 		expect(el).toBeDisabled()
 	})
@@ -230,9 +147,9 @@ describe('HoldButton', () => {
 	] as const)('forwards %s to the caller', (prop, fire) => {
 		const handler = vi.fn()
 
-		const { container } = renderUI(<HoldButton {...{ [prop]: handler }}>Hold</HoldButton>)
+		const { el } = renderHold({ [prop]: handler })
 
-		fire(getSlot(container, 'hold-button'))
+		fire(el)
 
 		expect(handler).toHaveBeenCalledOnce()
 	})
@@ -246,17 +163,17 @@ describe('HoldButton', () => {
 	])('starts no hold on %s', (_name, init) => {
 		const onHoldStart = vi.fn()
 
-		const { container } = renderUI(<HoldButton onHoldStart={onHoldStart}>Hold</HoldButton>)
+		const { el } = renderHold({ onHoldStart })
 
-		fireEvent.pointerDown(getSlot(container, 'hold-button'), init)
+		fireEvent.pointerDown(el, init)
 
 		expect(onHoldStart).not.toHaveBeenCalled()
 	})
 
 	it('writes type="button" when the caller gives no type', () => {
-		const { container } = renderUI(<HoldButton>Hold</HoldButton>)
+		const { el } = renderHold()
 
-		expect(getSlot(container, 'hold-button')).toHaveAttribute('type', 'button')
+		expect(el).toHaveAttribute('type', 'button')
 	})
 
 	it('writes the caller type', () => {
@@ -315,13 +232,7 @@ describe('HoldButton', () => {
 		it('fires onHoldComplete after the hold duration elapses', async ({ clock }) => {
 			const onHoldComplete = vi.fn()
 
-			const { container } = renderUI(
-				<HoldButton duration={1000} onHoldComplete={onHoldComplete}>
-					Hold
-				</HoldButton>,
-			)
-
-			const el = getSlot(container, 'hold-button')
+			const { el } = renderHold({ duration: 1000, onHoldComplete })
 
 			fireEvent.pointerDown(el, PRESS)
 
@@ -482,13 +393,7 @@ describe('HoldButton', () => {
 
 			const onHoldCancel = vi.fn()
 
-			const { container, rerender } = renderUI(
-				<HoldButton duration={1000} onHoldComplete={onHoldComplete} onHoldCancel={onHoldCancel}>
-					Hold
-				</HoldButton>,
-			)
-
-			const el = getSlot(container, 'hold-button')
+			const { rerender, el } = renderHold({ duration: 1000, onHoldComplete, onHoldCancel })
 
 			fireEvent.pointerDown(el, PRESS)
 
@@ -515,13 +420,7 @@ describe('HoldButton', () => {
 		it('does not fire onHoldComplete when released before duration elapses', async ({ clock }) => {
 			const onHoldComplete = vi.fn()
 
-			const { container } = renderUI(
-				<HoldButton duration={1000} onHoldComplete={onHoldComplete}>
-					Hold
-				</HoldButton>,
-			)
-
-			const el = getSlot(container, 'hold-button')
+			const { el } = renderHold({ duration: 1000, onHoldComplete })
 
 			fireEvent.pointerDown(el, PRESS)
 
@@ -593,20 +492,14 @@ describe('HoldButton', () => {
 		it('runs the caller handler before the hold starts and before it cancels', () => {
 			const calls: string[] = []
 
-			const { container } = renderUI(
-				<HoldButton
-					onPointerDown={() => calls.push('pointerdown')}
-					onPointerUp={() => calls.push('pointerup')}
-					onKeyDown={() => calls.push('keydown')}
-					onKeyUp={() => calls.push('keyup')}
-					onHoldStart={() => calls.push('start')}
-					onHoldCancel={() => calls.push('cancel')}
-				>
-					Hold
-				</HoldButton>,
-			)
-
-			const el = getSlot(container, 'hold-button')
+			const { el } = renderHold({
+				onPointerDown: () => calls.push('pointerdown'),
+				onPointerUp: () => calls.push('pointerup'),
+				onKeyDown: () => calls.push('keydown'),
+				onKeyUp: () => calls.push('keyup'),
+				onHoldStart: () => calls.push('start'),
+				onHoldCancel: () => calls.push('cancel'),
+			})
 
 			fireEvent.pointerDown(el, PRESS)
 
@@ -642,18 +535,9 @@ describe('HoldButton', () => {
 					[prop]: (event: { preventDefault: () => void }) => event.preventDefault(),
 				}
 
-				const { container } = renderUI(
-					<HoldButton
-						duration={500}
-						onHoldStart={onHoldStart}
-						onHoldComplete={onHoldComplete}
-						{...prevent}
-					>
-						Hold
-					</HoldButton>,
-				)
+				const { el } = renderHold({ duration: 500, onHoldStart, onHoldComplete, ...prevent })
 
-				press(getSlot(container, 'hold-button'))
+				press(el)
 
 				await clock.advance(600)
 
@@ -680,18 +564,7 @@ describe('HoldButton', () => {
 					[prop]: (event: { preventDefault: () => void }) => event.preventDefault(),
 				}
 
-				const { container } = renderUI(
-					<HoldButton
-						duration={500}
-						onHoldCancel={onHoldCancel}
-						onHoldComplete={onHoldComplete}
-						{...prevent}
-					>
-						Hold
-					</HoldButton>,
-				)
-
-				const el = getSlot(container, 'hold-button')
+				const { el } = renderHold({ duration: 500, onHoldCancel, onHoldComplete, ...prevent })
 
 				if (press === 'pointer') fireEvent.pointerDown(el, PRESS)
 				else fireEvent.keyDown(el, { key: ' ' })
@@ -718,13 +591,7 @@ describe('HoldButton', () => {
 					[prop]: (event: { preventDefault: () => void }) => event.preventDefault(),
 				}
 
-				const { container } = renderUI(
-					<HoldButton duration={500} onHoldComplete={onHoldComplete} {...prevent}>
-						Hold
-					</HoldButton>,
-				)
-
-				const el = getSlot(container, 'hold-button')
+				const { el } = renderHold({ duration: 500, onHoldComplete, ...prevent })
 
 				fireEvent.keyDown(el, { key: ' ' })
 

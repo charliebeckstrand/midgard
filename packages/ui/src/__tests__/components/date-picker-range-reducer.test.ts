@@ -58,12 +58,14 @@ describe('datePickerRangeReducer', () => {
 	})
 
 	it('hover updates only hoverDate', () => {
+		const active = { date: start, zone: 'grid' } as const
+
 		const next = datePickerRangeReducer(
-			{ rangeStart: start, hoverDate: null, active: null },
+			{ rangeStart: start, hoverDate: null, active },
 			{ type: 'hover', date: hover },
 		)
 
-		expect(next.hoverDate).toBe(hover)
+		expect(next).toEqual({ rangeStart: start, hoverDate: hover, active })
 	})
 
 	it('hover with null clears hoverDate', () => {

@@ -48,44 +48,22 @@ describe('zipcodeMask', () => {
 		expect(input).toHaveAttribute('autocomplete', 'postal-code')
 	})
 
-	it('formats US ZIP+4 with a dash', async () => {
+	it.each<[string, ReturnType<typeof zipcodeMask>, string, string]>([
+		['formats US ZIP+4 with a dash', zipcodeMask(), '941031234', '94103-1234'],
+		['strips non-digit characters for US', zipcodeMask(), 'abc94103xyz', '94103'],
+		['uppercases and spaces Canadian postal codes', zipcodeMask('CA'), 'k1a0b1', 'K1A 0B1'],
+	])('%s', async (_name, mask, typed, expected) => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<MaskInput mask={zipcodeMask()} onValueChange={onChange} />)
+		const { container } = renderUI(<MaskInput mask={mask} onValueChange={onChange} />)
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
-		const user = setupUser()
+		await setupUser().type(input, typed)
 
-		await user.type(input, '941031234')
+		expect(input.value).toBe(expected)
 
-		expect(input.value).toBe('94103-1234')
-
-		expect(onChange).toHaveBeenLastCalledWith('94103-1234')
-	})
-
-	it('strips non-digit characters for US', async () => {
-		const { container } = renderUI(<MaskInput mask={zipcodeMask()} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'mask-input')
-
-		const user = setupUser()
-
-		await user.type(input, 'abc94103xyz')
-
-		expect(input.value).toBe('94103')
-	})
-
-	it('uppercases and spaces Canadian postal codes', async () => {
-		const { container } = renderUI(<MaskInput mask={zipcodeMask('CA')} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'mask-input')
-
-		const user = setupUser()
-
-		await user.type(input, 'k1a0b1')
-
-		expect(input.value).toBe('K1A 0B1')
+		expect(onChange).toHaveBeenLastCalledWith(expected)
 	})
 
 	it.each<[string, ComponentProps<typeof MaskInput>, string]>([

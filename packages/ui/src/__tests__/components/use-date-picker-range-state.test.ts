@@ -37,6 +37,17 @@ function yearOneJanuary(date: number): Date {
 	return value
 }
 
+type RangeOptions = Parameters<typeof useDatePickerRangeState>[0]
+
+// Renders the range state with `options`, and opens the calendar.
+function openRange(options: Omit<RangeOptions, 'range'> = {}) {
+	const { result } = renderHook(() => useDatePickerRangeState({ range: true, ...options }))
+
+	act(() => result.current.onOpenChange(true))
+
+	return result
+}
+
 // An arrow key or a Page key from a focused day button of the grid. The button has
 // its date in `data-date`, and the key gets to the handler on the dialog.
 function keyFromDay(key: string, date: string) {
@@ -86,11 +97,7 @@ describe('useDatePickerRangeState', () => {
 		it('first click sets rangeStart and does not commit yet', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, onValueChange: onChange }),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ onValueChange: onChange })
 
 			act(() => result.current.calendar.onDayPress(Jan10))
 
@@ -106,11 +113,7 @@ describe('useDatePickerRangeState', () => {
 		it('second click commits the range immediately and closes', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, onValueChange: onChange }),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ onValueChange: onChange })
 
 			act(() => result.current.calendar.onDayPress(Jan10))
 
@@ -119,9 +122,7 @@ describe('useDatePickerRangeState', () => {
 			expect(result.current.open).toBe(false)
 
 			// Committed on the closing click, not deferred to the exit animation.
-			expect(onChange).toHaveBeenCalledTimes(1)
-
-			expect(onChange).toHaveBeenCalledWith([Jan10, Jan20])
+			expect(onChange).toHaveBeenCalledExactlyOnceWith([Jan10, Jan20])
 
 			// The exit-complete reset only clears in-progress state; it must not
 			// re-commit.
@@ -133,11 +134,7 @@ describe('useDatePickerRangeState', () => {
 		it('swaps endpoints when the second click is earlier than the first', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, onValueChange: onChange }),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ onValueChange: onChange })
 
 			act(() => result.current.calendar.onDayPress(Jan20))
 
@@ -149,11 +146,7 @@ describe('useDatePickerRangeState', () => {
 		it('allows a same-day selection (start === end)', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, onValueChange: onChange }),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ onValueChange: onChange })
 
 			act(() => result.current.calendar.onDayPress(Jan10))
 
@@ -165,9 +158,7 @@ describe('useDatePickerRangeState', () => {
 
 	describe('hover preview', () => {
 		it('exposes hoverDate only while a range is being selected', () => {
-			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange()
 
 			act(() => result.current.calendar.onHoverDate(Jan10))
 
@@ -182,9 +173,7 @@ describe('useDatePickerRangeState', () => {
 		})
 
 		it('clears hoverDate when the range is committed', () => {
-			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange()
 
 			act(() => result.current.calendar.onDayPress(Jan10))
 
@@ -202,15 +191,7 @@ describe('useDatePickerRangeState', () => {
 		it('commits a null value immediately and closes', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({
-					range: true,
-					defaultValue: [Jan1, Jan31],
-					onValueChange: onChange,
-				}),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ defaultValue: [Jan1, Jan31], onValueChange: onChange })
 
 			act(() => result.current.footer.onClear())
 
@@ -236,11 +217,7 @@ describe('useDatePickerRangeState', () => {
 		})
 
 		it('hides clear while a range is being selected', () => {
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, defaultValue: [Jan1, Jan31] }),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ defaultValue: [Jan1, Jan31] })
 
 			act(() => result.current.calendar.onDayPress(Jan10))
 
@@ -250,9 +227,7 @@ describe('useDatePickerRangeState', () => {
 
 	describe('reopen after committed range', () => {
 		it('starts a fresh selection (rangeStart cleared) when reopened', () => {
-			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange()
 
 			act(() => result.current.calendar.onDayPress(Jan10))
 
@@ -278,16 +253,7 @@ describe('useDatePickerRangeState', () => {
 			// a clicked date. Only the keyboard cursor is clamped.
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({
-					range: true,
-					min: Jan10,
-					max: Jan20,
-					onValueChange: onChange,
-				}),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ min: Jan10, max: Jan20, onValueChange: onChange })
 
 			act(() => result.current.calendar.onDayPress(Jan15))
 
@@ -304,16 +270,7 @@ describe('useDatePickerRangeState', () => {
 
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({
-					range: true,
-					min: Jan10,
-					max: Jan20,
-					onValueChange: onChange,
-				}),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ min: Jan10, max: Jan20, onValueChange: onChange })
 
 			// With no value and no range in progress, the cursor starts on today.
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
@@ -341,11 +298,7 @@ describe('useDatePickerRangeState', () => {
 		})
 
 		it('clamps a Shift+PageUp year jump from the grid cursor to min', () => {
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, defaultValue: [Jan15, Jan20], min: Jan10 }),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ defaultValue: [Jan15, Jan20], min: Jan10 })
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
 
@@ -360,9 +313,7 @@ describe('useDatePickerRangeState', () => {
 		it('starts the cursor on today when there is no value and no min', async ({ clock }) => {
 			clock.set(new Date(2025, 5, 15, 13, 30))
 
-			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange()
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('PageDown')))
 
@@ -375,9 +326,7 @@ describe('useDatePickerRangeState', () => {
 		}) => {
 			clock.set(new Date(2025, 5, 15, 13, 30))
 
-			const { result } = renderHook(() => useDatePickerRangeState({ range: true, min: Jan15 }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ min: Jan15 })
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
 
@@ -389,9 +338,7 @@ describe('useDatePickerRangeState', () => {
 		}) => {
 			clock.set(new Date(2025, 5, 15, 13, 30))
 
-			const { result } = renderHook(() => useDatePickerRangeState({ range: true, min: Jan15 }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ min: Jan15 })
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
 
@@ -404,11 +351,7 @@ describe('useDatePickerRangeState', () => {
 		const Mar5 = new Date(2025, 2, 5)
 
 		it('enters the grid from the header on the entry day of the Calendar', () => {
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ defaultValue: [Jan10, Jan20] })
 
 			result.current.calendar.calendarRef.current = entering(Mar5)
 
@@ -420,11 +363,7 @@ describe('useDatePickerRangeState', () => {
 		})
 
 		it('enters the grid from the footer on the entry day of the Calendar', () => {
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ defaultValue: [Jan10, Jan20] })
 
 			result.current.calendar.calendarRef.current = entering(Mar5)
 
@@ -443,11 +382,7 @@ describe('useDatePickerRangeState', () => {
 			['the entry day of the Calendar', Mar5, Mar5],
 			['the range start when the Calendar gives no entry day', null, Jan10],
 		])('enters the grid on the first arrow on %s', (_name, entry, expected) => {
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ defaultValue: [Jan10, Jan20] })
 
 			result.current.calendar.calendarRef.current = entering(entry)
 
@@ -457,11 +392,7 @@ describe('useDatePickerRangeState', () => {
 		})
 
 		it('keeps the highlight in the header when the Calendar gives no entry day', () => {
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ defaultValue: [Jan10, Jan20] })
 
 			result.current.calendar.calendarRef.current = entering(null)
 
@@ -473,11 +404,7 @@ describe('useDatePickerRangeState', () => {
 		})
 
 		it('enters on the range start when no Calendar is mounted', () => {
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ defaultValue: [Jan10, Jan20] })
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp', { shiftKey: true })))
 
@@ -489,14 +416,7 @@ describe('useDatePickerRangeState', () => {
 
 	describe('year limits', () => {
 		it('keeps the cursor and the hover on 1 January of year 1 when a step goes back', () => {
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({
-					range: true,
-					defaultValue: [yearOneJanuary(1), yearOneJanuary(5)],
-				}),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ defaultValue: [yearOneJanuary(1), yearOneJanuary(5)] })
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
 
@@ -520,11 +440,7 @@ describe('useDatePickerRangeState', () => {
 
 	describe('keyboard navigation', () => {
 		it('materializes the grid cursor on the first arrow press after opening', () => {
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ defaultValue: [Jan10, Jan20] })
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
 
@@ -533,9 +449,7 @@ describe('useDatePickerRangeState', () => {
 		})
 
 		it('previews the hovered endpoint as the grid cursor moves during selection', () => {
-			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange()
 
 			act(() => result.current.calendar.onDayPress(Jan10))
 
@@ -551,11 +465,7 @@ describe('useDatePickerRangeState', () => {
 		})
 
 		it('does not emit a hover preview when moving the cursor with no range in progress', () => {
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ defaultValue: [Jan10, Jan20] })
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
 
@@ -568,9 +478,7 @@ describe('useDatePickerRangeState', () => {
 
 		// B01-C12, Q8: the step starts on the focused day, and the hover preview follows it.
 		it('steps the cursor and the hover from a focused day button', () => {
-			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange()
 
 			act(() => result.current.calendar.onDayPress(Jan10))
 
@@ -585,9 +493,7 @@ describe('useDatePickerRangeState', () => {
 
 		// B01-C12, Q11: a Page key from a focused day steps a month from that day.
 		it('pages the cursor and the hover from a focused day button', () => {
-			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange()
 
 			act(() => result.current.calendar.onDayPress(Jan10))
 
@@ -603,15 +509,7 @@ describe('useDatePickerRangeState', () => {
 		it('activates the clear footer button via Shift+ArrowDown then Enter', () => {
 			const onChange = vi.fn()
 
-			const { result } = renderHook(() =>
-				useDatePickerRangeState({
-					range: true,
-					defaultValue: [Jan1, Jan31],
-					onValueChange: onChange,
-				}),
-			)
-
-			act(() => result.current.onOpenChange(true))
+			const result = openRange({ defaultValue: [Jan1, Jan31], onValueChange: onChange })
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown', { shiftKey: true })))
 

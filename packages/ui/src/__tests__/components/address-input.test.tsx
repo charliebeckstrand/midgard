@@ -17,11 +17,26 @@ import {
 	waitFor,
 } from '../helpers'
 import { it } from '../helpers/fake-clock'
+import {
+	makeFeature,
+	OREGON,
+	type PhotonFetch,
+	place,
+	requestedUrls,
+	SHERWOOD,
+	stubEmptyFetch,
+	stubFeatures,
+	stubPostcode,
+	stubState,
+} from '../helpers/photon'
 
 const mockProvider: AddressProvider = async (query) => [
 	{ id: '1', label: `${query} Main St`, description: 'Somewhere, CA' },
 	{ id: '2', label: `${query} Oak Ave`, description: 'Nowhere, NY' },
 ]
+
+/** The selection that the cases with a controlled value hold. */
+const selected: AddressSuggestion = { id: '1', label: '10 Main St', description: 'Springfield, IL' }
 
 /** Reads one field back out of the form store, for the binding assertions. */
 function FormValue({ name }: { name: string }) {
@@ -261,12 +276,6 @@ describe('AddressInput', () => {
 	})
 
 	it('renders the selected suggestion label as the input display value', () => {
-		const selected: AddressSuggestion = {
-			id: '1',
-			label: '10 Main St',
-			description: 'Springfield, IL',
-		}
-
 		const { container } = renderUI(<AddressInput value={selected} />)
 
 		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
@@ -355,24 +364,12 @@ describe('AddressInput', () => {
 	})
 
 	it('shows the clear button for a controlled initial value', () => {
-		const selected: AddressSuggestion = {
-			id: '1',
-			label: '10 Main St',
-			description: 'Springfield, IL',
-		}
-
 		renderUI(<AddressInput value={selected} />)
 
 		expect(screen.getByRole('button', { name: 'Clear selection' })).toBeInTheDocument()
 	})
 
 	it('keeps the pin and shows no clear button with `clearable={false}`', () => {
-		const selected: AddressSuggestion = {
-			id: '1',
-			label: '10 Main St',
-			description: 'Springfield, IL',
-		}
-
 		const { container } = renderUI(<AddressInput value={selected} clearable={false} />)
 
 		expect(screen.queryByRole('button', { name: 'Clear selection' })).toBeNull()
@@ -381,12 +378,6 @@ describe('AddressInput', () => {
 	})
 
 	it('keeps the pin, not the Combobox chevron, while read-only with a selection', () => {
-		const selected: AddressSuggestion = {
-			id: '1',
-			label: '10 Main St',
-			description: 'Springfield, IL',
-		}
-
 		const { container } = renderUI(<AddressInput value={selected} readOnly />)
 
 		expect(screen.queryByRole('button', { name: 'Clear selection' })).toBeNull()
@@ -420,25 +411,6 @@ describe('AddressInput', () => {
 })
 
 describe('photonProvider', () => {
-	function makeFeature(
-		properties: Record<string, unknown>,
-		coordinates: [number, number] = [10, 20],
-	) {
-		return {
-			type: 'Feature',
-			geometry: { type: 'Point', coordinates },
-			properties: { osm_id: 1, osm_type: 'N', ...properties },
-		}
-	}
-
-	/** Answers one Photon request with these features. */
-	function stubFeatures(...features: ReturnType<typeof makeFeature>[]) {
-		vi.stubGlobal(
-			'fetch',
-			vi.fn(async () => ({ ok: true, json: async () => ({ features }) }) as Response),
-		)
-	}
-
 	/** The named business the label, description, and identity cases all read. */
 	const CLEARWATER = {
 		name: 'Clearwater Restaurant',
@@ -662,33 +634,9 @@ describe('photonProvider', () => {
 
 describe('createPhotonProvider', () => {
 	/** The one URL the stubbed fetch was called with. */
-	function requestedUrl(fetchMock: ReturnType<typeof vi.fn>): URL {
+	function requestedUrl(fetchMock: PhotonFetch): URL {
 		return new URL(String(fetchMock.mock.calls[0]?.[0]))
 	}
-
-	function stubEmptyFetch() {
-		const fetchMock = vi.fn(
-			async () => ({ ok: true, json: async () => ({ features: [] }) }) as Response,
-		)
-
-		vi.stubGlobal('fetch', fetchMock)
-
-		return fetchMock
-	}
-
-	it('asks the public endpoint for five matches by default', async () => {
-		const fetchMock = stubEmptyFetch()
-
-		await createPhotonProvider()('diner', { signal: new AbortController().signal })
-
-		const url = requestedUrl(fetchMock)
-
-		expect(url.origin + url.pathname).toBe('https://photon.komoot.io/api/')
-
-		expect(url.searchParams.get('q')).toBe('diner')
-
-		expect(url.searchParams.get('limit')).toBe('5')
-	})
 
 	it('carries the endpoint, limit, language, and proximity bias', async () => {
 		const fetchMock = stubEmptyFetch()
@@ -733,40 +681,6 @@ describe('createPhotonProvider', () => {
 	})
 
 	describe('a query that ends in a postal code', () => {
-		const SHERWOOD = {
-			type: 'Feature',
-			geometry: { type: 'Point', coordinates: [-122.85, 45.36] },
-			// A postal code carries no OSM object.
-			properties: {
-				osm_key: 'place',
-				osm_value: 'postcode',
-				type: 'other',
-				name: '97140',
-				city: 'Sherwood',
-				state: 'Oregon',
-				countrycode: 'US',
-			},
-		}
-
-		/** Answers the postal code request with `codes`, and every other request with nothing. */
-		function stubPostcode(...codes: unknown[]) {
-			const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
-				const url = new URL(String(input))
-
-				const features = url.searchParams.get('osm_tag') === 'place:postcode' ? codes : []
-
-				return { ok: true, json: async () => ({ features }) } as Response
-			})
-
-			vi.stubGlobal('fetch', fetchMock)
-
-			return fetchMock
-		}
-
-		function urls(fetchMock: ReturnType<typeof vi.fn>): URL[] {
-			return fetchMock.mock.calls.map((call) => new URL(String(call[0])))
-		}
-
 		it('searches the query near the code', async () => {
 			const fetchMock = stubPostcode(SHERWOOD)
 
@@ -774,7 +688,7 @@ describe('createPhotonProvider', () => {
 				signal: new AbortController().signal,
 			})
 
-			const [lookup, search] = urls(fetchMock)
+			const [lookup, search] = requestedUrls(fetchMock)
 
 			expect(lookup?.searchParams.get('q')).toBe('97140')
 
@@ -794,9 +708,9 @@ describe('createPhotonProvider', () => {
 				signal: new AbortController().signal,
 			})
 
-			expect(urls(fetchMock)[0]?.searchParams.get('q')).toBe('97140')
+			expect(requestedUrls(fetchMock)[0]?.searchParams.get('q')).toBe('97140')
 
-			expect(urls(fetchMock)[1]?.searchParams.get('q')).toBe('coffee 97140')
+			expect(requestedUrls(fetchMock)[1]?.searchParams.get('q')).toBe('coffee 97140')
 		})
 
 		// An address with an abbreviated street matches on its code: Photon
@@ -812,7 +726,9 @@ describe('createPhotonProvider', () => {
 				signal: new AbortController().signal,
 			})
 
-			expect(urls(fetchMock)[1]?.searchParams.get('q')).toBe('11530 SW Pacific Hwy Tigard OR 97223')
+			expect(requestedUrls(fetchMock)[1]?.searchParams.get('q')).toBe(
+				'11530 SW Pacific Hwy Tigard OR 97223',
+			)
 		})
 
 		it('answers a query that is only a code with the code', async () => {
@@ -842,7 +758,7 @@ describe('createPhotonProvider', () => {
 			// The code alone is not a house, so it is not the answer.
 			expect(results).toEqual([])
 
-			const search = urls(fetchMock).at(-1)
+			const search = requestedUrls(fetchMock).at(-1)
 
 			expect(search?.searchParams.get('q')).toBe('97140')
 
@@ -863,7 +779,7 @@ describe('createPhotonProvider', () => {
 				signal: new AbortController().signal,
 			})
 
-			const search = urls(fetchMock).at(-1)
+			const search = requestedUrls(fetchMock).at(-1)
 
 			expect(search?.searchParams.get('q')).toBe('ice cream 97140')
 
@@ -877,9 +793,9 @@ describe('createPhotonProvider', () => {
 				signal: new AbortController().signal,
 			})
 
-			expect(urls(fetchMock)).toHaveLength(1)
+			expect(requestedUrls(fetchMock)).toHaveLength(1)
 
-			expect(urls(fetchMock)[0]?.searchParams.get('q')).toBe('Pier 39')
+			expect(requestedUrls(fetchMock)[0]?.searchParams.get('q')).toBe('Pier 39')
 		})
 
 		it('tries a two-word code before its last word', async () => {
@@ -889,58 +805,16 @@ describe('createPhotonProvider', () => {
 				signal: new AbortController().signal,
 			})
 
-			expect(urls(fetchMock)[0]?.searchParams.get('q')).toBe('SW1A 1AA')
+			expect(requestedUrls(fetchMock)[0]?.searchParams.get('q')).toBe('SW1A 1AA')
 		})
 	})
 
 	describe('a query that ends in a US state', () => {
-		const OREGON = {
-			type: 'Feature',
-			geometry: { type: 'Point', coordinates: [-120.5, 44] },
-			properties: {
-				osm_id: 165476,
-				osm_type: 'R',
-				type: 'state',
-				name: 'Oregon',
-				extent: [-124.7, 46.29, -116.46, 41.99],
-			},
-		}
-
-		function place(name: string, state: string) {
-			return {
-				type: 'Feature',
-				geometry: { type: 'Point', coordinates: [-122.6, 45.5] },
-				properties: { osm_id: name.length, osm_type: 'N', name, state },
-			}
-		}
-
-		/**
-		 * Answers the state lookup with Oregon, a search inside the box with
-		 * `scoped`, and the query as typed with `typed`.
-		 */
-		function stubState(scoped: unknown[], typed: unknown[]) {
-			const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
-				const url = new URL(String(input))
-
-				const features =
-					url.searchParams.get('layer') === 'state'
-						? [OREGON]
-						: url.searchParams.has('bbox')
-							? scoped
-							: typed
-
-				return { ok: true, json: async () => ({ features }) } as Response
-			})
-
-			vi.stubGlobal('fetch', fetchMock)
-
-			return fetchMock
-		}
-
 		const signal = new AbortController().signal
 
 		it('searches the rest of the query inside the state, and drops matches outside it', async () => {
 			const fetchMock = stubState(
+				OREGON,
 				[place('Starbucks', 'OR'), place('Starbucks', 'Washington')],
 				[place('Starbucks', 'California')],
 			)
@@ -949,9 +823,7 @@ describe('createPhotonProvider', () => {
 
 			expect(results.map((result) => result.address?.state)).toEqual(['OR'])
 
-			const scoped = fetchMock.mock.calls
-				.map((call) => new URL(String(call[0])))
-				.find((url) => url.searchParams.has('bbox'))
+			const scoped = requestedUrls(fetchMock).find((url) => url.searchParams.has('bbox'))
 
 			expect(scoped?.searchParams.get('q')).toBe('starbucks')
 
@@ -959,7 +831,11 @@ describe('createPhotonProvider', () => {
 		})
 
 		it('keeps the query as typed where a match holds the state in its name', async () => {
-			stubState([place('Mount Vernon', 'Washington')], [place('Mount Washington', 'New Hampshire')])
+			stubState(
+				OREGON,
+				[place('Mount Vernon', 'Washington')],
+				[place('Mount Washington', 'New Hampshire')],
+			)
 
 			const results = await createPhotonProvider({ region: 'US' })('Mount Washington', { signal })
 
@@ -967,7 +843,7 @@ describe('createPhotonProvider', () => {
 		})
 
 		it('keeps the query as typed where the state has no match', async () => {
-			stubState([], [place('Clearwater River', 'Oregon')])
+			stubState(OREGON, [], [place('Clearwater River', 'Oregon')])
 
 			const results = await createPhotonProvider({ region: 'US' })('clearwater oregon', { signal })
 
@@ -1004,26 +880,12 @@ describe('createPhotonProvider', () => {
 		})
 
 		it('reads no state outside the US region', async () => {
-			const fetchMock = stubState([], [])
+			const fetchMock = stubState(OREGON, [], [])
 
 			await createPhotonProvider({ region: 'CA' })('starbucks Oregon', { signal })
 
 			expect(fetchMock).toHaveBeenCalledTimes(1)
 		})
-	})
-
-	it('omits every option it was not given', async () => {
-		const fetchMock = stubEmptyFetch()
-
-		await createPhotonProvider()('diner', { signal: new AbortController().signal })
-
-		const url = requestedUrl(fetchMock)
-
-		expect(url.searchParams.has('lang')).toBe(false)
-
-		expect(url.searchParams.has('lat')).toBe(false)
-
-		expect(url.searchParams.getAll('layer')).toEqual([])
 	})
 })
 

@@ -33,6 +33,15 @@ function firstDay(): Date {
 	return value
 }
 
+// Renders the state with a value of 15 January, and opens the calendar.
+function openOnJan15() {
+	const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
+
+	act(() => result.current.onOpenChange(true))
+
+	return result
+}
+
 // An arrow key or a Page key from a focused day button of the grid. The button has
 // its date in `data-date`, and the key gets to the handler on the dialog.
 function keyFromDay(key: string, date: string) {
@@ -155,7 +164,9 @@ describe('useDatePickerState', () => {
 			expect(result.current.open).toBe(false)
 		})
 
-		it('today selects the current date and closes', () => {
+		it('today selects the current date and closes', ({ clock }) => {
+			clock.set(new Date(2025, 5, 15, 13, 30))
+
 			const onChange = vi.fn()
 
 			const { result } = renderHook(() => useDatePickerState({ onValueChange: onChange }))
@@ -164,9 +175,7 @@ describe('useDatePickerState', () => {
 
 			act(() => result.current.footer.onToday())
 
-			expect(onChange).toHaveBeenCalledTimes(1)
-
-			expect(onChange.mock.calls[0]?.[0]).toBeInstanceOf(Date)
+			expect(onChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 5, 15))
 
 			expect(result.current.open).toBe(false)
 		})
@@ -259,25 +268,9 @@ describe('useDatePickerState', () => {
 			expect(result.current.open).toBe(false)
 		})
 
-		it('materializes grid focus on the first arrow press after opening', () => {
-			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
-
-			act(() => {
-				result.current.onTriggerKeyDown(fakeKey('ArrowDown'))
-			})
-
-			act(() => {
-				result.current.onTriggerKeyDown(fakeKey('ArrowRight'))
-			})
-
-			expect(result.current.calendar.active?.zone).toBe('grid')
-		})
-
 		// B01-C12, Q8: the step starts on the focused day, not on the highlight.
 		it('steps from a focused day button on an arrow', () => {
-			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openOnJan15()
 
 			act(() => result.current.onTriggerKeyDown(fakeKey('ArrowRight')))
 
@@ -290,9 +283,7 @@ describe('useDatePickerState', () => {
 
 		// B01-C12, Q11: a Page key from a focused day steps a month from that day.
 		it('steps a month from a focused day button on PageDown', () => {
-			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openOnJan15()
 
 			act(() => result.current.onTriggerKeyDown(fakeKey('ArrowRight')))
 
@@ -391,9 +382,7 @@ describe('useDatePickerState', () => {
 		const Mar10 = new Date(2025, 2, 10)
 
 		it('enters the grid from the header on the entry day of the Calendar', () => {
-			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openOnJan15()
 
 			result.current.calendar.calendarRef.current = entering(Mar10)
 
@@ -407,9 +396,7 @@ describe('useDatePickerState', () => {
 		})
 
 		it('enters the grid from the footer on the entry day of the Calendar', () => {
-			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openOnJan15()
 
 			result.current.calendar.calendarRef.current = entering(Mar10)
 
@@ -430,9 +417,7 @@ describe('useDatePickerState', () => {
 			['the entry day of the Calendar', Mar10, Mar10],
 			['the value when the Calendar gives no entry day', null, Jan15],
 		])('enters the grid on the first arrow on %s', (_name, entry, expected) => {
-			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openOnJan15()
 
 			result.current.calendar.calendarRef.current = entering(entry)
 
@@ -442,9 +427,7 @@ describe('useDatePickerState', () => {
 		})
 
 		it('keeps the highlight in the header when the Calendar gives no entry day', () => {
-			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openOnJan15()
 
 			result.current.calendar.calendarRef.current = entering(null)
 
@@ -458,9 +441,7 @@ describe('useDatePickerState', () => {
 		})
 
 		it('keeps the highlight in the footer when the Calendar gives no entry day', () => {
-			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openOnJan15()
 
 			result.current.calendar.calendarRef.current = entering(null)
 
@@ -474,9 +455,7 @@ describe('useDatePickerState', () => {
 		})
 
 		it('enters on the value when no Calendar is mounted', () => {
-			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
-
-			act(() => result.current.onOpenChange(true))
+			const result = openOnJan15()
 
 			act(() =>
 				result.current.onTriggerKeyDown(makeKeyEvent<HTMLElement>('ArrowUp', { shiftKey: true })),

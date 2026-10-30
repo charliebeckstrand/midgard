@@ -296,44 +296,30 @@ describe('useDatePickerRelativeState', () => {
 			return event
 		}
 
-		it('moves focus to the next row and wraps from the last row to the first', () => {
+		// `from` is the index of the row with focus, or `null` when the list has the focus.
+		it.for<{ name: string; key: string; from: number | null; to: number }>([
+			{ name: 'moves focus to the next row on ArrowDown', key: 'ArrowDown', from: 0, to: 1 },
+			{
+				name: 'wraps from the last row to the first on ArrowDown',
+				key: 'ArrowDown',
+				from: 2,
+				to: 0,
+			},
+			{ name: 'wraps from the first row to the last on ArrowUp', key: 'ArrowUp', from: 0, to: 2 },
+			{
+				name: 'enters at the last row on ArrowUp when no row has focus',
+				key: 'ArrowUp',
+				from: null,
+				to: 2,
+			},
+			{ name: 'jumps to the first row on Home', key: 'Home', from: 2, to: 0 },
+			{ name: 'jumps to the last row on End', key: 'End', from: 0, to: 2 },
+		])('$name', ({ key, from, to }) => {
 			const { list, cells } = listSurface()
 
-			press('ArrowDown', list, cells[0] as HTMLElement)
+			press(key, list, from === null ? list : (cells[from] as HTMLElement))
 
-			expect(document.activeElement).toBe(cells[1])
-
-			press('ArrowDown', list, cells[2] as HTMLElement)
-
-			expect(document.activeElement).toBe(cells[0])
-		})
-
-		it('wraps from the first row to the last on ArrowUp', () => {
-			const { list, cells } = listSurface()
-
-			press('ArrowUp', list, cells[0] as HTMLElement)
-
-			expect(document.activeElement).toBe(cells[2])
-		})
-
-		it('enters at the last row on ArrowUp when no row has focus', () => {
-			const { list, cells } = listSurface()
-
-			press('ArrowUp', list, list)
-
-			expect(document.activeElement).toBe(cells[2])
-		})
-
-		it('jumps to the first row on Home and to the last row on End', () => {
-			const { list, cells } = listSurface()
-
-			press('Home', list, cells[2] as HTMLElement)
-
-			expect(document.activeElement).toBe(cells[0])
-
-			press('End', list, cells[0] as HTMLElement)
-
-			expect(document.activeElement).toBe(cells[2])
+			expect(document.activeElement).toBe(cells[to])
 		})
 
 		it('ignores keys that do not navigate, and a list with no rows', () => {

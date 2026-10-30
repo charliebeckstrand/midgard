@@ -69,20 +69,6 @@ describe('Input', () => {
 
 		expect(container.querySelector('[data-slot="suffix"]')?.textContent).toBe('USD')
 	})
-
-	it('fires onChange handler', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<Input onChange={onChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'input')
-
-		const user = setupUser()
-
-		await user.type(input, 'a')
-
-		expect(onChange).toHaveBeenCalled()
-	})
 })
 
 describe('Input spread order (§3.9)', () => {

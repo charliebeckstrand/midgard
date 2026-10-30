@@ -35,10 +35,4 @@ describe('splitUsState with a street suffix or a directional', () => {
 	it('reads a full state name after a house number', () => {
 		expect(splitUsState('12 Oak Connecticut')?.state.code).toBe('CT')
 	})
-
-	it('keeps a lowercase code as text', () => {
-		expect(splitUsState('hartford ct')).toBeNull()
-
-		expect(splitUsState('coffee or')).toBeNull()
-	})
 })

@@ -1,4 +1,4 @@
-import { type ReactNode, use, useEffect, useState } from 'react'
+import { type ComponentProps, type ReactNode, use, useEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Combobox,
@@ -32,6 +32,13 @@ import {
 	within,
 } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
+
+/** The icon of the default chevron in the suffix. */
+const chevron = (container: HTMLElement) =>
+	present(
+		getSlot(container, 'suffix').querySelector<HTMLElement>('[data-slot="icon"]'),
+		'[data-slot="icon"]',
+	)
 
 describe('Combobox', () => {
 	it('renders input with combobox role', () => {
@@ -159,9 +166,7 @@ describe('Combobox', () => {
 		// The chevron is a mouse-convenience affordance; cursor-pointer signals it.
 		expect(suffix?.className).toContain('cursor-pointer')
 
-		const icon = suffix?.querySelector<HTMLElement>('[data-slot="icon"]')
-
-		if (!icon) throw new Error('default chevron icon not found')
+		const icon = chevron(container)
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 
@@ -232,11 +237,7 @@ describe('Combobox', () => {
 			</Combobox>,
 		)
 
-		const icon = bySlot(container, 'suffix')?.querySelector<HTMLElement>('[data-slot="icon"]')
-
-		if (!icon) throw new Error('default chevron icon not found')
-
-		fireEvent.mouseDown(icon)
+		fireEvent.mouseDown(chevron(container))
 
 		expect(screen.getByRole('listbox', { name: 'City' })).toBeInTheDocument()
 	})
@@ -251,11 +252,7 @@ describe('Combobox', () => {
 			</Field>,
 		)
 
-		const icon = bySlot(container, 'suffix')?.querySelector<HTMLElement>('[data-slot="icon"]')
-
-		if (!icon) throw new Error('default chevron icon not found')
-
-		fireEvent.mouseDown(icon)
+		fireEvent.mouseDown(chevron(container))
 
 		expect(screen.getByRole('listbox', { name: 'City' })).toBeInTheDocument()
 	})
@@ -269,11 +266,7 @@ describe('Combobox', () => {
 
 		const suffix = bySlot(container, 'suffix')
 
-		const icon = suffix?.querySelector<HTMLElement>('[data-slot="icon"]')
-
-		if (!icon) throw new Error('default chevron icon not found')
-
-		fireEvent.mouseDown(icon)
+		fireEvent.mouseDown(chevron(container))
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 
@@ -894,11 +887,7 @@ describe('Combobox active-descendant keyboard model', () => {
 		expect(input).toHaveValue('Apple')
 
 		// Focus stayed on the input, so reopen via the chevron.
-		const icon = bySlot(container, 'suffix')?.querySelector<HTMLElement>('[data-slot="icon"]')
-
-		if (!icon) throw new Error('default chevron icon not found')
-
-		fireEvent.mouseDown(icon)
+		fireEvent.mouseDown(chevron(container))
 
 		screen.getByRole('listbox')
 
@@ -1305,8 +1294,12 @@ describe('Combobox capitalize', () => {
 })
 
 describe('ComboboxPanel', () => {
-	function renderPanel(onClose: () => void) {
-		return renderUI(
+	/** An open panel with inert props. The overrides go last. */
+	function panel(
+		overrides: Partial<ComponentProps<typeof ComboboxPanel>> = {},
+		children: ReactNode = <div>panel child</div>,
+	) {
+		return (
 			<ComboboxPanel
 				id="cb"
 				open
@@ -1320,11 +1313,20 @@ describe('ComboboxPanel', () => {
 				setFloating={() => {}}
 				scrollToSelected={() => {}}
 				flushPending={() => {}}
-				onClose={onClose}
+				onClose={() => {}}
+				{...overrides}
 			>
-				<div>panel child</div>
-			</ComboboxPanel>,
+				{children}
+			</ComboboxPanel>
 		)
+	}
+
+	/** Renders {@link panel} with these overrides and children. */
+	function renderPanel(
+		overrides?: Partial<ComponentProps<typeof ComboboxPanel>>,
+		children?: ReactNode,
+	) {
+		return renderUI(panel(overrides, children))
 	}
 
 	// With the compiler off, a new callback ref on each render detaches and
@@ -1335,47 +1337,15 @@ describe('ComboboxPanel', () => {
 
 		const scrollToSelected = vi.fn()
 
-		const panel = (editing: boolean) => (
-			<ComboboxPanel
-				id="cb"
-				open
-				editing={editing}
-				multiple={false}
-				glass={false}
-				size="md"
-				floatingStyles={{}}
-				getFloatingProps={() => ({})}
-				optionsRef={null}
-				setFloating={setFloating}
-				scrollToSelected={scrollToSelected}
-				flushPending={() => {}}
-				onClose={() => {}}
-			>
-				<div>panel child</div>
-			</ComboboxPanel>
-		)
+		const { rerender } = renderPanel({ setFloating, scrollToSelected })
 
-		const { rerender } = renderUI(panel(false))
+		rerender(panel({ editing: true, setFloating, scrollToSelected }))
 
-		rerender(panel(true))
+		rerender(panel({ setFloating, scrollToSelected }))
 
-		rerender(panel(false))
-
-		expect(scrollToSelected).toHaveBeenCalledTimes(1)
-
-		expect(scrollToSelected).toHaveBeenCalledWith(expect.any(HTMLDivElement))
+		expect(scrollToSelected).toHaveBeenCalledExactlyOnceWith(expect.any(HTMLDivElement))
 
 		expect(setFloating).toHaveBeenCalledTimes(1)
-	})
-
-	it('closes on Escape', () => {
-		const onClose = vi.fn()
-
-		renderPanel(onClose)
-
-		fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' })
-
-		expect(onClose).toHaveBeenCalledTimes(1)
 	})
 
 	// Focus can be on the panel itself: a press on its scrollbar, or a call to
@@ -1384,7 +1354,7 @@ describe('ComboboxPanel', () => {
 	it('consumes the Escape press that closes it', () => {
 		const onClose = vi.fn()
 
-		renderPanel(onClose)
+		renderPanel({ onClose })
 
 		expect(fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' })).toBe(false)
 
@@ -1394,7 +1364,7 @@ describe('ComboboxPanel', () => {
 	it('ignores non-Escape keys', () => {
 		const onClose = vi.fn()
 
-		renderPanel(onClose)
+		renderPanel({ onClose })
 
 		fireEvent.keyDown(screen.getByRole('listbox'), { key: 'ArrowDown' })
 
@@ -1404,7 +1374,7 @@ describe('ComboboxPanel', () => {
 	// DOM focus stays on the input (active descendant). A press on the panel chrome
 	// must not move focus into the panel, because the input then gets no keys.
 	it('cancels a press on the panel chrome outside an option row', () => {
-		renderPanel(() => {})
+		renderPanel()
 
 		expect(fireEvent.mouseDown(screen.getByText('No results'))).toBe(false)
 
@@ -1414,7 +1384,7 @@ describe('ComboboxPanel', () => {
 	})
 
 	it('leaves a press on the panel scrollbar uncanceled', () => {
-		renderPanel(() => {})
+		renderPanel()
 
 		const panel = getSlot(document.body, 'popover-panel')
 
@@ -1441,26 +1411,11 @@ describe('ComboboxPanel', () => {
 	// WCAG 4.1.2); the "No results" status message sits beside the listbox, not
 	// inside it. The id stays on the listbox so aria-controls resolves correctly.
 	it('keeps the listbox owning only options, with the empty message a sibling', () => {
-		renderUI(
-			<ComboboxPanel
-				id="cb"
-				open
-				editing={false}
-				multiple={false}
-				glass={false}
-				size="md"
-				floatingStyles={{}}
-				getFloatingProps={() => ({})}
-				optionsRef={null}
-				setFloating={() => {}}
-				scrollToSelected={() => {}}
-				flushPending={() => {}}
-				onClose={() => {}}
-			>
-				<div role="option" tabIndex={-1}>
-					Alpha
-				</div>
-			</ComboboxPanel>,
+		renderPanel(
+			{},
+			<div role="option" tabIndex={-1}>
+				Alpha
+			</div>,
 		)
 
 		const listbox = screen.getByRole('listbox')
@@ -1518,40 +1473,35 @@ describe('Combobox + Control', () => {
 
 	// The default 'off' applies only when no prop and no Control value set the
 	// attribute. A parameter default would hide the Control value.
-	it('takes autoComplete from an enclosing Control over the default', () => {
+	it.for([
+		[
+			'takes autoComplete from an enclosing Control over the default',
+			'address-level2',
+			undefined,
+			'address-level2',
+		],
+		[
+			'takes autoComplete from the prop over an enclosing Control',
+			'address-level2',
+			'country-name',
+			'country-name',
+		],
+		[
+			'sets autoComplete to "off" when no prop and no Control value set it',
+			undefined,
+			undefined,
+			'off',
+		],
+	] as const)('%s', ([, control, prop, expected]) => {
 		const { container } = renderUI(
-			<Control autoComplete="address-level2">
-				<Combobox aria-label="City">
+			<Control autoComplete={control}>
+				<Combobox aria-label="City" autoComplete={prop}>
 					<ComboboxOption value="a">A</ComboboxOption>
 				</Combobox>
 			</Control>,
 		)
 
-		expect(bySlot(container, 'combobox-input')).toHaveAttribute('autocomplete', 'address-level2')
-	})
-
-	it('takes autoComplete from the prop over an enclosing Control', () => {
-		const { container } = renderUI(
-			<Control autoComplete="address-level2">
-				<Combobox aria-label="City" autoComplete="country-name">
-					<ComboboxOption value="a">A</ComboboxOption>
-				</Combobox>
-			</Control>,
-		)
-
-		expect(bySlot(container, 'combobox-input')).toHaveAttribute('autocomplete', 'country-name')
-	})
-
-	it('sets autoComplete to "off" when no prop and no Control value set it', () => {
-		const { container } = renderUI(
-			<Control>
-				<Combobox aria-label="City">
-					<ComboboxOption value="a">A</ComboboxOption>
-				</Combobox>
-			</Control>,
-		)
-
-		expect(bySlot(container, 'combobox-input')).toHaveAttribute('autocomplete', 'off')
+		expect(bySlot(container, 'combobox-input')).toHaveAttribute('autocomplete', expected)
 	})
 })
 
@@ -1630,9 +1580,6 @@ describe('Combobox required', () => {
 })
 
 describe('Combobox readOnly', () => {
-	const chevron = (container: HTMLElement) =>
-		present(getSlot(container, 'suffix').querySelector('[data-slot="icon"]'), '[data-slot="icon"]')
-
 	it('marks the input read-only without disabling it', () => {
 		const { container } = renderUI(
 			<Combobox readOnly aria-label="City">
@@ -1724,9 +1671,6 @@ describe('Combobox readOnly', () => {
 // A disabled `<fieldset>` disables the input natively and sets no prop. The
 // Form uses it as its lock while it submits.
 describe('Combobox in a disabled fieldset', () => {
-	const chevron = (container: HTMLElement) =>
-		present(getSlot(container, 'suffix').querySelector('[data-slot="icon"]'), '[data-slot="icon"]')
-
 	it('does not open the menu on a press on the chevron', () => {
 		const { container } = renderUI(
 			<Fieldset disabled>

@@ -7,102 +7,32 @@ import {
 } from '../../components/date-input/date-input-utilities'
 
 describe('maskDateText', () => {
-	describe('MM/DD/YYYY', () => {
-		it('keeps a single ambiguous month digit open', () => {
-			expect(maskDateText('1', 'MM/DD/YYYY')).toBe('1')
-		})
-
-		it('closes a complete month with the separator', () => {
-			expect(maskDateText('12', 'MM/DD/YYYY')).toBe('12/')
-		})
-
-		it('pads and closes a month digit that cannot start a two-digit month', () => {
-			expect(maskDateText('2', 'MM/DD/YYYY')).toBe('02/')
-		})
-
-		it('carries the overflowing digit into the day', () => {
-			expect(maskDateText('13', 'MM/DD/YYYY')).toBe('01/3')
-		})
-
-		it('pads a short month closed by a typed separator', () => {
-			expect(maskDateText('1/', 'MM/DD/YYYY')).toBe('01/')
-		})
-
-		it('masks a fully separator-typed date', () => {
-			expect(maskDateText('1/5/2026', 'MM/DD/YYYY')).toBe('01/05/2026')
-		})
-
-		it('masks an unseparated digit run with overflow padding', () => {
-			expect(maskDateText('152026', 'MM/DD/YYYY')).toBe('01/05/2026')
-		})
-
-		it('masks an unseparated digit run without overflow', () => {
-			expect(maskDateText('12252026', 'MM/DD/YYYY')).toBe('12/25/2026')
-		})
-
-		it('pads and closes a day digit above 3', () => {
-			expect(maskDateText('124', 'MM/DD/YYYY')).toBe('12/04/')
-		})
-
-		it('carries a day overflow into the year', () => {
-			expect(maskDateText('1235', 'MM/DD/YYYY')).toBe('12/03/5')
-		})
-
-		it('drops a second zero in the month', () => {
-			expect(maskDateText('00', 'MM/DD/YYYY')).toBe('0')
-		})
-
-		it('ignores a separator after a zero-only segment', () => {
-			expect(maskDateText('0/', 'MM/DD/YYYY')).toBe('0')
-		})
-
-		it('ignores non-digit noise', () => {
-			expect(maskDateText('12a25b2026', 'MM/DD/YYYY')).toBe('12/25/2026')
-		})
-
-		it('ignores digits past a complete date', () => {
-			expect(maskDateText('12/25/20269', 'MM/DD/YYYY')).toBe('12/25/2026')
-		})
-
-		it('returns empty for empty input', () => {
-			expect(maskDateText('', 'MM/DD/YYYY')).toBe('')
-		})
-	})
-
-	describe('DD/MM/YYYY', () => {
-		it('closes a complete day with the separator', () => {
-			expect(maskDateText('31', 'DD/MM/YYYY')).toBe('31/')
-		})
-
-		it('carries a day overflow into the month, which pads in turn', () => {
-			expect(maskDateText('32', 'DD/MM/YYYY')).toBe('03/02/')
-		})
-
-		it('pads and closes a day digit above 3', () => {
-			expect(maskDateText('4', 'DD/MM/YYYY')).toBe('04/')
-		})
-
-		it('masks a fully separator-typed date', () => {
-			expect(maskDateText('5/1/2026', 'DD/MM/YYYY')).toBe('05/01/2026')
-		})
-	})
-
-	describe('YYYY-MM-DD', () => {
-		it('closes a complete year with the separator', () => {
-			expect(maskDateText('2026', 'YYYY-MM-DD')).toBe('2026-')
-		})
-
-		it('does not close a partial year on a typed separator', () => {
-			expect(maskDateText('26-', 'YYYY-MM-DD')).toBe('26')
-		})
-
-		it('masks an unseparated digit run with overflow padding', () => {
-			expect(maskDateText('2026152', 'YYYY-MM-DD')).toBe('2026-01-05')
-		})
-
-		it('masks a fully separator-typed date', () => {
-			expect(maskDateText('2026-1-5', 'YYYY-MM-DD')).toBe('2026-01-05')
-		})
+	it.for([
+		['keeps a single ambiguous month digit open', 'MM/DD/YYYY', '1', '1'],
+		['closes a complete month with the separator', 'MM/DD/YYYY', '12', '12/'],
+		['pads and closes a month digit that cannot start a two-digit month', 'MM/DD/YYYY', '2', '02/'],
+		['carries the overflowing digit into the day', 'MM/DD/YYYY', '13', '01/3'],
+		['pads a short month closed by a typed separator', 'MM/DD/YYYY', '1/', '01/'],
+		['masks a fully separator-typed date', 'MM/DD/YYYY', '1/5/2026', '01/05/2026'],
+		['masks an unseparated digit run with overflow padding', 'MM/DD/YYYY', '152026', '01/05/2026'],
+		['masks an unseparated digit run without overflow', 'MM/DD/YYYY', '12252026', '12/25/2026'],
+		['pads and closes a day digit above 3', 'MM/DD/YYYY', '124', '12/04/'],
+		['carries a day overflow into the year', 'MM/DD/YYYY', '1235', '12/03/5'],
+		['drops a second zero in the month', 'MM/DD/YYYY', '00', '0'],
+		['ignores a separator after a zero-only segment', 'MM/DD/YYYY', '0/', '0'],
+		['ignores non-digit noise', 'MM/DD/YYYY', '12a25b2026', '12/25/2026'],
+		['ignores digits past a complete date', 'MM/DD/YYYY', '12/25/20269', '12/25/2026'],
+		['returns empty for empty input', 'MM/DD/YYYY', '', ''],
+		['closes a complete day with the separator', 'DD/MM/YYYY', '31', '31/'],
+		['carries a day overflow into the month, which pads in turn', 'DD/MM/YYYY', '32', '03/02/'],
+		['pads and closes a day digit above 3', 'DD/MM/YYYY', '4', '04/'],
+		['masks a fully separator-typed date', 'DD/MM/YYYY', '5/1/2026', '05/01/2026'],
+		['closes a complete year with the separator', 'YYYY-MM-DD', '2026', '2026-'],
+		['does not close a partial year on a typed separator', 'YYYY-MM-DD', '26-', '26'],
+		['masks an unseparated digit run with overflow padding', 'YYYY-MM-DD', '2026152', '2026-01-05'],
+		['masks a fully separator-typed date', 'YYYY-MM-DD', '2026-1-5', '2026-01-05'],
+	] as const)('%s (%s)', ([, format, typed, masked]) => {
+		expect(maskDateText(typed, format)).toBe(masked)
 	})
 })
 

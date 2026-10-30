@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import {
@@ -26,23 +27,26 @@ import {
 } from '../helpers'
 import { hydrateServerRender, serverMarkup } from '../helpers/hydrate'
 
-describe('Stepper', () => {
-	it('renders with data-slot="stepper"', () => {
-		const { container } = renderUI(
-			<Stepper value={1}>
-				<StepperStep value={1}>
-					<StepperTitle>Step 1</StepperTitle>
+/**
+ * Gives a stepper with the steps 1, 2, and 3. The props go to the `Stepper`,
+ * and `titles` holds the title of each step.
+ */
+function threeSteps(
+	props: ComponentProps<typeof Stepper>,
+	titles: [string, string, string] = ['One', 'Two', 'Three'],
+) {
+	return (
+		<Stepper {...props}>
+			{titles.map((title, index) => (
+				<StepperStep key={title} value={index + 1}>
+					<StepperTitle>{title}</StepperTitle>
 				</StepperStep>
-			</Stepper>,
-		)
+			))}
+		</Stepper>
+	)
+}
 
-		const el = bySlot(container, 'stepper')
-
-		expect(el).toBeInTheDocument()
-
-		expect(screen.getByRole('list', { name: 'Steps' })).toBeInTheDocument()
-	})
-
+describe('Stepper', () => {
 	it('reads a display-only stepper as a list of its steps', () => {
 		renderUI(
 			<Stepper value={1}>
@@ -103,26 +107,25 @@ describe('Stepper', () => {
 		)
 	})
 
-	it('gives className to the step row in an interactive and in a display-only stepper', () => {
-		for (const props of [{ value: 0 }, { value: 0, onValueChange: () => {} }]) {
-			const { container, unmount } = renderUI(
-				<Stepper {...props} orientation="horizontal" className="justify-center px-0">
-					<StepperStep value={0}>
-						<StepperTitle>Account</StepperTitle>
-					</StepperStep>
-				</Stepper>,
-			)
+	it.for([
+		{ mode: 'an interactive', props: { value: 0, onValueChange: () => {} } },
+		{ mode: 'a display-only', props: { value: 0 } },
+	])('gives className to the step row in $mode stepper', ({ props }) => {
+		const { container } = renderUI(
+			<Stepper {...props} orientation="horizontal" className="justify-center px-0">
+				<StepperStep value={0}>
+					<StepperTitle>Account</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
 
-			// The row is the flex list of the steps. A class such as px-0 must
-			// replace the padding of the row, not land on a wrapper around it.
-			const row = present(container.querySelector('ol'), 'row')
+		// The row is the flex list of the steps. A class such as px-0 must
+		// replace the padding of the row, not land on a wrapper around it.
+		const row = present(container.querySelector('ol'), 'row')
 
-			expect(row).toHaveClass('justify-center', 'px-0')
+		expect(row).toHaveClass('justify-center', 'px-0')
 
-			expect(row).not.toHaveClass('px-4')
-
-			unmount()
-		}
+		expect(row).not.toHaveClass('px-4')
 	})
 
 	it('roves the arrow keys across the step buttons inside the list', async () => {
@@ -210,20 +213,10 @@ describe('StepperIndicator', () => {
 	it.each(['horizontal', 'vertical'] as const)(
 		'names each step state for assistive tech after its title (%s)',
 		(orientation) => {
-			const { container } = renderUI(
-				<Stepper value={2} onValueChange={() => {}} orientation={orientation}>
-					<StepperStep value={1}>
-						<StepperTitle>One</StepperTitle>
-					</StepperStep>
-					<StepperStep value={2}>
-						<StepperTitle>Two</StepperTitle>
-					</StepperStep>
-					<StepperStep value={3}>
-						<StepperTitle>Three</StepperTitle>
-					</StepperStep>
-				</Stepper>,
-			)
+			const { container } = renderUI(threeSteps({ value: 2, onValueChange: () => {}, orientation }))
 
+			// The query takes buttons only, so it also proves that a step with a
+			// handler is a button.
 			const steps = Array.from(
 				container.querySelectorAll<HTMLButtonElement>('button[data-slot="stepper-step"]'),
 			)
@@ -257,19 +250,7 @@ describe('StepperIndicator', () => {
 	})
 
 	it('draws a checkmark on a completed step, and none on the others', () => {
-		const { container } = renderUI(
-			<Stepper value={2}>
-				<StepperStep value={1}>
-					<StepperTitle>One</StepperTitle>
-				</StepperStep>
-				<StepperStep value={2}>
-					<StepperTitle>Two</StepperTitle>
-				</StepperStep>
-				<StepperStep value={3}>
-					<StepperTitle>Three</StepperTitle>
-				</StepperStep>
-			</Stepper>,
-		)
+		const { container } = renderUI(threeSteps({ value: 2 }))
 
 		const marks = allBySlot(container, 'stepper-indicator').map(
 			(indicator) => indicator.querySelector('svg') !== null,
@@ -402,20 +383,6 @@ describe('StepperPanel', () => {
 })
 
 describe('StepperStep interactive mode', () => {
-	it('renders steps as buttons when onValueChange is provided', () => {
-		const { container } = renderUI(
-			<Stepper value={1} onValueChange={() => {}}>
-				<StepperStep value={1}>
-					<StepperTitle>Step 1</StepperTitle>
-				</StepperStep>
-			</Stepper>,
-		)
-
-		const el = bySlot(container, 'stepper-step')
-
-		expect(el?.tagName).toBe('BUTTON')
-	})
-
 	it('calls onValueChange when an interactive step is clicked', () => {
 		const onValueChange = vi.fn()
 
@@ -430,9 +397,7 @@ describe('StepperStep interactive mode', () => {
 			</Stepper>,
 		)
 
-		const second = container.querySelectorAll<HTMLButtonElement>(
-			'[data-slot="stepper-step"]',
-		)[1] as HTMLButtonElement
+		const second = allBySlot(container, 'stepper-step')[1] as HTMLButtonElement
 
 		fireEvent.click(second)
 
@@ -451,7 +416,7 @@ describe('StepperStep interactive mode', () => {
 			</Stepper>,
 		)
 
-		const buttons = container.querySelectorAll<HTMLButtonElement>('[data-slot="stepper-step"]')
+		const buttons = allBySlot(container, 'stepper-step')
 
 		expect(buttons[1]).toBeDisabled()
 	})
@@ -518,23 +483,9 @@ describe('StepperStep interactive mode', () => {
 	})
 
 	it('passes the current state through to descendants', () => {
-		const { container } = renderUI(
-			<Stepper value={2}>
-				<StepperStep value={1}>
-					<StepperTitle>Step 1</StepperTitle>
-				</StepperStep>
-				<StepperStep value={2}>
-					<StepperTitle>Step 2</StepperTitle>
-				</StepperStep>
-				<StepperStep value={3}>
-					<StepperTitle>Step 3</StepperTitle>
-				</StepperStep>
-			</Stepper>,
-		)
+		const { container } = renderUI(threeSteps({ value: 2 }))
 
-		const states = Array.from(
-			container.querySelectorAll<HTMLElement>('[data-slot="stepper-step"]'),
-		).map((el) => el.getAttribute('data-state'))
+		const states = allBySlot(container, 'stepper-step').map((el) => el.getAttribute('data-state'))
 
 		expect(states).toEqual(['completed', 'current', 'upcoming'])
 	})
@@ -556,9 +507,7 @@ describe('Stepper keyboard navigation', () => {
 			</Stepper>,
 		)
 
-		return Array.from(
-			container.querySelectorAll<HTMLButtonElement>('button[data-slot="stepper-step"]'),
-		)
+		return allBySlot(container, 'stepper-step')
 	}
 
 	it('moves focus across steps with arrows, skipping the disabled step', async () => {
@@ -582,23 +531,9 @@ describe('Stepper keyboard navigation', () => {
 	})
 
 	it('makes the step row a single Tab stop seated on the current step', () => {
-		const { container } = renderUI(
-			<Stepper value={3} onValueChange={() => {}}>
-				<StepperStep value={1}>
-					<StepperTitle>One</StepperTitle>
-				</StepperStep>
-				<StepperStep value={2}>
-					<StepperTitle>Two</StepperTitle>
-				</StepperStep>
-				<StepperStep value={3}>
-					<StepperTitle>Three</StepperTitle>
-				</StepperStep>
-			</Stepper>,
-		)
+		const { container } = renderUI(threeSteps({ value: 3, onValueChange: () => {} }))
 
-		const steps = Array.from(
-			container.querySelectorAll<HTMLButtonElement>('button[data-slot="stepper-step"]'),
-		)
+		const steps = allBySlot(container, 'stepper-step')
 
 		// value=3 → the third step is current and holds the only tab stop.
 		expect(steps.map((s) => s.tabIndex)).toEqual([-1, -1, 0])
@@ -751,25 +686,13 @@ describe('Stepper in a locale', () => {
 	it('names the row and the step states in the language of the locale', () => {
 		const { container } = renderUI(
 			<LocaleProvider locale="es-ES">
-				<Stepper value={2} onValueChange={() => {}}>
-					<StepperStep value={1}>
-						<StepperTitle>Uno</StepperTitle>
-					</StepperStep>
-					<StepperStep value={2}>
-						<StepperTitle>Dos</StepperTitle>
-					</StepperStep>
-					<StepperStep value={3}>
-						<StepperTitle>Tres</StepperTitle>
-					</StepperStep>
-				</Stepper>
+				{threeSteps({ value: 2, onValueChange: () => {} }, ['Uno', 'Dos', 'Tres'])}
 			</LocaleProvider>,
 		)
 
 		expect(screen.getByRole('toolbar', { name: 'Pasos' })).toBeInTheDocument()
 
-		const steps = Array.from(
-			container.querySelectorAll<HTMLButtonElement>('button[data-slot="stepper-step"]'),
-		)
+		const steps = allBySlot(container, 'stepper-step')
 
 		expect(steps[0]).toHaveAccessibleName('Uno, completado')
 

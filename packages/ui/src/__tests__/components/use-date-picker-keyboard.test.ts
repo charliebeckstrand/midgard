@@ -93,28 +93,21 @@ describe('useDatePickerKeyboard: disabled', () => {
 })
 
 describe('useDatePickerKeyboard: closed calendar', () => {
-	it('opens the calendar on ArrowDown', () => {
-		const { handler, openCalendar } = setup({ open: false })
-
-		const event = makeKeyEvent<HTMLElement>('ArrowDown')
-
-		handler(event)
-
-		expect(openCalendar).toHaveBeenCalled()
-
-		expect(event.preventDefault).toHaveBeenCalled()
-	})
-
 	it.each([
+		['opens the calendar on ArrowDown', 'ArrowDown'],
 		['opens the calendar on ArrowUp', 'ArrowUp'],
 		['opens the calendar on Enter', 'Enter'],
 		['opens the calendar on Space', ' '],
 	])('%s', (_name, key) => {
 		const { handler, openCalendar } = setup({ open: false })
 
-		handler(makeKeyEvent<HTMLElement>(key))
+		const event = makeKeyEvent<HTMLElement>(key)
+
+		handler(event)
 
 		expect(openCalendar).toHaveBeenCalled()
+
+		expect(event.preventDefault).toHaveBeenCalled()
 	})
 
 	it('ignores other keys', () => {
@@ -248,20 +241,15 @@ describe('useDatePickerKeyboard: grid zone', () => {
 		expect(setActive).toHaveBeenCalled()
 	})
 
-	it('selects the active grid date on Enter', () => {
+	it.each([
+		['selects the active grid date on Enter', 'Enter'],
+		['selects on Space', ' '],
+	])('%s', (_name, key) => {
 		const { handler, handleSelect } = setup({ active: gridActive })
 
-		handler(makeKeyEvent<HTMLElement>('Enter'))
+		handler(makeKeyEvent<HTMLElement>(key))
 
 		expect(handleSelect).toHaveBeenCalledWith(gridActive.date)
-	})
-
-	it('selects on Space', () => {
-		const { handler, handleSelect } = setup({ active: gridActive })
-
-		handler(makeKeyEvent<HTMLElement>(' '))
-
-		expect(handleSelect).toHaveBeenCalled()
 	})
 })
 
@@ -280,14 +268,6 @@ describe('useDatePickerKeyboard: header zone', () => {
 		handler(makeKeyEvent<HTMLElement>(key))
 
 		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: expected })
-	})
-
-	it('moves from header to grid on ArrowDown', () => {
-		const { handler, setActive } = setup({ active: { zone: 'header', index: 1 } })
-
-		handler(makeKeyEvent<HTMLElement>('ArrowDown'))
-
-		expect(setActive).toHaveBeenCalledWith(expect.objectContaining({ zone: 'grid' }))
 	})
 
 	it('enters the shown month on ArrowDown, not the value or today', () => {
@@ -354,14 +334,6 @@ describe('useDatePickerKeyboard: footer zone', () => {
 		expect(setActive).toHaveBeenCalledWith({ zone: 'footer', index: expected })
 	})
 
-	it('moves from footer to grid on ArrowUp', () => {
-		const { handler, setActive } = setup({ active: { zone: 'footer', index: 0 } })
-
-		handler(makeKeyEvent<HTMLElement>('ArrowUp'))
-
-		expect(setActive).toHaveBeenCalledWith(expect.objectContaining({ zone: 'grid' }))
-	})
-
 	it('enters the shown month on ArrowUp, not the value or today', () => {
 		const { handler, setActive, getInitialActiveDate } = setup({
 			active: { zone: 'footer', index: 0 },
@@ -386,15 +358,18 @@ describe('useDatePickerKeyboard: footer zone', () => {
 		expect(setActive).not.toHaveBeenCalled()
 	})
 
-	it('activates the footer button on Enter', () => {
+	it.each<[string, number, string, FooterButton]>([
+		['activates the footer button on Enter', 1, 'Enter', 'today'],
+		['activates the footer button on Space', 0, ' ', 'clear'],
+	])('%s', (_name, index, key, button) => {
 		const { handler, onFooterActivate } = setup({
-			active: { zone: 'footer', index: 1 },
+			active: { zone: 'footer', index },
 			footerButtons: ['clear', 'today'],
 		})
 
-		handler(makeKeyEvent<HTMLElement>('Enter'))
+		handler(makeKeyEvent<HTMLElement>(key))
 
-		expect(onFooterActivate).toHaveBeenCalledWith('today')
+		expect(onFooterActivate).toHaveBeenCalledWith(button)
 	})
 
 	it.each(['ArrowLeft', 'ArrowRight'])('does nothing on %s when footerButtons is empty', (key) => {
@@ -418,17 +393,6 @@ describe('useDatePickerKeyboard: footer zone', () => {
 		expect(event.preventDefault).toHaveBeenCalled()
 
 		expect(setActive).not.toHaveBeenCalled()
-	})
-
-	it('activates the footer button on Space', () => {
-		const { handler, onFooterActivate } = setup({
-			active: { zone: 'footer', index: 0 },
-			footerButtons: ['clear', 'today'],
-		})
-
-		handler(makeKeyEvent<HTMLElement>(' '))
-
-		expect(onFooterActivate).toHaveBeenCalledWith('clear')
 	})
 
 	it('does not activate when Enter falls on a footer index past the available buttons', () => {
@@ -553,9 +517,7 @@ describe('useDatePickerKeyboard: Tab-focused toolbar buttons', () => {
 
 		handler(keyFrom('ArrowRight', header[1] as Element, dialog))
 
-		expect(setActive).toHaveBeenCalledTimes(1)
-
-		expect(setActive).toHaveBeenCalledWith({ zone: 'header', index: 2 })
+		expect(setActive).toHaveBeenCalledExactlyOnceWith({ zone: 'header', index: 2 })
 	})
 
 	it.each<[string, number, string, number]>([
@@ -683,9 +645,7 @@ describe('useDatePickerKeyboard: a Tab-focused day button', () => {
 
 		handler(keyFrom('ArrowLeft', day, dialog))
 
-		expect(setActive).toHaveBeenCalledTimes(1)
-
-		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: new Date(2026, 0, 19) })
+		expect(setActive).toHaveBeenCalledExactlyOnceWith({ zone: 'grid', date: new Date(2026, 0, 19) })
 	})
 
 	// B01-C12, Q11: the dialog takes focus back for the Page keys too, so they map the day.

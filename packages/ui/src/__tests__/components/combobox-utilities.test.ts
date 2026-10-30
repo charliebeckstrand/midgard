@@ -7,46 +7,136 @@ import {
 } from '../../components/combobox/combobox-utilities'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 
+/** The arguments of `resolveInputDisplay` apart from `intl`, which each case shares. */
+type DisplayArgs = Omit<Parameters<typeof resolveInputDisplay<unknown>>[0], 'intl'>
+
+/** The arguments of `resolveInputTitle`. */
+type TitleArgs = Parameters<typeof resolveInputTitle<unknown>>[0]
+
+const display = (v: unknown) => v as string
+
+/** Adds an option to `container`, with each attribute in `attributes` set. */
+function optionIn(container: HTMLElement, ...attributes: string[]): HTMLElement {
+	const option = document.createElement('div')
+
+	option.setAttribute('role', 'option')
+
+	for (const attribute of attributes) option.setAttribute(attribute, '')
+
+	container.appendChild(option)
+
+	return option
+}
+
 describe('resolveInputDisplay', () => {
-	it('returns the query while the user is editing', () => {
-		const result = resolveInputDisplay({
-			intl: intlEn,
-			editing: true,
-			query: 'partial',
-			value: 'real',
-			displayValue: (v) => v as string,
-			multiple: false,
-		})
-
-		expect(result).toBe('partial')
-	})
-
-	it('returns the displayed value when not editing in single-select mode', () => {
-		const result = resolveInputDisplay({
-			intl: intlEn,
-			editing: false,
-			query: '',
-			value: { id: 1, name: 'Alice' },
-			displayValue: (v) => (v as { name: string }).name,
-			multiple: false,
-		})
-
-		expect(result).toBe('Alice')
-	})
-
-	it('shows a lone multi selection as its own label', () => {
-		const result = resolveInputDisplay({
-			intl: intlEn,
-			editing: false,
-			query: '',
-			value: ['a'],
-			displayValue: (v) => (v as string).toUpperCase(),
-			multiple: true,
-		})
-
-		// It used to return empty for any multi selection, which left the combobox showing nothing at
-		// all above a filter that WAS applied: the trigger's whole job.
-		expect(result).toBe('A')
+	it.for<{ name: string; args: DisplayArgs; expected: string }>([
+		{
+			name: 'returns the query while the user is editing',
+			args: {
+				editing: true,
+				query: 'partial',
+				value: 'real',
+				displayValue: display,
+				multiple: false,
+			},
+			expected: 'partial',
+		},
+		{
+			name: 'returns the displayed value when not editing in single-select mode',
+			args: {
+				editing: false,
+				query: '',
+				value: { id: 1, name: 'Alice' },
+				displayValue: (v) => (v as { name: string }).name,
+				multiple: false,
+			},
+			expected: 'Alice',
+		},
+		// The threshold stays the control's (a text input whose content scrolls has to stop listing
+		// somewhere) while the noun is the caller's. "2 selected" beside a label reading "Postal
+		// codes" is fine; in a row of six filters it says how many of nothing in particular.
+		{
+			name: 'lets the caller name what it is counting',
+			args: {
+				editing: false,
+				query: '',
+				value: ['12345', '84045'],
+				displayValue: display,
+				summarize: (codes) => `${codes.length} postal codes`,
+				multiple: true,
+			},
+			expected: '2 postal codes',
+		},
+		// One item, so only the missing displayValue sends the selection to the summary.
+		{
+			name: 'summarizes with no displayValue too, which is the case that can only count',
+			args: {
+				editing: false,
+				query: '',
+				value: ['a'],
+				summarize: (items) => `${items.length} things`,
+				multiple: true,
+			},
+			expected: '1 things',
+		},
+		// The same rule an empty selection follows, applied to a full one: for a field whose values are
+		// typed in rather than picked, where the input has to stay blank and ready after every commit
+		// instead of holding a summary the next keystroke must displace.
+		{
+			name: 'lets the placeholder through when the summary is empty',
+			args: {
+				editing: false,
+				query: '',
+				value: ['12345', '84045'],
+				summarize: () => '',
+				multiple: true,
+			},
+			expected: '',
+		},
+		// The summary is what replaces a list too long to read; one label is not that.
+		{
+			name: 'leaves a lone selection to its own label rather than summarizing it',
+			args: {
+				editing: false,
+				query: '',
+				value: ['12345'],
+				displayValue: display,
+				summarize: (codes) => `${codes.length} postal codes`,
+				multiple: true,
+			},
+			expected: '12345',
+		},
+		// Empty rather than "0 postal codes", which is what lets the placeholder through.
+		{
+			name: 'summarizes nothing when nothing is selected',
+			args: {
+				editing: false,
+				query: '',
+				value: [],
+				displayValue: display,
+				summarize: (codes) => `${codes.length} postal codes`,
+				multiple: true,
+			},
+			expected: '',
+		},
+		// One item, so only the missing displayValue sends the selection to the count.
+		{
+			name: 'counts in multi-select mode when there is no displayValue',
+			args: { editing: false, query: '', value: ['a'], multiple: true },
+			expected: '1 selected',
+		},
+		{
+			name: 'returns an empty string when there is no value',
+			args: { editing: false, query: '', value: undefined, displayValue: display, multiple: false },
+			expected: '',
+		},
+		{
+			name: 'returns an empty string when there is no displayValue',
+			args: { editing: false, query: '', value: 'x', multiple: false },
+			expected: '',
+		},
+	])('$name', ({ args, expected }) => {
+		expect(resolveInputDisplay({ intl: intlEn, ...args })).toBe(expected)
 	})
 
 	it('counts as soon as a multi selection passes one', () => {
@@ -59,7 +149,7 @@ describe('resolveInputDisplay', () => {
 				editing: false,
 				query: '',
 				value: ['a', 'b'],
-				displayValue: (v) => v as string,
+				displayValue: display,
 				multiple: true,
 			}),
 		).toBe('2 selected')
@@ -70,112 +160,10 @@ describe('resolveInputDisplay', () => {
 				editing: false,
 				query: '',
 				value: ['a', 'b', 'c', 'd'],
-				displayValue: (v) => v as string,
+				displayValue: display,
 				multiple: true,
 			}),
 		).toBe('4 selected')
-	})
-
-	it('lets the caller name what it is counting', () => {
-		// The threshold stays the control's (a text input whose content scrolls has to stop listing
-		// somewhere) while the noun is the caller's. "2 selected" beside a label reading "Postal
-		// codes" is fine; in a row of six filters it says how many of nothing in particular.
-		expect(
-			resolveInputDisplay({
-				intl: intlEn,
-				editing: false,
-				query: '',
-				value: ['12345', '84045'],
-				displayValue: (v) => v as string,
-				summarize: (codes) => `${codes.length} postal codes`,
-				multiple: true,
-			}),
-		).toBe('2 postal codes')
-	})
-
-	it('summarizes with no displayValue too, which is the case that can only count', () => {
-		expect(
-			resolveInputDisplay({
-				intl: intlEn,
-				editing: false,
-				query: '',
-				value: ['a', 'b'],
-				summarize: (items) => `${items.length} things`,
-				multiple: true,
-			}),
-		).toBe('2 things')
-	})
-
-	it('lets the placeholder through when the summary is empty', () => {
-		// The same rule an empty selection follows, applied to a full one: for a field whose values are
-		// typed in rather than picked, where the input has to stay blank and ready after every commit
-		// instead of holding a summary the next keystroke must displace.
-		expect(
-			resolveInputDisplay({
-				intl: intlEn,
-				editing: false,
-				query: '',
-				value: ['12345', '84045'],
-				summarize: () => '',
-				multiple: true,
-			}),
-		).toBe('')
-	})
-
-	it('leaves a lone selection to its own label rather than summarizing it', () => {
-		// The summary is what replaces a list too long to read; one label is not that.
-		expect(
-			resolveInputDisplay({
-				intl: intlEn,
-				editing: false,
-				query: '',
-				value: ['12345'],
-				displayValue: (v) => v as string,
-				summarize: (codes) => `${codes.length} postal codes`,
-				multiple: true,
-			}),
-		).toBe('12345')
-	})
-
-	it('summarizes nothing when nothing is selected', () => {
-		// Empty rather than "0 postal codes", which is what lets the placeholder through.
-		expect(
-			resolveInputDisplay({
-				intl: intlEn,
-				editing: false,
-				query: '',
-				value: [],
-				displayValue: (v) => v as string,
-				summarize: (codes) => `${codes.length} postal codes`,
-				multiple: true,
-			}),
-		).toBe('')
-	})
-
-	it('counts in multi-select mode when there is no displayValue', () => {
-		const result = resolveInputDisplay({
-			intl: intlEn,
-			editing: false,
-			query: '',
-			value: ['a', 'b'],
-			multiple: true,
-		})
-
-		expect(result).toBe('2 selected')
-	})
-
-	it('returns an empty string for an empty multi selection', () => {
-		const result = resolveInputDisplay({
-			intl: intlEn,
-			editing: false,
-			query: '',
-			value: [],
-			displayValue: (v) => v as string,
-			multiple: true,
-		})
-
-		// Empty rather than "0 selected", which is what lets the placeholder through.
-		expect(result).toBe('')
 	})
 
 	it('shows the query over a multi selection while editing', () => {
@@ -184,7 +172,7 @@ describe('resolveInputDisplay', () => {
 			editing: false,
 			query: 'typ',
 			value: ['a', 'b'],
-			displayValue: (v) => v as string,
+			displayValue: display,
 			multiple: true,
 		})
 
@@ -199,35 +187,10 @@ describe('resolveInputDisplay', () => {
 				editing: true,
 				query: 'typ',
 				value: ['a', 'b'],
-				displayValue: (v) => v as string,
+				displayValue: display,
 				multiple: true,
 			}),
 		).toBe('typ')
-	})
-
-	it('returns an empty string when there is no value', () => {
-		const result = resolveInputDisplay<string>({
-			intl: intlEn,
-			editing: false,
-			query: '',
-			value: undefined,
-			displayValue: (v) => v,
-			multiple: false,
-		})
-
-		expect(result).toBe('')
-	})
-
-	it('returns an empty string when there is no displayValue', () => {
-		const result = resolveInputDisplay({
-			intl: intlEn,
-			editing: false,
-			query: '',
-			value: 'x',
-			multiple: false,
-		})
-
-		expect(result).toBe('')
 	})
 })
 
@@ -235,15 +198,9 @@ describe('selectSoleOption', () => {
 	it('clicks and returns true when exactly one option is present', () => {
 		const container = document.createElement('div')
 
-		const option = document.createElement('div')
-
-		option.setAttribute('role', 'option')
-
 		const clicked = vi.fn()
 
-		option.addEventListener('click', clicked)
-
-		container.appendChild(option)
+		optionIn(container).addEventListener('click', clicked)
 
 		expect(selectSoleOption(container)).toBe(true)
 
@@ -253,17 +210,9 @@ describe('selectSoleOption', () => {
 	it('returns false when there is more than one option', () => {
 		const container = document.createElement('div')
 
-		const a = document.createElement('div')
+		optionIn(container)
 
-		a.setAttribute('role', 'option')
-
-		container.appendChild(a)
-
-		const b = document.createElement('div')
-
-		b.setAttribute('role', 'option')
-
-		container.appendChild(b)
+		optionIn(container)
 
 		expect(selectSoleOption(container)).toBe(false)
 	})
@@ -276,16 +225,6 @@ describe('selectSoleOption', () => {
 })
 
 describe('enterKeepsSelection', () => {
-	const optionIn = (container: HTMLElement, ...attributes: string[]) => {
-		const option = document.createElement('div')
-
-		option.setAttribute('role', 'option')
-
-		for (const attribute of attributes) option.setAttribute(attribute, '')
-
-		container.appendChild(option)
-	}
-
 	// A click on the selected option toggles it, and the toggle clears a `nullable`
 	// value. Enter chooses, so in single mode it keeps that option. A `multiple`
 	// combobox keeps the toggle.
@@ -322,51 +261,40 @@ describe('enterKeepsSelection', () => {
 })
 
 describe('resolveInputTitle', () => {
-	const display = (v: unknown) => v as string
-
-	it('spells out a multi selection the field can only count', () => {
+	it.for<{ name: string; args: TitleArgs; expected: string | undefined }>([
 		// The counterpart to the count: the field says how many are picked, this says which, on hover,
 		// without the field holding a string longer than itself.
-		expect(
-			resolveInputTitle({
-				editing: false,
-				value: ['a', 'b', 'c'],
-				displayValue: display,
-				multiple: true,
-			}),
-		).toBe('a, b, c')
-	})
-
-	it('adds nothing for a lone selection, which the field already names', () => {
-		expect(
-			resolveInputTitle({ editing: false, value: ['a'], displayValue: display, multiple: true }),
-		).toBeUndefined()
-	})
-
-	it('adds nothing for an empty selection', () => {
-		expect(
-			resolveInputTitle({ editing: false, value: [], displayValue: display, multiple: true }),
-		).toBeUndefined()
-	})
-
-	it('adds nothing while editing, when the field shows a query rather than a selection', () => {
-		expect(
-			resolveInputTitle({
-				editing: true,
-				value: ['a', 'b'],
-				displayValue: display,
-				multiple: true,
-			}),
-		).toBeUndefined()
-	})
-
-	it('adds nothing in single-select mode, where the field shows the whole value', () => {
-		expect(
-			resolveInputTitle({ editing: false, value: 'a', displayValue: display, multiple: false }),
-		).toBeUndefined()
-	})
-
-	it('adds nothing with no resolver, since there are no labels to spell out', () => {
-		expect(resolveInputTitle({ editing: false, value: ['a', 'b'], multiple: true })).toBeUndefined()
+		{
+			name: 'spells out a multi selection the field can only count',
+			args: { editing: false, value: ['a', 'b', 'c'], displayValue: display, multiple: true },
+			expected: 'a, b, c',
+		},
+		{
+			name: 'adds nothing for a lone selection, which the field already names',
+			args: { editing: false, value: ['a'], displayValue: display, multiple: true },
+			expected: undefined,
+		},
+		{
+			name: 'adds nothing for an empty selection',
+			args: { editing: false, value: [], displayValue: display, multiple: true },
+			expected: undefined,
+		},
+		{
+			name: 'adds nothing while editing, when the field shows a query rather than a selection',
+			args: { editing: true, value: ['a', 'b'], displayValue: display, multiple: true },
+			expected: undefined,
+		},
+		{
+			name: 'adds nothing in single-select mode, where the field shows the whole value',
+			args: { editing: false, value: 'a', displayValue: display, multiple: false },
+			expected: undefined,
+		},
+		{
+			name: 'adds nothing with no resolver, since there are no labels to spell out',
+			args: { editing: false, value: ['a', 'b'], multiple: true },
+			expected: undefined,
+		},
+	])('$name', ({ args, expected }) => {
+		expect(resolveInputTitle(args)).toBe(expected)
 	})
 })

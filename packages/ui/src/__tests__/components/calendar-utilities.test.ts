@@ -28,24 +28,29 @@ describe('sameDay', () => {
 })
 
 describe('isBeforeDay', () => {
-	it('returns true when the year is earlier', () => {
-		expect(isBeforeDay(new Date(2023, 11, 31), new Date(2024, 0, 1))).toBe(true)
-	})
-
-	it('returns false when the year is later', () => {
-		expect(isBeforeDay(new Date(2024, 0, 1), new Date(2023, 11, 31))).toBe(false)
-	})
-
-	it('returns true when the month is earlier in the same year', () => {
-		expect(isBeforeDay(new Date(2024, 4, 30), new Date(2024, 5, 1))).toBe(true)
-	})
-
-	it('returns true when the day is earlier in the same month', () => {
-		expect(isBeforeDay(new Date(2024, 5, 10), new Date(2024, 5, 11))).toBe(true)
-	})
-
-	it('returns false for the same calendar day', () => {
-		expect(isBeforeDay(new Date(2024, 5, 10, 0, 0), new Date(2024, 5, 10, 23, 59))).toBe(false)
+	it.for([
+		['returns true when the year is earlier', new Date(2023, 11, 31), new Date(2024, 0, 1), true],
+		['returns false when the year is later', new Date(2024, 0, 1), new Date(2023, 11, 31), false],
+		[
+			'returns true when the month is earlier in the same year',
+			new Date(2024, 4, 30),
+			new Date(2024, 5, 1),
+			true,
+		],
+		[
+			'returns true when the day is earlier in the same month',
+			new Date(2024, 5, 10),
+			new Date(2024, 5, 11),
+			true,
+		],
+		[
+			'returns false for the same calendar day',
+			new Date(2024, 5, 10, 0, 0),
+			new Date(2024, 5, 10, 23, 59),
+			false,
+		],
+	] as const)('%s', ([, a, b, before]) => {
+		expect(isBeforeDay(a, b)).toBe(before)
 	})
 })
 
@@ -118,16 +123,13 @@ describe('firstOfMonth', () => {
 		expect([date.getFullYear(), date.getMonth(), date.getDate()]).toEqual([2024, 5, 1])
 	})
 
-	it('balances month -1 into December of the previous year', () => {
-		const date = firstOfMonth(2024, -1)
+	it.for([
+		['balances month -1 into December of the previous year', -1, [2023, 11]],
+		['balances month 12 into January of the next year', 12, [2025, 0]],
+	] as const)('%s', ([, month, expected]) => {
+		const date = firstOfMonth(2024, month)
 
-		expect([date.getFullYear(), date.getMonth()]).toEqual([2023, 11])
-	})
-
-	it('balances month 12 into January of the next year', () => {
-		const date = firstOfMonth(2024, 12)
-
-		expect([date.getFullYear(), date.getMonth()]).toEqual([2025, 0])
+		expect([date.getFullYear(), date.getMonth()]).toEqual(expected)
 	})
 
 	it('keeps years below 100 instead of mapping them to 19xx', () => {

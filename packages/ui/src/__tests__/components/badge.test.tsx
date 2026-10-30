@@ -1,27 +1,13 @@
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Badge, BadgeSkeleton } from '../../components/badge'
-import { bySlot, getSlot, renderUI, screen } from '../helpers'
+import { bySlot, renderUI, screen } from '../helpers'
+import { expectInlineSkeleton } from '../helpers/inline-skeleton'
 
 describe('Badge', () => {
-	/*
-	 * A badge can sit in a line of text, so its skeleton has to be able to as well. Parsed back
-	 * from server markup, the way a browser meets it: a `div` inside a `<p>` makes the parser
-	 * close the paragraph there, and the tree it hydrates no longer matches.
-	 */
+	// A badge can sit in a line of text, so its skeleton has to be able to as well.
 	it('stands in for a badge inside a paragraph, as server markup and inline', () => {
-		const container = document.createElement('div')
+		const skeleton = expectInlineSkeleton(<BadgeSkeleton size="sm" />)
 
-		container.innerHTML = renderToString(
-			<p>
-				Invoice 90210 <BadgeSkeleton size="sm" />
-			</p>,
-		)
-
-		const skeleton = getSlot(container, 'placeholder')
-
-		expect(skeleton.tagName).toBe('SPAN')
-		expect(skeleton.parentElement?.tagName).toBe('P')
 		expect(skeleton).toHaveClass('inline-block')
 		expect(skeleton).not.toHaveClass('block')
 	})

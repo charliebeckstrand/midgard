@@ -5,6 +5,7 @@ import {
 	Accordion,
 	AccordionItem,
 	AccordionPanel,
+	type AccordionProps,
 	AccordionTrigger,
 	type AccordionTriggerProps,
 } from '../../components/accordion'
@@ -13,18 +14,55 @@ import type { Mount } from '../../primitives/mount'
 import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 import { hydrateServerRender, serverMarkup } from '../helpers/hydrate'
 
+/**
+ * The props of the root without `children`. The omit goes into each member of
+ * the union, so the open-set shapes stay apart.
+ */
+type TreeProps = AccordionProps extends infer P
+	? P extends unknown
+		? Omit<P, 'children'>
+		: never
+	: never
+
+/** An accordion with one item `a`: the trigger `Toggle` and the panel `Panel A`. */
+const oneItem = (props: TreeProps = {}) => (
+	<Accordion {...props}>
+		<AccordionItem value="a">
+			<AccordionTrigger>Toggle</AccordionTrigger>
+			<AccordionPanel>Panel A</AccordionPanel>
+		</AccordionItem>
+	</Accordion>
+)
+
+/** An accordion with the items `a` and `b`: the triggers `A` and `B`, and their panels. */
+const twoItems = (props: TreeProps = {}) => (
+	<Accordion {...props}>
+		<AccordionItem value="a">
+			<AccordionTrigger>A</AccordionTrigger>
+			<AccordionPanel>Panel A</AccordionPanel>
+		</AccordionItem>
+		<AccordionItem value="b">
+			<AccordionTrigger>B</AccordionTrigger>
+			<AccordionPanel>Panel B</AccordionPanel>
+		</AccordionItem>
+	</Accordion>
+)
+
 describe('AccordionTrigger', () => {
+	// `data-slot` is admitted on JSX but not on a props object, so widen it.
+	const triggered = (props: AccordionTriggerProps & { 'data-slot'?: string }) => (
+		<Accordion>
+			<AccordionItem value="a">
+				<AccordionTrigger {...props}>Toggle</AccordionTrigger>
+				<AccordionPanel>Panel A</AccordionPanel>
+			</AccordionItem>
+		</Accordion>
+	)
+
 	it('fires a consumer onClick alongside the toggle', () => {
 		const onClick = vi.fn()
 
-		renderUI(
-			<Accordion>
-				<AccordionItem value="a">
-					<AccordionTrigger onClick={onClick}>Toggle</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(triggered({ onClick }))
 
 		fireEvent.click(screen.getByText('Toggle'))
 
@@ -63,16 +101,6 @@ describe('AccordionTrigger', () => {
 		expect(screen.getByText('Panel A')).toBeInTheDocument()
 	})
 
-	// `data-slot` is admitted on JSX but not on a props object, so widen it.
-	const triggered = (props: AccordionTriggerProps & { 'data-slot'?: string }) => (
-		<Accordion>
-			<AccordionItem value="a">
-				<AccordionTrigger {...props}>Toggle</AccordionTrigger>
-				<AccordionPanel>Panel A</AccordionPanel>
-			</AccordionItem>
-		</Accordion>
-	)
-
 	it('ignores a custom data-slot', () => {
 		// Accordion's roving itemSelector reads this anchor, so a rename must not
 		// drop the header out of the item set (§3.9).
@@ -84,14 +112,7 @@ describe('AccordionTrigger', () => {
 	})
 
 	it('only references the panel via aria-controls while it is mounted', () => {
-		renderUI(
-			<Accordion>
-				<AccordionItem value="a">
-					<AccordionTrigger>Toggle</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(oneItem())
 
 		const trigger = screen.getByRole('button', { name: 'Toggle' })
 
@@ -108,14 +129,7 @@ describe('AccordionTrigger', () => {
 	})
 
 	it('keeps the panels out of the landmarks with region={false}, and keeps aria-controls', () => {
-		renderUI(
-			<Accordion region={false}>
-				<AccordionItem value="a">
-					<AccordionTrigger>Toggle</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(oneItem({ region: false }))
 
 		const trigger = screen.getByRole('button', { name: 'Toggle' })
 
@@ -178,18 +192,7 @@ describe('AccordionTrigger', () => {
 	})
 
 	it('marks the open header aria-disabled while its section cannot close', () => {
-		renderUI(
-			<Accordion defaultValue="a" collapsible={false}>
-				<AccordionItem value="a">
-					<AccordionTrigger>A</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-				<AccordionItem value="b">
-					<AccordionTrigger>B</AccordionTrigger>
-					<AccordionPanel>Panel B</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(twoItems({ defaultValue: 'a', collapsible: false }))
 
 		const a = screen.getByRole('button', { name: 'A' })
 
@@ -211,106 +214,37 @@ describe('AccordionTrigger', () => {
 	})
 
 	it('leaves aria-disabled off the open header of a collapsible accordion', () => {
-		renderUI(
-			<Accordion defaultValue="a">
-				<AccordionItem value="a">
-					<AccordionTrigger>A</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(oneItem({ defaultValue: 'a' }))
 
-		expect(screen.getByRole('button', { name: 'A' })).not.toHaveAttribute('aria-disabled')
+		expect(screen.getByRole('button', { name: 'Toggle' })).not.toHaveAttribute('aria-disabled')
 	})
 })
 
 describe('AccordionPanel', () => {
 	it('renders panel content when open', () => {
-		renderUI(
-			<Accordion defaultValue="a">
-				<AccordionItem value="a">
-					<AccordionTrigger>Toggle</AccordionTrigger>
-					<AccordionPanel>Panel Content</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(oneItem({ defaultValue: 'a' }))
 
-		expect(screen.getByText('Panel Content')).toBeInTheDocument()
+		expect(screen.getByText('Panel A')).toBeInTheDocument()
 	})
 })
 
 describe('Accordion single-select behavior', () => {
-	it('opens an item when its button is clicked', () => {
-		renderUI(
-			<Accordion>
-				<AccordionItem value="a">
-					<AccordionTrigger>Open A</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
-
-		fireEvent.click(screen.getByText('Open A'))
-
-		expect(screen.getByText('Panel A')).toBeInTheDocument()
-	})
-
 	it('collapses a single-mode item when clicked again with collapsible defaulting to true', () => {
 		const onValueChange = vi.fn()
 
-		renderUI(
-			<Accordion defaultValue="a" onValueChange={onValueChange}>
-				<AccordionItem value="a">
-					<AccordionTrigger>Toggle A</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(oneItem({ defaultValue: 'a', onValueChange }))
 
-		fireEvent.click(screen.getByText('Toggle A'))
+		fireEvent.click(screen.getByText('Toggle'))
 
 		expect(onValueChange).toHaveBeenCalledWith(null)
-	})
-
-	it('requires an open section for collapsible={false} (compile-time)', () => {
-		// Never rendered; exists for `tsc`. A held accordion cannot close to none,
-		// so it must start with a section open.
-		const typeChecks = () => (
-			<>
-				{/* @ts-expect-error: collapsible={false} needs a value or a defaultValue */}
-				<Accordion collapsible={false}>items</Accordion>
-
-				{/* @ts-expect-error: a held accordion cannot hold no section */}
-				<Accordion collapsible={false} value={null}>
-					items
-				</Accordion>
-
-				<Accordion collapsible={false} defaultValue="a">
-					items
-				</Accordion>
-
-				<Accordion collapsible={false} value="a" onValueChange={(value: string) => value}>
-					items
-				</Accordion>
-			</>
-		)
-
-		expect(typeChecks).toBeTypeOf('function')
 	})
 
 	it('keeps an item open when collapsible is false', () => {
 		const onValueChange = vi.fn()
 
-		renderUI(
-			<Accordion defaultValue="a" collapsible={false} onValueChange={onValueChange}>
-				<AccordionItem value="a">
-					<AccordionTrigger>Toggle A</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(oneItem({ defaultValue: 'a', collapsible: false, onValueChange }))
 
-		fireEvent.click(screen.getByText('Toggle A'))
+		fireEvent.click(screen.getByText('Toggle'))
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
@@ -321,25 +255,14 @@ describe('Accordion single-select behavior', () => {
 		function Controlled() {
 			const [value, setValue] = useState('a')
 
-			return (
-				<Accordion
-					value={value}
-					collapsible={false}
-					onValueChange={(next) => {
-						onValueChange(next)
-						setValue(next)
-					}}
-				>
-					<AccordionItem value="a">
-						<AccordionTrigger>A</AccordionTrigger>
-						<AccordionPanel>Panel A</AccordionPanel>
-					</AccordionItem>
-					<AccordionItem value="b">
-						<AccordionTrigger>B</AccordionTrigger>
-						<AccordionPanel>Panel B</AccordionPanel>
-					</AccordionItem>
-				</Accordion>
-			)
+			return twoItems({
+				value,
+				collapsible: false,
+				onValueChange: (next) => {
+					onValueChange(next)
+					setValue(next)
+				},
+			})
 		}
 
 		renderUI(<Controlled />)
@@ -348,26 +271,13 @@ describe('Accordion single-select behavior', () => {
 
 		fireEvent.click(screen.getByText('B'))
 
-		expect(onValueChange).toHaveBeenCalledTimes(1)
-
-		expect(onValueChange).toHaveBeenCalledWith('b')
+		expect(onValueChange).toHaveBeenCalledExactlyOnceWith('b')
 	})
 
 	it('switches the open item when a different button is clicked', () => {
 		const onValueChange = vi.fn()
 
-		renderUI(
-			<Accordion defaultValue="a" onValueChange={onValueChange}>
-				<AccordionItem value="a">
-					<AccordionTrigger>A</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-				<AccordionItem value="b">
-					<AccordionTrigger>B</AccordionTrigger>
-					<AccordionPanel>Panel B</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(twoItems({ defaultValue: 'a', onValueChange }))
 
 		fireEvent.click(screen.getByText('B'))
 
@@ -375,29 +285,13 @@ describe('Accordion single-select behavior', () => {
 	})
 
 	it('supports controlled value', () => {
-		const onValueChange = vi.fn()
-
-		renderUI(
-			<Accordion value="a" onValueChange={onValueChange}>
-				<AccordionItem value="a">
-					<AccordionTrigger>A</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(oneItem({ value: 'a' }))
 
 		expect(screen.getByText('Panel A')).toBeInTheDocument()
 	})
 
 	it('supports a controlled null value (closed)', () => {
-		renderUI(
-			<Accordion value={null}>
-				<AccordionItem value="a">
-					<AccordionTrigger>A</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(oneItem({ value: null }))
 
 		expect(screen.queryByText('Panel A')).not.toBeInTheDocument()
 	})
@@ -407,18 +301,7 @@ describe('Accordion multiple-select behavior', () => {
 	it('opens multiple items at once', () => {
 		const onValueChange = vi.fn()
 
-		renderUI(
-			<Accordion type="multiple" defaultValue={['a']} onValueChange={onValueChange}>
-				<AccordionItem value="a">
-					<AccordionTrigger>A</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-				<AccordionItem value="b">
-					<AccordionTrigger>B</AccordionTrigger>
-					<AccordionPanel>Panel B</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(twoItems({ type: 'multiple', defaultValue: ['a'], onValueChange }))
 
 		expect(screen.getByText('Panel A')).toBeInTheDocument()
 
@@ -430,18 +313,7 @@ describe('Accordion multiple-select behavior', () => {
 	it('closes one of many open items when its button is clicked', () => {
 		const onValueChange = vi.fn()
 
-		renderUI(
-			<Accordion type="multiple" defaultValue={['a', 'b']} onValueChange={onValueChange}>
-				<AccordionItem value="a">
-					<AccordionTrigger>A</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-				<AccordionItem value="b">
-					<AccordionTrigger>B</AccordionTrigger>
-					<AccordionPanel>Panel B</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(twoItems({ type: 'multiple', defaultValue: ['a', 'b'], onValueChange }))
 
 		fireEvent.click(screen.getByText('A'))
 
@@ -449,31 +321,13 @@ describe('Accordion multiple-select behavior', () => {
 	})
 
 	it('treats a multi-select value of undefined defaultValue as empty', () => {
-		renderUI(
-			<Accordion type="multiple">
-				<AccordionItem value="a">
-					<AccordionTrigger>A</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(oneItem({ type: 'multiple' }))
 
 		expect(screen.queryByText('Panel A')).not.toBeInTheDocument()
 	})
 
 	it('supports a controlled multi-select value', () => {
-		renderUI(
-			<Accordion type="multiple" value={['a', 'b']}>
-				<AccordionItem value="a">
-					<AccordionTrigger>A</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-				<AccordionItem value="b">
-					<AccordionTrigger>B</AccordionTrigger>
-					<AccordionPanel>Panel B</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(twoItems({ type: 'multiple', value: ['a', 'b'] }))
 
 		expect(screen.getByText('Panel A')).toBeInTheDocument()
 
@@ -532,18 +386,7 @@ describe('Accordion multiple-select behavior', () => {
 		// One identity across renders, so a refused toggle leaves the value unchanged.
 		const none: string[] = []
 
-		renderUI(
-			<Accordion type="multiple" value={none} onValueChange={onValueChange}>
-				<AccordionItem value="a">
-					<AccordionTrigger>A</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-				<AccordionItem value="b">
-					<AccordionTrigger>B</AccordionTrigger>
-					<AccordionPanel>Panel B</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(twoItems({ type: 'multiple', value: none, onValueChange }))
 
 		await user.click(screen.getByRole('button', { name: 'A' }))
 

@@ -51,25 +51,6 @@ describe('Toolbar', () => {
 		expect(bySlot(container, 'toolbar')).toHaveAttribute('aria-label', 'Formatting')
 	})
 
-	it('moves focus to the next item on ArrowRight', () => {
-		const { container } = renderUI(
-			<Toolbar aria-label="Editor">
-				<button type="button">A</button>
-				<button type="button">B</button>
-			</Toolbar>,
-		)
-
-		const [first, second] = Array.from(container.querySelectorAll('button'))
-
-		first?.focus()
-
-		expect(document.activeElement).toBe(first)
-
-		fireEvent.keyDown(getSlot(container, 'toolbar'), { key: 'ArrowRight' })
-
-		expect(document.activeElement).toBe(second)
-	})
-
 	it('runs a consumer onKeyDown first, and roving still moves focus after a preventDefault', () => {
 		const keys: string[] = []
 

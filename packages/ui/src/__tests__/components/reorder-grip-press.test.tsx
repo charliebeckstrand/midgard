@@ -58,20 +58,12 @@ describe.each(Object.entries(grips))('%s reorder grip', (_, grip) => {
 		expect(start).toHaveBeenCalledTimes(1)
 	})
 
-	it('starts no drag from a Ctrl-click', () => {
-		fireEvent.pointerDown(grip() as Element, { button: 0, ctrlKey: true, isPrimary: true })
-
-		expect(start).not.toHaveBeenCalled()
-	})
-
-	it('starts no drag from a secondary button', () => {
-		fireEvent.pointerDown(grip() as Element, { button: 2, isPrimary: true })
-
-		expect(start).not.toHaveBeenCalled()
-	})
-
-	it('starts no drag from a pointer that is not primary', () => {
-		fireEvent.pointerDown(grip() as Element, { button: 0, isPrimary: false })
+	it.for([
+		['starts no drag from a Ctrl-click', { button: 0, ctrlKey: true, isPrimary: true }],
+		['starts no drag from a secondary button', { button: 2, isPrimary: true }],
+		['starts no drag from a pointer that is not primary', { button: 0, isPrimary: false }],
+	] as const)('%s', ([, init]) => {
+		fireEvent.pointerDown(grip() as Element, init)
 
 		expect(start).not.toHaveBeenCalled()
 	})

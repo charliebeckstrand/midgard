@@ -1,25 +1,7 @@
 // @vitest-environment node
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { createPhotonProvider } from '../../components/address-input/address-input-photon'
-
-function makeFeature(
-	properties: Record<string, unknown>,
-	coordinates: [number, number] = [10, 20],
-) {
-	return {
-		type: 'Feature',
-		geometry: { type: 'Point', coordinates },
-		properties,
-	}
-}
-
-/** Answers each Photon request with these features. */
-function stubFeatures(...features: ReturnType<typeof makeFeature>[]) {
-	vi.stubGlobal(
-		'fetch',
-		vi.fn(async () => ({ ok: true, json: async () => ({ features }) }) as Response),
-	)
-}
+import { makeFeature, SHERWOOD, stubFeatures } from '../helpers/photon'
 
 describe('createPhotonProvider address parts', () => {
 	it('fills the street of a road match from its name, and keeps the name', async () => {
@@ -51,17 +33,7 @@ describe('createPhotonProvider address parts', () => {
 	})
 
 	it('fills the code of a postcode match from its name, and leaves the name unset', async () => {
-		stubFeatures(
-			makeFeature({
-				osm_key: 'place',
-				osm_value: 'postcode',
-				type: 'other',
-				name: '97140',
-				countrycode: 'US',
-				state: 'Oregon',
-				country: 'United States',
-			}),
-		)
+		stubFeatures(SHERWOOD)
 
 		const provider = createPhotonProvider({ region: 'US' })
 

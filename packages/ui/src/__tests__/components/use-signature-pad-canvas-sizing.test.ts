@@ -115,11 +115,17 @@ describe('useSignaturePadCanvasSizing', () => {
 		expect(context.scale).not.toHaveBeenCalled()
 	})
 
-	it.each<[string, Parameters<typeof setup>[0]]>([
-		['does nothing when the container ref is empty', { containerSize: null }],
-		['does nothing when the canvas ref is empty', { canvasNull: true }],
-		['skips configuration when the 2D context is unavailable', { contextNull: true }],
-	])('%s', (_name, options) => {
-		expect(() => setup(options)).not.toThrow()
+	// `width` is the CSS width that the canvas gets, or `undefined` when there is no canvas.
+	// With no 2D context, the canvas takes its size, but the hook does not scale it.
+	it.each<[string, Parameters<typeof setup>[0], string | undefined]>([
+		['does nothing when the container ref is empty', { containerSize: null }, ''],
+		['does nothing when the canvas ref is empty', { canvasNull: true }, undefined],
+		['skips configuration when the 2D context is unavailable', { contextNull: true }, '320px'],
+	])('%s', (_name, options, width) => {
+		const { canvas, context } = setup(options)
+
+		expect(canvas?.style.width).toBe(width)
+
+		expect(context.scale).not.toHaveBeenCalled()
 	})
 })

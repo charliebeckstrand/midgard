@@ -79,10 +79,13 @@ describe('TimeAgo', () => {
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('in 3 hours')
 	})
 
-	it('accepts ISO strings and numeric timestamps', () => {
+	it.for([
+		['a numeric timestamp', (past: number) => past],
+		['an ISO string', (past: number) => new Date(past).toISOString()],
+	] as const)('accepts %s', ([, toValue]) => {
 		const past = Date.now() - 2 * DAY
 
-		const { container } = renderUI(<TimeAgo value={past} locale="en-US" />)
+		const { container } = renderUI(<TimeAgo value={toValue(past)} locale="en-US" />)
 
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('2 days ago')
 	})

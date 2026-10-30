@@ -74,20 +74,26 @@ function pointerEvent(overrides: Partial<ReactPointerEvent> = {}): ReactPointerE
 }
 
 describe('useSignaturePadDrawing', () => {
+	// Each guard in `handlePointerDown` returns before the stroke starts, so
+	// none of them owes a report. A pad that draws nothing says nothing.
 	it.each<[string, Setup, Partial<ReactPointerEvent>]>([
 		['when disabled', { disabled: true }, {}],
-		['when readOnly', { readOnly: true }, {}],
+		['when read-only', { readOnly: true }, {}],
 		['for a non-primary mouse button', {}, { button: 2 }],
 		['for a macOS Ctrl-click', {}, { ctrlKey: true }],
 		['for a second finger', {}, { pointerType: 'touch', isPrimary: false }],
-	])('does nothing on pointerdown %s', (_name, options, overrides) => {
-		const { result, context } = setup(options)
+		['when the canvas is absent', { canvasNull: true }, {}],
+		['when the canvas has no 2D context', { contextNull: true }, {}],
+	])('does nothing and says nothing on pointerdown %s', (_name, options, overrides) => {
+		const { result, context, onDrawStart } = setup(options)
 
 		act(() => {
 			result.current.handlePointerDown(pointerEvent(overrides))
 		})
 
 		expect(context.beginPath).not.toHaveBeenCalled()
+
+		expect(onDrawStart).not.toHaveBeenCalled()
 	})
 
 	it('starts a stroke with a dot on pointerdown', () => {
@@ -137,16 +143,6 @@ describe('useSignaturePadDrawing', () => {
 		})
 
 		expect(event.currentTarget.setPointerCapture).toHaveBeenCalledWith(1)
-	})
-
-	it('does not throw when the canvas has no 2d context', () => {
-		const { result } = setup({ contextNull: true })
-
-		expect(() =>
-			act(() => {
-				result.current.handlePointerDown(pointerEvent())
-			}),
-		).not.toThrow()
 	})
 
 	it('does nothing on pointermove when no stroke is in progress', () => {
@@ -364,25 +360,6 @@ describe('useSignaturePadDrawing', () => {
 			})
 
 			expect(onDrawStart).toHaveBeenCalledOnce()
-		})
-
-		// Each guard in `handlePointerDown` returns before the stroke starts, so
-		// none of them owes a report. A pad that draws nothing says nothing.
-		it.each<[string, Setup, Partial<ReactPointerEvent>]>([
-			['when disabled', { disabled: true }, {}],
-			['when read-only', { readOnly: true }, {}],
-			['on a non-primary mouse button', {}, { button: 2 }],
-			['on a macOS Ctrl-click', {}, { ctrlKey: true }],
-			['when the canvas is absent', { canvasNull: true }, {}],
-			['when the canvas has no 2D context', { contextNull: true }, {}],
-		])('says nothing %s', (_name, options, overrides) => {
-			const { result, onDrawStart } = setup(options)
-
-			act(() => {
-				result.current.handlePointerDown(pointerEvent(overrides))
-			})
-
-			expect(onDrawStart).not.toHaveBeenCalled()
 		})
 
 		it('reports once for each stroke, not once for each move', () => {

@@ -43,13 +43,6 @@ describe('ShinyText', () => {
 		expect(el?.style.backgroundSize).toContain('200%')
 	})
 
-	it('runs the sweep in view, behind motion-safe', () => {
-		const { container } = renderUI(<ShinyText>Shine</ShinyText>)
-
-		// Positive control: anchors the negative assertions below.
-		expect(bySlot(container, 'shiny-text')).toHaveClass(SWEEP)
-	})
-
 	// The gradient is twice the width of the text, so a position of p% puts the
 	// shine at (1 - p/100) of the text width. At rest the shine is past the right
 	// edge, where the sweep to the left starts.

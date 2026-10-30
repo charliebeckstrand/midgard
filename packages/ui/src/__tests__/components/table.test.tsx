@@ -15,6 +15,15 @@ import { DensityProvider } from '../../providers/density'
 import { LocaleProvider } from '../../providers/locale'
 import { bySlot, renderUI, screen } from '../helpers'
 
+/** The body of one row with one cell, for the cases that need no other content. */
+const body = (
+	<TableBody>
+		<TableRow>
+			<TableCell>cell</TableCell>
+		</TableRow>
+	</TableBody>
+)
+
 describe('Table', () => {
 	it('names the table from a TableCaption, and groups summary rows in a TableFoot', () => {
 		const { container } = renderUI(
@@ -39,20 +48,6 @@ describe('Table', () => {
 
 		expect(bySlot(container, 'table-foot')?.tagName).toBe('TFOOT')
 	})
-
-	it('renders a table element inside the wrapper', () => {
-		const { container } = renderUI(
-			<Table>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
-
-		expect(container.querySelector('table')).toBeInTheDocument()
-	})
 })
 
 describe('Table anatomy', () => {
@@ -69,11 +64,7 @@ describe('Table anatomy', () => {
 						<TableHeader>Header</TableHeader>
 					</TableRow>
 				</TableHead>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
+				{body}
 			</Table>,
 		)
 
@@ -90,11 +81,7 @@ describe('TableHeader', () => {
 						<TableHeader>Name</TableHeader>
 					</TableRow>
 				</TableHead>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
+				{body}
 			</Table>,
 		)
 
@@ -112,15 +99,7 @@ describe('TableHeader', () => {
 
 describe('TableBody', () => {
 	it('stripes through the Table projection, not the tbody', () => {
-		const { container } = renderUI(
-			<Table striped>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
+		const { container } = renderUI(<Table striped>{body}</Table>)
 
 		// The table element carries the stripe selector; the static tbody
 		// stays bare.
@@ -135,15 +114,7 @@ describe('TableBody', () => {
 		['odd', 'odd', 'even'],
 		['even', 'even', 'odd'],
 	] as const)('shades %s rows when striped is "%s"', (_name, striped, other) => {
-		const { container } = renderUI(
-			<Table striped={striped}>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
+		const { container } = renderUI(<Table striped={striped}>{body}</Table>)
 
 		const table = container.querySelector('table')
 
@@ -153,15 +124,7 @@ describe('TableBody', () => {
 	})
 
 	it('washes body rows on hover through the Table projection, not the tbody', () => {
-		const { container } = renderUI(
-			<Table hover>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
+		const { container } = renderUI(<Table hover>{body}</Table>)
 
 		// The hover selector rides the table element; the static tbody stays bare.
 		expect(container.querySelector('table')?.className).toContain(
@@ -172,15 +135,7 @@ describe('TableBody', () => {
 	})
 
 	it('omits the hover projection when hover is unset', () => {
-		const { container } = renderUI(
-			<Table>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
+		const { container } = renderUI(<Table>{body}</Table>)
 
 		expect(container.querySelector('table')?.className).not.toContain('hover:bg-zinc-950/5')
 	})
@@ -202,15 +157,7 @@ describe('TableBody', () => {
 
 describe('Table variants', () => {
 	it('applies bleed offset classes when bleed is set', () => {
-		const { container } = renderUI(
-			<Table bleed>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
+		const { container } = renderUI(<Table bleed>{body}</Table>)
 
 		const wrapper = bySlot(container, 'table')
 
@@ -228,11 +175,7 @@ describe('Table variants', () => {
 					},
 				}}
 			>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
+				{body}
 			</Table>,
 		)
 
@@ -240,39 +183,15 @@ describe('Table variants', () => {
 	})
 
 	it('merges tableProps.className with the variant className', () => {
-		const { container } = renderUI(
-			<Table tableProps={{ className: 'extra-table' }}>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
+		const { container } = renderUI(<Table tableProps={{ className: 'extra-table' }}>{body}</Table>)
 
 		expect(container.querySelector('table')?.className).toContain('extra-table')
 	})
 
 	it('renders outline borders through the Table projection when outline is set', () => {
-		const { container: outlined } = renderUI(
-			<Table outline>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
+		const { container: outlined } = renderUI(<Table outline>{body}</Table>)
 
-		const { container: plain } = renderUI(
-			<Table>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
+		const { container: plain } = renderUI(<Table>{body}</Table>)
 
 		// The projection lives on the table element; cells stay identical.
 		expect(outlined.querySelector('table')?.className).toContain('[&>*>tr>:is(td,th)]:border')
@@ -287,14 +206,6 @@ describe('Table density resolution', () => {
 	// Cell padding is a stepped class: sm px-1, md px-2, lg px-3.
 	// jsdom loads no stylesheet, so these cases check the scope and the classes.
 	// density-scope.test.tsx checks the computed padding in a real browser.
-	const body = (
-		<TableBody>
-			<TableRow>
-				<TableCell>cell</TableCell>
-			</TableRow>
-		</TableBody>
-	)
-
 	it('carries each padding step on the cell', () => {
 		const { container } = renderUI(<Table>{body}</Table>)
 

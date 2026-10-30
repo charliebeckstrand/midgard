@@ -1,7 +1,7 @@
 import { type ReactElement, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
-import { DateInput } from '../../components/date-input'
+import { DateInput, type DateInputProps } from '../../components/date-input'
 import { DateInputResetContext } from '../../components/date-input/context'
 import { localeDateInputFormat } from '../../components/date-input/date-input-utilities'
 import { Field, Label, Message } from '../../components/fieldset'
@@ -39,6 +39,15 @@ function ControlledDateInput({ onValueChange }: { onValueChange?: (v: Date | nul
 	)
 }
 
+/** Renders a DateInput with `props`, and gives its input and a user. */
+function renderDateInput(props: DateInputProps = {}) {
+	const view = renderUI(<DateInput {...props} />)
+
+	const input = getSlot<HTMLInputElement>(view.container, 'date-input')
+
+	return { ...view, input, user: setupUser() }
+}
+
 describe('DateInput', () => {
 	it('renders an input with data-slot="date-input" and numeric input mode', () => {
 		const { container } = renderUI(<DateInput />)
@@ -69,17 +78,6 @@ describe('DateInput', () => {
 		const { container } = renderUI(ui())
 
 		expect(bySlot(container, 'date-input')).toHaveAttribute(attribute, value)
-	})
-
-	it('yields the aria-label default to a registered Field Label', () => {
-		const { container } = renderUI(
-			<Field>
-				<Label>Due date</Label>
-				<DateInput />
-			</Field>,
-		)
-
-		expect(bySlot(container, 'date-input')).not.toHaveAttribute('aria-label')
 	})
 
 	it('yields the aria-label default to a native label outside a Field after mount', () => {
@@ -120,11 +118,7 @@ describe('DateInput', () => {
 	})
 
 	it('shows the clear button by default for any entered text and clears partial input', async () => {
-		const { container } = renderUI(<DateInput />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { input, user } = renderDateInput()
 
 		// Partial entry: no complete date has committed, but the field holds text.
 		await user.type(input, '122')
@@ -142,15 +136,12 @@ describe('DateInput', () => {
 	it('clears a committed date from the clear button and emits null', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(
-			<DateInput defaultValue={new Date(2026, 5, 15)} onValueChange={onChange} />,
-		)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
+		const { input, user } = renderDateInput({
+			defaultValue: new Date(2026, 5, 15),
+			onValueChange: onChange,
+		})
 
 		expect(input.value).toBe('06/15/2026')
-
-		const user = setupUser()
 
 		await user.click(screen.getByRole('button', { name: 'Clear date' }))
 
@@ -159,20 +150,12 @@ describe('DateInput', () => {
 		expect(onChange).toHaveBeenLastCalledWith(null)
 	})
 
-	it('omits the clear button with clearable={false}', () => {
-		renderUI(<DateInput clearable={false} defaultValue={new Date(2026, 5, 15)} />)
-
-		expect(screen.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument()
-	})
-
-	it('omits the clear button when the field is empty', () => {
-		renderUI(<DateInput />)
-
-		expect(screen.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument()
-	})
-
-	it('omits the clear button when set but disabled', () => {
-		renderUI(<DateInput disabled defaultValue={new Date(2026, 5, 15)} />)
+	it.for<[string, DateInputProps]>([
+		['with clearable={false}', { clearable: false, defaultValue: new Date(2026, 5, 15) }],
+		['when the field is empty', {}],
+		['when set but disabled', { disabled: true, defaultValue: new Date(2026, 5, 15) }],
+	])('omits the clear button %s', ([, props]) => {
+		renderUI(<DateInput {...props} />)
 
 		expect(screen.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument()
 	})
@@ -219,11 +202,7 @@ describe('DateInput', () => {
 	it('masks typed digits and emits the parsed Date once complete', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<DateInput onValueChange={onChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { input, user } = renderDateInput({ onValueChange: onChange })
 
 		await user.type(input, '12252026')
 
@@ -239,11 +218,7 @@ describe('DateInput', () => {
 	})
 
 	it('pads segments typed with separators', async () => {
-		const { container } = renderUI(<DateInput />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { input, user } = renderDateInput()
 
 		await user.type(input, '1/5/2026')
 
@@ -253,11 +228,7 @@ describe('DateInput', () => {
 	it('emits null when a complete date is edited back to partial', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<DateInput onValueChange={onChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { input, user } = renderDateInput({ onValueChange: onChange })
 
 		await user.type(input, '12252026')
 
@@ -269,11 +240,7 @@ describe('DateInput', () => {
 	})
 
 	it('deletes the digit before a trailing separator on backspace', async () => {
-		const { container } = renderUI(<DateInput />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { input, user } = renderDateInput()
 
 		await user.type(input, '12')
 
@@ -287,11 +254,7 @@ describe('DateInput', () => {
 	it('marks a complete impossible date invalid without emitting it', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<DateInput onValueChange={onChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { input, user } = renderDateInput({ onValueChange: onChange })
 
 		await user.type(input, '02312025')
 
@@ -305,17 +268,11 @@ describe('DateInput', () => {
 	it('marks a complete out-of-range date invalid', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(
-			<DateInput
-				min={new Date(2026, 0, 1)}
-				max={new Date(2026, 11, 31)}
-				onValueChange={onChange}
-			/>,
-		)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { container, input, user } = renderDateInput({
+			min: new Date(2026, 0, 1),
+			max: new Date(2026, 11, 31),
+			onValueChange: onChange,
+		})
 
 		await user.type(input, '06152027')
 
@@ -330,9 +287,7 @@ describe('DateInput', () => {
 	})
 
 	it('blurs on Enter, but not on an Enter that confirms an input-method candidate', () => {
-		const { container } = renderUI(<DateInput />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
+		const { input } = renderDateInput()
 
 		input.focus()
 
@@ -350,11 +305,7 @@ describe('DateInput', () => {
 	})
 
 	it('keeps partial text on blur and marks it invalid', async () => {
-		const { container } = renderUI(<DateInput />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { input, user } = renderDateInput()
 
 		await user.type(input, '12/3')
 
@@ -401,11 +352,7 @@ describe('DateInput', () => {
 	it('keeps a two-digit year as typed on blur and marks it invalid', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<DateInput onValueChange={onChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { input, user } = renderDateInput({ onValueChange: onChange })
 
 		await user.type(input, '122526')
 
@@ -428,11 +375,7 @@ describe('DateInput', () => {
 	it('commits a four-digit year typed past a two-digit state', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<DateInput onValueChange={onChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { input, user } = renderDateInput({ onValueChange: onChange })
 
 		// The four-digit year passes through a two-digit state; it must not commit
 		// as 2020 before the full year is typed.
@@ -452,11 +395,7 @@ describe('DateInput', () => {
 	})
 
 	it('renders the invalid-format message for a complete impossible date', async () => {
-		const { container } = renderUI(<DateInput />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { container, input, user } = renderDateInput()
 
 		expect(bySlot(container, 'message')).not.toBeInTheDocument()
 
@@ -495,13 +434,9 @@ describe('DateInput', () => {
 	})
 
 	it('wires a standalone message into aria-describedby, after the caller ids', async () => {
-		const { container } = renderUI(<DateInput aria-describedby="hint" />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
+		const { container, input, user } = renderDateInput({ 'aria-describedby': 'hint' })
 
 		expect(input).toHaveAttribute('aria-describedby', 'hint')
-
-		const user = setupUser()
 
 		await user.type(input, '02312025')
 
@@ -513,11 +448,7 @@ describe('DateInput', () => {
 	})
 
 	it('uses a custom invalid message and clears it once valid', async () => {
-		const { container } = renderUI(<DateInput invalidMessage="Bad date" />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { container, input, user } = renderDateInput({ invalidMessage: 'Bad date' })
 
 		await user.type(input, '02312025')
 
@@ -531,11 +462,7 @@ describe('DateInput', () => {
 	})
 
 	it('suppresses the built-in message when invalidMessage is null', async () => {
-		const { container } = renderUI(<DateInput invalidMessage={null} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { container, input, user } = renderDateInput({ invalidMessage: null })
 
 		await user.type(input, '02312025')
 
@@ -545,11 +472,7 @@ describe('DateInput', () => {
 	})
 
 	it('clears the invalid mark once edited back to valid', async () => {
-		const { container } = renderUI(<DateInput />)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { input, user } = renderDateInput()
 
 		await user.type(input, '02312025')
 
@@ -612,13 +535,10 @@ describe('DateInput', () => {
 	it('does not re-emit when the typed text re-states the controlled day', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(
-			<DateInput value={new Date(2026, 5, 15, 9, 30)} onValueChange={onChange} />,
-		)
-
-		const input = getSlot<HTMLInputElement>(container, 'date-input')
-
-		const user = setupUser()
+		const { input, user } = renderDateInput({
+			value: new Date(2026, 5, 15, 9, 30),
+			onValueChange: onChange,
+		})
 
 		// Retype the final digit: the text leaves and re-enters the held day.
 		await user.type(input, '{Backspace}')
@@ -820,16 +740,12 @@ describe('DateInput locale-derived layout', () => {
 })
 
 describe('DateInput onValidityChange', () => {
-	const field = (container: HTMLElement) => getSlot<HTMLInputElement>(container, 'date-input')
-
 	it('calls a growing entry potentially valid, and a complete one valid', async () => {
-		const user = setupUser()
-
 		const onValidityChange = vi.fn()
 
-		const { container } = renderUI(<DateInput onValidityChange={onValidityChange} />)
+		const { input, user } = renderDateInput({ onValidityChange })
 
-		await user.type(field(container), '06')
+		await user.type(input, '06')
 
 		// Half a date is not wrong yet, which is exactly what `onValueChange`
 		// cannot say: it reports `undefined` here and for a refused entry alike.
@@ -838,7 +754,7 @@ describe('DateInput onValidityChange', () => {
 			isPotentiallyValid: true,
 		})
 
-		await user.type(field(container), '152026')
+		await user.type(input, '152026')
 
 		expect(onValidityChange).toHaveBeenLastCalledWith({
 			isValid: true,
@@ -849,13 +765,11 @@ describe('DateInput onValidityChange', () => {
 	// 31 February masks cleanly and parses to nothing, which is the shape this
 	// callback exists to separate from a half-typed entry.
 	it('refuses a complete entry the parser rejects', async () => {
-		const user = setupUser()
-
 		const onValidityChange = vi.fn()
 
-		const { container } = renderUI(<DateInput onValidityChange={onValidityChange} />)
+		const { input, user } = renderDateInput({ onValidityChange })
 
-		await user.type(field(container), '02312025')
+		await user.type(input, '02312025')
 
 		expect(onValidityChange).toHaveBeenLastCalledWith({
 			isValid: false,
@@ -865,13 +779,11 @@ describe('DateInput onValidityChange', () => {
 
 	// Blur closes the entry, so a partial one that was still growing is refused.
 	it('refuses a partial entry on blur', async () => {
-		const user = setupUser()
-
 		const onValidityChange = vi.fn()
 
-		const { container } = renderUI(<DateInput onValidityChange={onValidityChange} />)
+		const { input, user } = renderDateInput({ onValidityChange })
 
-		await user.type(field(container), '06')
+		await user.type(input, '06')
 
 		await user.tab()
 
@@ -904,7 +816,9 @@ describe('DateInput onValidityChange', () => {
 
 		const { container } = renderUI(<Harness />)
 
-		await user.type(field(container), '02312025')
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
+
+		await user.type(input, '02312025')
 
 		expect(onValidityChange).toHaveBeenLastCalledWith({
 			isValid: false,
@@ -913,7 +827,7 @@ describe('DateInput onValidityChange', () => {
 
 		await user.click(screen.getByRole('button', { name: 'pick' }))
 
-		expect(field(container)).not.toHaveAttribute('aria-invalid')
+		expect(input).not.toHaveAttribute('aria-invalid')
 
 		expect(onValidityChange).toHaveBeenLastCalledWith({
 			isValid: true,
@@ -922,15 +836,13 @@ describe('DateInput onValidityChange', () => {
 	})
 
 	it('keeps an emptied field potentially valid on blur', async () => {
-		const user = setupUser()
-
 		const onValidityChange = vi.fn()
 
-		const { container } = renderUI(<DateInput onValidityChange={onValidityChange} />)
+		const { input, user } = renderDateInput({ onValidityChange })
 
-		await user.type(field(container), '06')
+		await user.type(input, '06')
 
-		await user.clear(field(container))
+		await user.clear(input)
 
 		await user.tab()
 

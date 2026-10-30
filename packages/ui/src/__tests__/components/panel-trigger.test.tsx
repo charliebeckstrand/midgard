@@ -246,9 +246,7 @@ describe.each(FAMILIES)('$name trigger', ({ Root, Panel, Trigger, Close }) => {
 
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 
-		expect(
-			screen.getByTestId('state', { suppressHydrationWarning: true } as never),
-		).toHaveTextContent('true')
+		expect(screen.getByTestId('state')).toHaveTextContent('true')
 
 		await user.keyboard('{Escape}')
 

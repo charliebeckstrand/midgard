@@ -1,10 +1,8 @@
 import { Search } from 'lucide-react'
 import { createRef } from 'react'
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it, type Mock, vi } from 'vitest'
 import { Button, ButtonSkeleton } from '../../components/button'
 import { ControlLockContext } from '../../components/control/context'
-import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { HeadlessProvider } from '../../providers/headless'
@@ -12,6 +10,7 @@ import { LocaleProvider } from '../../providers/locale'
 import { k } from '../../recipes/kata/button'
 import { bySlot, fireEvent, getSlot, present, readDensityStep, renderUI, screen } from '../helpers'
 import { findSteps } from '../helpers/class-stops'
+import { expectInlineSkeleton } from '../helpers/inline-skeleton'
 
 describe('Button', () => {
 	it('renders a button element with data-slot', () => {
@@ -84,7 +83,7 @@ describe('Button', () => {
 	 * A loading button or link is out of the tab order, and it cancels a click
 	 * before the `onClick` of the consumer runs.
 	 */
-	function expectGated(element: HTMLElement, onClick: Mock) {
+	const expectGated = vi.defineHelper((element: HTMLElement, onClick: Mock) => {
 		expect(element).toHaveAttribute('aria-disabled', 'true')
 
 		expect(element).toHaveAttribute('aria-busy', 'true')
@@ -94,7 +93,7 @@ describe('Button', () => {
 		expect(fireEvent.click(element)).toBe(false)
 
 		expect(onClick).not.toHaveBeenCalled()
-	}
+	})
 
 	it('gates a loading button: enabled for its focus, no onClick, no form submission', () => {
 		const onClick = vi.fn()
@@ -299,19 +298,7 @@ describe('Button', () => {
 
 	// A button can sit in a line of text, so its skeleton has to be able to as well.
 	it('stands in for a button inside a paragraph, as server markup and inline', () => {
-		const holder = document.createElement('div')
-
-		holder.innerHTML = renderToString(
-			<p>
-				Your session ended. <ButtonSkeleton size="sm" />
-			</p>,
-		)
-
-		const skeleton = getSlot(holder, 'placeholder')
-
-		expect(skeleton.tagName).toBe('SPAN')
-
-		expect(skeleton.parentElement?.tagName).toBe('P')
+		expectInlineSkeleton(<ButtonSkeleton size="sm" />)
 	})
 
 	// The skeleton takes the stepped radius of a button. A fixed radius matches the button only at
@@ -329,26 +316,6 @@ describe('Button', () => {
 	describe('size resolution', () => {
 		// jsdom loads no stylesheet, so each test reads the step that the stepped
 		// classes give the button from its density scopes (`readDensityStep`).
-		it('inherits size from <Group> when no explicit size prop is set', () => {
-			const { container } = renderUI(
-				<Group size="lg">
-					<Button>Inherit</Button>
-				</Group>,
-			)
-
-			expect(readDensityStep(present(bySlot(container, 'button'), 'button'))).toBe('lg')
-		})
-
-		it('explicit size prop overrides <Group> inheritance', () => {
-			const { container } = renderUI(
-				<Group size="lg">
-					<Button size="sm">Override</Button>
-				</Group>,
-			)
-
-			expect(readDensityStep(present(bySlot(container, 'button'), 'button'))).toBe('sm')
-		})
-
 		// A control slot (`<Input>` prefix / suffix, `<SelectTrigger>` slots) is a
 		// density scope one step below its host. A button in the slot reads that
 		// step, whatever scope encloses the control.
@@ -397,37 +364,34 @@ describe('Button', () => {
 		// A labeled button carries `data-has-label`, which the recipe reads to
 		// override py so the button matches same-size Input/Select height. An
 		// icon-only button omits the attribute and keeps its square padding.
-		it('marks a text-only button as labeled', () => {
-			const { container } = renderUI(<Button>Save</Button>)
-
-			expect(bySlot(container, 'button')).toHaveAttribute('data-has-label')
-		})
-
-		it('marks a button with an icon prefix and text as labeled', () => {
-			const { container } = renderUI(<Button prefix={<Icon icon={<Search />} />}>Search</Button>)
-
-			expect(bySlot(container, 'button')).toHaveAttribute('data-has-label')
-		})
-
-		it('does not mark an icon-only button as labeled', () => {
-			const { container } = renderUI(
-				<Button>
+		it.for([
+			['marks a text-only button as labeled', <Button key="text">Save</Button>, true],
+			[
+				'marks a button with an icon prefix and text as labeled',
+				<Button key="prefix" prefix={<Icon icon={<Search />} />}>
+					Search
+				</Button>,
+				true,
+			],
+			[
+				'does not mark an icon-only button as labeled',
+				<Button key="icon">
 					<Icon icon={<Search />} />
 				</Button>,
-			)
-
-			expect(bySlot(container, 'button')).not.toHaveAttribute('data-has-label')
-		})
-
-		it('does not count a visually hidden name as a label', () => {
-			const { container } = renderUI(
-				<Button>
+				false,
+			],
+			[
+				'does not count a visually hidden name as a label',
+				<Button key="hidden">
 					<Icon icon={<Search />} />
 					<span className="sr-only">Search</span>
 				</Button>,
-			)
+				false,
+			],
+		] as const)('%s', ([, button, labeled]) => {
+			const { container } = renderUI(button)
 
-			expect(bySlot(container, 'button')).not.toHaveAttribute('data-has-label')
+			expect(getSlot(container, 'button').hasAttribute('data-has-label')).toBe(labeled)
 		})
 	})
 })

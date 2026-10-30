@@ -37,25 +37,18 @@ describe('PasswordStrength', () => {
 		expect(passed).toHaveLength(3)
 	})
 
-	it('activates meter segments based on strength', () => {
-		const { container } = renderUI(<PasswordStrength value="Abcdefgh1!" />)
+	it.for([
+		// All four default rules pass.
+		{ name: 'activates meter segments based on strength', value: 'Abcdefgh1!', count: 4 },
+		{ name: 'shows no active segments when value is empty', value: '', count: 0 },
+	])('$name', ({ value, count }) => {
+		const { container } = renderUI(<PasswordStrength value={value} />)
 
 		const active = allBySlot(container, 'password-strength-segment').filter((el) =>
 			el.hasAttribute('data-active'),
 		)
 
-		// all 4 default rules pass
-		expect(active).toHaveLength(4)
-	})
-
-	it('shows no active segments when value is empty', () => {
-		const { container } = renderUI(<PasswordStrength value="" />)
-
-		const active = allBySlot(container, 'password-strength-segment').filter((el) =>
-			el.hasAttribute('data-active'),
-		)
-
-		expect(active).toHaveLength(0)
+		expect(active).toHaveLength(count)
 	})
 
 	it('hides the rules list when showRules is false', () => {

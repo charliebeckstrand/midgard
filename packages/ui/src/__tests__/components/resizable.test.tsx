@@ -1,17 +1,36 @@
+import type { ComponentProps } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
 import { LocaleProvider } from '../../providers/locale'
 import { allBySlot, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
+type PanelProps = Omit<ComponentProps<typeof ResizablePanel>, 'children'>
+
+/**
+ * Renders a group with panel A, a handle, and panel B. The props in `group`,
+ * `a`, and `b` go to the group and to each panel.
+ */
+function renderPair({
+	group,
+	a,
+	b,
+}: {
+	group?: Omit<ComponentProps<typeof ResizableGroup>, 'children'>
+	a?: PanelProps
+	b?: PanelProps
+} = {}) {
+	return renderUI(
+		<ResizableGroup {...group}>
+			<ResizablePanel {...a}>A</ResizablePanel>
+			<ResizableHandle />
+			<ResizablePanel {...b}>B</ResizablePanel>
+		</ResizableGroup>,
+	)
+}
+
 describe('Resizable', () => {
 	it('handle is a separator', () => {
-		const { container } = renderUI(
-			<ResizableGroup>
-				<ResizablePanel>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel>B</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container } = renderPair()
 
 		expect(screen.getByRole('separator')).toBe(bySlot(container, 'resizable-handle'))
 	})
@@ -51,13 +70,7 @@ describe('Resizable', () => {
 	})
 
 	it('reports the separator orientation perpendicular to the group axis', () => {
-		const { container } = renderUI(
-			<ResizableGroup orientation="horizontal">
-				<ResizablePanel>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel>B</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container } = renderPair({ group: { orientation: 'horizontal' } })
 
 		// Side-by-side panels are separated by a vertical bar; a separator's
 		// orientation is its own, not the group's flex axis.
@@ -65,13 +78,7 @@ describe('Resizable', () => {
 	})
 
 	it('accepts a custom handle label and defaults to Resize', () => {
-		const { container, rerender } = renderUI(
-			<ResizableGroup>
-				<ResizablePanel>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel>B</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container, rerender } = renderPair()
 
 		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('aria-label', 'Resize')
 
@@ -87,37 +94,19 @@ describe('Resizable', () => {
 	})
 
 	it('handle is focusable', () => {
-		const { container } = renderUI(
-			<ResizableGroup>
-				<ResizablePanel>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel>B</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container } = renderPair()
 
 		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('tabindex', '0')
 	})
 
 	it('sets orientation data attribute', () => {
-		const { container } = renderUI(
-			<ResizableGroup orientation="vertical">
-				<ResizablePanel>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel>B</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container } = renderPair({ group: { orientation: 'vertical' } })
 
 		expect(bySlot(container, 'resizable-group')).toHaveAttribute('data-orientation', 'vertical')
 	})
 
 	it('panels have flex style based on default sizes', () => {
-		const { container } = renderUI(
-			<ResizableGroup>
-				<ResizablePanel defaultSize={70}>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={30}>B</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container } = renderPair({ a: { defaultSize: 70 }, b: { defaultSize: 30 } })
 
 		const panels = allBySlot(container, 'resizable-panel')
 
@@ -127,27 +116,16 @@ describe('Resizable', () => {
 	})
 
 	it('handle has aria-valuenow reflecting panel size', () => {
-		const { container } = renderUI(
-			<ResizableGroup>
-				<ResizablePanel defaultSize={70}>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={30}>B</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container } = renderPair({ a: { defaultSize: 70 }, b: { defaultSize: 30 } })
 
 		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('aria-valuenow', '70')
 	})
 
 	it('handle has aria-valuemin and aria-valuemax', () => {
-		const { container } = renderUI(
-			<ResizableGroup>
-				<ResizablePanel defaultSize={50} minSize={20} maxSize={80}>
-					A
-				</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50}>B</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container } = renderPair({
+			a: { defaultSize: 50, minSize: 20, maxSize: 80 },
+			b: { defaultSize: 50 },
+		})
 
 		const handle = bySlot(container, 'resizable-handle')
 
@@ -162,15 +140,10 @@ describe('Resizable: handle range', () => {
 	// (B08-C07). Before, it was the left panel's own bounds, so a constrained
 	// neighbor made the reported ends unreachable.
 	it('takes the maximum from the right minSize', () => {
-		const { container } = renderUI(
-			<ResizableGroup>
-				<ResizablePanel defaultSize={50}>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50} minSize={20}>
-					B
-				</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container } = renderPair({
+			a: { defaultSize: 50 },
+			b: { defaultSize: 50, minSize: 20 },
+		})
 
 		const handle = bySlot(container, 'resizable-handle')
 
@@ -180,15 +153,10 @@ describe('Resizable: handle range', () => {
 	})
 
 	it('takes the minimum from the right maxSize', () => {
-		const { container } = renderUI(
-			<ResizableGroup>
-				<ResizablePanel defaultSize={50}>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50} maxSize={55}>
-					B
-				</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container } = renderPair({
+			a: { defaultSize: 50 },
+			b: { defaultSize: 50, maxSize: 55 },
+		})
 
 		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('aria-valuemin', '45')
 	})
@@ -246,54 +214,32 @@ describe('Resizable: keyboard', () => {
 	])('%s', (_name, { orientation, minSize, maxSize }, key, expected) => {
 		const onSizesChange = vi.fn()
 
-		const { container } = renderUI(
-			<ResizableGroup orientation={orientation} onSizesChange={onSizesChange}>
-				<ResizablePanel defaultSize={50} minSize={minSize} maxSize={maxSize}>
-					A
-				</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50}>B</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container } = renderPair({
+			group: { orientation, onSizesChange },
+			a: { defaultSize: 50, minSize, maxSize },
+			b: { defaultSize: 50 },
+		})
 
 		fireEvent.keyDown(getSlot(container, 'resizable-handle'), key)
 
 		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual(expected)
 	})
 
-	it('ignores arrow keys that do not match the orientation', () => {
-		const onSizesChange = vi.fn()
-
-		const { container } = renderUI(
-			<ResizableGroup onSizesChange={onSizesChange}>
-				<ResizablePanel defaultSize={50}>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50}>B</ResizablePanel>
-			</ResizableGroup>,
-		)
-
-		const handle = getSlot(container, 'resizable-handle')
-
-		fireEvent.keyDown(handle, { key: 'ArrowUp' })
-
-		expect(onSizesChange).not.toHaveBeenCalled()
-	})
-
-	// A chord such as Alt+ArrowLeft (history back) is for the browser.
+	// A chord such as Alt+ArrowLeft (history back) is for the browser. An arrow
+	// key off the axis of the group also stays with the browser.
 	it.each([
+		['ArrowUp in a horizontal group', 'ArrowUp', {}],
 		['Alt+ArrowLeft', 'ArrowLeft', { altKey: true }],
 		['Ctrl+Home', 'Home', { ctrlKey: true }],
 		['Cmd+ArrowRight', 'ArrowRight', { metaKey: true }],
 	])('ignores %s and keeps its default', (_name, key, modifier) => {
 		const onSizesChange = vi.fn()
 
-		const { container } = renderUI(
-			<ResizableGroup onSizesChange={onSizesChange}>
-				<ResizablePanel defaultSize={50}>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50}>B</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container } = renderPair({
+			group: { onSizesChange },
+			a: { defaultSize: 50 },
+			b: { defaultSize: 50 },
+		})
 
 		const proceeded = fireEvent.keyDown(getSlot(container, 'resizable-handle'), {
 			key,
@@ -308,13 +254,7 @@ describe('Resizable: keyboard', () => {
 
 describe('Resizable: drag', () => {
 	it('sets data-dragging on the handle during pointer drag', () => {
-		const { container } = renderUI(
-			<ResizableGroup>
-				<ResizablePanel defaultSize={50}>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50}>B</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container } = renderPair({ a: { defaultSize: 50 }, b: { defaultSize: 50 } })
 
 		const group = getSlot(container, 'resizable-group')
 
@@ -338,13 +278,11 @@ describe('Resizable: drag', () => {
 	])('ignores %s', (_name, init) => {
 		const onSizesChange = vi.fn()
 
-		const { container } = renderUI(
-			<ResizableGroup onSizesChange={onSizesChange}>
-				<ResizablePanel defaultSize={50}>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50}>B</ResizablePanel>
-			</ResizableGroup>,
-		)
+		const { container } = renderPair({
+			group: { onSizesChange },
+			a: { defaultSize: 50 },
+			b: { defaultSize: 50 },
+		})
 
 		// The box the case above gives the group. With no box, every press fails
 		// the size guard, and the button filter decides nothing.

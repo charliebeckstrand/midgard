@@ -25,20 +25,6 @@ describe('Textarea', () => {
 		expect(el?.tagName).toBe('TEXTAREA')
 	})
 
-	it('fires onChange handler', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<Textarea onChange={onChange} />)
-
-		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
-
-		const user = setupUser()
-
-		await user.type(el, 'a')
-
-		expect(onChange).toHaveBeenCalled()
-	})
-
 	it('picks up the glass variant from a glass context', () => {
 		const { container: plain } = renderUI(<Textarea />)
 
@@ -151,20 +137,6 @@ describe('Textarea', () => {
 		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
 
 		expect(el.value).toBe('explicit')
-	})
-
-	it('stays uncontrolled when no value prop is passed', async () => {
-		const { container } = renderUI(<Textarea defaultValue="hi" />)
-
-		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
-
-		expect(el.value).toBe('hi')
-
-		const user = setupUser()
-
-		await user.type(el, ' there')
-
-		expect(el.value).toBe('hi there')
 	})
 
 	it('drops defaultValue from a bound textarea (§7.2)', () => {

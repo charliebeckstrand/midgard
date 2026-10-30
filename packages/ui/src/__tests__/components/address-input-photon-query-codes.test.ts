@@ -3,18 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { splitPostcode } from '../../components/address-input/address-input-photon-query'
 
 describe('splitPostcode', () => {
-	it('reads an unspaced UK code as a candidate', () => {
-		expect(splitPostcode('10 Downing St SW1A2AA')).toEqual([
-			{ rest: '10 Downing St', qualifier: 'SW1A2AA' },
-		])
-	})
-
-	it('reads an unspaced UK code in lowercase as a candidate', () => {
-		expect(splitPostcode('sw1a2aa')).toEqual([{ rest: '', qualifier: 'SW1A2AA' }])
-	})
-
-	it('reads an unspaced Canadian code as a candidate', () => {
-		expect(splitPostcode('Toronto M5V3L9')).toEqual([{ rest: 'Toronto', qualifier: 'M5V3L9' }])
+	it.for([
+		['an unspaced UK code', '10 Downing St SW1A2AA', '10 Downing St', 'SW1A2AA'],
+		['an unspaced UK code in lowercase', 'sw1a2aa', '', 'SW1A2AA'],
+		['an unspaced Canadian code', 'Toronto M5V3L9', 'Toronto', 'M5V3L9'],
+	] as const)('reads %s as a candidate', ([, query, rest, qualifier]) => {
+		expect(splitPostcode(query)).toEqual([{ rest, qualifier }])
 	})
 
 	it('reads a spaced ZIP+4 as its first five digits', () => {

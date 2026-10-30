@@ -21,12 +21,10 @@ import { it, onFakeClock } from '../helpers/fake-clock'
  * The hover loupe's settled parts: what the boolean-or-object prop resolves to, and where the
  * lens puts its copy of the page.
  *
- * The open state itself is deliberately not asserted here. `@floating-ui/react` is mocked away
- * in this project (`__tests__/mocks/floating-ui`), and its `useHover` contributes no reference
- * props, so nothing in jsdom can dwell, open, or track. The dwell and the tracking are
- * floating-ui's own behavior rather than this component's; what belongs to the component is
- * the arithmetic below, which is why it was extracted to a pure seam the way
- * `toFractionRect` was.
+ * Nothing in jsdom can dwell, open, or track: `@floating-ui/react` is mocked away in this
+ * project (`__tests__/mocks/floating-ui`), and its `useHover` gives no reference props. The
+ * dwell and the tracking are the behavior of floating-ui. The cases assert the state that the
+ * hook holds, and the arithmetic below, which a pure seam holds as `toFractionRect` does.
  */
 
 describe('resolveMagnifierChoice', () => {
@@ -114,20 +112,26 @@ describe('lensOffset', () => {
 	})
 })
 
+// The lens needs a measured frame to paint, and jsdom lays nothing out. Thus a rendered
+// query finds no lens in each case. These cases read the state of the hook, which the lens
+// paints from.
 describe('PdfViewer without a magnifier', () => {
 	it('renders no lens, and asks for none', () => {
-		render(<PdfViewer pages={[{ src: '/page-1.png', width: 850, height: 1100 }]} />)
+		const { result } = renderHook(() => usePdfViewerMagnifier(null))
 
-		// By `data-slot`, which is how the lens is actually addressed: a `data-testid` query
-		// would match nothing whether or not it rendered, and pass either way.
-		expect(document.querySelector('[data-slot="pdf-viewer-magnifier"]')).toBeNull()
+		expect(result.current.open).toBe(false)
+		expect(result.current.point).toBeNull()
+		expect(result.current.referenceProps).toEqual({})
 	})
 
 	/** Enabled but never hovered is still nothing painted. */
 	it('renders no lens before the pointer has rested on the page', () => {
-		render(<PdfViewer pages={[{ src: '/page-1.png', width: 850, height: 1100 }]} magnifier />)
+		const { result } = renderHook(() =>
+			usePdfViewerMagnifier({ zoom: 2.5, size: 'md', delay: 300 }),
+		)
 
-		expect(document.querySelector('[data-slot="pdf-viewer-magnifier"]')).toBeNull()
+		expect(result.current.open).toBe(false)
+		expect(result.current.point).toBeNull()
 	})
 })
 
@@ -415,6 +419,20 @@ describe('usePdfViewerMagnifier over a pan', () => {
 		return attach(frame)
 	}
 
+	/** Renders the hook, and gives the handlers that a pan case drives. */
+	function setup() {
+		const { result } = renderHook(() => usePdfViewerMagnifier(settings))
+
+		const { onPointerMove, onPointerLeave } = result.current.referenceProps
+
+		return {
+			result,
+			move: onPointerMove as (event: ReactPointerEvent<HTMLElement>) => void,
+			leave: onPointerLeave as (event: ReactPointerEvent<HTMLElement>) => void,
+			scroll: () => document.dispatchEvent(new Event('scroll')),
+		}
+	}
+
 	function pointerOn(frame: HTMLElement, clientX: number, clientY: number) {
 		return {
 			pointerType: 'mouse',
@@ -425,13 +443,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 	}
 
 	it('brings the lens back at the pointer once the page comes to rest', async ({ clock }) => {
-		const { result } = renderHook(() => usePdfViewerMagnifier(settings))
-
-		const move = result.current.referenceProps.onPointerMove as (
-			event: ReactPointerEvent<HTMLElement>,
-		) => void
-
-		const scroll = () => document.dispatchEvent(new Event('scroll'))
+		const { result, move, scroll } = setup()
 
 		const frame = frameAt(() => 0)
 
@@ -473,13 +485,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 
 		const frame = frameAt(() => top)
 
-		const { result } = renderHook(() => usePdfViewerMagnifier(settings))
-
-		const move = result.current.referenceProps.onPointerMove as (
-			event: ReactPointerEvent<HTMLElement>,
-		) => void
-
-		const scroll = () => document.dispatchEvent(new Event('scroll'))
+		const { result, move, scroll } = setup()
 
 		act(() => {
 			move(pointerOn(frame, 120, 300))
@@ -504,17 +510,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 	 * has nowhere to put a lens, and must not guess at one.
 	 */
 	it('brings nothing back when the pointer has left the page', async ({ clock }) => {
-		const { result } = renderHook(() => usePdfViewerMagnifier(settings))
-
-		const move = result.current.referenceProps.onPointerMove as (
-			event: ReactPointerEvent<HTMLElement>,
-		) => void
-
-		const leave = result.current.referenceProps.onPointerLeave as (
-			event: ReactPointerEvent<HTMLElement>,
-		) => void
-
-		const scroll = () => document.dispatchEvent(new Event('scroll'))
+		const { result, move, leave, scroll } = setup()
 
 		const frame = frameAt(() => 0)
 
@@ -536,11 +532,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 	 * flinching at nothing, which is what a watch on the whole document has to answer for.
 	 */
 	it('stands still for a scroller that does not hold the page', async ({ clock }) => {
-		const { result } = renderHook(() => usePdfViewerMagnifier(settings))
-
-		const move = result.current.referenceProps.onPointerMove as (
-			event: ReactPointerEvent<HTMLElement>,
-		) => void
+		const { result, move } = setup()
 
 		const elsewhere = attach(document.createElement('div'))
 

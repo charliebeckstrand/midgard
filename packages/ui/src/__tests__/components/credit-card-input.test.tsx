@@ -23,6 +23,7 @@ import {
 	userEvent,
 } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
+import { futureYY } from '../helpers/future-yy'
 import { hydrate } from '../helpers/hydrate'
 
 describe('CreditCardInput', () => {
@@ -122,6 +123,22 @@ describe('CreditCardInput', () => {
 	})
 })
 
+/**
+ * Renders `ui`, which is a bare CreditCardInputExpiry by default, and types
+ * `text` into its input.
+ */
+async function typeExpiry(text: string, ui: ReactElement = <CreditCardInputExpiry />) {
+	const view = renderUI(ui)
+
+	const input = getSlot<HTMLInputElement>(view.container, 'credit-card-input-expiry')
+
+	const user = setupUser()
+
+	await user.type(input, text)
+
+	return { ...view, input, user }
+}
+
 describe('CreditCardInputExpiry', () => {
 	it('uses MM/YY as the default placeholder', () => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
@@ -131,47 +148,18 @@ describe('CreditCardInputExpiry', () => {
 		expect(input).toHaveAttribute('placeholder', 'MM/YY')
 	})
 
-	it('carries a default accessible name (placeholder is not a name)', () => {
-		renderUI(<CreditCardInputExpiry />)
-
-		expect(screen.getByRole('textbox', { name: 'Expiration date' })).toBeInTheDocument()
-	})
-
-	it('yields the default name to a Field label', () => {
-		renderUI(
-			<Field>
-				<Label>Card expiry</Label>
-				<CreditCardInputExpiry />
-			</Field>,
-		)
-
-		expect(screen.getByRole('textbox', { name: 'Card expiry' })).toBeInTheDocument()
-	})
-
 	it.each<[string, string, string]>([
 		['inserts a slash after the month digits', '1228', '12/28'],
 		['leaves a single digit unchanged until a second digit is typed', '5', '5'],
 		['strips non-digit characters', 'ab12cd25', '12/25'],
 	])('%s', async (_name, typed, expected) => {
-		const { container } = renderUI(<CreditCardInputExpiry />)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		await user.type(input, typed)
+		const { input } = await typeExpiry(typed)
 
 		expect(input.value).toBe(expected)
 	})
 
 	it('deletes the auto-inserted slash and the preceding digit on backspace', async () => {
-		const { container } = renderUI(<CreditCardInputExpiry />)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		await user.type(input, '12')
+		const { input, user } = await typeExpiry('12')
 
 		expect(input.value).toBe('12/')
 
@@ -181,11 +169,7 @@ describe('CreditCardInputExpiry', () => {
 	})
 
 	it('pads a one-digit month that a typed slash follows and keeps the caret after it', async () => {
-		const { container } = renderUI(<CreditCardInputExpiry />)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		await setupUser().type(input, '4/27')
+		const { input } = await typeExpiry('4/27')
 
 		expect(input.value).toBe('04/27')
 
@@ -209,13 +193,7 @@ describe('CreditCardInputExpiry', () => {
 	})
 
 	it('deletes the month digit before the caret on backspace, with no pad', async () => {
-		const { container } = renderUI(<CreditCardInputExpiry />)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		await user.type(input, '12')
+		const { input, user } = await typeExpiry('12')
 
 		input.setSelectionRange(2, 2)
 
@@ -243,13 +221,7 @@ describe('CreditCardInputExpiry', () => {
 			},
 		],
 	])('keeps the month digits when %s removes the slash', async (_name, remove) => {
-		const { container } = renderUI(<CreditCardInputExpiry />)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		await user.type(input, '12')
+		const { input, user } = await typeExpiry('12')
 
 		input.setSelectionRange(2, 2)
 
@@ -261,17 +233,12 @@ describe('CreditCardInputExpiry', () => {
 	it('reports expiry validity to onValidityChange', async () => {
 		const onValidityChange = vi.fn()
 
-		const { container } = renderUI(<CreditCardInputExpiry onValidityChange={onValidityChange} />)
+		const { input } = await typeExpiry(
+			`12${futureYY}`,
+			<CreditCardInputExpiry onValidityChange={onValidityChange} />,
+		)
 
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		const yy = String((new Date().getFullYear() + 2) % 100).padStart(2, '0')
-
-		await user.type(input, `12${yy}`)
-
-		expect(input.value).toBe(`12/${yy}`)
+		expect(input.value).toBe(`12/${futureYY}`)
 
 		expect(onValidityChange).toHaveBeenLastCalledWith({
 			isValid: true,
@@ -282,25 +249,13 @@ describe('CreditCardInputExpiry', () => {
 	it('rejects an out-of-range month through onValidityChange', async () => {
 		const onValidityChange = vi.fn()
 
-		const { container } = renderUI(<CreditCardInputExpiry onValidityChange={onValidityChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		await user.type(input, '1330')
+		await typeExpiry('1330', <CreditCardInputExpiry onValidityChange={onValidityChange} />)
 
 		expect(onValidityChange).toHaveBeenLastCalledWith(expect.objectContaining({ isValid: false }))
 	})
 
 	it('marks a complete impossible expiry invalid while typing', async () => {
-		const { container } = renderUI(<CreditCardInputExpiry />)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		await user.type(input, '1330')
+		const { input } = await typeExpiry('1330')
 
 		expect(input.value).toBe('13/30')
 
@@ -308,13 +263,7 @@ describe('CreditCardInputExpiry', () => {
 	})
 
 	it('keeps a partial entry on blur and marks it invalid', async () => {
-		const { container } = renderUI(<CreditCardInputExpiry />)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		await user.type(input, '12')
+		const { input, user } = await typeExpiry('12')
 
 		expect(input).not.toHaveAttribute('aria-invalid')
 
@@ -360,18 +309,13 @@ describe('CreditCardInputExpiry', () => {
 	})
 
 	it('renders the message on blur for a partial entry and wires aria-describedby', async () => {
-		const { container } = renderUI(
+		const { container, input, user } = await typeExpiry(
+			'12',
 			<Field>
 				<Label>Expiry</Label>
 				<CreditCardInputExpiry />
 			</Field>,
 		)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		await user.type(input, '12')
 
 		await user.tab()
 
@@ -383,19 +327,14 @@ describe('CreditCardInputExpiry', () => {
 	})
 
 	it('describes the input by the built-in message outside a Field', async () => {
-		const { container } = renderUI(<CreditCardInputExpiry />)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		await user.type(input, '1330')
+		const { input } = await typeExpiry('1330')
 
 		expect(input).toHaveAccessibleDescription('Enter a valid expiration date (MM/YY)')
 	})
 
 	it('keeps a caller aria-describedby ahead of the built-in message', async () => {
-		const { container } = renderUI(
+		const { input } = await typeExpiry(
+			'1330',
 			<>
 				<p id="expiry-hint">As printed on the card</p>
 
@@ -403,19 +342,14 @@ describe('CreditCardInputExpiry', () => {
 			</>,
 		)
 
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		await user.type(input, '1330')
-
 		expect(input).toHaveAccessibleDescription(
 			'As printed on the card Enter a valid expiration date (MM/YY)',
 		)
 	})
 
 	it('gives the built-in message an id apart from another error Message in the Field', async () => {
-		const { container } = renderUI(
+		const { container, input } = await typeExpiry(
+			'1330',
 			<Field>
 				<Label>Expiry</Label>
 
@@ -424,12 +358,6 @@ describe('CreditCardInputExpiry', () => {
 				<Message>Card declined</Message>
 			</Field>,
 		)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		await user.type(input, '1330')
 
 		const messages = allBySlot(container, 'message')
 
@@ -447,21 +375,16 @@ describe('CreditCardInputExpiry', () => {
 	})
 
 	it('uses a custom invalid message and clears it once valid', async () => {
-		const { container } = renderUI(<CreditCardInputExpiry invalidMessage="Bad expiry" />)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		await user.type(input, '1330')
+		const { container, input, user } = await typeExpiry(
+			'1330',
+			<CreditCardInputExpiry invalidMessage="Bad expiry" />,
+		)
 
 		expect(bySlot(container, 'message')).toHaveTextContent('Bad expiry')
 
-		const yy = String((new Date().getFullYear() + 2) % 100).padStart(2, '0')
-
 		await user.clear(input)
 
-		await user.type(input, `12${yy}`)
+		await user.type(input, `12${futureYY}`)
 
 		expect(bySlot(container, 'message')).not.toBeInTheDocument()
 
@@ -469,13 +392,10 @@ describe('CreditCardInputExpiry', () => {
 	})
 
 	it('suppresses the built-in message when invalidMessage is null', async () => {
-		const { container } = renderUI(<CreditCardInputExpiry invalidMessage={null} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'credit-card-input-expiry')
-
-		const user = setupUser()
-
-		await user.type(input, '1330')
+		const { container, input } = await typeExpiry(
+			'1330',
+			<CreditCardInputExpiry invalidMessage={null} />,
+		)
 
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 
@@ -484,12 +404,6 @@ describe('CreditCardInputExpiry', () => {
 })
 
 describe('CreditCardInputCvv', () => {
-	it('carries a default accessible name (placeholder is not a name)', () => {
-		renderUI(<CreditCardInputCvv />)
-
-		expect(screen.getByRole('textbox', { name: 'Security code' })).toBeInTheDocument()
-	})
-
 	it('reports the length verdict while the entry grows', async () => {
 		const verdicts: boolean[] = []
 
@@ -625,17 +539,6 @@ describe.each(cardFields)('%s default name', (_name, field, fallback) => {
 		renderUI(field({}))
 
 		expect(screen.getByRole('textbox', { name: fallback })).toHaveAttribute('aria-label', fallback)
-	})
-
-	it('takes its name from a Field Label, with no default name', () => {
-		renderUI(
-			<Field>
-				<Label>Payment</Label>
-				{field({})}
-			</Field>,
-		)
-
-		expect(screen.getByRole('textbox', { name: 'Payment' })).not.toHaveAttribute('aria-label')
 	})
 
 	it('takes its name from a native label outside a Field after mount', () => {

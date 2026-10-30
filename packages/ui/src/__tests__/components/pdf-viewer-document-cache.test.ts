@@ -125,6 +125,21 @@ async function served(src: string, count: number) {
 	return pages
 }
 
+/** Rasterizes `src` to one page and settles, leaving it resident and unheld. */
+async function resident(src: string) {
+	const load = loader()
+
+	ensureDocumentLoad(src, load.run)
+
+	load.documentUrl(`blob:doc-${src}`)
+
+	load.page(1)
+
+	load.finish()
+
+	await flush()
+}
+
 /** One rasterized page, with a blob URL distinct enough to assert revocation against. */
 function page(id: number): PdfViewerPage {
 	return {
@@ -206,15 +221,7 @@ describe('pdf viewer document cache', () => {
 	 * parking and reopening a panel does: the viewer unmounts and comes back on the same `src`.
 	 */
 	it('runs nothing for a document already rasterized', async () => {
-		const first = loader()
-
-		ensureDocumentLoad('/a.pdf', first.run)
-
-		first.page(1)
-
-		first.finish()
-
-		await flush()
+		await resident('/a.pdf')
 
 		const second = loader()
 
@@ -244,15 +251,7 @@ describe('pdf viewer document cache', () => {
 	})
 
 	it('keeps the pages identity stable across reads, so a remount is not a document swap', async () => {
-		const load = loader()
-
-		ensureDocumentLoad('/a.pdf', load.run)
-
-		load.page(1)
-
-		load.finish()
-
-		await flush()
+		await resident('/a.pdf')
 
 		// `usePdfViewerPageRotation` keys per-page rotations on this identity and `usePdfViewer`
 		// memoizes the context value against it, so a fresh copy per read would reset state that
@@ -409,21 +408,6 @@ describe('pdf viewer document cache · a failed load with holders', () => {
 })
 
 describe('pdf viewer document cache · bound', () => {
-	/** Rasterizes `src` to one page and settles, leaving it resident and unheld. */
-	async function resident(src: string) {
-		const load = loader()
-
-		ensureDocumentLoad(src, load.run)
-
-		load.documentUrl(`blob:doc-${src}`)
-
-		load.page(1)
-
-		load.finish()
-
-		await flush()
-	}
-
 	it('evicts the least recently used document past the cap, revoking its blob URLs', async () => {
 		for (const src of ['/1.pdf', '/2.pdf', '/3.pdf', '/4.pdf']) await resident(src)
 
@@ -562,29 +546,11 @@ describe('pdf viewer document cache · open document', () => {
 
 		await flush()
 
-		for (const src of ['/1.pdf', '/2.pdf', '/3.pdf']) {
-			const next = loader()
-
-			ensureDocumentLoad(src, next.run)
-
-			next.page(1)
-
-			next.finish()
-
-			await flush()
-		}
+		for (const src of ['/1.pdf', '/2.pdf', '/3.pdf']) await resident(src)
 
 		expect(release).not.toHaveBeenCalled()
 
-		const last = loader()
-
-		ensureDocumentLoad('/4.pdf', last.run)
-
-		last.page(1)
-
-		last.finish()
-
-		await flush()
+		await resident('/4.pdf')
 
 		expect(release).toHaveBeenCalledOnce()
 	})

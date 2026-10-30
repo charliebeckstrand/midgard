@@ -75,9 +75,7 @@ describe('usePasswordStrength', () => {
 
 		renderHook(() => usePasswordStrength({ value: 'Ab1!', rules, onStrengthChange }))
 
-		expect(onStrengthChange).toHaveBeenCalledTimes(1)
-
-		expect(onStrengthChange).toHaveBeenLastCalledWith({
+		expect(onStrengthChange).toHaveBeenCalledExactlyOnceWith({
 			score: 3,
 			max: 4,
 			level: 'good',
@@ -97,12 +95,12 @@ describe('usePasswordStrength', () => {
 
 		rerender({ value: 'Ab1!extra' })
 
-		expect(onStrengthChange).toHaveBeenCalledTimes(1)
-
-		expect(onStrengthChange.mock.calls[0]?.[0]).toMatchObject({
-			score: 4,
-			level: 'strong',
-		})
+		expect(onStrengthChange).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({
+				score: 4,
+				level: 'strong',
+			}),
+		)
 	})
 
 	it('fires neither callback when only the callback identity changes', () => {
@@ -143,9 +141,9 @@ describe('usePasswordStrength', () => {
 
 		expect(first).not.toHaveBeenCalled()
 
-		expect(second).toHaveBeenCalledTimes(1)
-
-		expect(second.mock.calls[0]?.[0]).toMatchObject({ score: 3, level: 'good' })
+		expect(second).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ score: 3, level: 'good' }),
+		)
 	})
 
 	describe('counts passing rules from the results, not from the joined ids', () => {
@@ -168,9 +166,7 @@ describe('usePasswordStrength', () => {
 
 			expect(result.current.level).toBe(level)
 
-			expect(onStrengthChange).toHaveBeenCalledTimes(1)
-
-			expect(onStrengthChange).toHaveBeenLastCalledWith({
+			expect(onStrengthChange).toHaveBeenCalledExactlyOnceWith({
 				score,
 				max: ruleSet.length,
 				level,

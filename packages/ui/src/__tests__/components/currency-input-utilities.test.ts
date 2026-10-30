@@ -253,14 +253,6 @@ describe('formatEditing', () => {
 })
 
 describe('parseEditing', () => {
-	it('parses a formatted number back into a JS number', () => {
-		expect(parseEditing('1,234.56', ',', '.', 2)).toBe(1234.56)
-	})
-
-	it('parses a negative number', () => {
-		expect(parseEditing('-12.5', ',', '.', 2)).toBe(-12.5)
-	})
-
 	it.each([
 		['an empty string', ''],
 		['a lone minus sign', '-'],
@@ -268,10 +260,6 @@ describe('parseEditing', () => {
 		['a lone other mark', ','],
 	])('returns undefined for %s', (_name, input) => {
 		expect(parseEditing(input, ',', '.', 2)).toBeUndefined()
-	})
-
-	it('handles a comma decimal separator', () => {
-		expect(parseEditing('1.234,5', '.', ',', 2)).toBe(1234.5)
 	})
 
 	// `toBe` compares with `Object.is`, which does not make -0 equal to 0. Intl
@@ -288,20 +276,30 @@ describe('parseEditing', () => {
 	// it is the last mark, and 1 to maxFractionDigits digits follow it. Else it
 	// is a group mark.
 	it.each([
-		['the en-US other mark before two digits', '12,50', ',', '.', 2, 12.5],
-		['the de-DE other mark before two digits', '12.50', '.', ',', 2, 12.5],
-		['a negative amount with the other mark', '-12,5', ',', '.', 2, -12.5],
-		['the last other mark after a group mark', '1,234,5', ',', '.', 2, 1234.5],
-		['a trailing other mark', '12,', ',', '.', 2, 12],
-		['the en-US other mark before three digits', '1,234', ',', '.', 2, 1234],
-		['the de-DE other mark before three digits', '1.234', '.', ',', 2, 1234],
-		['the other mark in a text with a locale decimal', '1,23.4', ',', '.', 2, 123.4],
-		['the other mark at maxFractionDigits 0', '12,5', ',', '.', 0, 125],
+		['parses a formatted number back into a JS number', '1,234.56', ',', '.', 2, 1234.56],
+		['parses a negative number', '-12.5', ',', '.', 2, -12.5],
+		['handles a comma decimal separator', '1.234,5', '.', ',', 2, 1234.5],
+		['reads the en-US other mark before two digits', '12,50', ',', '.', 2, 12.5],
+		['reads the de-DE other mark before two digits', '12.50', '.', ',', 2, 12.5],
+		['reads a negative amount with the other mark', '-12,5', ',', '.', 2, -12.5],
+		['reads the last other mark after a group mark', '1,234,5', ',', '.', 2, 1234.5],
+		['reads a trailing other mark', '12,', ',', '.', 2, 12],
+		['reads the en-US other mark before three digits', '1,234', ',', '.', 2, 1234],
+		['reads the de-DE other mark before three digits', '1.234', '.', ',', 2, 1234],
+		['reads the other mark in a text with a locale decimal', '1,23.4', ',', '.', 2, 123.4],
+		['reads the other mark at maxFractionDigits 0', '12,5', ',', '.', 0, 125],
 		// The format writes the en-US group "," before three digits, and a typed
 		// digit at the end then gives four.
-		['the group mark before three digits at maxFractionDigits 4', '1,234', ',', '.', 4, 1234],
-		['the group mark before four digits at maxFractionDigits 4', '1,2345', ',', '.', 4, 12345],
-	] as const)('reads %s', (_name, input, group, decimal, maxFractionDigits, expected) => {
+		['reads the group mark before three digits at maxFractionDigits 4', '1,234', ',', '.', 4, 1234],
+		[
+			'reads the group mark before four digits at maxFractionDigits 4',
+			'1,2345',
+			',',
+			'.',
+			4,
+			12345,
+		],
+	] as const)('%s', (_name, input, group, decimal, maxFractionDigits, expected) => {
 		expect(parseEditing(input, group, decimal, maxFractionDigits)).toBe(expected)
 	})
 })

@@ -1,14 +1,26 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { CurrencyInput } from '../../components/currency-input'
+import { CurrencyInput, type CurrencyInputProps } from '../../components/currency-input'
 import { Form } from '../../modules/form'
 import { fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 
+/**
+ * Renders a CurrencyInput with an `onValueChange` spy. A prop in `props`
+ * replaces the spy or a default of the same name.
+ */
+function renderCurrency(props: CurrencyInputProps = {}) {
+	const onValueChange = vi.fn()
+
+	const view = renderUI(<CurrencyInput onValueChange={onValueChange} {...props} />)
+
+	const input = getSlot<HTMLInputElement>(view.container, 'currency-input')
+
+	return { ...view, input, user: setupUser(), onValueChange }
+}
+
 describe('CurrencyInput', () => {
 	it('merges a consumer className with its own tabular-nums', () => {
-		const { container } = renderUI(<CurrencyInput className="w-full" />)
-
-		const input = getSlot(container, 'currency-input')
+		const { input } = renderCurrency({ className: 'w-full' })
 
 		expect(input).toHaveClass('w-full')
 
@@ -16,9 +28,7 @@ describe('CurrencyInput', () => {
 	})
 
 	it('renders an input with data-slot="currency-input" and inputMode="decimal"', () => {
-		const { container } = renderUI(<CurrencyInput />)
-
-		const input = getSlot(container, 'currency-input')
+		const { input } = renderCurrency()
 
 		expect(input.tagName).toBe('INPUT')
 
@@ -26,9 +36,7 @@ describe('CurrencyInput', () => {
 	})
 
 	it('renders the currency symbol as a prefix alongside the grouped value', () => {
-		const { container } = renderUI(<CurrencyInput defaultValue={1234.56} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+		const { container, input } = renderCurrency({ defaultValue: 1234.56 })
 
 		expect(input.value).toBe('1,234.56')
 
@@ -56,11 +64,11 @@ describe('CurrencyInput', () => {
 	})
 
 	it('respects the currency prop', () => {
-		const { container } = renderUI(
-			<CurrencyInput currency="EUR" locale="en-IE" defaultValue={1000} />,
-		)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+		const { container, input } = renderCurrency({
+			currency: 'EUR',
+			locale: 'en-IE',
+			defaultValue: 1000,
+		})
 
 		expect(input.value).toBe('1,000.00')
 
@@ -68,19 +76,13 @@ describe('CurrencyInput', () => {
 	})
 
 	it('respects the precision prop', () => {
-		const { container } = renderUI(<CurrencyInput precision={4} defaultValue={2.5} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+		const { input } = renderCurrency({ precision: 4, defaultValue: 2.5 })
 
 		expect(input.value).toBe('2.5000')
 	})
 
 	it('preserves grouping while editing', async () => {
-		const { container } = renderUI(<CurrencyInput />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user } = renderCurrency()
 
 		await user.click(input)
 
@@ -94,11 +96,7 @@ describe('CurrencyInput', () => {
 	})
 
 	it('keeps grouping when focusing a prefilled value', async () => {
-		const { container } = renderUI(<CurrencyInput defaultValue={1234.5} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user } = renderCurrency({ defaultValue: 1234.5 })
 
 		await user.click(input)
 
@@ -106,11 +104,7 @@ describe('CurrencyInput', () => {
 	})
 
 	it('keeps the caret next to the typed digit when grouping separators shift', async () => {
-		const { container } = renderUI(<CurrencyInput />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user } = renderCurrency()
 
 		await user.click(input)
 
@@ -130,11 +124,7 @@ describe('CurrencyInput', () => {
 	})
 
 	it('keeps the caret in place when the format drops a minus sign after the start', async () => {
-		const { container } = renderUI(<CurrencyInput />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user } = renderCurrency()
 
 		await user.type(input, '123')
 
@@ -154,11 +144,7 @@ describe('CurrencyInput', () => {
 	})
 
 	it('keeps the caret after a minus sign typed at the start', async () => {
-		const { container } = renderUI(<CurrencyInput />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user } = renderCurrency()
 
 		await user.type(input, '123')
 
@@ -172,13 +158,7 @@ describe('CurrencyInput', () => {
 	})
 
 	it('reformats and emits the parsed number on blur', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<CurrencyInput onValueChange={onChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user, onValueChange } = renderCurrency()
 
 		await user.click(input)
 
@@ -186,19 +166,13 @@ describe('CurrencyInput', () => {
 
 		await user.tab()
 
-		expect(onChange).toHaveBeenLastCalledWith(750.5)
+		expect(onValueChange).toHaveBeenLastCalledWith(750.5)
 
 		expect(input.value).toBe('750.50')
 	})
 
 	it('reads a leading decimal as a fraction, not an integer', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<CurrencyInput onValueChange={onChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user, onValueChange } = renderCurrency()
 
 		await user.click(input)
 
@@ -206,7 +180,7 @@ describe('CurrencyInput', () => {
 
 		// `.5` is 0.5, not 5: the padded leading `0` must not steal the caret and
 		// push the next digit into the integer part.
-		expect(onChange).toHaveBeenLastCalledWith(0.5)
+		expect(onValueChange).toHaveBeenLastCalledWith(0.5)
 
 		expect(input.value).toBe('0.5')
 	})
@@ -220,15 +194,7 @@ describe('CurrencyInput', () => {
 	])(
 		'reads the other mark as the decimal in a %s field',
 		async (locale, currency, typed, display) => {
-			const onValueChange = vi.fn()
-
-			const { container } = renderUI(
-				<CurrencyInput locale={locale} currency={currency} onValueChange={onValueChange} />,
-			)
-
-			const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-			const user = setupUser()
+			const { input, user, onValueChange } = renderCurrency({ locale, currency })
 
 			await user.type(input, typed)
 
@@ -248,15 +214,7 @@ describe('CurrencyInput', () => {
 	])(
 		'reads a typed group mark as a group in a %s field',
 		async (locale, currency, typed, display) => {
-			const onValueChange = vi.fn()
-
-			const { container } = renderUI(
-				<CurrencyInput locale={locale} currency={currency} onValueChange={onValueChange} />,
-			)
-
-			const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-			const user = setupUser()
+			const { input, user, onValueChange } = renderCurrency({ locale, currency })
 
 			await user.type(input, typed)
 
@@ -270,15 +228,7 @@ describe('CurrencyInput', () => {
 
 	// The text keeps the typed mark, so a later digit can make it a group mark.
 	it('lets a later digit make the other mark a group', async () => {
-		const onValueChange = vi.fn()
-
-		const { container } = renderUI(
-			<CurrencyInput locale="en-US" currency="USD" onValueChange={onValueChange} />,
-		)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user, onValueChange } = renderCurrency({ locale: 'en-US', currency: 'USD' })
 
 		await user.type(input, '1,23')
 
@@ -294,11 +244,7 @@ describe('CurrencyInput', () => {
 	})
 
 	it('keeps the caret after the other mark that acts as the decimal', async () => {
-		const { container } = renderUI(<CurrencyInput locale="en-US" currency="USD" />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user } = renderCurrency({ locale: 'en-US', currency: 'USD' })
 
 		await user.type(input, '12,05')
 
@@ -319,15 +265,7 @@ describe('CurrencyInput', () => {
 	])(
 		'keeps a %s group mark that the field wrote as a group after a Backspace',
 		async (locale, currency, grouped, display) => {
-			const onValueChange = vi.fn()
-
-			const { container } = renderUI(
-				<CurrencyInput locale={locale} currency={currency} onValueChange={onValueChange} />,
-			)
-
-			const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-			const user = setupUser()
+			const { input, user, onValueChange } = renderCurrency({ locale, currency })
 
 			await user.type(input, '1234')
 
@@ -346,15 +284,11 @@ describe('CurrencyInput', () => {
 	)
 
 	it('keeps a group mark that the field wrote as a group at precision 4', async () => {
-		const onValueChange = vi.fn()
-
-		const { container } = renderUI(
-			<CurrencyInput locale="en-US" currency="USD" precision={4} onValueChange={onValueChange} />,
-		)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user, onValueChange } = renderCurrency({
+			locale: 'en-US',
+			currency: 'USD',
+			precision: 4,
+		})
 
 		await user.type(input, '1234')
 
@@ -370,15 +304,7 @@ describe('CurrencyInput', () => {
 	})
 
 	it('reads digits after a Backspace over the typed mark as an integer', async () => {
-		const onValueChange = vi.fn()
-
-		const { container } = renderUI(
-			<CurrencyInput locale="en-US" currency="USD" onValueChange={onValueChange} />,
-		)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user, onValueChange } = renderCurrency({ locale: 'en-US', currency: 'USD' })
 
 		await user.type(input, '1234,')
 
@@ -398,13 +324,7 @@ describe('CurrencyInput', () => {
 	})
 
 	it('emits null when cleared', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<CurrencyInput defaultValue={50} onValueChange={onChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user, onValueChange } = renderCurrency({ defaultValue: 50 })
 
 		await user.click(input)
 
@@ -412,29 +332,23 @@ describe('CurrencyInput', () => {
 
 		await user.tab()
 
-		expect(onChange).toHaveBeenLastCalledWith(null)
+		expect(onValueChange).toHaveBeenLastCalledWith(null)
 
 		expect(input.value).toBe('')
 	})
 
 	it('reflects external value changes when not focused', () => {
-		const { container, rerender } = renderUI(<CurrencyInput value={10} onValueChange={() => {}} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+		const { input, rerender, onValueChange } = renderCurrency({ value: 10 })
 
 		expect(input.value).toBe('10.00')
 
-		rerender(<CurrencyInput value={42} onValueChange={() => {}} />)
+		rerender(<CurrencyInput value={42} onValueChange={onValueChange} />)
 
 		expect(input.value).toBe('42.00')
 	})
 
 	it('blurs the input when Enter is pressed', async () => {
-		const { container } = renderUI(<CurrencyInput defaultValue={10} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user } = renderCurrency({ defaultValue: 10 })
 
 		input.focus()
 
@@ -446,9 +360,7 @@ describe('CurrencyInput', () => {
 	})
 
 	it('keeps focus on an Enter that confirms an input-method candidate', () => {
-		const { container } = renderUI(<CurrencyInput defaultValue={10} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+		const { input } = renderCurrency({ defaultValue: 10 })
 
 		input.focus()
 
@@ -466,11 +378,7 @@ describe('CurrencyInput', () => {
 			if (event.key === 'Enter') event.preventDefault()
 		})
 
-		const { container } = renderUI(<CurrencyInput defaultValue={10} onKeyDown={onKeyDown} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user } = renderCurrency({ defaultValue: 10, onKeyDown })
 
 		input.focus()
 
@@ -482,11 +390,7 @@ describe('CurrencyInput', () => {
 	it('forwards onBlur after an edit round-trips through the input', async () => {
 		const onBlur = vi.fn()
 
-		const { container } = renderUI(<CurrencyInput defaultValue={10} onBlur={onBlur} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { input, user } = renderCurrency({ defaultValue: 10, onBlur })
 
 		await user.click(input)
 
@@ -503,13 +407,9 @@ describe('CurrencyInput', () => {
 		// (CONVENTIONS.md §3.9).
 		const stray = { onChange: vi.fn() } as object
 
-		const onValueChange = vi.fn()
+		const { input, user, onValueChange } = renderCurrency({ ...stray })
 
-		const { container } = renderUI(<CurrencyInput {...stray} onValueChange={onValueChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		await setupUser().type(input, '1234')
+		await user.type(input, '1234')
 
 		expect(input.value).toBe('1,234')
 
@@ -517,15 +417,7 @@ describe('CurrencyInput', () => {
 	})
 
 	it('shows a value from outside while the field has focus', async () => {
-		const onValueChange = vi.fn()
-
-		const { container, rerender } = renderUI(
-			<CurrencyInput value={10} onValueChange={onValueChange} />,
-		)
-
-		const input = getSlot<HTMLInputElement>(container, 'currency-input')
-
-		const user = setupUser()
+		const { rerender, input, user, onValueChange } = renderCurrency({ value: 10 })
 
 		await user.click(input)
 

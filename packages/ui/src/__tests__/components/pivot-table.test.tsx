@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PivotTable } from '../../components/pivot-table'
+import { PivotTable, type PivotTableProps } from '../../components/pivot-table'
 import { LocaleProvider } from '../../providers/locale'
 import { bySlot, present, renderUI, screen, within } from '../helpers'
 
@@ -16,15 +16,21 @@ const data: Row[] = [
 /** The data `<tr>` whose header cell renders `label`. */
 const getRow = (label: string) => present(screen.getByText(label).closest('tr'), `row "${label}"`)
 
+/** Renders the loads of each lane by month. A case changes only the props that it tests. */
+function renderPivot(props: Partial<PivotTableProps<Row>> = {}) {
+	return renderUI(
+		<PivotTable
+			rows={data}
+			keys={{ row: 'lane', column: 'period', value: 'loads' }}
+			rowHeader="Lane"
+			{...props}
+		/>,
+	)
+}
+
 describe('PivotTable', () => {
 	it('renders a table with row and column dimensions', () => {
-		const { container } = renderUI(
-			<PivotTable
-				rows={data}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-				rowHeader="Lane"
-			/>,
-		)
+		const { container } = renderPivot()
 
 		expect(bySlot(container, 'table')).toBeInTheDocument()
 
@@ -38,9 +44,7 @@ describe('PivotTable', () => {
 	})
 
 	it('renders the corner as a <td> when no rowHeader is given', () => {
-		const { container } = renderUI(
-			<PivotTable rows={data} keys={{ row: 'lane', column: 'period', value: 'loads' }} />,
-		)
+		const { container } = renderPivot({ rowHeader: undefined })
 
 		const corner = present(container.querySelector('thead tr')?.firstElementChild, 'corner cell')
 
@@ -51,26 +55,13 @@ describe('PivotTable', () => {
 	})
 
 	it('names the table from the optional aria-label', () => {
-		renderUI(
-			<PivotTable
-				rows={data}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-				rowHeader="Lane"
-				aria-label="Loads by lane and month"
-			/>,
-		)
+		renderPivot({ 'aria-label': 'Loads by lane and month' })
 
 		expect(screen.getByRole('table', { name: 'Loads by lane and month' })).toBeInTheDocument()
 	})
 
 	it('exposes each row-dimension label as a row header', () => {
-		renderUI(
-			<PivotTable
-				rows={data}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-				rowHeader="Lane"
-			/>,
-		)
+		renderPivot()
 
 		expect(screen.getByRole('rowheader', { name: 'LAX → DFW' })).toBeInTheDocument()
 
@@ -78,13 +69,7 @@ describe('PivotTable', () => {
 	})
 
 	it('sums values in each cell', () => {
-		renderUI(
-			<PivotTable
-				rows={data}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-				rowHeader="Lane"
-			/>,
-		)
+		renderPivot()
 
 		const laxRow = getRow('LAX → DFW')
 
@@ -100,14 +85,7 @@ describe('PivotTable', () => {
 	})
 
 	it('renders row totals when totals="row"', () => {
-		renderUI(
-			<PivotTable
-				rows={data}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-				rowHeader="Lane"
-				totals="row"
-			/>,
-		)
+		renderPivot({ totals: 'row' })
 
 		const laxRow = getRow('LAX → DFW')
 
@@ -119,14 +97,7 @@ describe('PivotTable', () => {
 	})
 
 	it('renders column totals and grand total when totals="both"', () => {
-		renderUI(
-			<PivotTable
-				rows={data}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-				rowHeader="Lane"
-				totals="both"
-			/>,
-		)
+		renderPivot({ totals: 'both' })
 
 		const totalCells = screen.getAllByText('Total')
 
@@ -146,14 +117,7 @@ describe('PivotTable', () => {
 	})
 
 	it('aggregates by count', () => {
-		renderUI(
-			<PivotTable
-				rows={data}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-				aggregation="count"
-				rowHeader="Lane"
-			/>,
-		)
+		renderPivot({ aggregation: 'count' })
 
 		const laxRow = getRow('LAX → DFW')
 
@@ -166,13 +130,7 @@ describe('PivotTable', () => {
 			{ lane: 'B', period: 'Feb', loads: 2 },
 		]
 
-		renderUI(
-			<PivotTable
-				rows={sparse}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-				rowHeader="Lane"
-			/>,
-		)
+		renderPivot({ rows: sparse })
 
 		const emptyCells = screen.getAllByText('—')
 
@@ -180,28 +138,13 @@ describe('PivotTable', () => {
 	})
 
 	it('uses custom format', () => {
-		renderUI(
-			<PivotTable
-				rows={data}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-				format={(v) => `${v} loads`}
-				rowHeader="Lane"
-			/>,
-		)
+		renderPivot({ format: (v) => `${v} loads` })
 
 		expect(screen.getByText('15 loads')).toBeInTheDocument()
 	})
 
 	it('respects explicit rowOrder and columnOrder', () => {
-		renderUI(
-			<PivotTable
-				rows={data}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-				rowHeader="Lane"
-				rowOrder={['ORD → ATL', 'LAX → DFW']}
-				columnOrder={['Feb', 'Jan']}
-			/>,
-		)
+		renderPivot({ rowOrder: ['ORD → ATL', 'LAX → DFW'], columnOrder: ['Feb', 'Jan'] })
 
 		const headers = screen.getAllByRole('columnheader')
 
@@ -220,7 +163,7 @@ describe('PivotTable', () => {
 describe('PivotTable in a locale', () => {
 	it('names the totals in the language of the locale', () => {
 		renderUI(
-			<LocaleProvider locale="es-ES">
+			<LocaleProvider locale="es-ES" catalogs={{ es: { 'ui.pivotTable.total': 'Suma' } }}>
 				<PivotTable
 					rows={data}
 					keys={{ row: 'lane', column: 'period', value: 'loads' }}
@@ -230,8 +173,8 @@ describe('PivotTable in a locale', () => {
 			</LocaleProvider>,
 		)
 
-		expect(screen.getByRole('columnheader', { name: 'Total' })).toBeInTheDocument()
+		expect(screen.getByRole('columnheader', { name: 'Suma' })).toBeInTheDocument()
 
-		expect(screen.getByRole('rowheader', { name: 'Total' })).toBeInTheDocument()
+		expect(screen.getByRole('rowheader', { name: 'Suma' })).toBeInTheDocument()
 	})
 })

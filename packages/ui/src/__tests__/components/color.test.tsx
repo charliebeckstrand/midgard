@@ -35,6 +35,16 @@ import { hydrate } from '../helpers/hydrate'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
 
+/** Stubs a platform `EyeDropper` whose picker never settles. */
+function stubEyeDropper() {
+	vi.stubGlobal(
+		'EyeDropper',
+		class {
+			open = () => new Promise<never>(() => {})
+		},
+	)
+}
+
 describe('color conversions', () => {
 	it('round-trips fully-saturated and neutral hex exactly', () => {
 		for (const hex of [
@@ -266,35 +276,6 @@ describe('ColorPanel', () => {
 		expect(panel).toHaveAttribute('data-testid', 'panel')
 	})
 
-	it('supports Home/End and Page keys on the area (APG slider pattern)', () => {
-		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
-
-		const area = getSlot(container, 'color-area')
-
-		const brightness = () =>
-			Number(/brightness (\d+)%/.exec(area.getAttribute('aria-valuetext') ?? '')?.[1])
-
-		// Home/End pin saturation (the x axis, mirrored by aria-valuenow).
-		fireEvent.keyDown(area, { key: 'End' })
-
-		expect(area).toHaveAttribute('aria-valuenow', '100')
-
-		fireEvent.keyDown(area, { key: 'Home' })
-
-		expect(area).toHaveAttribute('aria-valuenow', '0')
-
-		// Page keys take the large step on brightness (the y axis).
-		const before = brightness()
-
-		fireEvent.keyDown(area, { key: 'PageDown' })
-
-		expect(brightness()).toBe(before - 10)
-
-		fireEvent.keyDown(area, { key: 'PageUp' })
-
-		expect(brightness()).toBe(before)
-	})
-
 	it('supports Page keys on the sliders (APG slider pattern)', () => {
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
 
@@ -417,9 +398,7 @@ describe('ColorPanel', () => {
 			<ColorPanel defaultValue="#ffffff" swatches={['#ffffff', 'red', '#000']} />,
 		)
 
-		expect(warn).toHaveBeenCalledTimes(1)
-
-		expect(warn).toHaveBeenCalledWith(expect.stringContaining('"red"'))
+		expect(warn).toHaveBeenCalledExactlyOnceWith(expect.stringContaining('"red"'))
 
 		expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('#ffffff'))
 
@@ -479,16 +458,6 @@ describe('ColorPanel', () => {
 	})
 
 	describe('eyedropper', () => {
-		/** Stubs a platform `EyeDropper` whose picker never settles. */
-		function stubEyeDropper() {
-			vi.stubGlobal(
-				'EyeDropper',
-				class {
-					open = () => new Promise<never>(() => {})
-				},
-			)
-		}
-
 		// A render that does not hydrate draws the button in its first commit,
 		// and starts no second render.
 		it('draws the eyedropper in the first commit of a client render', () => {
@@ -569,26 +538,6 @@ describe('ColorPicker', () => {
 		expect(bySlot(container, 'color-picker-button')).toBeEnabled()
 	})
 
-	it.each([
-		['its own prop', <ColorPicker key="prop" defaultValue="#ef4444" readOnly />],
-		[
-			'an enclosing Control',
-			<Control key="control" readOnly>
-				<ColorPicker defaultValue="#ef4444" />
-			</Control>,
-		],
-	])('does not open the panel while read-only from %s', (_, ui) => {
-		const { container } = renderUI(ui)
-
-		const button = getSlot(container, 'color-picker-button')
-
-		fireEvent.click(button)
-
-		expect(button).toHaveAttribute('aria-expanded', 'false')
-
-		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-	})
-
 	it('lets a panel that is open when readOnly turns on close from the trigger', () => {
 		const { container, rerender } = renderUI(<ColorPicker defaultValue="#ef4444" />)
 
@@ -613,26 +562,35 @@ describe('ColorPicker', () => {
 				<ColorPicker defaultValue="#ef4444" />
 			</Control>,
 		],
-	])('keeps a trigger that is read-only from %s in the tab order', async (_, ui) => {
-		const user = setupUser()
+	])(
+		'keeps a trigger that is read-only from %s in the tab order, and does not open the panel',
+		async (_, ui) => {
+			const user = setupUser()
 
-		const { container } = renderUI(ui)
+			const { container } = renderUI(ui)
 
-		const button = getSlot(container, 'color-picker-button')
+			const button = getSlot(container, 'color-picker-button')
 
-		expect(button).not.toBeDisabled()
+			expect(button).not.toBeDisabled()
 
-		// A button does not take aria-readonly, so the trigger is aria-disabled.
-		expect(button).toHaveAttribute('aria-disabled', 'true')
+			// A button does not take aria-readonly, so the trigger is aria-disabled.
+			expect(button).toHaveAttribute('aria-disabled', 'true')
 
-		expect(button).toHaveAttribute('data-readonly')
+			expect(button).toHaveAttribute('data-readonly')
 
-		await user.tab()
+			await user.tab()
 
-		expect(button).toHaveFocus()
+			expect(button).toHaveFocus()
 
-		expect(button).toHaveTextContent('#EF4444')
-	})
+			expect(button).toHaveTextContent('#EF4444')
+
+			fireEvent.click(button)
+
+			expect(button).toHaveAttribute('aria-expanded', 'false')
+
+			expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+		},
+	)
 
 	it.each([
 		['a press', (user: ReturnType<typeof setupUser>, button: HTMLElement) => user.click(button)],
@@ -958,12 +916,7 @@ describe('ColorPanel in a ColorPicker', () => {
 	// handler cancels the press. jsdom does not move focus on a mousedown, so the
 	// browser file `color-picker-press-focus` asserts the focus.
 	it('holds the press of a drag surface only', () => {
-		vi.stubGlobal(
-			'EyeDropper',
-			class {
-				open = () => new Promise<never>(() => {})
-			},
-		)
+		stubEyeDropper()
 
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
 

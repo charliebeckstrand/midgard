@@ -143,9 +143,7 @@ describe('Grid footer', () => {
 		)
 
 		// A selection takes the slot in place: the row total is gone, not stacked.
-		const text = bySlot(selected.container, 'grid-footer')?.textContent
-		expect(text).toContain('1 of 3 rows selected')
-		expect(text).not.toContain('3 rows visible')
+		expect(bySlot(selected.container, 'grid-footer')).toHaveTextContent(/^1 of 3 rows selected$/)
 	})
 
 	it('scopes the row total to the page when server pagination gives no row count', () => {

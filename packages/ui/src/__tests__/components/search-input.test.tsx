@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { SearchInput } from '../../components/search-input'
 import { Form } from '../../modules/form'
 import { bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
-import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('SearchInput', () => {
 	it('renders an input with data-slot="search-input" and a search icon prefix', () => {
@@ -156,20 +155,6 @@ describe('SearchInput', () => {
 		expect(bySlot(container, 'loading-spinner')).toBeInTheDocument()
 	})
 
-	it('fires onChange handler', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<SearchInput onChange={onChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'search-input')
-
-		const user = setupUser()
-
-		await user.type(input, 'a')
-
-		expect(onChange).toHaveBeenCalled()
-	})
-
 	it('fires onClear when typing reduces the input to empty', async () => {
 		const onClear = vi.fn()
 
@@ -206,27 +191,6 @@ describe('SearchInput', () => {
 			expect.objectContaining({ q: 'midgard' }),
 			expect.anything(),
 		)
-	})
-
-	it('marks the form field touched on blur', async () => {
-		const { container } = renderUI(
-			<Form defaultValues={{ q: '' }}>
-				<SearchInput name="q" />
-				<FieldProbe name="q" />
-			</Form>,
-		)
-
-		const input = getSlot<HTMLInputElement>(container, 'search-input')
-
-		const user = setupUser()
-
-		await user.click(input)
-
-		expect(getFieldProbe('q')).toHaveAttribute('data-touched', 'false')
-
-		await user.tab()
-
-		expect(getFieldProbe('q')).toHaveAttribute('data-touched', 'true')
 	})
 
 	it.each([

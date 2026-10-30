@@ -65,9 +65,7 @@ describe('AddressInput re-pick of a bound field', () => {
 
 		await pick()
 
-		expect(onValueChange).toHaveBeenCalledTimes(1)
-
-		expect(onValueChange).toHaveBeenLastCalledWith(main)
+		expect(onValueChange).toHaveBeenCalledExactlyOnceWith(main)
 
 		fireEvent.click(screen.getByRole('button', { name: button }))
 

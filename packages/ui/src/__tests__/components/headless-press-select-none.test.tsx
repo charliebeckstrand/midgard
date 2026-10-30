@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Nav, NavItem, NavList } from '../../components/nav'
 import { Sidebar, SidebarItem } from '../../components/sidebar'
 import { Tab, TabList, Tabs } from '../../components/tabs'
@@ -13,9 +13,9 @@ import { renderUI, screen } from '../helpers'
  * also set it.
  */
 describe('a headless press target under a long press', () => {
-	function expectNoSelection(element: HTMLElement) {
+	const expectNoSelection = vi.defineHelper((element: HTMLElement) => {
 		expect(element).toHaveClass('select-none', '*:select-none')
-	}
+	})
 
 	it('keeps a Tab from selecting its label', () => {
 		renderUI(

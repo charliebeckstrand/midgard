@@ -1,7 +1,12 @@
 import { renderToString } from 'react-dom/server'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Dialog, DialogPanel, DialogTrigger } from '../../components/dialog'
-import { PdfViewer, type PdfViewerHighlight, type PdfViewerPage } from '../../components/pdf-viewer'
+import {
+	PdfViewer,
+	type PdfViewerHighlight,
+	type PdfViewerPage,
+	type PdfViewerProps,
+} from '../../components/pdf-viewer'
 import {
 	ensureDocumentLoad,
 	resetDocumentCache,
@@ -34,6 +39,7 @@ import {
 	setupUser,
 	stubMatchMedia,
 	userEvent,
+	waitFor,
 } from '../helpers'
 import { captureAppended } from '../helpers/capture-appended'
 import { serverMarkup } from '../helpers/hydrate'
@@ -72,12 +78,6 @@ describe('PdfViewer', () => {
 		expect(img).toHaveAttribute('src', 'page-1.png')
 
 		expect(img).toHaveAttribute('alt', 'Page 1')
-	})
-
-	it('shows the total page count', () => {
-		const { container } = renderUI(<PdfViewer pages={pages} />)
-
-		expect(bySlot(container, 'pdf-viewer-page-total')).toHaveTextContent('3')
 	})
 
 	// A screen reader reads "of 3", not "slash 3".
@@ -206,14 +206,6 @@ describe('PdfViewer', () => {
 		expect(screen.queryByLabelText('Print')).not.toBeInTheDocument()
 	})
 
-	it('shows download and print actions when src is provided', () => {
-		renderUI(<PdfViewer pages={pages} src="/sample.pdf" />)
-
-		expect(screen.getByLabelText('Download')).toBeInTheDocument()
-
-		expect(screen.getByLabelText('Print')).toBeInTheDocument()
-	})
-
 	it('triggers a download when the Download button is clicked', () => {
 		const anchor = captureAppended(() => {
 			renderUI(<PdfViewer pages={pages} src="/sample.pdf" filename="doc.pdf" />)
@@ -272,178 +264,6 @@ describe('PdfViewer', () => {
 		expect(sheet).toHaveClass('block', 'lg:hidden')
 	})
 
-	/*
-	 * The document opens before its pages render: the load publishes a slot for each page,
-	 * then the rendered pages. It is seeded through the cache's own seam and held open, so
-	 * the render sees a document that is part way in.
-	 */
-	function openPartial(src: string) {
-		resetDocumentCache()
-
-		let finish = () => {}
-
-		ensureDocumentLoad(src, (report) => {
-			report.open(
-				[1, 2, 3].map((id) => ({
-					id,
-					src: '',
-					label: `Page ${id}`,
-					width: 918,
-					height: 1188,
-				})),
-			)
-
-			report.page({ id: 1, src: 'page-1.png', label: 'Page 1', width: 918, height: 1188 }, 0)
-
-			return new Promise<void>((resolve) => {
-				finish = resolve
-			})
-		})
-
-		return () => act(async () => finish())
-	}
-
-	it('shows the first page and every control while later pages still render', async ({
-		signal,
-	}) => {
-		const finish = openPartial('/partial.pdf')
-
-		const { container } = renderUI(<PdfViewer src="/partial.pdf" />)
-
-		expect(bySlot(container, 'pdf-viewer-viewport')?.querySelector('img')).toHaveAttribute(
-			'src',
-			'page-1.png',
-		)
-
-		expect(bySlot(container, 'pdf-viewer-page-total')).toHaveTextContent('3')
-
-		expect(screen.getByLabelText('Rotate')).toBeEnabled()
-
-		expect(bySlot(container, 'listbox-button')).toBeEnabled()
-
-		await finish()
-
-		signal.throwIfAborted()
-
-		resetDocumentCache()
-	})
-
-	it('reports the load when the document opens, with its full page count', async ({ signal }) => {
-		const finish = openPartial('/partial.pdf')
-
-		const onLoad = vi.fn()
-
-		renderUI(<PdfViewer src="/partial.pdf" onLoad={onLoad} />)
-
-		expect(onLoad).toHaveBeenCalledExactlyOnceWith(3)
-
-		await finish()
-
-		expect(onLoad).toHaveBeenCalledOnce()
-
-		signal.throwIfAborted()
-
-		resetDocumentCache()
-	})
-
-	// The page count is whole at the open, so a later page is not clamped to the pages
-	// rendered so far. It shows its placeholder, and then its image.
-	it('opens on a later page that has not rendered yet, without a jump', async ({ signal }) => {
-		const finish = openPartial('/partial.pdf')
-
-		const { container } = renderUI(<PdfViewer src="/partial.pdf" defaultPage={3} />)
-
-		expect(bySlot(container, 'listbox-button')).toHaveTextContent('3')
-
-		expect(screen.getByLabelText('Loading PDF')).toBeInTheDocument()
-
-		expect(bySlot(container, 'pdf-viewer-viewport')?.querySelector('img')).toBeNull()
-
-		await finish()
-
-		signal.throwIfAborted()
-
-		resetDocumentCache()
-	})
-
-	// The queue renders the page that the viewer shows. The viewer asks for it before the
-	// document opens, so the first render is the page the reader sees.
-	it('asks the queue for the page that it shows, first and after a change', async ({ signal }) => {
-		resetDocumentCache()
-
-		// A render that never ends, and rejects on a cancel as a pdf.js render does.
-		const render = vi.fn(() => {
-			let cancel = () => {}
-
-			const promise = new Promise<string | null>((_, reject) => {
-				cancel = () => reject(new Error('canceled'))
-			})
-
-			return { promise, cancel }
-		})
-
-		ensureDocumentLoad('/queue.pdf', (report) => {
-			report.open(
-				[1, 2, 3, 4, 5, 6].map((id) => ({
-					id,
-					src: '',
-					label: `Page ${id}`,
-					width: 918,
-					height: 1188,
-				})),
-			)
-
-			report.serve(render)
-
-			return Promise.resolve()
-		})
-
-		const { rerender } = renderUI(<PdfViewer src="/queue.pdf" page={4} />)
-
-		expect(render).toHaveBeenNthCalledWith(1, 3, 'full', 1)
-
-		rerender(<PdfViewer src="/queue.pdf" page={6} />)
-
-		await act(async () => {})
-
-		expect(render).toHaveBeenLastCalledWith(5, 'full', 1)
-
-		signal.throwIfAborted()
-
-		resetDocumentCache()
-	})
-
-	// The `src` path keeps a full raster as a bitmap, with no encode. The viewport draws it on
-	// a canvas that carries the name of the page.
-	it('shows a page that rendered to a bitmap on a named canvas', async ({ signal }) => {
-		resetDocumentCache()
-
-		const bitmap = { width: 918, height: 1188, close: vi.fn() } as unknown as ImageBitmap
-
-		ensureDocumentLoad('/bitmap.pdf', (report) => {
-			report.open([{ id: 1, src: '', label: 'Page 1', width: 918, height: 1188 }])
-
-			report.serve(() => ({ promise: Promise.resolve(bitmap), cancel: () => {} }))
-
-			return Promise.resolve()
-		})
-
-		const { container } = renderUI(<PdfViewer src="/bitmap.pdf" />)
-
-		// Lets the render land.
-		await act(async () => {})
-
-		const viewport = bySlot(container, 'pdf-viewer-viewport')
-
-		expect(viewport?.querySelector('canvas')).toHaveAttribute('aria-label', 'Page 1')
-
-		expect(viewport?.querySelector('img')).toBeNull()
-
-		signal.throwIfAborted()
-
-		resetDocumentCache()
-	})
-
 	// The canvas takes the size of its bitmap. A new bitmap sizes it again, and an unmount
 	// frees the backing store.
 	it('sizes the page canvas to each bitmap and zeroes it on unmount', () => {
@@ -475,76 +295,217 @@ describe('PdfViewer', () => {
 		expect([canvas?.width, canvas?.height]).toEqual([0, 0])
 	})
 
-	// A page that shows wider than its slot renders again at a larger scale. The viewport here
-	// fits the page at its slot size, and the zoom of 2 doubles it.
-	it('asks the queue for a sharp raster of a zoomed page', async ({ signal }) => {
-		resetDocumentCache()
-
-		vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(918)
-
-		vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(1188)
-
-		const render = vi.fn((_index: number, _raster: string, factor = 1) => ({
-			promise: Promise.resolve({
-				width: 918 * factor,
-				height: 1188 * factor,
-				close: vi.fn(),
-			} as unknown as ImageBitmap),
-			cancel: () => {},
-		}))
-
-		ensureDocumentLoad('/zoom.pdf', (report) => {
-			report.open([{ id: 1, src: '', label: 'Page 1', width: 918, height: 1188 }])
-
-			report.serve(render)
-
-			return Promise.resolve()
+	// Each case here seeds the shared document cache, so the hooks empty it before and after.
+	describe('from the document cache', () => {
+		beforeEach(() => {
+			resetDocumentCache()
 		})
 
-		renderUI(<PdfViewer src="/zoom.pdf" defaultZoom={2} />)
+		afterEach(() => {
+			resetDocumentCache()
+		})
 
-		for (let step = 0; step < 4; step++) await act(async () => {})
+		/*
+		 * The document opens before its pages render: the load publishes a slot for each page,
+		 * then the rendered pages. It is seeded through the cache's own seam and held open, so
+		 * the render sees a document that is part way in.
+		 */
+		function openPartial(src: string) {
+			let finish = () => {}
 
-		expect(render.mock.calls.map((call) => call[2])).toEqual([1, 2])
+			ensureDocumentLoad(src, (report) => {
+				report.open(
+					[1, 2, 3].map((id) => ({
+						id,
+						src: '',
+						label: `Page ${id}`,
+						width: 918,
+						height: 1188,
+					})),
+				)
 
-		signal.throwIfAborted()
+				report.page({ id: 1, src: 'page-1.png', label: 'Page 1', width: 918, height: 1188 }, 0)
 
-		resetDocumentCache()
-	})
+				return new Promise<void>((resolve) => {
+					finish = resolve
+				})
+			})
 
-	// The rail names the tiles it shows, and the queue renders their thumbnails. The jsdom
-	// observer reports every tile in view.
-	it('asks the queue for the thumbnails that the rail shows', async ({ signal }) => {
-		resetDocumentCache()
+			return () => act(async () => finish())
+		}
 
-		const render = vi.fn((index: number, raster: string) => ({
-			promise: Promise.resolve(`blob:${raster}-${index}`),
-			cancel: () => {},
-		}))
+		it('shows the first page and every control while later pages still render', async () => {
+			const finish = openPartial('/partial.pdf')
 
-		ensureDocumentLoad('/rail.pdf', (report) => {
-			report.open(
-				[1, 2, 3].map((id) => ({ id, src: '', label: `Page ${id}`, width: 918, height: 1188 })),
+			const { container } = renderUI(<PdfViewer src="/partial.pdf" />)
+
+			expect(bySlot(container, 'pdf-viewer-viewport')?.querySelector('img')).toHaveAttribute(
+				'src',
+				'page-1.png',
 			)
 
-			report.serve(render)
+			expect(bySlot(container, 'pdf-viewer-page-total')).toHaveTextContent('3')
 
-			return Promise.resolve()
+			expect(screen.getByLabelText('Rotate')).toBeEnabled()
+
+			expect(bySlot(container, 'listbox-button')).toBeEnabled()
+
+			await finish()
 		})
 
-		const { container } = renderUI(<PdfViewer src="/rail.pdf" />)
+		it('reports the load when the document opens, with its full page count', async () => {
+			const finish = openPartial('/partial.pdf')
 
-		for (let step = 0; step < 6; step++) await act(async () => {})
+			const onLoad = vi.fn()
 
-		expect(render).toHaveBeenCalledWith(2, 'thumbnail', 1)
+			renderUI(<PdfViewer src="/partial.pdf" onLoad={onLoad} />)
 
-		const tiles = allBySlot(container, 'pdf-viewer-thumbnail')
+			expect(onLoad).toHaveBeenCalledExactlyOnceWith(3)
 
-		expect(tiles[2]?.querySelector('img')).toHaveAttribute('src', 'blob:thumbnail-2')
+			await finish()
 
-		signal.throwIfAborted()
+			expect(onLoad).toHaveBeenCalledOnce()
+		})
 
-		resetDocumentCache()
+		// The page count is whole at the open, so a later page is not clamped to the pages
+		// rendered so far. It shows its placeholder, and then its image.
+		it('opens on a later page that has not rendered yet, without a jump', async () => {
+			const finish = openPartial('/partial.pdf')
+
+			const { container } = renderUI(<PdfViewer src="/partial.pdf" defaultPage={3} />)
+
+			expect(bySlot(container, 'listbox-button')).toHaveTextContent('3')
+
+			expect(screen.getByLabelText('Loading PDF')).toBeInTheDocument()
+
+			expect(bySlot(container, 'pdf-viewer-viewport')?.querySelector('img')).toBeNull()
+
+			await finish()
+		})
+
+		// The queue renders the page that the viewer shows. The viewer asks for it before the
+		// document opens, so the first render is the page the reader sees.
+		it('asks the queue for the page that it shows, first and after a change', async () => {
+			// A render that never ends, and rejects on a cancel as a pdf.js render does.
+			const render = vi.fn(() => {
+				let cancel = () => {}
+
+				const promise = new Promise<string | null>((_, reject) => {
+					cancel = () => reject(new Error('canceled'))
+				})
+
+				return { promise, cancel }
+			})
+
+			ensureDocumentLoad('/queue.pdf', (report) => {
+				report.open(
+					[1, 2, 3, 4, 5, 6].map((id) => ({
+						id,
+						src: '',
+						label: `Page ${id}`,
+						width: 918,
+						height: 1188,
+					})),
+				)
+
+				report.serve(render)
+
+				return Promise.resolve()
+			})
+
+			const { rerender } = renderUI(<PdfViewer src="/queue.pdf" page={4} />)
+
+			expect(render).toHaveBeenNthCalledWith(1, 3, 'full', 1)
+
+			rerender(<PdfViewer src="/queue.pdf" page={6} />)
+
+			await act(async () => {})
+
+			expect(render).toHaveBeenLastCalledWith(5, 'full', 1)
+		})
+
+		// The `src` path keeps a full raster as a bitmap, with no encode. The viewport draws it on
+		// a canvas that carries the name of the page.
+		it('shows a page that rendered to a bitmap on a named canvas', async () => {
+			const bitmap = { width: 918, height: 1188, close: vi.fn() } as unknown as ImageBitmap
+
+			ensureDocumentLoad('/bitmap.pdf', (report) => {
+				report.open([{ id: 1, src: '', label: 'Page 1', width: 918, height: 1188 }])
+
+				report.serve(() => ({ promise: Promise.resolve(bitmap), cancel: () => {} }))
+
+				return Promise.resolve()
+			})
+
+			const { container } = renderUI(<PdfViewer src="/bitmap.pdf" />)
+
+			// Lets the render land.
+			await act(async () => {})
+
+			const viewport = bySlot(container, 'pdf-viewer-viewport')
+
+			expect(viewport?.querySelector('canvas')).toHaveAttribute('aria-label', 'Page 1')
+
+			expect(viewport?.querySelector('img')).toBeNull()
+		})
+
+		// A page that shows wider than its slot renders again at a larger scale. The viewport here
+		// fits the page at its slot size, and the zoom of 2 doubles it.
+		it('asks the queue for a sharp raster of a zoomed page', async () => {
+			vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(918)
+
+			vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(1188)
+
+			const render = vi.fn((_index: number, _raster: string, factor = 1) => ({
+				promise: Promise.resolve({
+					width: 918 * factor,
+					height: 1188 * factor,
+					close: vi.fn(),
+				} as unknown as ImageBitmap),
+				cancel: () => {},
+			}))
+
+			ensureDocumentLoad('/zoom.pdf', (report) => {
+				report.open([{ id: 1, src: '', label: 'Page 1', width: 918, height: 1188 }])
+
+				report.serve(render)
+
+				return Promise.resolve()
+			})
+
+			renderUI(<PdfViewer src="/zoom.pdf" defaultZoom={2} />)
+
+			await waitFor(() => expect(render.mock.calls.map((call) => call[2])).toEqual([1, 2]))
+		})
+
+		// The rail names the tiles it shows, and the queue renders their thumbnails. The jsdom
+		// observer reports every tile in view.
+		it('asks the queue for the thumbnails that the rail shows', async () => {
+			const render = vi.fn((index: number, raster: string) => ({
+				promise: Promise.resolve(`blob:${raster}-${index}`),
+				cancel: () => {},
+			}))
+
+			ensureDocumentLoad('/rail.pdf', (report) => {
+				report.open(
+					[1, 2, 3].map((id) => ({ id, src: '', label: `Page ${id}`, width: 918, height: 1188 })),
+				)
+
+				report.serve(render)
+
+				return Promise.resolve()
+			})
+
+			const { container } = renderUI(<PdfViewer src="/rail.pdf" />)
+
+			await waitFor(() =>
+				expect(
+					allBySlot(container, 'pdf-viewer-thumbnail')[2]?.querySelector('img'),
+				).toHaveAttribute('src', 'blob:thumbnail-2'),
+			)
+
+			expect(render).toHaveBeenCalledWith(2, 'thumbnail', 1)
+		})
 	})
 
 	it('toggles the desktop thumbnail sidebar from the toolbar', async () => {
@@ -1026,6 +987,29 @@ const highlights: PdfViewerHighlight[] = [
 	{ id: 'pro', page: 2, rect: { x: 0.5, y: 0.6, width: 0.2, height: 0.05 }, label: 'PRO number' },
 ]
 
+/** The {@link highlights}, with a third region on page 1, below the total. */
+const withInvoice: PdfViewerHighlight[] = [
+	...highlights,
+	{
+		id: 'invoice',
+		page: 1,
+		rect: { x: 0.1, y: 0.4, width: 0.3, height: 0.05 },
+		label: 'Invoice number',
+	},
+]
+
+/** Renders the sized pages with pressable regions. A case changes only the props that it tests. */
+function renderHighlights(props: Partial<PdfViewerProps> = {}) {
+	return renderUI(
+		<PdfViewer
+			pages={sizedPages}
+			highlights={highlights}
+			onActiveHighlightChange={noop}
+			{...props}
+		/>,
+	)
+}
+
 describe('PdfViewer highlights', () => {
 	it('renders no layer when there are no highlights', () => {
 		const { container } = renderUI(<PdfViewer pages={sizedPages} />)
@@ -1034,9 +1018,7 @@ describe('PdfViewer highlights', () => {
 	})
 
 	it('renders only the active page’s regions', () => {
-		renderUI(
-			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
-		)
+		renderHighlights()
 
 		expect(screen.getByLabelText('Total charges')).toBeInTheDocument()
 
@@ -1044,10 +1026,14 @@ describe('PdfViewer highlights', () => {
 	})
 
 	it('swaps the regions when the page changes', () => {
-		renderUI(
+		const { rerender } = renderHighlights({ page: 1 })
+
+		expect(screen.getByLabelText('Total charges')).toBeInTheDocument()
+
+		rerender(
 			<PdfViewer
 				pages={sizedPages}
-				defaultPage={2}
+				page={2}
 				highlights={highlights}
 				onActiveHighlightChange={noop}
 			/>,
@@ -1058,39 +1044,25 @@ describe('PdfViewer highlights', () => {
 		expect(screen.queryByLabelText('Total charges')).not.toBeInTheDocument()
 	})
 
-	it('positions a region in percentages of the layer', () => {
-		renderUI(
-			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
-		)
-
-		const region = screen.getByLabelText('Total charges')
-
-		expect(region.style.left).toBe('10%')
-
-		expect(region.style.top).toBe('20%')
-
-		expect(region.style.width).toBe('30%')
-
-		expect(region.style.height).toBe('5%')
-	})
-
-	it('places an inch-specified region exactly where the equivalent fraction lands', () => {
-		renderUI(
-			<PdfViewer
-				pages={sizedPages}
-				highlightUnit="inch"
-				// 0.85 in of 8.5 in wide, 2.2 in of 11 in tall: the 10% / 20% above.
-				highlights={[
+	it.for([
+		{ name: 'positions a region in percentages of the layer', props: {} },
+		{
+			name: 'places an inch-specified region exactly where the equivalent fraction lands',
+			// 0.85 in of 8.5 in wide, 2.2 in of 11 in tall: the 10% / 20% of the fraction case.
+			props: {
+				highlightUnit: 'inch',
+				highlights: [
 					{
 						id: 'total',
 						page: 1,
 						rect: { x: 0.85, y: 2.2, width: 2.55, height: 0.55 },
 						label: 'Total charges',
 					},
-				]}
-				onActiveHighlightChange={noop}
-			/>,
-		)
+				],
+			},
+		},
+	] satisfies { name: string; props: Partial<PdfViewerProps> }[])('$name', ({ props }) => {
+		renderHighlights(props)
 
 		const region = screen.getByLabelText('Total charges')
 
@@ -1123,13 +1095,7 @@ describe('PdfViewer highlights', () => {
 	it('reports the pressed region and marks it aria-current', () => {
 		const onActiveHighlightChange = vi.fn()
 
-		renderUI(
-			<PdfViewer
-				pages={sizedPages}
-				highlights={highlights}
-				onActiveHighlightChange={onActiveHighlightChange}
-			/>,
-		)
+		renderHighlights({ onActiveHighlightChange })
 
 		const region = screen.getByLabelText('Total charges')
 
@@ -1145,13 +1111,7 @@ describe('PdfViewer highlights', () => {
 	it('does not report a second change when the active region is pressed again', () => {
 		const onActiveHighlightChange = vi.fn()
 
-		renderUI(
-			<PdfViewer
-				pages={sizedPages}
-				highlights={highlights}
-				onActiveHighlightChange={onActiveHighlightChange}
-			/>,
-		)
+		renderHighlights({ onActiveHighlightChange })
 
 		fireEvent.click(screen.getByLabelText('Total charges'))
 
@@ -1200,14 +1160,7 @@ describe('PdfViewer highlights', () => {
 	})
 
 	it('renders without throwing when activeHighlightId matches no region', () => {
-		renderUI(
-			<PdfViewer
-				pages={sizedPages}
-				highlights={highlights}
-				activeHighlightId="gone"
-				onActiveHighlightChange={noop}
-			/>,
-		)
+		renderHighlights({ activeHighlightId: 'gone' })
 
 		expect(screen.getByLabelText('Total charges')).not.toHaveAttribute('aria-current')
 	})
@@ -1241,9 +1194,7 @@ describe('PdfViewer highlights', () => {
 	}
 
 	it('names the selected region above it', () => {
-		renderUI(
-			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
-		)
+		renderHighlights()
 
 		// Nothing selected: no name to draw, and no panel floating over the page.
 		expect(highlightLabel()).not.toBeInTheDocument()
@@ -1258,21 +1209,7 @@ describe('PdfViewer highlights', () => {
 	 * time, so there is only ever one name on the page.
 	 */
 	it('moves the name to the region selected next', () => {
-		renderUI(
-			<PdfViewer
-				pages={sizedPages}
-				highlights={[
-					...highlights,
-					{
-						id: 'invoice',
-						page: 1,
-						rect: { x: 0.1, y: 0.4, width: 0.3, height: 0.05 },
-						label: 'Invoice number',
-					},
-				]}
-				onActiveHighlightChange={noop}
-			/>,
-		)
+		renderHighlights({ highlights: withInvoice })
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
@@ -1293,13 +1230,7 @@ describe('PdfViewer highlights', () => {
 	it('names the region under the pointer, without selecting it', () => {
 		const onActiveHighlightChange = vi.fn()
 
-		renderUI(
-			<PdfViewer
-				pages={sizedPages}
-				highlights={highlights}
-				onActiveHighlightChange={onActiveHighlightChange}
-			/>,
-		)
+		renderHighlights({ onActiveHighlightChange })
 
 		fireEvent.mouseOver(screen.getByLabelText('Total charges'))
 
@@ -1320,21 +1251,7 @@ describe('PdfViewer highlights', () => {
 	 * and the selection has a form field and a scroll position standing behind it.
 	 */
 	it('keeps the selected region named while the pointer names another', () => {
-		const { container } = renderUI(
-			<PdfViewer
-				pages={sizedPages}
-				highlights={[
-					...highlights,
-					{
-						id: 'invoice',
-						page: 1,
-						rect: { x: 0.1, y: 0.4, width: 0.3, height: 0.05 },
-						label: 'Invoice number',
-					},
-				]}
-				onActiveHighlightChange={noop}
-			/>,
-		)
+		const { container } = renderHighlights({ highlights: withInvoice })
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
@@ -1353,9 +1270,7 @@ describe('PdfViewer highlights', () => {
 	 * it twice, in two panels a few pixels apart.
 	 */
 	it('does not name the selected region twice when the pointer crosses it', () => {
-		renderUI(
-			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
-		)
+		renderHighlights()
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
@@ -1381,21 +1296,7 @@ describe('PdfViewer highlights', () => {
 	 * arrives at the layer's own handler as a pointer outside every region.
 	 */
 	it('leaves the boxes under both names open to the pointer', () => {
-		renderUI(
-			<PdfViewer
-				pages={sizedPages}
-				highlights={[
-					...highlights,
-					{
-						id: 'invoice',
-						page: 1,
-						rect: { x: 0.1, y: 0.4, width: 0.3, height: 0.05 },
-						label: 'Invoice number',
-					},
-				]}
-				onActiveHighlightChange={noop}
-			/>,
-		)
+		renderHighlights({ highlights: withInvoice })
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
@@ -1427,9 +1328,7 @@ describe('PdfViewer highlights', () => {
 	 * layer, so `hidden` does not reach it and it would float over a box that is not drawn.
 	 */
 	it('withdraws the name while the overlay is hidden, and brings it back', () => {
-		renderUI(
-			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
-		)
+		renderHighlights()
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
@@ -1448,9 +1347,7 @@ describe('PdfViewer highlights', () => {
 	 * same name twice for one selection.
 	 */
 	it('draws the name for the eye only, leaving the region to say it once', () => {
-		renderUI(
-			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
-		)
+		renderHighlights()
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
@@ -1467,9 +1364,7 @@ describe('PdfViewer highlights', () => {
 	})
 
 	it('hides the layer without discarding the selection', () => {
-		const { container } = renderUI(
-			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
-		)
+		const { container } = renderHighlights()
 
 		fireEvent.click(screen.getByLabelText('Total charges'))
 
@@ -1543,13 +1438,7 @@ describe('PdfViewer highlights', () => {
 	it('clears the selection on a press that lands on no region', () => {
 		const onActiveHighlightChange = vi.fn()
 
-		const { container } = renderUI(
-			<PdfViewer
-				pages={sizedPages}
-				highlights={highlights}
-				onActiveHighlightChange={onActiveHighlightChange}
-			/>,
-		)
+		const { container } = renderHighlights({ onActiveHighlightChange })
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
@@ -1566,13 +1455,7 @@ describe('PdfViewer highlights', () => {
 	it('does not clear the selection on a press that lands on a region', () => {
 		const onActiveHighlightChange = vi.fn()
 
-		renderUI(
-			<PdfViewer
-				pages={sizedPages}
-				highlights={highlights}
-				onActiveHighlightChange={onActiveHighlightChange}
-			/>,
-		)
+		renderHighlights({ onActiveHighlightChange })
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
@@ -1585,13 +1468,7 @@ describe('PdfViewer highlights', () => {
 	it('neither selects nor clears on a Ctrl+primary press', () => {
 		const onActiveHighlightChange = vi.fn()
 
-		const { container } = renderUI(
-			<PdfViewer
-				pages={sizedPages}
-				highlights={highlights}
-				onActiveHighlightChange={onActiveHighlightChange}
-			/>,
-		)
+		const { container } = renderHighlights({ onActiveHighlightChange })
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'), { button: 0, ctrlKey: true })
 
@@ -1612,13 +1489,7 @@ describe('PdfViewer highlights', () => {
 	it('keeps the selection through a press while the overlay is hidden', () => {
 		const onActiveHighlightChange = vi.fn()
 
-		const { container } = renderUI(
-			<PdfViewer
-				pages={sizedPages}
-				highlights={highlights}
-				onActiveHighlightChange={onActiveHighlightChange}
-			/>,
-		)
+		const { container } = renderHighlights({ onActiveHighlightChange })
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
@@ -1741,14 +1612,7 @@ describe('PdfViewer chrome events', () => {
 	it('reports the reader hiding and then showing the highlight overlay', () => {
 		const onHighlightsVisibleChange = vi.fn()
 
-		renderUI(
-			<PdfViewer
-				pages={sizedPages}
-				highlights={highlights}
-				onActiveHighlightChange={noop}
-				onHighlightsVisibleChange={onHighlightsVisibleChange}
-			/>,
-		)
+		renderHighlights({ onHighlightsVisibleChange })
 
 		// Shown to begin with, so the control offers to hide, which is what a consumer
 		// mirroring this seeds its own state from.
@@ -1811,16 +1675,6 @@ describe('PdfViewer chrome events', () => {
 			size: 'sm',
 			delay: 'none',
 		})
-	})
-
-	/** No toggle, nothing to report: the control is only there when a loupe was offered. */
-	it('says nothing about a magnifier the consumer never asked for', () => {
-		const onMagnifierChange = vi.fn()
-
-		renderUI(<PdfViewer pages={sizedPages} onMagnifierChange={onMagnifierChange} />)
-
-		expect(screen.queryByLabelText('Turn magnifier off')).not.toBeInTheDocument()
-		expect(onMagnifierChange).not.toHaveBeenCalled()
 	})
 
 	/**

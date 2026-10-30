@@ -1,8 +1,8 @@
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Sparkline, SparklineSkeleton } from '../../components/sparkline'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { bySlot, getSlot, readDensityStep, renderUI } from '../helpers'
+import { expectInlineSkeleton } from '../helpers/inline-skeleton'
 
 describe('Sparkline', () => {
 	it('renders a role="img" wrapper carrying the accessible name over a hidden SVG', () => {
@@ -211,25 +211,9 @@ describe('Sparkline density', () => {
 		expect(pinned).toHaveAttribute('width', '120')
 	})
 
-	/*
-	 * A sparkline can sit in a line of text, so its skeleton has to be able to as well. Parsed back
-	 * from server markup, the way a browser meets it: a `div` inside a `<p>` makes the parser
-	 * close the paragraph there, and the tree it hydrates no longer matches.
-	 */
+	// A sparkline can sit in a line of text, so its skeleton must also fit there.
 	it('has a skeleton that stands in inside a paragraph, as server markup and inline', () => {
-		const container = document.createElement('div')
-
-		container.innerHTML = renderToString(
-			<p>
-				Revenue <SparklineSkeleton size="sm" />
-			</p>,
-		)
-
-		const skeleton = getSlot(container, 'placeholder')
-
-		expect(skeleton.tagName).toBe('SPAN')
-
-		expect(skeleton.parentElement?.tagName).toBe('P')
+		const skeleton = expectInlineSkeleton(<SparklineSkeleton size="sm" />)
 
 		expect(skeleton).toHaveClass('inline-block', 'align-middle')
 
