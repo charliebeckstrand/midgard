@@ -156,18 +156,17 @@ describe('Grid static row stop under virtualization', () => {
 			}),
 		).result.current
 
-	it('gives a row with only a double-click handler a Tab stop', () => {
+	it.for([
 		// Enter or Space on the row fires the double-click, so Tab must reach the row.
-		expect(roving({ onRowClick: false, onRowDoubleClick: true }).rowStaticStop).toBe(true)
-	})
-
-	it('gives a row with a click handler a Tab stop', () => {
-		expect(roving({ onRowClick: true, onRowDoubleClick: false }).rowStaticStop).toBe(true)
-	})
-
-	it('gives a row with no row handler no Tab stop', () => {
-		expect(roving({ onRowClick: false, onRowDoubleClick: false }).rowStaticStop).toBe(false)
-	})
+		['only a double-click handler', false, true, true],
+		['a click handler', true, false, true],
+		['no row handler', false, false, false],
+	] as const)(
+		'sets the Tab stop of a row with %s',
+		([_name, onRowClick, onRowDoubleClick, stop]) => {
+			expect(roving({ onRowClick, onRowDoubleClick }).rowStaticStop).toBe(stop)
+		},
+	)
 })
 
 describe('Grid cell roving', () => {

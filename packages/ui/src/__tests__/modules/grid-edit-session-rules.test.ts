@@ -1,5 +1,5 @@
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	interactionPlace,
 	reseatFlagged,
@@ -8,32 +8,23 @@ import {
 } from '../../modules/grid/engine/grid-edit-focus'
 import { claimedBySurface, editorMove, ownNode } from '../../modules/grid/engine/grid-edit-keys'
 import { readLeave } from '../../modules/grid/engine/grid-edit-leave'
+import { attach, present } from '../helpers'
 
 /**
  * Mounts `html` in a new container on the page, and returns the container.
- * The cleanup below removes it.
+ * `attach` removes the container when the test finishes.
  */
 function mount(html: string): HTMLElement {
-	const host = document.createElement('div')
+	const host = attach(document.createElement('div'))
 
 	host.innerHTML = html
-
-	document.body.append(host)
 
 	return host
 }
 
-afterEach(() => {
-	document.body.replaceChildren()
-})
-
 /** The element of `host` that `selector` names. */
 function at<E extends Element = HTMLElement>(host: ParentNode, selector: string): E {
-	const node = host.querySelector<E>(selector)
-
-	if (!node) throw new Error(`no ${selector}`)
-
-	return node
+	return present<E>(host.querySelector(selector), selector)
 }
 
 /** A key press on `target`, as the table's key handler reads it. */

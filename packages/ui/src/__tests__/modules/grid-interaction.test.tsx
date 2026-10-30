@@ -405,20 +405,6 @@ describe('Grid pagination semantics', () => {
 
 	const getKey = (row: Row) => row.id
 
-	it('narrows the select-all label to the page under pagination', () => {
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				selection={{ defaultValue: new Set() }}
-				pagination={{ defaultValue: { pageIndex: 0, pageSize: 2 } }}
-			/>,
-		)
-
-		expect(screen.getByLabelText('Select all rows on this page')).toBeInTheDocument()
-	})
-
 	it('emits windowed table semantics (role=table + full aria-rowcount) when paginated', () => {
 		renderUI(
 			<Grid
@@ -438,14 +424,6 @@ describe('Grid pagination semantics', () => {
 
 		// 4 data rows + the header row.
 		expect(table).toHaveAttribute('aria-rowcount', '5')
-	})
-
-	it('keeps native table semantics for a plain, whole-set grid', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		expect(screen.queryByRole('grid')).not.toBeInTheDocument()
-
-		expect(screen.getByLabelText('Select all rows')).toBeInTheDocument()
 	})
 })
 

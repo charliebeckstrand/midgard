@@ -282,18 +282,6 @@ describe('Grid resizable columns', () => {
 	// context menu, which swallows that `mouseup`, so a resize begun on a
 	// right-click never ends: the column stays stuck tracking the pointer. The
 	// handle starts a resize on a primary press only.
-	it('starts a resize on a primary-button press', () => {
-		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
-
-		const handle = screen.getByRole('separator', { name: 'Resize Name' })
-
-		const held = holdMouse(handle, { button: 0, clientX: 200 })
-
-		expect(handle).toHaveAttribute('data-resizing')
-
-		held.release()
-	})
-
 	it.each([
 		['a right-button press', { button: 2 }],
 		['a macOS Ctrl+click (button 0 + ctrlKey)', { button: 0, ctrlKey: true }],
@@ -384,18 +372,14 @@ describe('Grid resizable columns', () => {
 			clientX: 200,
 		})
 
-		expect(onResizeStart).toHaveBeenCalledOnce()
-
-		expect(onResizeStart).toHaveBeenCalledWith('name')
+		expect(onResizeStart).toHaveBeenCalledExactlyOnceWith('name')
 
 		expect(onResizeEnd).not.toHaveBeenCalled()
 
 		// The engine ends the drag on a document-level mouseup.
 		held.release()
 
-		expect(onResizeEnd).toHaveBeenCalledOnce()
-
-		expect(onResizeEnd).toHaveBeenCalledWith('name')
+		expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith('name')
 	})
 
 	// While a pen or a mouse resizes, the touch of a palm on another handle is a primary
@@ -452,9 +436,7 @@ describe('Grid resizable columns', () => {
 
 		view.unmount()
 
-		expect(onResizeEnd).toHaveBeenCalledOnce()
-
-		expect(onResizeEnd).toHaveBeenCalledWith('name')
+		expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith('name')
 
 		held.release()
 

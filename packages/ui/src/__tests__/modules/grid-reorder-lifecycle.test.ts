@@ -51,13 +51,9 @@ describe('Grid column reorder lifecycle', () => {
 			} as DragEndEvent)
 		})
 
-		expect(onReorderStart).toHaveBeenCalledOnce()
+		expect(onReorderStart).toHaveBeenCalledExactlyOnceWith('name')
 
-		expect(onReorderStart).toHaveBeenCalledWith('name')
-
-		expect(onReorderEnd).toHaveBeenCalledOnce()
-
-		expect(onReorderEnd).toHaveBeenCalledWith('name')
+		expect(onReorderEnd).toHaveBeenCalledExactlyOnceWith('name')
 	})
 })
 
@@ -97,12 +93,8 @@ describe('Grid row reorder lifecycle', () => {
 			result.current.dndContextProps.onDragCancel()
 		})
 
-		expect(onReorderStart).toHaveBeenCalledOnce()
+		expect(onReorderStart).toHaveBeenCalledExactlyOnceWith('Bob')
 
-		expect(onReorderStart).toHaveBeenCalledWith('Bob')
-
-		expect(onReorderEnd).toHaveBeenCalledOnce()
-
-		expect(onReorderEnd).toHaveBeenCalledWith('Bob')
+		expect(onReorderEnd).toHaveBeenCalledExactlyOnceWith('Bob')
 	})
 })

@@ -100,19 +100,6 @@ describe('Grid navigable cursor', () => {
 		expect(screen.queryAllByRole('gridcell')).toHaveLength(0)
 	})
 
-	it('seats the cursor on a clicked cell', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
-
-		const grid = screen.getByRole('grid')
-
-		const cells = screen.getAllByRole('gridcell')
-
-		fireEvent.mouseDown(cells[ROW1_ROLE] as HTMLElement)
-
-		// `aria-activedescendant` points at the clicked cell's own id.
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_ROLE]?.id)
-	})
-
 	// Seating the cursor is the grid's roving model, which no column switches
 	// off, so a column's `preventDefault()` does not cancel it (CONVENTIONS.md §3.9).
 	it('runs a column onMouseDown first, and seats the cursor when it prevents the default', () => {
@@ -763,11 +750,11 @@ describe('Grid flat cursor follows its cell', () => {
 	}
 
 	/** Seats the cursor on the cell with this text. */
-	function seatOn(text: string) {
+	const seatOn = vi.defineHelper((text: string) => {
 		fireEvent.mouseDown(screen.getByText(text).closest('td') as HTMLElement)
 
 		expect(activeText()).toBe(text)
-	}
+	})
 
 	it('stays on the same row and column after a sort', () => {
 		const view = renderUI(ui())

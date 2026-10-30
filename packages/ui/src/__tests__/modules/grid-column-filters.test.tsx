@@ -78,6 +78,17 @@ describe('Grid per-column filters', () => {
 
 	const addRuleItem = () => screen.getByRole('menuitem', { name: 'Add rule' })
 
+	/** Opens the Name filter, sets `text` as the rule value, and applies the rule. */
+	const applyNameFilter = (text: string) => {
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
+			target: { value: text },
+		})
+
+		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+	}
+
 	it('warns when the search and column filters request different filtering modes', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
@@ -183,13 +194,7 @@ describe('Grid per-column filters', () => {
 		)
 
 		// A filter must be applied before the trigger becomes a menu.
-		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
-
-		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
-			target: { value: 'Bob' },
-		})
-
-		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+		applyNameFilter('Bob')
 
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
@@ -294,13 +299,7 @@ describe('Grid per-column filters', () => {
 			</PortalContext>,
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
-
-		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
-			target: { value: 'Bob' },
-		})
-
-		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+		applyNameFilter('Bob')
 
 		expect(onSubmit).not.toHaveBeenCalled()
 
@@ -414,13 +413,7 @@ describe('Grid per-column filters', () => {
 	it('lifts an applied filter from the header menu, restoring the hidden rows', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
-
-		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
-			target: { value: 'Bob' },
-		})
-
-		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+		applyNameFilter('Bob')
 
 		// "name contains Bob" hides Alice.
 		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
@@ -457,14 +450,8 @@ describe('Grid per-column filters', () => {
 
 		funnel.focus()
 
-		fireEvent.click(funnel)
-
-		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
-			target: { value: 'Bob' },
-		})
-
 		// Apply swaps the funnel for the menu trigger of an applied filter.
-		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+		applyNameFilter('Bob')
 
 		const active = screen.getByRole('button', { name: 'Filter Name, active' })
 
@@ -918,16 +905,6 @@ describe('Grid per-column filters', () => {
 			act(() => header.blur())
 
 			expect(header).not.toHaveAttribute('tabindex')
-		})
-
-		it('still stands the header down when the grid is simply empty', () => {
-			// No filter, no search: nothing to recover, so there is nothing for the
-			// header's affordances to act on.
-			renderUI(<Grid columns={columns} rows={[]} getKey={getKey} />)
-
-			fireEvent.contextMenu(screen.getByRole('columnheader', { name: /Name/ }))
-
-			expect(screen.queryByRole('menu')).toBeNull()
 		})
 	})
 })

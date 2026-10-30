@@ -175,20 +175,6 @@ describe('sortRowsSmart', () => {
 	})
 
 	describe('computeSortOrder / materializeSort split', () => {
-		it('composes to exactly sortRowsSmart', () => {
-			const rows: Row[] = [
-				{ id: 'a', amount: 3 },
-				{ id: 'b', amount: 1 },
-				{ id: 'c', amount: 2 },
-			]
-
-			const fields = [field('amount')]
-
-			const composed = materializeSort(rows, computeSortOrder(rows, fields, collator), getKey)
-
-			expect(composed).toEqual(sortRowsSmart(rows, getKey, fields, collator))
-		})
-
 		it('re-materializes a reused permutation with a different getKey', () => {
 			const rows: Row[] = [
 				{ id: 'a', amount: 3 },

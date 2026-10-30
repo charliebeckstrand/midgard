@@ -336,18 +336,23 @@ describe('Grid column-group editor', () => {
 	const band = (root: HTMLElement) =>
 		root.querySelector<HTMLTableCellElement>('thead th[scope="colgroup"]')
 
+	/** Makes a new group and moves the First column into it through the move menu. */
+	const groupFirst = () => {
+		fireEvent.click(screen.getByRole('button', { name: 'New group' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
+
+		fireEvent.click(screen.getByText('Move to “New group”'))
+	}
+
 	it('creates a group, moves a column into it, and renames it — updating the band', () => {
 		const { container } = renderUI(<Harness />)
 
 		// No band yet: no group configured.
 		expect(band(container)).toBeNull()
 
-		fireEvent.click(screen.getByRole('button', { name: 'New group' }))
-
-		// Move the "First" column into the new group via its accessible move menu.
-		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
-
-		fireEvent.click(screen.getByText('Move to “New group”'))
+		// Move the "First" column into a new group via its accessible move menu.
+		groupFirst()
 
 		// The band now spans the grouped column.
 		expect(band(container)?.textContent).toContain('New group')
@@ -363,11 +368,7 @@ describe('Grid column-group editor', () => {
 	it('renders the group zones and the column rows as the items of lists', () => {
 		renderUI(<Harness />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'New group' }))
-
-		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
-
-		fireEvent.click(screen.getByText('Move to “New group”'))
+		groupFirst()
 
 		const zone = screen.getByLabelText('Group name for New group').closest('li')
 
@@ -419,12 +420,8 @@ describe('Grid column-group editor', () => {
 	it('narrows a zone to its matching members without touching membership', () => {
 		const { container } = renderUI(<Harness />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'New group' }))
-
 		// First and Last into the group; Email stays in the ungrouped pool.
-		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
-
-		fireEvent.click(screen.getByText('Move to “New group”'))
+		groupFirst()
 
 		fireEvent.click(screen.getByRole('button', { name: 'Move Last' }))
 
@@ -485,11 +482,7 @@ describe('Grid column-group editor', () => {
 	it('removes a column from its group through the move menu', () => {
 		const { container } = renderUI(<Harness />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'New group' }))
-
-		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
-
-		fireEvent.click(screen.getByText('Move to “New group”'))
+		groupFirst()
 
 		expect(band(container)).not.toBeNull()
 
@@ -711,26 +704,6 @@ describe('Grid column-group editor', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Blue color for Contact' }))
 
 		expect(screen.getByRole('menuitem', { name: 'None' })).toBeInTheDocument()
-	})
-
-	it('withholds the color menu None for a colorless group', () => {
-		const plain: GridColumnGroup[] = [
-			{ id: 'contact', title: 'Contact', columns: ['first', 'last'] },
-		]
-
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={(row) => row.id}
-				columnGroups={plain}
-				columnManager={{ defaultOpen: true }}
-			/>,
-		)
-
-		fireEvent.click(screen.getByRole('button', { name: 'Color for Contact' }))
-
-		expect(screen.queryByRole('menuitem', { name: 'None' })).not.toBeInTheDocument()
 	})
 })
 

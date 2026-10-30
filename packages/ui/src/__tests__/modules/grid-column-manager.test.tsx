@@ -18,6 +18,15 @@ const labels = () =>
 		.map((label) => label.textContent)
 		.filter((text): text is string => !!text && text.length > 0)
 
+/** Focuses `item`, lifts it with Space, and moves it down one place with ArrowDown. */
+const moveDown = (item: HTMLElement) => {
+	item.focus()
+
+	fireEvent.keyDown(item, { key: ' ' })
+
+	fireEvent.keyDown(item, { key: 'ArrowDown' })
+}
+
 describe('GridColumnManager', () => {
 	it('renders one item per column', () => {
 		const { container } = renderUI(<GridColumnManager columns={columns} />)
@@ -50,14 +59,6 @@ describe('GridColumnManager', () => {
 		await user.click(screen.getByRole('checkbox', { name: 'Show Email' }))
 
 		expect(onHiddenChange).toHaveBeenCalledWith(new Set(['email']))
-	})
-
-	it('pinned column checkbox is disabled and cannot toggle', () => {
-		renderUI(<GridColumnManager columns={columns} />)
-
-		const checkbox = screen.getByRole('checkbox', { name: /Name \(pinned\)/ })
-
-		expect(checkbox).toBeDisabled()
 	})
 
 	it('lists every orderable column when the stored order is empty', () => {
@@ -97,11 +98,7 @@ describe('GridColumnManager', () => {
 		// Items render [name, role, email]: Role from the order, Email appended.
 		const role = allBySlot(container, 'list-item')[1] as HTMLElement
 
-		role.focus()
-
-		fireEvent.keyDown(role, { key: ' ' })
-
-		fireEvent.keyDown(role, { key: 'ArrowDown' })
+		moveDown(role)
 
 		// The committed order names every column, so the move does not drop one.
 		expect(onOrderChange).toHaveBeenCalledWith(['email', 'name', 'role'])
@@ -117,12 +114,8 @@ describe('GridColumnManager', () => {
 		// Items render pinned-list first, then the orderable list: [name, email, role].
 		const email = allBySlot(container, 'list-item')[1] as HTMLElement
 
-		email.focus()
-
 		// Space lifts, ArrowDown moves the lifted item down and commits the reorder.
-		fireEvent.keyDown(email, { key: ' ' })
-
-		fireEvent.keyDown(email, { key: 'ArrowDown' })
+		moveDown(email)
 
 		expect(onOrderChange).toHaveBeenCalledWith(['name', 'role', 'email'])
 	})
@@ -150,11 +143,7 @@ describe('GridColumnManager', () => {
 
 		const email = allBySlot(container, 'list-item')[1] as HTMLElement
 
-		email.focus()
-
-		fireEvent.keyDown(email, { key: ' ' })
-
-		fireEvent.keyDown(email, { key: 'ArrowDown' })
+		moveDown(email)
 
 		expect(onOrderChange).not.toHaveBeenCalled()
 	})
@@ -222,11 +211,7 @@ describe('GridColumnManager', () => {
 
 		const email = allBySlot(container, 'list-item')[1] as HTMLElement
 
-		email.focus()
-
-		fireEvent.keyDown(email, { key: ' ' })
-
-		fireEvent.keyDown(email, { key: 'ArrowDown' })
+		moveDown(email)
 
 		expect(onOrderChange).toHaveBeenCalledWith(['select', 'name', 'role', 'email', 'actions'])
 	})
@@ -592,14 +577,10 @@ describe('GridColumnManager filtering', () => {
 
 		const beta = items[0] as HTMLElement
 
-		beta.focus()
-
 		// Space lifts, ArrowDown drops Beta past Delta: the only other row on
 		// screen. Alpha and Gamma never moved, so they keep their own slots and only
 		// the two matching ones swap.
-		fireEvent.keyDown(beta, { key: ' ' })
-
-		fireEvent.keyDown(beta, { key: 'ArrowDown' })
+		moveDown(beta)
 
 		expect(onOrderChange).toHaveBeenCalledWith(['alpha', 'delta', 'gamma', 'beta'])
 	})

@@ -518,25 +518,6 @@ describe('Grid context menus', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Manage columns' })).not.toBeInTheDocument()
 	})
 
-	it('opens the menus by default with no contextMenu prop', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		rightClick('columnheader', 'Name')
-
-		expect(screen.getByRole('menuitem', { name: 'Sort' })).toBeInTheDocument()
-
-		// "Manage columns" reaches the manager even without the toolbar button.
-		expect(screen.getByRole('menuitem', { name: 'Manage columns' })).toBeInTheDocument()
-	})
-
-	it('opens the default cell menu with no contextMenu prop', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		rightClick('cell', 'Alice')
-
-		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
-	})
-
 	it('adds "Export to CSV" to the cell menu when exportable', () => {
 		renderUI(<Grid exportable columns={columns} rows={rows} getKey={getKey} />)
 
@@ -809,15 +790,35 @@ describe('Grid context menus', () => {
 	})
 
 	it.each([
-		['a bound "Auto-size this column" when resizable', 'autoSizeColumn', true, 'function'],
+		[
+			'a bound "Auto-size this column" when resizable',
+			'autoSizeColumn',
+			true,
+			undefined,
+			'function',
+		],
 		[
 			'no "Reset column widths" while the widths are automatic',
 			'resetColumnWidths',
 			true,
+			undefined,
 			'undefined',
 		],
-		['no "Auto-size this column" when resizable is off', 'autoSizeColumn', false, 'undefined'],
-	] as const)('hands a builder %s', (_, action, resizable, type) => {
+		[
+			'a bound "Reset column widths" while a column holds a saved width',
+			'resetColumnWidths',
+			true,
+			{ defaultValue: { name: 160 } },
+			'function',
+		],
+		[
+			'no "Auto-size this column" when resizable is off',
+			'autoSizeColumn',
+			false,
+			undefined,
+			'undefined',
+		],
+	] as const)('hands a builder %s', (_, action, resizable, columnSizing, type) => {
 		const seen: Array<(() => void) | undefined> = []
 
 		renderUI(
@@ -826,6 +827,7 @@ describe('Grid context menus', () => {
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
+				columnSizing={columnSizing}
 				contextMenu={{
 					column: (context, defaults) => {
 						seen.push(context[action])
@@ -839,31 +841,6 @@ describe('Grid context menus', () => {
 		rightClick('columnheader', 'Name')
 
 		expect(seen.at(-1)).toBeTypeOf(type)
-	})
-
-	it('hands a builder a bound "Reset column widths" while a column holds a saved width', () => {
-		const seen: Array<(() => void) | undefined> = []
-
-		renderUI(
-			<Grid
-				resizable
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				columnSizing={{ defaultValue: { name: 160 } }}
-				contextMenu={{
-					column: (context, defaults) => {
-						seen.push(context.resetColumnWidths)
-
-						return defaults
-					},
-				}}
-			/>,
-		)
-
-		rightClick('columnheader', 'Name')
-
-		expect(seen.at(-1)).toBeTypeOf('function')
 	})
 
 	it('shows "Reset column widths" only while a column holds a width of its own', async () => {

@@ -183,6 +183,21 @@ describe('downloadCsv', () => {
 	})
 })
 
+/** Downloads a CSV through the toolbar and returns its text. */
+const exportCsv = async (ui: Parameters<typeof renderUI>[0]): Promise<string> => {
+	const download = captureDownload()
+
+	renderUI(ui)
+
+	fireEvent.click(screen.getByRole('button', { name: 'Export' }))
+
+	fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+	const blob = download.blob()
+
+	return blob.text()
+}
+
 describe('Grid export', () => {
 	type Row = { id: number; name: string; role: string }
 
@@ -439,9 +454,7 @@ describe('Grid export', () => {
 	})
 
 	it('exports only the selected rows when a selection is active', async () => {
-		const download = captureDownload()
-
-		renderUI(
+		const text = await exportCsv(
 			<Grid
 				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
@@ -450,14 +463,6 @@ describe('Grid export', () => {
 				selection={{ defaultValue: new Set([2]) }}
 			/>,
 		)
-
-		openExportMenu()
-
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
-
-		const blob = download.blob()
-
-		const text = await blob.text()
 
 		// Only Bob (id 2) is selected: the export keeps the header and drops the
 		// unselected Alice.
@@ -500,9 +505,7 @@ describe('Grid export', () => {
 	})
 
 	it('falls back to every row when the selection is empty', async () => {
-		const download = captureDownload()
-
-		renderUI(
+		const text = await exportCsv(
 			<Grid
 				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
@@ -511,14 +514,6 @@ describe('Grid export', () => {
 				selection={{ defaultValue: new Set<number>() }}
 			/>,
 		)
-
-		openExportMenu()
-
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
-
-		const blob = download.blob()
-
-		const text = await blob.text()
 
 		expect(text).toContain('Alice,Developer')
 
@@ -643,9 +638,7 @@ describe('Grid export', () => {
 	]
 
 	it('exports a synchronous exportRows list, not just the loaded page', async () => {
-		const download = captureDownload()
-
-		renderUI(
+		const text = await exportCsv(
 			<Grid
 				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
@@ -655,14 +648,6 @@ describe('Grid export', () => {
 				exportRows={() => allRows}
 			/>,
 		)
-
-		openExportMenu()
-
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
-
-		const blob = download.blob()
-
-		const text = await blob.text()
 
 		// Off-page rows the engine never held still make the export.
 		expect(text).toContain('Alice,Developer')
@@ -765,9 +750,7 @@ describe('Grid export', () => {
 	})
 
 	it('lets exportRows win over an active selection', async () => {
-		const download = captureDownload()
-
-		renderUI(
+		const text = await exportCsv(
 			<Grid
 				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
@@ -777,14 +760,6 @@ describe('Grid export', () => {
 				exportRows={() => allRows}
 			/>,
 		)
-
-		openExportMenu()
-
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
-
-		const blob = download.blob()
-
-		const text = await blob.text()
 
 		// Selecting Alice does not narrow the export: exportRows supplies them all.
 		expect(text).toContain('Alice,Developer')
@@ -811,9 +786,7 @@ describe('Grid export', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
-		expect(onExport).toHaveBeenCalledTimes(1)
-
-		expect(onExport.mock.calls[0]?.[0].rows).toEqual(allRows)
+		expect(onExport).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ rows: allRows }))
 	})
 
 	it('swallows a rejected exportRows with a dev-only warning, downloading nothing', async () => {
@@ -978,21 +951,6 @@ describe('Grid export under grouping', () => {
 	]
 
 	const getKey = (row: Row) => row.id
-
-	/** Downloads a CSV through the toolbar and returns its text. */
-	const exportCsv = async (ui: Parameters<typeof renderUI>[0]): Promise<string> => {
-		const download = captureDownload()
-
-		renderUI(ui)
-
-		fireEvent.click(screen.getByRole('button', { name: 'Export' }))
-
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
-
-		const blob = download.blob()
-
-		return blob.text()
-	}
 
 	it('exports every leaf, not one row per group', async () => {
 		// Client grouping runs before sorting, so the sorted row model is the

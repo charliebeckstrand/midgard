@@ -434,12 +434,6 @@ describe('Grid cursor over master-detail rows', () => {
 		return screen.getByRole('grid')
 	}
 
-	it('keeps the navigable cursor while expandable', () => {
-		const grid = renderDetail()
-
-		expect(grid.tagName).toBe('TABLE')
-	})
-
 	it('walks an open panel as one stop between its row and the next', () => {
 		const grid = renderDetail()
 

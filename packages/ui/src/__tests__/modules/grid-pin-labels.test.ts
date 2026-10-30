@@ -36,6 +36,8 @@ describe('pin labels', () => {
 	it('announces the physical edge', () => {
 		expect(describePin(intlEn, 'Name', 'left', false)).toBe('Pinned Name to the left')
 
+		expect(describePin(intlEn, 'Name', 'right', false)).toBe('Pinned Name to the right')
+
 		expect(describePin(intlEn, 'Name', 'left', true)).toBe('Pinned Name to the right')
 
 		expect(describePin(intlEn, 'Name', 'right', true)).toBe('Pinned Name to the left')

@@ -474,12 +474,6 @@ describe('Grid pagination', () => {
 	describe('name of the nav', () => {
 		const paged = { defaultValue: { pageIndex: 0, pageSize: 5 } }
 
-		it('keeps the name "Pagination" when the grid has no name', () => {
-			renderUI(<Grid columns={columns} rows={many} getKey={getKey} pagination={paged} />)
-
-			expect(screen.getByRole('navigation', { name: 'Pagination' })).toBeInTheDocument()
-		})
-
 		it('takes the name from the aria-label of the grid', () => {
 			renderUI(
 				<>

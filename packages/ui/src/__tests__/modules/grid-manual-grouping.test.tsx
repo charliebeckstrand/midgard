@@ -458,10 +458,6 @@ describe('Grid manual (server-side) row grouping', () => {
 
 		expect(screen.queryByRole('textbox')).toBeNull()
 
-		expect(warn).toHaveBeenCalledOnce()
-
-		expect(warn.mock.calls[0]?.[0]).toContain('manual')
-
-		warn.mockRestore()
+		expect(warn).toHaveBeenCalledExactlyOnceWith(expect.stringContaining('manual'))
 	})
 })

@@ -220,27 +220,12 @@ describe('Grid column pinning', () => {
 		expect(dataCell(container, 'email')?.style.insetInlineEnd).toBe('140px')
 	})
 
-	it('paints a pinned body cell with the surface fill, else the page ground', () => {
+	it('paints a pinned body cell and its header cell with the surface fill, else the page ground', () => {
 		// Regression: a fixed fill matched only one surface. A plain `bg.surface` read
 		// a shade off on the mobile page, and the content-host fill read a shade off
 		// in a mobile card. The cell now reads `--surface-fill` from the surface that
 		// holds it. With no surface, it falls back to the content host.
-		const columns: GridColumn<Row>[] = [
-			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
-			{ id: 'email', title: 'Email', cell: (row) => row.email },
-		]
-
-		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		const body = dataCell(container, 'name')
-
-		expect(body).toHaveClass(
-			'bg-(--surface-fill,var(--color-white))',
-			'dark:bg-(--surface-fill,var(--color-zinc-950))',
-		)
-	})
-
-	it('paints a pinned header cell with the fill of the pinned body cell', () => {
+		//
 		// Regression: the pinned header kept a plain `bg.surface` (`dark:bg-zinc-900`)
 		// while the body cell already tracked the host, so on mobile (where the
 		// content block is transparent over the darker page) the frozen header stood
@@ -252,12 +237,14 @@ describe('Grid column pinning', () => {
 
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		const head = headCell(container, 'name')
-
-		expect(head).toHaveClass(
+		const fill = [
 			'bg-(--surface-fill,var(--color-white))',
 			'dark:bg-(--surface-fill,var(--color-zinc-950))',
-		)
+		]
+
+		expect(dataCell(container, 'name')).toHaveClass(...fill)
+
+		expect(headCell(container, 'name')).toHaveClass(...fill)
 	})
 
 	it('borders a frozen column on the edge facing the scroll, riding the sticky cell', () => {
