@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { deletePicks, listPicks, savePicks } from '../api/predictions-api'
 
 // A browser resolves a same-origin path, and the `Request` of Node takes only an absolute URL.
@@ -26,10 +26,6 @@ function stub(response: Response) {
 function json(body: unknown, status: number) {
 	return Response.json(body, { status })
 }
-
-afterEach(() => {
-	vi.unstubAllGlobals()
-})
 
 describe('predictions api', () => {
 	it('throws an ended session with its status, for the query client to send to the sign-in page', async () => {

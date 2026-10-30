@@ -6,8 +6,12 @@
  * and adds only what differs. The file imports nothing, because the root
  * workspace does not install Vitest.
  *
- * Each spy, stubbed global, and stubbed variable is restored after its test, so
- * no case leaks into the next.
+ * Each spy, stubbed global, and stubbed variable is restored after its test, and
+ * the call history of each mock is cleared, so no case leaks into the next. A
+ * module mock keeps its implementation. These are the cleanup options of the ui
+ * runs (`packages/ui/vitest.base.ts`), so a test file restores nothing itself.
+ *
+ * A test that makes no assertion fails, as in ui.
  *
  * The transformed modules stay on disk between runs, as in the ui config. Most
  * of the time of these suites is the transform and the import of ui and
@@ -19,7 +23,9 @@
 export const sharedTest = {
 	include: ['src/__tests__/**/*.test.ts'],
 	restoreMocks: true,
+	clearMocks: true,
 	unstubGlobals: true,
 	unstubEnvs: true,
 	fsModuleCache: true,
+	requireAssertions: true,
 }

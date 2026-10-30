@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { UIProvider } from 'ui/providers/ui'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
 	confirmTotp,
 	type Factors,
@@ -18,9 +18,6 @@ vi.mock('../../app/(signed-in)/account/account-api', () => ({
 
 // The QR code is a canvas, and jsdom draws no canvas.
 vi.mock('../../app/(signed-in)/account/qr-code', () => ({ QrCode: () => null }))
-
-// The mocks of the modules keep their calls between the tests.
-beforeEach(() => vi.clearAllMocks())
 
 afterEach(cleanup)
 

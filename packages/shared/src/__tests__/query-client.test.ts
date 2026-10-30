@@ -1,11 +1,7 @@
 import { MutationObserver, type MutationOptions } from '@tanstack/react-query'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { RequestError } from '../auth/bifrost'
 import { createAppQueryClient, latestError } from '../providers/query-client'
-
-afterEach(() => {
-	vi.unstubAllGlobals()
-})
 
 // Builds the client of an app, with a spy for the toasts and a spy for the page location.
 // The title of a failure toast can change, as it does when the reader picks another locale.

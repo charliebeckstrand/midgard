@@ -42,8 +42,6 @@ describe('getSignInProviders', () => {
 		expect(error).toHaveBeenCalledOnce()
 
 		expect(cacheLife).toHaveBeenCalledWith('seconds')
-
-		error.mockRestore()
 	})
 
 	it('returns none when the gateway does not answer', async () => {
@@ -61,7 +59,5 @@ describe('getSignInProviders', () => {
 		expect(error).toHaveBeenCalledOnce()
 
 		expect(cacheLife).toHaveBeenCalledWith('seconds')
-
-		error.mockRestore()
 	})
 })

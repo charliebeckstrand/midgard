@@ -20,10 +20,7 @@ vi.mock('next/navigation', () => ({
 	useSearchParams: () => new URLSearchParams(),
 }))
 
-// The mocks of the modules keep their calls between the tests.
 beforeEach(() => {
-	vi.clearAllMocks()
-
 	vi.stubGlobal(
 		'fetch',
 		vi.fn(async () => Response.json({})),
