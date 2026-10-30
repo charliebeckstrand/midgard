@@ -15,6 +15,7 @@ import { useStableEvent } from '../../../../hooks/use-stable-event'
 import { useIntl } from '../../../../primitives/intl/use-intl'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import { observeResizeBeforePaint } from '../../../../utilities'
+import { focusDropped } from '../../../../utilities/focus-dropped'
 import { chartMessages } from '../chart-messages'
 import { ChartSwatch } from '../chart-pattern-defs'
 import { useChartActions } from '../context'
@@ -72,7 +73,7 @@ function useLegendFit(
 
 		if (control.isConnected) return
 
-		if (document.activeElement === null || document.activeElement === document.body) onFocusLost()
+		if (focusDropped()) onFocusLost()
 	}, [visible, onFocusLost])
 
 	// A layout effect, so the first cut lands before paint: the visible row never
