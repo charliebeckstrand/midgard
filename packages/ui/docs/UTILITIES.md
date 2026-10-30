@@ -170,6 +170,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `wrap` | Wraps an index into `[0, count)`, so a step past either end lands at the other. |
 | `NavigationConfig` *(type)* | Navigation mode for `nextIndexForKey`: 2D grid when `cols` set, else single-axis along `orientation`. |
 | `isComposing` | Whether an input method composes a key press. It accepts a React or a DOM keyboard event. |
+| `focusDropped` | Whether no element holds the focus: `document.activeElement` is null or the body. A component that moves the focus after a change moves only focus that the change dropped. Import it from `utilities/focus-dropped`. |
 
 ## Collections & data
 
