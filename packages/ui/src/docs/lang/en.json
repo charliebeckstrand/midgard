@@ -6245,7 +6245,7 @@
 	},
 	"docs.prop.defaultOpen": {
 		"defaultMessage": "Default open",
-		"description": "The label of a field of a playground in the docs. The field sets the prop defaultOpen of CommandPalette."
+		"description": "The label of a field of a playground in the docs. The field sets the prop defaultOpen of CommandPalette, Listbox, Select."
 	},
 	"docs.prop.delay": {
 		"defaultMessage": "Delay",
