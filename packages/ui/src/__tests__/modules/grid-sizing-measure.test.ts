@@ -90,4 +90,22 @@ describe('measureColumns', () => {
 
 		expect(reads.mock.contexts).not.toContain(container.querySelector('th[data-nested]'))
 	})
+
+	// The engine `minSize` takes a declared width below the default as the floor,
+	// so the measured floor must take the same bound. Otherwise a manual pass
+	// raises the held width of a narrow column. The header has no content leaf,
+	// so the pass makes no `Range`, as in the case above.
+	it('takes a declared width below the default as the floor of a column with no minWidth', () => {
+		const narrow: GridColumn<Row>[] = [{ id: 'a', title: 'Two words', width: 28, cell: () => 'a' }]
+
+		const container = document.createElement('div')
+
+		container.innerHTML = '<table><thead><tr><th data-grid-col="a"></th></tr></thead></table>'
+
+		document.body.append(container)
+
+		const measurement = measureColumns({ columns: narrow, container, scan: new Set() })
+
+		expect(measurement.floors.get('a')).toBe(28)
+	})
 })

@@ -1,6 +1,7 @@
 import { clamp, getOrCompute, isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
 import { DEFAULT_MIN_COLUMN_SIZE, HEADER_TRUNCATE_ALLOWANCE } from '../grid-constants'
+import { parsePxWidth } from '../grid-table/resize-view'
 
 /**
  * The one `Range` that each intrinsic-width read selects into. A new `Range`
@@ -324,14 +325,28 @@ function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
 }
 
 /**
+ * The lower bound (px) of the width of a data column: its `minWidth`, else
+ * {@link DEFAULT_MIN_COLUMN_SIZE} or a declared px `width` below it. The engine
+ * `minSize` and the measured floor (see {@link columnFloor}) both read it, so a
+ * narrow column keeps its declared width.
+ *
+ * @internal
+ */
+export function columnMinWidth<T>(col: GridColumn<T>): number {
+	if (col.minWidth != null) return col.minWidth
+
+	return Math.min(DEFAULT_MIN_COLUMN_SIZE, parsePxWidth(col.width) ?? DEFAULT_MIN_COLUMN_SIZE)
+}
+
+/**
  * A data column's hard floor (px): the narrowest it can be sized (by the
  * automatic fit or a drag-resize) before its header can't show. A single-word title
  * reserves its full width, so the column is at least that wide and the header
  * never truncates. A multi-word or non-string title reserves only its affordance
  * icons plus a small text allowance. A drag can then narrow a narrow-data column, and
- * that header truncates. Clamped up to the column's declared `minWidth` and down
- * to its `maxWidth`. It is read from the header DOM unclipped by the column's
- * current width (see {@link headerWidth}). A wide column therefore reports the
+ * that header truncates. Clamped up to the lower bound of the column (see
+ * {@link columnMinWidth}) and down to its `maxWidth`. It is read from the header
+ * DOM unclipped by the column's current width (see {@link headerWidth}). A wide column therefore reports the
  * tight floor, not its current size. It is the same floor whatever width it
  * holds.
  *
@@ -361,7 +376,7 @@ function columnFloor<T>(
 		? header
 		: Math.max(0, header - titleIntrinsic) + HEADER_TRUNCATE_ALLOWANCE
 
-	return { floor: clamp(headerFloor, col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE, max), header }
+	return { floor: clamp(headerFloor, columnMinWidth(col), max), header }
 }
 
 /**
