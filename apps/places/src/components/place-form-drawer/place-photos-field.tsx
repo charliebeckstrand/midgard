@@ -2,6 +2,7 @@
 
 import { Trash } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Button } from 'ui/button'
 import { Description, Field, Label } from 'ui/fieldset'
 import {
 	type FileRejection,
@@ -16,7 +17,6 @@ import { List, ListItem } from 'ui/list'
 import { ProgressGauge } from 'ui/progress'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
-import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { MAX_PHOTO_BYTES, MAX_PHOTO_MB, PHOTO_TYPE_NAMES, PHOTO_TYPES } from '../../api/places-api'
 import { isNewPhoto, MAX_PHOTOS, newPhoto, type PhotoEntry } from './place-form'
 
@@ -219,11 +219,14 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 								return (
 									<ListItem
 										suffix={
-											<ToggleIconButton
-												icon={<Icon icon={<Trash />} />}
+											<Button
+												type="button"
+												variant="bare"
 												aria-label={`Remove photo ${position}`}
 												onClick={() => setValue(photos.filter((held) => held.key !== photo.key))}
-											/>
+											>
+												<Icon icon={<Trash />} />
+											</Button>
 										}
 									>
 										<div className="relative size-12">

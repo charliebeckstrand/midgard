@@ -288,6 +288,23 @@ export type D = 'horizontal' | 'diagonal'
 `,
 		},
 	],
+	'no-stateless-toggle-icon-button': [
+		{
+			file: 'toggle.tsx',
+			source: `export const a = <ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" /> // flag
+export const b = <ToggleIconButton icon={<Trash />} aria-label="Remove" onClick={remove} /> // flag
+export const c = <ToggleIconButton icon={<Pin />} pressedIcon={<Check />} aria-label="Pin" /> // flag
+export const d = <ToggleIconButton // flag
+	icon={<Icon icon={<X />} />}
+	aria-label="Close"
+/>
+export const e = <ToggleIconButton pressed={on} onPressedChange={setOn} icon={<Pin />} aria-label="Pin" />
+export const f = <ToggleIconButton defaultPressed icon={<Pin />} aria-label="Pin" />
+export const g = <ToggleIconButton onPressedChange={setOn} icon={<Pin />} aria-label="Pin" />
+export const h = <Button variant="bare" aria-label="Close"><Icon icon={<X />} /></Button>
+`,
+		},
+	],
 	'no-unsanctioned-define-recipe': [
 		{
 			file: 'recipe.ts',

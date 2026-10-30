@@ -2,13 +2,13 @@
 
 import { MapIcon, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Grid, type GridColumn, type GridProps } from 'ui/modules/grid'
 import { Sheet, SheetBody, SheetClose, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
-import { ToggleIconButton } from 'ui/toggle-icon-button'
 import type { Located } from '../../types'
 import { openingRegion, regionsHolding } from '../../utilities/places-view'
 
@@ -123,7 +123,9 @@ export function IndexSheet<T extends Located>({
 					<SheetTitle className="p-0">{title}</SheetTitle>
 
 					<SheetClose>
-						<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
+						<Button type="button" variant="bare" aria-label="Close">
+							<Icon icon={<X />} />
+						</Button>
 					</SheetClose>
 				</Flex>
 

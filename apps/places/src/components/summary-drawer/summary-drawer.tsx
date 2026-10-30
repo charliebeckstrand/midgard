@@ -2,11 +2,11 @@
 
 import { X } from 'lucide-react'
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
+import { Button } from 'ui/button'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Icon } from 'ui/icon'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
-import { ToggleIconButton } from 'ui/toggle-icon-button'
 import type { Located } from '../../types'
 import type { PlacePanelStep } from '../../utilities/places-url'
 import { groupName } from '../../utilities/places-view'
@@ -311,7 +311,9 @@ export function SummaryDrawer<T extends Located>({
 						{item ? menu(item) : null}
 
 						<DrawerClose>
-							<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
+							<Button type="button" variant="bare" aria-label="Close">
+								<Icon icon={<X />} />
+							</Button>
 						</DrawerClose>
 					</Flex>
 				</Flex>

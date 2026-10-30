@@ -10,7 +10,6 @@ import { Icon } from 'ui/icon'
 import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
-import { ToggleIconButton } from 'ui/toggle-icon-button'
 
 /**
  * The target a form drawer last opened on, or the current one while it is
@@ -130,7 +129,9 @@ export function FormDrawer<V extends Record<string, unknown>>({
 					</div>
 
 					<DrawerClose>
-						<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
+						<Button type="button" variant="bare" aria-label="Close">
+							<Icon icon={<X />} />
+						</Button>
 					</DrawerClose>
 				</Flex>
 
