@@ -11,6 +11,7 @@ import { ariaAttr, cn, dataAttr } from '../../../../core'
 import { useA11yRoving } from '../../../../hooks'
 import { isRtl } from '../../../../hooks/a11y/logical-arrow'
 import { useReportedChange } from '../../../../hooks/use-reported-change'
+import { useStableEvent } from '../../../../hooks/use-stable-event'
 import { useIntl } from '../../../../primitives/intl/use-intl'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import { observeResizeBeforePaint } from '../../../../utilities'
@@ -32,8 +33,16 @@ const PAGE_SIZE = 5
  * Returns the full `count` when nothing caps (no ghost, no measurement), so an
  * uncapped or side-panel legend pays nothing.
  *
+ * A new cut can unmount the control that holds the focus: a switch folds into
+ * the `+N` chip, or the chip goes when every control fits. The focus would then
+ * fall to the document body. The hook keeps the focused control of the row
+ * before each cut, and calls `onFocusLost` after the commit when that control
+ * is gone.
+ *
  * @param labels - The labels of every control in render order, joined. A change
  * of them measures again.
+ * @param row - The visible row, whose focus a cut can drop.
+ * @param onFocusLost - Moves the focus after a cut unmounted the focused control.
  * @returns The ref of the ghost, and the count of controls that show.
  * @internal
  */
@@ -41,10 +50,30 @@ function useLegendFit(
 	labels: string,
 	count: number,
 	maxRows: number | undefined,
+	row: RefObject<HTMLElement | null>,
+	onFocusLost: () => void,
 ): [RefObject<HTMLDivElement | null>, number] {
 	const ghostRef = useRef<HTMLDivElement>(null)
 
 	const [visible, setVisible] = useState(count)
+
+	// The control of the row that held the focus when the last cut was set, and
+	// that cut.
+	const held = useRef<{ control: Element; cut: number } | null>(null)
+
+	// The cut commits before this effect runs, so a control that it unmounted is
+	// disconnected here, and the focus is on the body.
+	useLayoutEffect(() => {
+		if (held.current?.cut !== visible) return
+
+		const { control } = held.current
+
+		held.current = null
+
+		if (control.isConnected) return
+
+		if (document.activeElement === null || document.activeElement === document.body) onFocusLost()
+	}, [visible, onFocusLost])
 
 	// A layout effect, so the first cut lands before paint: the visible row never
 	// flashes its full height then collapses. The ghost holds every control at all
@@ -58,6 +87,13 @@ function useLegendFit(
 
 		// No labels means no controls, so there is nothing to measure.
 		if (!ghost || maxRows === undefined || labels === '') return
+
+		const holdFocus = (cut: number) => {
+			const active = document.activeElement
+
+			held.current =
+				active !== null && row.current?.contains(active) ? { control: active, cut } : null
+		}
 
 		const fit = () => {
 			const controls = [...ghost.querySelectorAll<HTMLElement>('button')]
@@ -92,6 +128,8 @@ function useLegendFit(
 
 		let shown = fit()
 
+		holdFocus(shown)
+
 		setVisible(shown)
 
 		// A resize commits the cut before the paint, so the frame that narrows the box does
@@ -103,9 +141,13 @@ function useLegendFit(
 
 			shown = next
 
-			return () => setVisible(next)
+			return () => {
+				holdFocus(next)
+
+				setVisible(next)
+			}
 		})
-	}, [labels, maxRows])
+	}, [labels, maxRows, row])
 
 	// Never exceed the real count: a stale larger measurement (a control removed
 	// between renders) can't over-slice the list.
@@ -119,6 +161,10 @@ function controlLabels(
 ): string {
 	return [...items, ...references].map((control) => control.label).join('\u0000')
 }
+
+/** The series switches and reference chips of a row, in render order. @internal */
+const ROW_CONTROLS =
+	'button[data-slot="chart-legend-item"], button[data-slot="chart-legend-reference"]'
 
 /** The stable empty set a legend without a reference toggle reads for its off chips. @internal */
 const EMPTY_HIDDEN: ReadonlySet<number> = new Set()
@@ -592,6 +638,24 @@ export function ChartLegend({
 	// spark frame passes zero) lets the row grow freely.
 	const capped = !panel && maxRows !== undefined && maxRows > 0
 
+	// A refit that folds the focused control into the `+N` chip moves the focus
+	// to the chip, which now holds it. A refit that removes the chip moves the
+	// focus to the last control. The gone control held the emphasis, so the
+	// emphasis reads again from the new focus.
+	const reseatFocus = useStableEvent(() => {
+		const row = ref.current
+
+		const target =
+			row?.querySelector<HTMLElement>('[data-slot="chart-legend-more"]') ??
+			[...(row?.querySelectorAll<HTMLElement>(ROW_CONTROLS) ?? [])].at(-1)
+
+		target?.focus()
+
+		emphasis.sync()
+
+		referenceEmphasis.sync()
+	})
+
 	// How many of the switches and chips together show before the `+N` chip,
 	// measured off the ghost row that always holds them all; the full count when
 	// nothing caps.
@@ -599,6 +663,8 @@ export function ChartLegend({
 		controlLabels(items, references),
 		items.length + references.length,
 		capped ? maxRows : undefined,
+		ref,
+		reseatFocus,
 	)
 
 	// The cut runs across the switches then the chips in render order: the first

@@ -70,10 +70,11 @@ const NONE_HIDDEN: ReadonlySet<number> = new Set()
  * touch menu button, and the name of a figcaption includes the name of that
  * button.
  *
- * A chart that draws no header puts the touch menu button in the top end
- * corner of the chart root, and the root then anchors it (`rootClass`). That is
- * a chart with `heading` off, or with no title or subtitle. The button shows
- * only with `contextMenu.button`. A touch hold opens the menu either way.
+ * A chart that draws no inline header puts the touch menu button in the top
+ * end corner of the chart root, and the root then anchors it (`rootClass`).
+ * That is a chart with `heading` off, a chart with no title or subtitle, and a
+ * spark chart, whose header is the veil. The button shows only with
+ * `contextMenu.button`. A touch hold opens the menu either way.
  *
  * @internal
  */
@@ -105,13 +106,16 @@ function chartChrome(
 			/>
 		) : null
 
+	// The veil shows no action, so a spark chart puts the button in the corner.
+	const header = spark ? null : head
+
 	return {
-		header: spark ? null : head,
+		header,
 		sparkVeil: spark ? head : null,
 		legend: spark ? null : legend,
 		labelledBy: !spark && heading && title ? titleId : undefined,
-		corner: head ? null : <ChartMenuButton title={title} place="corner" />,
-		rootClass: head ? undefined : 'relative',
+		corner: header ? null : <ChartMenuButton title={title} place="corner" />,
+		rootClass: header ? undefined : 'relative',
 	}
 }
 

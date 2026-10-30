@@ -434,19 +434,29 @@ export function ChartContextMenu({
 	)
 
 	// The same entries the right-click menu shows, for the menu button that a
-	// touch screen can show beside the hold.
+	// touch screen can show beside the hold. A press of the button lands on no
+	// mark, so a function-form `items` gets `index: null` there, not the mark of
+	// an earlier right-click.
 	const defaultItems = config?.defaultItems
 
 	const insert = config?.insert
 
 	const button = config?.button ?? false
 
+	const capped = config?.capped
+
+	const buttonItems = useMemo(
+		() => (typeof items === 'function' ? items({ index: null }) : items),
+		[items],
+	)
+
 	const chartMenu = useMemo(
 		() => ({
-			entries: resolveContextMenuEntries({ items: customItems, defaultItems, insert }, defaults),
+			entries: resolveContextMenuEntries({ items: buttonItems, defaultItems, insert }, defaults),
 			button,
+			capped,
 		}),
-		[customItems, defaultItems, insert, defaults, button],
+		[buttonItems, defaultItems, insert, defaults, button, capped],
 	)
 
 	if (contextMenu === false) return <>{children}</>
@@ -464,7 +474,7 @@ export function ChartContextMenu({
 				items={customItems}
 				defaultItems={defaultItems}
 				insert={insert}
-				capped={config?.capped}
+				capped={capped}
 				// The same name as the menu button that a touch screen can show, because
 				// the two hold the same entries.
 				aria-label={chartMenuName(intl, title ?? label)}

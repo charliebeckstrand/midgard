@@ -15,10 +15,12 @@ import {
 	type KeyboardEvent,
 	type PointerEvent,
 	type ReactNode,
+	useEffect,
 	useState,
 } from 'react'
 import { Text } from '../../../../components/text'
 import { cn } from '../../../../core'
+import { useStableEvent } from '../../../../hooks/use-stable-event'
 import { useIntl } from '../../../../primitives/intl/use-intl'
 import { k } from '../../../../recipes/kata/chart'
 import type { Orientation } from '../../../../types'
@@ -580,6 +582,15 @@ export function RangeLegend({
 
 		onProbe?.(null)
 	}
+
+	// A bar that unmounts mid-probe gets no pointerleave or blur, so the host
+	// would keep the class emphasized with no legend left to clear it. The host
+	// outlives the bar (a spark tier, `legend={false}`), so the unmount clears it.
+	const release = useStableEvent(() => {
+		if (probe !== null) onProbe?.(null)
+	})
+
+	useEffect(() => release, [release])
 
 	// Track the pointer to its exact value along the bar: min at the bottom of a
 	// vertical bar, at the left of a horizontal one. CSS decides the axis, so the
