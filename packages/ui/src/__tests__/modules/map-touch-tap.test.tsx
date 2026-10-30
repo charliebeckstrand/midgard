@@ -28,7 +28,7 @@ afterEach(() => {
 function tap(target: Element, x = 40, y = 20, pointerId = 1) {
 	document.elementFromPoint = vi.fn().mockReturnValue(target)
 
-	const at = { pointerId, pointerType: 'touch', clientX: x, clientY: y }
+	const at = { pointerId, pointerType: 'touch', isPrimary: true, clientX: x, clientY: y }
 
 	fireEvent.pointerEnter(target, at)
 
@@ -142,11 +142,23 @@ describe('MapPlat touch taps', () => {
 
 		for (let i = 0; i < 2; i++) {
 			for (const pointerId of [1, 2]) {
-				fireEvent.pointerDown(region, { pointerId, pointerType: 'touch', clientX: 40, clientY: 20 })
+				fireEvent.pointerDown(region, {
+					pointerId,
+					pointerType: 'touch',
+					isPrimary: pointerId === 1,
+					clientX: 40,
+					clientY: 20,
+				})
 			}
 
 			for (const pointerId of [1, 2]) {
-				fireEvent.pointerUp(region, { pointerId, pointerType: 'touch', clientX: 40, clientY: 20 })
+				fireEvent.pointerUp(region, {
+					pointerId,
+					pointerType: 'touch',
+					isPrimary: pointerId === 1,
+					clientX: 40,
+					clientY: 20,
+				})
 			}
 
 			now += 100

@@ -1,6 +1,7 @@
 'use client'
 
 import { type PointerEvent, type TouchEvent, useRef } from 'react'
+import { isPrimaryPress } from '../utilities/primary-press'
 import { useStableEvent } from './use-stable-event'
 import { useTimeout } from './use-timeout'
 
@@ -35,7 +36,8 @@ export type TouchTap = {
 	fromTouch: () => boolean
 }
 
-type Press = { x: number; y: number; tap: boolean }
+/** The press that can be a tap: its pointer, the viewport point where it landed, and whether it is still a tap. */
+type Press = { id: number; x: number; y: number; tap: boolean }
 
 /**
  * Finds a tap in the pointer events of a touch, and reports it from the lift.
@@ -43,7 +45,10 @@ type Press = { x: number; y: number; tap: boolean }
  * A tap is a touch press that lifts before {@link TOUCH_TAP_WINDOW} and
  * travels less than {@link TOUCH_SLOP}. A longer press is a hold, and a
  * press that travels is a drag or a scroll. A canceled press is a scroll that
- * the browser took. None of these is a tap, and none of them does anything.
+ * the browser took. A press that a second finger joins is a pinch or a
+ * two-finger gesture. None of these is a tap, and none of them does anything.
+ * The hook follows only the finger of the primary press, so the moves and the
+ * lift of another finger do not change the press.
  * The chart marks, the map, and the grid cells use it, and on each the tap is
  * the only thing that a touch does.
  *
@@ -89,7 +94,14 @@ export function useTouchTap(onTap: (clientX: number, clientY: number) => void): 
 				return
 			}
 
-			const current = { x: event.clientX, y: event.clientY, tap: true }
+			// A second finger is not a press of its own, and the press that it joins is not a tap.
+			if (!isPrimaryPress(event)) {
+				if (press.current !== null) press.current.tap = false
+
+				return
+			}
+
+			const current = { id: event.pointerId, x: event.clientX, y: event.clientY, tap: true }
 
 			press.current = current
 
@@ -100,7 +112,7 @@ export function useTouchTap(onTap: (clientX: number, clientY: number) => void): 
 		onPointerMove: (event) => {
 			const current = press.current
 
-			if (current === null || event.pointerType !== 'touch') return
+			if (current === null || event.pointerId !== current.id) return
 
 			if (Math.hypot(event.clientX - current.x, event.clientY - current.y) > TOUCH_SLOP) {
 				current.tap = false
@@ -108,6 +120,9 @@ export function useTouchTap(onTap: (clientX: number, clientY: number) => void): 
 		},
 		onPointerUp: (event) => {
 			const current = press.current
+
+			// The lift of another finger leaves the press alone.
+			if (current !== null && event.pointerId !== current.id) return
 
 			press.current = null
 
