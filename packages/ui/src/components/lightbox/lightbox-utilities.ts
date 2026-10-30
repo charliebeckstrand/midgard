@@ -27,9 +27,9 @@ export const RESTING_TRANSFORM = 'translate(0px, 0px) scale(1)'
  * center of the photo and crops the rest. The frame scales the photo until it
  * covers the thumbnail, and moves its center onto the center of the thumbnail.
  * The clip is `shown`, with the corners of the thumbnail. A radius larger than
- * half of a side of the thumbnail is cut to that half, as CSS cuts it. A tween from
- * this frame to {@link restingFrame} raises the photo, and the reverse tween
- * puts it back.
+ * half of a side of the thumbnail is cut to that half, as CSS cuts it. A tween
+ * from this frame to {@link restingFrame} raises the photo, and the reverse
+ * tween puts it back.
  *
  * @param thumbnail - The box of the thumbnail.
  * @param rest - The box of the photo at rest, with no transform.
@@ -86,8 +86,8 @@ export function mixFrames(from: LightboxFrame, to: LightboxFrame, progress: numb
  * The transforms that paint `frame`. The slot of the photo clips its content,
  * so the slot is the clip: its transform moves and scales the slot onto the
  * clip. The transform of the photo then cancels the scale of the slot, and puts
- * the photo at its place. Thus a frame does not paint the photo again, and the browser moves
- * the painted photo.
+ * the photo at its place. Thus a frame does not paint the photo again, and the
+ * browser moves the painted photo.
  *
  * The transform origin of the slot and of the photo must be the top left corner.
  *

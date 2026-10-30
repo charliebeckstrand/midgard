@@ -423,13 +423,13 @@ export function useLightboxFlight(photoRef: RefObject<HTMLElement | null>): Ligh
 
 		const boxes = measureBoxes(slot, photo)
 
-		const frame = frameAt(boxes.rest, thumbnail)
+		const landing = frameAt(boxes.rest, thumbnail)
 
-		if (!frame) return land(slot, photo, [animate(photo, { opacity: 0 }, k.motion.fade)])
+		if (!landing) return land(slot, photo, [animate(photo, { opacity: 0 }, k.motion.fade)])
 
 		// Motion stops the tween that runs on a value when a new tween starts on
 		// it, so the return reads the painted frame first and needs no stop.
-		return land(slot, photo, fly(slot, photo, boxes, readFrame(slot, photo, boxes), frame))
+		return land(slot, photo, fly(slot, photo, boxes, readFrame(slot, photo, boxes), landing))
 	}
 
 	return { raise, lower }

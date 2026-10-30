@@ -5,6 +5,7 @@ import { PresenceContext, useComposedRefs, usePresence } from 'motion/react'
 import {
 	type CSSProperties,
 	type KeyboardEvent,
+	type SyntheticEvent,
 	use,
 	useEffectEvent,
 	useLayoutEffect,
@@ -31,6 +32,8 @@ import {
 } from './lightbox-utilities'
 import type { LightboxViewPhoto } from './types'
 import { useLightboxFlight } from './use-lightbox-flight'
+import { useLightboxTrack } from './use-lightbox-track'
+import type { LightboxZoom } from './use-lightbox-zoom'
 
 /** The place of the photo on view, such as "3 of 10". */
 const positionMessage = defineMessage<{ position: number; total: number }>({
@@ -39,9 +42,6 @@ const positionMessage = defineMessage<{ position: number; total: number }>({
 	description:
 		'The place of the photo on view among all the photos, which a screen reader speaks after its description, such as "3 of 10".',
 })
-
-import { useLightboxTrack } from './use-lightbox-track'
-import type { LightboxZoom } from './use-lightbox-zoom'
 
 /** The names of the viewer and of its controls. @internal */
 export type LightboxLabels = {
@@ -149,6 +149,14 @@ function centerCurrentThumbnail(row: HTMLDivElement | null) {
 	if (row && current) scrollNodeWithin(row, current, { inline: 'center', behavior: 'instant' })
 }
 
+/**
+ * Takes the thumbnail off a photo that loaded. A photo with clear parts thus
+ * does not show its thumbnail through them.
+ */
+function dropPlaceholder(event: SyntheticEvent<HTMLImageElement>) {
+	event.currentTarget.style.backgroundImage = ''
+}
+
 /** The slots of the track: the photo in the center and the photo on each side of it. */
 function slotsAround(
 	index: number,
@@ -173,8 +181,9 @@ function slotsAround(
  *
  * A press on the stage outside the photo closes the viewer, unless
  * `dismissOnBackdrop` is `false`. `ArrowLeft` and `ArrowRight` step through
- * the photos in the reading order, and so does a swipe. The keys also zoom the photo (see `zoomByKey`), and while the photo
- * is zoomed, the arrow keys pan it and do not step.
+ * the photos in the reading order, and so does a swipe. The keys also zoom the
+ * photo (see `zoomByKey`), and while the photo is zoomed, the arrow keys pan it
+ * and do not step.
  *
  * @internal
  */
@@ -224,10 +233,20 @@ export function LightboxStage({
 	// the photo `to` from the start of the slide (see `at`). The aim ends when
 	// the slide lands, so a later change of `index` back to the photo `from`
 	// does not show the photo `to` again.
-	const [aim, setAim] = useState<{ from: number; to: number } | null>(null)
+	const [aim, setAim] = useState<LightboxLink | null>(null)
 
 	// The photo that a slide to a photo farther away puts next to the center.
 	const [link, setLink] = useState<LightboxLink | null>(null)
+
+	// The photo in the center and the photo at the place `to`, or `null` when
+	// either is not in `photos`.
+	const linkTo = (to: number): LightboxLink | null => {
+		const from = photos[index]?.index
+
+		const target = photos[to]?.index
+
+		return from === undefined || target === undefined ? null : { from, to: target }
+	}
 
 	const track = useLightboxTrack(trackRef, {
 		index,
@@ -238,20 +257,8 @@ export function LightboxStage({
 			onIndexChange(to)
 		},
 		beside: (step) => placeBeside(photos, index, link, step),
-		onLink: (to) => {
-			const from = photos[index]?.index
-
-			const target = to === null ? undefined : photos[to]?.index
-
-			setLink(from === undefined || target === undefined ? null : { from, to: target })
-		},
-		onAim: (to) => {
-			const from = photos[index]?.index
-
-			const target = photos[to]?.index
-
-			setAim(from === undefined || target === undefined ? null : { from, to: target })
-		},
+		onLink: (to) => setLink(to === null ? null : linkTo(to)),
+		onAim: (to) => setAim(linkTo(to)),
 		// A tap on the stage outside the photo closes the viewer, unless `dismissOnBackdrop` is off.
 		onTap: (event) => {
 			if (dismissOnBackdrop && !(event.target instanceof HTMLImageElement)) handleClose()
@@ -468,8 +475,10 @@ export function LightboxStage({
 									height={photo.height}
 									draggable={false}
 									className={slots.photo}
-									// The thumbnail is in the cache, so it paints at once under the photo.
+									// The thumbnail is in the cache, so it paints at once under the photo,
+									// until the photo loads.
 									style={placeholder ? { backgroundImage: `url("${photo.thumbnail}")` } : undefined}
+									onLoad={placeholder ? dropPlaceholder : undefined}
 								/>
 							</div>
 						)

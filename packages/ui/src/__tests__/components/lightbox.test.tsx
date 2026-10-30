@@ -140,6 +140,29 @@ describe('Lightbox', () => {
 		expect(previous).not.toHaveClass('invisible')
 	})
 
+	it('takes the thumbnail off the photo when the photo loads', async () => {
+		const user = setupUser()
+
+		const { rerender } = renderUI(<Gallery />)
+
+		await user.click(screen.getByRole('button', { name: 'Snow on a ridge' }))
+
+		const photo = centerPhoto()
+
+		if (!photo) throw new Error('no photo')
+
+		fireEvent.load(photo)
+
+		expect(photo.style.backgroundImage).toBe('')
+
+		// A render of the viewer does not paint the thumbnail again.
+		rerender(<Gallery closable />)
+
+		expect(centerPhoto()).toBe(photo)
+
+		expect(photo.style.backgroundImage).toBe('')
+	})
+
 	it('stamps data-open on the viewer and on the trigger of the shown photo', async () => {
 		const user = setupUser()
 

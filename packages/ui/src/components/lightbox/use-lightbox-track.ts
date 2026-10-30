@@ -154,9 +154,9 @@ function travelTo(track: HTMLElement, offset: number): number {
 /**
  * What a press means once it travels: `'swipe'` along the line, `'dismiss'` up
  * or down, or `'wait'` while it stays inside the slop. A press on a zoomed
- * photo is a `'pan'` in any direction. With one photo, there
- * is no photo to swipe to, so a press in any direction is `'dismiss'`. A press
- * that catches the track between two photos is a `'swipe'`.
+ * photo is a `'pan'` in any direction. With one photo, there is no photo to
+ * swipe to, so a press in any direction is `'dismiss'`. A press that catches
+ * the track between two photos is a `'swipe'`.
  */
 function resolveIntent(
 	press: Press,
@@ -175,11 +175,6 @@ function resolveIntent(
 	if (count < 2) return 'dismiss'
 
 	return press.base === 0 && dy > dx ? 'dismiss' : 'swipe'
-}
-
-/** Records the point of a move, for the speed at the lift. */
-function follow(press: Press, event: PointerEvent) {
-	recordSample(press.samples, { x: event.clientX, y: event.clientY, time: event.timeStamp })
 }
 
 /** Paints the scrim and the controls at `opacity`. */
@@ -214,10 +209,10 @@ function paint(track: HTMLElement, travel: number) {
  * slides back otherwise. Past the first or the last photo, the track follows
  * the finger at a fraction of its travel. A press that moves more up or down
  * than along the line, or any press on the only photo, moves the photo with the
- * finger instead, and the
- * scrim and the controls fade as it travels. At the lift, it closes the viewer
- * when it traveled far enough or fast enough (see `dismisses`), and the photo
- * goes back to rest otherwise. A click that ends a swipe is not a tap.
+ * finger instead, and the scrim and the controls fade as it travels. At the
+ * lift, it closes the viewer when it traveled far enough or fast enough (see
+ * `dismisses`), and the photo goes back to rest otherwise. A click that ends a
+ * swipe is not a tap.
  *
  * A press on a zoomed photo pans it, and a second finger makes a pinch (see
  * `useLightboxZoom`). Two taps on the photo zoom it in or out. A step takes a
@@ -845,7 +840,7 @@ export function useLightboxTrack(
 
 				if (current.mode === 'wait' && !begin(current, track, event)) return
 
-				follow(current, event)
+				recordSample(current.samples, { x: event.clientX, y: event.clientY, time: event.timeStamp })
 
 				drag(current, track, dx, dy)
 			},
