@@ -140,6 +140,21 @@ describe('ColorSlider (hue)', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
+	// A chord such as Alt+ArrowLeft (history back) is for the browser.
+	it.each([
+		['Alt+ArrowLeft', 'ArrowLeft', { altKey: true }],
+		['Ctrl+End', 'End', { ctrlKey: true }],
+		['Cmd+ArrowRight', 'ArrowRight', { metaKey: true }],
+	])('ignores %s and keeps its default', (_name, key, modifier) => {
+		const { hue, onValueChange } = setup()
+
+		const proceeded = fireEvent.keyDown(hue, { key, ...modifier })
+
+		expect(proceeded).toBe(true)
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
 	it('sets the hue from the press position on the track', () => {
 		const { hue, onValueChange } = setup()
 

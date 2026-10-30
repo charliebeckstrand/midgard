@@ -8,6 +8,7 @@ import { useA11yRoving } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { queryItems, rovedStop } from '../../hooks/a11y/use-a11y-roving'
 import { wrap } from '../../utilities'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import {
 	clampDay,
 	fromCalendarDate,
@@ -215,6 +216,22 @@ function seal(event: KeyboardEvent, stopPropagation: boolean): void {
 }
 
 /**
+ * Leaves a key with Ctrl, Meta, or Alt to the browser, such as its history. The
+ * key moves no focus and keeps its default. A sealed surface still stops it, so
+ * that it does not drive an outer keyboard model.
+ *
+ * @returns `true` when the key is such a chord.
+ * @internal
+ */
+function leaveToBrowser(event: KeyboardEvent, stopPropagation: boolean): boolean {
+	if (!hasBrowserModifier(event)) return false
+
+	if (stopPropagation) event.stopPropagation()
+
+	return true
+}
+
+/**
  * Marks a handled cross-surface move: always prevents default, and on a sealed
  * surface also stops propagation.
  *
@@ -366,6 +383,9 @@ const STEERED_HANDLERS = Object.freeze({
  * day is held between `min` and `max`, and the focus stays when the held day is
  * the focused day. Tab and Shift+Tab reach the header and the footer.
  *
+ * A key with Ctrl, Meta, or Alt is for the browser, such as its history. No
+ * handler moves the focus for it or cancels its default.
+ *
  * @returns `handleHeaderKeyDown` / `handleGridKeyDown` / `handleFooterKeyDown`.
  * @remarks Set `stopPropagation` to seal a surface nested inside another
  * keyboard model, where a leaked arrow would drive the outer model.
@@ -395,6 +415,8 @@ export function useCalendarFocus({
 
 	const handleHeaderKeyDown = useCallback(
 		(event: KeyboardEvent) => {
+			if (leaveToBrowser(event, stopPropagation)) return
+
 			if (event.key === 'ArrowDown') {
 				preventAndStop(event, stopPropagation)
 
@@ -412,6 +434,8 @@ export function useCalendarFocus({
 
 	const handleGridKeyDown = useCallback(
 		(event: KeyboardEvent) => {
+			if (leaveToBrowser(event, stopPropagation)) return
+
 			// A day grid moves by date, so its arrows never leave the grid. Only a
 			// grid with no date model bridges to the header.
 			const handled = dayGrid
@@ -433,6 +457,8 @@ export function useCalendarFocus({
 
 	const handleFooterKeyDown = useCallback(
 		(event: KeyboardEvent) => {
+			if (leaveToBrowser(event, stopPropagation)) return
+
 			if (event.key === 'ArrowUp') {
 				preventAndStop(event, stopPropagation)
 

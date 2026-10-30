@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { JsonTree } from '../../components/json-tree'
-import { present, renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * Keyboard reach of the windowed JsonTree (real browser). jsdom renders no virtualized rows, so
@@ -184,6 +184,38 @@ describe('JsonTree under virtualize: a focused row that scrolls out of the windo
 		await waitFor(() => expect(leafRow(tree, 3)).toBeDefined())
 
 		expect(document.activeElement).toBe(outside)
+	})
+})
+
+// A chord such as Alt+ArrowLeft (history back) is for the browser. The keys go as dispatched
+// events, so a chord that the browser takes does not move this page.
+describe('JsonTree under virtualize: browser chords', () => {
+	it.each([
+		['Alt+ArrowUp', 'ArrowUp', { altKey: true }],
+		['Ctrl+End', 'End', { ctrlKey: true }],
+		['Cmd+ArrowUp', 'ArrowUp', { metaKey: true }],
+	])('leaves %s on the root row to the browser', async (_name, key, modifier) => {
+		const tree = await mountAndFocusRoot()
+
+		const root = present(rows(tree)[0], 'the root row')
+
+		const proceeded = fireEvent.keyDown(root, { key, ...modifier })
+
+		expect(proceeded).toBe(true)
+
+		expect(document.activeElement).toBe(root)
+	})
+
+	it('leaves Alt+ArrowDown on the parked focus to the browser', async () => {
+		const tree = await focusLeafAndScrollAway()
+
+		expect(document.activeElement).toBe(tree)
+
+		const proceeded = fireEvent.keyDown(tree, { key: 'ArrowDown', altKey: true })
+
+		expect(proceeded).toBe(true)
+
+		expect(document.activeElement).toBe(tree)
 	})
 })
 

@@ -432,6 +432,39 @@ describe('TreeItem', () => {
 		expect(row('src')).toHaveFocus()
 	})
 
+	// A chord such as Alt+ArrowLeft (history back) is for the browser. Each row
+	// tries one of the four tree cases: open, close, to the child, to the parent.
+	it.each([
+		['Alt+ArrowRight on a closed branch', 'lib', 'ArrowRight', { altKey: true }],
+		['Ctrl+ArrowLeft on an open branch', 'src', 'ArrowLeft', { ctrlKey: true }],
+		['Cmd+ArrowRight on an open branch', 'src', 'ArrowRight', { metaKey: true }],
+		['Alt+ArrowLeft on a closed branch', 'lib', 'ArrowLeft', { altKey: true }],
+	])('ignores %s and keeps its default', (_name, from, key, modifier) => {
+		renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" defaultOpen>
+					<TreeItem label="lib">
+						<TreeItem label="a.ts" />
+					</TreeItem>
+				</TreeItem>
+			</Tree>,
+		)
+
+		const row = (name: string) => screen.getByRole('treeitem', { name })
+
+		row(from).focus()
+
+		const proceeded = fireEvent.keyDown(row(from), { key, ...modifier })
+
+		expect(proceeded).toBe(true)
+
+		expect(row(from)).toHaveFocus()
+
+		expect(row('src')).toHaveAttribute('aria-expanded', 'true')
+
+		expect(row('lib')).toHaveAttribute('aria-expanded', 'false')
+	})
+
 	describe('type-ahead', () => {
 		const row = (name: string) => screen.getByRole('treeitem', { name })
 

@@ -12,6 +12,7 @@ import { useSortableSensors } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { type DashboardCommit, endGesture, measureGesture, startGesture } from './dashboard-gesture'
 import {
 	describeDragAtStart,
@@ -74,6 +75,29 @@ type SensedDrag = {
  */
 function cancelSensor(drag: SensedDrag): void {
 	if (drag.live) drag.view?.dispatchEvent(new Event('resize'))
+}
+
+/**
+ * The move of one arrow press on a traveling tile: one column of `pitch` px across, or one
+ * row down or up. A key with Ctrl, Meta, or Alt is for the browser, so it moves nothing.
+ *
+ * @returns The move in px, or null for a key that does not move the tile.
+ */
+function arrowStep(event: KeyboardEvent, pitch: number): { x: number; y: number } | null {
+	if (hasBrowserModifier(event)) return null
+
+	switch (event.code) {
+		case 'ArrowRight':
+			return { x: pitch, y: 0 }
+		case 'ArrowLeft':
+			return { x: -pitch, y: 0 }
+		case 'ArrowDown':
+			return { x: 0, y: pitch / ROW_SUBDIVISION }
+		case 'ArrowUp':
+			return { x: 0, y: -pitch / ROW_SUBDIVISION }
+		default:
+			return null
+	}
 }
 
 /** The name that the live region reads for a tile. */
@@ -276,13 +300,9 @@ export function useDashboardDrag({
 
 			if (gesture === null || pitch <= 0) return undefined
 
-			const step = { x: 0, y: 0 }
+			const step = arrowStep(event, pitch)
 
-			if (event.code === 'ArrowRight') step.x = pitch
-			else if (event.code === 'ArrowLeft') step.x = -pitch
-			else if (event.code === 'ArrowDown') step.y = pitch / ROW_SUBDIVISION
-			else if (event.code === 'ArrowUp') step.y = -pitch / ROW_SUBDIVISION
-			else return undefined
+			if (step === null) return undefined
 
 			const { cells, travel } = store.getView()
 
