@@ -6,6 +6,13 @@ import { place } from '../fixtures'
 /** The keys of the rows, in order. A separator has a key too. */
 const keys = (entries: ContextMenuEntry[]) => entries.map((entry) => entry.key)
 
+/** Runs the action of `entry`, and fails when the entry is not an action row. */
+function run(entry: ContextMenuEntry | undefined) {
+	if (entry === undefined || !('onAction' in entry)) throw new Error('The row is not an action.')
+
+	entry.onAction?.()
+}
+
 /** The actions of the menu of a place, each a mock. */
 const placeActions = () => ({
 	onAddVisit: vi.fn(),
@@ -28,11 +35,7 @@ describe('placeMenuItems', () => {
 		const only = place('a')
 		const actions = placeActions()
 
-		const row = placeMenuItems(only, actions)[1]
-
-		if (row === undefined || !('onAction' in row)) throw new Error('Edit visit is an action.')
-
-		row.onAction?.()
+		run(placeMenuItems(only, actions)[1])
 
 		expect(actions.onEditVisit).toHaveBeenCalledWith(only, only.visits[0])
 	})
@@ -52,9 +55,7 @@ describe('placeMenuItems', () => {
 
 		expect(keys(row.items)).toEqual(['new', 'old'])
 
-		const older = row.items[1]
-
-		if (older !== undefined && 'onAction' in older) older.onAction?.()
+		run(row.items[1])
 
 		expect(actions.onEditVisit).toHaveBeenCalledWith(repeat, repeat.visits[1])
 	})
@@ -72,9 +73,7 @@ describe('visitMenuItems', () => {
 
 		expect(keys(entries)).toEqual(['edit', 'delete'])
 
-		const deleteRow = entries[1]
-
-		if (deleteRow !== undefined && 'onAction' in deleteRow) deleteRow.onAction?.()
+		run(entries[1])
 
 		expect(actions.onDeleteVisit).toHaveBeenCalledWith(only, visit)
 	})

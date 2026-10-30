@@ -1,15 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { deletePicks, listPicks, savePicks } from '../api/predictions-api'
 
-// A browser resolves a same-origin path, and the `Request` of Node takes only an absolute URL.
-vi.hoisted(() => {
-	globalThis.Request = class extends Request {
-		constructor(input: RequestInfo | URL, init?: RequestInit) {
-			super(typeof input === 'string' ? new URL(input, 'http://localhost') : input, init)
-		}
-	}
-})
-
 // Stubs the gateway with one answer, and the page location with a spy.
 function stub(response: Response) {
 	const assign = vi.fn()

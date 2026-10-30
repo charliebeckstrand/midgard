@@ -22,8 +22,10 @@ function setup() {
 	return { client, queryFn, open }
 }
 
-// Lets the timers of the query client run, such as the removal of an entry.
-const settle = () => new Promise((resolve) => setTimeout(resolve, 10))
+// Waits until the query client removes the entry, which `gcTime: 0` does on a timer.
+function dropped(client: QueryClient) {
+	return vi.waitFor(() => expect(client.getQueryCache().find({ queryKey: key })).toBeUndefined())
+}
 
 describe('seededQuery', () => {
 	it('shows the seed on the first visit, with no fetch', () => {
@@ -37,11 +39,11 @@ describe('seededQuery', () => {
 	})
 
 	it('shows the newer seed of a revisit, with no fetch', async () => {
-		const { queryFn, open } = setup()
+		const { client, queryFn, open } = setup()
 
 		open({ data: 'first', readAt: Date.now() }).close()
 
-		await settle()
+		await dropped(client)
 
 		const page = open({ data: 'second', readAt: Date.now() })
 
@@ -55,9 +57,7 @@ describe('seededQuery', () => {
 
 		open({ data: 'first', readAt: Date.now() }).close()
 
-		await settle()
-
-		expect(client.getQueryCache().find({ queryKey: key })).toBeUndefined()
+		await dropped(client)
 	})
 
 	it('fetches when the seed is older than the stale time, such as on a back navigation', async () => {

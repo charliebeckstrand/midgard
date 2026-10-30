@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { photo } from '../fixtures'
 
 /** What the next upload of each file name does: fail with an error, or give its key. */
@@ -27,7 +27,8 @@ vi.mock('../../api/places-api', async () => {
 
 			running.most = Math.max(running.most, running.now)
 
-			await new Promise((wake) => setTimeout(wake, 1))
+			// Yields, so that each worker of `photoKeys` starts its upload before one ends.
+			await null
 
 			running.now--
 
@@ -64,9 +65,9 @@ const reset = () => {
 }
 
 describe('photoKeys', () => {
-	it('keeps each stored key and uploads each new file, in the order of the list', async () => {
-		reset()
+	beforeEach(reset)
 
+	it('keeps each stored key and uploads each new file, in the order of the list', async () => {
 		const photos = [file('a.jpg'), photo('users/u1/stored.jpg'), file('b.jpg')]
 
 		await expect(photoKeys(photos, ignore, new WeakMap())).resolves.toEqual([
@@ -77,8 +78,6 @@ describe('photoKeys', () => {
 	})
 
 	it('reports the progress of each new file by its form key', async () => {
-		reset()
-
 		const added = file('a.jpg')
 
 		const reports: [string, number][] = []
@@ -93,8 +92,6 @@ describe('photoKeys', () => {
 	})
 
 	it('uploads three files at a time', async () => {
-		reset()
-
 		const photos = ['1', '2', '3', '4', '5', '6', '7'].map((id) => file(`${id}.jpg`))
 
 		await expect(photoKeys(photos, ignore, new WeakMap())).resolves.toHaveLength(7)
@@ -103,8 +100,6 @@ describe('photoKeys', () => {
 	})
 
 	it('finishes every upload when one fails, and a later save sends only the failed file', async () => {
-		reset()
-
 		const photos = [file('a.jpg'), file('b.jpg'), file('c.jpg')]
 
 		const uploaded = new WeakMap<File, string>()
@@ -129,8 +124,6 @@ describe('photoKeys', () => {
 	})
 
 	it('names every file that did not upload in one message', async () => {
-		reset()
-
 		plan.set('a.jpg', PLAN_NO_ANSWER)
 
 		plan.set('c.jpg', PLAN_NO_ANSWER)
@@ -141,8 +134,6 @@ describe('photoKeys', () => {
 	})
 
 	it('gives the words of a refusal before the files that got no answer', async () => {
-		reset()
-
 		plan.set('a.jpg', PLAN_NO_ANSWER)
 
 		plan.set('b.jpg', new Error('Sign in again.'))

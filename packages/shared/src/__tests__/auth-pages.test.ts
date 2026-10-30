@@ -1,13 +1,11 @@
 import { createElement, type ReactNode } from 'react'
-import { renderToString } from 'react-dom/server'
-import { LocaleProvider, type LocaleProviderProps } from 'ui/providers/locale'
 import { describe, expect, it, vi } from 'vitest'
 import { ForgotPasswordPage } from '../auth/forgot-password-page'
 import { LoginPage } from '../auth/login-page'
 import { RegisterPage } from '../auth/register-page'
 import { ResetPasswordPage } from '../auth/reset-password-page'
 import { VerifyEmailPage } from '../auth/verify-email-page'
-import { catalogs } from '../locale/catalogs'
+import { renderInLocale } from './helpers/intl'
 
 // The pages read the router and the query of the App Router, which a server
 // render outside Next does not mount. The query holds the notice after a
@@ -17,19 +15,11 @@ vi.mock('next/navigation', () => ({
 	useSearchParams: () => new URLSearchParams('registered=true'),
 }))
 
-/** The server markup of `page` in `locale`, with the catalogs of shared, as `AppProviders` gives them. */
-function render(locale: string, page: ReactNode): string {
-	// The third argument gives the children, which the props type requires.
-	const props = { locale, catalogs } as LocaleProviderProps
-
-	return renderToString(createElement(LocaleProvider, props, page))
-}
-
 describe('LoginPage', () => {
 	const page = createElement(LoginPage, { providers: ['github'] })
 
 	it('shows its text in English', () => {
-		const html = render('en', page)
+		const html = renderInLocale('en', page)
 
 		expect(html).toContain('Sign in to your account')
 
@@ -37,7 +27,7 @@ describe('LoginPage', () => {
 	})
 
 	it('shows its text, its notice, and its provider button in the language of the locale', () => {
-		const html = render('es', page)
+		const html = renderInLocale('es', page)
 
 		for (const text of [
 			'Inicia sesión en tu cuenta',
@@ -79,7 +69,7 @@ describe('the other auth pages', () => {
 	]
 
 	it.each(pages)('%s shows its text in the language of the locale', (_, page, texts) => {
-		const html = render('es', page())
+		const html = renderInLocale('es', page())
 
 		for (const text of texts) expect(html).toContain(text)
 	})
@@ -88,7 +78,7 @@ describe('the other auth pages', () => {
 describe('RegisterPage', () => {
 	// WCAG 1.3.5: each field that collects data about the user names its purpose.
 	it('gives each field its autocomplete token', () => {
-		const html = render('en', createElement(RegisterPage, {}))
+		const html = renderInLocale('en', createElement(RegisterPage, {}))
 
 		const tokens = Object.fromEntries(
 			[...html.matchAll(/<input[^>]*>/g)].map(([input]) => [

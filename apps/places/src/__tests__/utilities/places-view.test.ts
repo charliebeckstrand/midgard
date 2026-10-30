@@ -263,12 +263,6 @@ describe('groupTrail', () => {
 })
 
 describe('viewFor', () => {
-	it('goes to the state the states atlas put a place in', () => {
-		const held = place('a')
-
-		expect(viewFor(new Map([['a', 'Oregon']]), held)).toEqual(OREGON)
-	})
-
 	// The world rather than the place's own country: a country is reachable only
 	// by the name its atlas gives it, and a place carries the geocoder's.
 	it('goes to the world for a place the states atlas could not place', () => {

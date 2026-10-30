@@ -1,19 +1,10 @@
 import { startAuthentication } from '@simplewebauthn/browser'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { getSession, requireGateway, type Session } from 'auth'
 import { type ReactElement, StrictMode } from 'react'
 import { LoginPage } from 'shared/auth'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Login from '../../app/login/page'
-
-// A browser resolves a same-origin path, and the `Request` of Node takes only an absolute URL.
-vi.hoisted(() => {
-	globalThis.Request = class extends Request {
-		constructor(input: RequestInfo | URL, init?: RequestInit) {
-			super(typeof input === 'string' ? new URL(input, 'http://localhost') : input, init)
-		}
-	}
-})
 
 vi.mock('auth', () => ({
 	bifrost: { GET: vi.fn() },
@@ -33,8 +24,6 @@ vi.mock('next/navigation', () => ({
 }))
 
 vi.mock('@simplewebauthn/browser', () => ({ startAuthentication: vi.fn() }))
-
-afterEach(cleanup)
 
 /** A session of a user with the given roles, with or without the second step. */
 function session(roles: string[], two_step: boolean): Session {
@@ -83,28 +72,19 @@ describe('Login', () => {
 		expect(screen.queryByText(/Don't have an account/)).toBeNull()
 	})
 
-	it('sends a user that is not an admin to /account', async () => {
-		vi.mocked(getSession).mockResolvedValue(session(['user'], false))
+	const noFactor = { enabled: false, passkeys: 0, totp: false, recovery_codes: 0 }
 
-		expect(await readRedirect()).toBe('/account')
-	})
+	// Each row gives the roles, the second step, the factors that the gateway reads, and the target.
+	it.for<[string, string[], boolean, typeof noFactor | undefined, string]>([
+		['sends a user that is not an admin to /account', ['user'], false, undefined, '/account'],
+		['sends an admin that passed the second step to /', ['admin'], true, undefined, '/'],
+		['sends an admin without a second factor to /account', ['admin'], false, noFactor, '/account'],
+	])('%s', async ([, roles, two_step, factors, target]) => {
+		vi.mocked(getSession).mockResolvedValue(session(roles, two_step))
 
-	it('sends an admin that passed the second step to /', async () => {
-		vi.mocked(getSession).mockResolvedValue(session(['admin'], true))
+		if (factors) vi.mocked(requireGateway).mockResolvedValue(factors)
 
-		expect(await readRedirect()).toBe('/')
-	})
-
-	it('sends an admin without a second factor to /account', async () => {
-		vi.mocked(getSession).mockResolvedValue(session(['admin'], false))
-		vi.mocked(requireGateway).mockResolvedValue({
-			enabled: false,
-			passkeys: 0,
-			totp: false,
-			recovery_codes: 0,
-		})
-
-		expect(await readRedirect()).toBe('/account')
+		expect(await readRedirect()).toBe(target)
 	})
 
 	it('asks an admin without the second step for it', async () => {

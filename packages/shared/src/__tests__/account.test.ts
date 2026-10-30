@@ -1,15 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { oauthStartPath, signOut } from '../auth/account'
 
-// A browser resolves a same-origin path, and the `Request` of Node takes only an absolute URL.
-vi.hoisted(() => {
-	globalThis.Request = class extends Request {
-		constructor(input: RequestInfo | URL, init?: RequestInit) {
-			super(typeof input === 'string' ? new URL(input, 'http://localhost') : input, init)
-		}
-	}
-})
-
 describe('oauthStartPath', () => {
 	it('starts a sign-in', () => {
 		expect(oauthStartPath('github')).toBe('/auth/oauth/github/start')

@@ -1,7 +1,7 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { requireSession, type Session } from 'auth'
 import { type ReactNode, useState } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import SignedInLayout from '../../app/(signed-in)/layout'
 
 vi.mock('auth', () => ({ requireSession: vi.fn() }))
@@ -13,8 +13,6 @@ vi.mock('next/navigation', () => ({ usePathname: () => '/account' }))
 vi.mock('shared/locale', () => ({
 	RequestLocale: ({ children }: { children: ReactNode }) => children,
 }))
-
-afterEach(cleanup)
 
 // The count of the pages that mounted.
 let mounts = 0
