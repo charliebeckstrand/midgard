@@ -1,8 +1,9 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
-import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../components/lightbox'
+import { Lightbox, LightboxTrigger } from '../../../components/lightbox'
 import { parseMatrix } from '../../../components/lightbox/lightbox-utilities'
 import { present, renderUI, screen } from '../../helpers'
+import { fieldPhoto, viewerTweens } from '../helpers/lightbox'
 import { sampleMotionFrames } from '../helpers/motion-frame'
 
 /**
@@ -17,14 +18,7 @@ import { sampleMotionFrames } from '../helpers/motion-frame'
  * and runs no tween.
  */
 
-const photo: LightboxPhoto = {
-	src: `data:image/svg+xml;utf8,${encodeURIComponent(
-		'<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200"><rect width="300" height="200" fill="teal"/></svg>',
-	)}`,
-	alt: 'teal field',
-	width: 300,
-	height: 200,
-}
+const photo = fieldPhoto('teal', { width: 300, height: 200 })
 
 /** The radius of the thumbnail, in CSS px. */
 const RADIUS = 12
@@ -40,11 +34,6 @@ const SAMPLED_CURVE = 0.25
 type Corner = { radius: number; radiusY: number; width: number }
 
 const slot = () => document.querySelector<HTMLElement>('[data-offset="0"]')
-
-/** Whether no tween runs in the viewer. */
-const still = () =>
-	(document.querySelector('[data-slot="lightbox"]')?.getAnimations({ subtree: true }) ?? [])
-		.length === 0
 
 /** The corner of the clip in this frame, or `undefined` when the slot has no transform. */
 function readCorner(): Corner | undefined {
@@ -76,6 +65,8 @@ function readCorner(): Corner | undefined {
  * does not read it. Motion starts the tween at the time of the raise, so the
  * first frame that the sampler reads is already a part of a frame into the
  * flight. Thus a style observer reads the start, in the task of the raise.
+ * The observer disconnects when the case finishes, also when the start does
+ * not come.
  */
 function readStart(): Promise<Corner> {
 	return new Promise((resolve) => {
@@ -90,6 +81,8 @@ function readStart(): Promise<Corner> {
 		})
 
 		observer.observe(document.body, { subtree: true, attributeFilter: ['style'] })
+
+		onTestFinished(() => observer.disconnect())
 	})
 }
 
@@ -103,7 +96,7 @@ async function sampleFlight(during: () => Promise<unknown>) {
 
 			if (corner) corners.push(corner)
 
-			return corners.length > 0 && still()
+			return corners.length > 0 && viewerTweens().length === 0
 		},
 		(landed) => landed,
 		{ during },
@@ -113,15 +106,17 @@ async function sampleFlight(during: () => Promise<unknown>) {
 }
 
 /** Checks that each frame has the radius of its place between the thumbnail and the stage. */
-function expectRadiusOfEachFrame(corners: Corner[], thumbnail: number, stage: number) {
-	for (const { radius, radiusY, width } of corners) {
-		expect(radiusY).toBeNear(radius, SAMPLED_CURVE)
+const expectRadiusOfEachFrame = vi.defineHelper(
+	(corners: Corner[], thumbnail: number, stage: number) => {
+		for (const { radius, radiusY, width } of corners) {
+			expect(radiusY).toBeNear(radius, SAMPLED_CURVE)
 
-		const progress = (width - thumbnail) / (stage - thumbnail)
+			const progress = (width - thumbnail) / (stage - thumbnail)
 
-		expect(radius).toBeNear(RADIUS * (1 - progress), SAMPLED_CURVE)
-	}
-}
+			expect(radius).toBeNear(RADIUS * (1 - progress), SAMPLED_CURVE)
+		}
+	},
+)
 
 describe('Lightbox corners in the flight (real browser)', () => {
 	beforeAll(() => page.viewport(800, 600))

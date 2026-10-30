@@ -82,58 +82,45 @@ async function openPanel() {
 describe('pointer readout under a transformed ancestor (real browser)', () => {
 	beforeAll(() => page.viewport(1400, 1000))
 
-	it.each(Object.entries(FRAMES))('holds an origin-relative anchor under %s', async (_, frame) => {
-		renderUI(<Frame frame={frame} relative />)
+	const origins = [
+		{ anchor: 'an origin-relative anchor', origin: ORIGIN },
+		{ anchor: 'an anchor in the padding box of a bordered origin', origin: BORDERED_ORIGIN },
+	]
+
+	it.for(
+		origins.flatMap(({ anchor, origin }) =>
+			Object.entries(FRAMES).map(([frame, style]) => ({
+				name: `${anchor} under ${frame}`,
+				frame: style,
+				origin,
+			})),
+		),
+	)('holds $name', async ({ frame, origin: originStyle }) => {
+		renderUI(<Frame frame={frame} relative origin={originStyle} />)
 
 		const panel = await openPanel()
 
-		const origin = document.querySelector('[data-testid="origin"]')?.getBoundingClientRect()
+		const element = document.querySelector<HTMLElement>('[data-testid="origin"]')
 
-		if (!origin) throw new Error('expected the origin to be present')
+		if (!element) throw new Error('expected the origin to be present')
+
+		const origin = element.getBoundingClientRect()
 
 		const box = panel.getBoundingClientRect()
 
 		expect(panel.closest('[data-testid="frame"]')).toBeNull()
 
-		// The point is in the layout pixels of the origin, so it scales with the frame.
+		// The point is in the layout pixels of the origin, so it scales with the
+		// frame. It is in the padding box, so it starts at the inner edge of a
+		// border. The scale is the drawn border box over the layout border box.
 		const scaleX = origin.width / ORIGIN.width
 
 		const scaleY = origin.height / ORIGIN.height
 
-		expect(getCenter(box).x).toBeCloseTo(origin.left + OFFSET.x * scaleX, 0)
+		expect(getCenter(box).x).toBeCloseTo(origin.left + (element.clientLeft + OFFSET.x) * scaleX, 0)
 
-		expect(box.bottom).toBeCloseTo(origin.top + OFFSET.y * scaleY - GAP, 0)
+		expect(box.bottom).toBeCloseTo(origin.top + (element.clientTop + OFFSET.y) * scaleY - GAP, 0)
 	})
-
-	it.each(Object.entries(FRAMES))(
-		'holds an anchor in the padding box of a bordered origin under %s',
-		async (_, frame) => {
-			renderUI(<Frame frame={frame} relative origin={BORDERED_ORIGIN} />)
-
-			const panel = await openPanel()
-
-			const element = document.querySelector<HTMLElement>('[data-testid="origin"]')
-
-			if (!element) throw new Error('expected the origin to be present')
-
-			const origin = element.getBoundingClientRect()
-
-			const box = panel.getBoundingClientRect()
-
-			// The point is in the padding box, so it starts at the border, and the
-			// scale is the drawn border box over the layout border box.
-			const scaleX = origin.width / ORIGIN.width
-
-			const scaleY = origin.height / ORIGIN.height
-
-			expect(getCenter(box).x).toBeCloseTo(
-				origin.left + (element.clientLeft + OFFSET.x) * scaleX,
-				0,
-			)
-
-			expect(box.bottom).toBeCloseTo(origin.top + (element.clientTop + OFFSET.y) * scaleY - GAP, 0)
-		},
-	)
 
 	it.each(Object.entries(FRAMES))('holds a client anchor under %s', async (_, frame) => {
 		renderUI(<Frame frame={frame} relative={false} />)

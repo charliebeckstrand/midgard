@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
 import { Drawer, DrawerBody, DrawerPanel } from '../../../components/drawer'
 import { renderUI, screen, waitFor } from '../../helpers'
+import { FruitCombobox } from '../helpers/fruit-combobox'
 
 /**
  * An Escape on the open panel of a Combobox inside a Drawer (real floating
@@ -32,14 +32,7 @@ function PlaceForm({ onOpenChange }: { onOpenChange: (open: boolean) => void }) 
 		>
 			<DrawerPanel aria-label="Place">
 				<DrawerBody>
-					<Combobox<string> displayValue={(value) => value} placeholder="Search">
-						<ComboboxOption value="apple">
-							<ComboboxLabel>Apple</ComboboxLabel>
-						</ComboboxOption>
-						<ComboboxOption value="apricot">
-							<ComboboxLabel>Apricot</ComboboxLabel>
-						</ComboboxOption>
-					</Combobox>
+					<FruitCombobox />
 				</DrawerBody>
 			</DrawerPanel>
 		</Drawer>

@@ -1,9 +1,10 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../../components/toolbar'
-import { type DensityStep, densitySteps, writeRootDensity } from '../../../core/density'
+import { type DensityStep, densitySteps } from '../../../core/density'
 import type { Orientation } from '../../../types'
 import { frames, getSlot, renderUI } from '../../helpers'
 import { LAYOUT_UNIT } from '../../helpers/geometry/tolerance'
+import { holdRoot } from '../helpers/root-state'
 
 /**
  * The gap in a toolbar group stays below the toolbar gap at each density step,
@@ -49,14 +50,12 @@ function Probe({ orientation }: { orientation: Orientation }) {
 }
 
 describe('Toolbar group gap at each density step (real browser)', () => {
-	afterEach(() => writeRootDensity(document.documentElement, 'md'))
-
 	it.for(
 		(['horizontal', 'vertical'] as const).flatMap((orientation) =>
 			densitySteps.map((step) => [orientation, step] as const),
 		),
 	)('%s at %s', async ([orientation, step]) => {
-		writeRootDensity(document.documentElement, step)
+		holdRoot(step)
 
 		const { container } = renderUI(<Probe orientation={orientation} />)
 

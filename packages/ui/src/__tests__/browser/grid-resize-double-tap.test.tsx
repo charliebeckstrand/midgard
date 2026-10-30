@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { GRID_DOUBLE_TAP_WINDOW } from '../../modules/grid/use-grid-touch-entry'
 import { fireEvent, frames, present, renderUI } from '../helpers'
+import { gridHeader } from '../helpers/grid-cells'
 
 /**
  * A double tap on the column resize handle auto-sizes the column, as a
@@ -37,8 +38,6 @@ describe('grid resize handle: double tap (real browser)', () => {
 			</div>,
 		)
 
-		const _table = present(container.querySelector('table'), 'table')
-
 		await frames()
 
 		const separator = present(
@@ -46,10 +45,7 @@ describe('grid resize handle: double tap (real browser)', () => {
 			'the resize handle',
 		)
 
-		const header = present(
-			container.querySelector<HTMLElement>('th[data-grid-col="name"]'),
-			'the name header',
-		)
+		const header = gridHeader(container, 'name')
 
 		return { separator, width: () => header.getBoundingClientRect().width }
 	}

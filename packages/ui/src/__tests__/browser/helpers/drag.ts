@@ -1,4 +1,5 @@
 import { expect, onTestFinished } from 'vitest'
+import { commands } from 'vitest/browser'
 import { fireEvent, frames, waitFor } from '../../helpers'
 import { swallowsClicks } from '../../helpers/residue'
 
@@ -107,4 +108,28 @@ export async function drag(
 	onTestFinished(release)
 
 	return { release }
+}
+
+/**
+ * Presses the primary button of the real mouse on `selector`, through the `pressPointer` command.
+ *
+ * The button stays down until the case calls `commands.releasePointer()`. The helper also
+ * releases it when the case ends, so a case that fails or times out before its own release does
+ * not hand the press to the next case.
+ *
+ * @param selector - The CSS selector of the element that the press lands on.
+ * @param at - Where the press lands, as a fraction of the box on each axis. The default is the
+ * center.
+ *
+ * @example
+ * ```typescript
+ * await press('[data-slot="slider-range"]', { x: 0.1, y: 0.5 })
+ *
+ * await commands.releasePointer()
+ * ```
+ */
+export async function press(selector: string, at?: { x: number; y: number }): Promise<void> {
+	onTestFinished(() => commands.releasePointer())
+
+	await commands.pressPointer(selector, at)
 }

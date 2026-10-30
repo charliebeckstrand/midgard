@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import type { ChatEmbedRenderer, ChatMessageData } from '../../modules/chat'
 import { ChatEmbedProvider, ChatTranscript } from '../../modules/chat'
 import { frames, renderUI, waitFor } from '../helpers'
@@ -79,6 +79,24 @@ function showsEnd(transcript: HTMLElement, text: string) {
 	return rect.bottom <= box.bottom + 1 && rect.bottom > box.top
 }
 
+/** Asserts that the transcript sits at its end, with the row that holds `text` in view. */
+const atEnd = vi.defineHelper((transcript: HTMLElement, text: string) => {
+	expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
+
+	expect(showsEnd(transcript, text)).toBe(true)
+})
+
+/** Renders a bounded transcript of `messages`, and waits until it sits at its end. */
+const mountAtEnd = vi.defineHelper(async (messages: ChatMessageData[], streaming?: boolean) => {
+	const view = renderUI(<Frame messages={messages} streaming={streaming} />)
+
+	const transcript = getTranscript(view.container)
+
+	await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
+
+	return { ...view, transcript }
+})
+
 /**
  * Waits until the transcript sits at its end, and its window knows that.
  *
@@ -88,7 +106,7 @@ function showsEnd(transcript: HTMLElement, text: string) {
  * rows for that offset, and it does not follow an append. Call this straight
  * after the render, so that the listener is in place before the event.
  */
-async function landed(transcript: HTMLElement) {
+const landed = vi.defineHelper(async (transcript: HTMLElement) => {
 	let reported: number | null = null
 
 	const record = () => {
@@ -106,7 +124,7 @@ async function landed(transcript: HTMLElement) {
 	} finally {
 		transcript.removeEventListener('scroll', record)
 	}
-}
+})
 
 /** Scrolls the transcript to `top` and waits for the window to follow. */
 async function scrollTo(transcript: HTMLElement, top: number) {
@@ -147,11 +165,7 @@ describe('the transcript window', () => {
 			{ id: 'reply', sender: 'assistant', content },
 		]
 
-		const { container, rerender } = renderUI(<Frame messages={withReply('Late')} streaming />)
-
-		const transcript = getTranscript(container)
-
-		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
+		const { rerender, transcript } = await mountAtEnd(withReply('Late'), true)
 
 		const before = transcript.scrollHeight
 
@@ -161,11 +175,7 @@ describe('the transcript window', () => {
 				<Frame messages={withReply(`Late ${filler(4).repeat(chunk)} end-${chunk}`)} streaming />,
 			)
 
-			await waitFor(() => {
-				expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
-
-				expect(showsEnd(transcript, `end-${chunk}`)).toBe(true)
-			})
+			await waitFor(() => atEnd(transcript, `end-${chunk}`))
 		}
 
 		expect(transcript.scrollHeight).toBeGreaterThan(before + HEIGHT)
@@ -205,11 +215,7 @@ describe('the transcript window', () => {
 		for (const chunks of [4, 6, 3, 0]) {
 			rerender(<Frame messages={withReply(chunks)} streaming />)
 
-			await waitFor(() => {
-				expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
-
-				expect(showsEnd(transcript, `end-${chunks}`)).toBe(true)
-			})
+			await waitFor(() => atEnd(transcript, `end-${chunks}`))
 
 			await frames()
 		}
@@ -256,14 +262,7 @@ describe('the transcript window', () => {
 
 		rerender(<Frame messages={[...messages, ...appended]} />)
 
-		await waitFor(
-			() => {
-				expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
-
-				expect(showsEnd(transcript, 'New 4.')).toBe(true)
-			},
-			{ timeout: FOLLOW },
-		)
+		await waitFor(() => atEnd(transcript, 'New 4.'), { timeout: FOLLOW })
 
 		sampling = false
 
@@ -279,11 +278,7 @@ describe('the transcript window', () => {
 	it('leaves a reader who scrolled up where they are when a row arrives', async () => {
 		const messages = history(200)
 
-		const { container, rerender } = renderUI(<Frame messages={messages} />)
-
-		const transcript = getTranscript(container)
-
-		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
+		const { rerender, transcript } = await mountAtEnd(messages)
 
 		await scrollTo(transcript, transcript.scrollTop - 1_000)
 
@@ -303,11 +298,7 @@ describe('the transcript window', () => {
 	it('takes a reader who scrolled up to the end when their own message arrives', async () => {
 		const messages = history(200)
 
-		const { container, rerender } = renderUI(<Frame messages={messages} />)
-
-		const transcript = getTranscript(container)
-
-		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
+		const { rerender, transcript } = await mountAtEnd(messages)
 
 		await scrollTo(transcript, transcript.scrollTop - 1_000)
 
@@ -315,14 +306,7 @@ describe('the transcript window', () => {
 
 		rerender(<Frame messages={[...messages, { id: 'sent', sender: 'user', content: 'Sent.' }]} />)
 
-		await waitFor(
-			() => {
-				expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
-
-				expect(showsEnd(transcript, 'Sent.')).toBe(true)
-			},
-			{ timeout: FOLLOW },
-		)
+		await waitFor(() => atEnd(transcript, 'Sent.'), { timeout: FOLLOW })
 
 		// It stays landed once the new row has measured.
 		expect(await settledValue(() => distanceFromEnd(transcript))).toBeLessThanOrEqual(1)
@@ -331,11 +315,7 @@ describe('the transcript window', () => {
 	it('takes the reader to the end when their message and its reply arrive in one commit', async () => {
 		const messages = history(200)
 
-		const { container, rerender } = renderUI(<Frame messages={messages} />)
-
-		const transcript = getTranscript(container)
-
-		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
+		const { rerender, transcript } = await mountAtEnd(messages)
 
 		await scrollTo(transcript, transcript.scrollTop - 1_000)
 
@@ -352,24 +332,13 @@ describe('the transcript window', () => {
 			/>,
 		)
 
-		await waitFor(
-			() => {
-				expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
-
-				expect(showsEnd(transcript, 'Reply.')).toBe(true)
-			},
-			{ timeout: FOLLOW },
-		)
+		await waitFor(() => atEnd(transcript, 'Reply.'), { timeout: FOLLOW })
 	})
 
 	it('glides, not jumps, when a reader at the end sends a message', async () => {
 		const messages = history(200)
 
-		const { container, rerender } = renderUI(<Frame messages={messages} />)
-
-		const transcript = getTranscript(container)
-
-		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
+		const { rerender, transcript } = await mountAtEnd(messages)
 
 		const start = transcript.scrollTop
 
@@ -401,14 +370,7 @@ describe('the transcript window', () => {
 			/>,
 		)
 
-		await waitFor(
-			() => {
-				expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
-
-				expect(showsEnd(transcript, 'Sent.')).toBe(true)
-			},
-			{ timeout: FOLLOW },
-		)
+		await waitFor(() => atEnd(transcript, 'Sent.'), { timeout: FOLLOW })
 
 		sampling = false
 

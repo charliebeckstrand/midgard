@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react'
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Toast, ToastProvider, useToast } from '../../components/toast'
-import { type DensityStep, densitySteps, writeRootDensity } from '../../core/density'
+import { type DensityStep, densitySteps } from '../../core/density'
 import { renderUI, waitFor } from '../helpers'
+import { holdRoot } from './helpers/root-state'
 
 /** The space between two stacked toasts at each root step: the `sm` stop of `dan.gap.scale`. */
 const GAP_PX: Record<DensityStep, number> = { xs: 2, sm: 4, md: 8, lg: 12, xl: 18 }
@@ -39,12 +40,8 @@ describe('Toast density (real browser)', () => {
 	// The positions apply from the `sm` breakpoint up.
 	beforeAll(() => page.viewport(960, 640))
 
-	afterEach(() => {
-		writeRootDensity(document.documentElement, 'md')
-	})
-
 	function renderStack(step: DensityStep) {
-		writeRootDensity(document.documentElement, step)
+		holdRoot(step)
 
 		renderUI(
 			<ToastProvider>

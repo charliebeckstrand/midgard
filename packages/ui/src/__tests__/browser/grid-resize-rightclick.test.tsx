@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, frames, present, renderUI, waitFor } from '../helpers'
+import { fireEvent, frames, renderUI, waitFor } from '../helpers'
+import { gridHeader } from '../helpers/grid-cells'
 
 /**
  * A right-click on the column resize handle must not begin a drag-resize. The
@@ -35,18 +36,14 @@ describe('grid resize handle: right-click (real browser)', () => {
 
 		if (!separator) throw new Error('resize handle not found')
 
-		const nameHeader = container.querySelector<HTMLElement>('th[data-grid-col="name"]')
-
-		if (!nameHeader) throw new Error('name header not found')
+		const nameHeader = gridHeader(container, 'name')
 
 		return { container, separator, nameHeader }
 	}
 
 	// Auto-fit sizes the columns on mount; wait for the engine width so the drag
 	// starts on a settled target.
-	async function settled(container: HTMLElement) {
-		const _table = present(container.querySelector('table'), 'table')
-
+	async function settled() {
 		await frames()
 	}
 
@@ -59,7 +56,7 @@ describe('grid resize handle: right-click (real browser)', () => {
 		it(`does not resize on a ${name} drag whose mouseup the menu swallows`, async () => {
 			const { container, separator, nameHeader } = setup()
 
-			await settled(container)
+			await settled()
 
 			const startWidth = nameHeader.getBoundingClientRect().width
 
@@ -86,9 +83,9 @@ describe('grid resize handle: right-click (real browser)', () => {
 	}
 
 	it('still resizes on a primary-button drag', async () => {
-		const { container, separator, nameHeader } = setup()
+		const { separator, nameHeader } = setup()
 
-		await settled(container)
+		await settled()
 
 		const startWidth = nameHeader.getBoundingClientRect().width
 

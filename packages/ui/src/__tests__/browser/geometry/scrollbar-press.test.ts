@@ -1,5 +1,6 @@
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { isScrollbarPress } from '../../../utilities/scrollbar-press'
+import { attach } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -21,9 +22,7 @@ describe('isScrollbarPress in a real browser', () => {
 
 		scroller.append(content)
 
-		document.body.append(scroller)
-
-		onTestFinished(() => scroller.remove())
+		attach(scroller)
 
 		const box = scroller.getBoundingClientRect()
 

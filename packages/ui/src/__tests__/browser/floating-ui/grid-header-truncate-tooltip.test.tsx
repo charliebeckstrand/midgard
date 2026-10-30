@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid } from '../../../modules/grid'
 import { fireEvent, frames, renderUI, screen, waitFor } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
 import { textOverflow } from '../helpers/text-overflow'
-import { pause } from '../helpers/wall-clock'
+import { tooltipAfterHover } from '../helpers/tooltip'
 
 /**
  * Column-header truncation tooltip against the real floating engine and real
@@ -47,7 +47,7 @@ describe('grid header truncation tooltip (real browser)', () => {
 	})
 
 	/** Tabs from a button before the grid to the sort button, and gives the sort button. */
-	const tabToSort = async (name: string) => {
+	const tabToSort = vi.defineHelper(async (name: string) => {
 		const before = screen.getByRole('button', { name: 'before' })
 
 		// The pointer rests on the button before the grid, so a hover on the
@@ -65,7 +65,7 @@ describe('grid header truncation tooltip (real browser)', () => {
 		expect(document.activeElement).toBe(sort)
 
 		return sort
-	}
+	})
 
 	// The sort button takes the focus, so the button is the trigger of the tooltip.
 	// The tooltip echoes the title, which is already in the name of the button,
@@ -151,13 +151,17 @@ describe('grid header truncation tooltip (real browser)', () => {
 
 		fireEvent.mouseDown(separator, { clientX: x, clientY: y })
 
+		// The release ends the drag even when the wait below fails. Its document
+		// listeners otherwise stay, and later cases move the mouse into the drag.
+		onTestFinished(() => {
+			fireEvent.mouseUp(document, { clientX: x - 30, clientY: y })
+		})
+
 		fireEvent.mouseMove(document, { clientX: x - 30, clientY: y })
 
 		// The in-flight resize holds the overflow tooltip closed, though the title is
 		// still clipped and still hovered.
 		await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
-
-		fireEvent.mouseUp(document, { clientX: x - 30, clientY: y })
 	})
 
 	it('reveals the header tooltip for a title clipped by a sub-tenth-of-a-pixel amount', async (ctx) => {
@@ -286,8 +290,6 @@ describe('grid header truncation tooltip (real browser)', () => {
 
 		// A short title in a wide header does not overflow; no tooltip should open
 		// even after the hover delay (guards against a sub-pixel false positive).
-		await pause(400)
-
-		expect(screen.queryByRole('tooltip')).toBeNull()
+		expect(await tooltipAfterHover()).toBeNull()
 	})
 })

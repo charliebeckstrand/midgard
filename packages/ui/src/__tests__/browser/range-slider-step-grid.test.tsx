@@ -1,7 +1,8 @@
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 import { RangeSlider } from '../../components/slider'
 import { allBySlot, getSlot, present, renderUI } from '../helpers'
+import { press } from './helpers/drag'
 
 /**
  * A press near max on two thumbs stacked at max waits for the first move, and a move down drags the
@@ -27,11 +28,9 @@ describe('a RangeSlider press near max on a stack at max (real browser)', () => 
 
 		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
 
-		onTestFinished(() => commands.releasePointer())
-
 		// 95% along the track is the raw value 9.6, which the step grid snaps to 11. The point is clear
 		// of the thumbs at max, so the press lands on the track.
-		await commands.pressPointer('[data-slot="slider-range"]', { x: 0.95, y: 0.5 })
+		await press('[data-slot="slider-range"]', { x: 0.95, y: 0.5 })
 
 		// The center of the track is the raw value 6, which snaps to 5.
 		await userEvent.hover(root)

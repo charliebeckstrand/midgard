@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
 import { renderUI, screen, waitFor } from '../../helpers'
+import { FruitCombobox } from '../helpers/fruit-combobox'
 
 /**
  * Combobox ARIA roles (real floating engine). Verifies `role: null` on
@@ -12,16 +12,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
  */
 describe('Combobox ARIA roles (real browser)', () => {
 	it('exposes exactly one combobox and one listbox when open', async () => {
-		renderUI(
-			<Combobox<string> displayValue={(value) => value} placeholder="Search">
-				<ComboboxOption value="apple">
-					<ComboboxLabel>Apple</ComboboxLabel>
-				</ComboboxOption>
-				<ComboboxOption value="apricot">
-					<ComboboxLabel>Apricot</ComboboxLabel>
-				</ComboboxOption>
-			</Combobox>,
-		)
+		renderUI(<FruitCombobox />)
 
 		const input = screen.getByRole('combobox')
 

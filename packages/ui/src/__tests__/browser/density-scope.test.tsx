@@ -1,6 +1,6 @@
-import type { ReactElement } from 'react'
+import type { ComponentType, ReactElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { server } from 'vitest/browser'
 import { Badge, BadgeSkeleton } from '../../components/badge'
 import { Button, ButtonSkeleton } from '../../components/button'
@@ -26,7 +26,7 @@ import { Switch } from '../../components/switch'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { Tree, TreeItem } from '../../components/tree'
-import { densitySteps, writeRootDensity } from '../../core/density'
+import { densitySteps } from '../../core/density'
 import { boxHeight, iconSize } from '../../core/density/geometry'
 import { SidebarLayout } from '../../layouts/sidebar'
 import { ChatListItem } from '../../modules/chat'
@@ -34,6 +34,7 @@ import { Grid } from '../../modules/grid'
 import { Option } from '../../primitives/option/option'
 import { DensityProvider } from '../../providers/density'
 import { attach, present, renderUI, screen } from '../helpers'
+import { holdRoot } from './helpers/root-state'
 
 /**
  * A static leaf with no `size` follows the nearest density scope.
@@ -76,12 +77,8 @@ const mountMarkup = (element: ReactElement) => {
  * `<html>` before the first paint. Each scope under it wins over it.
  */
 describe('the root scope (real browser)', () => {
-	afterEach(() => {
-		writeRootDensity(document.documentElement, 'md')
-	})
-
 	it('gives its step to a leaf outside each other scope', () => {
-		writeRootDensity(document.documentElement, 'sm')
+		holdRoot('sm')
 
 		const { container } = renderUI(<Badge>x</Badge>)
 
@@ -89,7 +86,7 @@ describe('the root scope (real browser)', () => {
 	})
 
 	it('loses to a scope under it', () => {
-		writeRootDensity(document.documentElement, 'sm')
+		holdRoot('sm')
 
 		const { container } = renderUI(
 			<Card size="lg">
@@ -107,10 +104,6 @@ describe('the root scope (real browser)', () => {
  * it.
  */
 describe('the relative slot scope (real browser)', () => {
-	afterEach(() => {
-		writeRootDensity(document.documentElement, 'md')
-	})
-
 	it('steps its contents one step below an explicit scope', () => {
 		const { container } = renderUI(
 			<Card size="lg">
@@ -121,18 +114,6 @@ describe('the relative slot scope (real browser)', () => {
 		)
 
 		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.md)
-	})
-
-	it('steps its contents one step below the root', () => {
-		writeRootDensity(document.documentElement, 'md')
-
-		const { container } = renderUI(
-			<span data-density="slot">
-				<Badge>x</Badge>
-			</span>,
-		)
-
-		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.sm)
 	})
 
 	it('steps below md when the root has no step', () => {
@@ -146,7 +127,7 @@ describe('the relative slot scope (real browser)', () => {
 	})
 
 	it('takes xs below sm, the smallest step', () => {
-		writeRootDensity(document.documentElement, 'sm')
+		holdRoot('sm')
 
 		const { container } = renderUI(
 			<span data-density="slot">
@@ -180,7 +161,7 @@ describe('the relative slot scope (real browser)', () => {
 	})
 
 	it('reads the nearest scope above it, not an outer one', () => {
-		writeRootDensity(document.documentElement, 'sm')
+		holdRoot('sm')
 
 		const { container } = renderUI(
 			<Card size="lg">
@@ -199,10 +180,6 @@ describe('the relative slot scope (real browser)', () => {
  * `xl` control takes `lg`, and the slot of an `lg` control takes `md`.
  */
 describe('a control slot in an xl scope (real browser)', () => {
-	afterEach(() => {
-		writeRootDensity(document.documentElement, 'md')
-	})
-
 	const icon = (
 		<Icon
 			icon={
@@ -238,7 +215,7 @@ describe('a control slot in an xl scope (real browser)', () => {
 	})
 
 	it('gives the slot under an xl root the step below xl', () => {
-		writeRootDensity(document.documentElement, 'xl')
+		holdRoot('xl')
 
 		expect(measure(mountMarkup(control))).toEqual({
 			frame: boxHeight('xl'),
@@ -253,15 +230,11 @@ describe('a control slot in an xl scope (real browser)', () => {
  * markup with no hydration.
  */
 describe('controls at the first paint (real browser)', () => {
-	afterEach(() => {
-		writeRootDensity(document.documentElement, 'md')
-	})
-
 	const px = (element: Element | null, property: 'fontSize' | 'paddingInlineStart') =>
 		Number.parseFloat(getComputedStyle(present(element, 'element'))[property])
 
 	it('sizes an unsized input at the step of the root', () => {
-		writeRootDensity(document.documentElement, 'sm')
+		holdRoot('sm')
 
 		const container = mountMarkup(<Input aria-label="Name" />)
 
@@ -273,7 +246,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('lets an explicit size win over the root', () => {
-		writeRootDensity(document.documentElement, 'sm')
+		holdRoot('sm')
 
 		const container = mountMarkup(<Input aria-label="Name" size="lg" />)
 
@@ -281,7 +254,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('steps the prefix one step below the input and pads it at the input step', () => {
-		writeRootDensity(document.documentElement, 'lg')
+		holdRoot('lg')
 
 		const container = mountMarkup(<Input aria-label="Name" prefix={<Badge>x</Badge>} />)
 
@@ -292,7 +265,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('sizes an unsized button at the step of the root', () => {
-		writeRootDensity(document.documentElement, 'sm')
+		holdRoot('sm')
 
 		const container = mountMarkup(<Button>Save</Button>)
 
@@ -300,7 +273,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('steps a button in an input suffix one step below the input', () => {
-		writeRootDensity(document.documentElement, 'lg')
+		holdRoot('lg')
 
 		const container = mountMarkup(<Input aria-label="Name" suffix={<Button>Go</Button>} />)
 
@@ -311,7 +284,7 @@ describe('controls at the first paint (real browser)', () => {
 		['the root', <Input key="i" aria-label="Name" />, '9px'],
 		['an explicit size', <Input key="i" aria-label="Name" size="sm" />, '5px'],
 	])('rounds the inset fill of the input frame at the step of %s', (_, element, radius) => {
-		writeRootDensity(document.documentElement, 'lg')
+		holdRoot('lg')
 
 		// The fill is the `::before` of the frame. Its radius is the frame radius less the ring.
 		const container = mountMarkup(element)
@@ -322,7 +295,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('sizes the unsized toggles at the step of the root', () => {
-		writeRootDensity(document.documentElement, 'sm')
+		holdRoot('sm')
 
 		const container = mountMarkup(
 			<>
@@ -340,7 +313,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('sizes the native slider track at an explicit size of the slider', () => {
-		writeRootDensity(document.documentElement, 'sm')
+		holdRoot('sm')
 
 		// The track is a pseudo-element, and it takes the step of the input itself. The content box
 		// of the input is the height of its track.
@@ -365,7 +338,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('sizes the rating and the progress indicators at the step of the root', () => {
-		writeRootDensity(document.documentElement, 'lg')
+		holdRoot('lg')
 
 		const container = mountMarkup(
 			<>
@@ -386,7 +359,7 @@ describe('controls at the first paint (real browser)', () => {
 	})
 
 	it('pads a text prefix at the px of the input', () => {
-		writeRootDensity(document.documentElement, 'lg')
+		holdRoot('lg')
 
 		const container = mountMarkup(<Input aria-label="Name" prefix="$" />)
 
@@ -395,10 +368,6 @@ describe('controls at the first paint (real browser)', () => {
 })
 
 describe('items and slots at the first paint (real browser)', () => {
-	afterEach(() => {
-		writeRootDensity(document.documentElement, 'md')
-	})
-
 	type Property = 'fontSize' | 'paddingTop' | 'paddingInlineStart' | 'marginInlineEnd' | 'width'
 
 	const px = (element: Element | null, property: Property) =>
@@ -415,7 +384,7 @@ describe('items and slots at the first paint (real browser)', () => {
 	)
 
 	it('sizes an unsized sidebar item and its icon at the step of the root', () => {
-		writeRootDensity(document.documentElement, 'sm')
+		holdRoot('sm')
 
 		const container = mountMarkup(<SidebarItem icon={icon}>Home</SidebarItem>)
 
@@ -430,7 +399,7 @@ describe('items and slots at the first paint (real browser)', () => {
 	})
 
 	it('sizes an unsized sidebar item and its icon at xs under an xs root', () => {
-		writeRootDensity(document.documentElement, 'xs')
+		holdRoot('xs')
 
 		const container = mountMarkup(
 			<SidebarItem icon={icon}>
@@ -470,7 +439,7 @@ describe('items and slots at the first paint (real browser)', () => {
 	})
 
 	it('sizes an unsized nav item and its icon at xs under an xs root', () => {
-		writeRootDensity(document.documentElement, 'xs')
+		holdRoot('xs')
 
 		const container = mountMarkup(<NavItem icon={icon}>Home</NavItem>)
 
@@ -484,7 +453,7 @@ describe('items and slots at the first paint (real browser)', () => {
 	})
 
 	it('sizes an unsized option and its icon at xs under an xs root', () => {
-		writeRootDensity(document.documentElement, 'xs')
+		holdRoot('xs')
 
 		const container = mountMarkup(
 			<Option selected={false} onSelect={() => {}}>
@@ -499,7 +468,7 @@ describe('items and slots at the first paint (real browser)', () => {
 	})
 
 	it('lets an explicit size of a sidebar item win over the root', () => {
-		writeRootDensity(document.documentElement, 'lg')
+		holdRoot('lg')
 
 		const container = mountMarkup(<SidebarItem size="sm">Home</SidebarItem>)
 
@@ -507,7 +476,7 @@ describe('items and slots at the first paint (real browser)', () => {
 	})
 
 	it('steps a sidebar item suffix one step below the item and insets it at the item step', () => {
-		writeRootDensity(document.documentElement, 'lg')
+		holdRoot('lg')
 
 		const container = mountMarkup(<SidebarItem suffix={<Button>Edit</Button>}>Home</SidebarItem>)
 
@@ -519,7 +488,7 @@ describe('items and slots at the first paint (real browser)', () => {
 	})
 
 	it('steps the chat list item actions one step below the root', () => {
-		writeRootDensity(document.documentElement, 'lg')
+		holdRoot('lg')
 
 		const container = mountMarkup(<ChatListItem title="Chat" actions={<Button>Delete</Button>} />)
 
@@ -548,7 +517,7 @@ describe('items and slots at the first paint (real browser)', () => {
 			34,
 		],
 	])('sizes and indents a tree at the step of %s', (_, element, font, indent) => {
-		writeRootDensity(document.documentElement, 'sm')
+		holdRoot('sm')
 
 		const container = mountMarkup(element)
 
@@ -561,10 +530,6 @@ describe('items and slots at the first paint (real browser)', () => {
 })
 
 describe('the sparkline at the first paint (real browser)', () => {
-	afterEach(() => {
-		writeRootDensity(document.documentElement, 'md')
-	})
-
 	const box = (element: Element | null) => {
 		const { width, height } = present(element, 'element').getBoundingClientRect()
 
@@ -579,7 +544,7 @@ describe('the sparkline at the first paint (real browser)', () => {
 			[120, 40],
 		],
 	])('sizes the box at 3:1 at the step of %s', (_, element, expected) => {
-		writeRootDensity(document.documentElement, 'sm')
+		holdRoot('sm')
 
 		const container = mountMarkup(element)
 
@@ -588,7 +553,7 @@ describe('the sparkline at the first paint (real browser)', () => {
 
 	it('sizes the skeleton to the box of the sparkline at each step', () => {
 		for (const step of densitySteps) {
-			writeRootDensity(document.documentElement, step)
+			holdRoot(step)
 
 			const container = mountMarkup(
 				<>
@@ -607,10 +572,6 @@ describe('the sparkline at the first paint (real browser)', () => {
 })
 
 describe('the grid at the first paint (real browser)', () => {
-	afterEach(() => {
-		writeRootDensity(document.documentElement, 'md')
-	})
-
 	const columns = [{ id: 'name', title: 'Name', cell: (row: { name: string }) => row.name }]
 
 	const rows = [{ name: 'Ada' }]
@@ -627,7 +588,7 @@ describe('the grid at the first paint (real browser)', () => {
 			CELL_PADDING_PX.lg,
 		],
 	])('pads the cells at the step of %s', (_, element, padding) => {
-		writeRootDensity(document.documentElement, 'sm')
+		holdRoot('sm')
 
 		const container = mountMarkup(element)
 
@@ -758,14 +719,15 @@ describe('density scopes on static leaves (real browser)', () => {
 		expect(Number.parseFloat(getComputedStyle(inner).paddingTop)).toBe(CARD_PADDING_PX.sm)
 	})
 
-	it.each([
-		['compact', 'sm'],
-		['snug', 'md'],
-		['loose', 'lg'],
-	] as const)('pads the cells of a table with no size under a %s provider', (density, step) => {
+	it.for<[string, 'compact' | 'snug' | 'loose', 'lg' | undefined, keyof typeof CELL_PADDING_PX]>([
+		['with no size under a compact provider', 'compact', undefined, 'sm'],
+		['with no size under a snug provider', 'snug', undefined, 'md'],
+		['with no size under a loose provider', 'loose', undefined, 'lg'],
+		['at its size inside another scope', 'compact', 'lg', 'lg'],
+	])('pads the cells of a table %s', ([, density, size, step]) => {
 		const { container } = renderUI(
 			<DensityProvider density={density}>
-				<Table>
+				<Table size={size}>
 					<TableBody>
 						<TableRow>
 							<TableCell>cell</TableCell>
@@ -779,6 +741,7 @@ describe('density scopes on static leaves (real browser)', () => {
 
 		expect(Number.parseFloat(getComputedStyle(cell).paddingLeft)).toBe(CELL_PADDING_PX[step])
 	})
+
 	it('pads the header of an unsized card at the step of the outer card', () => {
 		// The body follows the header, because a header with no sibling after it adds no pad.
 		const { container } = renderUI(
@@ -813,19 +776,21 @@ describe('density scopes on static leaves (real browser)', () => {
 		expect(badgeFont(container, 'pinned')).toBe(24)
 	})
 
-	it.each([
-		['takes the step of the scope', undefined, 28],
-		['keeps an explicit size', 'lg', 32],
-	] as const)('a badge skeleton %s', (_name, size, height) => {
+	it.for<[string, string, ComponentType<{ size?: 'lg' }>, 'lg' | undefined, number]>([
+		['badge', 'takes the step of the scope', BadgeSkeleton, undefined, 28],
+		['badge', 'keeps an explicit size', BadgeSkeleton, 'lg', 32],
+		['level 1 heading', 'takes the step of the scope', HeadingSkeleton, undefined, 28],
+		['level 1 heading', 'keeps an explicit size', HeadingSkeleton, 'lg', 36],
+	])('a %s skeleton %s', ([component, , Skeleton, size, height]) => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
-				<BadgeSkeleton size={size} />
+				<Skeleton size={size} />
 			</DensityProvider>,
 		)
 
 		const skeleton = present(
 			container.querySelector<HTMLElement>('[data-slot="placeholder"]'),
-			'badge skeleton',
+			`${component} skeleton`,
 		)
 
 		expect(Number.parseFloat(getComputedStyle(skeleton).height)).toBe(height)
@@ -846,24 +811,6 @@ describe('density scopes on static leaves (real browser)', () => {
 		const el = present(container.querySelector<HTMLElement>('h1'), 'heading')
 
 		expect(Number.parseFloat(getComputedStyle(el).fontSize)).toBe(px)
-	})
-
-	it.each([
-		['takes the step of the scope', undefined, 28],
-		['keeps an explicit size', 'lg', 36],
-	] as const)('a level 1 heading skeleton %s', (_name, size, height) => {
-		const { container } = renderUI(
-			<DensityProvider density="compact">
-				<HeadingSkeleton size={size} />
-			</DensityProvider>,
-		)
-
-		const skeleton = present(
-			container.querySelector<HTMLElement>('[data-slot="placeholder"]'),
-			'heading skeleton',
-		)
-
-		expect(Number.parseFloat(getComputedStyle(skeleton).height)).toBe(height)
 	})
 
 	it.each([
@@ -906,23 +853,6 @@ describe('density scopes on static leaves (real browser)', () => {
 		expect(Number.parseFloat(getComputedStyle(present(control, 'control')).minWidth)).toBe(128)
 	})
 
-	it('pads the cells of a table at its size inside another scope', () => {
-		const { container } = renderUI(
-			<DensityProvider density="compact">
-				<Table size="lg">
-					<TableBody>
-						<TableRow>
-							<TableCell>cell</TableCell>
-						</TableRow>
-					</TableBody>
-				</Table>
-			</DensityProvider>,
-		)
-
-		const cell = present(container.querySelector<HTMLElement>('td'), 'cell')
-
-		expect(Number.parseFloat(getComputedStyle(cell).paddingLeft)).toBe(CELL_PADDING_PX.lg)
-	})
 	it('keeps the Placeholder default height below a step and a plain class', () => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">

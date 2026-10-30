@@ -93,6 +93,23 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 
 	const grip = (name: string) => screen.getByRole('button', { name: `Reorder ${name}` })
 
+	/**
+	 * Presses the grip of `gripName` and moves the pointer down past the node
+	 * `nextId`, by one and a half of its height. The pointer stays down.
+	 */
+	const dragPast = (
+		container: HTMLElement,
+		gripName: string,
+		nextId: string,
+		init?: PointerEventInit,
+	) => {
+		const next = sortable(container, nextId)
+
+		if (!next) throw new Error('expected nodes')
+
+		return dragDown(grip(gripName), next.getBoundingClientRect().height * 1.5, init)
+	}
+
 	it('moves the nodes during the drag and commits the move once, on the drop', async () => {
 		const onValueChange = vi.fn()
 
@@ -100,14 +117,9 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 
 		const first = sortable(container, 'a')
 
-		const second = sortable(container, 'b')
+		if (!first) throw new Error('expected nodes')
 
-		if (!first || !second) throw new Error('expected nodes')
-
-		const held = await dragDown(
-			grip('Name contains a'),
-			second.getBoundingClientRect().height * 1.5,
-		)
+		const held = await dragPast(container, 'Name contains a', 'b')
 
 		await expect.poll(() => first.hasAttribute('data-dragging')).toBe(true)
 
@@ -143,15 +155,9 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 
 		const first = sortable(container, 'a')
 
-		const second = sortable(container, 'b')
+		if (!first) throw new Error('expected nodes')
 
-		if (!first || !second) throw new Error('expected nodes')
-
-		const held = await dragDown(
-			grip('Name contains a'),
-			second.getBoundingClientRect().height * 1.5,
-			{ ctrlKey: true },
-		)
+		const held = await dragPast(container, 'Name contains a', 'b', { ctrlKey: true })
 
 		await frames()
 
@@ -169,14 +175,7 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 
 		const { container } = renderUI(<Harness initial={flat} onValueChange={onValueChange} />)
 
-		const second = sortable(container, 'b')
-
-		if (!second) throw new Error('expected nodes')
-
-		const held = await dragDown(
-			grip('Name contains a'),
-			second.getBoundingClientRect().height * 1.5,
-		)
+		const held = await dragPast(container, 'Name contains a', 'b')
 
 		await expect.poll(() => rootOrder(container)).toEqual(['b', 'a', 'c'])
 
@@ -205,9 +204,7 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 
 		const inner = sortable(container, 'x')
 
-		const next = sortable(container, 'b')
-
-		if (!group || !inner || !next) throw new Error('expected nodes')
+		if (!group || !inner) throw new Error('expected nodes')
 
 		const offset = () => inner.getBoundingClientRect().top - group.getBoundingClientRect().top
 
@@ -215,7 +212,7 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 
 		const start = group.getBoundingClientRect().top
 
-		const held = await dragDown(grip('condition group'), next.getBoundingClientRect().height * 1.5)
+		const held = await dragPast(container, 'condition group', 'b')
 
 		await expect.poll(() => rootOrder(container)).toEqual(['b', 'g', 'c'])
 
@@ -245,14 +242,7 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 
 		const { container } = renderUI(<Harness initial={nested} onValueChange={onValueChange} />)
 
-		const second = sortable(container, 'y')
-
-		if (!second) throw new Error('expected nodes')
-
-		const held = await dragDown(
-			grip('Name contains x'),
-			second.getBoundingClientRect().height * 1.5,
-		)
+		const held = await dragPast(container, 'Name contains x', 'y')
 
 		await held.release()
 

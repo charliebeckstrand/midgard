@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, frames, present, renderUI, screen, waitFor } from '../helpers'
 
@@ -21,12 +21,16 @@ describe('grid virtualized cursor (real browser)', () => {
 
 	const getKey = (row: Row) => row.id
 
-	it('scrolls an off-window row into view so the active cell stays mounted', async () => {
-		renderUI(
+	/**
+	 * A navigable window of 200 rows and its scroller. It waits for the first row.
+	 * Omit `overscan` to render the default overscan of the grid.
+	 */
+	async function renderWindow({ overscan }: { overscan?: number } = {}) {
+		const view = renderUI(
 			<div style={{ width: '320px' }}>
 				<Grid
 					navigable
-					virtualize={{ estimateSize: 36 }}
+					virtualize={{ estimateSize: 36, ...(overscan === undefined ? {} : { overscan }) }}
 					maxHeight="180px"
 					columns={columns}
 					rows={rows}
@@ -35,11 +39,19 @@ describe('grid virtualized cursor (real browser)', () => {
 			</div>,
 		)
 
-		const grid = screen.getByRole('grid')
+		const scroll = view.container.querySelector<HTMLElement>('[data-slot="grid-scroll"]')
 
-		// Only a window of rows renders, not all 200: confirm virtualization is live.
+		if (!scroll) throw new Error('the scroller')
+
 		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
 
+		return { grid: screen.getByRole('grid'), scroll }
+	}
+
+	it('scrolls an off-window row into view so the active cell stays mounted', async () => {
+		const { grid } = await renderWindow()
+
+		// Only a window of rows renders, not all 200: confirm virtualization is live.
 		expect(screen.queryByText('Name 200')).toBeNull()
 
 		grid.focus()
@@ -61,22 +73,7 @@ describe('grid virtualized cursor (real browser)', () => {
 	})
 
 	it('pages PageDown by the visible viewport, not the fixed fallback count', async () => {
-		renderUI(
-			<div style={{ width: '320px' }}>
-				<Grid
-					navigable
-					virtualize={{ estimateSize: 36 }}
-					maxHeight="180px"
-					columns={columns}
-					rows={rows}
-					getKey={getKey}
-				/>
-			</div>,
-		)
-
-		const grid = screen.getByRole('grid')
-
-		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+		const { grid } = await renderWindow()
 
 		grid.focus()
 
@@ -97,32 +94,8 @@ describe('grid virtualized cursor (real browser)', () => {
 		})
 	})
 
-	/** A navigable window of 200 rows and its scroller. */
-	function renderWindow() {
-		const view = renderUI(
-			<div style={{ width: '320px' }}>
-				<Grid
-					navigable
-					virtualize={{ estimateSize: 36, overscan: 10 }}
-					maxHeight="180px"
-					columns={columns}
-					rows={rows}
-					getKey={getKey}
-				/>
-			</div>,
-		)
-
-		const scroll = view.container.querySelector<HTMLElement>('[data-slot="grid-scroll"]')
-
-		if (!scroll) throw new Error('the scroller')
-
-		return { grid: screen.getByRole('grid'), scroll }
-	}
-
 	it('leaves the scroll alone when the active row comes back into the window', async () => {
-		const { scroll } = renderWindow()
-
-		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+		const { scroll } = await renderWindow({ overscan: 10 })
 
 		scroll.scrollTop = 1700
 
@@ -148,9 +121,7 @@ describe('grid virtualized cursor (real browser)', () => {
 	})
 
 	it('seats a mounted cell when focus enters a scrolled window', async () => {
-		const { grid, scroll } = renderWindow()
-
-		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+		const { grid, scroll } = await renderWindow({ overscan: 10 })
 
 		scroll.scrollTop = 3000
 
@@ -192,7 +163,7 @@ describe('grid virtualized cursor over item bodies (real browser)', () => {
 	const getKey = (row: Row) => row.id
 
 	/** Jumps to the last row and waits for the active cell to mount. */
-	async function jumpToEnd(grid: HTMLElement): Promise<HTMLElement> {
+	const jumpToEnd = vi.defineHelper(async (grid: HTMLElement): Promise<HTMLElement> => {
 		grid.focus()
 
 		fireEvent.keyDown(grid, { key: 'End', ctrlKey: true })
@@ -206,7 +177,7 @@ describe('grid virtualized cursor over item bodies (real browser)', () => {
 		})
 
 		return cell as unknown as HTMLElement
-	}
+	})
 
 	it('scrolls the last group total into the window', async () => {
 		renderUI(

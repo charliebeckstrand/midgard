@@ -1,9 +1,8 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { MapGeofence, MapPlat } from '../../../modules/map'
-import { allBySlot, getSlot, present, renderUI, waitFor } from '../../helpers'
+import { getSlot, present } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
-import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
+import { renderZones } from '../helpers/map-zones'
 
 /**
  * A side legend lays out against the map's own width, not the viewport. A
@@ -21,22 +20,12 @@ describe('map side-legend container query (real browser)', () => {
 	const body = (container: HTMLElement) =>
 		present(getSlot(container, 'map-plot').parentElement, 'map body')
 
-	function zones(width: number) {
-		return renderUI(
-			<div style={{ width }}>
-				<MapPlat aria-label="Zones" geography={FIXTURE_GEOJSON} legend="right">
-					{['North', 'South', 'East'].map((name, index) => (
-						<MapGeofence key={name} label={name} at={[8 + index * 3, 5]} radius={300_000} />
-					))}
-				</MapPlat>
-			</div>,
-		)
-	}
+	/** Three zones with a right legend, in a frame `width` px wide. */
+	const zones = (width: number) =>
+		renderZones(['North', 'South', 'East'], { legend: 'right', frame: { width } })
 
 	it('sits the legend beside the plot once the map is wide enough', async () => {
-		const { container } = zones(600)
-
-		await waitFor(() => expect(allBySlot(container, 'map-legend-item')).toHaveLength(3))
+		const { container } = await zones(600)
 
 		expect(getComputedStyle(body(container)).flexDirection).toBe('row')
 
@@ -48,9 +37,7 @@ describe('map side-legend container query (real browser)', () => {
 	})
 
 	it('stacks the legend under a full-width plot in a narrow container', async () => {
-		const { container } = zones(300)
-
-		await waitFor(() => expect(allBySlot(container, 'map-legend-item')).toHaveLength(3))
+		const { container } = await zones(300)
 
 		expect(getComputedStyle(body(container)).flexDirection).toBe('column')
 
@@ -65,9 +52,7 @@ describe('map side-legend container query (real browser)', () => {
 	})
 
 	it('holds the frame at its minimum width in a container narrower than it', async () => {
-		const { container } = zones(100)
-
-		await waitFor(() => expect(allBySlot(container, 'map-legend-item')).toHaveLength(3))
+		const { container } = await zones(100)
 
 		expect(getSlot(container, 'map').getBoundingClientRect().width).toBeNear(192, HALF_PIXEL)
 	})

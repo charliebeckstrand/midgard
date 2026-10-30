@@ -55,15 +55,13 @@ describe('drag overlay in a glass drawer (real browser)', () => {
 		)
 	}
 
-	it.each([
-		{
-			name: 'Kanban',
-			sortable: <Board />,
-			item: '[data-slot="kanban-card"]',
-			handle: '[data-slot="kanban-card-handle"]',
-			overlay: '[data-slot="kanban-card"][data-overlay]',
-		},
-	])('puts the $name overlay on the dragged item', async ({ sortable, item, handle, overlay }) => {
+	it('puts the Kanban overlay on the dragged item', async () => {
+		const item = '[data-slot="kanban-card"]'
+
+		const handle = '[data-slot="kanban-card-handle"]'
+
+		const overlay = '[data-slot="kanban-card"][data-overlay]'
+
 		renderUI(
 			<Drawer open onOpenChange={() => {}}>
 				<DrawerPanel glass aria-label="Sortable">
@@ -72,7 +70,7 @@ describe('drag overlay in a glass drawer (real browser)', () => {
 					<DrawerBody>
 						{spacer}
 
-						{sortable}
+						<Board />
 					</DrawerBody>
 				</DrawerPanel>
 			</Drawer>,

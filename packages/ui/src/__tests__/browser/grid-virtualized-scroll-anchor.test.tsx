@@ -18,10 +18,6 @@ import { settledValue } from './helpers/sample'
  * end, so the scroller of the window turns it off.
  */
 describe('grid virtualized body under native scroll anchoring (real browser)', () => {
-	async function settle(count = 3) {
-		for (let i = 0; i < count; i++) await frames()
-	}
-
 	/**
 	 * Waits until the offset of `scroll` and its rendered rows stay the same. The
 	 * rows of a new window measure over more than one frame, and each measure can
@@ -91,7 +87,7 @@ describe('grid virtualized body under native scroll anchoring (real browser)', (
 				for (let top = 0; top <= 6000; top += 300) {
 					scroll.scrollTop = top
 
-					await settle(1)
+					await frames()
 				}
 
 				await settledWindow(scroll, body)
@@ -265,7 +261,7 @@ describe('grid virtualized body under native scroll anchoring (real browser)', (
 					for (let i = 0; i < 4; i++) {
 						scroll.scrollTop = scroll.scrollHeight
 
-						await settle(1)
+						await frames()
 					}
 				}
 
@@ -296,7 +292,7 @@ describe('grid virtualized body under native scroll anchoring (real browser)', (
 
 				await waitFor(() => expect(panel()).toBeNull())
 
-				await settle()
+				await frames(3)
 
 				expect(scroll.scrollTop).toBeLessThan(beforeClose)
 

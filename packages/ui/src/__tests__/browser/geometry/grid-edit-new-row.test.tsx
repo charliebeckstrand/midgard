@@ -89,10 +89,19 @@ describe('grid new row (real browser)', () => {
 		return { top: box.top, bottom: box.top + scroll.clientHeight }
 	}
 
+	/** Waits until the first data row is in the window of the body. */
+	const firstWindow = vi.defineHelper(async (scroll: HTMLElement) => {
+		await waitFor(() => expect(scroll.querySelector('tr[data-row-index="0"]')).not.toBeNull())
+	})
+
+	/** The Add cell of the slot, its last cell. */
+	const getAddCell = (slot: () => HTMLElement) =>
+		present(slot().closest('tr')?.lastElementChild as HTMLElement | null, 'the Add cell')
+
 	it('pins the bottom row to the bottom edge while a virtualized body scrolls', async () => {
 		const { scroll, slot, scrollTo } = renderGrid({ newRow: 'bottom' })
 
-		await waitFor(() => expect(scroll.querySelector('tr[data-row-index="0"]')).not.toBeNull())
+		await firstWindow(scroll)
 
 		for (const top of [0, 1_500, scroll.scrollHeight / 2]) {
 			scrollTo(top)
@@ -110,7 +119,7 @@ describe('grid new row (real browser)', () => {
 	it('pins the top row under a sticky header while a virtualized body scrolls', async () => {
 		const { scroll, slot, scrollTo, container } = renderGrid({ newRow: 'top' }, { sticky: true })
 
-		await waitFor(() => expect(scroll.querySelector('tr[data-row-index="0"]')).not.toBeNull())
+		await firstWindow(scroll)
 
 		// The header cells stick, not the `<thead>` around them.
 		const head = present(container.querySelector('thead th'), 'thead th')
@@ -135,7 +144,7 @@ describe('grid new row (real browser)', () => {
 			{ sticky: true, columnGroups: [{ id: 'all', title: 'All', columns: ['name', 'count'] }] },
 		)
 
-		await waitFor(() => expect(scroll.querySelector('tr[data-row-index="0"]')).not.toBeNull())
+		await firstWindow(scroll)
 
 		scrollTo(1_500)
 
@@ -198,11 +207,11 @@ describe('grid new row (real browser)', () => {
 		it(`keeps each cursor step clear of a bottom row, down to the last rows, in ${label}`, async () => {
 			const { slot, scroll } = renderGrid({ newRow: 'bottom' }, { sticky: true, virtualize })
 
-			await waitFor(() => expect(scroll.querySelector('tr[data-row-index="0"]')).not.toBeNull())
+			await firstWindow(scroll)
 
 			screen.getByRole('grid').focus()
 
-			const expectClear = () => {
+			const expectClear = vi.defineHelper(() => {
 				// A cell of the bottom row itself sits on the chrome, not under it.
 				if (activeCell().closest('[data-slot="grid-new-row"]')) return
 
@@ -213,7 +222,7 @@ describe('grid new row (real browser)', () => {
 				expect(cell.top).toBeGreaterThanOrEqual(head.bottom - 1)
 
 				expect(cell.bottom).toBeLessThanOrEqual(slot().getBoundingClientRect().top + 1)
-			}
+			})
 
 			// Each step lands on a row inside the scroller, under the bottom row.
 			for (let step = 0; step < 8; step++) {
@@ -290,39 +299,31 @@ describe('grid new row (real browser)', () => {
 			},
 		)
 
-		const addCell = () => present(slot().closest('tr')?.lastElementChild, 'the Add cell')
-
-		// The slot's first cell, the editor of Name.
-		const nameCell = slot
-
 		expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth)
 
-		expect(addCell()).toContainElement(screen.getByRole('button', { name: 'Add row' }))
+		expect(getAddCell(slot)).toContainElement(screen.getByRole('button', { name: 'Add row' }))
 
 		// The cell is in view at the inline end, not at the end of the wide table.
-		const edge = addCell().getBoundingClientRect().right
+		const edge = getAddCell(slot).getBoundingClientRect().right
 
 		expect(edge).toBeLessThanOrEqual(scroll.getBoundingClientRect().right)
 
 		for (const left of [120, scroll.scrollWidth]) {
-			const before = nameCell().getBoundingClientRect().left
+			// The first cell of the slot, the editor of Name.
+			const before = slot().getBoundingClientRect().left
 
 			scroll.scrollLeft = left
 
 			fireEvent.scroll(scroll)
 
 			// The editors scroll with the content, and the Add cell keeps its edge.
-			await waitFor(() => expect(nameCell().getBoundingClientRect().left).toBeLessThan(before))
+			await waitFor(() => expect(slot().getBoundingClientRect().left).toBeLessThan(before))
 
-			expect(addCell().getBoundingClientRect().right).toBeNear(edge, HALF_PIXEL)
+			expect(getAddCell(slot).getBoundingClientRect().right).toBeNear(edge, HALF_PIXEL)
 		}
 	})
 
 	describe('the width of the Add column', () => {
-		/** The Add cell of the slot, its last cell. */
-		const getAddCell = (slot: () => HTMLElement) =>
-			present(slot().closest('tr')?.lastElementChild as HTMLElement | null, 'the Add cell')
-
 		it('sizes the column to a wide control of a render slot', async () => {
 			const { slot } = renderGrid({
 				newRow: 'bottom',
@@ -415,8 +416,6 @@ describe('grid new row (real browser)', () => {
 			},
 		)
 
-		const addCell = () => present(slot().closest('tr')?.lastElementChild, 'the Add cell')
-
 		screen.getByRole('grid').focus()
 
 		// The last cell of the cursor order is the last editor of the row.
@@ -426,7 +425,7 @@ describe('grid new row (real browser)', () => {
 
 		await waitFor(() =>
 			expect(activeCell().getBoundingClientRect().right).toBeLessThanOrEqual(
-				addCell().getBoundingClientRect().left + 1,
+				getAddCell(slot).getBoundingClientRect().left + 1,
 			),
 		)
 	})

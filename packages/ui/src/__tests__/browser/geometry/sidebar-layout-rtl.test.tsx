@@ -1,11 +1,12 @@
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page, userEvent } from 'vitest/browser'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { page } from 'vitest/browser'
 import { Sheet, SheetBody, SheetPanel } from '../../../components/sheet'
-import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../../core/sidebar/root'
 import { SidebarLayout, SidebarLayoutBody } from '../../../layouts'
 import { k as pdf } from '../../../recipes/kata/pdf-viewer'
 import { frames, getSlot, present, renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+import { renderFloatingSidebar } from '../helpers/floating-sidebar'
+import { holdDir } from '../helpers/root-state'
 import { settledRect } from '../helpers/sample'
 
 /**
@@ -33,14 +34,8 @@ describe('sidebar layout in RTL (real browser)', () => {
 	// The desktop sidebar renders from `lg` up.
 	beforeAll(() => page.viewport(1100, 800))
 
-	afterEach(() => {
-		document.documentElement.removeAttribute('dir')
-
-		document.documentElement.classList.remove(ROOT_OFFCANVAS_SIDEBAR_CLASS)
-	})
-
 	it.each(DIRECTIONS)('docks a start sheet on the start edge (%s)', async (dir) => {
-		document.documentElement.dir = dir
+		holdDir(dir)
 
 		renderUI(
 			<Sheet open onOpenChange={() => {}}>
@@ -61,7 +56,7 @@ describe('sidebar layout in RTL (real browser)', () => {
 	})
 
 	it.each(DIRECTIONS)('docks an end sheet on the end edge (%s)', async (dir) => {
-		document.documentElement.dir = dir
+		holdDir(dir)
 
 		renderUI(
 			<Sheet open onOpenChange={() => {}}>
@@ -77,37 +72,24 @@ describe('sidebar layout in RTL (real browser)', () => {
 	})
 
 	it.each(DIRECTIONS)('opens the floating sidebar from the start edge (%s)', async (dir) => {
-		document.documentElement.dir = dir
+		holdDir(dir)
 
-		document.documentElement.classList.add(ROOT_OFFCANVAS_SIDEBAR_CLASS)
-
-		const { container } = renderUI(
+		const { strip, open } = await renderFloatingSidebar(
 			<SidebarLayout sidebar={<nav>Links</nav>}>
 				<SidebarLayoutBody>Content</SidebarLayoutBody>
 			</SidebarLayout>,
 		)
 
-		await frames()
-
-		const layout = present(container.firstElementChild, 'layout')
-
-		const strip = present(
-			layout.querySelector<HTMLElement>(':scope > [aria-hidden]'),
-			'hover strip',
-		)
-
 		expect(fromStart(strip.getBoundingClientRect(), dir)).toBeNear(0, HALF_PIXEL)
 
-		await userEvent.hover(strip)
-
-		const rect = (await settledRect(getSlot(document.body, 'sheet'))).getBoundingClientRect()
+		const rect = (await open()).getBoundingClientRect()
 
 		// Flush to the start edge, not floated in from it.
 		expect(fromStart(rect, dir)).toBeNear(0, HALF_PIXEL)
 	})
 
 	it.each(DIRECTIONS)('hides a closed PDF page rail past the start edge (%s)', async (dir) => {
-		document.documentElement.dir = dir
+		holdDir(dir)
 
 		const { container } = renderUI(
 			<div className="flex w-[600px] overflow-hidden">

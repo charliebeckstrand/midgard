@@ -1,12 +1,12 @@
 import { Check } from 'lucide-react'
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
-import { writeRootDensity } from '../../core/density'
 import { Option } from '../../primitives/option/option'
 import { DensityProvider, densityLevels } from '../../providers/density'
 import { present, renderUI, screen } from '../helpers'
+import { holdRoot } from './helpers/root-state'
 
 /**
  * A Menu row and an Option row take the padding and the icon size of the step of the nearest
@@ -77,13 +77,9 @@ describe('item rows at a desktop width (real browser)', () => {
 	})
 
 	describe('under an xs root', () => {
-		afterEach(() => {
-			writeRootDensity(document.documentElement, 'md')
-		})
-
 		// The text and the icon of a row take the `xs` step.
 		it('sizes a menu row icon at xs', async () => {
-			writeRootDensity(document.documentElement, 'xs')
+			holdRoot('xs')
 
 			renderUI(
 				<Menu defaultOpen>

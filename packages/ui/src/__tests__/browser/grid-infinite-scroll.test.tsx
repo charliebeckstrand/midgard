@@ -1,9 +1,19 @@
 import { useMemo, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, frames, present, renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, frames, getSlot, present, renderUI, screen, waitFor } from '../helpers'
 import { nextPaint } from '../helpers/frames'
 import { budget, pause } from './helpers/wall-clock'
+
+/**
+ * Moves the scroll region to its end, and sends a synthetic scroll event. A pass at the end leaves
+ * `scrollTop` as it is, and then the write sends no native scroll event.
+ */
+function toEnd(scroll: HTMLElement) {
+	scroll.scrollTop = scroll.scrollHeight
+
+	fireEvent.scroll(scroll)
+}
 
 /**
  * Infinite scroll over the real virtualizer (jsdom renders zero windowed rows,
@@ -83,25 +93,25 @@ describe('grid infinite scroll (real browser)', () => {
 		)
 	}
 
+	/** Waits for the first row, and returns the scroll region of the grid. */
+	const mounted = vi.defineHelper(async (container: HTMLElement) => {
+		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+
+		return getSlot(container, 'grid-scroll')
+	})
+
 	it('calls onLoadMore as the window nears the loaded end, growing the set', async () => {
 		const onLoadMore = vi.fn()
 
 		const { container } = renderUI(<InfiniteGrid onLoadMore={onLoadMore} />)
 
 		// Virtualization is live: only a window of the 50 loaded rows renders.
-		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+		const scroll = await mounted(container)
 
 		// A full window at the top, far from the loaded end, doesn't request more.
 		expect(onLoadMore).not.toHaveBeenCalled()
 
-		const scroll = present(
-			container.querySelector('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
-
-		scroll.scrollTop = scroll.scrollHeight
-
-		fireEvent.scroll(scroll)
+		toEnd(scroll)
 
 		// The last rendered row reached the threshold zone, so the grid loaded more.
 		await waitFor(() => expect(onLoadMore).toHaveBeenCalled())
@@ -113,9 +123,7 @@ describe('grid infinite scroll (real browser)', () => {
 			() => {
 				// A pass at the bottom leaves scrollTop as it is, and then the write sends
 				// no native scroll event. The synthetic event is that pass's only scroll.
-				scroll.scrollTop = scroll.scrollHeight
-
-				fireEvent.scroll(scroll)
+				toEnd(scroll)
 
 				expect(screen.queryByText('Name 200')).not.toBeNull()
 			},
@@ -134,10 +142,7 @@ describe('grid infinite scroll (real browser)', () => {
 		// rows; one 50-row batch overshoots that), then stops without a scroll.
 		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(1))
 
-		const scroll = present(
-			document.querySelector('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroll = getSlot(document.body, 'grid-scroll')
 
 		await waitFor(() => expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight))
 
@@ -182,12 +187,7 @@ describe('grid infinite scroll (real browser)', () => {
 
 		const { container } = renderUI(<ChainBait />)
 
-		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
-
-		const scroll = present(
-			container.querySelector('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroll = await mounted(container)
 
 		// The write sends one native scroll event. A synthetic one on top would be
 		// a second scroll, which can land after the fetch and re-arm it.
@@ -239,16 +239,9 @@ describe('grid infinite scroll (real browser)', () => {
 
 		const { container } = renderUI(<FailingGrid onLoadMore={onLoadMore} />)
 
-		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+		const scroll = await mounted(container)
 
-		const scroll = present(
-			container.querySelector('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
-
-		scroll.scrollTop = scroll.scrollHeight
-
-		fireEvent.scroll(scroll)
+		toEnd(scroll)
 
 		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(1))
 
@@ -260,9 +253,7 @@ describe('grid infinite scroll (real browser)', () => {
 
 		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
 
-		scroll.scrollTop = scroll.scrollHeight
-
-		fireEvent.scroll(scroll)
+		toEnd(scroll)
 
 		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(2))
 	})
@@ -272,16 +263,9 @@ describe('grid infinite scroll (real browser)', () => {
 
 		const { container } = renderUI(<FailingGrid onLoadMore={onLoadMore} />)
 
-		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+		const scroll = await mounted(container)
 
-		const scroll = present(
-			container.querySelector('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
-
-		scroll.scrollTop = scroll.scrollHeight
-
-		fireEvent.scroll(scroll)
+		toEnd(scroll)
 
 		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(1))
 
@@ -304,12 +288,7 @@ describe('grid infinite scroll (real browser)', () => {
 
 		const { container } = renderUI(<FailingGrid onLoadMore={onLoadMore} />)
 
-		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
-
-		const scroll = present(
-			container.querySelector('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroll = await mounted(container)
 
 		// Each scroll in this case is native only: one event for each move, which
 		// the browser sends in the next frame.
@@ -375,12 +354,7 @@ describe('grid infinite scroll (real browser)', () => {
 
 		const { container } = renderUI(<ReplaceableGrid />)
 
-		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
-
-		const scroll = present(
-			container.querySelector('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroll = await mounted(container)
 
 		// Park deep in the old set: short of its end, so nothing fires yet.
 		scroll.scrollTop = scroll.scrollHeight / 2
@@ -434,12 +408,7 @@ describe('grid infinite scroll (real browser)', () => {
 
 		const { container } = renderUI(<ShrinkingGrid />)
 
-		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
-
-		const scroll = present(
-			container.querySelector('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroll = await mounted(container)
 
 		if (scrolled) {
 			// Short of the end, so nothing fires before the replacement.
@@ -488,12 +457,7 @@ describe('grid infinite scroll (real browser)', () => {
 
 		const { container } = renderUI(<FillGrid />)
 
-		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
-
-		const scroll = present(
-			container.querySelector('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroll = await mounted(container)
 
 		// The scroll region bound to the parent's 200px box: it overflows (windowing
 		// is real) instead of growing to the 50 loaded rows' full height.
@@ -504,9 +468,7 @@ describe('grid infinite scroll (real browser)', () => {
 		expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight)
 
 		// And infinite scroll works through it, `hasMore` derived from `totalRows`.
-		scroll.scrollTop = scroll.scrollHeight
-
-		fireEvent.scroll(scroll)
+		toEnd(scroll)
 
 		await waitFor(() => expect(onLoadMore).toHaveBeenCalled())
 	})
@@ -564,18 +526,13 @@ describe('grid infinite scroll — stable column widths (real browser)', () => {
 
 	/** Scroll to the wide tail, appending batches until the last (wide) row renders. */
 	async function loadWideTail(container: HTMLElement) {
-		const scroll = present(
-			container.querySelector('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroll = getSlot(container, 'grid-scroll')
 
 		await waitFor(
 			() => {
 				// A pass at the bottom leaves scrollTop as it is, and then the write sends
 				// no native scroll event. The synthetic event is that pass's only scroll.
-				scroll.scrollTop = scroll.scrollHeight
-
-				fireEvent.scroll(scroll)
+				toEnd(scroll)
 
 				expect(screen.queryByText(/Row 200/)).not.toBeNull()
 			},

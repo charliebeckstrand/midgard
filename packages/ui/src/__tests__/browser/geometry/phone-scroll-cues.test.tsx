@@ -1,6 +1,6 @@
 import { type ReactElement, useState } from 'react'
 import { renderToString } from 'react-dom/server'
-import { beforeAll, describe, expect, it, onTestFinished } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Label } from '../../../components/fieldset'
 import { Input } from '../../../components/input'
@@ -11,7 +11,7 @@ import {
 	FormFiltersField,
 	FormFiltersRow,
 } from '../../../modules/form'
-import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
+import { attach, frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
 import { nextPaint } from '../../helpers/frames'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
@@ -99,13 +99,9 @@ function Line({ dir, initial = TITLES.length }: { dir?: 'rtl'; initial?: number 
  * the first frame shows only what the CSS draws.
  */
 function mountServerMarkup(ui: ReactElement): HTMLElement {
-	const host = document.createElement('div')
+	const host = attach(document.createElement('div'))
 
 	host.innerHTML = renderToString(ui)
-
-	document.body.append(host)
-
-	onTestFinished(() => host.remove())
 
 	return host
 }

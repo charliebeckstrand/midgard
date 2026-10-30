@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { bySlot, present, renderUI, screen, waitFor } from '../../helpers'
+import { bySlot, renderUI, screen, waitFor } from '../../helpers'
+import { gridCell } from '../../helpers/grid-cells'
 
 /**
  * The yes/no listbox editor under `commitOn: 'leaveEditor'` (real floating
@@ -37,9 +38,7 @@ describe('grid commit on leave vs the listbox editor (real floating engine)', ()
 			</>,
 		)
 
-		await userEvent.dblClick(
-			present(view.container.querySelector<HTMLElement>('td[data-grid-col="done"]'), 'done'),
-		)
+		await userEvent.dblClick(gridCell(view.container, 'done'))
 
 		// The entry opens the panel.
 		await userEvent.click(await screen.findByRole('option', { name: 'Yes' }))

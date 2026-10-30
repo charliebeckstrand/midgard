@@ -1,9 +1,11 @@
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Drawer, DrawerPanel } from '../../../components/drawer'
 import { act, attach, bySlot, present, renderUI, waitFor } from '../../helpers'
 import { nextPaint } from '../../helpers/frames'
+import { hydrateServerRender } from '../../helpers/hydrate'
+import { sampleMotionFrames } from '../helpers/motion-frame'
+import { budget } from '../helpers/wall-clock'
 
 /**
  * Real-Motion check of an overlay that is open in the server render. The other
@@ -26,25 +28,27 @@ const backdrop = () =>
 const offset = (node: HTMLElement) => new DOMMatrix(getComputedStyle(node).transform).m42
 
 /**
- * The largest offset of the panel over each frame, from the next frame until
- * `done` holds. A slide takes 150 ms, and a loaded machine can start it some
- * frames late, so a case reads each frame and not one fixed frame.
+ * The largest offset of the panel over each frame of the Motion frame loop,
+ * from the change that `during` makes until `done` holds. A slide takes 150 ms,
+ * and a loaded machine can start it some frames late, so a case reads each
+ * frame and not one fixed frame.
  */
-function travel(done: () => boolean): Promise<number> {
-	return new Promise((resolve) => {
-		let largest = 0
+async function travel(done: () => boolean, during: () => void): Promise<number> {
+	let largest = 0
 
-		const sample = () => {
+	await sampleMotionFrames(
+		() => {
 			const node = bySlot(document.body, 'drawer')
 
 			if (node) largest = Math.max(largest, offset(node))
 
-			if (done()) resolve(largest)
-			else requestAnimationFrame(sample)
-		}
+			return done()
+		},
+		(finished) => finished,
+		{ during: async () => during(), deadline: budget(3000) },
+	)
 
-		requestAnimationFrame(sample)
-	})
+	return largest
 }
 
 /** Whether the panel is at rest: `transform: none`, which the slide sets as it lands. */
@@ -73,31 +77,6 @@ function serve(ui: React.ReactElement) {
 	return container
 }
 
-/** Hydrates `ui` over its server HTML, and fails on a mismatch. */
-function hydrate(container: HTMLElement, ui: React.ReactElement) {
-	const onRecoverableError = vi.fn()
-
-	const consoleError = vi.spyOn(console, 'error')
-
-	let root: Root | undefined
-
-	act(() => {
-		root = hydrateRoot(container, ui, { onRecoverableError })
-	})
-
-	if (!root) throw new Error('expected a root')
-
-	const hydrated = root
-
-	onTestFinished(() => act(() => hydrated.unmount()))
-
-	expect(onRecoverableError).not.toHaveBeenCalled()
-
-	expect(consoleError).not.toHaveBeenCalled()
-
-	return hydrated
-}
-
 describe('Overlay open in the server render (real Motion)', () => {
 	it('paints the panel and its backdrop at rest with the server HTML', async () => {
 		const container = serve(drawer(true))
@@ -112,9 +91,11 @@ describe('Overlay open in the server render (real Motion)', () => {
 	})
 
 	it('keeps the panel at rest through hydration', async () => {
-		const container = serve(drawer(true))
+		const { onRecoverableError, consoleError } = hydrateServerRender(drawer(true))
 
-		hydrate(container, drawer(true))
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(consoleError).not.toHaveBeenCalled()
 
 		await nextPaint()
 
@@ -126,36 +107,34 @@ describe('Overlay open in the server render (real Motion)', () => {
 	it('plays the exit, and the enter of each later open', async () => {
 		const onOpenComplete = vi.fn()
 
-		const container = serve(drawer(true, onOpenComplete))
+		const { onRecoverableError, consoleError, root } = hydrateServerRender(
+			drawer(true, onOpenComplete),
+		)
 
-		const root = hydrate(container, drawer(true, onOpenComplete))
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(consoleError).not.toHaveBeenCalled()
 
 		await nextPaint()
 
-		const exit = travel(gone)
-
-		act(() => root.render(drawer(false, onOpenComplete)))
+		const exit = await travel(gone, () => act(() => root.render(drawer(false, onOpenComplete))))
 
 		// The panel stays for its exit and slides out.
-		expect(await exit).toBeGreaterThan(0)
+		expect(exit).toBeGreaterThan(0)
 
 		// The restore ran no entrance, so it landed no arrival.
 		expect(onOpenComplete).not.toHaveBeenCalled()
 
-		const enter = travel(atRest)
+		const enter = await travel(atRest, () => act(() => root.render(drawer(true, onOpenComplete))))
 
-		act(() => root.render(drawer(true, onOpenComplete)))
-
-		expect(await enter).toBeGreaterThan(0)
+		expect(enter).toBeGreaterThan(0)
 
 		await waitFor(() => expect(onOpenComplete).toHaveBeenCalledOnce())
 	})
 
 	it('slides in a panel that mounts open on the client', async () => {
-		const enter = travel(atRest)
+		const enter = await travel(atRest, () => renderUI(drawer(true)))
 
-		renderUI(drawer(true))
-
-		expect(await enter).toBeGreaterThan(0)
+		expect(enter).toBeGreaterThan(0)
 	})
 })

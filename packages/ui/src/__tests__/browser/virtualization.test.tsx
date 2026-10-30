@@ -187,6 +187,19 @@ describe('useVirtualWindow measured windowing', () => {
 		)
 	}
 
+	/** Renders the measured list, waits for its first row, and gives its scroller. */
+	async function mountMeasured(props: Parameters<typeof MeasuredList>[0]) {
+		const { container } = renderUI(<MeasuredList {...props} />)
+
+		await waitFor(() => expect(placements(container).length).toBeGreaterThan(0))
+
+		const scroller = container.querySelector<HTMLElement>('[data-slot="measured-list"]')
+
+		if (!scroller) throw new Error('scroll container not found')
+
+		return { container, scroller }
+	}
+
 	/** Pixel offset of row `id` when every row above it has its real height. */
 	function realOffset(id: number) {
 		let offset = 0
@@ -211,13 +224,7 @@ describe('useVirtualWindow measured windowing', () => {
 	})
 
 	it('keeps the window on the rows in view after a scroll past measured rows', async () => {
-		const { container } = renderUI(<MeasuredList count={500} />)
-
-		await waitFor(() => expect(placements(container).length).toBeGreaterThan(0))
-
-		const scroller = container.querySelector<HTMLElement>('[data-slot="measured-list"]')
-
-		if (!scroller) throw new Error('scroll container not found')
+		const { container, scroller } = await mountMeasured({ count: 500 })
 
 		scroller.scrollTop = 200 * MIXED_ESTIMATE
 
@@ -238,13 +245,7 @@ describe('useVirtualWindow measured windowing', () => {
 	it('keeps each measured height with its key when a row is prepended above the window', async () => {
 		const handle: MeasuredListHandle = { prepend: () => {} }
 
-		const { container } = renderUI(<MeasuredList count={500} handle={handle} />)
-
-		await waitFor(() => expect(placements(container).length).toBeGreaterThan(0))
-
-		const scroller = container.querySelector<HTMLElement>('[data-slot="measured-list"]')
-
-		if (!scroller) throw new Error('scroll container not found')
+		const { container, scroller } = await mountMeasured({ count: 500, handle })
 
 		// The mount measured the head of the list, so every row above this window has its real height.
 		scroller.scrollTop = 300
@@ -276,13 +277,7 @@ describe('useVirtualWindow measured windowing', () => {
 
 	it('holds a row in view still while rows above it measure taller on a scroll up', async () => {
 		// Every row measures 30, 60 or 90 pixels against an estimate of 30.
-		const { container } = renderUI(<MeasuredList count={500} estimate={30} />)
-
-		await waitFor(() => expect(placements(container).length).toBeGreaterThan(0))
-
-		const scroller = container.querySelector<HTMLElement>('[data-slot="measured-list"]')
-
-		if (!scroller) throw new Error('scroll container not found')
+		const { container, scroller } = await mountMeasured({ count: 500, estimate: 30 })
 
 		// A jump skips the rows above the new window, so they keep the estimate.
 		scroller.scrollTop = 6000

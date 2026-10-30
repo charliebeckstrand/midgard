@@ -1,12 +1,12 @@
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page, userEvent } from 'vitest/browser'
-import { densitySteps, writeRootDensity } from '../../../core/density'
-import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../../core/sidebar/root'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { page } from 'vitest/browser'
+import { densitySteps } from '../../../core/density'
 import { SidebarLayout, SidebarLayoutBody } from '../../../layouts'
 import type { DensityLevel } from '../../../providers/density/context'
 import { DensityProvider } from '../../../providers/density/density'
-import { frames, getSlot, present, renderUI } from '../../helpers'
-import { settledRect } from '../helpers/sample'
+import { frames, present, renderUI } from '../../helpers'
+import { renderFloatingSidebar } from '../helpers/floating-sidebar'
+import { holdRoot } from '../helpers/root-state'
 
 /**
  * The floating sidebar is as wide as the inline rail at each density step.
@@ -22,16 +22,10 @@ describe('sidebar layout width (real browser)', () => {
 	// The desktop sidebar renders from `lg` up.
 	beforeAll(() => page.viewport(1280, 800))
 
-	afterEach(() => {
-		writeRootDensity(document.documentElement, 'md')
-
-		document.documentElement.classList.remove(ROOT_OFFCANVAS_SIDEBAR_CLASS)
-	})
-
 	it.for(densitySteps)(
 		'gives the floating sidebar the width of the rail at %s',
 		async (step, { signal }) => {
-			writeRootDensity(document.documentElement, step)
+			holdRoot(step)
 
 			const inline = renderUI(
 				<SidebarLayout sidebar={<nav>Links</nav>}>
@@ -52,28 +46,17 @@ describe('sidebar layout width (real browser)', () => {
 
 			inline.unmount()
 
-			// The `afterEach` above removes the class. A case that times out runs
-			// that hook before its body resumes here, so stop the body first.
+			// The helper below adds a class to the root element until the case ends. A case that
+			// times out ends before its body resumes here, so stop the body first.
 			signal.throwIfAborted()
 
-			document.documentElement.classList.add(ROOT_OFFCANVAS_SIDEBAR_CLASS)
-
-			const floating = renderUI(
+			const { open } = await renderFloatingSidebar(
 				<SidebarLayout sidebar={<nav>Links</nav>}>
 					<SidebarLayoutBody>Content</SidebarLayoutBody>
 				</SidebarLayout>,
 			)
 
-			await frames()
-
-			const strip = present(
-				floating.container.firstElementChild?.querySelector<HTMLElement>(':scope > [aria-hidden]'),
-				'hover strip',
-			)
-
-			await userEvent.hover(strip)
-
-			const sheet = await settledRect(getSlot(document.body, 'sheet'))
+			const sheet = await open()
 
 			expect(sheet.getBoundingClientRect().width).toBe(railWidth)
 
@@ -89,9 +72,7 @@ describe('sidebar layout width (real browser)', () => {
 	it.for<DensityLevel>(['compact', 'loose'])(
 		'starts the pointer buffer at the far edge of the sheet in a %s region',
 		async (density) => {
-			document.documentElement.classList.add(ROOT_OFFCANVAS_SIDEBAR_CLASS)
-
-			const floating = renderUI(
+			const { open } = await renderFloatingSidebar(
 				<DensityProvider density={density}>
 					<SidebarLayout sidebar={<nav>Links</nav>}>
 						<SidebarLayoutBody>Content</SidebarLayoutBody>
@@ -99,18 +80,7 @@ describe('sidebar layout width (real browser)', () => {
 				</DensityProvider>,
 			)
 
-			await frames()
-
-			const strip = present(
-				floating.container.querySelector<HTMLElement>(
-					'[data-slot="density"] > div > [aria-hidden]',
-				),
-				'hover strip',
-			)
-
-			await userEvent.hover(strip)
-
-			const sheet = await settledRect(getSlot(document.body, 'sheet'))
+			const sheet = await open()
 
 			expect(pointerBuffer().getBoundingClientRect().left).toBe(sheet.getBoundingClientRect().right)
 		},

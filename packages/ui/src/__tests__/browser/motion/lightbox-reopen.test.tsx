@@ -1,9 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../components/lightbox'
-import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
 import { frame, present, renderUI, screen } from '../../helpers'
-import { sampleMotionFrames, waitForNoTween } from '../helpers/motion-frame'
+import { fieldPhotos, Gallery, holdTweens, liveCount, viewerTweens } from '../helpers/lightbox'
+import { waitForNoTween } from '../helpers/motion-frame'
 
 /**
  * A `Lightbox` that opens again while its photo goes back to its thumbnail.
@@ -17,28 +16,7 @@ import { sampleMotionFrames, waitForNoTween } from '../helpers/motion-frame'
  * and runs no tween.
  */
 
-const colors = ['teal', 'tomato', 'gold', 'navy', 'plum']
-
-const photos: LightboxPhoto[] = colors.map((color) => ({
-	src: `data:image/svg+xml;utf8,${encodeURIComponent(
-		`<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1000"><rect width="1500" height="1000" fill="${color}"/></svg>`,
-	)}`,
-	alt: `${color} field`,
-	width: 1500,
-	height: 1000,
-}))
-
-function Gallery() {
-	return (
-		<Lightbox photos={photos}>
-			<div className="flex flex-wrap gap-2">
-				{photos.map((photo, index) => (
-					<LightboxTrigger key={photo.alt} index={index} className="size-16" />
-				))}
-			</div>
-		</Lightbox>
-	)
-}
+const photos = fieldPhotos(['teal', 'tomato', 'gold', 'navy', 'plum'])
 
 const thumbnail = (index: number) => screen.getByRole('button', { name: photos[index]?.alt ?? '' })
 
@@ -47,13 +25,6 @@ const slot = (offset: number) =>
 
 const photoIn = (element: HTMLElement) =>
 	present(element.querySelector<HTMLElement>('img'), 'photo of the slot')
-
-/** The tweens that run in the viewer: the raise, the return, or a slide. */
-const viewerTweens = () =>
-	document.querySelector('[data-slot="lightbox"]')?.getAnimations({ subtree: true }) ?? []
-
-// The live region reads "{alt}, {n} / {count}".
-const count = () => document.querySelector('[aria-live="polite"]')?.textContent?.split(', ').at(-1)
 
 /** Opens the viewer on the photo at `index`, and waits for the photo to land. */
 async function open(index: number) {
@@ -66,32 +37,10 @@ async function open(index: number) {
 
 /**
  * Holds the tweens of `element` and of its descendants at `progress` of their
- * length, in the frame that starts them, and gives them. A tween runs on
- * wall-clock time, so a long frame moves it on before a measure. A held tween
- * stays at its frame. `play()` on each tween lets it go on.
- *
- * `during` sends the event that starts the tweens. The sampler starts before
- * it, and the hold occurs in the frame that finds the tweens. Thus a slow
- * round trip of the event cannot let a tween run on, or land, before the hold.
- * The sampler gives the tweens only after the event resolves (see
- * {@link sampleMotionFrames}), so a hold after the sampler is too late.
+ * length, in the frame that starts them ({@link holdTweens}).
  */
-async function hold(element: HTMLElement, progress: number, during?: () => Promise<unknown>) {
-	return sampleMotionFrames(
-		() => element.getAnimations({ subtree: true }),
-		(found) => {
-			if (found.length === 0) return false
-
-			for (const tween of found) {
-				tween.pause()
-
-				tween.currentTime = progress * Number(tween.effect?.getComputedTiming().duration)
-			}
-
-			return true
-		},
-		{ during },
-	)
+function hold(element: HTMLElement, progress: number, during?: () => Promise<unknown>) {
+	return holdTweens(() => element.getAnimations({ subtree: true }), progress, { during })
 }
 
 /**
@@ -131,7 +80,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 	})
 
 	it('leaves no frame of the return on the slot of the photo that went back', async () => {
-		renderUI(<Gallery />)
+		renderUI(<Gallery photos={photos} />)
 
 		await open(0)
 
@@ -142,7 +91,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		await waitForNoTween(viewerTweens)
 
-		expect(count()).toBe('2 of 5')
+		expect(liveCount()).toBe('2 of 5')
 
 		const before = slot(-1)
 
@@ -154,11 +103,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 	})
 
 	it('leaves no fade of the return on the photo that went back, under reduced motion', async () => {
-		renderUI(
-			<ReducedMotionContext value={true}>
-				<Gallery />
-			</ReducedMotionContext>,
-		)
+		renderUI(<Gallery photos={photos} reduced />)
 
 		await open(0)
 
@@ -172,7 +117,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 	})
 
 	it('counts the photo in the center after a step and a reopen', async () => {
-		renderUI(<Gallery />)
+		renderUI(<Gallery photos={photos} />)
 
 		await open(0)
 
@@ -180,20 +125,20 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		await waitForNoTween(viewerTweens)
 
-		expect(count()).toBe('2 of 5')
+		expect(liveCount()).toBe('2 of 5')
 
 		await startReturn()
 
 		thumbnail(0).click()
 
-		await expect.poll(count).toBe('1 of 5')
+		await expect.poll(liveCount).toBe('1 of 5')
 
 		// The first photo hides its previous button, so the role query does not find it.
 		expect(document.querySelector('button[aria-label="Previous photo"]')).toBeDisabled()
 	})
 
 	it('raises the same photo from where it paints, not from its thumbnail', async () => {
-		renderUI(<Gallery />)
+		renderUI(<Gallery photos={photos} />)
 
 		await open(0)
 
@@ -227,11 +172,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 	])(
 		'puts the photo that went back at rest after a reopen as $name of the return lands',
 		async ({ reduced }) => {
-			renderUI(
-				<ReducedMotionContext value={reduced}>
-					<Gallery />
-				</ReducedMotionContext>,
-			)
+			renderUI(<Gallery photos={photos} reduced={reduced} />)
 
 			await open(0)
 
@@ -241,7 +182,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 			await waitForNoTween(viewerTweens)
 
-			expect(count()).toBe('2 of 5')
+			expect(liveCount()).toBe('2 of 5')
 
 			const before = slot(-1)
 
@@ -254,7 +195,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 	)
 
 	it('opens again at rest after a close of a zoomed photo, and steps on the arrow keys', async () => {
-		renderUI(<Gallery />)
+		renderUI(<Gallery photos={photos} />)
 
 		await open(0)
 
@@ -289,14 +230,14 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		await userEvent.keyboard('{ArrowRight}')
 
-		await expect.poll(count).toBe('2 of 5')
+		await expect.poll(liveCount).toBe('2 of 5')
 	})
 
 	// A close during a step stops the slide where it paints. A reopen then
 	// slides the track back to rest, so the photo in the center is centered,
 	// and no neighbor shows at the edge.
 	it('puts the track at rest after a close during a step and a reopen', async () => {
-		renderUI(<Gallery />)
+		renderUI(<Gallery photos={photos} />)
 
 		await open(0)
 
@@ -316,7 +257,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		await waitForNoTween(viewerTweens)
 
-		expect(count()).toBe('1 of 5')
+		expect(liveCount()).toBe('1 of 5')
 
 		expect(getComputedStyle(track).transform).toBe('none')
 

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Listbox } from '../../../components/listbox'
@@ -24,19 +24,13 @@ const width = 414
 describe('a floating panel wider than the viewport (real floating engine)', () => {
 	beforeAll(() => page.viewport(width, 844))
 
-	async function settle() {
-		await frames()
-
-		await frames()
-	}
-
-	function expectInside(element: Element) {
+	const expectInside = vi.defineHelper((element: Element) => {
 		const rect = element.getBoundingClientRect()
 
 		expect(rect.left).toBeGreaterThanOrEqual(8)
 
 		expect(rect.right).toBeLessThanOrEqual(width - 8)
-	}
+	})
 
 	/** The trigger sits right of the start edge, so a start-aligned panel shifts. */
 	function Frame({ children }: { children: ReactNode }) {
@@ -58,7 +52,7 @@ describe('a floating panel wider than the viewport (real floating engine)', () =
 			</Frame>,
 		)
 
-		await settle()
+		await frames(2)
 
 		expectInside(screen.getByRole('menu'))
 	})
@@ -78,11 +72,11 @@ describe('a floating panel wider than the viewport (real floating engine)', () =
 			</Menu>,
 		)
 
-		await settle()
+		await frames(2)
 
 		await userEvent.click(screen.getByRole('menuitem', { name: /More/ }))
 
-		await settle()
+		await frames(2)
 
 		expectInside(screen.getByRole('menu', { name: /More/ }))
 	})
@@ -100,7 +94,7 @@ describe('a floating panel wider than the viewport (real floating engine)', () =
 			</Frame>,
 		)
 
-		await settle()
+		await frames(2)
 
 		expectInside(screen.getByRole('dialog'))
 	})
@@ -116,7 +110,7 @@ describe('a floating panel wider than the viewport (real floating engine)', () =
 
 		await userEvent.click(screen.getByRole('combobox', { name: 'Pick' }))
 
-		await settle()
+		await frames(2)
 
 		expectInside(screen.getByRole('listbox'))
 	})
@@ -138,7 +132,7 @@ describe('a floating panel wider than the viewport (real floating engine)', () =
 		// fetch after the render.
 		const tooltip = await screen.findByRole('tooltip')
 
-		await settle()
+		await frames(2)
 
 		expectInside(tooltip)
 	})

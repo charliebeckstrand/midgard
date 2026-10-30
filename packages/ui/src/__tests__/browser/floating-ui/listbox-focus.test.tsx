@@ -60,10 +60,15 @@ describe('Listbox focus (real browser)', () => {
 	it('opens on a printable key and moves to the matching option', async () => {
 		const setTimer = globalThis.setTimeout
 
-		const timers = vi
-			.spyOn(globalThis, 'setTimeout')
-			.mockImplementation(((callback: () => void, ms?: number, ...args: unknown[]) =>
-				ms === TYPEAHEAD_TIMEOUT_MS ? 0 : setTimer(callback, ms, ...args)) as typeof setTimeout)
+		// `vi.when` gives each other call to the implementation that the spy has
+		// before it, and a bare spy has none. Thus the spy gets the real timer.
+		const timers = vi.spyOn(globalThis, 'setTimeout').mockImplementation(setTimer)
+
+		// The browser timer gives a number, but the Node types name the result a
+		// `Timeout`.
+		vi.when(timers)
+			.calledWith(expect.any(Function), TYPEAHEAD_TIMEOUT_MS)
+			.thenReturn(0 as unknown as ReturnType<typeof setTimeout>)
 
 		renderUI(
 			<Listbox aria-label="pick">

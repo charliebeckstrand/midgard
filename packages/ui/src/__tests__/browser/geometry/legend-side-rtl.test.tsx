@@ -1,9 +1,8 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
-import { MapGeofence, MapPlat } from '../../../modules/map'
-import { allBySlot, getSlot, renderUI, waitFor } from '../../helpers'
-import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
+import { getSlot, renderUI, waitFor } from '../../helpers'
+import { renderZones } from '../helpers/map-zones'
 
 type Side = 'left' | 'right'
 
@@ -17,14 +16,14 @@ const CASES = [
 ] as const satisfies readonly (readonly [Dir, Side])[]
 
 /** Asserts that the legend box sits on the physical `side` of the plot box. */
-function expectSide(plot: Element, legend: Element, side: Side) {
+const expectSide = vi.defineHelper((plot: Element, legend: Element, side: Side) => {
 	const plotRect = plot.getBoundingClientRect()
 
 	const legendRect = legend.getBoundingClientRect()
 
 	if (side === 'left') expect(legendRect.right).toBeLessThanOrEqual(plotRect.left)
 	else expect(legendRect.left).toBeGreaterThanOrEqual(plotRect.right)
-}
+})
 
 /**
  * The `left` and `right` legend placements are physical sides. They hold in a
@@ -63,17 +62,10 @@ describe('side legend in a right-to-left page (real browser)', () => {
 	})
 
 	it.each(CASES)('puts a map legend on the physical side (%s, %s)', async (dir, side) => {
-		const { container } = renderUI(
-			<div dir={dir} style={{ width: 600 }}>
-				<MapPlat aria-label="Zones" geography={FIXTURE_GEOJSON} legend={side}>
-					{['North', 'South', 'East'].map((name, index) => (
-						<MapGeofence key={name} label={name} at={[8 + index * 3, 5]} radius={300_000} />
-					))}
-				</MapPlat>
-			</div>,
-		)
-
-		await waitFor(() => expect(allBySlot(container, 'map-legend-item')).toHaveLength(3))
+		const { container } = await renderZones(['North', 'South', 'East'], {
+			legend: side,
+			frame: { dir, width: 600 },
+		})
 
 		expectSide(getSlot(container, 'map-plot'), getSlot(container, 'map-legend-box'), side)
 	})

@@ -5,7 +5,7 @@ import {
 	type RefObject,
 	useRef,
 } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Dialog, DialogClose, DialogPanel, DialogTrigger } from '../../../components/dialog'
@@ -72,7 +72,7 @@ describe.each(FAMILIES)('$name trigger (real focus manager)', ({ Root, Panel, Tr
 	}
 
 	/** Opens the panel from its trigger, and waits for focus to move into the panel. */
-	async function open(tree: ReactElement = <Tree />) {
+	const open = vi.defineHelper(async (tree: ReactElement = <Tree />) => {
 		renderUI(tree)
 
 		const trigger = screen.getByRole('button', { name: 'Open' })
@@ -86,10 +86,10 @@ describe.each(FAMILIES)('$name trigger (real focus manager)', ({ Root, Panel, Tr
 		expect(trigger).toHaveAttribute('aria-expanded', 'true')
 
 		return trigger
-	}
+	})
 
 	/** The panel closes, and the trigger has the focus again. */
-	async function expectClosed(trigger: HTMLElement) {
+	const expectClosed = vi.defineHelper(async (trigger: HTMLElement) => {
 		await waitFor(() => {
 			expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
@@ -97,7 +97,7 @@ describe.each(FAMILIES)('$name trigger (real focus manager)', ({ Root, Panel, Tr
 		})
 
 		expect(trigger).toHaveAttribute('aria-expanded', 'false')
-	}
+	})
 
 	it('gives focus back to the trigger after Escape', async () => {
 		const trigger = await open()

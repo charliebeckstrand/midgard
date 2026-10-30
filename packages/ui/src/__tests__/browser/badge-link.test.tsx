@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Badge } from '../../components/badge'
 import { getSlot, renderUI, screen } from '../helpers'
+import { acrossHover } from './helpers/across-hover'
 
 /**
  * A badge that is a link answers the pointer and shows the focus ring. A badge that is a label
@@ -18,13 +19,7 @@ describe('a link badge (real browser)', () => {
 	async function backgroundBeforeAndAfterHover(element: ReactElement) {
 		const { container } = renderUI(element)
 
-		const badge = getSlot(container, 'badge')
-
-		const before = getComputedStyle(badge).backgroundColor
-
-		await userEvent.hover(badge)
-
-		return { before, after: getComputedStyle(badge).backgroundColor }
+		return acrossHover(getSlot(container, 'badge'), 'backgroundColor')
 	}
 
 	it('washes a link badge under the pointer', async () => {

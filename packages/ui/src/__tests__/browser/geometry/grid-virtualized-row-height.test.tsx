@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { ScaleStep } from '../../../core/density'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import type { scale } from '../../../recipes/kata/table'
@@ -21,7 +21,7 @@ describe('grid virtualized row height (real browser)', () => {
 	}))
 
 	/** Renders a windowed grid at `size`, and returns its body once rows render. */
-	async function windowAt(size: ScaleStep<typeof scale>) {
+	const windowAt = vi.defineHelper(async (size: ScaleStep<typeof scale>) => {
 		const view = renderUI(
 			<div style={{ width: '320px' }}>
 				<Grid
@@ -40,7 +40,7 @@ describe('grid virtualized row height (real browser)', () => {
 		await waitFor(() => expect(body.querySelector('tr[data-grid-row]')).not.toBeNull())
 
 		return { body, unmount: view.unmount }
-	}
+	})
 
 	/** The height of one rendered row. */
 	function rowHeight(body: HTMLElement) {

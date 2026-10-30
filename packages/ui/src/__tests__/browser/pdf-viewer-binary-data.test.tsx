@@ -1,8 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { servePdf } from '../../__benchmarks__/browser/pdf-fixtures'
+import { describe, expect, it, vi } from 'vitest'
 import { PdfViewer } from '../../components/pdf-viewer'
-import { resetDocumentCache } from '../../components/pdf-viewer/pdf-viewer-document-cache'
-import { bySlot, renderUI, waitFor } from '../helpers'
+import { renderUI } from '../helpers'
+import { pageImage, servePdfFor } from './helpers/pdf-viewer'
 import { budget } from './helpers/wall-clock'
 
 /** A black 16 × 16 image in JPEG 2000, which pdf.js decodes with `openjpeg.wasm`. */
@@ -135,7 +134,7 @@ function makeCMapPdf(): Uint8Array {
  * @returns The share of the pixels of the page that are dark, from 0 to 1.
  */
 async function measureInk(bytes: Uint8Array): Promise<number> {
-	const src = servePdf(bytes)
+	const src = servePdfFor(bytes)
 
 	const { container } = renderUI(
 		<div style={{ width: 400, height: 400 }}>
@@ -143,18 +142,11 @@ async function measureInk(bytes: Uint8Array): Promise<number> {
 		</div>,
 	)
 
-	const canvas = await waitFor(
-		() => {
-			const found = bySlot(container, 'pdf-viewer-viewport')?.querySelector<HTMLCanvasElement>(
-				'canvas[data-slot="pdf-viewer-page-image"]',
-			)
+	const canvas = (await pageImage(container, (image) => {
+		expect(image).toBeInstanceOf(HTMLCanvasElement)
 
-			expect(found?.width).toBeGreaterThan(0)
-
-			return found as HTMLCanvasElement
-		},
-		{ timeout: budget(10_000) },
-	)
+		expect((image as HTMLCanvasElement).width).toBeGreaterThan(0)
+	})) as HTMLCanvasElement
 
 	const { data } = canvas.getContext('2d')?.getImageData(0, 0, canvas.width, canvas.height) ?? {
 		data: new Uint8ClampedArray(),
@@ -165,8 +157,6 @@ async function measureInk(bytes: Uint8Array): Promise<number> {
 	for (let index = 0; index < data.length; index += 4) {
 		if ((data[index] ?? 255) < 128) dark++
 	}
-
-	URL.revokeObjectURL(src)
 
 	return dark / (data.length / 4)
 }
@@ -180,8 +170,6 @@ async function measureInk(bytes: Uint8Array): Promise<number> {
  * loads.
  */
 describe('pdf viewer binary data (real browser)', () => {
-	afterEach(() => resetDocumentCache())
-
 	it('renders a JPEG 2000 image', { timeout: budget(15_000) }, async () => {
 		expect(await measureInk(makeImagePdf('/Filter /JPXDecode', JPX))).toBeGreaterThan(0.9)
 	})

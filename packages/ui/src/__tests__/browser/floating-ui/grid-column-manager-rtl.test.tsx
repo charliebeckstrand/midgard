@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Grid, type GridColumn } from '../../../modules/grid'
+import { Grid, type GridColumn, type GridProps } from '../../../modules/grid'
 import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
 
 /**
@@ -19,17 +19,22 @@ describe('grid column manager in a right-to-left grid (real browser)', () => {
 
 	const rows: Row[] = [{ id: 1, name: 'Alice', role: 'Admin' }]
 
-	it('lays out right to left and pins to the right edge from "Pin right"', async () => {
-		const { container } = renderUI(
+	/**
+	 * Renders the grid in a right-to-left box.
+	 *
+	 * @param props - The props to add to the grid.
+	 * @returns The render result.
+	 */
+	function renderRtl(props: Partial<GridProps<Row>>) {
+		return renderUI(
 			<div dir="rtl" style={{ width: 500 }}>
-				<Grid
-					columns={columns}
-					rows={rows}
-					getKey={(row) => row.id}
-					columnManager={{ toolbar: true }}
-				/>
+				<Grid columns={columns} rows={rows} getKey={(row) => row.id} {...props} />
 			</div>,
 		)
+	}
+
+	it('lays out right to left and pins to the right edge from "Pin right"', async () => {
+		const { container } = renderRtl({ columnManager: { toolbar: true } })
 
 		await userEvent.click(screen.getByRole('button', { name: /Manage columns|Columns/ }))
 
@@ -63,11 +68,7 @@ describe('grid column manager in a right-to-left grid (real browser)', () => {
 	})
 
 	it('lays out the row manager right to left', async () => {
-		renderUI(
-			<div dir="rtl" style={{ width: 500 }}>
-				<Grid columns={columns} rows={rows} getKey={(row) => row.id} groupBy={{ value: 'role' }} />
-			</div>,
-		)
+		renderRtl({ groupBy: { value: 'role' } })
 
 		await userEvent.click(screen.getByText('Admin (1)'), { button: 'right' })
 
@@ -84,16 +85,7 @@ describe('grid column manager in a right-to-left grid (real browser)', () => {
 	})
 
 	it('lays out the width confirm right to left', async () => {
-		renderUI(
-			<div dir="rtl" style={{ width: 500 }}>
-				<Grid
-					columns={columns}
-					rows={rows}
-					getKey={(row) => row.id}
-					preferences={{ columnSizing: { name: 240 } }}
-				/>
-			</div>,
-		)
+		renderRtl({ preferences: { columnSizing: { name: 240 } } })
 
 		// Events, not the pointer: a pointer path across the menu passes over the
 		// Export parent, whose submenu can take the click. The layout is the subject.

@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { DatePicker } from '../../../components/date-picker'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { present, renderUI, screen, waitFor } from '../../helpers'
+import { renderUI, screen, waitFor } from '../../helpers'
+import { gridCell } from '../../helpers/grid-cells'
 
 /**
  * A date picker in an `editCell` slot under `commitOn: 'leaveEditor'` (real
@@ -55,9 +56,7 @@ describe('grid commit on leave vs a date picker slot (real floating engine)', ()
 			</>,
 		)
 
-		await userEvent.dblClick(
-			present(view.container.querySelector<HTMLElement>('td[data-grid-col="due"]'), 'due'),
-		)
+		await userEvent.dblClick(gridCell(view.container, 'due'))
 
 		await userEvent.click(screen.getByRole('button', { name: 'Open calendar' }))
 

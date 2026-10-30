@@ -5,6 +5,7 @@ import { DatePicker } from '../../components/date-picker'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { getSlot, present, renderUI, screen, waitFor } from '../helpers'
+import { gridCell } from '../helpers/grid-cells'
 
 /**
  * The editor slot stretches the editor to the width of its cell. An `editCell`
@@ -80,12 +81,6 @@ describe('grid editor width (real browser)', () => {
 		return node
 	}
 
-	const getCell = (container: HTMLElement, column: string) =>
-		present<HTMLElement>(
-			container.querySelector(`td[data-grid-col="${column}"]`),
-			`td[data-grid-col="${column}"]`,
-		)
-
 	it('stretches an inferred editor and each editCell control to the width of the cell', async () => {
 		const { container } = renderUI(
 			<Grid
@@ -97,7 +92,7 @@ describe('grid editor width (real browser)', () => {
 		)
 
 		for (const column of ['name', 'role', 'due', 'budget']) {
-			const slot = await waitFor(() => getSlot(getCell(container, column), 'grid-edit-slot'))
+			const slot = await waitFor(() => getSlot(gridCell(container, column), 'grid-edit-slot'))
 
 			const host = present<HTMLElement>(slot.parentElement, 'the editor host')
 
@@ -123,9 +118,9 @@ describe('grid editor width (real browser)', () => {
 			/>,
 		)
 
-		await userEvent.dblClick(getCell(container, 'name'))
+		await userEvent.dblClick(gridCell(container, 'name'))
 
-		const slot = await waitFor(() => getSlot(getCell(container, 'name'), 'grid-edit-slot'))
+		const slot = await waitFor(() => getSlot(gridCell(container, 'name'), 'grid-edit-slot'))
 
 		const host = present<HTMLElement>(slot.parentElement, 'the editor host')
 

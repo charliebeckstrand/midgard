@@ -39,33 +39,17 @@ describe('the thumb of a checked switch under a change of density (real browser)
 		return { start: thumbBox.left - trackBox.left, end: trackBox.right - thumbBox.right }
 	}
 
-	it('keeps the thumb at the end of the track on the frame of the change', () => {
-		const { scope, track, thumb } = render(true)
+	it.for([
+		['keeps the thumb at the end of the track on the frame of the change', true, 'ltr', 'end'],
+		['keeps the thumb at the inline end of a right-to-left track', true, 'rtl', 'start'],
+		['keeps the thumb at the start of an unchecked track at each step', false, 'ltr', 'start'],
+	] as const)('%s', ([, checked, dir, edge]) => {
+		const { scope, track, thumb } = render(checked, dir)
 
 		for (const step of densitySteps) {
 			scope.dataset.density = step
 
-			expect(gaps(track, thumb).end, step).toBeCloseTo(4, 0)
-		}
-	})
-
-	it('keeps the thumb at the inline end of a right-to-left track', () => {
-		const { scope, track, thumb } = render(true, 'rtl')
-
-		for (const step of densitySteps) {
-			scope.dataset.density = step
-
-			expect(gaps(track, thumb).start, step).toBeCloseTo(4, 0)
-		}
-	})
-
-	it('keeps the thumb at the start of an unchecked track at each step', () => {
-		const { scope, track, thumb } = render(false)
-
-		for (const step of densitySteps) {
-			scope.dataset.density = step
-
-			expect(gaps(track, thumb).start, step).toBeCloseTo(4, 0)
+			expect(gaps(track, thumb)[edge], step).toBeCloseTo(4, 0)
 		}
 	})
 })

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { Tree, TreeItem } from '../../../components/tree'
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
-import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
+import { renderUI, screen, waitFor } from '../../helpers'
+import { EXIT_MOTION_CASES, getGroup, pressKey } from '../helpers/exit'
 
 /**
  * Under the default `mount="active"`, a closed Tree group stays on screen for
@@ -42,61 +43,52 @@ function renderTree(reduced = false) {
 	}
 }
 
-/** The group that a branch row owns. */
-function getGroup(branch: HTMLElement) {
-	return present(document.getElementById(branch.getAttribute('aria-owns') ?? ''), 'group')
-}
-
-function press(key: string) {
-	fireEvent.keyDown(present(document.activeElement, 'focused row'), { key })
-}
-
 describe('Tree exiting group (real Motion)', () => {
-	it.each([
-		{ reduced: false, name: 'the full exit' },
-		{ reduced: true, name: 'the reduced exit' },
-	])('moves focus past the rows of a closing group under $name', async ({ reduced }) => {
-		const { branch, group, child, last } = renderTree(reduced)
+	it.each(EXIT_MOTION_CASES)(
+		'moves focus past the rows of a closing group under $name',
+		async ({ reduced }) => {
+			const { branch, group, child, last } = renderTree(reduced)
 
-		branch.focus()
+			branch.focus()
 
-		press('ArrowLeft')
+			pressKey('ArrowLeft')
 
-		expect(branch).toHaveAttribute('aria-expanded', 'false')
+			expect(branch).toHaveAttribute('aria-expanded', 'false')
 
-		// The group stays for its exit, and its rows stay with it.
-		expect(group).toBeInTheDocument()
+			// The group stays for its exit, and its rows stay with it.
+			expect(group).toBeInTheDocument()
 
-		expect(group).toContainElement(child)
+			expect(group).toContainElement(child)
 
-		press('ArrowDown')
+			pressKey('ArrowDown')
 
-		expect(document.activeElement).toBe(last)
+			expect(document.activeElement).toBe(last)
 
-		expect(group).toHaveAttribute('inert')
+			expect(group).toHaveAttribute('inert')
 
-		await waitFor(() => expect(group).not.toBeInTheDocument())
+			await waitFor(() => expect(group).not.toBeInTheDocument())
 
-		expect(document.activeElement).toBe(last)
-	})
+			expect(document.activeElement).toBe(last)
+		},
+	)
 
 	it('clears the mark when the branch opens again during the exit', () => {
 		const { branch, group, child } = renderTree()
 
 		branch.focus()
 
-		press('ArrowLeft')
+		pressKey('ArrowLeft')
 
 		expect(group).toHaveAttribute('inert')
 
-		press('ArrowRight')
+		pressKey('ArrowRight')
 
 		// The open keeps the same node, so the mark must go.
 		expect(getGroup(branch)).toBe(group)
 
 		expect(group).not.toHaveAttribute('inert')
 
-		press('ArrowDown')
+		pressKey('ArrowDown')
 
 		expect(document.activeElement).toBe(child)
 	})

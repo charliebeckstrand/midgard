@@ -1,8 +1,22 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridColumnGroup } from '../../../modules/grid'
 import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
 import { getCenter, measureBox } from '../../helpers/geometry/box'
 import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
+
+/**
+ * Focuses the grid and presses ArrowDown, which seats the cursor. Waits for the
+ * active cell, and returns it.
+ */
+const seatCursor = vi.defineHelper(async (grid: HTMLElement): Promise<HTMLElement> => {
+	grid.focus()
+
+	fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+	return await waitFor(() =>
+		present(grid.querySelector<HTMLElement>('[data-active]'), '[data-active]'),
+	)
+})
 
 /**
  * The navigable cursor keeps its active cell clear of the grid's sticky header
@@ -48,13 +62,7 @@ describe('grid cursor focus not obscured (real browser)', () => {
 		if (!header) throw new Error('header cell not found')
 
 		// Seat the cursor; the active cell appears with its scroll-margin applied.
-		grid.focus()
-
-		fireEvent.keyDown(grid, { key: 'ArrowDown' })
-
-		await waitFor(() => expect(grid.querySelector('[data-active]')).not.toBeNull())
-
-		const active = present(grid.querySelector('[data-active]'), '[data-active]')
+		const active = await seatCursor(grid)
 
 		// The top margin clears the sticky header's full height, so a scroll never
 		// tucks the active cell beneath it.
@@ -73,7 +81,7 @@ describe('grid cursor focus not obscured (real browser)', () => {
 			'[data-slot="grid-scroll"]',
 		)
 
-		const expectClear = () => {
+		const expectClear = vi.defineHelper(() => {
 			const cell = present(grid.querySelector('[data-active]'), '[data-active]')
 
 			// The outer box takes the side edges of the cell, so the check reads the top and the bottom only.
@@ -84,7 +92,7 @@ describe('grid cursor focus not obscured (real browser)', () => {
 			}
 
 			expect(clear).toContainBox(cell, { tolerance: PIXEL })
-		}
+		})
 
 		/** Presses each key in turn, and checks the active cell after each one. */
 		const press = async (keys: string[]) => {
@@ -144,17 +152,18 @@ describe('grid cursor focus not obscured (real browser)', () => {
 			'th[data-grid-col="name"]',
 		)
 
-		grid.focus()
+		await seatCursor(grid)
 
 		// Move onto the non-pinned column so a horizontal scroll could tuck it
 		// behind the left-pinned one.
-		fireEvent.keyDown(grid, { key: 'ArrowDown' })
-
 		fireEvent.keyDown(grid, { key: 'ArrowRight' })
 
-		await waitFor(() => expect(grid.querySelector('[data-active]')).not.toBeNull())
-
-		const active = present(grid.querySelector('[data-active]'), '[data-active]')
+		const active = await waitFor(() =>
+			present(
+				grid.querySelector<HTMLElement>('[data-active][data-grid-col="role"]'),
+				'the active role cell',
+			),
+		)
 
 		expect(Number.parseFloat(active.style.scrollMarginLeft)).toBeNear(
 			pinnedHeader.getBoundingClientRect().width,
@@ -191,13 +200,7 @@ describe('grid cursor focus not obscured (real browser)', () => {
 		// The band and the column row stack, so the sticky chrome is the full head.
 		const cover = head.getBoundingClientRect().height
 
-		grid.focus()
-
-		fireEvent.keyDown(grid, { key: 'ArrowDown' })
-
-		await waitFor(() => expect(grid.querySelector('[data-active]')).not.toBeNull())
-
-		const active = present(grid.querySelector('[data-active]'), '[data-active]')
+		const active = await seatCursor(grid)
 
 		expect(Number.parseFloat(active.style.scrollMarginTop)).toBeNear(cover, HALF_PIXEL)
 
@@ -284,7 +287,7 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 		}
 
 		/** Holds the active cell inside the scroller, with no other element over it. */
-		const expectUncovered = () => {
+		const expectUncovered = vi.defineHelper(() => {
 			const cell = active()
 
 			const box = cell.getBoundingClientRect()
@@ -301,7 +304,7 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 			for (const x of [box.left + 2, center.x, box.right - 2]) {
 				expect(cell.contains(document.elementFromPoint(x, center.y))).toBe(true)
 			}
-		}
+		})
 
 		return { grid, scroll, active, press, expectUncovered }
 	}
@@ -329,11 +332,7 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 				'the pinned head',
 			)
 
-			grid.focus()
-
-			fireEvent.keyDown(grid, { key: 'ArrowDown' })
-
-			await waitFor(() => expect(grid.querySelector('[data-active]')).not.toBeNull())
+			await seatCursor(grid)
 
 			const next = dir === 'ltr' ? 'ArrowRight' : 'ArrowLeft'
 

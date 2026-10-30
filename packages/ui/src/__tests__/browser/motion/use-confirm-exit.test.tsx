@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { useConfirm } from '../../../components/confirm'
@@ -66,11 +66,11 @@ describe('useConfirm exit', () => {
 			attributes: true,
 		})
 
+		onTestFinished(() => observer.disconnect())
+
 		await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
 		await waitFor(() => expect(dialog.isConnected).toBe(false))
-
-		observer.disconnect()
 
 		expect(screen.getByText('Kept')).toBeInTheDocument()
 

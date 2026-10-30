@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
 import { BreadcrumbLink } from '../../components/breadcrumb'
 import { getSlot, renderUI } from '../helpers'
+import { acrossHover } from './helpers/across-hover'
 
 /**
  * Only a crumb that is a link answers the pointer.
@@ -17,13 +17,7 @@ describe('a breadcrumb crumb under the pointer (real browser)', () => {
 	async function colorBeforeAndAfterHover(element: ReactElement) {
 		const { container } = renderUI(element)
 
-		const crumb = getSlot(container, 'breadcrumb-link')
-
-		const before = getComputedStyle(crumb).color
-
-		await userEvent.hover(crumb)
-
-		return { before, after: getComputedStyle(crumb).color }
+		return acrossHover(getSlot(container, 'breadcrumb-link'), 'color')
 	}
 
 	it('keeps the color of a text crumb', async () => {

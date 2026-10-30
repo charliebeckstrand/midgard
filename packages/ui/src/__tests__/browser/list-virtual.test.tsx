@@ -22,9 +22,9 @@ const items = Array.from({ length: COUNT }, (_, index) => ({
 
 type Item = (typeof items)[number]
 
-function Rows({ virtual }: { virtual: boolean }) {
+function Rows() {
 	return (
-		<List items={items} sortable={false} virtual={virtual} getKey={(item: Item) => item.id}>
+		<List items={items} sortable={false} virtual getKey={(item: Item) => item.id}>
 			{(item) => <ListItem href={`#${item.id}`}>{item.label}</ListItem>}
 		</List>
 	)
@@ -36,7 +36,7 @@ function Frame() {
 		<div data-scroll-region style={{ height: 300, width: 360, overflowY: 'auto' }}>
 			<div style={{ height: 120 }}>Content above</div>
 
-			<Rows virtual />
+			<Rows />
 		</div>
 	)
 }
@@ -46,6 +46,15 @@ const getRegion = (container: HTMLElement) =>
 
 const getRows = (container: HTMLElement) =>
 	Array.from(container.querySelectorAll<HTMLElement>('[data-slot="list-item"]'))
+
+/** Renders the frame and waits for its first row. */
+async function renderFrame() {
+	const { container } = renderUI(<Frame />)
+
+	await waitFor(() => expect(getRows(container).length).toBeGreaterThan(0))
+
+	return { container, region: getRegion(container) }
+}
 
 /** Scrolls the region to `top` and waits for the window to follow. */
 async function scrollTo(region: HTMLElement, top: number) {
@@ -76,11 +85,7 @@ describe('a virtual list', () => {
 	})
 
 	it('moves the rows in view by exactly the distance scrolled', async () => {
-		const { container } = renderUI(<Frame />)
-
-		const region = getRegion(container)
-
-		await waitFor(() => expect(getRows(container).length).toBeGreaterThan(0))
+		const { container, region } = await renderFrame()
 
 		// A step shorter than a row, so each row the window adds or drops lands
 		// between the two reads. A window that placed its rows without the gap
@@ -111,11 +116,7 @@ describe('a virtual list', () => {
 	})
 
 	it('shows the last row at the foot of the region at the end', async () => {
-		const { container } = renderUI(<Frame />)
-
-		const region = getRegion(container)
-
-		await waitFor(() => expect(getRows(container).length).toBeGreaterThan(0))
+		const { container, region } = await renderFrame()
 
 		// The rows measure as they come into view, so the end moves while the
 		// region scrolls to it. A reader who keeps scrolling reaches it.
@@ -141,9 +142,7 @@ describe('a virtual list', () => {
 	})
 
 	it('lets Tab walk past the rows it first rendered', async () => {
-		const { container } = renderUI(<Frame />)
-
-		await waitFor(() => expect(getRows(container).length).toBeGreaterThan(0))
+		const { container } = await renderFrame()
 
 		const initial = getRows(container).length
 
@@ -173,7 +172,7 @@ describe('a virtual list', () => {
 					<div>
 						<h2>Heading</h2>
 
-						<Rows virtual />
+						<Rows />
 					</div>
 				</div>
 			</div>,
@@ -271,7 +270,7 @@ describe('a virtual list', () => {
 	it('renders every row where no scroll region holds it', async () => {
 		const { container } = renderUI(
 			<div style={{ height: 300, overflowY: 'auto' }}>
-				<Rows virtual />
+				<Rows />
 			</div>,
 		)
 

@@ -1,8 +1,9 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Link } from '../../components/link'
 import { renderUI, screen } from '../helpers'
+import { holdRootClass } from './helpers/root-state'
 
 /**
  * A host that renders through Link keeps its own text color in dark mode.
@@ -15,10 +16,6 @@ import { renderUI, screen } from '../helpers'
  * Rides the real browser because the claim is a computed one: jsdom loads no stylesheet.
  */
 describe('a host that renders through Link, in dark mode (real browser)', () => {
-	afterEach(() => {
-		document.documentElement.classList.remove('dark')
-	})
-
 	/** The computed text color of the element with the test id `id`. */
 	function color(id: string) {
 		return getComputedStyle(screen.getByTestId(id)).color
@@ -27,7 +24,7 @@ describe('a host that renders through Link, in dark mode (real browser)', () => 
 	it.each([false, true])(
 		'gives a solid link the text color of its plain form (dark: %s)',
 		(dark) => {
-			if (dark) document.documentElement.classList.add('dark')
+			if (dark) holdRootClass('dark')
 
 			renderUI(
 				<div style={{ color: 'rgb(255, 255, 255)' }}>
@@ -53,7 +50,7 @@ describe('a host that renders through Link, in dark mode (real browser)', () => 
 	)
 
 	it('keeps a text color that a consumer gives a Link', () => {
-		document.documentElement.classList.add('dark')
+		holdRootClass('dark')
 
 		renderUI(
 			<div style={{ color: 'rgb(255, 255, 255)' }}>

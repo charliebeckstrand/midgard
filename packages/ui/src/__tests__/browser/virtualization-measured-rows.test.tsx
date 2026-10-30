@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { JsonTree } from '../../components/json-tree'
 import { densitySteps } from '../../core/density'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { present, renderUI, screen, waitFor } from '../helpers'
+import { frames, present, renderUI, screen, waitFor } from '../helpers'
 import { settledValue } from './helpers/sample'
 
 /**
@@ -31,6 +31,17 @@ function findScroller(node: HTMLElement): HTMLElement {
 
 	return present(el, 'the scroller')
 }
+
+/** Waits until the option at `index` is active and in view in the list. */
+const expectActiveInView = vi.defineHelper(async (index: number) => {
+	await waitFor(() => {
+		expect(screen.getByRole('combobox').getAttribute('aria-activedescendant')).toBe(`opt-${index}`)
+
+		const row = present(document.getElementById(`opt-${index}`), `option ${index}`)
+
+		expect(inView(row, findScroller(row))).toBe(true)
+	})
+})
 
 const COUNT = 200
 
@@ -60,17 +71,10 @@ describe('VirtualOptions measures each row', () => {
 
 			await waitFor(() => expect(screen.getAllByRole('option').length).toBeGreaterThan(0))
 
-			const expectActiveInView = async (index: number) => {
-				await waitFor(() => {
-					expect(input.getAttribute('aria-activedescendant')).toBe(`opt-${index}`)
-
-					const row = present(document.getElementById(`opt-${index}`), `option ${index}`)
-
-					expect(inView(row, findScroller(row))).toBe(true)
-				})
-			}
-
-			// ArrowUp from no highlight wraps to the last option.
+			// ArrowUp from no highlight wraps to the last option. Each later step
+			// attaches a row above the viewport, which measures and moves the offset.
+			// The console guard fails the case on a `flushSync` warning from that
+			// measure in a commit.
 			await userEvent.keyboard('{ArrowUp}')
 
 			await expectActiveInView(COUNT - 1)
@@ -88,12 +92,6 @@ describe('VirtualOptions measures each row', () => {
 const LONG = 'lorem ipsum dolor sit amet '.repeat(4)
 
 const DATA = { list: Array.from({ length: COUNT }, (_, index) => `${index} ${LONG}`) }
-
-/** Waits for two frames, so a scroll event and the render that it starts both land. */
-const frames = () =>
-	new Promise<void>((resolve) =>
-		requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-	)
 
 describe('JsonTree measures each row', () => {
 	// The top spacer stands in for the rows above the window. A spacer that

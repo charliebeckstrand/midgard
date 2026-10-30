@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { List, ListItem } from '../../../components/list'
+import { List, ListItem, type ListProps } from '../../../components/list'
 import { allBySlot, frames, getSlot, renderUI } from '../../helpers'
 import { drag } from '../helpers/drag'
 
@@ -19,30 +19,45 @@ describe('List pointer reorder (real browser)', () => {
 		{ id: 'c', label: 'Charlie' },
 	]
 
-	/** Presses the grip of `row` and moves the pointer down past the next row. */
-	const dragDown = async (row: HTMLElement, next: HTMLElement, init?: PointerEventInit) => {
+	/**
+	 * Presses the grip of `row` and moves the pointer down by `distance`, in
+	 * twelve steps. A negative distance moves it up.
+	 */
+	const dragBy = (row: HTMLElement, distance: number, init?: PointerEventInit) => {
 		const handle = getSlot(row, 'list-handle')
 
 		const box = handle.getBoundingClientRect()
 
 		const from = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
 
-		const step = next.getBoundingClientRect().height
-
 		const path = Array.from({ length: 12 }, (_, index) => ({
 			x: from.x,
-			y: from.y + ((index + 1) * step * 1.3) / 12,
+			y: from.y + ((index + 1) * distance) / 12,
 		}))
 
 		return drag(handle, from, path, init)
 	}
 
-	it('drags a row past the next one and reports the order once, on the drop', async () => {
-		const onReorder = vi.fn()
+	/** Presses the grip of `row` and moves the pointer down past the next row. */
+	const dragDown = (row: HTMLElement, next: HTMLElement, init?: PointerEventInit) =>
+		dragBy(row, next.getBoundingClientRect().height * 1.3, init)
 
+	/**
+	 * Renders a reorderable List of `items`, and gives the list and its first two
+	 * rows.
+	 */
+	const renderList = ({
+		onReorder = () => {},
+		href = false,
+		variant,
+	}: {
+		onReorder?: (next: Item[]) => void
+		href?: boolean
+		variant?: ListProps<Item>['variant']
+	} = {}) => {
 		const { container } = renderUI(
-			<List items={items} getKey={(item) => item.id} onReorder={onReorder}>
-				{(item) => <ListItem>{item.label}</ListItem>}
+			<List items={items} getKey={(item) => item.id} onReorder={onReorder} variant={variant}>
+				{(item) => <ListItem href={href ? `#${item.id}` : undefined}>{item.label}</ListItem>}
 			</List>,
 		)
 
@@ -51,6 +66,14 @@ describe('List pointer reorder (real browser)', () => {
 		const [first, second] = allBySlot(list, 'list-item')
 
 		if (!first || !second) throw new Error('expected rows')
+
+		return { container, list, first, second }
+	}
+
+	it('drags a row past the next one and reports the order once, on the drop', async () => {
+		const onReorder = vi.fn()
+
+		const { list, first, second } = renderList({ onReorder })
 
 		const held = await dragDown(first, second)
 
@@ -71,24 +94,12 @@ describe('List pointer reorder (real browser)', () => {
 		expect(first.getAttribute('aria-describedby')).toBeTruthy()
 	})
 
-	// The drop maps keys back to items. Each item must reach `onReorder` whole,
-	// also when the item is an array, such as an `Object.entries` tuple.
 	// On macOS a Ctrl-click is the secondary click. Motion lets it start a drag,
 	// and the context menu can take the release, so the grip refuses it.
 	it('starts no drag from a Ctrl-click on the grip', async () => {
 		const onReorder = vi.fn()
 
-		const { container } = renderUI(
-			<List items={items} getKey={(item) => item.id} onReorder={onReorder}>
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
-		)
-
-		const list = getSlot(container, 'list')
-
-		const [first, second] = allBySlot(list, 'list-item')
-
-		if (!first || !second) throw new Error('expected rows')
+		const { list, first, second } = renderList({ onReorder })
 
 		const held = await dragDown(first, second, { ctrlKey: true })
 
@@ -103,6 +114,8 @@ describe('List pointer reorder (real browser)', () => {
 		expect(onReorder).not.toHaveBeenCalled()
 	})
 
+	// The drop maps keys back to items. Each item must reach `onReorder` whole,
+	// also when the item is an array, such as an `Object.entries` tuple.
 	it('reports each tuple item whole on the drop', async () => {
 		const onReorder = vi.fn()
 
@@ -139,17 +152,7 @@ describe('List pointer reorder (real browser)', () => {
 	it('puts the rows back and reports nothing when Escape cancels the drag', async () => {
 		const onReorder = vi.fn()
 
-		const { container } = renderUI(
-			<List items={items} getKey={(item) => item.id} onReorder={onReorder}>
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
-		)
-
-		const list = getSlot(container, 'list')
-
-		const [first, second] = allBySlot(list, 'list-item')
-
-		if (!first || !second) throw new Error('expected rows')
+		const { list, first, second } = renderList({ onReorder })
 
 		const held = await dragDown(first, second)
 
@@ -170,17 +173,7 @@ describe('List pointer reorder (real browser)', () => {
 		expect(onReorder).not.toHaveBeenCalled()
 	})
 	it('marks the dragged row and its handle with data-dragging, and sets no aria-pressed', async () => {
-		const { container } = renderUI(
-			<List items={items} getKey={(item) => item.id} onReorder={() => {}}>
-				{(item) => <ListItem href={`#${item.id}`}>{item.label}</ListItem>}
-			</List>,
-		)
-
-		const list = getSlot(container, 'list')
-
-		const [first, second] = allBySlot(list, 'list-item')
-
-		if (!first || !second) throw new Error('expected rows')
+		const { first, second } = renderList({ href: true })
 
 		const held = await dragDown(first, second)
 
@@ -203,15 +196,7 @@ describe('List pointer reorder (real browser)', () => {
 	it.each(['separated', 'outline', 'plain', 'solid', 'bare'] as const)(
 		'keeps the classes and the fill of a dragged %s row',
 		async (variant) => {
-			const { container } = renderUI(
-				<List items={items} getKey={(item) => item.id} onReorder={() => {}} variant={variant}>
-					{(item) => <ListItem>{item.label}</ListItem>}
-				</List>,
-			)
-
-			const [first, second] = allBySlot(getSlot(container, 'list'), 'list-item')
-
-			if (!first || !second) throw new Error('expected rows')
+			const { first, second } = renderList({ variant })
 
 			const rest = { className: first.className, fill: getComputedStyle(first).backgroundColor }
 
@@ -285,19 +270,7 @@ describe('List pointer reorder (real browser)', () => {
 
 		const bounds = list.getBoundingClientRect()
 
-		const travel = async (row: HTMLElement, by: number) => {
-			const box = getSlot(row, 'list-handle').getBoundingClientRect()
-
-			const x = box.left + box.width / 2
-
-			const y = box.top + box.height / 2
-
-			const path = Array.from({ length: 12 }, (_, index) => ({ x, y: y + ((index + 1) * by) / 12 }))
-
-			return drag(getSlot(row, 'list-handle'), { x, y }, path)
-		}
-
-		const up = await travel(first, -150)
+		const up = await dragBy(first, -150)
 
 		await expect.poll(() => first.hasAttribute('data-dragging')).toBe(true)
 
@@ -309,7 +282,7 @@ describe('List pointer reorder (real browser)', () => {
 
 		await expect.poll(() => first.hasAttribute('data-dragging')).toBe(false)
 
-		const down = await travel(last, 150)
+		const down = await dragBy(last, 150)
 
 		await expect.poll(() => last.hasAttribute('data-dragging')).toBe(true)
 

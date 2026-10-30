@@ -8,7 +8,8 @@ import {
 	KanbanColumnBody,
 } from '../../modules/kanban'
 import { renderUI } from '../helpers'
-import { drag, type Point } from './helpers/drag'
+import { getCenter } from '../helpers/geometry/box'
+import { drag } from './helpers/drag'
 
 /**
  * Kanban drop target (real paint). A column takes `data-over` while a dragged
@@ -20,13 +21,6 @@ describe('Kanban drop target (real browser)', () => {
 	type Item = { id: string; label: string }
 
 	type Column = { id: string; items: Item[] }
-
-	/** The center of `el`, in client space. */
-	const getCenter = (el: Element): Point => {
-		const box = el.getBoundingClientRect()
-
-		return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
-	}
 
 	type BoardProps = {
 		initial: Column[]

@@ -26,9 +26,7 @@ describe('the auto alignment of Popover, Tooltip, and DatePicker (real floating 
 	}
 
 	async function edges(panelRole: 'dialog' | 'tooltip', reference: () => HTMLElement) {
-		await frames()
-
-		await frames()
+		await frames(2)
 
 		const trigger = reference().getBoundingClientRect()
 

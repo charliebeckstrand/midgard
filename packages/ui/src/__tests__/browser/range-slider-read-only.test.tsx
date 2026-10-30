@@ -1,7 +1,8 @@
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 import { RangeSlider } from '../../components/slider'
 import { allBySlot, getSlot, renderUI } from '../helpers'
+import { press } from './helpers/drag'
 
 /**
  * A pointer on a read-only RangeSlider. The press focuses the nearest thumb, as on a live slider,
@@ -33,10 +34,8 @@ describe('a pointer on a read-only RangeSlider (real browser)', () => {
 
 		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
 
-		onTestFinished(() => commands.releasePointer())
-
 		// 10% along the track is nearer the start thumb at 20.
-		await commands.pressPointer('[data-slot="slider-range"]', { x: 0.1, y: 0.5 })
+		await press('[data-slot="slider-range"]', { x: 0.1, y: 0.5 })
 
 		await userEvent.hover(root)
 

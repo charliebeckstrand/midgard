@@ -1,6 +1,7 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { bySlot, present, renderUI } from '../helpers'
+import { holdRootClass } from './helpers/root-state'
 
 /**
  * The ring around a scatter dot takes the fill of the surface under the chart, in both modes.
@@ -11,10 +12,6 @@ import { bySlot, present, renderUI } from '../helpers'
  * Rides the real browser because the claim is a computed color: jsdom loads no stylesheet.
  */
 describe('the scatter marker ring (real browser)', () => {
-	afterEach(() => {
-		document.documentElement.classList.remove('dark')
-	})
-
 	const POINTS = [
 		{ x: 1, y: 12 },
 		{ x: 2, y: 91 },
@@ -23,7 +20,7 @@ describe('the scatter marker ring (real browser)', () => {
 
 	/** The computed stroke of the dots, and the fill of the card they sit on. */
 	function ringOnCard(dark: boolean) {
-		if (dark) document.documentElement.classList.add('dark')
+		if (dark) holdRootClass('dark')
 
 		const { container } = renderUI(
 			<div
@@ -47,14 +44,11 @@ describe('the scatter marker ring (real browser)', () => {
 		return { ring: getComputedStyle(discs).stroke, card: getComputedStyle(card).backgroundColor }
 	}
 
-	it('matches the card fill in light mode', () => {
-		const { ring, card } = ringOnCard(false)
-
-		expect(ring).toBe(card)
-	})
-
-	it('matches the card fill in dark mode', () => {
-		const { ring, card } = ringOnCard(true)
+	it.for([
+		['light', false],
+		['dark', true],
+	] as const)('matches the card fill in %s mode', ([, dark]) => {
+		const { ring, card } = ringOnCard(dark)
 
 		expect(ring).toBe(card)
 	})

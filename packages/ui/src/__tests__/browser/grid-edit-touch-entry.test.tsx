@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, frames, present, renderUI } from '../helpers'
+import { bySlot, frames, renderUI } from '../helpers'
+import { gridCell } from '../helpers/grid-cells'
 
 /**
  * The touch entry of a cell-scoped session against real browser events. iOS
@@ -59,8 +60,7 @@ describe('grid touch entry (real browser)', () => {
 			/>,
 		)
 
-		const cell = (column: string) =>
-			present(view.container.querySelector(`td[data-grid-col="${column}"]`), `the ${column} cell`)
+		const cell = (column: string) => gridCell(view.container, column)
 
 		return { ...view, cell }
 	}

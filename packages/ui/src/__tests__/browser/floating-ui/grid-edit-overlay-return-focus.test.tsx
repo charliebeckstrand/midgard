@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { present, renderUI, screen, stubMatchMedia, waitFor, within } from '../../helpers'
@@ -41,7 +41,19 @@ function PhoneGrid() {
 	)
 }
 
-function grids() {
+/**
+ * Renders two phone grids.
+ *
+ * @returns The first grid and the second grid.
+ */
+function renderPhones() {
+	renderUI(
+		<>
+			<PhoneGrid />
+			<PhoneGrid />
+		</>,
+	)
+
 	const [first, second] = screen.getAllByRole('grid')
 
 	return [present(first, 'first grid'), present(second, 'second grid')] as const
@@ -60,17 +72,12 @@ function cancel() {
  * The real focus manager is necessary: the jsdom mock returns no focus.
  */
 describe('grid edit overlay return focus (real floating engine)', () => {
-	it('returns the focus to the pencil, not to a grid that had the focus before', async () => {
+	beforeEach(() => {
 		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+	})
 
-		renderUI(
-			<>
-				<PhoneGrid />
-				<PhoneGrid />
-			</>,
-		)
-
-		const [first, second] = grids()
+	it('returns the focus to the pencil, not to a grid that had the focus before', async () => {
+		const [first, second] = renderPhones()
 
 		await userEvent.click(within(second).getByRole('gridcell', { name: 'Alice' }))
 
@@ -92,16 +99,7 @@ describe('grid edit overlay return focus (real floating engine)', () => {
 	// Safari does not focus a button on a tap, so the table keeps the focus of
 	// the earlier press while the pencil opens its row.
 	it('returns the focus to the pencil when the press did not focus it', async () => {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
-
-		renderUI(
-			<>
-				<PhoneGrid />
-				<PhoneGrid />
-			</>,
-		)
-
-		const [first] = grids()
+		const [first] = renderPhones()
 
 		await userEvent.click(within(first).getByRole('gridcell', { name: 'Alice' }))
 
@@ -127,16 +125,7 @@ describe('grid edit overlay return focus (real floating engine)', () => {
 	})
 
 	it('returns the focus to the edited cell after a double click', async () => {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
-
-		renderUI(
-			<>
-				<PhoneGrid />
-				<PhoneGrid />
-			</>,
-		)
-
-		const [first, second] = grids()
+		const [first, second] = renderPhones()
 
 		await userEvent.click(within(first).getByRole('gridcell', { name: 'Alice' }))
 

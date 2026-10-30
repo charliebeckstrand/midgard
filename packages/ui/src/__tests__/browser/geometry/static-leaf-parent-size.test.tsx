@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Avatar, AvatarSkeleton } from '../../../components/avatar'
 import { Badge } from '../../../components/badge'
@@ -5,7 +6,7 @@ import { Button } from '../../../components/button'
 import { Kbd } from '../../../components/kbd'
 import { LoadingSpinner } from '../../../components/loading'
 import { Sidebar, SidebarItem, SidebarLabel } from '../../../components/sidebar'
-import { densitySteps } from '../../../core/density'
+import { type DensityStep, densitySteps } from '../../../core/density'
 import { iconSize } from '../../../core/density/geometry'
 import { present, renderUI } from '../../helpers'
 
@@ -85,41 +86,41 @@ describe('a static leaf in a sized parent (real browser)', () => {
 		})
 	}
 
-	for (const size of densitySteps) {
-		it(`sizes a spinner in a ${size} Badge to the icon row`, () => {
-			const { container } = renderUI(
+	const spinnerParents: [string, (size: DensityStep) => ReactElement][] = [
+		[
+			'Badge',
+			(size) => (
 				<Badge size={size}>
 					<LoadingSpinner />
 					Syncing
-				</Badge>,
-			)
-
-			const spinner = present(
-				container.querySelector('[data-slot="loading-spinner"]'),
-				'loading spinner',
-			)
-
-			expect(spinner.getBoundingClientRect().width).toBe(iconSize(size))
-		})
-	}
-
-	for (const size of densitySteps) {
-		it(`sizes a spinner in a ${size} SidebarItem to the icon row`, () => {
-			const { container } = renderUI(
+				</Badge>
+			),
+		],
+		[
+			'SidebarItem',
+			(size) => (
 				<Sidebar>
 					<SidebarItem size={size}>
 						<LoadingSpinner />
 						<SidebarLabel>Syncing</SidebarLabel>
 					</SidebarItem>
-				</Sidebar>,
-			)
+				</Sidebar>
+			),
+		],
+	]
 
-			const spinner = present(
-				container.querySelector('[data-slot="loading-spinner"]'),
-				'loading spinner',
-			)
+	it.for(
+		spinnerParents.flatMap(([parent, render]) =>
+			densitySteps.map((size) => [size, parent, render] as const),
+		),
+	)('sizes a spinner in a %s %s to the icon row', ([size, , render]) => {
+		const { container } = renderUI(render(size))
 
-			expect(spinner.getBoundingClientRect().width).toBe(iconSize(size))
-		})
-	}
+		const spinner = present(
+			container.querySelector('[data-slot="loading-spinner"]'),
+			'loading spinner',
+		)
+
+		expect(spinner.getBoundingClientRect().width).toBe(iconSize(size))
+	})
 })

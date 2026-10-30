@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { LineChart } from '../../../modules/chart/line-chart'
 import { getSlot, present, renderUI, waitFor } from '../../helpers'
@@ -24,7 +24,7 @@ const SERIES = [
 ]
 
 /** Renders a two-series line chart in a right-to-left page, with its legend at `legend`. */
-async function rtlChart(legend: 'left' | 'right') {
+const rtlChart = vi.defineHelper(async (legend: 'left' | 'right') => {
 	const { container } = renderUI(
 		<div dir="rtl" style={{ width: 720 }}>
 			<LineChart
@@ -43,7 +43,7 @@ async function rtlChart(legend: 'left' | 'right') {
 	await waitFor(() => expect(svg().getBoundingClientRect().width).toBeGreaterThan(0))
 
 	return { container, svg: svg() }
-}
+})
 
 describe('a chart drawing in a right-to-left page (real browser)', () => {
 	it('keeps a side legend on the side that it names', async () => {

@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { loadGridReorderKit } from '../../modules/grid/grid-region'
 import { fireEvent, renderUI, screen, waitFor } from '../helpers'
+import { gridHeader } from '../helpers/grid-cells'
 
 // The grid loads its drag and drop module as it mounts. The load before the
 // cases gives each case the state of a page that already loaded the module,
@@ -29,14 +30,6 @@ describe('grid column reorder: whole-header handle (real browser)', () => {
 		{ id: 2, a: 'a2', b: 'b2' },
 	]
 
-	function header(id: string): HTMLElement {
-		const cell = document.querySelector(`th[data-grid-col="${id}"]`)
-
-		if (!cell) throw new Error(`no th for column ${id}`)
-
-		return cell as HTMLElement
-	}
-
 	it('drops the grip and makes the header the grab handle, sort control aside', async () => {
 		renderUI(
 			<Grid columns={columns} rows={rows} getKey={(row) => row.id} reorder={{ handle: false }} />,
@@ -45,7 +38,7 @@ describe('grid column reorder: whole-header handle (real browser)', () => {
 		// No grip button: the header itself is the handle.
 		expect(screen.queryByRole('button', { name: 'Reorder A' })).toBeNull()
 
-		const headerA = header('a')
+		const headerA = gridHeader(document, 'a')
 
 		// The header cell carries the grab cursor...
 		expect(getComputedStyle(headerA).cursor).toBe('grab')

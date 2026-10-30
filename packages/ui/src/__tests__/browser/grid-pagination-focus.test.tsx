@@ -21,20 +21,31 @@ describe('grid pagination focus (real browser)', () => {
 
 	const getKey = (row: Row) => row.id
 
-	it('moves focus to the current page when Next disables at the last page', async () => {
+	/**
+	 * Renders a grid of 3 pages of 5 rows, in a wrapper of `width` when a case gives one.
+	 *
+	 * @returns A user that drives the grid.
+	 */
+	function renderPager(width?: number) {
 		const user = userEvent.setup()
 
-		// The numbered pages show from the `@2xl` container width (672px).
-		renderUI(
-			<div style={{ width: 800 }}>
-				<Grid
-					columns={columns}
-					rows={rows}
-					getKey={getKey}
-					pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 } }}
-				/>
-			</div>,
+		const grid = (
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 } }}
+			/>
 		)
+
+		renderUI(width === undefined ? grid : <div style={{ width }}>{grid}</div>)
+
+		return user
+	}
+
+	it('moves focus to the current page when Next disables at the last page', async () => {
+		// The numbered pages show from the `@2xl` container width (672px).
+		const user = renderPager(800)
 
 		// 12 rows / 5 per page = 3 pages. Advance to the last, where Next disables.
 		await user.click(screen.getByRole('button', { name: 'Next page' }))
@@ -52,20 +63,9 @@ describe('grid pagination focus (real browser)', () => {
 	})
 
 	it('moves focus to Previous when Next disables in a narrow footer', async () => {
-		const user = userEvent.setup()
-
 		// Below the `@2xl` container width the numbered pages hide, so the marker
 		// cannot take focus.
-		renderUI(
-			<div style={{ width: 360 }}>
-				<Grid
-					columns={columns}
-					rows={rows}
-					getKey={getKey}
-					pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 } }}
-				/>
-			</div>,
-		)
+		const user = renderPager(360)
 
 		await user.click(screen.getByRole('button', { name: 'Next page' }))
 
@@ -104,16 +104,7 @@ describe('grid pagination focus (real browser)', () => {
 	}
 
 	it('keeps focus on Next while it stays enabled mid-range', async () => {
-		const user = userEvent.setup()
-
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 } }}
-			/>,
-		)
+		const user = renderPager()
 
 		// Page 1 -> 2: Next is still enabled, so focus stays on it rather than jumping.
 		await user.click(screen.getByRole('button', { name: 'Next page' }))

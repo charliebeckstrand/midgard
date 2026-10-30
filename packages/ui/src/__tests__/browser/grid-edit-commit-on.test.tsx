@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
-import { bySlot, getSlot, present, renderUI, screen } from '../helpers'
+import { bySlot, getSlot, renderUI, screen } from '../helpers'
+import { gridCell } from '../helpers/grid-cells'
 
 /**
  * The commit on leave (`editable.commitOn`) with real focus moves. A click
@@ -39,24 +40,20 @@ describe('grid commit on leave (real browser)', () => {
 			</>,
 		)
 
-		const cell = (column: string, row = 0) =>
-			present(
-				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${column}"]`)[row],
-				`td[data-grid-col="${column}"]`,
-			)
+		const cell = (column: string, row = 0) => gridCell(view.container, column, row)
 
 		return { ...view, onCommit, cell }
 	}
 
 	/** Opens the name cell of the first row and types `Alicia` over its value. */
-	async function editName(view: ReturnType<typeof renderGrid>) {
+	const editName = vi.defineHelper(async (view: ReturnType<typeof renderGrid>) => {
 		await userEvent.dblClick(view.cell('name'))
 
 		expect(bySlot(view.container, 'grid-edit-input')).toHaveFocus()
 
 		// Select-all is Meta+A on macOS. There, Playwright maps Control+A to a move to the line start.
 		await userEvent.keyboard('{ControlOrMeta>}a{/ControlOrMeta}Alicia')
-	}
+	})
 
 	const alicia = [{ rowKey: 1, columnId: 'name', value: 'Alicia' }]
 

@@ -103,32 +103,27 @@ describe('direction scopes across portals (real browser)', () => {
 		await waitFor(() => expect(screen.queryByRole('menuitem', { name: 'Nested' })).toBeNull())
 	})
 
-	it('lays out a listbox option in the direction of an rtl provider', async () => {
-		renderUI(
-			<LocaleProvider dir="rtl">
+	it.for([
+		{
+			name: 'listbox',
+			control: () => (
 				<Listbox aria-label="Fruit" defaultValue="apple">
 					<ListboxOption value="apple">Apple</ListboxOption>
 					<ListboxOption value="pear">Pear</ListboxOption>
 				</Listbox>
-			</LocaleProvider>,
-		)
-
-		await userEvent.click(screen.getByRole('combobox', { name: 'Fruit' }))
-
-		const option = await screen.findByRole('option', { name: 'Pear' })
-
-		expect(readDirection(option)).toBe('rtl')
-	})
-
-	it('lays out a combobox option in the direction of an rtl provider', async () => {
-		renderUI(
-			<LocaleProvider dir="rtl">
+			),
+		},
+		{
+			name: 'combobox',
+			control: () => (
 				<Combobox<string> aria-label="Fruit">
 					<ComboboxOption value="apple">Apple</ComboboxOption>
 					<ComboboxOption value="pear">Pear</ComboboxOption>
 				</Combobox>
-			</LocaleProvider>,
-		)
+			),
+		},
+	])('lays out a $name option in the direction of an rtl provider', async ({ control }) => {
+		renderUI(<LocaleProvider dir="rtl">{control()}</LocaleProvider>)
 
 		await userEvent.click(screen.getByRole('combobox', { name: 'Fruit' }))
 

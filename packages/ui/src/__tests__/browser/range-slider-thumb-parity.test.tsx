@@ -1,8 +1,9 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Control } from '../../components/control'
 import { RangeSlider } from '../../components/slider'
 import { allBySlot, present, renderUI } from '../helpers'
+import { holdRootClass } from './helpers/root-state'
 
 /**
  * A `RangeSlider` thumb shows the rings of the native thumb of `Slider` (`kata/slider.ts`), in
@@ -17,10 +18,6 @@ import { allBySlot, present, renderUI } from '../helpers'
  * The file runs in the real browser, because jsdom loads no stylesheet.
  */
 describe('the RangeSlider thumb ring against the Slider thumb ring (real browser)', () => {
-	afterEach(() => {
-		document.documentElement.classList.remove('dark')
-	})
-
 	function renderThumb(invalid: boolean) {
 		const slider = <RangeSlider defaultValue={[20, 80]} />
 
@@ -51,7 +48,7 @@ describe('the RangeSlider thumb ring against the Slider thumb ring (real browser
 		['dark', true],
 	])('%s', (_mode, dark) => {
 		it('rings an invalid thumb in red at 2px', () => {
-			if (dark) document.documentElement.classList.add('dark')
+			if (dark) holdRootClass('dark')
 
 			const { thumb, probe } = renderThumb(true)
 
@@ -59,7 +56,7 @@ describe('the RangeSlider thumb ring against the Slider thumb ring (real browser
 		})
 
 		it('rings a keyboard-focused thumb in the blue of the mode at 4px', async () => {
-			if (dark) document.documentElement.classList.add('dark')
+			if (dark) holdRootClass('dark')
 
 			const { thumb, probe } = renderThumb(false)
 

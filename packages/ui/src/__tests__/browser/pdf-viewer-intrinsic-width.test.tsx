@@ -1,28 +1,11 @@
-import { afterEach, describe, expect, it } from 'vitest'
-import { makeInvoicePdf, servePdf } from '../../__benchmarks__/browser/pdf-fixtures'
+import { describe, expect, it } from 'vitest'
+import { makeInvoicePdf } from '../../__benchmarks__/browser/pdf-fixtures'
 import { PdfViewer } from '../../components/pdf-viewer'
-import { resetDocumentCache } from '../../components/pdf-viewer/pdf-viewer-document-cache'
-import { bySlot, getSlot, renderUI, waitFor } from '../helpers'
-import { budget } from './helpers/wall-clock'
+import { getSlot, present, renderUI, waitFor } from '../helpers'
+import { pageImage, servePdfFor } from './helpers/pdf-viewer'
 
 /** US Letter, 8.5 in at 96 px per inch: the width of the fixture page at 100%. */
 const LETTER_WIDTH = 816
-
-/** Waits for the page raster, and returns the frame that holds it. */
-async function pageFrame(container: HTMLElement) {
-	return waitFor(
-		() => {
-			const image = bySlot(container, 'pdf-viewer-viewport')?.querySelector(
-				'[data-slot="pdf-viewer-page-image"]',
-			)
-
-			expect(image).not.toBeNull()
-
-			return image?.parentElement as HTMLElement
-		},
-		{ timeout: budget(10_000) },
-	)
-}
 
 /**
  * How far the fitted page is short of the viewport content box, on the axis that bounds it.
@@ -55,10 +38,8 @@ function fitGap(container: HTMLElement, frame: HTMLElement) {
  * the width of the page at 100%, and a box with a width of its own still sets the width.
  */
 describe('pdf viewer intrinsic width (real browser)', () => {
-	afterEach(() => resetDocumentCache())
-
 	it('shows the page at its natural width in a box that sizes to its content', async () => {
-		const src = servePdf(makeInvoicePdf(1))
+		const src = servePdfFor(makeInvoicePdf(1))
 
 		const { container } = renderUI(
 			<div style={{ width: 1200 }}>
@@ -68,22 +49,20 @@ describe('pdf viewer intrinsic width (real browser)', () => {
 			</div>,
 		)
 
-		const frame = await pageFrame(container)
+		const frame = present((await pageImage(container)).parentElement, 'the page frame')
 
 		await waitFor(() => expect(frame.getBoundingClientRect().width).toBeCloseTo(LETTER_WIDTH, 0))
 
 		expect(getSlot(container, 'pdf-viewer').getBoundingClientRect().width).toBeGreaterThan(
 			LETTER_WIDTH,
 		)
-
-		URL.revokeObjectURL(src)
 	})
 
 	it.each([
 		['wider', 1200],
 		['narrower', 500],
 	])('fills a box %s than the page', async (_, width) => {
-		const src = servePdf(makeInvoicePdf(1))
+		const src = servePdfFor(makeInvoicePdf(1))
 
 		const { container } = renderUI(
 			<div style={{ width }}>
@@ -91,12 +70,10 @@ describe('pdf viewer intrinsic width (real browser)', () => {
 			</div>,
 		)
 
-		const frame = await pageFrame(container)
+		const frame = present((await pageImage(container)).parentElement, 'the page frame')
 
 		expect(getSlot(container, 'pdf-viewer').getBoundingClientRect().width).toBe(width)
 
 		await waitFor(() => expect(Math.abs(fitGap(container, frame))).toBeLessThan(1))
-
-		URL.revokeObjectURL(src)
 	})
 })

@@ -1,10 +1,8 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Sheet, SheetBody, SheetHeader, SheetPanel, SheetTitle } from '../../../components/sheet'
-import { frames, getSlot, renderUI } from '../../helpers'
-import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
-import { drag } from '../helpers/drag'
+import { openSheet } from '../helpers/open-sheet'
 
 /**
  * Real-browser check of the floor of a sheet resize.
@@ -30,7 +28,7 @@ describe('sheet resize floor (real browser)', () => {
 		['grows', -STEP],
 		['shrinks', STEP],
 	] as const)('%s a short bottom sheet by the drag, and does not jump', async (_, travel) => {
-		renderUI(
+		const { panel, dragBy } = await openSheet(
 			<Sheet open onOpenChange={() => {}}>
 				<SheetPanel handle side="bottom" aria-label="Short">
 					<SheetHeader>
@@ -44,20 +42,12 @@ describe('sheet resize floor (real browser)', () => {
 			</Sheet>,
 		)
 
-		await frames()
-
-		const panel = getSlot(document.body, 'sheet')
-
-		const handle = getSlot(document.body, 'sheet-handle')
-
 		const start = panel.getBoundingClientRect().height
 
 		// The premise: the sheet is shorter than a width floor.
 		expect(start).toBeLessThan(280)
 
-		const { x, y } = getCenter(handle)
-
-		const held = await drag(handle, { x, y }, [{ x, y: y + travel }])
+		const held = await dragBy(0, travel)
 
 		// A bottom sheet grows as the pointer goes up, so the height moves against
 		// the pointer by the same distance.
@@ -73,7 +63,7 @@ describe('sheet resize floor (real browser)', () => {
 		// The sheet is already below the width floor, so its own size is the floor.
 		['holds its size against a shrink', STEP, 0],
 	] as const)('%s on a narrow fit sheet, and does not jump', async (_, travel, change) => {
-		renderUI(
+		const { panel, dragBy } = await openSheet(
 			<Sheet open onOpenChange={() => {}}>
 				<SheetPanel handle side="right" width="fit" footer={null} aria-label="Narrow">
 					<SheetBody>
@@ -83,20 +73,12 @@ describe('sheet resize floor (real browser)', () => {
 			</Sheet>,
 		)
 
-		await frames()
-
-		const panel = getSlot(document.body, 'sheet')
-
-		const handle = getSlot(document.body, 'sheet-handle')
-
 		const start = panel.getBoundingClientRect().width
 
 		// The premise: the content makes the sheet narrower than the width floor.
 		expect(start).toBeLessThan(280)
 
-		const { x, y } = getCenter(handle)
-
-		const held = await drag(handle, { x, y }, [{ x: x + travel, y }])
+		const held = await dragBy(travel, 0)
 
 		expect(panel.getBoundingClientRect().width).toBeNear(start + change, HALF_PIXEL)
 

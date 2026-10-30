@@ -1,6 +1,7 @@
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../../modules/dashboard'
 import { frame, getSlot, renderUI, screen } from '../../helpers'
+import { resizeObserverLoopErrors } from '../helpers/resize-observer-loop'
 
 /**
  * A board in a scroll box with a classic scrollbar holds one state at the
@@ -44,15 +45,7 @@ describe('dashboard projection at a classic scrollbar (real browser, real scroll
 		// The first frames measure the canvas and settle it.
 		for (let step = 0; step < 4; step++) await frame()
 
-		let loops = 0
-
-		const count = (event: ErrorEvent) => {
-			if (event.message.includes('ResizeObserver loop')) loops += 1
-		}
-
-		window.addEventListener('error', count)
-
-		onTestFinished(() => window.removeEventListener('error', count))
+		const loops = resizeObserverLoopErrors()
 
 		// One sample for each frame. A loop through the ResizeObserver can switch on
 		// each frame, and a sample on each second frame reads it at one phase.
@@ -64,11 +57,9 @@ describe('dashboard projection at a classic scrollbar (real browser, real scroll
 			seen.push(read())
 		}
 
-		window.removeEventListener('error', count)
-
 		// The board holds the projection at the full width of the box, with no scrollbar.
 		expect(seen).toEqual(Array.from({ length: 36 }, () => 'projected 307'))
 
-		expect(loops).toBe(0)
+		expect(loops).toEqual([])
 	})
 })

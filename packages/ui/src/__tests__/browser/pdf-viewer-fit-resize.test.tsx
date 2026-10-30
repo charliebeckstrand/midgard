@@ -1,25 +1,8 @@
-import { afterEach, describe, expect, it, onTestFinished } from 'vitest'
-import { makeInvoicePdf, servePdf } from '../../__benchmarks__/browser/pdf-fixtures'
+import { describe, expect, it, onTestFinished } from 'vitest'
+import { makeInvoicePdf } from '../../__benchmarks__/browser/pdf-fixtures'
 import { PdfViewer } from '../../components/pdf-viewer'
-import { resetDocumentCache } from '../../components/pdf-viewer/pdf-viewer-document-cache'
-import { bySlot, frames, getSlot, present, renderUI, waitFor } from '../helpers'
-import { budget } from './helpers/wall-clock'
-
-/** Waits for the page raster, and returns the frame that holds it. */
-async function pageFrame(container: HTMLElement) {
-	return waitFor(
-		() => {
-			const image = bySlot(container, 'pdf-viewer-viewport')?.querySelector(
-				'[data-slot="pdf-viewer-page-image"]',
-			)
-
-			expect(image).not.toBeNull()
-
-			return image?.parentElement as HTMLElement
-		},
-		{ timeout: budget(10_000) },
-	)
-}
+import { frames, getSlot, present, renderUI, waitFor } from '../helpers'
+import { pageImage, servePdfFor } from './helpers/pdf-viewer'
 
 /** The width of the viewport content box. */
 function contentWidth(viewport: HTMLElement) {
@@ -43,12 +26,8 @@ function contentWidth(viewport: HTMLElement) {
  * reads the layout that the frame paints.
  */
 describe('pdf viewer fit to width on a resize (real browser)', () => {
-	afterEach(() => resetDocumentCache())
-
 	it('paints the page at the new width in the frame that narrows the viewport', async () => {
-		const src = servePdf(makeInvoicePdf(1))
-
-		onTestFinished(() => URL.revokeObjectURL(src))
+		const src = servePdfFor(makeInvoicePdf(1))
 
 		const { container } = renderUI(
 			<div style={{ display: 'flex', width: 900 }}>
@@ -59,7 +38,7 @@ describe('pdf viewer fit to width on a resize (real browser)', () => {
 			</div>,
 		)
 
-		const frame = await pageFrame(container)
+		const frame = present((await pageImage(container)).parentElement, 'the page frame')
 
 		const viewport = getSlot(container, 'pdf-viewer-viewport')
 

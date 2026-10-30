@@ -1,5 +1,5 @@
 import { renderToString } from 'react-dom/server'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { PieChart } from '../../../modules/chart/pie-chart'
 import { allBySlot, attach, getSlot, renderUI, waitFor } from '../../helpers'
@@ -76,7 +76,7 @@ async function pie(width: number, data = DATA) {
 }
 
 /** Renders the pie at `width`, and gives each callout label and the plot drawing. */
-async function callouts(width: number, data = DATA) {
+const callouts = vi.defineHelper(async (width: number, data = DATA) => {
 	const drawn = await pie(width, data)
 
 	const labels = await waitFor(() => {
@@ -88,7 +88,7 @@ async function callouts(width: number, data = DATA) {
 	})
 
 	return { labels, ...drawn }
-}
+})
 
 describe('pie callout fit (real browser)', () => {
 	beforeAll(() => page.viewport(960, 700))

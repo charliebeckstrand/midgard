@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { LineChart } from '../../modules/chart/line-chart'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
@@ -40,7 +40,7 @@ describe('chart Escape inside an overlay (real browser)', () => {
 	}
 
 	/** Opens the expand dialog, and focuses its chart once the plot is a tab stop. */
-	async function expand() {
+	const expand = vi.defineHelper(async () => {
 		await userEvent.click(screen.getByRole('button', { name: 'Expand Trend' }))
 
 		const dialog = await screen.findByRole('dialog', { name: 'Trend' })
@@ -55,7 +55,7 @@ describe('chart Escape inside an overlay (real browser)', () => {
 		expect(document.activeElement).toBe(plot)
 
 		return dialog
-	}
+	})
 
 	it('shows View data and keeps the expand control on a fine pointer while the chart menu has Fullscreen', async () => {
 		renderUI(<Board menu />)

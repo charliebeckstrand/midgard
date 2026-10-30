@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import type { ReactElement } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import { AreaChart } from '../../../modules/chart/area-chart'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { BubbleChart } from '../../../modules/chart/bubble-chart'
@@ -54,7 +55,7 @@ const SLICES = [
  * rendered box. The hit rects span the plot by design and take no ink, so they
  * sit out; everything else (marks, rings, labels, rules) must clear.
  */
-async function expectNoClip(container: HTMLElement) {
+const expectNoClip = vi.defineHelper(async (container: HTMLElement) => {
 	await waitFor(() => {
 		const svgs = [...container.querySelectorAll('[data-slot="chart-plot"] svg')]
 
@@ -74,7 +75,7 @@ async function expectNoClip(container: HTMLElement) {
 			}
 		}
 	})
-}
+})
 
 const SPARK = { width: 150, height: 96 }
 
@@ -121,9 +122,12 @@ describe('spark box holds every mark (real browser)', () => {
 		await expectNoClip(container)
 	})
 
-	it('area, stacked with points and value labels', async () => {
-		const { container } = renderUI(
+	// Each row asserts only that its marks clear the box. One row draws one chart.
+	it.for<[string, ReactElement]>([
+		[
+			'area, stacked with points and value labels',
 			<AreaChart
+				key="area"
 				aria-label="Area spark"
 				data={SERIES_DATA}
 				series={[
@@ -135,39 +139,32 @@ describe('spark box holds every mark (real browser)', () => {
 				labels={{ endpoints: true, extremes: true }}
 				{...SPARK}
 			/>,
-		)
-
-		await expectNoClip(container)
-	})
-
-	it('bar across negative extremes, both orientations', async () => {
-		const vertical = renderUI(
+		],
+		[
+			'bar across negative extremes, vertical',
 			<BarChart
+				key="bar"
 				aria-label="Bar spark"
 				data={NEGATIVES}
 				series={[{ xKey: 'label', yKey: 'value', yName: 'Value' }]}
 				{...SPARK}
 			/>,
-		)
-
-		await expectNoClip(vertical.container)
-
-		const horizontal = renderUI(
+		],
+		[
+			'bar across negative extremes, horizontal',
 			<BarChart
+				key="bar-horizontal"
 				aria-label="Bar spark horizontal"
 				data={NEGATIVES}
 				series={[{ xKey: 'label', yKey: 'value', yName: 'Value' }]}
 				orientation="horizontal"
 				{...SPARK}
 			/>,
-		)
-
-		await expectNoClip(horizontal.container)
-	})
-
-	it('combo of bars and pointed lines', async () => {
-		const { container } = renderUI(
+		],
+		[
+			'combo of bars and pointed lines',
 			<ComboChart
+				key="combo"
 				aria-label="Combo spark"
 				data={SERIES_DATA}
 				series={[
@@ -176,69 +173,60 @@ describe('spark box holds every mark (real browser)', () => {
 				]}
 				{...SPARK}
 			/>,
-		)
-
-		await expectNoClip(container)
-	})
-
-	it('scatter and bubble discs', async () => {
-		const scatter = renderUI(
+		],
+		[
+			'scatter discs',
 			<ScatterChart
+				key="scatter"
 				aria-label="Scatter spark"
 				data={SERIES_DATA}
 				series={[{ xKey: 'first', yKey: 'second' }]}
 				{...SPARK}
 			/>,
-		)
-
-		await expectNoClip(scatter.container)
-
-		const bubble = renderUI(
+		],
+		[
+			'bubble discs',
 			<BubbleChart
+				key="bubble"
 				aria-label="Bubble spark"
 				data={SERIES_DATA.map((row, index) => ({ ...row, size: (index + 1) * 12 }))}
 				series={[{ xKey: 'first', yKey: 'second', sizeKey: 'size' }]}
 				{...SPARK}
 			/>,
-		)
-
-		await expectNoClip(bubble.container)
-	})
-
-	it('heatmap cells', async () => {
-		const { container } = renderUI(
+		],
+		[
+			'heatmap cells',
 			<HeatmapChart
+				key="heatmap"
 				aria-label="Heatmap spark"
 				data={GRID}
 				series={[{ xKey: 'col', yKey: 'row', colorKey: 'value', colorRange: ['#eef', '#00a'] }]}
 				{...SPARK}
 			/>,
-		)
-
-		await expectNoClip(container)
-	})
-
-	it('pie and donut', async () => {
-		const pie = renderUI(
+		],
+		[
+			'pie',
 			<PieChart
+				key="pie"
 				aria-label="Pie spark"
 				data={SLICES}
 				series={[{ xKey: 'kind', yKey: 'share' }]}
 				{...SPARK}
 			/>,
-		)
-
-		await expectNoClip(pie.container)
-
-		const donut = renderUI(
+		],
+		[
+			'donut',
 			<DonutChart
+				key="donut"
 				aria-label="Donut spark"
 				data={SLICES}
 				series={[{ xKey: 'kind', yKey: 'share' }]}
 				{...SPARK}
 			/>,
-		)
+		],
+	])('%s', async ([, element]) => {
+		const { container } = renderUI(element)
 
-		await expectNoClip(donut.container)
+		await expectNoClip(container)
 	})
 })

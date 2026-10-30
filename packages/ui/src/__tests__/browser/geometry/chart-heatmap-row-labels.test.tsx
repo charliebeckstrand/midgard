@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { GUTTER_MAX } from '../../../modules/chart/engine/chart-constants'
 import { HeatmapChart, type HeatmapChartSeries } from '../../../modules/chart/heatmap-chart'
@@ -30,7 +30,7 @@ const SERIES: [HeatmapChartSeries<(typeof DATA)[number]>] = [
 ]
 
 /** Each row label as it draws, the box of the drawing, and the offset of the plot in it. */
-async function rowLabels(width: number) {
+const rowLabels = vi.defineHelper(async (width: number) => {
 	const { container } = renderUI(
 		<div style={{ width, fontFamily: '"Google Sans Flex"' }}>
 			<HeatmapChart aria-label="Visits by source" data={DATA} series={SERIES} />
@@ -58,7 +58,7 @@ async function rowLabels(width: number) {
 		plotLeft: (plot?.getBoundingClientRect().left ?? frame.left) - frame.left,
 		labels: texts.map((text) => ({ text: text.textContent, left: measureBox(text).left })),
 	}
-}
+})
 
 describe('heatmap row labels (real browser)', () => {
 	beforeAll(() => page.viewport(960, 700))

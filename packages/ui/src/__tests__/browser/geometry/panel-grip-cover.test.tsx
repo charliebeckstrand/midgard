@@ -1,11 +1,12 @@
 import type { ReactElement } from 'react'
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Drawer, DrawerBody, DrawerPanel, DrawerTitle } from '../../../components/drawer'
 import { Sheet, SheetBody, SheetHeader, SheetPanel, SheetTitle } from '../../../components/sheet'
-import { type DensityStep, densitySteps, writeRootDensity } from '../../../core/density'
+import { type DensityStep, densitySteps } from '../../../core/density'
 import { frames, getSlot, renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+import { holdRoot } from '../helpers/root-state'
 
 /**
  * The grip of a panel sits on its edge and covers no control of the panel.
@@ -64,14 +65,12 @@ const cases: Case[] = [
 describe('panel grip cover (real browser)', () => {
 	beforeAll(() => page.viewport(1100, 700))
 
-	afterEach(() => writeRootDensity(document.documentElement, 'md'))
-
 	it.for(
 		cases.flatMap((entry) =>
 			densitySteps.map((step) => [entry.name, step, entry] as [string, DensityStep, Case]),
 		),
 	)('covers no control with the grip of %s at %s', async ([, step, { slot, edge, render }]) => {
-		writeRootDensity(document.documentElement, step)
+		holdRoot(step)
 
 		renderUI(render())
 

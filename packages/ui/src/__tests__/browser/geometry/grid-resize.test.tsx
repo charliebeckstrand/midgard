@@ -1,9 +1,11 @@
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { fireEvent, present, renderUI, waitFor } from '../../helpers'
+import { present, renderUI, waitFor } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 import { afterBox } from '../helpers/after-box'
+import { menuAction } from '../helpers/grid-header-menu'
+import { dragResize, pressResize, resizeHandle } from '../helpers/resize-handle'
 import { settledRect } from '../helpers/sample'
 
 // The handle and the header cell can differ by a hairline cell border, up to this much.
@@ -11,17 +13,6 @@ const HANDLE_HEIGHT_SLACK = 2
 
 // The auto-fit around a seeded width can move it by less than this.
 const SEEDED_WIDTH_SLACK = 5
-
-/** Opens the header menu's Auto-size parent, which holds both fits. */
-const openAutoSizeMenu = () => {
-	const parent = Array.from(document.querySelectorAll('[role="menuitem"]')).find(
-		(item) => item.textContent?.trim() === 'Auto-size',
-	)
-
-	if (!parent) throw new Error('no Auto-size menu')
-
-	fireEvent.click(parent)
-}
 
 /**
  * Column resizing against a real layout engine: the handle's header height, the
@@ -60,11 +51,7 @@ describe('grid column resizing (real browser)', () => {
 			</div>,
 		)
 
-		const separator = container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]')
-
-		if (!separator) throw new Error('resize handle not found')
-
-		return { container, separator }
+		return { container, separator: resizeHandle(container, 'Name') }
 	}
 
 	const nameHeader = (root: HTMLElement) =>
@@ -123,13 +110,7 @@ describe('grid column resizing (real browser)', () => {
 
 		const startWidth = nameHeader(container).getBoundingClientRect().width
 
-		const { x: startX, y } = getCenter(separator)
-
-		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
-
-		fireEvent.mouseMove(document, { clientX: startX + 70, clientY: y })
-
-		fireEvent.mouseUp(document, { clientX: startX + 70, clientY: y })
+		dragResize(separator, 70)
 
 		await waitFor(() =>
 			expect(nameHeader(container).getBoundingClientRect().width).toBeGreaterThan(startWidth + 40),
@@ -165,17 +146,7 @@ describe('grid column resizing (real browser)', () => {
 
 		expect(onValueChange).not.toHaveBeenCalled()
 
-		fireEvent.contextMenu(nameHeader(container))
-
-		openAutoSizeMenu()
-
-		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((candidate) =>
-			candidate.textContent?.includes('Auto-size all columns'),
-		)
-
-		if (!item) throw new Error('no Auto-size all columns item')
-
-		fireEvent.click(item)
+		menuAction(container, 'name', 'Auto-size all columns')
 
 		// The user-invoked fit flows to the consumer, unlike the automatic one.
 		await waitFor(() => expect(onValueChange).toHaveBeenCalled())
@@ -209,29 +180,22 @@ describe('grid column resizing (real browser)', () => {
 
 		const wrapper = present(container.querySelector('[data-slot="grid"]'), '[data-slot="grid"]')
 
-		const ageHandle = present(
-			container.querySelector('hr[aria-label="Resize Age"]'),
-			'hr[aria-label="Resize Age"]',
-		)
+		const ageHandle = resizeHandle(container, 'Age')
 
 		// Each handle draws its grip as its `::after`.
 		const nameGrip = getComputedStyle(separator, '::after')
 
 		const ageGrip = getComputedStyle(ageHandle, '::after')
 
-		const { x: startX, y } = getCenter(separator)
-
 		// Hold the drag open: mousedown plus a move, but no mouseup yet.
-		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
+		const held = pressResize(separator)
 
 		// A failed read below skips the release, and the resize listeners then stay
 		// on the document. This one runs either way, and a second release does
 		// nothing.
-		onTestFinished(() => {
-			fireEvent.mouseUp(document, { clientX: startX + 40, clientY: y })
-		})
+		onTestFinished(held.release)
 
-		fireEvent.mouseMove(document, { clientX: startX + 40, clientY: y })
+		held.move(40)
 
 		await waitFor(() => expect(wrapper.hasAttribute('data-resizing')).toBe(true))
 
@@ -243,7 +207,7 @@ describe('grid column resizing (real browser)', () => {
 
 		expect(nameGrip.backgroundColor).not.toBe(ageGrip.backgroundColor)
 
-		fireEvent.mouseUp(document, { clientX: startX + 40, clientY: y })
+		held.release()
 
 		await waitFor(() => expect(wrapper.hasAttribute('data-resizing')).toBe(false))
 	})
@@ -277,11 +241,7 @@ describe('grid resize handle with reorder active (real browser)', () => {
 			</div>,
 		)
 
-		const separator = container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]')
-
-		if (!separator) throw new Error('resize handle not found')
-
-		return { container, separator }
+		return { container, separator: resizeHandle(container, 'Name') }
 	}
 
 	const nameHeader = (root: HTMLElement) =>
@@ -303,13 +263,7 @@ describe('grid resize handle with reorder active (real browser)', () => {
 
 		const startWidth = nameHeader(container).getBoundingClientRect().width
 
-		const { x: startX, y } = getCenter(separator)
-
-		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
-
-		fireEvent.mouseMove(document, { clientX: startX + 60, clientY: y })
-
-		fireEvent.mouseUp(document, { clientX: startX + 60, clientY: y })
+		dragResize(separator, 60)
 
 		await waitFor(() =>
 			expect(nameHeader(container).getBoundingClientRect().width).toBeGreaterThan(startWidth + 30),
@@ -347,11 +301,7 @@ describe('grid column resize holds the other columns (real browser)', () => {
 
 		const { container, rerender } = renderUI(view)
 
-		const handle = container.querySelector<HTMLElement>('hr[aria-label="Resize A"]')
-
-		if (!handle) throw new Error('resize handle not found')
-
-		return { container, handle, rerender }
+		return { container, handle: resizeHandle(container, 'A'), rerender }
 	}
 
 	it('widens only the dragged column, leaving its neighbors where they are', async () => {
@@ -368,13 +318,7 @@ describe('grid column resize holds the other columns (real browser)', () => {
 
 		const startC = header(container, 'c').getBoundingClientRect().width
 
-		const { x: startX, y } = getCenter(handle)
-
-		fireEvent.mouseDown(handle, { clientX: startX, clientY: y })
-
-		fireEvent.mouseMove(document, { clientX: startX + 80, clientY: y })
-
-		fireEvent.mouseUp(document, { clientX: startX + 80, clientY: y })
+		dragResize(handle, 80)
 
 		// The dragged column widened…
 		await waitFor(() =>
@@ -440,18 +384,7 @@ describe('grid column maxWidth in the automatic layout (real browser)', () => {
 		// The cell chrome (padding and border) is inside the maxWidth. It is not added to it.
 		expect(shown).toBeLessThanOrEqual(MAX + HALF_PIXEL)
 
-		const handle = present(
-			container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]'),
-			'hr[aria-label="Resize Name"]',
-		)
-
-		const { x, y } = getCenter(handle)
-
-		fireEvent.mouseDown(handle, { clientX: x, clientY: y })
-
-		fireEvent.mouseMove(document, { clientX: x - DRAG, clientY: y })
-
-		fireEvent.mouseUp(document, { clientX: x - DRAG, clientY: y })
+		dragResize(resizeHandle(container, 'Name'), -DRAG)
 
 		// A drag starts from the width that the column shows. The column does not
 		// first jump narrower by its chrome.

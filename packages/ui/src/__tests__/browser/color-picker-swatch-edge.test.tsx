@@ -1,7 +1,8 @@
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { ColorPicker } from '../../components/color'
 import { bySlot, present, renderUI } from '../helpers'
+import { holdRootClass } from './helpers/root-state'
 
 /**
  * The swatch of the ColorPicker trigger paints its edge above its color.
@@ -19,13 +20,9 @@ describe('the edge of the ColorPicker trigger swatch (real browser)', () => {
 	// this height the scale is 1, and the first column of the screenshot is the edge.
 	beforeAll(() => page.viewport(414, 640))
 
-	afterEach(() => {
-		document.documentElement.classList.remove('dark')
-	})
-
 	/** The red channel of the swatch at the middle of its start edge and at its center. */
 	async function edgeAndCenter(color: string, dark: boolean) {
-		if (dark) document.documentElement.classList.add('dark')
+		if (dark) holdRootClass('dark')
 
 		const { container } = renderUI(<ColorPicker defaultValue={color} />)
 

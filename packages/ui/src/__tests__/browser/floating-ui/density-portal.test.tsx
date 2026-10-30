@@ -150,34 +150,27 @@ describe('density scopes across portals (real browser)', () => {
 		await waitFor(() => expect(readFontSize(tip)).toBe(font))
 	})
 
-	it('sizes a listbox option at the step of a compact provider', async () => {
-		renderUI(
-			<DensityProvider density="compact">
+	it.for([
+		{
+			name: 'listbox',
+			control: () => (
 				<Listbox aria-label="Fruit" defaultValue="apple">
 					<ListboxOption value="apple">Apple</ListboxOption>
 					<ListboxOption value="pear">Pear</ListboxOption>
 				</Listbox>
-			</DensityProvider>,
-		)
-
-		await userEvent.click(screen.getByRole('combobox', { name: 'Fruit' }))
-
-		const option = await screen.findByRole('option', { name: 'Pear' })
-
-		expect(option.closest('[data-slot="density"]')).toBeNull()
-
-		expect(readFontSize(option)).toBe(14)
-	})
-
-	it('sizes a combobox option at the step of a compact provider', async () => {
-		renderUI(
-			<DensityProvider density="compact">
+			),
+		},
+		{
+			name: 'combobox',
+			control: () => (
 				<Combobox<string> aria-label="Fruit">
 					<ComboboxOption value="apple">Apple</ComboboxOption>
 					<ComboboxOption value="pear">Pear</ComboboxOption>
 				</Combobox>
-			</DensityProvider>,
-		)
+			),
+		},
+	])('sizes a $name option at the step of a compact provider', async ({ control }) => {
+		renderUI(<DensityProvider density="compact">{control()}</DensityProvider>)
 
 		await userEvent.click(screen.getByRole('combobox', { name: 'Fruit' }))
 

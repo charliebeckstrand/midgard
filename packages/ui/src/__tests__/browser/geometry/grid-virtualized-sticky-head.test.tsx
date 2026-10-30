@@ -104,7 +104,7 @@ describe('grid virtualized cursor under a sticky header (real browser)', () => {
 	 * that the virtualizer wrote on the step equal to the offset where the
 	 * scroll ended, and then clears the record for the next step.
 	 */
-	const expectClear = (scroll: HTMLElement, writes: number[]) => {
+	const expectClear = vi.defineHelper((scroll: HTMLElement, writes: number[]) => {
 		const cell = activeCell()
 
 		// The outer box takes the side edges of the cell, so the check reads the top and the bottom only.
@@ -115,7 +115,7 @@ describe('grid virtualized cursor under a sticky header (real browser)', () => {
 		if (written !== undefined) expect(written).toBeNear(scroll.scrollTop, PIXEL)
 
 		writes.length = 0
-	}
+	})
 
 	for (const newRow of [undefined, 'top', 'bottom'] as const) {
 		const label = newRow ? `with a ${newRow} new-row slot` : 'with no slot'

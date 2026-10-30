@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, getSlot, present, renderUI, screen } from '../helpers'
+import { bySlot, getSlot, renderUI, screen } from '../helpers'
+import { gridCell } from '../helpers/grid-cells'
 
 /**
  * The commit-and-move keys with real key presses. The keys suppress the
@@ -34,11 +35,7 @@ describe('grid commit-and-move keys (real browser)', () => {
 			/>,
 		)
 
-		const cell = (column: string, row = 0) =>
-			present(
-				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${column}"]`)[row],
-				`td[data-grid-col="${column}"]`,
-			)
+		const cell = (column: string, row = 0) => gridCell(view.container, column, row)
 
 		return { ...view, onCommit, cell }
 	}
@@ -135,9 +132,7 @@ describe('grid commit-and-move keys (real browser)', () => {
 			/>,
 		)
 
-		await userEvent.dblClick(
-			present(view.container.querySelector<HTMLElement>('td[data-grid-col="name"]'), 'name'),
-		)
+		await userEvent.dblClick(gridCell(view.container, 'name'))
 
 		const first = getSlot<HTMLInputElement>(view.container, 'slot-first')
 

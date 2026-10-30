@@ -1,9 +1,9 @@
 import type { ReactElement } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ChoroplethChart, HeatmapChart } from '../../../modules/chart'
-import { act, attach, getSlot } from '../../helpers'
+import { attach, frames, getSlot } from '../../helpers'
+import { hydrate } from '../../helpers/hydrate'
 import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 
 const heatmap = (
@@ -112,20 +112,14 @@ describe('range legend first paint (real browser)', () => {
 
 			const before = track.getBoundingClientRect()
 
-			const error = vi.spyOn(console, 'error')
-
-			let root: Root | undefined
-
-			act(() => {
-				root = hydrateRoot(container, chart)
-			})
-
-			onTestFinished(() => act(() => root?.unmount()))
+			const { consoleError, onRecoverableError } = hydrate(container, chart)
 
 			// The measurement lands after hydration. Let the observer report.
-			await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+			await frames()
 
-			expect(error).not.toHaveBeenCalled()
+			expect(consoleError).not.toHaveBeenCalled()
+
+			expect(onRecoverableError).not.toHaveBeenCalled()
 
 			const hydrated = getSlot(container, slot)
 

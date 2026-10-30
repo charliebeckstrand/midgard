@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
-import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../components/lightbox'
-import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
 import { present, renderUI, screen, waitFor } from '../../helpers'
+import { fieldPhotos, Gallery, liveCount, viewerTweens } from '../helpers/lightbox'
 import { waitForNoTween } from '../helpers/motion-frame'
 import { pause } from '../helpers/wall-clock'
 
@@ -21,40 +20,11 @@ import { pause } from '../helpers/wall-clock'
  * the commit that closes it, so no exit occurs.
  */
 
-const colors = ['teal', 'tomato', 'gold', 'navy']
-
-const photos: LightboxPhoto[] = colors.map((color) => ({
-	src: `data:image/svg+xml;utf8,${encodeURIComponent(
-		`<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1000"><rect width="1500" height="1000" fill="${color}"/></svg>`,
-	)}`,
-	alt: `${color} field`,
-	width: 1500,
-	height: 1000,
-}))
-
-function Gallery({ reduced }: { reduced: boolean }) {
-	return (
-		<ReducedMotionContext value={reduced}>
-			<Lightbox photos={photos}>
-				<div className="flex flex-wrap gap-2">
-					{photos.map((photo, index) => (
-						<LightboxTrigger key={photo.alt} index={index} className="size-16" />
-					))}
-				</div>
-			</Lightbox>
-		</ReducedMotionContext>
-	)
-}
+const photos = fieldPhotos(['teal', 'tomato', 'gold', 'navy'])
 
 const thumbnail = (index: number) => screen.getByRole('button', { name: photos[index]?.alt ?? '' })
 
 const viewer = () => document.querySelector('[data-slot="lightbox"]')
-
-// The live region reads "{alt}, {n} / {count}".
-const count = () => document.querySelector('[aria-live="polite"]')?.textContent?.split(', ').at(-1)
-
-/** The tweens that run in the viewer: the raise, the return, or a slide. */
-const viewerTweens = () => viewer()?.getAnimations({ subtree: true }) ?? []
 
 describe('Lightbox focus (real engine, real Motion)', () => {
 	it.for([
@@ -63,7 +33,7 @@ describe('Lightbox focus (real engine, real Motion)', () => {
 	])(
 		'moves the focus to the thumbnail that the photo lands in, after $name',
 		async ({ reduced }) => {
-			renderUI(<Gallery reduced={reduced} />)
+			renderUI(<Gallery photos={photos} reduced={reduced} />)
 
 			await userEvent.click(thumbnail(0))
 
@@ -73,13 +43,13 @@ describe('Lightbox focus (real engine, real Motion)', () => {
 
 			await userEvent.keyboard('{ArrowRight}')
 
-			await expect.poll(count).toBe('2 of 4')
+			await expect.poll(liveCount).toBe('2 of 4')
 
 			await waitForNoTween(viewerTweens)
 
 			await userEvent.keyboard('{ArrowRight}')
 
-			await expect.poll(count).toBe('3 of 4')
+			await expect.poll(liveCount).toBe('3 of 4')
 
 			await waitForNoTween(viewerTweens)
 
@@ -93,7 +63,7 @@ describe('Lightbox focus (real engine, real Motion)', () => {
 	)
 
 	it('keeps the focus in the viewer after a mouse drag on the stage', async () => {
-		renderUI(<Gallery reduced={false} />)
+		renderUI(<Gallery photos={photos} />)
 
 		await userEvent.click(thumbnail(0))
 
@@ -123,13 +93,13 @@ describe('Lightbox focus (real engine, real Motion)', () => {
 
 		await waitForNoTween(viewerTweens)
 
-		expect(count()).toBe('1 of 4')
+		expect(liveCount()).toBe('1 of 4')
 
 		expect(viewer()).toContainElement(document.activeElement as HTMLElement)
 
 		// The arrow keys still step.
 		await userEvent.keyboard('{ArrowRight}')
 
-		await expect.poll(count).toBe('2 of 4')
+		await expect.poll(liveCount).toBe('2 of 4')
 	})
 })

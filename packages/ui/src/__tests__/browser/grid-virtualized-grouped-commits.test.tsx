@@ -1,5 +1,5 @@
 import { Profiler } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { frame, frames, present, renderUI, waitFor, windowBody } from '../helpers'
 import { animationsDone } from './helpers/signals'
@@ -104,7 +104,7 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 		 * it, the nested commit of an expand, and no-op renders that render no
 		 * row.
 		 */
-		const expectCommits = (toggled: typeof commits, expand: boolean) => {
+		const expectCommits = vi.defineHelper((toggled: typeof commits, expand: boolean) => {
 			const [first, applied, ...later] = toggled
 
 			expect(first?.phase).toBe('update')
@@ -121,7 +121,7 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 
 				expect(commit.rows).toBe(0)
 			}
-		}
+		})
 
 		/** Waits until the reveal of each row lands, and the body is at rest. */
 		const rest = async () => {

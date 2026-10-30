@@ -1,9 +1,10 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { cdp, commands, userEvent } from 'vitest/browser'
+import { describe, expect, it, vi } from 'vitest'
+import { commands, userEvent } from 'vitest/browser'
 import { Button } from '../../components/button'
 import { CommandPalette, CommandPaletteItem } from '../../components/command-palette'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
 import { noop, renderUI, screen, waitFor } from '../helpers'
+import { emulateForcedColors, systemColor } from './helpers/forced-colors'
 
 /**
  * The wash of a roved row (real paint). A command palette and a dropdown menu
@@ -38,28 +39,8 @@ function readWash(element: Element): number {
 	return Number(alpha[1])
 }
 
-/**
- * The colors that the system gives to `Highlight` and `HighlightText` now. A
- * probe reads them, and goes before the function returns, so no node stays on
- * the page.
- */
-function systemHighlight(): { background: string; color: string } {
-	const probe = document.createElement('div')
-
-	probe.style.cssText =
-		'forced-color-adjust: none; background-color: Highlight; color: HighlightText'
-
-	document.body.append(probe)
-
-	const { backgroundColor, color } = getComputedStyle(probe)
-
-	probe.remove()
-
-	return { background: backgroundColor, color }
-}
-
 /** The two rows of an open command palette, the first one roved by the keyboard. */
-async function rovedPaletteRow(glass: boolean): Promise<HTMLElement> {
+const rovedPaletteRow = vi.defineHelper(async (glass: boolean): Promise<HTMLElement> => {
 	renderUI(
 		<CommandPalette open onOpenChange={noop}>
 			<CommandPaletteItem>Alpha</CommandPaletteItem>
@@ -75,7 +56,7 @@ async function rovedPaletteRow(glass: boolean): Promise<HTMLElement> {
 	await waitFor(() => expect(row).toHaveAttribute('data-active'))
 
 	return row
-}
+})
 
 /**
  * The row of an open dropdown menu, roved by the pointer. A dropdown keeps
@@ -83,7 +64,7 @@ async function rovedPaletteRow(glass: boolean): Promise<HTMLElement> {
  * pointer stays on the row. `sheet={false}` keeps the panel next to its
  * trigger at the narrow viewport of the suite, where a sheet roves by focus.
  */
-async function rovedMenuRow(glass: boolean): Promise<HTMLElement> {
+const rovedMenuRow = vi.defineHelper(async (glass: boolean): Promise<HTMLElement> => {
 	renderUI(
 		<Menu defaultOpen placement="bottom-start" sheet={false}>
 			<MenuTrigger>
@@ -105,7 +86,7 @@ async function rovedMenuRow(glass: boolean): Promise<HTMLElement> {
 	expect(row).not.toHaveFocus()
 
 	return row
-}
+})
 
 describe('roved row wash in a glass parent (real browser)', () => {
 	it('deepens a roved command-palette row to the glass step', async () => {
@@ -140,17 +121,7 @@ describe('roved row wash in a glass parent (real browser)', () => {
 })
 
 describe('roved row under forced colors (real browser)', () => {
-	// The instance shares one page across its files, and the emulation is page
-	// state. Thus `afterAll` gives the feature back to the browser.
-	beforeAll(() =>
-		cdp().send('Emulation.setEmulatedMedia', {
-			features: [{ name: 'forced-colors', value: 'active' }],
-		}),
-	)
-
-	afterAll(() =>
-		cdp().send('Emulation.setEmulatedMedia', { features: [{ name: 'forced-colors', value: '' }] }),
-	)
+	emulateForcedColors()
 
 	it('emulates forced colors', () => {
 		expect(matchMedia('(forced-colors: active)').matches).toBe(true)
@@ -161,7 +132,10 @@ describe('roved row under forced colors (real browser)', () => {
 
 		const { backgroundColor: background, color } = getComputedStyle(row)
 
-		expect({ background, color }).toEqual(systemHighlight())
+		expect({ background, color }).toEqual({
+			background: systemColor('Highlight'),
+			color: systemColor('HighlightText'),
+		})
 	})
 
 	// The glass dialog gives the row its strongest wash, the glass step under
@@ -173,7 +147,10 @@ describe('roved row under forced colors (real browser)', () => {
 
 		const { backgroundColor: background, color } = getComputedStyle(row)
 
-		expect({ background, color }).toEqual(systemHighlight())
+		expect({ background, color }).toEqual({
+			background: systemColor('Highlight'),
+			color: systemColor('HighlightText'),
+		})
 	})
 
 	it('paints a roved menu row in the system highlight under the pointer', async () => {
@@ -181,6 +158,9 @@ describe('roved row under forced colors (real browser)', () => {
 
 		const { backgroundColor: background, color } = getComputedStyle(row)
 
-		expect({ background, color }).toEqual(systemHighlight())
+		expect({ background, color }).toEqual({
+			background: systemColor('Highlight'),
+			color: systemColor('HighlightText'),
+		})
 	})
 })

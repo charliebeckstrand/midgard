@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Heading, HeadingSkeleton } from '../../../components/heading'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
 import { ReadyReveal } from '../../../primitives/ready-reveal'
@@ -23,24 +23,26 @@ describe('ReadyReveal layout shift (real browser)', () => {
 		return root
 	}
 
-	async function measureToggle(loading: React.ReactElement, revealed: React.ReactElement) {
-		const view = renderUI(loading)
+	const measureToggle = vi.defineHelper(
+		async (loading: React.ReactElement, revealed: React.ReactElement) => {
+			const view = renderUI(loading)
 
-		const root = getRoot(view.container)
+			const root = getRoot(view.container)
 
-		const loadingHeight = root.getBoundingClientRect().height
+			const loadingHeight = root.getBoundingClientRect().height
 
-		expect(loadingHeight).toBeGreaterThan(0)
+			expect(loadingHeight).toBeGreaterThan(0)
 
-		view.rerender(revealed)
+			view.rerender(revealed)
 
-		// Let the placeholder rest so only the real content sizes the cell.
-		await waitFor(() =>
-			expect(getComputedStyle(root.children[0] as HTMLElement).display).toBe('none'),
-		)
+			// Let the placeholder rest so only the real content sizes the cell.
+			await waitFor(() =>
+				expect(getComputedStyle(root.children[0] as HTMLElement).display).toBe('none'),
+			)
 
-		return { loadingHeight, revealedHeight: root.getBoundingClientRect().height }
-	}
+			return { loadingHeight, revealedHeight: root.getBoundingClientRect().height }
+		},
+	)
 
 	it('holds the box when the skeleton is shorter than the content', async () => {
 		const { loadingHeight, revealedHeight } = await measureToggle(

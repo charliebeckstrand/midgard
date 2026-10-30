@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
@@ -27,8 +28,9 @@ describe('grid context menu submenus (real browser)', () => {
 
 	const item = (name: string) => screen.getByRole('menuitem', { name })
 
-	const gone = (name: string) =>
-		waitFor(() => expect(screen.queryByRole('menuitem', { name })).toBeNull())
+	const gone = vi.defineHelper((name: string) =>
+		waitFor(() => expect(screen.queryByRole('menuitem', { name })).toBeNull()),
+	)
 
 	it('opens on Enter and ArrowRight, collapses on Escape and rove-away, and holds Tab', async () => {
 		const { container } = renderUI(
@@ -98,10 +100,11 @@ describe('grid context menu submenus (real browser)', () => {
 
 		await gone('Sort ascending')
 
-		// More Tab presses than the menu has rows, so a leak would carry focus past
-		// the last one and out to the page's own buttons.
+		// More real Tab presses than the menu has rows, so a leak would carry focus
+		// past the last one and out to the page's own buttons. A synthetic key event
+		// does not move focus, so only a real key can show the leak.
 		for (let press = 0; press < 10; press++) {
-			fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Tab' })
+			await userEvent.keyboard('{Tab}')
 
 			expect(menu.contains(document.activeElement)).toBe(true)
 		}

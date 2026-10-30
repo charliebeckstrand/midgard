@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { frames, getSlot, present, renderUI, sampleDrift, waitFor, windowBody } from '../helpers'
 
@@ -32,12 +32,8 @@ describe('grid master-detail body under native scroll anchoring (real browser)',
 		{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
 	]
 
-	async function settle(count = 3) {
-		for (let i = 0; i < count; i++) await frames()
-	}
-
 	/** Renders the grid, and returns its scroller, its body, and the setter of its open keys. */
-	async function renderGrid(resizable: boolean) {
+	const renderGrid = vi.defineHelper(async (resizable: boolean) => {
 		const control: { set: (keys: Set<string | number>) => void } = { set: () => {} }
 
 		function Harness() {
@@ -80,7 +76,7 @@ describe('grid master-detail body under native scroll anchoring (real browser)',
 			Array.from(body.querySelectorAll<HTMLElement>(':scope > tr[data-grid-row]'))
 
 		return { scroll, body, control, dataRows }
-	}
+	})
 
 	for (const resizable of [true, false]) {
 		it(`holds the view still when a panel at the scroll end closes and opens again (resizable: ${resizable})`, async () => {
@@ -90,7 +86,7 @@ describe('grid master-detail body under native scroll anchoring (real browser)',
 				for (let i = 0; i < 4; i++) {
 					scroll.scrollTop = scroll.scrollHeight
 
-					await settle(1)
+					await frames()
 				}
 			}
 
@@ -123,7 +119,7 @@ describe('grid master-detail body under native scroll anchoring (real browser)',
 
 			await waitFor(() => expect(height()).toBe(0))
 
-			await settle()
+			await frames(3)
 
 			expect(scroll.scrollTop).toBeLessThan(beforeClose)
 
@@ -144,7 +140,7 @@ describe('grid master-detail body under native scroll anchoring (real browser)',
 			for (const at of [1000, scroll.scrollHeight]) {
 				scroll.scrollTop = at
 
-				await settle(4)
+				await frames(4)
 
 				const top = scroll.getBoundingClientRect().top
 

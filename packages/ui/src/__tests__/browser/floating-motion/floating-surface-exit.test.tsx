@@ -6,8 +6,9 @@ import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../comp
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
-import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
+import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
+import { EXIT_MOTION_CASES, expectExiting, focusedElement, gone, hits } from '../helpers/exit'
 
 /**
  * A closed floating surface stays on screen for its exit, and `AnimatePresence`
@@ -23,32 +24,7 @@ import { getCenter } from '../../helpers/geometry/box'
  * checks run inside the exit. A `userEvent` call is a round trip to the browser
  * process, and under load it can take more time than the exit.
  */
-const motionCases = [
-	{ reduced: false, name: 'the full exit' },
-	{ reduced: true, name: 'the reduced exit' },
-]
-
 const row = (name: string) => screen.getByRole('menuitem', { name })
-
-const focused = () => present(document.activeElement, 'the focused element')
-
-/** Whether a press at the center of `element` lands on it or inside it. */
-function hits(element: Element) {
-	const at = getCenter(element)
-
-	return element.contains(document.elementFromPoint(at.x, at.y))
-}
-
-/** Asserts that `panel` is still on screen, and that it takes no input. */
-function expectExiting(panel: HTMLElement) {
-	expect(panel).toBeInTheDocument()
-
-	expect(panel.closest('[inert]')).not.toBeNull()
-
-	expect(panel).not.toContainElement(focused())
-}
-
-const gone = (panel: HTMLElement) => waitFor(() => expect(panel).not.toBeInTheDocument())
 
 function Motion({ reduced, children }: { reduced: boolean; children: ReactNode }) {
 	return <ReducedMotionContext value={reduced}>{children}</ReducedMotionContext>
@@ -94,7 +70,7 @@ function hover(element: HTMLElement) {
 }
 
 describe('a pointer-opened context menu in its exit (real engine, real Motion)', () => {
-	it.each(motionCases)('takes no key and no press under $name', async ({ reduced }) => {
+	it.each(EXIT_MOTION_CASES)('takes no key and no press under $name', async ({ reduced }) => {
 		const onAction = vi.fn()
 
 		const panel = await openContextMenu(onAction, reduced)
@@ -110,9 +86,9 @@ describe('a pointer-opened context menu in its exit (real engine, real Motion)',
 		expectExiting(panel)
 
 		// An arrow key goes to the focused element, and that is not a row.
-		fireEvent.keyDown(focused(), { key: 'ArrowDown' })
+		fireEvent.keyDown(focusedElement(), { key: 'ArrowDown' })
 
-		expect(panel).not.toContainElement(focused())
+		expect(panel).not.toContainElement(focusedElement())
 
 		// A press at a row lands on what lies under the panel.
 		expect(hits(row('Copy'))).toBe(false)
@@ -122,7 +98,7 @@ describe('a pointer-opened context menu in its exit (real engine, real Motion)',
 		expect(onAction).toHaveBeenCalledOnce()
 	})
 
-	it.each(motionCases)(
+	it.each(EXIT_MOTION_CASES)(
 		'runs a row once for two quick Enter presses under $name',
 		async ({ reduced }) => {
 			const onAction = vi.fn()
@@ -187,7 +163,7 @@ describe('a pointer-opened context menu in its exit (real engine, real Motion)',
 
 	// A row of the submenu closes the root, and the submenu closes with it. Its
 	// own surface portals apart from the root, so it must go inert by itself.
-	it.each(motionCases)(
+	it.each(EXIT_MOTION_CASES)(
 		'runs a submenu row once for a double-click under $name',
 		async ({ reduced }) => {
 			const onAction = vi.fn()

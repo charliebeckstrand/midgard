@@ -1,5 +1,5 @@
 import { type ReactNode, Suspense, use, useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Dialog, DialogPanel } from '../../../components/dialog'
@@ -79,13 +79,13 @@ function DialogHarness() {
 	)
 }
 
-async function revealPanel() {
+const revealPanel = vi.defineHelper(async () => {
 	await waitFor(() => expect(screen.getByText('loading')).toBeInTheDocument())
 
 	release()
 
 	await waitFor(() => expect(screen.getByText('panel')).toBeInTheDocument())
-}
+})
 
 describe('floating surface hidden by Suspense during its exit (real Motion)', () => {
 	it('removes a menu that closed in the commit that hid it', async () => {

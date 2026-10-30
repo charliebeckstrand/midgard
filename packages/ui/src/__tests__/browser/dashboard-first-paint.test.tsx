@@ -2,7 +2,7 @@ import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
-import { act, attach, getSlot } from '../helpers'
+import { act, attach, frames, getSlot } from '../helpers'
 
 // The tiles of the docs playground: three stats on one row, two charts under them.
 const layout: DashboardLayoutItem[] = [
@@ -112,7 +112,7 @@ describe('dashboard first paint (real browser)', () => {
 			onTestFinished(() => act(() => root?.unmount()))
 
 			// The measurement lands after hydration. Let the observer report.
-			await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+			await frames()
 
 			expect(error).not.toHaveBeenCalled()
 

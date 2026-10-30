@@ -5,12 +5,14 @@ import { renderToString } from 'react-dom/server'
 import { type Mock, type MockInstance, onTestFinished, vi } from 'vitest'
 import { attach } from './attach'
 
-/** The spies of a hydration, for the assertions of a case. */
+/** The spies and the root of a hydration, for the assertions of a case. */
 type Hydration = {
 	/** The `onRecoverableError` option of the root. React calls it for a mismatch that it recovers from. */
 	onRecoverableError: Mock
 	/** A spy on `console.error`, where React reports an attribute mismatch. */
 	consoleError: MockInstance<typeof console.error>
+	/** The hydrated root. A case renders a new element into it with `root.render`. */
+	root: Root
 }
 
 /**
@@ -33,14 +35,16 @@ export function hydrate(container: Element, element: ReactNode): Hydration {
 
 	onTestFinished(() => act(() => root?.unmount()))
 
-	return { onRecoverableError, consoleError }
+	if (!root) throw new Error('expected a root')
+
+	return { onRecoverableError, consoleError, root }
 }
 
 /**
  * Renders `element` on the server into a container on the body, then hydrates
  * the same element over that markup ({@link hydrate}).
  *
- * @returns The spies, the container, and the server markup.
+ * @returns The spies, the root, the container, and the server markup.
  */
 export function hydrateServerRender(
 	element: ReactNode,

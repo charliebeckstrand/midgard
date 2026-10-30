@@ -31,40 +31,84 @@ function rtl(className: string, tag: 'div' | 'ul' | 'blockquote' | 'dl' = 'div')
 }
 
 describe('logical sides under dir=rtl', () => {
-	it('markdown ul pads the inline start (right)', () => {
-		const style = rtl(markdown().ul, 'ul')
-		expect([style.paddingRight, style.paddingLeft]).toEqual(['20px', '0px'])
+	// Each row reads the side that takes the value, then the side that must stay at zero.
+	it.for([
+		[
+			'markdown ul pads the inline start (right)',
+			markdown().ul,
+			'ul',
+			['paddingRight', 'paddingLeft'],
+			'20px',
+		],
+		[
+			'markdown blockquote rules the inline start (right)',
+			markdown().blockquote,
+			'blockquote',
+			['borderRightWidth', 'borderLeftWidth'],
+			'2px',
+		],
+		[
+			'markdown task checkbox spaces the inline end (left)',
+			markdown().checkbox,
+			'div',
+			['marginLeft', 'marginRight'],
+			'8px',
+		],
+		[
+			'vertical tab list rules the inline start (right)',
+			tabs({ orientation: 'vertical' }).list,
+			'div',
+			['borderRightWidth', 'borderLeftWidth'],
+			'1px',
+		],
+		[
+			'vertical stepper pads the inline end (left)',
+			stepper({ orientation: 'vertical' }).base,
+			'div',
+			['paddingLeft', 'paddingRight'],
+			'16px',
+		],
+		[
+			'textarea actions row pads the inline end (left)',
+			cn(textarea().actions),
+			'div',
+			['paddingLeft', 'paddingRight'],
+			'8px',
+		],
+	] as const)('%s', ([, className, tag, [side, opposite], value]) => {
+		const style = rtl(className, tag)
+		expect([style[side], style[opposite]]).toEqual([value, '0px'])
 	})
 
-	it('markdown blockquote rules the inline start (right)', () => {
-		const style = rtl(markdown().blockquote, 'blockquote')
-		expect([style.borderRightWidth, style.borderLeftWidth]).toEqual(['2px', '0px'])
-	})
-
-	it('markdown task checkbox spaces the inline end (left)', () => {
-		const style = rtl(markdown().checkbox)
-		expect([style.marginLeft, style.marginRight]).toEqual(['8px', '0px'])
+	it.for([
+		[
+			'vertical tab indicator sits on the inline start (right)',
+			`absolute ${tabs({ orientation: 'vertical' }).indicator}`,
+			'right',
+			'-1px',
+		],
+		[
+			'avatar status dot sits on the top inline-end corner (left)',
+			avatar().status.dot,
+			'left',
+			'0px',
+		],
+		[
+			'horizontal timeline marker sits at the inline start (right)',
+			timeline({ orientation: 'horizontal' }).marker.base,
+			'right',
+			'6.5px',
+		],
+		['signature pad actions sit at the inline end (left)', signaturePad().actions, 'left', '8px'],
+	] as const)('%s', ([, className, property, value]) => {
+		const style = rtl(className)
+		expect(style[property]).toBe(value)
 	})
 
 	it('user chat bubble squares the bottom inline-end corner (bottom-left)', () => {
 		const style = rtl(chat({ sender: 'user' }).bubble)
 		expect(style.borderBottomLeftRadius).not.toBe(style.borderTopLeftRadius)
 		expect(style.borderBottomRightRadius).toBe(style.borderTopRightRadius)
-	})
-
-	it('vertical tab list rules the inline start (right)', () => {
-		const style = rtl(tabs({ orientation: 'vertical' }).list)
-		expect([style.borderRightWidth, style.borderLeftWidth]).toEqual(['1px', '0px'])
-	})
-
-	it('vertical tab indicator sits on the inline start (right)', () => {
-		const style = rtl(`absolute ${tabs({ orientation: 'vertical' }).indicator}`)
-		expect(style.right).toBe('-1px')
-	})
-
-	it('avatar status dot sits on the top inline-end corner (left)', () => {
-		const style = rtl(avatar().status.dot)
-		expect(style.left).toBe('0px')
 	})
 
 	it('description-list term gutter is on the inline end (left)', () => {
@@ -78,16 +122,6 @@ describe('logical sides under dir=rtl', () => {
 		)
 		const style = getComputedStyle(present(container.querySelector('dt'), 'dt'))
 		expect([style.paddingLeft, style.paddingRight]).toEqual(['8px', '0px'])
-	})
-
-	it('vertical stepper pads the inline end (left)', () => {
-		const style = rtl(stepper({ orientation: 'vertical' }).base)
-		expect([style.paddingLeft, style.paddingRight]).toEqual(['16px', '0px'])
-	})
-
-	it('horizontal timeline marker sits at the inline start (right)', () => {
-		const style = rtl(timeline({ orientation: 'horizontal' }).marker.base)
-		expect(style.right).toBe('6.5px')
 	})
 
 	it('hold-button fill grows from the inline start (right)', () => {
@@ -120,16 +154,6 @@ describe('logical sides under dir=rtl', () => {
 		const style = rtl(cn(kokkaku.chat.bubble, kokkaku.chat.tail.user))
 		expect(style.borderBottomLeftRadius).not.toBe(style.borderTopLeftRadius)
 		expect(style.borderBottomRightRadius).toBe(style.borderTopRightRadius)
-	})
-
-	it('textarea actions row pads the inline end (left)', () => {
-		const style = rtl(cn(textarea().actions))
-		expect([style.paddingLeft, style.paddingRight]).toEqual(['8px', '0px'])
-	})
-
-	it('signature pad actions sit at the inline end (left)', () => {
-		const style = rtl(signaturePad().actions)
-		expect(style.left).toBe('8px')
 	})
 
 	it('slider track fills from the inline start (right)', () => {

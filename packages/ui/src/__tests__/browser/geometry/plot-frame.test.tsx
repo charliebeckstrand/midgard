@@ -52,7 +52,7 @@ function Probe({ sizing, onMarks }: { sizing: FrameSizing; onMarks: () => void }
 
 describe('usePlotFrame against a real container', () => {
 	/** Mounts a probe and settles the first measurement. */
-	async function mounted(sizing: FrameSizing) {
+	const mounted = vi.defineHelper(async (sizing: FrameSizing) => {
 		const onMarks = vi.fn()
 
 		renderUI(<Probe sizing={sizing} onMarks={onMarks} />)
@@ -66,7 +66,7 @@ describe('usePlotFrame against a real container', () => {
 		await frames()
 
 		return { host, marks, onMarks }
-	}
+	})
 
 	it('derives the height from the width, and ignores a height-only resize, under aspect', async () => {
 		const { host, marks, onMarks } = await mounted({ mode: 'aspect', ratio: 2 })

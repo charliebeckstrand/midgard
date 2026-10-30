@@ -30,22 +30,18 @@ describe('grid width settling (real browser)', () => {
 	/** The gate is a class on the table itself: see `GridData`'s width-settling comment. */
 	const hidden = () => document.querySelector('table')?.className.includes('opacity-0') ?? null
 
-	it('shows the loading skeleton before any rows have been measured', () => {
-		renderUI(<Grid columns={columns} rows={[]} getKey={getKey} loading />)
-
+	// Each body has no data cells for a width pass to read, so the gate opens at once.
+	it.for([
 		// The skeleton is the state to show while the fetch runs; a hidden one shows nothing.
-		expect(hidden()).toBe(false)
-	})
-
-	it('shows the error slot, which leaves no body cells to measure', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} error="Couldn't load" />)
-
+		['shows the loading skeleton before any rows have been measured', { rows: [], loading: true }],
 		// The error replaces the rows, so no width pass ever reads a body cell.
-		expect(hidden()).toBe(false)
-	})
-
-	it('reveals an empty result rather than hanging hidden', () => {
-		renderUI(<Grid columns={columns} rows={[]} getKey={getKey} />)
+		[
+			'shows the error slot, which leaves no body cells to measure',
+			{ rows, error: "Couldn't load" },
+		],
+		['reveals an empty result rather than hanging hidden', { rows: [] }],
+	] as const)('%s', ([, props]) => {
+		renderUI(<Grid columns={columns} getKey={getKey} {...props} />)
 
 		expect(hidden()).toBe(false)
 	})

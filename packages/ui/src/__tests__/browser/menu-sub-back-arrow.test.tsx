@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Menu, MenuContent, MenuItem, MenuSub } from '../../components/menu'
 import { renderUI, screen, waitFor } from '../helpers'
+import { holdDir } from './helpers/root-state'
 
 /**
  * The forward arrow opens a submenu onto its first row, and the back arrow
@@ -14,17 +15,13 @@ import { renderUI, screen, waitFor } from '../helpers'
  * attribute into the computed `direction`, which jsdom does not.
  */
 describe('submenu arrows (real browser)', () => {
-	afterEach(() => {
-		document.documentElement.removeAttribute('dir')
-	})
-
 	for (const dir of ['ltr', 'rtl'] as const) {
 		const back = dir === 'ltr' ? '{ArrowLeft}' : '{ArrowRight}'
 
 		const away = dir === 'ltr' ? '{ArrowRight}' : '{ArrowLeft}'
 
 		it(`opens the submenu on ${away} and closes it on ${back} in ${dir}`, async () => {
-			document.documentElement.dir = dir
+			holdDir(dir)
 
 			renderUI(
 				<Menu defaultOpen>

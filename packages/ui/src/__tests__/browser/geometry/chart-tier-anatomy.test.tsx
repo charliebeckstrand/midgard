@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { allBySlot, bySlot, present, renderUI } from '../../helpers'
@@ -46,7 +46,7 @@ describe('chart intrinsic tiers (real browser)', () => {
 	]
 
 	/** Asserts that every axis label sits inside the horizontal span of the plot SVG. */
-	const expectClearsHorizontally = (container: HTMLElement, slot: string) => {
+	const expectClearsHorizontally = vi.defineHelper((container: HTMLElement, slot: string) => {
 		const svg = bySlot(container, 'chart-plot')?.querySelector('svg')
 
 		if (!svg) throw new Error('expected the plot drawing')
@@ -60,7 +60,7 @@ describe('chart intrinsic tiers (real browser)', () => {
 				{ tolerance: LABEL_SLACK },
 			)
 		}
-	}
+	})
 
 	it('publishes the resolved tier on the chart root', () => {
 		const spark = renderUI(chart(140, 100))

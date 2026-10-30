@@ -40,22 +40,15 @@ describe('grid keyboard entry focus (real browser)', () => {
 		return view
 	}
 
-	it.each([
-		['Enter', '{Enter}'],
-		['a typed character', 'x'],
-	])('focuses the editor on %s with a range', async (_, key) => {
-		const view = renderGrid({ range: true })
+	type Setup = Parameters<typeof renderGrid>[0]
 
-		await userEvent.keyboard(key)
-
-		expect(bySlot(view.container, 'grid-edit-input')).toHaveFocus()
-	})
-
-	it.each([
-		['Enter', '{Enter}'],
-		['a typed character', 'x'],
-	])('focuses the editor on %s in a column that clips it', async (_, key) => {
-		const view = renderGrid({ range: false, width: 40 })
+	it.for<[string, string, string, Setup]>([
+		['Enter', 'with a range', '{Enter}', { range: true }],
+		['a typed character', 'with a range', 'x', { range: true }],
+		['Enter', 'in a column that clips it', '{Enter}', { range: false, width: 40 }],
+		['a typed character', 'in a column that clips it', 'x', { range: false, width: 40 }],
+	])('focuses the editor on %s %s', async ([, , key, setup]) => {
+		const view = renderGrid(setup)
 
 		await userEvent.keyboard(key)
 

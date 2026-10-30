@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { renderUI, waitFor } from '../../helpers'
+import { sampleMotionFrames } from '../helpers/motion-frame'
+import { budget } from '../helpers/wall-clock'
 
 /**
  * Real-Motion check of a tab switch under a fading container. The other suites
@@ -11,7 +13,11 @@ describe('CurrentContents switch (real Motion)', () => {
 	const getPanel = (testId: string) =>
 		document.querySelector<HTMLElement>(`[data-testid="${testId}"]`)?.parentElement ?? null
 
-	const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
+	const opacity = (panel: Element | null) => (panel ? Number(getComputedStyle(panel).opacity) : 0)
+
+	/** Whether the outgoing panel is gone and the incoming panel shows in full. */
+	const landed = ([incoming, outgoing]: (HTMLElement | null)[]) =>
+		!outgoing && opacity(incoming ?? null) >= 1
 
 	function renderTabs(animate: 'fade' | 'slide') {
 		renderUI(
@@ -46,25 +52,24 @@ describe('CurrentContents switch (real Motion)', () => {
 			both: boolean
 		}[] = []
 
-		tab.click()
+		await sampleMotionFrames(
+			() => {
+				const panels = [getPanel(incoming), getPanel(outgoing)]
 
-		while (
-			getPanel(outgoing) ||
-			Number(getComputedStyle(getPanel(incoming) as Element).opacity) < 1
-		) {
-			await frame()
+				const opacities = panels.map(opacity)
 
-			const panels = [getPanel(incoming), getPanel(outgoing)]
+				frames.push({
+					incoming: panels[0]?.getBoundingClientRect() ?? null,
+					outgoing: panels[1]?.getBoundingClientRect() ?? null,
+					shown: Math.max(...opacities),
+					both: opacities.every((value) => value > 0),
+				})
 
-			const opacities = panels.map((panel) => (panel ? Number(getComputedStyle(panel).opacity) : 0))
-
-			frames.push({
-				incoming: panels[0]?.getBoundingClientRect() ?? null,
-				outgoing: panels[1]?.getBoundingClientRect() ?? null,
-				shown: Math.max(...opacities),
-				both: opacities.every((opacity) => opacity > 0),
-			})
-		}
+				return panels
+			},
+			landed,
+			{ during: async () => tab.click(), deadline: budget(5000) },
+		)
 
 		return frames
 	}
@@ -82,19 +87,21 @@ describe('CurrentContents switch (real Motion)', () => {
 
 		const doubled: number[][] = []
 
-		tab.click()
+		await sampleMotionFrames(
+			() => {
+				const panels = [getPanel('b'), getPanel('a')]
 
-		while (getPanel('a') || Number(getComputedStyle(getPanel('b') as Element).opacity) < 1) {
-			await frame()
+				const [incoming = 0, leaving = 0] = panels.map(opacity)
 
-			const opacities = [getPanel('a'), getPanel('b')].map((panel) =>
-				panel ? Number(getComputedStyle(panel).opacity) : 0,
-			)
+				outgoing.push(leaving)
 
-			outgoing.push(opacities[0] ?? 0)
+				if (incoming > 0.25 && leaving > 0.25) doubled.push([leaving, incoming])
 
-			if (opacities.every((opacity) => opacity > 0.25)) doubled.push(opacities)
-		}
+				return panels
+			},
+			landed,
+			{ during: async () => tab.click(), deadline: budget(5000) },
+		)
 
 		// Before, the outgoing panel went at once, with no fade-out.
 		expect(outgoing.some((opacity) => opacity > 0 && opacity < 1)).toBe(true)
@@ -171,15 +178,19 @@ describe('CurrentContents switch (real Motion)', () => {
 
 		const lefts: number[] = []
 
-		tab.click()
+		await sampleMotionFrames(
+			() => {
+				const panel = getPanel('b')
 
-		await frame()
+				const moving = panel !== null && getComputedStyle(panel).transform !== 'none'
 
-		while (getComputedStyle(getPanel('b') as Element).transform !== 'none') {
-			lefts.push((getPanel('b') as Element).getBoundingClientRect().left)
+				if (moving) lefts.push(panel.getBoundingClientRect().left)
 
-			await frame()
-		}
+				return panel !== null && !moving
+			},
+			(rest) => rest,
+			{ during: async () => tab.click(), deadline: budget(5000) },
+		)
 
 		const rest = box.getBoundingClientRect().left
 

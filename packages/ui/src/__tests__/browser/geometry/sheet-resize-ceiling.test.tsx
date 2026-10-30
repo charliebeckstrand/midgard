@@ -2,10 +2,8 @@ import { useState } from 'react'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Sheet, SheetBody, SheetPanel } from '../../../components/sheet'
-import { frames, getSlot, renderUI } from '../../helpers'
-import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
-import { drag } from '../helpers/drag'
+import { openSheet } from '../helpers/open-sheet'
 
 /**
  * Real-browser check of the ceiling of a sheet that is scoped to a container.
@@ -48,23 +46,15 @@ describe('scoped sheet resize ceiling (real browser)', () => {
 	] as const)(
 		'keeps a %s sheet dragged all the way out inside its container',
 		async (side, toward) => {
-			renderUI(<Scoped side={side} />)
-
-			await frames()
-
-			const panel = getSlot(document.body, 'sheet')
-
-			const handle = getSlot(document.body, 'sheet-handle')
+			const { panel, dragBy } = await openSheet(<Scoped side={side} />)
 
 			const start = panel.getBoundingClientRect()
 
 			// The inset the sheet floats on, on the edge it is docked to.
 			const inset = side === 'right' ? BOX.left + BOX.width - start.right : start.left - BOX.left
 
-			const { x, y } = getCenter(handle)
-
 			// Far past the container's other edge.
-			const held = await drag(handle, { x, y }, [{ x: x + toward * 1000, y }])
+			const held = await dragBy(toward * 1000, 0)
 
 			const end = panel.getBoundingClientRect()
 

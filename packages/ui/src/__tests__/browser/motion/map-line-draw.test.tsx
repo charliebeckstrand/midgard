@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { MapLine } from '../../../modules/map/map-line'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
 import { bySlot, present, renderUI, waitFor } from '../../helpers'
-import { nextPaint } from '../../helpers/frames'
+import { sampleUntil } from '../helpers/sample'
+import { budget } from '../helpers/wall-clock'
 
 /** A draw held behind a delay, as a marker's leg waits for its start pin. */
 const HELD = { duration: 0.2, delay: 0.15 }
@@ -56,11 +57,17 @@ describe('MapLine draw (real Motion)', () => {
 		// that paints the line at zero length is the dot.
 		const painted: number[] = []
 
-		while (drawn(line) === 0) {
-			painted.push(opacity(line))
+		await sampleUntil(
+			() => {
+				const share = drawn(line)
 
-			await nextPaint()
-		}
+				if (share === 0) painted.push(opacity(line))
+
+				return share
+			},
+			(share) => share !== 0,
+			{ deadline: budget(3000) },
+		)
 
 		expect(painted.length).toBeGreaterThan(0)
 

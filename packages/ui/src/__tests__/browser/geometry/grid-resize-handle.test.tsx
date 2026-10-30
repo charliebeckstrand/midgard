@@ -93,8 +93,6 @@ describe('grid resize handle geometry (real browser)', () => {
 			</div>,
 		)
 
-		const _table = present(container.querySelector('table'), 'table')
-
 		await frames()
 
 		const nameHandle = present(
@@ -218,8 +216,6 @@ describe('grid resize grip alignment (real browser)', () => {
 					/>
 				</div>,
 			)
-
-			const _table = present(container.querySelector('table'), 'table')
 
 			await frames()
 

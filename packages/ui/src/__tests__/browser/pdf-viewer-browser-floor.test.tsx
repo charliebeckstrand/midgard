@@ -1,9 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest'
-import { makeInvoicePdf, servePdf } from '../../__benchmarks__/browser/pdf-fixtures'
+import { describe, expect, it } from 'vitest'
+import { makeInvoicePdf } from '../../__benchmarks__/browser/pdf-fixtures'
 import { PdfViewer } from '../../components/pdf-viewer'
-import { resetDocumentCache } from '../../components/pdf-viewer/pdf-viewer-document-cache'
-import { bySlot, renderUI, waitFor } from '../helpers'
-import { budget } from './helpers/wall-clock'
+import { renderUI } from '../helpers'
+import { pageImage, servePdfFor } from './helpers/pdf-viewer'
 
 /**
  * The viewer renders a real PDF in a browser below the newest built-ins.
@@ -16,10 +15,8 @@ import { budget } from './helpers/wall-clock'
  * past that, the test still passes, and it no longer proves the floor.
  */
 describe('pdf viewer below the newest browsers (real browser)', () => {
-	afterEach(() => resetDocumentCache())
-
 	it('renders the first page of a real document', async () => {
-		const src = servePdf(makeInvoicePdf(2))
+		const src = servePdfFor(makeInvoicePdf(2))
 
 		const { container } = renderUI(
 			<div style={{ width: 600, height: 800 }}>
@@ -27,23 +24,9 @@ describe('pdf viewer below the newest browsers (real browser)', () => {
 			</div>,
 		)
 
-		const image = await waitFor(
-			() => {
-				const viewport = bySlot(container, 'pdf-viewer-viewport')
-
-				expect(viewport?.querySelector('[role="alert"]')).toBeNull()
-
-				const found = viewport?.querySelector('[data-slot="pdf-viewer-page-image"]')
-
-				expect(found).not.toBeNull()
-
-				return found
-			},
-			{ timeout: budget(10_000) },
-		)
+		// The wait fails at once when the viewport shows the error.
+		const image = await pageImage(container)
 
 		expect(image).toHaveAttribute('aria-label', 'Page 1')
-
-		URL.revokeObjectURL(src)
 	})
 })

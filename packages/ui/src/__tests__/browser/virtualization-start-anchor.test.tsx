@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
 import { act, frames, present, renderUI, waitFor } from '../helpers'
 import { settledValue } from './helpers/sample'
+import { once } from './helpers/signals'
 
 /**
  * The start anchor of the measured path, in a real browser. The anchor moves
@@ -169,9 +170,7 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 		// A scroll sets the flag of the virtualizer that tells it the reader
 		// scrolls, for 150 ms. The library does not measure a row that attaches
 		// while the flag is set.
-		const scrolled = new Promise((resolve) => {
-			scroller.addEventListener('scroll', resolve, { once: true })
-		})
+		const scrolled = once(scroller, 'scroll')
 
 		scroller.scrollTop += 1
 
@@ -197,29 +196,32 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 		// The virtualizer ends a scroll with a timer that it sets again on each
 		// `scroll` event, 150 ms after the last one. The case holds that timer, so
 		// it can fire the timer at the one point where the order matters.
-		const timeout = window.setTimeout.bind(window)
-
-		let scrollEnd: (() => void) | null = null
-
 		signal.throwIfAborted()
 
-		const held = vi.spyOn(window, 'setTimeout')
+		const setTimer = window.setTimeout
 
-		held.mockImplementation(((callback: () => void, delay?: number, ...rest: unknown[]) => {
-			if (delay !== 150) return timeout(callback, delay, ...rest)
+		// `vi.when` gives each other call to the implementation that the spy has
+		// before it, and a bare spy has none. Thus the spy gets the real timer.
+		const held = vi.spyOn(window, 'setTimeout').mockImplementation(setTimer)
 
-			scrollEnd = callback
-
-			return 0
-		}) as typeof window.setTimeout)
+		// The browser timer gives a number, but the Node types name the result a
+		// `Timeout`.
+		vi.when(held)
+			.calledWith(expect.any(Function), 150)
+			.thenReturn(0 as unknown as ReturnType<typeof setTimeout>)
 
 		await scrollAndSettle(scroller, 2000)
+
+		// The newest timer is the live one: each `scroll` event clears the last.
+		const scrollEnd = held.mock.calls.findLast(([, delay]) => delay === 150)?.[0]
 
 		const anchor = Array.from(scroller.querySelectorAll<HTMLElement>('[data-row]')).find(
 			(row) => row.getBoundingClientRect().top >= scroller.getBoundingClientRect().top,
 		)
 
-		if (!anchor || !scrollEnd) throw new Error('no row in view, or no scroll-end timer')
+		if (!anchor || typeof scrollEnd !== 'function') {
+			throw new Error('no row in view, or no scroll-end timer')
+		}
 
 		const id = anchor.dataset.row
 
@@ -232,7 +234,7 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 		// The move sends its `scroll` event at the next frame. Under load, the timer
 		// can fire first, and it must not put the offset before the move back into
 		// the window: the rows there would then measure with no correction.
-		act(() => (scrollEnd as () => void)())
+		act(() => scrollEnd())
 
 		await frames()
 

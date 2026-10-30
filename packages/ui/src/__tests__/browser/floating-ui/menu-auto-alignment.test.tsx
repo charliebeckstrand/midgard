@@ -31,9 +31,7 @@ describe('a Menu with the auto alignment (real floating engine)', () => {
 	}
 
 	async function edges() {
-		await frames()
-
-		await frames()
+		await frames(2)
 
 		const trigger = screen.getByRole('button', { name: 'Open' }).getBoundingClientRect()
 

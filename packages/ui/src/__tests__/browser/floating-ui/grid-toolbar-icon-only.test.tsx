@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn, type GridToolbarButton } from '../../../modules/grid'
 import { renderUI, screen, waitFor } from '../../helpers'
-import { pause } from '../helpers/wall-clock'
+import { tooltipAfterHover } from '../helpers/tooltip'
 
 /**
  * The object form of `toolbar` on the column manager and on export: an
@@ -91,8 +91,6 @@ describe('grid icon-only toolbar buttons (real browser)', () => {
 		await userEvent.hover(manage)
 
 		// Longer than the open delay of a tooltip, so a tooltip has time to show.
-		await pause(400)
-
-		expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+		expect(await tooltipAfterHover()).not.toBeInTheDocument()
 	})
 })

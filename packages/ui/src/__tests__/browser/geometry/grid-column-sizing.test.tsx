@@ -7,8 +7,9 @@ import {
 	type GridProps,
 } from '../../../modules/grid'
 import { fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
-import { getCenter } from '../../helpers/geometry/box'
 import { LAYOUT_UNIT, PIXEL } from '../../helpers/geometry/tolerance'
+import { menuAction } from '../helpers/grid-header-menu'
+import { dragResize, pressResize, resizeHandle } from '../helpers/resize-handle'
 import { settledValue } from '../helpers/sample'
 
 /**
@@ -48,45 +49,8 @@ describe('grid column sizing rules (real browser)', () => {
 
 	const widths = (root: HTMLElement, ids = ['a', 'b', 'c']) => ids.map((id) => width(root, id))
 
-	/** Runs a width action from a column's header menu, under its Auto-size parent. */
-	function menuAction(root: HTMLElement, id: string, label: string) {
-		fireEvent.contextMenu(header(root, id))
-
-		const parent = Array.from(document.querySelectorAll('[role="menuitem"]')).find(
-			(item) => item.textContent?.trim() === 'Auto-size',
-		)
-
-		if (!parent) throw new Error('no Auto-size menu')
-
-		fireEvent.click(parent)
-
-		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((candidate) =>
-			candidate.textContent?.includes(label),
-		)
-
-		if (!item) throw new Error(`no ${label} item`)
-
-		fireEvent.click(item)
-	}
-
-	/** Drags a column's resize handle by `dx` px, or presses it without motion when `dx` is 0. */
-	function drag(root: HTMLElement, label: string, dx: number) {
-		const handle = present(
-			root.querySelector<HTMLElement>(`hr[aria-label="Resize ${label}"]`),
-			`Resize ${label}`,
-		)
-
-		const { x, y } = getCenter(handle)
-
-		fireEvent.mouseDown(handle, { clientX: x, clientY: y })
-
-		if (dx !== 0) fireEvent.mouseMove(document, { clientX: x + dx, clientY: y })
-
-		fireEvent.mouseUp(document, { clientX: x + dx, clientY: y })
-	}
-
 	/** Mounts the grid in a 600px frame, and waits for the fill. */
-	async function mount(extra: Partial<GridProps<Row>> = {}) {
+	const mount = vi.defineHelper(async (extra: Partial<GridProps<Row>> = {}) => {
 		const view = (frameWidth: number) =>
 			frame(frameWidth, <Grid resizable columns={columns} rows={rows} getKey={getKey} {...extra} />)
 
@@ -95,14 +59,14 @@ describe('grid column sizing rules (real browser)', () => {
 		await waitFor(() => expect(width(result.container, 'a')).toBeGreaterThan(60))
 
 		return { ...result, resizeFrame: (next: number) => result.rerender(view(next)) }
-	}
+	})
 
 	it('holds a dragged width through a container resize', async () => {
 		const { container, resizeFrame } = await mount()
 
 		const fitted = width(container, 'a')
 
-		drag(container, 'A', 80)
+		dragResize(resizeHandle(container, 'A'), 80)
 
 		await waitFor(() => expect(width(container, 'a')).toBeGreaterThan(fitted + 60))
 
@@ -294,7 +258,7 @@ describe('grid column sizing rules (real browser)', () => {
 
 		const fill = widths(container)
 
-		drag(container, 'A', 80)
+		dragResize(resizeHandle(container, 'A'), 80)
 
 		await waitFor(() => expect(width(container, 'a')).toBeGreaterThan(fill[0] ?? 0))
 
@@ -320,7 +284,7 @@ describe('grid column sizing rules (real browser)', () => {
 	it('takes no width control on a press of the handle without a drag', async () => {
 		const { container, resizeFrame } = await mount()
 
-		drag(container, 'A', 0)
+		dragResize(resizeHandle(container, 'A'), 0)
 
 		await frames()
 
@@ -343,14 +307,7 @@ describe('grid column sizing rules (real browser)', () => {
 
 		const before = exact(container)
 
-		const handle = present(
-			container.querySelector<HTMLElement>('hr[aria-label="Resize A"]'),
-			'Resize A',
-		)
-
-		const { x, y } = getCenter(handle)
-
-		fireEvent.mouseDown(handle, { clientX: x, clientY: y })
+		const held = pressResize(resizeHandle(container, 'A'))
 
 		// The drag lays the columns out from the widths that the press copied.
 		await waitFor(() => expect(table).not.toHaveAttribute('data-grid-fit-layout'))
@@ -359,7 +316,7 @@ describe('grid column sizing rules (real browser)', () => {
 			expect(value).toBeNear(before[index] ?? 0, LAYOUT_UNIT)
 		}
 
-		fireEvent.mouseUp(document, { clientX: x, clientY: y })
+		held.release()
 
 		// A press without motion gives the widths back to the browser.
 		await waitFor(() => expect(table).toHaveAttribute('data-grid-fit-layout', 'fill'))

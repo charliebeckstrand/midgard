@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import {
 	PdfViewer,
@@ -50,7 +50,7 @@ describe('pdf-viewer highlight layer (real browser)', () => {
 	beforeAll(() => page.viewport(1200, 900))
 
 	/** Renders the viewer in a bounded box and waits for the page to be measured and laid out. */
-	async function viewer() {
+	const viewer = vi.defineHelper(async () => {
 		const { container } = renderUI(
 			<div style={{ width: 700 }}>
 				<PdfViewer pages={pages} highlights={highlights} onActiveHighlightChange={noop} />
@@ -65,7 +65,7 @@ describe('pdf-viewer highlight layer (real browser)', () => {
 		await waitFor(() => expect(image.getBoundingClientRect().width).toBeGreaterThan(0))
 
 		return { container, image }
-	}
+	})
 
 	function getLayer(container: HTMLElement) {
 		return getSlot(container, 'pdf-viewer-highlights')

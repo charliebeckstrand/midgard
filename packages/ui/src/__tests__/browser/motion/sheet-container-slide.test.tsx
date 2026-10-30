@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Sheet, SheetPanel, SheetTitle, SheetTrigger } from '../../../components/sheet'
@@ -63,6 +63,11 @@ describe('sheet in a container (real Motion)', () => {
 
 		requestAnimationFrame(sample)
 
+		// The loop stops when the case finishes, also when the wait below fails.
+		onTestFinished(() => {
+			sampling = false
+		})
+
 		await userEvent.click(screen.getByRole('button', { name: 'Show details' }))
 
 		const panel = getSlot(box, 'sheet')
@@ -70,8 +75,6 @@ describe('sheet in a container (real Motion)', () => {
 		screen.getByRole('button', { name: 'Close' }).focus()
 
 		await waitFor(() => expect(getComputedStyle(panel).transform).toBe('none'))
-
-		sampling = false
 
 		expect(Math.max(...scrolls)).toBe(0)
 
