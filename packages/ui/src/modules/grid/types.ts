@@ -89,7 +89,9 @@ export type GridColumn<T> = {
 	 *
 	 * @remarks The column takes the width of its widest rendered controls and its
 	 * title, and none of the spare width, so any number of controls fits. Set
-	 * {@link GridColumn.width} to override.
+	 * {@link GridColumn.width} to override. With no `title`, the header shows
+	 * nothing and gives the column the hidden name "Actions", in the language of
+	 * the reader.
 	 */
 	actions?: (row: T, context: GridRowActionsContext) => ReactNode
 	/**
@@ -109,7 +111,9 @@ export type GridColumn<T> = {
 	 * row passes {@link GridExpandable.rowExpandable}); inert otherwise. Like
 	 * {@link GridColumn.selectable} it is a non-data column (never sorted,
 	 * filtered, resized, or column-reordered) and takes the width of the
-	 * chevron; set {@link GridColumn.width} to override.
+	 * chevron; set {@link GridColumn.width} to override. With no `title`, the
+	 * header shows nothing and gives the column the hidden name "Details", in the
+	 * language of the reader.
 	 */
 	expander?: boolean
 	/** Renders the cell content for a row; defaults to nothing when omitted. */

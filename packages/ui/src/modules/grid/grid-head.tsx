@@ -9,7 +9,11 @@ import { useGrid } from './context'
 import type { GridGroupHeader } from './engine/grid-group/resolve'
 import { isFrozen, isLocked } from './engine/grid-pin/overrides'
 import { columnSort } from './engine/grid-sort/state'
-import { GridColumnHeader, GridReorderableColumnHeader } from './grid-column-header'
+import {
+	GridColumnHeader,
+	GridReorderableColumnHeader,
+	untitledHeaderName,
+} from './grid-column-header'
 import { GridGroupHead } from './grid-group-head'
 import { GridStaticHeaderCell, isStaticHeaderColumn } from './grid-static-header-cell'
 import type { GridColumn } from './types'
@@ -236,6 +240,7 @@ function GridHeaderCell<T>({
 
 	const shared = {
 		column,
+		hiddenName: untitledHeaderName(column),
 		ariaColIndex,
 		columnIndex,
 		sorted,
