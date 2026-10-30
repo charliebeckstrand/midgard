@@ -120,7 +120,7 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 
 					<Field>
 						<Label>{intl.formatMessage(authMessages.fullName)}</Label>
-						<Input name="name" />
+						<Input name="name" autoComplete="name" />
 						<Message name="name" />
 					</Field>
 
@@ -132,7 +132,7 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 
 					<Field>
 						<Label>{intl.formatMessage(authMessages.confirmPassword)}</Label>
-						<PasswordInput name="confirmPassword" />
+						<PasswordInput name="confirmPassword" autoComplete="new-password" />
 						<Message name="confirmPassword" />
 					</Field>
 
