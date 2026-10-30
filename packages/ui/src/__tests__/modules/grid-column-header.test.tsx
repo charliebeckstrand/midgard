@@ -44,10 +44,8 @@ function renderHeader(listeners: NonNullable<DraggableSyntheticListeners>) {
 								hiddenName={undefined}
 								ariaColIndex={1}
 								columnIndex={0}
-								hiddenName={undefined}
 								sorted={false}
 								direction={undefined}
-								hiddenName={undefined}
 								sortPriority={undefined}
 								stickyHeader={false}
 								toggleSort={() => {}}
