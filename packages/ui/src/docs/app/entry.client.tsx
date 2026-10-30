@@ -1,9 +1,9 @@
 import { StrictMode, startTransition } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { HydratedRouter } from 'react-router/dom'
-import { eventsRootOptions } from 'ui/events'
-import { startDebug } from '../debug/index.tsx'
+import { eventsRootOptions, startEvents } from 'ui/events'
 import { routerEvents } from '../debug/router.ts'
+import { DOCS_SOURCES } from '../debug/sources.ts'
 import { DocumentLocale } from './document-locale.ts'
 import { readDocumentLocale } from './language.ts'
 import { endStaleBuildWatch, watchFailedLoads, watchStaleBuild } from './stale-build.tsx'
@@ -23,8 +23,9 @@ watchStaleBuild()
 
 watchFailedLoads()
 
-// While the events run, the store records from before hydration.
-await startDebug()
+// While the events run, the store records from before hydration: the sources
+// of the docs, and the script calls that scroll or move the focus.
+await startEvents({ sources: DOCS_SOURCES, calls: true })
 
 // The page hydrates in the locale that the HTML rendered in.
 const locale = readDocumentLocale()

@@ -1,55 +1,11 @@
 import type { EventSource } from 'ui/events'
-import { addListeners, all, bursts } from '../../modules/events/engine/events-sources/dom.ts'
+import { all, bursts } from '../../modules/events/engine/events-sources/dom.ts'
 import { noop } from '../../utilities/noop.ts'
 import { listenComponentEvents } from './component-events.ts'
 
 // The sources of the docs, which run after the sources of the module: the
-// readings of the head script and of the scroll restoration, the callbacks
-// that a page gives to a component, and the hot updates of the dev server.
-
-/** A reading that the head script keeps before the store starts (`index.tsx`). */
-type Reading = { time: number; kind: string; text: string; y: number }
-
-declare global {
-	interface Window {
-		__eventReadings?: { entries: Reading[]; stop: () => void }
-	}
-}
-
-/** The kept scroll position of `<ScrollRestoration>` for this history entry. */
-function keptScroll(): string {
-	try {
-		const positions = JSON.parse(sessionStorage.getItem('react-router-scroll-positions') ?? '{}')
-
-		return String(positions[history.state?.key ?? 'default'] ?? '-')
-	} catch {
-		return '-'
-	}
-}
-
-/** The scroll reading of a page load: the scroll restoration of the history, and the kept position. */
-function scrollReading(): string {
-	return `restore ${history.scrollRestoration} kept y ${keptScroll()}`
-}
-
-/**
- * The scroll reading of each start and of each restore from the back-forward
- * cache, and the readings that the head script keeps before the first start.
- */
-const readings: EventSource = (note) => {
-	note({ kind: 'load', text: scrollReading() })
-
-	window.__eventReadings?.stop()
-
-	for (const { time, kind, text, y } of window.__eventReadings?.entries ?? [])
-		note({ kind, text, time, y })
-
-	delete window.__eventReadings
-
-	return addListeners(window, ['pageshow'], (event) => {
-		if ((event as PageTransitionEvent).persisted) note({ kind: 'load', text: scrollReading() })
-	})
-}
+// callbacks that a page gives to a component, and the hot updates of the dev
+// server.
 
 /**
  * The callbacks that a page gives to a component or to a module. A burst of
@@ -89,4 +45,4 @@ const hmr: EventSource = (note) => {
 }
 
 /** The sources of the docs. */
-export const DOCS_SOURCES: readonly EventSource[] = [readings, components, hmr]
+export const DOCS_SOURCES: readonly EventSource[] = [components, hmr]

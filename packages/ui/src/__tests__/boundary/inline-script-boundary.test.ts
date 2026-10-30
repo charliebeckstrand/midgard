@@ -12,9 +12,9 @@ import {
 //
 // A script with inline source runs with the full rights of the page. The
 // package writes such a script in one place, the `InlineScript` primitive. Its
-// `source` states the contract: constants and values that `JSON.stringify`
-// encodes, never a value from a user. Thus a review of that one file and its
-// callers finds each script that the package writes.
+// `source` states the contract, and never holds a value from a user. Thus a
+// review of that one file and its callers finds each script that the package
+// writes.
 //
 // Two rules keep the one place:
 //

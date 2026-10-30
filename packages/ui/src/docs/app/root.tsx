@@ -1,24 +1,14 @@
 import pages from 'virtual:docs/pages'
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
 import { type ReactNode, useEffect } from 'react'
-import {
-	Links,
-	Meta,
-	Outlet,
-	Scripts,
-	ScrollRestoration,
-	useLocation,
-	useMatches,
-	useNavigate,
-} from 'react-router'
+import { Links, Meta, Outlet, Scripts, useLocation, useMatches, useNavigate } from 'react-router'
 import { Button } from 'ui/button'
 import { loadShiki } from 'ui/code'
-import { EventsAside, EventsButton, EventsSwitch } from 'ui/events'
+import { EventsAside, EventsButton, EventsScript, EventsSwitch } from 'ui/events'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from 'ui/layouts'
-import { CurrentScrollScript } from 'ui/primitives/current'
 import { defineMessage, defineMessages, useIntl } from 'ui/primitives/intl'
 import { AppearanceSettings, useAppearance } from 'ui/providers/appearance'
 import { LocaleProvider } from 'ui/providers/locale'
@@ -26,7 +16,6 @@ import { UIDocument, UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
 import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
-import { DebugScript } from '../debug/index.tsx'
 import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
 import { appMessages } from './app-messages.ts'
@@ -36,14 +25,10 @@ import { useDocumentLocale } from './document-locale.ts'
 import { LOCALES } from './language.ts'
 import { PageError } from './page-error.tsx'
 import { NavigateContext, RouterLink } from './router-link.tsx'
+import { ScrollRestorationScript, useNavigationScroll } from './scroll-restoration.tsx'
 import { DocsSearch, SearchPaletteHost } from './search.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 import { StaleBuildScript } from './stale-build.tsx'
-
-// The id of the last script that runs before the first paint. The page paints
-// only when the parser reaches it, so the sidebar does not paint before the
-// main column, and the current item is in view at the first paint.
-const FIRST_PAINT = 'first-paint'
 
 /**
  * The document of each page. `UIDocument` holds `AppearanceProvider`, so each
@@ -63,17 +48,15 @@ export function Layout({ children }: { children: ReactNode }) {
 					<meta charSet="UTF-8" />
 					<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 					<StaleBuildScript />
-					<link rel="expect" href={`#${FIRST_PAINT}`} blocking="render" />
+					<ScrollRestorationScript />
 					<DirectionScript />
-					<DebugScript />
+					<EventsScript />
 					<Meta />
 					<Links />
 				</>
 			}
 		>
 			{children}
-			<ScrollRestoration />
-			<CurrentScrollScript id={FIRST_PAINT} />
 			<Scripts />
 		</UIDocument>
 	)
@@ -180,6 +163,11 @@ function Shell() {
 
 	useIdle(warmShiki)
 
+	// The path of the page, the same for each of its tabs.
+	const path = page?.path ?? pathname
+
+	useNavigationScroll(path)
+
 	// The root element has the language of the HTML at the first paint
 	// (`Layout`). When the reader changes the language, it takes the new one,
 	// so a screen reader reads the page in the language of its text.
@@ -190,7 +178,7 @@ function Shell() {
 	return (
 		// The links match the path of the page, so the item of a page is current
 		// on each tab of the page, and no item is current on the not-found page.
-		<UIProvider link={RouterLink} pathname={page?.path ?? pathname}>
+		<UIProvider link={RouterLink} pathname={path}>
 			<title>{title ? intl.formatMessage(pageTitleMessage, { page: title }) : docs}</title>
 			<Stylesheet />
 			<DocsSearch>

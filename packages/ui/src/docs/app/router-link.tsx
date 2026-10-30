@@ -64,10 +64,10 @@ export function RouterLink({
 	// that starts with two slashes, goes to another host.
 	const isPage = href.startsWith('/') && !href.startsWith('//')
 
-	// A hash alone names an element of this page. The browser would scroll to it
-	// and then fire `popstate`, and the router would take that entry for the
-	// first entry of the tab and restore its scroll position. Through the
-	// router, the entry is new, and the router scrolls to the element.
+	// A hash alone names an element of this page. It goes through the router, so
+	// each click gives a new location, also a click on the hash that the page
+	// has already, for which the browser fires no event. The shell then scrolls
+	// to the element, and the API table opens a closed entry again.
 	const internal = isPage || href.startsWith('#')
 
 	// A second hover or focus does not start the delay again.

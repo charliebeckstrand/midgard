@@ -87,8 +87,6 @@ describe('RouterLink', () => {
 		expect(router.state.historyAction).toBe('REPLACE')
 	})
 
-	// The browser scrolls to the element of a hash and fires `popstate`. The
-	// router then restores the scroll position of the first entry of the tab.
 	it('goes to an element of the current page through the router', () => {
 		const router = renderShell('/button')
 
