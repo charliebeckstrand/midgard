@@ -26,6 +26,23 @@ export type ControllableOptions<T> = {
 const NONE: unique symbol = Symbol('none')
 
 /**
+ * Whether a controllable binding is controlled. The first `value` that is not
+ * `undefined` takes control for the mount, and a later `undefined` does not
+ * give it back. {@link useControllable} reads its binding through this hook, so
+ * a caller that must know whether that binding is controlled can read the same
+ * answer. Adjusted during render.
+ *
+ * @internal
+ */
+export function useControlledLatch(value: unknown): boolean {
+	const [latched, setLatched] = useState(value !== undefined)
+
+	if (value !== undefined && !latched) setLatched(true)
+
+	return latched || value !== undefined
+}
+
+/**
  * Manages controlled / uncontrolled value state with a unified setter.
  *
  * @typeParam T - The value type; the hook stores and emits `T | undefined`.
@@ -52,12 +69,7 @@ export function useControllable<T>({
 }: ControllableOptions<T>): [T | undefined, (value: SetValue<T>) => void] {
 	const [internalValue, setInternalValue] = useState<T | undefined>(defaultValue)
 
-	// Adjusted during render: the first render with a value takes control.
-	const [controlled, setControlled] = useState(value !== undefined)
-
-	if (value !== undefined && !controlled) setControlled(true)
-
-	const isControlled = controlled || value !== undefined
+	const isControlled = useControlledLatch(value)
 
 	const currentValue = isControlled ? (value ?? undefined) : internalValue
 

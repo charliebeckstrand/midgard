@@ -14,6 +14,7 @@ import { cn } from '../../core'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
+import { focusDropped } from '../../utilities/focus-dropped'
 import { gridMessages } from './engine/grid-messages'
 import { getVisiblePages } from './engine/grid-pagination-utilities'
 import type { GridPaginationView } from './use-grid-table'
@@ -166,8 +167,7 @@ export function GridPagination({ pagination, label, labelledBy }: GridPagination
 		// reject a navigation, and the latch then waits for a later change; this
 		// check keeps that change from pulling focus back into the nav.
 		const dropped =
-			active === null ||
-			active === document.body ||
+			focusDropped() ||
 			(active instanceof HTMLButtonElement && active.disabled && nav.contains(active))
 
 		if (!dropped) return

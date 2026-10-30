@@ -16,6 +16,7 @@ import { cn } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
 import { nextIndexForKey } from '../../utilities'
+import { focusDropped } from '../../utilities/focus-dropped'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT, TREE_ITEM_SELECTOR } from './json-tree-constants'
 import {
@@ -158,7 +159,7 @@ function settleFocus(
 
 	if (row) {
 		if (active === container) row.focus({ preventScroll: true })
-	} else if (!active || active === document.body) {
+	} else if (focusDropped()) {
 		container.focus({ preventScroll: true })
 	}
 
@@ -176,9 +177,7 @@ function focusRowOnMount(container: HTMLElement, index: number): MutationObserve
 		const row = rowAt(container, index)
 
 		// Focus that went outside the tree in the meantime stays there.
-		const active = document.activeElement
-
-		const idle = !active || active === document.body || container.contains(active)
+		const idle = focusDropped() || container.contains(document.activeElement)
 
 		if (row && idle) row.focus()
 

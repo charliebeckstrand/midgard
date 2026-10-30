@@ -1,3 +1,5 @@
+import { focusDropped } from '../../utilities/focus-dropped'
+
 /**
  * The ref of an edit-only control of a tile: the grip, a splitter, or the
  * duplicate or remove control. When the control unmounts with the focus, for
@@ -25,7 +27,7 @@ export function keepFocusOnBoard(element: HTMLElement | null): (() => void) | un
 		queueMicrotask(() => {
 			if (element.isConnected || !board?.isConnected) return
 
-			if (document.activeElement !== null && document.activeElement !== document.body) return
+			if (!focusDropped()) return
 
 			board.focus()
 		})
