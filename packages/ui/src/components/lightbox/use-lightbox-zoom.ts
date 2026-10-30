@@ -61,7 +61,7 @@ export type LightboxZoom = {
 type Measure = {
 	photo: HTMLElement
 	box: LightboxBox
-	stage: { x: number; y: number; width: number; height: number }
+	stage: LightboxBox
 }
 
 /** The midpoint and the distance of two points: the center and the size of a pinch. */
@@ -119,8 +119,6 @@ export function useLightboxZoom(trackRef: RefObject<HTMLElement | null>): Lightb
 
 		if (!track || !photo || !slot) return null
 
-		const rect = track.getBoundingClientRect()
-
 		return {
 			photo,
 			box: {
@@ -129,7 +127,7 @@ export function useLightboxZoom(trackRef: RefObject<HTMLElement | null>): Lightb
 				width: photo.offsetWidth,
 				height: photo.offsetHeight,
 			},
-			stage: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+			stage: track.getBoundingClientRect(),
 		}
 	}
 

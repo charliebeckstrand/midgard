@@ -46,10 +46,11 @@ export type LightboxProps = {
 	 */
 	onIndexChange?: (index: number | null) => void
 	/**
-	 * Shows a close button, one gap above the photo. Without it, Escape, a press
-	 * outside the photo, and a swipe up or down (in any direction for one photo) close the viewer, and the close
-	 * button shows only when it has the keyboard focus. With `dismissOnBackdrop`
-	 * set to `false`, the close button always shows.
+	 * Shows a close button, one gap above the photo. Without it, the close button
+	 * shows only when it has the keyboard focus. With `dismissOnBackdrop` set to
+	 * `false`, the close button always shows. With or without it, Escape, a press
+	 * outside the photo, and a swipe up or down (in any direction for one photo)
+	 * close the viewer.
 	 * @defaultValue false
 	 */
 	closable?: boolean
@@ -104,10 +105,11 @@ export type LightboxProps = {
  * With more than one photo, the viewer steps through them. The previous and
  * next buttons, `ArrowLeft` and `ArrowRight`, and a swipe on the stage step in
  * the reading order. With `thumbnails`, a row of thumbnails takes the place of
- * the step buttons, and a press on a thumbnail shows its photo. Escape, the close button, and a press on the stage
- * outside the photo close the viewer, and the focus goes back to the
- * thumbnail. With `dismissOnBackdrop` set to `false`, a press outside the
- * photo does not close the viewer, and the close button always shows.
+ * the step buttons, and a press on a thumbnail shows its photo. Escape, the
+ * close button, and a press on the stage outside the photo close the viewer,
+ * and the focus goes back to the thumbnail. With `dismissOnBackdrop` set to
+ * `false`, a press outside the photo does not close the viewer, and the close
+ * button always shows.
  *
  * A pinch zooms the photo, up to four times its size, and a double tap or a
  * double click zooms into the point that it taps. A double tap on a zoomed
