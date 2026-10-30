@@ -129,10 +129,11 @@ export function isAutoSized<T>(
  * reads it from this one function.
  *
  * `floor` is the header floor (see {@link measureColumns}), already inside
- * `minWidth` and `maxWidth`. `body` is the widest body cell. A `capped` read
- * holds a width-less column at {@link DEFAULT_CONTENT_MAX}, so that one long
- * cell cannot take the whole table in the automatic fit. A `maxWidth` is the
- * cap when the column sets one.
+ * `minWidth` and `maxWidth`. `body` is the widest body cell, or the header with
+ * its title in full when that is wider (see `ColumnMeasurement.titles`). A
+ * `capped` read holds a width-less column at {@link DEFAULT_CONTENT_MAX}, so
+ * that one long cell cannot take the whole table in the automatic fit. A
+ * `maxWidth` is the cap when the column sets one.
  *
  * @internal
  */
@@ -232,6 +233,10 @@ export function createColumnSizer({
 	// grow-only rule as `widest`.
 	const fits = new Map<string, number>()
 
+	// The width (px) that each data header needs to show its title in full. Like a
+	// floor, it is a header fact, so each pass sets it again.
+	const titles = new Map<string, number>()
+
 	// Whether the last measurement read body cells (see `ColumnMeasurement.cells`).
 	let seen = false
 
@@ -239,6 +244,8 @@ export function createColumnSizer({
 		const measurement = env.measure(scan)
 
 		for (const [id, floor] of measurement.floors) floors.set(id, floor)
+
+		for (const [id, title] of measurement.titles) titles.set(id, title)
 
 		for (const [id, body] of measurement.bodies) {
 			widest.set(id, Math.max(widest.get(id) ?? 0, body))
@@ -255,10 +262,19 @@ export function createColumnSizer({
 		return floors.get(String(col.id)) ?? col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE
 	}
 
+	// The widest content (px) of a data column: its widest body cell so far, or its
+	// header with the title in full. A column that rendered no body cell (an empty
+	// result, a loading skeleton) still has its header.
+	function widestContent<T>(col: GridColumn<T>): number {
+		const id = String(col.id)
+
+		return Math.max(widest.get(id) ?? 0, titles.get(id) ?? 0)
+	}
+
 	// The width (px) of a data column that sizes to its content without the fill:
 	// the content width of its widest row so far, inside its floor and its cap.
 	function desiredWidth<T>(col: GridColumn<T>): number {
-		return contentWidth(col, getFloor(col), widest.get(String(col.id)) ?? 0, true)
+		return contentWidth(col, getFloor(col), widestContent(col), true)
 	}
 
 	// The least widths of a pass (see rule 1). A column that the browser sized from
@@ -299,7 +315,7 @@ export function createColumnSizer({
 		return Object.fromEntries(
 			cols.map((col) => [
 				String(col.id),
-				contentWidth(col, getFloor(col), widest.get(String(col.id)) ?? 0, false),
+				contentWidth(col, getFloor(col), widestContent(col), false),
 			]),
 		)
 	}

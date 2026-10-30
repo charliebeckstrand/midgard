@@ -471,6 +471,13 @@ export type ColumnMeasurement = {
 	/** The hard floor (px) of every data column the pass saw (see {@link columnFloor}). */
 	floors: Map<string, number>
 	/**
+	 * The width (px) that the header of every data column the pass saw needs to
+	 * show its title in full (see {@link columnFloor}). A column that rendered no
+	 * body cell also has an entry, so the content width of that column still
+	 * includes its header (see `contentWidth`).
+	 */
+	titles: Map<string, number>
+	/**
 	 * The widest cell (px, border box) of each scanned column: a body cell, or the
 	 * header with its title in full (see {@link columnFloor}).
 	 * A scanned column that rendered no body cell has no entry.
@@ -587,5 +594,5 @@ export function measureColumns<T>({
 	// document start collapses the range there and releases that leaf.
 	sharedRange?.setEnd(document, 0)
 
-	return { floors, bodies: widest, cells, fits, leaves, rendered }
+	return { floors, titles, bodies: widest, cells, fits, leaves, rendered }
 }
