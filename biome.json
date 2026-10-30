@@ -636,6 +636,10 @@
 			"plugins": ["./.biome/plugins/require-bare-icon-button.grit"]
 		},
 		{
+			"includes": ["apps/**/*.tsx", "!**/__tests__/**"],
+			"plugins": ["./.biome/plugins/no-stateless-toggle-icon-button.grit"]
+		},
+		{
 			"includes": ["apps/**", "packages/**"],
 			"plugins": ["./.biome/plugins/no-abbreviated-binding.grit"]
 		},

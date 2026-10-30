@@ -13,7 +13,6 @@ import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
-import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { useWeekGames } from '../../queries/picks-queries'
 import type { Game, SeasonPicks, TeamPicks, Week, WeekPicks } from '../../types'
 import { isLocked, isOff } from '../../utilities/locks'
@@ -257,7 +256,9 @@ export function PredictionSheet({
 					</SheetTitle>
 
 					<SheetClose>
-						<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
+						<Button type="button" variant="bare" aria-label="Close">
+							<Icon icon={<X />} />
+						</Button>
 					</SheetClose>
 				</Flex>
 

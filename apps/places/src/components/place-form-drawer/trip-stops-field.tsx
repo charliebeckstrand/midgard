@@ -14,7 +14,6 @@ import { List, ListItem } from 'ui/list'
 import { Listbox } from 'ui/listbox'
 import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
-import { ToggleIconButton } from 'ui/toggle-icon-button'
 import type { Place, PlaceCategory } from '../../types'
 import { foldText } from '../../utilities/places-palette'
 import { CategoryOptions, categoryDisplayValue } from '../category-picker'
@@ -169,11 +168,14 @@ export function TripStopsField({ places }: { places: readonly Place[] }) {
 											</Control>
 										</Columns>
 
-										<ToggleIconButton
-											icon={<Icon icon={<Trash />} />}
+										<Button
+											type="button"
+											variant="bare"
 											aria-label={`Remove place ${position}`}
 											onClick={() => setValue(rows.filter((held) => held.key !== row.key))}
-										/>
+										>
+											<Icon icon={<Trash />} />
+										</Button>
 									</Flex>
 								</Card>
 							</ListItem>

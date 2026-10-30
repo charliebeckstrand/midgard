@@ -1,0 +1,22 @@
+language js
+
+// A `ToggleIconButton` is a two-state control. It sets `aria-pressed`, and
+// it stays live while a `Form` submits, because a toggle writes no field. A
+// toggle that takes none of `pressed`, `defaultPressed`, and
+// `onPressedChange` has a state that nothing reads. Each press flips
+// `aria-pressed` on an action, such as Close or Remove, and a screen reader
+// then reads that action as on or off. An action is a `Button` with the
+// `bare` variant and an `Icon`.
+//
+// The plugin cannot read types or follow a value. A state that comes in
+// through a spread, such as `{...props}`, does not count.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the TSX files of
+// the apps, minus tests.
+`<ToggleIconButton $attrs />` as $toggle where {
+	not $attrs <: some JsxAttribute(name = r"^(?:pressed|defaultPressed|onPressedChange)$"),
+	register_diagnostic(
+		span = $toggle,
+		message = "give a `ToggleIconButton` a state with `pressed`, `defaultPressed`, or `onPressedChange`, or make the action a `bare` `Button` with an `Icon`"
+	)
+}
