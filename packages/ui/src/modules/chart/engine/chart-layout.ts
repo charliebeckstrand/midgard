@@ -442,6 +442,20 @@ function getBandPad(input: CartesianLayoutInput): number {
 }
 
 /**
+ * The length that the band centers spread over: the axis less the band inset at
+ * both ends, as {@link markInsetRange} gives it. The label fit reads this
+ * length, not the plot length. Labels that fit the plot length can thus sit
+ * closer than one slot apart.
+ *
+ * @internal
+ */
+function bandSpan(input: CartesianLayoutInput, axisLength: number): number {
+	const [from, to] = markInsetRange([0, axisLength], getBandPad(input))
+
+	return to - from
+}
+
+/**
  * Insets both ends of a screen range, ascending or descending. It holds the
  * span where the range is too narrow to seat both insets, since a clipped mark
  * beats an inverted scale.
@@ -694,12 +708,14 @@ function bandAxisTicks(
 ): ChartAxisTick[] {
 	if (mode === 'off') return []
 
+	const span = bandSpan(input, axisLength)
+
 	if (input.times) {
 		const ticks = timeTicks({
 			times: input.times,
 			band,
 			tickTarget: input.tickTarget,
-			axisLength,
+			axisLength: span,
 			locale: input.locale,
 		})
 
@@ -709,7 +725,7 @@ function bandAxisTicks(
 	const ticks =
 		mode === 'ends'
 			? endBandTicks(input.categories, band)
-			: buildBandTicks(input.categories, band, axisLength, slot, tilt)
+			: buildBandTicks(input.categories, band, span, slot, tilt)
 
 	return fit ? ticks.map((tick) => ({ ...tick, label: fit(tick.label) })) : ticks
 }
@@ -947,7 +963,8 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	// labels only where a flat label takes more.
 	const canTilt = drawBand && bandMode === 'thinned' && Boolean(input.tickRotation) && !input.times
 
-	const tilt = canTilt && slot > TILTED_LABEL_SLOT && willThin(count, plotWidth, slot)
+	const tilt =
+		canTilt && slot > TILTED_LABEL_SLOT && willThin(count, bandSpan(input, plotWidth), slot)
 
 	const axisBandHeight = tilt ? TICK_ROTATION_HEIGHT + titleBand : flatHeight
 

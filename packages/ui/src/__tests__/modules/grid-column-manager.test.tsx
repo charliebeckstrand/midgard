@@ -309,6 +309,27 @@ describe('GridColumnManager', () => {
 		expect(checkbox).toBeDisabled()
 	})
 
+	it('checks a hideable=false checkbox when the hidden set names its column', () => {
+		renderUI(
+			<GridColumnManager
+				columns={[
+					{ id: 'email', title: 'Email', hideable: false },
+					{ id: 'role', title: 'Role' },
+				]}
+				defaultHidden={new Set(['email', 'role'])}
+			/>,
+		)
+
+		// The flag wins over the hidden set: the column shows, so its row is checked.
+		const checkbox = screen.getByRole('checkbox', { name: 'Show Email' })
+
+		expect(checkbox).toBeChecked()
+
+		expect(checkbox).toBeDisabled()
+
+		expect(screen.getByRole('checkbox', { name: 'Show Role' })).not.toBeChecked()
+	})
+
 	it('uses controlled order when provided', () => {
 		const onOrderChange = vi.fn()
 

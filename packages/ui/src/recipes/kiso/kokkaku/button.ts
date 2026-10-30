@@ -1,7 +1,7 @@
 /**
- * Kokkaku skeleton: button. Silhouette across the four button size
+ * Kokkaku skeleton: button. Silhouette across the five button size
  * steps, with the stepped radius of the button. The heights match the
- * labeled button: 22, 30, 38, and 46px. The widths are defaults.
+ * labeled button: 26, 32, 38, 44, and 50px. The widths are defaults.
  *
  * Each step is a stepped `density-*` class, so the silhouette takes the
  * step of its nearest density scope, as the button does.

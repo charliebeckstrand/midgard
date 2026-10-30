@@ -2,6 +2,7 @@
 
 import type { KeyboardEvent } from 'react'
 import { isComposing } from '../../utilities'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { splitTokens } from './tag-input-utilities'
 
 /**
@@ -35,7 +36,9 @@ type KeyboardOptions = {
  * field. Comma never submits, so it always cancels the default.
  *
  * Every key is ignored mid-IME-composition (a single early return), so a
- * candidate-selection keystroke never commits a partial tag or deletes one.
+ * candidate-selection keystroke never commits a partial tag or deletes one. A
+ * key with Ctrl, Meta, or Alt is for the browser, such as its settings, so it
+ * commits nothing, removes nothing, and keeps its default.
  * Backspace removes only when the draft is empty and at least one tag exists, so
  * it never competes with ordinary text deletion.
  *
@@ -43,7 +46,7 @@ type KeyboardOptions = {
  */
 export function useTagInputKeyboard({ inputValue, commit, removeTag, tagCount }: KeyboardOptions) {
 	return (event: KeyboardEvent<HTMLInputElement>) => {
-		if (isComposing(event)) return
+		if (isComposing(event) || hasBrowserModifier(event)) return
 
 		const committable = event.key === ',' || (event.key === 'Enter' && hasToken(inputValue))
 

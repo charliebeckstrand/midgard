@@ -1234,6 +1234,39 @@ describe('DatePicker input', () => {
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
+	// K2-C02: the inner DateInput has no `name`, so the picker marks the field
+	// touched when the focus leaves the input and its calendar button.
+	it('marks the bound field touched when the focus leaves the reference group', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ when: undefined as Date | undefined }}
+				validate={{ when: (value) => (value ? undefined : 'required') }}
+			>
+				<DatePicker input name="when" aria-label="When" />
+				<button type="button">Next</button>
+			</Form>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		act(() => input.focus())
+
+		// The calendar button is in the reference group, so the field stays untouched.
+		await user.tab()
+
+		expect(screen.getByRole('button', { name: /calendar/i })).toHaveFocus()
+
+		expect(input).not.toHaveAttribute('aria-invalid', 'true')
+
+		await user.tab()
+
+		expect(screen.getByRole('button', { name: 'Next' })).toHaveFocus()
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+	})
+
 	// B01-C02: the inner DateInput has no `name`, so the picker passes the reset
 	// count of its Form down.
 	it('drops a refused partial entry when the bound Form resets to the same empty value', async () => {

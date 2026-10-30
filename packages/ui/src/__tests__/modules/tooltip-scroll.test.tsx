@@ -3,7 +3,7 @@ import { BarChart } from '../../modules/chart/bar-chart'
 import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
-import { MapPlat } from '../../modules/map'
+import { MapPlat, MapPoint } from '../../modules/map'
 import { act, allBySlot, allRegions, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { it, onFakeClock } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
@@ -288,6 +288,82 @@ describe('tooltip across a scroll', () => {
 		await clock.advance(150)
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Alpha')
+	})
+
+	it('map: reads no region under the settled pointer on a switched-off region layer', async ({
+		clock,
+	}) => {
+		const { container } = renderUI(
+			<MapPlat
+				aria-label="Zones"
+				geography={FIXTURE_GEOJSON}
+				data={FIXTURE_ROWS}
+				regionKey="state"
+				categoryKey="zone"
+				regionPointer={false}
+				width={400}
+			>
+				<MapPoint label="Depot" at={[15, 5]} />
+			</MapPlat>,
+		)
+
+		act(() =>
+			fireEvent.pointerEnter(bySlot(container, 'map-point-hit') as Element, {
+				clientX: 200,
+				clientY: 30,
+			}),
+		)
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Depot')
+
+		// The scroll leaves a region path under the pointer. The path still takes
+		// a hit test, but the layer takes no pointer, so it reads as the ocean.
+		const [alpha] = allRegions(container)
+
+		document.elementFromPoint = vi.fn().mockReturnValue(alpha ?? null)
+
+		movePointer(200, 30)
+
+		act(() => fireEvent.scroll(window))
+
+		await clock.advance(150)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(bySlot(container, 'map-regions-lit')).toBeNull()
+	})
+
+	it('map: moves the pointed emphasis across a scroll with the tooltip off', async ({ clock }) => {
+		const { container } = renderUI(
+			<MapPlat
+				aria-label="Zones"
+				geography={FIXTURE_GEOJSON}
+				data={FIXTURE_ROWS}
+				regionKey="state"
+				categoryKey="zone"
+				tooltip={false}
+				width={400}
+			/>,
+		)
+
+		const [alpha, beta] = allRegions(container)
+
+		const lit = () => bySlot(container, 'map-regions-lit')?.querySelector('path')?.getAttribute('d')
+
+		act(() => fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 }))
+
+		expect(lit()).toBe(alpha?.getAttribute('d'))
+
+		// The scroll slides the next region under the still pointer.
+		document.elementFromPoint = vi.fn().mockReturnValue(beta ?? null)
+
+		movePointer(40, 20)
+
+		act(() => fireEvent.scroll(window))
+
+		await clock.advance(150)
+
+		expect(lit()).toBe(beta?.getAttribute('d'))
 	})
 
 	it('map: stays hidden when the settled pointer rests off every region', async ({ clock }) => {

@@ -922,6 +922,41 @@ describe('Form', () => {
 		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
 	})
 
+	// Q2-C10: a submit that passes validation with no handler ends there.
+	it('delivers { ok: true, values } to onSettled when no onSubmit is set', async () => {
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: 'Ada' }} onSettled={onSettled}>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onSettled).toHaveBeenCalledOnce()
+
+		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+	})
+
+	it('does not fire onSettled when validation refuses a submit with no onSubmit', async () => {
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '' }}
+				validate={{ name: (value) => (value ? undefined : 'required') }}
+				onSettled={onSettled}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onSettled).not.toHaveBeenCalled()
+	})
+
 	it('delivers { ok: false, error } to onSettled when onSubmit throws', async () => {
 		const failure = new Error('rate limited')
 

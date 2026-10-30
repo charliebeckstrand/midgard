@@ -329,7 +329,7 @@ describe('Grid aggregation rendering', () => {
 
 		expect(header()?.querySelector('[data-grid-col="revenue"]')).not.toBeNull()
 
-		await user.click(screen.getByRole('button', { name: 'Collapse group West' }))
+		await user.click(screen.getByRole('button', { name: /^West \(/, expanded: true }))
 
 		// Collapsed: the figures move up to the header.
 		expect(header()?.textContent).toContain('$400')
@@ -500,7 +500,7 @@ describe('Grid aggregation rendering', () => {
 
 		expect(groupTotal()).not.toHaveAttribute('aria-hidden')
 
-		await user.click(screen.getByRole('button', { name: 'Collapse group West' }))
+		await user.click(screen.getByRole('button', { name: /^West \(/, expanded: true }))
 
 		// The West total collapses out of the accessibility tree with its leaves.
 		expect(groupTotal()).toHaveAttribute('aria-hidden', 'true')

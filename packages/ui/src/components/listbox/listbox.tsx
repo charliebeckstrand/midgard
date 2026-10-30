@@ -15,6 +15,7 @@ import {
 import type { ScaleStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { isTypeaheadKey } from '../../hooks/a11y/use-typeahead'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -298,6 +299,13 @@ export function Listbox<T>({
 	// A read-only or disabled listbox does not open and does not commit.
 	const locked = resolvedReadOnly || resolvedDisabled
 
+	// A disabled ancestor `<fieldset>` disables the trigger button but sets no
+	// prop, so `locked` stays false. Thus the open guard and the selection also
+	// read the native state of the button when an event occurs, as Combobox reads
+	// its input. A stable event holds the read, because the open guard goes to
+	// floating-ui during render.
+	const isLocked = useStableEvent(() => locked || triggerRef.current?.matches(':disabled') === true)
+
 	// readOnly keeps the trigger focusable and the value submitted but blocks
 	// every open path (frame click, floating-ui keyboard/typeahead). disabled
 	// blocks the same paths. The frame takes the click, not the disabled button.
@@ -311,13 +319,13 @@ export function Listbox<T>({
 	// mark has no effect. The frame click gives no reason and marks nothing.
 	const setOpenGuarded = useCallback(
 		(next: boolean, _event?: Event, reason?: OpenChangeReason) => {
-			if (locked && next) return
+			if (next && isLocked()) return
 
 			setOpen(next)
 
 			if (!next && (reason === 'outside-press' || reason === 'focus-out')) setTouched()
 		},
-		[locked, setOpen, setTouched],
+		[isLocked, setOpen, setTouched],
 	)
 
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
@@ -470,11 +478,11 @@ export function Listbox<T>({
 	// also blocks the selection: a read-only or disabled listbox never commits.
 	const guardedSelect = useCallback(
 		(next: T) => {
-			if (locked) return
+			if (isLocked()) return
 
 			select(next)
 		},
-		[locked, select],
+		[isLocked, select],
 	)
 
 	// The trigger label reads the live `value` (updates instantly on select); the

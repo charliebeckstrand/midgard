@@ -11,6 +11,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { dataAttr } from '../../core'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { scrollNodeWithin } from '../../hooks/use-scroll-within'
 import { defineMessage } from '../../primitives/intl/intl-messages'
@@ -392,6 +393,8 @@ export function LightboxStage({
 	return (
 		<div
 			data-slot="lightbox"
+			// The stamp drops while the photo goes back to its thumbnail.
+			data-open={dataAttr(isPresent)}
 			role="dialog"
 			aria-modal="true"
 			aria-label={labels.viewer}

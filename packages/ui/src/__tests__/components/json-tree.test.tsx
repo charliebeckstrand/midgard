@@ -68,6 +68,28 @@ describe('JsonTree', () => {
 		expect(screen.getByText('"value"')).toBeInTheDocument()
 	})
 
+	it('stamps data-open on each open group, and renders no group for a closed branch', () => {
+		const { container } = renderUI(
+			<JsonTree data={{ nested: { value: 1 } }} defaultExpandDepth={1} />,
+		)
+
+		const groups = () => [...container.querySelectorAll('[data-slot="json-group"]')]
+
+		const before = groups()
+
+		for (const group of before) expect(group).toHaveAttribute('data-open')
+
+		const toggle = present(screen.getByText('"nested"').closest('button'), 'toggle')
+
+		fireEvent.click(toggle)
+
+		const after = groups()
+
+		expect(after).toHaveLength(before.length + 1)
+
+		for (const group of after) expect(group).toHaveAttribute('data-open')
+	})
+
 	it('restores a descendant expansion after its ancestor is collapsed and reopened', () => {
 		renderUI(<JsonTree data={{ outer: { inner: { leaf: 1 } } }} defaultExpandDepth={2} />)
 

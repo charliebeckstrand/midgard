@@ -101,7 +101,10 @@ describe('grid grouped body under native scroll anchoring (real browser)', () =>
 
 		const toggle = (team: string) =>
 			present(
-				body.querySelector<HTMLElement>(`tr[data-group-row] button[aria-label$="group ${team}"]`),
+				// The toggle is named by its visible label, the team and its count.
+				[...body.querySelectorAll<HTMLElement>('tr[data-group-row] button[aria-expanded]')].find(
+					(button) => button.textContent?.startsWith(`${team} (`),
+				),
 				`the toggle of ${team}`,
 			)
 

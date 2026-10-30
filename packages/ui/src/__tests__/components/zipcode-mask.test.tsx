@@ -148,6 +148,33 @@ describe('zipcodeMask', () => {
 		expect(input.selectionStart).toBe(value.length)
 	})
 
+	it.each<[string, ReturnType<typeof zipcodeMask>, string, number, string]>([
+		['a letter in the US mask', zipcodeMask(), '12345', 3, 'a'],
+		['a + in the CA mask', zipcodeMask('CA'), 'K1A 0B1', 2, '+'],
+		['a + in the GB mask', zipcodeMask('GB'), 'SW1A 1AA', 2, '+'],
+	])(
+		'keeps the caret in place when the format drops %s',
+		async (_name, mask, defaultValue, caret, key) => {
+			const { container } = renderUI(<MaskInput mask={mask} defaultValue={defaultValue} />)
+
+			const input = getSlot<HTMLInputElement>(container, 'mask-input')
+
+			const before = input.value
+
+			input.focus()
+
+			input.setSelectionRange(caret, caret)
+
+			await setupUser().keyboard(key)
+
+			await Promise.resolve()
+
+			expect(input.value).toBe(before)
+
+			expect(input.selectionStart).toBe(caret)
+		},
+	)
+
 	it('uses an empty default placeholder for international codes', () => {
 		const { container } = renderUI(<MaskInput mask={zipcodeMask('international')} />)
 

@@ -503,8 +503,10 @@ export type ColumnMeasurement = {
 	/**
 	 * The widest body leaf (px, border box of its cell) of each scanned column, as
 	 * the automatic table layout reads it: not rounded, and inside the `max-width`
-	 * of the leaf. A scanned column that rendered no leaf has no entry. These are
-	 * the least widths of the automatic layout (see `createColumnSizer`).
+	 * of the leaf. It is not more than the `maxWidth` of the column, because that
+	 * width caps the border box of the cell, chrome included. A scanned column
+	 * that rendered no leaf has no entry. These are the least widths of the
+	 * automatic layout (see `createColumnSizer`).
 	 */
 	leaves: Map<string, number>
 	/** The rendered width (px, border box) of the header cell of each scanned column. */
@@ -550,6 +552,9 @@ export function measureColumns<T>({
 
 	const scans = new Map<string, ColumnScan>()
 
+	// The `maxWidth` of each data column that has one.
+	const maxes = new Map<string, number>()
+
 	// Pass one: every read against the current layout (header floors and body
 	// scans) before the batched leaf widening below dirties it.
 	for (const col of columns) {
@@ -562,6 +567,8 @@ export function measureColumns<T>({
 		floors.set(id, floor)
 
 		titles.set(id, header)
+
+		if (col.maxWidth != null) maxes.set(id, col.maxWidth)
 
 		const cellsOfColumn = bodies.get(id)
 
@@ -586,7 +593,10 @@ export function measureColumns<T>({
 	for (const [id, { widest: width, least }] of scans) {
 		widest.set(id, Math.max(width, titles.get(id) ?? 0))
 
-		if (least > 0) leaves.set(id, least)
+		// The leaf asks for its `maxWidth` at most (see `k.fit.cap`), and its cell adds
+		// the chrome. The column stays in its `maxWidth`, so the leaf gets that width
+		// less the chrome.
+		if (least > 0) leaves.set(id, Math.min(least, maxes.get(id) ?? least))
 
 		const th = headers.get(id)
 

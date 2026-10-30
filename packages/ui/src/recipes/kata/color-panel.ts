@@ -7,6 +7,12 @@
  * The wash gradients are raw CSS `background-image` literals here, not kiso
  * tokens, because only the panel uses them. The checkerboard behind the alpha
  * track and the preview is `omote.checkerboard`, which the color picker shares.
+ *
+ * Each part that shows a color keeps its real color under forced colors
+ * (`forced-color-adjust-none`): the area, the tracks, the preview, and the
+ * preset chips. A system color in their place would make every chip alike and
+ * remove the hue and the alpha. The rings and the focus outlines of these parts
+ * keep their forced-colors outlines.
  */
 
 import { defineScale } from '../../core/density'
@@ -26,20 +32,30 @@ const handle = [
 	...ring.line[1].outset,
 ] as const
 
+// The color parts keep their real color under forced colors.
+const keepColor = 'forced-color-adjust-none'
+
 const area = [
 	'relative w-full cursor-crosshair touch-none',
+	keepColor,
 	...focus.ring,
 	dan.size.colorPanel.area,
 ]
 
 const track = [
 	'relative w-full cursor-pointer touch-none',
+	keepColor,
 	rounded.full,
 	...focus.outline,
 	dan.size.colorPanel.channel,
 ]
 
-const preview = ['relative shrink-0 overflow-hidden', rounded.md, dan.size.colorPanel.preview]
+const preview = [
+	'relative shrink-0 overflow-hidden',
+	keepColor,
+	rounded.md,
+	dan.size.colorPanel.preview,
+]
 
 export const k = defineKata(
 	{
@@ -96,6 +112,7 @@ export const k = defineKata(
 			 */
 			swatch: [
 				'relative cursor-pointer',
+				keepColor,
 				kokkaku.colorPanel.swatch,
 				rounded.md,
 				...ring.inset,

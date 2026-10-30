@@ -32,7 +32,7 @@ export const k = defineKata(
 		/**
 		 * The surface of the panel. `glass` is the other half of the marker that
 		 * `hannou.tint.glass` keys on: the panel also sets `data-glass`. See
-		 * `recipes/kiso/hannou/glass-item.ts`.
+		 * `recipes/kiso/hannou/tint.ts`.
 		 */
 		surface: {
 			flat: omote.popover,

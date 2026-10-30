@@ -10,7 +10,10 @@ export type StackedLayoutProps = ComponentProps<'div'>
  * Vertically stacked page layout: a min-height-collapsing {@link Stack} column
  * that hosts {@link StackedLayoutHeader}, {@link StackedLayoutBody}, and
  * {@link StackedLayoutFooter}. The header and footer stay fixed-height while the
- * body flexes and scrolls.
+ * body flexes. The column takes the height of its content, so the body scrolls
+ * only when a parent bounds the height of the layout (for example `h-dvh`, or a
+ * flex parent with a bounded height). Under a `min-h-*` parent, the page
+ * scrolls.
  */
 export function StackedLayout({ className, ...props }: StackedLayoutProps) {
 	return (
@@ -35,6 +38,7 @@ export type StackedLayoutBodyProps = ComponentProps<'main'>
 /**
  * Flexible, vertically scrolling main slot for {@link StackedLayout}
  * (`data-slot="body"`). Takes the remaining height between header and footer.
+ * It scrolls only when a parent bounds the height of {@link StackedLayout}.
  * Inside the main slot of another layout, it renders a `<div>`, so the page
  * keeps one main landmark.
  */

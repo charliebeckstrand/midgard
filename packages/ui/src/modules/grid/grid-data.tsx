@@ -562,6 +562,7 @@ export function GridData<T>({
 		ariaRowCount,
 		dataRowCount,
 		footerStats,
+		footerPageScoped,
 		semantics: { enabled: gridSemantics, selectAllLabel },
 		rowIndexOffset,
 		rowHover,
@@ -860,7 +861,7 @@ export function GridData<T>({
 							</GridRegion>
 						</GridGroupByContext>
 
-						<GridFooterBar config={footer} stats={footerStats} />
+						<GridFooterBar config={footer} stats={footerStats} pageScoped={footerPageScoped} />
 
 						{pagination && (
 							<GridPaginationFooter

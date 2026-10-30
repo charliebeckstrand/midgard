@@ -49,8 +49,8 @@ export const k = defineKata({
 						// The copy button sits in the flex row, not in an absolute position. Its
 						// line box is one code line tall, and `items-start` puts the box on the
 						// first code line. The button centers on the box and overhangs it into
-						// the padding of the block. At `md` the sm button (24px) overhangs the
-						// 20px `text-sm` line by 2px on each side. Thus the row stays one line
+						// the padding of the block. At `md` the sm button (26px) overhangs the
+						// 22px `text-sm` line by 2px on each side. Thus the row stays one line
 						// tall, the glyph centers on the first code line, and a block of one line
 						// is vertically centered. The close button of an alert uses the same
 						// line box.

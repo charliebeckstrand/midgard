@@ -172,7 +172,10 @@ export function Lightbox({
 
 	const viewable = viewablePhotos(photos, getLoad)
 
-	const open = index !== undefined && viewable.some((photo) => photo.index === index)
+	// The photo that the viewer shows, or `undefined` while the viewer is closed.
+	const current = viewable.find((photo) => photo.index === index)?.index
+
+	const open = current !== undefined
 
 	// The photo of `index` left `photos`, or its thumbnail loaded and gave it no
 	// box, so the viewer cannot show it. The viewer closes and reports it, so
@@ -189,15 +192,16 @@ export function Lightbox({
 
 	// The photo on the stage. It holds the last photo through the return, and the
 	// thumbnail of that photo stays empty until the photo lands in it.
-	const [shown, setShown] = useState<number | null>(open ? index : null)
+	const [shown, setShown] = useState<number | null>(open ? current : null)
 
-	if (open && shown !== index) setShown(index)
+	if (open && shown !== current) setShown(current)
 
 	const images = useRef(new Map<number, HTMLImageElement>())
 
 	const context: LightboxContextValue = {
 		photos,
 		shown,
+		current,
 		show: setIndex,
 		register: (slot, image) => {
 			images.current.set(slot, image)

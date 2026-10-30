@@ -133,7 +133,9 @@ export type SignaturePadProps = Omit<
  * `readOnly` wins over the Control's. The validation ring and the description
  * ids go onto the canvas (`role="img"`). On clear, focus moves
  * to the canvas as the clear button unmounts (WCAG 2.4.3). The backing store is
- * `string | null`; `undefined` is never emitted.
+ * `string | null`; `undefined` is never emitted. The pad puts no value in a
+ * native form, so a native form reset does not clear it. The reset of a
+ * `<Form>` sets a bound pad back to the default of its field.
  *
  * @see {@link SignaturePadProps}
  * @see {@link SignaturePadHandle}

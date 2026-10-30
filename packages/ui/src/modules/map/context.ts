@@ -46,8 +46,8 @@ export type MapHoverActions = {
 	 */
 	get: () => MapHoverTarget | null
 	/**
-	 * Holds the readout through a pinch, or lets it go. A held readout takes a
-	 * clear and no new target, and holding it clears it.
+	 * Holds the readout through a pinch or a wheel zoom, or lets it go. A held
+	 * readout takes a clear and no new target, and holding it clears it.
 	 *
 	 * A touch pointer is captured on contact by the region or the mark under it.
 	 * That element gets each move of the finger, whatever the layer's

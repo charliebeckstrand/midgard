@@ -34,8 +34,10 @@ type MapFrameProps = Omit<ComponentProps<'div'>, 'ref' | 'children'> & {
 	containerRef: Ref<HTMLDivElement>
 	/** What the view transform needs; the provider mounts around the plot alone. */
 	zoom: MapZoomOptions
-	/** Whether the tooltip is on; gates the hover provider's scroll listener. */
-	tooltip: boolean
+	/** Whether the pointer can drive the readout or the pointed emphasis; gates the hover provider's scroll listener. */
+	hover: boolean
+	/** Whether the region paths take the pointer; the hover provider's scroll-settle gate. */
+	regionsTracked: boolean
 	/** Whether a region's category is matched and shown; the hover provider's pointed-emphasis gate. */
 	regionActive: (index: number) => boolean
 	/** The legend id under emphasis; the hover provider hands it to the marks. */
@@ -56,7 +58,8 @@ export function MapFrame({
 	plotRef,
 	containerRef,
 	zoom,
-	tooltip,
+	hover,
+	regionsTracked,
 	regionActive,
 	emphasis,
 	preloadRegion,
@@ -96,7 +99,8 @@ export function MapFrame({
 			style={width === undefined ? style : { ...style, width }}
 		>
 			<MapHoverProvider
-				enabled={tooltip}
+				enabled={hover}
+				regionsTracked={regionsTracked}
 				plotRef={plotRef}
 				regionActive={regionActive}
 				emphasis={emphasis}
