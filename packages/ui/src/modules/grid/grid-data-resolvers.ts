@@ -27,7 +27,7 @@ import type {
 	GridInfiniteScroll,
 	GridVirtualize,
 } from './grid-data-types'
-import type { GridColumn, GridSearch } from './types'
+import type { GridColumn, GridColumnFilters, GridSearch } from './types'
 import type { GridNavTableProps, GridNewRowPosition } from './use-grid-navigation'
 import type {
 	GridColumnFilter,
@@ -545,6 +545,26 @@ export function resolveNewRowIndex(args: {
 }
 
 /**
+ * Whether a server-side (`manual`) search query or column filter narrows the
+ * rows. The filter mode is table-wide, so either `manual` flag makes both
+ * surfaces server-side. The consumer then feeds back only the matched rows,
+ * and the row count does not show the narrowed view. The query and the filter
+ * state show it.
+ *
+ * @internal
+ */
+export function manualNarrowed(args: {
+	search: GridSearch | undefined
+	columnFilters: GridColumnFilters | undefined
+	globalFilter: GridGlobalFilterView | null
+	filters: GridColumnFilter | null
+}): boolean {
+	const manual = args.search?.manual === true || args.columnFilters?.manual === true
+
+	return manual && ((args.globalFilter?.value ?? '') !== '' || (args.filters?.active ?? false))
+}
+
+/**
  * Whether the grid's current state permits a manual row drag-reorder. A manual
  * order only holds against the natural row order, so reordering stands down
  * whenever the rendered rows diverge from the source set. That covers an active
@@ -553,7 +573,9 @@ export function resolveNewRowIndex(args: {
  * master-detail, and an empty or loading grid. A detail row is not a sortable
  * item, so a drag would move its row away from it. The rendered-length check
  * catches client filtering, search, and client pagination in one; the pagination
- * and virtualization flags catch the server-page and windowed cases.
+ * and virtualization flags catch the server-page and windowed cases. The
+ * `narrowed` flag catches a server-side search or column filter, where the
+ * consumer feeds back only the matched rows and the two counts agree.
  *
  * @internal
  */
@@ -566,6 +588,8 @@ export function rowReorderPermitted(args: {
 	grouped: boolean
 	expanded: boolean
 	sorted: boolean
+	/** Whether a server-side search query or column filter narrows the rows (see {@link manualNarrowed}). */
+	narrowed: boolean
 	renderedCount: number
 	sourceCount: number
 }): boolean {
@@ -577,6 +601,7 @@ export function rowReorderPermitted(args: {
 		!args.grouped &&
 		!args.expanded &&
 		!args.sorted &&
+		!args.narrowed &&
 		args.renderedCount === args.sourceCount
 	)
 }

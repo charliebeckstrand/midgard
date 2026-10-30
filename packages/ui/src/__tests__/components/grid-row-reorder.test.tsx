@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn, type GridProps } from '../../modules/grid'
+import { createGroup, createRule } from '../../modules/query'
 import { act, fireEvent, renderUI, screen } from '../helpers'
 
 /**
@@ -33,6 +34,20 @@ describe('Grid row reorder', () => {
 		},
 		{ id: 'age', title: 'Age', cell: (row) => row.age, sortable: true, value: (row) => row.age },
 	]
+
+	// A server-side filter needs a filterable column. The query keeps the rows
+	// whose name holds "Al".
+	const filterableColumns = columns.map((column) =>
+		column.id === 'name' ? { ...column, filterable: true } : column,
+	)
+
+	const nameHoldsAl = createGroup('and', [
+		{
+			...createRule({ name: 'name', label: 'Name', type: 'text' }),
+			operator: 'contains',
+			value: 'Al',
+		},
+	])
 
 	function grips() {
 		return screen.getAllByRole('button', { name: /Reorder/ })
@@ -109,6 +124,16 @@ describe('Grid row reorder', () => {
 			},
 		],
 		['when the binding is disabled', { rowReorder: { onReorder: () => {}, disabled: true } }],
+		// The consumer feeds back only the matched rows, so the rendered rows and
+		// the source rows have the same count.
+		['under a server-side search with a query', { search: { manual: true, value: 'Al' } }],
+		[
+			'under a server-side column filter',
+			{
+				columns: filterableColumns,
+				columnFilters: { manual: true, value: [{ id: 'name', value: nameHoldsAl }] },
+			},
+		],
 	])('disables the grip %s', (_name, props) => {
 		renderUI(
 			<Grid
@@ -122,6 +147,21 @@ describe('Grid row reorder', () => {
 		)
 
 		for (const handle of grips()) expect(handle).toBeDisabled()
+	})
+
+	it('keeps the grip live under a server-side search with no query', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				rowLabel={rowLabel}
+				rowReorder={{ onReorder: () => {} }}
+				search={{ manual: true, value: '' }}
+			/>,
+		)
+
+		for (const handle of grips()) expect(handle).toBeEnabled()
 	})
 
 	it('renders the inert grip when no rowReorder binding is supplied', () => {
