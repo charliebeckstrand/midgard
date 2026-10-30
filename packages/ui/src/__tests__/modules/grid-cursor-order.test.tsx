@@ -174,6 +174,54 @@ describe('Grid cursor over grouped rows', () => {
 		expect(header).not.toHaveAttribute('data-expanded')
 	})
 
+	it('seats the cursor on the first header before an unseated arrow key toggles it', () => {
+		const grid = renderGrouped()
+
+		act(() => grid.focus())
+
+		const header = grid.querySelector('tr[data-group-row]')
+
+		// Escape unseats the cursor. ArrowLeft then closes the open first group, and
+		// the reader sees the header that changed.
+		press(grid, 'Escape')
+
+		expect(grid).not.toHaveAttribute('aria-activedescendant')
+
+		press(grid, 'ArrowLeft')
+
+		expect(header).toHaveAttribute('aria-expanded', 'false')
+
+		expect(activeCell(grid)?.closest('tr')).toBe(header)
+
+		// ArrowRight opens the closed first group in the same way.
+		press(grid, 'Escape')
+
+		press(grid, 'ArrowRight')
+
+		expect(header).toHaveAttribute('aria-expanded', 'true')
+
+		expect(activeCell(grid)?.closest('tr')).toBe(header)
+	})
+
+	it('seats the cursor on a closed first header for an unseated ArrowLeft', () => {
+		const grid = renderGrouped()
+
+		act(() => grid.focus())
+
+		const header = grid.querySelector('tr[data-group-row]')
+
+		press(grid, 'Enter')
+
+		press(grid, 'Escape')
+
+		// The group is closed, so ArrowLeft does not change it. It seats the cursor.
+		press(grid, 'ArrowLeft')
+
+		expect(header).toHaveAttribute('aria-expanded', 'false')
+
+		expect(activeCell(grid)?.closest('tr')).toBe(header)
+	})
+
 	it('moves the cursor to its header when the group of its leaf closes', () => {
 		const grid = renderGrouped()
 

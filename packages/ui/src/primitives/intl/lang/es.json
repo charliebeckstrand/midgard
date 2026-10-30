@@ -282,6 +282,7 @@
 	"ui.grid.rowGroupName": "grupo {group}",
 	"ui.grid.rowName": "fila {key}",
 	"ui.grid.rowRefused": "{count, plural, one {Fila no añadida, # celda rechazada} other {Fila no añadida, # celdas rechazadas}}",
+	"ui.grid.rowsOnPage": "{rows, plural, one {# fila} other {# filas}} en esta página",
 	"ui.grid.rowsPerPage": "Filas por página",
 	"ui.grid.rowsResult": "{count, plural, =0 {Sin resultados} one {# fila} other {# filas}}",
 	"ui.grid.rowsSelected": "{count, plural, one {# fila seleccionada} other {# filas seleccionadas}}",

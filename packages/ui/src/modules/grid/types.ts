@@ -303,7 +303,8 @@ export type GridColumn<T> = {
 	 */
 	locked?: boolean | 'left' | 'right'
 	/**
-	 * When false, the column cannot be hidden from the column manager.
+	 * When false, the column cannot be hidden from the column manager. The grid
+	 * also shows it when a hidden set names it.
 	 * @defaultValue true
 	 */
 	hideable?: boolean
@@ -329,7 +330,8 @@ export type GridColumnManagerItem = {
 	 */
 	locked?: 'left' | 'right'
 	/**
-	 * When false, the column cannot be hidden.
+	 * When false, the column cannot be hidden. The manager shows its row checked
+	 * and disabled, also when the hidden set names it.
 	 * @defaultValue true
 	 */
 	hideable?: boolean
