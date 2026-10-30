@@ -26,6 +26,7 @@ import { useKeybindings } from '../../hooks/use-keybindings'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { Landmark } from '../../primitives/landmark'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { Portal } from '../../primitives/portal'
 import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/appearance-storage'
@@ -144,7 +145,8 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
  * @remarks The page scrolls at each width, so the scroll restoration of a router
  * resets and restores the position of the page. In the drawer layout, the navbar
  * is the one bar that sticks to the top. The navbar is a region named "Navigation
- * bar", which holds the menu button, `navbar`, and `actions`. The header scrolls
+ * bar", which holds the menu button, `navbar`, and `actions`. Inside the main
+ * landmark of another layout, the navbar is not a region. The header scrolls
  * with the content. In the inline layout, the panel sticks to the top, has the
  * height of the viewport, and scrolls on its own. A scroll that reaches the end of the
  * panel stops there, and the page does not move. There, `stickyHeader` keeps the
@@ -339,9 +341,12 @@ export function SidebarLayout({
 					</DrawerPanel>
 
 					{/* Navbar of the drawer layout. A named section, so the menu button, the
-					    navbar, and the actions are in a landmark. The section is the sticky bar,
-					    as a sticky child sticks only inside the box of its parent. */}
-					<section
+					    navbar, and the actions are in a landmark. Inside the main landmark of
+					    another layout, they are in that landmark, and the section is not a
+					    region (`Landmark`). The section is the sticky bar, as a sticky child
+					    sticks only inside the box of its parent. */}
+					<Landmark
+						as="section"
 						ref={setBar}
 						aria-label={intl.formatMessage(messages.navigationBar)}
 						className={slots.navbar}
@@ -358,7 +363,7 @@ export function SidebarLayout({
 							{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
 							{actions && <div className={cn(slots.actions, 'ms-auto')}>{actions}</div>}
 						</Flex>
-					</section>
+					</Landmark>
 				</Drawer>
 
 				{/* Content */}
@@ -419,15 +424,21 @@ export function SidebarLayoutHeader({
 	)
 }
 
-/** Props for {@link SidebarLayoutBody} (`<main>` attributes); `ref` reaches the `<main>`. */
+/** Props for {@link SidebarLayoutBody} (`<main>` attributes); `ref` reaches the element that it renders. */
 export type SidebarLayoutBodyProps = ComponentProps<'main'>
+
+const bodyClass = k().body
 
 /**
  * Main content slot for {@link SidebarLayout} (`data-slot="body"`). It scrolls
  * with the page at each width. It grows into the free height of the content
- * region, so the footer sits at the bottom of a short page.
+ * region, so the footer sits at the bottom of a short page. Inside the main
+ * slot of another layout, it renders a `<div>`, so the page keeps one main
+ * landmark.
  */
-export const SidebarLayoutBody = createSlot('main', 'body', k().body)
+export function SidebarLayoutBody({ className, ...props }: SidebarLayoutBodyProps) {
+	return <Landmark as="main" data-slot="body" className={cn(bodyClass, className)} {...props} />
+}
 
 /** Props for {@link SidebarLayoutFooter} (`<footer>` attributes). */
 export type SidebarLayoutFooterProps = ComponentProps<'footer'>

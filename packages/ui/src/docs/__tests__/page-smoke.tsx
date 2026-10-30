@@ -4,10 +4,12 @@ import { configureAxe } from 'jest-axe'
 import { type ComponentType, useEffect } from 'react'
 import { Link, MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { Heading } from 'ui/heading'
+import { SidebarLayoutBody } from 'ui/layouts'
 import type { LinkProps } from 'ui/primitives/link'
 import { AppearanceProvider } from 'ui/providers/appearance'
 import { LocaleProvider } from 'ui/providers/locale'
 import { UIProvider } from 'ui/providers/ui'
+import { Sidebar } from 'ui/sidebar'
 import { describe, expect, it, vi } from 'vitest'
 import { CI } from '../../../vitest.base.ts'
 import { catalogs } from '../app/catalogs.ts'
@@ -50,10 +52,13 @@ import { findSameText, readTexts, recordIntl } from './same-text.ts'
 // The rules (`AXE_RULES`) are the structural ones that a page breaks most.
 // They find a button with no name, and a role that lacks its required
 // children. They also find two landmarks with the same name, a form control
-// with no label, and a heading that skips a level. The test renders the `h1`
-// of the page, as the header of the shell does, so the headings of the page
-// start under it. jsdom has no layout, so the rules of geometry stay
-// with the browser suite.
+// with no label, a heading that skips a level, and a second main landmark or
+// one inside another. The test renders the `h1` of the page, as the header of
+// the shell does, so the headings of the page start under it. It renders the
+// page in the main landmark of a layout, next to a navigation landmark, as the
+// shell does, so the rules see the landmarks of the shell with those of the
+// page. jsdom has no layout, so the rules of geometry stay with the browser
+// suite.
 //
 // The pages import the virtual modules of the docs plugin, so the `unit`
 // project loads the plugin (`vitest.config.ts`).
@@ -137,6 +142,8 @@ const AXE_RULES = [
 	'landmark-unique',
 	'label',
 	'heading-order',
+	'landmark-no-duplicate-main',
+	'landmark-main-is-top-level',
 ]
 
 // No rule of `AXE_RULES` reads the stylesheets or the media of the page, so
@@ -305,13 +312,16 @@ function renderPage(
 					<AppearanceProvider>
 						<VisitedPaths visited={visited} />
 						<Heading translate="no">{page.name}</Heading>
-						<Routes>
-							<Route path={page.path} element={<Page />}>
-								{tabs.map(([tab, Tab]) => (
-									<Route key={tab} path={tab} element={<Tab />} />
-								))}
-							</Route>
-						</Routes>
+						<Sidebar />
+						<SidebarLayoutBody>
+							<Routes>
+								<Route path={page.path} element={<Page />}>
+									{tabs.map(([tab, Tab]) => (
+										<Route key={tab} path={tab} element={<Tab />} />
+									))}
+								</Route>
+							</Routes>
+						</SidebarLayoutBody>
 					</AppearanceProvider>
 				</UIProvider>
 			</LocaleProvider>
