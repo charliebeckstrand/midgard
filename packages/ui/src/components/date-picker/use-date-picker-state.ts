@@ -23,10 +23,11 @@ import {
  * clear/today footer.
  *
  * @returns Trigger props (`triggerId`, `dialogId`, `displayValue`, `disabled`,
- * `readOnly`, `invalid`, …) and popover plumbing (`open`, `onOpenChange`, `setReference`,
- * `setFloating`, `floatingStyles`, floating-ui prop getters, `context`). It
- * also returns the keyboard handler `onTriggerKeyDown`, and the
- * `calendar`/`footer` prop bundles for the open dialog.
+ * `readOnly`, `invalid`, …) and popover plumbing (`open`, `onOpenChange`,
+ * `setReference`, `setFloating`, `floatingStyles`, floating-ui prop getters,
+ * `context`). It also returns the keyboard handler `onTriggerKeyDown`, the
+ * `calendar`/`footer` prop bundles for the open dialog, and `setTouched`, which
+ * marks the bound field touched.
  * @internal
  */
 export function useDatePickerState({
@@ -208,6 +209,7 @@ export function useDatePickerState({
 		dialogId,
 		value,
 		setValue,
+		setTouched,
 		hasValue: value != null,
 		onClear: handleClear,
 		// A pinned `format` writes the label as the typed field writes the date.

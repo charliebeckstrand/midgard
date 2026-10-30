@@ -80,7 +80,9 @@ export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
  * a hex string (default) or an HSVA object per `format`. It positions via
  * Floating UI (`placement`). It takes the step of the nearest density scope,
  * and an explicit `size` opens a scope on the trigger and on the panel.
- * Controlled or uncontrolled.
+ * Controlled or uncontrolled. The picker puts no value in a native form, so a
+ * native form reset does not change its color. The reset of a `<Form>` sets a
+ * bound picker back to the default of its field.
  *
  * The trigger is as wide as its swatch and its color value. It does not fill
  * its parent, and it does not get wider than its parent. Pass a `className`

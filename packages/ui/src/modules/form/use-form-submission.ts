@@ -142,7 +142,12 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 
 			dispatch({ type: 'submit-validate', touched, errors })
 
-			if (!onSubmit) return
+			// With no handler, the passed validation is the terminal outcome.
+			if (!onSubmit) {
+				reportSettled({ ok: true, values: submitValues })
+
+				return
+			}
 
 			const token = ++tokenRef.current
 
