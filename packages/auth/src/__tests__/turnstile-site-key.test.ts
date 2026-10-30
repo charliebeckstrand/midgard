@@ -48,7 +48,5 @@ describe('getTurnstileSiteKey', () => {
 		expect(error).toHaveBeenCalledOnce()
 
 		expect(cacheLife).toHaveBeenCalledWith('seconds')
-
-		error.mockRestore()
 	})
 })

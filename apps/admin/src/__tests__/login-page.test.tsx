@@ -34,9 +34,6 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@simplewebauthn/browser', () => ({ startAuthentication: vi.fn() }))
 
-// The mocks of the modules keep their calls between the tests.
-beforeEach(() => vi.clearAllMocks())
-
 afterEach(cleanup)
 
 /** A session of a user with the given roles, with or without the second step. */

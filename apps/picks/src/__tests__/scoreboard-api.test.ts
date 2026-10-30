@@ -1,10 +1,6 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { fetchWeekGames } from '../api/scoreboard-api'
 import { game } from './fixtures'
-
-afterEach(() => {
-	vi.unstubAllGlobals()
-})
 
 describe('scoreboard api', () => {
 	it('asks the route handler for the week and answers with its games', async () => {

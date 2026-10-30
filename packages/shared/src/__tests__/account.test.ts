@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { oauthStartPath, signOut } from '../auth/account'
 
 // A browser resolves a same-origin path, and the `Request` of Node takes only an absolute URL.
@@ -8,10 +8,6 @@ vi.hoisted(() => {
 			super(typeof input === 'string' ? new URL(input, 'http://localhost') : input, init)
 		}
 	}
-})
-
-afterEach(() => {
-	vi.unstubAllGlobals()
 })
 
 describe('oauthStartPath', () => {

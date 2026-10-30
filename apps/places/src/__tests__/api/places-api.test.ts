@@ -133,8 +133,6 @@ beforeEach(() => {
 
 afterEach(() => {
 	vi.useRealTimers()
-
-	vi.unstubAllGlobals()
 })
 
 describe('uploadPhoto', () => {
