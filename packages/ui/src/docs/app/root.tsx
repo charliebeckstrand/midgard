@@ -1,19 +1,10 @@
 import pages from 'virtual:docs/pages'
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { type ReactNode, useEffect } from 'react'
-import {
-	Links,
-	Meta,
-	Outlet,
-	Scripts,
-	ScrollRestoration,
-	useLocation,
-	useMatches,
-	useNavigate,
-} from 'react-router'
+import { type ReactNode, useEffect, useLayoutEffect, useRef } from 'react'
+import { Links, Meta, Outlet, Scripts, useLocation, useMatches, useNavigate } from 'react-router'
 import { Button } from 'ui/button'
 import { loadShiki } from 'ui/code'
-import { EventsAside, EventsButton, EventsSwitch } from 'ui/events'
+import { EventsAside, EventsButton, EventsScript, EventsSwitch } from 'ui/events'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
@@ -26,7 +17,6 @@ import { UIDocument, UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
 import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
-import { DebugScript } from '../debug/index.tsx'
 import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
 import { appMessages } from './app-messages.ts'
@@ -65,14 +55,13 @@ export function Layout({ children }: { children: ReactNode }) {
 					<StaleBuildScript />
 					<link rel="expect" href={`#${FIRST_PAINT}`} blocking="render" />
 					<DirectionScript />
-					<DebugScript />
+					<EventsScript />
 					<Meta />
 					<Links />
 				</>
 			}
 		>
 			{children}
-			<ScrollRestoration />
 			<CurrentScrollScript id={FIRST_PAINT} />
 			<Scripts />
 		</UIDocument>
@@ -161,7 +150,9 @@ export default function App() {
 // The content of the shell. It reads the intl of the locale provider of the
 // shell, so it is a component under that provider.
 function Shell() {
-	const { pathname } = useLocation()
+	const location = useLocation()
+
+	const { pathname } = location
 
 	const { sidebar, setSidebar } = useAppearance()
 
@@ -180,6 +171,28 @@ function Shell() {
 
 	useIdle(warmShiki)
 
+	// The path of the page, the same for each of its tabs.
+	const path = page?.path ?? pathname
+
+	// The path of the page that the window scrolled for last.
+	const scrolled = useRef<string>(undefined)
+
+	// A navigation to a hash scrolls to its element, also a second link to the
+	// same hash, because each navigation gives a new location. A new page
+	// starts at the top, and a tab of the same page keeps the scroll. A reload
+	// also starts at the top, because the client entry turns off the scroll
+	// restoration of the browser.
+	useLayoutEffect(() => {
+		const { hash } = location
+
+		const target = hash && document.getElementById(decodeURIComponent(hash.slice(1)))
+
+		if (target) target.scrollIntoView()
+		else if (scrolled.current !== path) window.scrollTo(0, 0)
+
+		scrolled.current = path
+	}, [location, path])
+
 	// The root element has the language of the HTML at the first paint
 	// (`Layout`). When the reader changes the language, it takes the new one,
 	// so a screen reader reads the page in the language of its text.
@@ -190,7 +203,7 @@ function Shell() {
 	return (
 		// The links match the path of the page, so the item of a page is current
 		// on each tab of the page, and no item is current on the not-found page.
-		<UIProvider link={RouterLink} pathname={page?.path ?? pathname}>
+		<UIProvider link={RouterLink} pathname={path}>
 			<title>{title ? intl.formatMessage(pageTitleMessage, { page: title }) : docs}</title>
 			<Stylesheet />
 			<DocsSearch>

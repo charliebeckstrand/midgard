@@ -75,8 +75,7 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 			onValueChange={(tab) => {
 				if (tab === null) return
 
-				// The page keeps its scroll position when the tab changes.
-				navigate(tab === home ? '.' : tab, { preventScrollReset: true })
+				navigate(tab === home ? '.' : tab)
 			}}
 		>
 			<TabList aria-label={intl.formatMessage(sectionsMessage)}>

@@ -23,6 +23,10 @@ watchStaleBuild()
 
 watchFailedLoads()
 
+// A reload starts at the top of the page. The shell scrolls to the top on
+// each new page (`root.tsx`).
+history.scrollRestoration = 'manual'
+
 // While the events run, the store records from before hydration.
 await startDebug()
 
