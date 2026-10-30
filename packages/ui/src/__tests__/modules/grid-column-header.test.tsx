@@ -43,6 +43,7 @@ function renderHeader(listeners: NonNullable<DraggableSyntheticListeners>) {
 								column={{ id: 'name', title: <PortaledTitle /> }}
 								ariaColIndex={1}
 								columnIndex={0}
+								hiddenName={undefined}
 								sorted={false}
 								direction={undefined}
 								sortPriority={undefined}
