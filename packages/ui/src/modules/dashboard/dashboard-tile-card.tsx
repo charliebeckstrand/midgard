@@ -1,5 +1,6 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { memo, type ReactNode, type RefObject } from 'react'
 import { Card } from '../../components/card'
 import { dataAttr } from '../../core'
@@ -10,6 +11,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import type { Mount } from '../../primitives/mount'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/dashboard'
+import { keepFocusOnBoard } from './dashboard-focus'
 import { DashboardTileClear } from './dashboard-tile-clear'
 import { DashboardTileContent } from './dashboard-tile-content'
 import { DashboardTileControls } from './dashboard-tile-controls'
@@ -100,6 +102,8 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 
 	const slots = k({ editable: movable, dragging, floating: !hasHeader })
 
+	const setGripRef = useComposedRefs(grip.setActivatorNodeRef, keepFocusOnBoard)
+
 	// The grip is the only part of the tile that starts a drag, so the rest of
 	// the card keeps touch scrolling. With the keyboard, Space picks the tile
 	// up, the arrow keys move it, and Space drops it. A tile with no header row
@@ -107,7 +111,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 	const handle = movable && (
 		<SortableGrip
 			data-slot="dashboard-handle"
-			sortable={{ ...grip, dragging }}
+			sortable={{ ...grip, setActivatorNodeRef: setGripRef, dragging }}
 			label={intl.formatMessage(reorderMessages.moveHandle, { item: label })}
 			className={slots.handle}
 		/>
