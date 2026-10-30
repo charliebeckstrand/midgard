@@ -334,7 +334,7 @@ export function useMapOverlay({
 	const { project, register, colors, order, hidden, spare, pool, moves, animate, selectedOverlay } =
 		useMapPlat()
 
-	const { set } = useMapHoverActions()
+	const { set, get } = useMapHoverActions()
 
 	// Only whether this mark dims. A crossing or a legend hover that leaves the
 	// answer as it was, such as one between two regions, renders no overlay mark.
@@ -496,6 +496,20 @@ export function useMapOverlay({
 			stopAt,
 			ownIndex,
 		],
+	)
+
+	// A mark that unmounts under the pointer fires no leave, and the keyboard
+	// cursor cannot re-anchor on a stop that left the list. So the mark clears a
+	// hover target that names it. Otherwise the target names nothing, and the
+	// rest of the map stays dimmed behind it. Keyed on the id alone: a mark that
+	// registers again after a prop change keeps its hover.
+	useEffect(
+		() => () => {
+			const target = get()
+
+			if (target?.kind === 'entry' && target.id === id) set(null, null)
+		},
+		[get, set, id],
 	)
 
 	const track = useCallback(

@@ -1213,6 +1213,12 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// pair. Bound once rather than spelled at each of them.
 	const readable = tooltip && pointReadout
 
+	// Whether the pointer drives a hover target at all: the tracked region paths
+	// and every overlay hit shape write one, with the tooltip on or off. The
+	// pointed emphasis reads that target, so a scroll must clear and re-read it
+	// whenever this is true, and not only while the tooltip shows it.
+	const hover = regions.tracked || entries.length > 0
+
 	const intl = useIntl()
 
 	// What the tooltip reads, held once: the tooltip shows it, and the keyboard
@@ -1464,7 +1470,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				onViewChange,
 			}}
 			containerRef={rootRef}
-			tooltip={readable}
+			hover={hover}
+			regionsTracked={regions.tracked}
 			regionActive={regionActive}
 			emphasis={emphasis}
 			preloadRegion={preloadRegion}
