@@ -121,6 +121,7 @@ type GridValues = {
 	nextPage: Record<never, never>
 	rowsVisible: { rows: number; total: number }
 	rowCount: { rows: number }
+	rowsOnPage: { rows: number }
 	selectedHidden: { selected: number; hidden: number }
 	selectedOf: { selected: number; rows: number }
 	rowsResult: { count: number }
@@ -131,8 +132,6 @@ type GridValues = {
 	search: Record<never, never>
 	newRow: Record<never, never>
 	addRow: Record<never, never>
-	expandGroupNamed: { group: string }
-	collapseGroupNamed: { group: string }
 	expandNamed: { group: string }
 	collapseNamed: { group: string }
 	expandDetails: { row: string }
@@ -742,6 +741,12 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		defaultMessage: '{rows, plural, one {# row} other {# rows}}',
 		description: 'The row count in the footer of a grid.',
 	},
+	rowsOnPage: {
+		id: 'ui.grid.rowsOnPage',
+		defaultMessage: '{rows, plural, one {# row} other {# rows}} on this page',
+		description:
+			'The row count in the footer of a grid that shows one page of a server set whose total it does not know.',
+	},
 	selectedHidden: {
 		id: 'ui.grid.selectedHidden',
 		defaultMessage:
@@ -793,17 +798,6 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		id: 'ui.grid.addRow',
 		defaultMessage: 'Add row',
 		description: 'The name of the button that adds the new row to a grid.',
-	},
-	expandGroupNamed: {
-		id: 'ui.grid.expandGroupNamed',
-		defaultMessage: 'Expand group {group}',
-		description: 'The name of the button that opens a row group of a grid. The group is its value.',
-	},
-	collapseGroupNamed: {
-		id: 'ui.grid.collapseGroupNamed',
-		defaultMessage: 'Collapse group {group}',
-		description:
-			'The name of the button that closes a row group of a grid. The group is its value.',
 	},
 	expandNamed: {
 		id: 'ui.grid.expandNamed',

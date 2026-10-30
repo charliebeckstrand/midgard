@@ -207,7 +207,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 
 		const leavesBefore = body.querySelectorAll(':scope > tr[data-grid-row]').length
 
-		screen.getByRole('button', { name: 'Collapse group Alpha' }).click()
+		screen.getByRole('button', { name: /^Alpha \(/, expanded: true }).click()
 
 		// The rows in view stay as items while they close, and each one animates.
 		await waitFor(() => expect(runs.length).toBeGreaterThan(0))
@@ -233,7 +233,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 
 		await waitFor(() => expect(itemRows(body).length).toBeGreaterThan(0))
 
-		screen.getByRole('button', { name: 'Collapse group Alpha' }).click()
+		screen.getByRole('button', { name: /^Alpha \(/, expanded: true }).click()
 
 		// Person 1 is the first leaf of Alpha. It leaves once its reveal lands.
 		await waitFor(() => expect(body.querySelector('tr[data-grid-row="1"]')).toBeNull())
@@ -243,7 +243,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 		// The rows that animated, once each.
 		const animated = () => new Set(reveals.filter((row) => row !== null)).size
 
-		screen.getByRole('button', { name: 'Expand group Alpha' }).click()
+		screen.getByRole('button', { name: /^Alpha \(/, expanded: false }).click()
 
 		await waitFor(() => expect(animated()).toBeGreaterThan(0))
 

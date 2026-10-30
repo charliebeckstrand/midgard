@@ -6,6 +6,7 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { announce } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { keepFocusOnBoard } from './dashboard-focus'
 import { dashboardMessages } from './dashboard-messages'
 import { describeDuplicate, describeRemove } from './engine/dashboard-announcements'
 
@@ -64,6 +65,7 @@ export function DashboardTileControls({
 				<Button
 					type="button"
 					variant="bare"
+					ref={keepFocusOnBoard}
 					data-slot="dashboard-tile-duplicate"
 					aria-label={intl.formatMessage(dashboardMessages.duplicate, { item: label })}
 					onClick={() => {
@@ -80,6 +82,7 @@ export function DashboardTileControls({
 				<Button
 					type="button"
 					variant="bare"
+					ref={keepFocusOnBoard}
 					data-slot="dashboard-tile-remove"
 					aria-label={intl.formatMessage(dashboardMessages.remove, { item: label })}
 					onClick={() => {

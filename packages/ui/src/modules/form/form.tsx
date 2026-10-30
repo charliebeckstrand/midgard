@@ -44,7 +44,11 @@ export type FormProps<T extends Record<string, unknown>> = {
 	validateOn?: ValidateOn
 	/** Fires when a submit passes client validation, with the values and the form helpers. */
 	onSubmit?: FormSubmitHandler<T>
-	/** Fires when a submit attempt reaches its terminal outcome, with that outcome. */
+	/**
+	 * Fires when a submit attempt reaches its terminal outcome, with that outcome.
+	 * Without `onSubmit`, a submit that passes validation settles with
+	 * `{ ok: true, values }`.
+	 */
 	onSettled?: (outcome: SubmitOutcome<T>) => void
 	/**
 	 * Fires when client validation refuses a submit, with the failed fields only.

@@ -133,7 +133,8 @@ describe('grid virtualized body under native scroll anchoring (real browser)', (
 				const toggle = (label: string) =>
 					present(
 						body.querySelector<HTMLElement>(
-							`:scope > tr[data-group-key="${key}"] button[aria-label="${label} group ${key}"]`,
+							// The toggle is named by its label, and `aria-expanded` gives its state.
+							`:scope > tr[data-group-key="${key}"] button[aria-expanded="${label === 'Collapse'}"]`,
 						),
 						`the ${label} button`,
 					).click()

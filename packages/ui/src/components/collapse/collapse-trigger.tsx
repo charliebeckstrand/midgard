@@ -14,7 +14,8 @@ export type CollapseTriggerProps = ComponentProps<'button'>
  * Spreads consumer props first, then overlays the context-driven toggle and
  * a11y wiring (`aria-expanded`, plus `aria-controls` while open, or always
  * under `mount="always"` after hydration), preserving any supplied `onClick`.
- * The button stamps `data-open` while the panel is open.
+ * The button stamps `data-open` while the panel is open, and `data-disabled`
+ * while it is disabled.
  *
  * @remarks The `data-slot` anchor stays renameable, because no library selector
  * reads it ([CONVENTIONS.md](CONVENTIONS.md) §3.9).
@@ -38,6 +39,7 @@ export function CollapseTrigger({ className, children, onClick, ...props }: Coll
 			// only after hydration, because the server markup does not hold it.
 			aria-controls={open || everyPanel ? triggerProps['aria-controls'] : undefined}
 			data-open={dataAttr(open)}
+			data-disabled={dataAttr(props.disabled === true)}
 			// The toggle is the activation the trigger exists to perform, so a
 			// consumer's preventDefault() does not cancel it (CONVENTIONS.md §3.9).
 			onClick={composeEventHandlers(onClick, toggle, { checkForDefaultPrevented: false })}

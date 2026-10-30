@@ -122,6 +122,49 @@ describe('Overlay', () => {
 		expect(onOpenChange).not.toHaveBeenCalled()
 	})
 
+	it('stays open for a stray click after a press that ended off the backdrop', () => {
+		const onOpenChange = vi.fn()
+
+		const overlay = (open: boolean) => (
+			<Overlay open={open} onOpenChange={onOpenChange}>
+				<span>content</span>
+			</Overlay>
+		)
+
+		const { rerender } = renderUI(overlay(true))
+
+		const backdrop = () =>
+			present(
+				document.querySelector('[data-slot="overlay-backdrop"]'),
+				'[data-slot="overlay-backdrop"]',
+			)
+
+		// A press that starts on the backdrop and ends in the panel clicks no backdrop.
+		fireEvent.pointerDown(backdrop())
+
+		fireEvent.pointerUp(screen.getByText('content'))
+
+		fireEvent.click(backdrop(), { detail: 1 })
+
+		// A press that the browser cancels clicks nothing.
+		fireEvent.pointerDown(backdrop())
+
+		fireEvent.pointerCancel(backdrop())
+
+		fireEvent.click(backdrop(), { detail: 1 })
+
+		// A press of an earlier open does not count after a reopen.
+		fireEvent.pointerDown(backdrop())
+
+		rerender(overlay(false))
+
+		rerender(overlay(true))
+
+		fireEvent.click(backdrop(), { detail: 1 })
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
 	// React carries a click in the portal up the component tree. A press on the
 	// backdrop dismisses the overlay and does nothing more, so an ancestor must not see it.
 	it('keeps a backdrop click from the click handler of a consumer ancestor', () => {

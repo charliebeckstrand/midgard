@@ -25,6 +25,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | Primitive | Summary | Key exports |
 |---|---|---|
 | `polymorphic` | Renders the registered router link when `href` is present, and the `as` element otherwise. | `Polymorphic`, `PolymorphicStatic`, `PolymorphicProps`, `PolymorphicStaticProps` |
+| `landmark` | A landmark of a page that changes inside the main landmark of another layout. `Landmark` with `as="main"` renders a `<main>`, or a `<div>` inside another main. With `as="section"`, it renders a region, or a `<section>` with no name inside a main. Thus a layout in the main slot of another layout adds no second main and no second region with one name. `useLandmark` tells which landmark holds the caller. | `Landmark`, `LandmarkProps`, `useLandmark` |
 | `link` | Link context exposing the framework link component an app registers (e.g. `next/link`), or the `'a'` fallback. | `LinkContext`, `useLink`, `LinkComponent`, `LinkContextValue` |
 | `option` | Selectable list-item primitive for select-like widgets. `createSelectOption` makes the option row and its slots. | `createSelectOption`, `OptionSelectionContext` |
 | `select-trigger` | Trigger chrome for the select family (Listbox, Combobox) over `ControlFrame`. | `SelectTrigger`, `SelectTriggerProps` |

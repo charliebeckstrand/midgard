@@ -223,6 +223,8 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 							id={groupId}
 							role="group"
 							data-slot="json-group"
+							// The motion element drops the stamp while the group leaves.
+							data-open={dataAttr(open)}
 							// No clip of its own: the motion clips the group only while its height
 							// moves.
 							{...k.motion}

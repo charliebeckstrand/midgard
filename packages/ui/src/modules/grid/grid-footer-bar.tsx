@@ -13,12 +13,19 @@ type GridFooterProps = {
 	config: GridFooterConfig | undefined
 	/** Live row counts, or `null` when there is no configured footer to feed. */
 	stats: GridFooterStats | null
+	/**
+	 * Whether `stats.rows` counts only the current page, because server
+	 * pagination gives a page count but no row count.
+	 */
+	pageScoped: boolean
 }
 
 /**
  * The row-count label for {@link GridFooterConfig.rowTotal}: `'12 of 47 rows
  * visible'` when a client-side filter narrows the source, or a bare `'47 rows'`
- * otherwise. Pluralized against the count it names.
+ * otherwise. Pluralized against the count it names. When the grid does not know
+ * the server total, the label counts the page and says so (`'25 rows on this
+ * page'`), so it does not state one page as the whole set.
  *
  * `null` for an empty set. The body already says there are no rows, in the row
  * standing where they would be. A count restating it is a second voice adding
@@ -27,8 +34,14 @@ type GridFooterProps = {
  *
  * @internal
  */
-function rowTotalLabel(intl: IntlShape, { rows, total }: GridFooterStats): string | null {
+function rowTotalLabel(
+	intl: IntlShape,
+	{ rows, total }: GridFooterStats,
+	pageScoped: boolean,
+): string | null {
 	if (rows === 0) return null
+
+	if (pageScoped) return intl.formatMessage(gridMessages.rowsOnPage, { rows })
 
 	if (total > rows) return intl.formatMessage(gridMessages.rowsVisible, { rows, total })
 
@@ -72,7 +85,7 @@ function selectedLabel(intl: IntlShape, { rows, selected, hidden }: GridFooterSt
  *
  * @internal
  */
-export function GridFooterBar({ config, stats }: GridFooterProps) {
+export function GridFooterBar({ config, stats, pageScoped }: GridFooterProps) {
 	const intl = useIntl()
 
 	if (!config || !stats) return null
@@ -86,7 +99,7 @@ export function GridFooterBar({ config, stats }: GridFooterProps) {
 	const status = showSelected
 		? selectedLabel(intl, stats)
 		: showRowTotal
-			? rowTotalLabel(intl, stats)
+			? rowTotalLabel(intl, stats, pageScoped)
 			: null
 
 	const content = config.content?.(stats)

@@ -1,7 +1,7 @@
 'use client'
 
 import { type ComponentProps, type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useReorderDrag } from '../../hooks/use-reorder-drag'
@@ -34,7 +34,9 @@ type BaseListProps<T> = Omit<
 	 */
 	orientation?: Orientation
 	/**
-	 * Disables all drag and keyboard reorder interaction.
+	 * Disables all drag and keyboard reorder interaction. A disabled list with
+	 * `onReorder` stamps `data-disabled` on the list and on each row. A read-only
+	 * list has no reorder to disable, and stamps neither.
 	 * @defaultValue false
 	 */
 	disabled?: boolean
@@ -162,6 +164,9 @@ export function List<T>({
 
 	const interactive = !disabled && onReorder !== undefined
 
+	// A read-only list has no reorder to disable, so it is never disabled.
+	const reorderDisabled = !!disabled && onReorder !== undefined
+
 	// The fallback reads the position, not the item, so duplicate primitives get
 	// distinct keys. Only the read-only arm reaches it.
 	const effectiveGetKey = useMemo<(item: T, index?: number) => string>(
@@ -223,7 +228,7 @@ export function List<T>({
 			variant,
 			interactive,
 			// A read-only list has no reorder to disable, so its handles stay hidden.
-			disabled: !!disabled && onReorder !== undefined,
+			disabled: reorderDisabled,
 			liftedStore,
 			itemCount: items.length,
 			sortable,
@@ -234,8 +239,7 @@ export function List<T>({
 		[
 			variant,
 			interactive,
-			disabled,
-			onReorder,
+			reorderDisabled,
 			liftedStore,
 			items.length,
 			sortable,
@@ -350,6 +354,7 @@ export function List<T>({
 		'aria-label': ariaLabel,
 		'data-slot': 'list',
 		'data-orientation': orientation,
+		'data-disabled': dataAttr(reorderDisabled),
 		className: cn(k({ variant, orientation }).base, className),
 		style,
 	}

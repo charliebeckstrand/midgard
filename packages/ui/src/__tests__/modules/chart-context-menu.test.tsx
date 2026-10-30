@@ -481,6 +481,37 @@ describe('ChartContextMenu target', () => {
 
 		expect([...rows].map((row) => row.textContent)).toEqual(['Q110', 'Q220'])
 	})
+
+	it('writes the corner text of the readout in the corner header of View data', () => {
+		const rows = [
+			{ day: 'Mon', hour: '9', commits: 1 },
+			{ day: 'Tue', hour: '9', commits: 5 },
+		]
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits by hour"
+				data={rows}
+				series={[
+					{
+						xKey: 'hour',
+						yKey: 'day',
+						colorKey: 'commits',
+						colorRange: ['#f7fee7', '#365314'],
+						colorName: 'Commits',
+					},
+				]}
+			/>,
+		)
+
+		openChartMenu(container)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'View data' }))
+
+		const corner = screen.getByRole('dialog').querySelector('thead th')
+
+		expect(corner).toHaveTextContent('Commits')
+	})
 })
 
 describe('Chart menu button', () => {
@@ -625,6 +656,80 @@ describe('Chart menu button', () => {
 		fireEvent.click(button.querySelector('button') as Element)
 
 		expect(screen.getByRole('menuitem', { name: 'View data' })).toBeInTheDocument()
+	})
+
+	it('sits in the corner of a titled spark chart, whose header is a veil', () => {
+		const { container } = renderUI(
+			<BarChart
+				title="Revenue"
+				aria-label="Revenue"
+				data={data}
+				contextMenu={BUTTON}
+				series={[...series]}
+				width={140}
+			/>,
+		)
+
+		expect(getSlot(container, 'chart')).toHaveAttribute('data-tier', 'spark')
+
+		const buttons = container.querySelectorAll('[data-slot="chart-menu-button"]')
+
+		expect(buttons).toHaveLength(1)
+
+		expect(getSlot(container, 'chart-plot').contains(buttons[0] as Element)).toBe(false)
+	})
+
+	it('caps the height of its menu as the right-click menu does', () => {
+		const { container } = renderUI(
+			<BarChart
+				title="Revenue"
+				aria-label="Revenue"
+				data={data}
+				contextMenu={{ button: true, capped: true }}
+				series={[...series]}
+				width={400}
+			/>,
+		)
+
+		fireEvent.click(getSlot(container, 'chart-menu-button').querySelector('button') as Element)
+
+		expect(document.querySelector('[data-slot="menu-viewport"]')).toHaveClass(
+			'density-max-h-[44,48,52,56,60]',
+		)
+	})
+
+	it('builds function-form items with no mark, even after a right-click on one', () => {
+		const items = vi.fn(({ index }: { index: number | null }) =>
+			index === null ? [] : [{ key: 'drill', label: `Drill ${index}`, onAction: () => {} }],
+		)
+
+		const { container } = renderUI(
+			<BarChart
+				title="Revenue"
+				aria-label="Revenue"
+				data={data}
+				contextMenu={{ button: true, items }}
+				series={[...series]}
+				width={400}
+			/>,
+		)
+
+		// A keyboard cursor on the first bar makes it the target of a right-click.
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.focus(plot)
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.contextMenu(getSlot(container, 'chart'))
+
+		expect(items).toHaveBeenCalledWith({ index: 0 })
+
+		fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
+
+		fireEvent.click(getSlot(container, 'chart-menu-button').querySelector('button') as Element)
+
+		expect(screen.queryByRole('menuitem', { name: /^Drill/ })).not.toBeInTheDocument()
 	})
 
 	it('shows none with the menu off', () => {

@@ -27,7 +27,13 @@ export type SplitterProps = Omit<
 	value: number
 	/** The smallest size that the splitter can set. */
 	min?: number
-	/** The largest size that the splitter can set. Omit it when the size has no maximum. */
+	/**
+	 * The largest size that the splitter can set. Omit it when the size has no
+	 * maximum. The splitter then reports `Number.MAX_SAFE_INTEGER`, so the value
+	 * stays in its range. Without a maximum, the ARIA default of 100 applies, and
+	 * a value such as a width of 320 pixels is out of range. Give `valueText` too,
+	 * because a percentage of that range means nothing to the reader.
+	 */
 	max?: number
 	/** The value in words, such as a width in pixels, when the number alone is not clear. */
 	valueText?: string
@@ -67,7 +73,7 @@ export function Splitter({
 			aria-orientation={orientation}
 			aria-valuenow={value}
 			aria-valuemin={min}
-			aria-valuemax={max}
+			aria-valuemax={max ?? Number.MAX_SAFE_INTEGER}
 			aria-valuetext={valueText}
 			aria-controls={controls}
 		/>

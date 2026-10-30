@@ -361,6 +361,25 @@ describe('RangeSlider', () => {
 		expect(onChange).not.toHaveBeenCalled()
 	})
 
+	// A chord such as Alt+ArrowLeft (history back) is for the browser.
+	it.each([
+		['Alt+ArrowLeft', 'ArrowLeft', { altKey: true }],
+		['Ctrl+Home', 'Home', { ctrlKey: true }],
+		['Cmd+ArrowRight', 'ArrowRight', { metaKey: true }],
+	])('ignores %s and keeps its default', (_name, key, modifier) => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<RangeSlider defaultValue={[10, 90]} onValueChange={onChange} />)
+
+		const [lo] = allBySlot(container, 'slider-range-thumb')
+
+		const proceeded = fireEvent.keyDown(lo as HTMLElement, { key, ...modifier })
+
+		expect(proceeded).toBe(true)
+
+		expect(onChange).not.toHaveBeenCalled()
+	})
+
 	it('swaps thumbs and shifts focus when the low thumb crosses the high thumb', () => {
 		const onChange = vi.fn()
 

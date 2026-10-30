@@ -18,7 +18,8 @@ import type { ChartReadout, ChartReadoutSource } from './types'
 /**
  * How the tooltip is summoned: `'hover'` tracks the pointer, the default.
  * `'click'` pins the readout to a click, and gives the plot a pointer cursor to
- * read as clickable. It dismisses on a second click of the same mark.
+ * read as clickable. It dismisses on a second click in the same category, on
+ * any series.
  */
 export type ChartTooltipTrigger = 'hover' | 'click'
 

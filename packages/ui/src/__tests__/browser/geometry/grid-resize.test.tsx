@@ -401,3 +401,64 @@ describe('grid column resize holds the other columns (real browser)', () => {
 		expect(header(container, 'c').getBoundingClientRect().width).toBeNear(startC, PIXEL)
 	})
 })
+
+describe('grid column maxWidth in the automatic layout (real browser)', () => {
+	type Row = { id: number; name: string; note: string }
+
+	const MAX = 200
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', cell: (row) => row.name, maxWidth: MAX },
+		{ id: 'note', title: 'Note', cell: (row) => row.note },
+	]
+
+	const rows: Row[] = Array.from({ length: 4 }, (_, index) => ({
+		id: index + 1,
+		name: `A name that is much wider than the maxWidth of its column ${index + 1}`,
+		note: 'n',
+	}))
+
+	const header = (root: HTMLElement) =>
+		present(root.querySelector('th[data-grid-col="name"]'), 'th[data-grid-col="name"]')
+
+	// The drag narrows the column by this much.
+	const DRAG = 40
+
+	it('keeps the border box of the column at its maxWidth, so a drag moves it from the width it shows', async () => {
+		const { container } = renderUI(
+			<div style={{ width: '600px' }}>
+				<Grid resizable columns={columns} rows={rows} getKey={(row) => row.id} />
+			</div>,
+		)
+
+		const table = present(container.querySelector('table'), 'table')
+
+		await waitFor(() => expect(table).toHaveAttribute('data-grid-fit-held'))
+
+		const shown = header(container).getBoundingClientRect().width
+
+		// The cell chrome (padding and border) is inside the maxWidth. It is not added to it.
+		expect(shown).toBeLessThanOrEqual(MAX + HALF_PIXEL)
+
+		const handle = present(
+			container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]'),
+			'hr[aria-label="Resize Name"]',
+		)
+
+		const { x, y } = getCenter(handle)
+
+		fireEvent.mouseDown(handle, { clientX: x, clientY: y })
+
+		fireEvent.mouseMove(document, { clientX: x - DRAG, clientY: y })
+
+		fireEvent.mouseUp(document, { clientX: x - DRAG, clientY: y })
+
+		// A drag starts from the width that the column shows. The column does not
+		// first jump narrower by its chrome.
+		await waitFor(() =>
+			expect(header(container).getBoundingClientRect().width).toBeLessThan(shown - DRAG / 2),
+		)
+
+		expect(header(container).getBoundingClientRect().width).toBeNear(shown - DRAG, HALF_PIXEL)
+	})
+})

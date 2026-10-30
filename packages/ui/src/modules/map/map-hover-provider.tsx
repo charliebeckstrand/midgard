@@ -26,8 +26,13 @@ import { useMapRegionPreload } from './use-map-region-preload'
 
 /** Props for {@link MapHoverProvider}. @internal */
 type MapHoverProviderProps = {
-	/** Whether the tooltip is on; gates the scroll listener on a stable flag. */
+	/**
+	 * Whether the pointer can drive the readout or the pointed emphasis; gates the
+	 * scroll listener on a stable flag.
+	 */
 	enabled: boolean
+	/** Whether the region paths take the pointer. A switched-off layer gives the scroll-settle resolve no region target. */
+	regionsTracked: boolean
 	plotRef: RefObject<HTMLDivElement | null>
 	/** Whether a region's category is matched and shown: the pointed-emphasis gate, the same silence the tooltip keeps off data. */
 	regionActive: (index: number) => boolean
@@ -98,6 +103,7 @@ function createPointedStore(): MapPointedStore & {
  */
 export function MapHoverProvider({
 	enabled,
+	regionsTracked,
 	plotRef,
 	regionActive,
 	emphasis,
@@ -117,7 +123,7 @@ export function MapHoverProvider({
 		setState(NO_HOVER)
 	}
 
-	// Whether a pinch holds the readout. See {@link MapHoverActions.hold}.
+	// Whether a pinch or a wheel zoom holds the readout. See {@link MapHoverActions.hold}.
 	const held = useRef(false)
 
 	// The target of the last write that `set` took. See {@link MapHoverActions.get}.
@@ -205,12 +211,16 @@ export function MapHoverProvider({
 				return
 			}
 
-			const target = targetAt(under)
+			const mark = targetAt(under)
+
+			// A region layer that takes no pointer reads as the ocean here, as it does
+			// to the pointer. Its paths stay hit-testable, but they have no handlers.
+			const target = mark?.kind === 'region' && !regionsTracked ? null : mark
 
 			// Over the plat but between marks (the ocean) reads nothing.
 			set(target, target === null ? null : { x: clientX, y: clientY })
 		},
-		[plotRef, set],
+		[plotRef, regionsTracked, set],
 	)
 
 	useHoverAcrossScroll(enabled, clear, resolveAt)

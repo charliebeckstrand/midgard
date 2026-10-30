@@ -8,6 +8,8 @@ import { AuthLayout, SidebarLayout, StackedLayout } from 'ui/layouts'
 
 Each export ships its `<Name>Props` type beside it. Per-layout behavior, props, and defaults live in the TSDoc.
 
+Each layout renders its main slot as a `<main>`. A layout can sit inside the main slot of another layout, such as the preview of an app. Its main slot is then a `<div>`, so the page keeps one main landmark. The drawer navbar of a `SidebarLayout` is then not a region, so the page does not have two regions with one name. The layouts get this from `Landmark` in `ui/primitives/landmark` ([`PRIMITIVES.md`](PRIMITIVES.md)).
+
 ## `AuthLayout`: unauthenticated pages
 
 Static frame for sign-in, registration, and other single-card pages.
@@ -22,9 +24,9 @@ Static scaffold: a min-height-collapsing column with fixed-height ends around a 
 
 | Export | Summary |
 |---|---|
-| `StackedLayout` | Vertically stacked page scaffold hosting the header, body, and footer slots; the body flexes and scrolls between fixed-height ends (`data-slot="stacked-layout"`). |
+| `StackedLayout` | Vertically stacked page scaffold hosting the header, body, and footer slots; the body flexes between fixed-height ends. The body scrolls only under a parent that bounds its height (`data-slot="stacked-layout"`). |
 | `StackedLayoutHeader` | Fixed-height header slot (`data-slot="header"`). |
-| `StackedLayoutBody` | Flexible, vertically scrolling main slot taking the height between header and footer (`data-slot="body"`). |
+| `StackedLayoutBody` | Flexible, vertically scrolling main slot taking the height between header and footer; it scrolls only under a bounded parent (`data-slot="body"`). |
 | `StackedLayoutFooter` | Fixed-height footer slot (`data-slot="footer"`). |
 
 ## `DashboardLayout`: stacked content with a filter rail
