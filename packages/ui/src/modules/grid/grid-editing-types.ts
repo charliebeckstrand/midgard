@@ -133,6 +133,22 @@ export type GridRowActionsContext = {
 	editing: boolean
 	/** Open the row, with focus in its first editor. A row with no editable column stays closed. */
 	edit: () => void
+	/**
+	 * Open the row in a form: one labeled field for each editable column, at
+	 * full width, with Cancel and Save. Use it for a row with more columns, or
+	 * wider values, than the cells show well. On a phone the form is the
+	 * {@link GridEditableConfig.overlay}, and on a wider screen it is a `Sheet`
+	 * from the side. Save commits the changed fields as one batch through
+	 * `onCommit`, and Cancel, Escape, and a press outside the form drop them.
+	 * Focus returns to the control that called it. Under `session: 'managed'`,
+	 * Shift+Enter on the cursor opens the form of the cursor row, with focus in
+	 * the field of the cursor column. A row with no editable column stays
+	 * closed.
+	 *
+	 * @remarks An async commit that the consumer refuses opens the form again,
+	 * with the error under each refused field.
+	 */
+	expand: () => void
 	/** Close the row, committing its changed cells through `onCommit`. */
 	save: () => void
 	/** Close the row, dropping its staged cells. Nothing reaches `onCommit`. */
@@ -356,6 +372,10 @@ export type GridEditableConfig = {
 	 *
 	 * Set `false` to edit in place on a phone too, as in a grid whose rows are
 	 * always open. The new-row slot edits in place on each screen.
+	 *
+	 * The form of {@link GridRowActionsContext.expand} shows in this overlay on
+	 * a phone, and in a `Drawer` where it is `false`. On a wider screen the
+	 * form is always a `Sheet` from the side.
 	 *
 	 * @remarks The overlay commits only on Save, so
 	 * {@link GridEditableConfig.commitOn} has no effect while it shows. Save

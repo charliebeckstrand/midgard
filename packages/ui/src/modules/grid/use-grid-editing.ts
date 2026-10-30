@@ -33,6 +33,7 @@ import {
 	type GridActiveEdit,
 	type GridDraftKey,
 	isCellEditing,
+	isColumnEditable,
 	NEW_ROW_KEY,
 	pointsAt,
 	sameCell,
@@ -152,6 +153,19 @@ function useForceRender(): () => void {
 }
 
 /**
+ * Gives the kind of the form of an expanded row. A phone shows the form in its
+ * overlay, or in a drawer where the phone edits in place. A wider screen shows
+ * a sheet.
+ *
+ * @internal
+ */
+function formKind(phone: boolean, overlay: 'drawer' | 'sheet' | false): 'drawer' | 'sheet' {
+	if (!phone) return 'sheet'
+
+	return overlay === false ? 'drawer' : overlay
+}
+
+/**
  * Owns per-row inline editing: the editable rows (a controllable `Set<key>`,
  * consumer-driven by default) and the staged drafts of cells in those rows. A
  * row in the set renders all its editable cells as editors at once. Each edit
@@ -248,6 +262,8 @@ export function useGridEditing<T>({
 	const overlayKind = config?.overlay ?? 'drawer'
 
 	const overlay = enabled && phone && overlayKind !== false ? overlayKind : null
+
+	const form = formKind(phone, overlayKind)
 
 	// The new-row slot, where the config can show it. Its cells always take a
 	// write, so the draft store reads this at write time.
@@ -536,6 +552,10 @@ export function useGridEditing<T>({
 
 	const enterEdit = useCallback(
 		(rowKey: string | number, columnId: string | number, seed?: string | number) => {
+			// An entry edits in place, so a row that a declined expand left marked
+			// does not show its form.
+			activeEditStore.setExpanded(null)
+
 			const active = activeEditRef.current
 
 			const editableRows = editableRowsRef.current
@@ -620,6 +640,7 @@ export function useGridEditing<T>({
 			})
 		},
 		[
+			activeEditStore,
 			bump,
 			cellScoped,
 			controlled,
@@ -826,6 +847,69 @@ export function useGridEditing<T>({
 		[dataColumnsRef, enterEdit, placeOrigin],
 	)
 
+	// Opens a row in the form. The row opens whole, with no active cell, so the
+	// field of each column stages into an open cell, and a discard drops them
+	// all. A cell-scoped session leaves its cell first: a cell on another row
+	// commits, and a cell on this row widens to the row. Focus returns to the
+	// control that opened the form, or to the cell of the cursor.
+	const expandRow = useCallback(
+		(rowKey: string | number, columnId?: string | number) => {
+			const columns = dataColumnsRef.current
+
+			const named = columns.find((column) => column.id === columnId)
+
+			const cell =
+				named && isColumnEditable(named)
+					? { rowKey, columnId: named.id }
+					: firstEditorCell(rowKey, columns)
+
+			if (!cell) return
+
+			const active = activeEditRef.current
+
+			if (active !== null && active.rowKey !== rowKey) exitSession(active.rowKey, 'save', false)
+			else if (active !== null) writeActiveCell(null)
+
+			activeEditStore.setExpanded(rowKey)
+
+			pendingFocusRef.current = cell
+
+			if (columnId === undefined) placeOrigin(rowKey)
+			else originsRef.current.set(rowKey, { cell })
+
+			if (editableRowsRef.current.has(rowKey)) return
+
+			sessionRowRef.current = { rowKey, acquired: true }
+
+			bump()
+
+			setEditableRows((prev) => new Set(prev ?? EMPTY_SET).add(rowKey))
+		},
+		[
+			activeEditStore,
+			bump,
+			dataColumnsRef,
+			exitSession,
+			originsRef,
+			pendingFocusRef,
+			placeOrigin,
+			setEditableRows,
+			writeActiveCell,
+		],
+	)
+
+	// The form ends its row through its own Save and Cancel. It sits beside the
+	// table, so a focus move into it is not a leave of the session.
+	const formLeave = useMemo(
+		() => ({
+			blur: (event: ReactFocusEvent<HTMLTableElement>) => {
+				if (activeEditStore.expanded() === null) sessionLeave.blur(event)
+			},
+			focus: sessionLeave.focus,
+		}),
+		[activeEditStore, sessionLeave],
+	)
+
 	const { pasteCells, fillCells, stepHistory, historyKeys } = useGridEditWrites({
 		drafts,
 		editSourceRef,
@@ -847,6 +931,8 @@ export function useGridEditing<T>({
 			readDraft,
 			endSession,
 			editRow,
+			expandRow,
+			collapseRow: () => activeEditStore.setExpanded(null),
 			entrySeed,
 			hasEntry,
 			claimFocus,
@@ -854,6 +940,7 @@ export function useGridEditing<T>({
 			resumeCell,
 			managed,
 			overlay,
+			form,
 			saveSession,
 			showOverlay: activeEditStore.setShown,
 			focusTarget,
@@ -866,12 +953,14 @@ export function useGridEditing<T>({
 			managed,
 			endSession,
 			editRow,
+			expandRow,
 			entrySeed,
 			hasEntry,
 			claimFocus,
 			settleControls,
 			resumeCell,
 			overlay,
+			form,
 			saveSession,
 			focusTarget,
 		],
@@ -885,7 +974,7 @@ export function useGridEditing<T>({
 		stepHistory,
 		pasteCells: managed ? pasteCells : undefined,
 		fillCells: managed ? fillCells : undefined,
-		sessionLeave: commitOn === 'explicit' || overlay !== null ? undefined : sessionLeave,
+		sessionLeave: commitOn === 'explicit' || overlay !== null ? undefined : formLeave,
 		newRow: {
 			position: newRowPosition,
 			session: newRow.session,

@@ -6,6 +6,7 @@ import Editable from './editable.tsx'
 import EditorTypes from './editor-types.tsx'
 import NewRow from './new-row.tsx'
 import PasteAndFill from './paste-and-fill.tsx'
+import RowForm from './row-form.tsx'
 import UndoAndRedo from './undo-and-redo.tsx'
 
 export default function EditableTab() {
@@ -13,6 +14,7 @@ export default function EditableTab() {
 		<>
 			<Example of={Editable} />
 			<Example of={CellScopeAndSpreadsheetKeys} />
+			<Example of={RowForm} />
 			<Example of={AsyncCommit} />
 			<Example of={UndoAndRedo} />
 			<Example of={PasteAndFill} />
