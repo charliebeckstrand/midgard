@@ -17,6 +17,7 @@ import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
 import { chain, email, matches, minLength, required, validationMessages } from './form-validators'
 import { Turnstile } from './turnstile'
+import { useLeaving } from './use-leaving'
 import { useServerError } from './use-server-error'
 
 type RegisterValues = {
@@ -50,6 +51,8 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 
 	const [errorAlert, setServerError] = useServerError()
 
+	const [leaving, leave] = useLeaving()
+
 	const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
 	const [attempt, setAttempt] = useState(0)
@@ -65,8 +68,9 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 				},
 			})
 
+			// The form stays disabled until the login page replaces it.
 			if (response.ok) {
-				router.push('/login?registered=true')
+				leave(() => router.push('/login?registered=true'))
 
 				return
 			}
@@ -99,6 +103,7 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 					),
 				}}
 				onSubmit={handleSubmit}
+				disabled={leaving}
 			>
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
 					<Heading className="text-center">
