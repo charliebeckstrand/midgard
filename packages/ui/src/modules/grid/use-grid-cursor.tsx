@@ -320,7 +320,7 @@ export function useGridCursor<T>({
 	} = refs
 
 	// Enter on the cursor's active cell begins the edit session: the keyboard
-	// peer of the pointer double-click. The entry resolver needs the editing hook
+	// peer of the pointer double-click. Shift+Enter opens the row in its form. The entry resolver needs the editing hook
 	// (which in turn needs the cursor's `cellId`), so the wrapper names
 	// `enterEditAt` before its declaration below. The cursor calls the wrapper as
 	// an effect event, at key time, when this render's resolver is in place.
@@ -330,7 +330,11 @@ export function useGridCursor<T>({
 				// fires the single-click handlers ahead of the double-click.
 				onCellActivate?.(rowIndex, colIndex, event)
 
-				if (event.key === 'Enter') enterEditAt(rowIndex, colIndex)
+				if (event.key !== 'Enter') return
+
+				// Shift+Enter opens the form of the row, and Enter opens the cell.
+				if (event.shiftKey) expandAt(rowIndex, colIndex)
+				else enterEditAt(rowIndex, colIndex)
 			}
 		: onCellActivate
 
@@ -548,6 +552,21 @@ export function useGridCursor<T>({
 			enterEditAtCell(rowKey, col.id, seed)
 		},
 		[enterEditAtCell, enterNewRow, rowKeysRef, dataColumnsRef],
+	)
+
+	// Shift+Enter on the cursor opens the form of the row, with focus in the
+	// field of the cursor column. The new-row slot has no form.
+	const expandAt = useCallback(
+		(rowIndex: number, colIndex: number) => {
+			const rowKey = rowKeysRef.current[rowIndex]
+
+			const col = dataColumnsRef.current[colIndex]
+
+			if (rowIndex === NEW_ROW_INDEX || rowKey === undefined || !col) return
+
+			editing.session.expandRow(rowKey, col.id)
+		},
+		[editing.session, rowKeysRef, dataColumnsRef],
 	)
 
 	// The keyboard entries beside the cursor's Enter, on the tab stop alone: F2
@@ -824,8 +843,9 @@ export function useGridCursor<T>({
 
 	const newRowSession = editing.newRow.session
 
-	// On a phone the overlay holds the open editors. It sits beside the table, so
-	// its keys and focus moves do not reach the key surface of the table.
+	// On a phone the overlay holds the open editors. On a wider screen it holds
+	// the form of an expanded row. It sits beside the table, so its keys and
+	// focus moves do not reach the key surface of the table.
 	const wrap = useMemo(
 		() =>
 			editingEnabled
@@ -833,14 +853,13 @@ export function useGridCursor<T>({
 						<GridEditingSessionContext value={session}>
 							<GridNewRowContext value={newRowSession}>{children}</GridNewRowContext>
 
-							{session.overlay !== null && (
-								<GridEditOverlay
-									kind={session.overlay}
-									session={session}
-									columns={columns}
-									source={editSource}
-								/>
-							)}
+							<GridEditOverlay
+								kind={session.overlay ?? session.form}
+								shows={session.overlay === null ? 'expanded' : 'open'}
+								session={session}
+								columns={columns}
+								source={editSource}
+							/>
 						</GridEditingSessionContext>
 					)
 				: (children: ReactNode) => children,

@@ -147,6 +147,9 @@ export function GridEditingCell<T>({
 
 		if (draft?.status === 'pending') return CELL_PENDING
 
+		// The row edits in its form, so the cell shows its content.
+		if (activeEditStore.expanded() === rowKey) return CELL_READING
+
 		const activeEdit = activeEditStore.get()
 
 		const editableRows = activeEditStore.rows()

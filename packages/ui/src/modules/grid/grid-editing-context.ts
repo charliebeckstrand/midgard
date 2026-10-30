@@ -36,6 +36,12 @@ export type GridActiveEditStore = {
 	 * overlay is up, not when its session starts.
 	 */
 	shown: () => string | number | null
+	/**
+	 * The row that edits in the form ({@link GridRowActionsContext.expand}),
+	 * or `null` when no row does. The data cells of that row show their
+	 * content, and no editor mounts in the table.
+	 */
+	expanded: () => string | number | null
 }
 
 /**
@@ -100,6 +106,15 @@ export type GridEditingSession = {
 	 */
 	editRow: (rowKey: string | number) => void
 	/**
+	 * Opens a row in the form: one field for each editable column, with Cancel
+	 * and Save. Focus goes into the field of `columnId`, or of the first
+	 * editable column. It is what {@link GridRowActionsContext.expand} hands
+	 * the consumer, and what Shift+Enter on the cursor does.
+	 */
+	expandRow: (rowKey: string | number, columnId?: string | number) => void
+	/** Clears the expanded row, as its form closes. */
+	collapseRow: () => void
+	/**
 	 * The value a type-to-edit entry opens this cell's editor with, or
 	 * `undefined` for an entry that seeds nothing. The editor reads it once, as it
 	 * mounts, and stages it as the cell's draft.
@@ -143,6 +158,11 @@ export type GridEditingSession = {
 	 * mounts in the table.
 	 */
 	overlay: 'drawer' | 'sheet' | null
+	/**
+	 * The surface of the form of an expanded row: the phone overlay on a
+	 * phone, and a `Sheet` from the side on a wider screen.
+	 */
+	form: 'drawer' | 'sheet'
 	/**
 	 * Ends the session on a row with a save, as Enter does, for the Save of
 	 * the overlay. It settles when the commit of the row settles, so an async

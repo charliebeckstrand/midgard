@@ -35,14 +35,22 @@ type OverlayTarget = { rowKey: string | number; columnId: string | number | null
 const NO_VALUES = {}
 
 /**
- * Reads the target of the overlay from the store. The cell that a session holds
- * comes first. A row that the consumer opened shows whole. The snapshot is
- * the store's own cell, or a row key, so a read with no change is the same
- * value. @internal
+ * Reads the target of the overlay from the store. An expanded row comes first,
+ * and shows whole. The overlay of a form shows nothing else. On a phone, the
+ * cell that a session holds comes next, and a row that the consumer opened
+ * shows whole. The snapshot is the store's own cell, or a row key, so a read
+ * with no change is the same value. @internal
  */
 function readTarget(
 	store: GridEditingSession['activeEditStore'],
+	shows: 'open' | 'expanded',
 ): GridActiveEdit | string | number | null {
+	const expanded = store.expanded()
+
+	if (expanded !== null && store.rows().has(expanded)) return expanded
+
+	if (shows === 'expanded') return null
+
 	const cell = store.get()
 
 	if (cell !== null && store.rows().has(cell.rowKey)) return cell
@@ -78,6 +86,11 @@ const PARTS = {
 type GridEditOverlayProps<T> = {
 	/** The overlay to edit in: a drawer from the bottom edge, or a sheet from the side. */
 	kind: 'drawer' | 'sheet'
+	/**
+	 * The rows that the overlay shows: each open row, as on a phone, or only
+	 * the expanded row, as the form on a wider screen.
+	 */
+	shows: 'open' | 'expanded'
 	session: GridEditingSession
 	/** The visible columns of the grid, in display order. The overlay shows the editable ones. */
 	columns: GridColumn<T>[]
@@ -86,16 +99,17 @@ type GridEditOverlayProps<T> = {
 }
 
 /**
- * The overlay that a phone edits in ({@link GridEditableConfig.overlay}). It shows
- * the editors of the open row, or of the one cell that a cell-scoped session
- * holds, with Cancel and Save. The editors stage into the session as the
+ * The overlay that a phone edits in ({@link GridEditableConfig.overlay}), and
+ * the form of an expanded row ({@link GridRowActionsContext.expand}). It shows
+ * the editors of the expanded row, of the open row, or of the one cell that a
+ * cell-scoped session holds, with Cancel and Save. The editors stage into the session as the
  * editors in the table do. Save ends the session as Enter does, and Cancel,
  * Escape, and a press outside the overlay end it as Escape does.
  *
  * Save holds the overlay open, with its spinner, until the commit settles. An
  * async commit that the consumer refuses opens the row again with its errors.
  * Under cell scope the refused cell is held beside the session, so the overlay
- * moves the session back onto it. A consumer that declines the exit keeps the
+ * moves the session back onto it. A form expands its row again. A consumer that declines the exit keeps the
  * overlay open, and Save settles with nothing committed. Save does nothing
  * while a {@link GridColumn.validate} refuses a value: the field shows why.
  *
@@ -104,7 +118,13 @@ type GridEditOverlayProps<T> = {
  *
  * @internal
  */
-export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditOverlayProps<T>) {
+export function GridEditOverlay<T>({
+	kind,
+	shows,
+	session,
+	columns,
+	source,
+}: GridEditOverlayProps<T>) {
 	const intl = useIntl()
 
 	const {
@@ -113,6 +133,8 @@ export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditO
 		endSession,
 		saveSession,
 		resumeCell,
+		expandRow,
+		collapseRow,
 		showOverlay,
 		focusTarget,
 	} = session
@@ -124,7 +146,7 @@ export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditO
 
 	const snapshot = useSyncExternalStore(
 		store.subscribe,
-		() => readTarget(store),
+		() => readTarget(store, shows),
 		() => null,
 	)
 
@@ -159,6 +181,20 @@ export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditO
 
 	if (!open && landed) setLanded(false)
 
+	// Whether the overlay was open at the last commit. The expanded row clears
+	// as the overlay closes, and not before it opens: a controlled `rows` opens
+	// the row a render after the expand.
+	const wasOpenRef = useRef(false)
+
+	useEffect(() => {
+		if (open) wasOpenRef.current = true
+		else if (wasOpenRef.current) {
+			wasOpenRef.current = false
+
+			collapseRow()
+		}
+	}, [open, collapseRow])
+
 	const row =
 		shown === null
 			? undefined
@@ -191,6 +227,8 @@ export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditO
 
 		returnRef.current = focusTarget(rowKey)
 
+		const expanded = store.expanded() === rowKey
+
 		setBusy(true)
 
 		return saveSession(rowKey).then(() => {
@@ -198,10 +236,14 @@ export function GridEditOverlay<T>({ kind, session, columns, source }: GridEditO
 
 			setSettled((count) => count + 1)
 
-			// A cell-scoped session holds a refused cell beside itself, so the
-			// session moves back onto it, and the overlay shows its error.
-			if (columnId !== null && readDraft(rowKey, columnId)?.error !== undefined)
-				resumeCell(rowKey, columnId)
+			// A cell-scoped session holds a refused cell beside itself. A form
+			// expands its row again, and the session moves back onto a refused
+			// cell. The overlay then shows the error.
+			const refused = fields.some((column) => readDraft(rowKey, column.id)?.error !== undefined)
+
+			if (expanded) {
+				if (refused && !store.rows().has(rowKey)) expandRow(rowKey)
+			} else if (columnId !== null && refused) resumeCell(rowKey, columnId)
 		})
 	}
 
