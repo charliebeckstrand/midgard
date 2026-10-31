@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { attach, mockDomGeometry } from '../helpers'
+import { stubResizeObserver } from '../helpers/stub-resize-observer'
 
 /**
  * The ref's own contract. What the hook does to a real scroller is asserted in
@@ -9,6 +10,20 @@ import { attach, mockDomGeometry } from '../helpers'
  * that tolerates `null`, a `tabindex` that the consumer set and the hook keeps,
  * and the attributes that a detach removes.
  */
+
+/**
+ * Attaches the ref to `node`, and delivers the first report of its resize
+ * observer, as the browser does after the layout of the frame.
+ */
+function attachMeasured(ref: (node: HTMLElement) => unknown, node: HTMLElement) {
+	const observers = stubResizeObserver()
+
+	const cleanup = ref(node)
+
+	for (const observer of observers) observer.callback([], observer as unknown as ResizeObserver)
+
+	return cleanup
+}
 
 /** A node whose written geometry overflows on the x axis. */
 function buildOverflowing() {
@@ -58,7 +73,7 @@ describe('useScrollRegion', () => {
 
 		const node = buildOverflowing()
 
-		result.current(node)
+		attachMeasured(result.current, node)
 
 		expect(node.getAttribute('aria-labelledby')).toBe('title')
 
@@ -70,7 +85,7 @@ describe('useScrollRegion', () => {
 
 		const node = buildOverflowing()
 
-		const cleanup = result.current(node)
+		const cleanup = attachMeasured(result.current, node)
 
 		expect(node.getAttribute('tabindex')).toBe('0')
 

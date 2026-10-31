@@ -27,6 +27,24 @@ function subscribe(onChange: () => void) {
 }
 
 /**
+ * Whether `element` lays out right to left, from the nearest `dir` attribute:
+ * the markup that the observer watches. A read of the attribute does not make
+ * the browser compute the style of a page that is still changing. Only `auto`
+ * reads the computed style, because the text decides it.
+ */
+function readRtl(element: Element): boolean {
+	for (let node: Element | null = element; node; node = node.parentElement) {
+		const dir = node.getAttribute('dir')?.toLowerCase()
+
+		if (dir === 'rtl' || dir === 'ltr') return dir === 'rtl'
+
+		if (dir === 'auto') return isRtl(node)
+	}
+
+	return false
+}
+
+/**
  * Whether `target` lays out right to left. With no `target`, the nearest
  * direction scope decides, and outside each scope the root element decides.
  * The value updates when a `dir` attribute changes.
@@ -45,7 +63,7 @@ export function useIsRtl(target?: Element | null): boolean {
 
 	const rtl = useSyncExternalStore(
 		subscribe,
-		() => isRtl(target ?? document.documentElement),
+		() => readRtl(target ?? document.documentElement),
 		() => false,
 	)
 

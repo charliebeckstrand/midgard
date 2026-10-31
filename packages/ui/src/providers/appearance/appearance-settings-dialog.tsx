@@ -126,9 +126,11 @@ export function AppearanceSettingsDialog({
 
 	const systemLabel = intl.formatMessage(intlMessages.system)
 
+	// The name of each language comes from `Intl.DisplayNames`, which is slow on
+	// its first use, so the closed dialog does not read the names.
 	const languages = useMemo(
-		() => (locales ? localeOptions(locales, systemLabel) : []),
-		[locales, systemLabel],
+		() => (open && locales ? localeOptions(locales, systemLabel) : []),
+		[open, locales, systemLabel],
 	)
 
 	// The options of a picker, with the label of each choice in the language of the reader.
