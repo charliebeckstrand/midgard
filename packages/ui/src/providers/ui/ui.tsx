@@ -8,7 +8,8 @@ import { ToastHost } from '../../components/toast/toast-host'
 // the `polymorphic` primitive consumes `useLink`; the `overlay` /
 // `floating-surface` primitives consume `usePortalContainer`; the nav items
 // consume `usePathMatch`. This provider fans out to all three.
-import { PathnameContext, usePathnameStore } from '../../primitives/current/current-pathname'
+import { PathnameContext } from '../../primitives/current/context'
+import { usePathnameStore } from '../../primitives/current/use-current-store'
 import {
 	type LinkComponent,
 	LinkContext,

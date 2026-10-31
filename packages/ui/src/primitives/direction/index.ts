@@ -1,6 +1,2 @@
-export {
-	Direction,
-	type DirectionProps,
-	type TextDirection,
-	useDirectionScope,
-} from './direction'
+export { type TextDirection, useDirectionScope } from './context'
+export { Direction, type DirectionProps } from './direction'

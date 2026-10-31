@@ -470,8 +470,8 @@ describe('density after backdrop', () => {
 const STEP_READERS = [
 	'docs/kit/playground.tsx',
 	'modules/grid/grid-data.tsx',
-	'primitives/density/density.tsx',
 	'primitives/density/index.ts',
+	'primitives/density/use-density-step.ts',
 ]
 
 const STEP_READ = /\buse(?:Density)?Step\b/
@@ -482,8 +482,9 @@ const STEP_READ = /\buse(?:Density)?Step\b/
 // surface that portals goes through `Portal`, and writes no scope of its own.
 
 const SCOPE_READERS = [
-	'primitives/density/density.tsx',
+	'primitives/density/context.ts',
 	'primitives/density/index.ts',
+	'primitives/density/use-density-step.ts',
 	'primitives/portal/portal.tsx',
 ]
 

@@ -1,26 +1,8 @@
 'use client'
 
 import { type ReactNode, useId, useMemo } from 'react'
-import { createContext } from '../../core'
 import { useControllableFlag } from '../../hooks/use-controllable'
-
-type PanelStateContextValue = {
-	/** Whether the panel is open. */
-	open: boolean
-	/** Sets the open state. The trigger, the close parts, and the dismissal all call it. */
-	setOpen: (open: boolean) => void
-	/** The id of the panel. The trigger names it in `aria-controls`. */
-	panelId: string
-}
-
-/**
- * Carries the open state of a Dialog, Sheet, or Drawer root to its trigger and
- * its panel. `usePanelState` reads it, and throws outside a root.
- */
-export const [PanelStateContext, usePanelState] = createContext<PanelStateContextValue>(
-	'PanelState',
-	{ error: 'A panel trigger or panel must be rendered inside a Dialog, Sheet, or Drawer' },
-)
+import { PanelStateContext } from './context'
 
 /** Props for {@link PanelRoot}: the open state, controlled or uncontrolled. */
 export type PanelRootProps = {

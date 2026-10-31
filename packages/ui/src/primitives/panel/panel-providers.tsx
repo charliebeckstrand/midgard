@@ -1,24 +1,8 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { createContext } from '../../core'
-import { PanelCloseContext, usePanelCloseValue } from './panel-close-context'
-
-type PanelA11yContextValue = {
-	titleId?: string
-	descriptionId?: string
-	registerTitle?: (renderedId?: string) => () => void
-	registerDescription?: (renderedId?: string) => () => void
-}
-
-/**
- * Broadcasts the panel's accessible-name ids and registration callbacks from
- * `useA11yPanel` to the Title / Description slots, which adopt the ids and
- * register their presence.
- */
-export const [PanelA11yContext, usePanelA11y] = createContext<PanelA11yContextValue>('PanelA11y', {
-	default: {},
-})
+import { PanelA11yContext, type PanelA11yContextValue, PanelCloseContext } from './context'
+import { usePanelCloseValue } from './use-panel-close-value'
 
 /** Props for {@link PanelProviders}: the panel root's `onOpenChange` and a11y descriptor wired into the slot contexts. */
 export type PanelProvidersProps = {

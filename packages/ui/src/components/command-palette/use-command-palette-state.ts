@@ -21,7 +21,7 @@ import {
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { useDeferredQueryText } from '../../primitives/query/query'
+import { useDeferredQueryText } from '../../primitives/query/use-query-value'
 import { isReservedTextboxKey } from '../combobox/use-combobox-input'
 
 type CommandPaletteStateOptions = {

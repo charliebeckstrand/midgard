@@ -3,5 +3,5 @@ export {
 	type ActiveIndicatorProps,
 	ActiveIndicatorScope,
 	type ActiveIndicatorScopeProps,
-	useActiveIndicator,
 } from './active-indicator'
+export { useActiveIndicator } from './use-active-indicator'

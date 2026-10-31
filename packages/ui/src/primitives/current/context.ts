@@ -1,9 +1,7 @@
 'use client'
 
-import { type RefObject, use, useMemo } from 'react'
+import type { RefObject } from 'react'
 import { createContext } from '../../core'
-import { useControllable } from '../../hooks'
-import { keyMatcher, useKeyedStore, useKeyedValue } from '../../hooks/use-keyed-store'
 import type { KeyedStore } from '../../utilities'
 import type { Mount } from '../mount'
 
@@ -34,35 +32,6 @@ export const [CurrentContext, useCurrent] = createContext<CurrentContextValue | 
 )
 
 /**
- * Controlled / uncontrolled state owner for the current-panel cascade.
- *
- * @returns A memoized {@link CurrentContextValue} to pass straight into
- * {@link CurrentContext}; `value` follows the controlled prop or internal state
- * via `useControllable`. A controlled `null` stays `null`.
- */
-export function useCurrentState(props: {
-	/** Controlled active value. `undefined` leaves it uncontrolled; `null` keeps it controlled with none active (CONVENTIONS §7.3). */
-	value?: string | null
-	defaultValue?: string
-	onValueChange?: (value: string | null) => void
-}): CurrentContextValue {
-	const [value, setValue] = useControllable({
-		value: props.value,
-		defaultValue: props.defaultValue,
-		onValueChange: props.onValueChange,
-	})
-
-	// `useControllable` folds `null` into `undefined`. Carry the controlled
-	// `null` past it, so "none active" does not read as an unvalued context.
-	const contextValue = props.value === null ? null : value
-
-	return useMemo<CurrentContextValue>(
-		() => ({ value: contextValue, onValueChange: setValue }),
-		[contextValue, setValue],
-	)
-}
-
-/**
  * The current-item store that a root gives to its items, next to
  * {@link CurrentContext}.
  *
@@ -85,59 +54,6 @@ export type CurrentStore = {
 export const [CurrentStoreContext] = createContext<CurrentStore | undefined>('CurrentStore', {
 	default: undefined,
 })
-
-/**
- * Makes the {@link CurrentStore} of a root from its {@link CurrentContextValue}.
- *
- * @returns A store that keeps its identity while `onValueChange` keeps its
- * identity. Pass it into {@link CurrentStoreContext}.
- *
- * @remarks
- * The hook publishes the current value in a layout effect. A change therefore
- * calls only the listeners of the value that stops being current and of the
- * value that becomes current.
- *
- * @internal
- */
-export function useCurrentStore(state: CurrentContextValue): CurrentStore {
-	const { value, onValueChange } = state
-
-	const current = useKeyedStore(value, keyMatcher)
-
-	return useMemo(() => ({ current, onValueChange }), [current, onValueChange])
-}
-
-/**
- * Reads whether `value` is the current value, and the change handler of the
- * root.
- *
- * @returns `current`, which is `false` for an unvalued item, and `onValueChange`.
- *
- * @remarks
- * Under a root that gives a {@link CurrentStore}, the item subscribes to its own
- * value. It then renders only when its own `current` changes. Under a
- * {@link CurrentContext} alone, the item reads the context.
- *
- * @internal
- */
-export function useCurrentItem(value: string | undefined): {
-	current: boolean
-	onValueChange: ((value: string | null) => void) | undefined
-} {
-	const store = use(CurrentStoreContext)
-
-	const stored = useKeyedValue(store?.current ?? null, value, false)
-
-	if (store) return { current: stored, onValueChange: store.onValueChange }
-
-	// Without a store, the item reads the context. `use` can run in a condition.
-	const context = use(CurrentContext)
-
-	return {
-		current: value !== undefined && context?.value === value,
-		onValueChange: context?.onValueChange,
-	}
-}
 
 /**
  * How a `CurrentContents` animates a panel switch. `fade` fades the outgoing
@@ -224,3 +140,29 @@ export const [CurrentPanelActiveContext, useCurrentPanelActive] = createContext<
 	'CurrentPanelActive',
 	{ default: true },
 )
+
+/**
+ * How an `href` matches the current path. `exact` matches the path of the
+ * `href` alone. `prefix` also matches each path under it, such as
+ * `/users/42` for `/users`, so a section root stays current on its sub-pages.
+ */
+export type PathMatch = 'exact' | 'prefix'
+
+/**
+ * Whether each `href` matches the current path, one store for each
+ * {@link PathMatch}. An item subscribes to its own `href`.
+ *
+ * @internal
+ */
+export type PathnameStore = Record<PathMatch, KeyedStore<string, boolean>>
+
+/**
+ * Carries the {@link PathnameStore} of the nearest `UIProvider` that has a
+ * `pathname`. The value keeps its identity when the path changes, so a
+ * navigation does not render each item. `undefined` outside such a provider.
+ *
+ * @internal
+ */
+export const [PathnameContext] = createContext<PathnameStore | undefined>('Pathname', {
+	default: undefined,
+})

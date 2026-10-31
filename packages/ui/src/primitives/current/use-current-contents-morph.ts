@@ -6,7 +6,7 @@ import { travelHeight } from '../../hooks/travel-height'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/current'
 import { type BorderBox, measureBox } from '../../utilities'
-import type { CurrentAnimation } from './current'
+import type { CurrentAnimation } from './context'
 
 /** The tallest tracked panel: the container's morph target. */
 function tallest(boxes: Map<Element, BorderBox>): number {

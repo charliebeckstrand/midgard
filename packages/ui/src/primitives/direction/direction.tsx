@@ -1,27 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { createContext } from '../../core'
-
-/** A text direction: left to right, or right to left. */
-export type TextDirection = 'ltr' | 'rtl'
-
-/**
- * The direction context: the direction of the nearest direction scope, or
- * `null` outside each scope. It carries the same value as the `dir` attribute
- * of that scope. A `dir` on the root element is the direction of the app, and
- * the context does not hold it.
- */
-const [DirectionContext, useDirectionScope] = createContext<TextDirection | null>('Direction', {
-	default: null,
-})
-
-/**
- * Reads the direction of the nearest direction scope, or `null` outside each
- * scope. A portal reads it and writes it as `dir` on its host. A surface in the
- * portal thus lays out in the direction of the place that opened it.
- */
-export { useDirectionScope }
+import { DirectionContext, type TextDirection } from './context'
 
 /** Props for {@link Direction}: the `dir` of the scope and its `children`. */
 export type DirectionProps = {

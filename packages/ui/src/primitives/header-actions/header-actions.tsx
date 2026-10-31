@@ -1,51 +1,7 @@
 'use client'
 
-import { type ReactNode, useState, useSyncExternalStore } from 'react'
-import { createContext } from '../../core'
-import { createEmitter, noopSubscribe } from '../../utilities'
-
-/**
- * The store of the element in the header row of a box. {@link HeaderActionsSlot}
- * gives it the element, and {@link useHeaderActions} reads it.
- *
- * @internal
- */
-type HeaderActionsStore = {
-	/** Gives the element, or `null` while the box shows no header row. */
-	set: (element: HTMLElement | null) => void
-	/** The element, or `null` while the box shows no header row. */
-	get: () => HTMLElement | null
-	/** Calls `listener` when the element changes. It returns the function that stops the calls. */
-	subscribe: (listener: () => void) => () => void
-}
-
-/** Creates an empty {@link HeaderActionsStore}. @internal */
-function createStore(): HeaderActionsStore {
-	let element: HTMLElement | null = null
-
-	const { subscribe, emit } = createEmitter()
-
-	return {
-		set: (next) => {
-			if (next === element) return
-
-			element = next
-
-			emit()
-		},
-		get: () => element,
-		subscribe,
-	}
-}
-
-/**
- * The store of the {@link HeaderActions} that encloses the reader, or `null`
- * outside one.
- *
- * @internal
- */
-export const [HeaderActionsContext, useHeaderActionsStore] =
-	createContext<HeaderActionsStore | null>('HeaderActions', { default: null })
+import { type ReactNode, useState } from 'react'
+import { createStore, HeaderActionsContext } from './context'
 
 /** Props for {@link HeaderActions}. */
 export type HeaderActionsProps = {
@@ -81,26 +37,4 @@ export function HeaderActions({ children }: HeaderActionsProps) {
 	const [store] = useState(createStore)
 
 	return <HeaderActionsContext value={store}>{children}</HeaderActionsContext>
-}
-
-const none = () => null
-
-/**
- * The element in the header row of the box around the reader, where a widget
- * can put its own controls with a portal. The control then sits next to the
- * controls of the box and covers none of the content of the widget. It is
- * `null` outside a {@link HeaderActions}, and while the box shows no header
- * row. Then the widget keeps the control in its own layout.
- *
- * @example
- * ```tsx
- * const actions = useHeaderActions()
- *
- * return actions ? createPortal(button, actions) : button
- * ```
- */
-export function useHeaderActions(): HTMLElement | null {
-	const store = useHeaderActionsStore()
-
-	return useSyncExternalStore(store?.subscribe ?? noopSubscribe, store?.get ?? none, none)
 }

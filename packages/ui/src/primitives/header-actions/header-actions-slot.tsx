@@ -3,7 +3,7 @@
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useCallback } from 'react'
 import { cn } from '../../core'
-import { useHeaderActionsStore } from './header-actions'
+import { useHeaderActionsStore } from './context'
 
 /**
  * Props for {@link HeaderActionsSlot}. The `<span>` of the slot takes the rest.

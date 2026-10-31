@@ -4,4 +4,4 @@ export {
 	type LinkContextValue,
 	type LinkProps,
 	useLink,
-} from './link'
+} from './context'
