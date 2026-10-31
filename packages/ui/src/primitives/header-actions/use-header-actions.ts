@@ -1,8 +1,8 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
+import { use, useSyncExternalStore } from 'react'
 import { noopSubscribe } from '../../utilities'
-import { useHeaderActionsStore } from './context'
+import { HeaderActionsContext } from './context'
 
 const none = () => null
 
@@ -21,7 +21,7 @@ const none = () => null
  * ```
  */
 export function useHeaderActions(): HTMLElement | null {
-	const store = useHeaderActionsStore()
+	const store = use(HeaderActionsContext)
 
 	return useSyncExternalStore(store?.subscribe ?? noopSubscribe, store?.get ?? none, none)
 }

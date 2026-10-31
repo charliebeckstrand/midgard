@@ -1,7 +1,8 @@
 'use client'
 
-import { type ReactNode, useState } from 'react'
-import { createStore, HeaderActionsContext } from './context'
+import type { ReactNode } from 'react'
+import { HeaderActionsContext } from './context'
+import { useHeaderActionsStore } from './use-header-actions-store'
 
 /** Props for {@link HeaderActions}. */
 export type HeaderActionsProps = {
@@ -32,9 +33,7 @@ export type HeaderActionsProps = {
  * ```
  */
 export function HeaderActions({ children }: HeaderActionsProps) {
-	// A store, not state: the element arrives after the first commit, and only
-	// the widget that reads it renders again.
-	const [store] = useState(createStore)
+	const store = useHeaderActionsStore()
 
 	return <HeaderActionsContext value={store}>{children}</HeaderActionsContext>
 }

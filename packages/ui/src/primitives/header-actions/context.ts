@@ -1,11 +1,11 @@
 'use client'
 
 import { createContext } from '../../core'
-import { createEmitter } from '../../utilities'
 
 /**
  * The store of the element in the header row of a box. {@link HeaderActionsSlot}
  * gives it the element, and {@link useHeaderActions} reads it.
+ * {@link useHeaderActionsStore} makes it.
  *
  * @internal
  */
@@ -18,30 +18,12 @@ export type HeaderActionsStore = {
 	subscribe: (listener: () => void) => () => void
 }
 
-/** Creates an empty {@link HeaderActionsStore}. @internal */
-export function createStore(): HeaderActionsStore {
-	let element: HTMLElement | null = null
-
-	const { subscribe, emit } = createEmitter()
-
-	return {
-		set: (next) => {
-			if (next === element) return
-
-			element = next
-
-			emit()
-		},
-		get: () => element,
-		subscribe,
-	}
-}
-
 /**
- * The store of the {@link HeaderActions} that encloses the reader, or `null`
- * outside one.
+ * Carries the {@link HeaderActionsStore} of the {@link HeaderActions} that
+ * encloses the reader, or `null` outside one. A reader takes it with `use`.
  *
  * @internal
  */
-export const [HeaderActionsContext, useHeaderActionsStore] =
-	createContext<HeaderActionsStore | null>('HeaderActions', { default: null })
+export const [HeaderActionsContext] = createContext<HeaderActionsStore | null>('HeaderActions', {
+	default: null,
+})
