@@ -248,6 +248,23 @@ describe('PdfViewer', () => {
 	})
 
 	/*
+	 * The page count arrives with the document. The server paint of a `src` has no count, so it
+	 * paints the open rail with its loading tiles and the toggle beside it. The loaded viewer has
+	 * the same layout, and the page does not shift when the document lands.
+	 */
+	it('paints the open rail and its toggle before a src load starts', () => {
+		const markup = serverMarkup(<PdfViewer src="/cold.pdf" />)
+
+		expect(getSlot(markup, 'pdf-viewer-sidebar')).not.toHaveAttribute('inert')
+
+		expect(
+			markup.querySelectorAll('[data-slot="pdf-viewer-thumbnail-placeholder"]'),
+		).not.toHaveLength(0)
+
+		expect(markup.querySelector('button[aria-label="Hide thumbnails"]')).not.toBeNull()
+	})
+
+	/*
 	 * The server reads `thumbnails` at the widest breakpoint, so it renders the rail at each
 	 * width. The classes of the default layout show the rail and its glyph from `lg` only, and
 	 * the Sheet glyph below it, so a phone paints no rail before the hydration.
@@ -475,7 +492,12 @@ describe('PdfViewer', () => {
 
 			renderUI(<PdfViewer src="/zoom.pdf" defaultZoom={2} />)
 
-			await waitFor(() => expect(render.mock.calls.map((call) => call[2])).toEqual([1, 2]))
+			// The rail asks for the thumbnail too, so only the full rasters count here.
+			await waitFor(() =>
+				expect(
+					render.mock.calls.filter((call) => call[1] === 'full').map((call) => call[2]),
+				).toEqual([1, 2]),
+			)
 		})
 
 		// The rail names the tiles it shows, and the queue renders their thumbnails. The jsdom
@@ -531,33 +553,32 @@ describe('PdfViewer', () => {
 	})
 
 	/*
-	 * A one-page document has nothing to navigate to, so the rail would spend 224px of a panel
-	 * that is routinely the narrower half of a split on a tile of the page already on screen.
+	 * The rail does not follow the page count, so a one-page document has it too. A rail that
+	 * followed the count changed the layout when the count arrived with the document.
 	 *
 	 * Asserted through the toolbar's own toggle rather than the `inert` attribute, because that
-	 * is the state a reader can see and act on, and `inert` lands a frame later, once the
-	 * sidebar's slide has settled.
+	 * is the state a reader can see and act on.
 	 */
-	it('opens with the thumbnail sidebar closed on a single-page document', () => {
+	it('opens with the thumbnail sidebar open on a single-page document', () => {
 		renderUI(<PdfViewer pages={pages.slice(0, 1)} />)
-
-		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'false')
-	})
-
-	// The reader's own press outranks that default, and nothing re-derives it out from under
-	// them: the whole reason the state is an override rather than a seeded boolean.
-	it('keeps the sidebar the reader opened on a single-page document', async () => {
-		renderUI(<PdfViewer pages={pages.slice(0, 1)} />)
-
-		await setupUser().click(screen.getByLabelText('Show thumbnails'))
 
 		expect(screen.getByLabelText('Hide thumbnails')).toHaveAttribute('aria-expanded', 'true')
 	})
 
+	// The press of the reader holds, and a new document does not open the rail again.
+	it('keeps the sidebar the reader closed when the pages change', async () => {
+		const { rerender } = renderUI(<PdfViewer pages={pages.slice(0, 1)} />)
+
+		await setupUser().click(screen.getByLabelText('Hide thumbnails'))
+
+		rerender(<PdfViewer pages={pages} />)
+
+		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'false')
+	})
+
 	/*
-	 * The rail is furniture, not an arrival. Where it starts is derived from the page count, and
-	 * that count lands whenever pdf.js finishes parsing: a rail that slid in at that moment
-	 * announced the parse. The reader's press is a change they made, and that one travels.
+	 * The rail is furniture, not an arrival: it is there from the first paint, and stands still.
+	 * The reader's press is a change they made, and that one travels.
 	 */
 	it('takes no slide until the reader presses the toggle', async () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)

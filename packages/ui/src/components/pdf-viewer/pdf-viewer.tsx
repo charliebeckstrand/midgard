@@ -190,7 +190,8 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 * Where the page thumbnails are: a `rail` pinned beside the page, which the
 	 * toolbar shows and hides, or a `sheet` that the toolbar opens. A
 	 * per-breakpoint map sets the layout from each breakpoint, mobile-first. A
-	 * single value sets it at each width.
+	 * single value sets it at each width. The rail starts open for each document,
+	 * also while a `src` loads, so the viewer keeps one layout from the first paint.
 	 * @defaultValue {@link PDF_VIEWER_THUMBNAILS}
 	 */
 	thumbnails?: Responsive<PdfViewerThumbnailLayout>

@@ -19,10 +19,12 @@ import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
  * on mobile. Both render {@link PdfViewerThumbnailList}; the sidebar adds roving
  * arrow-key focus across tiles.
  *
- * @remarks Renders nothing when there are no pages and the document isn't
- * loading. The desktop sidebar collapses via the toolbar toggle (`sidebarOpen`),
- * sliding off-canvas while staying mounted for the transition. When collapsed it
- * is `inert` and `aria-hidden`, off the tab order and a11y tree. Once the slide
+ * @remarks Renders nothing when there are no pages and no load is in progress
+ * or about to start. On the server and before the load, the rail shows its
+ * loading tiles, so the first paint has the layout of the loaded viewer. The
+ * desktop sidebar collapses via the toolbar toggle (`sidebarOpen`), sliding
+ * off-canvas while staying mounted for the transition. When collapsed it is
+ * `inert` and `aria-hidden`, off the tab order and a11y tree. Once the slide
  * lands, its contents drop into `<Activity mode="hidden">`, so a long document's
  * thumbnail rail stops laying out and re-rendering behind a closed sidebar. The
  * attributes cover the collapsed sidebar's semantics from the first frame, and
@@ -38,6 +40,7 @@ export function PdfViewerThumbnails() {
 		safePage,
 		goToPage,
 		loading,
+		pending,
 		railed,
 		offcanvas,
 		sidebarOpen,
@@ -86,7 +89,10 @@ export function PdfViewerThumbnails() {
 	// stays meaningful apart from the document, and the strip of pages does not.
 	const sidebarTitleId = useId()
 
-	if (pages.length === 0 && !loading) return null
+	// `pending` is the render before the load starts, which is also the server render.
+	const opening = loading || pending
+
+	if (pages.length === 0 && !opening) return null
 
 	return (
 		<>
@@ -116,7 +122,7 @@ export function PdfViewerThumbnails() {
 						</div>
 						<PdfViewerThumbnailList
 							items={thumbnails}
-							loading={loading}
+							loading={opening}
 							safePage={safePage}
 							goToPage={goToPage}
 							scrollCurrentIntoView={scrollCurrentIntoView}
@@ -154,7 +160,7 @@ export function PdfViewerThumbnails() {
 					<SheetBody>
 						<PdfViewerThumbnailList
 							items={thumbnails}
-							loading={loading}
+							loading={opening}
 							safePage={safePage}
 							goToPage={goToPage}
 							scrollCurrentIntoView={scrollCurrentIntoView}

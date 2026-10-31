@@ -25,7 +25,8 @@ import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
  * loupe.
  *
  * Reads everything from {@link PdfViewerContext}. The controls disable only when the document
- * has no page. They work while the pages render, because the open gives every page slot.
+ * has no page. They work while the pages render, because the open gives every page slot. The
+ * thumbnail control also works while the document loads, because the rail shows then.
  *
  * The magnifier control is one of two, and {@link PdfViewerMagnifierMode} says which: a
  * toggle, or the button that opens {@link PdfViewerMagnifierSettings}.
@@ -36,6 +37,8 @@ export function PdfViewerToolbar() {
 	const {
 		pages,
 		total,
+		loading,
+		pending,
 		safePage,
 		goToPage,
 		zoom,
@@ -84,7 +87,7 @@ export function PdfViewerToolbar() {
 				)
 			}
 			aria-expanded={railed ? sidebarOpen : undefined}
-			disabled={controlsDisabled}
+			disabled={false}
 			onClick={railed ? () => setSidebarOpen(!sidebarOpen) : undefined}
 		/>
 	)
@@ -105,45 +108,45 @@ export function PdfViewerToolbar() {
 				className={k().toolbar.base}
 			>
 				<div className={k().toolbar.section}>
+					{/* The toggle is there while the rail shows its loading tiles, so the bar does not
+					    change when the document lands. The page navigation needs the count. */}
+					{(total > 0 || loading || pending) &&
+						(railed ? thumbnailsToggle : <SheetTrigger>{thumbnailsToggle}</SheetTrigger>)}
 					{total > 0 && (
-						<>
-							{railed ? thumbnailsToggle : <SheetTrigger>{thumbnailsToggle}</SheetTrigger>}
+						<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.pageNavigation)}>
+							<Listbox<number>
+								aria-label={intl.formatMessage(pdfViewerMessages.currentPage)}
+								value={safePage}
+								onValueChange={(next) => {
+									if (next !== null) goToPage(next)
+								}}
+								displayValue={(pageNumber) => intl.formatNumber(pageNumber)}
+								disabled={controlsDisabled}
+								className="tabular-nums"
+							>
+								{pages.map((page, index) => {
+									const pageNumber = index + 1
 
-							<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.pageNavigation)}>
-								<Listbox<number>
-									aria-label={intl.formatMessage(pdfViewerMessages.currentPage)}
-									value={safePage}
-									onValueChange={(next) => {
-										if (next !== null) goToPage(next)
-									}}
-									displayValue={(pageNumber) => intl.formatNumber(pageNumber)}
-									disabled={controlsDisabled}
-									className="tabular-nums"
-								>
-									{pages.map((page, index) => {
-										const pageNumber = index + 1
-
-										return (
-											<ListboxOption key={page.id ?? index} value={pageNumber}>
-												<ListboxLabel>{pageLabel(intl, page, pageNumber)}</ListboxLabel>
-											</ListboxOption>
-										)
-									})}
-								</Listbox>
-								{/* A screen reader reads "of 12", not "slash 12". The visible count is hidden from it,
+									return (
+										<ListboxOption key={page.id ?? index} value={pageNumber}>
+											<ListboxLabel>{pageLabel(intl, page, pageNumber)}</ListboxLabel>
+										</ListboxOption>
+									)
+								})}
+							</Listbox>
+							{/* A screen reader reads "of 12", not "slash 12". The visible count is hidden from it,
 								    because the sentence below says the count in the language of the reader. */}
-								<span aria-hidden="true" className="mx-1 select-none">
-									/
+							<span aria-hidden="true" className="mx-1 select-none">
+								/
+							</span>
+							{/* `-total`, not `-status`: the viewport's live region owns that anchor. */}
+							<span data-slot="pdf-viewer-page-total" className={k().toolbar.total}>
+								<span aria-hidden="true">{intl.formatNumber(total)}</span>
+								<span className="sr-only">
+									{intl.formatMessage(pdfViewerMessages.ofTotal, { total })}
 								</span>
-								{/* `-total`, not `-status`: the viewport's live region owns that anchor. */}
-								<span data-slot="pdf-viewer-page-total" className={k().toolbar.total}>
-									<span aria-hidden="true">{intl.formatNumber(total)}</span>
-									<span className="sr-only">
-										{intl.formatMessage(pdfViewerMessages.ofTotal, { total })}
-									</span>
-								</span>
-							</ToolbarGroup>
-						</>
+							</span>
+						</ToolbarGroup>
 					)}
 				</div>
 

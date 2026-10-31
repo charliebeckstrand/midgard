@@ -4,7 +4,8 @@ import type { PdfViewerPage } from '../../components/pdf-viewer'
 import { usePdfViewer } from '../../components/pdf-viewer/use-pdf-viewer'
 
 /**
- * When the thumbnail rail is open, which is decided from the page count rather than seeded.
+ * When the thumbnail rail is open. It starts open for each document, and the page count has no
+ * part in it.
  *
  * Tested on the hook rather than through the viewer, because the case that matters is the one
  * with no pages *yet* (a document still being parsed) and a mounted viewer given no pages at
@@ -17,37 +18,29 @@ function sidebar(pages: PdfViewerPage[]) {
 	return renderHook(() => usePdfViewer({ pages }))
 }
 
-describe('the thumbnail rail mounts closed', () => {
+describe('the thumbnail rail starts open', () => {
 	/*
-	 * The bug this rule was written wrong for once: a viewer loading from `src` has no pages
-	 * for as long as pdf.js takes to parse the file, so "open unless the count is exactly one"
-	 * was true through that whole window, and a one-page invoice opened the rail and then
-	 * visibly shut it.
+	 * A viewer loading from `src` has no pages for as long as pdf.js takes to parse the file.
+	 * A rail that waited for the count opened after the first paint, and the narrower page made
+	 * the whole viewer shorter.
 	 */
 	it('while the document is still being read', () => {
-		expect(sidebar([]).result.current.sidebarOpen).toBe(false)
+		expect(sidebar([]).result.current.sidebarOpen).toBe(true)
 	})
 
-	/** A single page has nothing to navigate to; the rail would be a tile of what is on screen. */
-	it('and stays closed on a one-page document', () => {
-		expect(sidebar([page('a')]).result.current.sidebarOpen).toBe(false)
+	/** A rail that closed for one page changed the layout the other way when the count landed. */
+	it('on a one-page document', () => {
+		expect(sidebar([page('a')]).result.current.sidebarOpen).toBe(true)
 	})
-})
 
-describe('it opens for a document worth navigating', () => {
-	it('once more than one page has landed', () => {
+	it('on a longer document', () => {
 		expect(sidebar([page('a'), page('b')]).result.current.sidebarOpen).toBe(true)
 	})
 })
 
 describe('the rail travels only for a press', () => {
-	/*
-	 * The count arrives with the document (pdf.js has to parse the file before it can say how
-	 * many pages there are) so the rail's own default lands several hundred milliseconds after
-	 * the viewer does. Slid in at that moment it read as something arriving late; it is the
-	 * viewer's own furniture, so it is simply there.
-	 */
-	it('stands still while the count decides where it starts', () => {
+	/* The rail is the viewer's own furniture, so it is simply there. */
+	it('stands still before the reader presses the toggle', () => {
 		expect(sidebar([]).result.current.sidebarAnimates).toBe(false)
 
 		expect(sidebar([page('a'), page('b')]).result.current.sidebarAnimates).toBe(false)
@@ -63,14 +56,13 @@ describe('the rail travels only for a press', () => {
 	})
 })
 
-describe("the reader's own press outranks the count", () => {
-	/** Nothing may re-derive the rail out from under someone who opened it. */
-	it('keeps a rail opened on a one-page document', () => {
+describe("the reader's own press holds", () => {
+	it('keeps a rail closed on a one-page document', () => {
 		const { result } = sidebar([page('a')])
 
-		act(() => result.current.setSidebarOpen(true))
+		act(() => result.current.setSidebarOpen(false))
 
-		expect(result.current.sidebarOpen).toBe(true)
+		expect(result.current.sidebarOpen).toBe(false)
 	})
 
 	it('keeps a rail closed on a long one', () => {
