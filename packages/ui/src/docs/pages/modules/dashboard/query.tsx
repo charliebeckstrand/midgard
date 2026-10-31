@@ -33,6 +33,56 @@ const startFilter: QueryGroup = {
 	children: [{ id: 'revenue', type: 'rule', field: 'revenue', operator: 'gte', value: '200' }],
 }
 
+// The tiles take no state of the example, so each render gives the same
+// elements. A change of the example, such as the re-pack that hides the edit
+// control, then does not render the tiles again.
+const tiles = (
+	<>
+		<DashboardTile
+			id="regions"
+			expandable
+			title="Revenue by region"
+			description={<FilterHint mark="bar" />}
+			ratio={16 / 9}
+		>
+			<RevenueBars by="region" />
+		</DashboardTile>
+		<DashboardTile
+			id="mix"
+			expandable
+			title="Product mix"
+			description={<FilterHint mark="slice" />}
+			ratio={16 / 9}
+		>
+			<ProductMix />
+		</DashboardTile>
+		<DashboardTile id="units" title="Units sold" minWidth={160} fitContent>
+			<Units />
+		</DashboardTile>
+		<DashboardTile id="units-trend" expandable title="Monthly units" minWidth={200} fitContent>
+			<Kpi value="units" />
+		</DashboardTile>
+		<DashboardTile id="revenue-trend" expandable title="Monthly revenue" minWidth={200} fitContent>
+			<Kpi value="revenue" />
+		</DashboardTile>
+		<DashboardTile
+			id="trend"
+			expandable
+			title="Revenue by month"
+			actions={
+				<Badge color="green" variant="soft">
+					Live
+				</Badge>
+			}
+		>
+			<Trend />
+		</DashboardTile>
+		<DashboardTile id="orders" expandable title="Orders" minWidth={480}>
+			<Orders />
+		</DashboardTile>
+	</>
+)
+
 export default function Query() {
 	const [editing, setEditing] = useState(false)
 
@@ -81,54 +131,7 @@ export default function Query() {
 				filter={{ value: filter, onValueChange: setFilter }}
 				selection={{ value: selection, onValueChange: setSelection }}
 			>
-				<DashboardTile
-					id="regions"
-					expandable
-					title="Revenue by region"
-					description={<FilterHint mark="bar" />}
-					ratio={16 / 9}
-				>
-					<RevenueBars by="region" />
-				</DashboardTile>
-				<DashboardTile
-					id="mix"
-					expandable
-					title="Product mix"
-					description={<FilterHint mark="slice" />}
-					ratio={16 / 9}
-				>
-					<ProductMix />
-				</DashboardTile>
-				<DashboardTile id="units" title="Units sold" minWidth={160} fitContent>
-					<Units />
-				</DashboardTile>
-				<DashboardTile id="units-trend" expandable title="Monthly units" minWidth={200} fitContent>
-					<Kpi value="units" />
-				</DashboardTile>
-				<DashboardTile
-					id="revenue-trend"
-					expandable
-					title="Monthly revenue"
-					minWidth={200}
-					fitContent
-				>
-					<Kpi value="revenue" />
-				</DashboardTile>
-				<DashboardTile
-					id="trend"
-					expandable
-					title="Revenue by month"
-					actions={
-						<Badge color="green" variant="soft">
-							Live
-						</Badge>
-					}
-				>
-					<Trend />
-				</DashboardTile>
-				<DashboardTile id="orders" expandable title="Orders" minWidth={480}>
-					<Orders />
-				</DashboardTile>
+				{tiles}
 			</Dashboard>
 		</Stack>
 	)

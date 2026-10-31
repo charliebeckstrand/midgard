@@ -251,7 +251,9 @@ export default function BuildAndSave() {
 	useEffect(() => {
 		const saved = load(key)
 
-		setBoard(saved)
+		// A board that equals the board on the screen keeps its object, so its
+		// tiles do not render again.
+		setBoard((prev) => (JSON.stringify(prev) === JSON.stringify(saved) ? prev : saved))
 
 		if (saved.template !== initial.id) {
 			setStarts((count) => count + 1)
@@ -299,6 +301,16 @@ export default function BuildAndSave() {
 	const empty = spec.tiles.length === 0
 
 	const json = useMemo<JsonValue>(() => JSON.parse(JSON.stringify(spec)), [spec])
+
+	// The element holds while the tiles and their handlers hold. A render of the
+	// example that changes neither, such as the end of the load, then does not
+	// render the tiles again.
+	const tiles = useMemo(
+		() => (
+			<DashboardTiles tiles={spec.tiles} onRemove={remove} onDuplicate={duplicate} expandable />
+		),
+		[spec.tiles, remove, duplicate],
+	)
 
 	return (
 		<Stack gap="md">
@@ -387,7 +399,7 @@ export default function BuildAndSave() {
 						onValueChange: (layout) => setSpec((prev) => ({ ...prev, layout })),
 					}}
 				>
-					<DashboardTiles tiles={spec.tiles} onRemove={remove} onDuplicate={duplicate} expandable />
+					{tiles}
 				</Dashboard>
 			</DashboardWidgetProvider>
 			{empty && (

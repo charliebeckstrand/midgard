@@ -1,6 +1,6 @@
 'use client'
 
-import { DndContext } from '@dnd-kit/core'
+import { DndContext, type DndContextProps } from '@dnd-kit/core'
 import {
 	type ComponentProps,
 	type CSSProperties,
@@ -575,22 +575,21 @@ export function Dashboard({
 	return (
 		<DashboardStoreContext value={store}>
 			<DashboardActionsContext value={actions}>
-				<DndContext {...dndContextProps}>
-					<DashboardCanvas
-						{...props}
-						store={store}
-						scope={scope}
-						firstPaint={firstPaint}
-						columns={columns}
-						gap={gap}
-						titleLevel={titleLevel}
-						canvasRef={canvasRef}
-						onProjectedChange={onProjectedChange}
-						className={className}
-					>
-						{children}
-					</DashboardCanvas>
-				</DndContext>
+				<DashboardCanvas
+					{...props}
+					store={store}
+					scope={scope}
+					firstPaint={firstPaint}
+					columns={columns}
+					gap={gap}
+					titleLevel={titleLevel}
+					canvasRef={canvasRef}
+					dnd={dndContextProps}
+					onProjectedChange={onProjectedChange}
+					className={className}
+				>
+					{children}
+				</DashboardCanvas>
 			</DashboardActionsContext>
 		</DashboardStoreContext>
 	)
@@ -606,16 +605,24 @@ type DashboardCanvasProps = Omit<ComponentProps<'section'>, 'ref'> & {
 	gap: number
 	titleLevel: HeadingLevel
 	canvasRef: RefObject<HTMLDivElement | null>
+	/** The props of `DndContext`, which holds the tiles. */
+	dnd: DndContextProps
 	onProjectedChange?: (projected: boolean) => void
 }
 
 /**
  * The section and the canvas of a {@link Dashboard}. It reads the flags of the
  * store that the canvas paints, so a change of a flag renders this part and not
- * the root. Each render of the root renders `DndContext`, which gives its
+ * the root. The width of the canvas and the re-pack change after hydration, so
+ * the root must not read them.
+ *
+ * `DndContext` holds only the tiles. Each render of `DndContext` gives its
  * contexts new values. A new value makes each tile boundary that did not
- * hydrate yet hydrate at once, in one long task. The width of the canvas and the
- * re-pack change after hydration, so the root must not read them.
+ * hydrate yet hydrate at once, and each of these hydrations starts the render
+ * again. The canvas keeps the same tiles while the children and the order stay
+ * the same, so `DndContext` does not render again. Thus a render of the root,
+ * as when the app renders the board again with the same children, does not make
+ * the tiles hydrate.
  *
  * @internal
  */
@@ -627,6 +634,7 @@ function DashboardCanvas({
 	gap,
 	titleLevel,
 	canvasRef,
+	dnd,
 	onProjectedChange,
 	className,
 	children,
@@ -675,7 +683,9 @@ function DashboardCanvas({
 				// The column guides belong to the saved layout, and not to the re-pack.
 				className={k({ editable: editable && !projected }).base}
 			>
-				<DashboardTitleLevelContext value={titleLevel}>{tiles}</DashboardTitleLevelContext>
+				<DashboardTitleLevelContext value={titleLevel}>
+					<DndContext {...dnd}>{tiles}</DndContext>
+				</DashboardTitleLevelContext>
 
 				<DashboardPlaceholder />
 			</div>
