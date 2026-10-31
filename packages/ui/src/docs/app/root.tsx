@@ -25,11 +25,7 @@ import { useDocumentLocale } from './document-locale.ts'
 import { LOCALES } from './language.ts'
 import { PageError } from './page-error.tsx'
 import { NavigateContext, RouterLink } from './router-link.tsx'
-import {
-	FirstPaintLink,
-	ScrollRestorationScript,
-	useNavigationScroll,
-} from './scroll-restoration.tsx'
+import { useNavigationScroll } from './scroll-restoration.tsx'
 import { DocsSearch, SearchPaletteHost } from './search.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 import { StaleBuildScript } from './stale-build.tsx'
@@ -42,12 +38,6 @@ import { StaleBuildScript } from './stale-build.tsx'
  * language of the locale that the page renders in.
  */
 export function Layout({ children }: { children: ReactNode }) {
-	const matches = useMatches()
-
-	const tabs = pages.some(
-		(page) => page.tabs.length > 0 && matches.some((match) => match.id === page.path),
-	)
-
 	return (
 		<UIDocument
 			lang={useDocumentLocale()}
@@ -58,7 +48,6 @@ export function Layout({ children }: { children: ReactNode }) {
 					<meta charSet="UTF-8" />
 					<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 					<StaleBuildScript />
-					<FirstPaintLink tabs={tabs} />
 					<DirectionScript />
 					<EventsScript />
 					<Meta />
@@ -67,7 +56,6 @@ export function Layout({ children }: { children: ReactNode }) {
 			}
 		>
 			{children}
-			<ScrollRestorationScript />
 			<Scripts />
 		</UIDocument>
 	)

@@ -7,12 +7,6 @@ export type InlineScriptProps = {
 	 * because the script runs with the full rights of the page.
 	 */
 	source: string
-	/**
-	 * The `id` of the script element. A `<link rel="expect" href="#id"
-	 * blocking="render">` in the `<head>` that names it holds the first paint
-	 * until the parser has run the script.
-	 */
-	id?: string
 }
 
 /**
@@ -34,10 +28,6 @@ export type InlineScriptProps = {
  *
  * @internal
  */
-export function InlineScript({ source, id }: InlineScriptProps) {
-	return (
-		<script id={id} suppressHydrationWarning>
-			{source}
-		</script>
-	)
+export function InlineScript({ source }: InlineScriptProps) {
+	return <script suppressHydrationWarning>{source}</script>
 }

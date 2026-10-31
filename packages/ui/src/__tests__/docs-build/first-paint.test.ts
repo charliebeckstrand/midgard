@@ -2,17 +2,13 @@ import { type Browser, chromium, type Page } from 'playwright'
 import { afterAll, beforeAll, describe, inject, it, type TestContext } from 'vitest'
 import { STYLED } from '../../../scripts/docs-server'
 
-// The first paint of the docs has the current items in view. The inline script
-// of the docs (`scroll-restoration.tsx`) scrolls the sidebar and the tab row to
-// the current item before the first paint, so the paint of the server markup,
-// with the bundled module scripts blocked, shows the same scroll as the page
-// after hydration.
+// The first paint of the docs has the current item of the sidebar in view. The
+// current row is the initial scroll target of the sidebar (`SidebarItem`), so
+// in Chromium the paint of the server markup, with the bundled module scripts
+// blocked, shows the same scroll as the page after hydration.
 
 /** A page near the top of the sidebar, one in the middle, and one at the end. */
 const PAGES = ['/badge', '/modules/grid', '/structure/stack']
-
-/** Tabs in the middle and at the end of a tab row that overflows on a phone. */
-const TABS = ['/modules/grid/toolbar', '/modules/grid/virtualization']
 
 /**
  * The module scripts of the build. The script of the latin face of the font
@@ -99,37 +95,6 @@ describe.concurrent('the sidebar of the docs build', () => {
 		const { painted, hydrated } = await readBoth<SidebarState>(context, path, 1280, READ_SIDEBAR)
 
 		expect(painted.inView).toBe(true)
-
-		expect(hydrated).toEqual(painted)
-	})
-})
-
-/** The scroll of the tab row, whether it overflows, whether the whole current tab is in view, and the scroll of the window. */
-type TabRowState = { scrollLeft: number; overflows: boolean; inView: boolean; pageY: number }
-
-/** Reads the {@link TabRowState} of the page. */
-const READ_TAB_ROW = `(() => {
-	const scroller = document.querySelector('[data-slot="tab-list-scroll"]')
-	const tab = scroller.querySelector('[data-slot="tab"][data-current]')
-	const view = scroller.getBoundingClientRect()
-	const box = tab.getBoundingClientRect()
-	return {
-		scrollLeft: scroller.scrollLeft,
-		overflows: scroller.scrollWidth > scroller.clientWidth,
-		inView: box.left >= view.left && box.right <= view.right,
-		pageY: window.scrollY,
-	}
-})()`
-
-describe.concurrent('the tab row of the docs build', () => {
-	it.for(TABS)('%s paints its final scroll before hydration', async (path, context) => {
-		const { expect } = context
-
-		// The width of a phone, where the row overflows.
-		const { painted, hydrated } = await readBoth<TabRowState>(context, path, 390, READ_TAB_ROW)
-
-		// The tab is in view in the row, and the page does not scroll to it.
-		expect(painted).toMatchObject({ overflows: true, inView: true, pageY: 0 })
 
 		expect(hydrated).toEqual(painted)
 	})
