@@ -89,12 +89,11 @@ function OrdersFilters({
 }
 
 // The sidebar of the preview is a second navigation landmark on the page, so
-// it takes a name of its own. It follows the content in the document, so its
-// heading comes after the `h1` of the content and is an `h2`.
+// it takes a name of its own.
 const sidebar = (
 	<Sidebar aria-label="Acme Inc.">
 		<SidebarHeader>
-			<Heading level={2}>Acme Inc.</Heading>
+			<Heading level={3}>Acme Inc.</Heading>
 		</SidebarHeader>
 		<SidebarBody>
 			<SidebarSection>
