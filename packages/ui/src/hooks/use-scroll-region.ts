@@ -117,8 +117,8 @@ export function useScrollRegion(options: ScrollRegionOptions = {}): RefCallback<
 				apply(next)
 			}
 
-			update()
-
+			// The first report of the resize observer comes after the layout of the
+			// frame and before its paint, so the ref does not measure on attach.
 			const stopObserving = observeScrollExtent(node, update)
 
 			let fontsCanceled = false

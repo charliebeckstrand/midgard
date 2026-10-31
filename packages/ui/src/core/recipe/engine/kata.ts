@@ -465,11 +465,12 @@ function readResponsive(slots: readonly SlotRecipe[], responsive: Set<string>): 
 
 			const conditions = Object.entries(rest as Record<string, string>)
 
+			// A rule that reads no responsive axis is left out before its merge.
+			if (!conditions.some(([axis]) => responsive.has(axis))) return []
+
 			const classes = twMerge(clsx(value))
 
-			if (classes === '' || !conditions.some(([axis]) => responsive.has(axis))) return []
-
-			return [{ conditions, classes }]
+			return classes === '' ? [] : [{ conditions, classes }]
 		})
 	})
 }
