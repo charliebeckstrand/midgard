@@ -136,28 +136,19 @@ describe('useCalendarFocus: footer', () => {
 		expect(document.activeElement).toBe(buttons.item(buttons.length - 1))
 	})
 
-	it('ArrowRight wraps to the first footer button', () => {
+	it.for([
+		{ name: 'ArrowRight wraps to the first footer button', key: 'ArrowRight', from: 1, to: 0 },
+		{ name: 'ArrowLeft wraps to the last footer button', key: 'ArrowLeft', from: 0, to: 1 },
+	])('$name', ({ key, from, to }) => {
 		const { footer, handleFooterKeyDown } = setup({ footer: true, footerButtons: 2 })
 
 		const buttons = footer?.querySelectorAll('button')
 
-		;(buttons?.item(1) as HTMLButtonElement | undefined)?.focus()
+		;(buttons?.item(from) as HTMLButtonElement | undefined)?.focus()
 
-		handleFooterKeyDown(makeKeyEvent('ArrowRight'))
+		handleFooterKeyDown(makeKeyEvent(key))
 
-		expect(document.activeElement).toBe(buttons?.item(0))
-	})
-
-	it('ArrowLeft wraps to the last footer button', () => {
-		const { footer, handleFooterKeyDown } = setup({ footer: true, footerButtons: 2 })
-
-		const buttons = footer?.querySelectorAll('button')
-
-		;(buttons?.item(0) as HTMLButtonElement | undefined)?.focus()
-
-		handleFooterKeyDown(makeKeyEvent('ArrowLeft'))
-
-		expect(document.activeElement).toBe(buttons?.item(1))
+		expect(document.activeElement).toBe(buttons?.item(to))
 	})
 
 	it('ArrowLeft is a no-op when focus is outside the footer', () => {

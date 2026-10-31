@@ -25,24 +25,16 @@ describe('useTagInputKeyboard', () => {
 	it.each([
 		['Enter', 'Enter'],
 		['comma', ','],
-	])('%s commits the draft', (_name, key) => {
+	])('%s prevents the default and commits the draft', (_name, key) => {
 		const { press, commit } = setup('hello', 0)
 
-		press(makeKeyEvent<HTMLInputElement>(key))
-
-		expect(commit).toHaveBeenCalledWith('hello')
-	})
-
-	it('Enter on a draft with a token prevents the default and commits', () => {
-		const { press, commit } = setup('a', 0)
-
-		const event = makeKeyEvent<HTMLInputElement>('Enter')
+		const event = makeKeyEvent<HTMLInputElement>(key)
 
 		press(event)
 
 		expect(event.defaultPrevented).toBe(true)
 
-		expect(commit).toHaveBeenCalledWith('a')
+		expect(commit).toHaveBeenCalledWith('hello')
 	})
 
 	// An empty draft has nothing to commit, so Enter keeps its native default: it submits the form.

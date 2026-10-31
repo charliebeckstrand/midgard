@@ -5,6 +5,7 @@ import {
 	DialogClose,
 	DialogHeader,
 	DialogPanel,
+	type DialogPanelProps,
 	DialogTitle,
 } from '../../components/dialog'
 import { DensityProvider } from '../../providers/density'
@@ -131,24 +132,19 @@ describe('Dialog', () => {
 		expect(wrapper?.className).not.toContain('sm:items-center')
 	})
 
-	it('docks to the bottom edge below `sm` and aligns to the top from it, by a per-breakpoint align', () => {
+	it.for<[string, DialogPanelProps['align']]>([
+		[
+			'docks to the bottom edge below `sm` and aligns to the top from it, by a per-breakpoint align',
+			{ initial: 'bottom', sm: 'top' },
+		],
+		[
+			'docks to the bottom edge below the first breakpoint of an align that names no `initial`',
+			{ sm: 'top' },
+		],
+	])('%s', ([, align]) => {
 		renderUI(
 			<Dialog open onOpenChange={() => {}}>
-				<DialogPanel align={{ initial: 'bottom', sm: 'top' }}>Responsive</DialogPanel>
-			</Dialog>,
-		)
-
-		const wrapper = bySlot(document.body, 'dialog')?.parentElement
-
-		expect(wrapper?.className.split(' ')).toEqual(
-			expect.arrayContaining(['items-end', 'p-0', 'sm:items-start', 'sm:p-4']),
-		)
-	})
-
-	it('docks to the bottom edge below the first breakpoint of an align that names no `initial`', () => {
-		renderUI(
-			<Dialog open onOpenChange={() => {}}>
-				<DialogPanel align={{ sm: 'top' }}>Responsive</DialogPanel>
+				<DialogPanel align={align}>Responsive</DialogPanel>
 			</Dialog>,
 		)
 

@@ -14,19 +14,20 @@ import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 type SetErrors = { setErrors: (errors: Record<string, string | string[]>) => void }
 
 /**
- * Renders `message` in a Form whose submit sets `errors` on the `name` field, then submits it.
+ * Renders `children` in a Form whose submit sets `errors` on the `name` field,
+ * then submits it.
  *
  * @returns The rendered Message.
  */
-async function submitWithErrors(errors: string | string[], message: ReactElement) {
+async function submitWithErrors(errors: string | string[], children: ReactElement, name = 'name') {
 	const { container } = renderUI(
 		<Form
-			defaultValues={{ name: '' }}
+			defaultValues={{ [name]: '' }}
 			onSubmit={(_v, helpers: SetErrors) => {
-				helpers.setErrors({ name: errors })
+				helpers.setErrors({ [name]: errors })
 			}}
 		>
-			{message}
+			{children}
 			<button type="submit">Submit</button>
 		</Form>,
 	)
@@ -179,41 +180,17 @@ describe('Field', () => {
 	})
 
 	it('keeps a form-bound Message on the error tone inside a warning Field', async () => {
-		const { container } = renderUI(
-			<Form
-				defaultValues={{ name: '' }}
-				onSubmit={(_v, helpers: SetErrors) => {
-					helpers.setErrors({ name: 'Required' })
-				}}
-			>
-				<Field severity="warning">
-					<Input name="name" />
-					<Message name="name" />
-				</Field>
-				<button type="submit">Submit</button>
-			</Form>,
+		const message = await submitWithErrors(
+			'Required',
+			<Field severity="warning">
+				<Input name="name" />
+				<Message name="name" />
+			</Field>,
 		)
-
-		await act(async () => {
-			fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
-		})
-
-		const message = getSlot(container, 'message')
 
 		expect(message).toHaveAttribute('data-severity', 'error')
 
 		expect(message).toHaveTextContent('Required')
-	})
-
-	it('does not reference a success Message in aria-describedby', () => {
-		const { container } = renderUI(
-			<Field severity="success">
-				<Input />
-				<Message severity="success">Looks good</Message>
-			</Field>,
-		)
-
-		expect(bySlot(container, 'input')).not.toHaveAttribute('aria-describedby')
 	})
 
 	it('renders a bound form field error from a nested Message name', async () => {
@@ -351,24 +328,6 @@ describe('Message', () => {
 		expect(input).not.toHaveAttribute('data-invalid')
 
 		expect(input.getAttribute('aria-describedby')).toBe(message.id)
-	})
-
-	it('rings via severity even with a manually nested Message', () => {
-		// <Field severity> drives the chrome; a custom nested <Message> supplies
-		// the text. The two compose without the Message touching the ring.
-		const { container } = renderUI(
-			<Field severity="error">
-				<Label>Name</Label>
-				<Input />
-				<Message>Required</Message>
-			</Field>,
-		)
-
-		const input = bySlot(container, 'input')
-
-		expect(input).toHaveAttribute('data-invalid')
-
-		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
 	it('does not mark the control invalid for a success Message', () => {

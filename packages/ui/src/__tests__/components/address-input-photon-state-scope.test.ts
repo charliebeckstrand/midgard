@@ -1,18 +1,7 @@
 // @vitest-environment node
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { createPhotonProvider } from '../../components/address-input'
-
-const OREGON = {
-	type: 'Feature',
-	geometry: { type: 'Point', coordinates: [-120.5, 44] },
-	properties: {
-		osm_id: 165476,
-		osm_type: 'R',
-		type: 'state',
-		name: 'Oregon',
-		extent: [-124.7, 46.29, -116.46, 41.99],
-	},
-}
+import { OREGON, type PhotonFetch, place, requestedUrls, stubState } from '../helpers/photon'
 
 /** Photon gives Alaska an extent from -180 to 180, because the state crosses the antimeridian. */
 const ALASKA = {
@@ -27,46 +16,12 @@ const ALASKA = {
 	},
 }
 
-function place(name: string, state: string) {
-	return {
-		type: 'Feature',
-		geometry: { type: 'Point', coordinates: [-122.6, 45.5] },
-		properties: { osm_id: name.length + state.length, osm_type: 'N', name, state },
-	}
-}
-
-/**
- * Answers the state lookup with `area`, the search scoped to the state (by a
- * box or by a point) with `scoped`, and the query as typed with `typed`. The
- * provider has no bias, so only the scoped search carries `lat`.
- */
-function stubState(area: unknown, scoped: unknown[], typed: unknown[]) {
-	const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
-		const url = new URL(String(input))
-
-		const features =
-			url.searchParams.get('layer') === 'state'
-				? [area]
-				: url.searchParams.has('bbox') || url.searchParams.has('lat')
-					? scoped
-					: typed
-
-		return { ok: true, json: async () => ({ features }) } as Response
-	})
-
-	vi.stubGlobal('fetch', fetchMock)
-
-	return fetchMock
-}
-
-function scopedUrl(fetchMock: ReturnType<typeof stubState>) {
-	return fetchMock.mock.calls
-		.map((call) => new URL(String(call[0])))
-		.find(
-			(url) =>
-				url.searchParams.get('layer') !== 'state' &&
-				(url.searchParams.has('bbox') || url.searchParams.has('lat')),
-		)
+function scopedUrl(fetchMock: PhotonFetch) {
+	return requestedUrls(fetchMock).find(
+		(url) =>
+			url.searchParams.get('layer') !== 'state' &&
+			(url.searchParams.has('bbox') || url.searchParams.has('lat')),
+	)
 }
 
 const signal = new AbortController().signal
@@ -112,7 +67,7 @@ describe('createPhotonProvider: the search inside a US state', () => {
 			'Starbucks Juneau',
 		])
 
-		const urls = fetchMock.mock.calls.map((call) => new URL(String(call[0])))
+		const urls = requestedUrls(fetchMock)
 
 		expect(urls.some((url) => url.searchParams.has('bbox'))).toBe(false)
 

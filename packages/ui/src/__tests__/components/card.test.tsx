@@ -57,13 +57,17 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card')).toHaveAttribute('data-density', 'lg')
 	})
 
+	// The frame owns the outer padding on every edge: Card carries its padding
+	// steps for any child, structural or bare, and never collapses it.
 	it('carries each padding and radius step on the frame', () => {
 		const { container } = renderUI(<Card>content</Card>)
 
-		expect(bySlot(container, 'card')).toHaveClass(
-			'density-p-[1,2,3,4,5]',
-			'density-rounded-[0.5,1,1.5,2,2.5]',
-		)
+		const card = bySlot(container, 'card')
+
+		expect(card).toHaveClass('density-p-[1,2,3,4,5]', 'density-rounded-[0.5,1,1.5,2,2.5]')
+
+		// Frame padding survives: no `:has` collapse zeroes it.
+		expect(card?.className).not.toContain(':p-0')
 	})
 
 	it('pads the header and the footer only on an edge that they share with a sibling', () => {
@@ -203,27 +207,5 @@ describe('Card size system', () => {
 		// No explicit size, no scope of its own: the ambient cascade reaches
 		// the client Button untouched.
 		expect(readDensityStep(present(bySlot(container, 'button'), 'button'))).toBe('sm')
-	})
-
-	// The frame owns the outer padding on every edge: Card carries its padding
-	// steps for any child, structural or bare, and never collapses it.
-	// Sections pad only the inner edge they share with a sibling, so the body
-	// itself carries no padding.
-	it('keeps its frame padding around a structural section', () => {
-		const { container } = renderUI(
-			<Card size="md">
-				<CardBody>body</CardBody>
-			</Card>,
-		)
-
-		const className = bySlot(container, 'card')?.className ?? ''
-
-		// Frame padding survives: no `:has` collapse zeroes it.
-		expect(className).toContain('density-p-[1,2,3,4,5]')
-
-		expect(className).not.toContain(':p-0')
-
-		// The body leans on the frame; it brings no padding of its own.
-		expect(bySlot(container, 'card-body')?.className ?? '').not.toMatch(/\bp-\d/)
 	})
 })

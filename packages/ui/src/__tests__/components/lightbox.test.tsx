@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../components/lightbox'
 import { LocaleProvider } from '../../providers/locale'
 import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
@@ -88,6 +88,17 @@ function press(
 	Object.defineProperty(event, 'timeStamp', { value: timeStamp })
 
 	fireEvent(stage, event)
+}
+
+/** Two quick taps on the photo at (200, 400). The first press starts at `start` ms. */
+function doubleTap(photo: HTMLElement, start: number) {
+	press(photo, 'pointerDown', 200, 400, start)
+
+	press(photo, 'pointerUp', 200, 400, start + 50)
+
+	press(photo, 'pointerDown', 200, 400, start + 100)
+
+	press(photo, 'pointerUp', 200, 400, start + 150)
 }
 
 describe('Lightbox', () => {
@@ -233,52 +244,6 @@ describe('Lightbox', () => {
 		}
 	})
 
-	it('steps through the photos with the arrow keys and the buttons', async () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-		const user = setupUser()
-
-		const onIndexChange = vi.fn()
-
-		renderUI(<Gallery defaultIndex={0} onIndexChange={onIndexChange} />)
-
-		expect(screen.getByRole('button', { name: 'Previous photo' })).toBeDisabled()
-
-		fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
-
-		expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
-
-		await user.click(screen.getByRole('button', { name: 'Next photo' }))
-
-		expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
-
-		expect(screen.getByRole('button', { name: 'Next photo' })).toBeDisabled()
-
-		// Past the last photo, a step does nothing.
-		fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
-
-		expect(onIndexChange.mock.calls).toEqual([[1], [2]])
-
-		fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowLeft' })
-
-		expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
-	})
-
-	it('steps in the reading order of a right-to-left stage', () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-		renderUI(<Gallery defaultIndex={0} />)
-
-		const dialog = screen.getByRole('dialog')
-
-		// jsdom computes no inherited direction, so the stage states its own.
-		dialog.style.direction = 'rtl'
-
-		fireEvent.keyDown(dialog, { key: 'ArrowLeft' })
-
-		expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
-	})
-
 	it('closes on the close button with `closable`, and reports `null`', async () => {
 		const user = setupUser()
 
@@ -344,66 +309,6 @@ describe('Lightbox', () => {
 		expect(screen.queryByRole('dialog')).toBeNull()
 	})
 
-	it('raises the stage above the controls while a swipe up or down moves the photo', () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-		renderUI(<Gallery defaultIndex={1} />)
-
-		const stage = getSlot(document.body, 'lightbox-stage')
-
-		// jsdom has no layout. A swipe of 40px on a stage 800px tall is short.
-		Object.defineProperty(stage.firstElementChild, 'clientHeight', { value: 800 })
-
-		press(stage, 'pointerDown', 100, 100, 0)
-
-		press(stage, 'pointerMove', 100, 140, 1000)
-
-		expect(stage).toHaveAttribute('data-raised')
-
-		// A short, slow swipe puts the photo back, and the stage back under the controls.
-		press(stage, 'pointerUp', 100, 140, 2000)
-
-		expect(stage).not.toHaveAttribute('data-raised')
-
-		expect(screen.getByRole('dialog')).toBeInTheDocument()
-	})
-
-	it('moves the only photo with a swipe to the side, and not the track', () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-		renderUI(<Gallery photos={photos.slice(0, 1)} defaultIndex={0} />)
-
-		const stage = getSlot(document.body, 'lightbox-stage')
-
-		const track = stage.firstElementChild as HTMLElement
-
-		Object.defineProperty(track, 'clientHeight', { value: 800 })
-
-		press(stage, 'pointerDown', 100, 100, 0)
-
-		press(stage, 'pointerMove', 140, 100, 1000)
-
-		expect(track.style.transform).toBe('')
-
-		expect(centerPhoto()?.style.transform).toMatch(/^translate\(4\d/)
-
-		expect(stage).toHaveAttribute('data-raised')
-	})
-
-	it('moves the focus to the other step button when a step disables the pressed one', async () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-		const user = setupUser()
-
-		renderUI(<Gallery defaultIndex={1} />)
-
-		await user.click(screen.getByRole('button', { name: 'Next photo' }))
-
-		expect(screen.getByRole('button', { name: 'Next photo' })).toBeDisabled()
-
-		expect(screen.getByRole('button', { name: 'Previous photo' })).toHaveFocus()
-	})
-
 	it('does not drop a step that the reader presses during a slide', async () => {
 		renderUI(<Gallery defaultIndex={0} />)
 
@@ -452,27 +357,6 @@ describe('Lightbox', () => {
 		fireEvent.click(trigger)
 
 		expect(centerPhoto()).toHaveAttribute('width', '800')
-	})
-
-	it('leaves a still placeholder for a thumbnail that does not load, and steps over its photo', () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-		renderUI(<Gallery defaultIndex={0} />)
-
-		const snow = present(
-			screen.getByRole('button', { name: 'Snow on a ridge' }).querySelector('img'),
-			'thumbnail',
-		)
-
-		fireEvent.error(snow)
-
-		expect(screen.queryByRole('button', { name: 'Snow on a ridge' })).toBeNull()
-
-		expect(screen.getByText('1 / 2')).toBeInTheDocument()
-
-		fireEvent.click(screen.getByRole('button', { name: 'Next photo' }))
-
-		expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
 	})
 
 	it('keeps the photo in the center when a thumbnail before it does not load', () => {
@@ -596,63 +480,6 @@ describe('Lightbox', () => {
 		expect(onIndexChange).toHaveBeenLastCalledWith(null)
 	})
 
-	it('hides the step controls with `controls={false}`, and still steps on the arrow keys', () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-		renderUI(<Gallery defaultIndex={0} closable controls={false} />)
-
-		expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
-
-		expect(screen.queryByRole('button', { name: 'Next photo' })).toBeNull()
-
-		expect(screen.queryByText('1 / 3')).toBeNull()
-
-		fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
-
-		expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
-	})
-
-	it('shows a row of thumbnails in place of the pill with `thumbnails`', () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-		renderUI(<Gallery defaultIndex={0} thumbnails />)
-
-		expect(screen.queryByRole('button', { name: 'Next photo' })).toBeNull()
-
-		const row = getSlot(document.body, 'lightbox-controls').querySelectorAll('button[aria-current]')
-
-		expect(row).toHaveLength(1)
-
-		const thumbnails = screen
-			.getAllByRole('button', { name: /Harbor|Snow|Field/ })
-			.filter((button) => button.closest('[data-slot="lightbox-controls"]'))
-
-		expect(thumbnails.map((button) => button.getAttribute('tabindex'))).toEqual(['0', '-1', '-1'])
-
-		expect(thumbnails[0]).toHaveAttribute('aria-current', 'true')
-
-		// A thumbnail shows its own copy of the photo.
-		expect(thumbnails[1]?.querySelector('img')).toHaveAttribute('src', '/b-small.jpg')
-	})
-
-	it('shows the photo of a thumbnail that is not next to the current photo', () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-		const onIndexChange = vi.fn()
-
-		renderUI(<Gallery defaultIndex={0} thumbnails onIndexChange={onIndexChange} />)
-
-		const controls = getSlot(document.body, 'lightbox-controls')
-
-		fireEvent.click(present(controls.querySelectorAll('button')[3], 'thumbnail'))
-
-		expect(onIndexChange).toHaveBeenLastCalledWith(2)
-
-		expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
-
-		expect(controls.querySelector('[aria-current]')).toHaveAccessibleName('Field of poppies')
-	})
-
 	it('slides the photo of a thumbnail that is not next to the current photo in from its side', async () => {
 		renderUI(<Gallery defaultIndex={0} thumbnails />)
 
@@ -701,26 +528,6 @@ describe('Lightbox', () => {
 		await waitFor(() => expect(centerPhoto()).toBe(harbor))
 
 		expect(slot(1)).toHaveAttribute('alt', 'Snow on a ridge')
-	})
-
-	it('moves the focus along the row of thumbnails with the arrow keys', () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-		renderUI(<Gallery defaultIndex={0} thumbnails />)
-
-		const current = () =>
-			present(
-				getSlot(document.body, 'lightbox-controls').querySelector<HTMLElement>('[aria-current]'),
-				'current thumbnail',
-			)
-
-		current().focus()
-
-		fireEvent.keyDown(current(), { key: 'ArrowRight' })
-
-		expect(current()).toHaveAccessibleName('Snow on a ridge')
-
-		expect(current()).toHaveFocus()
 	})
 
 	it('hides the step button at the first photo, and keeps its place', () => {
@@ -791,34 +598,218 @@ describe('Lightbox', () => {
 		expect(layer()).toBeNull()
 	})
 
-	describe('zoom', () => {
-		it('zooms into the point of a double tap on the photo, and back out on the next', () => {
+	describe('with reduced motion', () => {
+		beforeEach(() => {
 			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+		})
 
+		it('steps through the photos with the arrow keys and the buttons', async () => {
+			const user = setupUser()
+
+			const onIndexChange = vi.fn()
+
+			renderUI(<Gallery defaultIndex={0} onIndexChange={onIndexChange} />)
+
+			expect(screen.getByRole('button', { name: 'Previous photo' })).toBeDisabled()
+
+			fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+
+			await user.click(screen.getByRole('button', { name: 'Next photo' }))
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
+
+			expect(screen.getByRole('button', { name: 'Next photo' })).toBeDisabled()
+
+			// Past the last photo, a step does nothing.
+			fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
+
+			expect(onIndexChange.mock.calls).toEqual([[1], [2]])
+
+			fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowLeft' })
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+		})
+
+		it('steps in the reading order of a right-to-left stage', () => {
+			renderUI(<Gallery defaultIndex={0} />)
+
+			const dialog = screen.getByRole('dialog')
+
+			// jsdom computes no inherited direction, so the stage states its own.
+			dialog.style.direction = 'rtl'
+
+			fireEvent.keyDown(dialog, { key: 'ArrowLeft' })
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+		})
+
+		it('raises the stage above the controls while a swipe up or down moves the photo', () => {
+			renderUI(<Gallery defaultIndex={1} />)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			// jsdom has no layout. A swipe of 40px on a stage 800px tall is short.
+			Object.defineProperty(stage.firstElementChild, 'clientHeight', { value: 800 })
+
+			press(stage, 'pointerDown', 100, 100, 0)
+
+			press(stage, 'pointerMove', 100, 140, 1000)
+
+			expect(stage).toHaveAttribute('data-raised')
+
+			// A short, slow swipe puts the photo back, and the stage back under the controls.
+			press(stage, 'pointerUp', 100, 140, 2000)
+
+			expect(stage).not.toHaveAttribute('data-raised')
+
+			expect(screen.getByRole('dialog')).toBeInTheDocument()
+		})
+
+		it('moves the only photo with a swipe to the side, and not the track', () => {
+			renderUI(<Gallery photos={photos.slice(0, 1)} defaultIndex={0} />)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			const track = stage.firstElementChild as HTMLElement
+
+			Object.defineProperty(track, 'clientHeight', { value: 800 })
+
+			press(stage, 'pointerDown', 100, 100, 0)
+
+			press(stage, 'pointerMove', 140, 100, 1000)
+
+			expect(track.style.transform).toBe('')
+
+			expect(centerPhoto()?.style.transform).toMatch(/^translate\(4\d/)
+
+			expect(stage).toHaveAttribute('data-raised')
+		})
+
+		it('moves the focus to the other step button when a step disables the pressed one', async () => {
+			const user = setupUser()
+
+			renderUI(<Gallery defaultIndex={1} />)
+
+			await user.click(screen.getByRole('button', { name: 'Next photo' }))
+
+			expect(screen.getByRole('button', { name: 'Next photo' })).toBeDisabled()
+
+			expect(screen.getByRole('button', { name: 'Previous photo' })).toHaveFocus()
+		})
+
+		it('leaves a still placeholder for a thumbnail that does not load, and steps over its photo', () => {
+			renderUI(<Gallery defaultIndex={0} />)
+
+			const snow = present(
+				screen.getByRole('button', { name: 'Snow on a ridge' }).querySelector('img'),
+				'thumbnail',
+			)
+
+			fireEvent.error(snow)
+
+			expect(screen.queryByRole('button', { name: 'Snow on a ridge' })).toBeNull()
+
+			expect(screen.getByText('1 / 2')).toBeInTheDocument()
+
+			fireEvent.click(screen.getByRole('button', { name: 'Next photo' }))
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
+		})
+
+		it('hides the step controls with `controls={false}`, and still steps on the arrow keys', () => {
+			renderUI(<Gallery defaultIndex={0} closable controls={false} />)
+
+			expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+
+			expect(screen.queryByRole('button', { name: 'Next photo' })).toBeNull()
+
+			expect(screen.queryByText('1 / 3')).toBeNull()
+
+			fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+		})
+
+		it('shows a row of thumbnails in place of the pill with `thumbnails`', () => {
+			renderUI(<Gallery defaultIndex={0} thumbnails />)
+
+			expect(screen.queryByRole('button', { name: 'Next photo' })).toBeNull()
+
+			const row = getSlot(document.body, 'lightbox-controls').querySelectorAll(
+				'button[aria-current]',
+			)
+
+			expect(row).toHaveLength(1)
+
+			const thumbnails = screen
+				.getAllByRole('button', { name: /Harbor|Snow|Field/ })
+				.filter((button) => button.closest('[data-slot="lightbox-controls"]'))
+
+			expect(thumbnails.map((button) => button.getAttribute('tabindex'))).toEqual(['0', '-1', '-1'])
+
+			expect(thumbnails[0]).toHaveAttribute('aria-current', 'true')
+
+			// A thumbnail shows its own copy of the photo.
+			expect(thumbnails[1]?.querySelector('img')).toHaveAttribute('src', '/b-small.jpg')
+		})
+
+		it('shows the photo of a thumbnail that is not next to the current photo', () => {
+			const onIndexChange = vi.fn()
+
+			renderUI(<Gallery defaultIndex={0} thumbnails onIndexChange={onIndexChange} />)
+
+			const controls = getSlot(document.body, 'lightbox-controls')
+
+			fireEvent.click(present(controls.querySelectorAll('button')[3], 'thumbnail'))
+
+			expect(onIndexChange).toHaveBeenLastCalledWith(2)
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
+
+			expect(controls.querySelector('[aria-current]')).toHaveAccessibleName('Field of poppies')
+		})
+
+		it('moves the focus along the row of thumbnails with the arrow keys', () => {
+			renderUI(<Gallery defaultIndex={0} thumbnails />)
+
+			const current = () =>
+				present(
+					getSlot(document.body, 'lightbox-controls').querySelector<HTMLElement>('[aria-current]'),
+					'current thumbnail',
+				)
+
+			current().focus()
+
+			fireEvent.keyDown(current(), { key: 'ArrowRight' })
+
+			expect(current()).toHaveAccessibleName('Snow on a ridge')
+
+			expect(current()).toHaveFocus()
+		})
+	})
+
+	describe('zoom', () => {
+		beforeEach(() => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+		})
+
+		it('zooms into the point of a double tap on the photo, and back out on the next', () => {
 			renderUI(<Gallery defaultIndex={1} />)
 
 			const stage = getSlot(document.body, 'lightbox-stage')
 
 			const photo = layOut(stage)
 
-			const doubleTap = (start: number) => {
-				press(photo, 'pointerDown', 200, 400, start)
-
-				press(photo, 'pointerUp', 200, 400, start + 50)
-
-				press(photo, 'pointerDown', 200, 400, start + 100)
-
-				press(photo, 'pointerUp', 200, 400, start + 150)
-			}
-
-			doubleTap(0)
+			doubleTap(photo, 0)
 
 			// The point under the tap stays under it: (200 - 50) / 300 of the width.
 			expect(photo.style.transform).toBe('translate(-225px, -150px) scale(2.5)')
 
 			expect(stage).toHaveAttribute('data-zoomed')
 
-			doubleTap(1000)
+			doubleTap(photo, 1000)
 
 			expect(photo.style.transform).toBe('none')
 
@@ -826,8 +817,6 @@ describe('Lightbox', () => {
 		})
 
 		it('does not take two taps far apart in time as a double tap', () => {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
 			renderUI(<Gallery defaultIndex={1} />)
 
 			const photo = layOut(getSlot(document.body, 'lightbox-stage'))
@@ -844,8 +833,6 @@ describe('Lightbox', () => {
 		})
 
 		it('scales the photo about the point between two fingers, then pans with the finger that stays', () => {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
 			renderUI(<Gallery defaultIndex={1} />)
 
 			const stage = getSlot(document.body, 'lightbox-stage')
@@ -882,8 +869,6 @@ describe('Lightbox', () => {
 
 		// While a pen presses, the touch of a palm is the primary touch. It does not pinch.
 		it('does not pinch a pen press with a palm', () => {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
 			renderUI(<Gallery defaultIndex={1} />)
 
 			const stage = getSlot(document.body, 'lightbox-stage')
@@ -912,21 +897,13 @@ describe('Lightbox', () => {
 		})
 
 		it('pans a zoomed photo with a swipe, and does not step or close', () => {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
 			renderUI(<Gallery defaultIndex={1} />)
 
 			const stage = getSlot(document.body, 'lightbox-stage')
 
 			const photo = layOut(stage)
 
-			press(photo, 'pointerDown', 200, 400, 0)
-
-			press(photo, 'pointerUp', 200, 400, 50)
-
-			press(photo, 'pointerDown', 200, 400, 100)
-
-			press(photo, 'pointerUp', 200, 400, 150)
+			doubleTap(photo, 0)
 
 			press(stage, 'pointerDown', 300, 400, 1000)
 
@@ -943,21 +920,13 @@ describe('Lightbox', () => {
 		})
 
 		it('holds a pan inside the stage when the finger lifts past its edge', () => {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
 			renderUI(<Gallery defaultIndex={1} />)
 
 			const stage = getSlot(document.body, 'lightbox-stage')
 
 			const photo = layOut(stage)
 
-			press(photo, 'pointerDown', 200, 400, 0)
-
-			press(photo, 'pointerUp', 200, 400, 50)
-
-			press(photo, 'pointerDown', 200, 400, 100)
-
-			press(photo, 'pointerUp', 200, 400, 150)
+			doubleTap(photo, 0)
 
 			press(stage, 'pointerDown', 200, 400, 1000)
 
@@ -970,8 +939,6 @@ describe('Lightbox', () => {
 		})
 
 		it('zooms with + and -, pans with the arrow keys while zoomed, and goes back to rest with 0', () => {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
 			renderUI(<Gallery defaultIndex={1} />)
 
 			const stage = getSlot(document.body, 'lightbox-stage')
@@ -1018,21 +985,13 @@ describe('Lightbox', () => {
 		})
 
 		it('takes a zoomed photo back to rest when it steps away', () => {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
 			renderUI(<Gallery defaultIndex={1} />)
 
 			const stage = getSlot(document.body, 'lightbox-stage')
 
 			const photo = layOut(stage)
 
-			press(photo, 'pointerDown', 200, 400, 0)
-
-			press(photo, 'pointerUp', 200, 400, 50)
-
-			press(photo, 'pointerDown', 200, 400, 100)
-
-			press(photo, 'pointerUp', 200, 400, 150)
+			doubleTap(photo, 0)
 
 			fireEvent.click(screen.getByRole('button', { name: 'Next photo' }))
 
@@ -1044,8 +1003,6 @@ describe('Lightbox', () => {
 		})
 
 		it('takes a zoomed photo back to rest when a controlled index changes the photo', () => {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
 			const onIndexChange = vi.fn()
 
 			const { rerender } = renderUI(<Gallery index={1} onIndexChange={onIndexChange} />)
@@ -1140,9 +1097,11 @@ describe('Lightbox', () => {
 	})
 
 	describe('changes to the photos while open', () => {
-		it('closes and reports `null` when the open photo leaves `photos`, and does not open again', () => {
+		beforeEach(() => {
 			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+		})
 
+		it('closes and reports `null` when the open photo leaves `photos`, and does not open again', () => {
 			const onIndexChange = vi.fn()
 
 			const { rerender } = renderUI(<Gallery defaultIndex={2} onIndexChange={onIndexChange} />)
@@ -1166,8 +1125,6 @@ describe('Lightbox', () => {
 		})
 
 		it('closes and reports `null` when the thumbnail of the open photo does not load', () => {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
 			const onIndexChange = vi.fn()
 
 			renderUI(<Gallery defaultIndex={1} onIndexChange={onIndexChange} />)
@@ -1184,32 +1141,34 @@ describe('Lightbox', () => {
 	})
 
 	describe('accessibility', () => {
-		it('announces the name and the place of the photo on a step, with or without the bar', () => {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+		describe('with reduced motion', () => {
+			beforeEach(() => {
+				stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+			})
 
-			renderUI(<Gallery defaultIndex={0} controls={false} />)
+			it('announces the name and the place of the photo on a step, with or without the bar', () => {
+				renderUI(<Gallery defaultIndex={0} controls={false} />)
 
-			fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
+				fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
 
-			const live = present(document.querySelector('[aria-live="polite"]'), 'live region')
+				const live = present(document.querySelector('[aria-live="polite"]'), 'live region')
 
-			expect(live).toHaveTextContent('Snow on a ridge, 2 of 3')
-		})
+				expect(live).toHaveTextContent('Snow on a ridge, 2 of 3')
+			})
 
-		it('announces the place of the photo in the language of the locale', () => {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+			it('announces the place of the photo in the language of the locale', () => {
+				renderUI(
+					<LocaleProvider locale="es-ES">
+						<Gallery defaultIndex={0} controls={false} />
+					</LocaleProvider>,
+				)
 
-			renderUI(
-				<LocaleProvider locale="es-ES">
-					<Gallery defaultIndex={0} controls={false} />
-				</LocaleProvider>,
-			)
+				fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
 
-			fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
+				const live = present(document.querySelector('[aria-live="polite"]'), 'live region')
 
-			const live = present(document.querySelector('[aria-live="polite"]'), 'live region')
-
-			expect(live).toHaveTextContent('Snow on a ridge, 2 de 3')
+				expect(live).toHaveTextContent('Snow on a ridge, 2 de 3')
+			})
 		})
 
 		it('names the placeholder of a thumbnail that does not load', () => {

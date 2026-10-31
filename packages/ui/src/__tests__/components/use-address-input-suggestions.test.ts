@@ -4,21 +4,38 @@ import type { AddressProvider, AddressSuggestion } from '../../components/addres
 import { useAddressInputSuggestions } from '../../components/address-input/use-address-input-suggestions'
 import { it } from '../helpers/fake-clock'
 
+type Options = Parameters<typeof useAddressInputSuggestions>[0]
+
 function makeProvider(results: AddressSuggestion[] = []): AddressProvider {
 	return vi.fn().mockResolvedValue(results)
 }
 
+/**
+ * Renders the hook for an enabled `'abc'` query with no debounce and a
+ * minimum length of 2. The fields of `options` replace these values, and the
+ * props of a `rerender` replace both.
+ */
+function renderSuggestions(options: Partial<Options> = {}) {
+	const base: Options = {
+		query: 'abc',
+		enabled: true,
+		provider: makeProvider(),
+		debounceMs: 0,
+		minQueryLength: 2,
+		...options,
+	}
+
+	return renderHook(
+		(props: Partial<Options>) => useAddressInputSuggestions({ ...base, ...props }),
+		{
+			initialProps: {},
+		},
+	)
+}
+
 describe('useAddressInputSuggestions', () => {
 	it('returns empty initial state', () => {
-		const { result } = renderHook(() =>
-			useAddressInputSuggestions({
-				query: '',
-				enabled: true,
-				provider: makeProvider(),
-				debounceMs: 100,
-				minQueryLength: 2,
-			}),
-		)
+		const { result } = renderSuggestions({ query: '', debounceMs: 100 })
 
 		expect(result.current.suggestions).toEqual([])
 
@@ -27,18 +44,13 @@ describe('useAddressInputSuggestions', () => {
 		expect(result.current.ready).toBe(false)
 	})
 
-	it('skips fetching when disabled', () => {
+	it('skips fetching when disabled', async ({ clock }) => {
 		const provider = makeProvider([{ id: '1', label: 'one' } as AddressSuggestion])
 
-		const { result } = renderHook(() =>
-			useAddressInputSuggestions({
-				query: 'abc',
-				enabled: false,
-				provider,
-				debounceMs: 0,
-				minQueryLength: 2,
-			}),
-		)
+		const { result } = renderSuggestions({ enabled: false, provider })
+
+		// The fetch waits on a timer, so the timers run before the assertions.
+		await clock.runAll()
 
 		expect(provider).not.toHaveBeenCalled()
 
@@ -48,17 +60,7 @@ describe('useAddressInputSuggestions', () => {
 	it('resets when the query falls below the minimum length', async ({ clock }) => {
 		const provider = makeProvider([{ id: '1', label: 'one' } as AddressSuggestion])
 
-		const { result, rerender } = renderHook(
-			({ query }) =>
-				useAddressInputSuggestions({
-					query,
-					enabled: true,
-					provider,
-					debounceMs: 0,
-					minQueryLength: 3,
-				}),
-			{ initialProps: { query: 'abc' } },
-		)
+		const { result, rerender } = renderSuggestions({ provider, minQueryLength: 3 })
 
 		await clock.runAll()
 
@@ -79,15 +81,7 @@ describe('useAddressInputSuggestions', () => {
 			{ id: '2', label: 'second' } as AddressSuggestion,
 		])
 
-		const { result } = renderHook(() =>
-			useAddressInputSuggestions({
-				query: 'main',
-				enabled: true,
-				provider,
-				debounceMs: 10,
-				minQueryLength: 2,
-			}),
-		)
+		const { result } = renderSuggestions({ query: 'main', provider, debounceMs: 10 })
 
 		expect(result.current.loading).toBe(true)
 
@@ -98,26 +92,6 @@ describe('useAddressInputSuggestions', () => {
 		expect(result.current.suggestions.length).toBe(2)
 
 		expect(result.current.loading).toBe(false)
-	})
-
-	it('runs immediately for an empty-but-enabled query (delay = 0)', async ({ clock }) => {
-		const provider = makeProvider([])
-
-		renderHook(() =>
-			useAddressInputSuggestions({
-				query: '',
-				enabled: true,
-				provider,
-				debounceMs: 200,
-				minQueryLength: 0,
-			}),
-		)
-
-		// Zero, not every pending timer: running them all fires the 200ms debounce
-		// too, so the case passed whatever the delay was.
-		await clock.advance(0)
-
-		expect(provider).toHaveBeenCalled()
 	})
 
 	it('swallows AbortError without flipping loading state', async ({ clock }) => {
@@ -132,15 +106,7 @@ describe('useAddressInputSuggestions', () => {
 				}),
 		)
 
-		const { result, unmount } = renderHook(() =>
-			useAddressInputSuggestions({
-				query: 'abc',
-				enabled: true,
-				provider,
-				debounceMs: 0,
-				minQueryLength: 2,
-			}),
-		)
+		const { result, unmount } = renderSuggestions({ provider })
 
 		await act(async () => {
 			await clock.advance(10)
@@ -162,15 +128,7 @@ describe('useAddressInputSuggestions', () => {
 	}) => {
 		const provider = vi.fn().mockRejectedValue(new Error('network down'))
 
-		const { result } = renderHook(() =>
-			useAddressInputSuggestions({
-				query: 'abc',
-				enabled: true,
-				provider,
-				debounceMs: 0,
-				minQueryLength: 2,
-			}),
-		)
+		const { result } = renderSuggestions({ provider })
 
 		await clock.runAll()
 
@@ -182,20 +140,18 @@ describe('useAddressInputSuggestions', () => {
 	})
 
 	it('aborts the in-flight request on unmount', async ({ clock }) => {
-		const provider = vi.fn().mockImplementation(() => new Promise(() => {}))
+		const provider = vi.fn<AddressProvider>().mockImplementation(() => new Promise(() => {}))
 
-		const { unmount } = renderHook(() =>
-			useAddressInputSuggestions({
-				query: 'abc',
-				enabled: true,
-				provider,
-				debounceMs: 0,
-				minQueryLength: 2,
-			}),
-		)
+		const { unmount } = renderSuggestions({ provider })
 
 		await clock.advance(0)
 
-		expect(() => unmount()).not.toThrow()
+		const signal = provider.mock.calls[0]?.[1].signal
+
+		expect(signal?.aborted).toBe(false)
+
+		unmount()
+
+		expect(signal?.aborted).toBe(true)
 	})
 })

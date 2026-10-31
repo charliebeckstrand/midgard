@@ -237,18 +237,26 @@ describe('valueType', () => {
 
 const openFrom = (paths: string[]) => (path: string) => paths.includes(path)
 
+/**
+ * Flattens `data` with each branch closed and no search, and with `overrides`
+ * on top of these defaults.
+ */
+const flatten = (data: JsonValue, overrides: Partial<Parameters<typeof flattenTree>[0]> = {}) =>
+	flattenTree({
+		data,
+		rootKey: undefined,
+		isOpen: openFrom([]),
+		search: '',
+		filter: false,
+		searchIndex: new WeakMap(),
+		...overrides,
+	})
+
 describe('flattenTree', () => {
 	it('asks the resolver for each branch, with its depth', () => {
 		const isOpen = vi.fn((_path: string, depth: number) => depth < 1)
 
-		const nodes = flattenTree({
-			data: { outer: { inner: 1 } },
-			rootKey: undefined,
-			isOpen,
-			search: '',
-			filter: false,
-			searchIndex: new WeakMap(),
-		})
+		const nodes = flatten({ outer: { inner: 1 } }, { isOpen })
 
 		expect(isOpen.mock.calls).toEqual([
 			['$', 0],
@@ -261,48 +269,17 @@ describe('flattenTree', () => {
 	it('emits a single branch-open row for a collapsed root', () => {
 		const tree = { a: 1 }
 
-		const nodes = flattenTree({
-			data: tree,
-			rootKey: undefined,
-			isOpen: openFrom([]),
-			search: '',
-			filter: false,
-			searchIndex: new WeakMap(),
-		})
+		const nodes = flatten(tree)
 
 		expect(nodes).toHaveLength(1)
 
 		expect(nodes[0]?.type).toBe('branch-open')
 	})
 
-	it('emits open / leaf / close rows for an expanded branch', () => {
-		const tree = { a: 1 }
-
-		const nodes = flattenTree({
-			data: tree,
-			rootKey: undefined,
-			isOpen: openFrom(['$']),
-			search: '',
-			filter: false,
-			searchIndex: new WeakMap(),
-		})
-
-		const types = nodes.map((n) => n.type)
-
-		expect(types).toEqual(['branch-open', 'leaf', 'branch-close'])
-	})
-
 	it('flags leaves matching the search term as highlighted', () => {
 		const tree = { name: 'Alice' }
 
-		const nodes = flattenTree({
-			data: tree,
-			rootKey: undefined,
-			isOpen: openFrom(['$']),
-			search: 'alice',
-			filter: false,
-			searchIndex: new WeakMap(),
-		})
+		const nodes = flatten(tree, { isOpen: openFrom(['$']), search: 'alice' })
 
 		const leaf = nodes.find((n) => n.type === 'leaf')
 
@@ -312,14 +289,7 @@ describe('flattenTree', () => {
 	it('recurses into open nested branches, tracking depth as it descends', () => {
 		const tree = { outer: { inner: { leaf: 1 } } }
 
-		const nodes = flattenTree({
-			data: tree,
-			rootKey: undefined,
-			isOpen: openFrom(['$', '$.outer', '$.outer.inner']),
-			search: '',
-			filter: false,
-			searchIndex: new WeakMap(),
-		})
+		const nodes = flatten(tree, { isOpen: openFrom(['$', '$.outer', '$.outer.inner']) })
 
 		expect(nodes.map((n) => n.type)).toEqual([
 			'branch-open',
@@ -339,9 +309,7 @@ describe('flattenTree', () => {
 
 		const index = buildSearchIndex(tree, 'yes')
 
-		const nodes = flattenTree({
-			data: tree,
-			rootKey: undefined,
+		const nodes = flatten(tree, {
 			isOpen: openFrom(['$']),
 			search: 'yes',
 			filter: true,

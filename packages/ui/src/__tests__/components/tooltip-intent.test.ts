@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { useTooltipIntent } from '../../components/tooltip/tooltip-intent'
+import { attach } from '../helpers'
 import { it } from '../helpers/fake-clock'
 
 /** A trigger that matches `:focus-visible`, as a keyboard focus makes it. jsdom does not match it for a programmatic focus. */
@@ -13,9 +14,7 @@ function keyboardTrigger(): HTMLButtonElement {
 		(selector) => selector === ':focus-visible' || matches(selector),
 	)
 
-	document.body.append(node)
-
-	return node
+	return attach(node)
 }
 
 function pressEscape(node: HTMLElement): void {
@@ -24,10 +23,6 @@ function pressEscape(node: HTMLElement): void {
 
 /** The intent that the trigger records before the tooltip state loads. */
 describe('useTooltipIntent', () => {
-	afterEach(() => {
-		document.body.replaceChildren()
-	})
-
 	it('does not replay a focus that Escape dismissed', () => {
 		const node = keyboardTrigger()
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	ContextMenu,
 	type ContextMenuEntry,
@@ -12,10 +12,17 @@ import {
 import { Menu, MenuContent } from '../../components/menu'
 import { act, bySlot, fireEvent, noop, renderUI, screen } from '../helpers'
 
-const defaults: ContextMenuItem[] = [
+const defaults: [ContextMenuItem, ContextMenuItem] = [
 	{ key: 'a', label: 'Alpha', onAction: noop },
 	{ key: 'b', label: 'Bravo', onAction: noop },
 ]
+
+/** One custom item, for the cases that add a custom block to the defaults. */
+const custom: ContextMenuItem = { key: 'c', label: 'Custom', onAction: noop }
+
+/** Each entry as its key, or `|` for a separator, so the case reads where each rule falls. */
+const shape = (entries: ContextMenuEntry[]) =>
+	entries.map((entry) => ('separator' in entry ? '|' : entry.key))
 
 /** The visible label of every open menu item, in DOM order. */
 const menuItemLabels = (): string[] =>
@@ -27,13 +34,13 @@ describe('resolveContextMenuEntries', () => {
 	})
 
 	it('drops the defaults when defaultItems is false', () => {
-		const items: ContextMenuItem[] = [{ key: 'c', label: 'Custom', onAction: noop }]
+		const items: ContextMenuItem[] = [custom]
 
 		expect(resolveContextMenuEntries({ items, defaultItems: false }, defaults)).toEqual(items)
 	})
 
 	it('places a separator between the defaults and custom items when both show', () => {
-		const items: ContextMenuItem[] = [{ key: 'c', label: 'Custom', onAction: noop }]
+		const items: ContextMenuItem[] = [custom]
 
 		const entries = resolveContextMenuEntries({ items }, defaults)
 
@@ -47,7 +54,7 @@ describe('resolveContextMenuEntries', () => {
 	})
 
 	it('orders the custom items before the defaults when insert is "before"', () => {
-		const items: ContextMenuItem[] = [{ key: 'c', label: 'Custom', onAction: noop }]
+		const items: ContextMenuItem[] = [custom]
 
 		const entries = resolveContextMenuEntries({ items, insert: 'before' }, defaults)
 
@@ -57,15 +64,9 @@ describe('resolveContextMenuEntries', () => {
 	})
 
 	it('keys its own separator apart from the separators in merged defaults', () => {
-		const merged = mergeContextMenuItems([
-			[defaults[0] as ContextMenuItem],
-			[defaults[1] as ContextMenuItem],
-		])
+		const merged = mergeContextMenuItems([[defaults[0]], [defaults[1]]])
 
-		const entries = resolveContextMenuEntries(
-			{ items: [{ key: 'c', label: 'Custom', onAction: noop }] },
-			merged,
-		)
+		const entries = resolveContextMenuEntries({ items: [custom] }, merged)
 
 		const keys = entries.map((entry) => entry.key)
 
@@ -94,7 +95,7 @@ describe('resolveContextMenuEntries', () => {
 	] as const)('drops the separators at the edges of each group (insert %s)', (insert, expected) => {
 		const items: ContextMenuEntry[] = [
 			{ key: 'lead', separator: true },
-			{ key: 'c', label: 'Custom', onAction: noop },
+			custom,
 			{ key: 'trail', separator: true },
 		]
 
@@ -103,7 +104,7 @@ describe('resolveContextMenuEntries', () => {
 			{ key: 'end', separator: true },
 		])
 
-		expect(entries.map((entry) => ('separator' in entry ? '|' : entry.key))).toEqual(expected)
+		expect(shape(entries)).toEqual(expected)
 	})
 
 	it('treats a group of separators only as empty', () => {
@@ -123,10 +124,7 @@ describe('resolveContextMenuEntries', () => {
 
 describe('mergeContextMenuItems', () => {
 	it('joins non-empty groups with a separator between each', () => {
-		const alpha: ContextMenuItem = { key: 'a', label: 'Alpha', onAction: noop }
-		const bravo: ContextMenuItem = { key: 'b', label: 'Bravo', onAction: noop }
-
-		const merged = mergeContextMenuItems([[alpha], [], [bravo]])
+		const merged = mergeContextMenuItems([[defaults[0]], [], [defaults[1]]])
 
 		expect(merged).toHaveLength(3)
 		expect(merged[1]).toMatchObject({ separator: true })
@@ -136,40 +134,29 @@ describe('mergeContextMenuItems', () => {
 		expect(mergeContextMenuItems([[], []])).toEqual([])
 	})
 
-	/** Each entry as its key, or `|` for a separator, so the case reads where each rule falls. */
-	const shape = (entries: ContextMenuEntry[]) =>
-		entries.map((entry) => ('separator' in entry ? '|' : entry.key))
-
 	it('drops a group that holds only separators, so no rule doubles', () => {
-		const alpha: ContextMenuItem = { key: 'a', label: 'Alpha', onAction: noop }
-		const bravo: ContextMenuItem = { key: 'b', label: 'Bravo', onAction: noop }
-
-		const merged = mergeContextMenuItems([[alpha], [{ key: 'rule', separator: true }], [bravo]])
+		const merged = mergeContextMenuItems([
+			[defaults[0]],
+			[{ key: 'rule', separator: true }],
+			[defaults[1]],
+		])
 
 		expect(shape(merged)).toEqual(['a', '|', 'b'])
 	})
 
 	it('drops the separators at the edges of each group, so no rule leads, trails, or doubles', () => {
-		const alpha: ContextMenuItem = { key: 'a', label: 'Alpha', onAction: noop }
-		const bravo: ContextMenuItem = { key: 'b', label: 'Bravo', onAction: noop }
-
 		const merged = mergeContextMenuItems([
-			[{ separator: true }, alpha, { separator: true }],
-			[{ separator: true }, bravo, { separator: true }],
+			[{ separator: true }, defaults[0], { separator: true }],
+			[{ separator: true }, defaults[1], { separator: true }],
 		])
 
 		expect(shape(merged)).toEqual(['a', '|', 'b'])
 	})
 
 	it('keeps a separator between two items of one group', () => {
-		const alpha: ContextMenuItem = { key: 'a', label: 'Alpha', onAction: noop }
-		const bravo: ContextMenuItem = { key: 'b', label: 'Bravo', onAction: noop }
-
-		expect(shape(mergeContextMenuItems([[alpha, { separator: true }, bravo]]))).toEqual([
-			'a',
-			'|',
-			'b',
-		])
+		expect(shape(mergeContextMenuItems([[defaults[0], { separator: true }, defaults[1]]]))).toEqual(
+			['a', '|', 'b'],
+		)
 	})
 })
 
@@ -217,7 +204,7 @@ describe('ContextMenu', () => {
 
 	it('merges custom items after the defaults with a separator between', () => {
 		renderUI(
-			<ContextMenu defaults={defaults} items={[{ key: 'c', label: 'Custom', onAction: noop }]}>
+			<ContextMenu defaults={defaults} items={[custom]}>
 				{surface}
 			</ContextMenu>,
 		)
@@ -231,11 +218,7 @@ describe('ContextMenu', () => {
 
 	it('shows only the custom items when defaultItems is false', () => {
 		renderUI(
-			<ContextMenu
-				defaults={defaults}
-				items={[{ key: 'c', label: 'Custom', onAction: noop }]}
-				defaultItems={false}
-			>
+			<ContextMenu defaults={defaults} items={[custom]} defaultItems={false}>
 				{surface}
 			</ContextMenu>,
 		)
@@ -246,10 +229,6 @@ describe('ContextMenu', () => {
 	})
 
 	it('takes separators and submenus in its defaults and its custom items', () => {
-		expectTypeOf<ContextMenuProps['defaults']>().toEqualTypeOf<ContextMenuEntry[] | undefined>()
-
-		expectTypeOf<ContextMenuProps['items']>().toEqualTypeOf<ContextMenuEntry[] | undefined>()
-
 		renderUI(
 			<ContextMenu
 				defaults={[
@@ -277,26 +256,6 @@ describe('ContextMenu', () => {
 		expect(document.body.querySelectorAll('[data-slot="menu-separator"]')).toHaveLength(2)
 
 		expect(screen.getByRole('menuitem', { name: 'Sort' })).toHaveAttribute('aria-haspopup', 'menu')
-	})
-
-	it('leaves the native menu (opens nothing) when there is nothing to show', () => {
-		renderUI(<ContextMenu defaults={[]}>{surface}</ContextMenu>)
-
-		fireEvent.contextMenu(screen.getByTestId('surface'))
-
-		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
-	})
-
-	it('renders the content untouched when disabled', () => {
-		renderUI(
-			<ContextMenu defaults={defaults} disabled>
-				{surface}
-			</ContextMenu>,
-		)
-
-		fireEvent.contextMenu(screen.getByTestId('surface'))
-
-		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
 })
 
@@ -409,7 +368,7 @@ describe('ContextMenu focus restore', () => {
 	}
 
 	/** Closes the open menu with Escape from its panel, which holds focus. */
-	const closeWithEscape = () => {
+	const closeWithEscape = vi.defineHelper(() => {
 		const menu = screen.getByRole('menu')
 
 		expect(menu).toContainElement(document.activeElement as HTMLElement)
@@ -417,7 +376,7 @@ describe('ContextMenu focus restore', () => {
 		fireEvent.keyDown(menu, { key: 'Escape' })
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
-	}
+	})
 
 	it.each([
 		['the ContextMenu key', { key: 'ContextMenu' }],

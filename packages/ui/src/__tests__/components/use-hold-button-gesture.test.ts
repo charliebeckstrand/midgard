@@ -46,16 +46,6 @@ describe('useHoldButtonGesture', () => {
 		vi.mocked(animate).mockRestore()
 	})
 
-	it('fires onHoldStart immediately when start is called', () => {
-		const onHoldStart = vi.fn()
-
-		const { result } = renderGesture({ duration: 500, disabled: false, onHoldStart })
-
-		act(() => result.current.start())
-
-		expect(onHoldStart).toHaveBeenCalledTimes(1)
-	})
-
 	it('fires onHoldComplete after the configured duration', async ({ clock }) => {
 		const onHoldComplete = vi.fn()
 

@@ -58,9 +58,7 @@ describe('classifyTokens', () => {
 
 		// The documented order is duplicate, then limit, then validate, so validate only ever sees
 		// novel, within-limit candidates however the tokens arrived.
-		expect(validate).toHaveBeenCalledTimes(1)
-
-		expect(validate).toHaveBeenCalledWith('new')
+		expect(validate).toHaveBeenCalledExactlyOnceWith('new')
 	})
 
 	it('treats an infinite room as uncapped', () => {

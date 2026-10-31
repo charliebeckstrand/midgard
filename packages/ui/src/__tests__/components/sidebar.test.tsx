@@ -14,6 +14,7 @@ import {
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { LocaleProvider } from '../../providers/locale'
 import {
+	allBySlot,
 	attach,
 	bySlot,
 	fireEvent,
@@ -39,31 +40,6 @@ describe('Sidebar', () => {
 		expect(bySlot(container, 'sidebar')).toHaveAttribute('aria-label', 'Sidebar')
 	})
 
-	it('fires a consumer onKeyDown without losing roving navigation', () => {
-		const onKeyDown = vi.fn()
-
-		const { container } = renderUI(
-			<Sidebar onKeyDown={onKeyDown}>
-				<SidebarItem>Home</SidebarItem>
-				<SidebarItem>Settings</SidebarItem>
-			</Sidebar>,
-		)
-
-		const nav = getSlot(container, 'sidebar')
-
-		const items = container.querySelectorAll<HTMLButtonElement>('[data-slot="sidebar-item-inner"]')
-
-		items[0]?.focus()
-
-		fireEvent.keyDown(nav, { key: 'ArrowDown' })
-
-		// Roving still advances focus to the next item.
-		expect(items[1]).toHaveFocus()
-
-		// The consumer's handler is chained rather than clobbered.
-		expect(onKeyDown).toHaveBeenCalledTimes(1)
-	})
-
 	// Roving is a keyboard model no consumer switches off, so a consumer
 	// `preventDefault()` does not cancel it (CONVENTIONS.md §3.9).
 	it('runs a consumer onKeyDown before roving, which still moves focus when it prevents the default', () => {
@@ -82,7 +58,7 @@ describe('Sidebar', () => {
 			</Sidebar>,
 		)
 
-		const items = container.querySelectorAll<HTMLButtonElement>('[data-slot="sidebar-item-inner"]')
+		const items = allBySlot(container, 'sidebar-item-inner')
 
 		items[0]?.focus()
 
@@ -105,7 +81,7 @@ describe('Sidebar', () => {
 
 		const nav = getSlot(container, 'sidebar')
 
-		const items = container.querySelectorAll<HTMLButtonElement>('[data-slot="sidebar-item-inner"]')
+		const items = allBySlot(container, 'sidebar-item-inner')
 
 		expect(ref.current).toBe(nav)
 
@@ -131,7 +107,7 @@ describe('Sidebar', () => {
 
 		const nav = getSlot(container, 'sidebar')
 
-		const items = container.querySelectorAll<HTMLButtonElement>('[data-slot="sidebar-item-inner"]')
+		const items = allBySlot(container, 'sidebar-item-inner')
 
 		items[1]?.focus()
 
@@ -181,9 +157,7 @@ describe('Sidebar', () => {
 			</Sidebar>,
 		)
 
-		const items = Array.from(
-			container.querySelectorAll<HTMLButtonElement>('[data-slot="sidebar-item-inner"]'),
-		)
+		const items = allBySlot(container, 'sidebar-item-inner')
 
 		// The nav is one Tab stop, resting on the current page rather than one
 		// stop per item.
@@ -200,9 +174,7 @@ describe('Sidebar', () => {
 			</Sidebar>,
 		)
 
-		const [link, button] = Array.from(
-			container.querySelectorAll<HTMLElement>('[data-slot="sidebar-item-inner"]'),
-		)
+		const [link, button] = allBySlot(container, 'sidebar-item-inner')
 
 		expect(link).toHaveAttribute('aria-current', 'page')
 
@@ -276,7 +248,7 @@ describe('Sidebar mini', () => {
 		// must not echo non-label children (actions, affix helpers).
 		expect(tooltip).toHaveTextContent('Home')
 
-		expect(tooltip).not.toHaveTextContent('remove')
+		expect(tooltip).not.toHaveTextContent('New')
 	})
 
 	// The drawer of a layout provides the offcanvas close handle, and the
@@ -347,38 +319,41 @@ describe('Sidebar mini', () => {
 		return <span data-testid="branch">{useSidebarMini() ? 'rail' : 'full'}</span>
 	}
 
-	it('resolves mini to true at each width, for a descendant reading the context', () => {
-		stubMatchMedia(() => false)
-
-		renderUI(
-			<Sidebar mini>
-				<Branch />
-			</Sidebar>,
-		)
-
-		expect(screen.getByTestId('branch')).toHaveTextContent('rail')
-	})
-
-	it('resolves mini to false in the drawer of a layout', () => {
-		renderUI(
-			inDrawer(
+	// The state reads no width, so the narrow viewport changes no row.
+	it.for([
+		{
+			name: 'resolves mini to true at each width, for a descendant reading the context',
+			element: (
+				<Sidebar mini>
+					<Branch />
+				</Sidebar>
+			),
+			expected: 'rail',
+		},
+		{
+			name: 'resolves mini to false in the drawer of a layout',
+			element: inDrawer(
 				<Sidebar mini>
 					<Branch />
 				</Sidebar>,
 			),
-		)
+			expected: 'full',
+		},
+		{
+			name: 'resolves mini to false when the prop is unset',
+			element: (
+				<Sidebar>
+					<Branch />
+				</Sidebar>
+			),
+			expected: 'full',
+		},
+	])('$name', ({ element, expected }) => {
+		stubMatchMedia(() => false)
 
-		expect(screen.getByTestId('branch')).toHaveTextContent('full')
-	})
+		renderUI(element)
 
-	it('resolves mini to false when the prop is unset', () => {
-		renderUI(
-			<Sidebar>
-				<Branch />
-			</Sidebar>,
-		)
-
-		expect(screen.getByTestId('branch')).toHaveTextContent('full')
+		expect(screen.getByTestId('branch')).toHaveTextContent(expected)
 	})
 
 	// The state reads no width, so the server markup holds the rail, and the
@@ -442,20 +417,6 @@ describe('SidebarHeader', () => {
 		fireEvent.click(closeButton)
 
 		expect(close).toHaveBeenCalledOnce()
-	})
-})
-
-describe('SidebarLabel', () => {
-	it('renders with data-slot="sidebar-label"', () => {
-		const { container } = renderUI(
-			<Sidebar>
-				<SidebarLabel>Label</SidebarLabel>
-			</Sidebar>,
-		)
-
-		expect(bySlot(container, 'sidebar-label')).toBeInTheDocument()
-
-		expect(screen.getByText('Label')).toBeInTheDocument()
 	})
 })
 
@@ -679,28 +640,6 @@ describe('SidebarItem', () => {
 			expect(close).not.toHaveBeenCalled()
 		},
 	)
-
-	it('renders a suffix control beside the button, not inside it', () => {
-		const { container } = renderUI(
-			<Sidebar>
-				<SidebarItem suffix={<button type="button">remove</button>}>
-					<SidebarLabel>Home</SidebarLabel>
-				</SidebarItem>
-			</Sidebar>,
-		)
-
-		const suffix = bySlot(container, 'sidebar-item-suffix')
-
-		const inner = bySlot(container, 'sidebar-item-inner')
-
-		// The interactive control stays out of the <button>, keeping markup
-		// valid, and the affix flips the row to its chrome.
-		expect(inner?.querySelector('button')).toBeNull()
-
-		expect(suffix?.contains(screen.getByRole('button', { name: 'remove' }))).toBe(true)
-
-		expect(bySlot(container, 'sidebar-item')?.className).toContain('hover:bg-zinc-950/5')
-	})
 })
 
 describe('SidebarList', () => {

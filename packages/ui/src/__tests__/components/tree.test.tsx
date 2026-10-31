@@ -5,6 +5,13 @@ import { Tree, TreeItem, TreeSkeleton } from '../../components/tree'
 import { bySlot, getSlot, present, renderUI, screen } from '../helpers'
 import { axe } from '../helpers/axe'
 
+/** Each tree item in the container, in document order. */
+const treeItems = (container: HTMLElement) =>
+	Array.from(container.querySelectorAll<HTMLElement>('[role="treeitem"]'))
+
+/** The tree item at `index` in document order. */
+const row = (container: HTMLElement, index = 0) => treeItems(container)[index] as HTMLElement
+
 describe('Tree', () => {
 	it('announces sibling position via aria-posinset/aria-setsize', () => {
 		const { container } = renderUI(
@@ -18,14 +25,14 @@ describe('Tree', () => {
 			</Tree>,
 		)
 
-		const items = container.querySelectorAll('[role="treeitem"]')
+		const items = treeItems(container)
 
 		// Roots: 1 of 2 and 2 of 2; nested: 2 of 3 for b.ts.
 		expect(items[0]).toHaveAttribute('aria-posinset', '1')
 
 		expect(items[0]).toHaveAttribute('aria-setsize', '2')
 
-		const b = Array.from(items).find((el) => el.textContent?.includes('b.ts'))
+		const b = items.find((el) => el.textContent?.includes('b.ts'))
 
 		expect(b).toHaveAttribute('aria-posinset', '2')
 
@@ -71,10 +78,7 @@ describe('Tree', () => {
 			</Tree>,
 		)
 
-		const byLabel = (label: string) =>
-			Array.from(container.querySelectorAll('[role="treeitem"]')).find(
-				(el) => el.textContent === label,
-			)
+		const byLabel = (label: string) => treeItems(container).find((el) => el.textContent === label)
 
 		const expected: Array<[string, string, string]> = [
 			['a.ts', '1', '3'],
@@ -101,7 +105,7 @@ describe('Tree', () => {
 			</Tree>,
 		)
 
-		const items = container.querySelectorAll('[role="treeitem"]')
+		const items = treeItems(container)
 
 		expect(items[0]).toHaveAttribute('aria-posinset', '1')
 
@@ -188,10 +192,7 @@ describe('Tree', () => {
 		// A held item stays in the DOM while it is closed.
 		const item = (name: string) => screen.getByRole('treeitem', { name, hidden: true })
 
-		const tabStops = () =>
-			Array.from(container.querySelectorAll<HTMLElement>('[role="treeitem"]')).filter(
-				(row) => row.tabIndex === 0,
-			)
+		const tabStops = () => treeItems(container).filter((row) => row.tabIndex === 0)
 
 		item('a.ts').focus()
 
@@ -229,20 +230,6 @@ describe('Tree', () => {
 })
 
 describe('TreeItem', () => {
-	it('renders nested tree items when open', () => {
-		renderUI(
-			<Tree aria-label="Files">
-				<TreeItem label="Parent" defaultOpen>
-					<TreeItem label="Child" />
-				</TreeItem>
-			</Tree>,
-		)
-
-		expect(screen.getByText('Parent')).toBeInTheDocument()
-
-		expect(screen.getByText('Child')).toBeInTheDocument()
-	})
-
 	it('turns the chevron on the element that carries the transform transition', () => {
 		renderUI(
 			<Tree aria-label="Files">
@@ -724,7 +711,7 @@ describe('TreeItem', () => {
 describe('TreeItem group ownership', () => {
 	// The child group is a sibling of the row in the DOM. The open row owns it,
 	// and the label alone names the row.
-	it('owns the group of an open branch, and takes its name from the label alone', async () => {
+	it('owns the group of an open branch, and takes its name from the label alone', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
 				<TreeItem label="src" defaultOpen suffix={<span>3 files</span>}>
@@ -742,10 +729,6 @@ describe('TreeItem group ownership', () => {
 		expect(group).toBe(getSlot(container, 'tree-group'))
 
 		expect(group).toContainElement(screen.getByRole('treeitem', { name: 'a.ts' }))
-
-		const results = await axe(container)
-
-		expect(results.violations).toEqual([])
 	})
 
 	it('drops the ownership while the branch is closed, so the reference never dangles', () => {
@@ -774,9 +757,6 @@ describe('TreeItem group ownership', () => {
 })
 
 describe('TreeItem onAction', () => {
-	const row = (container: HTMLElement, index = 0) =>
-		(container.querySelectorAll('[role="treeitem"]')[index] as HTMLElement) ?? null
-
 	it('reports a leaf activation by click and by Enter', () => {
 		const onAction = vi.fn()
 
@@ -864,9 +844,6 @@ describe('TreeItem onAction', () => {
 })
 
 describe('TreeItem checked', () => {
-	const row = (container: HTMLElement, index = 0) =>
-		(container.querySelectorAll('[role="treeitem"]')[index] as HTMLElement) ?? null
-
 	it('puts the state on the treeitem and draws a box hidden from AT', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">

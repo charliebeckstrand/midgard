@@ -36,8 +36,22 @@ function ControlledRelativePicker({
 	)
 }
 
-function openPicker() {
-	return setupUser()
+/**
+ * Renders a ControlledRelativePicker with an `onChange` spy, and opens it from
+ * its trigger.
+ */
+async function openRelative(
+	props: Omit<Parameters<typeof ControlledRelativePicker>[0], 'onChange'> = {},
+) {
+	const user = setupUser()
+
+	const onChange = vi.fn()
+
+	const view = renderUI(<ControlledRelativePicker {...props} onChange={onChange} />)
+
+	await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
+
+	return { ...view, user, onChange }
 }
 
 describe('DatePicker (relative)', () => {
@@ -48,7 +62,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('opens to the preset list plus a custom range row', async () => {
-		const user = openPicker()
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
 
@@ -70,13 +84,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('selects a preset, shows a chip, and keeps the popover open', async () => {
-		const user = openPicker()
-
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<ControlledRelativePicker onChange={onChange} />)
-
-		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
+		const { user, container, onChange } = await openRelative()
 
 		await user.click(screen.getByRole('button', { name: 'Last 7 days' }))
 
@@ -91,13 +99,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('replaces the selection when another preset is picked (single-select)', async () => {
-		const user = openPicker()
-
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<ControlledRelativePicker onChange={onChange} />)
-
-		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
+		const { user, container } = await openRelative()
 
 		await user.click(screen.getByRole('button', { name: 'This year' }))
 
@@ -112,13 +114,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('selects multiple presets at once with multiple, one chip each', async () => {
-		const user = openPicker()
-
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<ControlledRelativePicker multiple onChange={onChange} />)
-
-		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
+		const { user, container, onChange } = await openRelative({ multiple: true })
 
 		await user.click(screen.getByRole('button', { name: 'This year' }))
 
@@ -136,13 +132,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('reflects selection through aria-pressed and toggles back to null', async () => {
-		const user = openPicker()
-
-		const onChange = vi.fn()
-
-		renderUI(<ControlledRelativePicker onChange={onChange} />)
-
-		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
+		const { user, onChange } = await openRelative()
 
 		const today = screen.getByRole('button', { name: 'Today' })
 
@@ -158,7 +148,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('labels a span collision by the picked preset, not the first list match', async () => {
-		const user = openPicker()
+		const user = setupUser()
 
 		// Two presets that resolve to the identical span: the real case is
 		// "Last 6 months" ≡ "This year" on 1 July. A bare range match would label the
@@ -198,7 +188,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('renders only the supplied presets when overridden', async () => {
-		const user = openPicker()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<DatePicker
@@ -222,7 +212,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('swaps to the Start/End inputs for a custom range and back', async () => {
-		const user = openPicker()
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
 
@@ -250,7 +240,7 @@ describe('DatePicker (relative)', () => {
 	// The Start/End fields pass no format, so they follow the ambient locale, as
 	// the Calendar beside them does.
 	it('lays out the Start/End fields in the ambient locale', async () => {
-		const user = openPicker()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<LocaleProvider locale="en-GB">
@@ -274,7 +264,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('picks a custom endpoint from the field calendar without closing the popover', async () => {
-		const user = openPicker()
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
 
@@ -303,7 +293,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('shows a bound-specific error when End is typed before Start', async () => {
-		const user = openPicker()
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
 
@@ -322,11 +312,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('keeps the list and custom footers separate', async () => {
-		const user = openPicker()
-
-		renderUI(<ControlledRelativePicker />)
-
-		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
+		const { user } = await openRelative()
 
 		await user.click(screen.getByRole('button', { name: 'Last 7 days' }))
 
@@ -340,7 +326,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('drops the footer Clear with footer={{ clear: false }}', async () => {
-		const user = openPicker()
+		const user = setupUser()
 
 		renderUI(
 			<DatePicker
@@ -358,7 +344,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('forwards footer to the Start and End field calendars', async () => {
-		const user = openPicker()
+		const user = setupUser()
 
 		renderUI(
 			<DatePicker relative footer={{ clear: false, today: false }} aria-label="Reporting range" />,
@@ -381,13 +367,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('shows a custom footer Clear once both dates settle and clears the range', async () => {
-		const user = openPicker()
-
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<ControlledRelativePicker onChange={onChange} />)
-
-		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
+		const { user, container, onChange } = await openRelative()
 
 		await user.click(screen.getByRole('button', { name: 'Custom range' }))
 
@@ -413,13 +393,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('commits a single span from the Start/End inputs and stays open', async () => {
-		const user = openPicker()
-
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<ControlledRelativePicker onChange={onChange} />)
-
-		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
+		const { user, container, onChange } = await openRelative()
 
 		await user.click(screen.getByRole('button', { name: 'Custom range' }))
 
@@ -439,19 +413,10 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('clears an active custom range when a preset is toggled', async () => {
-		const user = openPicker()
-
-		const onChange = vi.fn()
-
 		// A span outside any preset reads as a custom selection.
-		renderUI(
-			<ControlledRelativePicker
-				initial={[{ from: new Date(2020, 0, 1), to: new Date(2020, 0, 5) }]}
-				onChange={onChange}
-			/>,
-		)
-
-		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
+		const { user, onChange } = await openRelative({
+			initial: [{ from: new Date(2020, 0, 1), to: new Date(2020, 0, 5) }],
+		})
 
 		expect(screen.getByRole('button', { name: 'Custom range' })).toHaveAttribute(
 			'aria-pressed',
@@ -464,15 +429,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('clears the selection from the footer but keeps the popover open', async () => {
-		const user = openPicker()
-
-		const onChange = vi.fn()
-
-		const { container } = renderUI(
-			<ControlledRelativePicker initial={undefined} onChange={onChange} />,
-		)
-
-		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
+		const { user, container, onChange } = await openRelative()
 
 		await user.click(screen.getByRole('button', { name: 'Last 7 days' }))
 
@@ -488,11 +445,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('shows the sole selection as text with chips off', async () => {
-		const user = openPicker()
-
-		const { container } = renderUI(<ControlledRelativePicker chips={false} />)
-
-		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
+		const { user, container } = await openRelative({ chips: false })
 
 		await user.click(screen.getByRole('button', { name: 'Last 7 days' }))
 
@@ -505,11 +458,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('counts a multiple selection past one with chips off', async () => {
-		const user = openPicker()
-
-		const { container } = renderUI(<ControlledRelativePicker multiple chips={false} />)
-
-		await user.click(screen.getByRole('combobox', { name: 'Reporting range' }))
+		const { user, container } = await openRelative({ multiple: true, chips: false })
 
 		await user.click(screen.getByRole('button', { name: 'This year' }))
 
@@ -528,7 +477,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('returns to the placeholder on clear with chips off', async () => {
-		const user = openPicker()
+		const user = setupUser()
 
 		const onChange = vi.fn()
 
@@ -554,7 +503,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('opens with ArrowDown and roves focus across the preset rows', async () => {
-		const user = openPicker()
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
 
@@ -572,7 +521,7 @@ describe('DatePicker (relative)', () => {
 	})
 
 	it('enters the custom inputs from the custom row via the keyboard', async () => {
-		const user = openPicker()
+		const user = setupUser()
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
 
@@ -614,7 +563,7 @@ describe('DatePicker (relative)', () => {
 
 describe('DatePicker (relative) in a locale', () => {
 	it('shows the placeholder, the panel, and the presets in the language of the locale', async () => {
-		const user = openPicker()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<LocaleProvider locale="es-ES">

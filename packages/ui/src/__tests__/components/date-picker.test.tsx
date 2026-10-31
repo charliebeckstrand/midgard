@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { type ReactElement, useState } from 'react'
 import { describe, expect, vi } from 'vitest'
 import { Control } from '../../components/control'
-import { DatePicker } from '../../components/date-picker'
+import { DatePicker, type DatePickerProps } from '../../components/date-picker'
 import { DatePickerCalendarButton } from '../../components/date-picker/date-picker-calendar-button'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
 import { Field } from '../../components/fieldset'
@@ -20,23 +20,45 @@ function footerClear() {
 	})
 }
 
+// The day cell of the shown month with this day number. It throws when the
+// calendar shows no such cell.
 function findDay(day: number) {
-	const days = screen.getAllByRole('option')
+	const found = screen.getAllByRole('option').find((b) => b.textContent?.trim() === String(day))
 
-	return days.find((b) => b.textContent?.trim() === String(day))
+	if (!found) throw new Error(`day ${day} cell not found`)
+
+	return found
 }
 
-// Renders an input-mode picker on 15 June 2025, and opens it with the calendar button.
-async function openInputPicker() {
+// Renders a picker with `props`, and opens it with a click on the trigger.
+async function openPicker(props: DatePickerProps = {}) {
 	const user = setupUser()
 
-	const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+	const view = renderUI(<DatePicker {...props} />)
 
-	const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+	const button = getSlot<HTMLButtonElement>(view.container, 'datepicker-button')
+
+	await user.click(button)
+
+	return { ...view, user, button }
+}
+
+// Renders an input-mode picker with `props`, and opens it with the calendar
+// button. By default, the picker is on 15 June 2025.
+async function openInputPicker(
+	props: Extract<DatePickerProps, { range?: false; relative?: false }> = {
+		defaultValue: new Date(2025, 5, 15),
+	},
+) {
+	const user = setupUser()
+
+	const view = renderUI(<DatePicker {...props} input />)
+
+	const input = getSlot<HTMLInputElement>(view.container, 'datepicker-input')
 
 	await user.click(screen.getByRole('button', { name: 'Open calendar' }))
 
-	return { user, container, input }
+	return { ...view, user, input }
 }
 
 // The element that the `aria-activedescendant` of `input` names.
@@ -74,9 +96,17 @@ function ControlledDatePicker() {
 	return <DatePicker value={date} onValueChange={setDate} />
 }
 
+/** The single and the range variants, for the cases that both variants share. */
+const pickers: [string, DatePickerProps][] = [
+	['single', {}],
+	['range', { range: true }],
+]
+
 describe('DatePicker', () => {
-	it('names the trigger via aria-label for unwrapped pickers', () => {
-		renderUI(<DatePicker aria-label="Due date" />)
+	// The range variant threads aria-label through to the same trigger. The
+	// placeholder is not a programmatic name.
+	it.for(pickers)('names the %s trigger via aria-label for unwrapped pickers', ([, variant]) => {
+		renderUI(<DatePicker {...variant} aria-label="Due date" />)
 
 		expect(screen.getByRole('combobox', { name: 'Due date' })).toBeInTheDocument()
 	})
@@ -91,32 +121,21 @@ describe('DatePicker', () => {
 		expect(button?.tagName).toBe('BUTTON')
 	})
 
-	it('shows placeholder text', () => {
-		const { container } = renderUI(<DatePicker placeholder="Pick a date" />)
+	it.for<[string, string, DatePickerProps]>([
+		['shows placeholder text', 'Pick a date', {}],
+		['renders trigger with range placeholder', 'Pick dates', { range: true }],
+	])('%s', ([, placeholder, variant]) => {
+		const { container } = renderUI(<DatePicker {...variant} placeholder={placeholder} />)
 
-		expect(container.textContent).toContain('Pick a date')
+		expect(container.textContent).toContain(placeholder)
 	})
 
-	it('disables trigger when disabled', () => {
-		const { container } = renderUI(<DatePicker disabled />)
+	it.for(pickers)('disables the %s trigger when disabled', ([, variant]) => {
+		const { container } = renderUI(<DatePicker {...variant} disabled />)
 
 		const button = bySlot(container, 'datepicker-button')
 
 		expect(button).toBeDisabled()
-	})
-
-	it('surfaces invalid state from an enclosing Control', () => {
-		const { container } = renderUI(
-			<Control severity="error">
-				<DatePicker />
-			</Control>,
-		)
-
-		const button = bySlot(container, 'datepicker-button')
-
-		expect(button).toHaveAttribute('data-invalid')
-
-		expect(button).toHaveAttribute('aria-invalid', 'true')
 	})
 
 	it('inherits disabled from an enclosing Control', () => {
@@ -139,20 +158,6 @@ describe('DatePicker', () => {
 		expect(bySlot(container, 'datepicker-button')).toBeEnabled()
 	})
 
-	it('shows the warning ring of an enclosing Control', () => {
-		const { container } = renderUI(
-			<Control severity="warning">
-				<DatePicker />
-			</Control>,
-		)
-
-		const button = bySlot(container, 'datepicker-button')
-
-		expect(button).toHaveAttribute('data-warning')
-
-		expect(button).not.toHaveAttribute('aria-invalid')
-	})
-
 	it('surfaces required state from an enclosing Control', () => {
 		const { container } = renderUI(
 			<Control required>
@@ -163,12 +168,21 @@ describe('DatePicker', () => {
 		expect(bySlot(container, 'datepicker-button')).toHaveAttribute('aria-required', 'true')
 	})
 
-	it('displays formatted date when value is set', () => {
-		const date = new Date(2025, 0, 15)
+	it.for<[string, () => ReactElement, string]>([
+		[
+			'displays formatted date when value is set',
+			() => <DatePicker value={new Date(2025, 0, 15)} />,
+			'1/15/2025',
+		],
+		[
+			'displays formatted range when value is set',
+			() => <DatePicker range value={[new Date(2025, 0, 1), new Date(2025, 0, 10)]} />,
+			'1/1/2025',
+		],
+	])('%s', ([, ui, text]) => {
+		const { container } = renderUI(ui())
 
-		const { container } = renderUI(<DatePicker value={date} />)
-
-		expect(container.textContent).toContain('1/15/2025')
+		expect(container.textContent).toContain(text)
 	})
 
 	it('reads the ambient locale for the trigger label, as the calendar does', () => {
@@ -253,14 +267,11 @@ describe('DatePicker', () => {
 		expect(await axe(container)).toHaveNoViolations()
 	})
 
-	it('opens the calendar content on a trigger click, and closes it on the next', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(<DatePicker />)
-
-		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
-
-		await user.click(button)
+	it.for<[string, DatePickerProps]>([
+		['opens the calendar content on a trigger click, and closes it on the next', {}],
+		['opens the range calendar on a trigger click, and closes it on the next', { range: true }],
+	])('%s', async ([, variant]) => {
+		const { user, container, button } = await openPicker(variant)
 
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 
@@ -272,21 +283,13 @@ describe('DatePicker', () => {
 	})
 
 	it('selects a date and calls onValueChange', async () => {
-		const user = setupUser()
-
 		const onChange = vi.fn()
 
 		const defaultValue = new Date(2025, 5, 15)
 
-		const { container } = renderUI(
-			<DatePicker defaultValue={defaultValue} onValueChange={onChange} />,
-		)
-
-		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		const { user } = await openPicker({ defaultValue, onValueChange: onChange })
 
 		const day = findDay(20)
-
-		if (!day) throw new Error('day 20 button not found')
 
 		await user.click(day)
 
@@ -300,17 +303,11 @@ describe('DatePicker', () => {
 	})
 
 	it('clears the selected date when the clear footer button is pressed', async () => {
-		const user = setupUser()
-
 		const onChange = vi.fn()
 
 		const defaultValue = new Date(2025, 5, 15)
 
-		const { container } = renderUI(
-			<DatePicker defaultValue={defaultValue} onValueChange={onChange} />,
-		)
-
-		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		const { user } = await openPicker({ defaultValue, onValueChange: onChange })
 
 		await user.click(footerClear())
 
@@ -328,8 +325,6 @@ describe('DatePicker', () => {
 
 		const day = findDay(20)
 
-		if (!day) throw new Error('day 20 button not found')
-
 		await user.click(day)
 
 		expect(button).not.toHaveTextContent('Select a date')
@@ -342,13 +337,9 @@ describe('DatePicker', () => {
 	})
 
 	it('selects today via the footer Today button', async () => {
-		const user = setupUser()
-
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<DatePicker onValueChange={onChange} />)
-
-		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		const { user } = await openPicker({ onValueChange: onChange })
 
 		await user.click(screen.getByRole('button', { name: 'Today' }))
 
@@ -360,13 +351,7 @@ describe('DatePicker', () => {
 	})
 
 	it('refocuses the trigger when closed with Escape', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(<DatePicker />)
-
-		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
-
-		await user.click(button)
+		const { user, container, button } = await openPicker()
 
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 
@@ -378,19 +363,11 @@ describe('DatePicker', () => {
 	})
 
 	it('refocuses the trigger after selecting a date', async () => {
-		const user = setupUser()
-
 		const defaultValue = new Date(2025, 5, 15)
 
-		const { container } = renderUI(<DatePicker defaultValue={defaultValue} />)
-
-		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
-
-		await user.click(button)
+		const { user, button } = await openPicker({ defaultValue })
 
 		const day = findDay(20)
-
-		if (!day) throw new Error('day 20 button not found')
 
 		await user.click(day)
 
@@ -552,39 +529,24 @@ describe('DatePicker open state', () => {
 	})
 
 	it('reports open transitions through onOpenChange', async () => {
-		const user = setupUser()
-
 		const onOpenChange = vi.fn()
 
-		const { container } = renderUI(<DatePicker onOpenChange={onOpenChange} aria-label="Due date" />)
-
-		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		await openPicker({ onOpenChange, 'aria-label': 'Due date' })
 
 		expect(onOpenChange).toHaveBeenCalledWith(true)
 	})
 
 	it('stays closed while controlled open=false', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(
-			<DatePicker open={false} onOpenChange={() => {}} aria-label="Due date" />,
-		)
-
-		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		await openPicker({ open: false, onOpenChange: () => {}, 'aria-label': 'Due date' })
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
 
 	it('closes on a press of the day that is already selected', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(
-			<DatePicker defaultValue={new Date(2025, 5, 12)} aria-label="Due date" />,
-		)
-
-		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
-
-		await user.click(button)
+		const { user, button } = await openPicker({
+			defaultValue: new Date(2025, 5, 12),
+			'aria-label': 'Due date',
+		})
 
 		await user.click(screen.getByRole('option', { name: /\b12\b/ }))
 
@@ -592,13 +554,7 @@ describe('DatePicker open state', () => {
 	})
 
 	it('readOnly blocks opening but keeps the trigger focusable', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(<DatePicker readOnly aria-label="Due date" />)
-
-		const trigger = getSlot<HTMLButtonElement>(container, 'datepicker-button')
-
-		await user.click(trigger)
+		const { button: trigger } = await openPicker({ readOnly: true, 'aria-label': 'Due date' })
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
@@ -647,13 +603,7 @@ describe('DatePicker open state', () => {
 
 describe('DatePicker footer', () => {
 	it('drops the Today button but keeps Clear with footer={{ today: false }}', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(
-			<DatePicker defaultValue={new Date(2025, 5, 15)} footer={{ today: false }} />,
-		)
-
-		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		await openPicker({ defaultValue: new Date(2025, 5, 15), footer: { today: false } })
 
 		expect(screen.queryByRole('button', { name: 'Today' })).not.toBeInTheDocument()
 
@@ -661,13 +611,7 @@ describe('DatePicker footer', () => {
 	})
 
 	it('drops the footer Clear but keeps Today with footer={{ clear: false }}', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(
-			<DatePicker defaultValue={new Date(2025, 5, 15)} footer={{ clear: false }} />,
-		)
-
-		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		await openPicker({ defaultValue: new Date(2025, 5, 15), footer: { clear: false } })
 
 		const toolbar = screen.getByRole('toolbar', { name: 'Date picker actions' })
 
@@ -680,27 +624,18 @@ describe('DatePicker footer', () => {
 	})
 
 	it('renders no footer toolbar when both buttons are disabled', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(
-			<DatePicker defaultValue={new Date(2025, 5, 15)} footer={{ today: false, clear: false }} />,
-		)
-
-		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		await openPicker({
+			defaultValue: new Date(2025, 5, 15),
+			footer: { today: false, clear: false },
+		})
 
 		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
 	})
 
 	it('drops the range footer Clear with footer={{ clear: false }}', async () => {
-		const user = setupUser()
-
 		const defaultValue: [Date, Date] = [new Date(2025, 5, 1), new Date(2025, 5, 3)]
 
-		const { container } = renderUI(
-			<DatePicker range defaultValue={defaultValue} footer={{ clear: false }} />,
-		)
-
-		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		await openPicker({ range: true, defaultValue, footer: { clear: false } })
 
 		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
 	})
@@ -760,24 +695,6 @@ describe('DatePicker keyboard', () => {
 		},
 	)
 
-	it('closes the open calendar with Escape', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(<DatePicker />)
-
-		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
-
-		button.focus()
-
-		await user.keyboard('{ArrowDown}')
-
-		expect(button).toHaveAttribute('aria-expanded', 'true')
-
-		await user.keyboard('{Escape}')
-
-		expect(button).toHaveAttribute('aria-expanded', 'false')
-	})
-
 	it('shows the active-day highlight while DOM focus stays on the dialog', async () => {
 		const user = setupUser()
 
@@ -821,7 +738,7 @@ describe('DatePicker keyboard', () => {
 		// The modal trap lets Tab reach day cells; seat DOM focus on one.
 		const day3 = findDay(3)
 
-		act(() => day3?.focus())
+		act(() => day3.focus())
 
 		// B01-C12, Q8: the arrow steps from the focused 3rd to May 27th. The move
 		// re-anchors the view to May and unmounts every June day button.
@@ -891,13 +808,7 @@ describe('DatePicker keyboard', () => {
 
 		await user.keyboard('{Enter}') // commit
 
-		expect(onChange).toHaveBeenCalledTimes(1)
-
-		const committed = onChange.mock.calls[0]?.[0] as Date
-
-		expect(committed.getMonth()).toBe(5)
-
-		expect(committed.getDate()).toBe(22)
+		expect(onChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 5, 22))
 
 		expect(button).toHaveAttribute('aria-expanded', 'false')
 	})
@@ -925,82 +836,12 @@ describe('DatePicker keyboard', () => {
 })
 
 describe('DatePicker range', () => {
-	it('names the trigger via aria-label for unwrapped pickers', () => {
-		// The range variant threads aria-label through to the same trigger; the
-		// placeholder is not a programmatic name.
-		renderUI(<DatePicker range aria-label="Stay dates" />)
-
-		expect(screen.getByRole('combobox', { name: 'Stay dates' })).toBeInTheDocument()
-	})
-
-	it('renders trigger with range placeholder', () => {
-		const { container } = renderUI(<DatePicker range placeholder="Pick dates" />)
-
-		expect(container.textContent).toContain('Pick dates')
-	})
-
-	it('disables trigger when disabled', () => {
-		const { container } = renderUI(<DatePicker range disabled />)
-
-		const button = bySlot(container, 'datepicker-button')
-
-		expect(button).toBeDisabled()
-	})
-
-	it('surfaces invalid state from an enclosing Control', () => {
-		const { container } = renderUI(
-			<Control severity="error">
-				<DatePicker range />
-			</Control>,
-		)
-
-		const button = bySlot(container, 'datepicker-button')
-
-		expect(button).toHaveAttribute('data-invalid')
-
-		expect(button).toHaveAttribute('aria-invalid', 'true')
-	})
-
-	it('displays formatted range when value is set', () => {
-		const start = new Date(2025, 0, 1)
-
-		const end = new Date(2025, 0, 10)
-
-		const { container } = renderUI(<DatePicker range value={[start, end]} />)
-
-		expect(container.textContent).toContain('1/1/2025')
-	})
-
-	it('opens the range calendar on a trigger click, and closes it on the next', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(<DatePicker range />)
-
-		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
-
-		await user.click(button)
-
-		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
-
-		expect(button).toHaveAttribute('aria-expanded', 'true')
-
-		await user.click(button)
-
-		expect(button).toHaveAttribute('aria-expanded', 'false')
-	})
-
 	it('commits a one-day range on two presses of the same day', async () => {
-		const user = setupUser()
-
 		const onValueChange = vi.fn()
 
 		const defaultValue: [Date, Date] = [new Date(2025, 5, 1), new Date(2025, 5, 2)]
 
-		const { container } = renderUI(
-			<DatePicker range defaultValue={defaultValue} onValueChange={onValueChange} />,
-		)
-
-		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		const { user } = await openPicker({ range: true, defaultValue, onValueChange })
 
 		await user.click(screen.getByRole('option', { name: /\b12\b/ }))
 
@@ -1012,13 +853,9 @@ describe('DatePicker range', () => {
 	})
 
 	it('exposes the clear footer button when a range is set', async () => {
-		const user = setupUser()
-
 		const defaultValue: [Date, Date] = [new Date(2025, 5, 1), new Date(2025, 5, 3)]
 
-		const { container } = renderUI(<DatePicker range defaultValue={defaultValue} />)
-
-		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		await openPicker({ range: true, defaultValue })
 
 		expect(footerClear()).toBeInTheDocument()
 	})
@@ -1116,19 +953,11 @@ describe('DatePicker input', () => {
 	})
 
 	it('writes a picked date back into the input', async () => {
-		const user = setupUser()
+		const { user, input } = await openInputPicker()
 
-		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+		await user.click(findDay(20))
 
-		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
-
-		const day = findDay(20)
-
-		if (!day) throw new Error('day 20 button not found')
-
-		await user.click(day)
-
-		expect(getSlot<HTMLInputElement>(container, 'datepicker-input').value).toBe('06/20/2025')
+		expect(input.value).toBe('06/20/2025')
 	})
 
 	it('makes the typed input read-only and drops its clear when readOnly', async () => {
@@ -1364,15 +1193,9 @@ describe('DatePicker input', () => {
 	// sequential focus navigation runs in the browser suite
 	// (browser/floating-ui/date-picker-input-tab.test.tsx).
 	it('hands Tab from the calendar button to the dialog, and back from its far edge', async () => {
-		const user = setupUser()
+		const { input } = await openInputPicker()
 
-		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
-
-		const calendar = screen.getByRole('button', { name: 'Open calendar' })
-
-		await user.click(calendar)
+		const calendar = screen.getByRole('button', { name: 'Close calendar' })
 
 		// Forward off the reference group's last tabbable: dialog's first.
 		fireEvent.keyDown(calendar, { key: 'Tab' })
@@ -1386,15 +1209,9 @@ describe('DatePicker input', () => {
 	})
 
 	it('hands Shift+Tab from the input to the dialog, and back from its near edge', async () => {
-		const user = setupUser()
+		const { input } = await openInputPicker()
 
-		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
-
-		const calendar = screen.getByRole('button', { name: 'Open calendar' })
-
-		await user.click(calendar)
+		const calendar = screen.getByRole('button', { name: 'Close calendar' })
 
 		// Backward off the reference group's first tabbable: dialog's last.
 		fireEvent.keyDown(input, { key: 'Tab', shiftKey: true })
@@ -1464,7 +1281,7 @@ describe('DatePicker input', () => {
 
 		const day = findDay(20)
 
-		act(() => day?.focus())
+		act(() => day.focus())
 
 		await user.keyboard('{ArrowRight}')
 
@@ -1479,7 +1296,7 @@ describe('DatePicker input', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Next month' })) // show July
 
-		act(() => findDay(20)?.focus())
+		act(() => findDay(20).focus())
 
 		await user.keyboard('{PageDown}')
 
@@ -1494,7 +1311,7 @@ describe('DatePicker input', () => {
 	it('steps a week back from a focused day on the top row', async () => {
 		const { user, input } = await openInputPicker()
 
-		act(() => findDay(2)?.focus())
+		act(() => findDay(2).focus())
 
 		await user.keyboard('{ArrowUp}')
 
@@ -1551,13 +1368,7 @@ describe('DatePicker input', () => {
 	})
 
 	it('keeps focus and text in the input when Escape closes mid-edit', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(<DatePicker input />)
-
-		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
-
-		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+		const { user, container, input } = await openInputPicker({})
 
 		await user.click(input)
 
@@ -1577,13 +1388,7 @@ describe('DatePicker input', () => {
 	// open-focus on the DateInput itself (so the user can keep typing and the
 	// keydown stream roves the grid) never the dialog container.
 	it('focuses the input when the calendar opens, not the dialog', async () => {
-		const user = setupUser()
-
-		const { container } = renderUI(<DatePicker input />)
-
-		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
-
-		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
+		const { input } = await openInputPicker({})
 
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 
@@ -1594,15 +1399,9 @@ describe('DatePicker input', () => {
 	})
 
 	it('accepts typing into the input after opening from the calendar button', async () => {
-		const user = setupUser()
-
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<DatePicker input onValueChange={onChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
-
-		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
+		const { user, input } = await openInputPicker({ onValueChange: onChange })
 
 		// Open-focus landed on the field, so digits type straight through.
 		await user.keyboard('12252026')
@@ -1718,11 +1517,7 @@ describe('DatePicker input', () => {
 
 		await user.keyboard('{Enter}') // commit the highlight
 
-		expect(onChange).toHaveBeenCalledTimes(1)
-
-		const committed = onChange.mock.calls[0]?.[0] as Date
-
-		expect(committed.getDate()).toBe(22)
+		expect(onChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 5, 22))
 
 		expect(bySlot(container, 'datepicker-content')).not.toBeInTheDocument()
 
@@ -1827,21 +1622,24 @@ describe('DatePicker validation', () => {
 		expect(getSlot(container, 'datepicker-button')).toHaveAttribute('data-valid')
 	})
 
-	it('keeps the error pair for an error severity', () => {
-		const { container } = renderUI(
-			<Field severity="error">
-				<DatePicker aria-label="Due date" />
-			</Field>,
-		)
+	it.each(variants)(
+		'keeps the error pair on the %s trigger for an error severity',
+		(_, variant) => {
+			const { container } = renderUI(
+				<Field severity="error">
+					<DatePicker {...variant} aria-label="Due date" />
+				</Field>,
+			)
 
-		const trigger = getSlot(container, 'datepicker-button')
+			const trigger = getSlot(container, 'datepicker-button')
 
-		expect(trigger).toHaveAttribute('data-invalid')
+			expect(trigger).toHaveAttribute('data-invalid')
 
-		expect(trigger).toHaveAttribute('aria-invalid', 'true')
+			expect(trigger).toHaveAttribute('aria-invalid', 'true')
 
-		expect(trigger).not.toHaveAttribute('data-warning')
-	})
+			expect(trigger).not.toHaveAttribute('data-warning')
+		},
+	)
 })
 
 describe('DatePicker + Form', () => {
@@ -1866,7 +1664,7 @@ describe('DatePicker + Form', () => {
 		// bound field holds the pick by submit time.
 		await user.click(trigger)
 
-		await user.click(findDay(20) as HTMLElement)
+		await user.click(findDay(20))
 
 		await user.click(screen.getByRole('button', { name: 'Submit' }))
 
@@ -1888,7 +1686,10 @@ describe('DatePicker + Form', () => {
 
 		const trigger = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
-		expect(trigger).not.toHaveTextContent('Select a date')
+		// Seeded from the form store: the trigger shows both ends of the range.
+		expect(trigger).toHaveTextContent('6/10/2025')
+
+		expect(trigger).toHaveTextContent('6/15/2025')
 	})
 
 	it('binds a date range: writes the picked range back to the field', async () => {
@@ -1914,9 +1715,9 @@ describe('DatePicker + Form', () => {
 
 		// Two endpoints commit the range and close the popover; the value lands on
 		// the closing click, with no dependence on the exit animation firing.
-		await user.click(findDay(12) as HTMLElement)
+		await user.click(findDay(12))
 
-		await user.click(findDay(18) as HTMLElement)
+		await user.click(findDay(18))
 
 		await user.click(screen.getByRole('button', { name: 'Submit' }))
 

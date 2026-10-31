@@ -1,54 +1,16 @@
 import { act, render } from '@testing-library/react'
 import { createRef, type Ref, useState } from 'react'
-import { describe, expect, it, type Mock, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	type SignaturePadHandle,
 	type SignaturePadStateOptions,
 	useSignaturePadState,
 } from '../../components/signature-pad/use-signature-pad-state'
-import { makePointerEvent } from '../helpers'
-
-// Minimal mock shape for the CanvasRenderingContext2D members the hook reads.
-// Per-method overrides are attached via `Object.defineProperty` (no casts needed).
-type ContextMock = {
-	clearRect: Mock
-	scale: Mock
-	drawImage: Mock
-	beginPath: Mock
-	moveTo: Mock
-	lineTo: Mock
-	stroke: Mock
-	arc: Mock
-	fill: Mock
-	lineCap: CanvasLineCap
-	lineJoin: CanvasLineJoin
-	strokeStyle: string
-	fillStyle: string
-	lineWidth: number
-}
-
-function makeContext(): ContextMock {
-	return {
-		clearRect: vi.fn(),
-		scale: vi.fn(),
-		drawImage: vi.fn(),
-		beginPath: vi.fn(),
-		moveTo: vi.fn(),
-		lineTo: vi.fn(),
-		stroke: vi.fn(),
-		arc: vi.fn(),
-		fill: vi.fn(),
-		lineCap: 'round',
-		lineJoin: 'round',
-		strokeStyle: '',
-		fillStyle: '',
-		lineWidth: 0,
-	}
-}
+import { makeCanvasContext, makePointerEvent } from '../helpers'
 
 function attachCanvasMocks(
 	el: HTMLCanvasElement,
-	context: ContextMock | null,
+	context: CanvasRenderingContext2D | null,
 	dataURL: string,
 ): void {
 	Object.defineProperty(el, 'getContext', {
@@ -69,7 +31,7 @@ function attachCanvasMocks(
 
 type HarnessProps = SignaturePadStateOptions & {
 	captureState?: (state: ReturnType<typeof useSignaturePadState>) => void
-	context: ContextMock | null
+	context: CanvasRenderingContext2D | null
 	canvasDataURL?: string
 }
 
@@ -104,32 +66,41 @@ function Harness({
 	)
 }
 
-type RenderedContext = ContextMock | null
-
 /** The harness props, with the stroke settings defaulted by {@link renderHarness}. */
 type RenderHarness = Omit<HarnessProps, 'context' | 'strokeColor' | 'strokeWidth'> &
-	Partial<Pick<HarnessProps, 'strokeColor' | 'strokeWidth'>> & { context?: RenderedContext }
+	Partial<Pick<HarnessProps, 'strokeColor' | 'strokeWidth'>> & {
+		context?: CanvasRenderingContext2D | null
+	}
+
+// A stub 2D context. The hook scales the context on each resize.
+const makeContext = () => makeCanvasContext({ scale: vi.fn() })
 
 function renderHarness({ context, ...props }: RenderHarness = {} as RenderHarness) {
-	const ctx: RenderedContext = context === undefined ? makeContext() : context
+	const ctx = context === undefined ? makeContext() : context
 
 	const captured: { state?: ReturnType<typeof useSignaturePadState> } = {}
 
-	const utils = render(
+	// The harness with the stroke defaults, the same context, and a capture of the state.
+	const harness = (next: Omit<RenderHarness, 'context'>) => (
 		<Harness
-			{...props}
+			{...next}
 			context={ctx}
-			strokeColor={props.strokeColor ?? '#000'}
-			strokeWidth={props.strokeWidth ?? 2}
+			strokeColor={next.strokeColor ?? '#000'}
+			strokeWidth={next.strokeWidth ?? 2}
 			captureState={(state) => {
 				captured.state = state
 
-				props.captureState?.(state)
+				next.captureState?.(state)
 			}}
-		/>,
+		/>
 	)
 
-	return { ...utils, context: ctx, captured }
+	const utils = render(harness(props))
+
+	/** Renders the harness again with `next`, and with the same defaults and context. */
+	const rerenderWith = (next: Omit<RenderHarness, 'context'>) => utils.rerender(harness(next))
+
+	return { ...utils, context: ctx, captured, rerenderWith }
 }
 
 describe('useSignaturePadState', () => {
@@ -153,48 +124,27 @@ describe('useSignaturePadState', () => {
 	it('paints the canvas when a controlled value flips from null to a data URL', () => {
 		const onValueChange = vi.fn()
 
-		const { context, rerender, captured } = renderHarness({
+		const { context, rerenderWith, captured } = renderHarness({
 			value: null,
 			onValueChange,
 		})
 
-		const clearCallsBefore = context?.clearRect.mock.calls.length ?? 0
+		const clearCallsBefore = vi.mocked(context?.clearRect)?.mock.calls.length ?? 0
 
-		rerender(
-			<Harness
-				value="data:,new"
-				onValueChange={onValueChange}
-				strokeColor="#000"
-				strokeWidth={2}
-				context={context}
-				captureState={(state) => {
-					captured.state = state
-				}}
-			/>,
-		)
+		rerenderWith({ value: 'data:,new', onValueChange })
 
 		// clearRect runs once per value-sync to wipe the canvas before painting.
-		expect(context?.clearRect.mock.calls.length).toBeGreaterThan(clearCallsBefore)
+		expect(vi.mocked(context?.clearRect)?.mock.calls.length).toBeGreaterThan(clearCallsBefore)
 
 		expect(captured.state?.empty).toBe(false)
 	})
 
 	it('clears the canvas and flips isEmpty when a controlled value becomes null', () => {
-		const { context, rerender, captured } = renderHarness({
+		const { context, rerenderWith, captured } = renderHarness({
 			value: 'data:,seed',
 		})
 
-		rerender(
-			<Harness
-				value={null}
-				strokeColor="#000"
-				strokeWidth={2}
-				context={context}
-				captureState={(state) => {
-					captured.state = state
-				}}
-			/>,
-		)
+		rerenderWith({ value: null })
 
 		expect(context?.clearRect).toHaveBeenCalled()
 
@@ -209,7 +159,7 @@ describe('useSignaturePadState', () => {
 			onValueChange,
 		})
 
-		context?.clearRect.mockClear()
+		vi.mocked(context?.clearRect)?.mockClear()
 
 		act(() => {
 			captured.state?.clear()
@@ -303,25 +253,15 @@ describe('useSignaturePadState', () => {
 		// Re-rendering with the same controlled value triggers no additional
 		// clearRect. Guards the early-return path (effect dependency [current] is
 		// referentially stable).
-		const { context, rerender, captured } = renderHarness({
+		const { context, rerenderWith } = renderHarness({
 			value: 'data:,stable',
 		})
 
-		const clearCallsAfterMount = context?.clearRect.mock.calls.length ?? 0
+		const clearCallsAfterMount = vi.mocked(context?.clearRect)?.mock.calls.length ?? 0
 
-		rerender(
-			<Harness
-				value="data:,stable"
-				strokeColor="#000"
-				strokeWidth={2}
-				context={context}
-				captureState={(state) => {
-					captured.state = state
-				}}
-			/>,
-		)
+		rerenderWith({ value: 'data:,stable' })
 
-		expect(context?.clearRect.mock.calls.length).toBe(clearCallsAfterMount)
+		expect(vi.mocked(context?.clearRect)?.mock.calls.length).toBe(clearCallsAfterMount)
 	})
 
 	it('wipes a stroke that a controlled owner refuses to take', () => {
@@ -335,7 +275,7 @@ describe('useSignaturePadState', () => {
 			canvasDataURL: 'data:,refused',
 		})
 
-		const clearCallsBefore = context?.clearRect.mock.calls.length ?? 0
+		const clearCallsBefore = vi.mocked(context?.clearRect)?.mock.calls.length ?? 0
 
 		const target = document.createElement('div')
 
@@ -364,7 +304,7 @@ describe('useSignaturePadState', () => {
 
 		expect(captured.state?.empty).toBe(true)
 
-		expect(context?.clearRect.mock.calls.length).toBeGreaterThan(clearCallsBefore)
+		expect(vi.mocked(context?.clearRect)?.mock.calls.length).toBeGreaterThan(clearCallsBefore)
 	})
 
 	it('keeps a stroke that a controlled owner takes', () => {
@@ -409,7 +349,7 @@ describe('useSignaturePadState', () => {
 			)
 		})
 
-		const clearCallsBefore = ownerContext.clearRect.mock.calls.length
+		const clearCallsBefore = vi.mocked(ownerContext.clearRect).mock.calls.length
 
 		act(() => {
 			ownerState.current?.commit()
@@ -417,6 +357,6 @@ describe('useSignaturePadState', () => {
 
 		expect(ownerState.current?.empty).toBe(false)
 
-		expect(ownerContext.clearRect.mock.calls.length).toBe(clearCallsBefore)
+		expect(vi.mocked(ownerContext.clearRect).mock.calls.length).toBe(clearCallsBefore)
 	})
 })

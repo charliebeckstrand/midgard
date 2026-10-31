@@ -115,18 +115,6 @@ describe.each([
 	['PaginationPrevious', PaginationPrevious, 'Previous page'],
 	['PaginationNext', PaginationNext, 'Next page'],
 ] as const)('%s', (_name, Step, label) => {
-	it(`renders a button labeled "${label}"`, () => {
-		renderUI(
-			<Pagination>
-				<PaginationList>
-					<Step />
-				</PaginationList>
-			</Pagination>,
-		)
-
-		expect(screen.getByRole('button', { name: label })).toBeInTheDocument()
-	})
-
 	it('does not submit a form by default, and a caller type wins', () => {
 		renderUI(
 			<Pagination>

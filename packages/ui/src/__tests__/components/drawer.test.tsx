@@ -105,8 +105,10 @@ describe('DrawerClose', () => {
 	it('calls the child existing onClick before closing', () => {
 		const childClick = vi.fn()
 
+		const onOpenChange = vi.fn()
+
 		renderUI(
-			<Drawer open onOpenChange={() => {}}>
+			<Drawer open onOpenChange={onOpenChange}>
 				<DrawerPanel footer={null}>
 					<DrawerClose>
 						<button type="button" onClick={childClick}>
@@ -119,7 +121,13 @@ describe('DrawerClose', () => {
 
 		fireEvent.click(screen.getByText('Close'))
 
-		expect(childClick).toHaveBeenCalled()
+		expect(childClick).toHaveBeenCalledOnce()
+
+		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false)
+
+		expect(childClick.mock.invocationCallOrder[0]).toBeLessThan(
+			onOpenChange.mock.invocationCallOrder[0] ?? 0,
+		)
 	})
 })
 

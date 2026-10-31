@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MaskInput } from '../../components/mask-input'
 import { Form } from '../../modules/form'
-import { act, bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
+import { act, bySlot, fireEvent, frame, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 const formatGroups = (raw: string) => {
 	const d = raw.replace(/\D/g, '').slice(0, 6)
@@ -20,22 +20,6 @@ describe('MaskInput', () => {
 		expect(input).toBeInTheDocument()
 
 		expect(input?.tagName).toBe('INPUT')
-	})
-
-	it('applies the format as the user types', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<MaskInput mask={formatGroups} onValueChange={onChange} />)
-
-		const input = getSlot<HTMLInputElement>(container, 'mask-input')
-
-		const user = setupUser()
-
-		await user.type(input, '123456')
-
-		expect(input.value).toBe('123-456')
-
-		expect(onChange).toHaveBeenLastCalledWith('123-456')
 	})
 
 	it('keeps the masking handler over a stray native onChange', async () => {
@@ -189,7 +173,7 @@ describe('MaskInput', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Reset form' }))
 
-		await act(() => new Promise(requestAnimationFrame))
+		await act(frame)
 
 		expect(input.value).toBe('123')
 
@@ -210,7 +194,7 @@ describe('MaskInput', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Reset form' }))
 
-		await act(() => new Promise(requestAnimationFrame))
+		await act(frame)
 
 		expect(input.value).toBe('123-456')
 	})

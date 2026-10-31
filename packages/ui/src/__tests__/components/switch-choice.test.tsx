@@ -2,21 +2,14 @@ import { describe, expect, it, vi } from 'vitest'
 import { Field, Label } from '../../components/fieldset'
 import { SwitchChoice } from '../../components/switch'
 import { Form } from '../../modules/form'
-import { useFormState } from '../../primitives/form/context'
 import { LocaleProvider } from '../../providers/locale'
 import { act, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 const MODES = [
 	{ value: 'ltl', label: 'LTL' },
 	{ value: 'tl', label: 'TL' },
 ] as const
-
-/** Reads one form field back out of the store, for the binding assertions. */
-function FormValue({ name }: { name: string }) {
-	const state = useFormState()
-
-	return <output>{String(state?.values[name])}</output>
-}
 
 function position(container: HTMLElement) {
 	return bySlot(container, 'switch-choice-track')?.getAttribute('data-position')
@@ -148,7 +141,7 @@ describe('SwitchChoice', () => {
 		renderUI(
 			<Form defaultValues={{ mode: 'ltl' }}>
 				<SwitchChoice aria-label="Freight" name="mode" options={MODES} />
-				<FormValue name="mode" />
+				<FieldProbe name="mode" />
 			</Form>,
 		)
 
@@ -156,11 +149,11 @@ describe('SwitchChoice', () => {
 
 		await user.click(screen.getByText('TL'))
 
-		expect(screen.getByRole('status')).toHaveTextContent('tl')
+		expect(getFieldProbe('mode')).toHaveTextContent('tl')
 
 		await user.click(screen.getByText('TL'))
 
-		expect(screen.getByRole('status')).toHaveTextContent('undefined')
+		expect(getFieldProbe('mode')).toHaveTextContent('undefined')
 	})
 
 	it('goes back to defaultValue on a native form reset', async () => {

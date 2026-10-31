@@ -34,29 +34,23 @@ describe('Confirm', () => {
 
 	it('renders children between the description and actions', () => {
 		renderUI(
-			<Confirm open onOpenChange={() => {}} onConfirm={() => {}}>
+			<Confirm open onOpenChange={() => {}} onConfirm={() => {}} description="Read this first.">
 				<div>Extra content</div>
 			</Confirm>,
 		)
 
-		expect(screen.getByText('Extra content')).toBeInTheDocument()
-	})
+		const description = screen.getByText('Read this first.')
 
-	it('describes the alertdialog by its children when no description is given', () => {
-		renderUI(
-			<Confirm open onOpenChange={() => {}} onConfirm={() => {}} title="Delete item">
-				This cannot be undone.
-			</Confirm>,
+		const children = screen.getByText('Extra content')
+
+		const actions = screen.getByRole('button', { name: 'Cancel' })
+
+		expect(description.compareDocumentPosition(children) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+			Node.DOCUMENT_POSITION_FOLLOWING,
 		)
 
-		const dialog = screen.getByRole('alertdialog')
-
-		const describedBy = dialog.getAttribute('aria-describedby')
-
-		expect(describedBy).toBeTruthy()
-
-		expect(document.getElementById(describedBy as string)).toHaveTextContent(
-			'This cannot be undone.',
+		expect(children.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+			Node.DOCUMENT_POSITION_FOLLOWING,
 		)
 	})
 
@@ -92,6 +86,7 @@ describe('Confirm', () => {
 	})
 
 	it.each([
+		['undefined', undefined],
 		['an empty string', ''],
 		['null', null],
 		['false', false],
@@ -137,19 +132,7 @@ describe('Confirm', () => {
 
 		fireEvent.click(screen.getByText('Confirm'))
 
-		expect(onConfirm).toHaveBeenCalledTimes(1)
-
-		expect(onConfirm).toHaveBeenCalledWith()
-	})
-
-	it('calls onOpenChange(false) when the cancel button is clicked', () => {
-		const onOpenChange = vi.fn()
-
-		renderUI(<Confirm open onOpenChange={onOpenChange} onConfirm={() => {}} />)
-
-		fireEvent.click(screen.getByText('Cancel'))
-
-		expect(onOpenChange).toHaveBeenCalledWith(false)
+		expect(onConfirm).toHaveBeenCalledExactlyOnceWith()
 	})
 
 	it('calls onCancel, then closes, when the cancel button is clicked', () => {

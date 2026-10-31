@@ -128,8 +128,8 @@ describe('useRangePointer', () => {
 		['on a non-primary press', {}, { button: 2 }],
 		['on a macOS Ctrl-click', {}, { ctrlKey: true }],
 		['on a pointer that is not primary', {}, { isPrimary: false }],
-	])('onPointerDown is a no-op %s', (_name, options, overrides) => {
-		const { api, setRange } = setup(options)
+	])('onPointerDown is a no-op and says nothing %s', (_name, options, overrides) => {
+		const { api, setRange, onDragStart, onDragEnd } = setup(options)
 
 		const event = makeEvent({ clientX: 30, ...overrides })
 
@@ -140,6 +140,12 @@ describe('useRangePointer', () => {
 		expect(event.preventDefault).not.toHaveBeenCalled()
 
 		expect(event.currentTarget.setPointerCapture).not.toHaveBeenCalled()
+
+		api.onPointerUp(makeEvent())
+
+		expect(onDragStart).not.toHaveBeenCalled()
+
+		expect(onDragEnd).not.toHaveBeenCalled()
 	})
 
 	it('onPointerMove does nothing before pointerdown', () => {
@@ -441,22 +447,6 @@ describe('useRangePointer', () => {
 			expect(onDragStart).toHaveBeenCalledExactlyOnceWith(0)
 
 			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(0)
-		})
-
-		it.each<[string, { disabled?: boolean }, Partial<ReactPointerEvent>]>([
-			['when disabled', { disabled: true }, {}],
-			['on a non-primary press', {}, { button: 2 }],
-			['on a macOS Ctrl-click', {}, { ctrlKey: true }],
-		])('says nothing %s', (_name, options, overrides) => {
-			const { api, onDragStart, onDragEnd } = setup(options)
-
-			api.onPointerDown(makeEvent({ clientX: 30, ...overrides }))
-
-			api.onPointerUp(makeEvent())
-
-			expect(onDragStart).not.toHaveBeenCalled()
-
-			expect(onDragEnd).not.toHaveBeenCalled()
 		})
 	})
 })

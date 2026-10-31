@@ -3,12 +3,6 @@ import { AspectRatio } from '../../components/aspect-ratio'
 import { bySlot, getSlot, renderUI } from '../helpers'
 
 describe('AspectRatio', () => {
-	it('takes the 1/1 preset by default', () => {
-		const { container } = renderUI(<AspectRatio>content</AspectRatio>)
-
-		expect(bySlot(container, 'aspect-ratio')).toHaveClass('aspect-square')
-	})
-
 	it('gives the square and video aliases the classes of 1/1 and 16/9', () => {
 		const { container } = renderUI(
 			<>

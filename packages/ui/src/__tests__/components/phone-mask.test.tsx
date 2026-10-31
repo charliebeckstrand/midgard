@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { MaskInput, phoneMask } from '../../components/mask-input'
 import { Form } from '../../modules/form'
 import { bySlot, getSlot, renderUI, screen, setupUser } from '../helpers'
-import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('phoneMask', () => {
 	it('renders an input with type tel and a phone icon prefix by default', () => {
@@ -127,6 +126,8 @@ describe('phoneMask', () => {
 		)
 
 		expect(container.querySelector('[data-testid="custom-prefix"]')).toBeInTheDocument()
+
+		expect(container.querySelector('[data-slot="icon"]')).toBeNull()
 	})
 
 	it('preserves a leading + with no digits for international country', async () => {
@@ -198,26 +199,5 @@ describe('phoneMask', () => {
 			expect.objectContaining({ phone: '(555) 123-4567' }),
 			expect.anything(),
 		)
-	})
-
-	it('marks the form field touched on blur', async () => {
-		const { container } = renderUI(
-			<Form defaultValues={{ phone: '' }}>
-				<MaskInput mask={phoneMask()} name="phone" />
-				<FieldProbe name="phone" />
-			</Form>,
-		)
-
-		const input = getSlot<HTMLInputElement>(container, 'mask-input')
-
-		const user = setupUser()
-
-		await user.click(input)
-
-		expect(getFieldProbe('phone')).toHaveAttribute('data-touched', 'false')
-
-		await user.tab()
-
-		expect(getFieldProbe('phone')).toHaveAttribute('data-touched', 'true')
 	})
 })

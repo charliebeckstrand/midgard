@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	PasswordConfirm,
@@ -5,7 +6,7 @@ import {
 	PasswordConfirmRepeat,
 } from '../../components/password-confirm'
 import { Form } from '../../modules/form'
-import { act, fireEvent, renderUI, screen } from '../helpers'
+import { act, fireEvent, frame, renderUI, screen } from '../helpers'
 
 /** The password input and the confirm input, in document order. */
 function passwordInputs() {
@@ -25,18 +26,26 @@ function enter(password: string, confirm: string) {
 	return inputs
 }
 
+/** Renders the two fields of a pair. A case changes only the props that it tests. */
+function renderPair(
+	rootProps: Omit<ComponentProps<typeof PasswordConfirm>, 'children'> = {},
+	repeatProps: Omit<ComponentProps<typeof PasswordConfirmRepeat>, 'name'> = {},
+) {
+	return renderUI(
+		<PasswordConfirm {...rootProps}>
+			<PasswordConfirmNew name="password" />
+			<PasswordConfirmRepeat name="confirm" {...repeatProps} />
+		</PasswordConfirm>,
+	)
+}
+
 describe('PasswordConfirmRepeat', () => {
 	it('records the value when the caller onChange prevents the default', () => {
 		// CONVENTIONS.md §3.9: the caller's handler runs first, and its
 		// preventDefault() cannot keep the value from the mismatch coordinator.
 		const onChange = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
 
-		renderUI(
-			<PasswordConfirm>
-				<PasswordConfirmNew name="password" />
-				<PasswordConfirmRepeat name="confirm" onChange={onChange} />
-			</PasswordConfirm>,
-		)
+		renderPair({}, { onChange })
 
 		const { confirm } = enter('abc', 'abcd')
 
@@ -45,26 +54,8 @@ describe('PasswordConfirmRepeat', () => {
 		expect(confirm).toHaveAttribute('data-warning', '')
 	})
 
-	it('applies data-warning when passwords differ and the confirm was last edited', () => {
-		renderUI(
-			<PasswordConfirm>
-				<PasswordConfirmNew name="password" />
-				<PasswordConfirmRepeat name="confirm" />
-			</PasswordConfirm>,
-		)
-
-		const { confirm } = enter('abc', 'abcd')
-
-		expect(confirm).toHaveAttribute('data-warning', '')
-	})
-
 	it('describes the confirm input by the warning while the mismatch holds', () => {
-		renderUI(
-			<PasswordConfirm warning="Passwords do not match">
-				<PasswordConfirmNew name="password" />
-				<PasswordConfirmRepeat name="confirm" />
-			</PasswordConfirm>,
-		)
+		renderPair({ warning: 'Passwords do not match' })
 
 		const { confirm } = enter('abc', 'abcd')
 
@@ -85,12 +76,7 @@ describe('PasswordConfirmRepeat', () => {
 	})
 
 	it('resets the coordinator when the confirm input unmounts', () => {
-		const { rerender } = renderUI(
-			<PasswordConfirm warning="Passwords do not match">
-				<PasswordConfirmNew name="password" />
-				<PasswordConfirmRepeat name="confirm" />
-			</PasswordConfirm>,
-		)
+		const { rerender } = renderPair({ warning: 'Passwords do not match' })
 
 		enter('abc', 'abcd')
 
@@ -110,12 +96,7 @@ describe('PasswordConfirmRepeat', () => {
 
 describe('PasswordConfirm warning rendering', () => {
 	it('keeps the live region mounted so the warning changes its children', () => {
-		renderUI(
-			<PasswordConfirm warning="Passwords do not match">
-				<PasswordConfirmNew name="password" />
-				<PasswordConfirmRepeat name="confirm" />
-			</PasswordConfirm>,
-		)
+		renderPair({ warning: 'Passwords do not match' })
 
 		// The region is in the tree before it holds text. A live region that enters
 		// the DOM together with its content does not announce.
@@ -137,12 +118,7 @@ describe('PasswordConfirm warning rendering', () => {
 	])('calls onMatchChange with %s', (_name, confirm, expected) => {
 		const onMatchChange = vi.fn()
 
-		renderUI(
-			<PasswordConfirm onMatchChange={onMatchChange}>
-				<PasswordConfirmNew name="password" />
-				<PasswordConfirmRepeat name="confirm" />
-			</PasswordConfirm>,
-		)
+		renderPair({ onMatchChange })
 
 		enter('abc', confirm)
 
@@ -155,12 +131,7 @@ describe('PasswordConfirm warning rendering', () => {
 	])('calls onMatchChange with false when the confirm field goes back to %s', (_name, confirm) => {
 		const onMatchChange = vi.fn()
 
-		renderUI(
-			<PasswordConfirm onMatchChange={onMatchChange}>
-				<PasswordConfirmNew name="password" />
-				<PasswordConfirmRepeat name="confirm" />
-			</PasswordConfirm>,
-		)
+		renderPair({ onMatchChange })
 
 		const inputs = enter('abc', 'abc')
 
@@ -287,7 +258,7 @@ describe('PasswordConfirm values', () => {
 
 		// The browser reverts the inputs after the event; the parts read them on
 		// the next frame.
-		await act(() => new Promise(requestAnimationFrame))
+		await act(frame)
 
 		expect(screen.queryByText('Passwords do not match')).not.toBeInTheDocument()
 	})

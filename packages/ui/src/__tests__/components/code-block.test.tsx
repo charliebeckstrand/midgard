@@ -26,6 +26,29 @@ import { DEFAULT_CANVAS, highlight } from '../mocks/shiki'
 // The `loadShiki` cases need their own registry, so they sit in
 // boundary/code-block-load-shiki.test.ts, which runs on forks.
 
+/** Waits until the block paints the markup of the worker. */
+const settled = vi.defineHelper(async (container: HTMLElement) => {
+	await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+})
+
+/**
+ * Primes the cache with marked markup for `token`, so that a block of that code
+ * paints `pre.shiki[data-primed]`. The overrides go last.
+ */
+function prime(token: string, overrides: Partial<Parameters<typeof primeCodeBlock>[0]> = {}) {
+	primeCodeBlock({
+		code: token,
+		html: `<pre class="shiki" data-primed=""><code>${token}</code></pre>`,
+		...DEFAULT_CANVAS,
+		...overrides,
+	})
+}
+
+/** Fills the cache with 200 new snippets, `${prefix}0` to `${prefix}199`, which evict each older entry. */
+function fillCache(prefix: string) {
+	for (let i = 0; i < 200; i++) prime(`${prefix}${i}`)
+}
+
 describe('CodeBlock', () => {
 	it('renders with data-slot="code-block"', async () => {
 		const { container } = renderUI(<CodeBlock code="const x = 1" />)
@@ -36,7 +59,7 @@ describe('CodeBlock', () => {
 
 		expect(el?.tagName).toBe('DIV')
 
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 	})
 
 	it('applies custom className', async () => {
@@ -44,7 +67,7 @@ describe('CodeBlock', () => {
 
 		expect(bySlot(container, 'code-block')?.className).toContain('custom')
 
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 	})
 
 	// TypeScript does not report an unknown `data-*` or `aria-*` attribute, so a
@@ -67,7 +90,7 @@ describe('CodeBlock', () => {
 
 		expect(el).toHaveAttribute('aria-describedby', 'attrs-note')
 
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 	})
 
 	// The frame takes the background of the theme in its style, so the block
@@ -106,7 +129,7 @@ describe('CodeBlock', () => {
 
 		expect(bySlot(container, 'code-block')).toBeNull()
 
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 	})
 
 	it('renders a plain-text fallback before shiki has tokenized', async () => {
@@ -115,7 +138,7 @@ describe('CodeBlock', () => {
 		expect(screen.getByText('raw code')).toBeInTheDocument()
 
 		// Flush the deferred shiki setHtml inside act before the test ends.
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 	})
 
 	it('renders a copy button by default', async () => {
@@ -123,7 +146,7 @@ describe('CodeBlock', () => {
 
 		expect(screen.getByLabelText('Copy to clipboard')).toBeInTheDocument()
 
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 	})
 
 	it('omits the copy button when copy is false', async () => {
@@ -131,7 +154,7 @@ describe('CodeBlock', () => {
 
 		expect(screen.queryByLabelText('Copy to clipboard')).not.toBeInTheDocument()
 
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 	})
 
 	// A refused copy leaves the button at rest, which looks the same as no copy.
@@ -149,7 +172,7 @@ describe('CodeBlock', () => {
 
 		await expectAnnouncement('Copy failed')
 
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 	})
 
 	it('removes the blank lines around the code, and keeps the indentation of the first line', async () => {
@@ -159,7 +182,7 @@ describe('CodeBlock', () => {
 
 		expect(container.querySelector('pre')?.textContent).toBe('  padded\n    nested')
 
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 	})
 
 	it('finishes a load that outlives its block, and reports nothing', async () => {
@@ -194,7 +217,7 @@ describe('CodeBlock', () => {
 	it('never paints the markup of the code it showed before', async () => {
 		const { container, rerender } = renderUI(<CodeBlock code="first-snippet-token" copy={false} />)
 
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 
 		rerender(<CodeBlock code="second-snippet-token" copy={false} />)
 
@@ -265,7 +288,7 @@ describe('CodeBlock', () => {
 
 		expect(pre?.closest('[dir]')).toHaveAttribute('dir', 'ltr')
 
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 
 		expect(container.querySelector('pre.shiki')?.closest('[dir]')).toHaveAttribute('dir', 'ltr')
 	})
@@ -275,11 +298,7 @@ describe('CodeBlock', () => {
 
 		// The defaults of the block and the trim of the code key the entry, as
 		// they key a block.
-		primeCodeBlock({
-			code: '\n\nprimed-token\n\n',
-			html: '<pre class="shiki" data-primed=""><code>primed-token</code></pre>',
-			...DEFAULT_CANVAS,
-		})
+		prime('primed-token', { code: '\n\nprimed-token\n\n' })
 
 		const { container } = renderUI(<CodeBlock code="primed-token" copy={false} />)
 
@@ -289,11 +308,7 @@ describe('CodeBlock', () => {
 	})
 
 	it('commits a block that hits the cache once, with no second render', () => {
-		primeCodeBlock({
-			code: 'one-commit-token',
-			html: '<pre class="shiki" data-primed=""><code>one-commit-token</code></pre>',
-			...DEFAULT_CANVAS,
-		})
+		prime('one-commit-token')
 
 		const onRender = vi.fn()
 
@@ -312,20 +327,14 @@ describe('CodeBlock', () => {
 	it('keeps the cached markup of a block after the cache evicts it', () => {
 		const calls = highlight.mock.calls.length
 
-		primeCodeBlock({
-			code: 'evicted-token',
-			html: '<pre class="shiki" data-primed=""><code>evicted-token</code></pre>',
-			...DEFAULT_CANVAS,
-		})
+		prime('evicted-token')
 
 		const { container, rerender } = renderUI(<CodeBlock code="evicted-token" copy={false} />)
 
 		expect(container.querySelector('pre.shiki[data-primed]')).not.toBeNull()
 
 		// The cache holds 200 entries. That many new snippets evict each older entry.
-		for (let i = 0; i < 200; i++) {
-			primeCodeBlock({ code: `evict-filler-${i}`, html: '<pre></pre>', ...DEFAULT_CANVAS })
-		}
+		fillCache('evict-filler-')
 
 		// The code does not change, so the effect of the block does not run again.
 		rerender(<CodeBlock code="evicted-token" copy={false} className="again" />)
@@ -339,16 +348,10 @@ describe('CodeBlock', () => {
 		const calls = highlight.mock.calls.length
 
 		// 200 new snippets fill the cache, and `rewrite-0` is its oldest entry.
-		for (let i = 0; i < 200; i++) {
-			primeCodeBlock({
-				code: `rewrite-${i}`,
-				html: `<pre class="shiki" data-primed=""><code>rewrite-${i}</code></pre>`,
-				...DEFAULT_CANVAS,
-			})
-		}
+		fillCache('rewrite-')
 
 		// The key is in the cache, so the write adds no entry.
-		primeCodeBlock({ code: 'rewrite-199', html: '<pre></pre>', ...DEFAULT_CANVAS })
+		prime('rewrite-199')
 
 		const { container } = renderUI(<CodeBlock code="rewrite-0" copy={false} />)
 
@@ -361,19 +364,13 @@ describe('CodeBlock', () => {
 		const calls = highlight.mock.calls.length
 
 		// 200 new snippets fill the cache, and `order-0` is its oldest entry.
-		for (let i = 0; i < 200; i++) {
-			primeCodeBlock({
-				code: `order-${i}`,
-				html: `<pre class="shiki" data-primed=""><code>order-${i}</code></pre>`,
-				...DEFAULT_CANVAS,
-			})
-		}
+		fillCache('order-')
 
 		// `order-0` stays the oldest entry, so the next new snippet evicts it, and
 		// `order-1` stays.
-		primeCodeBlock({ code: 'order-0', html: '<pre></pre>', ...DEFAULT_CANVAS })
+		prime('order-0')
 
-		primeCodeBlock({ code: 'order-new', html: '<pre></pre>', ...DEFAULT_CANVAS })
+		prime('order-new')
 
 		const { container } = renderUI(<CodeBlock code="order-1" copy={false} />)
 
@@ -389,11 +386,7 @@ describe('CodeBlock', () => {
 		// thus renders with no entry and finds the entry in its effect.
 		function PrimeInCommit() {
 			useLayoutEffect(() => {
-				primeCodeBlock({
-					code: 'late-token',
-					html: '<pre class="shiki" data-primed=""><code>late-token</code></pre>',
-					...DEFAULT_CANVAS,
-				})
+				prime('late-token')
 			}, [])
 
 			return null
@@ -412,16 +405,11 @@ describe('CodeBlock', () => {
 	})
 
 	it('keeps primed markup to its own language and theme', async () => {
-		primeCodeBlock({
-			code: 'primed-lang-token',
-			lang: 'ts',
-			html: '<pre class="shiki" data-primed=""><code>primed-lang-token</code></pre>',
-			...DEFAULT_CANVAS,
-		})
+		prime('primed-lang-token', { lang: 'ts' })
 
 		const { container } = renderUI(<CodeBlock code="primed-lang-token" copy={false} />)
 
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 
 		expect(container.querySelector('pre.shiki')).toHaveAttribute('data-lang', 'tsx')
 
@@ -446,7 +434,7 @@ describe('CodeBlock size', () => {
 
 		expect(readDensityStep(present(block.firstElementChild, 'scroll container'))).toBe('lg')
 
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 	})
 
 	it('opens no scope with no size, so it takes the step of the nearest scope', async () => {
@@ -454,7 +442,7 @@ describe('CodeBlock size', () => {
 
 		expect(getSlot(container, 'code-block')).not.toHaveAttribute('data-density')
 
-		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+		await settled(container)
 	})
 })
 
@@ -471,11 +459,7 @@ describe('CodeBlock hydration', () => {
 	}
 
 	it('renders the plain block on the server, also for a snippet in the cache', () => {
-		primeCodeBlock({
-			code: 'server-token',
-			html: '<pre class="shiki"><code>server-token</code></pre>',
-			...DEFAULT_CANVAS,
-		})
+		prime('server-token')
 
 		const markup = renderToString(<CodeBlock code="server-token" copy={false} />)
 
@@ -491,11 +475,7 @@ describe('CodeBlock hydration', () => {
 		// it hydrates.
 		const markup = renderToString(element)
 
-		primeCodeBlock({
-			code: 'hydrate-token',
-			html: '<pre class="shiki" data-primed=""><code>hydrate-token</code></pre>',
-			...DEFAULT_CANVAS,
-		})
+		prime('hydrate-token')
 
 		const { container, onRecoverableError } = hydrateMarkup(markup, element)
 

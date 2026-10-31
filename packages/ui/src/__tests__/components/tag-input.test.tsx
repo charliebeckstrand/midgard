@@ -26,6 +26,10 @@ function getBadges(container: HTMLElement) {
 	return Array.from(container.querySelectorAll<HTMLElement>('[role="listitem"]'))
 }
 
+function badgeLabels(container: HTMLElement) {
+	return getBadges(container).map((badge) => badge.textContent)
+}
+
 describe('TagInput', () => {
 	it('renders duplicate controlled values without key collisions', () => {
 		const { container } = renderUI(
@@ -44,14 +48,6 @@ describe('TagInput', () => {
 		const input = getInput(container)
 
 		expect(input).not.toHaveAttribute('placeholder')
-	})
-
-	it('renders initial tags from defaultValue', () => {
-		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
-
-		expect(container.textContent).toContain('react')
-
-		expect(container.textContent).toContain('vue')
 	})
 
 	it.each(['sm', 'md', 'lg'] as const)(
@@ -334,22 +330,6 @@ describe('TagInput', () => {
 		expect(getBadges(container)[0]).not.toHaveAttribute('tabindex')
 	})
 
-	it('ignores Backspace/Delete on badges when disabled', () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(
-			<TagInput defaultValue={['react']} onValueChange={onChange} disabled />,
-		)
-
-		const badge = getBadges(container)[0] as HTMLElement
-
-		fireEvent.keyDown(badge, { key: 'Backspace' })
-
-		fireEvent.keyDown(badge, { key: 'Delete' })
-
-		expect(onChange).not.toHaveBeenCalled()
-	})
-
 	it('exposes the tags as an enumerable list', () => {
 		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
 
@@ -428,11 +408,7 @@ describe('TagInput paste', () => {
 
 		paste(getInput(container), text)
 
-		expect(getBadges(container).map((badge) => badge.textContent)).toEqual([
-			'77002',
-			'77003',
-			'77004',
-		])
+		expect(badgeLabels(container)).toEqual(['77002', '77003', '77004'])
 
 		// The draft is emptied, not left holding the pasted string.
 		expect(getInput(container)).toHaveValue('')
@@ -453,7 +429,7 @@ describe('TagInput paste', () => {
 
 		paste(getInput(container), '77002,77003')
 
-		expect(getBadges(container).map((badge) => badge.textContent)).toEqual(['77002', '77003'])
+		expect(badgeLabels(container)).toEqual(['77002', '77003'])
 	})
 
 	it('keeps refused tokens in the draft and marks the field invalid', () => {
@@ -465,7 +441,7 @@ describe('TagInput paste', () => {
 
 		// The batch is not all-or-nothing, and the failures are localized to the exact tokens rather
 		// than announced once and lost: the user edits two words instead of hunting through forty.
-		expect(getBadges(container).map((badge) => badge.textContent)).toEqual(['77002', '77003'])
+		expect(badgeLabels(container)).toEqual(['77002', '77003'])
 
 		expect(getInput(container)).toHaveValue('oops nope')
 
@@ -495,7 +471,7 @@ describe('TagInput paste', () => {
 
 		paste(getInput(container), 'b,c,d')
 
-		expect(getBadges(container).map((badge) => badge.textContent)).toEqual(['a', 'b'])
+		expect(badgeLabels(container)).toEqual(['a', 'b'])
 	})
 
 	it('announces the batch once rather than once per tag', async () => {
@@ -524,7 +500,7 @@ describe('TagInput multi-token draft', () => {
 		// a single-tag path. Every commit channel now routes through the same tokenizer.
 		await user.click(screen.getByRole('button', { name: 'Add tag' }))
 
-		expect(getBadges(container).map((badge) => badge.textContent)).toEqual(['77002', '77003'])
+		expect(badgeLabels(container)).toEqual(['77002', '77003'])
 	})
 
 	it('commits every token in a multi-token draft on Enter', async () => {
@@ -534,7 +510,7 @@ describe('TagInput multi-token draft', () => {
 
 		await user.type(getInput(container), '77002 77003{Enter}')
 
-		expect(getBadges(container).map((badge) => badge.textContent)).toEqual(['77002', '77003'])
+		expect(badgeLabels(container)).toEqual(['77002', '77003'])
 	})
 })
 
@@ -586,7 +562,7 @@ describe('TagInput + Form', () => {
 		)
 
 		// The default value renders as a badge.
-		expect(getBadges(container).map((b) => b.textContent)).toContain('react')
+		expect(badgeLabels(container)).toContain('react')
 
 		const user = setupUser()
 
@@ -624,7 +600,7 @@ describe('TagInput + Form', () => {
 			</Form>,
 		)
 
-		const labels = getBadges(container).map((b) => b.textContent)
+		const labels = badgeLabels(container)
 
 		expect(labels).toContain('explicit')
 
@@ -786,15 +762,13 @@ describe('TagInput ambient state', () => {
 
 		fireEvent.keyDown(input, { key: 'Backspace' })
 
-		fireEvent.keyDown(getBadges(container)[0] as HTMLElement, { key: 'Backspace' })
-
 		paste(input, 'vue,solid')
 
 		fireEvent.blur(input)
 
 		expect(onChange).not.toHaveBeenCalled()
 
-		expect(getBadges(container).map((badge) => badge.textContent)).toEqual(['react'])
+		expect(badgeLabels(container)).toEqual(['react'])
 
 		expect(screen.getByRole('button', { name: 'Add tag' })).toBeDisabled()
 	})

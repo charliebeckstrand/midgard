@@ -72,13 +72,19 @@ function renderLaggingPalette(slowQuery: string) {
 
 describe('useCommandPaletteState', () => {
 	it('starts with an empty query and a stable listbox id', () => {
-		const { result } = renderHook(() => useCommandPaletteState({ open: false }))
+		const { result, rerender } = renderHook(() => useCommandPaletteState({ open: false }))
 
 		expect(result.current.query).toBe('')
 
-		expect(typeof result.current.listboxId).toBe('string')
+		const { listboxId } = result.current
 
-		expect(result.current.listboxId.length).toBeGreaterThan(0)
+		expect(typeof listboxId).toBe('string')
+
+		expect(listboxId.length).toBeGreaterThan(0)
+
+		rerender()
+
+		expect(result.current.listboxId).toBe(listboxId)
 	})
 
 	it('resets the query when transitioning from open to closed', () => {

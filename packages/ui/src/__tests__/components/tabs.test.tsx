@@ -14,6 +14,29 @@ import {
 	waitFor,
 } from '../helpers'
 
+/**
+ * Renders two tabs with "a" selected. The props in `extra` go to the inactive
+ * tab "b".
+ *
+ * @returns The `onValueChange` spy of the group, and the inactive tab.
+ */
+function twoTabs(props: { onPreload?: (value: string | undefined) => void }, extra = {}) {
+	const onValueChange = vi.fn()
+
+	renderUI(
+		<Tabs value="a" onValueChange={onValueChange}>
+			<TabList aria-label="Sections">
+				<Tab value="a">A</Tab>
+				<Tab value="b" onPreload={props.onPreload} {...extra}>
+					B
+				</Tab>
+			</TabList>
+		</Tabs>,
+	)
+
+	return { onValueChange, inactive: screen.getByRole('tab', { name: 'B' }) }
+}
+
 describe('TabList', () => {
 	it('keeps its role, orientation and roving when a consumer supplies them', async () => {
 		const onKeyDown = vi.fn()
@@ -93,33 +116,6 @@ describe('TabList', () => {
 		expect(tab).toHaveAttribute('data-testid', 'tab-a')
 
 		expect(tab).toHaveAttribute('title', 'Overview')
-	})
-
-	it('keeps aria-controls on inactive tabs while held panels stay mounted', () => {
-		const { container } = renderUI(
-			<Tabs value="a" onValueChange={() => {}}>
-				<TabList aria-label="Sections">
-					<Tab value="a">A</Tab>
-					<Tab value="b">B</Tab>
-				</TabList>
-				<TabContents mount="always">
-					<TabContent value="a">Panel A</TabContent>
-					<TabContent value="b">Panel B</TabContent>
-				</TabContents>
-			</Tabs>,
-		)
-
-		const tabs = container.querySelectorAll('[role="tab"]')
-
-		// mount="always" keeps inactive panels mounted, so the inactive tab's
-		// reference resolves instead of being omitted.
-		const inactive = tabs[1] as HTMLElement
-
-		const controls = inactive.getAttribute('aria-controls')
-
-		expect(controls).toBeTruthy()
-
-		expect(document.getElementById(controls as string)).not.toBeNull()
 	})
 
 	it('wraps the underline list in a horizontal scroll viewport', () => {
@@ -260,29 +256,6 @@ describe('Tab', () => {
 		)
 	})
 
-	it('makes the group a scope for an explicit size, and opens none without one', () => {
-		const { container } = renderUI(
-			<DensityProvider density="loose">
-				<Tabs defaultValue="a" size="sm">
-					<TabList aria-label="Tabs">
-						<Tab value="a">A</Tab>
-					</TabList>
-				</Tabs>
-				<Tabs defaultValue="a">
-					<TabList aria-label="Other">
-						<Tab value="a">A</Tab>
-					</TabList>
-				</Tabs>
-			</DensityProvider>,
-		)
-
-		const [sized, unsized] = Array.from(container.querySelectorAll('[data-slot="tab-group"]'))
-
-		expect(sized).toHaveAttribute('data-density', 'sm')
-
-		expect(unsized).not.toHaveAttribute('data-density')
-	})
-
 	it('explicit current prop wins over the Tabs context value', () => {
 		const { container } = renderUI(
 			<Tabs defaultValue="a">
@@ -354,23 +327,6 @@ describe('Tab', () => {
 		expect(tab).toHaveAttribute('id', 'settings')
 
 		expect(tab).toHaveAttribute('aria-controls', 'settings-panel')
-	})
-
-	it('renders the segment variant on Tab when wrapped in <Tabs variant="segment">', () => {
-		const { container } = renderUI(
-			<Tabs variant="segment" defaultValue="a">
-				<TabList aria-label="Tabs">
-					<Tab value="a">A</Tab>
-				</TabList>
-			</Tabs>,
-		)
-
-		const tab = bySlot(container, 'tab')
-
-		// Segment variant emits a different recipe; sanity check that the tab still renders.
-		expect(tab).toBeInTheDocument()
-
-		expect(tab).toHaveAttribute('data-current', '')
 	})
 
 	it('wires a segment tab to its TabContent as a tab and a tabpanel', () => {
@@ -501,19 +457,6 @@ describe('Tab', () => {
 })
 
 describe('Tab onPreload', () => {
-	function twoTabs(props: { onPreload?: (value: string | undefined) => void }, extra = {}) {
-		return renderUI(
-			<Tabs value="a" onValueChange={() => {}}>
-				<TabList aria-label="Sections">
-					<Tab value="a">A</Tab>
-					<Tab value="b" onPreload={props.onPreload} {...extra}>
-						B
-					</Tab>
-				</TabList>
-			</Tabs>,
-		)
-	}
-
 	it('fires once with the value on first pointer intent for an inactive tab', () => {
 		const onPreload = vi.fn()
 
@@ -526,9 +469,7 @@ describe('Tab onPreload', () => {
 		fireEvent.pointerEnter(inactive)
 
 		// Latched: repeated hovers warm the panel once, not on every move.
-		expect(onPreload).toHaveBeenCalledTimes(1)
-
-		expect(onPreload).toHaveBeenCalledWith('b')
+		expect(onPreload).toHaveBeenCalledExactlyOnceWith('b')
 	})
 
 	it('also fires on focus intent', () => {
@@ -941,23 +882,6 @@ describe('Tabs keyboard navigation', () => {
 // `preventDefault()` does not cancel it. The preload is side behavior, so it
 // does (CONVENTIONS.md §3.9).
 describe('Tab handler composition', () => {
-	function twoTabs(props: { onPreload?: (value: string | undefined) => void }, extra = {}) {
-		const onValueChange = vi.fn()
-
-		renderUI(
-			<Tabs value="a" onValueChange={onValueChange}>
-				<TabList aria-label="Sections">
-					<Tab value="a">A</Tab>
-					<Tab value="b" onPreload={props.onPreload} {...extra}>
-						B
-					</Tab>
-				</TabList>
-			</Tabs>,
-		)
-
-		return { onValueChange, inactive: screen.getByRole('tab', { name: 'B' }) }
-	}
-
 	it('selects the tab when a consumer onClick prevents the default', () => {
 		const { onValueChange, inactive } = twoTabs(
 			{},

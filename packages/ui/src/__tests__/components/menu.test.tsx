@@ -1,4 +1,4 @@
-import { createRef, type ReactNode, type Ref } from 'react'
+import { type ComponentProps, createRef, type ReactNode, type Ref } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
@@ -34,6 +34,53 @@ import {
 	userEvent,
 	waitFor,
 } from '../helpers'
+
+type DropdownProps = Omit<ComponentProps<typeof Menu>, 'children' | 'placement'> & {
+	content?: Omit<ComponentProps<typeof MenuContent>, 'children'>
+}
+
+/**
+ * A dropdown menu with an `Open` button trigger and one row, `Edit`. A case
+ * changes only the props that it tests.
+ */
+function dropdown({ content, ...menuProps }: DropdownProps = {}) {
+	return (
+		<Menu placement="bottom-start" {...menuProps}>
+			<MenuTrigger>
+				<button type="button">Open</button>
+			</MenuTrigger>
+			<MenuContent {...content}>
+				<MenuItem>Edit</MenuItem>
+			</MenuContent>
+		</Menu>
+	)
+}
+
+/** Renders a closed {@link dropdown}, and gives its trigger. */
+function closedMenu() {
+	renderUI(dropdown())
+
+	return screen.getByRole('button', { name: 'Open' })
+}
+
+/** An open static menu with one submenu row, `More`, that holds the row `Nested`. */
+function staticSubmenu({
+	capped,
+	onOpenChange,
+}: {
+	capped?: boolean
+	onOpenChange?: (open: boolean) => void
+} = {}) {
+	return (
+		<Menu defaultOpen capped={capped}>
+			<MenuContent>
+				<MenuSub label="More" onOpenChange={onOpenChange}>
+					<MenuItem>Nested</MenuItem>
+				</MenuSub>
+			</MenuContent>
+		</Menu>
+	)
+}
 
 describe.each([
 	['MenuSection', () => <MenuSection>content</MenuSection>, 'menu-section', 'FIELDSET'],
@@ -116,25 +163,6 @@ describe('MenuTrigger', () => {
 		expect(trigger).toHaveAttribute('aria-expanded', 'false')
 	})
 
-	it('toggles open state when the cloned child is clicked', () => {
-		renderUI(
-			<Menu placement="bottom-start">
-				<MenuTrigger>
-					<button type="button">Open</button>
-				</MenuTrigger>
-				<MenuContent>
-					<MenuItem>Item</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
-
-		const trigger = screen.getByText('Open')
-
-		fireEvent.click(trigger)
-
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
-	})
-
 	it('forwards its own props to a cloned child', () => {
 		const triggerOnClick = vi.fn()
 
@@ -162,24 +190,6 @@ describe('MenuTrigger', () => {
 		expect(triggerOnClick).toHaveBeenCalledTimes(1)
 
 		expect(trigger).toHaveAttribute('aria-expanded', 'true')
-	})
-
-	it('calls the child onClick when present', () => {
-		const onClick = vi.fn()
-
-		renderUI(
-			<Menu placement="bottom-start">
-				<MenuTrigger>
-					<button type="button" onClick={onClick}>
-						Open
-					</button>
-				</MenuTrigger>
-			</Menu>,
-		)
-
-		fireEvent.click(screen.getByText('Open'))
-
-		expect(onClick).toHaveBeenCalled()
 	})
 
 	it('keeps the anchor of a component child', () => {
@@ -424,16 +434,7 @@ describe('MenuContent', () => {
 	})
 
 	it('names a dropdown by the aria-label of the content when one is given', () => {
-		renderUI(
-			<Menu placement="bottom-start">
-				<MenuTrigger>
-					<button type="button">Open</button>
-				</MenuTrigger>
-				<MenuContent aria-label="Row actions">
-					<MenuItem>Edit</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
+		renderUI(dropdown({ content: { 'aria-label': 'Row actions' } }))
 
 		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
 
@@ -441,16 +442,7 @@ describe('MenuContent', () => {
 	})
 
 	it('shows the title and the description of a dropdown above its rows', () => {
-		renderUI(
-			<Menu placement="bottom-start">
-				<MenuTrigger>
-					<button type="button">Open</button>
-				</MenuTrigger>
-				<MenuContent title="Ada Lovelace" description="ada@example.com">
-					<MenuItem>Edit</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
+		renderUI(dropdown({ content: { title: 'Ada Lovelace', description: 'ada@example.com' } }))
 
 		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
 
@@ -473,16 +465,7 @@ describe('MenuContent', () => {
 	})
 
 	it('shows no header and no description on a dropdown without a title', () => {
-		renderUI(
-			<Menu placement="bottom-start">
-				<MenuTrigger>
-					<button type="button">Open</button>
-				</MenuTrigger>
-				<MenuContent description="ada@example.com">
-					<MenuItem>Edit</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
+		renderUI(dropdown({ content: { description: 'ada@example.com' } }))
 
 		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
 
@@ -494,16 +477,7 @@ describe('MenuContent', () => {
 	})
 
 	it('keeps a name from the consumer over the title', () => {
-		renderUI(
-			<Menu placement="bottom-start">
-				<MenuTrigger>
-					<button type="button">Open</button>
-				</MenuTrigger>
-				<MenuContent aria-label="Row actions" title="Ada Lovelace">
-					<MenuItem>Edit</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
+		renderUI(dropdown({ content: { 'aria-label': 'Row actions', title: 'Ada Lovelace' } }))
 
 		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
 
@@ -527,18 +501,7 @@ describe('MenuContent', () => {
 	it('closes the menu when Tab is pressed on the trigger', async () => {
 		const user = setupUser()
 
-		renderUI(
-			<Menu placement="bottom-start">
-				<MenuTrigger>
-					<button type="button">Open</button>
-				</MenuTrigger>
-				<MenuContent>
-					<MenuItem>Edit</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
-
-		const trigger = screen.getByRole('button', { name: 'Open' })
+		const trigger = closedMenu()
 
 		await user.click(trigger)
 
@@ -560,21 +523,6 @@ describe('MenuContent', () => {
 	// jsdom does not synthesize a button's keyboard click, so these assert the
 	// `preventDefault` that suppresses it (fireEvent returns false when prevented).
 	describe('requires a fresh activation key press to open (no bleed-through)', () => {
-		function closedMenu() {
-			renderUI(
-				<Menu placement="bottom-start">
-					<MenuTrigger>
-						<button type="button">Open</button>
-					</MenuTrigger>
-					<MenuContent>
-						<MenuItem>Edit</MenuItem>
-					</MenuContent>
-				</Menu>,
-			)
-
-			return screen.getByRole('button', { name: 'Open' })
-		}
-
 		it("suppresses a held Space's keyup when no fresh press armed the trigger", () => {
 			const trigger = closedMenu()
 
@@ -770,15 +718,7 @@ describe('MenuContent', () => {
 		})
 
 		it('carries the policy into a submenu panel, which portals out of the viewport', () => {
-			renderUI(
-				<Menu defaultOpen capped>
-					<MenuContent>
-						<MenuSub label="More">
-							<MenuItem>Nested</MenuItem>
-						</MenuSub>
-					</MenuContent>
-				</Menu>,
-			)
+			renderUI(staticSubmenu({ capped: true }))
 
 			fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
 
@@ -795,22 +735,13 @@ describe('MenuContent', () => {
 	})
 
 	it('closes the menu when Escape is pressed on the menu panel', () => {
-		renderUI(
-			<Menu placement="bottom-start">
-				<MenuTrigger>
-					<button type="button">Open</button>
-				</MenuTrigger>
-				<MenuContent>
-					<MenuItem>Item</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
+		renderUI(dropdown())
 
 		fireEvent.click(screen.getByText('Open'))
 
 		fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' })
 
-		expect(screen.queryByText('Item')).not.toBeInTheDocument()
+		expect(screen.queryByText('Edit')).not.toBeInTheDocument()
 	})
 })
 
@@ -928,22 +859,6 @@ describe('MenuItem', () => {
 		expect(disabled).toHaveAttribute('aria-disabled', 'true')
 
 		expect(enabled).not.toHaveAttribute('aria-disabled')
-	})
-
-	it.each(['Enter', ' '])('invokes onAction when %j is pressed', (key) => {
-		const onAction = vi.fn()
-
-		renderUI(
-			<Menu defaultOpen>
-				<MenuContent>
-					<MenuItem onAction={onAction}>Item</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
-
-		fireEvent.keyDown(screen.getByText('Item'), { key })
-
-		expect(onAction).toHaveBeenCalled()
 	})
 
 	// Keyboard activation is the activation the item exists to perform, as the
@@ -1156,15 +1071,7 @@ describe('MenuSub', () => {
 	it('reports both ends of the submenu open state', () => {
 		const onOpenChange = vi.fn()
 
-		renderUI(
-			<Menu defaultOpen>
-				<MenuContent>
-					<MenuSub label="More" onOpenChange={onOpenChange}>
-						<MenuItem>Nested</MenuItem>
-					</MenuSub>
-				</MenuContent>
-			</Menu>,
-		)
+		renderUI(staticSubmenu({ onOpenChange }))
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 
@@ -1237,15 +1144,7 @@ describe('MenuSub', () => {
 		['Alt', { altKey: true }],
 		['Meta', { metaKey: true }],
 	])('keeps the submenu open on %s+ArrowLeft from the submenu', (_name, modifier) => {
-		renderUI(
-			<Menu defaultOpen>
-				<MenuContent>
-					<MenuSub label="More">
-						<MenuItem>Nested</MenuItem>
-					</MenuSub>
-				</MenuContent>
-			</Menu>,
-		)
+		renderUI(staticSubmenu())
 
 		const row = screen.getByRole('menuitem', { name: /More/ })
 
@@ -1267,15 +1166,7 @@ describe('MenuSub', () => {
 		['a row of the panel', () => screen.getByRole('menuitem', { name: 'Nested' })],
 		['the panel itself', (panel) => panel],
 	])('keeps the submenu open when focus moves to %s', (_name, target) => {
-		renderUI(
-			<Menu defaultOpen>
-				<MenuContent>
-					<MenuSub label="More">
-						<MenuItem>Nested</MenuItem>
-					</MenuSub>
-				</MenuContent>
-			</Menu>,
-		)
+		renderUI(staticSubmenu())
 
 		const row = screen.getByRole('menuitem', { name: /More/ })
 
@@ -1295,15 +1186,7 @@ describe('MenuSub', () => {
 	// The press keeps focus where it is: Safari and Firefox on macOS move focus off
 	// a pressed button, and the blur would close the submenu.
 	it('opens a submenu on a click and keeps focus on the row', () => {
-		renderUI(
-			<Menu defaultOpen>
-				<MenuContent>
-					<MenuSub label="More">
-						<MenuItem>Nested</MenuItem>
-					</MenuSub>
-				</MenuContent>
-			</Menu>,
-		)
+		renderUI(staticSubmenu())
 
 		const row = screen.getByRole('menuitem', { name: /More/ })
 
@@ -1323,15 +1206,7 @@ describe('MenuSub', () => {
 	})
 
 	it('keeps a submenu that hover opened open on a click, with focus on the row', () => {
-		renderUI(
-			<Menu defaultOpen>
-				<MenuContent>
-					<MenuSub label="More">
-						<MenuItem>Nested</MenuItem>
-					</MenuSub>
-				</MenuContent>
-			</Menu>,
-		)
+		renderUI(staticSubmenu())
 
 		const row = screen.getByRole('menuitem', { name: /More/ })
 
@@ -1349,15 +1224,7 @@ describe('MenuSub', () => {
 	// A dropdown clicks its active row on Enter / Space, with no pointer behind the
 	// click (`detail` 0). That is a key, so focus goes into the panel (APG).
 	it('moves focus into the submenu on a click with no pointer', () => {
-		renderUI(
-			<Menu defaultOpen>
-				<MenuContent>
-					<MenuSub label="More">
-						<MenuItem>Nested</MenuItem>
-					</MenuSub>
-				</MenuContent>
-			</Menu>,
-		)
+		renderUI(staticSubmenu())
 
 		fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
 
@@ -1462,16 +1329,7 @@ describe('Menu context-menu mode', () => {
 	})
 
 	it('does not open from a contextmenu event when placement is provided (dropdown mode)', () => {
-		const { container } = renderUI(
-			<Menu placement="bottom-start">
-				<MenuTrigger>
-					<button type="button">Open</button>
-				</MenuTrigger>
-				<MenuContent>
-					<MenuItem>Item</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
+		const { container } = renderUI(dropdown())
 
 		const root = getSlot(container, 'menu')
 
@@ -1858,16 +1716,7 @@ describe('Menu on a phone', () => {
 
 describe('Menu controlled', () => {
 	it('reflects a controlled open prop on the trigger', () => {
-		renderUI(
-			<Menu open placement="bottom-start">
-				<MenuTrigger>
-					<button type="button">Open</button>
-				</MenuTrigger>
-				<MenuContent>
-					<MenuItem>Item</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
+		renderUI(dropdown({ open: true }))
 
 		expect(screen.getByText('Open')).toHaveAttribute('aria-expanded', 'true')
 	})
@@ -1875,16 +1724,7 @@ describe('Menu controlled', () => {
 	it('reports open requests through onOpenChange without self-opening while controlled', () => {
 		const onOpenChange = vi.fn()
 
-		renderUI(
-			<Menu open={false} onOpenChange={onOpenChange} placement="bottom-start">
-				<MenuTrigger>
-					<button type="button">Open</button>
-				</MenuTrigger>
-				<MenuContent>
-					<MenuItem>Item</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
+		renderUI(dropdown({ open: false, onOpenChange }))
 
 		const trigger = screen.getByText('Open')
 

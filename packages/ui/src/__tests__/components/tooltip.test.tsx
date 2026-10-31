@@ -1,4 +1,4 @@
-import { createRef } from 'react'
+import { type ComponentProps, createRef, type ReactNode } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
@@ -39,18 +39,27 @@ function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) 
 	}
 }
 
+/**
+ * Renders a tooltip with the text "Tooltip text". The trigger holds `child`,
+ * which is a "Hover me" button by default.
+ */
+function tip(
+	props: Omit<ComponentProps<typeof Tooltip>, 'children'> = {},
+	child: ReactNode = <button type="button">Hover me</button>,
+) {
+	return (
+		<Tooltip {...props}>
+			<TooltipTrigger>{child}</TooltipTrigger>
+			<TooltipContent>Tooltip text</TooltipContent>
+		</Tooltip>
+	)
+}
+
 describe('Tooltip', () => {
 	it('closes when an overlay opens', async () => {
 		const user = setupUser()
 
-		const { container } = renderUI(
-			<Tooltip>
-				<TooltipTrigger>
-					<button type="button">Trigger</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
-		)
+		const { container } = renderUI(tip())
 
 		const trigger = getSlot(container, 'tooltip-trigger')
 
@@ -68,14 +77,7 @@ describe('Tooltip', () => {
 
 		const onOpenChange = vi.fn()
 
-		const { container } = renderUI(
-			<Tooltip onOpenChange={onOpenChange}>
-				<TooltipTrigger>
-					<button type="button">Trigger</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
-		)
+		const { container } = renderUI(tip({ onOpenChange }))
 
 		const trigger = getSlot(container, 'tooltip-trigger')
 
@@ -99,14 +101,7 @@ describe('Tooltip', () => {
 
 		const onOpenChange = vi.fn()
 
-		const { container } = renderUI(
-			<Tooltip open onOpenChange={onOpenChange}>
-				<TooltipTrigger>
-					<button type="button">Trigger</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
-		)
+		const { container } = renderUI(tip({ open: true, onOpenChange }))
 
 		// Mounting already open is not a transition, so there is nothing to report yet:
 		// the same contract the panel family's `onOpenChange` keeps.
@@ -126,14 +121,7 @@ describe('Tooltip', () => {
 	})
 
 	it('clones the reference onto the child element instead of a wrapper', () => {
-		const { container } = renderUI(
-			<Tooltip>
-				<TooltipTrigger>
-					<button type="button">Hover me</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
-		)
+		const { container } = renderUI(tip())
 
 		const trigger = bySlot(container, 'tooltip-trigger')
 
@@ -159,14 +147,12 @@ describe('Tooltip', () => {
 
 	it("preserves the child's own data-slot instead of overwriting it", () => {
 		const { container } = renderUI(
-			<Tooltip>
-				<TooltipTrigger>
-					<button type="button" data-slot="custom-trigger">
-						Hover me
-					</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
+			tip(
+				{},
+				<button type="button" data-slot="custom-trigger">
+					Hover me
+				</button>,
+			),
 		)
 
 		// A child that declares its own slot keeps it; only slotless children
@@ -181,12 +167,7 @@ describe('Tooltip', () => {
 		['hold-button', <HoldButton key="hold-button">Hold me</HoldButton>],
 		['card-title', <CardTitle key="card-title">Title</CardTitle>],
 	])('keeps the %s anchor that a component child writes for itself', (slot, child) => {
-		const { container } = renderUI(
-			<Tooltip>
-				<TooltipTrigger>{child}</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
-		)
+		const { container } = renderUI(tip({}, child))
 
 		// The component writes its own anchor, so the trigger stamps no slot on it.
 		expect(bySlot(container, slot)).toBeInTheDocument()
@@ -198,14 +179,12 @@ describe('Tooltip', () => {
 		const ref = createRef<HTMLButtonElement>()
 
 		const { container } = renderUI(
-			<Tooltip>
-				<TooltipTrigger>
-					<button ref={ref} type="button">
-						Hover me
-					</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
+			tip(
+				{},
+				<button ref={ref} type="button">
+					Hover me
+				</button>,
+			),
 		)
 
 		expect(ref.current).toBe(bySlot(container, 'tooltip-trigger'))
@@ -217,14 +196,12 @@ describe('Tooltip', () => {
 		const user = setupUser()
 
 		const { container } = renderUI(
-			<Tooltip>
-				<TooltipTrigger>
-					<button type="button" onClick={onClick}>
-						Hover me
-					</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
+			tip(
+				{},
+				<button type="button" onClick={onClick}>
+					Hover me
+				</button>,
+			),
 		)
 
 		await user.click(getSlot(container, 'tooltip-trigger'))
@@ -235,14 +212,7 @@ describe('Tooltip', () => {
 	it('opens on keyboard focus of the trigger', async () => {
 		const user = setupUser()
 
-		const { container } = renderUI(
-			<Tooltip>
-				<TooltipTrigger>
-					<button type="button">Hover me</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
-		)
+		const { container } = renderUI(tip())
 
 		await user.tab()
 
@@ -254,14 +224,7 @@ describe('Tooltip', () => {
 	it('describes the focusable trigger via the panel when open', async () => {
 		const user = setupUser()
 
-		const { container } = renderUI(
-			<Tooltip>
-				<TooltipTrigger>
-					<button type="button">Hover me</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
-		)
+		const { container } = renderUI(tip())
 
 		const trigger = getSlot(container, 'tooltip-trigger')
 
@@ -279,24 +242,13 @@ describe('Tooltip', () => {
 	})
 
 	it('holds open while open is set, then hands back to the interactions', async () => {
-		function tip(open: boolean) {
-			return (
-				<Tooltip open={open}>
-					<TooltipTrigger>
-						<button type="button">Anchor</button>
-					</TooltipTrigger>
-					<TooltipContent>Tooltip text</TooltipContent>
-				</Tooltip>
-			)
-		}
-
-		const { rerender } = renderUI(tip(true))
+		const { rerender } = renderUI(tip({ open: true }))
 
 		// Open with no hover, focus, or click: the reveal is programmatic.
 		expect(screen.getByText('Tooltip text')).toBeInTheDocument()
 
 		// Releasing it hands control back to the idle interactions, so it closes.
-		rerender(tip(false))
+		rerender(tip({ open: false }))
 
 		await waitFor(() => expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument())
 	})
@@ -304,37 +256,19 @@ describe('Tooltip', () => {
 	it('opens on a click again after a hold is released', async () => {
 		const user = setupUser()
 
-		function tip(open: boolean) {
-			return (
-				<Tooltip open={open} trigger="click">
-					<TooltipTrigger>
-						<button type="button">Anchor</button>
-					</TooltipTrigger>
-					<TooltipContent>Tooltip text</TooltipContent>
-				</Tooltip>
-			)
-		}
+		const { rerender } = renderUI(tip({ open: true, trigger: 'click' }))
 
-		const { rerender } = renderUI(tip(true))
-
-		rerender(tip(false))
+		rerender(tip({ open: false, trigger: 'click' }))
 
 		await waitFor(() => expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument())
 
-		await user.click(screen.getByRole('button', { name: 'Anchor' }))
+		await user.click(screen.getByRole('button', { name: 'Hover me' }))
 
 		expect(await screen.findByText('Tooltip text')).toBeInTheDocument()
 	})
 
 	it('yields open to disabled', () => {
-		renderUI(
-			<Tooltip open disabled>
-				<TooltipTrigger>
-					<button type="button">Anchor</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
-		)
+		renderUI(tip({ open: true, disabled: true }))
 
 		// A suppressed tooltip stays shut even when forced.
 		expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument()
@@ -406,7 +340,7 @@ describe('the reopen of a re-enabled trigger', () => {
 	it.each(cases)(
 		'replays a re-enabled intent for trigger=%s after a %s pointer as open=%s',
 		(trigger, pointer, expected) => {
-			const hover = stubHover()
+			stubHover()
 
 			let open = false
 
@@ -426,8 +360,6 @@ describe('the reopen of a re-enabled trigger', () => {
 			}
 
 			renderUI(<Harness />)
-
-			hover.mockRestore()
 
 			expect(open).toBe(expected)
 		},

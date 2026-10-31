@@ -205,8 +205,6 @@ describe('useComboboxInput onMouseDown', () => {
 		result.current.onMouseDown(makePointerEvent<HTMLInputElement>({ currentTarget: input }))
 
 		expect(setOpen).toHaveBeenCalledWith(true)
-
-		input.remove()
 	})
 
 	it('leaves a press into an unfocused input to onFocus', () => {
@@ -227,8 +225,6 @@ describe('useComboboxInput onMouseDown', () => {
 		result.current.onMouseDown(makePointerEvent<HTMLInputElement>({ currentTarget: input }))
 
 		expect(setOpen).not.toHaveBeenCalled()
-
-		input.remove()
 	})
 })
 
@@ -274,6 +270,31 @@ describe('useComboboxInput onBlur', () => {
 	})
 })
 
+type Row = { selected?: boolean; active?: boolean }
+
+/** An options container with one option for each row, and a spy on a click of any option. */
+function optionRows(rows: Row[]) {
+	const container = document.createElement('div')
+
+	const click = vi.fn()
+
+	for (const { selected, active } of rows) {
+		const option = document.createElement('div')
+
+		option.setAttribute('role', 'option')
+
+		if (selected) option.setAttribute('data-selected', '')
+
+		if (active) option.setAttribute('data-active', '')
+
+		option.addEventListener('click', click)
+
+		container.appendChild(option)
+	}
+
+	return { container: container as HTMLDivElement, click }
+}
+
 describe('useComboboxInput onKeyDown', () => {
 	it('closes on Escape', () => {
 		const { result, close, rovingKeyDown } = setup<string>()
@@ -313,23 +334,21 @@ describe('useComboboxInput onKeyDown', () => {
 	})
 
 	it('selects the lone option on Enter when one is present', () => {
-		const { result, optionsRef } = setup<string>()
+		const { result, rovingKeyDown, optionsRef } = setup<string>()
 
-		const container = document.createElement('div')
+		const { container, click } = optionRows([{}])
 
-		const option = document.createElement('div')
-
-		option.setAttribute('role', 'option')
-
-		container.appendChild(option)
-
-		optionsRef.current = container as HTMLDivElement
+		optionsRef.current = container
 
 		const event = makeKeyEvent<HTMLInputElement>('Enter')
 
 		result.current.onKeyDown(event)
 
 		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(click).toHaveBeenCalledOnce()
+
+		expect(rovingKeyDown).not.toHaveBeenCalled()
 	})
 
 	it('forwards Enter to roving navigation when there is no lone option', () => {
@@ -345,31 +364,6 @@ describe('useComboboxInput onKeyDown', () => {
 	})
 
 	describe('Enter on an option that is already selected', () => {
-		type Row = { selected?: boolean; active?: boolean }
-
-		/** An options container with one option for each row, and a spy on a click of any option. */
-		function optionRows(rows: Row[]) {
-			const container = document.createElement('div')
-
-			const click = vi.fn()
-
-			for (const { selected, active } of rows) {
-				const option = document.createElement('div')
-
-				option.setAttribute('role', 'option')
-
-				if (selected) option.setAttribute('data-selected', '')
-
-				if (active) option.setAttribute('data-active', '')
-
-				option.addEventListener('click', click)
-
-				container.appendChild(option)
-			}
-
-			return { container: container as HTMLDivElement, click }
-		}
-
 		// A click on the selected option toggles it, and the toggle clears a
 		// `nullable` value. Enter chooses, so in single mode no Enter path clicks
 		// that option: not the sole-option Enter, and not the roving activation.
@@ -457,21 +451,9 @@ describe('useComboboxInput onKeyDown', () => {
 	])('leaves Enter on the closed menu alone with %s still mounted', (_rows, count) => {
 		const { result, rovingKeyDown, optionsRef } = setup<string>({ open: false })
 
-		const container = document.createElement('div')
+		const { container, click } = optionRows(Array.from({ length: count }, () => ({})))
 
-		const click = vi.fn()
-
-		for (let index = 0; index < count; index++) {
-			const option = document.createElement('div')
-
-			option.setAttribute('role', 'option')
-
-			option.addEventListener('click', click)
-
-			container.appendChild(option)
-		}
-
-		optionsRef.current = container as HTMLDivElement
+		optionsRef.current = container
 
 		const event = makeKeyEvent<HTMLInputElement>('Enter')
 
@@ -491,15 +473,7 @@ describe('useComboboxInput onKeyDown', () => {
 			open: false,
 		})
 
-		const container = document.createElement('div')
-
-		const option = document.createElement('div')
-
-		option.setAttribute('role', 'option')
-
-		container.appendChild(option)
-
-		optionsRef.current = container as HTMLDivElement
+		optionsRef.current = optionRows([{}]).container
 
 		const event = makeKeyEvent<HTMLInputElement>(key, {
 			nativeEvent: { isComposing: true } as KeyboardEvent<HTMLInputElement>['nativeEvent'],
@@ -694,9 +668,7 @@ describe('useComboboxInput onScroll', () => {
 	}
 
 	it('puts an unfocused input back at its start', () => {
-		const input = document.createElement('input')
-
-		document.body.append(input)
+		const input = attach(document.createElement('input'))
 
 		input.scrollLeft = 40
 
@@ -705,16 +677,10 @@ describe('useComboboxInput onScroll', () => {
 		result.current.onScroll(scrollEvent(input))
 
 		expect(input.scrollLeft).toBe(0)
-
-		input.remove()
 	})
 
 	it('keeps the scroll of a focused input, where the caret moves the text', () => {
-		const input = document.createElement('input')
-
-		document.body.append(input)
-
-		input.focus()
+		const input = focusedInput()
 
 		input.scrollLeft = 40
 
@@ -723,7 +689,5 @@ describe('useComboboxInput onScroll', () => {
 		result.current.onScroll(scrollEvent(input))
 
 		expect(input.scrollLeft).toBe(40)
-
-		input.remove()
 	})
 })

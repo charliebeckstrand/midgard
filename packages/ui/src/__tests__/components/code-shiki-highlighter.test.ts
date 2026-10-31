@@ -108,9 +108,7 @@ describe('warmShikiPair', () => {
 
 		await warmShikiPair('ts', 'github-dark-default')
 
-		expect(tokenize).toHaveBeenCalledOnce()
-
-		expect(tokenize).toHaveBeenCalledWith(expect.stringContaining('function greet'), {
+		expect(tokenize).toHaveBeenCalledExactlyOnceWith(expect.stringContaining('function greet'), {
 			lang: 'ts',
 			theme: 'github-dark-default',
 		})

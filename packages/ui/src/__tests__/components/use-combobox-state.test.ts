@@ -30,6 +30,34 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxState<T>>[0]> 
 	return { ...result, setValue, focus, select }
 }
 
+type Result = ReturnType<typeof setup<string>>['result']
+
+// Opens the panel and types 'partial'. With `editing`, the input goes into edit mode first.
+function openAndType(result: Result, { editing = false } = {}) {
+	act(() => {
+		result.current.setOpen(true)
+	})
+
+	if (editing) {
+		act(() => {
+			result.current.setEditing(true)
+		})
+	}
+
+	act(() => {
+		result.current.setQuery('partial')
+	})
+}
+
+// Opens the panel, types 'partial', and then calls close().
+function openTypeClose(result: Result) {
+	openAndType(result)
+
+	act(() => {
+		result.current.close()
+	})
+}
+
 describe('useComboboxState', () => {
 	it('starts with an empty query and closed', () => {
 		const { result } = setup<string>()
@@ -226,36 +254,10 @@ describe('useComboboxState', () => {
 		expect(onQueryChange).not.toHaveBeenCalled()
 	})
 
-	it('resets editing and query when close() is called', () => {
-		const { result } = setup<string>()
-
-		act(() => {
-			result.current.setEditing(true)
-		})
-
-		act(() => {
-			result.current.setQuery('partial')
-		})
-
-		act(() => {
-			result.current.close()
-		})
-
-		expect(result.current.query).toBe('')
-
-		expect(result.current.editing).toBe(false)
-	})
-
 	it('freezes the menu query through close so the filter holds during the exit animation', () => {
 		const { result } = setup<string>()
 
-		act(() => {
-			result.current.setOpen(true)
-		})
-
-		act(() => {
-			result.current.setQuery('partial')
-		})
+		openAndType(result)
 
 		expect(result.current.menuDeferredQuery).toBe('partial')
 
@@ -277,17 +279,7 @@ describe('useComboboxState', () => {
 	it('releases the frozen menu query on flushPending (exit-complete)', () => {
 		const { result } = setup<string>()
 
-		act(() => {
-			result.current.setOpen(true)
-		})
-
-		act(() => {
-			result.current.setQuery('partial')
-		})
-
-		act(() => {
-			result.current.close()
-		})
+		openTypeClose(result)
 
 		act(() => {
 			result.current.flushPending()
@@ -301,17 +293,7 @@ describe('useComboboxState', () => {
 	it('releases the frozen menu query when the menu reopens mid-close', () => {
 		const { result } = setup<string>()
 
-		act(() => {
-			result.current.setOpen(true)
-		})
-
-		act(() => {
-			result.current.setQuery('partial')
-		})
-
-		act(() => {
-			result.current.close()
-		})
+		openTypeClose(result)
 
 		// Reopen before the exit animation completes: onExitComplete never fires,
 		// so the reopen guard must clear the freeze instead.
@@ -327,13 +309,7 @@ describe('useComboboxState', () => {
 	it('keeps the close-time menu query when a second close() follows during the exit', () => {
 		const { result } = setup<string>()
 
-		act(() => {
-			result.current.setOpen(true)
-		})
-
-		act(() => {
-			result.current.setQuery('partial')
-		})
+		openAndType(result)
 
 		// An outside press closes the panel, then the input blur calls close() again.
 		act(() => {
@@ -501,17 +477,7 @@ describe('routeFloatingOpenChange', () => {
 	it('closes through close() on a dismissal, so the query and editing reset', () => {
 		const { result } = setup<string>()
 
-		act(() => {
-			result.current.setOpen(true)
-		})
-
-		act(() => {
-			result.current.setEditing(true)
-		})
-
-		act(() => {
-			result.current.setQuery('partial')
-		})
+		openAndType(result, { editing: true })
 
 		act(() => {
 			routeFloatingOpenChange(result.current.setOpen, result.current.close)(false)

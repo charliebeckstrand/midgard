@@ -161,36 +161,40 @@ describe('isRelativeEmpty', () => {
 	})
 })
 
-describe('togglePresetValue (single-select)', () => {
+describe('togglePresetValue (single-select and multi-select)', () => {
 	const presets = DEFAULT_RELATIVE_PRESETS
 
-	it('selects a preset as the sole value', () => {
-		expect(togglePresetValue(undefined, preset('today'), presets, NOW, false)).toEqual([
+	it.for([
+		['selects a preset as the sole value', false],
+		['adds the first preset', true],
+	] as const)('%s', ([, multiple]) => {
+		expect(togglePresetValue(undefined, preset('today'), presets, NOW, multiple)).toEqual([
 			resolve('today'),
 		])
 	})
+
+	it.for([
+		['clears when the selected preset is re-picked', false],
+		['commits undefined when the last preset is toggled off', true],
+	] as const)('%s', ([, multiple]) => {
+		expect(
+			togglePresetValue([resolve('today')], preset('today'), presets, NOW, multiple),
+		).toBeUndefined()
+	})
+})
+
+describe('togglePresetValue (single-select)', () => {
+	const presets = DEFAULT_RELATIVE_PRESETS
 
 	it('replaces the current preset instead of adding', () => {
 		expect(togglePresetValue([resolve('this-year')], preset('today'), presets, NOW, false)).toEqual(
 			[resolve('today')],
 		)
 	})
-
-	it('clears when the selected preset is re-picked', () => {
-		expect(
-			togglePresetValue([resolve('today')], preset('today'), presets, NOW, false),
-		).toBeUndefined()
-	})
 })
 
 describe('togglePresetValue (multi-select)', () => {
 	const presets = DEFAULT_RELATIVE_PRESETS
-
-	it('adds the first preset', () => {
-		expect(togglePresetValue(undefined, preset('today'), presets, NOW, true)).toEqual([
-			resolve('today'),
-		])
-	})
 
 	it('keeps multiple presets in list order', () => {
 		const afterFirst = togglePresetValue(undefined, preset('last-year'), presets, NOW, true)
@@ -207,12 +211,6 @@ describe('togglePresetValue (multi-select)', () => {
 		expect(togglePresetValue(value, preset('this-year'), presets, NOW, true)).toEqual([
 			resolve('last-year'),
 		])
-	})
-
-	it('commits undefined when the last preset is toggled off', () => {
-		expect(
-			togglePresetValue([resolve('today')], preset('today'), presets, NOW, true),
-		).toBeUndefined()
 	})
 
 	it('replaces an active custom range with a single preset', () => {

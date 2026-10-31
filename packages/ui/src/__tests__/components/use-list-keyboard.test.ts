@@ -151,9 +151,7 @@ describe('useListKeyboard', () => {
 
 			expect(move.preventDefault).toHaveBeenCalled()
 
-			expect(onReorder).toHaveBeenCalledTimes(1)
-
-			expect(onReorder.mock.calls[0]?.[0].map((i: Item) => i.id)).toEqual(['b', 'a', 'c'])
+			expect(onReorder).toHaveBeenCalledExactlyOnceWith(buildItems(['b', 'a', 'c']))
 		})
 
 		it('ArrowUp moves the lifted item backward', () => {

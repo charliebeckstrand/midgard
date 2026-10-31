@@ -1,5 +1,13 @@
+import type { ElementType } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { List, ListDescription, ListItem, ListLabel } from '../../components/list'
+import {
+	List,
+	ListDescription,
+	ListItem,
+	type ListItemProps,
+	ListLabel,
+	type ListProps,
+} from '../../components/list'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { DensityProvider } from '../../providers/density'
@@ -23,20 +31,6 @@ const items: Item[] = [
 ]
 
 describe('List', () => {
-	it('requires getKey for reorderable configurations (compile-time)', () => {
-		// Never rendered; exists for `tsc`. The index-key fallback produces
-		// positional keys that change on reorder, remounting items mid-drag, so
-		// `onReorder` without `getKey` must not typecheck.
-		const typeChecks = () => (
-			// @ts-expect-error: onReorder requires getKey
-			<List items={items} sortable={false} onReorder={() => {}}>
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>
-		)
-
-		expect(typeChecks).toBeTypeOf('function')
-	})
-
 	it('renders a data-slot="list" ul with one list item per input', () => {
 		const { container } = renderUI(
 			<List items={items} getKey={(i) => i.id}>
@@ -119,12 +113,20 @@ describe('List', () => {
 })
 
 describe('ListItem', () => {
-	it('renders a data-slot="list-item" li exposing the stable item id via data-item-id', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => <ListItem>{item.label}</ListItem>}
+	/** One row of a read-only list. A case changes only the props that it tests. */
+	function renderRow(
+		itemProps: Omit<ListItemProps<ElementType>, 'children'> = {},
+		listProps: Pick<ListProps<Item>, 'variant'> = {},
+	) {
+		return renderUI(
+			<List items={items.slice(0, 1)} getKey={(i) => i.id} {...listProps}>
+				{(item) => <ListItem {...itemProps}>{item.label}</ListItem>}
 			</List>,
 		)
+	}
+
+	it('renders a data-slot="list-item" li exposing the stable item id via data-item-id', () => {
+		const { container } = renderRow()
 
 		const el = bySlot(container, 'list-item')
 
@@ -136,11 +138,7 @@ describe('ListItem', () => {
 	})
 
 	it('renders the content as a div by default', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
-		)
+		const { container } = renderRow()
 
 		const content = bySlot(container, 'list-item-content')
 
@@ -148,11 +146,7 @@ describe('ListItem', () => {
 	})
 
 	it('renders the content as the requested element via as', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => <ListItem as="button">{item.label}</ListItem>}
-			</List>,
-		)
+		const { container } = renderRow({ as: 'button' })
 
 		const content = bySlot(container, 'list-item-content')
 
@@ -163,11 +157,7 @@ describe('ListItem', () => {
 	})
 
 	it('renders the content as a link when href is provided, keeping the li wrapper', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => <ListItem href="/path">{item.label}</ListItem>}
-			</List>,
-		)
+		const { container } = renderRow({ href: '/path' })
 
 		// The wrapper stays an <li>; only the inner content switches to the link.
 		expect(bySlot(container, 'list-item')?.tagName).toBe('LI')
@@ -180,11 +170,7 @@ describe('ListItem', () => {
 	})
 
 	it('mutes linked content at rest and steps to the strong neutral on hover', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => <ListItem href="/path">{item.label}</ListItem>}
-			</List>,
-		)
+		const { container } = renderRow({ href: '/path' })
 
 		const className = bySlot(container, 'list-item-content')?.className ?? ''
 
@@ -200,15 +186,7 @@ describe('ListItem', () => {
 	})
 
 	it('gives clickable content the same treatment as a link, plus the pointer', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => (
-					<ListItem as="button" onClick={vi.fn()}>
-						{item.label}
-					</ListItem>
-				)}
-			</List>,
-		)
+		const { container } = renderRow({ as: 'button', onClick: vi.fn() })
 
 		const className = bySlot(container, 'list-item-content')?.className ?? ''
 
@@ -255,58 +233,34 @@ describe('ListItem', () => {
 	it('reads a conditional handler by its value, not by the key it leaves behind', () => {
 		// `onClick={enabled ? open : undefined}` keeps the key on an inert row, so a
 		// key-presence test would promise a pointer the row never honors.
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => (
-					<ListItem as="button" onClick={undefined}>
-						{item.label}
-					</ListItem>
-				)}
-			</List>,
-		)
+		const { container } = renderRow({ as: 'button', onClick: undefined })
 
 		const className = bySlot(container, 'list-item-content')?.className ?? ''
 
-		expect(className).not.toContain('text-zinc-500')
+		expect(className).not.toMatch(/(^|\s)text-zinc-600(\s|$)/)
 
 		expect(className).not.toContain('cursor-pointer')
 	})
 
 	it('keeps inert content on the inherited item color', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
-		)
+		const { container } = renderRow()
 
 		const className = bySlot(container, 'list-item-content')?.className ?? ''
 
-		expect(className).not.toContain('text-zinc-500')
+		expect(className).not.toMatch(/(^|\s)text-zinc-600(\s|$)/)
 
 		expect(className).not.toContain('group-hover/list-item:not-disabled:text-zinc-950')
 	})
 
 	it('forwards HTML attributes to the content element', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => <ListItem id="content-id">{item.label}</ListItem>}
-			</List>,
-		)
+		const { container } = renderRow({ id: 'content-id' })
 
 		expect(bySlot(container, 'list-item-content')).toHaveAttribute('id', 'content-id')
 	})
 
 	/** One interactive row of a variant, so each wash can be read off its `<li>`. */
 	function renderWash(variant: 'separated' | 'outline' | 'plain' | 'solid'): string {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} variant={variant} getKey={(i) => i.id}>
-				{(item) => (
-					<ListItem as="button" onClick={vi.fn()}>
-						{item.label}
-					</ListItem>
-				)}
-			</List>,
-		)
+		const { container } = renderRow({ as: 'button', onClick: vi.fn() }, { variant })
 
 		return bySlot(container, 'list-item')?.className ?? ''
 	}
@@ -325,14 +279,9 @@ describe('ListItem', () => {
 
 	it('moves both washes of a rounded divided row onto its `::before` layer', () => {
 		for (const variant of ['plain', 'outline'] as const) {
-			const { container } = renderUI(
-				<List items={items.slice(0, 1)} variant={variant} getKey={(i) => i.id}>
-					{(item) => (
-						<ListItem rounded as="button" onClick={vi.fn()}>
-							{item.label}
-						</ListItem>
-					)}
-				</List>,
+			const { container } = renderRow(
+				{ rounded: true, as: 'button', onClick: vi.fn() },
+				{ variant },
 			)
 
 			const className = bySlot(container, 'list-item')?.className ?? ''
@@ -383,11 +332,7 @@ describe('ListItem', () => {
 	})
 
 	it('leaves an inert row unwashed', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
-		)
+		const { container } = renderRow()
 
 		const item = bySlot(container, 'list-item')
 
@@ -425,15 +370,11 @@ describe('ListItem', () => {
 	})
 
 	it('stretches the row’s own handler over the whole painted row', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => (
-					<ListItem as="button" onClick={vi.fn()} suffix={<button type="button">More</button>}>
-						{item.label}
-					</ListItem>
-				)}
-			</List>,
-		)
+		const { container } = renderRow({
+			as: 'button',
+			onClick: vi.fn(),
+			suffix: <button type="button">More</button>,
+		})
 
 		// The content column is only `flex-1`, so the padding, the gaps, and the
 		// suffix chrome sat outside the target until the `::after` covered them.
@@ -453,21 +394,13 @@ describe('ListItem', () => {
 	})
 
 	it('stretches a linked row the same way', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => <ListItem href="/path">{item.label}</ListItem>}
-			</List>,
-		)
+		const { container } = renderRow({ href: '/path' })
 
 		expect(bySlot(container, 'list-item-content')?.className ?? '').toContain('after:absolute')
 	})
 
 	it('leaves an inert row’s padding inert', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
-		)
+		const { container } = renderRow()
 
 		expect(bySlot(container, 'list-item-content')?.className ?? '').not.toContain('after:absolute')
 
@@ -864,17 +797,6 @@ describe('List keyboard reordering', () => {
 })
 
 describe('List: static (non-interactive) mode', () => {
-	it('falls back to index-based keys when no getKey is supplied to a read-only list', () => {
-		const { container } = renderUI(
-			<List items={items} sortable={false}>
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
-		)
-
-		// Static list still renders one item per input.
-		expect(allBySlot(container, 'list-item')).toHaveLength(items.length)
-	})
-
 	it('gives duplicate primitive items distinct positional ids', () => {
 		const { container } = renderUI(
 			<List items={['draft', 'draft', 'sent']} sortable={false}>

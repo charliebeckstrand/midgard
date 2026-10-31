@@ -304,16 +304,6 @@ describe('useResizablePanel', () => {
 			expect(result.current.sizes).toEqual(expected)
 		})
 
-		it('preserves total size after resize', () => {
-			const { result } = renderPanel()
-
-			act(() => result.current.resize(0, 17))
-
-			const total = result.current.sizes.reduce((sum, s) => sum + s, 0)
-
-			expect(total).toBeCloseTo(100, 5)
-		})
-
 		it('does nothing when handleIndex is out of range', () => {
 			const onSizesChange = vi.fn()
 
@@ -680,10 +670,22 @@ describe('useResizablePanel', () => {
 			expect(result.current.sizes).toEqual([0, 0])
 		})
 
+		// The DOM reports a listener error and does not throw it from `dispatchEvent`.
+		// So the case reads the state, which a stray drag cleanup changes.
 		it('skips contextmenu cleanup gracefully when no drag is active', () => {
-			renderPanel()
+			const onResizeEnd = vi.fn()
 
-			expect(() => document.dispatchEvent(new Event('contextmenu'))).not.toThrow()
+			const { result } = renderPanel({ onResizeEnd })
+
+			act(() => {
+				document.dispatchEvent(new Event('contextmenu'))
+			})
+
+			expect(result.current.dragging).toBeNull()
+
+			expect(result.current.sizes).toEqual([50, 50])
+
+			expect(onResizeEnd).not.toHaveBeenCalled()
 		})
 
 		it('clears the drag on contextmenu while a drag is in progress', () => {

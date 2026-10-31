@@ -344,6 +344,13 @@ function SourceStandIn({ ids, scrollToIndex }: { ids: string[]; scrollToIndex?: 
 }
 
 describe('CommandPalette results that change under an unchanged query', () => {
+	/** An open palette over a registered source with these row ids. */
+	const palette = (ids: string[], scrollToIndex?: () => void) => (
+		<CommandPalette open onOpenChange={() => {}}>
+			<SourceStandIn ids={ids} scrollToIndex={scrollToIndex} />
+		</CommandPalette>
+	)
+
 	// The places palette: a filter runs before the countries load, so it seeds
 	// nothing. Then the countries arrive with no change to the query.
 	it('seeds the top result when results arrive after a filter that matched nothing', async () => {
@@ -461,12 +468,6 @@ describe('CommandPalette results that change under an unchanged query', () => {
 	})
 
 	it('seeds the top result when a registered source drops the row of a moved highlight', async () => {
-		const palette = (ids: string[]) => (
-			<CommandPalette open onOpenChange={() => {}}>
-				<SourceStandIn ids={ids} />
-			</CommandPalette>
-		)
-
 		const { rerender } = renderUI(palette(['a-0', 'a-1', 'a-2']))
 
 		const input = screen.getByRole('combobox')
@@ -487,12 +488,6 @@ describe('CommandPalette results that change under an unchanged query', () => {
 	})
 
 	it('seeds the top result again when a registered source changes', async () => {
-		const palette = (ids: string[]) => (
-			<CommandPalette open onOpenChange={() => {}}>
-				<SourceStandIn ids={ids} />
-			</CommandPalette>
-		)
-
 		const { rerender } = renderUI(palette(['old-0', 'old-1']))
 
 		const input = screen.getByRole('combobox')
@@ -514,13 +509,7 @@ describe('CommandPalette results that change under an unchanged query', () => {
 	it('leaves a seeded highlight that a source change keeps on the top result', async () => {
 		const scrollToIndex = vi.fn()
 
-		const palette = (ids: string[]) => (
-			<CommandPalette open onOpenChange={() => {}}>
-				<SourceStandIn ids={ids} scrollToIndex={scrollToIndex} />
-			</CommandPalette>
-		)
-
-		const { rerender } = renderUI(palette(['top', 'next']))
+		const { rerender } = renderUI(palette(['top', 'next'], scrollToIndex))
 
 		const input = screen.getByRole('combobox')
 
@@ -530,7 +519,7 @@ describe('CommandPalette results that change under an unchanged query', () => {
 
 		scrollToIndex.mockClear()
 
-		rerender(palette(['top', 'next', 'last']))
+		rerender(palette(['top', 'next', 'last'], scrollToIndex))
 
 		await act(async () => {})
 
@@ -628,9 +617,7 @@ describe('CommandPalette Enter on a link item', () => {
 
 			fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Enter', [modifier]: true })
 
-			expect(onClick).toHaveBeenCalledTimes(1)
-
-			expect(onClick).toHaveBeenCalledWith(
+			expect(onClick).toHaveBeenCalledExactlyOnceWith(
 				expect.objectContaining({ ...NO_MODIFIERS, [modifier]: true }),
 			)
 		},
@@ -665,9 +652,7 @@ describe('CommandPalette Enter on a link item', () => {
 
 		await act(async () => gate.resolve())
 
-		expect(onClick).toHaveBeenCalledTimes(1)
-
-		expect(onClick).toHaveBeenCalledWith(
+		expect(onClick).toHaveBeenCalledExactlyOnceWith(
 			expect.objectContaining({ ...NO_MODIFIERS, metaKey: true, target: screen.getByText('Beta') }),
 		)
 	})
@@ -1147,11 +1132,11 @@ describe('CommandPaletteLabel, CommandPaletteText, and CommandPaletteDescription
 	})
 })
 
-describe('CommandPalette triggerShortcut', () => {
-	// tinykeys resolves `$mod` to ctrlKey on non-Mac platforms; jsdom is non-Mac.
-	// A browser keydown is cancelable, so a handler can mark it as taken.
-	const MOD_K = { key: 'k', code: 'KeyK', ctrlKey: true, bubbles: true, cancelable: true }
+// tinykeys resolves `$mod` to ctrlKey on non-Mac platforms; jsdom is non-Mac.
+// A browser keydown is cancelable, so a handler can mark it as taken.
+const MOD_K = { key: 'k', code: 'KeyK', ctrlKey: true, bubbles: true, cancelable: true }
 
+describe('CommandPalette triggerShortcut', () => {
 	function pressModK(init: KeyboardEventInit = {}) {
 		window.dispatchEvent(new KeyboardEvent('keydown', { ...MOD_K, ...init }))
 	}
@@ -1184,39 +1169,22 @@ describe('CommandPalette triggerShortcut', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
-	it('ignores the OS auto-repeat of a held shortcut', () => {
-		const onOpenChange = vi.fn()
-
-		renderUI(
-			<CommandPalette open={false} onOpenChange={onOpenChange}>
-				<div>Items</div>
-			</CommandPalette>,
-		)
-
-		pressModK({ repeat: true })
-
-		expect(onOpenChange).not.toHaveBeenCalled()
-	})
-
-	it('leaves the shortcut to the IME while a composition is active', () => {
-		const onOpenChange = vi.fn()
-
-		renderUI(
-			<CommandPalette open={false} onOpenChange={onOpenChange}>
-				<div>Items</div>
-			</CommandPalette>,
-		)
-
-		pressModK({ isComposing: true })
-
-		expect(onOpenChange).not.toHaveBeenCalled()
-	})
-
-	// Safari reports keyCode 229 with `isComposing` false on a key that an IME takes.
-	it.each([
-		['closed', false],
-		['open', true],
-	])('leaves the shortcut to the IME on a Safari keyCode 229 press while %s', (_, open) => {
+	it.for<[string, boolean, KeyboardEventInit]>([
+		['ignores the OS auto-repeat of a held shortcut', false, { repeat: true }],
+		['leaves the shortcut to the IME while a composition is active', false, { isComposing: true }],
+		// Safari reports keyCode 229 with `isComposing` false on a key that an IME takes.
+		[
+			'leaves the shortcut to the IME on a Safari keyCode 229 press while closed',
+			false,
+			{ keyCode: 229 },
+		],
+		[
+			'leaves the shortcut to the IME on a Safari keyCode 229 press while open',
+			true,
+			{ keyCode: 229 },
+		],
+		['keeps an open palette open on the OS auto-repeat of a held shortcut', true, { repeat: true }],
+	])('%s', ([, open, init]) => {
 		const onOpenChange = vi.fn()
 
 		renderUI(
@@ -1225,21 +1193,7 @@ describe('CommandPalette triggerShortcut', () => {
 			</CommandPalette>,
 		)
 
-		pressModK({ keyCode: 229 })
-
-		expect(onOpenChange).not.toHaveBeenCalled()
-	})
-
-	it('keeps an open palette open on the OS auto-repeat of a held shortcut', () => {
-		const onOpenChange = vi.fn()
-
-		renderUI(
-			<CommandPalette open onOpenChange={onOpenChange}>
-				<div>Items</div>
-			</CommandPalette>,
-		)
-
-		pressModK({ repeat: true })
+		pressModK(init)
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 	})
@@ -1512,8 +1466,6 @@ describe('CommandPalette onActiveChange', () => {
 })
 
 describe('CommandPalette uncontrolled mode', () => {
-	const MOD_K = { key: 'k', code: 'KeyK', ctrlKey: true, bubbles: true, cancelable: true }
-
 	it('opens from defaultOpen and closes from the Close button', async () => {
 		const onOpenChange = vi.fn()
 

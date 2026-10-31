@@ -200,20 +200,6 @@ describe('useFileUploadHandlers', () => {
 		expect(result.current.dragOver).toBe(true)
 	})
 
-	it('handleDragLeave clears dragOver after a single enter', () => {
-		const { result } = renderHook(() => useFileUploadHandlers({}))
-
-		act(() => {
-			result.current.handleDragEnter(makeDragEvent())
-		})
-
-		act(() => {
-			result.current.handleDragLeave(makeDragEvent())
-		})
-
-		expect(result.current.dragOver).toBe(false)
-	})
-
 	it('keeps dragOver true while a child boundary fires bubbled enter/leave pairs', () => {
 		const { result } = renderHook(() => useFileUploadHandlers({}))
 

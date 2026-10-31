@@ -75,17 +75,17 @@ describe('Odometer', () => {
 		expect(bySlot(container, 'odometer-value')).toHaveTextContent('1,234')
 	})
 
-	it('drops a consumer role, so the root never becomes a live region', () => {
-		const { container } = renderUI(<Odometer value={1234} role="status" />)
+	it.for([
+		['role', 'status'],
+		['aria-live', 'polite'],
+	] as const)(
+		'drops a consumer %s, so the root never becomes a live region',
+		([attribute, value]) => {
+			const { container } = renderUI(<Odometer value={1234} {...{ [attribute]: value }} />)
 
-		expect(bySlot(container, 'odometer')).not.toHaveAttribute('role')
-	})
-
-	it('drops a consumer aria-live, so the root never becomes a live region', () => {
-		const { container } = renderUI(<Odometer value={1234} aria-live="polite" />)
-
-		expect(bySlot(container, 'odometer')).not.toHaveAttribute('aria-live')
-	})
+			expect(bySlot(container, 'odometer')).not.toHaveAttribute(attribute)
+		},
+	)
 
 	it('prints 0, not -0, for a value that rounds to negative zero', () => {
 		const { container } = renderUI(<Odometer value={-0.3} />)

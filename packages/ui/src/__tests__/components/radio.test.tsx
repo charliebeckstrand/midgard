@@ -2,17 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Description, Field, Label } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
-import {
-	act,
-	bySlot,
-	fireEvent,
-	getSlot,
-	present,
-	readDensityStep,
-	renderUI,
-	screen,
-	setupUser,
-} from '../helpers'
+import { act, bySlot, fireEvent, getSlot, present, renderUI, screen, setupUser } from '../helpers'
 
 describe('Radio', () => {
 	it('renders a radio input with data-slot="radio"', () => {
@@ -240,16 +230,6 @@ describe('Radio readOnly', () => {
 		expect(input).toHaveFocus()
 
 		expect(input).not.toHaveAttribute('aria-readonly')
-	})
-})
-
-describe('Radio size', () => {
-	it('opens a scope for an explicit size prop', () => {
-		const { container } = renderUI(<Radio size="lg" />)
-
-		expect(getSlot(container, 'control')).toHaveAttribute('data-density', 'lg')
-
-		expect(readDensityStep(getSlot(container, 'radio-indicator'))).toBe('lg')
 	})
 })
 

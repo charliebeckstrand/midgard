@@ -40,6 +40,21 @@ function selectFiles(container: HTMLElement, files: File[]) {
 	fireEvent.change(fileInput(container), { target: { files: makeFileList(files) } })
 }
 
+/** Drops `files` on the drop zone, as a drop of files from the desktop does. */
+function dropFiles(container: HTMLElement, files: File[]) {
+	fireEvent.drop(dropzone(container), {
+		dataTransfer: { types: ['Files'], files: makeFileList(files) },
+	})
+}
+
+/** Drags `files` into `zone`. The browser lists `'Files'` in the types of such a drag. */
+function dragIn(zone: HTMLElement, files: File[] = []) {
+	fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files: makeFileList(files) } })
+}
+
+/** A one-byte file, which most cases pick or drop. */
+const resume = new File(['x'], 'resume.pdf')
+
 describe('FileUpload', () => {
 	it('renders a visually hidden file input', () => {
 		const { container } = renderUI(<FileUploadDrop>Upload</FileUploadDrop>)
@@ -57,12 +72,6 @@ describe('FileUpload', () => {
 })
 
 describe('FileUpload drop variant selection', () => {
-	it('shows the drop prompt when empty', () => {
-		renderUI(<FileUploadDrop />)
-
-		expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument()
-	})
-
 	it('names the gesture of the primary pointer in the drop prompt', () => {
 		renderUI(<FileUploadDrop />)
 
@@ -90,7 +99,7 @@ describe('FileUpload drop variant selection', () => {
 	it('replaces the prompt with the filename and a Reset button once a file is selected', () => {
 		const { container } = renderUI(<FileUploadDrop />)
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		expect(screen.queryByText('Drop files here or click to browse')).not.toBeInTheDocument()
 
@@ -104,7 +113,7 @@ describe('FileUpload drop variant selection', () => {
 
 		const input = fileInput(container)
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		const click = vi.spyOn(input, 'click')
 
@@ -126,7 +135,7 @@ describe('FileUpload drop variant selection', () => {
 
 		const { container } = renderUI(<FileUploadDrop onAccept={onAccept} />)
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
 
@@ -138,7 +147,7 @@ describe('FileUpload drop variant selection', () => {
 	it('ignores the built-in selection display when custom children are provided', () => {
 		const { container } = renderUI(<FileUploadDrop>Custom prompt</FileUploadDrop>)
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		expect(screen.getByText('Custom prompt')).toBeInTheDocument()
 
@@ -201,7 +210,7 @@ describe('FileUpload input variant selection', () => {
 	it('shows the filename as the value once a file is selected', () => {
 		const { container } = renderUI(<FileUploadInput />)
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		expect(display(container)).toHaveTextContent('resume.pdf')
 	})
@@ -219,7 +228,7 @@ describe('FileUpload input variant selection', () => {
 
 		expect(screen.queryByRole('button', { name: /Clear selected file/ })).not.toBeInTheDocument()
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		expect(screen.getByRole('button', { name: /^Clear selected files?$/ })).toBeInTheDocument()
 	})
@@ -229,7 +238,7 @@ describe('FileUpload input variant selection', () => {
 
 		const { container } = renderUI(<FileUploadInput placeholder="Choose…" onAccept={onAccept} />)
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		fireEvent.click(screen.getByRole('button', { name: /^Clear selected files?$/ }))
 
@@ -251,7 +260,7 @@ describe('FileUpload input variant under headless', () => {
 
 		expect(screen.queryByRole('button', { name: /Clear selected file/ })).not.toBeInTheDocument()
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		const clear = screen.getByRole('button', { name: /^Clear selected files?$/ })
 
@@ -305,7 +314,7 @@ describe('FileUpload button variant selection', () => {
 
 		const input = fileInput(container)
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument()
 
@@ -322,7 +331,7 @@ describe('FileUpload button variant selection', () => {
 
 		const { container } = renderUI(<FileUploadButton onAccept={onAccept} />)
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
 
@@ -424,7 +433,7 @@ describe('FileUpload + Control', () => {
 
 		expect(display(container)).toHaveAccessibleName('Resume Choose a file')
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		expect(display(container)).toHaveAccessibleName('Resume resume.pdf')
 	})
@@ -444,7 +453,7 @@ describe('FileUpload + Control', () => {
 
 		expect(zone).toHaveAttribute('aria-invalid', 'true')
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		const overlay = present(dropzone(container).querySelector('button'), 'overlay button')
 
@@ -456,7 +465,7 @@ describe('FileUpload + Control', () => {
 	it('keeps the overlay name outside a Field', () => {
 		const { container } = renderUI(<FileUploadDrop />)
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		const overlay = present(dropzone(container).querySelector('button'), 'overlay button')
 
@@ -488,9 +497,7 @@ describe('FileUpload + Control', () => {
 			</Control>,
 		)
 
-		const zone = dropzone(container)
-
-		fireEvent.drop(zone, { dataTransfer: { files: makeFileList([new File(['x'], 'resume.pdf')]) } })
+		dropFiles(container, [resume])
 
 		expect(onAccept).not.toHaveBeenCalled()
 	})
@@ -510,7 +517,7 @@ describe('FileUpload disabled dropzone', () => {
 
 		const zone = dropzone(container)
 
-		fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files: makeFileList([]) } })
+		dragIn(zone)
 
 		expect(zone).not.toHaveAttribute('data-drag-over')
 	})
@@ -524,13 +531,9 @@ describe('FileUpload disabled dropzone', () => {
 			</FileUploadDrop>,
 		)
 
-		const zone = dropzone(container)
+		dragIn(dropzone(container), [resume])
 
-		const files = makeFileList([new File(['x'], 'resume.pdf')])
-
-		fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files } })
-
-		fireEvent.drop(zone, { dataTransfer: { files } })
+		dropFiles(container, [resume])
 
 		expect(onAccept).not.toHaveBeenCalled()
 	})
@@ -540,9 +543,7 @@ describe('FileUpload disabled dropzone', () => {
 
 		const { container } = renderUI(<FileUploadDrop onAccept={onAccept}>Upload</FileUploadDrop>)
 
-		const zone = dropzone(container)
-
-		fireEvent.drop(zone, { dataTransfer: { files: makeFileList([new File(['x'], 'resume.pdf')]) } })
+		dropFiles(container, [resume])
 
 		expect(onAccept).toHaveBeenCalledTimes(1)
 	})
@@ -556,7 +557,7 @@ describe('FileUpload read-only', () => {
 		['a locked scope', (node) => <ControlLockContext value>{node}</ControlLockContext>],
 	]
 
-	const files = [new File(['x'], 'resume.pdf')]
+	const files = [resume]
 
 	describe.each(scopes)('in %s', (_, scope) => {
 		it.each([
@@ -616,13 +617,11 @@ describe('FileUpload read-only', () => {
 
 			const zone = dropzone(container)
 
-			const list = makeFileList(files)
-
-			fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files: list } })
+			dragIn(zone, files)
 
 			expect(zone).not.toHaveAttribute('data-drag-over')
 
-			fireEvent.drop(zone, { dataTransfer: { types: ['Files'], files: list } })
+			dropFiles(container, files)
 
 			expect(onAccept).not.toHaveBeenCalled()
 		})
@@ -693,7 +692,7 @@ describe('FileUpload constraints', () => {
 			</FileUploadDrop>,
 		)
 
-		fireEvent.drop(dropzone(container), { dataTransfer: { files: makeFileList([small, big]) } })
+		dropFiles(container, [small, big])
 
 		expect(onAccept).toHaveBeenCalledWith([small])
 
@@ -711,9 +710,7 @@ describe('FileUpload constraints', () => {
 			</FileUploadDrop>,
 		)
 
-		fireEvent.drop(dropzone(container), {
-			dataTransfer: { files: makeFileList([fileOfSize('a.txt', 1), fileOfSize('b.txt', 1)]) },
-		})
+		dropFiles(container, [fileOfSize('a.txt', 1), fileOfSize('b.txt', 1)])
 
 		expect(onAccept).toHaveBeenCalledWith([
 			expect.objectContaining({ name: 'a.txt' }),
@@ -728,7 +725,7 @@ describe('FileUpload announcements', () => {
 	it('announces a single selected file by name', async () => {
 		const { container } = renderUI(<FileUploadDrop>Upload</FileUploadDrop>)
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		await expectAnnouncement('Selected resume.pdf')
 	})
@@ -752,13 +749,11 @@ describe('FileUpload drag-over reporting', () => {
 
 		const zone = dropzone(container)
 
-		const files = makeFileList([new File(['x'], 'resume.pdf')])
-
-		fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files } })
+		dragIn(zone, [resume])
 
 		expect(onDragOverChange).toHaveBeenCalledExactlyOnceWith(true)
 
-		fireEvent.dragLeave(zone, { dataTransfer: { types: ['Files'], files } })
+		fireEvent.dragLeave(zone, { dataTransfer: { types: ['Files'], files: makeFileList([resume]) } })
 
 		expect(onDragOverChange).toHaveBeenLastCalledWith(false)
 
@@ -805,15 +800,13 @@ describe('FileUpload drag-over reporting', () => {
 
 		const child = present(container.querySelector('[data-testid="child"]'), '[data-testid="child"]')
 
-		const files = makeFileList([new File(['x'], 'resume.pdf')])
-
-		fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files } })
+		dragIn(zone, [resume])
 
 		onDragOverChange.mockClear()
 
-		fireEvent.dragEnter(child, { dataTransfer: { types: ['Files'], files } })
+		dragIn(child, [resume])
 
-		fireEvent.dragLeave(zone, { dataTransfer: { types: ['Files'], files } })
+		fireEvent.dragLeave(zone, { dataTransfer: { types: ['Files'], files: makeFileList([resume]) } })
 
 		expect(onDragOverChange).not.toHaveBeenCalled()
 	})
@@ -825,13 +818,9 @@ describe('FileUpload drag-over reporting', () => {
 			<FileUploadDrop onDragOverChange={onDragOverChange}>Upload</FileUploadDrop>,
 		)
 
-		const zone = dropzone(container)
+		dragIn(dropzone(container), [resume])
 
-		const files = makeFileList([new File(['x'], 'resume.pdf')])
-
-		fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files } })
-
-		fireEvent.drop(zone, { dataTransfer: { files } })
+		dropFiles(container, [resume])
 
 		expect(onDragOverChange).toHaveBeenLastCalledWith(false)
 	})
@@ -847,9 +836,7 @@ describe('FileUpload drag-over reporting', () => {
 
 		expect(onDragOverChange).not.toHaveBeenCalled()
 
-		fireEvent.dragEnter(dropzone(container), {
-			dataTransfer: { types: ['Files'], files: makeFileList([]) },
-		})
+		dragIn(dropzone(container))
 
 		expect(onDragOverChange).not.toHaveBeenCalled()
 	})
@@ -871,7 +858,7 @@ describe('FileUpload drop filtering', () => {
 			<FileUploadDrop accept="image/*" multiple onAccept={onAccept} onReject={onReject} />,
 		)
 
-		fireEvent.drop(dropzone(container), { dataTransfer: { files: makeFileList([pdf, png]) } })
+		dropFiles(container, [pdf, png])
 
 		expect(onAccept).toHaveBeenCalledWith([png])
 
@@ -885,7 +872,7 @@ describe('FileUpload drop filtering', () => {
 
 		const { container } = renderUI(<FileUploadDrop onAccept={onAccept} onReject={onReject} />)
 
-		fireEvent.drop(dropzone(container), { dataTransfer: { files: makeFileList([png, jpg]) } })
+		dropFiles(container, [png, jpg])
 
 		expect(onAccept).toHaveBeenCalledWith([png])
 
@@ -896,14 +883,12 @@ describe('FileUpload drop filtering', () => {
 })
 
 describe('FileUpload focus handoff', () => {
-	const file = new File(['x'], 'resume.pdf')
-
 	it('moves focus from the empty drop zone to the overlay after a pick', () => {
 		const { container } = renderUI(<FileUploadDrop />)
 
 		dropzone(container).focus()
 
-		selectFiles(container, [file])
+		selectFiles(container, [resume])
 
 		expect(screen.getByRole('button', { name: 'Choose a different file' })).toHaveFocus()
 	})
@@ -911,7 +896,7 @@ describe('FileUpload focus handoff', () => {
 	it('moves focus from Reset to the empty drop zone', () => {
 		const { container } = renderUI(<FileUploadDrop />)
 
-		selectFiles(container, [file])
+		selectFiles(container, [resume])
 
 		const reset = screen.getByRole('button', { name: 'Reset' })
 
@@ -934,7 +919,7 @@ describe('FileUpload focus handoff', () => {
 
 		elsewhere.focus()
 
-		fireEvent.drop(dropzone(container), { dataTransfer: { files: makeFileList([file]) } })
+		dropFiles(container, [resume])
 
 		expect(elsewhere).toHaveFocus()
 	})
@@ -949,7 +934,7 @@ describe('FileUpload focus handoff', () => {
 			</>,
 		)
 
-		selectFiles(container, [file])
+		selectFiles(container, [resume])
 
 		// The focus arms the truncation measure of the label, which renders.
 		act(() => screen.getByRole('button', { name: 'Choose a different file' }).focus())
@@ -973,7 +958,7 @@ describe('FileUpload focus handoff', () => {
 	it('moves focus from the button variant Reset to the trigger', () => {
 		const { container } = renderUI(<FileUploadButton />)
 
-		selectFiles(container, [file])
+		selectFiles(container, [resume])
 
 		const reset = screen.getByRole('button', { name: 'Reset' })
 
@@ -987,7 +972,7 @@ describe('FileUpload focus handoff', () => {
 	it('moves focus from the input variant clear button to the field', () => {
 		const { container } = renderUI(<FileUploadInput />)
 
-		selectFiles(container, [file])
+		selectFiles(container, [resume])
 
 		const clear = screen.getByRole('button', { name: /^Clear selected files?$/ })
 
@@ -1040,7 +1025,7 @@ describe('FileUpload value binding', () => {
 
 		const { container } = renderUI(<FileUploadInput onValueChange={onValueChange} />)
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		fireEvent.click(screen.getByRole('button', { name: /^Clear selected files?$/ }))
 
@@ -1050,8 +1035,6 @@ describe('FileUpload value binding', () => {
 	it('binds to a Form field by name, submits the files, and follows a Form reset', async () => {
 		const onSubmit = vi.fn()
 
-		const file = new File(['x'], 'resume.pdf')
-
 		const { container } = renderUI(
 			<Form defaultValues={{ files: [] as File[] }} onSubmit={onSubmit}>
 				<FileUploadInput name="files" placeholder="Choose a file" />
@@ -1060,7 +1043,7 @@ describe('FileUpload value binding', () => {
 			</Form>,
 		)
 
-		selectFiles(container, [file])
+		selectFiles(container, [resume])
 
 		expect(display(container)).toHaveTextContent('resume.pdf')
 
@@ -1069,7 +1052,7 @@ describe('FileUpload value binding', () => {
 		await act(() => Promise.resolve())
 
 		expect(onSubmit).toHaveBeenCalledWith(
-			expect.objectContaining({ files: [file] }),
+			expect.objectContaining({ files: [resume] }),
 			expect.anything(),
 		)
 
@@ -1106,7 +1089,7 @@ describe('FileUpload value binding', () => {
 			</form>,
 		)
 
-		selectFiles(container, [new File(['x'], 'resume.pdf')])
+		selectFiles(container, [resume])
 
 		expect(screen.getByText('resume.pdf')).toBeInTheDocument()
 

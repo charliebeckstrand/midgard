@@ -4,19 +4,23 @@ import type { AddressProvider } from '../../components/address-input/types'
 import { useAddressInputSuggestions } from '../../components/address-input/use-address-input-suggestions'
 import { it } from '../helpers/fake-clock'
 
+type Options = Parameters<typeof useAddressInputSuggestions>[0]
+
+/**
+ * Renders the hook for an enabled query with no debounce and a minimum length
+ * of 3. The fields of `options` replace these values.
+ */
+function renderSuggestions(options: Partial<Options> & Pick<Options, 'query' | 'provider'>) {
+	return renderHook(() =>
+		useAddressInputSuggestions({ enabled: true, debounceMs: 0, minQueryLength: 3, ...options }),
+	)
+}
+
 describe('useAddressInputSuggestions guards', () => {
 	it('does not fetch a query of white space only, however long', async ({ clock }) => {
 		const provider: AddressProvider = vi.fn().mockResolvedValue([])
 
-		const { result } = renderHook(() =>
-			useAddressInputSuggestions({
-				query: '   ',
-				enabled: true,
-				provider,
-				debounceMs: 0,
-				minQueryLength: 3,
-			}),
-		)
+		const { result } = renderSuggestions({ query: '   ', provider })
 
 		await clock.runAll()
 
@@ -30,15 +34,7 @@ describe('useAddressInputSuggestions guards', () => {
 	}) => {
 		const provider: AddressProvider = vi.fn().mockResolvedValue([])
 
-		renderHook(() =>
-			useAddressInputSuggestions({
-				query: '  ab  ',
-				enabled: true,
-				provider,
-				debounceMs: 0,
-				minQueryLength: 3,
-			}),
-		)
+		renderSuggestions({ query: '  ab  ', provider })
 
 		await clock.runAll()
 
@@ -48,15 +44,7 @@ describe('useAddressInputSuggestions guards', () => {
 	it('passes the query as typed once the trimmed length reaches the minimum', async ({ clock }) => {
 		const provider: AddressProvider = vi.fn().mockResolvedValue([])
 
-		renderHook(() =>
-			useAddressInputSuggestions({
-				query: ' abc ',
-				enabled: true,
-				provider,
-				debounceMs: 0,
-				minQueryLength: 3,
-			}),
-		)
+		renderSuggestions({ query: ' abc ', provider })
 
 		await clock.runAll()
 
@@ -66,16 +54,10 @@ describe('useAddressInputSuggestions guards', () => {
 	it('still fetches an empty query when the minimum is zero', async ({ clock }) => {
 		const provider: AddressProvider = vi.fn().mockResolvedValue([])
 
-		renderHook(() =>
-			useAddressInputSuggestions({
-				query: '',
-				enabled: true,
-				provider,
-				debounceMs: 200,
-				minQueryLength: 0,
-			}),
-		)
+		renderSuggestions({ query: '', provider, debounceMs: 200, minQueryLength: 0 })
 
+		// Zero, not every pending timer: running them all fires the 200ms debounce
+		// too, so the case passed whatever the delay was.
 		await clock.advance(0)
 
 		expect(provider).toHaveBeenCalledWith('', expect.anything())
@@ -90,16 +72,7 @@ describe('useAddressInputSuggestions guards', () => {
 
 		const onError = vi.fn()
 
-		const { result } = renderHook(() =>
-			useAddressInputSuggestions({
-				query: 'abc',
-				enabled: true,
-				provider,
-				debounceMs: 0,
-				minQueryLength: 3,
-				onError,
-			}),
-		)
+		const { result } = renderSuggestions({ query: 'abc', provider, onError })
 
 		// A throw that escapes the debounce timer is the defect, so it is caught
 		// here and the assertions below report it.

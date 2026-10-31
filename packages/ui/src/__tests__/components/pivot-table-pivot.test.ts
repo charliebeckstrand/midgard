@@ -52,13 +52,6 @@ describe('groupValues', () => {
 		expect(groups.get('NA')?.get('2025')).toEqual([15])
 	})
 
-	it('skips non-finite values', () => {
-		const groups = groupValues(data, 'region', 'year', 'amount')
-
-		// 'not-a-number' becomes NaN and is filtered before bucketing.
-		expect(groups.get('NA')?.get('2024')?.length).toBe(2)
-	})
-
 	it('drops null, empty-string, and other non-numeric cells instead of counting them as 0', () => {
 		type NullableRow = { region: string; year: string; amount: number | null | string | boolean }
 

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { JsonTree } from '../../components/json-tree'
 import { flatTreeMoveTarget } from '../../components/json-tree/json-tree-keyboard'
 import { JsonTreeNodeRow } from '../../components/json-tree/json-tree-node-row'
-import { flattenTree } from '../../components/json-tree/json-tree-utilities'
+import { type FlatNode, flattenTree } from '../../components/json-tree/json-tree-utilities'
 import { LocaleProvider } from '../../providers/locale'
 import { bySlot, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
 
@@ -198,9 +198,9 @@ describe('JsonTree', () => {
 			/>,
 		)
 
-		expect(onExpandedChange).toHaveBeenCalledOnce()
-
-		expect(onExpandedChange.mock.calls[0]?.[0]).toEqual(new Set(['$', '$.outer', '$.outer.inner']))
+		expect(onExpandedChange).toHaveBeenCalledExactlyOnceWith(
+			new Set(['$', '$.outer', '$.outer.inner']),
+		)
 	})
 
 	it('opens a match of a controlled tree once the owner takes the seed', () => {
@@ -340,26 +340,11 @@ describe('JsonTree', () => {
 	describe('virtualize', () => {
 		it.each<[string, () => ReactElement]>([
 			[
-				'mounts with data-slot="json-tree" when virtualized',
-				() => <JsonTree data={{ a: 1, b: 2 }} virtualize={{ maxHeight: '200px' }} />,
-			],
-			[
 				'mounts virtualized with a custom estimateSize and overscan',
 				() => (
 					<JsonTree
 						data={{ a: 1, b: 2 }}
 						virtualize={{ maxHeight: '200px', estimateSize: 40, overscan: 5 }}
-					/>
-				),
-			],
-			[
-				'mounts virtualized with a controlled expanded set',
-				() => (
-					<JsonTree
-						data={{ a: 1 }}
-						virtualize={{ maxHeight: '200px' }}
-						expanded={new Set(['$'])}
-						onExpandedChange={() => {}}
 					/>
 				),
 			],
@@ -377,32 +362,6 @@ describe('JsonTree', () => {
 			const { container } = renderUI(ui())
 
 			expect(bySlot(container, 'json-tree')).toBeInTheDocument()
-		})
-
-		// The uncontrolled arm resolves search matches per render, and the hook
-		// tests cover it. A controlled tree takes the matches as one seed.
-		it('seeds the branches containing a match into a controlled set', () => {
-			const onExpandedChange = vi.fn()
-
-			// jsdom's zero-size viewport renders no rows, so the expansion seeding
-			// is observed through onExpandedChange rather than the DOM.
-			renderUI(
-				<JsonTree
-					data={{ outer: { inner: { needle: 'match' } } }}
-					virtualize={{ maxHeight: '200px' }}
-					search={{ value: 'needle' }}
-					expanded={new Set()}
-					onExpandedChange={onExpandedChange}
-				/>,
-			)
-
-			const seeded = onExpandedChange.mock.calls.at(-1)?.[0] as Set<string>
-
-			expect(seeded).toBeDefined()
-
-			expect(seeded.has('$.outer')).toBe(true)
-
-			expect(seeded.has('$.outer.inner')).toBe(true)
 		})
 
 		// B06-C14: the seed adds nothing to a fully expanded set, so the tree
@@ -514,21 +473,48 @@ describe('JsonTree', () => {
 	})
 })
 
+type LeafNode = Extract<FlatNode, { type: 'leaf' }>
+
+type BranchNode = Extract<FlatNode, { type: 'branch-open' }>
+
+// A root leaf. A case changes only the fields that it tests.
+function leafNode(overrides: Partial<LeafNode> = {}): LeafNode {
+	return {
+		type: 'leaf',
+		path: 'root',
+		keyName: undefined,
+		value: 1,
+		depth: 0,
+		setSize: 1,
+		posInSet: 1,
+		highlighted: false,
+		...overrides,
+	}
+}
+
+// A closed, empty root branch. A case changes only the fields that it tests.
+function branchNode(overrides: Partial<BranchNode> = {}): BranchNode {
+	return {
+		type: 'branch-open',
+		path: 'root',
+		keyName: undefined,
+		value: {},
+		depth: 0,
+		setSize: 1,
+		posInSet: 1,
+		open: false,
+		count: 0,
+		highlighted: false,
+		...overrides,
+	}
+}
+
 describe('JsonTreeNodeRow', () => {
 	it('renders a deeper leaf node with its key and value, out of the Tab order', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
 				index={0}
-				node={{
-					type: 'leaf',
-					path: 'root.a',
-					keyName: 'a',
-					value: 1,
-					depth: 1,
-					setSize: 1,
-					posInSet: 1,
-					highlighted: false,
-				}}
+				node={leafNode({ path: 'root.a', keyName: 'a', depth: 1 })}
 				onToggle={() => {}}
 			/>,
 		)
@@ -544,20 +530,7 @@ describe('JsonTreeNodeRow', () => {
 
 	it('marks the root leaf as focusable', () => {
 		const { container } = renderUI(
-			<JsonTreeNodeRow
-				index={0}
-				node={{
-					type: 'leaf',
-					path: 'root',
-					keyName: undefined,
-					value: 1,
-					depth: 0,
-					setSize: 1,
-					posInSet: 1,
-					highlighted: false,
-				}}
-				onToggle={() => {}}
-			/>,
+			<JsonTreeNodeRow index={0} node={leafNode()} onToggle={() => {}} />,
 		)
 
 		const node = bySlot(container, 'json-node')
@@ -584,18 +557,7 @@ describe('JsonTreeNodeRow', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
 				index={0}
-				node={{
-					type: 'branch-open',
-					path: 'root',
-					keyName: undefined,
-					value: [1, 2, 3],
-					depth: 0,
-					setSize: 1,
-					posInSet: 1,
-					open: false,
-					count: 3,
-					highlighted: false,
-				}}
+				node={branchNode({ value: [1, 2, 3], count: 3 })}
 				onToggle={() => {}}
 			/>,
 		)
@@ -611,22 +573,7 @@ describe('JsonTreeNodeRow', () => {
 
 	it('renders a closed branch-open row without a summary when count = 0', () => {
 		const { container } = renderUI(
-			<JsonTreeNodeRow
-				index={0}
-				node={{
-					type: 'branch-open',
-					path: 'root',
-					keyName: undefined,
-					value: {},
-					depth: 0,
-					setSize: 1,
-					posInSet: 1,
-					open: false,
-					count: 0,
-					highlighted: false,
-				}}
-				onToggle={() => {}}
-			/>,
+			<JsonTreeNodeRow index={0} node={branchNode()} onToggle={() => {}} />,
 		)
 
 		expect(screen.queryByText(/item/)).not.toBeInTheDocument()
@@ -636,22 +583,7 @@ describe('JsonTreeNodeRow', () => {
 
 	it('pluralizes the summary for exactly one item', () => {
 		renderUI(
-			<JsonTreeNodeRow
-				index={0}
-				node={{
-					type: 'branch-open',
-					path: 'root',
-					keyName: undefined,
-					value: [1],
-					depth: 0,
-					setSize: 1,
-					posInSet: 1,
-					open: false,
-					count: 1,
-					highlighted: false,
-				}}
-				onToggle={() => {}}
-			/>,
+			<JsonTreeNodeRow index={0} node={branchNode({ value: [1], count: 1 })} onToggle={() => {}} />,
 		)
 
 		expect(screen.getByText('1 item')).toBeInTheDocument()
@@ -663,18 +595,7 @@ describe('JsonTreeNodeRow', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
 				index={0}
-				node={{
-					type: 'branch-open',
-					path: 'root.a',
-					keyName: 'a',
-					value: { x: 1 },
-					depth: 1,
-					setSize: 1,
-					posInSet: 1,
-					open: false,
-					count: 1,
-					highlighted: false,
-				}}
+				node={branchNode({ path: 'root.a', keyName: 'a', value: { x: 1 }, depth: 1, count: 1 })}
 				onToggle={onToggle}
 			/>,
 		)
@@ -690,18 +611,7 @@ describe('JsonTreeNodeRow', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
 				index={0}
-				node={{
-					type: 'branch-open',
-					path: 'root',
-					keyName: undefined,
-					value: { a: 1 },
-					depth: 0,
-					setSize: 1,
-					posInSet: 1,
-					open: true,
-					count: 1,
-					highlighted: false,
-				}}
+				node={branchNode({ value: { a: 1 }, open: true, count: 1 })}
 				onToggle={() => {}}
 			/>,
 		)
@@ -719,16 +629,7 @@ describe('JsonTreeNodeRow tab stop', () => {
 		const { container, rerender } = renderUI(
 			<JsonTreeNodeRow
 				index={0}
-				node={{
-					type: 'leaf',
-					path: 'r.a.b',
-					keyName: 'b',
-					value: 1,
-					depth: 2,
-					highlighted: false,
-					setSize: 1,
-					posInSet: 1,
-				}}
+				node={leafNode({ path: 'r.a.b', keyName: 'b', depth: 2 })}
 				onToggle={() => {}}
 				tabbable
 			/>,
@@ -739,16 +640,7 @@ describe('JsonTreeNodeRow tab stop', () => {
 		rerender(
 			<JsonTreeNodeRow
 				index={0}
-				node={{
-					type: 'leaf',
-					path: 'r.a.b',
-					keyName: 'b',
-					value: 1,
-					depth: 2,
-					highlighted: false,
-					setSize: 1,
-					posInSet: 1,
-				}}
+				node={leafNode({ path: 'r.a.b', keyName: 'b', depth: 2 })}
 				onToggle={() => {}}
 			/>,
 		)
@@ -870,13 +762,13 @@ describe('JsonTree tree semantics', () => {
 		['virtualized', { maxHeight: '200px' }],
 	])('names the %s tree', (_name, virtualize) => {
 		it('with "JSON" when it has no name and no root key', () => {
-			renderUI(<JsonTree data={{ a: 1 }} />)
+			renderUI(<JsonTree data={{ a: 1 }} virtualize={virtualize} />)
 
 			expect(screen.getByRole('tree', { name: 'JSON' })).toBeInTheDocument()
 		})
 
 		it('with the root key when it has no name', () => {
-			renderUI(<JsonTree data={{ a: 1 }} rootKey="payload" />)
+			renderUI(<JsonTree data={{ a: 1 }} rootKey="payload" virtualize={virtualize} />)
 
 			expect(screen.getByRole('tree', { name: 'payload' })).toBeInTheDocument()
 		})
@@ -898,7 +790,7 @@ describe('JsonTree tree semantics', () => {
 			renderUI(
 				<>
 					<h2 id="json-tree-name">Request body</h2>
-					<JsonTree data={{ a: 1 }} aria-labelledby="json-tree-name" />
+					<JsonTree data={{ a: 1 }} aria-labelledby="json-tree-name" virtualize={virtualize} />
 				</>,
 			)
 
@@ -1261,18 +1153,14 @@ describe('JsonTreeNodeRow collapsible', () => {
 			<JsonTreeNodeRow
 				index={0}
 				collapsible="root"
-				node={{
-					type: 'branch-open',
+				node={branchNode({
 					path: '$.a',
 					keyName: 'a',
 					value: { b: 1 },
 					depth: 1,
 					open: true,
 					count: 1,
-					setSize: 1,
-					posInSet: 1,
-					highlighted: false,
-				}}
+				})}
 				onToggle={() => {}}
 			/>,
 		)

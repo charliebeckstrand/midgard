@@ -58,28 +58,15 @@ describe('SignaturePad', () => {
 		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-empty', '')
 	})
 
-	it('hides the placeholder when disabled', () => {
-		renderUI(<SignaturePad disabled placeholder="Sign here" />)
+	it.for([
+		['disabled', 'data-disabled'],
+		['readOnly', 'data-readonly'],
+	] as const)('hides the placeholder and sets the data attribute when %s', ([prop, attribute]) => {
+		const { container } = renderUI(<SignaturePad {...{ [prop]: true }} placeholder="Sign here" />)
 
 		expect(screen.queryByText('Sign here')).not.toBeInTheDocument()
-	})
 
-	it('hides the placeholder when readOnly', () => {
-		renderUI(<SignaturePad readOnly placeholder="Sign here" />)
-
-		expect(screen.queryByText('Sign here')).not.toBeInTheDocument()
-	})
-
-	it('sets data-disabled when disabled', () => {
-		const { container } = renderUI(<SignaturePad disabled />)
-
-		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-disabled', '')
-	})
-
-	it('sets data-readonly when readOnly', () => {
-		const { container } = renderUI(<SignaturePad readOnly />)
-
-		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-readonly', '')
+		expect(bySlot(container, 'signature-pad')).toHaveAttribute(attribute, '')
 	})
 
 	it('shows the default cursor when readOnly', () => {
@@ -239,25 +226,22 @@ describe('drawSnapshot', () => {
 
 		let captured: HTMLImageElement | null = null
 
-		const Original = window.Image
+		vi.stubGlobal(
+			'Image',
+			class extends Image {
+				constructor() {
+					super()
 
-		window.Image = class extends Original {
-			constructor() {
-				super()
+					captured = this
+				}
+			},
+		)
 
-				captured = this
-			}
-		} as typeof Image
-
-		try {
-			drawSnapshot(canvas, 'data:,hello')
-		} finally {
-			window.Image = Original
-		}
+		drawSnapshot(canvas, 'data:,hello')
 
 		;(captured as HTMLImageElement | null)?.onload?.(new Event('load'))
 
-		expect(drawImage).toHaveBeenCalled()
+		expect(drawImage).toHaveBeenCalledExactlyOnceWith(captured, 0, 0, 200, 80)
 	})
 })
 

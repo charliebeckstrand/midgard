@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox } from '../../components/checkbox'
-import { Control } from '../../components/control'
+import { Control, type ControlProps } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
@@ -68,53 +68,37 @@ describe('Control + Label', () => {
 	})
 })
 
-describe('Control + Description', () => {
-	it('auto-wires id from control', () => {
-		const { container } = renderUI(
-			<Control id="test">
-				<Description>Help text</Description>
-			</Control>,
-		)
+describe('Control + Description and Message', () => {
+	it.for<[string, string, () => ReactElement, string]>([
+		[
+			'Description auto-wires id from control',
+			'description',
+			() => <Description>Help text</Description>,
+			'test-description',
+		],
+		[
+			'Description explicit id overrides control-derived id',
+			'description',
+			() => <Description id="custom">Help text</Description>,
+			'custom',
+		],
+		['Message auto-wires id from control', 'message', () => <Message>Error</Message>, 'test-error'],
+		[
+			'Message explicit id overrides control-derived id',
+			'message',
+			() => <Message id="custom">Error</Message>,
+			'custom',
+		],
+	])('%s', ([, slot, child, id]) => {
+		const { container } = renderUI(<Control id="test">{child()}</Control>)
 
-		expect(bySlot(container, 'description')).toHaveAttribute('id', 'test-description')
+		expect(bySlot(container, slot)).toHaveAttribute('id', id)
 	})
 
-	it('explicit id overrides control-derived id', () => {
-		const { container } = renderUI(
-			<Control id="test">
-				<Description id="custom">Help text</Description>
-			</Control>,
-		)
-
-		expect(bySlot(container, 'description')).toHaveAttribute('id', 'custom')
-	})
-
-	it('has no id outside Control', () => {
+	it('Description has no id outside Control', () => {
 		const { container } = renderUI(<Description>Help text</Description>)
 
 		expect(bySlot(container, 'description')).not.toHaveAttribute('id')
-	})
-})
-
-describe('Control + Message', () => {
-	it('auto-wires id from control', () => {
-		const { container } = renderUI(
-			<Control id="test">
-				<Message>Error</Message>
-			</Control>,
-		)
-
-		expect(bySlot(container, 'message')).toHaveAttribute('id', 'test-error')
-	})
-
-	it('explicit id overrides control-derived id', () => {
-		const { container } = renderUI(
-			<Control id="test">
-				<Message id="custom">Error</Message>
-			</Control>,
-		)
-
-		expect(bySlot(container, 'message')).toHaveAttribute('id', 'custom')
 	})
 })
 
@@ -142,34 +126,18 @@ describe('Control + Input', () => {
 		expect(bySlot(container, 'input')).toHaveAttribute('id', 'custom')
 	})
 
-	it('inherits disabled from control', () => {
+	it.for<[string, Partial<ControlProps>, (input: HTMLElement | null) => void]>([
+		['disabled', { disabled: true }, (input) => expect(input).toBeDisabled()],
+		['required', { required: true }, (input) => expect(input).toBeRequired()],
+		['readOnly', { readOnly: true }, (input) => expect(input).toHaveAttribute('readonly')],
+	])('inherits %s from control', ([, props, check]) => {
 		const { container } = renderUI(
-			<Control disabled>
+			<Control {...props}>
 				<Input />
 			</Control>,
 		)
 
-		expect(bySlot(container, 'input')).toBeDisabled()
-	})
-
-	it('inherits required from control', () => {
-		const { container } = renderUI(
-			<Control required>
-				<Input />
-			</Control>,
-		)
-
-		expect(bySlot(container, 'input')).toBeRequired()
-	})
-
-	it('inherits readOnly from control', () => {
-		const { container } = renderUI(
-			<Control readOnly>
-				<Input />
-			</Control>,
-		)
-
-		expect(bySlot(container, 'input')).toHaveAttribute('readonly')
+		check(bySlot(container, 'input'))
 	})
 
 	it('sets data-invalid and aria-invalid when control is invalid', () => {
@@ -251,9 +219,7 @@ describe('Control + explicit control id', () => {
 
 		rerender(ui)
 
-		expect(warn).toHaveBeenCalledTimes(1)
-
-		expect(warn).toHaveBeenCalledWith(expect.stringContaining('htmlFor="custom"'))
+		expect(warn).toHaveBeenCalledExactlyOnceWith(expect.stringContaining('htmlFor="custom"'))
 	})
 
 	it.each<[string, () => ReactElement]>([
@@ -448,42 +414,34 @@ describe('Control nesting', () => {
 		expect(onChange).not.toHaveBeenCalled()
 	})
 
-	it('parent readOnly propagates to child Control input', () => {
+	// severity cascades like variant: a nested Control inherits the parent's
+	// error unless it sets its own severity.
+	it.for<[string, Partial<ControlProps>, (input: HTMLElement | null) => void]>([
+		[
+			'parent readOnly propagates to child Control input',
+			{ readOnly: true },
+			(input) => expect(input).toHaveAttribute('readonly'),
+		],
+		[
+			'parent required reaches the input of a child Control',
+			{ required: true },
+			(input) => expect(input).toBeRequired(),
+		],
+		[
+			'error severity propagates into a nested child Control',
+			{ severity: 'error' },
+			(input) => expect(input).toHaveAttribute('data-invalid'),
+		],
+	])('%s', ([, props, check]) => {
 		const { container } = renderUI(
-			<Control readOnly>
+			<Control {...props}>
 				<Control id="child">
 					<Input />
 				</Control>
 			</Control>,
 		)
 
-		expect(bySlot(container, 'input')).toHaveAttribute('readonly')
-	})
-
-	it('parent required reaches the input of a child Control', () => {
-		const { container } = renderUI(
-			<Control required>
-				<Control id="child">
-					<Input />
-				</Control>
-			</Control>,
-		)
-
-		expect(bySlot(container, 'input')).toBeRequired()
-	})
-
-	it('error severity propagates into a nested child Control', () => {
-		// severity cascades like variant: a nested Control inherits the
-		// parent's error unless it sets its own severity.
-		const { container } = renderUI(
-			<Control severity="error">
-				<Control id="child">
-					<Input />
-				</Control>
-			</Control>,
-		)
-
-		expect(bySlot(container, 'input')).toHaveAttribute('data-invalid')
+		check(bySlot(container, 'input'))
 	})
 
 	it('each nested Control has its own unique id', () => {

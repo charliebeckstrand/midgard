@@ -39,4 +39,19 @@ describe('List', () => {
 
 		expectTypeOf<Arms<ListProps<Item>>>().toEqualTypeOf<Before>()
 	})
+
+	it('requires getKey for reorderable configurations (compile-time)', () => {
+		// The index-key fallback gives positional keys, and a reorder changes them.
+		// Each item then mounts again during a drag. Thus `onReorder` without
+		// `getKey` must not typecheck.
+		// @ts-expect-error: onReorder requires getKey
+		const props: ListProps<Item> = {
+			items: [],
+			sortable: false,
+			onReorder: () => {},
+			children: () => null,
+		}
+
+		expectTypeOf(props).toExtend<ListProps<Item>>()
+	})
 })

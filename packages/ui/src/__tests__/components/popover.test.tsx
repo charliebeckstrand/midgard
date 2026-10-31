@@ -12,6 +12,9 @@ import {
 	setupUser,
 } from '../helpers'
 
+// PopoverContent renders through FloatingPortal, so the query reads the document.
+const popoverContent = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]')
+
 describe('Popover', () => {
 	it('renders a default button when PopoverTrigger has non-element children', () => {
 		const { container } = renderUI(
@@ -53,7 +56,7 @@ describe('Popover', () => {
 
 		expect(trigger).toHaveAttribute('aria-expanded', 'true')
 
-		expect(document.querySelector('[data-slot="popover-content"]')).not.toBeNull()
+		expect(popoverContent()).not.toBeNull()
 	})
 
 	it('preserves the original child element on an element trigger', () => {
@@ -158,21 +161,6 @@ describe('PopoverContent size scope', () => {
 })
 
 describe('Popover open/close control', () => {
-	const popoverContent = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]')
-
-	it('respects an explicit placement prop without throwing', () => {
-		renderUI(
-			<Popover open placement="right-start">
-				<PopoverTrigger>
-					<button type="button">Open</button>
-				</PopoverTrigger>
-				<PopoverContent>placed</PopoverContent>
-			</Popover>,
-		)
-
-		expect(popoverContent()).not.toBeNull()
-	})
-
 	it('omits content when controlled open=false', () => {
 		renderUI(
 			<Popover open={false} onOpenChange={() => {}}>
@@ -205,8 +193,6 @@ describe('Popover open/close control', () => {
 })
 
 describe('PopoverTrigger ignore subtree', () => {
-	const popoverContent = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]')
-
 	it('runs the handler of the child but not the toggle on a click in an ignored subtree', () => {
 		const track = vi.fn()
 
@@ -262,8 +248,6 @@ describe('PopoverTrigger ignore subtree', () => {
 })
 
 describe('Popover non-modal semantics', () => {
-	const content = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]')
-
 	it('exposes a labeled, non-modal dialog with no aria-modal', () => {
 		renderUI(
 			<Popover open>
@@ -274,13 +258,13 @@ describe('Popover non-modal semantics', () => {
 			</Popover>,
 		)
 
-		expect(content()).toHaveAttribute('role', 'dialog')
+		expect(popoverContent()).toHaveAttribute('role', 'dialog')
 
-		expect(content()).toHaveAccessibleName('Details')
+		expect(popoverContent()).toHaveAccessibleName('Details')
 
 		// The defining attribute of a *modal* dialog is absent, so the rest of the
 		// page stays in the accessibility tree and focus is not contained.
-		expect(content()).not.toHaveAttribute('aria-modal')
+		expect(popoverContent()).not.toHaveAttribute('aria-modal')
 	})
 
 	it('exposes a single dialog wired to the trigger, with no role on the positioning wrapper', () => {
@@ -297,7 +281,7 @@ describe('Popover non-modal semantics', () => {
 		// itself carries `role="dialog"`, not the positioning wrapper.
 		expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(1)
 
-		const panel = content()
+		const panel = popoverContent()
 
 		expect(panel?.parentElement).not.toHaveAttribute('role')
 
@@ -349,13 +333,11 @@ describe('Popover non-modal semantics', () => {
 
 		await user.tab()
 
-		expect(content()).not.toContainElement(document.activeElement as HTMLElement)
+		expect(popoverContent()).not.toContainElement(document.activeElement as HTMLElement)
 	})
 })
 
 describe('PopoverClose', () => {
-	const content = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]')
-
 	it('renders the standard Close button, which closes an uncontrolled popover', async () => {
 		const user = setupUser()
 
@@ -378,7 +360,7 @@ describe('PopoverClose', () => {
 
 		await user.click(close)
 
-		expect(content()).toBeNull()
+		expect(popoverContent()).toBeNull()
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
@@ -405,7 +387,7 @@ describe('PopoverClose', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Done' }))
 
-		expect(content()).toBeNull()
+		expect(popoverContent()).toBeNull()
 
 		expect(calls).toEqual(['child', 'close'])
 	})

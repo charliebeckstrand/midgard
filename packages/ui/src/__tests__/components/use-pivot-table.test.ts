@@ -33,9 +33,12 @@ describe('usePivotTable', () => {
 	})
 
 	it('aggregates cell values by sum by default', () => {
-		const { result } = renderHook(() => usePivotTable(data, keys))
+		// A second row in NA/Q1 gives each aggregation its own result: the sum is 140.
+		const rows = [...data, { region: 'NA', quarter: 'Q1', revenue: 40 }]
 
-		expect(result.current.cellValue('NA', 'Q1')).toBe(100)
+		const { result } = renderHook(() => usePivotTable(rows, keys))
+
+		expect(result.current.cellValue('NA', 'Q1')).toBe(140)
 
 		expect(result.current.cellValue('NA', 'Q2')).toBe(50)
 	})

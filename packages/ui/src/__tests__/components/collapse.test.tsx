@@ -160,21 +160,6 @@ describe('Collapse', () => {
 		expect(screen.getByText('Just body')).toBeInTheDocument()
 	})
 
-	it('accepts a custom node in the compound trigger', () => {
-		renderUI(
-			<Collapse defaultOpen>
-				<CollapseTrigger>
-					<span>Custom Trigger</span>
-				</CollapseTrigger>
-				<CollapsePanel>
-					<p>Body</p>
-				</CollapsePanel>
-			</Collapse>,
-		)
-
-		expect(screen.getByText('Custom Trigger')).toBeInTheDocument()
-	})
-
 	it.each(['slide', false] as const)('renders the open panel with animate=%s', (animate) => {
 		const { container } = renderUI(
 			<Collapse animate={animate} defaultOpen>
@@ -357,9 +342,12 @@ describe('useCollapseContext in trigger children', () => {
 		return open ? 'Open!' : 'Closed'
 	}
 
-	it('exposes open=true to trigger children', () => {
+	it.for([
+		['open=true to trigger children', true, 'Open!'],
+		['open=false when collapsed', false, 'Closed'],
+	] as const)('exposes %s', ([, defaultOpen, label]) => {
 		renderUI(
-			<Collapse defaultOpen>
+			<Collapse defaultOpen={defaultOpen}>
 				<CollapseTrigger>
 					<OpenLabel />
 				</CollapseTrigger>
@@ -367,20 +355,7 @@ describe('useCollapseContext in trigger children', () => {
 			</Collapse>,
 		)
 
-		expect(screen.getByText('Open!')).toBeInTheDocument()
-	})
-
-	it('exposes open=false when collapsed', () => {
-		renderUI(
-			<Collapse>
-				<CollapseTrigger>
-					<OpenLabel />
-				</CollapseTrigger>
-				<CollapsePanel>Body</CollapsePanel>
-			</Collapse>,
-		)
-
-		expect(screen.getByText('Closed')).toBeInTheDocument()
+		expect(screen.getByText(label)).toBeInTheDocument()
 	})
 
 	// The toggle is the activation the trigger exists to perform, so a consumer

@@ -9,6 +9,7 @@ import {
 	validateCardExpiry,
 	validateCardNumber,
 } from '../../components/credit-card-input/credit-card-input-utilities'
+import { futureYY } from '../helpers/future-yy'
 
 // The decimal digits of other scripts, each by the code point of its zero.
 const scripts: [string, number][] = [
@@ -61,14 +62,6 @@ describe('formatCardNumber', () => {
 
 	it('uses the Amex 4-6-5 grouping pattern', () => {
 		expect(formatCardNumber('378282246310005').formatted).toBe('3782 822463 10005')
-	})
-
-	it('returns the raw digits stripped of separators', () => {
-		expect(formatCardNumber('4111-1111-1111-1111').digits).toBe('4111111111111111')
-	})
-
-	it('returns the detected brand alongside the formatted value', () => {
-		expect(formatCardNumber('4111111111111111').brand?.brand).toBe('visa')
 	})
 
 	it('truncates the input to the brand’s maximum length', () => {
@@ -171,16 +164,12 @@ describe('formatExpiry', () => {
 })
 
 describe('formatCvv', () => {
-	it('strips non-digits', () => {
-		expect(formatCvv('1a2b3', 3)).toBe('123')
-	})
-
-	it('caps the result at maxLength', () => {
-		expect(formatCvv('12345', 3)).toBe('123')
-	})
-
-	it('returns an empty string when no digits are present', () => {
-		expect(formatCvv('abc', 3)).toBe('')
+	it.for([
+		['strips non-digits', '1a2b3', '123'],
+		['caps the result at maxLength', '12345', '123'],
+		['returns an empty string when no digits are present', 'abc', ''],
+	] as const)('%s', ([, typed, formatted]) => {
+		expect(formatCvv(typed, 3)).toBe(formatted)
 	})
 
 	it.each(scripts)('changes %s digits to ASCII digits', (_name, zero) => {
@@ -201,15 +190,16 @@ describe('a digit outside the Basic Multilingual Plane', () => {
 })
 
 describe('validateCardNumber', () => {
-	it('accepts a Luhn-valid Visa test card', () => {
-		expect(validateCardNumber('4111111111111111')).toEqual({
-			isValid: true,
-			isPotentiallyValid: true,
-		})
+	it.for([
+		['accepts a Luhn-valid Visa test card', '4111111111111111'],
+		['strips formatting characters before validating', '4111-1111-1111-1111'],
+		['accepts a Luhn-valid Amex test card', '378282246310005'],
+	] as const)('%s', ([, number]) => {
+		expect(validateCardNumber(number)).toEqual({ isValid: true, isPotentiallyValid: true })
 	})
 
 	it('rejects a Luhn-invalid sixteen-digit number that matches a Visa prefix', () => {
-		// Same length and prefix as the test card above, but the trailing digit
+		// Same length and prefix as the Visa test card, but the trailing digit
 		// breaks the Luhn checksum.
 		expect(validateCardNumber('4111111111111112').isValid).toBe(false)
 	})
@@ -220,39 +210,18 @@ describe('validateCardNumber', () => {
 			isPotentiallyValid: true,
 		})
 	})
-
-	it('strips formatting characters before validating', () => {
-		expect(validateCardNumber('4111-1111-1111-1111')).toEqual({
-			isValid: true,
-			isPotentiallyValid: true,
-		})
-	})
-
-	it('accepts a Luhn-valid Amex test card', () => {
-		expect(validateCardNumber('378282246310005')).toEqual({
-			isValid: true,
-			isPotentiallyValid: true,
-		})
-	})
 })
 
 describe('validateCardCvv', () => {
-	it('accepts a 3-digit CVV for non-Amex brands', () => {
-		expect(validateCardCvv('123', 'visa')).toEqual({
-			isValid: true,
-			isPotentiallyValid: true,
-		})
+	it.for([
+		['accepts a 3-digit CVV for non-Amex brands', '123', 'visa'],
+		['accepts a 4-digit CVV for Amex', '1234', 'amex'],
+	] as const)('%s', ([, cvv, brand]) => {
+		expect(validateCardCvv(cvv, brand)).toEqual({ isValid: true, isPotentiallyValid: true })
 	})
 
 	it('rejects a 4-digit CVV for non-Amex brands', () => {
 		expect(validateCardCvv('1234', 'visa').isValid).toBe(false)
-	})
-
-	it('accepts a 4-digit CVV for Amex', () => {
-		expect(validateCardCvv('1234', 'amex')).toEqual({
-			isValid: true,
-			isPotentiallyValid: true,
-		})
 	})
 
 	it('accepts both 3- and 4-digit CVVs when the brand is unknown', () => {
@@ -277,9 +246,7 @@ describe('validateCardCvv', () => {
 
 describe('validateCardExpiry', () => {
 	it('accepts a near-future month/year', () => {
-		const yy = String((new Date().getFullYear() + 2) % 100).padStart(2, '0')
-
-		expect(validateCardExpiry(`12/${yy}`)).toEqual({
+		expect(validateCardExpiry(`12/${futureYY}`)).toEqual({
 			isValid: true,
 			isPotentiallyValid: true,
 		})

@@ -1,5 +1,5 @@
 import { configure, getConfig } from '@testing-library/react'
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { StrictMode, useEffect, useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
 import { Toast, ToastProvider, useToast } from '../../components/toast'
@@ -7,6 +7,7 @@ import {
 	act,
 	fireEvent,
 	liveRegion,
+	nonEmpty,
 	present,
 	renderUI,
 	screen,
@@ -110,43 +111,43 @@ describe('Toast: useToast behavior', () => {
 		return <>{children}</>
 	}
 
-	it('adds a toast to the viewport when toast() is called', () => {
-		let api: ReturnType<typeof useToast> | null = null
+	/**
+	 * Renders a `ToastProvider` with `providerProps`, a {@link Trigger}, and
+	 * `children`. The default child is the viewport.
+	 *
+	 * @returns The context that the trigger reads.
+	 */
+	function renderToasts(
+		providerProps: Omit<ComponentProps<typeof ToastProvider>, 'children'> = {},
+		children: ReactNode = <Toast />,
+	) {
+		const seen: ReturnType<typeof useToast>[] = []
 
 		renderUI(
-			<ToastProvider>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
+			<ToastProvider {...providerProps}>
+				<Trigger onReady={(context) => seen.push(context)} />
+				{children}
 			</ToastProvider>,
 		)
 
-		act(() => {
-			api?.toast({ title: 'Saved' })
-		})
+		const [api] = nonEmpty(seen, 'toast context')
 
-		expect(screen.getByText('Saved')).toBeInTheDocument()
-	})
+		return api
+	}
 
 	it('gives each toast its own id on an origin with no crypto.randomUUID', () => {
 		// A plain-HTTP origin, such as a LAN address, is not a secure context, and
 		// `crypto.randomUUID` is not there. `crypto.getRandomValues` is.
 		vi.stubGlobal('crypto', { getRandomValues: crypto.getRandomValues.bind(crypto) })
 
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts()
 
 		const ids: (string | undefined)[] = []
 
 		act(() => {
-			ids.push(api?.toast({ title: 'First' }))
+			ids.push(api.toast({ title: 'First' }))
 
-			ids.push(api?.toast({ title: 'Second' }))
+			ids.push(api.toast({ title: 'Second' }))
 		})
 
 		expect(ids).not.toContain(undefined)
@@ -159,19 +160,12 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('routes severity to a polite or assertive live role', () => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts()
 
 		act(() => {
-			api?.toast({ title: 'Saved' })
+			api.toast({ title: 'Saved' })
 
-			api?.toast({ title: 'Failed', severity: 'error' })
+			api.toast({ title: 'Failed', severity: 'error' })
 		})
 
 		// Default toasts queue politely; errors interrupt. (The shared announcer
@@ -184,17 +178,10 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('mirrors polite toasts through the announcer (role=status alone is unreliable)', async () => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts()
 
 		act(() => {
-			api?.toast({ title: 'Saved', description: 'All changes stored' })
+			api.toast({ title: 'Saved', description: 'All changes stored' })
 		})
 
 		// The announcer writes asynchronously (after the next paint once it creates its region),
@@ -207,19 +194,12 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('dismisses a toast when dismiss() is called', () => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts()
 
 		let id = ''
 
 		act(() => {
-			id = api?.toast({ title: 'Dismissable' }) ?? ''
+			id = api.toast({ title: 'Dismissable' })
 		})
 
 		expect(screen.getByText('Dismissable')).toBeInTheDocument()
@@ -227,33 +207,31 @@ describe('Toast: useToast behavior', () => {
 		// First dismiss marks the toast as dismissed; a follow-up dismiss runs the
 		// "already dismissed" filter-removal branch.
 		act(() => {
-			api?.dismiss(id)
+			api.dismiss(id)
 		})
 
 		act(() => {
-			api?.dismiss(id)
+			api.dismiss(id)
 		})
 
 		expect(screen.queryByText('Dismissable')).not.toBeInTheDocument()
 	})
 
-	it('caps active toasts at maxToasts by dismissing the oldest', () => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider maxToasts={2}>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+	it('caps active toasts at maxToasts by dismissing the oldest', async ({ clock }) => {
+		const api = renderToasts({ maxToasts: 2 })
 
 		act(() => {
-			api?.toast({ title: 'A' })
+			api.toast({ title: 'A' })
 
-			api?.toast({ title: 'B' })
+			api.toast({ title: 'B' })
 
-			api?.toast({ title: 'C' })
+			api.toast({ title: 'C' })
 		})
+
+		// The clock runs the exit of the dismissed toast.
+		await clock.advance(100)
+
+		expect(screen.queryByText('A')).not.toBeInTheDocument()
 
 		expect(screen.getByText('B')).toBeInTheDocument()
 
@@ -261,17 +239,10 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('drains non-persist toasts after the duration elapses', async ({ clock }) => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider duration={1000}>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts({ duration: 1000 })
 
 		act(() => {
-			api?.toast({ title: 'Temporary' })
+			api.toast({ title: 'Temporary' })
 		})
 
 		expect(screen.getByText('Temporary')).toBeInTheDocument()
@@ -282,17 +253,10 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('keeps persist toasts past the duration', async ({ clock }) => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider duration={500}>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts({ duration: 500 })
 
 		act(() => {
-			api?.toast({ title: 'Sticky', persist: true })
+			api.toast({ title: 'Sticky', persist: true })
 		})
 
 		await clock.advance(1500)
@@ -301,17 +265,10 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('uses a per-toast duration override', async ({ clock }) => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider duration={100000}>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts({ duration: 100000 })
 
 		act(() => {
-			api?.toast({ title: 'Fast', duration: 200 })
+			api.toast({ title: 'Fast', duration: 200 })
 		})
 
 		await clock.advance(300)
@@ -320,17 +277,10 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('resets the dismiss timer when the toast is clicked', async ({ clock }) => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider duration={1000}>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts({ duration: 1000 })
 
 		act(() => {
-			api?.toast({ title: 'Clickable' })
+			api.toast({ title: 'Clickable' })
 		})
 
 		const title = screen.getByText('Clickable')
@@ -349,17 +299,10 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('pauses the timer on hover and resumes on leave', async ({ clock }) => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider duration={1000}>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts({ duration: 1000 })
 
 		act(() => {
-			api?.toast({ title: 'Hoverable' })
+			api.toast({ title: 'Hoverable' })
 		})
 
 		const title = screen.getByText('Hoverable')
@@ -380,17 +323,10 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('keeps the countdown running after a tap on the toast', async ({ clock }) => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider duration={1000}>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts({ duration: 1000 })
 
 		act(() => {
-			api?.toast({ title: 'Tapped' })
+			api.toast({ title: 'Tapped' })
 		})
 
 		const title = screen.getByText('Tapped')
@@ -410,17 +346,10 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('pauses the timer while focus is inside and resumes on focus leave', async ({ clock }) => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider duration={1000}>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts({ duration: 1000 })
 
 		act(() => {
-			api?.toast({ title: 'Focusable' })
+			api.toast({ title: 'Focusable' })
 		})
 
 		const title = screen.getByText('Focusable')
@@ -444,17 +373,10 @@ describe('Toast: useToast behavior', () => {
 	it('auto-dismisses later toasts after one is closed under a hovering pointer', async ({
 		clock,
 	}) => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider duration={1000}>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts({ duration: 1000 })
 
 		act(() => {
-			api?.toast({ title: 'First' })
+			api.toast({ title: 'First' })
 		})
 
 		// The pointer parks on the toast (pausing auto-dismiss) and never leaves;
@@ -472,7 +394,7 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.queryByText('First')).not.toBeInTheDocument()
 
 		act(() => {
-			api?.toast({ title: 'Second' })
+			api.toast({ title: 'Second' })
 		})
 
 		await clock.advance(2000)
@@ -483,17 +405,10 @@ describe('Toast: useToast behavior', () => {
 	it('auto-dismisses later toasts after one is closed while keyboard-focused', async ({
 		clock,
 	}) => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider duration={1000}>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts({ duration: 1000 })
 
 		act(() => {
-			api?.toast({ title: 'First' })
+			api.toast({ title: 'First' })
 		})
 
 		// Focus lands inside the toast (keyboard user), pausing auto-dismiss; the
@@ -510,7 +425,7 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.queryByText('First')).not.toBeInTheDocument()
 
 		act(() => {
-			api?.toast({ title: 'Second' })
+			api.toast({ title: 'Second' })
 		})
 
 		await clock.advance(2000)
@@ -521,17 +436,10 @@ describe('Toast: useToast behavior', () => {
 	it('keeps the timer paused when focus leaves while the pointer still hovers', async ({
 		clock,
 	}) => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider duration={1000}>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts({ duration: 1000 })
 
 		act(() => {
-			api?.toast({ title: 'Held' })
+			api.toast({ title: 'Held' })
 		})
 
 		const title = screen.getByText('Held')
@@ -577,17 +485,10 @@ describe('Toast: useToast behavior', () => {
 		// At `sm` and up, each position keeps its own edge.
 		stubMatchMedia(() => true)
 
-		let api: ReturnType<typeof useToast> | undefined
-
-		renderUI(
-			<ToastProvider>
-				<Toast position={position} />
-				<Trigger onReady={(c) => (api = c)} />
-			</ToastProvider>,
-		)
+		const api = renderToasts({}, <Toast position={position} />)
 
 		act(() => {
-			api?.toast({ title: `Slide-${position}` })
+			api.toast({ title: `Slide-${position}` })
 		})
 
 		const animated = screen.getByText(`Slide-${position}`).closest('[data-initial-transform]')
@@ -600,17 +501,10 @@ describe('Toast: useToast behavior', () => {
 	it('puts a position that names no `initial` on the bottom edge below its first breakpoint', () => {
 		stubMatchMedia(() => false)
 
-		let api: ReturnType<typeof useToast> | undefined
-
-		renderUI(
-			<ToastProvider>
-				<Toast position={{ sm: 'top-right' }} />
-				<Trigger onReady={(c) => (api = c)} />
-			</ToastProvider>,
-		)
+		const api = renderToasts({}, <Toast position={{ sm: 'top-right' }} />)
 
 		act(() => {
-			api?.toast({ title: 'No initial' })
+			api.toast({ title: 'No initial' })
 		})
 
 		const viewport = present(
@@ -634,17 +528,10 @@ describe('Toast: useToast behavior', () => {
 		// A single value holds at each width.
 		stubMatchMedia(() => false)
 
-		let api: ReturnType<typeof useToast> | undefined
-
-		renderUI(
-			<ToastProvider>
-				<Toast position="top-left" />
-				<Trigger onReady={(c) => (api = c)} />
-			</ToastProvider>,
-		)
+		const api = renderToasts({}, <Toast position="top-left" />)
 
 		act(() => {
-			api?.toast({ title: 'Narrow-top' })
+			api.toast({ title: 'Narrow-top' })
 		})
 
 		const animated = present(
@@ -662,17 +549,10 @@ describe('Toast: useToast behavior', () => {
 			// motion, and the gap must follow that edge.
 			stubMatchMedia(() => false)
 
-			let api: ReturnType<typeof useToast> | undefined
-
-			renderUI(
-				<ToastProvider>
-					<Toast position={{ initial: 'bottom', sm: position }} />
-					<Trigger onReady={(c) => (api = c)} />
-				</ToastProvider>,
-			)
+			const api = renderToasts({}, <Toast position={{ initial: 'bottom', sm: position }} />)
 
 			act(() => {
-				api?.toast({ title: `Narrow-${position}` })
+				api.toast({ title: `Narrow-${position}` })
 			})
 
 			const animated = present(
@@ -692,38 +572,29 @@ describe('Toast: useToast behavior', () => {
 		},
 	)
 
-	it.each([['info'], ['neutral'], ['success'], ['warning'], ['error']] as const)(
-		'renders a %s-severity toast',
-		(severity) => {
-			let api: ReturnType<typeof useToast> | undefined
-
-			renderUI(
-				<ToastProvider>
-					<Toast />
-					<Trigger onReady={(c) => (api = c)} />
-				</ToastProvider>,
-			)
-
-			act(() => {
-				api?.toast({ title: `T-${severity}`, severity })
-			})
-
-			expect(screen.getByText(`T-${severity}`)).toBeInTheDocument()
-		},
-	)
-
-	it('renders a toast without a close button when closable is false', () => {
-		let api: ReturnType<typeof useToast> | undefined
-
-		renderUI(
-			<ToastProvider>
-				<Toast />
-				<Trigger onReady={(c) => (api = c)} />
-			</ToastProvider>,
-		)
+	// A warning or an error interrupts, and each other severity waits its turn.
+	it.each([
+		['info', 'status'],
+		['neutral', 'status'],
+		['success', 'status'],
+		['warning', 'alert'],
+		['error', 'alert'],
+	] as const)('renders a %s-severity toast', (severity, role) => {
+		const api = renderToasts()
 
 		act(() => {
-			api?.toast({ title: 'Quiet', persist: true, closable: false })
+			api.toast({ title: `T-${severity}`, severity })
+		})
+
+		// The announcer region also takes `role="status"`, so the query reads the stack only.
+		expect(within(screen.getByRole('list')).getByRole(role)).toHaveTextContent(`T-${severity}`)
+	})
+
+	it('renders a toast without a close button when closable is false', () => {
+		const api = renderToasts()
+
+		act(() => {
+			api.toast({ title: 'Quiet', persist: true, closable: false })
 		})
 
 		expect(screen.getByText('Quiet')).toBeInTheDocument()
@@ -732,17 +603,10 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('dismisses the toast when the Alert close button is clicked', async ({ clock }) => {
-		let api: ReturnType<typeof useToast> | undefined
-
-		renderUI(
-			<ToastProvider duration={5000}>
-				<Toast />
-				<Trigger onReady={(c) => (api = c)} />
-			</ToastProvider>,
-		)
+		const api = renderToasts({ duration: 5000 })
 
 		act(() => {
-			api?.toast({ title: 'Closable', persist: true })
+			api.toast({ title: 'Closable', persist: true })
 		})
 
 		expect(screen.getByText('Closable')).toBeInTheDocument()
@@ -761,39 +625,25 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('ignores a dismiss call for an unknown toast id', () => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts()
 
 		// A silent no-op rather than a throw.
 		expect(() => {
 			act(() => {
-				api?.dismiss('does-not-exist')
+				api.dismiss('does-not-exist')
 			})
 		}).not.toThrow()
 	})
 
 	it('disables the maxToasts cap when set to 0', () => {
-		let api: ReturnType<typeof useToast> | null = null
-
-		renderUI(
-			<ToastProvider maxToasts={0}>
-				<Trigger onReady={(context) => (api = context)} />
-				<Toast />
-			</ToastProvider>,
-		)
+		const api = renderToasts({ maxToasts: 0 })
 
 		act(() => {
-			api?.toast({ title: 'One', persist: true })
+			api.toast({ title: 'One', persist: true })
 
-			api?.toast({ title: 'Two', persist: true })
+			api.toast({ title: 'Two', persist: true })
 
-			api?.toast({ title: 'Three', persist: true })
+			api.toast({ title: 'Three', persist: true })
 		})
 
 		// With maxToasts=0 the excess-cap branch is skipped; everything stays.
@@ -805,17 +655,10 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it('renders a toast with rich actions', () => {
-		let api: ReturnType<typeof useToast> | undefined
-
-		renderUI(
-			<ToastProvider>
-				<Toast />
-				<Trigger onReady={(c) => (api = c)} />
-			</ToastProvider>,
-		)
+		const api = renderToasts()
 
 		act(() => {
-			api?.toast({
+			api.toast({
 				title: 'With description',
 				description: 'Body text',
 				actions: <button type="button">Undo</button>,
@@ -837,21 +680,14 @@ describe('Toast: useToast behavior', () => {
 	 */
 	describe('onDismiss', () => {
 		it('names a dismiss() call, once, across the mark-then-remove pair', () => {
-			let api: ReturnType<typeof useToast> | undefined
-
 			const onDismiss = vi.fn()
 
-			renderUI(
-				<ToastProvider>
-					<Trigger onReady={(c) => (api = c)} />
-					<Toast />
-				</ToastProvider>,
-			)
+			const api = renderToasts()
 
 			let id = ''
 
 			act(() => {
-				id = api?.toast({ title: 'Dismissable', onDismiss }) ?? ''
+				id = api.toast({ title: 'Dismissable', onDismiss })
 			})
 
 			expect(onDismiss).not.toHaveBeenCalled()
@@ -859,30 +695,23 @@ describe('Toast: useToast behavior', () => {
 			// The first call marks it and the second runs the removal branch; one departure,
 			// so one report.
 			act(() => {
-				api?.dismiss(id)
+				api.dismiss(id)
 			})
 
 			act(() => {
-				api?.dismiss(id)
+				api.dismiss(id)
 			})
 
 			expect(onDismiss).toHaveBeenCalledExactlyOnceWith('dismissed')
 		})
 
 		it('names the reader closing it', () => {
-			let api: ReturnType<typeof useToast> | undefined
-
 			const onDismiss = vi.fn()
 
-			renderUI(
-				<ToastProvider duration={5000}>
-					<Toast />
-					<Trigger onReady={(c) => (api = c)} />
-				</ToastProvider>,
-			)
+			const api = renderToasts({ duration: 5000 })
 
 			act(() => {
-				api?.toast({ title: 'Closable', persist: true, onDismiss })
+				api.toast({ title: 'Closable', persist: true, onDismiss })
 			})
 
 			act(() => {
@@ -893,21 +722,14 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		it('names the cap pushing the oldest out', () => {
-			let api: ReturnType<typeof useToast> | undefined
-
 			const onDismiss = vi.fn()
 
-			renderUI(
-				<ToastProvider maxToasts={1}>
-					<Trigger onReady={(c) => (api = c)} />
-					<Toast />
-				</ToastProvider>,
-			)
+			const api = renderToasts({ maxToasts: 1 })
 
 			act(() => {
-				api?.toast({ title: 'First', persist: true, onDismiss })
+				api.toast({ title: 'First', persist: true, onDismiss })
 
-				api?.toast({ title: 'Second', persist: true })
+				api.toast({ title: 'Second', persist: true })
 			})
 
 			// Evicted to make room, not dismissed by anyone: a caller that retries on
@@ -916,19 +738,12 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		it('names the lifetime running out', async ({ clock }) => {
-			let api: ReturnType<typeof useToast> | undefined
-
 			const onDismiss = vi.fn()
 
-			renderUI(
-				<ToastProvider duration={1000}>
-					<Trigger onReady={(c) => (api = c)} />
-					<Toast />
-				</ToastProvider>,
-			)
+			const api = renderToasts({ duration: 1000 })
 
 			act(() => {
-				api?.toast({ title: 'Fleeting', onDismiss })
+				api.toast({ title: 'Fleeting', onDismiss })
 			})
 
 			await clock.advance(1000)
@@ -937,22 +752,15 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		it('rides its own toast rather than the stack', async ({ clock }) => {
-			let api: ReturnType<typeof useToast> | undefined
-
 			const onFirst = vi.fn()
 			const onSecond = vi.fn()
 
-			renderUI(
-				<ToastProvider duration={1000}>
-					<Trigger onReady={(c) => (api = c)} />
-					<Toast />
-				</ToastProvider>,
-			)
+			const api = renderToasts({ duration: 1000 })
 
 			act(() => {
-				api?.toast({ title: 'First', onDismiss: onFirst })
+				api.toast({ title: 'First', onDismiss: onFirst })
 
-				api?.toast({ title: 'Second', onDismiss: onSecond })
+				api.toast({ title: 'Second', onDismiss: onSecond })
 			})
 
 			await clock.advance(1000)
@@ -965,19 +773,12 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		it('times out a toast whose id is an empty string', async ({ clock }) => {
-			let api: ReturnType<typeof useToast> | undefined
-
 			const onDismiss = vi.fn()
 
-			renderUI(
-				<ToastProvider>
-					<Trigger onReady={(c) => (api = c)} />
-					<Toast />
-				</ToastProvider>,
-			)
+			const api = renderToasts()
 
 			act(() => {
-				api?.toast({ id: '', title: 'Blank', duration: 100, onDismiss })
+				api.toast({ id: '', title: 'Blank', duration: 100, onDismiss })
 			})
 
 			await clock.advance(100)
@@ -989,26 +790,19 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		it('times each toast out on its own duration, not the newest', async ({ clock }) => {
-			let api: ReturnType<typeof useToast> | undefined
-
 			const onLong = vi.fn()
 			const onShort = vi.fn()
 
-			renderUI(
-				<ToastProvider>
-					<Trigger onReady={(c) => (api = c)} />
-					<Toast />
-				</ToastProvider>,
-			)
+			const api = renderToasts()
 
 			act(() => {
-				api?.toast({ title: 'Long', duration: 10000, onDismiss: onLong })
+				api.toast({ title: 'Long', duration: 10000, onDismiss: onLong })
 			})
 
 			await clock.advance(1000)
 
 			act(() => {
-				api?.toast({ title: 'Short', duration: 1000, onDismiss: onShort })
+				api.toast({ title: 'Short', duration: 1000, onDismiss: onShort })
 			})
 
 			// The short toast's time is up. The long toast has 8000 ms left.
@@ -1022,30 +816,23 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		it('keeps the reason when dismiss is passed by reference', () => {
-			let api: ReturnType<typeof useToast> | undefined
-
 			const onFirst = vi.fn()
 			const onSecond = vi.fn()
 
-			renderUI(
-				<ToastProvider>
-					<Trigger onReady={(c) => (api = c)} />
-					<Toast />
-				</ToastProvider>,
-			)
+			const api = renderToasts()
 
 			let ids: string[] = []
 
 			act(() => {
 				ids = [
-					api?.toast({ title: 'First', onDismiss: onFirst }) ?? '',
-					api?.toast({ title: 'Second', onDismiss: onSecond }) ?? '',
+					api.toast({ title: 'First', onDismiss: onFirst }),
+					api.toast({ title: 'Second', onDismiss: onSecond }),
 				]
 			})
 
 			// `forEach` gives the index as a second argument. It must not become the reason.
 			act(() => {
-				if (api) ids.forEach(api.dismiss)
+				ids.forEach(api.dismiss)
 			})
 
 			expect(onFirst).toHaveBeenCalledExactlyOnceWith('dismissed')
@@ -1056,24 +843,18 @@ describe('Toast: useToast behavior', () => {
 		// The viewport loads late or not at all, so no exit animation runs. The queue
 		// must not wait for an exit callback that never comes.
 		it('names each timeout in turn with no viewport mounted', async ({ clock }) => {
-			let api: ReturnType<typeof useToast> | undefined
-
 			const onA = vi.fn()
 
 			const onB = vi.fn()
 
 			const onC = vi.fn()
 
-			renderUI(
-				<ToastProvider>
-					<Trigger onReady={(c) => (api = c)} />
-				</ToastProvider>,
-			)
+			const api = renderToasts({}, null)
 
 			act(() => {
-				api?.toast({ title: 'A', duration: 100, onDismiss: onA })
-				api?.toast({ title: 'B', duration: 200, onDismiss: onB })
-				api?.toast({ title: 'C', duration: 300, onDismiss: onC })
+				api.toast({ title: 'A', duration: 100, onDismiss: onA })
+				api.toast({ title: 'B', duration: 200, onDismiss: onB })
+				api.toast({ title: 'C', duration: 300, onDismiss: onC })
 			})
 
 			await clock.advance(5000)
@@ -1084,22 +865,15 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		it('staggers the timeouts with the viewport mounted', async ({ clock }) => {
-			let api: ReturnType<typeof useToast> | undefined
-
 			const onA = vi.fn()
 
 			const onB = vi.fn()
 
-			renderUI(
-				<ToastProvider>
-					<Trigger onReady={(c) => (api = c)} />
-					<Toast />
-				</ToastProvider>,
-			)
+			const api = renderToasts()
 
 			act(() => {
-				api?.toast({ title: 'A', duration: 100, onDismiss: onA })
-				api?.toast({ title: 'B', duration: 100, onDismiss: onB })
+				api.toast({ title: 'A', duration: 100, onDismiss: onA })
+				api.toast({ title: 'B', duration: 100, onDismiss: onB })
 			})
 
 			await clock.advance(100)
@@ -1119,19 +893,12 @@ describe('Toast: useToast behavior', () => {
 
 	describe('focus on close', () => {
 		it('moves focus to the next toast when a focused toast closes', () => {
-			let api: ReturnType<typeof useToast> | null = null
-
-			renderUI(
-				<ToastProvider>
-					<Trigger onReady={(context) => (api = context)} />
-					<Toast />
-				</ToastProvider>,
-			)
+			const api = renderToasts()
 
 			act(() => {
-				api?.toast({ title: 'First', persist: true })
+				api.toast({ title: 'First', persist: true })
 
-				api?.toast({ title: 'Second', persist: true })
+				api.toast({ title: 'Second', persist: true })
 			})
 
 			const close = within(screen.getByText('Second').closest('li') as HTMLElement).getByRole(
@@ -1151,14 +918,12 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		it('moves focus out when an action in the focused toast calls dismiss', () => {
-			let api: ReturnType<typeof useToast> | null = null
-
-			renderUI(
-				<ToastProvider>
-					<Trigger onReady={(context) => (api = context)} />
+			const api = renderToasts(
+				{},
+				<>
 					<button type="button">Delete</button>
 					<Toast />
-				</ToastProvider>,
+				</>,
 			)
 
 			const trigger = screen.getByRole('button', { name: 'Delete' })
@@ -1166,11 +931,11 @@ describe('Toast: useToast behavior', () => {
 			act(() => trigger.focus())
 
 			act(() => {
-				const id = api?.toast({
+				const id = api.toast({
 					title: 'Deleted',
 					persist: true,
 					actions: (
-						<button type="button" onClick={() => api?.dismiss(id as string)}>
+						<button type="button" onClick={() => api.dismiss(id as string)}>
 							Undo
 						</button>
 					),
@@ -1243,14 +1008,12 @@ describe('Toast: useToast behavior', () => {
 		it('returns focus to the page control when the last focused toast closes', async ({
 			clock,
 		}) => {
-			let api: ReturnType<typeof useToast> | null = null
-
-			renderUI(
-				<ToastProvider>
-					<Trigger onReady={(context) => (api = context)} />
+			const api = renderToasts(
+				{},
+				<>
 					<button type="button">Save</button>
 					<Toast />
-				</ToastProvider>,
+				</>,
 			)
 
 			const save = screen.getByRole('button', { name: 'Save' })
@@ -1258,7 +1021,7 @@ describe('Toast: useToast behavior', () => {
 			act(() => save.focus())
 
 			act(() => {
-				api?.toast({ title: 'Saved', persist: true })
+				api.toast({ title: 'Saved', persist: true })
 			})
 
 			const close = screen.getByRole('button', { name: 'Dismiss' })
@@ -1277,21 +1040,14 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		it('skips a neighbor with no control when a focused toast closes', () => {
-			let api: ReturnType<typeof useToast> | null = null
-
-			renderUI(
-				<ToastProvider>
-					<Trigger onReady={(context) => (api = context)} />
-					<Toast />
-				</ToastProvider>,
-			)
+			const api = renderToasts()
 
 			act(() => {
-				api?.toast({ title: 'Far', persist: true })
+				api.toast({ title: 'Far', persist: true })
 
-				api?.toast({ title: 'Quiet', persist: true, closable: false })
+				api.toast({ title: 'Quiet', persist: true, closable: false })
 
-				api?.toast({ title: 'Near', persist: true })
+				api.toast({ title: 'Near', persist: true })
 			})
 
 			const close = within(screen.getByText('Near').closest('li') as HTMLElement).getByRole(
@@ -1311,14 +1067,12 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		it('returns focus to the page control when no other toast has a control', () => {
-			let api: ReturnType<typeof useToast> | null = null
-
-			renderUI(
-				<ToastProvider>
-					<Trigger onReady={(context) => (api = context)} />
+			const api = renderToasts(
+				{},
+				<>
 					<button type="button">Save</button>
 					<Toast />
-				</ToastProvider>,
+				</>,
 			)
 
 			const save = screen.getByRole('button', { name: 'Save' })
@@ -1326,9 +1080,9 @@ describe('Toast: useToast behavior', () => {
 			act(() => save.focus())
 
 			act(() => {
-				api?.toast({ title: 'Uploading', persist: true, closable: false })
+				api.toast({ title: 'Uploading', persist: true, closable: false })
 
-				api?.toast({ title: 'Saved', persist: true })
+				api.toast({ title: 'Saved', persist: true })
 			})
 
 			const close = screen.getByRole('button', { name: 'Dismiss' })
@@ -1343,20 +1097,18 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		it('does not move focus when a toast times out while focus is elsewhere', async ({ clock }) => {
-			let api: ReturnType<typeof useToast> | null = null
-
-			renderUI(
-				<ToastProvider duration={1000}>
-					<Trigger onReady={(context) => (api = context)} />
+			const api = renderToasts(
+				{ duration: 1000 },
+				<>
 					<button type="button">Save</button>
 					<Toast />
-				</ToastProvider>,
+				</>,
 			)
 
 			act(() => {
-				api?.toast({ title: 'First', persist: true })
+				api.toast({ title: 'First', persist: true })
 
-				api?.toast({ title: 'Second' })
+				api.toast({ title: 'Second' })
 			})
 
 			const save = screen.getByRole('button', { name: 'Save' })
