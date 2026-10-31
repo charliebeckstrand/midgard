@@ -4,8 +4,8 @@ import {
 	createSelectOption,
 	Option,
 	type OptionSelectionContext,
-	useOptionSelection,
 } from '../../primitives/option/option'
+import { useOptionSelection } from '../../primitives/option/use-option-selection'
 import { createKeyedStore } from '../../utilities'
 import { bySlot, fireEvent, noop, renderUI, screen } from '../helpers'
 

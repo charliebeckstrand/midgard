@@ -5,5 +5,5 @@ export {
 	type OptionSelectionContext,
 	type OptionTextProps,
 	type SelectOptionProps,
-	useOptionSelection,
 } from './option'
+export { useOptionSelection } from './use-option-selection'
