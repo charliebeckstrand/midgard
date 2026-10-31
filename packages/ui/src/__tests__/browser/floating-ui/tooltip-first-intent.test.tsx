@@ -238,3 +238,71 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 		await expectClosed()
 	})
 })
+
+/**
+ * A tooltip that mounts before the load and stays closed while the module
+ * loads in idle time. Its state starts on the first intent after the load, so
+ * the first hover, focus, or click opens it as before.
+ */
+describe('Tooltip first intent after the idle load (real browser)', () => {
+	/** Releases the loader and waits for the module, with no intent on the trigger. */
+	async function loadIdle() {
+		tooltipLoad.release()
+
+		await tooltipBody.load()
+
+		await pause(50)
+	}
+
+	it('opens a hover at the end of the delay', async () => {
+		const { container } = renderTip({ delay: 0 })
+
+		await loadIdle()
+
+		expect(screen.queryByText('Tip')).not.toBeInTheDocument()
+
+		await userEvent.hover(getSlot(container, 'tooltip-trigger'))
+
+		await expectOpen()
+	})
+
+	it('opens a keyboard focus at once', async () => {
+		renderTip()
+
+		await loadIdle()
+
+		await userEvent.keyboard('{Tab}')
+
+		await expectOpen()
+	})
+
+	it('opens a click tooltip on the first click, and closes it on the second', async () => {
+		const { container } = renderTip({ trigger: 'click' })
+
+		await loadIdle()
+
+		const trigger = getSlot(container, 'tooltip-trigger')
+
+		await userEvent.click(trigger)
+
+		await expectOpen()
+
+		await userEvent.click(trigger)
+
+		await waitFor(() => expect(screen.queryByText('Tip')).not.toBeInTheDocument())
+	})
+
+	it('does not open a hover that left the trigger before the delay', async () => {
+		const { container } = renderTip({ delay: 150 }, { outside: true })
+
+		await loadIdle()
+
+		await userEvent.hover(getSlot(container, 'tooltip-trigger'))
+
+		await userEvent.hover(getSlot(container, 'outside'))
+
+		await pause(300)
+
+		expect(screen.queryByText('Tip')).not.toBeInTheDocument()
+	})
+})

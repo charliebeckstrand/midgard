@@ -109,11 +109,13 @@ const serverModule = () => null
  *
  * The floating state loads on demand, with the panel, so a page that only
  * shows a trigger does not load Floating UI before it is interactive.
- * `<TooltipContent>` schedules the load in idle time. Before the load, native
- * listeners on the trigger start the load on a hover, a focus, or a click,
- * and the state replays that intent when it takes over. A hover opens after
- * the same delay, a keyboard focus opens at once, and a click toggles. An
- * `open` tooltip starts the load at once.
+ * `<TooltipContent>` schedules the load in idle time. A tooltip that mounts
+ * before the load starts its state on the first hover, focus, or click, so a
+ * closed tooltip does no work when the module loads. Until then, native
+ * listeners on the trigger start the load and record the intent, and the
+ * state replays that intent when it takes over. A hover opens after the same
+ * delay, a keyboard focus opens at once, and a click toggles. An `open`
+ * tooltip starts the load and the state at once.
  * @see {@link useTooltipState}
  */
 export function Tooltip({ disabled, children, ...props }: TooltipProps) {
@@ -147,16 +149,27 @@ type LightTooltipProps = Omit<TooltipProps, 'disabled'> & { enabled: boolean }
 
 /**
  * A `<Tooltip>` that mounted before the state module loaded, or that hydrated
- * server markup. It shares a
- * closed state and records the intent of the reader. When the module loads,
- * it renders `TooltipStateHost` beside its children and shares the value that
- * the host gives, with the open state of its own props.
+ * server markup. It shares a closed state and records the intent of the
+ * reader. On the first hover, focus, or click, or when `open` holds it, it
+ * renders `TooltipStateHost` beside its children when the module is loaded. It
+ * then shares the value that the host gives, with the open state of its own
+ * props.
  */
 function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
 	const { trigger = 'hover', interactive = false, open: held = false } = props
 
 	// A tooltip that `open` holds open needs its state now.
 	const module = useLazyModule(tooltipBody, enabled && held)
+
+	const { setReference, takeIntent, intended } = useTooltipIntent({ enabled, trigger })
+
+	// The state starts on the first hover, focus, or click, or when `open` holds
+	// the tooltip. A closed tooltip thus renders no state when the module loads
+	// in idle time. The state stays after it starts, so the value that it gave
+	// does not go stale.
+	const [started, setStarted] = useState(false)
+
+	if (!started && (intended || (enabled && held))) setStarted(true)
 
 	// The loaded state, which `TooltipStateHost` gives back.
 	const [state, setState] = useState<TooltipState | null>(null)
@@ -174,8 +187,6 @@ function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
 		() => state && (state.value.open === open ? state.value : { ...state.value, open }),
 		[state, open],
 	)
-
-	const { setReference, takeIntent } = useTooltipIntent({ enabled, trigger })
 
 	// Until the state loads, the tooltip is closed. The trigger gives its node to
 	// the intent listeners.
@@ -197,7 +208,7 @@ function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
 	// host mounts, so the trigger does not mount again and keeps its focus.
 	return (
 		<TooltipContext value={value ?? light}>
-			{module && (
+			{module && started && (
 				<module.TooltipStateHost
 					{...props}
 					enabled={enabled}

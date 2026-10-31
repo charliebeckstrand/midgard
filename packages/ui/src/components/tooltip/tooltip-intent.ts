@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { isComposing } from '../../utilities/is-composing'
 import { tooltipBody } from './tooltip-body-loader'
@@ -141,10 +141,11 @@ function focusOpens(event: FocusEvent): boolean {
 }
 
 /**
- * Adds the native listeners of a trigger that has no tooltip state yet. Each
- * listener starts the load of the state module and records the intent that
- * the state replays. The listeners keep the gates of the interaction hooks of
- * Floating UI, so they record only an intent that would open the tooltip.
+ * Adds the native listeners of a trigger that has no tooltip state yet. A
+ * hover, a focus, or a click starts the load of the state module and calls
+ * `onIntent`. The listeners also record the intent that the state replays.
+ * They keep the gates of the interaction hooks of Floating UI, so they record
+ * only an intent that would open the tooltip.
  *
  * @returns A function that removes the listeners.
  */
@@ -152,8 +153,15 @@ function listenForIntent(
 	node: HTMLElement,
 	intent: TooltipIntent,
 	readOptions: () => IntentOptions,
+	onIntent: () => void,
 ): () => void {
 	const doc = node.ownerDocument
+
+	const start = () => {
+		void tooltipBody.load()
+
+		onIntent()
+	}
 
 	const win = doc.defaultView ?? window
 
@@ -170,7 +178,7 @@ function listenForIntent(
 	}
 
 	const onPointerEnter = (event: PointerEvent) => {
-		void tooltipBody.load()
+		start()
 
 		intent.pointer = event.pointerType
 
@@ -191,7 +199,7 @@ function listenForIntent(
 	}
 
 	const onFocusIn = (event: FocusEvent) => {
-		void tooltipBody.load()
+		start()
 
 		if (!readOptions().enabled || blockFocus || !focusOpens(event)) return
 
@@ -213,7 +221,7 @@ function listenForIntent(
 	}
 
 	const onClick = (event: MouseEvent) => {
-		void tooltipBody.load()
+		start()
 
 		const { enabled, trigger } = readOptions()
 
@@ -250,7 +258,7 @@ function listenForIntent(
 		) {
 			intent.reenabled = true
 
-			void tooltipBody.load()
+			start()
 		}
 
 		disabled = next
@@ -279,13 +287,14 @@ function listenForIntent(
 }
 
 /**
- * The first state of a {@link Tooltip} trigger, before the module of the
- * tooltip state loads. It holds no Floating UI. Native listeners on the
- * trigger start the load on a hover, a focus, or a click, and record the
+ * The first state of a {@link Tooltip} trigger, before the tooltip state
+ * starts. It holds no Floating UI. Native listeners on the trigger start the
+ * load of the state module on a hover, a focus, or a click, and record the
  * intent. `useTooltipState` takes the intent when it takes over the trigger.
  *
- * @returns `setReference`, which the trigger calls with its node, and
- * `takeIntent`, which removes the listeners and gives the recorded intent.
+ * @returns `setReference`, which the trigger calls with its node, `takeIntent`,
+ * which removes the listeners and gives the recorded intent, and `intended`,
+ * which is true after the first hover, focus, or click on the trigger.
  * @internal
  */
 export function useTooltipIntent(options: IntentOptions) {
@@ -295,6 +304,12 @@ export function useTooltipIntent(options: IntentOptions) {
 	const intentRef = useRef<TooltipIntent>(createIntent())
 
 	const stopRef = useRef<(() => void) | null>(null)
+
+	// The tooltip state starts on the first intent, so a closed tooltip does no
+	// work when the module loads in idle time. The value stays true after that.
+	const [intended, setIntended] = useState(false)
+
+	const onIntent = useCallback(() => setIntended(true), [])
 
 	const setReference = useCallback(
 		(node: HTMLElement | null) => {
@@ -306,9 +321,9 @@ export function useTooltipIntent(options: IntentOptions) {
 			// because it tells which pointer is on the node.
 			intentRef.current = createIntent()
 
-			if (node) stopRef.current = listenForIntent(node, intentRef.current, readOptions)
+			if (node) stopRef.current = listenForIntent(node, intentRef.current, readOptions, onIntent)
 		},
-		[readOptions],
+		[readOptions, onIntent],
 	)
 
 	const takeIntent = useCallback((): TooltipIntent => {
@@ -335,5 +350,5 @@ export function useTooltipIntent(options: IntentOptions) {
 		[],
 	)
 
-	return { setReference, takeIntent }
+	return { setReference, takeIntent, intended }
 }
