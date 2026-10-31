@@ -1,10 +1,11 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import { type ComponentProps, memo, use, useCallback, useId } from 'react'
+import { type ComponentProps, memo, use, useCallback, useId, useMemo } from 'react'
 import { ariaAttr, cn, composeEventHandlers, createContext, dataAttr } from '../../core'
+import { useKeyedStore, useKeyedValue } from '../../hooks/use-keyed-store'
 import { k } from '../../recipes/kata/option'
-import { capitalizeFirst, getOrCompute } from '../../utilities'
+import { capitalizeFirst, type KeyedStore } from '../../utilities'
 
 /**
  * Props for {@link Option}: selection state (`selected`, `disabled`), the
@@ -220,16 +221,51 @@ export type SelectOptionProps<TValue = unknown> = {
 >
 
 /**
- * Selection state a {@link createSelectOption} host exposes through its context:
- * the current `value` (an array when `multiple`), and the `multiple` flag. It
- * also holds the `onSelect` callback fired when an option is activated, and the
- * `capitalize` flag that first-word-capitalizes string option labels at render.
+ * Selection state a {@link createSelectOption} host exposes through its context.
+ * `selection` tells for each option value whether it is selected. It is a keyed
+ * store with a fixed identity, so a selection change renders only the options
+ * whose state changes, not each option of the list. Make it with
+ * {@link useOptionSelection}. The context also holds the `multiple` flag, the
+ * `onSelect` callback fired when an option is activated, and the `capitalize`
+ * flag that first-word-capitalizes string option labels at render.
  */
 export type OptionSelectionContext<TValue = unknown> = {
-	value: TValue | TValue[] | undefined
+	selection: KeyedStore<TValue, boolean>
 	multiple?: boolean
 	onSelect: (value: TValue) => void
 	capitalize?: boolean
+}
+
+/** Reads the membership of one selection: a set in `multiple` mode, else an identity check. */
+function selectionReader(multiple: boolean) {
+	return (selected: unknown): ((value: unknown) => boolean) => {
+		if (!multiple) return (value) => value === selected
+
+		// The set is built once for each selection, so a toggle costs O(n + k)
+		// and not the O(n·k) of an `includes` scan for each option.
+		const set = new Set(Array.isArray(selected) ? selected : [])
+
+		return (value) => set.has(value)
+	}
+}
+
+/**
+ * The `selection` store of an {@link OptionSelectionContext}, for the selected
+ * value of the host (an array when `multiple`). The store keeps its identity.
+ * A layout effect gives each new selection to the store, and only the options
+ * whose state changes render again.
+ *
+ * @param selected - The selected value: one value, or an array when `multiple`.
+ * @param multiple - Whether `selected` is an array of values.
+ * @returns The store to pass as `selection`.
+ */
+export function useOptionSelection(
+	selected: unknown,
+	multiple: boolean,
+): KeyedStore<unknown, boolean> {
+	const reader = useMemo(() => selectionReader(multiple), [multiple])
+
+	return useKeyedStore(selected, reader)
 }
 
 /**
@@ -249,26 +285,6 @@ export function hasSelection(value: unknown, multiple: boolean): boolean {
 // change. This boolean does not change with the selection, so a `Label` skips
 // that work.
 const [CapitalizeContext] = createContext('OptionCapitalize', { default: false })
-
-// Membership sets keyed by the selected-values array. Every option in one render
-// reads the same array reference off the host context, so the first option to
-// look up builds the set (O(k)) and the rest reuse it (O(1)): a multi-select
-// toggle costs O(n + k), not the O(n·k) of an `includes` scan per option. The
-// host swaps in a new array on change, so a WeakMap keys cleanly and old sets
-// are collected with their arrays.
-const membershipCache = new WeakMap<readonly unknown[], Set<unknown>>()
-
-function isSelected(
-	selectedValue: unknown,
-	value: unknown,
-	multiple: boolean | undefined,
-): boolean {
-	if (multiple && Array.isArray(selectedValue)) {
-		return getOrCompute(membershipCache, selectedValue, (values) => new Set(values)).has(value)
-	}
-
-	return selectedValue === value
-}
 
 /**
  * Factory for select-like option components. Consumers supply the data-slot
@@ -308,9 +324,11 @@ export function createSelectOption<
 		children,
 		...props
 	}: SelectOptionProps<TValue>) {
-		const { value: selectedValue, multiple, onSelect, capitalize } = config.useSelection()
+		const { selection, multiple, onSelect, capitalize } = config.useSelection()
 
-		const selected = isSelected(selectedValue, value, multiple)
+		// The option reads only its own state, so a selection change renders only
+		// the options that the change selects or clears.
+		const selected = useKeyedValue(selection, value)
 
 		// Stable per option (the host's `onSelect` is stable and `value` is fixed),
 		// so the memoized `Option` can bail when `selected` is unchanged.

@@ -1,6 +1,5 @@
 'use client'
 
-import { useCallback } from 'react'
 import { toggleListItem } from '../utilities'
 import { useFrozenOnClose } from './use-frozen-on-close'
 import { useStableEvent } from './use-stable-event'
@@ -49,20 +48,20 @@ export function useDeferredToggle<T>({
 	setValue,
 	open,
 }: DeferredToggleOptions<T>) {
-	const toggle = useCallback(
-		(newValue: T) => {
-			setValue((prev) => {
-				if (multiple) {
-					return toggleListItem(Array.isArray(prev) ? (prev as T[]) : [], newValue)
-				}
+	// A stable event: by default `nullable` follows the value, so a callback that
+	// held it changed identity on the first selection, and each option of the
+	// host then rendered again for a new `onSelect`.
+	const toggle = useStableEvent((newValue: T) => {
+		setValue((prev) => {
+			if (multiple) {
+				return toggleListItem(Array.isArray(prev) ? (prev as T[]) : [], newValue)
+			}
 
-				if (nullable && prev === newValue) return undefined
+			if (nullable && prev === newValue) return undefined
 
-				return newValue
-			})
-		},
-		[multiple, nullable, setValue],
-	)
+			return newValue
+		})
+	})
 
 	// Snapshot of the value the menu paints as selected while the panel animates
 	// closed; released on exit-complete or reopen.

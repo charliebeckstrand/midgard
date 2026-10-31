@@ -119,4 +119,29 @@ describe('useDeferredToggle', () => {
 
 		expect(updater(value)).toEqual(expected)
 	})
+	it('keeps the identity of toggle when nullable changes, and toggles with the new flag', () => {
+		const setValue = vi.fn()
+
+		const { result, rerender } = renderHook(
+			({ nullable }: { nullable: boolean }) =>
+				useDeferredToggle<string>({ multiple: false, nullable, value: 'a', setValue }),
+			{ initialProps: { nullable: true } },
+		)
+
+		const { toggle } = result.current
+
+		// The default of `nullable` follows the value, so it flips on the first pick.
+		rerender({ nullable: false })
+
+		expect(result.current.toggle).toBe(toggle)
+
+		act(() => {
+			result.current.toggle('a')
+		})
+
+		const updater = setValue.mock.calls[0]?.[0] as (prev: string | undefined) => string | undefined
+
+		// A toggle of the selected value does not clear it when the flag is off.
+		expect(updater('a')).toBe('a')
+	})
 })
