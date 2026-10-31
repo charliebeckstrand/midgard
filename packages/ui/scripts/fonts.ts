@@ -260,6 +260,12 @@ export async function fontsCss(): Promise<string> {
  * each browser on an iPhone, uses a face of a stylesheet before a face from a
  * script with the same descriptors. It then downloads the file of the face of
  * the stylesheet, and it does not paint the text until that file loads.
+ *
+ * The script decodes the bytes with `Uint8Array.fromBase64`. In Chromium with
+ * the CPU slowed 4 times, the decode takes 0.9 ms, and a loop over the text of
+ * `atob` takes 5.5 ms. Chrome 140, Firefox 133, and Safari 18.2 have
+ * `Uint8Array.fromBase64`, and the floor in `.browserslistrc` is lower. A
+ * browser without it thus decodes with the loop.
  */
 export async function fontScript(): Promise<string> {
 	const subset = (await fontSubsets()).find(({ name }) => name === FIRST_SUBSET)
@@ -279,9 +285,13 @@ export async function fontScript(): Promise<string> {
 	return [
 		'/* Do not edit. `pnpm fonts` (`scripts/fonts.ts`) writes this file from the source font. */',
 		'(() => {',
-		`\tconst text = atob('${base64}')`,
-		'\tconst bytes = new Uint8Array(text.length)',
-		'\tfor (let index = 0; index < text.length; index++) bytes[index] = text.charCodeAt(index)',
+		`\tconst base64 = '${base64}'`,
+		'\tlet bytes = Uint8Array.fromBase64?.(base64)',
+		'\tif (!bytes) {',
+		'\t\tconst text = atob(base64)',
+		'\t\tbytes = new Uint8Array(text.length)',
+		'\t\tfor (let index = 0; index < text.length; index++) bytes[index] = text.charCodeAt(index)',
+		'\t}',
 		`\tdocument.fonts.add(new FontFace('${familyName}', bytes, ${JSON.stringify(descriptors)}))`,
 		'})()',
 		'',
