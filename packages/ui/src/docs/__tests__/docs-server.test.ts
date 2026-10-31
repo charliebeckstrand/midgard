@@ -4,10 +4,11 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { brotliDecompressSync, gunzipSync } from 'node:zlib'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { pickEncoding, readBody } from '../../../scripts/docs-server.ts'
+import { isFallback, pickEncoding, readBody } from '../../../scripts/docs-server.ts'
 
 // The server of the docs compresses each text file of the build, as a CDN
-// does, so a page does not cost the reader its full size.
+// does, so a page does not cost the reader its full size. A path with no file
+// and no page gets the not-found page with status 404.
 
 describe('pickEncoding', () => {
 	it('takes brotli, else gzip, for a text file', () => {
@@ -36,6 +37,18 @@ describe('pickEncoding', () => {
 		expect(pickEncoding('/a/font.woff2', 'br')).toBeUndefined()
 
 		expect(pickEncoding('/a/sample.pdf', 'gzip')).toBeUndefined()
+	})
+})
+
+describe('isFallback', () => {
+	it('finds the fallback page in each locale, which the server sends with 404', () => {
+		expect(isFallback('/client/__spa-fallback.html')).toBe(true)
+
+		expect(isFallback('/client/__spa-fallback.es.html')).toBe(true)
+
+		expect(isFallback('/client/button/index.html')).toBe(false)
+
+		expect(isFallback('/client/assets/entry.client-Bef1esA1.js')).toBe(false)
 	})
 })
 

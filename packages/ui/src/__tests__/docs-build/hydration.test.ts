@@ -26,18 +26,14 @@ import { launchChromium } from './helpers/chromium'
 // (`scripts/docs-server.ts`), and the page hydrates in that language. So the
 // text of a page in each translated language stays after hydration.
 
+/** A path with no page. The server sends the not-found page for it, with status 404. */
+const NOT_FOUND = '/no-such-page'
+
 /**
  * The home page, component pages, a module page, a page with a tab in its
  * path, and a path with no page.
  */
-const PAGES = [
-	'/',
-	'/button',
-	'/accordion',
-	'/modules/grid',
-	'/modules/grid/sorting',
-	'/no-such-page',
-]
+const PAGES = ['/', '/button', '/accordion', '/modules/grid', '/modules/grid/sorting', NOT_FOUND]
 
 /**
  * The chunks that a stale page names. A missing `page` chunk stops the module
@@ -60,7 +56,9 @@ function openTab(locale = 'en-US'): Promise<Page> {
 
 /**
  * Gives a list that collects each error of `tab` from now on: each uncaught
- * error and each error that the console logs.
+ * error and each error that the console logs. The console also logs the 404
+ * of the not-found page. That is the status of the document, which
+ * {@link openPage} checks, so it is not an error of the page.
  */
 function collectErrors(tab: Page): string[] {
 	const errors: string[] = []
@@ -68,10 +66,23 @@ function collectErrors(tab: Page): string[] {
 	tab.on('pageerror', (error) => errors.push(error.message))
 
 	tab.on('console', (message) => {
-		if (message.type() === 'error') errors.push(message.text())
+		if (message.type() !== 'error') return
+
+		const ofDocument = message.location().url === tab.url()
+
+		if (!(ofDocument && message.text().startsWith('Failed to load resource'))) {
+			errors.push(message.text())
+		}
 	})
 
 	return errors
+}
+
+/** Opens `path` in `tab`, and checks the status of the document: 404 for the not-found page, else 200. */
+async function openPage(tab: Page, path: string): Promise<void> {
+	const response = await tab.goto(`${origin}${path}`)
+
+	expect(response?.status()).toBe(path === NOT_FOUND ? 404 : 200)
 }
 
 /**
@@ -149,7 +160,7 @@ describe('a prerendered page of the docs build', () => {
 
 		const errors = collectErrors(tab)
 
-		await tab.goto(`${origin}${path}`)
+		await openPage(tab, path)
 
 		await tab.waitForFunction(HYDRATED)
 
@@ -168,7 +179,7 @@ describe.each(LOCALES.slice(1))('a prerendered page of the docs build in %s', (l
 
 		await tab.addInitScript({ content: KEEP_HTML_TEXT })
 
-		await tab.goto(`${origin}${path}`)
+		await openPage(tab, path)
 
 		await tab.waitForFunction(HYDRATED)
 
@@ -209,8 +220,8 @@ describe('a page whose HTML names a chunk that is not in the build', () => {
 })
 
 /**
- * Opens `/button`, and gives the fallback page for each `HEAD` request of the
- * manifest file while `stale()` is true, as the host does after a deploy.
+ * Opens `/button`, and gives the 404 of a missing file for each `HEAD` request
+ * of the manifest file while `stale()` is true, as the host does after a deploy.
  * Gives the tab and the number of loads of the document so far.
  */
 async function openReplaced(stale: () => boolean): Promise<{ tab: Page; loads: () => number }> {
@@ -223,9 +234,9 @@ async function openReplaced(stale: () => boolean): Promise<{ tab: Page; loads: (
 	await tab.route(/\/assets\/manifest-[\w-]+\.js$/, async (route) => {
 		if (route.request().method() !== 'HEAD' || !stale()) return route.continue()
 
-		const fallback = await route.fetch({ url: `${origin}/no-such-file`, method: 'GET' })
+		const missing = await route.fetch({ url: `${origin}/no-such-file`, method: 'GET' })
 
-		return route.fulfill({ response: fallback, body: '' })
+		return route.fulfill({ response: missing, body: '' })
 	})
 
 	await tab.goto(url)
@@ -267,8 +278,8 @@ describe('a page whose build a deploy replaced', () => {
 
 /**
  * Opens `/button`, and fails the first load of each module file whose path
- * matches `failed` with the fallback page, as the host does for a file that
- * it does not have. Gives the tab, the number of loads of the document, and
+ * matches `failed` with the 404 of a missing file, as the host does for a file
+ * that it does not have. Gives the tab, the number of loads of the document, and
  * each module file that the page fetched again. A module load is a `script`
  * request, and a new fetch is a `fetch` request. The request does not show
  * its cache mode, as Chromium adds the headers of `cache: 'reload'` after the
@@ -298,9 +309,9 @@ async function openFailed(
 
 		seen.add(pathname)
 
-		const fallback = await route.fetch({ url: `${origin}/no-such-file` })
+		const missing = await route.fetch({ url: `${origin}/no-such-file` })
 
-		return route.fulfill({ response: fallback })
+		return route.fulfill({ response: missing })
 	})
 
 	await tab.goto(url)

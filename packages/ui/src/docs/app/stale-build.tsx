@@ -1,15 +1,15 @@
 // The recovery of a page whose files do not load. Each deploy replaces the
 // hashed files under `/assets`. A browser can restore a tab from cached HTML,
 // such as when iOS discards a tab in the background and the reader comes back
-// to it. When that HTML names a removed file, the host gives the fallback page
-// for it, and the module script of the page fails. The page then shows its
+// to it. When that HTML names a removed file, the host answers 404 for it,
+// and the module script of the page fails. The page then shows its
 // prerendered markup, but it does not hydrate, so no control works. A reload
 // gets the new HTML.
 //
 // WebKit, and thus each browser on iOS, also keeps a module file that failed
 // to load, for the life of the tab. A reload, or a different page in the same
 // tab, uses the failed copy again and sends no request. This occurs for each
-// failure: the fallback page, a 404, or a connection that drops, such as a
+// failure: a 404, a response that is not a script, or a connection that drops, such as a
 // request in a deploy or on a bad network. A request with `cache: 'reload'`
 // replaces the kept copy. Thus the recovery fetches the module files of the
 // page again with that mode before the page reloads.
@@ -76,9 +76,8 @@ export function endStaleBuildWatch(): void {
 
 /**
  * Whether the host no longer has the manifest file of the page. A file that a
- * deploy removed gets the fallback page, which is HTML. A failed request, or
- * a status other than 200 and 404, gives `false`, so a bad network does not
- * reload the page.
+ * deploy removed gets status 404. A failed request, or any other status,
+ * gives `false`, so a bad network does not reload the page.
  */
 async function isStale(): Promise<boolean> {
 	const url = window.__reactRouterManifest?.url
@@ -88,9 +87,7 @@ async function isStale(): Promise<boolean> {
 	try {
 		const response = await fetch(url, { method: 'HEAD', cache: 'no-store' })
 
-		if (response.status === 404) return true
-
-		return response.ok && !response.headers.get('content-type')?.includes('javascript')
+		return response.status === 404
 	} catch {
 		return false
 	}

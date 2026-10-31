@@ -5,8 +5,9 @@
  *
  * A path gets the file at that path, or `index.html` in the directory at that
  * path. Thus `/stepper` gets `stepper/index.html` with no redirect. Any other
- * path gets `__spa-fallback.html` with status 200. `vite preview` does not do
- * this: it gives the home page for `/stepper`.
+ * path gets `__spa-fallback.html`, the not-found page, with status 404. A
+ * missing file, such as a chunk that a deploy removed, gets status 404 too.
+ * `vite preview` does not do this: it gives the home page for `/stepper`.
  *
  * The build has the HTML of each page in each locale (`src/docs/app/language.ts`).
  * An HTML file goes in the locale of the request: the locale cookie, else the
@@ -176,6 +177,14 @@ export function targetPathname(target: string): string | undefined {
 	return target.startsWith('/') ? target.replace(/[?#].*/s, '') : undefined
 }
 
+/** The fallback document of the build: the not-found page, for a path with no file and no page. */
+const FALLBACK = '__spa-fallback.html'
+
+/** Whether `file` is the fallback document in a locale, such as `__spa-fallback.es.html`. */
+export function isFallback(file: string): boolean {
+	return /^__spa-fallback(?:\.[\w-]+)?\.html$/.test(path.basename(file))
+}
+
 /**
  * The file that a request-target gets, or `undefined` for a target that has no
  * path (`targetPathname`) or whose path does not decode, such as `/%E0%A4%A`.
@@ -211,7 +220,7 @@ export async function resolveFile(
 		if (await isFile(index)) return inLocale(index, locale)
 	}
 
-	return inLocale(path.join(root, '__spa-fallback.html'), locale)
+	return inLocale(path.join(root, FALLBACK), locale)
 }
 
 /** The hashed files of the build, whose names change with their content. */
@@ -276,7 +285,7 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 		return
 	}
 
-	response.writeHead(200, {
+	response.writeHead(isFallback(file) ? 404 : 200, {
 		'content-type': type,
 		'content-length': body.length,
 		...(encoding && { 'content-encoding': encoding }),
