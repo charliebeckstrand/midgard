@@ -292,12 +292,15 @@ function listenForIntent(
  * load of the state module on a hover, a focus, or a click, and record the
  * intent. `useTooltipState` takes the intent when it takes over the trigger.
  *
+ * @param options - `enabled` and `trigger` gate the recorded intent. `held` is
+ * the `open` prop, which starts the state at once.
  * @returns `setReference`, which the trigger calls with its node, `takeIntent`,
- * which removes the listeners and gives the recorded intent, and `intended`,
- * which is true after the first hover, focus, or click on the trigger.
+ * which removes the listeners and gives the recorded intent, and `started`,
+ * which is true after the first hover, focus, or click on the trigger, or
+ * after `open` holds an enabled tooltip. It stays true after that.
  * @internal
  */
-export function useTooltipIntent(options: IntentOptions) {
+export function useTooltipIntent(options: IntentOptions & { held?: boolean }) {
 	// The listeners read the newest options when an event comes.
 	const readOptions = useStableEvent(() => options)
 
@@ -305,11 +308,15 @@ export function useTooltipIntent(options: IntentOptions) {
 
 	const stopRef = useRef<(() => void) | null>(null)
 
-	// The tooltip state starts on the first intent, so a closed tooltip does no
-	// work when the module loads in idle time. The value stays true after that.
-	const [intended, setIntended] = useState(false)
+	// The tooltip state starts on the first intent, or when `open` holds the
+	// tooltip. A closed tooltip thus does no work when the module loads in idle
+	// time. The value stays true after that, so the value that the state gave
+	// does not go stale.
+	const [started, setStarted] = useState(false)
 
-	const onIntent = useCallback(() => setIntended(true), [])
+	if (!started && options.enabled && options.held) setStarted(true)
+
+	const onIntent = useCallback(() => setStarted(true), [])
 
 	const setReference = useCallback(
 		(node: HTMLElement | null) => {
@@ -350,5 +357,5 @@ export function useTooltipIntent(options: IntentOptions) {
 		[],
 	)
 
-	return { setReference, takeIntent, intended }
+	return { setReference, takeIntent, started }
 }

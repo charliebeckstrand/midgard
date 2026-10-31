@@ -4,10 +4,11 @@ import { type ReactNode, useMemo, useState, useSyncExternalStore } from 'react'
 import type { FloatingPlacement } from '../../hooks'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { noop, noopSubscribe } from '../../utilities/noop'
-import { TooltipContext, type TooltipContextValue } from './context'
+import { TooltipContext, type TooltipContextValue, TooltipTriggerContext } from './context'
 import { tooltipBody } from './tooltip-body-loader'
 import { isTooltipOpen, useTooltipIntent } from './tooltip-intent'
 import type { TooltipState } from './use-tooltip-state'
+import { useTooltipTriggerValue } from './use-tooltip-trigger-value'
 
 /** Props for {@link Tooltip}. */
 export type TooltipProps = {
@@ -161,15 +162,9 @@ function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
 	// A tooltip that `open` holds open needs its state now.
 	const module = useLazyModule(tooltipBody, enabled && held)
 
-	const { setReference, takeIntent, intended } = useTooltipIntent({ enabled, trigger })
-
 	// The state starts on the first hover, focus, or click, or when `open` holds
-	// the tooltip. A closed tooltip thus renders no state when the module loads
-	// in idle time. The state stays after it starts, so the value that it gave
-	// does not go stale.
-	const [started, setStarted] = useState(false)
-
-	if (!started && (intended || (enabled && held))) setStarted(true)
+	// the tooltip, so a closed tooltip renders no state when the module loads.
+	const { setReference, takeIntent, started } = useTooltipIntent({ enabled, trigger, held })
 
 	// The loaded state, which `TooltipStateHost` gives back.
 	const [state, setState] = useState<TooltipState | null>(null)
@@ -204,10 +199,16 @@ function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
 		[interactive, enabled, setReference],
 	)
 
+	const shared = value ?? light
+
+	// The trigger reads a part with no position, so a reposition renders only the
+	// panel.
+	const triggerValue = useTooltipTriggerValue(shared)
+
 	// The host sits before the children, and both keep their places when the
 	// host mounts, so the trigger does not mount again and keeps its focus.
 	return (
-		<TooltipContext value={value ?? light}>
+		<TooltipContext value={shared}>
 			{module && started && (
 				<module.TooltipStateHost
 					{...props}
@@ -216,7 +217,7 @@ function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
 					onState={setState}
 				/>
 			)}
-			{children}
+			<TooltipTriggerContext value={triggerValue}>{children}</TooltipTriggerContext>
 		</TooltipContext>
 	)
 }

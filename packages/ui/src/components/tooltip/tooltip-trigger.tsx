@@ -10,7 +10,7 @@ import {
 	triggerChild,
 } from '../../primitives/trigger-child/trigger-child'
 import { k } from '../../recipes/kata/tooltip'
-import { useTooltipContext } from './context'
+import { useTooltipTriggerContext } from './context'
 
 /**
  * Props for {@link TooltipTrigger}. The fallback `<span>` takes the rest. With a
@@ -67,7 +67,7 @@ export type TooltipTriggerProps = Omit<ComponentProps<'span'>, 'children'> & {
  * win a clash, and a handler on both runs the two.
  */
 export function TooltipTrigger({ children, className, ref, ...props }: TooltipTriggerProps) {
-	const { setReference, getReferenceProps, enabled, triggerId } = useTooltipContext()
+	const { setReference, getReferenceProps, enabled, triggerId } = useTooltipTriggerContext()
 
 	const child = triggerChild(children)
 

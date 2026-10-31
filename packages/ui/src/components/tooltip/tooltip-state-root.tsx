@@ -1,8 +1,9 @@
 'use client'
 
 import { memo, type ReactNode, useLayoutEffect } from 'react'
-import { TooltipContext } from './context'
+import { TooltipContext, TooltipTriggerContext } from './context'
 import { type TooltipState, type TooltipStateOptions, useTooltipState } from './use-tooltip-state'
+import { useTooltipTriggerValue } from './use-tooltip-trigger-value'
 
 /** Props for {@link TooltipStateRoot}. @internal */
 export type TooltipStateRootProps = TooltipStateOptions & { children: ReactNode }
@@ -16,7 +17,13 @@ export type TooltipStateRootProps = TooltipStateOptions & { children: ReactNode 
 export function TooltipStateRoot({ children, ...options }: TooltipStateRootProps) {
 	const { value } = useTooltipState(options)
 
-	return <TooltipContext value={value}>{children}</TooltipContext>
+	const triggerValue = useTooltipTriggerValue(value)
+
+	return (
+		<TooltipContext value={value}>
+			<TooltipTriggerContext value={triggerValue}>{children}</TooltipTriggerContext>
+		</TooltipContext>
+	)
 }
 
 /** Props for {@link TooltipStateHost}. @internal */

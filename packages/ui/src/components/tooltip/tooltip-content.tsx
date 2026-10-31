@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import type { ScaleStep } from '../../core/density'
 import { useIdlePreload, useLazyModule } from '../../hooks/use-lazy-module'
 import type { scale } from '../../recipes/kata/tooltip'
-import { useTooltipContext } from './context'
+import { useTooltipTriggerContext } from './context'
 import { tooltipBody } from './tooltip-body-loader'
 
 /** Props for {@link TooltipContent}. */
@@ -66,7 +66,7 @@ export type TooltipContentProps = {
  * trigger.
  */
 export function TooltipContent(props: TooltipContentProps) {
-	const { open } = useTooltipContext()
+	const { open } = useTooltipTriggerContext()
 
 	useIdlePreload(tooltipBody)
 

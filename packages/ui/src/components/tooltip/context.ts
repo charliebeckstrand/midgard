@@ -40,3 +40,16 @@ export type TooltipContextValue = {
 }
 
 export const [TooltipContext, useTooltipContext] = createContext<TooltipContextValue>('Tooltip')
+
+/**
+ * The part of {@link TooltipContextValue} that `<TooltipTrigger>` and
+ * `<TooltipContent>` read. It holds no position, so a reposition of the panel
+ * renders neither the trigger nor the element that the trigger clones.
+ */
+export type TooltipTriggerValue = Pick<
+	TooltipContextValue,
+	'open' | 'enabled' | 'setReference' | 'getReferenceProps' | 'triggerId'
+>
+
+export const [TooltipTriggerContext, useTooltipTriggerContext] =
+	createContext<TooltipTriggerValue>('Tooltip')
