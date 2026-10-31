@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	constrainView,
 	frameTransforms,
@@ -69,12 +69,15 @@ function painted(frame: LightboxFrame, rest: LightboxBox) {
 	}
 }
 
-function expectBox(actual: LightboxBox, expected: LightboxBox) {
-	expect(actual.x).toBeNear(expected.x, FLOAT)
-	expect(actual.y).toBeNear(expected.y, FLOAT)
-	expect(actual.width).toBeNear(expected.width, FLOAT)
-	expect(actual.height).toBeNear(expected.height, FLOAT)
+/** The edges of a box, as the box matchers read them. */
+function edges({ x, y, width, height }: LightboxBox) {
+	return { left: x, top: y, right: x + width, bottom: y + height }
 }
+
+/** Asserts that each edge of `actual` is within float noise of the same edge of `expected`. */
+const expectBox = vi.defineHelper((actual: LightboxBox, expected: LightboxBox) => {
+	expect(edges(actual)).toMatchBox(edges(expected), { tolerance: FLOAT })
+})
 
 describe('raisedFrame', () => {
 	const rest = { x: 275, y: 60, width: 450, height: 675 }

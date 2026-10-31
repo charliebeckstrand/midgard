@@ -1,37 +1,47 @@
 import { renderHook } from '@testing-library/react'
+import type { RefObject } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { attach } from '../helpers'
+import { scrollbarPress } from '../helpers/scrollbar-press'
+
+function pressEscape() {
+	document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+}
+
+/**
+ * Puts an attached container on the ref that the hook returns, and renders
+ * again so that the hook reads it.
+ */
+function withContainer(result: { current: RefObject<HTMLElement | null> }, rerender: () => void) {
+	const container = attach(document.createElement('div'))
+
+	Object.defineProperty(result.current, 'current', { value: container, writable: true })
+
+	rerender()
+}
 
 describe('useDismissable', () => {
-	it('calls onDismiss when Escape is pressed while open', () => {
+	it.for([
+		{
+			name: 'calls onDismiss when Escape is pressed while open',
+			options: { open: true },
+			calls: 1,
+		},
+		{ name: 'does not call onDismiss on Escape when closed', options: { open: false }, calls: 0 },
+		{
+			name: 'ignores Escape when escape is disabled',
+			options: { open: true, escape: false },
+			calls: 0,
+		},
+	])('$name', ({ options, calls }) => {
 		const onDismiss = vi.fn()
 
-		renderHook(() => useDismissable({ open: true, onDismiss }))
+		renderHook(() => useDismissable({ ...options, onDismiss }))
 
-		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+		pressEscape()
 
-		expect(onDismiss).toHaveBeenCalledOnce()
-	})
-
-	it('does not call onDismiss on Escape when closed', () => {
-		const onDismiss = vi.fn()
-
-		renderHook(() => useDismissable({ open: false, onDismiss }))
-
-		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
-
-		expect(onDismiss).not.toHaveBeenCalled()
-	})
-
-	it('ignores Escape when escape is disabled', () => {
-		const onDismiss = vi.fn()
-
-		renderHook(() => useDismissable({ open: true, onDismiss, escape: false }))
-
-		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
-
-		expect(onDismiss).not.toHaveBeenCalled()
+		expect(onDismiss).toHaveBeenCalledTimes(calls)
 	})
 
 	it('calls onDismiss on pointer down outside the container', () => {
@@ -39,11 +49,7 @@ describe('useDismissable', () => {
 
 		const { result, rerender } = renderHook(() => useDismissable({ open: true, onDismiss }))
 
-		const container = attach(document.createElement('div'))
-
-		Object.defineProperty(result.current, 'current', { value: container, writable: true })
-
-		rerender()
+		withContainer(result, rerender)
 
 		document.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 
@@ -59,11 +65,7 @@ describe('useDismissable', () => {
 
 		// Attached as the case above attaches it, so the flag is the only
 		// difference. A ref with no node rejects every press on its own.
-		const container = attach(document.createElement('div'))
-
-		Object.defineProperty(result.current, 'current', { value: container, writable: true })
-
-		rerender()
+		withContainer(result, rerender)
 
 		document.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 
@@ -79,7 +81,7 @@ describe('useDismissable', () => {
 
 		const { unmount } = renderHook(() => useDismissable({ open: true, onDismiss: top }))
 
-		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+		pressEscape()
 
 		expect(top).toHaveBeenCalledOnce()
 
@@ -88,7 +90,7 @@ describe('useDismissable', () => {
 		// Closing the top layer promotes the one beneath.
 		unmount()
 
-		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+		pressEscape()
 
 		expect(bottom).toHaveBeenCalledOnce()
 	})
@@ -100,7 +102,7 @@ describe('useDismissable', () => {
 
 		renderHook(() => useDismissable({ open: true, onDismiss: vi.fn(), escape: false }))
 
-		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+		pressEscape()
 
 		expect(bottom).toHaveBeenCalledOnce()
 	})
@@ -131,7 +133,7 @@ describe('useDismissable', () => {
 
 		rerender({ onDismiss: second })
 
-		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+		pressEscape()
 
 		expect(first).not.toHaveBeenCalled()
 
@@ -143,35 +145,11 @@ describe('useDismissable', () => {
 
 		const { result, rerender } = renderHook(() => useDismissable({ open: true, onDismiss }))
 
-		Object.defineProperty(result.current, 'current', {
-			value: attach(document.createElement('div')),
-			writable: true,
-		})
-
-		rerender()
+		withContainer(result, rerender)
 
 		const scroller = attach(document.createElement('div'))
 
-		Object.defineProperties(scroller, {
-			clientWidth: { value: 100, configurable: true },
-			clientHeight: { value: 100, configurable: true },
-			scrollWidth: { value: 100, configurable: true },
-			scrollHeight: { value: 500, configurable: true },
-		})
-
-		vi.spyOn(window, 'getComputedStyle').mockReturnValue({
-			overflowX: 'hidden',
-			overflowY: 'auto',
-			direction: 'ltr',
-		} as CSSStyleDeclaration)
-
-		const event = new PointerEvent('pointerdown', { bubbles: true })
-
-		Object.defineProperty(event, 'offsetX', { value: 110, configurable: true })
-
-		Object.defineProperty(event, 'offsetY', { value: 50, configurable: true })
-
-		scroller.dispatchEvent(event)
+		scroller.dispatchEvent(scrollbarPress(scroller))
 
 		expect(onDismiss).not.toHaveBeenCalled()
 	})

@@ -1,25 +1,20 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import type { GridColumnResizeHandle } from '../../modules/grid/grid-column-resize-handle'
-import type { useGridTruncation } from '../../modules/grid/use-grid-truncation'
-import { act, fireEvent, frames, renderUI, screen } from '../helpers'
-
-// Counts the renders of the truncating body cells. A body cell passes a settle
-// subscription, and a header title passes none.
-const cellRenders = vi.hoisted(() => ({ count: 0 }))
+import { useGridPinnedOffsets } from '../../modules/grid/use-grid-pinned-offsets'
+import { useGridTruncation } from '../../modules/grid/use-grid-truncation'
+import { act, fireEvent, frames, holdMouse, renderUI, screen } from '../helpers'
 
 vi.mock('../../modules/grid/use-grid-truncation', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('../../modules/grid/use-grid-truncation')>()
 
-	return {
-		...actual,
-		useGridTruncation: ((...args: Parameters<typeof actual.useGridTruncation>) => {
-			if (args[0]) cellRenders.count++
-
-			return actual.useGridTruncation(...args)
-		}) as typeof useGridTruncation,
-	}
+	return { ...actual, useGridTruncation: vi.fn(actual.useGridTruncation) }
 })
+
+// Counts the renders of the truncating body cells. A body cell passes a settle
+// subscription, and a header title passes none.
+const cellRenders = () =>
+	vi.mocked(useGridTruncation).mock.calls.filter(([onSettle]) => onSettle).length
 
 // Counts the renders of each header's resize handle, by column id. A header
 // that renders again renders its handle again.
@@ -41,22 +36,15 @@ vi.mock('../../modules/grid/grid-column-resize-handle', async (importOriginal) =
 	}
 })
 
-// Counts the renders of the grid host. The host reads the pinned offsets once
-// for each render.
-const hostRenders = vi.hoisted(() => ({ count: 0 }))
-
 vi.mock('../../modules/grid/use-grid-pinned-offsets', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('../../modules/grid/use-grid-pinned-offsets')>()
 
-	return {
-		...actual,
-		useGridPinnedOffsets: ((...args: Parameters<typeof actual.useGridPinnedOffsets>) => {
-			hostRenders.count++
-
-			return actual.useGridPinnedOffsets(...args)
-		}) as typeof actual.useGridPinnedOffsets,
-	}
+	return { ...actual, useGridPinnedOffsets: vi.fn(actual.useGridPinnedOffsets) }
 })
+
+// Counts the renders of the grid host. The host reads the pinned offsets once
+// for each render.
+const hostRenders = () => vi.mocked(useGridPinnedOffsets).mock.calls.length
 
 /**
  * A drag-resize holds the truncation tooltips closed, and measures again when it
@@ -77,47 +65,52 @@ describe('Grid column drag-resize', () => {
 		{ id: 'name', title: 'Name', cell: (row) => row.name },
 	]
 
+	/** Moves the held mouse from 110 to 150 in five steps, and waits for the frames after each step. */
+	async function dragFrames() {
+		for (let x = 110; x <= 150; x += 10) {
+			fireEvent.mouseMove(document, { clientX: x })
+
+			await act(frames)
+		}
+	}
+
 	it('renders no truncating body cell again across a drag', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={(row) => row.id} resizable truncate />)
 
-		expect(cellRenders.count).toBeGreaterThan(0)
+		expect(cellRenders()).toBeGreaterThan(0)
 
-		cellRenders.count = 0
+		vi.mocked(useGridTruncation).mockClear()
 
-		fireEvent.mouseDown(screen.getByRole('separator', { name: 'Resize City' }), {
+		const held = holdMouse(screen.getByRole('separator', { name: 'Resize City' }), {
 			button: 0,
 			clientX: 100,
 		})
 
 		fireEvent.mouseMove(document, { clientX: 130 })
 
-		fireEvent.mouseUp(document, { clientX: 130 })
+		held.release({ clientX: 130 })
 
-		expect(cellRenders.count).toBe(0)
+		expect(cellRenders()).toBe(0)
 	})
 
 	it('renders only the dragged header on each frame of a drag', async () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={(row) => row.id} resizable truncate />)
 
-		fireEvent.mouseDown(screen.getByRole('separator', { name: 'Resize City' }), {
+		const held = holdMouse(screen.getByRole('separator', { name: 'Resize City' }), {
 			button: 0,
 			clientX: 100,
 		})
 
 		handleRenders.clear()
 
-		for (let x = 110; x <= 150; x += 10) {
-			fireEvent.mouseMove(document, { clientX: x })
-
-			await act(frames)
-		}
+		await dragFrames()
 
 		// Five frames move the City width, and the Name header holds.
 		expect(handleRenders.get('city') ?? 0).toBeGreaterThanOrEqual(5)
 
 		expect(handleRenders.get('name') ?? 0).toBe(0)
 
-		fireEvent.mouseUp(document, { clientX: 150 })
+		held.release({ clientX: 150 })
 	})
 
 	it('holds the measure of a dragged header title until the drag settles', async () => {
@@ -139,7 +132,7 @@ describe('Grid column drag-resize', () => {
 		// Contact arms the measure, as the reveal it gates opens on contact.
 		fireEvent.pointerOver(title)
 
-		fireEvent.mouseDown(screen.getByRole('separator', { name: 'Resize City' }), {
+		const held = holdMouse(screen.getByRole('separator', { name: 'Resize City' }), {
 			button: 0,
 			clientX: 100,
 		})
@@ -148,16 +141,12 @@ describe('Grid column drag-resize', () => {
 
 		reads.mockClear()
 
-		for (let x = 110; x <= 150; x += 10) {
-			fireEvent.mouseMove(document, { clientX: x })
-
-			await act(frames)
-		}
+		await dragFrames()
 
 		// The header renders on each frame of the drag, and measures on none.
 		expect(reads).not.toHaveBeenCalled()
 
-		fireEvent.mouseUp(document, { clientX: 150 })
+		held.release({ clientX: 150 })
 
 		await act(frames)
 
@@ -173,24 +162,20 @@ describe('Grid column drag-resize', () => {
 
 		renderUI(<Grid columns={frozen} rows={rows} getKey={(row) => row.id} resizable />)
 
-		fireEvent.mouseDown(screen.getByRole('separator', { name: 'Resize City' }), {
+		const held = holdMouse(screen.getByRole('separator', { name: 'Resize City' }), {
 			button: 0,
 			clientX: 100,
 		})
 
 		await act(frames)
 
-		hostRenders.count = 0
+		vi.mocked(useGridPinnedOffsets).mockClear()
 
-		for (let x = 110; x <= 150; x += 10) {
-			fireEvent.mouseMove(document, { clientX: x })
-
-			await act(frames)
-		}
+		await dragFrames()
 
 		// A new frozen layout on each frame keeps the host at one render.
-		expect(hostRenders.count).toBe(5)
+		expect(hostRenders()).toBe(5)
 
-		fireEvent.mouseUp(document, { clientX: 150 })
+		held.release({ clientX: 150 })
 	})
 })

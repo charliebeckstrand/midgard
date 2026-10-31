@@ -91,15 +91,15 @@ describe('readableInk', () => {
 	})
 
 	it('falls back to the highest-contrast candidate when none clears', () => {
-		// Neither clears 7:1 on mid-gray; black (5.32 vs white 3.95) is the fallback.
-		expect(readableInk('#808080', ['white', 'black'], 7)).toBe('black')
+		// No candidate clears 7:1 on mid-gray; black (5.32:1) is the fallback. Black
+		// sits between the others, so a fallback to the first or the last fails here.
+		expect(readableInk('#808080', ['white', 'black', '#a0a0a0'], 7)).toBe('black')
 	})
 
 	it('respects the floor it is given', () => {
-		// At 3:1 white already clears on the same gray, so it stays first; the
-		// default 4.5 fails it and flips to black.
+		// At 3:1 white already clears on the same gray, so it stays first. The
+		// default 4.5 fails it and flips to black, as the case above shows.
 		expect(readableInk('#808080', ['white', 'black'], 3)).toBe('white')
-		expect(readableInk('#808080', ['white', 'black'])).toBe('black')
 	})
 
 	it('throws on an empty candidate list', () => {

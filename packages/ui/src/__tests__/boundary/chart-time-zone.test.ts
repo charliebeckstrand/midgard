@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
 import {
 	dateCategoryFormat,
@@ -17,19 +17,13 @@ import {
  * the `integration` project runs on forks. A fork reads a new `TZ` at once.
  */
 
-/** Moves the process to New York for the case, and back after it. */
-function inNewYork() {
-	const zone = process.env.TZ
-
-	process.env.TZ = 'America/New_York'
-
-	onTestFinished(() => {
-		process.env.TZ = zone
-	})
+/** Moves the process to New York for the case. The setup restores the zone after it. */
+const inNewYork = vi.defineHelper(() => {
+	vi.stubEnv('TZ', 'America/New_York')
 
 	// A case that runs in UTC passes on the defect, so it must fail here.
 	expect(new Date(2026, 0, 1).getTimezoneOffset(), 'the zone change took no effect').toBe(300)
-}
+})
 
 describe('chart-time partial ISO dates west of UTC', () => {
 	it('reads YYYY-MM and YYYY as local midnight on the first day', () => {

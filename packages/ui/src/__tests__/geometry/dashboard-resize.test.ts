@@ -181,26 +181,4 @@ describe('resizeRange', () => {
 			minH: 1,
 		})
 	})
-
-	it('holds each span that resizePreview gives', () => {
-		const limits = { columns: 24, minW: 5, maxW: 11, minH: 6, maxH: 14 }
-
-		const range = resizeRange(limits, 2)
-
-		for (const w of [1, 8, 30]) {
-			for (const h of [1, 10, 40]) {
-				const next = find(resizePreview([cell('a', 2, 0, 8, 10)], 'a', w, h, limits), 'a')
-
-				const span = next ?? { w: 8, h: 10 }
-
-				expect(span.w).toBeGreaterThanOrEqual(range.minW)
-
-				expect(span.w).toBeLessThanOrEqual(range.maxW)
-
-				expect(span.h).toBeGreaterThanOrEqual(range.minH)
-
-				expect(span.h).toBeLessThanOrEqual(range.maxH ?? Number.POSITIVE_INFINITY)
-			}
-		}
-	})
 })

@@ -10,16 +10,6 @@ function RouterLink(props: ComponentProps<'a'>) {
 }
 
 describe('PolymorphicStatic', () => {
-	it('renders the fallback element when no href is given', () => {
-		const { container } = renderUI(
-			<PolymorphicStatic as="span" data-slot="tag" className="cls">
-				Text
-			</PolymorphicStatic>,
-		)
-
-		expect(bySlot(container, 'tag')?.tagName).toBe('SPAN')
-	})
-
 	it('renders a plain anchor when href is set and render is not', () => {
 		const { container } = renderUI(
 			<PolymorphicStatic as="span" href="/path" data-slot="tag" className="cls">

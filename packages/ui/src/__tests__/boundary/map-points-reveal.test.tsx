@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { MapPlat, MapPoints } from '../../modules/map'
 import { POINT_REVEAL_SETTLE } from '../../modules/map/engine/map-motion'
 import { MapDot } from '../../modules/map/map-dot'
@@ -42,17 +42,18 @@ function drawn() {
 	return calls.slice(-3)
 }
 
-describe('an animated set', () => {
-	beforeEach(() => {
-		vi.mocked(MapDot).mockClear()
-	})
+/** Renders the bunched set on an animated plat that can zoom. */
+function renderSet() {
+	return renderNavigable(
+		<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400} zoom animate>
+			<MapPoints label="Stops" points={BUNCHED} />
+		</MapPlat>,
+	)
+}
 
+describe('an animated set', () => {
 	it('pops the dots of its mount reveal', () => {
-		renderNavigable(
-			<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400} zoom animate>
-				<MapPoints label="Stops" points={BUNCHED} />
-			</MapPlat>,
-		)
+		renderSet()
 
 		expect(vi.mocked(MapDot).mock.calls.at(-1)?.[0]).toMatchObject({ animate: true })
 	})
@@ -60,11 +61,7 @@ describe('an animated set', () => {
 	it('draws a dot that a zoom splits from a summary at once after the reveal', async ({
 		clock,
 	}) => {
-		const { plot } = renderNavigable(
-			<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400} zoom animate>
-				<MapPoints label="Stops" points={BUNCHED} />
-			</MapPlat>,
-		)
+		const { plot } = renderSet()
 
 		await clock.advance(POINT_REVEAL_SETTLE * 1000)
 
@@ -85,11 +82,7 @@ describe('an animated set', () => {
 	// The end of the reveal changes the prop of each dot, not its element, so
 	// React mounts no dot again.
 	it('keeps the element of each dot that popped when the reveal ends', async ({ clock }) => {
-		const { container } = renderNavigable(
-			<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400} zoom animate>
-				<MapPoints label="Stops" points={BUNCHED} />
-			</MapPlat>,
-		)
+		const { container } = renderSet()
 
 		const dots = () => [
 			...container.querySelectorAll(
@@ -103,7 +96,11 @@ describe('an animated set', () => {
 
 		await clock.advance(POINT_REVEAL_SETTLE * 1000)
 
-		dots().forEach((dot, index) => {
+		const after = dots()
+
+		expect(after).toHaveLength(before.length)
+
+		after.forEach((dot, index) => {
 			expect(dot).toBe(before[index])
 		})
 	})

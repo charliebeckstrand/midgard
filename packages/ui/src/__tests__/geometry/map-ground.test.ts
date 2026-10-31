@@ -150,7 +150,7 @@ describe('ownGround', () => {
 		// Twelve neighbors a pixel or two away is a pathological case a real map reaches through a
 		// zoom-out. Either a usable ring or `null`: never a two-point sliver, which would clip the
 		// target away entirely and read as a dead pin.
-		expect(ring === null || ring.length >= 3).toBe(true)
+		expect(ring?.length ?? Number.POSITIVE_INFINITY).toBeGreaterThanOrEqual(3)
 	})
 })
 

@@ -1,6 +1,7 @@
-import { type Browser, chromium, type Page } from 'playwright'
-import { afterAll, beforeAll, describe, inject, it, type TestContext } from 'vitest'
+import type { Page } from 'playwright'
+import { describe, inject, it, type TestContext } from 'vitest'
 import { STYLED } from '../../../scripts/docs-server'
+import { launchChromium } from './helpers/chromium'
 
 // The first paint of the docs has the current items in view. The inline script
 // of the docs (`scroll-restoration.tsx`) scrolls the sidebar and the tab row to
@@ -24,15 +25,7 @@ const MODULE_SCRIPT = /\/assets\/(?!google-sans-flex-).+\.js$/
 
 const origin = inject('docsOrigin')
 
-let browser: Browser
-
-beforeAll(async () => {
-	browser = await chromium.launch()
-})
-
-afterAll(async () => {
-	await browser?.close()
-})
+const launch = launchChromium()
 
 /**
  * Opens a tab that is `width` wide. The stale-chunk guard of the docs sees a
@@ -40,10 +33,8 @@ afterAll(async () => {
  * closes after the case. The cases run side by side, so the hook comes from
  * the context of the case.
  */
-async function openTab({ onTestFinished }: TestContext, width: number): Promise<Page> {
-	const tab = await browser.newPage({ viewport: { width, height: 720 } })
-
-	onTestFinished(() => tab.close())
+async function openTab(context: TestContext, width: number): Promise<Page> {
+	const tab = await launch({ viewport: { width, height: 720 } }, context)
 
 	await tab.addInitScript(() => sessionStorage.setItem('docs:stale-reload', String(Date.now())))
 

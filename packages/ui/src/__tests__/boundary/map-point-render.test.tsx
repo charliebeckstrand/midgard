@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
 import { MapPoint } from '../../modules/map/map-point'
 import { act, allBySlot, allRegions, fireEvent, renderUI } from '../helpers'
@@ -47,22 +47,22 @@ function fleet() {
 	)
 }
 
-/** Fires one crossing, and returns the mark renders that it caused. */
-function cross(target: Element, clientX: number) {
+/**
+ * Moves the pointer onto `target`, and returns the mark renders that it caused.
+ *
+ * A crossing of the plot gives the point in `init`. A legend item needs no point.
+ */
+function cross(target: Element, init?: { clientX: number; clientY: number }) {
 	vi.mocked(MapPoint).mockClear()
 
 	act(() => {
-		fireEvent.pointerEnter(target, { clientX, clientY: 20 })
+		fireEvent.pointerEnter(target, init)
 	})
 
 	return vi.mocked(MapPoint).mock.calls.length
 }
 
 describe('map singular mark renders', () => {
-	beforeEach(() => {
-		vi.mocked(MapPoint).mockClear()
-	})
-
 	it('renders only the marks whose dim changes on a crossing', () => {
 		const { container } = renderUI(fleet())
 
@@ -73,16 +73,16 @@ describe('map singular mark renders', () => {
 		expect(hits).toHaveLength(STOPS.length)
 
 		// The first crossing dims each mark, which is a real change.
-		expect(cross(alpha as Element, 40)).toBe(STOPS.length)
+		expect(cross(alpha as Element, { clientX: 40, clientY: 20 })).toBe(STOPS.length)
 
 		// Between two regions, no mark dims or lights.
-		expect(cross(beta as Element, 200)).toBe(0)
+		expect(cross(beta as Element, { clientX: 200, clientY: 20 })).toBe(0)
 
 		// From a region to a mark, only that mark lights.
-		expect(cross(hits[0] as Element, 10)).toBe(1)
+		expect(cross(hits[0] as Element, { clientX: 10, clientY: 20 })).toBe(1)
 
 		// From one mark to the next, one mark dims and one lights.
-		expect(cross(hits[1] as Element, 60)).toBe(2)
+		expect(cross(hits[1] as Element, { clientX: 60, clientY: 20 })).toBe(2)
 	})
 
 	it('renders only the marks whose dim changes on a legend emphasis move', () => {
@@ -94,22 +94,11 @@ describe('map singular mark renders', () => {
 
 		expect(items).toHaveLength(STOPS.length)
 
-		/** Moves the legend emphasis onto `item`, and returns the mark renders that it caused. */
-		const focus = (item: Element) => {
-			vi.mocked(MapPoint).mockClear()
-
-			// The pointer drives the emphasis. A focus emphasizes only with `:focus-visible`.
-			act(() => {
-				fireEvent.pointerEnter(item)
-			})
-
-			return vi.mocked(MapPoint).mock.calls.length
-		}
-
+		// The pointer drives the emphasis. A focus emphasizes only with `:focus-visible`.
 		// The first emphasis dims each other mark, which is a real change.
-		expect(focus(items[0] as Element)).toBe(STOPS.length - 1)
+		expect(cross(items[0] as Element)).toBe(STOPS.length - 1)
 
 		// From one legend item to the next, one mark dims and one lights.
-		expect(focus(items[1] as Element)).toBe(2)
+		expect(cross(items[1] as Element)).toBe(2)
 	})
 })

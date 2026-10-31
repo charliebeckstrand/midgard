@@ -1,5 +1,5 @@
 import { renderToString } from 'react-dom/server'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Listbox, ListboxOption } from '../../components/listbox'
 import { defineMessages, type IntlShape, useIntl } from '../../primitives/intl'
 import { writeChoice } from '../../providers/appearance/appearance-storage'
@@ -14,10 +14,6 @@ const LOCALES = ['en-US', 'en-GB', 'en-CA', 'en-AU'] as const
 function stubLanguages(languages: string[]) {
 	vi.spyOn(Navigator.prototype, 'languages', 'get').mockReturnValue(languages)
 }
-
-afterEach(() => {
-	localStorage.clear()
-})
 
 function LocaleProbe() {
 	const config = useLocale()
@@ -488,19 +484,6 @@ describe('locale cookie', () => {
 		)
 
 		expect(document.cookie).toContain('locale=en-GB')
-	})
-
-	it('takes the cookie when the storage holds no choice', () => {
-		// biome-ignore lint/suspicious/noDocumentCookie: the test sets the cookie that a server reads.
-		document.cookie = 'locale=en-AU; path=/'
-
-		renderUI(
-			<LocaleProvider locale="en-US" locales={LOCALES}>
-				<LocaleProbe />
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByTestId('locale')).toHaveTextContent('en-AU')
 	})
 
 	it('writes no cookie for the System choice that the reader has not changed', () => {

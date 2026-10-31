@@ -1,5 +1,5 @@
 import { createRef } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	SidebarLayout,
 	SidebarLayoutBody,
@@ -29,10 +29,6 @@ const BUFFER = `[class~="${dan.size.sidebar.edge}"]`
 /** The copy of the sidebar in the floating sheet. The inline panel holds the other copy. */
 const inSheet = (text: string) =>
 	screen.queryAllByText(text).find((element) => element.closest('[data-slot="overlay"]')) ?? null
-
-afterEach(() => {
-	localStorage.clear()
-})
 
 /**
  * Stubs `matchMedia` with a viewport `width` wide, and returns a function that
@@ -85,12 +81,6 @@ describe('SidebarLayout', () => {
 		)
 
 		expect(screen.getByText('navbar content')).toBeInTheDocument()
-	})
-
-	it('renders the mobile navigation trigger', () => {
-		renderUI(<SidebarLayout sidebar={<div>sidebar</div>}>body</SidebarLayout>)
-
-		expect(screen.getByRole('button', { name: 'Open navigation' })).toBeInTheDocument()
 	})
 
 	it('renders desktop header actions when actions are provided', () => {
@@ -247,30 +237,34 @@ describe('SidebarLayoutBody', () => {
 })
 
 describe('SidebarLayout offcanvas mode', () => {
-	it('opens the floating sheet on pointer enter of the hot zone', () => {
-		const { container } = renderUI(
+	/** Renders an inline layout with a floating sidebar. */
+	const renderFloating = () =>
+		renderUI(
 			<SidebarLayout layout="inline" sidebar={<div>floating-sidebar</div>}>
 				body
 			</SidebarLayout>,
 		)
 
-		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
+	/** Moves the pointer into the hot zone of `container`, which opens the peek. */
+	function openPeek(container: HTMLElement, init?: PointerEventInit) {
+		fireEvent.pointerEnter(
+			present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]'),
+			init,
+		)
+	}
 
-		fireEvent.pointerEnter(hotZone)
+	it('opens the floating sheet on pointer enter of the hot zone', () => {
+		const { container } = renderFloating()
+
+		openPeek(container)
 
 		expect(inSheet('floating-sidebar')).toBeInTheDocument()
 	})
 
 	it('keeps the sheet open while the pointer moves across the sheet and the start-edge buffer', () => {
-		const { container } = renderUI(
-			<SidebarLayout layout="inline" sidebar={<div>floating-sidebar</div>}>
-				body
-			</SidebarLayout>,
-		)
+		const { container } = renderFloating()
 
-		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
-
-		fireEvent.pointerEnter(hotZone)
+		openPeek(container)
 
 		const inner = present(inSheet('floating-sidebar'), 'sheet sidebar').parentElement as HTMLElement
 
@@ -296,18 +290,9 @@ describe('SidebarLayout offcanvas mode', () => {
 	it.each(['sheet body', 'buffer'])(
 		'keeps the peek open when a touch leaves the %s, and closes it on a tap outside',
 		(from) => {
-			const { container } = renderUI(
-				<SidebarLayout layout="inline" sidebar={<div>floating-sidebar</div>}>
-					body
-				</SidebarLayout>,
-			)
+			const { container } = renderFloating()
 
-			const hotZone = present(
-				container.querySelector('[aria-hidden="true"]'),
-				'[aria-hidden="true"]',
-			)
-
-			fireEvent.pointerEnter(hotZone, { pointerType: 'touch' })
+			openPeek(container, { pointerType: 'touch' })
 
 			const target =
 				from === 'buffer'
@@ -329,15 +314,9 @@ describe('SidebarLayout offcanvas mode', () => {
 	)
 
 	it('closes when the pointer leaves the start-edge buffer', () => {
-		const { container } = renderUI(
-			<SidebarLayout layout="inline" sidebar={<div>floating-sidebar</div>}>
-				body
-			</SidebarLayout>,
-		)
+		const { container } = renderFloating()
 
-		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
-
-		fireEvent.pointerEnter(hotZone)
+		openPeek(container)
 
 		const buffer = present(document.body.querySelector(BUFFER), BUFFER)
 
@@ -349,18 +328,12 @@ describe('SidebarLayout offcanvas mode', () => {
 	})
 
 	it('blurs the page behind the floating peek once it opens', () => {
-		const { container } = renderUI(
-			<SidebarLayout layout="inline" sidebar={<div>floating-sidebar</div>}>
-				body
-			</SidebarLayout>,
-		)
+		const { container } = renderFloating()
 
 		// No backdrop until the peek opens.
 		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
 
-		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
-
-		fireEvent.pointerEnter(hotZone)
+		openPeek(container)
 
 		// The sheet paints its own blurred backdrop: no hand-rolled scrim.
 		const backdrop = document.querySelector('[data-slot="overlay-backdrop"]')
@@ -378,12 +351,6 @@ describe('SidebarLayout offcanvas mode', () => {
 		expect(overlay.className).toContain('pointer-events-none')
 	})
 
-	it('renders no backdrop until the peek opens', () => {
-		renderUI(<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>)
-
-		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
-	})
-
 	it('does not trap focus or lock scroll when the hover-peek opens', () => {
 		const { container } = renderUI(
 			<SidebarLayout layout="inline" sidebar={<a href="/a">nav-link</a>}>
@@ -395,9 +362,7 @@ describe('SidebarLayout offcanvas mode', () => {
 
 		pageButton.focus()
 
-		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
-
-		fireEvent.pointerEnter(hotZone)
+		openPeek(container)
 
 		// Mere hover must not steal focus from the page nor lock its scroll.
 		expect(document.activeElement).toBe(pageButton)
@@ -420,9 +385,7 @@ describe('SidebarLayout offcanvas mode', () => {
 			</SidebarLayout>,
 		)
 
-		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
-
-		fireEvent.pointerEnter(hotZone)
+		openPeek(container)
 
 		// Opening paints the start-edge buffer: the open-state signal.
 		expect(document.body.querySelector(BUFFER)).toBeInTheDocument()
@@ -445,9 +408,7 @@ describe('SidebarLayout offcanvas mode', () => {
 			<SidebarLayout sidebar={<div>floating-sidebar</div>}>body</SidebarLayout>,
 		)
 
-		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
-
-		fireEvent.pointerEnter(hotZone, { pointerType: 'touch' })
+		openPeek(container, { pointerType: 'touch' })
 
 		expect(inSheet('floating-sidebar')).toBeInTheDocument()
 

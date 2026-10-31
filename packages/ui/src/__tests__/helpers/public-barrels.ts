@@ -1,6 +1,11 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { Project } from 'typescript/unstable/sync'
+import {
+	type Checker,
+	type Project,
+	SymbolFlags,
+	type Symbol as TsSymbol,
+} from 'typescript/unstable/sync'
 import type { TypeScriptServer } from './ts-server'
 import { srcDir, uiRoot } from './walk-source'
 
@@ -72,4 +77,26 @@ export function openPublicProject(
 		{ incremental: false, types: [] },
 		'./tsconfig.json',
 	)
+}
+
+/** The symbol that an import alias names, or the symbol itself. */
+export function resolvedSymbol(checker: Checker, symbol: TsSymbol): TsSymbol {
+	return symbol.flags & SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
+}
+
+/**
+ * The exports of a barrel, as the checker of `project` reads them. A barrel
+ * that the project does not hold gives no exports.
+ *
+ * @param project - A project from `openPublicProject`.
+ * @param barrel - The path of the barrel, as `publicBarrels` gives it.
+ */
+export function barrelExports(project: Project, barrel: string): readonly TsSymbol[] {
+	const { program, checker } = project
+
+	const source = program.getSourceFile(barrel)
+
+	const module = source && checker.getSymbolAtLocation(source)
+
+	return module ? checker.getExportsOfModule(module) : []
 }

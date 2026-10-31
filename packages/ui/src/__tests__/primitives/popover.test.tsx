@@ -4,12 +4,6 @@ import { PopoverPanel } from '../../primitives/popover'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('PopoverPanel', () => {
-	it('renders with listbox role by default', () => {
-		renderUI(<PopoverPanel>options</PopoverPanel>)
-
-		expect(screen.getByRole('listbox')).toBeInTheDocument()
-	})
-
 	it('passes native attributes and a ref to the panel, and keeps its anchor', () => {
 		const ref = createRef<HTMLDivElement>()
 
@@ -98,14 +92,6 @@ describe('PopoverPanel', () => {
 		const panel = screen.getByRole('listbox')
 
 		expect(panel).toHaveAttribute('tabindex', '-1')
-	})
-
-	it('applies custom id', () => {
-		renderUI(<PopoverPanel id="my-panel">items</PopoverPanel>)
-
-		const panel = screen.getByRole('listbox')
-
-		expect(panel).toHaveAttribute('id', 'my-panel')
 	})
 
 	it('marks the glass panel as the group the item wash keys on', () => {

@@ -1,30 +1,57 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 
-const originalVisualViewport = window.visualViewport
+/**
+ * Stubs the frame pair. Each request gives `handle` and keeps its callback,
+ * and `run(n)` calls the newest callback `n` times.
+ */
+function stubFrames(handle = 1) {
+	let pending: FrameRequestCallback | null = null
 
-afterEach(() => {
-	Object.defineProperty(window, 'visualViewport', {
-		value: originalVisualViewport,
-		writable: true,
-		configurable: true,
+	vi.spyOn(window, 'requestAnimationFrame').mockImplementation((next) => {
+		pending = next
+
+		return handle
 	})
 
-	if ('ontouchstart' in window) Reflect.deleteProperty(window, 'ontouchstart')
-})
+	const cancel = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
 
-function stubVisualViewport(value: { height: number } | null) {
-	Object.defineProperty(window, 'visualViewport', {
-		value,
-		writable: true,
-		configurable: true,
-	})
+	return {
+		run(n: number) {
+			for (let i = 0; i < n; i++) (pending as FrameRequestCallback | null)?.(0)
+		},
+		cancel,
+	}
 }
 
 describe('useKeyboardSettled', () => {
-	it('fires callback immediately when visualViewport is not available', () => {
-		stubVisualViewport(null)
+	it.for([
+		{
+			name: 'fires callback immediately when visualViewport is not available',
+			viewport: null,
+			touch: false,
+		},
+		{
+			name: 'fires callback immediately on non-touch devices even when visualViewport is present',
+			viewport: 1,
+			touch: false,
+		},
+		{
+			name: 'fires callback immediately when the keyboard is already visible',
+			viewport: 0.5,
+			touch: true,
+		},
+	])('$name', ({ viewport, touch }) => {
+		vi.stubGlobal(
+			'visualViewport',
+			viewport === null ? null : { height: window.innerHeight * viewport },
+		)
+
+		// jsdom puts its own `ontouchstart` on the window, so a device with no touch
+		// needs a delete. `vi.stubGlobal` cannot remove a key.
+		if (touch) vi.stubGlobal('ontouchstart', null)
+		else if ('ontouchstart' in window) Reflect.deleteProperty(window, 'ontouchstart')
 
 		const { result } = renderHook(() => useKeyboardSettled())
 
@@ -45,50 +72,14 @@ describe('useKeyboardSettled', () => {
 		expect(result.current).toBe(first)
 	})
 
-	it('fires callback immediately on non-touch devices even when visualViewport is present', () => {
-		stubVisualViewport({ height: window.innerHeight })
-
-		if ('ontouchstart' in window) Reflect.deleteProperty(window, 'ontouchstart')
-
-		const { result } = renderHook(() => useKeyboardSettled())
-
-		const callback = vi.fn()
-
-		result.current(callback)
-
-		expect(callback).toHaveBeenCalledOnce()
-	})
-
-	it('fires callback immediately when the keyboard is already visible', () => {
-		stubVisualViewport({ height: window.innerHeight * 0.5 })
-
-		window.ontouchstart = null
-
-		const { result } = renderHook(() => useKeyboardSettled())
-
-		const callback = vi.fn()
-
-		result.current(callback)
-
-		expect(callback).toHaveBeenCalledOnce()
-	})
-
 	it('polls via rAF and fires once the viewport has settled', () => {
 		const viewport = { height: window.innerHeight }
 
-		stubVisualViewport(viewport)
+		vi.stubGlobal('visualViewport', viewport)
 
-		window.ontouchstart = null
+		vi.stubGlobal('ontouchstart', null)
 
-		let frameCallback: FrameRequestCallback | null = null
-
-		vi.spyOn(window, 'requestAnimationFrame').mockImplementation((next) => {
-			frameCallback = next
-
-			return 1
-		})
-
-		vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
+		const frames = stubFrames()
 
 		const { result } = renderHook(() => useKeyboardSettled())
 
@@ -101,25 +92,17 @@ describe('useKeyboardSettled', () => {
 		// Keyboard appears, then six stable frames satisfy the 5-frame threshold.
 		viewport.height = Math.floor(window.innerHeight * 0.5)
 
-		for (let i = 0; i < 6; i++) (frameCallback as FrameRequestCallback | null)?.(0)
+		frames.run(6)
 
 		expect(callback).toHaveBeenCalledOnce()
 	})
 
 	it('bails out and fires after 60 frames even if the viewport never changes', () => {
-		stubVisualViewport({ height: window.innerHeight })
+		vi.stubGlobal('visualViewport', { height: window.innerHeight })
 
-		window.ontouchstart = null
+		vi.stubGlobal('ontouchstart', null)
 
-		let frameCallback: FrameRequestCallback | null = null
-
-		vi.spyOn(window, 'requestAnimationFrame').mockImplementation((next) => {
-			frameCallback = next
-
-			return 1
-		})
-
-		vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
+		const frames = stubFrames()
 
 		const { result } = renderHook(() => useKeyboardSettled())
 
@@ -127,19 +110,17 @@ describe('useKeyboardSettled', () => {
 
 		result.current(callback)
 
-		for (let i = 0; i < 60; i++) (frameCallback as FrameRequestCallback | null)?.(0)
+		frames.run(60)
 
 		expect(callback).toHaveBeenCalledOnce()
 	})
 
 	it('cancels a pending rAF when invoked a second time', () => {
-		stubVisualViewport({ height: window.innerHeight })
+		vi.stubGlobal('visualViewport', { height: window.innerHeight })
 
-		window.ontouchstart = null
+		vi.stubGlobal('ontouchstart', null)
 
-		vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 99)
-
-		const cancel = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
+		const { cancel } = stubFrames(99)
 
 		const { result } = renderHook(() => useKeyboardSettled())
 
@@ -151,13 +132,11 @@ describe('useKeyboardSettled', () => {
 	})
 
 	it('cancels any pending rAF on unmount', () => {
-		stubVisualViewport({ height: window.innerHeight })
+		vi.stubGlobal('visualViewport', { height: window.innerHeight })
 
-		window.ontouchstart = null
+		vi.stubGlobal('ontouchstart', null)
 
-		vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 42)
-
-		const cancel = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
+		const { cancel } = stubFrames(42)
 
 		const { result, unmount } = renderHook(() => useKeyboardSettled())
 

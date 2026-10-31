@@ -1,5 +1,5 @@
 import { CalendarDate, getLocalTimeZone, resetLocalTimeZone } from '@internationalized/date'
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import {
 	firstOfMonth,
 	fromCalendarDate,
@@ -17,24 +17,18 @@ import {
  */
 
 /** Gives the library a first read in UTC, then moves the process to New York for the case. */
-function inNewYorkAfterUtcRead() {
-	const zone = process.env.TZ
-
-	onTestFinished(() => {
-		process.env.TZ = zone
-
-		resetLocalTimeZone()
-	})
+const inNewYorkAfterUtcRead = vi.defineHelper(() => {
+	onTestFinished(resetLocalTimeZone)
 
 	resetLocalTimeZone()
 
 	expect(getLocalTimeZone(), 'the first read of the library was not in UTC').toBe('UTC')
 
-	process.env.TZ = 'America/New_York'
+	vi.stubEnv('TZ', 'America/New_York')
 
 	// A case that runs in UTC passes on the defect, so it must fail here.
 	expect(new Date(2026, 0, 1).getTimezoneOffset(), 'the zone change took no effect').toBe(300)
-}
+})
 
 describe('calendar days after the runtime zone moves west of UTC', () => {
 	it('builds local midnight for the calendar day', () => {

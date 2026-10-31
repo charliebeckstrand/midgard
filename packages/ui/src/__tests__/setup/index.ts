@@ -92,4 +92,8 @@ afterEach(() => {
 	// The locale provider writes a cookie, and the window keeps it for each later
 	// case and file of the worker.
 	clearCookies()
+
+	// The appearance and locale providers store each choice in web storage, and
+	// the window keeps it for each later case and file of the worker.
+	localStorage.clear()
 })

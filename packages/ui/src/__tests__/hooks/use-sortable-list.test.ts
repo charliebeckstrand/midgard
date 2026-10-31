@@ -12,6 +12,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	restrictToHorizontalAxis,
 	restrictToVerticalAxis,
+	type SortableListOptions,
 	sortableAnnouncements,
 	useSortableList,
 } from '../../hooks/use-sortable-list'
@@ -25,9 +26,14 @@ const items: Item[] = [
 	{ id: 'c', label: 'Charlie' },
 ]
 
+/** Renders the hook over `items`, keyed by `id`, with `options` spread last. */
+function renderList(options: Partial<SortableListOptions<Item>> = {}) {
+	return renderHook(() => useSortableList({ items, getKey: (item) => item.id, ...options }))
+}
+
 describe('useSortableList', () => {
 	it('computes itemIds from getKey', () => {
-		const { result } = renderHook(() => useSortableList({ items, getKey: (item) => item.id }))
+		const { result } = renderList()
 
 		expect(result.current.itemIds).toEqual(['a', 'b', 'c'])
 	})
@@ -59,7 +65,7 @@ describe('useSortableList', () => {
 	})
 
 	it('defaults to vertical orientation and strategy', () => {
-		const { result } = renderHook(() => useSortableList({ items, getKey: (item) => item.id }))
+		const { result } = renderList()
 
 		expect(result.current.orientation).toBe('vertical')
 
@@ -67,9 +73,7 @@ describe('useSortableList', () => {
 	})
 
 	it('uses horizontal strategy when orientation is horizontal', () => {
-		const { result } = renderHook(() =>
-			useSortableList({ items, getKey: (item) => item.id, orientation: 'horizontal' }),
-		)
+		const { result } = renderList({ orientation: 'horizontal' })
 
 		expect(result.current.strategy).toBe(horizontalListSortingStrategy)
 	})
@@ -79,23 +83,19 @@ describe('useSortableList', () => {
 		['is interactive when onReorder is provided and not disabled', { onReorder: vi.fn() }, true],
 		['is not interactive when disabled is set', { onReorder: vi.fn(), disabled: true }, false],
 	])('%s', (_name, options, expected) => {
-		const { result } = renderHook(() =>
-			useSortableList({ items, getKey: (item) => item.id, ...options }),
-		)
+		const { result } = renderList(options)
 
 		expect(result.current.interactive).toBe(expected)
 	})
 
 	it('activeId starts null', () => {
-		const { result } = renderHook(() => useSortableList({ items, getKey: (item) => item.id }))
+		const { result } = renderList()
 
 		expect(result.current.activeId).toBeNull()
 	})
 
 	it('sets activeId on drag start and clears it on drag cancel', () => {
-		const { result } = renderHook(() =>
-			useSortableList({ items, getKey: (item) => item.id, onReorder: vi.fn() }),
-		)
+		const { result } = renderList({ onReorder: vi.fn() })
 
 		act(() => {
 			result.current.dndContextProps.onDragStart({ active: { id: 'b' } } as DragStartEvent)
@@ -113,9 +113,7 @@ describe('useSortableList', () => {
 	it('calls onReorder with a new ordering when drag ends on a different item', () => {
 		const onReorder = vi.fn()
 
-		const { result } = renderHook(() =>
-			useSortableList({ items, getKey: (item) => item.id, onReorder }),
-		)
+		const { result } = renderList({ onReorder })
 
 		act(() => {
 			result.current.dndContextProps.onDragEnd({
@@ -135,9 +133,7 @@ describe('useSortableList', () => {
 	])('does not call onReorder when drag ends %s', (_name, over) => {
 		const onReorder = vi.fn()
 
-		const { result } = renderHook(() =>
-			useSortableList({ items, getKey: (item) => item.id, onReorder }),
-		)
+		const { result } = renderList({ onReorder })
 
 		act(() => {
 			result.current.dndContextProps.onDragEnd({ active: { id: 'a' }, over } as DragEndEvent)
@@ -147,7 +143,7 @@ describe('useSortableList', () => {
 	})
 
 	it('does not throw on drag end when onReorder is not provided', () => {
-		const { result } = renderHook(() => useSortableList({ items, getKey: (item) => item.id }))
+		const { result } = renderList()
 
 		expect(() =>
 			act(() => {
@@ -162,17 +158,13 @@ describe('useSortableList', () => {
 	it('calls onDragStart with the resolved item when a drag begins', () => {
 		const onDragStart = vi.fn()
 
-		const { result } = renderHook(() =>
-			useSortableList({ items, getKey: (item) => item.id, onDragStart }),
-		)
+		const { result } = renderList({ onDragStart })
 
 		act(() => {
 			result.current.dndContextProps.onDragStart({ active: { id: 'b' } } as DragStartEvent)
 		})
 
-		expect(onDragStart).toHaveBeenCalledOnce()
-
-		expect(onDragStart).toHaveBeenCalledWith(items[1])
+		expect(onDragStart).toHaveBeenCalledExactlyOnceWith(items[1])
 	})
 
 	it('calls onDragEnd with the dragged item on a committed drop, after onReorder', () => {
@@ -182,9 +174,7 @@ describe('useSortableList', () => {
 
 		const onDragEnd = vi.fn(() => order.push('end'))
 
-		const { result } = renderHook(() =>
-			useSortableList({ items, getKey: (item) => item.id, onReorder, onDragEnd }),
-		)
+		const { result } = renderList({ onReorder, onDragEnd })
 
 		act(() => {
 			result.current.dndContextProps.onDragStart({ active: { id: 'a' } } as DragStartEvent)
@@ -197,9 +187,7 @@ describe('useSortableList', () => {
 			} as DragEndEvent)
 		})
 
-		expect(onDragEnd).toHaveBeenCalledOnce()
-
-		expect(onDragEnd).toHaveBeenCalledWith(items[0])
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(items[0])
 
 		// The commit fires before the lifecycle end, so the two bracket the move.
 		expect(order).toEqual(['reorder', 'end'])
@@ -210,9 +198,7 @@ describe('useSortableList', () => {
 
 		const onDragEnd = vi.fn()
 
-		const { result } = renderHook(() =>
-			useSortableList({ items, getKey: (item) => item.id, onReorder, onDragEnd }),
-		)
+		const { result } = renderList({ onReorder, onDragEnd })
 
 		act(() => {
 			result.current.dndContextProps.onDragStart({ active: { id: 'a' } } as DragStartEvent)
@@ -227,17 +213,13 @@ describe('useSortableList', () => {
 
 		expect(onReorder).not.toHaveBeenCalled()
 
-		expect(onDragEnd).toHaveBeenCalledOnce()
-
-		expect(onDragEnd).toHaveBeenCalledWith(items[0])
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(items[0])
 	})
 
 	it('calls onDragEnd with the dragged item on a cancel', () => {
 		const onDragEnd = vi.fn()
 
-		const { result } = renderHook(() =>
-			useSortableList({ items, getKey: (item) => item.id, onReorder: vi.fn(), onDragEnd }),
-		)
+		const { result } = renderList({ onReorder: vi.fn(), onDragEnd })
 
 		act(() => {
 			result.current.dndContextProps.onDragStart({ active: { id: 'c' } } as DragStartEvent)
@@ -247,9 +229,7 @@ describe('useSortableList', () => {
 			result.current.dndContextProps.onDragCancel()
 		})
 
-		expect(onDragEnd).toHaveBeenCalledOnce()
-
-		expect(onDragEnd).toHaveBeenCalledWith(items[2])
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(items[2])
 	})
 })
 
@@ -292,7 +272,7 @@ describe('useSortableList announcements', () => {
 		props.accessibility?.announcements
 
 	it('names each item by its key without describe', () => {
-		const { result } = renderHook(() => useSortableList({ items, getKey: (item) => item.id }))
+		const { result } = renderList()
 
 		const announcements = getAnnouncements(result.current.dndContextProps)
 
@@ -302,9 +282,7 @@ describe('useSortableList announcements', () => {
 	})
 
 	it('names each item through describe', () => {
-		const { result } = renderHook(() =>
-			useSortableList({ items, getKey: (item) => item.id, describe: (item) => item.label }),
-		)
+		const { result } = renderList({ describe: (item) => item.label })
 
 		const announcements = getAnnouncements(result.current.dndContextProps)
 

@@ -13,6 +13,7 @@ import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
 import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import { NO_REGION_CLAIM, regionSpare } from '../../modules/map/engine/map-region/spare'
 import type { LngLat, MapFeature, MapPoint2D } from '../../modules/map/engine/types'
+import { flatProjector } from '../helpers/map-flat'
 
 /**
  * A share is a product of fractions, so it carries float noise below this bound
@@ -35,10 +36,7 @@ const SPARE_TOLERANCE = 5e-11
  * expectation is arithmetic a reader can check by eye.
  */
 describe('regionSpare', () => {
-	/** One frame unit per degree, so a reach reads straight off the coordinates. */
-	const flat = (position: LngLat): MapPoint2D => ({ x: position[0], y: position[1] })
-
-	/** The inverse of {@link flat}, which is what the resolver asks the grid through. */
+	/** The inverse of {@link flatProjector}, which is what the resolver asks the grid through. */
 	const unflat = (at: MapPoint2D): LngLat => [at.x, at.y]
 
 	/** A square region of `side` degrees with its lower corner at `[west, south]`. */
@@ -63,7 +61,7 @@ describe('regionSpare', () => {
 	/** What a square of `side` units hands a dot: half its inscribed room, which is `side / 2`. */
 	const getShare = (side: number) => (side / 2) * AREA_SPARE_FRACTION
 
-	const spareOver = (features: MapFeature[]) => regionSpare(features, unflat, flat)
+	const spareOver = (features: MapFeature[]) => regionSpare(features, unflat, flatProjector)
 
 	it('spares a share of the region’s own room, not a figure', () => {
 		// A 60-unit square holds 30 units inscribed, so the region keeps half and
@@ -98,7 +96,7 @@ describe('regionSpare', () => {
 	it('claims nothing where the projection has no lon/lat for the dot', () => {
 		// The composite's gaps between insets are the real case. Asking the grid
 		// would need a box, and there is none, so the dot keeps its whole target.
-		const spare = regionSpare([square('A', 0, 0, 60)], () => null, flat)
+		const spare = regionSpare([square('A', 0, 0, 60)], () => null, flatProjector)
 
 		expect(spare({ x: 30, y: 30 }, 1)).toBe(Number.POSITIVE_INFINITY)
 	})
@@ -127,7 +125,7 @@ describe('regionSpare', () => {
 		const counted = (position: LngLat): MapPoint2D => {
 			projections += 1
 
-			return flat(position)
+			return flatProjector(position)
 		}
 
 		const spare = regionSpare([square('A', 0, 0, 60)], unflat, counted)

@@ -1,7 +1,8 @@
-import { type Browser, chromium, type Page } from 'playwright'
-import { afterAll, beforeAll, describe, expect, inject, it, onTestFinished } from 'vitest'
+import type { Page } from 'playwright'
+import { describe, expect, inject, it } from 'vitest'
 import { HYDRATED } from '../../../scripts/docs-server'
 import { LOCALES } from '../../docs/app/language'
+import { launchChromium } from './helpers/chromium'
 
 // The build renders each page to HTML on the server, and the browser hydrates
 // it. When the client renders different markup, React reports a recoverable
@@ -47,26 +48,14 @@ const STALE_CHUNKS = ['page', 'entry.client']
 
 const origin = inject('docsOrigin')
 
-let browser: Browser
-
-beforeAll(async () => {
-	browser = await chromium.launch()
-})
-
-afterAll(async () => {
-	await browser?.close()
-})
+const launch = launchChromium()
 
 /**
  * Opens a tab at the width of a phone, with the browser languages of `locale`.
  * The tab closes after the case, also after a timeout.
  */
-async function openTab(locale = 'en-US'): Promise<Page> {
-	const tab = await browser.newPage({ viewport: { width: 390, height: 844 }, locale })
-
-	onTestFinished(() => tab.close())
-
-	return tab
+function openTab(locale = 'en-US'): Promise<Page> {
+	return launch({ viewport: { width: 390, height: 844 }, locale })
 }
 
 /**

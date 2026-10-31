@@ -1,9 +1,8 @@
 import { renderHook } from '@testing-library/react'
 import type { PointerEvent } from 'react'
-import { afterEach, describe, expect, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { useTouchHold } from '../../hooks/use-touch-hold'
 import { TOUCH_SLOP } from '../../hooks/use-touch-tap'
-import { __resetTextSelectionHold } from '../../utilities/hold-text-selection'
 import { it, onFakeClock } from '../helpers/fake-clock'
 
 const target = document.createElement('div')
@@ -24,10 +23,6 @@ function press(clientX: number, clientY: number, extra: Record<string, unknown> 
 
 describe('useTouchHold', () => {
 	onFakeClock()
-
-	afterEach(() => {
-		__resetTextSelectionHold()
-	})
 
 	function setup() {
 		const onHold = vi.fn()

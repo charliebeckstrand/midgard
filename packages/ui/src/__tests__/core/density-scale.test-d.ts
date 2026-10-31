@@ -8,6 +8,12 @@ describe('defineScale', () => {
 		expectTypeOf<ScaleStep<typeof scale>>().toEqualTypeOf<'sm' | 'md' | 'lg'>()
 	})
 
+	it('types a scale of mixed ramps as the union of their steps', () => {
+		const scale = defineScale('density-p-[2,3,4]', 'density-size-[3,4,5,6,6]')
+
+		expectTypeOf<ScaleStep<typeof scale>>().toEqualTypeOf<'xs' | 'sm' | 'md' | 'lg'>()
+	})
+
 	it('types each step of a ramp with five distinct values', () => {
 		expectTypeOf<RampSteps<'density-size-[3,4,5,6,8]'>>().toEqualTypeOf<
 			'xs' | 'sm' | 'md' | 'lg' | 'xl'

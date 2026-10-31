@@ -1,4 +1,3 @@
-import type { ElementType } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Sparkline } from '../../components/sparkline'
 import { LineChart } from '../../modules/chart/line-chart'
@@ -20,27 +19,13 @@ import { renderUI, stubMatchMedia } from '../helpers'
  */
 const initials = vi.hoisted(() => new Map<string, unknown[]>())
 
-vi.mock('motion/react-m', async (importActual) => {
-	const actual = await importActual<typeof import('motion/react-m')>()
+vi.mock('motion/react-m', async (importActual) =>
+	(await import('../helpers/spy-motion')).spyMotion(await importActual(), (props, tag) => {
+		const slot = String(props['data-slot'] ?? tag)
 
-	const { createElement } = await import('react')
-
-	// One wrapper for each tag, so each element keeps its component identity.
-	return Object.fromEntries(
-		(Object.entries(actual) as [string, ElementType][]).map(([tag, real]) => [
-			tag,
-			tag === 'create'
-				? real
-				: (props: Record<string, unknown>) => {
-						const slot = String(props['data-slot'] ?? tag)
-
-						initials.set(slot, [...(initials.get(slot) ?? []), props.initial])
-
-						return createElement(real, props)
-					},
-		]),
-	)
-})
+		initials.set(slot, [...(initials.get(slot) ?? []), props.initial])
+	}),
+)
 
 const DATA = [
 	{ q: 'Q1', v: 10 },

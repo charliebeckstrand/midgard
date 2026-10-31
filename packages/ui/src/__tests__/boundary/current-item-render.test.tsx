@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Nav, NavItem, NavList } from '../../components/nav'
 import { useNavItem } from '../../components/nav/use-nav-item'
 import { TabList, Tabs } from '../../components/tabs'
@@ -66,12 +66,6 @@ const tabRenders = () => vi.mocked(Tab).mock.calls.length
 const navItemRenders = () => vi.mocked(useNavItem).mock.calls.length
 
 describe('current item renders', () => {
-	beforeEach(() => {
-		vi.mocked(Tab).mockClear()
-
-		vi.mocked(useNavItem).mockClear()
-	})
-
 	it('renders only the two tabs that a switch changes', () => {
 		renderUI(
 			<Tabs defaultValue="item-0">

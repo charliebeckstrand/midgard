@@ -1,4 +1,3 @@
-import type { ElementType } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { renderUI } from '../helpers'
@@ -11,27 +10,13 @@ import { renderUI } from '../helpers'
  */
 const delays = vi.hoisted(() => [] as number[])
 
-vi.mock('motion/react-m', async (importActual) => {
-	const actual = await importActual<typeof import('motion/react-m')>()
+vi.mock('motion/react-m', async (importActual) =>
+	(await import('../helpers/spy-motion')).spyMotion(await importActual(), (props) => {
+		const transition = props.transition as { delay?: number } | undefined
 
-	const { createElement } = await import('react')
-
-	// One wrapper for each tag, so each element keeps its component identity.
-	return Object.fromEntries(
-		(Object.entries(actual) as [string, ElementType][]).map(([tag, real]) => [
-			tag,
-			tag === 'create'
-				? real
-				: (props: Record<string, unknown>) => {
-						const transition = props.transition as { delay?: number } | undefined
-
-						if (props['data-slot'] === 'chart-bar') delays.push(transition?.delay ?? 0)
-
-						return createElement(real, props)
-					},
-		]),
-	)
-})
+		if (props['data-slot'] === 'chart-bar') delays.push(transition?.delay ?? 0)
+	}),
+)
 
 function bars(count: number) {
 	return (

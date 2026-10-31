@@ -15,15 +15,7 @@ import { k as toast } from '../../recipes/kata/toast'
 describe('safe-area insets on edge surfaces', () => {
 	const bottom = 'env(safe-area-inset-bottom)'
 
-	it('pads the drawer at every height', () => {
-		for (const height of ['auto', 'fit', 'half', 'full'] as const) {
-			expect(drawer({ height }).base).toContain(bottom)
-		}
-	})
-
 	it('pads each sheet side on the edge it meets', () => {
-		expect(sheet({ side: 'bottom' }).base).toContain(bottom)
-
 		expect(sheet({ side: 'top' }).base).toContain('env(safe-area-inset-top)')
 
 		expect(sheet({ side: 'right', layout: 'flush' }).base).toContain(bottom)

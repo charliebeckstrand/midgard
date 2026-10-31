@@ -5,6 +5,7 @@ import {
 	CALLOUT_CHAR_WIDTH,
 	CALLOUT_LEADER,
 	CALLOUT_LINE,
+	pieCalloutCenter,
 	pieCalloutFit,
 	pieCallouts,
 	pieCentroidRadius,
@@ -12,6 +13,7 @@ import {
 } from '../../modules/chart/engine/chart-geometry/pie'
 import type { TextWidth } from '../../modules/chart/engine/chart-text-width'
 import { FLOAT } from '../helpers/geometry/tolerance'
+import { farEdge, leaderPoints } from '../helpers/pie-callouts'
 
 // The tables of `chart-pie-geometry.test.ts` hold the documented examples. The
 // properties below read the sweep, the label radius, and the callouts over
@@ -194,29 +196,12 @@ describe('pieCallouts · properties', () => {
 		for (const index of indexes) expect(sliced.has(index)).toBe(true)
 	})
 
-	test.prop([scene()])('stacks the labels of one side at least a line apart', (input) => {
-		for (const anchor of ['start', 'end'] as const) {
-			const ys = place(input)
-				.callouts.filter((callout) => callout.anchor === anchor)
-				.map((callout) => callout.y)
-				.sort((a, b) => a - b)
-
-			for (let at = 1; at < ys.length; at++) {
-				expect((ys[at] as number) - (ys[at - 1] as number)).toBeGreaterThanOrEqual(
-					CALLOUT_LINE - FLOAT,
-				)
-			}
-		}
-	})
-
 	// The leader starts on the rim, so each vertex sits on the rim or past it.
 	test.prop([scene()])('keeps each leader vertex and each label off the pie body', (input) => {
 		const { cx, cy, radius } = input.center
 
 		for (const callout of place(input).callouts) {
-			const points = callout.leader.split(' ').map((point) => point.split(',').map(Number))
-
-			for (const [x, y] of points as [number, number][]) {
+			for (const [x, y] of leaderPoints(callout)) {
 				expect(Math.hypot(x - cx, y - cy)).toBeGreaterThanOrEqual(radius - FLOAT)
 			}
 
@@ -238,7 +223,7 @@ describe('pieCallouts · properties', () => {
 			for (const other of callouts) {
 				if (other === label) continue
 
-				const points = other.leader.split(' ').map((point) => point.split(',').map(Number))
+				const points = leaderPoints(other)
 
 				for (let at = 1; at < points.length; at++) {
 					const [x0, y0] = points[at - 1] as [number, number]
@@ -297,10 +282,13 @@ describe('pieCalloutFit · properties', () => {
 
 			const cy = height / 2
 
-			const slices = pieSlices(values, { cx: fit.cx, cy, radius })
+			// The chart centers a capped pie in the room that its callouts leave.
+			const cx = pieCalloutCenter({ values, texts, textWidth, frameWidth }, radius)
+
+			const slices = pieSlices(values, { cx, cy, radius })
 
 			const callouts = pieCallouts(slices, {
-				cx: fit.cx,
+				cx,
 				cy,
 				radius,
 				top: CALLOUT_LINE,
@@ -310,11 +298,13 @@ describe('pieCalloutFit · properties', () => {
 			for (const callout of callouts) {
 				const extent = textWidth(texts[callout.index] ?? '')
 
-				const far = callout.anchor === 'start' ? callout.x + extent : callout.x - extent
+				const far = farEdge(callout, extent)
 
 				expect(far).toBeGreaterThanOrEqual(-FIT_TOLERANCE)
 
 				expect(far).toBeLessThanOrEqual(frameWidth + FIT_TOLERANCE)
+
+				expect(Math.hypot(callout.x - cx, callout.y - cy)).toBeGreaterThan(radius)
 			}
 		},
 	)

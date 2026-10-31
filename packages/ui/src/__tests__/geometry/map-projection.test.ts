@@ -97,9 +97,19 @@ describe('fitProjection', () => {
 	})
 
 	it('returns an unfitted projection when there is nothing to frame', () => {
-		const projection = fitProjection('mercator', [], 300, 100)
+		const unfitted = geoMercator()
 
-		expect(typeof projection).toBe('function')
+		// No features, and a frame with no width: neither gives a fit.
+		const empties = [
+			fitProjection('mercator', [], 300, 100),
+			fitProjection('mercator', FIXTURE_GEOJSON.features, 0, 100),
+		]
+
+		for (const projection of empties) {
+			expect(projection.scale()).toBe(unfitted.scale())
+
+			expect(projection.translate()).toEqual(unfitted.translate())
+		}
 	})
 })
 
@@ -301,30 +311,59 @@ describe('projectionFallbackAspect', () => {
 })
 
 describe('mapFrameSizing', () => {
-	it('lets an explicit height win as a fixed pixel box', () => {
-		expect(mapFrameSizing(250, 'auto', 3)).toEqual({ mode: 'fixed', height: 250 })
-	})
-
-	it("derives the geography's own ratio under 'auto'", () => {
-		expect(mapFrameSizing(undefined, 'auto', 3)).toEqual({ mode: 'aspect', ratio: 3 })
-	})
-
-	it("falls back to a wide frame when 'auto' has nothing to measure", () => {
-		expect(mapFrameSizing(undefined, 'auto', null)).toEqual({ mode: 'aspect', ratio: 16 / 9 })
-	})
-
-	it('parses a "w/h" ratio string', () => {
-		expect(mapFrameSizing(undefined, '4/3', null)).toEqual({ mode: 'aspect', ratio: 4 / 3 })
-	})
-
-	it("fills the container only when free-form — 'auto' never falls through", () => {
-		expect(mapFrameSizing(undefined, false, 3)).toEqual({ mode: 'fill' })
-	})
-
-	it('rejects a negative "w/h" ratio, filling rather than reserving a negative box', () => {
-		// The `${number}/${number}` type admits a signed numerator, so a negative
-		// ratio must fall through to fill, not produce an invalid CSS aspect-ratio.
-		expect(mapFrameSizing(undefined, '-4/3', null)).toEqual({ mode: 'fill' })
+	it.for<{
+		name: string
+		height: number | undefined
+		ratio: Parameters<typeof mapFrameSizing>[1]
+		aspect: number | null
+		sizing: ReturnType<typeof mapFrameSizing>
+	}>([
+		{
+			name: 'lets an explicit height win as a fixed pixel box',
+			height: 250,
+			ratio: 'auto',
+			aspect: 3,
+			sizing: { mode: 'fixed', height: 250 },
+		},
+		{
+			name: "derives the geography's own ratio under 'auto'",
+			height: undefined,
+			ratio: 'auto',
+			aspect: 3,
+			sizing: { mode: 'aspect', ratio: 3 },
+		},
+		{
+			name: "falls back to a wide frame when 'auto' has nothing to measure",
+			height: undefined,
+			ratio: 'auto',
+			aspect: null,
+			sizing: { mode: 'aspect', ratio: 16 / 9 },
+		},
+		{
+			name: 'parses a "w/h" ratio string',
+			height: undefined,
+			ratio: '4/3',
+			aspect: null,
+			sizing: { mode: 'aspect', ratio: 4 / 3 },
+		},
+		{
+			name: "fills the container only when free-form — 'auto' never falls through",
+			height: undefined,
+			ratio: false,
+			aspect: 3,
+			sizing: { mode: 'fill' },
+		},
+		{
+			// The `${number}/${number}` type admits a signed numerator, so a negative
+			// ratio must fall through to fill, not produce an invalid CSS aspect-ratio.
+			name: 'rejects a negative "w/h" ratio, filling rather than reserving a negative box',
+			height: undefined,
+			ratio: '-4/3',
+			aspect: null,
+			sizing: { mode: 'fill' },
+		},
+	])('$name', ({ height, ratio, aspect, sizing }) => {
+		expect(mapFrameSizing(height, ratio, aspect)).toEqual(sizing)
 	})
 })
 

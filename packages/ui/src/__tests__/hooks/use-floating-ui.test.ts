@@ -1,9 +1,10 @@
 import { render, renderHook } from '@testing-library/react'
-import { createElement, createRef, useRef } from 'react'
+import { createElement, createRef, type RefObject, useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useFloatingPanel, useFloatingUI } from '../../hooks/use-floating-ui'
 import { useTruncation } from '../../hooks/use-truncation'
 import { attach } from '../helpers'
+import { scrollbarPress } from '../helpers/scrollbar-press'
 
 describe('useFloatingPanel', () => {
 	it('returns refs, floatingStyles, and context', () => {
@@ -139,6 +140,47 @@ describe('useFloatingPanel', () => {
 })
 
 describe('useFloatingUI', () => {
+	/**
+	 * Renders the hook over an attached reference and floating node, and writes
+	 * the two refs. `open` is a prop, so `rerender({ open })` closes the panel.
+	 */
+	function setup({
+		open = true,
+		onOpenChange = vi.fn(),
+		returnFocusTo,
+	}: {
+		open?: boolean
+		onOpenChange?: (open: boolean, event?: Event, reason?: string) => void
+		returnFocusTo?: RefObject<HTMLElement | null>
+	} = {}) {
+		const reference = attach(document.createElement('button'))
+
+		const floating = attach(document.createElement('div'))
+
+		const floatingChild = floating.appendChild(document.createElement('span'))
+
+		const { result, rerender, unmount } = renderHook(
+			({ open }: { open: boolean }) =>
+				useFloatingUI({ placement: 'bottom-start', open, onOpenChange, returnFocusTo }),
+			{ initialProps: { open } },
+		)
+
+		result.current.refs.domReference.current = reference
+
+		result.current.refs.floating.current = floating
+
+		return { onOpenChange, reference, floatingChild, rerender, unmount }
+	}
+
+	function dispatchPointerDown(target: Element, init: PointerEventInit = {}) {
+		target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, ...init }))
+	}
+
+	/** Presses a node outside the reference and the floating node. */
+	function pressOutside() {
+		dispatchPointerDown(attach(document.createElement('div')))
+	}
+
 	it('returns interaction getters in addition to the panel shape', () => {
 		const { result } = renderHook(() =>
 			useFloatingUI({ placement: 'bottom-start', open: false, onOpenChange: () => {} }),
@@ -154,57 +196,20 @@ describe('useFloatingUI', () => {
 	})
 
 	describe('outside-press dismissal', () => {
-		function setup(open: boolean) {
-			const onOpenChange = vi.fn()
-
-			const reference = document.createElement('button')
-
-			const floating = document.createElement('div')
-
-			const floatingChild = document.createElement('span')
-
-			floating.appendChild(floatingChild)
-
-			attach(reference)
-
-			attach(floating)
-
-			const { result } = renderHook(() =>
-				useFloatingUI({ placement: 'bottom-start', open, onOpenChange }),
-			)
-
-			result.current.refs.domReference.current = reference
-
-			result.current.refs.floating.current = floating
-
-			return {
-				onOpenChange,
-				reference,
-				floating,
-				floatingChild,
-			}
-		}
-
-		function dispatchPointerDown(target: Element, init: PointerEventInit = {}) {
-			target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, ...init }))
-		}
-
 		it('fires onOpenChange(false) on a press outside the reference and floating elements', () => {
-			const { onOpenChange } = setup(true)
+			const { onOpenChange } = setup()
 
-			const outside = document.createElement('div')
+			pressOutside()
 
-			attach(outside)
-
-			dispatchPointerDown(outside)
-
-			expect(onOpenChange).toHaveBeenCalledTimes(1)
-
-			expect(onOpenChange).toHaveBeenCalledWith(false, expect.any(PointerEvent), 'outside-press')
+			expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(
+				false,
+				expect.any(PointerEvent),
+				'outside-press',
+			)
 		})
 
 		it('does not fire on a press inside the floating element', () => {
-			const { onOpenChange, floatingChild } = setup(true)
+			const { onOpenChange, floatingChild } = setup()
 
 			dispatchPointerDown(floatingChild)
 
@@ -212,7 +217,7 @@ describe('useFloatingUI', () => {
 		})
 
 		it('does not fire on a press inside the reference element', () => {
-			const { onOpenChange, reference } = setup(true)
+			const { onOpenChange, reference } = setup()
 
 			dispatchPointerDown(reference)
 
@@ -220,44 +225,19 @@ describe('useFloatingUI', () => {
 		})
 
 		it('does not fire on a scrollbar press', () => {
-			const { onOpenChange } = setup(true)
+			const { onOpenChange } = setup()
 
-			const scroller = document.createElement('div')
+			const scroller = attach(document.createElement('div'))
 
-			attach(scroller)
-
-			Object.defineProperties(scroller, {
-				clientWidth: { value: 100, configurable: true },
-				clientHeight: { value: 100, configurable: true },
-				scrollWidth: { value: 100, configurable: true },
-				scrollHeight: { value: 500, configurable: true },
-			})
-
-			vi.spyOn(window, 'getComputedStyle').mockReturnValue({
-				overflowX: 'hidden',
-				overflowY: 'auto',
-				direction: 'ltr',
-			} as CSSStyleDeclaration)
-
-			const event = new PointerEvent('pointerdown', { bubbles: true })
-
-			Object.defineProperty(event, 'offsetX', { value: 110, configurable: true })
-
-			Object.defineProperty(event, 'offsetY', { value: 50, configurable: true })
-
-			scroller.dispatchEvent(event)
+			scroller.dispatchEvent(scrollbarPress(scroller))
 
 			expect(onOpenChange).not.toHaveBeenCalled()
 		})
 
 		it('does not attach a listener when closed', () => {
-			const { onOpenChange } = setup(false)
+			const { onOpenChange } = setup({ open: false })
 
-			const outside = document.createElement('div')
-
-			attach(outside)
-
-			dispatchPointerDown(outside)
+			pressOutside()
 
 			expect(onOpenChange).not.toHaveBeenCalled()
 		})
@@ -273,38 +253,9 @@ describe('useFloatingUI', () => {
 
 			const focus = vi.spyOn(trigger, 'focus')
 
-			const triggerRef = { current: trigger as HTMLElement }
+			const { onOpenChange, rerender } = setup({ returnFocusTo: { current: trigger } })
 
-			const onOpenChange = vi.fn()
-
-			const reference = document.createElement('button')
-
-			const floating = document.createElement('div')
-
-			attach(reference)
-
-			attach(floating)
-
-			const { result, rerender } = renderHook(
-				({ open }: { open: boolean }) =>
-					useFloatingUI({
-						placement: 'bottom-start',
-						open,
-						onOpenChange,
-						returnFocusTo: triggerRef,
-					}),
-				{ initialProps: { open: true } },
-			)
-
-			result.current.refs.domReference.current = reference
-
-			result.current.refs.floating.current = floating
-
-			const outside = document.createElement('div')
-
-			attach(outside)
-
-			outside.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
+			pressOutside()
 
 			expect(onOpenChange).toHaveBeenCalledWith(false, expect.any(PointerEvent), 'outside-press')
 
@@ -318,37 +269,10 @@ describe('useFloatingUI', () => {
 
 			const focus = vi.spyOn(trigger, 'focus')
 
-			const triggerRef = { current: trigger as HTMLElement }
-
-			const reference = document.createElement('button')
-
-			const floating = document.createElement('div')
-
-			attach(reference)
-
-			attach(floating)
-
 			// The owner refuses the close: it keeps `open` true and renders nothing.
-			const { result, rerender } = renderHook(
-				({ open }: { open: boolean }) =>
-					useFloatingUI({
-						placement: 'bottom-start',
-						open,
-						onOpenChange: () => {},
-						returnFocusTo: triggerRef,
-					}),
-				{ initialProps: { open: true } },
-			)
+			const { rerender } = setup({ returnFocusTo: { current: trigger } })
 
-			result.current.refs.domReference.current = reference
-
-			result.current.refs.floating.current = floating
-
-			const outside = document.createElement('div')
-
-			attach(outside)
-
-			outside.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
+			pressOutside()
 
 			// The task of the refused request ends.
 			await Promise.resolve()
@@ -364,20 +288,7 @@ describe('useFloatingUI', () => {
 
 			const focus = vi.spyOn(trigger, 'focus')
 
-			const triggerRef = { current: trigger as HTMLElement }
-
-			const onOpenChange = vi.fn()
-
-			const { rerender } = renderHook(
-				({ open }: { open: boolean }) =>
-					useFloatingUI({
-						placement: 'bottom-start',
-						open,
-						onOpenChange,
-						returnFocusTo: triggerRef,
-					}),
-				{ initialProps: { open: true } },
-			)
+			const { onOpenChange, rerender } = setup({ returnFocusTo: { current: trigger } })
 
 			document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
 
@@ -391,31 +302,11 @@ describe('useFloatingUI', () => {
 
 	describe('listener lifecycle', () => {
 		it('detaches the listener on unmount', () => {
-			const onOpenChange = vi.fn()
-
-			const reference = document.createElement('button')
-
-			const floating = document.createElement('div')
-
-			attach(reference)
-
-			attach(floating)
-
-			const { result, unmount } = renderHook(() =>
-				useFloatingUI({ placement: 'bottom-start', open: true, onOpenChange }),
-			)
-
-			result.current.refs.domReference.current = reference
-
-			result.current.refs.floating.current = floating
+			const { onOpenChange, unmount } = setup()
 
 			unmount()
 
-			const outside = document.createElement('div')
-
-			attach(outside)
-
-			outside.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
+			pressOutside()
 
 			expect(onOpenChange).not.toHaveBeenCalled()
 		})

@@ -11,19 +11,9 @@ describe('useDragCursor', () => {
 		['injects a global grabbing rule while active', undefined, 'grabbing'],
 		['holds the cursor that the drag names', 'col-resize', 'col-resize'],
 	] as const)('%s', (_name, cursor, expected) => {
-		const { unmount } = renderHook(() => useDragCursor(true, cursor))
+		renderHook(() => useDragCursor(true, cursor))
 
 		expect(rule()?.textContent).toBe(`*{cursor:${expected} !important}`)
-
-		unmount()
-	})
-
-	it('removes the rule on unmount', () => {
-		const { unmount } = renderHook(() => useDragCursor(true))
-
-		unmount()
-
-		expect(rule()).toBeNull()
 	})
 
 	it('injects nothing when inactive', () => {
@@ -47,18 +37,15 @@ describe('useDragCursor', () => {
 	})
 
 	it('removes the rule when active turns false', () => {
-		const { rerender, unmount } = renderHook(
-			({ active }: { active: boolean }) => useDragCursor(active),
-			{ initialProps: { active: true } },
-		)
+		const { rerender } = renderHook(({ active }: { active: boolean }) => useDragCursor(active), {
+			initialProps: { active: true },
+		})
 
 		expect(rule()).not.toBeNull()
 
 		rerender({ active: false })
 
 		expect(rule()).toBeNull()
-
-		unmount()
 	})
 })
 
@@ -98,7 +85,7 @@ describe('holdDragCursor', () => {
 
 describe('useDragCursorHold', () => {
 	it('holds between start and end, and ignores a repeated start', () => {
-		const { result, unmount } = renderHook(() => useDragCursorHold('crosshair'))
+		const { result } = renderHook(() => useDragCursorHold('crosshair'))
 
 		result.current.start()
 
@@ -109,8 +96,6 @@ describe('useDragCursorHold', () => {
 		result.current.end()
 
 		expect(rule()).toBeNull()
-
-		unmount()
 	})
 
 	it('releases a live hold on unmount', () => {
@@ -128,16 +113,12 @@ describe('useDragCursorHold', () => {
 
 		const release = holdDragCursor()
 
-		const { result, unmount } = renderHook(() => useDragCursorHold())
+		const { result } = renderHook(() => useDragCursorHold())
 
 		result.current.start()
 
 		expect(rule()).toBeNull()
 
 		release()
-
-		result.current.end()
-
-		unmount()
 	})
 })

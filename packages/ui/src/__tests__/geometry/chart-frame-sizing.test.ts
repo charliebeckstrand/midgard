@@ -28,13 +28,12 @@ describe('plotRect', () => {
 	})
 
 	it('collapses the reservations without axes', () => {
-		const plot = plotRect(400, 240, false, [])
-
-		expect(plot.x).toBe(0)
-
-		expect(plot.width).toBe(400)
-
-		expect(plot.height).toBe(240 - PLOT_TOP_PAD)
+		expect(plotRect(300, 200, false, ['1,000'])).toEqual({
+			x: 0,
+			y: PLOT_TOP_PAD,
+			width: 300,
+			height: 200 - PLOT_TOP_PAD,
+		})
 	})
 
 	it('sizes the gutter from the drawn width of proportional labels', () => {
@@ -47,6 +46,14 @@ describe('plotRect', () => {
 		expect(plot.x).toBe(62 + GUTTER_GAP)
 
 		expect(plot.width).toBe(400 - plot.x)
+	})
+
+	it('reserves no proportional gutter when no label has a width', () => {
+		const rect = plotRect(300, 200, true, [], () => 0)
+
+		expect(rect.x).toBe(0)
+
+		expect(rect.width).toBe(300)
 	})
 
 	it('caps the gutter of proportional labels at GUTTER_MAX', () => {

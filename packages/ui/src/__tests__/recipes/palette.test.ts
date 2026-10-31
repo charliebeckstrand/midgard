@@ -40,19 +40,6 @@ describe('palette', () => {
 		expect(recipe({ color: 'inherit' })).toBe('i')
 	})
 
-	it('scaffolds compound rules for every (variant × palette color)', () => {
-		const recipe = defineRecipe({
-			palette: definePalette({
-				solid: { zinc: 'z-solid', red: 'r-solid', amber: '', green: '', blue: '' },
-			}),
-			defaults: { variant: 'solid' },
-		})
-
-		expect(recipe({ color: 'zinc' })).toContain('z-solid')
-
-		expect(recipe({ color: 'red' })).toContain('r-solid')
-	})
-
 	it('unions matrix variants into the explicit `variant:` axis', () => {
 		// The engine adds palette-only variants to the `variant:` axis; compound rules fire.
 		const recipe = defineRecipe({
@@ -92,7 +79,7 @@ describe('palette', () => {
 		expect(recipe({ color: 'violet' })).toContain('solid-violet')
 
 		// Standard colors stay intact alongside the extended ones.
-		expect(recipe({ color: 'blue' })).toContain('b')
+		expect(recipe({ color: 'blue' })).toBe('b')
 	})
 
 	it('Badge writes the extended colors: they resolve to their classes', () => {

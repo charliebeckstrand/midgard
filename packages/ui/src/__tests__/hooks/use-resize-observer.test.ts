@@ -1,8 +1,23 @@
 import { renderHook } from '@testing-library/react'
-import { useCallback, useRef } from 'react'
+import { useRef } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useResizeObserver } from '../../hooks/use-resize-observer'
 import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
+
+/**
+ * Renders the hook over a ref that holds `element`. `callback` is a prop, so
+ * `rerender({ callback })` can change its identity.
+ */
+function observe(element: HTMLElement | null, callback: () => void = () => {}) {
+	return renderHook(
+		({ callback }: { callback: () => void }) => {
+			const ref = useRef(element)
+
+			useResizeObserver(ref, callback)
+		},
+		{ initialProps: { callback } },
+	)
+}
 
 describe('useResizeObserver', () => {
 	let observers: ResizeObserverStub[]
@@ -11,28 +26,10 @@ describe('useResizeObserver', () => {
 		observers = stubResizeObserver()
 	})
 
-	it('invokes the callback synchronously on mount when ref.current is set', () => {
-		const callback = vi.fn()
-
-		const element = document.createElement('div')
-
-		renderHook(() => {
-			const ref = useRef<HTMLDivElement>(element)
-
-			useResizeObserver(ref, callback)
-		})
-
-		expect(callback).toHaveBeenCalledTimes(1)
-	})
-
 	it('observes the element and constructs exactly one ResizeObserver', () => {
 		const element = document.createElement('div')
 
-		renderHook(() => {
-			const ref = useRef<HTMLDivElement>(element)
-
-			useResizeObserver(ref, () => {})
-		})
+		observe(element)
 
 		expect(observers).toHaveLength(1)
 
@@ -40,13 +37,7 @@ describe('useResizeObserver', () => {
 	})
 
 	it('disconnects on unmount', () => {
-		const element = document.createElement('div')
-
-		const { unmount } = renderHook(() => {
-			const ref = useRef<HTMLDivElement>(element)
-
-			useResizeObserver(ref, () => {})
-		})
+		const { unmount } = observe(document.createElement('div'))
 
 		expect(observers[0]?.disconnect).not.toHaveBeenCalled()
 
@@ -58,11 +49,7 @@ describe('useResizeObserver', () => {
 	it('short-circuits without constructing an observer when ref.current is null', () => {
 		const callback = vi.fn()
 
-		renderHook(() => {
-			const ref = useRef<HTMLElement | null>(null)
-
-			useResizeObserver(ref, callback)
-		})
+		observe(null, callback)
 
 		expect(observers).toHaveLength(0)
 
@@ -72,26 +59,15 @@ describe('useResizeObserver', () => {
 	it('does not re-subscribe when an unrelated re-render keeps the callback identity stable', () => {
 		const callback = vi.fn()
 
-		const element = document.createElement('div')
-
-		const { rerender } = renderHook(
-			({ unrelated: _unrelated }: { unrelated: number }) => {
-				const ref = useRef<HTMLDivElement>(element)
-
-				const stable = useCallback(callback, [])
-
-				useResizeObserver(ref, stable)
-			},
-			{ initialProps: { unrelated: 0 } },
-		)
+		const { rerender } = observe(document.createElement('div'), callback)
 
 		expect(observers).toHaveLength(1)
 
 		expect(callback).toHaveBeenCalledTimes(1)
 
-		rerender({ unrelated: 1 })
+		rerender({ callback })
 
-		rerender({ unrelated: 2 })
+		rerender({ callback })
 
 		// Stable callback + stable ref: effect deps unchanged, no re-subscribe.
 		expect(observers).toHaveLength(1)
@@ -100,16 +76,7 @@ describe('useResizeObserver', () => {
 	})
 
 	it('keeps one subscription across a changing callback identity', () => {
-		const element = document.createElement('div')
-
-		const { rerender } = renderHook(
-			({ callback }: { callback: () => void }) => {
-				const ref = useRef<HTMLDivElement>(element)
-
-				useResizeObserver(ref, callback)
-			},
-			{ initialProps: { callback: () => {} } },
-		)
+		const { rerender } = observe(document.createElement('div'), () => {})
 
 		expect(observers).toHaveLength(1)
 
@@ -127,16 +94,7 @@ describe('useResizeObserver', () => {
 
 		const second = vi.fn()
 
-		const element = document.createElement('div')
-
-		const { rerender } = renderHook(
-			({ callback }: { callback: () => void }) => {
-				const ref = useRef<HTMLDivElement>(element)
-
-				useResizeObserver(ref, callback)
-			},
-			{ initialProps: { callback: first } },
-		)
+		const { rerender } = observe(document.createElement('div'), first)
 
 		expect(first).toHaveBeenCalledTimes(1)
 

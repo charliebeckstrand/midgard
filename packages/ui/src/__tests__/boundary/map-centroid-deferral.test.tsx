@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { cachedRegionCentroids } from '../../modules/map/engine/map-geometry/cache'
-import { bySlot, fireEvent, renderUI } from '../helpers'
+import { fireEvent, getSlot, present, renderUI } from '../helpers'
 import { categoricalPlat } from '../helpers/map-plat'
 
 /**
@@ -26,13 +26,6 @@ vi.mock('../../modules/map/engine/map-geometry/cache', async (importActual) => {
 })
 
 describe('map centroid deferral', () => {
-	// A block body, not a concise one: `mockClear()` returns the mock, and a
-	// function returned from `beforeEach` is a teardown hook; vitest would call
-	// the mock itself, with no arguments, after every test.
-	beforeEach(() => {
-		vi.mocked(cachedRegionCentroids).mockClear()
-	})
-
 	it('resolves no centroid on mount, on re-render, or on a resize', () => {
 		const { container, rerender } = renderUI(categoricalPlat())
 
@@ -46,9 +39,9 @@ describe('map centroid deferral', () => {
 
 		// A pointer sweep drives the same readout the cursor drives, and must not
 		// wake the cursor's own machinery either.
-		const region = container.querySelector('[data-region-index]')
+		const region = present(container.querySelector('[data-region-index]'), 'region')
 
-		fireEvent.pointerEnter(region as Element, { clientX: 40, clientY: 20 })
+		fireEvent.pointerEnter(region, { clientX: 40, clientY: 20 })
 
 		expect(cachedRegionCentroids).not.toHaveBeenCalled()
 	})
@@ -56,16 +49,16 @@ describe('map centroid deferral', () => {
 	it('resolves them once a reader navigates, and reuses that resolution', () => {
 		const { container } = renderUI(categoricalPlat())
 
-		const plot = bySlot(container, 'map-plot')
+		const plot = getSlot(container, 'map-plot')
 
-		fireEvent.keyDown(plot as Element, { key: 'ArrowRight' })
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
 		expect(cachedRegionCentroids).toHaveBeenCalledTimes(1)
 
 		// Every later step reads the held resolution; only a refit replaces it.
-		fireEvent.keyDown(plot as Element, { key: 'ArrowRight' })
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
-		fireEvent.keyDown(plot as Element, { key: 'ArrowLeft' })
+		fireEvent.keyDown(plot, { key: 'ArrowLeft' })
 
 		expect(cachedRegionCentroids).toHaveBeenCalledTimes(1)
 	})

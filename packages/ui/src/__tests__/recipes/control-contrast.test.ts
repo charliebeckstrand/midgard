@@ -1,11 +1,12 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { k as radio } from '../../recipes/kata/radio'
 import { k as switchKata } from '../../recipes/kata/switch'
 import { k as text } from '../../recipes/kata/text'
 import { check } from '../../recipes/kumi/check'
 import { contrastRatio, WCAG_AA_TEXT, WCAG_NON_TEXT } from '../../utilities/contrast'
+import { classNames } from '../helpers/class-stops'
 import { getContrast, SURFACE, tinted } from '../helpers/contrast'
 
 /**
@@ -16,25 +17,20 @@ import { getContrast, SURFACE, tinted } from '../helpers/contrast'
  * Floors: 4.5:1 for text (WCAG 1.4.3), 3:1 for the edge of a control (1.4.11).
  */
 
-type ClassTree = string | readonly ClassTree[]
-
-const getClasses = (surface: ClassTree): string[] =>
-	typeof surface === 'string' ? surface.split(/\s+/).filter(Boolean) : surface.flatMap(getClasses)
-
 /** The one class in `surface` that matches `pattern`. */
-function only(surface: ClassTree, pattern: RegExp): string {
-	const found = getClasses(surface).filter((className) => pattern.test(className))
+const only = vi.defineHelper((surface: unknown, pattern: RegExp): string => {
+	const found = classNames([surface]).filter((className) => pattern.test(className))
 
 	expect(found).toHaveLength(1)
 
 	return found[0] as string
-}
+})
 
 describe('Text color contrast', () => {
 	const hues = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 	it.each(hues)('%s clears text AA in each mode', (color) => {
-		const classes = getClasses(text({ color }).base)
+		const classes = classNames([text({ color }).base])
 
 		const light = only(classes, /^text-[a-z]+-\d+$/)
 
@@ -49,24 +45,19 @@ describe('Text color contrast', () => {
 describe('check surface edge contrast', () => {
 	const surface = check.slots.base.base
 
-	it('the resting border clears 3:1 against the light page', () => {
-		const fill = tinted(only(surface, /^bg-white$/), SURFACE.light)
+	it.for([
+		{ mode: 'light', fill: /^bg-white$/, edge: /^border-zinc-950\/\d+$/ },
+		{ mode: 'dark', fill: /^dark:bg-white\/\d+$/, edge: /^dark:border-white\/\d+$/ },
+	] as const)('the resting border clears 3:1 against the $mode page', ({ mode, fill, edge }) => {
+		const filled = tinted(only(surface, fill), SURFACE[mode])
 
-		const edge = tinted(only(surface, /^border-zinc-950\/\d+$/), fill)
+		const edged = tinted(only(surface, edge), filled)
 
-		expect(contrastRatio(edge, SURFACE.light)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
-	})
-
-	it('the resting border clears 3:1 against the dark page', () => {
-		const fill = tinted(only(surface, /^dark:bg-white\/\d+$/), SURFACE.dark)
-
-		const edge = tinted(only(surface, /^dark:border-white\/\d+$/), fill)
-
-		expect(contrastRatio(edge, SURFACE.dark)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+		expect(contrastRatio(edged, SURFACE[mode])).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
 	})
 
 	it('the checked zinc radio fill clears 3:1 in each mode', () => {
-		const classes = getClasses(radio({ color: 'zinc' }).base)
+		const classes = classNames([radio({ color: 'zinc' }).base])
 
 		const light = only(classes, /^\[--check-bg:/)
 
@@ -79,21 +70,16 @@ describe('check surface edge contrast', () => {
 })
 
 describe('Switch track edge contrast', () => {
-	const classes = getClasses(switchKata({}).base)
+	const classes = classNames([switchKata({}).base])
 
-	it('the off ring clears 3:1 against the light page', () => {
-		const track = tinted(only(classes, /^bg-zinc-\d+$/), SURFACE.light)
+	it.for([
+		{ mode: 'light', fill: /^bg-zinc-\d+$/, edge: /^ring-zinc-950\/\d+$/ },
+		{ mode: 'dark', fill: /^dark:bg-white\/\d+$/, edge: /^dark:ring-white\/\d+$/ },
+	] as const)('the off ring clears 3:1 against the $mode page', ({ mode, fill, edge }) => {
+		const track = tinted(only(classes, fill), SURFACE[mode])
 
-		const edge = tinted(only(classes, /^ring-zinc-950\/\d+$/), track)
+		const edged = tinted(only(classes, edge), track)
 
-		expect(contrastRatio(edge, SURFACE.light)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
-	})
-
-	it('the off ring clears 3:1 against the dark page', () => {
-		const track = tinted(only(classes, /^dark:bg-white\/\d+$/), SURFACE.dark)
-
-		const edge = tinted(only(classes, /^dark:ring-white\/\d+$/), track)
-
-		expect(contrastRatio(edge, SURFACE.dark)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+		expect(contrastRatio(edged, SURFACE[mode])).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
 	})
 })

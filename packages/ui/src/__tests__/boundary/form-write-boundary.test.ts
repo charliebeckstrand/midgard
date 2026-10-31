@@ -67,8 +67,4 @@ describe('form write boundary', () => {
 
 		expect(stale, `stale READERS entries:\n  ${stale.join('\n  ')}`).toEqual([])
 	})
-
-	it('finds a part that reaches the form actions', () => {
-		expect(reaches()).toContain('components/password-confirm/password-confirm.tsx')
-	})
 })

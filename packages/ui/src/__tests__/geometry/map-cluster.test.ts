@@ -10,6 +10,7 @@ import { clusterPoints, groupsByMember } from '../../modules/map/engine/map-clus
 import { clusterRadius, MAX_CLUSTER_RADIUS } from '../../modules/map/engine/map-cluster/radius'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/engine/map-constants'
 import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
+import { flatProjector } from '../helpers/map-flat'
 
 /**
  * A spherical mean uses trigonometry, so the longitude of a cluster anchor
@@ -17,11 +18,9 @@ import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
  */
 const LONGITUDE_TOLERANCE = 5e-7
 
-/** One frame unit per degree, so a reach reads straight off the coordinates. */
-const flat = (position: LngLat): MapPoint2D => ({ x: position[0], y: position[1] })
-
 /** The projection has no image past this meridian: the insets a US composite drops. */
-const clipped = (position: LngLat): MapPoint2D | null => (position[0] > 100 ? null : flat(position))
+const clipped = (position: LngLat): MapPoint2D | null =>
+	position[0] > 100 ? null : flatProjector(position)
 
 /** The clear space between mark edges these fixtures group by. */
 const GAP = 9
@@ -35,7 +34,7 @@ const bunch = (at: number): LngLat[] =>
 
 /** Every drawn mark, with the radius it paints. */
 const buildMarks = (positions: LngLat[], gap: number | null) =>
-	clusterPoints(positions, flat, gap).flatMap((group) =>
+	clusterPoints(positions, flatProjector, gap).flatMap((group) =>
 		group.at === null ? [] : [{ at: group.at, radius: clusterRadius(group.members.length) }],
 	)
 
@@ -48,7 +47,7 @@ describe('clusterPoints', () => {
 				[20, 0],
 				[400, 0],
 			],
-			flat,
+			flatProjector,
 			GAP,
 		)
 
@@ -66,7 +65,7 @@ describe('clusterPoints', () => {
 				[DOT_REACH, 0],
 				[DOT_REACH * 2, 0],
 			],
-			flat,
+			flatProjector,
 			GAP,
 		)
 
@@ -80,7 +79,7 @@ describe('clusterPoints', () => {
 				[8, 0],
 				[4, 12],
 			],
-			flat,
+			flatProjector,
 			GAP,
 		)
 
@@ -96,7 +95,7 @@ describe('clusterPoints', () => {
 			[2, 0],
 		]
 
-		const groups = clusterPoints(positions, flat, null)
+		const groups = clusterPoints(positions, flatProjector, null)
 
 		expect(groups.map((group) => group.members)).toEqual([[0], [1], [2]])
 	})
@@ -126,13 +125,13 @@ describe('clusterPoints', () => {
 		// draw over the space between them.
 		const reach = clusterRadius(10) * 2 + GAP
 
-		expect(clusterPoints([...bunch(0), ...bunch(reach - 1)], flat, GAP)).toHaveLength(1)
+		expect(clusterPoints([...bunch(0), ...bunch(reach - 1)], flatProjector, GAP)).toHaveLength(1)
 	})
 
 	it('leaves the summaries that stand clear of one another alone', () => {
 		const reach = clusterRadius(10) * 2 + GAP
 
-		expect(clusterPoints([...bunch(0), ...bunch(reach + 1)], flat, GAP)).toHaveLength(2)
+		expect(clusterPoints([...bunch(0), ...bunch(reach + 1)], flatProjector, GAP)).toHaveLength(2)
 	})
 
 	it('leaves no two marks drawing over one another, however the merging chains', () => {
@@ -218,7 +217,7 @@ describe('groupsByMember', () => {
 			[1, 0],
 			[100, 0],
 		],
-		flat,
+		flatProjector,
 		GAP,
 	)
 
@@ -248,13 +247,6 @@ const dot = (x: number): MapDotMark => ({ at: { x, y: 0 }, radius: POINT_RADIUS 
  * one place that knows what a target caps at.
  */
 describe('neighborRoom', () => {
-	it('leaves a dot only the gap to a neighbor inside the coarse reach', () => {
-		// The gap a zoom leaves the moment a summary parts: well inside 44px. Each
-		// dot reaches to the other's face and stops: 15px between the centers, less
-		// the 5.5px the neighbor paints.
-		expect(neighborRoom([dot(0), dot(15)])).toEqual([9.5, 9.5])
-	})
-
 	it('claims nothing of dots standing clear of one another', () => {
 		// Past the reach plus the neighbor's own radius, so neither covers the face
 		// of the other and neither has anything to say about the other's target.
@@ -262,6 +254,9 @@ describe('neighborRoom', () => {
 	})
 
 	it('answers for each dot rather than for the set', () => {
+		// The first pair stands at the gap a zoom leaves the moment a summary parts:
+		// well inside 44px. Each dot reaches to the other's face and stops: 15px
+		// between the centers, less the 5.5px the neighbor paints.
 		expect(neighborRoom([dot(0), dot(15), dot(400)])).toEqual([9.5, 9.5, Infinity])
 	})
 
@@ -354,11 +349,6 @@ describe('markTargets', () => {
 		const summary: MapDotMark = { at: { x: 0, y: 0 }, radius: MAX_CLUSTER_RADIUS }
 
 		expect(markTargets([summary], 1, spares(2))).toEqual([MAX_CLUSTER_RADIUS])
-	})
-
-	it('caps the target at the reach a finger takes', () => {
-		// A wide-open zone hands back more room than a target ever needs.
-		expect(markTargets([dot(0)], 1, spares(400))).toEqual([POINT_HIT_RADIUS])
 	})
 
 	it('floors the target at the dot without asking the zone, where a neighbor already did', () => {

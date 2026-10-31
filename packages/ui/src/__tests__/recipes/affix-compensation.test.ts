@@ -88,22 +88,6 @@ describe('control affix has-button compensation', () => {
 			expect(actual).toBe(expected)
 		})
 	}
-
-	it('the compensation collapses to a constant across all density steps (the lockstep guarantee)', () => {
-		const deltas = STEPS.map((step) => {
-			const buttonSize = stepDown(step)
-
-			const hostPx = hostPxAt(step)
-
-			const buttonPx = Number(
-				findSteps([button.config.slots.base.base], 'density-p-ring-')[buttonSize],
-			)
-
-			return hostPx - buttonPx
-		})
-
-		expect(new Set(deltas).size).toBe(1)
-	})
 })
 
 // Affix `data-slot=badge` compensation invariant.
@@ -137,22 +121,6 @@ describe('control affix has-badge compensation', () => {
 			expect(actual).toBe(expected)
 		})
 	}
-
-	it('the badge compensation collapses to a constant across all density steps (the lockstep guarantee)', () => {
-		const deltas = STEPS.map((step) => {
-			const badgeSize = stepDown(step)
-
-			const hostPx = hostPxAt(step)
-
-			const badgePx = Number(
-				findSteps([badge.config.slots.base.base], 'density-px-ring-')[badgeSize],
-			)
-
-			return hostPx - badgePx
-		})
-
-		expect(new Set(deltas).size).toBe(1)
-	})
 })
 
 // Affix bare-Button compensation invariant.

@@ -50,9 +50,9 @@ function exportImage(onExport: (outcome: ChartExportOutcome) => void, action = '
 }
 
 describe('Chart export reporting', () => {
-	it.each<[string, string, string, string]>([
-		['Download PNG', 'image/png', 'revenue.png', 'png'],
-		['Download JPG', 'image/jpeg', 'revenue.jpg', 'jpg'],
+	it.each<[string, string, string]>([
+		['Download PNG', 'image/png', 'revenue.png'],
+		['Download JPG', 'image/jpeg', 'revenue.jpg'],
 	])('reports the written file when %s succeeds', async (action, type, fileName) => {
 		const blob = new Blob(['x'], { type })
 
@@ -98,11 +98,13 @@ describe('Chart export reporting', () => {
 
 		exportImage(onExport)
 
-		await waitFor(() => expect(onExport).toHaveBeenCalledOnce())
-
-		const outcome = onExport.mock.calls[0]?.[0] as ChartExportOutcome
-
-		expect(outcome.ok).toBe(false)
+		await waitFor(() =>
+			expect(onExport).toHaveBeenCalledExactlyOnceWith({
+				ok: false,
+				type: 'image/png',
+				error: expect.any(Error),
+			}),
+		)
 
 		expect(downloadBlob).not.toHaveBeenCalled()
 	})

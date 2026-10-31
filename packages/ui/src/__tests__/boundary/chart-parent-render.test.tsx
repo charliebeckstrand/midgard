@@ -1,8 +1,10 @@
 import type { ReactElement } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
+import { ChartHeader } from '../../modules/chart/engine/chart-header'
 import { LineChart } from '../../modules/chart/line-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
+import { rangeKeys } from '../../utilities'
 import { act, renderUI } from '../helpers'
 
 /**
@@ -14,33 +16,24 @@ import { act, renderUI } from '../helpers'
  * each of its renders, so the header count reads the frame renders. The counts
  * need module mocks, so this suite sits in `boundary/`.
  */
-const renders = vi.hoisted(() => ({ table: 0, header: 0 }))
-
 vi.mock('../../utilities', async (importActual) => {
 	const actual = await importActual<typeof import('../../utilities')>()
 
-	return {
-		...actual,
-		rangeKeys: (count: number, prefix: string) => {
-			if (prefix === 'category') renders.table++
-
-			return actual.rangeKeys(count, prefix)
-		},
-	}
+	return { ...actual, rangeKeys: vi.fn(actual.rangeKeys) }
 })
 
 vi.mock('../../modules/chart/engine/chart-header', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('../../modules/chart/engine/chart-header')>()
 
-	return {
-		...actual,
-		ChartHeader: (props: Parameters<typeof actual.ChartHeader>[0]) => {
-			renders.header++
-
-			return actual.ChartHeader(props)
-		},
-	}
+	return { ...actual, ChartHeader: vi.fn(actual.ChartHeader) }
 })
+
+/** The table renders since the last clear: the `rangeKeys` calls for the `category` prefix. */
+const tableRenders = () =>
+	vi.mocked(rangeKeys).mock.calls.filter(([, prefix]) => prefix === 'category').length
+
+/** The frame renders since the last clear. */
+const headerRenders = () => vi.mocked(ChartHeader).mock.calls.length
 
 type Row = { week: string; a: number; b: number }
 
@@ -68,15 +61,20 @@ const charts = {
 	),
 }
 
-/** Mounts a chart, then gives it five parent renders with equal props. */
-async function renderFiveTimes(make: () => ReactElement) {
+/**
+ * Mounts a chart, runs `atMount`, then gives it five parent renders with equal
+ * props. The counts start again after `atMount`.
+ */
+async function renderFiveTimes(make: () => ReactElement, atMount?: () => void) {
 	const { rerender } = renderUI(make())
 
 	await act(async () => {})
 
-	renders.table = 0
+	atMount?.()
 
-	renders.header = 0
+	vi.mocked(rangeKeys).mockClear()
+
+	vi.mocked(ChartHeader).mockClear()
 
 	for (let pass = 0; pass < 5; pass++) {
 		rerender(make())
@@ -86,17 +84,14 @@ async function renderFiveTimes(make: () => ReactElement) {
 }
 
 describe('chart parent render', () => {
-	beforeEach(() => {
-		renders.table = 0
-
-		renders.header = 0
-	})
-
 	for (const [name, make] of Object.entries(charts)) {
 		it(`${name}: holds the hidden data table through a parent render with equal props`, async () => {
-			await renderFiveTimes(make)
+			await renderFiveTimes(make, () => {
+				// The table rendered on mount, so the later `toBe(0)` can fail.
+				expect(tableRenders()).toBeGreaterThan(0)
+			})
 
-			expect(renders.table).toBe(0)
+			expect(tableRenders()).toBe(0)
 		})
 	}
 
@@ -105,12 +100,12 @@ describe('chart parent render', () => {
 			<LineChart aria-label="L" title="T" data={[] as Row[]} series={SERIES} width={400} />
 		))
 
-		expect(renders.header).toBe(5)
+		expect(headerRenders()).toBe(5)
 	})
 
 	it('renders the frame once for each parent render, with no deferred table pass', async () => {
 		await renderFiveTimes(charts.line)
 
-		expect(renders.header).toBe(5)
+		expect(headerRenders()).toBe(5)
 	})
 })

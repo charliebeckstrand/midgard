@@ -3,7 +3,6 @@ import { fc, test } from '@fast-check/vitest'
 import { describe, expect } from 'vitest'
 import {
 	clampSpan,
-	collides,
 	type DashboardCell,
 	type DashboardLayoutItem,
 	type DashboardTileDemands,
@@ -18,6 +17,7 @@ import {
 	swapCells,
 } from '../../modules/dashboard/engine/dashboard-layout'
 import { cell } from '../helpers/dashboard-cells'
+import { overlaps } from '../helpers/dashboard-overlaps'
 
 // The tables of `dashboard-layout.test.ts` hold the documented examples. The
 // properties below read the same operations over generated boards.
@@ -25,16 +25,6 @@ import { cell } from '../helpers/dashboard-cells'
 // Each generator stays on integer grid units, because a saved layout holds
 // integers. A board of 1 to 24 columns covers the default count and the
 // narrow boards of a phone.
-
-/** Each pair of cells that overlap, as the module's own `collides` reads them. */
-function overlaps(cells: readonly DashboardCell[]): [DashboardCell, DashboardCell][] {
-	return cells.flatMap((a, index) =>
-		cells
-			.slice(index + 1)
-			.filter((b) => collides(a, b))
-			.map((b): [DashboardCell, DashboardCell] => [a, b]),
-	)
-}
 
 /** Whether a cell sits inside a board of `columns`, with a real span. */
 function inside(target: DashboardCell, columns: number): boolean {

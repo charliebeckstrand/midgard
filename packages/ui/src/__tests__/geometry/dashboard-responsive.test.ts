@@ -39,6 +39,7 @@ describe('projectLayout', () => {
 
 		expect(byId.b).toMatchObject({ x: 12, y: 0, w: 12 })
 
+		// Each shelf is one grid row of auto height, so the next shelf is the next index.
 		expect(byId.c).toMatchObject({ x: 0, y: 1, w: 24 })
 	})
 
@@ -67,13 +68,6 @@ describe('projectLayout', () => {
 		expect(byId.spark?.h).toBe(Math.round((14 * (byId.spark?.w ?? 0)) / 3))
 
 		expect(byId.stat?.w).toBeGreaterThan(6)
-	})
-
-	it('numbers the shelves in place of rows', () => {
-		// Each shelf is one grid row of auto height, so the next shelf is the next index.
-		const projection = projectLayout(board, { width: 800, gap: 8, columns: 24, demands })
-
-		expect(projection.cells.map((item) => item.y)).toEqual([0, 0, 1])
 	})
 })
 

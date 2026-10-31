@@ -85,6 +85,6 @@ describe('a11y baseline (axe): overlays teeth check', () => {
 
 		const { violations } = await axe(document.body)
 
-		expect(violations.length).toBeGreaterThan(0)
+		expect(violations.map((violation) => violation.id)).toContain('aria-dialog-name')
 	})
 })

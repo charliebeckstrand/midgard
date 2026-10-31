@@ -48,12 +48,6 @@ describe('DashboardLayout', () => {
 		expect(screen.queryByRole('button', { name: 'Filters' })).not.toBeInTheDocument()
 	})
 
-	it('renders the filters content', () => {
-		renderUI(<DashboardLayout filters={<div>filter content</div>}>content</DashboardLayout>)
-
-		expect(screen.getByText('filter content')).toBeInTheDocument()
-	})
-
 	it('opens the mobile filters drawer when the trigger is clicked', () => {
 		renderUI(<DashboardLayout filters={<div>filter content</div>}>content</DashboardLayout>)
 

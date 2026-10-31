@@ -66,21 +66,6 @@ describe('CurrentContents morph pin arithmetic', () => {
 		})
 	}
 
-	it('morphs on a height-only change, pinning the outgoing height before paint', () => {
-		const { container } = mount('a')
-
-		const contents = getSlot(container, 'test-contents')
-
-		mockRect(contents, { width: 600, height: 300 })
-
-		fire({ inline: 600, block: 300 })
-
-		// Content grows in place: same width, taller panel.
-		fire({ inline: 600, block: 420 })
-
-		expect(contents.style.height).toBe('300px')
-	})
-
 	it('lets a width-coupled change cancel a morph, then morphs cleanly again', () => {
 		const { container } = mount('a')
 

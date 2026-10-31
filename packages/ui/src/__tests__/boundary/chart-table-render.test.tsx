@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { HeatmapChart, PieChart } from '../../modules/chart'
 import { LineChart } from '../../modules/chart/line-chart'
+import { rangeKeys } from '../../utilities'
 import { act, fireEvent, getSlot, renderUI } from '../helpers'
 
 /**
@@ -16,20 +17,15 @@ import { act, fireEvent, getSlot, renderUI } from '../helpers'
  * render asks for the `category` prefix. The count needs a module mock, so this
  * suite sits in `boundary/`.
  */
-const tableRenders = vi.hoisted(() => ({ count: 0 }))
-
 vi.mock('../../utilities', async (importActual) => {
 	const actual = await importActual<typeof import('../../utilities')>()
 
-	return {
-		...actual,
-		rangeKeys: (count: number, prefix: string) => {
-			if (prefix === 'category') tableRenders.count++
-
-			return actual.rangeKeys(count, prefix)
-		},
-	}
+	return { ...actual, rangeKeys: vi.fn(actual.rangeKeys) }
 })
+
+/** The table renders since the last clear: the `rangeKeys` calls for the `category` prefix. */
+const tableRenders = () =>
+	vi.mocked(rangeKeys).mock.calls.filter(([, prefix]) => prefix === 'category').length
 
 type Row = { week: string; signups: number }
 
@@ -48,19 +44,15 @@ function chart(rows: Row[]) {
 }
 
 describe('chart data table renders', () => {
-	beforeEach(() => {
-		tableRenders.count = 0
-	})
-
 	it('holds the table through a pointer sweep', async () => {
 		const { container } = renderUI(chart(data(0)))
 
 		// The table comes in a deferred pass after the mount.
 		await act(async () => {})
 
-		expect(tableRenders.count).toBeGreaterThan(0)
+		expect(tableRenders()).toBeGreaterThan(0)
 
-		tableRenders.count = 0
+		vi.mocked(rangeKeys).mockClear()
 
 		const hit = getSlot(container, 'chart-hit')
 
@@ -72,7 +64,7 @@ describe('chart data table renders', () => {
 
 		await act(async () => {})
 
-		expect(tableRenders.count).toBe(0)
+		expect(tableRenders()).toBe(0)
 	})
 
 	it('renders the table again for new data', async () => {
@@ -80,13 +72,13 @@ describe('chart data table renders', () => {
 
 		await act(async () => {})
 
-		tableRenders.count = 0
+		vi.mocked(rangeKeys).mockClear()
 
 		rerender(chart(data(1)))
 
 		await act(async () => {})
 
-		expect(tableRenders.count).toBeGreaterThan(0)
+		expect(tableRenders()).toBeGreaterThan(0)
 	})
 
 	it('holds the pie and heatmap tables through a parent render', async () => {
@@ -124,15 +116,15 @@ describe('chart data table renders', () => {
 
 		await act(async () => {})
 
-		expect(tableRenders.count).toBeGreaterThan(0)
+		expect(tableRenders()).toBeGreaterThan(0)
 
-		tableRenders.count = 0
+		vi.mocked(rangeKeys).mockClear()
 
 		// The same rows: a parent render with no change of content.
 		rerender(charts())
 
 		await act(async () => {})
 
-		expect(tableRenders.count).toBe(0)
+		expect(tableRenders()).toBe(0)
 	})
 })

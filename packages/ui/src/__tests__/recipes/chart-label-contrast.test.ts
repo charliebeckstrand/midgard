@@ -46,7 +46,7 @@ function resolveColor(token: string): string {
 describe('chart segment-label ink contrast', () => {
 	for (const { name, index } of MODES) {
 		describe(`${name} mode`, () => {
-			it.each(HUES)('%s label clears text AA on its fill', (hue) => {
+			it.each(HUES)('%s label clears the non-text 3:1 floor on its fill', (hue) => {
 				const fill = resolveColor(tokenAt(k.series[hue].fill, index))
 				const ink = resolveColor(tokenAt(k.series[hue].label, index))
 

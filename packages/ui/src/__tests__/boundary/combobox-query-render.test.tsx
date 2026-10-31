@@ -63,8 +63,6 @@ function PaletteResults() {
 describe('query option renders', () => {
 	beforeEach(() => {
 		clearOptionRenders()
-
-		vi.mocked(CommandPaletteItem).mockClear()
 	})
 
 	it('renders each combobox option once for a keystroke', async () => {

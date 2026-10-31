@@ -18,6 +18,9 @@ import { focus, rows } from './cases'
  * half of focus behavior jsdom can observe. Each case (`cases/focus.tsx`)
  * drives the real open interaction and returns the trigger focus left.
  */
+/** The roles of the surfaces of the focus corpus. */
+const SURFACE = '[role="dialog"], [role="listbox"]'
+
 describe('a11y focus: overlays capture focus on open', () => {
 	it.each(rows(focus))(
 		'%s moves focus off the trigger into the surface',
@@ -31,10 +34,8 @@ describe('a11y focus: overlays capture focus on open', () => {
 			// Focus leaves the trigger…
 			expect(trigger).not.toHaveFocus()
 
-			// …and lands on a real element inside the surface.
-			expect(document.activeElement).not.toBe(document.body)
-
-			expect(document.activeElement).not.toBeNull()
+			// …and lands inside the surface: the dialog or the listbox that opened.
+			expect(document.activeElement?.closest(SURFACE)).toBeInTheDocument()
 		},
 	)
 })

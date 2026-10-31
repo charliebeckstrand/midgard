@@ -27,6 +27,7 @@ import {
 } from '../../modules/map/engine/map-zoom/transform'
 import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
 import { FLOAT } from '../helpers/geometry/tolerance'
+import { flatProjector } from '../helpers/map-flat'
 
 /**
  * Two zoom steps and an inverse compose three scales, so the focused point can
@@ -343,30 +344,22 @@ describe('mapZoomKey', () => {
 })
 
 describe('clientToFrame', () => {
-	it('inverts frameToClient, so a gesture reads the space the readout writes', () => {
+	it.for([
+		{ name: 'inverts frameToClient, so a gesture reads the space the readout writes', box: BOX },
+		{
+			// A canonical frame is letterboxed until the container is measured, which is
+			// the state a wheel can arrive in on the first paint.
+			name: 'inverts it through a letterboxed box too',
+			box: { left: 20, top: 10, width: 400, height: 400 },
+		},
+	])('$name', ({ box }) => {
 		const at = { x: 137, y: 64 }
 
-		const client = frameToClient(at, BOX, 400, 200)
+		const client = frameToClient(at, box, 400, 200)
 
 		expect(client).not.toBeNull()
 
-		const back = client === null ? null : clientToFrame(client, BOX, 400, 200)
-
-		expect(back?.x).toBeNear(at.x, FLOAT)
-
-		expect(back?.y).toBeNear(at.y, FLOAT)
-	})
-
-	it('inverts it through a letterboxed box too', () => {
-		// A canonical frame is letterboxed until the container is measured, which is
-		// the state a wheel can arrive in on the first paint.
-		const letterboxed = { left: 20, top: 10, width: 400, height: 400 }
-
-		const at = { x: 137, y: 64 }
-
-		const client = frameToClient(at, letterboxed, 400, 200)
-
-		const back = client === null ? null : clientToFrame(client, letterboxed, 400, 200)
+		const back = client === null ? null : clientToFrame(client, box, 400, 200)
 
 		expect(back?.x).toBeNear(at.x, FLOAT)
 
@@ -381,9 +374,6 @@ describe('clientToFrame', () => {
 })
 
 describe('clusterPoints under a zoom', () => {
-	/** One frame unit per degree, so a reach reads straight off the coordinates. */
-	const flat = (position: LngLat): MapPoint2D => ({ x: position[0], y: position[1] })
-
 	const GAP = 9
 
 	/** Two dots merge under their own widths plus the gap, in device pixels. */
@@ -397,13 +387,13 @@ describe('clusterPoints under a zoom', () => {
 	]
 
 	it('draws a close pair as one summary at rest', () => {
-		expect(clusterPoints(pair, flat, GAP)).toHaveLength(1)
+		expect(clusterPoints(pair, flatProjector, GAP)).toHaveLength(1)
 	})
 
 	it('separates it once the zoom spreads the dots past the merge distance', () => {
 		// At k=2 one device pixel spans half a frame unit, so the reach halves and
 		// the pair (unmoved in frame units) no longer meets it.
-		expect(clusterPoints(pair, flat, GAP, 0.5)).toHaveLength(2)
+		expect(clusterPoints(pair, flatProjector, GAP, 0.5)).toHaveLength(2)
 	})
 
 	it('merges further out, where the same pixels cover more ground', () => {
@@ -412,15 +402,15 @@ describe('clusterPoints under a zoom', () => {
 			[REACH * 1.5, 0],
 		]
 
-		expect(clusterPoints(apart, flat, GAP)).toHaveLength(2)
+		expect(clusterPoints(apart, flatProjector, GAP)).toHaveLength(2)
 
-		expect(clusterPoints(apart, flat, GAP, 2)).toHaveLength(1)
+		expect(clusterPoints(apart, flatProjector, GAP, 2)).toHaveLength(1)
 	})
 
 	it('leaves an opted-out set alone at every scale', () => {
-		expect(clusterPoints(pair, flat, null, 0.5)).toHaveLength(2)
+		expect(clusterPoints(pair, flatProjector, null, 0.5)).toHaveLength(2)
 
-		expect(clusterPoints(pair, flat, null, 4)).toHaveLength(2)
+		expect(clusterPoints(pair, flatProjector, null, 4)).toHaveLength(2)
 	})
 })
 

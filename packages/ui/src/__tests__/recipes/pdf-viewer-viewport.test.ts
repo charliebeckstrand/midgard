@@ -4,6 +4,7 @@ import { compile } from '@tailwindcss/node'
 import { describe, expect, it } from 'vitest'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { noop } from '../../utilities/noop'
+import { classNames } from '../helpers/class-stops'
 import { uiRoot } from '../helpers/walk-source'
 
 // The viewport centers a page that is smaller than it, and keeps the start
@@ -17,10 +18,9 @@ describe('the PdfViewer viewport', () => {
 			onDependency: noop,
 		})
 
-		const centering = [k().viewport.base]
-			.flat(Number.POSITIVE_INFINITY)
-			.flatMap((value) => String(value).split(' '))
-			.filter((name) => /^(items|justify)-/.test(name))
+		const centering = classNames([k().viewport.base]).filter((name) =>
+			/^(items|justify)-/.test(name),
+		)
 
 		expect(centering).toHaveLength(2)
 

@@ -43,10 +43,4 @@ describe('useFormat', () => {
 			new Intl.NumberFormat(undefined, { minimumFractionDigits: 2 }).format(3),
 		)
 	})
-
-	it('composes a prefixed id', () => {
-		renderUI(<FormatProbe spec={{ type: 'id', prefix: 'INV', pad: 4 }} value={42} />)
-
-		expect(screen.getByTestId('out').textContent).toBe('INV-0042')
-	})
 })

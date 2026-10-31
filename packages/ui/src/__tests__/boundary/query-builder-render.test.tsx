@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Segment } from '../../components/segment'
 import { QueryBuilder, type QueryField, type QueryGroup, type QueryRule } from '../../modules/query'
 import { renderUI } from '../helpers'
@@ -53,10 +53,6 @@ function withRule(base: QueryGroup, index: number, patch: Partial<QueryRule>): Q
 }
 
 describe('query builder separator renders', () => {
-	beforeEach(() => {
-		vi.mocked(Segment).mockClear()
-	})
-
 	it.each([false, true])('renders no separator for a value edit (reorder: %s)', (reorder) => {
 		const base = tree()
 
