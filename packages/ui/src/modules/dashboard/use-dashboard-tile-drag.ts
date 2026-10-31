@@ -5,7 +5,7 @@ import {
 	type DraggableSyntheticListeners,
 	useDraggable,
 } from '@dnd-kit/core'
-import { type RefObject, useCallback, useMemo } from 'react'
+import { type RefObject, useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import {
@@ -35,6 +35,9 @@ export type DashboardTileDrag = {
 	}
 }
 
+/** No offset. */
+const ORIGIN: DashboardOffset = { x: 0, y: 0 }
+
 /**
  * The pointer offset of a dragged tile, clamped so that the tile stays on the
  * canvas and inside its travel range. It returns `null` at rest.
@@ -57,6 +60,10 @@ function carriedOffset(
  * drag, the tile reads the travel range and the pitch of the gesture from the
  * store. It clamps the pointer offset with them. The tile lifts only while the
  * store gesture drags it, and not for each drag that dnd-kit runs.
+ *
+ * In the re-pack, the dragged tile takes its landing shelf, so the tile moves
+ * in the flow. The tile then measures its layout box after each move, and it
+ * takes the move out of the pointer offset. It therefore stays under the pointer.
  *
  * @remarks
  * The `Dashboard` holds the Escape layer and the grabbing cursor of a drag. They
@@ -108,10 +115,42 @@ export function useDashboardTileDrag(
 		),
 	)
 
-	const carried = useMemo(
-		() => (dragging ? carriedOffset(cell, transform, travel, pitch, inline) : null),
-		[dragging, cell, transform, travel, pitch, inline],
+	const stacked = useDashboardStore(
+		useCallback((view: DashboardView) => dragging && view.projected, [dragging]),
 	)
+
+	// The move of the layout box of the tile since the start of a drag in the re-pack.
+	const [moved, setMoved] = useState<{ start: DashboardOffset; by: DashboardOffset } | null>(null)
+
+	useLayoutEffect(() => {
+		const el = node.current
+
+		if (!stacked || el === null || cell === undefined) {
+			setMoved(null)
+
+			return
+		}
+
+		const at = { x: el.offsetLeft, y: el.offsetTop }
+
+		setMoved((prev) => {
+			const start = prev?.start ?? at
+
+			const by = { x: at.x - start.x, y: at.y - start.y }
+
+			return prev?.by.x === by.x && prev.by.y === by.y ? prev : { start, by }
+		})
+	}, [stacked, cell, node])
+
+	const carried = useMemo(() => {
+		if (!dragging) return null
+
+		if (!stacked) return carriedOffset(cell, transform, travel, pitch, inline)
+
+		const by = moved?.by ?? ORIGIN
+
+		return transform === null ? null : { x: transform.x - by.x, y: transform.y - by.y }
+	}, [dragging, stacked, moved, cell, transform, travel, pitch, inline])
 
 	// dnd-kit presses the grip for each of its drags, so the pressed state
 	// follows the gesture.

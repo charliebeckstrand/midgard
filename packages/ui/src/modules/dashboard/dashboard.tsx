@@ -237,9 +237,10 @@ export type DashboardProps = AccessibleName &
 		 * resize splitters, and the content of each tile goes inert. A drag starts only
 		 * from the grip, so the rest of a tile keeps touch scrolling. Edit mode never
 		 * changes a tile size, so no widget re-lays out on the switch. While the
-		 * responsive projection is on screen, edit mode stands down, because a gesture
-		 * edits the saved layout and not the re-pack. When edit mode ends or stands
-		 * down, or when the board unmounts, a live drag or resize ends as canceled.
+		 * responsive projection is on screen, a drag reorders the tiles as a list, and
+		 * the drop saves the new reading order. The re-pack shows no column guides
+		 * and no resize splitters. When edit mode ends, or when the board unmounts, a
+		 * live drag or resize ends as canceled.
 		 * @defaultValue false
 		 */
 		editing?: boolean
@@ -279,9 +280,9 @@ export type DashboardProps = AccessibleName &
 		onTileError?: (id: string, error: unknown) => void
 		/**
 		 * Fires when the responsive projection changes: `true` when the board
-		 * paints the re-pack, and `false` when the saved layout returns. Edit mode
-		 * stands down while the re-pack is on screen, so use it to disable the
-		 * control that starts edit mode. The server and the first render cannot
+		 * paints the re-pack, and `false` when the saved layout returns. In the
+		 * re-pack, edit mode only reorders the tiles, so use it to hide a control that
+		 * resizes a tile. The server and the first render cannot
 		 * measure, so they report the saved layout, also where a container query
 		 * paints the re-pack. The first call comes only after a measurement projects.
 		 */
@@ -609,7 +610,8 @@ export function Dashboard({
 							data-slot="dashboard-canvas"
 							data-measured={dataAttr(measured)}
 							style={canvasStyle(columns, gap, projected)}
-							className={k({ editable }).base}
+							// The column guides belong to the saved layout, and not to the re-pack.
+							className={k({ editable: editable && !projected }).base}
 						>
 							<DashboardTitleLevelContext value={titleLevel}>{tiles}</DashboardTitleLevelContext>
 

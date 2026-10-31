@@ -11,18 +11,30 @@ import { type RefObject, useCallback, useId, useMemo, useRef } from 'react'
 import { useSortableSensors } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
+import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { clamp } from '../../utilities'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { type DashboardCommit, endGesture, measureGesture, startGesture } from './dashboard-gesture'
 import {
+	type DashboardStackPlace,
 	describeDragAtStart,
 	describeDragCancel,
 	describeDragEnd,
 	describeDragMove,
 	describeDragStart,
+	describeStackCancel,
+	describeStackEnd,
+	describeStackMove,
+	describeStackStart,
 } from './engine/dashboard-announcements'
-import { dragPreview, travelOffset } from './engine/dashboard-drag'
-import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
+import {
+	type DashboardOffset,
+	dragPreview,
+	stackPreview,
+	travelOffset,
+} from './engine/dashboard-drag'
+import { type DashboardCell, ROW_SUBDIVISION, readingOrder } from './engine/dashboard-layout'
 import type { DashboardStore } from './engine/dashboard-store'
 import type { DashboardGestureEndEvent, DashboardGestureStartEvent } from './types'
 
@@ -68,6 +80,203 @@ type SensedDrag = {
 }
 
 /**
+ * A drag in the re-pack, which reorders the tiles as a list. The centers come
+ * from the layout box of each tile at the start, so a running glide does not
+ * move them.
+ */
+type StackDrag = {
+	/** The ids of the tiles in reading order at the start. */
+	order: readonly string[]
+	/** The center of each tile at the start, in px from the canvas. */
+	centers: ReadonlyMap<string, DashboardOffset>
+	/** The place in `order` that the preview shows. */
+	index: number
+	/** The place in `order` at the start. */
+	start: number
+}
+
+/** The center of each tile on the canvas, from its layout box. */
+function tileCenters(canvas: HTMLElement): Map<string, DashboardOffset> {
+	const centers = new Map<string, DashboardOffset>()
+
+	for (const tile of canvas.querySelectorAll<HTMLElement>(':scope > [data-tile-id]')) {
+		const id = tile.dataset.tileId
+
+		if (id === undefined) continue
+
+		centers.set(id, {
+			x: tile.offsetLeft + tile.offsetWidth / 2,
+			y: tile.offsetTop + tile.offsetHeight / 2,
+		})
+	}
+
+	return centers
+}
+
+/**
+ * The place in `order` of the tile whose start center is nearest to `point`. The
+ * dragged tile counts at its own start center, so a short travel keeps its place.
+ */
+function nearestPlace(stack: StackDrag, point: DashboardOffset): number {
+	let best = stack.start
+
+	let distance = Number.POSITIVE_INFINITY
+
+	stack.order.forEach((id, index) => {
+		const center = stack.centers.get(id)
+
+		if (center === undefined) return
+
+		const d = (center.x - point.x) ** 2 + (center.y - point.y) ** 2
+
+		if (d < distance) {
+			best = index
+
+			distance = d
+		}
+	})
+
+	return best
+}
+
+/**
+ * The step of one arrow press in the re-pack: one place forward or back in
+ * reading order. The inline arrows follow the direction of the canvas.
+ *
+ * @returns The step, or null for a key that does not move the tile.
+ */
+function stackStep(event: KeyboardEvent, inline: 1 | -1): number | null {
+	if (hasBrowserModifier(event)) return null
+
+	switch (event.code) {
+		case 'ArrowDown':
+			return 1
+		case 'ArrowUp':
+			return -1
+		case 'ArrowRight':
+			return inline
+		case 'ArrowLeft':
+			return -inline
+		default:
+			return null
+	}
+}
+
+/**
+ * Previews the target cell that the pointer travel `delta` reaches on the saved
+ * layout. `target` holds the last target, so a move inside one unit does nothing.
+ */
+function moveOnGrid(
+	store: DashboardStore,
+	delta: DashboardOffset,
+	target: { current: { x: number; y: number } | null },
+): void {
+	const { gesture, columns } = store.getState()
+
+	if (gesture?.kind !== 'drag') return
+
+	// The view paints the dragged tile at its start cell, and it holds the travel range.
+	const { cells, travel } = store.getView()
+
+	const origin = cells.get(gesture.id)
+
+	if (origin === undefined || travel === null) return
+
+	const { pitch, inline } = gesture
+
+	const offset = travelOffset(origin, delta, travel, pitch, inline)
+
+	// In a right-to-left board a travel to the right moves toward column 0.
+	const x = Math.round(origin.x + (inline * offset.x) / pitch)
+
+	const y = Math.round(origin.y + (offset.y * ROW_SUBDIVISION) / pitch)
+
+	const prev = target.current
+
+	if (prev !== null && prev.x === x && prev.y === y) return
+
+	target.current = { x, y }
+
+	const preview = dragPreview(gesture.snapshot, gesture.id, x, y, columns)
+
+	// A step from no change to no change changes nothing that a reader sees.
+	if (preview === null && gesture.preview === null) return
+
+	store.setState({
+		gesture: {
+			...gesture,
+			preview: preview?.cells ?? null,
+			change: preview?.kind ?? null,
+			partner: preview?.partner ?? null,
+		},
+	})
+}
+
+/** Starts a drag in the re-pack of the tile `id`. */
+function startStack(
+	snapshot: readonly DashboardCell[],
+	id: string,
+	canvas: HTMLElement,
+): StackDrag {
+	const order = readingOrder(snapshot)
+
+	const start = order.indexOf(id)
+
+	return { order, centers: tileCenters(canvas), index: start, start }
+}
+
+/** Previews the place in the re-pack that the pointer travel `delta` reaches. */
+function moveInStack(store: DashboardStore, stack: StackDrag, delta: DashboardOffset): void {
+	const { gesture, columns } = store.getState()
+
+	const center = gesture === null ? undefined : stack.centers.get(gesture.id)
+
+	if (gesture?.kind !== 'drag' || center === undefined) return
+
+	const index = nearestPlace(stack, { x: center.x + delta.x, y: center.y + delta.y })
+
+	if (index === stack.index) return
+
+	stack.index = index
+
+	const preview = stackPreview(gesture.snapshot, gesture.id, index, columns)
+
+	// A step from no change to no change changes nothing that a reader sees.
+	if (preview === null && gesture.preview === null) return
+
+	store.setState({ gesture: { ...gesture, preview, change: preview && 'move', partner: null } })
+}
+
+/**
+ * The coordinates of one arrow press in the re-pack: the travel that puts the
+ * center of the dragged tile on the start center of the tile one place away.
+ *
+ * @returns The coordinates, or undefined for a key that does not move the tile.
+ */
+function stackCoordinates(
+	stack: StackDrag,
+	event: KeyboardEvent,
+	id: string,
+	inline: 1 | -1,
+	current: DashboardOffset,
+	delta: DashboardOffset,
+): DashboardOffset | undefined {
+	const step = stackStep(event, inline)
+
+	if (step === null) return undefined
+
+	const from = stack.centers.get(id)
+
+	const target = stack.order[clamp(stack.index + step, 0, stack.order.length - 1)]
+
+	const to = target === undefined ? undefined : stack.centers.get(target)
+
+	if (from === undefined || to === undefined) return current
+
+	return { x: current.x + to.x - from.x - delta.x, y: current.y + to.y - from.y - delta.y }
+}
+
+/**
  * Ends the dnd-kit drag through its own cancel path. The library has no cancel for
  * a caller outside its sensors, but each sensor cancels on a resize of its window.
  * The sensor then lets go of the keys and the pointer of the page. Each other
@@ -100,6 +309,11 @@ function arrowStep(event: KeyboardEvent, pitch: number): { x: number; y: number 
 	}
 }
 
+/** Whether the store gesture owns the last drag that dnd-kit started, of the tile `id`. */
+function ownsDrag(drag: SensedDrag | null, id: string): boolean {
+	return drag?.owned === true && drag.id === id
+}
+
 /** The name that the live region reads for a tile. */
 function getLabel(store: DashboardStore, id: string): string {
 	return store.getState().demands.get(id)?.label ?? id
@@ -122,6 +336,10 @@ function currentCell(store: DashboardStore, id: string): DashboardCell | null {
  * The traveling tile decides the target, not the pointer. The target is the
  * start cell plus the pointer delta in grid units, rounded and clamped to the
  * travel range. Nothing re-simulates until the target changes by a whole unit.
+ *
+ * In the re-pack, a drag reorders the tiles as a list ({@link stackPreview}).
+ * The target is the place of the tile whose start center is nearest to the
+ * center of the traveling tile, and an arrow press moves one place.
  *
  * @returns The props for `DndContext`, and the cancel of the live drag.
  * @internal
@@ -153,13 +371,16 @@ export function useDashboardDrag({
 	// The announcements read it after the end of the drag, so it stays until the next start.
 	const sensed = useRef<SensedDrag | null>(null)
 
+	// The drag in the re-pack, or `null` for a drag on the saved layout. It stays until the next start.
+	const stackRef = useRef<StackDrag | null>(null)
+
 	const handleDragStart = useCallback(
 		(event: DragStartEvent) => {
 			const id = String(event.active.id)
 
 			const canvas = canvasRef.current
 
-			const measure = measureGesture(store, canvas)
+			const measure = measureGesture(store, 'drag', canvas)
 
 			const view = canvas?.ownerDocument.defaultView ?? null
 
@@ -183,11 +404,15 @@ export function useDashboardDrag({
 				if (drag.pending) setTimeout(() => cancelSensor(drag))
 			})
 
-			if (measure === null) return
+			stackRef.current = null
+
+			if (measure === null || canvas === null) return
 
 			targetRef.current = null
 
 			deltaRef.current = { x: 0, y: 0 }
+
+			if (measure.view.projected) stackRef.current = startStack(measure.snapshot, id, canvas)
 
 			startGesture(store, 'drag', id, measure, reportDragStart)
 		},
@@ -196,48 +421,17 @@ export function useDashboardDrag({
 
 	const handleDragMove = useCallback(
 		(event: DragMoveEvent) => {
-			const { gesture, columns } = store.getState()
+			const gesture = store.getState().gesture
 
 			if (gesture?.kind !== 'drag' || gesture.pitch <= 0) return
-
-			// The view paints the dragged tile at its start cell, and it holds the travel range.
-			const { cells, travel } = store.getView()
-
-			const origin = cells.get(gesture.id)
-
-			if (origin === undefined || travel === null) return
-
-			const { pitch, inline } = gesture
 
 			// The keyboard steps from this delta, so it records each move, also inside one unit.
 			deltaRef.current = event.delta
 
-			const offset = travelOffset(origin, event.delta, travel, pitch, inline)
+			const stack = stackRef.current
 
-			// In a right-to-left board a travel to the right moves toward column 0.
-			const x = Math.round(origin.x + (inline * offset.x) / pitch)
-
-			const y = Math.round(origin.y + (offset.y * ROW_SUBDIVISION) / pitch)
-
-			const prev = targetRef.current
-
-			if (prev !== null && prev.x === x && prev.y === y) return
-
-			targetRef.current = { x, y }
-
-			const preview = dragPreview(gesture.snapshot, gesture.id, x, y, columns)
-
-			// A step from no change to no change changes nothing that a reader sees.
-			if (preview === null && gesture.preview === null) return
-
-			store.setState({
-				gesture: {
-					...gesture,
-					preview: preview?.cells ?? null,
-					change: preview?.kind ?? null,
-					partner: preview?.partner ?? null,
-				},
-			})
+			if (stack === null) moveOnGrid(store, event.delta, targetRef)
+			else moveInStack(store, stack, event.delta)
 		},
 		[store],
 	)
@@ -292,6 +486,7 @@ export function useDashboardDrag({
 	// One arrow press moves one column, or one row, of the traveling tile. Each press starts
 	// from the position inside the travel range, so a press past an edge leaves no overshoot,
 	// and the next opposite press moves the tile at once. The pointer keeps its overshoot.
+	// In the re-pack, one arrow press moves one place.
 	const coordinateGetter = useCallback<KeyboardCoordinateGetter>(
 		(event, { currentCoordinates }) => {
 			const gesture = store.getState().gesture
@@ -299,6 +494,19 @@ export function useDashboardDrag({
 			const pitch = gesture?.pitch ?? 0
 
 			if (gesture === null || pitch <= 0) return undefined
+
+			const stack = stackRef.current
+
+			if (stack !== null) {
+				return stackCoordinates(
+					stack,
+					event,
+					gesture.id,
+					gesture.inline,
+					currentCoordinates,
+					deltaRef.current,
+				)
+			}
 
 			const step = arrowStep(event, pitch)
 
@@ -331,9 +539,9 @@ export function useDashboardDrag({
 
 	// The live region of dnd-kit writes a text only when it changes, so a repeated
 	// sentence is not spoken again.
-	const announcements = useMemo<Announcements>(() => {
+	const gridAnnouncements = useMemo<Announcements>(() => {
 		// A drag that the store does not own moves nothing, so it says nothing.
-		const owns = (id: string) => sensed.current?.owned === true && sensed.current.id === id
+		const owns = (id: string) => ownsDrag(sensed.current, id)
 
 		return {
 			onDragStart: ({ active }) => {
@@ -403,6 +611,48 @@ export function useDashboardDrag({
 			},
 		}
 	}, [store, intl])
+
+	// A drag in the re-pack names the place of the tile in reading order.
+	const stackAnnouncements = useMemo<Announcements>(() => {
+		const say = (
+			id: string,
+			describe: (intl: IntlShape, label: string, place: DashboardStackPlace) => string,
+			at: (stack: StackDrag) => number,
+		) => {
+			const stack = stackRef.current
+
+			if (stack === null || !ownsDrag(sensed.current, id)) return undefined
+
+			return describe(intl, getLabel(store, id), {
+				position: at(stack) + 1,
+				total: stack.order.length,
+			})
+		}
+
+		return {
+			onDragStart: ({ active }) => say(String(active.id), describeStackStart, (s) => s.start),
+			onDragMove: ({ active }) => say(String(active.id), describeStackMove, (s) => s.index),
+			onDragOver: () => undefined,
+			// A drop that commits ends in the settle phase, at the place of the preview.
+			onDragEnd: ({ active }) =>
+				say(String(active.id), describeStackEnd, (s) =>
+					store.getState().gesture?.kind === 'settle' ? s.index : s.start,
+				),
+			onDragCancel: ({ active }) => say(String(active.id), describeStackCancel, (s) => s.start),
+		}
+	}, [store, intl])
+
+	const announcements = useMemo<Announcements>(() => {
+		const pick = () => (stackRef.current === null ? gridAnnouncements : stackAnnouncements)
+
+		return {
+			onDragStart: (event) => pick().onDragStart(event),
+			onDragMove: (event) => pick().onDragMove?.(event),
+			onDragOver: (event) => pick().onDragOver(event),
+			onDragEnd: (event) => pick().onDragEnd(event),
+			onDragCancel: (event) => pick().onDragCancel(event),
+		}
+	}, [gridAnnouncements, stackAnnouncements])
 
 	// The keyboard sensor of dnd-kit drops with Space and cancels with Escape.
 	const accessibility = useMemo(

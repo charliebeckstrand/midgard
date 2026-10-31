@@ -6,6 +6,10 @@ import {
 	describeDragEnd,
 	describeDragMove,
 	describeDragStart,
+	describeStackCancel,
+	describeStackEnd,
+	describeStackMove,
+	describeStackStart,
 } from '../../modules/dashboard/engine/dashboard-announcements'
 import type { DashboardCell } from '../../modules/dashboard/engine/dashboard-layout'
 import { intlEn } from '../../primitives/intl/intl-catalog'
@@ -81,6 +85,22 @@ describe('describeDragCancel', () => {
 	it('names the cell that the tile returned to', () => {
 		expect(describeDragCancel(intlEn, 'Revenue', CELL, 24)).toBe(
 			'Canceled. Revenue returned to column 3 of 24, row 2, 8 columns wide.',
+		)
+	})
+})
+
+describe('stack announcements', () => {
+	const place = { position: 2, total: 5 }
+
+	it('names the place of the tile in reading order', () => {
+		expect(describeStackStart(intlEn, 'Revenue', place)).toBe('Picked up Revenue, position 2 of 5.')
+
+		expect(describeStackMove(intlEn, 'Revenue', place)).toBe('Revenue moved to position 2 of 5.')
+
+		expect(describeStackEnd(intlEn, 'Revenue', place)).toBe('Dropped Revenue, position 2 of 5.')
+
+		expect(describeStackCancel(intlEn, 'Revenue', place)).toBe(
+			'Returned Revenue to position 2 of 5.',
 		)
 	})
 })

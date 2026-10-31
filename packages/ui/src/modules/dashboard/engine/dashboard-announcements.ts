@@ -5,6 +5,7 @@
  */
 
 import { defineMessages } from '../../../primitives/intl/intl-messages'
+import { reorderMessages } from '../../../primitives/intl/intl-reorder'
 import type { IntlShape } from '../../../primitives/intl/types'
 import type { DashboardDragKind } from './dashboard-drag'
 import type { DashboardCell } from './dashboard-layout'
@@ -204,4 +205,52 @@ export function describeDuplicate(intl: IntlShape, label: string): string {
 /** The text when a tidy packs the board, or finds nothing to move. */
 export function describeTidy(intl: IntlShape, moved: number): string {
 	return intl.formatMessage(messages.tidied, { moved })
+}
+
+/** The place of a tile in the re-pack: its place in reading order from `1`, and the count of tiles. */
+export type DashboardStackPlace = { position: number; total: number }
+
+/** A tile and its place in the re-pack, inside a reorder text. */
+function describeSubject(intl: IntlShape, label: string, place: DashboardStackPlace): string {
+	return intl.formatMessage(reorderMessages.subject, { item: label, ...place })
+}
+
+/** The text when a drag in the re-pack lifts a tile. */
+export function describeStackStart(
+	intl: IntlShape,
+	label: string,
+	place: DashboardStackPlace,
+): string {
+	return intl.formatMessage(reorderMessages.pickedUp, {
+		subject: describeSubject(intl, label, place),
+	})
+}
+
+/** The text when a drag in the re-pack previews a new place, or the start place. */
+export function describeStackMove(
+	intl: IntlShape,
+	label: string,
+	place: DashboardStackPlace,
+): string {
+	return intl.formatMessage(reorderMessages.moved, { item: label, ...place })
+}
+
+/** The text when a drop in the re-pack commits, or changes nothing. */
+export function describeStackEnd(
+	intl: IntlShape,
+	label: string,
+	place: DashboardStackPlace,
+): string {
+	return intl.formatMessage(reorderMessages.dropped, {
+		subject: describeSubject(intl, label, place),
+	})
+}
+
+/** The text when a drag in the re-pack cancels. */
+export function describeStackCancel(
+	intl: IntlShape,
+	label: string,
+	place: DashboardStackPlace,
+): string {
+	return intl.formatMessage(reorderMessages.returned, { item: label, ...place })
 }
