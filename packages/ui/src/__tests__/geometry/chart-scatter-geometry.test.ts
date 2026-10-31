@@ -10,6 +10,7 @@ import {
 	uniqueXValues,
 } from '../../modules/chart/engine/chart-geometry/scatter'
 import { nearestStopIndex } from '../../modules/chart/engine/chart-snap'
+import { FLOAT } from '../helpers/geometry/tolerance'
 
 /**
  * A bubble radius comes from a square root, so the case checks it to two
@@ -110,7 +111,7 @@ describe('scatter geometry', () => {
 		// Sizes 1% apart draw areas 1% apart, not the two ends of the diameter range.
 		const ratio = (sizeRadius(101, 101, diameters) / sizeRadius(100, 101, diameters)) ** 2
 
-		expect(ratio).toBeNear(1.01, 0.0001)
+		expect(ratio).toBeNear(1.01, FLOAT)
 	})
 
 	it('floors a small size at the smallest diameter, and reads a sizeless point there too', () => {

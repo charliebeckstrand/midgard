@@ -8,6 +8,7 @@ import {
 	linearScale,
 	nearestBandIndex,
 } from '../../modules/chart/engine/chart-scale'
+import { FLOAT } from '../helpers/geometry/tolerance'
 
 /**
  * The padded domain of a flat series puts its value within half a frame unit of
@@ -474,7 +475,7 @@ function mantissa(step: number): number {
 	return scaled
 }
 
-/** The relative noise of a scale calculation: one part in a million of the step. */
+/** The relative noise of a scale calculation: one part in a million of the step or the domain. */
 const RELATIVE_FLOAT = 1e-6
 
 describe('linearScale · tick properties', () => {
@@ -496,7 +497,7 @@ describe('linearScale · tick properties', () => {
 			for (let index = 1; index < scale.ticks.length; index++) {
 				const gap = (scale.ticks[index] as number) - (scale.ticks[index - 1] as number)
 
-				expect(gap).toBeNear(step, Math.abs(step) * 1e-5)
+				expect(gap).toBeNear(step, Math.abs(step) * RELATIVE_FLOAT)
 			}
 		},
 	)
@@ -525,7 +526,7 @@ describe('linearScale · tick properties', () => {
 
 			const [low, high] = scale.domain
 
-			const slack = (high - low) * 1e-6
+			const slack = (high - low) * RELATIVE_FLOAT
 
 			for (const tick of scale.ticks) {
 				expect(tick).toBeGreaterThanOrEqual(low - slack)
@@ -544,7 +545,7 @@ describe('linearScale · tick properties', () => {
 
 			const [low, high] = scale.domain
 
-			const slack = (high - low) * 1e-9
+			const slack = (high - low) * FLOAT
 
 			for (const datum of series) {
 				expect(datum).toBeGreaterThanOrEqual(low - slack)

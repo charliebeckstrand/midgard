@@ -199,9 +199,9 @@ describe('showTransform', () => {
 
 		const drawn = applyTransform(corner, out)
 
-		expect(drawn.x).toBeLessThanOrEqual(VIEW.width - INSET + 1e-9)
+		expect(drawn.x).toBeLessThanOrEqual(VIEW.width - INSET + FLOAT)
 
-		expect(drawn.y).toBeLessThanOrEqual(VIEW.height - INSET + 1e-9)
+		expect(drawn.y).toBeLessThanOrEqual(VIEW.height - INSET + FLOAT)
 	})
 
 	it('never leaves the pan limits to honor the margin', () => {
