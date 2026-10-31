@@ -229,7 +229,9 @@ describe('labelPage', () => {
 			'export const a = <Grid rows={rows} onSort={useSort()} />',
 		].join('\n')
 
-		const resolve = vi.fn(async (source: string) => (source === 'ui/grid' ? grid : undefined))
+		const resolve = vi.fn(async (_source: string): Promise<string | undefined> => undefined)
+
+		vi.when(resolve).calledWith('ui/grid').thenResolve(grid)
 
 		const labeled = await labelPage(parseAst(code, { lang: 'tsx' }), code, resolve)
 

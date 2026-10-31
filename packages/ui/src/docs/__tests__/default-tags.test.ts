@@ -1,9 +1,9 @@
 // @vitest-environment node
-import { afterAll, describe, expect, it } from 'vitest'
+import { describe, expect } from 'vitest'
 import { barrels } from '../../__tests__/helpers/public-barrels.ts'
-import { uiRoot } from '../../__tests__/helpers/walk-source.ts'
 import { isDensityStep } from '../../core/density/steps.ts'
-import { createApiExtractor, type PropApi } from '../plugin/api.ts'
+import type { ApiExtractor, PropApi } from '../plugin/api.ts'
+import { it } from './extractor.ts'
 
 // The playground shows what a component renders when a prop is omitted. It
 // reads the `@defaultValue` tag of each prop whose type is a union of
@@ -16,10 +16,6 @@ import { createApiExtractor, type PropApi } from '../plugin/api.ts'
 
 // The folders whose units have API data, as `src/<root>/<name>/index.ts`.
 const ROOTS = ['components', 'modules', 'primitives', 'providers', 'structure']
-
-const extractor = createApiExtractor(uiRoot)
-
-afterAll(() => extractor.close())
 
 /** Whether the prop has a `@defaultValue` tag: code in `default`, or a sentence at the end of `description`. */
 function isTagged(prop: PropApi): boolean {
@@ -34,7 +30,7 @@ function isDensityAxis(prop: PropApi): boolean {
 }
 
 /** Each optional union of literals with no tag, as `Component.prop`. */
-async function untagged(): Promise<string[]> {
+async function untagged(extractor: ApiExtractor): Promise<string[]> {
 	const found: string[] = []
 
 	for (const barrel of barrels(ROOTS)) {
@@ -53,7 +49,9 @@ async function untagged(): Promise<string[]> {
 }
 
 describe('default tags', () => {
-	it('tags the default of each optional union of literals', { timeout: 120_000 }, async () => {
-		expect(await untagged()).toEqual([])
+	it('tags the default of each optional union of literals', { timeout: 120_000 }, async ({
+		extractor,
+	}) => {
+		expect(await untagged(extractor)).toEqual([])
 	})
 })

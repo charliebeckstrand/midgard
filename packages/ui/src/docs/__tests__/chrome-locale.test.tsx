@@ -1,30 +1,38 @@
-import { render, screen } from '@testing-library/react'
-import type { ReactNode } from 'react'
+import { screen } from '@testing-library/react'
 import { useIntl } from 'ui/primitives/intl'
-import { LocaleProvider } from 'ui/providers/locale'
 import { describe, expect, it, vi } from 'vitest'
-import { catalogs } from '../app/catalogs.ts'
 import { ApiEntry } from '../kit/api-entry.tsx'
 import { ExampleFrame } from '../kit/example.tsx'
 import { exampleTitle, PLAYGROUND, tabName } from '../kit/names.ts'
 import { Playground } from '../kit/playground.tsx'
 import type { BarrelApi } from '../plugin/api.ts'
 import type { ExampleMeta } from '../plugin/examples.ts'
+import { renderInLocale } from './copy.tsx'
 
 // The text of the kit follows the language of the reader, through the catalogs
 // of the docs. The names from the code and the TSDoc stay as they are.
 
-function Spanish({ children }: { children: ReactNode }) {
-	return (
-		<LocaleProvider locale="es-ES" catalogs={catalogs}>
-			{children}
-		</LocaleProvider>
+/** The locale of the Spanish docs. */
+const SPANISH = 'es-ES'
+
+/** The meta of an example whose code does not load. */
+function pendingMeta(title: string, id: string, component?: string): ExampleMeta {
+	return { title, id, component, code: () => new Promise(() => {}) }
+}
+
+/** Renders an example frame of `meta` in Spanish. */
+function renderFrame(meta: ExampleMeta) {
+	return renderInLocale(
+		<ExampleFrame meta={meta}>
+			<span>Instance</span>
+		</ExampleFrame>,
+		SPANISH,
 	)
 }
 
 describe('the chrome of the docs in Spanish', () => {
 	it('shows the text of an API entry in Spanish, and keeps the names from the code', () => {
-		const { container } = render(
+		const { container } = renderInLocale(
 			<ApiEntry
 				component={{
 					name: 'Box',
@@ -33,7 +41,7 @@ describe('the chrome of the docs in Spanish', () => {
 					elements: ['div'],
 				}}
 			/>,
-			{ wrapper: Spanish },
+			SPANISH,
 		)
 
 		expect(screen.getByRole('heading', { name: 'Eventos' })).toBeDefined()
@@ -48,25 +56,13 @@ describe('the chrome of the docs in Spanish', () => {
 	})
 
 	it('says in Spanish when the component takes no props of its own', () => {
-		render(<ApiEntry component={{ name: 'Spacer', props: [], events: [] }} />, { wrapper: Spanish })
+		renderInLocale(<ApiEntry component={{ name: 'Spacer', props: [], events: [] }} />, SPANISH)
 
 		expect(screen.getByText('Este componente no tiene props propias.')).toBeDefined()
 	})
 
 	it('shows the title of a playground and "Show code" in Spanish', () => {
-		const meta: ExampleMeta = {
-			title: 'Playground',
-			id: 'playground',
-			component: 'Box',
-			code: () => new Promise(() => {}),
-		}
-
-		render(
-			<ExampleFrame meta={meta}>
-				<span>Instance</span>
-			</ExampleFrame>,
-			{ wrapper: Spanish },
-		)
+		renderFrame(pendingMeta('Playground', 'playground', 'Box'))
 
 		expect(screen.getByRole('heading', { name: 'Área de pruebas' })).toBeDefined()
 
@@ -74,18 +70,7 @@ describe('the chrome of the docs in Spanish', () => {
 	})
 
 	it('translates the title of an example, which comes from its file name', () => {
-		const meta: ExampleMeta = {
-			title: 'With icon',
-			id: 'with-icon',
-			code: () => new Promise(() => {}),
-		}
-
-		render(
-			<ExampleFrame meta={meta}>
-				<span>Instance</span>
-			</ExampleFrame>,
-			{ wrapper: Spanish },
-		)
+		renderFrame(pendingMeta('With icon', 'with-icon'))
 
 		expect(screen.getByRole('heading', { name: 'Con icono' })).toBeDefined()
 	})
@@ -93,18 +78,7 @@ describe('the chrome of the docs in Spanish', () => {
 	it('keeps the English title of an example that the catalog does not hold, and reports it', () => {
 		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-		const meta: ExampleMeta = {
-			title: 'Not in the catalog',
-			id: 'not-in-the-catalog',
-			code: () => new Promise(() => {}),
-		}
-
-		render(
-			<ExampleFrame meta={meta}>
-				<span>Instance</span>
-			</ExampleFrame>,
-			{ wrapper: Spanish },
-		)
+		renderFrame(pendingMeta('Not in the catalog', 'not-in-the-catalog'))
 
 		expect(screen.getByRole('heading', { name: 'Not in the catalog' })).toBeDefined()
 
@@ -118,7 +92,7 @@ describe('the chrome of the docs in Spanish', () => {
 			return tabName(useIntl(), 'sorting', 'Sorting')
 		}
 
-		const { container } = render(<Name />, { wrapper: Spanish })
+		const { container } = renderInLocale(<Name />, SPANISH)
 
 		expect(container.textContent).toBe('Ordenación')
 	})
@@ -128,7 +102,7 @@ describe('the chrome of the docs in Spanish', () => {
 			return exampleTitle(useIntl(), PLAYGROUND, 'Playground')
 		}
 
-		const { container } = render(<Title />, { wrapper: Spanish })
+		const { container } = renderInLocale(<Title />, SPANISH)
 
 		expect(container.textContent).toBe('Área de pruebas')
 	})
@@ -170,7 +144,7 @@ describe('the chrome of the docs in Spanish', () => {
 			code: () => new Promise(() => {}),
 		})
 
-		render(<Playground of={ThingPlayground} api={api} />, { wrapper: Spanish })
+		renderInLocale(<Playground of={ThingPlayground} api={api} />, SPANISH)
 
 		expect(screen.getByRole('combobox', { name: 'Ubicación' }).textContent).toContain(
 			'Abajo al inicio',

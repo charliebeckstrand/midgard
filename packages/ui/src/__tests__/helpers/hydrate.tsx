@@ -2,7 +2,7 @@ import { act } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { type Mock, type MockInstance, onTestFinished, vi } from 'vitest'
+import { expect, type Mock, type MockInstance, onTestFinished, vi } from 'vitest'
 import { attach } from './attach'
 
 /** The spies and the root of a hydration, for the assertions of a case. */
@@ -66,3 +66,34 @@ export function serverMarkup(element: ReactNode): HTMLElement {
 
 	return markup
 }
+
+/**
+ * Hydrates the server markup of `element` on a platform, and reads the
+ * container before and after the hydration. The hydration must report no
+ * mismatch. Use it for markup that the build writes for one platform and that
+ * the client corrects after the hydration.
+ *
+ * @param element - The element that the server and the client render.
+ * @param platform - The value that `navigator.platform` gives.
+ * @param read - Reads the text to compare from the container. The default reads the text of the container.
+ * @returns The text before and after the hydration.
+ */
+export const hydrateOnPlatform = vi.defineHelper(
+	(
+		element: ReactNode,
+		platform: string,
+		read: (container: Element) => string = (container) => container.textContent ?? '',
+	): { before: string; after: string } => {
+		vi.spyOn(navigator, 'platform', 'get').mockReturnValue(platform)
+
+		const container = attach(serverMarkup(element))
+
+		const before = read(container)
+
+		const { onRecoverableError } = hydrate(container, element)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		return { before, after: read(container) }
+	},
+)

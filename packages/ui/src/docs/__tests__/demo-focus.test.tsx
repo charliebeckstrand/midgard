@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { animate } from 'motion'
-import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
+import { describe, expect } from 'vitest'
 import { it } from '../../__tests__/helpers/fake-clock'
+import { stubAnimate } from '../../__tests__/helpers/stub-animate.ts'
 import AlertClosable from '../pages/components/alert/closable.tsx'
 import BannerClosable from '../pages/components/banner/closable.tsx'
 import DrawerFitContent from '../pages/components/drawer/fit-content.tsx'
@@ -14,16 +14,6 @@ import TextareaWithActions from '../pages/components/textarea/with-actions.tsx'
 // An example that removes, replaces, or disables the control that has the focus
 // gives the focus to another control. Otherwise the focus falls to the body, and
 // a keyboard user loses their place (WCAG 2.4.3).
-
-// The hold button stub: the shared `animate` spy runs no animation under the
-// fake clock (`hold-button.test.tsx`).
-beforeEach(() => {
-	vi.mocked(animate).mockReturnValue({} as ReturnType<typeof animate>)
-})
-
-afterEach(() => {
-	vi.mocked(animate).mockRestore()
-})
 
 /** Focuses a button and clicks it, as a keyboard user does. */
 function press(button: HTMLElement) {
@@ -65,6 +55,9 @@ describe('demo focus', () => {
 	})
 
 	it('moves the focus between the hold button and Reset', async ({ clock }) => {
+		// The hold button runs no animation under the fake clock (`hold-button.test.tsx`).
+		stubAnimate()
+
 		render(<HoldButtonDestructive />)
 
 		const hold = screen.getByRole('button', { name: 'Hold to delete' })

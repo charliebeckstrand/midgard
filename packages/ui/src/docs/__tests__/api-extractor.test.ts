@@ -1,7 +1,7 @@
 // @vitest-environment node
-import { afterAll, describe, expect, it } from 'vitest'
-import { uiRoot } from '../../__tests__/helpers/walk-source.ts'
-import { type BarrelApi, createApiExtractor } from '../plugin/api.ts'
+import { describe, expect } from 'vitest'
+import type { ApiExtractor, BarrelApi } from '../plugin/api.ts'
+import { it } from './extractor.ts'
 
 // The API data that the docs plugin makes for some components whose props
 // have a union, an inherited tag, a default that is a sentence, an
@@ -23,14 +23,10 @@ const BARRELS = [
 	'structure/flex',
 ]
 
-const extractor = createApiExtractor(uiRoot)
-
-afterAll(() => extractor.close())
-
 let loaded: Promise<BarrelApi> | undefined
 
 /** The components of `BARRELS`. The first call extracts them, one barrel at a time. */
-function load(): Promise<BarrelApi> {
+function load(extractor: ApiExtractor): Promise<BarrelApi> {
 	loaded ??= (async () => {
 		const parts: BarrelApi[] = []
 
@@ -47,8 +43,8 @@ function findProp(api: BarrelApi, component: string, name: string) {
 }
 
 describe('API extractor', { timeout: 60_000 }, () => {
-	it('lists the props of each arm of a union', async () => {
-		const api = await load()
+	it('lists the props of each arm of a union', async ({ extractor }) => {
+		const api = await load(extractor)
 
 		for (const component of ['ToggleIconButton', 'TabList']) {
 			expect(findProp(api, component, 'aria-label')).toMatchObject({
@@ -65,8 +61,8 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		expect(findProp(api, 'DatePicker', 'input')?.required).toBeUndefined()
 	})
 
-	it('reads each tag from the ComponentProps argument', async () => {
-		const api = await load()
+	it('reads each tag from the ComponentProps argument', async ({ extractor }) => {
+		const api = await load(extractor)
 
 		expect(api.TableHead?.elements).toEqual(['thead'])
 
@@ -79,8 +75,8 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		expect(api.TableHeader?.elements).toEqual(['th'])
 	})
 
-	it('keeps only the tags whose attributes the props take', async () => {
-		const api = await load()
+	it('keeps only the tags whose attributes the props take', async ({ extractor }) => {
+		const api = await load(extractor)
 
 		// `Omit<ButtonProps & { href?: never }, 'href'>` has no link.
 		expect(api.HoldButton?.elements).toEqual(['button'])
@@ -89,8 +85,10 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		expect(api.SegmentItem?.elements).toBeUndefined()
 	})
 
-	it('gives a default as code, and a default that is a sentence as prose', async () => {
-		const api = await load()
+	it('gives a default as code, and a default that is a sentence as prose', async ({
+		extractor,
+	}) => {
+		const api = await load(extractor)
 
 		expect(findProp(api, 'ToggleIconButton', 'color')).toMatchObject({
 			default: "'zinc'",
@@ -112,8 +110,8 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		expect(initialFocus?.description).toMatch(/Default: the first tabbable element in the panel\.$/)
 	})
 
-	it('leaves out an internal prop', async () => {
-		const api = await load()
+	it('leaves out an internal prop', async ({ extractor }) => {
+		const api = await load(extractor)
 
 		// `ContextMenu` sets the `disabled` of `Menu`. A dropdown ignores it.
 		expect(findProp(api, 'Menu', 'disabled')).toBeUndefined()
@@ -121,8 +119,10 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		expect(findProp(api, 'Menu', 'sheet')).toBeDefined()
 	})
 
-	it('gives the values of a responsive type, and the value of a default constant', async () => {
-		const api = await load()
+	it('gives the values of a responsive type, and the value of a default constant', async ({
+		extractor,
+	}) => {
+		const api = await load(extractor)
 
 		expect(findProp(api, 'DescriptionList', 'orientation')).toMatchObject({
 			type: 'Responsive<Orientation>',
@@ -142,8 +142,10 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		})
 	})
 
-	it('gives the range of a number prop from its @minimum and @maximum tags', async () => {
-		const api = await load()
+	it('gives the range of a number prop from its @minimum and @maximum tags', async ({
+		extractor,
+	}) => {
+		const api = await load(extractor)
 
 		expect(findProp(api, 'Sparkline', 'strokeWidth')).toMatchObject({
 			type: 'number',
