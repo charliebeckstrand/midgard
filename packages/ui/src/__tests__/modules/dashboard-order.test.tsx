@@ -384,69 +384,6 @@ describe('DashboardTiles reading order', () => {
 		expect(markupOrder(container)).toEqual(['B', 'A', 'C', 'New'])
 	})
 
-	it('places the copies of two Duplicate clicks in spec order, and a new mount gives the same rows', () => {
-		const spec: DashboardSpec = {
-			tiles: [
-				{ id: 'a', widget: 'note', title: 'A' },
-				{ id: 'b', widget: 'note', title: 'B' },
-				{ id: 'c', widget: 'note', title: 'C' },
-			],
-			layout: LAYOUT,
-		}
-
-		function Board({ initial, editing = false }: { initial: DashboardSpec; editing?: boolean }) {
-			const [current, setCurrent] = useState(initial)
-
-			const duplicate = useCallback(
-				(tile: DashboardSpecTile) => setCurrent((prev) => duplicateSpecTile(prev, tile.id)),
-				[],
-			)
-
-			return (
-				<DashboardWidgetProvider widgets={widgets}>
-					<Dashboard aria-label="Board" editing={editing} layout={{ value: current.layout }}>
-						<DashboardTiles tiles={current.tiles} onDuplicate={duplicate} />
-					</Dashboard>
-				</DashboardWidgetProvider>
-			)
-		}
-
-		const { container, rerender, unmount } = renderUI(<Board initial={spec} editing />)
-
-		fireEvent.click(screen.getByRole('button', { name: 'Duplicate C' }))
-
-		// The second source comes higher in the spec, so its copy comes before the first copy.
-		fireEvent.click(screen.getByRole('button', { name: 'Duplicate A' }))
-
-		const rows = [
-			['b', '1'],
-			['a', '1'],
-			['c', '11'],
-			['tile-2', '21'],
-			['tile-1', '31'],
-		]
-
-		// In edit mode the markup holds still, so the copies go last, in spec order.
-		expect(tileRows(container, 'p')).toEqual(rows)
-
-		rerender(<Board initial={spec} />)
-
-		expect(tileRows(container, 'p')).toEqual(rows)
-
-		unmount()
-
-		// The spec that the two clicks saved. No gesture ran, so the copies have no entry.
-		const saved = duplicateSpecTile(duplicateSpecTile(spec, 'c'), 'a')
-
-		const fresh = renderUI(
-			<StrictMode>
-				<Board initial={saved} />
-			</StrictMode>,
-		)
-
-		expect(tileRows(fresh.container, 'p')).toEqual(rows)
-	})
-
 	it('gives the spec tiles of a component the rows of their markup, before a JSX tile after them', () => {
 		const tiles: DashboardSpecTile[] = ['s1', 's2', 's3'].map((id) => ({ id, widget: 'note' }))
 
@@ -564,8 +501,10 @@ describe('DashboardTiles reading order', () => {
 		return <DashboardTiles {...props} />
 	}
 
-	// Each host puts the DashboardTiles under a board child that is not a DashboardTiles.
+	// The first host puts the DashboardTiles directly in the board. Each other host puts it under
+	// a board child that is not a DashboardTiles.
 	const hosts: [string, (props: DashboardTilesProps) => ReactNode][] = [
+		['directly', (props) => <DashboardTiles {...props} />],
 		['in a component', (props) => <Wrapped {...props} />],
 		[
 			'under an inner DashboardWidgetProvider',
@@ -595,7 +534,11 @@ describe('DashboardTiles reading order', () => {
 			)
 		}
 
-		/** Clicks each Duplicate control of `sources` in edit mode, and returns the rows after edit mode ends. */
+		/**
+		 * Clicks each Duplicate control of `sources` in edit mode, and returns the rows after edit
+		 * mode ends. In edit mode the markup holds still, so the rows do not change when edit mode
+		 * ends.
+		 */
 		function liveRows(spec: DashboardSpec, sources: string[]): [string, string][] {
 			const { container, rerender, unmount } = renderUI(<Board initial={spec} editing />)
 
@@ -603,9 +546,13 @@ describe('DashboardTiles reading order', () => {
 				fireEvent.click(screen.getByRole('button', { name: `Duplicate ${source}` }))
 			}
 
+			const editRows = tileRows(container, 'p')
+
 			rerender(<Board initial={spec} />)
 
 			const rows = tileRows(container, 'p')
+
+			expect(editRows).toEqual(rows)
 
 			unmount()
 

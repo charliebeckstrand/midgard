@@ -110,53 +110,43 @@ describe('fetchOsrmRoute', () => {
 		})
 	})
 
-	it('carries a refused status, and retries only what can clear', async ({ signal }) => {
-		// The demo server's own answer under load: a 504 and a 429 are worth asking
-		// again, while a 400 is the same request refused the same way every time.
-		stubFetch({ ok: false, status: 504 })
+	// The demo server's own answer under load: a 504 and a 429 are worth asking
+	// again, while a 400 is the same request refused the same way every time.
+	it.for([
+		{ status: 504, retryable: true },
+		{ status: 429, retryable: true },
+		{ status: 400, retryable: false },
+	])(
+		'carries a refused status, and retries only what can clear: $status',
+		async ({ status, retryable }) => {
+			stubFetch({ ok: false, status })
 
-		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
-			ok: false,
-			failure: { kind: 'http', status: 504, retryable: true },
-		})
+			expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+				ok: false,
+				failure: { kind: 'http', status, retryable },
+			})
+		},
+	)
 
-		signal.throwIfAborted()
-
-		stubFetch({ ok: false, status: 429 })
-
-		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
-			ok: false,
-			failure: { kind: 'http', status: 429, retryable: true },
-		})
-
-		signal.throwIfAborted()
-
-		stubFetch({ ok: false, status: 400 })
-
-		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
-			ok: false,
-			failure: { kind: 'http', status: 400, retryable: false },
-		})
-	})
-
-	it('tells a timeout from the caller`s own abort', async ({ signal }) => {
-		// Both arrive as a rejected fetch and only the reason's name separates them:
-		// a timeout can clear on another request, while the caller ended its own.
-		stubThrownRequest(new DOMException('The operation timed out', 'TimeoutError'))
-
-		expect(await fetchOsrmRoute(WAYPOINTS, { timeoutMs: 5000 })).toEqual({
-			ok: false,
+	// Both arrive as a rejected fetch and only the reason's name separates them:
+	// a timeout can clear on another request, while the caller ended its own.
+	it.for([
+		{
+			name: 'a timeout',
+			error: new DOMException('The operation timed out', 'TimeoutError'),
+			options: { timeoutMs: 5000 },
 			failure: { kind: 'timeout', retryable: true },
-		})
-
-		signal.throwIfAborted()
-
-		stubThrownRequest(new DOMException('The operation was aborted', 'AbortError'))
-
-		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
-			ok: false,
+		},
+		{
+			name: 'an abort',
+			error: new DOMException('The operation was aborted', 'AbortError'),
+			options: {},
 			failure: { kind: 'aborted', retryable: false },
-		})
+		},
+	])('tells a timeout from the caller`s own abort: $name', async ({ error, options, failure }) => {
+		stubThrownRequest(error)
+
+		expect(await fetchOsrmRoute(WAYPOINTS, options)).toEqual({ ok: false, failure })
 	})
 
 	it('reads any other thrown request as a dead network', async () => {
@@ -168,28 +158,14 @@ describe('fetchOsrmRoute', () => {
 		})
 	})
 
-	it('reads a body that is no routing answer as a payload failure', async ({ signal }) => {
-		stubUnparseableBody()
-
-		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
-			ok: false,
-			failure: { kind: 'payload', retryable: false },
-		})
-
-		signal.throwIfAborted()
-
+	it.for([
+		{ name: 'a body that does not parse', stub: stubUnparseableBody },
 		// Parsed, and still not an answer: a body naming neither a leg nor a
 		// refusal, and a leg carrying neither geometry nor a total.
-		stubFetch({ ok: true, json: {} })
-
-		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
-			ok: false,
-			failure: { kind: 'payload', retryable: false },
-		})
-
-		signal.throwIfAborted()
-
-		stubFetch({ ok: true, json: { routes: [{}] } })
+		{ name: 'a body with no leg', stub: () => stubFetch({ ok: true, json: {} }) },
+		{ name: 'an empty leg', stub: () => stubFetch({ ok: true, json: { routes: [{}] } }) },
+	])('reads a body that is no routing answer as a payload failure: $name', async ({ stub }) => {
+		stub()
 
 		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
 			ok: false,
@@ -197,29 +173,28 @@ describe('fetchOsrmRoute', () => {
 		})
 	})
 
-	it('reads the service`s own refusal as no-route, carrying its code', async ({ signal }) => {
-		// OSRM refuses a pair it cannot join under a 200, in its own code and with
-		// no `routes` at all: the dead end a retry can never clear.
-		stubFetch({
-			ok: true,
+	// OSRM refuses a pair it cannot join under a 200, in its own code and with
+	// no `routes` at all: the dead end a retry can never clear.
+	it.for([
+		{
+			name: 'a refusal code',
 			json: { code: 'NoRoute', message: 'Impossible route between points' },
-		})
-
-		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
-			ok: false,
 			failure: { kind: 'no-route', retryable: false, code: 'NoRoute' },
-		})
-
-		signal.throwIfAborted()
-
+		},
 		// An empty `routes` array says the same thing without naming it.
-		stubFetch({ ok: true, json: { code: 'Ok', routes: [] } })
-
-		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
-			ok: false,
+		{
+			name: 'an empty routes array',
+			json: { code: 'Ok', routes: [] },
 			failure: { kind: 'no-route', retryable: false },
-		})
-	})
+		},
+	])(
+		'reads the service`s own refusal as no-route, carrying its code: $name',
+		async ({ json, failure }) => {
+			stubFetch({ ok: true, json })
+
+			expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({ ok: false, failure })
+		},
+	)
 
 	it('honors a custom base URL and profile', async () => {
 		const mock = stubFetch({ ok: true, json: PAYLOAD })

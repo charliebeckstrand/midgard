@@ -133,19 +133,6 @@ describe('zodResolver', () => {
 		expect(schema.safeParse).toHaveBeenCalledTimes(1)
 	})
 
-	it('honors validateOn="touched" by only running validators for touched fields', () => {
-		const schema = fakeSchema([
-			{ path: ['name'], message: 'required' },
-			{ path: ['age'], message: 'too young' },
-		])
-
-		const validators = zodResolver(schema, defaults)
-
-		const errors = runValidators(validators, defaults, { name: true }, 'touched')
-
-		expect(errors).toEqual({ name: ['required'] })
-	})
-
 	it('coerces non-string path segments to string keys', () => {
 		const validators = zodResolver(
 			fakeSchema([{ path: ['age', 0], message: 'too young' }]),

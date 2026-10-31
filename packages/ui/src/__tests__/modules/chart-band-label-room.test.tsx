@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { TICK_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { bySlot, renderUI } from '../helpers'
+import { axisTexts } from '../helpers/axis-labels'
 
 /**
  * The category labels along the x axis of a vertical chart. jsdom has no SVG
@@ -17,7 +18,7 @@ const REGIONS = [
 
 /** The x tick labels of a chart, with the position and anchor of each. */
 function xLabels(container: HTMLElement) {
-	return [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])].map((text) => ({
+	return axisTexts(container, 'chart-axis-x').map((text) => ({
 		label: text.textContent ?? '',
 		at: Number(text.getAttribute('x')),
 		anchor: text.getAttribute('text-anchor'),

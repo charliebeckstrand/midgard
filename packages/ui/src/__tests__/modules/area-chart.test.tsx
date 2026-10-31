@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
 import { allBySlot, bySlot, expectAnnouncement, fireEvent, getSlot, renderUI } from '../helpers'
+import { axisTexts, axisValues } from '../helpers/axis-labels'
 
 const DATA = [
 	{ day: 'Mon', organic: 20, paid: 10 },
@@ -260,7 +261,7 @@ describe('AreaChart value domain', () => {
 
 		const y = Number(getSlot(container, 'chart-axis-x').querySelector('line')?.getAttribute('y1'))
 
-		const ticks = [...getSlot(container, 'chart-axis-y').querySelectorAll('text')].map(
+		const ticks = axisTexts(container, 'chart-axis-y').map(
 			(node) => `${node.textContent}@${node.getAttribute('y')}`,
 		)
 
@@ -338,9 +339,7 @@ describe('AreaChart value domain', () => {
 			/>,
 		)
 
-		const ticks = [...getSlot(container, 'chart-axis-y').querySelectorAll('text')]
-			.map((text) => Number((text.textContent ?? '').replace(/[^\d.-]/g, '')))
-			.filter(Number.isFinite)
+		const ticks = axisValues(container, 'chart-axis-y')
 
 		// The top edge of the first band is at 10 before the second band pulls it back to 5.
 		expect(Math.max(...ticks)).toBeGreaterThanOrEqual(10)

@@ -376,33 +376,12 @@ describe('Dashboard pointer resize', () => {
 		expect(spies.onResizeEnd).toHaveBeenCalledTimes(1)
 	})
 
-	it('starts nothing on a secondary button', () => {
-		const spies = makeSpies()
-
-		const { container } = renderUI(<Board spies={spies} />)
-
-		const east = eastSplitter()
-
-		fireEvent.pointerDown(east, { pointerId: 1, button: 2, clientX: 400, clientY: 0 })
-
-		fireEvent.pointerMove(east, { pointerId: 1, clientX: 500, clientY: 0 })
-
-		fireEvent.pointerUp(east, { pointerId: 1 })
-
-		expect(east.hasPointerCapture(1)).toBe(false)
-
-		expect(area(container)).toBe('1 / 1 / span 10 / span 8')
-
-		expect(spies.onResizeStart).not.toHaveBeenCalled()
-
-		expect(spies.onResizeEnd).not.toHaveBeenCalled()
-
-		expect(spies.onLayout).not.toHaveBeenCalled()
-	})
-
-	// On macOS a Ctrl-click is the secondary click: it sends button 0 with ctrlKey and opens
-	// a context menu. A second pointer is not the primary pointer. Neither press starts a resize.
+	// A secondary button is not the primary button. On macOS a Ctrl-click is the secondary
+	// click: it sends button 0 with ctrlKey and opens a context menu. A second pointer is not
+	// the primary pointer. None of these presses starts a resize. The secondary button row
+	// sets isPrimary, so only the button check stops it.
 	it.each([
+		['a secondary button', { isPrimary: true, button: 2 }],
 		['a macOS Ctrl-click', { isPrimary: true, ctrlKey: true }],
 		['a pointer that is not primary', { isPrimary: false }],
 	])('starts nothing on %s', (_name, press) => {

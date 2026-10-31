@@ -381,8 +381,6 @@ describe('the sink', () => {
 
 		vi.stubGlobal('reportError', report)
 
-		onTestFinished(() => {})
-
 		const caught = new Error('caught')
 
 		const uncaught = new Error('uncaught')

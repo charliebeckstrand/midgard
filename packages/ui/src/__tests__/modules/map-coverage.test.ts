@@ -214,13 +214,18 @@ describe('useMapCoverage', () => {
 	})
 
 	it('groups by a caller rule where the ids are not FIPS codes', () => {
-		const byName = (feature: MapFeature) => String(feature.properties?.name).slice(0, 2)
+		// The rule gives a group that no FIPS prefix gives, so the default rule
+		// cannot pass the case.
+		const states: Record<string, string> = { '17': 'Illinois', '18': 'Indiana' }
+
+		const byName = (feature: MapFeature) =>
+			states[String(feature.properties?.name).slice(0, 2)] ?? 'none'
 
 		const { result } = renderHook(() =>
 			useMapCoverage({ coverage: '606', zips, regions: counties, regionGroup: byName }),
 		)
 
-		expect(result.current.groups).toEqual(['17'])
+		expect(result.current.groups).toEqual(['Illinois'])
 	})
 
 	it('states the rings in the shape MapGeofence takes for an area', () => {

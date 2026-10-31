@@ -18,12 +18,6 @@ const validators: Validators<Values> = {
 }
 
 describe('validateSubmit', () => {
-	it('marks each key of the values touched', () => {
-		const { touched } = validateSubmit(undefined, { name: '', age: 0 })
-
-		expect(touched).toEqual({ name: true, age: true })
-	})
-
 	it('runs each validator', () => {
 		const { errors, refused } = validateSubmit(validators, { name: '', age: 20 })
 

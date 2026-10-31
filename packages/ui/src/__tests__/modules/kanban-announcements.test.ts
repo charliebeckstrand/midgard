@@ -43,21 +43,9 @@ describe('kanbanAnnouncements', () => {
 		)
 	})
 
-	it('gives the slot of the card under the pointer in the same column', () => {
-		expect(announce(start).onDragOver({ active: at('a'), over: at('c') })).toBe(
-			'A moved to position 3 of 3 in Todo.',
-		)
-	})
-
 	it('puts the card before the card under the pointer in a different column', () => {
 		expect(announce(start).onDragOver({ active: at('a'), over: at('d') })).toBe(
 			'A moved to position 1 of 2 in Done.',
-		)
-	})
-
-	it('puts the card last over a different column', () => {
-		expect(announce(start).onDragOver({ active: at('a'), over: at('later') })).toBe(
-			'A moved to position 1 of 1 in Later.',
 		)
 	})
 

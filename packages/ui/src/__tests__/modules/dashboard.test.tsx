@@ -125,6 +125,39 @@ function Grid({ onLayout, onDragStart, onDragEnd, onRemove }: GridSpies) {
 	)
 }
 
+/** Renders {@link Grid} with a new spy for each drag callback, and gives the spies. */
+function renderGrid() {
+	const onLayout = vi.fn()
+
+	const onDragStart = vi.fn()
+
+	const onDragEnd = vi.fn()
+
+	const view = renderUI(
+		<Grid onLayout={onLayout} onDragStart={onDragStart} onDragEnd={onDragEnd} />,
+	)
+
+	return { ...view, onLayout, onDragStart, onDragEnd }
+}
+
+/**
+ * Counts the renders of each tile. `Counted` wraps a tile in a `Profiler` that
+ * adds one to the count of its `id` each time the tile renders.
+ */
+function tileCounter() {
+	const renders = new Map<string, number>()
+
+	function Counted({ id, children }: { id: string; children: ReactNode }) {
+		return (
+			<Profiler id={id} onRender={() => renders.set(id, (renders.get(id) ?? 0) + 1)}>
+				{children}
+			</Profiler>
+		)
+	}
+
+	return { renders, Counted }
+}
+
 /** The text of the dnd-kit live region, which narrates each drag. */
 function dragNarration(): string {
 	return document.querySelector('[id^="DndLiveRegion"]')?.textContent ?? ''
@@ -540,15 +573,7 @@ describe('Dashboard', () => {
 	})
 
 	it('drags a card with the pointer into free cells, and ends the drop once', async () => {
-		const onLayout = vi.fn()
-
-		const onDragStart = vi.fn()
-
-		const onDragEnd = vi.fn()
-
-		const { container } = renderUI(
-			<Grid onLayout={onLayout} onDragStart={onDragStart} onDragEnd={onDragEnd} />,
-		)
+		const { container, onLayout, onDragStart, onDragEnd } = renderGrid()
 
 		const card = screen.getByRole('group', { name: 'Revenue' })
 
@@ -737,19 +762,17 @@ describe('Dashboard', () => {
 	})
 
 	it('renders only the tile whose cell changed', () => {
-		const renders = new Map<string, number>()
-
-		const count = (id: string) => () => renders.set(id, (renders.get(id) ?? 0) + 1)
+		const { renders, Counted } = tileCounter()
 
 		renderUI(
 			<Dashboard aria-label="Sales" editing layout={{ defaultValue: LAYOUT }}>
-				<Profiler id="a" onRender={count('a')}>
+				<Counted id="a">
 					<DashboardTile id="a" title="Revenue" ratio={16 / 9} />
-				</Profiler>
+				</Counted>
 
-				<Profiler id="c" onRender={count('c')}>
+				<Counted id="c">
 					<DashboardTile id="c" title="Orders" />
-				</Profiler>
+				</Counted>
 			</Dashboard>,
 		)
 
@@ -763,19 +786,17 @@ describe('Dashboard', () => {
 	})
 
 	it('renders each tile once on mount, when the registered cell equals the cell of its entry', () => {
-		const renders = new Map<string, number>()
-
-		const count = (id: string) => () => renders.set(id, (renders.get(id) ?? 0) + 1)
+		const { renders, Counted } = tileCounter()
 
 		renderUI(
 			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
-				<Profiler id="a" onRender={count('a')}>
+				<Counted id="a">
 					<DashboardTile id="a" title="Revenue" ratio={16 / 9} />
-				</Profiler>
+				</Counted>
 
-				<Profiler id="c" onRender={count('c')}>
+				<Counted id="c">
 					<DashboardTile id="c" title="Orders" />
-				</Profiler>
+				</Counted>
 			</Dashboard>,
 		)
 
@@ -784,23 +805,21 @@ describe('Dashboard', () => {
 	})
 
 	it('renders only the dragged tile on a preview frame', async () => {
-		const renders = new Map<string, number>()
-
-		const count = (id: string) => () => renders.set(id, (renders.get(id) ?? 0) + 1)
+		const { renders, Counted } = tileCounter()
 
 		const { container } = renderUI(
 			<Dashboard aria-label="Sales" editing layout={{ defaultValue: GRID }}>
-				<Profiler id="a" onRender={count('a')}>
+				<Counted id="a">
 					<DashboardTile id="a" title="Revenue" />
-				</Profiler>
+				</Counted>
 
-				<Profiler id="b" onRender={count('b')}>
+				<Counted id="b">
 					<DashboardTile id="b" title="Traffic" />
-				</Profiler>
+				</Counted>
 
-				<Profiler id="c" onRender={count('c')}>
+				<Counted id="c">
 					<DashboardTile id="c" title="Orders" />
-				</Profiler>
+				</Counted>
 			</Dashboard>,
 		)
 
@@ -1172,15 +1191,11 @@ describe('Dashboard', () => {
 	it('confines an error in the actions to the header controls, and reports it', () => {
 		const onTileError = vi.fn()
 
-		function Broken(): ReactNode {
-			throw new Error('boom')
-		}
-
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		renderUI(
 			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
-				<DashboardTile id="a" title="Revenue" actions={<Broken />}>
+				<DashboardTile id="a" title="Revenue" actions={<Widget fail />}>
 					<p>Chart</p>
 				</DashboardTile>
 
@@ -1207,15 +1222,11 @@ describe('Dashboard', () => {
 	it('confines an error in the description to the header, and reports it', () => {
 		const onTileError = vi.fn()
 
-		function Broken(): ReactNode {
-			throw new Error('boom')
-		}
-
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		renderUI(
 			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
-				<DashboardTile id="a" title="Revenue" description={<Broken />}>
+				<DashboardTile id="a" title="Revenue" description={<Widget fail />}>
 					<p>Chart</p>
 				</DashboardTile>
 
@@ -1240,15 +1251,11 @@ describe('Dashboard', () => {
 	})
 
 	it('renders the board on the server when a description throws', () => {
-		function Broken(): ReactNode {
-			throw new Error('boom')
-		}
-
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		const html = renderToString(
 			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
-				<DashboardTile id="a" title="Revenue" description={<Broken />}>
+				<DashboardTile id="a" title="Revenue" description={<Widget fail />}>
 					<p>Chart</p>
 				</DashboardTile>
 
@@ -1493,9 +1500,9 @@ describe('Dashboard gesture owner', () => {
 
 		await drop(grip)
 
-		expect(onDragEnd).toHaveBeenCalledTimes(1)
-
-		expect(onDragEnd).toHaveBeenCalledWith(expect.objectContaining({ id: 'a', canceled: false }))
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ id: 'a', canceled: false }),
+		)
 
 		expect(onLayout).toHaveBeenCalledTimes(1)
 
@@ -1895,13 +1902,7 @@ describe('Dashboard gesture owner', () => {
 	})
 
 	it('narrates a drop that changes nothing, and ends it once as canceled', async () => {
-		const onLayout = vi.fn()
-
-		const onDragStart = vi.fn()
-
-		const onDragEnd = vi.fn()
-
-		renderUI(<Grid onLayout={onLayout} onDragStart={onDragStart} onDragEnd={onDragEnd} />)
+		const { onLayout, onDragStart, onDragEnd } = renderGrid()
 
 		// One column to the right, Revenue covers Traffic, and the nearest free origin is its start.
 		const grip = await lift('Move Revenue', 'ArrowRight', 1)
@@ -1937,13 +1938,7 @@ describe('Dashboard gesture owner', () => {
 	})
 
 	it('narrates Escape after a preview, and ends the drag once as canceled', async () => {
-		const onLayout = vi.fn()
-
-		const onDragStart = vi.fn()
-
-		const onDragEnd = vi.fn()
-
-		renderUI(<Grid onLayout={onLayout} onDragStart={onDragStart} onDragEnd={onDragEnd} />)
+		const { onLayout, onDragStart, onDragEnd } = renderGrid()
 
 		// Eight columns to the right, Revenue covers Traffic in its own row, so the two shift.
 		const grip = await lift('Move Revenue', 'ArrowRight', 8)
@@ -1968,13 +1963,7 @@ describe('Dashboard gesture owner', () => {
 	})
 
 	it('narrates an ArrowDown swap, and ends the drop once', async () => {
-		const onLayout = vi.fn()
-
-		const onDragStart = vi.fn()
-
-		const onDragEnd = vi.fn()
-
-		renderUI(<Grid onLayout={onLayout} onDragStart={onDragStart} onDragEnd={onDragEnd} />)
+		const { onLayout, onDragStart, onDragEnd } = renderGrid()
 
 		// Ten rows down, Revenue covers Orders in another row, so the two swap.
 		const grip = await lift('Move Revenue', 'ArrowDown', 10)
@@ -2183,20 +2172,31 @@ describe('Dashboard scope', () => {
 		return <output data-testid={testId}>{rows.reduce((sum, row) => sum + row.amount, 0)}</output>
 	}
 
-	it('cross-filters the other tiles, and leaves the source tile whole', () => {
-		const onValueChange = vi.fn()
-
-		renderUI(
-			<Dashboard aria-label="Sales" selection={{ onValueChange }}>
-				<DashboardTile id="regions" title="Regions">
+	/** A board of a `regions` tile that selects and a `total` tile that reads. */
+	function ScopeBoard({
+		selection,
+		expandable,
+	}: {
+		selection?: DashboardProps['selection']
+		expandable?: boolean
+	}) {
+		return (
+			<Dashboard aria-label="Sales" selection={selection}>
+				<DashboardTile id="regions" title="Regions" expandable={expandable}>
 					<Regions />
 				</DashboardTile>
 
 				<DashboardTile id="total" title="Total">
 					<Total testId="total" />
 				</DashboardTile>
-			</Dashboard>,
+			</Dashboard>
 		)
+	}
+
+	it('cross-filters the other tiles, and leaves the source tile whole', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(<ScopeBoard selection={{ onValueChange }} />)
 
 		expect(screen.getByTestId('total')).toHaveTextContent('60')
 
@@ -2318,17 +2318,7 @@ describe('Dashboard scope', () => {
 	it('records a selection in the expand dialog as the tile, and filters the board', () => {
 		const onValueChange = vi.fn()
 
-		renderUI(
-			<Dashboard aria-label="Sales" selection={{ onValueChange }}>
-				<DashboardTile id="regions" title="Regions" expandable>
-					<Regions />
-				</DashboardTile>
-
-				<DashboardTile id="total" title="Total">
-					<Total testId="total" />
-				</DashboardTile>
-			</Dashboard>,
-		)
+		renderUI(<ScopeBoard selection={{ onValueChange }} expandable />)
 
 		fireEvent.click(screen.getByRole('button', { name: 'Expand Regions' }))
 
@@ -2441,17 +2431,7 @@ describe('Dashboard scope', () => {
 	})
 
 	it('offers a clear control on the tile that holds a selection', () => {
-		renderUI(
-			<Dashboard aria-label="Sales">
-				<DashboardTile id="regions" title="Regions">
-					<Regions />
-				</DashboardTile>
-
-				<DashboardTile id="total" title="Total">
-					<Total testId="total" />
-				</DashboardTile>
-			</Dashboard>,
-		)
+		renderUI(<ScopeBoard />)
 
 		expect(screen.queryByRole('button', { name: /Clear the selection/ })).not.toBeInTheDocument()
 
@@ -2538,31 +2518,6 @@ describe('Dashboard scope', () => {
 		rerender(<Board tiles={[]} />)
 
 		expect(screen.getByText('Whole')).toBeInTheDocument()
-	})
-
-	it('applies a saved selection in the server markup', () => {
-		const html = renderToString(
-			<Dashboard
-				aria-label="Sales"
-				layout={{
-					defaultValue: [
-						{ id: 'regions', x: 0, y: 0, w: 12, h: 10 },
-						{ id: 'total', x: 12, y: 0, w: 12, h: 10 },
-					],
-				}}
-				selection={{ defaultValue: [{ source: 'regions', field: 'region', values: ['West'] }] }}
-			>
-				<DashboardTile id="regions" title="Regions">
-					<Regions />
-				</DashboardTile>
-
-				<DashboardTile id="total" title="Total">
-					<Total testId="total" />
-				</DashboardTile>
-			</Dashboard>,
-		)
-
-		expect(html).toMatch(/data-testid="total"[^>]*>30</)
 	})
 
 	it('applies the filter that the app owns to each tile', () => {

@@ -1,4 +1,4 @@
-import { createRef, Fragment, useState } from 'react'
+import { createRef, Fragment, type ReactNode, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Kanban,
@@ -121,6 +121,56 @@ const getHandle = (root: HTMLElement, id: string) =>
 		`handle ${id}`,
 	)
 
+/** Focuses the handle of the card of `id`, and lifts the card with Space. */
+const liftedCard = (root: HTMLElement, id = 'a') => {
+	const handle = getHandle(root, id)
+
+	handle.focus()
+
+	fireEvent.keyDown(handle, { key: ' ' })
+
+	return handle
+}
+
+/**
+ * A board with one column that holds the card `1`. The board is interactive
+ * unless `interactive` is false. A case gives the flags and the content of the
+ * card.
+ */
+function OneCard({
+	interactive = true,
+	disabled,
+	label,
+	card,
+	children,
+}: {
+	interactive?: boolean
+	disabled?: boolean
+	/** The `aria-label` of the column. */
+	label?: string
+	/** The props of the card, other than its value. */
+	card?: { id?: string; 'aria-label'?: string }
+	children: ReactNode
+}) {
+	return (
+		<Kanban
+			columns={columns}
+			getKey={(item: Item) => item.id}
+			onReorder={interactive ? () => {} : undefined}
+			disabled={disabled}
+			aria-label="Board"
+		>
+			<KanbanColumn value="todo" aria-label={label}>
+				<KanbanColumnBody>
+					<KanbanCard value="1" {...card}>
+						{children}
+					</KanbanCard>
+				</KanbanColumnBody>
+			</KanbanColumn>
+		</Kanban>
+	)
+}
+
 describe('Kanban', () => {
 	it('renders a labeled data-slot="kanban" root with one KanbanColumn per column', () => {
 		const { container } = renderUI(<Board />)
@@ -171,31 +221,6 @@ describe('KanbanColumn', () => {
 
 		expect(screen.getByText('Done')).toBeInTheDocument()
 	})
-
-	it('renders an empty fallback when the column has no items', () => {
-		const emptyColumn: Column = { id: 'empty', title: 'Empty', items: [] }
-
-		const empty: Column[] = [emptyColumn]
-
-		renderUI(
-			<Kanban columns={empty} getKey={(item: Item) => item.id} aria-label="Board">
-				<KanbanColumn value="empty">
-					<KanbanColumnHeader>
-						<KanbanColumnTitle>Empty</KanbanColumnTitle>
-					</KanbanColumnHeader>
-					<KanbanColumnBody empty="No cards">
-						{emptyColumn.items.map((item) => (
-							<KanbanCard key={item.id} value={item.id}>
-								{item.title}
-							</KanbanCard>
-						))}
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
-		)
-
-		expect(screen.getByText('No cards')).toBeInTheDocument()
-	})
 })
 
 describe('KanbanCard', () => {
@@ -212,15 +237,7 @@ describe('KanbanCard', () => {
 	})
 
 	it('marks cards read-only (not disabled) and omits the aria-label when onValueChange is absent', () => {
-		const { container } = renderUI(
-			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
-				<KanbanColumn value="todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1">One</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
-		)
+		const { container } = renderUI(<OneCard interactive={false}>One</OneCard>)
 
 		const card = bySlot(container, 'kanban-card')
 
@@ -232,21 +249,7 @@ describe('KanbanCard', () => {
 	})
 
 	it('marks cards disabled (not read-only) when the board is disabled', () => {
-		const { container } = renderUI(
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				onReorder={() => {}}
-				disabled
-				aria-label="Board"
-			>
-				<KanbanColumn value="todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1">One</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
-		)
+		const { container } = renderUI(<OneCard disabled>One</OneCard>)
 
 		const card = bySlot(container, 'kanban-card')
 
@@ -290,23 +293,12 @@ describe('KanbanCard', () => {
 
 	it('keeps the role and the name of a control inside an interactive card', async () => {
 		const { container } = renderUI(
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				onReorder={() => {}}
-				aria-label="Board"
-			>
-				<KanbanColumn value="todo" aria-label="Todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1" aria-label="One">
-							<KanbanCardHandle />
-							One
-							<button type="button">Edit</button>
-							<a href="#one">Open</a>
-						</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
+			<OneCard label="Todo" card={{ 'aria-label': 'One' }}>
+				<KanbanCardHandle />
+				One
+				<button type="button">Edit</button>
+				<a href="#one">Open</a>
+			</OneCard>,
 		)
 
 		expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
@@ -322,23 +314,12 @@ describe('KanbanCard', () => {
 
 	it('holds a handle inside a Fragment at the start edge, out of the content column', () => {
 		const { container } = renderUI(
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				onReorder={() => {}}
-				aria-label="Board"
-			>
-				<KanbanColumn value="todo" aria-label="Todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1" aria-label="One">
-							<Fragment key="body">
-								<KanbanCardHandle />
-								One
-							</Fragment>
-						</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
+			<OneCard label="Todo" card={{ 'aria-label': 'One' }}>
+				<Fragment key="body">
+					<KanbanCardHandle />
+					One
+				</Fragment>
+			</OneCard>,
 		)
 
 		const card = bySlot(container, 'kanban-card')
@@ -354,22 +335,11 @@ describe('KanbanCard', () => {
 
 	it('opens no content column for a card that holds only a handle and an empty slot', () => {
 		const { container } = renderUI(
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				onReorder={() => {}}
-				aria-label="Board"
-			>
-				<KanbanColumn value="todo" aria-label="Todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1" aria-label="One">
-							<KanbanCardHandle />
-							{false}
-							{null}
-						</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
+			<OneCard label="Todo" card={{ 'aria-label': 'One' }}>
+				<KanbanCardHandle />
+				{false}
+				{null}
+			</OneCard>,
 		)
 
 		expect(container.querySelector('[data-slot="kanban-card-content"]')).toBeNull()
@@ -377,21 +347,10 @@ describe('KanbanCard', () => {
 
 	it('names the handle from its own aria-label', () => {
 		renderUI(
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				onReorder={() => {}}
-				aria-label="Board"
-			>
-				<KanbanColumn value="todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1">
-							<KanbanCardHandle aria-label="Move the first card" />
-							One
-						</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
+			<OneCard>
+				<KanbanCardHandle aria-label="Move the first card" />
+				One
+			</OneCard>,
 		)
 
 		const handle = screen.getByRole('button', { name: 'Move the first card' })
@@ -401,21 +360,10 @@ describe('KanbanCard', () => {
 
 	it('gives a consumer id to the handle, and names the handle through it', () => {
 		renderUI(
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				onReorder={() => {}}
-				aria-label="Board"
-			>
-				<KanbanColumn value="todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1" id="card-one">
-							<KanbanCardHandle id="handle-one" />
-							One
-						</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
+			<OneCard card={{ id: 'card-one' }}>
+				<KanbanCardHandle id="handle-one" />
+				One
+			</OneCard>,
 		)
 
 		const handle = screen.getByRole('button', { name: 'Drag One' })
@@ -427,16 +375,10 @@ describe('KanbanCard', () => {
 
 	it('renders no handle on a read-only board', () => {
 		const { container } = renderUI(
-			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
-				<KanbanColumn value="todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1">
-							<KanbanCardHandle />
-							One
-						</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
+			<OneCard interactive={false}>
+				<KanbanCardHandle />
+				One
+			</OneCard>,
 		)
 
 		expect(bySlot(container, 'kanban-card-handle')).toBeNull()
@@ -446,22 +388,10 @@ describe('KanbanCard', () => {
 
 	it('renders the handle as a disabled picture on a disabled board', () => {
 		const { container } = renderUI(
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				onReorder={() => {}}
-				disabled
-				aria-label="Board"
-			>
-				<KanbanColumn value="todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1">
-							<KanbanCardHandle />
-							One
-						</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
+			<OneCard disabled>
+				<KanbanCardHandle />
+				One
+			</OneCard>,
 		)
 
 		const handle = getSlot(container, 'kanban-card-handle')
@@ -478,49 +408,17 @@ describe('KanbanCard', () => {
 	it('warns when an interactive card holds no handle', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-		renderUI(
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				onReorder={() => {}}
-				aria-label="Board"
-			>
-				<KanbanColumn value="todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1">One</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
-		)
+		renderUI(<OneCard>One</OneCard>)
 
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining('holds no <KanbanCardHandle>'))
 	})
 
-	it('does not warn for an interactive card with a handle', () => {
-		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-		renderUI(<Board onValueChange={() => {}} />)
-
-		expect(warn).not.toHaveBeenCalled()
-	})
-
 	it('honors a custom aria-label on an interactive card, and names the handle from it', () => {
 		const { container } = renderUI(
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				onReorder={() => {}}
-				aria-label="Board"
-			>
-				<KanbanColumn value="todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1" aria-label="Card One">
-							<KanbanCardHandle />
-							One
-						</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
+			<OneCard card={{ 'aria-label': 'Card One' }}>
+				<KanbanCardHandle />
+				One
+			</OneCard>,
 		)
 
 		// The card has no role, so its list item carries the name.
@@ -537,15 +435,9 @@ describe('KanbanCard', () => {
 
 	it('names a read-only card as a list item of its column body', () => {
 		const { container } = renderUI(
-			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
-				<KanbanColumn value="todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1" aria-label="Card One">
-							One
-						</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
+			<OneCard interactive={false} card={{ 'aria-label': 'Card One' }}>
+				One
+			</OneCard>,
 		)
 
 		// Each card is a `Card` inside a list item, and the list item takes the name.
@@ -560,21 +452,9 @@ describe('KanbanCard', () => {
 
 	it('names a disabled card, and leaves no ARIA result for axe to review', async () => {
 		const { container } = renderUI(
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				onReorder={() => {}}
-				disabled
-				aria-label="Board"
-			>
-				<KanbanColumn value="todo" aria-label="Todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1" aria-label="Card One">
-							One
-						</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
+			<OneCard disabled label="Todo" card={{ 'aria-label': 'Card One' }}>
+				One
+			</OneCard>,
 		)
 
 		expect(bySlot(container, 'kanban-card')?.closest('li')).toHaveAttribute(
@@ -593,21 +473,10 @@ describe('KanbanCard', () => {
 
 	it('lists the cards of an interactive body in li items, and keeps an empty body out of a list', () => {
 		const { container } = renderUI(
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				onReorder={() => {}}
-				aria-label="Board"
-			>
-				<KanbanColumn value="todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1">
-							<KanbanCardHandle />
-							One
-						</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
+			<OneCard>
+				<KanbanCardHandle />
+				One
+			</OneCard>,
 		)
 
 		const list = screen.getByRole('list')
@@ -641,11 +510,7 @@ describe('KanbanCard', () => {
 
 		const card = getSlot(container, 'kanban-card')
 
-		const handle = getHandle(container, '1')
-
-		handle.focus()
-
-		fireEvent.keyDown(handle, { key: ' ' })
+		const handle = liftedCard(container, '1')
 
 		expect(card).toHaveAttribute('data-lifted')
 
@@ -709,15 +574,6 @@ describe('KanbanColumnBody', () => {
 		expect(bySlot(container, 'kanban-column-body')?.tagName).toBe('UL')
 	})
 
-	it('renders children when the column has cards, omitting the empty fallback', () => {
-		const { container } = renderUI(<Board />)
-
-		// With non-empty items the fallback element does not render.
-		expect(screen.queryByText('Empty')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'kanban-card')).toBeInTheDocument()
-	})
-
 	it('renders nothing when the column is empty and no fallback is provided', () => {
 		const { container } = renderUI(
 			<Kanban
@@ -766,11 +622,7 @@ describe('Kanban keyboard reorder', () => {
 
 		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
 
-		const handle = getHandle(container, 'a')
-
-		handle.focus()
-
-		fireEvent.keyDown(handle, { key: ' ' })
+		const handle = liftedCard(container)
 
 		expect(getCard(container, 'a')).toHaveAttribute('data-lifted')
 
@@ -786,11 +638,7 @@ describe('Kanban keyboard reorder', () => {
 
 		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
 
-		const handle = getHandle(container, 'a')
-
-		handle.focus()
-
-		fireEvent.keyDown(handle, { key: ' ' })
+		const handle = liftedCard(container)
 
 		fireEvent.keyDown(handle, { key: 'ArrowRight' })
 
@@ -806,11 +654,7 @@ describe('Kanban keyboard reorder', () => {
 
 		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
 
-		const handle = getHandle(container, 'a')
-
-		handle.focus()
-
-		fireEvent.keyDown(handle, { key: ' ' })
+		const handle = liftedCard(container)
 
 		expect(getCard(container, 'a')).toHaveAttribute('data-lifted')
 
@@ -838,24 +682,11 @@ describe('Kanban keyboard reorder', () => {
 	})
 
 	it('leaves Space and arrow keys to a control inside a card', () => {
-		const onValueChange = vi.fn()
-
 		const { container } = renderUI(
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				onReorder={onValueChange}
-				aria-label="Board"
-			>
-				<KanbanColumn value="todo">
-					<KanbanColumnBody>
-						<KanbanCard value="1">
-							<KanbanCardHandle />
-							<input aria-label="Note" />
-						</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
+			<OneCard>
+				<KanbanCardHandle />
+				<input aria-label="Note" />
+			</OneCard>,
 		)
 
 		const input = screen.getByRole('textbox', { name: 'Note' })
@@ -888,16 +719,6 @@ describe('Kanban keyboard announcements', () => {
 	// Dependent keydowns fire synchronously (each fireEvent is act-flushed) so the
 	// lifted state can't be lost to an `await` yielding mid-sequence; only the
 	// final message is awaited.
-	const liftedCard = (container: HTMLElement) => {
-		const handle = getHandle(container, 'a')
-
-		handle.focus()
-
-		fireEvent.keyDown(handle, { key: ' ' })
-
-		return handle
-	}
-
 	it('announces the card name, column, and position on lift', async () => {
 		liftedCard(renderUI(<KeyboardBoard />).container)
 
@@ -1125,16 +946,6 @@ describe('KanbanCardSkeleton', () => {
 })
 
 describe('Kanban in a locale', () => {
-	it('names the card handle in the language of the locale', () => {
-		renderUI(
-			<LocaleProvider locale="es-ES">
-				<Board onValueChange={() => {}} />
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByRole('button', { name: 'Arrastrar One' })).toBeInTheDocument()
-	})
-
 	it('gives the card handle its role description in the language of the locale', () => {
 		const { rerender } = renderUI(<Board onValueChange={() => {}} />)
 

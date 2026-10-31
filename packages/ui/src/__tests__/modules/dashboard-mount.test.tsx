@@ -34,6 +34,19 @@ function Board({ mount }: { mount?: Mount }) {
 	)
 }
 
+/** Renders the board on the server, and hydrates that markup with an error spy. */
+function hydrateBoard(board: ReactElement) {
+	const container = attach(document.createElement('div'))
+
+	container.innerHTML = serverHtml(board)
+
+	const server = container.textContent
+
+	const { onRecoverableError } = hydrate(container, board)
+
+	return { server, container, onRecoverableError }
+}
+
 describe('DashboardTile mount', () => {
 	it('renders the content at once under always, with no observer', () => {
 		renderUI(<Board />)
@@ -137,16 +150,12 @@ describe('DashboardTile mount', () => {
 			</Dashboard>
 		)
 
-		const container = attach(document.createElement('div'))
-
-		container.innerHTML = serverHtml(board)
+		const { server, container, onRecoverableError } = hydrateBoard(board)
 
 		// The server filters the other tiles, and it draws no tile with no entry.
-		expect(container).toHaveTextContent('Total 30')
+		expect(server).toContain('Total 30')
 
-		expect(container).not.toHaveTextContent('Notes')
-
-		const { onRecoverableError } = hydrate(container, board)
+		expect(server).not.toContain('Notes')
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 
@@ -159,11 +168,7 @@ describe('DashboardTile mount', () => {
 	})
 
 	it('hydrates the server markup of a held tile with no mismatch', () => {
-		const container = attach(document.createElement('div'))
-
-		container.innerHTML = serverHtml(<Board mount="lazy" />)
-
-		const { onRecoverableError } = hydrate(container, <Board mount="lazy" />)
+		const { container, onRecoverableError } = hydrateBoard(<Board mount="lazy" />)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 
@@ -217,19 +222,6 @@ describe('a saved selection before the tiles register', () => {
 				{children}
 			</Dashboard>
 		)
-	}
-
-	/** Renders the board on the server, and hydrates that markup with an error spy. */
-	function hydrateBoard(board: ReactElement) {
-		const container = attach(document.createElement('div'))
-
-		container.innerHTML = serverHtml(board)
-
-		const server = container.textContent
-
-		const { onRecoverableError } = hydrate(container, board)
-
-		return { server, container, onRecoverableError }
 	}
 
 	it('applies no selection of a removed tile with no entry, on the server or after hydration', () => {

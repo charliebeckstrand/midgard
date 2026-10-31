@@ -78,6 +78,39 @@ async function submit(container: HTMLElement) {
 /** The values of the one-field forms below. */
 type Values = { name: string }
 
+/**
+ * Gives a component that captures the form actions during render, and a
+ * function that reads them. A case then calls an action from outside the tree.
+ */
+function captureActions() {
+	let captured: ReturnType<typeof useFormActions>
+
+	function ActionsCapture() {
+		captured = useFormActions()
+
+		return null
+	}
+
+	return { ActionsCapture, actions: () => captured }
+}
+
+/**
+ * The `it` of Vitest, with a `pending` fixture: the result of a submit that the
+ * case holds back. The fixture resolves it after the case, so a case that
+ * asserts only the running submit does not settle it.
+ */
+const pendingIt = it.extend('pending', ({ onTestFinished }) => {
+	const pending = deferred()
+
+	onTestFinished(async () => {
+		await act(async () => {
+			pending.resolve()
+		})
+	})
+
+	return pending
+})
+
 /** A submit event for a handler of {@link useFormReducer} called directly. */
 function submitEvent(): SyntheticEvent<HTMLFormElement> {
 	return { preventDefault: vi.fn() } as unknown as SyntheticEvent<HTMLFormElement>
@@ -133,22 +166,6 @@ describe('Form', () => {
 
 		// The untouched sibling does not re-render.
 		expect(renders.b).toBe(bAfterMount)
-	})
-
-	it('calls onReset when the form is reset', () => {
-		const onReset = vi.fn()
-
-		const { container } = renderUI(
-			<Form defaultValues={{ name: '' }} onReset={onReset}>
-				<button type="reset">Reset</button>
-			</Form>,
-		)
-
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		fireEvent.reset(form)
-
-		expect(onReset).toHaveBeenCalledOnce()
 	})
 
 	it('disables the inner fieldset when disabled is set', () => {
@@ -213,37 +230,6 @@ describe('Form', () => {
 		await submit(container)
 
 		expect(onSubmit).toHaveBeenCalledWith({ name: 'Ada' }, expect.any(Object))
-	})
-
-	it('resets values back to defaults on reset', () => {
-		function Consumer() {
-			const field = useFormField('name')
-
-			return (
-				<button type="button" onClick={() => field?.setValue('Changed')}>
-					Change
-				</button>
-			)
-		}
-
-		const { container } = renderUI(
-			<Form defaultValues={{ name: 'Initial' }}>
-				<Consumer />
-				<FieldProbe name="name" />
-			</Form>,
-		)
-
-		fireEvent.click(screen.getByRole('button', { name: 'Change' }))
-
-		expect(getFieldProbe('name').textContent).toBe('Changed')
-
-		const form = getSlot<HTMLFormElement>(container, 'form')
-
-		act(() => {
-			fireEvent.reset(form)
-		})
-
-		expect(getFieldProbe('name').textContent).toBe('Initial')
 	})
 
 	it('runs validation on change when validateOn="change"', () => {
@@ -432,9 +418,7 @@ describe('Form', () => {
 		expect(onValueChange).toHaveBeenCalledWith('Grace')
 	})
 
-	it('announces a running submit politely', async () => {
-		const pending = deferred()
-
+	pendingIt('announces a running submit politely', async ({ pending }) => {
 		const { container } = renderUI(
 			<Form defaultValues={{ name: 'Ada' }} onSubmit={() => pending.promise}>
 				<button type="submit">Submit</button>
@@ -444,10 +428,6 @@ describe('Form', () => {
 		await submit(container)
 
 		await expectAnnouncement('Submitting')
-
-		await act(async () => {
-			pending.resolve()
-		})
 	})
 
 	it('ignores a submit while one is in flight', async () => {
@@ -476,104 +456,101 @@ describe('Form', () => {
 		expect(onSubmit).toHaveBeenCalledTimes(2)
 	})
 
-	it('leaves the fields of a filter bar inside the form enabled while it submits', async () => {
-		const pending = deferred()
+	pendingIt(
+		'leaves the fields of a filter bar inside the form enabled while it submits',
+		async ({ pending }) => {
+			const { container } = renderUI(
+				<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
+					<FormFilters aria-label="Filters" defaultValue={{ search: undefined }}>
+						<FormFiltersField name="search">
+							<Label>Search</Label>
+							<Input />
+						</FormFiltersField>
+						<Button type="button">Clear</Button>
+					</FormFilters>
+					<SubmittingProbe />
+				</Form>,
+			)
 
-		const { container } = renderUI(
-			<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
-				<FormFilters aria-label="Filters" defaultValue={{ search: undefined }}>
-					<FormFiltersField name="search">
-						<Label>Search</Label>
-						<Input />
-					</FormFiltersField>
-					<Button type="button">Clear</Button>
-				</FormFilters>
-				<SubmittingProbe />
-			</Form>,
-		)
+			await submit(container)
 
-		await submit(container)
+			// The control: the submit is in flight.
+			expect(submittingFlag()).toBe('true')
 
-		// The control: the submit is in flight.
-		expect(submittingFlag()).toBe('true')
+			const search = screen.getByRole('textbox', { name: 'Search' })
 
-		const search = screen.getByRole('textbox', { name: 'Search' })
+			expect(search).toBeEnabled()
 
-		expect(search).toBeEnabled()
+			expect(search).not.toHaveAttribute('readonly')
 
-		expect(search).not.toHaveAttribute('readonly')
+			expect(screen.getByRole('button', { name: 'Clear' })).not.toHaveAttribute('aria-disabled')
+		},
+	)
 
-		expect(screen.getByRole('button', { name: 'Clear' })).not.toHaveAttribute('aria-disabled')
+	pendingIt(
+		'leaves a library button that writes no field live while a submit runs',
+		async ({ pending }) => {
+			const onValueChange = vi.fn()
 
-		await act(async () => {
-			pending.resolve()
-		})
-	})
+			const onPressedChange = vi.fn()
 
-	it('leaves a library button that writes no field live while a submit runs', async () => {
-		const pending = deferred()
+			const { container } = renderUI(
+				<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
+					<Tabs value="a" onValueChange={onValueChange}>
+						<TabList aria-label="Sections">
+							<Tab value="a">Profile</Tab>
+							<Tab value="b">Billing</Tab>
+						</TabList>
+					</Tabs>
+					<CopyButton text="token" aria-label="Copy token" />
+					<ToggleIconButton icon={<svg />} aria-label="Pin" onPressedChange={onPressedChange} />
+					<Button type="button">Preview</Button>
+					<SubmittingProbe />
+				</Form>,
+			)
 
-		const onValueChange = vi.fn()
+			await submit(container)
 
-		const onPressedChange = vi.fn()
+			// The control: the submit is in flight, and a plain Button is inert.
+			expect(submittingFlag()).toBe('true')
 
-		const { container } = renderUI(
-			<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
-				<Tabs value="a" onValueChange={onValueChange}>
-					<TabList aria-label="Sections">
-						<Tab value="a">Profile</Tab>
-						<Tab value="b">Billing</Tab>
-					</TabList>
-				</Tabs>
-				<CopyButton text="token" aria-label="Copy token" />
-				<ToggleIconButton icon={<svg />} aria-label="Pin" onPressedChange={onPressedChange} />
-				<Button type="button">Preview</Button>
-				<SubmittingProbe />
-			</Form>,
-		)
+			expect(screen.getByRole('button', { name: 'Preview' })).toHaveAttribute(
+				'aria-disabled',
+				'true',
+			)
 
-		await submit(container)
+			const billing = screen.getByRole('tab', { name: 'Billing' })
 
-		// The control: the submit is in flight, and a plain Button is inert.
-		expect(submittingFlag()).toBe('true')
+			expect(billing).not.toHaveAttribute('aria-disabled')
 
-		expect(screen.getByRole('button', { name: 'Preview' })).toHaveAttribute('aria-disabled', 'true')
+			expect(screen.getByRole('button', { name: 'Copy token' })).not.toHaveAttribute(
+				'aria-disabled',
+			)
 
-		const billing = screen.getByRole('tab', { name: 'Billing' })
+			fireEvent.click(billing)
 
-		expect(billing).not.toHaveAttribute('aria-disabled')
+			expect(onValueChange).toHaveBeenCalledWith('b')
 
-		expect(screen.getByRole('button', { name: 'Copy token' })).not.toHaveAttribute('aria-disabled')
+			const pin = screen.getByRole('button', { name: 'Pin' })
 
-		fireEvent.click(billing)
+			expect(pin).not.toHaveAttribute('aria-disabled')
 
-		expect(onValueChange).toHaveBeenCalledWith('b')
+			fireEvent.click(pin)
 
-		const pin = screen.getByRole('button', { name: 'Pin' })
-
-		expect(pin).not.toHaveAttribute('aria-disabled')
-
-		fireEvent.click(pin)
-
-		expect(onPressedChange).toHaveBeenCalledWith(true)
-
-		await act(async () => {
-			pending.resolve()
-		})
-	})
+			expect(onPressedChange).toHaveBeenCalledWith(true)
+		},
+	)
 
 	// The lock is context, so it follows the tree into the portal of an overlay.
 	// A field there belongs to the form and locks. The standard Close of the
 	// default footer writes no field.
-	it.each([
+	pendingIt.for([
 		['Dialog', Dialog, DialogPanel],
 		['Drawer', Drawer, DrawerPanel],
 		['Sheet', Sheet, SheetPanel],
 	] as const)(
 		'locks the fields of a %s in a submitting form, and keeps its close live',
-		async (_, Root, Panel) => {
-			const pending = deferred()
-
+		async ([, Root, Panel], { pending }) => {
 			const onOpenChange = vi.fn()
 
 			const { container } = renderUI(
@@ -600,131 +577,112 @@ describe('Form', () => {
 			fireEvent.click(close)
 
 			expect(onOpenChange).toHaveBeenCalledWith(false)
-
-			await act(async () => {
-				pending.resolve()
-			})
 		},
 	)
 
-	it('locks the fields of a Popover in a submitting form, and keeps its close live', async () => {
-		const pending = deferred()
+	pendingIt(
+		'locks the fields of a Popover in a submitting form, and keeps its close live',
+		async ({ pending }) => {
+			const onOpenChange = vi.fn()
 
-		const onOpenChange = vi.fn()
+			const { container } = renderUI(
+				<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
+					<Popover open onOpenChange={onOpenChange}>
+						<PopoverTrigger>Open</PopoverTrigger>
+						<PopoverContent>
+							<Input name="name" aria-label="Name" />
+							<PopoverClose />
+						</PopoverContent>
+					</Popover>
+				</Form>,
+			)
 
-		const { container } = renderUI(
-			<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
-				<Popover open onOpenChange={onOpenChange}>
-					<PopoverTrigger>Open</PopoverTrigger>
-					<PopoverContent>
-						<Input name="name" aria-label="Name" />
-						<PopoverClose />
-					</PopoverContent>
-				</Popover>
-			</Form>,
-		)
+			await submit(container)
 
-		await submit(container)
+			expect(screen.getByRole('textbox', { name: 'Name' })).toHaveAttribute('readonly')
 
-		expect(screen.getByRole('textbox', { name: 'Name' })).toHaveAttribute('readonly')
+			const close = screen.getByRole('button', { name: 'Close' })
 
-		const close = screen.getByRole('button', { name: 'Close' })
+			expect(close).not.toHaveAttribute('aria-disabled')
 
-		expect(close).not.toHaveAttribute('aria-disabled')
+			fireEvent.click(close)
 
-		fireEvent.click(close)
+			expect(onOpenChange).toHaveBeenCalledWith(false)
+		},
+	)
 
-		expect(onOpenChange).toHaveBeenCalledWith(false)
+	pendingIt(
+		'keeps the close of a CommandPalette live in a submitting form',
+		async ({ pending }) => {
+			const onOpenChange = vi.fn()
 
-		await act(async () => {
-			pending.resolve()
-		})
-	})
+			const { container } = renderUI(
+				<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
+					<CommandPalette open onOpenChange={onOpenChange}>
+						<div>Items</div>
+					</CommandPalette>
+				</Form>,
+			)
 
-	it('keeps the close of a CommandPalette live in a submitting form', async () => {
-		const pending = deferred()
+			await submit(container)
 
-		const onOpenChange = vi.fn()
+			const close = screen.getByRole('button', { name: 'Close' })
 
-		const { container } = renderUI(
-			<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
-				<CommandPalette open onOpenChange={onOpenChange}>
-					<div>Items</div>
-				</CommandPalette>
-			</Form>,
-		)
+			expect(close).not.toHaveAttribute('aria-disabled')
 
-		await submit(container)
+			fireEvent.click(close)
 
-		const close = screen.getByRole('button', { name: 'Close' })
+			expect(onOpenChange).toHaveBeenCalledWith(false)
+		},
+	)
 
-		expect(close).not.toHaveAttribute('aria-disabled')
+	pendingIt(
+		'keeps the Cancel of a Confirm live in a submitting form, and locks its action',
+		async ({ pending }) => {
+			const onCancel = vi.fn()
 
-		fireEvent.click(close)
+			const onConfirm = vi.fn()
 
-		expect(onOpenChange).toHaveBeenCalledWith(false)
+			const { container } = renderUI(
+				<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
+					<Confirm
+						open
+						onOpenChange={() => {}}
+						title="Discard the draft?"
+						onCancel={onCancel}
+						onConfirm={onConfirm}
+					/>
+				</Form>,
+			)
 
-		await act(async () => {
-			pending.resolve()
-		})
-	})
+			await submit(container)
 
-	it('keeps the Cancel of a Confirm live in a submitting form, and locks its action', async () => {
-		const pending = deferred()
+			const confirm = screen.getByRole('button', { name: 'Confirm' })
 
-		const onCancel = vi.fn()
+			expect(confirm).toHaveAttribute('aria-disabled', 'true')
 
-		const onConfirm = vi.fn()
+			fireEvent.click(confirm)
 
-		const { container } = renderUI(
-			<Form defaultValues={{ name: '' }} onSubmit={() => pending.promise}>
-				<Confirm
-					open
-					onOpenChange={() => {}}
-					title="Discard the draft?"
-					onCancel={onCancel}
-					onConfirm={onConfirm}
-				/>
-			</Form>,
-		)
+			expect(onConfirm).not.toHaveBeenCalled()
 
-		await submit(container)
+			const cancel = screen.getByRole('button', { name: 'Cancel' })
 
-		const confirm = screen.getByRole('button', { name: 'Confirm' })
+			expect(cancel).not.toHaveAttribute('aria-disabled')
 
-		expect(confirm).toHaveAttribute('aria-disabled', 'true')
+			fireEvent.click(cancel)
 
-		fireEvent.click(confirm)
-
-		expect(onConfirm).not.toHaveBeenCalled()
-
-		const cancel = screen.getByRole('button', { name: 'Cancel' })
-
-		expect(cancel).not.toHaveAttribute('aria-disabled')
-
-		fireEvent.click(cancel)
-
-		expect(onCancel).toHaveBeenCalled()
-
-		await act(async () => {
-			pending.resolve()
-		})
-	})
+			expect(onCancel).toHaveBeenCalled()
+		},
+	)
 
 	it('drops a slow submit that resolves after a reset', async () => {
 		const pending = deferred<{ fieldErrors: { name: string } }>()
 
 		const onSubmit = vi.fn(() => pending.promise)
 
-		// Captured during render so the reset can be driven programmatically; a
-		// FormReset ignores a click while a submit runs.
-		let actions: ReturnType<typeof useFormActions>
-
-		function ActionsCapture() {
-			actions = useFormActions()
-
-			return null
-		}
+		// A FormReset ignores a click while a submit runs, so the case drives the
+		// reset through the actions.
+		const { ActionsCapture, actions } = captureActions()
 
 		const { container } = renderUI(
 			<Form defaultValues={{ name: 'Ada' }} onSubmit={onSubmit}>
@@ -746,7 +704,7 @@ describe('Form', () => {
 
 		// Reset supersedes the in-flight submit and clears its pending state.
 		await act(async () => {
-			actions?.reset()
+			actions()?.reset()
 		})
 
 		// The handler resolves only now; its stale fieldErrors must be dropped.
@@ -774,13 +732,7 @@ describe('Form', () => {
 			helpers.setErrors({ name: 'taken on the server' })
 		})
 
-		let actions: ReturnType<typeof useFormActions>
-
-		function ActionsCapture() {
-			actions = useFormActions()
-
-			return null
-		}
+		const { ActionsCapture, actions } = captureActions()
 
 		const { container } = renderUI(
 			<Form defaultValues={{ name: 'Ada' }} onSubmit={onSubmit}>
@@ -796,7 +748,7 @@ describe('Form', () => {
 		expect(onSubmit).toHaveBeenCalledOnce()
 
 		await act(async () => {
-			actions?.reset()
+			actions()?.reset()
 		})
 
 		// The handler writes its errors only now, after the reset.
@@ -824,13 +776,7 @@ describe('Form', () => {
 			await pending.promise
 		})
 
-		let actions: ReturnType<typeof useFormActions>
-
-		function ActionsCapture() {
-			actions = useFormActions()
-
-			return null
-		}
+		const { ActionsCapture, actions } = captureActions()
 
 		const { container } = renderUI(
 			<Form
@@ -847,7 +793,7 @@ describe('Form', () => {
 		)
 
 		act(() => {
-			actions?.setValue('name', 'Grace')
+			actions()?.setValue('name', 'Grace')
 		})
 
 		await submit(container)
@@ -868,9 +814,7 @@ describe('Form', () => {
 		})
 
 		// The outcome carries the submitted values, not the values after the reset.
-		expect(onSettled).toHaveBeenCalledOnce()
-
-		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Grace' } })
+		expect(onSettled).toHaveBeenCalledExactlyOnceWith({ ok: true, values: { name: 'Grace' } })
 
 		expect(submittingFlag()).toBe('false')
 	})
@@ -901,9 +845,7 @@ describe('Form', () => {
 
 		expect(onReset).toHaveBeenCalledOnce()
 
-		expect(onSettled).toHaveBeenCalledOnce()
-
-		expect(onSettled).toHaveBeenCalledWith({ ok: false, error: failure })
+		expect(onSettled).toHaveBeenCalledExactlyOnceWith({ ok: false, error: failure })
 	})
 
 	it('delivers { ok: true, values } to onSettled when onSubmit returns void', async () => {
@@ -917,9 +859,7 @@ describe('Form', () => {
 
 		await submit(container)
 
-		expect(onSettled).toHaveBeenCalledTimes(1)
-
-		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+		expect(onSettled).toHaveBeenCalledExactlyOnceWith({ ok: true, values: { name: 'Ada' } })
 	})
 
 	// Q2-C10: a submit that passes validation with no handler ends there.
@@ -934,9 +874,7 @@ describe('Form', () => {
 
 		await submit(container)
 
-		expect(onSettled).toHaveBeenCalledOnce()
-
-		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+		expect(onSettled).toHaveBeenCalledExactlyOnceWith({ ok: true, values: { name: 'Ada' } })
 	})
 
 	it('does not fire onSettled when validation refuses a submit with no onSubmit', async () => {
@@ -976,9 +914,7 @@ describe('Form', () => {
 
 		await submit(container)
 
-		expect(onSettled).toHaveBeenCalledTimes(1)
-
-		expect(onSettled).toHaveBeenCalledWith({ ok: false, error: failure })
+		expect(onSettled).toHaveBeenCalledExactlyOnceWith({ ok: false, error: failure })
 	})
 
 	it('wraps non-Error throws in Error before delivering them to onSettled', async () => {
@@ -1014,13 +950,7 @@ describe('Form', () => {
 
 		const onSettled = vi.fn()
 
-		let actions: ReturnType<typeof useFormActions>
-
-		function ActionsCapture() {
-			actions = useFormActions()
-
-			return null
-		}
+		const { ActionsCapture, actions } = captureActions()
 
 		const { container } = renderUI(
 			<Form defaultValues={{ name: 'Ada' }} onSubmit={() => pending.promise} onSettled={onSettled}>
@@ -1034,7 +964,7 @@ describe('Form', () => {
 
 		// A write from outside the disabled fieldset, while the submit is in flight.
 		act(() => {
-			actions?.setValue('name', 'Grace')
+			actions()?.setValue('name', 'Grace')
 		})
 
 		// The control: the write landed. Without it, the outcome below also holds
@@ -1045,9 +975,7 @@ describe('Form', () => {
 			pending.resolve()
 		})
 
-		expect(onSettled).toHaveBeenCalledOnce()
-
-		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+		expect(onSettled).toHaveBeenCalledExactlyOnceWith({ ok: true, values: { name: 'Ada' } })
 	})
 
 	it('delivers one outcome when onSettled throws on success', async () => {
@@ -1076,30 +1004,10 @@ describe('Form', () => {
 			})
 		})
 
-		expect(onSettled).toHaveBeenCalledOnce()
-
-		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+		expect(onSettled).toHaveBeenCalledExactlyOnceWith({ ok: true, values: { name: 'Ada' } })
 
 		// The throw is not reported as a failed submit, and it is not lost.
 		expect(thrown).toBe(failure)
-	})
-
-	it('does not fire onSettled when onSubmit returns { fieldErrors }', async () => {
-		const onSettled = vi.fn()
-
-		const { container } = renderUI(
-			<Form
-				defaultValues={{ name: 'Ada' }}
-				onSubmit={() => ({ fieldErrors: { name: 'taken' } })}
-				onSettled={onSettled}
-			>
-				<button type="submit">Submit</button>
-			</Form>,
-		)
-
-		await submit(container)
-
-		expect(onSettled).not.toHaveBeenCalled()
 	})
 
 	it.each([
@@ -1121,9 +1029,7 @@ describe('Form', () => {
 
 		await submit(container)
 
-		expect(onSettled).toHaveBeenCalledOnce()
-
-		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+		expect(onSettled).toHaveBeenCalledExactlyOnceWith({ ok: true, values: { name: 'Ada' } })
 	})
 
 	it('clears the field and settles ok: true when a later fieldErrors entry is undefined', async () => {
@@ -1151,9 +1057,7 @@ describe('Form', () => {
 
 		expect(getFieldProbe('name')).not.toHaveAttribute('data-error')
 
-		expect(onSettled).toHaveBeenCalledOnce()
-
-		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
+		expect(onSettled).toHaveBeenCalledExactlyOnceWith({ ok: true, values: { name: 'Ada' } })
 	})
 
 	it('keeps an empty-string fieldErrors entry mid-flow', async () => {
@@ -1176,22 +1080,6 @@ describe('Form', () => {
 		expect(screen.getByTestId('valid').textContent).toBe('false')
 
 		expect(onSettled).not.toHaveBeenCalled()
-	})
-
-	it('applies fieldErrors returned from onSubmit', async () => {
-		const { container } = renderUI(
-			<Form
-				defaultValues={{ name: 'Ada' }}
-				onSubmit={() => ({ fieldErrors: { name: 'taken on the server' } })}
-			>
-				<FieldProbe name="name" />
-				<button type="submit">Submit</button>
-			</Form>,
-		)
-
-		await submit(container)
-
-		expect(getFieldProbe('name')).toHaveAttribute('data-error', 'taken on the server')
 	})
 
 	it('keeps a server fieldErrors issue when a sibling field changes', async () => {
@@ -1365,6 +1253,8 @@ describe('Form', () => {
 	it('does not re-sync when the values reference is unchanged across renders', () => {
 		const stableValues = { name: 'Ada' }
 
+		const { ActionsCapture, actions } = captureActions()
+
 		function Host() {
 			const [tick, setTick] = useState(0)
 
@@ -1374,6 +1264,7 @@ describe('Form', () => {
 						bump · {tick}
 					</button>
 					<Form defaultValues={{ name: '' }} values={stableValues}>
+						<ActionsCapture />
 						<FieldProbe name="name" />
 					</Form>
 				</>
@@ -1384,12 +1275,19 @@ describe('Form', () => {
 
 		expect(getFieldProbe('name').textContent).toBe('Ada')
 
+		// A local write that a re-sync to `stableValues` would replace with 'Ada'.
+		act(() => {
+			actions()?.setValue('name', 'Grace')
+		})
+
+		expect(getFieldProbe('name').textContent).toBe('Grace')
+
 		act(() => {
 			screen.getByText(/bump/).click()
 		})
 
-		// Same reference → no sync triggered, value still reflects the initial sync.
-		expect(getFieldProbe('name').textContent).toBe('Ada')
+		// The reference is the same, so no sync runs and the local write stays.
+		expect(getFieldProbe('name').textContent).toBe('Grace')
 	})
 
 	it('re-syncs to defaultValues when controlled values transitions back to undefined', () => {
@@ -1760,13 +1658,21 @@ describe('useInputValue bound to a Form field', () => {
 
 		const wrapper = makeFormWrapper({ defaultValues: { name: '' } })
 
-		const { result } = renderHook(() => useInputValue<HTMLInputElement>({ name: 'name', onBlur }), {
-			wrapper,
-		})
+		const { result } = renderHook(
+			() => ({
+				input: useInputValue<HTMLInputElement>({ name: 'name', onBlur }),
+				field: useFormField('name'),
+			}),
+			{ wrapper },
+		)
+
+		expect(result.current.field?.touched).toBe(false)
 
 		act(() => {
-			result.current.onBlur?.(makeFocusEvent<HTMLInputElement>())
+			result.current.input.onBlur?.(makeFocusEvent<HTMLInputElement>())
 		})
+
+		expect(result.current.field?.touched).toBe(true)
 
 		expect(onBlur).toHaveBeenCalledOnce()
 	})

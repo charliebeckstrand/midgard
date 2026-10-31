@@ -8,6 +8,15 @@ const fields: QueryField[] = [
 	{ name: 'age', label: 'Age', type: 'number' },
 ]
 
+/** Renders the hook with a change spy, and reads the last tree that the spy got. */
+function setup() {
+	const onValueChange = vi.fn()
+
+	const { result } = renderHook(() => useQueryTree({ fields, onValueChange }))
+
+	return { result, onValueChange, last: () => onValueChange.mock.calls.at(-1)?.[0] }
+}
+
 describe('useQueryTree', () => {
 	it('seeds with an empty AND group when no defaultValue is provided', () => {
 		const { result } = renderHook(() => useQueryTree({ fields }))
@@ -20,9 +29,7 @@ describe('useQueryTree', () => {
 	})
 
 	it('adds a rule via the addRule action', () => {
-		const onValueChange = vi.fn()
-
-		const { result } = renderHook(() => useQueryTree({ fields, onValueChange }))
+		const { result, last, onValueChange } = setup()
 
 		act(() => {
 			result.current.actions.addRule(result.current.root.id)
@@ -30,7 +37,7 @@ describe('useQueryTree', () => {
 
 		expect(onValueChange).toHaveBeenCalled()
 
-		const next = onValueChange.mock.calls.at(-1)?.[0]
+		const next = last()
 
 		expect(next.children).toHaveLength(1)
 
@@ -38,15 +45,13 @@ describe('useQueryTree', () => {
 	})
 
 	it('adds a nested group via the addGroup action', () => {
-		const onValueChange = vi.fn()
-
-		const { result } = renderHook(() => useQueryTree({ fields, onValueChange }))
+		const { result, last } = setup()
 
 		act(() => {
 			result.current.actions.addGroup(result.current.root.id)
 		})
 
-		const next = onValueChange.mock.calls.at(-1)?.[0]
+		const next = last()
 
 		expect(next.children).toHaveLength(1)
 
@@ -56,55 +61,49 @@ describe('useQueryTree', () => {
 	})
 
 	it('removes a child via the remove action', () => {
-		const onValueChange = vi.fn()
-
-		const { result } = renderHook(() => useQueryTree({ fields, onValueChange }))
+		const { result, last } = setup()
 
 		act(() => {
 			result.current.actions.addRule(result.current.root.id)
 		})
 
-		const added = onValueChange.mock.calls.at(-1)?.[0].children[0]
+		const added = last().children[0]
 
 		act(() => {
 			result.current.actions.remove(added.id)
 		})
 
-		const next = onValueChange.mock.calls.at(-1)?.[0]
+		const next = last()
 
 		expect(next.children).toHaveLength(0)
 	})
 
 	it('updates a rule via the updateRule action', () => {
-		const onValueChange = vi.fn()
-
-		const { result } = renderHook(() => useQueryTree({ fields, onValueChange }))
+		const { result, last } = setup()
 
 		act(() => {
 			result.current.actions.addRule(result.current.root.id)
 		})
 
-		const added = onValueChange.mock.calls.at(-1)?.[0].children[0]
+		const added = last().children[0]
 
 		act(() => {
 			result.current.actions.updateRule(added.id, { value: 'alice' })
 		})
 
-		const next = onValueChange.mock.calls.at(-1)?.[0]
+		const next = last()
 
 		expect(next.children[0].value).toBe('alice')
 	})
 
 	it('updates a group combinator via the updateCombinator action', () => {
-		const onValueChange = vi.fn()
-
-		const { result } = renderHook(() => useQueryTree({ fields, onValueChange }))
+		const { result, last } = setup()
 
 		act(() => {
 			result.current.actions.updateCombinator(result.current.root.id, 'or')
 		})
 
-		const next = onValueChange.mock.calls.at(-1)?.[0]
+		const next = last()
 
 		expect(next.combinator).toBe('or')
 	})
@@ -123,9 +122,7 @@ describe('useQueryTree', () => {
 	})
 
 	it('moves a node in its group via the move action', () => {
-		const onValueChange = vi.fn()
-
-		const { result } = renderHook(() => useQueryTree({ fields, onValueChange }))
+		const { result, last } = setup()
 
 		act(() => {
 			result.current.actions.addRule(result.current.root.id)
@@ -135,13 +132,13 @@ describe('useQueryTree', () => {
 			result.current.actions.addRule(result.current.root.id)
 		})
 
-		const [first, second] = onValueChange.mock.calls.at(-1)?.[0].children ?? []
+		const [first, second] = last().children ?? []
 
 		act(() => {
 			result.current.actions.move(first.id, 1)
 		})
 
-		const next = onValueChange.mock.calls.at(-1)?.[0]
+		const next = last()
 
 		expect(next.children.map((child: { id: string }) => child.id)).toEqual([second.id, first.id])
 	})

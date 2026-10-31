@@ -2,17 +2,19 @@
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
+import { BarChart } from '../../modules/chart/bar-chart'
 import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 
 /**
- * The server markup of the animated chart marks that fade, wipe, or slide in.
+ * The server markup of the animated chart marks that grow, fade, wipe, or
+ * slide in.
  *
  * The server cannot read the reduced-motion preference of the reader, so these
- * marks render at rest there, as the bars, the lines, and the points do. A mark
- * at its `initial` state stays hidden, clipped, or out of place until the
- * motion features load in the browser. The suite renders with the real motion,
+ * marks render at rest there, as the lines and the points do. A mark at its
+ * `initial` state stays hidden, clipped, scaled to zero, or out of place until
+ * the motion features load in the browser. The suite renders with the real motion,
  * so it sits in the node project, which has no module doubles.
  */
 const DATA = [
@@ -36,6 +38,32 @@ const AT_INITIAL = /opacity:0|scale[XY]\(0\)|translate[XY]\((?!0px)[^)]*\)/
 
 describe('animated chart server markup', () => {
 	it.each([
+		[
+			'vertical bars',
+			() => (
+				<BarChart
+					aria-label="Revenue"
+					data={DATA}
+					series={[{ xKey: 'q', yKey: 'v' }]}
+					orientation="vertical"
+					{...BOX}
+				/>
+			),
+			/<path[^>]*data-slot="chart-bar"[^>]*>/g,
+		],
+		[
+			'horizontal bars',
+			() => (
+				<BarChart
+					aria-label="Revenue"
+					data={DATA}
+					series={[{ xKey: 'q', yKey: 'v' }]}
+					orientation="horizontal"
+					{...BOX}
+				/>
+			),
+			/<path[^>]*data-slot="chart-bar"[^>]*>/g,
+		],
 		[
 			'area wash',
 			() => (

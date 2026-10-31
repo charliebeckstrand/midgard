@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { LineChart } from '../../modules/chart/line-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { bySlot, renderUI } from '../helpers'
+import { axisLabels } from '../helpers/axis-labels'
 
 /**
  * The default number formats of a chart, over values that two fraction digits
@@ -14,13 +15,6 @@ const QUOTES = [
 	{ day: 'Wed', rate: 1.0855 },
 	{ day: 'Thu', rate: 1.0849 },
 ]
-
-/** The tick labels inside an axis group, in draw order. */
-function tickLabels(container: HTMLElement, slot: string): string[] {
-	return [...(bySlot(container, slot)?.querySelectorAll('text') ?? [])].map(
-		(tick) => tick.textContent ?? '',
-	)
-}
 
 /** The text of each data cell of the hidden table, row by row. */
 function tableCells(container: HTMLElement): string[] {
@@ -44,7 +38,7 @@ describe('value precision', () => {
 	it('writes each value tick once, with the digits of its step', () => {
 		const { container } = quotes(480)
 
-		const ticks = tickLabels(container, 'chart-axis-y')
+		const ticks = axisLabels(container, 'chart-axis-y')
 
 		expect(ticks.length).toBeGreaterThan(1)
 
@@ -56,7 +50,7 @@ describe('value precision', () => {
 	it('writes each compact value tick once in a narrow frame', () => {
 		const { container } = quotes(320)
 
-		const ticks = tickLabels(container, 'chart-axis-y')
+		const ticks = axisLabels(container, 'chart-axis-y')
 
 		expect(ticks.length).toBeGreaterThan(1)
 
@@ -84,7 +78,7 @@ describe('value precision', () => {
 
 		expect(tableCells(container).join(' ')).toContain('0.0003')
 
-		const ticks = tickLabels(container, 'chart-axis-y')
+		const ticks = axisLabels(container, 'chart-axis-y')
 
 		expect(new Set(ticks).size).toBe(ticks.length)
 	})

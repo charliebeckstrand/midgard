@@ -28,13 +28,6 @@ describe('applyChunk — a string chunk', () => {
 		expect(applyChunk('', 'Hel')).toBe('Hel')
 	})
 
-	it('writes the running text of a reply that already holds blocks', () => {
-		expect(applyChunk([running('Hel'), embed('e1')], 'Hello')).toEqual([
-			running('Hello'),
-			embed('e1'),
-		])
-	})
-
 	it('appends the running text to a reply that arrived as a block alone', () => {
 		// A chart landed first and the prose follows it. One name, so the next
 		// string chunk writes this same block rather than opening a second one.

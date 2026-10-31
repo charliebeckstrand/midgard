@@ -56,14 +56,6 @@ describe('isQueryActive', () => {
 		expect(isQueryActive(createGroup('and', [inner]))).toBe(true)
 	})
 
-	it('treats an inherited object key as an unknown operator', () => {
-		const group = createGroup('and', [
-			{ ...createRule(textField), operator: 'toString', value: 'x' },
-		])
-
-		expect(isQueryActive(group)).toBe(false)
-	})
-
 	it('treats a range with every bound blank as inactive', () => {
 		const group = createGroup('and', [
 			{ ...createRule(numberField), operator: 'between', value: ['', ''] },

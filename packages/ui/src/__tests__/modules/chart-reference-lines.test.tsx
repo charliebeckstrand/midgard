@@ -21,22 +21,25 @@ const DATA = [
 
 const SERIES = [{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }] as const
 
-function bar(
-	reference?: ChartReferenceLine[],
-	orientation?: 'vertical' | 'horizontal',
-	animate?: boolean,
-) {
-	return renderUI(
+/** The options of a test BarChart. A case gives only the props that it changes. */
+type BarOptions = Partial<Parameters<typeof BarChart<(typeof DATA)[number]>>[0]>
+
+/** A BarChart of the revenue series over `DATA`, 400 px wide. */
+function barChart(options: BarOptions = {}) {
+	return (
 		<BarChart
 			aria-label="Revenue by month"
 			data={DATA}
 			series={[...SERIES]}
 			width={400}
-			orientation={orientation}
-			reference={reference}
-			animate={animate}
-		/>,
+			{...options}
+		/>
 	)
+}
+
+/** Renders the BarChart of `barChart`. */
+function bar(options: BarOptions = {}) {
+	return renderUI(barChart(options))
 }
 
 /** The visible rule is the first line in a reference group; the hover target is the second. */
@@ -62,7 +65,7 @@ function hitTarget(container: HTMLElement): SVGLineElement | null {
 
 describe('reference lines', () => {
 	it('draws one rule per reference line, and nothing without the prop', () => {
-		const withRefs = bar([{ value: 50 }, { value: 70 }])
+		const withRefs = bar({ reference: [{ value: 50 }, { value: 70 }] })
 
 		expect(allBySlot(withRefs.container, 'chart-reference-line')).toHaveLength(2)
 
@@ -75,7 +78,7 @@ describe('reference lines', () => {
 	})
 
 	it('lays a wide transparent hover target over the rule', () => {
-		const { container } = bar([{ value: 50 }])
+		const { container } = bar({ reference: [{ value: 50 }] })
 
 		const ruleWidth = Number(rule(container)?.getAttribute('stroke-width'))
 
@@ -88,26 +91,26 @@ describe('reference lines', () => {
 	})
 
 	it('dashes the rule by default and draws it solid when dashed is false', () => {
-		const dashed = bar([{ value: 50 }])
+		const dashed = bar({ reference: [{ value: 50 }] })
 
 		expect(rule(dashed.container)?.getAttribute('stroke-dasharray')).toBe('6 4')
 
-		const solid = bar([{ value: 50, dashed: false }])
+		const solid = bar({ reference: [{ value: 50, dashed: false }] })
 
 		expect(rule(solid.container)?.getAttribute('stroke-dasharray')).toBeNull()
 	})
 
 	it('paints a named slot through its class and a raw color inline', () => {
-		const slot = bar([{ value: 50, color: 'red' }])
+		const slot = bar({ reference: [{ value: 50, color: 'red' }] })
 
 		expect(rule(slot.container)?.getAttribute('class')).toContain('stroke-red-600')
 
-		const neutral = bar([{ value: 50 }])
+		const neutral = bar({ reference: [{ value: 50 }] })
 
 		// Defaults to the neutral de-emphasis slot.
 		expect(rule(neutral.container)?.getAttribute('class')).toContain('stroke-zinc-600')
 
-		const hex = bar([{ value: 50, color: '#e11d48' }])
+		const hex = bar({ reference: [{ value: 50, color: '#e11d48' }] })
 
 		const hexRule = rule(hex.container)
 
@@ -119,7 +122,7 @@ describe('reference lines', () => {
 	})
 
 	it('carries the label and value in a visually-hidden list for parity', () => {
-		const { container } = bar([{ value: 55, label: 'Target' }, { value: 30 }])
+		const { container } = bar({ reference: [{ value: 55, label: 'Target' }, { value: 30 }] })
 
 		const list = bySlot(container, 'chart-reference-list')
 
@@ -136,7 +139,7 @@ describe('reference lines', () => {
 	it('folds an off-data target into the domain so it stays on the frame', () => {
 		// 200 sits far above the data max of 80; the fold grows the domain to meet
 		// it rather than clamping the rule to the top edge.
-		const { container } = bar([{ value: 200 }])
+		const { container } = bar({ reference: [{ value: 200 }] })
 
 		expect(bySlot(container, 'chart-axis-y')?.textContent).toContain('200')
 
@@ -154,19 +157,13 @@ describe('reference lines', () => {
 	it('draws no rule outside a pinned domain, and keeps it in the list', () => {
 		// A pin holds the domain at 100, so the fold cannot reach 150. The rule
 		// drew on the clamped top edge, where it read as 100.
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				axes={{ y: { max: 100 } }}
-				reference={[
-					{ value: 150, label: 'Stretch' },
-					{ value: 55, label: 'Target' },
-				]}
-			/>,
-		)
+		const { container } = bar({
+			axes: { y: { max: 100 } },
+			reference: [
+				{ value: 150, label: 'Stretch' },
+				{ value: 55, label: 'Target' },
+			],
+		})
 
 		const rules = allBySlot(container, 'chart-reference-line')
 
@@ -176,7 +173,7 @@ describe('reference lines', () => {
 	})
 
 	it('transposes the rule to a vertical line under horizontal orientation', () => {
-		const { container } = bar([{ value: 50 }], 'horizontal')
+		const { container } = bar({ reference: [{ value: 50 }], orientation: 'horizontal' })
 
 		const line = rule(container)
 
@@ -190,7 +187,7 @@ describe('reference lines', () => {
 		// The floating-ui mock has no hover, so focus opens the tooltip here. The
 		// design-system Tooltip drives hover in a browser. Either way this proves
 		// the rule's trigger is wired to its content.
-		const { container } = bar([{ value: 55, label: 'Target' }])
+		const { container } = bar({ reference: [{ value: 55, label: 'Target' }] })
 
 		fireEvent.focus(bySlot(container, 'chart-reference-line') as Element)
 
@@ -212,7 +209,7 @@ describe('reference lines', () => {
 	// The legend chip of the rule is a line Swatch, which keeps a paint under
 	// forced colors. The swatch of the readout is the same key.
 	it('keys the readout with a dashed line Swatch, as the legend chip does', async () => {
-		const { container } = bar([{ value: 55, label: 'Target' }])
+		const { container } = bar({ reference: [{ value: 55, label: 'Target' }] })
 
 		fireEvent.focus(bySlot(container, 'chart-reference-line') as Element)
 
@@ -226,7 +223,7 @@ describe('reference lines', () => {
 	})
 
 	it('recedes the marks while a rule is hovered, like a legend emphasis', () => {
-		const { container } = bar([{ value: 50 }])
+		const { container } = bar({ reference: [{ value: 50 }] })
 
 		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
 
@@ -245,10 +242,12 @@ describe('reference lines', () => {
 	})
 
 	it('recedes the sibling rules while one is hovered', () => {
-		const { container } = bar([
-			{ value: 50, label: 'Floor' },
-			{ value: 70, label: 'Ceiling' },
-		])
+		const { container } = bar({
+			reference: [
+				{ value: 50, label: 'Floor' },
+				{ value: 70, label: 'Ceiling' },
+			],
+		})
 
 		const rules = () => allBySlot(container, 'chart-reference-line')
 
@@ -299,7 +298,7 @@ describe('reference lines', () => {
 	] as const)(
 		'reveals %s rule from the baseline under %s orientation',
 		(_, value, orientation, axis, sign) => {
-			const { container } = bar([{ value }], orientation, true)
+			const { container } = bar({ reference: [{ value }], orientation, animate: true })
 
 			const offset = Number(riseWrapper(container)?.getAttribute(`data-initial-${axis}`))
 
@@ -336,7 +335,7 @@ describe('reference lines', () => {
 	})
 
 	it('leaves the rule static without animate, no motion wrapper', () => {
-		const { container } = bar([{ value: 50 }])
+		const { container } = bar({ reference: [{ value: 50 }] })
 
 		expect(riseWrapper(container)).toBeNull()
 	})
@@ -355,7 +354,7 @@ describe('reference line keyboard navigation', () => {
 			?.closest('[data-slot="tooltip-content"]') ?? null
 
 	it('roves onto the rule, receding the marks and floating its tooltip', async () => {
-		const { container } = bar([{ value: 60, label: 'Goal' }])
+		const { container } = bar({ reference: [{ value: 60, label: 'Goal' }] })
 
 		const plot = getSlot(container, 'chart-plot')
 
@@ -384,7 +383,7 @@ describe('reference line keyboard navigation', () => {
 	})
 
 	it('restores the marks stepping back off the rule', async () => {
-		const { container } = bar([{ value: 60 }])
+		const { container } = bar({ reference: [{ value: 60 }] })
 
 		const plot = getSlot(container, 'chart-plot')
 
@@ -406,7 +405,7 @@ describe('reference line keyboard navigation', () => {
 	})
 
 	it('releases the emphasis on Escape', async () => {
-		const { container } = bar([{ value: 60 }])
+		const { container } = bar({ reference: [{ value: 60 }] })
 
 		const plot = getSlot(container, 'chart-plot')
 
@@ -426,15 +425,7 @@ describe('reference line keyboard navigation', () => {
 	})
 
 	it('releases the emphasis when the rule it parks on goes away', () => {
-		const chart = (reference?: ChartReferenceLine[]) => (
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				reference={reference}
-			/>
-		)
+		const chart = (reference?: ChartReferenceLine[]) => barChart({ reference })
 
 		const { container, rerender } = renderUI(chart([{ value: 60 }]))
 
@@ -461,7 +452,7 @@ describe('reference line keyboard navigation', () => {
 	})
 
 	it('transposes the roving with orientation — the value axis reaches the rule', async () => {
-		const { container } = bar([{ value: 60 }], 'horizontal')
+		const { container } = bar({ reference: [{ value: 60 }], orientation: 'horizontal' })
 
 		const plot = getSlot(container, 'chart-plot')
 
@@ -489,19 +480,13 @@ describe('reference lines in the legend', () => {
 	it('names each reference line in the legend when it shows', () => {
 		// One series defaults the legend off, so ask for it; the two rules then
 		// follow the one series switch as identity chips.
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				legend
-				reference={[
-					{ value: 55, label: 'Target' },
-					{ value: 70, label: 'Ceiling' },
-				]}
-			/>,
-		)
+		const { container } = bar({
+			legend: true,
+			reference: [
+				{ value: 55, label: 'Target' },
+				{ value: 70, label: 'Ceiling' },
+			],
+		})
 
 		expect(allBySlot(container, 'chart-legend-reference').map((el) => el.textContent)).toEqual([
 			'Target',
@@ -510,16 +495,7 @@ describe('reference lines in the legend', () => {
 	})
 
 	it('falls back to the value for an unlabeled reference', () => {
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				legend
-				reference={[{ value: 55 }]}
-			/>,
-		)
+		const { container } = bar({ legend: true, reference: [{ value: 55 }] })
 
 		expect(bySlot(container, 'chart-legend-reference')?.textContent).toContain('55')
 	})
@@ -550,7 +526,7 @@ describe('reference lines in the legend', () => {
 	it('stays out of the legend while it is hidden, keeping its list parity', () => {
 		// One series keeps the legend off by default; the rule stays out of the
 		// (absent) legend, and the reference list still carries it.
-		const { container } = bar([{ value: 55, label: 'Target' }])
+		const { container } = bar({ reference: [{ value: 55, label: 'Target' }] })
 
 		expect(bySlot(container, 'chart-legend')).toBeNull()
 
@@ -560,16 +536,7 @@ describe('reference lines in the legend', () => {
 	})
 
 	it('recedes the marks on hover, as a switch beside the switchboard', () => {
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				legend
-				reference={[{ value: 55, label: 'Target' }]}
-			/>,
-		)
+		const { container } = bar({ legend: true, reference: [{ value: 55, label: 'Target' }] })
 
 		// One series → one switch; the rule is a separate switch that recedes the
 		// marks like a series entry's emphasis and carries its own toggle: pressed
@@ -599,16 +566,7 @@ describe('reference lines in the legend', () => {
 	it('toggles its rule off when the chip is clicked, and back on again', async () => {
 		const user = setupUser()
 
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				legend
-				reference={[{ value: 55, label: 'Target' }]}
-			/>,
-		)
+		const { container } = bar({ legend: true, reference: [{ value: 55, label: 'Target' }] })
 
 		const chip = () => getSlot(container, 'chart-legend-reference')
 
@@ -645,16 +603,7 @@ describe('reference lines in the legend', () => {
 
 		const ceiling = { value: 70, label: 'Ceiling' }
 
-		const chart = (reference: ChartReferenceLine[]) => (
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				legend
-				reference={reference}
-			/>
-		)
+		const chart = (reference: ChartReferenceLine[]) => barChart({ legend: true, reference })
 
 		const { container, rerender } = renderUI(chart([floor, target, ceiling]))
 
@@ -681,20 +630,14 @@ describe('reference lines in the legend', () => {
 	it('recedes nothing from the chip of a rule outside a pinned domain', () => {
 		// The rule draws nothing, so pointing its chip receded every mark to a rule
 		// that was not on the plot.
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				legend
-				axes={{ y: { max: 100 } }}
-				reference={[
-					{ value: 150, label: 'Stretch' },
-					{ value: 55, label: 'Target' },
-				]}
-			/>,
-		)
+		const { container } = bar({
+			legend: true,
+			axes: { y: { max: 100 } },
+			reference: [
+				{ value: 150, label: 'Stretch' },
+				{ value: 55, label: 'Target' },
+			],
+		})
 
 		const [stretch, target] = allBySlot(container, 'chart-legend-reference')
 
@@ -715,19 +658,14 @@ describe('reference lines in the legend', () => {
 		// hide keyed on the value too, so a refresh brought the rule back.
 		const user = setupUser()
 
-		const chart = (average: number) => (
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				legend
-				reference={[
+		const chart = (average: number) =>
+			barChart({
+				legend: true,
+				reference: [
 					{ value: average, label: 'Average' },
 					{ value: 70, label: 'Ceiling' },
-				]}
-			/>
-		)
+				],
+			})
 
 		const { container, rerender } = renderUI(chart(41.2))
 
@@ -749,16 +687,7 @@ describe('reference lines in the legend', () => {
 		const user = setupUser()
 
 		// The rule at 200 folds the axis up to meet it while shown.
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				legend
-				reference={[{ value: 200, label: 'Ceiling' }]}
-			/>,
-		)
+		const { container } = bar({ legend: true, reference: [{ value: 200, label: 'Ceiling' }] })
 
 		const axis = () => bySlot(container, 'chart-axis-y')?.textContent ?? ''
 
@@ -780,18 +709,13 @@ describe('reference lines in the legend', () => {
 	it('recedes nothing while an off chip is hovered, its rule being gone', async () => {
 		const user = setupUser()
 
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[
-					{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-					{ xKey: 'month', yKey: 'revenue', yName: 'Copy' },
-				]}
-				width={400}
-				reference={[{ value: 55, label: 'Target' }]}
-			/>,
-		)
+		const { container } = bar({
+			series: [
+				{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+				{ xKey: 'month', yKey: 'revenue', yName: 'Copy' },
+			],
+			reference: [{ value: 55, label: 'Target' }],
+		})
 
 		const chip = getSlot(container, 'chart-legend-reference')
 
@@ -804,28 +728,20 @@ describe('reference lines in the legend', () => {
 		fireEvent.pointerEnter(chip)
 
 		expect(marks()).not.toContain('opacity-25')
-
-		fireEvent.pointerLeave(chip)
 	})
 
 	it('recedes the sibling rules from a chip, keyed to the rule not the chip position', () => {
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				legend
-				// A non-finite rule drops from both the plot and the chips, so the second
-				// chip's array index (2) outruns its position (1): the emphasis must key
-				// off the index to land on the rule the plot draws.
-				reference={[
-					{ value: 50, label: 'Floor' },
-					{ value: Number.NaN, label: 'Gap' },
-					{ value: 70, label: 'Ceiling' },
-				]}
-			/>,
-		)
+		const { container } = bar({
+			legend: true,
+			// A non-finite rule drops from both the plot and the chips, so the second
+			// chip's array index (2) outruns its position (1): the emphasis must key
+			// off the index to land on the rule the plot draws.
+			reference: [
+				{ value: 50, label: 'Floor' },
+				{ value: Number.NaN, label: 'Gap' },
+				{ value: 70, label: 'Ceiling' },
+			],
+		})
 
 		const chips = allBySlot(container, 'chart-legend-reference')
 
@@ -851,19 +767,13 @@ describe('reference lines in the legend', () => {
 	})
 
 	it('paints a slot chip through its class and a raw color inline', () => {
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				legend
-				reference={[
-					{ value: 55, label: 'Target', color: 'green' },
-					{ value: 70, label: 'Ceiling', color: '#e11d48' },
-				]}
-			/>,
-		)
+		const { container } = bar({
+			legend: true,
+			reference: [
+				{ value: 55, label: 'Target', color: 'green' },
+				{ value: 70, label: 'Ceiling', color: '#e11d48' },
+			],
+		})
 
 		const [slot, raw] = allBySlot(container, 'chart-legend-reference')
 
@@ -885,19 +795,13 @@ describe('reference lines in the legend', () => {
 	})
 
 	it('dashes the chip swatch to match the rule, solid only when the rule is', () => {
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				legend
-				reference={[
-					{ value: 55, label: 'Target' },
-					{ value: 70, label: 'Ceiling', dashed: false },
-				]}
-			/>,
-		)
+		const { container } = bar({
+			legend: true,
+			reference: [
+				{ value: 55, label: 'Target' },
+				{ value: 70, label: 'Ceiling', dashed: false },
+			],
+		})
 
 		const [dashed, solid] = allBySlot(container, 'chart-legend-reference')
 
@@ -1029,17 +933,11 @@ describe('reference value labels', () => {
 		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
 	})
 	it('labels the rules of a horizontal bar chart in the first row down from the top', () => {
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Revenue by month"
-				data={DATA}
-				series={[...SERIES]}
-				width={400}
-				orientation="horizontal"
-				reference={[{ value: 60, label: 'Goal' }]}
-				labels={{ references: true }}
-			/>,
-		)
+		const { container } = bar({
+			orientation: 'horizontal',
+			reference: [{ value: 60, label: 'Goal' }],
+			labels: { references: true },
+		})
 
 		const label = bySlot(container, 'chart-reference-label')
 

@@ -6,6 +6,7 @@ import type { DashboardSelection } from '../../modules/dashboard/engine/dashboar
 import {
 	createDashboardStore,
 	type DashboardState,
+	type DashboardStore,
 } from '../../modules/dashboard/engine/dashboard-store'
 
 const initial = (patch: Partial<DashboardState> = {}): DashboardState => ({
@@ -121,42 +122,51 @@ describe('createDashboardStore', () => {
 		expect(store.getView().projected).toBe(false)
 	})
 
-	it('drops the hold when the starved tile leaves at the same width', () => {
-		// With no gutter, tile a at 8 of 24 columns starves under 600 px, and tile b under 570 px.
-		const demands = new Map([
-			['a', { minWidth: 200 }],
-			['b', { minWidth: 190 }],
-			['c', {}],
-		])
-
+	it.for<{
+		name: string
+		demands: DashboardState['demands']
+		change: (store: DashboardStore) => void
+	}>([
+		{
+			name: 'drops the hold when the starved tile leaves at the same width',
+			// With no gutter, tile a at 8 of 24 columns starves under 600 px, and tile b under 570 px.
+			demands: new Map([
+				['a', { minWidth: 200 }],
+				['b', { minWidth: 190 }],
+				['c', {}],
+			]),
+			// Tile b fits at 580 px and starves at the held width of 556 px.
+			change: (store) => store.unregister('a'),
+		},
+		{
+			name: 'drops the hold when the minWidth of the starved tile drops so that it fits',
+			demands: new Map([['a', { minWidth: 200 }]]),
+			// A floor of 190 px fits at 580 px and starves at the held width of 556 px.
+			change: (store) => store.register('a', { minWidth: 190 }),
+		},
+	])('$name', ({ demands, change }) => {
 		const store = createDashboardStore(initial({ gap: 0, demands, width: 580 }))
 
 		expect(store.getView().projected).toBe(true)
 
-		store.unregister('a')
-
-		// Tile b fits at 580 px and starves at the held width of 556 px.
-		expect(store.getView()).toMatchObject({ projected: false, editable: true })
-
-		expect(createDashboardStore(store.getState()).getView().projected).toBe(false)
-	})
-
-	it('drops the hold when the minWidth of the starved tile drops so that it fits', () => {
-		const store = createDashboardStore(
-			initial({ gap: 0, demands: new Map([['a', { minWidth: 200 }]]), width: 580 }),
-		)
-
-		expect(store.getView().projected).toBe(true)
-
-		// A floor of 190 px fits at 580 px and starves at the held width of 556 px.
-		store.register('a', { minWidth: 190 })
+		change(store)
 
 		expect(store.getView()).toMatchObject({ projected: false, editable: true })
 
 		expect(createDashboardStore(store.getState()).getView().projected).toBe(false)
 	})
 
-	it('keeps the hold through a change of the selections', () => {
+	it.for<{ name: string; patch: (store: DashboardStore) => Partial<DashboardState> }>([
+		{
+			name: 'keeps the hold through a change of the selections',
+			patch: () => ({ selections: [{ source: 'b', field: 'region', values: ['North'] }] }),
+		},
+		{
+			name: 'keeps the hold through a new layout array that holds the same geometry',
+			// A controlled app can render an equal layout in a new array on each render.
+			patch: (store) => ({ layout: [...store.getState().layout] }),
+		},
+	])('$name', ({ patch }) => {
 		const store = createDashboardStore(
 			initial({ gap: 0, demands: new Map([['a', { minWidth: 200 }]]), width: 590 }),
 		)
@@ -165,22 +175,7 @@ describe('createDashboardStore', () => {
 
 		expect(store.getView().projected).toBe(true)
 
-		store.setState({ selections: [{ source: 'b', field: 'region', values: ['North'] }] })
-
-		expect(store.getView()).toMatchObject({ projected: true, editable: false })
-	})
-
-	it('keeps the hold through a new layout array that holds the same geometry', () => {
-		const store = createDashboardStore(
-			initial({ gap: 0, demands: new Map([['a', { minWidth: 200 }]]), width: 590 }),
-		)
-
-		store.setState({ width: 610 })
-
-		expect(store.getView().projected).toBe(true)
-
-		// A controlled app can render an equal layout in a new array on each render.
-		store.setState({ layout: [...store.getState().layout] })
+		store.setState(patch(store))
 
 		expect(store.getView()).toMatchObject({ projected: true, editable: false })
 	})

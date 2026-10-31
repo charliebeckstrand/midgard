@@ -1,8 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MapPoint } from '../../modules/map'
 import { MAP_DOUBLE_TAP_SLOP, MAP_DOUBLE_TAP_WINDOW } from '../../modules/map/use-map-touch-tap'
 import { bySlot, fireEvent, firstRegion, present, renderUI } from '../helpers'
 import { categoricalPlat, overlayPlat } from '../helpers/map-plat'
+import { stubElementFromPoint } from '../helpers/stub-element-from-point'
 
 /** The fixture spans lon 0–30, lat 0–10; this projects inside the frame. */
 const DEPOT: [number, number] = [5, 5]
@@ -16,17 +17,13 @@ beforeEach(() => {
 	vi.spyOn(performance, 'now').mockImplementation(() => now)
 })
 
-afterEach(() => {
-	document.elementFromPoint = undefined as never
-})
-
 /**
  * Taps one finger on `target` at a point, as a browser sends it: the enter, the
  * press, the lift, and the touch end. jsdom has no layout, so the point names
  * `target` as the element under it.
  */
 function tap(target: Element, x = 40, y = 20, pointerId = 1) {
-	document.elementFromPoint = vi.fn().mockReturnValue(target)
+	stubElementFromPoint(target)
 
 	const at = { pointerId, pointerType: 'touch', isPrimary: true, clientX: x, clientY: y }
 
@@ -70,9 +67,7 @@ describe('MapPlat touch taps', () => {
 
 		tap(region, 44, 22)
 
-		expect(onRegionClick).toHaveBeenCalledTimes(1)
-
-		expect(onRegionClick.mock.calls[0]?.[1]).toBe(Number(region.getAttribute('data-region-index')))
+		expect(onRegionClick).toHaveBeenCalledExactlyOnceWith('A', 0)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
@@ -138,7 +133,7 @@ describe('MapPlat touch taps', () => {
 
 		const region = present<SVGPathElement>(firstRegion(container), 'region path')
 
-		document.elementFromPoint = vi.fn().mockReturnValue(region)
+		stubElementFromPoint(region)
 
 		for (let i = 0; i < 2; i++) {
 			for (const pointerId of [1, 2]) {

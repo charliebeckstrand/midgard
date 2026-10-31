@@ -185,9 +185,7 @@ describe('DonutChart', () => {
 
 		fireEvent.click(slice)
 
-		expect(select).toHaveBeenCalledOnce()
-
-		expect(select).toHaveBeenCalledWith('Direct', 1)
+		expect(select).toHaveBeenCalledExactlyOnceWith('Direct', 1)
 
 		// iOS Safari can hold back the click, so the lift reports.
 		tap()
@@ -226,9 +224,7 @@ describe('DonutChart', () => {
 		// A click that the browser still sends does not pin the readout.
 		fireEvent.click(slice)
 
-		expect(select).toHaveBeenCalledOnce()
-
-		expect(select).toHaveBeenCalledWith('Direct', 1)
+		expect(select).toHaveBeenCalledExactlyOnceWith('Direct', 1)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
@@ -261,9 +257,7 @@ describe('DonutChart', () => {
 		// the pointer events went to the slice. A cancelled touch end makes no click.
 		expect(fireEvent.touchEnd(slice)).toBe(false)
 
-		expect(select).toHaveBeenCalledOnce()
-
-		expect(select).toHaveBeenCalledWith('Direct', 1)
+		expect(select).toHaveBeenCalledExactlyOnceWith('Direct', 1)
 	})
 
 	it('backs each slice with a hit wedge so the gap keeps the tooltip', () => {

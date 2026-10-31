@@ -14,6 +14,18 @@ import {
 	setupUser,
 } from '../helpers'
 
+/** Two PDF attachments, which a chip shows by name. */
+const FIRST = new File(['a'], 'first.pdf', { type: 'application/pdf' })
+
+const SECOND = new File(['b'], 'second.pdf', { type: 'application/pdf' })
+
+/** Focuses the prompt, then types `keys` into it as the user. */
+async function pressInPrompt(container: HTMLElement, keys: string) {
+	getSlot<HTMLTextAreaElement>(container, 'chat-prompt').focus()
+
+	await setupUser().keyboard(keys)
+}
+
 describe('ChatPrompt', () => {
 	it('renders a textarea marked with data-slot="chat-prompt"', () => {
 		const { container } = renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />)
@@ -92,13 +104,7 @@ describe('ChatPrompt', () => {
 			<ChatPrompt value="hello" onValueChange={noop} onSubmit={onSubmit} />,
 		)
 
-		const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
-
-		el.focus()
-
-		const user = setupUser()
-
-		await user.keyboard('{Enter}')
+		await pressInPrompt(container, '{Enter}')
 
 		expect(onSubmit).toHaveBeenCalledOnce()
 	})
@@ -110,13 +116,7 @@ describe('ChatPrompt', () => {
 			<ChatPrompt value="hello" onValueChange={noop} onSubmit={onSubmit} />,
 		)
 
-		const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
-
-		el.focus()
-
-		const user = setupUser()
-
-		await user.keyboard('{Shift>}{Enter}{/Shift}')
+		await pressInPrompt(container, '{Shift>}{Enter}{/Shift}')
 
 		expect(onSubmit).not.toHaveBeenCalled()
 	})
@@ -128,13 +128,7 @@ describe('ChatPrompt', () => {
 			<ChatPrompt value="   " onValueChange={noop} onSubmit={onSubmit} />,
 		)
 
-		const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
-
-		el.focus()
-
-		const user = setupUser()
-
-		await user.keyboard('{Enter}')
+		await pressInPrompt(container, '{Enter}')
 
 		expect(onSubmit).not.toHaveBeenCalled()
 	})
@@ -241,13 +235,7 @@ describe('ChatPrompt', () => {
 			/>,
 		)
 
-		const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
-
-		el.focus()
-
-		const user = setupUser()
-
-		await user.keyboard('{Enter}')
+		await pressInPrompt(container, '{Enter}')
 
 		expect(onSubmit).not.toHaveBeenCalled()
 
@@ -362,12 +350,8 @@ describe('ChatPrompt', () => {
 	})
 
 	it('renders a chip per attachment', () => {
-		const first = new File(['a'], 'first.pdf', { type: 'application/pdf' })
-
-		const second = new File(['b'], 'second.pdf', { type: 'application/pdf' })
-
 		renderUI(
-			<ChatPrompt value="" onValueChange={noop} onSubmit={noop} attachments={[first, second]} />,
+			<ChatPrompt value="" onValueChange={noop} onSubmit={noop} attachments={[FIRST, SECOND]} />,
 		)
 
 		expect(screen.getByText('first.pdf')).toBeInTheDocument()
@@ -376,12 +360,8 @@ describe('ChatPrompt', () => {
 	})
 
 	it('renders the attachments as the items of a list', () => {
-		const first = new File(['a'], 'first.pdf', { type: 'application/pdf' })
-
-		const second = new File(['b'], 'second.pdf', { type: 'application/pdf' })
-
 		const { container } = renderUI(
-			<ChatPrompt value="" onValueChange={noop} onSubmit={noop} attachments={[first, second]} />,
+			<ChatPrompt value="" onValueChange={noop} onSubmit={noop} attachments={[FIRST, SECOND]} />,
 		)
 
 		const list = getSlot(container, 'chat-prompt-attachments')
@@ -394,9 +374,7 @@ describe('ChatPrompt', () => {
 	})
 
 	it('omits chip remove buttons when onRemoveAttachment is not provided', () => {
-		const file = new File(['a'], 'first.pdf', { type: 'application/pdf' })
-
-		renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} attachments={[file]} />)
+		renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} attachments={[FIRST]} />)
 
 		expect(screen.queryByRole('button', { name: 'Remove first.pdf' })).not.toBeInTheDocument()
 	})
@@ -404,16 +382,12 @@ describe('ChatPrompt', () => {
 	it('clicking a chip remove button calls onRemoveAttachment with its index', async () => {
 		const onRemoveAttachment = vi.fn()
 
-		const first = new File(['a'], 'first.pdf', { type: 'application/pdf' })
-
-		const second = new File(['b'], 'second.pdf', { type: 'application/pdf' })
-
 		renderUI(
 			<ChatPrompt
 				value=""
 				onValueChange={noop}
 				onSubmit={noop}
-				attachments={[first, second]}
+				attachments={[FIRST, SECOND]}
 				onRemoveAttachment={onRemoveAttachment}
 			/>,
 		)
@@ -430,16 +404,12 @@ describe('ChatPrompt', () => {
 		async (key) => {
 			const onRemoveAttachment = vi.fn()
 
-			const first = new File(['a'], 'first.pdf', { type: 'application/pdf' })
-
-			const second = new File(['b'], 'second.pdf', { type: 'application/pdf' })
-
 			renderUI(
 				<ChatPrompt
 					value=""
 					onValueChange={noop}
 					onSubmit={noop}
-					attachments={[first, second]}
+					attachments={[FIRST, SECOND]}
 					onRemoveAttachment={onRemoveAttachment}
 				/>,
 			)
@@ -457,12 +427,8 @@ describe('ChatPrompt', () => {
 	)
 
 	it('returns focus to the textarea after a chip removal (WCAG 2.4.3)', async () => {
-		const first = new File(['a'], 'first.pdf', { type: 'application/pdf' })
-
-		const second = new File(['b'], 'second.pdf', { type: 'application/pdf' })
-
 		function Harness() {
-			const [files, setFiles] = useState([first, second])
+			const [files, setFiles] = useState([FIRST, SECOND])
 
 			return (
 				<ChatPrompt

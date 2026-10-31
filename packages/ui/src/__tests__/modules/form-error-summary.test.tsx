@@ -56,6 +56,11 @@ function renderSignup(props: Partial<FormProps<Values>> = {}) {
 	)
 }
 
+/** The link of the error summary whose accessible name is `name`. */
+function summaryLink(container: HTMLElement, name: string): HTMLElement {
+	return within(getSlot(container, 'form-error-summary')).getByRole('link', { name })
+}
+
 async function submit(container: HTMLElement) {
 	await act(async () => {
 		fireEvent.submit(getSlot(container, 'form'))
@@ -113,9 +118,7 @@ describe('FormErrorSummary', () => {
 
 		await submit(container)
 
-		const summary = getSlot(container, 'form-error-summary')
-
-		const link = within(summary).getByRole('link', { name: 'Enter a name.' })
+		const link = summaryLink(container, 'Enter a name.')
 
 		expect(link).toHaveAttribute('href', '#name-control')
 
@@ -129,9 +132,7 @@ describe('FormErrorSummary', () => {
 
 		await submit(container)
 
-		const summary = getSlot(container, 'form-error-summary')
-
-		const link = within(summary).getByRole('link', { name: 'Enter an email address.' })
+		const link = summaryLink(container, 'Enter an email address.')
 
 		const email = within(container).getByRole('textbox', { name: 'Email' })
 
@@ -155,9 +156,7 @@ describe('FormErrorSummary', () => {
 
 		await submit(container)
 
-		const link = within(getSlot(container, 'form-error-summary')).getByRole('link', {
-			name: 'Attach a file.',
-		})
+		const link = summaryLink(container, 'Attach a file.')
 
 		expect(link).toHaveAttribute('href', '#files-control')
 
@@ -209,11 +208,7 @@ describe('FormErrorSummary', () => {
 
 		await submit(container)
 
-		fireEvent.click(
-			within(getSlot(container, 'form-error-summary')).getByRole('link', {
-				name: 'Rate the stay.',
-			}),
-		)
+		fireEvent.click(summaryLink(container, 'Rate the stay.'))
 
 		const focused = document.activeElement as HTMLElement
 
@@ -243,11 +238,7 @@ describe('FormErrorSummary', () => {
 
 		await submit(container)
 
-		fireEvent.click(
-			within(getSlot(container, 'form-error-summary')).getByRole('link', {
-				name: 'Enter the code.',
-			}),
-		)
+		fireEvent.click(summaryLink(container, 'Enter the code.'))
 
 		expect(document.activeElement).toHaveAccessibleName('Code')
 	})
@@ -289,9 +280,7 @@ describe('FormErrorSummary', () => {
 
 		await submit(container)
 
-		const link = within(getSlot(container, 'form-error-summary')).getByRole('link', {
-			name: 'Fix the field.',
-		})
+		const link = summaryLink(container, 'Fix the field.')
 
 		const id = link.getAttribute('href')?.slice(1) ?? ''
 
@@ -358,7 +347,7 @@ describe('FormErrorSummary', () => {
 
 		const summary = getSlot(container, 'form-error-summary')
 
-		expect(within(summary).getByRole('link', { name: 'This name is taken.' })).toBeInTheDocument()
+		expect(summaryLink(container, 'This name is taken.')).toBeInTheDocument()
 
 		expect(summary).toHaveFocus()
 	})

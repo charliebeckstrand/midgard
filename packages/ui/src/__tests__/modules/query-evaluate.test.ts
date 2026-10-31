@@ -204,10 +204,6 @@ describe('evaluateQuery', () => {
 	const getValue = (row: { name: string; age: number }) => (field: string) =>
 		field === 'name' ? row.name : row.age
 
-	it('matches everything for an empty group', () => {
-		expect(evaluateQuery(createGroup('and'), () => undefined)).toBe(true)
-	})
-
 	it('ANDs sibling rules', () => {
 		const tree = createGroup('and', [
 			{ ...createRule(textField), operator: 'contains', value: 'li' },

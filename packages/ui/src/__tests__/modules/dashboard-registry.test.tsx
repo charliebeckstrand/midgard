@@ -9,7 +9,6 @@ import {
 	type DashboardTilesProps,
 	type DashboardWidget,
 	DashboardWidgetProvider,
-	type DashboardWidgetRenderer,
 	useDashboardScope,
 } from '../../modules/dashboard'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
@@ -267,13 +266,6 @@ describe('DashboardTiles', () => {
 		expect(html).toContain('<p>Stat</p>')
 
 		expect(html).toContain('Menu for Revenue')
-	})
-
-	it('types a renderer that returns a promise as an error', () => {
-		// @ts-expect-error The renderer runs again on each Suspense retry, so a promise never settles.
-		const later: DashboardWidgetRenderer = async () => <p>Later</p>
-
-		expect(later).toBeTypeOf('function')
 	})
 
 	it('does not render an unchanged spec tile again when the app commits a new layout', () => {

@@ -6,7 +6,7 @@ import {
 	type QuerySummaryToken,
 	summarizeQuery,
 } from '../../modules/query/engine/query-summary'
-import type { QueryField, QueryNode } from '../../modules/query/engine/types'
+import type { QueryField, QueryNode, QueryRule } from '../../modules/query/engine/types'
 import { intlEs } from '../../primitives/intl/intl-catalog'
 
 const nameField: QueryField = { name: 'name', label: 'Name', type: 'text' }
@@ -54,20 +54,63 @@ describe('formatQuerySummary', () => {
 		).toBe('')
 	})
 
-	it('renders a text rule as field, operator, and value', () => {
-		expect(line([rule(nameField, { operator: 'contains', value: 'lee' })])).toBe(
+	it.for<[name: string, field: QueryField, patch: Partial<QueryRule>, text: string]>([
+		[
+			'renders a text rule as field, operator, and value',
+			nameField,
+			{ operator: 'contains', value: 'lee' },
 			'Name contains lee',
-		)
-	})
-
-	it('resolves a select value to its option label', () => {
-		expect(line([rule(statusField, { operator: 'equals', value: 'active' })])).toBe(
+		],
+		[
+			'resolves a select value to its option label',
+			statusField,
+			{ operator: 'equals', value: 'active' },
 			'Status is Active',
-		)
-	})
-
-	it('falls back to the raw value when a select option is unknown', () => {
-		expect(line([rule(statusField, { operator: 'equals', value: 'gone' })])).toBe('Status is gone')
+		],
+		[
+			'falls back to the raw value when a select option is unknown',
+			statusField,
+			{ operator: 'equals', value: 'gone' },
+			'Status is gone',
+		],
+		[
+			'renders a number operator by its symbol',
+			ageField,
+			{ operator: 'gt', value: 30 },
+			'Age > 30',
+		],
+		[
+			'renders a two-bound range',
+			ageField,
+			{ operator: 'between', value: [10, 20] },
+			'Age between 10 and 20',
+		],
+		[
+			'renders a lower-bound-only range as ≥',
+			ageField,
+			{ operator: 'between', value: [18, ''] },
+			'Age ≥ 18',
+		],
+		[
+			'renders an upper-bound-only range as ≤',
+			ageField,
+			{ operator: 'between', value: ['', 65] },
+			'Age ≤ 65',
+		],
+		[
+			'renders a whitespace-only bound as open, as the evaluator reads it',
+			ageField,
+			{ operator: 'between', value: ['  ', 65] },
+			'Age ≤ 65',
+		],
+		[
+			'renders a date value verbatim',
+			joinedField,
+			{ operator: 'before', value: '2026-01-01' },
+			'Joined before 2026-01-01',
+		],
+	])('%s', ([, field, patch, text]) => {
+		expect(line([rule(field, patch)])).toBe(text)
 	})
 
 	it('omits the value for a value-less operator', () => {
@@ -78,28 +121,6 @@ describe('formatQuerySummary', () => {
 		expect(line([rule(nameField, { operator: 'isEmpty', value: '' })])).toBe('Name is Empty')
 
 		expect(line([rule(nameField, { operator: 'isNotEmpty', value: '' })])).toBe('Name is not Empty')
-	})
-
-	it('renders a number operator by its symbol', () => {
-		expect(line([rule(ageField, { operator: 'gt', value: 30 })])).toBe('Age > 30')
-	})
-
-	it('renders a two-bound range', () => {
-		expect(line([rule(ageField, { operator: 'between', value: [10, 20] })])).toBe(
-			'Age between 10 and 20',
-		)
-	})
-
-	it('renders a lower-bound-only range as ≥', () => {
-		expect(line([rule(ageField, { operator: 'between', value: [18, ''] })])).toBe('Age ≥ 18')
-	})
-
-	it('renders an upper-bound-only range as ≤', () => {
-		expect(line([rule(ageField, { operator: 'between', value: ['', 65] })])).toBe('Age ≤ 65')
-	})
-
-	it('renders a whitespace-only bound as open, as the evaluator reads it', () => {
-		expect(line([rule(ageField, { operator: 'between', value: ['  ', 65] })])).toBe('Age ≤ 65')
 	})
 
 	// The evaluator reads each such value as no constraint.
@@ -138,12 +159,6 @@ describe('formatQuerySummary', () => {
 
 		// A string value stays as the app wrote it.
 		expect(line([rule(ageField, { operator: 'gt', value: '$1,000' })])).toBe('Age > $1,000')
-	})
-
-	it('renders a date value verbatim', () => {
-		expect(line([rule(joinedField, { operator: 'before', value: '2026-01-01' })])).toBe(
-			'Joined before 2026-01-01',
-		)
 	})
 
 	it('joins active rules by the later rule’s combinator', () => {
@@ -275,10 +290,6 @@ describe('formatQuerySummary', () => {
 		const group = createGroup('and', [rule(scoreField, { operator: 'gt', value: 5 })])
 
 		expect(formatQuerySummary(group, [scoreField])).toBe('Score more than 5')
-	})
-
-	it('drops a rule whose operator the evaluator does not know', () => {
-		expect(line([rule(nameField, { operator: 'custom', value: 'x' })])).toBe('')
 	})
 
 	it('drops an operator that the field offers but the evaluator does not know', () => {

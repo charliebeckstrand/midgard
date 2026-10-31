@@ -16,6 +16,39 @@ function makeStream(...chunks: (string | ChatPart[])[]): ChatTransport {
 		})()
 }
 
+/** A transport that yields the given chunks in order, and then throws. */
+function streamThenFail(...chunks: (string | ChatPart[])[]): ChatTransport {
+	return () =>
+		(async function* () {
+			for (const chunk of chunks) yield chunk
+
+			throw new Error('gateway down')
+		})()
+}
+
+/**
+ * A transport that yields `before`, waits for `gate`, and then yields `after`.
+ * Each call to the transport makes a new stream on the same gate.
+ */
+function gatedStream(before: (string | ChatPart[])[], after: (string | ChatPart[])[]) {
+	const gate = deferred()
+
+	const transport = vi.fn<ChatTransport>(() =>
+		(async function* () {
+			for (const chunk of before) yield chunk
+
+			await gate.promise
+
+			for (const chunk of after) yield chunk
+		})(),
+	)
+
+	/** The signal of the last call to the transport. */
+	const signal = () => transport.mock.lastCall?.[1]
+
+	return { transport, gate, signal }
+}
+
 /** A stream that fails before its first chunk. */
 function failingStream(message: string): AsyncIterable<string> {
 	return {
@@ -142,6 +175,8 @@ describe('useChatSend', () => {
 	})
 
 	it('appends the user message and streams the assistant reply, keeping the last snapshot', async () => {
+		// The compatibility claim. A transport written before parts existed yields
+		// strings, and the reply it builds stays a string.
 		const onSent = vi.fn()
 
 		const { result } = renderHook(() =>
@@ -338,19 +373,7 @@ describe('useChatSend', () => {
 	})
 
 	it('send/retry/edit no-op while a send is already in flight', async () => {
-		const calls: string[] = []
-
-		const transportGate = deferred()
-
-		const transport: ChatTransport = (content) => {
-			calls.push(content)
-
-			return (async function* () {
-				await transportGate.promise
-
-				yield 'reply'
-			})()
-		}
+		const { transport, gate } = gatedStream([], ['reply'])
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -378,11 +401,11 @@ describe('useChatSend', () => {
 
 		// Only the original send reached the transport; retry/edit/the second
 		// send all no-opped while it was still in flight.
-		expect(calls).toEqual(['hi'])
+		expect(transport).toHaveBeenCalledExactlyOnceWith('hi', expect.any(AbortSignal))
 
 		expect(result.current.messages[0]).toMatchObject({ content: 'hi' })
 
-		transportGate.resolve()
+		gate.resolve()
 
 		await act(async () => {
 			await firstSend
@@ -400,21 +423,7 @@ describe('useChatSend', () => {
 
 		const onSent = vi.fn()
 
-		let capturedSignal: AbortSignal | undefined
-
-		const secondGate = deferred()
-
-		const transport: ChatTransport = (_content, signal) => {
-			capturedSignal = signal
-
-			return (async function* () {
-				yield 'first'
-
-				await secondGate.promise
-
-				yield 'second'
-			})()
-		}
+		const { transport, gate, signal } = gatedStream(['first'], ['second'])
 
 		const { result } = renderHook(() => useChatSend({ transport, onError, onSent }))
 
@@ -430,9 +439,9 @@ describe('useChatSend', () => {
 			result.current.stop()
 		})
 
-		expect(capturedSignal?.aborted).toBe(true)
+		expect(signal()?.aborted).toBe(true)
 
-		secondGate.resolve()
+		gate.resolve()
 
 		await act(async () => {
 			await sendPromise
@@ -450,19 +459,7 @@ describe('useChatSend', () => {
 	})
 
 	it('sends once when two sends land before the next render', async () => {
-		const calls: string[] = []
-
-		const gate = deferred()
-
-		const transport: ChatTransport = (content) => {
-			calls.push(content)
-
-			return (async function* () {
-				await gate.promise
-
-				yield 'reply'
-			})()
-		}
+		const { transport, gate } = gatedStream([], ['reply'])
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -480,27 +477,13 @@ describe('useChatSend', () => {
 			await first
 		})
 
-		expect(calls).toEqual(['a'])
+		expect(transport).toHaveBeenCalledExactlyOnceWith('a', expect.any(AbortSignal))
 	})
 
 	it('aborts the in-flight reply on unmount', async () => {
-		let capturedSignal: AbortSignal | undefined
-
-		const gate = deferred()
+		const { transport, gate, signal } = gatedStream(['first'], ['second'])
 
 		const onSent = vi.fn()
-
-		const transport: ChatTransport = (_content, signal) => {
-			capturedSignal = signal
-
-			return (async function* () {
-				yield 'first'
-
-				await gate.promise
-
-				yield 'second'
-			})()
-		}
 
 		const { result, unmount } = renderHook(() => useChatSend({ transport, onSent }))
 
@@ -514,7 +497,7 @@ describe('useChatSend', () => {
 
 		unmount()
 
-		expect(capturedSignal?.aborted).toBe(true)
+		expect(signal()?.aborted).toBe(true)
 
 		gate.resolve()
 
@@ -524,14 +507,7 @@ describe('useChatSend', () => {
 	})
 
 	it('stop before the first chunk leaves no empty reply', async () => {
-		const gate = deferred()
-
-		const transport: ChatTransport = () =>
-			(async function* () {
-				await gate.promise
-
-				yield 'late'
-			})()
+		const { transport, gate } = gatedStream([], ['late'])
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -557,17 +533,8 @@ describe('useChatSend', () => {
 	})
 
 	it('stop ends the send at once when the transport ignores the signal', async () => {
-		const gate = deferred()
-
-		const transport: ChatTransport = () =>
-			(async function* () {
-				yield 'first'
-
-				// The stream waits for its next chunk and does not read the signal.
-				await gate.promise
-
-				yield 'second'
-			})()
+		// The stream waits for its next chunk and does not read the signal.
+		const { transport, gate } = gatedStream(['first'], ['second'])
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -748,27 +715,10 @@ describe('useChatSend over a stream of parts', () => {
 		])
 	})
 
-	it('leaves a string-only transport rendering exactly as it did', async () => {
-		// The compatibility claim. A transport written before parts existed yields
-		// strings, and the reply it builds stays a string.
-		const { result } = renderHook(() => useChatSend({ transport: makeStream('Hel', 'Hello') }))
-
-		await act(async () => {
-			await result.current.send('hi')
-		})
-
-		expect(result.current.messages.at(-1)?.content).toBe('Hello')
-	})
-
 	it('rolls a failed send back when the reply arrived as no block at all', async () => {
-		const transport: ChatTransport = () =>
-			(async function* () {
-				yield []
-
-				throw new Error('gateway down')
-			})()
-
-		const { result } = renderHook(() => useChatSend({ transport, onError: () => {} }))
+		const { result } = renderHook(() =>
+			useChatSend({ transport: streamThenFail([]), onError: () => {} }),
+		)
 
 		await act(async () => {
 			await result.current.send('hi')
@@ -782,14 +732,9 @@ describe('useChatSend over a stream of parts', () => {
 	it('keeps a reply that arrived as a block when the send then fails', async () => {
 		// `isEmptyContent` reads structure, so a chart with no prose around it is a
 		// reply that landed and the rollback must not discard it.
-		const transport: ChatTransport = () =>
-			(async function* () {
-				yield [chart]
-
-				throw new Error('gateway down')
-			})()
-
-		const { result } = renderHook(() => useChatSend({ transport, onError: () => {} }))
+		const { result } = renderHook(() =>
+			useChatSend({ transport: streamThenFail([chart]), onError: () => {} }),
+		)
 
 		await act(async () => {
 			await result.current.send('hi')
@@ -849,14 +794,9 @@ describe('useChatSend settling a running step', () => {
 	})
 
 	it('marks it failed when the transport throws after opening it', async () => {
-		const transport: ChatTransport = () =>
-			(async function* () {
-				yield [running]
-
-				throw new Error('gateway down')
-			})()
-
-		const { result } = renderHook(() => useChatSend({ transport, onError: () => {} }))
+		const { result } = renderHook(() =>
+			useChatSend({ transport: streamThenFail([running]), onError: () => {} }),
+		)
 
 		await act(async () => {
 			await result.current.send('which are late?')
@@ -866,16 +806,10 @@ describe('useChatSend settling a running step', () => {
 	})
 
 	it('marks it failed when the reader stops the reply', async () => {
-		const gate = deferred()
-
-		const transport: ChatTransport = () =>
-			(async function* () {
-				yield [running]
-
-				await gate.promise
-
-				yield [{ ...running, status: 'done' } satisfies ChatToolPart]
-			})()
+		const { transport, gate } = gatedStream(
+			[[running]],
+			[[{ ...running, status: 'done' } satisfies ChatToolPart]],
+		)
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 

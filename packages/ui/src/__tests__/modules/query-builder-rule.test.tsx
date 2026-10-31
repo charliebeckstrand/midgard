@@ -141,36 +141,37 @@ describe('QueryBuilderRule', () => {
 		})
 	})
 
-	it('keeps the value when the operator changes to one of the same arity', () => {
-		const { actions } = renderRule(makeRule({ field: 'age', operator: 'equals', value: 5 }))
+	it.for<{ name: string; start: Partial<QueryRule>; label: string; patch: Partial<QueryRule> }>([
+		{
+			name: 'keeps the value when the operator changes to one of the same arity',
+			start: { operator: 'equals', value: 5 },
+			label: '>',
+			patch: { operator: 'gt' },
+		},
+		{
+			name: 'resets the value to an empty pair when the operator changes to a range',
+			start: { operator: 'equals', value: 5 },
+			label: 'Between',
+			patch: { operator: 'between', value: ['', ''] },
+		},
+		{
+			name: 'resets the value to an empty string when the operator changes from a range',
+			start: { operator: 'between', value: [1, 9] },
+			label: '=',
+			patch: { operator: 'equals', value: '' },
+		},
+		{
+			name: 'reads an unknown current operator as a scalar, so a scalar pick keeps the value',
+			start: { operator: 'gone', value: 5 },
+			label: '<',
+			patch: { operator: 'lt' },
+		},
+	])('$name', ({ start, label, patch }) => {
+		const { actions } = renderRule(makeRule({ field: 'age', ...start }))
 
-		pick('Operator', '>')
+		pick('Operator', label)
 
-		expect(actions.updateRule).toHaveBeenCalledWith('r1', { operator: 'gt' })
-	})
-
-	it('resets the value to an empty pair when the operator changes to a range', () => {
-		const { actions } = renderRule(makeRule({ field: 'age', operator: 'equals', value: 5 }))
-
-		pick('Operator', 'Between')
-
-		expect(actions.updateRule).toHaveBeenCalledWith('r1', { operator: 'between', value: ['', ''] })
-	})
-
-	it('resets the value to an empty string when the operator changes from a range', () => {
-		const { actions } = renderRule(makeRule({ field: 'age', operator: 'between', value: [1, 9] }))
-
-		pick('Operator', '=')
-
-		expect(actions.updateRule).toHaveBeenCalledWith('r1', { operator: 'equals', value: '' })
-	})
-
-	it('reads an unknown current operator as a scalar, so a scalar pick keeps the value', () => {
-		const { actions } = renderRule(makeRule({ field: 'age', operator: 'gone', value: 5 }))
-
-		pick('Operator', '<')
-
-		expect(actions.updateRule).toHaveBeenCalledWith('r1', { operator: 'lt' })
+		expect(actions.updateRule).toHaveBeenCalledWith('r1', patch)
 	})
 
 	it('writes an edit of the value editor to the rule', () => {

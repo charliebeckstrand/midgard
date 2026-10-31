@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
+	type DashboardLayoutItem,
 	type DashboardSpecTile,
 	DashboardTile,
 	DashboardTiles,
@@ -17,19 +19,24 @@ import {
 
 stubCanvasWidth()
 
+/** Renders a controlled board in edit mode that holds `tile`, and gives its `onLayout` spy. */
+function renderLimited(initial: DashboardLayoutItem[], tile: ReactNode) {
+	const onLayout = vi.fn()
+
+	renderUI(
+		<ControlledDashboard aria-label="Board" editing initial={initial} onLayout={onLayout}>
+			{tile}
+		</ControlledDashboard>,
+	)
+
+	return onLayout
+}
+
 describe('DashboardTile limits', () => {
 	it('stops a keyboard resize at maxSize, and commits nothing past it', () => {
-		const onLayout = vi.fn()
-
-		renderUI(
-			<ControlledDashboard
-				aria-label="Board"
-				editing
-				initial={[{ id: 'a', x: 0, y: 0, w: 9, h: 10 }]}
-				onLayout={onLayout}
-			>
-				<DashboardTile id="a" minWidth={0} maxSize={{ w: 10, h: 11 }} />
-			</ControlledDashboard>,
+		const onLayout = renderLimited(
+			[{ id: 'a', x: 0, y: 0, w: 9, h: 10 }],
+			<DashboardTile id="a" minWidth={0} maxSize={{ w: 10, h: 11 }} />,
 		)
 
 		pressSplitter('a', 0, 'ArrowRight')
@@ -46,17 +53,9 @@ describe('DashboardTile limits', () => {
 	})
 
 	it('reads a minWidth that is not a usable number as no floor, so a resize commits a width', () => {
-		const onLayout = vi.fn()
-
-		renderUI(
-			<ControlledDashboard
-				aria-label="Board"
-				editing
-				initial={[{ id: 'a', x: 0, y: 0, w: 5, h: 9 }]}
-				onLayout={onLayout}
-			>
-				<DashboardTile id="a" minWidth={Number.NaN} />
-			</ControlledDashboard>,
+		const onLayout = renderLimited(
+			[{ id: 'a', x: 0, y: 0, w: 5, h: 9 }],
+			<DashboardTile id="a" minWidth={Number.NaN} />,
 		)
 
 		pressSplitter('a', 0, 'ArrowRight')
@@ -65,17 +64,9 @@ describe('DashboardTile limits', () => {
 	})
 
 	it('stops a keyboard resize at minSize', () => {
-		const onLayout = vi.fn()
-
-		renderUI(
-			<ControlledDashboard
-				aria-label="Board"
-				editing
-				initial={[{ id: 'a', x: 0, y: 0, w: 5, h: 9 }]}
-				onLayout={onLayout}
-			>
-				<DashboardTile id="a" minWidth={0} minSize={{ w: 4, h: 8 }} />
-			</ControlledDashboard>,
+		const onLayout = renderLimited(
+			[{ id: 'a', x: 0, y: 0, w: 5, h: 9 }],
+			<DashboardTile id="a" minWidth={0} minSize={{ w: 4, h: 8 }} />,
 		)
 
 		for (let press = 0; press < 3; press += 1) {
@@ -90,18 +81,10 @@ describe('DashboardTile limits', () => {
 	})
 
 	it('floors the width at the span that minWidth needs when it is larger', () => {
-		const onLayout = vi.fn()
-
 		// At a 50 px pitch and a 12 px gap, 320 px needs 7 columns.
-		renderUI(
-			<ControlledDashboard
-				aria-label="Board"
-				editing
-				initial={[{ id: 'a', x: 0, y: 0, w: 8, h: 10 }]}
-				onLayout={onLayout}
-			>
-				<DashboardTile id="a" minWidth={320} minSize={{ w: 2 }} />
-			</ControlledDashboard>,
+		const onLayout = renderLimited(
+			[{ id: 'a', x: 0, y: 0, w: 8, h: 10 }],
+			<DashboardTile id="a" minWidth={320} minSize={{ w: 2 }} />,
 		)
 
 		pressSplitter('a', 0, 'ArrowLeft')
@@ -256,18 +239,10 @@ describe('DashboardWidget limits', () => {
 	const TILES: DashboardSpecTile[] = [{ id: 'units', widget: 'stat', title: 'Units' }]
 
 	it('hands the limits of the kind to each of its tiles', () => {
-		const onLayout = vi.fn()
-
-		renderUI(
+		const onLayout = renderLimited(
+			[{ id: 'units', x: 0, y: 0, w: 5, h: 10 }],
 			<DashboardWidgetProvider widgets={WIDGETS}>
-				<ControlledDashboard
-					aria-label="Board"
-					editing
-					initial={[{ id: 'units', x: 0, y: 0, w: 5, h: 10 }]}
-					onLayout={onLayout}
-				>
-					<DashboardTiles tiles={TILES} />
-				</ControlledDashboard>
+				<DashboardTiles tiles={TILES} />
 			</DashboardWidgetProvider>,
 		)
 

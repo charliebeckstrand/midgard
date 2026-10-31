@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ChoroplethChart } from '../../modules/chart'
+import {
+	ChoroplethChart,
+	type ChoroplethChartProps,
+	type ChoroplethChartSeries,
+} from '../../modules/chart'
 import { binEmphasisId } from '../../modules/map'
 import { LocaleProvider } from '../../providers/locale'
 import { formatFraction } from '../../utilities'
@@ -15,7 +19,9 @@ import {
 } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
-const ROWS = [
+type Row = { region: string; pop: number }
+
+const ROWS: Row[] = [
 	{ region: 'A', pop: 0 },
 	{ region: 'B', pop: 50 },
 	{ region: 'C', pop: 100 },
@@ -23,19 +29,45 @@ const ROWS = [
 
 const RANGE = ['#dbeafe', '#1e3a8a']
 
+/** The one series of most cases: it joins a row by `region` and shades it by `pop`. */
+const SERIES: ChoroplethChartSeries<Row> = { idKey: 'region', colorKey: 'pop', colorRange: RANGE }
+
 const readFill = (el?: Element) => el?.getAttribute('fill')
+
+/** A chart of {@link ROWS} with {@link SERIES}. `extra` replaces or adds props. */
+function chart(extra?: Partial<ChoroplethChartProps<Row>>) {
+	return (
+		<ChoroplethChart
+			aria-label="Population"
+			geography={FIXTURE_GEOJSON}
+			data={ROWS}
+			series={[SERIES]}
+			width={400}
+			{...extra}
+		/>
+	)
+}
+
+/** The text of each body cell of the data table. */
+function tableCells(container: HTMLElement): (string | null)[] {
+	return [...(bySlot(container, 'map-table')?.querySelectorAll('tbody td') ?? [])].map(
+		(cell) => cell.textContent,
+	)
+}
+
+/** Gives the range track a box 20 px wide and 99 px high, and returns the track. */
+function stubTrack(container: HTMLElement): HTMLElement {
+	const track = getSlot(container, 'map-range-track')
+
+	track.getBoundingClientRect = () =>
+		({ left: 0, top: 0, width: 20, height: 99, right: 20, bottom: 99, x: 0, y: 0 }) as DOMRect
+
+	return track
+}
 
 describe('ChoroplethChart', () => {
 	it('shades regions from the series colorRange, joined by idKey / colorKey', () => {
-		const { container } = renderUI(
-			<ChoroplethChart
-				aria-label="Population"
-				geography={FIXTURE_GEOJSON}
-				data={ROWS}
-				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE, colorName: 'Population' }]}
-				width={400}
-			/>,
-		)
+		const { container } = renderUI(chart({ series: [{ ...SERIES, colorName: 'Population' }] }))
 
 		const regions = allRegions(container)
 
@@ -55,19 +87,9 @@ describe('ChoroplethChart', () => {
 	})
 
 	it('reads each region its own value in the table, not the bin range it colors in', () => {
-		const { container } = renderUI(
-			<ChoroplethChart
-				aria-label="Population"
-				geography={FIXTURE_GEOJSON}
-				data={ROWS}
-				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE, colorName: 'Population' }]}
-				width={400}
-			/>,
-		)
+		const { container } = renderUI(chart({ series: [{ ...SERIES, colorName: 'Population' }] }))
 
-		const cells = [...(bySlot(container, 'map-table')?.querySelectorAll('tbody td') ?? [])].map(
-			(td) => td.textContent,
-		)
+		const cells = tableCells(container)
 
 		// A region reads its own total (its bin only drives the color): 0 / 50 / 100,
 		// never the bucket range string a `format(lo)–format(hi)` bin label would emit.
@@ -77,31 +99,14 @@ describe('ChoroplethChart', () => {
 	})
 
 	it('defaults its legend to the right', () => {
-		const { container } = renderUI(
-			<ChoroplethChart
-				aria-label="Population"
-				geography={FIXTURE_GEOJSON}
-				data={ROWS}
-				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
-				width={400}
-			/>,
-		)
+		const { container } = renderUI(chart())
 
 		// Beside the plot: the reserved side-panel column.
 		expect(bySlot(container, 'map-legend-box')?.getAttribute('class')).toContain('lg:w-48')
 	})
 
 	it('renders the continuous range scale bar under legend="range"', () => {
-		const { container } = renderUI(
-			<ChoroplethChart
-				aria-label="Population"
-				legend="range"
-				geography={FIXTURE_GEOJSON}
-				data={ROWS}
-				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
-				width={400}
-			/>,
-		)
+		const { container } = renderUI(chart({ legend: 'range' }))
 
 		expect(bySlot(container, 'map-range-legend')).not.toBeNull()
 
@@ -113,16 +118,7 @@ describe('ChoroplethChart', () => {
 	it('reports a region click, with its id and feature index', () => {
 		const onRegionClick = vi.fn()
 
-		const { container } = renderUI(
-			<ChoroplethChart
-				aria-label="Population"
-				geography={FIXTURE_GEOJSON}
-				data={ROWS}
-				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
-				width={400}
-				onRegionClick={onRegionClick}
-			/>,
-		)
+		const { container } = renderUI(chart({ onRegionClick }))
 
 		const [, beta] = allRegions(container)
 
@@ -132,16 +128,7 @@ describe('ChoroplethChart', () => {
 	})
 
 	it('rings the selected region, the pick that a click reports', () => {
-		const { container } = renderUI(
-			<ChoroplethChart
-				aria-label="Population"
-				geography={FIXTURE_GEOJSON}
-				data={ROWS}
-				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
-				width={400}
-				selectedRegion="B"
-			/>,
-		)
+		const { container } = renderUI(chart({ selectedRegion: 'B' }))
 
 		const [, beta] = allRegions(container)
 
@@ -153,16 +140,7 @@ describe('ChoroplethChart', () => {
 	it('reports the bins that its legend switches off', () => {
 		const onHiddenChange = vi.fn()
 
-		const { container } = renderUI(
-			<ChoroplethChart
-				aria-label="Population"
-				geography={FIXTURE_GEOJSON}
-				data={ROWS}
-				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
-				width={400}
-				onHiddenChange={onHiddenChange}
-			/>,
-		)
+		const { container } = renderUI(chart({ onHiddenChange }))
 
 		// The legend lists the bins high to low, so its first entry is the top bin.
 		const [top] = allBySlot(container, 'map-legend-item')
@@ -173,15 +151,7 @@ describe('ChoroplethChart', () => {
 	})
 
 	it('draws the data-less map with no series', () => {
-		const { container } = renderUI(
-			<ChoroplethChart
-				aria-label="Population"
-				geography={FIXTURE_GEOJSON}
-				data={ROWS}
-				series={[]}
-				width={400}
-			/>,
-		)
+		const { container } = renderUI(chart({ series: [] }))
 
 		const regions = allRegions(container)
 
@@ -215,14 +185,7 @@ function openMenu(container: HTMLElement): void {
 describe('ChoroplethChart context menu', () => {
 	it('offers the chart family’s default actions on a right-click', () => {
 		const { container } = renderUI(
-			<ChoroplethChart
-				aria-label="Population"
-				title="Population by region"
-				geography={FIXTURE_GEOJSON}
-				data={ROWS}
-				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE, colorName: 'Population' }]}
-				width={400}
-			/>,
+			chart({ title: 'Population by region', series: [{ ...SERIES, colorName: 'Population' }] }),
 		)
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
@@ -244,17 +207,12 @@ describe('ChoroplethChart context menu', () => {
 		const onInspect = vi.fn()
 
 		const { container } = renderUI(
-			<ChoroplethChart
-				aria-label="Population"
-				geography={FIXTURE_GEOJSON}
-				data={ROWS}
-				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
-				width={400}
-				contextMenu={{
+			chart({
+				contextMenu: {
 					items: [{ key: 'inspect', label: 'Inspect', onAction: onInspect }],
 					defaultItems: false,
-				}}
-			/>,
+				},
+			}),
 		)
 
 		openMenu(container)
@@ -277,16 +235,7 @@ describe('ChoroplethChart context menu', () => {
 			{ region: 'A', pop: 0 },
 		]
 
-		const { container } = renderUI(
-			<ChoroplethChart
-				aria-label="Population"
-				geography={FIXTURE_GEOJSON}
-				data={data}
-				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
-				width={400}
-				contextMenu={{ items }}
-			/>,
-		)
+		const { container } = renderUI(chart({ data, contextMenu: { items } }))
 
 		const [alpha, , gamma] = allRegions(container)
 
@@ -304,16 +253,7 @@ describe('ChoroplethChart context menu', () => {
 	})
 
 	it('opens a live fullscreen copy that does not nest a second menu', () => {
-		const { container } = renderUI(
-			<ChoroplethChart
-				aria-label="Population"
-				title="Population by region"
-				geography={FIXTURE_GEOJSON}
-				data={ROWS}
-				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
-				width={400}
-			/>,
-		)
+		const { container } = renderUI(chart({ title: 'Population by region' }))
 
 		openMenu(container)
 
@@ -335,16 +275,7 @@ describe('ChoroplethChart context menu', () => {
 	})
 
 	it('leaves the native menu with contextMenu={false}', () => {
-		const { container } = renderUI(
-			<ChoroplethChart
-				aria-label="Population"
-				geography={FIXTURE_GEOJSON}
-				data={ROWS}
-				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
-				width={400}
-				contextMenu={false}
-			/>,
-		)
+		const { container } = renderUI(chart({ contextMenu: false }))
 
 		openMenu(container)
 
@@ -368,9 +299,7 @@ describe('the default value format', () => {
 			/>,
 		)
 
-		const cells = [...(bySlot(container, 'map-table')?.querySelectorAll('tbody td') ?? [])].map(
-			(cell) => cell.textContent,
-		)
+		const cells = tableCells(container)
 
 		expect(cells).toContain(formatFraction(1234.5))
 	})
@@ -397,10 +326,7 @@ describe('the range legend under quantile binning', () => {
 			/>,
 		)
 
-		const track = getSlot(container, 'map-range-track')
-
-		track.getBoundingClientRect = () =>
-			({ left: 0, top: 0, width: 20, height: 99, right: 20, bottom: 99, x: 0, y: 0 }) as DOMRect
+		const track = stubTrack(container)
 
 		// Value 50 sits at (50 − 1) / 99 of the track, measured up from the bottom.
 		fireEvent.pointerMove(track, { clientY: 50 })
@@ -428,10 +354,7 @@ describe('the range legend probe', () => {
 			/>,
 		)
 
-		const track = getSlot(container, 'map-range-track')
-
-		track.getBoundingClientRect = () =>
-			({ left: 0, top: 0, width: 20, height: 99, right: 20, bottom: 99, x: 0, y: 0 }) as DOMRect
+		const track = stubTrack(container)
 
 		// Value 1 sits at the bottom of the track, in the lowest class with 2.
 		fireEvent.pointerMove(track, { clientY: 99 })
@@ -481,10 +404,7 @@ describe('the range legend probe', () => {
 
 		const { container, rerender } = renderUI(chart('range'))
 
-		const track = getSlot(container, 'map-range-track')
-
-		track.getBoundingClientRect = () =>
-			({ left: 0, top: 0, width: 20, height: 99, right: 20, bottom: 99, x: 0, y: 0 }) as DOMRect
+		const track = stubTrack(container)
 
 		fireEvent.pointerMove(track, { clientY: 99 })
 
@@ -532,8 +452,6 @@ describe('the range legend domain under quantile binning', () => {
 })
 
 describe('ChoroplethChart value domain', () => {
-	type Row = { region: string; pop: number }
-
 	function fills(rows: Row[]) {
 		const { container, unmount } = renderUI(
 			<ChoroplethChart
@@ -552,26 +470,19 @@ describe('ChoroplethChart value domain', () => {
 		return out
 	}
 
-	it('ignores a row whose id names no region on the map', () => {
-		const rows: Row[] = [
-			{ region: 'A', pop: 0 },
-			{ region: 'B', pop: 50 },
-			{ region: 'C', pop: 100 },
-		]
-
+	it.for<[string, Row[]]>([
 		// A total row names no region, so it must not stretch the scale.
-		expect(fills([...rows, { region: 'TOTAL', pop: 10_000 }])).toEqual(fills(rows))
-	})
-
-	it('ignores an earlier row that a later row with the same id replaces', () => {
-		const rows: Row[] = [
-			{ region: 'A', pop: 0 },
-			{ region: 'B', pop: 50 },
-			{ region: 'C', pop: 100 },
-		]
-
+		[
+			'ignores a row whose id names no region on the map',
+			[...ROWS, { region: 'TOTAL', pop: 10_000 }],
+		],
 		// Region A joins its last row, so the replaced row must not stretch the scale.
-		expect(fills([{ region: 'A', pop: 10_000 }, ...rows])).toEqual(fills(rows))
+		[
+			'ignores an earlier row that a later row with the same id replaces',
+			[{ region: 'A', pop: 10_000 }, ...ROWS],
+		],
+	])('%s', ([, extended]) => {
+		expect(fills(extended)).toEqual(fills(ROWS))
 	})
 
 	it('draws one class when every region has the same value, as quantile binning does', () => {
@@ -626,9 +537,7 @@ describe('under a LocaleProvider', () => {
 			</LocaleProvider>,
 		)
 
-		const cells = [...(bySlot(container, 'map-table')?.querySelectorAll('tbody td') ?? [])].map(
-			(cell) => cell.textContent,
-		)
+		const cells = tableCells(container)
 
 		expect(cells).toContain('1.234,5')
 	})
