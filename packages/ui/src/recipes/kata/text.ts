@@ -8,6 +8,10 @@
  * shade that clears AA on the page surface, which `tone` also reads. A consumer
  * sets one or the other: tone for emphasis, color for a hue.
  *
+ * `pulse` marks text that reports work in progress, such as an upload. It is
+ * `hannou.busy`: the pulse, with a standing dim in its place for a reader who
+ * asked for less motion.
+ *
  * `size` is a density step from `xs` to `xl` (`text-xs` to `text-xl`). The
  * component writes it as a density scope, and `sized` gives the text the step
  * of that scope. Without `size`, Text takes the size of its parent text, which
@@ -16,7 +20,7 @@
  */
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
-import { dan, iro, kokkaku } from '../kiso'
+import { dan, hannou, iro, kokkaku } from '../kiso'
 
 const { palette, text } = iro
 
@@ -31,7 +35,8 @@ export const k = defineKata(
 			green: palette.bare.green,
 			blue: palette.bare.blue,
 		},
-		defaults: { tone: 'default' },
+		pulse: { true: hannou.busy, false: '' },
+		defaults: { tone: 'default', pulse: false },
 	},
 	{
 		// One line: the `md` line, or the line of the explicit `size`.
@@ -44,8 +49,8 @@ export const k = defineKata(
 /** The size scale of {@link Text}: the steps of its text. */
 export const scale = defineScale(dan.text.chip)
 
-/** Recipe variant props for {@link Text}: the `tone` and `color` axes of its kata, and the `size` step that the component writes as a density scope. */
-export type TextVariants = Omit<VariantProps<typeof k>, 'tone' | 'color'> & {
+/** Recipe variant props for {@link Text}: the `tone`, `color`, and `pulse` axes of its kata, and the `size` step that the component writes as a density scope. */
+export type TextVariants = Omit<VariantProps<typeof k>, 'tone' | 'color' | 'pulse'> & {
 	/** The emphasis of the text, which sets a semantic text color. @defaultValue 'default' */
 	tone?: VariantProps<typeof k>['tone']
 	/**
@@ -54,6 +59,13 @@ export type TextVariants = Omit<VariantProps<typeof k>, 'tone' | 'color'> & {
 	 * @defaultValue No color: the `tone` sets the text color.
 	 */
 	color?: VariantProps<typeof k>['color']
+	/**
+	 * Pulses the text while the work that it reports is in progress, such as an
+	 * upload. For a reader who asked for less motion, the text stays dim in place
+	 * of the pulse.
+	 * @defaultValue false
+	 */
+	pulse?: boolean
 	/**
 	 * The density step. Omit it to take the size of the parent. A step makes the
 	 * text a density scope, so its children take the step too.

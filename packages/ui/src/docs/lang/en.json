@@ -6757,7 +6757,7 @@
 	},
 	"docs.prop.pulse": {
 		"defaultMessage": "Pulse",
-		"description": "The label of a field of a playground in the docs. The field sets the prop pulse of Placeholder, StatusDot."
+		"description": "The label of a field of a playground in the docs. The field sets the prop pulse of Placeholder, StatusDot, Text."
 	},
 	"docs.prop.px": {
 		"defaultMessage": "Px",
