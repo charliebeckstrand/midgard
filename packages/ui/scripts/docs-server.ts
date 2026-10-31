@@ -21,6 +21,8 @@
  * A text file, such as HTML, a script, or a stylesheet, goes compressed with
  * brotli, or with gzip for a client that takes no brotli ({@link pickEncoding}).
  * The server compresses each file one time, and keeps the result in memory.
+ * Each file that is found has an entity tag, so a client that has a current
+ * copy gets 304 and no body ({@link isFresh}).
  *
  * The service sets `HOST` and `PORT`. It runs the server as one JavaScript
  * file, which `docs:build-server` writes (`vite.docs-server.config.ts`).
@@ -251,6 +253,28 @@ function cacheHeaders(file: string): Record<string, string> {
 		: { 'cache-control': control }
 }
 
+/**
+ * The validator of `file`: a weak entity tag from the size and the time of the
+ * file. Each body of the file, in each coding, is the same content, so one weak
+ * tag covers all of them. A new build writes the file again, which changes the
+ * tag.
+ */
+export function entityTag({ size, mtimeMs }: { size: number; mtimeMs: number }): string {
+	return `W/"${size.toString(16)}-${Math.trunc(mtimeMs).toString(16)}"`
+}
+
+/**
+ * Whether the copy that a client has is current: its `If-None-Match` header
+ * names `etag`, or is `*`. The comparison is weak, so `W/` does not count.
+ */
+export function isFresh(ifNoneMatch: string | undefined, etag: string): boolean {
+	if (!ifNoneMatch) return false
+
+	const opaque = (tag: string) => tag.trim().replace(/^W\//, '')
+
+	return ifNoneMatch.split(',').some((tag) => tag.trim() === '*' || opaque(tag) === opaque(etag))
+}
+
 /** Answer a request with the file of its path. */
 async function respond(request: IncomingMessage, response: ServerResponse): Promise<void> {
 	if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -274,9 +298,30 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 
 	const type = TYPES[path.extname(file)] ?? 'application/octet-stream'
 
-	const encoding = pickEncoding(file, request.headers['accept-encoding'])
+	const missing = isFallback(file)
 
 	// A file that the server cannot read gives 500, and the server keeps running.
+	const stats = await stat(file).catch(() => undefined)
+
+	if (stats === undefined) {
+		response.writeHead(500).end()
+
+		return
+	}
+
+	// A file that the client has a current copy of gets 304 and no body, so a
+	// reload of a page does not download the page again. The not-found page
+	// has no validator.
+	const etag = missing ? undefined : entityTag(stats)
+
+	if (etag !== undefined && isFresh(request.headers['if-none-match'], etag)) {
+		response.writeHead(304, { etag, ...cacheHeaders(file) }).end()
+
+		return
+	}
+
+	const encoding = pickEncoding(file, request.headers['accept-encoding'])
+
 	const body = await readBody(file, encoding).catch(() => undefined)
 
 	if (body === undefined) {
@@ -285,9 +330,10 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 		return
 	}
 
-	response.writeHead(isFallback(file) ? 404 : 200, {
+	response.writeHead(missing ? 404 : 200, {
 		'content-type': type,
 		'content-length': body.length,
+		...(etag && { etag }),
 		...(encoding && { 'content-encoding': encoding }),
 		...cacheHeaders(file),
 	})

@@ -4,11 +4,18 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { brotliDecompressSync, gunzipSync } from 'node:zlib'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { isFallback, pickEncoding, readBody } from '../../../scripts/docs-server.ts'
+import {
+	entityTag,
+	isFallback,
+	isFresh,
+	pickEncoding,
+	readBody,
+} from '../../../scripts/docs-server.ts'
 
 // The server of the docs compresses each text file of the build, as a CDN
 // does, so a page does not cost the reader its full size. A path with no file
-// and no page gets the not-found page with status 404.
+// and no page gets the not-found page with status 404. A client with a current
+// copy of a file gets 304 and no body.
 
 describe('pickEncoding', () => {
 	it('takes brotli, else gzip, for a text file', () => {
@@ -49,6 +56,42 @@ describe('isFallback', () => {
 		expect(isFallback('/client/button/index.html')).toBe(false)
 
 		expect(isFallback('/client/assets/entry.client-Bef1esA1.js')).toBe(false)
+	})
+})
+
+describe('entityTag', () => {
+	it('gives a weak tag that changes with the size and the time of the file', () => {
+		const tag = entityTag({ size: 314_306, mtimeMs: 1_793_416_000_123.456 })
+
+		expect(tag).toMatch(/^W\/"[\da-f]+-[\da-f]+"$/)
+
+		expect(entityTag({ size: 314_306, mtimeMs: 1_793_416_000_123.456 })).toBe(tag)
+
+		expect(entityTag({ size: 314_307, mtimeMs: 1_793_416_000_123.456 })).not.toBe(tag)
+
+		expect(entityTag({ size: 314_306, mtimeMs: 1_793_416_000_124 })).not.toBe(tag)
+	})
+})
+
+describe('isFresh', () => {
+	const tag = 'W/"4cbc2-19a3b1c2d3e"'
+
+	it('takes a header that names the tag, with or without W/', () => {
+		expect(isFresh(tag, tag)).toBe(true)
+
+		expect(isFresh('"4cbc2-19a3b1c2d3e"', tag)).toBe(true)
+
+		expect(isFresh('W/"old", W/"4cbc2-19a3b1c2d3e"', tag)).toBe(true)
+
+		expect(isFresh('*', tag)).toBe(true)
+	})
+
+	it('refuses a missing header or another tag', () => {
+		expect(isFresh(undefined, tag)).toBe(false)
+
+		expect(isFresh('', tag)).toBe(false)
+
+		expect(isFresh('W/"4cbc2-19a3b1c2d3f"', tag)).toBe(false)
 	})
 })
 
