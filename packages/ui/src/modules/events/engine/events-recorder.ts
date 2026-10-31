@@ -103,12 +103,26 @@ export function halt(): void {
 
 /**
  * Writes the separator and the reading of a page load. The separator names
- * the type of the navigation, or `cause` when it is given.
+ * the type of the navigation, or `cause` when it is given. A page load
+ * without a cause also writes the first byte and the end of the HTML at
+ * their times, so the lines show the request before the paint source writes
+ * `first-contentful-paint`.
  */
 export function begin(target: EventStore, cause?: string): void {
 	const [navigation] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
 
 	target.addSeparator(`──── ${cause ?? navigation?.type ?? 'load'} ${location.pathname}`)
+
+	if (!cause && navigation) {
+		// A time of 0 is a time that the browser does not give.
+		if (navigation.responseStart > 0) {
+			target.add(toEntry({ kind: 'load', text: 'first byte', time: navigation.responseStart }))
+		}
+
+		if (navigation.responseEnd > 0) {
+			target.add(toEntry({ kind: 'load', text: 'end of HTML', time: navigation.responseEnd }))
+		}
+	}
 
 	target.add(toEntry({ kind: 'load', text: 'viewport', detail: readViewport() }))
 }

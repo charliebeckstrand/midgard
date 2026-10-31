@@ -52,12 +52,32 @@ describe('begin', () => {
 		})
 	})
 
-	it('names the cause in place of the navigation type', () => {
+	it('writes the first byte and the end of the HTML at their times', () => {
+		vi.spyOn(performance, 'getEntriesByType').mockReturnValue([
+			{ type: 'reload', responseStart: 120.4, responseEnd: 180.6 },
+		] as unknown as PerformanceEntryList)
+
+		const store = new EventStore(createStorage())
+
+		begin(store)
+
+		expect(store.entries.slice(0, 3)).toMatchObject([
+			{ kind: 'load', text: `──── reload ${location.pathname}`, time: 0 },
+			{ kind: 'load', text: 'first byte', time: 120 },
+			{ kind: 'load', text: 'end of HTML', time: 181 },
+		])
+	})
+
+	it('names the cause in place of the navigation type, and writes no times of the navigation', () => {
+		vi.spyOn(performance, 'getEntriesByType').mockReturnValue([
+			{ type: 'reload', responseStart: 120, responseEnd: 180 },
+		] as unknown as PerformanceEntryList)
+
 		const store = new EventStore(createStorage())
 
 		begin(store, 'on')
 
-		expect(texts(store)[0]).toBe(`──── on ${location.pathname}`)
+		expect(texts(store)).toEqual([`──── on ${location.pathname}`, 'viewport'])
 	})
 })
 
