@@ -34,16 +34,19 @@
 
 import { generateKeyPairSync, sign, X509Certificate } from 'node:crypto'
 import { existsSync, writeFileSync } from 'node:fs'
-import { readFile } from 'node:fs/promises'
 import { createSecureServer, type Http2ServerResponse, type SecureServerOptions } from 'node:http2'
 import path from 'node:path'
-import { parseArgs, promisify } from 'node:util'
-import { brotliCompress, constants } from 'node:zlib'
+import { parseArgs } from 'node:util'
 import { type Browser, type CDPSession, chromium, type Locator, type Page } from 'playwright'
-import { getOrCompute } from '../src/utilities/get-or-compute'
-import { CLIENT_DIR, HYDRATED, listen, resolveFile, TYPES } from './docs-server'
-
-const brotli = promisify(brotliCompress)
+import {
+	CLIENT_DIR,
+	HYDRATED,
+	listen,
+	pickEncoding,
+	readBody,
+	resolveFile,
+	TYPES,
+} from './docs-server'
 
 const PAGE = '/button'
 
@@ -229,9 +232,6 @@ const KEY_GAP = 120
 /** The time that the reader takes to read a short list of results before a pick. */
 const READ = 600
 
-/** The kinds of file that the server sends with brotli. */
-const COMPRESSED = new Set(['.css', '.html', '.js', '.json', '.svg'])
-
 type Sample = {
 	fcp: number
 	lcp: number
@@ -328,19 +328,6 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 		throw new Error(`Build the docs app first: no build is at ${CLIENT_DIR}.`)
 	}
 
-	// The server compresses each file once, as a CDN keeps the compressed file.
-	const bodies = new Map<string, Promise<Buffer>>()
-
-	const getBody = (file: string, compress: boolean): Promise<Buffer> => {
-		const key = `${compress ? 'br' : 'raw'}:${file}`
-
-		return getOrCompute(bodies, key, () =>
-			readFile(file).then((data) =>
-				compress ? brotli(data, { params: { [constants.BROTLI_PARAM_QUALITY]: 9 } }) : data,
-			),
-		)
-	}
-
 	const downlink = createDownlink(DOWNLOAD_RATE)
 
 	const server = createSecureServer(tls, async (request, response) => {
@@ -354,10 +341,10 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 
 		const extension = path.extname(file)
 
-		const compress =
-			COMPRESSED.has(extension) && String(request.headers['accept-encoding']).includes('br')
+		// The server of the docs compresses each file one time, as a CDN does.
+		const encoding = pickEncoding(file, request.headers['accept-encoding'])
 
-		const body = await getBody(file, compress)
+		const body = await readBody(file, encoding)
 
 		// The browser closes the streams of a run that ends.
 		if (response.stream.closed) return
@@ -368,7 +355,7 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 			'cache-control': request.url.startsWith('/assets/')
 				? 'public, max-age=31536000, immutable'
 				: 'no-cache',
-			...(compress ? { 'content-encoding': 'br' } : {}),
+			...(encoding && { 'content-encoding': encoding }),
 		})
 
 		downlink.send({

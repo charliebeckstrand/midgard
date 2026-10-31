@@ -17,6 +17,10 @@
  * pnpm --filter ui docs:preview   # http://localhost:3456
  * ```
  *
+ * A text file, such as HTML, a script, or a stylesheet, goes compressed with
+ * brotli, or with gzip for a client that takes no brotli ({@link pickEncoding}).
+ * The server compresses each file one time, and keeps the result in memory.
+ *
  * The service sets `HOST` and `PORT`. It runs the server as one JavaScript
  * file, which `docs:build-server` writes (`vite.docs-server.config.ts`).
  */
@@ -27,7 +31,14 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import type { AddressInfo, Server as NetServer } from 'node:net'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { promisify } from 'node:util'
+import { brotliCompress, constants, gzip } from 'node:zlib'
 import { localeFile, requestLocale } from '../src/docs/app/language.ts'
+import { getOrCompute } from '../src/utilities/get-or-compute.ts'
+
+const brotli = promisify(brotliCompress)
+
+const gzipAsync = promisify(gzip)
 
 /** The client directory of the docs build. */
 export const CLIENT_DIR = path.resolve(import.meta.dirname, '..', 'src', 'docs', 'dist', 'client')
@@ -75,6 +86,70 @@ export const TYPES: Record<string, string> = {
 	'.pdf': 'application/pdf',
 	'.svg': 'image/svg+xml',
 	'.woff2': 'font/woff2',
+}
+
+/**
+ * The kinds of file that the server compresses. The other kinds in a build,
+ * such as a font or a PDF file, are compressed in their own format.
+ */
+const COMPRESSED = new Set(['.css', '.html', '.js', '.json', '.svg'])
+
+/** The content codings of the server, in the order that it prefers them. */
+const ENCODINGS = ['br', 'gzip'] as const
+
+/** A content coding of the server. */
+export type Encoding = (typeof ENCODINGS)[number]
+
+/**
+ * The content coding of `file` for a request whose `Accept-Encoding` header is
+ * `header`: brotli when the client takes it, else gzip, else none. A file that
+ * the server does not compress has none. A coding with the weight `q=0` is
+ * not taken, and `*` gives its weight to each coding that the header does not
+ * name.
+ */
+export function pickEncoding(file: string, header: string | undefined): Encoding | undefined {
+	if (!header || !COMPRESSED.has(path.extname(file))) return undefined
+
+	const weights = new Map(
+		header.split(',').map((part) => {
+			const [coding = '', ...params] = part.split(';').map((piece) => piece.trim())
+
+			const weight = params.find((param) => param.startsWith('q='))
+
+			return [coding.toLowerCase(), weight ? Number(weight.slice(2)) : 1]
+		}),
+	)
+
+	return ENCODINGS.find((coding) => (weights.get(coding) ?? weights.get('*') ?? 0) > 0)
+}
+
+/** The compressed bodies, by coding, file, and the time and size of the file. */
+const bodies = new Map<string, Promise<Buffer>>()
+
+/**
+ * The body of `file` in `encoding`, or as it is on the disk with no coding.
+ * The server compresses a file one time, as a CDN keeps the compressed file.
+ * The key holds the time and the size of the file, so a new build at the same
+ * path gets new bodies. A compression that fails is not kept.
+ */
+export async function readBody(file: string, encoding?: Encoding): Promise<Buffer> {
+	if (encoding === undefined) return readFile(file)
+
+	const { mtimeMs, size } = await stat(file)
+
+	const key = `${encoding}:${file}:${mtimeMs}:${size}`
+
+	const body = getOrCompute(bodies, key, () =>
+		readFile(file).then((data) =>
+			encoding === 'br'
+				? brotli(data, { params: { [constants.BROTLI_PARAM_QUALITY]: 9 } })
+				: gzipAsync(data, { level: 9 }),
+		),
+	)
+
+	body.catch(() => bodies.delete(key))
+
+	return body
 }
 
 async function isFile(file: string): Promise<boolean> {
@@ -145,16 +220,26 @@ const ASSETS = `${path.sep}assets${path.sep}`
 /**
  * The cache headers of `file`. A hashed file does not change, so a cache keeps
  * it for a year. An HTML file changes with each deploy and with the locale of
- * the request, so a cache asks the server each time.
+ * the request, so a cache asks the server each time. A file that the server
+ * compresses also changes with the codings that the request takes.
  */
 function cacheHeaders(file: string): Record<string, string> {
-	if (file.endsWith('.html')) {
-		return { 'cache-control': 'no-cache', vary: 'Cookie, Accept-Language' }
-	}
+	const html = file.endsWith('.html')
 
-	if (file.includes(ASSETS)) return { 'cache-control': 'public, max-age=31536000, immutable' }
+	const control = html
+		? 'no-cache'
+		: file.includes(ASSETS)
+			? 'public, max-age=31536000, immutable'
+			: 'public, max-age=3600'
 
-	return { 'cache-control': 'public, max-age=3600' }
+	const vary = [
+		...(html ? ['Cookie', 'Accept-Language'] : []),
+		...(COMPRESSED.has(path.extname(file)) ? ['Accept-Encoding'] : []),
+	]
+
+	return vary.length > 0
+		? { 'cache-control': control, vary: vary.join(', ') }
+		: { 'cache-control': control }
 }
 
 /** Answer a request with the file of its path. */
@@ -180,8 +265,10 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 
 	const type = TYPES[path.extname(file)] ?? 'application/octet-stream'
 
+	const encoding = pickEncoding(file, request.headers['accept-encoding'])
+
 	// A file that the server cannot read gives 500, and the server keeps running.
-	const body = await readFile(file).catch(() => undefined)
+	const body = await readBody(file, encoding).catch(() => undefined)
 
 	if (body === undefined) {
 		response.writeHead(500).end()
@@ -192,6 +279,7 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 	response.writeHead(200, {
 		'content-type': type,
 		'content-length': body.length,
+		...(encoding && { 'content-encoding': encoding }),
 		...cacheHeaders(file),
 	})
 
