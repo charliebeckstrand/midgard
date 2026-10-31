@@ -13,6 +13,7 @@ import {
 	useState,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, type MockInstance, onTestFinished, vi } from 'vitest'
 import { Dialog, DialogPanel } from '../../components/dialog'
@@ -31,6 +32,7 @@ import type { QueryGroup } from '../../modules/query/engine/types'
 import { useHeaderActions } from '../../primitives/header-actions'
 import {
 	allBySlot,
+	attach,
 	bySlot,
 	deferred,
 	fireEvent,
@@ -50,6 +52,7 @@ import {
 	useControlledLayout,
 } from '../helpers/dashboard-board'
 import { keyboardSensorAttached, pointerSensorDetached } from '../helpers/dnd-kit'
+import { serverMarkup } from '../helpers/hydrate'
 
 const LAYOUT: DashboardLayoutItem[] = [
 	{ id: 'a', x: 0, y: 0, w: 12 },
@@ -786,6 +789,53 @@ describe('Dashboard', () => {
 		expect(renders.get('c')).toBeGreaterThan(0)
 
 		expect(renders.get('a')).toBeUndefined()
+	})
+
+	it('keeps a tile that did not hydrate yet when the app renders the board again with the same children', async () => {
+		// The widget suspends on the client, so its tile stays on the server markup.
+		let held = false
+
+		const never = new Promise<never>(() => {})
+
+		function Widget() {
+			if (held) use(never)
+
+			return <p>Server text</p>
+		}
+
+		// The app keeps the children, as a constant.
+		const tiles = (
+			<DashboardTile id="a" title="Revenue" mount="always">
+				<Widget />
+			</DashboardTile>
+		)
+
+		const board = (label: string) => (
+			<Dashboard aria-label={label} layout={{ defaultValue: LAYOUT }}>
+				{tiles}
+			</Dashboard>
+		)
+
+		const container = attach(serverMarkup(board('Sales')))
+
+		held = true
+
+		const onRecoverableError = vi.fn()
+
+		let root: Root | undefined
+
+		await act(async () => {
+			root = hydrateRoot(container, board('Sales'), { onRecoverableError })
+		})
+
+		onTestFinished(() => act(() => root?.unmount()))
+
+		await act(async () => root?.render(board('Revenue')))
+
+		// A forced hydration would suspend, and the tile would show its fallback.
+		expect(container.textContent).toContain('Server text')
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
 	})
 
 	it('renders each tile once on mount, when the registered cell equals the cell of its entry', () => {
