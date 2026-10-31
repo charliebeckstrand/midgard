@@ -8,9 +8,11 @@ pre-commit:
 
 pre-push:
   jobs:
-    # `pnpm check` runs Biome, then check-types, test:changed, and knip for
-    # the packages that the branch changes against origin/main. CI runs the
-    # full gate and gates merges.
+    # `pnpm check` runs Biome and Knip on the repository, then check-types,
+    # test:changed, and test:workspace for the packages that the branch
+    # changes against origin/main. Turbo caches each task, so a push after
+    # `pnpm check` with no edit replays the results. CI runs the full gate and
+    # gates merges.
     - name: check
       run: pnpm check
 
