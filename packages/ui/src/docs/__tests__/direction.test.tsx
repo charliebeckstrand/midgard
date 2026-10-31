@@ -1,38 +1,17 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
-import { DirectionListbox, DirectionScript } from '../app/direction.tsx'
+import { DirectionListbox } from '../app/direction.tsx'
+import { LOCALES } from '../app/language.ts'
 
-// The direction setting of the docs writes `dir` on the root element, and the
-// head script writes it again on each load of the tab, before the first paint.
-// "System" follows the preferred language of the browser.
+// The direction setting of the docs writes `dir` on the root element. "System"
+// takes it off, so the page has the direction of its language. The choice is
+// not stored, so a reload starts at "System".
 
-/** Takes `dir`, the setting, and the language off after the case, as the window is shared across the files of a worker. */
+/** Takes `dir` off after the case, as the window is shared across the files of a worker. */
 function resetAfterCase(): void {
 	onTestFinished(() => {
 		document.documentElement.removeAttribute('dir')
-
-		sessionStorage.clear()
 	})
-}
-
-/** Sets the preferred language of the browser. */
-function setLanguage(language: string): void {
-	vi.spyOn(navigator, 'language', 'get').mockReturnValue(language)
-}
-
-/**
- * Runs the head script, as the browser does before the first paint. The script
- * renders on the server: React warns for a `<script>` that the client renders,
- * because the browser does not run it.
- */
-function runScript(): void {
-	const markup = new DOMParser().parseFromString(
-		renderToStaticMarkup(<DirectionScript />),
-		'text/html',
-	)
-
-	new Function(markup.querySelector('script')?.textContent ?? '')()
 }
 
 /** Opens the picker and clicks the option with the given name. */
@@ -42,75 +21,62 @@ function pick(option: string): void {
 	fireEvent.click(screen.getByRole('option', { name: option }))
 }
 
+/** The text of the picker. */
+function shown(): string {
+	return screen.getByRole('combobox', { name: 'Direction' }).textContent ?? ''
+}
+
 describe('the direction setting of the docs', () => {
 	beforeEach(resetAfterCase)
 
-	it('lays out the site in the chosen direction, and keeps an override for the tab', () => {
-		setLanguage('en-US')
-
+	it('lays out the site in the chosen direction, and "System" takes the direction off', () => {
 		render(<DirectionListbox />)
+
+		expect(shown()).toContain('System')
 
 		pick('Right to left')
 
 		expect(document.documentElement.dir).toBe('rtl')
 
-		expect(sessionStorage.getItem('docs:direction')).toBe('rtl')
-
 		pick('Left to right')
 
-		expect(document.documentElement.hasAttribute('dir')).toBe(false)
-
-		expect(sessionStorage.getItem('docs:direction')).toBe('ltr')
+		expect(document.documentElement.dir).toBe('ltr')
 
 		pick('System')
 
 		expect(document.documentElement.hasAttribute('dir')).toBe(false)
-
-		expect(sessionStorage.getItem('docs:direction')).toBeNull()
 	})
 
-	it('follows a right-to-left language of the browser on "System", and an override wins', () => {
-		setLanguage('ar-EG')
+	it('stores no choice, so a reload starts at "System"', () => {
+		const setItem = vi.spyOn(Storage.prototype, 'setItem')
 
 		render(<DirectionListbox />)
 
-		expect(screen.getByRole('combobox', { name: 'Direction' }).textContent).toContain('System')
+		pick('Right to left')
 
-		pick('Left to right')
-
-		expect(document.documentElement.hasAttribute('dir')).toBe(false)
-
-		pick('System')
-
-		expect(document.documentElement.dir).toBe('rtl')
+		expect(setItem).not.toHaveBeenCalled()
 	})
 
 	it.each([
-		['en-US', null, false],
-		['he', null, true],
-		['fa-IR', null, true],
-		['ar', 'ltr', false],
-		['en-US', 'rtl', true],
-	])(
-		'sets the direction before the first paint (language %s, override %s)',
-		(language, override, rtl) => {
-			setLanguage(language)
-
-			if (override) sessionStorage.setItem('docs:direction', override)
-
-			runScript()
-
-			expect(document.documentElement.dir === 'rtl').toBe(rtl)
-		},
-	)
-
-	it('shows the stored override when the settings open', () => {
-		sessionStorage.setItem('docs:direction', 'rtl')
+		['rtl', 'Right to left'],
+		['ltr', 'Left to right'],
+	])('shows the choice of the root element (%s) when the settings open again', (dir, option) => {
+		document.documentElement.dir = dir
 
 		render(<DirectionListbox />)
 
-		expect(screen.getByRole('combobox', { name: 'Direction' }).textContent).toContain(
-			'Right to left',
-		)
+		expect(shown()).toContain(option)
+	})
+
+	// "System" sets no `dir`, so it is left to right only while each language of
+	// the docs is left to right. A right-to-left language needs a direction
+	// from its locale.
+	it.each(LOCALES)('has a left-to-right language for each locale (%s)', (locale) => {
+		// `textInfo` is in V8, and not yet in the types of TypeScript.
+		const { textInfo } = new Intl.Locale(locale) as Intl.Locale & {
+			textInfo: { direction: 'ltr' | 'rtl' }
+		}
+
+		expect(textInfo.direction).toBe('ltr')
 	})
 })

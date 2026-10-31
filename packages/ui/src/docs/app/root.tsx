@@ -20,7 +20,7 @@ import { useIdle } from '../kit/idle.ts'
 import appCss from './app.css?url'
 import { appMessages } from './app-messages.ts'
 import { catalogs } from './catalogs.ts'
-import { DirectionListbox, DirectionScript } from './direction.tsx'
+import { DirectionListbox } from './direction.tsx'
 import { useDocumentLocale } from './document-locale.ts'
 import { LOCALES } from './language.ts'
 import { PageError } from './page-error.tsx'
@@ -48,7 +48,6 @@ export function Layout({ children }: { children: ReactNode }) {
 					<meta charSet="UTF-8" />
 					<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 					<StaleBuildScript />
-					<DirectionScript />
 					<EventsScript />
 					<Meta />
 					<Links />
