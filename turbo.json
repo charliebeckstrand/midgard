@@ -111,19 +111,19 @@
 		},
 		"test:changed": {
 			"dependsOn": ["^build"],
-			"cache": false
-		},
-		"//#knip": {
+			"env": ["TURBO_SCM_BASE"],
 			"inputs": [
-				"knip.json",
-				"package.json",
-				"pnpm-lock.yaml",
-				"pnpm-workspace.yaml",
-				"postcss.config.mjs",
-				"vitest.shared.mts",
-				"apps/**",
-				"packages/**"
+				"$TURBO_DEFAULT$",
+				"$TURBO_ROOT$/package.json",
+				"$TURBO_ROOT$/{apps,packages}/**/{package.json,vite.config.*,vitest.config.*}",
+				"!$TURBO_ROOT$/**/node_modules/**",
+				"!$TURBO_ROOT$/apps/*/.next/**",
+				"$TURBO_ROOT$/tsconfig.base.json",
+				"$TURBO_ROOT$/tsconfig.nextjs.json",
+				"$TURBO_ROOT$/vitest.shared.mts"
 			]
-		}
+		},
+		"//#biome:check": {},
+		"//#knip": {}
 	}
 }
