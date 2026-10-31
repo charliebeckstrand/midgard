@@ -1,0 +1,145 @@
+'use client'
+
+import { useCallback, useState, useSyncExternalStore } from 'react'
+import { noopSubscribe } from '../../utilities/noop'
+import { type Mount, mountsEveryPanel } from './mount'
+
+/** The hold state {@link useMountHold} resolves for one panel. */
+export type MountHoldState = {
+	/** Whether the panel exists in the tree at all. */
+	present: boolean
+	/**
+	 * Whether the policy holds inactive panels, so this panel needs the
+	 * `<Activity>` wrapper. Constant for a given policy. The wrapper stays on
+	 * whether or not the panel is currently hidden. To add it only at rest would
+	 * change the tree shape, and remount the subtree each switch.
+	 */
+	held: boolean
+	/** Whether the held panel is resting: the `<Activity mode="hidden">` state. */
+	hidden: boolean
+	/**
+	 * Whether the panel was active on its first render, frozen there. A held
+	 * panel's motion entry point keys on this long after the live value moved on.
+	 */
+	mountedActive: boolean
+	/**
+	 * Latches a deferred hold to rest. Call it when the panel's close animation
+	 * lands. Unconditionally is fine. It ignores a landing that arrives while the
+	 * panel is active, which is the entrance of a panel that just opened. An
+	 * undeferred hold hides on the `active` flip itself, and ignores the landing
+	 * entirely.
+	 */
+	rest: () => void
+}
+
+/**
+ * Resolves whether a panel is present, held, and hidden under a {@link Mount}
+ * policy: the shared lifecycle behind the current-panel cascade, disclosure
+ * panels, and stepper panels.
+ *
+ * @remarks
+ * `defer` splits the two ways a hold can hide. Undeferred, `hidden` tracks
+ * `active` directly, which suits a panel that swaps without animating. Deferred,
+ * it tracks a rest latch instead. A `display: none` cannot animate, so an
+ * animating panel must stay live and in flow for its close transition. It drops
+ * into the hidden Activity only once {@link MountHoldState.rest} says the transition
+ * landed. Either way a panel mounting inactive starts hidden, so a held panel
+ * never pays a visible first render it doesn't need.
+ *
+ * The latch clears during render, in React's adjust-state-during-render form. A
+ * resting panel that becomes active, or whose policy stops holding it, therefore
+ * wakes in the same pass that reveals it. It does not wake a commit later. The
+ * latch also arms during render. An inactive panel whose policy starts to hold
+ * it, or whose hold starts to defer, rests in the same pass.
+ *
+ * @param active - Whether the panel is the one currently shown.
+ * @param mount - The policy governing inactive panels.
+ * @param options - `defer`: whether hiding waits on {@link MountHoldState.rest} rather
+ * than following `active`. Defaults to `false`.
+ * @returns The panel's resolved {@link MountHoldState}.
+ */
+export function useMountHold(
+	active: boolean,
+	mount: Mount,
+	options?: { defer?: boolean },
+): MountHoldState {
+	const defer = options?.defer ?? false
+
+	// Lazy latch: a panel that has ever been active stays mounted thereafter.
+	// State and not a ref, so a render that React discards does not set it.
+	const [everActive, setEverActive] = useState(active)
+
+	if (active && !everActive) setEverActive(true)
+
+	// The state the panel mounted in. It does not change after the mount.
+	const [mountedActive] = useState(active)
+
+	const held = mount !== 'active'
+
+	// Starts latched for a panel mounting inactive under a deferred hold,
+	// deferring its initial render cost; `rest` latches it again on each landing.
+	const [rested, setRested] = useState(!active && held && defer)
+
+	// The latch is only valid while its conditions are: an active panel, a policy
+	// that stopped holding, or a hold that stopped deferring all clear it now
+	// (no animation completion will arrive to do it).
+	if (rested && (active || !held || !defer)) setRested(false)
+
+	// The arming direction. When the policy starts to hold, or the hold starts to
+	// defer, an inactive panel has no close transition in flight. No landing
+	// arrives to rest it, so rest it now. A panel that goes inactive keeps the
+	// latch open, because its close transition must still play.
+	const deferredHold = held && defer
+
+	const [wasDeferredHold, setWasDeferredHold] = useState(deferredHold)
+
+	if (wasDeferredHold !== deferredHold) {
+		setWasDeferredHold(deferredHold)
+
+		if (deferredHold && !active) setRested(true)
+	}
+
+	// Owns the "only a landing that closes counts" rule, so callers can hand every
+	// completion straight through instead of each restating the guard. An active
+	// panel's own entrance completes too, and must not rest it.
+	const rest = useCallback(() => {
+		if (defer && !active) setRested(true)
+	}, [defer, active])
+
+	return {
+		present: mount === 'always' || active || (mount === 'lazy' && everActive),
+		held,
+		hidden: defer ? rested : !active,
+		mountedActive,
+		rest,
+	}
+}
+
+/** The snapshots of {@link useMountsEveryPanel}. Module constants, so React reads no new getter. */
+const yes = () => true
+
+const no = () => false
+
+/**
+ * Whether every panel is in the DOM that this render writes. Only `always` puts
+ * every panel in the client DOM, and the answer is `true` only after hydration.
+ * It is `false` on the server and in the hydration render.
+ *
+ * @remarks
+ * Under `always`, a resting panel is in a hidden `<Activity>`. The server
+ * renders nothing for a hidden Activity, so the server markup has no target for
+ * an `aria-controls` reference to that panel. The hydration render must agree
+ * with the server markup, so the reference comes in the render after
+ * hydration. The client also renders the hidden subtree after hydration, and
+ * the reference then has its target. A render that does not hydrate gets the
+ * answer at once.
+ *
+ * @param mount - The policy that governs inactive panels.
+ * @returns Whether a trigger can point `aria-controls` at a panel that it does
+ * not render.
+ */
+export function useMountsEveryPanel(mount: Mount): boolean {
+	// The server and the hydration render read `no`. Only `always` has a client
+	// snapshot that differs, so only `always` renders again after hydration.
+	return useSyncExternalStore(noopSubscribe, mountsEveryPanel(mount) ? yes : no, no)
+}

@@ -11,8 +11,9 @@ import {
 import { composeEventHandlers } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useActiveIndicator } from '../../primitives/active-indicator'
-import { useCurrentItem } from '../../primitives/current/current'
-import { type PathMatch, usePathMatch } from '../../primitives/current/current-pathname'
+import type { PathMatch } from '../../primitives/current/context'
+import { useCurrentItem } from '../../primitives/current/use-current'
+import { useCurrentPathMatch } from '../../primitives/current/use-current-path'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
@@ -101,7 +102,7 @@ export function useNavItem({ current, value, href, match, preventClose, onClick 
 	const item = useCurrentItem(value)
 	// The item reads its own `href`, so a navigation renders only the items whose
 	// match changes.
-	const onPath = usePathMatch(href, match)
+	const onPath = useCurrentPathMatch(href, match)
 	const scrollWithin = useScrollWithin()
 
 	const isCurrent = current ?? (value === undefined ? onPath : item.current)

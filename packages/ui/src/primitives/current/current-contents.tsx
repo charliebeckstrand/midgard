@@ -12,7 +12,7 @@ import {
 	type CurrentDirection,
 	STILL_CONTENTS,
 	useCurrent,
-} from './current'
+} from './context'
 import { useCurrentContentsMorph } from './use-current-contents-morph'
 
 /** Props for {@link CurrentContents}: the `slotPrefix` stamp, the switch `animate` style, and the inactive-panel `mount` policy, over `<div>` attributes. */

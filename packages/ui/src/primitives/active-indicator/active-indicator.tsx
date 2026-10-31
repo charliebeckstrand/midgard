@@ -1,7 +1,7 @@
 'use client'
 
-import { LayoutGroup, type MotionStyle, useAnimate } from 'motion/react'
-import { type ComponentProps, type ReactNode, useCallback, useId } from 'react'
+import { LayoutGroup, type MotionStyle } from 'motion/react'
+import { type ComponentProps, type ReactNode, useId } from 'react'
 import { cn, createContext } from '../../core'
 import { k } from '../../recipes/kata/active-indicator'
 import { ReducedMotion } from '../reduced-motion'
@@ -51,31 +51,6 @@ export function ActiveIndicatorScope({ children }: ActiveIndicatorScopeProps) {
 			</ReducedMotion>
 		</ActiveIndicatorScopeContext>
 	)
-}
-
-/**
- * Wires the press-feedback animation for an active-indicator host.
- *
- * @returns A `ref` to attach to the indicator span, and `tapHandlers` (pointer
- * down/up/leave) for the parent container. Press dips the indicator to `0.99`
- * scale and releases it back to `1` on the shared spring.
- * @see {@link ActiveIndicator}
- */
-export function useActiveIndicator() {
-	const [scope, animate] = useAnimate<HTMLSpanElement>()
-
-	const onPointerDown = useCallback(() => {
-		animate(scope.current, { scale: 0.99 }, k.spring)
-	}, [animate, scope])
-
-	const onPointerUp = useCallback(() => {
-		animate(scope.current, { scale: 1 }, k.spring)
-	}, [animate, scope])
-
-	return {
-		ref: scope,
-		tapHandlers: { onPointerDown, onPointerUp, onPointerLeave: onPointerUp },
-	}
 }
 
 /**

@@ -4,5 +4,5 @@ export {
 	type QueryContextValue,
 	useDeferredQuery,
 	useQuery,
-	useQueryValue,
-} from './query'
+} from './context'
+export { useQueryValue } from './use-query-value'

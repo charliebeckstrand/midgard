@@ -5,7 +5,7 @@ import { useControllableFlag } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 import { useFrozenOnClose } from '../../hooks/use-frozen-on-close'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { useDeferredQueryText } from '../../primitives/query/query'
+import { useDeferredQueryValue } from '../../primitives/query/use-query-value'
 
 type ComboboxStateParams<T> = {
 	multiple: boolean
@@ -57,7 +57,7 @@ export function useComboboxState<T>({
 }: ComboboxStateParams<T>) {
 	const [query, setQueryInternal] = useState('')
 
-	const deferredQuery = useDeferredQueryText(query)
+	const deferredQuery = useDeferredQueryValue(query)
 
 	// The setters repeat a value: each keystroke opens the panel, and an outside
 	// press and then the input blur both close it. The controllable reports only

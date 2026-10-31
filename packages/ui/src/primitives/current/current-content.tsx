@@ -12,7 +12,7 @@ import {
 	useCurrent,
 	useCurrentContents,
 	useCurrentPanelActive,
-} from './current'
+} from './context'
 
 /**
  * Props for {@link CurrentContent}: the `slotPrefix` stamp, the `value` to match, and a `ref`, over `<div>` attributes.

@@ -19,8 +19,10 @@ import { srcDir } from '../helpers/walk-source'
 // In addition, every component / hook file must export a symbol whose
 // PascalCase (or `useCamelCase`) form matches its kebab-case filename:
 // `badge-removable.tsx` exports `BadgeRemovable`, `use-tag-input-keyboard.ts`
-// exports `useTagInputKeyboard`. Catches the case where a file is renamed but
-// its exported component or hook keeps the old, now-divergent name.
+// exports `useTagInputKeyboard`. A hook file can add words before or after
+// the stem: `use-query-value.ts` can export `useDeferredQueryValue`. Catches
+// the case where a file is renamed but its exported component or hook keeps
+// the old, now-divergent name.
 
 const componentsDir = join(srcDir, 'components')
 

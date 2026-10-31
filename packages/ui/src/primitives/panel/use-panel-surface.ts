@@ -6,7 +6,7 @@ import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { type A11yPanelRole, useA11yPanel } from '../../hooks/a11y/use-a11y-panel'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
-import { usePanelState } from './panel-root'
+import { usePanelState } from './context'
 import type { PanelOverlayProps } from './types'
 
 /** Options for {@link usePanelSurface}. @internal */

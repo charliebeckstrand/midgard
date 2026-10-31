@@ -1,4 +1,4 @@
-export type { PathMatch } from '../../primitives/current/current-pathname'
+export type { PathMatch } from '../../primitives/current/context'
 export { useLink } from '../../primitives/link'
 export { type PortalContainer, usePortalContainer } from '../../primitives/portal'
 export { UIProvider, type UIProviderProps } from './ui'

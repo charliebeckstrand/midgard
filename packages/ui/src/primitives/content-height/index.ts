@@ -1,6 +1,2 @@
-export {
-	ContentHeightContext,
-	type ContentHeightHost,
-	useContentHeightAvailable,
-	useContentHeightHost,
-} from './content-height'
+export { ContentHeightContext, type ContentHeightHost, useContentHeightHost } from './context'
+export { useContentHeightAvailable } from './use-content-height'

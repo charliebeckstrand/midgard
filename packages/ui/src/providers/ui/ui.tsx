@@ -7,8 +7,9 @@ import { ToastHost } from '../../components/toast/toast-host'
 // LinkContext / PortalContext / PathnameContext live in the primitives layer:
 // the `polymorphic` primitive consumes `useLink`; the `overlay` /
 // `floating-surface` primitives consume `usePortalContainer`; the nav items
-// consume `usePathMatch`. This provider fans out to all three.
-import { PathnameContext, usePathnameStore } from '../../primitives/current/current-pathname'
+// consume `useCurrentPathMatch`. This provider fans out to all three.
+import { PathnameContext } from '../../primitives/current/context'
+import { useCurrentPathStore } from '../../primitives/current/use-current-path-store'
 import {
 	type LinkComponent,
 	LinkContext,
@@ -93,7 +94,7 @@ export function UIProvider({ link, portalContainer, pathname, toast, children }:
 
 	// The store keeps its identity, so a navigation renders only the items whose
 	// match changes, not each consumer of the context.
-	const pathnameStore = usePathnameStore(pathname)
+	const pathnameStore = useCurrentPathStore(pathname)
 
 	const linkValue = useMemo<LinkContextValue>(
 		() => (link === undefined ? outerLink : { component: link }),

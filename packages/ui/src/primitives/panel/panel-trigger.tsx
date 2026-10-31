@@ -9,7 +9,7 @@ import {
 	TriggerChild,
 	triggerChild,
 } from '../trigger-child/trigger-child'
-import { usePanelState } from './panel-root'
+import { usePanelState } from './context'
 
 /**
  * Props for {@link PanelTrigger}. The `<button>` of the trigger takes the rest.

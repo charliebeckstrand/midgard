@@ -1,9 +1,9 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type ComponentProps, useCallback } from 'react'
+import { type ComponentProps, use, useCallback } from 'react'
 import { cn } from '../../core'
-import { useHeaderActionsStore } from './header-actions'
+import { HeaderActionsContext } from './context'
 
 /**
  * Props for {@link HeaderActionsSlot}. The `<span>` of the slot takes the rest.
@@ -17,7 +17,7 @@ export type HeaderActionsSlotProps = Omit<ComponentProps<'span'>, 'children'>
  * out as items of the row. Outside a `HeaderActions`, no widget reads it.
  */
 export function HeaderActionsSlot({ className, ref, ...props }: HeaderActionsSlotProps) {
-	const store = useHeaderActionsStore()
+	const store = use(HeaderActionsContext)
 
 	const storeRef = useCallback((element: HTMLSpanElement | null) => store?.set(element), [store])
 

@@ -8,7 +8,7 @@ import {
 	useCurrent,
 	useCurrentState,
 } from '../../primitives/current'
-import { useCurrentPanelActive } from '../../primitives/current/current'
+import { useCurrentPanelActive } from '../../primitives/current/context'
 import type { Mount } from '../../primitives/mount'
 import { act, bySlot, renderUI, screen, setupUser } from '../helpers'
 
