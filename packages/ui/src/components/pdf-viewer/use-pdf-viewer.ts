@@ -178,19 +178,17 @@ export type PdfViewerResult = {
 	/**
 	 * Thumbnail rail open state; toggled from the toolbar.
 	 *
-	 * Mounts closed and opens once the document turns out to carry more than one page. A
-	 * single page has nothing to navigate to. It would spend the rail's width on a tile of
-	 * the page already on screen. The reader's own toggle overrides that from the first press.
+	 * Starts open for each document, also while the document loads, so the first paint has
+	 * the layout of the loaded viewer. The toggle of the reader changes it.
 	 */
 	sidebarOpen: boolean
 	setSidebarOpen: (open: boolean) => void
 	/**
 	 * Whether the rail slides between open and closed.
 	 *
-	 * False until the reader presses the toggle. Where the rail starts is derived from the page
-	 * count, and that count arrives with the document. A rail that traveled on that change
-	 * would announce the parse rather than the pages. The reader's press is a change they made,
-	 * and it travels.
+	 * False until the reader presses the toggle. The rail is there from the first paint, and
+	 * only a press of the reader moves it. The reader's press is a change they made, and it
+	 * travels.
 	 *
 	 * False under `prefers-reduced-motion` too, which is what makes this one fact rather than
 	 * two. The rail carries the transition only while this is true. It is therefore also the
@@ -364,8 +362,8 @@ export function usePdfViewer({
 	/*
 	 * The reader's own settings, and `null` until they have one.
 	 *
-	 * The same nullable shape as `sidebarChoice` below, for the same reason. Until the reader
-	 * opens the dialog and picks something, the consumer's prop is the answer. A consumer that
+	 * The same nullable shape as `sidebarChoice` below. Until the reader opens the dialog and
+	 * picks something, the consumer's prop is the answer. A consumer that
 	 * changes it keeps driving the loupe. From the first press in the dialog the reader's
 	 * choice holds, and no re-render can take it back from them.
 	 */
@@ -486,32 +484,23 @@ export function usePdfViewer({
 	const [zoomValue, setZoomValue] = useState(defaultZoom)
 
 	/*
-	 * The thumbnail rail's own state, and `null` until the reader has an opinion.
+	 * The choice of the reader for the thumbnail rail, and `null` until they press the toggle.
 	 *
-	 * Nullable rather than a seeded boolean, because the answer depends on something no
-	 * initializer can see. A one-page document has no navigation to offer. Pinning a rail
-	 * beside it spends the rail width of a panel that is often the narrower half of a split. That width
-	 * goes on a tile of the page already on screen. The page count arrives with the document,
-	 * since pdf.js has to parse the file first.
+	 * The rail starts open for each document, and the page count does not change that. The
+	 * count arrives with the document, because pdf.js must parse the file first. The server
+	 * paint and the frames before the parse have no count. A rail that opened at the count
+	 * narrowed the page, and the whole viewer became shorter after the first paint. A rail
+	 * that closed at the count of a one-page document made the viewer taller. The first paint
+	 * is therefore the settled layout only when the count has no part in it.
 	 *
-	 * **`> 1`, so it mounts closed.** The obvious reading of the rule is open unless the count
-	 * is exactly one. That is true while the count is still 0, which is every frame before the
-	 * document resolves. So a one-page PDF opened the rail and then visibly shut it, which is
-	 * the flicker this exists to avoid. Closed until something is known to be worth navigating
-	 * costs a multi-page document a slide open instead. That is the better of the two. It
-	 * arrives with the pages it is for, rather than being taken away from a reader who was
-	 * already looking at it.
+	 * A one-page document thus has a rail with one tile. The reader can close it.
 	 *
-	 * Derived rather than corrected by an effect, which would paint the wrong frame first
-	 * whichever way the rule ran.
-	 *
-	 * The override is what makes deriving it safe. The moment the reader touches the toolbar's
-	 * toggle, their choice wins for good. A rail they opened on a one-page document cannot be
-	 * closed under them by a re-render. A document swap cannot reopen one they shut.
+	 * From the first press, the choice of the reader holds. A document swap cannot open a
+	 * rail that they closed.
 	 */
 	const [sidebarChoice, setSidebarOpen] = useState<boolean | null>(null)
 
-	const sidebarOpen = sidebarChoice ?? total > 1
+	const sidebarOpen = sidebarChoice ?? true
 
 	/*
 	 * Only a reader's press moves the rail, and only where movement is wanted at all.
