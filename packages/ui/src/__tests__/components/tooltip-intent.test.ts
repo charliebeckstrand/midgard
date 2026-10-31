@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react'
+import { act, renderHook } from '@testing-library/react'
 import { describe, expect, vi } from 'vitest'
 import { useTooltipIntent } from '../../components/tooltip/tooltip-intent'
 import { attach } from '../helpers'
@@ -17,6 +17,11 @@ function keyboardTrigger(): HTMLButtonElement {
 	return attach(node)
 }
 
+/** Focuses the trigger. The first focus starts the tooltip state, which is a React update. */
+function focus(node: HTMLElement): void {
+	act(() => node.focus())
+}
+
 function pressEscape(node: HTMLElement): void {
 	node.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
 }
@@ -30,7 +35,7 @@ describe('useTooltipIntent', () => {
 
 		result.current.setReference(node)
 
-		node.focus()
+		focus(node)
 
 		pressEscape(node)
 
@@ -44,7 +49,7 @@ describe('useTooltipIntent', () => {
 
 		result.current.setReference(node)
 
-		node.focus()
+		focus(node)
 
 		pressEscape(node)
 
@@ -52,7 +57,7 @@ describe('useTooltipIntent', () => {
 
 		await clock.runAll()
 
-		node.focus()
+		focus(node)
 
 		expect(result.current.takeIntent().focus).not.toBeNull()
 	})
@@ -64,10 +69,38 @@ describe('useTooltipIntent', () => {
 
 		result.current.setReference(node)
 
-		node.focus()
+		focus(node)
 
 		node.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
 
 		expect(result.current.takeIntent().focus).not.toBeNull()
+	})
+
+	it('starts the tooltip state on the first focus, and not before', () => {
+		const node = keyboardTrigger()
+
+		const { result } = renderHook(() => useTooltipIntent({ enabled: true, trigger: 'hover' }))
+
+		result.current.setReference(node)
+
+		expect(result.current.intended).toBe(false)
+
+		focus(node)
+
+		expect(result.current.intended).toBe(true)
+	})
+
+	it('starts the tooltip state on the first hover, also from a touch', () => {
+		const node = attach(document.createElement('button'))
+
+		const { result } = renderHook(() => useTooltipIntent({ enabled: true, trigger: 'hover' }))
+
+		result.current.setReference(node)
+
+		act(() => {
+			node.dispatchEvent(new PointerEvent('pointerenter', { pointerType: 'touch' }))
+		})
+
+		expect(result.current.intended).toBe(true)
 	})
 })
