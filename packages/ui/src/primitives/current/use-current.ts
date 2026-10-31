@@ -1,34 +1,8 @@
 'use client'
 
-import { use, useMemo } from 'react'
-import { keyMatcher, useKeyedStore, useKeyedValue } from '../../hooks/use-keyed-store'
-import {
-	CurrentContext,
-	type CurrentContextValue,
-	type CurrentStore,
-	CurrentStoreContext,
-} from './context'
-
-/**
- * Makes the {@link CurrentStore} of a root from its {@link CurrentContextValue}.
- *
- * @returns A store that keeps its identity while `onValueChange` keeps its
- * identity. Pass it into {@link CurrentStoreContext}.
- *
- * @remarks
- * The hook publishes the current value in a layout effect. A change therefore
- * calls only the listeners of the value that stops being current and of the
- * value that becomes current.
- *
- * @internal
- */
-export function useCurrentStore(state: CurrentContextValue): CurrentStore {
-	const { value, onValueChange } = state
-
-	const current = useKeyedStore(value, keyMatcher)
-
-	return useMemo(() => ({ current, onValueChange }), [current, onValueChange])
-}
+import { use } from 'react'
+import { useKeyedValue } from '../../hooks/use-keyed-store'
+import { CurrentContext, CurrentStoreContext } from './context'
 
 /**
  * Reads whether `value` is the current value, and the change handler of the

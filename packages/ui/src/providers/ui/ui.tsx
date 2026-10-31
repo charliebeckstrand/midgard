@@ -9,7 +9,7 @@ import { ToastHost } from '../../components/toast/toast-host'
 // `floating-surface` primitives consume `usePortalContainer`; the nav items
 // consume `useCurrentPathMatch`. This provider fans out to all three.
 import { PathnameContext } from '../../primitives/current/context'
-import { useCurrentPathStore } from '../../primitives/current/use-current-path'
+import { useCurrentPathStore } from '../../primitives/current/use-current-path-store'
 import {
 	type LinkComponent,
 	LinkContext,

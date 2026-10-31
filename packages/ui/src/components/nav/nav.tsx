@@ -3,7 +3,7 @@
 import { type ComponentProps, useMemo } from 'react'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { CurrentStoreContext } from '../../primitives/current/context'
-import { useCurrentStore } from '../../primitives/current/use-current'
+import { useCurrentStore } from '../../primitives/current/use-current-store'
 import { partitionByType } from '../../utilities/children'
 import { NavContents } from './nav-content'
 
