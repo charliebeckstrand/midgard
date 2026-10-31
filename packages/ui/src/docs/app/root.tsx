@@ -25,7 +25,7 @@ import { useDocumentLocale } from './document-locale.ts'
 import { LOCALES } from './language.ts'
 import { PageError } from './page-error.tsx'
 import { NavigateContext, RouterLink } from './router-link.tsx'
-import { ScrollRestorationScript, useNavigationScroll } from './scroll-restoration.tsx'
+import { useNavigationScroll } from './scroll-restoration.tsx'
 import { DocsSearch, SearchPaletteHost } from './search.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 import { StaleBuildScript } from './stale-build.tsx'
@@ -48,7 +48,6 @@ export function Layout({ children }: { children: ReactNode }) {
 					<meta charSet="UTF-8" />
 					<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 					<StaleBuildScript />
-					<ScrollRestorationScript />
 					<DirectionScript />
 					<EventsScript />
 					<Meta />

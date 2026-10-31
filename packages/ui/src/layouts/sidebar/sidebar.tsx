@@ -173,6 +173,11 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
  * The sidebar sits on the start edge of the reading direction. In a
  * right-to-left page, the panel, the floating sheet, and its hover strip are
  * on the right. The `aside` sits on the end edge.
+ *
+ * In the document, the inline panel comes after the content, and its order
+ * puts it on the start edge. A page that loads thus paints its content before
+ * the parser reaches a long sidebar. A keyboard and a screen reader reach the
+ * content first, and then the sidebar.
  */
 export function SidebarLayout({
 	navbar,
@@ -287,11 +292,6 @@ export function SidebarLayout({
 					onPointerEnter={() => setFloatingOpen(true)}
 				/>
 
-				{/* Inline sidebar when locked. It hides while offcanvas. */}
-				<div data-slot="sidebar-panel" className={slots.panel}>
-					{sidebar}
-				</div>
-
 				{/* Inline sidebar: sheet when offcanvas. Non-modal so the hover-revealed
 				    peek doesn't steal focus or lock body scroll, but `backdrop` still
 				    blurs and dims the page behind it. */}
@@ -369,6 +369,13 @@ export function SidebarLayout({
 				{/* Content */}
 				<div className={slots.content.wrapper}>
 					<div className={slots.content.base}>{children}</div>
+				</div>
+
+				{/* Inline sidebar when locked. It hides while offcanvas. It comes after the
+				    content in the document, so a page that loads paints its content before
+				    the parser reaches the sidebar. Its order puts it on the start edge. */}
+				<div data-slot="sidebar-panel" className={slots.panel}>
+					{sidebar}
 				</div>
 
 				{/* Inline aside: on the end edge, after the content. */}

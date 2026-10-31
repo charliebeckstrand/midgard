@@ -29,13 +29,9 @@ export type ScrollWithinOptions = {
  * `undefined` when the axis was not asked for, or when `'nearest'` finds the node already
  * fully visible.
  *
- * @remarks
- * The function refers to nothing outside its own body, because the pre-paint script of
- * the docs (`docs/app/scroll-restoration.tsx`) carries its source text. Keep it so.
- *
  * @internal
  */
-export function resolveOffset(
+function resolveOffset(
 	alignment: ScrollAlignment | undefined,
 	offset: number,
 	nodeSize: number,

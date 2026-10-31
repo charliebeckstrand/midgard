@@ -1,95 +1,16 @@
 import { useLayoutEffect, useRef } from 'react'
 import { useLocation } from 'react-router'
-import { resolveOffset } from '../../hooks/use-scroll-within.ts'
-import { InlineScript } from '../../primitives/inline-script/inline-script.tsx'
-
-// The scroll of the docs. A load of a page, also a reload, starts at the top or
-// at the element of its hash, with the current item of each list in view at
-// the first paint (`ScrollRestorationScript`). A navigation in the app then scrolls the window
-// (`useNavigationScroll`).
 
 /**
- * Turns off the scroll restoration of the browser, scrolls the window to the
- * element of the hash, and scrolls each list that scrolls on its own to its
- * current item. `resolve` is the rule of the hooks that keep the item in view
- * after hydration (`useNavItem`, `useTabListScroll`), so the item moves by the
- * least distance that shows all of it, and the hooks then find it in view.
+ * Scrolls the window of the docs. A load of a page, also a reload, starts at
+ * the top or at the element of its hash. A navigation in the app to a new page
+ * starts at the top, and a tab of the same page keeps the scroll. A hash
+ * scrolls to its element, also on a second link to the same hash, because each
+ * navigation gives a new location. The ids of the docs are ASCII, so the hash
+ * is the id.
  *
- * The page runs the source of this function, so it uses nothing from outside
- * its body.
- */
-function restoreScroll(resolve: typeof resolveOffset) {
-	history.scrollRestoration = 'manual'
-
-	// With the restoration off, the browser does not scroll a reload to its hash.
-	document.getElementById(location.hash.slice(1))?.scrollIntoView()
-
-	// The current item of each list, the scroller of the list, and the names of
-	// the measures of its axis.
-	const lists = [
-		{
-			item: '[data-slot="sidebar-item"]:has(> [data-slot="sidebar-item-inner"][data-current])',
-			scroller: '[data-slot="sidebar-body"]',
-			axis: {
-				start: 'top',
-				size: 'height',
-				view: 'clientHeight',
-				border: 'clientTop',
-				scroll: 'scrollTop',
-			},
-		},
-		{
-			item: '[data-slot="tab"][data-current]',
-			scroller: '[data-slot="tab-list-scroll"]',
-			axis: {
-				start: 'left',
-				size: 'width',
-				view: 'clientWidth',
-				border: 'clientLeft',
-				scroll: 'scrollLeft',
-			},
-		},
-	] as const
-
-	for (const { item, scroller, axis } of lists) {
-		for (const node of document.querySelectorAll(item)) {
-			const box = node.closest(scroller)
-
-			if (!box) continue
-
-			const rect = node.getBoundingClientRect()
-
-			// The offset of the item from the padding box of the scroller.
-			const offset = rect[axis.start] - box.getBoundingClientRect()[axis.start] - box[axis.border]
-
-			const position = resolve('nearest', offset, rect[axis.size], box[axis.view], box[axis.scroll])
-
-			if (position !== undefined) box.scrollTo({ [axis.start]: position, behavior: 'instant' })
-		}
-	}
-}
-
-/** The source of the script. */
-const SCRIPT = `(${restoreScroll})(${resolveOffset})`
-
-/**
- * The inline script of {@link restoreScroll}. Render it in the `<head>`. It is
- * a module, so it runs when the parser has read the whole document, and it
- * blocks the render, so the first paint waits for it. The page thus paints
- * whole, with the current item of each list in view.
- */
-export function ScrollRestorationScript() {
-	return <InlineScript type="module" blocking="render" source={SCRIPT} />
-}
-
-/**
- * Scrolls the window on each navigation in the app. A new page starts at the
- * top, and a tab of the same page keeps the scroll. A hash scrolls to its
- * element, also on a second link to the same hash, because each navigation
- * gives a new location. The ids of the docs are ASCII, so the hash is the id.
- *
- * The load is not a navigation: the browser and `ScrollRestorationScript`
- * scroll it, so the hook does not scroll again at hydration.
+ * The sidebar and the row of tabs keep their current item in view on their
+ * own (`SidebarItem`, `useTabListScroll`).
  *
  * @param page - The path of the page, the same for each of its tabs.
  */
@@ -99,6 +20,14 @@ export function useNavigationScroll(page: string) {
 	// The location and the page that the window scrolled for last. They start
 	// as the location and the page of the load.
 	const last = useRef({ location, page })
+
+	// The browser keeps the mode of the entry, so a reload starts at the top.
+	// In that mode, Chromium does not scroll a reload to its hash.
+	useLayoutEffect(() => {
+		history.scrollRestoration = 'manual'
+
+		document.getElementById(window.location.hash.slice(1))?.scrollIntoView()
+	}, [])
 
 	useLayoutEffect(() => {
 		if (last.current.location === location) return

@@ -63,9 +63,12 @@ const column = [
 	'overflow-x-hidden overflow-y-auto',
 ]
 
-// The panel on the start edge holds the sidebar.
+// The panel on the start edge holds the sidebar. It follows the content in the
+// document, so the content paints first while the page loads, and its order
+// puts it before the content in the row.
 const panel = [
 	...column,
+	'order-first',
 	// The panel hides while the sidebar is offcanvas.
 	'sidebar-offcanvas:hidden',
 	// A mini sidebar sets the rail width; the panel follows it instead of
