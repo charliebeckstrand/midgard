@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { groundPoints, ownGround } from '../../modules/map/engine/map-cluster/ground'
 import type { MapPoint2D } from '../../modules/map/engine/types'
+import { FLOAT } from '../helpers/geometry/tolerance'
 
 /**
  * A dot's pointer target keeps its whole outward reach and gives up only the ground lying nearer to a
@@ -24,7 +25,7 @@ function inside(ring: MapPoint2D[], point: MapPoint2D): boolean {
 
 		const cross = (b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x)
 
-		if (Math.abs(cross) < 1e-9) continue
+		if (Math.abs(cross) < FLOAT) continue
 
 		const at = cross > 0 ? 1 : -1
 

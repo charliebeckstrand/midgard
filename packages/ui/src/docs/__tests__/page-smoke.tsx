@@ -15,6 +15,7 @@ import { CI } from '../../../vitest.base.ts'
 import { catalogs } from '../app/catalogs.ts'
 import { LOCALES } from '../app/language.ts'
 import { findPages, type Page } from '../plugin/pages.ts'
+import { loadCopy } from './copy.tsx'
 import { restoreRootAfterCase } from './restore-root.ts'
 import { findSameText, readTexts, recordIntl } from './same-text.ts'
 
@@ -77,21 +78,11 @@ const TRANSLATED = LOCALES.slice(1)
 
 /**
  * The copy of each page module and each tab module in `locale`, keyed by
- * module path. The query of the copy is not a literal, so the copy loads
- * through `import`, not through `import.meta.glob`.
+ * module path ({@link loadCopy}).
  */
 function translatedModules(locale: string): Modules {
 	return Object.fromEntries(
-		pageModules.map((path) => [
-			path,
-			async () => {
-				const module: { default: ComponentType } = await import(
-					/* @vite-ignore */ `${path}?lang=${locale}`
-				)
-
-				return module.default
-			},
-		]),
+		pageModules.map((path) => [path, async () => (await loadCopy(path, locale)).default]),
 	)
 }
 

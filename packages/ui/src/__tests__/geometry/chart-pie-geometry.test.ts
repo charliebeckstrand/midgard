@@ -387,9 +387,9 @@ describe('pieCalloutFit', () => {
 
 			const far = farEdge(callout, extent)
 
-			expect(far).toBeGreaterThanOrEqual(-1e-6)
+			expect(far).toBeGreaterThanOrEqual(-EXACT_FRAME_TOLERANCE)
 
-			expect(far).toBeLessThanOrEqual(frameWidth + 1e-6)
+			expect(far).toBeLessThanOrEqual(frameWidth + EXACT_FRAME_TOLERANCE)
 		}
 	})
 
