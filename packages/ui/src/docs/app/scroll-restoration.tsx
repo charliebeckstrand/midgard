@@ -6,20 +6,17 @@ import { BREAKPOINT_WIDTHS, SIZE_CLASSES } from '../../types/responsive.ts'
 
 // The scroll of the docs. A load of a page, also a reload, starts at the top or
 // at the element of its hash, with the current item of each list in view at
-// the first paint (`ScrollRestorationScript`). A navigation in the app then
-// scrolls the window (`useNavigationScroll`).
+// the first paint (`ScrollRestorationScript`). A navigation in the app then scrolls the window
+// (`useNavigationScroll`).
 //
-// The script runs at the end of the document, and the first paint waits for
-// it only where a list that it scrolls shows (`FirstPaintLink`). The content
-// comes before the sidebar in the document (`SidebarLayout`), and a phone does
-// not show the sidebar. Thus a phone paints a page with no tabs from the first
-// parts of the document that the network gives. Until the new page paints,
-// Chrome on iOS shows the old page higher, under its toolbar.
+// The script runs at the end of the document. The first paint waits for it
+// only where a list that it scrolls shows (`FirstPaintLink`). A phone thus
+// paints a page with no tabs before the parser reaches the sidebar.
 
 /** The id of {@link ScrollRestorationScript}. */
 const SCRIPT_ID = 'scroll-restoration'
 
-/** The media query of the widths where the sidebar is in the page. */
+/** The widths where the sidebar shows. */
 const INLINE_SIDEBAR = `(width >= ${BREAKPOINT_WIDTHS[SIZE_CLASSES.expanded]})`
 
 /**
@@ -87,16 +84,9 @@ function restoreScroll(resolve: typeof resolveOffset) {
 const SCRIPT = `(${restoreScroll})(${resolveOffset})`
 
 /**
- * The link that holds the first paint until {@link ScrollRestorationScript}
- * has run. Render it in the `<head>`. A page with tabs waits at each width, so
- * its row of tabs paints at the current tab. A page with no tabs waits only at
- * the widths where the sidebar is in the page.
- *
- * The wait does not stop at the row of tabs. A script there reads the layout
- * while the parser is in the page, and in WebKit the first paint of a long
- * page then comes later than at the end of the document.
- *
- * @param tabs - Whether the page has tabs.
+ * Holds the first paint until {@link ScrollRestorationScript} has run. Render
+ * it in the `<head>`. A page with tabs waits at each width, so its row of tabs
+ * paints at the current tab. Other pages wait only where the sidebar shows.
  */
 export function FirstPaintLink({ tabs }: { tabs: boolean }) {
 	return (

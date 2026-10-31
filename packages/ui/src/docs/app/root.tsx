@@ -35,16 +35,6 @@ import { DocsSidebar } from './sidebar.tsx'
 import { StaleBuildScript } from './stale-build.tsx'
 
 /**
- * The page of the matched route. A path that only starts with the path of a
- * page, such as `/button/foo`, matches the not-found route, so it has no page.
- */
-function usePage() {
-	const matches = useMatches()
-
-	return pages.find((link) => matches.some((match) => match.id === link.path))
-}
-
-/**
  * The document of each page. `UIDocument` holds `AppearanceProvider`, so each
  * prerendered file has the script of the latin face before its content. The
  * fallback for a path with no page renders no route, so a provider in a route
@@ -52,7 +42,11 @@ function usePage() {
  * language of the locale that the page renders in.
  */
 export function Layout({ children }: { children: ReactNode }) {
-	const tabs = (usePage()?.tabs.length ?? 0) > 0
+	const matches = useMatches()
+
+	const tabs = pages.some(
+		(page) => page.tabs.length > 0 && matches.some((match) => match.id === page.path),
+	)
 
 	return (
 		<UIDocument
@@ -165,9 +159,13 @@ function Shell() {
 
 	const { sidebar, setSidebar } = useAppearance()
 
+	const matches = useMatches()
+
 	const intl = useIntl()
 
-	const page = usePage()
+	// The page of the matched route. A path that only starts with the path of a
+	// page, such as `/button/foo`, matches the not-found route, so it has no page.
+	const page = pages.find((link) => matches.some((match) => match.id === link.path))
 
 	// The root path lists the pages, and has no title of its own.
 	const title = page?.name ?? (pathname === '/' ? undefined : intl.formatMessage(messages.notFound))
