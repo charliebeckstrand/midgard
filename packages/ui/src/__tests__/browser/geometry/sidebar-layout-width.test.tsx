@@ -4,7 +4,7 @@ import { densitySteps } from '../../../core/density'
 import { SidebarLayout, SidebarLayoutBody } from '../../../layouts'
 import type { DensityLevel } from '../../../providers/density/context'
 import { DensityProvider } from '../../../providers/density/density'
-import { frames, present, renderUI } from '../../helpers'
+import { frames, getSlot, present, renderUI } from '../../helpers'
 import { renderFloatingSidebar } from '../helpers/floating-sidebar'
 import { holdRoot } from '../helpers/root-state'
 
