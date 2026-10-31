@@ -48,4 +48,18 @@ describe('Text', () => {
 
 		expect(bySlot(container, 'probe')).toHaveTextContent('sm')
 	})
+
+	it('pulses with a standing dim for reduced motion only when pulse is set', () => {
+		const { container, rerender } = renderUI(<Text pulse>Uploading</Text>)
+
+		const text = bySlot(container, 'text')
+
+		expect(text).toHaveClass('motion-safe:animate-pulse', 'motion-reduce:opacity-50')
+
+		rerender(<Text>Uploaded</Text>)
+
+		expect(text).not.toHaveClass('motion-safe:animate-pulse')
+
+		expect(text).not.toHaveClass('motion-reduce:opacity-50')
+	})
 })

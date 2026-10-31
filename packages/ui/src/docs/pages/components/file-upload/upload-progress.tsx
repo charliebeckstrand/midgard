@@ -9,6 +9,8 @@ export default function UploadProgress() {
 
 	const [progress, setProgress] = useState(0)
 
+	const uploaded = progress >= 100
+
 	useEffect(() => {
 		if (!file || progress >= 100) return
 
@@ -28,8 +30,14 @@ export default function UploadProgress() {
 			/>
 			{file && (
 				<Stack gap="sm">
-					<ProgressBar aria-label={`Upload of ${file.name}`} value={progress} />
-					<Text>{progress < 100 ? `Uploading ${file.name}…` : `Uploaded ${file.name}`}</Text>
+					<ProgressBar
+						aria-label={`Upload of ${file.name}`}
+						value={progress}
+						color={uploaded ? 'green' : undefined}
+					/>
+					<Text pulse={!uploaded}>
+						{uploaded ? `Uploaded ${file.name}` : `Uploading ${file.name}…`}
+					</Text>
 				</Stack>
 			)}
 		</Stack>

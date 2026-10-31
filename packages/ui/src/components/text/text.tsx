@@ -3,7 +3,7 @@ import { cn } from '../../core'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { k, type TextVariants } from '../../recipes/kata/text'
 
-/** Props for {@link Text}: the `tone`/`color`/`size` recipe axes, the polymorphic `as`/`href`/`render` surface, and the chosen element's native attributes. */
+/** Props for {@link Text}: the `tone`/`color`/`pulse`/`size` recipe axes, the polymorphic `as`/`href`/`render` surface, and the chosen element's native attributes. */
 export type TextProps = TextVariants & {
 	/**
 	 * The element (or component) to render. Defaults to `<p>`; set `as="span"`
@@ -21,19 +21,29 @@ export type TextProps = TextVariants & {
  * set, or a composed element via `render` (e.g. `render={<Link />}`) to wire
  * the app router link at the call site. Static leaf: renders in React Server
  * Components. Compose `<TextSkeleton>` in the loading tree for a placeholder.
+ * Set `pulse` on text that reports work in progress, such as an upload status.
  *
  * @remarks
  * Without `size`, the text takes the size of its parent. An explicit `size`
  * makes the text a density scope, so the text and its children, such as a
  * Code or a Kbd, take that step.
  */
-export function Text({ as = 'p', tone, color, size, className, children, ...props }: TextProps) {
+export function Text({
+	as = 'p',
+	tone,
+	color,
+	pulse,
+	size,
+	className,
+	children,
+	...props
+}: TextProps) {
 	return (
 		<PolymorphicStatic
 			as={as}
 			data-slot="text"
 			density={size}
-			className={cn(k({ tone, color }).base, size && k.sized, className)}
+			className={cn(k({ tone, color, pulse }).base, size && k.sized, className)}
 			{...props}
 		>
 			{children}
