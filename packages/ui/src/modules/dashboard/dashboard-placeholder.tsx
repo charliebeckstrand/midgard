@@ -1,18 +1,20 @@
 'use client'
 
 import { k } from '../../recipes/kata/dashboard'
-import { gridArea } from './engine/dashboard-layout'
+import { gridArea, shelfPaint } from './engine/dashboard-layout'
 import { useDashboardStore } from './use-dashboard-store'
 
 /**
  * The landing cell of a dragged tile. It shows where a drop now puts the tile:
  * the start cell when a drop changes nothing. It renders nothing when no drag is
- * live, also during a resize.
+ * live, also during a resize. In the re-pack, it fills the shelf of the tile.
  *
  * @internal
  */
 export function DashboardPlaceholder() {
 	const cell = useDashboardStore((view) => view.placeholder)
+
+	const projected = useDashboardStore((view) => view.projected)
 
 	if (cell === null) return null
 
@@ -21,7 +23,10 @@ export function DashboardPlaceholder() {
 			data-slot="dashboard-placeholder"
 			aria-hidden
 			// The canvas publishes the gutter, and the placeholder insets half of it on each side, as a tile does.
-			style={{ gridArea: gridArea(cell), margin: 'calc(var(--dashboard-gap) / 2)' }}
+			style={{
+				gridArea: projected ? shelfPaint(cell, true).gridArea : gridArea(cell),
+				margin: 'calc(var(--dashboard-gap) / 2)',
+			}}
 			className={k().placeholder}
 		/>
 	)

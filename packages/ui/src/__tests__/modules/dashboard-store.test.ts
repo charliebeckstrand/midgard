@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { dragPreview } from '../../modules/dashboard/engine/dashboard-drag'
+import { dragPreview, stackPreview } from '../../modules/dashboard/engine/dashboard-drag'
 import type { DashboardCell } from '../../modules/dashboard/engine/dashboard-layout'
 import type { DashboardSelection } from '../../modules/dashboard/engine/dashboard-scope'
 import {
@@ -88,12 +88,12 @@ describe('createDashboardStore', () => {
 		expect(store.getView().cells.get('a')).toBe(before.cells.get('a'))
 	})
 
-	it('stands editing down while the projection is live', () => {
+	it('keeps edit mode live while the projection is live', () => {
 		const store = createDashboardStore(
 			initial({ demands: new Map([['a', { minWidth: 600 }]]), width: 400 }),
 		)
 
-		expect(store.getView()).toMatchObject({ projected: true, editable: false })
+		expect(store.getView()).toMatchObject({ projected: true, editable: true })
 	})
 
 	it('holds the projection on screen until the width passes the threshold by 24 px', () => {
@@ -106,15 +106,15 @@ describe('createDashboardStore', () => {
 
 		store.setState({ width: 599 })
 
-		expect(store.getView()).toMatchObject({ projected: true, editable: false })
+		expect(store.getView().projected).toBe(true)
 
 		store.setState({ width: 623 })
 
-		expect(store.getView()).toMatchObject({ projected: true, editable: false })
+		expect(store.getView().projected).toBe(true)
 
 		store.setState({ width: 624 })
 
-		expect(store.getView()).toMatchObject({ projected: false, editable: true })
+		expect(store.getView().projected).toBe(false)
 
 		// The hold applies only to a projection on screen, so the saved layout stays at 623 px.
 		store.setState({ width: 623 })
@@ -151,7 +151,7 @@ describe('createDashboardStore', () => {
 
 		change(store)
 
-		expect(store.getView()).toMatchObject({ projected: false, editable: true })
+		expect(store.getView().projected).toBe(false)
 
 		expect(createDashboardStore(store.getState()).getView().projected).toBe(false)
 	})
@@ -177,7 +177,7 @@ describe('createDashboardStore', () => {
 
 		store.setState(patch(store))
 
-		expect(store.getView()).toMatchObject({ projected: true, editable: false })
+		expect(store.getView().projected).toBe(true)
 	})
 
 	it('holds the start width through a gesture', () => {
@@ -208,6 +208,52 @@ describe('createDashboardStore', () => {
 		store.setState({ gesture: null })
 
 		expect(store.getView().projected).toBe(true)
+	})
+
+	it('paints the re-pack of the preview of a drag in the projection', () => {
+		// Each tile starves at 400 px, so the board stacks a, b, c.
+		const store = createDashboardStore(
+			initial({
+				demands: new Map([
+					['a', { minWidth: 300 }],
+					['b', { minWidth: 300 }],
+					['c', { minWidth: 300 }],
+				]),
+				width: 400,
+			}),
+		)
+
+		const snapshot = [...store.getView().canonical]
+
+		const gesture = {
+			kind: 'drag' as const,
+			id: 'c',
+			snapshot,
+			preview: null,
+			change: null,
+			partner: null,
+			width: 400,
+			pitch: 400 / 24,
+			inline: 1 as const,
+		}
+
+		store.setState({ gesture })
+
+		// At the start, the dragged tile paints its own shelf.
+		expect(store.getView().cells.get('c')).toMatchObject({ x: 0, y: 2, w: 24 })
+
+		store.setState({
+			gesture: { ...gesture, preview: stackPreview(snapshot, 'c', 0, 24), change: 'move' },
+		})
+
+		const view = store.getView()
+
+		// The dragged tile takes its landing shelf, and the placeholder marks it.
+		expect(['c', 'a', 'b'].map((id) => view.cells.get(id)?.y)).toEqual([0, 1, 2])
+
+		expect(view.placeholder).toMatchObject({ id: 'c', y: 0, w: 24 })
+
+		expect(view).toMatchObject({ projected: true, editable: true })
 	})
 
 	it('reads a ratio that is not a finite number above 0 as no ratio', () => {

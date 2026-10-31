@@ -35,6 +35,10 @@ const selectEditable = (view: DashboardView) => view.editable
 /** Whether the board paints the responsive re-pack. */
 const selectProjected = (view: DashboardView) => view.projected
 
+/** Whether a gesture runs in the responsive re-pack. */
+const selectStacked = (view: DashboardView, state: DashboardState) =>
+	view.projected && state.gesture !== null
+
 /**
  * Whether a tile draws a header row. A tile with standard controls always has
  * one, so its content box keeps its height when the controls swap on the switch
@@ -279,6 +283,8 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	const projected = useDashboardStore(selectProjected)
 
+	const stacked = useDashboardStore(selectStacked)
+
 	const resizing = useDashboardStore(
 		useCallback(
 			(_: DashboardView, state: DashboardState) =>
@@ -318,7 +324,7 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	const { node, setNodeRef } = drag
 
-	useDashboardFlip(node, { cell, carried: drag.carried, snap: projected })
+	useDashboardFlip(node, { cell, carried: drag.carried, snap: projected, stacked })
 
 	const { reportError } = useDashboardActions()
 
@@ -377,7 +383,8 @@ export function DashboardTile(props: DashboardTileProps) {
 				{children}
 			</DashboardTileCard>
 
-			{movable && (
+			{/* A tile in the re-pack has no span of its own to resize. */}
+			{movable && !projected && (
 				<DashboardTileEdges
 					id={id}
 					cell={cell}

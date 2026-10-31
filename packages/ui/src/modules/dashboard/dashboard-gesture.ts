@@ -32,7 +32,7 @@ export type DashboardGestureMeasure = {
 	pitch: number
 	/** The inline direction of the canvas: `1` for ltr, `-1` for rtl. */
 	inline: 1 | -1
-	/** The painted cells at the start. A cancel returns to them. */
+	/** The resolved layout at the start. A cancel returns to it. */
 	snapshot: DashboardCell[]
 }
 
@@ -46,9 +46,9 @@ export type DashboardGestureEndCallbacks = {
 
 /**
  * Reads the board at the start of a drag or a resize: the column pitch, the
- * inline direction, and a snapshot of the painted cells. It returns `null` when
- * a gesture is live, when the board is not editable, or when the canvas has no
- * width.
+ * inline direction, and a snapshot of the resolved layout. It returns `null`
+ * when a gesture is live, when the board is not editable, when a resize starts
+ * in the re-pack, or when the canvas has no width.
  *
  * @remarks
  * A live gesture owns the board until it ends. A second gesture reads the
@@ -58,6 +58,7 @@ export type DashboardGestureEndCallbacks = {
  */
 export function measureGesture(
 	store: DashboardStore,
+	kind: 'drag' | 'resize',
 	canvas: HTMLElement | null,
 ): DashboardGestureMeasure | null {
 	const view = store.getView()
@@ -66,13 +67,14 @@ export function measureGesture(
 
 	if (canvas === null || store.getState().gesture !== null) return null
 
-	if (!view.editable || width <= 0) return null
+	// A tile in the re-pack has no span of its own to resize.
+	if (!view.editable || width <= 0 || (kind === 'resize' && view.projected)) return null
 
 	return {
 		view,
 		pitch: width / store.getState().columns,
 		inline: inlineSign(getComputedStyle(canvas).direction),
-		snapshot: [...view.cells.values()],
+		snapshot: [...view.canonical],
 	}
 }
 
@@ -136,8 +138,7 @@ export function endGesture(
 
 	const preview = gesture?.preview ?? null
 
-	// The snapshot equals the resolved layout at the start, because a gesture
-	// needs the saved layout on screen and not a projection.
+	// The snapshot is the resolved layout at the start.
 	const stale = gesture !== null && !sameGeometry(store.getView().canonical, gesture.snapshot)
 
 	if (!keep || gesture === null || preview === null || stale) {

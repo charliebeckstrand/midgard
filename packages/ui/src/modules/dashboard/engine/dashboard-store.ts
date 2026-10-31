@@ -22,7 +22,7 @@ import {
 	sameGeometry,
 	usableDemands,
 } from './dashboard-layout'
-import { PROJECTION_HOLD, projectLayout } from './dashboard-responsive'
+import { type DashboardProjection, PROJECTION_HOLD, projectLayout } from './dashboard-responsive'
 import { type DashboardSelection, liveSelections } from './dashboard-scope'
 
 /**
@@ -105,7 +105,10 @@ export type DashboardView = {
 	 * the canonical geometry, the demands, or the grid ends the hold.
 	 */
 	projected: boolean
-	/** Whether the gestures are live: edit mode, and no projection. */
+	/**
+	 * Whether the gestures are live, which is edit mode. In the projection, a drag
+	 * reorders the tiles, and a resize does not start.
+	 */
 	editable: boolean
 	/**
 	 * The selections that apply: those of the board, and those of a tile on the
@@ -192,22 +195,29 @@ function draggedId(gesture: DashboardGesture | null): string | null {
 
 /**
  * The cells on screen: the preview of a live gesture, else its snapshot, else the
- * projection. A dragged tile keeps its start cell, because the pointer carries it.
+ * projection. On the saved layout, a dragged tile keeps its start cell, because
+ * the pointer carries it. In the re-pack (`stacked`), the gesture paints the
+ * re-pack of its board, and a dragged tile takes its landing shelf. Each shelf
+ * takes the height of its tiles, so the tile holds its place in the flow, and
+ * the tile takes its move out of the pointer travel.
  */
 function paintedCells(
 	gesture: DashboardGesture | null,
 	projected: readonly DashboardCell[],
+	stacked: readonly DashboardCell[] | null,
 	prev: ReadonlyMap<string, DashboardCell> | undefined,
 ): Map<string, DashboardCell> {
 	const painted = gesture === null ? projected : (gesture.preview ?? gesture.snapshot)
 
-	const dragged = draggedId(gesture)
+	const board = stacked ?? painted
+
+	const dragged = stacked === null ? draggedId(gesture) : null
 
 	const start = gesture?.snapshot.find((cell) => cell.id === dragged)
 
 	const cells = new Map<string, DashboardCell>()
 
-	for (const cell of painted) {
+	for (const cell of board) {
 		const source = cell.id === dragged && start !== undefined ? start : cell
 
 		cells.set(cell.id, intern(prev?.get(cell.id), source))
@@ -218,18 +228,22 @@ function paintedCells(
 
 /**
  * The landing cell of the dragged tile: its cell in the preview, else its start
- * cell, where a drop changes nothing. A drag therefore always shows where the
- * tile lands. It returns `null` when no drag is live.
+ * cell, where a drop changes nothing. In the re-pack, it is the cell of the tile
+ * in the painted board. A drag therefore always shows where the tile lands. It
+ * returns `null` when no drag is live.
  */
 function landingCell(
 	gesture: DashboardGesture | null,
+	stacked: readonly DashboardCell[] | null,
 	prev: DashboardCell | null | undefined,
 ): DashboardCell | null {
 	const dragged = draggedId(gesture)
 
 	if (dragged === null) return null
 
-	const landing = (gesture?.preview ?? gesture?.snapshot)?.find((cell) => cell.id === dragged)
+	const board = stacked ?? gesture?.preview ?? gesture?.snapshot
+
+	const landing = board?.find((cell) => cell.id === dragged)
 
 	return landing === undefined ? null : intern(prev, landing)
 }
@@ -249,6 +263,11 @@ function resolveTravel(
 	const same = prev != null && prev.maxX === travel.maxX && prev.maxY === travel.maxY
 
 	return same ? prev : travel
+}
+
+/** The width that the projection reads: the held width, less {@link PROJECTION_HOLD}, else `measured`. */
+function projectionWidth(measured: number, held: boolean): number {
+	return held ? Math.max(1, measured - PROJECTION_HOLD) : measured
 }
 
 /** Returns `next`, or `prev` when the two lists hold the same items in the same order. */
@@ -306,6 +325,22 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 	const getHeld = memo(project)
 
+	// The re-pack of the board of a gesture, which each preview changes.
+	const getStacked = memo(project)
+
+	// In the re-pack, a gesture paints the re-pack of its board, at the width of the projection.
+	// It returns `null` when no gesture runs in the re-pack.
+	const stackedCells = (
+		gesture: DashboardGesture | null,
+		projection: DashboardProjection,
+		fit: number,
+		{ gap, columns, demands }: DashboardState,
+	): readonly DashboardCell[] | null => {
+		if (gesture === null || projection.identity) return null
+
+		return getStacked(gesture.preview ?? gesture.snapshot, fit, gap, columns, demands).cells
+	}
+
 	const derive = (prev: DashboardView | null, from: DashboardState | null): DashboardView => {
 		const { columns, gap, editing, layout, demands, declared, width, gesture, selections } = state
 
@@ -331,9 +366,11 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		// too, so a later change of a selection or of edit mode moves no tile.
 		const held = measured > 0 && ((sameBoard && prev?.projected === true) || !full.identity)
 
-		const projection = held
-			? getHeld(canonical, Math.max(1, measured - PROJECTION_HOLD), gap, columns, demands)
-			: full
+		const fit = projectionWidth(measured, held)
+
+		const projection = held ? getHeld(canonical, fit, gap, columns, demands) : full
+
+		const stacked = stackedCells(gesture, projection, fit, state)
 
 		const placed = getPlaced(layout, columns)
 
@@ -348,12 +385,12 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 		return {
 			canonical,
-			cells: paintedCells(gesture, projection.cells, prev?.cells),
+			cells: paintedCells(gesture, projection.cells, stacked, prev?.cells),
 			entries,
-			placeholder: landingCell(gesture, prev?.placeholder),
+			placeholder: landingCell(gesture, stacked, prev?.placeholder),
 			travel: resolveTravel(gesture, columns, prev?.travel),
 			projected: !projection.identity,
-			editable: editing && projection.identity,
+			editable: editing,
 			// Interned, so a mount that leaves the live selections as they were wakes no reader.
 			selections: internList(prev?.selections, liveSelections(selections, mounted)),
 			order:

@@ -13,16 +13,22 @@
  * 4. When that nearest origin is the start cell, a drop changes nothing.
  *
  * Only the tiles that the answer names move. Nothing moves on its own.
+ *
+ * In the re-pack, the board is a stack of shelves, and a drag reorders it as a
+ * list ({@link stackPreview}).
  */
 
 import { clamp } from '../../../utilities'
+import { moveItem } from '../../../utilities/move-item'
 import {
 	bottom,
 	type DashboardCell,
 	fits,
 	moveCell,
 	overlapArea,
+	patchCells,
 	ROW_SUBDIVISION,
+	readingOrder,
 	shiftCells,
 	swapCells,
 } from './dashboard-layout'
@@ -295,4 +301,93 @@ function reorderPreview(
 	}
 
 	return { cells: swapCells(snapshot, origin.id, partner.id), kind: 'swap', partner: partner.id }
+}
+
+/**
+ * The preview for the tile `id` at place `index` in reading order, for a drag in
+ * the re-pack, or `null` when a drop there changes nothing. The re-pack paints
+ * the tiles in reading order, so the saved layout takes the new order.
+ *
+ * @remarks
+ * Each tile before the first place that the move changes keeps its cell, and so
+ * does each static tile. From that place on, the tiles fill shelves in the new
+ * order, as the re-pack does. Each tile keeps its span. A shelf continues after
+ * the tile before it, and a tile that does not fit in the columns starts a new
+ * shelf under the shelf. A tile that meets a kept cell moves down until it fits.
+ * A packed layout therefore keeps its shape, and only the moved run changes.
+ *
+ * @param index - The place in reading order, from `0`, among all tiles.
+ */
+export function stackPreview(
+	snapshot: readonly DashboardCell[],
+	id: string,
+	index: number,
+	columns: number,
+): DashboardCell[] | null {
+	const order = readingOrder(snapshot)
+
+	const from = order.indexOf(id)
+
+	const origin = snapshot.find((cell) => cell.id === id)
+
+	const to = clamp(index, 0, order.length - 1)
+
+	if (origin === undefined || origin.static || from === to) return null
+
+	const patch = fillShelves(snapshot, moveItem(order, from, to), Math.min(from, to), columns)
+
+	return patch.size === 0 ? null : patchCells(snapshot, patch)
+}
+
+/**
+ * The moves that fill shelves with the tiles of `order` from place `first` on.
+ * Each tile before `first` keeps its cell, and so does each static tile. See
+ * {@link stackPreview}.
+ */
+function fillShelves(
+	snapshot: readonly DashboardCell[],
+	order: readonly string[],
+	first: number,
+	columns: number,
+): Map<string, Partial<DashboardCell>> {
+	const byId = new Map(snapshot.map((cell) => [cell.id, cell]))
+
+	const kept = order.slice(0, first).flatMap((key) => byId.get(key) ?? [])
+
+	const placed = [...kept, ...snapshot.filter((cell) => cell.static && !kept.includes(cell))]
+
+	// The shelf continues after the last kept tile.
+	const last = kept.at(-1)
+
+	let x = last === undefined ? 0 : last.x + last.w
+
+	let y = last?.y ?? 0
+
+	let floor = last === undefined ? 0 : last.y + last.h
+
+	const patch = new Map<string, Partial<DashboardCell>>()
+
+	for (const cell of order.slice(first).flatMap((key) => byId.get(key) ?? [])) {
+		if (cell.static) continue
+
+		if (x + cell.w > columns) {
+			x = 0
+
+			y = floor
+		}
+
+		let top = y
+
+		while (!fits(placed, { ...cell, x, y: top }, columns)) top += 1
+
+		placed.push({ ...cell, x, y: top })
+
+		if (cell.x !== x || cell.y !== top) patch.set(cell.id, { x, y: top })
+
+		x += cell.w
+
+		floor = Math.max(floor, top + cell.h)
+	}
+
+	return patch
 }

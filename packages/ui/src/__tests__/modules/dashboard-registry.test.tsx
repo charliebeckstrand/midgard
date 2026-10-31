@@ -327,7 +327,7 @@ describe('DashboardWidgetProvider', () => {
 		expect(screen.queryByRole('alert')).not.toBeInTheDocument()
 	})
 
-	it('demands no width for a kind that no widget claims, so edit mode stays live', () => {
+	it('demands no width for a kind that no widget claims, so the saved layout stays', () => {
 		const board = (tile: DashboardSpecTile) => (
 			<DashboardWidgetProvider widgets={WIDGETS}>
 				<Dashboard
@@ -342,16 +342,17 @@ describe('DashboardWidgetProvider', () => {
 
 		const { rerender } = renderUI(board({ id: 'f', widget: 'forecast', title: 'Forecast' }))
 
-		// At a 50 px pitch, the default 320 px floor needs 7 columns. The tile has 2.
-		expect(screen.getByRole('button', { name: 'Move Forecast' })).toBeInTheDocument()
+		// At a 50 px pitch, the default 320 px floor needs 7 columns. The tile has 2. The
+		// resize splitters show only on the saved layout.
+		expect(screen.getAllByRole('separator', { name: 'Resize Forecast' })).not.toHaveLength(0)
 
-		// A claimed kind with no minWidth takes that floor, so edit mode stands down. This
+		// A claimed kind with no minWidth takes that floor, so the board paints the re-pack. This
 		// control fails when the canvas has no width, which also hides a revert of the case above.
 		rerender(board({ id: 'f', widget: 'metric', title: 'Metric', options: { label: 'Metric' } }))
 
 		expect(screen.getByRole('group', { name: 'Metric' })).toBeInTheDocument()
 
-		expect(screen.queryByRole('button', { name: /^Move / })).not.toBeInTheDocument()
+		expect(screen.queryByRole('separator', { name: /^Resize / })).not.toBeInTheDocument()
 	})
 
 	it('states the gap for a kind named after a member of the object prototype', () => {

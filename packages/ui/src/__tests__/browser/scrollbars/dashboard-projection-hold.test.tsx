@@ -27,7 +27,7 @@ describe('dashboard projection at a classic scrollbar (real browser, real scroll
 		// Tile a starves under 300 px. The box is 307 px wide, and 292 px with the scrollbar.
 		renderUI(
 			<div style={{ width: 307, height: 120, overflowX: 'hidden', overflowY: 'auto' }}>
-				<Dashboard aria-label="Board" editing gap={0} layout={{ defaultValue: LAYOUT }}>
+				<Dashboard aria-label="Board" gap={0} layout={{ defaultValue: LAYOUT }}>
 					<DashboardTile id="a" title="A" minWidth={150} />
 
 					<DashboardTile id="b" title="B" minWidth={0} />
@@ -39,8 +39,11 @@ describe('dashboard projection at a classic scrollbar (real browser, real scroll
 
 		const tile = getSlot(board, 'dashboard-tile')
 
+		// The re-pack paints each shelf as one row of auto height.
+		const canvas = getSlot(board, 'dashboard-canvas')
+
 		const read = () =>
-			`${board.hasAttribute('data-editing') ? 'saved' : 'projected'} ${Math.round(tile.getBoundingClientRect().width)}`
+			`${canvas.style.gridAutoRows === 'auto' ? 'projected' : 'saved'} ${Math.round(tile.getBoundingClientRect().width)}`
 
 		// The first frames measure the canvas and settle it.
 		for (let step = 0; step < 4; step++) await frame()

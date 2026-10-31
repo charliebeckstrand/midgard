@@ -71,7 +71,7 @@ function edgeCursor(edge: DashboardResizeEdge, inline: 1 | -1): DragCursor {
 
 /** The pitch and the limits of one resize of the tile `id`, or `null` when the tile cannot resize. */
 function resizeContext(store: DashboardStore, canvas: HTMLElement | null, id: string) {
-	const measure = measureGesture(store, canvas)
+	const measure = measureGesture(store, 'resize', canvas)
 
 	const origin = measure?.view.cells.get(id)
 

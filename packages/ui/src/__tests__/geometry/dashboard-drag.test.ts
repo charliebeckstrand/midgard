@@ -4,6 +4,7 @@ import {
 	dragPreview,
 	dragTravel,
 	nearestFit,
+	stackPreview,
 	travelOffset,
 } from '../../modules/dashboard/engine/dashboard-drag'
 import {
@@ -12,6 +13,70 @@ import {
 	ROW_SUBDIVISION,
 } from '../../modules/dashboard/engine/dashboard-layout'
 import { cell, origins } from '../helpers/dashboard-cells'
+
+describe('stackPreview', () => {
+	// The docs board: three cards on a shelf, then two charts of another height.
+	const board = [
+		cell('revenue', 0, 0, 8, 20),
+		cell('units', 8, 0, 8, 20),
+		cell('sold', 16, 0, 8, 20),
+		cell('regions', 0, 20, 12, 27),
+		cell('mix', 12, 20, 12, 27),
+	]
+
+	it('moves a tile before a tile of another height', () => {
+		const preview = stackPreview(board, 'regions', 0, 24)
+
+		expect(origins(preview ?? undefined)).toEqual({
+			regions: [0, 0],
+			revenue: [12, 0],
+			units: [0, 27],
+			sold: [8, 27],
+			mix: [0, 47],
+		})
+	})
+
+	it('moves the first tile to the second place, and nothing past the run', () => {
+		const preview = stackPreview(board, 'revenue', 1, 24)
+
+		expect(origins(preview ?? undefined)).toEqual({
+			units: [0, 0],
+			revenue: [8, 0],
+			sold: [16, 0],
+			regions: [0, 20],
+			mix: [12, 20],
+		})
+	})
+
+	it('keeps each tile before the run in its cell, also past a gap', () => {
+		const gapped = [cell('a', 4, 0, 8, 10), cell('b', 0, 30, 8, 10), cell('c', 8, 30, 8, 10)]
+
+		expect(origins(stackPreview(gapped, 'c', 1, 24) ?? undefined)).toEqual({
+			a: [4, 0],
+			c: [12, 0],
+			b: [0, 10],
+		})
+	})
+
+	it('keeps a static tile, and moves a tile down past it', () => {
+		const held = [cell('s', 8, 0, 8, 10, true), cell('a', 0, 0, 8, 10), cell('b', 0, 10, 8, 10)]
+
+		const preview = stackPreview(held, 'b', 0, 24)
+
+		expect(origins(preview ?? undefined)).toEqual({ s: [8, 0], b: [0, 0], a: [8, 10] })
+
+		expect(preview?.every((item) => fits(preview, item, 24))).toBe(true)
+	})
+
+	it('changes nothing at the start place or for a static tile', () => {
+		expect(stackPreview(board, 'units', 1, 24)).toBeNull()
+
+		expect(stackPreview([cell('s', 0, 0, 8, 10, true)], 's', 0, 24)).toBeNull()
+
+		// A place past the end clamps to the last place, which is the start place of a lone tile.
+		expect(stackPreview([cell('a', 0, 0, 8, 10)], 'a', 3, 24)).toBeNull()
+	})
+})
 
 describe('dragPreview', () => {
 	const board = [cell('a', 0, 0, 8, 10), cell('b', 8, 0, 8, 10), cell('c', 0, 10, 16, 10)]

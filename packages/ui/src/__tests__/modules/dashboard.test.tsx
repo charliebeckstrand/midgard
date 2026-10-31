@@ -734,7 +734,10 @@ describe('Dashboard', () => {
 
 		expect(onProjectedChange).toHaveBeenCalledExactlyOnceWith(true)
 
-		expect(screen.queryByRole('button', { name: 'Move Orders' })).not.toBeInTheDocument()
+		// In the re-pack, a tile drags to reorder, and it does not resize.
+		expect(screen.getByRole('button', { name: 'Move Orders' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('separator', { name: 'Resize Orders' })).not.toBeInTheDocument()
 
 		rerender(board(0))
 

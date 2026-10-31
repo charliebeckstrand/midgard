@@ -6233,7 +6233,7 @@
 	},
 	"docs.prop.columns": {
 		"defaultMessage": "Columns",
-		"description": "The label of a field of a playground in the docs. The field sets the prop columns of Columns, Dashboard."
+		"description": "The label of a field of a playground in the docs. The field sets the prop columns of Columns."
 	},
 	"docs.prop.condensed": {
 		"defaultMessage": "Condensed",
