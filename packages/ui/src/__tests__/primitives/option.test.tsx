@@ -1,6 +1,12 @@
 import { createContext, createRef, type FC, Profiler, type ReactNode, use } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { createSelectOption, Option } from '../../primitives/option/option'
+import {
+	createSelectOption,
+	Option,
+	type OptionSelectionContext,
+} from '../../primitives/option/option'
+import { useOptionSelection } from '../../primitives/option/use-option-selection'
+import { createKeyedStore } from '../../utilities'
 import { bySlot, fireEvent, noop, renderUI, screen } from '../helpers'
 
 describe('Option', () => {
@@ -172,15 +178,8 @@ describe('Option', () => {
 	})
 })
 
-type TestSelection = {
-	value: unknown
-	multiple: boolean
-	onSelect: (value: unknown) => void
-	capitalize?: boolean
-}
-
-const SelectionContext = createContext<TestSelection>({
-	value: undefined,
+const SelectionContext = createContext<OptionSelectionContext>({
+	selection: createKeyedStore(() => false),
 	multiple: false,
 	onSelect: noop,
 })
@@ -190,11 +189,15 @@ const TestContext: FC<{
 	value?: unknown
 	multiple?: boolean
 	capitalize?: boolean
-}> = ({ children, value, multiple, capitalize }) => (
-	<SelectionContext value={{ value, multiple: multiple ?? false, onSelect: noop, capitalize }}>
-		{children}
-	</SelectionContext>
-)
+}> = ({ children, value, multiple = false, capitalize }) => {
+	const selection = useOptionSelection(value, multiple)
+
+	return (
+		<SelectionContext value={{ selection, multiple, onSelect: noop, capitalize }}>
+			{children}
+		</SelectionContext>
+	)
+}
 
 const {
 	Option: SelectOption,
@@ -341,4 +344,42 @@ describe('createSelectOption', () => {
 
 		expect(screen.getByRole('option', { name: 'B' })).toHaveAttribute('aria-selected', 'true')
 	})
+	it.each([
+		{ multiple: false, before: 'a', after: 'b', changed: ['a', 'b'] },
+		{ multiple: true, before: ['a'], after: ['a', 'c'], changed: ['c'] },
+	])(
+		'a selection change renders only the options whose state changes (multiple: $multiple)',
+		({ multiple, before, after, changed }) => {
+			const commits = vi.fn()
+
+			// The options are created once, so a commit under a Profiler comes from
+			// the option itself and not from its parent.
+			const options = ['a', 'b', 'c', 'd'].map((value) => (
+				<Profiler key={value} id={value} onRender={commits}>
+					<SelectOption value={value}>{value}</SelectOption>
+				</Profiler>
+			))
+
+			const { rerender } = renderUI(
+				<TestContext value={before} multiple={multiple}>
+					{options}
+				</TestContext>,
+			)
+
+			commits.mockClear()
+
+			rerender(
+				<TestContext value={after} multiple={multiple}>
+					{options}
+				</TestContext>,
+			)
+
+			expect(commits.mock.calls.map(([id]) => id).sort()).toEqual(changed)
+
+			expect(screen.getByRole('option', { name: 'c' })).toHaveAttribute(
+				'aria-selected',
+				String(multiple),
+			)
+		},
+	)
 })

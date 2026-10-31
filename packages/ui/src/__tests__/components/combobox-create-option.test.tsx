@@ -11,6 +11,7 @@ import { ComboboxContext } from '../../components/combobox/context'
 import { useComboboxQuery } from '../../components/combobox/use-combobox-query'
 import { DeferredQueryContext, QueryContext } from '../../primitives/query'
 import { LocaleProvider } from '../../providers/locale'
+import { createKeyedStore } from '../../utilities'
 import { fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 const NAMES = ['Texas LTL', 'Georgia TL']
@@ -60,7 +61,14 @@ function renderRow(query: string, deferredQuery: string, props: ComboboxCreateOp
 	const onSelect = vi.fn()
 
 	renderUI(
-		<ComboboxContext value={{ value: undefined, multiple: false, onSelect, capitalize: false }}>
+		<ComboboxContext
+			value={{
+				selection: createKeyedStore(() => false),
+				multiple: false,
+				onSelect,
+				capitalize: false,
+			}}
+		>
 			<QueryContext value={{ query, deferredQuery }}>
 				<DeferredQueryContext value={deferredQuery}>
 					<ComboboxCreateOption taken={NAMES} {...props} />

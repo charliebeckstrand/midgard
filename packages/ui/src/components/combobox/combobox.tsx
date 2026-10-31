@@ -41,7 +41,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { hasSelection } from '../../primitives/option/option'
+import { hasSelection, useOptionSelection } from '../../primitives/option/use-option-selection'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
@@ -862,14 +862,16 @@ export function Combobox<T>({
 
 	// The input display reads the live `value`; the menu reads `selectionValue`,
 	// which stays frozen until the panel finishes closing.
+	const selection = useOptionSelection(selectionValue, multiple)
+
 	const contextValue = useMemo(
 		() => ({
-			value: selectionValue,
+			selection,
 			multiple,
 			onSelect: guardedSelect as (v: unknown) => void,
 			capitalize,
 		}),
-		[selectionValue, multiple, guardedSelect, capitalize],
+		[selection, multiple, guardedSelect, capitalize],
 	)
 
 	// The menu content reads the frozen-through-close query so its filter (and a

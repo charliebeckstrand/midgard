@@ -19,7 +19,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { hasSelection } from '../../primitives/option/option'
+import { hasSelection, useOptionSelection } from '../../primitives/option/use-option-selection'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import { k, type scale } from '../../recipes/kata/listbox'
@@ -498,14 +498,16 @@ export function Listbox<T>({
 	// The trigger label reads the live `value` (updates instantly on select); the
 	// menu reads `selectionValue`, which stays frozen until the panel finishes
 	// closing, keeping the selected row stable during the exit animation.
+	const selection = useOptionSelection(selectionValue, multiple)
+
 	const contextValue = useMemo(
 		() => ({
-			value: selectionValue,
+			selection,
 			multiple,
 			onSelect: guardedSelect as (v: unknown) => void,
 			capitalize,
 		}),
-		[selectionValue, multiple, guardedSelect, capitalize],
+		[selection, multiple, guardedSelect, capitalize],
 	)
 
 	return (
