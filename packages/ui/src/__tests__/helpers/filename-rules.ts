@@ -90,14 +90,21 @@ function checkSymbolMatch(folderPath: string, file: string): string | null {
 
 	const content = readFileSync(join(folderPath, file), 'utf8')
 
+	// A hook can add words before or after the stem of its file:
+	// `use-query-value.ts` can export `useDeferredQueryValue`, and
+	// `use-content-height.ts` can export `useContentHeightAvailable`.
+	const name = isHook ? `use\\w*${expected.slice(3)}\\w*` : expected
+
 	// Match `export function Foo`, `export const Foo`, `export class Foo`,
 	// `export async function Foo`, or `export { ..., Foo, ... }`.
 	const pattern = new RegExp(
-		`export\\s+(?:async\\s+)?(?:function|const|class|let)\\s+${expected}\\b|` +
-			`export\\s*\\{[^}]*\\b${expected}\\b`,
+		`export\\s+(?:async\\s+)?(?:function|const|class|let)\\s+${name}\\b|` +
+			`export\\s*\\{[^}]*\\b${name}\\b`,
 	)
 
-	return pattern.test(content) ? null : `expected an exported \`${expected}\` matching the filename`
+	return pattern.test(content)
+		? null
+		: `expected an exported \`${isHook ? `use…${expected.slice(3)}…` : expected}\` matching the filename`
 }
 
 export function listLeafFolders(root: string): string[] {

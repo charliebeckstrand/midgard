@@ -24,7 +24,7 @@ export function useQueryValue(query: string, deferredQuery: string): QueryContex
  *
  * @internal
  */
-export function useDeferredQueryText(query: string): string {
+export function useDeferredQueryValue(query: string): string {
 	const deferred = useDeferredValue(query)
 
 	return query === '' ? '' : deferred

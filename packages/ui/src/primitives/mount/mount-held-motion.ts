@@ -1,4 +1,4 @@
-import type { MountHoldState } from './use-mount-hold'
+import type { MountHoldState } from './use-mount'
 
 /**
  * The recipe preset a disclosure panel animates with: the `AnimatePresence`

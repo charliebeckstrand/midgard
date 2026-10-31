@@ -21,7 +21,7 @@ import {
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { useDeferredQueryText } from '../../primitives/query/use-query-value'
+import { useDeferredQueryValue } from '../../primitives/query/use-query-value'
 import { isReservedTextboxKey } from '../combobox/use-combobox-input'
 
 type CommandPaletteStateOptions = {
@@ -153,7 +153,7 @@ function createSourceRegistry(
 export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteStateOptions) {
 	const [query, setQuery] = useState('')
 
-	const deferredQuery = useDeferredQueryText(query)
+	const deferredQuery = useDeferredQueryValue(query)
 
 	// True while the deferred query lags the input. The listbox then holds the
 	// results of an earlier query, and the highlight sits on one of them.

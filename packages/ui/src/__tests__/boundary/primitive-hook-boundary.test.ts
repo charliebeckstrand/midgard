@@ -17,7 +17,11 @@ import {
 //
 //   1. In `primitives/`, a file that exports a hook is a `use-*` file or a
 //      `context` file.
-//   2. Outside `primitives/`, no file imports the main `<name>` file of a
+//   2. Each hook that a `use-<stem>` file exports has the stem in its name.
+//      Words can come before or after the stem: `use-query-value.ts` can
+//      export `useQueryValue` and `useDeferredQueryValue`, and
+//      `use-content-height.ts` can export `useContentHeightAvailable`.
+//   3. Outside `primitives/`, no file imports the main `<name>` file of a
 //      primitive that has a barrel. It imports the barrel or a leaf file. A
 //      primitive with no barrel has no other entry, so its main file is open.
 
@@ -28,7 +32,7 @@ const testsDir = join(srcDir, '__tests__')
 const HOOK_FILE = /^(?:use-[a-z0-9-]+|context)\.tsx?$/
 
 // `export function useX`, `export const useX`, and `export const [XContext, useX]`.
-const DECLARED_HOOK = /^export\s+(?:function\s+use[A-Z]|const\s+(?:use[A-Z]|\[[^\]]*\buse[A-Z]))/m
+const DECLARED_HOOK = /^export\s+(?:function|const)\s+(use[A-Z]\w*|\[[^\]]*\])/gm
 
 // `export { useX }` with no `from`: a local binding that the file exports.
 const LISTED_HOOK = /^export\s+\{([^}]*)\}(?!\s*from)/gm
@@ -36,14 +40,28 @@ const LISTED_HOOK = /^export\s+\{([^}]*)\}(?!\s*from)/gm
 const PRIMITIVE_MAIN_IMPORT =
 	/from\s+['"](?:\.\.\/)+primitives\/([a-z][a-z0-9-]*)\/\1(?:\.tsx?)?['"]/g
 
-function exportsHook(source: string): boolean {
-	if (DECLARED_HOOK.test(source)) return true
+function exportedHooks(source: string): string[] {
+	const hooks: string[] = []
 
-	for (const match of source.matchAll(LISTED_HOOK)) {
-		if (/\buse[A-Z]/.test(match[1] ?? '')) return true
-	}
+	for (const match of source.matchAll(DECLARED_HOOK)) hooks.push(...hookNames(match[1] ?? ''))
 
-	return false
+	for (const match of source.matchAll(LISTED_HOOK)) hooks.push(...hookNames(match[1] ?? ''))
+
+	return hooks
+}
+
+function hookNames(text: string): string[] {
+	return text.match(/\buse[A-Z]\w*/g) ?? []
+}
+
+/** The stem of a `use-*` file in PascalCase: `use-query-value.ts` gives `QueryValue`. */
+function hookStem(file: string): string {
+	return basename(file)
+		.replace(/^use-/, '')
+		.replace(/\.tsx?$/, '')
+		.split('-')
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join('')
 }
 
 function primitivesWithBarrel(): Set<string> {
@@ -73,12 +91,31 @@ describe('primitive hook boundary', () => {
 
 			if (name === 'index.ts' || HOOK_FILE.test(name)) return
 
-			if (exportsHook(stripSourceComments(content))) violations.push(srcRelative(file))
+			if (exportedHooks(stripSourceComments(content)).length > 0) violations.push(srcRelative(file))
 		})
 
 		expect(
 			violations,
 			`hook exported from a primitive file that is not use-* or context (CONVENTIONS.md §3.3):\n  ${violations.join('\n  ')}`,
+		).toEqual([])
+	})
+
+	it('a use-* file names each hook that it exports after the file', () => {
+		const violations: string[] = []
+
+		walkSource(primitivesDir, (file, content) => {
+			if (!isSourceFile(file) || !basename(file).startsWith('use-')) return
+
+			const stem = hookStem(file)
+
+			for (const hook of exportedHooks(stripSourceComments(content))) {
+				if (!hook.slice(3).includes(stem)) violations.push(`${srcRelative(file)}: ${hook}`)
+			}
+		})
+
+		expect(
+			violations,
+			`hook without the stem of its file in its name (rename the hook or the file):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 

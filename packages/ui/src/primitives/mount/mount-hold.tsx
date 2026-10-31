@@ -1,7 +1,7 @@
 'use client'
 
 import { Activity, type ReactNode } from 'react'
-import type { MountHoldState } from './use-mount-hold'
+import type { MountHoldState } from './use-mount'
 
 /** Props for {@link MountHold}. */
 export type MountHoldProps = {

@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 import { ReducedMotion } from '../reduced-motion'
 import { type HeldMotionPreset, heldMotionProps, heldMotionTargets } from './mount-held-motion'
 import { MountHold } from './mount-hold'
-import type { MountHoldState } from './use-mount-hold'
+import type { MountHoldState } from './use-mount'
 
 /** Props for {@link MountPresence}. */
 export type MountPresenceProps = {
